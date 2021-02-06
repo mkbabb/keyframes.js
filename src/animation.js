@@ -1,6 +1,5 @@
 import { clamp, bounceInEase, easeInOutCubic, smoothStep3 } from "./math";
 import { getOffset, sleep, throttle } from "./utils";
-import { $ } from "../node_modules/yajr/src/dollar";
 class Clock {
     constructor(autoStart = true, timeStep = 1000 / 60, timeOut = 120) {
         this.autoStart = autoStart;
@@ -126,11 +125,7 @@ async function blockCSSTimingTransition(el, func) {
         el.style.transition = transitions[index];
     });
 }
-async function animateElements(el, to, from, duration, transformFunc, timingFunc = easeInOutCubic) {
-    // TODO: use ?? here.
-    to = to === undefined ? window.innerWidth : to;
-    from = from === undefined ? 0 : from;
-    duration = duration === undefined ? 1000 : duration;
+async function animateElements(el, to = window.innerWidth, from = 0, duration = 1000, transformFunc, timingFunc = easeInOutCubic) {
     const elArray = !(el instanceof Array) ? [el] : el;
     const wrap = function (v) {
         for (const el of elArray) {
@@ -174,81 +169,6 @@ async function smoothRotate(el, to, from, duration, rad = false) {
         return false;
     };
     await animateElements(el, to, from, duration, transformFunc);
-}
-function createProgressBar(el, colors, leftAttrs, rightAttrs) {
-    let i = 0;
-    for (const color of colors) {
-        const shape = $(document.createElement("div"));
-        if (i === 0) {
-            shape.setattr(leftAttrs);
-        }
-        if (i === colors.length - 1) {
-            shape.setattr(rightAttrs);
-        }
-        shape.classList.add("progress-bar");
-        if (String(color).indexOf("gradient") !== -1) {
-            shape.style.backgroundImage = color;
-        }
-        else {
-            shape.style.backgroundColor = color;
-        }
-        el.appendChild(shape);
-        i++;
-    }
-}
-async function animateProgressBar(el, to, from, duration, stops) {
-    to = to === undefined ? 1 : to;
-    from = from === undefined ? 0 : from;
-    duration = duration === undefined ? 1000 : duration;
-    stops = stops === undefined ? el.children.length : stops;
-    const elStep = Math.floor(stops / el.children.length);
-    const setProgressBar = function (el, t) {
-        const step = 1 / stops;
-        let s = t;
-        for (const child of el.children) {
-            let v = 0;
-            for (let i = 0; i < elStep; i++) {
-                if (s > 0) {
-                    if (s - step > 0) {
-                        v += step;
-                    }
-                    else {
-                        v += s;
-                    }
-                    s -= step;
-                }
-                else {
-                    break;
-                }
-            }
-            child.style.width = `${100 * v}%`;
-        }
-    };
-    let elArray;
-    if (!(el instanceof Array)) {
-        elArray = [el];
-    }
-    else {
-        elArray = el;
-    }
-    for (const el of elArray) {
-        el.setAttribute("percent-complete", to);
-    }
-    const transformFunc = function (v) {
-        for (const el of elArray) {
-            setProgressBar(el, v);
-        }
-        return false;
-    };
-    await smoothAnimate(to, from, duration, transformFunc, easeInOutCubic);
-}
-async function animateProgressBarWrapper(el, duration, stops) {
-    duration = duration === undefined ? 1000 : duration;
-    stops = stops === undefined ? el.children.length : stops;
-    const step = 1 / stops;
-    const from = parseFloat(el.getAttribute("percent-complete")) || 0;
-    const to = clamp(from + step, 0, 1);
-    await animateProgressBar(el, to, from, duration, stops);
 }
 async function rippleButton(ev, buttonEl, rippleEl, to, from, duration) {
     const buttonOffset = getOffset(buttonEl);
