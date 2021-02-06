@@ -1,4 +1,4 @@
-export function clamp(x: number, lowerLimit: number, upperLimit: number) {
+export function clamp(x: number, lowerLimit: number, upperLimit: number): number {
     if (x < lowerLimit) {
         return lowerLimit;
     } else if (x > upperLimit) {
@@ -7,7 +7,7 @@ export function clamp(x: number, lowerLimit: number, upperLimit: number) {
     return x;
 }
 
-export function normalize(x0: number, min: number, max: number) {
+export function normalize(x0: number, min: number, max: number): number {
     return (x0 - min) / (max - min);
 }
 

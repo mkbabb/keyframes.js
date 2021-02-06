@@ -26,6 +26,6 @@
     "typescript-eslint": "^0.0.1-alpha.0"
   },
   "dependencies": {
-    "git": "file:github.com:mkbabb/yajr.git"
+    "yajr": "github:mkbabb/yajr"
   }
 }
