@@ -14,35 +14,27 @@ export function normalize(x0: number, min: number, max: number): number {
 function DeCasteljau(t: number, points: number[]) {
     const dp: Map<string, number> = new Map();
 
-    const inner = function (
-        t: number,
-        points: number[],
-        ix1: number,
-        ix2: number,
-        n: number
-    ) {
-        let k = `${n}${ix1}${ix2}`;
+    const inner = function (i: number, j: number, n: number) {
+        const key = `${n}${i}${j}`;
 
-        if (dp.has(k)) {
-            return dp.get(k);
+        if (dp.has(key)) {
+            return dp.get(key);
         }
 
-        let b0: number, b1: number;
+        const [b0, b1] = (() => {
+            if (n == 1) {
+                return [points[i], points[j]];
+            } else {
+                return [inner(i, j, n - 1), inner(j, j + 1, n - 1)];
+            }
+        })();
 
-        if (n == 1) {
-            b0 = points[ix1];
-            b1 = points[ix2];
-        } else {
-            n--;
-            b0 = inner(t, points, ix1, ix2, n);
-            b1 = inner(t, points, ix2, ix2 + 1, n);
-        }
-        let v = (1 - t) * b0 + t * b1;
-        dp.set(k, v);
+        const value = (1 - t) * b0 + t * b1;
+        dp.set(key, value);
 
-        return v;
+        return value;
     };
-    return inner(t, points, 0, 1, points.length - 1);
+    return inner(0, 1, points.length - 1);
 }
 
 export function cubicBezier(t: number, x1: number, y1: number, x2: number, y2: number) {

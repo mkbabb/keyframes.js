@@ -96,6 +96,7 @@ async function smoothAnimate(
     }
     clock.start();
     handle = requestAnimationFrame(animationLoop);
+    
     await sleep(duration);
 
     return handle;
