@@ -12,5 +12,7 @@
     },
     "include": [
         "src/animation.ts",
+        "src/math.ts",
+        "src/utils.ts",
     ],
 }
