@@ -66,7 +66,7 @@ export function animationLoop(
     requestAnimationFrame(animationLoop);
 }
 
-async function smoothAnimateInternal(
+export async function smoothAnimateInternal(
     duration: number,
     transformFunc: (t: number) => void,
     timingFunc: (t: number, from: number, distance: number, duration: number) => number

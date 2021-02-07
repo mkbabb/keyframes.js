@@ -46,7 +46,7 @@ export function animationLoop(drawFunc, timeStep = 1000 / 60) {
     }
     requestAnimationFrame(animationLoop);
 }
-async function smoothAnimateInternal(duration, transformFunc, timingFunc) {
+export async function smoothAnimateInternal(duration, transformFunc, timingFunc) {
     function drawFunc(clock) {
         const c = clamp(clock.elapsedTime, 0, duration);
         const t = timingFunc(c, 0, 1, duration);
