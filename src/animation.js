@@ -1,5 +1,5 @@
 import { clamp, bounceInEase, easeInOutCubic, smoothStep3 } from "./math";
-import { getOffset, sleep, throttle } from "./utils";
+import { getOffset, sleep } from "./utils";
 class Clock {
     constructor(autoStart = true, timeStep = 1000 / 60, timeOut = 120) {
         this.autoStart = autoStart;
@@ -209,4 +209,4 @@ async function smoothScroll(to, from, duration) {
     };
     await smoothAnimate(to, from, duration, transformFunc, bounceInEase);
 }
-export { sleep, throttle, smoothAnimate, animateElements, animateProgressBarWrapper, animationLoopOuter, smoothScroll, smoothRotate, slideLeft, slideRight, slideRightWrap, fadeOut, rippleButton, createProgressBar, animateProgressBar };
+export { sleep, smoothAnimate, animateElements, animationLoopOuter, smoothScroll, smoothRotate, slideLeft, slideRight, slideRightWrap, fadeOut, rippleButton };
