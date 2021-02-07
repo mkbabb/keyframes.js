@@ -41,4 +41,16 @@ function getComputedVariable(v: string, el = document.documentElement) {
     return window.getComputedStyle(el).getPropertyValue(v);
 }
 
+export function throttle(func: (...args: any) => void, wait = 1000) {
+    let enableCall = true;
+
+    return function (...args: any) {
+        if (!enableCall) return;
+
+        enableCall = false;
+        func(...args);
+        setTimeout(() => (enableCall = true), wait);
+    };
+}
+
 export { getOffset, getComputedVariable, emToPixels, sleep };

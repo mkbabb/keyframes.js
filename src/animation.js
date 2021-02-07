@@ -1,16 +1,15 @@
-import { clamp, bounceInEase, easeInOutCubic, smoothStep3 } from "./math";
-import { getOffset, sleep } from "./utils";
+import { clamp, bounceInEase, easeInOutCubic, smoothStep3, lerp } from "./math.js";
+import { getOffset, sleep } from "./utils.js";
 class Clock {
-    constructor(autoStart = true, timeStep = 1000 / 60, timeOut = 120) {
-        this.autoStart = autoStart;
+    constructor(timeStep = 1000 / 60, timeOut = 120) {
         this.timeStep = Math.floor(timeStep);
         this.timeOut = timeOut;
     }
     start() {
-        this.startTime = Date.now();
+        this.startTime = performance.now();
         this.prevTime = this.startTime;
         this.elapsedTime = 0;
-        this.elapsedTicks = 0;
+        this.elapsedFrames = 0;
         this.running = true;
         this.delta = 0;
     }
@@ -22,96 +21,52 @@ class Clock {
     }
     tick() {
         this.delta = 0;
-        if (this.autoStart && !this.running) {
-            this.start();
-        }
-        else if (this.running) {
-            const currentTime = Date.now();
+        if (this.running) {
+            const currentTime = performance.now();
             this.delta = currentTime - this.prevTime;
             this.prevTime = currentTime;
             this.elapsedTime += this.delta;
-            this.elapsedTicks += this.timeStep;
+            this.elapsedFrames += this.delta / this.timeStep;
+        }
+        else {
+            this.start();
         }
         return this.delta;
     }
 }
-async function smoothAnimate(to, from, duration, transformFunc, timingFunc) {
-    const distance = to - from;
-    const clock = new Clock();
-    let handle = null;
-    function draw() {
-        const c = clamp(clock.elapsedTicks, 0, duration);
-        const v = timingFunc(c, from, distance, duration);
-        const t = timingFunc(c, 0, 1, duration);
-        return transformFunc(v, t) ?? false;
-    }
+export function animationLoop(drawFunc, timeStep = 1000 / 60) {
+    const clock = new Clock(timeStep);
     function animationLoop() {
         clock.tick();
-        let delta = clock.delta;
-        let updateSteps = 0;
-        let force = false;
-        while (delta >= clock.timeStep) {
-            delta -= clock.timeStep;
-            clock.tick();
-            if (updateSteps++ >= clock.timeOut || force) {
-                break;
-            }
-        }
-        force = draw();
-        if (force || clock.elapsedTicks / duration >= 1) {
-            return true;
+        if (drawFunc(clock)) {
         }
         else {
-            handle = requestAnimationFrame(animationLoop);
-            return false;
+            requestAnimationFrame(animationLoop);
         }
     }
-    clock.start();
-    handle = requestAnimationFrame(animationLoop);
-    await sleep(duration);
-    return handle;
+    requestAnimationFrame(animationLoop);
 }
-function animationLoopOuter(updateFunc, drawFunc, timeStep = 1000 / 60, timeOut = 120) {
-    const clock = new Clock(true, timeStep, timeOut);
-    let handle = null;
-    let force = false;
-    let intervalId = null;
-    function update() {
-        return updateFunc(clock.elapsedTicks) ?? false;
-    }
-    function draw() {
-        return drawFunc(clock.elapsedTicks) ?? false;
-    }
-    function animationLoop() {
-        clock.tick();
-        let delta = clock.delta;
-        let updateSteps = 0;
-        while (delta >= clock.timeStep) {
-            delta -= clock.timeStep;
-            clock.tick();
-            if (updateSteps++ >= clock.timeOut || force) {
-                break;
-            }
-        }
-        force = force || draw();
-        if (force) {
+async function smoothAnimateInternal(duration, transformFunc, timingFunc) {
+    function drawFunc(clock) {
+        const c = clamp(clock.elapsedTime, 0, duration);
+        const t = timingFunc(c, 0, 1, duration);
+        transformFunc(t);
+        if (clock.elapsedTime >= duration) {
             return true;
         }
         else {
-            handle = requestAnimationFrame(animationLoop);
             return false;
         }
     }
-    intervalId = setInterval(() => {
-        force = force || update();
-        if (force) {
-            clearInterval(intervalId);
-            cancelAnimationFrame(handle);
-        }
-    }, clock.timeStep);
-    clock.start();
-    handle = requestAnimationFrame(animationLoop);
-    return handle;
+    animationLoop(drawFunc);
+    await sleep(duration);
+}
+async function smoothAnimate(to, from, duration, transformFunc, timingFunc) {
+    const wrapper = (t) => {
+        const v = lerp(t, from, to);
+        return transformFunc(v, t);
+    };
+    smoothAnimateInternal(duration, wrapper, timingFunc);
 }
 async function blockCSSTimingTransition(el, func) {
     const elArray = !(el instanceof Array) ? [el] : el;
@@ -209,4 +164,5 @@ async function smoothScroll(to, from, duration) {
     };
     await smoothAnimate(to, from, duration, transformFunc, bounceInEase);
 }
-export { sleep, smoothAnimate, animateElements, animationLoopOuter, smoothScroll, smoothRotate, slideLeft, slideRight, slideRightWrap, fadeOut, rippleButton };
+export { sleep, smoothAnimate, animateElements, smoothScroll, smoothRotate, slideLeft, slideRight, slideRightWrap, fadeOut, rippleButton };
+//# sourceMappingURL=animation.js.map

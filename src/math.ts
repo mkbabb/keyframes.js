@@ -25,7 +25,8 @@ function DeCasteljau(t: number, points: number[]) {
             if (n == 1) {
                 return [points[i], points[j]];
             } else {
-                return [inner(i, j, n - 1), inner(j, j + 1, n - 1)];
+                n -= 1;
+                return [inner(i, j, n), inner(j, j + 1, n)];
             }
         })();
 

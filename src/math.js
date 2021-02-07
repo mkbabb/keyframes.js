@@ -22,7 +22,8 @@ function DeCasteljau(t, points) {
                 return [points[i], points[j]];
             }
             else {
-                return [inner(i, j, n - 1), inner(j, j + 1, n - 1)];
+                n -= 1;
+                return [inner(i, j, n), inner(j, j + 1, n)];
             }
         })();
         const value = (1 - t) * b0 + t * b1;
@@ -94,3 +95,4 @@ export function bounceInEaseHalf(t, from, distance, duration) {
     t = interpBezier(t / duration, points)[1];
     return distance * t + from;
 }
+//# sourceMappingURL=math.js.map
