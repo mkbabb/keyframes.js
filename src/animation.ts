@@ -1,4 +1,11 @@
-import { clamp, bounceInEase, easeInOutCubic, smoothStep3, lerp } from "./math.js";
+import {
+    clamp,
+    bounceInEase,
+    easeInOutCubic,
+    smoothStep3,
+    lerp,
+    lerpIn
+} from "./math.js";
 
 import { getOffset, sleep } from "./utils.js";
 
@@ -40,7 +47,6 @@ class Clock {
 
             this.prevTime = currentTime;
             this.elapsedTime += this.delta;
-            this.elapsedFrames += this.delta / this.timeStep;
         } else {
             this.start();
         }
@@ -50,21 +56,118 @@ class Clock {
 }
 
 export function animationLoop(
-    drawFunc: (clock: Clock) => undefined | boolean,
+    drawFunc: (clock: any) => undefined | boolean,
     timeStep = 1000 / 60
 ) {
     const clock = new Clock(timeStep);
 
-    function animationLoop() {
+    async function animationLoop() {
         clock.tick();
 
         if (drawFunc(clock)) {
+            return;
         } else {
             requestAnimationFrame(animationLoop);
         }
     }
     requestAnimationFrame(animationLoop);
 }
+
+interface Frame {
+    id: number;
+    start: number;
+    stop: number;
+    delta: number;
+    distance: number;
+
+    do?: (t: number) => void;
+    ease?: (t: number, from: number, distance: number, duration: number) => number;
+}
+
+const defaultDo = (t: number) => {};
+const defaultEase = lerpIn;
+
+export class Animato {
+    duration: number;
+
+    frames: Frame[];
+    frame: Frame;
+    frameId: number;
+
+    constructor(duration: number) {
+        this.duration = duration;
+        this.frames = [];
+        this.frameId = 0;
+    }
+
+    from(start: number, stop?: number) {
+        if (stop == null) {
+            stop = start;
+        }
+
+        const delta = (stop - start) / 100;
+
+        start = (this.duration * start) / 100;
+        stop = (this.duration * stop) / 100;
+
+        const distance = stop - start;
+
+        this.frame = {
+            id: this.frameId,
+            start: start,
+            stop: stop,
+            distance: distance,
+            delta: delta
+        };
+
+        return this;
+    }
+
+    do(func = defaultDo) {
+        this.frame.do = func;
+
+        return this;
+    }
+
+    ease(func = defaultEase) {
+        this.frame.ease = func;
+
+        this.frames.push(this.frame);
+
+        this.frameId += 1;
+        return this;
+    }
+
+    async start() {
+        const drawFunc = (clock: Clock) => {
+            const c = clamp(clock.elapsedTime, 0, this.duration);
+            const error = clock.timeStep;
+
+            this.frames.forEach((frame) => {
+                if (c >= frame.start - error && c <= frame.stop + error) {
+                    const s = clamp(c - frame.start, 0, frame.distance);
+                    const t = frame.ease(s, 0, 1, frame.distance);
+
+                    frame.do(t);
+                }
+            });
+
+            if (clock.elapsedTime >= this.duration) {
+                return true;
+            } else {
+                return false;
+            }
+        };
+
+        animationLoop(drawFunc);
+
+        return await sleep(this.duration);
+    }
+}
+
+/**
+ * Legacy
+ */
 
 export async function smoothAnimateInternal(
     duration: number,

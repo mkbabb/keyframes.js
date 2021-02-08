@@ -1,53 +1,25 @@
-import { easeInCubic, lerp } from "../src/math.js";
-import { smoothAnimateInternal } from "../src/animation.js";
+import { bounceInEase, lerp } from "../src/math.js";
+import { Animato } from "../src/animation.js";
 const tmp = document.querySelector("#tmp");
-class animato {
-    constructor(duration) {
-        this.duration = duration;
-        this.frames = [];
-    }
-    from(start, stop) {
-        const that = this;
-        if (stop == null) {
-            stop = start;
-            start = 0;
-        }
-        const frame = {
-            start: (this.duration * start) / 100,
-            stop: (this.duration * stop) / 100
-        };
-        return {
-            do: (func) => {
-                that.frames.push({
-                    do: func,
-                    ...frame
-                });
-                return that;
-            }
-        };
-    }
-    start() {
-        const transformFunc = (t) => {
-            this.frames.forEach((frame) => {
-                const v = t * this.duration;
-                if (v >= frame.start && v <= frame.stop) {
-                    frame.do(t);
-                }
-            });
-        };
-        smoothAnimateInternal(this.duration, transformFunc, easeInCubic);
-    }
-}
-const anim = new animato(1000);
-anim.from(0, 100)
+const anim = new Animato(500);
+anim.from(0)
     .do((t) => {
-    const x = lerp(t, 500, 0);
-    tmp.style.transform = `translateY(${x}%)`;
+    tmp.style.opacity = "0";
 })
+    .ease()
     .from(0, 100)
     .do((t) => {
-    const x = lerp(t, 0, 50);
+    const x = lerp(t, 100, 0);
+    tmp.style.transform = `translateY(${x}%)`;
+})
+    .ease(bounceInEase)
+    .from(75, 100)
+    .do((t) => {
+    const x = lerp(t, 0, 100);
     tmp.style.opacity = `${x}%`;
-});
-anim.start();
+})
+    .ease();
+(async () => {
+    await anim.start();
+})();
 //# sourceMappingURL=script.js.map
