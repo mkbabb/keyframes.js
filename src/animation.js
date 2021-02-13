@@ -81,10 +81,13 @@ export class Animation {
     }
     done() {
         this.templateFrames.push(this.templateFrame);
+        this.templateFrames = this.templateFrames.sort((a, b) => a.start > b.start ? 1 : -1);
         for (let i = 0; i < this.templateFrames.length - 1; i++) {
             const startFrame = this.templateFrames[i];
             const endFrame = this.templateFrames[i + 1];
             let [start, stop] = [startFrame.start, endFrame.start];
+            if (start == stop) {
+            }
             start = (start * this.duration) / 100;
             stop = (stop * this.duration) / 100;
             const time = {
