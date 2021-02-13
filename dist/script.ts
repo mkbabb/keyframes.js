@@ -3,26 +3,23 @@ import { Animato } from "../src/animation.js";
 
 const tmp = document.querySelector<HTMLElement>("#tmp");
 
-const anim = new Animato(500);
+const anim = new Animato(1000);
 
-anim.from(0)
-    .do((t) => {
-        tmp.style.opacity = "0";
-    })
-    .ease()
-    .from(0, 100)
-    .do((t) => {
-        const x = lerp(t, 100, 0);
-        tmp.style.transform = `translateY(${x}%)`;
-    })
-    .ease(bounceInEase)
-    .from(75, 100)
-    .do((t) => {
-        const x = lerp(t, 0, 100);
+anim.from(0, { x: 0 })
+    .do((obj) => {
+        const { x } = obj;
+        console.log("x: ", obj.x);
         tmp.style.opacity = `${x}%`;
     })
-    .ease();
+    .ease()
+    .from(50, { x: 100, y: 100 })
+    .do((obj) => {
+        const { y } = obj;
+        console.log("y: ", obj.y);
 
-(async () => {
-    await anim.start();
-})();
+        tmp.style.transform = `translateY(${y}%)`;
+    })
+    .ease()
+    .from(100, { y: 0 });
+
+anim.start();

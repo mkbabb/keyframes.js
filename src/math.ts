@@ -11,7 +11,7 @@ export function normalize(x0: number, min: number, max: number): number {
     return (x0 - min) / (max - min);
 }
 
-function DeCasteljau(t: number, points: number[]) {
+function deCasteljau(t: number, points: number[]) {
     const dp: Map<string, number> = new Map();
 
     const inner = function (i: number, j: number, n: number) {
@@ -39,7 +39,7 @@ function DeCasteljau(t: number, points: number[]) {
 }
 
 export function cubicBezier(t: number, x1: number, y1: number, x2: number, y2: number) {
-    return [DeCasteljau(t, [0, x1, x2, 1]), DeCasteljau(t, [0, y1, y2, 1])];
+    return [deCasteljau(t, [0, x1, x2, 1]), deCasteljau(t, [0, y1, y2, 1])];
 }
 
 export function easeInBounce(
@@ -138,14 +138,14 @@ export function lerp(t: number, from: number, to: number) {
 
 export function logerp(t: number, from: number, to: number) {
     from = from === 0 ? 1e-9 : from;
-    let tt = from * Math.pow(to / from, t);
+    const tt = from * Math.pow(to / from, t);
     return tt;
 }
 
 export function interpBezier(t: number, points: number[][]) {
-    let x = points.map((xy) => xy[0]);
-    let y = points.map((xy) => xy[1]);
-    return [DeCasteljau(t, x), DeCasteljau(t, y)];
+    const x = points.map((xy) => xy[0]);
+    const y = points.map((xy) => xy[1]);
+    return [deCasteljau(t, x), deCasteljau(t, y)];
 }
 
 export function bounceInEaseHalf(
@@ -154,7 +154,7 @@ export function bounceInEaseHalf(
     distance: number,
     duration: number
 ) {
-    let points = [
+    const points = [
         [0, 0],
         [0.026, 1.746],
         [0.633, 1.06],

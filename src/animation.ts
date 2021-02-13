@@ -73,26 +73,35 @@ export function animationLoop(
     requestAnimationFrame(animationLoop);
 }
 
-interface Frame {
-    id: number;
-    start: number;
-    stop: number;
-    delta: number;
-    distance: number;
-
-    do?: (t: number) => void;
-    ease?: (t: number, from: number, distance: number, duration: number) => number;
-}
+type easeFunc = (t: number, from: number, distance: number, duration: number) => number;
 
 const defaultDo = (t: number) => {};
 const defaultEase = lerpIn;
 
+interface Frame {
+    id: number;
+    time: {
+        start: number;
+        stop: number;
+        distance: number;
+    };
+    space?: {
+        start: number;
+        stop: number;
+        distance: number;
+    };
+
+    do?: (t: number) => void;
+    ease?: easeFunc;
+}
+
 export class Animato {
     duration: number;
 
-    frames: Frame[];
-    frame: Frame;
-    frameId: number;
+    frames;
+    frame;
+    frameId;
+    forms;
 
     constructor(duration: number) {
         this.duration = duration;
@@ -100,37 +109,24 @@ export class Animato {
         this.frameId = 0;
     }
 
-    from(start: number, stop?: number) {
-        if (stop == null) {
-            stop = start;
-        }
-
-        const delta = (stop - start) / 100;
-
-        start = (this.duration * start) / 100;
-        stop = (this.duration * stop) / 100;
-
-        const distance = stop - start;
-
+    from(start: number, vars) {
         this.frame = {
             id: this.frameId,
             start: start,
-            stop: stop,
-            distance: distance,
-            delta: delta
+            vars: vars
         };
 
         return this;
     }
 
-    do(func = defaultDo) {
+    do(func) {
         this.frame.do = func;
 
         return this;
     }
 
-    ease(func = defaultEase) {
-        this.frame.ease = func;
+    ease(timeFunc = defaultEase, spaceFunc?) {
+        this.frame.ease = timeFunc;
 
         this.frames.push(this.frame);
 
@@ -138,17 +134,73 @@ export class Animato {
         return this;
     }
 
+    processFrames() {
+        this.frames.push(this.frame);
+        this.forms = [];
+
+        for (let i = 0; i < this.frames.length - 1; i++) {
+            const startFrame = this.frames[i];
+            const endFrame = this.frames[i + 1];
+
+            let [start, stop] = [startFrame.start, endFrame.start];
+
+            start = (start * this.duration) / 100;
+            stop = (stop * this.duration) / 100;
+            const distance = stop - start;
+
+            const vors = new Set([
+                ...Object.keys(startFrame.vars),
+                ...Object.keys(endFrame.vars)
+            ]);
+
+            const ivors = {};
+            const pvars = {};
+
+            for (const vor of vors) {
+                if (vor in startFrame.vars && vor in endFrame.vars) {
+                    ivors[vor] = {
+                        start: startFrame.vars[vor],
+                        stop: endFrame.vars[vor]
+                    };
+                    pvars[vor] = 0;
+                }
+            }
+
+            const form = {
+                start: start,
+                stop: stop,
+                distance: distance,
+                vars: ivors,
+                pvars: pvars,
+                do: startFrame.do,
+                ease: startFrame.ease
+            };
+
+            this.forms.push(form);
+        }
+    }
+
     async start() {
+        this.processFrames();
+
         const drawFunc = (clock: Clock) => {
             const c = clamp(clock.elapsedTime, 0, this.duration);
             const error = clock.timeStep;
+     
 
-            this.frames.forEach((frame) => {
-                if (c >= frame.start - error && c <= frame.stop + error) {
-                    const s = clamp(c - frame.start, 0, frame.distance);
-                    const t = frame.ease(s, 0, 1, frame.distance);
+            this.forms.forEach((frame) => {
+                const { start, stop, distance } = frame;
 
-                    frame.do(t);
+                if (c >= start - error && c <= stop + error) {
+                    const s = clamp(c - start, 0, distance);
+                    const t = frame.ease(s, 0, 1, distance);
+
+                    for (const vor in frame.pvars) {
+                        const timevor = frame.vars[vor];
+                        frame.pvars[vor] = lerp(t, timevor.start, timevor.stop);
+                    }
+
+                    frame.do(frame.pvars);
                 }
             });
 
