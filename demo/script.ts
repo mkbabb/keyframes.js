@@ -70,8 +70,11 @@ anim.from(0, {
         fontSize: "1.5rem",
     });
 
-while (true) {
-    await anim.done().start();
-    await anim.reverse().done().start();
-    anim.reverse();
+async function main() {
+    while (true) {
+        await anim.done().start();
+        await anim.reverse().done().start();
+        anim.reverse();
+    }
 }
+main();

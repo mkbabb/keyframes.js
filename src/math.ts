@@ -7,10 +7,6 @@ export function clamp(x: number, lowerLimit: number, upperLimit: number): number
     return x;
 }
 
-export function normalize(x0: number, min: number, max: number): number {
-    return (x0 - min) / (max - min);
-}
-
 export function deCasteljau(t: number, points: number[]) {
     const n = points.length - 1;
     let b = [...points];
@@ -143,7 +139,7 @@ export function bounceInEaseHalf(
         [0, 0],
         [0.026, 1.746],
         [0.633, 1.06],
-        [1, 0]
+        [1, 0],
     ];
     t = interpBezier(t / duration, points)[1];
     return distance * t + from;
