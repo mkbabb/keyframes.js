@@ -1,4 +1,18 @@
+import { bounceInEase, easeInBounce, easeInCubic, lerpIn, easeInOutCubic, easeOutCubic, easeInOutQuad, easeOutQuad, easeInQuad, smoothStep3, bounceInEaseHalf } from "./math";
 import { Value } from "./utils";
+export declare const easingFunctions: {
+    easeInQuad: typeof easeInQuad;
+    easeOutQuad: typeof easeOutQuad;
+    easeInOutQuad: typeof easeInOutQuad;
+    easeInCubic: typeof easeInCubic;
+    easeOutCubic: typeof easeOutCubic;
+    easeInOutCubic: typeof easeInOutCubic;
+    easeInBounce: typeof easeInBounce;
+    bounceInEase: typeof bounceInEase;
+    bounceInEaseHalf: typeof bounceInEaseHalf;
+    smoothStep3: typeof smoothStep3;
+    lerpIn: typeof lerpIn;
+};
 declare type InterpValue = {
     start: Value | any;
     stop: Value | any;
@@ -42,7 +56,7 @@ export declare class Animation<V extends Vars> {
     constructor(duration: number);
     from<K extends Vars>(start: number, vars: Partial<K>): Animation<K>;
     transform<K extends V>(func: TransformFunction<K>): this;
-    ease(func: EasingFunction): this;
+    ease(func?: EasingFunction): this;
     done(): this;
     reverse(): this;
     start(): Promise<unknown>;

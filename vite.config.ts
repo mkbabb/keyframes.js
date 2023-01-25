@@ -4,17 +4,19 @@ import dts from "vite-plugin-dts";
 
 export default defineConfig({
     base: "./",
+    server: {
+        watch: {
+            usePolling: true,
+        },
+    },
     build: {
         minify: true,
-        outDir: "dist",
-        sourcemap: true,
         lib: {
-            entry: {
-                "@mkbabb/animation/index": "./src/animation.ts",
-                "@mkbabb/animation/math": "./src/math.ts",
-            },
-            formats: ["es", "cjs"],
+            entry: path.resolve(__dirname, "src/animation.ts"),
+            name: "Animation",
+            fileName: "@mkbabb/animation",
         },
+        rollupOptions: {},
     },
     plugins: [dts()],
 });

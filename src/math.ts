@@ -7,42 +7,6 @@ export function clamp(x: number, lowerLimit: number, upperLimit: number): number
     return x;
 }
 
-export function deCasteljau(t: number, points: number[]) {
-    const n = points.length - 1;
-    let b = [...points];
-
-    for (let i = 1; i <= n; i++) {
-        for (let j = 0; j <= n - i; j++) {
-            b[j] = lerp(t, b[j], b[j + 1]);
-        }
-    }
-    return b[0];
-}
-
-export function cubicBezier(t: number, x1: number, y1: number, x2: number, y2: number) {
-    return [deCasteljau(t, [0, x1, x2, 1]), deCasteljau(t, [0, y1, y2, 1])];
-}
-
-export function easeInBounce(
-    t: number,
-    from: number,
-    distance: number,
-    duration: number
-) {
-    t = cubicBezier(t / duration, 0.09, 0.91, 0.5, 1.5)[1];
-    return distance * t + from;
-}
-
-export function bounceInEase(
-    t: number,
-    from: number,
-    distance: number,
-    duration: number
-) {
-    t = cubicBezier(t / duration, 0.19, -0.53, 0.83, 0.67)[1];
-    return distance * t + from;
-}
-
 export function easeInQuad(
     t: number,
     from: number,
@@ -123,10 +87,46 @@ export function logerp(t: number, from: number, to: number) {
     return tt;
 }
 
+export function deCasteljau(t: number, points: number[]) {
+    const n = points.length - 1;
+    let b = [...points];
+
+    for (let i = 1; i <= n; i++) {
+        for (let j = 0; j <= n - i; j++) {
+            b[j] = lerp(t, b[j], b[j + 1]);
+        }
+    }
+    return b[0];
+}
+
+export function cubicBezier(t: number, x1: number, y1: number, x2: number, y2: number) {
+    return [deCasteljau(t, [0, x1, x2, 1]), deCasteljau(t, [0, y1, y2, 1])];
+}
+
 export function interpBezier(t: number, points: number[][]) {
     const x = points.map((xy) => xy[0]);
     const y = points.map((xy) => xy[1]);
     return [deCasteljau(t, x), deCasteljau(t, y)];
+}
+
+export function easeInBounce(
+    t: number,
+    from: number,
+    distance: number,
+    duration: number
+) {
+    t = cubicBezier(t / duration, 0.09, 0.91, 0.5, 1.5)[1];
+    return distance * t + from;
+}
+
+export function bounceInEase(
+    t: number,
+    from: number,
+    distance: number,
+    duration: number
+) {
+    t = cubicBezier(t / duration, 0.19, -0.53, 0.83, 0.67)[1];
+    return distance * t + from;
 }
 
 export function bounceInEaseHalf(

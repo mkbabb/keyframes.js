@@ -1,4 +1,17 @@
-import { clamp, lerpIn } from "./math";
+import {
+    bounceInEase,
+    clamp,
+    easeInBounce,
+    easeInCubic,
+    lerpIn,
+    easeInOutCubic,
+    easeOutCubic,
+    easeInOutQuad,
+    easeOutQuad,
+    easeInQuad,
+    smoothStep3,
+    bounceInEaseHalf,
+} from "./math";
 import {
     interpolateObject,
     reverseTransformObject,
@@ -6,6 +19,20 @@ import {
     transformObject,
     Value,
 } from "./utils";
+
+export const easingFunctions = {
+    easeInQuad,
+    easeOutQuad,
+    easeInOutQuad,
+    easeInCubic,
+    easeOutCubic,
+    easeInOutCubic,
+    easeInBounce,
+    bounceInEase,
+    bounceInEaseHalf,
+    smoothStep3,
+    lerpIn,
+};
 
 type InterpValue = {
     start: Value | any;
@@ -173,7 +200,7 @@ export class Animation<V extends Vars> {
         return this;
     }
 
-    ease(func: EasingFunction) {
+    ease(func: EasingFunction = bounceInEase) {
         if (this.templateFrame !== undefined) {
             this.templateFrame.ease = func;
         }
