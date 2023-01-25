@@ -1,36 +1,77 @@
-import { bounceInEase, clamp, easeInBounce, easeInCubic, lerp } from "../src/math";
+import {
+    bounceInEase,
+    clamp,
+    easeInBounce,
+    easeInCubic,
+    lerp,
+    lerpIn,
+} from "../src/math";
 import { Animation } from "../src/animation";
+import { sleep } from "../src/utils";
 
-const tmp = document.querySelector<HTMLElement>("#tmp")!;
+const boxEl = document.querySelector<HTMLElement>("#box")!;
 
-const anim = new Animation(1000);
+const anim = new Animation(5000);
 
-// anim.from(0, { x: 0 })
-//     .do((t, vars) => {
-//         const { x } = vars;
+// anim.from(0, { color: "green", opacity: "100%", y: 100, nested: { x: 0, y: 0 } })
+//     .transform((t, vars) => {
+//         const { opacity, y, nested, color } = vars;
 
-//         tmp.style.opacity = `${x}%`;
-//     })
-//     .from(50, { x: 50, y: 100 })
-//     .do((t, vars) => {
-//         const { y } = vars;
+//         console.log(vars);
 
+//         tmp.style.backgroundColor = color;
+//         tmp.style.opacity = opacity;
 //         tmp.style.transform = `translateY(${y}%)`;
 //     })
-//     .ease(easeInCubic)
-//     .from(100, { y: 0 })
-//     .done();
 
-anim.from(0, { x: 0, y: 1000, tmp: tmp.style.height ?? "0" })
-    .do((t, vars) => {
-        const { x, y } = vars;
-       
+//     .ease(easeInBounce)
+//     .from(100, { color: "blue", opacity: "100%", y: 0, nested: { x: 100, y: 100 } })
+//     .done()
+//     .start();
 
-        tmp.style.opacity = `${x}%`;
-        tmp.style.transform = `translateY(${y}%)`;
+const transformFunc = (t: number, vars) => {
+    const { transform, color, fontSize } = vars;
+
+    if (transform) {
+        boxEl.style.transform = `translate(${transform.x}, ${transform.y})`;
+    }
+    if (color) {
+        boxEl.style.backgroundColor = color;
+    }
+    if (fontSize) {
+        boxEl.style.fontSize = fontSize;
+    }
+};
+
+anim.from(0, {
+    transform: {
+        x: "0%",
+        y: "0%",
+    },
+    color: "#C462D8",
+})
+    .transform(transformFunc)
+    .from(50, {
+        color: "#6280D8",
     })
+    .transform(transformFunc)
+    .from(75, {
+        color: "#52E898",
+        fontSize: "1rem",
+    })
+    .transform(transformFunc)
     .ease(easeInBounce)
-    .from(100, { x: 100, y: 0, tmp: "0" })
-    .done();
+    .from(100, {
+        transform: {
+            x: "50%",
+            y: "100%",
+        },
+        color: "#E85252",
+        fontSize: "1.5rem",
+    });
 
-anim.start();
+while (true) {
+    await anim.done().start();
+    await anim.reverse().done().start();
+    anim.reverse();
+}

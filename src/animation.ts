@@ -1,43 +1,55 @@
 import { clamp, lerp, lerpIn } from "./math";
-import { transformValue, Value } from "./utils";
-import { color, rgb, RGBColor } from "d3-color";
+import {
+    interpolateObject,
+    reverseTransformObject,
+    sleep,
+    transformObject,
+    Value,
+} from "./utils";
 
 type InterpValue = {
-    start: number | object;
-    stop: number | object;
+    start: Value | any;
+    stop: Value | any;
     distance?: number;
-    unit?: string;
 };
 
 type Vars = {
-    [arg: string]: number | string;
+    [arg: string]: number | string | any;
 };
 
 type InterpVars = {
     [arg: string]: InterpValue;
 };
 
-type doFunc = (t: number, v: Vars) => void;
-type easeFunc = (t: number, from: number, distance: number, duration: number) => number;
+type TransformFunction<V> = (t: number, v: V) => void;
+type EasingFunction = (
+    t: number,
+    from: number,
+    distance: number,
+    duration: number
+) => number;
 
-interface TemplateFrame {
+interface TemplateFrame<V extends Vars> {
     id: number;
     start: number;
-    vars: Vars;
-    do?: doFunc;
-    ease?: easeFunc;
+    vars: V;
+    transform?: TransformFunction<V>;
+    ease?: EasingFunction;
 }
 
-interface Frame {
+interface Frame<V extends Vars> {
     id: number;
-    time: Partial<InterpValue>;
-    vars: Vars;
+    time: {
+        start: number;
+        stop: number;
+        distance: number;
+    };
     interpVarValues: InterpVars;
-    do: doFunc;
-    ease: easeFunc;
+    transform: TransformFunction<V>;
+    ease: EasingFunction;
 }
 
-export function animationLoop(drawFunc: (t: number) => undefined | boolean): void {
+export function animationLoop(drawFunc: (t: number) => undefined | boolean) {
     function animationLoop(t: number) {
         if (drawFunc(t)) {
             return;
@@ -45,84 +57,82 @@ export function animationLoop(drawFunc: (t: number) => undefined | boolean): voi
             requestAnimationFrame(animationLoop);
         }
     }
-
     requestAnimationFrame(animationLoop);
 }
 
-export function parseFrame(
-    startFrame: TemplateFrame,
-    endFrame: TemplateFrame,
+function calcFrameTime<V extends Vars>(
+    startFrame: TemplateFrame<V>,
+    endFrame: TemplateFrame<V>,
     duration: number
-): Frame {
+) {
     let [start, stop] = [startFrame.start, endFrame.start];
     start = (start * duration) / 100;
     stop = (stop * duration) / 100;
 
-    const time: Partial<InterpValue> = {
+    return {
         start,
         stop,
         distance: stop - start,
     };
+}
+
+export function parseTemplateFrame<V extends Vars>(
+    ix: number,
+    templateFrames: TemplateFrame<V>[],
+    transformedFrameVars: InterpVars[],
+    duration: number,
+    frames: Frame<V>[]
+): Frame<V> {
+    const [startFrame, endFrame] = [templateFrames[ix], templateFrames[ix + 1]];
+    const time = calcFrameTime(startFrame, endFrame, duration);
+
+    const interpVarValues: InterpVars = {};
 
     const allVars = [
         ...new Set([...Object.keys(startFrame.vars), ...Object.keys(endFrame.vars)]),
     ];
 
-    const interpVarValues: InterpVars = {};
-    const vars: Vars = {};
-
-    const addVar = (v: string, start: number, stop: number, unit: string = "") => {
-        interpVarValues[v] = {
-            start,
-            stop,
-            distance: stop - start,
-            unit,
+    const createInterpVarValue = (v: string, startIx: number, endIx: number) => {
+        return {
+            start: transformedFrameVars[startIx][v],
+            stop: transformedFrameVars[endIx][v],
         };
-        vars[v] = 0;
     };
 
-    allVars
-        .filter((v) => v in startFrame.vars && v in endFrame.vars)
-        .forEach((v) => {
-            const startValue = transformValue(startFrame.vars[v]);
-            const endValue = transformValue(endFrame.vars[v]);
-
-            if (typeof startValue === "number" && typeof endValue === "number") {
-                addVar(v, startValue, endValue);
-            } else if (
-                startValue?.value !== undefined &&
-                endValue?.value !== undefined
-            ) {
-                addVar(v, startValue.value, endValue.value, startValue.unit);
-            } else if (
-                startValue?.r !== undefined &&
-                startValue?.g !== undefined &&
-                startValue?.b !== undefined
-            ) {
-                addVar(key, startValue, endValue);
+    allVars.forEach((v) => {
+        if (v in startFrame.vars && v in endFrame.vars) {
+            interpVarValues[v] = createInterpVarValue(v, ix, ix + 1);
+        } else if (!(v in startFrame.vars) && v in endFrame.vars) {
+            for (let i = ix - 1; i >= 0; i--) {
+                if (v in templateFrames[i].vars) {
+                    const frame = frames[i];
+                    frame.time = calcFrameTime(templateFrames[i], endFrame, duration);
+                    frame.interpVarValues[v] = createInterpVarValue(v, i, ix + 1);
+                    break;
+                }
             }
-        });
+        }
+    });
 
     return {
         id: startFrame.id,
         time,
-        vars,
         interpVarValues,
-        do: startFrame?.do ?? (() => {}),
+        transform: startFrame?.transform ?? (() => {}),
         ease: startFrame?.ease ?? lerpIn,
     };
 }
 
-export class Animation {
+export class Animation<V extends Vars> {
     duration: number;
 
-    templateFrames: TemplateFrame[];
-    templateFrame: TemplateFrame | undefined;
+    templateFrames: TemplateFrame<V>[];
+    templateFrame: TemplateFrame<V> | undefined;
 
     frameId: number;
     prevId: number;
 
-    frames: Frame[];
+    frames: Frame<V>[];
 
     constructor(duration: number) {
         this.duration = duration;
@@ -132,7 +142,7 @@ export class Animation {
         this.prevId = 0;
     }
 
-    from(start: number, vars: Vars) {
+    from<K extends Vars>(start: number, vars: Partial<K>): Animation<K> {
         if (this.frameId > 0 && this.templateFrame !== undefined) {
             this.templateFrames.push(this.templateFrame);
         }
@@ -146,17 +156,17 @@ export class Animation {
         this.prevId = this.frameId;
         this.frameId += 1;
 
-        return this;
+        return this as unknown as Animation<K>;
     }
 
-    do(func: doFunc) {
+    transform<K extends V>(func: TransformFunction<K>) {
         if (this.templateFrame !== undefined) {
-            this.templateFrame.do = func;
+            this.templateFrame.transform = func;
         }
         return this;
     }
 
-    ease(func: easeFunc) {
+    ease(func: EasingFunction) {
         if (this.templateFrame !== undefined) {
             this.templateFrame.ease = func;
         }
@@ -166,58 +176,83 @@ export class Animation {
     done() {
         if (this.templateFrame !== undefined) {
             this.templateFrames.push(this.templateFrame);
+            this.templateFrame = undefined;
         }
 
         this.templateFrames = this.templateFrames.sort((a, b) =>
             a.start > b.start ? 1 : -1
         );
 
+        const transformedFrameVars = this.templateFrames.map((frame) =>
+            transformObject(frame.vars)
+        ) as InterpVars[];
+
         for (let i = 0; i < this.templateFrames.length - 1; i++) {
-            const startFrame = this.templateFrames[i];
-            const endFrame = this.templateFrames[i + 1];
-
-            const frame = parseFrame(startFrame, endFrame, this.duration);
-
+            const frame = parseTemplateFrame(
+                i,
+                this.templateFrames,
+                transformedFrameVars,
+                this.duration,
+                this.frames
+            );
             this.frames.push(frame);
         }
+        return this;
     }
 
-    start(): void {
+    reverse() {
+        if (this.templateFrame !== undefined) {
+            this.templateFrames.push(this.templateFrame);
+            this.templateFrame = undefined;
+        }
+        const frameTimes = this.templateFrames
+            .map((frame) => ({
+                start: frame.start,
+                transform: frame.transform,
+                ease: frame.ease,
+            }))
+            .reverse();
+
+        this.templateFrames.forEach((frame, i) => {
+            frame.start = frameTimes[i].start;
+            frame.transform = frameTimes[i].transform;
+            frame.ease = frameTimes[i].ease;
+        });
+        this.templateFrames.reverse();
+        return this;
+    }
+
+    async start() {
         let startTime = undefined as unknown as number;
 
         const drawFunc = (t: number) => {
             if (startTime === undefined) {
                 startTime = t;
             }
-
-            const dt = t - startTime;
-            const c = clamp(dt, 0, this.duration);
+            const dt = clamp(t - startTime, 0, this.duration);
 
             this.frames
                 .filter(
-                    (frame: Frame) => c >= frame.time.start! && c <= frame.time.stop!
+                    (frame: Frame<V>) => dt >= frame.time.start && dt <= frame.time.stop
                 )
-                .forEach((frame: Frame) => {
-                    const { start, distance } = frame.time;
-
-                    const s = clamp(c - start, 0, distance!);
-                    const t = frame.ease(s, 0, 1, distance!);
+                .forEach((frame: Frame<V>) => {
+                    const { start, stop, distance } = frame.time;
+                    const t = frame.ease(dt - start, 0, 1, distance);
+                    const vars = {} as InterpVars;
 
                     Object.entries(frame.interpVarValues).forEach(([v, value]) => {
-                        if (typeof value.start === "number") {
-                            frame.vars[v] = lerp(t, value.start, value.stop);
-                        }
-                        
+                        vars[v] = interpolateObject(t, value.start, value.stop);
                     });
-
-                    console.log(frame.interpVarValues);
-
-                    frame.do(t, frame.vars);
+                    frame.transform(t, reverseTransformObject(vars) as V);
                 });
 
             return dt >= this.duration;
         };
+        animationLoop(drawFunc);
+        return await sleep(this.duration);
+    }
 
-        return animationLoop(drawFunc);
+    async infinite() {
+        return await this.start().then(async () => await this.infinite());
     }
 }

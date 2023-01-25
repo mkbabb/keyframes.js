@@ -1,7 +1,12 @@
 import { color, RGBColor } from "d3-color";
+import { lerp } from "./math";
+
+export async function sleep(ms: number) {
+    return await new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 export type Value = {
-    value: number;
+    value: number | object;
     unit: string;
 };
 
@@ -41,9 +46,12 @@ function remHandler(input: string) {
     };
 }
 
-export function transformValue(input: string | number): number | Value | RGBColor {
+export function transformValue(input: string | number): Value {
     if (typeof input === "number") {
-        return input;
+        return {
+            value: input,
+            unit: "",
+        };
     }
 
     if (input.endsWith("%")) {
@@ -52,9 +60,64 @@ export function transformValue(input: string | number): number | Value | RGBColo
         return remHandler(input);
     } else if (input.endsWith("px")) {
         return pxHandler(input);
-    } else if (input.startsWith("rgb") || input.startsWith("hsl")) {
-        return color(input)!.rgb();
     } else {
-        return parseFloat(input) ?? color(input)?.rgb();
+        const c = color(input)?.rgb();
+        if (c != null) {
+            return {
+                value: c,
+                unit: "color",
+            };
+        }
+
+        return {
+            value: parseFloat(input),
+            unit: "",
+        };
     }
+}
+
+export function transformObject(input: any): object {
+    if (typeof input === "object") {
+        const output = {} as any;
+        for (const [key, value] of Object.entries(input)) {
+            output[key] = transformObject(value);
+        }
+        return output;
+    }
+
+    return transformValue(input);
+}
+
+export function reverseTransformObject(input: any): number | string | object {
+    if (typeof input === "object" && input?.value == null && input?.unit == null) {
+        const output = {} as any;
+        for (const [key, value] of Object.entries(input)) {
+            output[key] = reverseTransformObject(value);
+        }
+        return output;
+    }
+
+    const { value, unit } = input as Value;
+
+    if (unit === "") {
+        return value;
+    } else if (unit === "color") {
+        const c = value as RGBColor;
+        return `rgb(${c.r}, ${c.g}, ${c.b})`;
+    } else {
+        return `${value}${unit}`;
+    }
+}
+
+export function interpolateObject(t: number, start: any, stop: any): any {
+    if (typeof start === "object") {
+        const output = {} as any;
+        for (const key of Object.keys(start)) {
+            output[key] = interpolateObject(t, start[key], stop[key]);
+        }
+        return output;
+    } else if (typeof start === "number" && typeof stop === "number") {
+        return lerp(t, start, stop);
+    }
+    return start;
 }
