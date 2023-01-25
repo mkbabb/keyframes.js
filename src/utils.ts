@@ -1,56 +1,60 @@
-async function sleep(ms: number) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+import { color, RGBColor } from "d3-color";
+
+export type Value = {
+    value: number;
+    unit: string;
+};
+
+function convertRemToPixels(rem: number) {
+    return rem * parseFloat(getComputedStyle(document.documentElement).fontSize);
 }
 
-function getOffset(el: Element) {
-    const rect = el.getBoundingClientRect();
+function percentageHandler(input: string, scale?: number) {
+    const value = parseFloat(input.slice(0, -1));
 
+    if (scale) {
+        return {
+            value: (value / 100) * scale,
+            unit: "px",
+        };
+    } else {
+        return {
+            value,
+            unit: "%",
+        };
+    }
+}
+
+function pxHandler(input: string) {
+    const value = parseFloat(input.slice(0, -2));
     return {
-        left: rect.left + window.scrollX,
-        top: rect.top + window.scrollY,
-        width: rect.width,
-        height: rect.height,
-        leftX: rect.left,
-        topY: rect.top
+        value,
+        unit: "px",
     };
 }
 
-function emToPixels(em: string): number {
-    em = em.toLowerCase();
-    let emNumber = 1;
+function remHandler(input: string) {
+    const value = parseFloat(input.slice(0, -3));
+    return {
+        value,
+        unit: "rem",
+    };
+}
 
-    if (em.indexOf("px") !== -1) {
-        emNumber = parseFloat(em.split("px")[0]);
-        return emNumber;
-    } else if (em.indexOf("em") !== -1) {
-        emNumber = parseFloat(em.split("em")[0]);
+export function transformValue(input: string | number): number | Value | RGBColor {
+    if (typeof input === "number") {
+        return input;
     }
 
-    const fontSize = parseFloat(
-        window
-            .getComputedStyle(document.body)
-            .getPropertyValue("font-size")
-            .toLowerCase()
-            .replace(/[a-z]/g, "")
-    );
-
-    return emNumber * fontSize;
+    if (input.endsWith("%")) {
+        return percentageHandler(input);
+    } else if (input.endsWith("rem")) {
+        return remHandler(input);
+    } else if (input.endsWith("px")) {
+        return pxHandler(input);
+    } else if (input.startsWith("rgb") || input.startsWith("hsl")) {
+        return color(input)!.rgb();
+    } else {
+        return color(input)?.rgb() ?? parseFloat(input);
+    }
 }
-
-function getComputedVariable(v: string, el = document.documentElement) {
-    return window.getComputedStyle(el).getPropertyValue(v);
-}
-
-export function throttle(func: (...args: any) => void, wait = 1000) {
-    let enableCall = true;
-
-    return function (...args: any) {
-        if (!enableCall) return;
-
-        enableCall = false;
-        func(...args);
-        setTimeout(() => (enableCall = true), wait);
-    };
-}
-
-export { getOffset, getComputedVariable, emToPixels, sleep };

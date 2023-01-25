@@ -11,31 +11,16 @@ export function normalize(x0: number, min: number, max: number): number {
     return (x0 - min) / (max - min);
 }
 
-function deCasteljau(t: number, points: number[]) {
-    const dp: Map<string, number> = new Map();
+export function deCasteljau(t: number, points: number[]) {
+    const n = points.length - 1;
+    let b = [...points];
 
-    const inner = function (i: number, j: number, n: number) {
-        const key = `${n}${i}${j}`;
-
-        if (dp.has(key)) {
-            return dp.get(key);
+    for (let i = 1; i <= n; i++) {
+        for (let j = 0; j <= n - i; j++) {
+            b[j] = lerp(t, b[j], b[j + 1]);
         }
-
-        const [b0, b1] = (() => {
-            if (n == 1) {
-                return [points[i], points[j]];
-            } else {
-                n -= 1;
-                return [inner(i, j, n), inner(j, j + 1, n)];
-            }
-        })();
-
-        const value = (1 - t) * b0 + t * b1;
-        dp.set(key, value);
-
-        return value;
-    };
-    return inner(0, 1, points.length - 1);
+    }
+    return b[0];
 }
 
 export function cubicBezier(t: number, x1: number, y1: number, x2: number, y2: number) {

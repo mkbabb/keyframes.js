@@ -1,19 +1,22 @@
 {
     "compilerOptions": {
-        "target": "ESNext",
-        "sourceMap": true,
-        "module": "ESNext",
+        "moduleResolution": "node",
+        "target": "ES2020",
         "lib": [
-            "ESNext",
+            "ES2020",
             "DOM",
         ],
-        "alwaysStrict": true,
-        "strict": false,
+        "importHelpers": true,
+        "module": "ES2020",
+        "sourceMap": true,
+        "strict": true,
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        "experimentalDecorators": true,
     },
     "include": [
-        "src/animation.ts",
-        "src/math.ts",
-        "src/utils.ts",
-        "dist/script.ts",
+        "src/",
+        "test/",
+        "demo/"
     ],
 }
