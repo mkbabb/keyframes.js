@@ -3,12 +3,12 @@
     "version": "0.6.2",
     "description": "Tiny TypeScript animation library",
     "type": "module",
-    "main": "./dist/@mkbabb/animation.es.js",
-    "module": "./dist/@mkbabb/animation.es.js",
+    "main": "./dist/@mkbabb/animation.js",
+    "module": "./dist/@mkbabb/animation.js",
     "types": "dist/animation.d.ts",
     "exports": {
         ".": {
-            "import": "./dist/@mkbabb/animation.es.js",
+            "import": "./dist/@mkbabb/animation.js",
             "require": "./dist/@mkbabb/animation.umd.js"
         }
     },

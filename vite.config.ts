@@ -4,11 +4,6 @@ import dts from "vite-plugin-dts";
 
 export default defineConfig({
     base: "./",
-    server: {
-        watch: {
-            usePolling: true,
-        },
-    },
     build: {
         minify: true,
         lib: {
