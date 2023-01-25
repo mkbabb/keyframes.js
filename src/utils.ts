@@ -54,6 +54,7 @@ export function transformValue(input: string | number): Value {
         };
     }
 
+    // TODO! handle more units.
     if (input.endsWith("%")) {
         return percentageHandler(input);
     } else if (input.endsWith("rem")) {
@@ -68,7 +69,6 @@ export function transformValue(input: string | number): Value {
                 unit: "color",
             };
         }
-
         return {
             value: parseFloat(input),
             unit: "",

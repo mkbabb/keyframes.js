@@ -1,6 +1,6 @@
 {
     "name": "@mkbabb/animation",
-    "version": "0.5.0",
+    "version": "0.6.2",
     "description": "Tiny TypeScript animation library",
     "type": "module",
     "main": "./dist/@mkbabb/animation.es.js",
@@ -28,6 +28,9 @@
         "url": "https://github.com/mkbabb/animation.js/issues"
     },
     "homepage": "https://github.com/mkbabb/animation.js#readme",
+    "dependencies": {
+        "d3-color": "^3.1.0"
+    },
     "devDependencies": {
         "@types/d3-color": "^3.1.0",
         "@types/node": "^18.11.18",
@@ -36,8 +39,5 @@
         "vite": "^4.0.4",
         "vite-plugin-dts": "^1.7.1",
         "vitest": "^0.28.1"
-    },
-    "dependencies": {
-        "d3-color": "^3.1.0"
     }
 }

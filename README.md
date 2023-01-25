@@ -1,44 +1,102 @@
 # animation.js
 
-Simple TypeScript animation library.
+Tiny TypeScript animation library. Kinda like gsap but worse :^D.
 
-## About
+## Usage
 
-The bulk of this library's functionality comes from two functions `smoothAnimate` and `animationLoopOuter`:
-
-### `smoothAnimate`
-
-Takes a starting number, ending number, total duration (in `ms`), and two functions:
-
--   `transformFunc`: applied at every "frame" of execution; take two parameters, the current time, and the current time normalized between [0, 1].
--   `timingFunc`: (similar to CSS's `timing-function`) dictates how the number `to` reaches `from` in `duration` time.
-
-Both of the above functions can return an optional boolean value, which will force the animation to halt.
-
-For example, if you wanted to animate a `div`'s opacity attribute, going from `100%` to `0%`, using an `ease-in-out` (provided by the library) timing function, you could:
+### Create a new animation
 
 ```ts
-const transformFunc = (v, t): any => {
-    d.style.opacity = v;
-};
-
-smoothAnimate(0, 100, 1000, transformFunc, easeInOutCubic);
+const dutation = 5000;
+const anim = new Animation(duration);
 ```
 
-Easy. Most everything else builds off of this idea.
+Where `duration` is the duration of the animation in milliseconds.
 
-### `animationLoopOuter`
+```ts
+anim.from(0, {
+    transform: {
+        x: "0%",
+        y: "0%",
+    },
+    color: "#C462D8",
+})
+    .transform(...)
+    .ease(easeInBounce)
+    ... // more keyframes here
+    .done()
+    .start();
+```
 
-Which is a basic animation loop: give it a
-function to update on every frame, or draw, and function to execute on every update. Like both functions within `smoothAnimate`, they can return an optional boolean value, forcing the loop to halt.
+### A keyframe, or `TemplateFrame`
+
+Is composed of three things:
+
+The `from` function initializes the keyframe to start at percentage `0` of the animation's duration. The second argument is an object containing the properties to be animated: not only can these be arbitrarily nested, but the atomic values therein can be:
+
+-   numbers
+-   strings coercible to numbers
+-   percentages
+-   px values
+-   rem values
+-   any color parsable by `d3-color`
+
+Eventually will cover all of CSS's valid units.
+
+The `transform` function takes in two parameters: the first is the current animation's time, `t`, and the second are the variables defined in the keyframe, `vars`, though with all values interpolated to the current time. When used in a chain below a `from` call, the interpolated `vars` object will be strictly typed - handy for linting.
+
+```ts
+const transformFunc = (t: number, vars) => {
+    const {color } = vars;
+    ...
+};
+```
+
+The `ease` function takes in a timing function to modify the previous keyframe by. Defaults to a lerp. Checkout the [math](#math) section for more info.
+
+### Starting the animation
+
+The `done` function is used to finalize the animation. This parses all of the previously defined keyframes, stamping out `Frame` objects from each `TemplateFrame` created previous keyframes. This is a destructive process insofar as each call to `done` will clear the currently parsed keyframes, effectively resetting the animation.
+
+The `start` function is used to start the animation. It returns a `Promise` that resolves when the animation is complete. You can await it or not, up to you.
+
+### Demo
+
+See [here](demo/script.ts) for a more complete demonstration of what can be done.
+
+### Bonus features
+
+#### Interpolate between two non-adjacent keyframes
+
+```ts
+anim.from(0, {
+    color: "#C462D8",
+    })
+    ...
+    // imagine many keyframes that  don't define color
+    .from(100, {
+        color: "#E85252",
+    });
+```
+
+And `color` will be interpolated as if it were defined in every keyframe in between.
+
+#### Reverse an animation
+
+```ts
+anim.reverse().done();
+```
+
+Note that is mutates the animation in place.
 
 ## Math
 
-Frankly, the more interesting part of the library is the collection of various timing functions housed within the `math.ts` file.
+The more interesting part of the library is the collection of various timing functions housed within
+[`math.ts`](src/math.ts)
 
 ### Bezier Curves
 
-For instance, `DeCasteljau` is a dynamic programming implementation thereof, allowing for (semi) fast n-th degree Bezier curve calculations. This is used by every `bezier*` function herein.
+For instance, `deCasteljau` is a dynamic programming implementation thereof, allowing for (semi) fast n-th degree Bezier curve calculations. This is used by every `bezier*` function herein.
 
 To create your own n-th degree Bezier timing function, you can use the aforesaid; to create the more common cubic Bezier curve, the appellative `cubicBezier` is provided: it's essentially identical in function to the similar CSS variant thereof:
 

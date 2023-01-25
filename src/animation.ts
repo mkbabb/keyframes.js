@@ -1,4 +1,4 @@
-import { clamp, lerp, lerpIn } from "./math";
+import { clamp, lerpIn } from "./math";
 import {
     interpolateObject,
     reverseTransformObject,
@@ -101,13 +101,20 @@ export function parseTemplateFrame<V extends Vars>(
 
     allVars.forEach((v) => {
         if (v in startFrame.vars && v in endFrame.vars) {
+            // Default case - both frames have the variable
             interpVarValues[v] = createInterpVarValue(v, ix, ix + 1);
         } else if (!(v in startFrame.vars) && v in endFrame.vars) {
+            // Degenerate case - only the end frame has the variable
+            // Find the last frame that has the variable
             for (let i = ix - 1; i >= 0; i--) {
                 if (v in templateFrames[i].vars) {
-                    const frame = frames[i];
-                    frame.time = calcFrameTime(templateFrames[i], endFrame, duration);
-                    frame.interpVarValues[v] = createInterpVarValue(v, i, ix + 1);
+                    const oldFrame = frames[i]; // modify the old frame
+                    oldFrame.time = calcFrameTime(
+                        templateFrames[i],
+                        endFrame,
+                        duration
+                    );
+                    oldFrame.interpVarValues[v] = createInterpVarValue(v, i, ix + 1);
                     break;
                 }
             }
@@ -249,10 +256,7 @@ export class Animation<V extends Vars> {
             return dt >= this.duration;
         };
         animationLoop(drawFunc);
-        return await sleep(this.duration);
-    }
 
-    async infinite() {
-        return await this.start().then(async () => await this.infinite());
+        return await sleep(this.duration * 1.1);
     }
 }
