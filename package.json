@@ -1,7 +1,7 @@
 {
     "name": "@mkbabb/animation",
     "version": "0.5.0",
-    "description": "Little TypeScript animation library",
+    "description": "Tiny TypeScript animation library",
     "type": "module",
     "main": "./dist/@mkbabb/animation.es.js",
     "module": "./dist/@mkbabb/animation.es.js",

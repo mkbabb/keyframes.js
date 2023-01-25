@@ -55,6 +55,6 @@ export function transformValue(input: string | number): number | Value | RGBColo
     } else if (input.startsWith("rgb") || input.startsWith("hsl")) {
         return color(input)!.rgb();
     } else {
-        return color(input)?.rgb() ?? parseFloat(input);
+        return parseFloat(input) ?? color(input)?.rgb();
     }
 }

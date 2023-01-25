@@ -3,8 +3,8 @@ import { transformValue, Value } from "./utils";
 import { color, rgb, RGBColor } from "d3-color";
 
 type InterpValue = {
-    start: number;
-    stop: number;
+    start: number | object;
+    stop: number | object;
     distance?: number;
     unit?: string;
 };
@@ -57,7 +57,6 @@ export function parseFrame(
     let [start, stop] = [startFrame.start, endFrame.start];
     start = (start * duration) / 100;
     stop = (stop * duration) / 100;
-    console.log("hey");
 
     const time: Partial<InterpValue> = {
         start,
@@ -88,8 +87,6 @@ export function parseFrame(
             const startValue = transformValue(startFrame.vars[v]);
             const endValue = transformValue(endFrame.vars[v]);
 
-            console.log(startFrame.vars[v], endFrame.vars[v]);
-
             if (typeof startValue === "number" && typeof endValue === "number") {
                 addVar(v, startValue, endValue);
             } else if (
@@ -102,10 +99,7 @@ export function parseFrame(
                 startValue?.g !== undefined &&
                 startValue?.b !== undefined
             ) {
-                Object.entries(startValue).forEach(([k, colorValue]) => {
-                    const key = `${v}-${k}`;
-                    addVar(key, colorValue, endValue[k]);
-                });
+                addVar(key, startValue, endValue);
             }
         });
 
@@ -177,7 +171,6 @@ export class Animation {
         this.templateFrames = this.templateFrames.sort((a, b) =>
             a.start > b.start ? 1 : -1
         );
-        console.log("hey")
 
         for (let i = 0; i < this.templateFrames.length - 1; i++) {
             const startFrame = this.templateFrames[i];
@@ -207,12 +200,17 @@ export class Animation {
                 .forEach((frame: Frame) => {
                     const { start, distance } = frame.time;
 
-                    const s = clamp(c - start!, 0, distance!);
+                    const s = clamp(c - start, 0, distance!);
                     const t = frame.ease(s, 0, 1, distance!);
 
                     Object.entries(frame.interpVarValues).forEach(([v, value]) => {
-                        frame.vars[v] = lerp(t, value.start, value.stop);
+                        if (typeof value.start === "number") {
+                            frame.vars[v] = lerp(t, value.start, value.stop);
+                        }
+                        
                     });
+
+                    console.log(frame.interpVarValues);
 
                     frame.do(t, frame.vars);
                 });
