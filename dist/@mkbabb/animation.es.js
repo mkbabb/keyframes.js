@@ -1,46 +1,3 @@
-const p = function polyfill() {
-  const relList = document.createElement("link").relList;
-  if (relList && relList.supports && relList.supports("modulepreload")) {
-    return;
-  }
-  for (const link of document.querySelectorAll('link[rel="modulepreload"]')) {
-    processPreload(link);
-  }
-  new MutationObserver((mutations) => {
-    for (const mutation of mutations) {
-      if (mutation.type !== "childList") {
-        continue;
-      }
-      for (const node of mutation.addedNodes) {
-        if (node.tagName === "LINK" && node.rel === "modulepreload")
-          processPreload(node);
-      }
-    }
-  }).observe(document, { childList: true, subtree: true });
-  function getFetchOpts(script) {
-    const fetchOpts = {};
-    if (script.integrity)
-      fetchOpts.integrity = script.integrity;
-    if (script.referrerpolicy)
-      fetchOpts.referrerPolicy = script.referrerpolicy;
-    if (script.crossorigin === "use-credentials")
-      fetchOpts.credentials = "include";
-    else if (script.crossorigin === "anonymous")
-      fetchOpts.credentials = "omit";
-    else
-      fetchOpts.credentials = "same-origin";
-    return fetchOpts;
-  }
-  function processPreload(link) {
-    if (link.ep)
-      return;
-    link.ep = true;
-    const fetchOpts = getFetchOpts(link);
-    fetch(link.href, fetchOpts);
-  }
-};
-p();
-var index_html_htmlProxy_index_0 = "";
 function clamp(x, lowerLimit, upperLimit) {
   if (x < lowerLimit) {
     return lowerLimit;
@@ -48,23 +5,6 @@ function clamp(x, lowerLimit, upperLimit) {
     return upperLimit;
   }
   return x;
-}
-function deCasteljau(t, points) {
-  const n = points.length - 1;
-  let b = [...points];
-  for (let i = 1; i <= n; i++) {
-    for (let j = 0; j <= n - i; j++) {
-      b[j] = lerp(t, b[j], b[j + 1]);
-    }
-  }
-  return b[0];
-}
-function cubicBezier(t, x1, y1, x2, y2) {
-  return [deCasteljau(t, [0, x1, x2, 1]), deCasteljau(t, [0, y1, y2, 1])];
-}
-function easeInBounce(t, from, distance, duration) {
-  t = cubicBezier(t / duration, 0.09, 0.91, 0.5, 1.5)[1];
-  return distance * t + from;
 }
 function lerpIn(t, from, distance, duration) {
   return distance * (t /= duration) + from;
@@ -553,9 +493,9 @@ function parseTemplateFrame(ix, templateFrames, transformedFrameVars, duration, 
     } else if (!(v in startFrame.vars) && v in endFrame.vars) {
       for (let i = ix - 1; i >= 0; i--) {
         if (v in templateFrames[i].vars) {
-          const frame = frames[i];
-          frame.time = calcFrameTime(templateFrames[i], endFrame, duration);
-          frame.interpVarValues[v] = createInterpVarValue(v, i, ix + 1);
+          const oldFrame = frames[i];
+          oldFrame.time = calcFrameTime(templateFrames[i], endFrame, duration);
+          oldFrame.interpVarValues[v] = createInterpVarValue(v, i, ix + 1);
           break;
         }
       }
@@ -653,50 +593,7 @@ class Animation {
       return dt >= this.duration;
     };
     animationLoop(drawFunc);
-    return await sleep(this.duration);
-  }
-  async infinite() {
-    return await this.start().then(async () => await this.infinite());
+    return await sleep(this.duration * 1.1);
   }
 }
-const boxEl = document.querySelector("#box");
-const anim = new Animation(5e3);
-const transformFunc = (t, vars) => {
-  const { transform, color: color2, fontSize } = vars;
-  if (transform) {
-    boxEl.style.transform = `translate(${transform.x}, ${transform.y})`;
-  }
-  if (color2) {
-    boxEl.style.backgroundColor = color2;
-  }
-  if (fontSize) {
-    boxEl.style.fontSize = fontSize;
-  }
-};
-anim.from(0, {
-  transform: {
-    x: "0%",
-    y: "0%"
-  },
-  color: "#C462D8"
-}).transform(transformFunc).from(50, {
-  color: "#6280D8"
-}).transform(transformFunc).from(75, {
-  color: "#52E898",
-  fontSize: "1rem"
-}).transform(transformFunc).ease(easeInBounce).from(100, {
-  transform: {
-    x: "50%",
-    y: "100%"
-  },
-  color: "#E85252",
-  fontSize: "1.5rem"
-});
-async function main() {
-  while (true) {
-    await anim.done().start();
-    await anim.reverse().done().start();
-    anim.reverse();
-  }
-}
-main();
+export { Animation, animationLoop, parseTemplateFrame };

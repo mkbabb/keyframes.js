@@ -1,5 +1,4 @@
 export declare function clamp(x: number, lowerLimit: number, upperLimit: number): number;
-export declare function normalize(x0: number, min: number, max: number): number;
 export declare function deCasteljau(t: number, points: number[]): number;
 export declare function cubicBezier(t: number, x1: number, y1: number, x2: number, y2: number): number[];
 export declare function easeInBounce(t: number, from: number, distance: number, duration: number): number;

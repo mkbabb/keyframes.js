@@ -4,6 +4,11 @@ import dts from "vite-plugin-dts";
 
 export default defineConfig({
     base: "./",
+    server: {
+        watch: {
+            usePolling: true,
+        },
+    },
     build: {
         minify: true,
         lib: {
@@ -11,11 +16,7 @@ export default defineConfig({
             name: "Animation",
             fileName: "@mkbabb/animation",
         },
-        rollupOptions: {
-            input: {
-                app: "./demo/index.html",
-            },
-        },
+        rollupOptions: {},
     },
     plugins: [dts()],
 });

@@ -46,6 +46,5 @@ export declare class Animation<V extends Vars> {
     done(): this;
     reverse(): this;
     start(): Promise<unknown>;
-    infinite(): any;
 }
 export {};
