@@ -3,17 +3,21 @@
     "version": "0.6.2",
     "description": "Tiny TypeScript animation library",
     "type": "module",
-    "main": "./dist/@mkbabb/animation.es.js",
-    "module": "./dist/@mkbabb/animation.es.js",
+    "main": "./dist/@mkbabb/animation/index.js",
+    "module": "./dist/@mkbabb/animation/index.js",
     "types": "dist/animation.d.ts",
     "exports": {
         ".": {
-            "import": "./dist/@mkbabb/animation.es.js",
-            "require": "./dist/@mkbabb/animation.umd.js"
+            "import": "./dist/@mkbabb/animation/index.js",
+            "require": "./dist/@mkbabb/animation/index.cjs"
+        },
+        "./math": {
+            "import": "./dist/@mkbabb/animation/math.js",
+            "require": "./dist/@mkbabb/animation/math.cjs"
         }
     },
     "files": [
-        "dist"
+        "dist/"
     ],
     "scripts": {
         "build": "vite build"
