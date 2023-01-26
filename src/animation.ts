@@ -1,7 +1,6 @@
 import {
     bounceInEase,
     bounceInEaseHalf,
-    clamp,
     easeInBounce,
     easeInCubic,
     easeInOutCubic,
@@ -9,9 +8,9 @@ import {
     easeInQuad,
     easeOutCubic,
     easeOutQuad,
-    lerpIn,
     smoothStep3,
 } from "./easing";
+import { clamp, scale } from "./math";
 import { Value } from "./units";
 import { interpolateObject, reverseTransformObject, transformObject } from "./utils";
 
@@ -26,7 +25,6 @@ export const easingFunctions = {
     bounceInEase,
     bounceInEaseHalf,
     smoothStep3,
-    lerpIn,
 };
 
 type InterpValue = {
@@ -44,12 +42,7 @@ type InterpVars = {
 };
 
 type TransformFunction<V> = (t: number, v: V) => void;
-type EasingFunction = (
-    t: number,
-    from: number,
-    distance: number,
-    duration: number
-) => number;
+type EasingFunction = (t: number) => number;
 
 interface TemplateFrame<V extends Vars> {
     id: number;
@@ -87,6 +80,19 @@ function calcFrameTime<V extends Vars>(
     };
 }
 
+function seekPreviousFrame(
+    ix: number,
+    frames: TemplateFrame<any>[],
+    pred: (f: TemplateFrame<any>) => boolean
+) {
+    for (let i = ix - 1; i >= 0; i--) {
+        if (pred(frames[i])) {
+            return i;
+        }
+    }
+    return undefined;
+}
+
 export function parseTemplateFrame<V extends Vars>(
     ix: number,
     templateFrames: TemplateFrame<V>[],
@@ -117,27 +123,43 @@ export function parseTemplateFrame<V extends Vars>(
         } else if (!(v in startFrame.vars) && v in endFrame.vars) {
             // Degenerate case - only the end frame has the variable
             // Find the last frame that has the variable
-            for (let i = ix - 1; i >= 0; i--) {
-                if (v in templateFrames[i].vars) {
-                    const oldFrame = frames[i]; // modify the old frame
-                    oldFrame.time = calcFrameTime(
-                        templateFrames[i],
-                        endFrame,
-                        duration
-                    );
-                    oldFrame.interpVarValues[v] = createInterpVarValue(v, i, ix + 1);
-                    break;
-                }
+            const oldFrameIx = seekPreviousFrame(
+                ix,
+                templateFrames,
+                (f) => v in f.vars
+            );
+            if (oldFrameIx == null) {
+                return;
             }
+
+            const oldFrame = frames[oldFrameIx];
+            oldFrame.time = calcFrameTime(
+                templateFrames[oldFrameIx],
+                endFrame,
+                duration
+            );
+            oldFrame.interpVarValues[v] = createInterpVarValue(v, oldFrameIx, ix + 1);
         }
     });
+
+    let transform = startFrame.transform;
+    let ease = startFrame.ease;
+
+    if (transform == null) {
+        const transformIx = seekPreviousFrame(ix, frames, (f) => f.transform != null);
+        transform = frames[transformIx].transform;
+    }
+    if (ease == null) {
+        const easeIx = seekPreviousFrame(ix, frames, (f) => f.ease != null);
+        ease = frames[easeIx]?.ease ?? easeInOutCubic;
+    }
 
     return {
         id: startFrame.id,
         time,
         interpVarValues,
-        transform: startFrame?.transform ?? (() => {}),
-        ease: startFrame?.ease ?? lerpIn,
+        transform,
+        ease,
     };
 }
 
@@ -255,12 +277,13 @@ export class Animation<V extends Vars> {
                     (frame: Frame<V>) => dt >= frame.time.start && dt <= frame.time.stop
                 )
                 .forEach((frame: Frame<V>) => {
-                    const { start, stop, distance } = frame.time;
-                    const t = frame.ease(dt - start, 0, 1, distance);
-                    const vars = {} as InterpVars;
+                    const { start, stop } = frame.time;
+                    const t = scale(dt, start, stop, 0, 1);
+                    const s = frame.ease(t);
 
+                    const vars = {} as InterpVars;
                     Object.entries(frame.interpVarValues).forEach(([v, value]) => {
-                        vars[v] = interpolateObject(t, value.start, value.stop);
+                        vars[v] = interpolateObject(s, value.start, value.stop);
                     });
                     frame.transform(t, reverseTransformObject(vars) as V);
                 });

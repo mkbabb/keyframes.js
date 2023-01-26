@@ -1,5 +1,5 @@
 import { RGBColor } from "d3-color";
-import { lerp } from "./easing";
+import { lerp } from "./math";
 import { transformValue, Value } from "./units";
 
 export async function sleep(ms: number) {

@@ -1,12 +1,4 @@
-import {
-    bounceInEase,
-    clamp,
-    easeInBounce,
-    easeInCubic,
-    easeInQuad,
-    lerp,
-    lerpIn,
-} from "../src/easing";
+import { bounceInEase, easeInBounce, easeInCubic, easeInQuad } from "../src/easing";
 import { Animation } from "../src/animation";
 import { sleep } from "../src/utils";
 
@@ -47,13 +39,11 @@ const transformFunc = (t: number, vars) => {
 const transformStart = {
     x: "0%",
     y: "0%",
-    hey: 0,
 };
 
 const transformEnd = {
     x: "50%",
     y: "100%",
-    hey: 1,
 };
 
 anim.from(0, {
@@ -61,18 +51,15 @@ anim.from(0, {
     color: "#C462D8",
 })
     .transform(transformFunc)
-    .ease(easeInQuad)
     .from(50, {
         color: "#6280D8",
     })
     .transform(transformFunc)
-    .ease(easeInQuad)
     .from(75, {
         color: "#52E898",
         fontSize: "1rem",
     })
     .transform(transformFunc)
-    .ease(easeInQuad)
     .from(100, {
         transform: transformEnd,
         color: "#E85252",
