@@ -1,24 +1,19 @@
 import {
     bounceInEase,
+    bounceInEaseHalf,
     clamp,
     easeInBounce,
     easeInCubic,
-    lerpIn,
     easeInOutCubic,
-    easeOutCubic,
     easeInOutQuad,
-    easeOutQuad,
     easeInQuad,
+    easeOutCubic,
+    easeOutQuad,
+    lerpIn,
     smoothStep3,
-    bounceInEaseHalf,
-} from "./math";
-import {
-    interpolateObject,
-    reverseTransformObject,
-    sleep,
-    transformObject,
-    Value,
-} from "./utils";
+} from "./easing";
+import { Value } from "./units";
+import { interpolateObject, reverseTransformObject, transformObject } from "./utils";
 
 export const easingFunctions = {
     easeInQuad,
@@ -74,17 +69,6 @@ interface Frame<V extends Vars> {
     interpVarValues: InterpVars;
     transform: TransformFunction<V>;
     ease: EasingFunction;
-}
-
-export function animationLoop(drawFunc: (t: number) => undefined | boolean) {
-    function animationLoop(t: number) {
-        if (drawFunc(t)) {
-            return;
-        } else {
-            requestAnimationFrame(animationLoop);
-        }
-    }
-    requestAnimationFrame(animationLoop);
 }
 
 function calcFrameTime<V extends Vars>(
@@ -258,6 +242,7 @@ export class Animation<V extends Vars> {
 
     async start() {
         let startTime = undefined as unknown as number;
+        let done = false;
 
         const drawFunc = (t: number) => {
             if (startTime === undefined) {
@@ -280,10 +265,22 @@ export class Animation<V extends Vars> {
                     frame.transform(t, reverseTransformObject(vars) as V);
                 });
 
-            return dt >= this.duration;
+            if (dt < this.duration) {
+                requestAnimationFrame(drawFunc);
+            } else {
+                done = true;
+            }
         };
-        animationLoop(drawFunc);
 
-        return await sleep(this.duration * 1.1);
+        requestAnimationFrame(drawFunc);
+
+        return new Promise((resolve) => {
+            const interval = setInterval(() => {
+                if (done) {
+                    clearInterval(interval);
+                    resolve();
+                }
+            }, 1000 / 60);
+        });
     }
 }

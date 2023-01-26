@@ -3,15 +3,16 @@ import {
     clamp,
     easeInBounce,
     easeInCubic,
+    easeInQuad,
     lerp,
     lerpIn,
-} from "../src/math";
+} from "../src/easing";
 import { Animation } from "../src/animation";
 import { sleep } from "../src/utils";
 
 const boxEl = document.querySelector<HTMLElement>("#box")!;
 
-const anim = new Animation(5000);
+const anim = new Animation(2000);
 
 // anim.from(0, { color: "green", opacity: "100%", y: 100, nested: { x: 0, y: 0 } })
 //     .transform((t, vars) => {
@@ -43,31 +44,39 @@ const transformFunc = (t: number, vars) => {
     }
 };
 
+const transformStart = {
+    x: "0%",
+    y: "0%",
+    hey: 0,
+};
+
+const transformEnd = {
+    x: "50%",
+    y: "100%",
+    hey: 1,
+};
+
 anim.from(0, {
-    transform: {
-        x: "0%",
-        y: "0%",
-    },
+    transform: transformStart,
     color: "#C462D8",
 })
     .transform(transformFunc)
+    .ease(easeInQuad)
     .from(50, {
         color: "#6280D8",
     })
     .transform(transformFunc)
+    .ease(easeInQuad)
     .from(75, {
         color: "#52E898",
         fontSize: "1rem",
     })
     .transform(transformFunc)
-    .ease(easeInBounce)
+    .ease(easeInQuad)
     .from(100, {
-        transform: {
-            x: "50%",
-            y: "100%",
-        },
+        transform: transformEnd,
         color: "#E85252",
-        fontSize: "1.5rem",
+        fontSize: "3rem",
     });
 
 async function main() {
