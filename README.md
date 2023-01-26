@@ -4,7 +4,7 @@ Tiny TypeScript animation library. Kinda like gsap but worse :^D.
 
 ## Usage
 
-### Create a new animation
+### Create a new animation; [`animation.ts`](src/animation.ts)
 
 ```ts
 const dutation = 5000;
@@ -36,12 +36,8 @@ The `from` function initializes the keyframe to start at percentage `0` of the a
 
 -   numbers
 -   strings coercible to numbers
--   percentages
--   px values
--   rem values
--   any color parsable by `d3-color`
-
-Eventually will cover all of CSS's valid units.
+-   essentially any CSS property value
+-   any color parsable by [`d3-color`](https://github.com/d3/d3-color)
 
 The `transform` function takes in two parameters: the first is the current animation's time, `t`, and the second are the variables defined in the keyframe, `vars`, though with all values interpolated to the current time. When used in a chain below a `from` call, the interpolated `vars` object will be strictly typed - handy for linting.
 
@@ -52,7 +48,11 @@ const transformFunc = (t: number, vars) => {
 };
 ```
 
-The `ease` function takes in a timing function to modify the previous keyframe by. Defaults to a lerp. Checkout the [math](#math) section for more info.
+The `ease` function takes in a timing function to modify the previous keyframe by. This is a function that takes in a single parameter, `t`, and returns a number on the unit interval `[0, 1]`. Compatible with [`d3-ease`](https://github.com/d3/d3-ease)!
+
+Both easing and transform functions are partially optional. If you don't specify a transform function, the closet keyframe with a previously defined transform function will be used - if that cannot be located, well no transformation will occur...
+
+If you don't specify an easing function, the closest keyframe with a previously defined easing function will be used - if that cannot be located, a quadratic ease-in-out will be used.
 
 ### Starting the animation
 
@@ -92,7 +92,7 @@ Note that is mutates the animation in place.
 ## Math
 
 The more interesting part of the library is the collection of various timing functions housed within
-[`math.ts`](src/math.ts)
+[`easing.ts`](src/easing.ts), with utility math functions being defined in [`math.ts`](src/math.ts).
 
 ### Bezier Curves
 
@@ -110,6 +110,6 @@ I strongly recommend you use [this](https://cubic-bezier.com/) great website to 
 
 Finally, as another interactive Bezier demo, you can check out [this](https://www.desmos.com/calculator/tvivnkflzv) Desmos graph I've made. Pretty neat!
 
-### Easing
+### [`easing.ts`](src/easing.ts)
 
-Additionally, a portion of [Robert Penner's](http://robertpenner.com/easing/) set of easing functions are implemented here.
+Additionally, a portion of [Robert Penner's](http://robertpenner.com/easing/) set of easing functions are implemented, though using a modified scheme which assumes the input `t` value is on the unit interval `[0, 1]`
