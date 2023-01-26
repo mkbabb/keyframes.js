@@ -1,5 +1,5 @@
-import { bounceInEase, easeInBounce, easeInCubic, easeInQuad } from "../src/easing";
 import { Animation } from "../src/animation";
+import { bounceInEase, easeInBounce, easeInCubic, easeInQuad } from "../src/easing";
 import { sleep } from "../src/utils";
 
 const boxEl = document.querySelector<HTMLElement>("#box")!;
