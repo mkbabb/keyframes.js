@@ -156,12 +156,23 @@ export function parseTemplateFrame<V extends Vars>(
     };
 }
 
-const AnimationDirection = {
-    normal: "normal",
-    reverse: "reverse",
-    alternate: "alternate",
-    alternateReverse: "alternate-reverse",
-} as const;
+type AnimationOptions = {
+    duration?: number;
+    delay?: number;
+    iterations?: number;
+    direction?: "normal" | "reverse" | "alternate" | "alternate-reverse";
+    fillMode?: "none" | "forwards" | "backwards" | "both";
+    ease?: EasingFunction;
+};
+
+const defaultOptions: AnimationOptions = {
+    duration: 1000,
+    delay: 0,
+    iterations: 1,
+    direction: "normal",
+    fillMode: "none",
+    ease: easeInOutCubic,
+};
 
 export class Animation<V extends Vars> {
     templateFrames: TemplateFrame<V>[] = [];
@@ -175,25 +186,27 @@ export class Animation<V extends Vars> {
     frames: Frame<V>[] = [];
     reversed: boolean = false;
 
+    options: AnimationOptions;
+
     constructor(
-        public duration: number,
-        public delay: number = 0,
-        public iterations: number = Infinity,
-        public direction: string = AnimationDirection.normal
-    ) {}
+        options: Partial<AnimationOptions>,
+        public target: HTMLElement = document.documentElement
+    ) {
+        this.options = { ...defaultOptions, ...options };
+    }
 
     frame<K extends Vars>(
         start: number,
         vars: Partial<K>,
         transform?: TransformFunction<K>,
-        ease: EasingFunction = easeInQuad
+        ease?: EasingFunction
     ): Animation<K> {
         const templateFrame = {
             id: this.frameId,
             start,
             vars,
             transform,
-            ease,
+            ease: ease ?? this.options.ease,
         };
         this.templateFrames.push(templateFrame);
 
@@ -216,7 +229,7 @@ export class Animation<V extends Vars> {
                 i,
                 this.templateFrames,
                 this.transformedVars,
-                this.duration,
+                this.options.duration,
                 this.frames
             );
             this.frames.push(frame);
@@ -249,17 +262,41 @@ export class Animation<V extends Vars> {
     }
 
     async start() {
-        if (this.delay > 0) {
-            await sleep(this.delay);
-        }
         let startTime = undefined as unknown as number;
         let done = false;
+
+        const lerpFrame = (t: number, frame: Frame<V>) => {
+            const reversedVars = {};
+
+            for (const [key, values] of Object.entries(frame.interpVarValues)) {
+                const lerped = values.start.lerp(t, values.stop, this.target);
+                reverseTransformObject(key, lerped, reversedVars);
+            }
+
+            frame.transform(t, reversedVars);
+        };
+
+        const fillForwards = () => {
+            this.frames
+                .filter((frame) => frame.time.stop === this.options.duration)
+                .forEach((frame) => {
+                    lerpFrame(1, frame);
+                });
+        };
+
+        const fillBackwards = () => {
+            this.frames
+                .filter((frame) => frame.time.start === 0)
+                .forEach((frame) => {
+                    lerpFrame(0, frame);
+                });
+        };
 
         const drawFunc = (t: number) => {
             if (startTime === undefined) {
                 startTime = t;
             }
-            const dt = clamp(t - startTime, 0, this.duration);
+            const dt = clamp(t - startTime, 0, this.options.duration);
 
             for (let i = 0; i < this.frames.length; i++) {
                 const frame = this.frames[i];
@@ -268,30 +305,29 @@ export class Animation<V extends Vars> {
                 if (!(dt >= frame.time.start && dt <= frame.time.stop)) {
                     continue;
                 }
-
                 const t = scale(dt, start, stop, this.lerpRange[0], this.lerpRange[1]);
-                const s = frame.ease(t);
 
-                const reversed = {} as any;
-
-                for (const [key, values] of Object.entries(frame.interpVarValues)) {
-                    const lerped = values.start.lerp(s, values.stop);
-                    reverseTransformObject(key, lerped, reversed);
-                }
-
-                frame.transform(t, reversed);
+                lerpFrame(frame.ease(t), frame);
             }
 
-            if (dt < this.duration) {
+            if (dt < this.options.duration) {
                 requestAnimationFrame(drawFunc);
             } else {
                 done = true;
             }
         };
 
+        if (this.options.fillMode === "backwards" || this.options.fillMode === "both") {
+            fillBackwards();
+        }
+
+        if (this.options.delay > 0) {
+            await sleep(this.options.delay);
+        }
+
         requestAnimationFrame(drawFunc);
 
-        return new Promise((resolve) => {
+        await new Promise<void>((resolve) => {
             const interval = setInterval(() => {
                 if (done) {
                     clearInterval(interval);
@@ -299,12 +335,34 @@ export class Animation<V extends Vars> {
                 }
             }, 1000 / 60);
         });
+
+        if (this.options.fillMode === "forwards" || this.options.fillMode === "both") {
+            fillForwards();
+        } else if (
+            this.options.fillMode === "none" ||
+            this.options.fillMode === "backwards"
+        ) {
+            fillBackwards();
+        }
     }
 
     async loop() {
-        for (let i = 0; i < this.iterations; i++) {
-            await this.start();
+        if (
+            this.options.direction === "reverse" ||
+            this.options.direction === "alternate-reverse"
+        ) {
             this.reverse();
+        }
+
+        for (let i = 0; i < this.options.iterations; i++) {
+            if (
+                i > 0 &&
+                (this.options.direction === "alternate" ||
+                    this.options.direction === "alternate-reverse")
+            ) {
+                this.reverse();
+            }
+            await this.start();
         }
     }
 }
@@ -326,9 +384,9 @@ export const keyframesTransform = (target: HTMLElement) => (t: number, vars) => 
 export function keyframes(
     target: HTMLElement,
     keyframes: Record<number, any>,
-    duration: number = 1000
+    options: Partial<AnimationOptions> = {}
 ) {
-    const anim = new Animation(duration);
+    const anim = new Animation(options, target);
     const transform = keyframesTransform(target);
 
     for (const [key, vars] of Object.entries(keyframes)) {
@@ -341,11 +399,11 @@ export function keyframes(
 export function CSSKeyframesToAnimation(
     target: HTMLElement,
     keyframes: string,
-    duration: number = 1000,
+    options: Partial<AnimationOptions> = {}
 ) {
     const frames = parseCSSKeyframes(keyframes);
 
-    const anim = new Animation(duration);
+    const anim = new Animation(options, target);
     const transform = keyframesTransform(target);
 
     for (const [percent, frame] of Object.entries(frames)) {

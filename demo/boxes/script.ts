@@ -3,7 +3,7 @@ import { parseCSSKeyframes } from "../../src/units";
 
 const boxEl = document.querySelector<HTMLElement>("#box")!;
 
-const floatInputFrames = `@keyframes float {
+const floatInputFrames = /*css*/ `@keyframes float {
 	0% {
 		box-shadow: 0 5px 15px 0px rgba(0, 0,0,0.6);
 		transform: translatey(0px) scale(1);
@@ -18,30 +18,28 @@ const floatInputFrames = `@keyframes float {
 	}
 }`;
 
-const moveInputFrames = `
+const moveInputFrames = /*css*/ `
 @keyframes example {
     0%   {background-color:red; left:0px; top:0px;}
-    25%  {background-color:yellow; left:200px; top:0px;}
-    50%  {background-color:blue; left:200px; top:200px;}
+    25%  {background-color:yellow; left:var(--corner); top:0px;}
+    50%  {background-color:blue; left:var(--corner); top:200px;}
     75%  {background-color:green; left:0px; top:200px;}
     100% {background-color:red; left:0px; top:0px;}
-  }
-`;
+  }`;
 
-const tmpFrames = `
-@keyframes bounce {
-    0% {
-        transform: translateY(var(--bounce-offset));
-    }
-    100% {
-        transform: translateY(var(--bounce-offset));
-    }
-  }
-`;
+// const moveInputFrames = /*css*/`
+// @keyframes example {
+//     from {top: 0px; background-color: red;}
+//     to {top: 200px; background-color: blue;}
+//   }
+// `;
 
-const frames = parseCSSKeyframes(tmpFrames);
-
-const anim = CSSKeyframesToAnimation(boxEl, moveInputFrames, 5000);
+const anim = CSSKeyframesToAnimation(boxEl, moveInputFrames, {
+    duration: 5000,
+    iterations: Infinity,
+    direction: "alternate",
+    fillMode: "both",
+});
 
 async function main() {
     await anim.loop();

@@ -2,6 +2,13 @@ import { color, RGBColor } from "d3-color";
 import * as P from "parsimmon";
 import { lerp } from "./math";
 
+const getComputedValue = (target: HTMLElement, key: string) => {
+    const computed = getComputedStyle(target).getPropertyValue("--" + key);
+
+    const p = CSSKeyframes.valueUnit.parse(computed);
+    return p.status ? p.value : undefined;
+};
+
 export class ValueUnit<T = number> {
     constructor(public value: T, public unit?: string) {
         // TODO! This is a hack to parse colors
@@ -23,21 +30,34 @@ export class ValueUnit<T = number> {
         }
     }
 
-    lerp(t: number, other: ValueUnit<T>): ValueUnit<T> {
-        let value;
-
+    lerp(t: number, other: ValueUnit<T>, target?: HTMLElement) {
         if (this.unit === "color") {
-            value = {
+            const value = {
                 r: lerp(t, this.value.r, other.value.r),
                 g: lerp(t, this.value.g, other.value.g),
                 b: lerp(t, this.value.b, other.value.b),
             } as RGBColor;
-        } else if (this.unit === "var") {
-            value = other.value;
+            return new ValueUnit(value, this.unit);
+        } else if (target && (this.unit === "var" || other.unit === "var")) {
+            const left =
+                this.unit === "var"
+                    ? getComputedValue(target, this.value as string)
+                    : this;
+            const right =
+                other.unit === "var"
+                    ? getComputedValue(target, other.value as string)
+                    : other;
+            return left.lerp(t, right, target) as ValueUnit;
+        } else if (this.unit !== other.unit) {
+            const left = convertToPixels(this.value, this.unit, target);
+            const right = convertToPixels(other.value, other.unit, target);
+
+            const value = lerp(t, left, right);
+            return new ValueUnit(value, "px");
         } else {
-            value = lerp(t, this.value, other.value) as T;
+            const value = lerp(t, this.value, other.value);
+            return new ValueUnit(value, this.unit);
         }
-        return new ValueUnit(value, this.unit);
     }
 }
 
@@ -49,13 +69,13 @@ export class FunctionValue {
         return `${this.name}(${s})`;
     }
 
-    lerp(t: number, other: FunctionValue): FunctionValue {
+    lerp(t: number, other: FunctionValue, target?: HTMLElement): FunctionValue {
         const minLength = Math.min(this.values.length, other.values.length);
         const arr = [];
         for (let i = 0; i < minLength; i++) {
             const v = this.values[i];
             const o = other.values[i];
-            arr.push(v.lerp(t, o));
+            arr.push(v.lerp(t, o, target));
         }
         return new FunctionValue(this.name, arr);
     }
@@ -68,13 +88,13 @@ export class ValueArray {
         return this.values.map((v) => v.toString()).join(" ");
     }
 
-    lerp(t: number, other: ValueArray): ValueArray {
+    lerp(t: number, other: ValueArray, target?: HTMLElement): ValueArray {
         const minLength = Math.min(this.values.length, other.values.length);
         const arr = [];
         for (let i = 0; i < minLength; i++) {
             const v = this.values[i];
             const o = other.values[i];
-            arr.push(v.lerp(t, o));
+            arr.push(v.lerp(t, o, target));
         }
         return new ValueArray(arr);
     }
@@ -102,11 +122,27 @@ export function parseCSSUnitValue(): P.Parser<ValueUnit[]> {
         }
     });
 
-    const value = P.alt(cssUnitValue, numberValue, colorValue);
+    const value = P.alt(colorValue, cssUnitValue, numberValue);
 
     return P.seq(value, P.optWhitespace)
         .map(([value, _]) => value)
         .many() as P.Parser<ValueUnit[]>;
+}
+
+export function convertAbsoluteUnitToPixels(value: number, unit: string) {
+    let pixels = value;
+    if (unit === "cm") {
+        pixels *= 96 / 2.54;
+    } else if (unit === "mm") {
+        pixels *= 96 / 25.4;
+    } else if (unit === "in") {
+        pixels *= 96;
+    } else if (unit === "pt") {
+        pixels *= 4 / 3;
+    } else if (unit === "pc") {
+        pixels *= 16;
+    }
+    return pixels;
 }
 
 export function convertToPixels(
@@ -132,24 +168,11 @@ export function convertToPixels(
             getComputedStyle(element.parentElement).getPropertyValue(property)
         );
         value = (value / 100) * parentValue;
+    } else {
+        value = convertAbsoluteUnitToPixels(value, unit);
     }
-    return value;
-}
 
-export function convertAbsoluteUnitToPixels(value: number, unit: string) {
-    let pixels = value;
-    if (unit === "cm") {
-        pixels *= 96 / 2.54;
-    } else if (unit === "mm") {
-        pixels *= 96 / 25.4;
-    } else if (unit === "in") {
-        pixels *= 96;
-    } else if (unit === "pt") {
-        pixels *= 4 / 3;
-    } else if (unit === "pc") {
-        pixels *= 16;
-    }
-    return pixels;
+    return value;
 }
 
 export const toCamelCase = (str: string) =>
@@ -238,7 +261,7 @@ export const CSSKeyframes = P.createLanguage({
 
     unitValue: () => P.regexp(/[^(){},;\s]+/).map((x) => new ValueUnit(x)),
 
-    valueUnit: (r) => P.alt(CSSValueUnit.value, r.unitValue),
+    valueUnit: (r) => r.ws.then(P.alt(CSSValueUnit.value, r.unitValue)).skip(r.ws),
 
     transforms: (r) =>
         P.seq(
@@ -270,8 +293,11 @@ export const CSSKeyframes = P.createLanguage({
         P.string("var")
             .then(enclosed(r, P.string("--").then(r.identifier)))
             .map((name) => {
-                return new ValueUnit(name, "var");
+                const v = new ValueUnit(name, "var");
+                return new ValueArray([v]);
             }),
+
+    calc: (r) => P.string("calc").then(enclosed(r, r.valuePart.many())),
 
     functionValuePart: (r) => r.valuePart.sepBy(r.commaWhitespace),
 
@@ -279,6 +305,7 @@ export const CSSKeyframes = P.createLanguage({
         P.alt(
             r.transforms,
             r.variable,
+            r.calc,
             P.seq(r.identifier, enclosed(r, r.functionValuePart)).map(
                 ([name, value]) => {
                     return new FunctionValue(name, value);
@@ -286,7 +313,11 @@ export const CSSKeyframes = P.createLanguage({
             )
         ),
 
-    valuePart: (r) => P.alt(r.functionValue, r.valueUnit).skip(r.ws),
+    valuePart: (r) =>
+        P.alt(
+            r.functionValue,
+            r.valueUnit.map((x) => new ValueArray([x]))
+        ).skip(r.ws),
 
     value: (r) => r.valuePart.sepBy(r.ws).map((x) => new ValueArray(x)),
 
@@ -313,6 +344,7 @@ export const CSSKeyframes = P.createLanguage({
                 [percent]: Object.assign({}, ...values),
             };
         }),
+
     keyframe: (r) =>
         r.rule
             .skip(r.ws)

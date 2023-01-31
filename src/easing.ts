@@ -30,13 +30,21 @@ export function smoothStep3(t: number) {
     return t * t * (3 - 2 * t);
 }
 
+export const CSSBezier =
+    (x1: number, y1: number, x2: number, y2: number) => (t: number) => {
+        {
+            t = cubicBezier(t, x1, y1, x2, y2)[1];
+            return t;
+        }
+    };
+
 export function easeInBounce(t: number) {
-    t = cubicBezier(t, 0.09, 0.91, 0.5, 1.5)[1];
+    t = CSSBezier(0.09, 0.91, 0.5, 1.5)(t);
     return t;
 }
 
 export function bounceInEase(t: number) {
-    t = cubicBezier(t, 0.19, -0.53, 0.83, 0.67)[1];
+    t = CSSBezier(0.09, 0.91, 0.5, 1.5)(t);
     return t;
 }
 

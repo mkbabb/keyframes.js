@@ -2,7 +2,10 @@ import { Animation } from "../../src/animation";
 
 const boxEl = document.querySelector<HTMLElement>("#box")!;
 
-const anim = new Animation(2000);
+const anim = new Animation({
+    duration: 5000,
+    iterations: Infinity,
+});
 const transformFunc = (t: number, vars) => {
     const { transform, color, fontSize } = vars;
 
