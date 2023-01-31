@@ -1,9 +1,10 @@
 import { CSSKeyframesToAnimation } from "../../src/animation";
 import { parseCSSKeyframes } from "../../src/units";
+import { sleep } from "../../src/utils";
 
 const boxEl = document.querySelector<HTMLElement>("#box")!;
 
-const floatInputFrames = /*css*/ `@keyframes float {
+const floatInputFrames = /*css*/`@keyframes float {
 	0% {
 		box-shadow: 0 5px 15px 0px rgba(0, 0,0,0.6);
 		transform: translatey(0px) scale(1);
@@ -18,14 +19,14 @@ const floatInputFrames = /*css*/ `@keyframes float {
 	}
 }`;
 
-const moveInputFrames = /*css*/ `
+const moveInputFrames = /*css*/`
 @keyframes example {
     0%   {background-color:red; left:0px; top:0px;}
     25%  {background-color:yellow; left:var(--corner); top:0px;}
     50%  {background-color:blue; left:var(--corner); top:200px;}
     75%  {background-color:green; left:0px; top:200px;}
     100% {background-color:red; left:0px; top:0px;}
-  }`;
+}`;
 
 // const moveInputFrames = /*css*/`
 // @keyframes example {
@@ -42,6 +43,10 @@ const anim = CSSKeyframesToAnimation(boxEl, moveInputFrames, {
 });
 
 async function main() {
-    await anim.loop();
+    anim.loop();
+    await sleep(1000);
+    anim.paused = true;
+    await sleep(1000);
+    anim.paused = false;
 }
 main();

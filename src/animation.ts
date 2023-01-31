@@ -174,6 +174,21 @@ const defaultOptions: AnimationOptions = {
     ease: easeInOutCubic,
 };
 
+const waitUntil = async (condition: () => boolean, delay: number = 1000 / 60) => {
+    return await new Promise<number>((resolve, reject) => {
+        let t = 0;
+
+        const interval = setInterval(() => {
+            if (condition()) {
+                clearInterval(interval);
+                resolve(t);
+            } else {
+                t += delay;
+            }
+        });
+    });
+};
+
 export class Animation<V extends Vars> {
     templateFrames: TemplateFrame<V>[] = [];
     transformedVars: TransformedVars[] = [];
@@ -184,9 +199,10 @@ export class Animation<V extends Vars> {
     lerpRange = [0, 1];
 
     frames: Frame<V>[] = [];
-    reversed: boolean = false;
 
     options: AnimationOptions;
+
+    paused: boolean = false;
 
     constructor(
         options: Partial<AnimationOptions>,
@@ -292,9 +308,14 @@ export class Animation<V extends Vars> {
                 });
         };
 
-        const drawFunc = (t: number) => {
+        const drawFunc = async (t: number) => {
             if (startTime === undefined) {
                 startTime = t;
+            }
+            if (this.paused) {
+                const waitT = await waitUntil(() => !this.paused);
+                t += waitT;
+                startTime += waitT;
             }
             const dt = clamp(t - startTime, 0, this.options.duration);
 
@@ -327,14 +348,7 @@ export class Animation<V extends Vars> {
 
         requestAnimationFrame(drawFunc);
 
-        await new Promise<void>((resolve) => {
-            const interval = setInterval(() => {
-                if (done) {
-                    clearInterval(interval);
-                    resolve();
-                }
-            }, 1000 / 60);
-        });
+        await waitUntil(() => done);
 
         if (this.options.fillMode === "forwards" || this.options.fillMode === "both") {
             fillForwards();
