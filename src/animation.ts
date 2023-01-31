@@ -11,7 +11,7 @@ import {
     smoothStep3,
 } from "./easing";
 import { clamp, lerp, scale } from "./math";
-import { lerpValues, Value } from "./units";
+import { parseCSSKeyframes, ValueArray, ValueUnit } from "./units";
 import {
     reverseTransformObject,
     sleep,
@@ -33,8 +33,8 @@ export const easingFunctions = {
 };
 
 type InterpValue = {
-    start: Value[];
-    stop: Value[];
+    start: ValueArray;
+    stop: ValueArray;
 };
 
 type Vars = {
@@ -173,6 +173,7 @@ export class Animation<V extends Vars> {
     lerpRange = [0, 1];
 
     frames: Frame<V>[] = [];
+    reversed: boolean = false;
 
     constructor(
         public duration: number,
@@ -242,7 +243,9 @@ export class Animation<V extends Vars> {
             Object.assign(frame, reversedFrames[n]);
         });
         this.templateFrames.reverse();
+        this.transformedVars.reverse();
         this.parseFrames();
+        return this;
     }
 
     async start() {
@@ -272,8 +275,7 @@ export class Animation<V extends Vars> {
                 const reversed = {} as any;
 
                 for (const [key, values] of Object.entries(frame.interpVarValues)) {
-                    const lerped = lerpValues(s, values.start, values.stop);
-
+                    const lerped = values.start.lerp(s, values.stop);
                     reverseTransformObject(key, lerped, reversed);
                 }
 
@@ -307,29 +309,50 @@ export class Animation<V extends Vars> {
     }
 }
 
+export const keyframesTransform = (target: HTMLElement) => (t: number, vars) => {
+    for (const [key, value] of Object.entries(vars)) {
+        if (typeof value === "object") {
+            vars[key] = Object.entries(value)
+                .map(([key, value]) => {
+                    return `${key}(${value})`;
+                })
+                .join(" ");
+        }
+    }
+
+    Object.assign(target.style, vars);
+};
+
 export function keyframes(
     target: HTMLElement,
     keyframes: Record<number, any>,
     duration: number = 1000
 ) {
     const anim = new Animation(duration);
-
-    const transform = (t: number, vars) => {
-        for (const [key, value] of Object.entries(vars)) {
-            if (typeof value === "object") {
-                vars[key] = Object.entries(value)
-                    .map(([key, value]) => {
-                        return `${key}(${value})`;
-                    })
-                    .join(" ");
-            }
-        }
-        Object.assign(target.style, vars);
-    };
+    const transform = keyframesTransform(target);
 
     for (const [key, vars] of Object.entries(keyframes)) {
         anim.frame(parseInt(key), vars, transform);
     }
 
+    return anim;
+}
+
+export function CSSKeyframesToAnimation(
+    target: HTMLElement,
+    keyframes: string,
+    duration: number = 1000,
+) {
+    const frames = parseCSSKeyframes(keyframes);
+
+    const anim = new Animation(duration);
+    const transform = keyframesTransform(target);
+
+    for (const [percent, frame] of Object.entries(frames)) {
+        anim.frame(Number(percent), frame, transform);
+        anim.transformedVars.push(frame);
+    }
+
+    anim.parseFrames();
     return anim;
 }

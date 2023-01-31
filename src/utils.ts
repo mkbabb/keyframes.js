@@ -1,13 +1,13 @@
 import { RGBColor } from "d3-color";
 import { lerp } from "./math";
-import { transformValue, Value } from "./units";
+import { CSSKeyframes, transformValue, ValueArray, ValueUnit } from "./units";
 
 export async function sleep(ms: number) {
     return await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export interface TransformedVars {
-    [arg: string]: Value[];
+    [arg: string]: ValueUnit[];
 }
 
 export function transformObject(input: any): TransformedVars {
@@ -18,22 +18,24 @@ export function transformObject(input: any): TransformedVars {
             for (const [k, v] of Object.entries(input)) {
                 const currentKey = parentKey ? `${parentKey}.${k}` : k;
                 const transformedValues = recurse(v, currentKey);
-                if (typeof v !== "object" && transformedValues !== undefined) {
+
+                if (transformedValues !== undefined) {
                     output[currentKey] = transformedValues;
                 }
             }
         } else {
-            return transformValue(input);
+            const p = CSSKeyframes.value.parse(String(input));
+            return p.status ? p.value : undefined;
         }
     };
-    recurse(input);
 
+    recurse(input);
     return output;
 }
 
 export function reverseTransformObject(
     key: string,
-    values: Value[],
+    values: ValueArray,
     original: any
 ): any {
     const keys = key.split(".");
@@ -42,7 +44,7 @@ export function reverseTransformObject(
     for (let i = 0; i < keys.length; i++) {
         const k = keys[i];
         if (values !== undefined && i === keys.length - 1) {
-            obj[k] = values.map((v) => v.toString()).join(" ");
+            obj[k] = values.toString();
         } else {
             obj = obj[k] ?? (obj[k] = {});
         }

@@ -1,18 +1,16 @@
-import { Animation, keyframes } from "../../src/animation";
-import { bounceInEase, easeInBounce, easeInCubic, easeInQuad } from "../../src/easing";
-import { lerpValues, parseCSSKeyframes, Value } from "../../src/units";
-import { sleep, transformObject } from "../../src/utils";
+import { CSSKeyframesToAnimation } from "../../src/animation";
+import { parseCSSKeyframes } from "../../src/units";
 
 const boxEl = document.querySelector<HTMLElement>("#box")!;
 
 const floatInputFrames = `@keyframes float {
 	0% {
-		box-shadow: 0 5px 15px 0px rgba(0,0,0,0.6) translate(0, 0);
+		box-shadow: 0 5px 15px 0px rgba(0, 0,0,0.6);
 		transform: translatey(0px) scale(1);
 	}
 	50% {
 		box-shadow: 0 25px 15px 0px rgba(0,0,0,0.2);
-		transform: translatey(-20px) scale(0.5);
+		transform: translatey(-20px) scale(0.99);
 	}
 	100% {
 		box-shadow: 0 5px 15px 0px rgba(0,0,0,0.6);
@@ -30,49 +28,22 @@ const moveInputFrames = `
   }
 `;
 
-export function flatten(input: any) {
-    const output: any = {};
+const tmpFrames = `
+@keyframes bounce {
+    0% {
+        transform: translateY(var(--bounce-offset));
+    }
+    100% {
+        transform: translateY(var(--bounce-offset));
+    }
+  }
+`;
 
-    const recurse = (input: any, parentKey: string = "") => {
-        if (typeof input === "object") {
-            for (const [k, v] of Object.entries(input)) {
-                const currentKey = parentKey ? `${parentKey}.${k}` : k;
+const frames = parseCSSKeyframes(tmpFrames);
 
-                if (v instanceof Array) {
-                    for (let i = 0; i < v.length; i++) {
-                        const value = v[i];
-
-                        if (!(value instanceof Value) && !value?.rgba) {
-                            recurse(value, currentKey);
-                        } else {
-                            if (!output[currentKey]) {
-                                output[currentKey] = [];
-                            }
-
-                            output[currentKey].push(value);
-                        }
-                    }
-                } else {
-                    output[currentKey] = [v];
-                }
-            }
-        } else {
-            return input;
-        }
-    };
-
-    recurse(input);
-
-    return output;
-}
-
-const frames = parseCSSKeyframes(floatInputFrames);
-
-const [start, end] = [flatten(frames[0]), flatten(frames[100])];
-
-const anim = keyframes(boxEl, frames, 4000);
+const anim = CSSKeyframesToAnimation(boxEl, moveInputFrames, 5000);
 
 async function main() {
-    await anim.done().loop();
+    await anim.loop();
 }
 main();

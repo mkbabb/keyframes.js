@@ -2,21 +2,28 @@ import { color, RGBColor } from "d3-color";
 import * as P from "parsimmon";
 import { lerp } from "./math";
 
-export class Value<T = number> {
-    constructor(public value: T, public unit?: string) {}
+export class ValueUnit<T = number> {
+    constructor(public value: T, public unit?: string) {
+        // TODO! This is a hack to parse colors
+        const c = color(value as string);
+        if (c) {
+            this.unit = "color";
+            this.value = c as unknown as T;
+        }
+    }
 
     toString() {
         if (this.unit === "color") {
             const c = this.value as RGBColor;
             return `rgb(${c.r}, ${c.g}, ${c.b})`;
-        } else if (this.unit) {
+        } else if (this.unit && this.unit !== "var") {
             return `${this.value}${this.unit}`;
         } else {
             return `${this.value}`;
         }
     }
 
-    lerp(t: number, other: Value<T>): Value<T> {
+    lerp(t: number, other: ValueUnit<T>): ValueUnit<T> {
         let value;
 
         if (this.unit === "color") {
@@ -25,37 +32,71 @@ export class Value<T = number> {
                 g: lerp(t, this.value.g, other.value.g),
                 b: lerp(t, this.value.b, other.value.b),
             } as RGBColor;
+        } else if (this.unit === "var") {
+            value = other.value;
         } else {
             value = lerp(t, this.value, other.value) as T;
         }
-
-        return new Value(value, this.unit);
+        return new ValueUnit(value, this.unit);
     }
 }
 
-export function lerpValues(t: number, start: Value[], stop: Value[]): Value[] {
-    return start.map((v, i) => v.lerp(t, stop[i]));
+export class FunctionValue {
+    constructor(public name: string, public values: ValueUnit[]) {}
+
+    toString() {
+        const s = this.values.map((v) => v.toString()).join(", ");
+        return `${this.name}(${s})`;
+    }
+
+    lerp(t: number, other: FunctionValue): FunctionValue {
+        const minLength = Math.min(this.values.length, other.values.length);
+        const arr = [];
+        for (let i = 0; i < minLength; i++) {
+            const v = this.values[i];
+            const o = other.values[i];
+            arr.push(v.lerp(t, o));
+        }
+        return new FunctionValue(this.name, arr);
+    }
 }
 
-export function parseCSSUnitValue(): P.Parser<Value[]> {
+export class ValueArray {
+    constructor(public values: Array<FunctionValue | ValueUnit>) {}
+
+    toString() {
+        return this.values.map((v) => v.toString()).join(" ");
+    }
+
+    lerp(t: number, other: ValueArray): ValueArray {
+        const minLength = Math.min(this.values.length, other.values.length);
+        const arr = [];
+        for (let i = 0; i < minLength; i++) {
+            const v = this.values[i];
+            const o = other.values[i];
+            arr.push(v.lerp(t, o));
+        }
+        return new ValueArray(arr);
+    }
+}
+
+export function parseCSSUnitValue(): P.Parser<ValueUnit[]> {
     const number = P.regexp(/-?(0|[1-9]\d*)(\.\d+)?([eE][+-]?\d+)?/).map(Number);
     const unit = P.regexp(/[a-zA-Z%]+/);
 
     const numberValue = number.map((value) => {
-        console.log(value);
-        return new Value(value);
+        return new ValueUnit(value);
     });
 
     const cssUnitValue = P.seq(number, unit).map(([value, unit]) => {
-        console.log(value, unit);
-        return new Value(value, unit);
+        return new ValueUnit(value, unit);
     });
 
     const colorValue = P((input, i) => {
         const s = input.slice(i);
         const c = color(s)?.rgb();
         if (c) {
-            return P.makeSuccess(i + input.length, new Value(c, "color"));
+            return P.makeSuccess(i + input.length, new ValueUnit(c, "color"));
         } else {
             return P.makeFailure(i, "Invalid color");
         }
@@ -65,7 +106,7 @@ export function parseCSSUnitValue(): P.Parser<Value[]> {
 
     return P.seq(value, P.optWhitespace)
         .map(([value, _]) => value)
-        .many() as P.Parser<Value[]>;
+        .many() as P.Parser<ValueUnit[]>;
 }
 
 export function convertToPixels(
@@ -111,15 +152,7 @@ export function convertAbsoluteUnitToPixels(value: number, unit: string) {
     return pixels;
 }
 
-export function transformValue(input: string | number): Value[] {
-    if (typeof input === "number") {
-        return [new Value(input)];
-    }
-    const value = parseCSSUnitValue().tryParse(input);
-    return value;
-}
-
-const toCamelCase = (str: string) =>
+export const toCamelCase = (str: string) =>
     str.replace(/([-_][a-z])/gi, (group) =>
         group.toUpperCase().replace("-", "").replace("_", "")
     );
@@ -134,40 +167,51 @@ const istring = (str: string) =>
         }
     });
 
-const CSSValueUnit = P.createLanguage({
+export const CSSValueUnit = P.createLanguage({
     number: () => P.regexp(/-?(0|[1-9]\d*)(\.\d+)?([eE][+-]?\d+)?/).map(Number),
     unit: () => P.regexp(/[a-zA-Z%]+/),
 
     numberValue: (r) =>
         r.number.map((value) => {
-            return new Value(value);
+            return new ValueUnit(value);
         }),
 
     unitValue: (r) =>
         P.seq(r.number, r.unit).map(([value, unit]) => {
-            return new Value(value, unit);
+            return new ValueUnit(value, unit);
         }),
 
     colorValue: () =>
         P((input, i) => {
             const s = input.slice(i);
             const c = color(s)?.rgb();
-
             if (c) {
-                return P.makeSuccess(i + input.length, new Value(c, "color"));
+                return P.makeSuccess(i + input.length, new ValueUnit(c, "color"));
             } else {
                 return P.makeFailure(i, "Invalid color");
             }
         }),
 
-    value: (r) => P.alt(r.unitValue, r.numberValue, r.colorValue),
+    value: (r) => P.alt(r.colorValue, r.unitValue, r.numberValue),
 });
 
 const TRANSFORM_FUNCTIONS = ["translate", "scale", "rotate", "skew"];
 const DIMS = ["x", "y", "z"];
 
-const CSSKeyFrame = P.createLanguage({
-    identifier: () => P.regexp(/[a-zA-Z][a-zA-Z0-9-]+/).map((x) => toCamelCase(x)),
+const enclosed = (
+    r: P.Language,
+    args: P.Parser<any>,
+    left?: P.Parser<any>,
+    right?: P.Parser<any>
+) => {
+    left = left ?? r.lparen;
+    right = right ?? r.rparen;
+
+    return r.ws.skip(left).skip(r.ws).then(args).skip(r.ws).skip(right).skip(r.ws);
+};
+
+export const CSSKeyframes = P.createLanguage({
+    identifier: () => P.regexp(/[a-zA-Z][a-zA-Z0-9-]+/),
     ws: () => P.optWhitespace,
 
     rule: (r) => r.ws.then(P.string("@keyframes")).skip(r.ws).then(r.identifier),
@@ -179,78 +223,80 @@ const CSSKeyFrame = P.createLanguage({
     lparen: () => P.string("("),
     rparen: () => P.string(")"),
 
+    commaWhitespace: (r) => r.ws.then(P.string(",")).skip(r.ws),
+
     percent: (r) =>
         r.ws
             .then(
                 P.alt(
                     P.regexp(/\d+/).skip(P.string("%")),
-                    P.string("from"),
-                    P.string("to")
+                    P.string("from").map(() => "0"),
+                    P.string("to").map(() => "100")
                 )
             )
             .skip(r.ws),
 
-    valueUnit: () => CSSValueUnit.value,
+    unitValue: () => P.regexp(/[^(){},;\s]+/).map((x) => new ValueUnit(x)),
 
-    functionValuePart: (r) => r.valuePart.sepBy(r.ws.then(P.string(",")).skip(r.ws)),
+    valueUnit: (r) => P.alt(CSSValueUnit.value, r.unitValue),
 
     transforms: (r) =>
         P.seq(
             P.alt(...TRANSFORM_FUNCTIONS.map(istring)),
             P.alt(...DIMS.map(istring), P.string("")),
-            r.lparen
-                .skip(r.ws)
-                .then(r.valueUnit.sepBy(r.ws.then(P.string(",")).skip(r.ws)))
-                .skip(r.ws)
-                .skip(r.rparen)
+            enclosed(r, r.valueUnit.sepBy(r.commaWhitespace))
         ).map(([name, dim, values]) => {
             name = name.toLowerCase();
+            const out = [];
 
             if (dim) {
-                return {
-                    [name + dim.toUpperCase()]: values[0],
-                };
+                out.push(new FunctionValue(name + dim.toUpperCase(), [values[0]]));
+            } else if (values.length === 1) {
+                out.push(new FunctionValue(name, [values[0]]));
             } else {
                 const [x, y, z] = values;
-                const out = {
-                    [name + "X"]: x,
-                };
+                out.push(new FunctionValue(name + "X", [x]));
                 if (y) {
-                    out[name + "Y"] = y;
+                    out.push(new FunctionValue(name + "Y", [y]));
                 }
                 if (z) {
-                    out[name + "Z"] = z;
+                    out.push(new FunctionValue(name + "Z", [z]));
                 }
-                return out;
             }
+            return new ValueArray(out);
         }),
+
+    variable: (r) =>
+        P.string("var")
+            .then(enclosed(r, P.string("--").then(r.identifier)))
+            .map((name) => {
+                return new ValueUnit(name, "var");
+            }),
+
+    functionValuePart: (r) => r.valuePart.sepBy(r.commaWhitespace),
 
     functionValue: (r) =>
         P.alt(
             r.transforms,
-            P.seq(
-                r.identifier,
-                r.ws
-                    .skip(r.lparen)
-                    .skip(r.ws)
-                    .then(r.functionValuePart)
-                    .skip(r.ws)
-                    .skip(r.rparen)
-                    .skip(r.ws)
-            ).map(([name, value]) => {
-                return {
-                    [name]: value,
-                };
-            })
+            r.variable,
+            P.seq(r.identifier, enclosed(r, r.functionValuePart)).map(
+                ([name, value]) => {
+                    return new FunctionValue(name, value);
+                }
+            )
         ),
 
     valuePart: (r) => P.alt(r.functionValue, r.valueUnit).skip(r.ws),
 
-    value: (r) => r.valuePart.sepBy(r.ws),
+    value: (r) => r.valuePart.sepBy(r.ws).map((x) => new ValueArray(x)),
 
     values: (r) =>
         P.seq(
-            r.identifier.skip(r.ws).skip(r.colon).skip(r.ws),
+            r.identifier
+                .skip(r.ws)
+                .skip(r.colon)
+                .skip(r.ws)
+                .map((x) => toCamelCase(x)),
             r.value.skip(r.ws).skip(r.semi).skip(r.ws)
         ).map(([name, value]) => {
             return {
@@ -282,4 +328,4 @@ const CSSKeyFrame = P.createLanguage({
 });
 
 export const parseCSSKeyframes = (input: string): Record<string, any> =>
-    CSSKeyFrame.keyframe.tryParse(input);
+    CSSKeyframes.keyframe.tryParse(input);
