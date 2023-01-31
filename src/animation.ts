@@ -12,7 +12,12 @@ import {
 } from "./easing";
 import { clamp, lerp, scale } from "./math";
 import { lerpValues, Value } from "./units";
-import { reverseTransformObject, TransformedVars, transformObject } from "./utils";
+import {
+    reverseTransformObject,
+    sleep,
+    TransformedVars,
+    transformObject,
+} from "./utils";
 
 export const easingFunctions = {
     easeInQuad,
@@ -151,59 +156,50 @@ export function parseTemplateFrame<V extends Vars>(
     };
 }
 
+const AnimationDirection = {
+    normal: "normal",
+    reverse: "reverse",
+    alternate: "alternate",
+    alternateReverse: "alternate-reverse",
+} as const;
+
 export class Animation<V extends Vars> {
-    duration: number;
+    templateFrames: TemplateFrame<V>[] = [];
+    transformedVars: TransformedVars[] = [];
 
-    templateFrames: TemplateFrame<V>[];
-    templateFrame: TemplateFrame<V> | undefined;
-    transformedVars: TransformedVars[];
-
-    frameId: number;
-    prevId: number;
+    frameId: number = 0;
+    prevId: number = 0;
 
     lerpRange = [0, 1];
 
-    frames: Frame<V>[];
+    frames: Frame<V>[] = [];
 
-    constructor(duration: number) {
-        this.duration = duration;
-        this.templateFrames = [];
-        this.transformedVars = [];
+    constructor(
+        public duration: number,
+        public delay: number = 0,
+        public iterations: number = Infinity,
+        public direction: string = AnimationDirection.normal
+    ) {}
 
-        this.frames = [];
-        this.frameId = 0;
-        this.prevId = 0;
-    }
-
-    from<K extends Vars>(start: number, vars: Partial<K>): Animation<K> {
-        if (this.frameId > 0 && this.templateFrame !== undefined) {
-            this.templateFrames.push(this.templateFrame);
-        }
-
-        this.templateFrame = {
+    frame<K extends Vars>(
+        start: number,
+        vars: Partial<K>,
+        transform?: TransformFunction<K>,
+        ease: EasingFunction = easeInQuad
+    ): Animation<K> {
+        const templateFrame = {
             id: this.frameId,
             start,
             vars,
+            transform,
+            ease,
         };
+        this.templateFrames.push(templateFrame);
 
         this.prevId = this.frameId;
         this.frameId += 1;
 
         return this as unknown as Animation<K>;
-    }
-
-    transform<K extends V>(func: TransformFunction<K>) {
-        if (this.templateFrame !== undefined) {
-            this.templateFrame.transform = func;
-        }
-        return this;
-    }
-
-    ease(func: EasingFunction = bounceInEase) {
-        if (this.templateFrame !== undefined) {
-            this.templateFrame.ease = func;
-        }
-        return this;
     }
 
     parseVars() {
@@ -227,6 +223,11 @@ export class Animation<V extends Vars> {
         return this;
     }
 
+    done() {
+        this.parseVars().parseFrames();
+        return this;
+    }
+
     reverse() {
         const reversedFrames = this.templateFrames
             .map((frame) => {
@@ -244,18 +245,11 @@ export class Animation<V extends Vars> {
         this.parseFrames();
     }
 
-    done() {
-        if (this.templateFrame !== undefined) {
-            this.templateFrames.push(this.templateFrame);
-            this.templateFrame = undefined;
-        }
-        this.parseVars().parseFrames();
-        return this;
-    }
-
     async start() {
+        if (this.delay > 0) {
+            await sleep(this.delay);
+        }
         let startTime = undefined as unknown as number;
-
         let done = false;
 
         const drawFunc = (t: number) => {
@@ -279,8 +273,8 @@ export class Animation<V extends Vars> {
 
                 for (const [key, values] of Object.entries(frame.interpVarValues)) {
                     const lerped = lerpValues(s, values.start, values.stop);
-                    
-                   reverseTransformObject(key, lerped, reversed);
+
+                    reverseTransformObject(key, lerped, reversed);
                 }
 
                 frame.transform(t, reversed);
@@ -306,9 +300,36 @@ export class Animation<V extends Vars> {
     }
 
     async loop() {
-        while (true) {
+        for (let i = 0; i < this.iterations; i++) {
             await this.start();
             this.reverse();
         }
     }
+}
+
+export function keyframes(
+    target: HTMLElement,
+    keyframes: Record<number, any>,
+    duration: number = 1000
+) {
+    const anim = new Animation(duration);
+
+    const transform = (t: number, vars) => {
+        for (const [key, value] of Object.entries(vars)) {
+            if (typeof value === "object") {
+                vars[key] = Object.entries(value)
+                    .map(([key, value]) => {
+                        return `${key}(${value})`;
+                    })
+                    .join(" ");
+            }
+        }
+        Object.assign(target.style, vars);
+    };
+
+    for (const [key, vars] of Object.entries(keyframes)) {
+        anim.frame(parseInt(key), vars, transform);
+    }
+
+    return anim;
 }

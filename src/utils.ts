@@ -18,7 +18,6 @@ export function transformObject(input: any): TransformedVars {
             for (const [k, v] of Object.entries(input)) {
                 const currentKey = parentKey ? `${parentKey}.${k}` : k;
                 const transformedValues = recurse(v, currentKey);
-
                 if (typeof v !== "object" && transformedValues !== undefined) {
                     output[currentKey] = transformedValues;
                 }

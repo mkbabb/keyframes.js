@@ -50,6 +50,7 @@ export function parseCSSUnitValue(): P.Parser<Value[]> {
         console.log(value, unit);
         return new Value(value, unit);
     });
+
     const colorValue = P((input, i) => {
         const s = input.slice(i);
         const c = color(s)?.rgb();
@@ -117,3 +118,168 @@ export function transformValue(input: string | number): Value[] {
     const value = parseCSSUnitValue().tryParse(input);
     return value;
 }
+
+const toCamelCase = (str: string) =>
+    str.replace(/([-_][a-z])/gi, (group) =>
+        group.toUpperCase().replace("-", "").replace("_", "")
+    );
+
+const istring = (str: string) =>
+    P((input, i) => {
+        const s = input.slice(i);
+        if (s.toLowerCase().startsWith(str.toLowerCase())) {
+            return P.makeSuccess(i + str.length, str);
+        } else {
+            return P.makeFailure(i, `Expected ${str}`);
+        }
+    });
+
+const CSSValueUnit = P.createLanguage({
+    number: () => P.regexp(/-?(0|[1-9]\d*)(\.\d+)?([eE][+-]?\d+)?/).map(Number),
+    unit: () => P.regexp(/[a-zA-Z%]+/),
+
+    numberValue: (r) =>
+        r.number.map((value) => {
+            return new Value(value);
+        }),
+
+    unitValue: (r) =>
+        P.seq(r.number, r.unit).map(([value, unit]) => {
+            return new Value(value, unit);
+        }),
+
+    colorValue: () =>
+        P((input, i) => {
+            const s = input.slice(i);
+            const c = color(s)?.rgb();
+
+            if (c) {
+                return P.makeSuccess(i + input.length, new Value(c, "color"));
+            } else {
+                return P.makeFailure(i, "Invalid color");
+            }
+        }),
+
+    value: (r) => P.alt(r.unitValue, r.numberValue, r.colorValue),
+});
+
+const TRANSFORM_FUNCTIONS = ["translate", "scale", "rotate", "skew"];
+const DIMS = ["x", "y", "z"];
+
+const CSSKeyFrame = P.createLanguage({
+    identifier: () => P.regexp(/[a-zA-Z][a-zA-Z0-9-]+/).map((x) => toCamelCase(x)),
+    ws: () => P.optWhitespace,
+
+    rule: (r) => r.ws.then(P.string("@keyframes")).skip(r.ws).then(r.identifier),
+
+    semi: () => P.string(";"),
+    colon: () => P.string(":"),
+    lcurly: () => P.string("{"),
+    rcurly: () => P.string("}"),
+    lparen: () => P.string("("),
+    rparen: () => P.string(")"),
+
+    percent: (r) =>
+        r.ws
+            .then(
+                P.alt(
+                    P.regexp(/\d+/).skip(P.string("%")),
+                    P.string("from"),
+                    P.string("to")
+                )
+            )
+            .skip(r.ws),
+
+    valueUnit: () => CSSValueUnit.value,
+
+    functionValuePart: (r) => r.valuePart.sepBy(r.ws.then(P.string(",")).skip(r.ws)),
+
+    transforms: (r) =>
+        P.seq(
+            P.alt(...TRANSFORM_FUNCTIONS.map(istring)),
+            P.alt(...DIMS.map(istring), P.string("")),
+            r.lparen
+                .skip(r.ws)
+                .then(r.valueUnit.sepBy(r.ws.then(P.string(",")).skip(r.ws)))
+                .skip(r.ws)
+                .skip(r.rparen)
+        ).map(([name, dim, values]) => {
+            name = name.toLowerCase();
+
+            if (dim) {
+                return {
+                    [name + dim.toUpperCase()]: values[0],
+                };
+            } else {
+                const [x, y, z] = values;
+                const out = {
+                    [name + "X"]: x,
+                };
+                if (y) {
+                    out[name + "Y"] = y;
+                }
+                if (z) {
+                    out[name + "Z"] = z;
+                }
+                return out;
+            }
+        }),
+
+    functionValue: (r) =>
+        P.alt(
+            r.transforms,
+            P.seq(
+                r.identifier,
+                r.ws
+                    .skip(r.lparen)
+                    .skip(r.ws)
+                    .then(r.functionValuePart)
+                    .skip(r.ws)
+                    .skip(r.rparen)
+                    .skip(r.ws)
+            ).map(([name, value]) => {
+                return {
+                    [name]: value,
+                };
+            })
+        ),
+
+    valuePart: (r) => P.alt(r.functionValue, r.valueUnit).skip(r.ws),
+
+    value: (r) => r.valuePart.sepBy(r.ws),
+
+    values: (r) =>
+        P.seq(
+            r.identifier.skip(r.ws).skip(r.colon).skip(r.ws),
+            r.value.skip(r.ws).skip(r.semi).skip(r.ws)
+        ).map(([name, value]) => {
+            return {
+                [name]: value,
+            };
+        }),
+
+    frame: (r) =>
+        P.seq(
+            r.percent.skip(r.ws).skip(r.lcurly).skip(r.ws),
+            r.values.atLeast(1).skip(r.ws).skip(r.rcurly)
+        ).map(([percent, values]) => {
+            return {
+                [percent]: Object.assign({}, ...values),
+            };
+        }),
+    keyframe: (r) =>
+        r.rule
+            .skip(r.ws)
+            .skip(r.lcurly)
+            .skip(r.ws)
+            .then(r.frame.many())
+            .skip(r.ws)
+            .skip(r.rcurly)
+            .skip(r.ws)
+            .map((frame) => {
+                return Object.assign({}, ...frame);
+            }),
+});
+
+export const parseCSSKeyframes = (input: string): Record<string, any> =>
+    CSSKeyFrame.keyframe.tryParse(input);
