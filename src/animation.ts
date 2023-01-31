@@ -10,9 +10,9 @@ import {
     easeOutQuad,
     smoothStep3,
 } from "./easing";
-import { clamp, scale } from "./math";
-import { Value } from "./units";
-import { interpolateObject, reverseTransformObject, transformObject } from "./utils";
+import { clamp, lerp, scale } from "./math";
+import { lerpValues, Value } from "./units";
+import { reverseTransformObject, TransformedVars, transformObject } from "./utils";
 
 export const easingFunctions = {
     easeInQuad,
@@ -28,9 +28,8 @@ export const easingFunctions = {
 };
 
 type InterpValue = {
-    start: Value | any;
-    stop: Value | any;
-    distance?: number;
+    start: Value[];
+    stop: Value[];
 };
 
 type Vars = {
@@ -57,7 +56,6 @@ interface Frame<V extends Vars> {
     time: {
         start: number;
         stop: number;
-        distance: number;
     };
     interpVarValues: InterpVars;
     transform: TransformFunction<V>;
@@ -72,21 +70,15 @@ function calcFrameTime<V extends Vars>(
     let [start, stop] = [startFrame.start, endFrame.start];
     start = (start * duration) / 100;
     stop = (stop * duration) / 100;
-
     return {
         start,
         stop,
-        distance: stop - start,
     };
 }
 
-function seekPreviousFrame(
-    ix: number,
-    frames: TemplateFrame<any>[],
-    pred: (f: TemplateFrame<any>) => boolean
-) {
+function seekPreviousValue<T>(ix: number, values: T[], pred: (f: T) => boolean) {
     for (let i = ix - 1; i >= 0; i--) {
-        if (pred(frames[i])) {
+        if (pred(values[i])) {
             return i;
         }
     }
@@ -96,38 +88,34 @@ function seekPreviousFrame(
 export function parseTemplateFrame<V extends Vars>(
     ix: number,
     templateFrames: TemplateFrame<V>[],
-    transformedFrameVars: InterpVars[],
+    transformedVars: TransformedVars[],
     duration: number,
     frames: Frame<V>[]
 ): Frame<V> {
     const [startFrame, endFrame] = [templateFrames[ix], templateFrames[ix + 1]];
+    const [startVars, endVars] = [transformedVars[ix], transformedVars[ix + 1]];
+
     const time = calcFrameTime(startFrame, endFrame, duration);
 
     const interpVarValues: InterpVars = {};
 
-    const allVars = [
-        ...new Set([...Object.keys(startFrame.vars), ...Object.keys(endFrame.vars)]),
-    ];
+    const allVars = [...new Set([...Object.keys(startVars), ...Object.keys(endVars)])];
 
     const createInterpVarValue = (v: string, startIx: number, endIx: number) => {
         return {
-            start: transformedFrameVars[startIx][v],
-            stop: transformedFrameVars[endIx][v],
+            start: transformedVars[startIx][v],
+            stop: transformedVars[endIx][v],
         };
     };
 
     allVars.forEach((v) => {
-        if (v in startFrame.vars && v in endFrame.vars) {
+        if (v in startVars && v in endVars) {
             // Default case - both frames have the variable
             interpVarValues[v] = createInterpVarValue(v, ix, ix + 1);
-        } else if (!(v in startFrame.vars) && v in endFrame.vars) {
+        } else if (!(v in startVars) && v in endVars) {
             // Degenerate case - only the end frame has the variable
             // Find the last frame that has the variable
-            const oldFrameIx = seekPreviousFrame(
-                ix,
-                templateFrames,
-                (f) => v in f.vars
-            );
+            const oldFrameIx = seekPreviousValue(ix, transformedVars, (f) => v in f);
             if (oldFrameIx == null) {
                 return;
             }
@@ -146,11 +134,11 @@ export function parseTemplateFrame<V extends Vars>(
     let ease = startFrame.ease;
 
     if (transform == null) {
-        const transformIx = seekPreviousFrame(ix, frames, (f) => f.transform != null);
+        const transformIx = seekPreviousValue(ix, frames, (f) => f.transform != null);
         transform = frames[transformIx].transform;
     }
     if (ease == null) {
-        const easeIx = seekPreviousFrame(ix, frames, (f) => f.ease != null);
+        const easeIx = seekPreviousValue(ix, frames, (f) => f.ease != null);
         ease = frames[easeIx]?.ease ?? easeInOutCubic;
     }
 
@@ -168,15 +156,20 @@ export class Animation<V extends Vars> {
 
     templateFrames: TemplateFrame<V>[];
     templateFrame: TemplateFrame<V> | undefined;
+    transformedVars: TransformedVars[];
 
     frameId: number;
     prevId: number;
+
+    lerpRange = [0, 1];
 
     frames: Frame<V>[];
 
     constructor(duration: number) {
         this.duration = duration;
         this.templateFrames = [];
+        this.transformedVars = [];
+
         this.frames = [];
         this.frameId = 0;
         this.prevId = 0;
@@ -213,25 +206,19 @@ export class Animation<V extends Vars> {
         return this;
     }
 
-    done() {
-        if (this.templateFrame !== undefined) {
-            this.templateFrames.push(this.templateFrame);
-            this.templateFrame = undefined;
-        }
+    parseVars() {
+        this.transformedVars = this.templateFrames.map((frame) => {
+            return transformObject(frame.vars);
+        });
+        return this;
+    }
 
-        this.templateFrames = this.templateFrames.sort((a, b) =>
-            a.start > b.start ? 1 : -1
-        );
-
-        const transformedFrameVars = this.templateFrames.map((frame) =>
-            transformObject(frame.vars)
-        ) as InterpVars[];
-
+    parseFrames() {
         for (let i = 0; i < this.templateFrames.length - 1; i++) {
             const frame = parseTemplateFrame(
                 i,
                 this.templateFrames,
-                transformedFrameVars,
+                this.transformedVars,
                 this.duration,
                 this.frames
             );
@@ -241,29 +228,34 @@ export class Animation<V extends Vars> {
     }
 
     reverse() {
+        const reversedFrames = this.templateFrames
+            .map((frame) => {
+                return {
+                    start: frame.start,
+                    transform: frame.transform,
+                    ease: frame.ease,
+                };
+            })
+            .reverse();
+        this.templateFrames.forEach((frame, n) => {
+            Object.assign(frame, reversedFrames[n]);
+        });
+        this.templateFrames.reverse();
+        this.parseFrames();
+    }
+
+    done() {
         if (this.templateFrame !== undefined) {
             this.templateFrames.push(this.templateFrame);
             this.templateFrame = undefined;
         }
-        const frameTimes = this.templateFrames
-            .map((frame) => ({
-                start: frame.start,
-                transform: frame.transform,
-                ease: frame.ease,
-            }))
-            .reverse();
-
-        this.templateFrames.forEach((frame, i) => {
-            frame.start = frameTimes[i].start;
-            frame.transform = frameTimes[i].transform;
-            frame.ease = frameTimes[i].ease;
-        });
-        this.templateFrames.reverse();
+        this.parseVars().parseFrames();
         return this;
     }
 
     async start() {
         let startTime = undefined as unknown as number;
+
         let done = false;
 
         const drawFunc = (t: number) => {
@@ -272,21 +264,27 @@ export class Animation<V extends Vars> {
             }
             const dt = clamp(t - startTime, 0, this.duration);
 
-            this.frames
-                .filter(
-                    (frame: Frame<V>) => dt >= frame.time.start && dt <= frame.time.stop
-                )
-                .forEach((frame: Frame<V>) => {
-                    const { start, stop } = frame.time;
-                    const t = scale(dt, start, stop, 0, 1);
-                    const s = frame.ease(t);
+            for (let i = 0; i < this.frames.length; i++) {
+                const frame = this.frames[i];
+                const { start, stop } = frame.time;
 
-                    const vars = {} as InterpVars;
-                    Object.entries(frame.interpVarValues).forEach(([v, value]) => {
-                        vars[v] = interpolateObject(s, value.start, value.stop);
-                    });
-                    frame.transform(t, reverseTransformObject(vars) as V);
-                });
+                if (!(dt >= frame.time.start && dt <= frame.time.stop)) {
+                    continue;
+                }
+
+                const t = scale(dt, start, stop, this.lerpRange[0], this.lerpRange[1]);
+                const s = frame.ease(t);
+
+                const reversed = {} as any;
+
+                for (const [key, values] of Object.entries(frame.interpVarValues)) {
+                    const lerped = lerpValues(s, values.start, values.stop);
+                    
+                   reverseTransformObject(key, lerped, reversed);
+                }
+
+                frame.transform(t, reversed);
+            }
 
             if (dt < this.duration) {
                 requestAnimationFrame(drawFunc);
@@ -305,5 +303,12 @@ export class Animation<V extends Vars> {
                 }
             }, 1000 / 60);
         });
+    }
+
+    async loop() {
+        while (true) {
+            await this.start();
+            this.reverse();
+        }
     }
 }

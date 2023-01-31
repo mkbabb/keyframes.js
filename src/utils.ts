@@ -6,49 +6,48 @@ export async function sleep(ms: number) {
     return await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export function transformObject(input: any): object {
-    if (typeof input === "object") {
-        const output = {} as any;
-        for (const [key, value] of Object.entries(input)) {
-            output[key] = transformObject(value);
-        }
-        return output;
-    }
-
-    return transformValue(input);
+export interface TransformedVars {
+    [arg: string]: Value[];
 }
 
-export function reverseTransformObject(input: any): number | string | object {
-    if (typeof input === "object" && input?.value == null && input?.unit == null) {
-        const output = {} as any;
-        for (const [key, value] of Object.entries(input)) {
-            output[key] = reverseTransformObject(value);
+export function transformObject(input: any): TransformedVars {
+    const output = {} as TransformedVars;
+
+    const recurse = (input: any, parentKey: string = "") => {
+        if (typeof input === "object") {
+            for (const [k, v] of Object.entries(input)) {
+                const currentKey = parentKey ? `${parentKey}.${k}` : k;
+                const transformedValues = recurse(v, currentKey);
+
+                if (typeof v !== "object" && transformedValues !== undefined) {
+                    output[currentKey] = transformedValues;
+                }
+            }
+        } else {
+            return transformValue(input);
         }
-        return output;
-    }
+    };
+    recurse(input);
 
-    const { value, unit } = input as Value;
-
-    if (unit === "") {
-        return value;
-    } else if (unit === "color") {
-        const c = value as RGBColor;
-        return `rgb(${c.r}, ${c.g}, ${c.b})`;
-    } else {
-        return `${value}${unit}`;
-    }
+    return output;
 }
 
-export function interpolateObject(t: number, start: any, stop: any): any {
-    if (typeof start === "object") {
-        const output = {} as any;
-        for (const key of Object.keys(start)) {
-            output[key] = interpolateObject(t, start[key], stop[key]);
+export function reverseTransformObject(
+    key: string,
+    values: Value[],
+    original: any
+): any {
+    const keys = key.split(".");
+    let obj = original;
+
+    for (let i = 0; i < keys.length; i++) {
+        const k = keys[i];
+        if (values !== undefined && i === keys.length - 1) {
+            obj[k] = values.map((v) => v.toString()).join(" ");
+        } else {
+            obj = obj[k] ?? (obj[k] = {});
         }
-        return output;
-    } else if (typeof start === "number" && typeof stop === "number") {
-        return lerp(t, start, stop);
     }
 
-    return start;
+    return original;
 }

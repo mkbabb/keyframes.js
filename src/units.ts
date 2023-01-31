@@ -1,18 +1,70 @@
-import { color } from "d3-color";
+import { color, RGBColor } from "d3-color";
 import * as P from "parsimmon";
+import { lerp } from "./math";
 
-export type Value = {
-    value: number | object;
-    unit: string;
-};
+export class Value<T = number> {
+    constructor(public value: T, public unit?: string) {}
 
-export function parseCSSUnitValue(): P.Parser<{ value: number; unit: string }> {
+    toString() {
+        if (this.unit === "color") {
+            const c = this.value as RGBColor;
+            return `rgb(${c.r}, ${c.g}, ${c.b})`;
+        } else if (this.unit) {
+            return `${this.value}${this.unit}`;
+        } else {
+            return `${this.value}`;
+        }
+    }
+
+    lerp(t: number, other: Value<T>): Value<T> {
+        let value;
+
+        if (this.unit === "color") {
+            value = {
+                r: lerp(t, this.value.r, other.value.r),
+                g: lerp(t, this.value.g, other.value.g),
+                b: lerp(t, this.value.b, other.value.b),
+            } as RGBColor;
+        } else {
+            value = lerp(t, this.value, other.value) as T;
+        }
+
+        return new Value(value, this.unit);
+    }
+}
+
+export function lerpValues(t: number, start: Value[], stop: Value[]): Value[] {
+    return start.map((v, i) => v.lerp(t, stop[i]));
+}
+
+export function parseCSSUnitValue(): P.Parser<Value[]> {
     const number = P.regexp(/-?(0|[1-9]\d*)(\.\d+)?([eE][+-]?\d+)?/).map(Number);
     const unit = P.regexp(/[a-zA-Z%]+/);
 
-    return P.seq(number, unit).map(([value, unit]) => {
-        return { value, unit };
+    const numberValue = number.map((value) => {
+        console.log(value);
+        return new Value(value);
     });
+
+    const cssUnitValue = P.seq(number, unit).map(([value, unit]) => {
+        console.log(value, unit);
+        return new Value(value, unit);
+    });
+    const colorValue = P((input, i) => {
+        const s = input.slice(i);
+        const c = color(s)?.rgb();
+        if (c) {
+            return P.makeSuccess(i + input.length, new Value(c, "color"));
+        } else {
+            return P.makeFailure(i, "Invalid color");
+        }
+    });
+
+    const value = P.alt(cssUnitValue, numberValue, colorValue);
+
+    return P.seq(value, P.optWhitespace)
+        .map(([value, _]) => value)
+        .many() as P.Parser<Value[]>;
 }
 
 export function convertToPixels(
@@ -58,29 +110,10 @@ export function convertAbsoluteUnitToPixels(value: number, unit: string) {
     return pixels;
 }
 
-export function transformValue(input: string | number): Value {
+export function transformValue(input: string | number): Value[] {
     if (typeof input === "number") {
-        return {
-            value: input,
-            unit: "",
-        };
+        return [new Value(input)];
     }
-
-    try {
-        return parseCSSUnitValue().tryParse(input);
-    } catch (e) {
-        const c = color(input)?.rgb();
-
-        if (c != null) {
-            return {
-                value: c,
-                unit: "color",
-            };
-        }
-
-        return {
-            value: parseFloat(input),
-            unit: "",
-        };
-    }
+    const value = parseCSSUnitValue().tryParse(input);
+    return value;
 }

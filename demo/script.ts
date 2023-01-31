@@ -46,31 +46,63 @@ const transformEnd = {
     y: "100%",
 };
 
+// anim.from(0, {
+//     transform: transformStart,
+//     color: "#C462D8",
+// })
+//     .transform(transformFunc)
+//     .from(52, {
+//         color: "#6280D8",
+//     })
+//     .transform(transformFunc)
+//     .from(75, {
+//         color: "#52E898",
+//         fontSize: "1rem",
+//     })
+//     .transform(transformFunc)
+//     .from(100, {
+//         transform: transformEnd,
+//         color: "#E85252",
+//         fontSize: "3rem",
+//     });
+
+// @keyframes float {
+// 	0% {
+// 		box-shadow: 0 5px 15px 0px rgba(0,0,0,0.6);
+// 		transform: translatey(0px);
+// 	}
+// 	50% {
+// 		box-shadow: 0 25px 15px 0px rgba(0,0,0,0.2);
+// 		transform: translatey(-20px);
+// 	}
+// 	100% {
+// 		box-shadow: 0 5px 15px 0px rgba(0,0,0,0.6);
+// 		transform: translatey(0px);
+// 	}
+// }
+
+const transform = (t: number, vars) => {
+    const { transform, boxShadow } = vars;
+    boxEl.style.transform = `translateY(${transform.y})`;
+    boxEl.style.boxShadow = boxShadow;
+};
+
 anim.from(0, {
-    transform: transformStart,
-    color: "#C462D8",
+    transform: { y: "0px" },
+    boxShadow: "0 5px 15px 0px rgba(0,0,0,0.6)",
 })
-    .transform(transformFunc)
+    .transform(transform)
     .from(50, {
-        color: "#6280D8",
+        transform: { y: "-20px" },
+        boxShadow: "0 25px 15px 0px rgba(0,0,0,0.2)",
     })
-    .transform(transformFunc)
-    .from(75, {
-        color: "#52E898",
-        fontSize: "1rem",
-    })
-    .transform(transformFunc)
+    .transform(transform)
     .from(100, {
-        transform: transformEnd,
-        color: "#E85252",
-        fontSize: "3rem",
+        transform: { y: "0px" },
+        boxShadow: "0 5px 15px 0px rgba(0,0,0,0.6)",
     });
 
 async function main() {
-    while (true) {
-        await anim.done().start();
-        await anim.reverse().done().start();
-        anim.reverse();
-    }
+    await anim.done().loop();
 }
 main();
