@@ -1,4 +1,4 @@
-# animation.js
+# keyframes.js
 
 Tiny TypeScript animation library. Kinda like gsap but worse :^D.
 

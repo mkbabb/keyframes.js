@@ -8,8 +8,8 @@ export default defineConfig({
         minify: true,
         lib: {
             entry: path.resolve(__dirname, "src/animation.ts"),
-            name: "Animation",
-            fileName: "@mkbabb/animation",
+            name: "Keyframes",
+            fileName: "@mkbabb/keyframes",
         },
         rollupOptions: {},
     },

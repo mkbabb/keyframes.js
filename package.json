@@ -1,15 +1,15 @@
 {
-    "name": "@mkbabb/animation",
+    "name": "@mkbabb/keyframes",
     "version": "0.6.2",
-    "description": "Tiny TypeScript animation library",
+    "description": "TypeScript library for parsing and manipulating CSS keyframes",
     "type": "module",
-    "main": "./dist/@mkbabb/animation.js",
-    "module": "./dist/@mkbabb/animation.js",
-    "types": "dist/animation.d.ts",
+    "main": "./dist/@mkbabb/keyframes.js",
+    "module": "./dist/@mkbabb/keyframes.js",
+    "types": "dist/keyframes.d.ts",
     "exports": {
         ".": {
-            "import": "./dist/@mkbabb/animation.js",
-            "require": "./dist/@mkbabb/animation.umd.js"
+            "import": "./dist/@mkbabb/keyframes.js",
+            "require": "./dist/@mkbabb/keyframes.umd.js"
         }
     },
     "files": [
@@ -20,14 +20,14 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/mkbabb/animation.js.git"
+        "url": "git+https://github.com/mkbabb/keyframes.js.git"
     },
     "author": "",
     "license": "ISC",
     "bugs": {
-        "url": "https://github.com/mkbabb/animation.js/issues"
+        "url": "https://github.com/mkbabb/keyframes.js/issues"
     },
-    "homepage": "https://github.com/mkbabb/animation.js#readme",
+    "homepage": "https://github.com/mkbabb/keyframes.js#readme",
     "dependencies": {
         "d3-color": "^3.1.0",
         "gl-matrix": "^3.4.3",
