@@ -52,12 +52,12 @@ type Vars = {
 };
 
 type TransformFunction<V extends Vars> = (t: number, v: V) => void;
-type EasingFunction = (t: number) => number;
+type TimingFunction = (t: number) => number;
 
 export type Keyframe<V extends Vars> = [
     vars: V,
     transform?: TransformFunction<V>,
-    ease?: EasingFunction
+    timingFunction?: TimingFunction
 ];
 
 interface TemplateAnimationFrame<V extends Vars> {
@@ -65,7 +65,7 @@ interface TemplateAnimationFrame<V extends Vars> {
     start: number;
     vars: V;
     transform?: TransformFunction<V>;
-    ease?: EasingFunction;
+    timingFunction?: TimingFunction;
 }
 
 interface AnimationFrame<V extends Vars> {
@@ -76,7 +76,7 @@ interface AnimationFrame<V extends Vars> {
     };
     interpVars: InterpVars;
     transform: TransformFunction<V>;
-    ease: EasingFunction;
+    timingFunction: TimingFunction;
 }
 
 function calcFrameTime<V extends Vars>(
@@ -160,26 +160,26 @@ export function parseTemplateFrame<V extends Vars>(
         time,
         interpVars,
         transform,
-        ease: startFrame.ease!,
+        timingFunction: startFrame.timingFunction!,
     };
 }
 
 type AnimationOptions = {
     duration: number;
     delay: number;
-    iterations: number;
+    iterationCount: number;
     direction: "normal" | "reverse" | "alternate" | "alternate-reverse";
     fillMode: "none" | "forwards" | "backwards" | "both";
-    ease: EasingFunction;
+    timingFunction: TimingFunction;
 };
 
 const defaultOptions: AnimationOptions = {
     duration: 1000,
     delay: 0,
-    iterations: 1,
+    iterationCount: 1,
     direction: "normal",
     fillMode: "forwards",
-    ease: easeInOutCubic,
+    timingFunction: easeInOutCubic,
 };
 
 export class Animation<V extends Vars> {
@@ -211,14 +211,14 @@ export class Animation<V extends Vars> {
         start: number,
         vars: Partial<K>,
         transform?: TransformFunction<K>,
-        ease?: EasingFunction
+        timingFunction?: TimingFunction
     ): Animation<K> {
         const templateFrame = {
             id: this.frameId,
             start,
             vars,
             transform,
-            ease: ease ?? this.options.ease,
+            timingFunction: timingFunction ?? this.options.timingFunction,
         } as TemplateAnimationFrame<K>;
 
         this.templateFrames.push(templateFrame);
@@ -285,7 +285,7 @@ export class Animation<V extends Vars> {
             }
 
             const s = scale(t, start, stop, 0, 1);
-            const e = frame.ease(s);
+            const e = frame.timingFunction(s);
 
             for (const [key, values] of Object.entries(frame.interpVars)) {
                 const lerped = values.start.lerp(e, values.stop, this.target);
@@ -357,7 +357,7 @@ export class Animation<V extends Vars> {
         ) {
             this.reverse();
         }
-        for (let i = 0; i < this.options.iterations; i++) {
+        for (let i = 0; i < this.options.iterationCount; i++) {
             if (
                 i > 0 &&
                 (this.options.direction === "alternate" ||
@@ -407,8 +407,13 @@ export class CSSKeyframesAnimation<V extends Vars> {
         this.initAnimation();
 
         for (const [percent, frame] of Object.entries(keyframes)) {
-            const [vars, transform, ease] = frame;
-            this.animation.frame(parseCSSPercent(percent), vars, transform, ease);
+            const [vars, transform, timingFunction] = frame;
+            this.animation.frame(
+                parseCSSPercent(percent),
+                vars,
+                transform,
+                timingFunction
+            );
         }
 
         this.animation.parse();

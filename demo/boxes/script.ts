@@ -100,10 +100,10 @@ const frames = parseCSSKeyframes(motionScaleFrames);
 const anim = new CSSKeyframesAnimation(
     {
         duration: 2000,
-        iterations: Infinity,
+        iterationCount: Infinity,
         direction: "alternate",
         fillMode: "forwards",
-        ease: linear,
+        timingFunction: linear,
     },
     boxEl
 ).fromCSSKeyframes(motionScaleFrames);

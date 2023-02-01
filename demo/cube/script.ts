@@ -140,7 +140,7 @@ resetButton.addEventListener("click", () => {
 
     const resetAnimation = new CSSKeyframesAnimation({
         duration: 500,
-        ease: easeInBounce,
+        timingFunction: easeInBounce,
     }).fromFrames({
         from: [
             {
@@ -166,10 +166,10 @@ const cubeEl = document.querySelector<HTMLElement>(".cube")!;
 const anim = new CSSKeyframesAnimation(
     {
         duration: 5000,
-        iterations: Infinity,
+        iterationCount: Infinity,
         direction: "alternate",
         fillMode: "forwards",
-        ease: linear,
+        timingFunction: linear,
     },
     cubeEl
 );

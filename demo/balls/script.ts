@@ -26,7 +26,7 @@ const frames = parseCSSKeyframes(inputFrames);
 boxes.forEach((box, i) => {
     const anim = CSSKeyframesToAnimation(box, inputFrames, {
         duration: 200 + 100 * i,
-        iterations: Infinity,
+        iterationCount: Infinity,
         direction: "alternate",
         fillMode: "forwards",
         ease: CSSBezier(0.2, 0.65, 0.6, 1),

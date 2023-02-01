@@ -4,7 +4,7 @@ const boxEl = document.querySelector<HTMLElement>("#box")!;
 
 const anim = new CSSKeyframesAnimation({
     duration: 2000,
-    iterations: Infinity,
+    iterationCount: Infinity,
     direction: "alternate",
     fillMode: "forwards",
 });
