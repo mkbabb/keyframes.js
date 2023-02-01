@@ -136,15 +136,10 @@ export function parseTemplateFrame<V extends Vars>(
     });
 
     let transform = startFrame.transform;
-    let ease = startFrame.ease;
 
     if (transform == null) {
         const transformIx = seekPreviousValue(ix, frames, (f) => f.transform != null);
         transform = frames[transformIx].transform;
-    }
-    if (ease == null) {
-        const easeIx = seekPreviousValue(ix, frames, (f) => f.ease != null);
-        ease = frames[easeIx]?.ease ?? easeInOutCubic;
     }
 
     return {
@@ -152,7 +147,7 @@ export function parseTemplateFrame<V extends Vars>(
         time,
         interpVarValues,
         transform,
-        ease,
+        ease: startFrame.ease,
     };
 }
 
@@ -201,6 +196,7 @@ export class Animation<V extends Vars> {
     done: boolean = false;
     t: number;
     lerpRange = [0, 1];
+    reversed: boolean = false;
 
     constructor(
         options: Partial<AnimationOptions>,
@@ -256,20 +252,7 @@ export class Animation<V extends Vars> {
     }
 
     reverse() {
-        const reversedFrames = this.templateFrames
-            .map((frame) => {
-                return {
-                    start: frame.start,
-                    transform: frame.transform,
-                    ease: frame.ease,
-                };
-            })
-            .reverse();
-        this.templateFrames.forEach((frame, n) => {
-            Object.assign(frame, reversedFrames[n]);
-        });
-        this.parseFrames();
-        this.lerpRange.reverse();
+        this.reversed = !this.reversed;
         return this;
     }
 
@@ -282,6 +265,8 @@ export class Animation<V extends Vars> {
     }
 
     lerpFrames(t: number, reversedVars: TransformedVars = {}) {
+        t = this.reversed ? this.options.duration - t : t;
+
         for (let i = 0; i < this.frames.length; i++) {
             const frame = this.frames[i];
             const { start, stop } = frame.time;

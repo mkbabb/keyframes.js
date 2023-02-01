@@ -5,6 +5,8 @@ const boxEl = document.querySelector<HTMLElement>("#box")!;
 const anim = new Animation({
     duration: 5000,
     iterations: Infinity,
+    direction: "alternate",
+    fillMode: "forwards",
 });
 const transformFunc = (t: number, vars) => {
     const { transform, color, fontSize } = vars;
@@ -44,22 +46,34 @@ anim.frame(
     },
     transformFunc
 )
-    .frame(50, {
-        color: "#6280D8",
-    })
+    .frame(
+        50,
+        {
+            color: "#6280D8",
+        },
+        transformFunc
+    )
 
-    .frame(75, {
-        color: "#52E898",
-        fontSize: "1rem",
-    })
-    .frame(100, {
-        transform: transformEnd,
-        color: "#E85252",
-        fontSize: "3rem",
-    });
+    .frame(
+        75,
+        {
+            color: "#52E898",
+            fontSize: "1rem",
+        },
+        transformFunc
+    )
+    .frame(
+        100,
+        {
+            transform: transformEnd,
+            color: "#E85252",
+            fontSize: "3rem",
+        },
+        transformFunc
+    );
 
 async function main() {
-    await anim.parse().loop();
+    await anim.parse().play();
 }
 
 main();
