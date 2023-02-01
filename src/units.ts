@@ -82,10 +82,13 @@ export class FunctionValue {
 }
 
 export class ValueArray {
-    constructor(public values: Array<FunctionValue | ValueUnit>) {}
+    constructor(
+        public values: Array<FunctionValue | ValueUnit>,
+        public delim: string = " "
+    ) {}
 
     toString() {
-        return this.values.map((v) => v.toString()).join(" ");
+        return this.values.map((v) => v.toString()).join(this.delim);
     }
 
     lerp(t: number, other: ValueArray, target?: HTMLElement): ValueArray {
@@ -96,7 +99,7 @@ export class ValueArray {
             const o = other.values[i];
             arr.push(v.lerp(t, o, target));
         }
-        return new ValueArray(arr);
+        return new ValueArray(arr, this.delim);
     }
 }
 
@@ -253,12 +256,13 @@ export const CSSKeyframes = P.createLanguage({
         r.ws
             .then(
                 P.alt(
-                    P.regexp(/\d+/).skip(P.string("%")),
+                    P.regexp(/\d+/).skip(P.string("%").or(P.string(""))),
                     P.string("from").map(() => "0"),
                     P.string("to").map(() => "100")
                 )
             )
-            .skip(r.ws),
+            .skip(r.ws)
+            .map(Number),
 
     unitValue: () => P.regexp(/[^(){},;\s]+/).map((x) => new ValueUnit(x)),
 
@@ -354,3 +358,6 @@ export const CSSKeyframes = P.createLanguage({
 
 export const parseCSSKeyframes = (input: string): Record<string, any> =>
     CSSKeyframes.keyframe.tryParse(input);
+
+export const parseCSSPercent = (input: string | number): number =>
+    CSSKeyframes.percent.tryParse(String(input));

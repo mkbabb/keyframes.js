@@ -1,4 +1,4 @@
-import { CSSKeyframes, ValueArray, ValueUnit } from "./units";
+import { CSSKeyframes, FunctionValue, ValueArray, ValueUnit } from "./units";
 
 export async function sleep(ms: number) {
     return await new Promise((resolve) => setTimeout(resolve, ms));
@@ -12,18 +12,27 @@ export function transformObject(input: any): TransformedVars {
     const output = {} as TransformedVars;
 
     const recurse = (input: any, parentKey: string = ""): ValueArray | undefined => {
-        if (typeof input === "object") {
-            for (const [k, v] of Object.entries(input)) {
-                const currentKey = parentKey ? `${parentKey}.${k}` : k;
-                const transformedValues = recurse(v, currentKey);
+        const isValue =
+            input instanceof ValueUnit ||
+            input instanceof FunctionValue ||
+            input instanceof ValueArray;
 
-                if (transformedValues !== undefined) {
-                    output[currentKey] = transformedValues;
+        if (!isValue) {
+            if (typeof input === "object") {
+                for (const [k, v] of Object.entries(input)) {
+                    const currentKey = parentKey ? `${parentKey}.${k}` : k;
+                    const transformedValues = recurse(v, currentKey);
+
+                    if (transformedValues !== undefined) {
+                        output[currentKey] = transformedValues;
+                    }
                 }
+            } else {
+                const p = CSSKeyframes.value.parse(String(input));
+                return p.status ? p.value : undefined;
             }
         } else {
-            const p = CSSKeyframes.value.parse(String(input));
-            return p.status ? p.value : undefined;
+            return input;
         }
     };
 
@@ -59,4 +68,18 @@ export async function waitUntil(condition: () => boolean, delay: number = 1000 /
             }
         }, delay);
     });
+}
+
+export function debounce(func: Function, wait: number = 100) {
+    let timeout = undefined as unknown as number;
+
+    return function (...args: Array<any>): void {
+        if (timeout !== undefined) {
+            clearTimeout(timeout);
+        }
+        timeout = setTimeout(() => {
+            func(...args);
+            timeout = undefined as unknown as number;
+        }, wait);
+    };
 }

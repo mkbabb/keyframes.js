@@ -1,9 +1,11 @@
 import { CSSKeyframesAnimation } from "../../src/animation";
+import { linear } from "../../src/easing";
 import { scale } from "../../src/math";
+import { parseCSSKeyframes } from "../../src/units";
 
 const boxEl = document.querySelector<HTMLElement>("#box")!;
 
-const floatInputFrames = /*css*/ `@keyframes float {
+const floatFrames = /*css*/ `@keyframes float {
 	0% {
 		box-shadow: 0 5px 15px 0px rgba(0, 0,0,0.6);
 		transform: translatey(0px) scale(1);
@@ -18,7 +20,7 @@ const floatInputFrames = /*css*/ `@keyframes float {
 	}
 }`;
 
-const moveInputFrames = /*css*/ `
+const exampleFrames = /*css*/ `
 @keyframes example {
     0%   {background-color:red; left:0px; top:0px;}
     25%  {background-color:yellow; left:var(--corner); top:0px;}
@@ -27,7 +29,7 @@ const moveInputFrames = /*css*/ `
     100% {background-color:red; left:0px; top:0px;}
 }`;
 
-// const moveInputFrames = /*css*/ `
+// const example = /*css*/ `
 // @keyframes example {
 //     0%   {background-color:red; left:0px; top:0px;}
 //     25%  {background-color:yellow; left:200px; top:0px;}
@@ -43,15 +45,68 @@ const moveInputFrames = /*css*/ `
 //   }
 // `;
 
+const matrixExampleFrames = /*css*/ `
+@keyframes matrixExample {
+    from {
+        top: 0px; background-color: red;
+        transform: matrix3d(
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            0, 0, 0, 1);
+    }
+    to {
+        top: 200px; background-color: blue;
+        transform: matrix3d(
+            -0.6,       1.34788, 0,        0,
+            -2.34788,  -0.6,     0,        0,
+             0,         0,       1,        0,
+             0,         0,      10,        1);
+    }
+  }
+`;
+
+const motionScaleFrames = /*css*/ `
+@keyframes MotionScale {
+    from {
+      transform: matrix3d(
+        1,0,0,0,
+        0,1,0,0,
+        0,0,1,0,
+        -50,-100,0,1.1
+      );
+    }
+    50% {
+      transform: matrix3d(
+        1,0,0,0,
+        0,1,0,0,
+        0,0,1,0,
+        0,0,0,0.9
+      );
+    }
+    to {
+       transform: matrix3d(
+        1,0,0,0,
+        0,1,0,0,
+        0,0,1,0,
+        50,100,0,1.1
+      );
+    }
+    }
+`;
+
+const frames = parseCSSKeyframes(motionScaleFrames);
+
 const anim = new CSSKeyframesAnimation(
     {
-        duration: 500,
+        duration: 2000,
         iterations: Infinity,
         direction: "alternate",
         fillMode: "forwards",
+        ease: linear,
     },
     boxEl
-).fromCSS(moveInputFrames);
+).fromCSSKeyframes(motionScaleFrames);
 
 const pauseButton = document.querySelector<HTMLElement>("#pause-btn")!;
 pauseButton.addEventListener("click", () => {
@@ -59,7 +114,6 @@ pauseButton.addEventListener("click", () => {
 });
 
 const tSlider = document.querySelector<HTMLInputElement>("#t-slider")!;
-
 tSlider.addEventListener("input", () => {
     const t = parseFloat(tSlider.value);
     const s = scale(t, 0, 1, 0, anim.options.duration);

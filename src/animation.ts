@@ -11,7 +11,13 @@ import {
     smoothStep3,
 } from "./easing";
 import { scale } from "./math";
-import { parseCSSKeyframes, ValueArray, ValueUnit } from "./units";
+import {
+    CSSKeyframes,
+    parseCSSKeyframes,
+    parseCSSPercent,
+    ValueArray,
+    ValueUnit,
+} from "./units";
 import {
     reverseTransformObject,
     sleep,
@@ -48,11 +54,11 @@ type Vars = {
 type TransformFunction<V extends Vars> = (t: number, v: V) => void;
 type EasingFunction = (t: number) => number;
 
-export interface Keyframe<V extends Vars> {
-    vars: V;
-    transform?: TransformFunction<V>;
-    ease?: EasingFunction;
-}
+export type Keyframe<V extends Vars> = [
+    vars: V,
+    transform?: TransformFunction<V>,
+    ease?: EasingFunction
+];
 
 interface TemplateAnimationFrame<V extends Vars> {
     id: number;
@@ -229,6 +235,8 @@ export class Animation<V extends Vars> {
     }
 
     parseFrames() {
+        this.templateFrames.sort((a, b) => a.start - b.start);
+
         for (let i = 0; i < this.templateFrames.length - 1; i++) {
             const frame = parseTemplateFrame(
                 i,
@@ -374,29 +382,52 @@ export class CSSKeyframesAnimation<V extends Vars> {
         this.targets = targets;
     }
 
-    fromFrames(keyframes: Record<number, Keyframe<V>>) {
+    initAnimation() {
         this.animation = new Animation<V>(this.options, this.targets?.[0]);
-
-        for (const [percent, frame] of Object.entries(keyframes)) {
-            this.animation.frame(
-                parseInt(percent),
-                frame.vars,
-                this.transform.bind(this)
-            );
-        }
-        this.animation.parse();
         return this;
     }
 
-    fromCSS(keyframes: string) {
-        this.animation = new Animation<V>(this.options, this.targets?.[0]);
+    fromFramesDefaultTransform(keyframes: Record<string, Partial<V>>) {
+        this.initAnimation();
+
+        for (const [percent, frame] of Object.entries(keyframes)) {
+            this.animation.frame(
+                parseCSSPercent(percent),
+                frame,
+                this.transform.bind(this)
+            );
+        }
+
+        this.animation.parse();
+
+        return this;
+    }
+
+    fromFrames(keyframes: Record<string, Keyframe<V>>) {
+        this.initAnimation();
+
+        for (const [percent, frame] of Object.entries(keyframes)) {
+            const [vars, transform, ease] = frame;
+            this.animation.frame(parseCSSPercent(percent), vars, transform, ease);
+        }
+
+        this.animation.parse();
+
+        return this;
+    }
+
+    fromCSSKeyframes(keyframes: string) {
+        this.initAnimation();
 
         const frames = parseCSSKeyframes(keyframes);
+
         for (const [percent, frame] of Object.entries(frames)) {
             this.animation.frame(Number(percent), frame, this.transform.bind(this));
             this.animation.transformedVars.push(frame);
         }
+
         this.animation.parseFrames();
+
         return this;
     }
 
@@ -409,7 +440,6 @@ export class CSSKeyframesAnimation<V extends Vars> {
                     })
                     .join(" ");
             }
-
             this.targets.forEach((target) => {
                 target.style[key] = vars[key];
             });

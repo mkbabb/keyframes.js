@@ -1,5 +1,9 @@
 import { cubicBezier, interpBezier } from "./math";
 
+export function linear(t: number) {
+    return t;
+}
+
 export function easeInQuad(t: number) {
     return t * t;
 }
