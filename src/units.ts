@@ -151,7 +151,7 @@ export function convertToPixels(
     element?: HTMLElement,
     property?: string
 ): number {
-    if (unit === "em") {
+    if (unit === "em" && element) {
         value *= parseFloat(getComputedStyle(element).fontSize);
     } else if (unit === "rem") {
         value *= parseFloat(getComputedStyle(document.documentElement).fontSize);
@@ -163,7 +163,7 @@ export function convertToPixels(
         value *= Math.min(window.innerHeight, window.innerWidth) / 100;
     } else if (unit === "vmax") {
         value *= Math.max(window.innerHeight, window.innerWidth) / 100;
-    } else if (unit === "%") {
+    } else if (unit === "%" && element?.parentElement && property) {
         const parentValue = parseFloat(
             getComputedStyle(element.parentElement).getPropertyValue(property)
         );
@@ -190,6 +190,18 @@ const istring = (str: string) =>
         }
     });
 
+const enclosed = (
+    r: P.Language,
+    args: P.Parser<any>,
+    left?: P.Parser<any>,
+    right?: P.Parser<any>
+) => {
+    left = left ?? r.lparen;
+    right = right ?? r.rparen;
+
+    return r.ws.skip(left).skip(r.ws).then(args).skip(r.ws).skip(right).skip(r.ws);
+};
+
 export const CSSValueUnit = P.createLanguage({
     number: () => P.regexp(/-?(0|[1-9]\d*)(\.\d+)?([eE][+-]?\d+)?/).map(Number),
     unit: () => P.regexp(/[a-zA-Z%]+/),
@@ -215,23 +227,12 @@ export const CSSValueUnit = P.createLanguage({
             }
         }),
 
-    value: (r) => P.alt(r.colorValue, r.unitValue, r.numberValue),
+    value: (r) =>
+        P.alt(r.colorValue, r.unitValue, r.numberValue) as P.Parser<ValueUnit>,
 });
 
-const TRANSFORM_FUNCTIONS = ["translate", "scale", "rotate", "skew"];
-const DIMS = ["x", "y", "z"];
-
-const enclosed = (
-    r: P.Language,
-    args: P.Parser<any>,
-    left?: P.Parser<any>,
-    right?: P.Parser<any>
-) => {
-    left = left ?? r.lparen;
-    right = right ?? r.rparen;
-
-    return r.ws.skip(left).skip(r.ws).then(args).skip(r.ws).skip(right).skip(r.ws);
-};
+const TRANSFORM_FUNCTIONS = ["translate", "scale", "rotate", "skew"].map(istring);
+const DIMS = ["x", "y", "z"].map(istring);
 
 export const CSSKeyframes = P.createLanguage({
     identifier: () => P.regexp(/[a-zA-Z][a-zA-Z0-9-]+/),
@@ -261,16 +262,19 @@ export const CSSKeyframes = P.createLanguage({
 
     unitValue: () => P.regexp(/[^(){},;\s]+/).map((x) => new ValueUnit(x)),
 
-    valueUnit: (r) => r.ws.then(P.alt(CSSValueUnit.value, r.unitValue)).skip(r.ws),
+    valueUnit: (r) =>
+        r.ws
+            .then(P.alt(CSSValueUnit.value, r.unitValue))
+            .skip(r.ws) as P.Parser<ValueUnit>,
 
     transforms: (r) =>
         P.seq(
-            P.alt(...TRANSFORM_FUNCTIONS.map(istring)),
-            P.alt(...DIMS.map(istring), P.string("")),
-            enclosed(r, r.valueUnit.sepBy(r.commaWhitespace))
-        ).map(([name, dim, values]) => {
+            P.alt(...TRANSFORM_FUNCTIONS),
+            P.alt(...DIMS, P.string("")),
+            enclosed(r, r.functionValuePart)
+        ).map(([name, dim, values]: [string, string, ValueUnit[]]) => {
             name = name.toLowerCase();
-            const out = [];
+            const out = [] as FunctionValue[];
 
             if (dim) {
                 out.push(new FunctionValue(name + dim.toUpperCase(), [values[0]]));
@@ -293,11 +297,14 @@ export const CSSKeyframes = P.createLanguage({
         P.string("var")
             .then(enclosed(r, P.string("--").then(r.identifier)))
             .map((name) => {
-                const v = new ValueUnit(name, "var");
-                return new ValueArray([v]);
+                return new ValueUnit(name, "var");
             }),
-
-    calc: (r) => P.string("calc").then(enclosed(r, r.valuePart.many())),
+    calc: (r) =>
+        P.string("calc")
+            .then(enclosed(r, r.valuePart.many()))
+            .map((value) => {
+                return new ValueUnit(value, "calc");
+            }),
 
     functionValuePart: (r) => r.valuePart.sepBy(r.commaWhitespace),
 
@@ -313,11 +320,7 @@ export const CSSKeyframes = P.createLanguage({
             )
         ),
 
-    valuePart: (r) =>
-        P.alt(
-            r.functionValue,
-            r.valueUnit.map((x) => new ValueArray([x]))
-        ).skip(r.ws),
+    valuePart: (r) => P.alt(r.functionValue, r.valueUnit).skip(r.ws),
 
     value: (r) => r.valuePart.sepBy(r.ws).map((x) => new ValueArray(x)),
 

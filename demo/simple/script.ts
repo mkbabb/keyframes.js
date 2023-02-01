@@ -3,7 +3,7 @@ import { Animation } from "../../src/animation";
 const boxEl = document.querySelector<HTMLElement>("#box")!;
 
 const anim = new Animation({
-    duration: 5000,
+    duration: 2000,
     iterations: Infinity,
     direction: "alternate",
     fillMode: "forwards",
@@ -72,8 +72,10 @@ anim.frame(
         transformFunc
     );
 
+anim.parse();
+
 async function main() {
-    await anim.parse().play();
+    await anim.play();
 }
 
 main();

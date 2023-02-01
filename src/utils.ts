@@ -1,6 +1,6 @@
 import { RGBColor } from "d3-color";
 import { lerp } from "./math";
-import { CSSKeyframes, transformValue, ValueArray, ValueUnit } from "./units";
+import { CSSKeyframes, ValueArray, ValueUnit } from "./units";
 
 export async function sleep(ms: number) {
     return await new Promise((resolve) => setTimeout(resolve, ms));

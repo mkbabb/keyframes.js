@@ -45,6 +45,8 @@ const moveInputFrames = /*css*/ `
 //   }
 // `;
 
+// const frames = parseCSSKeyframes(moveInputFrames)
+
 const anim = CSSKeyframesToAnimation(boxEl, moveInputFrames, {
     duration: 500,
     iterations: Infinity,
