@@ -11,7 +11,10 @@ export interface TransformedVars {
 export function transformObject(input: any): TransformedVars {
     const output = {} as TransformedVars;
 
-    const recurse = (input: any, parentKey: string = ""): ValueArray | undefined => {
+    const recurse = (
+        input: any,
+        parentKey: string = ""
+    ): FunctionValue | ValueArray | undefined => {
         const isValue =
             input instanceof ValueUnit ||
             input instanceof FunctionValue ||
@@ -32,7 +35,11 @@ export function transformObject(input: any): TransformedVars {
                 return p.status ? p.value : undefined;
             }
         } else {
-            return input;
+            if (input instanceof ValueUnit) {
+                return new ValueArray([input]);
+            } else {
+                return input;
+            }
         }
     };
 

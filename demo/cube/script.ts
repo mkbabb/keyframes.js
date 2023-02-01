@@ -1,7 +1,6 @@
 import { CSSKeyframesAnimation } from "../../src/animation";
 import { easeInBounce, linear } from "../../src/easing";
 import { FunctionValue, ValueArray, ValueUnit } from "../../src/units";
-import { debounce } from "../../src/utils";
 import { mat4 } from "gl-matrix";
 
 const axes = ["x", "y", "z", "w"];
@@ -187,7 +186,7 @@ anim.fromFramesDefaultTransform({
     },
     "100%": {
         transform: {
-            scale: 2,
+            scale: new ValueUnit("scale", "var"),
             rotateX: "360deg",
             rotateY: "360deg",
             rotateZ: "360deg",
