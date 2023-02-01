@@ -1,4 +1,4 @@
-import { Animation, CSSKeyframesToAnimation, keyframes } from "../../src/animation";
+import { Animation, CSSKeyframesAnimation } from "../../src/animation";
 import {
     bounceInEase,
     CSSBezier,
@@ -24,13 +24,16 @@ const inputFrames = /*css*/ `
 const frames = parseCSSKeyframes(inputFrames);
 
 boxes.forEach((box, i) => {
-    const anim = CSSKeyframesToAnimation(box, inputFrames, {
-        duration: 200 + 100 * i,
-        iterationCount: Infinity,
-        direction: "alternate",
-        fillMode: "forwards",
-        ease: CSSBezier(0.2, 0.65, 0.6, 1),
-    });
+    const anim = new CSSKeyframesAnimation(
+        {
+            duration: 200 + 100 * i,
+            iterationCount: Infinity,
+            direction: "alternate",
+            fillMode: "forwards",
+            timingFunction: CSSBezier(0.2, 0.65, 0.6, 1),
+        },
+        box
+    ).fromCSSKeyframes(inputFrames);
 
     anim.play();
 });
