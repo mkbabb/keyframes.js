@@ -275,7 +275,7 @@ export class Animation<V extends Vars> {
                 continue;
             }
 
-            const s = scale(t, start, stop, this.lerpRange[0], this.lerpRange[1]);
+            const s = scale(t, start, stop, 0, 1);
             const e = frame.ease(s);
 
             for (const [key, values] of Object.entries(frame.interpVarValues)) {
