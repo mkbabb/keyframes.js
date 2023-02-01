@@ -10,13 +10,14 @@ import {
     easeOutQuad,
     smoothStep3,
 } from "./easing";
-import { clamp, lerp, scale } from "./math";
+import { scale } from "./math";
 import { parseCSSKeyframes, ValueArray, ValueUnit } from "./units";
 import {
     reverseTransformObject,
     sleep,
     TransformedVars,
     transformObject,
+    waitUntil,
 } from "./utils";
 
 export const easingFunctions = {
@@ -36,19 +37,24 @@ type InterpValue = {
     start: ValueArray;
     stop: ValueArray;
 };
+type InterpVars = {
+    [arg: string]: InterpValue;
+};
 
 type Vars = {
     [arg: string]: number | string | any;
 };
 
-type InterpVars = {
-    [arg: string]: InterpValue;
-};
-
-type TransformFunction<V> = (t: number, v: V) => void;
+type TransformFunction<V extends Vars> = (t: number, v: V) => void;
 type EasingFunction = (t: number) => number;
 
-interface TemplateFrame<V extends Vars> {
+export interface Keyframe<V extends Vars> {
+    vars: V;
+    transform?: TransformFunction<V>;
+    ease?: EasingFunction;
+}
+
+interface TemplateAnimationFrame<V extends Vars> {
     id: number;
     start: number;
     vars: V;
@@ -56,20 +62,20 @@ interface TemplateFrame<V extends Vars> {
     ease?: EasingFunction;
 }
 
-interface Frame<V extends Vars> {
+interface AnimationFrame<V extends Vars> {
     id: number;
     time: {
         start: number;
         stop: number;
     };
-    interpVarValues: InterpVars;
+    interpVars: InterpVars;
     transform: TransformFunction<V>;
     ease: EasingFunction;
 }
 
 function calcFrameTime<V extends Vars>(
-    startFrame: TemplateFrame<V>,
-    endFrame: TemplateFrame<V>,
+    startFrame: TemplateAnimationFrame<V>,
+    endFrame: TemplateAnimationFrame<V>,
     duration: number
 ) {
     let [start, stop] = [startFrame.start, endFrame.start];
@@ -92,21 +98,25 @@ function seekPreviousValue<T>(ix: number, values: T[], pred: (f: T) => boolean) 
 
 export function parseTemplateFrame<V extends Vars>(
     ix: number,
-    templateFrames: TemplateFrame<V>[],
+    templateFrames: TemplateAnimationFrame<V>[],
     transformedVars: TransformedVars[],
     duration: number,
-    frames: Frame<V>[]
-): Frame<V> {
+    frames: AnimationFrame<V>[]
+): AnimationFrame<V> {
     const [startFrame, endFrame] = [templateFrames[ix], templateFrames[ix + 1]];
     const [startVars, endVars] = [transformedVars[ix], transformedVars[ix + 1]];
 
     const time = calcFrameTime(startFrame, endFrame, duration);
 
-    const interpVarValues: InterpVars = {};
+    const interpVars: InterpVars = {};
 
     const allVars = [...new Set([...Object.keys(startVars), ...Object.keys(endVars)])];
 
-    const createInterpVarValue = (v: string, startIx: number, endIx: number) => {
+    const createInterpVarValue = (
+        v: string,
+        startIx: number,
+        endIx: number
+    ): InterpValue => {
         return {
             start: transformedVars[startIx][v],
             stop: transformedVars[endIx][v],
@@ -116,7 +126,7 @@ export function parseTemplateFrame<V extends Vars>(
     allVars.forEach((v) => {
         if (v in startVars && v in endVars) {
             // Default case - both frames have the variable
-            interpVarValues[v] = createInterpVarValue(v, ix, ix + 1);
+            interpVars[v] = createInterpVarValue(v, ix, ix + 1);
         } else if (!(v in startVars) && v in endVars) {
             // Degenerate case - only the end frame has the variable
             // Find the last frame that has the variable
@@ -124,40 +134,37 @@ export function parseTemplateFrame<V extends Vars>(
             if (oldFrameIx == null) {
                 return;
             }
-
             const oldFrame = frames[oldFrameIx];
             oldFrame.time = calcFrameTime(
                 templateFrames[oldFrameIx],
                 endFrame,
                 duration
             );
-            oldFrame.interpVarValues[v] = createInterpVarValue(v, oldFrameIx, ix + 1);
+            oldFrame.interpVars[v] = createInterpVarValue(v, oldFrameIx, ix + 1);
         }
     });
 
     let transform = startFrame.transform;
-
     if (transform == null) {
-        const transformIx = seekPreviousValue(ix, frames, (f) => f.transform != null);
+        const transformIx = seekPreviousValue(ix, frames, (f) => f.transform != null)!;
         transform = frames[transformIx].transform;
     }
-
     return {
         id: startFrame.id,
         time,
-        interpVarValues,
+        interpVars,
         transform,
-        ease: startFrame.ease,
+        ease: startFrame.ease!,
     };
 }
 
 type AnimationOptions = {
-    duration?: number;
-    delay?: number;
-    iterations?: number;
-    direction?: "normal" | "reverse" | "alternate" | "alternate-reverse";
-    fillMode?: "none" | "forwards" | "backwards" | "both";
-    ease?: EasingFunction;
+    duration: number;
+    delay: number;
+    iterations: number;
+    direction: "normal" | "reverse" | "alternate" | "alternate-reverse";
+    fillMode: "none" | "forwards" | "backwards" | "both";
+    ease: EasingFunction;
 };
 
 const defaultOptions: AnimationOptions = {
@@ -169,34 +176,23 @@ const defaultOptions: AnimationOptions = {
     ease: easeInOutCubic,
 };
 
-const waitUntil = async (condition: () => boolean, delay: number = 1000 / 60) => {
-    return await new Promise<void>((resolve, reject) => {
-        const interval = setInterval(() => {
-            if (condition()) {
-                clearInterval(interval);
-                resolve();
-            }
-        }, delay);
-    });
-};
-
 export class Animation<V extends Vars> {
     options: AnimationOptions;
 
-    templateFrames: TemplateFrame<V>[] = [];
+    templateFrames: TemplateAnimationFrame<V>[] = [];
     transformedVars: TransformedVars[] = [];
 
     frameId: number = 0;
-    frames: Frame<V>[] = [];
+    frames: AnimationFrame<V>[] = [];
 
-    paused: boolean = false;
-    startTime: number = undefined;
+    startTime: number | undefined = undefined;
     pausedTime: number = 0;
     prevTime: number = 0;
-    done: boolean = false;
     t: number;
-    lerpRange = [0, 1];
+
+    done: boolean = false;
     reversed: boolean = false;
+    paused: boolean = false;
 
     constructor(
         options: Partial<AnimationOptions>,
@@ -217,7 +213,7 @@ export class Animation<V extends Vars> {
             vars,
             transform,
             ease: ease ?? this.options.ease,
-        } as TemplateFrame<K>;
+        } as TemplateAnimationFrame<K>;
 
         this.templateFrames.push(templateFrame);
         this.frameId += 1;
@@ -225,7 +221,7 @@ export class Animation<V extends Vars> {
         return this as unknown as Animation<K>;
     }
 
-    parseVars() {
+    transformVars() {
         this.transformedVars = this.templateFrames.map((frame) => {
             return transformObject(frame.vars);
         });
@@ -247,7 +243,7 @@ export class Animation<V extends Vars> {
     }
 
     parse() {
-        this.parseVars().parseFrames();
+        this.transformVars().parseFrames();
         return this;
     }
 
@@ -256,15 +252,20 @@ export class Animation<V extends Vars> {
         return this;
     }
 
+    pause() {
+        this.paused = !this.paused;
+        return this;
+    }
+
     fillForwards() {
-        this.lerpFrames(this.options.duration);
+        this.interpFrames(this.options.duration);
     }
 
     fillBackwards() {
-        this.lerpFrames(0);
+        this.interpFrames(0);
     }
 
-    lerpFrames(t: number, reversedVars: TransformedVars = {}) {
+    interpFrames(t: number, reversedVars: TransformedVars = {}) {
         t = this.reversed ? this.options.duration - t : t;
 
         for (let i = 0; i < this.frames.length; i++) {
@@ -278,7 +279,7 @@ export class Animation<V extends Vars> {
             const s = scale(t, start, stop, 0, 1);
             const e = frame.ease(s);
 
-            for (const [key, values] of Object.entries(frame.interpVarValues)) {
+            for (const [key, values] of Object.entries(frame.interpVars)) {
                 const lerped = values.start.lerp(e, values.stop, this.target);
                 reverseTransformObject(key, lerped, reversedVars);
             }
@@ -336,7 +337,7 @@ export class Animation<V extends Vars> {
         if (t >= this.options.duration) {
             return this.onEnd();
         } else {
-            this.lerpFrames(t);
+            this.interpFrames(t);
             return requestAnimationFrame(this.draw.bind(this));
         }
     }
@@ -363,49 +364,64 @@ export class Animation<V extends Vars> {
     }
 }
 
-export const keyframesTransform = (target: HTMLElement) => (t: number, vars) => {
-    for (const [key, value] of Object.entries(vars)) {
-        if (typeof value === "object") {
-            vars[key] = Object.entries(value)
-                .map(([key, value]) => {
-                    return `${key}(${value})`;
-                })
-                .join(" ");
+export class CSSKeyframesAnimation<V extends Vars> {
+    options: AnimationOptions;
+    targets: HTMLElement[];
+    animation: Animation<V>;
+
+    constructor(options: Partial<AnimationOptions> = {}, ...targets: HTMLElement[]) {
+        this.options = { ...defaultOptions, ...options };
+        this.targets = targets;
+    }
+
+    fromFrames(keyframes: Record<number, Keyframe<V>>) {
+        this.animation = new Animation<V>(this.options, this.targets?.[0]);
+
+        for (const [percent, frame] of Object.entries(keyframes)) {
+            this.animation.frame(
+                parseInt(percent),
+                frame.vars,
+                this.transform.bind(this)
+            );
         }
-        target.style[key] = vars[key];
-    }
-};
-
-export function keyframes(
-    target: HTMLElement,
-    keyframes: Record<number, any>,
-    options: Partial<AnimationOptions> = {}
-) {
-    const anim = new Animation(options, target);
-    const transform = keyframesTransform(target);
-
-    for (const [key, vars] of Object.entries(keyframes)) {
-        anim.frame(parseInt(key), vars, transform);
+        this.animation.parse();
+        return this;
     }
 
-    return anim;
-}
+    fromCSS(keyframes: string) {
+        this.animation = new Animation<V>(this.options, this.targets?.[0]);
 
-export function CSSKeyframesToAnimation(
-    target: HTMLElement,
-    keyframes: string,
-    options: Partial<AnimationOptions> = {}
-) {
-    const frames = parseCSSKeyframes(keyframes);
-
-    const anim = new Animation(options, target);
-    const transform = keyframesTransform(target);
-
-    for (const [percent, frame] of Object.entries(frames)) {
-        anim.frame(Number(percent), frame, transform);
-        anim.transformedVars.push(frame);
+        const frames = parseCSSKeyframes(keyframes);
+        for (const [percent, frame] of Object.entries(frames)) {
+            this.animation.frame(Number(percent), frame, this.transform.bind(this));
+            this.animation.transformedVars.push(frame);
+        }
+        this.animation.parseFrames();
+        return this;
     }
 
-    anim.parseFrames();
-    return anim;
+    transform(t: number, vars: V) {
+        for (const [key, value] of Object.entries(vars)) {
+            if (typeof value === "object") {
+                vars[key] = Object.entries(value)
+                    .map(([key, value]) => {
+                        return `${key}(${value})`;
+                    })
+                    .join(" ");
+            }
+
+            this.targets.forEach((target) => {
+                target.style[key] = vars[key];
+            });
+        }
+    }
+
+    async play() {
+        return await this.animation.play();
+    }
+
+    pause() {
+        this.animation.pause();
+        return this;
+    }
 }

@@ -11,7 +11,7 @@ import { parseCSSKeyframes } from "../../src/units";
 
 const boxes = document.querySelectorAll<HTMLElement>(".anim .box")!;
 
-const inputFrames = `
+const inputFrames = /*css*/ `
 @keyframes bounce {
     0% {
       transform: translateY(0px);
@@ -19,7 +19,7 @@ const inputFrames = `
     100% {
       transform: translateY(var(--bounce-offset));
     }
-  }`;
+}`;
 
 const frames = parseCSSKeyframes(inputFrames);
 

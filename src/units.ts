@@ -274,23 +274,13 @@ export const CSSKeyframes = P.createLanguage({
             enclosed(r, r.functionValuePart)
         ).map(([name, dim, values]: [string, string, ValueUnit[]]) => {
             name = name.toLowerCase();
-            const out = [] as FunctionValue[];
-
             if (dim) {
-                out.push(new FunctionValue(name + dim.toUpperCase(), [values[0]]));
+                return new FunctionValue(name + dim.toUpperCase(), [values[0]]);
             } else if (values.length === 1) {
-                out.push(new FunctionValue(name, [values[0]]));
+                return new FunctionValue(name, [values[0]]);
             } else {
-                const [x, y, z] = values;
-                out.push(new FunctionValue(name + "X", [x]));
-                if (y) {
-                    out.push(new FunctionValue(name + "Y", [y]));
-                }
-                if (z) {
-                    out.push(new FunctionValue(name + "Z", [z]));
-                }
+                return new FunctionValue(name, values);
             }
-            return new ValueArray(out);
         }),
 
     variable: (r) =>

@@ -1,7 +1,5 @@
-import { CSSKeyframesToAnimation } from "../../src/animation";
-import { lerp, scale } from "../../src/math";
-import { parseCSSKeyframes } from "../../src/units";
-import { sleep } from "../../src/utils";
+import { CSSKeyframesAnimation } from "../../src/animation";
+import { scale } from "../../src/math";
 
 const boxEl = document.querySelector<HTMLElement>("#box")!;
 
@@ -45,23 +43,19 @@ const moveInputFrames = /*css*/ `
 //   }
 // `;
 
-// const frames = parseCSSKeyframes(moveInputFrames)
-
-const anim = CSSKeyframesToAnimation(boxEl, moveInputFrames, {
-    duration: 500,
-    iterations: Infinity,
-    direction: "alternate",
-    fillMode: "forwards",
-});
+const anim = new CSSKeyframesAnimation(
+    {
+        duration: 500,
+        iterations: Infinity,
+        direction: "alternate",
+        fillMode: "forwards",
+    },
+    boxEl
+).fromCSS(moveInputFrames);
 
 const pauseButton = document.querySelector<HTMLElement>("#pause-btn")!;
 pauseButton.addEventListener("click", () => {
-    anim.paused = !anim.paused;
-});
-
-const playButton = document.querySelector<HTMLElement>("#play-btn")!;
-playButton.addEventListener("click", () => {
-    anim.play();
+    anim.pause();
 });
 
 const tSlider = document.querySelector<HTMLInputElement>("#t-slider")!;
@@ -69,5 +63,8 @@ const tSlider = document.querySelector<HTMLInputElement>("#t-slider")!;
 tSlider.addEventListener("input", () => {
     const t = parseFloat(tSlider.value);
     const s = scale(t, 0, 1, 0, anim.options.duration);
-    anim.lerpFrames(s);
+
+    anim.animation.interpFrames(s);
 });
+
+anim.play();

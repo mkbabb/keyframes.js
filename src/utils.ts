@@ -1,5 +1,3 @@
-import { RGBColor } from "d3-color";
-import { lerp } from "./math";
 import { CSSKeyframes, ValueArray, ValueUnit } from "./units";
 
 export async function sleep(ms: number) {
@@ -7,13 +5,13 @@ export async function sleep(ms: number) {
 }
 
 export interface TransformedVars {
-    [arg: string]: ValueUnit[];
+    [arg: string]: ValueArray;
 }
 
 export function transformObject(input: any): TransformedVars {
     const output = {} as TransformedVars;
 
-    const recurse = (input: any, parentKey: string = "") => {
+    const recurse = (input: any, parentKey: string = ""): ValueArray | undefined => {
         if (typeof input === "object") {
             for (const [k, v] of Object.entries(input)) {
                 const currentKey = parentKey ? `${parentKey}.${k}` : k;
@@ -49,6 +47,16 @@ export function reverseTransformObject(
             obj = obj[k] ?? (obj[k] = {});
         }
     }
-
     return original;
+}
+
+export async function waitUntil(condition: () => boolean, delay: number = 1000 / 60) {
+    return await new Promise<void>((resolve) => {
+        const interval = setInterval(() => {
+            if (condition()) {
+                clearInterval(interval);
+                resolve();
+            }
+        }, delay);
+    });
 }
