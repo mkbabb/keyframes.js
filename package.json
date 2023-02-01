@@ -30,6 +30,7 @@
     "homepage": "https://github.com/mkbabb/animation.js#readme",
     "dependencies": {
         "d3-color": "^3.1.0",
+        "gl-matrix": "^3.4.3",
         "parsimmon": "^1.18.1"
     },
     "devDependencies": {

@@ -82,13 +82,10 @@ export class FunctionValue {
 }
 
 export class ValueArray {
-    constructor(
-        public values: Array<FunctionValue | ValueUnit>,
-        public delim: string = " "
-    ) {}
+    constructor(public values: Array<FunctionValue | ValueUnit>) {}
 
     toString() {
-        return this.values.map((v) => v.toString()).join(this.delim);
+        return this.values.map((v) => v.toString()).join(" ");
     }
 
     lerp(t: number, other: ValueArray, target?: HTMLElement): ValueArray {
@@ -99,7 +96,7 @@ export class ValueArray {
             const o = other.values[i];
             arr.push(v.lerp(t, o, target));
         }
-        return new ValueArray(arr, this.delim);
+        return new ValueArray(arr);
     }
 }
 

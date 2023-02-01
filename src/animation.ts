@@ -178,7 +178,7 @@ const defaultOptions: AnimationOptions = {
     delay: 0,
     iterations: 1,
     direction: "normal",
-    fillMode: "none",
+    fillMode: "forwards",
     ease: easeInOutCubic,
 };
 
@@ -431,15 +431,16 @@ export class CSSKeyframesAnimation<V extends Vars> {
         return this;
     }
 
-    transform(t: number, vars: V) {
+    transform(t: number, vars: any) {
         for (const [key, value] of Object.entries(vars)) {
             if (typeof value === "object") {
-                vars[key] = Object.entries(value)
-                    .map(([key, value]) => {
-                        return `${key}(${value})`;
-                    })
-                    .join(" ");
+                let s = "";
+                for (const [k, v] of Object.entries(value)) {
+                    s += v.includes("(") ? v : `${k}(${v}) `;
+                }
+                vars[key] = s;
             }
+
             this.targets.forEach((target) => {
                 target.style[key] = vars[key];
             });
