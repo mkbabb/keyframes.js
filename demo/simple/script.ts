@@ -59,7 +59,7 @@ anim.frame(
     });
 
 async function main() {
-    await anim.done().loop();
+    await anim.parse().loop();
 }
 
 main();

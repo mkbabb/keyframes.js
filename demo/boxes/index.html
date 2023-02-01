@@ -5,7 +5,6 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Animation Demo</title>
-        
     </head>
 
     <style>
@@ -24,8 +23,27 @@
 
         body {
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+
             align-items: center;
+            gap: 1rem;
+        }
+
+        button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            background-color: rgb(0, 0, 0);
+            box-shadow: 0 0 0 0.5rem rgba(255, 255, 255, 0.5);
+            color: white;
+
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        input {
+            width: 25%;
         }
 
         #box {
@@ -42,6 +60,7 @@
             height: var(--size);
             border-radius: 0.5rem;
             font-weight: bold;
+            background-color: aquamarine;
 
             font-size: 1rem;
 
@@ -50,6 +69,11 @@
     </style>
 
     <body>
+        <button id="play-btn">Play</button>
+        <button id="pause-btn">Pause</button>
+
+        <input type="range" id="t-slider" min="0" max="1" step="0.001" value="0" />
+
         <div id="box">heyyyy</div>
     </body>
 

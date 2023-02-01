@@ -175,34 +175,32 @@ const defaultOptions: AnimationOptions = {
 };
 
 const waitUntil = async (condition: () => boolean, delay: number = 1000 / 60) => {
-    return await new Promise<number>((resolve, reject) => {
-        let t = 0;
-
+    return await new Promise<void>((resolve, reject) => {
         const interval = setInterval(() => {
             if (condition()) {
                 clearInterval(interval);
-                resolve(t);
-            } else {
-                t += delay;
+                resolve();
             }
-        });
+        }, delay);
     });
 };
 
 export class Animation<V extends Vars> {
+    options: AnimationOptions;
+
     templateFrames: TemplateFrame<V>[] = [];
     transformedVars: TransformedVars[] = [];
 
     frameId: number = 0;
-    prevId: number = 0;
-
-    lerpRange = [0, 1];
-
     frames: Frame<V>[] = [];
 
-    options: AnimationOptions;
-
     paused: boolean = false;
+    startTime: number = undefined;
+    pausedTime: number = 0;
+    prevTime: number = 0;
+    done: boolean = false;
+    t: number;
+    lerpRange = [0, 1];
 
     constructor(
         options: Partial<AnimationOptions>,
@@ -211,7 +209,7 @@ export class Animation<V extends Vars> {
         this.options = { ...defaultOptions, ...options };
     }
 
-    frame<K extends Vars>(
+    frame<K extends V>(
         start: number,
         vars: Partial<K>,
         transform?: TransformFunction<K>,
@@ -223,10 +221,9 @@ export class Animation<V extends Vars> {
             vars,
             transform,
             ease: ease ?? this.options.ease,
-        };
-        this.templateFrames.push(templateFrame);
+        } as TemplateFrame<K>;
 
-        this.prevId = this.frameId;
+        this.templateFrames.push(templateFrame);
         this.frameId += 1;
 
         return this as unknown as Animation<K>;
@@ -253,7 +250,7 @@ export class Animation<V extends Vars> {
         return this;
     }
 
-    done() {
+    parse() {
         this.parseVars().parseFrames();
         return this;
     }
@@ -271,103 +268,101 @@ export class Animation<V extends Vars> {
         this.templateFrames.forEach((frame, n) => {
             Object.assign(frame, reversedFrames[n]);
         });
-        this.templateFrames.reverse();
-        this.transformedVars.reverse();
         this.parseFrames();
+        this.lerpRange.reverse();
         return this;
     }
 
-    async start() {
-        let startTime = undefined as unknown as number;
-        let done = false;
+    fillForwards() {
+        this.lerpFrames(this.options.duration);
+    }
 
-        const lerpFrame = (t: number, frame: Frame<V>) => {
-            const reversedVars = {};
+    fillBackwards() {
+        this.lerpFrames(0);
+    }
+
+    lerpFrames(t: number, reversedVars: TransformedVars = {}) {
+        for (let i = 0; i < this.frames.length; i++) {
+            const frame = this.frames[i];
+            const { start, stop } = frame.time;
+
+            if (t < start || t > stop) {
+                continue;
+            }
+
+            const s = scale(t, start, stop, this.lerpRange[0], this.lerpRange[1]);
+            const e = frame.ease(s);
 
             for (const [key, values] of Object.entries(frame.interpVarValues)) {
-                const lerped = values.start.lerp(t, values.stop, this.target);
+                const lerped = values.start.lerp(e, values.stop, this.target);
                 reverseTransformObject(key, lerped, reversedVars);
             }
 
-            frame.transform(t, reversedVars);
-        };
-
-        const fillForwards = () => {
-            this.frames
-                .filter((frame) => frame.time.stop === this.options.duration)
-                .forEach((frame) => {
-                    lerpFrame(1, frame);
-                });
-        };
-
-        const fillBackwards = () => {
-            this.frames
-                .filter((frame) => frame.time.start === 0)
-                .forEach((frame) => {
-                    lerpFrame(0, frame);
-                });
-        };
-
-        const drawFunc = async (t: number) => {
-            if (startTime === undefined) {
-                startTime = t;
-            }
-            if (this.paused) {
-                const waitT = await waitUntil(() => !this.paused);
-                t += waitT;
-                startTime += waitT;
-            }
-            const dt = clamp(t - startTime, 0, this.options.duration);
-
-            for (let i = 0; i < this.frames.length; i++) {
-                const frame = this.frames[i];
-                const { start, stop } = frame.time;
-
-                if (!(dt >= frame.time.start && dt <= frame.time.stop)) {
-                    continue;
-                }
-                const t = scale(dt, start, stop, this.lerpRange[0], this.lerpRange[1]);
-
-                lerpFrame(frame.ease(t), frame);
-            }
-
-            if (dt < this.options.duration) {
-                requestAnimationFrame(drawFunc);
-            } else {
-                done = true;
-            }
-        };
-
-        if (this.options.fillMode === "backwards" || this.options.fillMode === "both") {
-            fillBackwards();
+            frame.transform(t, reversedVars as V);
         }
+    }
 
+    async onStart() {
+        if (this.options.fillMode === "backwards" || this.options.fillMode === "both") {
+            this.fillBackwards();
+        }
         if (this.options.delay > 0) {
             await sleep(this.options.delay);
         }
+        this.done = false;
+    }
 
-        requestAnimationFrame(drawFunc);
-
-        await waitUntil(() => done);
-
+    onEnd() {
         if (this.options.fillMode === "forwards" || this.options.fillMode === "both") {
-            fillForwards();
+            this.fillForwards();
         } else if (
             this.options.fillMode === "none" ||
             this.options.fillMode === "backwards"
         ) {
-            fillBackwards();
+            this.fillBackwards();
+        }
+        this.done = true;
+        this.startTime = undefined;
+        this.pausedTime = 0;
+        this.prevTime = 0;
+    }
+
+    async draw(t: number) {
+        if (this.startTime === undefined) {
+            this.onStart();
+            this.startTime = t;
+        }
+
+        t = t - this.startTime;
+        const dt = t - this.prevTime;
+        this.prevTime = t;
+
+        if (this.paused) {
+            this.pausedTime += dt;
+            return requestAnimationFrame(this.draw.bind(this));
+        } else {
+            this.startTime += this.pausedTime;
+            t -= this.pausedTime;
+            this.pausedTime = 0;
+        }
+
+        this.t = t;
+
+        if (t >= this.options.duration) {
+            return this.onEnd();
+        } else {
+            this.lerpFrames(t);
+            return requestAnimationFrame(this.draw.bind(this));
         }
     }
 
-    async loop() {
+    async play() {
         if (
             this.options.direction === "reverse" ||
             this.options.direction === "alternate-reverse"
         ) {
             this.reverse();
         }
-
         for (let i = 0; i < this.options.iterations; i++) {
             if (
                 i > 0 &&
@@ -376,7 +371,9 @@ export class Animation<V extends Vars> {
             ) {
                 this.reverse();
             }
-            await this.start();
+            requestAnimationFrame(this.draw.bind(this));
+            await sleep(this.options.duration);
+            await waitUntil(() => this.done);
         }
     }
 }
@@ -390,9 +387,8 @@ export const keyframesTransform = (target: HTMLElement) => (t: number, vars) => 
                 })
                 .join(" ");
         }
+        target.style[key] = vars[key];
     }
-
-    Object.assign(target.style, vars);
 };
 
 export function keyframes(

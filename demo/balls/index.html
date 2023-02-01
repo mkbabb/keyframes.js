@@ -23,8 +23,11 @@
 
         body {
             display: flex;
+
             justify-content: center;
             align-items: center;
+            gap: 4rem;
+            flex-direction: column;
         }
 
         .box {
@@ -34,7 +37,7 @@
 
             position: relative;
 
-            --size: 12rem;
+            --size: 10rem;
             width: var(--size);
             height: var(--size);
             border-radius: 50%;
@@ -47,6 +50,11 @@
             font-size: 1rem;
         }
 
+        .boxes {
+            display: flex;
+            border: 2px solid red;
+        }
+
         .box.one {
             --bounce-offset: -1rem;
         }
@@ -57,12 +65,42 @@
             --bounce-offset: -3rem;
         }
 
+        @keyframes bounce {
+            0% {
+                transform: translateY(0px);
+            }
+            100% {
+                transform: translateY(var(--bounce-offset));
+            }
+        }
+
+        .css .box {
+            animation: bounce alternate infinite cubic-bezier(0.2, 0.65, 0.6, 1);
+            background-color: blueviolet;
+        }
+        .css .box.one {
+            animation-duration: 200ms;
+        }
+        .css .box.two {
+            animation-duration: 300ms;
+        }
+        .css .box.three {
+            animation-duration: 400ms;
+        }
     </style>
 
     <body>
-        <div class="box one"></div>
-        <div class="box two"></div>
-        <div class="box three"></div>
+        <div class="anim boxes">
+            <div class="box one"></div>
+            <div class="box two"></div>
+            <div class="box three"></div>
+        </div>
+
+        <div class="css boxes">
+            <div class="box one"></div>
+            <div class="box two"></div>
+            <div class="box three"></div>
+        </div>
     </body>
 
     <script type="module" src="./script"></script>
