@@ -1,20 +1,20 @@
 <template>
     <div class="container">
-        <div class="animation-controls">
+        <!-- <div class="animation-controls">
             <select class="animation-select" v-model="selectedAnimation">
                 <option v-for="(value, key) in animations" :value="key">
                     {{ key }}
                 </option>
-            </select>
+            </select> -->
 
-            <Controlbar :animation="animations[selectedAnimation].animation" />
-        </div>
+        <Controlbar :animation="animations[selectedAnimation].animation" />
+        <!-- </div> -->
 
         <div class="matrix-controls">
             <div class="matrix-input">
                 <div class="matrix-cell" v-for="(value, i) in matrix3dEnd.values">
                     <input
-                        :value="Math.round(value.value*100)/100"
+                        :value="Math.round(value.value * 100) / 100"
                         @change="
                             ($event) => {
                                 updateMatrixCell($event.target.value, i);
@@ -307,21 +307,30 @@ onMounted(() => {
     --padding: 1rem;
     display: grid;
     min-height: calc(100vh - var(--padding) * 2);
+    width: calc(100% - var(--padding) * 2);
 
     grid-template-areas: "animation-controls graph matrix-controls";
     grid-template-columns: 1fr 2fr 1fr;
     padding: 1rem;
     gap: 1rem;
-    justify-items: center;
     overflow: hidden;
 }
 
 @media screen and (max-width: 900px) {
     .container {
         grid-template-areas: "graph" "animation-controls" "matrix-controls";
-        grid-template-columns: 100vw;
+        grid-template-columns: auto;
         grid-template-rows: 100vh 1fr 1fr;
         overflow-y: scroll;
+    }
+
+    .matrix-controls {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: repeat(3, 1fr);
+    }
+
+    .matrix-input {
+        grid-row: span 3;
     }
 }
 
@@ -426,17 +435,16 @@ onMounted(() => {
     display: grid;
     justify-items: center;
     align-items: center;
-    width: min-content;
     height: min-content;
-
     gap: 1rem;
-    z-index: 2;
 }
 
 .matrix-controls .row {
     display: grid;
     grid-template-columns: 1fr 1fr;
+    align-items: center;
     gap: 0.25rem 0.75rem;
+    width: 100%;
 
     label {
         background-color: white;

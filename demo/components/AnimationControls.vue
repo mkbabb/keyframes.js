@@ -28,6 +28,7 @@
         </div>
 
         <input
+            class="slider"
             type="range"
             v-model.number="sliderValue"
             :min="0"
@@ -137,6 +138,7 @@ input[type="range"] {
     opacity: 0.8;
     text-align: center;
     transition: opacity color 0.2s;
+    
 
     &:disabled {
         --color: gray;
@@ -170,6 +172,10 @@ input[type="range"] {
             cursor: pointer;
         }
     }
+}
+
+.slider {
+    margin: 1rem 0;
 }
 
 button {
