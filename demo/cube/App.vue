@@ -7,7 +7,10 @@
                 </option>
             </select> -->
 
-        <Controlbar :animation="animations[selectedAnimation].animation" />
+        <div class="animation-controls">
+            <Controlbar :animation="animations[selectedAnimation].animation" />
+        </div>
+
         <!-- </div> -->
 
         <div class="matrix-controls">
@@ -46,7 +49,8 @@
                 </template>
             </div>
 
-            <button @click="reset">Reset</button>
+            <button @click="reset">Reset Transforms</button>
+            <button @click="disableRotations">Freeze</button>
         </div>
 
         <div class="graph">
@@ -261,6 +265,17 @@ const matrixAnim = new CSSKeyframesAnimation({
     },
 ]);
 
+const rotateX = new ValueUnit("0", "deg");
+const rotateY = new ValueUnit("0", "deg");
+const rotateZ = new ValueUnit("0", "deg");
+
+const disableRotations = () => {
+    console.log("disable");
+    rotateX.disabled = !rotateX.disabled;
+    rotateY.disabled = !rotateY.disabled;
+    rotateZ.disabled = !rotateZ.disabled;
+};
+
 const rotationAnim = new CSSKeyframesAnimation({
     duration: 3000,
     iterationCount: Infinity,
@@ -269,9 +284,9 @@ const rotationAnim = new CSSKeyframesAnimation({
 }).fromFramesDefaultTransform({
     from: {
         transform: {
-            rotateX: "0deg",
-            rotateY: "0deg",
-            rotateZ: "0deg",
+            rotateX: rotateX,
+            rotateY: rotateY,
+            rotateZ: rotateZ,
             matrix3d: matrix3dStart,
         },
     },
@@ -321,13 +336,16 @@ onMounted(() => {
     .container {
         grid-template-areas: "animation-controls" "graph" "matrix-controls";
         grid-template-columns: auto;
-        grid-template-rows: 1fr 75vh 1fr;
+        grid-template-rows: 1fr 50vh 1fr;
         overflow-y: scroll;
     }
 }
 
-.animation-controls::v-deep {
+.animation-controls {
+    display: flex;
     grid-area: animation-controls;
+    flex-direction: column;
+    gap: 0.5rem;
 }
 
 .graph {
@@ -429,6 +447,7 @@ onMounted(() => {
     align-items: center;
     height: min-content;
     gap: 1rem;
+    z-index: 1;
 }
 
 .matrix-controls .row {
@@ -452,7 +471,6 @@ onMounted(() => {
         width: 100%;
         background: var(--color);
         outline: none;
-        opacity: 0.8;
         text-align: center;
         transition: opacity color 0.2s;
 
@@ -499,8 +517,6 @@ onMounted(() => {
     grid-template-columns: repeat(4, 1fr);
     grid-template-rows: repeat(4, 1fr);
     gap: 0.25rem;
-
-    z-index: 2;
 }
 
 .matrix-cell {

@@ -10,6 +10,8 @@ const getComputedValue = (target: HTMLElement, key: string) => {
 };
 
 export class ValueUnit<T = number> {
+    disabled: boolean = false;
+
     constructor(public value: T, public unit?: string) {
         // TODO! This is a hack to parse colors
         const c = color(value as string);
@@ -20,6 +22,9 @@ export class ValueUnit<T = number> {
     }
 
     toString() {
+        if (this.disabled) {
+            return "";
+        }
         if (this.unit === "color") {
             const c = this.value as RGBColor;
             return `rgb(${c.r}, ${c.g}, ${c.b})`;
@@ -31,6 +36,10 @@ export class ValueUnit<T = number> {
     }
 
     lerp(t: number, other: ValueUnit<T>, target?: HTMLElement) {
+        if (this.disabled || other.disabled) {
+            return undefined;
+        }
+
         if (this.unit === "color") {
             const value = {
                 r: lerp(t, this.value.r, other.value.r),
@@ -62,6 +71,8 @@ export class ValueUnit<T = number> {
 }
 
 export class FunctionValue {
+    disabled: boolean = false;
+
     constructor(public name: string, public values: ValueUnit[]) {}
 
     toString() {
@@ -75,26 +86,39 @@ export class FunctionValue {
         for (let i = 0; i < minLength; i++) {
             const v = this.values[i];
             const o = other.values[i];
-            arr.push(v.lerp(t, o, target));
+            if (!v.disabled && !o.disabled) {
+                arr.push(v.lerp(t, o, target));
+            }
         }
+        if (arr.length === 0) {
+            return undefined;
+        }
+
         return new FunctionValue(this.name, arr);
     }
 }
 
 export class ValueArray {
+    disabled: boolean = false;
+
     constructor(public values: Array<FunctionValue | ValueUnit>) {}
 
     toString() {
         return this.values.map((v) => v.toString()).join(" ");
     }
 
-    lerp(t: number, other: ValueArray, target?: HTMLElement): ValueArray {
+    lerp(t: number, other: ValueArray, target?: HTMLElement) {
         const minLength = Math.min(this.values.length, other.values.length);
         const arr = [];
         for (let i = 0; i < minLength; i++) {
             const v = this.values[i];
             const o = other.values[i];
-            arr.push(v.lerp(t, o, target));
+            if (!v.disabled && !o.disabled) {
+                arr.push(v.lerp(t, o, target));
+            }
+        }
+        if (arr.length === 0) {
+            return undefined;
         }
         return new ValueArray(arr);
     }

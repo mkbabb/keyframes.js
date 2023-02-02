@@ -302,7 +302,9 @@ export class Animation<V extends Vars> {
 
             for (const [key, values] of Object.entries(frame.interpVars)) {
                 const lerped = values.start.lerp(e, values.stop, this.target);
-                reverseTransformObject(key, lerped, reversedVars);
+                if (lerped) {
+                    reverseTransformObject(key, lerped, reversedVars);
+                }
             }
 
             frame.transform(t, reversedVars as V);
@@ -482,7 +484,6 @@ export class CSSKeyframesAnimation<V extends Vars> {
                 }
                 vars[key] = s;
             }
-
             this.targets.forEach((target) => {
                 target.style[key] = vars[key];
             });
