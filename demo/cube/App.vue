@@ -1,12 +1,20 @@
 <template>
     <div class="container">
-        <Controlbar :animation="anim.animation" />
+        <div class="animation-controls">
+            <select class="animation-select" v-model="selectedAnimation">
+                <option v-for="(value, key) in animations" :value="key">
+                    {{ key }}
+                </option>
+            </select>
+
+            <Controlbar :animation="animations[selectedAnimation].animation" />
+        </div>
 
         <div class="matrix-controls">
             <div class="matrix-input">
                 <div class="matrix-cell" v-for="(value, i) in matrix3dEnd.values">
                     <input
-                        :value="value"
+                        :value="Math.round(value.value*100)/100"
                         @change="
                             ($event) => {
                                 updateMatrixCell($event.target.value, i);
@@ -111,6 +119,8 @@ const getTransformFromIx = (i: number) => {
         return "T";
     } else if (i === 0 || i === 5 || i === 10) {
         return "S";
+    } else if (i === 3 || i === 7 || i === 11) {
+        return "P";
     } else {
         return "";
     }
@@ -232,8 +242,27 @@ const reset = () => {
     animateUpdateMatrix(fromMatrix, toMatrix, true);
 };
 
-const anim = new CSSKeyframesAnimation({
+const matrixAnim = new CSSKeyframesAnimation({
     duration: 5000,
+    iterationCount: Infinity,
+    fillMode: "forwards",
+    direction: "alternate",
+    timingFunction: linear,
+}).fromVars([
+    {
+        transform: {
+            matrix3d: matrix3dStart,
+        },
+    },
+    {
+        transform: {
+            matrix3d: matrix3dEnd,
+        },
+    },
+]);
+
+const rotationAnim = new CSSKeyframesAnimation({
+    duration: 3000,
     iterationCount: Infinity,
     fillMode: "forwards",
     timingFunction: linear,
@@ -256,13 +285,17 @@ const anim = new CSSKeyframesAnimation({
     },
 });
 
+const animations = {
+    rotationAnim,
+};
+
+const selectedAnimation = $ref("rotationAnim");
+
 onMounted(() => {
-    anim.animation.target = cube;
-    anim.targets = [cube];
-    anim.play();
+    rotationAnim.addTargets(cube).play();
+    // matrixAnim.addTargets(cube).play();
 });
 </script>
-
 <style scoped lang="scss">
 @import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;700&display=swap");
 
@@ -273,20 +306,22 @@ onMounted(() => {
 .container {
     --padding: 1rem;
     display: grid;
-    height: calc(100% - var(--padding) * 2);
-    width: min(calc(100% - var(--padding) * 2), 1500px);
+    min-height: calc(100vh - var(--padding) * 2);
+
     grid-template-areas: "animation-controls graph matrix-controls";
-    grid-template-columns: 0.25fr 1fr 0.25fr;
+    grid-template-columns: 1fr 2fr 1fr;
     padding: 1rem;
     gap: 1rem;
     justify-items: center;
+    overflow: hidden;
 }
 
 @media screen and (max-width: 900px) {
     .container {
         grid-template-areas: "graph" "animation-controls" "matrix-controls";
-        grid-template-columns: 1fr;
+        grid-template-columns: 100vw;
         grid-template-rows: 100vh 1fr 1fr;
+        overflow-y: scroll;
     }
 }
 
@@ -414,19 +449,45 @@ onMounted(() => {
         text-align: center;
     }
     input {
-        accent-color: var(--color);
-
-        background: var(--color);
-
         width: 100%;
-
         background: var(--color);
         outline: none;
-        opacity: 0.75;
-
-        transition: opacity 0.2s;
-
+        opacity: 0.8;
         text-align: center;
+        transition: opacity color 0.2s;
+
+        &:disabled {
+            --color: gray;
+        }
+
+        &:hover {
+            opacity: 1;
+        }
+
+        &[type="range"] {
+            appearance: none;
+            height: 6px;
+            border-radius: 10px;
+            background: var(--color);
+
+            &::-webkit-slider-thumb {
+                appearance: none;
+                width: 14px;
+                height: 14px;
+                border-radius: 50%;
+                background: var(--color);
+                cursor: pointer;
+            }
+
+            &::-moz-range-thumb {
+                appearance: none;
+                width: 14px;
+                height: 14px;
+                border-radius: 50%;
+                background: var(--color);
+                cursor: pointer;
+            }
+        }
     }
 }
 
@@ -495,5 +556,20 @@ button {
     background: rgb(0, 0, 0);
     color: rgb(255, 255, 255);
     cursor: pointer;
+}
+
+input[type="number"],
+select {
+    font-size: 1rem;
+    box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
+    border: none;
+    border-radius: 5px;
+    padding: 0.25rem 0.5rem;
+    width: auto;
+}
+
+.animation-select {
+    color: white;
+    background-color: black;
 }
 </style>

@@ -398,6 +398,14 @@ export class CSSKeyframesAnimation<V extends Vars> {
         this.targets = targets;
     }
 
+    addTargets(...targets: HTMLElement[]) {
+        this.targets = targets;
+        if (this.animation) {
+            this.animation.target = targets[0];
+        }
+        return this;
+    }
+
     initAnimation() {
         this.animation = new Animation<V>(this.options, this.targets?.[0]);
         return this;
@@ -419,8 +427,9 @@ export class CSSKeyframesAnimation<V extends Vars> {
         return this;
     }
 
-    fromVars(vars: V[], transform: TransformFunction<V>) {
+    fromVars(vars: V[], transform?: TransformFunction<V>) {
         this.initAnimation();
+        transform = transform ?? this.transform.bind(this);
 
         for (let i = 0; i < vars.length; i++) {
             const v = vars[i];
@@ -439,7 +448,7 @@ export class CSSKeyframesAnimation<V extends Vars> {
             this.animation.frame(
                 parseCSSPercent(percent),
                 vars,
-                transform,
+                transform ?? this.transform.bind(this),
                 timingFunction
             );
         }

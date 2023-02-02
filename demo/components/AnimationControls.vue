@@ -130,20 +130,46 @@ select {
 }
 
 input[type="range"] {
-    --color: rgb(100, 213, 100);
-
-    accent-color: var(--color);
-    background: var(--color);
-
+    --color: rgb(75, 204, 63);
     width: 100%;
-
     background: var(--color);
     outline: none;
-    opacity: 0.75;
-
-    transition: opacity 0.2s;
-
+    opacity: 0.8;
     text-align: center;
+    transition: opacity color 0.2s;
+
+    &:disabled {
+        --color: gray;
+    }
+
+    &:hover {
+        opacity: 1;
+    }
+
+    &[type="range"] {
+        appearance: none;
+        height: 6px;
+        border-radius: 10px;
+        background: var(--color);
+
+        &::-webkit-slider-thumb {
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--color);
+            cursor: pointer;
+        }
+
+        &::-moz-range-thumb {
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--color);
+            cursor: pointer;
+        }
+    }
 }
 
 button {

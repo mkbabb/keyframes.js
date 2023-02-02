@@ -2,11 +2,21 @@ import { defineConfig } from "vite";
 import path from "path";
 import vue from "@vitejs/plugin-vue";
 import dts from "vite-plugin-dts";
+import autoprefixer from "autoprefixer";
+
+const defaultOptions = {
+    base: "./",
+    css: {
+        postcss: {
+            plugins: [autoprefixer],
+        },
+    },
+};
 
 export default defineConfig((mode) => {
     if (mode.mode === "production") {
         return {
-            base: "./",
+            ...defaultOptions,
             build: {
                 minify: true,
                 lib: {
@@ -14,7 +24,6 @@ export default defineConfig((mode) => {
                     name: "Keyframes",
                     fileName: "@mkbabb/keyframes",
                 },
-                rollupOptions: {},
             },
             plugins: [
                 dts(),
@@ -25,7 +34,7 @@ export default defineConfig((mode) => {
         };
     } else if (mode.mode === "gh-pages") {
         return {
-            base: "./",
+            ...defaultOptions,
             root: "./demo/cube/",
             build: {
                 outDir: path.resolve(__dirname, "./dist/"),
