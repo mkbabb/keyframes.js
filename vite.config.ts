@@ -25,10 +25,13 @@ export default defineConfig((mode) => {
         };
     } else if (mode.mode === "gh-pages") {
         return {
-            root: "demo/cube/",
+            base: "./",
+            root: "./demo/cube/",
             build: {
-                outDir: path.resolve(__dirname, "dist"),
+                outDir: path.resolve(__dirname, "./dist/"),
+                emptyOutDir: true,
                 minify: true,
+                sourcemap: true,
             },
             plugins: [
                 vue({

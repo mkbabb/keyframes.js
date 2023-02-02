@@ -1,4 +1,4 @@
-import * as P from "parsimmon";
+import P from "parsimmon";
 export declare class ValueUnit<T = number> {
     value: T;
     unit?: string;

@@ -1,5 +1,5 @@
 import { color, RGBColor } from "d3-color";
-import * as P from "parsimmon";
+import P from "parsimmon";
 import { lerp } from "./math";
 
 const getComputedValue = (target: HTMLElement, key: string) => {
