@@ -196,6 +196,7 @@ export class Animation<V extends Vars> {
     prevTime: number = 0;
     t: number;
 
+    started: boolean = false;
     done: boolean = false;
     reversed: boolean = false;
     paused: boolean = false;
@@ -265,6 +266,18 @@ export class Animation<V extends Vars> {
         return this;
     }
 
+    reset() {
+        this.startTime = undefined;
+        this.pausedTime = 0;
+        this.prevTime = 0;
+        this.t = 0;
+        this.started = false;
+        this.done = true;
+        this.reversed = false;
+        this.paused = false;
+        return this;
+    }
+
     fillForwards() {
         this.interpFrames(this.options.duration);
     }
@@ -303,6 +316,7 @@ export class Animation<V extends Vars> {
         if (this.options.delay > 0) {
             await sleep(this.options.delay);
         }
+        this.started = true;
         this.done = false;
     }
 
@@ -323,8 +337,8 @@ export class Animation<V extends Vars> {
 
     async draw(t: number) {
         if (this.startTime === undefined) {
-            this.onStart();
-            this.startTime = t;
+            await this.onStart();
+            this.startTime = t + this.options.delay;
         }
 
         t = t - this.startTime;
@@ -369,6 +383,8 @@ export class Animation<V extends Vars> {
             await sleep(this.options.duration);
             await waitUntil(() => this.done);
         }
+
+        this.started = false;
     }
 }
 
@@ -400,6 +416,18 @@ export class CSSKeyframesAnimation<V extends Vars> {
 
         this.animation.parse();
 
+        return this;
+    }
+
+    fromVars(vars: V[], transform: TransformFunction<V>) {
+        this.initAnimation();
+
+        for (let i = 0; i < vars.length; i++) {
+            const v = vars[i];
+            const percent = Math.round((i / (vars.length - 1)) * 100);
+            this.animation.frame(percent, v, transform);
+        }
+        this.animation.parse();
         return this;
     }
 

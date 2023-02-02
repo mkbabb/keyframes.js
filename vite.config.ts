@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
 import path from "path";
+import vue from "@vitejs/plugin-vue";
 import dts from "vite-plugin-dts";
 
 export default defineConfig({
@@ -13,5 +14,10 @@ export default defineConfig({
         },
         rollupOptions: {},
     },
-    plugins: [dts()],
+    plugins: [
+        dts(),
+        vue({
+            reactivityTransform: true,
+        }),
+    ],
 });

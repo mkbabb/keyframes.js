@@ -5,50 +5,15 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Animation Demo</title>
+
+        <script type="module">
+            import { createApp } from "vue";
+            import App from "./App.vue";
+            const app = createApp(App);
+            app.mount("#app");
+        </script>
     </head>
-
-    <style>
-        @import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;700&display=swap");
-
-        * {
-            font-family: "Fira Code", monospace;
-        }
-
-        html,
-        body {
-            height: 100%;
-            width: 100%;
-            margin: 0;
-        }
-
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        #box {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-
-            position: relative;
-
-            --size: 12rem;
-            width: var(--size);
-            height: var(--size);
-            border-radius: 0.5rem;
-            font-weight: bold;
-
-            font-size: 1rem;
-
-            box-shadow: 0 0 0 0.5rem rgba(255, 255, 255, 0.5);
-        }
-    </style>
-
     <body>
-        <div id="box">heyyyy</div>
+        <div id="app"></div>
     </body>
-
-    <script type="module" src="./script"></script>
 </html>

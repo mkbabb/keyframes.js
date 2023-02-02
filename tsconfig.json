@@ -10,6 +10,9 @@
         ],
         "alwaysStrict": true,
         "strict": false,
+        "types": [
+            "vue/ref-macros"
+        ],
     },
     "include": [
         "src/",
