@@ -448,7 +448,7 @@ export class CSSKeyframesAnimation<V extends Vars> {
             this.animation.frame(
                 parseCSSPercent(percent),
                 vars,
-                transform ?? this.transform.bind(this),
+                transform,
                 timingFunction
             );
         }
