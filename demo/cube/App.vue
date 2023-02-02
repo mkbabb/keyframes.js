@@ -304,21 +304,22 @@ onMounted(() => {
 }
 
 .container {
-    --padding: 1rem;
+    --padding: 0.5rem;
     display: grid;
-    min-height: calc(100vh - var(--padding) * 2);
-    width: calc(100% - var(--padding) * 2);
+    padding: var(--padding);
+    min-height: calc(100vh - 2 * var(--padding));
+    width: calc(100% - 2 * var(--padding));
 
     grid-template-areas: "animation-controls graph matrix-controls";
     grid-template-columns: 1fr 2fr 1fr;
-    padding: 1rem;
+
     gap: 1rem;
     overflow: hidden;
 }
 
 @media screen and (max-width: 900px) {
     .container {
-        grid-template-areas: "animation-controls" "graph""matrix-controls";
+        grid-template-areas: "animation-controls" "graph" "matrix-controls";
         grid-template-columns: auto;
         grid-template-rows: 1fr 75vh 1fr;
         overflow-y: scroll;

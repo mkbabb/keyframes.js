@@ -92,7 +92,7 @@ const toggle = () => {
 
     flex-direction: column;
     gap: 1rem;
-    padding: 0.5rem;
+    
     border-radius: 5px;
     z-index: 1;
     opacity: 0.95;
@@ -100,16 +100,16 @@ const toggle = () => {
 
 .timing {
     display: grid;
-    gap: 0.5rem;
+    gap: 0.25rem;
     grid-auto-flow: column;
-
-    margin-right: 10px;
 }
 
 .options {
     display: grid;
     gap: 0.25rem 1rem;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, auto);
+    align-items: center;
+    
 }
 
 label {
@@ -126,7 +126,8 @@ select {
     border: none;
     border-radius: 5px;
     padding: 0.25rem 0.5rem;
-    width: auto;
+    max-width: 64px;
+    text-overflow: ellipsis;
 }
 
 input[type="range"] {
@@ -171,8 +172,6 @@ input[type="range"] {
         }
     }
 }
-
-
 
 button {
     font-size: 1.25rem;
