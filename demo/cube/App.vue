@@ -318,19 +318,10 @@ onMounted(() => {
 
 @media screen and (max-width: 900px) {
     .container {
-        grid-template-areas: "graph" "animation-controls" "matrix-controls";
+        grid-template-areas: "animation-controls" "graph""matrix-controls";
         grid-template-columns: auto;
-        grid-template-rows: 100vh 1fr 1fr;
+        grid-template-rows: 1fr 75vh 1fr;
         overflow-y: scroll;
-    }
-
-    .matrix-controls {
-        grid-template-columns: 1fr 1fr;
-        grid-template-rows: repeat(3, 1fr);
-    }
-
-    .matrix-input {
-        grid-row: span 3;
     }
 }
 

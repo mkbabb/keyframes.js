@@ -1,5 +1,5 @@
 <template>
-    <div class="controls">
+    <div class="animation-controls">
         <div class="options">
             <label>Duration</label>
             <input type="number" v-model.number="animation.options.duration" />
@@ -36,7 +36,6 @@
             :max="animation.options.duration"
             @input="interpFrames"
         />
-
         <div class="timing">
             <button class="toggle" @click="toggle">
                 {{ pauseValue }}
@@ -138,7 +137,6 @@ input[type="range"] {
     opacity: 0.8;
     text-align: center;
     transition: opacity color 0.2s;
-    
 
     &:disabled {
         --color: gray;
@@ -174,9 +172,7 @@ input[type="range"] {
     }
 }
 
-.slider {
-    margin: 1rem 0;
-}
+
 
 button {
     font-size: 1.25rem;
