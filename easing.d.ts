@@ -1,0 +1,12 @@
+export declare function linear(t: number): number;
+export declare function easeInQuad(t: number): number;
+export declare function easeOutQuad(t: number): number;
+export declare function easeInOutQuad(t: number): number;
+export declare function easeInCubic(t: number): number;
+export declare function easeOutCubic(t: number): number;
+export declare function easeInOutCubic(t: number): number;
+export declare function smoothStep3(t: number): number;
+export declare const CSSBezier: (x1: number, y1: number, x2: number, y2: number) => (t: number) => number;
+export declare function easeInBounce(t: number): number;
+export declare function bounceInEase(t: number): number;
+export declare function bounceInEaseHalf(t: number): number;
