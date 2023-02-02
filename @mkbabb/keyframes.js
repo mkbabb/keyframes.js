@@ -32,20 +32,20 @@ function _t(t, n) {
 function Le(t, n, i, o, c) {
   return [_t(t, [0, n, o, 1]), _t(t, [0, i, c, 1])];
 }
-function qe(t, n) {
+function Te(t, n) {
   const i = n.map((c) => c[0]), o = n.map((c) => c[1]);
   return [_t(t, i), _t(t, o)];
 }
-function Ie(t) {
+function Ve(t) {
   return t * t;
 }
-function Ve(t) {
+function qe(t) {
   return -t * (t - 2);
 }
 function Ae(t) {
   return (t /= 0.5) < 1 ? 0.5 * t * t : -0.5 * (--t * (t - 2) - 1);
 }
-function Te(t) {
+function Ie(t) {
   return t * t * t;
 }
 function He(t) {
@@ -65,14 +65,14 @@ function Ue(t) {
   return t = he(0.09, 0.91, 0.5, 1.5)(t), t;
 }
 function We(t) {
-  return t = qe(t, [
+  return t = Te(t, [
     [0, 0],
     [0.026, 1.746],
     [0.633, 1.06],
     [1, 0]
   ])[1], t;
 }
-function Vt(t, n, i) {
+function qt(t, n, i) {
   t.prototype = n.prototype = i, i.constructor = t;
 }
 function pe(t, n) {
@@ -233,7 +233,7 @@ var lt = 0.7, Pt = 1 / lt, st = "\\s*([+-]?\\d+)\\s*", ht = "\\s*([+-]?(?:\\d*\\
   yellow: 16776960,
   yellowgreen: 10145074
 };
-Vt(dt, mt, {
+qt(dt, mt, {
   copy(t) {
     return Object.assign(new this.constructor(), this, t);
   },
@@ -279,7 +279,7 @@ function nn(t, n, i, o) {
 function $(t, n, i, o) {
   this.r = +t, this.g = +n, this.b = +i, this.opacity = +o;
 }
-Vt($, nn, pe(dt, {
+qt($, nn, pe(dt, {
   brighter(t) {
     return t = t == null ? Pt : Math.pow(Pt, t), new $(this.r * t, this.g * t, this.b * t, this.opacity);
   },
@@ -341,7 +341,7 @@ function sn(t, n, i, o) {
 function P(t, n, i, o) {
   this.h = +t, this.s = +n, this.l = +i, this.opacity = +o;
 }
-Vt(P, sn, pe(dt, {
+qt(P, sn, pe(dt, {
   brighter(t) {
     return t = t == null ? Pt : Math.pow(Pt, t), new P(this.h, this.s, this.l * t, this.opacity);
   },
@@ -351,9 +351,9 @@ Vt(P, sn, pe(dt, {
   rgb() {
     var t = this.h % 360 + (this.h < 0) * 360, n = isNaN(t) || isNaN(this.s) ? 0 : this.s, i = this.l, o = i + (i < 0.5 ? i : 1 - i) * n, c = 2 * i - o;
     return new $(
-      It(t >= 240 ? t - 240 : t + 120, c, o),
-      It(t, c, o),
-      It(t < 120 ? t + 240 : t - 120, c, o),
+      Vt(t >= 240 ? t - 240 : t + 120, c, o),
+      Vt(t, c, o),
+      Vt(t < 120 ? t + 240 : t - 120, c, o),
       this.opacity
     );
   },
@@ -374,7 +374,7 @@ function ie(t) {
 function Ft(t) {
   return Math.max(0, Math.min(1, t || 0));
 }
-function It(t, n, i) {
+function Vt(t, n, i) {
   return (t < 60 ? n + (i - n) * t / 60 : t < 180 ? i : t < 240 ? n + (i - n) * (240 - t) / 60 : n) * 255;
 }
 var an = typeof globalThis < "u" ? globalThis : typeof window < "u" ? window : typeof global < "u" ? global : typeof self < "u" ? self : {};
@@ -440,7 +440,7 @@ var m = {}, un = {
           return a.concat([e(u, l, h)]);
         }, [], r);
       }
-      function V(e, r) {
+      function q(e, r) {
         var a = { v: 0, buf: r };
         return g(e, function() {
           var u;
@@ -478,7 +478,7 @@ var m = {}, un = {
         return new s(function(h, p) {
           var d = u + p;
           return d > h.length ? O(p, u.toString() + " bytes") : v(d, b(function(x, S) {
-            var E = V(S, x.buf);
+            var E = q(S, x.buf);
             return { coll: x.coll.concat(E.v), buf: E.buf };
           }, { coll: [], buf: h.slice(p, d) }, e).coll);
         });
@@ -535,8 +535,8 @@ var m = {}, un = {
           if (function() {
             if (s._supportsSet !== void 0)
               return s._supportsSet;
-            var q = typeof Set < "u";
-            return s._supportsSet = q, q;
+            var T = typeof Set < "u";
+            return s._supportsSet = T, T;
           }() && Array.from) {
             for (var h = new Set(u), p = 0; p < l.length; p++)
               h.add(l[p]);
@@ -582,7 +582,7 @@ var m = {}, un = {
         if (typeof e != "number")
           throw new Error("not a number: " + e);
       }
-      function T(e) {
+      function I(e) {
         if (typeof e != "function")
           throw new Error("not a function: " + e);
       }
@@ -590,7 +590,7 @@ var m = {}, un = {
         if (typeof e != "string")
           throw new Error("not a string: " + e);
       }
-      var be = 2, we = 3, I = 8, ve = 5 * I, ye = 4 * I, Tt = "  ";
+      var be = 2, we = 3, V = 8, ve = 5 * V, ye = 4 * V, It = "  ";
       function vt(e, r) {
         return new Array(r + 1).join(e);
       }
@@ -606,7 +606,7 @@ var m = {}, un = {
         if (x === e.length)
           return "Got the end of the input";
         if (ot(e)) {
-          var E = x - x % I, L = x - E, F = Ht(E, ve, ye + I, e.length), q = k(function(y) {
+          var E = x - x % V, L = x - E, F = Ht(E, ve, ye + V, e.length), T = k(function(y) {
             return k(function(tt) {
               return yt(tt.toString(16), 2, "0");
             }, y);
@@ -617,20 +617,20 @@ var m = {}, un = {
             for (var rt = 0; rt < et; rt++)
               z[nt] || z.push([]), z[nt].push(y[rt]), (rt + 1) % tt == 0 && nt++;
             return z;
-          }(e.slice(F.from, F.to).toJSON().data, I));
+          }(e.slice(F.from, F.to).toJSON().data, V));
           h = function(y) {
-            return y.from === 0 && y.to === 1 ? { from: y.from, to: y.to } : { from: y.from / I, to: Math.floor(y.to / I) };
-          }(F), u = E / I, a = 3 * L, L >= 4 && (a += 1), S = 2, l = k(function(y) {
+            return y.from === 0 && y.to === 1 ? { from: y.from, to: y.to } : { from: y.from / V, to: Math.floor(y.to / V) };
+          }(F), u = E / V, a = 3 * L, L >= 4 && (a += 1), S = 2, l = k(function(y) {
             return y.length <= 4 ? y.join(" ") : y.slice(0, 4).join(" ") + "  " + y.slice(4).join(" ");
-          }, q), (p = (8 * (h.to > 0 ? h.to - 1 : h.to)).toString(16).length) < 2 && (p = 2);
+          }, T), (p = (8 * (h.to > 0 ? h.to - 1 : h.to)).toString(16).length) < 2 && (p = 2);
         } else {
           var Y = e.split(/\r\n|[\n\r\u2028\u2029]/);
           a = d.column - 1, u = d.line - 1, h = Ht(u, be, we, Y.length), l = Y.slice(h.from, h.to), p = h.to.toString().length;
         }
         var Ne = u - h.from;
         return ot(e) && (p = (8 * (h.to > 0 ? h.to - 1 : h.to)).toString(16).length) < 2 && (p = 2), b(function(y, tt, et) {
-          var z, nt = et === Ne, rt = nt ? "> " : Tt;
-          return z = ot(e) ? yt((8 * (h.from + et)).toString(16), p, "0") : yt((h.from + et + 1).toString(), p, " "), [].concat(y, [rt + z + " | " + tt], nt ? [Tt + vt(" ", p) + " | " + yt("", a, " ") + vt("^", S)] : []);
+          var z, nt = et === Ne, rt = nt ? "> " : It;
+          return z = ot(e) ? yt((8 * (h.from + et)).toString(16), p, "0") : yt((h.from + et + 1).toString(), p, " "), [].concat(y, [rt + z + " | " + tt], nt ? [It + vt(" ", p) + " | " + yt("", a, " ") + vt("^", S)] : []);
         }, [], l).join(`
 `);
       }
@@ -668,7 +668,7 @@ var m = {}, un = {
         if (e.length === 0)
           throw new Error("seqMap needs at least one argument");
         var r = e.pop();
-        return T(r), Et.apply(null, e).map(function(a) {
+        return I(r), Et.apply(null, e).map(function(a) {
           return r.apply(null, a);
         });
       }
@@ -755,7 +755,7 @@ var m = {}, un = {
         });
       }
       function jt(e) {
-        return T(e), s(function(r, a) {
+        return I(e), s(function(r, a) {
           var u = wt(r, a);
           return a < r.length && e(u) ? v(a + 1, u) : O(a, "a character/byte matching " + e);
         });
@@ -773,7 +773,7 @@ var m = {}, un = {
       f.parse = function(e) {
         if (typeof e != "string" && !ot(e))
           throw new Error(".parse must be called with a string or Buffer as its argument");
-        var r, a = this.skip(qt)._(e, 0);
+        var r, a = this.skip(Tt)._(e, 0);
         return r = a.status ? { status: !0, value: a.value } : { status: !1, index: At(e, a.furthest), expected: a.expected }, delete bt[e], r;
       }, f.tryParse = function(e) {
         var r = this.parse(e);
@@ -848,21 +848,21 @@ var m = {}, un = {
           return r.concat(a);
         });
       }, f.map = function(e) {
-        T(e);
+        I(e);
         var r = this;
         return s(function(a, u) {
           var l = r._(a, u);
           return l.status ? B(v(l.index, e(l.value)), l) : l;
         });
       }, f.contramap = function(e) {
-        T(e);
+        I(e);
         var r = this;
         return s(function(a, u) {
           var l = r.parse(e(a.slice(u)));
           return l.status ? v(u + a.length, l.value) : l;
         });
       }, f.promap = function(e, r) {
-        return T(e), T(r), this.contramap(e).map(r);
+        return I(e), I(r), this.contramap(e).map(r);
       }, f.skip = function(e) {
         return Et(this, e).map(function(r) {
           return r[0];
@@ -909,11 +909,11 @@ var m = {}, un = {
         return r >= e.length ? O(r, "any character/byte") : v(r + 1, wt(e, r));
       }), Se = s(function(e, r) {
         return v(e.length, e.slice(r));
-      }), qt = s(function(e, r) {
+      }), Tt = s(function(e, r) {
         return r < e.length ? O(r, "EOF") : v(r, null);
       }), $e = C(/[0-9]/).desc("a digit"), je = C(/[0-9]*/).desc("optional digits"), Oe = C(/[a-z]/i).desc("a letter"), Fe = C(/[a-z]*/i).desc("optional letters"), Be = C(/\s*/).desc("optional whitespace"), _e = C(/\s+/).desc("whitespace"), Kt = ft("\r"), Gt = ft(`
 `), Qt = ft(`\r
-`), Zt = kt(Qt, Gt, Kt).desc("newline"), Pe = kt(Zt, qt);
+`), Zt = kt(Qt, Gt, Kt).desc("newline"), Pe = kt(Zt, Tt);
       s.all = Se, s.alt = kt, s.any = ke, s.cr = Kt, s.createLanguage = function(e) {
         var r = {};
         for (var a in e)
@@ -925,7 +925,7 @@ var m = {}, un = {
         return r;
       }, s.crlf = Qt, s.custom = function(e) {
         return s(e(v, O));
-      }, s.digit = $e, s.digits = je, s.empty = Lt, s.end = Pe, s.eof = qt, s.fail = St, s.formatError = Rt, s.index = ct, s.isParser = at, s.lazy = Dt, s.letter = Oe, s.letters = Fe, s.lf = Gt, s.lookahead = $t, s.makeFailure = O, s.makeSuccess = v, s.newline = Zt, s.noneOf = function(e) {
+      }, s.digit = $e, s.digits = je, s.empty = Lt, s.end = Pe, s.eof = Tt, s.fail = St, s.formatError = Rt, s.index = ct, s.isParser = at, s.lazy = Dt, s.letter = Oe, s.letters = Fe, s.lf = Gt, s.lookahead = $t, s.makeFailure = O, s.makeSuccess = v, s.newline = Zt, s.noneOf = function(e) {
         return jt(function(r) {
           return e.indexOf(r) < 0;
         }).desc("none of '" + e + "'");
@@ -957,15 +957,15 @@ var m = {}, un = {
           throw new Error("seqObj expects at least one named parser, found zero");
         return s(function(x, S) {
           for (var E, L = {}, F = 0; F < l; F += 1) {
-            var q, Y;
-            if (Z(u[F]) ? (q = u[F][0], Y = u[F][1]) : (q = null, Y = u[F]), !(E = B(Y._(x, S), E)).status)
+            var T, Y;
+            if (Z(u[F]) ? (T = u[F][0], Y = u[F][1]) : (T = null, Y = u[F]), !(E = B(Y._(x, S), E)).status)
               return E;
-            q && (L[q] = E.value), S = E.index;
+            T && (L[T] = E.value), S = E.index;
           }
           return B(v(S, L), E);
         });
       }, s.string = ft, s.succeed = R, s.takeWhile = function(e) {
-        return T(e), s(function(r, a) {
+        return I(e), s(function(r, a) {
           for (var u = a; u < r.length && e(wt(r, u)); )
             u++;
           return v(u, r.slice(a, u));
@@ -1226,10 +1226,10 @@ async function bn(t, n = 1e3 / 60) {
   });
 }
 const yn = {
-  easeInQuad: Ie,
-  easeOutQuad: Ve,
+  easeInQuad: Ve,
+  easeOutQuad: qe,
   easeInOutQuad: Ae,
-  easeInCubic: Te,
+  easeInCubic: Ie,
   easeOutCubic: He,
   easeInOutCubic: le,
   easeInBounce: ze,
@@ -1250,13 +1250,13 @@ function ce(t, n, i) {
       return o;
 }
 function wn(t, n, i, o, c) {
-  const [s, f] = [n[t], n[t + 1]], [g, b] = [i[t], i[t + 1]], k = fe(s, f, o), V = {}, K = [.../* @__PURE__ */ new Set([...Object.keys(g), ...Object.keys(b)])], A = (w, j, M) => ({
+  const [s, f] = [n[t], n[t + 1]], [g, b] = [i[t], i[t + 1]], k = fe(s, f, o), q = {}, K = [.../* @__PURE__ */ new Set([...Object.keys(g), ...Object.keys(b)])], A = (w, j, M) => ({
     start: i[j][w],
     stop: i[M][w]
   });
   K.forEach((w) => {
     if (w in g && w in b)
-      V[w] = A(w, t, t + 1);
+      q[w] = A(w, t, t + 1);
     else if (!(w in g) && w in b) {
       const j = ce(t, i, (Q) => w in Q);
       if (j == null)
@@ -1277,7 +1277,7 @@ function wn(t, n, i, o, c) {
   return {
     id: s.id,
     time: k,
-    interpVars: V,
+    interpVars: q,
     transform: G,
     timingFunction: s.timingFunction
   };
@@ -1292,7 +1292,7 @@ const xe = {
 };
 class vn {
   constructor(n, i = document.documentElement) {
-    this.target = i, this.templateFrames = [], this.transformedVars = [], this.frameId = 0, this.frames = [], this.startTime = void 0, this.pausedTime = 0, this.prevTime = 0, this.done = !1, this.reversed = !1, this.paused = !1, this.options = { ...xe, ...n };
+    this.target = i, this.templateFrames = [], this.transformedVars = [], this.frameId = 0, this.frames = [], this.startTime = void 0, this.pausedTime = 0, this.prevTime = 0, this.started = !1, this.done = !1, this.reversed = !1, this.paused = !1, this.options = { ...xe, ...n };
   }
   frame(n, i, o, c) {
     const s = {
@@ -1330,6 +1330,9 @@ class vn {
   pause() {
     return this.paused = !this.paused, this;
   }
+  reset() {
+    return this.startTime = void 0, this.pausedTime = 0, this.prevTime = 0, this.t = 0, this.started = !1, this.done = !0, this.reversed = !1, this.paused = !1, this;
+  }
   fillForwards() {
     this.interpFrames(this.options.duration);
   }
@@ -1343,21 +1346,21 @@ class vn {
       if (n < s || n > f)
         continue;
       const g = Ce(n, s, f, 0, 1), b = c.timingFunction(g);
-      for (const [k, V] of Object.entries(c.interpVars)) {
-        const K = V.start.lerp(b, V.stop, this.target);
+      for (const [k, q] of Object.entries(c.interpVars)) {
+        const K = q.start.lerp(b, q.stop, this.target);
         xn(k, K, i);
       }
       c.transform(n, i);
     }
   }
   async onStart() {
-    (this.options.fillMode === "backwards" || this.options.fillMode === "both") && this.fillBackwards(), this.options.delay > 0 && await ue(this.options.delay), this.done = !1;
+    (this.options.fillMode === "backwards" || this.options.fillMode === "both") && this.fillBackwards(), this.options.delay > 0 && await ue(this.options.delay), this.started = !0, this.done = !1;
   }
   onEnd() {
     this.options.fillMode === "forwards" || this.options.fillMode === "both" ? this.fillForwards() : (this.options.fillMode === "none" || this.options.fillMode === "backwards") && this.fillBackwards(), this.done = !0, this.startTime = void 0, this.pausedTime = 0, this.prevTime = 0;
   }
   async draw(n) {
-    this.startTime === void 0 && (this.onStart(), this.startTime = n), n = n - this.startTime;
+    this.startTime === void 0 && (await this.onStart(), this.startTime = n + this.options.delay), n = n - this.startTime;
     const i = n - this.prevTime;
     return this.prevTime = n, this.paused ? (this.pausedTime += i, requestAnimationFrame(this.draw.bind(this))) : (this.startTime += this.pausedTime, n -= this.pausedTime, this.pausedTime = 0, this.t = n, n >= this.options.duration ? this.onEnd() : (this.interpFrames(n), requestAnimationFrame(this.draw.bind(this))));
   }
@@ -1365,6 +1368,7 @@ class vn {
     (this.options.direction === "reverse" || this.options.direction === "alternate-reverse") && this.reverse();
     for (let n = 0; n < this.options.iterationCount; n++)
       n > 0 && (this.options.direction === "alternate" || this.options.direction === "alternate-reverse") && this.reverse(), requestAnimationFrame(this.draw.bind(this)), await ue(this.options.duration), await bn(() => this.done);
+    this.started = !1;
   }
 }
 class En {
@@ -1383,6 +1387,14 @@ class En {
         o,
         this.transform.bind(this)
       );
+    return this.animation.parse(), this;
+  }
+  fromVars(n, i) {
+    this.initAnimation();
+    for (let o = 0; o < n.length; o++) {
+      const c = n[o], s = Math.round(o / (n.length - 1) * 100);
+      this.animation.frame(s, c, i);
+    }
     return this.animation.parse(), this;
   }
   fromFrames(n) {

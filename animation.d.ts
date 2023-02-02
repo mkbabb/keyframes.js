@@ -67,6 +67,7 @@ export declare class Animation<V extends Vars> {
     pausedTime: number;
     prevTime: number;
     t: number;
+    started: boolean;
     done: boolean;
     reversed: boolean;
     paused: boolean;
@@ -77,6 +78,7 @@ export declare class Animation<V extends Vars> {
     parse(): this;
     reverse(): this;
     pause(): this;
+    reset(): this;
     fillForwards(): void;
     fillBackwards(): void;
     interpFrames(t: number, reversedVars?: TransformedVars): void;
@@ -92,6 +94,7 @@ export declare class CSSKeyframesAnimation<V extends Vars> {
     constructor(options?: Partial<AnimationOptions>, ...targets: HTMLElement[]);
     initAnimation(): this;
     fromFramesDefaultTransform(keyframes: Record<string, Partial<V>>): this;
+    fromVars(vars: V[], transform: TransformFunction<V>): this;
     fromFrames(keyframes: Record<string, Keyframe<V>>): this;
     fromCSSKeyframes(keyframes: string): this;
     transform(t: number, vars: any): void;
