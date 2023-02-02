@@ -13,19 +13,19 @@ export declare const easingFunctions: {
     bounceInEaseHalf: typeof bounceInEaseHalf;
     smoothStep3: typeof smoothStep3;
 };
-declare type InterpValue = {
+type InterpValue = {
     start: ValueArray;
     stop: ValueArray;
 };
-declare type InterpVars = {
+type InterpVars = {
     [arg: string]: InterpValue;
 };
-declare type Vars = {
+type Vars = {
     [arg: string]: number | string | any;
 };
-declare type TransformFunction<V extends Vars> = (t: number, v: V) => void;
-declare type TimingFunction = (t: number) => number;
-export declare type Keyframe<V extends Vars> = [
+type TransformFunction<V extends Vars> = (t: number, v: V) => void;
+type TimingFunction = (t: number) => number;
+export type Keyframe<V extends Vars> = [
     vars: V,
     transform?: TransformFunction<V>,
     timingFunction?: TimingFunction
@@ -48,7 +48,7 @@ interface AnimationFrame<V extends Vars> {
     timingFunction: TimingFunction;
 }
 export declare function parseTemplateFrame<V extends Vars>(ix: number, templateFrames: TemplateAnimationFrame<V>[], transformedVars: TransformedVars[], duration: number, frames: AnimationFrame<V>[]): AnimationFrame<V>;
-declare type AnimationOptions = {
+type AnimationOptions = {
     duration: number;
     delay: number;
     iterationCount: number;
@@ -67,6 +67,7 @@ export declare class Animation<V extends Vars> {
     pausedTime: number;
     prevTime: number;
     t: number;
+    started: boolean;
     done: boolean;
     reversed: boolean;
     paused: boolean;
@@ -77,6 +78,7 @@ export declare class Animation<V extends Vars> {
     parse(): this;
     reverse(): this;
     pause(): this;
+    reset(): this;
     fillForwards(): void;
     fillBackwards(): void;
     interpFrames(t: number, reversedVars?: TransformedVars): void;
@@ -92,6 +94,7 @@ export declare class CSSKeyframesAnimation<V extends Vars> {
     constructor(options?: Partial<AnimationOptions>, ...targets: HTMLElement[]);
     initAnimation(): this;
     fromFramesDefaultTransform(keyframes: Record<string, Partial<V>>): this;
+    fromVars(vars: V[], transform: TransformFunction<V>): this;
     fromFrames(keyframes: Record<string, Keyframe<V>>): this;
     fromCSSKeyframes(keyframes: string): this;
     transform(t: number, vars: any): void;

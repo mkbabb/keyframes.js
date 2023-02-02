@@ -16,7 +16,8 @@
         "dist"
     ],
     "scripts": {
-        "build": "vite build"
+        "build": "vite build",
+        "gh-pages": "vite build --mode gh-pages"
     },
     "repository": {
         "type": "git",
