@@ -6,11 +6,24 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Cube Transforms</title>
         <link rel="icon" href="./cube.png" />
+
         <script type="module">
             import { createApp } from "vue";
             import App from "./App.vue";
+
+            import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+            import { library } from "@fortawesome/fontawesome-svg-core";
+
+            import {
+                faRotateRight,
+                faClipboard,
+                faPause,
+                faPlay,
+            } from "@fortawesome/free-solid-svg-icons";
+
+            library.add(faRotateRight, faClipboard, faPause, faPlay);
             const app = createApp(App);
-            app.mount("#app");
+            app.component("font-awesome-icon", FontAwesomeIcon).mount("#app");
         </script>
     </head>
 

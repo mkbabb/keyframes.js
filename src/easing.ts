@@ -147,4 +147,4 @@ export const timingFunctions = {
     steps: steppedEase,
     "step-start": stepStart,
     "step-end": stepEnd,
-};
+} as const;

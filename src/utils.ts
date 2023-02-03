@@ -90,3 +90,12 @@ export function debounce(func: Function, wait: number = 100) {
         }, wait);
     };
 }
+
+export const hyphenToCamelCase = (str: string) =>
+    str.replace(/([-_][a-z])/gi, (group) =>
+        group.toUpperCase().replace("-", "").replace("_", "")
+    );
+
+export function camelCaseToHyphen(str: string) {
+    return str.replace(/([A-Z])/g, (g) => `-${g[0].toLowerCase()}`);
+}

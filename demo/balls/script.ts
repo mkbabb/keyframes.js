@@ -1,4 +1,4 @@
-import { Animation, CSSKeyframesAnimation } from "../../src/animation";
+import { Animation, createCSSKeyframesString, CSSKeyframesAnimation } from "../../src/animation";
 import {
     bounceInEase,
     CSSBezier,
@@ -34,6 +34,9 @@ boxes.forEach((box, i) => {
         },
         box
     ).fromCSSKeyframes(inputFrames);
+
+    const s = createCSSKeyframesString(anim.animation);
+    console.log(s);
 
     anim.play();
 });

@@ -1,6 +1,7 @@
 import { color, RGBColor } from "d3-color";
 import P from "parsimmon";
 import { lerp } from "./math";
+import { hyphenToCamelCase } from "./utils";
 
 const getComputedValue = (target: HTMLElement, key: string) => {
     const computed = getComputedStyle(target).getPropertyValue("--" + key);
@@ -23,14 +24,24 @@ export class ValueUnit<T = number> {
         if (this.unit === "color") {
             const c = this.value as RGBColor;
             return `rgb(${c.r}, ${c.g}, ${c.b})`;
-        } else if (this.unit && this.unit !== "var") {
-            return `${this.value}${this.unit}`;
+        } else if (this.unit) {
+            if (this.unit === "var") {
+                return `var(--${this.value})`;
+            } else if (this.unit === "calc") {
+                return `calc(${this.value})`;
+            } else {
+                return `${this.value}${this.unit}`;
+            }
         } else {
             return `${this.value}`;
         }
     }
 
     lerp(t: number, other: ValueUnit<T>, target?: HTMLElement) {
+        if (other == null) {
+            return this;
+        }
+
         if (this.unit === "color") {
             const value = {
                 r: lerp(t, this.value.r, other.value.r),
@@ -179,11 +190,6 @@ export function convertToPixels(
     return value;
 }
 
-export const toCamelCase = (str: string) =>
-    str.replace(/([-_][a-z])/gi, (group) =>
-        group.toUpperCase().replace("-", "").replace("_", "")
-    );
-
 const istring = (str: string) =>
     P((input, i) => {
         const s = input.slice(i);
@@ -298,7 +304,7 @@ export const CSSKeyframes = P.createLanguage({
         P.string("calc")
             .then(enclosed(r, r.valuePart.many()))
             .map((value) => {
-                return new ValueUnit(value, "calc");
+                return new ValueUnit(value.join(" "), "calc");
             }),
 
     functionValuePart: (r) => r.valuePart.sepBy(r.commaWhitespace),
@@ -325,7 +331,7 @@ export const CSSKeyframes = P.createLanguage({
                 .skip(r.ws)
                 .skip(r.colon)
                 .skip(r.ws)
-                .map((x) => toCamelCase(x)),
+                .map((x) => hyphenToCamelCase(x)),
             r.value.skip(r.ws).skip(r.semi).skip(r.ws)
         ).map(([name, value]) => {
             return {

@@ -115,27 +115,57 @@
         <div class="timing">
             <button class="toggle" @click="toggle">
                 {{ pausedString }}
-                <!-- <font-awesome-icon
+                <font-awesome-icon
                     :icon="!animation.paused ? ['fas', 'pause'] : ['fas', 'play']"
-                /> -->
+                />
             </button>
             <button class="reverse" @click="animation.reverse()">
                 Reverse
-                <!-- <font-awesome-icon :icon="['fas', 'undo']" /> -->
+                <font-awesome-icon :icon="['fas', 'rotate-right']" />
             </button>
             <button class="reset" @click="animation.reset()">
                 Reset
-                <!-- <font-awesome-icon :icon="['fas', 'undo-alt']" /> -->
+
+                <font-awesome-icon :icon="['fas', 'undo-alt']" />
             </button>
+        </div>
+
+        <div class="css-keyframes-string">
+            <button class="clipboard" @click="copyToClipboard">
+                <div ref="copyTextEl" class="copy-text">Copied!</div>
+                <font-awesome-icon :icon="['fas', 'clipboard']" />
+            </button>
+            <pre
+                ref="cssKeyframesStringEl"
+                class="hljs css"
+            ><code>{{ cssKeyframesString }}</code></pre>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { Animation, Vars } from "../../src/animation";
-import { timingFunctions, jumpTerms, CSSBezier, bezierPresets } from "../../src/easing";
+import { computed, onMounted, ref, watch, watchEffect } from "vue";
+import {
+    Animation,
+    createCSSKeyframesString,
+    CSSKeyframesAnimation,
+    Vars,
+} from "../../src/animation";
+import {
+    timingFunctions,
+    jumpTerms,
+    CSSBezier,
+    bezierPresets,
+    linear,
+} from "../../src/easing";
 import { ValueArray } from "../../src/units";
 import { formatNumber } from "./utils";
+
+import "highlight.js/styles/github-dark-dimmed.css";
+import hljs from "highlight.js";
+import css from "highlight.js/lib/languages/css";
+
+hljs.registerLanguage("css", css);
 
 let timingFunctionsAnd = {
     cubicBezier: "cubicBezier",
@@ -165,6 +195,11 @@ const setTimingFunction = (timingFunction) => {
 
 let timingFunctionKey = $ref("linear");
 
+let jumpTerm = $ref("jump-none");
+let steps = $ref(10);
+
+let cubicBezierValues = $ref([0, 0, 1, 1]);
+
 const updateTimingFunction = () => {
     let timingFunction = timingFunctions[timingFunctionKey];
     if (timingFunctionKey === "steps") {
@@ -174,16 +209,6 @@ const updateTimingFunction = () => {
     }
 
     setTimingFunction(timingFunction);
-};
-
-let jumpTerm = $ref("jump-none");
-let steps = $ref(10);
-
-let cubicBezierValues = $ref([0, 0, 1, 1]);
-
-const updateBezierPreset = (e: Event) => {
-    const target = e.target as HTMLSelectElement;
-    const preset = target.value;
 };
 
 let sliderValue = $ref(0);
@@ -227,19 +252,50 @@ const toggle = () => {
         // animation.startTime -= animation.t - prevT;
     }
 };
+
+let cssKeyframesStringEl = $ref(null);
+let cssKeyframesString = computed(() => {
+    const s = createCSSKeyframesString(animation, "animation", 45);
+    if (cssKeyframesStringEl) {
+        const h = hljs.highlight(s, { language: "css" });
+        cssKeyframesStringEl.innerHTML = h.value;
+    }
+    return s;
+});
+
+let copyTextEl = $ref(null);
+
+const copyToClipboard = () => {
+    navigator.clipboard.writeText(cssKeyframesString.value);
+    new CSSKeyframesAnimation(
+        {
+            duration: 300,
+            direction: "alternate",
+            iterationCount: 2,
+            timingFunction: "bounceInEase",
+        },
+        copyTextEl
+    )
+        .fromVars([
+            {
+                opacity: 0,
+            },
+            {
+                opacity: 1,
+            },
+        ])
+        .play();
+};
+
+onMounted(() => {});
 </script>
 
 <style scoped lang="scss">
 .animation-controls {
     display: flex;
-
     flex-direction: column;
     gap: 1rem;
-
-    border-radius: 5px;
-
-    z-index: 1;
-    opacity: 0.95;
+    position: relative;
 }
 
 input[type="range"] {
@@ -287,6 +343,47 @@ input[type="range"] {
             #f0f 83%,
             #f00 100%
         ) !important;
+    }
+}
+
+.css-keyframes-string {
+    padding: 0 0.5rem;
+    border-radius: 5px;
+    font-size: 0.8rem;
+    position: relative;
+
+    z-index: 1;
+
+    pre {
+        width: 48ch;
+        max-height: 48ch;
+        overflow: scroll;
+        padding: 1rem;
+        border-radius: 5px;
+    }
+
+    .clipboard {
+        font-size: 1.5rem;
+        position: absolute;
+        top: 2rem;
+        right: 2rem;
+        cursor: pointer;
+        color: white;
+        background-color: transparent;
+
+        .copy-text {
+            position: absolute;
+            transform: translate(-50%, -100%);
+
+            width: fit-content;
+
+            font-size: 1rem;
+            color: white;
+            background-color: black;
+            padding: 0.25rem 0.5rem;
+            border-radius: 5px;
+            opacity: 0;
+        }
     }
 }
 </style>

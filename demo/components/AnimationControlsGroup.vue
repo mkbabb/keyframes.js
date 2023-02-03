@@ -1,28 +1,27 @@
 <template>
     <div class="animation-controls-group">
-        <label><div class="rainbow-text">Animation Select</div></label>
-        <select
-            class="animation-select"
-            @change="emit('selectedAnimation', selectedAnimation)"
-            v-model="selectedAnimation"
-        >
-            <option v-for="(value, key) in animations" :value="key">
-                {{ key }}
-            </option>
-        </select>
-
-        <div class="animation-controls">
-            <AnimationControls
-                v-if="selectedAnimation"
-                @slider-update="sliderUpdate"
-                :animation="animations[selectedAnimation]"
-            />
+        <div class="animation-select">
+            <label><div class="rainbow-text">Animation Select</div></label>
+            <select
+                class="animation-select"
+                @change="emit('selectedAnimation', selectedAnimation)"
+                v-model="selectedAnimation"
+            >
+                <option v-for="(value, key) in animations" :value="key">
+                    {{ key }}
+                </option>
+            </select>
         </div>
+
+        <AnimationControls
+            v-if="selectedAnimation"
+            @slider-update="sliderUpdate"
+            :animation="animations[selectedAnimation]"
+        />
     </div>
 </template>
 
 <script setup lang="ts">
-import { string } from "parsimmon";
 import { computed, onMounted, Ref, ref, watchEffect } from "vue";
 import { Animation, AnimationGroup, Vars } from "../../src/animation";
 import { ValueArray } from "../../src/units";
@@ -49,31 +48,32 @@ const sliderUpdate = (e: { values: Vars<ValueArray>; animationId: number }) => {
 
 onMounted(() => {
     animationGroup = new AnimationGroup(...Object.values(animations));
-    selectedAnimation.value = Object.keys(animations)[0];
+    selectedAnimation.value = Object.keys(animations)[1];
     animationGroup.play();
 });
 </script>
 
 <style scoped lang="scss">
 .animation-controls-group {
-    display: grid;
+    display: flex;
+    flex-direction: column;
+    width: min-content;
 
-    grid-template-columns: repeat(2, auto);
-    grid-template-rows: repeat(2, auto);
-
+    min-height: 1px;
     gap: 1rem;
+}
 
+.animation-select {
+    display: grid;
+    grid-auto-flow: column;
+    gap: 1rem;
+    padding: 0.25rem;
     border-radius: 5px;
+    background-color: white;
+    
 
-    label {
-        grid-column: 1 /2;
-    }
-    select {
-        grid-column: 2 / 2;
-    }
-    .animation-controls {
-        grid-column: 1 / -1;
-        grid-row: 2;
+    * {
+        box-shadow: none;
     }
 }
 </style>

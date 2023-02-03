@@ -9,16 +9,19 @@ import {
     easeOutCubic,
     easeOutQuad,
     smoothStep3,
+    timingFunctions,
 } from "./easing";
 import { scale } from "./math";
 import {
     CSSKeyframes,
+    FunctionValue,
     parseCSSKeyframes,
     parseCSSPercent,
     ValueArray,
     ValueUnit,
 } from "./units";
 import {
+    camelCaseToHyphen,
     reverseTransformObject,
     sleep,
     TransformedVars,
@@ -157,7 +160,7 @@ type AnimationOptions = {
     iterationCount: number;
     direction: "normal" | "reverse" | "alternate" | "alternate-reverse";
     fillMode: "none" | "forwards" | "backwards" | "both";
-    timingFunction: TimingFunction;
+    timingFunction: keyof typeof timingFunctions | TimingFunction;
 };
 
 const defaultOptions: AnimationOptions = {
@@ -169,7 +172,18 @@ const defaultOptions: AnimationOptions = {
     timingFunction: easeInOutCubic,
 };
 
-let nextId = -1;
+const getTimingFunction = (
+    timingFunction: keyof typeof timingFunctions | TimingFunction
+): TimingFunction | typeof timingFunction | undefined => {
+    if (typeof timingFunction === "string") {
+        return timingFunctions[timingFunction];
+    } else if (timingFunction == null) {
+        return undefined;
+    }
+    return timingFunction;
+};
+
+let nextId = 0;
 
 export class Animation<V extends Vars> {
     id: number = nextId++;
@@ -198,6 +212,7 @@ export class Animation<V extends Vars> {
         public target: HTMLElement = document.documentElement
     ) {
         this.options = { ...defaultOptions, ...options };
+        this.options.timingFunction = getTimingFunction(this.options.timingFunction);
     }
 
     frame<K extends V>(
@@ -211,7 +226,8 @@ export class Animation<V extends Vars> {
             start,
             vars,
             transform,
-            timingFunction: timingFunction ?? this.options.timingFunction,
+            timingFunction:
+                getTimingFunction(timingFunction) ?? this.options.timingFunction,
         } as TemplateAnimationFrame<K>;
 
         this.templateFrames.push(templateFrame);
@@ -486,7 +502,7 @@ export class CSSKeyframesAnimation<V extends Vars> {
                 parseCSSPercent(percent),
                 vars,
                 transform,
-                timingFunction
+                getTimingFunction(timingFunction)
             );
         }
 
@@ -583,4 +599,63 @@ export class AnimationGroup<V> {
     play() {
         requestAnimationFrame(this.draw.bind(this));
     }
+}
+
+function objectToString(key: string, value: any) {
+    if (typeof value === "object" && !(value instanceof ValueArray)) {
+        return Object.entries(value)
+            .map(([k, v]) => {
+                k = camelCaseToHyphen(k);
+
+                if (v instanceof FunctionValue) {
+                    return String(v);
+                } else {
+                    return `${k}(${v})`;
+                }
+            })
+            .join(" ");
+    } else {
+        return String(value);
+    }
+}
+
+import prettier from "prettier";
+import parserPostCSS from "prettier/parser-postcss";
+
+export function createCSSKeyframesString<V extends Vars>(
+    animation: Animation<V>,
+    name: string = "animation",
+    printWidth: number = 80
+): string {
+    const options = animation.options;
+    const keyframeCss = animation.templateFrames
+        .map((frame) => {
+            let css = `  ${frame.start}% {\n`;
+            for (let [name, v] of Object.entries(frame.vars)) {
+                name = camelCaseToHyphen(name);
+                let s = objectToString(name, v);
+
+                css += `  ${name}: ${s};\n`;
+            }
+            css += "  }\n";
+            return css;
+        })
+        .join("");
+
+    let animationCss = `.${name} {\n`;
+    animationCss += `  animation-duration: ${options.duration}ms;\n`;
+    animationCss += `  animation-name: ${name};\n`;
+    animationCss += `  animation-iteration-count: ${
+        isFinite(options.iterationCount) ? options.iterationCount : "infinite"
+    };\n`;
+    animationCss += `  animation-direction: ${options.direction};\n`;
+    animationCss += `}\n`;
+
+    const keyframes = `${animationCss}\n@keyframes ${name} {\n${keyframeCss}}`;
+
+    return prettier.format(keyframes, {
+        parser: "css",
+        plugins: [parserPostCSS],
+        printWidth,
+    });
 }

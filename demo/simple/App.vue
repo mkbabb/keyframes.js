@@ -4,7 +4,7 @@
 
 <script setup lang="ts">
 import { onMounted } from "vue";
-import { CSSKeyframesAnimation } from "../../src/animation";
+import { createCSSKeyframesString, CSSKeyframesAnimation } from "../../src/animation";
 
 const box = $ref<HTMLElement>();
 
@@ -87,7 +87,11 @@ onMounted(() => {
             },
         ],
     });
+
     anim.play();
+
+    const s = createCSSKeyframesString(anim.animation);
+    console.log(s);
 });
 </script>
 

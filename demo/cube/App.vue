@@ -1,11 +1,9 @@
 <template>
     <div class="container">
-        <div class="animation-controls">
-            <AnimationControlsGroup
-                :animations="animations"
-                @selected-animation="(s) => (selectedAnimation = s)"
-            />
-        </div>
+        <AnimationControlsGroup
+            :animations="animations"
+            @selected-animation="(s) => (selectedAnimation = s)"
+        />
 
         <div
             :class="[
@@ -72,7 +70,12 @@
 </template>
 
 <script setup lang="ts">
-import { AnimationGroup, CSSKeyframesAnimation, Vars } from "../../src/animation";
+import {
+    AnimationGroup,
+    CSSKeyframesAnimation,
+    Vars,
+    createCSSKeyframesString,
+} from "../../src/animation";
 import { easeInBounce, linear } from "../../src/easing";
 import { FunctionValue, ValueArray, ValueUnit } from "../../src/units";
 import { mat4 } from "gl-matrix";
@@ -258,49 +261,53 @@ const fixed = () => {
     }
 };
 
-const matrixAnim = new CSSKeyframesAnimation({
-    duration: 5000,
-    iterationCount: Infinity,
-    fillMode: "forwards",
-    direction: "alternate",
-    timingFunction: linear,
-}).fromVars([
-    {
-        transform: {
-            matrix3d: matrix3dStart,
+const matrixAnim = $ref(
+    new CSSKeyframesAnimation({
+        duration: 5000,
+        iterationCount: Infinity,
+        fillMode: "forwards",
+        direction: "alternate",
+        timingFunction: linear,
+    }).fromVars([
+        {
+            transform: {
+                matrix3d: matrix3dStart,
+            },
         },
-    },
-    {
-        transform: {
-            matrix3d: matrix3dEnd,
+        {
+            transform: {
+                matrix3d: matrix3dEnd,
+            },
         },
-    },
-]);
+    ])
+);
 
-const rotationAnim = new CSSKeyframesAnimation({
-    duration: 5000,
-    iterationCount: Infinity,
-    fillMode: "forwards",
-    direction: "alternate",
-    timingFunction: linear,
-}).fromFramesDefaultTransform({
-    from: {
-        transform: {
-            rotateX: "0deg",
-            rotateY: "0deg",
-            rotateZ: "0deg",
-            // matrix3d: matrix3dStart,
+const rotationAnim = $ref(
+    new CSSKeyframesAnimation({
+        duration: 5000,
+        iterationCount: Infinity,
+        fillMode: "forwards",
+        direction: "alternate",
+        timingFunction: linear,
+    }).fromFramesDefaultTransform({
+        from: {
+            transform: {
+                rotateX: "0deg",
+                rotateY: "0deg",
+                rotateZ: "0deg",
+                // matrix3d: matrix3dStart,
+            },
         },
-    },
-    "100%": {
-        transform: {
-            rotateX: new ValueUnit("rotationX", "var"),
-            rotateY: "360deg",
-            rotateZ: "360deg",
-            // matrix3d: matrix3dEnd,
+        "100%": {
+            transform: {
+                rotateX: new ValueUnit("rotationX", "var"),
+                rotateY: "360deg",
+                rotateZ: "360deg",
+                // matrix3d: matrix3dEnd,
+            },
         },
-    },
-});
+    })
+);
 
 const animations = {
     Matrix: matrixAnim.animation,
@@ -312,12 +319,18 @@ let selectedAnimation = $ref(Object.keys(animations)[0]);
 onMounted(() => {
     rotationAnim.addTargets(cube);
     matrixAnim.addTargets(cube);
+
+    for (const [name, animation] of Object.entries(animations)) {
+        const s = createCSSKeyframesString(animation, name);
+        console.log(s);
+    }
 });
 </script>
 <style lang="scss">
 @import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;700&display=swap");
 * {
     font-family: "Fira Code", monospace;
+    box-sizing: border-box;
 }
 
 html,
@@ -334,7 +347,7 @@ body {
     flex-direction: column;
     justify-content: center;
 
-    background-size: 0.75rem;
+    background-size: 1rem;
     background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%202%202%22%3E%3Cpath%20d%3D%22M1%202V0h1v1H0v1z%22%20fill-opacity%3D%22.05%22%2F%3E%3C%2Fsvg%3E");
 }
 
@@ -360,6 +373,9 @@ select {
     border: none;
     border-radius: 5px;
     padding: 0.25rem 0.5rem;
+    width: min-content;
+    display: flex;
+    width: 16ch;
 
     text-overflow: ellipsis;
 }
@@ -440,11 +456,13 @@ button {
     --padding: 0.5rem;
     display: grid;
     padding: var(--padding);
+    height: 1px;
     min-height: calc(100vh - 2 * var(--padding));
     width: calc(100% - 2 * var(--padding));
 
     grid-template-areas: "animation-controls graph matrix-controls";
     grid-template-columns: 1fr 2fr 1fr;
+    justify-content: center;
 
     gap: 1rem;
     overflow: hidden;
@@ -460,10 +478,7 @@ button {
 }
 
 .animation-controls {
-    display: flex;
     grid-area: animation-controls;
-    flex-direction: column;
-    gap: 0.5rem;
 }
 
 .graph {
@@ -579,7 +594,7 @@ button {
     display: grid;
     justify-items: center;
     align-items: center;
-    height: min-content;
+    height: fit-content;
     gap: 1rem;
     z-index: 1;
 }
