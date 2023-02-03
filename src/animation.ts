@@ -17,6 +17,8 @@ import {
     FunctionValue,
     parseCSSKeyframes,
     parseCSSPercent,
+    parseCSSTime,
+    reverseCSSTime,
     ValueArray,
     ValueUnit,
 } from "./units";
@@ -256,6 +258,36 @@ export class Animation<V extends Vars> {
             );
             this.frames.push(frame);
         }
+        return this;
+    }
+
+    updateIterationCount(iterationCount: number | "infinite") {
+        if (iterationCount === "infinite") {
+            this.options.iterationCount = Infinity;
+        } else if (typeof iterationCount === "string") {
+            this.options.iterationCount = parseFloat(iterationCount);
+        } else {
+            this.options.iterationCount = iterationCount;
+        }
+        return this;
+    }
+
+    updateDuration(duration: number | string) {
+        if (typeof duration === "string") {
+            duration = parseCSSTime(duration);
+        }
+
+        const prevDuration = this.options.duration;
+        const ratio = duration / prevDuration;
+
+        for (let i = 0; i < this.frames.length; i++) {
+            const frame = this.frames[i];
+            frame.time.start *= ratio;
+            frame.time.stop *= ratio;
+        }
+
+        this.options.duration = duration;
+
         return this;
     }
 
@@ -643,12 +675,20 @@ export function createCSSKeyframesString<V extends Vars>(
         .join("");
 
     let animationCss = `.${name} {\n`;
-    animationCss += `  animation-duration: ${options.duration}ms;\n`;
+
+    const duration = reverseCSSTime(options.duration);
+    animationCss += `  animation-duration: ${duration};\n`;
+
     animationCss += `  animation-name: ${name};\n`;
     animationCss += `  animation-iteration-count: ${
         isFinite(options.iterationCount) ? options.iterationCount : "infinite"
     };\n`;
     animationCss += `  animation-direction: ${options.direction};\n`;
+
+    if (options.delay > 0) {
+        animationCss += `  animation-delay: ${reverseCSSTime(options.delay)};\n`;
+    }
+
     animationCss += `}\n`;
 
     const keyframes = `${animationCss}\n@keyframes ${name} {\n${keyframeCss}}`;

@@ -48,7 +48,7 @@ const sliderUpdate = (e: { values: Vars<ValueArray>; animationId: number }) => {
 
 onMounted(() => {
     animationGroup = new AnimationGroup(...Object.values(animations));
-    selectedAnimation.value = Object.keys(animations)[1];
+    selectedAnimation.value = Object.keys(animations)[0];
     animationGroup.play();
 });
 </script>

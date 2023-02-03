@@ -293,7 +293,7 @@ const rotationAnim = $ref(
         from: {
             transform: {
                 rotateX: "0deg",
-                rotateY: "0deg",
+                rotateY: "0turn",
                 rotateZ: "0deg",
                 // matrix3d: matrix3dStart,
             },
@@ -301,7 +301,7 @@ const rotationAnim = $ref(
         "100%": {
             transform: {
                 rotateX: new ValueUnit("rotationX", "var"),
-                rotateY: "360deg",
+                rotateY: "1turn",
                 rotateZ: "360deg",
                 // matrix3d: matrix3dEnd,
             },
@@ -319,11 +319,6 @@ let selectedAnimation = $ref(Object.keys(animations)[0]);
 onMounted(() => {
     rotationAnim.addTargets(cube);
     matrixAnim.addTargets(cube);
-
-    for (const [name, animation] of Object.entries(animations)) {
-        const s = createCSSKeyframesString(animation, name);
-        console.log(s);
-    }
 });
 </script>
 <style lang="scss">
@@ -367,6 +362,7 @@ label {
 }
 
 input[type="number"],
+input[type="string"],
 select {
     font-size: 1rem;
     box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
@@ -470,7 +466,7 @@ button {
 
 @media screen and (max-width: 900px) {
     .container {
-        grid-template-areas: "animation-controls" "graph" "matrix-controls";
+        grid-template-areas: "graph" "animation-controls" "matrix-controls";
         grid-template-columns: auto;
         grid-template-rows: 1fr 50vh 1fr;
         overflow-y: scroll;

@@ -2,13 +2,34 @@
     <div class="animation-controls">
         <div class="options">
             <label>Duration</label>
-            <input type="number" v-model.number="animation.options.duration" />
+            <input
+                type="string"
+                :value="reverseCSSTime(animation.options.duration)"
+                @change="(e) => animation.updateDuration(e.target.value)"
+            />
 
             <label>Delay</label>
-            <input type="number" v-model.number="animation.options.delay" />
+            <input
+                type="string"
+                :value="reverseCSSTime(animation.options.delay)"
+                @change="
+                    (e) =>
+                        (animation.options.delay = parseCSSTime(
+                            e.target.value
+                        ))
+                "
+            />
 
             <label>Iteration Count</label>
-            <input type="number" v-model.number="animation.options.iterationCount" />
+            <input
+                type="string"
+                @change="(e) => animation.updateIterationCount(e.target.value)"
+                :value="
+                    isFinite(animation.options.iterationCount)
+                        ? animation.options.iterationCount
+                        : 'infinite'
+                "
+            />
 
             <label>Direction</label>
             <select v-model="animation.options.direction">
@@ -158,7 +179,7 @@ import {
     bezierPresets,
     linear,
 } from "../../src/easing";
-import { ValueArray } from "../../src/units";
+import { ValueArray, reverseCSSTime, parseCSSTime } from "../../src/units";
 import { formatNumber } from "./utils";
 
 import "highlight.js/styles/github-dark-dimmed.css";
@@ -198,7 +219,7 @@ let timingFunctionKey = $ref("linear");
 let jumpTerm = $ref("jump-none");
 let steps = $ref(10);
 
-let cubicBezierValues = $ref([0, 0, 1, 1]);
+let cubicBezierValues = $ref(bezierPresets["ease-in"]);
 
 const updateTimingFunction = () => {
     let timingFunction = timingFunctions[timingFunctionKey];

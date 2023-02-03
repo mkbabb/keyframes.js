@@ -368,3 +368,38 @@ export const parseCSSKeyframes = (input: string): Record<string, any> =>
 
 export const parseCSSPercent = (input: string | number): number =>
     CSSKeyframes.percent.tryParse(String(input));
+
+const TIME_SUFFIXES = ["s", "ms"].map(istring);
+
+export const parseCSSTime = (input: string): number => {
+    const t = P.seq(
+        CSSValueUnit.number.skip(P.optWhitespace),
+        P.alt(...TIME_SUFFIXES).or(P.string("").result("ms"))
+    )
+        .map(([value, suffix]) => {
+            if (suffix === "s") {
+                return value * 1000;
+            } else {
+                return value;
+            }
+        })
+        .parse(input);
+
+    return t.status ? t.value : 0;
+};
+
+export const reverseCSSTime = (time: number): string => {
+    if (time >= 5000) {
+        return `${time / 1000}s`;
+    } else {
+        return `${time}ms`;
+    }
+};
+
+export const reverseCSSIterationCount = (count: number): string => {
+    if (count === Infinity) {
+        return "infinite";
+    } else {
+        return String(count);
+    }
+};
