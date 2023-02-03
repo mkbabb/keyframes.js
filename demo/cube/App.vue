@@ -595,7 +595,7 @@ select {
     border: none;
     border-radius: 5px;
     padding: 0.25rem 0.5rem;
-    width: auto;
+    width: fit-content;
 }
 
 .animation-select {

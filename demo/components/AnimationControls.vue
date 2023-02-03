@@ -130,6 +130,7 @@ const toggle = () => {
     gap: 1rem;
 
     border-radius: 5px;
+
     z-index: 1;
     opacity: 0.95;
 }
