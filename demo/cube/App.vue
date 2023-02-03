@@ -1,21 +1,18 @@
 <template>
     <div class="container">
         <div class="animation-controls">
-            <select class="animation-select" v-model="selectedAnimation">
-                <option v-for="(value, key) in animations" :value="key">
-                    {{ key }}
-                </option>
-            </select>
-
-            <div class="animation-controls">
-                <Controlbar
-                    @slider-update="sliderUpdate"
-                    :animation="animations[selectedAnimation]"
-                />
-            </div>
+            <AnimationControlsGroup
+                :animations="animations"
+                @selected-animation="(s) => (selectedAnimation = s)"
+            />
         </div>
 
-        <div class="matrix-controls">
+        <div
+            :class="[
+                'matrix-controls',
+                selectedAnimation !== 'Matrix' ? 'disabled' : '',
+            ]"
+        >
             <div class="matrix-input">
                 <div class="matrix-cell" v-for="(value, i) in matrix3dEnd.values">
                     <input
@@ -51,8 +48,10 @@
                 </template>
             </div>
 
-            <button @click="reset">Reset Transforms</button>
-            <button @click="disableRotations">Freeze</button>
+            <div class="row">
+                <button @click="reset">Reset</button>
+                <button @click="fixed">Fixed</button>
+            </div>
         </div>
 
         <div class="graph">
@@ -73,18 +72,12 @@
 </template>
 
 <script setup lang="ts">
-import {
-    AnimationGroup,
-    CSSKeyframesAnimation,
-    mergeAnimations,
-    Vars,
-} from "../../src/animation";
+import { AnimationGroup, CSSKeyframesAnimation, Vars } from "../../src/animation";
 import { easeInBounce, linear } from "../../src/easing";
 import { FunctionValue, ValueArray, ValueUnit } from "../../src/units";
 import { mat4 } from "gl-matrix";
-import { onMounted, watch } from "vue";
-import Controlbar from "../components/AnimationControls.vue";
-import { reverseTransformObject } from "../../src/utils";
+import { onMounted } from "vue";
+import AnimationControlsGroup from "../components/AnimationControlsGroup.vue";
 
 const matrixAxes = ["X", "Y", "Z", "W"];
 const sliderAxes = ["X", "Y", "Z"];
@@ -138,16 +131,16 @@ const getTransformFromIx = (i: number) => {
     }
 };
 
-const matrixCells = [];
-for (let i = 0; i < 16; i++) {
-    const value = i % 5 === 0 ? 1 : 0;
-    matrixCells.push(new ValueUnit(value));
-}
 const matrix3dStart = new FunctionValue(
     "matrix3d",
-    matrixCells.map((v) => new ValueUnit(v.value))
+    [...mat4.create()].map((v) => new ValueUnit(v))
 );
-const matrix3dEnd = $ref(new FunctionValue("matrix3d", matrixCells));
+const matrix3dEnd = $ref(
+    new FunctionValue(
+        "matrix3d",
+        [...mat4.create()].map((v) => new ValueUnit(v))
+    )
+);
 
 const syncTransformations = (reset: boolean = false) => {
     transformSliderValues.translate.X = matrix3dEnd.values[12].value;
@@ -257,6 +250,14 @@ const reset = () => {
     animateUpdateMatrix(fromMatrix, toMatrix, true);
 };
 
+const fixed = () => {
+    if (matrix3dStart.values == matrix3dEnd.values) {
+        matrix3dStart.values = [...mat4.create()].map((v) => new ValueUnit(v));
+    } else {
+        matrix3dStart.values = matrix3dEnd.values;
+    }
+};
+
 const matrixAnim = new CSSKeyframesAnimation({
     duration: 5000,
     iterationCount: Infinity,
@@ -302,34 +303,137 @@ const rotationAnim = new CSSKeyframesAnimation({
 });
 
 const animations = {
-    Rotations: rotationAnim.animation,
     Matrix: matrixAnim.animation,
+    Rotations: rotationAnim.animation,
 };
 
-const selectedAnimation = $ref("Rotations");
-
-const animationGroup = new AnimationGroup(rotationAnim.animation, matrixAnim.animation);
-
-const sliderUpdate = (e: { values: Vars<ValueArray>; animationId: number }) => {
-    const { values, animationId } = e;
-    const groupObject = animationGroup.animationGroup.find(
-        (a) => a.animation.id == animationId
-    );
-    groupObject.values = values;
-};
+let selectedAnimation = $ref(Object.keys(animations)[0]);
 
 onMounted(() => {
     rotationAnim.addTargets(cube);
     matrixAnim.addTargets(cube);
-
-    animationGroup.play();
 });
 </script>
-<style scoped lang="scss">
+<style lang="scss">
 @import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;700&display=swap");
-
 * {
     font-family: "Fira Code", monospace;
+}
+
+html,
+body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    justify-content: center;
+
+    background-size: 0.75rem;
+    background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%202%202%22%3E%3Cpath%20d%3D%22M1%202V0h1v1H0v1z%22%20fill-opacity%3D%22.05%22%2F%3E%3C%2Fsvg%3E");
+}
+
+label {
+    background-color: white;
+    padding: 0.25rem;
+    border-radius: 5px;
+
+    color: var(--color);
+    box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
+
+    text-align: center;
+    font-size: 1.25rem;
+    font-weight: bold;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+input[type="number"],
+select {
+    font-size: 1rem;
+    box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
+    border: none;
+    border-radius: 5px;
+    padding: 0.25rem 0.5rem;
+
+    text-overflow: ellipsis;
+}
+
+input[type="range"] {
+    width: 100%;
+    background: var(--color);
+    outline: none;
+    opacity: 0.8;
+    text-align: center;
+    transition: opacity color 0.2s;
+
+    &:disabled {
+        --color: gray;
+    }
+
+    &:hover {
+        opacity: 1;
+    }
+
+    &[type="range"] {
+        appearance: none;
+        height: 6px;
+        border-radius: 10px;
+        background: var(--color);
+
+        &::-webkit-slider-thumb {
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--color);
+            cursor: pointer;
+        }
+
+        &::-moz-range-thumb {
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--color);
+            cursor: pointer;
+        }
+    }
+}
+
+button {
+    font-size: 1.25rem;
+    padding: 0.25rem 1rem;
+    border-radius: 5px;
+    border: none;
+    background: rgb(0, 0, 0);
+    color: rgb(255, 255, 255);
+    cursor: pointer;
+}
+
+.rainbow-text {
+    background-image: linear-gradient(
+        to right,
+        #f00 0%,
+        #ff0 17%,
+        #0f0 33%,
+        #0ff 50%,
+        #00f 67%,
+        #f0f 83%,
+        #f00 100%
+    ) !important;
+    background-clip: text;
+    color: transparent;
+}
+
+.disabled {
+    opacity: 0.5;
+    pointer-events: none;
 }
 
 .container {
@@ -378,6 +482,22 @@ onMounted(() => {
     transform: rotate3d(-1, 1, 0, 30deg);
     transition: transform 200ms ease;
     position: relative;
+}
+
+.x {
+    --color: red;
+}
+
+.y {
+    --color: green;
+}
+
+.z {
+    --color: blue;
+}
+
+.w {
+    --color: black;
 }
 
 .axis-line {
@@ -470,57 +590,6 @@ onMounted(() => {
     align-items: center;
     gap: 0.25rem 0.75rem;
     width: 100%;
-
-    label {
-        background-color: white;
-        padding: 0.25rem;
-        border-radius: 5px;
-
-        color: var(--color);
-        box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
-
-        text-align: center;
-    }
-    input {
-        width: 100%;
-        background: var(--color);
-        outline: none;
-        text-align: center;
-        transition: opacity color 0.2s;
-
-        &:disabled {
-            --color: gray;
-        }
-
-        &:hover {
-            opacity: 1;
-        }
-
-        &[type="range"] {
-            appearance: none;
-            height: 6px;
-            border-radius: 10px;
-            background: var(--color);
-
-            &::-webkit-slider-thumb {
-                appearance: none;
-                width: 14px;
-                height: 14px;
-                border-radius: 50%;
-                background: var(--color);
-                cursor: pointer;
-            }
-
-            &::-moz-range-thumb {
-                appearance: none;
-                width: 14px;
-                height: 14px;
-                border-radius: 50%;
-                background: var(--color);
-                cursor: pointer;
-            }
-        }
-    }
 }
 
 .matrix-input {
@@ -543,7 +612,7 @@ onMounted(() => {
     box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
 
     input {
-        font-size: 1.25rem;
+        font-size: 1.5rem;
         width: 4rem;
 
         aspect-ratio: 1 / 1;
@@ -560,46 +629,5 @@ onMounted(() => {
         font-size: 2.5rem;
         color: var(--color);
     }
-}
-
-.x {
-    --color: red;
-}
-
-.y {
-    --color: green;
-}
-
-.z {
-    --color: blue;
-}
-
-.w {
-    --color: black;
-}
-
-button {
-    font-size: 1.25rem;
-    padding: 0.25rem 1rem;
-    border-radius: 5px;
-    border: none;
-    background: rgb(0, 0, 0);
-    color: rgb(255, 255, 255);
-    cursor: pointer;
-}
-
-input[type="number"],
-select {
-    font-size: 1rem;
-    box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
-    border: none;
-    border-radius: 5px;
-    padding: 0.25rem 0.5rem;
-    width: fit-content;
-}
-
-.animation-select {
-    color: white;
-    background-color: black;
 }
 </style>

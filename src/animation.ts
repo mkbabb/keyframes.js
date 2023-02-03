@@ -26,19 +26,6 @@ import {
     waitUntil,
 } from "./utils";
 
-export const easingFunctions = {
-    easeInQuad,
-    easeOutQuad,
-    easeInOutQuad,
-    easeInCubic,
-    easeOutCubic,
-    easeInOutCubic,
-    easeInBounce,
-    bounceInEase,
-    bounceInEaseHalf,
-    smoothStep3,
-};
-
 type InterpValue = {
     start: ValueArray;
     stop: ValueArray;

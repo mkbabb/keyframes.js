@@ -25,6 +25,82 @@
                 <option value="backwards">Backwards</option>
                 <option value="both">Both</option>
             </select>
+
+            <label>Timing Function</label>
+            <select @change="updateTimingFunction" v-model="timingFunctionKey">
+                <option v-for="timingFunction in Object.keys(timingFunctionsAnd)">
+                    {{ timingFunction }}
+                </option>
+            </select>
+
+            <template v-if="timingFunctionKey === 'steps'">
+                <label>Steps</label>
+                <input
+                    @input="updateTimingFunction"
+                    type="number"
+                    v-model.number="steps"
+                />
+
+                <label>Jump Term</label>
+                <select @input="updateTimingFunction" v-model="jumpTerm">
+                    <option v-for="j in jumpTerms">
+                        {{ j }}
+                    </option>
+                </select>
+            </template>
+
+            <template v-if="timingFunctionKey === 'cubicBezier'">
+                <div class="cubic-bezier-controls">
+                    <select @input="updateTimingFunction" v-model="cubicBezierValues">
+                        <option
+                            v-for="(preset, presetName) in bezierPresets"
+                            :value="preset"
+                        >
+                            {{ presetName }}
+                        </option>
+                    </select>
+
+                    <label> X1 {{ formatNumber(cubicBezierValues[0]) }} </label>
+                    <input
+                        @change="updateTimingFunction"
+                        v-model.number="cubicBezierValues[0]"
+                        type="range"
+                        :min="-2"
+                        :max="2"
+                        step="0.01"
+                    />
+
+                    <label>Y1 {{ formatNumber(cubicBezierValues[1]) }}</label>
+                    <input
+                        @change="updateTimingFunction"
+                        v-model.number="cubicBezierValues[1]"
+                        type="range"
+                        :min="-2"
+                        :max="2"
+                        step="0.01"
+                    />
+
+                    <label>X2 {{ formatNumber(cubicBezierValues[2]) }}</label>
+                    <input
+                        @change="updateTimingFunction"
+                        v-model.number="cubicBezierValues[2]"
+                        type="range"
+                        :min="-2"
+                        :max="2"
+                        step="0.01"
+                    />
+
+                    <label>Y2 {{ formatNumber(cubicBezierValues[3]) }}</label>
+                    <input
+                        @change="updateTimingFunction"
+                        v-model.number="cubicBezierValues[3]"
+                        type="range"
+                        :min="-2"
+                        :max="2"
+                        step="0.01"
+                    />
+                </div>
+            </template>
         </div>
 
         <input
@@ -56,9 +132,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watchEffect } from "vue";
 import { Animation, Vars } from "../../src/animation";
+import { timingFunctions, jumpTerms, CSSBezier, bezierPresets } from "../../src/easing";
 import { ValueArray } from "../../src/units";
+import { formatNumber } from "./utils";
+
+let timingFunctionsAnd = {
+    cubicBezier: "cubicBezier",
+    ...timingFunctions,
+};
 
 const { animation } = defineProps<{
     animation: Animation<any>;
@@ -73,6 +155,36 @@ const emit = defineEmits<{
         }
     ): void;
 }>();
+
+const setTimingFunction = (timingFunction) => {
+    animation.options.timingFunction = timingFunction;
+    animation.frames.forEach((frame) => {
+        frame.timingFunction = timingFunction;
+    });
+};
+
+let timingFunctionKey = $ref("linear");
+
+const updateTimingFunction = () => {
+    let timingFunction = timingFunctions[timingFunctionKey];
+    if (timingFunctionKey === "steps") {
+        timingFunction = timingFunctions[timingFunctionKey](steps, jumpTerm);
+    } else if (timingFunctionKey === "cubicBezier") {
+        timingFunction = CSSBezier(...cubicBezierValues);
+    }
+
+    setTimingFunction(timingFunction);
+};
+
+let jumpTerm = $ref("jump-none");
+let steps = $ref(10);
+
+let cubicBezierValues = $ref([0, 0, 1, 1]);
+
+const updateBezierPreset = (e: Event) => {
+    const target = e.target as HTMLSelectElement;
+    const preset = target.value;
+};
 
 let sliderValue = $ref(0);
 
@@ -102,6 +214,7 @@ const toggle = () => {
     } else {
         animation.pause();
     }
+
     paused = animation.paused;
     pausedString = animation.paused ? "Play" : "Pause";
     sliderValue = animation.t;
@@ -117,12 +230,6 @@ const toggle = () => {
 </script>
 
 <style scoped lang="scss">
-@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;700&display=swap");
-
-* {
-    font-family: "Fira Code", monospace;
-}
-
 .animation-controls {
     display: flex;
 
@@ -133,6 +240,10 @@ const toggle = () => {
 
     z-index: 1;
     opacity: 0.95;
+}
+
+input[type="range"] {
+    --color: green;
 }
 
 .timing {
@@ -148,74 +259,34 @@ const toggle = () => {
     align-items: center;
 }
 
-label {
-    font-size: 1.25rem;
-    font-weight: bold;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
+.cubic-bezier-controls {
+    margin: 0.5rem 0;
+    grid-column: span 2;
+    display: grid;
+    gap: 0.25rem;
+    grid-template-columns: 10rem auto;
+    align-items: center;
 
-input[type="number"],
-select {
-    font-size: 1rem;
-    box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
-    border: none;
-    border-radius: 5px;
-    padding: 0.25rem 0.5rem;
-    max-width: 64px;
-    text-overflow: ellipsis;
-}
-
-input[type="range"] {
-    --color: rgb(75, 204, 63);
-    width: 100%;
-    background: var(--color);
-    outline: none;
-    opacity: 0.8;
-    text-align: center;
-    transition: opacity color 0.2s;
-
-    &:disabled {
-        --color: gray;
+    select {
+        grid-column: span 2;
     }
 
-    &:hover {
-        opacity: 1;
+    label {
+        text-align: center;
+        white-space: pre;
     }
 
-    &[type="range"] {
-        appearance: none;
-        height: 6px;
-        border-radius: 10px;
-        background: var(--color);
-
-        &::-webkit-slider-thumb {
-            appearance: none;
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            background: var(--color);
-            cursor: pointer;
-        }
-
-        &::-moz-range-thumb {
-            appearance: none;
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            background: var(--color);
-            cursor: pointer;
-        }
+    input {
+        background: linear-gradient(
+            to right,
+            #f00 0%,
+            #ff0 17%,
+            #0f0 33%,
+            #0ff 50%,
+            #00f 67%,
+            #f0f 83%,
+            #f00 100%
+        ) !important;
     }
-}
-
-button {
-    font-size: 1.25rem;
-    padding: 0.25rem 1rem;
-    border-radius: 5px;
-    border: none;
-    background: rgb(0, 0, 0);
-    color: rgb(255, 255, 255);
-    cursor: pointer;
 }
 </style>
