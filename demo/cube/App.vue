@@ -1,17 +1,19 @@
 <template>
     <div class="container">
-        <!-- <div class="animation-controls">
+        <div class="animation-controls">
             <select class="animation-select" v-model="selectedAnimation">
                 <option v-for="(value, key) in animations" :value="key">
                     {{ key }}
                 </option>
-            </select> -->
+            </select>
 
-        <div class="animation-controls">
-            <Controlbar :animation="animations[selectedAnimation].animation" />
+            <div class="animation-controls">
+                <Controlbar
+                    @slider-update="sliderUpdate"
+                    :animation="animations[selectedAnimation]"
+                />
+            </div>
         </div>
-
-        <!-- </div> -->
 
         <div class="matrix-controls">
             <div class="matrix-input">
@@ -71,12 +73,18 @@
 </template>
 
 <script setup lang="ts">
-import { CSSKeyframesAnimation } from "../../src/animation";
+import {
+    AnimationGroup,
+    CSSKeyframesAnimation,
+    mergeAnimations,
+    Vars,
+} from "../../src/animation";
 import { easeInBounce, linear } from "../../src/easing";
 import { FunctionValue, ValueArray, ValueUnit } from "../../src/units";
 import { mat4 } from "gl-matrix";
 import { onMounted, watch } from "vue";
 import Controlbar from "../components/AnimationControls.vue";
+import { reverseTransformObject } from "../../src/utils";
 
 const matrixAxes = ["X", "Y", "Z", "W"];
 const sliderAxes = ["X", "Y", "Z"];
@@ -135,7 +143,10 @@ for (let i = 0; i < 16; i++) {
     const value = i % 5 === 0 ? 1 : 0;
     matrixCells.push(new ValueUnit(value));
 }
-const matrix3dStart = new FunctionValue("matrix3d", matrixCells);
+const matrix3dStart = new FunctionValue(
+    "matrix3d",
+    matrixCells.map((v) => new ValueUnit(v.value))
+);
 const matrix3dEnd = $ref(new FunctionValue("matrix3d", matrixCells));
 
 const syncTransformations = (reset: boolean = false) => {
@@ -265,29 +276,19 @@ const matrixAnim = new CSSKeyframesAnimation({
     },
 ]);
 
-const rotateX = new ValueUnit("0", "deg");
-const rotateY = new ValueUnit("0", "deg");
-const rotateZ = new ValueUnit("0", "deg");
-
-const disableRotations = () => {
-    console.log("disable");
-    rotateX.disabled = !rotateX.disabled;
-    rotateY.disabled = !rotateY.disabled;
-    rotateZ.disabled = !rotateZ.disabled;
-};
-
 const rotationAnim = new CSSKeyframesAnimation({
-    duration: 3000,
+    duration: 5000,
     iterationCount: Infinity,
     fillMode: "forwards",
+    direction: "alternate",
     timingFunction: linear,
 }).fromFramesDefaultTransform({
     from: {
         transform: {
-            rotateX: rotateX,
-            rotateY: rotateY,
-            rotateZ: rotateZ,
-            matrix3d: matrix3dStart,
+            rotateX: "0deg",
+            rotateY: "0deg",
+            rotateZ: "0deg",
+            // matrix3d: matrix3dStart,
         },
     },
     "100%": {
@@ -295,20 +296,33 @@ const rotationAnim = new CSSKeyframesAnimation({
             rotateX: new ValueUnit("rotationX", "var"),
             rotateY: "360deg",
             rotateZ: "360deg",
-            matrix3d: matrix3dEnd,
+            // matrix3d: matrix3dEnd,
         },
     },
 });
 
 const animations = {
-    rotationAnim,
+    Rotations: rotationAnim.animation,
+    Matrix: matrixAnim.animation,
 };
 
-const selectedAnimation = $ref("rotationAnim");
+const selectedAnimation = $ref("Rotations");
+
+const animationGroup = new AnimationGroup(rotationAnim.animation, matrixAnim.animation);
+
+const sliderUpdate = (e: { values: Vars<ValueArray>; animationId: number }) => {
+    const { values, animationId } = e;
+    const groupObject = animationGroup.animationGroup.find(
+        (a) => a.animation.id == animationId
+    );
+    groupObject.values = values;
+};
 
 onMounted(() => {
-    rotationAnim.addTargets(cube).play();
-    // matrixAnim.addTargets(cube).play();
+    rotationAnim.addTargets(cube);
+    matrixAnim.addTargets(cube);
+
+    animationGroup.play();
 });
 </script>
 <style scoped lang="scss">

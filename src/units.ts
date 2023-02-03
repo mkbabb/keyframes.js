@@ -10,8 +10,6 @@ const getComputedValue = (target: HTMLElement, key: string) => {
 };
 
 export class ValueUnit<T = number> {
-    disabled: boolean = false;
-
     constructor(public value: T, public unit?: string) {
         // TODO! This is a hack to parse colors
         const c = color(value as string);
@@ -22,9 +20,6 @@ export class ValueUnit<T = number> {
     }
 
     toString() {
-        if (this.disabled) {
-            return "";
-        }
         if (this.unit === "color") {
             const c = this.value as RGBColor;
             return `rgb(${c.r}, ${c.g}, ${c.b})`;
@@ -36,10 +31,6 @@ export class ValueUnit<T = number> {
     }
 
     lerp(t: number, other: ValueUnit<T>, target?: HTMLElement) {
-        if (this.disabled || other.disabled) {
-            return undefined;
-        }
-
         if (this.unit === "color") {
             const value = {
                 r: lerp(t, this.value.r, other.value.r),
@@ -86,12 +77,7 @@ export class FunctionValue {
         for (let i = 0; i < minLength; i++) {
             const v = this.values[i];
             const o = other.values[i];
-            if (!v.disabled && !o.disabled) {
-                arr.push(v.lerp(t, o, target));
-            }
-        }
-        if (arr.length === 0) {
-            return undefined;
+            arr.push(v.lerp(t, o, target));
         }
 
         return new FunctionValue(this.name, arr);
@@ -99,8 +85,6 @@ export class FunctionValue {
 }
 
 export class ValueArray {
-    disabled: boolean = false;
-
     constructor(public values: Array<FunctionValue | ValueUnit>) {}
 
     toString() {
@@ -113,13 +97,9 @@ export class ValueArray {
         for (let i = 0; i < minLength; i++) {
             const v = this.values[i];
             const o = other.values[i];
-            if (!v.disabled && !o.disabled) {
-                arr.push(v.lerp(t, o, target));
-            }
+            arr.push(v.lerp(t, o, target));
         }
-        if (arr.length === 0) {
-            return undefined;
-        }
+
         return new ValueArray(arr);
     }
 }

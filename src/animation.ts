@@ -47,8 +47,8 @@ type InterpVars = {
     [arg: string]: InterpValue;
 };
 
-type Vars = {
-    [arg: string]: number | string | any;
+export type Vars<T = any> = {
+    [arg: string]: number | string | T;
 };
 
 type TransformFunction<V extends Vars> = (t: number, v: V) => void;
@@ -182,7 +182,10 @@ const defaultOptions: AnimationOptions = {
     timingFunction: easeInOutCubic,
 };
 
+let nextId = -1;
+
 export class Animation<V extends Vars> {
+    id: number = nextId++;
     options: AnimationOptions;
 
     templateFrames: TemplateAnimationFrame<V>[] = [];
@@ -194,7 +197,9 @@ export class Animation<V extends Vars> {
     startTime: number | undefined = undefined;
     pausedTime: number = 0;
     prevTime: number = 0;
-    t: number;
+    t: number = 0;
+
+    iteration: number = 0;
 
     started: boolean = false;
     done: boolean = false;
@@ -271,22 +276,22 @@ export class Animation<V extends Vars> {
         this.pausedTime = 0;
         this.prevTime = 0;
         this.t = 0;
+
         this.started = false;
-        this.done = true;
-        this.reversed = false;
         this.paused = false;
+
         return this;
     }
 
     fillForwards() {
-        this.interpFrames(this.options.duration);
+        this.transformFrames(this.options.duration);
     }
 
     fillBackwards() {
-        this.interpFrames(0);
+        this.transformFrames(0);
     }
 
-    interpFrames(t: number, reversedVars: TransformedVars = {}) {
+    transformFrames(t: number) {
         t = this.reversed ? this.options.duration - t : t;
 
         for (let i = 0; i < this.frames.length; i++) {
@@ -300,26 +305,61 @@ export class Animation<V extends Vars> {
             const s = scale(t, start, stop, 0, 1);
             const e = frame.timingFunction(s);
 
-            for (const [key, values] of Object.entries(frame.interpVars)) {
-                const lerped = values.start.lerp(e, values.stop, this.target);
-                if (lerped) {
-                    reverseTransformObject(key, lerped, reversedVars);
-                }
+            const reversedVars = {};
+            for (const [k, v] of Object.entries(frame.interpVars)) {
+                reverseTransformObject(
+                    k,
+                    v.start.lerp(e, v.stop, this.target),
+                    reversedVars
+                );
             }
-
             frame.transform(t, reversedVars as V);
         }
     }
 
+    interpFrames(t: number, values: Vars<ValueArray>) {
+        t = this.reversed ? this.options.duration - t : t;
+
+        for (let i = 0; i < this.frames.length; i++) {
+            const frame = this.frames[i];
+            const { start, stop } = frame.time;
+
+            if (t < start || t > stop) {
+                continue;
+            }
+
+            const s = scale(t, start, stop, 0, 1);
+            const e = frame.timingFunction(s);
+
+            for (const [k, v] of Object.entries(frame.interpVars)) {
+                values[k] = v.start.lerp(e, v.stop, this.target);
+            }
+        }
+    }
+
     async onStart() {
+        this.reset();
+        this.reversed = false;
+
+        if (
+            this.options.direction === "reverse" ||
+            this.options.direction === "alternate-reverse" ||
+            (this.options.direction === "alternate" && this.iteration % 2 === 1)
+        ) {
+            this.reverse();
+        }
+
         if (this.options.fillMode === "backwards" || this.options.fillMode === "both") {
             this.fillBackwards();
         }
+
         if (this.options.delay > 0) {
+            this.pause();
             await sleep(this.options.delay);
+            this.pause();
         }
+
         this.started = true;
-        this.done = false;
     }
 
     onEnd() {
@@ -331,16 +371,22 @@ export class Animation<V extends Vars> {
         ) {
             this.fillBackwards();
         }
-        this.done = true;
-        this.startTime = undefined;
-        this.pausedTime = 0;
-        this.prevTime = 0;
+
+        this.reset();
+
+        if (this.iteration === this.options.iterationCount - 1) {
+            this.done = true;
+            this.iteration = 0;
+        } else {
+            this.iteration += 1;
+        }
     }
 
-    async draw(t: number) {
+    tick(t: number) {
         if (this.startTime === undefined) {
-            await this.onStart();
+            this.onStart();
             this.startTime = t + this.options.delay;
+            return 0;
         }
 
         t = t - this.startTime;
@@ -349,44 +395,46 @@ export class Animation<V extends Vars> {
 
         if (this.paused) {
             this.pausedTime += dt;
-            return requestAnimationFrame(this.draw.bind(this));
+            return t;
         } else {
             this.startTime += this.pausedTime;
             t -= this.pausedTime;
             this.pausedTime = 0;
         }
 
-        this.t = t;
-
         if (t >= this.options.duration) {
-            return this.onEnd();
-        } else {
-            this.interpFrames(t);
-            return requestAnimationFrame(this.draw.bind(this));
+            this.onEnd();
+            t = this.options.duration;
+        }
+
+        return (this.t = t);
+    }
+
+    draw(t: number) {
+        t = this.tick(t);
+        this.transformFrames(t);
+        if (!this.done) {
+            requestAnimationFrame(this.draw.bind(this));
         }
     }
 
-    async play() {
-        if (
-            this.options.direction === "reverse" ||
-            this.options.direction === "alternate-reverse"
-        ) {
-            this.reverse();
-        }
-        for (let i = 0; i < this.options.iterationCount; i++) {
-            if (
-                i > 0 &&
-                (this.options.direction === "alternate" ||
-                    this.options.direction === "alternate-reverse")
-            ) {
-                this.reverse();
-            }
-            requestAnimationFrame(this.draw.bind(this));
-            await sleep(this.options.duration);
-            await waitUntil(() => this.done);
-        }
+    play() {
+        requestAnimationFrame(this.draw.bind(this));
+    }
+}
 
-        this.started = false;
+function transformTargetsStyle(t: number, vars: any, targets: HTMLElement[]) {
+    for (const [key, value] of Object.entries(vars)) {
+        if (typeof value === "object") {
+            let s = "";
+            for (const [k, v] of Object.entries(value)) {
+                s += v.includes("(") ? v : `${k}(${v}) `;
+            }
+            vars[key] = s;
+        }
+        targets.forEach((target) => {
+            target.style[key] = vars[key];
+        });
     }
 }
 
@@ -476,26 +524,76 @@ export class CSSKeyframesAnimation<V extends Vars> {
     }
 
     transform(t: number, vars: any) {
-        for (const [key, value] of Object.entries(vars)) {
-            if (typeof value === "object") {
-                let s = "";
-                for (const [k, v] of Object.entries(value)) {
-                    s += v.includes("(") ? v : `${k}(${v}) `;
-                }
-                vars[key] = s;
-            }
-            this.targets.forEach((target) => {
-                target.style[key] = vars[key];
-            });
-        }
+        transformTargetsStyle(t, vars, this.targets);
     }
 
-    async play() {
-        return await this.animation.play();
+    play() {
+        return this.animation.play();
     }
 
     pause() {
         this.animation.pause();
         return this;
+    }
+}
+
+export interface AnimationGroupObject<V> {
+    animation: Animation<V>;
+    values: Vars<ValueArray>;
+}
+
+export class AnimationGroup<V> {
+    animationGroup: AnimationGroupObject<V>[] = [];
+    transform: TransformFunction<V>;
+
+    constructor(...animations: Animation<V>[]) {
+        this.transform = animations[0].frames[0].transform;
+
+        for (const animation of animations) {
+            this.animationGroup.push({
+                values: {},
+                animation,
+            });
+        }
+    }
+
+    get done() {
+        return this.animationGroup.every((groupObject) => groupObject.animation.done);
+    }
+
+    tick(t: number) {
+        for (const groupObject of this.animationGroup) {
+            groupObject.animation.tick(t);
+        }
+    }
+
+    transformFrames(t: number) {
+        let groupedValues: Vars<ValueArray> = {};
+
+        for (const groupObject of this.animationGroup) {
+            const { animation, values } = groupObject;
+            if (!animation.done && !animation.paused) {
+                animation.interpFrames(animation.t, values);
+            }
+            groupedValues = { ...values, ...groupedValues };
+        }
+
+        const reversedVars = {};
+        Object.entries(groupedValues).forEach(([key, value]: [string, ValueArray]) => {
+            reverseTransformObject(key, value, reversedVars);
+        });
+        this.transform(t, reversedVars as V);
+    }
+
+    draw(t: number) {
+        this.tick(t);
+        this.transformFrames(t);
+        if (!this.done) {
+            requestAnimationFrame(this.draw.bind(this));
+        }
+    }
+
+    play() {
+        requestAnimationFrame(this.draw.bind(this));
     }
 }

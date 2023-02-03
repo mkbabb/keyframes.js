@@ -32,24 +32,24 @@
             type="range"
             v-model.number="sliderValue"
             :min="0"
-            :disabled="!animation.paused"
+            :disabled="!paused"
             :max="animation.options.duration"
             @input="interpFrames"
         />
         <div class="timing">
             <button class="toggle" @click="toggle">
-                {{ pauseValue }}
-                <font-awesome-icon
+                {{ pausedString }}
+                <!-- <font-awesome-icon
                     :icon="!animation.paused ? ['fas', 'pause'] : ['fas', 'play']"
-                />
+                /> -->
             </button>
             <button class="reverse" @click="animation.reverse()">
                 Reverse
-                <font-awesome-icon :icon="['fas', 'undo']" />
+                <!-- <font-awesome-icon :icon="['fas', 'undo']" /> -->
             </button>
             <button class="reset" @click="animation.reset()">
                 Reset
-                <font-awesome-icon :icon="['fas', 'undo-alt']" />
+                <!-- <font-awesome-icon :icon="['fas', 'undo-alt']" /> -->
             </button>
         </div>
     </div>
@@ -57,18 +57,44 @@
 
 <script setup lang="ts">
 import { computed, ref, watchEffect } from "vue";
-import { Animation } from "../../src/animation";
+import { Animation, Vars } from "../../src/animation";
+import { ValueArray } from "../../src/units";
 
 const { animation } = defineProps<{
     animation: Animation<any>;
 }>();
 
-const sliderValue = $ref(0);
-let pauseValue = $ref("Pause");
+const emit = defineEmits<{
+    (
+        e: "sliderUpdate",
+        val: {
+            values: Vars<ValueArray>;
+            animationId: number;
+        }
+    ): void;
+}>();
+
+let sliderValue = $ref(0);
 
 const interpFrames = () => {
-    animation.interpFrames(sliderValue);
+    const paused = animation.paused;
+    animation.paused = false;
+
+    const values: Vars<ValueArray> = {};
+    animation.interpFrames(sliderValue, values);
+
+    emit("sliderUpdate", {
+        values: values,
+        animationId: animation.id,
+    });
+
+    animation.paused = paused;
 };
+
+let paused = $ref(false);
+let pausedString = $ref("Pause");
+let prevT = $ref(0);
+let prevTime = $ref(0);
 
 const toggle = () => {
     if (!animation.started) {
@@ -76,7 +102,17 @@ const toggle = () => {
     } else {
         animation.pause();
     }
-    pauseValue = animation.paused ? "Play" : "Pause";
+    paused = animation.paused;
+    pausedString = animation.paused ? "Play" : "Pause";
+    sliderValue = animation.t;
+
+    if (paused) {
+        prevTime = performance.now();
+        prevT = animation.t;
+    } else {
+        // animation.pausedTime = performance.now() - prevTime;
+        // animation.startTime -= animation.t - prevT;
+    }
 };
 </script>
 
@@ -92,7 +128,7 @@ const toggle = () => {
 
     flex-direction: column;
     gap: 1rem;
-    
+
     border-radius: 5px;
     z-index: 1;
     opacity: 0.95;
@@ -109,7 +145,6 @@ const toggle = () => {
     gap: 0.25rem 1rem;
     grid-template-columns: repeat(2, auto);
     align-items: center;
-    
 }
 
 label {

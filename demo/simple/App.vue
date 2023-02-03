@@ -35,7 +35,7 @@ onMounted(() => {
     };
 
     const transformStart = {
-        x: "-50%",
+        x: "-100%",
         y: "-100%",
         a: {
             b: {
@@ -48,7 +48,7 @@ onMounted(() => {
 
     const transformEnd = {
         x: "50%",
-        y: "100%",
+        y: "75%",
         a: {
             b: {
                 c: {

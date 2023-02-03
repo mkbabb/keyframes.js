@@ -118,7 +118,7 @@ tSlider.addEventListener("input", () => {
     const t = parseFloat(tSlider.value);
     const s = scale(t, 0, 1, 0, anim.options.duration);
 
-    anim.animation.interpFrames(s);
+    anim.animation.transformFrames(s);
 });
 
 anim.play();

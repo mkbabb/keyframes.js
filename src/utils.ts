@@ -71,7 +71,7 @@ export async function waitUntil(condition: () => boolean, delay: number = 1000 /
         const interval = setInterval(() => {
             if (condition()) {
                 clearInterval(interval);
-                resolve();
+                return resolve();
             }
         }, delay);
     });
