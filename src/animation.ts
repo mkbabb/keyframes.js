@@ -286,7 +286,9 @@ export class Animation<V extends Vars> {
     }
 
     pause() {
-        this.paused = !this.paused;
+        if (this.started) {
+            this.paused = !this.paused;
+        }
         return this;
     }
 
@@ -578,6 +580,10 @@ export class AnimationGroup<V> {
     animationGroup: AnimationGroupObject<V>[] = [];
     transform: TransformFunction<V>;
 
+    paused = false;
+    started = false;
+    done = false;
+
     constructor(...animations: Animation<V>[]) {
         this.transform = animations[0].frames[0].transform;
 
@@ -589,48 +595,64 @@ export class AnimationGroup<V> {
         }
     }
 
-    get done() {
-        return this.animationGroup.every((groupObject) => groupObject.animation.done);
+    reset() {
+        this.animationGroup.forEach((groupObject) => {
+            groupObject.animation.reset();
+        });
+        this.started = false;
+        this.done = false;
+        this.paused = false;
+        return this;
     }
 
-    get paused() {
-        return this.animationGroup.every((groupObject) => groupObject.animation.paused);
+    onStart() {
+        this.started = true;
+        return this;
     }
 
-    get started() {
-        return this.animationGroup.every(
-            (groupObject) => groupObject.animation.started
-        );
+    onEnd() {
+        this.reset();
+        this.done = true;
+        return this;
     }
 
     tick(t: number) {
         for (const groupObject of this.animationGroup) {
             groupObject.animation.tick(t);
         }
+        return this;
     }
 
     pause() {
-        this.animationGroup.forEach((groupObject) => {
-            groupObject.animation.pause();
-        });
+        if (this.started && !this.done) {
+            this.animationGroup.forEach((groupObject) => {
+                groupObject.animation.pause();
+            });
+            this.paused = !this.paused;
+        }
+        return this;
     }
 
     transformFrames(t: number) {
         let groupedValues: Vars<ValueArray> = {};
 
+        let done = true;
         for (const groupObject of this.animationGroup) {
             const { animation, values } = groupObject;
+            done = done && animation.done;
             if (!animation.done && !animation.paused) {
                 animation.interpFrames(animation.t, values);
             }
             groupedValues = { ...values, ...groupedValues };
         }
+        this.done = done;
 
         const reversedVars = {};
         Object.entries(groupedValues).forEach(([key, value]: [string, ValueArray]) => {
             reverseTransformObject(key, value, reversedVars);
         });
         this.transform(t, reversedVars as V);
+        return reversedVars;
     }
 
     draw(t: number) {
@@ -638,11 +660,15 @@ export class AnimationGroup<V> {
         this.transformFrames(t);
         if (!this.done) {
             requestAnimationFrame(this.draw.bind(this));
+        } else {
+            this.onEnd();
         }
     }
 
     play() {
+        this.onStart();
         requestAnimationFrame(this.draw.bind(this));
+        return this;
     }
 }
 

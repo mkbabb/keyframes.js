@@ -13,11 +13,7 @@
             <button v-if="selectedAnimation" class="toggle" @click="toggle">
                 <font-awesome-icon
                     class="icon"
-                    :icon="
-                        !animationGroup.paused && animationGroup.started
-                            ? ['fas', 'pause']
-                            : ['fas', 'play']
-                    "
+                    :icon="toggled ? ['fas', 'pause'] : ['fas', 'play']"
                 />
             </button>
         </div>
@@ -33,7 +29,7 @@
 <script setup lang="ts">
 import { computed, onMounted, Ref, ref, watchEffect } from "vue";
 import { Animation, AnimationGroup, Vars } from "../../src/animation";
-import { ValueArray } from "../../src/units";
+import { ValueArray } from "../../src/parsing/units";
 import AnimationControls from "./AnimationControls.vue";
 
 const { animations } = defineProps<{
@@ -55,9 +51,7 @@ const sliderUpdate = (e: { values: Vars<ValueArray>; animationId: number }) => {
     groupObject.values = values;
 };
 
-let pausedString = computed(() => {
-    return animationGroup.paused ? "Play" : "Pause";
-});
+let toggled = $ref(false);
 
 const toggle = () => {
     if (!animationGroup.started) {
@@ -65,6 +59,8 @@ const toggle = () => {
     } else {
         animationGroup.pause();
     }
+    toggled = !animationGroup.paused && animationGroup.started;
+    console.log(animationGroup.paused, animationGroup.started, animationGroup.done);
 };
 
 onMounted(() => {
@@ -78,14 +74,15 @@ onMounted(() => {
     display: flex;
     flex-direction: column;
     width: min-content;
-
-    min-height: 1px;
+    height: 100%;
+    min-height: 100%;
     gap: 1rem;
 }
 
 .animation-select {
     display: grid;
     grid-auto-flow: column;
+    grid-auto-columns: 1fr;
     gap: 1rem;
 }
 

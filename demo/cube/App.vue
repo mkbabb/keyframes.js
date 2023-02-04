@@ -1,6 +1,7 @@
 <template>
     <div class="container" @mouseenter="">
         <AnimationControlsGroup
+            class="animation-controls"
             :animations="animations"
             @selected-animation="(s) => (selectedAnimation = s)"
         />
@@ -316,7 +317,7 @@ onMounted(() => {
     rotationAnim.addTargets(cube);
     matrixAnim.addTargets(cube);
 
-    new CSSKeyframesAnimation({ duration: 200 }, graph)
+    new CSSKeyframesAnimation({ duration: 500, timingFunction: "easeInBounce" }, graph)
         .fromVars([
             {
                 transform: {
@@ -471,13 +472,13 @@ button {
     --padding: 0.5rem;
     display: grid;
     padding: var(--padding);
-    height: 1px;
+    height: 100%;
     min-height: calc(100vh - 2 * var(--padding));
     width: calc(100% - 2 * var(--padding));
 
     grid-template-areas: "animation-controls graph matrix-controls";
     grid-template-columns: 1fr 2fr 1fr;
-    justify-content: center;
+
 
     gap: 1rem;
     overflow: hidden;
@@ -486,10 +487,18 @@ button {
 @media screen and (max-width: 900px) {
     // TODO! Make this work
     .container {
-        grid-template-areas: "graph" "animation-controls" "matrix-controls";
+        grid-template-areas:  "animation-controls" "graph" "matrix-controls";
         grid-template-columns: auto;
-        grid-template-rows: 1fr 50vh 1fr;
+        grid-template-rows: 1fr 75vh 1fr;
         overflow-y: scroll;
+
+
+    }
+
+    .animation-controls {
+        .css-keyframes-string {
+            display: none;
+        }
     }
 }
 
@@ -510,11 +519,8 @@ button {
 
     perspective: 1600px;
     transform-style: preserve-3d;
-
-    transition: transform 200ms ease;
     position: relative;
 }
-
 
 
 .x {
