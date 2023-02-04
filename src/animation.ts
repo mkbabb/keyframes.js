@@ -458,6 +458,19 @@ export class Animation<V extends Vars> {
     }
 }
 
+export function reverseTransformStyle(t: number, vars: any) {
+    for (const [key, value] of Object.entries(vars)) {
+        if (typeof value === "object") {
+            let s = "";
+            for (const [k, v] of Object.entries(value)) {
+                s += v.includes("(") ? v : `${k}(${v}) `;
+            }
+            vars[key] = s;
+        }
+    }
+    return vars;
+}
+
 function transformTargetsStyle(t: number, vars: any, targets: HTMLElement[]) {
     for (const [key, value] of Object.entries(vars)) {
         if (typeof value === "object") {
@@ -654,7 +667,6 @@ function objectToString(key: string, value: any) {
         return Object.entries(value)
             .map(([k, v]) => {
                 // k = camelCaseToHyphen(k);
-
                 if (v instanceof FunctionValue) {
                     return String(v);
                 } else {

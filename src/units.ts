@@ -119,35 +119,6 @@ export class ValueArray {
     }
 }
 
-export function parseCSSUnitValue(): P.Parser<ValueUnit[]> {
-    const number = P.regexp(/-?(0|[1-9]\d*)(\.\d+)?([eE][+-]?\d+)?/).map(Number);
-    const unit = P.regexp(/[a-zA-Z%]+/);
-
-    const numberValue = number.map((value) => {
-        return new ValueUnit(value);
-    });
-
-    const cssUnitValue = P.seq(number, unit).map(([value, unit]) => {
-        return new ValueUnit(value, unit);
-    });
-
-    const colorValue = P((input, i) => {
-        const s = input.slice(i);
-        const c = color(s)?.rgb();
-        if (c) {
-            return P.makeSuccess(i + input.length, new ValueUnit(c, "color"));
-        } else {
-            return P.makeFailure(i, "Invalid color");
-        }
-    });
-
-    const value = P.alt(colorValue, cssUnitValue, numberValue);
-
-    return P.seq(value, P.optWhitespace)
-        .map(([value, _]) => value)
-        .many() as P.Parser<ValueUnit[]>;
-}
-
 export function convertAbsoluteUnitToPixels(value: number, unit: string) {
     let pixels = value;
     if (unit === "cm") {
@@ -204,225 +175,8 @@ const istring = (str: string) =>
         }
     });
 
-const enclosed = (
-    r: P.Language,
-    args: P.Parser<any>,
-    left?: P.Parser<any>,
-    right?: P.Parser<any>
-) => {
-    left = left ?? r.lparen;
-    right = right ?? r.rparen;
-
-    return r.ws.skip(left).skip(r.ws).then(args).skip(r.ws).skip(right).skip(r.ws);
-};
-
-export const CSSValueUnit2 = P.createLanguage({
-    number: () => P.regexp(/-?(0|[1-9]\d*)(\.\d+)?([eE][+-]?\d+)?/).map(Number),
-    unit: () => P.regexp(/[a-zA-Z%]+/),
-
-    numberValue: (r) =>
-        r.number.map((value) => {
-            return new ValueUnit(value);
-        }),
-
-    unitValue: (r) =>
-        P.seq(r.number, r.unit).map(([value, unit]) => {
-            return new ValueUnit(value, unit);
-        }),
-
-    colorValue: () =>
-        P((input, i) => {
-            const s = input.slice(i);
-            const c = color(s)?.rgb();
-            if (c) {
-                return P.makeSuccess(i + input.length, new ValueUnit(c, "color"));
-            } else {
-                return P.makeFailure(i, "Invalid color");
-            }
-        }),
-
-    value: (r) =>
-        P.alt(r.colorValue, r.unitValue, r.numberValue) as P.Parser<ValueUnit>,
-});
-
-const TRANSFORM_FUNCTIONS = ["translate", "scale", "rotate", "skew"].map(istring);
-const DIMS = ["x", "y", "z"].map(istring);
-
-const handleFunc = (r: P.Language, name?: P.Parser<any>) => {
-    return P.seq(
-        name ? name : r.identifier,
-        r.functionValuePart.trim(r.ws).wrap(r.lparen, r.rparen)
-    ).map((v) => {
-        console.log(v);
-        return v;
-    });
-};
-
-const handleTransforms = (r: P.Language) => {
-    const name = P.seq(P.alt(...TRANSFORM_FUNCTIONS), P.alt(...DIMS, P.string("")));
-    const p = handleFunc(r, name);
-
-    return p.map(([[name, dim], values]: [string[], ValueUnit[]]) => {
-        name = name.toLowerCase();
-        if (dim) {
-            return new FunctionValue(name + dim.toUpperCase(), [values[0]]);
-        } else if (values.length === 1) {
-            return new FunctionValue(name, [values[0]]);
-        } else {
-            return new FunctionValue(name, values);
-        }
-    });
-};
-
-const handleVar = (r: P.Language) => {
-    const p = handleFunc(r, P.string("var"));
-    return p.map(([name, values]: [string, ValueUnit<string>[]]) => {
-        const value = values[0];
-
-        if (values.length !== 1 && value.value.startsWith("--")) {
-            throw new Error("Invalid var");
-        } else {
-            value.unit = "var";
-            value.value = value.value.slice(2);
-            return value;
-        }
-    });
-};
-
-const handleCalc = (r: P.Language) => {
-    const p = handleFunc(r, P.string("calc"));
-    return p.map(([name, values]) => {
-        return new ValueUnit(values, "calc");
-    });
-};
-
-export const CSSKeyframes = P.createLanguage({
-    identifier: () => P.regexp(/[a-zA-Z][a-zA-Z0-9-]+/),
-    ws: () => P.optWhitespace,
-
-    rule: (r) => r.ws.then(P.string("@keyframes")).skip(r.ws).then(r.identifier),
-
-    semi: () => P.string(";"),
-    colon: () => P.string(":"),
-    lcurly: () => P.string("{"),
-    rcurly: () => P.string("}"),
-    lparen: () => P.string("("),
-    rparen: () => P.string(")"),
-
-    comma: (r) => P.string(","),
-
-    percent: (r) =>
-        r.ws
-            .then(
-                P.alt(
-                    P.regexp(/\d+/).skip(P.string("%").or(P.string(""))),
-                    P.string("from").map(() => "0"),
-                    P.string("to").map(() => "100")
-                )
-            )
-            .skip(r.ws)
-            .map(Number),
-
-    any: () => P.regexp(/[^(){},;\s]+/).map((x) => new ValueUnit(x)),
-
-    valueUnit: (r) =>
-        r.ws.then(P.alt(CSSValueUnit.value, r.any)).skip(r.ws) as P.Parser<ValueUnit>,
-
-    functionValuePart: (r) => r.valuePart.sepBy(r.comma),
-
-    func: (r) =>
-        P.alt(
-            handleTransforms(r),
-            handleVar(r),
-            handleCalc(r),
-            handleFunc(r).map(([name, values]) => new FunctionValue(name, values))
-        ),
-
-    valuePart: (r) => P.alt(r.func, r.valueUnit).skip(r.ws),
-
-    value: (r) => r.valuePart.sepBy(r.ws).map((x) => new ValueArray(x)),
-
-    values: (r) =>
-        P.seq(
-            r.identifier
-                .skip(r.ws)
-                .skip(r.colon)
-                .skip(r.ws)
-                .map((x) => hyphenToCamelCase(x)),
-            r.value.skip(r.ws).skip(r.semi).skip(r.ws)
-        ).map(([name, value]) => {
-            return {
-                [name]: value,
-            };
-        }),
-
-    frame: (r) =>
-        P.seq(
-            r.percent.skip(r.ws).skip(r.lcurly).skip(r.ws),
-            r.values.atLeast(1).skip(r.ws).skip(r.rcurly)
-        ).map(([percent, values]) => {
-            return {
-                [percent]: Object.assign({}, ...values),
-            };
-        }),
-
-    keyframe: (r) =>
-        r.rule
-            .skip(r.ws)
-            .skip(r.lcurly)
-            .skip(r.ws)
-            .then(r.frame.many())
-            .skip(r.ws)
-            .skip(r.rcurly)
-            .skip(r.ws)
-            .map((frame) => {
-                return Object.assign({}, ...frame);
-            }),
-});
-
-export const parseCSSKeyframes = (input: string): Record<string, any> =>
-    CSSKeyframes.keyframe.tryParse(input);
-
-export const parseCSSPercent = (input: string | number): number =>
-    CSSKeyframes.percent.tryParse(String(input));
-
-const TIME_SUFFIXES = ["s", "ms"].map(istring);
-
-export const parseCSSTime = (input: string): number => {
-    const t = P.seq(
-        CSSValueUnit.number.skip(P.optWhitespace),
-        P.alt(...TIME_SUFFIXES).or(P.string("").result("ms"))
-    )
-        .map(([value, suffix]) => {
-            if (suffix === "s") {
-                return value * 1000;
-            } else {
-                return value;
-            }
-        })
-        .parse(input);
-
-    return t.status ? t.value : 0;
-};
-
-export const reverseCSSTime = (time: number): string => {
-    if (time >= 5000) {
-        return `${time / 1000}s`;
-    } else {
-        return `${time}ms`;
-    }
-};
-
-export const reverseCSSIterationCount = (count: number): string => {
-    if (count === Infinity) {
-        return "infinite";
-    } else {
-        return String(count);
-    }
-};
-
-const absoluteLengthUnits = ["px", "cm", "mm", "Q", "in", "pc", "pt"] as const;
-const relativeLengthUnits = [
+export const absoluteLengthUnits = ["px", "cm", "mm", "Q", "in", "pc", "pt"] as const;
+export const relativeLengthUnits = [
     "em",
     "ex",
     "ch",
@@ -442,17 +196,23 @@ const relativeLengthUnits = [
     "dvw",
     "dvh",
 ] as const;
-const lengthUnits = absoluteLengthUnits.concat(relativeLengthUnits) as (
-    | (typeof absoluteLengthUnits)[number]
-    | (typeof relativeLengthUnits)[number]
-)[];
+export const lengthUnits = [...absoluteLengthUnits, ...relativeLengthUnits] as const;
 
-const timeUnits = ["s", "ms"] as const;
-const angleUnits = ["deg", "rad", "grad", "turn"] as const;
-const percentageUnits = ["%"] as const;
-const resolutionUnits = ["dpi", "dpcm", "dppx"] as const;
+export const timeUnits = ["s", "ms"] as const;
+export const angleUnits = ["deg", "rad", "grad", "turn"] as const;
+export const percentageUnits = ["%"] as const;
+export const resolutionUnits = ["dpi", "dpcm", "dppx"] as const;
+
+export const units = [
+    ...lengthUnits,
+    ...timeUnits,
+    ...angleUnits,
+    ...percentageUnits,
+    ...resolutionUnits,
+] as const;
 
 export const CSSValueUnit = P.createLanguage({
+    identifier: () => P.regexp(/[a-zA-Z][a-zA-Z0-9-]+/),
     integer: () => P.regexp(/-?[1-9]\d*/).map(Number),
     number: () => P.regexp(/-?(0|[1-9]\d*)(\.\d+)?([eE][+-]?\d+)?/).map(Number),
 
@@ -508,6 +268,188 @@ export const CSSValueUnit = P.createLanguage({
             r.resolutionValue,
             r.percentageValue,
             r.colorValue,
-            r.number.map((x) => new ValueUnit(x))
-        ) as P.Parser<ValueUnit>,
+            r.number.or(r.identifier).map((x) => new ValueUnit(x))
+        ).trim(P.optWhitespace) as P.Parser<ValueUnit>,
 });
+
+export function parseCSSValueUnit(input: string) {
+    return CSSValueUnit.value.tryParse(input);
+}
+
+const TRANSFORM_FUNCTIONS = ["translate", "scale", "rotate", "skew"].map(istring);
+const DIMS = ["x", "y", "z"].map(istring);
+
+const handleFunc = (r: P.Language, name?: P.Parser<any>) => {
+    return P.seq(
+        name ? name : r.identifier,
+        r.functionValuePart.trim(r.ws).wrap(r.lparen, r.rparen)
+    ).map((v) => {
+        console.log(v);
+        return v;
+    });
+};
+
+const handleTransforms = (r: P.Language) => {
+    const name = P.seq(P.alt(...TRANSFORM_FUNCTIONS), P.alt(...DIMS, P.string("")));
+    const p = handleFunc(r, name);
+
+    return p.map(([[name, dim], values]: [string[], ValueUnit[]]) => {
+        name = name.toLowerCase();
+        if (dim) {
+            return new FunctionValue(name + dim.toUpperCase(), [values[0]]);
+        } else if (values.length === 1) {
+            return new FunctionValue(name, [values[0]]);
+        } else {
+            return new FunctionValue(name, values);
+        }
+    });
+};
+
+const handleVar = (r: P.Language) => {
+    const p = handleFunc(r, P.string("var"));
+    return p.map(([name, values]: [string, ValueUnit<string>[]]) => {
+        const value = values[0];
+
+        if (values.length !== 1 && value.value.startsWith("--")) {
+            throw new Error("Invalid var");
+        } else {
+            value.unit = "var";
+            value.value = value.value.slice(2);
+            return value;
+        }
+    });
+};
+
+
+const handleCalc = (r: P.Language) => {
+    return P.seq(
+        P.string("calc"),
+        r.ws
+            .then(r.value)
+            .skip(r.ws)
+            .wrap(r.lparen, r.rparen)
+            .map((value: ValueArray) => {
+                return new ValueUnit(value.values.join(" "), "calc");
+            })
+    );
+};
+
+export const CSSKeyframes = P.createLanguage({
+    identifier: () => P.regexp(/[a-zA-Z][a-zA-Z0-9-]+/),
+    ws: () => P.optWhitespace,
+
+    rule: (r) => r.ws.then(P.string("@keyframes")).skip(r.ws).then(r.identifier),
+
+    semi: () => P.string(";"),
+    colon: () => P.string(":"),
+    lcurly: () => P.string("{"),
+    rcurly: () => P.string("}"),
+    lparen: () => P.string("("),
+    rparen: () => P.string(")"),
+
+    comma: (r) => P.string(","),
+
+    percent: (r) =>
+        r.ws
+            .then(
+                P.alt(
+                    P.regexp(/\d+/).skip(P.string("%").or(P.string(""))),
+                    P.string("from").map(() => "0"),
+                    P.string("to").map(() => "100")
+                )
+            )
+            .skip(r.ws)
+            .map(Number),
+
+    any: () => P.regexp(/[^\(\)\{\}\s,;]+/).map((x) => new ValueUnit(x)),
+
+    valueUnit: (r) =>
+        r.ws.then(P.alt(CSSValueUnit.value, r.any)).trim(r.ws) as P.Parser<ValueUnit>,
+
+    functionValuePart: (r) => r.valuePart.sepBy(r.comma),
+
+    func: (r) =>
+        P.alt(
+            handleTransforms(r),
+            handleCalc(r),
+            handleVar(r),
+            handleFunc(r).map(([name, values]) => new FunctionValue(name, values))
+        ),
+
+    valuePart: (r) => P.alt(r.func, r.valueUnit).skip(r.ws),
+
+    value: (r) => r.valuePart.sepBy(r.ws).map((x) => new ValueArray(x)),
+
+    values: (r) =>
+        P.seq(
+            r.identifier
+                .skip(r.ws)
+                .skip(r.colon)
+                .skip(r.ws)
+                .map((x) => hyphenToCamelCase(x)),
+            r.value.skip(r.ws).skip(r.semi).skip(r.ws)
+        ).map(([name, value]) => {
+            return {
+                [name]: value,
+            };
+        }),
+
+    frame: (r) =>
+        P.seq(
+            r.percent.skip(r.ws).skip(r.lcurly).skip(r.ws),
+            r.values.atLeast(1).skip(r.ws).skip(r.rcurly)
+        ).map(([percent, values]) => {
+            return {
+                [percent]: Object.assign({}, ...values),
+            };
+        }),
+
+    keyframe: (r) =>
+        r.rule
+            .skip(r.ws)
+            .skip(r.lcurly)
+            .skip(r.ws)
+            .then(r.frame.many())
+            .skip(r.ws)
+            .skip(r.rcurly)
+            .skip(r.ws)
+            .map((frame) => {
+                return Object.assign({}, ...frame);
+            }),
+});
+
+export const parseCSSKeyframes = (input: string): Record<string, any> =>
+    CSSKeyframes.keyframe.tryParse(input);
+
+export const parseCSSPercent = (input: string | number): number =>
+    CSSKeyframes.percent.tryParse(String(input));
+
+export function parseCSSTime(input: string): number {
+    return CSSValueUnit.timeValue
+        .map((v: ValueUnit) => {
+            if (v.unit === "ms") {
+                return v.value;
+            } else if (v.unit === "s") {
+                return v.value * 1000;
+            } else {
+                return v.value;
+            }
+        })
+        .tryParse(input);
+}
+
+export const reverseCSSTime = (time: number): string => {
+    if (time >= 5000) {
+        return `${time / 1000}s`;
+    } else {
+        return `${time}ms`;
+    }
+};
+
+export const reverseCSSIterationCount = (count: number): string => {
+    if (count === Infinity) {
+        return "infinite";
+    } else {
+        return String(count);
+    }
+};

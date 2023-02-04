@@ -46,17 +46,17 @@
         "typescript": "^4.9.4",
         "vite": "^4.0.4",
         "vite-plugin-dts": "^1.7.1",
-        "vitest": "^0.28.1"
+        "vitest": "^0.28.4"
     },
     "optionalDependencies": {
-        "gl-matrix": "^3.4.3",
-        "highlight.js": "^11.7.0",
-        "prettier": "^2.8.3",
-        "vue": "^3.2.45",
         "@fortawesome/fontawesome-svg-core": "^6.2.1",
         "@fortawesome/free-brands-svg-icons": "^6.2.1",
         "@fortawesome/free-regular-svg-icons": "^6.2.1",
         "@fortawesome/free-solid-svg-icons": "^6.2.1",
-        "@fortawesome/vue-fontawesome": "^3.0.0-5"
+        "@fortawesome/vue-fontawesome": "^3.0.0-5",
+        "gl-matrix": "^3.4.3",
+        "highlight.js": "^11.7.0",
+        "prettier": "^2.8.3",
+        "vue": "^3.2.45"
     }
 }

@@ -95,7 +95,14 @@ const motionScaleFrames = /*css*/ `
     }
 `;
 
-const frames = parseCSSKeyframes(motionScaleFrames);
+const tmp = /*css*/ `
+@keyframes example {
+    from {top: rotate(asin(sin(tan(0turn)))); background-color: red;}
+    to {top: rotate(asin(sin(tan(1turn)))); background-color: blue;}
+  }
+`;
+
+const frames = parseCSSKeyframes(tmp);
 
 const anim = new CSSKeyframesAnimation(
     {
