@@ -1,7 +1,7 @@
 import { CSSKeyframesAnimation } from "../../src/animation";
 import { easeInOutCubic, linear } from "../../src/easing";
 import { scale } from "../../src/math";
-import { parseCSSKeyframes } from "../../src/units";
+import { parseCSSKeyframes } from "../../src/parsing/keyframes";
 
 const boxEl = document.querySelector<HTMLElement>("#box")!;
 
@@ -116,12 +116,12 @@ const anim = new CSSKeyframesAnimation(
 ).fromVars([
     {
         transform: {
-            rotate3d: "-1, 1, 0, 0deg",
+            rotate3d: "(-1, 1, 0, 0deg)",
         },
     },
     {
         transform: {
-            rotate3d: "-1, 1, 0, 30deg",
+            rotate3d: "(-1, 1, 0, 30deg)",
         },
     },
 ]);

@@ -23,10 +23,7 @@ const TRANSFORM_FUNCTIONS = ["translate", "scale", "rotate", "skew"].map(istring
 const DIMS = ["x", "y", "z"].map(istring);
 
 const handleFunc = (r: P.Language, name?: P.Parser<any>) => {
-    return P.seq(
-        name ? name : r.identifier,
-        r.lparen.skip(r.ws).then(r.functionValuePart).skip(r.ws).skip(r.rparen)
-    ).map((v) => {
+    return P.seq(name ? name : r.identifier, r.functionArgs).map((v) => {
         console.log(v);
         return v;
     });
@@ -187,9 +184,10 @@ export const CSSKeyframes = P.createLanguage({
             .then(P.alt(CSSValueUnit.value, r.string))
             .trim(r.ws) as P.Parser<ValueUnit>,
 
-    functionValuePart: (r) => r.valuePart.sepBy(r.comma),
+    functionArgs: (r) =>
+        r.lparen.skip(r.ws).then(r.valuePart.sepBy(r.comma)).skip(r.ws).skip(r.rparen),
 
-    func: (r) =>
+    function: (r) =>
         P.alt(
             handleTransform(r),
             handleVar(r),
@@ -197,7 +195,7 @@ export const CSSKeyframes = P.createLanguage({
             handleFunc(r).map(([name, values]) => new FunctionValue(name, values))
         ),
 
-    valuePart: (r) => P.alt(r.func, r.valueUnit).skip(r.ws),
+    valuePart: (r) => P.alt(r.function, r.valueUnit).skip(r.ws),
 
     value: (r) => r.valuePart.sepBy(r.ws).map((x) => new ValueArray(x)),
 

@@ -72,7 +72,7 @@ import {
     createCSSKeyframesString,
 } from "../../src/animation";
 import { easeInBounce, linear } from "../../src/easing";
-import { FunctionValue, ValueArray, ValueUnit } from "../../src/units";
+import { FunctionValue, ValueArray, ValueUnit } from "../../src/parsing/units";
 import { mat4 } from "gl-matrix";
 import { onMounted } from "vue";
 import AnimationControlsGroup from "../components/AnimationControlsGroup.vue";
@@ -320,12 +320,12 @@ onMounted(() => {
         .fromVars([
             {
                 transform: {
-                    rotate3d: "0, 0, 0, 0deg",
+                    rotate3d: "(0, 0, 0, 0deg)",
                 },
             },
             {
                 transform: {
-                    rotate3d: "-1, 1, 0, 30deg",
+                    rotate3d: "(-1, 1, 0, 30deg)",
                 },
             },
         ])

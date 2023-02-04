@@ -189,7 +189,8 @@ import {
     bezierPresets,
     linear,
 } from "../../src/easing";
-import { ValueArray, reverseCSSTime, parseCSSTime } from "../../src/units";
+import { ValueArray } from "../../src/parsing/units";
+import { reverseCSSTime, parseCSSTime } from "../../src/parsing/keyframes";
 import { formatNumber } from "./utils";
 
 import "highlight.js/styles/github-dark-dimmed.css";

@@ -52,7 +52,7 @@ export class ValueUnit<T = number> {
                 g: lerp(t, this.value.g, other.value.g),
                 b: lerp(t, this.value.b, other.value.b),
             } as RGBColor;
-            return new ValueUnit(value, this.unit);
+            return new ValueUnit(value, this.unit, this.superType);
         } else if (target && (this.unit === "var" || other.unit === "var")) {
             const left =
                 this.unit === "var"
@@ -66,10 +66,10 @@ export class ValueUnit<T = number> {
         } else if (this.unit !== other.unit) {
             const [left, right] = collapseNumericType(this, other, target);
             const value = lerp(t, left.value, right.value);
-            return new ValueUnit(value, left.unit);
+            return new ValueUnit(value, left.unit, left.superType);
         } else {
             const value = lerp(t, this.value, other.value);
-            return new ValueUnit(value, this.unit);
+            return new ValueUnit(value, this.unit, this.superType);
         }
     }
 }
@@ -137,22 +137,14 @@ export function transformObject(input: any): TransformedVars {
                     }
                 }
             } else {
-                const p = CSSKeyframes.value
-                    .or(
-                        CSSKeyframes.functionValuePart.map(
-                            (v) => new FunctionValue(currentKey, v)
-                        )
-                    )
+                const p = CSSKeyframes.functionArgs
+                    .map((v) => new FunctionValue(currentKey, v))
+                    .or(CSSKeyframes.valuePart)
                     .tryParse(String(input));
-                // return p.status ? p.value : undefined;
                 return p;
             }
         } else {
-            if (input instanceof ValueUnit) {
-                return new ValueArray([input]);
-            } else {
-                return input;
-            }
+            return input;
         }
     };
 
