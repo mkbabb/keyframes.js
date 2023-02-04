@@ -248,6 +248,54 @@ export const CSSValueUnit2 = P.createLanguage({
 const TRANSFORM_FUNCTIONS = ["translate", "scale", "rotate", "skew"].map(istring);
 const DIMS = ["x", "y", "z"].map(istring);
 
+const handleFunc = (r: P.Language, name?: P.Parser<any>) => {
+    return P.seq(
+        name ? name : r.identifier,
+        r.functionValuePart.trim(r.ws).wrap(r.lparen, r.rparen)
+    ).map((v) => {
+        console.log(v);
+        return v;
+    });
+};
+
+const handleTransforms = (r: P.Language) => {
+    const name = P.seq(P.alt(...TRANSFORM_FUNCTIONS), P.alt(...DIMS, P.string("")));
+    const p = handleFunc(r, name);
+
+    return p.map(([[name, dim], values]: [string[], ValueUnit[]]) => {
+        name = name.toLowerCase();
+        if (dim) {
+            return new FunctionValue(name + dim.toUpperCase(), [values[0]]);
+        } else if (values.length === 1) {
+            return new FunctionValue(name, [values[0]]);
+        } else {
+            return new FunctionValue(name, values);
+        }
+    });
+};
+
+const handleVar = (r: P.Language) => {
+    const p = handleFunc(r, P.string("var"));
+    return p.map(([name, values]: [string, ValueUnit<string>[]]) => {
+        const value = values[0];
+
+        if (values.length !== 1 && value.value.startsWith("--")) {
+            throw new Error("Invalid var");
+        } else {
+            value.unit = "var";
+            value.value = value.value.slice(2);
+            return value;
+        }
+    });
+};
+
+const handleCalc = (r: P.Language) => {
+    const p = handleFunc(r, P.string("calc"));
+    return p.map(([name, values]) => {
+        return new ValueUnit(values, "calc");
+    });
+};
+
 export const CSSKeyframes = P.createLanguage({
     identifier: () => P.regexp(/[a-zA-Z][a-zA-Z0-9-]+/),
     ws: () => P.optWhitespace,
@@ -261,7 +309,7 @@ export const CSSKeyframes = P.createLanguage({
     lparen: () => P.string("("),
     rparen: () => P.string(")"),
 
-    commaWhitespace: (r) => r.ws.then(P.string(",")).skip(r.ws),
+    comma: (r) => P.string(","),
 
     percent: (r) =>
         r.ws
@@ -275,64 +323,22 @@ export const CSSKeyframes = P.createLanguage({
             .skip(r.ws)
             .map(Number),
 
-    unitValue: () => P.regexp(/[^(){},;\s]+/).map((x) => new ValueUnit(x)),
+    any: () => P.regexp(/[^(){},;\s]+/).map((x) => new ValueUnit(x)),
 
     valueUnit: (r) =>
-        r.ws
-            .then(P.alt(CSSValueUnit.value, r.unitValue))
-            .skip(r.ws) as P.Parser<ValueUnit>,
+        r.ws.then(P.alt(CSSValueUnit.value, r.any)).skip(r.ws) as P.Parser<ValueUnit>,
 
-    transforms: (r) =>
-        P.seq(
-            P.alt(...TRANSFORM_FUNCTIONS),
-            P.alt(...DIMS, P.string("")),
-            enclosed(r, r.functionValuePart)
-        ).map(([name, dim, values]: [string, string, ValueUnit[]]) => {
-            name = name.toLowerCase();
-            if (dim) {
-                return new FunctionValue(name + dim.toUpperCase(), [values[0]]);
-            } else if (values.length === 1) {
-                return new FunctionValue(name, [values[0]]);
-            } else {
-                return new FunctionValue(name, values);
-            }
-        }),
+    functionValuePart: (r) => r.valuePart.sepBy(r.comma),
 
-    variable: (r) =>
-        P.string("var")
-            .then(enclosed(r, P.string("--").then(r.identifier)))
-            .map((name) => {
-                return new ValueUnit(name, "var");
-            }),
-    calc: (r) =>
-        P.string("calc")
-            .then(enclosed(r, r.valuePart.many()))
-            .map((value) => {
-                return new ValueUnit(value.join(" "), "calc");
-            }),
+    func: (r) =>
+        P.alt(
+            handleTransforms(r),
+            handleVar(r),
+            handleCalc(r),
+            handleFunc(r).map(([name, values]) => new FunctionValue(name, values))
+        ),
 
-    functionValuePart: (r) => r.valuePart.sepBy(r.commaWhitespace),
-
-    functionValue: (r) =>
-        P.string("")
-            .map((v) => {
-                console.log(v);
-                return v;
-            })
-            .then(
-                P.alt(
-                    r.transforms,
-                    r.variable,
-                    r.calc,
-                    P.seq(r.identifier, enclosed(r, r.functionValuePart)).map(
-                        ([name, value]) => {
-                            return new FunctionValue(name, value);
-                        }
-                    )
-                )
-            ),
-
-    valuePart: (r) => P.alt(r.functionValue, r.valueUnit).skip(r.ws),
+    valuePart: (r) => P.alt(r.func, r.valueUnit).skip(r.ws),
 
     value: (r) => r.valuePart.sepBy(r.ws).map((x) => new ValueArray(x)),
 
@@ -448,7 +454,7 @@ const resolutionUnits = ["dpi", "dpcm", "dppx"] as const;
 
 export const CSSValueUnit = P.createLanguage({
     integer: () => P.regexp(/-?[1-9]\d*/).map(Number),
-    number: () => P.regexp(/-?(0|[1-9]\d*)(.\d+)?([eE][+-]?\d+)?/).map(Number),
+    number: () => P.regexp(/-?(0|[1-9]\d*)(\.\d+)?([eE][+-]?\d+)?/).map(Number),
 
     lengthUnit: () => P.alt(...lengthUnits.map(P.string)),
     angleUnit: () => P.alt(...angleUnits.map(P.string)),

@@ -33,12 +33,9 @@ export function transformObject(input: any): TransformedVars {
                     }
                 }
             } else {
-                const p = CSSKeyframes.value
-                    .or(
-                        CSSKeyframes.functionValuePart.map(
-                            (v) => new FunctionValue(currentKey, v)
-                        )
-                    )
+                const p = CSSKeyframes.functionValuePart
+                    .map((v) => new FunctionValue(currentKey, v))
+                    .or(CSSKeyframes.value)
                     .tryParse(String(input));
                 // return p.status ? p.value : undefined;
                 return p;

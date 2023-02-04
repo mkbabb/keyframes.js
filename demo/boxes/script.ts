@@ -106,7 +106,18 @@ const anim = new CSSKeyframesAnimation(
         timingFunction: easeInOutCubic,
     },
     boxEl
-).fromCSSKeyframes(exampleWithVarFrames);
+).fromVars([
+    {
+        transform: {
+            rotate3d: "-1, 1, 0, 0deg",
+        },
+    },
+    {
+        transform: {
+            rotate3d: "-1, 1, 0, 30deg",
+        },
+    },
+]);
 
 const pauseButton = document.querySelector<HTMLElement>("#pause-btn")!;
 pauseButton.addEventListener("click", () => {

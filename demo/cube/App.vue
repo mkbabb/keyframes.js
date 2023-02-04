@@ -254,19 +254,6 @@ const fixed = () => {
     }
 };
 
-new CSSKeyframesAnimation({ duration: 200 }).fromVars([
-    {
-        transform: {
-            rotate3d: "0, 0, 0, 0deg",
-        },
-    },
-    {
-        transform: {
-            rotate3d: "-1, 1, 0, 30deg",
-        },
-    },
-]);
-
 const matrixAnim = $ref(
     new CSSKeyframesAnimation({
         duration: 5000,
@@ -328,6 +315,21 @@ const graph = $ref<HTMLElement>();
 onMounted(() => {
     rotationAnim.addTargets(cube);
     matrixAnim.addTargets(cube);
+
+    new CSSKeyframesAnimation({ duration: 200 }, graph)
+        .fromVars([
+            {
+                transform: {
+                    rotate3d: "0, 0, 0, 0deg",
+                },
+            },
+            {
+                transform: {
+                    rotate3d: "-1, 1, 0, 30deg",
+                },
+            },
+        ])
+        .play();
 });
 </script>
 <style lang="scss">
