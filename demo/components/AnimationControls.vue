@@ -374,7 +374,6 @@ input[type="range"] {
     display: grid;
     gap: 0.25rem;
     grid-auto-flow: column;
-    grid-auto-columns: 1fr;
 }
 
 .options {
