@@ -215,15 +215,22 @@ describe("CSSKeyframes", () => {
     it("should parse keyframes with calcs and variables", () => {
         let keyframes = /*css*/ `@keyframes calcExample {
             from {
-                top: calc(0px + var(--var));
+                top: calc(sin(45deg));
+                top: calc(10px + sin(2 + 2));
             }
             100 {
-                top: calc(200px + var(--var));
+                top: 
+                calc(200px + 
+                    sin(10px +
+                        cos(2 * 5px)
+                    )
+                );
             }
         }`;
 
         // keyframes = insertRandomWhitespace(keyframes);
         const frames = parseCSSKeyframes(keyframes);
+        console.log(frames);
     });
 
     it("should parse keyframes with nested expressions", () => {

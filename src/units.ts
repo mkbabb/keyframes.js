@@ -165,6 +165,79 @@ export function convertToPixels(
     return value;
 }
 
+export function convertToDegrees(value: number, unit: string) {
+    if (unit === "grad") {
+        value *= 0.9;
+    } else if (unit === "rad") {
+        value *= 180 / Math.PI;
+    } else if (unit === "turn") {
+        value *= 360;
+    }
+    return value;
+}
+
+export function convertToDpi(value: number, unit: string) {
+    if (unit === "dpcm") {
+        value *= 2.54;
+    } else if (unit === "dppx") {
+        value *= 96;
+    }
+    return value;
+}
+
+const arrayEquals = (a: any[], b: any[]) => {
+    if (!a || !b || a.length !== b.length) {
+        return false;
+    }
+    for (let i = 0; i < a.length; i++) {
+        if (a[i] !== b[i]) {
+            return false;
+        }
+    }
+    return true;
+};
+
+const collapseNumericType = (a: ValueUnit, b: ValueUnit) => {
+    if (!arrayEquals(a.superType, b.superType)) {
+        return [a, b];
+    } else if (a.superType[0] === "length" && a.superType[1] === "absolute") {
+        const [aPx, bPx] = [
+            convertToPixels(a.value, a.unit),
+            convertToPixels(b.value, b.unit),
+        ];
+        return [
+            new ValueUnit(aPx, "px", ["length", "absolute"]),
+            new ValueUnit(bPx, "px", ["length", "absolute"]),
+        ];
+    } else if (a.superType[0] === "angle") {
+        const [aDeg, bDeg] = [
+            convertToDegrees(a.value, a.unit),
+            convertToDegrees(b.value, b.unit),
+        ];
+        return [
+            new ValueUnit(aDeg, "deg", ["angle"]),
+            new ValueUnit(bDeg, "deg", ["angle"]),
+        ];
+    } else if (a.superType[0] === "time") {
+        const [aMs, bMs] = [
+            parseCSSTime(a.value + a.unit),
+            parseCSSTime(b.value + b.unit),
+        ];
+        return [new ValueUnit(aMs, "ms", ["time"]), new ValueUnit(bMs, "ms", ["time"])];
+    } else if (a.superType[0] === "resolution") {
+        const [aDpi, bDpi] = [
+            convertToDpi(a.value, a.unit),
+            convertToDpi(b.value, b.unit),
+        ];
+        return [
+            new ValueUnit(aDpi, "dpi", ["resolution"]),
+            new ValueUnit(bDpi, "dpi", ["resolution"]),
+        ];
+    } else {
+        return [a, b];
+    }
+};
+
 const istring = (str: string) =>
     P((input, i) => {
         const s = input.slice(i);
@@ -282,7 +355,7 @@ const DIMS = ["x", "y", "z"].map(istring);
 const handleFunc = (r: P.Language, name?: P.Parser<any>) => {
     return P.seq(
         name ? name : r.identifier,
-        r.functionValuePart.trim(r.ws).wrap(r.lparen, r.rparen)
+        r.lparen.skip(r.ws).then(r.functionValuePart).skip(r.ws).skip(r.rparen)
     ).map((v) => {
         console.log(v);
         return v;
@@ -306,32 +379,106 @@ const handleTransforms = (r: P.Language) => {
 };
 
 const handleVar = (r: P.Language) => {
-    const p = handleFunc(r, P.string("var"));
-    return p.map(([name, values]: [string, ValueUnit<string>[]]) => {
-        const value = values[0];
-
-        if (values.length !== 1 && value.value.startsWith("--")) {
-            throw new Error("Invalid var");
-        } else {
-            value.unit = "var";
-            value.value = value.value.slice(2);
-            return value;
-        }
-    });
+    return P.string("var")
+        .then(r.lparen)
+        .skip(r.ws)
+        .then(P.string("--"))
+        .then(r.identifier)
+        .skip(r.ws)
+        .skip(r.rparen)
+        .map((value: ValueArray) => {
+            return new ValueUnit(value, "var");
+        });
 };
 
+const OPERATORS = ["+", "-", "*", "/"];
+
+const mathFunctions = [
+    "min",
+    "max",
+    "clamp",
+    "sin",
+    "cos",
+    "tan",
+    "asin",
+    "acos",
+    "atan",
+    "atan2",
+] as const;
+
+const MATH_FUNCTIONS = [...mathFunctions].map(P.string);
+
+const evaluateMathFunction = (func: string, value: ValueUnit) => {
+    value.value = (() => {
+        if (value.superType && value.superType[0] === "angle") {
+            return Math[func](
+                convertToDegrees(value.value, value.unit) * (Math.PI / 180)
+            );
+        } else {
+            return Math[func](value.value);
+        }
+    })();
+    return new ValueArray([value]);
+};
+
+const binaryMathExpression = (r: P.Language) =>
+    P.seq(
+        r.mathFunctionExpression,
+        P.seq(r.ws.then(r.operator).skip(r.ws), r.mathValue).many()
+    ).map(([a, bs]) => {
+        if (bs.length === 0) {
+            return a;
+        }
+        let v = a.values[0];
+
+        for (let [operator, b] of bs) {
+            b = b.values[0];
+            [v, b] = collapseNumericType(v, b);
+
+            if (!v.unit && b.unit) {
+                [v, b] = [b, v];
+            } else if (b.unit && !arrayEquals(v.superType, b.superType)) {
+                throw new Error(`Units of ${v.unit} !== ${b.unit}`);
+            }
+
+            switch (operator) {
+                case "+":
+                    v = new ValueUnit(v.value + b.value, v.unit, v.superType);
+                    break;
+                case "-":
+                    v = new ValueUnit(v.value - b.value, v.unit, v.superType);
+                    break;
+                case "*":
+                    v = new ValueUnit(v.value * b.value, v.unit, v.superType);
+                    break;
+                case "/":
+                    v = new ValueUnit(v.value / b.value, v.unit, v.superType);
+                    break;
+                case "min":
+                    v = new ValueUnit(Math.min(v.value, b.value), v.unit, v.superType);
+                    break;
+                case "max":
+                    v = new ValueUnit(Math.max(v.value, b.value), v.unit, v.superType);
+                    break;
+            }
+        }
+        return new ValueArray([v]);
+    });
 
 const handleCalc = (r: P.Language) => {
-    return P.seq(
-        P.string("calc"),
-        r.ws
-            .then(r.value)
-            .skip(r.ws)
-            .wrap(r.lparen, r.rparen)
-            .map((value: ValueArray) => {
+    return P.string("calc")
+        .then(r.lparen)
+        .skip(r.ws)
+        .then(r.mathValue)
+        .skip(r.ws)
+        .skip(r.rparen)
+        .map((value: ValueArray) => {
+            if (value.values.length === 1) {
+                return value.values[0];
+            } else {
                 return new ValueUnit(value.values.join(" "), "calc");
-            })
-    );
+            }
+        });
 };
 
 export const CSSKeyframes = P.createLanguage({
@@ -349,6 +496,8 @@ export const CSSKeyframes = P.createLanguage({
 
     comma: (r) => P.string(","),
 
+    operator: () => P.alt(...OPERATORS.map(P.string)).trim(P.optWhitespace),
+
     percent: (r) =>
         r.ws
             .then(
@@ -361,7 +510,7 @@ export const CSSKeyframes = P.createLanguage({
             .skip(r.ws)
             .map(Number),
 
-    any: () => P.regexp(/[^\(\)\{\}\s,;]+/).map((x) => new ValueUnit(x)),
+    any: () => P.regexp(/[^\(\)\{\}\s,\+\-\*\/;]+/).map((x) => new ValueUnit(x)),
 
     valueUnit: (r) =>
         r.ws.then(P.alt(CSSValueUnit.value, r.any)).trim(r.ws) as P.Parser<ValueUnit>,
@@ -371,14 +520,27 @@ export const CSSKeyframes = P.createLanguage({
     func: (r) =>
         P.alt(
             handleTransforms(r),
-            handleCalc(r),
             handleVar(r),
+            handleCalc(r),
             handleFunc(r).map(([name, values]) => new FunctionValue(name, values))
         ),
 
     valuePart: (r) => P.alt(r.func, r.valueUnit).skip(r.ws),
 
     value: (r) => r.valuePart.sepBy(r.ws).map((x) => new ValueArray(x)),
+
+    mathFunction: (r) =>
+        P.seq(
+            P.alt(...MATH_FUNCTIONS).skip(r.ws),
+            r.lparen.skip(r.ws).then(r.mathValue).skip(r.ws).skip(r.rparen)
+        ).map(([func, values]) => {
+            const v = evaluateMathFunction(func, values.values[0]);
+            return v;
+        }),
+
+    mathFunctionExpression: (r) => r.mathFunction.or(r.value),
+
+    mathValue: (r) => binaryMathExpression(r).or(r.mathFunctionExpression),
 
     values: (r) =>
         P.seq(
