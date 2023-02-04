@@ -1,13 +1,15 @@
 import {
-    parseCSSTime,
     units,
     parseCSSValueUnit,
-    parseCSSKeyframes,
-    reverseCSSTime,
     FunctionValue,
     ValueArray,
     ValueUnit,
-} from "../src/units";
+} from "../src/parsing/units";
+import {
+    parseCSSKeyframes,
+    reverseCSSTime,
+    parseCSSTime,
+} from "../src/parsing/keyframes";
 import { expect, describe, it, assert } from "vitest";
 
 const insertRandomWhitespace = (str: string) => {
@@ -25,27 +27,6 @@ const insertRandomWhitespace = (str: string) => {
             }
         })
         .join("");
-};
-
-const reverseTransformValue = (value: FunctionValue | Record<string, ValueArray>) => {
-    if (value instanceof FunctionValue) {
-        return (
-            value.name + "(" + value.values.map(reverseTransformValue).join(", ") + ")"
-        );
-    } else if (value instanceof ValueUnit) {
-        return value.toString();
-    } else if (value instanceof ValueArray) {
-        return value.values.map(reverseTransformValue).join(", ");
-    } else if (typeof value === "object") {
-        return Object.entries(value)
-            .map(([key, value]) => {
-                return [key, value.values.map(reverseTransformValue).join(" ")];
-            })
-            .reduce((acc, [key, value]) => {
-                acc[key] = value;
-                return acc;
-            }, {});
-    }
 };
 
 describe("CSSValueUnit", () => {

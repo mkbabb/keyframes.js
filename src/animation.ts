@@ -1,35 +1,19 @@
-import {
-    bounceInEase,
-    bounceInEaseHalf,
-    easeInBounce,
-    easeInCubic,
-    easeInOutCubic,
-    easeInOutQuad,
-    easeInQuad,
-    easeOutCubic,
-    easeOutQuad,
-    smoothStep3,
-    timingFunctions,
-} from "./easing";
+import { easeInOutCubic, timingFunctions } from "./easing";
 import { scale } from "./math";
 import {
-    CSSKeyframes,
-    FunctionValue,
     parseCSSKeyframes,
     parseCSSPercent,
     parseCSSTime,
     reverseCSSTime,
-    ValueArray,
-    ValueUnit,
-} from "./units";
+} from "./parsing/keyframes";
 import {
-    camelCaseToHyphen,
+    FunctionValue,
     reverseTransformObject,
-    sleep,
     TransformedVars,
     transformObject,
-    waitUntil,
-} from "./utils";
+    ValueArray,
+} from "./parsing/units";
+import { camelCaseToHyphen, sleep } from "./utils";
 
 type InterpValue = {
     start: ValueArray;
