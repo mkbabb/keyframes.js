@@ -10,7 +10,7 @@ export interface TransformedVars {
 
 export const getComputedValue = (target: HTMLElement, key: string) => {
     const computed = getComputedStyle(target).getPropertyValue("--" + key);
-    const p = CSSKeyframes.valueUnit.parse(computed);
+    const p = CSSValueUnit.value.parse(computed);
     return p.status ? p.value : undefined;
 };
 
@@ -45,7 +45,7 @@ export class ValueUnit<T = number> {
         }
     }
 
-    lerp(t: number, other: ValueUnit<T>, target?: HTMLElement) {
+    lerp(t: number, other: ValueUnit<T>, target?: HTMLElement): ValueUnit<T> {
         if (this.unit === "color") {
             const value = {
                 r: lerp(t, this.value.r, other.value.r),
@@ -64,8 +64,8 @@ export class ValueUnit<T = number> {
                     : other;
             return left.lerp(t, right, target) as ValueUnit;
         } else if (this.unit !== other.unit) {
-            const [left, right] = collapseNumericType(this, other);
-            const value = lerp(t, left, right);
+            const [left, right] = collapseNumericType(this, other, target);
+            const value = lerp(t, left.value, right.value);
             return new ValueUnit(value, left.unit);
         } else {
             const value = lerp(t, this.value, other.value);
@@ -137,9 +137,12 @@ export function transformObject(input: any): TransformedVars {
                     }
                 }
             } else {
-                const p = CSSKeyframes.functionValuePart
-                    .map((v) => new FunctionValue(currentKey, v))
-                    .or(CSSKeyframes.value)
+                const p = CSSKeyframes.value
+                    .or(
+                        CSSKeyframes.functionValuePart.map(
+                            (v) => new FunctionValue(currentKey, v)
+                        )
+                    )
                     .tryParse(String(input));
                 // return p.status ? p.value : undefined;
                 return p;
@@ -263,18 +266,22 @@ export function convertToDpi(value: number, unit: string) {
     return value;
 }
 
-export const collapseNumericType = (a: ValueUnit, b: ValueUnit) => {
-    if (!arrayEquals(a.superType, b.superType)) {
-        return [a, b];
-    } else if (a.superType[0] === "length" && a.superType[1] === "absolute") {
+export const collapseNumericType = (
+    a: ValueUnit,
+    b: ValueUnit,
+    target?: HTMLElement
+) => {
+    if (a.superType[0] === "length") {
         const [aPx, bPx] = [
-            convertToPixels(a.value, a.unit),
-            convertToPixels(b.value, b.unit),
+            convertToPixels(a.value, a.unit, target),
+            convertToPixels(b.value, b.unit, target),
         ];
         return [
             new ValueUnit(aPx, "px", ["length", "absolute"]),
             new ValueUnit(bPx, "px", ["length", "absolute"]),
         ];
+    } else if (!arrayEquals(a.superType, b.superType)) {
+        return [a, b];
     } else if (a.superType[0] === "angle") {
         const [aDeg, bDeg] = [
             convertToDegrees(a.value, a.unit),

@@ -1,4 +1,8 @@
-import { Animation, createCSSKeyframesString, CSSKeyframesAnimation } from "../../src/animation";
+import {
+    Animation,
+    createCSSKeyframesString,
+    CSSKeyframesAnimation,
+} from "../../src/animation";
 import {
     bounceInEase,
     CSSBezier,
@@ -7,7 +11,7 @@ import {
     easeInQuad,
 } from "../../src/easing";
 import { cubicBezier } from "../../src/math";
-import { parseCSSKeyframes } from "../../src/units";
+import { parseCSSKeyframes } from "../../src/parsing/keyframes";
 
 const boxes = document.querySelectorAll<HTMLElement>(".anim .box")!;
 
