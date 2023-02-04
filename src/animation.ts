@@ -596,10 +596,26 @@ export class AnimationGroup<V> {
         return this.animationGroup.every((groupObject) => groupObject.animation.done);
     }
 
+    get paused() {
+        return this.animationGroup.every((groupObject) => groupObject.animation.paused);
+    }
+
+    get started() {
+        return this.animationGroup.every(
+            (groupObject) => groupObject.animation.started
+        );
+    }
+
     tick(t: number) {
         for (const groupObject of this.animationGroup) {
             groupObject.animation.tick(t);
         }
+    }
+
+    pause() {
+        this.animationGroup.forEach((groupObject) => {
+            groupObject.animation.pause();
+        });
     }
 
     transformFrames(t: number) {
@@ -637,7 +653,7 @@ function objectToString(key: string, value: any) {
     if (typeof value === "object" && !(value instanceof ValueArray)) {
         return Object.entries(value)
             .map(([k, v]) => {
-                k = camelCaseToHyphen(k);
+                // k = camelCaseToHyphen(k);
 
                 if (v instanceof FunctionValue) {
                     return String(v);
@@ -676,10 +692,15 @@ export function createCSSKeyframesString<V extends Vars>(
 
     let animationCss = `.${name} {\n`;
 
+    animationCss += `  animation-name: ${name};\n`;
+
     const duration = reverseCSSTime(options.duration);
     animationCss += `  animation-duration: ${duration};\n`;
-
-    animationCss += `  animation-name: ${name};\n`;
+    Object.entries(timingFunctions).forEach(([name, func]) => {
+        if (func === options.timingFunction) {
+            animationCss += `  animation-timing-function: ${name};\n`;
+        }
+    });
     animationCss += `  animation-iteration-count: ${
         isFinite(options.iterationCount) ? options.iterationCount : "infinite"
     };\n`;

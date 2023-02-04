@@ -13,10 +13,7 @@
                 type="string"
                 :value="reverseCSSTime(animation.options.delay)"
                 @change="
-                    (e) =>
-                        (animation.options.delay = parseCSSTime(
-                            e.target.value
-                        ))
+                    (e) => (animation.options.delay = parseCSSTime(e.target.value))
                 "
             />
 
@@ -81,7 +78,7 @@
                         </option>
                     </select>
 
-                    <label> X1 {{ formatNumber(cubicBezierValues[0]) }} </label>
+                    <label>X1 {{ formatNumber(cubicBezierValues[0]) }} </label>
                     <input
                         @change="updateTimingFunction"
                         v-model.number="cubicBezierValues[0]"
@@ -137,25 +134,38 @@
             <button class="toggle" @click="toggle">
                 {{ pausedString }}
                 <font-awesome-icon
-                    :icon="!animation.paused ? ['fas', 'pause'] : ['fas', 'play']"
+                    class="icon"
+                    :icon="
+                        !animation.paused && animation.started
+                            ? ['fas', 'pause']
+                            : ['fas', 'play']
+                    "
                 />
             </button>
             <button class="reverse" @click="animation.reverse()">
                 Reverse
-                <font-awesome-icon :icon="['fas', 'rotate-right']" />
+                <font-awesome-icon class="icon" :icon="['fas', 'rotate-right']" />
             </button>
             <button class="reset" @click="animation.reset()">
                 Reset
-
-                <font-awesome-icon :icon="['fas', 'undo-alt']" />
+                <font-awesome-icon class="icon" :icon="['fas', 'undo-alt']" />
             </button>
         </div>
 
-        <div class="css-keyframes-string">
-            <button class="clipboard" @click="copyToClipboard">
-                <div ref="copyTextEl" class="copy-text">Copied!</div>
-                <font-awesome-icon :icon="['fas', 'clipboard']" />
-            </button>
+        <div class="css-keyframes-string" v-if="style">
+            <div class="control-bar">
+                <button class="clipboard" @click="copyToClipboard">
+                    <div ref="copyTextEl" class="info">Copied!</div>
+                    <font-awesome-icon :icon="['fas', 'clipboard']" />
+                </button>
+
+                <button class="css-apply" @click="cssApply">
+                    <font-awesome-icon
+                        class="icon"
+                        :icon="['fas', !cssApplied ? 'paint-roller' : 'rotate-right']"
+                    />
+                </button>
+            </div>
             <pre
                 ref="cssKeyframesStringEl"
                 class="hljs css"
@@ -165,7 +175,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch, watchEffect } from "vue";
+import { computed, onMounted, provide, ref, watch, watchEffect } from "vue";
 import {
     Animation,
     createCSSKeyframesString,
@@ -249,8 +259,10 @@ const interpFrames = () => {
     animation.paused = paused;
 };
 
-let paused = $ref(false);
-let pausedString = $ref("Pause");
+let paused = computed(() => animation.paused);
+let pausedString = computed(() => {
+    return animation.paused ? "Play " : "Pause";
+});
 let prevT = $ref(0);
 let prevTime = $ref(0);
 
@@ -261,8 +273,6 @@ const toggle = () => {
         animation.pause();
     }
 
-    paused = animation.paused;
-    pausedString = animation.paused ? "Play" : "Pause";
     sliderValue = animation.t;
 
     if (paused) {
@@ -277,17 +287,21 @@ const toggle = () => {
 let cssKeyframesStringEl = $ref(null);
 let cssKeyframesString = computed(() => {
     const s = createCSSKeyframesString(animation, "animation", 45);
+
     if (cssKeyframesStringEl) {
         const h = hljs.highlight(s, { language: "css" });
         cssKeyframesStringEl.innerHTML = h.value;
     }
+    if (style) {
+        style.innerHTML = s;
+    }
+
     return s;
 });
 
 let copyTextEl = $ref(null);
 
-const copyToClipboard = () => {
-    navigator.clipboard.writeText(cssKeyframesString.value);
+const fadeInOut = (el) => {
     new CSSKeyframesAnimation(
         {
             duration: 300,
@@ -295,7 +309,7 @@ const copyToClipboard = () => {
             iterationCount: 2,
             timingFunction: "bounceInEase",
         },
-        copyTextEl
+        el
     )
         .fromVars([
             {
@@ -308,7 +322,35 @@ const copyToClipboard = () => {
         .play();
 };
 
-onMounted(() => {});
+const copyToClipboard = () => {
+    navigator.clipboard.writeText(cssKeyframesString.value);
+    fadeInOut(copyTextEl);
+};
+
+let style = $ref(null);
+let prevPaused = $ref(false);
+let cssApplied = $ref(false);
+
+const cssApply = () => {
+    if (cssApplied) {
+        style.innerHTML = "";
+        animation.paused = prevPaused;
+        document.head.removeChild(style);
+        animation.target.classList.remove("animation");
+    } else {
+        prevPaused = animation.paused;
+        animation.paused = animation.started && true;
+
+        style.innerHTML = cssKeyframesString.value;
+        document.head.appendChild(style);
+        animation.target.classList.add("animation");
+    }
+    cssApplied = !cssApplied;
+};
+
+onMounted(() => {
+    style = document.createElement("style");
+});
 </script>
 
 <style scoped lang="scss">
@@ -317,6 +359,10 @@ onMounted(() => {});
     flex-direction: column;
     gap: 1rem;
     position: relative;
+}
+
+.toggle {
+    white-space: pre;
 }
 
 input[type="range"] {
@@ -382,29 +428,32 @@ input[type="range"] {
         padding: 1rem;
         border-radius: 5px;
     }
+}
 
-    .clipboard {
-        font-size: 1.5rem;
-        position: absolute;
-        top: 2rem;
-        right: 2rem;
-        cursor: pointer;
-        color: white;
-        background-color: transparent;
+.info {
+    position: absolute;
+    transform: translate(-50%, -125%);
 
-        .copy-text {
-            position: absolute;
-            transform: translate(-50%, -100%);
+    width: fit-content;
+    font-size: 1rem;
+    color: white;
+    background-color: black;
+    padding: 0.25rem 0.5rem;
+    border-radius: 5px;
+    opacity: 0;
+    pointer-events: none;
+}
 
-            width: fit-content;
-
-            font-size: 1rem;
-            color: white;
-            background-color: black;
-            padding: 0.25rem 0.5rem;
-            border-radius: 5px;
-            opacity: 0;
-        }
-    }
+.control-bar {
+    --offset: 1.5rem;
+    font-size: var(--offset);
+    position: absolute;
+    top: var(--offset);
+    right: var(--offset);
+    cursor: pointer;
+    color: white;
+    background-color: transparent;
+    display: flex;
+    gap: 1rem;
 }
 </style>

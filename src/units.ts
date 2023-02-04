@@ -11,7 +11,11 @@ const getComputedValue = (target: HTMLElement, key: string) => {
 };
 
 export class ValueUnit<T = number> {
-    constructor(public value: T, public unit?: string) {
+    constructor(
+        public value: T,
+        public unit?: string,
+        public superType: string[] = []
+    ) {
         // TODO! This is a hack to parse colors
         const c = color(value as string);
         if (c) {
@@ -212,7 +216,7 @@ const enclosed = (
     return r.ws.skip(left).skip(r.ws).then(args).skip(r.ws).skip(right).skip(r.ws);
 };
 
-export const CSSValueUnit = P.createLanguage({
+export const CSSValueUnit2 = P.createLanguage({
     number: () => P.regexp(/-?(0|[1-9]\d*)(\.\d+)?([eE][+-]?\d+)?/).map(Number),
     unit: () => P.regexp(/[a-zA-Z%]+/),
 
@@ -310,16 +314,23 @@ export const CSSKeyframes = P.createLanguage({
     functionValuePart: (r) => r.valuePart.sepBy(r.commaWhitespace),
 
     functionValue: (r) =>
-        P.alt(
-            r.transforms,
-            r.variable,
-            r.calc,
-            P.seq(r.identifier, enclosed(r, r.functionValuePart)).map(
-                ([name, value]) => {
-                    return new FunctionValue(name, value);
-                }
-            )
-        ),
+        P.string("")
+            .map((v) => {
+                console.log(v);
+                return v;
+            })
+            .then(
+                P.alt(
+                    r.transforms,
+                    r.variable,
+                    r.calc,
+                    P.seq(r.identifier, enclosed(r, r.functionValuePart)).map(
+                        ([name, value]) => {
+                            return new FunctionValue(name, value);
+                        }
+                    )
+                )
+            ),
 
     valuePart: (r) => P.alt(r.functionValue, r.valueUnit).skip(r.ws),
 
@@ -403,3 +414,94 @@ export const reverseCSSIterationCount = (count: number): string => {
         return String(count);
     }
 };
+
+const absoluteLengthUnits = ["px", "cm", "mm", "Q", "in", "pc", "pt"] as const;
+const relativeLengthUnits = [
+    "em",
+    "ex",
+    "ch",
+    "rem",
+    "lh",
+    "rlh",
+    "vw",
+    "vh",
+    "vmin",
+    "vmax",
+    "vb",
+    "vi",
+    "svw",
+    "svh",
+    "lvw",
+    "lvh",
+    "dvw",
+    "dvh",
+] as const;
+const lengthUnits = absoluteLengthUnits.concat(relativeLengthUnits) as (
+    | (typeof absoluteLengthUnits)[number]
+    | (typeof relativeLengthUnits)[number]
+)[];
+
+const timeUnits = ["s", "ms"] as const;
+const angleUnits = ["deg", "rad", "grad", "turn"] as const;
+const percentageUnits = ["%"] as const;
+const resolutionUnits = ["dpi", "dpcm", "dppx"] as const;
+
+export const CSSValueUnit = P.createLanguage({
+    integer: () => P.regexp(/-?[1-9]\d*/).map(Number),
+    number: () => P.regexp(/-?(0|[1-9]\d*)(.\d+)?([eE][+-]?\d+)?/).map(Number),
+
+    lengthUnit: () => P.alt(...lengthUnits.map(P.string)),
+    angleUnit: () => P.alt(...angleUnits.map(P.string)),
+    timeUnit: () => P.alt(...timeUnits.map(P.string)),
+    resolutionUnit: () => P.alt(...resolutionUnits.map(P.string)),
+    percentageUnit: () => P.alt(...percentageUnits.map(P.string)),
+
+    lengthValue: (r) =>
+        P.seq(r.number, r.lengthUnit).map(([value, unit]) => {
+            let superType = ["length"];
+            if (relativeLengthUnits.includes(unit)) {
+                superType.push("relative");
+            } else if (absoluteLengthUnits.includes(unit)) {
+                superType.push("absolute");
+            }
+            return new ValueUnit(value, unit, superType);
+        }),
+    angleValue: (r) =>
+        P.seq(r.number, r.angleUnit).map(([value, unit]) => {
+            return new ValueUnit(value, unit, ["angle"]);
+        }),
+    timeValue: (r) =>
+        P.seq(r.number, r.timeUnit).map(([value, unit]) => {
+            return new ValueUnit(value, unit, ["time"]);
+        }),
+    resolutionValue: (r) =>
+        P.seq(r.number, r.resolutionUnit).map(([value, unit]) => {
+            return new ValueUnit(value, unit, ["resolution"]);
+        }),
+    percentageValue: (r) =>
+        P.seq(r.integer, r.percentageUnit).map(([value, unit]) => {
+            return new ValueUnit(value, unit, ["percentage"]);
+        }),
+
+    colorValue: () =>
+        P((input, i) => {
+            const s = input.slice(i);
+            const c = color(s)?.rgb();
+            if (c) {
+                return P.makeSuccess(i + input.length, new ValueUnit(c, "color"));
+            } else {
+                return P.makeFailure(i, "Invalid color");
+            }
+        }).map((x) => new ValueUnit(x, "color", ["color"])),
+
+    value: (r) =>
+        P.alt(
+            r.lengthValue,
+            r.angleValue,
+            r.timeValue,
+            r.resolutionValue,
+            r.percentageValue,
+            r.colorValue,
+            r.number.map((x) => new ValueUnit(x))
+        ) as P.Parser<ValueUnit>,
+});

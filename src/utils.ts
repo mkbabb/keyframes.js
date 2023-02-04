@@ -1,3 +1,4 @@
+import P from "parsimmon";
 import { CSSKeyframes, FunctionValue, ValueArray, ValueUnit } from "./units";
 
 export async function sleep(ms: number) {
@@ -13,7 +14,8 @@ export function transformObject(input: any): TransformedVars {
 
     const recurse = (
         input: any,
-        parentKey: string = ""
+        parentKey: string = "",
+        currentKey: string = ""
     ): FunctionValue | ValueArray | undefined => {
         const isValue =
             input instanceof ValueUnit ||
@@ -24,15 +26,22 @@ export function transformObject(input: any): TransformedVars {
             if (typeof input === "object") {
                 for (const [k, v] of Object.entries(input)) {
                     const currentKey = parentKey ? `${parentKey}.${k}` : k;
-                    const transformedValues = recurse(v, currentKey);
+                    const transformedValues = recurse(v, currentKey, k);
 
                     if (transformedValues !== undefined) {
                         output[currentKey] = transformedValues;
                     }
                 }
             } else {
-                const p = CSSKeyframes.value.parse(String(input));
-                return p.status ? p.value : undefined;
+                const p = CSSKeyframes.value
+                    .or(
+                        CSSKeyframes.functionValuePart.map(
+                            (v) => new FunctionValue(currentKey, v)
+                        )
+                    )
+                    .tryParse(String(input));
+                // return p.status ? p.value : undefined;
+                return p;
             }
         } else {
             if (input instanceof ValueUnit) {

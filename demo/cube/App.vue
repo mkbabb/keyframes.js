@@ -1,16 +1,11 @@
 <template>
-    <div class="container">
+    <div class="container" @mouseenter="">
         <AnimationControlsGroup
             :animations="animations"
             @selected-animation="(s) => (selectedAnimation = s)"
         />
 
-        <div
-            :class="[
-                'matrix-controls',
-                selectedAnimation !== 'Matrix' ? 'disabled' : '',
-            ]"
-        >
+        <div :class="['matrix-controls']">
             <div class="matrix-input">
                 <div class="matrix-cell" v-for="(value, i) in matrix3dEnd.values">
                     <input
@@ -52,8 +47,8 @@
             </div>
         </div>
 
-        <div class="graph">
-            <div ref="cube" class="cube">
+        <div ref="graph" class="graph">
+            <div ref="cube" class="cube animation">
                 <div class="cube-side side-back">3</div>
                 <div class="cube-side side-bottom">6</div>
                 <div class="cube-side side-right">2</div>
@@ -245,8 +240,6 @@ function updateTransformations() {
     syncTransformations();
 }
 
-const cube = $ref<HTMLElement>();
-
 const reset = () => {
     const toMatrix = mat4.create();
     const fromMatrix = matrix3dEnd.values.map((value) => value.value);
@@ -260,6 +253,19 @@ const fixed = () => {
         matrix3dStart.values = matrix3dEnd.values;
     }
 };
+
+new CSSKeyframesAnimation({ duration: 200 }).fromVars([
+    {
+        transform: {
+            rotate3d: "0, 0, 0, 0deg",
+        },
+    },
+    {
+        transform: {
+            rotate3d: "-1, 1, 0, 30deg",
+        },
+    },
+]);
 
 const matrixAnim = $ref(
     new CSSKeyframesAnimation({
@@ -310,11 +316,14 @@ const rotationAnim = $ref(
 );
 
 const animations = {
-    Matrix: matrixAnim.animation,
     Rotations: rotationAnim.animation,
+    Matrix: matrixAnim.animation,
 };
 
-let selectedAnimation = $ref(Object.keys(animations)[0]);
+let selectedAnimation = $ref("");
+
+const cube = $ref<HTMLElement>();
+const graph = $ref<HTMLElement>();
 
 onMounted(() => {
     rotationAnim.addTargets(cube);
@@ -428,6 +437,14 @@ button {
     cursor: pointer;
 }
 
+.icon {
+        --size: 1rem
+        font-size: --size;
+        width: --size;
+        aspect-ratio: 1/1;
+    }
+
+
 .rainbow-text {
     background-image: linear-gradient(
         to right,
@@ -465,6 +482,7 @@ button {
 }
 
 @media screen and (max-width: 900px) {
+    // TODO! Make this work
     .container {
         grid-template-areas: "graph" "animation-controls" "matrix-controls";
         grid-template-columns: auto;
@@ -490,10 +508,12 @@ button {
 
     perspective: 1600px;
     transform-style: preserve-3d;
-    transform: rotate3d(-1, 1, 0, 30deg);
+
     transition: transform 200ms ease;
     position: relative;
 }
+
+
 
 .x {
     --color: red;
