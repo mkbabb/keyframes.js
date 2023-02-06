@@ -28,6 +28,8 @@ const inputFrames = /*css*/ `
 const frames = parseCSSKeyframes(inputFrames);
 
 boxes.forEach((box, i) => {
+    box.style.setProperty("--bounce-offset", `${-(i + 1)}rem`);
+
     const anim = new CSSKeyframesAnimation(
         {
             duration: 200 + 100 * i,
@@ -38,9 +40,6 @@ boxes.forEach((box, i) => {
         },
         box
     ).fromCSSKeyframes(inputFrames);
-
-    const s = CSSKeyframesToString(anim.animation);
-    console.log(s);
 
     anim.play();
 });

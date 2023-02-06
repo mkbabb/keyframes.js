@@ -1,97 +1,97 @@
 <template>
-    <div ref="box" class="box">heyyyy</div>
+    <div class="container">
+        <AnimationControls :animation="anim.animation" />
+        <div ref="box" class="box">heyyyy</div>
+    </div>
 </template>
 
 <script setup lang="ts">
 import { onMounted } from "vue";
-import { CSSKeyframesToString, CSSKeyframesAnimation } from "../../src/animation";
+import { CSSKeyframesAnimation } from "../../src/animation";
+import AnimationControls from "../components/AnimationControls.vue";
+import "../style.scss";
 
 const box = $ref<HTMLElement>();
+const anim = new CSSKeyframesAnimation({
+    duration: 2000,
+    iterationCount: Infinity,
+    direction: "alternate",
+    fillMode: "forwards",
+});
+
+const transformFunc = (t: number, vars) => {
+    const { transform, backgroundColor, fontSize, rotate } = vars;
+
+    if (transform) {
+        box.style.transform = `translate(${transform.x}, ${transform.y})`;
+        box.style.transform += ` scale(${transform.a.b.c.d})`;
+    }
+    if (backgroundColor) {
+        box.style.backgroundColor = backgroundColor;
+    }
+    if (fontSize) {
+        box.style.fontSize = fontSize;
+    }
+    if (rotate) {
+        box.style.transform += ` rotate(${rotate})`;
+    }
+};
+
+const transformStart = {
+    x: "-100%",
+    y: "-100%",
+    a: {
+        b: {
+            c: {
+                d: "75%",
+            },
+        },
+    },
+};
+
+const transformEnd = {
+    x: "50%",
+    y: "75%",
+    a: {
+        b: {
+            c: {
+                d: "200%",
+            },
+        },
+    },
+};
+anim.fromFrames({
+    0: [
+        {
+            rotate: "0turn",
+            transform: transformStart,
+            backgroundColor: "#C462D8",
+        },
+        transformFunc,
+    ],
+    50: [
+        {
+            backgroundColor: "#6280D8",
+        },
+    ],
+    75: [
+        {
+            backgroundColor: "#52E898",
+            fontSize: "1rem",
+        },
+    ],
+    100: [
+        {
+            rotate: "1turn",
+            transform: transformEnd,
+            backgroundColor: "#E85252",
+            fontSize: "3rem",
+        },
+    ],
+});
 
 onMounted(() => {
-    const anim = new CSSKeyframesAnimation({
-        duration: 2000,
-        iterationCount: Infinity,
-        direction: "alternate",
-        fillMode: "forwards",
-    });
-
-    const transformFunc = (t: number, vars) => {
-        const { transform, backgroundColor, fontSize, rotate } = vars;
-
-        if (transform) {
-            box.style.transform = `translate(${transform.x}, ${transform.y})`;
-            box.style.transform += ` scale(${transform.a.b.c.d})`;
-        }
-        if (backgroundColor) {
-            box.style.backgroundColor = backgroundColor;
-        }
-        if (fontSize) {
-            box.style.fontSize = fontSize;
-        }
-        if (rotate) {
-            box.style.transform += ` rotate(${rotate})`;
-        }
-    };
-
-    const transformStart = {
-        x: "-100%",
-        y: "-100%",
-        a: {
-            b: {
-                c: {
-                    d: "75%",
-                },
-            },
-        },
-    };
-
-    const transformEnd = {
-        x: "50%",
-        y: "75%",
-        a: {
-            b: {
-                c: {
-                    d: "200%",
-                },
-            },
-        },
-    };
-
-    anim.fromFrames({
-        0: [
-            {
-                rotate: "0turn",
-                transform: transformStart,
-                backgroundColor: "#C462D8",
-            },
-            transformFunc,
-        ],
-        50: [
-            {
-                backgroundColor: "#6280D8",
-            },
-        ],
-        75: [
-            {
-                backgroundColor: "#52E898",
-                fontSize: "1rem",
-            },
-        ],
-        100: [
-            {
-                rotate: "1turn",
-                transform: transformEnd,
-                backgroundColor: "#E85252",
-                fontSize: "3rem",
-            },
-        ],
-    });
-
-    anim.play();
-
-    const s = CSSKeyframesToString(anim.animation);
-    console.log(s);
+    anim.addTargets(box);
 });
 </script>
 
@@ -102,17 +102,17 @@ onMounted(() => {
     font-family: "Fira Code", monospace;
 }
 
-html,
-body {
-    height: 100%;
-    width: 100%;
-    margin: 0;
-}
+.container {
+    display: grid;
 
-body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    --padding: 0.5rem;
+    padding: var(--padding);
+    min-height: calc(100% - 2 * var(--padding));
+    width: calc(100% - 2 * var(--padding));
+
+    grid-template-areas: "animation-controls box";
+    grid-template-columns: 1fr 2fr;
+    gap: 1rem;
 }
 
 .box {

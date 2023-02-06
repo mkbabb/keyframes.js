@@ -126,30 +126,21 @@
             type="range"
             v-model.number="sliderValue"
             :min="0"
-            :disabled="!paused"
+            :disabled="!animation.paused"
             :max="animation.options.duration"
             @input="interpFrames"
         />
         <div class="timing">
             <button class="toggle" @click="toggle">
-                {{ pausedString }}
                 <font-awesome-icon
                     class="icon"
-                    :icon="
-                        !animation.paused && animation.started
-                            ? ['fas', 'pause']
-                            : ['fas', 'play']
-                    "
+                    :icon="pausedOrNotStarted ? ['fas', 'play'] : ['fas', 'pause']"
                 />
             </button>
             <button class="reverse" @click="animation.reverse()">
-                Reverse
                 <font-awesome-icon class="icon" :icon="['fas', 'rotate-right']" />
             </button>
-            <button class="reset" @click="animation.reset()">
-                Reset
-                <font-awesome-icon class="icon" :icon="['fas', 'undo-alt']" />
-            </button>
+            <button class="reset" @click="animation.reset()">Reset</button>
         </div>
 
         <div class="css-keyframes-string" v-if="style">
@@ -218,6 +209,8 @@ const emit = defineEmits<{
     ): void;
 }>();
 
+let pausedOrNotStarted = $ref(true);
+
 const setTimingFunction = (timingFunction) => {
     animation.options.timingFunction = timingFunction;
     animation.frames.forEach((frame) => {
@@ -260,29 +253,14 @@ const interpFrames = () => {
     animation.paused = paused;
 };
 
-let paused = computed(() => animation.paused);
-let pausedString = computed(() => {
-    return animation.paused ? "Play " : "Pause";
-});
-let prevT = $ref(0);
-let prevTime = $ref(0);
-
 const toggle = () => {
     if (!animation.started) {
         animation.play();
     } else {
         animation.pause();
     }
-
+    pausedOrNotStarted = animation.paused;
     sliderValue = animation.t;
-
-    if (paused) {
-        prevTime = performance.now();
-        prevT = animation.t;
-    } else {
-        // animation.pausedTime = performance.now() - prevTime;
-        // animation.startTime -= animation.t - prevT;
-    }
 };
 
 let cssKeyframesStringEl = $ref(null);
@@ -360,6 +338,7 @@ onMounted(() => {
     flex-direction: column;
     gap: 1rem;
     position: relative;
+    z-index: 2;
 }
 
 .toggle {

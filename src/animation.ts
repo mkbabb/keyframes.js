@@ -379,7 +379,6 @@ export class Animation<V extends Vars> {
             await sleep(this.options.delay);
             this.pause();
         }
-
         this.started = true;
     }
 
@@ -416,7 +415,7 @@ export class Animation<V extends Vars> {
 
         if (this.paused) {
             this.pausedTime += dt;
-            return t;
+            return undefined;
         } else {
             this.startTime += this.pausedTime;
             t -= this.pausedTime;
@@ -433,7 +432,9 @@ export class Animation<V extends Vars> {
 
     draw(t: number) {
         t = this.tick(t);
-        this.transformFrames(t);
+        if (!this.paused) {
+            this.transformFrames(t);
+        }
         if (!this.done) {
             requestAnimationFrame(this.draw.bind(this));
         }

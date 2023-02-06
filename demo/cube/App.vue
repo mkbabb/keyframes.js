@@ -73,10 +73,12 @@ import {
     CSSKeyframesToString,
 } from "../../src/animation";
 import { easeInBounce, linear } from "../../src/easing";
-import { FunctionValue, ValueArray, ValueUnit } from "../../src/parsing/units";
+import { FunctionValue, ValueArray, ValueUnit } from "../../src/units";
 import { mat4 } from "gl-matrix";
 import { onMounted } from "vue";
 import AnimationControlsGroup from "../components/AnimationControlsGroup.vue";
+
+import "../style.scss";
 
 const matrixAxes = ["X", "Y", "Z", "W"];
 const sliderAxes = ["X", "Y", "Z"];
@@ -334,138 +336,9 @@ onMounted(() => {
 });
 </script>
 <style lang="scss">
-@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;700&display=swap");
-* {
-    font-family: "Fira Code", monospace;
-    box-sizing: border-box;
-}
-
-html,
 body {
-    height: 100%;
-    width: 100%;
-    margin: 0;
-    padding: 0;
-}
-
-body {
-    display: flex;
-    align-items: center;
-    flex-direction: column;
-    justify-content: center;
-
     background-size: 1rem;
     background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%202%202%22%3E%3Cpath%20d%3D%22M1%202V0h1v1H0v1z%22%20fill-opacity%3D%22.05%22%2F%3E%3C%2Fsvg%3E");
-}
-
-label {
-    background-color: white;
-    padding: 0.25rem;
-    border-radius: 5px;
-
-    color: var(--color);
-    box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
-
-    text-align: center;
-    font-size: 1.25rem;
-    font-weight: bold;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-input[type="number"],
-input[type="string"],
-select {
-    font-size: 1rem;
-    box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
-    border: none;
-    border-radius: 5px;
-    padding: 0.25rem 0.5rem;
-    width: min-content;
-    display: flex;
-    width: 16ch;
-
-    text-overflow: ellipsis;
-}
-
-input[type="range"] {
-    width: 100%;
-    background: var(--color);
-    outline: none;
-    opacity: 0.8;
-    text-align: center;
-    transition: opacity color 0.2s;
-
-    &:disabled {
-        --color: gray;
-    }
-
-    &:hover {
-        opacity: 1;
-    }
-
-    &[type="range"] {
-        appearance: none;
-        height: 6px;
-        border-radius: 10px;
-        background: var(--color);
-
-        &::-webkit-slider-thumb {
-            appearance: none;
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            background: var(--color);
-            cursor: pointer;
-        }
-
-        &::-moz-range-thumb {
-            appearance: none;
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            background: var(--color);
-            cursor: pointer;
-        }
-    }
-}
-
-button {
-    font-size: 1.25rem;
-    padding: 0.25rem 1rem;
-    border-radius: 5px;
-    border: none;
-    background: rgb(0, 0, 0);
-    color: rgb(255, 255, 255);
-    cursor: pointer;
-}
-
-.icon {
-        --size: 1rem
-        font-size: --size;
-        width: --size;
-        aspect-ratio: 1/1;
-    }
-
-
-.rainbow-text {
-    background-image: linear-gradient(
-        to right,
-        #f00 0%,
-        #ff0 17%,
-        #0f0 33%,
-        #0ff 50%,
-        #00f 67%,
-        #f0f 83%,
-        #f00 100%
-    ) !important;
-    background-clip: text;
-    color: transparent;
-}
-
-.disabled {
-    opacity: 0.5;
-    pointer-events: none;
 }
 
 .container {
@@ -479,7 +352,6 @@ button {
     grid-template-areas: "animation-controls graph matrix-controls";
     grid-template-columns: 1fr 2fr 1fr;
 
-
     gap: 1rem;
     overflow: hidden;
 }
@@ -487,12 +359,10 @@ button {
 @media screen and (max-width: 900px) {
     // TODO! Make this work
     .container {
-        grid-template-areas:  "animation-controls" "graph" "matrix-controls";
+        grid-template-areas: "animation-controls" "graph" "matrix-controls";
         grid-template-columns: auto;
         grid-template-rows: 1fr 75vh 1fr;
         overflow-y: scroll;
-
-
     }
 
     .animation-controls {
@@ -521,7 +391,6 @@ button {
     transform-style: preserve-3d;
     position: relative;
 }
-
 
 .x {
     --color: red;
