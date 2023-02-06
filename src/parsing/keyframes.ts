@@ -1,13 +1,13 @@
 import P from "parsimmon";
+import { CSSValueUnit } from "./units";
+import { hyphenToCamelCase, arrayEquals } from "../utils";
 import {
+    collapseNumericType,
     ValueUnit,
     FunctionValue,
     ValueArray,
     convertToDegrees,
-    CSSValueUnit,
-} from "./units";
-import { hyphenToCamelCase, arrayEquals } from "../utils";
-import { collapseNumericType } from "./units";
+} from "../units";
 
 const istring = (str: string) =>
     P((input, i) => {
@@ -166,23 +166,15 @@ export const CSSKeyframes = P.createLanguage({
     operator: () => P.alt(...OPERATORS.map(P.string)).trim(P.optWhitespace),
 
     percent: (r) =>
-        r.ws
-            .then(
-                P.alt(
-                    P.regexp(/\d+/).skip(P.string("%").or(P.string(""))),
-                    P.string("from").map(() => "0"),
-                    P.string("to").map(() => "100")
-                )
-            )
-            .skip(r.ws)
+        P.alt(
+            P.regexp(/\d+/).skip(P.string("%").or(P.string(""))),
+            P.string("from").map(() => "0"),
+            P.string("to").map(() => "100")
+        )
+            .trim(r.ws)
             .map(Number),
 
     string: () => P.regexp(/[^\(\)\{\}\s,\+\-\*\/;]+/).map((x) => new ValueUnit(x)),
-
-    valueUnit: (r) =>
-        r.ws
-            .then(P.alt(CSSValueUnit.value, r.string))
-            .trim(r.ws) as P.Parser<ValueUnit>,
 
     functionArgs: (r) =>
         r.lparen.skip(r.ws).then(r.valuePart.sepBy(r.comma)).skip(r.ws).skip(r.rparen),
@@ -195,7 +187,7 @@ export const CSSKeyframes = P.createLanguage({
             handleFunc(r).map(([name, values]) => new FunctionValue(name, values))
         ),
 
-    valuePart: (r) => P.alt(r.function, r.valueUnit).skip(r.ws),
+    valuePart: (r) => P.alt(CSSValueUnit.value, r.function, r.string).trim(r.ws),
 
     value: (r) => r.valuePart.sepBy(r.ws).map((x) => new ValueArray(x)),
 

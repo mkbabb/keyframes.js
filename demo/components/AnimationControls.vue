@@ -178,7 +178,7 @@
 import { computed, onMounted, provide, ref, watch, watchEffect } from "vue";
 import {
     Animation,
-    createCSSKeyframesString,
+    CSSKeyframesToString,
     CSSKeyframesAnimation,
     Vars,
 } from "../../src/animation";
@@ -287,7 +287,7 @@ const toggle = () => {
 
 let cssKeyframesStringEl = $ref(null);
 let cssKeyframesString = computed(() => {
-    const s = createCSSKeyframesString(animation, "animation", 45);
+    const s = CSSKeyframesToString(animation, "animation", 45);
 
     if (cssKeyframesStringEl) {
         const h = hljs.highlight(s, { language: "css" });

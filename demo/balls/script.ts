@@ -1,6 +1,6 @@
 import {
     Animation,
-    createCSSKeyframesString,
+    CSSKeyframesToString,
     CSSKeyframesAnimation,
 } from "../../src/animation";
 import {
@@ -39,7 +39,7 @@ boxes.forEach((box, i) => {
         box
     ).fromCSSKeyframes(inputFrames);
 
-    const s = createCSSKeyframesString(anim.animation);
+    const s = CSSKeyframesToString(anim.animation);
     console.log(s);
 
     anim.play();

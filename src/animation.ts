@@ -12,7 +12,7 @@ import {
     TransformedVars,
     transformObject,
     ValueArray,
-} from "./parsing/units";
+} from "./units";
 import { camelCaseToHyphen, sleep } from "./utils";
 
 type InterpValue = {
@@ -692,7 +692,7 @@ function objectToString(key: string, value: any) {
 import prettier from "prettier";
 import parserPostCSS from "prettier/parser-postcss";
 
-export function createCSSKeyframesString<V extends Vars>(
+export function CSSKeyframesToString<V extends Vars>(
     animation: Animation<V>,
     name: string = "animation",
     printWidth: number = 80

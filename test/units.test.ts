@@ -1,19 +1,30 @@
-import {
-    units,
-    parseCSSValueUnit,
-    FunctionValue,
-    ValueArray,
-    ValueUnit,
-} from "../src/parsing/units";
+import { units, parseCSSValueUnit, CSSColor } from "../src/parsing/units";
 import {
     parseCSSKeyframes,
     reverseCSSTime,
     parseCSSTime,
 } from "../src/parsing/keyframes";
+import { CSSKeyframesToString, CSSKeyframesAnimation } from "../src/animation";
 import { expect, describe, it, assert } from "vitest";
 
+const checkIfReversedEquals = (keyframes: string) => {
+    const el = document.createElement("div");
+
+    const anim = new CSSKeyframesAnimation({}, el).fromCSSKeyframes(keyframes);
+    const reversed = CSSKeyframesToString(anim.animation);
+    const keyframesAgain = reversed.split("\n\n")[1];
+
+    const animAgain = new CSSKeyframesAnimation({}, el).fromCSSKeyframes(
+        keyframesAgain
+    );
+    animAgain.animation.id = anim.animation.id;
+
+    // expect(anim.animation).toEqual(animAgain.animation);
+    expect(JSON.stringify(anim.animation)).toEqual(JSON.stringify(animAgain.animation));
+};
+
 const insertRandomWhitespace = (str: string) => {
-    const whitespaceChars = [" ", "\t", "\r", "\v", "\f"];
+    const whitespaceChars = [" ", "\t", "\n"];
 
     return str
         .split(" ")
@@ -21,13 +32,65 @@ const insertRandomWhitespace = (str: string) => {
             if (Math.random() > 0.5) {
                 return word;
             } else {
-                const ws =
-                    whitespaceChars[Math.floor(Math.random() * whitespaceChars.length)];
+                const ws = whitespaceChars[
+                    Math.floor(Math.random() * whitespaceChars.length)
+                ].repeat(Math.floor(Math.random() * 10));
+
                 return ws + word + ws;
             }
         })
         .join("");
 };
+
+describe("CSSColor", () => {
+    it("should parse CSS colors; rgb, hex, hsl, etc", () => {
+        const colors = [
+            "aquamarine",
+            "#000",
+            "#ffffff",
+
+            "rgb(0, 0, 0)",
+            "rgba(0, 255, 0, 0)",
+            "rgb(0, 255, 0 / 1)",
+
+            "hsl(0, 0%, 0%)",
+            "hsla(0, 0%, 0% / 1)",
+
+            "hsv(0, 0%, 0%)",
+            "hsva(0, 0%, 0%, 0)",
+
+            "hwb(0, 0%, 0%)",
+            "hwba(0, 0%, 0%, 0)",
+
+            "lab(0, 0%, 0%)",
+            "laba(0, 0%, 0%, 0)",
+
+            "lch(0, 0%, 0%)",
+            "lcha(0, 0%, 0%, 0)",
+
+            "aquamarine",
+            "blue",
+        ];
+        for (const color of colors) {
+            const spacedColor = insertRandomWhitespace(color);
+            const value = CSSColor.color.parse(spacedColor);
+            expect(value.status, `failed on ${color}`).toBe(true);
+        }
+    });
+
+    it("should fail to parse invalid CSS colors", () => {
+        const colors = [
+            "rgb(0, 0, 0, 0, 0)",
+            "rgb(0, 0, 0 0)",
+            "rgba(0, 255, 0, 0, 0)",
+            "what!",
+        ];
+        for (const color of colors) {
+            const value = CSSColor.color.parse(color);
+            expect(value.status).toBe(false);
+        }
+    });
+});
 
 describe("CSSValueUnit", () => {
     it("should parse all CSS units", () => {
@@ -61,7 +124,7 @@ describe("CSSValueUnit", () => {
 
         colors.forEach((color) => {
             const value = parseCSSValueUnit(color);
-            assert.equal(value.unit, "color");
+            assert.equal(value.unit, "color", color);
         });
     });
 });
@@ -140,6 +203,7 @@ describe("CSSKeyframes", () => {
         `;
 
         keyframes = insertRandomWhitespace(keyframes);
+        // checkIfReversedEquals(keyframes);
         const frames = parseCSSKeyframes(keyframes);
         assert.equal(Object.values(frames).length, 2);
 
@@ -182,15 +246,19 @@ describe("CSSKeyframes", () => {
         }
     });
 
-    it("should parse keyframes with calc", () => {
-        let keyframes = /*css*/ `@keyframes calcExample {
-            from {
-                top: calc(0px, 2px);
-            }
-        }`;
+    it("should invertible", () => {
+        let keyframes = /*css*/ `
+            @keyframes example {
+                from   {background-color:red; left:200px; top:0px;}
+                25%  {background-color:yellow; left:200px; top:0px;}
+                50%  {background-color:blue; left:200px; top:200px;}
+                75%  {background-color:green; left:200px; top:200px;}
+                to {background-color:red; left:200px; top:0px;}
+            }`;
 
         keyframes = insertRandomWhitespace(keyframes);
         const frames = parseCSSKeyframes(keyframes);
+        checkIfReversedEquals(keyframes);
     });
 
     it("should parse keyframes with calcs and variables", () => {

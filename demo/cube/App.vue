@@ -70,7 +70,7 @@ import {
     AnimationGroup,
     CSSKeyframesAnimation,
     Vars,
-    createCSSKeyframesString,
+    CSSKeyframesToString,
 } from "../../src/animation";
 import { easeInBounce, linear } from "../../src/easing";
 import { FunctionValue, ValueArray, ValueUnit } from "../../src/parsing/units";
