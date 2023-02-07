@@ -39,12 +39,12 @@ export const units = [
     ...resolutionUnits,
 ] as const;
 
-const identifier = P.regexp(/[a-zA-Z][a-zA-Z0-9-]+/);
-const none = P.string("none");
-const integer = P.regexp(/-?\d+/).map(Number);
-const number = P.regexp(/-?(0|[1-9]\d*)(\.\d+)?([eE][+-]?\d+)?/).map(Number);
+export const identifier = P.regexp(/[a-zA-Z][a-zA-Z0-9-]+/);
+export const none = P.string("none");
+export const integer = P.regexp(/-?\d+/).map(Number);
+export const number = P.regexp(/-?(0|[1-9]\d*)(\.\d+)?([eE][+-]?\d+)?/).map(Number);
 
-const opt = <T>(p: P.Parser<T>) => P.alt(p, P.succeed(undefined));
+export const opt = <T>(p: P.Parser<T>) => P.alt(p, P.succeed(undefined));
 
 const hex2rgb = (hex: string) => {
     const r = parseInt(hex.slice(1, 3), 16);

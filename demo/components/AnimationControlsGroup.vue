@@ -13,7 +13,7 @@
             <button v-if="selectedAnimation" class="toggle" @click="toggle">
                 <font-awesome-icon
                     class="icon"
-                    :icon="toggled ? ['fas', 'pause'] : ['fas', 'play']"
+                    :icon="pausedOrNotStarted ? ['fas', 'play'] : ['fas', 'pause']"
                 />
             </button>
         </div>
@@ -22,6 +22,7 @@
             v-if="selectedAnimation"
             @slider-update="sliderUpdate"
             :animation="animations[selectedAnimation]"
+            :is-grouped="true"
         />
     </div>
 </template>
@@ -29,7 +30,6 @@
 <script setup lang="ts">
 import { computed, onMounted, Ref, ref, watchEffect } from "vue";
 import { Animation, AnimationGroup, Vars } from "../../src/animation";
-import { ValueArray } from "../../src/parsing/units";
 import AnimationControls from "./AnimationControls.vue";
 
 const { animations } = defineProps<{
@@ -43,15 +43,23 @@ const emit = defineEmits<{
 
 let animationGroup: AnimationGroup<any>;
 
-const sliderUpdate = (e: { values: Vars<ValueArray>; animationId: number }) => {
-    const { values, animationId } = e;
+const sliderUpdate = (e: { t: number; animationId: number }) => {
+    const { t, animationId } = e;
     const groupObject = animationGroup.animationGroup.find(
         (a) => a.animation.id == animationId
     );
-    groupObject.values = values;
+    const { animation } = groupObject;
+
+    const paused = animation.paused;
+    animation.paused = false;
+
+    // groupObject.values = {};
+    animationGroup.transformFrames(t);
+
+    animation.paused = paused;
 };
 
-let toggled = $ref(false);
+let pausedOrNotStarted = $ref(true);
 
 const toggle = () => {
     if (!animationGroup.started) {
@@ -59,8 +67,7 @@ const toggle = () => {
     } else {
         animationGroup.pause();
     }
-    toggled = !animationGroup.paused && animationGroup.started;
-    console.log(animationGroup.paused, animationGroup.started, animationGroup.done);
+    pausedOrNotStarted = animationGroup.paused;
 };
 
 onMounted(() => {

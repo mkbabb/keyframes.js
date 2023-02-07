@@ -90,6 +90,12 @@ anim.fromFrames({
     ],
 });
 
+const sliderUpdate = (e: { values; animationId: number }) => {
+    const { values, animationId } = e;
+   
+    groupObject.values = values;
+};
+
 onMounted(() => {
     anim.addTargets(box);
 });

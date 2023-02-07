@@ -1,5 +1,5 @@
 import P from "parsimmon";
-import { CSSValueUnit } from "./units";
+import { CSSValueUnit, integer, number, identifier, none } from "./units";
 import { hyphenToCamelCase, arrayEquals } from "../utils";
 import {
     collapseNumericType,
@@ -23,7 +23,7 @@ const TRANSFORM_FUNCTIONS = ["translate", "scale", "rotate", "skew"].map(istring
 const DIMS = ["x", "y", "z"].map(istring);
 
 const handleFunc = (r: P.Language, name?: P.Parser<any>) => {
-    return P.seq(name ? name : r.identifier, r.functionArgs).map((v) => {
+    return P.seq(name ? name : identifier, r.functionArgs).map((v) => {
         console.log(v);
         return v;
     });
@@ -50,7 +50,7 @@ const handleVar = (r: P.Language) => {
         .then(r.lparen)
         .skip(r.ws)
         .then(P.string("--"))
-        .then(r.identifier)
+        .then(identifier)
         .skip(r.ws)
         .skip(r.rparen)
         .map((value: ValueArray) => {
@@ -91,7 +91,7 @@ const evaluateMathFunction = (func: string, value: ValueUnit) => {
 const binaryMathExpression = (r: P.Language) =>
     P.seq(
         r.mathFunctionExpression,
-        P.seq(r.ws.then(r.operator).skip(r.ws), r.mathValue).many()
+        P.seq(r.operator.trim(r.ws), r.mathValue).many()
     ).map(([a, bs]) => {
         if (bs.length === 0) {
             return a;
@@ -134,11 +134,7 @@ const binaryMathExpression = (r: P.Language) =>
 
 const handleCalc = (r: P.Language) => {
     return P.string("calc")
-        .then(r.lparen)
-        .skip(r.ws)
-        .then(r.mathValue)
-        .skip(r.ws)
-        .skip(r.rparen)
+        .then(r.mathValue.trim(r.ws).wrap(r.lparen, r.rparen))
         .map((value: ValueArray) => {
             if (value.values.length === 1) {
                 return value.values[0];
@@ -149,10 +145,9 @@ const handleCalc = (r: P.Language) => {
 };
 
 export const CSSKeyframes = P.createLanguage({
-    identifier: () => P.regexp(/[a-zA-Z][a-zA-Z0-9-]+/),
     ws: () => P.optWhitespace,
 
-    rule: (r) => r.ws.then(P.string("@keyframes")).skip(r.ws).then(r.identifier),
+    rule: (r) => P.string("@keyframes").trim(r.ws).then(identifier),
 
     semi: () => P.string(";"),
     colon: () => P.string(":"),
@@ -167,7 +162,7 @@ export const CSSKeyframes = P.createLanguage({
 
     percent: (r) =>
         P.alt(
-            P.regexp(/\d+/).skip(P.string("%").or(P.string(""))),
+            integer.skip(P.string("%").or(P.string(""))),
             P.string("from").map(() => "0"),
             P.string("to").map(() => "100")
         )
@@ -176,8 +171,7 @@ export const CSSKeyframes = P.createLanguage({
 
     string: () => P.regexp(/[^\(\)\{\}\s,\+\-\*\/;]+/).map((x) => new ValueUnit(x)),
 
-    functionArgs: (r) =>
-        r.lparen.skip(r.ws).then(r.valuePart.sepBy(r.comma)).skip(r.ws).skip(r.rparen),
+    functionArgs: (r) => r.valuePart.sepBy(r.comma).trim(r.ws).wrap(r.lparen, r.rparen),
 
     function: (r) =>
         P.alt(
@@ -188,30 +182,26 @@ export const CSSKeyframes = P.createLanguage({
         ),
 
     valuePart: (r) => P.alt(CSSValueUnit.value, r.function, r.string).trim(r.ws),
-
     value: (r) => r.valuePart.sepBy(r.ws).map((x) => new ValueArray(x)),
 
     mathFunction: (r) =>
         P.seq(
             P.alt(...MATH_FUNCTIONS).skip(r.ws),
-            r.lparen.skip(r.ws).then(r.mathValue).skip(r.ws).skip(r.rparen)
+            r.mathValue.trim(r.ws).wrap(r.lparen, r.rparen)
         ).map(([func, values]) => {
             const v = evaluateMathFunction(func, values.values[0]);
             return v;
         }),
-
     mathFunctionExpression: (r) => r.mathFunction.or(r.value),
-
     mathValue: (r) => binaryMathExpression(r).or(r.mathFunctionExpression),
 
     values: (r) =>
         P.seq(
-            r.identifier
-                .skip(r.ws)
+            identifier
                 .skip(r.colon)
-                .skip(r.ws)
+                .trim(r.ws)
                 .map((x) => hyphenToCamelCase(x)),
-            r.value.skip(r.ws).skip(r.semi).skip(r.ws)
+            r.value.skip(r.semi).trim(r.ws)
         ).map(([name, value]) => {
             return {
                 [name]: value,
@@ -219,24 +209,17 @@ export const CSSKeyframes = P.createLanguage({
         }),
 
     frame: (r) =>
-        P.seq(
-            r.percent.skip(r.ws).skip(r.lcurly).skip(r.ws),
-            r.values.atLeast(1).skip(r.ws).skip(r.rcurly)
-        ).map(([percent, values]) => {
-            return {
-                [percent]: Object.assign({}, ...values),
-            };
-        }),
+        P.seq(r.percent, r.values.atLeast(1).trim(r.ws).wrap(r.lcurly, r.rcurly)).map(
+            ([percent, values]) => {
+                return {
+                    [percent]: Object.assign({}, ...values),
+                };
+            }
+        ),
 
     keyframe: (r) =>
         r.rule
-            .skip(r.ws)
-            .skip(r.lcurly)
-            .skip(r.ws)
-            .then(r.frame.many())
-            .skip(r.ws)
-            .skip(r.rcurly)
-            .skip(r.ws)
+            .then(r.frame.atLeast(1).trim(r.ws).wrap(r.lcurly, r.rcurly).trim(r.ws))
             .map((frame) => {
                 return Object.assign({}, ...frame);
             }),

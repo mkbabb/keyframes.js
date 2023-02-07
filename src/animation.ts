@@ -1,5 +1,5 @@
 import { easeInOutCubic, timingFunctions } from "./easing";
-import { scale } from "./math";
+import { clamp, scale } from "./math";
 import {
     parseCSSKeyframes,
     parseCSSPercent,
@@ -286,6 +286,9 @@ export class Animation<V extends Vars> {
     }
 
     pause() {
+        if (this.paused) {
+            requestAnimationFrame(this.draw.bind(this));
+        }
         if (this.started) {
             this.paused = !this.paused;
         }
@@ -359,9 +362,7 @@ export class Animation<V extends Vars> {
     }
 
     async onStart() {
-        this.reset();
         this.reversed = false;
-
         if (
             this.options.direction === "reverse" ||
             this.options.direction === "alternate-reverse" ||
@@ -379,6 +380,7 @@ export class Animation<V extends Vars> {
             await sleep(this.options.delay);
             this.pause();
         }
+
         this.started = true;
     }
 
@@ -406,35 +408,36 @@ export class Animation<V extends Vars> {
         if (this.startTime === undefined) {
             this.onStart();
             this.startTime = t + this.options.delay;
-            return 0;
         }
 
-        t = t - this.startTime;
-        const dt = t - this.prevTime;
-        this.prevTime = t;
-
-        if (this.paused) {
-            this.pausedTime += dt;
-            return undefined;
-        } else {
-            this.startTime += this.pausedTime;
-            t -= this.pausedTime;
+        if (this.paused && this.pausedTime === 0) {
+            this.pausedTime = t;
+            return this.t;
+        } else if (this.pausedTime > 0 && !this.paused) {
+            const dt = t - this.pausedTime;
+            this.startTime += dt;
             this.pausedTime = 0;
         }
 
-        if (t >= this.options.duration) {
-            this.onEnd();
-            t = this.options.duration;
-        }
+        this.t = clamp(t - this.startTime, 0, this.options.duration);
 
-        return (this.t = t);
+        if (this.t === this.options.duration) {
+            this.onEnd();
+            return this.options.duration;
+        } else {
+            return this.t;
+        }
     }
 
     draw(t: number) {
         t = this.tick(t);
-        if (!this.paused) {
-            this.transformFrames(t);
+
+        if (this.paused) {
+            return;
         }
+
+        this.transformFrames(t);
+
         if (!this.done) {
             requestAnimationFrame(this.draw.bind(this));
         }
@@ -617,19 +620,15 @@ export class AnimationGroup<V> {
         return this;
     }
 
-    tick(t: number) {
-        for (const groupObject of this.animationGroup) {
-            groupObject.animation.tick(t);
-        }
-        return this;
-    }
-
     pause() {
-        if (this.started && !this.done) {
-            this.animationGroup.forEach((groupObject) => {
-                groupObject.animation.pause();
-            });
+        if (this.paused) {
+            requestAnimationFrame(this.draw.bind(this));
+        }
+        if (this.started) {
             this.paused = !this.paused;
+            this.animationGroup.forEach((groupObject) => {
+                groupObject.animation.paused = this.paused;
+            });
         }
         return this;
     }
@@ -656,13 +655,32 @@ export class AnimationGroup<V> {
         return reversedVars;
     }
 
+    tick(t: number) {
+        if (!this.started) {
+            this.onStart();
+        }
+
+        for (const groupObject of this.animationGroup) {
+            groupObject.animation.tick(t);
+        }
+
+        if (this.done) {
+            this.onEnd();
+        }
+        return this;
+    }
+
     draw(t: number) {
         this.tick(t);
+
+        if (this.paused) {
+            return;
+        }
+
         this.transformFrames(t);
+
         if (!this.done) {
             requestAnimationFrame(this.draw.bind(this));
-        } else {
-            this.onEnd();
         }
     }
 

@@ -124,11 +124,10 @@
         <input
             class="slider"
             type="range"
-            v-model.number="sliderValue"
             :min="0"
             :disabled="!animation.paused"
             :max="animation.options.duration"
-            @input="interpFrames"
+            @input="sliderUpdate"
         />
         <div class="timing">
             <button class="toggle" @click="toggle">
@@ -158,7 +157,7 @@
                 </button>
             </div>
             <pre
-                ref="cssKeyframesStringEl"
+                ref="CSSKeyframesStringEl"
                 class="hljs css"
             ><code>{{ cssKeyframesString }}</code></pre>
         </div>
@@ -166,21 +165,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, provide, ref, watch, watchEffect } from "vue";
+import { computed, onMounted } from "vue";
 import {
     Animation,
     CSSKeyframesToString,
     CSSKeyframesAnimation,
-    Vars,
 } from "../../src/animation";
-import {
-    timingFunctions,
-    jumpTerms,
-    CSSBezier,
-    bezierPresets,
-    linear,
-} from "../../src/easing";
-import { ValueArray } from "../../src/parsing/units";
+import { timingFunctions, jumpTerms, CSSBezier, bezierPresets } from "../../src/easing";
 import { reverseCSSTime, parseCSSTime } from "../../src/parsing/keyframes";
 import { formatNumber } from "./utils";
 
@@ -195,21 +186,43 @@ let timingFunctionsAnd = {
     ...timingFunctions,
 };
 
-const { animation } = defineProps<{
-    animation: Animation<any>;
-}>();
+const { animation, isGrouped } = defineProps({
+    isGrouped: {
+        type: Boolean,
+        required: false,
+        default: false,
+    },
+    animation: {
+        type: Animation,
+        required: true,
+    },
+});
 
 const emit = defineEmits<{
     (
         e: "sliderUpdate",
         val: {
-            values: Vars<ValueArray>;
+            t: number;
             animationId: number;
         }
     ): void;
 }>();
 
-let pausedOrNotStarted = $ref(true);
+const sliderUpdate = (e: Event) => {
+    const t = parseFloat((e.target as HTMLInputElement).value);
+
+    if (!isGrouped) {
+        const paused = animation.paused;
+        animation.paused = false;
+        animation.transformFrames(t);
+        animation.paused = paused;
+    } else {
+        emit("sliderUpdate", {
+            t,
+            animationId: animation.id,
+        });
+    }
+};
 
 const setTimingFunction = (timingFunction) => {
     animation.options.timingFunction = timingFunction;
@@ -230,29 +243,14 @@ const updateTimingFunction = () => {
     if (timingFunctionKey === "steps") {
         timingFunction = timingFunctions[timingFunctionKey](steps, jumpTerm);
     } else if (timingFunctionKey === "cubicBezier") {
+        // @ts-ignore
         timingFunction = CSSBezier(...cubicBezierValues);
     }
 
     setTimingFunction(timingFunction);
 };
 
-let sliderValue = $ref(0);
-
-const interpFrames = () => {
-    const paused = animation.paused;
-    animation.paused = false;
-
-    const values: Vars<ValueArray> = {};
-    animation.interpFrames(sliderValue, values);
-
-    emit("sliderUpdate", {
-        values: values,
-        animationId: animation.id,
-    });
-
-    animation.paused = paused;
-};
-
+let pausedOrNotStarted = $ref(true);
 const toggle = () => {
     if (!animation.started) {
         animation.play();
@@ -260,16 +258,15 @@ const toggle = () => {
         animation.pause();
     }
     pausedOrNotStarted = animation.paused;
-    sliderValue = animation.t;
 };
 
-let cssKeyframesStringEl = $ref(null);
+let CSSKeyframesStringEl = $ref(null);
 let cssKeyframesString = computed(() => {
     const s = CSSKeyframesToString(animation, "animation", 45);
 
-    if (cssKeyframesStringEl) {
+    if (CSSKeyframesStringEl) {
         const h = hljs.highlight(s, { language: "css" });
-        cssKeyframesStringEl.innerHTML = h.value;
+        CSSKeyframesStringEl.innerHTML = h.value;
     }
     if (style) {
         style.innerHTML = s;
