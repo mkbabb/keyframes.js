@@ -13,7 +13,11 @@
             <button v-if="selectedAnimation" class="toggle" @click="toggle">
                 <font-awesome-icon
                     class="icon"
-                    :icon="pausedOrNotStarted ? ['fas', 'play'] : ['fas', 'pause']"
+                    :icon="
+                        animationGroup.paused || !animationGroup.started
+                            ? ['fas', 'play']
+                            : ['fas', 'pause']
+                    "
                 />
             </button>
         </div>
@@ -53,13 +57,10 @@ const sliderUpdate = (e: { t: number; animationId: number }) => {
     const paused = animation.paused;
     animation.paused = false;
 
-    // groupObject.values = {};
     animationGroup.transformFrames(t);
 
     animation.paused = paused;
 };
-
-let pausedOrNotStarted = $ref(true);
 
 const toggle = () => {
     if (!animationGroup.started) {
@@ -67,7 +68,6 @@ const toggle = () => {
     } else {
         animationGroup.pause();
     }
-    pausedOrNotStarted = animationGroup.paused;
 };
 
 onMounted(() => {

@@ -28,7 +28,7 @@ const inputFrames = /*css*/ `
 const frames = parseCSSKeyframes(inputFrames);
 
 boxes.forEach((box, i) => {
-    box.style.setProperty("--bounce-offset", `${-(i + 1)}rem`);
+    box.style.setProperty("--bounce-offset", `${-(i + 10)}em`);
 
     const anim = new CSSKeyframesAnimation(
         {

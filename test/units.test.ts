@@ -272,13 +272,13 @@ describe("CSSKeyframes", () => {
         checkIfReversedEquals(keyframes);
     });
 
-    it("should parse keyframes with calcs and variables", () => {
+    it("should parse keyframes with calcs", () => {
         let keyframes = /*css*/ `@keyframes calcExample {
             from {
                 top: calc(sin(45deg));
                 top: calc(sin(var(--hey)));
             }
-            100 {
+            100% {
                 top: 
                 calc(200px + 
                     sin(10px +
@@ -291,6 +291,27 @@ describe("CSSKeyframes", () => {
         // keyframes = insertRandomWhitespace(keyframes);
         const frames = parseCSSKeyframes(keyframes);
         console.log(frames);
+    });
+
+    it("should parse keyframes with variables", () => {
+        let keyframes = /*css*/ `@keyframes calcExample {
+            from {
+                top: var(--hey);
+            }
+            100% {
+                background-color: var(--gay-vibes);
+            }
+        }`;
+
+        keyframes = insertRandomWhitespace(keyframes);
+        const frames = parseCSSKeyframes(keyframes);
+
+        assert.equal(Object.values(frames).length, 2);
+        assert.equal(frames[0]["top"].values[0].toString(), "var(--hey)");
+        assert.equal(
+            frames[100]["backgroundColor"].values[0].toString(),
+            "var(--gay-vibes)"
+        );
     });
 
     it("should parse keyframes with nested expressions", () => {

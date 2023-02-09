@@ -133,7 +133,11 @@
             <button class="toggle" @click="toggle">
                 <font-awesome-icon
                     class="icon"
-                    :icon="pausedOrNotStarted ? ['fas', 'play'] : ['fas', 'pause']"
+                    :icon="
+                        animation.paused || !animation.started
+                            ? ['fas', 'play']
+                            : ['fas', 'pause']
+                    "
                 />
             </button>
             <button class="reverse" @click="animation.reverse()">
@@ -250,14 +254,12 @@ const updateTimingFunction = () => {
     setTimingFunction(timingFunction);
 };
 
-let pausedOrNotStarted = $ref(true);
 const toggle = () => {
     if (!animation.started) {
         animation.play();
     } else {
         animation.pause();
     }
-    pausedOrNotStarted = animation.paused;
 };
 
 let CSSKeyframesStringEl = $ref(null);

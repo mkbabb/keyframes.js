@@ -296,7 +296,7 @@ const rotationAnim = $ref(
         },
         "100%": {
             transform: {
-                rotateX: new ValueUnit("rotationX", "var"),
+                rotateX: new ValueUnit("--rotationX", "var"),
                 rotateY: "1turn",
                 rotateZ: "360deg",
                 // matrix3d: matrix3dEnd,

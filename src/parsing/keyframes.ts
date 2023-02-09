@@ -213,7 +213,7 @@ const handleTransform = (r: P.Language) => {
 
 const handleVar = (r: P.Language) => {
     return P.string("var")
-        .then(identifier.trim(r.ws).wrap(r.lparen, r.rparen))
+        .then(r.String.trim(r.ws).wrap(r.lparen, r.rparen))
         .map((value) => {
             return new ValueUnit(value, "var");
         });
@@ -233,7 +233,7 @@ export const CSSKeyframes = P.createLanguage({
 
     Rule: (r) => P.string("@keyframes").trim(r.ws).then(identifier),
 
-    String: () => P.regexp(/[^\(\)\{\}\s,\+\-\*\/;]+/).map((x) => new ValueUnit(x)),
+    String: () => P.regexp(/[^\(\)\{\}\s,;]+/).map((x) => new ValueUnit(x)),
 
     FunctionArgs: (r) => r.Value.sepBy(r.comma).trim(r.ws).wrap(r.lparen, r.rparen),
     Function: (r) =>

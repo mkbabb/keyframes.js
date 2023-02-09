@@ -76,7 +76,7 @@ export function convertToDpi(value: number, unit: string) {
 
 export const getComputedValue = (target: HTMLElement, key: string) => {
     const computed = getComputedStyle(target).getPropertyValue(key);
-    const p = CSSValueUnit.value.parse(computed);
+    const p = CSSValueUnit.Value.parse(computed);
 
     return p.status ? p.value : undefined;
 };
@@ -132,12 +132,14 @@ export class ValueUnit<T = number> {
     }
 
     lerp(t: number, other: ValueUnit<T>, target?: HTMLElement) {
+        if (target && (this.unit === "var" || other.unit === "var")) {
+            return lerpVar(t, this, other, target);
+        }
+
         if (this.unit !== other.unit) {
             const [left, right] = collapseNumericType(this, other, target);
             const value = lerp(t, left.value, right.value);
             return new ValueUnit(value, left.unit, left.superType);
-        } else if (target && (this.unit === "var" || other.unit === "var")) {
-            return lerpVar(t, this, other, target);
         } else if (this.unit === "color") {
             const value = lerpColor(
                 t,
@@ -146,7 +148,7 @@ export class ValueUnit<T = number> {
             );
             return new ValueUnit(value, this.unit, this.superType);
         }
-        
+
         const value = lerp(t, this.value as number, other.value as number);
         return new ValueUnit(value, this.unit, this.superType);
     }
@@ -200,7 +202,7 @@ export const collapseNumericType = (
     b: ValueUnit,
     target?: HTMLElement
 ) => {
-    if (!arrayEquals(a.superType, b.superType)) {
+    if (!arrayEquals(a.superType, b.superType) && a.superType[0] !== "length") {
         return [a, b];
     }
 
@@ -261,9 +263,9 @@ export function transformObject(input: any): TransformedVars {
 
                 return p;
             }
+        } else {
+            return input;
         }
-
-        return input;
     };
 
     recurse(input);

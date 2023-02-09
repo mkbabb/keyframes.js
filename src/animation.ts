@@ -419,14 +419,13 @@ export class Animation<V extends Vars> {
             this.pausedTime = 0;
         }
 
-        this.t = clamp(t - this.startTime, 0, this.options.duration);
+        this.t = t - this.startTime;
 
-        if (this.t === this.options.duration) {
+        if (this.t >= this.options.duration) {
             this.onEnd();
-            return this.options.duration;
-        } else {
-            return this.t;
+            this.t = this.options.duration;
         }
+        return this.t;
     }
 
     draw(t: number) {
@@ -640,7 +639,7 @@ export class AnimationGroup<V> {
         for (const groupObject of this.animationGroup) {
             const { animation, values } = groupObject;
             done = done && animation.done;
-            if (!animation.done && !animation.paused) {
+            if (!(animation.done || animation.paused)) {
                 animation.interpFrames(animation.t, values);
             }
             groupedValues = { ...values, ...groupedValues };
@@ -661,7 +660,9 @@ export class AnimationGroup<V> {
         }
 
         for (const groupObject of this.animationGroup) {
-            groupObject.animation.tick(t);
+            if (!groupObject.animation.paused) {
+                groupObject.animation.tick(t);
+            }
         }
 
         if (this.done) {
