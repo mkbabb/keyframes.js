@@ -3,6 +3,7 @@ import {
     parseCSSKeyframes,
     reverseCSSTime,
     parseCSSTime,
+    CSSKeyframes,
 } from "../src/parsing/keyframes";
 import { CSSKeyframesToString, CSSKeyframesAnimation } from "../src/animation";
 import { expect, describe, it, assert } from "vitest";
@@ -73,7 +74,7 @@ describe("CSSColor", () => {
         ];
         for (const color of colors) {
             const spacedColor = insertRandomWhitespace(color);
-            const value = CSSColor.color.parse(spacedColor);
+            const value = CSSColor.Value.parse(spacedColor);
             expect(value.status, `failed on ${color}`).toBe(true);
         }
     });
@@ -86,7 +87,7 @@ describe("CSSColor", () => {
             "what!",
         ];
         for (const color of colors) {
-            const value = CSSColor.color.parse(color);
+            const value = CSSColor.Value.parse(color);
             expect(value.status).toBe(false);
         }
     });
@@ -142,6 +143,16 @@ describe("CSSTime", () => {
         assert.equal(reverseCSSTime(10000), "10s");
         assert.equal(reverseCSSTime(5000), "5s");
         assert.equal(reverseCSSTime(4500), "4500ms");
+    });
+});
+
+describe("CSSCalc", () => {
+    const parseCalc = (s) => CSSKeyframes.Function.tryParse(s);
+
+    it("should parse CSS calc functions", () => {
+        const calc = parseCalc("calc(1px + 2px*sin(1px))");
+
+        assert.equal(calc.toString(), "2.682941969615793px");
     });
 });
 
@@ -265,7 +276,7 @@ describe("CSSKeyframes", () => {
         let keyframes = /*css*/ `@keyframes calcExample {
             from {
                 top: calc(sin(45deg));
-                top: calc(10px + sin(2 + 2));
+                top: calc(sin(var(--hey)));
             }
             100 {
                 top: 

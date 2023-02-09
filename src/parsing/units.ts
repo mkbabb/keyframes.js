@@ -138,7 +138,7 @@ export const CSSColor = P.createLanguage({
     lch: (r) =>
         colorOptionalAlpha(r, "lch").map(([l, c, h, alpha]) => lch(l, c, h, alpha)),
 
-    color: (r) =>
+    Value: (r) =>
         P.alt(r.hex, r.rgb, r.hsl, r.hsv, r.hwb, r.lab, r.lch, r.name).trim(
             P.optWhitespace
         ),
@@ -151,7 +151,7 @@ export const CSSValueUnit = P.createLanguage({
     resolutionUnit: () => P.alt(...resolutionUnits.map(P.string)),
     percentageUnit: () => P.alt(...percentageUnits.map(P.string)),
 
-    lengthValue: (r) =>
+    Length: (r) =>
         P.seq(number, r.lengthUnit).map(([value, unit]) => {
             let superType = ["length"];
             if (relativeLengthUnits.includes(unit)) {
@@ -161,35 +161,35 @@ export const CSSValueUnit = P.createLanguage({
             }
             return new ValueUnit(value, unit, superType);
         }),
-    angleValue: (r) =>
+    Angle: (r) =>
         P.seq(number, r.angleUnit).map(([value, unit]) => {
             return new ValueUnit(value, unit, ["angle"]);
         }),
-    timeValue: (r) =>
+    Time: (r) =>
         P.seq(number, r.timeUnit).map(([value, unit]) => {
             return new ValueUnit(value, unit, ["time"]);
         }),
-    resolutionValue: (r) =>
+    Resolution: (r) =>
         P.seq(number, r.resolutionUnit).map(([value, unit]) => {
             return new ValueUnit(value, unit, ["resolution"]);
         }),
-    percentageValue: (r) =>
+    Percentage: (r) =>
         P.seq(integer, r.percentageUnit).map(([value, unit]) => {
             return new ValueUnit(value, unit, ["percentage"]);
         }),
 
-    value: (r) =>
+    Value: (r) =>
         P.alt(
-            r.lengthValue,
-            r.angleValue,
-            r.timeValue,
-            r.resolutionValue,
-            r.percentageValue,
-            CSSColor.color.map((x) => new ValueUnit(x, "color")),
+            r.Length,
+            r.Angle,
+            r.Time,
+            r.Resolution,
+            r.Percentage,
+            CSSColor.Value.map((x) => new ValueUnit(x, "color")),
             P.alt(number, none).map((x) => new ValueUnit(x))
-        ).trim(P.optWhitespace) as P.Parser<ValueUnit>,
+        ).trim(P.optWhitespace),
 });
 
 export function parseCSSValueUnit(input: string) {
-    return CSSValueUnit.value.tryParse(input);
+    return CSSValueUnit.Value.tryParse(input);
 }

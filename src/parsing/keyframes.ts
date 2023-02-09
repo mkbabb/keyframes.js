@@ -8,6 +8,7 @@ import {
     ValueArray,
     convertToDegrees,
 } from "../units";
+import { clamp } from "../math";
 
 const istring = (str: string) =>
     P((input, i) => {
@@ -19,12 +20,177 @@ const istring = (str: string) =>
         }
     });
 
+const unaryMathFunctions = {
+    sin: Math.sin,
+    cos: Math.cos,
+    tan: Math.tan,
+    asin: Math.asin,
+    acos: Math.acos,
+    atan: Math.atan,
+    var: (x: string) => x,
+} as const;
+
+const binaryMathFunctions = {
+    pow: Math.pow,
+    atan2: Math.atan2,
+    min: Math.min,
+    max: Math.max,
+    clamp: clamp,
+} as const;
+
+const mathFunctions = {
+    ...unaryMathFunctions,
+    ...binaryMathFunctions,
+};
+
+const evaluateMathFunction = (
+    funcName: keyof typeof mathFunctions,
+    values: ValueUnit[]
+) => {
+    const collapsed = values.reduce((acc, v) => {
+        return collapseNumericType(acc, v);
+    }, values[0])[0];
+
+    const flatValues = values
+        .map((v) => v.value)
+        .map((v) => {
+            if (collapsed.superType && collapsed.superType[0] === "angle") {
+                return convertToDegrees(v, collapsed.unit) * (Math.PI / 180);
+            } else {
+                return v;
+            }
+        });
+    const func = mathFunctions[funcName];
+    const value = func(...flatValues);
+
+    if (value) {
+        return new ValueUnit(value, collapsed.unit, collapsed.superType);
+    } else {
+        return undefined;
+    }
+};
+
+function evaluateMathOperator(
+    operator: string,
+    left: ValueUnit,
+    right: ValueUnit
+): ValueUnit {
+    [left, right] = collapseNumericType(left, right);
+
+    if (!left.unit && right.unit) {
+        [left, right] = [right, left];
+    } else if (right.unit && !arrayEquals(left.superType, right.superType)) {
+        return undefined;
+    }
+
+    const value = (() => {
+        switch (operator) {
+            case "+":
+                return left.value + right.value;
+            case "-":
+                return left.value - right.value;
+            case "*":
+                return left.value * right.value;
+            case "/":
+                return left.value / right.value;
+            case "//":
+                return Math.floor(left.value / right.value);
+            case "^":
+                return Math.pow(left.value, right.value);
+            default:
+                throw new Error(`Unknown operator ${operator}`);
+        }
+    })();
+
+    return new ValueUnit(value, left.unit, left.superType);
+}
+
+const reduceMathOperators = (left: ValueUnit, rest: any[]) => {
+    if (rest.length === 0) {
+        return left;
+    }
+    const value = rest.reduce((acc, [op, right]) => {
+        if (typeof acc === "string" || !(right instanceof ValueUnit)) {
+            return `${acc} ${op} ${right}`;
+        }
+
+        const v = evaluateMathOperator(op, acc, right);
+        if (!v) {
+            return `${acc} ${op} ${right}`;
+        } else {
+            return v;
+        }
+    }, left);
+
+    return value;
+};
+
+const MathValue: P.Language = P.createLanguage({
+    ws: () => P.optWhitespace,
+    lparen: (r) => P.string("(").trim(r.ws),
+    rparen: (r) => P.string(")").trim(r.ws),
+    comma: (r) => P.string(",").trim(r.ws),
+
+    termOperators: (r) => P.alt(...["*", "/", "//"].map(P.string)).trim(r.ws),
+    factorOperators: (r) => P.alt(...["+", "-"].map(P.string)).trim(r.ws),
+    pow: (r) => P.string("^").trim(r.ws),
+
+    Expression: (r) => P.alt(r.Function, r.Term),
+
+    FunctionArgs: (r) =>
+        P.sepBy1(r.Expression, r.comma).trim(r.ws).wrap(r.lparen, r.rparen),
+    Function: (r) =>
+        P.seq(P.alt(...Object.keys(mathFunctions).map(P.string)), r.FunctionArgs).map(
+            ([name, args]) => {
+                const v = evaluateMathFunction(
+                    name as keyof typeof mathFunctions,
+                    args
+                );
+
+                if (v) {
+                    return v;
+                } else {
+                    return new FunctionValue(name, args);
+                }
+            }
+        ),
+
+    Term: (r) =>
+        P.seqMap(
+            r.Factor,
+            P.seq(r.termOperators, r.Factor).many(),
+            reduceMathOperators
+        ),
+    Factor: (r) =>
+        P.seqMap(r.Atom, P.seq(r.factorOperators, r.Term).many(), reduceMathOperators),
+
+    CSSVariable: (r) =>
+        P.string("--")
+            .then(identifier)
+            .map((v) => {
+                return new ValueUnit("--" + v, "var");
+            }),
+
+    Atom: (r) => P.alt(CSSValueUnit.Value, r.CSSVariable, r.Expression).trim(r.ws),
+});
+
+const handleCalc = (r: P.Language) => {
+    return P.string("calc")
+        .then(MathValue.Expression.trim(r.ws).wrap(r.lparen, r.rparen))
+        .map((v) => {
+            if (v instanceof ValueUnit) {
+                return v;
+            } else {
+                return new ValueUnit(v, "calc");
+            }
+        });
+};
+
 const TRANSFORM_FUNCTIONS = ["translate", "scale", "rotate", "skew"].map(istring);
 const DIMS = ["x", "y", "z"].map(istring);
 
 const handleFunc = (r: P.Language, name?: P.Parser<any>) => {
-    return P.seq(name ? name : identifier, r.functionArgs).map((v) => {
-        console.log(v);
+    return P.seq(name ? name : identifier, r.FunctionArgs).map((v) => {
         return v;
     });
 };
@@ -47,107 +213,14 @@ const handleTransform = (r: P.Language) => {
 
 const handleVar = (r: P.Language) => {
     return P.string("var")
-        .then(r.lparen)
-        .skip(r.ws)
-        .then(P.string("--"))
-        .then(identifier)
-        .skip(r.ws)
-        .skip(r.rparen)
-        .map((value: ValueArray) => {
+        .then(identifier.trim(r.ws).wrap(r.lparen, r.rparen))
+        .map((value) => {
             return new ValueUnit(value, "var");
-        });
-};
-
-const OPERATORS = ["+", "-", "*", "/"];
-
-const mathFunctions = [
-    "min",
-    "max",
-    "clamp",
-    "sin",
-    "cos",
-    "tan",
-    "asin",
-    "acos",
-    "atan",
-    "atan2",
-] as const;
-
-const MATH_FUNCTIONS = [...mathFunctions].map(P.string);
-
-const evaluateMathFunction = (func: string, value: ValueUnit) => {
-    value.value = (() => {
-        if (value.superType && value.superType[0] === "angle") {
-            return Math[func](
-                convertToDegrees(value.value, value.unit) * (Math.PI / 180)
-            );
-        } else {
-            return Math[func](value.value);
-        }
-    })();
-    return new ValueArray([value]);
-};
-
-const binaryMathExpression = (r: P.Language) =>
-    P.seq(
-        r.mathFunctionExpression,
-        P.seq(r.operator.trim(r.ws), r.mathValue).many()
-    ).map(([a, bs]) => {
-        if (bs.length === 0) {
-            return a;
-        }
-        let v = a.values[0];
-
-        for (let [operator, b] of bs) {
-            b = b.values[0];
-            [v, b] = collapseNumericType(v, b);
-
-            if (!v.unit && b.unit) {
-                [v, b] = [b, v];
-            } else if (b.unit && !arrayEquals(v.superType, b.superType)) {
-                throw new Error(`Units of ${v.unit} !== ${b.unit}`);
-            }
-
-            switch (operator) {
-                case "+":
-                    v = new ValueUnit(v.value + b.value, v.unit, v.superType);
-                    break;
-                case "-":
-                    v = new ValueUnit(v.value - b.value, v.unit, v.superType);
-                    break;
-                case "*":
-                    v = new ValueUnit(v.value * b.value, v.unit, v.superType);
-                    break;
-                case "/":
-                    v = new ValueUnit(v.value / b.value, v.unit, v.superType);
-                    break;
-                case "min":
-                    v = new ValueUnit(Math.min(v.value, b.value), v.unit, v.superType);
-                    break;
-                case "max":
-                    v = new ValueUnit(Math.max(v.value, b.value), v.unit, v.superType);
-                    break;
-            }
-        }
-        return new ValueArray([v]);
-    });
-
-const handleCalc = (r: P.Language) => {
-    return P.string("calc")
-        .then(r.mathValue.trim(r.ws).wrap(r.lparen, r.rparen))
-        .map((value: ValueArray) => {
-            if (value.values.length === 1) {
-                return value.values[0];
-            } else {
-                return new ValueUnit(value.values.join(" "), "calc");
-            }
         });
 };
 
 export const CSSKeyframes = P.createLanguage({
     ws: () => P.optWhitespace,
-
-    rule: (r) => P.string("@keyframes").trim(r.ws).then(identifier),
 
     semi: () => P.string(";"),
     colon: () => P.string(":"),
@@ -156,11 +229,38 @@ export const CSSKeyframes = P.createLanguage({
     lparen: () => P.string("("),
     rparen: () => P.string(")"),
 
-    comma: (r) => P.string(","),
+    comma: () => P.string(","),
 
-    operator: () => P.alt(...OPERATORS.map(P.string)).trim(P.optWhitespace),
+    Rule: (r) => P.string("@keyframes").trim(r.ws).then(identifier),
 
-    percent: (r) =>
+    String: () => P.regexp(/[^\(\)\{\}\s,\+\-\*\/;]+/).map((x) => new ValueUnit(x)),
+
+    FunctionArgs: (r) => r.Value.sepBy(r.comma).trim(r.ws).wrap(r.lparen, r.rparen),
+    Function: (r) =>
+        P.alt(
+            handleTransform(r),
+            handleVar(r),
+            handleCalc(r),
+            handleFunc(r).map(([name, values]) => new FunctionValue(name, values))
+        ),
+
+    Value: (r) => P.alt(CSSValueUnit.Value, r.Function, r.String).trim(r.ws),
+    Values: (r) => r.Value.sepBy(r.ws).map((x) => new ValueArray(x)),
+
+    Variables: (r) =>
+        P.seq(
+            identifier
+                .skip(r.colon)
+                .trim(r.ws)
+                .map((x) => hyphenToCamelCase(x)),
+            r.Values.skip(r.semi).trim(r.ws)
+        ).map(([name, value]) => {
+            return {
+                [name]: value,
+            };
+        }),
+
+    Percent: (r) =>
         P.alt(
             integer.skip(P.string("%").or(P.string(""))),
             P.string("from").map(() => "0"),
@@ -169,47 +269,8 @@ export const CSSKeyframes = P.createLanguage({
             .trim(r.ws)
             .map(Number),
 
-    string: () => P.regexp(/[^\(\)\{\}\s,\+\-\*\/;]+/).map((x) => new ValueUnit(x)),
-
-    functionArgs: (r) => r.valuePart.sepBy(r.comma).trim(r.ws).wrap(r.lparen, r.rparen),
-
-    function: (r) =>
-        P.alt(
-            handleTransform(r),
-            handleVar(r),
-            handleCalc(r),
-            handleFunc(r).map(([name, values]) => new FunctionValue(name, values))
-        ),
-
-    valuePart: (r) => P.alt(CSSValueUnit.value, r.function, r.string).trim(r.ws),
-    value: (r) => r.valuePart.sepBy(r.ws).map((x) => new ValueArray(x)),
-
-    mathFunction: (r) =>
-        P.seq(
-            P.alt(...MATH_FUNCTIONS).skip(r.ws),
-            r.mathValue.trim(r.ws).wrap(r.lparen, r.rparen)
-        ).map(([func, values]) => {
-            const v = evaluateMathFunction(func, values.values[0]);
-            return v;
-        }),
-    mathFunctionExpression: (r) => r.mathFunction.or(r.value),
-    mathValue: (r) => binaryMathExpression(r).or(r.mathFunctionExpression),
-
-    values: (r) =>
-        P.seq(
-            identifier
-                .skip(r.colon)
-                .trim(r.ws)
-                .map((x) => hyphenToCamelCase(x)),
-            r.value.skip(r.semi).trim(r.ws)
-        ).map(([name, value]) => {
-            return {
-                [name]: value,
-            };
-        }),
-
-    frame: (r) =>
-        P.seq(r.percent, r.values.atLeast(1).trim(r.ws).wrap(r.lcurly, r.rcurly)).map(
+    Keyframe: (r) =>
+        P.seq(r.Percent, r.Variables.many().trim(r.ws).wrap(r.lcurly, r.rcurly)).map(
             ([percent, values]) => {
                 return {
                     [percent]: Object.assign({}, ...values),
@@ -217,32 +278,30 @@ export const CSSKeyframes = P.createLanguage({
             }
         ),
 
-    keyframe: (r) =>
-        r.rule
-            .then(r.frame.atLeast(1).trim(r.ws).wrap(r.lcurly, r.rcurly).trim(r.ws))
-            .map((frame) => {
-                return Object.assign({}, ...frame);
-            }),
+    Keyframes: (r) =>
+        r.Rule.then(
+            r.Keyframe.atLeast(1).trim(r.ws).wrap(r.lcurly, r.rcurly).trim(r.ws)
+        ).map((frame) => {
+            return Object.assign({}, ...frame);
+        }),
 });
 
 export const parseCSSKeyframes = (input: string): Record<string, any> =>
-    CSSKeyframes.keyframe.tryParse(input);
+    CSSKeyframes.Keyframes.tryParse(input);
 
 export const parseCSSPercent = (input: string | number): number =>
-    CSSKeyframes.percent.tryParse(String(input));
+    CSSKeyframes.Percent.tryParse(String(input));
 
 export function parseCSSTime(input: string): number {
-    return CSSValueUnit.timeValue
-        .map((v: ValueUnit) => {
-            if (v.unit === "ms") {
-                return v.value;
-            } else if (v.unit === "s") {
-                return v.value * 1000;
-            } else {
-                return v.value;
-            }
-        })
-        .tryParse(input);
+    return CSSValueUnit.Time.map((v: ValueUnit) => {
+        if (v.unit === "ms") {
+            return v.value;
+        } else if (v.unit === "s") {
+            return v.value * 1000;
+        } else {
+            return v.value;
+        }
+    }).tryParse(input);
 }
 
 export const reverseCSSTime = (time: number): string => {
