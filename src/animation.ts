@@ -620,15 +620,18 @@ export class AnimationGroup<V> {
     }
 
     pause() {
-        if (this.paused) {
-            requestAnimationFrame(this.draw.bind(this));
-        }
+        const prevPaused = this.paused;
+
         if (this.started) {
             this.paused = !this.paused;
             this.animationGroup.forEach((groupObject) => {
-                groupObject.animation.paused = this.paused;
+                groupObject.animation.pause();
             });
         }
+        if (prevPaused) {
+            requestAnimationFrame(this.draw.bind(this));
+        }
+
         return this;
     }
 

@@ -22,12 +22,14 @@
             </button>
         </div>
 
-        <AnimationControls
-            v-if="selectedAnimation"
-            @slider-update="sliderUpdate"
-            :animation="animations[selectedAnimation]"
-            :is-grouped="true"
-        />
+        <template v-for="(animation, name) in animations">
+            <AnimationControls
+                v-show="selectedAnimation == name"
+                @slider-update="sliderUpdate"
+                :animation="animation"
+                :is-grouped="true"
+            />
+        </template>
     </div>
 </template>
 
@@ -45,7 +47,8 @@ const emit = defineEmits<{
     (e: "selectedAnimation", val: string): void;
 }>();
 
-let animationGroup: AnimationGroup<any>;
+const animationGroup = $ref(new AnimationGroup(...Object.values(animations)));
+selectedAnimation.value = Object.keys(animations)[0];
 
 const sliderUpdate = (e: { t: number; animationId: number }) => {
     const { t, animationId } = e;
@@ -55,11 +58,15 @@ const sliderUpdate = (e: { t: number; animationId: number }) => {
     const { animation } = groupObject;
 
     const paused = animation.paused;
+    const prevT = animation.t;
+
     animation.paused = false;
+    animation.t = t;
 
     animationGroup.transformFrames(t);
 
     animation.paused = paused;
+    animation.t = prevT;
 };
 
 const toggle = () => {
@@ -70,20 +77,15 @@ const toggle = () => {
     }
 };
 
-onMounted(() => {
-    animationGroup = new AnimationGroup(...Object.values(animations));
-    selectedAnimation.value = Object.keys(animations)[0];
-});
+onMounted(() => {});
 </script>
 
 <style scoped lang="scss">
 .animation-controls-group {
     display: flex;
     flex-direction: column;
-    width: min-content;
-    height: 100%;
-    min-height: 100%;
     gap: 1rem;
+    z-index: 1;
 }
 
 .animation-select {

@@ -30,7 +30,7 @@ export function logerp(t: number, from: number, to: number) {
 
 export function deCasteljau(t: number, points: number[]) {
     const n = points.length - 1;
-    let b = [...points];
+    const b = [...points];
 
     for (let i = 1; i <= n; i++) {
         for (let j = 0; j <= n - i; j++) {
@@ -39,6 +39,7 @@ export function deCasteljau(t: number, points: number[]) {
     }
     return b[0];
 }
+
 
 export function cubicBezier(t: number, x1: number, y1: number, x2: number, y2: number) {
     return [deCasteljau(t, [0, x1, x2, 1]), deCasteljau(t, [0, y1, y2, 1])];

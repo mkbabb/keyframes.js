@@ -6,7 +6,14 @@
             @selected-animation="(s) => (selectedAnimation = s)"
         />
 
-        <div :class="['matrix-controls']">
+        <div
+            :class="[
+                'matrix-controls',
+                !matrixAnim.animation.started || matrixAnim.animation.paused
+                    ? 'disabled'
+                    : '',
+            ]"
+        >
             <div class="matrix-input">
                 <div class="matrix-cell" v-for="(value, i) in matrix3dEnd.values">
                     <input

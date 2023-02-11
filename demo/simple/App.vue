@@ -52,13 +52,13 @@ const transformStart = {
 const transformEnd = {
     x: "50%",
     y: "75%",
-    a: {
-        b: {
-            c: {
-                d: "200%",
+        a: {
+            b: {
+                c: {
+                    d: "200%",
+                },
             },
         },
-    },
 };
 anim.fromFrames({
     0: [

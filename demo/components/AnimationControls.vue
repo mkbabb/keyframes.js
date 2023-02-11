@@ -69,10 +69,17 @@
 
             <template v-if="timingFunctionKey === 'cubicBezier'">
                 <div class="cubic-bezier-controls">
-                    <select @input="updateTimingFunction" v-model="cubicBezierValues">
+                    <select
+                        @input="updateTimingFunction"
+                        @change="
+                            (e) => {
+                                cubicBezierValues = [...bezierPresets[e.target.value]];
+                            }
+                        "
+                    >
                         <option
                             v-for="(preset, presetName) in bezierPresets"
-                            :value="preset"
+                            :value="presetName"
                         >
                             {{ presetName }}
                         </option>
@@ -317,7 +324,7 @@ const cssApply = () => {
         animation.target.classList.remove("animation");
     } else {
         prevPaused = animation.paused;
-        animation.paused = animation.started && true;
+        animation.paused = animation.started;
 
         style.innerHTML = cssKeyframesString.value;
         document.head.appendChild(style);
