@@ -198,7 +198,10 @@ export class Animation<V extends Vars> {
         public target: HTMLElement = document.documentElement
     ) {
         this.options = { ...defaultOptions, ...options };
-        this.options.timingFunction = getTimingFunction(this.options.timingFunction);
+
+        this.updateTimingFunction(this.options.timingFunction);
+        this.updateDuration(this.options.duration);
+        this.updateIterationCount(this.options.iterationCount);
     }
 
     frame<K extends V>(
@@ -245,6 +248,11 @@ export class Animation<V extends Vars> {
         return this;
     }
 
+    updateTimingFunction(timingFunction: TimingFunction) {
+        this.options.timingFunction = getTimingFunction(timingFunction);
+        return this;
+    }
+
     updateIterationCount(iterationCount: number | "infinite") {
         if (iterationCount === "infinite") {
             this.options.iterationCount = Infinity;
@@ -285,8 +293,8 @@ export class Animation<V extends Vars> {
         return this;
     }
 
-    pause() {
-        if (this.paused) {
+    pause(draw: boolean = true) {
+        if (this.paused && draw) {
             requestAnimationFrame(this.draw.bind(this));
         }
         if (this.started) {
@@ -461,18 +469,23 @@ export function reverseTransformStyle(t: number, vars: any) {
 }
 
 function transformTargetsStyle(t: number, vars: any, targets: HTMLElement[]) {
+    const transformedVars = {};
+
     for (const [key, value] of Object.entries(vars)) {
         if (typeof value === "object") {
             let s = "";
             for (const [k, v] of Object.entries(value)) {
-                s += v.includes("(") ? v : `${k}(${v}) `;
+                s += v.includes("(") ? v : `${k}(${v})`;
             }
-            vars[key] = s;
+            transformedVars[key] = s;
+        } else {
+            transformedVars[key] = value;
         }
-        targets.forEach((target) => {
-            target.style[key] = vars[key];
-        });
     }
+
+    targets.forEach((target) => {
+        Object.assign(target.style, transformedVars);
+    });
 }
 
 export class CSSKeyframesAnimation<V extends Vars> {
@@ -495,6 +508,7 @@ export class CSSKeyframesAnimation<V extends Vars> {
 
     initAnimation() {
         this.animation = new Animation<V>(this.options, this.targets?.[0]);
+        this.options = this.animation.options;
         return this;
     }
 
@@ -545,10 +559,11 @@ export class CSSKeyframesAnimation<V extends Vars> {
         return this;
     }
 
-    fromCSSKeyframes(keyframes: string) {
+    fromCSSKeyframes(keyframes: string | Record<string, Partial<V>>) {
         this.initAnimation();
 
-        const frames = parseCSSKeyframes(keyframes);
+        const frames =
+            typeof keyframes === "string" ? parseCSSKeyframes(keyframes) : keyframes;
 
         for (const [percent, frame] of Object.entries(frames)) {
             this.animation.frame(Number(percent), frame, this.transform.bind(this));
@@ -625,7 +640,7 @@ export class AnimationGroup<V> {
         if (this.started) {
             this.paused = !this.paused;
             this.animationGroup.forEach((groupObject) => {
-                groupObject.animation.pause();
+                groupObject.animation.pause(false);
             });
         }
         if (prevPaused) {
@@ -721,19 +736,27 @@ export function CSSKeyframesToString<V extends Vars>(
     printWidth: number = 80
 ): string {
     const options = animation.options;
-    const keyframeCss = animation.templateFrames
-        .map((frame) => {
-            let css = `  ${frame.start}% {\n`;
-            for (let [name, v] of Object.entries(frame.vars)) {
-                name = camelCaseToHyphen(name);
-                let s = objectToString(name, v);
+    const keyframesMap = new Map<string, number[]>();
+    const keyframeStrings = animation.templateFrames.forEach((frame) => {
+        let css = `{\n`;
+        for (let [name, v] of Object.entries(frame.vars)) {
+            name = camelCaseToHyphen(name);
+            let s = objectToString(name, v);
 
-                css += `  ${name}: ${s};\n`;
-            }
-            css += "  }\n";
-            return css;
-        })
-        .join("");
+            css += `  ${name}: ${s};\n`;
+        }
+        css += "  }\n";
+        if (!keyframesMap.has(css)) {
+            keyframesMap.set(css, [frame.start]);
+        } else {
+            keyframesMap.get(css).push(frame.start);
+        }
+    });
+
+    let keyframesString = "";
+    for (let [css, percents] of keyframesMap) {
+        keyframesString += `${percents.join(", ")}% ${css}`;
+    }
 
     let animationCss = `.${name} {\n`;
 
@@ -750,6 +773,7 @@ export function CSSKeyframesToString<V extends Vars>(
         isFinite(options.iterationCount) ? options.iterationCount : "infinite"
     };\n`;
     animationCss += `  animation-direction: ${options.direction};\n`;
+    animationCss += `  animation-fill-mode: ${options.fillMode};\n`;
 
     if (options.delay > 0) {
         animationCss += `  animation-delay: ${reverseCSSTime(options.delay)};\n`;
@@ -757,7 +781,7 @@ export function CSSKeyframesToString<V extends Vars>(
 
     animationCss += `}\n`;
 
-    const keyframes = `${animationCss}\n@keyframes ${name} {\n${keyframeCss}}`;
+    const keyframes = `${animationCss}\n@keyframes ${name} {\n${keyframesString}}`;
 
     return prettier.format(keyframes, {
         parser: "css",

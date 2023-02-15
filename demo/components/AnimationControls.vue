@@ -153,7 +153,11 @@
             <button class="reset" @click="animation.reset()">Reset</button>
         </div>
 
-        <div class="css-keyframes-string" v-if="style">
+        <div
+            class="css-keyframes-string"
+            v-if="style"
+            @input="parseCSSKeyframesStringEl"
+        >
             <div class="control-bar">
                 <button class="clipboard" @click="copyToClipboard">
                     <div ref="copyTextEl" class="info">Copied!</div>
@@ -170,6 +174,7 @@
             <pre
                 ref="CSSKeyframesStringEl"
                 class="hljs css"
+                contenteditable="true"
             ><code>{{ cssKeyframesString }}</code></pre>
         </div>
     </div>
@@ -183,12 +188,18 @@ import {
     CSSKeyframesAnimation,
 } from "../../src/animation";
 import { timingFunctions, jumpTerms, CSSBezier, bezierPresets } from "../../src/easing";
-import { reverseCSSTime, parseCSSTime } from "../../src/parsing/keyframes";
+import {
+    reverseCSSTime,
+    parseCSSTime,
+    CSSClass,
+    CSSAnimationKeyframes,
+} from "../../src/parsing/keyframes";
 import { formatNumber } from "./utils";
 
 import "highlight.js/styles/github-dark-dimmed.css";
 import hljs from "highlight.js";
 import css from "highlight.js/lib/languages/css";
+import { debounce } from "../../src/utils";
 
 hljs.registerLanguage("css", css);
 
@@ -262,16 +273,17 @@ const updateTimingFunction = () => {
 };
 
 const toggle = () => {
-    if (!animation.started) {
+    if (!animation.started && !isGrouped) {
         animation.play();
     } else {
-        animation.pause();
+        animation.pause(!isGrouped);
     }
 };
 
 let CSSKeyframesStringEl = $ref(null);
-let cssKeyframesString = computed(() => {
-    const s = CSSKeyframesToString(animation, "animation", 45);
+
+const updateCSSKeyframesString = (keyframes?: string) => {
+    const s = keyframes ?? CSSKeyframesToString(animation, "animation", 45);
 
     if (CSSKeyframesStringEl) {
         const h = hljs.highlight(s, { language: "css" });
@@ -282,9 +294,40 @@ let cssKeyframesString = computed(() => {
     }
 
     return s;
+};
+
+const cssKeyframesString = computed(() => {
+    return updateCSSKeyframesString();
 });
 
-let copyTextEl = $ref(null);
+let parseCSSKeyframesStringEl = (event: Event) => {
+    const s: string = event.target.innerText;
+
+    const p = CSSAnimationKeyframes.Values.parse(s);
+
+    if (!p.status) {
+        CSSKeyframesStringEl.parentElement.classList.add("error");
+    } else {
+        CSSKeyframesStringEl.parentElement.classList.remove("error");
+
+        const { options, values, keyframes } = p.value;
+
+        const anim = new CSSKeyframesAnimation(options).fromCSSKeyframes(
+            keyframes
+        ).animation;
+
+        for (const key of Object.keys(animation)) {
+            if (anim[key]) {
+                Object.assign(animation[key], anim[key]);
+            }
+        }
+
+        console.log(options, values);
+
+        updateCSSKeyframesString();
+    }
+};
+parseCSSKeyframesStringEl = debounce(parseCSSKeyframesStringEl, 1000);
 
 const fadeInOut = (el) => {
     new CSSKeyframesAnimation(
@@ -307,6 +350,7 @@ const fadeInOut = (el) => {
         .play();
 };
 
+let copyTextEl = $ref(null);
 const copyToClipboard = () => {
     navigator.clipboard.writeText(cssKeyframesString.value);
     fadeInOut(copyTextEl);
@@ -340,8 +384,9 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .animation-controls {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    align-items: center;
+
     gap: 1rem;
     position: relative;
     z-index: 2;
@@ -399,20 +444,48 @@ input[type="range"] {
     }
 }
 
+@keyframes shake {
+    8%,
+    41% {
+        transform: translateX(-10px);
+    }
+    25%,
+    58% {
+        transform: translateX(10px);
+    }
+    75% {
+        transform: translateX(-5px);
+    }
+    92% {
+        transform: translateX(5px);
+    }
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+}
+
 .css-keyframes-string {
     padding: 0 0.5rem;
-    border-radius: 5px;
+
     font-size: 0.8rem;
     position: relative;
+
+    max-width: 48ch;
+    max-height: 48ch;
+    overflow: scroll;
+
+    margin: auto;
 
     z-index: 1;
 
     pre {
-        width: 48ch;
-        max-height: 48ch;
-        overflow: scroll;
         padding: 1rem;
         border-radius: 5px;
+    }
+
+    &.error {
+        animation: shake 700ms linear;
     }
 }
 

@@ -19,6 +19,9 @@ body {
     align-items: center;
     flex-direction: column;
     justify-content: center;
+
+    width: min(100%, 1600px);
+    margin: auto;
 }
 
 label {
@@ -34,6 +37,7 @@ label {
     font-weight: bold;
     text-overflow: ellipsis;
     white-space: nowrap;
+   
 }
 
 input[type="number"],
@@ -44,9 +48,8 @@ select {
     border: none;
     border-radius: 5px;
     padding: 0.25rem 0.5rem;
-    width: min-content;
     display: flex;
-    width: 16ch;
+    width: max-content;
 
     text-overflow: ellipsis;
 }

@@ -269,14 +269,22 @@ export const CSSKeyframes = P.createLanguage({
             .trim(r.ws)
             .map(Number),
 
+    Percents: (r) => r.Percent.sepBy(r.comma).trim(r.ws),
+
+    Body: (r) =>
+        r.Variables.many()
+            .trim(r.ws)
+            .wrap(r.lcurly, r.rcurly)
+            .map((values) => Object.assign({}, ...values)),
+
     Keyframe: (r) =>
-        P.seq(r.Percent, r.Variables.many().trim(r.ws).wrap(r.lcurly, r.rcurly)).map(
-            ([percent, values]) => {
-                return {
-                    [percent]: Object.assign({}, ...values),
-                };
+        P.seq(r.Percents, r.Body).map(([percents, values]) => {
+            const keyframe = {};
+            for (const percent of percents) {
+                keyframe[percent] = values;
             }
-        ),
+            return keyframe;
+        }),
 
     Keyframes: (r) =>
         r.Rule.then(
@@ -284,6 +292,56 @@ export const CSSKeyframes = P.createLanguage({
         ).map((frame) => {
             return Object.assign({}, ...frame);
         }),
+});
+
+export const CSSClass = P.createLanguage({
+    ws: () => P.optWhitespace,
+
+    semi: () => P.string(";"),
+    colon: () => P.string(":"),
+    lcurly: () => P.string("{"),
+    rcurly: () => P.string("}"),
+    lparen: () => P.string("("),
+    rparen: () => P.string(")"),
+
+    comma: () => P.string(","),
+    dot: () => P.string("."),
+
+    Rule: (r) => r.dot.trim(r.ws).then(identifier).trim(r.ws),
+    Class: (r) =>
+        r.Rule.then(
+            CSSKeyframes.Body.map((values) => {
+                const options = {};
+                for (let [key, value] of Object.entries(values)) {
+                    if (key.includes("animation")) {
+                        let newKey = key
+                            .replace(/^animation/i, "")
+                            .replace(/^\w/, (c) => c.toLowerCase());
+                        options[newKey] = value.toString();
+                        delete values[key];
+                    }
+                }
+
+                return {
+                    options,
+                    values,
+                };
+            })
+        ),
+});
+
+export const CSSAnimationKeyframes = P.createLanguage({
+    ws: () => P.optWhitespace,
+    Value: (r) =>
+        P.alt(
+            CSSClass.Class,
+            CSSKeyframes.Keyframes.map((value) => {
+                return {
+                    keyframes: value,
+                };
+            })
+        ),
+    Values: (r) => r.Value.sepBy(r.ws).map((values) => Object.assign({}, ...values)),
 });
 
 export const parseCSSKeyframes = (input: string): Record<string, any> =>
