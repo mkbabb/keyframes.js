@@ -309,7 +309,7 @@ export class Animation<V extends Vars> {
         this.prevTime = 0;
         this.t = 0;
 
-        this.started = false;
+        // this.started = false;
         this.paused = false;
 
         return this;
