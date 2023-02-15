@@ -491,7 +491,7 @@ input[type="range"] {
 
 .info {
     position: absolute;
-    transform: translate(-50%, -125%);
+    transform: translate(-50%, 125%);
 
     width: fit-content;
     font-size: 1rem;
@@ -514,5 +514,9 @@ input[type="range"] {
     background-color: transparent;
     display: flex;
     gap: 1rem;
+
+    * {
+        font-size: 1rem;
+    }
 }
 </style>
