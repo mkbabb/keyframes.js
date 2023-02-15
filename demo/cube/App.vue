@@ -363,31 +363,12 @@ body {
     overflow: hidden;
 }
 
-@media screen and (max-width: 900px) {
-    // TODO! Make this work
-    .container {
-        grid-template-areas: "animation-controls" "graph" "matrix-controls";
-        grid-template-columns: auto;
-        grid-template-rows: 1fr 75vh 1fr;
-        overflow-y: scroll;
-    }
-
-    .animation-controls {
-        .css-keyframes-string {
-            display: none;
-        }
-    }
-}
-
 .animation-controls {
     grid-area: animation-controls;
 }
 
 .graph {
     grid-area: graph;
-
-    height: 100%;
-    width: 100%;
 
     display: flex;
     align-items: center;
@@ -543,6 +524,25 @@ body {
         opacity: 0.3;
         font-size: 2.5rem;
         color: var(--color);
+    }
+}
+
+@media screen and (max-width: 900px) {
+    :root {
+        font-size: 0.8rem;
+    }
+
+    .container {
+        grid-template-areas: "animation-controls" "graph" "matrix-controls";
+        grid-template-columns: auto;
+        grid-template-rows: 1fr 60vh 1fr;
+        overflow-y: scroll;
+    }
+
+    .animation-controls {
+        .css-keyframes-string {
+            display: none;
+        }
     }
 }
 </style>
