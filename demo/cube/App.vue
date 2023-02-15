@@ -352,9 +352,9 @@ body {
     --padding: 0.5rem;
     display: grid;
     padding: var(--padding);
+
+    width: 100%;
     height: 100%;
-    min-height: calc(100vh - 2 * var(--padding));
-    width: calc(100% - 2 * var(--padding));
 
     grid-template-areas: "animation-controls graph matrix-controls";
     grid-template-columns: 1fr 2fr 1fr;
@@ -529,7 +529,7 @@ body {
 
 @media screen and (max-width: 900px) {
     :root {
-        font-size: 0.8rem;
+        font-size: 0.9rem;
     }
 
     .container {
@@ -537,6 +537,8 @@ body {
         grid-template-columns: auto;
         grid-template-rows: 1fr 60vh 1fr;
         overflow-y: scroll;
+        min-height: 100vh;
+        min-height: 100dvh;
     }
 
     .animation-controls {
