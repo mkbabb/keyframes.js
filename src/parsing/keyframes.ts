@@ -219,14 +219,23 @@ const handleVar = (r: P.Language) => {
         });
 };
 
+const gradientDirections = {
+    left: "270",
+    right: "90",
+    top: "0",
+    bottom: "180",
+};
+
 const handleGradient = (r: P.Language) => {
     const name = P.alt(...["linear-gradient", "radial-gradient"].map(istring));
     const sideOrCorner = P.seq(
         P.string("to").skip(r.ws),
         P.alt(...["left", "right", "top", "bottom"].map(istring))
-    )
-        .map((v) => v.join(" "))
-        .map((v) => new ValueUnit(v, "string"));
+    ).map(([to, direction]) => {
+        direction = gradientDirections[direction.toLowerCase()];
+        return new ValueUnit(direction, "deg");
+    });
+
     const direction = P.alt(CSSValueUnit.Angle, sideOrCorner);
 
     const lengthPercentage = P.alt(CSSValueUnit.Length, CSSValueUnit.Percentage);
@@ -245,9 +254,8 @@ const handleGradient = (r: P.Language) => {
     const colorStopList = P.seq(
         linearColorStop,
         r.comma.trim(r.ws).then(linearColorStop.or(lengthPercentage)).many()
-    ).map(([first, rest]) => 
-    {
-        return [first, ...rest].map(v => new ValueArray(v));
+    ).map(([first, rest]) => {
+        return [first, ...rest].map((v) => new ValueArray(v));
     });
 
     const linearGradient = P.seq(

@@ -12,6 +12,7 @@ import {
     TransformedVars,
     transformObject,
     ValueArray,
+    ValueUnit,
 } from "./units";
 import { camelCaseToHyphen, sleep } from "./utils";
 
@@ -28,7 +29,7 @@ export type Vars<T = any> = {
 };
 
 type TransformFunction<V extends Vars> = (t: number, v: V) => void;
-type TimingFunction = (t: number) => number;
+type TimingFunction = (t: number) => number | keyof typeof timingFunctions;
 
 export type Keyframe<V extends Vars> = [
     vars: V,
@@ -38,7 +39,7 @@ export type Keyframe<V extends Vars> = [
 
 interface TemplateAnimationFrame<V extends Vars> {
     id: number;
-    start: number;
+    start: ValueUnit;
     vars: V;
     transform?: TransformFunction<V>;
     timingFunction?: TimingFunction;
@@ -60,12 +61,10 @@ function calcFrameTime<V extends Vars>(
     endFrame: TemplateAnimationFrame<V>,
     duration: number
 ) {
-    let [start, stop] = [startFrame.start, endFrame.start];
-    start = (start * duration) / 100;
-    stop = (stop * duration) / 100;
+    const [start, stop] = [startFrame.start, endFrame.start];
     return {
-        start,
-        stop,
+        start: (start.value * duration) / 100,
+        stop: (stop.value * duration) / 100,
     };
 }
 
@@ -159,7 +158,7 @@ const defaultOptions: AnimationOptions = {
 };
 
 const getTimingFunction = (
-    timingFunction: keyof typeof timingFunctions | TimingFunction
+    timingFunction: TimingFunction
 ): TimingFunction | typeof timingFunction | undefined => {
     if (typeof timingFunction === "string") {
         return timingFunctions[timingFunction];
@@ -205,11 +204,14 @@ export class Animation<V extends Vars> {
     }
 
     frame<K extends V>(
-        start: number,
+        start: number | string,
         vars: Partial<K>,
         transform?: TransformFunction<K>,
         timingFunction?: TimingFunction
     ): Animation<K> {
+        start = typeof start === "number" ? String(start) + "%" : start;
+        start = CSSValueUnit.Value.tryParse(start)!;
+
         const templateFrame = {
             id: this.frameId,
             start,
@@ -233,7 +235,26 @@ export class Animation<V extends Vars> {
     }
 
     parseFrames() {
-        this.templateFrames.sort((a, b) => a.start - b.start);
+        for (let i = 0; i < this.templateFrames.length; i++) {
+            const frame = this.templateFrames[i];
+
+            if (frame.start.unit === "ms") {
+                frame.start.unit = "%";
+
+                const nextTime =
+                    i > 0
+                        ? this.templateFrames[i - 1].start.value
+                        : 0;
+
+                const msValue =
+                    (nextTime * this.options.duration) / 100 + frame.start.value;
+                const percent = (msValue / this.options.duration) * 100;
+
+                frame.start.value = percent;
+            }
+        }
+
+        this.templateFrames.sort((a, b) => a.start.value - b.start.value);
 
         for (let i = 0; i < this.templateFrames.length - 1; i++) {
             const frame = parseTemplateFrame(
@@ -541,13 +562,16 @@ export class CSSKeyframesAnimation<V extends Vars> {
         return this;
     }
 
-    fromFrames(keyframes: Record<string, Keyframe<V>>) {
+    fromFrames(
+        keyframes: Array<
+            [number | string, Partial<V>, TransformFunction<V>?, TimingFunction?]
+        >
+    ) {
         this.initAnimation();
 
-        for (const [percent, frame] of Object.entries(keyframes)) {
-            const [vars, transform, timingFunction] = frame;
+        for (const [percent, vars, transform, timingFunction] of keyframes) {
             this.animation.frame(
-                parseCSSPercent(percent),
+                percent,
                 vars,
                 transform,
                 getTimingFunction(timingFunction)
@@ -732,6 +756,7 @@ function objectToString(key: string, value: any) {
 
 import prettier from "prettier";
 import parserPostCSS from "prettier/parser-postcss";
+import { CSSValueUnit } from "./parsing/units";
 
 export function CSSKeyframesToString<V extends Vars>(
     animation: Animation<V>,
@@ -739,7 +764,7 @@ export function CSSKeyframesToString<V extends Vars>(
     printWidth: number = 80
 ): string {
     const options = animation.options;
-    const keyframesMap = new Map<string, number[]>();
+    const keyframesMap = new Map<string, ValueUnit[]>();
     const keyframeStrings = animation.templateFrames.forEach((frame) => {
         let css = `{\n`;
         for (let [name, v] of Object.entries(frame.vars)) {
@@ -758,7 +783,7 @@ export function CSSKeyframesToString<V extends Vars>(
 
     let keyframesString = "";
     for (let [css, percents] of keyframesMap) {
-        keyframesString += `${percents.join(", ")}% ${css}`;
+        keyframesString += `${percents.join(", ")} ${css}`;
     }
 
     let animationCss = `.${name} {\n`;

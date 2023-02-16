@@ -1,184 +1,213 @@
 <template>
     <div class="animation-controls">
-        <div class="options">
-            <label>Duration</label>
-            <input
-                type="string"
-                :value="reverseCSSTime(animation.options.duration)"
-                @change="(e) => animation.updateDuration(e.target.value)"
-            />
+        <select type="text" v-model="selectedItem">
+            <option value="controls">Controls</option>
+            <option value="keyframes">Keyframes</option>
+        </select>
 
-            <label>Delay</label>
-            <input
-                type="string"
-                :value="reverseCSSTime(animation.options.delay)"
-                @change="
-                    (e) => (animation.options.delay = parseCSSTime(e.target.value))
-                "
-            />
+        <div class="items">
+            <div v-show="selectedItem === 'controls'">
+                <div class="options">
+                    <label>Duration</label>
+                    <input
+                        type="string"
+                        :value="reverseCSSTime(animation.options.duration)"
+                        @change="(e) => animation.updateDuration(e.target.value)"
+                    />
 
-            <label>Iteration Count</label>
-            <input
-                type="string"
-                @change="(e) => animation.updateIterationCount(e.target.value)"
-                :value="
-                    isFinite(animation.options.iterationCount)
-                        ? animation.options.iterationCount
-                        : 'infinite'
-                "
-            />
-
-            <label>Direction</label>
-            <select v-model="animation.options.direction">
-                <option value="normal">Normal</option>
-                <option value="reverse">Reverse</option>
-                <option value="alternate">Alternate</option>
-                <option value="alternate-reverse">Alternate Reverse</option>
-            </select>
-
-            <label>Fill Mode</label>
-            <select v-model="animation.options.fillMode">
-                <option value="none">None</option>
-                <option value="forwards">Forwards</option>
-                <option value="backwards">Backwards</option>
-                <option value="both">Both</option>
-            </select>
-
-            <label>Timing Function</label>
-            <select @change="updateTimingFunction" v-model="timingFunctionKey">
-                <option v-for="timingFunction in Object.keys(timingFunctionsAnd)">
-                    {{ timingFunction }}
-                </option>
-            </select>
-
-            <template v-if="timingFunctionKey === 'steps'">
-                <label>Steps</label>
-                <input
-                    @input="updateTimingFunction"
-                    type="number"
-                    v-model.number="steps"
-                />
-
-                <label>Jump Term</label>
-                <select @input="updateTimingFunction" v-model="jumpTerm">
-                    <option v-for="j in jumpTerms">
-                        {{ j }}
-                    </option>
-                </select>
-            </template>
-
-            <template v-if="timingFunctionKey === 'cubicBezier'">
-                <div class="cubic-bezier-controls">
-                    <select
-                        @input="updateTimingFunction"
+                    <label>Delay</label>
+                    <input
+                        type="string"
+                        :value="reverseCSSTime(animation.options.delay)"
                         @change="
-                            (e) => {
-                                cubicBezierValues = [...bezierPresets[e.target.value]];
-                            }
+                            (e) =>
+                                (animation.options.delay = parseCSSTime(e.target.value))
                         "
-                    >
+                    />
+
+                    <label>Iteration Count</label>
+                    <input
+                        type="string"
+                        @change="(e) => animation.updateIterationCount(e.target.value)"
+                        :value="
+                            isFinite(animation.options.iterationCount)
+                                ? animation.options.iterationCount
+                                : 'infinite'
+                        "
+                    />
+
+                    <label>Direction</label>
+                    <select v-model="animation.options.direction">
+                        <option value="normal">Normal</option>
+                        <option value="reverse">Reverse</option>
+                        <option value="alternate">Alternate</option>
+                        <option value="alternate-reverse">Alternate Reverse</option>
+                    </select>
+
+                    <label>Fill Mode</label>
+                    <select v-model="animation.options.fillMode">
+                        <option value="none">None</option>
+                        <option value="forwards">Forwards</option>
+                        <option value="backwards">Backwards</option>
+                        <option value="both">Both</option>
+                    </select>
+
+                    <label>Timing Function</label>
+                    <select @change="updateTimingFunction" v-model="timingFunctionKey">
                         <option
-                            v-for="(preset, presetName) in bezierPresets"
-                            :value="presetName"
+                            v-for="timingFunction in Object.keys(timingFunctionsAnd)"
                         >
-                            {{ presetName }}
+                            {{ timingFunction }}
                         </option>
                     </select>
 
-                    <label>X1 {{ formatNumber(cubicBezierValues[0]) }} </label>
-                    <input
-                        @change="updateTimingFunction"
-                        v-model.number="cubicBezierValues[0]"
-                        type="range"
-                        :min="-2"
-                        :max="2"
-                        step="0.01"
-                    />
+                    <template v-if="timingFunctionKey === 'steps'">
+                        <label>Steps</label>
+                        <input
+                            @input="updateTimingFunction"
+                            type="number"
+                            v-model.number="steps"
+                        />
 
-                    <label>Y1 {{ formatNumber(cubicBezierValues[1]) }}</label>
-                    <input
-                        @change="updateTimingFunction"
-                        v-model.number="cubicBezierValues[1]"
-                        type="range"
-                        :min="-2"
-                        :max="2"
-                        step="0.01"
-                    />
+                        <label>Jump Term</label>
+                        <select @input="updateTimingFunction" v-model="jumpTerm">
+                            <option v-for="j in jumpTerms">
+                                {{ j }}
+                            </option>
+                        </select>
+                    </template>
 
-                    <label>X2 {{ formatNumber(cubicBezierValues[2]) }}</label>
-                    <input
-                        @change="updateTimingFunction"
-                        v-model.number="cubicBezierValues[2]"
-                        type="range"
-                        :min="-2"
-                        :max="2"
-                        step="0.01"
-                    />
+                    <template v-if="timingFunctionKey === 'cubicBezier'">
+                        <div class="cubic-bezier-controls">
+                            <select
+                                @input="updateTimingFunction"
+                                @change="
+                                    (e) => {
+                                        cubicBezierValues = JSON.parse(
+                                            JSON.stringify(
+                                                bezierPresets[e.target.value]
+                                            )
+                                        );
+                                        updateTimingFunction();
+                                    }
+                                "
+                            >
+                                <option
+                                    v-for="(preset, presetName) in bezierPresets"
+                                    :value="presetName"
+                                >
+                                    {{ presetName }}
+                                </option>
+                            </select>
 
-                    <label>Y2 {{ formatNumber(cubicBezierValues[3]) }}</label>
-                    <input
-                        @change="updateTimingFunction"
-                        v-model.number="cubicBezierValues[3]"
-                        type="range"
-                        :min="-2"
-                        :max="2"
-                        step="0.01"
-                    />
+                            <svg
+                                ref="svgCubicBezierEl"
+                                viewBox="-0.125 -1.125 1.25 1.25"
+                                xmlns="http://www.w3.org/2000/svg"
+                            ></svg>
+
+                            <label>X1 {{ formatNumber(cubicBezierValues[0]) }} </label>
+                            <input
+                                @input="updateTimingFunction"
+                                v-model.number="cubicBezierValues[0]"
+                                type="range"
+                                :min="-2"
+                                :max="2"
+                                step="0.01"
+                            />
+
+                            <label>Y1 {{ formatNumber(cubicBezierValues[1]) }}</label>
+                            <input
+                                @input="updateTimingFunction"
+                                v-model.number="cubicBezierValues[1]"
+                                type="range"
+                                :min="-2"
+                                :max="2"
+                                step="0.01"
+                            />
+
+                            <label>X2 {{ formatNumber(cubicBezierValues[2]) }}</label>
+                            <input
+                                @input="updateTimingFunction"
+                                v-model.number="cubicBezierValues[2]"
+                                type="range"
+                                :min="-2"
+                                :max="2"
+                                step="0.01"
+                            />
+
+                            <label>Y2 {{ formatNumber(cubicBezierValues[3]) }}</label>
+                            <input
+                                @input="updateTimingFunction"
+                                v-model.number="cubicBezierValues[3]"
+                                type="range"
+                                :min="-2"
+                                :max="2"
+                                step="0.01"
+                            />
+                        </div>
+                    </template>
                 </div>
-            </template>
-        </div>
-
-        <input
-            class="slider"
-            type="range"
-            :min="0"
-            :disabled="!animation.paused"
-            :max="animation.options.duration"
-            @input="sliderUpdate"
-            v-model.number="animation.t"
-        />
-        <div class="timing">
-            <button class="toggle" @click="toggle">
-                <font-awesome-icon
-                    class="icon"
-                    :icon="
-                        animation.paused || !animation.started
-                            ? ['fas', 'play']
-                            : ['fas', 'pause']
-                    "
+                <input
+                    class="slider"
+                    type="range"
+                    :min="0"
+                    :disabled="!animation.paused"
+                    :max="animation.options.duration"
+                    @input="sliderUpdate"
+                    v-model.number="animation.t"
                 />
-            </button>
-            <button class="reverse" @click="animation.reverse()">
-                <font-awesome-icon class="icon" :icon="['fas', 'rotate-right']" />
-            </button>
-            <button class="reset" @click="animation.reset()">Reset</button>
-        </div>
-
-        <div
-            class="css-keyframes-string"
-            v-if="style"
-            @input="animateParseCSSKeyframesStringEl"
-            @keydown="onKeyDown"
-        >
-            <div class="control-bar">
-                <button class="clipboard" @click="copyToClipboard">
-                    <div ref="copyTextEl" class="info">Copied!</div>
-                    <font-awesome-icon :icon="['fas', 'clipboard']" />
-                </button>
-
-                <button class="css-apply" @click="cssApply">
-                    <font-awesome-icon
-                        class="icon"
-                        :icon="['fas', !cssApplied ? 'paint-roller' : 'rotate-right']"
-                    />
-                </button>
+                <div class="timing">
+                    <button class="toggle" @click="toggle">
+                        <font-awesome-icon
+                            class="icon"
+                            :icon="
+                                animation.paused || !animation.started
+                                    ? ['fas', 'play']
+                                    : ['fas', 'pause']
+                            "
+                        />
+                    </button>
+                    <button class="reverse" @click="animation.reverse()">
+                        <font-awesome-icon
+                            class="icon"
+                            :icon="['fas', 'rotate-right']"
+                        />
+                    </button>
+                </div>
             </div>
-            <pre
-                ref="CSSKeyframesStringEl"
-                class="hljs css"
-                contenteditable="true"
-            ><code>{{ cssKeyframesString }}</code></pre>
-            <div ref="progressBarEl" class="progress-bar"></div>
+
+            <div v-show="selectedItem === 'keyframes'">
+                <div
+                    class="css-keyframes-string"
+                    v-if="style"
+                    @input="animateParseCSSKeyframesStringEl"
+                    @keydown="onKeyDown"
+                >
+                    <div class="control-bar">
+                        <button class="clipboard" @click="copyToClipboard">
+                            <div ref="copyTextEl" class="info">Copied!</div>
+                            <font-awesome-icon :icon="['fas', 'clipboard']" />
+                        </button>
+
+                        <button class="css-apply" @click="cssApply">
+                            <font-awesome-icon
+                                class="icon"
+                                :icon="[
+                                    'fas',
+                                    !cssApplied ? 'paint-roller' : 'rotate-right',
+                                ]"
+                            />
+                        </button>
+                    </div>
+                    <pre
+                        ref="CSSKeyframesStringEl"
+                        class="hljs css"
+                        contenteditable="true"
+                    ><code>{{ cssKeyframesString }}</code></pre>
+                    <div ref="progressBarEl" class="progress-bar"></div>
+                </div>
+            </div>
         </div>
     </div>
 </template>
@@ -203,6 +232,7 @@ import "highlight.js/styles/github-dark-dimmed.css";
 import hljs from "highlight.js";
 import css from "highlight.js/lib/languages/css";
 import { debounce } from "../../src/utils";
+import { svgCubicBezier } from "../../src/math";
 
 hljs.registerLanguage("css", css);
 
@@ -233,6 +263,8 @@ const emit = defineEmits<{
     ): void;
 }>();
 
+let selectedItem = $ref("controls");
+
 const sliderUpdate = (e: Event) => {
     const t = parseFloat((e.target as HTMLInputElement).value);
 
@@ -261,15 +293,22 @@ let timingFunctionKey = $ref("linear");
 let jumpTerm = $ref("jump-none");
 let steps = $ref(10);
 
-let cubicBezierValues = $ref(bezierPresets["ease-in"]);
+let cubicBezierValues = $ref(bezierPresets["ease"]);
+const svgCubicBezierEl = $ref(null);
 
 const updateTimingFunction = () => {
     let timingFunction = timingFunctions[timingFunctionKey];
     if (timingFunctionKey === "steps") {
         timingFunction = timingFunctions[timingFunctionKey](steps, jumpTerm);
     } else if (timingFunctionKey === "cubicBezier") {
-        // @ts-ignore
         timingFunction = CSSBezier(...cubicBezierValues);
+        const path = svgCubicBezier(
+            cubicBezierValues[0],
+            cubicBezierValues[1],
+            cubicBezierValues[2],
+            cubicBezierValues[3]
+        );
+        svgCubicBezierEl.innerHTML = path;
     }
 
     setTimingFunction(timingFunction);
@@ -281,6 +320,7 @@ const toggle = () => {
         animation.play();
     } else {
         animation.pause(!isGrouped);
+
         if (animation.paused) {
             prevT = animation.t;
         } else {
@@ -444,6 +484,7 @@ onMounted(() => {
 
 input[type="range"] {
     --color: green;
+    margin: 1rem 0;
 }
 
 .timing {
@@ -460,16 +501,11 @@ input[type="range"] {
 }
 
 .cubic-bezier-controls {
-    margin: 0.5rem 0;
     grid-column: span 2;
     display: grid;
     gap: 0.25rem;
     grid-template-columns: 10rem auto;
     align-items: center;
-
-    select {
-        grid-column: span 2;
-    }
 
     label {
         text-align: center;
@@ -477,6 +513,8 @@ input[type="range"] {
     }
 
     input {
+        margin: 0;
+        width: 100%;
         background: linear-gradient(
             to right,
             #f00 0%,
@@ -487,6 +525,25 @@ input[type="range"] {
             #f0f 83%,
             #f00 100%
         ) !important;
+    }
+
+    svg::v-deep {
+        width: 200px;
+        aspect-ratio: 1 / 1;
+        --stroke-width: 0.07;
+
+        g {
+            circle {
+                r: calc(var(--stroke-width) / 2);
+                stroke: black;
+                stroke-width: 0;
+            }
+            path {
+                stroke: rgb(93, 246, 220);
+                stroke-width: var(--stroke-width);
+                fill: none;
+            }
+        }
     }
 }
 
@@ -516,15 +573,15 @@ input[type="range"] {
     font-size: 0.8rem;
     position: relative;
 
-    overflow: scroll;
-
     margin: auto;
 
-    z-index: 1;
+    z-index: 2;
 
     pre {
         padding: 1rem;
         border-radius: 5px;
+
+        overflow: scroll;
     }
 
     &.error {
@@ -568,7 +625,7 @@ input[type="range"] {
     width: 100%;
     height: var(--height);
     position: absolute;
-    bottom: 0;
+    bottom: var(--offset);
     border-radius: 5px;
     background-image: linear-gradient(
         to right,

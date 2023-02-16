@@ -357,7 +357,7 @@ body {
     height: 100%;
 
     grid-template-areas: "animation-controls graph matrix-controls";
-    grid-template-columns: 1fr 2fr 1fr;
+    grid-template-columns: 25% 2fr 25%;
 
     gap: 1rem;
     overflow: hidden;
@@ -539,12 +539,6 @@ body {
         overflow-y: scroll;
         min-height: 100vh;
         min-height: 100dvh;
-    }
-
-    .animation-controls {
-        .css-keyframes-string {
-            display: none;
-        }
     }
 }
 </style>

@@ -52,16 +52,17 @@ const transformStart = {
 const transformEnd = {
     x: "50%",
     y: "75%",
-        a: {
-            b: {
-                c: {
-                    d: "200%",
-                },
+    a: {
+        b: {
+            c: {
+                d: "200%",
             },
         },
+    },
 };
-anim.fromFrames({
-    0: [
+anim.fromFrames([
+    [
+        "0%",
         {
             rotate: "0turn",
             transform: transformStart,
@@ -69,18 +70,21 @@ anim.fromFrames({
         },
         transformFunc,
     ],
-    50: [
+    [
+        "500ms",
         {
             backgroundColor: "#6280D8",
         },
     ],
-    75: [
+    [
+        75,
         {
             backgroundColor: "#52E898",
             fontSize: "1rem",
         },
     ],
-    100: [
+    [
+        "100ms",
         {
             rotate: "1turn",
             transform: transformEnd,
@@ -88,13 +92,7 @@ anim.fromFrames({
             fontSize: "3rem",
         },
     ],
-});
-
-const sliderUpdate = (e: { values; animationId: number }) => {
-    const { values, animationId } = e;
-   
-    groupObject.values = values;
-};
+]);
 
 onMounted(() => {
     anim.addTargets(box);
@@ -135,6 +133,7 @@ onMounted(() => {
     font-weight: bold;
 
     font-size: 1rem;
+    background-color: aquamarine;
 
     box-shadow: 0 0 0 0.5rem rgba(255, 255, 255, 0.5);
 }
