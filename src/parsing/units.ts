@@ -177,6 +177,7 @@ export const CSSValueUnit = P.createLanguage({
         P.seq(integer, r.percentageUnit).map(([value, unit]) => {
             return new ValueUnit(value, unit, ["percentage"]);
         }),
+    Color: (r) => CSSColor.Value.map((x) => new ValueUnit(x, "color")),
 
     Value: (r) =>
         P.alt(
@@ -185,7 +186,7 @@ export const CSSValueUnit = P.createLanguage({
             r.Time,
             r.Resolution,
             r.Percentage,
-            CSSColor.Value.map((x) => new ValueUnit(x, "color")),
+            r.Color,
             P.alt(number, none).map((x) => new ValueUnit(x))
         ).trim(P.optWhitespace),
 });

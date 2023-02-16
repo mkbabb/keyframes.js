@@ -102,6 +102,29 @@ const tmp = /*css*/ `
   }
 `;
 
+let linearGradientFrames = /*css*/ `@keyframes calcExample {
+    from {
+        background: linear-gradient(
+            to right,
+            red 20%,
+            orange 20% 40%,
+            yellow 40% 60%,
+            green 60% 80%,
+            blue 80%
+          );
+    }
+    100 {
+        background: linear-gradient(
+            to right,
+            blue 20%,
+            green 20% 40%,
+            yellow 40% 60%,
+            orange 60% 80%,
+            red 80%
+          );
+    }
+}`;
+
 const frames = parseCSSKeyframes(tmp);
 
 const anim = new CSSKeyframesAnimation(
@@ -113,18 +136,19 @@ const anim = new CSSKeyframesAnimation(
         timingFunction: easeInOutCubic,
     },
     boxEl
-).fromVars([
-    {
-        transform: {
-            rotate3d: "(-1, 1, 0, 0deg)",
-        },
-    },
-    {
-        transform: {
-            rotate3d: "(-1, 1, 0, 30deg)",
-        },
-    },
-]);
+).fromCSSKeyframes(linearGradientFrames);
+// ).fromVars([
+//     {
+//         transform: {
+//             rotate3d: "(-1, 1, 0, 0deg)",
+//         },
+//     },
+//     {
+//         transform: {
+//             rotate3d: "(-1, 1, 0, 30deg)",
+//         },
+//     },
+// ]);
 
 const pauseButton = document.querySelector<HTMLElement>("#pause-btn")!;
 pauseButton.addEventListener("click", () => {

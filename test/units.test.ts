@@ -345,4 +345,18 @@ describe("CSSKeyframes", () => {
             i += 1;
         }
     });
+
+    it("should parse keyframes with linear-gradient", () => {
+        let keyframes = /*css*/ `@keyframes calcExample {
+            from {
+                background-image: linear-gradient(to right, red 10% 10%, blue);
+            }
+            100 {
+                background-image: linear-gradient(to right, red, 10%, blue);
+            }
+        }`;
+        // keyframes = insertRandomWhitespace(keyframes);
+        const frames = parseCSSKeyframes(keyframes);
+        assert.equal(Object.values(frames).length, 2);
+    });
 });

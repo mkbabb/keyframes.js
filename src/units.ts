@@ -115,7 +115,7 @@ export class ValueUnit<T = number> {
     ) {}
 
     toString() {
-        if (!this.unit) {
+        if (!this.unit || this.unit === "string") {
             return `${this.value}`;
         }
 
@@ -132,6 +132,10 @@ export class ValueUnit<T = number> {
     }
 
     lerp(t: number, other: ValueUnit<T>, target?: HTMLElement) {
+        if (this.unit === "string" || other.unit === "string") {
+            return this;
+        }
+
         if (target && (this.unit === "var" || other.unit === "var")) {
             return lerpVar(t, this, other, target);
         }

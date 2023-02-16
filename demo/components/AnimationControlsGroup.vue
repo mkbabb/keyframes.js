@@ -28,7 +28,9 @@
                 @slider-update="sliderUpdate"
                 :animation="animation"
                 :is-grouped="true"
-                :class="[!animationGroup.started ? 'disabled' : '']"
+                :class="[
+                    !animationGroup.started || animationGroup.paused ? 'disabled' : '',
+                ]"
             />
         </template>
     </div>

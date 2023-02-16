@@ -1,5 +1,5 @@
 import P from "parsimmon";
-import { CSSValueUnit, integer, number, identifier, none } from "./units";
+import { CSSValueUnit, integer, number, identifier, none, opt } from "./units";
 import { hyphenToCamelCase, arrayEquals } from "../utils";
 import {
     collapseNumericType,
@@ -219,6 +219,54 @@ const handleVar = (r: P.Language) => {
         });
 };
 
+const handleGradient = (r: P.Language) => {
+    const name = P.alt(...["linear-gradient", "radial-gradient"].map(istring));
+    const sideOrCorner = P.seq(
+        P.string("to").skip(r.ws),
+        P.alt(...["left", "right", "top", "bottom"].map(istring))
+    )
+        .map((v) => v.join(" "))
+        .map((v) => new ValueUnit(v, "string"));
+    const direction = P.alt(CSSValueUnit.Angle, sideOrCorner);
+
+    const lengthPercentage = P.alt(CSSValueUnit.Length, CSSValueUnit.Percentage);
+
+    const linearColorStop = P.seq(
+        CSSValueUnit.Color,
+        P.sepBy(lengthPercentage, r.ws)
+    ).map(([color, stops]) => {
+        if (!stops) {
+            return [color];
+        } else {
+            return [color, ...stops];
+        }
+    });
+
+    const colorStopList = P.seq(
+        linearColorStop,
+        r.comma.trim(r.ws).then(linearColorStop.or(lengthPercentage)).many()
+    ).map(([first, rest]) => 
+    {
+        return [first, ...rest].map(v => new ValueArray(v));
+    });
+
+    const linearGradient = P.seq(
+        name,
+        P.seq(opt(direction.skip(r.comma)), colorStopList)
+            .trim(r.ws)
+            .wrap(r.lparen, r.rparen)
+            .map(([direction, stops]) => {
+                if (!direction) {
+                    return [stops];
+                } else {
+                    return [direction, ...stops].flat();
+                }
+            })
+    ).map(([name, values]) => new FunctionValue(name, values));
+
+    return linearGradient;
+};
+
 export const CSSKeyframes = P.createLanguage({
     ws: () => P.optWhitespace,
 
@@ -241,6 +289,7 @@ export const CSSKeyframes = P.createLanguage({
             handleTransform(r),
             handleVar(r),
             handleCalc(r),
+            handleGradient(r),
             handleFunc(r).map(([name, values]) => new FunctionValue(name, values))
         ),
 

@@ -25,13 +25,16 @@ export async function waitUntil(condition: () => boolean, delay: number = 1000 /
     });
 }
 
-export function debounce(func: Function, wait: number = 100) {
+export function debounce(func: Function, wait: number = 100, waitingFunc?) {
     let timeout = undefined as unknown as number;
+    let interval = undefined as unknown as number;
 
     return function (...args: Array<any>): void {
         if (timeout !== undefined) {
             clearTimeout(timeout);
+            clearInterval(interval);
         }
+
         timeout = setTimeout(() => {
             func(...args);
             timeout = undefined as unknown as number;

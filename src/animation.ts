@@ -305,12 +305,12 @@ export class Animation<V extends Vars> {
 
     reset() {
         this.startTime = undefined;
-        this.pausedTime = 0;
-        this.prevTime = 0;
-        this.t = 0;
+        // this.pausedTime = 0;
+        // this.prevTime = 0;
+        // this.t = 0;
 
         // this.started = false;
-        this.paused = false;
+        // this.paused = false;
 
         return this;
     }
@@ -678,7 +678,10 @@ export class AnimationGroup<V> {
         }
 
         for (const groupObject of this.animationGroup) {
-            if (!groupObject.animation.paused) {
+            if (
+                !groupObject.animation.paused ||
+                groupObject.animation.pausedTime === 0
+            ) {
                 groupObject.animation.tick(t);
             }
         }

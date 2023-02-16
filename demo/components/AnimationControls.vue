@@ -135,6 +135,7 @@
             :disabled="!animation.paused"
             :max="animation.options.duration"
             @input="sliderUpdate"
+            v-model.number="animation.t"
         />
         <div class="timing">
             <button class="toggle" @click="toggle">
@@ -156,7 +157,8 @@
         <div
             class="css-keyframes-string"
             v-if="style"
-            @input="parseCSSKeyframesStringEl"
+            @input="animateParseCSSKeyframesStringEl"
+            @keydown="onKeyDown"
         >
             <div class="control-bar">
                 <button class="clipboard" @click="copyToClipboard">
@@ -176,6 +178,7 @@
                 class="hljs css"
                 contenteditable="true"
             ><code>{{ cssKeyframesString }}</code></pre>
+            <div ref="progressBarEl" class="progress-bar"></div>
         </div>
     </div>
 </template>
@@ -272,11 +275,18 @@ const updateTimingFunction = () => {
     setTimingFunction(timingFunction);
 };
 
+let prevT = $ref(0);
 const toggle = () => {
     if (!animation.started && !isGrouped) {
         animation.play();
     } else {
         animation.pause(!isGrouped);
+        if (animation.paused) {
+            prevT = animation.t;
+        } else {
+            animation.pausedTime += animation.t - prevT;
+            prevT = 0;
+        }
     }
 };
 
@@ -300,8 +310,27 @@ const cssKeyframesString = computed(() => {
     return updateCSSKeyframesString();
 });
 
-let parseCSSKeyframesStringEl = (event: Event) => {
+function onKeyDown(e: KeyboardEvent) {
+    if (e.key === "Tab") {
+        e.preventDefault();
+
+        const doc = CSSKeyframesStringEl.ownerDocument.defaultView;
+        const sel = doc.getSelection();
+        const range = sel.getRangeAt(0);
+
+        const tabNode = document.createTextNode("\u00a0\u00a0\u00a0\u00a0");
+        range.insertNode(tabNode);
+
+        range.setStartAfter(tabNode);
+        range.setEndAfter(tabNode);
+        sel.removeAllRanges();
+        sel.addRange(range);
+    }
+}
+
+const parseCSSKeyframesStringEl = debounce((event: Event) => {
     const s: string = event.target.innerText;
+    console.log(event.key);
 
     const p = CSSAnimationKeyframes.Values.parse(s);
 
@@ -322,12 +351,29 @@ let parseCSSKeyframesStringEl = (event: Event) => {
             }
         }
 
-        console.log(options, values);
-
         updateCSSKeyframesString();
     }
+}, 1000);
+
+const progressBarEl = $ref(null);
+const animateParseCSSKeyframesStringEl = (event: Event) => {
+    parseCSSKeyframesStringEl(event);
+    new CSSKeyframesAnimation(
+        {
+            duration: 1000,
+        },
+        progressBarEl
+    )
+        .fromVars([
+            {
+                width: "0%",
+            },
+            {
+                width: "100%",
+            },
+        ])
+        .play();
 };
-parseCSSKeyframesStringEl = debounce(parseCSSKeyframesStringEl, 1000);
 
 const fadeInOut = (el) => {
     new CSSKeyframesAnimation(
@@ -466,13 +512,10 @@ input[type="range"] {
 }
 
 .css-keyframes-string {
-    padding: 0 0.5rem;
-
+    box-sizing: border-box;
     font-size: 0.8rem;
     position: relative;
 
-    max-width: 48ch;
-    max-height: 48ch;
     overflow: scroll;
 
     margin: auto;
@@ -518,5 +561,24 @@ input[type="range"] {
     * {
         font-size: 1rem;
     }
+}
+
+.progress-bar {
+    --height: 0.5rem;
+    width: 100%;
+    height: var(--height);
+    position: absolute;
+    bottom: 0;
+    border-radius: 5px;
+    background-image: linear-gradient(
+        to right,
+        #f00 0%,
+        #ff0 17%,
+        #0f0 33%,
+        #0ff 50%,
+        #00f 67%,
+        #f0f 83%,
+        #f00 100%
+    );
 }
 </style>
