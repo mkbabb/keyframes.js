@@ -241,10 +241,7 @@ export class Animation<V extends Vars> {
             if (frame.start.unit === "ms") {
                 frame.start.unit = "%";
 
-                const nextTime =
-                    i > 0
-                        ? this.templateFrames[i - 1].start.value
-                        : 0;
+                const nextTime = i > 0 ? this.templateFrames[i - 1].start.value : 0;
 
                 const msValue =
                     (nextTime * this.options.duration) / 100 + frame.start.value;
@@ -792,11 +789,14 @@ export function CSSKeyframesToString<V extends Vars>(
 
     const duration = reverseCSSTime(options.duration);
     animationCss += `  animation-duration: ${duration};\n`;
-    Object.entries(timingFunctions).forEach(([name, func]) => {
-        if (func === options.timingFunction) {
-            animationCss += `  animation-timing-function: ${name};\n`;
-        }
-    });
+
+    let timingFunctionName =
+        Object.entries(timingFunctions)
+            .filter(([name, func]) => func === options.timingFunction)
+            .map(([name]) => name)?.[0] ?? "linear";
+
+    animationCss += `  animation-timing-function: ${timingFunctionName};\n`;
+
     animationCss += `  animation-iteration-count: ${
         isFinite(options.iterationCount) ? options.iterationCount : "infinite"
     };\n`;

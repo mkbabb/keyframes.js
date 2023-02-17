@@ -1,6 +1,6 @@
 <template>
     <div class="animation-controls">
-        <select type="text" v-model="selectedItem">
+        <select v-model="selectedItem">
             <option value="controls">Controls</option>
             <option value="keyframes">Keyframes</option>
         </select>
