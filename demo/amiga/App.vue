@@ -77,23 +77,24 @@ const rotations = new CSSKeyframesAnimation({
     duration: 20000,
     iterationCount: Infinity,
     timingFunction: "linear",
-}).fromVars(
-    [
-        {
+}).fromCSSKeyframes(
+    /*css*/
+    `@keyframes animation {
+        from {
             rotation: {
                 x: 0,
                 y: 0,
                 z: 0,
-            },
-        },
-        {
+            };
+        }
+        to {
             rotation: {
                 x: 2 * Math.PI,
                 y: 2 * Math.PI,
                 z: 2 * Math.PI,
-            },
-        },
-    ],
+            };
+        }
+    }`,
     transform
 );
 

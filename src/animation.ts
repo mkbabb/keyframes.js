@@ -140,7 +140,7 @@ export function parseTemplateFrame<V extends Vars>(
 }
 
 type AnimationOptions = {
-    duration: number;
+    duration: number | string;
     delay: number;
     iterationCount: number;
     direction: "normal" | "reverse" | "alternate" | "alternate-reverse";
@@ -210,11 +210,11 @@ export class Animation<V extends Vars> {
         timingFunction?: TimingFunction
     ): Animation<K> {
         start = typeof start === "number" ? String(start) + "%" : start;
-        start = CSSValueUnit.Value.tryParse(start)!;
+        const parsedStart = CSSValueUnit.Value.tryParse(start)!;
 
         const templateFrame = {
             id: this.frameId,
-            start,
+            start: parsedStart,
             vars,
             transform,
             timingFunction:
@@ -580,14 +580,18 @@ export class CSSKeyframesAnimation<V extends Vars> {
         return this;
     }
 
-    fromCSSKeyframes(keyframes: string | Record<string, Partial<V>>) {
+    fromCSSKeyframes(
+        keyframes: string | Record<string, Partial<V>>,
+        transform?: TransformFunction<V>
+    ) {
         this.initAnimation();
+        transform = transform ?? this.transform.bind(this);
 
         const frames =
             typeof keyframes === "string" ? parseCSSKeyframes(keyframes) : keyframes;
 
         for (const [percent, frame] of Object.entries(frames)) {
-            this.animation.frame(Number(percent), frame, this.transform.bind(this));
+            this.animation.frame(Number(percent), frame, transform);
             this.animation.transformedVars.push(frame);
         }
 

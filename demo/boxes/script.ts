@@ -112,6 +112,9 @@ let linearGradientFrames = /*css*/ `@keyframes calcExample {
             green 60% 80%,
             blue 80%
           );
+        hey: {
+            a: 0,
+        };
     }
     100 {
         background: linear-gradient(
@@ -122,6 +125,9 @@ let linearGradientFrames = /*css*/ `@keyframes calcExample {
             orange 60% 80%,
             red 80%
           );
+        hey: {
+            a: 1, 
+        };
     }
 }`;
 

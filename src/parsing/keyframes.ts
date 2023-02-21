@@ -7,6 +7,7 @@ import {
     FunctionValue,
     ValueArray,
     convertToDegrees,
+    transformObject,
 } from "../units";
 import { clamp } from "../math";
 
@@ -275,6 +276,12 @@ const handleGradient = (r: P.Language) => {
     return linearGradient;
 };
 
+const handleCubicBezier = (r: P.Language) => {
+    return handleFunc(r, P.string("cubic-bezier")).map((v) => {
+        return new FunctionValue("cubic-bezier", v[1]);
+    });
+};
+
 export const CSSKeyframes = P.createLanguage({
     ws: () => P.optWhitespace,
 
@@ -298,10 +305,18 @@ export const CSSKeyframes = P.createLanguage({
             handleVar(r),
             handleCalc(r),
             handleGradient(r),
+            handleCubicBezier(r),
             handleFunc(r).map(([name, values]) => new FunctionValue(name, values))
         ),
 
-    Value: (r) => P.alt(CSSValueUnit.Value, r.Function, r.String).trim(r.ws),
+    JSON: (r) =>
+        P.seq(r.lcurly, P.regexp(/[^{}]+/), r.rcurly).map((x) => {
+            const s = x.join("\n");
+            let obj = eval("(" + s + ")");
+            return new ValueUnit(obj, "json");
+        }),
+
+    Value: (r) => P.alt(CSSValueUnit.Value, r.Function, r.JSON, r.String).trim(r.ws),
     Values: (r) => r.Value.sepBy(r.ws).map((x) => new ValueArray(x)),
 
     Variables: (r) =>
@@ -311,10 +326,18 @@ export const CSSKeyframes = P.createLanguage({
                 .trim(r.ws)
                 .map((x) => hyphenToCamelCase(x)),
             r.Values.skip(r.semi).trim(r.ws)
-        ).map(([name, value]) => {
-            return {
-                [name]: value,
-            };
+        ).map(([name, values]) => {
+            const value = values.values[0];
+
+            if (value.unit === "json") {
+                return transformObject({
+                    [name]: value.value,
+                });
+            } else {
+                return {
+                    [name]: values,
+                };
+            }
         }),
 
     Percent: (r) =>
