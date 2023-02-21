@@ -31,19 +31,21 @@
     },
     "homepage": "https://github.com/mkbabb/keyframes.js#readme",
     "dependencies": {
-        "d3-color": "^3.1.0",
         "parsimmon": "^1.18.1"
     },
     "devDependencies": {
+        "d3-color": "^3.1.0",
         "@types/d3-color": "^3.1.0",
         "@types/node": "^18.11.18",
         "@types/parsimmon": "^1.10.6",
         "@types/prettier": "^2.7.2",
+        "@types/three": "^0.149.0",
         "@vitejs/plugin-vue": "^4.0.0",
         "autoprefixer": "^10.4.13",
         "jsdom": "^21.1.0",
         "prettier": "^2.8.3",
         "sass": "^1.58.0",
+        "three": "^0.149.0",
         "typescript": "^4.9.4",
         "vite": "^4.0.4",
         "vite-plugin-dts": "^1.7.1",

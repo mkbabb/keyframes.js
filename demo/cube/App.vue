@@ -1,5 +1,5 @@
 <template>
-    <div class="container" @mouseenter="">
+    <div class="container">
         <AnimationControlsGroup
             class="animation-controls"
             :animations="animations"
