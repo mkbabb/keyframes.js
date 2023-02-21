@@ -106,7 +106,9 @@
                                 xmlns="http://www.w3.org/2000/svg"
                             ></svg>
 
-                            <label>X1 {{ formatNumber(cubicBezierValues[0]) }} </label>
+                            <label class="preset-label" @click="copyToClipboard">{{ cubicBezierPreset }}<div ref="copyTextEl" class="info">Copied!</div>
+                            <font-awesome-icon :icon="['fas', 'clipboard']" /></label>
+
                             <input
                                 @input="updateTimingFunction"
                                 v-model.number="cubicBezierValues[0]"
@@ -115,8 +117,6 @@
                                 :max="2"
                                 step="0.01"
                             />
-
-                            <label>Y1 {{ formatNumber(cubicBezierValues[1]) }}</label>
                             <input
                                 @input="updateTimingFunction"
                                 v-model.number="cubicBezierValues[1]"
@@ -125,8 +125,6 @@
                                 :max="2"
                                 step="0.01"
                             />
-
-                            <label>X2 {{ formatNumber(cubicBezierValues[2]) }}</label>
                             <input
                                 @input="updateTimingFunction"
                                 v-model.number="cubicBezierValues[2]"
@@ -135,8 +133,6 @@
                                 :max="2"
                                 step="0.01"
                             />
-
-                            <label>Y2 {{ formatNumber(cubicBezierValues[3]) }}</label>
                             <input
                                 @input="updateTimingFunction"
                                 v-model.number="cubicBezierValues[3]"
@@ -233,6 +229,7 @@ import hljs from "highlight.js";
 import css from "highlight.js/lib/languages/css";
 import { debounce } from "../../src/utils";
 import { svgCubicBezier } from "../../src/math";
+import { number } from "../../src/parsing/units";
 
 hljs.registerLanguage("css", css);
 
@@ -293,7 +290,8 @@ let timingFunctionKey = $ref("linear");
 let jumpTerm = $ref("jump-none");
 let steps = $ref(10);
 
-let cubicBezierValues = $ref(bezierPresets["ease"]);
+let cubicBezierPreset = $ref("ease");
+let cubicBezierValues = $ref(bezierPresets[cubicBezierPreset]);
 const svgCubicBezierEl = $ref(null);
 
 const updateTimingFunction = () => {
@@ -302,6 +300,9 @@ const updateTimingFunction = () => {
         timingFunction = timingFunctions[timingFunctionKey](steps, jumpTerm);
     } else if (timingFunctionKey === "cubicBezier") {
         timingFunction = CSSBezier(...cubicBezierValues);
+        cubicBezierPreset = `cubic-bezier(${cubicBezierValues
+            .map((v) => v.toFixed(2))
+            .join(",")})`;
         const path = svgCubicBezier(
             cubicBezierValues[0],
             cubicBezierValues[1],
@@ -476,9 +477,6 @@ onMounted(() => {
     gap: 1rem;
     position: relative;
     z-index: 2;
-    // * {
-    //     z-index: 2;
-    // }
 }
 
 .toggle {
@@ -506,18 +504,23 @@ input[type="range"] {
 .cubic-bezier-controls {
     grid-column: span 2;
     display: grid;
-    gap: 0.25rem;
-    grid-template-columns: 10rem auto;
+    gap: 1rem 0.5rem;
+    grid-template-columns: auto auto;
     align-items: center;
 
+    
     label {
-        text-align: center;
+        overflow: hidden;
         white-space: pre;
+        grid-column: span 2;
+        max-width: 100%;
     }
 
     input {
+        grid-column: span 2;
         margin: 0;
-        width: 100%;
+    
+
         background: linear-gradient(
             to right,
             #f00 0%,

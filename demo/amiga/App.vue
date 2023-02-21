@@ -1,9 +1,6 @@
 <template>
     <div class="container">
-        <AnimationControlsGroup
-            :animations="animations"
-            @selected-animation="(s) => (selectedAnimation = s)"
-        />
+        <AnimationControlsGroup :animations="animations" />
         <canvas ref="canvas"></canvas>
     </div>
 </template>
@@ -18,6 +15,7 @@ import { CSSBezier } from "../../src/easing";
 import AnimationControlsGroup from "../components/AnimationControlsGroup.vue";
 
 import "../style.scss";
+import { MeshLambertMaterial } from "three";
 
 let canvas = $ref(null);
 
@@ -43,10 +41,9 @@ const tesselateSphere = (color1, color2, radius) => {
     const texture = new THREE.CanvasTexture(canvas);
 
     const geometry = new THREE.SphereGeometry(radius, 32, 32); // create a sphere buffer geometry with 32 segments in both directions
-    const material = new THREE.MeshBasicMaterial({
+    const material = new THREE.MeshLambertMaterial({
         map: texture,
-        shadowSide: THREE.DoubleSide,
-    }); // create a material with a checkerboard texture
+    });
     const mesh = new THREE.Mesh(geometry, material); // create a mesh using the geometry and material
 
     // Generate UV coordinates
@@ -66,11 +63,18 @@ const tesselateSphere = (color1, color2, radius) => {
     return mesh;
 };
 
-let sphereMesh;
+let sphereMesh: ReturnType<typeof tesselateSphere>;
+const boxSize = 12;
 
 const transform = (t, vars) => {
     Object.assign(sphereMesh.position, vars.position);
     Object.assign(sphereMesh.rotation, vars.rotation);
+
+    if (vars.colorT) {
+        const colorT = vars.colorT.values[0].value;
+        const color = new THREE.Color().setHSL(colorT, 1, 0.95);
+        sphereMesh.material.color = color;
+    }
 };
 
 const rotations = new CSSKeyframesAnimation({
@@ -86,6 +90,8 @@ const rotations = new CSSKeyframesAnimation({
                 y: 0,
                 z: 0,
             };
+            colorT: 0;
+            timing-function: cubic-bezier(0.2, 0.65, 0.6, 1);
         }
         to {
             rotation: {
@@ -93,30 +99,32 @@ const rotations = new CSSKeyframesAnimation({
                 y: 2 * Math.PI,
                 z: 2 * Math.PI,
             };
+            colorT: 1;
+            timing-function: cubic-bezier(0.2, 0.65, 0.6, 1);
         }
     }`,
     transform
 );
 
 const bouncingX = new CSSKeyframesAnimation({
-    duration: 2000,
+    duration: 10000,
     iterationCount: Infinity,
     direction: "alternate",
-    timingFunction: CSSBezier(0.2, 0.65, 0.6, 1),
-}).fromVars(
-    [
-        {
+    timingFunction: "linear",
+}).fromCSSKeyframes(
+    /*css*/
+    `@keyframes animation {
+        0%, 50%, 100% {
             position: {
-                x: 0,
-            },
-        },
-
-        {
+                x: ${-boxSize / 2 + 1},
+            };
+        }
+        25%, 75% {
             position: {
-                x: 1,
-            },
-        },
-    ],
+                x: ${boxSize / 2 - 1},
+            };
+        }
+    }`,
     transform
 );
 
@@ -129,16 +137,38 @@ const bouncingY = new CSSKeyframesAnimation({
     [
         {
             position: {
-                y: 0,
+                y: -boxSize / 2 + 1,
             },
         },
 
         {
             position: {
-                y: 1,
+                y: boxSize / 4 - 1,
             },
         },
     ],
+    transform
+);
+
+const bouncingZ = new CSSKeyframesAnimation({
+    duration: 20000,
+    iterationCount: Infinity,
+    direction: "alternate",
+    timingFunction: "linear",
+}).fromCSSKeyframes(
+    /*css*/
+    `@keyframes animation {
+        0%, 50%, 100% {
+            position: {
+                z: ${-boxSize / 2 + 1},
+            };
+        }
+        25%, 75% {
+            position: {
+                z: ${boxSize / 2 - 1},
+            };
+        }
+    }`,
     transform
 );
 
@@ -146,9 +176,8 @@ const animations = $ref({
     rotations: rotations.animation,
     bouncingX: bouncingX.animation,
     bouncingY: bouncingY.animation,
+    bouncingZ: bouncingZ.animation,
 });
-
-let selectedAnimation = $ref("");
 
 // Mount the renderer to the component's container element
 onMounted(() => {
@@ -161,22 +190,20 @@ onMounted(() => {
         1000
     );
 
-    camera.position.z = 3;
+    camera.position.z = boxSize;
+    camera.position.y = boxSize / 3;
     const renderer = new THREE.WebGLRenderer({ antialias: true, canvas: canvas });
     renderer.setPixelRatio(window.devicePixelRatio * 2);
-
     renderer.setClearColor(0xffffff, 1);
 
-    // Add directional lighting to the scene
-    const light = new THREE.PointLight(0xffffff, 1, 100);
-    light.position.set(0, 0, 10);
+    const light = new THREE.SpotLight("white", 0.75, 0, Math.PI / 2, 1);
+    light.position.set(0, boxSize - 1, boxSize / 2);
+
     scene.add(light);
 
-    // Define the sphere parameters
+    const boxGeometry = new THREE.BoxGeometry(boxSize, boxSize, boxSize);
 
-    // Set up the box
-    const boxGeometry = new THREE.BoxGeometry(4, 4, 4);
-    const boxMaterial = new THREE.MeshBasicMaterial({
+    const boxMaterial = new THREE.MeshLambertMaterial({
         color: "rgb(128, 128, 128)",
         side: THREE.BackSide,
     });
@@ -184,10 +211,8 @@ onMounted(() => {
     boxMesh.position.set(0, 0, 0);
     scene.add(boxMesh);
 
-    const radius = 1;
-    sphereMesh = tesselateSphere("white", "red", radius);
-    sphereMesh.castShadow = true;
-    sphereMesh.receiveShadow = true;
+    sphereMesh = tesselateSphere("white", "red", 1);
+    sphereMesh.position.set(-boxSize / 2 + 1, -boxSize / 2 + 1, -boxSize / 2 + 1);
     scene.add(sphereMesh);
 
     const controls = new OrbitControls(camera, renderer.domElement);

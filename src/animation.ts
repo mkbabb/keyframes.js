@@ -742,7 +742,6 @@ function objectToString(key: string, value: any) {
     if (typeof value === "object" && !(value instanceof ValueArray)) {
         return Object.entries(value)
             .map(([k, v]) => {
-                // k = camelCaseToHyphen(k);
                 if (v instanceof FunctionValue) {
                     return String(v);
                 } else {
@@ -766,12 +765,17 @@ export function CSSKeyframesToString<V extends Vars>(
 ): string {
     const options = animation.options;
     const keyframesMap = new Map<string, ValueUnit[]>();
-    const keyframeStrings = animation.templateFrames.forEach((frame) => {
+    animation.templateFrames.forEach((frame) => {
         let css = `{\n`;
-        for (let [name, v] of Object.entries(frame.vars)) {
+
+        const reversedVars = {};
+        Object.entries(frame.vars).forEach(([key, value]: [string, ValueArray]) => {
+            reverseTransformObject(key, value, reversedVars);
+        });
+
+        for (let [name, v] of Object.entries(reversedVars)) {
             name = camelCaseToHyphen(name);
             let s = objectToString(name, v);
-
             css += `  ${name}: ${s};\n`;
         }
         css += "  }\n";
@@ -781,7 +785,6 @@ export function CSSKeyframesToString<V extends Vars>(
             keyframesMap.get(css).push(frame.start);
         }
     });
-
     let keyframesString = "";
     for (let [css, percents] of keyframesMap) {
         keyframesString += `${percents.join(", ")} ${css}`;
@@ -815,9 +818,10 @@ export function CSSKeyframesToString<V extends Vars>(
 
     const keyframes = `${animationCss}\n@keyframes ${name} {\n${keyframesString}}`;
 
-    return prettier.format(keyframes, {
+    const out = prettier.format(keyframes, {
         parser: "css",
         plugins: [parserPostCSS],
         printWidth,
     });
+    return out.replace(/\(\s*\{/g, "{").replace(/\}\s*\)/g, "}");
 }

@@ -279,10 +279,16 @@ export function transformObject(input: any): TransformedVars {
 export function reverseTransformObject(
     key: string,
     values: ValueArray,
-    original: any
+    original: any = {}
 ): any {
     const keys = key.split(".");
     let obj = original;
+
+    if (keys.length === 1) {
+        original[key] = values;
+        return original;
+    }
+
 
     for (let i = 0; i < keys.length; i++) {
         const k = keys[i];
