@@ -35,7 +35,7 @@ type TimingFunctionNames = keyof typeof timingFunctions;
 export type Keyframe<V extends Vars> = [
     vars: V,
     transform?: TransformFunction<V>,
-    timingFunction?: TimingFunction
+    timingFunction?: TimingFunction,
 ];
 
 interface TemplateAnimationFrame<V extends Vars> {
@@ -60,7 +60,7 @@ interface AnimationFrame<V extends Vars> {
 function calcFrameTime<V extends Vars>(
     startFrame: TemplateAnimationFrame<V>,
     endFrame: TemplateAnimationFrame<V>,
-    duration: number
+    duration: number,
 ) {
     const [start, stop] = [startFrame.start, endFrame.start];
     return {
@@ -83,7 +83,7 @@ export function parseTemplateFrame<V extends Vars>(
     templateFrames: TemplateAnimationFrame<V>[],
     transformedVars: TransformedVars[],
     duration: number,
-    frames: AnimationFrame<V>[]
+    frames: AnimationFrame<V>[],
 ): AnimationFrame<V> {
     const [startFrame, endFrame] = [templateFrames[ix], templateFrames[ix + 1]];
     const [startVars, endVars] = [transformedVars[ix], transformedVars[ix + 1]];
@@ -97,7 +97,7 @@ export function parseTemplateFrame<V extends Vars>(
     const createInterpVarValue = (
         v: string,
         startIx: number,
-        endIx: number
+        endIx: number,
     ): InterpValue => {
         return {
             start: transformedVars[startIx][v],
@@ -120,7 +120,7 @@ export function parseTemplateFrame<V extends Vars>(
             oldFrame.time = calcFrameTime(
                 templateFrames[oldFrameIx],
                 endFrame,
-                duration
+                duration,
             );
             oldFrame.interpVars[v] = createInterpVarValue(v, oldFrameIx, ix + 1);
         }
@@ -168,7 +168,7 @@ type InputAnimationOptions = {
 };
 
 const getTimingFunction = (
-    timingFunction: TimingFunction | TimingFunctionNames | undefined
+    timingFunction: TimingFunction | TimingFunctionNames | undefined,
 ): TimingFunction | undefined => {
     if (typeof timingFunction === "string") {
         return timingFunctions[timingFunction] as TimingFunction | undefined;
@@ -205,10 +205,10 @@ export class Animation<V extends Vars> {
 
     constructor(
         options: Partial<InputAnimationOptions>,
-        public target: HTMLElement = document.documentElement
+        public target: HTMLElement = document.documentElement,
     ) {
         this.options = { ...defaultOptions, ...options } as AnimationOptions;
-        
+
         this.parseOptions(options);
     }
 
@@ -216,7 +216,7 @@ export class Animation<V extends Vars> {
         start: number | string,
         vars: Partial<K>,
         transform?: TransformFunction<K>,
-        timingFunction?: TimingFunction | TimingFunctionNames
+        timingFunction?: TimingFunction | TimingFunctionNames,
     ): Animation<K> {
         start = typeof start === "number" ? String(start) + "%" : start;
         const parsedStart = CSSValueUnit.Value.tryParse(start)!;
@@ -268,7 +268,7 @@ export class Animation<V extends Vars> {
                 this.templateFrames,
                 this.transformedVars,
                 this.options.duration,
-                this.frames
+                this.frames,
             );
             this.frames.push(frame);
         }
@@ -280,7 +280,7 @@ export class Animation<V extends Vars> {
         return this;
     }
 
-    updateIterationCount(iterationCount: number | "infinite") {
+    updateIterationCount(iterationCount: number | string | "infinite") {
         if (iterationCount === "infinite") {
             this.options.iterationCount = Infinity;
         } else if (typeof iterationCount === "string") {
@@ -347,6 +347,10 @@ export class Animation<V extends Vars> {
         return this;
     }
 
+    playing() {
+        return !(!this.started || this.paused);
+    }
+
     reset() {
         this.startTime = undefined;
         // this.pausedTime = 0;
@@ -355,7 +359,6 @@ export class Animation<V extends Vars> {
 
         // this.started = false;
         // this.paused = false;
-
         return this;
     }
 
@@ -386,7 +389,7 @@ export class Animation<V extends Vars> {
                 reverseTransformObject(
                     k,
                     v.start.lerp(e, v.stop, this.target),
-                    reversedVars
+                    reversedVars,
                 );
             }
             frame.transform(t, reversedVars as V);
@@ -566,7 +569,7 @@ export class CSSKeyframesAnimation<V extends Vars> {
             this.animation.frame(
                 parseCSSPercent(percent),
                 frame,
-                this.transform.bind(this)
+                this.transform.bind(this),
             );
         }
 
@@ -591,7 +594,7 @@ export class CSSKeyframesAnimation<V extends Vars> {
     fromFrames(
         keyframes: Array<
             [number | string, Partial<V>, TransformFunction<V>?, TimingFunction?]
-        >
+        >,
     ) {
         this.initAnimation();
 
@@ -600,7 +603,7 @@ export class CSSKeyframesAnimation<V extends Vars> {
                 percent,
                 vars,
                 transform,
-                getTimingFunction(timingFunction)
+                getTimingFunction(timingFunction),
             );
         }
 
@@ -611,7 +614,7 @@ export class CSSKeyframesAnimation<V extends Vars> {
 
     fromCSSKeyframes(
         keyframes: string | Record<string, Partial<V>>,
-        transform?: TransformFunction<V>
+        transform?: TransformFunction<V>,
     ) {
         this.initAnimation();
         transform = transform ?? this.transform.bind(this);
@@ -704,6 +707,10 @@ export class AnimationGroup<V> {
         return this;
     }
 
+    playing() {
+        return !(!this.started || this.paused);
+    }
+
     transformFrames(t: number) {
         let groupedValues: Vars<ValueArray> = {};
 
@@ -784,14 +791,14 @@ function objectToString(key: string, value: any) {
 }
 
 import prettier from "prettier";
-import parserPostCSS from "prettier/parser-postcss";
+import prettierPostCSSPlugin from "prettier/plugins/postcss";
 import { CSSValueUnit } from "./parsing/units";
 
-export function CSSKeyframesToString<V extends Vars>(
+export async function CSSKeyframesToString<V extends Vars>(
     animation: Animation<V>,
     name: string = "animation",
-    printWidth: number = 80
-): string {
+    printWidth: number = 80,
+) {
     const options = animation.options;
     const keyframesMap = new Map<string, ValueUnit[]>();
     animation.templateFrames.forEach((frame) => {
@@ -847,10 +854,11 @@ export function CSSKeyframesToString<V extends Vars>(
 
     const keyframes = `${animationCss}\n@keyframes ${name} {\n${keyframesString}}`;
 
-    const out = prettier.format(keyframes, {
-        parser: "css",
-        plugins: [parserPostCSS],
+    const out = await prettier.format(keyframes, {
+        parser: "scss",
+        plugins: [prettierPostCSSPlugin],
         printWidth,
     });
+
     return out.replace(/\(\s*\{/g, "{").replace(/\}\s*\)/g, "}");
 }

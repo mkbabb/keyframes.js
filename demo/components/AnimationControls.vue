@@ -12,20 +12,35 @@
                     <input
                         type="string"
                         :value="reverseCSSTime(animation.options.duration)"
-                        @change="(e) => animation.updateDuration(e.target.value)"
+                        @change="
+                            (e) =>
+                                animation.updateDuration(
+                                    (e.target as HTMLInputElement).value,
+                                )
+                        "
                     />
 
                     <label>Delay</label>
                     <input
                         type="string"
                         :value="reverseCSSTime(animation.options.delay)"
-                        @change="(e) => animation.updateDelay(e.target.value)"
+                        @change="
+                            (e) =>
+                                animation.updateDelay(
+                                    (e.target as HTMLInputElement).value,
+                                )
+                        "
                     />
 
                     <label>Iteration Count</label>
                     <input
                         type="string"
-                        @change="(e) => animation.updateIterationCount(e.target.value)"
+                        @change="
+                            (e) =>
+                                animation.updateIterationCount(
+                                    (e.target as HTMLInputElement).value,
+                                )
+                        "
                         :value="
                             isFinite(animation.options.iterationCount)
                                 ? animation.options.iterationCount
@@ -82,8 +97,10 @@
                                     (e) => {
                                         cubicBezierValues = JSON.parse(
                                             JSON.stringify(
-                                                bezierPresets[e.target.value]
-                                            )
+                                                bezierPresets[
+                                                    (e.target as HTMLInputElement).value
+                                                ],
+                                            ),
                                         );
                                         updateTimingFunction();
                                     }
@@ -150,7 +167,7 @@
                     :min="0"
                     :max="animation.options.duration"
                     @input="sliderUpdate"
-                    :disabled="!animation.paused"
+                    :disabled="animation.playing()"
                     v-model.number="animation.t"
                 />
                 <div class="timing">
@@ -158,9 +175,7 @@
                         <font-awesome-icon
                             class="icon"
                             :icon="
-                                animation.paused || !animation.started
-                                    ? ['fas', 'play']
-                                    : ['fas', 'pause']
+                                animation.playing() ? ['fas', 'pause'] : ['fas', 'play']
                             "
                         />
                     </button>
@@ -210,6 +225,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive } from "vue";
+import { $ref } from "unplugin-vue-macros/macros";
 import {
     Animation,
     CSSKeyframesToString,
@@ -258,7 +274,7 @@ const emit = defineEmits<{
         val: {
             t: number;
             animationId: number;
-        }
+        },
     ): void;
 }>();
 
@@ -294,7 +310,7 @@ let steps = $ref(10);
 
 let cubicBezierPreset = $ref("ease");
 let cubicBezierValues = $ref(
-    bezierPresets[cubicBezierPreset] as [number, number, number, number]
+    bezierPresets[cubicBezierPreset] as [number, number, number, number],
 );
 const svgCubicBezierEl = $ref(null);
 
@@ -304,7 +320,7 @@ const updateTimingFunction = () => {
         timingFunction = timingFunctions[timingFunctionKey](steps, jumpTerm);
     } else if (timingFunctionKey === "cubicBezier") {
         timingFunction = CSSBezier(
-            ...(cubicBezierValues as [number, number, number, number])
+            ...(cubicBezierValues as [number, number, number, number]),
         );
         cubicBezierPreset = `cubic-bezier(${cubicBezierValues
             .map((v) => v.toFixed(2))
@@ -314,7 +330,7 @@ const updateTimingFunction = () => {
             cubicBezierValues[0],
             cubicBezierValues[1],
             cubicBezierValues[2],
-            cubicBezierValues[3]
+            cubicBezierValues[3],
         );
 
         svgCubicBezierEl.innerHTML = path;
@@ -342,8 +358,8 @@ const toggle = () => {
 
 let CSSKeyframesStringEl = $ref(null);
 
-const updateCSSKeyframesString = (keyframes?: string) => {
-    const s = keyframes ?? CSSKeyframesToString(animation, "animation", 45);
+const updateCSSKeyframesString = async (keyframes?: string) => {
+    const s = keyframes ?? (await CSSKeyframesToString(animation, "animation", 45));
 
     if (CSSKeyframesStringEl) {
         const h = hljs.highlight(s, { language: "css" });
@@ -356,8 +372,8 @@ const updateCSSKeyframesString = (keyframes?: string) => {
     return s;
 };
 
-const cssKeyframesString = computed(() => {
-    return updateCSSKeyframesString();
+const cssKeyframesString = computed(async () => {
+    return await updateCSSKeyframesString();
 });
 
 function onKeyDown(e: KeyboardEvent) {
@@ -392,7 +408,7 @@ const parseCSSKeyframesStringEl = debounce((event: Event) => {
         const { options, values, keyframes } = p.value;
 
         const anim = new CSSKeyframesAnimation(options).fromCSSKeyframes(
-            keyframes
+            keyframes,
         ).animation;
 
         for (const key of Object.keys(animation)) {
@@ -412,7 +428,7 @@ const animateParseCSSKeyframesStringEl = (event: Event) => {
         {
             duration: 1000,
         },
-        progressBarEl
+        progressBarEl,
     )
         .fromVars([
             {
@@ -433,7 +449,7 @@ const fadeInOut = (el) => {
             iterationCount: 2,
             timingFunction: "bounceInEase",
         },
-        el
+        el,
     )
         .fromVars([
             {
@@ -447,8 +463,8 @@ const fadeInOut = (el) => {
 };
 
 let copyTextEl = $ref(null);
-const copyToClipboard = () => {
-    navigator.clipboard.writeText(cssKeyframesString.value);
+const copyToClipboard = async () => {
+    navigator.clipboard.writeText(await cssKeyframesString.value);
     fadeInOut(copyTextEl);
 };
 

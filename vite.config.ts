@@ -1,6 +1,9 @@
 import { defineConfig } from "vite";
 import path from "path";
-import vue from "@vitejs/plugin-vue";
+
+import VueMacros from "unplugin-vue-macros/vite";
+import Vue from "@vitejs/plugin-vue";
+
 import dts from "vite-plugin-dts";
 import autoprefixer from "autoprefixer";
 
@@ -30,8 +33,10 @@ export default defineConfig((mode) => {
             },
             plugins: [
                 dts(),
-                vue({
-                    reactivityTransform: true,
+                VueMacros({
+                    plugins: {
+                        vue: Vue(),
+                    },
                 }),
             ],
         };
@@ -46,10 +51,14 @@ export default defineConfig((mode) => {
                 sourcemap: true,
             },
             plugins: [
-                vue({
-                    reactivityTransform: true,
+                VueMacros({
+                    plugins: {
+                        vue: Vue(),
+                    },
                 }),
             ],
         };
+    } else {
+        return {};
     }
 });

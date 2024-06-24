@@ -9,7 +9,7 @@
         <div
             :class="[
                 'matrix-controls',
-                !matrixAnim.animation.started || matrixAnim.animation.paused
+                matrixAnim.animation.started || matrixAnim.animation.paused
                     ? 'disabled'
                     : '',
             ]"
@@ -19,8 +19,11 @@
                     <input
                         :value="Math.round(value.value * 100) / 100"
                         @change="
-                            ($event) => {
-                                updateMatrixCell($event.target.value, i);
+                            (e) => {
+                                updateMatrixCell(
+                                    (e.target as HTMLInputElement).value,
+                                    i,
+                                );
                             }
                         "
                     />
@@ -83,6 +86,7 @@ import { easeInBounce, linear } from "../../src/easing";
 import { FunctionValue, ValueArray, ValueUnit } from "../../src/units";
 import { mat4 } from "gl-matrix";
 import { onMounted } from "vue";
+import { $ref } from "unplugin-vue-macros/macros";
 import AnimationControlsGroup from "../components/AnimationControlsGroup.vue";
 
 import "../style.scss";
@@ -141,13 +145,13 @@ const getTransformFromIx = (i: number) => {
 
 const matrix3dStart = new FunctionValue(
     "matrix3d",
-    [...mat4.create()].map((v) => new ValueUnit(v))
+    [...mat4.create()].map((v) => new ValueUnit(v)),
 );
 const matrix3dEnd = $ref(
     new FunctionValue(
         "matrix3d",
-        [...mat4.create()].map((v) => new ValueUnit(v))
-    )
+        [...mat4.create()].map((v) => new ValueUnit(v)),
+    ),
 );
 
 const syncTransformations = (reset: boolean = false) => {
@@ -166,7 +170,9 @@ const syncTransformations = (reset: boolean = false) => {
     }
 };
 
-const updateMatrixCell = (to: number, ix: number) => {
+const updateMatrixCell = (to: number | string, ix: number) => {
+    to = typeof to === "string" ? parseFloat(to) : to;
+
     const from = matrix3dEnd.values[ix].value;
 
     new CSSKeyframesAnimation({
@@ -184,7 +190,7 @@ const updateMatrixCell = (to: number, ix: number) => {
             (t, { value }) => {
                 matrix3dEnd.values[ix].value = value;
                 syncTransformations();
-            }
+            },
         )
         .play();
 };
@@ -192,7 +198,7 @@ const updateMatrixCell = (to: number, ix: number) => {
 const animateUpdateMatrix = (
     fromMatrix: mat4,
     toMatrix: mat4,
-    reset: boolean = false
+    reset: boolean = false,
 ) => {
     const transformFunc = (t, { transform: { matrix3d } }) => {
         matrix3dEnd.values.forEach((value, i) => {
@@ -218,7 +224,7 @@ const animateUpdateMatrix = (
                     },
                 },
             ],
-            transformFunc
+            transformFunc,
         )
         .play();
 };
@@ -252,7 +258,7 @@ function updateTransformations() {
 
 const reset = () => {
     const toMatrix = mat4.create();
-    const fromMatrix = matrix3dEnd.values.map((value) => value.value);
+    const fromMatrix = matrix3dEnd.values.map((value) => value.value) as mat4;
     animateUpdateMatrix(fromMatrix, toMatrix, true);
 };
 
@@ -282,7 +288,7 @@ const matrixAnim = $ref(
                 matrix3d: matrix3dEnd,
             },
         },
-    ])
+    ]),
 );
 
 const rotationAnim = $ref(
@@ -309,7 +315,7 @@ const rotationAnim = $ref(
                 // matrix3d: matrix3dEnd,
             },
         },
-    })
+    }),
 );
 
 const animations = {

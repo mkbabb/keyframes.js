@@ -16,6 +16,7 @@ import AnimationControlsGroup from "../components/AnimationControlsGroup.vue";
 
 import "../style.scss";
 import { MeshLambertMaterial } from "three";
+import { $ref } from "unplugin-vue-macros/macros";
 
 let canvas = $ref(null);
 

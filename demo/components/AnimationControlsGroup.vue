@@ -14,9 +14,7 @@
                 <font-awesome-icon
                     class="icon"
                     :icon="
-                        animationGroup.paused || !animationGroup.started
-                            ? ['fas', 'play']
-                            : ['fas', 'pause']
+                        animationGroup.playing() ? ['fas', 'pause'] : ['fas', 'play']
                     "
                 />
             </button>
@@ -28,9 +26,7 @@
                 @slider-update="sliderUpdate"
                 :animation="animation"
                 :is-grouped="true"
-                :class="[
-                    !animationGroup.started || animationGroup.paused ? 'disabled' : '',
-                ]"
+                :class="[animationGroup.playing() ? '' : 'disabled']"
             />
         </template>
     </div>
@@ -38,6 +34,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, Ref, ref, watchEffect } from "vue";
+import { $ref } from "unplugin-vue-macros/macros";
 import { Animation, AnimationGroup, Vars } from "../../src/animation";
 import AnimationControls from "./AnimationControls.vue";
 
@@ -57,7 +54,7 @@ selectedAnimation.value = Object.keys(animations)[0];
 const sliderUpdate = (e: { t: number; animationId: number }) => {
     const { t, animationId } = e;
     const groupObject = animationGroup.animationGroup.find(
-        (a) => a.animation.id == animationId
+        (a) => a.animation.id == animationId,
     );
     const { animation } = groupObject;
 
