@@ -1,6 +1,6 @@
 {
     "name": "@mkbabb/keyframes",
-    "version": "0.6.2",
+    "version": "0.6.3",
     "description": "TypeScript library for parsing and manipulating CSS keyframes",
     "type": "module",
     "main": "./dist/@mkbabb/keyframes.js",

@@ -1,18 +1,5 @@
-import { bounceInEase, bounceInEaseHalf, easeInBounce, easeInCubic, easeInOutCubic, easeInOutQuad, easeInQuad, easeOutCubic, easeOutQuad, smoothStep3 } from "./easing";
-import { ValueArray } from "./units";
-import { TransformedVars } from "./utils";
-export declare const easingFunctions: {
-    easeInQuad: typeof easeInQuad;
-    easeOutQuad: typeof easeOutQuad;
-    easeInOutQuad: typeof easeInOutQuad;
-    easeInCubic: typeof easeInCubic;
-    easeOutCubic: typeof easeOutCubic;
-    easeInOutCubic: typeof easeInOutCubic;
-    easeInBounce: typeof easeInBounce;
-    bounceInEase: typeof bounceInEase;
-    bounceInEaseHalf: typeof bounceInEaseHalf;
-    smoothStep3: typeof smoothStep3;
-};
+import { timingFunctions } from "./easing";
+import { TransformedVars, ValueArray, ValueUnit } from "./units";
 type InterpValue = {
     start: ValueArray;
     stop: ValueArray;
@@ -20,11 +7,12 @@ type InterpValue = {
 type InterpVars = {
     [arg: string]: InterpValue;
 };
-type Vars = {
-    [arg: string]: number | string | any;
+export type Vars<T = any> = {
+    [arg: string]: number | string | T;
 };
 type TransformFunction<V extends Vars> = (t: number, v: V) => void;
 type TimingFunction = (t: number) => number;
+type TimingFunctionNames = keyof typeof timingFunctions;
 export type Keyframe<V extends Vars> = [
     vars: V,
     transform?: TransformFunction<V>,
@@ -32,7 +20,7 @@ export type Keyframe<V extends Vars> = [
 ];
 interface TemplateAnimationFrame<V extends Vars> {
     id: number;
-    start: number;
+    start: ValueUnit;
     vars: V;
     transform?: TransformFunction<V>;
     timingFunction?: TimingFunction;
@@ -56,8 +44,18 @@ type AnimationOptions = {
     fillMode: "none" | "forwards" | "backwards" | "both";
     timingFunction: TimingFunction;
 };
+declare const defaultOptions: AnimationOptions;
+type InputAnimationOptions = {
+    duration: number | string;
+    delay: number | string;
+    iterationCount: number | "infinite";
+    direction: typeof defaultOptions.direction;
+    fillMode: typeof defaultOptions.fillMode;
+    timingFunction: TimingFunction | TimingFunctionNames;
+};
 export declare class Animation<V extends Vars> {
     target: HTMLElement;
+    id: number;
     options: AnimationOptions;
     templateFrames: TemplateAnimationFrame<V>[];
     transformedVars: TransformedVars[];
@@ -67,38 +65,74 @@ export declare class Animation<V extends Vars> {
     pausedTime: number;
     prevTime: number;
     t: number;
+    iteration: number;
     started: boolean;
     done: boolean;
     reversed: boolean;
     paused: boolean;
-    constructor(options: Partial<AnimationOptions>, target?: HTMLElement);
-    frame<K extends V>(start: number, vars: Partial<K>, transform?: TransformFunction<K>, timingFunction?: TimingFunction): Animation<K>;
+    constructor(options: Partial<InputAnimationOptions>, target?: HTMLElement);
+    frame<K extends V>(start: number | string, vars: Partial<K>, transform?: TransformFunction<K>, timingFunction?: TimingFunction | TimingFunctionNames): Animation<K>;
     transformVars(): this;
     parseFrames(): this;
+    updateTimingFunction(timingFunction: TimingFunction | TimingFunctionNames): this;
+    updateIterationCount(iterationCount: number | "infinite"): this;
+    updateDuration(duration: number | string): this;
+    updateDelay(delay: number | string): this;
+    parseOptions(options: Partial<InputAnimationOptions>): this;
     parse(): this;
     reverse(): this;
-    pause(): this;
+    pause(draw?: boolean): this;
     reset(): this;
     fillForwards(): void;
     fillBackwards(): void;
-    interpFrames(t: number, reversedVars?: TransformedVars): void;
+    transformFrames(t: number): void;
+    interpFrames(t: number, values: Vars<ValueArray>): void;
     onStart(): Promise<void>;
     onEnd(): void;
-    draw(t: number): Promise<number | void>;
-    play(): Promise<void>;
+    tick(t: number): number;
+    draw(t: number): void;
+    play(): void;
 }
+export declare function reverseTransformStyle(t: number, vars: any): any;
 export declare class CSSKeyframesAnimation<V extends Vars> {
     options: AnimationOptions;
     targets: HTMLElement[];
     animation: Animation<V>;
-    constructor(options?: Partial<AnimationOptions>, ...targets: HTMLElement[]);
+    constructor(options?: Partial<InputAnimationOptions>, ...targets: HTMLElement[]);
+    addTargets(...targets: HTMLElement[]): this;
     initAnimation(): this;
     fromFramesDefaultTransform(keyframes: Record<string, Partial<V>>): this;
-    fromVars(vars: V[], transform: TransformFunction<V>): this;
-    fromFrames(keyframes: Record<string, Keyframe<V>>): this;
-    fromCSSKeyframes(keyframes: string): this;
+    fromVars(vars: V[], transform?: TransformFunction<V>): this;
+    fromFrames(keyframes: Array<[
+        number | string,
+        Partial<V>,
+        TransformFunction<V>?,
+        TimingFunction?
+    ]>): this;
+    fromCSSKeyframes(keyframes: string | Record<string, Partial<V>>, transform?: TransformFunction<V>): this;
     transform(t: number, vars: any): void;
-    play(): Promise<void>;
+    play(): void;
     pause(): this;
 }
+export interface AnimationGroupObject<V> {
+    animation: Animation<V>;
+    values: Vars<ValueArray>;
+}
+export declare class AnimationGroup<V> {
+    animationGroup: AnimationGroupObject<V>[];
+    transform: TransformFunction<V>;
+    paused: boolean;
+    started: boolean;
+    done: boolean;
+    constructor(...animations: Animation<V>[]);
+    reset(): this;
+    onStart(): this;
+    onEnd(): this;
+    pause(): this;
+    transformFrames(t: number): {};
+    tick(t: number): this;
+    draw(t: number): void;
+    play(): this;
+}
+export declare function CSSKeyframesToString<V extends Vars>(animation: Animation<V>, name?: string, printWidth?: number): string;
 export {};
