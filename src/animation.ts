@@ -29,7 +29,8 @@ export type Vars<T = any> = {
 };
 
 type TransformFunction<V extends Vars> = (t: number, v: V) => void;
-type TimingFunction = (t: number) => number | keyof typeof timingFunctions;
+type TimingFunction = (t: number) => number;
+type TimingFunctionNames = keyof typeof timingFunctions;
 
 export type Keyframe<V extends Vars> = [
     vars: V,
@@ -140,12 +141,12 @@ export function parseTemplateFrame<V extends Vars>(
 }
 
 type AnimationOptions = {
-    duration: number | string;
+    duration: number;
     delay: number;
     iterationCount: number;
     direction: "normal" | "reverse" | "alternate" | "alternate-reverse";
     fillMode: "none" | "forwards" | "backwards" | "both";
-    timingFunction: keyof typeof timingFunctions | TimingFunction;
+    timingFunction: TimingFunction;
 };
 
 const defaultOptions: AnimationOptions = {
@@ -157,14 +158,24 @@ const defaultOptions: AnimationOptions = {
     timingFunction: easeInOutCubic,
 };
 
+type InputAnimationOptions = {
+    duration: number | string;
+    delay: number | string;
+    iterationCount: number | "infinite";
+    direction: typeof defaultOptions.direction;
+    fillMode: typeof defaultOptions.fillMode;
+    timingFunction: TimingFunction | TimingFunctionNames;
+};
+
 const getTimingFunction = (
-    timingFunction: TimingFunction
-): TimingFunction | typeof timingFunction | undefined => {
+    timingFunction: TimingFunction | TimingFunctionNames | undefined
+): TimingFunction | undefined => {
     if (typeof timingFunction === "string") {
-        return timingFunctions[timingFunction];
+        return timingFunctions[timingFunction] as TimingFunction | undefined;
     } else if (timingFunction == null) {
         return undefined;
     }
+
     return timingFunction;
 };
 
@@ -193,21 +204,19 @@ export class Animation<V extends Vars> {
     paused: boolean = false;
 
     constructor(
-        options: Partial<AnimationOptions>,
+        options: Partial<InputAnimationOptions>,
         public target: HTMLElement = document.documentElement
     ) {
-        this.options = { ...defaultOptions, ...options };
-
-        this.updateTimingFunction(this.options.timingFunction);
-        this.updateDuration(this.options.duration);
-        this.updateIterationCount(this.options.iterationCount);
+        this.options = { ...defaultOptions, ...options } as AnimationOptions;
+        
+        this.parseOptions(options);
     }
 
     frame<K extends V>(
         start: number | string,
         vars: Partial<K>,
         transform?: TransformFunction<K>,
-        timingFunction?: TimingFunction
+        timingFunction?: TimingFunction | TimingFunctionNames
     ): Animation<K> {
         start = typeof start === "number" ? String(start) + "%" : start;
         const parsedStart = CSSValueUnit.Value.tryParse(start)!;
@@ -266,7 +275,7 @@ export class Animation<V extends Vars> {
         return this;
     }
 
-    updateTimingFunction(timingFunction: TimingFunction) {
+    updateTimingFunction(timingFunction: TimingFunction | TimingFunctionNames) {
         this.options.timingFunction = getTimingFunction(timingFunction);
         return this;
     }
@@ -297,6 +306,23 @@ export class Animation<V extends Vars> {
         }
 
         this.options.duration = duration;
+
+        return this;
+    }
+
+    updateDelay(delay: number | string) {
+        if (typeof delay === "string") {
+            delay = parseCSSTime(delay);
+        }
+        this.options.delay = delay;
+        return this;
+    }
+
+    parseOptions(options: Partial<InputAnimationOptions>) {
+        this.updateTimingFunction(options.timingFunction);
+        this.updateDuration(options.duration);
+        this.updateIterationCount(options.iterationCount);
+        this.updateDelay(options.delay);
 
         return this;
     }
@@ -511,8 +537,11 @@ export class CSSKeyframesAnimation<V extends Vars> {
     targets: HTMLElement[];
     animation: Animation<V>;
 
-    constructor(options: Partial<AnimationOptions> = {}, ...targets: HTMLElement[]) {
-        this.options = { ...defaultOptions, ...options };
+    constructor(
+        options: Partial<InputAnimationOptions> = {},
+        ...targets: HTMLElement[]
+    ) {
+        this.options = { ...defaultOptions, ...options } as AnimationOptions;
         this.targets = targets;
     }
 

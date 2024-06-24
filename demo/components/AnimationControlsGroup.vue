@@ -46,6 +46,7 @@ const { animations } = defineProps<{
 }>();
 
 const selectedAnimation = ref("");
+
 const emit = defineEmits<{
     (e: "selectedAnimation", val: string): void;
 }>();

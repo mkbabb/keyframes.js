@@ -143,6 +143,7 @@ export class ValueUnit<T = number> {
         if (this.unit !== other.unit) {
             const [left, right] = collapseNumericType(this, other, target);
             const value = lerp(t, left.value, right.value);
+            
             return new ValueUnit(value, left.unit, left.superType);
         } else if (this.unit === "color") {
             const value = lerpColor(
@@ -169,6 +170,7 @@ function lerpMany<T>(
     for (let i = 0; i < minLength; i++) {
         const l = left[i];
         const r = right[i];
+
         arr.push(l.lerp(t, r, target));
     }
     return arr;
@@ -268,7 +270,7 @@ export function transformObject(input: any): TransformedVars {
                 return p;
             }
         } else {
-            return input;
+            return input as ValueArray | FunctionValue;
         }
     };
 
@@ -288,7 +290,6 @@ export function reverseTransformObject(
         original[key] = values;
         return original;
     }
-
 
     for (let i = 0; i < keys.length; i++) {
         const k = keys[i];

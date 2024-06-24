@@ -18,7 +18,8 @@
     "scripts": {
         "dev": "vite --port 8080 --mode production",
         "build": "vite build --mode production",
-        "gh-pages": "vite build --mode gh-pages"
+        "gh-pages": "vite build --mode gh-pages",
+        "test": "vitest"
     },
     "repository": {
         "type": "git",

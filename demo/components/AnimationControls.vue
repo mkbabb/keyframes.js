@@ -19,10 +19,7 @@
                     <input
                         type="string"
                         :value="reverseCSSTime(animation.options.delay)"
-                        @change="
-                            (e) =>
-                                (animation.options.delay = parseCSSTime(e.target.value))
-                        "
+                        @change="(e) => animation.updateDelay(e.target.value)"
                     />
 
                     <label>Iteration Count</label>
@@ -106,8 +103,11 @@
                                 xmlns="http://www.w3.org/2000/svg"
                             ></svg>
 
-                            <label class="preset-label" @click="copyToClipboard">{{ cubicBezierPreset }}<div ref="copyTextEl" class="info">Copied!</div>
-                            <font-awesome-icon :icon="['fas', 'clipboard']" /></label>
+                            <label class="preset-label" @click="copyToClipboard"
+                                >{{ cubicBezierPreset }}
+                                <div ref="copyTextEl" class="info">Copied!</div>
+                                <font-awesome-icon :icon="['fas', 'clipboard']"
+                            /></label>
 
                             <input
                                 @input="updateTimingFunction"
@@ -148,9 +148,9 @@
                     class="slider"
                     type="range"
                     :min="0"
-                    :disabled="!animation.paused"
                     :max="animation.options.duration"
                     @input="sliderUpdate"
+                    :disabled="!animation.paused"
                     v-model.number="animation.t"
                 />
                 <div class="timing">
@@ -209,7 +209,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from "vue";
+import { computed, onMounted, reactive } from "vue";
 import {
     Animation,
     CSSKeyframesToString,
@@ -238,7 +238,7 @@ let timingFunctionsAnd = {
     ...timingFunctions,
 };
 
-const { animation, isGrouped } = defineProps({
+const { animation: tmpAnimation, isGrouped } = defineProps({
     isGrouped: {
         type: Boolean,
         required: false,
@@ -249,6 +249,8 @@ const { animation, isGrouped } = defineProps({
         required: true,
     },
 });
+
+const animation = $ref(tmpAnimation);
 
 const emit = defineEmits<{
     (
@@ -291,7 +293,9 @@ let jumpTerm = $ref("jump-none");
 let steps = $ref(10);
 
 let cubicBezierPreset = $ref("ease");
-let cubicBezierValues = $ref(bezierPresets[cubicBezierPreset]);
+let cubicBezierValues = $ref(
+    bezierPresets[cubicBezierPreset] as [number, number, number, number]
+);
 const svgCubicBezierEl = $ref(null);
 
 const updateTimingFunction = () => {
@@ -299,16 +303,20 @@ const updateTimingFunction = () => {
     if (timingFunctionKey === "steps") {
         timingFunction = timingFunctions[timingFunctionKey](steps, jumpTerm);
     } else if (timingFunctionKey === "cubicBezier") {
-        timingFunction = CSSBezier(...cubicBezierValues);
+        timingFunction = CSSBezier(
+            ...(cubicBezierValues as [number, number, number, number])
+        );
         cubicBezierPreset = `cubic-bezier(${cubicBezierValues
             .map((v) => v.toFixed(2))
             .join(",")})`;
+
         const path = svgCubicBezier(
             cubicBezierValues[0],
             cubicBezierValues[1],
             cubicBezierValues[2],
             cubicBezierValues[3]
         );
+
         svgCubicBezierEl.innerHTML = path;
     }
 
@@ -316,6 +324,7 @@ const updateTimingFunction = () => {
 };
 
 let prevT = $ref(0);
+
 const toggle = () => {
     if (!animation.started && !isGrouped) {
         animation.play();
@@ -370,8 +379,8 @@ function onKeyDown(e: KeyboardEvent) {
 }
 
 const parseCSSKeyframesStringEl = debounce((event: Event) => {
+    // @ts-ignore
     const s: string = event.target.innerText;
-    console.log(event.key);
 
     const p = CSSAnimationKeyframes.Values.parse(s);
 
@@ -508,7 +517,6 @@ input[type="range"] {
     grid-template-columns: auto auto;
     align-items: center;
 
-    
     label {
         overflow: hidden;
         white-space: pre;
@@ -519,7 +527,6 @@ input[type="range"] {
     input {
         grid-column: span 2;
         margin: 0;
-    
 
         background: linear-gradient(
             to right,
