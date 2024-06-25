@@ -138,7 +138,7 @@ export const colorNames = {
     steelblue: "#4682b4",
 
     // TODO! Fix conflict with Math.tan
-    // tan: "#d2b48c",
+    tan: "#d2b48c",
     teal: "#008080",
     thistle: "#d8bfd8",
     tomato: "#ff6347",

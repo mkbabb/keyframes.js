@@ -59,6 +59,7 @@ const tesselateSphere = (color1, color2, radius) => {
 
         uvs.push(u, v);
     }
+
     geometry.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
 
     return mesh;
@@ -104,7 +105,7 @@ const rotations = new CSSKeyframesAnimation({
             timing-function: cubic-bezier(0.2, 0.65, 0.6, 1);
         }
     }`,
-    transform
+    transform,
 );
 
 const bouncingX = new CSSKeyframesAnimation({
@@ -126,7 +127,7 @@ const bouncingX = new CSSKeyframesAnimation({
             };
         }
     }`,
-    transform
+    transform,
 );
 
 const bouncingY = new CSSKeyframesAnimation({
@@ -148,7 +149,7 @@ const bouncingY = new CSSKeyframesAnimation({
             },
         },
     ],
-    transform
+    transform,
 );
 
 const bouncingZ = new CSSKeyframesAnimation({
@@ -170,7 +171,7 @@ const bouncingZ = new CSSKeyframesAnimation({
             };
         }
     }`,
-    transform
+    transform,
 );
 
 const animations = $ref({
@@ -188,14 +189,14 @@ onMounted(() => {
         75,
         canvas.clientWidth / canvas.clientHeight,
         0.1,
-        1000
+        1000,
     );
 
     camera.position.z = boxSize;
     camera.position.y = boxSize / 3;
     const renderer = new THREE.WebGLRenderer({ antialias: true, canvas: canvas });
     renderer.setPixelRatio(window.devicePixelRatio * 2);
-    renderer.setClearColor(0xffffff, 1);
+    renderer.setClearColor("white", 1);
 
     const light = new THREE.SpotLight("white", 0.75, 0, Math.PI / 2, 1);
     light.position.set(0, boxSize - 1, boxSize / 2);

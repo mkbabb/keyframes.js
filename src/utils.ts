@@ -38,15 +38,33 @@ export function debounce(func: Function, wait: number = 100, waitingFunc?) {
         timeout = setTimeout(() => {
             func(...args);
             timeout = undefined as unknown as number;
-        }, wait);
+        }, wait) as unknown as number;
     };
 }
 
 export const hyphenToCamelCase = (str: string) =>
     str.replace(/([-_][a-z])/gi, (group) =>
-        group.toUpperCase().replace("-", "").replace("_", "")
+        group.toUpperCase().replace("-", "").replace("_", ""),
     );
 
 export function camelCaseToHyphen(str: string) {
     return str.replace(/([A-Z])/g, (g) => `-${g[0].toLowerCase()}`);
+}
+
+export function requestAnimationFrame(callback: FrameRequestCallback) {
+    if (window != null) {
+        return window.requestAnimationFrame(callback);
+    }
+
+    return setImmediate(() => {
+        callback(Date.now());
+    });
+}
+
+export function cancelAnimationFrame(handle: number | undefined | null | any) {
+    if (window != null) {
+        return window.cancelAnimationFrame(handle);
+    }
+
+    return clearImmediate(handle);
 }

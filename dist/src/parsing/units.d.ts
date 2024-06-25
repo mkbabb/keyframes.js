@@ -1,4 +1,5 @@
-import P from "parsimmon";
+import { default as P } from 'parsimmon';
+
 export declare const absoluteLengthUnits: readonly ["px", "cm", "mm", "Q", "in", "pc", "pt"];
 export declare const relativeLengthUnits: readonly ["em", "ex", "ch", "rem", "lh", "rlh", "vw", "vh", "vmin", "vmax", "vb", "vi", "svw", "svh", "lvw", "lvh", "dvw", "dvh"];
 export declare const lengthUnits: readonly ["px", "cm", "mm", "Q", "in", "pc", "pt", "em", "ex", "ch", "rem", "lh", "rlh", "vw", "vh", "vmin", "vmax", "vb", "vi", "svw", "svh", "lvw", "lvh", "dvw", "dvh"];

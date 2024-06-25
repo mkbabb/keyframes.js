@@ -10,9 +10,6 @@
         ],
         "alwaysStrict": true,
         "strict": false,
-        "types": [
-            "vue/ref-macros"
-        ],
         "allowSyntheticDefaultImports": true
     },
     "include": [

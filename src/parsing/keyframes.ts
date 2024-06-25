@@ -46,7 +46,7 @@ const mathFunctions = {
 
 const evaluateMathFunction = (
     funcName: keyof typeof mathFunctions,
-    values: ValueUnit[]
+    values: ValueUnit[],
 ) => {
     const collapsed = values.reduce((acc, v) => {
         return collapseNumericType(acc, v);
@@ -62,6 +62,8 @@ const evaluateMathFunction = (
             }
         });
     const func = mathFunctions[funcName];
+
+    // @ts-ignore
     const value = func(...flatValues);
 
     if (value) {
@@ -74,7 +76,7 @@ const evaluateMathFunction = (
 function evaluateMathOperator(
     operator: string,
     left: ValueUnit,
-    right: ValueUnit
+    right: ValueUnit,
 ): ValueUnit {
     [left, right] = collapseNumericType(left, right);
 
@@ -145,7 +147,7 @@ const MathValue: P.Language = P.createLanguage({
             ([name, args]) => {
                 const v = evaluateMathFunction(
                     name as keyof typeof mathFunctions,
-                    args
+                    args,
                 );
 
                 if (v) {
@@ -153,14 +155,14 @@ const MathValue: P.Language = P.createLanguage({
                 } else {
                     return new FunctionValue(name, args);
                 }
-            }
+            },
         ),
 
     Term: (r) =>
         P.seqMap(
             r.Factor,
             P.seq(r.termOperators, r.Factor).many(),
-            reduceMathOperators
+            reduceMathOperators,
         ),
     Factor: (r) =>
         P.seqMap(r.Atom, P.seq(r.factorOperators, r.Term).many(), reduceMathOperators),
@@ -231,7 +233,7 @@ const handleGradient = (r: P.Language) => {
     const name = P.alt(...["linear-gradient", "radial-gradient"].map(istring));
     const sideOrCorner = P.seq(
         P.string("to").skip(r.ws),
-        P.alt(...["left", "right", "top", "bottom"].map(istring))
+        P.alt(...["left", "right", "top", "bottom"].map(istring)),
     ).map(([to, direction]) => {
         direction = gradientDirections[direction.toLowerCase()];
         return new ValueUnit(direction, "deg");
@@ -243,7 +245,7 @@ const handleGradient = (r: P.Language) => {
 
     const linearColorStop = P.seq(
         CSSValueUnit.Color,
-        P.sepBy(lengthPercentage, r.ws)
+        P.sepBy(lengthPercentage, r.ws),
     ).map(([color, stops]) => {
         if (!stops) {
             return [color];
@@ -254,7 +256,7 @@ const handleGradient = (r: P.Language) => {
 
     const colorStopList = P.seq(
         linearColorStop,
-        r.comma.trim(r.ws).then(linearColorStop.or(lengthPercentage)).many()
+        r.comma.trim(r.ws).then(linearColorStop.or(lengthPercentage)).many(),
     ).map(([first, rest]) => {
         return [first, ...rest].map((v) => new ValueArray(v));
     });
@@ -270,7 +272,7 @@ const handleGradient = (r: P.Language) => {
                 } else {
                     return [direction, ...stops].flat();
                 }
-            })
+            }),
     ).map(([name, values]) => new FunctionValue(name, values));
 
     return linearGradient;
@@ -306,7 +308,7 @@ export const CSSKeyframes = P.createLanguage({
             handleCalc(r),
             handleGradient(r),
             handleCubicBezier(r),
-            handleFunc(r).map(([name, values]) => new FunctionValue(name, values))
+            handleFunc(r).map(([name, values]) => new FunctionValue(name, values)),
         ),
 
     JSON: (r) =>
@@ -325,7 +327,7 @@ export const CSSKeyframes = P.createLanguage({
                 .skip(r.colon)
                 .trim(r.ws)
                 .map((x) => hyphenToCamelCase(x)),
-            r.Values.skip(r.semi).trim(r.ws)
+            r.Values.skip(r.semi).trim(r.ws),
         ).map(([name, values]) => {
             const value = values.values[0];
 
@@ -344,7 +346,7 @@ export const CSSKeyframes = P.createLanguage({
         P.alt(
             integer.skip(P.string("%").or(P.string(""))),
             P.string("from").map(() => "0"),
-            P.string("to").map(() => "100")
+            P.string("to").map(() => "100"),
         )
             .trim(r.ws)
             .map(Number),
@@ -368,7 +370,7 @@ export const CSSKeyframes = P.createLanguage({
 
     Keyframes: (r) =>
         r.Rule.then(
-            r.Keyframe.atLeast(1).trim(r.ws).wrap(r.lcurly, r.rcurly).trim(r.ws)
+            r.Keyframe.atLeast(1).trim(r.ws).wrap(r.lcurly, r.rcurly).trim(r.ws),
         ).map((frame) => {
             return Object.assign({}, ...frame);
         }),
@@ -406,7 +408,7 @@ export const CSSClass = P.createLanguage({
                     options,
                     values,
                 };
-            })
+            }),
         ),
 });
 
@@ -419,7 +421,7 @@ export const CSSAnimationKeyframes = P.createLanguage({
                 return {
                     keyframes: value,
                 };
-            })
+            }),
         ),
     Values: (r) => r.Value.sepBy(r.ws).map((values) => Object.assign({}, ...values)),
 });

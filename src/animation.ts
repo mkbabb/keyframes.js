@@ -14,7 +14,12 @@ import {
     ValueArray,
     ValueUnit,
 } from "./units";
-import { camelCaseToHyphen, sleep } from "./utils";
+import {
+    camelCaseToHyphen,
+    sleep,
+    requestAnimationFrame,
+    cancelAnimationFrame,
+} from "./utils";
 
 type InterpValue = {
     start: ValueArray;

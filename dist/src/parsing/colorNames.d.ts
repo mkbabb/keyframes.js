@@ -136,6 +136,7 @@ export declare const colorNames: {
     readonly snow: "#fffafa";
     readonly springgreen: "#00ff7f";
     readonly steelblue: "#4682b4";
+    readonly tan: "#d2b48c";
     readonly teal: "#008080";
     readonly thistle: "#d8bfd8";
     readonly tomato: "#ff6347";

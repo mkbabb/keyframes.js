@@ -1,5 +1,6 @@
-import { timingFunctions } from "./easing";
-import { TransformedVars, ValueArray, ValueUnit } from "./units";
+import { timingFunctions } from './easing';
+import { TransformedVars, ValueArray, ValueUnit } from './units';
+
 type InterpValue = {
     start: ValueArray;
     stop: ValueArray;
@@ -75,13 +76,14 @@ export declare class Animation<V extends Vars> {
     transformVars(): this;
     parseFrames(): this;
     updateTimingFunction(timingFunction: TimingFunction | TimingFunctionNames): this;
-    updateIterationCount(iterationCount: number | "infinite"): this;
+    updateIterationCount(iterationCount: number | string | "infinite"): this;
     updateDuration(duration: number | string): this;
     updateDelay(delay: number | string): this;
     parseOptions(options: Partial<InputAnimationOptions>): this;
     parse(): this;
     reverse(): this;
     pause(draw?: boolean): this;
+    playing(): boolean;
     reset(): this;
     fillForwards(): void;
     fillBackwards(): void;
@@ -129,10 +131,11 @@ export declare class AnimationGroup<V> {
     onStart(): this;
     onEnd(): this;
     pause(): this;
+    playing(): boolean;
     transformFrames(t: number): {};
     tick(t: number): this;
     draw(t: number): void;
     play(): this;
 }
-export declare function CSSKeyframesToString<V extends Vars>(animation: Animation<V>, name?: string, printWidth?: number): string;
+export declare function CSSKeyframesToString<V extends Vars>(animation: Animation<V>, name?: string, printWidth?: number): Promise<string>;
 export {};

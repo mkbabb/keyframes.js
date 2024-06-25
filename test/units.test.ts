@@ -8,15 +8,15 @@ import {
 import { CSSKeyframesToString, CSSKeyframesAnimation } from "../src/animation";
 import { expect, describe, it, assert } from "vitest";
 
-const checkIfReversedEquals = (keyframes: string) => {
+const checkIfReversedEquals = async (keyframes: string) => {
     const el = document.createElement("div");
 
     const anim = new CSSKeyframesAnimation({}, el).fromCSSKeyframes(keyframes);
-    const reversed = CSSKeyframesToString(anim.animation);
+    const reversed = await CSSKeyframesToString(anim.animation);
     const keyframesAgain = reversed.split("\n\n")[1];
 
     const animAgain = new CSSKeyframesAnimation({}, el).fromCSSKeyframes(
-        keyframesAgain
+        keyframesAgain,
     );
     animAgain.animation.id = anim.animation.id;
 
@@ -310,7 +310,7 @@ describe("CSSKeyframes", () => {
         assert.equal(frames[0]["top"].values[0].toString(), "var(--hey)");
         assert.equal(
             frames[100]["backgroundColor"].values[0].toString(),
-            "var(--gay-vibes)"
+            "var(--gay-vibes)",
         );
     });
 

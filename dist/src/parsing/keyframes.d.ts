@@ -1,4 +1,5 @@
-import P from "parsimmon";
+import { default as P } from 'parsimmon';
+
 export declare const CSSKeyframes: P.Language;
 export declare const CSSClass: P.Language;
 export declare const CSSAnimationKeyframes: P.Language;
