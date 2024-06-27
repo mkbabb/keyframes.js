@@ -175,6 +175,27 @@ const getTimingFunction = (
     return timingFunction;
 };
 
+
+// const normalizeFrameStartTime = (frame: TemplateAnimationFrame<any>, duration: number) => {
+//     let value = frame.start.value;
+
+//     if (frame.start.unit === "s") {
+//         value = (value / duration) * 100;
+//     }
+    
+//     if (frame.start.unit === "ms") {
+//         frame.start.unit = "%";
+
+//         const nextTime = i > 0 ? this.templateFrames[i - 1].start.value : 0;
+
+//         const msValue =
+//             (nextTime * this.options.duration) / 100 + frame.start.value;
+//         const percent = (msValue / this.options.duration) * 100;
+
+//         frame.start.value = percent;
+//     }
+// }
+
 let nextId = 0;
 
 export class Animation<V extends Vars> {
@@ -243,6 +264,7 @@ export class Animation<V extends Vars> {
         for (let i = 0; i < this.templateFrames.length; i++) {
             const frame = this.templateFrames[i];
 
+            // Normalize start time to percentage
             if (frame.start.unit === "ms") {
                 frame.start.unit = "%";
 

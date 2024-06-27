@@ -70,6 +70,7 @@ export const jumpTerms = [
     "jump-both",
     "start",
     "end",
+    "both",
 ] as const;
 
 function jumpStart(t: number, steps: number): number {
@@ -90,7 +91,7 @@ function jumpNone(t: number, steps: number): number {
 
 export function steppedEase(
     steps: number,
-    jumpTerm: (typeof jumpTerms)[number] = "jump-start"
+    jumpTerm: (typeof jumpTerms)[number] = "jump-start",
 ) {
     switch (jumpTerm) {
         case "jump-none":
@@ -102,6 +103,7 @@ export function steppedEase(
         case "end":
             return (t: number) => jumpEnd(t, steps);
         case "jump-both":
+        case "both":
             return (t: number) => jumpBoth(t, steps);
     }
 }
