@@ -124,7 +124,7 @@ declare class FunctionValue<T = number> {
     name: string;
     values: Array<ValueUnit<T>>;
     constructor(name: string, values: ValueUnit<T> | Array<ValueUnit<T>>);
-    valueOf(): (string | T)[];
+    valueOf(): string | T | (string | T)[];
     toString(): string;
     lerp(t: number, other: FunctionValue<T> | ValueArray<T> | ValueUnit<T>, target?: HTMLElement): FunctionValue;
 }
@@ -230,7 +230,7 @@ declare type TransformFunction<V extends Vars> = (t: number, v: V) => void;
 declare class ValueArray<T = number> {
     values: Array<FunctionValue<T> | ValueUnit<T>>;
     constructor(values: ValueUnit<T> | FunctionValue<T> | ValueArray<T> | Array<FunctionValue<T> | ValueUnit<T>>);
-    valueOf(): (string | T | (string | T)[])[];
+    valueOf(): string | T | (string | T | (string | T)[])[];
     toString(): string;
     lerp(t: number, other: ValueArray<T> | FunctionValue<T> | ValueUnit<T>, target?: HTMLElement): any;
 }

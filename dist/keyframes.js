@@ -1878,7 +1878,7 @@ class FunctionValue {
     this.name = t, Array.isArray(n) ? this.values = n : this.values = [n];
   }
   valueOf() {
-    return this.values.map((t) => t.valueOf());
+    return this.values.length === 1 ? this.values[0].valueOf() : this.values.map((t) => t.valueOf());
   }
   toString() {
     const t = this.values.map((n) => n.toString()).join(", ");
@@ -1895,7 +1895,7 @@ class ValueArray {
     t instanceof ValueArray ? this.values = t.values : Array.isArray(t) ? this.values = t : this.values = [t];
   }
   valueOf() {
-    return this.values.map((t) => t.valueOf());
+    return this.values.length === 1 ? this.values[0].valueOf() : this.values.map((t) => t.valueOf());
   }
   toString() {
     return this.values.map((t) => t.toString()).join(" ");

@@ -119,7 +119,6 @@ export class ValueUnit<T = number> {
         if (!this.unit) {
             return this.value;
         }
-
         return this.toString();
     }
 
@@ -219,7 +218,9 @@ export class FunctionValue<T = number> {
     }
 
     valueOf() {
-        return this.values.map((v) => v.valueOf());
+        return this.values.length === 1
+            ? this.values[0].valueOf()
+            : this.values.map((v) => v.valueOf());
     }
 
     toString() {
@@ -260,7 +261,9 @@ export class ValueArray<T = number> {
     }
 
     valueOf() {
-        return this.values.map((v) => v.valueOf());
+        return this.values.length === 1
+            ? this.values[0].valueOf()
+            : this.values.map((v) => v.valueOf());
     }
 
     toString() {
