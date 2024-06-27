@@ -10,7 +10,7 @@ export declare const CSSBezier: (x1: number, y1: number, x2: number, y2: number)
 export declare function easeInBounce(t: number): number;
 export declare function bounceInEase(t: number): number;
 export declare function bounceInEaseHalf(t: number): number;
-export declare const jumpTerms: readonly ["jump-start", "jump-end", "jump-none", "jump-both", "start", "end"];
+export declare const jumpTerms: readonly ["jump-start", "jump-end", "jump-none", "jump-both", "start", "end", "both"];
 export declare function steppedEase(steps: number, jumpTerm?: (typeof jumpTerms)[number]): (t: number) => number;
 export declare function stepStart(): (t: number) => number;
 export declare function stepEnd(): (t: number) => number;

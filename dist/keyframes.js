@@ -87,6 +87,7 @@ function steppedEase(e, t = "jump-start") {
     case "end":
       return (n) => jumpEnd(n, e);
     case "jump-both":
+    case "both":
       return (n) => jumpBoth(n, e);
   }
 }
