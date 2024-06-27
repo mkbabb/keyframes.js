@@ -1,4 +1,4 @@
-import { color, RGBColor, rgb, hsl, hcl, lab, lch } from "d3-color";
+import { rgb, hsl, lab, lch } from "d3-color";
 import P from "parsimmon";
 import { ValueUnit } from "../units";
 import { colorNames } from "./colorNames";
@@ -72,12 +72,12 @@ const colorOptionalAlpha = (r: P.Language, colorType: string) => {
 
     const optionalAlpha = P.alt(
         P.seq(r.colorValue.skip(r.alphaSep), r.colorValue),
-        P.seq(r.colorValue)
+        P.seq(r.colorValue),
     );
     const args = P.seq(
         r.colorValue.skip(r.sep),
         r.colorValue.skip(r.sep),
-        optionalAlpha
+        optionalAlpha,
     )
         .trim(P.optWhitespace)
         .wrap(P.string("("), P.string(")"));
@@ -91,7 +91,7 @@ export const CSSColor = P.createLanguage({
     colorValue: () =>
         P.alt(
             integer.skip(P.string("%")).map((x) => x / 100),
-            number
+            number,
         ),
 
     comma: () => P.string(","),
@@ -105,7 +105,7 @@ export const CSSColor = P.createLanguage({
         P.alt(
             ...Object.keys(colorNames)
                 .sort((a, b) => b.length - a.length)
-                .map(P.string)
+                .map(P.string),
         ).map((x) => {
             const c = colorNames[x];
             const [r, g, b] = hex2rgb(c);
@@ -140,7 +140,7 @@ export const CSSColor = P.createLanguage({
 
     Value: (r) =>
         P.alt(r.hex, r.rgb, r.hsl, r.hsv, r.hwb, r.lab, r.lch, r.name).trim(
-            P.optWhitespace
+            P.optWhitespace,
         ),
 });
 
@@ -187,7 +187,7 @@ export const CSSValueUnit = P.createLanguage({
             r.Resolution,
             r.Percentage,
             r.Color,
-            P.alt(number, none).map((x) => new ValueUnit(x))
+            P.alt(number, none).map((x) => new ValueUnit(x)),
         ).trim(P.optWhitespace),
 });
 

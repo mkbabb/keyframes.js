@@ -13,7 +13,6 @@ body {
     padding: 0;
 }
 
-
 body {
     display: flex;
     align-items: center;
@@ -37,7 +36,6 @@ label {
     font-weight: bold;
     text-overflow: ellipsis;
     white-space: nowrap;
-   
 }
 
 input[type="number"],
@@ -107,12 +105,10 @@ button {
 }
 
 .icon {
-        --size: 1rem
-        font-size: --size;
-        width: --size;
-        aspect-ratio: 1/1;
-    }
-
+    --size: 1rem font-size: --size;
+    width: --size;
+    aspect-ratio: 1/1;
+}
 
 .rainbow-text {
     background-image: linear-gradient(
@@ -133,6 +129,3 @@ button {
     opacity: 0.5;
     pointer-events: none;
 }
-
-
-

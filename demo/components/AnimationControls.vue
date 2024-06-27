@@ -1,12 +1,15 @@
 <template>
     <div class="animation-controls">
-        <select v-model="selectedItem">
+        <select v-show="isSmallScreen" v-model="selectedItem">
             <option value="controls">Controls</option>
             <option value="keyframes">Keyframes</option>
         </select>
 
         <div class="items">
-            <div v-show="selectedItem === 'controls'">
+            <div
+                class="controls"
+                v-show="!isSmallScreen || selectedItem === 'controls'"
+            >
                 <div class="options">
                     <label>Duration</label>
                     <input
@@ -188,49 +191,46 @@
                 </div>
             </div>
 
-            <div v-show="selectedItem === 'keyframes'">
-                <div
-                    class="css-keyframes-string"
-                    v-if="style"
+            <div
+                class="keyframes"
+                v-show="!isSmallScreen || selectedItem === 'keyframes'"
+            >
+                <div class="control-bar">
+                    <button class="clipboard" @click="copyToClipboard">
+                        <div ref="copyTextEl" class="info">Copied!</div>
+                        <font-awesome-icon :icon="['fas', 'clipboard']" />
+                    </button>
+
+                    <button class="css-apply" @click="cssApply">
+                        <font-awesome-icon
+                            class="icon"
+                            :icon="[
+                                'fas',
+                                !cssApplied ? 'paint-roller' : 'rotate-right',
+                            ]"
+                        />
+                    </button>
+                </div>
+
+                <pre
                     @input="animateParseCSSKeyframesStringEl"
                     @keydown="onKeyDown"
-                >
-                    <div class="control-bar">
-                        <button class="clipboard" @click="copyToClipboard">
-                            <div ref="copyTextEl" class="info">Copied!</div>
-                            <font-awesome-icon :icon="['fas', 'clipboard']" />
-                        </button>
+                    ref="CSSKeyframesStringEl"
+                    class="hljs css"
+                    contenteditable="true"
+                ><code>{{ cssKeyframesString }}</code></pre>
 
-                        <button class="css-apply" @click="cssApply">
-                            <font-awesome-icon
-                                class="icon"
-                                :icon="[
-                                    'fas',
-                                    !cssApplied ? 'paint-roller' : 'rotate-right',
-                                ]"
-                            />
-                        </button>
-                    </div>
-                    <pre
-                        ref="CSSKeyframesStringEl"
-                        class="hljs css"
-                        contenteditable="true"
-                    ><code>{{ cssKeyframesString }}</code></pre>
-                    <div ref="progressBarEl" class="progress-bar"></div>
-                </div>
+                <div ref="progressBarEl" class="progress-bar"></div>
             </div>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import { $ref } from "unplugin-vue-macros/macros";
-import {
-    Animation,
-    CSSKeyframesToString,
-    CSSKeyframesAnimation,
-} from "../../src/animation";
+import { Animation, CSSKeyframesAnimation } from "../../src/animation";
+import { CSSKeyframesToString } from "../../src/parsing/format";
 import { timingFunctions, jumpTerms, CSSBezier, bezierPresets } from "../../src/easing";
 import {
     reverseCSSTime,
@@ -248,6 +248,13 @@ import { svgCubicBezier } from "../../src/math";
 import { number } from "../../src/parsing/units";
 
 hljs.registerLanguage("css", css);
+
+let windowHeight = $ref(window.innerHeight);
+const isSmallScreen = computed(() => windowHeight < 700 && window.innerWidth < 700);
+
+window.addEventListener("resize", () => {
+    windowHeight = window.innerHeight;
+});
 
 let timingFunctionsAnd = {
     cubicBezier: "cubicBezier",
@@ -395,35 +402,38 @@ function onKeyDown(e: KeyboardEvent) {
 }
 
 const parseCSSKeyframesStringEl = debounce((event: Event) => {
-    // @ts-ignore
-    const s: string = event.target.innerText;
+    const parseAndUpdate = () => {
+        // @ts-ignore
+        const s: string = event.target.innerText;
 
-    const p = CSSAnimationKeyframes.Values.parse(s);
+        const { options, values, keyframes } = CSSAnimationKeyframes.Values.tryParse(s);
 
-    if (!p.status) {
-        CSSKeyframesStringEl.parentElement.classList.add("error");
-    } else {
-        CSSKeyframesStringEl.parentElement.classList.remove("error");
-
-        const { options, values, keyframes } = p.value;
-
-        const anim = new CSSKeyframesAnimation(options).fromCSSKeyframes(
-            keyframes,
-        ).animation;
+        const anim = new CSSKeyframesAnimation(
+            options,
+            animation.target,
+        ).fromCSSKeyframes(keyframes).animation;
 
         for (const key of Object.keys(animation)) {
             if (anim[key]) {
                 Object.assign(animation[key], anim[key]);
             }
         }
-
         updateCSSKeyframesString();
+    };
+
+    try {
+        parseAndUpdate();
+        CSSKeyframesStringEl.classList.remove("error");
+    } catch (e) {
+        console.error(e);
+        CSSKeyframesStringEl.classList.add("error");
     }
 }, 1000);
 
 const progressBarEl = $ref(null);
 const animateParseCSSKeyframesStringEl = (event: Event) => {
     parseCSSKeyframesStringEl(event);
+
     new CSSKeyframesAnimation(
         {
             duration: 1000,
@@ -499,9 +509,14 @@ onMounted(() => {
     display: grid;
     align-items: center;
 
-    gap: 1rem;
     position: relative;
     z-index: 2;
+}
+
+.items {
+    height: 100%;
+    display: grid;
+    gap: 1rem;
 }
 
 .toggle {
@@ -597,24 +612,26 @@ input[type="range"] {
     }
 }
 
-.css-keyframes-string {
-    box-sizing: border-box;
-    font-size: 0.8rem;
+.keyframes {
     position: relative;
+    display: flex;
 
-    margin: auto;
+    height: 75%;
+    flex-direction: column;
+    gap: 0.5rem;
+}
 
-    z-index: 2;
-
-    pre {
-        padding: 1rem;
-        border-radius: 5px;
-
-        overflow: scroll;
-    }
+pre {
+    font-size: 0.8rem;
+    padding: 1rem;
+    margin: 0;
+    border-radius: 5px;
+    overflow: scroll;
+    max-height: 300px;
 
     &.error {
         animation: shake 700ms linear;
+        border: 1px solid red;
     }
 }
 
@@ -653,7 +670,7 @@ input[type="range"] {
     --height: 0.5rem;
     width: 100%;
     height: var(--height);
-    position: absolute;
+
     bottom: var(--offset);
     border-radius: 5px;
     background-image: linear-gradient(

@@ -6,14 +6,7 @@
             @selected-animation="(s) => (selectedAnimation = s)"
         />
 
-        <div
-            :class="[
-                'matrix-controls',
-                matrixAnim.animation.started || matrixAnim.animation.paused
-                    ? 'disabled'
-                    : '',
-            ]"
-        >
+        <div :class="['matrix-controls']">
             <div class="matrix-input">
                 <div class="matrix-cell" v-for="(value, i) in matrix3dEnd.values">
                     <input
@@ -76,17 +69,12 @@
 </template>
 
 <script setup lang="ts">
-import {
-    AnimationGroup,
-    CSSKeyframesAnimation,
-    Vars,
-    CSSKeyframesToString,
-} from "../../src/animation";
-import { easeInBounce, linear } from "../../src/easing";
-import { FunctionValue, ValueArray, ValueUnit } from "../../src/units";
 import { mat4 } from "gl-matrix";
-import { onMounted } from "vue";
 import { $ref } from "unplugin-vue-macros/macros";
+import { onMounted } from "vue";
+import { CSSKeyframesAnimation } from "../../src/animation";
+import { easeInBounce, linear } from "../../src/easing";
+import { FunctionValue, ValueUnit } from "../../src/units";
 import AnimationControlsGroup from "../components/AnimationControlsGroup.vue";
 
 import "../style.scss";
@@ -298,7 +286,7 @@ const rotationAnim = $ref(
         fillMode: "forwards",
         direction: "alternate",
         timingFunction: linear,
-    }).fromFramesDefaultTransform({
+    }).fromKeyframesDefaultTransform({
         from: {
             transform: {
                 rotateX: "0deg",
@@ -336,12 +324,12 @@ onMounted(() => {
         .fromVars([
             {
                 transform: {
-                    rotate3d: "(0, 0, 0, 0deg)",
+                    rotate3d: "0, 0, 0, 0deg",
                 },
             },
             {
                 transform: {
-                    rotate3d: "(-1, 1, 0, 30deg)",
+                    rotate3d: "-1, 1, 0, 30deg",
                 },
             },
         ])

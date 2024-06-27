@@ -95,7 +95,12 @@ export declare class Animation<V extends Vars> {
     draw(t: number): void;
     play(): void;
 }
-export declare function reverseTransformStyle(t: number, vars: any): any;
+export type Keyframes<V> = Array<[
+    number | string,
+    Partial<V>,
+    TransformFunction<V>?,
+    TimingFunction?
+]>;
 export declare class CSSKeyframesAnimation<V extends Vars> {
     options: AnimationOptions;
     targets: HTMLElement[];
@@ -103,14 +108,9 @@ export declare class CSSKeyframesAnimation<V extends Vars> {
     constructor(options?: Partial<InputAnimationOptions>, ...targets: HTMLElement[]);
     addTargets(...targets: HTMLElement[]): this;
     initAnimation(): this;
-    fromFramesDefaultTransform(keyframes: Record<string, Partial<V>>): this;
+    fromKeyframesDefaultTransform(keyframes: Record<string, Partial<V>>): this;
     fromVars(vars: V[], transform?: TransformFunction<V>): this;
-    fromFrames(keyframes: Array<[
-        number | string,
-        Partial<V>,
-        TransformFunction<V>?,
-        TimingFunction?
-    ]>): this;
+    fromKeyframes(keyframes: Keyframes<V>): this;
     fromCSSKeyframes(keyframes: string | Record<string, Partial<V>>, transform?: TransformFunction<V>): this;
     transform(t: number, vars: any): void;
     play(): void;
@@ -137,5 +137,4 @@ export declare class AnimationGroup<V> {
     draw(t: number): void;
     play(): this;
 }
-export declare function CSSKeyframesToString<V extends Vars>(animation: Animation<V>, name?: string, printWidth?: number): Promise<string>;
 export {};

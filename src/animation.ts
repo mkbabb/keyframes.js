@@ -1,25 +1,16 @@
 import { easeInOutCubic, timingFunctions } from "./easing";
-import { clamp, scale } from "./math";
+import { scale } from "./math";
+import { parseCSSKeyframes, parseCSSPercent, parseCSSTime } from "./parsing/keyframes";
+import { CSSValueUnit } from "./parsing/units";
 import {
-    parseCSSKeyframes,
-    parseCSSPercent,
-    parseCSSTime,
-    reverseCSSTime,
-} from "./parsing/keyframes";
-import {
-    FunctionValue,
-    reverseTransformObject,
     TransformedVars,
-    transformObject,
     ValueArray,
     ValueUnit,
+    reverseTransformObject,
+    transformObject,
+    transformTargetsStyle,
 } from "./units";
-import {
-    camelCaseToHyphen,
-    sleep,
-    requestAnimationFrame,
-    cancelAnimationFrame,
-} from "./utils";
+import { requestAnimationFrame, sleep } from "./utils";
 
 type InterpValue = {
     start: ValueArray;
@@ -507,38 +498,9 @@ export class Animation<V extends Vars> {
     }
 }
 
-export function reverseTransformStyle(t: number, vars: any) {
-    for (const [key, value] of Object.entries(vars)) {
-        if (typeof value === "object") {
-            let s = "";
-            for (const [k, v] of Object.entries(value)) {
-                s += v.includes("(") ? v : `${k}(${v}) `;
-            }
-            vars[key] = s;
-        }
-    }
-    return vars;
-}
-
-function transformTargetsStyle(t: number, vars: any, targets: HTMLElement[]) {
-    const transformedVars = {};
-
-    for (const [key, value] of Object.entries(vars)) {
-        if (typeof value === "object") {
-            let s = "";
-            for (const [k, v] of Object.entries(value)) {
-                s += v.includes("(") ? v : `${k}(${v})`;
-            }
-            transformedVars[key] = s;
-        } else {
-            transformedVars[key] = value;
-        }
-    }
-
-    targets.forEach((target) => {
-        Object.assign(target.style, transformedVars);
-    });
-}
+export type Keyframes<V> = Array<
+    [number | string, Partial<V>, TransformFunction<V>?, TimingFunction?]
+>;
 
 export class CSSKeyframesAnimation<V extends Vars> {
     options: AnimationOptions;
@@ -567,7 +529,7 @@ export class CSSKeyframesAnimation<V extends Vars> {
         return this;
     }
 
-    fromFramesDefaultTransform(keyframes: Record<string, Partial<V>>) {
+    fromKeyframesDefaultTransform(keyframes: Record<string, Partial<V>>) {
         this.initAnimation();
 
         for (const [percent, frame] of Object.entries(keyframes)) {
@@ -596,11 +558,7 @@ export class CSSKeyframesAnimation<V extends Vars> {
         return this;
     }
 
-    fromFrames(
-        keyframes: Array<
-            [number | string, Partial<V>, TransformFunction<V>?, TimingFunction?]
-        >,
-    ) {
+    fromKeyframes(keyframes: Keyframes<V>) {
         this.initAnimation();
 
         for (const [percent, vars, transform, timingFunction] of keyframes) {
@@ -777,93 +735,4 @@ export class AnimationGroup<V> {
         requestAnimationFrame(this.draw.bind(this));
         return this;
     }
-}
-
-function objectToString(key: string, value: any) {
-    if (typeof value === "object" && !(value instanceof ValueArray)) {
-        return Object.entries(value)
-            .map(([k, v]) => {
-                if (v instanceof FunctionValue) {
-                    return String(v);
-                } else {
-                    return `${k}(${v})`;
-                }
-            })
-            .join(" ");
-    } else {
-        return String(value);
-    }
-}
-
-import prettier from "prettier";
-import prettierPostCSSPlugin from "prettier/plugins/postcss";
-import { CSSValueUnit } from "./parsing/units";
-
-export async function CSSKeyframesToString<V extends Vars>(
-    animation: Animation<V>,
-    name: string = "animation",
-    printWidth: number = 80,
-) {
-    const options = animation.options;
-    const keyframesMap = new Map<string, ValueUnit[]>();
-    animation.templateFrames.forEach((frame) => {
-        let css = `{\n`;
-
-        const reversedVars = {};
-        Object.entries(frame.vars).forEach(([key, value]: [string, ValueArray]) => {
-            reverseTransformObject(key, value, reversedVars);
-        });
-
-        for (let [name, v] of Object.entries(reversedVars)) {
-            name = camelCaseToHyphen(name);
-            let s = objectToString(name, v);
-            css += `  ${name}: ${s};\n`;
-        }
-        css += "  }\n";
-        if (!keyframesMap.has(css)) {
-            keyframesMap.set(css, [frame.start]);
-        } else {
-            keyframesMap.get(css).push(frame.start);
-        }
-    });
-    let keyframesString = "";
-    for (let [css, percents] of keyframesMap) {
-        keyframesString += `${percents.join(", ")} ${css}`;
-    }
-
-    let animationCss = `.${name} {\n`;
-
-    animationCss += `  animation-name: ${name};\n`;
-
-    const duration = reverseCSSTime(options.duration);
-    animationCss += `  animation-duration: ${duration};\n`;
-
-    let timingFunctionName =
-        Object.entries(timingFunctions)
-            .filter(([name, func]) => func === options.timingFunction)
-            .map(([name]) => name)?.[0] ?? "linear";
-
-    animationCss += `  animation-timing-function: ${timingFunctionName};\n`;
-
-    animationCss += `  animation-iteration-count: ${
-        isFinite(options.iterationCount) ? options.iterationCount : "infinite"
-    };\n`;
-    animationCss += `  animation-direction: ${options.direction};\n`;
-    animationCss += `  animation-fill-mode: ${options.fillMode};\n`;
-
-    if (options.delay > 0) {
-        animationCss += `  animation-delay: ${reverseCSSTime(options.delay)};\n`;
-    }
-
-    animationCss += `}\n`;
-
-    const keyframes = `${animationCss}\n@keyframes ${name} {\n${keyframesString}}`;
-
-    const out = await prettier.format(keyframes, {
-        parser: "scss",
-        plugins: [prettierPostCSSPlugin],
-        printWidth,
-    });
-
-    return out.replace(/\(\s*\{/g, "{").replace(/\}\s*\)/g, "}");
 }

@@ -8,7 +8,7 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
 import { $ref } from "unplugin-vue-macros/macros";
-import { CSSKeyframesAnimation, Keyframes } from "../../src/animation";
+import { CSSKeyframesAnimation } from "../../src/animation";
 import AnimationControls from "../components/AnimationControls.vue";
 import "../style.scss";
 
@@ -21,68 +21,80 @@ const anim = new CSSKeyframesAnimation({
     fillMode: "forwards",
 });
 
-const transformKeyframes = (t: number, vars) => {
-    const { transform, backgroundColor, rotate } = vars;
-
-    console.log(vars);
+const transformFunc = (t: number, vars) => {
+    const { transform, backgroundColor, fontSize, rotate } = vars;
 
     if (transform) {
         box.style.transform = `translate(${transform.x}, ${transform.y})`;
+        box.style.transform += ` scale(${transform.a.b.c.d})`;
     }
-
     if (backgroundColor) {
         box.style.backgroundColor = backgroundColor;
     }
-
+    if (fontSize) {
+        box.style.fontSize = fontSize;
+    }
     if (rotate) {
         box.style.transform += ` rotate(${rotate})`;
     }
 };
 
-const keyframes: Keyframes<any> = [
+const transformStart = {
+    x: "-100%",
+    y: "-100%",
+    a: {
+        b: {
+            c: {
+                d: "75%",
+            },
+        },
+    },
+};
+
+const transformEnd = {
+    x: "50%",
+    y: "75%",
+    a: {
+        b: {
+            c: {
+                d: "200%",
+            },
+        },
+    },
+};
+anim.fromKeyframes([
     [
         "0%",
         {
             rotate: "0turn",
-            transform: {
-                x: "-100%",
-                y: "-100%",
-            },
+            transform: transformStart,
             backgroundColor: "#C462D8",
         },
-        transformKeyframes,
+        transformFunc,
     ],
     [
-        "100%",
+        "500ms",
         {
-            rotate: "1turn",
-            transform: {
-                x: "50%",
-                y: "75%",
-            },
-            backgroundColor: "#E85252",
+            backgroundColor: "#6280D8",
         },
     ],
-];
-
-const CSSKeyframes = /*css*/ `
-@keyframes mijn-keyframes {
-    0% {
-        transform: translateX(-100%) translateY(-100%) rotate(0turn);
-        background-color: #C462D8;
-    }
-    100% {
-        transform: translateX(50%) translateY(75%) rotate(1turn);
-        background-color: #E85252;
-    }
-}
-`;
-
-// anim.fromKeyframes(keyframes);
-
-anim.fromCSSKeyframes(CSSKeyframes);
-
-console.log(anim.animation.frames);
+    [
+        75,
+        {
+            backgroundColor: "#52E898",
+            fontSize: "1rem",
+        },
+    ],
+    [
+        "100ms",
+        {
+            rotate: "1turn",
+            transform: transformEnd,
+            backgroundColor: "#E85252",
+            fontSize: "3rem",
+        },
+    ],
+]);
 
 onMounted(() => {
     anim.addTargets(box);

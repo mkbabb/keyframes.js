@@ -1,15 +1,15 @@
 {
-    "name": "@mkbabb/keyframes",
+    "name": "keyframes.ts",
     "version": "0.7.0",
-    "description": "TypeScript library for parsing and manipulating CSS keyframes",
+    "description": "Create keyframe animations for anything in JavaScript; specify your keyframes in standards-complaint CSS.",
     "type": "module",
-    "main": "./dist/@mkbabb/keyframes.js",
-    "module": "./dist/@mkbabb/keyframes.js",
+    "main": "./dist/keyframes.js",
+    "module": "./dist/keyframes.js",
     "types": "dist/keyframes.d.ts",
     "exports": {
         ".": {
-            "import": "./dist/@mkbabb/keyframes.js",
-            "require": "./dist/@mkbabb/keyframes.umd.js"
+            "import": "./dist/keyframes.js",
+            "require": "./dist/keyframes.umd.js"
         }
     },
     "files": [

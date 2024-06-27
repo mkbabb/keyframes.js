@@ -48,7 +48,8 @@ const evaluateMathFunction = (
     funcName: keyof typeof mathFunctions,
     values: ValueUnit[],
 ) => {
-    const collapsed = values.reduce((acc, v) => {
+    // @ts-ignore
+    const collapsed: ValueUnit = values.reduce((acc, v) => {
         return collapseNumericType(acc, v);
     }, values[0])[0];
 
@@ -193,9 +194,11 @@ const TRANSFORM_FUNCTIONS = ["translate", "scale", "rotate", "skew"].map(istring
 const DIMS = ["x", "y", "z"].map(istring);
 
 const handleFunc = (r: P.Language, name?: P.Parser<any>) => {
-    return P.seq(name ? name : identifier, r.FunctionArgs).map((v) => {
-        return v;
-    });
+    return P.seq(name ? name : identifier, r.FunctionArgs.wrap(r.lparen, r.rparen)).map(
+        (v) => {
+            return v;
+        },
+    );
 };
 
 const handleTransform = (r: P.Language) => {
@@ -300,7 +303,7 @@ export const CSSKeyframes = P.createLanguage({
 
     String: () => P.regexp(/[^\(\)\{\}\s,;]+/).map((x) => new ValueUnit(x)),
 
-    FunctionArgs: (r) => r.Value.sepBy(r.comma).trim(r.ws).wrap(r.lparen, r.rparen),
+    FunctionArgs: (r) => r.Value.sepBy(r.comma).trim(r.ws),
     Function: (r) =>
         P.alt(
             handleTransform(r),

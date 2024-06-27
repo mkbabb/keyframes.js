@@ -1,8 +1,9 @@
-import { color, RGBColor } from "d3-color";
+import { RGBColor } from "d3-color";
 import { lerp } from "./math";
-import { arrayEquals } from "./utils";
+import { arrayEquals, isObject } from "./utils";
 import { CSSKeyframes, parseCSSTime } from "./parsing/keyframes";
 import { CSSValueUnit } from "./parsing/units";
+import { isCSSStyleName } from "./parsing/styleNames";
 
 export interface TransformedVars {
     [arg: string]: ValueArray;
@@ -28,7 +29,7 @@ export function convertToPixels(
     value: number,
     unit: string,
     element?: HTMLElement,
-    property?: string
+    property?: string,
 ): number {
     if (unit === "em" && element) {
         value *= parseFloat(getComputedStyle(element).fontSize);
@@ -44,7 +45,7 @@ export function convertToPixels(
         value *= Math.max(window.innerHeight, window.innerWidth) / 100;
     } else if (unit === "%" && element?.parentElement && property) {
         const parentValue = parseFloat(
-            getComputedStyle(element.parentElement).getPropertyValue(property)
+            getComputedStyle(element.parentElement).getPropertyValue(property),
         );
         value = (value / 100) * parentValue;
     } else {
@@ -84,7 +85,7 @@ export const getComputedValue = (target: HTMLElement, key: string) => {
 const lerpColor = (
     t: number,
     left: ValueUnit<RGBColor>,
-    right: ValueUnit<RGBColor>
+    right: ValueUnit<RGBColor>,
 ) => {
     const leftValue = left.value;
     const rightValue = right.value;
@@ -111,8 +112,16 @@ export class ValueUnit<T = number> {
     constructor(
         public value: T,
         public unit?: string,
-        public superType: string[] = []
+        public superType: string[] = [],
     ) {}
+
+    valueOf() {
+        if (!this.unit) {
+            return this.value;
+        }
+
+        return this.toString();
+    }
 
     toString() {
         if (!this.unit || this.unit === "string") {
@@ -131,25 +140,41 @@ export class ValueUnit<T = number> {
         }
     }
 
-    lerp(t: number, other: ValueUnit<T>, target?: HTMLElement) {
+    lerp(
+        t: number,
+        other: ValueUnit<T> | FunctionValue<T> | ValueArray<T>,
+        target?: HTMLElement,
+    ) {
+        if (other instanceof FunctionValue || other instanceof ValueArray) {
+            return other.lerp(t, this, target);
+        }
+
         if (this.unit === "string" || other.unit === "string") {
             return this;
         }
 
         if (target && (this.unit === "var" || other.unit === "var")) {
-            return lerpVar(t, this, other, target);
+            return lerpVar(
+                t,
+                this as ValueUnit<number>,
+                other as ValueUnit<number>,
+                target,
+            );
         }
 
         if (this.unit !== other.unit) {
-            const [left, right] = collapseNumericType(this, other, target);
+            const [left, right] = collapseNumericType(
+                this as ValueUnit<number>,
+                other as ValueUnit<number>,
+                target,
+            );
             const value = lerp(t, left.value, right.value);
-            
             return new ValueUnit(value, left.unit, left.superType);
         } else if (this.unit === "color") {
             const value = lerpColor(
                 t,
                 this as ValueUnit<RGBColor>,
-                other as ValueUnit<RGBColor>
+                other as ValueUnit<RGBColor>,
             );
             return new ValueUnit(value, this.unit, this.superType);
         }
@@ -161,53 +186,111 @@ export class ValueUnit<T = number> {
 
 function lerpMany<T>(
     t: number,
-    left: Array<FunctionValue<T> | ValueUnit<T>>,
-    right: Array<FunctionValue<T> | ValueUnit<T>>,
-    target?: HTMLElement
+    left: Array<FunctionValue<T> | ValueArray<T> | ValueUnit<T>>,
+    right: Array<FunctionValue<T> | ValueArray<T> | ValueUnit<T>>,
+    target?: HTMLElement,
 ) {
     const minLength = Math.min(left.length, right.length);
     const arr = [];
+
     for (let i = 0; i < minLength; i++) {
         const l = left[i];
         const r = right[i];
 
-        arr.push(l.lerp(t, r, target));
+        const lerped = l.lerp(t, r, target);
+        arr.push(lerped);
     }
+
     return arr;
 }
 
 export class FunctionValue<T = number> {
-    constructor(public name: string, public values: ValueUnit<T>[]) {}
+    values: Array<ValueUnit<T>>;
+
+    constructor(
+        public name: string,
+        values: ValueUnit<T> | Array<ValueUnit<T>>,
+    ) {
+        if (Array.isArray(values)) {
+            this.values = values;
+        } else {
+            this.values = [values];
+        }
+    }
+
+    valueOf() {
+        return this.values.map((v) => v.valueOf());
+    }
 
     toString() {
         const s = this.values.map((v) => v.toString()).join(", ");
         return `${this.name}(${s})`;
     }
 
-    lerp(t: number, other: FunctionValue<T>, target?: HTMLElement): FunctionValue {
-        const arr = lerpMany(t, this.values, other.values, target);
+    lerp(
+        t: number,
+        other: FunctionValue<T> | ValueArray<T> | ValueUnit<T>,
+        target?: HTMLElement,
+    ): FunctionValue {
+        const otherValues = other instanceof ValueUnit ? [other] : other.values;
+
+        const arr = lerpMany(t, this.values, otherValues, target);
+
         return new FunctionValue(this.name, arr);
     }
 }
 
 export class ValueArray<T = number> {
-    constructor(public values: Array<FunctionValue<T> | ValueUnit<T>>) {}
+    values: Array<FunctionValue<T> | ValueUnit<T>>;
+
+    constructor(
+        values:
+            | ValueUnit<T>
+            | FunctionValue<T>
+            | ValueArray<T>
+            | Array<FunctionValue<T> | ValueUnit<T>>,
+    ) {
+        if (values instanceof ValueArray) {
+            this.values = values.values;
+        } else if (Array.isArray(values)) {
+            this.values = values;
+        } else {
+            this.values = [values];
+        }
+    }
+
+    valueOf() {
+        return this.values.map((v) => v.valueOf());
+    }
 
     toString() {
         return this.values.map((v) => v.toString()).join(" ");
     }
 
-    lerp(t: number, other: ValueArray<T>, target?: HTMLElement) {
-        const arr = lerpMany(t, this.values, other.values, target);
+    lerp(
+        t: number,
+        other: ValueArray<T> | FunctionValue<T> | ValueUnit<T>,
+        target?: HTMLElement,
+    ) {
+        const otherValues = other instanceof ValueUnit ? [other] : other.values;
+
+        const arr = lerpMany(t, this.values, otherValues, target);
         return new ValueArray(arr);
     }
 }
 
+export const isValueType = (
+    value: any,
+): value is ValueUnit | FunctionValue | ValueArray =>
+    value instanceof ValueUnit ||
+    value instanceof FunctionValue ||
+    value instanceof ValueArray;
+
 export const collapseNumericType = (
-    a: ValueUnit,
-    b: ValueUnit,
-    target?: HTMLElement
-) => {
+    a: ValueUnit<number>,
+    b: ValueUnit<number>,
+    target?: HTMLElement,
+): [ValueUnit<number>, ValueUnit<number>] => {
     if (!arrayEquals(a.superType, b.superType) && a.superType[0] !== "length") {
         return [a, b];
     }
@@ -228,7 +311,7 @@ export const collapseNumericType = (
         } else if (a.superType[0] === "resolution") {
             return [convertToDpi(a.value, a.unit), convertToDpi(b.value, b.unit)];
         } else {
-            return [a, b];
+            return [a.value, b.value];
         }
     })();
 
@@ -238,87 +321,108 @@ export const collapseNumericType = (
 };
 
 export function transformObject(input: any): TransformedVars {
-    const output = {} as TransformedVars;
+    const flat = {};
+    const flatten = (obj: any, parentKey: string = undefined) => {
+        for (const [key, value] of Object.entries(obj)) {
+            const currentKey = parentKey ? `${parentKey}.${key}` : key;
 
-    const recurse = (
-        input: any,
-        parentKey: string = "",
-        currentKey: string = ""
-    ): FunctionValue | ValueArray | undefined => {
-        const isValue =
-            input instanceof ValueUnit ||
-            input instanceof FunctionValue ||
-            input instanceof ValueArray;
-
-        if (!isValue) {
-            if (typeof input === "object") {
-                for (const [k, v] of Object.entries(input)) {
-                    const currentKey = parentKey ? `${parentKey}.${k}` : k;
-                    const transformedValues = recurse(v, currentKey, k);
-
-                    if (transformedValues !== undefined) {
-                        output[currentKey] = transformedValues;
-                    }
-                }
+            if (isObject(value)) {
+                flatten(value, currentKey);
             } else {
-                const p = CSSKeyframes.FunctionArgs.map(
-                    (v) => new FunctionValue(currentKey, v)
-                )
-                    .or(CSSKeyframes.Value)
-                    .tryParse(String(input));
-
-                return p;
+                flat[currentKey] = value;
             }
-        } else {
-            return input as ValueArray | FunctionValue;
         }
     };
 
-    recurse(input);
-    return output;
+    flatten(input);
+
+    const transformedVars = Object.entries(flat)
+        .map(([key, value]) => {
+            const childKey = key.split(".").pop();
+
+            if (isValueType(value)) {
+                return [key, value];
+            }
+
+            const p = CSSKeyframes.FunctionArgs.map((v: Array<ValueUnit>) => {
+                if (isCSSStyleName(childKey)) {
+                    return new ValueArray(v);
+                } else {
+                    return new FunctionValue(childKey, v);
+                }
+            })
+                .or(CSSKeyframes.Value)
+                .tryParse(String(value));
+
+            return [key, p];
+        })
+        .reduce((acc, [key, value]) => {
+            acc[key] = value;
+            return acc;
+        }, {});
+
+    return transformedVars;
 }
 
-export function reverseTransformObject(
+export function reverseTransformObject<T>(
     key: string,
-    values: ValueArray,
-    original: any = {}
-): any {
+    value: ValueUnit<T> | FunctionValue<T> | ValueArray<T>,
+    original: any = {},
+) {
     const keys = key.split(".");
     let obj = original;
 
     if (keys.length === 1) {
-        original[key] = values;
+        original[key] = value;
         return original;
     }
 
-    for (let i = 0; i < keys.length; i++) {
-        const k = keys[i];
-        if (values !== undefined && i === keys.length - 1) {
-            obj[k] = values.toString();
+    keys.forEach((k, i) => {
+        if (value != null && i === keys.length - 1) {
+            obj[k] = isValueType(value) ? value.valueOf() : value;
         } else {
-            obj = obj[k] ?? (obj[k] = {});
+            if (obj[k] == null) {
+                obj[k] = {};
+            }
+
+            obj = obj[k];
         }
-    }
+    });
+
     return original;
 }
 
-export const reverseTransformValue = (value: any) => {
-    if (value instanceof FunctionValue) {
-        return (
-            value.name + "(" + value.values.map(reverseTransformValue).join(", ") + ")"
-        );
-    } else if (value instanceof ValueUnit) {
-        return value.toString();
-    } else if (value instanceof ValueArray) {
-        return value.values.map(reverseTransformValue).join(", ");
-    } else if (typeof value === "object") {
-        return Object.entries(value)
-            .map(([key, value]: [string, ValueArray | FunctionValue]) => {
-                return [key, value.values.map(reverseTransformValue).join(" ")];
-            })
-            .reduce((acc, [key, value]) => {
-                acc[key] = value;
-                return acc;
-            }, {});
+export function transformTargetsStyle(t: number, vars: any, targets: HTMLElement[]) {
+    function flatten(
+        value: any,
+        parentKey: string = undefined,
+        acc: string = undefined,
+    ): string {
+        const flatValue = (() => {
+            if (isObject(value)) {
+                return Object.entries(value)
+                    .map(([key, value]) => {
+                        return flatten(value, key, acc);
+                    })
+                    .join(" ");
+            } else if (Array.isArray(value)) {
+                const v = value.map((v) => flatten(v, parentKey)).join(", ");
+                return `${parentKey}(${v})`;
+            } else {
+                return value.toString();
+            }
+        })();
+
+        return acc ? `${acc} ${flatValue}` : flatValue;
     }
-};
+
+    const transformedVars = Object.entries(vars).reduce((acc, [key, value]) => {
+        const flatValue = flatten(value, key);
+        acc[key] = flatValue;
+        return acc;
+    }, {});
+
+    targets.forEach((target) => {
+        Object.assign(target.style, transformedVars);
+    });
+}

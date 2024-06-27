@@ -1,3 +1,9 @@
+export const isObject = (value: any) => {
+    return !!value && value.constructor === Object;
+};
+
+
+
 export const arrayEquals = (a: any[], b: any[]) => {
     if (!a || !b || a.length !== b.length) {
         return false;

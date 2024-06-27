@@ -1,3 +1,4 @@
+export declare const isObject: (value: any) => boolean;
 export declare const arrayEquals: (a: any[], b: any[]) => boolean;
 export declare function sleep(ms: number): Promise<unknown>;
 export declare function waitUntil(condition: () => boolean, delay?: number): Promise<void>;
