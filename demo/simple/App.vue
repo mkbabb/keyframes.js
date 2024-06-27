@@ -69,11 +69,11 @@ const CSSKeyframes = /*css*/ `
 @keyframes mijn-keyframes {
     0% {
         transform: translateX(-100%) translateY(-100%) rotate(0turn);
-        background-color: #C462D8;
+        background-color: 5000k;
     }
     100% {
         transform: translateX(50%) translateY(75%) rotate(1turn);
-        background-color: #E85252;
+        background-color: 1000k;
     }
 }
 `;

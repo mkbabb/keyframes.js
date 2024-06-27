@@ -51,7 +51,48 @@ const hex2rgb = (hex: string) => {
     const r = parseInt(hex.slice(1, 3), 16);
     const g = parseInt(hex.slice(3, 5), 16);
     const b = parseInt(hex.slice(5, 7), 16);
+
     return [r, g, b];
+};
+
+// Algorithm based off of https://tannerhelland.com/2012/09/18/convert-temperature-rgb-algorithm-code.html
+const kelvin2rgb = (temp: number): [number, number, number] => {
+    // Clamp temperature to valid range
+    temp = Math.max(1000, Math.min(40000, temp)) / 100;
+
+    let r, g, b;
+
+    // Calculate red
+    if (temp <= 66) {
+        r = 255;
+    } else {
+        r = temp - 60;
+        r = 329.698727446 * r ** -0.1332047592;
+        r = Math.max(0, Math.min(255, r));
+    }
+
+    // Calculate green
+    if (temp <= 66) {
+        g = temp;
+        g = 99.4708025861 * Math.log(g) - 161.1195681661;
+    } else {
+        g = temp - 60;
+        g = 288.1221695283 * g ** -0.0755148492;
+    }
+    g = Math.max(0, Math.min(255, g));
+
+    // Calculate blue
+    if (temp >= 66) {
+        b = 255;
+    } else if (temp <= 19) {
+        b = 0;
+    } else {
+        b = temp - 10;
+        b = 138.5177312231 * Math.log(b) - 305.0447927307;
+        b = Math.max(0, Math.min(255, b));
+    }
+
+    return [Math.round(r), Math.round(g), Math.round(b)];
 };
 
 const hsv2hsl = (h: number, s: number, v: number) => {
@@ -116,10 +157,18 @@ export const CSSColor = P.createLanguage({
     hex: () =>
         P.regexp(/#[0-9a-fA-F]{3,6}/).map((x) => {
             const hex = x.slice(1);
+
             const r = hex.length === 3 ? hex[0] + hex[0] : hex.slice(0, 2);
             const g = hex.length === 3 ? hex[1] + hex[1] : hex.slice(2, 4);
             const b = hex.length === 3 ? hex[2] + hex[2] : hex.slice(4, 6);
+
             return rgb(parseInt(r, 16), parseInt(g, 16), parseInt(b, 16));
+        }),
+
+    kelvin: () =>
+        P.regexp(/([0-9]+)k/i).map((x) => {
+            const [r, g, b] = kelvin2rgb(parseInt(x));
+            return rgb(r, g, b);
         }),
 
     rgb: (r) => colorOptionalAlpha(r, "rgb").map(([r, g, b, a]) => rgb(r, g, b, a)),
@@ -140,7 +189,7 @@ export const CSSColor = P.createLanguage({
         colorOptionalAlpha(r, "lch").map(([l, c, h, alpha]) => lch(l, c, h, alpha)),
 
     Value: (r) =>
-        P.alt(r.hex, r.rgb, r.hsl, r.hsv, r.hwb, r.lab, r.lch, r.name).trim(
+        P.alt(r.hex, r.kelvin, r.rgb, r.hsl, r.hsv, r.hwb, r.lab, r.lch, r.name).trim(
             P.optWhitespace,
         ),
 });
