@@ -1,5 +1,5 @@
 declare class Animation_2<V extends Vars> {
-    target: HTMLElement;
+    target: HTMLElement | undefined;
     id: number;
     options: AnimationOptions;
     templateFrames: TemplateAnimationFrame<V>[];
@@ -15,7 +15,7 @@ declare class Animation_2<V extends Vars> {
     done: boolean;
     reversed: boolean;
     paused: boolean;
-    constructor(options: Partial<InputAnimationOptions>, target?: HTMLElement);
+    constructor(options: Partial<InputAnimationOptions>, target?: HTMLElement | undefined);
     frame<K extends V>(start: number | string, vars: Partial<K>, transform?: TransformFunction<K>, timingFunction?: TimingFunction | TimingFunctionNames): Animation_2<K>;
     transformVars(): this;
     parseFrames(): this;

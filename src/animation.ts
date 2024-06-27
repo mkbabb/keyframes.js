@@ -221,7 +221,7 @@ export class Animation<V extends Vars> {
 
     constructor(
         options: Partial<InputAnimationOptions>,
-        public target: HTMLElement = document.documentElement,
+        public target: HTMLElement | undefined = undefined,
     ) {
         this.options = { ...defaultOptions, ...options } as AnimationOptions;
 

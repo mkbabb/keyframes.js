@@ -2466,7 +2466,7 @@ const defaultOptions = {
 }, getTimingFunction = (e) => typeof e == "string" ? timingFunctions[e] : e ?? void 0;
 let nextId = 0;
 class Animation {
-  constructor(t, n = document.documentElement) {
+  constructor(t, n = void 0) {
     v(this, "id", nextId++);
     v(this, "options");
     v(this, "templateFrames", []);
