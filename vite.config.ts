@@ -5,13 +5,15 @@ import VueMacros from "unplugin-vue-macros/vite";
 import Vue from "@vitejs/plugin-vue";
 
 import dts from "vite-plugin-dts";
+
+import tailwind from "tailwindcss";
 import autoprefixer from "autoprefixer";
 
 const defaultOptions = {
     base: "./",
     css: {
         postcss: {
-            plugins: [autoprefixer],
+            plugins: [tailwind(), autoprefixer()],
         },
     },
 };
@@ -29,15 +31,16 @@ export default defineConfig((mode) => {
                     entry: path.resolve(__dirname, "src/animation.ts"),
                     name: "Keyframes",
                     fileName: "keyframes",
+                    formats: ["es"],
                 },
             },
             plugins: [
-                dts(),
                 VueMacros({
                     plugins: {
                         vue: Vue(),
                     },
                 }),
+                dts({ rollupTypes: true }),
             ],
         };
     } else if (mode.mode === "gh-pages") {

@@ -1,6 +1,6 @@
 {
     "name": "keyframes.ts",
-    "version": "0.9.4",
+    "version": "0.9.5",
     "description": "Create keyframe animations for anything in JavaScript; specify your keyframes in standards-complaint CSS.",
     "licenses": [
         {
@@ -22,11 +22,10 @@
     "type": "module",
     "main": "./dist/keyframes.js",
     "module": "./dist/keyframes.js",
-    "types": "dist/keyframes.d.ts",
+    "types": "./dist/keyframes.d.ts",
     "exports": {
         ".": {
-            "import": "./dist/keyframes.js",
-            "require": "./dist/keyframes.umd.js"
+            "import": "./dist/keyframes.js"
         }
     },
     "files": [
@@ -63,22 +62,22 @@
         "jsdom": "^24.1.0",
         "prettier": "^3.3.2",
         "sass": "^1.77.6",
+        "tailwindcss": "^3.4.4",
         "three": "^0.165.0",
         "typescript": "^5.5.2",
         "unplugin-vue-macros": "^2.9.5",
         "vite": "^5.3.1",
         "vite-plugin-dts": "^3.9.1",
-        "vitest": "^1.6.0"
-    },
-    "optionalDependencies": {
+        "vitest": "^1.6.0",
         "@fortawesome/fontawesome-svg-core": "^6.5.2",
         "@fortawesome/free-brands-svg-icons": "^6.5.2",
         "@fortawesome/free-regular-svg-icons": "^6.5.2",
         "@fortawesome/free-solid-svg-icons": "^6.5.2",
         "@fortawesome/vue-fontawesome": "^3.0.8",
+        "@vueuse/core": "^10.11.0",
         "gl-matrix": "^3.4.3",
         "highlight.js": "^11.9.0",
-        "prettier": "^3.3.2",
         "vue": "^3.4.30"
-    }
+    },
+    "optionalDependencies": {}
 }

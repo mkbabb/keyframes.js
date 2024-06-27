@@ -377,7 +377,7 @@ body {
     height: 100%;
 
     grid-template-areas: "animation-controls graph matrix-controls";
-    grid-template-columns:auto 2fr auto;
+    grid-template-columns: 33% 2fr 33%;
 
     gap: 1rem;
     overflow: hidden;

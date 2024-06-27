@@ -146,7 +146,9 @@
                                 />
                             </svg>
 
-                            <label class="preset-label" @click="copyToClipboard"
+                            <label
+                                class="preset-label"
+                                @click="() => copyToClipboard(cubicBezierPreset)"
                                 >{{ cubicBezierPreset }}
                             </label>
                         </div>
@@ -184,7 +186,10 @@
                 v-show="!isSmallScreen || selectedItem === 'keyframes'"
             >
                 <div class="control-bar">
-                    <button class="clipboard" @click="copyToClipboard">
+                    <button
+                        class="clipboard"
+                        @click="async () => copyToClipboard(await cssKeyframesString)"
+                    >
                         <div ref="copyTextEl" class="info">Copied!</div>
                         <font-awesome-icon :icon="['fas', 'clipboard']" />
                     </button>
@@ -548,8 +553,8 @@ const fadeInOut = (el) => {
 
 let copyTextEl = $ref(null);
 
-const copyToClipboard = async () => {
-    navigator.clipboard.writeText(await cssKeyframesString.value);
+const copyToClipboard = async (value: string) => {
+    navigator.clipboard.writeText(value);
     fadeInOut(copyTextEl);
 };
 

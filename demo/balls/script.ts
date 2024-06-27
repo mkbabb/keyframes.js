@@ -1,16 +1,5 @@
-import {
-    Animation,
-    CSSKeyframesToString,
-    CSSKeyframesAnimation,
-} from "../../src/animation";
-import {
-    bounceInEase,
-    CSSBezier,
-    easeInBounce,
-    easeInCubic,
-    easeInQuad,
-} from "../../src/easing";
-import { cubicBezier } from "../../src/math";
+import { CSSKeyframesAnimation } from "../../src/animation";
+import { CSSBezier } from "../../src/easing";
 import { parseCSSKeyframes } from "../../src/parsing/keyframes";
 
 const boxes = document.querySelectorAll<HTMLElement>(".anim .box")!;
@@ -38,7 +27,7 @@ boxes.forEach((box, i) => {
             fillMode: "forwards",
             timingFunction: CSSBezier(0.2, 0.65, 0.6, 1),
         },
-        box
+        box,
     ).fromCSSKeyframes(inputFrames);
 
     anim.play();
