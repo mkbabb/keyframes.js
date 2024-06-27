@@ -244,7 +244,7 @@ var parsimmon_umd_min = { exports: {} };
         if (typeof (c = l) != "number" || Math.floor(c) !== c || l < 0 || l > 6) throw new Error(i + " requires integer length in range [0, 6].");
         var c;
       }
-      function A(i) {
+      function M(i) {
         return V("uintBE", i), S("uintBE(" + i + ")", i).map(function(l) {
           return l.readUIntBE(0, i);
         });
@@ -279,7 +279,7 @@ var parsimmon_umd_min = { exports: {} };
       function F(i, l) {
         return G(l) || (l = [l]), { status: !1, index: -1, value: null, furthest: i, expected: l };
       }
-      function M(i, l) {
+      function A(i, l) {
         if (!l || i.furthest > l.furthest) return i;
         var c = i.furthest === l.furthest ? function(d, h) {
           if (function() {
@@ -330,7 +330,7 @@ var parsimmon_umd_min = { exports: {} };
       function ie(i) {
         if (typeof i != "string") throw new Error("not a string: " + i);
       }
-      var Me = 2, Ae = 3, N = 8, Re = 5 * N, je = 4 * N, ve = "  ";
+      var Ae = 2, Me = 3, N = 8, Re = 5 * N, je = 4 * N, ve = "  ";
       function fe(i, l) {
         return new Array(l + 1).join(i);
       }
@@ -362,7 +362,7 @@ var parsimmon_umd_min = { exports: {} };
           }, L), (m = (8 * (p.to > 0 ? p.to - 1 : p.to)).toString(16).length) < 2 && (m = 2);
         } else {
           var Y = i.split(/\r\n|[\n\r\u2028\u2029]/);
-          c = w.column - 1, d = w.line - 1, p = Se(d, Me, Ae, Y.length), h = Y.slice(p.from, p.to), m = p.to.toString().length;
+          c = w.column - 1, d = w.line - 1, p = Se(d, Ae, Me, Y.length), h = Y.slice(p.from, p.to), m = p.to.toString().length;
         }
         var Ge = d - p.from;
         return re(i) && (m = (8 * (p.to > 0 ? p.to - 1 : p.to)).toString(16).length) < 2 && (m = 2), b(function(B, Z, J) {
@@ -392,10 +392,10 @@ var parsimmon_umd_min = { exports: {} };
         for (var i = [].slice.call(arguments), l = i.length, c = 0; c < l; c += 1) Q(i[c]);
         return o(function(d, h) {
           for (var p, m = new Array(l), w = 0; w < l; w += 1) {
-            if (!(p = M(i[w]._(d, h), p)).status) return p;
+            if (!(p = A(i[w]._(d, h), p)).status) return p;
             m[w] = p.value, h = p.index;
           }
-          return M(C(h, m), p);
+          return A(C(h, m), p);
         });
       }
       function $() {
@@ -411,7 +411,7 @@ var parsimmon_umd_min = { exports: {} };
         if (l === 0) return me("zero alternates");
         for (var c = 0; c < l; c += 1) Q(i[c]);
         return o(function(d, h) {
-          for (var p, m = 0; m < i.length; m += 1) if ((p = M(i[m]._(d, h), p)).status) return p;
+          for (var p, m = 0; m < i.length; m += 1) if ((p = A(i[m]._(d, h), p)).status) return p;
           return p;
         });
       }
@@ -526,7 +526,7 @@ var parsimmon_umd_min = { exports: {} };
         var i = this;
         return o(function(l, c) {
           for (var d = [], h = void 0; ; ) {
-            if (!(h = M(i._(l, c), h)).status) return M(C(c, d), h);
+            if (!(h = A(i._(l, c), h)).status) return A(C(c, d), h);
             if (c === h.index) throw new Error("infinite loop detected in .many() parser --- calling .many() on a parser which can accept zero characters is usually the cause");
             c = h.index, d.push(h.value);
           }
@@ -548,11 +548,11 @@ var parsimmon_umd_min = { exports: {} };
         var c = this;
         return arguments.length < 2 && (l = i), X(i), X(l), o(function(d, h) {
           for (var p = [], m = void 0, w = void 0, k = 0; k < i; k += 1) {
-            if (w = M(m = c._(d, h), w), !m.status) return w;
+            if (w = A(m = c._(d, h), w), !m.status) return w;
             h = m.index, p.push(m.value);
           }
-          for (; k < l && (w = M(m = c._(d, h), w), m.status); k += 1) h = m.index, p.push(m.value);
-          return M(C(h, p), w);
+          for (; k < l && (w = A(m = c._(d, h), w), m.status); k += 1) h = m.index, p.push(m.value);
+          return A(C(h, p), w);
         });
       }, f.result = function(i) {
         return this.map(function() {
@@ -569,7 +569,7 @@ var parsimmon_umd_min = { exports: {} };
         var l = this;
         return o(function(c, d) {
           var h = l._(c, d);
-          return h.status ? M(C(h.index, i(h.value)), h) : h;
+          return h.status ? A(C(h.index, i(h.value)), h) : h;
         });
       }, f.contramap = function(i) {
         U(i);
@@ -617,7 +617,7 @@ var parsimmon_umd_min = { exports: {} };
         var l = this;
         return o(function(c, d) {
           var h = l._(c, d);
-          return h.status ? M(i(h.value)._(c, h.index), h) : h;
+          return h.status ? A(i(h.value)._(c, h.index), h) : h;
         });
       }, f.concat = f.or, f.empty = ye, f.of = q, f["fantasy-land/ap"] = f.ap, f["fantasy-land/chain"] = f.chain, f["fantasy-land/concat"] = f.concat, f["fantasy-land/empty"] = f.empty, f["fantasy-land/of"] = f.of, f["fantasy-land/map"] = f.map;
       var oe = o(function(i, l) {
@@ -671,10 +671,10 @@ var parsimmon_umd_min = { exports: {} };
         return o(function(k, O) {
           for (var E, j = {}, I = 0; I < h; I += 1) {
             var L, Y;
-            if (G(d[I]) ? (L = d[I][0], Y = d[I][1]) : (L = null, Y = d[I]), !(E = M(Y._(k, O), E)).status) return E;
+            if (G(d[I]) ? (L = d[I][0], Y = d[I][1]) : (L = null, Y = d[I]), !(E = A(Y._(k, O), E)).status) return E;
             L && (j[L] = E.value), O = E.index;
           }
-          return M(C(O, j), E);
+          return A(C(O, j), E);
         });
       }, o.string = ae, o.succeed = q, o.takeWhile = function(i) {
         return U(i), o(function(l, c) {
@@ -720,7 +720,7 @@ var parsimmon_umd_min = { exports: {} };
         return S("string", l).map(function(c) {
           return c.toString(i);
         });
-      }, uintBE: A, uint8BE: A(1), uint16BE: A(2), uint32BE: A(4), uintLE: D, uint8LE: D(1), uint16LE: D(2), uint32LE: D(4), intBE: se, int8BE: se(1), int16BE: se(2), int32BE: se(4), intLE: le, int8LE: le(1), int16LE: le(2), int32LE: le(4), floatBE: S("floatBE", 4).map(function(i) {
+      }, uintBE: M, uint8BE: M(1), uint16BE: M(2), uint32BE: M(4), uintLE: D, uint8LE: D(1), uint16LE: D(2), uint32LE: D(4), intBE: se, int8BE: se(1), int16BE: se(2), int32BE: se(4), intLE: le, int8LE: le(1), int16LE: le(2), int32LE: le(4), floatBE: S("floatBE", 4).map(function(i) {
         return i.readFloatBE(0);
       }), floatLE: S("floatLE", 4).map(function(i) {
         return i.readFloatLE(0);
@@ -1764,7 +1764,7 @@ function camelCaseToHyphen(e) {
   return e.replace(/([A-Z])/g, (t) => `-${t[0].toLowerCase()}`);
 }
 function requestAnimationFrame(e) {
-  if (window != null)
+  if (typeof window < "u" && window.requestAnimationFrame)
     return window.requestAnimationFrame(e);
   let t = FRAME_RATE, n = Date.now();
   return setTimeout(() => {
@@ -2424,9 +2424,9 @@ function seekPreviousValue(e, t, n) {
       return a;
 }
 function parseTemplateFrame(e, t, n, a, u) {
-  const [o, f] = [t[e], t[e + 1]], [g, b] = [n[e], n[e + 1]], y = calcFrameTime(o, f, a), T = {}, W = [.../* @__PURE__ */ new Set([...Object.keys(g), ...Object.keys(b)])], z = (S, V, A) => ({
+  const [o, f] = [t[e], t[e + 1]], [g, b] = [n[e], n[e + 1]], y = calcFrameTime(o, f, a), T = {}, W = [.../* @__PURE__ */ new Set([...Object.keys(g), ...Object.keys(b)])], z = (S, V, M) => ({
     start: n[V][S],
-    stop: n[A][S]
+    stop: n[M][S]
   });
   W.forEach((S) => {
     if (S in g && S in b)
@@ -2435,12 +2435,12 @@ function parseTemplateFrame(e, t, n, a, u) {
       const V = seekPreviousValue(e, n, (D) => S in D);
       if (V == null)
         return;
-      const A = u[V];
-      A.time = calcFrameTime(
+      const M = u[V];
+      M.time = calcFrameTime(
         t[V],
         f,
         a
-      ), A.interpVars[S] = z(S, V, e + 1);
+      ), M.interpVars[S] = z(S, V, e + 1);
     }
   });
   let _ = o.transform;

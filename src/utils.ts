@@ -58,7 +58,7 @@ export function camelCaseToHyphen(str: string) {
 }
 
 export function requestAnimationFrame(callback: FrameRequestCallback) {
-    if (window != null) {
+    if (typeof window !== "undefined" && window.requestAnimationFrame) {
         return window.requestAnimationFrame(callback);
     }
 
@@ -77,7 +77,7 @@ export function requestAnimationFrame(callback: FrameRequestCallback) {
 }
 
 export function cancelAnimationFrame(handle: number | undefined | null | any) {
-    if (window != null) {
+    if (typeof window !== "undefined" && window.cancelAnimationFrame) {
         return window.cancelAnimationFrame(handle);
     }
 
