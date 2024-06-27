@@ -557,7 +557,7 @@ let style = $ref(null);
 let prevPaused = $ref(false);
 let cssApplied = $ref(false);
 
-const cssApply = () => {
+const cssApply = async () => {
     if (cssApplied) {
         style.innerHTML = "";
         animation.paused = prevPaused;
@@ -567,7 +567,7 @@ const cssApply = () => {
         prevPaused = animation.paused;
         animation.paused = animation.started;
 
-        style.innerHTML = cssKeyframesString.value;
+        style.innerHTML = await cssKeyframesString.value;
         document.head.appendChild(style);
         animation.target.classList.add("animation");
     }

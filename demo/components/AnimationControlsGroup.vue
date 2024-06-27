@@ -27,7 +27,6 @@
                 @keyframes-update="keyframesUpdate"
                 :animation="animation"
                 :is-grouped="true"
-                :class="[animationGroup.playing() ? '' : 'disabled']"
             />
         </template>
     </div>
