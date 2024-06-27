@@ -97,16 +97,10 @@
                             <select
                                 @input="updateTimingFunction"
                                 @change="
-                                    (e) => {
-                                        cubicBezierValues = JSON.parse(
-                                            JSON.stringify(
-                                                bezierPresets[
-                                                    (e.target as HTMLInputElement).value
-                                                ],
-                                            ),
-                                        );
-                                        updateTimingFunction();
-                                    }
+                                    (e) =>
+                                        updateCubicBezierPreset(
+                                            (e.target as HTMLSelectElement).value,
+                                        )
                                 "
                             >
                                 <option
@@ -119,48 +113,42 @@
 
                             <svg
                                 ref="svgCubicBezierEl"
-                                viewBox="-0.125 -1.125 1.25 1.25"
+                                viewBox="0 -1.5 1 2"
                                 xmlns="http://www.w3.org/2000/svg"
-                            ></svg>
+                                @mousedown="startCubicBezierDragging"
+                                @mousemove="cubicBezierDrag"
+                                @mouseup="stopCubicBezierDragging"
+                                @mouseleave="stopCubicBezierDragging"
+                            >
+                                <g ref="cubicBezierPathEl"></g>
+                                <circle
+                                    v-for="(point, index) in controlPoints"
+                                    :key="index"
+                                    :cx="point.x"
+                                    :cy="point.y"
+                                    :data-index="index"
+                                    @mouseover="
+                                        (e) => {
+                                            (e.target as HTMLElement).style.setProperty(
+                                                '--stroke-width',
+                                                '0.15',
+                                            );
+                                        }
+                                    "
+                                    @mouseleave="
+                                        (e) => {
+                                            (e.target as HTMLElement).style.setProperty(
+                                                '--stroke-width',
+                                                '0.1',
+                                            );
+                                        }
+                                    "
+                                />
+                            </svg>
 
                             <label class="preset-label" @click="copyToClipboard"
                                 >{{ cubicBezierPreset }}
-                                <div ref="copyTextEl" class="info">Copied!</div>
-                                <font-awesome-icon :icon="['fas', 'clipboard']"
-                            /></label>
-
-                            <input
-                                @input="updateTimingFunction"
-                                v-model.number="cubicBezierValues[0]"
-                                type="range"
-                                :min="-2"
-                                :max="2"
-                                step="0.01"
-                            />
-                            <input
-                                @input="updateTimingFunction"
-                                v-model.number="cubicBezierValues[1]"
-                                type="range"
-                                :min="-2"
-                                :max="2"
-                                step="0.01"
-                            />
-                            <input
-                                @input="updateTimingFunction"
-                                v-model.number="cubicBezierValues[2]"
-                                type="range"
-                                :min="-2"
-                                :max="2"
-                                step="0.01"
-                            />
-                            <input
-                                @input="updateTimingFunction"
-                                v-model.number="cubicBezierValues[3]"
-                                type="range"
-                                :min="-2"
-                                :max="2"
-                                step="0.01"
-                            />
+                            </label>
                         </div>
                     </template>
                 </div>
@@ -326,27 +314,104 @@ let cubicBezierValues = $ref(
     bezierPresets[cubicBezierPreset] as [number, number, number, number],
 );
 const svgCubicBezierEl = $ref(null);
+const cubicBezierPathEl = $ref(null);
+
+let isDragging = $ref(false);
+let currentPointIndex = $ref(null);
+let controlPoints = $ref([
+    { x: 0.01, y: 0 },
+    { x: cubicBezierValues[0], y: cubicBezierValues[1] },
+    { x: cubicBezierValues[2], y: cubicBezierValues[3] },
+    { x: 0.97, y: 1 },
+]);
+
+const bezierPath = computed(() => {
+    const scaledValues = cubicBezierValues.map((v) => {
+        return v;
+    });
+
+    return svgCubicBezier(...(scaledValues as [number, number, number, number]));
+});
+
+const startCubicBezierDragging = (event: MouseEvent) => {
+    const target = (event.target as SVGElement).closest("circle");
+
+    if (target) {
+        isDragging = true;
+        currentPointIndex = parseInt(target.getAttribute("data-index"));
+    }
+};
+
+const stopCubicBezierDragging = () => {
+    isDragging = false;
+    currentPointIndex = null;
+};
+
+let scaleCubicBezierValues = $ref(false);
+
+const cubicBezierDrag = (event: MouseEvent) => {
+    if (isDragging && currentPointIndex !== null) {
+        // if the current point is a boundary, exit:
+        if (currentPointIndex === 0 || currentPointIndex === 3) {
+            return;
+        }
+
+        const svgRect = cubicBezierPathEl.getBoundingClientRect();
+
+        const { width, height, left, top } = svgRect;
+
+        const x = (event.clientX - left) / width;
+        const y = 1 - (event.clientY - top) / height;
+
+        // Update the control point position
+        controlPoints[currentPointIndex] = {
+            x,
+            y,
+        };
+
+        // Update cubicBezierValues
+        cubicBezierValues = [
+            controlPoints[1].x,
+            controlPoints[1].y,
+            controlPoints[2].x,
+            controlPoints[2].y,
+        ];
+
+        scaleCubicBezierValues = true;
+        updateTimingFunction();
+    }
+};
+
+const updateCubicBezierPreset = (preset: string) => {
+    cubicBezierPreset = preset;
+    cubicBezierValues = JSON.parse(JSON.stringify(bezierPresets[preset]));
+
+    // update the control points
+    controlPoints[1] = { x: cubicBezierValues[0], y: cubicBezierValues[1] };
+    controlPoints[2] = { x: cubicBezierValues[2], y: cubicBezierValues[3] };
+
+    scaleCubicBezierValues = true;
+    updateTimingFunction();
+};
 
 const updateTimingFunction = () => {
     let timingFunction = timingFunctions[timingFunctionKey];
+
     if (timingFunctionKey === "steps") {
         timingFunction = timingFunctions[timingFunctionKey](steps, jumpTerm);
     } else if (timingFunctionKey === "cubicBezier") {
+        const scaledValues = cubicBezierValues.map((v) => {
+            return v;
+        });
+
         timingFunction = CSSBezier(
-            ...(cubicBezierValues as [number, number, number, number]),
+            ...(scaledValues as [number, number, number, number]),
         );
         cubicBezierPreset = `cubic-bezier(${cubicBezierValues
             .map((v) => v.toFixed(2))
             .join(",")})`;
 
-        const path = svgCubicBezier(
-            cubicBezierValues[0],
-            cubicBezierValues[1],
-            cubicBezierValues[2],
-            cubicBezierValues[3],
-        );
-
-        svgCubicBezierEl.innerHTML = path;
+        cubicBezierPathEl.innerHTML = bezierPath.value;
     }
 
     setTimingFunction(timingFunction);
@@ -482,6 +547,7 @@ const fadeInOut = (el) => {
 };
 
 let copyTextEl = $ref(null);
+
 const copyToClipboard = async () => {
     navigator.clipboard.writeText(await cssKeyframesString.value);
     fadeInOut(copyTextEl);
@@ -552,10 +618,15 @@ input[type="range"] {
 
 .cubic-bezier-controls {
     grid-column: span 2;
+
     display: grid;
-    gap: 1rem 0.5rem;
-    grid-template-columns: auto auto;
+
+    grid-template-columns: 25% 75%;
     align-items: center;
+
+    select {
+        width: 100%;
+    }
 
     label {
         overflow: hidden;
@@ -564,38 +635,40 @@ input[type="range"] {
         max-width: 100%;
     }
 
-    input {
-        grid-column: span 2;
-        margin: 0;
-
-        background: linear-gradient(
-            to right,
-            #f00 0%,
-            #ff0 17%,
-            #0f0 33%,
-            #0ff 50%,
-            #00f 67%,
-            #f0f 83%,
-            #f00 100%
-        ) !important;
-    }
-
     svg::v-deep {
-        width: 200px;
+        width: 100%;
+
         aspect-ratio: 1 / 1;
-        --stroke-width: 0.07;
+        --stroke-width: 0.1;
+        --circle-color: rgb(226, 61, 61);
+        --path-color: rgb(137, 20, 239);
+
+        circle {
+            r: calc(var(--stroke-width) / 2);
+            stroke: var(--circle-color);
+            fill: var(--circle-color);
+            stroke-width: 0;
+
+            cursor: move;
+        }
+
+        circle:nth-child(5),
+        circle:nth-child(2) {
+            --circle-color: var(--path-color);
+            cursor: not-allowed;
+        }
 
         g {
-            circle {
-                r: calc(var(--stroke-width) / 2);
-                stroke: black;
-                stroke-width: 0;
-            }
             path {
-                stroke: rgb(93, 246, 220);
+                stroke: rgb(137, 20, 239);
                 stroke-width: var(--stroke-width);
                 fill: none;
             }
+        }
+
+        > * {
+            --scale: 1;
+            transform: scale(var(--scale), calc(-1 * var(--scale)));
         }
     }
 }

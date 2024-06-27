@@ -63,5 +63,5 @@ export function svgCubicBezier(x1: number, y1: number, x2: number, y2: number) {
         path += ` L${x} ${y}`;
     }
 
-    return `<g transform="scale(1, -1) ">${points}<path d="${path}"/></g>`;
+    return `<path d="${path}"/>`;
 }

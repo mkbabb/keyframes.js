@@ -53,20 +53,22 @@
 
         <div ref="graph" class="graph">
             <div ref="cube" class="cube animation">
-                <div class="cube-side side-back">3</div>
-                <div class="cube-side side-bottom">6</div>
-                <div class="cube-side side-right">2</div>
-                <div class="cube-side side-left">4</div>
-                <div class="cube-side side-front">
-                    1
+                <div
+                    v-for="(side, index) in cubeSides"
+                    :key="index"
+                    :class="['cube-side', side.class]"
+                >
+                    {{ side.content }}
                     <span
-                        ref="cubeSideFront"
                         :class="
                             !rotationAnim.animation.playing() ? 'rainbow-wrapper' : ''
                         "
-                    ></span>
+                        :style="{
+                            animationDelay: `${Math.random() * 2}s`,
+                        }"
+                    >
+                    </span>
                 </div>
-                <div class="cube-side side-top">5</div>
             </div>
 
             <p class="axis-line x"></p>
@@ -327,8 +329,17 @@ const animations = {
 
 let selectedAnimation = $ref("");
 
+const cubeSides = [
+    { class: "side-back", content: "3" },
+    { class: "side-bottom", content: "6" },
+    { class: "side-right", content: "2" },
+    { class: "side-left", content: "4" },
+    { class: "side-front", content: "1" },
+    { class: "side-top", content: "5" },
+];
+
 const cube = $ref<HTMLElement>();
-const cubeSideFront = $ref<HTMLElement>();
+
 const graph = $ref<HTMLElement>();
 
 onMounted(() => {
@@ -452,7 +463,7 @@ body {
     color: white;
 
     font-size: 2rem;
-    border: 1px inset rgba(0, 0, 0, 0.5);
+    border: 1px inset rgba(0, 0, 0, 0.37);
 }
 
 .side-front {

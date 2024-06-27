@@ -370,12 +370,6 @@ export class Animation<V extends Vars> {
 
     reset() {
         this.startTime = undefined;
-        // this.pausedTime = 0;
-        // this.prevTime = 0;
-        // this.t = 0;
-
-        // this.started = false;
-        // this.paused = false;
         return this;
     }
 
