@@ -21,7 +21,7 @@ const anim = new CSSKeyframesAnimation({
 
 ```css
 @keyframes mijn-keyframes {
-    0% {
+    from {
         transform: translateX(-100%) translateY(-100%) rotate(0turn);
         background-color: #C462D8;
     }
