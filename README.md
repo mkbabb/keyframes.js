@@ -30,7 +30,6 @@ const anim = new CSSKeyframesAnimation({
         background-color: #E85252;
     }
 }
-`;
 ```
 
 #### Add the keyframes to your animation, and add target elements to animate:
