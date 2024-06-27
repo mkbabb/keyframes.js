@@ -1,3 +1,4 @@
+export declare const FRAME_RATE: number;
 export declare const isObject: (value: any) => boolean;
 export declare const arrayEquals: (a: any[], b: any[]) => boolean;
 export declare function sleep(ms: number): Promise<unknown>;
@@ -5,5 +6,5 @@ export declare function waitUntil(condition: () => boolean, delay?: number): Pro
 export declare function debounce(func: Function, wait?: number, waitingFunc?: any): (...args: Array<any>) => void;
 export declare const hyphenToCamelCase: (str: string) => string;
 export declare function camelCaseToHyphen(str: string): string;
-export declare function requestAnimationFrame(callback: FrameRequestCallback): number | NodeJS.Immediate;
+export declare function requestAnimationFrame(callback: FrameRequestCallback): number | NodeJS.Timeout;
 export declare function cancelAnimationFrame(handle: number | undefined | null | any): void;

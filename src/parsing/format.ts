@@ -65,6 +65,7 @@ export async function CSSKeyframesToString<V extends Vars>(
         Object.entries(timingFunctions)
             .filter(([name, func]) => func === options.timingFunction)
             .map(([name]) => name)?.[0] ?? "linear";
+    timingFunctionName = camelCaseToHyphen(timingFunctionName);
 
     animationCss += `  animation-timing-function: ${timingFunctionName};\n`;
 

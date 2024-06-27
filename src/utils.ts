@@ -1,8 +1,8 @@
+export const FRAME_RATE = 1000 / 60;
+
 export const isObject = (value: any) => {
     return !!value && value.constructor === Object;
 };
-
-
 
 export const arrayEquals = (a: any[], b: any[]) => {
     if (!a || !b || a.length !== b.length) {
@@ -20,7 +20,7 @@ export async function sleep(ms: number) {
     return await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export async function waitUntil(condition: () => boolean, delay: number = 1000 / 60) {
+export async function waitUntil(condition: () => boolean, delay: number = FRAME_RATE) {
     return await new Promise<void>((resolve) => {
         const interval = setInterval(() => {
             if (condition()) {
@@ -62,9 +62,18 @@ export function requestAnimationFrame(callback: FrameRequestCallback) {
         return window.requestAnimationFrame(callback);
     }
 
-    return setImmediate(() => {
-        callback(Date.now());
-    });
+    let delay = FRAME_RATE;
+    let prevT = Date.now();
+
+    return setTimeout(() => {
+        let t = Date.now();
+        let delta = t - prevT;
+
+        prevT = t;
+        delay = Math.max(0, FRAME_RATE - delta);
+
+        callback(t);
+    }, delay);
 }
 
 export function cancelAnimationFrame(handle: number | undefined | null | any) {
@@ -72,5 +81,5 @@ export function cancelAnimationFrame(handle: number | undefined | null | any) {
         return window.cancelAnimationFrame(handle);
     }
 
-    return clearImmediate(handle);
+    clearTimeout(handle);
 }

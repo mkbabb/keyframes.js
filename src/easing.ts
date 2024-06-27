@@ -129,15 +129,34 @@ export const bezierPresets = {
 export const timingFunctions = {
     linear,
     easeInQuad,
+    "ease-in-quad": easeInQuad, // "easeInQuad",
+
     easeOutQuad,
+    "ease-out-quad": easeOutQuad, // "easeOutQuad",
+
     easeInOutQuad,
+    "ease-in-out-quad": easeInOutQuad, // "easeInOutQuad",
+
     easeInCubic,
+    "ease-in-cubic": easeInCubic,
+
     easeOutCubic,
+    "ease-out-cubic": easeOutCubic,
+
     easeInOutCubic,
+    "ease-in-out-cubic": easeInOutCubic,
+
     easeInBounce,
+    "ease-in-bounce": easeInBounce, // "easeInBounce",
+
     bounceInEase,
+    "bounce-in-ease": bounceInEase,
+
     bounceInEaseHalf,
+    "bounce-in-ease-half": bounceInEaseHalf,
+
     smoothStep3,
+    "smooth-step-3": smoothStep3,
 
     ease: CSSBezier(...bezierPresets.ease),
     "ease-in": CSSBezier(...bezierPresets["ease-in"]),

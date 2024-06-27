@@ -26,15 +26,25 @@ export declare const bezierPresets: {
 export declare const timingFunctions: {
     readonly linear: typeof linear;
     readonly easeInQuad: typeof easeInQuad;
+    readonly "ease-in-quad": typeof easeInQuad;
     readonly easeOutQuad: typeof easeOutQuad;
+    readonly "ease-out-quad": typeof easeOutQuad;
     readonly easeInOutQuad: typeof easeInOutQuad;
+    readonly "ease-in-out-quad": typeof easeInOutQuad;
     readonly easeInCubic: typeof easeInCubic;
+    readonly "ease-in-cubic": typeof easeInCubic;
     readonly easeOutCubic: typeof easeOutCubic;
+    readonly "ease-out-cubic": typeof easeOutCubic;
     readonly easeInOutCubic: typeof easeInOutCubic;
+    readonly "ease-in-out-cubic": typeof easeInOutCubic;
     readonly easeInBounce: typeof easeInBounce;
+    readonly "ease-in-bounce": typeof easeInBounce;
     readonly bounceInEase: typeof bounceInEase;
+    readonly "bounce-in-ease": typeof bounceInEase;
     readonly bounceInEaseHalf: typeof bounceInEaseHalf;
+    readonly "bounce-in-ease-half": typeof bounceInEaseHalf;
     readonly smoothStep3: typeof smoothStep3;
+    readonly "smooth-step-3": typeof smoothStep3;
     readonly ease: (t: number) => number;
     readonly "ease-in": (t: number) => number;
     readonly "ease-out": (t: number) => number;

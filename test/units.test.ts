@@ -1,12 +1,13 @@
-import { units, parseCSSValueUnit, CSSColor } from "../src/parsing/units";
+import { assert, describe, expect, it } from "vitest";
+import { CSSKeyframesAnimation } from "../src/animation";
+import { CSSKeyframesToString } from "../src/parsing/format";
 import {
-    parseCSSKeyframes,
-    reverseCSSTime,
-    parseCSSTime,
     CSSKeyframes,
+    parseCSSKeyframes,
+    parseCSSTime,
+    reverseCSSTime,
 } from "../src/parsing/keyframes";
-import { CSSKeyframesToString, CSSKeyframesAnimation } from "../src/animation";
-import { expect, describe, it, assert } from "vitest";
+import { CSSColor, parseCSSValueUnit, units } from "../src/parsing/units";
 
 const checkIfReversedEquals = async (keyframes: string) => {
     const el = document.createElement("div");

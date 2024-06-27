@@ -599,7 +599,7 @@ onMounted(() => {
 }
 
 input[type="range"] {
-    --color: green;
+    --color: rgb(24, 163, 24);
     margin: 1rem 0;
 }
 

@@ -1,6 +1,6 @@
 import P from "parsimmon";
 import { CSSValueUnit, integer, number, identifier, none, opt } from "./units";
-import { hyphenToCamelCase, arrayEquals } from "../utils";
+import { hyphenToCamelCase, arrayEquals, camelCaseToHyphen } from "../utils";
 import {
     collapseNumericType,
     ValueUnit,
@@ -400,10 +400,13 @@ export const CSSClass = P.createLanguage({
                 const options = {};
                 for (let [key, value] of Object.entries(values)) {
                     if (key.includes("animation")) {
-                        let newKey = key
+                        const newKey = key
                             .replace(/^animation/i, "")
                             .replace(/^\w/, (c) => c.toLowerCase());
-                        options[newKey] = value.toString();
+
+                        const newValue = camelCaseToHyphen(value.toString());
+                        options[newKey] = newValue;
+
                         delete values[key];
                     }
                 }
