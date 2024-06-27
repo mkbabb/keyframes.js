@@ -33,5 +33,5 @@ export declare class ValueArray<T = number> {
 export declare const isValueType: (value: any) => value is ValueUnit | FunctionValue | ValueArray;
 export declare const collapseNumericType: (a: ValueUnit<number>, b: ValueUnit<number>, target?: HTMLElement) => [ValueUnit<number>, ValueUnit<number>];
 export declare function transformObject(input: any): TransformedVars;
-export declare function reverseTransformObject<T>(key: string, value: ValueUnit<T> | FunctionValue<T> | ValueArray<T>, original?: any): any;
+export declare function reverseTransformObject<T>(key: string, value: ValueArray<T> | FunctionValue<T> | ValueUnit<T>, original?: any): any;
 export declare function transformTargetsStyle(t: number, vars: any, targets: HTMLElement[]): void;
