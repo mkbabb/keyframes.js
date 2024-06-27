@@ -31,7 +31,7 @@ export default defineConfig((mode) => {
                     entry: path.resolve(__dirname, "src/animation.ts"),
                     name: "Keyframes",
                     fileName: "keyframes",
-                    formats: ["es"],
+                    formats: ["es", "cjs"],
                 },
             },
             plugins: [

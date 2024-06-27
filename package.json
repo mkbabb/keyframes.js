@@ -1,6 +1,6 @@
 {
     "name": "keyframes.ts",
-    "version": "0.9.5",
+    "version": "0.9.56",
     "description": "Create keyframe animations for anything in JavaScript; specify your keyframes in standards-complaint CSS.",
     "licenses": [
         {
@@ -25,7 +25,8 @@
     "types": "./dist/keyframes.d.ts",
     "exports": {
         ".": {
-            "import": "./dist/keyframes.js"
+            "import": "./dist/keyframes.js",
+            "require": "./dist/keyframes.cjs"
         }
     },
     "files": [
