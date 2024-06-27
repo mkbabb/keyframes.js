@@ -47,7 +47,7 @@
 
             <div class="row">
                 <button @click="reset">Reset</button>
-                <button @click="fixed">Fixed</button>
+                <button @click="fixed" :class="isFixed ? 'clicked' : ''">Fixed</button>
             </div>
         </div>
 
@@ -57,7 +57,15 @@
                 <div class="cube-side side-bottom">6</div>
                 <div class="cube-side side-right">2</div>
                 <div class="cube-side side-left">4</div>
-                <div class="cube-side side-front">1</div>
+                <div class="cube-side side-front">
+                    1
+                    <span
+                        ref="cubeSideFront"
+                        :class="
+                            !rotationAnim.animation.playing() ? 'rainbow-wrapper' : ''
+                        "
+                    ></span>
+                </div>
                 <div class="cube-side side-top">5</div>
             </div>
 
@@ -189,6 +197,8 @@ const animateUpdateMatrix = (
     reset: boolean = false,
 ) => {
     const transformFunc = (t, { transform: { matrix3d } }) => {
+        matrix3d = matrix3d.valueOf();
+
         matrix3dEnd.values.forEach((value, i) => {
             value.value = matrix3d[i];
             syncTransformations(reset);
@@ -250,7 +260,11 @@ const reset = () => {
     animateUpdateMatrix(fromMatrix, toMatrix, true);
 };
 
+let isFixed = $ref(false);
+
 const fixed = () => {
+    isFixed = !isFixed;
+
     if (matrix3dStart.values == matrix3dEnd.values) {
         matrix3dStart.values = [...mat4.create()].map((v) => new ValueUnit(v));
     } else {
@@ -314,6 +328,7 @@ const animations = {
 let selectedAnimation = $ref("");
 
 const cube = $ref<HTMLElement>();
+const cubeSideFront = $ref<HTMLElement>();
 const graph = $ref<HTMLElement>();
 
 onMounted(() => {
@@ -421,6 +436,7 @@ body {
     align-items: center;
     justify-content: center;
     transform-style: preserve-3d;
+    position: relative;
 }
 
 .cube-side {

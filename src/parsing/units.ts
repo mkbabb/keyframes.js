@@ -39,7 +39,8 @@ export const units = [
     ...resolutionUnits,
 ] as const;
 
-export const identifier = P.regexp(/[a-zA-Z][a-zA-Z0-9-]+/);
+export const identifier = P.regexp(/-?[a-zA-Z][a-zA-Z0-9-]*/);
+
 export const none = P.string("none");
 export const integer = P.regexp(/-?\d+/).map(Number);
 export const number = P.regexp(/-?(0|[1-9]\d*)(\.\d+)?([eE][+-]?\d+)?/).map(Number);
@@ -174,7 +175,7 @@ export const CSSValueUnit = P.createLanguage({
             return new ValueUnit(value, unit, ["resolution"]);
         }),
     Percentage: (r) =>
-        P.seq(integer, r.percentageUnit).map(([value, unit]) => {
+        P.seq(number, r.percentageUnit).map(([value, unit]) => {
             return new ValueUnit(value, unit, ["percentage"]);
         }),
     Color: (r) => CSSColor.Value.map((x) => new ValueUnit(x, "color")),

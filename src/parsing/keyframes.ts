@@ -207,6 +207,7 @@ const handleTransform = (r: P.Language) => {
 
     return p.map(([[name, dim], values]: [string[], ValueUnit[]]) => {
         name = name.toLowerCase();
+
         if (dim) {
             return new FunctionValue(name + dim.toUpperCase(), [values[0]]);
         } else if (values.length === 1) {

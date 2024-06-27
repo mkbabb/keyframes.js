@@ -175,14 +175,13 @@ const getTimingFunction = (
     return timingFunction;
 };
 
-
 // const normalizeFrameStartTime = (frame: TemplateAnimationFrame<any>, duration: number) => {
 //     let value = frame.start.value;
 
 //     if (frame.start.unit === "s") {
 //         value = (value / duration) * 100;
 //     }
-    
+
 //     if (frame.start.unit === "ms") {
 //         frame.start.unit = "%";
 
@@ -404,12 +403,11 @@ export class Animation<V extends Vars> {
 
             const reversedVars = {};
             for (const [k, v] of Object.entries(frame.interpVars)) {
-                reverseTransformObject(
-                    k,
-                    v.start.lerp(e, v.stop, this.target),
-                    reversedVars,
-                );
+                const newValue = v.start.lerp(e, v.stop, this.target);
+
+                reverseTransformObject(k, newValue, reversedVars);
             }
+
             frame.transform(t, reversedVars as V);
         }
     }
@@ -702,10 +700,13 @@ export class AnimationGroup<V> {
         let done = true;
         for (const groupObject of this.animationGroup) {
             const { animation, values } = groupObject;
+
             done = done && animation.done;
+
             if (!(animation.done || animation.paused)) {
                 animation.interpFrames(animation.t, values);
             }
+
             groupedValues = { ...values, ...groupedValues };
         }
         this.done = done;
@@ -714,7 +715,9 @@ export class AnimationGroup<V> {
         Object.entries(groupedValues).forEach(([key, value]: [string, ValueArray]) => {
             reverseTransformObject(key, value, reversedVars);
         });
+
         this.transform(t, reversedVars as V);
+
         return reversedVars;
     }
 

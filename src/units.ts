@@ -1,9 +1,9 @@
 import { RGBColor } from "d3-color";
 import { lerp } from "./math";
-import { arrayEquals, isObject } from "./utils";
 import { CSSKeyframes, parseCSSTime } from "./parsing/keyframes";
-import { CSSValueUnit } from "./parsing/units";
 import { isCSSStyleName } from "./parsing/styleNames";
+import { CSSValueUnit } from "./parsing/units";
+import { arrayEquals, isObject } from "./utils";
 
 export interface TransformedVars {
     [arg: string]: ValueArray;
@@ -364,27 +364,40 @@ export function transformObject(input: any): TransformedVars {
     return transformedVars;
 }
 
+function mergeValueObjects<T>(
+    currentValue: Object | undefined,
+    value: ValueArray<T> | FunctionValue<T> | ValueUnit<T>,
+) {
+    if (currentValue == null) {
+        return value;
+    }
+
+    const left: ValueArray<T> = new ValueArray(Object.values(currentValue) as any);
+    const right = new ValueArray(value);
+
+    return new ValueArray([...left.values, ...right.values]);
+}
+
 export function reverseTransformObject<T>(
     key: string,
-    value: ValueUnit<T> | FunctionValue<T> | ValueArray<T>,
+    value: ValueArray<T> | FunctionValue<T> | ValueUnit<T>,
     original: any = {},
 ) {
     const keys = key.split(".");
     let obj = original;
 
     if (keys.length === 1) {
-        original[key] = value;
+        obj[key] = mergeValueObjects(obj[key], value);
         return original;
     }
 
     keys.forEach((k, i) => {
         if (value != null && i === keys.length - 1) {
-            obj[k] = isValueType(value) ? value.valueOf() : value;
+            obj[k] = mergeValueObjects(obj[k], value);
         } else {
             if (obj[k] == null) {
                 obj[k] = {};
             }
-
             obj = obj[k];
         }
     });

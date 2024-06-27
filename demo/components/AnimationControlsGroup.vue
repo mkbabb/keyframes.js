@@ -24,6 +24,7 @@
             <AnimationControls
                 v-show="selectedAnimation == name"
                 @slider-update="sliderUpdate"
+                @keyframes-update="keyframesUpdate"
                 :animation="animation"
                 :is-grouped="true"
                 :class="[animationGroup.playing() ? '' : 'disabled']"
@@ -78,6 +79,17 @@ const toggle = () => {
     }
 };
 
+const keyframesUpdate = (e: { animation: Animation<any> }) => {
+    // Clear out the previous values
+    const groupObject = animationGroup.animationGroup.find(
+        (a) => a.animation.id == e.animation.id,
+    );
+
+    if (groupObject != null) {
+        groupObject.values = {};
+    }
+};
+
 onMounted(() => {});
 </script>
 
@@ -99,7 +111,7 @@ onMounted(() => {});
 }
 
 button {
-    background: linear-gradient(
+    --gradient: linear-gradient(
         90deg,
         rgba(255, 0, 0, 1) 0%,
         rgba(255, 127, 0, 1) 12.5%,
@@ -111,5 +123,11 @@ button {
         rgba(255, 0, 0, 1) 87.5%,
         rgba(255, 0, 0, 1) 100%
     );
+
+    background: var(--gradient);
+
+    &:hover {
+        background: var(--gradient);
+    }
 }
 </style>

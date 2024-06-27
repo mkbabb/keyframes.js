@@ -283,6 +283,12 @@ const emit = defineEmits<{
             animationId: number;
         },
     ): void;
+    (
+        e: "keyframesUpdate",
+        val: {
+            animation: Animation<any>;
+        },
+    ): void;
 }>();
 
 let selectedItem = $ref("controls");
@@ -419,8 +425,11 @@ const parseCSSKeyframesStringEl = debounce((event: Event) => {
             }
         }
         updateCSSKeyframesString();
-    };
 
+        emit("keyframesUpdate", {
+            animation,
+        });
+    };
     try {
         parseAndUpdate();
         CSSKeyframesStringEl.classList.remove("error");
