@@ -1,7 +1,24 @@
 {
     "name": "keyframes.ts",
-    "version": "0.9.3",
+    "version": "0.9.4",
     "description": "Create keyframe animations for anything in JavaScript; specify your keyframes in standards-complaint CSS.",
+    "licenses": [
+        {
+            "type": "GNU GPL v3",
+            "url": "https://www.gnu.org/licenses/gpl-3.0.html"
+        }
+    ],
+    "keywords": [
+        "keyframes",
+        "keyframes-library",
+        "animation",
+        "css",
+        "css-animations",
+        "typescript",
+        "web",
+        "browser",
+        "parsing"
+    ],
     "type": "module",
     "main": "./dist/keyframes.js",
     "module": "./dist/keyframes.js",
