@@ -1,7 +1,12 @@
 <template>
-    <div class="container">
+    <!-- tailwind grid with 3 columns, 20%, 60%, 20% -->
+
+    <h1 class="text-4xl font-extrabold tracking-tight scroll-m-20 lg:text-5xl">
+        The Joke Tax Chronicles
+    </h1>
+
+    <div class="grid grid-cols-3">
         <AnimationControlsGroup
-            class="animation-controls"
             :animations="animations"
             @selected-animation="(s) => (selectedAnimation = s)"
         />
@@ -51,7 +56,7 @@
             </div>
         </div>
 
-        <div ref="graph" class="graph">
+        <div ref="graph" class="w-1/5 graph">
             <div ref="cube" class="cube animation">
                 <div
                     v-for="(side, index) in cubeSides"
@@ -79,15 +84,18 @@
 </template>
 
 <script setup lang="ts">
-import { mat4 } from "gl-matrix";
 import { $ref } from "unplugin-vue-macros/macros";
 import { onMounted } from "vue";
-import { CSSKeyframesAnimation } from "../../src/animation";
-import { easeInBounce, linear } from "../../src/easing";
-import { FunctionValue, ValueUnit } from "../../src/units";
-import AnimationControlsGroup from "../components/AnimationControlsGroup.vue";
 
-import "../style.scss";
+import { mat4 } from "gl-matrix";
+
+import { CSSKeyframesAnimation } from "@src/animation";
+import { easeInBounce, linear } from "@src/easing";
+import { FunctionValue, ValueUnit } from "@src/units";
+
+import AnimationControlsGroup from "@components/custom/AnimationControlsGroup.vue";
+
+import "@styles/style.scss";
 
 const matrixAxes = ["X", "Y", "Z", "W"];
 const sliderAxes = ["X", "Y", "Z"];
@@ -308,7 +316,6 @@ const rotationAnim = $ref(
                 rotateX: "0deg",
                 rotateY: "0turn",
                 rotateZ: "0deg",
-                // matrix3d: matrix3dStart,
             },
         },
         "100%": {
@@ -316,7 +323,6 @@ const rotationAnim = $ref(
                 rotateX: new ValueUnit("--rotationX", "var"),
                 rotateY: "1turn",
                 rotateZ: "360deg",
-                // matrix3d: matrix3dEnd,
             },
         },
     }),
@@ -330,12 +336,12 @@ const animations = {
 let selectedAnimation = $ref("");
 
 const cubeSides = [
-    { class: "side-back", content: "3" },
-    { class: "side-bottom", content: "6" },
-    { class: "side-right", content: "2" },
-    { class: "side-left", content: "4" },
-    { class: "side-front", content: "1" },
-    { class: "side-top", content: "5" },
+    { class: "front", content: "1" },
+    { class: "right", content: "2" },
+    { class: "back", content: "3" },
+    { class: "left", content: "4" },
+    { class: "top", content: "5" },
+    { class: "bottom", content: "6" },
 ];
 
 const cube = $ref<HTMLElement>();
@@ -369,22 +375,18 @@ body {
 }
 
 .container {
-    --padding: 0.5rem;
-    display: grid;
-    padding: var(--padding);
+    // --padding: 0.5rem;
+    // display: grid;
+    // padding: var(--padding);
 
-    width: 100%;
-    height: 100%;
+    // width: 100%;
+    // height: 100%;
 
-    grid-template-areas: "animation-controls graph matrix-controls";
-    grid-template-columns: 33% 2fr 33%;
+    // grid-template-areas: "animation-controls graph matrix-controls";
+    // grid-template-columns: 33% 2fr 33%;
 
-    gap: 1rem;
-    overflow: hidden;
-}
-
-.animation-controls {
-    grid-area: animation-controls;
+    // gap: 1rem;
+    // overflow: hidden;
 }
 
 .graph {
@@ -429,6 +431,7 @@ body {
     &.x {
         transform: rotateX(0deg);
     }
+
     &.y {
         transform: rotateZ(90deg);
     }
@@ -464,31 +467,31 @@ body {
 
     font-size: 2rem;
     border: 1px inset rgba(0, 0, 0, 0.37);
-}
 
-.side-front {
-    background: rgba(255, 0, 0, 0.8);
-    transform: rotateY(0deg) translateZ(var(--side-offset));
-}
-.side-back {
-    background: rgba(0, 255, 0, 0.8);
-    transform: rotateY(180deg) translateZ(var(--side-offset));
-}
-.side-top {
-    background: rgba(0, 0, 255, 0.8);
-    transform: rotateX(90deg) translateZ(var(--side-offset));
-}
-.side-bottom {
-    background: rgba(255, 255, 0, 0.8);
-    transform: rotateX(-90deg) translateZ(var(--side-offset));
-}
-.side-left {
-    background: rgba(255, 0, 255, 0.8);
-    transform: rotateY(-90deg) translateZ(var(--side-offset));
-}
-.side-right {
-    background: rgba(0, 255, 255, 0.8);
-    transform: rotateY(90deg) translateZ(var(--side-offset));
+    &.front {
+        background: rgba(255, 0, 0, 0.8);
+        transform: rotateY(0deg) translateZ(var(--side-offset));
+    }
+    &.back {
+        background: rgba(0, 255, 0, 0.8);
+        transform: rotateY(180deg) translateZ(var(--side-offset));
+    }
+    &.top {
+        background: rgba(0, 0, 255, 0.8);
+        transform: rotateX(90deg) translateZ(var(--side-offset));
+    }
+    &.bottom {
+        background: rgba(255, 255, 0, 0.8);
+        transform: rotateX(-90deg) translateZ(var(--side-offset));
+    }
+    &.left {
+        background: rgba(255, 0, 255, 0.8);
+        transform: rotateY(-90deg) translateZ(var(--side-offset));
+    }
+    &.right {
+        background: rgba(0, 255, 255, 0.8);
+        transform: rotateY(90deg) translateZ(var(--side-offset));
+    }
 }
 
 .matrix-controls {

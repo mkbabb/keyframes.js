@@ -10,7 +10,22 @@
         ],
         "alwaysStrict": true,
         "strict": false,
-        "allowSyntheticDefaultImports": true
+        "allowSyntheticDefaultImports": true,
+        "baseUrl": ".",
+        "paths": {
+            "@src/*": [
+                "src/*"
+            ],
+            "@styles/*": [
+                "demo/@/styles/*"
+            ],
+            "@components/*": [
+                "demo/@/components/*"
+            ],
+            "@utils/*": [
+                "demo/@/utils/*"
+            ],
+        }
     },
     "include": [
         "src/",
