@@ -1,49 +1,50 @@
 <template>
     <Card class="border-none m-0 p-0">
         <CardHeader>
-            <CardTitle class="grid items-center"
-                ><Button class="text-sm" @click="() => copyToClipboard(timingString)">
+            <CardTitle class="grid items-center">
+                <Button class="text-sm">
                     {{ timingString }}
-                </Button></CardTitle
-            >
+                    <CopyButton :text="timingString" />
+                </Button>
+            </CardTitle>
         </CardHeader>
         <CardContent>
-            <div class="">
-                <svg
-                    ref="SVGEl"
-                    viewBox="0 -1.5 1 2"
-                    xmlns="http://www.w3.org/2000/svg"
-                    @mousedown="startCubicBezierDragging"
-                    @mousemove="cubicBezierDrag"
-                    @mouseup="stopCubicBezierDragging"
-                    @mouseleave="stopCubicBezierDragging"
-                >
-                    <g ref="pathEl"></g>
-                    <circle
-                        v-for="(point, index) in controlPoints"
-                        :key="index"
-                        :cx="point.x"
-                        :cy="point.y"
-                        :data-index="index"
-                        @mouseover="
-                            (e) => {
-                                (e.target as HTMLElement).style.setProperty(
-                                    '--stroke-width',
-                                    '0.15',
-                                );
-                            }
-                        "
-                        @mouseleave="
-                            (e) => {
-                                (e.target as HTMLElement).style.setProperty(
-                                    '--stroke-width',
-                                    '0.1',
-                                );
-                            }
-                        "
-                    />
-                </svg>
-            </div>
+            <svg
+                ref="SVGEl"
+                class="bezier-curve"
+                viewBox="0 -1.5 1 2"
+                xmlns="http://www.w3.org/2000/svg"
+                @mousedown="startCubicBezierDragging"
+                @mousemove="cubicBezierDrag"
+                @mouseup="stopCubicBezierDragging"
+                @mouseleave="stopCubicBezierDragging"
+            >
+                <g ref="pathEl"></g>
+                <circle
+                    v-for="(point, index) in controlPoints"
+                    :key="index"
+                    :cx="point.x"
+                    :cy="point.y"
+                    :data-index="index"
+                    @mouseover="
+                        (e) => {
+                            (e.target as HTMLElement).style.setProperty(
+                                '--stroke-width',
+                                '0.15',
+                            );
+                        }
+                    "
+                    @mouseleave="
+                        (e) => {
+                            (e.target as HTMLElement).style.setProperty(
+                                '--stroke-width',
+                                '0.1',
+                            );
+                        }
+                    "
+                />
+            </svg>
+
             <Select
                 :model-value="selectedPreset"
                 @update:model-value="
@@ -92,8 +93,10 @@ import { Label } from "@components/ui/label";
 import { CSSBezier, bezierPresets } from "@src/easing";
 import { svgCubicBezier } from "@src/math";
 import { TimingFunction } from "@src/animation";
-import { $ref } from "@vue-macros/reactivity-transform/macros";
+
 import Button from "@components/ui/button/Button.vue";
+
+import CopyButton from "@components/custom/CopyButton.vue";
 
 const cubicBezierToString = (values: number[]) => {
     return `cubic-bezier(${values.map((v) => v.toFixed(2)).join(", ")})`;
@@ -200,12 +203,14 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-svg::v-deep {
+:deep(.bezier-curve) {
     width: 100%;
     aspect-ratio: 1 / 1;
     --stroke-width: 0.1;
-    --circle-color: rgb(226, 61, 61);
+
+    --circle-color: hsl(var(--foreground));
     --path-color: rgb(137, 20, 239);
+
     circle {
         r: calc(var(--stroke-width) / 2);
         stroke: var(--circle-color);

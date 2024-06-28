@@ -25,7 +25,10 @@
             "@utils/*": [
                 "demo/@/utils/*"
             ],
-        }
+        },
+        "types": [
+            "unplugin-vue-macros/macros-global"
+        ]
     },
     "include": [
         "src/",

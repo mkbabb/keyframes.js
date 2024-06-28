@@ -21,7 +21,6 @@
 
 <script setup>
 import { useDark, useToggle } from "@vueuse/core";
-import { defineProps } from "vue";
 import { Button } from "@components/ui/button";
 
 const { size } = defineProps({
@@ -38,7 +37,6 @@ const changeTheme = () => {
 
 <style scoped lang="scss">
 .darkmode-toggle-button {
-
     cursor: pointer;
     border: 0;
     opacity: 0.8;

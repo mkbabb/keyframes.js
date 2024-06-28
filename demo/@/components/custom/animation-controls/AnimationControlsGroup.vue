@@ -28,7 +28,7 @@
             </Select>
 
             <Button
-                class="w-32 text-xl rainbow"
+                class="w-32 text-xl rainbow text-white"
                 v-if="selectedAnimation"
                 @click="toggleAnimationGroup"
             >
@@ -46,8 +46,10 @@
                 v-if="selectedAnimation == name"
                 @slider-update="sliderUpdate"
                 @keyframes-update="keyframesUpdate"
+                @selected-control-update="selectedControlUpdate"
                 :animation="animation"
                 :is-grouped="true"
+                :selected-control="selectedControl"
             />
         </template>
     </div>
@@ -55,7 +57,6 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { $ref } from "unplugin-vue-macros/macros";
 
 import { DarkModeToggle } from "@components/custom/dark-mode-toggle";
 
@@ -83,6 +84,8 @@ import {
     SelectValue,
 } from "@components/ui/select";
 
+import { Clipboard } from "lucide-vue-next";
+
 import { Animation, AnimationGroup, Vars } from "@src/animation";
 import AnimationControls from "./AnimationControls.vue";
 import Button from "@components/ui/button/Button.vue";
@@ -92,6 +95,7 @@ const { animations } = defineProps<{
 }>();
 
 let selectedAnimation = $ref("");
+let selectedControl = $ref("controls");
 
 const emit = defineEmits<{
     (e: "selectedAnimation", val: string): void;
@@ -114,6 +118,7 @@ const sliderUpdate = (e: { t: number; animationId: number }) => {
     animation.paused = false;
     animation.t = t;
 
+    // @ts-ignore
     animationGroup.transformFrames(t);
 
     animation.paused = paused;
@@ -136,6 +141,10 @@ const keyframesUpdate = (e: { animation: Animation<any> }) => {
     if (groupObject != null) {
         groupObject.values = {};
     }
+};
+
+const selectedControlUpdate = (control: string) => {
+    selectedControl = control;
 };
 
 onMounted(() => {});

@@ -1,17 +1,27 @@
 <template>
-    <div class="grid grid-cols-1 gap-2 overflow-scroll">
-        <pre
-            @input="animateParseCSSKeyframesStringEl"
-            @keydown="onKeyDown"
-            ref="CSSKeyframesStringEl"
-            class="hljs css p-2 rounded-md text-sm"
-            contenteditable="true"
-        >
-      <code>{{ cssKeyframesString }}</code>
-    </pre>
+    <Card>
+        <CardContent class="mt-4 grid grid-cols-1 gap-2 overflow-scroll">
+            <div class="relative">
+                <div class="absolute top-2 right-2 grid grid-cols-2 gap-2 items-center">
+                    <CopyButton :text="cssKeyframesString" />
+                    <Paintbrush
+                        class="text-background relative bg-transparent hover:bg-transparent hover:scale-105"
+                    />
+                </div>
+                <pre
+                    @input="animateParseCSSKeyframesStringEl"
+                    @keydown="onKeyDown"
+                    ref="CSSKeyframesStringEl"
+                    class="hljs css p-2 rounded-md text-sm"
+                    contenteditable="true"
+                >
+                    <code>{{ cssKeyframesString }}</code>
+                </pre>
+            </div>
 
-        <div ref="progressBarEl" class="progress-bar sticky bottom-0"></div>
-    </div>
+            <div ref="progressBarEl" class="progress-bar sticky bottom-0"></div>
+        </CardContent>
+    </Card>
 </template>
 <script setup lang="ts">
 import { Animation, CSSKeyframesAnimation } from "@src/animation";
@@ -19,8 +29,20 @@ import { CSSKeyframesToString } from "@src/parsing/format";
 import { CSSAnimationKeyframes } from "@src/parsing/keyframes";
 import { debounce } from "@src/utils";
 
-import { $ref } from "unplugin-vue-macros/macros";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from "@components/ui/card";
+
 import { computed, onMounted } from "vue";
+
+import CopyButton from "@components/custom/CopyButton.vue";
+
+import { Paintbrush } from "lucide-vue-next";
 
 import "highlight.js/styles/github-dark-dimmed.css";
 import hljs from "highlight.js";
@@ -49,9 +71,12 @@ const emit = defineEmits<{
 }>();
 
 let CSSKeyframesStringEl = $ref(null);
+let cssKeyframesString = $ref("");
 
 const updateCSSKeyframesString = async (keyframes?: string) => {
     const s = keyframes ?? (await CSSKeyframesToString(animation, "animation", 45));
+
+    cssKeyframesString = s;
 
     if (CSSKeyframesStringEl) {
         const h = hljs.highlight(s, { language: "css" });
@@ -63,10 +88,6 @@ const updateCSSKeyframesString = async (keyframes?: string) => {
 
     return s;
 };
-
-const cssKeyframesString = computed(async () => {
-    return await updateCSSKeyframesString();
-});
 
 function onKeyDown(e: KeyboardEvent) {
     if (e.key === "Tab") {
@@ -103,6 +124,7 @@ const parseCSSKeyframesStringEl = debounce((event: Event) => {
                 Object.assign(animation[key], anim[key]);
             }
         }
+
         updateCSSKeyframesString();
 
         emit("keyframesUpdate", {
@@ -139,34 +161,6 @@ const animateParseCSSKeyframesStringEl = (event: Event) => {
         .play();
 };
 
-const fadeInOut = (el) => {
-    new CSSKeyframesAnimation(
-        {
-            duration: 300,
-            direction: "alternate",
-            iterationCount: 2,
-            timingFunction: "bounceInEase",
-        },
-        el,
-    )
-        .fromVars([
-            {
-                opacity: 0,
-            },
-            {
-                opacity: 1,
-            },
-        ])
-        .play();
-};
-
-let copyTextEl = $ref(null);
-
-const copyToClipboard = async (value: string) => {
-    navigator.clipboard.writeText(value);
-    fadeInOut(copyTextEl);
-};
-
 let style = $ref(null);
 let prevPaused = $ref(false);
 let cssApplied = $ref(false);
@@ -181,7 +175,7 @@ const cssApply = async () => {
         prevPaused = animation.paused;
         animation.paused = animation.started;
 
-        style.innerHTML = await cssKeyframesString.value;
+        style.innerHTML = cssKeyframesString;
         document.head.appendChild(style);
         animation.target.classList.add("animation");
     }
@@ -190,6 +184,7 @@ const cssApply = async () => {
 
 onMounted(() => {
     style = document.createElement("style");
+    updateCSSKeyframesString();
 });
 </script>
 

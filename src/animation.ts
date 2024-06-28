@@ -154,7 +154,7 @@ const defaultOptions: AnimationOptions = {
     timingFunction: easeInOutCubic,
 };
 
-type InputAnimationOptions = {
+export type InputAnimationOptions = {
     duration: number | string;
     delay: number | string;
     iterationCount: number | "infinite";
@@ -370,6 +370,14 @@ export class Animation<V extends Vars> {
 
     reset() {
         this.startTime = undefined;
+        this.pausedTime = 0;
+        this.prevTime = 0;
+        this.t = 0;
+        this.started = false;
+        this.done = false;
+        this.paused = false;
+        this.iteration = 0;
+
         return this;
     }
 
@@ -635,6 +643,7 @@ export class AnimationGroup<V> {
     paused = false;
     started = false;
     done = false;
+    singleTarget = false;
 
     constructor(...animations: Animation<V>[]) {
         this.transform = animations[0].frames[0].transform;
@@ -651,9 +660,11 @@ export class AnimationGroup<V> {
         this.animationGroup.forEach((groupObject) => {
             groupObject.animation.reset();
         });
+
         this.started = false;
         this.done = false;
         this.paused = false;
+
         return this;
     }
 
@@ -664,7 +675,6 @@ export class AnimationGroup<V> {
 
     onEnd() {
         this.reset();
-        this.done = true;
         return this;
     }
 
@@ -688,7 +698,7 @@ export class AnimationGroup<V> {
         return !(!this.started || this.paused);
     }
 
-    transformFrames(t: number) {
+    transformFramesGrouped(t: number) {
         let groupedValues: Vars<ValueArray> = {};
 
         let done = true;
@@ -703,6 +713,7 @@ export class AnimationGroup<V> {
 
             groupedValues = { ...values, ...groupedValues };
         }
+
         this.done = done;
 
         const reversedVars = {};
@@ -732,6 +743,7 @@ export class AnimationGroup<V> {
         if (this.done) {
             this.onEnd();
         }
+
         return this;
     }
 
@@ -742,7 +754,21 @@ export class AnimationGroup<V> {
             return;
         }
 
-        this.transformFrames(t);
+        if (
+            this.animationGroup.every(
+                ({ animation }) =>
+                    animation.target === this.animationGroup[0].animation.target,
+            )
+        ) {
+            this.transformFramesGrouped(t);
+        } else {
+            this.done = this.animationGroup
+                .map(({ animation }) => {
+                    animation.transformFrames(animation.t);
+                    return animation;
+                })
+                .every((animation) => animation.done);
+        }
 
         if (!this.done) {
             requestAnimationFrame(this.draw.bind(this));

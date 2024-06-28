@@ -26,10 +26,10 @@ const defaultOptions = {
     ],
     resolve: {
         alias: {
-            "@src": path.resolve(__dirname, "./src"),
-            "@styles": path.resolve(__dirname, "./demo/@/styles"),
-            "@components": path.resolve(__dirname, "./demo/@/components"),
-            "@utils": path.resolve(__dirname, "./demo/@/utils"),
+            "@src": path.resolve(__dirname, "src"),
+            "@styles": path.resolve(__dirname, "demo/@/styles"),
+            "@components": path.resolve(__dirname, "demo/@/components"),
+            "@utils": path.resolve(__dirname, "demo/@/utils"),
         },
     },
 };

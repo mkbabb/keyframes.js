@@ -12,11 +12,10 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
 import { CSSKeyframesAnimation } from "../../src/animation";
 import { CSSBezier } from "../../src/easing";
-import AnimationControlsGroup from "../components/AnimationControlsGroup.vue";
+import { AnimationControlsGroup } from "@components/custom/animation-controls/";
 
 import "../style.scss";
 import { MeshLambertMaterial } from "three";
-import { $ref } from "unplugin-vue-macros/macros";
 
 let canvas = $ref(null);
 

@@ -83,7 +83,7 @@
 </template>
 
 <script setup lang="ts">
-import { $ref } from "unplugin-vue-macros/macros";
+// import { $ref } from "unplugin-vue-macros/macros";
 import { onMounted } from "vue";
 
 import { mat4 } from "gl-matrix";

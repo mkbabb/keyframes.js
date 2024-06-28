@@ -1,10 +1,18 @@
 <template>
     <DarkModeToggle class="dark-mode-toggle" />
 
-    <Tabs default-value="controls">
+    <Tabs
+        :model-value="selectedControl"
+        @update:model-value="
+            (key) => {
+                selectedControl = key.toString();
+                emit('selectedControlUpdate', selectedControl);
+            }
+        "
+    >
         <TabsList class="grid w-full grid-cols-2">
-            <TabsTrigger value="controls"> Controls </TabsTrigger>
-            <TabsTrigger value="keyframes"> Keyframes </TabsTrigger>
+            <TabsTrigger value="controls">Controls</TabsTrigger>
+            <TabsTrigger value="keyframes">Keyframes</TabsTrigger>
         </TabsList>
 
         <TabsContent value="controls" class="h-[75vh] overflow-scroll">
@@ -176,20 +184,14 @@
             </Card>
         </TabsContent>
         <TabsContent value="keyframes" class="h-[75vh] overflow-scroll">
-            <Card>
-                <CardContent class="p-0 m-0 grid grid-cols-1 gap-1">
-                    <KeyframesStringControls
-                        :animation="animation"
-                    ></KeyframesStringControls>
-                </CardContent>
-            </Card>
+            <KeyframesStringControls :animation="animation"></KeyframesStringControls>
         </TabsContent>
     </Tabs>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted } from "vue";
-import { $ref } from "unplugin-vue-macros/macros";
+// import { $ref } from "unplugin-vue-macros/macros";
 import { Animation, TimingFunction, TimingFunctionNames } from "@src/animation";
 
 import { timingFunctions, jumpTerms } from "@src/easing";
@@ -238,6 +240,7 @@ import {
 import { camelCaseToHyphen } from "@src/utils";
 
 import { DarkModeToggle } from "../dark-mode-toggle";
+import { Key } from "lucide-vue-next";
 
 let timingFunctionsAnd = {
     "cubic-bezier": "cubic-bezier",
@@ -248,7 +251,11 @@ timingFunctionsAnd = Object.fromEntries(
     Object.entries(timingFunctionsAnd).map(([k, v]) => [camelCaseToHyphen(k), v]),
 ) as any;
 
-const { animation: tmpAnimation, isGrouped } = defineProps({
+let {
+    animation: tmpAnimation,
+    isGrouped,
+    selectedControl: inputSelectedControl,
+} = defineProps({
     isGrouped: {
         type: Boolean,
         required: false,
@@ -258,8 +265,15 @@ const { animation: tmpAnimation, isGrouped } = defineProps({
         type: Animation,
         required: true,
     },
+    selectedControl: {
+        type: String,
+        required: false,
+        default: "controls",
+    },
 });
 const animation = $ref(tmpAnimation);
+
+let selectedControl = $ref(inputSelectedControl);
 
 const emit = defineEmits<{
     (
@@ -269,6 +283,7 @@ const emit = defineEmits<{
             animationId: number;
         },
     ): void;
+    (e: "selectedControlUpdate", val: string): void;
 }>();
 
 const sliderUpdate = (e: Event) => {
