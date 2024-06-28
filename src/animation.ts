@@ -24,9 +24,9 @@ export type Vars<T = any> = {
     [arg: string]: number | string | T;
 };
 
-type TransformFunction<V extends Vars> = (t: number, v: V) => void;
-type TimingFunction = (t: number) => number;
-type TimingFunctionNames = keyof typeof timingFunctions;
+export type TransformFunction<V extends Vars> = (t: number, v: V) => void;
+export type TimingFunction = (t: number) => number;
+export type TimingFunctionNames = keyof typeof timingFunctions;
 
 export type Keyframe<V extends Vars> = [
     vars: V,

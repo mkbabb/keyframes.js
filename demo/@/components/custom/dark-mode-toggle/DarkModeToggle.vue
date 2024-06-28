@@ -38,6 +38,7 @@ const changeTheme = () => {
 
 <style scoped lang="scss">
 .darkmode-toggle-button {
+
     cursor: pointer;
     border: 0;
     opacity: 0.8;
@@ -49,6 +50,8 @@ const changeTheme = () => {
 
     width: v-bind("size");
     height: v-bind("size");
+
+    z-index: 999;
 
     svg {
         fill: hsl(var(--foreground));

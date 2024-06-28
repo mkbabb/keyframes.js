@@ -1,17 +1,39 @@
 <template>
-    <!-- tailwind grid with 3 columns, 20%, 60%, 20% -->
-
-    <h1 class="text-4xl font-extrabold tracking-tight scroll-m-20 lg:text-5xl">
-        The Joke Tax Chronicles
-    </h1>
-
-    <div class="grid grid-cols-3">
+    <div
+        ref="container"
+        class="container grid w-screen h-screen p-4 grid-cols-3 col-start-auto overflow-hidden"
+    >
         <AnimationControlsGroup
             :animations="animations"
             @selected-animation="(s) => (selectedAnimation = s)"
         />
 
-        <div :class="['matrix-controls']">
+        <div ref="graph" class="graph">
+            <div ref="cube" class="cube animation">
+                <div
+                    v-for="(side, index) in cubeSides"
+                    :key="index"
+                    :class="['cube-side', side.class]"
+                >
+                    {{ side.content }}
+                    <span
+                        :class="
+                            !rotationAnim.animation.playing() ? 'rainbow-wrapper' : ''
+                        "
+                        :style="{
+                            animationDelay: `${Math.random() * 2}s`,
+                        }"
+                    >
+                    </span>
+                </div>
+            </div>
+
+            <p class="axis-line x"></p>
+            <p class="axis-line y"></p>
+            <p class="axis-line z"></p>
+        </div>
+
+        <div class="matrix-controls">
             <div class="matrix-input">
                 <div class="matrix-cell" v-for="(value, i) in matrix3dEnd.values">
                     <input
@@ -51,34 +73,11 @@
             </div>
 
             <div class="row">
-                <button @click="reset">Reset</button>
-                <button @click="fixed" :class="isFixed ? 'clicked' : ''">Fixed</button>
+                <button @click="resetMatrix">Reset</button>
+                <button @click="fixMatrix" :class="isFixed ? 'clicked' : ''">
+                    Fixed
+                </button>
             </div>
-        </div>
-
-        <div ref="graph" class="w-1/5 graph">
-            <div ref="cube" class="cube animation">
-                <div
-                    v-for="(side, index) in cubeSides"
-                    :key="index"
-                    :class="['cube-side', side.class]"
-                >
-                    {{ side.content }}
-                    <span
-                        :class="
-                            !rotationAnim.animation.playing() ? 'rainbow-wrapper' : ''
-                        "
-                        :style="{
-                            animationDelay: `${Math.random() * 2}s`,
-                        }"
-                    >
-                    </span>
-                </div>
-            </div>
-
-            <p class="axis-line x"></p>
-            <p class="axis-line y"></p>
-            <p class="axis-line z"></p>
         </div>
     </div>
 </template>
@@ -93,7 +92,7 @@ import { CSSKeyframesAnimation } from "@src/animation";
 import { easeInBounce, linear } from "@src/easing";
 import { FunctionValue, ValueUnit } from "@src/units";
 
-import AnimationControlsGroup from "@components/custom/AnimationControlsGroup.vue";
+import { AnimationControlsGroup } from "@components/custom/animation-controls";
 
 import "@styles/style.scss";
 
@@ -264,7 +263,7 @@ function updateTransformations() {
     syncTransformations();
 }
 
-const reset = () => {
+const resetMatrix = () => {
     const toMatrix = mat4.create();
     const fromMatrix = matrix3dEnd.values.map((value) => value.value) as mat4;
     animateUpdateMatrix(fromMatrix, toMatrix, true);
@@ -272,7 +271,7 @@ const reset = () => {
 
 let isFixed = $ref(false);
 
-const fixed = () => {
+const fixMatrix = () => {
     isFixed = !isFixed;
 
     if (matrix3dStart.values == matrix3dEnd.values) {
@@ -345,8 +344,8 @@ const cubeSides = [
 ];
 
 const cube = $ref<HTMLElement>();
-
 const graph = $ref<HTMLElement>();
+const container = $ref<HTMLElement>();
 
 onMounted(() => {
     rotationAnim.addTargets(cube);
@@ -366,32 +365,26 @@ onMounted(() => {
             },
         ])
         .play();
+
+    const svgFillColor = getComputedStyle(document.documentElement)
+        .getPropertyValue("hsl(var(--background))")
+        .trim();
+
+    const encodedSVG = encodeURIComponent(`
+    <svg class="tmp" xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2 2'>
+        <path d='M1 2V0h1v1H0v1z' fill-opacity='0.15'/>
+    </svg>
+`);
+
+    container.style.backgroundImage = `url("data:image/svg+xml,${encodedSVG}")`;
 });
 </script>
-<style lang="scss">
-body {
-    background-size: 1rem;
-    background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%202%202%22%3E%3Cpath%20d%3D%22M1%202V0h1v1H0v1z%22%20fill-opacity%3D%22.05%22%2F%3E%3C%2Fsvg%3E");
-}
-
+<style scoped lang="scss">
 .container {
-    // --padding: 0.5rem;
-    // display: grid;
-    // padding: var(--padding);
-
-    // width: 100%;
-    // height: 100%;
-
-    // grid-template-areas: "animation-controls graph matrix-controls";
-    // grid-template-columns: 33% 2fr 33%;
-
-    // gap: 1rem;
-    // overflow: hidden;
+    background-size: 1rem !important;
 }
 
 .graph {
-    grid-area: graph;
-
     display: flex;
     align-items: center;
     justify-content: center;
@@ -495,7 +488,6 @@ body {
 }
 
 .matrix-controls {
-    grid-area: matrix-controls;
     display: grid;
     justify-items: center;
     align-items: center;
