@@ -4,7 +4,10 @@
             <CardTitle class="grid items-center">
                 <Button class="text-sm">
                     {{ timingString }}
-                    <CopyButton :text="timingString" />
+                    <CopyButton
+                        class="text-background relative bg-transparent hover:bg-transparent hover:scale-105"
+                        :text="timingString"
+                    />
                 </Button>
             </CardTitle>
         </CardHeader>
@@ -92,22 +95,33 @@ import {
 import { Label } from "@components/ui/label";
 import { CSSBezier, bezierPresets } from "@src/easing";
 import { svgCubicBezier } from "@src/math";
-import { TimingFunction } from "@src/animation";
+import { Animation, TimingFunction } from "@src/animation";
 
 import Button from "@components/ui/button/Button.vue";
 
 import CopyButton from "@components/custom/CopyButton.vue";
+import { useStorage } from "@vueuse/core";
+import { StoredAnimationOptions, getStoredAnimationOptions } from "./animationOptions";
 
 const cubicBezierToString = (values: number[]) => {
     return `cubic-bezier(${values.map((v) => v.toFixed(2)).join(", ")})`;
 };
+
+const { animation } = defineProps({
+    animation: {
+        type: Animation<any>,
+        required: true,
+    },
+});
+
+const storedAnimationOptions = getStoredAnimationOptions(animation);
 
 const emit = defineEmits<{
     (e: "updateTimingFunction", timingFunction: TimingFunction): void;
 }>();
 
 let selectedPreset = $ref("ease");
-let timingValues = $ref(bezierPresets[selectedPreset]);
+let timingValues = $ref(storedAnimationOptions.cubicBezierOptions.controlPoints);
 let timingString = computed(() => cubicBezierToString(timingValues));
 
 let controlPoints = $ref([
@@ -127,6 +141,8 @@ let pathEl = $ref<SVGGElement | null>(null);
 
 const updateTimingFunction = () => {
     const scaledValues = timingValues.map((v) => v);
+
+    storedAnimationOptions.cubicBezierOptions.controlPoints = scaledValues;
 
     const timingFunction = CSSBezier(
         ...(scaledValues as [number, number, number, number]),

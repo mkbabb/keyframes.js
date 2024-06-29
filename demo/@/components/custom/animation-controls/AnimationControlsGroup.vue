@@ -3,16 +3,15 @@
         <div class="flex gap-2 w-[400px] h-full">
             <Select
                 class="rounded-none border-none"
-                :model-value="selectedAnimation"
+                :model-value="controlsStore.selectedAnimation"
                 @update:model-value="
                     (key) => {
-                        selectedAnimation = key;
-                        emit('selectedAnimation', key);
+                        controlsStore.selectedAnimation = key;
                     }
                 "
             >
                 <SelectTrigger>
-                    <SelectValue>{{ selectedAnimation }}</SelectValue>
+                    <SelectValue>{{ controlsStore.selectedAnimation }}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                     <SelectGroup>
@@ -29,7 +28,7 @@
 
             <Button
                 class="w-32 text-xl rainbow text-white"
-                v-if="selectedAnimation"
+                v-if="controlsStore.selectedAnimation"
                 @click="toggleAnimationGroup"
             >
                 <font-awesome-icon
@@ -43,13 +42,11 @@
 
         <template v-for="[name, animation] in Object.entries(animations)">
             <AnimationControls
-                v-if="selectedAnimation == name"
+                v-if="controlsStore.selectedAnimation == name"
                 @slider-update="sliderUpdate"
                 @keyframes-update="keyframesUpdate"
-                @selected-control-update="selectedControlUpdate"
                 :animation="animation"
                 :is-grouped="true"
-                :selected-control="selectedControl"
             />
         </template>
     </div>
@@ -90,12 +87,16 @@ import { Animation, AnimationGroup, Vars } from "@src/animation";
 import AnimationControls from "./AnimationControls.vue";
 import Button from "@components/ui/button/Button.vue";
 
+import { useStorage } from "@vueuse/core";
+
+const controlsStore = useStorage("controls-store", {
+    selectedControl: "controls",
+    selectedAnimation: "",
+});
+
 const { animations } = defineProps<{
     animations: { [key: string]: Animation<any> };
 }>();
-
-let selectedAnimation = $ref("");
-let selectedControl = $ref("controls");
 
 const emit = defineEmits<{
     (e: "selectedAnimation", val: string): void;
@@ -103,13 +104,13 @@ const emit = defineEmits<{
 
 const animationGroup = $ref(new AnimationGroup(...Object.values(animations)));
 
-selectedAnimation = Object.keys(animations)[0];
-
 const sliderUpdate = (e: { t: number; animationId: number }) => {
     const { t, animationId } = e;
+
     const groupObject = animationGroup.animationGroup.find(
         (a) => a.animation.id == animationId,
     );
+
     const { animation } = groupObject;
 
     const paused = animation.paused;
@@ -138,13 +139,10 @@ const keyframesUpdate = (e: { animation: Animation<any> }) => {
     const groupObject = animationGroup.animationGroup.find(
         (a) => a.animation.id == e.animation.id,
     );
+
     if (groupObject != null) {
         groupObject.values = {};
     }
-};
-
-const selectedControlUpdate = (control: string) => {
-    selectedControl = control;
 };
 
 onMounted(() => {});

@@ -3,7 +3,10 @@
         <CardContent class="mt-4 grid grid-cols-1 gap-2 overflow-scroll">
             <div class="relative">
                 <div class="absolute top-2 right-2 grid grid-cols-2 gap-2 items-center">
-                    <CopyButton :text="cssKeyframesString" />
+                    <CopyButton
+                        class="text-background relative bg-transparent hover:bg-transparent hover:scale-105"
+                        :text="cssKeyframesString"
+                    />
                     <Paintbrush
                         class="text-background relative bg-transparent hover:bg-transparent hover:scale-105"
                     />

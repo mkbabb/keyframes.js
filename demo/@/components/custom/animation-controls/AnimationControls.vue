@@ -2,11 +2,10 @@
     <DarkModeToggle class="dark-mode-toggle" />
 
     <Tabs
-        :model-value="selectedControl"
+        :model-value="controlsStore.selectedControl"
         @update:model-value="
             (key) => {
-                selectedControl = key.toString();
-                emit('selectedControlUpdate', selectedControl);
+                controlsStore.selectedControl = key.toString();
             }
         "
     >
@@ -23,10 +22,12 @@
                         type="string"
                         :model-value="reverseCSSTime(animation.options.duration)"
                         @change="
-                            (e) =>
-                                animation.updateDuration(
-                                    (e.target as HTMLInputElement).value,
-                                )
+                            (e) => {
+                                const value = (e.target as HTMLInputElement).value;
+                                animation.updateDuration(value);
+                                storedAnimationOptions.animationOptions.duration =
+                                    value;
+                            }
                         "
                     />
 
@@ -35,10 +36,11 @@
                         type="string"
                         :model-value="reverseCSSTime(animation.options.delay)"
                         @change="
-                            (e) =>
-                                animation.updateDelay(
-                                    (e.target as HTMLInputElement).value,
-                                )
+                            (e) => {
+                                const value = (e.target as HTMLInputElement).value;
+                                animation.updateDelay(value);
+                                storedAnimationOptions.animationOptions.delay = value;
+                            }
                         "
                     />
 
@@ -46,10 +48,12 @@
                     <Input
                         type="string"
                         @change="
-                            (e) =>
-                                animation.updateIterationCount(
-                                    (e.target as HTMLInputElement).value,
-                                )
+                            (e) => {
+                                const value = (e.target as HTMLInputElement).value;
+                                animation.updateIterationCount(value);
+                                storedAnimationOptions.animationOptions.iterationCount =
+                                    value;
+                            }
                         "
                         :model-value="
                             isFinite(animation.options.iterationCount)
@@ -62,7 +66,10 @@
                     <Select
                         :model-value="animation.options.direction"
                         @update:model-value="
-                            (key) => (animation.options.direction = key as any)
+                            (key: any) => {
+                                animation.updateDirection(key);
+                                animation.options.direction = key;
+                            }
                         "
                     >
                         <SelectTrigger>
@@ -84,7 +91,10 @@
                     <Select
                         :model-value="animation.options.fillMode"
                         @update:model-value="
-                            (key) => (animation.options.fillMode = key as any)
+                            (key: any) => {
+                                animation.updateFillMode(key);
+                                animation.options.fillMode = key;
+                            }
                         "
                     >
                         <SelectTrigger>
@@ -103,7 +113,13 @@
                     <Label>Timing Function</Label>
                     <Select
                         :model-value="selectedTimingFunction"
-                        @update:model-value="(key) => updateTimingFunction(key as any)"
+                        @update:model-value="
+                            (key: any) => {
+                                updateTimingFunctionFromName(key);
+                                storedAnimationOptions.animationOptions.timingFunction =
+                                    key;
+                            }
+                        "
                     >
                         <SelectTrigger>
                             <SelectValue />
@@ -125,15 +141,15 @@
                     <template v-if="selectedTimingFunction === 'steps'">
                         <Label>Steps</Label>
                         <Input
-                            @input="updateTimingFunction"
+                            @input="updateTimingFunctionFromName"
                             type="number"
-                            v-model.number="timingFunctionData.steps.steps"
+                            v-model.number="storedAnimationOptions.stepOptions.steps"
                         />
 
                         <Label>Jump Term</Label>
                         <Select
-                            @input="updateTimingFunction"
-                            v-model="timingFunctionData.steps.jumpTerm"
+                            @input="updateTimingFunctionFromName"
+                            v-model="storedAnimationOptions.stepOptions.jumpTerm"
                         >
                             <SelectTrigger>
                                 <SelectValue />
@@ -149,7 +165,11 @@
                     </template>
 
                     <template v-if="selectedTimingFunction === 'cubic-bezier'">
-                        <CubicBezierControls class="col-span-2"></CubicBezierControls>
+                        <CubicBezierControls
+                            :animation="animation"
+                            @update-timing-function="setAnimationTimingFunction"
+                            class="col-span-2"
+                        ></CubicBezierControls>
                     </template>
 
                     <div class="col-span-2 grid grid-cols-2 gap-2 sticky bottom-0">
@@ -190,9 +210,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from "vue";
-// import { $ref } from "unplugin-vue-macros/macros";
-import { Animation, TimingFunction, TimingFunctionNames } from "@src/animation";
+import {
+    Animation,
+    InputAnimationOptions,
+    TimingFunction,
+    TimingFunctionNames,
+} from "@src/animation";
 
 import { timingFunctions, jumpTerms } from "@src/easing";
 import { reverseCSSTime, CSSAnimationKeyframes } from "@src/parsing/keyframes";
@@ -242,20 +265,30 @@ import { camelCaseToHyphen } from "@src/utils";
 import { DarkModeToggle } from "../dark-mode-toggle";
 import { Key } from "lucide-vue-next";
 
+import { useStorage } from "@vueuse/core";
+import {
+    StoredAnimationOptions,
+    defaultAnimationOptions,
+    defaultCubicBezierOptions,
+    defaultStepOptions,
+    defaultStoredAnimationOptions,
+    getStoredAnimationOptions,
+} from "./animationOptions";
+
+const controlsStore = useStorage("controls-store", {
+    selectedControl: "controls",
+    selectedAnimation: "",
+});
+
 let timingFunctionsAnd = {
     "cubic-bezier": "cubic-bezier",
     ...timingFunctions,
 };
-
 timingFunctionsAnd = Object.fromEntries(
     Object.entries(timingFunctionsAnd).map(([k, v]) => [camelCaseToHyphen(k), v]),
 ) as any;
 
-let {
-    animation: tmpAnimation,
-    isGrouped,
-    selectedControl: inputSelectedControl,
-} = defineProps({
+const { animation, isGrouped } = defineProps({
     isGrouped: {
         type: Boolean,
         required: false,
@@ -265,15 +298,9 @@ let {
         type: Animation,
         required: true,
     },
-    selectedControl: {
-        type: String,
-        required: false,
-        default: "controls",
-    },
 });
-const animation = $ref(tmpAnimation);
 
-let selectedControl = $ref(inputSelectedControl);
+const storedAnimationOptions = getStoredAnimationOptions(animation);
 
 const emit = defineEmits<{
     (
@@ -283,7 +310,6 @@ const emit = defineEmits<{
             animationId: number;
         },
     ): void;
-    (e: "selectedControlUpdate", val: string): void;
 }>();
 
 const sliderUpdate = (e: Event) => {
@@ -302,13 +328,6 @@ const sliderUpdate = (e: Event) => {
     }
 };
 
-const timingFunctionData = $ref({
-    steps: {
-        steps: 10,
-        jumpTerm: "jump-none" as (typeof jumpTerms)[number],
-    },
-});
-
 const setAnimationTimingFunction = (timingFunction: TimingFunction) => {
     animation.options.timingFunction = timingFunction;
     animation.frames.forEach((frame) => {
@@ -318,14 +337,13 @@ const setAnimationTimingFunction = (timingFunction: TimingFunction) => {
 
 let selectedTimingFunction = $ref("cubic-bezier");
 
-const updateTimingFunction = (key: TimingFunctionNames) => {
+const updateTimingFunctionFromName = (key: TimingFunctionNames) => {
     selectedTimingFunction = key;
 
     let timingFunction = timingFunctions[key] as TimingFunction;
 
     if (key === "steps") {
-        const { steps, jumpTerm } = timingFunctionData.steps;
-
+        const { steps, jumpTerm } = storedAnimationOptions.stepOptions;
         timingFunction = timingFunctions[key](steps, jumpTerm);
     }
 

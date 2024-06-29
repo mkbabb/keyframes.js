@@ -157,10 +157,10 @@ const defaultOptions: AnimationOptions = {
 export type InputAnimationOptions = {
     duration: number | string;
     delay: number | string;
-    iterationCount: number | "infinite";
+    iterationCount: number | string | "infinite" | undefined;
     direction: typeof defaultOptions.direction;
     fillMode: typeof defaultOptions.fillMode;
-    timingFunction: TimingFunction | TimingFunctionNames;
+    timingFunction: TimingFunction | TimingFunctionNames | undefined;
 };
 
 const getTimingFunction = (
@@ -222,19 +222,21 @@ export class Animation<V extends Vars> {
     constructor(
         options: Partial<InputAnimationOptions>,
         public target: HTMLElement | undefined = undefined,
+        public name: string | undefined = undefined,
     ) {
         this.options = { ...defaultOptions, ...options } as AnimationOptions;
-
         this.parseOptions(options);
     }
 
     frame<K extends V>(
-        start: number | string,
+        start: number | string | ValueUnit<number>,
         vars: Partial<K>,
         transform?: TransformFunction<K>,
         timingFunction?: TimingFunction | TimingFunctionNames,
     ): Animation<K> {
         start = typeof start === "number" ? String(start) + "%" : start;
+        start = start instanceof ValueUnit ? String(start) : start;
+
         const parsedStart = CSSValueUnit.Value.tryParse(start)!;
 
         const templateFrame = {
@@ -292,13 +294,14 @@ export class Animation<V extends Vars> {
         return this;
     }
 
-    updateTimingFunction(timingFunction: TimingFunction | TimingFunctionNames) {
-        this.options.timingFunction = getTimingFunction(timingFunction);
+    updateTimingFunction(timingFunction: InputAnimationOptions["timingFunction"]) {
+        this.options.timingFunction =
+            getTimingFunction(timingFunction) ?? easeInOutCubic;
         return this;
     }
 
-    updateIterationCount(iterationCount: number | string | "infinite") {
-        if (iterationCount === "infinite") {
+    updateIterationCount(iterationCount: InputAnimationOptions["iterationCount"]) {
+        if (!iterationCount || iterationCount === "infinite") {
             this.options.iterationCount = Infinity;
         } else if (typeof iterationCount === "string") {
             this.options.iterationCount = parseFloat(iterationCount);
@@ -308,7 +311,7 @@ export class Animation<V extends Vars> {
         return this;
     }
 
-    updateDuration(duration: number | string) {
+    updateDuration(duration: InputAnimationOptions["duration"]) {
         if (typeof duration === "string") {
             duration = parseCSSTime(duration);
         }
@@ -327,11 +330,21 @@ export class Animation<V extends Vars> {
         return this;
     }
 
-    updateDelay(delay: number | string) {
+    updateDelay(delay: InputAnimationOptions["delay"]) {
         if (typeof delay === "string") {
             delay = parseCSSTime(delay);
         }
         this.options.delay = delay;
+        return this;
+    }
+
+    updateDirection(direction: InputAnimationOptions["direction"]) {
+        this.options.direction = direction;
+        return this;
+    }
+
+    updateFillMode(fillMode: InputAnimationOptions["fillMode"]) {
+        this.options.fillMode = fillMode;
         return this;
     }
 

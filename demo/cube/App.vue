@@ -88,13 +88,14 @@ import { onMounted } from "vue";
 
 import { mat4 } from "gl-matrix";
 
-import { CSSKeyframesAnimation } from "@src/animation";
-import { easeInBounce, linear } from "@src/easing";
+import { CSSKeyframesAnimation, InputAnimationOptions } from "@src/animation";
+import { easeInBounce, linear, jumpTerms } from "@src/easing";
 import { FunctionValue, ValueUnit } from "@src/units";
 
 import { AnimationControlsGroup } from "@components/custom/animation-controls";
 
 import "@styles/style.scss";
+import { getStoredAnimationOptions } from "@components/custom/animation-controls/animationOptions";
 
 const matrixAxes = ["X", "Y", "Z", "W"];
 const sliderAxes = ["X", "Y", "Z"];
@@ -281,14 +282,10 @@ const fixMatrix = () => {
     }
 };
 
+const matrixAnimationOptions = getStoredAnimationOptions("Matrix");
+
 const matrixAnim = $ref(
-    new CSSKeyframesAnimation({
-        duration: 5000,
-        iterationCount: Infinity,
-        fillMode: "forwards",
-        direction: "alternate",
-        timingFunction: linear,
-    }).fromVars([
+    new CSSKeyframesAnimation(matrixAnimationOptions.animationOptions).fromVars([
         {
             transform: {
                 matrix3d: matrix3dStart,
@@ -301,15 +298,14 @@ const matrixAnim = $ref(
         },
     ]),
 );
+matrixAnim.animation.name = "Matrix";
+
+const rotationAnimationOptions = getStoredAnimationOptions("Rotations");
 
 const rotationAnim = $ref(
-    new CSSKeyframesAnimation({
-        duration: 5000,
-        iterationCount: Infinity,
-        fillMode: "forwards",
-        direction: "alternate",
-        timingFunction: linear,
-    }).fromKeyframesDefaultTransform({
+    new CSSKeyframesAnimation(
+        rotationAnimationOptions.animationOptions,
+    ).fromKeyframesDefaultTransform({
         from: {
             transform: {
                 rotateX: "0deg",
@@ -326,6 +322,7 @@ const rotationAnim = $ref(
         },
     }),
 );
+rotationAnim.animation.name = "Rotations";
 
 const animations = {
     Rotations: rotationAnim.animation,
@@ -365,10 +362,6 @@ onMounted(() => {
             },
         ])
         .play();
-
-    const svgFillColor = getComputedStyle(document.documentElement)
-        .getPropertyValue("hsl(var(--background))")
-        .trim();
 
     const encodedSVG = encodeURIComponent(`
     <svg class="tmp" xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2 2'>
