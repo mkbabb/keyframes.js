@@ -4,11 +4,11 @@ import { jumpTerms } from "@src/easing";
 export type StoredAnimationOptions = {
     animationOptions: InputAnimationOptions;
     animationState: {
-        t: number,
-        startTime: number,
-        pauseTime: number,
-        paused: boolean,
-    }
+        t: number;
+        startTime: number;
+        pauseTime: number;
+        paused: boolean;
+    };
     stepOptions: {
         steps: number;
         jumpTerm: (typeof jumpTerms)[number];
@@ -101,6 +101,16 @@ export const getStoredAnimationOptions = (
     }
 
     return animationGroupsOptionsStore.value[superKey][animationId];
+};
+
+export const createAnimationUUId = (
+    animationId: Animation<any> | string | undefined = undefined,
+    superKey: Animation<any> | string | undefined = undefined,
+) => {
+    superKey = getAnimationSuperKey(superKey, animationId);
+    animationId = getAnimationId(animationId);
+
+    return `${superKey}-${animationId}`;
 };
 
 export type StoredAnimationGroupControlOptions = {

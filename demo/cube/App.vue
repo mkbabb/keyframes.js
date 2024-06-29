@@ -3,13 +3,145 @@
         ref="container"
         class="container grid w-screen h-screen p-2 m-0 grid-cols-3 overflow-hidden items-center justify-center justify-items-center"
     >
+        <div
+            class="absolute top-0 right-0 flex flex-row-reverse gap-4 items-center p-2 z-[100]"
+        >
+            <DarkModeToggle class="dark-mode-toggle" />
+            <RotateCcw
+                class="m-0 p-0 cursor-pointer"
+                ref="resetSelectedAnimationEl"
+                @click="() => resetSelectedAnimation(resetSelectedAnimationEl)"
+            />
+            <HoverCard>
+                <HoverCardTrigger
+                    ><Button class="cursor-pointer m-0 p-0" variant="link"
+                        >@mbabb</Button
+                    >
+                </HoverCardTrigger>
+                <HoverCardContent>
+                    <div class="flex gap-4">
+                        <Avatar>
+                            <AvatarImage
+                                src="https://avatars.githubusercontent.com/u/2848617?v=4"
+                            >
+                            </AvatarImage>
+                        </Avatar>
+                        <div>
+                            <h4 class="text-sm font-semibold hover:underline">
+                                <a href="https://github.com/mkbabb">@mbabb</a>
+                            </h4>
+                            <p>
+                                Check out the project on
+                                <a
+                                    class="font-bold hover:underline"
+                                    href="https://github.com/mkbabb/keyframes.js"
+                                    >GitHub</a
+                                >🎉
+                            </p>
+                        </div>
+                    </div>
+                </HoverCardContent>
+            </HoverCard>
+        </div>
+
         <AnimationControlsGroup
+            class="col-span-1"
             :animations="animations"
             :super-key="superKey"
             @selected-animation="(s) => (storedControls.selectedAnimation = s)"
-        />
+        >
+            <template #tabs-trigger>
+                <TabsList v-if="storedControls.selectedAnimation == 'Matrix'">
+                    <TabsTrigger value="matrix-controls">Matrix Controls</TabsTrigger>
+                </TabsList>
+            </template>
 
-        <div ref="graph" class="graph">
+            <template #tabs-content>
+                <TabsContent value="matrix-controls" class="h-[75vh] overflow-scroll">
+                    <Card>
+                        <CardContent class="grid items-center justify-center gap-4 p-6">
+                            <div
+                                class="p-0 m-0 h-[fit-content] w-[fit-content] gap-1 grid grid-cols-4 items-center justify-items-center relative shadow-lg"
+                            >
+                                <div
+                                    class="w-14 h-14 shadow-md grid relative rounded-md"
+                                    v-for="(value, i) in matrix3dEnd.values"
+                                >
+                                    <Input
+                                        :class="
+                                            'absolute top-0 left-0 w-full h-full p-1 text-center text-ellipsis bold text-lg bg-transparent z-10 ' +
+                                            [
+                                                selectedMatrixCell === i
+                                                    ? 'focus:font-bold'
+                                                    : '',
+                                            ]
+                                        "
+                                        :model-value="
+                                            Math.round(value.value * 100) / 100
+                                        "
+                                        @update:model-value="
+                                            (v) => updateMatrixCell(v, i)
+                                        "
+                                        @click="(e) => (selectedMatrixCell = i)"
+                                    />
+                                    <div
+                                        :class="
+                                            'absolute top-0 left-0 w-full h-full p-1 text-center text-4xl opacity-20 dark:opacity-50 align-text-bottom ' +
+                                            [getAxisFromIx(i).toLocaleLowerCase()]
+                                        "
+                                    >
+                                        <template v-if="getTransformFromIx(i) !== ''">
+                                            {{ getTransformFromIx(i)
+                                            }}<sub>{{
+                                                getAxisFromIx(i).toLowerCase()
+                                            }}</sub>
+                                        </template>
+                                        <template v-else>{{
+                                            getAxisFromIx(i)
+                                        }}</template>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <Slider
+                                :model-value="[
+                                    matrix3dEnd.values[selectedMatrixCell].value,
+                                ]"
+                                @update:model-value="
+                                    ([value]) => {
+                                        matrix3dEnd.values[selectedMatrixCell].value =
+                                            value;
+                                    }
+                                "
+                                :min="-200"
+                                :max="200"
+                                :step="1"
+                                class="w-full"
+                            ></Slider>
+
+                            <div class="grid grid-cols-2 gap-2">
+                                <Button class="cursor-pointer" @click="resetMatrix"
+                                    ><RotateCcw class="mr-4" />Reset</Button
+                                >
+                                <Button
+                                    class="cursor-pointer"
+                                    @click="fixMatrix"
+                                    :class="isFixed ? 'clicked' : ''"
+                                    ><Lock class="mr-4" />Fixed
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+            </template>
+        </AnimationControlsGroup>
+
+        <div ref="graph" class="graph col-span-2">
+            <Loader2
+                v-if="!storedControls.selectedAnimation"
+                class="absolute w-48 h-48 animate-spin"
+            ></Loader2>
+
             <div ref="cube" class="cube animation">
                 <div
                     v-for="(side, index) in cubeSides"
@@ -33,58 +165,24 @@
             <div class="axis-line y"></div>
             <div class="axis-line z"></div>
         </div>
-
-        <div class="grid items-center gap-2 z-10">
-            <Card class="mt-4 grid items-center justify-center">
-                <CardContent
-                    class="p-0 m-0 h-[fit-content] w-[fit-content] gap-1 grid grid-cols-4 items-center justify-items-center relative"
-                >
-                    <div
-                        class="w-14 h-14 shadow-md grid relative rounded-md"
-                        v-for="(value, i) in matrix3dEnd.values"
-                    >
-                        <input
-                            class="absolute top-0 left-0 w-full h-full p-1 text-center text-ellipsis bold text-lg bg-transparent"
-                            :value="Math.round(value.value * 100) / 100"
-                            @change="
-                                (e) => {
-                                    updateMatrixCell(
-                                        (e.target as HTMLInputElement).value,
-                                        i,
-                                    );
-                                }
-                            "
-                        />
-                        <div
-                            :class="
-                                ['axis', getAxisFromIx(i).toLocaleLowerCase()] +
-                                // line hight of 0 add:
-                                ' absolute top-0 left-0 w-full h-full p-1 text-center text-4xl opacity-20 align-text-bottom'
-                            "
-                        >
-                            <template v-if="getTransformFromIx(i) !== ''">
-                                {{ getTransformFromIx(i)
-                                }}<sub>{{ getAxisFromIx(i).toLowerCase() }}</sub>
-                            </template>
-                            <template v-else>{{ getAxisFromIx(i) }}</template>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-
-            <div class="grid grid-cols-2 gap-2">
-                <Button @click="resetMatrix">Reset</Button>
-                <Button @click="fixMatrix" :class="isFixed ? 'clicked' : ''">
-                    Fixed
-                </Button>
-            </div>
-        </div>
     </div>
 </template>
 
 <script setup lang="ts">
 // import { $ref } from "unplugin-vue-macros/macros";
 import { onMounted } from "vue";
+
+// import good lucide vue icons for reset and fix buttons
+import { RotateCcw, Lock } from "lucide-vue-next";
+
+import { DarkModeToggle } from "@components/custom/dark-mode-toggle";
+
+import {
+    HoverCard,
+    HoverCardContent,
+    HoverCardTrigger,
+} from "@components/ui/hover-card";
+import { Avatar, AvatarImage } from "@components/ui/avatar";
 
 import { mat4 } from "gl-matrix";
 
@@ -99,7 +197,7 @@ import {
     getStoredAnimationGroupControlOptions,
 } from "@components/custom/animation-controls/animationStores";
 
-import { Icon } from "@iconify/vue";
+import { Loader2 } from "lucide-vue-next";
 
 import { Slider } from "@components/ui/slider";
 import { Button } from "@components/ui/button";
@@ -139,6 +237,8 @@ import "@styles/style.scss";
 
 const matrixAxes = ["X", "Y", "Z", "W"];
 const sliderAxes = ["X", "Y", "Z"];
+
+let selectedMatrixCell = $ref(0);
 
 const transformSliderOptions = {
     translate: {
@@ -371,12 +471,179 @@ const rotationAnim = $ref(
 rotationAnim.animation.name = "Rotations";
 rotationAnim.animation.superKey = superKey;
 
-storedControls.selectedAnimation ??= "Rotations";
-storedControls.selectedControl ??= "controls";
+const hoverAnimationOptions = getStoredAnimationOptions("Hover", superKey);
+
+const hoverAnim = $ref(
+    new CSSKeyframesAnimation({
+        ...hoverAnimationOptions.animationOptions,
+        ...({
+            duration: 2000,
+            timingFunction: "easeInOutBounce",
+        } as any),
+    }).fromVars([
+        {
+            transform: {
+                translateY: "0px",
+            },
+        },
+        {
+            transform: {
+                translateY: "15px",
+            },
+        },
+        {
+            transform: {
+                translateY: "0px",
+            },
+        },
+    ]),
+);
+hoverAnim.animation.name = "Hover";
+hoverAnim.animation.superKey = superKey;
+
+const gradientAnimationOptions = getStoredAnimationOptions("Gradient", superKey);
+
+const gradientAnim = $ref(
+    new CSSKeyframesAnimation(gradientAnimationOptions.animationOptions)
+        .fromCSSKeyframes(/*css*/ `
+@keyframes gradient-shift {
+    0% {
+        background: linear-gradient(
+            90deg,
+            rgba(255, 0, 0, 1) 0%,
+            rgba(255, 127, 0, 1) 12.5%,
+            rgba(255, 255, 0, 1) 25%,
+            rgba(0, 255, 0, 1) 37.5%,
+            rgba(0, 0, 255, 1) 50%,
+            rgba(75, 0, 130, 1) 62.5%,
+            rgba(143, 0, 255, 1) 75%,
+            rgba(255, 0, 0, 1) 87.5%,
+            rgba(255, 0, 0, 1) 100%
+        );
+    }
+    12.5% {
+        background: linear-gradient(
+            90deg,
+            rgba(255, 127, 0, 1) 0%,
+            rgba(255, 255, 0, 1) 12.5%,
+            rgba(0, 255, 0, 1) 25%,
+            rgba(0, 0, 255, 1) 37.5%,
+            rgba(75, 0, 130, 1) 50%,
+            rgba(143, 0, 255, 1) 62.5%,
+            rgba(255, 0, 0, 1) 75%,
+            rgba(255, 0, 0, 1) 87.5%,
+            rgba(255, 127, 0, 1) 100%
+        );
+    }
+    25% {
+        background: linear-gradient(
+            90deg,
+            rgba(255, 255, 0, 1) 0%,
+            rgba(0, 255, 0, 1) 12.5%,
+            rgba(0, 0, 255, 1) 25%,
+            rgba(75, 0, 130, 1) 37.5%,
+            rgba(143, 0, 255, 1) 50%,
+            rgba(255, 0, 0, 1) 62.5%,
+            rgba(255, 127, 0, 1) 75%,
+            rgba(255, 255, 0, 1) 87.5%,
+            rgba(255, 0, 0, 1) 100%
+        );
+    }
+    37.5% {
+        background: linear-gradient(
+            90deg,
+            rgba(0, 255, 0, 1) 0%,
+            rgba(0, 0, 255, 1) 12.5%,
+            rgba(75, 0, 130, 1) 25%,
+            rgba(143, 0, 255, 1) 37.5%,
+            rgba(255, 0, 0, 1) 50%,
+            rgba(255, 127, 0, 1) 62.5%,
+            rgba(255, 255, 0, 1) 75%,
+            rgba(0, 255, 0, 1) 87.5%,
+            rgba(255, 0, 0, 1) 100%
+        );
+    }
+    50% {
+        background: linear-gradient(
+            90deg,
+            rgba(0, 0, 255, 1) 0%,
+            rgba(75, 0, 130, 1) 12.5%,
+            rgba(143, 0, 255, 1) 25%,
+            rgba(255, 0, 0, 1) 37.5%,
+            rgba(255, 127, 0, 1) 50%,
+            rgba(255, 255, 0, 1) 62.5%,
+            rgba(0, 255, 0, 1) 75%,
+            rgba(0, 0, 255, 1) 87.5%,
+            rgba(255, 0, 0, 1) 100%
+        );
+    }
+    62.5% {
+        background: linear-gradient(
+            90deg,
+            rgba(75, 0, 130, 1) 0%,
+            rgba(143, 0, 255, 1) 12.5%,
+            rgba(255, 0, 0, 1) 25%,
+            rgba(255, 127, 0, 1) 37.5%,
+            rgba(255, 255, 0, 1) 50%,
+            rgba(0, 255, 0, 1) 62.5%,
+            rgba(0, 0, 255, 1) 75%,
+            rgba(75, 0, 130, 1) 87.5%,
+            rgba(255, 0, 0, 1) 100%
+        );
+    }
+    75% {
+        background: linear-gradient(
+            90deg,
+            rgba(143, 0, 255, 1) 0%,
+            rgba(255, 0, 0, 1) 12.5%,
+            rgba(255, 127, 0, 1) 25%,
+            rgba(255, 255, 0, 1) 37.5%,
+            rgba(0, 255, 0, 1) 50%,
+            rgba(0, 0, 255, 1) 62.5%,
+            rgba(75, 0, 130, 1) 75%,
+            rgba(143, 0, 255, 1) 87.5%,
+            rgba(255, 0, 0, 1) 100%
+        );
+    }
+    87.5% {
+        background: linear-gradient(
+            90deg,
+            rgba(255, 0, 0, 1) 0%,
+            rgba(255, 127, 0, 1) 12.5%,
+            rgba(255, 255, 0, 1) 25%,
+            rgba(0, 255, 0, 1) 37.5%,
+            rgba(0, 0, 255, 1) 50%,
+            rgba(75, 0, 130, 1) 62.5%,
+            rgba(143, 0, 255, 1) 75%,
+            rgba(255, 0, 0, 1) 87.5%,
+            rgba(255, 0, 0, 1) 100%
+        );
+    }
+    100% {
+        background: linear-gradient(
+            90deg,
+            rgba(255, 0, 0, 1) 0%,
+            rgba(255, 127, 0, 1) 12.5%,
+            rgba(255, 255, 0, 1) 25%,
+            rgba(0, 255, 0, 1) 37.5%,
+            rgba(0, 0, 255, 1) 50%,
+            rgba(75, 0, 130, 1) 62.5%,
+            rgba(143, 0, 255, 1) 75%,
+            rgba(255, 0, 0, 1) 87.5%,
+            rgba(255, 0, 0, 1) 100%
+        );
+    }
+}`),
+);
+
+gradientAnim.animation.name = "Gradient";
+gradientAnim.animation.superKey = superKey;
 
 const animations = {
     Rotations: rotationAnim.animation,
     Matrix: matrixAnim.animation,
+    Hover: hoverAnim.animation,
+    // Gradient: gradientAnim.animation,
 };
 
 const cubeSides = [
@@ -392,9 +659,40 @@ const cube = $ref<HTMLElement>();
 const graph = $ref<HTMLElement>();
 const container = $ref<HTMLElement>();
 
+const resetSelectedAnimationEl = $ref<HTMLElement>();
+
+const resetSelectedAnimation = (target: HTMLElement) => {
+    new CSSKeyframesAnimation(
+        {
+            duration: 700,
+            timingFunction: "easeInBounce",
+        },
+        target,
+    )
+        .fromCSSKeyframes(
+            /*css*/ `@keyframes rotate {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}`,
+        )
+        .play();
+
+    storedControls.selectedAnimation = null;
+};
+
 onMounted(() => {
     rotationAnim.addTargets(cube);
     matrixAnim.addTargets(cube);
+    hoverAnim.addTargets(cube);
+
+    const cubeSideEls = cube.querySelectorAll(".cube-side");
+
+    // gradientAnim.addTargets(...cubeSideEls);
+    // gradientAnim.play();
 
     new CSSKeyframesAnimation({ duration: 500, timingFunction: "easeInBounce" }, graph)
         .fromVars([
@@ -410,6 +708,8 @@ onMounted(() => {
             },
         ])
         .play();
+
+    hoverAnim.play();
 
     const encodedSVG = encodeURIComponent(`
     <svg class="tmp" xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2 2'>
@@ -439,18 +739,22 @@ onMounted(() => {
 
 .x {
     --color: red !important;
+    color: var(--color);
 }
 
 .y {
     --color: green;
+    color: var(--color);
 }
 
 .z {
     --color: blue;
+    color: var(--color);
 }
 
 .w {
     --color: black;
+    color: var(--color);
 }
 
 .axis-line {
@@ -504,6 +808,8 @@ onMounted(() => {
     font-size: 2rem;
     border: 1px inset rgba(0, 0, 0, 0.37);
 
+    z-index: 10;
+
     &.front {
         background: rgba(255, 0, 0, 0.8);
         transform: rotateY(0deg) translateZ(var(--side-offset));
@@ -537,6 +843,5 @@ onMounted(() => {
         overflow: scroll;
         height: min-content;
     }
-    
 }
 </style>

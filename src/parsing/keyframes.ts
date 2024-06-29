@@ -348,7 +348,7 @@ export const CSSKeyframes = P.createLanguage({
 
     Percent: (r) =>
         P.alt(
-            integer.skip(P.string("%").or(P.string(""))),
+            number.skip(P.string("%").or(P.string(""))),
             P.string("from").map(() => "0"),
             P.string("to").map(() => "100"),
         )

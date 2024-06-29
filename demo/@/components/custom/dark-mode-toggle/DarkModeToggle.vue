@@ -1,6 +1,6 @@
 <template>
     <!-- Credit to Kevin Powell at https://codepen.io/kevinpowell/pen/PomqjxO -->
-    <button class="darkmode-toggle-button" @click="changeTheme()">
+    <button class="darkmode-toggle-button hover:opacity-50" @click="changeTheme()">
         <svg
             xmlns="http://www.w3.org/2000/svg"
             width="472.39"

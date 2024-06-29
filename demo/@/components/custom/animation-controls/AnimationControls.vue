@@ -1,6 +1,4 @@
 <template>
-    <DarkModeToggle class="dark-mode-toggle" />
-
     <Tabs
         :model-value="storedControls.selectedControl"
         @update:model-value="
@@ -9,9 +7,10 @@
             }
         "
     >
-        <TabsList class="grid w-full grid-cols-2">
+        <TabsList class="w-full flex gap-2">
             <TabsTrigger value="controls">Controls</TabsTrigger>
             <TabsTrigger value="keyframes">Keyframes</TabsTrigger>
+            <slot name="tabs-trigger"></slot>
         </TabsList>
 
         <TabsContent value="controls" class="h-[75vh] overflow-scroll">
@@ -195,7 +194,7 @@
                         ></CubicBezierControls>
                     </template>
 
-                    <div class="col-span-2 grid grid-cols-2 gap-2 sticky bottom-0">
+                    <div class="col-span-2 grid grid-cols-1 gap-2 sticky bottom-0">
                         <Slider
                             class="col-span-2 p-2"
                             :min="0"
@@ -205,23 +204,39 @@
                             @update:model-value="([t]) => (animation.t = t)"
                         />
 
-                        <Button class="text-xl" @click="toggleAnimation">
-                            <font-awesome-icon
-                                class="icon"
-                                :icon="
-                                    animation.playing()
-                                        ? ['fas', 'pause']
-                                        : ['fas', 'play']
+                        <div :class="'grid grid-cols-5 gap-2 w-full'">
+                            <Button class="col-span-2 text-xl" @click="toggleAnimation">
+                                <font-awesome-icon
+                                    class="icon"
+                                    :icon="
+                                        animation.playing()
+                                            ? ['fas', 'pause']
+                                            : ['fas', 'play']
+                                    "
+                                />
+                            </Button>
+                            <Button
+                                class="col-span-2 text-xl"
+                                @click="animation.reverse()"
+                            >
+                                <font-awesome-icon
+                                    class="icon"
+                                    :icon="['fas', 'rotate-right']"
+                                />
+                            </Button>
+                            <Button
+                                class="col-span-1 text-xl"
+                                @click="
+                                    () => {
+                                        Object.assign(
+                                            storedAnimationOptions,
+                                            defaultStoredAnimationOptions,
+                                        );
+                                    }
                                 "
-                            />
-                        </Button>
-
-                        <Button class="text-xl" @click="animation.reverse()">
-                            <font-awesome-icon
-                                class="icon"
-                                :icon="['fas', 'rotate-right']"
-                            />
-                        </Button>
+                                ><Trash></Trash>
+                            </Button>
+                        </div>
                     </div>
                 </CardContent>
             </Card>
@@ -229,6 +244,7 @@
         <TabsContent value="keyframes" class="h-[75vh] overflow-scroll">
             <KeyframesStringControls :animation="animation"></KeyframesStringControls>
         </TabsContent>
+        <slot name="tabs-content"></slot>
     </Tabs>
 </template>
 
@@ -287,7 +303,7 @@ import {
 import { camelCaseToHyphen } from "@src/utils";
 
 import { DarkModeToggle } from "../dark-mode-toggle";
-import { Key } from "lucide-vue-next";
+import { Key, Trash } from "lucide-vue-next";
 
 import { useStorage } from "@vueuse/core";
 import {
@@ -300,6 +316,11 @@ import {
     getStoredAnimationGroupControlOptions,
 } from "./animationStores";
 import { onMounted } from "vue";
+import Avatar from "@components/ui/avatar/Avatar.vue";
+import AvatarImage from "@components/ui/avatar/AvatarImage.vue";
+import HoverCard from "@components/ui/hover-card/HoverCard.vue";
+import HoverCardTrigger from "@components/ui/hover-card/HoverCardTrigger.vue";
+import HoverCardContent from "@components/ui/hover-card/HoverCardContent.vue";
 
 let timingFunctionsAnd = {
     "cubic-bezier": "cubic-bezier",
@@ -397,12 +418,4 @@ onMounted(() => {
 });
 </script>
 
-<style scoped lang="scss">
-.dark-mode-toggle {
-    // put it in the top right corner
-    position: absolute;
-    top: 0;
-    right: 0;
-    margin: 1rem;
-}
-</style>
+<style scoped lang="scss"></style>

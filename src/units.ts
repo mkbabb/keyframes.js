@@ -122,6 +122,10 @@ export class ValueUnit<T = number> {
         return this.toString();
     }
 
+    toJSON() {
+        return this.valueOf();
+    }
+
     toString() {
         if (!this.unit || this.unit === "string") {
             return `${this.value}`;
@@ -223,6 +227,12 @@ export class FunctionValue<T = number> {
             : this.values.map((v) => v.valueOf());
     }
 
+    toJSON() {
+        return {
+            [this.name]: this.values.map((v) => v.toJSON()),
+        };
+    }
+
     toString() {
         const s = this.values.map((v) => v.toString()).join(", ");
         return `${this.name}(${s})`;
@@ -264,6 +274,10 @@ export class ValueArray<T = number> {
         return this.values.length === 1
             ? this.values[0].valueOf()
             : this.values.map((v) => v.valueOf());
+    }
+
+    toJSON() {
+        return this.values.map((v) => v.toJSON());
     }
 
     toString() {
@@ -423,7 +437,8 @@ export function transformTargetsStyle(t: number, vars: any, targets: HTMLElement
                     .join(" ");
             } else if (Array.isArray(value)) {
                 const v = value.map((v) => flatten(v, parentKey)).join(", ");
-                return `${parentKey}(${v})`;
+
+                return parentKey ? `${parentKey}(${v})` : v;
             } else {
                 return value.toString();
             }

@@ -1,31 +1,40 @@
 <template>
-    <Card>
-        <CardContent class="m-0 p-0 mt-4 grid grid-cols-1 overflow-scroll relative">
-            <div class="relative">
-                <div class="absolute top-0 right-4 grid grid-cols-2 gap-2 items-center">
+    <div class="relative h-full overflow-scroll">
+        <Card>
+            <CardContent class="m-0 p-0 mt-2 grid grid-cols-1 z-10">
+                <div
+                    class="absolute top-0 right-0 m-2 grid grid-cols-2 gap-4 items-center bg-foreground rounded-md opacity-75 hover:opacity-100"
+                >
                     <CopyButton
-                        class="text-foreground relative bg-transparent hover:bg-transparent hover:scale-105"
+                        class="cursor-pointer text-background relative bg-transparent hover:bg-transparent hover:scale-105"
                         :text="cssKeyframesString"
                     />
+
                     <Paintbrush
-                        class="text-foreground relative bg-transparent hover:bg-transparent hover:scale-105"
+                        ref="brush"
+                        @click="
+                            () => {
+                                applyCSSStyles();
+                                startBrushAnimation();
+                            }
+                        "
+                        class="cursor-pointer text-background bg-transparent hover:bg-transparent hover:scale-105"
                     />
                 </div>
                 <pre
                     @input="animateParseCSSKeyframesStringEl"
                     @keydown="onKeyDown"
                     ref="CSSKeyframesStringEl"
-                    
-                    class="hljs css p-2 rounded-md text-sm bg-transparent outline-none border-none"
+                    class="hljs css p-2 cursor-text rounded-md text-sm bg-transparent outline-none border-none"
                     contenteditable="true"
                 >
                     <code>{{ cssKeyframesString }}</code>
                 </pre>
-            </div>
+            </CardContent>
+        </Card>
 
-            <div ref="progressBarEl" class="progress-bar sticky bottom-0"></div>
-        </CardContent>
-    </Card>
+        <div ref="progressBarEl" class="progress-bar sticky bottom-0"></div>
+    </div>
 </template>
 <script setup lang="ts">
 import { Animation, CSSKeyframesAnimation } from "@src/animation";
@@ -42,23 +51,36 @@ import {
     CardTitle,
 } from "@components/ui/card";
 
-import { computed, onMounted } from "vue";
+import { computed, onMounted, watch } from "vue";
 
 import CopyButton from "@components/custom/CopyButton.vue";
 
+import { Toggle } from "@components/ui/toggle";
+
 import { Paintbrush } from "lucide-vue-next";
 
-import "highlight.js/styles/github-dark.css";
+// @ts-ignore
+import githubDark from "highlight.js/styles/github-dark.css?inline";
+// @ts-ignore
+import githubLight from "highlight.js/styles/github.css?inline";
+
+import { useDark } from "@vueuse/core";
 
 import hljs from "highlight.js";
 
 import css from "highlight.js/lib/languages/css";
+import { createAnimationUUId, getAnimationSuperKey } from "./animationStores";
+import Button from "@components/ui/button/Button.vue";
 
 hljs.registerLanguage("css", css);
 
-const { animation } = defineProps<{
+const { animation, superKey } = defineProps<{
     animation: Animation<any>;
+    superKey?: string;
 }>();
+
+const animationUUID = createAnimationUUId(animation, superKey);
+const keyframesStyleId = `keyframes-style-${animationUUID}`;
 
 const emit = defineEmits<{
     (
@@ -80,16 +102,14 @@ let CSSKeyframesStringEl = $ref(null);
 let cssKeyframesString = $ref("");
 
 const updateCSSKeyframesString = async (keyframes?: string) => {
-    const s = keyframes ?? (await CSSKeyframesToString(animation, "animation", 45));
+    const s =
+        keyframes ?? (await CSSKeyframesToString(animation, keyframesStyleId, 45));
 
     cssKeyframesString = s;
 
     if (CSSKeyframesStringEl) {
         const h = hljs.highlight(s, { language: "css" });
         CSSKeyframesStringEl.innerHTML = h.value;
-    }
-    if (style) {
-        style.innerHTML = s;
     }
 
     return s;
@@ -167,29 +187,96 @@ const animateParseCSSKeyframesStringEl = (event: Event) => {
         .play();
 };
 
-let style = $ref(null);
-let prevPaused = $ref(false);
-let cssApplied = $ref(false);
+let hljsStyle = $ref(null);
+let keyframesStyle = $ref(null);
 
-const cssApply = async () => {
-    if (cssApplied) {
-        style.innerHTML = "";
+let prevPaused = $ref(false);
+
+const applyCSSStyles = () => {
+    const wasApplied =
+        keyframesStyle && keyframesStyle.innerHTML.includes(cssKeyframesString);
+
+    if (wasApplied) {
         animation.paused = prevPaused;
-        document.head.removeChild(style);
-        animation.target.classList.remove("animation");
+        keyframesStyle.innerHTML = "";
+        animation.target.classList.remove(keyframesStyleId);
     } else {
         prevPaused = animation.paused;
         animation.paused = animation.started;
 
-        style.innerHTML = cssKeyframesString;
-        document.head.appendChild(style);
-        animation.target.classList.add("animation");
+        keyframesStyle.innerHTML = cssKeyframesString;
+        animation.target.classList.add(keyframesStyleId);
     }
-    cssApplied = !cssApplied;
 };
 
+const brush = $ref<HTMLElement>(null);
+
+const startBrushAnimation = () => {
+    const animation = new CSSKeyframesAnimation(
+        {
+            duration: 700,
+            timingFunction: "ease-in-out",
+        },
+        brush,
+    )
+        .fromCSSKeyframes(
+            /*css*/
+            `@keyframes paintbrushWipe {
+                0% {
+                    transform: translateX(0) translateY(0) rotate(0deg);
+                }
+                25% {
+                    transform: translateX(0) translateY(0) rotate(30deg);
+                }
+                50% {
+                    transform: translateX(0) translateY(0) rotate(-90deg);
+                }
+                75% {
+                    transform: translateX(0) translateY(0) rotate(30deg);
+                }
+                100% {
+                    transform: translateX(0) translateY(0) rotate(0deg);
+                }
+            }`,
+        )
+        .play();
+};
+
+const isDark = useDark();
+
+const setCodeTheme = () => {
+    hljsStyle.innerHTML = isDark.value ? githubDark : githubLight;
+};
+
+watch(isDark, () => {
+    setCodeTheme();
+});
+
 onMounted(() => {
-    style = document.createElement("style");
+    const existingHLJSStyle = document.head.querySelector("#highlightjs-theme");
+
+    if (existingHLJSStyle) {
+        hljsStyle = existingHLJSStyle;
+    } else {
+        hljsStyle = document.createElement("style");
+        hljsStyle.id = "highlightjs-theme";
+
+        document.head.appendChild(hljsStyle);
+
+        setCodeTheme();
+    }
+
+    const existingKeyframesStyle = document.head.querySelector(`#${keyframesStyleId}`);
+
+    if (existingKeyframesStyle) {
+        keyframesStyle = existingKeyframesStyle;
+    } else {
+        keyframesStyle = document.createElement("style");
+        keyframesStyle.id = keyframesStyleId;
+
+        document.head.appendChild(keyframesStyle);
+    }
+
     updateCSSKeyframesString();
 });
 </script>
@@ -197,11 +284,12 @@ onMounted(() => {
 <style scoped lang="scss">
 .progress-bar {
     --height: 0.5rem;
-    width: 100%;
+
+    // width: 100%;
 
     height: var(--height);
 
-    bottom: var(--offset);
+    // bottom: var(--offset);
     border-radius: 5px;
     background-image: linear-gradient(
         to right,
