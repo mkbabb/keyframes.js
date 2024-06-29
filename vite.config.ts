@@ -16,14 +16,7 @@ const defaultOptions = {
             plugins: [tailwind(), autoprefixer()],
         },
     },
-    plugins: [
-        VueMacros({
-            plugins: {
-                vue: Vue(),
-            },
-        }),
-        dts({ rollupTypes: true }),
-    ],
+
     resolve: {
         alias: {
             "@src": path.resolve(__dirname, "src"),
@@ -33,6 +26,14 @@ const defaultOptions = {
         },
     },
 };
+
+const defaultPlugins = [
+    VueMacros({
+        plugins: {
+            vue: Vue(),
+        },
+    }),
+];
 
 export default defineConfig((mode) => {
     if (mode.mode === "production") {
@@ -50,6 +51,7 @@ export default defineConfig((mode) => {
                     formats: ["es", "cjs"],
                 },
             },
+            plugins: [...defaultPlugins, dts({ rollupTypes: true })],
         };
     } else if (mode.mode === "gh-pages") {
         return {
@@ -61,6 +63,7 @@ export default defineConfig((mode) => {
                 minify: true,
                 sourcemap: true,
             },
+            plugins: [...defaultPlugins],
         };
     } else {
         return {};
