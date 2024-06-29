@@ -31,7 +31,7 @@ export const defaultAnimationOptions = {
     iterationCount: Infinity,
     fillMode: "forwards",
     direction: "alternate",
-    timingFunction: "linear",
+    timingFunction: "ease-in-out",
 } as InputAnimationOptions;
 
 export const defaultStepOptions = {
@@ -54,6 +54,8 @@ const animationGroupsOptionsStore = useStorage(
     "animation-groups-options-store",
     {} as StoredAnimationGroupsOptions,
 );
+
+animationGroupsOptionsStore.value = {};
 
 export const getAnimationId = (animation: Animation<any> | string): string => {
     if (typeof animation === "string") return animation;

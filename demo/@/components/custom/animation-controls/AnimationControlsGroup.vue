@@ -1,7 +1,7 @@
 <template>
     <div class="group grid grid-cols-1 gap-2 h-full w-full z-10">
         <template v-if="!storedControls.selectedAnimation">
-            <div class="flex gap-2 w-screen h-64 items-center absolute">
+            <div class="left-4 flex gap-2 w-screen h-64 items-center absolute">
                 <h1 class="text-7xl font-bold">
                     <span
                         class="lift-down"
@@ -91,7 +91,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, ref, watch } from "vue";
 
 import { DarkModeToggle } from "@components/custom/dark-mode-toggle";
 

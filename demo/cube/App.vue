@@ -151,10 +151,15 @@
                     {{ side.content }}
                     <span
                         :class="
-                            !rotationAnim.animation.playing() ? 'rainbow-wrapper' : ''
+                            'rainbow-wrapper ' +
+                            (rotationAnim.animation.paused ||
+                            !storedControls.selectedAnimation
+                                ? 'opacity-100'
+                                : 'opacity-25')
                         "
                         :style="{
-                            animationDelay: `${Math.random() * 2}s`,
+                            animationDelay: `${Math.random() * 10}s`,
+                            animationDuration: `${Math.random() * 10}s`,
                         }"
                     >
                     </span>
@@ -170,7 +175,10 @@
 
 <script setup lang="ts">
 // import { $ref } from "unplugin-vue-macros/macros";
-import { onMounted } from "vue";
+import { onMounted, watch } from "vue";
+
+// @ts-ignore
+import "@styles/utils.scss";
 
 // import good lucide vue icons for reset and fix buttons
 import { RotateCcw, Lock } from "lucide-vue-next";
@@ -684,30 +692,35 @@ const resetSelectedAnimation = (target: HTMLElement) => {
     storedControls.selectedAnimation = null;
 };
 
+const changeGraphPerspectiveAnim = new CSSKeyframesAnimation({
+    duration: 700,
+    timingFunction: "easeInBounce",
+}).fromVars([
+    {
+        transform: {
+            rotate3d: "0, 0, 0, 0deg",
+        },
+    },
+    {
+        transform: {
+            rotate3d: "-1, 1, 0, 30deg",
+        },
+    },
+]);
+
 onMounted(() => {
     rotationAnim.addTargets(cube);
     matrixAnim.addTargets(cube);
     hoverAnim.addTargets(cube);
+
+    changeGraphPerspectiveAnim.addTargets(graph);
 
     const cubeSideEls = cube.querySelectorAll(".cube-side");
 
     // gradientAnim.addTargets(...cubeSideEls);
     // gradientAnim.play();
 
-    new CSSKeyframesAnimation({ duration: 500, timingFunction: "easeInBounce" }, graph)
-        .fromVars([
-            {
-                transform: {
-                    rotate3d: "0, 0, 0, 0deg",
-                },
-            },
-            {
-                transform: {
-                    rotate3d: "-1, 1, 0, 30deg",
-                },
-            },
-        ])
-        .play();
+    changeGraphPerspectiveAnim.play();
 
     hoverAnim.play();
 

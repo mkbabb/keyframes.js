@@ -1,0 +1,88 @@
+@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;700&display=swap");
+
+* {
+    font-family: "Fira Code", monospace;
+    box-sizing: border-box;
+}
+
+.icon {
+    --size: 1rem font-size: --size;
+    width: --size;
+    aspect-ratio: 1/1;
+}
+
+.rainbow-text {
+    background-image: linear-gradient(
+        to right,
+        #f00 0%,
+        #ff0 17%,
+        #0f0 33%,
+        #0ff 50%,
+        #00f 67%,
+        #f0f 83%,
+        #f00 100%
+    ) !important;
+    background-clip: text;
+    color: transparent;
+}
+
+.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.rainbow-wrapper {
+    height: 100%;
+    width: 100%;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+
+    position: absolute;
+}
+
+.rainbow-wrapper:before {
+    content: "";
+    height: 100%;
+    width: 100%;
+
+    left: 0;
+    right: 0;
+
+    top: 0;
+    bottom: 0;
+    position: absolute;
+    background-color: none;
+
+    background: linear-gradient(
+        124deg,
+        #ff2400,
+        #e81d1d,
+        #e8b71d,
+        #e3e81d,
+        #1de840,
+        #1ddde8,
+        #2b1de8,
+        #dd00f3,
+        #dd00f3
+    );
+
+    background-size: 800% 800%;
+    opacity: 0.75;
+    z-index: 1;
+
+    animation: rainbow 5s ease infinite;
+}
+
+@keyframes rainbow {
+    0% {
+        background-position: 0% 82%;
+    }
+    50% {
+        background-position: 100% 19%;
+    }
+    100% {
+        background-position: 0% 82%;
+    }
+}
