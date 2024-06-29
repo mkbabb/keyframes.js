@@ -240,7 +240,7 @@ import {
     TimingFunctionNames,
 } from "@src/animation";
 
-import { timingFunctions, jumpTerms } from "@src/easing";
+import { timingFunctions, jumpTerms, CSSBezier } from "@src/easing";
 import { reverseCSSTime, CSSAnimationKeyframes } from "@src/parsing/keyframes";
 
 import { Icon } from "@iconify/vue";
@@ -283,6 +283,7 @@ import {
     CubicBezierControls,
     KeyframesStringControls,
 } from "@components/custom/animation-controls";
+
 import { camelCaseToHyphen } from "@src/utils";
 
 import { DarkModeToggle } from "../dark-mode-toggle";
@@ -357,12 +358,16 @@ const setAnimationTimingFunction = (timingFunction: TimingFunction) => {
     });
 };
 
-const updateTimingFunctionFromName = (key: TimingFunctionNames) => {
+const updateTimingFunctionFromName = (key: TimingFunctionNames | "cubic-bezier") => {
     let timingFunction = timingFunctions[key] as TimingFunction;
 
     if (key === "steps") {
         const { steps, jumpTerm } = storedAnimationOptions.stepOptions;
         timingFunction = timingFunctions[key](steps, jumpTerm);
+    } else if (key === "cubic-bezier") {
+        timingFunction = CSSBezier(
+            ...storedAnimationOptions.cubicBezierOptions.controlPoints,
+        );
     }
 
     setAnimationTimingFunction(timingFunction);

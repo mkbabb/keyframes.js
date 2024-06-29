@@ -207,10 +207,6 @@ const updateCubicBezierPreset = (key: string) => {
     updateTimingFunction();
 };
 
-const copyToClipboard = async (value: string) => {
-    navigator.clipboard.writeText(value);
-};
-
 onMounted(() => {
     updateTimingFunction();
 });

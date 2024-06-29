@@ -1,7 +1,7 @@
 <template>
     <div
         ref="container"
-        class="container grid w-screen h-screen p-4 grid-cols-3 col-start-auto overflow-hidden"
+        class="container grid w-screen h-screen p-2 m-0 grid-cols-3 overflow-hidden items-center justify-center justify-items-center"
     >
         <AnimationControlsGroup
             :animations="animations"
@@ -29,55 +29,54 @@
                 </div>
             </div>
 
-            <p class="axis-line x"></p>
-            <p class="axis-line y"></p>
-            <p class="axis-line z"></p>
+            <div class="axis-line x"></div>
+            <div class="axis-line y"></div>
+            <div class="axis-line z"></div>
         </div>
 
-        <div class="matrix-controls">
-            <div class="matrix-input">
-                <div class="matrix-cell" v-for="(value, i) in matrix3dEnd.values">
-                    <input
-                        :value="Math.round(value.value * 100) / 100"
-                        @change="
-                            (e) => {
-                                updateMatrixCell(
-                                    (e.target as HTMLInputElement).value,
-                                    i,
-                                );
-                            }
-                        "
-                    />
-                    <div :class="['axis', getAxisFromIx(i).toLocaleLowerCase()]">
-                        <template v-if="getTransformFromIx(i) !== ''">
-                            {{ getTransformFromIx(i)
-                            }}<sub>{{ getAxisFromIx(i).toLowerCase() }}</sub>
-                        </template>
-                        <template v-else>{{ getAxisFromIx(i) }}</template>
+        <div class="grid items-center gap-2 z-10">
+            <Card class="mt-4 grid items-center justify-center">
+                <CardContent
+                    class="p-0 m-0 h-[fit-content] w-[fit-content] gap-1 grid grid-cols-4 items-center justify-items-center relative"
+                >
+                    <div
+                        class="w-14 h-14 shadow-md grid relative rounded-md"
+                        v-for="(value, i) in matrix3dEnd.values"
+                    >
+                        <input
+                            class="absolute top-0 left-0 w-full h-full p-1 text-center text-ellipsis bold text-lg bg-transparent"
+                            :value="Math.round(value.value * 100) / 100"
+                            @change="
+                                (e) => {
+                                    updateMatrixCell(
+                                        (e.target as HTMLInputElement).value,
+                                        i,
+                                    );
+                                }
+                            "
+                        />
+                        <div
+                            :class="
+                                ['axis', getAxisFromIx(i).toLocaleLowerCase()] +
+                                // line hight of 0 add:
+                                ' absolute top-0 left-0 w-full h-full p-1 text-center text-4xl opacity-20 align-text-bottom'
+                            "
+                        >
+                            <template v-if="getTransformFromIx(i) !== ''">
+                                {{ getTransformFromIx(i)
+                                }}<sub>{{ getAxisFromIx(i).toLowerCase() }}</sub>
+                            </template>
+                            <template v-else>{{ getAxisFromIx(i) }}</template>
+                        </div>
                     </div>
-                </div>
-            </div>
+                </CardContent>
+            </Card>
 
-            <div class="row" v-for="(opt, transform) in transformSliderOptions">
-                <template v-for="axis in sliderAxes">
-                    <label :class="axis.toLowerCase()">{{ transform + axis }}</label>
-                    <input
-                        @input="updateTransformations"
-                        v-model.number="transformSliderValues[transform][axis]"
-                        type="range"
-                        :min="opt.bounds[0]"
-                        :max="opt.bounds[1]"
-                        :step="opt.step"
-                        :class="axis.toLowerCase()"
-                    />
-                </template>
-            </div>
-
-            <div class="row">
-                <button @click="resetMatrix">Reset</button>
-                <button @click="fixMatrix" :class="isFixed ? 'clicked' : ''">
+            <div class="grid grid-cols-2 gap-2">
+                <Button @click="resetMatrix">Reset</Button>
+                <Button @click="fixMatrix" :class="isFixed ? 'clicked' : ''">
                     Fixed
-                </button>
+                </Button>
             </div>
         </div>
     </div>
@@ -95,11 +94,48 @@ import { FunctionValue, ValueUnit } from "@src/units";
 
 import { AnimationControlsGroup } from "@components/custom/animation-controls";
 
-import "@styles/style.scss";
 import {
     getStoredAnimationOptions,
     getStoredAnimationGroupControlOptions,
 } from "@components/custom/animation-controls/animationStores";
+
+import { Icon } from "@iconify/vue";
+
+import { Slider } from "@components/ui/slider";
+import { Button } from "@components/ui/button";
+import {
+    Menubar,
+    MenubarContent,
+    MenubarItem,
+    MenubarMenu,
+    MenubarSeparator,
+    MenubarShortcut,
+    MenubarTrigger,
+} from "@components/ui/menubar";
+
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from "@components/ui/card";
+import { Input } from "@components/ui/input";
+import { Label } from "@components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
+
+import {
+    Select,
+    SelectContent,
+    SelectGroup,
+    SelectItem,
+    SelectLabel,
+    SelectTrigger,
+    SelectValue,
+} from "@components/ui/select";
+
+import "@styles/style.scss";
 
 const matrixAxes = ["X", "Y", "Z", "W"];
 const sliderAxes = ["X", "Y", "Z"];
@@ -265,6 +301,7 @@ function updateTransformations() {
     matrix3dEnd.values.forEach((value, i) => {
         value.value = transformationMatrix[i];
     });
+
     syncTransformations();
 }
 
@@ -397,10 +434,11 @@ onMounted(() => {
     perspective: 1600px;
     transform-style: preserve-3d;
     position: relative;
+    align-self: center;
 }
 
 .x {
-    --color: red;
+    --color: red !important;
 }
 
 .y {
@@ -416,14 +454,15 @@ onMounted(() => {
 }
 
 .axis-line {
-    width: 200%;
+    width: 1000vw;
     height: 0px;
     background: transparent;
     border: 1px dashed var(--color);
     margin: 0;
     padding: 0;
     transform-style: preserve-3d;
-    opacity: 0.8;
+    opacity: 0.75;
+    position: absolute;
 
     &.x {
         transform: rotateX(0deg);
@@ -491,74 +530,13 @@ onMounted(() => {
     }
 }
 
-.matrix-controls {
-    display: grid;
-    justify-items: center;
-    align-items: center;
-    height: fit-content;
-    gap: 1rem;
-    z-index: 1;
-}
-
-.matrix-controls .row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    align-items: center;
-    gap: 0.25rem 0.75rem;
-    width: 100%;
-}
-
-.matrix-input {
-    display: grid;
-    width: min-content;
-    height: min-content;
-
-    grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: repeat(4, 1fr);
-    gap: 0.25rem;
-}
-
-.matrix-cell {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-
-    border-radius: 5px;
-    box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
-
-    input {
-        font-size: 1.5rem;
-        width: 4rem;
-
-        aspect-ratio: 1 / 1;
-        text-align: center;
-        border-radius: 5px;
-
-        border: none;
-        text-overflow: ellipsis;
-    }
-    .axis {
-        pointer-events: none;
-        position: absolute;
-        opacity: 0.3;
-        font-size: 2.5rem;
-        color: var(--color);
-    }
-}
-
-@media screen and (max-width: 900px) {
-    :root {
-        font-size: 0.9rem;
-    }
-
+@media screen and (max-width: 768px) {
     .container {
-        grid-template-areas: "animation-controls" "graph" "matrix-controls";
-        grid-template-columns: auto;
-        grid-template-rows: 1fr 60vh 1fr;
-        overflow-y: scroll;
-        min-height: 100vh;
-        min-height: 100dvh;
+        grid-template-columns: 1fr;
+        grid-template-rows: repeat(3, 1fr);
+        overflow: scroll;
+        height: min-content;
     }
+    
 }
 </style>

@@ -15,7 +15,8 @@
                     @input="animateParseCSSKeyframesStringEl"
                     @keydown="onKeyDown"
                     ref="CSSKeyframesStringEl"
-                    class="hljs css p-2 rounded-md text-sm bg-transparent"
+                    
+                    class="hljs css p-2 rounded-md text-sm bg-transparent outline-none border-none"
                     contenteditable="true"
                 >
                     <code>{{ cssKeyframesString }}</code>

@@ -3,6 +3,12 @@ import { jumpTerms } from "@src/easing";
 
 export type StoredAnimationOptions = {
     animationOptions: InputAnimationOptions;
+    animationState: {
+        t: number,
+        startTime: number,
+        pauseTime: number,
+        paused: boolean,
+    }
     stepOptions: {
         steps: number;
         jumpTerm: (typeof jumpTerms)[number];

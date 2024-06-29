@@ -1,6 +1,6 @@
 <template>
-    <div class="group grid grid-cols-1 gap-2 w-full items-center z-10">
-        <div class="flex gap-2 w-[400px] h-full">
+    <div class="group grid grid-cols-1 gap-2 h-full w-full z-10">
+        <div class="flex gap-2 w-full h-full">
             <Select
                 class="rounded-none border-none"
                 :model-value="storedControls.selectedAnimation"
