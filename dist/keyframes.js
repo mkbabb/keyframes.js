@@ -1,6 +1,6 @@
 var Ke = Object.defineProperty;
 var Qe = (e, t, n) => t in e ? Ke(e, t, { enumerable: !0, configurable: !0, writable: !0, value: n }) : e[t] = n;
-var v = (e, t, n) => Qe(e, typeof t != "symbol" ? t + "" : t, n);
+var k = (e, t, n) => Qe(e, typeof t != "symbol" ? t + "" : t, n);
 function clamp(e, t, n) {
   return e < t ? t : e > n ? n : e;
 }
@@ -182,27 +182,27 @@ var parsimmon_umd_min = { exports: {} };
         for (var c = 0; c < i; c++) l(c);
       }
       function b(i, l, c) {
-        return function(d, h) {
-          g(h.length, function(p) {
-            d(h[p], p, h);
+        return function(h, d) {
+          g(d.length, function(p) {
+            h(d[p], p, d);
           });
-        }(function(d, h, p) {
-          l = i(l, d, h, p);
+        }(function(h, d, p) {
+          l = i(l, h, d, p);
         }, c), l;
       }
       function y(i, l) {
-        return b(function(c, d, h, p) {
-          return c.concat([i(d, h, p)]);
+        return b(function(c, h, d, p) {
+          return c.concat([i(h, d, p)]);
         }, [], l);
       }
       function T(i, l) {
         var c = { v: 0, buf: l };
         return g(i, function() {
-          var d;
-          c = { v: c.v << 1 | (d = c.buf, d[0] >> 7), buf: function(h) {
-            var p = b(function(m, w, k, O) {
-              return m.concat(k === O.length - 1 ? Buffer.from([w, 0]).readUInt16BE(0) : O.readUInt16BE(k));
-            }, [], h);
+          var h;
+          c = { v: c.v << 1 | (h = c.buf, h[0] >> 7), buf: function(d) {
+            var p = b(function(m, w, v, O) {
+              return m.concat(v === O.length - 1 ? Buffer.from([w, 0]).readUInt16BE(0) : O.readUInt16BE(v));
+            }, [], d);
             return Buffer.from(y(function(m) {
               return (m << 1 & 65535) >> 8;
             }, p));
@@ -221,23 +221,23 @@ var parsimmon_umd_min = { exports: {} };
           return p + m;
         }, 0, i);
         if (l % 8 != 0) throw new Error("The bits [" + i.join(", ") + "] add up to " + l + " which is not an even number of bytes; the total should be divisible by 8");
-        var c, d = l / 8, h = (c = function(p) {
+        var c, h = l / 8, d = (c = function(p) {
           return p > 48;
         }, b(function(p, m) {
           return p || (c(m) ? m : p);
         }, null, i));
-        if (h) throw new Error(h + " bit range requested exceeds 48 bit (6 byte) Number max.");
+        if (d) throw new Error(d + " bit range requested exceeds 48 bit (6 byte) Number max.");
         return new o(function(p, m) {
-          var w = d + m;
-          return w > p.length ? V(m, d.toString() + " bytes") : C(w, b(function(k, O) {
-            var E = T(O, k.buf);
-            return { coll: k.coll.concat(E.v), buf: E.buf };
+          var w = h + m;
+          return w > p.length ? V(m, h.toString() + " bytes") : C(w, b(function(v, O) {
+            var E = T(O, v.buf);
+            return { coll: v.coll.concat(E.v), buf: E.buf };
           }, { coll: [], buf: p.slice(m, w) }, i).coll);
         });
       }
       function S(i, l) {
-        return new o(function(c, d) {
-          return z(), d + l > c.length ? V(d, l + " bytes for " + i) : C(d + l, c.slice(d, d + l));
+        return new o(function(c, h) {
+          return z(), h + l > c.length ? V(h, l + " bytes for " + i) : C(h + l, c.slice(h, h + l));
         });
       }
       function M(i, l) {
@@ -281,20 +281,20 @@ var parsimmon_umd_min = { exports: {} };
       }
       function I(i, l) {
         if (!l || i.furthest > l.furthest) return i;
-        var c = i.furthest === l.furthest ? function(d, h) {
+        var c = i.furthest === l.furthest ? function(h, d) {
           if (function() {
             if (o._supportsSet !== void 0) return o._supportsSet;
             var L = typeof Set < "u";
             return o._supportsSet = L, L;
           }() && Array.from) {
-            for (var p = new Set(d), m = 0; m < h.length; m++) p.add(h[m]);
+            for (var p = new Set(h), m = 0; m < d.length; m++) p.add(d[m]);
             var w = Array.from(p);
             return w.sort(), w;
           }
-          for (var k = {}, O = 0; O < d.length; O++) k[d[O]] = !0;
-          for (var E = 0; E < h.length; E++) k[h[E]] = !0;
+          for (var v = {}, O = 0; O < h.length; O++) v[h[O]] = !0;
+          for (var E = 0; E < d.length; E++) v[d[E]] = !0;
           var j = [];
-          for (var F in k) ({}).hasOwnProperty.call(k, F) && j.push(F);
+          for (var F in v) ({}).hasOwnProperty.call(v, F) && j.push(F);
           return j.sort(), j;
         }(i.expected, l.expected) : l.expected;
         return { status: i.status, index: i.index, value: i.value, furthest: l.furthest, expected: c };
@@ -303,17 +303,17 @@ var parsimmon_umd_min = { exports: {} };
       function ke(i, l) {
         if (re(i)) return { offset: l, line: -1, column: -1 };
         i in ue || (ue[i] = {});
-        for (var c = ue[i], d = 0, h = 0, p = 0, m = l; m >= 0; ) {
+        for (var c = ue[i], h = 0, d = 0, p = 0, m = l; m >= 0; ) {
           if (m in c) {
-            d = c[m].line, p === 0 && (p = c[m].lineStart);
+            h = c[m].line, p === 0 && (p = c[m].lineStart);
             break;
           }
           (i.charAt(m) === `
 ` || i.charAt(m) === "\r" && i.charAt(m + 1) !== `
-`) && (h++, p === 0 && (p = m + 1)), m--;
+`) && (d++, p === 0 && (p = m + 1)), m--;
         }
-        var w = d + h, k = l - p;
-        return c[l] = { line: w, lineStart: p }, { offset: l, line: w + 1, column: k + 1 };
+        var w = h + d, v = l - p;
+        return c[l] = { line: w, lineStart: p }, { offset: l, line: w + 1, column: v + 1 };
       }
       function Q(i) {
         if (!ne(i)) throw new Error("not a parser: " + i);
@@ -321,7 +321,7 @@ var parsimmon_umd_min = { exports: {} };
       function ce(i, l) {
         return typeof i == "string" ? i.charAt(l) : i[l];
       }
-      function X(i) {
+      function J(i) {
         if (typeof i != "number") throw new Error("not a number: " + i);
       }
       function U(i) {
@@ -334,41 +334,41 @@ var parsimmon_umd_min = { exports: {} };
       function fe(i, l) {
         return new Array(l + 1).join(i);
       }
-      function de(i, l, c) {
-        var d = l - i.length;
-        return d <= 0 ? i : fe(c, d) + i;
+      function he(i, l, c) {
+        var h = l - i.length;
+        return h <= 0 ? i : fe(c, h) + i;
       }
-      function Se(i, l, c, d) {
-        return { from: i - l > 0 ? i - l : 0, to: i + c > d ? d : i + c };
+      function Se(i, l, c, h) {
+        return { from: i - l > 0 ? i - l : 0, to: i + c > h ? h : i + c };
       }
       function Le(i, l) {
-        var c, d, h, p, m, w = l.index, k = w.offset, O = 1;
-        if (k === i.length) return "Got the end of the input";
+        var c, h, d, p, m, w = l.index, v = w.offset, O = 1;
+        if (v === i.length) return "Got the end of the input";
         if (re(i)) {
-          var E = k - k % N, j = k - E, F = Se(E, Re, je + N, i.length), L = y(function(B) {
-            return y(function(Z) {
-              return de(Z.toString(16), 2, "0");
+          var E = v - v % N, j = v - E, F = Se(E, Re, je + N, i.length), L = y(function(B) {
+            return y(function(Y) {
+              return he(Y.toString(16), 2, "0");
             }, B);
-          }, function(B, Z) {
-            var J = B.length, H = [], ee = 0;
-            if (J <= Z) return [B.slice()];
-            for (var te = 0; te < J; te++) H[ee] || H.push([]), H[ee].push(B[te]), (te + 1) % Z == 0 && ee++;
+          }, function(B, Y) {
+            var Z = B.length, H = [], ee = 0;
+            if (Z <= Y) return [B.slice()];
+            for (var te = 0; te < Z; te++) H[ee] || H.push([]), H[ee].push(B[te]), (te + 1) % Y == 0 && ee++;
             return H;
           }(i.slice(F.from, F.to).toJSON().data, N));
           p = function(B) {
             return B.from === 0 && B.to === 1 ? { from: B.from, to: B.to } : { from: B.from / N, to: Math.floor(B.to / N) };
-          }(F), d = E / N, c = 3 * j, j >= 4 && (c += 1), O = 2, h = y(function(B) {
+          }(F), h = E / N, c = 3 * j, j >= 4 && (c += 1), O = 2, d = y(function(B) {
             return B.length <= 4 ? B.join(" ") : B.slice(0, 4).join(" ") + "  " + B.slice(4).join(" ");
           }, L), (m = (8 * (p.to > 0 ? p.to - 1 : p.to)).toString(16).length) < 2 && (m = 2);
         } else {
-          var Y = i.split(/\r\n|[\n\r\u2028\u2029]/);
-          c = w.column - 1, d = w.line - 1, p = Se(d, Ie, Ae, Y.length), h = Y.slice(p.from, p.to), m = p.to.toString().length;
+          var X = i.split(/\r\n|[\n\r\u2028\u2029]/);
+          c = w.column - 1, h = w.line - 1, p = Se(h, Ie, Ae, X.length), d = X.slice(p.from, p.to), m = p.to.toString().length;
         }
-        var Ge = d - p.from;
-        return re(i) && (m = (8 * (p.to > 0 ? p.to - 1 : p.to)).toString(16).length) < 2 && (m = 2), b(function(B, Z, J) {
-          var H, ee = J === Ge, te = ee ? "> " : ve;
-          return H = re(i) ? de((8 * (p.from + J)).toString(16), m, "0") : de((p.from + J + 1).toString(), m, " "), [].concat(B, [te + H + " | " + Z], ee ? [ve + fe(" ", m) + " | " + de("", c, " ") + fe("^", O)] : []);
-        }, [], h).join(`
+        var Ge = h - p.from;
+        return re(i) && (m = (8 * (p.to > 0 ? p.to - 1 : p.to)).toString(16).length) < 2 && (m = 2), b(function(B, Y, Z) {
+          var H, ee = Z === Ge, te = ee ? "> " : ve;
+          return H = re(i) ? he((8 * (p.from + Z)).toString(16), m, "0") : he((p.from + Z + 1).toString(), m, " "), [].concat(B, [te + H + " | " + Y], ee ? [ve + fe(" ", m) + " | " + he("", c, " ") + fe("^", O)] : []);
+        }, [], d).join(`
 `);
       }
       function Pe(i, l) {
@@ -388,21 +388,21 @@ var parsimmon_umd_min = { exports: {} };
       function Ce(i) {
         return i.flags !== void 0 ? i.flags : [i.global ? "g" : "", i.ignoreCase ? "i" : "", i.multiline ? "m" : "", i.unicode ? "u" : "", i.sticky ? "y" : ""].join("");
       }
-      function he() {
+      function de() {
         for (var i = [].slice.call(arguments), l = i.length, c = 0; c < l; c += 1) Q(i[c]);
-        return o(function(d, h) {
+        return o(function(h, d) {
           for (var p, m = new Array(l), w = 0; w < l; w += 1) {
-            if (!(p = I(i[w]._(d, h), p)).status) return p;
-            m[w] = p.value, h = p.index;
+            if (!(p = I(i[w]._(h, d), p)).status) return p;
+            m[w] = p.value, d = p.index;
           }
-          return I(C(h, m), p);
+          return I(C(d, m), p);
         });
       }
       function $() {
         var i = [].slice.call(arguments);
         if (i.length === 0) throw new Error("seqMap needs at least one argument");
         var l = i.pop();
-        return U(l), he.apply(null, i).map(function(c) {
+        return U(l), de.apply(null, i).map(function(c) {
           return l.apply(null, c);
         });
       }
@@ -410,8 +410,8 @@ var parsimmon_umd_min = { exports: {} };
         var i = [].slice.call(arguments), l = i.length;
         if (l === 0) return me("zero alternates");
         for (var c = 0; c < l; c += 1) Q(i[c]);
-        return o(function(d, h) {
-          for (var p, m = 0; m < i.length; m += 1) if ((p = I(i[m]._(d, h), p)).status) return p;
+        return o(function(h, d) {
+          for (var p, m = 0; m < i.length; m += 1) if ((p = I(i[m]._(h, d), p)).status) return p;
           return p;
         });
       }
@@ -419,39 +419,39 @@ var parsimmon_umd_min = { exports: {} };
         return we(i, l).or(q([]));
       }
       function we(i, l) {
-        return Q(i), Q(l), $(i, l.then(i).many(), function(c, d) {
-          return [c].concat(d);
+        return Q(i), Q(l), $(i, l.then(i).many(), function(c, h) {
+          return [c].concat(h);
         });
       }
       function ae(i) {
         ie(i);
         var l = "'" + i + "'";
-        return o(function(c, d) {
-          var h = d + i.length, p = c.slice(d, h);
-          return p === i ? C(h, p) : V(d, l);
+        return o(function(c, h) {
+          var d = h + i.length, p = c.slice(h, d);
+          return p === i ? C(d, p) : V(h, l);
         });
       }
       function R(i, l) {
-        (function(h) {
-          if (!(h instanceof RegExp)) throw new Error("not a regexp: " + h);
-          for (var p = Ce(h), m = 0; m < p.length; m++) {
+        (function(d) {
+          if (!(d instanceof RegExp)) throw new Error("not a regexp: " + d);
+          for (var p = Ce(d), m = 0; m < p.length; m++) {
             var w = p.charAt(m);
-            if (w !== "i" && w !== "m" && w !== "u" && w !== "s") throw new Error('unsupported regexp flag "' + w + '": ' + h);
+            if (w !== "i" && w !== "m" && w !== "u" && w !== "s") throw new Error('unsupported regexp flag "' + w + '": ' + d);
           }
-        })(i), arguments.length >= 2 ? X(l) : l = 0;
-        var c = function(h) {
-          return RegExp("^(?:" + h.source + ")", Ce(h));
-        }(i), d = "" + i;
-        return o(function(h, p) {
-          var m = c.exec(h.slice(p));
+        })(i), arguments.length >= 2 ? J(l) : l = 0;
+        var c = function(d) {
+          return RegExp("^(?:" + d.source + ")", Ce(d));
+        }(i), h = "" + i;
+        return o(function(d, p) {
+          var m = c.exec(d.slice(p));
           if (m) {
             if (0 <= l && l <= m.length) {
-              var w = m[0], k = m[l];
-              return C(p + w.length, k);
+              var w = m[0], v = m[l];
+              return C(p + w.length, v);
             }
-            return V(p, "valid match group (0 to " + m.length + ") in " + d);
+            return V(p, "valid match group (0 to " + m.length + ") in " + h);
           }
-          return V(p, d);
+          return V(p, h);
         });
       }
       function q(i) {
@@ -466,8 +466,8 @@ var parsimmon_umd_min = { exports: {} };
       }
       function ge(i) {
         if (ne(i)) return o(function(l, c) {
-          var d = i._(l, c);
-          return d.index = c, d.value = "", d;
+          var h = i._(l, c);
+          return h.index = c, h.value = "", h;
         });
         if (typeof i == "string") return ge(ae(i));
         if (i instanceof RegExp) return ge(R(i));
@@ -475,20 +475,20 @@ var parsimmon_umd_min = { exports: {} };
       }
       function Ee(i) {
         return Q(i), o(function(l, c) {
-          var d = i._(l, c), h = l.slice(c, d.index);
-          return d.status ? V(c, 'not "' + h + '"') : C(c, null);
+          var h = i._(l, c), d = l.slice(c, h.index);
+          return h.status ? V(c, 'not "' + d + '"') : C(c, null);
         });
       }
       function be(i) {
         return U(i), o(function(l, c) {
-          var d = ce(l, c);
-          return c < l.length && i(d) ? C(c + 1, d) : V(c, "a character/byte matching " + i);
+          var h = ce(l, c);
+          return c < l.length && i(h) ? C(c + 1, h) : V(c, "a character/byte matching " + i);
         });
       }
       function Te(i, l) {
         arguments.length < 2 && (l = i, i = void 0);
-        var c = o(function(d, h) {
-          return c._ = l()._, c._(d, h);
+        var c = o(function(h, d) {
+          return c._ = l()._, c._(h, d);
         });
         return i ? c.desc(i) : c;
       }
@@ -502,8 +502,8 @@ var parsimmon_umd_min = { exports: {} };
       }, f.tryParse = function(i) {
         var l = this.parse(i);
         if (l.status) return l.value;
-        var c = Pe(i, l), d = new Error(c);
-        throw d.type = "ParsimmonError", d.result = l, d;
+        var c = Pe(i, l), h = new Error(c);
+        throw h.type = "ParsimmonError", h.result = l, h;
       }, f.assert = function(i, l) {
         return this.chain(function(c) {
           return i(c) ? q(c) : me(l);
@@ -513,31 +513,31 @@ var parsimmon_umd_min = { exports: {} };
       }, f.trim = function(i) {
         return this.wrap(i, i);
       }, f.wrap = function(i, l) {
-        return $(i, this, l, function(c, d) {
-          return d;
+        return $(i, this, l, function(c, h) {
+          return h;
         });
       }, f.thru = function(i) {
         return i(this);
       }, f.then = function(i) {
-        return Q(i), he(this, i).map(function(l) {
+        return Q(i), de(this, i).map(function(l) {
           return l[1];
         });
       }, f.many = function() {
         var i = this;
         return o(function(l, c) {
-          for (var d = [], h = void 0; ; ) {
-            if (!(h = I(i._(l, c), h)).status) return I(C(c, d), h);
-            if (c === h.index) throw new Error("infinite loop detected in .many() parser --- calling .many() on a parser which can accept zero characters is usually the cause");
-            c = h.index, d.push(h.value);
+          for (var h = [], d = void 0; ; ) {
+            if (!(d = I(i._(l, c), d)).status) return I(C(c, h), d);
+            if (c === d.index) throw new Error("infinite loop detected in .many() parser --- calling .many() on a parser which can accept zero characters is usually the cause");
+            c = d.index, h.push(d.value);
           }
         });
       }, f.tieWith = function(i) {
         return ie(i), this.map(function(l) {
-          if (function(h) {
-            if (!G(h)) throw new Error("not an array: " + h);
+          if (function(d) {
+            if (!G(d)) throw new Error("not an array: " + d);
           }(l), l.length) {
             ie(l[0]);
-            for (var c = l[0], d = 1; d < l.length; d++) ie(l[d]), c += i + l[d];
+            for (var c = l[0], h = 1; h < l.length; h++) ie(l[h]), c += i + l[h];
             return c;
           }
           return "";
@@ -546,13 +546,13 @@ var parsimmon_umd_min = { exports: {} };
         return this.tieWith("");
       }, f.times = function(i, l) {
         var c = this;
-        return arguments.length < 2 && (l = i), X(i), X(l), o(function(d, h) {
-          for (var p = [], m = void 0, w = void 0, k = 0; k < i; k += 1) {
-            if (w = I(m = c._(d, h), w), !m.status) return w;
-            h = m.index, p.push(m.value);
+        return arguments.length < 2 && (l = i), J(i), J(l), o(function(h, d) {
+          for (var p = [], m = void 0, w = void 0, v = 0; v < i; v += 1) {
+            if (w = I(m = c._(h, d), w), !m.status) return w;
+            d = m.index, p.push(m.value);
           }
-          for (; k < l && (w = I(m = c._(d, h), w), m.status); k += 1) h = m.index, p.push(m.value);
-          return I(C(h, p), w);
+          for (; v < l && (w = I(m = c._(h, d), w), m.status); v += 1) d = m.index, p.push(m.value);
+          return I(C(d, p), w);
         });
       }, f.result = function(i) {
         return this.map(function() {
@@ -567,21 +567,21 @@ var parsimmon_umd_min = { exports: {} };
       }, f.map = function(i) {
         U(i);
         var l = this;
-        return o(function(c, d) {
-          var h = l._(c, d);
-          return h.status ? I(C(h.index, i(h.value)), h) : h;
+        return o(function(c, h) {
+          var d = l._(c, h);
+          return d.status ? I(C(d.index, i(d.value)), d) : d;
         });
       }, f.contramap = function(i) {
         U(i);
         var l = this;
-        return o(function(c, d) {
-          var h = l.parse(i(c.slice(d)));
-          return h.status ? C(d + c.length, h.value) : h;
+        return o(function(c, h) {
+          var d = l.parse(i(c.slice(h)));
+          return d.status ? C(h + c.length, d.value) : d;
         });
       }, f.promap = function(i, l) {
         return U(i), U(l), this.contramap(i).map(l);
       }, f.skip = function(i) {
-        return he(this, i).map(function(l) {
+        return de(this, i).map(function(l) {
           return l[0];
         });
       }, f.mark = function() {
@@ -589,8 +589,8 @@ var parsimmon_umd_min = { exports: {} };
           return { start: i, value: l, end: c };
         });
       }, f.node = function(i) {
-        return $(oe, this, oe, function(l, c, d) {
-          return { name: i, value: c, start: l, end: d };
+        return $(oe, this, oe, function(l, c, h) {
+          return { name: i, value: c, start: l, end: h };
         });
       }, f.sepBy = function(i) {
         return Be(this, i);
@@ -603,9 +603,9 @@ var parsimmon_umd_min = { exports: {} };
       }, f.desc = function(i) {
         G(i) || (i = [i]);
         var l = this;
-        return o(function(c, d) {
-          var h = l._(c, d);
-          return h.status || (h.expected = i), h;
+        return o(function(c, h) {
+          var d = l._(c, h);
+          return d.status || (d.expected = i), d;
         });
       }, f.fallback = function(i) {
         return this.or(q(i));
@@ -615,9 +615,9 @@ var parsimmon_umd_min = { exports: {} };
         });
       }, f.chain = function(i) {
         var l = this;
-        return o(function(c, d) {
-          var h = l._(c, d);
-          return h.status ? I(i(h.value)._(c, h.index), h) : h;
+        return o(function(c, h) {
+          var d = l._(c, h);
+          return d.status ? I(i(d.value)._(c, d.index), d) : d;
         });
       }, f.concat = f.or, f.empty = ye, f.of = q, f["fantasy-land/ap"] = f.ap, f["fantasy-land/chain"] = f.chain, f["fantasy-land/concat"] = f.concat, f["fantasy-land/empty"] = f.empty, f["fantasy-land/of"] = f.of, f["fantasy-land/map"] = f.map;
       var oe = o(function(i, l) {
@@ -633,9 +633,9 @@ var parsimmon_umd_min = { exports: {} };
 `), Fe = pe(Ve, Me, Oe).desc("newline"), De = pe(Fe, xe);
       o.all = ze, o.alt = pe, o.any = Ne, o.cr = Oe, o.createLanguage = function(i) {
         var l = {};
-        for (var c in i) ({}).hasOwnProperty.call(i, c) && function(d) {
-          l[d] = Te(function() {
-            return i[d](l);
+        for (var c in i) ({}).hasOwnProperty.call(i, c) && function(h) {
+          l[h] = Te(function() {
+            return i[h](l);
           });
         }(c);
         return l;
@@ -647,16 +647,16 @@ var parsimmon_umd_min = { exports: {} };
         }).desc("none of '" + i + "'");
       }, o.notFollowedBy = Ee, o.of = q, o.oneOf = function(i) {
         for (var l = i.split(""), c = 0; c < l.length; c++) l[c] = "'" + l[c] + "'";
-        return be(function(d) {
-          return i.indexOf(d) >= 0;
+        return be(function(h) {
+          return i.indexOf(h) >= 0;
         }).desc(l);
       }, o.optWhitespace = We, o.Parser = o, o.range = function(i, l) {
         return be(function(c) {
           return i <= c && c <= l;
         }).desc(i + "-" + l);
-      }, o.regex = R, o.regexp = R, o.sepBy = Be, o.sepBy1 = we, o.seq = he, o.seqMap = $, o.seqObj = function() {
-        for (var i, l = {}, c = 0, d = (i = arguments, Array.prototype.slice.call(i)), h = d.length, p = 0; p < h; p += 1) {
-          var m = d[p];
+      }, o.regex = R, o.regexp = R, o.sepBy = Be, o.sepBy1 = we, o.seq = de, o.seqMap = $, o.seqObj = function() {
+        for (var i, l = {}, c = 0, h = (i = arguments, Array.prototype.slice.call(i)), d = h.length, p = 0; p < d; p += 1) {
+          var m = h[p];
           if (!ne(m)) {
             if (G(m) && m.length === 2 && typeof m[0] == "string" && ne(m[1])) {
               var w = m[0];
@@ -668,49 +668,49 @@ var parsimmon_umd_min = { exports: {} };
           }
         }
         if (c === 0) throw new Error("seqObj expects at least one named parser, found zero");
-        return o(function(k, O) {
-          for (var E, j = {}, F = 0; F < h; F += 1) {
-            var L, Y;
-            if (G(d[F]) ? (L = d[F][0], Y = d[F][1]) : (L = null, Y = d[F]), !(E = I(Y._(k, O), E)).status) return E;
+        return o(function(v, O) {
+          for (var E, j = {}, F = 0; F < d; F += 1) {
+            var L, X;
+            if (G(h[F]) ? (L = h[F][0], X = h[F][1]) : (L = null, X = h[F]), !(E = I(X._(v, O), E)).status) return E;
             L && (j[L] = E.value), O = E.index;
           }
           return I(C(O, j), E);
         });
       }, o.string = ae, o.succeed = q, o.takeWhile = function(i) {
         return U(i), o(function(l, c) {
-          for (var d = c; d < l.length && i(ce(l, d)); ) d++;
-          return C(d, l.slice(c, d));
+          for (var h = c; h < l.length && i(ce(l, h)); ) h++;
+          return C(h, l.slice(c, h));
         });
       }, o.test = be, o.whitespace = _e, o["fantasy-land/empty"] = ye, o["fantasy-land/of"] = q, o.Binary = { bitSeq: _, bitSeqObj: function(i) {
         z();
-        var l = {}, c = 0, d = y(function(p) {
+        var l = {}, c = 0, h = y(function(p) {
           if (G(p)) {
             var m = p;
             if (m.length !== 2) throw new Error("[" + m.join(", ") + "] should be length 2, got length " + m.length);
-            if (ie(m[0]), X(m[1]), Object.prototype.hasOwnProperty.call(l, m[0])) throw new Error("duplicate key in bitSeqObj: " + m[0]);
+            if (ie(m[0]), J(m[1]), Object.prototype.hasOwnProperty.call(l, m[0])) throw new Error("duplicate key in bitSeqObj: " + m[0]);
             return l[m[0]] = !0, c++, m;
           }
-          return X(p), [null, p];
+          return J(p), [null, p];
         }, i);
         if (c < 1) throw new Error("bitSeqObj expects at least one named pair, got [" + i.join(", ") + "]");
-        var h = y(function(p) {
+        var d = y(function(p) {
           return p[0];
-        }, d);
+        }, h);
         return _(y(function(p) {
           return p[1];
-        }, d)).map(function(p) {
+        }, h)).map(function(p) {
           return b(function(m, w) {
             return w[0] !== null && (m[w[0]] = w[1]), m;
           }, {}, y(function(m, w) {
             return [m, p[w]];
-          }, h));
+          }, d));
         });
       }, byte: function(i) {
-        if (z(), X(i), i > 255) throw new Error("Value specified to byte constructor (" + i + "=0x" + i.toString(16) + ") is larger in value than a single byte.");
+        if (z(), J(i), i > 255) throw new Error("Value specified to byte constructor (" + i + "=0x" + i.toString(16) + ") is larger in value than a single byte.");
         var l = (i > 15 ? "0x" : "0x0") + i.toString(16);
-        return o(function(c, d) {
-          var h = ce(c, d);
-          return h === i ? C(d + 1, h) : V(d, l);
+        return o(function(c, h) {
+          var d = ce(c, h);
+          return d === i ? C(h + 1, d) : V(h, l);
         });
       }, buffer: function(i) {
         return S("buffer", i).map(function(l) {
@@ -1825,6 +1825,9 @@ class ValueUnit {
   valueOf() {
     return this.unit ? this.toString() : this.value;
   }
+  toJSON() {
+    return this.valueOf();
+  }
   toString() {
     if (!this.unit || this.unit === "string")
       return `${this.value}`;
@@ -1874,11 +1877,16 @@ function lerpMany(e, t, n, a) {
 }
 class FunctionValue {
   constructor(t, n) {
-    v(this, "values");
+    k(this, "values");
     this.name = t, Array.isArray(n) ? this.values = n : this.values = [n];
   }
   valueOf() {
     return this.values.length === 1 ? this.values[0].valueOf() : this.values.map((t) => t.valueOf());
+  }
+  toJSON() {
+    return {
+      [this.name]: this.values.map((t) => t.toJSON())
+    };
   }
   toString() {
     const t = this.values.map((n) => n.toString()).join(", ");
@@ -1891,11 +1899,14 @@ class FunctionValue {
 }
 class ValueArray {
   constructor(t) {
-    v(this, "values");
+    k(this, "values");
     t instanceof ValueArray ? this.values = t.values : Array.isArray(t) ? this.values = t : this.values = [t];
   }
   valueOf() {
     return this.values.length === 1 ? this.values[0].valueOf() : this.values.map((t) => t.valueOf());
+  }
+  toJSON() {
+    return this.values.map((t) => t.toJSON());
   }
   toString() {
     return this.values.map((t) => t.toString()).join(" ");
@@ -1952,7 +1963,7 @@ function transformTargetsStyle(e, t, n) {
         return Object.entries(o).map(([y, T]) => a(T, y, g)).join(" ");
       if (Array.isArray(o)) {
         const y = o.map((T) => a(T, f)).join(", ");
-        return `${f}(${y})`;
+        return f ? `${f}(${y})` : y;
       } else
         return o.toString();
     })();
@@ -2364,7 +2375,7 @@ const reduceMathOperators = (e, t) => t.length === 0 ? e : t.reduce((a, [u, o]) 
     };
   }),
   Percent: (e) => P.alt(
-    integer.skip(P.string("%").or(P.string(""))),
+    number.skip(P.string("%").or(P.string(""))),
     P.string("from").map(() => "0"),
     P.string("to").map(() => "100")
   ).trim(e.ws).map(Number),
@@ -2474,26 +2485,29 @@ const defaultOptions = {
 }, getTimingFunction = (e) => typeof e == "string" ? timingFunctions[e] : e ?? void 0;
 let nextId = 0;
 class Animation {
-  constructor(t, n = void 0) {
-    v(this, "id", nextId++);
-    v(this, "options");
-    v(this, "templateFrames", []);
-    v(this, "transformedVars", []);
-    v(this, "frameId", 0);
-    v(this, "frames", []);
-    v(this, "startTime");
-    v(this, "pausedTime", 0);
-    v(this, "prevTime", 0);
-    v(this, "t", 0);
-    v(this, "iteration", 0);
-    v(this, "started", !1);
-    v(this, "done", !1);
-    v(this, "reversed", !1);
-    v(this, "paused", !1);
-    this.target = n, this.options = { ...defaultOptions, ...t }, this.parseOptions(t);
+  constructor(t, n = void 0, a = void 0, u = void 0) {
+    k(this, "id", nextId++);
+    k(this, "name");
+    k(this, "superKey");
+    k(this, "target");
+    k(this, "options");
+    k(this, "templateFrames", []);
+    k(this, "transformedVars", []);
+    k(this, "frameId", 0);
+    k(this, "frames", []);
+    k(this, "startTime");
+    k(this, "pausedTime", 0);
+    k(this, "prevTime", 0);
+    k(this, "t", 0);
+    k(this, "iteration", 0);
+    k(this, "started", !1);
+    k(this, "done", !1);
+    k(this, "reversed", !1);
+    k(this, "paused", !1);
+    this.options = { ...defaultOptions, ...t }, this.parseOptions(t), this.target = n, this.name = a, this.superKey = u;
   }
   frame(t, n, a, u) {
-    t = typeof t == "number" ? String(t) + "%" : t;
+    t = typeof t == "number" ? String(t) + "%" : t, t = t instanceof ValueUnit ? String(t) : t;
     const o = CSSValueUnit.Value.tryParse(t), f = {
       id: this.frameId,
       start: o,
@@ -2529,10 +2543,10 @@ class Animation {
     return this;
   }
   updateTimingFunction(t) {
-    return this.options.timingFunction = getTimingFunction(t), this;
+    return this.options.timingFunction = getTimingFunction(t) ?? easeInOutCubic, this;
   }
   updateIterationCount(t) {
-    return t === "infinite" ? this.options.iterationCount = 1 / 0 : typeof t == "string" ? this.options.iterationCount = parseFloat(t) : this.options.iterationCount = t, this;
+    return !t || t === "infinite" ? this.options.iterationCount = 1 / 0 : typeof t == "string" ? this.options.iterationCount = parseFloat(t) : this.options.iterationCount = t, this;
   }
   updateDuration(t) {
     typeof t == "string" && (t = parseCSSTime(t));
@@ -2545,6 +2559,12 @@ class Animation {
   }
   updateDelay(t) {
     return typeof t == "string" && (t = parseCSSTime(t)), this.options.delay = t, this;
+  }
+  updateDirection(t) {
+    return this.options.direction = t, this;
+  }
+  updateFillMode(t) {
+    return this.options.fillMode = t, this;
   }
   parseOptions(t) {
     return this.updateTimingFunction(t.timingFunction), this.updateDuration(t.duration), this.updateIterationCount(t.iterationCount), this.updateDelay(t.delay), this;
@@ -2562,7 +2582,7 @@ class Animation {
     return !(!this.started || this.paused);
   }
   reset() {
-    return this.startTime = void 0, this;
+    return this.startTime = void 0, this.pausedTime = 0, this.prevTime = 0, this.t = 0, this.started = !1, this.done = !1, this.paused = !1, this.iteration = 0, this;
   }
   fillForwards() {
     this.transformFrames(this.options.duration);
@@ -2619,9 +2639,9 @@ class Animation {
 }
 class CSSKeyframesAnimation {
   constructor(t = {}, ...n) {
-    v(this, "options");
-    v(this, "targets");
-    v(this, "animation");
+    k(this, "options");
+    k(this, "targets");
+    k(this, "animation");
     this.options = { ...defaultOptions, ...t }, this.targets = n;
   }
   addTargets(...t) {
@@ -2679,17 +2699,24 @@ class CSSKeyframesAnimation {
 }
 class AnimationGroup {
   constructor(...t) {
-    v(this, "animationGroup", []);
-    v(this, "transform");
-    v(this, "paused", !1);
-    v(this, "started", !1);
-    v(this, "done", !1);
+    k(this, "animationGroup", []);
+    k(this, "transform");
+    k(this, "superKey");
+    k(this, "paused", !1);
+    k(this, "started", !1);
+    k(this, "done", !1);
+    k(this, "singleTarget", !1);
     this.transform = t[0].frames[0].transform;
     for (const n of t)
       this.animationGroup.push({
         values: {},
         animation: n
       });
+  }
+  setSuperKey(t) {
+    return this.superKey = t, this.animationGroup.forEach((n) => {
+      n.animation.superKey = t;
+    }), this;
   }
   reset() {
     return this.animationGroup.forEach((t) => {
@@ -2700,7 +2727,7 @@ class AnimationGroup {
     return this.started = !0, this;
   }
   onEnd() {
-    return this.reset(), this.done = !0, this;
+    return this.reset(), this;
   }
   pause() {
     const t = this.paused;
@@ -2711,7 +2738,7 @@ class AnimationGroup {
   playing() {
     return !(!this.started || this.paused);
   }
-  transformFrames(t) {
+  transformFramesGrouped(t) {
     let n = {}, a = !0;
     for (const o of this.animationGroup) {
       const { animation: f, values: g } = o;
@@ -2730,7 +2757,9 @@ class AnimationGroup {
     return this.done && this.onEnd(), this;
   }
   draw(t) {
-    this.tick(t), !this.paused && (this.transformFrames(t), this.done || requestAnimationFrame(this.draw.bind(this)));
+    this.tick(t), !this.paused && (this.animationGroup.every(
+      ({ animation: n }) => n.target === this.animationGroup[0].animation.target
+    ) ? this.transformFramesGrouped(t) : this.done = this.animationGroup.map(({ animation: n }) => (n.transformFrames(n.t), n)).every((n) => n.done), this.done || requestAnimationFrame(this.draw.bind(this)));
   }
   play() {
     return this.onStart(), requestAnimationFrame(this.draw.bind(this)), this;
