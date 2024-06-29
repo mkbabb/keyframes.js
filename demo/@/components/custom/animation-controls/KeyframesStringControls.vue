@@ -1,21 +1,21 @@
 <template>
     <Card>
-        <CardContent class="mt-4 grid grid-cols-1 gap-2 overflow-scroll">
+        <CardContent class="m-0 p-0 mt-4 grid grid-cols-1 overflow-scroll relative">
             <div class="relative">
-                <div class="absolute top-2 right-2 grid grid-cols-2 gap-2 items-center">
+                <div class="absolute top-0 right-4 grid grid-cols-2 gap-2 items-center">
                     <CopyButton
-                        class="text-background relative bg-transparent hover:bg-transparent hover:scale-105"
+                        class="text-foreground relative bg-transparent hover:bg-transparent hover:scale-105"
                         :text="cssKeyframesString"
                     />
                     <Paintbrush
-                        class="text-background relative bg-transparent hover:bg-transparent hover:scale-105"
+                        class="text-foreground relative bg-transparent hover:bg-transparent hover:scale-105"
                     />
                 </div>
                 <pre
                     @input="animateParseCSSKeyframesStringEl"
                     @keydown="onKeyDown"
                     ref="CSSKeyframesStringEl"
-                    class="hljs css p-2 rounded-md text-sm"
+                    class="hljs css p-2 rounded-md text-sm bg-transparent"
                     contenteditable="true"
                 >
                     <code>{{ cssKeyframesString }}</code>
@@ -47,8 +47,10 @@ import CopyButton from "@components/custom/CopyButton.vue";
 
 import { Paintbrush } from "lucide-vue-next";
 
-import "highlight.js/styles/github-dark-dimmed.css";
+import "highlight.js/styles/github-dark.css";
+
 import hljs from "highlight.js";
+
 import css from "highlight.js/lib/languages/css";
 
 hljs.registerLanguage("css", css);

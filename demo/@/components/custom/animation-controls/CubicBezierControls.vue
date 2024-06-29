@@ -101,7 +101,7 @@ import Button from "@components/ui/button/Button.vue";
 
 import CopyButton from "@components/custom/CopyButton.vue";
 import { useStorage } from "@vueuse/core";
-import { StoredAnimationOptions, getStoredAnimationOptions } from "./animationOptions";
+import { StoredAnimationOptions, getStoredAnimationOptions } from "./animationStores";
 
 const cubicBezierToString = (values: number[]) => {
     return `cubic-bezier(${values.map((v) => v.toFixed(2)).join(", ")})`;
@@ -140,12 +140,10 @@ let SVGEl = $ref<SVGSVGElement | null>(null);
 let pathEl = $ref<SVGGElement | null>(null);
 
 const updateTimingFunction = () => {
-    const scaledValues = timingValues.map((v) => v);
-
-    storedAnimationOptions.cubicBezierOptions.controlPoints = scaledValues;
+    storedAnimationOptions.cubicBezierOptions.controlPoints = timingValues;
 
     const timingFunction = CSSBezier(
-        ...(scaledValues as [number, number, number, number]),
+        ...(timingValues as [number, number, number, number]),
     );
 
     if (pathEl) {

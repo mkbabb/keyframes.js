@@ -199,6 +199,11 @@ let nextId = 0;
 
 export class Animation<V extends Vars> {
     id: number = nextId++;
+    name: string | undefined;
+    superKey: string | undefined;
+
+    target: HTMLElement | undefined;
+
     options: AnimationOptions;
 
     templateFrames: TemplateAnimationFrame<V>[] = [];
@@ -221,11 +226,16 @@ export class Animation<V extends Vars> {
 
     constructor(
         options: Partial<InputAnimationOptions>,
-        public target: HTMLElement | undefined = undefined,
-        public name: string | undefined = undefined,
+        target: HTMLElement | undefined = undefined,
+        name: string | undefined = undefined,
+        superKey: string | undefined = undefined,
     ) {
         this.options = { ...defaultOptions, ...options } as AnimationOptions;
         this.parseOptions(options);
+
+        this.target = target;
+        this.name = name;
+        this.superKey = superKey;
     }
 
     frame<K extends V>(
@@ -653,6 +663,8 @@ export class AnimationGroup<V> {
     animationGroup: AnimationGroupObject<V>[] = [];
     transform: TransformFunction<V>;
 
+    superKey: string | undefined;
+
     paused = false;
     started = false;
     done = false;
@@ -667,6 +679,14 @@ export class AnimationGroup<V> {
                 animation,
             });
         }
+    }
+
+    setSuperKey(superKey: string) {
+        this.superKey = superKey;
+        this.animationGroup.forEach((groupObject) => {
+            groupObject.animation.superKey = superKey;
+        });
+        return this;
     }
 
     reset() {

@@ -2,10 +2,10 @@
     <DarkModeToggle class="dark-mode-toggle" />
 
     <Tabs
-        :model-value="controlsStore.selectedControl"
+        :model-value="storedControls.selectedControl"
         @update:model-value="
             (key) => {
-                controlsStore.selectedControl = key.toString();
+                storedControls.selectedControl = key.toString();
             }
         "
     >
@@ -68,7 +68,7 @@
                         @update:model-value="
                             (key: any) => {
                                 animation.updateDirection(key);
-                                animation.options.direction = key;
+                                storedAnimationOptions.animationOptions.direction = key;
                             }
                         "
                     >
@@ -93,7 +93,7 @@
                         @update:model-value="
                             (key: any) => {
                                 animation.updateFillMode(key);
-                                animation.options.fillMode = key;
+                                storedAnimationOptions.animationOptions.fillMode = key;
                             }
                         "
                     >
@@ -112,7 +112,10 @@
 
                     <Label>Timing Function</Label>
                     <Select
-                        :model-value="selectedTimingFunction"
+                        :model-value="
+                            storedAnimationOptions.animationOptions
+                                .timingFunction as any
+                        "
                         @update:model-value="
                             (key: any) => {
                                 updateTimingFunctionFromName(key);
@@ -138,18 +141,33 @@
                         </SelectContent>
                     </Select>
 
-                    <template v-if="selectedTimingFunction === 'steps'">
+                    <template
+                        v-if="
+                            storedAnimationOptions.animationOptions.timingFunction ===
+                            'steps'
+                        "
+                    >
                         <Label>Steps</Label>
                         <Input
-                            @input="updateTimingFunctionFromName"
                             type="number"
-                            v-model.number="storedAnimationOptions.stepOptions.steps"
+                            :model-value="storedAnimationOptions.stepOptions.steps"
+                            @update:model-value="
+                                (key: any) => {
+                                    storedAnimationOptions.stepOptions.steps = key;
+                                    updateTimingFunctionFromName('steps');
+                                }
+                            "
                         />
 
                         <Label>Jump Term</Label>
                         <Select
-                            @input="updateTimingFunctionFromName"
-                            v-model="storedAnimationOptions.stepOptions.jumpTerm"
+                            :model-value="storedAnimationOptions.stepOptions.jumpTerm"
+                            @update:model-value="
+                                (key: any) => {
+                                    storedAnimationOptions.stepOptions.jumpTerm = key;
+                                    updateTimingFunctionFromName('steps');
+                                }
+                            "
                         >
                             <SelectTrigger>
                                 <SelectValue />
@@ -164,7 +182,12 @@
                         </Select>
                     </template>
 
-                    <template v-if="selectedTimingFunction === 'cubic-bezier'">
+                    <template
+                        v-if="
+                            (storedAnimationOptions.animationOptions
+                                .timingFunction as any) === 'cubic-bezier'
+                        "
+                    >
                         <CubicBezierControls
                             :animation="animation"
                             @update-timing-function="setAnimationTimingFunction"
@@ -273,12 +296,9 @@ import {
     defaultStepOptions,
     defaultStoredAnimationOptions,
     getStoredAnimationOptions,
-} from "./animationOptions";
-
-const controlsStore = useStorage("controls-store", {
-    selectedControl: "controls",
-    selectedAnimation: "",
-});
+    getStoredAnimationGroupControlOptions,
+} from "./animationStores";
+import { onMounted } from "vue";
 
 let timingFunctionsAnd = {
     "cubic-bezier": "cubic-bezier",
@@ -289,18 +309,20 @@ timingFunctionsAnd = Object.fromEntries(
 ) as any;
 
 const { animation, isGrouped } = defineProps({
+    animation: {
+        type: Animation,
+        required: true,
+    },
+
     isGrouped: {
         type: Boolean,
         required: false,
         default: false,
     },
-    animation: {
-        type: Animation,
-        required: true,
-    },
 });
 
 const storedAnimationOptions = getStoredAnimationOptions(animation);
+const storedControls = getStoredAnimationGroupControlOptions(animation);
 
 const emit = defineEmits<{
     (
@@ -335,11 +357,7 @@ const setAnimationTimingFunction = (timingFunction: TimingFunction) => {
     });
 };
 
-let selectedTimingFunction = $ref("cubic-bezier");
-
 const updateTimingFunctionFromName = (key: TimingFunctionNames) => {
-    selectedTimingFunction = key;
-
     let timingFunction = timingFunctions[key] as TimingFunction;
 
     if (key === "steps") {
@@ -366,6 +384,12 @@ const toggleAnimation = () => {
         }
     }
 };
+
+onMounted(() => {
+    updateTimingFunctionFromName(
+        storedAnimationOptions.animationOptions.timingFunction as TimingFunctionNames,
+    );
+});
 </script>
 
 <style scoped lang="scss">

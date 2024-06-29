@@ -5,7 +5,8 @@
     >
         <AnimationControlsGroup
             :animations="animations"
-            @selected-animation="(s) => (selectedAnimation = s)"
+            :super-key="superKey"
+            @selected-animation="(s) => (storedControls.selectedAnimation = s)"
         />
 
         <div ref="graph" class="graph">
@@ -95,7 +96,10 @@ import { FunctionValue, ValueUnit } from "@src/units";
 import { AnimationControlsGroup } from "@components/custom/animation-controls";
 
 import "@styles/style.scss";
-import { getStoredAnimationOptions } from "@components/custom/animation-controls/animationOptions";
+import {
+    getStoredAnimationOptions,
+    getStoredAnimationGroupControlOptions,
+} from "@components/custom/animation-controls/animationStores";
 
 const matrixAxes = ["X", "Y", "Z", "W"];
 const sliderAxes = ["X", "Y", "Z"];
@@ -282,7 +286,11 @@ const fixMatrix = () => {
     }
 };
 
-const matrixAnimationOptions = getStoredAnimationOptions("Matrix");
+const superKey = "Cube";
+
+const storedControls = getStoredAnimationGroupControlOptions(superKey);
+
+const matrixAnimationOptions = getStoredAnimationOptions("Matrix", superKey);
 
 const matrixAnim = $ref(
     new CSSKeyframesAnimation(matrixAnimationOptions.animationOptions).fromVars([
@@ -299,8 +307,9 @@ const matrixAnim = $ref(
     ]),
 );
 matrixAnim.animation.name = "Matrix";
+matrixAnim.animation.superKey = superKey;
 
-const rotationAnimationOptions = getStoredAnimationOptions("Rotations");
+const rotationAnimationOptions = getStoredAnimationOptions("Rotations", superKey);
 
 const rotationAnim = $ref(
     new CSSKeyframesAnimation(
@@ -323,13 +332,15 @@ const rotationAnim = $ref(
     }),
 );
 rotationAnim.animation.name = "Rotations";
+rotationAnim.animation.superKey = superKey;
+
+storedControls.selectedAnimation ??= "Rotations";
+storedControls.selectedControl ??= "controls";
 
 const animations = {
     Rotations: rotationAnim.animation,
     Matrix: matrixAnim.animation,
 };
-
-let selectedAnimation = $ref("");
 
 const cubeSides = [
     { class: "front", content: "1" },
@@ -365,7 +376,7 @@ onMounted(() => {
 
     const encodedSVG = encodeURIComponent(`
     <svg class="tmp" xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2 2'>
-        <path d='M1 2V0h1v1H0v1z' fill-opacity='0.15'/>
+        <path d='M1 2V0h1v1H0v1z' fill-opacity='0.10'/>
     </svg>
 `);
 

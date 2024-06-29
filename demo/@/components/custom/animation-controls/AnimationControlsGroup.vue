@@ -3,15 +3,15 @@
         <div class="flex gap-2 w-[400px] h-full">
             <Select
                 class="rounded-none border-none"
-                :model-value="controlsStore.selectedAnimation"
+                :model-value="storedControls.selectedAnimation"
                 @update:model-value="
                     (key) => {
-                        controlsStore.selectedAnimation = key;
+                        storedControls.selectedAnimation = key;
                     }
                 "
             >
                 <SelectTrigger>
-                    <SelectValue>{{ controlsStore.selectedAnimation }}</SelectValue>
+                    <SelectValue>{{ storedControls.selectedAnimation }}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                     <SelectGroup>
@@ -28,7 +28,7 @@
 
             <Button
                 class="w-32 text-xl rainbow text-white"
-                v-if="controlsStore.selectedAnimation"
+                v-if="storedControls.selectedAnimation"
                 @click="toggleAnimationGroup"
             >
                 <font-awesome-icon
@@ -42,7 +42,7 @@
 
         <template v-for="[name, animation] in Object.entries(animations)">
             <AnimationControls
-                v-if="controlsStore.selectedAnimation == name"
+                v-if="storedControls.selectedAnimation == name"
                 @slider-update="sliderUpdate"
                 @keyframes-update="keyframesUpdate"
                 :animation="animation"
@@ -88,15 +88,14 @@ import AnimationControls from "./AnimationControls.vue";
 import Button from "@components/ui/button/Button.vue";
 
 import { useStorage } from "@vueuse/core";
+import { getStoredAnimationGroupControlOptions } from "./animationStores";
 
-const controlsStore = useStorage("controls-store", {
-    selectedControl: "controls",
-    selectedAnimation: "",
-});
-
-const { animations } = defineProps<{
+const { animations, superKey } = defineProps<{
     animations: { [key: string]: Animation<any> };
+    superKey?: string;
 }>();
+
+const storedControls = getStoredAnimationGroupControlOptions(superKey);
 
 const emit = defineEmits<{
     (e: "selectedAnimation", val: string): void;
