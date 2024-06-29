@@ -7,10 +7,9 @@
 
 <script setup lang="ts">
 import { onMounted } from "vue";
-import { $ref } from "unplugin-vue-macros/macros";
-import { CSSKeyframesAnimation, Keyframes } from "../../src/animation";
+import { CSSKeyframesAnimation, Keyframes } from "@src/animation";
 import { AnimationControls } from "@components/custom/animation-controls";
-import "../style.scss";
+import "../styles/style.scss";
 
 const box = $ref<HTMLElement>();
 

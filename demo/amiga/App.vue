@@ -10,11 +10,11 @@ import { onMounted } from "vue";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
-import { CSSKeyframesAnimation } from "../../src/animation";
-import { CSSBezier } from "../../src/easing";
+import { CSSKeyframesAnimation } from "@src/animation";
+import { CSSBezier } from "@src/easing";
 import { AnimationControlsGroup } from "@components/custom/animation-controls/";
 
-import "../style.scss";
+import "../styles/style.scss";
 import { MeshLambertMaterial } from "three";
 
 let canvas = $ref(null);
