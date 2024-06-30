@@ -436,6 +436,15 @@ export const CSSAnimationKeyframes = P.createLanguage({
 export const parseCSSKeyframes = (input: string): Record<string, any> =>
     CSSKeyframes.Keyframes.tryParse(input);
 
+export const parseCSSAnimationKeyframes = (input: string) => {
+    const { options, values, keyframes } = CSSAnimationKeyframes.Values.tryParse(input);
+    return {
+        options,
+        values,
+        keyframes,
+    };
+};
+
 export const parseCSSPercent = (input: string | number): number =>
     CSSKeyframes.Percent.tryParse(String(input));
 

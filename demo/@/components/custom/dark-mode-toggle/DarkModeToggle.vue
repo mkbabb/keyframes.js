@@ -20,19 +20,11 @@
 </template>
 
 <script setup>
-import { useDark, useToggle } from "@vueuse/core";
-import { Button } from "@components/ui/button";
+import { changeTheme } from ".";
 
 const { size } = defineProps({
     size: { type: String, default: "2rem" },
 });
-
-const isDark = useDark({ disableTransition: false });
-const toggleDark = useToggle(isDark);
-
-const changeTheme = () => {
-    toggleDark();
-};
 </script>
 
 <style scoped lang="scss">

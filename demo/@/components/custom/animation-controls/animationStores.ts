@@ -55,8 +55,6 @@ const animationGroupsOptionsStore = useStorage(
     {} as StoredAnimationGroupsOptions,
 );
 
-// animationGroupsOptionsStore.value = {};
-
 export const getAnimationSuperKey = (
     superKey: Animation<any> | string | undefined,
     animation: Animation<any> | string | undefined = undefined,
@@ -112,6 +110,7 @@ export const createAnimationUUId = (
 export type StoredAnimationGroupControlOptions = {
     selectedControl: string;
     selectedAnimation: string;
+    selectedKeyframesControl: string;
 };
 
 export type StoredAnimationGroupsControlOptions = {
@@ -120,6 +119,7 @@ export type StoredAnimationGroupsControlOptions = {
 
 const defaultStoredAnimationGroupControlOptions = {
     selectedControl: "controls",
+    selectedKeyframesControl: "keyframes",
     selectedAnimation: "",
 };
 
@@ -141,3 +141,10 @@ export const getStoredAnimationGroupControlOptions = (
 
     return animationGroupsControlOptionsStore.value[superKey];
 };
+
+export const resetAllStores = () => {
+    animationGroupsOptionsStore.value = {};
+    animationGroupsControlOptionsStore.value = {};
+};
+
+// resetAllStores();

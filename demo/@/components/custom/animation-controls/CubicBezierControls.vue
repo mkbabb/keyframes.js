@@ -3,11 +3,11 @@
         <CardHeader class="grid gap-0">
             <CardTitle>cubic-bézier</CardTitle>
             <div
-                class="w-full h-4 m-0 p-0 mt-1 text-sm flex items-center italic justify-items-center gap-4"
+                class="w-full h-4 m-0 p-0 mt-1 text-xs flex items-center italic justify-items-center gap-2"
             >
                 {{ timingString.replace("cubic-bezier", "")
                 }}<CopyButton
-                    class="text-foreground bg-transparent hover:bg-transparent hover:scale-105"
+                    class="h-4 w-4 m-0 p-0 text-foreground bg-transparent hover:bg-transparent hover:scale-105"
                     :text="timingString"
                 />
             </div>

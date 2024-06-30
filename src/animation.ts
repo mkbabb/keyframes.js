@@ -136,7 +136,7 @@ export function parseTemplateFrame<V extends Vars>(
     };
 }
 
-type AnimationOptions = {
+export type AnimationOptions = {
     duration: number;
     delay: number;
     iterationCount: number;
@@ -174,26 +174,6 @@ const getTimingFunction = (
 
     return timingFunction;
 };
-
-// const normalizeFrameStartTime = (frame: TemplateAnimationFrame<any>, duration: number) => {
-//     let value = frame.start.value;
-
-//     if (frame.start.unit === "s") {
-//         value = (value / duration) * 100;
-//     }
-
-//     if (frame.start.unit === "ms") {
-//         frame.start.unit = "%";
-
-//         const nextTime = i > 0 ? this.templateFrames[i - 1].start.value : 0;
-
-//         const msValue =
-//             (nextTime * this.options.duration) / 100 + frame.start.value;
-//         const percent = (msValue / this.options.duration) * 100;
-
-//         frame.start.value = percent;
-//     }
-// }
 
 let nextId = 0;
 
@@ -244,8 +224,13 @@ export class Animation<V extends Vars> {
         transform?: TransformFunction<K>,
         timingFunction?: TimingFunction | TimingFunctionNames,
     ): Animation<K> {
-        start = typeof start === "number" ? String(start) + "%" : start;
-        start = start instanceof ValueUnit ? String(start) : start;
+        if (typeof start === "number") {
+            start = String(start) + "%";
+        } else if (typeof start === "string") {
+            start = start;
+        } else if (start instanceof ValueUnit) {
+            start = String(start);
+        }
 
         const parsedStart = CSSValueUnit.Value.tryParse(start)!;
 
@@ -262,6 +247,15 @@ export class Animation<V extends Vars> {
         this.frameId += 1;
 
         return this as unknown as Animation<K>;
+    }
+
+    updateFrom(other: Animation<V>) {
+        Object.keys(this).forEach((key) => {
+            if (other[key]) {
+                Object.assign(this[key], other[key]);
+            }
+        });
+        return this;
     }
 
     transformVars() {

@@ -36,15 +36,22 @@
                     </div>
                 </HoverCardContent>
             </HoverCard>
+
+            <!-- <CommandPalette
+                :super-key="superKey"
+                :animations="
+                    Object.values(animationGroup.animations).map((a) => a.animation)
+                "
+            ></CommandPalette> -->
         </div>
 
         <template v-if="!storedControls.selectedAnimation">
             <div
-                class="start-screen-text absolute flex items-center w-screen h-64 gap-2 left-4 top-0"
+                class="start-screen-text absolute grid items-center w-screen gap-0 left-4 top-32"
             >
-                <h1 class="font-bold text-7xl">
+                <h1 class="font-bold text-7xl m-0 p-0">
                     <span
-                        class="lift-down"
+                        class="fraunces lift-down"
                         v-for="(char, index) in startScreenText"
                         :key="index"
                         :style="{
@@ -66,6 +73,12 @@
                         {{ char }}
                     </span>
                 </h1>
+                <h2 class="fraunces italic font-light text-4xl w-full">
+                    from the list <List class="inline" ></List> below.
+                </h2>
+                <h2 class="fraunces italic font-light text-xl w-full opacity-50">
+                    or drag the cube!
+                </h2>
             </div>
         </template>
 
@@ -97,51 +110,51 @@
         <div
             class="menu-bar col-span-3 absolute bottom-0 p-4 m-0 w-screen h-[min-content] flex items-center justify-center"
         >
-            <Menubar>
+            <Menubar class="flex items-center gap-1 justify-items-center">
                 <MenubarMenu>
-                    <Select
-                        :model-value="storedControls.selectedAnimation"
-                        @update:model-value="
-                            (key) => {
-                                storedControls.selectedAnimation = key;
-                            }
-                        "
-                    >
-                        <SelectTrigger
-                            class="border-none rounded-none h-4 outline-none focus:outline-none"
-                        >
-                            <SelectValue class="text-ellipsis">{{
-                                storedControls.selectedAnimation
-                            }}</SelectValue>
-                            <SelectIcon v-if="!storedControls.selectedAnimation"
-                                ><List></List
-                            ></SelectIcon>
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectGroup>
-                                <SelectItem
-                                    v-for="key in Object.keys(
-                                        animationGroup.animations,
-                                    )"
-                                    :key="key"
-                                    :value="key"
-                                    >{{ key }}</SelectItem
-                                >
-                            </SelectGroup>
-                        </SelectContent>
-                    </Select>
-                </MenubarMenu>
+                    <div class="relative">
+                        <!-- <ArrowDown
+                            v-if="!storedControls.selectedAnimation"
+                            :class="'w-12 h-12 bottom-4 right-[20%] font-bold absolute p-0 m-0 cursor-pointer text-foreground animate-bounce ease-in-out-cubic duration-1000'"
+                        ></ArrowDown> -->
 
-                <MenubarMenu>
-                    <MenubarTrigger>
-                        <WandSparkles></WandSparkles>
-                    </MenubarTrigger>
+                        <Select
+                            class="p-0 m-0 cursor-pointer shadow-none"
+                            :model-value="storedControls.selectedAnimation"
+                            @update:model-value="
+                                (key) => {
+                                    storedControls.selectedAnimation = key;
+                                }
+                            "
+                        >
+                            <SelectTrigger class="border-none rounded-none h-4">
+                                <SelectIcon v-if="!storedControls.selectedAnimation"
+                                    ><List></List
+                                ></SelectIcon>
+                                <SelectValue class="text-ellipsis">{{
+                                    storedControls.selectedAnimation
+                                }}</SelectValue>
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectGroup>
+                                    <SelectItem
+                                        v-for="key in Object.keys(
+                                            animationGroup.animations,
+                                        )"
+                                        :key="key"
+                                        :value="key"
+                                        >{{ key }}</SelectItem
+                                    >
+                                </SelectGroup>
+                            </SelectContent>
+                        </Select>
+                    </div>
                 </MenubarMenu>
 
                 <MenubarMenu>
                     <MenubarTrigger>
                         <RotateCcw
-                            class="p-0 m-0 cursor-pointer"
+                            class="p-0 m-0 cursor-pointer hover:scale-105"
                             ref="resetSelectedAnimationEl"
                             @click="
                                 () => resetSelectedAnimation(resetSelectedAnimationEl)
@@ -151,7 +164,7 @@
 
                 <MenubarMenu>
                     <Button
-                        class="w-12 h-8 text-xl text-white cursor-pointer rainbow rounded-lg focus:bg-none"
+                        class="w-12 h-8 text-xl text-white cursor-pointer rainbow rounded-lg focus:bg-none hover:scale-105"
                         @click="toggleAnimationGroup"
                     >
                         <font-awesome-icon
@@ -171,6 +184,8 @@
 
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
+
+import CommandPalette from "@components/custom/CommandPalette.vue";
 
 import { DarkModeToggle } from "@components/custom/dark-mode-toggle";
 
@@ -194,7 +209,14 @@ import { Input } from "@components/ui/input";
 import { Label } from "@components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
 
-import { List, WandSparkles } from "lucide-vue-next";
+import {
+    ArrowBigDown,
+    ArrowDown,
+    List,
+    Pause,
+    Play,
+    WandSparkles,
+} from "lucide-vue-next";
 
 import {
     Select,
@@ -321,10 +343,6 @@ onMounted(() => {});
     );
 
     background: var(--gradient);
-
-    &:hover {
-        background: var(--gradient);
-    }
 }
 
 .lift-down {
@@ -356,6 +374,20 @@ onMounted(() => {});
     }
     50% {
         opacity: 1;
+    }
+}
+
+.remove-outline > *,
+* {
+    // remove all variations of all child outlines and borders, and focus states:
+    // outline: none !important;
+    // border: none !important;
+    box-shadow: none !important;
+
+    &:focus {
+        // outline: none !important;
+        // border: none !important;
+        box-shadow: none !important;
     }
 }
 

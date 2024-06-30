@@ -1,11 +1,15 @@
 <template>
     <Button
         v-bind="$attrs"
-        class="relative p-0 m-0 bg-transparent hover:bg-transparent hover:scale-105"
+        class="relative p-2 bg-transparent hover:bg-transparent hover:scale-105 rounded-md"
         @click="handleClick"
     >
-        <Clipboard class="clipboard" ref="clipboard" />
-        <ClipboardCheck class="clipboard opacity-0" ref="clipboardChecked" />
+        <Clipboard v-bind="$attrs" class="clipboard" ref="clipboard" />
+        <ClipboardCheck
+            v-bind="$attrs"
+            class="clipboard opacity-0"
+            ref="clipboardChecked"
+        />
     </Button>
 </template>
 

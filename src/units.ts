@@ -422,33 +422,35 @@ export function reverseTransformObject<T>(
     return original;
 }
 
+export function flattenReverseTransformedObject(
+    value: any,
+    parentKey: string = undefined,
+    acc: string = undefined,
+): string {
+    const flatValue = (() => {
+        if (isObject(value)) {
+            return Object.entries(value)
+                .map(([key, value]) => {
+                    return flattenReverseTransformedObject(value, key, acc);
+                })
+                .join(" ");
+        } else if (Array.isArray(value)) {
+            const v = value
+                .map((v) => flattenReverseTransformedObject(v, parentKey))
+                .join(", ");
+
+            return parentKey ? `${parentKey}(${v})` : v;
+        } else {
+            return value.toString();
+        }
+    })();
+
+    return acc ? `${acc} ${flatValue}` : flatValue;
+}
+
 export function transformTargetsStyle(t: number, vars: any, targets: HTMLElement[]) {
-    function flatten(
-        value: any,
-        parentKey: string = undefined,
-        acc: string = undefined,
-    ): string {
-        const flatValue = (() => {
-            if (isObject(value)) {
-                return Object.entries(value)
-                    .map(([key, value]) => {
-                        return flatten(value, key, acc);
-                    })
-                    .join(" ");
-            } else if (Array.isArray(value)) {
-                const v = value.map((v) => flatten(v, parentKey)).join(", ");
-
-                return parentKey ? `${parentKey}(${v})` : v;
-            } else {
-                return value.toString();
-            }
-        })();
-
-        return acc ? `${acc} ${flatValue}` : flatValue;
-    }
-
     const transformedVars = Object.entries(vars).reduce((acc, [key, value]) => {
-        const flatValue = flatten(value, key);
+        const flatValue = flattenReverseTransformedObject(value, key);
         acc[key] = flatValue;
         return acc;
     }, {});

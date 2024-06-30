@@ -24,7 +24,7 @@
                                 >
                                     <Input
                                         :class="
-                                            'absolute top-0 left-0 w-full h-full p-1 text-center text-ellipsis bold text-lg bg-transparent z-10 ' +
+                                            'absolute top-0 left-0 w-full h-full p-1 text-center text-ellipsis bold text-sm bg-transparent z-10 ' +
                                             [
                                                 selectedMatrixCell === i
                                                     ? 'focus:font-bold'
@@ -813,7 +813,8 @@ onMounted(() => {
     margin: 0;
     padding: 0;
     transform-style: preserve-3d;
-    opacity: 0.75;
+    opacity: 0.5;
+
     z-index: -10;
     position: absolute;
 
@@ -837,8 +838,6 @@ onMounted(() => {
 
     height: calc(var(--side-size) * 2);
     aspect-ratio: 1 / 1;
-
-    border: 1px solid red;
 
     display: flex;
     align-items: center;
