@@ -195,7 +195,7 @@ var parsimmon_umd_min = { exports: {} };
           return c.concat([i(d, h, p)]);
         }, [], l);
       }
-      function I(i, l) {
+      function F(i, l) {
         var c = { v: 0, buf: l };
         return g(i, function() {
           var d;
@@ -230,7 +230,7 @@ var parsimmon_umd_min = { exports: {} };
         return new o(function(p, m) {
           var b = d + m;
           return b > p.length ? M(m, d.toString() + " bytes") : C(b, w(function(v, T) {
-            var E = I(T, v.buf);
+            var E = F(T, v.buf);
             return { coll: v.coll.concat(E.v), buf: E.buf };
           }, { coll: [], buf: p.slice(m, b) }, i).coll);
         });
@@ -294,7 +294,7 @@ var parsimmon_umd_min = { exports: {} };
           for (var v = {}, T = 0; T < d.length; T++) v[d[T]] = !0;
           for (var E = 0; E < h.length; E++) v[h[E]] = !0;
           var j = [];
-          for (var F in v) ({}).hasOwnProperty.call(v, F) && j.push(F);
+          for (var I in v) ({}).hasOwnProperty.call(v, I) && j.push(I);
           return j.sort(), j;
         }(i.expected, l.expected) : l.expected;
         return { status: i.status, index: i.index, value: i.value, furthest: l.furthest, expected: c };
@@ -345,7 +345,7 @@ var parsimmon_umd_min = { exports: {} };
         var c, d, h, p, m, b = l.index, v = b.offset, T = 1;
         if (v === i.length) return "Got the end of the input";
         if (re(i)) {
-          var E = v - v % N, j = v - E, F = Se(E, Re, je + N, i.length), L = k(function(B) {
+          var E = v - v % N, j = v - E, I = Se(E, Re, je + N, i.length), L = k(function(B) {
             return k(function(Y) {
               return de(Y.toString(16), 2, "0");
             }, B);
@@ -354,10 +354,10 @@ var parsimmon_umd_min = { exports: {} };
             if (Z <= Y) return [B.slice()];
             for (var te = 0; te < Z; te++) H[ee] || H.push([]), H[ee].push(B[te]), (te + 1) % Y == 0 && ee++;
             return H;
-          }(i.slice(F.from, F.to).toJSON().data, N));
+          }(i.slice(I.from, I.to).toJSON().data, N));
           p = function(B) {
             return B.from === 0 && B.to === 1 ? { from: B.from, to: B.to } : { from: B.from / N, to: Math.floor(B.to / N) };
-          }(F), d = E / N, c = 3 * j, j >= 4 && (c += 1), T = 2, h = k(function(B) {
+          }(I), d = E / N, c = 3 * j, j >= 4 && (c += 1), T = 2, h = k(function(B) {
             return B.length <= 4 ? B.join(" ") : B.slice(0, 4).join(" ") + "  " + B.slice(4).join(" ");
           }, L), (m = (8 * (p.to > 0 ? p.to - 1 : p.to)).toString(16).length) < 2 && (m = 2);
         } else {
@@ -629,8 +629,8 @@ var parsimmon_umd_min = { exports: {} };
       }), xe = o(function(i, l) {
         return l < i.length ? M(l, "EOF") : C(l, null);
       }), Ue = R(/[0-9]/).desc("a digit"), $e = R(/[0-9]*/).desc("optional digits"), qe = R(/[a-z]/i).desc("a letter"), He = R(/[a-z]*/i).desc("optional letters"), We = R(/\s*/).desc("optional whitespace"), _e = R(/\s+/).desc("whitespace"), Oe = ae("\r"), Me = ae(`
-`), Fe = ae(`\r
-`), Ie = pe(Fe, Me, Oe).desc("newline"), De = pe(Ie, xe);
+`), Ie = ae(`\r
+`), Fe = pe(Ie, Me, Oe).desc("newline"), De = pe(Fe, xe);
       o.all = ze, o.alt = pe, o.any = Ne, o.cr = Oe, o.createLanguage = function(i) {
         var l = {};
         for (var c in i) ({}).hasOwnProperty.call(i, c) && function(d) {
@@ -639,9 +639,9 @@ var parsimmon_umd_min = { exports: {} };
           });
         }(c);
         return l;
-      }, o.crlf = Fe, o.custom = function(i) {
+      }, o.crlf = Ie, o.custom = function(i) {
         return o(i(C, M));
-      }, o.digit = Ue, o.digits = $e, o.empty = ye, o.end = De, o.eof = xe, o.fail = me, o.formatError = Pe, o.index = oe, o.isParser = ne, o.lazy = Te, o.letter = qe, o.letters = He, o.lf = Me, o.lookahead = ge, o.makeFailure = M, o.makeSuccess = C, o.newline = Ie, o.noneOf = function(i) {
+      }, o.digit = Ue, o.digits = $e, o.empty = ye, o.end = De, o.eof = xe, o.fail = me, o.formatError = Pe, o.index = oe, o.isParser = ne, o.lazy = Te, o.letter = qe, o.letters = He, o.lf = Me, o.lookahead = ge, o.makeFailure = M, o.makeSuccess = C, o.newline = Fe, o.noneOf = function(i) {
         return be(function(l) {
           return i.indexOf(l) < 0;
         }).desc("none of '" + i + "'");
@@ -669,9 +669,9 @@ var parsimmon_umd_min = { exports: {} };
         }
         if (c === 0) throw new Error("seqObj expects at least one named parser, found zero");
         return o(function(v, T) {
-          for (var E, j = {}, F = 0; F < h; F += 1) {
+          for (var E, j = {}, I = 0; I < h; I += 1) {
             var L, X;
-            if (G(d[F]) ? (L = d[F][0], X = d[F][1]) : (L = null, X = d[F]), !(E = V(X._(v, T), E)).status) return E;
+            if (G(d[I]) ? (L = d[I][0], X = d[I][1]) : (L = null, X = d[I]), !(E = V(X._(v, T), E)).status) return E;
             L && (j[L] = E.value), T = E.index;
           }
           return V(C(T, j), E);
@@ -2330,7 +2330,7 @@ const reduceMathOperators = (e, t) => t.length === 0 ? e : t.reduce((a, [u, o]) 
   ).map(([w, k]) => k ? [w, ...k] : [w]), f = P.seq(
     o,
     e.comma.trim(e.ws).then(o.or(u)).many()
-  ).map(([w, k]) => [w, ...k].map((I) => new ValueArray(I)));
+  ).map(([w, k]) => [w, ...k].map((F) => new ValueArray(F)));
   return P.seq(
     t,
     P.seq(opt(a.skip(e.comma)), f).trim(e.ws).wrap(e.lparen, e.rparen).map(([w, k]) => w ? [w, ...k].flat() : [k])
@@ -2443,13 +2443,13 @@ function seekPreviousValue(e, t, n) {
       return a;
 }
 function parseTemplateFrame(e, t, n, a, u) {
-  const [o, f] = [t[e], t[e + 1]], [g, w] = [n[e], n[e + 1]], k = calcFrameTime(o, f, a), I = {}, W = [.../* @__PURE__ */ new Set([...Object.keys(g), ...Object.keys(w)])], z = (S, O, A) => ({
+  const [o, f] = [t[e], t[e + 1]], [g, w] = [n[e], n[e + 1]], k = calcFrameTime(o, f, a), F = {}, W = [.../* @__PURE__ */ new Set([...Object.keys(g), ...Object.keys(w)])], z = (S, O, A) => ({
     start: n[O][S],
     stop: n[A][S]
   });
   W.forEach((S) => {
     if (S in g && S in w)
-      I[S] = z(S, e, e + 1);
+      F[S] = z(S, e, e + 1);
     else if (!(S in g) && S in w) {
       const O = seekPreviousValue(e, n, (D) => S in D);
       if (O == null)
@@ -2470,7 +2470,7 @@ function parseTemplateFrame(e, t, n, a, u) {
   return {
     id: o.id,
     time: k,
-    interpVars: I,
+    interpVars: F,
     transform: _,
     timingFunction: o.timingFunction
   };
@@ -2551,7 +2551,7 @@ class Animation {
     return this.options.timingFunction = getTimingFunction(t) ?? easeInOutCubic, this;
   }
   updateIterationCount(t) {
-    return !t || t === "infinite" ? this.options.iterationCount = 1 / 0 : typeof t == "string" ? this.options.iterationCount = parseFloat(t) : this.options.iterationCount = t, this;
+    return !t || t === "infinite" || t === "∞" || t === "Infinity" ? this.options.iterationCount = 1 / 0 : typeof t == "string" ? this.options.iterationCount = parseFloat(t.trim()) : this.options.iterationCount = t, this;
   }
   updateDuration(t) {
     typeof t == "string" && (t = parseCSSTime(t));
@@ -2602,8 +2602,8 @@ class Animation {
       if (t < u || t > o)
         continue;
       const f = scale(t, u, o, 0, 1), g = a.timingFunction(f), w = {};
-      for (const [k, I] of Object.entries(a.interpVars)) {
-        const W = I.start.lerp(g, I.stop, this.target);
+      for (const [k, F] of Object.entries(a.interpVars)) {
+        const W = F.start.lerp(g, F.stop, this.target);
         reverseTransformObject(k, W, w);
       }
       a.transform(t, w);
@@ -2616,8 +2616,8 @@ class Animation {
       if (t < o || t > f)
         continue;
       const g = scale(t, o, f, 0, 1), w = u.timingFunction(g);
-      for (const [k, I] of Object.entries(u.interpVars))
-        n[k] = I.start.lerp(w, I.stop, this.target);
+      for (const [k, F] of Object.entries(u.interpVars))
+        n[k] = F.start.lerp(w, F.stop, this.target);
     }
   }
   async onStart() {
