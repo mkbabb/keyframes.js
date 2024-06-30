@@ -10,6 +10,34 @@
     font-family: "Fraunces", sans-serif;
 }
 
+.fira-code {
+    font-family: "Fira Code", monospace;
+}
+
+.depth-text {
+    position: relative;
+    display: inline-block;
+
+    --color-primary: hsla(var(--primary), 1);
+    --color-shadow: hsla(var(--shadow), 1);
+
+    color: var(--color-primary);
+
+    text-shadow:
+        1px 1px 0 var(--color-shadow),
+        2px 2px 0 var(--color-shadow),
+        3px 3px 0 var(--color-shadow),
+        4px 4px 0 var(--color-shadow),
+        5px 5px 0 var(--color-shadow),
+        5px 5px 1px rgba(0, 0, 0, 0.1),
+        1px 1px 3px rgba(0, 0, 0, 0.1),
+        2px 2px 2px rgba(0, 0, 0, 0.2),
+        3px 3px 3px rgba(0, 0, 0, 0.2),
+        4px 4px 5px rgba(0, 0, 0, 0.25),
+        5px 5px 6px rgba(0, 0, 0, 0.2),
+        6px 6px 10px rgba(0, 0, 0, 0.15);
+}
+
 .icon {
     --size: 1rem font-size: --size;
     width: --size;

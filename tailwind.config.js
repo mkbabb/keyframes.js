@@ -56,6 +56,9 @@ module.exports = {
                     DEFAULT: "hsl(var(--card))",
                     foreground: "hsl(var(--card-foreground))",
                 },
+                shadow: {
+                    DEFAULT: "hsl(var(--shadow))",
+                },
             },
             borderRadius: {
                 xl: "calc(var(--radius) + 4px)",

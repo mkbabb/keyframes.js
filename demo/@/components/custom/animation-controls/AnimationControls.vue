@@ -64,6 +64,7 @@
 
                             <Label>Iteration Count</Label>
                             <Input
+                                :class="!isFinite(animation.options.iterationCount) ? 'text-3xl' : ''"
                                 type="string"
                                 @change="
                                     (e) => {
@@ -77,7 +78,7 @@
                                 :model-value="
                                     isFinite(animation.options.iterationCount)
                                         ? animation.options.iterationCount
-                                        : 'infinite'
+                                        : '∞'
                                 "
                             />
 

@@ -305,10 +305,15 @@ export class Animation<V extends Vars> {
     }
 
     updateIterationCount(iterationCount: InputAnimationOptions["iterationCount"]) {
-        if (!iterationCount || iterationCount === "infinite") {
+        if (
+            !iterationCount ||
+            iterationCount === "infinite" ||
+            iterationCount === "∞" ||
+            iterationCount === "Infinity"
+        ) {
             this.options.iterationCount = Infinity;
         } else if (typeof iterationCount === "string") {
-            this.options.iterationCount = parseFloat(iterationCount);
+            this.options.iterationCount = parseFloat(iterationCount.trim());
         } else {
             this.options.iterationCount = iterationCount;
         }

@@ -19,6 +19,7 @@ declare class Animation_2<V extends Vars> {
     paused: boolean;
     constructor(options: Partial<InputAnimationOptions>, target?: HTMLElement | undefined, name?: string | undefined, superKey?: string | undefined);
     frame<K extends V>(start: number | string | ValueUnit<number>, vars: Partial<K>, transform?: TransformFunction<K>, timingFunction?: TimingFunction | TimingFunctionNames): Animation_2<K>;
+    updateFrom(other: Animation_2<V>): this;
     transformVars(): this;
     parseFrames(): this;
     updateTimingFunction(timingFunction: InputAnimationOptions["timingFunction"]): this;
@@ -57,7 +58,7 @@ declare interface AnimationFrame<V extends Vars> {
 }
 
 export declare class AnimationGroup<V> {
-    animationGroup: AnimationGroupObject<V>[];
+    animations: AnimationGroupObject<V>;
     transform: TransformFunction<V>;
     superKey: string | undefined;
     paused: boolean;
@@ -65,11 +66,14 @@ export declare class AnimationGroup<V> {
     done: boolean;
     singleTarget: boolean;
     constructor(...animations: Animation_2<V>[]);
+    fromObject(object: Record<string, Animation_2<V>>): AnimationGroup<V>;
     setSuperKey(superKey: string): this;
     reset(): this;
     onStart(): this;
     onEnd(): this;
     pause(): this;
+    forcePause(): void;
+    forcePlay(): void;
     playing(): boolean;
     transformFramesGrouped(t: number): {};
     tick(t: number): this;
@@ -78,11 +82,13 @@ export declare class AnimationGroup<V> {
 }
 
 export declare interface AnimationGroupObject<V> {
-    animation: Animation_2<V>;
-    values: Vars<ValueArray>;
+    [key: string]: {
+        animation: Animation_2<V>;
+        values: Vars<ValueArray>;
+    };
 }
 
-declare type AnimationOptions = {
+export declare type AnimationOptions = {
     duration: number;
     delay: number;
     iterationCount: number;
@@ -138,6 +144,8 @@ declare class FunctionValue<T = number> {
     toString(): string;
     lerp(t: number, other: FunctionValue<T> | ValueArray<T> | ValueUnit<T>, target?: HTMLElement): FunctionValue;
 }
+
+export declare const getAnimationId: (animation: Animation_2<any> | string) => string;
 
 export declare type InputAnimationOptions = {
     duration: number | string;

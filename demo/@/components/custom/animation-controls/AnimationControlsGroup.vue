@@ -6,7 +6,7 @@
             class="info-bar absolute top-0 right-0 p-2 flex flex-row-reverse gap-4 items-center z-[200]"
         >
             <DarkModeToggle class="dark-mode-toggle" />
-            <HoverCard>
+            <HoverCard :open-delay="0">
                 <HoverCardTrigger
                     ><Button class="p-0 m-0 cursor-pointer" variant="link"
                         >@mbabb</Button
@@ -62,7 +62,7 @@
                         {{ char }}
                     </span>
                     <span
-                        class="dot-fade"
+                        class="depth-text dot-fade"
                         v-for="(char, index) in ellipsisText"
                         :key="index"
                         :style="{
@@ -74,10 +74,11 @@
                     </span>
                 </h1>
                 <h2 class="fraunces italic font-light text-4xl w-full">
-                    from the list <List class="inline" ></List> below.
+                    from the list <List class="inline"></List> below.
                 </h2>
                 <h2 class="fraunces italic font-light text-xl w-full opacity-50">
-                    or drag the cube!
+                    or drag M. cubért
+                    <span class="not-italic leading-none text-start">🙂‍↔️</span>
                 </h2>
             </div>
         </template>
@@ -113,11 +114,6 @@
             <Menubar class="flex items-center gap-1 justify-items-center">
                 <MenubarMenu>
                     <div class="relative">
-                        <!-- <ArrowDown
-                            v-if="!storedControls.selectedAnimation"
-                            :class="'w-12 h-12 bottom-4 right-[20%] font-bold absolute p-0 m-0 cursor-pointer text-foreground animate-bounce ease-in-out-cubic duration-1000'"
-                        ></ArrowDown> -->
-
                         <Select
                             class="p-0 m-0 cursor-pointer shadow-none"
                             :model-value="storedControls.selectedAnimation"

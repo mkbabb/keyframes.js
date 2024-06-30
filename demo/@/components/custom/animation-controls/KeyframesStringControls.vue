@@ -55,9 +55,18 @@
                             </Input>
 
                             <div class="relative">
-                                <div class="italic absolute top-4 right-4 grid gap-2 justify-normal opacity-25 z-0 pointer-events-none">
-                                    <Label>Frame {{ i }}</Label>
-                                    <Label>Start {{ animation.templateFrames[i].start }}</Label>
+                                <div
+                                    class="italic absolute top-4 right-4 grid gap-1 justify-normal opacity-25 z-0 pointer-events-none"
+                                >
+                                    <Label
+                                        class="text-sm font-light leading-none fira-code"
+                                        >Frame {{ i }}</Label
+                                    >
+                                    <Label
+                                        class="text-sm font-light leading-none fira-code"
+                                        >Start
+                                        {{ animation.templateFrames[i].start }}</Label
+                                    >
                                 </div>
                                 <pre
                                     @input="
