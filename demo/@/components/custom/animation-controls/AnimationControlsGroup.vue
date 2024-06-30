@@ -1,8 +1,48 @@
 <template>
-    <div class="group grid grid-cols-1 gap-2 h-full w-full z-10">
+    <div
+        class="container grid h-screen w-full grid-cols-3 m-0 p-0 relative items-center overflow-hidden"
+    >
+        <div
+            class="info-bar absolute top-0 right-0 p-2 flex flex-row-reverse gap-4 items-center z-[200]"
+        >
+            <DarkModeToggle class="dark-mode-toggle" />
+            <HoverCard>
+                <HoverCardTrigger
+                    ><Button class="p-0 m-0 cursor-pointer" variant="link"
+                        >@mbabb</Button
+                    >
+                </HoverCardTrigger>
+                <HoverCardContent>
+                    <div class="flex gap-4">
+                        <Avatar>
+                            <AvatarImage
+                                src="https://avatars.githubusercontent.com/u/2848617?v=4"
+                            >
+                            </AvatarImage>
+                        </Avatar>
+                        <div>
+                            <h4 class="text-sm font-semibold hover:underline">
+                                <a href="https://github.com/mkbabb">@mbabb</a>
+                            </h4>
+                            <p>
+                                Check out the project on
+                                <a
+                                    class="font-bold hover:underline"
+                                    href="https://github.com/mkbabb/keyframes.js"
+                                    >GitHub</a
+                                >🎉
+                            </p>
+                        </div>
+                    </div>
+                </HoverCardContent>
+            </HoverCard>
+        </div>
+
         <template v-if="!storedControls.selectedAnimation">
-            <div class="left-4 flex gap-2 w-screen h-64 items-center absolute">
-                <h1 class="text-7xl font-bold">
+            <div
+                class="start-screen-text absolute flex items-center w-screen h-64 gap-2 left-4 top-0"
+            >
+                <h1 class="font-bold text-7xl">
                     <span
                         class="lift-down"
                         v-for="(char, index) in startScreenText"
@@ -29,50 +69,10 @@
             </div>
         </template>
 
-        <div class="flex gap-4 w-full h-full items-center">
-            <Label class="ml-2 text-center font-bold">Animation</Label>
-            <Select
-                class="rounded-none border-none"
-                :model-value="storedControls.selectedAnimation"
-                @update:model-value="
-                    (key) => {
-                        storedControls.selectedAnimation = key;
-                    }
-                "
-            >
-                <SelectTrigger>
-                    <SelectValue>{{ storedControls.selectedAnimation }}</SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectGroup>
-                        <SelectItem
-                            v-for="[key, value] in Object.entries(animations)"
-                            :key="key"
-                            :value="key"
-                        >
-                            {{ key }}
-                        </SelectItem>
-                    </SelectGroup>
-                </SelectContent>
-            </Select>
-
-            <Button
-                class="w-32 text-xl rainbow text-white cursor-pointer"
-                v-if="storedControls.selectedAnimation"
-                @click="toggleAnimationGroup"
-            >
-                <font-awesome-icon
-                    class="icon"
-                    :icon="
-                        animationGroup.playing() ? ['fas', 'pause'] : ['fas', 'play']
-                    "
-                />
-            </Button>
-        </div>
-
         <template v-for="[name, animation] in Object.entries(animations)">
             <AnimationControls
                 v-if="storedControls.selectedAnimation == name"
+                class="animation-controls col-span-1"
                 @slider-update="sliderUpdate"
                 @keyframes-update="keyframesUpdate"
                 :animation="animation"
@@ -87,6 +87,81 @@
                 </template>
             </AnimationControls>
         </template>
+
+        <div :class="storedControls.selectedAnimation ? 'col-span-2' : 'col-span-3'">
+            <slot name="animation-content"> </slot>
+        </div>
+
+        <div
+            class="menu-bar col-span-3 absolute bottom-0 p-4 m-0 w-screen h-[min-content] flex items-center justify-center"
+        >
+            <Menubar>
+                <MenubarMenu>
+                    <Select
+                        :model-value="storedControls.selectedAnimation"
+                        @update:model-value="
+                            (key) => {
+                                storedControls.selectedAnimation = key;
+                            }
+                        "
+                    >
+                        <SelectTrigger
+                            class="border-none rounded-none h-4 outline-none focus:outline-none"
+                        >
+                            <SelectValue class="text-ellipsis">{{
+                                storedControls.selectedAnimation
+                            }}</SelectValue>
+                            <SelectIcon v-if="!storedControls.selectedAnimation"
+                                ><List></List
+                            ></SelectIcon>
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectGroup>
+                                <SelectItem
+                                    v-for="[key, value] in Object.entries(animations)"
+                                    :key="key"
+                                    :value="key"
+                                    >{{ key }}</SelectItem
+                                >
+                            </SelectGroup>
+                        </SelectContent>
+                    </Select>
+                </MenubarMenu>
+
+                <MenubarMenu>
+                    <MenubarTrigger>
+                        <WandSparkles></WandSparkles>
+                    </MenubarTrigger>
+                </MenubarMenu>
+
+                <MenubarMenu>
+                    <MenubarTrigger>
+                        <RotateCcw
+                            class="p-0 m-0 cursor-pointer"
+                            ref="resetSelectedAnimationEl"
+                            @click="
+                                () => resetSelectedAnimation(resetSelectedAnimationEl)
+                            "
+                    /></MenubarTrigger>
+                </MenubarMenu>
+
+                <MenubarMenu>
+                    <Button
+                        class="w-12 h-8 text-xl text-white cursor-pointer rainbow rounded-lg focus:bg-none"
+                        @click="toggleAnimationGroup"
+                    >
+                        <font-awesome-icon
+                            class="icon"
+                            :icon="
+                                animationGroup.playing()
+                                    ? ['fas', 'pause']
+                                    : ['fas', 'play']
+                            "
+                        />
+                    </Button>
+                </MenubarMenu>
+            </Menubar>
+        </div>
     </div>
 </template>
 
@@ -97,17 +172,25 @@ import { DarkModeToggle } from "@components/custom/dark-mode-toggle";
 
 import {
     Menubar,
+    MenubarCheckboxItem,
     MenubarContent,
     MenubarItem,
     MenubarMenu,
+    MenubarRadioGroup,
+    MenubarRadioItem,
     MenubarSeparator,
     MenubarShortcut,
+    MenubarSub,
+    MenubarSubContent,
+    MenubarSubTrigger,
     MenubarTrigger,
 } from "@components/ui/menubar";
 
 import { Input } from "@components/ui/input";
 import { Label } from "@components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
+
+import { List, WandSparkles } from "lucide-vue-next";
 
 import {
     Select,
@@ -119,22 +202,34 @@ import {
     SelectValue,
 } from "@components/ui/select";
 
+import {
+    HoverCard,
+    HoverCardContent,
+    HoverCardTrigger,
+} from "@components/ui/hover-card";
+
+import { RotateCcw, Lock } from "lucide-vue-next";
+
 import { ArrowBigLeft, Clipboard, Loader2 } from "lucide-vue-next";
 
-import { Animation, AnimationGroup, Vars } from "@src/animation";
+import { Animation, AnimationGroup, CSSKeyframesAnimation, Vars } from "@src/animation";
 import AnimationControls from "./AnimationControls.vue";
 import Button from "@components/ui/button/Button.vue";
 
 import { useStorage } from "@vueuse/core";
 import { getStoredAnimationGroupControlOptions } from "./animationStores";
+import { SelectIcon } from "radix-vue";
 
 let startScreenText = $ref("Select an animation");
 startScreenText = startScreenText.replace(/ /g, "\u00a0");
 let ellipsisText = $ref("...");
 
-const { animations, superKey } = defineProps<{
-    animations: { [key: string]: Animation<any> };
+const { superKey } = defineProps<{
     superKey?: string;
+}>();
+
+const { animationGroup } = $defineModels<{
+    animationGroup: AnimationGroup<any>;
 }>();
 
 const storedControls = getStoredAnimationGroupControlOptions(superKey);
@@ -142,8 +237,6 @@ const storedControls = getStoredAnimationGroupControlOptions(superKey);
 const emit = defineEmits<{
     (e: "selectedAnimation", val: string): void;
 }>();
-
-const animationGroup = $ref(new AnimationGroup(...Object.values(animations)));
 
 const sliderUpdate = (e: { t: number; animationId: number }) => {
     const { t, animationId } = e;
@@ -184,6 +277,31 @@ const keyframesUpdate = (e: { animation: Animation<any> }) => {
     if (groupObject != null) {
         groupObject.values = {};
     }
+};
+
+const resetSelectedAnimationEl = $ref<HTMLElement>();
+
+const resetSelectedAnimation = (target: HTMLElement) => {
+    new CSSKeyframesAnimation(
+        {
+            duration: 700,
+            timingFunction: "easeInBounce",
+        },
+        target,
+    )
+        .fromCSSKeyframes(
+            /*css*/ `@keyframes rotate {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}`,
+        )
+        .play();
+
+    storedControls.selectedAnimation = null;
 };
 
 onMounted(() => {});
@@ -240,6 +358,30 @@ onMounted(() => {});
     }
     50% {
         opacity: 1;
+    }
+}
+
+@media (max-width: 640px) {
+    .container {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr 1fr 1fr;
+        gap: 0;
+
+        height: 100%;
+        position: relative;
+    }
+
+    .animation-controls {
+        grid-row: span 1;
+        height: 50px;
+    }
+
+    .animation-content {
+        grid-row: 2;
+    }
+
+    .menu-bar {
+        position: sticky !important;
     }
 }
 </style>

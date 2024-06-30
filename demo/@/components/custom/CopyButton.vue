@@ -1,7 +1,7 @@
 <template>
     <Button
         v-bind="$attrs"
-        class="relative bg-transparent hover:bg-transparent hover:scale-105"
+        class="relative p-0 m-0 bg-transparent hover:bg-transparent hover:scale-105"
         @click="handleClick"
     >
         <Clipboard class="clipboard" ref="clipboard" />

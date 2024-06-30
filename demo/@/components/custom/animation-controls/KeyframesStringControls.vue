@@ -1,9 +1,9 @@
 <template>
-    <div class="relative h-full overflow-scroll">
+    <div class="relative h-full">
         <Card>
-            <CardContent class="m-0 p-0 mt-2 grid grid-cols-1 z-10">
+            <CardContent class="m-0 p-0 grid grid-cols-1 z-10">
                 <div
-                    class="absolute top-0 right-0 m-2 grid grid-cols-2 gap-4 items-center bg-foreground rounded-md opacity-75 hover:opacity-100"
+                    class="absolute top-0 right-0 m-2 pl-2 pr-2 grid grid-cols-2 gap-4 items-center bg-foreground rounded-md opacity-25 hover:opacity-100"
                 >
                     <CopyButton
                         class="cursor-pointer text-background relative bg-transparent hover:bg-transparent hover:scale-105"

@@ -1,51 +1,6 @@
 <template>
-    <div
-        ref="container"
-        class="container grid w-screen h-screen p-2 m-0 grid-cols-3 overflow-hidden items-center justify-center justify-items-center"
-    >
-        <div
-            class="absolute top-0 right-0 flex flex-row-reverse gap-4 items-center p-2 z-[100]"
-        >
-            <DarkModeToggle class="dark-mode-toggle" />
-            <RotateCcw
-                class="m-0 p-0 cursor-pointer"
-                ref="resetSelectedAnimationEl"
-                @click="() => resetSelectedAnimation(resetSelectedAnimationEl)"
-            />
-            <HoverCard>
-                <HoverCardTrigger
-                    ><Button class="cursor-pointer m-0 p-0" variant="link"
-                        >@mbabb</Button
-                    >
-                </HoverCardTrigger>
-                <HoverCardContent>
-                    <div class="flex gap-4">
-                        <Avatar>
-                            <AvatarImage
-                                src="https://avatars.githubusercontent.com/u/2848617?v=4"
-                            >
-                            </AvatarImage>
-                        </Avatar>
-                        <div>
-                            <h4 class="text-sm font-semibold hover:underline">
-                                <a href="https://github.com/mkbabb">@mbabb</a>
-                            </h4>
-                            <p>
-                                Check out the project on
-                                <a
-                                    class="font-bold hover:underline"
-                                    href="https://github.com/mkbabb/keyframes.js"
-                                    >GitHub</a
-                                >🎉
-                            </p>
-                        </div>
-                    </div>
-                </HoverCardContent>
-            </HoverCard>
-        </div>
-
+    <div ref="container" class="container">
         <AnimationControlsGroup
-            class="col-span-1"
             :animations="animations"
             :super-key="superKey"
             @selected-animation="(s) => (storedControls.selectedAnimation = s)"
@@ -57,7 +12,7 @@
             </template>
 
             <template #tabs-content>
-                <TabsContent value="matrix-controls" class="h-[75vh] overflow-scroll">
+                <TabsContent value="matrix-controls">
                     <Card>
                         <CardContent class="grid items-center justify-center gap-4 p-6">
                             <div
@@ -82,6 +37,9 @@
                                         @update:model-value="
                                             (v) => updateMatrixCell(v, i)
                                         "
+                                        :start="getSliderOptionsFromIx(i).bounds[0]"
+                                        :end="getSliderOptionsFromIx(i).bounds[1]"
+                                        :step="getSliderOptionsFromIx(i).step"
                                         @click="(e) => (selectedMatrixCell = i)"
                                     />
                                     <div
@@ -113,9 +71,13 @@
                                             value;
                                     }
                                 "
-                                :min="-200"
-                                :max="200"
-                                :step="1"
+                                :min="
+                                    getSliderOptionsFromIx(selectedMatrixCell).bounds[0]
+                                "
+                                :max="
+                                    getSliderOptionsFromIx(selectedMatrixCell).bounds[1]
+                                "
+                                :step="getSliderOptionsFromIx(selectedMatrixCell).step"
                                 class="w-full"
                             ></Slider>
 
@@ -134,42 +96,46 @@
                     </Card>
                 </TabsContent>
             </template>
-        </AnimationControlsGroup>
 
-        <div ref="graph" class="graph col-span-2">
-            <Loader2
-                v-if="!storedControls.selectedAnimation"
-                class="absolute w-48 h-48 animate-spin"
-            ></Loader2>
+            <template #animation-content>
+                <div ref="graph" class="graph">
+                    <Loader2
+                        v-if="!storedControls.selectedAnimation"
+                        class="absolute w-48 h-48 animate-spin"
+                    ></Loader2>
 
-            <div ref="cube" class="cube animation">
-                <div
-                    v-for="(side, index) in cubeSides"
-                    :key="index"
-                    :class="['cube-side', side.class]"
-                >
-                    {{ side.content }}
-                    <span
-                        :class="
-                            'rainbow-wrapper ' +
-                            (rotationAnim.animation.paused ||
-                            !storedControls.selectedAnimation
-                                ? 'opacity-100'
-                                : 'opacity-25')
-                        "
-                        :style="{
-                            animationDelay: `${Math.random() * 10}s`,
-                            animationDuration: `${Math.random() * 10}s`,
-                        }"
-                    >
-                    </span>
+                    <OrbitalDrag class="cube" @rotate="(v) => orbitalDrag('rotate', v)">
+                        <div ref="cube" class="cube">
+                            <div
+                                v-for="(side, index) in cubeSides"
+                                :key="index"
+                                :class="['cube-side', side.class]"
+                            >
+                                {{ side.content }}
+                                <span
+                                    :class="
+                                        'rainbow-wrapper ' +
+                                        (rotationAnim.animation.paused ||
+                                        !storedControls.selectedAnimation
+                                            ? 'opacity-100'
+                                            : 'opacity-25')
+                                    "
+                                    :style="{
+                                        animationDelay: `${Math.random() * 10}s`,
+                                        animationDuration: `${Math.random() * 10}s`,
+                                    }"
+                                >
+                                </span>
+                            </div>
+                        </div>
+                    </OrbitalDrag>
+
+                    <div class="axis-line x"></div>
+                    <div class="axis-line y"></div>
+                    <div class="axis-line z"></div>
                 </div>
-            </div>
-
-            <div class="axis-line x"></div>
-            <div class="axis-line y"></div>
-            <div class="axis-line z"></div>
-        </div>
+            </template>
+        </AnimationControlsGroup>
     </div>
 </template>
 
@@ -180,7 +146,8 @@ import { onMounted, watch } from "vue";
 // @ts-ignore
 import "@styles/utils.scss";
 
-// import good lucide vue icons for reset and fix buttons
+import OrbitalDrag from "@components/custom/orbital-drag/OrbitalDrag.vue";
+
 import { RotateCcw, Lock } from "lucide-vue-next";
 
 import { DarkModeToggle } from "@components/custom/dark-mode-toggle";
@@ -194,9 +161,13 @@ import { Avatar, AvatarImage } from "@components/ui/avatar";
 
 import { mat4 } from "gl-matrix";
 
-import { CSSKeyframesAnimation, InputAnimationOptions } from "@src/animation";
+import {
+    AnimationGroup,
+    CSSKeyframesAnimation,
+    InputAnimationOptions,
+} from "@src/animation";
 import { easeInBounce, linear, jumpTerms } from "@src/easing";
-import { FunctionValue, ValueUnit } from "@src/units";
+import { FunctionValue, ValueUnit, transformTargetsStyle } from "@src/units";
 
 import { AnimationControlsGroup } from "@components/custom/animation-controls";
 
@@ -243,6 +214,8 @@ import {
 
 import "@styles/style.scss";
 
+import { TransformState } from "@components/custom/orbital-drag";
+
 const matrixAxes = ["X", "Y", "Z", "W"];
 const sliderAxes = ["X", "Y", "Z"];
 
@@ -285,6 +258,7 @@ const transformSliderValues = {
 };
 
 const getAxisFromIx = (i: number) => matrixAxes[i % matrixAxes.length];
+
 const getTransformFromIx = (i: number) => {
     if (i === 12 || i === 13 || i === 14) {
         return "T";
@@ -295,6 +269,14 @@ const getTransformFromIx = (i: number) => {
     } else {
         return "";
     }
+};
+
+const getSliderOptionsFromIx = (i: number) => {
+    let transform = getTransformFromIx(i);
+    transform =
+        transform === "T" ? "translate" : transform === "S" ? "scale" : "rotate";
+
+    return transformSliderOptions[transform];
 };
 
 const matrix3dStart = new FunctionValue(
@@ -361,6 +343,20 @@ const animateUpdateMatrix = (
             value.value = matrix3d[i];
             syncTransformations(reset);
         });
+
+        if (matrixAnim.animation.playing()) {
+            return;
+        }
+
+        transformTargetsStyle(
+            0,
+            {
+                transform: {
+                    matrix3d: matrix3dEnd,
+                },
+            },
+            [cube],
+        );
     };
 
     new CSSKeyframesAnimation({
@@ -413,9 +409,20 @@ function updateTransformations() {
     syncTransformations();
 }
 
+const orbitalDrag = (category: string, value: TransformState["rotate"]) => {
+    const sliderValues = transformSliderValues[category];
+
+    sliderValues.X = value.x;
+    sliderValues.Y = value.y;
+    sliderValues.Z = value.z;
+
+    updateTransformations();
+};
+
 const resetMatrix = () => {
     const toMatrix = mat4.create();
     const fromMatrix = matrix3dEnd.values.map((value) => value.value) as mat4;
+
     animateUpdateMatrix(fromMatrix, toMatrix, true);
 };
 
@@ -667,31 +674,6 @@ const cube = $ref<HTMLElement>();
 const graph = $ref<HTMLElement>();
 const container = $ref<HTMLElement>();
 
-const resetSelectedAnimationEl = $ref<HTMLElement>();
-
-const resetSelectedAnimation = (target: HTMLElement) => {
-    new CSSKeyframesAnimation(
-        {
-            duration: 700,
-            timingFunction: "easeInBounce",
-        },
-        target,
-    )
-        .fromCSSKeyframes(
-            /*css*/ `@keyframes rotate {
-    0% {
-        transform: rotate(0deg);
-    }
-    100% {
-        transform: rotate(360deg);
-    }
-}`,
-        )
-        .play();
-
-    storedControls.selectedAnimation = null;
-};
-
 const changeGraphPerspectiveAnim = new CSSKeyframesAnimation({
     duration: 700,
     timingFunction: "easeInBounce",
@@ -708,6 +690,21 @@ const changeGraphPerspectiveAnim = new CSSKeyframesAnimation({
     },
 ]);
 
+const hoverMatrixGroup = new AnimationGroup(hoverAnim.animation, matrixAnim.animation);
+
+watch(
+    () => storedControls.selectedAnimation,
+    (selectedAnimation) => {
+        // if the selected animation is not matrix and the current control is matrix-controls, set it back to control:
+        if (
+            selectedAnimation !== "Matrix" &&
+            storedControls.selectedControl === "matrix-controls"
+        ) {
+            storedControls.selectedControl = "controls";
+        }
+    },
+);
+
 onMounted(() => {
     rotationAnim.addTargets(cube);
     matrixAnim.addTargets(cube);
@@ -715,12 +712,13 @@ onMounted(() => {
 
     changeGraphPerspectiveAnim.addTargets(graph);
 
-    const cubeSideEls = cube.querySelectorAll(".cube-side");
-
+    // const cubeSideEls = cube.querySelectorAll(".cube-side");
     // gradientAnim.addTargets(...cubeSideEls);
     // gradientAnim.play();
 
     changeGraphPerspectiveAnim.play();
+
+    // hoverMatrixGroup.play();
 
     hoverAnim.play();
 
@@ -739,6 +737,8 @@ onMounted(() => {
 }
 
 .graph {
+    // height: 100%;
+    // max-width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -795,9 +795,14 @@ onMounted(() => {
 }
 
 .cube {
-    --side-size: 200px;
+    --side-size: 25vh;
     --side-offset: calc(var(--side-size) / 2);
     --rotationX: 360deg;
+
+    height: calc(var(--side-size) * 2);
+    aspect-ratio: 1 / 1;
+
+    border: 1px solid red;
 
     display: flex;
     align-items: center;
