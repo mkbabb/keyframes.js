@@ -1,7 +1,7 @@
 <template>
     <div ref="container" class="container">
         <AnimationControlsGroup
-            :animations="animations"
+            :animation-group="animationGroup"
             :super-key="superKey"
             @selected-animation="(s) => (storedControls.selectedAnimation = s)"
         >
@@ -111,12 +111,13 @@
                                 :key="index"
                                 :class="['cube-side', side.class]"
                             >
-                                {{ side.content }}
+                                <span class="text-5xl font-bold z-[100]">{{
+                                    side.content
+                                }}</span>
                                 <span
                                     :class="
                                         'rainbow-wrapper ' +
-                                        (rotationAnim.animation.paused ||
-                                        !storedControls.selectedAnimation
+                                        (!animationGroup.playing()
                                             ? 'opacity-100'
                                             : 'opacity-25')
                                     "
@@ -654,11 +655,26 @@ const gradientAnim = $ref(
 gradientAnim.animation.name = "Gradient";
 gradientAnim.animation.superKey = superKey;
 
-const animations = {
-    Rotations: rotationAnim.animation,
-    Matrix: matrixAnim.animation,
-    Hover: hoverAnim.animation,
-    // Gradient: gradientAnim.animation,
+const animationGroup = $ref(
+    new AnimationGroup(
+        rotationAnim.animation,
+        matrixAnim.animation,
+        hoverAnim.animation,
+    ),
+);
+
+const createRandomMatrixRotationsAnimation = () => {
+    const transformFunc = (t, v) => {
+        // transformSliderValues.rotate.X += Math.random() * t;
+        // transformSliderValues.rotate.Y += Math.random() * t;
+        // transformSliderValues.rotate.Z += Math.random() * t;
+        // updateTransformations();
+    };
+
+    return new CSSKeyframesAnimation({
+        duration: 2000,
+        timingFunction: easeInBounce,
+    }).fromVars([{ v: 0 }, { v: 1 }], transformFunc);
 };
 
 const cubeSides = [
@@ -690,7 +706,13 @@ const changeGraphPerspectiveAnim = new CSSKeyframesAnimation({
     },
 ]);
 
-const hoverMatrixGroup = new AnimationGroup(hoverAnim.animation, matrixAnim.animation);
+const randomMatrixRotationsAnim = createRandomMatrixRotationsAnimation();
+
+const hoverMatrixGroup = new AnimationGroup(
+    hoverAnim.animation,
+    matrixAnim.animation,
+    randomMatrixRotationsAnim.animation,
+);
 
 watch(
     () => storedControls.selectedAnimation,
@@ -705,6 +727,19 @@ watch(
     },
 );
 
+watch(
+    () => animationGroup.playing(),
+    (playing) => {
+        if (!playing) {
+            hoverMatrixGroup.forcePlay();
+            hoverMatrixGroup.play();
+        } else {
+            hoverMatrixGroup.forcePlay();
+            hoverMatrixGroup.paused = true;
+        }
+    },
+);
+
 onMounted(() => {
     rotationAnim.addTargets(cube);
     matrixAnim.addTargets(cube);
@@ -712,15 +747,15 @@ onMounted(() => {
 
     changeGraphPerspectiveAnim.addTargets(graph);
 
-    // const cubeSideEls = cube.querySelectorAll(".cube-side");
-    // gradientAnim.addTargets(...cubeSideEls);
+    const cubeSideEls = cube.querySelectorAll(".cube-side");
+    gradientAnim.addTargets(...(cubeSideEls as any));
     // gradientAnim.play();
 
     changeGraphPerspectiveAnim.play();
 
-    // hoverMatrixGroup.play();
+    hoverMatrixGroup.play();
 
-    hoverAnim.play();
+    // hoverAnim.play();
 
     const encodedSVG = encodeURIComponent(`
     <svg class="tmp" xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2 2'>
@@ -779,6 +814,7 @@ onMounted(() => {
     padding: 0;
     transform-style: preserve-3d;
     opacity: 0.75;
+    z-index: -10;
     position: absolute;
 
     &.x {

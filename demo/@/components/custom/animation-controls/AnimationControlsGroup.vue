@@ -69,13 +69,15 @@
             </div>
         </template>
 
-        <template v-for="[name, animation] in Object.entries(animations)">
+        <template
+            v-for="[name, groupObject] in Object.entries(animationGroup.animations)"
+        >
             <AnimationControls
                 v-if="storedControls.selectedAnimation == name"
                 class="animation-controls col-span-1"
                 @slider-update="sliderUpdate"
                 @keyframes-update="keyframesUpdate"
-                :animation="animation"
+                :animation="groupObject.animation"
                 :is-grouped="true"
             >
                 <template #tabs-trigger>
@@ -118,7 +120,9 @@
                         <SelectContent>
                             <SelectGroup>
                                 <SelectItem
-                                    v-for="[key, value] in Object.entries(animations)"
+                                    v-for="key in Object.keys(
+                                        animationGroup.animations,
+                                    )"
                                     :key="key"
                                     :value="key"
                                     >{{ key }}</SelectItem
@@ -216,7 +220,6 @@ import { Animation, AnimationGroup, CSSKeyframesAnimation, Vars } from "@src/ani
 import AnimationControls from "./AnimationControls.vue";
 import Button from "@components/ui/button/Button.vue";
 
-import { useStorage } from "@vueuse/core";
 import { getStoredAnimationGroupControlOptions } from "./animationStores";
 import { SelectIcon } from "radix-vue";
 
@@ -224,12 +227,9 @@ let startScreenText = $ref("Select an animation");
 startScreenText = startScreenText.replace(/ /g, "\u00a0");
 let ellipsisText = $ref("...");
 
-const { superKey } = defineProps<{
-    superKey?: string;
-}>();
-
-const { animationGroup } = $defineModels<{
+const { superKey, animationGroup } = defineProps<{
     animationGroup: AnimationGroup<any>;
+    superKey?: string;
 }>();
 
 const storedControls = getStoredAnimationGroupControlOptions(superKey);
@@ -238,26 +238,27 @@ const emit = defineEmits<{
     (e: "selectedAnimation", val: string): void;
 }>();
 
-const sliderUpdate = (e: { t: number; animationId: number }) => {
-    const { t, animationId } = e;
-
-    const groupObject = animationGroup.animationGroup.find(
-        (a) => a.animation.id == animationId,
+const findAnimationGroupObject = (animation: Animation<any>) => {
+    return Object.values(animationGroup.animations).find(
+        (a) => a.animation.id == animation.id,
     );
+};
 
-    const { animation } = groupObject;
+const sliderUpdate = ({ t, animation }) => {
+    const groupObject = findAnimationGroupObject(animation);
 
-    const paused = animation.paused;
-    const prevT = animation.t;
+    const groupAnimation = groupObject.animation;
 
-    animation.paused = false;
-    animation.t = t;
+    const paused = groupAnimation.paused;
+    const prevT = groupAnimation.t;
 
-    // @ts-ignore
-    animationGroup.transformFrames(t);
+    groupAnimation.paused = false;
+    groupAnimation.t = t;
 
-    animation.paused = paused;
-    animation.t = prevT;
+    animationGroup.transformFramesGrouped(t);
+
+    groupAnimation.paused = paused;
+    groupAnimation.t = prevT;
 };
 
 const toggleAnimationGroup = () => {
@@ -269,11 +270,7 @@ const toggleAnimationGroup = () => {
 };
 
 const keyframesUpdate = (e: { animation: Animation<any> }) => {
-    // Clear out the previous values
-    const groupObject = animationGroup.animationGroup.find(
-        (a) => a.animation.id == e.animation.id,
-    );
-
+    const groupObject = findAnimationGroupObject(e.animation);
     if (groupObject != null) {
         groupObject.values = {};
     }
@@ -302,6 +299,7 @@ const resetSelectedAnimation = (target: HTMLElement) => {
         .play();
 
     storedControls.selectedAnimation = null;
+    animationGroup.reset();
 };
 
 onMounted(() => {});

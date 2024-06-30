@@ -77,6 +77,8 @@ const group = new AnimationGroup(
     clipboardCheckedAnim.animation,
 );
 
+group.singleTarget = false;
+
 const handleClick = () => {
     copyToClipboard(text);
 

@@ -3,7 +3,7 @@
         <Card>
             <CardContent class="m-0 p-0 grid grid-cols-1 z-10">
                 <div
-                    class="absolute top-0 right-0 m-2 pl-2 pr-2 grid grid-cols-2 gap-4 items-center bg-foreground rounded-md opacity-25 hover:opacity-100"
+                    class="absolute top-0 right-0 m-2 p-2 grid grid-rows-2 items-center bg-foreground rounded-md opacity-50 hover:opacity-100"
                 >
                     <CopyButton
                         class="cursor-pointer text-background relative bg-transparent hover:bg-transparent hover:scale-105"
@@ -102,8 +102,11 @@ let CSSKeyframesStringEl = $ref(null);
 let cssKeyframesString = $ref("");
 
 const updateCSSKeyframesString = async (keyframes?: string) => {
-    const s =
-        keyframes ?? (await CSSKeyframesToString(animation, keyframesStyleId, 45));
+    const animationName = keyframesStyleId
+        .replace("keyframes-style-", "")
+        .toLowerCase();
+
+    const s = keyframes ?? (await CSSKeyframesToString(animation, animationName, 45));
 
     cssKeyframesString = s;
 

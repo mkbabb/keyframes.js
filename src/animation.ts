@@ -543,6 +543,12 @@ export class Animation<V extends Vars> {
     }
 }
 
+export const getAnimationId = (animation: Animation<any> | string): string => {
+    if (typeof animation === "string") return animation;
+
+    return animation.name ?? String(animation.id);
+};
+
 export type Keyframes<V> = Array<
     [number | string, Partial<V>, TransformFunction<V>?, TimingFunction?]
 >;
@@ -655,12 +661,14 @@ export class CSSKeyframesAnimation<V extends Vars> {
 }
 
 export interface AnimationGroupObject<V> {
-    animation: Animation<V>;
-    values: Vars<ValueArray>;
+    [key: string]: {
+        animation: Animation<V>;
+        values: Vars<ValueArray>;
+    };
 }
 
 export class AnimationGroup<V> {
-    animationGroup: AnimationGroupObject<V>[] = [];
+    animations: AnimationGroupObject<V> = {};
     transform: TransformFunction<V>;
 
     superKey: string | undefined;
@@ -668,29 +676,47 @@ export class AnimationGroup<V> {
     paused = false;
     started = false;
     done = false;
-    singleTarget = false;
+
+    singleTarget = true;
 
     constructor(...animations: Animation<V>[]) {
-        this.transform = animations[0].frames[0].transform;
-
         for (const animation of animations) {
-            this.animationGroup.push({
+            this.transform ??= animation.frames[0].transform;
+
+            const name = getAnimationId(animation);
+
+            this.animations[name] = {
                 values: {},
                 animation,
-            });
+            };
         }
+    }
+
+    fromObject(object: Record<string, Animation<V>>) {
+        const g = new AnimationGroup<V>();
+
+        for (const [name, animation] of Object.entries(object)) {
+            g.transform ??= animation.frames[0].transform;
+
+            g.animations[name] = {
+                values: {},
+                animation,
+            };
+        }
+
+        return g;
     }
 
     setSuperKey(superKey: string) {
         this.superKey = superKey;
-        this.animationGroup.forEach((groupObject) => {
+        Object.values(this.animations).forEach((groupObject) => {
             groupObject.animation.superKey = superKey;
         });
         return this;
     }
 
     reset() {
-        this.animationGroup.forEach((groupObject) => {
+        Object.values(this.animations).forEach((groupObject) => {
             groupObject.animation.reset();
         });
 
@@ -716,7 +742,7 @@ export class AnimationGroup<V> {
 
         if (this.started) {
             this.paused = !this.paused;
-            this.animationGroup.forEach((groupObject) => {
+            Object.values(this.animations).forEach((groupObject) => {
                 groupObject.animation.pause(false);
             });
         }
@@ -727,6 +753,20 @@ export class AnimationGroup<V> {
         return this;
     }
 
+    forcePause() {
+        this.paused = true;
+        Object.values(this.animations).forEach((groupObject) => {
+            groupObject.animation.paused = true;
+        });
+    }
+
+    forcePlay() {
+        this.paused = false;
+        Object.values(this.animations).forEach((groupObject) => {
+            groupObject.animation.paused = false;
+        });
+    }
+
     playing() {
         return !(!this.started || this.paused);
     }
@@ -735,7 +775,7 @@ export class AnimationGroup<V> {
         let groupedValues: Vars<ValueArray> = {};
 
         let done = true;
-        for (const groupObject of this.animationGroup) {
+        for (const groupObject of Object.values(this.animations)) {
             const { animation, values } = groupObject;
 
             done = done && animation.done;
@@ -764,14 +804,14 @@ export class AnimationGroup<V> {
             this.onStart();
         }
 
-        for (const groupObject of this.animationGroup) {
+        Object.values(this.animations).forEach((groupObject) => {
             if (
                 !groupObject.animation.paused ||
                 groupObject.animation.pausedTime === 0
             ) {
                 groupObject.animation.tick(t);
             }
-        }
+        });
 
         if (this.done) {
             this.onEnd();
@@ -787,15 +827,10 @@ export class AnimationGroup<V> {
             return;
         }
 
-        if (
-            this.animationGroup.every(
-                ({ animation }) =>
-                    animation.target === this.animationGroup[0].animation.target,
-            )
-        ) {
+        if (this.singleTarget) {
             this.transformFramesGrouped(t);
         } else {
-            this.done = this.animationGroup
+            this.done = Object.values(this.animations)
                 .map(({ animation }) => {
                     animation.transformFrames(animation.t);
                     return animation;

@@ -1,15 +1,16 @@
 <template>
-    <Card class="border-none m-0 p-0">
-        <CardHeader>
-            <CardTitle class="grid items-center">
-                <Button class="text-sm">
-                    {{ timingString }}
-                    <CopyButton
-                        class="text-background relative bg-transparent hover:bg-transparent hover:scale-105"
-                        :text="timingString"
-                    />
-                </Button>
-            </CardTitle>
+    <Card class="grid gap-2 w-full dark:border-none">
+        <CardHeader class="grid gap-0">
+            <CardTitle>cubic-bézier</CardTitle>
+            <div
+                class="w-full h-4 m-0 p-0 mt-1 text-sm flex items-center italic justify-items-center gap-4"
+            >
+                {{ timingString.replace("cubic-bezier", "")
+                }}<CopyButton
+                    class="text-foreground bg-transparent hover:bg-transparent hover:scale-105"
+                    :text="timingString"
+                />
+            </div>
         </CardHeader>
         <CardContent>
             <svg
@@ -94,7 +95,7 @@ import {
 
 import { Label } from "@components/ui/label";
 import { CSSBezier, bezierPresets } from "@src/easing";
-import { svgCubicBezier } from "@src/math";
+import { cubicBezierToSVG, cubicBezierToString } from "@src/math";
 import { Animation, TimingFunction } from "@src/animation";
 
 import Button from "@components/ui/button/Button.vue";
@@ -102,10 +103,6 @@ import Button from "@components/ui/button/Button.vue";
 import CopyButton from "@components/custom/CopyButton.vue";
 import { useStorage } from "@vueuse/core";
 import { StoredAnimationOptions, getStoredAnimationOptions } from "./animationStores";
-
-const cubicBezierToString = (values: number[]) => {
-    return `cubic-bezier(${values.map((v) => v.toFixed(2)).join(", ")})`;
-};
 
 const { animation } = defineProps({
     animation: {
@@ -122,18 +119,20 @@ const emit = defineEmits<{
 
 let selectedPreset = $ref("ease");
 let timingValues = $ref(storedAnimationOptions.cubicBezierOptions.controlPoints);
-let timingString = computed(() => cubicBezierToString(timingValues));
+let timingString = computed(() =>
+    cubicBezierToString(...(timingValues as [number, number, number, number])),
+);
 
 let controlPoints = $ref([
-    { x: 0.01, y: 0 },
+    { x: 0, y: 0 },
     { x: timingValues[0], y: timingValues[1] },
     { x: timingValues[2], y: timingValues[3] },
-    { x: 0.97, y: 1 },
+    { x: 1, y: 1 },
 ]);
 
 let cubicBezierPath = computed(() => {
     let scaledValues = timingValues.map((v) => v);
-    return svgCubicBezier(...(scaledValues as [number, number, number, number]));
+    return cubicBezierToSVG(...(scaledValues as [number, number, number, number]));
 });
 
 let SVGEl = $ref<SVGSVGElement | null>(null);
@@ -219,7 +218,7 @@ onMounted(() => {
     --stroke-width: 0.1;
 
     --circle-color: hsl(var(--foreground));
-    --path-color: rgb(137, 20, 239);
+    --path-color: rgb(153, 50, 243);
 
     circle {
         r: calc(var(--stroke-width) / 2);

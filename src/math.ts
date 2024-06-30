@@ -50,18 +50,25 @@ export function interpBezier(t: number, points: number[][]) {
     return [deCasteljau(t, x), deCasteljau(t, y)];
 }
 
-export function svgCubicBezier(x1: number, y1: number, x2: number, y2: number) {
+export function cubicBezierToSVG(x1: number, y1: number, x2: number, y2: number) {
     let path = `M${0} ${0}`;
+
     let points = `
     <circle cx="${x1}" cy="${y1}"/>
     <circle cx="${0}" cy="${0}"/>
     <circle cx="${x2}" cy="${y2}"/>
     <circle cx="${1}" cy="${1}"/>`;
 
-    for (let t = 0; t <= 1; t += 0.01) {
+    for (let t = 0; t <= 1; t += 0.001) {
         const [x, y] = cubicBezier(t, x1, y1, x2, y2);
         path += ` L${x} ${y}`;
     }
 
     return `<path d="${path}"/>`;
+}
+
+export function cubicBezierToString(x1: number, y1: number, x2: number, y2: number) {
+    const formatNumber = (n: number) => n.toFixed(2).replace(/\.0+$/, "");
+
+    return `cubic-bezier(${formatNumber(x1)}, ${formatNumber(y1)}, ${formatNumber(x2)}, ${formatNumber(y2)})`;
 }

@@ -1,4 +1,4 @@
-import { Animation, InputAnimationOptions } from "@src/animation";
+import { Animation, InputAnimationOptions, getAnimationId } from "@src/animation";
 import { jumpTerms } from "@src/easing";
 
 export type StoredAnimationOptions = {
@@ -55,13 +55,7 @@ const animationGroupsOptionsStore = useStorage(
     {} as StoredAnimationGroupsOptions,
 );
 
-animationGroupsOptionsStore.value = {};
-
-export const getAnimationId = (animation: Animation<any> | string): string => {
-    if (typeof animation === "string") return animation;
-
-    return animation.name ?? String(animation.id);
-};
+// animationGroupsOptionsStore.value = {};
 
 export const getAnimationSuperKey = (
     superKey: Animation<any> | string | undefined,
