@@ -64,6 +64,57 @@ function bounceInEaseHalf(e) {
     [1, 0]
   ])[1], e;
 }
+function bounceOutEase(e) {
+  return e = interpBezier(e, [
+    [0, 0],
+    [0.367, 0.94],
+    [0.974, 0.254],
+    [1, 0]
+  ])[1], e;
+}
+function bounceOutEaseHalf(e) {
+  return e = interpBezier(e, [
+    [0, 0],
+    [0.026, 1.746],
+    [0.633, 1.06],
+    [1, 0]
+  ])[1], e;
+}
+function bounceInOutEase(e) {
+  return e = interpBezier(e, [
+    [0, 0],
+    [0.026, 1.746],
+    [0.633, 1.06],
+    [1, 0]
+  ])[1], e;
+}
+function easeInSine(e) {
+  return 1 - Math.cos(e * Math.PI / 2);
+}
+function easeOutSine(e) {
+  return Math.sin(e * Math.PI / 2);
+}
+function easeInOutSine(e) {
+  return -(Math.cos(Math.PI * e) - 1) / 2;
+}
+function easeInCirc(e) {
+  return 1 - Math.sqrt(1 - e * e);
+}
+function easeOutCirc(e) {
+  return Math.sqrt(1 - --e * e);
+}
+function easeInOutCirc(e) {
+  return (e /= 0.5) < 1 ? -(Math.sqrt(1 - e * e) - 1) / 2 : (Math.sqrt(1 - (e -= 2) * e) + 1) / 2;
+}
+function easeInExpo(e) {
+  return e === 0 ? 0 : Math.pow(2, 10 * (e - 1));
+}
+function easeOutExpo(e) {
+  return e === 1 ? 1 : 1 - Math.pow(2, -10 * e);
+}
+function easeInOutExpo(e) {
+  return e === 0 ? 0 : e === 1 ? 1 : (e /= 0.5) < 1 ? 0.5 * Math.pow(2, 10 * (e - 1)) : 0.5 * (2 - Math.pow(2, -10 * --e));
+}
 function jumpStart(e, t) {
   return Math.floor(e * t) / t;
 }
@@ -129,6 +180,30 @@ const bezierPresets = {
   "bounce-in-ease": bounceInEase,
   bounceInEaseHalf,
   "bounce-in-ease-half": bounceInEaseHalf,
+  bounceOutEase,
+  "bounce-out-ease": bounceOutEase,
+  bounceOutEaseHalf,
+  "bounce-out-ease-half": bounceOutEaseHalf,
+  bounceInOutEase,
+  "bounce-in-out-ease": bounceInOutEase,
+  easeInSine,
+  "ease-in-sine": easeInSine,
+  easeOutSine,
+  "ease-out-sine": easeOutSine,
+  easeInOutSine,
+  "ease-in-out-sine": easeInOutSine,
+  easeInCirc,
+  "ease-in-circ": easeInCirc,
+  easeOutCirc,
+  "ease-out-circ": easeOutCirc,
+  easeInOutCirc,
+  "ease-in-out-circ": easeInOutCirc,
+  easeInExpo,
+  "ease-in-expo": easeInExpo,
+  easeOutExpo,
+  "ease-out-expo": easeOutExpo,
+  easeInOutExpo,
+  "ease-in-out-expo": easeInOutExpo,
   smoothStep3,
   "smooth-step-3": smoothStep3,
   ease: CSSBezier(...bezierPresets.ease),
@@ -182,27 +257,27 @@ var parsimmon_umd_min = { exports: {} };
         for (var c = 0; c < i; c++) l(c);
       }
       function w(i, l, c) {
-        return function(d, h) {
-          g(h.length, function(p) {
-            d(h[p], p, h);
+        return function(h, d) {
+          g(d.length, function(p) {
+            h(d[p], p, d);
           });
-        }(function(d, h, p) {
-          l = i(l, d, h, p);
+        }(function(h, d, p) {
+          l = i(l, h, d, p);
         }, c), l;
       }
       function k(i, l) {
-        return w(function(c, d, h, p) {
-          return c.concat([i(d, h, p)]);
+        return w(function(c, h, d, p) {
+          return c.concat([i(h, d, p)]);
         }, [], l);
       }
       function F(i, l) {
         var c = { v: 0, buf: l };
         return g(i, function() {
-          var d;
-          c = { v: c.v << 1 | (d = c.buf, d[0] >> 7), buf: function(h) {
-            var p = w(function(m, b, v, T) {
-              return m.concat(v === T.length - 1 ? Buffer.from([b, 0]).readUInt16BE(0) : T.readUInt16BE(v));
-            }, [], h);
+          var h;
+          c = { v: c.v << 1 | (h = c.buf, h[0] >> 7), buf: function(d) {
+            var p = w(function(m, b, v, O) {
+              return m.concat(v === O.length - 1 ? Buffer.from([b, 0]).readUInt16BE(0) : O.readUInt16BE(v));
+            }, [], d);
             return Buffer.from(k(function(m) {
               return (m << 1 & 65535) >> 8;
             }, p));
@@ -221,46 +296,46 @@ var parsimmon_umd_min = { exports: {} };
           return p + m;
         }, 0, i);
         if (l % 8 != 0) throw new Error("The bits [" + i.join(", ") + "] add up to " + l + " which is not an even number of bytes; the total should be divisible by 8");
-        var c, d = l / 8, h = (c = function(p) {
+        var c, h = l / 8, d = (c = function(p) {
           return p > 48;
         }, w(function(p, m) {
           return p || (c(m) ? m : p);
         }, null, i));
-        if (h) throw new Error(h + " bit range requested exceeds 48 bit (6 byte) Number max.");
+        if (d) throw new Error(d + " bit range requested exceeds 48 bit (6 byte) Number max.");
         return new o(function(p, m) {
-          var b = d + m;
-          return b > p.length ? M(m, d.toString() + " bytes") : C(b, w(function(v, T) {
-            var E = F(T, v.buf);
+          var b = h + m;
+          return b > p.length ? I(m, h.toString() + " bytes") : C(b, w(function(v, O) {
+            var E = F(O, v.buf);
             return { coll: v.coll.concat(E.v), buf: E.buf };
           }, { coll: [], buf: p.slice(m, b) }, i).coll);
         });
       }
       function S(i, l) {
-        return new o(function(c, d) {
-          return z(), d + l > c.length ? M(d, l + " bytes for " + i) : C(d + l, c.slice(d, d + l));
+        return new o(function(c, h) {
+          return z(), h + l > c.length ? I(h, l + " bytes for " + i) : C(h + l, c.slice(h, h + l));
         });
       }
-      function O(i, l) {
+      function T(i, l) {
         if (typeof (c = l) != "number" || Math.floor(c) !== c || l < 0 || l > 6) throw new Error(i + " requires integer length in range [0, 6].");
         var c;
       }
       function A(i) {
-        return O("uintBE", i), S("uintBE(" + i + ")", i).map(function(l) {
+        return T("uintBE", i), S("uintBE(" + i + ")", i).map(function(l) {
           return l.readUIntBE(0, i);
         });
       }
       function D(i) {
-        return O("uintLE", i), S("uintLE(" + i + ")", i).map(function(l) {
+        return T("uintLE", i), S("uintLE(" + i + ")", i).map(function(l) {
           return l.readUIntLE(0, i);
         });
       }
       function se(i) {
-        return O("intBE", i), S("intBE(" + i + ")", i).map(function(l) {
+        return T("intBE", i), S("intBE(" + i + ")", i).map(function(l) {
           return l.readIntBE(0, i);
         });
       }
       function le(i) {
-        return O("intLE", i), S("intLE(" + i + ")", i).map(function(l) {
+        return T("intLE", i), S("intLE(" + i + ")", i).map(function(l) {
           return l.readIntLE(0, i);
         });
       }
@@ -276,25 +351,25 @@ var parsimmon_umd_min = { exports: {} };
       function C(i, l) {
         return { status: !0, index: i, value: l, furthest: -1, expected: [] };
       }
-      function M(i, l) {
+      function I(i, l) {
         return G(l) || (l = [l]), { status: !1, index: -1, value: null, furthest: i, expected: l };
       }
       function V(i, l) {
         if (!l || i.furthest > l.furthest) return i;
-        var c = i.furthest === l.furthest ? function(d, h) {
+        var c = i.furthest === l.furthest ? function(h, d) {
           if (function() {
             if (o._supportsSet !== void 0) return o._supportsSet;
             var L = typeof Set < "u";
             return o._supportsSet = L, L;
           }() && Array.from) {
-            for (var p = new Set(d), m = 0; m < h.length; m++) p.add(h[m]);
+            for (var p = new Set(h), m = 0; m < d.length; m++) p.add(d[m]);
             var b = Array.from(p);
             return b.sort(), b;
           }
-          for (var v = {}, T = 0; T < d.length; T++) v[d[T]] = !0;
-          for (var E = 0; E < h.length; E++) v[h[E]] = !0;
+          for (var v = {}, O = 0; O < h.length; O++) v[h[O]] = !0;
+          for (var E = 0; E < d.length; E++) v[d[E]] = !0;
           var j = [];
-          for (var I in v) ({}).hasOwnProperty.call(v, I) && j.push(I);
+          for (var M in v) ({}).hasOwnProperty.call(v, M) && j.push(M);
           return j.sort(), j;
         }(i.expected, l.expected) : l.expected;
         return { status: i.status, index: i.index, value: i.value, furthest: l.furthest, expected: c };
@@ -303,16 +378,16 @@ var parsimmon_umd_min = { exports: {} };
       function ke(i, l) {
         if (re(i)) return { offset: l, line: -1, column: -1 };
         i in ue || (ue[i] = {});
-        for (var c = ue[i], d = 0, h = 0, p = 0, m = l; m >= 0; ) {
+        for (var c = ue[i], h = 0, d = 0, p = 0, m = l; m >= 0; ) {
           if (m in c) {
-            d = c[m].line, p === 0 && (p = c[m].lineStart);
+            h = c[m].line, p === 0 && (p = c[m].lineStart);
             break;
           }
           (i.charAt(m) === `
 ` || i.charAt(m) === "\r" && i.charAt(m + 1) !== `
-`) && (h++, p === 0 && (p = m + 1)), m--;
+`) && (d++, p === 0 && (p = m + 1)), m--;
         }
-        var b = d + h, v = l - p;
+        var b = h + d, v = l - p;
         return c[l] = { line: b, lineStart: p }, { offset: l, line: b + 1, column: v + 1 };
       }
       function Q(i) {
@@ -334,41 +409,41 @@ var parsimmon_umd_min = { exports: {} };
       function fe(i, l) {
         return new Array(l + 1).join(i);
       }
-      function de(i, l, c) {
-        var d = l - i.length;
-        return d <= 0 ? i : fe(c, d) + i;
+      function he(i, l, c) {
+        var h = l - i.length;
+        return h <= 0 ? i : fe(c, h) + i;
       }
-      function Se(i, l, c, d) {
-        return { from: i - l > 0 ? i - l : 0, to: i + c > d ? d : i + c };
+      function Se(i, l, c, h) {
+        return { from: i - l > 0 ? i - l : 0, to: i + c > h ? h : i + c };
       }
       function Le(i, l) {
-        var c, d, h, p, m, b = l.index, v = b.offset, T = 1;
+        var c, h, d, p, m, b = l.index, v = b.offset, O = 1;
         if (v === i.length) return "Got the end of the input";
         if (re(i)) {
-          var E = v - v % N, j = v - E, I = Se(E, Re, je + N, i.length), L = k(function(B) {
+          var E = v - v % N, j = v - E, M = Se(E, Re, je + N, i.length), L = k(function(B) {
             return k(function(Y) {
-              return de(Y.toString(16), 2, "0");
+              return he(Y.toString(16), 2, "0");
             }, B);
           }, function(B, Y) {
             var Z = B.length, H = [], ee = 0;
             if (Z <= Y) return [B.slice()];
             for (var te = 0; te < Z; te++) H[ee] || H.push([]), H[ee].push(B[te]), (te + 1) % Y == 0 && ee++;
             return H;
-          }(i.slice(I.from, I.to).toJSON().data, N));
+          }(i.slice(M.from, M.to).toJSON().data, N));
           p = function(B) {
             return B.from === 0 && B.to === 1 ? { from: B.from, to: B.to } : { from: B.from / N, to: Math.floor(B.to / N) };
-          }(I), d = E / N, c = 3 * j, j >= 4 && (c += 1), T = 2, h = k(function(B) {
+          }(M), h = E / N, c = 3 * j, j >= 4 && (c += 1), O = 2, d = k(function(B) {
             return B.length <= 4 ? B.join(" ") : B.slice(0, 4).join(" ") + "  " + B.slice(4).join(" ");
           }, L), (m = (8 * (p.to > 0 ? p.to - 1 : p.to)).toString(16).length) < 2 && (m = 2);
         } else {
           var X = i.split(/\r\n|[\n\r\u2028\u2029]/);
-          c = b.column - 1, d = b.line - 1, p = Se(d, Ve, Ae, X.length), h = X.slice(p.from, p.to), m = p.to.toString().length;
+          c = b.column - 1, h = b.line - 1, p = Se(h, Ve, Ae, X.length), d = X.slice(p.from, p.to), m = p.to.toString().length;
         }
-        var Ke = d - p.from;
+        var Ke = h - p.from;
         return re(i) && (m = (8 * (p.to > 0 ? p.to - 1 : p.to)).toString(16).length) < 2 && (m = 2), w(function(B, Y, Z) {
           var H, ee = Z === Ke, te = ee ? "> " : ve;
-          return H = re(i) ? de((8 * (p.from + Z)).toString(16), m, "0") : de((p.from + Z + 1).toString(), m, " "), [].concat(B, [te + H + " | " + Y], ee ? [ve + fe(" ", m) + " | " + de("", c, " ") + fe("^", T)] : []);
-        }, [], h).join(`
+          return H = re(i) ? he((8 * (p.from + Z)).toString(16), m, "0") : he((p.from + Z + 1).toString(), m, " "), [].concat(B, [te + H + " | " + Y], ee ? [ve + fe(" ", m) + " | " + he("", c, " ") + fe("^", O)] : []);
+        }, [], d).join(`
 `);
       }
       function Pe(i, l) {
@@ -388,21 +463,21 @@ var parsimmon_umd_min = { exports: {} };
       function Ce(i) {
         return i.flags !== void 0 ? i.flags : [i.global ? "g" : "", i.ignoreCase ? "i" : "", i.multiline ? "m" : "", i.unicode ? "u" : "", i.sticky ? "y" : ""].join("");
       }
-      function he() {
+      function de() {
         for (var i = [].slice.call(arguments), l = i.length, c = 0; c < l; c += 1) Q(i[c]);
-        return o(function(d, h) {
+        return o(function(h, d) {
           for (var p, m = new Array(l), b = 0; b < l; b += 1) {
-            if (!(p = V(i[b]._(d, h), p)).status) return p;
-            m[b] = p.value, h = p.index;
+            if (!(p = V(i[b]._(h, d), p)).status) return p;
+            m[b] = p.value, d = p.index;
           }
-          return V(C(h, m), p);
+          return V(C(d, m), p);
         });
       }
-      function $() {
+      function q() {
         var i = [].slice.call(arguments);
         if (i.length === 0) throw new Error("seqMap needs at least one argument");
         var l = i.pop();
-        return U(l), he.apply(null, i).map(function(c) {
+        return U(l), de.apply(null, i).map(function(c) {
           return l.apply(null, c);
         });
       }
@@ -410,64 +485,64 @@ var parsimmon_umd_min = { exports: {} };
         var i = [].slice.call(arguments), l = i.length;
         if (l === 0) return me("zero alternates");
         for (var c = 0; c < l; c += 1) Q(i[c]);
-        return o(function(d, h) {
-          for (var p, m = 0; m < i.length; m += 1) if ((p = V(i[m]._(d, h), p)).status) return p;
+        return o(function(h, d) {
+          for (var p, m = 0; m < i.length; m += 1) if ((p = V(i[m]._(h, d), p)).status) return p;
           return p;
         });
       }
       function Be(i, l) {
-        return we(i, l).or(q([]));
+        return we(i, l).or($([]));
       }
       function we(i, l) {
-        return Q(i), Q(l), $(i, l.then(i).many(), function(c, d) {
-          return [c].concat(d);
+        return Q(i), Q(l), q(i, l.then(i).many(), function(c, h) {
+          return [c].concat(h);
         });
       }
       function ae(i) {
         ie(i);
         var l = "'" + i + "'";
-        return o(function(c, d) {
-          var h = d + i.length, p = c.slice(d, h);
-          return p === i ? C(h, p) : M(d, l);
+        return o(function(c, h) {
+          var d = h + i.length, p = c.slice(h, d);
+          return p === i ? C(d, p) : I(h, l);
         });
       }
       function R(i, l) {
-        (function(h) {
-          if (!(h instanceof RegExp)) throw new Error("not a regexp: " + h);
-          for (var p = Ce(h), m = 0; m < p.length; m++) {
+        (function(d) {
+          if (!(d instanceof RegExp)) throw new Error("not a regexp: " + d);
+          for (var p = Ce(d), m = 0; m < p.length; m++) {
             var b = p.charAt(m);
-            if (b !== "i" && b !== "m" && b !== "u" && b !== "s") throw new Error('unsupported regexp flag "' + b + '": ' + h);
+            if (b !== "i" && b !== "m" && b !== "u" && b !== "s") throw new Error('unsupported regexp flag "' + b + '": ' + d);
           }
         })(i), arguments.length >= 2 ? J(l) : l = 0;
-        var c = function(h) {
-          return RegExp("^(?:" + h.source + ")", Ce(h));
-        }(i), d = "" + i;
-        return o(function(h, p) {
-          var m = c.exec(h.slice(p));
+        var c = function(d) {
+          return RegExp("^(?:" + d.source + ")", Ce(d));
+        }(i), h = "" + i;
+        return o(function(d, p) {
+          var m = c.exec(d.slice(p));
           if (m) {
             if (0 <= l && l <= m.length) {
               var b = m[0], v = m[l];
               return C(p + b.length, v);
             }
-            return M(p, "valid match group (0 to " + m.length + ") in " + d);
+            return I(p, "valid match group (0 to " + m.length + ") in " + h);
           }
-          return M(p, d);
+          return I(p, h);
         });
       }
-      function q(i) {
+      function $(i) {
         return o(function(l, c) {
           return C(c, i);
         });
       }
       function me(i) {
         return o(function(l, c) {
-          return M(c, i);
+          return I(c, i);
         });
       }
       function ge(i) {
         if (ne(i)) return o(function(l, c) {
-          var d = i._(l, c);
-          return d.index = c, d.value = "", d;
+          var h = i._(l, c);
+          return h.index = c, h.value = "", h;
         });
         if (typeof i == "string") return ge(ae(i));
         if (i instanceof RegExp) return ge(R(i));
@@ -475,20 +550,20 @@ var parsimmon_umd_min = { exports: {} };
       }
       function Ee(i) {
         return Q(i), o(function(l, c) {
-          var d = i._(l, c), h = l.slice(c, d.index);
-          return d.status ? M(c, 'not "' + h + '"') : C(c, null);
+          var h = i._(l, c), d = l.slice(c, h.index);
+          return h.status ? I(c, 'not "' + d + '"') : C(c, null);
         });
       }
       function be(i) {
         return U(i), o(function(l, c) {
-          var d = ce(l, c);
-          return c < l.length && i(d) ? C(c + 1, d) : M(c, "a character/byte matching " + i);
+          var h = ce(l, c);
+          return c < l.length && i(h) ? C(c + 1, h) : I(c, "a character/byte matching " + i);
         });
       }
-      function Te(i, l) {
+      function Oe(i, l) {
         arguments.length < 2 && (l = i, i = void 0);
-        var c = o(function(d, h) {
-          return c._ = l()._, c._(d, h);
+        var c = o(function(h, d) {
+          return c._ = l()._, c._(h, d);
         });
         return i ? c.desc(i) : c;
       }
@@ -502,42 +577,42 @@ var parsimmon_umd_min = { exports: {} };
       }, f.tryParse = function(i) {
         var l = this.parse(i);
         if (l.status) return l.value;
-        var c = Pe(i, l), d = new Error(c);
-        throw d.type = "ParsimmonError", d.result = l, d;
+        var c = Pe(i, l), h = new Error(c);
+        throw h.type = "ParsimmonError", h.result = l, h;
       }, f.assert = function(i, l) {
         return this.chain(function(c) {
-          return i(c) ? q(c) : me(l);
+          return i(c) ? $(c) : me(l);
         });
       }, f.or = function(i) {
         return pe(this, i);
       }, f.trim = function(i) {
         return this.wrap(i, i);
       }, f.wrap = function(i, l) {
-        return $(i, this, l, function(c, d) {
-          return d;
+        return q(i, this, l, function(c, h) {
+          return h;
         });
       }, f.thru = function(i) {
         return i(this);
       }, f.then = function(i) {
-        return Q(i), he(this, i).map(function(l) {
+        return Q(i), de(this, i).map(function(l) {
           return l[1];
         });
       }, f.many = function() {
         var i = this;
         return o(function(l, c) {
-          for (var d = [], h = void 0; ; ) {
-            if (!(h = V(i._(l, c), h)).status) return V(C(c, d), h);
-            if (c === h.index) throw new Error("infinite loop detected in .many() parser --- calling .many() on a parser which can accept zero characters is usually the cause");
-            c = h.index, d.push(h.value);
+          for (var h = [], d = void 0; ; ) {
+            if (!(d = V(i._(l, c), d)).status) return V(C(c, h), d);
+            if (c === d.index) throw new Error("infinite loop detected in .many() parser --- calling .many() on a parser which can accept zero characters is usually the cause");
+            c = d.index, h.push(d.value);
           }
         });
       }, f.tieWith = function(i) {
         return ie(i), this.map(function(l) {
-          if (function(h) {
-            if (!G(h)) throw new Error("not an array: " + h);
+          if (function(d) {
+            if (!G(d)) throw new Error("not an array: " + d);
           }(l), l.length) {
             ie(l[0]);
-            for (var c = l[0], d = 1; d < l.length; d++) ie(l[d]), c += i + l[d];
+            for (var c = l[0], h = 1; h < l.length; h++) ie(l[h]), c += i + l[h];
             return c;
           }
           return "";
@@ -546,13 +621,13 @@ var parsimmon_umd_min = { exports: {} };
         return this.tieWith("");
       }, f.times = function(i, l) {
         var c = this;
-        return arguments.length < 2 && (l = i), J(i), J(l), o(function(d, h) {
+        return arguments.length < 2 && (l = i), J(i), J(l), o(function(h, d) {
           for (var p = [], m = void 0, b = void 0, v = 0; v < i; v += 1) {
-            if (b = V(m = c._(d, h), b), !m.status) return b;
-            h = m.index, p.push(m.value);
+            if (b = V(m = c._(h, d), b), !m.status) return b;
+            d = m.index, p.push(m.value);
           }
-          for (; v < l && (b = V(m = c._(d, h), b), m.status); v += 1) h = m.index, p.push(m.value);
-          return V(C(h, p), b);
+          for (; v < l && (b = V(m = c._(h, d), b), m.status); v += 1) d = m.index, p.push(m.value);
+          return V(C(d, p), b);
         });
       }, f.result = function(i) {
         return this.map(function() {
@@ -561,36 +636,36 @@ var parsimmon_umd_min = { exports: {} };
       }, f.atMost = function(i) {
         return this.times(0, i);
       }, f.atLeast = function(i) {
-        return $(this.times(i), this.many(), function(l, c) {
+        return q(this.times(i), this.many(), function(l, c) {
           return l.concat(c);
         });
       }, f.map = function(i) {
         U(i);
         var l = this;
-        return o(function(c, d) {
-          var h = l._(c, d);
-          return h.status ? V(C(h.index, i(h.value)), h) : h;
+        return o(function(c, h) {
+          var d = l._(c, h);
+          return d.status ? V(C(d.index, i(d.value)), d) : d;
         });
       }, f.contramap = function(i) {
         U(i);
         var l = this;
-        return o(function(c, d) {
-          var h = l.parse(i(c.slice(d)));
-          return h.status ? C(d + c.length, h.value) : h;
+        return o(function(c, h) {
+          var d = l.parse(i(c.slice(h)));
+          return d.status ? C(h + c.length, d.value) : d;
         });
       }, f.promap = function(i, l) {
         return U(i), U(l), this.contramap(i).map(l);
       }, f.skip = function(i) {
-        return he(this, i).map(function(l) {
+        return de(this, i).map(function(l) {
           return l[0];
         });
       }, f.mark = function() {
-        return $(oe, this, oe, function(i, l, c) {
+        return q(oe, this, oe, function(i, l, c) {
           return { start: i, value: l, end: c };
         });
       }, f.node = function(i) {
-        return $(oe, this, oe, function(l, c, d) {
-          return { name: i, value: c, start: l, end: d };
+        return q(oe, this, oe, function(l, c, h) {
+          return { name: i, value: c, start: l, end: h };
         });
       }, f.sepBy = function(i) {
         return Be(this, i);
@@ -603,60 +678,60 @@ var parsimmon_umd_min = { exports: {} };
       }, f.desc = function(i) {
         G(i) || (i = [i]);
         var l = this;
-        return o(function(c, d) {
-          var h = l._(c, d);
-          return h.status || (h.expected = i), h;
+        return o(function(c, h) {
+          var d = l._(c, h);
+          return d.status || (d.expected = i), d;
         });
       }, f.fallback = function(i) {
-        return this.or(q(i));
+        return this.or($(i));
       }, f.ap = function(i) {
-        return $(i, this, function(l, c) {
+        return q(i, this, function(l, c) {
           return l(c);
         });
       }, f.chain = function(i) {
         var l = this;
-        return o(function(c, d) {
-          var h = l._(c, d);
-          return h.status ? V(i(h.value)._(c, h.index), h) : h;
+        return o(function(c, h) {
+          var d = l._(c, h);
+          return d.status ? V(i(d.value)._(c, d.index), d) : d;
         });
-      }, f.concat = f.or, f.empty = ye, f.of = q, f["fantasy-land/ap"] = f.ap, f["fantasy-land/chain"] = f.chain, f["fantasy-land/concat"] = f.concat, f["fantasy-land/empty"] = f.empty, f["fantasy-land/of"] = f.of, f["fantasy-land/map"] = f.map;
+      }, f.concat = f.or, f.empty = ye, f.of = $, f["fantasy-land/ap"] = f.ap, f["fantasy-land/chain"] = f.chain, f["fantasy-land/concat"] = f.concat, f["fantasy-land/empty"] = f.empty, f["fantasy-land/of"] = f.of, f["fantasy-land/map"] = f.map;
       var oe = o(function(i, l) {
         return C(l, ke(i, l));
       }), Ne = o(function(i, l) {
-        return l >= i.length ? M(l, "any character/byte") : C(l + 1, ce(i, l));
+        return l >= i.length ? I(l, "any character/byte") : C(l + 1, ce(i, l));
       }), ze = o(function(i, l) {
         return C(i.length, i.slice(l));
       }), xe = o(function(i, l) {
-        return l < i.length ? M(l, "EOF") : C(l, null);
-      }), Ue = R(/[0-9]/).desc("a digit"), $e = R(/[0-9]*/).desc("optional digits"), qe = R(/[a-z]/i).desc("a letter"), He = R(/[a-z]*/i).desc("optional letters"), We = R(/\s*/).desc("optional whitespace"), _e = R(/\s+/).desc("whitespace"), Oe = ae("\r"), Me = ae(`
-`), Ie = ae(`\r
-`), Fe = pe(Ie, Me, Oe).desc("newline"), De = pe(Fe, xe);
-      o.all = ze, o.alt = pe, o.any = Ne, o.cr = Oe, o.createLanguage = function(i) {
+        return l < i.length ? I(l, "EOF") : C(l, null);
+      }), Ue = R(/[0-9]/).desc("a digit"), qe = R(/[0-9]*/).desc("optional digits"), $e = R(/[a-z]/i).desc("a letter"), He = R(/[a-z]*/i).desc("optional letters"), We = R(/\s*/).desc("optional whitespace"), _e = R(/\s+/).desc("whitespace"), Te = ae("\r"), Ie = ae(`
+`), Me = ae(`\r
+`), Fe = pe(Me, Ie, Te).desc("newline"), De = pe(Fe, xe);
+      o.all = ze, o.alt = pe, o.any = Ne, o.cr = Te, o.createLanguage = function(i) {
         var l = {};
-        for (var c in i) ({}).hasOwnProperty.call(i, c) && function(d) {
-          l[d] = Te(function() {
-            return i[d](l);
+        for (var c in i) ({}).hasOwnProperty.call(i, c) && function(h) {
+          l[h] = Oe(function() {
+            return i[h](l);
           });
         }(c);
         return l;
-      }, o.crlf = Ie, o.custom = function(i) {
-        return o(i(C, M));
-      }, o.digit = Ue, o.digits = $e, o.empty = ye, o.end = De, o.eof = xe, o.fail = me, o.formatError = Pe, o.index = oe, o.isParser = ne, o.lazy = Te, o.letter = qe, o.letters = He, o.lf = Me, o.lookahead = ge, o.makeFailure = M, o.makeSuccess = C, o.newline = Fe, o.noneOf = function(i) {
+      }, o.crlf = Me, o.custom = function(i) {
+        return o(i(C, I));
+      }, o.digit = Ue, o.digits = qe, o.empty = ye, o.end = De, o.eof = xe, o.fail = me, o.formatError = Pe, o.index = oe, o.isParser = ne, o.lazy = Oe, o.letter = $e, o.letters = He, o.lf = Ie, o.lookahead = ge, o.makeFailure = I, o.makeSuccess = C, o.newline = Fe, o.noneOf = function(i) {
         return be(function(l) {
           return i.indexOf(l) < 0;
         }).desc("none of '" + i + "'");
-      }, o.notFollowedBy = Ee, o.of = q, o.oneOf = function(i) {
+      }, o.notFollowedBy = Ee, o.of = $, o.oneOf = function(i) {
         for (var l = i.split(""), c = 0; c < l.length; c++) l[c] = "'" + l[c] + "'";
-        return be(function(d) {
-          return i.indexOf(d) >= 0;
+        return be(function(h) {
+          return i.indexOf(h) >= 0;
         }).desc(l);
       }, o.optWhitespace = We, o.Parser = o, o.range = function(i, l) {
         return be(function(c) {
           return i <= c && c <= l;
         }).desc(i + "-" + l);
-      }, o.regex = R, o.regexp = R, o.sepBy = Be, o.sepBy1 = we, o.seq = he, o.seqMap = $, o.seqObj = function() {
-        for (var i, l = {}, c = 0, d = (i = arguments, Array.prototype.slice.call(i)), h = d.length, p = 0; p < h; p += 1) {
-          var m = d[p];
+      }, o.regex = R, o.regexp = R, o.sepBy = Be, o.sepBy1 = we, o.seq = de, o.seqMap = q, o.seqObj = function() {
+        for (var i, l = {}, c = 0, h = (i = arguments, Array.prototype.slice.call(i)), d = h.length, p = 0; p < d; p += 1) {
+          var m = h[p];
           if (!ne(m)) {
             if (G(m) && m.length === 2 && typeof m[0] == "string" && ne(m[1])) {
               var b = m[0];
@@ -668,22 +743,22 @@ var parsimmon_umd_min = { exports: {} };
           }
         }
         if (c === 0) throw new Error("seqObj expects at least one named parser, found zero");
-        return o(function(v, T) {
-          for (var E, j = {}, I = 0; I < h; I += 1) {
+        return o(function(v, O) {
+          for (var E, j = {}, M = 0; M < d; M += 1) {
             var L, X;
-            if (G(d[I]) ? (L = d[I][0], X = d[I][1]) : (L = null, X = d[I]), !(E = V(X._(v, T), E)).status) return E;
-            L && (j[L] = E.value), T = E.index;
+            if (G(h[M]) ? (L = h[M][0], X = h[M][1]) : (L = null, X = h[M]), !(E = V(X._(v, O), E)).status) return E;
+            L && (j[L] = E.value), O = E.index;
           }
-          return V(C(T, j), E);
+          return V(C(O, j), E);
         });
-      }, o.string = ae, o.succeed = q, o.takeWhile = function(i) {
+      }, o.string = ae, o.succeed = $, o.takeWhile = function(i) {
         return U(i), o(function(l, c) {
-          for (var d = c; d < l.length && i(ce(l, d)); ) d++;
-          return C(d, l.slice(c, d));
+          for (var h = c; h < l.length && i(ce(l, h)); ) h++;
+          return C(h, l.slice(c, h));
         });
-      }, o.test = be, o.whitespace = _e, o["fantasy-land/empty"] = ye, o["fantasy-land/of"] = q, o.Binary = { bitSeq: _, bitSeqObj: function(i) {
+      }, o.test = be, o.whitespace = _e, o["fantasy-land/empty"] = ye, o["fantasy-land/of"] = $, o.Binary = { bitSeq: _, bitSeqObj: function(i) {
         z();
-        var l = {}, c = 0, d = k(function(p) {
+        var l = {}, c = 0, h = k(function(p) {
           if (G(p)) {
             var m = p;
             if (m.length !== 2) throw new Error("[" + m.join(", ") + "] should be length 2, got length " + m.length);
@@ -693,24 +768,24 @@ var parsimmon_umd_min = { exports: {} };
           return J(p), [null, p];
         }, i);
         if (c < 1) throw new Error("bitSeqObj expects at least one named pair, got [" + i.join(", ") + "]");
-        var h = k(function(p) {
+        var d = k(function(p) {
           return p[0];
-        }, d);
+        }, h);
         return _(k(function(p) {
           return p[1];
-        }, d)).map(function(p) {
+        }, h)).map(function(p) {
           return w(function(m, b) {
             return b[0] !== null && (m[b[0]] = b[1]), m;
           }, {}, k(function(m, b) {
             return [m, p[b]];
-          }, h));
+          }, d));
         });
       }, byte: function(i) {
         if (z(), J(i), i > 255) throw new Error("Value specified to byte constructor (" + i + "=0x" + i.toString(16) + ") is larger in value than a single byte.");
         var l = (i > 15 ? "0x" : "0x0") + i.toString(16);
-        return o(function(c, d) {
-          var h = ce(c, d);
-          return h === i ? C(d + 1, h) : M(d, l);
+        return o(function(c, h) {
+          var d = ce(c, h);
+          return d === i ? C(h + 1, d) : I(h, l);
         });
       }, buffer: function(i) {
         return S("buffer", i).map(function(l) {
@@ -1794,8 +1869,7 @@ function convertToPixels(e, t, n, a) {
       getComputedStyle(n.parentElement).getPropertyValue(a)
     );
     e = e / 100 * u;
-  } else
-    e = convertAbsoluteUnitToPixels(e, t);
+  } else t === "ex" || t === "ch" ? e *= parseFloat(getComputedStyle(n).fontSize) : e = convertAbsoluteUnitToPixels(e, t);
   return e;
 }
 function convertToDegrees(e, t) {
@@ -1974,7 +2048,8 @@ function transformTargetsStyle(e, t, n) {
     return u[o] = g, u;
   }, {});
   n.forEach((u) => {
-    Object.assign(u.style, a);
+    for (const [o, f] of Object.entries(a))
+      u.style.setProperty(o, f);
   });
 }
 const colorNames = {
@@ -2419,7 +2494,7 @@ const reduceMathOperators = (e, t) => t.length === 0 ? e : t.reduce((a, [u, o]) 
 P.createLanguage({
   ws: () => P.optWhitespace,
   Value: (e) => P.alt(
-    CSSClass.Class,
+    CSSClass.Class.or(P.whitespace).map((t) => t),
     CSSKeyframes.Keyframes.map((t) => ({
       keyframes: t
     }))
@@ -2443,28 +2518,28 @@ function seekPreviousValue(e, t, n) {
       return a;
 }
 function parseTemplateFrame(e, t, n, a, u) {
-  const [o, f] = [t[e], t[e + 1]], [g, w] = [n[e], n[e + 1]], k = calcFrameTime(o, f, a), F = {}, W = [.../* @__PURE__ */ new Set([...Object.keys(g), ...Object.keys(w)])], z = (S, O, A) => ({
-    start: n[O][S],
+  const [o, f] = [t[e], t[e + 1]], [g, w] = [n[e], n[e + 1]], k = calcFrameTime(o, f, a), F = {}, W = [.../* @__PURE__ */ new Set([...Object.keys(g), ...Object.keys(w)])], z = (S, T, A) => ({
+    start: n[T][S],
     stop: n[A][S]
   });
   W.forEach((S) => {
     if (S in g && S in w)
       F[S] = z(S, e, e + 1);
     else if (!(S in g) && S in w) {
-      const O = seekPreviousValue(e, n, (D) => S in D);
-      if (O == null)
+      const T = seekPreviousValue(e, n, (D) => S in D);
+      if (T == null)
         return;
-      const A = u[O];
+      const A = u[T];
       A.time = calcFrameTime(
-        t[O],
+        t[T],
         f,
         a
-      ), A.interpVars[S] = z(S, O, e + 1);
+      ), A.interpVars[S] = z(S, T, e + 1);
     }
   });
   let _ = o.transform;
   if (_ == null) {
-    const S = seekPreviousValue(e, u, (O) => O.transform != null);
+    const S = seekPreviousValue(e, u, (T) => T.transform != null);
     _ = u[S].transform;
   }
   return {
@@ -2517,9 +2592,9 @@ class Animation {
     };
     return this.templateFrames.push(f), this.frameId += 1, this;
   }
-  updateFrom(t) {
-    return Object.keys(this).forEach((n) => {
-      t[n] && Object.assign(this[n], t[n]);
+  updateFrom(t, n = !1) {
+    return Object.keys(this).forEach((a) => {
+      t[a] && (this[a] = t[a]);
     }), this;
   }
   transformVars() {

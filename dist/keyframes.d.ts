@@ -19,7 +19,7 @@ declare class Animation_2<V extends Vars> {
     paused: boolean;
     constructor(options: Partial<InputAnimationOptions>, target?: HTMLElement | undefined, name?: string | undefined, superKey?: string | undefined);
     frame<K extends V>(start: number | string | ValueUnit<number>, vars: Partial<K>, transform?: TransformFunction<K>, timingFunction?: TimingFunction | TimingFunctionNames): Animation_2<K>;
-    updateFrom(other: Animation_2<V>): this;
+    updateFrom(other: Animation_2<V>, merge?: boolean): this;
     transformVars(): this;
     parseFrames(): this;
     updateTimingFunction(timingFunction: InputAnimationOptions["timingFunction"]): this;
@@ -101,6 +101,12 @@ declare function bounceInEase(t: number): number;
 
 declare function bounceInEaseHalf(t: number): number;
 
+declare function bounceInOutEase(t: number): number;
+
+declare function bounceOutEase(t: number): number;
+
+declare function bounceOutEaseHalf(t: number): number;
+
 export declare class CSSKeyframesAnimation<V extends Vars> {
     options: AnimationOptions;
     targets: HTMLElement[];
@@ -121,17 +127,35 @@ declare const defaultOptions: AnimationOptions;
 
 declare function easeInBounce(t: number): number;
 
+declare function easeInCirc(t: number): number;
+
 declare function easeInCubic(t: number): number;
+
+declare function easeInExpo(t: number): number;
+
+declare function easeInOutCirc(t: number): number;
 
 declare function easeInOutCubic(t: number): number;
 
+declare function easeInOutExpo(t: number): number;
+
 declare function easeInOutQuad(t: number): number;
+
+declare function easeInOutSine(t: number): number;
 
 declare function easeInQuad(t: number): number;
 
+declare function easeInSine(t: number): number;
+
+declare function easeOutCirc(t: number): number;
+
 declare function easeOutCubic(t: number): number;
 
+declare function easeOutExpo(t: number): number;
+
 declare function easeOutQuad(t: number): number;
+
+declare function easeOutSine(t: number): number;
 
 declare class FunctionValue<T = number> {
     name: string;
@@ -225,6 +249,30 @@ declare const timingFunctions: {
     readonly "bounce-in-ease": typeof bounceInEase;
     readonly bounceInEaseHalf: typeof bounceInEaseHalf;
     readonly "bounce-in-ease-half": typeof bounceInEaseHalf;
+    readonly bounceOutEase: typeof bounceOutEase;
+    readonly "bounce-out-ease": typeof bounceOutEase;
+    readonly bounceOutEaseHalf: typeof bounceOutEaseHalf;
+    readonly "bounce-out-ease-half": typeof bounceOutEaseHalf;
+    readonly bounceInOutEase: typeof bounceInOutEase;
+    readonly "bounce-in-out-ease": typeof bounceInOutEase;
+    readonly easeInSine: typeof easeInSine;
+    readonly "ease-in-sine": typeof easeInSine;
+    readonly easeOutSine: typeof easeOutSine;
+    readonly "ease-out-sine": typeof easeOutSine;
+    readonly easeInOutSine: typeof easeInOutSine;
+    readonly "ease-in-out-sine": typeof easeInOutSine;
+    readonly easeInCirc: typeof easeInCirc;
+    readonly "ease-in-circ": typeof easeInCirc;
+    readonly easeOutCirc: typeof easeOutCirc;
+    readonly "ease-out-circ": typeof easeOutCirc;
+    readonly easeInOutCirc: typeof easeInOutCirc;
+    readonly "ease-in-out-circ": typeof easeInOutCirc;
+    readonly easeInExpo: typeof easeInExpo;
+    readonly "ease-in-expo": typeof easeInExpo;
+    readonly easeOutExpo: typeof easeOutExpo;
+    readonly "ease-out-expo": typeof easeOutExpo;
+    readonly easeInOutExpo: typeof easeInOutExpo;
+    readonly "ease-in-out-expo": typeof easeInOutExpo;
     readonly smoothStep3: typeof smoothStep3;
     readonly "smooth-step-3": typeof smoothStep3;
     readonly ease: (t: number) => number;
