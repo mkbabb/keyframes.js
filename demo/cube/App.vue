@@ -276,6 +276,7 @@ import {
 import "@styles/style.scss";
 
 import { TransformState } from "@components/custom/orbital-drag";
+import { clamp } from "@src/math";
 
 const MATRIX_AXES = ["x", "y", "z", "w"];
 
@@ -285,42 +286,6 @@ const defaultMatrixOptions = {
     fixed: true,
 
     selectedMatrixCell: 0,
-
-    transformSliderValues: {
-        translate: {
-            x: 0,
-            y: 0,
-            z: 0,
-        },
-        rotate: {
-            x: 0,
-            y: 0,
-            z: 0,
-        },
-        scale: {
-            x: 1,
-            y: 1,
-            z: 1,
-        },
-    },
-
-    transformSliderOptions: {
-        translate: {
-            bounds: [-1000, 1000],
-            step: 1,
-            value: 0,
-        },
-        rotate: {
-            bounds: [-360, 360],
-            step: 1,
-            value: 0,
-        },
-        scale: {
-            bounds: [0.1, 2],
-            step: 0.01,
-            value: 1,
-        },
-    },
 };
 
 const storedControls = getStoredAnimationGroupControlOptions(superKey);
@@ -336,8 +301,41 @@ const createMatrix = () =>
 const matrix3dStart = $ref(createMatrix());
 const matrix3dEnd = $ref(createMatrix());
 
-const { transformSliderValues, transformSliderOptions } =
-    storedControls.matrixOptions as typeof defaultMatrixOptions;
+const transformSliderValues = {
+    translate: {
+        x: 0,
+        y: 0,
+        z: 0,
+    },
+    rotate: {
+        x: 0,
+        y: 0,
+        z: 0,
+    },
+    scale: {
+        x: 1,
+        y: 1,
+        z: 1,
+    },
+};
+
+const transformSliderOptions = {
+    translate: {
+        bounds: [-1000, 1000],
+        step: 1,
+        value: 0,
+    },
+    rotate: {
+        bounds: [-360, 360],
+        step: 1,
+        value: 0,
+    },
+    scale: {
+        bounds: [0.4, 3],
+        step: 0.01,
+        value: 1,
+    },
+};
 
 const getAxisFromIx = (i: number) => MATRIX_AXES[i % MATRIX_AXES.length];
 

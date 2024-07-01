@@ -4,12 +4,9 @@
         @mousedown="startDrag"
         @mousemove="drag"
         @mouseup="stopDrag"
-        @mouseleave="stopDrag"
         @touchstart="startDrag"
         @touchmove="drag"
-        @touchend="stopDrag"
         @touchcancel="stopDrag"
-        @wheel="handleWheel"
     >
         <slot></slot>
     </div>
@@ -24,7 +21,11 @@ import {
     axes,
     defaultTransformState,
     defaultVelocityState,
+    TransformBounds,
+    defaultTransformBounds,
 } from ".";
+
+import { clamp } from "@src/math";
 
 import { angleUnits } from "@src/parsing/units";
 
@@ -43,6 +44,7 @@ const props = defineProps<{
     inertiaFactor?: number;
     rotationUnit?: (typeof angleUnits)[number];
     scaleFactor?: number;
+    bounds?: TransformBounds;
 }>();
 
 const emit = defineEmits<{
@@ -59,10 +61,9 @@ const containerRef = $ref<HTMLElement | null>(null);
 
 let isDragging = $ref(false);
 let isTouching = $ref(false);
+let isScrolling = $ref(false);
 
 let previousMousePosition = $ref({ x: 0, y: 0 });
-
-let velocity = $ref<VelocityState>(defaultVelocityState);
 
 let pressedKeys = $ref<PressedKeys>({
     x: false,
@@ -79,8 +80,16 @@ const inertiaFactor = props.inertiaFactor ?? 0.95;
 const rotationUnit = props.rotationUnit ?? "deg";
 const scaleFactor = props.scaleFactor ?? 0.01;
 
+let velocity = $ref<VelocityState>(defaultVelocityState);
+
+let bounds = props.bounds ?? defaultTransformBounds;
+
+const isTouchEventFallback = (event: MouseEvent | TouchEvent): event is TouchEvent => {
+    return !!(event as TouchEvent).touches;
+};
+
 const getUserXY = (event: MouseEvent | TouchEvent) => {
-    if (event instanceof TouchEvent) {
+    if (isTouchEventFallback(event)) {
         return {
             x: event.touches[0].clientX,
             y: event.touches[0].clientY,
@@ -91,7 +100,9 @@ const getUserXY = (event: MouseEvent | TouchEvent) => {
 };
 
 const startDrag = (event: MouseEvent | TouchEvent) => {
-    if (event instanceof TouchEvent) {
+    console.log("start dragging");
+    
+    if (isTouchEventFallback(event)) {
         isTouching = true;
         event.preventDefault();
     }
@@ -130,6 +141,11 @@ const updateTransform = (
 
     model.value[category][axis] = value;
     velocity[category][axis] = velocityValue;
+
+    for (const [k, v] of Object.entries(model.value[category])) {
+        const [min, max] = bounds[category][k];
+        model.value[category][k] = clamp(v, min, max);
+    }
 
     if (category === "rotate") {
         emit("rotate", { ...model.value.rotate });
@@ -211,6 +227,10 @@ const handleAxisSpecificDrag = (deltaX: number, deltaY: number) => {
 };
 
 const handleWheel = (event: WheelEvent) => {
+    if (!isScrolling) {
+        return;
+    }
+
     event.preventDefault();
 
     const { deltaX, deltaY, ctrlKey } = event;
@@ -280,21 +300,64 @@ const applyInertia = () => {
 
 const { pause, resume } = useRafFn(applyInertia);
 
+let wheelEventEndTimeout = null;
+
 onMounted(() => {
-    if (containerRef) {
-        useEventListener(containerRef, "wheel", handleWheel, { passive: false });
-        useEventListener(window, "keydown", handleKeyDown);
-        useEventListener(window, "keyup", handleKeyUp);
-    }
+    // if (!containerRef) {
+    //     return;
+    // }
+
+    useEventListener(
+        containerRef,
+        "wheel",
+        (event) => {
+            isScrolling = true;
+            handleWheel(event as WheelEvent);
+        },
+        { passive: false },
+    );
+    useEventListener(window, "wheel", handleWheel, { passive: false });
+
+    window.addEventListener("wheel", () => {
+        clearTimeout(wheelEventEndTimeout);
+
+        wheelEventEndTimeout = setTimeout(() => {
+            isScrolling = false;
+        }, 100);
+    });
+
+    useEventListener(window, "keydown", handleKeyDown);
+    useEventListener(window, "keyup", handleKeyUp);
+
+    useEventListener(window, "mousemove", drag);
+    useEventListener(window, "mouseup", stopDrag);
+    useEventListener(window, "mouseleave", stopDrag);
+
+    useEventListener(window, "touchmove", drag);
+    useEventListener(window, "touchend", stopDrag);
+    useEventListener(window, "touchcancel", stopDrag);
+
     resume();
 });
 
 onUnmounted(() => {
-    if (containerRef) {
-        containerRef.removeEventListener("wheel", handleWheel);
-        window.removeEventListener("keydown", handleKeyDown);
-        window.removeEventListener("keyup", handleKeyUp);
+    if (!containerRef) {
+        return;
     }
+
+    containerRef.removeEventListener("wheel", handleWheel);
+
+    window.removeEventListener("keydown", handleKeyDown);
+    window.removeEventListener("keyup", handleKeyUp);
+
+    window.removeEventListener("mousemove", drag);
+    window.removeEventListener("mouseup", stopDrag);
+    window.removeEventListener("mouseleave", stopDrag);
+
+    window.removeEventListener("touchmove", drag);
+    window.removeEventListener("touchend", stopDrag);
+    window.removeEventListener("touchcancel", stopDrag);
+
     pause();
 });
 

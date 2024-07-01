@@ -121,8 +121,7 @@ export type StoredAnimationGroupsControlOptions = {
 
 const defaultStoredAnimationGroupControlOptions = {
     selectedControl: "controls",
-    selectedKeyframesControl: "keyframes",
-    selectedAnimation: "",
+    selectedAnimation: null,
 };
 
 const animationGroupsControlOptionsStore = useStorage(
@@ -159,4 +158,4 @@ export const deepDefaultStore = (store: any, defaultStore: any) => {
     }
 };
 
-// resetAllStores();
+resetAllStores();

@@ -6,7 +6,7 @@
             v-if="char !== '\n'"
             :style="{
                 animationDelay: `${index * offset}s`,
-                animationDuration: `${text.length * offset + offset * 10}s`,
+                animationDuration: duration,
             }"
             >{{ char }}</span
         >
@@ -23,20 +23,24 @@ import { useWindowSize } from "@vueuse/core";
 const HTML_SPACE = "\u00a0";
 const { width } = useWindowSize();
 
-let { text } = $defineProps({
+let { text, offset } = $defineProps({
     text: {
         type: String,
         required: true,
     },
+    offset: {
+        type: Number,
+        default: 0.2,
+    },
 });
-
-const offset = 0.3;
 
 let newText = $ref(text.replace(/ /g, HTML_SPACE));
 
 let brokenText = $ref(newText.replace(/\s/, HTML_SPACE + "\n"));
 
 let currentText = $ref(brokenText);
+
+const duration = $computed(() => `${currentText.length * offset + offset * 10}s`);
 
 watch(
     () => width.value,
@@ -59,18 +63,26 @@ watch(
 }
 
 @keyframes liftDown {
-    0%,
+    0% {
+        transform: translateY(0);
+    }
+    5% {
+        transform: translateY(-10px);
+    }
+    10% {
+        transform: translateY(0);
+    }
     100% {
         transform: translateY(0);
     }
-    50% {
-        transform: translateY(-5px);
+    200% {
+        transform: translateY(0);
     }
 }
 
 .dot-fade {
     display: inline-block;
-    animation: dotFade 4s ease-in-out infinite;
+    animation: dotFade v-bind("duration") ease-in-out infinite;
     animation-fill-mode: forwards;
 }
 

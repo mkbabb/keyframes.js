@@ -20,6 +20,24 @@ export interface TransformState {
     };
 }
 
+export interface TransformBounds {
+    rotate: {
+        x: [number, number];
+        y: [number, number];
+        z: [number, number];
+    };
+    translate: {
+        x: [number, number];
+        y: [number, number];
+        z: [number, number];
+    };
+    scale: {
+        x: [number, number];
+        y: [number, number];
+        z: [number, number];
+    };
+}
+
 export interface VelocityState {
     rotate: {
         x: number;
@@ -53,6 +71,24 @@ export const defaultTransformState: TransformState = {
         x: 1,
         y: 1,
         z: 1,
+    },
+};
+
+export const defaultTransformBounds = {
+    rotate: {
+        x: [-Infinity, Infinity],
+        y: [-Infinity, Infinity],
+        z: [-Infinity, Infinity],
+    },
+    translate: {
+        x: [-Infinity, Infinity],
+        y: [-Infinity, Infinity],
+        z: [-Infinity, Infinity],
+    },
+    scale: {
+        x: [0.1, Infinity],
+        y: [0.1, Infinity],
+        z: [0.1, Infinity],
     },
 };
 
