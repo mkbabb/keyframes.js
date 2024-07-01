@@ -689,6 +689,10 @@ export class AnimationGroup<V> {
                 animation,
             };
         }
+
+        this.singleTarget = animations.every(
+            (animation) => animation.target === animations[0].target,
+        );
     }
 
     fromObject(object: Record<string, Animation<V>>) {

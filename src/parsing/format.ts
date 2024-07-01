@@ -117,6 +117,8 @@ export function animationOptionsToString(
 ) {
     let css = "";
 
+    css += `  animation-name: ${name};\n`;
+
     const duration = reverseCSSTime(options.duration);
     css += `  animation-duration: ${duration};\n`;
 
@@ -139,7 +141,7 @@ export function animationOptionsToString(
         css += `  animation-delay: ${reverseCSSTime(options.delay)};\n`;
     }
 
-    css = `.${name} {\n${css}}\n`;
+    css = `.animation {\n${css}}\n`;
 
     return css;
 }
@@ -187,7 +189,7 @@ export async function CSSKeyframesToString<V extends Vars>(
         keyframesString += `${percents.join(", ")} ${css}`;
     }
 
-    const animationOptionsString = animationOptionsToString(options);
+    const animationOptionsString = animationOptionsToString(options, name);
 
     const keyframes = `${animationOptionsString}\n@keyframes ${name} {\n${keyframesString}}`;
 

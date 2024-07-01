@@ -36,7 +36,7 @@ let { text, offset } = $defineProps({
 
 let newText = $ref(text.replace(/ /g, HTML_SPACE));
 
-let brokenText = $ref(newText.replace(/\s/, HTML_SPACE + "\n"));
+let brokenText = $ref(newText.replace(/\s/g, HTML_SPACE + "\n"));
 
 let currentText = $ref(brokenText);
 

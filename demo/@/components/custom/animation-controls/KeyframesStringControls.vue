@@ -13,7 +13,7 @@
             ref="tabsListEl"
             class="w-full flex gap-2 sticky top-0 z-[100] overflow-x-scroll"
         >
-            <TabsTrigger value="editor"><WandSparkles></WandSparkles> </TabsTrigger>
+            <TabsTrigger value="editor"><Pencil></Pencil></TabsTrigger>
             <TabsTrigger value="keyframes"><BookOpenText></BookOpenText></TabsTrigger>
         </TabsList>
 
@@ -232,7 +232,6 @@
                             @click="
                                 () => {
                                     applyCSSStyles();
-                                    startBrushAnimation();
                                 }
                             "
                             class="cursor-pointer bg-transparent hover:bg-transparent hover:scale-105"
@@ -286,7 +285,7 @@ import CopyButton from "@components/custom/CopyButton.vue";
 
 import { Toggle } from "@components/ui/toggle";
 
-import { FileIcon, FilePlus2, Minus, Paintbrush, Plus, X } from "lucide-vue-next";
+import { FileIcon, FilePlus2, Minus, Paintbrush, Plus, X, Pencil } from "lucide-vue-next";
 
 // @ts-ignore
 import githubDark from "highlight.js/styles/github-dark.css?inline";
@@ -675,7 +674,6 @@ const removeKeyframe = (e: Event, frameIx: number) => {
     }
 
     const group = new AnimationGroup(anim1.animation, anim2?.animation);
-    group.singleTarget = false;
 
     group.play();
 
@@ -690,12 +688,9 @@ const removeKeyframe = (e: Event, frameIx: number) => {
 
         tmpAnimation.parse();
 
-        Object.assign(animation.options, tmpAnimation.options);
-        Object.assign(animation.templateFrames, tmpAnimation.templateFrames);
+        animation.updateFrom(tmpAnimation);
 
-        animation.parse();
-
-        updateAllStrings();
+        updateAllStringsAndAnimation();
     }, 700);
 };
 
@@ -733,47 +728,40 @@ const applyCSSStyles = () => {
         animation.paused = prevPaused;
         keyframesStyle.innerHTML = "";
         animation.target.classList.remove(keyframesStyleId);
+
+        brushAnimation.pause();
     } else {
         prevPaused = animation.paused;
         animation.paused = animation.started;
 
         keyframesStyle.innerHTML = cssKeyframesString;
         animation.target.classList.add(keyframesStyleId);
+
+        brushAnimation.play();
     }
 };
 
 const brush = $ref<HTMLElement>(null);
 
-const startBrushAnimation = () => {
-    const animation = new CSSKeyframesAnimation(
-        {
-            duration: 700,
-            timingFunction: "ease-in-out",
-        },
-        brush,
-    )
-        .fromCSSKeyframes(
-            /*css*/
-            `@keyframes paintbrushWipe {
-                0% {
-                    transform: translateX(0) translateY(0) rotate(0deg);
+const brushAnimation = new CSSKeyframesAnimation({
+    duration: 700,
+    timingFunction: "linear",
+    iterationCount: "infinite",
+    direction: "alternate",
+}).fromCSSKeyframes(
+    /*css*/
+    `@keyframes paintbrushWipe {
+                0%, 100% {
+                    transform: rotate(0deg);
                 }
-                25% {
-                    transform: translateX(0) translateY(0) rotate(30deg);
+                20%, 30%, 40% {
+                    transform: rotate(30deg);
                 }
-                50% {
-                    transform: translateX(0) translateY(0) rotate(-90deg);
-                }
-                75% {
-                    transform: translateX(0) translateY(0) rotate(30deg);
-                }
-                100% {
-                    transform: translateX(0) translateY(0) rotate(0deg);
+                60%, 70%, 80% {
+                    transform: rotate(-90deg);
                 }
             }`,
-        )
-        .play();
-};
+);
 
 const isDark = useDark();
 const setCodeTheme = () => {
@@ -868,6 +856,8 @@ watch(
 );
 
 onMounted(() => {
+    brushAnimation.addTargets(brush);
+
     updateAllStrings();
 });
 </script>

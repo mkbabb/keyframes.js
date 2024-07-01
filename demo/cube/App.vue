@@ -28,7 +28,7 @@
                                             [
                                                 storedControls.matrixOptions
                                                     .selectedMatrixCell === i
-                                                    ? 'focus:font-bold'
+                                                    ? 'focus:font-bold font-bold'
                                                     : '',
                                             ]
                                         "
@@ -143,11 +143,6 @@
                         ref="graph"
                         class="graph preserve-3d grid items-center justify-center justify-items-center"
                     >
-                        <Loader2
-                            v-if="!storedControls.selectedAnimation"
-                            class="absolute w-48 h-48 animate-spin"
-                        ></Loader2>
-
                         <OrbitalDrag
                             class="relative preserve-3d flex items-center justify-center justify-items-center"
                             @rotate="(v) => orbitalDrag('rotate', v)"
@@ -158,6 +153,20 @@
                                 ref="cube"
                                 class="relative cube preserve-3d flex items-center justify-center justify-items-center animation"
                             >
+                                <span
+                                    class="contents"
+                                    v-if="!storedControls.selectedAnimation"
+                                >
+                                    <Loader2
+                                        class="absolute w-48 h-48 animate-spin"
+                                    ></Loader2>
+                                    <div
+                                        class="absolute flex items-center justify-center text-7xl w-48 h-48"
+                                    >
+                                        🌱
+                                    </div>
+                                </span>
+
                                 <div
                                     v-for="(side, index) in cubeSides"
                                     :key="index"

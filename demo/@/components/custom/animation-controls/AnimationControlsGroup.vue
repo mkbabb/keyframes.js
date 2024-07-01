@@ -1,10 +1,10 @@
 <template>
     <div
-        class="w-full h-screen max-w-screen-xl max-h-screen-md grid lg:grid-cols-3 grid-cols-1 lg:grid-rows-1 justify-items-center justify-center items-center overflow-scroll lg:overflow-hidden relative"
+        class="w-full h-screen max-w-screen-xl grid lg:grid-cols-3 grid-cols-1 lg:grid-rows-1 justify-items-center justify-center items-center overflow-scroll lg:overflow-hidden relative"
         v-bind="$attrs"
     >
         <div
-            class="info-bar absolute top-0 w-full lg:w-min lg:right-0 p-4 pl-6 pr-6 lg:p-4 flex flex-row-reverse lg:gap-4 gap-6 items-center justify-between lg:justify-end z-[1000]"
+            class="info-bar absolute top-0 w-full lg:w-min lg:right-0 p-4 pl-6 pr-6 lg:p-4 flex flex-row-reverse lg:gap-4 gap-6 items-center justify-between lg:justify-end"
         >
             <DarkModeToggle />
             <HoverCard :open-delay="0">
@@ -41,9 +41,9 @@
 
         <template v-if="!storedControls.selectedAnimation">
             <div
-                class="start-screen-text lg:absolute mt-16 w-screen h-0 grid items-center gap-0 left-0 ml-8 top-0"
+                class="start-screen-text absolute mt-16 p-4 w-screen h-0 grid items-center gap-0 left-0 top-0"
             >
-                <h1 class="fraunces font-bold lg:text-7xl text-6xl p-0 grid lg:flex">
+                <h1 class="fraunces font-bold lg:text-7xl text-5xl p-0 grid lg:flex">
                     <div>
                         <AnimatedText
                             class="depth-text"
@@ -91,7 +91,7 @@
 
         <div
             :class="
-                ' ' +
+                '' +
                 (storedControls?.selectedAnimation == null
                     ? 'col-span-3'
                     : 'col-span-2')
@@ -101,13 +101,13 @@
         </div>
 
         <div
-            class="sticky lg:absolute bottom-0 p-4 m-0 w-screen h-[min-content] flex items-center justify-center justify-items-center"
+            class="fixed bottom-0 p-2 m-0 w-screen h-[min-content] flex items-center justify-center justify-items-center"
         >
-            <Menubar class="flex items-center gap-1 justify-items-center">
+            <Menubar class="flex items-center gap-1 justify-items-center border-none">
                 <MenubarMenu>
                     <div class="relative">
                         <Select
-                            class="p-0 m-0 cursor-pointer shadow-none"
+                            class="p-0 m-0 cursor-pointer"
                             :model-value="storedControls.selectedAnimation"
                             @update:model-value="
                                 (key) => {
@@ -115,7 +115,9 @@
                                 }
                             "
                         >
-                            <SelectTrigger class="border-none rounded-none h-4">
+                            <SelectTrigger
+                                class="border-none rounded-none h-4 focus:ring-0"
+                            >
                                 <SelectIcon v-if="!storedControls.selectedAnimation"
                                     ><List></List
                                 ></SelectIcon>
