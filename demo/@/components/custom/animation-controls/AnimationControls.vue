@@ -16,7 +16,7 @@
             </TabsList>
 
             <div>
-                <CardHeader class="grid gap-0">
+                <!-- <CardHeader class="grid gap-0">
                     <CardTitle>{{
                         controlNames[storedControls.selectedControl] ?? "🙂‍↔️"
                     }}</CardTitle>
@@ -25,7 +25,7 @@
                     >
                         {{ animation.name }}
                     </div>
-                </CardHeader>
+                </CardHeader> -->
 
                 <TabsContent value="controls">
                     <Card>
@@ -64,7 +64,11 @@
 
                             <Label>Iteration Count</Label>
                             <Input
-                                :class="!isFinite(animation.options.iterationCount) ? 'text-3xl' : ''"
+                                :class="
+                                    !isFinite(animation.options.iterationCount)
+                                        ? 'text-3xl'
+                                        : ''
+                                "
                                 type="string"
                                 @change="
                                     (e) => {
@@ -402,8 +406,8 @@ const storedAnimationOptions = getStoredAnimationOptions(animation);
 const storedControls = getStoredAnimationGroupControlOptions(animation);
 
 const controlNames = {
-    controls: "Controls 🔧",
-    keyframes: "Keyframes 📜",
+    controls: "Controls",
+    keyframes: "Keyframes",
 };
 
 const emit = defineEmits<{

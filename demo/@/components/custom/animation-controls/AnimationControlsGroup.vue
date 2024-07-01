@@ -51,7 +51,7 @@
             >
                 <h1 class="font-bold text-7xl m-0 p-0">
                     <span
-                        class="fraunces lift-down"
+                        class="fraunces lift-down depth-text"
                         v-for="(char, index) in startScreenText"
                         :key="index"
                         :style="{
@@ -151,10 +151,15 @@
                     <MenubarTrigger>
                         <RotateCcw
                             class="p-0 m-0 cursor-pointer hover:scale-105"
-                            ref="resetSelectedAnimationEl"
-                            @click="
-                                () => resetSelectedAnimation(resetSelectedAnimationEl)
-                            "
+                            @click="(e) => reset(e.target as HTMLElement, false)"
+                    /></MenubarTrigger>
+                </MenubarMenu>
+
+                <MenubarMenu>
+                    <MenubarTrigger>
+                        <Trash
+                            class="p-0 m-0 cursor-pointer hover:scale-105"
+                            @click="(e) => reset(e.target as HTMLElement, true)"
                     /></MenubarTrigger>
                 </MenubarMenu>
 
@@ -211,6 +216,7 @@ import {
     List,
     Pause,
     Play,
+    Trash,
     WandSparkles,
 } from "lucide-vue-next";
 
@@ -238,7 +244,10 @@ import { Animation, AnimationGroup, CSSKeyframesAnimation, Vars } from "@src/ani
 import AnimationControls from "./AnimationControls.vue";
 import Button from "@components/ui/button/Button.vue";
 
-import { getStoredAnimationGroupControlOptions } from "./animationStores";
+import {
+    getStoredAnimationGroupControlOptions,
+    resetAllStores,
+} from "./animationStores";
 import { SelectIcon } from "radix-vue";
 
 let startScreenText = $ref("Select an animation");
@@ -294,9 +303,7 @@ const keyframesUpdate = (e: { animation: Animation<any> }) => {
     }
 };
 
-const resetSelectedAnimationEl = $ref<HTMLElement>();
-
-const resetSelectedAnimation = (target: HTMLElement) => {
+const reset = (target: HTMLElement, all: boolean = false) => {
     new CSSKeyframesAnimation(
         {
             duration: 700,
@@ -316,8 +323,12 @@ const resetSelectedAnimation = (target: HTMLElement) => {
         )
         .play();
 
-    storedControls.selectedAnimation = null;
     animationGroup.reset();
+
+    if (all) {
+        resetAllStores();
+        window.location.reload();
+    }
 };
 
 onMounted(() => {});

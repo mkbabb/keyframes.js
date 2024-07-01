@@ -49,6 +49,7 @@ export const defaultStoredAnimationOptions = {
 } as StoredAnimationOptions;
 
 import { useStorage } from "@vueuse/core";
+import { ref } from "vue";
 
 const animationGroupsOptionsStore = useStorage(
     "animation-groups-options-store",
@@ -111,6 +112,7 @@ export type StoredAnimationGroupControlOptions = {
     selectedControl: string;
     selectedAnimation: string;
     selectedKeyframesControl: string;
+    [name: string]: any;
 };
 
 export type StoredAnimationGroupsControlOptions = {
@@ -145,6 +147,16 @@ export const getStoredAnimationGroupControlOptions = (
 export const resetAllStores = () => {
     animationGroupsOptionsStore.value = {};
     animationGroupsControlOptionsStore.value = {};
+};
+
+export const deepDefaultStore = (store: any, defaultStore: any) => {
+    for (const key in defaultStore) {
+        if (store[key] === undefined || store[key] === null) {
+            store[key] = defaultStore[key];
+        } else if (typeof store[key] === "object") {
+            deepDefaultStore(store[key], defaultStore[key]);
+        }
+    }
 };
 
 // resetAllStores();

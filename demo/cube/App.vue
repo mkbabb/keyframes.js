@@ -26,7 +26,8 @@
                                         :class="
                                             'absolute top-0 left-0 w-full h-full p-1 text-center text-ellipsis bold text-sm bg-transparent z-10 ' +
                                             [
-                                                selectedMatrixCell === i
+                                                storedControls.matrixOptions
+                                                    .selectedMatrixCell === i
                                                     ? 'focus:font-bold'
                                                     : '',
                                             ]
@@ -40,7 +41,11 @@
                                         :start="getSliderOptionsFromIx(i).bounds[0]"
                                         :end="getSliderOptionsFromIx(i).bounds[1]"
                                         :step="getSliderOptionsFromIx(i).step"
-                                        @click="(e) => (selectedMatrixCell = i)"
+                                        @click="
+                                            (e) =>
+                                                (storedControls.matrixOptions.selectedMatrixCell =
+                                                    i)
+                                        "
                                     />
                                     <div
                                         :class="
@@ -63,21 +68,32 @@
 
                             <Slider
                                 :model-value="[
-                                    matrix3dEnd.values[selectedMatrixCell].value,
+                                    matrix3dEnd.values[
+                                        storedControls.matrixOptions.selectedMatrixCell
+                                    ].value,
                                 ]"
                                 @update:model-value="
                                     ([value]) => {
-                                        matrix3dEnd.values[selectedMatrixCell].value =
-                                            value;
+                                        matrix3dEnd.values[
+                                            storedControls.matrixOptions.selectedMatrixCell
+                                        ].value = value;
                                     }
                                 "
                                 :min="
-                                    getSliderOptionsFromIx(selectedMatrixCell).bounds[0]
+                                    getSliderOptionsFromIx(
+                                        storedControls.matrixOptions.selectedMatrixCell,
+                                    ).bounds[0]
                                 "
                                 :max="
-                                    getSliderOptionsFromIx(selectedMatrixCell).bounds[1]
+                                    getSliderOptionsFromIx(
+                                        storedControls.matrixOptions.selectedMatrixCell,
+                                    ).bounds[1]
                                 "
-                                :step="getSliderOptionsFromIx(selectedMatrixCell).step"
+                                :step="
+                                    getSliderOptionsFromIx(
+                                        storedControls.matrixOptions.selectedMatrixCell,
+                                    ).step
+                                "
                                 class="w-full"
                             ></Slider>
 
@@ -87,9 +103,29 @@
                                 >
                                 <Button
                                     class="cursor-pointer"
-                                    @click="fixMatrix"
-                                    :class="isFixed ? 'clicked' : ''"
-                                    ><Lock class="mr-4" />Fixed
+                                    @click="
+                                        storedControls.matrixOptions.fixed =
+                                            !storedControls.matrixOptions.fixed;
+                                        fixMatrix();
+                                    "
+                                    :class="
+                                        storedControls.matrixOptions.fixed
+                                            ? 'clicked'
+                                            : ''
+                                    "
+                                >
+                                    <Lock
+                                        v-if="!storedControls.matrixOptions.fixed"
+                                        class="mr-4"
+                                    />
+
+                                    <LockOpen v-else class="mr-4" />
+
+                                    {{
+                                        !storedControls.matrixOptions.fixed
+                                            ? "Fixed"
+                                            : "Free&nbsp"
+                                    }}
                                 </Button>
                             </div>
                         </CardContent>
@@ -104,7 +140,12 @@
                         class="absolute w-48 h-48 animate-spin"
                     ></Loader2>
 
-                    <OrbitalDrag class="cube" @rotate="(v) => orbitalDrag('rotate', v)">
+                    <OrbitalDrag
+                        class="cube"
+                        @rotate="(v) => orbitalDrag('rotate', v)"
+                        @translate="(v) => orbitalDrag('translate', v)"
+                        @scale="(v) => orbitalDrag('scale', v)"
+                    >
                         <div ref="cube" class="cube">
                             <div
                                 v-for="(side, index) in cubeSides"
@@ -142,14 +183,14 @@
 
 <script setup lang="ts">
 // import { $ref } from "unplugin-vue-macros/macros";
-import { onMounted, watch } from "vue";
+import { onMounted, reactive, watch } from "vue";
 
 // @ts-ignore
 import "@styles/utils.scss";
 
 import OrbitalDrag from "@components/custom/orbital-drag/OrbitalDrag.vue";
 
-import { RotateCcw, Lock } from "lucide-vue-next";
+import { RotateCcw, Lock, LockOpen } from "lucide-vue-next";
 
 import { DarkModeToggle } from "@components/custom/dark-mode-toggle";
 
@@ -217,48 +258,69 @@ import "@styles/style.scss";
 
 import { TransformState } from "@components/custom/orbital-drag";
 
-const matrixAxes = ["X", "Y", "Z", "W"];
-const sliderAxes = ["X", "Y", "Z"];
+const MATRIX_AXES = ["x", "y", "z", "w"];
 
-let selectedMatrixCell = $ref(0);
+const superKey = "Cube";
 
-const transformSliderOptions = {
-    translate: {
-        bounds: [-1000, 1000],
-        step: 1,
-        value: 0,
+const defaultMatrixOptions = {
+    fixed: true,
+
+    selectedMatrixCell: 0,
+
+    transformSliderValues: {
+        translate: {
+            x: 0,
+            y: 0,
+            z: 0,
+        },
+        rotate: {
+            x: 0,
+            y: 0,
+            z: 0,
+        },
+        scale: {
+            x: 1,
+            y: 1,
+            z: 1,
+        },
     },
-    rotate: {
-        bounds: [-360, 360],
-        step: 1,
-        value: 0,
-    },
-    scale: {
-        bounds: [0.1, 2],
-        step: 0.01,
-        value: 1,
+
+    transformSliderOptions: {
+        translate: {
+            bounds: [-1000, 1000],
+            step: 1,
+            value: 0,
+        },
+        rotate: {
+            bounds: [-360, 360],
+            step: 1,
+            value: 0,
+        },
+        scale: {
+            bounds: [0.1, 2],
+            step: 0.01,
+            value: 1,
+        },
     },
 };
 
-const transformSliderValues = {
-    translate: {
-        X: 0,
-        Y: 0,
-        Z: 0,
-    },
-    rotate: {
-        X: 0,
-        Y: 0,
-        Z: 0,
-    },
-    scale: {
-        X: 1,
-        Y: 1,
-        Z: 1,
-    },
-};
+const storedControls = getStoredAnimationGroupControlOptions(superKey);
 
-const getAxisFromIx = (i: number) => matrixAxes[i % matrixAxes.length];
+storedControls.matrixOptions ??= defaultMatrixOptions;
+
+const createMatrix = () =>
+    new FunctionValue(
+        "matrix3d",
+        [...mat4.create()].map((v) => new ValueUnit(v)),
+    );
+
+const matrix3dStart = $ref(createMatrix());
+const matrix3dEnd = $ref(createMatrix());
+
+const { transformSliderValues, transformSliderOptions } =
+    storedControls.matrixOptions as typeof defaultMatrixOptions;
+
+const getAxisFromIx = (i: number) => MATRIX_AXES[i % MATRIX_AXES.length];
 
 const getTransformFromIx = (i: number) => {
     if (i === 12 || i === 13 || i === 14) {
@@ -280,31 +342,20 @@ const getSliderOptionsFromIx = (i: number) => {
     return transformSliderOptions[transform];
 };
 
-const matrix3dStart = new FunctionValue(
-    "matrix3d",
-    [...mat4.create()].map((v) => new ValueUnit(v)),
-);
-const matrix3dEnd = $ref(
-    new FunctionValue(
-        "matrix3d",
-        [...mat4.create()].map((v) => new ValueUnit(v)),
-    ),
-);
-
 const syncTransformations = (reset: boolean = false) => {
-    transformSliderValues.translate.X = matrix3dEnd.values[12].value;
-    transformSliderValues.translate.Y = matrix3dEnd.values[13].value;
-    transformSliderValues.translate.Z = matrix3dEnd.values[14].value;
+    transformSliderValues.translate.x = matrix3dEnd.values[12].value;
+    transformSliderValues.translate.y = matrix3dEnd.values[13].value;
+    transformSliderValues.translate.z = matrix3dEnd.values[14].value;
 
-    if (reset) {
-        transformSliderValues.rotate.X = Math.acos(matrix3dEnd.values[0].value);
-        transformSliderValues.rotate.Y = Math.acos(matrix3dEnd.values[5].value);
-        transformSliderValues.rotate.Z = Math.acos(matrix3dEnd.values[10].value);
+    if (!reset) return;
 
-        transformSliderValues.scale.X = matrix3dEnd.values[0].value;
-        transformSliderValues.scale.Y = matrix3dEnd.values[5].value;
-        transformSliderValues.scale.Z = matrix3dEnd.values[10].value;
-    }
+    transformSliderValues.rotate.x = Math.acos(matrix3dEnd.values[0].value);
+    transformSliderValues.rotate.y = Math.acos(matrix3dEnd.values[5].value);
+    transformSliderValues.rotate.z = Math.acos(matrix3dEnd.values[10].value);
+
+    transformSliderValues.scale.x = matrix3dEnd.values[0].value;
+    transformSliderValues.scale.y = matrix3dEnd.values[5].value;
+    transformSliderValues.scale.z = matrix3dEnd.values[10].value;
 };
 
 const updateMatrixCell = (to: number | string, ix: number) => {
@@ -386,15 +437,15 @@ function updateTransformations() {
     const { translate, rotate, scale } = transformSliderValues;
 
     const translationMatrix = mat4.fromTranslation(mat4.create(), [
-        translate.X,
-        translate.Y,
-        translate.Z,
+        translate.x,
+        translate.y,
+        translate.z,
     ]);
-    const scalingMatrix = mat4.fromScaling(mat4.create(), [scale.X, scale.Y, scale.Z]);
+    const scalingMatrix = mat4.fromScaling(mat4.create(), [scale.x, scale.y, scale.z]);
 
-    const rotationX = mat4.fromXRotation(mat4.create(), rotate.X * (Math.PI / 180));
-    const rotationY = mat4.fromYRotation(mat4.create(), rotate.Y * (Math.PI / 180));
-    const rotationZ = mat4.fromZRotation(mat4.create(), rotate.Z * (Math.PI / 180));
+    const rotationX = mat4.fromXRotation(mat4.create(), rotate.x * (Math.PI / 180));
+    const rotationY = mat4.fromYRotation(mat4.create(), rotate.y * (Math.PI / 180));
+    const rotationZ = mat4.fromZRotation(mat4.create(), rotate.z * (Math.PI / 180));
 
     const rotationMatrix = mat4.multiply(mat4.create(), rotationX, rotationY);
     mat4.multiply(rotationMatrix, rotationMatrix, rotationZ);
@@ -411,11 +462,7 @@ function updateTransformations() {
 }
 
 const orbitalDrag = (category: string, value: TransformState["rotate"]) => {
-    const sliderValues = transformSliderValues[category];
-
-    sliderValues.X = value.x;
-    sliderValues.Y = value.y;
-    sliderValues.Z = value.z;
+    Object.assign(transformSliderValues[category], value);
 
     updateTransformations();
 };
@@ -427,21 +474,13 @@ const resetMatrix = () => {
     animateUpdateMatrix(fromMatrix, toMatrix, true);
 };
 
-let isFixed = $ref(false);
-
 const fixMatrix = () => {
-    isFixed = !isFixed;
-
     if (matrix3dStart.values == matrix3dEnd.values) {
         matrix3dStart.values = [...mat4.create()].map((v) => new ValueUnit(v));
     } else {
         matrix3dStart.values = matrix3dEnd.values;
     }
 };
-
-const superKey = "Cube";
-
-const storedControls = getStoredAnimationGroupControlOptions(superKey);
 
 const matrixAnimationOptions = getStoredAnimationOptions("Matrix", superKey);
 
@@ -665,9 +704,9 @@ const animationGroup = $ref(
 
 const createRandomMatrixRotationsAnimation = () => {
     const transformFunc = (t, v) => {
-        // transformSliderValues.rotate.X += Math.random() * t;
-        // transformSliderValues.rotate.Y += Math.random() * t;
-        // transformSliderValues.rotate.Z += Math.random() * t;
+        // transformSliderValues.rotate.x += Math.random() * t;
+        // transformSliderValues.rotate.y += Math.random() * t;
+        // transformSliderValues.rotate.z += Math.random() * t;
         // updateTransformations();
     };
 
@@ -717,7 +756,6 @@ const hoverMatrixGroup = new AnimationGroup(
 watch(
     () => storedControls.selectedAnimation,
     (selectedAnimation) => {
-        // if the selected animation is not matrix and the current control is matrix-controls, set it back to control:
         if (
             selectedAnimation !== "Matrix" &&
             storedControls.selectedControl === "matrix-controls"
@@ -755,8 +793,6 @@ onMounted(() => {
 
     hoverMatrixGroup.play();
 
-    // hoverAnim.play();
-
     const encodedSVG = encodeURIComponent(`
     <svg class="tmp" xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2 2'>
         <path d='M1 2V0h1v1H0v1z' fill-opacity='0.10'/>
@@ -764,6 +800,8 @@ onMounted(() => {
 `);
 
     container.style.backgroundImage = `url("data:image/svg+xml,${encodedSVG}")`;
+
+    fixMatrix();
 });
 </script>
 <style scoped lang="scss">

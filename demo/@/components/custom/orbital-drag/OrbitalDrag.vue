@@ -5,6 +5,11 @@
         @mousemove="drag"
         @mouseup="stopDrag"
         @mouseleave="stopDrag"
+        @touchstart="startDrag"
+        @touchmove="drag"
+        @touchend="stopDrag"
+        @touchcancel="stopDrag"
+        @wheel="handleWheel"
     >
         <slot></slot>
     </div>
@@ -51,8 +56,11 @@ const model = defineModel<TransformState>({
 });
 
 const containerRef = $ref<HTMLElement | null>(null);
+
 let isDragging = $ref(false);
+
 let previousMousePosition = $ref({ x: 0, y: 0 });
+let previousGesture = $ref({ x: 0, y: 0, scale: 1 });
 
 let velocity = $ref<VelocityState>(defaultVelocityState);
 
@@ -71,9 +79,25 @@ const inertiaFactor = props.inertiaFactor ?? 0.95;
 const rotationUnit = props.rotationUnit ?? "deg";
 const scaleFactor = props.scaleFactor ?? 0.01;
 
-const startDrag = (event: MouseEvent) => {
+const getUserXY = (event: MouseEvent | TouchEvent) => {
+    if (event instanceof TouchEvent) {
+        return {
+            x: event.touches[0].clientX,
+            y: event.touches[0].clientY,
+        };
+    } else {
+        return { x: event.clientX, y: event.clientY };
+    }
+};
+
+const startDrag = (event: MouseEvent | TouchEvent) => {
+    if (event instanceof TouchEvent) {
+        event.preventDefault();
+    }
+
+    previousMousePosition = getUserXY(event);
+
     isDragging = true;
-    previousMousePosition = { x: event.clientX, y: event.clientY };
 };
 
 const stopDrag = () => {
@@ -100,11 +124,10 @@ const updateTransform = (
     velocityValue: number,
 ) => {
     if (category === "rotate") {
-        model.value.rotate[axis] = normalizeAngle(value, rotationUnit);
-    } else {
-        model.value.translate[axis] = value;
+        value = normalizeAngle(value, rotationUnit);
     }
 
+    model.value[category][axis] = value;
     velocity[category][axis] = velocityValue;
 
     if (category === "rotate") {
@@ -121,8 +144,6 @@ const updateRotation = (axis: (typeof axes)[number], delta: number) => {
     newDelta = normalizeAngle(newDelta, rotationUnit);
 
     let newValue = model.value.rotate[axis] + newDelta;
-
-    // console.log({ value: model.value.rotate[axis], delta, newDelta, newValue });
 
     updateTransform("rotate", axis, newValue, delta * sensitivity);
 };
@@ -145,11 +166,13 @@ const updateScale = (axis: (typeof axes)[number], delta: number) => {
     );
 };
 
-const drag = (event: MouseEvent) => {
+const drag = (event: MouseEvent | TouchEvent) => {
     if (!isDragging) return;
 
-    const deltaX = event.clientX - previousMousePosition.x;
-    const deltaY = event.clientY - previousMousePosition.y;
+    const { x, y } = getUserXY(event);
+
+    const deltaX = x - previousMousePosition.x;
+    const deltaY = y - previousMousePosition.y;
 
     if (pressedKeys.x || pressedKeys.y || pressedKeys.z) {
         handleAxisSpecificDrag(deltaX, deltaY);
@@ -163,7 +186,7 @@ const drag = (event: MouseEvent) => {
         updateRotation("x", -deltaY);
     }
 
-    previousMousePosition = { x: event.clientX, y: event.clientY };
+    previousMousePosition = { x, y };
 };
 
 const handleAxisSpecificDrag = (deltaX: number, deltaY: number) => {
@@ -189,11 +212,20 @@ const handleAxisSpecificDrag = (deltaX: number, deltaY: number) => {
 const handleWheel = (event: WheelEvent) => {
     event.preventDefault();
 
-    if (pressedKeys.shift) {
-        updateScale("x", -event.deltaY);
-        updateScale("y", -event.deltaY);
+    const { deltaX, deltaY } = event;
+
+    if (pressedKeys.x || pressedKeys.y || pressedKeys.z) {
+        handleAxisSpecificDrag(deltaX, deltaY);
+    } else if (pressedKeys.shift) {
+        updateTranslation("x", deltaX);
+        updateTranslation("y", deltaY);
+    } else if (pressedKeys.ctrl || pressedKeys.meta) {
+        updateScale("x", deltaY);
+        updateScale("y", deltaY);
+        updateScale("z", deltaY);
     } else {
-        updateTranslation("z", -event.deltaY);
+        updateRotation("y", deltaX);
+        updateRotation("x", -deltaY);
     }
 };
 
