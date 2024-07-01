@@ -1,5 +1,7 @@
 <template>
-    <div class="grid lg:h-screen h-full max-h-screen-md w-full max-w-screen-md z-10 relative">
+    <div
+        class="grid lg:h-screen h-full max-h-screen-md w-full max-w-screen-md z-10 relative"
+    >
         <Tabs
             class="overflow-scroll p-4 w-full h-full"
             :model-value="storedControls.selectedControl"
@@ -9,12 +11,12 @@
                 }
             "
         >
-            <TabsList class="w-full flex gap-2 sticky top-0">
-                <div class="flex w-full items-center justify-center overflow-x">
-                    <TabsTrigger value="controls">Controls</TabsTrigger>
-                    <TabsTrigger value="keyframes">Keyframes</TabsTrigger>
-                    <slot name="tabs-trigger"></slot>
-                </div>
+            <TabsList
+                class="w-full flex gap-2 sticky top-0 items-center justify-center overflow-x"
+            >
+                <TabsTrigger value="controls">Controls</TabsTrigger>
+                <TabsTrigger value="keyframes">Keyframes</TabsTrigger>
+                <slot name="tabs-trigger"></slot>
             </TabsList>
 
             <div class="">
@@ -382,6 +384,7 @@ import AvatarImage from "@components/ui/avatar/AvatarImage.vue";
 import HoverCard from "@components/ui/hover-card/HoverCard.vue";
 import HoverCardTrigger from "@components/ui/hover-card/HoverCardTrigger.vue";
 import HoverCardContent from "@components/ui/hover-card/HoverCardContent.vue";
+import { TabsIndicator } from "radix-vue";
 
 let timingFunctionsAnd = {
     "cubic-bezier": "cubic-bezier",

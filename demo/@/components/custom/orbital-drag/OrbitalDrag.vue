@@ -6,7 +6,7 @@
         @mouseup="stopDrag"
         @touchstart="startDrag"
         @touchmove="drag"
-        @touchcancel="stopDrag"
+        @touchend="stopDrag"
     >
         <slot></slot>
     </div>
@@ -28,6 +28,7 @@ import {
 import { clamp } from "@src/math";
 
 import { angleUnits } from "@src/parsing/units";
+import { get } from "http";
 
 type PressedKeys = {
     x: boolean;
@@ -63,7 +64,11 @@ let isDragging = $ref(false);
 let isTouching = $ref(false);
 let isScrolling = $ref(false);
 
-let previousMousePosition = $ref({ x: 0, y: 0 });
+const getDefaultPreviousMousePosition = () => {
+    return { x: 0, y: 0 };
+};
+
+let previousMousePosition = $ref(getDefaultPreviousMousePosition());
 
 let pressedKeys = $ref<PressedKeys>({
     x: false,
@@ -80,7 +85,11 @@ const inertiaFactor = props.inertiaFactor ?? 0.95;
 const rotationUnit = props.rotationUnit ?? "deg";
 const scaleFactor = props.scaleFactor ?? 0.01;
 
-let velocity = $ref<VelocityState>(defaultVelocityState);
+const getDefaultVelocityState = () => {
+    return JSON.parse(JSON.stringify(defaultVelocityState));
+};
+
+let velocity = $ref<VelocityState>(getDefaultVelocityState());
 
 let bounds = props.bounds ?? defaultTransformBounds;
 
@@ -100,8 +109,6 @@ const getUserXY = (event: MouseEvent | TouchEvent) => {
 };
 
 const startDrag = (event: MouseEvent | TouchEvent) => {
-    console.log("start dragging");
-    
     if (isTouchEventFallback(event)) {
         isTouching = true;
         event.preventDefault();
@@ -111,21 +118,22 @@ const startDrag = (event: MouseEvent | TouchEvent) => {
     isDragging = true;
 };
 
-const stopDrag = () => {
+const stopDrag = (event: MouseEvent | TouchEvent) => {
     isTouching = false;
     isDragging = false;
 };
 
 const normalizeAngle = (angle: number, unit: (typeof angleUnits)[number]): number => {
     switch (unit) {
-        case "deg":
-            return angle % 360;
         case "rad":
             return angle % (2 * Math.PI);
         case "grad":
             return angle % 400;
         case "turn":
             return angle % 1;
+        default:
+        case "deg":
+            return angle % 360;
     }
 };
 
@@ -190,6 +198,10 @@ const drag = (event: MouseEvent | TouchEvent) => {
 
     const deltaX = x - previousMousePosition.x;
     const deltaY = y - previousMousePosition.y;
+
+    const delta = deltaX + deltaY;
+
+    if (Math.abs(delta) < 1e-4) return;
 
     if (pressedKeys.x || pressedKeys.y || pressedKeys.z) {
         handleAxisSpecificDrag(deltaX, deltaY);
@@ -280,7 +292,7 @@ const updatePressedKeys = (event: KeyboardEvent, isPressed: boolean) => {
 };
 
 const applyInertia = () => {
-    if (isDragging) return;
+    if (isDragging || isTouching) return;
 
     Object.entries(velocity).forEach(([category, value]) => {
         for (const [k, v] of Object.entries(value)) {
@@ -303,10 +315,6 @@ const { pause, resume } = useRafFn(applyInertia);
 let wheelEventEndTimeout = null;
 
 onMounted(() => {
-    // if (!containerRef) {
-    //     return;
-    // }
-
     useEventListener(
         containerRef,
         "wheel",
@@ -334,8 +342,8 @@ onMounted(() => {
     useEventListener(window, "mouseleave", stopDrag);
 
     useEventListener(window, "touchmove", drag);
-    useEventListener(window, "touchend", stopDrag);
-    useEventListener(window, "touchcancel", stopDrag);
+    // useEventListener(window, "touchstart", startDrag);
+    // useEventListener(window, "touchend", stopDrag);
 
     resume();
 });
@@ -355,8 +363,8 @@ onUnmounted(() => {
     window.removeEventListener("mouseleave", stopDrag);
 
     window.removeEventListener("touchmove", drag);
+    window.removeEventListener("touchstart", startDrag);
     window.removeEventListener("touchend", stopDrag);
-    window.removeEventListener("touchcancel", stopDrag);
 
     pause();
 });

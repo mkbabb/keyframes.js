@@ -1,12 +1,12 @@
 <template>
-    <Button v-bind="$attrs" @click="handleClick">
+    <span class="cursor-pointer relative text-foreground p-0 m-0 h-4 w-4" @click="handleClick">
         <Clipboard v-bind="$attrs" class="clipboard" ref="clipboard" />
         <ClipboardCheck
             v-bind="$attrs"
             class="clipboard opacity-0"
             ref="clipboardChecked"
         />
-    </Button>
+    </span>
 </template>
 
 <script setup lang="ts">
@@ -94,6 +94,11 @@ onMounted(() => {
 </script>
 <style scoped lang="scss">
 .clipboard {
+    bottom: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+
     position: absolute;
 }
 </style>

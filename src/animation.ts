@@ -391,14 +391,9 @@ export class Animation<V extends Vars> {
     }
 
     reset() {
-        this.startTime = undefined;
-        this.pausedTime = 0;
-        this.prevTime = 0;
-        this.t = 0;
-        this.started = false;
         this.done = false;
+        this.started = false;
         this.paused = false;
-        this.iteration = 0;
 
         return this;
     }
@@ -489,7 +484,7 @@ export class Animation<V extends Vars> {
             this.fillBackwards();
         }
 
-        this.reset();
+        this.startTime = undefined;
 
         if (this.iteration === this.options.iterationCount - 1) {
             this.done = true;

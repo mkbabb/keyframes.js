@@ -123,3 +123,20 @@
         background-position: 0% 82%;
     }
 }
+
+.ppmycota-logo-lg {
+    background-image: url("@assets/ppmycota-logo-2.svg") center center no-repeat !important;
+
+    background-size: contain;
+
+    // background-size: cover;
+
+    filter: brightness(0.5) sepia(1) hue-rotate(-70deg) saturate(5);
+}
+
+.ppmycota-logo-sm {
+    background-image: url("@assets/ppmycota-logo-3.svg") !important;
+    background-size: contain;
+
+    filter: brightness(0.5) sepia(1) hue-rotate(-70deg) saturate(5);
+}

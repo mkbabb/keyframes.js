@@ -6,7 +6,7 @@
         <div
             class="info-bar absolute top-0 w-full lg:w-min lg:right-0 p-4 pl-6 pr-6 lg:p-4 flex flex-row-reverse lg:gap-4 gap-6 items-center justify-between lg:justify-end"
         >
-            <DarkModeToggle />
+            <DarkModeToggle class="hover:opacity-50 hover:scale-105" />
             <HoverCard :open-delay="0">
                 <HoverCardTrigger
                     ><Button class="p-0 m-0 cursor-pointer" variant="link"
@@ -37,6 +37,8 @@
                     </div>
                 </HoverCardContent>
             </HoverCard>
+
+            <div class="ppmycota-logo-sm w-16 h-16 stroke-2 font-bold"></div>
         </div>
 
         <template v-if="!storedControls.selectedAnimation">
@@ -103,7 +105,9 @@
         <div
             class="fixed bottom-0 p-2 m-0 w-screen h-[min-content] flex items-center justify-center justify-items-center"
         >
-            <Menubar class="flex items-center gap-1 justify-items-center border-none">
+            <Menubar
+                class="p-6 pl-4 pr-4 flex items-center gap-1 justify-items-center border-none"
+            >
                 <MenubarMenu>
                     <div class="relative">
                         <Select
@@ -111,7 +115,7 @@
                             :model-value="storedControls.selectedAnimation"
                             @update:model-value="
                                 (key) => {
-                                    storedControls.selectedAnimation = key;
+                                    return (storedControls.selectedAnimation = key);
                                 }
                             "
                         >
@@ -127,14 +131,15 @@
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectGroup>
-                                    <SelectItem
+                                    <template
                                         v-for="key in Object.keys(
                                             animationGroup.animations,
                                         )"
-                                        :key="key"
-                                        :value="key"
-                                        >{{ key }}</SelectItem
                                     >
+                                        <SelectItem class="" :value="key">{{
+                                            key
+                                        }}</SelectItem>
+                                    </template>
                                 </SelectGroup>
                             </SelectContent>
                         </Select>

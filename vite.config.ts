@@ -23,6 +23,7 @@ const defaultOptions = {
             "@styles": path.resolve(__dirname, "demo/@/styles"),
             "@components": path.resolve(__dirname, "demo/@/components"),
             "@utils": path.resolve(__dirname, "demo/@/utils"),
+            "@assets": path.resolve(__dirname, "assets"),
         },
     },
 };

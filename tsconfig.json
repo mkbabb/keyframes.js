@@ -25,6 +25,9 @@
             "@utils/*": [
                 "demo/@/utils/*"
             ],
+            "@assets/*": [
+                "assets/*"
+            ],
         },
         "types": [
             "unplugin-vue-macros/macros-global"

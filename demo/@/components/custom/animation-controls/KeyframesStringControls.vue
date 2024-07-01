@@ -64,13 +64,10 @@
                                 >
                                     <X
                                         @click="(e) => removeKeyframe(e, i)"
-                                        class="p-0 m-0 hover:scale-105 cursor-pointer stroke-2 w-8 h-8 text-red-500 hover:text-red-700 bg-transparent hover:bg-transparent"
+                                        class="p-0 m-0 hover:scale-105 cursor-pointer stroke-2 w-6 h-6 text-red-500 hover:text-red-700 bg-transparent hover:bg-transparent"
                                     >
                                     </X>
-                                    <CopyButton
-                                        class="cursor-pointer text-foreground relative bg-transparent hover:bg-transparent hover:scale-105"
-                                        :text="s"
-                                    />
+                                    <CopyButton class="h-6 w-6" :text="s" />
                                     <div
                                         class="italic opacity-25 z-0 pointer-events-none grid gap-1"
                                     >
@@ -219,7 +216,7 @@
                 <MenubarMenu>
                     <MenubarTrigger>
                         <CopyButton
-                            class="cursor-pointer text-foreground relative bg-transparent hover:bg-transparent hover:scale-105"
+                            class="w-6 h-6 hover:scale-105"
                             :text="cssKeyframesString"
                         />
                     </MenubarTrigger>
@@ -285,7 +282,15 @@ import CopyButton from "@components/custom/CopyButton.vue";
 
 import { Toggle } from "@components/ui/toggle";
 
-import { FileIcon, FilePlus2, Minus, Paintbrush, Plus, X, Pencil } from "lucide-vue-next";
+import {
+    FileIcon,
+    FilePlus2,
+    Minus,
+    Paintbrush,
+    Plus,
+    X,
+    Pencil,
+} from "lucide-vue-next";
 
 // @ts-ignore
 import githubDark from "highlight.js/styles/github-dark.css?inline";
@@ -763,7 +768,7 @@ const brushAnimation = new CSSKeyframesAnimation({
             }`,
 );
 
-const isDark = useDark();
+const isDark = useDark({ disableTransition: false });
 const setCodeTheme = () => {
     if (!hljsStyle) {
         return;
@@ -819,7 +824,7 @@ const highlightCSS = (el?: HTMLElement) => {
     pres.forEach(highlight);
 };
 
-const updateAllStrings = async () => {
+const updateAllStrings = debounce(async () => {
     templateFrameStrings = [];
 
     templateFrameStrings = await CSSKeyframesToStrings(animation);
@@ -827,7 +832,7 @@ const updateAllStrings = async () => {
     const keyframesString = await updateCSSAnimationKeyframesStringFromAnimation();
 
     return keyframesString;
-};
+}, 100);
 
 const updateAllStringsAndAnimation = async () => {
     const reversedKeyframesString = await updateAllStrings();

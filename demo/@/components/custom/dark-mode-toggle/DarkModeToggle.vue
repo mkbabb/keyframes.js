@@ -1,6 +1,6 @@
 <template>
     <!-- Credit to Kevin Powell at https://codepen.io/kevinpowell/pen/PomqjxO -->
-    <button class="darkmode-toggle-button hover:opacity-50" @click="changeTheme()">
+    <button class="dark-mode-toggle-button" v-bind="$attrs" @click="changeTheme()">
         <svg
             xmlns="http://www.w3.org/2000/svg"
             width="472.39"
@@ -28,7 +28,7 @@ const { size } = defineProps({
 </script>
 
 <style scoped lang="scss">
-.darkmode-toggle-button {
+.dark-mode-toggle-button {
     cursor: pointer;
     border: 0;
     opacity: 0.8;
@@ -40,6 +40,8 @@ const { size } = defineProps({
 
     width: v-bind("size");
     height: v-bind("size");
+
+    transition: all !important;
 
     z-index: 999;
 
@@ -57,7 +59,7 @@ const { size } = defineProps({
     }
 }
 
-.darkmode-toggle-button::before {
+.dark-mode-toggle-button::before {
     animation: pulseToDark 650ms ease-out;
 }
 
@@ -72,7 +74,7 @@ const { size } = defineProps({
 }
 
 .dark {
-    .darkmode-toggle-button::before {
+    .dark-mode-toggle-button::before {
         animation: pulseToLight 650ms ease-out;
     }
 

@@ -160,11 +160,11 @@
                                     <Loader2
                                         class="absolute w-48 h-48 animate-spin"
                                     ></Loader2>
-                                    <div
+                                    <!-- <div
                                         class="absolute flex items-center justify-center text-7xl w-48 h-48"
                                     >
                                         🌱
-                                    </div>
+                                    </div> -->
                                 </span>
 
                                 <div
@@ -173,9 +173,10 @@
                                     :class="[
                                         'cube-side',
                                         side.class,
+                                        'ppmycota-logo-lg',
                                         'absolute z-10 flex items-center justify-center border-primary',
                                         // add a dashed border and change opacity if the group isn't playing:
-                                        !animationGroup.playing() ? ' opacity-75' : '',
+                                        !animationGroup.playing() ? ' opacity-100' : '',
                                         'transition-all duration-500 ease-in-out',
                                     ]"
                                 >

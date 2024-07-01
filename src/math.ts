@@ -68,7 +68,19 @@ export function cubicBezierToSVG(x1: number, y1: number, x2: number, y2: number)
 }
 
 export function cubicBezierToString(x1: number, y1: number, x2: number, y2: number) {
-    const formatNumber = (n: number) => n.toFixed(2).replace(/\.0+$/, "");
+    const HTML_SPACE = "\u00A0";
+
+    const formatNumber = (n: number) => {
+        let s = n.toFixed(2);
+
+        // // replace trailing 0's with &nbsp:
+        // s = s.replace(/\.0+$/g, HTML_SPACE);
+
+        // remove trailing . with another &nbsp:
+        // s = s.replace(/\.$/g, HTML_SPACE);
+
+        return s;
+    };
 
     return `cubic-bezier(${formatNumber(x1)}, ${formatNumber(y1)}, ${formatNumber(x2)}, ${formatNumber(y2)})`;
 }

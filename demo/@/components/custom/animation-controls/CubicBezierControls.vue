@@ -3,16 +3,24 @@
         <CardHeader class="grid gap-0">
             <CardTitle>cubic-bézier</CardTitle>
             <div
-                class="w-full h-4 m-0 p-0 mt-1 text-xs flex items-center italic justify-items-center gap-2"
+                class="w-full whitespace-pre h-8 m-0 p-0 mt-1 text-xs flex items-center italic justify-items-center gap-2"
             >
                 {{ timingString.replace("cubic-bezier", "")
-                }}<CopyButton
-                    class="h-4 w-4 m-0 p-0 text-foreground bg-transparent hover:bg-transparent hover:scale-105"
-                    :text="timingString"
-                />
+                }}<CopyButton class="hover:scale-105" :text="timingString" />
             </div>
         </CardHeader>
-        <CardContent>
+        <CardContent
+            @mouseenter="
+                () => {
+                    cubicBezierAnim.pause();
+                }
+            "
+            @mouseleave="
+                (e) => {
+                    cubicBezierAnim.pause();
+                }
+            "
+        >
             <svg
                 ref="SVGEl"
                 class="bezier-curve"
@@ -49,26 +57,40 @@
                 />
             </svg>
 
-            <Select
-                :model-value="selectedPreset"
-                @update:model-value="
-                    (key) => {
-                        selectedPreset = key;
-                        updateCubicBezierPreset(key as any);
-                    }
-                "
-            >
-                <SelectTrigger>
-                    <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectGroup>
-                        <SelectItem v-for="p in Object.keys(bezierPresets)" :value="p">
-                            {{ p }}
-                        </SelectItem>
-                    </SelectGroup>
-                </SelectContent>
-            </Select>
+            <div class="flex gap-2 items-center justify-center">
+                <Snowflake
+                    class="hover:scale-105 cursor-pointer w-6 h-6"
+                    @click="
+                        () => {
+                            cubicBezierAnim.pause();
+                        }
+                    "
+                >
+                </Snowflake>
+                <Select
+                    :model-value="selectedPreset"
+                    @update:model-value="
+                        (key) => {
+                            selectedPreset = key;
+                            updateCubicBezierPreset(key as any);
+                        }
+                    "
+                >
+                    <SelectTrigger>
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectGroup>
+                            <SelectItem
+                                v-for="p in Object.keys(bezierPresets)"
+                                :value="p"
+                            >
+                                {{ p }}
+                            </SelectItem>
+                        </SelectGroup>
+                    </SelectContent>
+                </Select>
+            </div>
         </CardContent>
     </Card>
 </template>
@@ -96,13 +118,14 @@ import {
 import { Label } from "@components/ui/label";
 import { CSSBezier, bezierPresets } from "@src/easing";
 import { cubicBezierToSVG, cubicBezierToString } from "@src/math";
-import { Animation, TimingFunction } from "@src/animation";
+import { Animation, CSSKeyframesAnimation, TimingFunction } from "@src/animation";
 
 import Button from "@components/ui/button/Button.vue";
 
 import CopyButton from "@components/custom/CopyButton.vue";
 import { useStorage } from "@vueuse/core";
 import { StoredAnimationOptions, getStoredAnimationOptions } from "./animationStores";
+import { Snowflake } from "lucide-vue-next";
 
 const { animation } = defineProps({
     animation: {
@@ -206,8 +229,38 @@ const updateCubicBezierPreset = (key: string) => {
     updateTimingFunction();
 };
 
+const cubicBezierAnim = new CSSKeyframesAnimation({
+    duration: 1000,
+    iterationCount: "infinite",
+    direction: "alternate",
+}).fromCSSKeyframes(
+    /*css*/ `@keyframes move {
+            0% {
+                transform: translateY(0);
+            }
+            100% {
+                transform: translateY(1.5);
+            }
+}`,
+    (t, { transform }) => {
+        const v = transform.valueOf();
+
+        const [y1, y2] = [v, 1 - v];
+
+        controlPoints[1].y = y1;
+        controlPoints[2].y = y2;
+
+        timingValues[1] = y1;
+        timingValues[3] = y2;
+
+        updateTimingFunction();
+    },
+);
+
 onMounted(() => {
     updateTimingFunction();
+
+    cubicBezierAnim.play();
 });
 </script>
 
