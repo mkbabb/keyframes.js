@@ -2,7 +2,11 @@ import { RGBColor } from "d3-color";
 import { lerp } from "./math";
 import { CSSKeyframes, parseCSSTime } from "./parsing/keyframes";
 import { isCSSStyleName } from "./parsing/styleNames";
-import { CSSValueUnit } from "./parsing/units";
+import {
+    CSSValueUnit,
+    absoluteLengthUnits,
+    relativeLengthUnits,
+} from "./parsing/units";
 import { arrayEquals, isObject } from "./utils";
 
 export interface TransformedVars {
@@ -22,12 +26,16 @@ export function convertAbsoluteUnitToPixels(value: number, unit: string) {
     } else if (unit === "pc") {
         pixels *= 16;
     }
+
     return pixels;
 }
 
 export function convertToPixels(
     value: number,
-    unit: string,
+    unit:
+        | (typeof absoluteLengthUnits)[number]
+        | (typeof relativeLengthUnits)[number]
+        | string,
     element?: HTMLElement,
     property?: string,
 ): number {
@@ -48,11 +56,28 @@ export function convertToPixels(
             getComputedStyle(element.parentElement).getPropertyValue(property),
         );
         value = (value / 100) * parentValue;
+    } else if (unit === "ex" || unit === "ch") {
+        value *= parseFloat(getComputedStyle(element).fontSize);
     } else {
         value = convertAbsoluteUnitToPixels(value, unit);
     }
 
     return value;
+}
+
+export function convertToCh(
+    value: number,
+    unit:
+        | (typeof absoluteLengthUnits)[number]
+        | (typeof relativeLengthUnits)[number]
+        | string,
+    element: HTMLElement,
+    property?: string,
+): number {
+    const pixels = convertToPixels(1, "ch", element, property);
+    const ch = convertToPixels(value, unit, element, property);
+
+    return ch / pixels;
 }
 
 export function convertToDegrees(value: number, unit: string) {
@@ -456,6 +481,8 @@ export function transformTargetsStyle(t: number, vars: any, targets: HTMLElement
     }, {});
 
     targets.forEach((target) => {
-        Object.assign(target.style, transformedVars);
+        for (const [key, value] of Object.entries(transformedVars)) {
+            target.style.setProperty(key, value);
+        }
     });
 }

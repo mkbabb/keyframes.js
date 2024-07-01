@@ -249,10 +249,10 @@ export class Animation<V extends Vars> {
         return this as unknown as Animation<K>;
     }
 
-    updateFrom(other: Animation<V>) {
+    updateFrom(other: Animation<V>, merge: boolean = false) {
         Object.keys(this).forEach((key) => {
             if (other[key]) {
-                Object.assign(this[key], other[key]);
+                this[key] = other[key];
             }
         });
         return this;

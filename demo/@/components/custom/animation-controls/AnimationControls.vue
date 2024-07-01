@@ -1,7 +1,7 @@
 <template>
-    <div class="grid h-screen z-10 p-4 relative">
+    <div class="grid lg:h-screen h-full max-h-screen-md w-full max-w-screen-md z-10 relative">
         <Tabs
-            class="overflow-scroll"
+            class="overflow-scroll p-4 w-full h-full"
             :model-value="storedControls.selectedControl"
             @update:model-value="
                 (key) => {
@@ -9,13 +9,15 @@
                 }
             "
         >
-            <TabsList class="w-full flex gap-2 sticky top-0 overflow-x-scroll">
-                <TabsTrigger value="controls">Controls</TabsTrigger>
-                <TabsTrigger value="keyframes">Keyframes</TabsTrigger>
-                <slot name="tabs-trigger"></slot>
+            <TabsList class="w-full flex gap-2 sticky top-0">
+                <div class="flex w-full items-center justify-center overflow-x">
+                    <TabsTrigger value="controls">Controls</TabsTrigger>
+                    <TabsTrigger value="keyframes">Keyframes</TabsTrigger>
+                    <slot name="tabs-trigger"></slot>
+                </div>
             </TabsList>
 
-            <div>
+            <div class="">
                 <!-- <CardHeader class="grid gap-0">
                     <CardTitle>{{
                         controlNames[storedControls.selectedControl] ?? "🙂‍↔️"
@@ -26,7 +28,6 @@
                         {{ animation.name }}
                     </div>
                 </CardHeader> -->
-
                 <TabsContent value="controls">
                     <Card>
                         <CardContent class="pt-4 grid grid-cols-2 gap-1 items-center">

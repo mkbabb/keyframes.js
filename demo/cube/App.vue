@@ -1,5 +1,5 @@
 <template>
-    <div ref="container" class="container">
+    <div ref="gridBackground" class="grid-background">
         <AnimationControlsGroup
             :animation-group="animationGroup"
             :super-key="superKey"
@@ -16,15 +16,15 @@
                     <Card>
                         <CardContent class="grid items-center justify-center gap-4 p-6">
                             <div
-                                class="p-0 m-0 h-[fit-content] w-[fit-content] gap-1 grid grid-cols-4 items-center justify-items-center relative shadow-lg"
+                                class="p-0 m-0 h-[fit-content] w-[fit-content] gap-1 grid grid-cols-4 items-center justify-items-center relative"
                             >
                                 <div
-                                    class="w-14 h-14 shadow-md grid relative rounded-md"
+                                    class="h-20 w-20 shadow-sm grid relative rounded-md"
                                     v-for="(value, i) in matrix3dEnd.values"
                                 >
                                     <Input
                                         :class="
-                                            'absolute top-0 left-0 w-full h-full p-1 text-center text-ellipsis bold text-sm bg-transparent z-10 ' +
+                                            'absolute top-0 left-0 w-full h-full p-0 text-center text-ellipsis text-xl bg-transparent z-10 ' +
                                             [
                                                 storedControls.matrixOptions
                                                     .selectedMatrixCell === i
@@ -33,7 +33,9 @@
                                             ]
                                         "
                                         :model-value="
-                                            Math.round(value.value * 100) / 100
+                                            (Math.round(value.value * 100) / 100)
+                                                .toFixed(2)
+                                                .replace(/\.0*$/, '')
                                         "
                                         @update:model-value="
                                             (v) => updateMatrixCell(v, i)
@@ -49,7 +51,7 @@
                                     />
                                     <div
                                         :class="
-                                            'absolute top-0 left-0 w-full h-full p-1 text-center text-4xl opacity-20 dark:opacity-50 align-text-bottom ' +
+                                            'absolute top-0 left-0 w-full h-full p-0 text-center text-5xl opacity-20 dark:opacity-75 flex items-center justify-center justify-items-center fraunces ' +
                                             [getAxisFromIx(i).toLocaleLowerCase()]
                                         "
                                     >
@@ -134,47 +136,64 @@
             </template>
 
             <template #animation-content>
-                <div ref="graph" class="graph">
-                    <Loader2
-                        v-if="!storedControls.selectedAnimation"
-                        class="absolute w-48 h-48 animate-spin"
-                    ></Loader2>
-
-                    <OrbitalDrag
-                        class="cube"
-                        @rotate="(v) => orbitalDrag('rotate', v)"
-                        @translate="(v) => orbitalDrag('translate', v)"
-                        @scale="(v) => orbitalDrag('scale', v)"
+                <div
+                    class="grid items-center justify-items-center justify-center h-screen w-screen overflow-hidden"
+                >
+                    <div
+                        ref="graph"
+                        class="graph preserve-3d grid items-center justify-center justify-items-center"
                     >
-                        <div ref="cube" class="cube">
-                            <div
-                                v-for="(side, index) in cubeSides"
-                                :key="index"
-                                :class="['cube-side', side.class]"
-                            >
-                                <span class="text-5xl font-bold z-[100]">{{
-                                    side.content
-                                }}</span>
-                                <span
-                                    :class="
-                                        'rainbow-wrapper ' +
-                                        (!animationGroup.playing()
-                                            ? 'opacity-100'
-                                            : 'opacity-25')
-                                    "
-                                    :style="{
-                                        animationDelay: `${Math.random() * 10}s`,
-                                        animationDuration: `${Math.random() * 10}s`,
-                                    }"
-                                >
-                                </span>
-                            </div>
-                        </div>
-                    </OrbitalDrag>
+                        <Loader2
+                            v-if="!storedControls.selectedAnimation"
+                            class="absolute w-48 h-48 animate-spin"
+                        ></Loader2>
 
-                    <div class="axis-line x"></div>
-                    <div class="axis-line y"></div>
-                    <div class="axis-line z"></div>
+                        <OrbitalDrag
+                            class="relative preserve-3d flex items-center justify-center justify-items-center"
+                            @rotate="(v) => orbitalDrag('rotate', v)"
+                            @translate="(v) => orbitalDrag('translate', v)"
+                            @scale="(v) => orbitalDrag('scale', v)"
+                        >
+                            <div
+                                ref="cube"
+                                class="relative cube preserve-3d flex items-center justify-center justify-items-center animation"
+                            >
+                                <div
+                                    v-for="(side, index) in cubeSides"
+                                    :key="index"
+                                    :class="[
+                                        'cube-side',
+                                        side.class,
+                                        'absolute z-10 flex items-center justify-center border-primary',
+                                        // add a dashed border and change opacity if the group isn't playing:
+                                        !animationGroup.playing() ? ' opacity-75' : '',
+                                        'transition-all duration-500 ease-in-out',
+                                    ]"
+                                >
+                                    <span class="text-5xl font-bold z-[100]">{{
+                                        side.content
+                                    }}</span>
+                                    <span
+                                        :class="
+                                            'rainbow-wrapper ' +
+                                            (!animationGroup.playing()
+                                                ? 'opacity-100'
+                                                : 'opacity-25')
+                                        "
+                                        :style="{
+                                            animationDelay: `${Math.random() * 10}s`,
+                                            animationDuration: `${Math.random() * 10}s`,
+                                        }"
+                                    >
+                                    </span>
+                                </div>
+                            </div>
+                        </OrbitalDrag>
+
+                        <div class="axis-line x"></div>
+                        <div class="axis-line y"></div>
+                        <div class="axis-line z"></div>
+                    </div>
                 </div>
             </template>
         </AnimationControlsGroup>
@@ -727,7 +746,8 @@ const cubeSides = [
 
 const cube = $ref<HTMLElement>();
 const graph = $ref<HTMLElement>();
-const container = $ref<HTMLElement>();
+
+const gridBackground = $ref<HTMLElement>();
 
 const changeGraphPerspectiveAnim = new CSSKeyframesAnimation({
     duration: 700,
@@ -799,42 +819,33 @@ onMounted(() => {
     </svg>
 `);
 
-    container.style.backgroundImage = `url("data:image/svg+xml,${encodedSVG}")`;
+    gridBackground.style.backgroundImage = `url("data:image/svg+xml,${encodedSVG}")`;
 
     fixMatrix();
 });
 </script>
 <style scoped lang="scss">
-.container {
+.grid-background {
     background-size: 1rem !important;
+    background-repeat: repeat;
 }
 
 .graph {
-    // height: 100%;
-    // max-width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-
-    perspective: 1600px;
-    transform-style: preserve-3d;
-    position: relative;
-    align-self: center;
+    perspective: 1200px;
 }
 
 .x {
-    --color: red !important;
+    --color: rgb(218, 59, 59);
     color: var(--color);
 }
 
 .y {
-    --color: green;
+    --color: rgb(66, 175, 66);
     color: var(--color);
 }
 
 .z {
-    --color: blue;
+    --color: rgb(61, 61, 235);
     color: var(--color);
 }
 
@@ -845,16 +856,16 @@ onMounted(() => {
 
 .axis-line {
     width: 1000vw;
+
     height: 0px;
-    background: transparent;
+
     border: 1px dashed var(--color);
-    margin: 0;
-    padding: 0;
-    transform-style: preserve-3d;
-    opacity: 0.5;
+
+    opacity: 0.75;
 
     z-index: -10;
     position: absolute;
+    pointer-events: none;
 
     &.x {
         transform: rotateX(0deg);
@@ -875,31 +886,11 @@ onMounted(() => {
     --rotationX: 360deg;
 
     height: calc(var(--side-size) * 2);
-    aspect-ratio: 1 / 1;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transform-style: preserve-3d;
-    position: relative;
 }
 
 .cube-side {
-    position: absolute;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
     width: var(--side-size);
     height: var(--side-size);
-
-    color: white;
-
-    font-size: 2rem;
-    border: 1px inset rgba(0, 0, 0, 0.37);
-
-    z-index: 10;
 
     &.front {
         background: rgba(255, 0, 0, 0.8);
@@ -924,15 +915,6 @@ onMounted(() => {
     &.right {
         background: rgba(0, 255, 255, 0.8);
         transform: rotateY(90deg) translateZ(var(--side-offset));
-    }
-}
-
-@media screen and (max-width: 768px) {
-    .container {
-        grid-template-columns: 1fr;
-        grid-template-rows: repeat(3, 1fr);
-        overflow: scroll;
-        height: min-content;
     }
 }
 </style>

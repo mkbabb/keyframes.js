@@ -1,9 +1,5 @@
 <template>
-    <Button
-        v-bind="$attrs"
-        class="relative p-2 bg-transparent hover:bg-transparent hover:scale-105 rounded-md"
-        @click="handleClick"
-    >
+    <Button v-bind="$attrs" @click="handleClick">
         <Clipboard v-bind="$attrs" class="clipboard" ref="clipboard" />
         <ClipboardCheck
             v-bind="$attrs"

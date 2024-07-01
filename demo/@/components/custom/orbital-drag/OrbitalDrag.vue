@@ -58,9 +58,9 @@ const model = defineModel<TransformState>({
 const containerRef = $ref<HTMLElement | null>(null);
 
 let isDragging = $ref(false);
+let isTouching = $ref(false);
 
 let previousMousePosition = $ref({ x: 0, y: 0 });
-let previousGesture = $ref({ x: 0, y: 0, scale: 1 });
 
 let velocity = $ref<VelocityState>(defaultVelocityState);
 
@@ -92,15 +92,16 @@ const getUserXY = (event: MouseEvent | TouchEvent) => {
 
 const startDrag = (event: MouseEvent | TouchEvent) => {
     if (event instanceof TouchEvent) {
+        isTouching = true;
         event.preventDefault();
     }
 
     previousMousePosition = getUserXY(event);
-
     isDragging = true;
 };
 
 const stopDrag = () => {
+    isTouching = false;
     isDragging = false;
 };
 
@@ -212,14 +213,14 @@ const handleAxisSpecificDrag = (deltaX: number, deltaY: number) => {
 const handleWheel = (event: WheelEvent) => {
     event.preventDefault();
 
-    const { deltaX, deltaY } = event;
+    const { deltaX, deltaY, ctrlKey } = event;
 
     if (pressedKeys.x || pressedKeys.y || pressedKeys.z) {
         handleAxisSpecificDrag(deltaX, deltaY);
     } else if (pressedKeys.shift) {
         updateTranslation("x", deltaX);
         updateTranslation("y", deltaY);
-    } else if (pressedKeys.ctrl || pressedKeys.meta) {
+    } else if (pressedKeys.ctrl || pressedKeys.meta || ctrlKey) {
         updateScale("x", deltaY);
         updateScale("y", deltaY);
         updateScale("z", deltaY);

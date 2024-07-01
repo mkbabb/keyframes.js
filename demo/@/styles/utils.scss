@@ -6,6 +6,10 @@
     box-sizing: border-box;
 }
 
+.preserve-3d {
+    transform-style: preserve-3d;
+}
+
 .fraunces {
     font-family: "Fraunces", sans-serif;
 }

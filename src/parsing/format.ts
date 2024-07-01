@@ -10,7 +10,11 @@ import {
     reverseTransformObject,
 } from "../units";
 import { camelCaseToHyphen } from "../utils";
-import { reverseCSSTime, parseCSSKeyframes } from "./keyframes";
+import {
+    reverseCSSTime,
+    parseCSSKeyframes,
+    parseCSSAnimationKeyframes,
+} from "./keyframes";
 
 function objectToString(key: string, value: any) {
     if (typeof value === "object" && !(value instanceof ValueArray)) {
@@ -28,22 +32,50 @@ function objectToString(key: string, value: any) {
     }
 }
 
-export async function formatCSS(css: string, printWidth: number = 80) {
+const DEFAULT_WIDTH = 80 / 2;
+
+export async function formatCSS(
+    css: string,
+    printWidth: number | undefined = undefined,
+) {
     return await prettier.format(css, {
         parser: "scss",
         plugins: [prettierPostCSSPlugin],
-        printWidth,
+        printWidth: printWidth ?? DEFAULT_WIDTH,
     });
 }
 
 const DEFAULT_KEYFRAME_HEADER = `@keyframes animation {\n`;
 const DEFAULT_KEYFRAME_FOOTER = `\n}`;
 
-export function parseCSSKeyframe(keyframe: string) {
+export function normalizeCSSKeyframeString(keyframe: string) {
+    keyframe = keyframe.trim();
+
+    if (keyframe.startsWith("{") && keyframe.endsWith("}")) {
+        keyframe = keyframe.slice(1, -1);
+    }
+
     if (!keyframe.includes("@keyframes")) {
         keyframe = DEFAULT_KEYFRAME_HEADER + keyframe + DEFAULT_KEYFRAME_FOOTER;
     }
-    return parseCSSKeyframes(keyframe);
+
+    return keyframe;
+}
+
+export function parseCSSAnimationOrKeyframes(keyframes: string): {
+    keyframes: any;
+    options?: AnimationOptions;
+    values?: any;
+} {
+    keyframes = normalizeCSSKeyframeString(keyframes);
+
+    try {
+        return parseCSSAnimationKeyframes(keyframes);
+    } catch (e) {
+        return {
+            keyframes: parseCSSKeyframes(keyframes),
+        };
+    }
 }
 
 export const CSSKeyframesToStrings = async <V>(animation: Animation<V>) => {
@@ -135,7 +167,7 @@ export function CSSKeyframeToString<V extends Vars>(
 export async function CSSKeyframesToString<V extends Vars>(
     animation: Animation<V>,
     name: string = "animation",
-    printWidth: number = 80,
+    printWidth: number | undefined = undefined,
 ) {
     const options = animation.options;
     const keyframesMap = new Map<string, ValueUnit[]>();
@@ -159,11 +191,7 @@ export async function CSSKeyframesToString<V extends Vars>(
 
     const keyframes = `${animationOptionsString}\n@keyframes ${name} {\n${keyframesString}}`;
 
-    const out = await prettier.format(keyframes, {
-        parser: "scss",
-        plugins: [prettierPostCSSPlugin],
-        printWidth,
-    });
+    const out = await formatCSS(keyframes, printWidth);
 
     return out.replace(/\(\s*\{/g, "{").replace(/\}\s*\)/g, "}");
 }

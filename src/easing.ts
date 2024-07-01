@@ -63,6 +63,80 @@ export function bounceInEaseHalf(t: number) {
     return t;
 }
 
+export function bounceOutEase(t: number) {
+    const points = [
+        [0, 0],
+        [0.367, 0.94],
+        [0.974, 0.254],
+        [1, 0],
+    ];
+    t = interpBezier(t, points)[1];
+    return t;
+}
+
+export function bounceOutEaseHalf(t: number) {
+    const points = [
+        [0, 0],
+        [0.026, 1.746],
+        [0.633, 1.06],
+        [1, 0],
+    ];
+    t = interpBezier(t, points)[1];
+    return t;
+}
+
+export function bounceInOutEase(t: number) {
+    const points = [
+        [0, 0],
+        [0.026, 1.746],
+        [0.633, 1.06],
+        [1, 0],
+    ];
+    t = interpBezier(t, points)[1];
+    return t;
+}
+
+// trig easing:
+export function easeInSine(t: number) {
+    return 1 - Math.cos((t * Math.PI) / 2);
+}
+
+export function easeOutSine(t: number) {
+    return Math.sin((t * Math.PI) / 2);
+}
+
+export function easeInOutSine(t: number) {
+    return -(Math.cos(Math.PI * t) - 1) / 2;
+}
+
+export function easeInCirc(t: number) {
+    return 1 - Math.sqrt(1 - t * t);
+}
+
+export function easeOutCirc(t: number) {
+    return Math.sqrt(1 - --t * t);
+}
+
+export function easeInOutCirc(t: number) {
+    if ((t /= 0.5) < 1) return -(Math.sqrt(1 - t * t) - 1) / 2;
+    return (Math.sqrt(1 - (t -= 2) * t) + 1) / 2;
+}
+
+export function easeInExpo(t: number) {
+    return t === 0 ? 0 : Math.pow(2, 10 * (t - 1));
+}
+
+export function easeOutExpo(t: number) {
+    return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+}
+
+export function easeInOutExpo(t: number) {
+    if (t === 0) return 0;
+    if (t === 1) return 1;
+    if ((t /= 0.5) < 1) return 0.5 * Math.pow(2, 10 * (t - 1));
+    return 0.5 * (2 - Math.pow(2, -10 * --t));
+}
+
 export const jumpTerms = [
     "jump-start",
     "jump-end",
@@ -154,6 +228,42 @@ export const timingFunctions = {
 
     bounceInEaseHalf,
     "bounce-in-ease-half": bounceInEaseHalf,
+
+    bounceOutEase,
+    "bounce-out-ease": bounceOutEase,
+
+    bounceOutEaseHalf,
+    "bounce-out-ease-half": bounceOutEaseHalf,
+
+    bounceInOutEase,
+    "bounce-in-out-ease": bounceInOutEase,
+
+    easeInSine,
+    "ease-in-sine": easeInSine,
+
+    easeOutSine,
+    "ease-out-sine": easeOutSine,
+
+    easeInOutSine,
+    "ease-in-out-sine": easeInOutSine,
+
+    easeInCirc,
+    "ease-in-circ": easeInCirc,
+
+    easeOutCirc,
+    "ease-out-circ": easeOutCirc,
+
+    easeInOutCirc,
+    "ease-in-out-circ": easeInOutCirc,
+
+    easeInExpo,
+    "ease-in-expo": easeInExpo,
+
+    easeOutExpo,
+    "ease-out-expo": easeOutExpo,
+
+    easeInOutExpo,
+    "ease-in-out-expo": easeInOutExpo,
 
     smoothStep3,
     "smooth-step-3": smoothStep3,

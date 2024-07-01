@@ -1,11 +1,12 @@
 <template>
     <div
-        class="container grid h-screen w-full grid-cols-3 m-0 p-0 relative items-center overflow-hidden"
+        class="w-full h-screen max-w-screen-xl max-h-screen-md grid lg:grid-cols-3 grid-cols-1 lg:grid-rows-1 justify-items-center justify-center items-center overflow-scroll lg:overflow-hidden relative"
+        v-bind="$attrs"
     >
         <div
-            class="info-bar absolute top-0 right-0 p-2 flex flex-row-reverse gap-4 items-center z-[200]"
+            class="info-bar absolute top-0 w-full lg:w-min lg:right-0 p-4 pl-6 pr-6 lg:p-4 flex flex-row-reverse lg:gap-4 gap-6 items-center justify-between lg:justify-end z-[1000]"
         >
-            <DarkModeToggle class="dark-mode-toggle" />
+            <DarkModeToggle />
             <HoverCard :open-delay="0">
                 <HoverCardTrigger
                     ><Button class="p-0 m-0 cursor-pointer" variant="link"
@@ -36,42 +37,26 @@
                     </div>
                 </HoverCardContent>
             </HoverCard>
-
-            <!-- <CommandPalette
-                :super-key="superKey"
-                :animations="
-                    Object.values(animationGroup.animations).map((a) => a.animation)
-                "
-            ></CommandPalette> -->
         </div>
 
         <template v-if="!storedControls.selectedAnimation">
             <div
-                class="start-screen-text absolute grid items-center w-screen gap-0 left-4 top-32"
+                class="start-screen-text lg:absolute mt-16 w-screen h-0 grid items-center gap-0 left-0 ml-8 top-0"
             >
-                <h1 class="font-bold text-7xl m-0 p-0">
-                    <span
-                        class="fraunces lift-down depth-text"
-                        v-for="(char, index) in startScreenText"
-                        :key="index"
-                        :style="{
-                            animationDelay: `${index * 0.3}s`,
-                            animationDuration: `${startScreenText.length * 0.3 + 3}s`,
-                        }"
-                    >
-                        {{ char }}
-                    </span>
-                    <span
-                        class="depth-text dot-fade"
-                        v-for="(char, index) in ellipsisText"
-                        :key="index"
-                        :style="{
-                            animationDelay: `${index * 0.3}s`,
-                            animationDuration: `${ellipsisText.length * 0.3 + 1}s`,
-                        }"
-                    >
-                        {{ char }}
-                    </span>
+                <h1 class="fraunces font-bold lg:text-7xl text-6xl p-0 grid lg:flex">
+                    <div>
+                        <AnimatedText
+                            class="depth-text"
+                            :text="startScreenText"
+                        ></AnimatedText>
+                    </div>
+
+                    <div>
+                        <AnimatedText
+                            class="dot-fade depth-text"
+                            :text="ellipsisText"
+                        ></AnimatedText>
+                    </div>
                 </h1>
                 <h2 class="fraunces italic font-light text-4xl w-full">
                     from the list <List class="inline"></List> below.
@@ -88,7 +73,7 @@
         >
             <AnimationControls
                 v-if="storedControls.selectedAnimation == name"
-                class="animation-controls col-span-1"
+                class="col-span-1"
                 @slider-update="sliderUpdate"
                 @keyframes-update="keyframesUpdate"
                 :animation="groupObject.animation"
@@ -104,12 +89,19 @@
             </AnimationControls>
         </template>
 
-        <div :class="storedControls.selectedAnimation ? 'col-span-2' : 'col-span-3'">
+        <div
+            :class="
+                ' ' +
+                (storedControls?.selectedAnimation == null
+                    ? 'col-span-3'
+                    : 'col-span-2')
+            "
+        >
             <slot name="animation-content"> </slot>
         </div>
 
         <div
-            class="menu-bar col-span-3 absolute bottom-0 p-4 m-0 w-screen h-[min-content] flex items-center justify-center"
+            class="sticky lg:absolute bottom-0 p-4 m-0 w-screen h-[min-content] flex items-center justify-center justify-items-center"
         >
             <Menubar class="flex items-center gap-1 justify-items-center">
                 <MenubarMenu>
@@ -181,10 +173,17 @@
             </Menubar>
         </div>
     </div>
+
+    <ClientOnly>
+        <Teleport to="html">
+            <Toaster />
+        </Teleport>
+    </ClientOnly>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue";
+import { Teleport, onMounted, ref, watch } from "vue";
+import { Toaster } from "vue-sonner";
 
 import CommandPalette from "@components/custom/CommandPalette.vue";
 
@@ -249,9 +248,10 @@ import {
     resetAllStores,
 } from "./animationStores";
 import { SelectIcon } from "radix-vue";
+import { useWindowSize } from "@vueuse/core";
+import AnimatedText from "./AnimatedText.vue";
 
 let startScreenText = $ref("Select an animation");
-startScreenText = startScreenText.replace(/ /g, "\u00a0");
 let ellipsisText = $ref("...");
 
 const { superKey, animationGroup } = defineProps<{
@@ -324,9 +324,10 @@ const reset = (target: HTMLElement, all: boolean = false) => {
         .play();
 
     animationGroup.reset();
+    storedControls.selectedAnimation = null;
 
     if (all) {
-        resetAllStores();
+        // resetAllStores();
         window.location.reload();
     }
 };
@@ -350,75 +351,5 @@ onMounted(() => {});
     );
 
     background: var(--gradient);
-}
-
-.lift-down {
-    display: inline-block;
-    animation: liftDown 3s ease-in-out infinite;
-    animation-fill-mode: forwards;
-}
-
-@keyframes liftDown {
-    0%,
-    100% {
-        transform: translateY(0);
-    }
-    50% {
-        transform: translateY(-5px);
-    }
-}
-
-.dot-fade {
-    display: inline-block;
-    animation: dotFade 4s ease-in-out infinite;
-    animation-fill-mode: forwards;
-}
-
-@keyframes dotFade {
-    0%,
-    100% {
-        opacity: 0;
-    }
-    50% {
-        opacity: 1;
-    }
-}
-
-.remove-outline > *,
-* {
-    // remove all variations of all child outlines and borders, and focus states:
-    // outline: none !important;
-    // border: none !important;
-    box-shadow: none !important;
-
-    &:focus {
-        // outline: none !important;
-        // border: none !important;
-        box-shadow: none !important;
-    }
-}
-
-@media (max-width: 640px) {
-    .container {
-        grid-template-columns: 1fr;
-        grid-template-rows: 1fr 1fr 1fr;
-        gap: 0;
-
-        height: 100%;
-        position: relative;
-    }
-
-    .animation-controls {
-        grid-row: span 1;
-        height: 50px;
-    }
-
-    .animation-content {
-        grid-row: 2;
-    }
-
-    .menu-bar {
-        position: sticky !important;
-    }
 }
 </style>

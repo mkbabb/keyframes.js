@@ -423,14 +423,21 @@ export const CSSAnimationKeyframes = P.createLanguage({
     ws: () => P.optWhitespace,
     Value: (r) =>
         P.alt(
-            CSSClass.Class,
+            CSSClass.Class.or(P.whitespace).map((value) => {
+                return value;
+            }),
             CSSKeyframes.Keyframes.map((value) => {
                 return {
                     keyframes: value,
                 };
             }),
         ),
-    Values: (r) => r.Value.sepBy(r.ws).map((values) => Object.assign({}, ...values)),
+    Values: (r) =>
+        r.Value.sepBy(r.ws).map((values) => {
+            {
+                return Object.assign({}, ...values);
+            }
+        }),
 });
 
 export const parseCSSKeyframes = (input: string): Record<string, any> =>
