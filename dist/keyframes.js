@@ -2795,6 +2795,9 @@ class AnimationGroup {
         animation: n
       };
     }
+    this.singleTarget = t.every(
+      (n) => n.target === t[0].target
+    );
   }
   fromObject(t) {
     const n = new AnimationGroup();
