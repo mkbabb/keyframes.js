@@ -248,13 +248,13 @@ const drag = (event: MouseEvent | TouchEvent) => {
 };
 
 const gesture = (event: any) => {
-    if (!isTouching) return;
+    if (!isTouching || isScrolling) return;
 
     const { screenX, screenY, scale } = event;
 
     const deltaX = screenX - previousGestureState.x;
     const deltaY = screenY - previousGestureState.y;
-    const deltaScale = scale - previousGestureState.scale;
+    const deltaScale = (scale - previousGestureState.scale) / (scaleFactor / 1.25);
 
     if (
         Math.abs(deltaX) < 1e-4 &&
@@ -397,12 +397,12 @@ onMounted(() => {
     useEventListener(window, "mouseleave", stopDrag);
 
     useEventListener(window, "touchmove", drag);
-    useEventListener(window, "touchstart", startDrag);
-    useEventListener(window, "touchend", stopDrag);
+    // useEventListener(window, "touchstart", startDrag);
+    // useEventListener(window, "touchend", stopDrag);
 
-    useEventListener(window, "gestureStart", startGesture);
-    useEventListener(window, "gestureChange", gesture);
-    useEventListener(window, "gestureEnd", stopGesture);
+    useEventListener(window, "gesturestart", startGesture);
+    useEventListener(window, "gesturechange", gesture);
+    useEventListener(window, "gestureend", stopGesture);
 
     resume();
 });
@@ -425,9 +425,9 @@ onUnmounted(() => {
     window.removeEventListener("touchstart", startDrag);
     window.removeEventListener("touchend", stopDrag);
 
-    window.removeEventListener("gestureStart", startGesture);
-    window.removeEventListener("gestureChange", gesture);
-    window.removeEventListener("gestureEnd", stopGesture);
+    window.removeEventListener("gesturestart", startGesture);
+    window.removeEventListener("gesturechange", gesture);
+    window.removeEventListener("gestureend", stopGesture);
 
     pause();
 });

@@ -5,7 +5,7 @@
     >
         <div
             :class="
-                'sticky lg:absolute col-span-3 z-[100] pointer-events-none top-0 w-full h-full lg:w-min lg:right-0 m-0 px-6 pt-2 flex flex-row-reverse lg:gap-4 gap-6 items-center justify-items-center lg:items-start lg:justify-center justify-between ' +
+                'sticky lg:absolute col-span-2 z-[100] pointer-events-none top-0 w-full h-full lg:w-min lg:right-0 m-0 px-6 pt-2 flex flex-row-reverse lg:gap-4 gap-6 items-center justify-items-center lg:items-start lg:justify-center justify-between ' +
                 (!storedControls.selectedAnimation ? 'lg:mt-20' : 'lg:mt-4')
             "
         >
@@ -48,7 +48,7 @@
                     ><div
                         ref="ppmycotaLogoEl"
                         @click="setPPMode"
-                        class="ppmycota-logo-sm w-12 h-12 stroke-2 font-bold hover:scale-105 cursor-pointer pointer-events-auto"
+                        class="ppmycota-logo-sm w-12 h-12 m-0 p-0 stroke-2 font-bold hover:scale-105 cursor-pointer pointer-events-auto"
                     ></div>
                 </HoverCardTrigger>
                 <HoverCardContent class="z-[100] pointer-events-auto">
