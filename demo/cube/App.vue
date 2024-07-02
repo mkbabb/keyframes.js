@@ -161,43 +161,51 @@
                                         class="absolute w-48 h-48 animate-spin"
                                     ></Loader2>
                                 </span>
-
                                 <div
                                     v-for="(side, index) in cubeSides"
                                     :key="index"
                                     :class="[
                                         'cube-side',
                                         side.class,
-                                        storedControls.ppMode ? ' ppmycota-cube' : '',
-
-                                        'absolute z-10 flex items-center justify-center border-primary',
-                                        // add a dashed border and change opacity if the group isn't playing:
-                                        !animationGroup.playing() ? ' opacity-100' : '',
-                                        ' transition-all duration-500 ease-in-out',
+                                        'rounded-lg',
+                                        'transition-all duration-500 ease-in-out',
+                                        'absolute z-10 flex items-center justify-center',
                                     ]"
                                 >
-                                    <span class="text-5xl font-bold z-[100]">{{
-                                        side.content
-                                    }}</span>
-                                    <span
-                                        :class="
-                                            'rainbow-wrapper ' +
-                                            (!animationGroup.playing()
-                                                ? 'opacity-100'
-                                                : 'opacity-25') +
-                                            storedControls.ppMode
-                                                ? ' opacity-0'
-                                                : ''
-                                        "
-                                        :style="{
-                                            animationDelay: `${Math.random() * 10}s`,
-                                            animationDuration: `${Math.random() * 10}s`,
-                                        }"
-                                    >
-                                    </span>
-                                    <div
-                                        class="absolute w-64 h-64 ppmycota-logo-lg"
-                                    ></div>
+                                <span
+                                    :class="
+                                        'rainbow-wrapper ' +
+                                        (!animationGroup.playing()
+                                            ? 'opacity-100'
+                                            : 'opacity-25')
+                                    "
+                                    :style="{
+                                        animationDelay: `${Math.random() * 10}s`,
+                                        animationDuration: `${Math.random() * 10}s`,
+                                    }"
+                                >
+                                </span>
+                                    <template v-if="!storedControls.ppMode">
+                                        <span
+                                            :class="[
+                                                'text-5xl h-full w-full font-bold',
+                                                'flex items-center justify-center',
+                                            ]"
+                                            :style="{
+                                                backgroundColor: side.color,
+                                            }"
+                                            >{{ side.content }}</span
+                                        >
+                                    </template>
+
+                                    <template v-else>
+                                        <div
+                                            class="absolute w-full h-full ppmycota-cube"
+                                        ></div>
+                                        <div
+                                            class="absolute w-full h-full ppmycota-logo-lg"
+                                        ></div>
+                                    </template>
                                 </div>
                             </div>
                         </OrbitalDrag>
@@ -313,7 +321,7 @@ const createMatrix = () =>
 const matrix3dStart = $ref(createMatrix());
 const matrix3dEnd = $ref(createMatrix());
 
-storedControls.ppMode ??= true;
+storedControls.ppMode ??= false;
 
 const transformSliderValues = {
     translate: {
@@ -748,12 +756,12 @@ const createRandomMatrixRotationsAnimation = () => {
 };
 
 const cubeSides = [
-    { class: "front", content: "1" },
-    { class: "right", content: "2" },
-    { class: "back", content: "3" },
-    { class: "left", content: "4" },
-    { class: "top", content: "5" },
-    { class: "bottom", content: "6" },
+    { class: "front", content: "1", color: "rgba(255, 0, 0, 0.8)" },
+    { class: "right", content: "2", color: "rgba(0, 255, 0, 0.8)" },
+    { class: "back", content: "3", color: "rgba(0, 0, 255, 0.8)" },
+    { class: "left", content: "4", color: "rgba(255, 255, 0, 0.8)" },
+    { class: "top", content: "5", color: "rgba(255, 0, 255, 0.8)" },
+    { class: "bottom", content: "6", color: "rgba(0, 255, 255, 0.8)" },
 ];
 
 const cube = $ref<HTMLElement>();
@@ -905,27 +913,21 @@ onMounted(() => {
     height: var(--side-size);
 
     &.front {
-        background: rgba(255, 0, 0, 0.8);
         transform: rotateY(0deg) translateZ(var(--side-offset));
     }
     &.back {
-        background: rgba(0, 255, 0, 0.8);
         transform: rotateY(180deg) translateZ(var(--side-offset));
     }
     &.top {
-        background: rgba(0, 0, 255, 0.8);
         transform: rotateX(90deg) translateZ(var(--side-offset));
     }
     &.bottom {
-        background: rgba(255, 255, 0, 0.8);
         transform: rotateX(-90deg) translateZ(var(--side-offset));
     }
     &.left {
-        background: rgba(255, 0, 255, 0.8);
         transform: rotateY(-90deg) translateZ(var(--side-offset));
     }
     &.right {
-        background: rgba(0, 255, 255, 0.8);
         transform: rotateY(90deg) translateZ(var(--side-offset));
     }
 }
