@@ -824,7 +824,7 @@ const highlightCSS = (el?: HTMLElement) => {
     pres.forEach(highlight);
 };
 
-const updateAllStrings = debounce(async () => {
+const updateAllStrings = async () => {
     templateFrameStrings = [];
 
     templateFrameStrings = await CSSKeyframesToStrings(animation);
@@ -832,7 +832,9 @@ const updateAllStrings = debounce(async () => {
     const keyframesString = await updateCSSAnimationKeyframesStringFromAnimation();
 
     return keyframesString;
-}, 100);
+};
+
+const debouncedUpdateAllStrings = debounce(updateAllStrings, 100);
 
 const updateAllStringsAndAnimation = async () => {
     const reversedKeyframesString = await updateAllStrings();
@@ -847,7 +849,7 @@ watch(
 );
 
 watch(animation.templateFrames, async () => {
-    updateAllStrings();
+    debouncedUpdateAllStrings();
 });
 
 watch(
