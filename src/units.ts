@@ -482,7 +482,7 @@ export function transformTargetsStyle(t: number, vars: any, targets: HTMLElement
 
     targets.forEach((target) => {
         for (const [key, value] of Object.entries(transformedVars)) {
-            target.style.setProperty(key, value);
+            target.style.setProperty(key, value as any);
         }
     });
 }

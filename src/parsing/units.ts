@@ -107,6 +107,40 @@ const hwb2hsl = (h: number, w: number, b: number) => {
     return [h, sl, l];
 };
 
+export const rgb2hsl = (r: number, g: number, b: number) => {
+    r /= 255;
+    g /= 255;
+    b /= 255;
+
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    const l = (max + min) / 2;
+
+    if (max === min) {
+        return [0, 0, l];
+    }
+
+    const d = max - min;
+    const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+
+    let h = 0;
+    switch (max) {
+        case r:
+            h = (g - b) / d + (g < b ? 6 : 0);
+            break;
+        case g:
+            h = (b - r) / d + 2;
+            break;
+        case b:
+            h = (r - g) / d + 4;
+            break;
+    }
+
+    h /= 6;
+    
+    return [h, s, l];
+};
+
 const colorOptionalAlpha = (r: P.Language, colorType: string) => {
     const name = P.string(colorType)
         .skip(opt(P.string("a")))
@@ -243,4 +277,8 @@ export const CSSValueUnit = P.createLanguage({
 
 export function parseCSSValueUnit(input: string) {
     return CSSValueUnit.Value.tryParse(input);
+}
+
+export function parseCSSColor(input: string) {
+    return CSSColor.Value.tryParse(input);
 }

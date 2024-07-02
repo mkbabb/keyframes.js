@@ -124,12 +124,16 @@
     }
 }
 
+.ppmycota-cube {
+    background-color: transparent;
+
+    filter: invert(0%) sepia(97%) saturate(24%) hue-rotate(275deg) brightness(91%)
+        contrast(100%);
+}
+
 .ppmycota-logo-lg {
-    background-image: url("@assets/ppmycota-logo-2.svg") center center no-repeat !important;
-
-    background-size: contain;
-
-    // background-size: cover;
+    background-image: url("@assets/ppmycota-logo-2.svg") !important;
+    background-size: cover;
 
     filter: brightness(0.5) sepia(1) hue-rotate(-70deg) saturate(5);
 }

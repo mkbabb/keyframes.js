@@ -38,8 +38,7 @@ const { size } = defineProps({
     isolation: isolate;
     background: 0;
 
-    width: v-bind("size");
-    height: v-bind("size");
+    
 
     transition: all !important;
 

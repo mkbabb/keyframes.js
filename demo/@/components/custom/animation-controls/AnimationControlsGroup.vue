@@ -1,13 +1,18 @@
 <template>
     <div
-        class="w-full h-screen max-w-screen-xl grid lg:grid-cols-3 grid-cols-1 lg:grid-rows-1 justify-items-center justify-center items-center overflow-scroll lg:overflow-hidden relative"
+        class="w-full h-screen grid lg:grid-cols-3 grid-cols-1 lg:grid-rows-1 justify-items-center justify-center items-center overflow-scroll lg:overflow-hidden relative"
         v-bind="$attrs"
     >
         <div
-            class="info-bar absolute top-0 w-full lg:w-min lg:right-0 p-4 pl-6 pr-6 lg:p-4 flex flex-row-reverse lg:gap-4 gap-6 items-center justify-between lg:justify-end"
+            :class="
+                'z-[100] col-span-3 absolute top-0 w-full lg:w-min lg:right-0 m-0 px-6 pt-2 flex flex-row-reverse lg:gap-4 gap-6 items-center justify-items-center lg:justify-center justify-between ' +
+                (!storedControls.selectedAnimation ? 'lg:mt-20' : '')
+            "
         >
-            <DarkModeToggle class="hover:opacity-50 hover:scale-105" />
-            <HoverCard :open-delay="0">
+            <DarkModeToggle
+                class="hover:opacity-50 hover:scale-105 w-8 aspect-square"
+            />
+            <HoverCard :open-delay="1">
                 <HoverCardTrigger
                     ><Button class="p-0 m-0 cursor-pointer" variant="link"
                         >@mbabb</Button
@@ -38,12 +43,38 @@
                 </HoverCardContent>
             </HoverCard>
 
-            <div class="ppmycota-logo-sm w-16 h-16 stroke-2 font-bold"></div>
+            <HoverCard :open-delay="1">
+                <HoverCardTrigger
+                    ><div
+                        ref="ppmycotaLogoEl"
+                        @click="setPPMode"
+                        class="ppmycota-logo-sm z-20 w-12 h-12 stroke-2 font-bold hover:scale-105 cursor-pointer"
+                    ></div>
+                </HoverCardTrigger>
+                <HoverCardContent>
+                    <div class="flex gap-4 h-fit-content p-4">
+                        <div
+                            ref="ppmycotaLogoEl"
+                            class="ppmycota-logo-sm z-20 w-12 h-12 stroke-2 font-bold hover:scale-105 cursor-pointer"
+                        ></div>
+                        <div>
+                            <h4 class="fraunces">🙂‍↔️ 🌱 🍄‍🟫</h4>
+                            <p>
+                                <a
+                                    class="fraunces font-bold hover:underline"
+                                    href="https://ppmycota.com"
+                                    >ppmycota.com</a
+                                >
+                            </p>
+                        </div>
+                    </div>
+                </HoverCardContent>
+            </HoverCard>
         </div>
 
         <template v-if="!storedControls.selectedAnimation">
             <div
-                class="start-screen-text absolute mt-16 p-4 w-screen h-0 grid items-center gap-0 left-0 top-0"
+                class="absolute mt-16 px-6 w-screen h-0 grid items-center gap-0 left-0 top-0"
             >
                 <h1 class="fraunces font-bold lg:text-7xl text-5xl p-0 grid lg:flex">
                     <div>
@@ -95,7 +126,7 @@
             :class="
                 '' +
                 (storedControls?.selectedAnimation == null
-                    ? 'col-span-3'
+                    ? 'mt-16 col-span-3'
                     : 'col-span-2')
             "
         >
@@ -183,14 +214,14 @@
 
     <ClientOnly>
         <Teleport to="html">
-            <Toaster />
+            <Toaster :theme="isDark ? 'dark' : 'light'" />
         </Teleport>
     </ClientOnly>
 </template>
 
 <script setup lang="ts">
 import { Teleport, onMounted, ref, watch } from "vue";
-import { Toaster } from "vue-sonner";
+import { Toaster, toast } from "vue-sonner";
 
 import CommandPalette from "@components/custom/CommandPalette.vue";
 
@@ -255,11 +286,17 @@ import {
     resetAllStores,
 } from "./animationStores";
 import { SelectIcon } from "radix-vue";
-import { useWindowSize } from "@vueuse/core";
+import { useDark, useWindowSize } from "@vueuse/core";
 import AnimatedText from "./AnimatedText.vue";
+import { rgb2ColorFilter } from "@src/colorFilter";
+import { parseCSSColor } from "@src/parsing/units";
+
+const isDark = useDark({ disableTransition: false });
 
 let startScreenText = $ref("Select an animation");
 let ellipsisText = $ref("...");
+
+const ppmycotaLogoEl = $ref<HTMLElement>(null);
 
 const { superKey, animationGroup } = defineProps<{
     animationGroup: AnimationGroup<any>;
@@ -271,6 +308,29 @@ const storedControls = getStoredAnimationGroupControlOptions(superKey);
 const emit = defineEmits<{
     (e: "selectedAnimation", val: string): void;
 }>();
+
+const setPPMode = () => {
+    const colorFilter1 =
+        "invert(83%) sepia(25%) saturate(519%) hue-rotate(123deg) brightness(85%) contrast(103%)";
+    const colorFilter2 =
+        "invert(58%) sepia(34%) saturate(2172%) hue-rotate(219deg) brightness(98%) contrast(106%)";
+
+    if (storedControls.ppMode) {
+        // ppmycotaLogoEl.style.filter = colorFilter2;
+        toast.success("PP Mode activated! 🎉", {
+            duration: 2000,
+            description: "🙂‍↔️ 🌱 🍄‍🟫",
+        });
+    } else {
+        // ppmycotaLogoEl.style.filter = colorFilter1;
+        toast.error("PP Mode deactivated! 😢", {
+            duration: 2000,
+            description: "🙂‍↔️ 🌱 🍄‍🟫",
+        });
+    }
+
+    storedControls.ppMode = !storedControls.ppMode;
+};
 
 const findAnimationGroupObject = (animation: Animation<any>) => {
     return Object.values(animationGroup.animations).find(
@@ -339,7 +399,35 @@ const reset = (target: HTMLElement, all: boolean = false) => {
     }
 };
 
-onMounted(() => {});
+onMounted(() => {
+    const targetColor1 = parseCSSColor("#77d1c8");
+    const targetColor2 = parseCSSColor("#a4de6a");
+
+    // const colorFilter1 = rgb2ColorFilter(targetColor1);
+    // const colorFilter2 = rgb2ColorFilter(targetColor2);
+
+    // new CSSKeyframesAnimation({
+    //     duration: 1000,
+    //     iterationCount: "infinite",
+    //     direction: "alternate",
+    // })
+    //     .fromCSSKeyframes(
+    //         /*css*/ `@keyframes color-change {
+    //         0% {
+    //             filter: ${colorFilter1};
+    //         }
+    //         100% {
+    //             filter: ${colorFilter2};
+    //         }
+    //     }`,
+    //         (t, { filter }) => {
+    //             const v = filter.toString();
+
+    //             ppmycotaLogoEl.value.style.filter = v;
+    //         },
+    //     )
+    //     .play();
+});
 </script>
 
 <style scoped lang="scss">
@@ -356,7 +444,6 @@ onMounted(() => {});
         rgba(255, 0, 0, 1) 87.5%,
         rgba(255, 0, 0, 1) 100%
     );
-
     background: var(--gradient);
 }
 </style>

@@ -160,11 +160,6 @@
                                     <Loader2
                                         class="absolute w-48 h-48 animate-spin"
                                     ></Loader2>
-                                    <!-- <div
-                                        class="absolute flex items-center justify-center text-7xl w-48 h-48"
-                                    >
-                                        🌱
-                                    </div> -->
                                 </span>
 
                                 <div
@@ -173,11 +168,12 @@
                                     :class="[
                                         'cube-side',
                                         side.class,
-                                        'ppmycota-logo-lg',
+                                        storedControls.ppMode ? ' ppmycota-cube' : '',
+
                                         'absolute z-10 flex items-center justify-center border-primary',
                                         // add a dashed border and change opacity if the group isn't playing:
                                         !animationGroup.playing() ? ' opacity-100' : '',
-                                        'transition-all duration-500 ease-in-out',
+                                        ' transition-all duration-500 ease-in-out',
                                     ]"
                                 >
                                     <span class="text-5xl font-bold z-[100]">{{
@@ -188,7 +184,10 @@
                                             'rainbow-wrapper ' +
                                             (!animationGroup.playing()
                                                 ? 'opacity-100'
-                                                : 'opacity-25')
+                                                : 'opacity-25') +
+                                            storedControls.ppMode
+                                                ? ' opacity-0'
+                                                : ''
                                         "
                                         :style="{
                                             animationDelay: `${Math.random() * 10}s`,
@@ -196,6 +195,9 @@
                                         }"
                                     >
                                     </span>
+                                    <div
+                                        class="absolute w-64 h-64 ppmycota-logo-lg"
+                                    ></div>
                                 </div>
                             </div>
                         </OrbitalDrag>
@@ -310,6 +312,8 @@ const createMatrix = () =>
 
 const matrix3dStart = $ref(createMatrix());
 const matrix3dEnd = $ref(createMatrix());
+
+storedControls.ppMode ??= true;
 
 const transformSliderValues = {
     translate: {
