@@ -5,7 +5,7 @@
     >
         <div
             :class="
-                'sticky lg:absolute col-span-1 z-[100] pointer-events-none top-0 w-full h-full lg:w-min lg:right-0 m-0 px-6 pt-2 flex flex-row-reverse lg:gap-4 gap-6 items-center justify-items-center lg:items-start lg:justify-center justify-between ' +
+                'sticky lg:absolute col-span-3 z-[100] pointer-events-none top-0 w-full h-full lg:w-min lg:right-0 m-0 px-6 pt-2 flex flex-row-reverse lg:gap-4 gap-6 items-center justify-items-center lg:items-start lg:justify-center justify-between ' +
                 (!storedControls.selectedAnimation ? 'lg:mt-20' : 'lg:mt-4')
             "
         >
@@ -137,7 +137,7 @@
             class="fixed bottom-0 p-2 m-0 w-screen h-[min-content] flex items-center justify-center justify-items-center"
         >
             <Menubar
-                class="p-6 pl-4 pr-4 flex items-center gap-1 justify-items-center border-none"
+                class="p-6 mb-8 lg:mb-2 pl-4 pr-4 flex items-center gap-1 justify-items-center border-none"
             >
                 <MenubarMenu>
                     <div class="relative">
