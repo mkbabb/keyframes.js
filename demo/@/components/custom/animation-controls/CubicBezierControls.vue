@@ -12,12 +12,12 @@
         <CardContent
             @mouseenter="
                 () => {
-                    cubicBezierAnim.pause();
+                    // cubicBezierAnim.pause();
                 }
             "
             @mouseleave="
                 (e) => {
-                    cubicBezierAnim.pause();
+                    // cubicBezierAnim.pause();
                 }
             "
         >
@@ -62,7 +62,7 @@
                     class="hover:scale-105 cursor-pointer w-6 h-6"
                     @click="
                         () => {
-                            cubicBezierAnim.pause();
+                            // cubicBezierAnim.pause();
                         }
                     "
                 >
@@ -260,7 +260,7 @@ const cubicBezierAnim = new CSSKeyframesAnimation({
 onMounted(() => {
     updateTimingFunction();
 
-    cubicBezierAnim.play();
+    // cubicBezierAnim.play();
 });
 </script>
 
@@ -271,7 +271,7 @@ onMounted(() => {
     --stroke-width: 0.1;
 
     --circle-color: hsl(var(--foreground));
-    --path-color: rgb(153, 50, 243);
+    --path-color: hsl(var(--ppmycota-primary));
 
     circle {
         r: calc(var(--stroke-width) / 2);
@@ -286,7 +286,7 @@ onMounted(() => {
         cursor: not-allowed;
     }
     g path {
-        stroke: rgb(137, 20, 239);
+        stroke: var(--path-color);
         stroke-width: var(--stroke-width);
         fill: none;
     }
