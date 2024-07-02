@@ -11,7 +11,7 @@
     >
         <TabsList
             ref="tabsListEl"
-            class="w-full flex gap-2 sticky top-0 z-[100] overflow-x-scroll"
+            class="w-full flex gap-2 sticky top-0 z-[90] overflow-x-scroll"
         >
             <TabsTrigger value="editor"><Pencil></Pencil></TabsTrigger>
             <TabsTrigger value="keyframes"><BookOpenText></BookOpenText></TabsTrigger>

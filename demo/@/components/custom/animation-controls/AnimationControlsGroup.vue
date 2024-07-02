@@ -1,24 +1,24 @@
 <template>
     <div
-        class="w-full h-screen grid lg:grid-cols-3 grid-cols-1 lg:grid-rows-1 justify-items-center justify-center items-center overflow-scroll lg:overflow-hidden relative"
+        class="w-full h-screen grid lg:grid-cols-3 grid-cols-1 lg:grid-rows-1 justify-items-center justify-center items-center lg:overflow-hidden relative"
         v-bind="$attrs"
     >
         <div
             :class="
-                'z-[100] col-span-3 absolute top-0 w-full lg:w-min lg:right-0 m-0 px-6 pt-2 flex flex-row-reverse lg:gap-4 gap-6 items-center justify-items-center lg:justify-center justify-between ' +
-                (!storedControls.selectedAnimation ? 'lg:mt-20' : '')
+                'sticky lg:absolute col-span-1 z-[100] pointer-events-none top-0 w-full h-full lg:w-min lg:right-0 m-0 px-6 pt-2 flex flex-row-reverse lg:gap-4 gap-6 items-center justify-items-center lg:items-start lg:justify-center justify-between ' +
+                (!storedControls.selectedAnimation ? 'lg:mt-20' : 'lg:mt-4')
             "
         >
             <DarkModeToggle
-                class="hover:opacity-50 hover:scale-105 w-8 aspect-square"
+                class="pointer-events-auto hover:opacity-50 hover:scale-105 w-8 aspect-square"
             />
-            <HoverCard :open-delay="1">
-                <HoverCardTrigger
+            <HoverCard :open-delay="1" class="pointer-events-auto">
+                <HoverCardTrigger class="pointer-events-auto"
                     ><Button class="p-0 m-0 cursor-pointer" variant="link"
                         >@mbabb</Button
                     >
                 </HoverCardTrigger>
-                <HoverCardContent>
+                <HoverCardContent class="z-[100] pointer-events-auto">
                     <div class="flex gap-4">
                         <Avatar>
                             <AvatarImage
@@ -43,15 +43,15 @@
                 </HoverCardContent>
             </HoverCard>
 
-            <HoverCard :open-delay="1">
+            <HoverCard :open-delay="1" class="pointer-events-auto">
                 <HoverCardTrigger
                     ><div
                         ref="ppmycotaLogoEl"
                         @click="setPPMode"
-                        class="ppmycota-logo-sm z-20 w-12 h-12 stroke-2 font-bold hover:scale-105 cursor-pointer"
+                        class="ppmycota-logo-sm w-12 h-12 stroke-2 font-bold hover:scale-105 cursor-pointer pointer-events-auto"
                     ></div>
                 </HoverCardTrigger>
-                <HoverCardContent>
+                <HoverCardContent class="z-[100] pointer-events-auto">
                     <div class="flex gap-4 h-fit-content p-4">
                         <div
                             ref="ppmycotaLogoEl"
