@@ -1,6 +1,6 @@
 <template>
     <div
-        class="w-full h-screen grid lg:grid-cols-3 grid-cols-1 lg:grid-rows-1 justify-items-center justify-center items-center lg:overflow-hidden relative"
+        class="w-full min-h-screen grid lg:grid-cols-3 grid-cols-1 lg:grid-rows-1 justify-items-center justify-center items-center lg:overflow-hidden relative"
         v-bind="$attrs"
     >
         <div

@@ -7,6 +7,9 @@
         @touchstart="startDrag"
         @touchmove="drag"
         @touchend="stopDrag"
+        @gesturestart="startGesture"
+        @gesturechange="gesture"
+        @gestureend="stopGesture"
     >
         <slot></slot>
     </div>
@@ -29,6 +32,20 @@ import { clamp } from "@src/math";
 
 import { angleUnits } from "@src/parsing/units";
 import { get } from "http";
+
+const normalizeAngle = (angle: number, unit: (typeof angleUnits)[number]): number => {
+    switch (unit) {
+        case "rad":
+            return angle % (2 * Math.PI);
+        case "grad":
+            return angle % 400;
+        case "turn":
+            return angle % 1;
+        default:
+        case "deg":
+            return angle % 360;
+    }
+};
 
 type PressedKeys = {
     x: boolean;
@@ -69,6 +86,16 @@ const getDefaultPreviousMousePosition = () => {
 };
 
 let previousMousePosition = $ref(getDefaultPreviousMousePosition());
+
+const getDefaultGestureState = () => {
+    return {
+        x: 0,
+        y: 0,
+        scale: 1,
+    };
+};
+
+let previousGestureState = $ref(getDefaultGestureState());
 
 let pressedKeys = $ref<PressedKeys>({
     x: false,
@@ -123,18 +150,20 @@ const stopDrag = (event: MouseEvent | TouchEvent) => {
     isDragging = false;
 };
 
-const normalizeAngle = (angle: number, unit: (typeof angleUnits)[number]): number => {
-    switch (unit) {
-        case "rad":
-            return angle % (2 * Math.PI);
-        case "grad":
-            return angle % 400;
-        case "turn":
-            return angle % 1;
-        default:
-        case "deg":
-            return angle % 360;
-    }
+const startGesture = (event: any) => {
+    event.preventDefault();
+
+    isTouching = true;
+
+    previousGestureState = {
+        x: event.screenX,
+        y: event.screenY,
+        scale: event.scale ?? 1,
+    };
+};
+
+const stopGesture = () => {
+    isTouching = false;
 };
 
 const updateTransform = (
@@ -216,6 +245,32 @@ const drag = (event: MouseEvent | TouchEvent) => {
     }
 
     previousMousePosition = { x, y };
+};
+
+const gesture = (event: any) => {
+    if (!isTouching) return;
+
+    const { screenX, screenY, scale } = event;
+
+    const deltaX = screenX - previousGestureState.x;
+    const deltaY = screenY - previousGestureState.y;
+    const deltaScale = scale - previousGestureState.scale;
+
+    if (
+        Math.abs(deltaX) < 1e-4 &&
+        Math.abs(deltaY) < 1e-4 &&
+        Math.abs(deltaScale) < 1e-4
+    )
+        return;
+
+    updateTranslation("x", deltaX);
+    updateTranslation("y", deltaY);
+
+    updateScale("x", deltaScale);
+    updateScale("y", deltaScale);
+    updateScale("z", deltaScale);
+
+    previousGestureState = { x: screenX, y: screenY, scale };
 };
 
 const handleAxisSpecificDrag = (deltaX: number, deltaY: number) => {
@@ -342,8 +397,12 @@ onMounted(() => {
     useEventListener(window, "mouseleave", stopDrag);
 
     useEventListener(window, "touchmove", drag);
-    // useEventListener(window, "touchstart", startDrag);
-    // useEventListener(window, "touchend", stopDrag);
+    useEventListener(window, "touchstart", startDrag);
+    useEventListener(window, "touchend", stopDrag);
+
+    useEventListener(window, "gestureStart", startGesture);
+    useEventListener(window, "gestureChange", gesture);
+    useEventListener(window, "gestureEnd", stopGesture);
 
     resume();
 });
@@ -365,6 +424,10 @@ onUnmounted(() => {
     window.removeEventListener("touchmove", drag);
     window.removeEventListener("touchstart", startDrag);
     window.removeEventListener("touchend", stopDrag);
+
+    window.removeEventListener("gestureStart", startGesture);
+    window.removeEventListener("gestureChange", gesture);
+    window.removeEventListener("gestureEnd", stopGesture);
 
     pause();
 });
