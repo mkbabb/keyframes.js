@@ -2662,7 +2662,7 @@ class Animation {
     return !(!this.started || this.paused);
   }
   reset() {
-    return this.startTime = void 0, this.pausedTime = 0, this.prevTime = 0, this.t = 0, this.started = !1, this.done = !1, this.paused = !1, this.iteration = 0, this;
+    return this.done = !1, this.started = !1, this.paused = !1, this;
   }
   fillForwards() {
     this.transformFrames(this.options.duration);
@@ -2699,7 +2699,7 @@ class Animation {
     this.reversed = !1, (this.options.direction === "reverse" || this.options.direction === "alternate-reverse" || this.options.direction === "alternate" && this.iteration % 2 === 1) && this.reverse(), (this.options.fillMode === "backwards" || this.options.fillMode === "both") && this.fillBackwards(), this.options.delay > 0 && (this.pause(), await sleep(this.options.delay), this.pause()), this.started = !0;
   }
   onEnd() {
-    this.options.fillMode === "forwards" || this.options.fillMode === "both" ? this.fillForwards() : (this.options.fillMode === "none" || this.options.fillMode === "backwards") && this.fillBackwards(), this.reset(), this.iteration === this.options.iterationCount - 1 ? (this.done = !0, this.iteration = 0) : this.iteration += 1;
+    this.options.fillMode === "forwards" || this.options.fillMode === "both" ? this.fillForwards() : (this.options.fillMode === "none" || this.options.fillMode === "backwards") && this.fillBackwards(), this.startTime = void 0, this.iteration === this.options.iterationCount - 1 ? (this.done = !0, this.iteration = 0) : this.iteration += 1;
   }
   tick(t) {
     if (this.startTime === void 0 && (this.onStart(), this.startTime = t + this.options.delay), this.paused && this.pausedTime === 0)
