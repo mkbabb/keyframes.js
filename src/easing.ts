@@ -34,7 +34,7 @@ export function smoothStep3(t: number) {
     return t * t * (3 - 2 * t);
 }
 
-export const CSSBezier =
+export const CSSCubicBezier =
     (x1: number, y1: number, x2: number, y2: number) => (t: number) => {
         {
             t = cubicBezier(t, x1, y1, x2, y2)[1];
@@ -43,12 +43,12 @@ export const CSSBezier =
     };
 
 export function easeInBounce(t: number) {
-    t = CSSBezier(0.09, 0.91, 0.5, 1.5)(t);
+    t = CSSCubicBezier(0.09, 0.91, 0.5, 1.5)(t);
     return t;
 }
 
 export function bounceInEase(t: number) {
-    t = CSSBezier(0.09, 0.91, 0.5, 1.5)(t);
+    t = CSSCubicBezier(0.09, 0.91, 0.5, 1.5)(t);
     return t;
 }
 
@@ -268,13 +268,13 @@ export const timingFunctions = {
     smoothStep3,
     "smooth-step-3": smoothStep3,
 
-    ease: CSSBezier(...bezierPresets.ease),
-    "ease-in": CSSBezier(...bezierPresets["ease-in"]),
-    "ease-out": CSSBezier(...bezierPresets["ease-out"]),
-    "ease-in-out": CSSBezier(...bezierPresets["ease-in-out"]),
-    "ease-in-back": CSSBezier(...bezierPresets["ease-in-back"]),
-    "ease-out-back": CSSBezier(...bezierPresets["ease-out-back"]),
-    "ease-in-out-back": CSSBezier(...bezierPresets["ease-in-out-back"]),
+    ease: CSSCubicBezier(...bezierPresets.ease),
+    "ease-in": CSSCubicBezier(...bezierPresets["ease-in"]),
+    "ease-out": CSSCubicBezier(...bezierPresets["ease-out"]),
+    "ease-in-out": CSSCubicBezier(...bezierPresets["ease-in-out"]),
+    "ease-in-back": CSSCubicBezier(...bezierPresets["ease-in-back"]),
+    "ease-out-back": CSSCubicBezier(...bezierPresets["ease-out-back"]),
+    "ease-in-out-back": CSSCubicBezier(...bezierPresets["ease-in-out-back"]),
     steps: steppedEase,
     "step-start": stepStart,
     "step-end": stepEnd,

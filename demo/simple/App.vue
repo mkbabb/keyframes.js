@@ -84,7 +84,7 @@ anim.fromCSSKeyframes(CSSKeyframes);
 console.log(anim.animation.frames);
 
 onMounted(() => {
-    anim.addTargets(box);
+    anim.setTargets(box);
 });
 </script>
 

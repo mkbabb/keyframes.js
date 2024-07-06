@@ -6,6 +6,8 @@ import {
     TransformedVars,
     ValueArray,
     ValueUnit,
+    mergeValueObjects,
+    normalizeTransformVars,
     reverseTransformObject,
     transformObject,
     transformTargetsStyle,
@@ -107,7 +109,7 @@ export function parseTemplateFrame<V extends Vars>(
             interpVars[v] = createInterpVarValue(v, ix, ix + 1);
         } else if (!(v in startVars) && v in endVars) {
             // Degenerate case - only the end frame has the variable
-            // Find the last frame that has the variable
+            // Find the last frame that has that variable
             const oldFrameIx = seekPreviousValue(ix, transformedVars, (f) => v in f);
             if (oldFrameIx == null) {
                 return;
@@ -154,14 +156,14 @@ const defaultOptions: AnimationOptions = {
     timingFunction: easeInOutCubic,
 };
 
-export type InputAnimationOptions = {
+export type InputAnimationOptions = Partial<{
     duration: number | string;
     delay: number | string;
     iterationCount: number | string | "infinite" | undefined;
     direction: typeof defaultOptions.direction;
     fillMode: typeof defaultOptions.fillMode;
     timingFunction: TimingFunction | TimingFunctionNames | undefined;
-};
+}>;
 
 const getTimingFunction = (
     timingFunction: TimingFunction | TimingFunctionNames | undefined,
@@ -182,15 +184,21 @@ export class Animation<V extends Vars> {
     name: string | undefined;
     superKey: string | undefined;
 
-    target: HTMLElement | undefined;
+    targets: HTMLElement[];
 
     options: AnimationOptions;
 
     templateFrames: TemplateAnimationFrame<V>[] = [];
     transformedVars: TransformedVars[] = [];
 
+    normalizedTransformedVars: TransformedVars[] = [];
+
     frameId: number = 0;
+
     frames: AnimationFrame<V>[] = [];
+    normalizedFrames: AnimationFrame<V>[] = [];
+
+    handleId: number | any = undefined;
 
     startTime: number | undefined = undefined;
     pausedTime: number = 0;
@@ -204,18 +212,43 @@ export class Animation<V extends Vars> {
     reversed: boolean = false;
     paused: boolean = false;
 
+    private resolvePromise: ((value: void | PromiseLike<void>) => void) | null = null;
+
     constructor(
         options: Partial<InputAnimationOptions>,
-        target: HTMLElement | undefined = undefined,
+        targets: HTMLElement[] | HTMLElement | undefined = undefined,
         name: string | undefined = undefined,
         superKey: string | undefined = undefined,
     ) {
         this.options = { ...defaultOptions, ...options } as AnimationOptions;
         this.parseOptions(options);
 
-        this.target = target;
+        this.targets =
+            targets == null ? [] : Array.isArray(targets) ? targets : [targets];
+
         this.name = name;
         this.superKey = superKey;
+    }
+
+    normalizeFrameTime(frame: TemplateAnimationFrame<V>, i: number) {
+        if (frame.start.unit === "s") {
+            frame.start.value != frame.start.value;
+            frame.start.unit = "ms";
+        }
+
+        if (frame.start.unit !== "%") {
+            frame.start.unit = "%";
+
+            const nextTime = i > 0 ? this.templateFrames[i - 1].start.value : 0;
+
+            const msValue =
+                (nextTime * this.options.duration) / 100 + frame.start.value;
+            const percent = (msValue / this.options.duration) * 100;
+
+            frame.start.value = percent;
+        }
+
+        return frame;
     }
 
     frame<K extends V>(
@@ -249,7 +282,7 @@ export class Animation<V extends Vars> {
         return this as unknown as Animation<K>;
     }
 
-    updateFrom(other: Animation<V>, merge: boolean = false) {
+    updateFrom(other: Animation<V>) {
         Object.keys(this).forEach((key) => {
             if (other[key]) {
                 this[key] = other[key];
@@ -262,25 +295,19 @@ export class Animation<V extends Vars> {
         this.transformedVars = this.templateFrames.map((frame) => {
             return transformObject(frame.vars);
         });
+        // this.normalizedTransformedVars = this.templateFrames.map((frame) => {
+        //     return normalizeTransformVars(frame.vars);
+        // });
         return this;
     }
 
     parseFrames() {
+        this.frames = [];
+        this.normalizedFrames = [];
+
         for (let i = 0; i < this.templateFrames.length; i++) {
             const frame = this.templateFrames[i];
-
-            // Normalize start time to percentage
-            if (frame.start.unit === "ms") {
-                frame.start.unit = "%";
-
-                const nextTime = i > 0 ? this.templateFrames[i - 1].start.value : 0;
-
-                const msValue =
-                    (nextTime * this.options.duration) / 100 + frame.start.value;
-                const percent = (msValue / this.options.duration) * 100;
-
-                frame.start.value = percent;
-            }
+            this.normalizeFrameTime(frame, i);
         }
 
         this.templateFrames.sort((a, b) => a.start.value - b.start.value);
@@ -293,8 +320,10 @@ export class Animation<V extends Vars> {
                 this.options.duration,
                 this.frames,
             );
+
             this.frames.push(frame);
         }
+
         return this;
     }
 
@@ -376,28 +405,6 @@ export class Animation<V extends Vars> {
         return this;
     }
 
-    pause(draw: boolean = true) {
-        if (this.paused && draw) {
-            requestAnimationFrame(this.draw.bind(this));
-        }
-        if (this.started) {
-            this.paused = !this.paused;
-        }
-        return this;
-    }
-
-    playing() {
-        return !(!this.started || this.paused);
-    }
-
-    reset() {
-        this.done = false;
-        this.started = false;
-        this.paused = false;
-
-        return this;
-    }
-
     fillForwards() {
         this.transformFrames(this.options.duration);
     }
@@ -407,35 +414,20 @@ export class Animation<V extends Vars> {
     }
 
     transformFrames(t: number) {
-        t = this.reversed ? this.options.duration - t : t;
-
-        for (let i = 0; i < this.frames.length; i++) {
-            const frame = this.frames[i];
-            const { start, stop } = frame.time;
-
-            if (t < start || t > stop) {
-                continue;
-            }
-
-            const s = scale(t, start, stop, 0, 1);
-            const e = frame.timingFunction(s);
-
-            const reversedVars = {};
-            for (const [k, v] of Object.entries(frame.interpVars)) {
-                const newValue = v.start.lerp(e, v.stop, this.target);
-
-                reverseTransformObject(k, newValue, reversedVars);
-            }
-
-            frame.transform(t, reversedVars as V);
-        }
+        return this.interpFrames(t, undefined, true);
     }
 
-    interpFrames(t: number, values: Vars<ValueArray>) {
+    interpFrames(
+        t: number,
+        values: Vars<ValueArray> | undefined = undefined,
+        transformFrame: boolean = false,
+    ) {
         t = this.reversed ? this.options.duration - t : t;
+        values ??= {};
 
         for (let i = 0; i < this.frames.length; i++) {
             const frame = this.frames[i];
+
             const { start, stop } = frame.time;
 
             if (t < start || t > stop) {
@@ -446,7 +438,17 @@ export class Animation<V extends Vars> {
             const e = frame.timingFunction(s);
 
             for (const [k, v] of Object.entries(frame.interpVars)) {
-                values[k] = v.start.lerp(e, v.stop, this.target);
+                const interpValue = v.start.lerp(e, v.stop, this.targets?.[0]);
+
+                if (!transformFrame) {
+                    values[k] = interpValue;
+                } else {
+                    reverseTransformObject(k, interpValue, values);
+                }
+            }
+
+            if (transformFrame) {
+                frame.transform(t, values as V);
             }
         }
     }
@@ -494,9 +496,9 @@ export class Animation<V extends Vars> {
         }
     }
 
-    tick(t: number) {
+    async tick(t: number) {
         if (this.startTime === undefined) {
-            this.onStart();
+            await this.onStart();
             this.startTime = t + this.options.delay;
         }
 
@@ -518,8 +520,8 @@ export class Animation<V extends Vars> {
         return this.t;
     }
 
-    draw(t: number) {
-        t = this.tick(t);
+    async draw(t: number) {
+        t = await this.tick(t);
 
         if (this.paused) {
             return;
@@ -528,12 +530,56 @@ export class Animation<V extends Vars> {
         this.transformFrames(t);
 
         if (!this.done) {
-            requestAnimationFrame(this.draw.bind(this));
+            this.handleId = requestAnimationFrame(this.draw.bind(this));
+        } else {
+            this.reset();
+            if (this.resolvePromise) {
+                this.resolvePromise();
+            }
         }
     }
 
-    play() {
-        requestAnimationFrame(this.draw.bind(this));
+    async play(): Promise<void> {
+        return new Promise((resolve) => {
+            this.resolvePromise = resolve;
+            this.handleId = requestAnimationFrame(this.draw.bind(this));
+        });
+    }
+
+    pause(draw: boolean = true) {
+        if (this.paused && draw) {
+            this.handleId = requestAnimationFrame(this.draw.bind(this));
+        }
+        if (this.started) {
+            this.paused = !this.paused;
+        }
+        return this;
+    }
+
+    stop() {
+        cancelAnimationFrame(this.handleId);
+        this.reset();
+    }
+
+    playing() {
+        return !(!this.started || this.paused);
+    }
+
+    reset() {
+        this.done = false;
+        this.started = false;
+        this.paused = false;
+
+        return this;
+    }
+
+    setTargets(...targets: HTMLElement[]) {
+        this.targets = targets;
+        return this;
+    }
+
+    group(...animations: Animation<V>[]) {
+        return new AnimationGroup<V>(this, ...animations);
     }
 }
 
@@ -560,10 +606,10 @@ export class CSSKeyframesAnimation<V extends Vars> {
         this.targets = targets;
     }
 
-    addTargets(...targets: HTMLElement[]) {
+    setTargets(...targets: HTMLElement[]) {
         this.targets = targets;
         if (this.animation) {
-            this.animation.target = targets[0];
+            this.animation.setTargets(...targets);
         }
         return this;
     }
@@ -635,22 +681,39 @@ export class CSSKeyframesAnimation<V extends Vars> {
             this.animation.transformedVars.push(frame);
         }
 
-        this.animation.parseFrames();
+        this.animation.parse();
 
         return this;
     }
 
     transform(t: number, vars: any) {
-        transformTargetsStyle(t, vars, this.targets);
+        transformTargetsStyle(t, vars, this.animation.targets);
     }
 
-    play() {
-        return this.animation.play();
+    async play() {
+        return await this.animation.play();
     }
 
     pause() {
         this.animation.pause();
         return this;
+    }
+
+    stop() {
+        this.animation.stop();
+        return this;
+    }
+
+    group(...animations: Array<Animation<V> | CSSKeyframesAnimation<V>>) {
+        return new AnimationGroup<V>(
+            this.animation,
+            ...animations.map((animation) => {
+                if (animation instanceof CSSKeyframesAnimation) {
+                    return animation.animation;
+                }
+                return animation;
+            }),
+        );
     }
 }
 
@@ -672,6 +735,8 @@ export class AnimationGroup<V> {
     done = false;
 
     singleTarget = true;
+    handleId: number | any = undefined;
+    resolvePromise: ((value: void | PromiseLike<void>) => void) | null = null;
 
     constructor(...animations: Animation<V>[]) {
         for (const animation of animations) {
@@ -686,7 +751,7 @@ export class AnimationGroup<V> {
         }
 
         this.singleTarget = animations.every(
-            (animation) => animation.target === animations[0].target,
+            (animation) => animation.targets[0] === animations[0].targets[0],
         );
     }
 
@@ -713,15 +778,16 @@ export class AnimationGroup<V> {
         return this;
     }
 
-    reset() {
+    setTargets(...targets: HTMLElement[]) {
         Object.values(this.animations).forEach((groupObject) => {
-            groupObject.animation.reset();
+            groupObject.animation.setTargets(...targets);
         });
-
-        this.started = false;
-        this.done = false;
-        this.paused = false;
-
+        const animations = Object.values(this.animations).map(
+            (groupObject) => groupObject.animation,
+        );
+        this.singleTarget = animations.every(
+            (animation) => animation.targets[0] === animations[0].targets[0],
+        );
         return this;
     }
 
@@ -731,42 +797,8 @@ export class AnimationGroup<V> {
     }
 
     onEnd() {
-        this.reset();
+        // this.reset();
         return this;
-    }
-
-    pause() {
-        const prevPaused = this.paused;
-
-        if (this.started) {
-            this.paused = !this.paused;
-            Object.values(this.animations).forEach((groupObject) => {
-                groupObject.animation.pause(false);
-            });
-        }
-        if (prevPaused) {
-            requestAnimationFrame(this.draw.bind(this));
-        }
-
-        return this;
-    }
-
-    forcePause() {
-        this.paused = true;
-        Object.values(this.animations).forEach((groupObject) => {
-            groupObject.animation.paused = true;
-        });
-    }
-
-    forcePlay() {
-        this.paused = false;
-        Object.values(this.animations).forEach((groupObject) => {
-            groupObject.animation.paused = false;
-        });
-    }
-
-    playing() {
-        return !(!this.started || this.paused);
     }
 
     transformFramesGrouped(t: number) {
@@ -779,10 +811,15 @@ export class AnimationGroup<V> {
             done = done && animation.done;
 
             if (!(animation.done || animation.paused)) {
-                animation.interpFrames(animation.t, values);
+                animation.interpFrames(animation.t, values, false);
             }
 
-            groupedValues = { ...values, ...groupedValues };
+            groupedValues = Object.entries(values).reduce((acc, [key, value]) => {
+                acc[key] = mergeValueObjects(acc[key], value);
+                return acc;
+            }, groupedValues);
+
+            // groupedValues = { ...groupedValues, ...values };
         }
 
         this.done = done;
@@ -797,17 +834,17 @@ export class AnimationGroup<V> {
         return reversedVars;
     }
 
-    tick(t: number) {
+    async tick(t: number) {
         if (!this.started) {
             this.onStart();
         }
 
-        Object.values(this.animations).forEach((groupObject) => {
+        Object.values(this.animations).forEach(async (groupObject) => {
             if (
                 !groupObject.animation.paused ||
                 groupObject.animation.pausedTime === 0
             ) {
-                groupObject.animation.tick(t);
+                await groupObject.animation.tick(t);
             }
         });
 
@@ -818,8 +855,8 @@ export class AnimationGroup<V> {
         return this;
     }
 
-    draw(t: number) {
-        this.tick(t);
+    async draw(t: number) {
+        await this.tick(t);
 
         if (this.paused) {
             return;
@@ -837,13 +874,73 @@ export class AnimationGroup<V> {
         }
 
         if (!this.done) {
-            requestAnimationFrame(this.draw.bind(this));
+            this.handleId = requestAnimationFrame(this.draw.bind(this));
+        } else {
+            this.reset();
+            if (this.resolvePromise) {
+                this.resolvePromise();
+            }
         }
     }
 
-    play() {
-        this.onStart();
-        requestAnimationFrame(this.draw.bind(this));
+    async play() {
+        return new Promise((resolve) => {
+            this.resolvePromise = resolve;
+            this.handleId = requestAnimationFrame(this.draw.bind(this));
+        });
+    }
+
+    pause() {
+        const prevPaused = this.paused;
+
+        if (this.started) {
+            this.paused = !this.paused;
+            Object.values(this.animations).forEach((groupObject) => {
+                groupObject.animation.pause(false);
+            });
+        }
+
+        if (prevPaused) {
+            requestAnimationFrame(this.draw.bind(this));
+        }
+
         return this;
+    }
+
+    reset() {
+        Object.values(this.animations).forEach((groupObject) => {
+            groupObject.animation.reset();
+        });
+
+        this.started = false;
+        this.done = false;
+        this.paused = false;
+
+        return this;
+    }
+
+    stop() {
+        cancelAnimationFrame(this.handleId);
+        this.reset();
+
+        return this;
+    }
+
+    playing() {
+        return !(!this.started || this.paused);
+    }
+
+    forcePause() {
+        this.paused = true;
+        Object.values(this.animations).forEach((groupObject) => {
+            groupObject.animation.paused = true;
+        });
+    }
+
+    forcePlay() {
+        this.paused = false;
+        Object.values(this.animations).forEach((groupObject) => {
+            groupObject.animation.paused = false;
+        });
     }
 }

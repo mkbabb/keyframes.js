@@ -218,18 +218,32 @@ function lerpMany<T>(
     right: Array<FunctionValue<T> | ValueArray<T> | ValueUnit<T>>,
     target?: HTMLElement,
 ) {
-    const minLength = Math.min(left.length, right.length);
-    const arr = [];
+    // equalize the two lengths by padding the shorter array with the last value as many times as needed
+    const maxLength = Math.max(left.length, right.length);
 
-    for (let i = 0; i < minLength; i++) {
-        const l = left[i];
-        const r = right[i];
+    const newLeft = left.concat(
+        Array(Math.abs(maxLength - left.length)).fill(left[left.length - 1]),
+    );
 
-        const lerped = l.lerp(t, r, target);
-        arr.push(lerped);
-    }
+    const newRight = right.concat(
+        Array(Math.abs(maxLength - right.length)).fill(right[right.length - 1]),
+    );
 
-    return arr;
+    // const arr = [];
+
+    // for (let i = 0; i < minLength; i++) {
+    //     const l = left[i];
+    //     const r = right[i];
+
+    //     const lerped = l.lerp(t, r, target);
+    //     arr.push(lerped);
+    // }
+    // return arr;
+
+    return newLeft.map((l, i) => {
+        const r = newRight[i];
+        return l.lerp(t, r, target);
+    });
 }
 
 export class FunctionValue<T = number> {
@@ -267,7 +281,7 @@ export class FunctionValue<T = number> {
         t: number,
         other: FunctionValue<T> | ValueArray<T> | ValueUnit<T>,
         target?: HTMLElement,
-    ): FunctionValue {
+    ) {
         const otherValues = other instanceof ValueUnit ? [other] : other.values;
 
         const arr = lerpMany(t, this.values, otherValues, target);
@@ -406,16 +420,21 @@ export function transformObject(input: any): TransformedVars {
     return transformedVars;
 }
 
-function mergeValueObjects<T>(
-    currentValue: Object | undefined,
-    value: ValueArray<T> | FunctionValue<T> | ValueUnit<T>,
+export function mergeValueObjects<T>(
+    currentValue: Object | any | undefined,
+    value: Object | any | undefined,
 ) {
     if (currentValue == null) {
         return value;
     }
 
-    const left: ValueArray<T> = new ValueArray(Object.values(currentValue) as any);
-    const right = new ValueArray(value);
+    const left: ValueArray<any> = isObject(currentValue)
+        ? new ValueArray(Object.values(currentValue) as any)
+        : new ValueArray(currentValue);
+
+    const right: ValueArray<any> = isObject(value)
+        ? new ValueArray(Object.values(value) as any)
+        : new ValueArray(value);
 
     return new ValueArray([...left.values, ...right.values]);
 }
@@ -435,7 +454,12 @@ export function reverseTransformObject<T>(
 
     keys.forEach((k, i) => {
         if (value != null && i === keys.length - 1) {
-            obj[k] = mergeValueObjects(obj[k], value);
+            if (obj instanceof ValueArray) {
+                const values = new ValueArray(value);
+                obj.values.push(...values.values);
+            } else {
+                obj[k] = value;
+            }
         } else {
             if (obj[k] == null) {
                 obj[k] = {};
@@ -473,6 +497,31 @@ export function flattenReverseTransformedObject(
     return acc ? `${acc} ${flatValue}` : flatValue;
 }
 
+export function normalizeTransformVars(vars: any) {
+    const transformed = transformObject(vars);
+    const reverseTransformedVars = Object.entries(transformed).reduce(
+        (acc, [key, value]) => {
+            return reverseTransformObject(key, value, acc);
+        },
+        {},
+    );
+
+    const transformedVars = Object.entries(reverseTransformedVars).reduce(
+        (acc, [key, value]) => {
+            const flatValue = flattenReverseTransformedObject(value, key);
+
+            const parsed = CSSKeyframes.Values.tryParse(flatValue);
+
+            acc[key] = parsed;
+
+            return acc;
+        },
+        {},
+    );
+
+    return transformedVars;
+}
+
 export function transformTargetsStyle(t: number, vars: any, targets: HTMLElement[]) {
     const transformedVars = Object.entries(vars).reduce((acc, [key, value]) => {
         const flatValue = flattenReverseTransformedObject(value, key);
@@ -480,9 +529,54 @@ export function transformTargetsStyle(t: number, vars: any, targets: HTMLElement
         return acc;
     }, {});
 
+    // targets.forEach((target) => {
+    //     Object.entries(transformedVars).forEach(([key, value]) => {
+    //         const currentStyleValue = target.style.getPropertyValue(key);
+    //         if (!currentStyleValue) {
+    //             return;
+    //         }
+    //         const currentValues = (CSSKeyframes.Values.parse(currentStyleValue) as any)
+    //             ?.value?.values;
+
+    //         if (!currentValues) {
+    //             return;
+    //         }
+
+    //         const newValues = (CSSKeyframes.Values.parse(value as any) as any)?.value
+    //             ?.values;
+    //         if (!newValues) {
+    //             return;
+    //         }
+
+    //         let newAdded = false;
+
+    //         currentValues.forEach((v, i) => {
+    //             if (v instanceof FunctionValue) {
+    //                 const index = newValues.findIndex((rv) => rv.name === v.name);
+
+    //                 if (index === -1) {
+    //                     newValues.unshift(v);
+    //                     newAdded = true;
+    //                 }
+    //             }
+    //         });
+
+    //         if (!newAdded) {
+    //             return;
+    //         }
+
+    //         const flatValue = flattenReverseTransformedObject(
+    //             new ValueArray(newValues),
+    //             key,
+    //         );
+
+    //         transformedVars[key] = flatValue;
+    //     });
+    // });
+
     targets.forEach((target) => {
-        for (const [key, value] of Object.entries(transformedVars)) {
+        Object.entries(transformedVars).forEach(([key, value]) => {
             target.style.setProperty(key, value as any);
-        }
+        });
     });
 }

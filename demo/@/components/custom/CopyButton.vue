@@ -88,8 +88,8 @@ const handleClick = () => {
 };
 
 onMounted(() => {
-    clipboardCheckedAnim.addTargets(clipboardChecked);
-    clipboardAnim.addTargets(clipboard);
+    clipboardCheckedAnim.setTargets(clipboardChecked);
+    clipboardAnim.setTargets(clipboard);
 });
 </script>
 <style scoped lang="scss">

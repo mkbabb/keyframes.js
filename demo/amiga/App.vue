@@ -11,7 +11,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
 import { CSSKeyframesAnimation } from "@src/animation";
-import { CSSBezier } from "@src/easing";
+import { CSSCubicBezier } from "@src/easing";
 import { AnimationControlsGroup } from "@components/custom/animation-controls/";
 
 import "../styles/style.scss";
@@ -133,7 +133,7 @@ const bouncingY = new CSSKeyframesAnimation({
     duration: 700,
     iterationCount: Infinity,
     direction: "alternate",
-    timingFunction: CSSBezier(0.2, 0.65, 0.6, 1),
+    timingFunction: CSSCubicBezier(0.2, 0.65, 0.6, 1),
 }).fromVars(
     [
         {

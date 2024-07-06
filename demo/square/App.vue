@@ -97,7 +97,7 @@ anim.fromKeyframes([
 ]);
 
 onMounted(() => {
-    anim.addTargets(box);
+    anim.setTargets(box);
 });
 </script>
 

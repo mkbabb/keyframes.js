@@ -195,7 +195,7 @@
 
                 <MenubarMenu>
                     <Button
-                        class="w-12 h-8 text-xl text-white cursor-pointer rainbow rounded-lg focus:bg-none hover:scale-105"
+                        class="w-12 h-8 text-xl text-white cursor-pointer rainbow rounded-lg hover:scale-105"
                         @click="toggleAnimationGroup"
                     >
                         <font-awesome-icon

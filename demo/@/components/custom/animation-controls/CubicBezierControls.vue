@@ -116,7 +116,7 @@ import {
 } from "@components/ui/card";
 
 import { Label } from "@components/ui/label";
-import { CSSBezier, bezierPresets } from "@src/easing";
+import { CSSCubicBezier, bezierPresets } from "@src/easing";
 import { cubicBezierToSVG, cubicBezierToString } from "@src/math";
 import { Animation, CSSKeyframesAnimation, TimingFunction } from "@src/animation";
 
@@ -164,7 +164,7 @@ let pathEl = $ref<SVGGElement | null>(null);
 const updateTimingFunction = () => {
     storedAnimationOptions.cubicBezierOptions.controlPoints = timingValues;
 
-    const timingFunction = CSSBezier(
+    const timingFunction = CSSCubicBezier(
         ...(timingValues as [number, number, number, number]),
     );
 

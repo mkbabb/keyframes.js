@@ -1,6 +1,6 @@
 import P from "parsimmon";
 import { CSSValueUnit, integer, number, identifier, none, opt } from "./units";
-import { hyphenToCamelCase, arrayEquals, camelCaseToHyphen } from "../utils";
+import { hyphenToCamelCase, arrayEquals, camelCaseToHyphen, memoize } from "../utils";
 import {
     collapseNumericType,
     ValueUnit,
@@ -375,9 +375,11 @@ export const CSSKeyframes = P.createLanguage({
     Keyframes: (r) =>
         r.Rule.then(
             r.Keyframe.atLeast(1).trim(r.ws).wrap(r.lcurly, r.rcurly).trim(r.ws),
-        ).map((frame) => {
-            return Object.assign({}, ...frame);
-        }),
+        )
+            .or(r.Keyframe.atLeast(1).trim(r.ws))
+            .map((frame) => {
+                return Object.assign({}, ...frame);
+            }),
 });
 
 export const CSSClass = P.createLanguage({
@@ -440,22 +442,24 @@ export const CSSAnimationKeyframes = P.createLanguage({
         }),
 });
 
-export const parseCSSKeyframes = (input: string): Record<string, any> =>
-    CSSKeyframes.Keyframes.tryParse(input);
+export const parseCSSKeyframes = memoize(
+    (input: string): Record<string, any> => CSSKeyframes.Keyframes.tryParse(input),
+);
 
-export const parseCSSAnimationKeyframes = (input: string) => {
+export const parseCSSAnimationKeyframes = memoize((input: string) => {
     const { options, values, keyframes } = CSSAnimationKeyframes.Values.tryParse(input);
     return {
         options,
         values,
         keyframes,
     };
-};
+});
 
-export const parseCSSPercent = (input: string | number): number =>
-    CSSKeyframes.Percent.tryParse(String(input));
+export const parseCSSPercent = memoize((input: string | number): number =>
+    CSSKeyframes.Percent.tryParse(String(input)),
+);
 
-export function parseCSSTime(input: string): number {
+export const parseCSSTime = memoize((input: string) => {
     return CSSValueUnit.Time.map((v: ValueUnit) => {
         if (v.unit === "ms") {
             return v.value;
@@ -465,20 +469,20 @@ export function parseCSSTime(input: string): number {
             return v.value;
         }
     }).tryParse(input);
-}
+});
 
-export const reverseCSSTime = (time: number): string => {
+export const reverseCSSTime = memoize((time: number): string => {
     if (time >= 5000) {
         return `${time / 1000}s`;
     } else {
         return `${time}ms`;
     }
-};
+});
 
-export const reverseCSSIterationCount = (count: number): string => {
+export const reverseCSSIterationCount = memoize((count: number): string => {
     if (count === Infinity) {
         return "infinite";
     } else {
         return String(count);
     }
-};
+});

@@ -137,7 +137,7 @@ export const rgb2hsl = (r: number, g: number, b: number) => {
     }
 
     h /= 6;
-    
+
     return [h, s, l];
 };
 
@@ -263,6 +263,11 @@ export const CSSValueUnit = P.createLanguage({
         }),
     Color: (r) => CSSColor.Value.map((x) => new ValueUnit(x, "color")),
 
+    Slash: () =>
+        P.string("/")
+            .trim(P.optWhitespace)
+            .map(() => new ValueUnit("/", "string")),
+
     Value: (r) =>
         P.alt(
             r.Length,
@@ -271,6 +276,7 @@ export const CSSValueUnit = P.createLanguage({
             r.Resolution,
             r.Percentage,
             r.Color,
+            r.Slash,
             P.alt(number, none).map((x) => new ValueUnit(x)),
         ).trim(P.optWhitespace),
 });

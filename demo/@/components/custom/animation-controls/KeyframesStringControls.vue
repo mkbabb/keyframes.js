@@ -420,10 +420,6 @@ const updateCSSAnimationKeyframesStringFromAnimation = async (
 
     highlightCSS();
 
-    emit("keyframesUpdate", {
-        animation,
-    });
-
     return keyframesString;
 };
 
@@ -477,10 +473,17 @@ const updateAnimationFromKeyframesString = debounce((keyframesString: string) =>
 
         const tmpAnimation = new CSSKeyframesAnimation(
             options,
-            animation.target,
+            ...animation.targets,
         ).fromCSSKeyframes(keyframes).animation;
 
-        animation.updateFrom(tmpAnimation);
+        animation.options = tmpAnimation.options;
+        animation.templateFrames = tmpAnimation.templateFrames;
+
+        animation.parse();
+
+        emit("keyframesUpdate", {
+            animation,
+        });
 
         updateAllStrings();
     };
@@ -566,7 +569,7 @@ const addKeyframesStringToAnimation = (keyframesString: string) => {
 
         const tmpAnimation = new Animation(
             options ?? animation.options,
-            animation.target,
+            animation.targets,
         );
 
         animation.templateFrames.forEach((f) => {
@@ -683,7 +686,7 @@ const removeKeyframe = (e: Event, frameIx: number) => {
     group.play();
 
     setTimeout(() => {
-        const tmpAnimation = new Animation(animation.options, animation.target);
+        const tmpAnimation = new Animation(animation.options, animation.targets);
 
         animation.templateFrames.forEach((f, i) => {
             if (i !== frameIx) {
@@ -732,7 +735,8 @@ const applyCSSStyles = () => {
     if (wasApplied) {
         animation.paused = prevPaused;
         keyframesStyle.innerHTML = "";
-        animation.target.classList.remove(keyframesStyleId);
+
+        animation.targets.forEach((t) => t.classList.remove(keyframesStyleId));
 
         brushAnimation.pause();
     } else {
@@ -740,7 +744,8 @@ const applyCSSStyles = () => {
         animation.paused = animation.started;
 
         keyframesStyle.innerHTML = cssKeyframesString;
-        animation.target.classList.add(keyframesStyleId);
+
+        animation.targets.forEach((t) => t.classList.add(keyframesStyleId));
 
         brushAnimation.play();
     }
@@ -863,7 +868,7 @@ watch(
 );
 
 onMounted(() => {
-    brushAnimation.addTargets(brush);
+    brushAnimation.setTargets(brush);
 
     updateAllStrings();
 });

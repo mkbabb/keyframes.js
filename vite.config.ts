@@ -30,6 +30,7 @@ const defaultOptions = {
 
 const defaultPlugins = [
     VueMacros({
+        betterDefine: false,
         plugins: {
             vue: Vue(),
         },
@@ -40,6 +41,7 @@ export default defineConfig((mode) => {
     if (mode.mode === "production") {
         return {
             ...defaultOptions,
+
             optimizeDeps: {
                 include: ["highlight.js"],
             },

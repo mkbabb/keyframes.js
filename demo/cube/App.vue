@@ -172,19 +172,19 @@
                                         'absolute z-10 flex items-center justify-center',
                                     ]"
                                 >
-                                <span
-                                    :class="
-                                        'rainbow-wrapper ' +
-                                        (!animationGroup.playing()
-                                            ? 'opacity-100'
-                                            : 'opacity-25')
-                                    "
-                                    :style="{
-                                        animationDelay: `${Math.random() * 10}s`,
-                                        animationDuration: `${Math.random() * 10}s`,
-                                    }"
-                                >
-                                </span>
+                                    <span
+                                        :class="
+                                            'rainbow-wrapper ' +
+                                            (!animationGroup.playing()
+                                                ? 'opacity-100'
+                                                : 'opacity-25')
+                                        "
+                                        :style="{
+                                            animationDelay: `${Math.random() * 10}s`,
+                                            animationDuration: `${Math.random() * 10}s`,
+                                        }"
+                                    >
+                                    </span>
                                     <template v-if="!storedControls.ppMode">
                                         <span
                                             :class="[
@@ -224,6 +224,8 @@
 // import { $ref } from "unplugin-vue-macros/macros";
 import { onMounted, reactive, watch } from "vue";
 
+import { Animated } from "@components/custom/animation-controls";
+
 // @ts-ignore
 import "@styles/utils.scss";
 
@@ -242,10 +244,13 @@ import { Avatar, AvatarImage } from "@components/ui/avatar";
 
 import { mat4 } from "gl-matrix";
 
+import * as animations from "@src/animations";
+
 import {
     AnimationGroup,
     CSSKeyframesAnimation,
     InputAnimationOptions,
+    Animation,
 } from "@src/animation";
 import { easeInBounce, linear, jumpTerms } from "@src/easing";
 import { FunctionValue, ValueUnit, transformTargetsStyle } from "@src/units";
@@ -567,31 +572,7 @@ rotationAnim.animation.superKey = superKey;
 
 const hoverAnimationOptions = getStoredAnimationOptions("Hover", superKey);
 
-const hoverAnim = $ref(
-    new CSSKeyframesAnimation({
-        ...hoverAnimationOptions.animationOptions,
-        ...({
-            duration: 2000,
-            timingFunction: "easeInOutBounce",
-        } as any),
-    }).fromVars([
-        {
-            transform: {
-                translateY: "0px",
-            },
-        },
-        {
-            transform: {
-                translateY: "15px",
-            },
-        },
-        {
-            transform: {
-                translateY: "0px",
-            },
-        },
-    ]),
-);
+const hoverAnim = animations.hover();
 hoverAnim.animation.name = "Hover";
 hoverAnim.animation.superKey = superKey;
 
@@ -741,20 +722,6 @@ const animationGroup = $ref(
     ),
 );
 
-const createRandomMatrixRotationsAnimation = () => {
-    const transformFunc = (t, v) => {
-        // transformSliderValues.rotate.x += Math.random() * t;
-        // transformSliderValues.rotate.y += Math.random() * t;
-        // transformSliderValues.rotate.z += Math.random() * t;
-        // updateTransformations();
-    };
-
-    return new CSSKeyframesAnimation({
-        duration: 2000,
-        timingFunction: easeInBounce,
-    }).fromVars([{ v: 0 }, { v: 1 }], transformFunc);
-};
-
 const cubeSides = [
     { class: "front", content: "1", color: "rgba(255, 0, 0, 0.8)" },
     { class: "right", content: "2", color: "rgba(0, 255, 0, 0.8)" },
@@ -785,13 +752,7 @@ const changeGraphPerspectiveAnim = new CSSKeyframesAnimation({
     },
 ]);
 
-const randomMatrixRotationsAnim = createRandomMatrixRotationsAnimation();
-
-const hoverMatrixGroup = new AnimationGroup(
-    hoverAnim.animation,
-    matrixAnim.animation,
-    randomMatrixRotationsAnim.animation,
-);
+const hoverMatrixGroup = new AnimationGroup(hoverAnim.animation, matrixAnim.animation);
 
 watch(
     () => storedControls.selectedAnimation,
@@ -819,18 +780,17 @@ watch(
 );
 
 onMounted(() => {
-    rotationAnim.addTargets(cube);
-    matrixAnim.addTargets(cube);
-    hoverAnim.addTargets(cube);
+    rotationAnim.setTargets(cube);
+    matrixAnim.setTargets(cube);
+    hoverAnim.setTargets(cube);
 
-    changeGraphPerspectiveAnim.addTargets(graph);
+    changeGraphPerspectiveAnim.setTargets(graph);
 
     const cubeSideEls = cube.querySelectorAll(".cube-side");
-    gradientAnim.addTargets(...(cubeSideEls as any));
+    gradientAnim.setTargets(...(cubeSideEls as any));
     // gradientAnim.play();
 
     changeGraphPerspectiveAnim.play();
-
     hoverMatrixGroup.play();
 
     const encodedSVG = encodeURIComponent(`

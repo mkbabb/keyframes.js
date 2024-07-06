@@ -5,11 +5,7 @@
         <Tabs
             class="overflow-scroll p-4 w-full h-full"
             :model-value="storedControls.selectedControl"
-            @update:model-value="
-                (key) => {
-                    storedControls.selectedControl = key.toString();
-                }
-            "
+            @update:model-value="selectControl"
         >
             <TabsList
                 class="w-full flex gap-2 sticky top-0 items-center justify-center overflow-x"
@@ -19,17 +15,7 @@
                 <slot name="tabs-trigger"></slot>
             </TabsList>
 
-            <div class="">
-                <!-- <CardHeader class="grid gap-0">
-                    <CardTitle>{{
-                        controlNames[storedControls.selectedControl] ?? "🙂‍↔️"
-                    }}</CardTitle>
-                    <div
-                        class="w-full h-4 m-0 p-0 mt-2 text-lg flex items-center italic justify-items-center gap-2 fraunces"
-                    >
-                        {{ animation.name }}
-                    </div>
-                </CardHeader> -->
+            <div ref="tabsContentEl" class="contents">
                 <TabsContent value="controls">
                     <Card>
                         <CardContent class="pt-4 grid grid-cols-2 gap-1 items-center">
@@ -298,8 +284,14 @@
                         </CardContent>
                     </Card>
                 </TabsContent>
+
                 <TabsContent value="keyframes">
                     <KeyframesStringControls
+                        @keyframes-update="
+                            () => {
+                                emit('keyframesUpdate', { animation });
+                            }
+                        "
                         :animation="animation"
                     ></KeyframesStringControls>
                 </TabsContent>
@@ -317,7 +309,7 @@ import {
     TimingFunctionNames,
 } from "@src/animation";
 
-import { timingFunctions, jumpTerms, CSSBezier } from "@src/easing";
+import { timingFunctions, jumpTerms, CSSCubicBezier } from "@src/easing";
 import { reverseCSSTime, CSSAnimationKeyframes } from "@src/parsing/keyframes";
 
 import { Icon } from "@iconify/vue";
@@ -378,13 +370,40 @@ import {
     getStoredAnimationOptions,
     getStoredAnimationGroupControlOptions,
 } from "./animationStores";
-import { onMounted } from "vue";
+import { onMounted, ref, watch } from "vue";
 import Avatar from "@components/ui/avatar/Avatar.vue";
 import AvatarImage from "@components/ui/avatar/AvatarImage.vue";
 import HoverCard from "@components/ui/hover-card/HoverCard.vue";
 import HoverCardTrigger from "@components/ui/hover-card/HoverCardTrigger.vue";
 import HoverCardContent from "@components/ui/hover-card/HoverCardContent.vue";
 import { TabsIndicator } from "radix-vue";
+import { Animated } from "@components/custom/animation-controls/";
+import * as animations from "@src/animations";
+
+const tabsContentEl = $ref<HTMLElement>(null);
+
+const fadeOut = animations.slideOutRight({ duration: 100 });
+
+const fadeIn = animations.slideInLeft({ duration: 100 });
+
+const selectControl = async (key: string) => {
+    const activeChild = tabsContentEl?.querySelector(
+        `[data-state="active"]`,
+    ) as HTMLElement;
+
+    fadeOut.stop();
+    fadeIn.stop();
+
+    await fadeOut.setTargets(activeChild).play();
+
+    storedControls.selectedControl = key.toString();
+
+    const newActiveChild = tabsContentEl?.querySelector(
+        `[id$="${key}"]`,
+    ) as HTMLElement;
+
+    await fadeIn.setTargets(newActiveChild).play();
+};
 
 let timingFunctionsAnd = {
     "cubic-bezier": "cubic-bezier",
@@ -409,16 +428,17 @@ const { animation, isGrouped } = defineProps({
 const storedAnimationOptions = getStoredAnimationOptions(animation);
 const storedControls = getStoredAnimationGroupControlOptions(animation);
 
-const controlNames = {
-    controls: "Controls",
-    keyframes: "Keyframes",
-};
-
 const emit = defineEmits<{
     (
         e: "sliderUpdate",
         val: {
             t: number;
+            animation: Animation<any>;
+        },
+    ): void;
+    (
+        e: "keyframesUpdate",
+        val: {
             animation: Animation<any>;
         },
     ): void;
@@ -454,7 +474,7 @@ const updateTimingFunctionFromName = (key: TimingFunctionNames | "cubic-bezier")
         const { steps, jumpTerm } = storedAnimationOptions.stepOptions;
         timingFunction = timingFunctions[key](steps, jumpTerm);
     } else if (key === "cubic-bezier") {
-        timingFunction = CSSBezier(
+        timingFunction = CSSCubicBezier(
             ...storedAnimationOptions.cubicBezierOptions.controlPoints,
         );
     }
