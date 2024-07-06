@@ -96,7 +96,6 @@ export function bounceInOutEase(t: number) {
     return t;
 }
 
-// trig easing:
 export function easeInSine(t: number) {
     return 1 - Math.cos((t * Math.PI) / 2);
 }

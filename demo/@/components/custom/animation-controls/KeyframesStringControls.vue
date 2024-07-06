@@ -60,14 +60,16 @@
 
                             <div class="relative">
                                 <div
-                                    class="absolute top-2 right-4 grid gap-1 items-end justify-end justify-items-end"
+                                    class="absolute top-2 right-4 grid gap-1 items-center justify-center justify-items-center"
                                 >
-                                    <X
-                                        @click="(e) => removeKeyframe(e, i)"
-                                        class="p-0 m-0 hover:scale-105 cursor-pointer stroke-2 w-6 h-6 text-red-500 hover:text-red-700 bg-transparent hover:bg-transparent"
-                                    >
-                                    </X>
-                                    <CopyButton class="h-6 w-6" :text="s" />
+                                    <div class="flex">
+                                        <X
+                                            @click="(e) => removeKeyframe(e, i)"
+                                            class="p-0 m-0 hover:scale-105 cursor-pointer stroke-2 w-6 h-6 text-red-500 hover:text-red-700 bg-transparent hover:bg-transparent"
+                                        >
+                                        </X>
+                                        <CopyButton class="h-6 w-6" :text="s" />
+                                    </div>
                                     <div
                                         class="italic opacity-25 z-0 pointer-events-none grid gap-1"
                                     >
@@ -110,9 +112,8 @@
             </Card>
         </TabsContent>
 
-        <div class="grid gap-4 sticky bottom-0 bg-background rounded-md p-2 pt-4">
+        <div class="grid gap-4 sticky bottom-0 bg-background rounded-md p-4 pt-4 m-4">
             <Slider
-                class="pl-4 pr-4"
                 :model-value="
                     animation.templateFrames.map((frame) => frame.start.value)
                 "
@@ -333,7 +334,7 @@ import { Label } from "@components/ui/label";
 
 import { useMagicKeys } from "@vueuse/core";
 import { convertToCh } from "@src/units";
-import { all } from "parsimmon";
+import * as animations from "@src/animations";
 
 hljs.registerLanguage("css", css);
 
@@ -612,94 +613,37 @@ const addKeyframesStringToAnimation = (keyframesString: string) => {
     }
 };
 
-const removeKeyframe = (e: Event, frameIx: number) => {
+const removeKeyframe = async (e: Event, frameIx: number) => {
     if (animation.templateFrames.length <= 1) {
+        toast.error("Cannot remove last keyframe");
         return;
     }
 
-    let el = keyframeRefs[frameIx];
+    const el1 = keyframeRefs[frameIx];
+    const el2 =
+        frameIx < keyframeRefs.length - 1
+            ? keyframeRefs[frameIx + 1]
+            : keyframeRefs[frameIx - 1];
 
-    const anim1 = new CSSKeyframesAnimation(
-        {
-            duration: 700,
-            timingFunction: "bounce-in-ease",
-        },
-        el,
-    ).fromCSSKeyframes(
-        /*css*/
-        `@keyframes keyframeDelete {
-                0% {
-                    transform: translateX(0%) rotate(0deg);
-                    opacity: 1;
-                }
-                25% {
-                    transform: translateX(0%) rotate(5deg);
-                    opacity: 1;
-                }
-                50% {
-                    transform: translateX(25%) rotate(10deg);
-                    opacity: 0.5;
-                }
-                100% {
-                    transform: translateX(-100%);
-                    opacity: 0;
-                }
-            }`,
-    );
+    await animations
+        .warpLeft()
+        .setTargets(el1)
+        .group(animations.jumpUp().setTargets(el2))
+        .play();
 
-    let anim2 = null;
-    if (keyframeRefs.length > 1) {
-        const el2 =
-            frameIx < keyframeRefs.length - 1
-                ? keyframeRefs[frameIx + 1]
-                : keyframeRefs[frameIx - 1];
+    const tmpAnimation = new Animation(animation.options, animation.targets);
 
-        anim2 = new CSSKeyframesAnimation(
-            {
-                duration: 700,
-                timingFunction: "bounce-in-ease",
-            },
-            el2,
-        ).fromCSSKeyframes(
-            /*css*/
-            `@keyframes keyframeShift {
-                    0% {
-                        transform: translateY(0%);
-                        opacity: 1;
-                    }
+    animation.templateFrames.forEach((f, i) => {
+        if (i !== frameIx) {
+            tmpAnimation.frame(f.start, f.vars, f.transform, f.timingFunction);
+        }
+    });
 
-                    50% {
-                        transform: translateY(-50%);
-                        opacity: 0.75;
-                    }
+    tmpAnimation.parse();
 
-                    100% {
-                        transform: translateY(-107%);
-                        opacity: 1;
-                    }
-                }`,
-        );
-    }
+    animation.updateFrom(tmpAnimation);
 
-    const group = new AnimationGroup(anim1.animation, anim2?.animation);
-
-    group.play();
-
-    setTimeout(() => {
-        const tmpAnimation = new Animation(animation.options, animation.targets);
-
-        animation.templateFrames.forEach((f, i) => {
-            if (i !== frameIx) {
-                tmpAnimation.frame(f.start, f.vars, f.transform, f.timingFunction);
-            }
-        });
-
-        tmpAnimation.parse();
-
-        animation.updateFrom(tmpAnimation);
-
-        updateAllStringsAndAnimation();
-    }, 700);
+    updateAllStringsAndAnimation();
 };
 
 const progressBarKeyframesEl = $ref(null);

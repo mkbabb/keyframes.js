@@ -239,7 +239,7 @@ export const rainbowText = (options?: InputAnimationOptions) =>
         ...(options ?? {}),
     }).fromCSSKeyframes(rainbowTextKeyframes);
 
-const jumpUpLeftKeyframes =
+const warpLeftKeyframes =
     /*css*/
     `@keyframes keyframeDelete {
     0% {
@@ -254,20 +254,87 @@ const jumpUpLeftKeyframes =
         transform: translateX(25%) rotate(10deg);
         opacity: 0.5;
     }
+    75% {
+        transform: translateX(0%) rotate(0deg);
+        opacity: 0.25;
+    }
     100% {
         transform: translateX(-100%);
         opacity: 0;
     }
 }`;
 
-export const jumpUpLeft = (options?: InputAnimationOptions) =>
+export const warpLeft = (options?: InputAnimationOptions) =>
     new CSSKeyframesAnimation({
         duration: 700,
         timingFunction: "bounce-in-ease",
         ...(options ?? {}),
-    }).fromCSSKeyframes(jumpUpLeftKeyframes);
+    }).fromCSSKeyframes(warpLeftKeyframes);
 
-const blurKeyframes = /*css*/ `
+const warpRightKeyframes =
+    /*css*/
+    `@keyframes keyframeDelete {
+    0% {
+        transform: translateX(0%) rotate(0deg);
+        opacity: 1;
+    }
+    25% {
+        transform: translateX(0%) rotate(-5deg);
+        opacity: 1;
+    }
+    50% {
+        transform: translateX(-25%) rotate(-10deg);
+        opacity: 0.5;
+    }
+    100% {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}`;
+
+export const warpRight = (options?: InputAnimationOptions) =>
+    new CSSKeyframesAnimation({
+        duration: 700,
+        timingFunction: "bounce-in-ease",
+        ...(options ?? {}),
+    }).fromCSSKeyframes(warpRightKeyframes);
+
+const blurInKeyframes = /*css*/ `
+0% {
+  filter: blur(10px);
+  opacity: 0;
+}
+100% {
+  filter: blur(0px);
+  opacity: 1;
+}
+`;
+
+export const blurIn = (options?: InputAnimationOptions) =>
+    new CSSKeyframesAnimation({
+        duration: 2000,
+        timingFunction: "ease-in-out",
+        ...(options ?? {}),
+    }).fromCSSKeyframes(blurInKeyframes);
+
+const blurOutKeyframes = /*css*/ `
+0% {
+  filter: blur(0px);
+  opacity: 1;
+}
+100% {
+  filter: blur(10px);
+  opacity: 0;
+}
+`;
+export const blurOut = (options?: InputAnimationOptions) =>
+    new CSSKeyframesAnimation({
+        duration: 2000,
+        timingFunction: "ease-in-out",
+        ...(options ?? {}),
+    }).fromCSSKeyframes(blurOutKeyframes);
+
+const blurInOutKeyframes = /*css*/ `
 0% {
   filter: blur(0px);
 }
@@ -283,7 +350,7 @@ export const blurInOut = (options?: InputAnimationOptions) =>
         duration: 2000,
         timingFunction: "ease-in-out",
         ...(options ?? {}),
-    }).fromCSSKeyframes(blurKeyframes);
+    }).fromCSSKeyframes(blurInOutKeyframes);
 
 const progressBarKeyframes = /*css*/ `
 0% {
@@ -583,3 +650,51 @@ export const hover = (options?: InputAnimationOptions) =>
         direction: "alternate",
         ...(options ?? {}),
     }).fromCSSKeyframes(hoverKeyframes);
+
+const jumpUpKeyframes = /*css*/ `@keyframes keyframeShift {
+0% {
+    transform: translateY(0%);
+    opacity: 1;
+}
+
+50% {
+    transform: translateY(-50%);
+    opacity: 0.75;
+}
+
+100% {
+    transform: translateY(-100%);
+    opacity: 1;
+}
+}`;
+
+export const jumpUp = (options?: InputAnimationOptions) =>
+    new CSSKeyframesAnimation({
+        duration: 700,
+        timingFunction: "bounce-in-ease",
+        ...(options ?? {}),
+    }).fromCSSKeyframes(jumpUpKeyframes);
+
+const jumpDownKeyframes = /*css*/ `@keyframes keyframeShift {
+0% {
+    transform: translateY(0%);
+    opacity: 1;
+}
+
+50% {
+    transform: translateY(50%);
+    opacity: 0.75;
+}
+
+100% {
+    transform: translateY(100%);
+    opacity: 1;
+}
+}`;
+
+export const jumpDown = (options?: InputAnimationOptions) =>
+    new CSSKeyframesAnimation({
+        duration: 700,
+        timingFunction: "bounce-in-ease",
+        ...(options ?? {}),
+    }).fromCSSKeyframes(jumpDownKeyframes);

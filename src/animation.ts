@@ -818,8 +818,6 @@ export class AnimationGroup<V> {
                 acc[key] = mergeValueObjects(acc[key], value);
                 return acc;
             }, groupedValues);
-
-            // groupedValues = { ...groupedValues, ...values };
         }
 
         this.done = done;

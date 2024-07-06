@@ -177,8 +177,12 @@ export class ValueUnit<T = number> {
             return other.lerp(t, this, target);
         }
 
-        if (this.unit === "string" || other.unit === "string") {
+        if (this.unit === "string") {
             return this;
+        }
+
+        if (other.unit === "string") {
+            return other;
         }
 
         if (target && (this.unit === "var" || other.unit === "var")) {

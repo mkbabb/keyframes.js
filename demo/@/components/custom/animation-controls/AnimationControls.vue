@@ -1,19 +1,21 @@
 <template>
     <div
-        class="grid lg:h-screen h-full max-h-screen-md w-full max-w-screen-md z-10 relative"
+        class="grid lg:h-screen h-full max-h-screen-md w-full max-w-screen-md z-10 relative overflow-y-scroll"
     >
         <Tabs
-            class="overflow-scroll p-4 w-full h-full"
+            class="p-4 w-full h-full flex flex-col justify-start"
             :model-value="storedControls.selectedControl"
             @update:model-value="selectControl"
         >
-            <TabsList
-                class="w-full flex gap-2 sticky top-0 items-center justify-center overflow-x"
-            >
-                <TabsTrigger value="controls">Controls</TabsTrigger>
-                <TabsTrigger value="keyframes">Keyframes</TabsTrigger>
-                <slot name="tabs-trigger"></slot>
-            </TabsList>
+            <span class="grid">
+                <TabsList
+                    class="overflow-x-scroll w-full flex items-center justify-around"
+                >
+                    <TabsTrigger value="controls">Controls</TabsTrigger>
+                    <TabsTrigger value="keyframes">Keyframes</TabsTrigger>
+                    <slot name="tabs-trigger"></slot>
+                </TabsList>
+            </span>
 
             <div ref="tabsContentEl" class="contents">
                 <TabsContent value="controls">
@@ -382,9 +384,13 @@ import * as animations from "@src/animations";
 
 const tabsContentEl = $ref<HTMLElement>(null);
 
-const fadeOut = animations.slideOutRight({ duration: 100 });
+const fadeOut = animations
+    .blurOut({ duration: 100 })
+    .group(animations.fadeOut({ duration: 50 }));
 
-const fadeIn = animations.slideInLeft({ duration: 100 });
+const fadeIn = animations
+    .blurIn({ duration: 100 })
+    .group(animations.fadeIn({ duration: 50 }));
 
 const selectControl = async (key: string) => {
     const activeChild = tabsContentEl?.querySelector(

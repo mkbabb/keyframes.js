@@ -27,11 +27,11 @@ import {
     TransformBounds,
     defaultTransformBounds,
 } from ".";
+import * as THREE from "three";
 
 import { clamp } from "@src/math";
 
 import { angleUnits } from "@src/parsing/units";
-import { get } from "http";
 
 const normalizeAngle = (angle: number, unit: (typeof angleUnits)[number]): number => {
     switch (unit) {
@@ -87,6 +87,8 @@ const getDefaultPreviousMousePosition = () => {
 
 let previousMousePosition = $ref(getDefaultPreviousMousePosition());
 
+let previousWheelState = $ref(getDefaultPreviousMousePosition());
+
 const getDefaultGestureState = () => {
     return {
         x: 0,
@@ -107,7 +109,7 @@ let pressedKeys = $ref<PressedKeys>({
 });
 
 const sensitivity = props.sensitivity ?? 0.5;
-const translationFactor = props.translationFactor ?? 0.1;
+const translationFactor = props.translationFactor ?? 0.8;
 const inertiaFactor = props.inertiaFactor ?? 0.95;
 const rotationUnit = props.rotationUnit ?? "deg";
 const scaleFactor = props.scaleFactor ?? 0.01;
@@ -119,6 +121,42 @@ const getDefaultVelocityState = () => {
 let velocity = $ref<VelocityState>(getDefaultVelocityState());
 
 let bounds = props.bounds ?? defaultTransformBounds;
+
+const rotateAroundAxis = (axis: THREE.Vector3, angle: number) => {
+    const quaternion = new THREE.Quaternion();
+    quaternion.setFromAxisAngle(axis, angle);
+
+    let { x, y, z } = model.value.rotate;
+    // Convert degrees to radians
+    const currentEuler = new THREE.Euler(
+        x * (Math.PI / 180),
+        y * (Math.PI / 180),
+        z * (Math.PI / 180),
+        "XYZ",
+    );
+
+    const currentQuaternion = new THREE.Quaternion().setFromEuler(currentEuler);
+
+    // Apply new rotation
+    currentQuaternion.premultiply(quaternion);
+
+    const toFlip = currentQuaternion.w < 0;
+    const sgn = toFlip ? -1 : 1;
+
+    // Convert back to Euler angles
+    const newEuler = new THREE.Euler().setFromQuaternion(currentQuaternion, "XYZ");
+
+    // Convert radians to degrees
+    const newX = newEuler.x * (180 / Math.PI);
+    const newY = newEuler.y * (180 / Math.PI);
+    const newZ = newEuler.z * (180 / Math.PI);
+
+    return {
+        x: newX,
+        y: newY,
+        z: newZ,
+    };
+};
 
 const isTouchEventFallback = (event: MouseEvent | TouchEvent): event is TouchEvent => {
     return !!(event as TouchEvent).touches;
@@ -193,15 +231,6 @@ const updateTransform = (
     }
 };
 
-const updateRotation = (axis: (typeof axes)[number], delta: number) => {
-    let newDelta = delta * sensitivity;
-    newDelta = normalizeAngle(newDelta, rotationUnit);
-
-    let newValue = model.value.rotate[axis] + newDelta;
-
-    updateTransform("rotate", axis, newValue, delta * sensitivity);
-};
-
 const updateTranslation = (axis: (typeof axes)[number], delta: number) => {
     updateTransform(
         "translate",
@@ -220,6 +249,23 @@ const updateScale = (axis: (typeof axes)[number], delta: number) => {
     );
 };
 
+const updateRotation = (
+    axis: (typeof axes)[number][],
+    deltaX: number,
+    deltaY: number,
+) => {
+    const rotationAxis = new THREE.Vector3(-deltaY, deltaX, 0).normalize();
+    const rotationAngle =
+        (Math.sqrt(deltaX * deltaX + deltaY * deltaY) * sensitivity) / 25;
+
+    const newAngles = rotateAroundAxis(rotationAxis, rotationAngle);
+
+    axis.forEach((a) => {
+        const delta = newAngles[a] - model.value.rotate[a];
+        updateTransform("rotate", a, newAngles[a], delta * sensitivity);
+    });
+};
+
 const drag = (event: MouseEvent | TouchEvent) => {
     if (!isDragging) return;
 
@@ -227,6 +273,8 @@ const drag = (event: MouseEvent | TouchEvent) => {
 
     const deltaX = x - previousMousePosition.x;
     const deltaY = y - previousMousePosition.y;
+
+    console.log({ model: model.value });
 
     const delta = deltaX + deltaY;
 
@@ -237,11 +285,8 @@ const drag = (event: MouseEvent | TouchEvent) => {
     } else if (pressedKeys.shift) {
         updateTranslation("x", deltaX);
         updateTranslation("y", deltaY);
-    } else if (pressedKeys.ctrl || pressedKeys.meta) {
-        updateRotation("z", deltaX);
     } else {
-        updateRotation("y", deltaX);
-        updateRotation("x", -deltaY);
+        updateRotation(["x", "y", "z"], deltaX, deltaY);
     }
 
     previousMousePosition = { x, y };
@@ -279,17 +324,17 @@ const handleAxisSpecificDrag = (deltaX: number, deltaY: number) => {
     if (pressedKeys.x) {
         if (pressedKeys.shift) updateTranslation("x", delta);
         else if (pressedKeys.ctrl || pressedKeys.meta) updateScale("x", delta);
-        else updateRotation("x", delta);
+        else updateRotation(["x"], deltaX, deltaY);
     }
     if (pressedKeys.y) {
         if (pressedKeys.shift) updateTranslation("y", delta);
         else if (pressedKeys.ctrl || pressedKeys.meta) updateScale("y", delta);
-        else updateRotation("y", -delta);
+        else updateRotation(["y"], deltaX, deltaY);
     }
     if (pressedKeys.z) {
         if (pressedKeys.shift) updateTranslation("z", delta);
         else if (pressedKeys.ctrl || pressedKeys.meta) updateScale("z", delta);
-        else updateRotation("z", delta);
+        else updateRotation(["z"], deltaX, deltaY);
     }
 };
 
@@ -300,7 +345,14 @@ const handleWheel = (event: WheelEvent) => {
 
     event.preventDefault();
 
-    const { deltaX, deltaY, ctrlKey } = event;
+    let { deltaX, deltaY, ctrlKey } = event;
+
+    deltaX = deltaX / 10;
+    deltaY = deltaY / 10;
+
+    const delta = deltaX + deltaY;
+
+    if (Math.abs(delta) < 1e-4) return;
 
     if (pressedKeys.x || pressedKeys.y || pressedKeys.z) {
         handleAxisSpecificDrag(deltaX, deltaY);
@@ -312,9 +364,10 @@ const handleWheel = (event: WheelEvent) => {
         updateScale("y", deltaY);
         updateScale("z", deltaY);
     } else {
-        updateRotation("y", deltaX);
-        updateRotation("x", -deltaY);
+        updateRotation(["x", "y", "z"], -deltaX, -deltaY);
     }
+
+    previousWheelState = { x: deltaX, y: deltaY };
 };
 
 const handleKeyDown = (event: KeyboardEvent) => {
@@ -386,7 +439,7 @@ onMounted(() => {
 
         wheelEventEndTimeout = setTimeout(() => {
             isScrolling = false;
-        }, 100);
+        }, 200);
     });
 
     useEventListener(window, "keydown", handleKeyDown);
@@ -397,8 +450,8 @@ onMounted(() => {
     useEventListener(window, "mouseleave", stopDrag);
 
     useEventListener(window, "touchmove", drag);
-    // useEventListener(window, "touchstart", startDrag);
-    // useEventListener(window, "touchend", stopDrag);
+    useEventListener(window, "touchstart", startDrag);
+    useEventListener(window, "touchend", stopDrag);
 
     useEventListener(window, "gesturestart", startGesture);
     useEventListener(window, "gesturechange", gesture);
@@ -432,15 +485,20 @@ onUnmounted(() => {
     pause();
 });
 
-watch(isDragging, (newValue) => {
-    if (newValue) return;
+watch(
+    () => isDragging || isTouching,
+    (newValue) => {
+        if (newValue) return;
 
-    Object.entries(velocity).forEach(([category, value]) => {
-        for (const [k, v] of Object.entries(value)) {
-            velocity[category][k] *= 0.5;
-        }
-    });
-});
+        Object.entries(velocity).forEach(([category, value]) => {
+            for (const [k, v] of Object.entries(value)) {
+                velocity[category][k] *= 0.5;
+            }
+        });
+
+        applyInertia();
+    },
+);
 </script>
 
 <style scoped>

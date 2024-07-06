@@ -145,9 +145,7 @@
                     >
                         <OrbitalDrag
                             class="relative preserve-3d flex items-center justify-center justify-items-center"
-                            @rotate="(v) => orbitalDrag('rotate', v)"
-                            @translate="(v) => orbitalDrag('translate', v)"
-                            @scale="(v) => orbitalDrag('scale', v)"
+                            v-bind:model-value="transformSliderValues"
                         >
                             <div
                                 ref="cube"
@@ -158,7 +156,7 @@
                                     v-if="!storedControls.selectedAnimation"
                                 >
                                     <Loader2
-                                        class="absolute w-48 h-48 animate-spin"
+                                        class="absolute w-[30vw] h-[30vh] animate-spin"
                                     ></Loader2>
                                 </span>
                                 <div
@@ -186,16 +184,23 @@
                                     >
                                     </span>
                                     <template v-if="!storedControls.ppMode">
-                                        <span
+                                        <div
                                             :class="[
-                                                'text-5xl h-full w-full font-bold',
-                                                'flex items-center justify-center',
+                                                'h-full w-full font-bold',
+                                                'flex items-center justify-center ',
                                             ]"
                                             :style="{
                                                 backgroundColor: side.color,
                                             }"
-                                            >{{ side.content }}</span
                                         >
+                                            <span
+                                                :class="[
+                                                    'fraunces text-5xl h-full w-full font-bold',
+                                                    'flex items-center justify-center z-50',
+                                                ]"
+                                                >{{ side.content }}</span
+                                            >
+                                        </div>
                                     </template>
 
                                     <template v-else>
@@ -328,7 +333,7 @@ const matrix3dEnd = $ref(createMatrix());
 
 storedControls.ppMode ??= false;
 
-const transformSliderValues = {
+const transformSliderValues = $ref({
     translate: {
         x: 0,
         y: 0,
@@ -344,7 +349,7 @@ const transformSliderValues = {
         y: 1,
         z: 1,
     },
-};
+});
 
 const transformSliderOptions = {
     translate: {
@@ -505,11 +510,7 @@ function updateTransformations() {
     syncTransformations();
 }
 
-const orbitalDrag = (category: string, value: TransformState["rotate"]) => {
-    Object.assign(transformSliderValues[category], value);
-
-    updateTransformations();
-};
+watch(transformSliderValues, updateTransformations);
 
 const resetMatrix = () => {
     const toMatrix = mat4.create();
@@ -542,6 +543,7 @@ const matrixAnim = $ref(
         },
     ]),
 );
+
 matrixAnim.animation.name = "Matrix";
 matrixAnim.animation.superKey = superKey;
 
@@ -567,158 +569,21 @@ const rotationAnim = $ref(
         },
     }),
 );
+
 rotationAnim.animation.name = "Rotations";
 rotationAnim.animation.superKey = superKey;
 
 const hoverAnimationOptions = getStoredAnimationOptions("Hover", superKey);
 
-const hoverAnim = animations.hover();
+const hoverAnim = $ref(animations.hover(hoverAnimationOptions.animationOptions));
 hoverAnim.animation.name = "Hover";
 hoverAnim.animation.superKey = superKey;
 
-const gradientAnimationOptions = getStoredAnimationOptions("Gradient", superKey);
-
-const gradientAnim = $ref(
-    new CSSKeyframesAnimation(gradientAnimationOptions.animationOptions)
-        .fromCSSKeyframes(/*css*/ `
-@keyframes gradient-shift {
-    0% {
-        background: linear-gradient(
-            90deg,
-            rgba(255, 0, 0, 1) 0%,
-            rgba(255, 127, 0, 1) 12.5%,
-            rgba(255, 255, 0, 1) 25%,
-            rgba(0, 255, 0, 1) 37.5%,
-            rgba(0, 0, 255, 1) 50%,
-            rgba(75, 0, 130, 1) 62.5%,
-            rgba(143, 0, 255, 1) 75%,
-            rgba(255, 0, 0, 1) 87.5%,
-            rgba(255, 0, 0, 1) 100%
-        );
-    }
-    12.5% {
-        background: linear-gradient(
-            90deg,
-            rgba(255, 127, 0, 1) 0%,
-            rgba(255, 255, 0, 1) 12.5%,
-            rgba(0, 255, 0, 1) 25%,
-            rgba(0, 0, 255, 1) 37.5%,
-            rgba(75, 0, 130, 1) 50%,
-            rgba(143, 0, 255, 1) 62.5%,
-            rgba(255, 0, 0, 1) 75%,
-            rgba(255, 0, 0, 1) 87.5%,
-            rgba(255, 127, 0, 1) 100%
-        );
-    }
-    25% {
-        background: linear-gradient(
-            90deg,
-            rgba(255, 255, 0, 1) 0%,
-            rgba(0, 255, 0, 1) 12.5%,
-            rgba(0, 0, 255, 1) 25%,
-            rgba(75, 0, 130, 1) 37.5%,
-            rgba(143, 0, 255, 1) 50%,
-            rgba(255, 0, 0, 1) 62.5%,
-            rgba(255, 127, 0, 1) 75%,
-            rgba(255, 255, 0, 1) 87.5%,
-            rgba(255, 0, 0, 1) 100%
-        );
-    }
-    37.5% {
-        background: linear-gradient(
-            90deg,
-            rgba(0, 255, 0, 1) 0%,
-            rgba(0, 0, 255, 1) 12.5%,
-            rgba(75, 0, 130, 1) 25%,
-            rgba(143, 0, 255, 1) 37.5%,
-            rgba(255, 0, 0, 1) 50%,
-            rgba(255, 127, 0, 1) 62.5%,
-            rgba(255, 255, 0, 1) 75%,
-            rgba(0, 255, 0, 1) 87.5%,
-            rgba(255, 0, 0, 1) 100%
-        );
-    }
-    50% {
-        background: linear-gradient(
-            90deg,
-            rgba(0, 0, 255, 1) 0%,
-            rgba(75, 0, 130, 1) 12.5%,
-            rgba(143, 0, 255, 1) 25%,
-            rgba(255, 0, 0, 1) 37.5%,
-            rgba(255, 127, 0, 1) 50%,
-            rgba(255, 255, 0, 1) 62.5%,
-            rgba(0, 255, 0, 1) 75%,
-            rgba(0, 0, 255, 1) 87.5%,
-            rgba(255, 0, 0, 1) 100%
-        );
-    }
-    62.5% {
-        background: linear-gradient(
-            90deg,
-            rgba(75, 0, 130, 1) 0%,
-            rgba(143, 0, 255, 1) 12.5%,
-            rgba(255, 0, 0, 1) 25%,
-            rgba(255, 127, 0, 1) 37.5%,
-            rgba(255, 255, 0, 1) 50%,
-            rgba(0, 255, 0, 1) 62.5%,
-            rgba(0, 0, 255, 1) 75%,
-            rgba(75, 0, 130, 1) 87.5%,
-            rgba(255, 0, 0, 1) 100%
-        );
-    }
-    75% {
-        background: linear-gradient(
-            90deg,
-            rgba(143, 0, 255, 1) 0%,
-            rgba(255, 0, 0, 1) 12.5%,
-            rgba(255, 127, 0, 1) 25%,
-            rgba(255, 255, 0, 1) 37.5%,
-            rgba(0, 255, 0, 1) 50%,
-            rgba(0, 0, 255, 1) 62.5%,
-            rgba(75, 0, 130, 1) 75%,
-            rgba(143, 0, 255, 1) 87.5%,
-            rgba(255, 0, 0, 1) 100%
-        );
-    }
-    87.5% {
-        background: linear-gradient(
-            90deg,
-            rgba(255, 0, 0, 1) 0%,
-            rgba(255, 127, 0, 1) 12.5%,
-            rgba(255, 255, 0, 1) 25%,
-            rgba(0, 255, 0, 1) 37.5%,
-            rgba(0, 0, 255, 1) 50%,
-            rgba(75, 0, 130, 1) 62.5%,
-            rgba(143, 0, 255, 1) 75%,
-            rgba(255, 0, 0, 1) 87.5%,
-            rgba(255, 0, 0, 1) 100%
-        );
-    }
-    100% {
-        background: linear-gradient(
-            90deg,
-            rgba(255, 0, 0, 1) 0%,
-            rgba(255, 127, 0, 1) 12.5%,
-            rgba(255, 255, 0, 1) 25%,
-            rgba(0, 255, 0, 1) 37.5%,
-            rgba(0, 0, 255, 1) 50%,
-            rgba(75, 0, 130, 1) 62.5%,
-            rgba(143, 0, 255, 1) 75%,
-            rgba(255, 0, 0, 1) 87.5%,
-            rgba(255, 0, 0, 1) 100%
-        );
-    }
-}`),
-);
-
-gradientAnim.animation.name = "Gradient";
-gradientAnim.animation.superKey = superKey;
-
 const animationGroup = $ref(
     new AnimationGroup(
-        rotationAnim.animation,
-        matrixAnim.animation,
-        hoverAnim.animation,
+        rotationAnim.animation as any,
+        matrixAnim.animation as any,
+        hoverAnim.animation as any,
     ),
 );
 
@@ -752,7 +617,10 @@ const changeGraphPerspectiveAnim = new CSSKeyframesAnimation({
     },
 ]);
 
-const hoverMatrixGroup = new AnimationGroup(hoverAnim.animation, matrixAnim.animation);
+const hoverMatrixGroup = new AnimationGroup(
+    hoverAnim.animation as any,
+    matrixAnim.animation as any,
+);
 
 watch(
     () => storedControls.selectedAnimation,
@@ -785,10 +653,6 @@ onMounted(() => {
     hoverAnim.setTargets(cube);
 
     changeGraphPerspectiveAnim.setTargets(graph);
-
-    const cubeSideEls = cube.querySelectorAll(".cube-side");
-    gradientAnim.setTargets(...(cubeSideEls as any));
-    // gradientAnim.play();
 
     changeGraphPerspectiveAnim.play();
     hoverMatrixGroup.play();

@@ -137,7 +137,7 @@
             class="fixed bottom-0 p-2 m-0 w-screen h-[min-content] flex items-center justify-center justify-items-center"
         >
             <Menubar
-                class="p-6 mb-8 lg:mb-2 pl-4 pr-4 flex items-center gap-1 justify-items-center border-none"
+                class="p-6 mb-8 lg:mb-2 px-4 flex items-center gap-1 justify-items-center border-none rounded-lg"
             >
                 <MenubarMenu>
                     <div class="relative">
@@ -151,7 +151,7 @@
                             "
                         >
                             <SelectTrigger
-                                class="border-none rounded-none h-4 focus:ring-0"
+                                class="border-none rounded-none h-4 focus:ring-0 hover:scale-105"
                             >
                                 <SelectIcon v-if="!storedControls.selectedAnimation"
                                     ><List></List
@@ -315,21 +315,21 @@ const setPPMode = () => {
     const colorFilter2 =
         "invert(58%) sepia(34%) saturate(2172%) hue-rotate(219deg) brightness(98%) contrast(106%)";
 
+    storedControls.ppMode = !storedControls.ppMode;
+
     if (storedControls.ppMode) {
         // ppmycotaLogoEl.style.filter = colorFilter2;
         toast.success("PP Mode activated! 🎉", {
-            duration: 2000,
+            duration: 3000,
             description: "🙂‍↔️ 🌱 🍄‍🟫",
         });
     } else {
         // ppmycotaLogoEl.style.filter = colorFilter1;
         toast.error("PP Mode deactivated! 😢", {
-            duration: 2000,
+            duration: 3000,
             description: "🙂‍↔️ 🌱 🍄‍🟫",
         });
     }
-
-    storedControls.ppMode = !storedControls.ppMode;
 };
 
 const findAnimationGroupObject = (animation: Animation<any>) => {
@@ -394,7 +394,7 @@ const reset = (target: HTMLElement, all: boolean = false) => {
     storedControls.selectedAnimation = null;
 
     if (all) {
-        // resetAllStores();
+        resetAllStores();
         window.location.reload();
     }
 };
