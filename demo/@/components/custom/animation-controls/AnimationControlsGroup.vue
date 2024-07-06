@@ -12,14 +12,20 @@
             <DarkModeToggle
                 class="pointer-events-auto hover:opacity-50 hover:scale-105 w-8 aspect-square"
             />
-            <HoverCard :open-delay="1" class="pointer-events-auto">
-                <HoverCardTrigger class="pointer-events-auto"
+            <HoverCard
+                v-model:open="hoverCardStates.mbabb"
+                :open-delay="0"
+                class="pointer-events-auto"
+            >
+                <HoverCardTrigger
+                    @click="hoverCardStates.mbabb = true"
+                    class="pointer-events-auto"
                     ><Button class="p-0 m-0 cursor-pointer" variant="link"
                         >@mbabb</Button
                     >
                 </HoverCardTrigger>
                 <HoverCardContent class="z-[100] pointer-events-auto">
-                    <div class="flex gap-4">
+                    <div class="flex gap-4 p-4">
                         <Avatar>
                             <AvatarImage
                                 src="https://avatars.githubusercontent.com/u/2848617?v=4"
@@ -43,11 +49,20 @@
                 </HoverCardContent>
             </HoverCard>
 
-            <HoverCard :open-delay="1" class="pointer-events-auto">
+            <HoverCard
+                :open-delay="0"
+                v-model:open="hoverCardStates.ppmycota"
+                class="pointer-events-auto"
+            >
                 <HoverCardTrigger
                     ><div
                         ref="ppmycotaLogoEl"
-                        @click="setPPMode"
+                        @click="
+                            (e) => {
+                                hoverCardStates.ppmycota = true;
+                                setPPMode();
+                            }
+                        "
                         class="ppmycota-logo-sm w-12 h-12 m-0 p-0 stroke-2 font-bold hover:scale-105 cursor-pointer pointer-events-auto"
                     ></div>
                 </HoverCardTrigger>
@@ -298,6 +313,11 @@ let ellipsisText = $ref("...");
 
 const ppmycotaLogoEl = $ref<HTMLElement>(null);
 
+const hoverCardStates = $ref({
+    ppmycota: false,
+    mbabb: false,
+});
+
 const { superKey, animationGroup } = defineProps<{
     animationGroup: AnimationGroup<any>;
     superKey?: string;
@@ -357,6 +377,14 @@ const sliderUpdate = ({ t, animation }) => {
 
 const toggleAnimationGroup = () => {
     if (!animationGroup.started) {
+        if (!storedControls.selectedAnimation) {
+            toast.info("Selected rotations!", {
+                duration: 3000,
+                description: "✨",
+            });
+            storedControls.selectedAnimation = "Rotations";
+        }
+
         animationGroup.play();
     } else {
         animationGroup.pause();
