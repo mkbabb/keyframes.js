@@ -6,9 +6,11 @@
             @selected-animation="(s) => (storedControls.selectedAnimation = s)"
         >
             <template #tabs-trigger>
-                <TabsList v-if="storedControls.selectedAnimation == 'Matrix'">
-                    <TabsTrigger value="matrix-controls">Matrix Controls</TabsTrigger>
-                </TabsList>
+                <TabsTrigger
+                    v-if="storedControls.selectedAnimation == 'Matrix'"
+                    value="matrix-controls"
+                    >Matrix Controls</TabsTrigger
+                >
             </template>
 
             <template #tabs-content>
@@ -24,7 +26,7 @@
                                 >
                                     <Input
                                         :class="
-                                            'absolute top-0 left-0 w-full h-full p-0 text-center text-ellipsis text-xl bg-transparent z-10 ' +
+                                            'absolute top-0 left-0 w-full h-full p-0 text-center text-ellipsis text-2xl bg-transparent z-10 fira-code' +
                                             [
                                                 storedControls.matrixOptions
                                                     .selectedMatrixCell === i
@@ -100,11 +102,13 @@
                             ></Slider>
 
                             <div class="grid grid-cols-2 gap-2">
-                                <Button class="cursor-pointer" @click="resetMatrix"
+                                <Button
+                                    class="cursor-pointer fira-code"
+                                    @click="resetMatrix"
                                     ><RotateCcw class="mr-4" />Reset</Button
                                 >
                                 <Button
-                                    class="cursor-pointer"
+                                    class="cursor-pointer fira-code"
                                     @click="
                                         storedControls.matrixOptions.fixed =
                                             !storedControls.matrixOptions.fixed;

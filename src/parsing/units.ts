@@ -29,7 +29,7 @@ export const lengthUnits = [...absoluteLengthUnits, ...relativeLengthUnits] as c
 export const timeUnits = ["s", "ms"] as const;
 export const angleUnits = ["deg", "rad", "grad", "turn"] as const;
 export const percentageUnits = ["%"] as const;
-export const resolutionUnits = ["dpi", "dpcm", "dppx"] as const;
+export const resolutionUnits = ["dpi", "dpcm", "dppx", "cqw"] as const;
 
 export const units = [
     ...lengthUnits,
@@ -141,6 +141,43 @@ export const rgb2hsl = (r: number, g: number, b: number) => {
     return [h, s, l];
 };
 
+export const getMatrixValues = (value: ValueUnit<any>) => {
+    if (!value.unit.startsWith("matrix")) {
+        return value;
+    }
+
+    const values = value.value as number[];
+
+    if (value.unit === "matrix") {
+        return {
+            scaleX: values[0],
+            skewX: values[1],
+            skewY: values[2],
+            scaleY: values[3],
+            translateX: values[4],
+            translateY: values[5],
+        };
+    } else if (value.unit === "matrix3d") {
+        return {
+            scaleX: values[0],
+            skewX: values[1],
+            skewY: values[2],
+            skewZ: values[3],
+            translateX: values[4],
+            translateY: values[5],
+            translateZ: values[6],
+            perspectiveX: values[7],
+            perspectiveY: values[8],
+            perspectiveZ: values[9],
+            perspectiveW: values[10],
+            rotateX: values[11],
+            rotateY: values[12],
+            rotateZ: values[13],
+            rotateW: values[14],
+        };
+    }
+};
+
 const colorOptionalAlpha = (r: P.Language, colorType: string) => {
     const name = P.string(colorType)
         .skip(opt(P.string("a")))
@@ -235,6 +272,11 @@ export const CSSValueUnit = P.createLanguage({
     resolutionUnit: () => P.alt(...resolutionUnits.map(P.string)),
     percentageUnit: () => P.alt(...percentageUnits.map(P.string)),
 
+    comma: () => P.string(","),
+    space: () => P.string(" "),
+
+    sep: (r) => r.comma.or(r.space).trim(P.optWhitespace),
+
     Length: (r) =>
         P.seq(number, r.lengthUnit).map(([value, unit]) => {
             let superType = ["length"];
@@ -268,6 +310,25 @@ export const CSSValueUnit = P.createLanguage({
             .trim(P.optWhitespace)
             .map(() => new ValueUnit("/", "string")),
 
+    Matrix: (r) =>
+        number
+            .sepBy(r.sep)
+            .wrap(P.string("matrix("), P.string(")"))
+            .map(([a, b, c, d, e, f]) => {
+                return new ValueUnit([a, b, c, d, e, f], "matrix");
+            }),
+
+    Matrix3d: (r) =>
+        number
+            .sepBy(r.sep)
+            .wrap(P.string("matrix3d("), P.string(")"))
+            .map(([a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p]) => {
+                return new ValueUnit(
+                    [a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p],
+                    "matrix3d",
+                );
+            }),
+
     Value: (r) =>
         P.alt(
             r.Length,
@@ -276,6 +337,8 @@ export const CSSValueUnit = P.createLanguage({
             r.Resolution,
             r.Percentage,
             r.Color,
+            r.Matrix,
+            r.Matrix3d,
             r.Slash,
             P.alt(number, none).map((x) => new ValueUnit(x)),
         ).trim(P.optWhitespace),

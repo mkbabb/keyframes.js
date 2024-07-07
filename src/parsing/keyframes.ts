@@ -135,11 +135,17 @@ const MathValue: P.Language = P.createLanguage({
     rparen: (r) => P.string(")").trim(r.ws),
     comma: (r) => P.string(",").trim(r.ws),
 
+    String: () => P.regexp(/[^\(\)\{\}\s,;]+/).map((x) => new ValueUnit(x)),
+
     termOperators: (r) => P.alt(...["*", "/", "//"].map(P.string)).trim(r.ws),
     factorOperators: (r) => P.alt(...["+", "-"].map(P.string)).trim(r.ws),
     pow: (r) => P.string("^").trim(r.ws),
 
-    Expression: (r) => P.alt(r.Function, r.Term),
+    Expression: (r) =>
+        P.alt(r.Function, r.Term).map((v) => {
+            console.log(v);
+            return v;
+        }),
 
     FunctionArgs: (r) =>
         P.sepBy1(r.Expression, r.comma).trim(r.ws).wrap(r.lparen, r.rparen),
@@ -176,17 +182,33 @@ const MathValue: P.Language = P.createLanguage({
             }),
 
     Atom: (r) => P.alt(CSSValueUnit.Value, r.CSSVariable, r.Expression).trim(r.ws),
+
+    tAtom: (r) => P.alt(CSSKeyframes.Value, r.CSSVariable, r.String).trim(r.ws),
 });
 
 const handleCalc = (r: P.Language) => {
     return P.string("calc")
-        .then(MathValue.Expression.trim(r.ws).wrap(r.lparen, r.rparen))
+        .skip(r.lparen.trim(r.ws))
+        .then(
+            r.Value.skip(r.rparen.trim(r.ws))
+                .map((v) => {
+                    return v;
+                })
+                .or(
+                    P.regexp(/[^()]+/)
+                        .trim(r.ws)
+                        .map((v) => {
+                            console.log(v);
+                            return v;
+                        })
+                        .skip(r.rparen.trim(r.ws)),
+                ),
+        )
         .map((v) => {
             if (v instanceof ValueUnit) {
                 return v;
-            } else {
-                return new ValueUnit(v, "calc");
             }
+            return new ValueUnit(v, "calc");
         });
 };
 
@@ -195,27 +217,37 @@ const DIMS = ["x", "y", "z"].map(istring);
 
 const handleFunc = (r: P.Language, name?: P.Parser<any>) => {
     return P.seq(name ? name : identifier, r.FunctionArgs.wrap(r.lparen, r.rparen)).map(
-        (v) => {
-            return v;
+        ([name, args]) => {
+            args.forEach((arg) => {
+                arg.setSubProperty(name);
+            });
+
+            return [name, args];
         },
     );
 };
 
 const handleTransform = (r: P.Language) => {
     const name = P.seq(P.alt(...TRANSFORM_FUNCTIONS), P.alt(...DIMS, P.string("")));
+
     const p = handleFunc(r, name);
 
-    return p.map(([[name, dim], values]: [string[], ValueUnit[]]) => {
-        name = name.toLowerCase();
+    return p
+        .map(([[name, dim], values]: [string[], ValueUnit[]]) => {
+            name = name.toLowerCase();
 
-        if (dim) {
-            return new FunctionValue(name + dim.toUpperCase(), [values[0]]);
-        } else if (values.length === 1) {
-            return new FunctionValue(name, [values[0]]);
-        } else {
-            return new FunctionValue(name, values);
-        }
-    });
+            if (dim) {
+                return new FunctionValue(name + dim.toUpperCase(), [values[0]]);
+            } else if (values.length === 1) {
+                return new FunctionValue(name, [values[0]]);
+            } else {
+                return new FunctionValue(name, values);
+            }
+        })
+        .map((v) => {
+            v.setSubProperty(v.name);
+            return v;
+        });
 };
 
 const handleVar = (r: P.Language) => {
@@ -340,6 +372,8 @@ export const CSSKeyframes = P.createLanguage({
                     [name]: value.value,
                 });
             } else {
+                values.setProperty(name);
+
                 return {
                     [name]: values,
                 };
@@ -440,6 +474,10 @@ export const CSSAnimationKeyframes = P.createLanguage({
                 return Object.assign({}, ...values);
             }
         }),
+});
+
+export const parseCSSKeyframesValue = memoize((input: string) => {
+    return CSSKeyframes.Value.tryParse(input);
 });
 
 export const parseCSSKeyframes = memoize(

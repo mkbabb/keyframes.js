@@ -1,0 +1,379 @@
+<template>
+    <div class="grid gap-4 items-center justify-items-center">
+        <Card>
+            <CardContent class="pt-4 grid grid-cols-2 gap-1 items-center relative">
+                <Label class="fraunces">Duration</Label>
+                <Input
+                    type="string"
+                    :model-value="reverseCSSTime(animation.options.duration)"
+                    class="fira-code"
+                    @change="
+                        (e) => {
+                            const value = (e.target as HTMLInputElement).value;
+                            animation.updateDuration(value);
+                            storedAnimationOptions.animationOptions.duration = value;
+                        }
+                    "
+                />
+
+                <Label class="fraunces">Delay</Label>
+                <Input
+                    class="fira-code"
+                    type="string"
+                    :model-value="reverseCSSTime(animation.options.delay)"
+                    @change="
+                        (e) => {
+                            const value = (e.target as HTMLInputElement).value;
+                            animation.updateDelay(value);
+                            storedAnimationOptions.animationOptions.delay = value;
+                        }
+                    "
+                />
+
+                <Label class="fraunces">Iteration Count</Label>
+                <Input
+                    :class="[
+                        !isFinite(animation.options.iterationCount)
+                            ? 'fraunces text-3xl'
+                            : 'fira-code',
+                    ]"
+                    type="string"
+                    @change="
+                        (e) => {
+                            const value = (e.target as HTMLInputElement).value;
+                            animation.updateIterationCount(value);
+                            storedAnimationOptions.animationOptions.iterationCount =
+                                value;
+                        }
+                    "
+                    :model-value="
+                        isFinite(animation.options.iterationCount)
+                            ? animation.options.iterationCount
+                            : '∞'
+                    "
+                />
+
+                <Label class="fraunces">Direction</Label>
+                <Select
+                    :model-value="animation.options.direction"
+                    @update:model-value="
+                        (key: any) => {
+                            animation.updateDirection(key);
+                            storedAnimationOptions.animationOptions.direction = key;
+                        }
+                    "
+                >
+                    <SelectTrigger class="fira-code">
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectGroup class="fira-code">
+                            <SelectItem value="normal">normal</SelectItem>
+                            <SelectItem value="reverse">reverse</SelectItem>
+                            <SelectItem value="alternate">alternate</SelectItem>
+                            <SelectItem value="alternate-reverse"
+                                >alternate-reverse</SelectItem
+                            >
+                        </SelectGroup>
+                    </SelectContent>
+                </Select>
+
+                <Label class="fraunces">Fill Mode</Label>
+                <Select
+                    :model-value="animation.options.fillMode"
+                    @update:model-value="
+                        (key: any) => {
+                            animation.updateFillMode(key);
+                            storedAnimationOptions.animationOptions.fillMode = key;
+                        }
+                    "
+                >
+                    <SelectTrigger class="fira-code">
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectGroup class="fira-code">
+                            <SelectItem value="none">none</SelectItem>
+                            <SelectItem value="forwards">forwards</SelectItem>
+                            <SelectItem value="backwards">backwards</SelectItem>
+                            <SelectItem value="both">both</SelectItem>
+                        </SelectGroup>
+                    </SelectContent>
+                </Select>
+
+                <Label class="fraunces">Timing Function</Label>
+                <Select
+                    :model-value="
+                        storedAnimationOptions.animationOptions.timingFunction as any
+                    "
+                    @update:model-value="
+                        (key: any) => {
+                            updateTimingFunctionFromName(key);
+                            storedAnimationOptions.animationOptions.timingFunction =
+                                key;
+                        }
+                    "
+                >
+                    <SelectTrigger class="fira-code">
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectGroup class="fira-code">
+                            <SelectItem
+                                v-for="timingFunction in Object.keys(
+                                    timingFunctionsAnd,
+                                )"
+                                :value="timingFunction"
+                            >
+                                {{ timingFunction }}
+                            </SelectItem>
+                        </SelectGroup>
+                    </SelectContent>
+                </Select>
+
+                <template
+                    v-if="
+                        storedAnimationOptions.animationOptions.timingFunction ===
+                        'steps'
+                    "
+                >
+                    <Separator class="col-span-2 w-full mt-4 mb-4"></Separator>
+                    <Label>Steps</Label>
+                    <Input
+                        type="number"
+                        :model-value="storedAnimationOptions.stepOptions.steps"
+                        @update:model-value="
+                            (key: any) => {
+                                storedAnimationOptions.stepOptions.steps = key;
+                                updateTimingFunctionFromName('steps');
+                            }
+                        "
+                    />
+
+                    <Label>Jump Term</Label>
+                    <Select
+                        :model-value="storedAnimationOptions.stepOptions.jumpTerm"
+                        @update:model-value="
+                            (key: any) => {
+                                storedAnimationOptions.stepOptions.jumpTerm = key;
+                                updateTimingFunctionFromName('steps');
+                            }
+                        "
+                    >
+                        <SelectTrigger>
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectGroup>
+                                <SelectItem v-for="j in jumpTerms" :value="j">
+                                    {{ j }}
+                                </SelectItem>
+                            </SelectGroup>
+                        </SelectContent>
+                    </Select>
+                </template>
+
+                <template
+                    v-if="
+                        (storedAnimationOptions.animationOptions
+                            .timingFunction as any) === 'cubic-bezier'
+                    "
+                >
+                    <Separator class="col-span-2 w-full mt-4"></Separator>
+                    <CubicBezierControls
+                        :animation="animation"
+                        @update-timing-function="setAnimationTimingFunction"
+                        class="col-span-2"
+                    ></CubicBezierControls>
+                </template>
+
+                <div
+                    :class="
+                        'col-span-2 grid grid-cols-1 gap-2 mt-2 mb-2 sticky bottom-0 bg-background p-2 rounded-md' +
+                        (!animation.started ? ' disabled' : '')
+                    "
+                >
+                    <Slider
+                        class="col-span-2 p-2"
+                        :min="0"
+                        :max="animation.options.duration"
+                        @input="sliderUpdate"
+                        :model-value="[animation.t]"
+                        @update:model-value="([t]) => (animation.t = t)"
+                    />
+
+                    <div :class="'grid grid-cols-5 gap-2 w-full'">
+                        <Button class="col-span-2 text-xl" @click="toggleAnimation">
+                            <font-awesome-icon
+                                class="icon"
+                                :icon="
+                                    animation.playing()
+                                        ? ['fas', 'pause']
+                                        : ['fas', 'play']
+                                "
+                            />
+                        </Button>
+                        <Button class="col-span-2 text-xl" @click="animation.reverse()">
+                            <font-awesome-icon
+                                class="icon"
+                                :icon="['fas', 'rotate-right']"
+                            />
+                        </Button>
+                        <Button
+                            class="col-span-1 text-xl"
+                            @click="
+                                () => {
+                                    Object.assign(
+                                        storedAnimationOptions,
+                                        defaultStoredAnimationOptions,
+                                    );
+                                }
+                            "
+                            ><Trash></Trash>
+                        </Button>
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+        <AnimationVisualizer
+            class="w-full"
+            v-bind:model-value="animation.options"
+        ></AnimationVisualizer>
+    </div>
+</template>
+
+<script setup lang="ts">
+import { Animation, TimingFunction, TimingFunctionNames } from "@src/animation";
+
+import { CSSCubicBezier, jumpTerms, timingFunctions } from "@src/easing";
+import { reverseCSSTime } from "@src/parsing/keyframes";
+
+import { Button } from "@components/ui/button";
+import { Slider } from "@components/ui/slider";
+
+import { Card, CardContent } from "@components/ui/card";
+import { Input } from "@components/ui/input";
+import { Label } from "@components/ui/label";
+
+import { Separator } from "@components/ui/separator";
+
+import {
+    Select,
+    SelectContent,
+    SelectGroup,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@components/ui/select";
+
+import { CubicBezierControls } from "@components/custom/animation-controls";
+
+import { camelCaseToHyphen } from "@src/utils";
+
+import { Trash } from "lucide-vue-next";
+
+import { onMounted, watch } from "vue";
+import {
+    defaultStoredAnimationOptions,
+    getStoredAnimationOptions,
+} from "./animationStores";
+import AnimationVisualizer from "./AnimationVisualizer.vue";
+
+let timingFunctionsAnd = {
+    "cubic-bezier": "cubic-bezier",
+    ...timingFunctions,
+};
+timingFunctionsAnd = Object.fromEntries(
+    Object.entries(timingFunctionsAnd).map(([k, v]) => [camelCaseToHyphen(k), v]),
+) as any;
+
+const tmpUpdate = (v) => {
+    console.log(v);
+    return v;
+};
+
+const { animation, isGrouped } = defineProps({
+    animation: {
+        type: Animation,
+        required: true,
+    },
+    isGrouped: {
+        type: Boolean,
+        required: false,
+        default: false,
+    },
+});
+
+const storedAnimationOptions = getStoredAnimationOptions(animation);
+
+const emit = defineEmits<{
+    (
+        e: "sliderUpdate",
+        val: {
+            t: number;
+            animation: Animation<any>;
+        },
+    ): void;
+}>();
+
+const sliderUpdate = (e: Event) => {
+    const t = parseFloat((e.target as HTMLInputElement).value);
+
+    if (!isGrouped) {
+        const paused = animation.paused;
+        animation.paused = false;
+        animation.transformFrames(t);
+        animation.paused = paused;
+    } else {
+        emit("sliderUpdate", {
+            t,
+            animation,
+        });
+    }
+};
+
+const setAnimationTimingFunction = (timingFunction: TimingFunction) => {
+    animation.options.timingFunction = timingFunction;
+    animation.frames.forEach((frame) => {
+        frame.timingFunction = timingFunction;
+    });
+};
+
+const updateTimingFunctionFromName = (key: TimingFunctionNames | "cubic-bezier") => {
+    let timingFunction = timingFunctions[key] as TimingFunction;
+
+    if (key === "steps") {
+        const { steps, jumpTerm } = storedAnimationOptions.stepOptions;
+        timingFunction = timingFunctions[key](steps, jumpTerm);
+    } else if (key === "cubic-bezier") {
+        timingFunction = CSSCubicBezier(
+            ...storedAnimationOptions.cubicBezierOptions.controlPoints,
+        );
+    }
+    setAnimationTimingFunction(timingFunction);
+};
+
+let prevT = $ref(0);
+const toggleAnimation = () => {
+    if (!animation.started && !isGrouped) {
+        animation.play();
+    } else {
+        animation.pause(!isGrouped);
+
+        if (animation.paused) {
+            prevT = animation.t;
+        } else {
+            animation.pausedTime += animation.t - prevT;
+            prevT = 0;
+        }
+    }
+};
+
+onMounted(() => {
+    updateTimingFunctionFromName(
+        storedAnimationOptions.animationOptions.timingFunction as TimingFunctionNames,
+    );
+});
+</script>
+
+<style scoped lang="scss"></style>

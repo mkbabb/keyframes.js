@@ -38,8 +38,6 @@ const { size } = defineProps({
     isolation: isolate;
     background: 0;
 
-    
-
     transition: all !important;
 
     z-index: 999;

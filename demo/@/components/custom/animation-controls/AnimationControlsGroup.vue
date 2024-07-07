@@ -1,6 +1,6 @@
 <template>
     <div
-        class="w-full min-h-screen grid lg:grid-cols-3 grid-cols-1 lg:grid-rows-1 justify-items-center justify-center items-center lg:overflow-hidden relative"
+        class="w-full min-h-screen lg:max-w-screen-xl mx-auto grid lg:grid-cols-3 grid-cols-1 lg:grid-rows-1 justify-items-center justify-center items-center lg:overflow-hidden relative"
         v-bind="$attrs"
     >
         <div
@@ -19,13 +19,13 @@
             >
                 <HoverCardTrigger
                     @click="hoverCardStates.mbabb = true"
-                    class="pointer-events-auto"
+                    class="pointer-events-auto fira-code"
                     ><Button class="p-0 m-0 cursor-pointer" variant="link"
                         >@mbabb</Button
                     >
                 </HoverCardTrigger>
                 <HoverCardContent class="z-[100] pointer-events-auto">
-                    <div class="flex gap-4 p-4">
+                    <div class="flex gap-4 p-4 fira-code">
                         <Avatar>
                             <AvatarImage
                                 src="https://avatars.githubusercontent.com/u/2848617?v=4"
@@ -166,7 +166,7 @@
                             "
                         >
                             <SelectTrigger
-                                class="border-none rounded-none h-4 focus:ring-0 hover:scale-105"
+                                class="border-none rounded-none h-4 focus:ring-0 hover:scale-105 fira-code"
                             >
                                 <SelectIcon v-if="!storedControls.selectedAnimation"
                                     ><List></List
@@ -176,7 +176,7 @@
                                 }}</SelectValue>
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectGroup>
+                                <SelectGroup class="fira-code">
                                     <template
                                         v-for="key in Object.keys(
                                             animationGroup.animations,
@@ -241,6 +241,8 @@ import { Toaster, toast } from "vue-sonner";
 import CommandPalette from "@components/custom/CommandPalette.vue";
 
 import { DarkModeToggle } from "@components/custom/dark-mode-toggle";
+
+import { Avatar, AvatarImage } from "@components/ui/avatar";
 
 import {
     Menubar,
@@ -358,7 +360,7 @@ const findAnimationGroupObject = (animation: Animation<any>) => {
     );
 };
 
-const sliderUpdate = ({ t, animation }) => {
+const sliderUpdate = ({ t, animation }: { t: number; animation: Animation<any> }) => {
     const groupObject = findAnimationGroupObject(animation);
 
     const groupAnimation = groupObject.animation;

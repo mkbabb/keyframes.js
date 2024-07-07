@@ -48,15 +48,24 @@ export const pulse = (options?: InputAnimationOptions) =>
     }).fromCSSKeyframes(pulseKeyframes);
 
 const shakeKeyframes = /*css*/ `
-  0%, 100% {
-    transform: translateX(0);
-  }
-  10%, 30%, 50%, 70%, 90% {
+8%,
+41% {
     transform: translateX(-10px);
-  }
-  20%, 40%, 60%, 80% {
+}
+25%,
+58% {
     transform: translateX(10px);
-  }
+}
+75% {
+    transform: translateX(-5px);
+}
+92% {
+    transform: translateX(5px);
+}
+0%,
+100% {
+    transform: translateX(0);
+}
 `;
 export const shake = (options?: InputAnimationOptions) =>
     new CSSKeyframesAnimation({

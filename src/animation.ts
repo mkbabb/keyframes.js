@@ -437,18 +437,20 @@ export class Animation<V extends Vars> {
             const s = scale(t, start, stop, 0, 1);
             const e = frame.timingFunction(s);
 
+            const reversedValues = {};
+
             for (const [k, v] of Object.entries(frame.interpVars)) {
                 const interpValue = v.start.lerp(e, v.stop, this.targets?.[0]);
 
                 if (!transformFrame) {
                     values[k] = interpValue;
                 } else {
-                    reverseTransformObject(k, interpValue, values);
+                    reverseTransformObject(k, interpValue, reversedValues);
                 }
             }
 
             if (transformFrame) {
-                frame.transform(t, values as V);
+                frame.transform(t, reversedValues as V);
             }
         }
     }

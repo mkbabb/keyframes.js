@@ -75,6 +75,10 @@ const model = defineModel<TransformState>({
     default: defaultTransformState,
 });
 
+if (Object.keys(model.value).length === 0) {
+    Object.assign(model.value, defaultTransformState);
+}
+
 const containerRef = $ref<HTMLElement | null>(null);
 
 let isDragging = $ref(false);

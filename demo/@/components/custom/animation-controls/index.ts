@@ -4,4 +4,7 @@ export { default as CubicBezierControls } from "./CubicBezierControls.vue";
 export { default as KeyframesStringControls } from "./KeyframesStringControls.vue";
 export { default as AnimatedText } from "./AnimatedText.vue";
 export { default as Animated } from "./Animated.vue";
+export { default as KeyframesEditor } from "./KeyframesEditor.vue";
+export { default as AnimationControlsControls } from "./AnimationControlsControls.vue";
+export { default as AnimationVisualizer } from "./AnimationVisualizer.vue";
 // export { default as CommandPalette } from "./CommandPalette.vue";

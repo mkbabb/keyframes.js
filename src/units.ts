@@ -5,9 +5,10 @@ import { isCSSStyleName } from "./parsing/styleNames";
 import {
     CSSValueUnit,
     absoluteLengthUnits,
+    getMatrixValues,
     relativeLengthUnits,
 } from "./parsing/units";
-import { arrayEquals, isObject } from "./utils";
+import { arrayEquals, isObject, memoize } from "./utils";
 
 export interface TransformedVars {
     [arg: string]: ValueArray;
@@ -100,12 +101,57 @@ export function convertToDpi(value: number, unit: string) {
     return value;
 }
 
-export const getComputedValue = (target: HTMLElement, key: string) => {
-    const computed = getComputedStyle(target).getPropertyValue(key);
-    const p = CSSValueUnit.Value.parse(computed);
+export const getComputedValue = memoize(
+    (target: HTMLElement, value: ValueUnit<any>) => {
+        let computed;
 
-    return p.status ? p.value : undefined;
-};
+        if (value.unit === "var") {
+            computed = getComputedStyle(target).getPropertyValue(value.toString());
+            const p = CSSValueUnit.Value.parse(computed);
+
+            return p.status ? p.value : undefined;
+        }
+
+        if (value.unit === "calc" && value.property) {
+            const originalValue = target.style[value.property];
+
+            const newValue = value.subProperty
+                ? `${value.subProperty}(${value.toString()})`
+                : value.toString();
+
+            target.style[value.property] = newValue;
+
+            computed = getComputedStyle(target).getPropertyValue(value.property);
+
+            target.style[value.property] = originalValue;
+
+            const p = CSSValueUnit.Value.parse(computed);
+
+            const parsedValue: ValueUnit<any> = p.status ? p.value : undefined;
+
+            if (!parsedValue) {
+                return undefined;
+            }
+
+            if (parsedValue.unit.startsWith("matrix")) {
+                const matrixValues = getMatrixValues(parsedValue);
+
+                const matrixSubValue = matrixValues[value.subProperty];
+
+                if (matrixSubValue) {
+                    const outValue = new ValueUnit(matrixSubValue, "px");
+
+                    outValue.setProperty(value.property);
+                    outValue.setSubProperty(value.subProperty);
+
+                    return outValue;
+                } else {
+                    return parsedValue;
+                }
+            }
+        }
+    },
+);
 
 const lerpColor = (
     t: number,
@@ -126,19 +172,49 @@ const lerpColor = (
 
 const lerpVar = (t: number, left: ValueUnit, right: ValueUnit, target: HTMLElement) => {
     const newLeft =
-        left.unit === "var" ? getComputedValue(target, String(left.value)) : left;
+        left.unit === "var" || left.unit === "calc"
+            ? getComputedValue(target, left)
+            : left;
+
     const newRight =
-        right.unit === "var" ? getComputedValue(target, String(right.value)) : right;
+        right.unit === "var" || right.unit === "calc"
+            ? getComputedValue(target, right)
+            : right;
+
+    if (!newLeft || !newRight) {
+        return left;
+    }
 
     return newLeft.lerp(t, newRight, target);
 };
 
 export class ValueUnit<T = number> {
+    subProperty: any;
+    property: any;
+
     constructor(
         public value: T,
         public unit?: string,
         public superType: string[] = [],
     ) {}
+
+    setProperty(property: any) {
+        if (!property) {
+            return this;
+        }
+
+        this.property = property;
+        return this;
+    }
+
+    setSubProperty(subProperty: any) {
+        if (!subProperty) {
+            return this;
+        }
+
+        this.subProperty = subProperty;
+        return this;
+    }
 
     valueOf() {
         if (!this.unit) {
@@ -168,6 +244,31 @@ export class ValueUnit<T = number> {
         }
     }
 
+    coalesce(other?: ValueUnit<T>) {
+        if (!other) {
+            return this;
+        }
+
+        let unit = this.unit;
+        let otherUnit = other.unit;
+
+        let superType = this.superType;
+        let otherSuperType = other.superType;
+
+        unit ??= otherUnit;
+        otherUnit ??= unit;
+
+        superType ??= otherSuperType;
+        otherSuperType ??= superType;
+
+        const outValue = new ValueUnit(this.value, unit, superType);
+
+        outValue.setProperty(this.property ?? other.property);
+        outValue.setSubProperty(this.subProperty ?? other.subProperty);
+
+        return outValue;
+    }
+
     lerp(
         t: number,
         other: ValueUnit<T> | FunctionValue<T> | ValueArray<T>,
@@ -177,7 +278,14 @@ export class ValueUnit<T = number> {
             return other.lerp(t, this, target);
         }
 
-        if (this.unit === "string") {
+        if (!other) {
+            return this;
+        }
+
+        const current = this.coalesce(other);
+        other = other?.coalesce(current);
+
+        if (current.unit === "string") {
             return this;
         }
 
@@ -185,34 +293,48 @@ export class ValueUnit<T = number> {
             return other;
         }
 
-        if (target && (this.unit === "var" || other.unit === "var")) {
-            return lerpVar(
+        let outValue: ValueUnit<any>;
+
+        if (
+            target &&
+            (current.unit === "var" ||
+                other.unit === "var" ||
+                current.unit === "calc" ||
+                other.unit === "calc")
+        ) {
+            outValue = lerpVar(
                 t,
                 this as ValueUnit<number>,
                 other as ValueUnit<number>,
                 target,
             );
-        }
-
-        if (this.unit !== other.unit) {
+        } else if (current.unit !== other.unit) {
             const [left, right] = collapseNumericType(
-                this as ValueUnit<number>,
+                current as ValueUnit<number>,
                 other as ValueUnit<number>,
                 target,
             );
+
             const value = lerp(t, left.value, right.value);
-            return new ValueUnit(value, left.unit, left.superType);
-        } else if (this.unit === "color") {
+
+            outValue = new ValueUnit(value, left.unit, left.superType);
+        } else if (current.unit === "color") {
             const value = lerpColor(
                 t,
-                this as ValueUnit<RGBColor>,
+                current as ValueUnit<RGBColor>,
                 other as ValueUnit<RGBColor>,
             );
-            return new ValueUnit(value, this.unit, this.superType);
+
+            outValue = new ValueUnit(value, current.unit, current.superType);
+        } else {
+            const value = lerp(t, current.value as number, other.value as number);
+            outValue = new ValueUnit(value, current.unit, current.superType);
         }
 
-        const value = lerp(t, this.value as number, other.value as number);
-        return new ValueUnit(value, this.unit, this.superType);
+        outValue.setProperty(this.property);
+        outValue.setSubProperty(this.subProperty);
+
+        return outValue;
     }
 }
 
@@ -222,7 +344,6 @@ function lerpMany<T>(
     right: Array<FunctionValue<T> | ValueArray<T> | ValueUnit<T>>,
     target?: HTMLElement,
 ) {
-    // equalize the two lengths by padding the shorter array with the last value as many times as needed
     const maxLength = Math.max(left.length, right.length);
 
     const newLeft = left.concat(
@@ -233,17 +354,6 @@ function lerpMany<T>(
         Array(Math.abs(maxLength - right.length)).fill(right[right.length - 1]),
     );
 
-    // const arr = [];
-
-    // for (let i = 0; i < minLength; i++) {
-    //     const l = left[i];
-    //     const r = right[i];
-
-    //     const lerped = l.lerp(t, r, target);
-    //     arr.push(lerped);
-    // }
-    // return arr;
-
     return newLeft.map((l, i) => {
         const r = newRight[i];
         return l.lerp(t, r, target);
@@ -252,6 +362,9 @@ function lerpMany<T>(
 
 export class FunctionValue<T = number> {
     values: Array<ValueUnit<T>>;
+
+    property: any;
+    subProperty: any;
 
     constructor(
         public name: string,
@@ -262,6 +375,30 @@ export class FunctionValue<T = number> {
         } else {
             this.values = [values];
         }
+    }
+
+    setProperty(property: any) {
+        if (!property) {
+            return this;
+        }
+
+        this.property = property;
+
+        this.values.forEach((v) => v.setProperty(property));
+
+        return this;
+    }
+
+    setSubProperty(subProperty: any) {
+        if (!subProperty) {
+            return this;
+        }
+
+        this.subProperty = subProperty;
+
+        this.values.forEach((v) => v.setSubProperty(subProperty));
+
+        return this;
     }
 
     valueOf() {
@@ -290,12 +427,20 @@ export class FunctionValue<T = number> {
 
         const arr = lerpMany(t, this.values, otherValues, target);
 
-        return new FunctionValue(this.name, arr);
+        const outValue = new FunctionValue(this.name, arr);
+
+        outValue.setProperty(this.property);
+        outValue.setSubProperty(this.subProperty);
+
+        return outValue;
     }
 }
 
 export class ValueArray<T = number> {
     values: Array<FunctionValue<T> | ValueUnit<T>>;
+
+    property: any;
+    subProperty: any;
 
     constructor(
         values:
@@ -311,6 +456,30 @@ export class ValueArray<T = number> {
         } else {
             this.values = [values];
         }
+    }
+
+    setProperty(property: any) {
+        if (!property) {
+            return this;
+        }
+
+        this.property = property;
+
+        this.values.forEach((v) => v.setProperty(property));
+
+        return this;
+    }
+
+    setSubProperty(subProperty: any) {
+        if (!subProperty) {
+            return this;
+        }
+
+        this.subProperty = subProperty;
+
+        this.values.forEach((v) => v.setSubProperty(subProperty));
+
+        return this;
     }
 
     valueOf() {

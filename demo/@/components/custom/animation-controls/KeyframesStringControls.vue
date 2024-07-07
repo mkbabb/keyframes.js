@@ -1,249 +1,111 @@
 <template>
-    <Tabs
-        class="relative w-full grid"
-        :model-value="storedControls.keyframeControls.selectedKeyframesControl"
-        @update:model-value="
-            (key) => {
-                storedControls.keyframeControls.selectedKeyframesControl =
-                    key.toString();
-            }
-        "
-    >
-        <TabsList
-            ref="tabsListEl"
-            class="w-full flex gap-2 sticky top-0 z-[90] overflow-x-scroll"
-        >
-            <TabsTrigger value="editor"><Pencil></Pencil></TabsTrigger>
-            <TabsTrigger value="keyframes"><BookOpenText></BookOpenText></TabsTrigger>
-        </TabsList>
+    <Card class="p-0 m-0">
+        <CardContent class="relative m-0 p-0 grid grid-cols-1">
+            <div
+                @keydown="onKeyDown"
+                ref="cssKeyframesStringEl"
+                class="h-[75vh] w-full overflow-scroll rounded-sm"
+            ></div>
+        </CardContent>
+    </Card>
 
-        <TabsContent value="keyframes">
-            <Card>
-                <CardContent class="relative m-0 p-0 grid grid-cols-1">
-                    <pre
-                        @input="
-                            (e) => {
-                                const value = (e.target as HTMLElement).innerText;
+    <div class="grid gap-4 sticky bottom-0 rounded-md">
+        <Menubar class="w-full mt-4 flex justify-evenly gap-2 overflow-x-scroll">
+            <MenubarMenu>
+                <MenubarTrigger>
+                    <WandSparkles></WandSparkles>
+                </MenubarTrigger>
+            </MenubarMenu>
 
-                                updateAnimationFromKeyframesString(value);
-                                animateProgressBar(progressBarKeyframesEl);
+            <MenubarMenu>
+                <MenubarTrigger>
+                    <Dialog
+                        v-model:open="storedControls.keyframeControls.dialogOpen"
+                        @update:open="
+                            (value) => {
+                                storedControls.keyframeControls.dialogOpen = value;
                             }
                         "
-                        @keydown="onKeyDown"
-                        ref="cssKeyframesStringEl"
-                        class="hljs css p-2 cursor-text rounded-md text-sm bg-transparent outline-none border-none z-100"
-                        contenteditable="true"
-                    ><code>{{ cssKeyframesString }}</code></pre>
-                </CardContent>
-            </Card>
-        </TabsContent>
+                    >
+                        <DialogTrigger as-child>
+                            <FilePlus2
+                                class="cursor-pointer hover:scale-105 rounded-lg stroke-2"
+                            ></FilePlus2
+                        ></DialogTrigger>
 
-        <TabsContent value="editor">
-            <Card class="p-0 m-0">
-                <CardContent class="p-2 m-0 mt-0 grid gap-4 relative">
-                    <template v-for="(s, i) in templateFrameStrings" :key="i">
-                        <div class="grid" :ref="(el) => (keyframeRefs[i] = el)">
-                            <Input
-                                class="sticky z-[100] bg-transparent top-0 text-2xl w-16 text-ellipsis aspect-square font-semibold leading-none tracking-tight border-transparent p-0 m-0 shadow-none focus:border-transparent focus:shadow-none border-none"
-                                :model-value="
-                                    animation.templateFrames[i].start.toString()
-                                "
-                                @update:model-value="
-                                    (val) => {
-                                        animation.templateFrames[i].start =
-                                            parseCSSValueUnit(String(val));
-                                        updateAllStringsAndAnimation();
-                                    }
-                                "
-                            >
-                            </Input>
-
-                            <div class="relative">
-                                <div
-                                    class="absolute top-2 right-4 grid gap-1 items-center justify-center justify-items-center"
-                                >
-                                    <div class="flex">
-                                        <X
-                                            @click="(e) => removeKeyframe(e, i)"
-                                            class="p-0 m-0 hover:scale-105 cursor-pointer stroke-2 w-6 h-6 text-red-500 hover:text-red-700 bg-transparent hover:bg-transparent"
-                                        >
-                                        </X>
-                                        <CopyButton class="h-6 w-6" :text="s" />
-                                    </div>
-                                    <div
-                                        class="italic opacity-25 z-0 pointer-events-none grid gap-1"
-                                    >
-                                        <Label
-                                            class="text-sm font-light leading-none fira-code"
-                                            >f {{ i }}</Label
-                                        >
-                                        <Label
-                                            class="text-sm font-light leading-none fira-code"
-                                            >s
-                                            {{
-                                                animation.templateFrames[i].start
-                                            }}</Label
-                                        >
-                                    </div>
-                                </div>
+                        <DialogContent
+                            @interact-outside="
+                                (event) => {
+                                    const target = event.target as HTMLElement;
+                                    if (target?.closest('[data-sonner-toaster]'))
+                                        return event.preventDefault();
+                                }
+                            "
+                        >
+                            <DialogTitle>
+                                <CardTitle class="text-3xl">Add keyframes</CardTitle>
+                                <DialogDescription class="fraunces">
+                                    Add keyframes to the animation
+                                </DialogDescription>
+                            </DialogTitle>
+                            <div>
                                 <pre
+                                    ref="addKeyframesEl"
                                     @input="
                                         (e) => {
                                             const value = (e.target as HTMLElement)
                                                 .innerText;
 
-                                            updateAnimationFromKeyframeString(value, i);
-                                            animateProgressBar(progressBarKeyframesEl);
+                                            storedControls.keyframeControls.addKeyframes =
+                                                value;
+                                            addKeyframesString = value;
                                         }
                                     "
-                                    @keydown="onKeyDown"
-                                    class="hljs css p-2 min-h-32 cursor-text rounded-md text-sm bg-transparent outline-none border-none z-100"
+                                    class="hljs css min-h-[25vh] p-2 cursor-text rounded-md text-sm bg-transparent outline-none border-none z-100"
                                     contenteditable="true"
-                                ><code>{{ formatCSSKeyframeString(s) }}</code></pre>
+                                ><code>{{ addKeyframesString }}</code></pre>
                             </div>
-                        </div>
+                            <DialogFooter class="sticky bottom-0 class grid">
+                                <Button
+                                    type="submit"
+                                    @click="
+                                        () => {
+                                            addKeyframesStringToAnimation(
+                                                addKeyframesString,
+                                            );
+                                        }
+                                    "
+                                    >Add Keyframes<FileIcon></FileIcon
+                                ></Button>
+                            </DialogFooter>
+                        </DialogContent> </Dialog
+                ></MenubarTrigger>
+            </MenubarMenu>
 
-                        <Separator
-                            class="w-full"
-                            v-if="i < templateFrameStrings.length - 1"
-                        />
-                    </template>
-                </CardContent>
-            </Card>
-        </TabsContent>
+            <MenubarMenu>
+                <MenubarTrigger>
+                    <CopyButton
+                        class="w-6 h-6 hover:scale-105"
+                        :text="cssKeyframesString"
+                    />
+                </MenubarTrigger>
+            </MenubarMenu>
 
-        <div class="grid gap-4 sticky bottom-0 bg-background rounded-md p-4 pt-4 m-4">
-            <Slider
-                :model-value="
-                    animation.templateFrames.map((frame) => frame.start.value)
-                "
-                @update:model-value="
-                    (starts) => {
-                        animation.templateFrames.forEach((frame, i) => {
-                            frame.start.value = starts[i];
-                        });
-                        updateAllStringsAndAnimation();
-                    }
-                "
-                :min="-10"
-                :max="110"
-                :step="1"
-            >
-            </Slider>
-
-            <Menubar class="w-full mt-4 flex justify-evenly gap-2 overflow-x-scroll">
-                <MenubarMenu>
-                    <MenubarTrigger>
-                        <WandSparkles></WandSparkles>
-                    </MenubarTrigger>
-                </MenubarMenu>
-
-                <MenubarMenu>
-                    <MenubarTrigger>
-                        <Dialog
-                            v-model:open="storedControls.keyframeControls.dialogOpen"
-                            @update:open="
-                                (value) => {
-                                    storedControls.keyframeControls.dialogOpen = value;
-                                }
-                            "
-                        >
-                            <DialogTrigger as-child>
-                                <FilePlus2
-                                    class="cursor-pointer hover:scale-105 rounded-lg stroke-2"
-                                ></FilePlus2
-                            ></DialogTrigger>
-
-                            <DialogContent
-                                @interact-outside="
-                                    (event) => {
-                                        const target = event.target as HTMLElement;
-                                        if (target?.closest('[data-sonner-toaster]'))
-                                            return event.preventDefault();
-                                    }
-                                "
-                            >
-                                <DialogTitle>
-                                    <CardTitle class="text-3xl"
-                                        >Add keyframes</CardTitle
-                                    >
-                                    <DialogDescription class="fraunces">
-                                        Add keyframes to the animation
-                                    </DialogDescription>
-                                </DialogTitle>
-                                <div>
-                                    <pre
-                                        ref="addKeyframesEl"
-                                        @keydown="onKeyDown"
-                                        @input="
-                                            (e) => {
-                                                const value = (e.target as HTMLElement)
-                                                    .innerText;
-
-                                                storedControls.keyframeControls.addKeyframes =
-                                                    value;
-                                                addKeyframesString = value;
-                                            }
-                                        "
-                                        class="hljs css min-h-[25vh] p-2 cursor-text rounded-md text-sm bg-transparent outline-none border-none z-100"
-                                        contenteditable="true"
-                                    ><code>{{ addKeyframesString }}</code></pre>
-                                </div>
-                                <DialogFooter class="sticky bottom-0 class grid">
-                                    <Button
-                                        type="submit"
-                                        @click="
-                                            () => {
-                                                addKeyframesStringToAnimation(
-                                                    addKeyframesString,
-                                                );
-                                                animateProgressBar(
-                                                    progressBarAddKeyframesEl,
-                                                );
-                                            }
-                                        "
-                                        >Add Keyframes<FileIcon></FileIcon
-                                    ></Button>
-
-                                    <div
-                                        ref="progressBarAddKeyframesEl"
-                                        class="progress-bar w-full bottom mt-2"
-                                    ></div>
-                                </DialogFooter>
-                            </DialogContent> </Dialog
-                    ></MenubarTrigger>
-                </MenubarMenu>
-
-                <MenubarMenu>
-                    <MenubarTrigger>
-                        <CopyButton
-                            class="w-6 h-6 hover:scale-105"
-                            :text="cssKeyframesString"
-                        />
-                    </MenubarTrigger>
-                </MenubarMenu>
-
-                <MenubarMenu>
-                    <MenubarTrigger>
-                        <Paintbrush
-                            ref="brush"
-                            @click="
-                                () => {
-                                    applyCSSStyles();
-                                }
-                            "
-                            class="cursor-pointer bg-transparent hover:bg-transparent hover:scale-105"
-                        />
-                    </MenubarTrigger>
-                </MenubarMenu>
-            </Menubar>
-
-            <div
-                ref="progressBarKeyframesEl"
-                class="progress-bar sticky bottom mt-2"
-            ></div>
-        </div>
-    </Tabs>
+            <MenubarMenu>
+                <MenubarTrigger>
+                    <Paintbrush
+                        ref="brushEl"
+                        @click="
+                            () => {
+                                applyCSSStyles();
+                            }
+                        "
+                        class="cursor-pointer bg-transparent hover:bg-transparent hover:scale-105"
+                    />
+                </MenubarTrigger>
+            </MenubarMenu>
+        </Menubar>
+    </div>
 </template>
 <script setup lang="ts">
 import { Animation, AnimationGroup, CSSKeyframesAnimation } from "@src/animation";
@@ -293,10 +155,8 @@ import {
     Pencil,
 } from "lucide-vue-next";
 
-// @ts-ignore
-import githubDark from "highlight.js/styles/github-dark.css?inline";
-// @ts-ignore
-import githubLight from "highlight.js/styles/github.css?inline";
+import DarkTheme from "monaco-themes/themes/Dracula.json";
+import LightTheme from "monaco-themes/themes/Github.json";
 
 import { useDark } from "@vueuse/core";
 
@@ -336,7 +196,12 @@ import { useMagicKeys } from "@vueuse/core";
 import { convertToCh } from "@src/units";
 import * as animations from "@src/animations";
 
-hljs.registerLanguage("css", css);
+import * as monaco from "monaco-editor";
+
+monaco.editor.defineTheme("dark-theme", DarkTheme as any);
+monaco.editor.defineTheme("light-theme", LightTheme as any);
+
+monaco.languages.register({ id: "css" });
 
 const { animation } = defineProps<{
     animation: Animation<any>;
@@ -378,18 +243,9 @@ let cssKeyframesString = $ref("");
 const addKeyframesEl = $ref(null);
 let addKeyframesString = $ref(storedControls.keyframeControls.addKeyframes);
 
-let templateFrameStrings = $ref<string[]>([]);
-
 const keyframeRefs = $ref([]);
 
 const tabsListEl = $ref(null);
-
-const setHighlightingString = (el: HTMLElement, s: string) => {
-    if (el) {
-        el.setAttribute("highlighted", "");
-        el.innerHTML = s;
-    }
-};
 
 const getFormatWidth = (el?: HTMLElement) => {
     el ??= tabsListEl;
@@ -405,106 +261,94 @@ const getTmpAnimationName = () => {
     return keyframesStyleId.replace("keyframes-style-", "").toLowerCase();
 };
 
-const updateCSSAnimationKeyframesStringFromAnimation = async (
-    cssAnimationKeyframes?: string,
+const updateCSSAnimationKeyframesStringFromAnimation = async () => {
+    cssKeyframesString = await CSSKeyframesToString(
+        animation,
+        getTmpAnimationName(),
+        getFormatWidth(),
+    );
+
+    return cssKeyframesString;
+};
+
+const formatCSSKeyframesString = async (
+    editor: monaco.editor.IStandaloneCodeEditor,
 ) => {
-    const keyframesString =
-        cssAnimationKeyframes ??
-        (await CSSKeyframesToString(
-            animation,
-            getTmpAnimationName(),
-            getFormatWidth(),
-        ));
+    const keyframesString = await formatCSS(editor.getValue(), getFormatWidth());
 
-    cssKeyframesString = keyframesString;
-    setHighlightingString(cssKeyframesStringEl, keyframesString);
+    const cursorPosition = editor.getPosition();
 
-    highlightCSS();
+    editor.setValue(keyframesString);
+
+    editor.setPosition(cursorPosition);
+
+    toast.success("Keyframes formatted");
 
     return keyframesString;
 };
 
-const keys = useMagicKeys({ reactive: true });
-
-watch(
-    () => {
-        return (keys["Shift"] && keys["Alt"] && keys["F"]) || keys["Ï"];
-    },
-    (v) => {
-        if (v && storedControls.keyframeControls.dialogOpen) {
-            updateAddKeyframesString(addKeyframesString);
-        }
-    },
-);
-
 function onKeyDown(e: KeyboardEvent) {
     const { target, key } = e;
 
+    console.log(key);
+
     if (key === "Ï") {
         e.preventDefault();
+        formatCSSKeyframesString(cssKeyframesStringEditor);
         return;
     }
-
-    if (key === "Tab") {
-        e.preventDefault();
-
-        // @ts-ignore
-        const doc = target.ownerDocument.defaultView;
-        const sel = doc.getSelection();
-        const range = sel.getRangeAt(0);
-
-        const tabNode = document.createTextNode("\u00a0\u00a0\u00a0\u00a0");
-        range.insertNode(tabNode);
-
-        range.setStartAfter(tabNode);
-        range.setEndAfter(tabNode);
-        sel.removeAllRanges();
-        sel.addRange(range);
-    }
-
-    highlightCSS();
 }
 
-const updateAnimationFromKeyframesString = debounce((keyframesString: string) => {
-    storedControls.keyframeControls.keyframes = keyframesString;
+const updateAnimationFromKeyframesString = debounce(
+    (editor: monaco.editor.IStandaloneCodeEditor) => {
+        // get the text content of the el using the monaco editor
+        const keyframesString = editor.getValue();
 
-    const parseAndUpdate = () => {
-        const { options, values, keyframes } =
-            parseCSSAnimationKeyframes(keyframesString);
+        const parseAndUpdate = () => {
+            const { options, values, keyframes } =
+                parseCSSAnimationKeyframes(keyframesString);
 
-        const tmpAnimation = new CSSKeyframesAnimation(
-            options,
-            ...animation.targets,
-        ).fromCSSKeyframes(keyframes).animation;
+            const tmpAnimation = new CSSKeyframesAnimation(
+                options,
+                ...animation.targets,
+            ).fromCSSKeyframes(keyframes).animation;
 
-        animation.options = tmpAnimation.options;
-        animation.templateFrames = tmpAnimation.templateFrames;
+            animation.options = tmpAnimation.options;
+            animation.templateFrames = tmpAnimation.templateFrames;
 
-        animation.parse();
+            animation.parse();
 
-        emit("keyframesUpdate", {
-            animation,
-        });
+            emit("keyframesUpdate", {
+                animation,
+            });
 
-        updateAllStrings();
-    };
+            storedControls.keyframeControls.keyframes = keyframesString;
 
-    try {
-        parseAndUpdate();
-    } catch (e) {
-        toast.error("Could not update keyframes", {
-            description: e.message,
-            duration: 10000,
-            action: {
-                label: "Retry",
-                onClick: () => {
-                    updateAnimationFromKeyframesString(keyframesString);
+            toast.success("Keyframes parsed 🎉");
+        };
+
+        try {
+            parseAndUpdate();
+        } catch (e) {
+            parseErrorShake.play();
+
+            toast.error("Failed to parse keyframes 🔧", {
+                description: e.message,
+                duration: 10000,
+                action: {
+                    label: "Retry",
+                    onClick: () => {
+                        updateAnimationFromKeyframesString(editor);
+                    },
                 },
-            },
-        });
-        console.error(e);
-    }
-}, 1000);
+            });
+
+            console.error(e);
+        }
+    },
+    200,
+    true,
+);
 
 const updateAnimationFromKeyframeString = debounce(
     async (keyframeString: string, frameIx: number) => {
@@ -519,8 +363,6 @@ const updateAnimationFromKeyframeString = debounce(
             Object.assign(animation.templateFrames[frameIx].vars, newVars);
 
             animation.parse();
-
-            updateAllStringsAndAnimation();
         };
 
         try {
@@ -545,18 +387,8 @@ const updateAnimationFromKeyframeString = debounce(
 
 const updateAddKeyframesString = (keyframesString: string) => {
     formatCSS(keyframesString, getFormatWidth()).then((formatted) => {
-        const sel = window.getSelection();
-
         storedControls.keyframeControls.addKeyframes = formatted;
         addKeyframesString = formatted;
-
-        setHighlightingString(addKeyframesEl, addKeyframesString);
-
-        highlightCSS();
-
-        if (sel) {
-            sel.collapseToEnd();
-        }
     });
 };
 
@@ -587,8 +419,6 @@ const addKeyframesStringToAnimation = (keyframesString: string) => {
 
         animation.parse();
 
-        updateAllStrings();
-
         storedControls.keyframeControls.dialogOpen = false;
 
         addKeyframesString = "";
@@ -608,7 +438,6 @@ const addKeyframesStringToAnimation = (keyframesString: string) => {
                 },
             },
         });
-
         console.error(e);
     }
 };
@@ -642,32 +471,8 @@ const removeKeyframe = async (e: Event, frameIx: number) => {
     tmpAnimation.parse();
 
     animation.updateFrom(tmpAnimation);
-
-    updateAllStringsAndAnimation();
 };
 
-const progressBarKeyframesEl = $ref(null);
-const progressBarAddKeyframesEl = $ref(null);
-
-const animateProgressBar = (el: HTMLElement) => {
-    new CSSKeyframesAnimation(
-        {
-            duration: 1000,
-        },
-        el,
-    )
-        .fromVars([
-            {
-                width: "0%",
-            },
-            {
-                width: "100%",
-            },
-        ])
-        .play();
-};
-
-let hljsStyle = $ref(null);
 let keyframesStyle = $ref(null);
 
 let prevPaused = $ref(false);
@@ -695,7 +500,7 @@ const applyCSSStyles = () => {
     }
 };
 
-const brush = $ref<HTMLElement>(null);
+const brushEl = $ref<HTMLElement>(null);
 
 const brushAnimation = new CSSKeyframesAnimation({
     duration: 700,
@@ -719,30 +524,13 @@ const brushAnimation = new CSSKeyframesAnimation({
 
 const isDark = useDark({ disableTransition: false });
 const setCodeTheme = () => {
-    if (!hljsStyle) {
-        return;
-    }
-
-    hljsStyle.innerHTML = isDark.value ? githubDark : githubLight;
+    monaco.editor.setTheme(isDark.value ? "dark-theme" : "light-theme");
 };
 watch(isDark, () => {
     setCodeTheme();
 });
 
-const highlightCSS = (el?: HTMLElement) => {
-    const existingHLJSStyle = document.head.querySelector("#highlightjs-theme");
-
-    if (!existingHLJSStyle) {
-        hljsStyle = document.createElement("style");
-        hljsStyle.id = "highlightjs-theme";
-
-        document.head.appendChild(hljsStyle);
-    } else {
-        hljsStyle = existingHLJSStyle;
-    }
-
-    setCodeTheme();
-
+const createKeyframesStyleEl = (el?: HTMLElement) => {
     const existingKeyframesStyle = document.head.querySelector(`#${keyframesStyleId}`);
 
     if (!existingKeyframesStyle) {
@@ -753,68 +541,34 @@ const highlightCSS = (el?: HTMLElement) => {
     } else {
         keyframesStyle = existingKeyframesStyle;
     }
-
-    const highlight = (e: HTMLElement) => {
-        if (!e || e.getAttribute("highlighted")) {
-            return;
-        }
-
-        const s = e.innerText;
-        const h = hljs.highlight(s, { language: "css" });
-        e.innerHTML = h.value;
-
-        e.setAttribute("highlighted", "true");
-    };
-
-    highlight(el);
-    highlight(cssKeyframesStringEl);
-
-    const pres = document.querySelectorAll("pre");
-    pres.forEach(highlight);
 };
 
-const updateAllStrings = async () => {
-    templateFrameStrings = [];
+let cssKeyframesStringEditor: monaco.editor.IStandaloneCodeEditor;
 
-    templateFrameStrings = await CSSKeyframesToStrings(animation);
+const parseErrorShake = animations.shake();
 
-    const keyframesString = await updateCSSAnimationKeyframesStringFromAnimation();
+onMounted(async () => {
+    brushAnimation.setTargets(brushEl);
 
-    return keyframesString;
-};
+    createKeyframesStyleEl();
 
-const debouncedUpdateAllStrings = debounce(updateAllStrings, 100);
+    await updateCSSAnimationKeyframesStringFromAnimation();
 
-const updateAllStringsAndAnimation = async () => {
-    const reversedKeyframesString = await updateAllStrings();
-    updateAnimationFromKeyframesString(reversedKeyframesString);
-};
+    cssKeyframesStringEditor = monaco.editor.create(cssKeyframesStringEl, {
+        value: cssKeyframesString,
+        language: "css",
+        fontLigatures: true,
+        theme: isDark.value ? "dark-theme" : "light-theme",
+        fontSize: 14,
+        fontFamily: "Fira Code",
+        minimap: { enabled: false },
+    });
 
-watch(
-    () => storedControls.keyframeControls.selectedKeyframesControl,
-    () => {
-        updateAllStrings();
-    },
-);
+    cssKeyframesStringEditor.onDidChangeModelContent(() => {
+        updateAnimationFromKeyframesString(cssKeyframesStringEditor);
+    });
 
-watch(animation.templateFrames, async () => {
-    debouncedUpdateAllStrings();
-});
-
-watch(
-    () => addKeyframesEl,
-    () => {
-        if (!addKeyframesEl) {
-            return;
-        }
-        highlightCSS(addKeyframesEl);
-    },
-);
-
-onMounted(() => {
-    brushAnimation.setTargets(brush);
-
-    updateAllStrings();
+    parseErrorShake.setTargets(cssKeyframesStringEl);
 });
 </script>
 

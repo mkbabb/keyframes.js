@@ -1,9 +1,9 @@
 <template>
     <Card class="grid gap-2 w-full dark:border-none">
         <CardHeader class="grid gap-0">
-            <CardTitle>cubic-bézier</CardTitle>
+            <CardTitle class="fraunces">cubic-bézier</CardTitle>
             <div
-                class="w-full whitespace-pre h-8 m-0 p-0 mt-1 text-xs flex items-center italic justify-items-center gap-2"
+                class="w-full whitespace-pre h-8 m-0 p-0 mt-1 ml-1 text-xs flex items-center italic justify-items-center gap-2 fira-code"
             >
                 {{ timingString.replace("cubic-bezier", "")
                 }}<CopyButton class="hover:scale-105" :text="timingString" />
@@ -76,11 +76,11 @@
                         }
                     "
                 >
-                    <SelectTrigger>
+                    <SelectTrigger class="fira-code">
                         <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectGroup>
+                        <SelectGroup class="fira-code">
                             <SelectItem
                                 v-for="p in Object.keys(bezierPresets)"
                                 :value="p"

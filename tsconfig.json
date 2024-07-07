@@ -8,6 +8,7 @@
             "ESNext",
             "DOM",
         ],
+        "resolveJsonModule": true,
         "alwaysStrict": true,
         "strict": false,
         "allowSyntheticDefaultImports": true,

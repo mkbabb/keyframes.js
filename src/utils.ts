@@ -36,33 +36,26 @@ export function debounce<T extends (...args: any[]) => any>(
     wait: number = 100,
     immediate: boolean = false,
 ): (...args: Parameters<T>) => void {
-    let timeout: NodeJS.Timeout | null = null;
+    let timeout: ReturnType<typeof setTimeout> | null = null;
     let result: ReturnType<T>;
 
     return function (this: ThisParameterType<T>, ...args: Parameters<T>): void {
         const context = this;
 
-        const later = () => {
+        const later = function () {
             timeout = null;
-            if (!immediate) {
-                result = func.apply(context, args);
-            }
+            if (!immediate) result = func.apply(context, args);
         };
 
         const callNow = immediate && !timeout;
 
-        if (timeout) {
-            clearTimeout(timeout);
-        }
+        if (timeout) clearTimeout(timeout);
 
         timeout = setTimeout(later, wait);
 
-        if (callNow) {
-            result = func.apply(context, args);
-        }
+        if (callNow) result = func.apply(context, args);
     };
 }
-
 export async function createHash(algorithm: string, data: string) {
     const sourceBytes = new TextEncoder().encode(data);
 
@@ -79,7 +72,7 @@ export function memoize<T extends (...args: any[]) => any>(
         maxCacheSize?: number;
         ttl?: number;
     } = {},
-): T {
+): T & { cache: Map<string, { value: ReturnType<T>; timestamp: number }> } {
     const cache = new Map<string, { value: ReturnType<T>; timestamp: number }>();
     const { maxCacheSize = Infinity, ttl = Infinity } = options;
 
@@ -121,7 +114,8 @@ export function memoize<T extends (...args: any[]) => any>(
 
     // @ts-ignore
     memoized.cache = cache;
-    return memoized;
+
+    return memoized as any;
 }
 
 export const hyphenToCamelCase = (str: string) =>
