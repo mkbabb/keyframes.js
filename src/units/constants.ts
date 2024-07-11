@@ -1,4 +1,66 @@
-export const styleNames = [
+export const ABSOLUTE_LENGTH_UNITS = ["px", "cm", "mm", "Q", "in", "pc", "pt"] as const;
+export const RELATIVE_LENGTH_UNITS = [
+    "em",
+    "ex",
+    "ch",
+    "rem",
+    "lh",
+    "rlh",
+    "vw",
+    "vh",
+    "vmin",
+    "vmax",
+    "vb",
+    "vi",
+    "svw",
+    "svh",
+    "lvw",
+    "lvh",
+    "dvw",
+    "dvh",
+] as const;
+export const LENGTH_UNITS = [
+    ...ABSOLUTE_LENGTH_UNITS,
+    ...RELATIVE_LENGTH_UNITS,
+] as const;
+
+export const TIME_UNITS = ["s", "ms"] as const;
+export const ANGLE_UNITS = ["deg", "rad", "grad", "turn"] as const;
+export const PERCENTAGE_UNITS = ["%"] as const;
+export const RESOLUTION_UNITS = ["dpi", "dpcm", "dppx", "cqw"] as const;
+
+export const UNITS = [
+    ...LENGTH_UNITS,
+    ...TIME_UNITS,
+    ...ANGLE_UNITS,
+    ...PERCENTAGE_UNITS,
+    ...RESOLUTION_UNITS,
+] as const;
+
+export interface MatrixValues {
+    scaleX: number;
+    scaleY: number;
+    scaleZ: number;
+
+    skewX: number;
+    skewY: number;
+    skewZ: number;
+
+    translateX: number;
+    translateY: number;
+    translateZ: number;
+
+    rotateX: number;
+    rotateY: number;
+    rotateZ: number;
+
+    perspectiveX: number;
+    perspectiveY: number;
+    perspectiveZ: number;
+    perspectiveW: number;
+}
+
+export const STYLE_NAMES = [
     "accentColor",
     "additiveSymbols",
     "alignContent",
@@ -631,9 +693,3 @@ export const styleNames = [
     "zIndex",
     "zoom",
 ] as const;
-
-const setStyleNames = new Set(styleNames);
-
-export function isCSSStyleName(value: any): value is (typeof styleNames)[number] {
-    return setStyleNames.has(value);
-}

@@ -1,4 +1,4 @@
-export const colorNames = {
+export const COLOR_NAMES = {
     aliceblue: "#f0f8ff",
     antiquewhite: "#faebd7",
     aqua: "#00ffff",
@@ -136,7 +136,6 @@ export const colorNames = {
     snow: "#fffafa",
     springgreen: "#00ff7f",
     steelblue: "#4682b4",
-
     tan: "#d2b48c",
     teal: "#008080",
     thistle: "#d8bfd8",

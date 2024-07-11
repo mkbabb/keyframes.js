@@ -406,10 +406,10 @@ const addKeyframesStringToAnimation = (keyframesString: string) => {
         );
 
         animation.templateFrames.forEach((f) => {
-            tmpAnimation.frame(f.start, f.vars, f.transform, f.timingFunction);
+            tmpAnimation.addFrame(f.start, f.vars, f.transform, f.timingFunction);
         });
         Object.entries(keyframes).forEach(([start, vars]) => {
-            tmpAnimation.frame(parseFloat(start), vars);
+            tmpAnimation.addFrame(parseFloat(start), vars);
         });
 
         tmpAnimation.parse();
@@ -464,7 +464,7 @@ const removeKeyframe = async (e: Event, frameIx: number) => {
 
     animation.templateFrames.forEach((f, i) => {
         if (i !== frameIx) {
-            tmpAnimation.frame(f.start, f.vars, f.transform, f.timingFunction);
+            tmpAnimation.addFrame(f.start, f.vars, f.transform, f.timingFunction);
         }
     });
 

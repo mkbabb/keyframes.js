@@ -518,7 +518,7 @@ watch(transformSliderValues, updateTransformations);
 
 const resetMatrix = () => {
     const toMatrix = mat4.create();
-    const fromMatrix = matrix3dEnd.values.map((value) => value.value) as mat4;
+    const fromMatrix = matrix3dEnd.values.map((value) => value.valueOf()) as mat4;
 
     animateUpdateMatrix(fromMatrix, toMatrix, true);
 };
@@ -658,8 +658,8 @@ onMounted(() => {
 
     changeGraphPerspectiveAnim.setTargets(graph);
 
-    changeGraphPerspectiveAnim.play();
-    hoverMatrixGroup.play();
+    // changeGraphPerspectiveAnim.play();
+    // hoverMatrixGroup.play();
 
     const encodedSVG = encodeURIComponent(`
     <svg class="tmp" xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2 2'>

@@ -1,37 +1,41 @@
-export function clamp(x: number, lowerLimit: number, upperLimit: number): number {
-    if (x < lowerLimit) {
-        return lowerLimit;
-    } else if (x > upperLimit) {
-        return upperLimit;
-    }
-    return x;
+// Constrains a value between a lower and upper bound
+export function clamp(value: number, min: number, max: number): number {
+    return Math.min(Math.max(value, min), max);
 }
 
+// Linear mapping of a value from one range to another
 export function scale(
-    t: number,
-    x1: number,
-    x2: number,
-    y1: number = 0,
-    y2: number = 1,
+    value: number,
+    fromMin: number,
+    fromMax: number,
+    toMin: number = 0,
+    toMax: number = 1,
 ) {
-    const m = (y2 - y1) / (x2 - x1);
-    return (t - x1) * m + y1;
+    // Calculate slope of the linear function
+    const slope = (toMax - toMin) / (fromMax - fromMin);
+    // Apply linear transformation
+    return (value - fromMin) * slope + toMin;
 }
 
-export function lerp(t: number, from: number, to: number) {
-    return (1 - t) * from + t * to;
+// Linear interpolation between two values
+export function lerp(t: number, start: number, end: number) {
+    // t is the interpolation factor [0, 1]
+    return (1 - t) * start + t * end;
 }
 
-export function logerp(t: number, from: number, to: number) {
-    from = from === 0 ? 1e-9 : from;
-    const tt = from * Math.pow(to / from, t);
-    return tt;
+// Logarithmic interpolation between two values
+export function logerp(t: number, start: number, end: number) {
+    // Prevent division by zero or log(0)
+    start = start === 0 ? 1e-9 : start;
+    // Interpolate in logarithmic space
+    return start * Math.pow(end / start, t);
 }
 
+// De Casteljau's algorithm for Bézier curve evaluation
 export function deCasteljau(t: number, points: number[]) {
     const n = points.length - 1;
     const b = [...points];
-
+    // Iteratively interpolate points
     for (let i = 1; i <= n; i++) {
         for (let j = 0; j <= n - i; j++) {
             b[j] = lerp(t, b[j], b[j + 1]);
@@ -40,14 +44,19 @@ export function deCasteljau(t: number, points: number[]) {
     return b[0];
 }
 
+// Cubic Bézier curve evaluation
 export function cubicBezier(t: number, x1: number, y1: number, x2: number, y2: number) {
+    // Evaluate x and y components separately
     return [deCasteljau(t, [0, x1, x2, 1]), deCasteljau(t, [0, y1, y2, 1])];
 }
 
+// Generalized Bézier curve interpolation
 export function interpBezier(t: number, points: number[][]) {
-    const x = points.map((xy) => xy[0]);
-    const y = points.map((xy) => xy[1]);
-    return [deCasteljau(t, x), deCasteljau(t, y)];
+    // Separate x and y coordinates
+    const xCoords = points.map((xy) => xy[0]);
+    const yCoords = points.map((xy) => xy[1]);
+    // Interpolate x and y separately
+    return [deCasteljau(t, xCoords), deCasteljau(t, yCoords)];
 }
 
 export function cubicBezierToSVG(x1: number, y1: number, x2: number, y2: number) {
@@ -68,17 +77,8 @@ export function cubicBezierToSVG(x1: number, y1: number, x2: number, y2: number)
 }
 
 export function cubicBezierToString(x1: number, y1: number, x2: number, y2: number) {
-    const HTML_SPACE = "\u00A0";
-
     const formatNumber = (n: number) => {
         let s = n.toFixed(2);
-
-        // // replace trailing 0's with &nbsp:
-        // s = s.replace(/\.0+$/g, HTML_SPACE);
-
-        // remove trailing . with another &nbsp:
-        // s = s.replace(/\.$/g, HTML_SPACE);
-
         return s;
     };
 

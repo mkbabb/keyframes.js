@@ -1,7 +1,12 @@
-const animate = require("tailwindcss-animate");
+import { Config } from "tailwindcss";
+import * as animate from "tailwindcss-animate";
 
-/** @type {import('tailwindcss').Config} */
-module.exports = {
+const config: Config = {
+    // disable pre-flight
+    corePlugins: {
+        preflight: false,
+    },
+
     darkMode: ["selector"],
     safelist: ["dark"],
     prefix: "",
@@ -68,20 +73,20 @@ module.exports = {
             },
             keyframes: {
                 "accordion-down": {
-                    from: { height: 0 },
+                    from: { height: "0" },
                     to: { height: "var(--radix-accordion-content-height)" },
                 },
                 "accordion-up": {
                     from: { height: "var(--radix-accordion-content-height)" },
-                    to: { height: 0 },
+                    to: { height: "0" },
                 },
                 "collapsible-down": {
-                    from: { height: 0 },
+                    from: { height: "0" },
                     to: { height: "var(--radix-collapsible-content-height)" },
                 },
                 "collapsible-up": {
                     from: { height: "var(--radix-collapsible-content-height)" },
-                    to: { height: 0 },
+                    to: { height: "0" },
                 },
             },
             animation: {
@@ -94,3 +99,5 @@ module.exports = {
     },
     plugins: [animate],
 };
+
+export default config;

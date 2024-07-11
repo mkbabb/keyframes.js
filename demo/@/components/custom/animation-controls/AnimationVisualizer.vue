@@ -67,13 +67,13 @@ const ballStartValues = $ref({
 
 const ballEndValues = $ref({
     translateX: parseCSSKeyframesValue("translateX(0px)"),
-    translateY: parseCSSKeyframesValue("translateY(20px)"),
+    translateY: parseCSSKeyframesValue("translateY(10px)"),
 });
 
 const getOptions = () => {
     return {
         ...animationOptions.value,
-        duration: 1000,
+        duration: 5000,
         iterationCount: Infinity,
     } as AnimationOptions;
 };
@@ -88,24 +88,41 @@ watch(animationOptions.value, (value) => {
 watch(transformValues, (value) => {
     const { x, y, z } = value.translate;
 
-    ballStartValues.translateX.values[0].value = x;
-    ballStartValues.translateY.values[0].value = y;
+    ballStartValues.translateX.setValue(x);
+    ballStartValues.translateY.setValue(y);
 
-    ballEndValues.translateX.values[0].value = x;
-    ballEndValues.translateY.values[0].value = y;
+    ballEndValues.translateX.setValue(x);
+    ballEndValues.translateY.setValue(y);
 });
 
 const ballEl = $ref<HTMLElement | null>(null);
 
+// const ballAnim = new CSSKeyframesAnimation().fromCSSKeyframes(/*css*/ `
+// @keyframes ball {
+//     0%, 10%, 20% {
+//         transform: translateX(0) ;
+//         opacity: 1;
+//     }
+//     90%, 80%,  100% {
+//         opacity: 0.5;
+//         transform:
+//         translate(calc(100% - 20px), calc(50vh + 10%));
+           
+          
+//     }
+// }
+// `);
+
 const ballAnim = new CSSKeyframesAnimation().fromCSSKeyframes(/*css*/ `
 @keyframes ball {
-    0%, 10%, 20% {
-        transform: translateX(0);
-        opacity: 1;
+    0% {
+        transform: translateX(0) ;
     }
-    90%, 80%,  100% {
-        opacity: 0.5;
-        transform: translateX(calc(   calc(100cqw - 100%   )));
+    100% {
+        transform:
+        translateX(calc(100% - 20px)) translateY(calc(50vh + 10%));
+           
+          
     }
 }
 `);
@@ -137,7 +154,10 @@ onMounted(() => {
     ballAnim.setTargets(ballEl);
     ballTranslationAnim.setTargets(ballEl);
 
-    ballAnim.group(ballTranslationAnim).play();
+    ballAnim.play();
+    // ballTranslationAnim.play();
+
+    // ballAnim.group(ballTranslationAnim).play();
 });
 
 onUnmounted(() => {
@@ -147,15 +167,14 @@ onUnmounted(() => {
 
 <style scoped lang="scss">
 @keyframes ball {
-    0%,
-    10%,
-    20% {
-        transform: translateX(0);
+    0% {
+        transform: translateX(0) ;
     }
-    90%,
-    80%,
     100% {
-        transform: translateX(calc(calc(100cqw - 100%)));
+        transform:
+        translate(calc(100% - 20px), calc(50vh + 10%));
+           
+          
     }
 }
 .animate-ball {

@@ -1,17 +1,9 @@
 import { easeInOutCubic, timingFunctions } from "./easing";
 import { scale } from "./math";
+import { parseAndFlattenObject } from "./parsing";
 import { parseCSSKeyframes, parseCSSPercent, parseCSSTime } from "./parsing/keyframes";
-import { CSSValueUnit } from "./parsing/units";
-import {
-    TransformedVars,
-    ValueArray,
-    ValueUnit,
-    mergeValueObjects,
-    normalizeTransformVars,
-    reverseTransformObject,
-    transformObject,
-    transformTargetsStyle,
-} from "./units";
+import { CSSValueUnit, parseCSSValueUnit } from "./parsing/units";
+import { ValueArray, ValueUnit } from "./units";
 import { requestAnimationFrame, sleep } from "./utils";
 
 type InterpValue = {
@@ -61,6 +53,7 @@ function calcFrameTime<V extends Vars>(
     duration: number,
 ) {
     const [start, stop] = [startFrame.start, endFrame.start];
+
     return {
         start: (start.value * duration) / 100,
         stop: (stop.value * duration) / 100,
@@ -79,12 +72,12 @@ function seekPreviousValue<T>(ix: number, values: T[], pred: (f: T) => boolean) 
 export function parseTemplateFrame<V extends Vars>(
     ix: number,
     templateFrames: TemplateAnimationFrame<V>[],
-    transformedVars: TransformedVars[],
+    parsedVars: any[],
     duration: number,
     frames: AnimationFrame<V>[],
 ): AnimationFrame<V> {
     const [startFrame, endFrame] = [templateFrames[ix], templateFrames[ix + 1]];
-    const [startVars, endVars] = [transformedVars[ix], transformedVars[ix + 1]];
+    const [startVars, endVars] = [parsedVars[ix], parsedVars[ix + 1]];
 
     const time = calcFrameTime(startFrame, endFrame, duration);
 
@@ -98,8 +91,8 @@ export function parseTemplateFrame<V extends Vars>(
         endIx: number,
     ): InterpValue => {
         return {
-            start: transformedVars[startIx][v],
-            stop: transformedVars[endIx][v],
+            start: parsedVars[startIx][v],
+            stop: parsedVars[endIx][v],
         };
     };
 
@@ -110,7 +103,7 @@ export function parseTemplateFrame<V extends Vars>(
         } else if (!(v in startVars) && v in endVars) {
             // Degenerate case - only the end frame has the variable
             // Find the last frame that has that variable
-            const oldFrameIx = seekPreviousValue(ix, transformedVars, (f) => v in f);
+            const oldFrameIx = seekPreviousValue(ix, parsedVars, (f) => v in f);
             if (oldFrameIx == null) {
                 return;
             }
@@ -125,10 +118,12 @@ export function parseTemplateFrame<V extends Vars>(
     });
 
     let transform = startFrame.transform;
+    // use the most recent previous transform if the current frame doesn't have one
     if (transform == null) {
         const transformIx = seekPreviousValue(ix, frames, (f) => f.transform != null)!;
         transform = frames[transformIx].transform;
     }
+
     return {
         id: startFrame.id,
         time,
@@ -189,14 +184,11 @@ export class Animation<V extends Vars> {
     options: AnimationOptions;
 
     templateFrames: TemplateAnimationFrame<V>[] = [];
-    transformedVars: TransformedVars[] = [];
-
-    normalizedTransformedVars: TransformedVars[] = [];
+    transformedVars: any[] = [];
 
     frameId: number = 0;
 
     frames: AnimationFrame<V>[] = [];
-    normalizedFrames: AnimationFrame<V>[] = [];
 
     handleId: number | any = undefined;
 
@@ -221,7 +213,7 @@ export class Animation<V extends Vars> {
         superKey: string | undefined = undefined,
     ) {
         this.options = { ...defaultOptions, ...options } as AnimationOptions;
-        this.parseOptions(options);
+        this.setOptions(options);
 
         this.targets =
             targets == null ? [] : Array.isArray(targets) ? targets : [targets];
@@ -251,7 +243,7 @@ export class Animation<V extends Vars> {
         return frame;
     }
 
-    frame<K extends V>(
+    addFrame<K extends V>(
         start: number | string | ValueUnit<number>,
         vars: Partial<K>,
         transform?: TransformFunction<K>,
@@ -265,7 +257,7 @@ export class Animation<V extends Vars> {
             start = String(start);
         }
 
-        const parsedStart = CSSValueUnit.Value.tryParse(start)!;
+        const parsedStart = parseCSSValueUnit(start);
 
         const templateFrame = {
             id: this.frameId,
@@ -282,28 +274,15 @@ export class Animation<V extends Vars> {
         return this as unknown as Animation<K>;
     }
 
-    updateFrom(other: Animation<V>) {
-        Object.keys(this).forEach((key) => {
-            if (other[key]) {
-                this[key] = other[key];
-            }
-        });
-        return this;
-    }
-
-    transformVars() {
+    parseVars() {
         this.transformedVars = this.templateFrames.map((frame) => {
-            return transformObject(frame.vars);
+            return parseAndFlattenObject(frame.vars);
         });
-        // this.normalizedTransformedVars = this.templateFrames.map((frame) => {
-        //     return normalizeTransformVars(frame.vars);
-        // });
         return this;
     }
 
     parseFrames() {
         this.frames = [];
-        this.normalizedFrames = [];
 
         for (let i = 0; i < this.templateFrames.length; i++) {
             const frame = this.templateFrames[i];
@@ -320,20 +299,19 @@ export class Animation<V extends Vars> {
                 this.options.duration,
                 this.frames,
             );
-
             this.frames.push(frame);
         }
 
         return this;
     }
 
-    updateTimingFunction(timingFunction: InputAnimationOptions["timingFunction"]) {
+    setTimingFunction(timingFunction: InputAnimationOptions["timingFunction"]) {
         this.options.timingFunction =
             getTimingFunction(timingFunction) ?? easeInOutCubic;
         return this;
     }
 
-    updateIterationCount(iterationCount: InputAnimationOptions["iterationCount"]) {
+    setIterationCount(iterationCount: InputAnimationOptions["iterationCount"]) {
         if (
             !iterationCount ||
             iterationCount === "infinite" ||
@@ -349,7 +327,7 @@ export class Animation<V extends Vars> {
         return this;
     }
 
-    updateDuration(duration: InputAnimationOptions["duration"]) {
+    setDuration(duration: InputAnimationOptions["duration"]) {
         if (typeof duration === "string") {
             duration = parseCSSTime(duration);
         }
@@ -368,7 +346,7 @@ export class Animation<V extends Vars> {
         return this;
     }
 
-    updateDelay(delay: InputAnimationOptions["delay"]) {
+    setDelay(delay: InputAnimationOptions["delay"]) {
         if (typeof delay === "string") {
             delay = parseCSSTime(delay);
         }
@@ -376,32 +354,36 @@ export class Animation<V extends Vars> {
         return this;
     }
 
-    updateDirection(direction: InputAnimationOptions["direction"]) {
+    setDirection(direction: InputAnimationOptions["direction"]) {
         this.options.direction = direction;
         return this;
     }
 
-    updateFillMode(fillMode: InputAnimationOptions["fillMode"]) {
+    setFillMode(fillMode: InputAnimationOptions["fillMode"]) {
         this.options.fillMode = fillMode;
         return this;
     }
 
-    parseOptions(options: Partial<InputAnimationOptions>) {
-        this.updateTimingFunction(options.timingFunction);
-        this.updateDuration(options.duration);
-        this.updateIterationCount(options.iterationCount);
-        this.updateDelay(options.delay);
+    setOptions(options: Partial<InputAnimationOptions>) {
+        this.setTimingFunction(options.timingFunction);
+        this.setDuration(options.duration);
+        this.setIterationCount(options.iterationCount);
+        this.setDelay(options.delay);
+        this.setDirection(options.direction);
+        this.setFillMode(options.fillMode);
 
         return this;
     }
 
     parse() {
-        this.transformVars().parseFrames();
+        this.parseVars().parseFrames();
+
         return this;
     }
 
     reverse() {
         this.reversed = !this.reversed;
+
         return this;
     }
 
@@ -442,6 +424,8 @@ export class Animation<V extends Vars> {
             for (const [k, v] of Object.entries(frame.interpVars)) {
                 const interpValue = v.start.lerp(e, v.stop, this.targets?.[0]);
 
+                console.log(interpValue.toString());
+
                 if (!transformFrame) {
                     values[k] = interpValue;
                 } else {
@@ -453,6 +437,8 @@ export class Animation<V extends Vars> {
                 frame.transform(t, reversedValues as V);
             }
         }
+
+        return values;
     }
 
     async onStart() {
@@ -626,7 +612,7 @@ export class CSSKeyframesAnimation<V extends Vars> {
         this.initAnimation();
 
         for (const [percent, frame] of Object.entries(keyframes)) {
-            this.animation.frame(
+            this.animation.addFrame(
                 parseCSSPercent(percent),
                 frame,
                 this.transform.bind(this),
@@ -645,7 +631,7 @@ export class CSSKeyframesAnimation<V extends Vars> {
         for (let i = 0; i < vars.length; i++) {
             const v = vars[i];
             const percent = Math.round((i / (vars.length - 1)) * 100);
-            this.animation.frame(percent, v, transform);
+            this.animation.addFrame(percent, v, transform);
         }
         this.animation.parse();
         return this;
@@ -655,7 +641,7 @@ export class CSSKeyframesAnimation<V extends Vars> {
         this.initAnimation();
 
         for (const [percent, vars, transform, timingFunction] of keyframes) {
-            this.animation.frame(
+            this.animation.addFrame(
                 percent,
                 vars,
                 transform,
@@ -679,7 +665,7 @@ export class CSSKeyframesAnimation<V extends Vars> {
             typeof keyframes === "string" ? parseCSSKeyframes(keyframes) : keyframes;
 
         for (const [percent, frame] of Object.entries(frames)) {
-            this.animation.frame(Number(percent), frame, transform);
+            this.animation.addFrame(Number(percent), frame, transform);
             this.animation.transformedVars.push(frame);
         }
 
@@ -816,6 +802,13 @@ export class AnimationGroup<V> {
                 animation.interpFrames(animation.t, values, false);
             }
 
+            // const tmp = normalizeTransformVars(values);
+
+            // groupedValues = {
+            //     ...groupedValues,
+            //     ...tmp,
+            // };
+
             groupedValues = Object.entries(values).reduce((acc, [key, value]) => {
                 acc[key] = mergeValueObjects(acc[key], value);
                 return acc;
@@ -831,7 +824,7 @@ export class AnimationGroup<V> {
 
         this.transform(t, reversedVars as V);
 
-        return reversedVars;
+        return groupedValues;
     }
 
     async tick(t: number) {

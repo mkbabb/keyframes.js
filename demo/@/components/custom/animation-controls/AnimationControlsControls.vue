@@ -10,7 +10,7 @@
                     @change="
                         (e) => {
                             const value = (e.target as HTMLInputElement).value;
-                            animation.updateDuration(value);
+                            animation.setDuration(value);
                             storedAnimationOptions.animationOptions.duration = value;
                         }
                     "
@@ -24,7 +24,7 @@
                     @change="
                         (e) => {
                             const value = (e.target as HTMLInputElement).value;
-                            animation.updateDelay(value);
+                            animation.setDelay(value);
                             storedAnimationOptions.animationOptions.delay = value;
                         }
                     "
@@ -41,7 +41,7 @@
                     @change="
                         (e) => {
                             const value = (e.target as HTMLInputElement).value;
-                            animation.updateIterationCount(value);
+                            animation.setIterationCount(value);
                             storedAnimationOptions.animationOptions.iterationCount =
                                 value;
                         }
@@ -58,7 +58,7 @@
                     :model-value="animation.options.direction"
                     @update:model-value="
                         (key: any) => {
-                            animation.updateDirection(key);
+                            animation.setDirection(key);
                             storedAnimationOptions.animationOptions.direction = key;
                         }
                     "
@@ -83,7 +83,7 @@
                     :model-value="animation.options.fillMode"
                     @update:model-value="
                         (key: any) => {
-                            animation.updateFillMode(key);
+                            animation.setFillMode(key);
                             storedAnimationOptions.animationOptions.fillMode = key;
                         }
                     "

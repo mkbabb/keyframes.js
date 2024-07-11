@@ -10,10 +10,11 @@ import tailwind from "tailwindcss";
 import autoprefixer from "autoprefixer";
 
 const defaultOptions = {
-    base: "./",
+    base: "",
+
     css: {
         postcss: {
-            plugins: [tailwind(), autoprefixer()],
+            plugins: [tailwind("./tailwind.config.ts"), autoprefixer()],
         },
     },
 
@@ -29,12 +30,12 @@ const defaultOptions = {
 };
 
 const defaultPlugins = [
-    VueMacros({
-        betterDefine: false,
-        plugins: {
-            vue: Vue(),
-        },
-    }),
+    // VueMacros({
+    //     betterDefine: false,
+    //     plugins: {
+    //         vue: Vue(),
+    //     },
+    // }),
 ];
 
 export default defineConfig((mode) => {
@@ -43,18 +44,22 @@ export default defineConfig((mode) => {
             ...defaultOptions,
 
             optimizeDeps: {
-                include: ["highlight.js"],
+                // include: ["highlight.js"],
+
+                noDiscovery: true,
             },
             build: {
-                minify: true,
+                minify: false,
+                sourcemap: true,
+
                 lib: {
-                    entry: path.resolve(__dirname, "src/animation.ts"),
-                    name: "Keyframes",
-                    fileName: "keyframes",
+                    entry: path.resolve(__dirname, "src/parsing/index.ts"),
+                    // name: "Keyframes",
+                    fileName: "index",
                     formats: ["es", "cjs"],
                 },
             },
-            plugins: [...defaultPlugins, dts({ rollupTypes: true })],
+            plugins: [...defaultPlugins],
         };
     } else if (mode.mode === "gh-pages") {
         return {

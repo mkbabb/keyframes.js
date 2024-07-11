@@ -1,3 +1,6 @@
+import { TailwindConfig, createTailwindcss } from "@mhsdesign/jit-browser-tailwindcss";
+import { Config } from "tailwindcss";
+
 export const FRAME_RATE = 1000 / 60;
 
 export const isObject = (value: any) => {
@@ -152,4 +155,15 @@ export function cancelAnimationFrame(handle: number | undefined | null | any) {
     }
 
     clearTimeout(handle);
+}
+
+export async function compileTailwindCss(
+    css: string,
+    tailwindConfig: TailwindConfig | Config,
+) {
+    const tailwind = createTailwindcss({
+        tailwindConfig: tailwindConfig as TailwindConfig,
+    });
+
+    return await tailwind.generateStylesFromContent(css, [""]);
 }
