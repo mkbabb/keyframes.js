@@ -170,7 +170,11 @@ export const CSSKeyframes = P.createLanguage({
 
     String: () => P.regexp(/[^\(\)\{\}\s,;]+/).map((x) => new ValueUnit(x)),
 
-    FunctionArgs: (r) => r.Value.sepBy(r.comma.or(r.ws)).trim(r.ws),
+    FunctionArgs: (r) =>
+        r.Value.sepBy(r.comma.or(r.ws))
+            .trim(r.ws)
+            .map((v) => new ValueArray(...v)),
+
     Function: (r) =>
         P.alt(
             handleTransform(r),
@@ -318,7 +322,7 @@ export const parseCSSKeyframesValue = memoize(
 );
 
 export const parseCSSKeyframes = memoize(
-    (input: string): Record<string, any> => CSSKeyframes.Keyframes.tryParse(input),
+    (input: string): Map<string, any> => CSSKeyframes.Keyframes.tryParse(input),
 );
 
 export const parseCSSAnimationKeyframes = memoize((input: string) => {

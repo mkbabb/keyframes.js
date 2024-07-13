@@ -2,16 +2,65 @@ import { mat3, vec3 } from "gl-matrix";
 import { clamp } from "../../math";
 
 // Color space types
-export type RGBColor<T = number> = { r: T; g: T; b: T; alpha: T };
-export type HSLColor<T = number> = { h: T; s: T; l: T; alpha: T };
-export type HSVColor<T = number> = { h: T; s: T; v: T; alpha: T };
-export type HWBColor<T = number> = { h: T; w: T; b: T; alpha: T };
-export type LABColor<T = number> = { l: T; a: T; b: T; alpha: T };
-export type LCHColor<T = number> = { l: T; c: T; h: T; alpha: T };
-export type OKLABColor<T = number> = { l: T; a: T; b: T; alpha: T };
-export type OKLCHColor<T = number> = { l: T; c: T; h: T; alpha: T };
-export type XYZColor<T = number> = { x: T; y: T; z: T; alpha: T };
-export type KelvinColor<T = number> = { kelvin: T; alpha: T };
+export type RGBColor<T = number> = { r: T; g: T; b: T; alpha?: T };
+export type HSLColor<T = number> = { h: T; s: T; l: T; alpha?: T };
+export type HSVColor<T = number> = { h: T; s: T; v: T; alpha?: T };
+export type HWBColor<T = number> = { h: T; w: T; b: T; alpha?: T };
+export type LABColor<T = number> = { l: T; a: T; b: T; alpha?: T };
+export type LCHColor<T = number> = { l: T; c: T; h: T; alpha?: T };
+export type OKLABColor<T = number> = { l: T; a: T; b: T; alpha?: T };
+export type OKLCHColor<T = number> = { l: T; c: T; h: T; alpha?: T };
+export type XYZColor<T = number> = { x: T; y: T; z: T; alpha?: T };
+export type KelvinColor<T = number> = { kelvin: T; alpha?: T };
+
+export const COLOR_SPACE_KEYS = {
+    rgb: ["r", "g", "b"],
+    hsl: ["h", "s", "l"],
+    hsv: ["h", "s", "v"],
+    hwb: ["h", "w", "b"],
+    lab: ["l", "a", "b"],
+    lch: ["l", "c", "h"],
+    oklab: ["l", "a", "b"],
+    oklch: ["l", "c", "h"],
+    xyz: ["x", "y", "z"],
+    kelvin: ["kelvin"],
+} as const;
+
+export type Color<T = number> =
+    | RGBColor<T>
+    | HSLColor<T>
+    | HSVColor<T>
+    | HWBColor<T>
+    | LABColor<T>
+    | LCHColor<T>
+    | OKLABColor<T>
+    | OKLCHColor<T>
+    | XYZColor<T>
+    | KelvinColor<T>;
+
+export interface ColorSpaceMap<T = number> {
+    rgb: RGBColor<T>;
+    hsl: HSLColor<T>;
+    hsv: HSVColor<T>;
+    hwb: HWBColor<T>;
+    lab: LABColor<T>;
+    lch: LCHColor<T>;
+    oklab: OKLABColor<T>;
+    oklch: OKLCHColor<T>;
+    xyz: XYZColor<T>;
+    kelvin: KelvinColor<T>;
+}
+
+export type ColorSpace<T = number> = keyof ColorSpaceMap<T>;
+
+function getColorSpace<T>(color: Color<T>) {
+    for (const space of Object.keys(COLOR_SPACE_KEYS) as ColorSpace<T>[]) {
+        if (COLOR_SPACE_KEYS[space].every((key) => key in color)) {
+            return space;
+        }
+    }
+    return null;
+}
 
 const HEX_BASE = 16;
 export const RGBA_MAX = 255;
@@ -45,48 +94,48 @@ const TEMP_SCALE = 100;
 
 // Based on approximations by Tanner Helland: https://tannerhelland.com/2012/09/18/convert-temperature-rgb-algorithm-code.html
 // Valid for temperatures between 1000K and 40,000K
-export const kelvin2rgb = (temp: number, alpha: number = 1): RGBColor => {
+export const kelvin2rgb = ({ kelvin, alpha }: KelvinColor): RGBColor => {
     // Clamp temperature to valid range and scale down
-    temp = clamp(temp, MIN_TEMP, MAX_TEMP) / TEMP_SCALE;
+    kelvin = clamp(kelvin, MIN_TEMP, MAX_TEMP) / TEMP_SCALE;
     let r, g, b;
 
     // Red calculation
-    if (temp <= 66) {
+    if (kelvin <= 66) {
         // Red is always 255 for temperatures up to 6600K
         r = RGBA_MAX;
     } else {
         // For higher temperatures, use a power function approximation
         // R-squared value for this approximation is 0.988
-        r = temp - 60;
+        r = kelvin - 60;
         r = 329.698727446 * r ** -0.1332047592;
     }
     r = clamp(r, 0, RGBA_MAX) / RGBA_MAX;
 
     // Green calculation
-    if (temp <= 66) {
+    if (kelvin <= 66) {
         // Below 6600K, use a logarithmic approximation
         // R-squared value for this approximation is 0.996
-        g = temp;
+        g = kelvin;
         g = 99.4708025861 * Math.log(g) - 161.1195681661;
     } else {
         // Above 6600K, use a power function approximation
         // R-squared value for this approximation is 0.987
-        g = temp - 60;
+        g = kelvin - 60;
         g = 288.1221695283 * g ** -0.0755148492;
     }
     g = clamp(g, 0, RGBA_MAX) / RGBA_MAX;
 
     // Blue calculation
-    if (temp >= 66) {
+    if (kelvin >= 66) {
         // Blue is always 255 for temperatures 6600K and above
         b = RGBA_MAX;
-    } else if (temp <= 19) {
+    } else if (kelvin <= 19) {
         // Blue is always 0 for temperatures 1900K and below
         b = 0;
     } else {
         // Between 1900K and 6600K, use a logarithmic approximation
         // R-squared value for this approximation is 0.998
-        b = temp - 10;
+        b = kelvin - 10;
         b = 138.5177312231 * Math.log(b) - 305.0447927307;
     }
     b = clamp(b, 0, RGBA_MAX) / RGBA_MAX;
@@ -95,61 +144,51 @@ export const kelvin2rgb = (temp: number, alpha: number = 1): RGBColor => {
 };
 
 // Input values in range [0, 1]
-export const rgb2kelvin = (
-    r: number,
-    g: number,
-    b: number,
-    alpha: number = 1,
-): KelvinColor => {
+export const rgb2kelvin = ({ r, g, b, alpha }: RGBColor): KelvinColor => {
     // Ensure input values are within valid range
     r = clamp(r * RGBA_MAX, 0, RGBA_MAX);
     g = clamp(g * RGBA_MAX, 0, RGBA_MAX);
     b = clamp(b * RGBA_MAX, 0, RGBA_MAX);
 
-    let temp;
+    let kelvin;
 
     // Determine temperature range based on blue value
     if (b === RGBA_MAX) {
         // Temperature is 6600K or above
-        temp = 6600;
+        kelvin = 6600;
     } else if (b === 0) {
         // Temperature is 1900K or below
-        temp = 1900;
+        kelvin = 1900;
     } else {
         // Temperature is between 1900K and 6600K
         // Reverse the blue calculation
-        temp = Math.exp((b + 305.0447927307) / 138.5177312231) + 10;
+        kelvin = Math.exp((b + 305.0447927307) / 138.5177312231) + 10;
     }
 
     // Refine temperature based on red value
     if (r < RGBA_MAX) {
         // Temperature is above 6600K
         const redTemp = (329.698727446 / r) ** (1 / -0.1332047592) + 60;
-        temp = Math.max(temp, redTemp);
+        kelvin = Math.max(kelvin, redTemp);
     }
 
     // Refine temperature based on green value
     const greenTemp =
-        temp <= 6600
+        kelvin <= 6600
             ? Math.exp((g + 161.1195681661) / 99.4708025861)
             : (288.1221695283 / g) ** (1 / -0.0755148492) + 60;
 
     // Average the temperatures from different channels
-    temp = (temp + greenTemp) / 2;
+    kelvin = (kelvin + greenTemp) / 2;
 
     // Scale and clamp the final temperature
-    temp = clamp(Math.round(temp * TEMP_SCALE), MIN_TEMP, MAX_TEMP);
+    kelvin = clamp(Math.round(kelvin * TEMP_SCALE), MIN_TEMP, MAX_TEMP);
 
-    return { kelvin: temp, alpha };
+    return { kelvin, alpha };
 };
 
 // Input and output values in range [0, 1]
-export const hsv2hsl = (
-    h: number,
-    s: number,
-    v: number,
-    alpha: number = 1,
-): HSLColor => {
+export const hsv2hsl = ({ h, s, v, alpha }: HSVColor): HSLColor => {
     // L is average of highest and lowest RGB values
     const l = v - (v * s) / 2;
 
@@ -165,12 +204,7 @@ export const hsv2hsl = (
 };
 
 // Input and output values in range [0, 1]
-export const hsl2hsv = (
-    h: number,
-    s: number,
-    l: number,
-    alpha: number = 1,
-): HSVColor => {
+export const hsl2hsv = ({ h, s, l, alpha }: HSLColor): HSVColor => {
     // V is the highest RGB value
     const v = l + s * Math.min(l, 1 - l);
 
@@ -186,12 +220,7 @@ export const hsl2hsv = (
 };
 
 // Input and output values in range [0, 1]
-export const hwb2hsl = (
-    h: number,
-    w: number,
-    b: number,
-    alpha: number = 1,
-): HSLColor => {
+export const hwb2hsl = ({ h, w, b, alpha }: HWBColor): HSLColor => {
     // Convert HWB to HSV first
     const v = 1 - b;
 
@@ -201,18 +230,12 @@ export const hwb2hsl = (
     } else {
         sv = 1 - w / v;
     }
-
     // Then convert HSV to HSL
-    return hsv2hsl(h, sv, v, alpha);
+    return hsv2hsl({ h, s: sv, v, alpha });
 };
 
 // Input and output values in range [0, 1]
-export const hsl2hwb = (
-    h: number,
-    s: number,
-    l: number,
-    alpha: number = 1,
-): HWBColor => {
+export const hsl2hwb = ({ h, s, l, alpha }: HSLColor): HWBColor => {
     // Convert HSL to HSV first
     const v = l + s * Math.min(l, 1 - l);
 
@@ -223,17 +246,13 @@ export const hsl2hwb = (
         w = 1 - l / v;
     }
 
-    // Then convert HSV to HWB
-    return { h, w, b: 1 - v, alpha };
+    const b = 1 - v;
+
+    return { h, w, b, alpha };
 };
 
 // Input and output values in range [0, 1]
-export const rgb2hsl = (
-    r: number,
-    g: number,
-    b: number,
-    alpha: number = 1,
-): HSLColor => {
+export const rgb2hsl = ({ r, g, b, alpha }: RGBColor): HSLColor => {
     const max = Math.max(r, g, b);
     const min = Math.min(r, g, b);
 
@@ -273,7 +292,7 @@ export const rgb2hsl = (
 };
 
 // Input and output values in range [0, 1]
-export function hsl2rgb(h: number, s: number, l: number, alpha: number = 1): RGBColor {
+export function hsl2rgb({ h, s, l, alpha }: HSLColor): RGBColor {
     // Chroma: the "colorfulness" of the color
     const c = (1 - Math.abs(2 * l - 1)) * s;
 
@@ -329,7 +348,7 @@ const LAB_SCALE_L = 116;
 const LAB_SCALE_A = 500;
 const LAB_SCALE_B = 200;
 
-export function xyz2lab(x: number, y: number, z: number, alpha: number = 1): LABColor {
+export function xyz2lab({ x, y, z, alpha }: XYZColor): LABColor {
     // Normalize XYZ values relative to the D65 white point
     const xr = x / WHITE_POINT_D65[0];
     const yr = y / WHITE_POINT_D65[1];
@@ -351,7 +370,7 @@ export function xyz2lab(x: number, y: number, z: number, alpha: number = 1): LAB
     return { l, a, b, alpha };
 }
 
-export function lab2xyz(l: number, a: number, b: number, alpha: number = 1): XYZColor {
+export function lab2xyz({ l, a, b, alpha }: LABColor): XYZColor {
     // Inverse of the xyz2lab function
     const fy = (l + LAB_OFFSET) / LAB_SCALE_L;
     const fx = a / LAB_SCALE_A + fy;
@@ -422,7 +441,7 @@ function linearToSrgb(channel: number): number {
     }
 }
 
-export function rgb2xyz(r: number, g: number, b: number, alpha: number = 1): XYZColor {
+export function rgb2xyz({ r, g, b, alpha }: RGBColor): XYZColor {
     // Convert sRGB values to linear RGB
     const linearRGB = vec3.fromValues(
         srgbToLinear(r),
@@ -440,7 +459,7 @@ export function rgb2xyz(r: number, g: number, b: number, alpha: number = 1): XYZ
     return { x, y, z, alpha };
 }
 
-export function xyz2rgb(x: number, y: number, z: number, alpha: number = 1): RGBColor {
+export function xyz2rgb({ x, y, z, alpha }: XYZColor): RGBColor {
     // Transform XYZ to linear RGB
     const linearRGB = vec3.create();
     vec3.transformMat3(linearRGB, vec3.fromValues(x, y, z), XYZ_RGB_MATRIX);
@@ -454,55 +473,7 @@ export function xyz2rgb(x: number, y: number, z: number, alpha: number = 1): RGB
 }
 
 // Input and output values in range [0, 1]
-export function rgb2lab(r: number, g: number, b: number, alpha: number = 1) {
-    const { x, y, z } = rgb2xyz(r, g, b, alpha);
-    return xyz2lab(x, y, z, alpha);
-}
-
-// Input and output values in range [0, 1]
-export function lab2rgb(l: number, a: number, b: number, alpha: number = 1) {
-    const { x, y, z } = lab2xyz(l, a, b, alpha);
-    return xyz2rgb(x, y, z, alpha);
-}
-
-// Input and output values in range [0, 1]
-export function hsl2lab(h: number, s: number, l: number, alpha: number = 1) {
-    const { r, g, b } = hsl2rgb(h, s, l, alpha);
-    return rgb2lab(r, g, b, alpha);
-}
-
-// Input and output values in range [0, 1]
-export function lab2hsl(l: number, a: number, b: number, alpha: number = 1) {
-    const { r, g, b: bb } = lab2rgb(l, a, b, alpha);
-    return rgb2hsl(r, g, bb, alpha);
-}
-
-// Input and output values in range [0, 1]
-export function hsv2lab(h: number, s: number, v: number, alpha: number = 1): LABColor {
-    const { h: hh, s: ss, l } = hsv2hsl(h, s, v, alpha);
-    return hsl2lab(hh, ss, l, alpha);
-}
-
-// Input and output values in range [0, 1]
-export function lab2hsv(l: number, a: number, b: number, alpha: number = 1): HSVColor {
-    const { h, s, l: ll } = lab2hsl(l, a, b, alpha);
-    return hsl2hsv(h, s, ll, alpha);
-}
-
-// Input and output values in range [0, 1]
-export function hwb2lab(h: number, w: number, b: number, alpha: number = 1) {
-    const { h: hh, s, l } = hwb2hsl(h, w, b, alpha);
-    return hsl2lab(hh, s, l, alpha);
-}
-
-// Input and output values in range [0, 1]
-export function lab2hwb(l: number, a: number, b: number, alpha: number = 1) {
-    const { h, s, l: ll } = lab2hsl(l, a, b, alpha);
-    return hsl2hwb(h, s, ll, alpha);
-}
-
-// Input and output values in range [0, 1]
-export function lch2lab(l: number, c: number, h: number, alpha: number = 1): LABColor {
+export function lch2lab({ l, c, h, alpha }: LCHColor): LABColor {
     const hRad = h * 2 * Math.PI;
     return {
         l: l,
@@ -513,7 +484,7 @@ export function lch2lab(l: number, c: number, h: number, alpha: number = 1): LAB
 }
 
 // Input and output values in range [0, 1]
-export function lab2lch(l: number, a: number, b: number, alpha: number = 1): LCHColor {
+export function lab2lch({ l, a, b, alpha }: LABColor): LCHColor {
     const c = Math.sqrt(a * a + b * b);
     let h = Math.atan2(b, a) / (2 * Math.PI);
     if (h < 0) h += 1; // Ensure h is in [0, 1]
@@ -541,12 +512,7 @@ const OKLAB_TO_LMS_MATRIX = mat3.create();
 mat3.invert(OKLAB_TO_LMS_MATRIX, LMS_TO_OKLAB_MATRIX);
 
 // Input and output values in range [0, 1]
-export function oklab2xyz(
-    l: number,
-    a: number,
-    b: number,
-    alpha: number = 1,
-): XYZColor {
+export function oklab2xyz({ l, a, b, alpha }: OKLABColor): XYZColor {
     // Convert OKLab to LMS
     const lms = vec3.create();
     vec3.transformMat3(lms, vec3.fromValues(l, a, b), OKLAB_TO_LMS_MATRIX);
@@ -564,12 +530,7 @@ export function oklab2xyz(
 }
 
 // Input and output values in range [0, 1]
-export function xyz2oklab(
-    x: number,
-    y: number,
-    z: number,
-    alpha: number = 1,
-): OKLABColor {
+export function xyz2oklab({ x, y, z, alpha }: XYZColor): OKLABColor {
     // Convert XYZ to linear LMS
     const lms = vec3.create();
     vec3.transformMat3(lms, vec3.fromValues(x, y, z), XYZ_TO_LMS_MATRIX);
@@ -587,36 +548,31 @@ export function xyz2oklab(
 }
 
 // Input and output values in range [0, 1]
-export function oklab2lab(l: number, a: number, b: number, alpha: number = 1) {
-    const { x, y, z } = oklab2xyz(l, a, b, alpha);
-    return xyz2lab(x, y, z, alpha);
+export function oklab2lab({ l, a, b, alpha }: OKLABColor): LABColor {
+    const { x, y, z } = oklab2xyz({ l, a, b, alpha });
+    return xyz2lab({ x, y, z, alpha });
 }
 
 // Input and output values in range [0, 1]
-export function lab2oklab(l: number, a: number, b: number, alpha: number = 1) {
-    const { x, y, z } = lab2xyz(l, a, b, alpha);
-    return xyz2oklab(x, y, z, alpha);
+export function lab2oklab({ l, a, b, alpha }: LABColor): OKLABColor {
+    const { x, y, z } = lab2xyz({ l, a, b, alpha });
+    return xyz2oklab({ x, y, z, alpha });
 }
 
 // Input and output values in range [0, 1]
-export function oklch2lab(l: number, c: number, h: number, alpha: number = 1) {
+export function oklch2lab({ l, c, h, alpha }: OKLCHColor): LABColor {
     // Convert OKLCh to OKLab
     const hRadians = h * 2 * Math.PI; // h is now in [0, 1] range
     const a = c * Math.cos(hRadians);
     const b = c * Math.sin(hRadians);
 
-    return oklab2lab(l, a, b, alpha);
+    return oklab2lab({ l, a, b, alpha });
 }
 
 // Input and output values in range [0, 1]
-export function lab2oklch(
-    l: number,
-    a: number,
-    b: number,
-    alpha: number = 1,
-): OKLCHColor {
+export function lab2oklch({ l, a, b, alpha }): OKLCHColor {
     // Convert OKLab to OKLCh
-    const { l: ll, a: aa, b: bb } = lab2oklab(l, a, b, alpha);
+    const { l: ll, a: aa, b: bb } = lab2oklab({ l, a, b, alpha });
     const c = Math.sqrt(aa * aa + bb * bb);
 
     let h = Math.atan2(bb, aa) / (2 * Math.PI);
@@ -626,7 +582,7 @@ export function lab2oklch(
 }
 
 // Input and output values in range [0, 1]
-export function oklab2oklch(l: number, a: number, b: number, alpha: number = 1) {
+export function oklab2oklch({ l, a, b, alpha }: OKLABColor): OKLCHColor {
     const c = Math.sqrt(a * a + b * b);
 
     let h = Math.atan2(b, a) / (2 * Math.PI);
@@ -636,12 +592,7 @@ export function oklab2oklch(l: number, a: number, b: number, alpha: number = 1) 
 }
 
 // Input and output values in range [0, 1]
-export function oklch2oklab(
-    l: number,
-    c: number,
-    h: number,
-    alpha: number = 1,
-): OKLABColor {
+export function oklch2oklab({ l, c, h, alpha }: OKLCHColor): OKLABColor {
     const hRadians = h * 2 * Math.PI;
     const a = c * Math.cos(hRadians);
     const b = c * Math.sin(hRadians);
@@ -649,14 +600,83 @@ export function oklch2oklab(
     return { l, a, b, alpha };
 }
 
-// Input and output values in range [0, 1]
-export function oklch2xyz(l: number, c: number, h: number, alpha: number = 1) {
-    const { l: ll, a, b } = oklch2lab(l, c, h, alpha);
-    return lab2xyz(ll, a, b, alpha);
+// Conversion functions to normalize any given space to XYZ and back
+
+export function hsl2xyz({ h, s, l, alpha }: HSLColor) {
+    const { r, g, b } = hsl2rgb({ h, s, l, alpha });
+    return rgb2xyz({ r, g, b, alpha });
 }
 
-// Input and output values in range [0, 1]
-export function xyz2oklch(x: number, y: number, z: number, alpha: number = 1) {
-    const { l, a, b } = xyz2oklab(x, y, z, alpha);
-    return oklab2oklch(l, a, b, alpha);
+export function xyz2hsl({ x, y, z, alpha }: XYZColor) {
+    const { r, g, b } = xyz2rgb({ x, y, z, alpha });
+    return rgb2hsl({ r, g, b, alpha });
+}
+
+export function hsv2xyz({ h, s, v, alpha }: HSVColor): XYZColor {
+    const { h: hh, s: sh, l } = hsv2hsl({ h, s, v, alpha });
+    return hsl2xyz({ h: hh, s: sh, l, alpha });
+}
+
+export function xyz2hsv({ x, y, z, alpha }: XYZColor): HSVColor {
+    const { h, s, l } = xyz2hsl({ x, y, z, alpha });
+    return hsl2hsv({ h, s, l, alpha });
+}
+
+export function hwb2xyz({ h, w, b, alpha }: HWBColor): XYZColor {
+    const { h: hh, s, l } = hwb2hsl({ h, w, b, alpha });
+    return hsl2xyz({ h: hh, s, l, alpha });
+}
+
+export function xyz2hwb({ x, y, z, alpha }: XYZColor): HWBColor {
+    const { h, s, l } = xyz2hsl({ x, y, z, alpha });
+    return hsl2hwb({ h, s, l, alpha });
+}
+
+export function lch2xyz({ l, c, h, alpha }: LCHColor): XYZColor {
+    const { l: ll, a, b } = lch2lab({ l, c, h, alpha });
+    return lab2xyz({ l, a, b, alpha });
+}
+
+export function xyz2lch({ x, y, z, alpha }: XYZColor): LCHColor {
+    const { l, a, b } = xyz2lab({ x, y, z, alpha });
+    return lab2lch({ l, a, b, alpha });
+}
+
+export function oklch2xyz({ l, c, h, alpha }: OKLCHColor): XYZColor {
+    const { l: ll, a, b } = oklch2lab({ l, c, h, alpha });
+    return lab2xyz({ l: ll, a, b, alpha });
+}
+
+export function xyz2oklch({ x, y, z, alpha }: XYZColor): OKLCHColor {
+    const { l, a, b } = xyz2lab({ x, y, z, alpha });
+    return lab2oklch({ l, a, b, alpha });
+}
+
+const XYZ_FUNCTIONS = {
+    rgb: { to: rgb2xyz, from: xyz2rgb },
+    hsl: { to: hsl2xyz, from: xyz2hsl },
+    hsv: { to: hsv2xyz, from: xyz2hsv },
+    hwb: { to: hwb2xyz, from: xyz2hwb },
+    lab: { to: lab2xyz, from: xyz2lab },
+    lch: { to: lch2xyz, from: xyz2lch },
+    oklab: { to: oklab2xyz, from: xyz2oklab },
+    oklch: { to: oklch2xyz, from: xyz2oklch },
+    xyz: { to: (color: XYZColor) => color, from: (color: XYZColor) => color },
+} as const;
+
+export function color2<T extends ColorSpace>(color: Color, to: T): ColorSpaceMap[T] {
+    const fromSpace = getColorSpace(color);
+    if (!fromSpace) {
+        throw new Error("Invalid color object");
+    }
+
+    const toXYZFn = XYZ_FUNCTIONS[fromSpace]["to"] as (color: Color) => XYZColor;
+
+    const xyz = toXYZFn(color);
+
+    const fromXYZFn = XYZ_FUNCTIONS[to as ColorSpace]["from"] as (
+        xyz: XYZColor,
+    ) => ColorSpaceMap[T];
+
+    return fromXYZFn(xyz);
 }

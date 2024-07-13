@@ -28,7 +28,7 @@ boxes.forEach((box, i) => {
             timingFunction: CSSCubicBezier(0.2, 0.65, 0.6, 1),
         },
         box,
-    ).fromCSSKeyframes(inputFrames);
+    ).fromString(inputFrames);
 
     anim.play();
 });

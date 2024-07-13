@@ -47,13 +47,13 @@
 </template>
 
 <script setup lang="ts">
-import { Animation } from "@src/animation";
+import { Animation } from "@src/animation/index";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
 
 import { KeyframesStringControls } from "@components/custom/animation-controls";
 
-import * as animations from "@src/animations";
+import * as animations from "@src/animation/animations";
 import { onMounted } from "vue";
 import AnimationControlsControls from "./AnimationControlsControls.vue";
 import { getStoredAnimationGroupControlOptions } from "./animationStores";

@@ -294,7 +294,7 @@ import { RotateCcw, Lock } from "lucide-vue-next";
 
 import { ArrowBigLeft, Clipboard, Loader2 } from "lucide-vue-next";
 
-import { Animation, AnimationGroup, CSSKeyframesAnimation, Vars } from "@src/animation";
+import { Animation, AnimationGroup, CSSKeyframesAnimation, Vars } from "@src/animation/index";
 import AnimationControls from "./AnimationControls.vue";
 import Button from "@components/ui/button/Button.vue";
 
@@ -305,7 +305,7 @@ import {
 import { SelectIcon } from "radix-vue";
 import { useDark, useWindowSize } from "@vueuse/core";
 import AnimatedText from "./AnimatedText.vue";
-import { rgb2ColorFilter } from "@src/colorFilter";
+import { rgb2ColorFilter } from "@src/units/color/colorFilter";
 import { parseCSSColor } from "@src/parsing/units";
 
 const isDark = useDark({ disableTransition: false });
@@ -408,7 +408,7 @@ const reset = (target: HTMLElement, all: boolean = false) => {
         },
         target,
     )
-        .fromCSSKeyframes(
+        .fromString(
             /*css*/ `@keyframes rotate {
     0% {
         transform: rotate(0deg);

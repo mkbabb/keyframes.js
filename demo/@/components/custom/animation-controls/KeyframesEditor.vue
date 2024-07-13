@@ -202,7 +202,7 @@
     </div>
 </template>
 <script setup lang="ts">
-import { Animation, AnimationGroup, CSSKeyframesAnimation } from "@src/animation";
+import { Animation, AnimationGroup, CSSKeyframesAnimation } from "@src/animation/index";
 import {
     CSSKeyframeToString,
     CSSKeyframesToString,
@@ -290,7 +290,7 @@ import { Label } from "@components/ui/label";
 
 import { useMagicKeys } from "@vueuse/core";
 import { convertToCh } from "@src/units";
-import * as animations from "@src/animations";
+import * as animations from "@src/animation/animations";
 
 hljs.registerLanguage("css", css);
 
@@ -431,7 +431,7 @@ const updateAnimationFromKeyframesString = debounce((keyframesString: string) =>
         const tmpAnimation = new CSSKeyframesAnimation(
             options,
             ...animation.targets,
-        ).fromCSSKeyframes(keyframes).animation;
+        ).fromString(keyframes).animation;
 
         animation.options = tmpAnimation.options;
         animation.templateFrames = tmpAnimation.templateFrames;
@@ -658,7 +658,7 @@ const brushAnimation = new CSSKeyframesAnimation({
     timingFunction: "linear",
     iterationCount: "infinite",
     direction: "alternate",
-}).fromCSSKeyframes(
+}).fromString(
     /*css*/
     `@keyframes paintbrushWipe {
                 0%, 100% {

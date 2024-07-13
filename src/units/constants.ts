@@ -29,13 +29,30 @@ export const ANGLE_UNITS = ["deg", "rad", "grad", "turn"] as const;
 export const PERCENTAGE_UNITS = ["%"] as const;
 export const RESOLUTION_UNITS = ["dpi", "dpcm", "dppx", "cqw"] as const;
 
+export const COMPUTED_UNITS = ["var", "calc"] as const;
+
+export const STRING_UNITS = ["string"] as const;
+
+export const COLOR_UNITS = ["color"] as const;
+
 export const UNITS = [
     ...LENGTH_UNITS,
     ...TIME_UNITS,
+
     ...ANGLE_UNITS,
     ...PERCENTAGE_UNITS,
     ...RESOLUTION_UNITS,
+
+    ...COMPUTED_UNITS,
+    ...STRING_UNITS,
+
+    ...COLOR_UNITS,
+
+    "",
+    undefined,
 ] as const;
+
+export const BLACKLISTED_COALESCE_UNITS = ["string", "var", "calc"] as const;
 
 export interface MatrixValues {
     scaleX: number;

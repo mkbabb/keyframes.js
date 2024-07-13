@@ -1,10 +1,12 @@
-export class ValueUnit<T = any> {
+import { BLACKLISTED_COALESCE_UNITS, UNITS } from "./constants";
+
+export class ValueUnit<T = any, U = (typeof UNITS)[number] | string> {
     constructor(
         public value: T,
-        public unit?: string,
+        public unit?: U,
         public superType?: string[],
-        public subProperty?: any,
-        public property?: any,
+        public subProperty?: string,
+        public property?: string,
         public targets?: HTMLElement[],
     ) {}
 
@@ -21,10 +23,7 @@ export class ValueUnit<T = any> {
     }
 
     valueOf() {
-        if (!this.unit) {
-            return this.value;
-        }
-        return this.toString();
+        return this.value;
     }
 
     toString() {
@@ -54,7 +53,7 @@ export class ValueUnit<T = any> {
         return this.valueOf();
     }
 
-    clone() {
+    clone(): ValueUnit<T> {
         return new ValueUnit(
             this.value,
             this.unit,
@@ -63,11 +62,29 @@ export class ValueUnit<T = any> {
             this.property,
         );
     }
+
+    coalesce(right?: ValueUnit): ValueUnit {
+        if (right == null) {
+            return this;
+        }
+        if (BLACKLISTED_COALESCE_UNITS.includes(this.unit as any)) {
+            return this;
+        }
+
+        return new ValueUnit(
+            this.value,
+            this.unit ?? right.unit,
+            this.superType ?? right.superType,
+            this.subProperty ?? right.subProperty,
+            this.property ?? right.property,
+            this.targets ?? right.targets,
+        ) as any;
+    }
 }
 
-export class FunctionValue<T = any> {
+export class FunctionValue<T = any, N extends string = string> {
     constructor(
-        public name: string,
+        public name: N,
         public args: Array<ValueUnit<T> | FunctionValue<T>>,
     ) {
         args.forEach((v) => {
@@ -87,11 +104,11 @@ export class FunctionValue<T = any> {
         this.args.forEach((v) => v.setTargets(targets));
     }
 
-    valueOf() {
+    valueOf(): any[] {
         return this.args.map((v) => v.valueOf());
     }
 
-    toString() {
+    toString(): string {
         return `${this.name}(${this.args.map((v) => v.toString()).join(", ")})`;
     }
 
@@ -101,7 +118,7 @@ export class FunctionValue<T = any> {
         };
     }
 
-    clone() {
+    clone(): FunctionValue<T> {
         return new FunctionValue(
             this.name,
             this.args.map((v) => v.clone()),
@@ -142,43 +159,3 @@ export class ValueArray<T = any> extends Array<ValueUnit<T> | FunctionValue<T>> 
         return new ValueArray(...this.map((v) => v.clone()));
     }
 }
-
-// export function flattenReverseTransformedObject(
-//     value: any,
-//     parentKey: string = undefined,
-//     acc: string = undefined,
-// ): string {
-//     const flatValue = (() => {
-//         if (isObject(value)) {
-//             return Object.entries(value)
-//                 .map(([key, value]) => {
-//                     return flattenReverseTransformedObject(value, key, acc);
-//                 })
-//                 .join(" ");
-//         } else if (Array.isArray(value)) {
-//             const v = value
-//                 .map((v) => flattenReverseTransformedObject(v, parentKey))
-//                 .join(", ");
-
-//             return parentKey ? `${parentKey}(${v})` : v;
-//         } else {
-//             return value.toString();
-//         }
-//     })();
-
-//     return acc ? `${acc} ${flatValue}` : flatValue;
-// }
-
-// export function transformTargetsStyle(t: number, vars: any, targets: HTMLElement[]) {
-//     const transformedVars = Object.entries(vars).reduce((acc, [key, value]) => {
-//         const flatValue = flattenReverseTransformedObject(value, key);
-//         acc[key] = flatValue;
-//         return acc;
-//     }, {});
-
-//     targets.forEach((target) => {
-//         Object.entries(transformedVars).forEach(([key, value]) => {
-//             target.style.setProperty(key, value as any);
-//         });
-//     });
-// }

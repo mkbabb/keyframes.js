@@ -1,5 +1,6 @@
-import { CSSKeyframesAnimation, InputAnimationOptions } from "../animation";
+import { CSSKeyframesAnimation } from ".";
 import { CSSCubicBezier, steppedEase } from "../easing";
+import { InputAnimationOptions } from "./constants";
 
 const fadeInKeyframes = /*css*/ `
   from {
@@ -14,7 +15,7 @@ export const fadeIn = (options?: InputAnimationOptions) =>
         duration: 700,
         timingFunction: "ease-in-out",
         ...(options ?? {}),
-    }).fromCSSKeyframes(fadeInKeyframes);
+    }).fromString(fadeInKeyframes);
 
 const fadeOutKeyframes = /*css*/ `
   from {
@@ -29,7 +30,7 @@ export const fadeOut = (options?: InputAnimationOptions) =>
         duration: 700,
         timingFunction: "ease-in-out",
         ...(options ?? {}),
-    }).fromCSSKeyframes(fadeOutKeyframes);
+    }).fromString(fadeOutKeyframes);
 
 const pulseKeyframes = /*css*/ `
   0%, 100% {
@@ -45,7 +46,7 @@ export const pulse = (options?: InputAnimationOptions) =>
         timingFunction: "ease-in-out",
         iterationCount: Infinity,
         ...(options ?? {}),
-    }).fromCSSKeyframes(pulseKeyframes);
+    }).fromString(pulseKeyframes);
 
 const shakeKeyframes = /*css*/ `
 8%,
@@ -72,7 +73,7 @@ export const shake = (options?: InputAnimationOptions) =>
         duration: 820,
         timingFunction: "ease-in-out",
         ...(options ?? {}),
-    }).fromCSSKeyframes(shakeKeyframes);
+    }).fromString(shakeKeyframes);
 
 const bounceKeyframes = /*css*/ `
   0%, 20%, 50%, 80%, 100% {
@@ -90,7 +91,7 @@ export const bounce = (options?: InputAnimationOptions) =>
         duration: 1000,
         timingFunction: CSSCubicBezier(0.28, 0.84, 0.42, 1),
         ...(options ?? {}),
-    }).fromCSSKeyframes(bounceKeyframes);
+    }).fromString(bounceKeyframes);
 
 const flipKeyframes = /*css*/ `
   0% {
@@ -119,7 +120,7 @@ export const flip = (options?: InputAnimationOptions) =>
         duration: 1000,
         timingFunction: "ease-in-out",
         ...(options ?? {}),
-    }).fromCSSKeyframes(flipKeyframes);
+    }).fromString(flipKeyframes);
 
 const rotateInKeyframes = /*css*/ `
   0% {
@@ -138,7 +139,7 @@ export const rotateIn = (options?: InputAnimationOptions) =>
         duration: 1000,
         timingFunction: CSSCubicBezier(0.25, 0.46, 0.45, 0.94),
         ...(options ?? {}),
-    }).fromCSSKeyframes(rotateInKeyframes);
+    }).fromString(rotateInKeyframes);
 
 const slideInKeyframes = /*css*/ `
   0% {
@@ -155,7 +156,7 @@ export const slideIn = (options?: InputAnimationOptions) =>
         duration: 1000,
         timingFunction: CSSCubicBezier(0.25, 0.46, 0.45, 0.94),
         ...(options ?? {}),
-    }).fromCSSKeyframes(slideInKeyframes);
+    }).fromString(slideInKeyframes);
 
 const heartbeatKeyframes = /*css*/ `
   0% {
@@ -180,7 +181,7 @@ export const heartbeat = (options?: InputAnimationOptions) =>
         timingFunction: "ease-in-out",
         iterationCount: Infinity,
         ...(options ?? {}),
-    }).fromCSSKeyframes(heartbeatKeyframes);
+    }).fromString(heartbeatKeyframes);
 
 const glowKeyframes = /*css*/ `
   0%, 100% {
@@ -196,7 +197,7 @@ export const glow = (options?: InputAnimationOptions) =>
         timingFunction: "ease-in-out",
         iterationCount: Infinity,
         ...(options ?? {}),
-    }).fromCSSKeyframes(glowKeyframes);
+    }).fromString(glowKeyframes);
 
 const typewriterKeyframes = /*css*/ `
   0% {
@@ -212,7 +213,7 @@ export const typewriter = (options?: InputAnimationOptions) =>
         timingFunction: steppedEase(40, "jump-end"),
         fillMode: "forwards",
         ...(options ?? {}),
-    }).fromCSSKeyframes(typewriterKeyframes);
+    }).fromString(typewriterKeyframes);
 
 const rainbowTextKeyframes = /*css*/ `
   0% {
@@ -246,7 +247,7 @@ export const rainbowText = (options?: InputAnimationOptions) =>
         timingFunction: "linear",
         iterationCount: Infinity,
         ...(options ?? {}),
-    }).fromCSSKeyframes(rainbowTextKeyframes);
+    }).fromString(rainbowTextKeyframes);
 
 const warpLeftKeyframes =
     /*css*/
@@ -278,7 +279,7 @@ export const warpLeft = (options?: InputAnimationOptions) =>
         duration: 700,
         timingFunction: "bounce-in-ease",
         ...(options ?? {}),
-    }).fromCSSKeyframes(warpLeftKeyframes);
+    }).fromString(warpLeftKeyframes);
 
 const warpRightKeyframes =
     /*css*/
@@ -306,7 +307,7 @@ export const warpRight = (options?: InputAnimationOptions) =>
         duration: 700,
         timingFunction: "bounce-in-ease",
         ...(options ?? {}),
-    }).fromCSSKeyframes(warpRightKeyframes);
+    }).fromString(warpRightKeyframes);
 
 const blurInKeyframes = /*css*/ `
 0% {
@@ -324,7 +325,7 @@ export const blurIn = (options?: InputAnimationOptions) =>
         duration: 2000,
         timingFunction: "ease-in-out",
         ...(options ?? {}),
-    }).fromCSSKeyframes(blurInKeyframes);
+    }).fromString(blurInKeyframes);
 
 const blurOutKeyframes = /*css*/ `
 0% {
@@ -341,7 +342,7 @@ export const blurOut = (options?: InputAnimationOptions) =>
         duration: 2000,
         timingFunction: "ease-in-out",
         ...(options ?? {}),
-    }).fromCSSKeyframes(blurOutKeyframes);
+    }).fromString(blurOutKeyframes);
 
 const blurInOutKeyframes = /*css*/ `
 0% {
@@ -359,7 +360,7 @@ export const blurInOut = (options?: InputAnimationOptions) =>
         duration: 2000,
         timingFunction: "ease-in-out",
         ...(options ?? {}),
-    }).fromCSSKeyframes(blurInOutKeyframes);
+    }).fromString(blurInOutKeyframes);
 
 const progressBarKeyframes = /*css*/ `
 0% {
@@ -389,7 +390,7 @@ export const progressBar = (options?: InputAnimationOptions) =>
         timingFunction: "linear",
         fillMode: "forwards",
         ...(options ?? {}),
-    }).fromCSSKeyframes(progressBarKeyframes);
+    }).fromString(progressBarKeyframes);
 
 const skeletonLoadingKeyframes = /*css*/ `
 0% {
@@ -405,7 +406,7 @@ export const skeletonLoading = (options?: InputAnimationOptions) =>
         timingFunction: "linear",
         iterationCount: Infinity,
         ...(options ?? {}),
-    }).fromCSSKeyframes(skeletonLoadingKeyframes);
+    }).fromString(skeletonLoadingKeyframes);
 
 const textFocusBlurKeyframes = /*css*/ `
 0%, 100% {
@@ -422,7 +423,7 @@ export const textFocusBlur = (options?: InputAnimationOptions) =>
         duration: 2000,
         timingFunction: "ease-in-out",
         ...(options ?? {}),
-    }).fromCSSKeyframes(textFocusBlurKeyframes);
+    }).fromString(textFocusBlurKeyframes);
 
 const gradientBackgroundKeyframes = /*css*/ `
 0% {
@@ -441,7 +442,7 @@ export const gradientBackground = (options?: InputAnimationOptions) =>
         timingFunction: "ease-in-out",
         iterationCount: Infinity,
         ...(options ?? {}),
-    }).fromCSSKeyframes(gradientBackgroundKeyframes);
+    }).fromString(gradientBackgroundKeyframes);
 
 const rotateScaleKeyframes = /*css*/ `
 0% {
@@ -465,7 +466,7 @@ export const rotateScale = (options?: InputAnimationOptions) =>
         duration: 2500,
         timingFunction: CSSCubicBezier(0.68, -0.55, 0.265, 1.55),
         ...(options ?? {}),
-    }).fromCSSKeyframes(rotateScaleKeyframes);
+    }).fromString(rotateScaleKeyframes);
 
 const typingCursorKeyframes = /*css*/ `
 0%, 100% {
@@ -481,7 +482,7 @@ export const typingCursor = (options?: InputAnimationOptions) =>
         timingFunction: steppedEase(2, "jump-start"),
         iterationCount: Infinity,
         ...(options ?? {}),
-    }).fromCSSKeyframes(typingCursorKeyframes);
+    }).fromString(typingCursorKeyframes);
 
 const accordionExpandKeyframes = /*css*/ `
 0% {
@@ -499,7 +500,7 @@ export const accordionExpand = (options?: InputAnimationOptions) =>
         timingFunction: CSSCubicBezier(0.25, 0.46, 0.45, 0.94),
         fillMode: "forwards",
         ...(options ?? {}),
-    }).fromCSSKeyframes(accordionExpandKeyframes);
+    }).fromString(accordionExpandKeyframes);
 
 const notificationBounceKeyframes = /*css*/ `
 0%, 100% {
@@ -520,7 +521,7 @@ export const notificationBounce = (options?: InputAnimationOptions) =>
         duration: 1000,
         timingFunction: CSSCubicBezier(0.28, 0.84, 0.42, 1),
         ...(options ?? {}),
-    }).fromCSSKeyframes(notificationBounceKeyframes);
+    }).fromString(notificationBounceKeyframes);
 
 const spinnerKeyframes = /*css*/ `
 0% {
@@ -550,7 +551,7 @@ export const spinner = (options?: InputAnimationOptions) =>
         timingFunction: "linear",
         iterationCount: Infinity,
         ...(options ?? {}),
-    }).fromCSSKeyframes(spinnerKeyframes);
+    }).fromString(spinnerKeyframes);
 
 const parallaxScrollKeyframes = /*css*/ `
 0% {
@@ -566,7 +567,7 @@ export const parallaxScroll = (options?: InputAnimationOptions) =>
         timingFunction: "linear",
         iterationCount: Infinity,
         ...(options ?? {}),
-    }).fromCSSKeyframes(parallaxScrollKeyframes);
+    }).fromString(parallaxScrollKeyframes);
 
 export const slideInLeftKeyframes = /*css*/ `
 0% {
@@ -583,7 +584,7 @@ export const slideInLeft = (options?: InputAnimationOptions) =>
         duration: 1000,
         timingFunction: CSSCubicBezier(0.25, 0.46, 0.45, 0.94),
         ...(options ?? {}),
-    }).fromCSSKeyframes(slideInLeftKeyframes);
+    }).fromString(slideInLeftKeyframes);
 
 const slideOutLeftKeyframes = /*css*/ `
 0% {
@@ -601,7 +602,7 @@ export const slideOutLeft = (options?: InputAnimationOptions) =>
         duration: 1000,
         timingFunction: CSSCubicBezier(0.25, 0.46, 0.45, 0.94),
         ...(options ?? {}),
-    }).fromCSSKeyframes(slideOutLeftKeyframes);
+    }).fromString(slideOutLeftKeyframes);
 
 export const slideInRightKeyframes = /*css*/ `
 0% {
@@ -618,7 +619,7 @@ export const slideInRight = (options?: InputAnimationOptions) =>
         duration: 1000,
         timingFunction: CSSCubicBezier(0.25, 0.46, 0.45, 0.94),
         ...(options ?? {}),
-    }).fromCSSKeyframes(slideInRightKeyframes);
+    }).fromString(slideInRightKeyframes);
 
 const slideOutRightKeyframes = /*css*/ `
 0% {
@@ -636,7 +637,7 @@ export const slideOutRight = (options?: InputAnimationOptions) =>
         duration: 1000,
         timingFunction: CSSCubicBezier(0.25, 0.46, 0.45, 0.94),
         ...(options ?? {}),
-    }).fromCSSKeyframes(slideOutRightKeyframes);
+    }).fromString(slideOutRightKeyframes);
 
 const hoverKeyframes = /*css*/ `
 0% {
@@ -658,7 +659,7 @@ export const hover = (options?: InputAnimationOptions) =>
         // fillMode: "both",
         direction: "alternate",
         ...(options ?? {}),
-    }).fromCSSKeyframes(hoverKeyframes);
+    }).fromString(hoverKeyframes);
 
 const jumpUpKeyframes = /*css*/ `@keyframes keyframeShift {
 0% {
@@ -682,7 +683,7 @@ export const jumpUp = (options?: InputAnimationOptions) =>
         duration: 700,
         timingFunction: "bounce-in-ease",
         ...(options ?? {}),
-    }).fromCSSKeyframes(jumpUpKeyframes);
+    }).fromString(jumpUpKeyframes);
 
 const jumpDownKeyframes = /*css*/ `@keyframes keyframeShift {
 0% {
@@ -706,4 +707,4 @@ export const jumpDown = (options?: InputAnimationOptions) =>
         duration: 700,
         timingFunction: "bounce-in-ease",
         ...(options ?? {}),
-    }).fromCSSKeyframes(jumpDownKeyframes);
+    }).fromString(jumpDownKeyframes);

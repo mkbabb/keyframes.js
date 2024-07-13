@@ -253,14 +253,14 @@ import { Avatar, AvatarImage } from "@components/ui/avatar";
 
 import { mat4 } from "gl-matrix";
 
-import * as animations from "@src/animations";
+import * as animations from "@src/animation/animations";
 
 import {
     AnimationGroup,
     CSSKeyframesAnimation,
     InputAnimationOptions,
     Animation,
-} from "@src/animation";
+} from "@src/animation/index";
 import { easeInBounce, linear, jumpTerms } from "@src/easing";
 import { FunctionValue, ValueUnit, transformTargetsStyle } from "@src/units";
 

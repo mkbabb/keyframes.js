@@ -29,13 +29,13 @@ import {
     AnimationOptions,
     CSSKeyframesAnimation,
     InputAnimationOptions,
-} from "@src/animation";
+} from "@src/animation/index";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
 
 import { KeyframesStringControls } from "@components/custom/animation-controls";
 
-import * as animations from "@src/animations";
+import * as animations from "@src/animation/animations";
 import { Ref, computed, onMounted, onUnmounted, watch } from "vue";
 import AnimationControlsControls from "./AnimationControlsControls.vue";
 import { getStoredAnimationGroupControlOptions } from "./animationStores";
@@ -113,7 +113,7 @@ const ballEl = $ref<HTMLElement | null>(null);
 // }
 // `);
 
-const ballAnim = new CSSKeyframesAnimation().fromCSSKeyframes(/*css*/ `
+const ballAnim = new CSSKeyframesAnimation().fromString(/*css*/ `
 @keyframes ball {
     0% {
         transform: translateX(0) ;

@@ -118,7 +118,7 @@ import {
 import { Label } from "@components/ui/label";
 import { CSSCubicBezier, bezierPresets } from "@src/easing";
 import { cubicBezierToSVG, cubicBezierToString } from "@src/math";
-import { Animation, CSSKeyframesAnimation, TimingFunction } from "@src/animation";
+import { Animation, CSSKeyframesAnimation, TimingFunction } from "@src/animation/index";
 
 import Button from "@components/ui/button/Button.vue";
 
@@ -233,7 +233,7 @@ const cubicBezierAnim = new CSSKeyframesAnimation({
     duration: 1000,
     iterationCount: "infinite",
     direction: "alternate",
-}).fromCSSKeyframes(
+}).fromString(
     /*css*/ `@keyframes move {
             0% {
                 transform: translateY(0);

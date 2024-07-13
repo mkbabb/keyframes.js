@@ -1,14 +1,20 @@
+import { FunctionValue, ValueArray, ValueUnit } from ".";
 import { isObject } from "../utils";
-import { ValueUnit, FunctionValue, ValueArray } from ".";
+import { Color } from "./color/utils";
 import {
     ABSOLUTE_LENGTH_UNITS,
     ANGLE_UNITS,
     MatrixValues,
+    PERCENTAGE_UNITS,
     RELATIVE_LENGTH_UNITS,
     RESOLUTION_UNITS,
     STYLE_NAMES,
     TIME_UNITS,
 } from "./constants";
+
+export function isColorUnit(value: ValueUnit<Color>): value is ValueUnit<Color> {
+    return value.unit === "color";
+}
 
 export function traverseObject<T>(
     obj: T,
@@ -27,55 +33,32 @@ export function traverseObject<T>(
     }
 }
 
-export const valueUnitValueOf = (
-    value: ValueUnit | FunctionValue,
-): [string | undefined, any[]] => {
-    if (value instanceof ValueUnit) {
-        return [undefined, [value.valueOf()]];
-    } else if (Array.isArray(value)) {
-        return [undefined, value.map((v) => v.valueOf())];
-    } else {
-        const [name, valueUnitValues] = Object.entries(value)[0];
-
-        return [name, valueUnitValues.map((v) => v.valueOf())];
-    }
-};
-
-export const valueUnitToString = (
-    value: ValueUnit | FunctionValue | Array<ValueUnit | FunctionValue>,
-): string => {
-    if (value instanceof ValueUnit) {
-        return value.toString();
-    } else if (Array.isArray(value)) {
-        return value.map(valueUnitToString).join(" ");
-    } else {
-        const [name, values] = Object.entries(value)[0];
-
-        return `${name}(${values.map(valueUnitToString).join(", ")})`;
-    }
-};
-
 export const flattenObject = (obj: any) => {
     const flat = {};
 
     const flatten = (obj: any, parentKey: string = undefined) => {
         if (Array.isArray(obj)) {
             obj.forEach((v, i) => flatten(v, parentKey));
+            return;
         } else if (obj instanceof FunctionValue) {
             const newKey = parentKey ? `${parentKey}.${obj.name}` : obj.name;
             obj.args.forEach((v, i) => flatten(v, newKey));
+
+            return;
         } else if (isObject(obj)) {
             for (const [key, value] of Object.entries(obj)) {
                 const currentKey = parentKey ? `${parentKey}.${key}` : key;
                 flatten(value, currentKey);
             }
-        } else {
-            if (flat[parentKey]) {
-                flat[parentKey].push(obj);
-            } else {
-                flat[parentKey] = new ValueArray(obj).flat();
-            }
+            return;
         }
+
+        if (flat[parentKey] == null) {
+            flat[parentKey] = new ValueArray();
+        }
+
+        flat[parentKey].push(obj);
+        flat[parentKey] = flat[parentKey].flat();
     };
 
     flatten(obj);
@@ -84,7 +67,7 @@ export const flattenObject = (obj: any) => {
 };
 
 export const unflattenObject = (flatObj: Record<string, any[]>): any => {
-    const result: any = {};
+    const result = {} as any;
 
     for (const [flatKey, values] of Object.entries(flatObj)) {
         const keys = flatKey.split(".");
@@ -112,8 +95,10 @@ export const unflattenObject = (flatObj: Record<string, any[]>): any => {
     return result;
 };
 
-export const unflattenObjectToString = (flatObj: Record<string, any[]>): any => {
-    const result: any = {};
+export const unflattenObjectToString = (
+    flatObj: Record<string, any[]>,
+): Record<string, string> => {
+    const result = {} as Record<string, string>;
 
     for (const [flatKey, values] of Object.entries(flatObj)) {
         const keys = flatKey.split(".");
@@ -143,10 +128,11 @@ export function isCSSStyleName(value: any): value is (typeof STYLE_NAMES)[number
     return setStyleNames.has(value);
 }
 
-export const unpackMatrixValues = (value: ValueUnit | FunctionValue): MatrixValues => {
-    const [name, values] = valueUnitValueOf(value);
+export const unpackMatrixValues = (value: FunctionValue): MatrixValues => {
+    const name = value.name;
+    const values = value.valueOf();
 
-    if (!name?.startsWith("matrix")) {
+    if (!value.name.startsWith("matrix")) {
         throw new Error("Input must be a matrix or matrix3d value");
     }
 
@@ -169,7 +155,7 @@ export const unpackMatrixValues = (value: ValueUnit | FunctionValue): MatrixValu
         perspectiveW: 1,
     };
 
-    if (name === "matrix") {
+    if (value.name === "matrix") {
         // 2D matrix: [a, b, c, d, tx, ty]
         return {
             ...defaultValues,
@@ -246,7 +232,7 @@ export function convertToPixels(
     unit:
         | (typeof ABSOLUTE_LENGTH_UNITS)[number]
         | (typeof RELATIVE_LENGTH_UNITS)[number]
-        | string,
+        | (typeof PERCENTAGE_UNITS)[number],
     element?: HTMLElement,
     property?: string,
 ): number {
@@ -302,5 +288,3 @@ export function convertToDPI(value: number, unit: (typeof RESOLUTION_UNITS)[numb
     }
     return value;
 }
-
-

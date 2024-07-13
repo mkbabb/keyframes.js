@@ -1,6 +1,10 @@
+import { V } from "vite/dist/node/types.d-aGj9QkWt";
 import { ValueUnit } from "..";
 import { scale } from "../../math";
 import {
+    Color,
+    ColorSpace,
+    ColorSpaceMap,
     HSLColor,
     HSVColor,
     HWBColor,
@@ -10,14 +14,7 @@ import {
     OKLCHColor,
     RGBColor,
     XYZColor,
-    hsl2lab,
-    hsv2lab,
-    hwb2lab,
-    lch2lab,
-    oklab2lab,
-    oklch2lab,
-    rgb2lab,
-    xyz2lab,
+    color2,
 } from "./utils";
 
 // Constants for color space ranges
@@ -260,7 +257,6 @@ const denormalizeOKC = (v: number) =>
         "",
     );
 
-// Normalization functions for each color space
 export const normalizeRGBValueUnits = (rgb: RGBColor<ValueUnit<number>>): RGBColor => ({
     r: normalizeRGB(rgb.r, "r"),
     g: normalizeRGB(rgb.g, "g"),
@@ -412,7 +408,7 @@ export const denormalizeXYZValueUnits = (
 
 export const normalizeColorUnit = (color: ValueUnit) => {
     const value = color.value;
-    const colorType = color.superType?.[1] ?? "rgb";
+    const colorType = (color.superType?.[1] ?? "rgb") as ColorSpace;
 
     const normalizedValue = (() => {
         switch (colorType) {
@@ -446,7 +442,7 @@ export const normalizeColorUnit = (color: ValueUnit) => {
         color.subProperty,
         color.property,
         color.targets,
-    );
+    ) as ValueUnit<Color, "color">;
 };
 
 export const denormalizeColorUnit = (color: ValueUnit) => {
@@ -485,57 +481,31 @@ export const denormalizeColorUnit = (color: ValueUnit) => {
         color.subProperty,
         color.property,
         color.targets,
-    );
+    ) as ValueUnit<Color, "color">;
 };
 
-export const normalizeColorUnitsToLAB = (
-    a: ValueUnit<any>,
-    b: ValueUnit<any>,
-): [ValueUnit<any>, ValueUnit<any>] => {
-    const convertToLAB = (color: ValueUnit<any>): any => {
-        const colorType = color.superType[1];
-        const value = color.value;
-
-        switch (colorType) {
-            case "rgb":
-                return rgb2lab(value.r, value.g, value.b, value.alpha);
-            case "hsl":
-                return hsl2lab(value.h, value.s, value.l, value.alpha);
-            case "hsv":
-                return hsv2lab(value.h, value.s, value.v, value.alpha);
-            case "hwb":
-                return hwb2lab(value.h, value.w, value.b, value.alpha);
-            case "lab":
-                return { l: value.l, a: value.a, b: value.b, alpha: value.alpha };
-            case "lch":
-                return lch2lab(value.l, value.c, value.h, value.alpha);
-            case "oklab":
-                return oklab2lab(value.l, value.a, value.b, value.alpha);
-            case "oklch":
-                return oklch2lab(value.l, value.c, value.h, value.alpha);
-            case "xyz":
-                return xyz2lab(value.x, value.y, value.z, value.alpha);
-            default:
-                throw new Error(`Unsupported color format: ${colorType}`);
-        }
-    };
+export const normalizeColorUnits = (
+    a: ValueUnit<Color, "color">,
+    b: ValueUnit<Color, "color">,
+) => {
+    const to = "lab" as ColorSpace;
 
     const [newA, newB] = [normalizeColorUnit(a), normalizeColorUnit(b)];
-    const [LABA, LABB] = [convertToLAB(newA), convertToLAB(newB)];
+    const [normA, normB] = [color2(newA.value, to), color2(newB.value, to)];
 
     return [
         new ValueUnit(
-            LABA,
+            normA,
             "color",
-            ["color", "lab"],
+            ["color", to as ColorSpace],
             a.subProperty,
             a.property,
             a.targets,
         ),
         new ValueUnit(
-            LABB,
+            normB,
             "color",
-            ["color", "lab"],
+            ["color", to as ColorSpace],
             b.subProperty,
             b.property,
             b.targets,

@@ -142,7 +142,7 @@ const anim = new CSSKeyframesAnimation(
         timingFunction: easeInOutCubic,
     },
     boxEl
-).fromCSSKeyframes(linearGradientFrames);
+).fromString(linearGradientFrames);
 // ).fromVars([
 //     {
 //         transform: {
@@ -166,7 +166,7 @@ tSlider.addEventListener("input", () => {
     const t = parseFloat(tSlider.value);
     const s = scale(t, 0, 1, 0, anim.options.duration);
 
-    anim.animation.transformFrames(s);
+    anim.interpFrames(s, true);
 });
 
 anim.play();

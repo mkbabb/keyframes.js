@@ -243,7 +243,7 @@
 </template>
 
 <script setup lang="ts">
-import { Animation, TimingFunction, TimingFunctionNames } from "@src/animation";
+import { Animation, TimingFunction, TimingFunctionNames } from "@src/animation/index";
 
 import { CSSCubicBezier, jumpTerms, timingFunctions } from "@src/easing";
 import { reverseCSSTime } from "@src/parsing/keyframes";

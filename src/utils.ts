@@ -1,6 +1,3 @@
-import { TailwindConfig, createTailwindcss } from "@mhsdesign/jit-browser-tailwindcss";
-import { Config } from "tailwindcss";
-
 export const FRAME_RATE = 1000 / 60;
 
 export const isObject = (value: any) => {
@@ -59,6 +56,7 @@ export function debounce<T extends (...args: any[]) => any>(
         if (callNow) result = func.apply(context, args);
     };
 }
+
 export async function createHash(algorithm: string, data: string) {
     const sourceBytes = new TextEncoder().encode(data);
 
@@ -130,6 +128,16 @@ export function camelCaseToHyphen(str: string) {
     return str.replace(/([A-Z])/g, (g) => `-${g[0].toLowerCase()}`);
 }
 
+export function seekPreviousValue<T>(ix: number, values: T[], pred: (f: T) => boolean) {
+    for (let i = ix - 1; i >= 0; i--) {
+        if (pred(values[i])) {
+            return i;
+        }
+    }
+
+    return undefined;
+}
+
 export function requestAnimationFrame(callback: FrameRequestCallback) {
     if (typeof window !== "undefined" && window.requestAnimationFrame) {
         return window.requestAnimationFrame(callback);
@@ -156,6 +164,9 @@ export function cancelAnimationFrame(handle: number | undefined | null | any) {
 
     clearTimeout(handle);
 }
+
+import { TailwindConfig, createTailwindcss } from "@mhsdesign/jit-browser-tailwindcss";
+import { Config } from "tailwindcss";
 
 export async function compileTailwindCss(
     css: string,

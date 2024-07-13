@@ -93,8 +93,8 @@ export const CSSColor = P.createLanguage({
         }),
 
     kelvin: () =>
-        utils.number.skip(utils.istring("k")).map((x) => {
-            const { r, g, b } = kelvin2rgb(x);
+        utils.number.skip(utils.istring("k")).map((kelvin) => {
+            const { r, g, b } = kelvin2rgb({ kelvin });
             return createColorValueUnit(
                 {
                     r: new ValueUnit(r),

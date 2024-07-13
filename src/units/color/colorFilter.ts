@@ -1,7 +1,6 @@
 import { vec3, mat3 } from "gl-matrix";
-import { clamp } from "./math";
-import { rgb, hsl, RGBColor, HSLColor } from "d3-color";
-import { rgb2hsl } from "./parsing/units";
+import { clamp } from "../../math";
+
 
 function cssFiltersToString(filters: number[]): string {
     const fmt = (idx: number, multiplier: number = 1) =>
