@@ -5,8 +5,8 @@
 </template>
 
 <script setup lang="ts">
-import { Animation } from "@src/animation";
-import * as animations from "@src/animations";
+import { Animation } from "@src/animation/index";
+import * as animations from "@src/animation/animations";
 import { sleep } from "@src/utils";
 import { on } from "events";
 import {
@@ -42,13 +42,13 @@ const onEnter = async () => {
     enter.setTargets(...children);
     leave.setTargets(...children);
 
-    leave.animation.stop();
+    leave.stop();
     enter.play();
 };
 
 const onLeave = async () => {
     console.log("Leaving");
-    enter.animation.stop();
+    enter.stop();
     await leave.play();
 };
 
@@ -77,7 +77,7 @@ onMounted(() => {
 });
 
 onBeforeUpdate(() => {
-   console.log("Before Update");
+    console.log("Before Update");
 });
 
 // onBeforeUnmount(async () => {

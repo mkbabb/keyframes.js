@@ -202,7 +202,7 @@
     </div>
 </template>
 <script setup lang="ts">
-import { Animation, AnimationGroup, CSSKeyframesAnimation } from "@src/animation/index";
+import { Animation, CSSKeyframesAnimation } from "@src/animation/index";
 import {
     CSSKeyframeToString,
     CSSKeyframesToString,
@@ -289,7 +289,6 @@ import { toast } from "vue-sonner";
 import { Label } from "@components/ui/label";
 
 import { useMagicKeys } from "@vueuse/core";
-import { convertToCh } from "@src/units";
 import * as animations from "@src/animation/animations";
 
 hljs.registerLanguage("css", css);

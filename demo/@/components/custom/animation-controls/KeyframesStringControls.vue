@@ -108,16 +108,8 @@
     </div>
 </template>
 <script setup lang="ts">
-import { Animation, AnimationGroup, CSSKeyframesAnimation } from "@src/animation/index";
-import {
-    CSSKeyframeToString,
-    CSSKeyframesToString,
-    CSSKeyframesToStrings,
-    formatCSS,
-    formatCSSKeyframeString,
-    normalizeCSSKeyframeString,
-    parseCSSAnimationOrKeyframes,
-} from "@src/parsing/format";
+import { Animation, CSSKeyframesAnimation } from "@src/animation/index";
+
 import {
     CSSAnimationKeyframes,
     parseCSSAnimationKeyframes,
@@ -193,7 +185,7 @@ import { toast } from "vue-sonner";
 import { Label } from "@components/ui/label";
 
 import { useMagicKeys } from "@vueuse/core";
-import { convertToCh } from "@src/units";
+
 import * as animations from "@src/animation/animations";
 
 import * as monaco from "monaco-editor";

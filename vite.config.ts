@@ -30,12 +30,12 @@ const defaultOptions = {
 };
 
 const defaultPlugins = [
-    // VueMacros({
-    //     betterDefine: false,
-    //     plugins: {
-    //         vue: Vue(),
-    //     },
-    // }),
+    VueMacros({
+        betterDefine: false,
+        plugins: {
+            vue: Vue(),
+        },
+    }),
 ];
 
 export default defineConfig((mode) => {
@@ -44,22 +44,21 @@ export default defineConfig((mode) => {
             ...defaultOptions,
 
             optimizeDeps: {
-                // include: ["highlight.js"],
-
-                noDiscovery: true,
+                include: ["highlight.js"],
+                // noDiscovery: true,
             },
             build: {
                 minify: false,
                 sourcemap: true,
 
                 lib: {
-                    entry: path.resolve(__dirname, "src/parsing/index.ts"),
-                    // name: "Keyframes",
-                    fileName: "index",
+                    entry: path.resolve(__dirname, "src/animation/index.ts"),
+                    name: "Keyframes",
+                    fileName: "keyframes.js",
                     formats: ["es", "cjs"],
                 },
             },
-            plugins: [...defaultPlugins],
+            plugins: [...defaultPlugins, dts()],
         };
     } else if (mode.mode === "gh-pages") {
         return {

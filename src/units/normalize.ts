@@ -1,8 +1,10 @@
+import { InterpolatedVar } from "@src/animation/constants";
 import { ValueUnit } from ".";
 import { parseCSSKeyframesValue } from "../parsing/keyframes";
 import { parseCSSValueUnit } from "../parsing/units";
 import { memoize } from "../utils";
 import { normalizeColorUnits } from "./color/normalize";
+import { COMPUTED_UNITS } from "./constants";
 import {
     convertToDegrees,
     convertToDPI,
@@ -14,10 +16,12 @@ import {
 
 export const getComputedValue = memoize((value: ValueUnit, target: HTMLElement) => {
     const get = () => {
+        if (!target) {
+            return value;
+        }
+
         if (value.unit === "var") {
-            const computed = getComputedStyle(target).getPropertyValue(
-                value.toString(),
-            );
+            const computed = getComputedStyle(target).getPropertyValue(value.value);
             return parseCSSValueUnit(computed);
         }
 
@@ -136,7 +140,7 @@ export function normalizeValueUnits(left: ValueUnit, right: ValueUnit) {
 
         startValueUnit: left,
         stopValueUnit: right,
-    };
+    } as InterpolatedVar<any>;
 
     if (left.unit === "string") {
         out.start = left.value;
@@ -150,8 +154,8 @@ export function normalizeValueUnits(left: ValueUnit, right: ValueUnit) {
     if (isColorUnit(left) && isColorUnit(right)) {
         const [leftCollapsed, rightCollapsed] = normalizeColorUnits(left, right);
 
-        out.start = leftCollapsed.value;
-        out.stop = rightCollapsed.value;
+        out.start = JSON.parse(JSON.stringify(leftCollapsed.value));
+        out.stop = JSON.parse(JSON.stringify(rightCollapsed.value));
 
         out.startValueUnit = leftCollapsed;
         out.stopValueUnit = rightCollapsed;
@@ -166,6 +170,9 @@ export function normalizeValueUnits(left: ValueUnit, right: ValueUnit) {
         out.startValueUnit = leftCollapsed;
         out.stopValueUnit = rightCollapsed;
     }
+
+    out.computed =
+        COMPUTED_UNITS.includes(left.unit) || COMPUTED_UNITS.includes(right.unit);
 
     return out;
 }

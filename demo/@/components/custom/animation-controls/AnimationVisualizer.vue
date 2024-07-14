@@ -24,12 +24,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-    Animation,
-    AnimationOptions,
-    CSSKeyframesAnimation,
-    InputAnimationOptions,
-} from "@src/animation/index";
+
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
 
@@ -46,8 +41,10 @@ import OrbitalDrag from "../orbital-drag/OrbitalDrag.vue";
 import { FunctionValue, ValueUnit } from "@src/units";
 import { parseCSSValueUnit } from "@src/parsing/units";
 import { parseCSSKeyframesValue } from "@src/parsing/keyframes";
+import { getComputedValue } from "@src/units/normalize";
+import { AnimationOptions } from "@src/animation/constants";
 
-import { getComputedValue } from "@src/units";
+
 
 window.addEventListener("resize", () => {
     getComputedValue.cache.clear();
@@ -180,4 +177,6 @@ onUnmounted(() => {
 .animate-ball {
     // animation: ball 1s linear infinite alternate;
 }
-</style>
+</style>import { CSSKeyframesAnimation } from "@src/animation";
+import { AnimationOptions } from "@src/animation/constants";
+

@@ -35,7 +35,11 @@
                                             ]
                                         "
                                         :model-value="
-                                            (Math.round(value.value * 100) / 100)
+                                            (
+                                                Math.round(
+                                                    (value.valueOf() as number) * 100,
+                                                ) / 100
+                                            )
                                                 .toFixed(2)
                                                 .replace(/\.0*$/, '')
                                         "
@@ -74,13 +78,14 @@
                                 :model-value="[
                                     matrix3dEnd.values[
                                         storedControls.matrixOptions.selectedMatrixCell
-                                    ].value,
+                                    ].valueOf() as number,
                                 ]"
                                 @update:model-value="
                                     ([value]) => {
                                         matrix3dEnd.values[
-                                            storedControls.matrixOptions.selectedMatrixCell
-                                        ].value = value;
+                                            storedControls.matrixOptions
+                                                .selectedMatrixCell
+                                        ].setValue(value);
                                     }
                                 "
                                 :min="
@@ -250,22 +255,12 @@ import {
     HoverCardTrigger,
 } from "@components/ui/hover-card";
 import { Avatar, AvatarImage } from "@components/ui/avatar";
-
 import { mat4 } from "gl-matrix";
-
 import * as animations from "@src/animation/animations";
-
-import {
-    AnimationGroup,
-    CSSKeyframesAnimation,
-    InputAnimationOptions,
-    Animation,
-} from "@src/animation/index";
+import { CSSKeyframesAnimation } from "@src/animation/index";
 import { easeInBounce, linear, jumpTerms } from "@src/easing";
-import { FunctionValue, ValueUnit, transformTargetsStyle } from "@src/units";
-
+import { FunctionValue, ValueUnit } from "@src/units";
 import { AnimationControlsGroup } from "@components/custom/animation-controls";
-
 import {
     getStoredAnimationOptions,
     getStoredAnimationGroupControlOptions,
@@ -311,6 +306,8 @@ import "@styles/style.scss";
 
 import { TransformState } from "@components/custom/orbital-drag";
 import { clamp } from "@src/math";
+import { transformTargetsStyle } from "@src/animation/utils";
+import { AnimationGroup } from "@src/animation/group";
 
 const MATRIX_AXES = ["x", "y", "z", "w"];
 
@@ -396,25 +393,27 @@ const getSliderOptionsFromIx = (i: number) => {
 };
 
 const syncTransformations = (reset: boolean = false) => {
-    transformSliderValues.translate.x = matrix3dEnd.values[12].value;
-    transformSliderValues.translate.y = matrix3dEnd.values[13].value;
-    transformSliderValues.translate.z = matrix3dEnd.values[14].value;
+    const values = matrix3dEnd.valueOf();
+
+    transformSliderValues.translate.x = values[12];
+    transformSliderValues.translate.y = values[13];
+    transformSliderValues.translate.z = values[14];
 
     if (!reset) return;
 
-    transformSliderValues.rotate.x = Math.acos(matrix3dEnd.values[0].value);
-    transformSliderValues.rotate.y = Math.acos(matrix3dEnd.values[5].value);
-    transformSliderValues.rotate.z = Math.acos(matrix3dEnd.values[10].value);
+    transformSliderValues.rotate.x = Math.acos(values[0]);
+    transformSliderValues.rotate.y = Math.acos(values[5]);
+    transformSliderValues.rotate.z = Math.acos(values[10]);
 
-    transformSliderValues.scale.x = matrix3dEnd.values[0].value;
-    transformSliderValues.scale.y = matrix3dEnd.values[5].value;
-    transformSliderValues.scale.z = matrix3dEnd.values[10].value;
+    transformSliderValues.scale.x = values[0];
+    transformSliderValues.scale.y = values[5];
+    transformSliderValues.scale.z = values[10];
 };
 
 const updateMatrixCell = (to: number | string, ix: number) => {
     to = typeof to === "string" ? parseFloat(to) : to;
 
-    const from = matrix3dEnd.values[ix].value;
+    const from = matrix3dEnd.valueOf()[ix];
 
     new CSSKeyframesAnimation({
         duration: 300,
@@ -428,8 +427,8 @@ const updateMatrixCell = (to: number | string, ix: number) => {
                     value: to,
                 },
             ],
-            (t, { value }) => {
-                matrix3dEnd.values[ix].value = value;
+            ({ value }) => {
+                matrix3dEnd.setValue(value.valueOf(), ix);
                 syncTransformations();
             },
         )
@@ -441,26 +440,26 @@ const animateUpdateMatrix = (
     toMatrix: mat4,
     reset: boolean = false,
 ) => {
-    const transformFunc = (t, { transform: { matrix3d } }) => {
+    const transformFunc = ({ transform: { matrix3d } }) => {
         matrix3d = matrix3d.valueOf();
 
         matrix3dEnd.values.forEach((value, i) => {
-            value.value = matrix3d[i];
+            value.setValue(matrix3d[i]);
             syncTransformations(reset);
         });
 
-        if (matrixAnim.animation.playing()) {
+        if (matrixAnim.playing()) {
             return;
         }
 
         transformTargetsStyle(
-            0,
             {
                 transform: {
                     matrix3d: matrix3dEnd,
                 },
             },
             [cube],
+            false,
         );
     };
 
@@ -508,7 +507,7 @@ function updateTransformations() {
     mat4.multiply(transformationMatrix, transformationMatrix, scalingMatrix);
 
     matrix3dEnd.values.forEach((value, i) => {
-        value.value = transformationMatrix[i];
+        value.setValue(transformationMatrix[i]);
     });
 
     syncTransformations();
@@ -548,15 +547,13 @@ const matrixAnim = $ref(
     ]),
 );
 
-matrixAnim.animation.name = "Matrix";
-matrixAnim.animation.superKey = superKey;
+matrixAnim.name = "Matrix";
+matrixAnim.superKey = superKey;
 
 const rotationAnimationOptions = getStoredAnimationOptions("Rotations", superKey);
 
 const rotationAnim = $ref(
-    new CSSKeyframesAnimation(
-        rotationAnimationOptions.animationOptions,
-    ).fromKeyframesDefaultTransform({
+    new CSSKeyframesAnimation(rotationAnimationOptions.animationOptions).fromKeyframes({
         from: {
             transform: {
                 rotateX: "0deg",
@@ -574,21 +571,17 @@ const rotationAnim = $ref(
     }),
 );
 
-rotationAnim.animation.name = "Rotations";
-rotationAnim.animation.superKey = superKey;
+rotationAnim.name = "Rotations";
+rotationAnim.superKey = superKey;
 
 const hoverAnimationOptions = getStoredAnimationOptions("Hover", superKey);
 
 const hoverAnim = $ref(animations.hover(hoverAnimationOptions.animationOptions));
-hoverAnim.animation.name = "Hover";
-hoverAnim.animation.superKey = superKey;
+hoverAnim.name = "Hover";
+hoverAnim.superKey = superKey;
 
 const animationGroup = $ref(
-    new AnimationGroup(
-        rotationAnim.animation as any,
-        matrixAnim.animation as any,
-        hoverAnim.animation as any,
-    ),
+    new AnimationGroup(rotationAnim as any, matrixAnim as any, hoverAnim as any),
 );
 
 const cubeSides = [
@@ -621,10 +614,7 @@ const changeGraphPerspectiveAnim = new CSSKeyframesAnimation({
     },
 ]);
 
-const hoverMatrixGroup = new AnimationGroup(
-    hoverAnim.animation as any,
-    matrixAnim.animation as any,
-);
+const hoverMatrixGroup = new AnimationGroup(hoverAnim as any, matrixAnim as any);
 
 watch(
     () => storedControls.selectedAnimation,

@@ -1,4 +1,5 @@
-import { Animation, InputAnimationOptions, getAnimationId } from "@src/animation";
+import { getAnimationId, Animation } from "@src/animation";
+import { InputAnimationOptions } from "@src/animation/constants";
 import { jumpTerms } from "@src/easing";
 
 export type StoredAnimationOptions = {

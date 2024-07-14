@@ -1,4 +1,6 @@
+import { Color } from "./color/utils";
 import { BLACKLISTED_COALESCE_UNITS, UNITS } from "./constants";
+import { isColorUnit } from "./utils";
 
 export class ValueUnit<T = any, U = (typeof UNITS)[number] | string> {
     constructor(
@@ -26,6 +28,10 @@ export class ValueUnit<T = any, U = (typeof UNITS)[number] | string> {
         return this.value;
     }
 
+    setValue(value: T) {
+        this.value = value;
+    }
+
     toString() {
         if (this.value == null) {
             return "";
@@ -35,11 +41,16 @@ export class ValueUnit<T = any, U = (typeof UNITS)[number] | string> {
             return `${this.value}`;
         }
 
-        if (this.unit === "color") {
-            const values = Object.values(this.value);
+        if (isColorUnit(this as any)) {
+            const values = Object.keys(this.value)
+                .filter((k) => k !== "alpha")
+                .map((k) => this.value[k]);
+
+            const alpha = (this.value as any)?.alpha ?? 1;
+
             const name = this.superType?.[1] ?? "rgb";
 
-            return `${name}(${values.join(", ")})`;
+            return `${name}(${values.join(" ")} / ${alpha})`;
         } else if (this.unit === "var") {
             return `var(${this.value})`;
         } else if (this.unit === "calc") {
@@ -85,43 +96,51 @@ export class ValueUnit<T = any, U = (typeof UNITS)[number] | string> {
 export class FunctionValue<T = any, N extends string = string> {
     constructor(
         public name: N,
-        public args: Array<ValueUnit<T> | FunctionValue<T>>,
+        public values: Array<ValueUnit<T> | FunctionValue<T>>,
     ) {
-        args.forEach((v) => {
+        values.forEach((v) => {
             this.setSubProperty(name);
         });
     }
 
     setSubProperty(subProperty: any) {
-        this.args.forEach((v) => v.setSubProperty(subProperty));
+        this.values.forEach((v) => v.setSubProperty(subProperty));
     }
 
     setProperty(property: any) {
-        this.args.forEach((v) => v.setProperty(property));
+        this.values.forEach((v) => v.setProperty(property));
     }
 
     setTargets(targets: HTMLElement[]) {
-        this.args.forEach((v) => v.setTargets(targets));
+        this.values.forEach((v) => v.setTargets(targets));
+    }
+
+    setValue(value: T, index?: number) {
+        if (index != null) {
+            this.values[index].setValue(value);
+        } else {
+            this.values.forEach((v) => v.setValue(value));
+        }
     }
 
     valueOf(): any[] {
-        return this.args.map((v) => v.valueOf());
+        return this.values.map((v) => v.valueOf());
     }
 
     toString(): string {
-        return `${this.name}(${this.args.map((v) => v.toString()).join(", ")})`;
+        return `${this.name}(${this.values.map((v) => v.toString()).join(", ")})`;
     }
 
     toJSON() {
         return {
-            [this.name]: this.args.map((v) => v.toJSON()),
+            [this.name]: this.values.map((v) => v.toJSON()),
         };
     }
 
     clone(): FunctionValue<T> {
         return new FunctionValue(
             this.name,
-            this.args.map((v) => v.clone()),
+            this.values.map((v) => v.clone()),
         );
     }
 }
@@ -141,6 +160,14 @@ export class ValueArray<T = any> extends Array<ValueUnit<T> | FunctionValue<T>> 
 
     setTargets(targets: HTMLElement[]) {
         this.forEach((v) => v.setTargets(targets));
+    }
+
+    setValue(value: T, index?: number) {
+        if (index != null) {
+            this[index].setValue(value);
+        } else {
+            this.forEach((v) => v.setValue(value));
+        }
     }
 
     valueOf() {

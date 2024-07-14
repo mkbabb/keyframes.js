@@ -1,7 +1,7 @@
 <template>
-    <div class="grid gap-4 items-center justify-items-center">
+    <div class="grid items-center gap-4 justify-items-center">
         <Card>
-            <CardContent class="pt-4 grid grid-cols-2 gap-1 items-center relative">
+            <CardContent class="relative grid items-center grid-cols-2 gap-1 pt-4">
                 <Label class="fraunces">Duration</Label>
                 <Input
                     type="string"
@@ -137,7 +137,7 @@
                         'steps'
                     "
                 >
-                    <Separator class="col-span-2 w-full mt-4 mb-4"></Separator>
+                    <Separator class="w-full col-span-2 mt-4 mb-4"></Separator>
                     <Label>Steps</Label>
                     <Input
                         type="number"
@@ -179,7 +179,7 @@
                             .timingFunction as any) === 'cubic-bezier'
                     "
                 >
-                    <Separator class="col-span-2 w-full mt-4"></Separator>
+                    <Separator class="w-full col-span-2 mt-4"></Separator>
                     <CubicBezierControls
                         :animation="animation"
                         @update-timing-function="setAnimationTimingFunction"
@@ -188,8 +188,7 @@
                 </template>
 
                 <div
-                    :class="
-                        'col-span-2 grid grid-cols-1 gap-2 mt-2 mb-2 sticky bottom-0 bg-background p-2 rounded-md' +
+                    :class="'col-span-2 grid grid-cols-1 gap-2 mt-2 mb-2 sticky bottom-0 bg-background p-2 rounded-md' +
                         (!animation.started ? ' disabled' : '')
                     "
                 >
@@ -243,7 +242,7 @@
 </template>
 
 <script setup lang="ts">
-import { Animation, TimingFunction, TimingFunctionNames } from "@src/animation/index";
+import { Animation } from "@src/animation/index";
 
 import { CSSCubicBezier, jumpTerms, timingFunctions } from "@src/easing";
 import { reverseCSSTime } from "@src/parsing/keyframes";
@@ -278,6 +277,7 @@ import {
     getStoredAnimationOptions,
 } from "./animationStores";
 import AnimationVisualizer from "./AnimationVisualizer.vue";
+import { TimingFunction, TimingFunctionNames } from "@src/animation/constants";
 
 let timingFunctionsAnd = {
     "cubic-bezier": "cubic-bezier",
@@ -322,7 +322,7 @@ const sliderUpdate = (e: Event) => {
     if (!isGrouped) {
         const paused = animation.paused;
         animation.paused = false;
-        animation.transformFrames(t);
+        animation.interpFrames(t, true);
         animation.paused = paused;
     } else {
         emit("sliderUpdate", {

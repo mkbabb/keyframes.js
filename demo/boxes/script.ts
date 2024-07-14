@@ -1,3 +1,4 @@
+import { transformTargetsStyle } from "@src/animation/utils";
 import { CSSKeyframesAnimation } from "../../src/animation";
 import { easeInOutCubic, linear } from "../../src/easing";
 import { scale } from "../../src/math";
@@ -6,17 +7,13 @@ import { parseCSSKeyframes } from "../../src/parsing/keyframes";
 const boxEl = document.querySelector<HTMLElement>("#box")!;
 
 const floatFrames = /*css*/ `@keyframes float {
-	0% {
-		box-shadow: 0 5px 15px 0px rgba(0, 0,0,0.6);
+	0%, 100% {
+		box-shadow: 0px 5px 15px 0px rgba(0, 0,0,0.6);
 		transform: translatey(0px) scale(1);
 	}
 	50% {
-		box-shadow: 0 25px 15px 0px rgba(0,0,0,0.2);
+		box-shadow: 0px 25px 15px 0px rgba(255,0,0,0.2);
 		transform: translatey(-20px) scale(0.99);
-	}
-	100% {
-		box-shadow: 0 5px 15px 0px rgba(0,0,0,0.6);
-		transform: translatey(0px) scale(1);
 	}
 }`;
 
@@ -131,7 +128,7 @@ let linearGradientFrames = /*css*/ `@keyframes calcExample {
     }
 }`;
 
-const frames = parseCSSKeyframes(tmp);
+// const frames = parseCSSKeyframes(tmp);
 
 const anim = new CSSKeyframesAnimation(
     {
@@ -141,8 +138,11 @@ const anim = new CSSKeyframesAnimation(
         fillMode: "forwards",
         timingFunction: easeInOutCubic,
     },
-    boxEl
-).fromString(linearGradientFrames);
+    boxEl,
+).fromString(floatFrames);
+
+
+
 // ).fromVars([
 //     {
 //         transform: {
@@ -155,6 +155,8 @@ const anim = new CSSKeyframesAnimation(
 //         },
 //     },
 // ]);
+
+// anim.play();
 
 const pauseButton = document.querySelector<HTMLElement>("#pause-btn")!;
 pauseButton.addEventListener("click", () => {

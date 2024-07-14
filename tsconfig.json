@@ -8,6 +8,7 @@
             "ESNext",
             "DOM",
         ],
+        "experimentalDecorators": true,
         "resolveJsonModule": true,
         "alwaysStrict": true,
         "strict": false,

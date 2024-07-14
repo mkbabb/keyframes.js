@@ -1,10 +1,15 @@
-import { convertToMs } from "@src/units/utils";
+import { convertToMs, unflattenObject } from "@src/units/utils";
 import { easeInOutCubic } from "../easing";
 import { clamp, scale } from "../math";
-import { parseCSSKeyframes, parseCSSTime } from "../parsing/keyframes";
+import { parseCSSKeyframes, parseCSSPercent, parseCSSTime } from "../parsing/keyframes";
 import { parseCSSValueUnit } from "../parsing/units";
 import { ValueUnit } from "../units";
-import { requestAnimationFrame, seekPreviousValue, sleep } from "../utils";
+import {
+    memoizeDecorator,
+    requestAnimationFrame,
+    seekPreviousValue,
+    sleep,
+} from "../utils";
 import {
     AnimationFrame,
     AnimationOptions,
@@ -62,6 +67,8 @@ export class Animation<V extends Vars = any> {
     done: boolean = false;
     reversed: boolean = false;
     paused: boolean = false;
+
+    unflatten: boolean = true;
 
     private resolvePromise: ((value: void | PromiseLike<void>) => void) | null = null;
 
@@ -209,17 +216,22 @@ export class Animation<V extends Vars = any> {
         });
     }
 
-    parseVars() {
-        this.parsedVars = this.templateFrames.map((frame) => {
-            return parseAndFlattenObject(frame.vars);
-        });
-        return this;
-    }
+    parseVars() {}
 
-    parseFrames() {
+    parse() {
         this.frames = [];
 
         this.templateFrames.sort((a, b) => a.start.value - b.start.value);
+
+        this.parsedVars = this.templateFrames.map((frame) => {
+            const parsed = parseAndFlattenObject(frame.vars);
+
+            Object.values(parsed).forEach((values) => {
+                (values as any).setTargets(this.targets);
+            });
+
+            return parsed;
+        });
 
         for (let i = 0; i < this.templateFrames.length - 1; i++) {
             this.frames.push(this.createFrame(i, i + 1));
@@ -330,11 +342,6 @@ export class Animation<V extends Vars = any> {
         return this;
     }
 
-    parse() {
-        this.parseVars().parseFrames();
-        return this;
-    }
-
     reverse() {
         this.reversed = !this.reversed;
         return this;
@@ -369,7 +376,10 @@ export class Animation<V extends Vars = any> {
                 });
 
                 if (transformFrames) {
-                    frame.transform(t, frame.vars);
+                    frame.transform(
+                        this.unflatten ? unflattenObject(frame.vars) : frame.vars,
+                        t,
+                    );
                 }
 
                 return frame.vars;
@@ -513,9 +523,12 @@ export class Animation<V extends Vars = any> {
 export class CSSKeyframesAnimation<V extends Vars> extends Animation<V> {
     constructor(options?: Partial<InputAnimationOptions>, ...targets: HTMLElement[]) {
         super(options, targets);
+
+        this.unflatten = false;
     }
 
     fromVars(vars: V[], transform?: TransformFunction<V>) {
+        this.unflatten = transform != null;
         transform ??= this.transform.bind(this);
 
         for (let i = 0; i < vars.length; i++) {
@@ -525,10 +538,27 @@ export class CSSKeyframesAnimation<V extends Vars> extends Animation<V> {
         }
 
         this.parse();
+
+        return this;
+    }
+
+    fromKeyframes(
+        keyframes: Record<string, Partial<V>>,
+        transform?: TransformFunction<V>,
+    ) {
+        this.unflatten = transform != null;
+        transform ??= this.transform.bind(this);
+
+        for (const [percent, frame] of Object.entries(keyframes)) {
+            this.addFrame(parseCSSPercent(percent), frame, transform);
+        }
+
+        this.parse();
         return this;
     }
 
     fromString(keyframes: string, transform?: TransformFunction<V>) {
+        this.unflatten = transform != null;
         transform ??= this.transform.bind(this);
 
         const p = parseCSSKeyframes(keyframes);
@@ -543,7 +573,7 @@ export class CSSKeyframesAnimation<V extends Vars> extends Animation<V> {
         return this;
     }
 
-    transform(t: number, vars: any) {
-        transformTargetsStyle(t, vars, this.targets);
+    transform(vars: any) {
+        transformTargetsStyle(vars, this.targets);
     }
 }

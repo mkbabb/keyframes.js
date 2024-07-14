@@ -41,8 +41,17 @@ export const flattenObject = (obj: any) => {
             obj.forEach((v, i) => flatten(v, parentKey));
             return;
         } else if (obj instanceof FunctionValue) {
-            const newKey = parentKey ? `${parentKey}.${obj.name}` : obj.name;
-            obj.args.forEach((v, i) => flatten(v, newKey));
+            let newKey = obj.name;
+
+            if (parentKey) {
+                if (!parentKey.endsWith(obj.name)) {
+                    newKey = `${parentKey}.${obj.name}`;
+                } else {
+                    newKey = parentKey;
+                }
+            }
+
+            obj.values.forEach((v, i) => flatten(v, newKey));
 
             return;
         } else if (isObject(obj)) {
@@ -114,7 +123,15 @@ export const unflattenObjectToString = (
             rightS += ")";
         }
 
-        current += ` ${leftS}${values.toString()}${rightS}`;
+        let middleS = "";
+
+        if (keys.length > 1 && Array.isArray(values)) {
+            middleS = values.join(", ");
+        } else {
+            middleS = values.toString();
+        }
+
+        current += ` ${leftS}${middleS}${rightS}`;
 
         result[propertyKey] = current.trim();
     }

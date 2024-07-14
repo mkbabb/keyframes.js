@@ -1,181 +1,180 @@
-// import prettier from "prettier";
-// import prettierPostCSSPlugin from "prettier/plugins/postcss";
-// import { Animation, AnimationOptions, Vars } from "../animation";
-// import { timingFunctions } from "../easing";
-// import {
-//     ValueUnit,
-//     flattenReverseTransformedObject,
-//     reverseTransformObject,
-// } from "../units";
-// import { camelCaseToHyphen } from "../utils";
-// import {
-//     reverseCSSTime,
-//     parseCSSKeyframes,
-//     parseCSSAnimationKeyframes,
-// } from "./keyframes";
+import prettier from "prettier";
+import prettierPostCSSPlugin from "prettier/plugins/postcss";
 
-// const DEFAULT_WIDTH = 80 / 2;
+import { timingFunctions } from "../easing";
 
-// export async function formatCSS(
-//     css: string,
-//     printWidth: number | undefined = undefined,
-// ) {
-//     return await prettier.format(css, {
-//         parser: "scss",
-//         plugins: [prettierPostCSSPlugin],
-//         printWidth: printWidth ?? DEFAULT_WIDTH,
-//     });
-// }
+import { Animation } from "@src/animation";
 
-// const DEFAULT_KEYFRAME_HEADER = `@keyframes animation {\n`;
-// const DEFAULT_KEYFRAME_FOOTER = `\n}`;
+import { camelCaseToHyphen } from "../utils";
+import {
+    reverseCSSTime,
+    parseCSSKeyframes,
+    parseCSSAnimationKeyframes,
+} from "./keyframes";
+import { AnimationOptions, Vars } from "@src/animation/constants";
 
-// export function normalizeCSSKeyframeString(keyframe: string) {
-//     keyframe = keyframe.trim();
+const DEFAULT_WIDTH = 80 / 2;
 
-//     if (keyframe.startsWith("{") && keyframe.endsWith("}")) {
-//         keyframe = keyframe.slice(1, -1);
-//     }
+export async function formatCSS(
+    css: string,
+    printWidth: number | undefined = undefined,
+) {
+    return await prettier.format(css, {
+        parser: "scss",
+        plugins: [prettierPostCSSPlugin],
+        printWidth: printWidth ?? DEFAULT_WIDTH,
+    });
+}
 
-//     if (!keyframe.includes("@keyframes")) {
-//         keyframe = DEFAULT_KEYFRAME_HEADER + keyframe + DEFAULT_KEYFRAME_FOOTER;
-//     }
+const DEFAULT_KEYFRAME_HEADER = `@keyframes animation {\n`;
+const DEFAULT_KEYFRAME_FOOTER = `\n}`;
 
-//     return keyframe;
-// }
+export function normalizeCSSKeyframeString(keyframe: string) {
+    keyframe = keyframe.trim();
 
-// export function parseCSSAnimationOrKeyframes(keyframes: string): {
-//     keyframes: any;
-//     options?: AnimationOptions;
-//     values?: any;
-// } {
-//     keyframes = normalizeCSSKeyframeString(keyframes);
+    if (keyframe.startsWith("{") && keyframe.endsWith("}")) {
+        keyframe = keyframe.slice(1, -1);
+    }
 
-//     try {
-//         return parseCSSAnimationKeyframes(keyframes);
-//     } catch (e) {
-//         return {
-//             keyframes: parseCSSKeyframes(keyframes),
-//         };
-//     }
-// }
+    if (!keyframe.includes("@keyframes")) {
+        keyframe = DEFAULT_KEYFRAME_HEADER + keyframe + DEFAULT_KEYFRAME_FOOTER;
+    }
 
-// export const CSSKeyframesToStrings = async <V>(animation: Animation<V>) => {
-//     const frameStrings = animation.templateFrames.map(async (frame) => {
-//         let css = CSSKeyframeToString(frame);
+    return keyframe;
+}
 
-//         css = `${frame.start}\n${css}\n`;
+export function parseCSSAnimationOrKeyframes(keyframes: string): {
+    keyframes: any;
+    options?: AnimationOptions;
+    values?: any;
+} {
+    keyframes = normalizeCSSKeyframeString(keyframes);
 
-//         css = DEFAULT_KEYFRAME_HEADER + css + DEFAULT_KEYFRAME_FOOTER;
+    try {
+        return parseCSSAnimationKeyframes(keyframes);
+    } catch (e) {
+        return {
+            keyframes: parseCSSKeyframes(keyframes),
+        };
+    }
+}
 
-//         css = await formatCSS(css, 40);
+export const CSSKeyframesToStrings = async <V>(animation: Animation<V>) => {
+    const frameStrings = animation.templateFrames.map(async (frame) => {
+        let css = CSSKeyframeToString(frame);
 
-//         return css
-//             .replace(DEFAULT_KEYFRAME_HEADER, "")
-//             .replace(DEFAULT_KEYFRAME_FOOTER, "");
+        css = `${frame.start}\n${css}\n`;
 
-//         // de-indent the css:
-//     });
+        css = DEFAULT_KEYFRAME_HEADER + css + DEFAULT_KEYFRAME_FOOTER;
 
-//     return Promise.all(frameStrings);
-// };
+        css = await formatCSS(css, 40);
 
-// export function formatCSSKeyframeString(keyframe: string) {
-//     let s = keyframe
-//         .replace(/^[^{]*{/, "")
-//         .replace(/^  /gm, "")
-//         .replace(/}\s*$/, "");
+        return css
+            .replace(DEFAULT_KEYFRAME_HEADER, "")
+            .replace(DEFAULT_KEYFRAME_FOOTER, "");
 
-//     s = s.trim();
+        // de-indent the css:
+    });
 
-//     s = s.replace(/^  /, "");
+    return Promise.all(frameStrings);
+};
 
-//     return s;
-// }
+export function formatCSSKeyframeString(keyframe: string) {
+    let s = keyframe
+        .replace(/^[^{]*{/, "")
+        .replace(/^  /gm, "")
+        .replace(/}\s*$/, "");
 
-// export function animationOptionsToString(
-//     options: AnimationOptions,
-//     name: string = "animation",
-// ) {
-//     let css = "";
+    s = s.trim();
 
-//     css += `  animation-name: ${name};\n`;
+    s = s.replace(/^  /, "");
 
-//     const duration = reverseCSSTime(options.duration);
-//     css += `  animation-duration: ${duration};\n`;
+    return s;
+}
 
-//     let timingFunctionName =
-//         Object.entries(timingFunctions)
-//             .filter(([name, func]) => func === options.timingFunction)
-//             .map(([name]) => name)?.[0] ?? "linear";
+export function animationOptionsToString(
+    options: AnimationOptions,
+    name: string = "animation",
+) {
+    let css = "";
 
-//     timingFunctionName = camelCaseToHyphen(timingFunctionName);
+    css += `  animation-name: ${name};\n`;
 
-//     css += `  animation-timing-function: ${timingFunctionName};\n`;
+    const duration = reverseCSSTime(options.duration);
+    css += `  animation-duration: ${duration};\n`;
 
-//     css += `  animation-iteration-count: ${
-//         isFinite(options.iterationCount) ? options.iterationCount : "infinite"
-//     };\n`;
-//     css += `  animation-direction: ${options.direction};\n`;
-//     css += `  animation-fill-mode: ${options.fillMode};\n`;
+    let timingFunctionName =
+        Object.entries(timingFunctions)
+            .filter(([name, func]) => func === options.timingFunction)
+            .map(([name]) => name)?.[0] ?? "linear";
 
-//     if (options.delay > 0) {
-//         css += `  animation-delay: ${reverseCSSTime(options.delay)};\n`;
-//     }
+    timingFunctionName = camelCaseToHyphen(timingFunctionName);
 
-//     css = `.animation {\n${css}}\n`;
+    css += `  animation-timing-function: ${timingFunctionName};\n`;
 
-//     return css;
-// }
+    css += `  animation-iteration-count: ${
+        isFinite(options.iterationCount) ? options.iterationCount : "infinite"
+    };\n`;
+    css += `  animation-direction: ${options.direction};\n`;
+    css += `  animation-fill-mode: ${options.fillMode};\n`;
 
-// export function CSSKeyframeToString<V extends Vars>(
-//     frame: Animation<V>["templateFrames"][0],
-// ) {
-//     let css = `{\n`;
+    if (options.delay > 0) {
+        css += `  animation-delay: ${reverseCSSTime(options.delay)};\n`;
+    }
 
-//     const reversedVars = {};
-//     Object.entries(frame.vars).forEach(([key, value]: [string, ValueArray]) => {
-//         reverseTransformObject(key, value, reversedVars);
-//     });
+    css = `.animation {\n${css}}\n`;
 
-//     for (let [name, v] of Object.entries(reversedVars)) {
-//         name = camelCaseToHyphen(name);
-//         let s = objectToString(name, v);
-//         css += `  ${name}: ${s};\n`;
-//     }
-//     css += "  }\n";
+    return css;
+}
 
-//     return css;
-// }
+export function CSSKeyframeToString<V extends Vars>(
+    frame: Animation<V>["templateFrames"][0],
+) {
+    let css = `{\n`;
 
-// export async function CSSKeyframesToString<V extends Vars>(
-//     animation: Animation<V>,
-//     name: string = "animation",
-//     printWidth: number | undefined = undefined,
-// ) {
-//     const options = animation.options;
-//     const keyframesMap = new Map<string, ValueUnit[]>();
+    const reversedVars = {};
+    Object.entries(frame.vars).forEach(([key, value]: [string, ValueArray]) => {
+        reverseTransformObject(key, value, reversedVars);
+    });
 
-//     animation.templateFrames.forEach(async (frame) => {
-//         const cssString = CSSKeyframeToString(frame);
+    for (let [name, v] of Object.entries(reversedVars)) {
+        name = camelCaseToHyphen(name);
+        let s = objectToString(name, v);
+        css += `  ${name}: ${s};\n`;
+    }
+    css += "  }\n";
 
-//         if (!keyframesMap.has(cssString)) {
-//             keyframesMap.set(cssString, [frame.start]);
-//         } else {
-//             keyframesMap.get(cssString).push(frame.start);
-//         }
-//     });
+    return css;
+}
 
-//     let keyframesString = "";
-//     for (let [css, percents] of keyframesMap) {
-//         keyframesString += `${percents.join(", ")} ${css}`;
-//     }
+export async function CSSKeyframesToString<V extends Vars>(
+    animation: Animation<V>,
+    name: string = "animation",
+    printWidth: number | undefined = undefined,
+) {
+    const options = animation.options;
+    const keyframesMap = new Map<string, ValueUnit[]>();
 
-//     const animationOptionsString = animationOptionsToString(options, name);
+    animation.templateFrames.forEach(async (frame) => {
+        const cssString = CSSKeyframeToString(frame);
 
-//     const keyframes = `${animationOptionsString}\n@keyframes ${name} {\n${keyframesString}}`;
+        if (!keyframesMap.has(cssString)) {
+            keyframesMap.set(cssString, [frame.start]);
+        } else {
+            keyframesMap.get(cssString).push(frame.start);
+        }
+    });
 
-//     const out = await formatCSS(keyframes, printWidth);
+    let keyframesString = "";
+    for (let [css, percents] of keyframesMap) {
+        keyframesString += `${percents.join(", ")} ${css}`;
+    }
 
-//     return out.replace(/\(\s*\{/g, "{").replace(/\}\s*\)/g, "}");
-// }
+    const animationOptionsString = animationOptionsToString(options, name);
+
+    const keyframes = `${animationOptionsString}\n@keyframes ${name} {\n${keyframesString}}`;
+
+    const out = await formatCSS(keyframes, printWidth);
+
+    return out.replace(/\(\s*\{/g, "{").replace(/\}\s*\)/g, "}");
+}

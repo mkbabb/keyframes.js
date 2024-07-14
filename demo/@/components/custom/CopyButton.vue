@@ -1,5 +1,8 @@
 <template>
-    <span class="cursor-pointer relative text-foreground p-0 m-0 h-4 w-4" @click="handleClick">
+    <span
+        class="cursor-pointer relative text-foreground p-0 m-0 h-4 w-4"
+        @click="handleClick"
+    >
         <Clipboard v-bind="$attrs" class="clipboard" ref="clipboard" />
         <ClipboardCheck
             v-bind="$attrs"
@@ -14,13 +17,11 @@ import { Clipboard, ClipboardCheck } from "lucide-vue-next";
 
 import { Button } from "@components/ui/button";
 
-import {
-    AnimationGroup,
-    CSSKeyframesAnimation,
-    InputAnimationOptions,
-} from "@src/animation";
 import { on } from "events";
 import { onMounted } from "vue";
+import { InputAnimationOptions } from "@src/animation/constants";
+import { CSSKeyframesAnimation } from "@src/animation";
+import { AnimationGroup } from "@src/animation/group";
 
 const { text } = defineProps({
     text: {
@@ -49,7 +50,7 @@ const options: Partial<InputAnimationOptions> = {
 };
 
 const clipboardCheckedAnim = new CSSKeyframesAnimation(options)
-    .fromCSSKeyframes(/*css*/ `@keyframes fade-in {
+    .fromString(/*css*/ `@keyframes fade-in {
             0%, 100% {
                 transform: scale(1);
                 opacity: 0;
@@ -61,7 +62,7 @@ const clipboardCheckedAnim = new CSSKeyframesAnimation(options)
         }`);
 
 const clipboardAnim = new CSSKeyframesAnimation(options)
-    .fromCSSKeyframes(/*css*/ `@keyframes fade-out {
+    .fromString(/*css*/ `@keyframes fade-out {
             0%, 100% {
                 transform: scale(1);
 
@@ -72,10 +73,7 @@ const clipboardAnim = new CSSKeyframesAnimation(options)
             }
         }`);
 
-const group = new AnimationGroup(
-    clipboardAnim.animation,
-    clipboardCheckedAnim.animation,
-);
+const group = new AnimationGroup(clipboardAnim, clipboardCheckedAnim);
 
 group.singleTarget = false;
 

@@ -118,7 +118,7 @@ import {
 import { Label } from "@components/ui/label";
 import { CSSCubicBezier, bezierPresets } from "@src/easing";
 import { cubicBezierToSVG, cubicBezierToString } from "@src/math";
-import { Animation, CSSKeyframesAnimation, TimingFunction } from "@src/animation/index";
+import { Animation, CSSKeyframesAnimation } from "@src/animation/index";
 
 import Button from "@components/ui/button/Button.vue";
 
@@ -126,6 +126,7 @@ import CopyButton from "@components/custom/CopyButton.vue";
 import { useStorage } from "@vueuse/core";
 import { StoredAnimationOptions, getStoredAnimationOptions } from "./animationStores";
 import { Snowflake } from "lucide-vue-next";
+import { TimingFunction } from "@src/animation/constants";
 
 const { animation } = defineProps({
     animation: {

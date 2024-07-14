@@ -216,9 +216,14 @@ export const CSSKeyframes = P.createLanguage({
         }),
 
     TimePercentage: (r) =>
-        CSSValueUnit.TimePercentage.trim(r.ws).map((v) => {
-            return v.toString();
-        }),
+        P.alt(
+            CSSValueUnit.TimePercentage.trim(r.ws).map((v) => {
+                return v.toString();
+            }),
+            utils.number.map((v) => {
+                return `${v}%`;
+            }),
+        ),
     TimePercentages: (r) => r.TimePercentage.sepBy(r.comma).trim(r.ws),
 
     Body: (r) =>
@@ -335,7 +340,7 @@ export const parseCSSAnimationKeyframes = memoize((input: string) => {
 });
 
 export const parseCSSPercent = memoize((input: string | number): number =>
-    CSSKeyframes.Percent.tryParse(String(input)),
+    CSSValueUnit.Percentage.tryParse(String(input)).valueOf(),
 );
 
 export const parseCSSTime = memoize((input: string) => {

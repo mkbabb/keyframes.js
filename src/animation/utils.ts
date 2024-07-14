@@ -1,13 +1,11 @@
 import { timingFunctions } from "@src/easing";
-import { clamp, lerp } from "../math";
+import { lerp } from "../math";
 import { CSSKeyframes } from "../parsing/keyframes";
 import { FunctionValue, ValueArray, ValueUnit } from "../units";
 import { COMPUTED_UNITS } from "../units/constants";
 import { getComputedValue, normalizeValueUnits } from "../units/normalize";
 import { flattenObject, isCSSStyleName, unflattenObjectToString } from "../units/utils";
-import { seekPreviousValue } from "../utils";
 import {
-    AnimationFrame,
     InterpolatedVar,
     TemplateAnimationFrame,
     TimingFunction,
@@ -37,16 +35,20 @@ export function lerpComputedValue<T>(t: number, value: InterpolatedVar<T>) {
         startValueUnit,
         startValueUnit.targets?.[0],
     );
-    const newRightValueUnit = getComputedValue(
+    const newStopValueUnit = getComputedValue(
         stopValueUnit,
         stopValueUnit.targets?.[0],
     );
 
-    startValueUnit.value = lerp(
-        t,
-        newstartValueUnit.value,
-        newRightValueUnit.value,
-    ) as any;
+    const newUnit =
+        newstartValueUnit.unit !== "var"
+            ? newstartValueUnit.unit
+            : newStopValueUnit.unit;
+
+    const newValue = lerp(t, newstartValueUnit.value, newStopValueUnit.value);
+
+    startValueUnit.value = newValue;
+    startValueUnit.unit = newUnit;
 }
 
 export function lerpObject<T>(t: number, value: InterpolatedVar<T>) {
@@ -58,14 +60,11 @@ export function lerpObject<T>(t: number, value: InterpolatedVar<T>) {
 }
 
 export function lerpValue<T>(t: number, value: InterpolatedVar<T>) {
-    const { start, stop, startValueUnit, stopValueUnit } = value;
+    const { start, stop, startValueUnit, computed } = value;
 
     if (typeof start === "number" && typeof stop === "number") {
         startValueUnit.value = lerp(t, start, stop);
-    } else if (
-        COMPUTED_UNITS.includes(startValueUnit.unit) ||
-        COMPUTED_UNITS.includes(stopValueUnit.unit)
-    ) {
+    } else if (computed) {
         lerpComputedValue(t, value);
     } else if (startValueUnit.unit === "color") {
         lerpObject(t, value);
@@ -77,7 +76,15 @@ export function lerpValue<T>(t: number, value: InterpolatedVar<T>) {
 export function parseAndFlattenObject(input: any) {
     const flat = flattenObject(input);
 
-    const parse = (key: string, childKey: string, value: any) => {
+    const parse = (key: string, value: any) => {
+        const childKey = key.split(".").pop();
+
+        if (value instanceof ValueUnit || value instanceof FunctionValue) {
+            return value;
+        } else if (value instanceof ValueArray) {
+            return value.map((v) => parse(key, v));
+        }
+
         const p = CSSKeyframes.FunctionArgs.map((v: Array<ValueUnit>) => {
             if (isCSSStyleName(childKey)) {
                 return v;
@@ -92,26 +99,13 @@ export function parseAndFlattenObject(input: any) {
 
         p.setProperty(mainKey);
 
-        return [key, p];
+        return p;
     };
 
     const parsedVars = Object.entries(flat)
-        .map(([key, value]) => {
-            if (
-                value instanceof ValueUnit ||
-                value instanceof FunctionValue ||
-                value instanceof ValueArray
-            ) {
-                return [key, value];
-            }
-
-            const childKey = key.split(".").pop();
-
-            return parse(key, childKey, value);
-        })
+        .map(([key, value]) => [key, parse(key, value)])
         .reduce((acc, [key, value]) => {
             acc[key as string] = value;
-
             return acc;
         }, {});
 
@@ -152,18 +146,18 @@ export function calcFrameTime<V extends Vars>(
     };
 }
 
-
-
 export function transformTargetsStyle<V extends Vars>(
-    t: number,
     vars: V,
     targets: HTMLElement[],
+    flat: boolean = true,
 ) {
+    vars = flat ? vars : (flattenObject(vars) as V);
+
     const styleStringVars = unflattenObjectToString(vars);
 
     targets.forEach((target) => {
         Object.entries(styleStringVars).forEach(([key, value]) => {
-            target.style.setProperty(key, value);
+            target.style[key] = value;
         });
     });
 }

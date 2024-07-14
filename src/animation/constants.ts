@@ -17,9 +17,11 @@ export type InterpolatedVar<T> = {
 
     startValueUnit: ValueUnit;
     stopValueUnit: ValueUnit;
+
+    computed: boolean;
 };
 
-export type TransformFunction<V extends Vars> = (t: number, v: V) => void;
+export type TransformFunction<V extends Vars> = (v: V, t: number) => void;
 
 export type TimingFunction = (t: number) => number;
 

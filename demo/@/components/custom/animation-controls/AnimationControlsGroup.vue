@@ -294,7 +294,7 @@ import { RotateCcw, Lock } from "lucide-vue-next";
 
 import { ArrowBigLeft, Clipboard, Loader2 } from "lucide-vue-next";
 
-import { Animation, AnimationGroup, CSSKeyframesAnimation, Vars } from "@src/animation/index";
+import { Animation, CSSKeyframesAnimation } from "@src/animation/index";
 import AnimationControls from "./AnimationControls.vue";
 import Button from "@components/ui/button/Button.vue";
 
@@ -307,6 +307,7 @@ import { useDark, useWindowSize } from "@vueuse/core";
 import AnimatedText from "./AnimatedText.vue";
 import { rgb2ColorFilter } from "@src/units/color/colorFilter";
 import { parseCSSColor } from "@src/parsing/units";
+import { AnimationGroup } from "@src/animation/group";
 
 const isDark = useDark({ disableTransition: false });
 

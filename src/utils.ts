@@ -67,30 +67,24 @@ export async function createHash(algorithm: string, data: string) {
     return digestArray.map((byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
+interface MemoizeOptions {
+    maxCacheSize?: number;
+    ttl?: number;
+    keyFn?: (...args: any[]) => string;
+}
+
 export function memoize<T extends (...args: any[]) => any>(
     func: T,
-    options: {
-        maxCacheSize?: number;
-        ttl?: number;
-    } = {},
+    options: MemoizeOptions = {},
 ): T & { cache: Map<string, { value: ReturnType<T>; timestamp: number }> } {
     const cache = new Map<string, { value: ReturnType<T>; timestamp: number }>();
-    const { maxCacheSize = Infinity, ttl = Infinity } = options;
-
-    async function hashArgs(...args: any[]) {
-        try {
-            const jsonString = JSON.stringify(args);
-            return await createHash("SHA-256", jsonString);
-        } catch (error) {
-            return args.map((arg) => String(arg)).join("|");
-        }
-    }
+    const { maxCacheSize = Infinity, ttl = Infinity, keyFn = JSON.stringify } = options;
 
     const memoized = function (
         this: ThisParameterType<T>,
         ...args: Parameters<T>
     ): ReturnType<T> {
-        const key = JSON.stringify(args);
+        const key = keyFn.apply(this, args);
         const now = Date.now();
 
         if (cache.has(key)) {
@@ -117,6 +111,27 @@ export function memoize<T extends (...args: any[]) => any>(
     memoized.cache = cache;
 
     return memoized as any;
+}
+
+export function memoizeDecorator(options: MemoizeOptions = {}) {
+    return function <T extends (...args: any[]) => any>(
+        target: Object,
+        propertyKey: string | symbol,
+        descriptor: TypedPropertyDescriptor<T>,
+    ): TypedPropertyDescriptor<T> {
+        if (!descriptor.value) {
+            throw new Error("memoizeDecorator can only be used on methods");
+        }
+
+        const originalMethod = descriptor.value;
+        const memoizedMethod = memoize(originalMethod, options);
+
+        descriptor.value = function (this: any, ...args: Parameters<T>): ReturnType<T> {
+            return memoizedMethod.apply(this, args);
+        } as T;
+
+        return descriptor;
+    };
 }
 
 export const hyphenToCamelCase = (str: string) =>
