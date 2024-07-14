@@ -158,3 +158,5 @@ export const deepDefaultStore = (store: any, defaultStore: any) => {
         }
     }
 };
+
+resetAllStores();

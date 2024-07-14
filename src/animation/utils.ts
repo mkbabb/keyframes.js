@@ -79,21 +79,21 @@ export function parseAndFlattenObject(input: any) {
     const parse = (key: string, value: any) => {
         const childKey = key.split(".").pop();
 
-        if (value instanceof ValueUnit || value instanceof FunctionValue) {
+        if (value instanceof ValueUnit) {
             return value;
+        } else if (value instanceof FunctionValue) {
+            value.setSubProperty(childKey);
+            return value.values.flat();
         } else if (value instanceof ValueArray) {
-            return value.map((v) => parse(key, v));
+            return value.map((v) => parse(key, v)).flat();
         }
 
-        const p = CSSKeyframes.FunctionArgs.map((v: Array<ValueUnit>) => {
-            if (isCSSStyleName(childKey)) {
-                return v;
-            } else {
-                return new FunctionValue(childKey, v);
-            }
+        const p = CSSKeyframes.FunctionArgs.map((v) => {
+            v.setSubProperty(childKey);
+            return v;
         })
             .or(CSSKeyframes.Value)
-            .tryParse(String(value)) as ValueUnit | ValueArray | FunctionValue;
+            .tryParse(String(value)) as ValueUnit | ValueArray;
 
         const mainKey = key.split(".").shift();
 

@@ -4,12 +4,14 @@ import { Color } from "./color/utils";
 import {
     ABSOLUTE_LENGTH_UNITS,
     ANGLE_UNITS,
+    LENGTH_UNITS,
     MatrixValues,
     PERCENTAGE_UNITS,
     RELATIVE_LENGTH_UNITS,
     RESOLUTION_UNITS,
     STYLE_NAMES,
     TIME_UNITS,
+    UNITS,
 } from "./constants";
 
 export function isColorUnit(value: ValueUnit<Color>): value is ValueUnit<Color> {
@@ -305,3 +307,47 @@ export function convertToDPI(value: number, unit: (typeof RESOLUTION_UNITS)[numb
     }
     return value;
 }
+
+type ConversionFunction = (value: number, unit: string, target?: HTMLElement) => number;
+
+const conversionFunctions: Record<string, ConversionFunction> = {
+    length: convertToPixels,
+    time: convertToMs,
+    angle: convertToDegrees,
+    resolution: convertToDPI,
+};
+
+function getUnitGroup(unit: (typeof UNITS)[number]): [any, string] | null {
+    if (LENGTH_UNITS.includes(unit as any)) return [LENGTH_UNITS, "length"];
+    if (TIME_UNITS.includes(unit as any)) return [TIME_UNITS, "time"];
+    if (ANGLE_UNITS.includes(unit as any)) return [ANGLE_UNITS, "angle"];
+    if (RESOLUTION_UNITS.includes(unit as any)) return [RESOLUTION_UNITS, "resolution"];
+    return null;
+}
+
+function convert2(
+    value: number,
+    from: (typeof UNITS)[number],
+    to: (typeof UNITS)[number],
+    target?: HTMLElement,
+): number {
+    const fromGroup = getUnitGroup(from);
+    const toGroup = getUnitGroup(to);
+
+    if (!fromGroup || !toGroup || fromGroup[1] !== toGroup[1]) {
+        throw new Error(`Incompatible units: ${from} and ${to}`);
+    }
+
+    const [, conversionType] = fromGroup;
+    const convertToBase = conversionFunctions[conversionType];
+
+    // Convert to base unit
+    const baseValue = convertToBase(value, from as string, target);
+
+    // Convert from base unit to target unit
+    const conversionFactor = convertToBase(1, to as string, target);
+
+    return baseValue / conversionFactor;
+}
+
+export { convert2 };

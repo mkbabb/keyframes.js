@@ -243,7 +243,7 @@ const cubicBezierAnim = new CSSKeyframesAnimation({
                 transform: translateY(1.5);
             }
 }`,
-    (t, { transform }) => {
+    ({ transform }) => {
         const v = transform.valueOf();
 
         const [y1, y2] = [v, 1 - v];

@@ -24,8 +24,6 @@
 </template>
 
 <script setup lang="ts">
-
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
 
 import { KeyframesStringControls } from "@components/custom/animation-controls";
@@ -43,8 +41,7 @@ import { parseCSSValueUnit } from "@src/parsing/units";
 import { parseCSSKeyframesValue } from "@src/parsing/keyframes";
 import { getComputedValue } from "@src/units/normalize";
 import { AnimationOptions } from "@src/animation/constants";
-
-
+import { CSSKeyframesAnimation } from "@src/animation";
 
 window.addEventListener("resize", () => {
     getComputedValue.cache.clear();
@@ -77,9 +74,7 @@ const getOptions = () => {
 
 watch(animationOptions.value, (value) => {
     const options = getOptions();
-
-    ballAnim.options = options;
-    ballAnim.animation.options = options;
+    ballAnim.setOptions(options);
 });
 
 watch(transformValues, (value) => {
@@ -104,8 +99,7 @@ const ballEl = $ref<HTMLElement | null>(null);
 //         opacity: 0.5;
 //         transform:
 //         translate(calc(100% - 20px), calc(50vh + 10%));
-           
-          
+
 //     }
 // }
 // `);
@@ -118,8 +112,7 @@ const ballAnim = new CSSKeyframesAnimation().fromString(/*css*/ `
     100% {
         transform:
         translateX(calc(100% - 20px)) translateY(calc(50vh + 10%));
-           
-          
+
     }
 }
 `);
@@ -146,7 +139,6 @@ onMounted(() => {
     const options = getOptions();
 
     ballAnim.options = options;
-    ballAnim.animation.options = options;
 
     ballAnim.setTargets(ballEl);
     ballTranslationAnim.setTargets(ballEl);
@@ -165,18 +157,15 @@ onUnmounted(() => {
 <style scoped lang="scss">
 @keyframes ball {
     0% {
-        transform: translateX(0) ;
+        transform: translateX(0);
     }
     100% {
-        transform:
-        translate(calc(100% - 20px), calc(50vh + 10%));
-           
-          
+        transform: translate(calc(100% - 20px), calc(50vh + 10%));
     }
 }
 .animate-ball {
     // animation: ball 1s linear infinite alternate;
 }
-</style>import { CSSKeyframesAnimation } from "@src/animation";
-import { AnimationOptions } from "@src/animation/constants";
-
+</style>
+import { CSSKeyframesAnimation } from "@src/animation"; import { AnimationOptions } from
+"@src/animation/constants";import { CSSKeyframesAnimation } from "@src/animation";

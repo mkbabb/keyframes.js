@@ -189,6 +189,7 @@ import { useMagicKeys } from "@vueuse/core";
 import * as animations from "@src/animation/animations";
 
 import * as monaco from "monaco-editor";
+import { convert2 } from "@src/units/utils";
 
 monaco.editor.defineTheme("dark-theme", DarkTheme as any);
 monaco.editor.defineTheme("light-theme", LightTheme as any);
@@ -246,7 +247,7 @@ const getFormatWidth = (el?: HTMLElement) => {
         return undefined;
     }
 
-    return convertToCh(el.offsetWidth, "px", el);
+    return convert2(el.offsetWidth, "px", "ch", el);
 };
 
 const getTmpAnimationName = () => {

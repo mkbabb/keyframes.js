@@ -177,6 +177,7 @@ export class Animation<V extends Vars = any> {
             ixs,
             time,
             vars: undefined,
+            flatVars: undefined,
             interpVars: {},
             transform,
             timingFunction,
@@ -216,8 +217,6 @@ export class Animation<V extends Vars = any> {
         });
     }
 
-    parseVars() {}
-
     parse() {
         this.frames = [];
 
@@ -238,9 +237,7 @@ export class Animation<V extends Vars = any> {
         }
 
         // Perform variable reconciliation
-        this.frames.forEach((_, ix) => {
-            this.reconcileVars(ix);
-        });
+        this.frames.forEach((_, ix) => this.reconcileVars(ix));
 
         // Sort frames by start time, then by stop time
         this.frames.sort((a, b) => {
@@ -258,13 +255,14 @@ export class Animation<V extends Vars = any> {
 
         // Set the vars for each frame
         this.frames.forEach((frame) => {
-            frame.vars = Object.entries(frame.interpVars).reduce(
+            frame.flatVars = Object.entries(frame.interpVars).reduce(
                 (acc, [key, value]) => {
                     acc[key] = value.map((v) => v.startValueUnit);
                     return acc;
                 },
                 {} as any,
             );
+            frame.vars = unflattenObject(frame.flatVars);
         });
 
         return this;
@@ -376,13 +374,10 @@ export class Animation<V extends Vars = any> {
                 });
 
                 if (transformFrames) {
-                    frame.transform(
-                        this.unflatten ? unflattenObject(frame.vars) : frame.vars,
-                        t,
-                    );
+                    frame.transform(this.unflatten ? frame.vars : frame.flatVars, t);
                 }
 
-                return frame.vars;
+                return frame.flatVars;
             })
             .reduce((acc, vars) => {
                 return { ...acc, ...vars };
@@ -512,6 +507,19 @@ export class Animation<V extends Vars = any> {
 
     setTargets(...targets: HTMLElement[]) {
         this.targets = targets;
+
+        // this.templateFrames.forEach((frame) => {
+        //     Object.values(frame.vars).forEach((values) => {
+        //         (values as any).setTargets(this.targets);
+        //     });
+        // });
+
+        // this.frames.forEach((frame) => {
+        //     Object.values(frame.flatVars).forEach((values) => {
+        //         (values as any).setTargets(this.targets);
+        //     });
+        // });
+
         return this;
     }
 

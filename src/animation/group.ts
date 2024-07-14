@@ -97,7 +97,7 @@ export class AnimationGroup<V> {
 
         this.done = done;
 
-        this.transform(t, groupedValues as V);
+        this.transform(groupedValues as V, t);
 
         return groupedValues;
     }
@@ -135,7 +135,7 @@ export class AnimationGroup<V> {
         } else {
             this.done = Object.values(this.animations)
                 .map(({ animation }) => {
-                    animation.transformFrames(animation.t);
+                    animation.interpFrames(animation.t, true);
                     return animation;
                 })
                 .every((animation) => animation.done);

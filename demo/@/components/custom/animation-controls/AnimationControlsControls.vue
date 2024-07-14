@@ -93,10 +93,9 @@
                     </SelectTrigger>
                     <SelectContent>
                         <SelectGroup class="fira-code">
-                            <SelectItem value="none">none</SelectItem>
-                            <SelectItem value="forwards">forwards</SelectItem>
-                            <SelectItem value="backwards">backwards</SelectItem>
-                            <SelectItem value="both">both</SelectItem>
+                            <template v-for="mode in FILL_MODES">
+                                <SelectItem :value="mode">{{ mode }}</SelectItem>
+                            </template>
                         </SelectGroup>
                     </SelectContent>
                 </Select>
@@ -188,7 +187,8 @@
                 </template>
 
                 <div
-                    :class="'col-span-2 grid grid-cols-1 gap-2 mt-2 mb-2 sticky bottom-0 bg-background p-2 rounded-md' +
+                    :class="
+                        'col-span-2 grid grid-cols-1 gap-2 mt-2 mb-2 sticky bottom-0 bg-background p-2 rounded-md' +
                         (!animation.started ? ' disabled' : '')
                     "
                 >
@@ -277,7 +277,11 @@ import {
     getStoredAnimationOptions,
 } from "./animationStores";
 import AnimationVisualizer from "./AnimationVisualizer.vue";
-import { TimingFunction, TimingFunctionNames } from "@src/animation/constants";
+import {
+    FILL_MODES,
+    TimingFunction,
+    TimingFunctionNames,
+} from "@src/animation/constants";
 
 let timingFunctionsAnd = {
     "cubic-bezier": "cubic-bezier",

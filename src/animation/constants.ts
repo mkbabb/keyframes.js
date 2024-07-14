@@ -1,9 +1,9 @@
 import { easeInOutCubic, timingFunctions } from "../easing";
 import { ValueArray, ValueUnit } from "../units";
 
-const DIRECTIONS = ["normal", "reverse", "alternate", "alternate-reverse"] as const;
+export const DIRECTIONS = ["normal", "reverse", "alternate", "alternate-reverse"] as const;
 
-const FILL_MODES = ["none", "forwards", "backwards", "both"] as const;
+export const FILL_MODES = ["none", "forwards", "backwards", "both"] as const;
 
 export type TimingFunctionNames = keyof typeof timingFunctions;
 
@@ -47,6 +47,7 @@ export interface AnimationFrame<V extends Vars> {
         stop: number;
     };
 
+    flatVars: V;
     vars: V;
 
     interpVars: {
