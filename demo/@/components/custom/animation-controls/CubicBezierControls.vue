@@ -1,6 +1,6 @@
 <template>
-    <Card class="grid gap-2 w-full dark:border-none">
-        <CardHeader class="grid gap-0">
+    <Card class="grid gap-2 w-full dark:border-none shadow-none border-none p-0">
+        <CardHeader class="grid gap-0 p-0">
             <CardTitle class="fraunces">cubic-bézier</CardTitle>
             <div
                 class="w-full whitespace-pre h-8 m-0 p-0 mt-1 ml-1 text-xs flex items-center italic justify-items-center gap-2 fira-code"
@@ -10,6 +10,7 @@
             </div>
         </CardHeader>
         <CardContent
+        class="p-0 m-0"
             @mouseenter="
                 () => {
                     // cubicBezierAnim.pause();

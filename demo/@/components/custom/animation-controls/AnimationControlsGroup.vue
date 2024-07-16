@@ -1,121 +1,8 @@
 <template>
     <div
-        class="w-full min-h-screen lg:max-w-screen-xl mx-auto grid lg:grid-cols-3 grid-cols-1 lg:grid-rows-1 justify-items-center justify-center items-center lg:overflow-hidden relative"
+        class="w-full min-h-screen lg:max-w-screen-xl grid lg:grid-cols-3 grid-cols-1 lg:grid-rows-1 justify-items-center justify-center items-center lg:overflow-hidden relative"
         v-bind="$attrs"
     >
-        <div
-            :class="
-                'sticky lg:absolute col-span-2 z-[100] pointer-events-none top-0 w-full h-full lg:w-min lg:right-0 m-0 px-6 pt-2 flex flex-row-reverse lg:gap-4 gap-6 items-center justify-items-center lg:items-start lg:justify-center justify-between ' +
-                (!storedControls.selectedAnimation ? 'lg:mt-20' : 'lg:mt-4')
-            "
-        >
-            <DarkModeToggle
-                class="pointer-events-auto hover:opacity-50 hover:scale-105 w-8 aspect-square"
-            />
-            <HoverCard
-                v-model:open="hoverCardStates.mbabb"
-                :open-delay="0"
-                class="pointer-events-auto"
-            >
-                <HoverCardTrigger
-                    @click="hoverCardStates.mbabb = true"
-                    class="pointer-events-auto fira-code"
-                    ><Button class="p-0 m-0 cursor-pointer" variant="link"
-                        >@mbabb</Button
-                    >
-                </HoverCardTrigger>
-                <HoverCardContent class="z-[100] pointer-events-auto">
-                    <div class="flex gap-4 p-4 fira-code">
-                        <Avatar>
-                            <AvatarImage
-                                src="https://avatars.githubusercontent.com/u/2848617?v=4"
-                            >
-                            </AvatarImage>
-                        </Avatar>
-                        <div>
-                            <h4 class="text-sm font-semibold hover:underline">
-                                <a href="https://github.com/mkbabb">@mbabb</a>
-                            </h4>
-                            <p>
-                                Check out the project on
-                                <a
-                                    class="font-bold hover:underline"
-                                    href="https://github.com/mkbabb/keyframes.js"
-                                    >GitHub</a
-                                >🎉
-                            </p>
-                        </div>
-                    </div>
-                </HoverCardContent>
-            </HoverCard>
-
-            <HoverCard
-                :open-delay="0"
-                v-model:open="hoverCardStates.ppmycota"
-                class="pointer-events-auto"
-            >
-                <HoverCardTrigger
-                    ><div
-                        ref="ppmycotaLogoEl"
-                        @click="
-                            (e) => {
-                                hoverCardStates.ppmycota = true;
-                                setPPMode();
-                            }
-                        "
-                        class="ppmycota-logo-sm w-12 h-12 m-0 p-0 stroke-2 font-bold hover:scale-105 cursor-pointer pointer-events-auto"
-                    ></div>
-                </HoverCardTrigger>
-                <HoverCardContent class="z-[100] pointer-events-auto">
-                    <div class="flex gap-4 h-fit-content p-4">
-                        <div
-                            ref="ppmycotaLogoEl"
-                            class="ppmycota-logo-sm z-20 w-12 h-12 stroke-2 font-bold hover:scale-105 cursor-pointer"
-                        ></div>
-                        <div>
-                            <h4 class="fraunces">🙂‍↔️ 🌱 🍄‍🟫</h4>
-                            <p>
-                                <a
-                                    class="fraunces font-bold hover:underline"
-                                    href="https://ppmycota.com"
-                                    >ppmycota.com</a
-                                >
-                            </p>
-                        </div>
-                    </div>
-                </HoverCardContent>
-            </HoverCard>
-        </div>
-
-        <template v-if="!storedControls.selectedAnimation">
-            <div
-                class="absolute mt-16 px-6 w-screen h-0 grid items-center gap-0 left-0 top-0"
-            >
-                <h1 class="fraunces font-bold lg:text-7xl text-5xl p-0 grid lg:flex">
-                    <div>
-                        <AnimatedText
-                            class="depth-text"
-                            :text="startScreenText"
-                        ></AnimatedText>
-                    </div>
-
-                    <div>
-                        <AnimatedText
-                            class="dot-fade depth-text"
-                            :text="ellipsisText"
-                        ></AnimatedText>
-                    </div>
-                </h1>
-                <h2 class="fraunces italic font-light text-4xl w-full">
-                    from the list <List class="inline"></List> below.
-                </h2>
-                <h2 class="fraunces italic font-light text-xl w-full opacity-50">
-                    or drag M. cubért
-                    <span class="not-italic leading-none text-start">🙂‍↔️</span>
-                </h2>
-            </div>
-        </template>
-
         <template
             v-for="[name, groupObject] in Object.entries(animationGroup.animations)"
         >
@@ -141,7 +28,7 @@
             :class="
                 '' +
                 (storedControls?.selectedAnimation == null
-                    ? 'mt-16 col-span-3'
+                    ? 'col-span-3'
                     : 'col-span-2')
             "
         >
@@ -196,7 +83,7 @@
                     <MenubarTrigger>
                         <RotateCcw
                             class="p-0 m-0 cursor-pointer hover:scale-105"
-                            @click="(e) => reset(e.target as HTMLElement, false)"
+                            @click="(e) => reset($el as HTMLElement, false)"
                     /></MenubarTrigger>
                 </MenubarMenu>
 
@@ -229,7 +116,20 @@
 
     <ClientOnly>
         <Teleport to="html">
-            <Toaster :theme="isDark ? 'dark' : 'light'" />
+            <Toaster
+                :toastOptions="{
+                    unstyled: true,
+                    classes: {
+                        toast: 'bg-foreground text-background rounded-lg fraunces px-6 py-4 grid grid-cols-1 gap-2 shadow-lg h-32 lg:w-96 w-full',
+                        title: 'font-bold text-2xl',
+                        description: 'font-normal text-lg',
+                        actionButton: '',
+                        cancelButton: '',
+                        closeButton: '',
+                    },
+                }"
+                :theme="isDark ? 'dark' : 'light'"
+            />
         </Teleport>
     </ClientOnly>
 </template>
@@ -311,16 +211,6 @@ import { AnimationGroup } from "@src/animation/group";
 
 const isDark = useDark({ disableTransition: false });
 
-let startScreenText = $ref("Select an animation");
-let ellipsisText = $ref("...");
-
-const ppmycotaLogoEl = $ref<HTMLElement>(null);
-
-const hoverCardStates = $ref({
-    ppmycota: false,
-    mbabb: false,
-});
-
 const { superKey, animationGroup } = defineProps<{
     animationGroup: AnimationGroup<any>;
     superKey?: string;
@@ -331,29 +221,6 @@ const storedControls = getStoredAnimationGroupControlOptions(superKey);
 const emit = defineEmits<{
     (e: "selectedAnimation", val: string): void;
 }>();
-
-const setPPMode = () => {
-    const colorFilter1 =
-        "invert(83%) sepia(25%) saturate(519%) hue-rotate(123deg) brightness(85%) contrast(103%)";
-    const colorFilter2 =
-        "invert(58%) sepia(34%) saturate(2172%) hue-rotate(219deg) brightness(98%) contrast(106%)";
-
-    storedControls.ppMode = !storedControls.ppMode;
-
-    if (storedControls.ppMode) {
-        // ppmycotaLogoEl.style.filter = colorFilter2;
-        toast.success("PP Mode activated! 🎉", {
-            duration: 3000,
-            description: "🙂‍↔️ 🌱 🍄‍🟫",
-        });
-    } else {
-        // ppmycotaLogoEl.style.filter = colorFilter1;
-        toast.error("PP Mode deactivated! 😢", {
-            duration: 3000,
-            description: "🙂‍↔️ 🌱 🍄‍🟫",
-        });
-    }
-};
 
 const findAnimationGroupObject = (animation: Animation<any>) => {
     return Object.values(animationGroup.animations).find(
@@ -402,24 +269,24 @@ const keyframesUpdate = (e: { animation: Animation<any> }) => {
 };
 
 const reset = (target: HTMLElement, all: boolean = false) => {
-    new CSSKeyframesAnimation(
-        {
-            duration: 700,
-            timingFunction: "easeInBounce",
-        },
-        target,
-    )
-        .fromString(
-            /*css*/ `@keyframes rotate {
-    0% {
-        transform: rotate(0deg);
-    }
-    100% {
-        transform: rotate(360deg);
-    }
-}`,
-        )
-        .play();
+//     new CSSKeyframesAnimation(
+//         {
+//             duration: 700,
+//             timingFunction: "easeInBounce",
+//         },
+//         target,
+//     )
+//         .fromString(
+//             /*css*/ `@keyframes rotate {
+//     0% {
+//         transform: rotate(0deg);
+//     }
+//     100% {
+//         transform: rotate(360deg);
+//     }
+// }`,
+//         )
+//         .play();
 
     animationGroup.reset();
     storedControls.selectedAnimation = null;

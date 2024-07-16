@@ -1,3 +1,16 @@
+import {
+    Color,
+    HSLColor,
+    HSVColor,
+    HWBColor,
+    KelvinColor,
+    LABColor,
+    LCHColor,
+    OKLABColor,
+    OKLCHColor,
+    RGBColor,
+    XYZColor,
+} from "@src/units/color";
 import P from "parsimmon";
 import { ValueUnit } from "../units";
 import { COLOR_NAMES } from "../units/color/constants";
@@ -14,12 +27,18 @@ import {
 import { convertToDegrees } from "../units/utils";
 import * as utils from "./utils";
 
-const createColorValueUnit = (value: any, colorType: string) => {
-    return new ValueUnit(value, "color", ["color", colorType], undefined, "color");
+const createColorValueUnit = (value: Color) => {
+    return new ValueUnit(
+        value,
+        "color",
+        ["color", value.colorSpace],
+        undefined,
+        "color",
+    );
 };
 
-const colorOptionalAlpha = (r: P.Language, colorType: string) => {
-    const name = P.string(colorType).skip(utils.opt(utils.istring("a")));
+const colorOptionalAlpha = (r: P.Language, colorSpace: string) => {
+    const name = P.string(colorSpace).skip(utils.opt(utils.istring("a")));
 
     const optionalAlpha = P.alt(
         P.seq(r.colorValue.skip(r.alphaSep), r.colorValue),
@@ -67,88 +86,64 @@ export const CSSColor = P.createLanguage({
         ).map((x) => {
             const c = COLOR_NAMES[x];
             const { r, g, b } = hex2rgb(c);
-            return createColorValueUnit(
-                {
-                    r: new ValueUnit(r),
-                    g: new ValueUnit(g),
-                    b: new ValueUnit(b),
-                    alpha: new ValueUnit(1),
-                },
-                "rgb",
-            );
+            return createColorValueUnit(new RGBColor(r, g, b));
         }),
 
     hex: () =>
         P.regexp(/#[0-9a-fA-F]{3,8}/).map((x) => {
             const { r, g, b, alpha } = hex2rgb(x);
-            return createColorValueUnit(
-                {
-                    r: new ValueUnit(r),
-                    g: new ValueUnit(g),
-                    b: new ValueUnit(b),
-                    alpha: new ValueUnit(alpha),
-                },
-                "rgb",
-            );
+            return createColorValueUnit(new RGBColor(r, g, b, alpha));
         }),
 
     kelvin: () =>
         utils.number.skip(utils.istring("k")).map((kelvin) => {
-            const { r, g, b } = kelvin2rgb({ kelvin });
-            return createColorValueUnit(
-                {
-                    r: new ValueUnit(r),
-                    g: new ValueUnit(g),
-                    b: new ValueUnit(b),
-                    alpha: new ValueUnit(1),
-                },
-                "rgb",
-            );
+            const rgb = kelvin2rgb(new KelvinColor(kelvin));
+            return createColorValueUnit(rgb);
         }),
 
     rgb: (r) =>
         colorOptionalAlpha(r, "rgb").map(([r, g, b, alpha]) =>
-            createColorValueUnit({ r, g, b, alpha }, "rgb"),
+            createColorValueUnit(new RGBColor(r, g, b, alpha)),
         ),
 
     hsl: (r) =>
         colorOptionalAlpha(r, "hsl").map(([h, s, l, alpha]) =>
-            createColorValueUnit({ h, s, l, alpha }, "hsl"),
+            createColorValueUnit(new HSLColor(h, s, l, alpha)),
         ),
 
     hsv: (r) =>
         colorOptionalAlpha(r, "hsv").map(([h, s, v, alpha]) => {
-            return createColorValueUnit({ h, s, v, alpha }, "hsl");
+            return createColorValueUnit(new HSVColor(h, s, v, alpha));
         }),
 
     hwb: (r) =>
         colorOptionalAlpha(r, "hwb").map(([h, w, b, alpha]) =>
-            createColorValueUnit({ h, w, b, alpha }, "hsl"),
+            createColorValueUnit(new HWBColor(h, w, b, alpha)),
         ),
 
     lab: (r) =>
         colorOptionalAlpha(r, "lab").map(([l, a, b, alpha]) =>
-            createColorValueUnit({ l, a, b, alpha }, "lab"),
+            createColorValueUnit(new LABColor(l, a, b, alpha)),
         ),
 
     lch: (r) =>
         colorOptionalAlpha(r, "lch").map(([l, c, h, alpha]) =>
-            createColorValueUnit({ l, c, h, alpha }, "lch"),
+            createColorValueUnit(new LCHColor(l, c, h, alpha)),
         ),
 
     oklab: (r) =>
         colorOptionalAlpha(r, "oklab").map(([l, a, b, alpha]) =>
-            createColorValueUnit({ l, a, b, alpha }, "oklab"),
+            createColorValueUnit(new OKLABColor(l, a, b, alpha)),
         ),
 
     oklch: (r) =>
         colorOptionalAlpha(r, "oklch").map(([l, c, h, alpha]) =>
-            createColorValueUnit({ l, c, h, alpha }, "oklch"),
+            createColorValueUnit(new OKLCHColor(l, c, h, alpha)),
         ),
 
     xyz: (r) =>
         colorOptionalAlpha(r, "xyz").map(([x, y, z, alpha]) =>
-            createColorValueUnit({ x, y, z, alpha }, "xyz"),
+            createColorValueUnit(new XYZColor(x, y, z, alpha)),
         ),
 
     Value: (r) =>

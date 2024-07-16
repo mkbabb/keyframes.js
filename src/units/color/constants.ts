@@ -1,3 +1,161 @@
+export const RGBA_MAX = 255;
+
+export const ALPHA_RANGE = {
+    "%": { min: 0, max: 100 },
+    number: { min: 0, max: 1 },
+} as const;
+
+export const RGB_RANGE = {
+    "%": ALPHA_RANGE["%"],
+    number: { min: 0, max: RGBA_MAX },
+} as const;
+
+export const HUE_RANGE = {
+    deg: { min: 0, max: 360 },
+    number: ALPHA_RANGE.number,
+    "%": ALPHA_RANGE["%"],
+} as const;
+
+export const COLOR_SPACE_RANGES = {
+    rgb: {
+        r: RGB_RANGE,
+        g: RGB_RANGE,
+        b: RGB_RANGE,
+        alpha: ALPHA_RANGE,
+    },
+    hsl: {
+        h: HUE_RANGE,
+        s: { "%": ALPHA_RANGE["%"], number: ALPHA_RANGE.number },
+        l: { "%": ALPHA_RANGE["%"], number: ALPHA_RANGE.number },
+        alpha: ALPHA_RANGE,
+    },
+    hsv: {
+        h: HUE_RANGE,
+        s: { "%": ALPHA_RANGE["%"], number: ALPHA_RANGE.number },
+        v: { "%": ALPHA_RANGE["%"], number: ALPHA_RANGE.number },
+        alpha: ALPHA_RANGE,
+    },
+    hwb: {
+        h: HUE_RANGE,
+        w: { "%": ALPHA_RANGE["%"], number: ALPHA_RANGE.number },
+        b: { "%": ALPHA_RANGE["%"], number: ALPHA_RANGE.number },
+        alpha: ALPHA_RANGE,
+    },
+    lab: {
+        l: { "%": ALPHA_RANGE["%"], number: ALPHA_RANGE["%"] },
+        a: { number: { min: -125, max: 125 }, "%": { min: -100, max: 100 } },
+        b: { number: { min: -125, max: 125 }, "%": { min: -100, max: 100 } },
+        alpha: ALPHA_RANGE,
+    },
+    lch: {
+        l: { "%": ALPHA_RANGE["%"], number: ALPHA_RANGE["%"] },
+        c: { number: { min: 0, max: 150 }, "%": ALPHA_RANGE["%"] },
+        h: HUE_RANGE,
+        alpha: ALPHA_RANGE,
+    },
+    oklab: {
+        l: { "%": ALPHA_RANGE["%"], number: ALPHA_RANGE["%"] },
+        a: { number: { min: -0.4, max: 0.4 }, "%": { min: -100, max: 100 } },
+        b: { number: { min: -0.4, max: 0.4 }, "%": { min: -100, max: 100 } },
+        alpha: ALPHA_RANGE,
+    },
+    oklch: {
+        l: { "%": ALPHA_RANGE["%"], number: ALPHA_RANGE["%"] },
+        c: { number: { min: 0, max: 0.5 }, "%": ALPHA_RANGE["%"] },
+        h: HUE_RANGE,
+        alpha: ALPHA_RANGE,
+    },
+    xyz: {
+        x: { "%": ALPHA_RANGE["%"], number: ALPHA_RANGE.number },
+        y: { "%": ALPHA_RANGE["%"], number: ALPHA_RANGE.number },
+        z: { "%": ALPHA_RANGE["%"], number: ALPHA_RANGE.number },
+        alpha: ALPHA_RANGE,
+    },
+    kelvin: {
+        kelvin: { number: { min: 1000, max: 40000 } },
+        alpha: ALPHA_RANGE,
+    },
+} as const;
+
+export const ALPHA_DENORM_UNIT = "%";
+
+export const COLOR_SPACE_DENORM_UNITS = {
+    rgb: {
+        r: "",
+        g: "",
+        b: "",
+        alpha: ALPHA_DENORM_UNIT,
+    },
+    hsl: {
+        h: "deg",
+        s: "%",
+        l: "%",
+        alpha: ALPHA_DENORM_UNIT,
+    },
+    hsv: {
+        h: "deg",
+        s: "%",
+        v: "%",
+        alpha: ALPHA_DENORM_UNIT,
+    },
+    hwb: {
+        h: "deg",
+        w: "%",
+        b: "%",
+        alpha: ALPHA_DENORM_UNIT,
+    },
+    lab: {
+        l: "%",
+        a: "",
+        b: "",
+        alpha: ALPHA_DENORM_UNIT,
+    },
+    lch: {
+        l: "%",
+        c: "",
+        h: "deg",
+        alpha: ALPHA_DENORM_UNIT,
+    },
+    oklab: {
+        l: "%",
+        a: "",
+        b: "",
+        alpha: ALPHA_DENORM_UNIT,
+    },
+    oklch: {
+        l: "%",
+        c: "",
+        h: "deg",
+        alpha: ALPHA_DENORM_UNIT,
+    },
+    xyz: {
+        x: "%",
+        y: "%",
+        z: "%",
+        alpha: ALPHA_DENORM_UNIT,
+    },
+    kelvin: {
+        kelvin: "K",
+        alpha: ALPHA_DENORM_UNIT,
+    },
+} as const;
+
+export type ColorSpace = keyof typeof COLOR_SPACE_RANGES;
+
+// pretty names of the color spaces:
+export const COLOR_SPACE_NAMES = {
+    rgb: "RGB",
+    hsl: "HSL",
+    hsv: "HSV",
+    hwb: "HWB",
+    lab: "Lab",
+    lch: "LCh",
+    oklab: "OKLab",
+    oklch: "OKLCh",
+    xyz: "XYZ",
+    kelvin: "Kelvin",
+} as const;
+
 export const COLOR_NAMES = {
     aliceblue: "#f0f8ff",
     antiquewhite: "#faebd7",

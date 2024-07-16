@@ -190,6 +190,7 @@ import * as animations from "@src/animation/animations";
 
 import * as monaco from "monaco-editor";
 import { convert2 } from "@src/units/utils";
+import { CSSKeyframesToString } from "@src/parsing/format";
 
 monaco.editor.defineTheme("dark-theme", DarkTheme as any);
 monaco.editor.defineTheme("light-theme", LightTheme as any);
@@ -555,6 +556,10 @@ onMounted(async () => {
         fontSize: 14,
         fontFamily: "Fira Code",
         minimap: { enabled: false },
+        padding: {
+            top: 16,
+            bottom: 16,
+        },
     });
 
     cssKeyframesStringEditor.onDidChangeModelContent(() => {
@@ -587,3 +592,5 @@ onMounted(async () => {
     );
 }
 </style>
+import { CSSKeyframesToString, formatCSS, parseCSSAnimationOrKeyframes } from
+"@src/parsing/format";

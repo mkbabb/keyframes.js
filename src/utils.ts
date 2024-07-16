@@ -4,6 +4,23 @@ export const isObject = (value: any) => {
     return !!value && value.constructor === Object;
 };
 
+export function clone(obj: any) {
+    if (isObject(obj)) {
+        return Object.entries(obj)
+            .map(([k, v]) => [k, clone(v)])
+            .reduce((acc, [k, v]) => {
+                acc[k] = v;
+                return acc;
+            }, {});
+    } else if (obj != null && typeof obj.clone === "function") {
+        return obj.clone();
+    } else if (Array.isArray(obj)) {
+        return obj.map(clone);
+    } else {
+        return obj;
+    }
+}
+
 export const arrayEquals = (a: any[], b: any[]) => {
     if (!a || !b || a.length !== b.length) {
         return false;

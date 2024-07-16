@@ -10,8 +10,7 @@ import tailwind from "tailwindcss";
 import autoprefixer from "autoprefixer";
 
 const defaultOptions = {
-    base: "",
-
+    base: "./",
     css: {
         postcss: {
             plugins: [tailwind("./tailwind.config.ts"), autoprefixer()],
@@ -42,23 +41,19 @@ export default defineConfig((mode) => {
     if (mode.mode === "production") {
         return {
             ...defaultOptions,
-
             optimizeDeps: {
                 include: ["highlight.js"],
-                // noDiscovery: true,
             },
             build: {
-                minify: false,
-                sourcemap: true,
-
+                minify: true,
                 lib: {
                     entry: path.resolve(__dirname, "src/animation/index.ts"),
                     name: "Keyframes",
-                    fileName: "keyframes.js",
+                    fileName: "keyframes",
                     formats: ["es", "cjs"],
                 },
             },
-            plugins: [...defaultPlugins, dts()],
+            plugins: [...defaultPlugins, dts({ rollupTypes: true })],
         };
     } else if (mode.mode === "gh-pages") {
         return {

@@ -1,7 +1,12 @@
 import { easeInOutCubic, timingFunctions } from "../easing";
 import { ValueArray, ValueUnit } from "../units";
 
-export const DIRECTIONS = ["normal", "reverse", "alternate", "alternate-reverse"] as const;
+export const DIRECTIONS = [
+    "normal",
+    "reverse",
+    "alternate",
+    "alternate-reverse",
+] as const;
 
 export const FILL_MODES = ["none", "forwards", "backwards", "both"] as const;
 
@@ -12,11 +17,10 @@ export type Vars<T = any> = {
 };
 
 export type InterpolatedVar<T> = {
-    start: T;
-    stop: T;
+    start: ValueUnit;
+    stop: ValueUnit;
 
-    startValueUnit: ValueUnit;
-    stopValueUnit: ValueUnit;
+    value: ValueUnit;
 
     computed: boolean;
 };
@@ -36,6 +40,8 @@ export interface TemplateAnimationFrame<V extends Vars> {
 
 export interface AnimationFrame<V extends Vars> {
     id: number;
+
+    start: ValueUnit;
 
     ixs: {
         start: number;

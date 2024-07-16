@@ -72,9 +72,14 @@ export const getComputedValue = memoize((value: ValueUnit, target: HTMLElement) 
 export const normalizeNumericUnits = (
     a: ValueUnit,
     b: ValueUnit,
+    inplace: boolean = false,
 ): [ValueUnit, ValueUnit] => {
     if (a?.superType?.[0] !== b?.superType?.[0]) {
-        return [a, b];
+        if (inplace) {
+            return [a, b];
+        } else {
+            return [a.clone(), b.clone()];
+        }
     }
 
     const convertToNormalizedUnit = (
@@ -110,65 +115,69 @@ export const normalizeNumericUnits = (
 
     const [newA, newB] = [convertToNormalizedUnit(a), convertToNormalizedUnit(b)];
 
-    return [
-        new ValueUnit(
-            newA.value,
-            newA.unit,
-            a.superType,
-            a.subProperty,
-            a.property,
-            a.targets,
-        ),
-        new ValueUnit(
-            newB.value,
-            newB.unit,
-            b.superType,
-            b.subProperty,
-            b.property,
-            b.targets,
-        ),
-    ];
+    if (inplace) {
+        a.value = newA.value;
+        a.unit = newA.unit;
+
+        b.value = newB.value;
+        b.unit = newB.unit;
+
+        return [a, b];
+    } else {
+        return [
+            new ValueUnit(
+                newA.value,
+                newA.unit,
+                a.superType,
+                a.subProperty,
+                a.property,
+                a.targets,
+            ),
+            new ValueUnit(
+                newB.value,
+                newB.unit,
+                b.superType,
+                b.subProperty,
+                b.property,
+                b.targets,
+            ),
+        ];
+    }
 };
 
 export function normalizeValueUnits(left: ValueUnit, right: ValueUnit) {
-    left = left.coalesce(right);
-    right = right.coalesce(left);
+    left = left.coalesce(right, true);
+    right = right.coalesce(left, true);
 
     const out = {
-        start: left.value,
-        stop: right.value,
-
-        startValueUnit: left,
-        stopValueUnit: right,
+        start: left,
+        stop: right,
+        value: left.clone(),
     } as InterpolatedVar<any>;
 
-    if (left.unit === "string") {
-        out.start = left.value;
-        out.stop = left.value;
-    }
-    if (right.unit === "string") {
-        out.start = right.value;
-        out.stop = right.value;
-    }
-
     if (isColorUnit(left) && isColorUnit(right)) {
-        const [leftCollapsed, rightCollapsed] = normalizeColorUnits(left, right);
+        const [leftCollapsed, rightCollapsed] = normalizeColorUnits(
+            left,
+            right,
+            "lab",
+            true,
+        );
 
-        out.start = JSON.parse(JSON.stringify(leftCollapsed.value));
-        out.stop = JSON.parse(JSON.stringify(rightCollapsed.value));
-
-        out.startValueUnit = leftCollapsed;
-        out.stopValueUnit = rightCollapsed;
+        out.start = leftCollapsed;
+        out.stop = rightCollapsed;
+        out.value = leftCollapsed.clone();
     }
 
     if (left.unit !== right.unit) {
-        const [leftCollapsed, rightCollapsed] = normalizeNumericUnits(left, right);
+        const [leftCollapsed, rightCollapsed] = normalizeNumericUnits(
+            left,
+            right,
+            true,
+        );
 
-        out.start = leftCollapsed.value;
-        out.stop = rightCollapsed.value;
-
-        out.startValueUnit = leftCollapsed;
-        out.stopValueUnit = rightCollapsed;
+        out.start = leftCollapsed;
+        out.stop = rightCollapsed;
+        out.value = leftCollapsed.clone();
     }
 
     out.computed =

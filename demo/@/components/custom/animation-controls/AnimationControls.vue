@@ -9,10 +9,11 @@
         >
             <span class="grid">
                 <TabsList
-                    class="overflow-x-scroll w-full flex items-center justify-around fraunces bg-transparent text-3xl scrollbar-hidden"
+                    class="overflow-x-scroll w-full flex items-center justify-around fraunces bg-transparent scrollbar-hidden"
                 >
                     <TabsTrigger value="controls">Controls</TabsTrigger>
                     <TabsTrigger value="keyframes">Keyframes</TabsTrigger>
+                    <TabsTrigger value="color">Color</TabsTrigger>
                     <slot name="tabs-trigger"></slot>
                 </TabsList>
             </span>
@@ -40,6 +41,15 @@
                         :animation="animation"
                     ></KeyframesStringControls>
                 </TabsContent>
+
+                <TabsContent value="color">
+                    <ColorPicker
+                        @update="setColor"
+                        :color="color"
+                        class="w-full"
+                    ></ColorPicker>
+                </TabsContent>
+
                 <slot name="tabs-content"></slot>
             </div>
         </Tabs>
@@ -57,35 +67,9 @@ import * as animations from "@src/animation/animations";
 import { onMounted } from "vue";
 import AnimationControlsControls from "./AnimationControlsControls.vue";
 import { getStoredAnimationGroupControlOptions } from "./animationStores";
-
-const tabsContentEl = $ref<HTMLElement>(null);
-
-const fadeOut = animations
-    .blurOut({ duration: 100 })
-    .group(animations.fadeOut({ duration: 50 }));
-
-const fadeIn = animations
-    .blurIn({ duration: 100 })
-    .group(animations.fadeIn({ duration: 50 }));
-
-const selectControl = async (key: string) => {
-    const activeChild = tabsContentEl?.querySelector(
-        `[data-state="active"]`,
-    ) as HTMLElement;
-
-    fadeOut.stop();
-    fadeIn.stop();
-
-    await fadeOut.setTargets(activeChild).play();
-
-    storedControls.selectedControl = key.toString();
-
-    const newActiveChild = tabsContentEl?.querySelector(
-        `[id$="${key}"]`,
-    ) as HTMLElement;
-
-    await fadeIn.setTargets(newActiveChild).play();
-};
+import ColorPicker from "@components/custom/ColorPicker.vue";
+import { Color } from "@src/units/color";
+import { ValueUnit } from "@src/units";
 
 const { animation, isGrouped } = defineProps({
     animation: {
@@ -116,6 +100,43 @@ const emit = defineEmits<{
         },
     ): void;
 }>();
+
+const tabsContentEl = $ref<HTMLElement>(null);
+
+storedControls.colorOptions ??= {};
+
+const color = storedControls?.colorOptions?.color ?? "red";
+
+const setColor = (val: ValueUnit<Color<ValueUnit<number>>>) => {
+    storedControls.colorOptions.color = val.value.toString();
+};
+
+const fadeOut = animations
+    .blurOut({ duration: 75 })
+    .group(animations.fadeOut({ duration: 50 }));
+
+const fadeIn = animations
+    .blurIn({ duration: 75 })
+    .group(animations.fadeIn({ duration: 50 }));
+
+const selectControl = async (key: string) => {
+    const activeChild = tabsContentEl?.querySelector(
+        `[data-state="active"]`,
+    ) as HTMLElement;
+
+    fadeOut.stop();
+    fadeIn.stop();
+
+    await fadeOut.setTargets(activeChild).play();
+
+    storedControls.selectedControl = key.toString();
+
+    const newActiveChild = tabsContentEl?.querySelector(
+        `[id$="${key}"]`,
+    ) as HTMLElement;
+
+    await fadeIn.setTargets(newActiveChild).play();
+};
 
 onMounted(() => {});
 </script>

@@ -1,5 +1,120 @@
 <template>
-    <div ref="gridBackground" class="grid-background">
+    <div class="grid items-center justify-items-center justify-center relative">
+        <div ref="gridBackground" class="w-full h-full absolute grid-background"></div>
+
+        <div
+            :class="
+                'sticky p-4 lg:absolute col-span-2 z-[100] pointer-events-none top-0 w-full h-fit lg:w-min lg:right-0 flex flex-row-reverse lg:gap-4 gap-6 items-center justify-items-center lg:items-start lg:justify-center justify-between ' +
+                (!storedControls.selectedAnimation ? '' : ' ')
+            "
+        >
+            <DarkModeToggle
+                class="pointer-events-auto hover:opacity-50 hover:scale-105 w-8 aspect-square"
+            />
+            <HoverCard
+                v-model:open="hoverCardStates.mbabb"
+                :open-delay="0"
+                class="pointer-events-auto"
+            >
+                <HoverCardTrigger
+                    @click="hoverCardStates.mbabb = true"
+                    class="pointer-events-auto fira-code"
+                    ><Button class="p-0 m-0 cursor-pointer" variant="link"
+                        >@mbabb</Button
+                    >
+                </HoverCardTrigger>
+                <HoverCardContent class="z-[100] pointer-events-auto">
+                    <div class="flex gap-4 p-4 fira-code">
+                        <Avatar>
+                            <AvatarImage
+                                src="https://avatars.githubusercontent.com/u/2848617?v=4"
+                            >
+                            </AvatarImage>
+                        </Avatar>
+                        <div>
+                            <h4 class="text-sm font-semibold hover:underline">
+                                <a href="https://github.com/mkbabb">@mbabb</a>
+                            </h4>
+                            <p>
+                                Check out the project on
+                                <a
+                                    class="font-bold hover:underline"
+                                    href="https://github.com/mkbabb/keyframes.js"
+                                    >GitHub</a
+                                >🎉
+                            </p>
+                        </div>
+                    </div>
+                </HoverCardContent>
+            </HoverCard>
+
+            <HoverCard
+                :open-delay="0"
+                v-model:open="hoverCardStates.ppmycota"
+                class="pointer-events-auto"
+            >
+                <HoverCardTrigger
+                    ><div
+                        ref="ppmycotaLogoEl"
+                        @click="
+                            (e) => {
+                                hoverCardStates.ppmycota = true;
+                                setPPMode();
+                            }
+                        "
+                        class="ppmycota-logo-sm w-12 h-12 m-0 p-0 stroke-2 font-bold hover:scale-105 cursor-pointer pointer-events-auto"
+                    ></div>
+                </HoverCardTrigger>
+                <HoverCardContent class="z-[100] pointer-events-auto">
+                    <div class="flex gap-4 h-fit-content p-4">
+                        <div
+                            ref="ppmycotaLogoEl"
+                            class="ppmycota-logo-sm z-20 w-12 h-12 stroke-2 font-bold hover:scale-105 cursor-pointer"
+                        ></div>
+                        <div>
+                            <h4 class="fraunces">🙂‍↔️ 🌱 🍄‍🟫</h4>
+                            <p>
+                                <a
+                                    class="fraunces font-bold hover:underline"
+                                    href="https://ppmycota.com"
+                                    >ppmycota.com</a
+                                >
+                            </p>
+                        </div>
+                    </div>
+                </HoverCardContent>
+            </HoverCard>
+        </div>
+
+        <template v-if="!storedControls.selectedAnimation">
+            <div
+                class="lg:mt-16 mt-20 absolute px-6 w-screen h-0 grid items-center gap-0 left-0 top-0"
+            >
+                <h1 class="fraunces font-bold lg:text-7xl text-5xl p-0 grid lg:flex">
+                    <div>
+                        <AnimatedText
+                            class="depth-text"
+                            :text="startScreenText"
+                        ></AnimatedText>
+                    </div>
+
+                    <div>
+                        <AnimatedText
+                            class="dot-fade depth-text"
+                            :text="ellipsisText"
+                        ></AnimatedText>
+                    </div>
+                </h1>
+                <h2 class="fraunces italic font-light text-4xl w-full">
+                    from the list <List class="inline"></List> below.
+                </h2>
+                <h2 class="fraunces italic font-light text-xl w-full opacity-50">
+                    or drag M. cubért
+                    <span class="not-italic leading-none text-start">🙂‍↔️</span>
+                </h2>
+            </div>
+        </template>
+
         <AnimationControlsGroup
             :animation-group="animationGroup"
             :super-key="superKey"
@@ -30,7 +145,7 @@
                                             [
                                                 storedControls.matrixOptions
                                                     .selectedMatrixCell === i
-                                                    ? 'focus:font-bold font-bold'
+                                                    ? ' focus:font-bold font-bold'
                                                     : '',
                                             ]
                                         "
@@ -236,7 +351,7 @@
 
 <script setup lang="ts">
 // import { $ref } from "unplugin-vue-macros/macros";
-import { onMounted, reactive, watch } from "vue";
+import { computed, onMounted, reactive, watch } from "vue";
 
 import { Animated } from "@components/custom/animation-controls";
 
@@ -291,7 +406,7 @@ import {
 import { Input } from "@components/ui/input";
 import { Label } from "@components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
-
+import { AnimatedText } from "@components/custom/animation-controls";
 import {
     Select,
     SelectContent,
@@ -308,6 +423,11 @@ import { TransformState } from "@components/custom/orbital-drag";
 import { clamp } from "@src/math";
 import { transformTargetsStyle } from "@src/animation/utils";
 import { AnimationGroup } from "@src/animation/group";
+import { toast } from "vue-sonner";
+import { List } from "lucide-vue-next";
+
+let startScreenText = $ref("Select an animation");
+let ellipsisText = $ref("...");
 
 const MATRIX_AXES = ["x", "y", "z", "w"];
 
@@ -322,6 +442,38 @@ const defaultMatrixOptions = {
 const storedControls = getStoredAnimationGroupControlOptions(superKey);
 
 storedControls.matrixOptions ??= defaultMatrixOptions;
+
+const ppmycotaLogoEl = $ref<HTMLElement>(null);
+
+const hoverCardStates = $ref({
+    ppmycota: false,
+    mbabb: false,
+});
+
+const colorOptionsColor = computed(() => storedControls?.colorOptions?.color ?? "red");
+
+const setPPMode = () => {
+    const colorFilter1 =
+        "invert(83%) sepia(25%) saturate(519%) hue-rotate(123deg) brightness(85%) contrast(103%)";
+    const colorFilter2 =
+        "invert(58%) sepia(34%) saturate(2172%) hue-rotate(219deg) brightness(98%) contrast(106%)";
+
+    storedControls.ppMode = !storedControls.ppMode;
+
+    if (storedControls.ppMode) {
+        // ppmycotaLogoEl.style.filter = colorFilter2;
+        toast.success("PP Mode activated! 🎉", {
+            duration: 3000,
+            description: "🙂‍↔️ 🌱 🍄‍🟫",
+        });
+    } else {
+        // ppmycotaLogoEl.style.filter = colorFilter1;
+        toast.error("PP Mode deactivated! 😢", {
+            duration: 3000,
+            description: "🙂‍↔️ 🌱 🍄‍🟫",
+        });
+    }
+};
 
 const createMatrix = () =>
     new FunctionValue(
@@ -350,6 +502,7 @@ const transformSliderValues = $ref({
         y: 1,
         z: 1,
     },
+    matrix: mat4.create(),
 });
 
 const transformSliderOptions = {
@@ -509,6 +662,9 @@ function updateTransformations() {
     matrix3dEnd.values.forEach((value, i) => {
         value.setValue(transformationMatrix[i]);
     });
+    matrix3dStart.values.forEach((value, i) => {
+        value.setValue(transformationMatrix[i]);
+    });
 
     syncTransformations();
 }
@@ -523,11 +679,11 @@ const resetMatrix = () => {
 };
 
 const fixMatrix = () => {
-    if (matrix3dStart.values == matrix3dEnd.values) {
-        matrix3dStart.values = [...mat4.create()].map((v) => new ValueUnit(v));
-    } else {
-        matrix3dStart.values = matrix3dEnd.values;
-    }
+    // if (matrix3dStart.values == matrix3dEnd.values) {
+    //     matrix3dStart.values = [...mat4.create()].map((v) => new ValueUnit(v));
+    // } else {
+    // matrix3dStart.values = matrix3dEnd.values;
+    // }
 };
 
 const matrixAnimationOptions = getStoredAnimationOptions("Matrix", superKey);
@@ -648,7 +804,8 @@ onMounted(() => {
 
     changeGraphPerspectiveAnim.setTargets(graph);
 
-    // changeGraphPerspectiveAnim.play();
+    changeGraphPerspectiveAnim.play();
+
     hoverMatrixGroup.play();
 
     const encodedSVG = encodeURIComponent(`
@@ -666,6 +823,10 @@ onMounted(() => {
 .grid-background {
     background-size: 1rem !important;
     background-repeat: repeat;
+
+    // perspective: 900px;
+
+    // transform:  rotate3d(-1, 1, 0, 30deg) rotateX(90deg)  ;
 }
 
 .graph {

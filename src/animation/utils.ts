@@ -12,6 +12,7 @@ import {
     TimingFunctionNames,
     Vars,
 } from "./constants";
+import { Color } from "@src/units/color";
 
 export const getTimingFunction = (
     timingFunction: TimingFunction | TimingFunctionNames | undefined,
@@ -25,52 +26,57 @@ export const getTimingFunction = (
     return timingFunction;
 };
 
-export function lerpComputedValue<T>(t: number, value: InterpolatedVar<T>) {
-    const { start, stop, startValueUnit, stopValueUnit } = value;
+export function lerpComputedValue<T>(
+    t: number,
+    { start, stop, value }: InterpolatedVar<T>,
+) {
+    const newStartValueUnit = getComputedValue(start.clone(), start.targets?.[0]);
+    const newStopValueUnit = getComputedValue(stop.clone(), stop.targets?.[0]);
 
-    startValueUnit.value = start;
-    stopValueUnit.value = stop;
+    const newUnit = !COMPUTED_UNITS.includes(newStartValueUnit.unit)
+        ? newStartValueUnit.unit
+        : newStopValueUnit.unit;
 
-    const newstartValueUnit = getComputedValue(
-        startValueUnit,
-        startValueUnit.targets?.[0],
-    );
-    const newStopValueUnit = getComputedValue(
-        stopValueUnit,
-        stopValueUnit.targets?.[0],
-    );
+    const newValue = lerp(t, newStartValueUnit.value, newStopValueUnit.value);
 
-    const newUnit =
-        newstartValueUnit.unit !== "var"
-            ? newstartValueUnit.unit
-            : newStopValueUnit.unit;
+    value.value = newValue;
+    value.unit = newUnit;
 
-    const newValue = lerp(t, newstartValueUnit.value, newStopValueUnit.value);
-
-    startValueUnit.value = newValue;
-    startValueUnit.unit = newUnit;
+    return value;
 }
 
-export function lerpObject<T>(t: number, value: InterpolatedVar<T>) {
-    const { start, stop, startValueUnit } = value;
-
-    Object.keys(start).forEach((key) => {
-        startValueUnit.value[key] = lerp(t, start[key], stop[key]);
+export function lerpColorValue(
+    t: number,
+    { start, stop, value }: InterpolatedVar<Color>,
+) {
+    start.value.keys().forEach((key) => {
+        value.value[key] = lerp(t, start.value[key], stop.value[key]);
     });
+    return value;
+}
+
+export function lerpObjectValue<T>(
+    t: number,
+    { start, stop, value }: InterpolatedVar<T>,
+) {
+    Object.keys(start.value).forEach((key) => {
+        value.value[key] = lerp(t, start.value[key], stop.value[key]);
+    });
+    return value;
 }
 
 export function lerpValue<T>(t: number, value: InterpolatedVar<T>) {
-    const { start, stop, startValueUnit, computed } = value;
+    const { start, stop, computed } = value;
 
-    if (typeof start === "number" && typeof stop === "number") {
-        startValueUnit.value = lerp(t, start, stop);
+    if (typeof start.value === "number" && typeof stop.value === "number") {
+        value.value.value = lerp(t, start.value, stop.value);
+    } else if (start.unit === "color") {
+        lerpColorValue(t, value);
     } else if (computed) {
         lerpComputedValue(t, value);
-    } else if (startValueUnit.unit === "color") {
-        lerpObject(t, value);
     }
 
-    return startValueUnit;
+    return value;
 }
 
 export function parseAndFlattenObject(input: any) {
@@ -78,11 +84,15 @@ export function parseAndFlattenObject(input: any) {
 
     const parse = (key: string, value: any) => {
         const childKey = key.split(".").pop();
+        const mainKey = key.split(".").shift();
 
         if (value instanceof ValueUnit) {
+            value.setProperty(mainKey);
             return value;
         } else if (value instanceof FunctionValue) {
+            value.setProperty(mainKey);
             value.setSubProperty(childKey);
+
             return value.values.flat();
         } else if (value instanceof ValueArray) {
             return value.map((v) => parse(key, v)).flat();
@@ -94,8 +104,6 @@ export function parseAndFlattenObject(input: any) {
         })
             .or(CSSKeyframes.Value)
             .tryParse(String(value)) as ValueUnit | ValueArray;
-
-        const mainKey = key.split(".").shift();
 
         p.setProperty(mainKey);
 

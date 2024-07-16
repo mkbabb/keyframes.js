@@ -67,8 +67,9 @@ const ballEndValues = $ref({
 const getOptions = () => {
     return {
         ...animationOptions.value,
-        duration: 5000,
-        iterationCount: Infinity,
+        // direction: "alternate",
+        duration: 1000,
+        // iterationCount: Infinity,
     } as AnimationOptions;
 };
 
@@ -77,15 +78,15 @@ watch(animationOptions.value, (value) => {
     ballAnim.setOptions(options);
 });
 
-watch(transformValues, (value) => {
-    const { x, y, z } = value.translate;
+// watch(transformValues, (value) => {
+//     const { x, y, z } = value.translate;
 
-    ballStartValues.translateX.setValue(x);
-    ballStartValues.translateY.setValue(y);
+//     ballStartValues.translateX.setValue(x);
+//     ballStartValues.translateY.setValue(y);
 
-    ballEndValues.translateX.setValue(x);
-    ballEndValues.translateY.setValue(y);
-});
+//     ballEndValues.translateX.setValue(x);
+//     ballEndValues.translateY.setValue(y);
+// });
 
 const ballEl = $ref<HTMLElement | null>(null);
 
@@ -107,11 +108,10 @@ const ballEl = $ref<HTMLElement | null>(null);
 const ballAnim = new CSSKeyframesAnimation().fromString(/*css*/ `
 @keyframes ball {
     0% {
-        transform: translateX(0) ;
+        transform: translateX(0);
     }
     100% {
-        transform:
-        translateX(calc(100% - 20px)) translateY(calc(50vh + 10%));
+        transform: translateX(calc(100cqw - 100%));
 
     }
 }

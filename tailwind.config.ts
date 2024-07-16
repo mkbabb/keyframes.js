@@ -2,11 +2,6 @@ import { Config } from "tailwindcss";
 import * as animate from "tailwindcss-animate";
 
 const config: Config = {
-    // disable pre-flight
-    corePlugins: {
-        preflight: false,
-    },
-
     darkMode: ["selector"],
     safelist: ["dark"],
     prefix: "",

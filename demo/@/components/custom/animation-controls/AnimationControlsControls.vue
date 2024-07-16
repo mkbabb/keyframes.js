@@ -1,7 +1,7 @@
 <template>
     <div class="grid items-center gap-4 justify-items-center">
         <Card>
-            <CardContent class="relative grid items-center grid-cols-2 gap-1 pt-4">
+            <CardContent class="relative grid items-center grid-cols-2 gap-1">
                 <Label class="fraunces">Duration</Label>
                 <Input
                     type="string"
@@ -68,11 +68,10 @@
                     </SelectTrigger>
                     <SelectContent>
                         <SelectGroup class="fira-code">
-                            <SelectItem value="normal">normal</SelectItem>
-                            <SelectItem value="reverse">reverse</SelectItem>
-                            <SelectItem value="alternate">alternate</SelectItem>
-                            <SelectItem value="alternate-reverse"
-                                >alternate-reverse</SelectItem
+                            <SelectItem
+                                v-for="direction in DIRECTIONS"
+                                :value="direction"
+                                >{{ direction }}</SelectItem
                             >
                         </SelectGroup>
                     </SelectContent>
@@ -178,7 +177,7 @@
                             .timingFunction as any) === 'cubic-bezier'
                     "
                 >
-                    <Separator class="w-full col-span-2 mt-4"></Separator>
+                    <Separator class="w-full col-span-2 my-4"></Separator>
                     <CubicBezierControls
                         :animation="animation"
                         @update-timing-function="setAnimationTimingFunction"
@@ -188,7 +187,7 @@
 
                 <div
                     :class="
-                        'col-span-2 grid grid-cols-1 gap-2 mt-2 mb-2 sticky bottom-0 bg-background p-2 rounded-md' +
+                        'col-span-2 mt-2 w-full h-full grid gap-2 sticky bottom-0 bg-background rounded-md' +
                         (!animation.started ? ' disabled' : '')
                     "
                 >
@@ -201,7 +200,7 @@
                         @update:model-value="([t]) => (animation.t = t)"
                     />
 
-                    <div :class="'grid grid-cols-5 gap-2 w-full'">
+                    <div :class="'col-span-2 grid grid-cols-5 gap-2 w-full'">
                         <Button class="col-span-2 text-xl" @click="toggleAnimation">
                             <font-awesome-icon
                                 class="icon"
@@ -231,13 +230,14 @@
                             ><Trash></Trash>
                         </Button>
                     </div>
+
+                    <AnimationVisualizer
+                        class="col-span-2 w-full"
+                        v-bind:model-value="animation.options"
+                    ></AnimationVisualizer>
                 </div>
             </CardContent>
         </Card>
-        <AnimationVisualizer
-            class="w-full"
-            v-bind:model-value="animation.options"
-        ></AnimationVisualizer>
     </div>
 </template>
 
@@ -278,10 +278,12 @@ import {
 } from "./animationStores";
 import AnimationVisualizer from "./AnimationVisualizer.vue";
 import {
+    DIRECTIONS,
     FILL_MODES,
     TimingFunction,
     TimingFunctionNames,
 } from "@src/animation/constants";
+import CardTitle from "@components/ui/card/CardTitle.vue";
 
 let timingFunctionsAnd = {
     "cubic-bezier": "cubic-bezier",

@@ -1,6 +1,7 @@
 import { FunctionValue, ValueArray, ValueUnit } from ".";
 import { isObject } from "../utils";
-import { Color } from "./color/utils";
+import { Color } from "./color";
+
 import {
     ABSOLUTE_LENGTH_UNITS,
     ANGLE_UNITS,
@@ -14,25 +15,10 @@ import {
     UNITS,
 } from "./constants";
 
-export function isColorUnit(value: ValueUnit<Color>): value is ValueUnit<Color> {
+export function isColorUnit(
+    value: ValueUnit<Color<ValueUnit>>,
+): value is ValueUnit<Color<ValueUnit>> {
     return value.unit === "color";
-}
-
-export function traverseObject<T>(
-    obj: T,
-    fn: (key: string, value: ValueUnit, parentKey?: string) => void,
-    parentKey?: string,
-) {
-    for (const [key, value] of Object.entries(obj)) {
-        if (isObject(value)) {
-            const newParentKey = parentKey ? `${parentKey}.${key}` : key;
-            traverseObject(value, fn, newParentKey);
-        } else if (Array.isArray(value)) {
-            value.forEach((v, i) => traverseObject(v, fn, `${key}[${i}]`));
-        } else {
-            fn(key, value, parentKey);
-        }
-    }
 }
 
 export const flattenObject = (obj: any) => {

@@ -1,3 +1,5 @@
+import { mat4 } from "gl-matrix";
+
 export { default as OrbitalDrag } from "./OrbitalDrag.vue";
 
 export const axes = ["x", "y", "z"] as const;
@@ -18,6 +20,7 @@ export interface TransformState {
         y: number;
         z: number;
     };
+    matrix: mat4;
 }
 
 export interface TransformBounds {
@@ -72,6 +75,7 @@ export const defaultTransformState: TransformState = {
         y: 1,
         z: 1,
     },
+    matrix: mat4.create(),
 };
 
 export const defaultTransformBounds = {

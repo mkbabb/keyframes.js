@@ -78,6 +78,8 @@ export class Animation<V extends Vars = any> {
         name?: string | undefined,
         superKey?: string | undefined,
     ) {
+        this.options = {} as AnimationOptions;
+
         this.setOptions({ ...defaultOptions, ...(options ?? {}) });
 
         this.targets =
@@ -175,6 +177,7 @@ export class Animation<V extends Vars = any> {
         return {
             id,
             ixs,
+            start: startFrame.start,
             time,
             vars: undefined,
             flatVars: undefined,
@@ -257,7 +260,7 @@ export class Animation<V extends Vars = any> {
         this.frames.forEach((frame) => {
             frame.flatVars = Object.entries(frame.interpVars).reduce(
                 (acc, [key, value]) => {
-                    acc[key] = value.map((v) => v.startValueUnit);
+                    acc[key] = value.map((v) => v.value);
                     return acc;
                 },
                 {} as any,
@@ -328,15 +331,12 @@ export class Animation<V extends Vars = any> {
     }
 
     setOptions(options: Partial<InputAnimationOptions>) {
-        this.options = {} as AnimationOptions;
-
         this.setTimingFunction(options.timingFunction);
         this.setDuration(options.duration);
         this.setIterationCount(options.iterationCount);
         this.setDelay(options.delay);
         this.setDirection(options.direction);
         this.setFillMode(options.fillMode);
-
         return this;
     }
 
@@ -508,17 +508,15 @@ export class Animation<V extends Vars = any> {
     setTargets(...targets: HTMLElement[]) {
         this.targets = targets;
 
-        // this.templateFrames.forEach((frame) => {
-        //     Object.values(frame.vars).forEach((values) => {
-        //         (values as any).setTargets(this.targets);
-        //     });
-        // });
-
-        // this.frames.forEach((frame) => {
-        //     Object.values(frame.flatVars).forEach((values) => {
-        //         (values as any).setTargets(this.targets);
-        //     });
-        // });
+        this.frames.forEach((frame) => {
+            Object.values(frame.interpVars).forEach((values) => {
+                values.forEach(({ start, stop, value }) => {
+                    start.setTargets(this.targets);
+                    stop.setTargets(this.targets);
+                    value.setTargets(this.targets);
+                });
+            });
+        });
 
         return this;
     }
@@ -582,6 +580,6 @@ export class CSSKeyframesAnimation<V extends Vars> extends Animation<V> {
     }
 
     transform(vars: any) {
-        transformTargetsStyle(vars, this.targets);
+    transformTargetsStyle(vars, this.targets);
     }
 }

@@ -1,19 +1,18 @@
+import { Animation } from "@src/animation";
+import { AnimationFrame, AnimationOptions, Vars } from "@src/animation/constants";
+import { ValueUnit } from "@src/units";
+import { unflattenObjectToString } from "@src/units/utils";
 import prettier from "prettier";
 import prettierPostCSSPlugin from "prettier/plugins/postcss";
-
 import { timingFunctions } from "../easing";
-
-import { Animation } from "@src/animation";
-
 import { camelCaseToHyphen } from "../utils";
 import {
-    reverseCSSTime,
-    parseCSSKeyframes,
     parseCSSAnimationKeyframes,
+    parseCSSKeyframes,
+    reverseCSSTime,
 } from "./keyframes";
-import { AnimationOptions, Vars } from "@src/animation/constants";
 
-const DEFAULT_WIDTH = 80 / 2;
+const DEFAULT_WIDTH = 80;
 
 export async function formatCSS(
     css: string,
@@ -60,20 +59,18 @@ export function parseCSSAnimationOrKeyframes(keyframes: string): {
 }
 
 export const CSSKeyframesToStrings = async <V>(animation: Animation<V>) => {
-    const frameStrings = animation.templateFrames.map(async (frame) => {
+    const frameStrings = animation.frames.map(async (frame) => {
         let css = CSSKeyframeToString(frame);
 
         css = `${frame.start}\n${css}\n`;
 
         css = DEFAULT_KEYFRAME_HEADER + css + DEFAULT_KEYFRAME_FOOTER;
 
-        css = await formatCSS(css, 40);
+        css = await formatCSS(css, DEFAULT_WIDTH);
 
         return css
             .replace(DEFAULT_KEYFRAME_HEADER, "")
             .replace(DEFAULT_KEYFRAME_FOOTER, "");
-
-        // de-indent the css:
     });
 
     return Promise.all(frameStrings);
@@ -127,24 +124,16 @@ export function animationOptionsToString(
     return css;
 }
 
-export function CSSKeyframeToString<V extends Vars>(
-    frame: Animation<V>["templateFrames"][0],
-) {
-    let css = `{\n`;
+export function CSSKeyframeToString<V extends Vars>(frame: AnimationFrame<V>) {
+    const css = Object.entries(unflattenObjectToString(frame.flatVars))
+        .map(([name, v]) => {
+            name = camelCaseToHyphen(name);
+            return `  ${name}: ${v};`;
+        })
+        .join("\n")
+        .trim();
 
-    const reversedVars = {};
-    Object.entries(frame.vars).forEach(([key, value]: [string, ValueArray]) => {
-        reverseTransformObject(key, value, reversedVars);
-    });
-
-    for (let [name, v] of Object.entries(reversedVars)) {
-        name = camelCaseToHyphen(name);
-        let s = objectToString(name, v);
-        css += `  ${name}: ${s};\n`;
-    }
-    css += "  }\n";
-
-    return css;
+    return `{\n${css}\n}`;
 }
 
 export async function CSSKeyframesToString<V extends Vars>(
@@ -155,7 +144,7 @@ export async function CSSKeyframesToString<V extends Vars>(
     const options = animation.options;
     const keyframesMap = new Map<string, ValueUnit[]>();
 
-    animation.templateFrames.forEach(async (frame) => {
+    animation.frames.forEach(async (frame) => {
         const cssString = CSSKeyframeToString(frame);
 
         if (!keyframesMap.has(cssString)) {

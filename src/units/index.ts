@@ -1,4 +1,4 @@
-import { Color } from "./color/utils";
+import { clone } from "@src/utils";
 import { BLACKLISTED_COALESCE_UNITS, UNITS } from "./constants";
 import { isColorUnit } from "./utils";
 
@@ -42,15 +42,7 @@ export class ValueUnit<T = any, U = (typeof UNITS)[number] | string> {
         }
 
         if (isColorUnit(this as any)) {
-            const values = Object.keys(this.value)
-                .filter((k) => k !== "alpha")
-                .map((k) => this.value[k]);
-
-            const alpha = (this.value as any)?.alpha ?? 1;
-
-            const name = this.superType?.[1] ?? "rgb";
-
-            return `${name}(${values.join(" ")} / ${alpha})`;
+            return this.value.toString();
         } else if (this.unit === "var") {
             return `var(${this.value})`;
         } else if (this.unit === "calc") {
@@ -66,15 +58,15 @@ export class ValueUnit<T = any, U = (typeof UNITS)[number] | string> {
 
     clone(): ValueUnit<T> {
         return new ValueUnit(
-            this.value,
+            clone(this.value),
             this.unit,
-            this.superType,
+            clone(this.superType),
             this.subProperty,
             this.property,
         );
     }
 
-    coalesce(right?: ValueUnit): ValueUnit {
+    coalesce(right?: ValueUnit, inplace: boolean = false): ValueUnit {
         if (right == null) {
             return this;
         }
@@ -82,14 +74,24 @@ export class ValueUnit<T = any, U = (typeof UNITS)[number] | string> {
             return this;
         }
 
-        return new ValueUnit(
-            this.value,
-            this.unit ?? right.unit,
-            this.superType ?? right.superType,
-            this.subProperty ?? right.subProperty,
-            this.property ?? right.property,
-            this.targets ?? right.targets,
-        ) as any;
+        if (inplace) {
+            this.unit ??= right.unit;
+            this.superType ??= right.superType;
+            this.subProperty ??= right.subProperty;
+            this.property ??= right.property;
+            this.targets ??= right.targets;
+
+            return this;
+        } else {
+            return new ValueUnit(
+                clone(this.value),
+                this.unit ?? right.unit,
+                clone(this.superType ?? right.superType),
+                this.subProperty ?? right.subProperty,
+                this.property ?? right.property,
+                this.targets ?? right.targets,
+            ) as any;
+        }
     }
 }
 

@@ -16,24 +16,22 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, watch } from "vue";
+import { clamp } from "@src/math";
+import { ANGLE_UNITS } from "@src/units/constants";
 import { useEventListener, useRafFn } from "@vueuse/core";
+import * as THREE from "three";
+import { onMounted, onUnmounted, watch } from "vue";
 import {
+    TransformBounds,
     TransformState,
     VelocityState,
     axes,
+    defaultTransformBounds,
     defaultTransformState,
     defaultVelocityState,
-    TransformBounds,
-    defaultTransformBounds,
 } from ".";
-import * as THREE from "three";
 
-import { clamp } from "@src/math";
-
-import { angleUnits } from "@src/parsing/units";
-
-const normalizeAngle = (angle: number, unit: (typeof angleUnits)[number]): number => {
+const normalizeAngle = (angle: number, unit: (typeof ANGLE_UNITS)[number]): number => {
     switch (unit) {
         case "rad":
             return angle % (2 * Math.PI);
@@ -60,7 +58,7 @@ const props = defineProps<{
     sensitivity?: number;
     translationFactor?: number;
     inertiaFactor?: number;
-    rotationUnit?: (typeof angleUnits)[number];
+    rotationUnit?: (typeof ANGLE_UNITS)[number];
     scaleFactor?: number;
     bounds?: TransformBounds;
 }>();
@@ -116,7 +114,7 @@ const sensitivity = props.sensitivity ?? 0.5;
 const translationFactor = props.translationFactor ?? 0.8;
 const inertiaFactor = props.inertiaFactor ?? 0.95;
 const rotationUnit = props.rotationUnit ?? "deg";
-const scaleFactor = props.scaleFactor ?? 0.01;
+const scaleFactor = props.scaleFactor ?? 0.02;
 
 const getDefaultVelocityState = () => {
     return JSON.parse(JSON.stringify(defaultVelocityState));
@@ -143,9 +141,6 @@ const rotateAroundAxis = (axis: THREE.Vector3, angle: number) => {
 
     // Apply new rotation
     currentQuaternion.premultiply(quaternion);
-
-    const toFlip = currentQuaternion.w < 0;
-    const sgn = toFlip ? -1 : 1;
 
     // Convert back to Euler angles
     const newEuler = new THREE.Euler().setFromQuaternion(currentQuaternion, "XYZ");
