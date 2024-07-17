@@ -31,7 +31,7 @@
                         @click="
                             copyToClipboard(denormalizedCurrentColor.value.toString())
                         "
-                        class="w-8 absolute top-0 right-0 aspect-square rounded-full hover:scale-125 flex items-center justify-items-center justify-center transition-all cursor-pointer"
+                        class="w-16 absolute top-0 right-0 aspect-square rounded-full hover:scale-125 flex items-center justify-items-center justify-center transition-transform cursor-pointer"
                         :style="{
                             backgroundColor: denormalizedCurrentColor.value.toString(),
                         }"
@@ -82,7 +82,7 @@
                     @mouseleave="stopDragging"
                 >
                     <div
-                        class="w-6 h-6 border-2 border-solid border-background rounded-full shadow-md absolute -translate-x-1/2 -translate-y-1/2"
+                        class="w-6 aspect-square border-2 border-solid border-background rounded-full shadow-md absolute -translate-x-1/2 -translate-y-1/2"
                         :style="spectrumDotStyle"
                     ></div>
                 </div>
@@ -166,9 +166,18 @@
                             >
                                 <SliderRange class="absolute h-full bg-transparent" />
                             </SliderTrack>
-                            <SliderThumb
-                                class="block h-full w-3 rounded-sm border-2 border-background bg-transparent transition-colors focus-visible:outline-none"
-                            />
+                            <TooltipProvider :skip-delay-duration="0" :delay-duration="100">
+                                <Tooltip>
+                                    <TooltipTrigger as-child>
+                                        <SliderThumb
+                                            class="block h-full w-3 rounded-sm border-2 border-background bg-transparent transition-colors focus-visible:outline-none"
+                                        />
+                                    </TooltipTrigger>
+                                    <TooltipContent class="fira-code">
+                                        {{ denormalizedCurrentColor.value[component].toFixed(2) }}
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
                         </SliderRoot>
                     </div>
                 </div>
