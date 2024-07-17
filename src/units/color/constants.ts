@@ -1,3 +1,5 @@
+import { vec3, mat3 } from "gl-matrix";
+
 export const RGBA_MAX = 255;
 
 export const ALPHA_RANGE = {
@@ -12,7 +14,7 @@ export const RGB_RANGE = {
 
 export const HUE_RANGE = {
     deg: { min: 0, max: 360 },
-    number: ALPHA_RANGE.number,
+    number: { min: 0, max: 360 },
     "%": ALPHA_RANGE["%"],
 } as const;
 
@@ -155,6 +157,32 @@ export const COLOR_SPACE_NAMES = {
     xyz: "XYZ",
     kelvin: "Kelvin",
 } as const;
+
+// From CIE 15:2004 table T.3
+export const WHITE_POINT_D65 = vec3.fromValues(
+    ...[0.3127 / 0.329, 1.0, (1.0 - 0.3127 - 0.329) / 0.329],
+);
+
+export const WHITE_POINT_D50 = vec3.fromValues(
+    ...[0.3457 / 0.3585, 1.0, (1.0 - 0.3457 - 0.3585) / 0.3585],
+);
+
+export const WHITE_POINT_D65_D50 = mat3.fromValues(
+    ...[1.0479297925449969, 0.022946870601609652, -0.05019226628920524],
+    ...[0.02962780877005599, 0.9904344267538799, -0.017073799063418826],
+    ...[-0.009243040646204504, 0.015055191490298152, 0.7518742814281371],
+);
+mat3.transpose(WHITE_POINT_D65_D50, WHITE_POINT_D65_D50);
+
+export const WHITE_POINT_D50_D65 = mat3.create();
+mat3.invert(WHITE_POINT_D50_D65, WHITE_POINT_D65_D50);
+
+export const WHITE_POINTS = {
+    D65: WHITE_POINT_D65,
+    D50: WHITE_POINT_D50,
+};
+
+export type WhitePoint = keyof typeof WHITE_POINTS;
 
 export const COLOR_NAMES = {
     aliceblue: "#f0f8ff",

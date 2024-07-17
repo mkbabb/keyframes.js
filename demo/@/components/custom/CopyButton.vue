@@ -1,6 +1,7 @@
 <template>
     <span
-        class="cursor-pointer relative text-foreground p-0 m-0 h-4 w-4"
+        v-bind="$attrs"
+        class="cursor-pointer relative text-foreground p-0 m-0"
         @click="handleClick"
     >
         <Clipboard v-bind="$attrs" class="clipboard" ref="clipboard" />
@@ -45,7 +46,7 @@ const copyToClipboard = (text) => {
 };
 
 const options: Partial<InputAnimationOptions> = {
-    duration: 400,
+    duration: 200,
     timingFunction: "bounceInEase",
 };
 

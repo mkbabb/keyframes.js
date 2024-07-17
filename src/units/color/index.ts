@@ -1,5 +1,15 @@
 import { clone } from "@src/utils";
-import { ColorSpace } from "./constants";
+import { ColorSpace, WhitePoint } from "./constants";
+
+const formatNumber = <T>(value: number | T, digits: number = 2) => {
+    return ((value as any)?.toFixed(digits) ?? value.toString())
+        .trim()
+        .replace(/\.0+$/, "");
+};
+
+const formatColor = <T>(colorSpace: ColorSpace, values: T[], alpha: T) => {
+    return `${colorSpace}(${values.join(" ")} / ${alpha})`;
+};
 
 export abstract class Color<T = number> {
     protected components: Map<string, T>;
@@ -12,7 +22,17 @@ export abstract class Color<T = number> {
     }
 
     toString(): string {
-        return `${this.colorSpace}(${Array.from(this.components.values()).join(" ")} / ${this.alpha})`;
+        return formatColor(
+            this.colorSpace,
+            Array.from(this.components.values()),
+            this.alpha,
+        );
+    }
+
+    toFormattedString(digits: number = 2): string {
+        const values = Array.from(this.components.values()).map(formatNumber, digits);
+        const alpha = formatNumber(this.alpha, digits);
+        return formatColor(this.colorSpace, values, alpha);
     }
 
     valueOf(): T[] {
@@ -61,6 +81,16 @@ export abstract class Color<T = number> {
 
     protected setComponent(key: string, value: T): void {
         this.components.set(key, value);
+    }
+}
+
+class WhitePointColor<T = number> extends Color<T> {
+    constructor(
+        colorSpace: ColorSpace,
+        alpha: T,
+        public whitePoint: WhitePoint,
+    ) {
+        super(colorSpace, alpha);
     }
 }
 
@@ -184,9 +214,9 @@ export class HWBColor<T = number> extends Color<T> {
     }
 }
 
-export class LABColor<T = number> extends Color<T> {
+export class LABColor<T = number> extends WhitePointColor<T> {
     constructor(l: T, a: T, b: T, alpha?: T) {
-        super("lab", alpha);
+        super("lab", alpha, "D50");
         this.components.set("l", l);
         this.components.set("a", a);
         this.components.set("b", b);
@@ -244,9 +274,9 @@ export class LCHColor<T = number> extends Color<T> {
     }
 }
 
-export class OKLABColor<T = number> extends Color<T> {
+export class OKLABColor<T = number> extends WhitePointColor<T> {
     constructor(l: T, a: T, b: T, alpha?: T) {
-        super("oklab", alpha);
+        super("oklab", alpha, "D50");
         this.components.set("l", l);
         this.components.set("a", a);
         this.components.set("b", b);
@@ -304,9 +334,9 @@ export class OKLCHColor<T = number> extends Color<T> {
     }
 }
 
-export class XYZColor<T = number> extends Color<T> {
+export class XYZColor<T = number> extends WhitePointColor<T> {
     constructor(x: T, y: T, z: T, alpha?: T) {
-        super("xyz", alpha);
+        super("xyz", alpha, "D65");
         this.components.set("x", x);
         this.components.set("y", y);
         this.components.set("z", z);
@@ -350,13 +380,18 @@ export class KelvinColor<T = number> extends Color<T> {
 
 export type ColorSpaceMap<T> = {
     rgb: RGBColor<T>;
+
     hsl: HSLColor<T>;
     hsv: HSVColor<T>;
     hwb: HWBColor<T>;
+
     lab: LABColor<T>;
     lch: LCHColor<T>;
+
     oklab: OKLABColor<T>;
     oklch: OKLCHColor<T>;
-    xyz: XYZColor<T>;
+
     kelvin: KelvinColor<T>;
+
+    xyz: XYZColor<T>;
 };

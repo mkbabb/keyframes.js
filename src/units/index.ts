@@ -56,14 +56,21 @@ export class ValueUnit<T = any, U = (typeof UNITS)[number] | string> {
         return this.valueOf();
     }
 
+    toFixed(fractionDigits: number = 2) {
+        const value = Number(this.value).toFixed(fractionDigits).replace(/\.0+$/, "");
+        return new ValueUnit(value).coalesce(this, true).toString();
+    }
+
     clone(): ValueUnit<T> {
-        return new ValueUnit(
+        const value = new ValueUnit(
             clone(this.value),
             this.unit,
             clone(this.superType),
             this.subProperty,
             this.property,
         );
+
+        return value;
     }
 
     coalesce(right?: ValueUnit, inplace: boolean = false): ValueUnit {
@@ -83,7 +90,7 @@ export class ValueUnit<T = any, U = (typeof UNITS)[number] | string> {
 
             return this;
         } else {
-            return new ValueUnit(
+            const value = new ValueUnit(
                 clone(this.value),
                 this.unit ?? right.unit,
                 clone(this.superType ?? right.superType),
@@ -91,6 +98,8 @@ export class ValueUnit<T = any, U = (typeof UNITS)[number] | string> {
                 this.property ?? right.property,
                 this.targets ?? right.targets,
             ) as any;
+
+            return value;
         }
     }
 }

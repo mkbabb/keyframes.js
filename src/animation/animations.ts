@@ -644,7 +644,7 @@ const hoverKeyframes = /*css*/ `
   transform: translateY(0px);
 }
 50% {
-  transform: translateY(10px);
+  transform: translateY(5px);
 }
 100% {
   transform: translateY(0px);
@@ -656,7 +656,7 @@ export const hover = (options?: InputAnimationOptions) =>
         duration: 3000,
         timingFunction: "ease-in-out",
         iterationCount: Infinity,
-        // fillMode: "both",
+        fillMode: "none",
         direction: "alternate",
         ...(options ?? {}),
     }).fromString(hoverKeyframes);

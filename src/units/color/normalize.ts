@@ -13,7 +13,7 @@ const getColorSpaceBounds = (
     return ranges[unit] ?? ranges.number;
 };
 
-export const normalizeColorComponent = (
+export const normalizeColorUnitComponent = (
     v: number,
     unit: string,
     colorSpace: ColorSpace,
@@ -45,57 +45,17 @@ export const normalizeColor = (
                 ? color[component].value
                 : color[component];
 
-        color[component] = normalizeColorComponent(
+        color[component] = normalizeColorUnitComponent(
             value,
             color[component]?.unit,
             colorSpace,
             component,
             inverse,
         );
-
-        // if (!inverse) {
-        //     color[component].unit = color[component]?.unit;
-        // }
     });
 
     return color as Color<ValueUnit<number>>;
 };
-
-// export const normalizeColor = (
-//     color: Color<ValueUnit<number> | number>,
-//     inverse: boolean = false,
-// ) => {
-//     const normalize = (
-//         v: number,
-//         unit: string,
-//         colorSpace: ColorSpace,
-//         component: string,
-//     ) => {
-//         const { min, max } = getColorSpaceBounds(unit, colorSpace, component);
-
-//         const [toMin, toMax, fromMin, fromMax] = inverse
-//             ? [min, max, 0, 1]
-//             : [0, 1, min, max];
-
-//         const value = scale(v, fromMin, fromMax, toMin, toMax);
-
-//         return new ValueUnit(value, inverse ? unit : "");
-//     };
-
-//     const colorSpace = color.colorSpace;
-
-//     color.keys().forEach((key) => {
-//         const value = color[key] instanceof ValueUnit ? color[key].value : color[key];
-
-//         const unit = inverse
-//             ? COLOR_SPACE_DENORM_UNITS[colorSpace][key]
-//             : color[key]?.unit;
-
-//         color[key] = normalize(value, unit, colorSpace, key);
-//     });
-
-//     return color as Color<ValueUnit<number>>;
-// };
 
 export const normalizeColorUnit = (
     color: ValueUnit<Color<ValueUnit<number>>, "color">,

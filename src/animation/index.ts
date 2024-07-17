@@ -5,6 +5,7 @@ import { parseCSSKeyframes, parseCSSPercent, parseCSSTime } from "../parsing/key
 import { parseCSSValueUnit } from "../parsing/units";
 import { ValueUnit } from "../units";
 import {
+    isObject,
     memoizeDecorator,
     requestAnimationFrame,
     seekPreviousValue,
@@ -549,14 +550,18 @@ export class CSSKeyframesAnimation<V extends Vars> extends Animation<V> {
     }
 
     fromKeyframes(
-        keyframes: Record<string, Partial<V>>,
+        keyframes: Map<string, Partial<V>> | Record<string, Partial<V>>,
         transform?: TransformFunction<V>,
     ) {
         this.unflatten = transform != null;
         transform ??= this.transform.bind(this);
 
-        for (const [percent, frame] of Object.entries(keyframes)) {
-            this.addFrame(parseCSSPercent(percent), frame, transform);
+        if (isObject(keyframes)) {
+            keyframes = new Map(Object.entries(keyframes));
+        }
+
+        for (const [percent, frame] of (keyframes as any).entries()) {
+            this.addFrame(percent, frame, transform);
         }
 
         this.parse();
@@ -580,6 +585,6 @@ export class CSSKeyframesAnimation<V extends Vars> extends Animation<V> {
     }
 
     transform(vars: any) {
-    transformTargetsStyle(vars, this.targets);
+        transformTargetsStyle(vars, this.targets);
     }
 }

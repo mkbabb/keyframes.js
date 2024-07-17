@@ -190,7 +190,11 @@ import * as animations from "@src/animation/animations";
 
 import * as monaco from "monaco-editor";
 import { convert2 } from "@src/units/utils";
-import { CSSKeyframesToString } from "@src/parsing/format";
+import {
+    CSSKeyframesToString,
+    formatCSS,
+    parseCSSAnimationOrKeyframes,
+} from "@src/parsing/format";
 
 monaco.editor.defineTheme("dark-theme", DarkTheme as any);
 monaco.editor.defineTheme("light-theme", LightTheme as any);
@@ -295,7 +299,6 @@ function onKeyDown(e: KeyboardEvent) {
 
 const updateAnimationFromKeyframesString = debounce(
     (editor: monaco.editor.IStandaloneCodeEditor) => {
-        // get the text content of the el using the monaco editor
         const keyframesString = editor.getValue();
 
         const parseAndUpdate = () => {
@@ -305,7 +308,7 @@ const updateAnimationFromKeyframesString = debounce(
             const tmpAnimation = new CSSKeyframesAnimation(
                 options,
                 ...animation.targets,
-            ).fromString(keyframes).animation;
+            ).fromKeyframes(keyframes);
 
             animation.options = tmpAnimation.options;
             animation.templateFrames = tmpAnimation.templateFrames;
@@ -341,7 +344,7 @@ const updateAnimationFromKeyframesString = debounce(
         }
     },
     200,
-    true,
+    false,
 );
 
 const updateAnimationFromKeyframeString = debounce(
@@ -392,7 +395,7 @@ const addKeyframesStringToAnimation = (keyframesString: string) => {
 
     const parseAndUpdate = () => {
         const { options, values, keyframes } =
-            parseCSSAnimationOrKeyframes(keyframesString);
+            parseCSSAnimationKeyframes(keyframesString);
 
         const tmpAnimation = new Animation(
             options ?? animation.options,
@@ -464,7 +467,7 @@ const removeKeyframe = async (e: Event, frameIx: number) => {
 
     tmpAnimation.parse();
 
-    animation.updateFrom(tmpAnimation);
+    // animation.updateFrom(tmpAnimation);
 };
 
 let keyframesStyle = $ref(null);
@@ -593,4 +596,4 @@ onMounted(async () => {
 }
 </style>
 import { CSSKeyframesToString, formatCSS, parseCSSAnimationOrKeyframes } from
-"@src/parsing/format";
+"@src/parsing/format";, formatCSS, parseCSSAnimationOrKeyframes

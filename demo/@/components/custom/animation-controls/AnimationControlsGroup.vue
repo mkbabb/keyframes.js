@@ -120,9 +120,9 @@
                 :toastOptions="{
                     unstyled: true,
                     classes: {
-                        toast: 'bg-foreground text-background rounded-lg fraunces px-6 py-4 grid grid-cols-1 gap-2 shadow-lg h-32 lg:w-96 w-full',
-                        title: 'font-bold text-2xl',
-                        description: 'font-normal text-lg',
+                        toast: 'bg-foreground text-background rounded-md fraunces px-6 py-4 grid grid-cols-1 gap-2 shadow-lg h-32 lg:w-96 w-full ',
+                        title: 'font-bold text-xl',
+                        description: 'font-normal text-md',
                         actionButton: '',
                         cancelButton: '',
                         closeButton: '',
@@ -269,24 +269,24 @@ const keyframesUpdate = (e: { animation: Animation<any> }) => {
 };
 
 const reset = (target: HTMLElement, all: boolean = false) => {
-//     new CSSKeyframesAnimation(
-//         {
-//             duration: 700,
-//             timingFunction: "easeInBounce",
-//         },
-//         target,
-//     )
-//         .fromString(
-//             /*css*/ `@keyframes rotate {
-//     0% {
-//         transform: rotate(0deg);
-//     }
-//     100% {
-//         transform: rotate(360deg);
-//     }
-// }`,
-//         )
-//         .play();
+    //     new CSSKeyframesAnimation(
+    //         {
+    //             duration: 700,
+    //             timingFunction: "easeInBounce",
+    //         },
+    //         target,
+    //     )
+    //         .fromString(
+    //             /*css*/ `@keyframes rotate {
+    //     0% {
+    //         transform: rotate(0deg);
+    //     }
+    //     100% {
+    //         transform: rotate(360deg);
+    //     }
+    // }`,
+    //         )
+    //         .play();
 
     animationGroup.reset();
     storedControls.selectedAnimation = null;

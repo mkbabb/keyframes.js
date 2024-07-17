@@ -14,60 +14,68 @@ import {
     unpackMatrixValues,
 } from "./utils";
 
-export const getComputedValue = memoize((value: ValueUnit, target: HTMLElement) => {
-    const get = () => {
-        if (!target) {
-            return value;
-        }
-
-        if (value.unit === "var") {
-            const computed = getComputedStyle(target).getPropertyValue(value.value);
-            return parseCSSValueUnit(computed);
-        }
-
-        if (
-            value.unit === "calc" &&
-            value.property &&
-            value.subProperty &&
-            value.value &&
-            target
-        ) {
-            const originalValue = target.style[value.property];
-
-            const newValue = value.subProperty
-                ? `${value.subProperty}(${value.toString()})`
-                : value.toString();
-
-            target.style[value.property] = newValue;
-
-            const computed = getComputedStyle(target).getPropertyValue(value.property);
-
-            target.style[value.property] = originalValue;
-
-            const p = parseCSSKeyframesValue(computed);
-
-            if (p instanceof ValueUnit) {
-                return p;
+export const getComputedValue = memoize(
+    (value: ValueUnit, target: HTMLElement) => {
+        const get = () => {
+            if (!target) {
+                return value;
             }
 
-            if (p.name.startsWith("matrix")) {
-                const matrixValues = unpackMatrixValues(p);
+            if (value.unit === "var") {
+                const computed = getComputedStyle(target).getPropertyValue(value.value);
+                return parseCSSValueUnit(computed);
+            }
 
-                const matrixSubValue = matrixValues[value.subProperty];
+            if (
+                value.unit === "calc" &&
+                value.property &&
+                value.subProperty &&
+                value.value &&
+                target
+            ) {
+                const originalValue = target.style[value.property];
 
-                if (matrixSubValue != null) {
-                    return new ValueUnit(matrixSubValue, "px", ["length", "absolute"]);
+                const newValue = value.subProperty
+                    ? `${value.subProperty}(${value.toString()})`
+                    : value.toString();
+
+                target.style[value.property] = newValue;
+
+                const computed = getComputedStyle(target).getPropertyValue(
+                    value.property,
+                );
+
+                target.style[value.property] = originalValue;
+
+                const p = parseCSSKeyframesValue(computed);
+
+                if (p instanceof ValueUnit) {
+                    return p;
+                }
+
+                if (p.name.startsWith("matrix")) {
+                    const matrixValues = unpackMatrixValues(p);
+
+                    const matrixSubValue = matrixValues[value.subProperty];
+
+                    if (matrixSubValue != null) {
+                        return new ValueUnit(matrixSubValue, "px", [
+                            "length",
+                            "absolute",
+                        ]);
+                    }
                 }
             }
-        }
 
-        return value;
-    };
+            return value;
+        };
 
-    const newValue = get();
+        const newValue = get();
 
-    return newValue.coalesce(value);
-});
+        return newValue.coalesce(value);
+    },
+    { keyFn: (value, target) => `${value.toString()}-${JSON.stringify(target)}` },
+);
 
 export const normalizeNumericUnits = (
     a: ValueUnit,

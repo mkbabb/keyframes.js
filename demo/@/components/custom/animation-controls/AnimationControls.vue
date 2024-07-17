@@ -46,6 +46,7 @@
                     <ColorPicker
                         @update="setColor"
                         :color="color"
+                        :animation="animation"
                         class="w-full"
                     ></ColorPicker>
                 </TabsContent>

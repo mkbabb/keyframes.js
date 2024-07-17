@@ -66,17 +66,19 @@ const ballEndValues = $ref({
 
 const getOptions = () => {
     return {
-        ...animationOptions.value,
+        ...(animationOptions?.value ?? {}),
         // direction: "alternate",
         duration: 1000,
         // iterationCount: Infinity,
     } as AnimationOptions;
 };
 
-watch(animationOptions.value, (value) => {
+const setOptions = () => {
     const options = getOptions();
     ballAnim.setOptions(options);
-});
+};
+
+watch(animationOptions.value, setOptions);
 
 // watch(transformValues, (value) => {
 //     const { x, y, z } = value.translate;
@@ -136,9 +138,7 @@ const ballTranslationAnim = new CSSKeyframesAnimation({
 ]);
 
 onMounted(() => {
-    const options = getOptions();
-
-    ballAnim.options = options;
+    setOptions();
 
     ballAnim.setTargets(ballEl);
     ballTranslationAnim.setTargets(ballEl);
