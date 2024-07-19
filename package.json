@@ -1,5 +1,5 @@
 {
-    "name": "keyframes.ts",
+    "name": "@mkbabb/keyframes.js",
     "version": "0.9.97",
     "description": "Create keyframe animations for anything in JavaScript; specify your keyframes in standards-complaint CSS.",
     "licenses": [
