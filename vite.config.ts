@@ -1,73 +1,98 @@
 import { defineConfig } from "vite";
 import path from "path";
 
-import VueMacros from "unplugin-vue-macros/vite";
 import Vue from "@vitejs/plugin-vue";
 
 import dts from "vite-plugin-dts";
 
-import tailwind from "tailwindcss";
-import autoprefixer from "autoprefixer";
+import tailwindcss from "@tailwindcss/postcss";
 
 const defaultOptions = {
-    base: "./",
     css: {
         postcss: {
-            plugins: [tailwind("./tailwind.config.ts"), autoprefixer()],
+            plugins: [tailwindcss()],
         },
     },
 
     resolve: {
         alias: {
-            "@src": path.resolve(__dirname, "src"),
-            "@styles": path.resolve(__dirname, "demo/@/styles"),
-            "@components": path.resolve(__dirname, "demo/@/components"),
-            "@utils": path.resolve(__dirname, "demo/@/utils"),
-            "@assets": path.resolve(__dirname, "assets"),
+            "@src": path.resolve(import.meta.dirname, "src"),
+            "@styles": path.resolve(import.meta.dirname, "demo/@/styles"),
+            "@components": path.resolve(import.meta.dirname, "demo/@/components"),
+            "@utils": path.resolve(import.meta.dirname, "demo/@/utils"),
+            "@assets": path.resolve(import.meta.dirname, "assets"),
         },
     },
 };
 
-const defaultPlugins = [
-    VueMacros({
-        betterDefine: false,
-        plugins: {
-            vue: Vue(),
-        },
-    }),
-];
+const defaultPlugins = [Vue()];
 
 export default defineConfig((mode) => {
     if (mode.mode === "production") {
         return {
             ...defaultOptions,
-            optimizeDeps: {
-                include: ["highlight.js"],
-            },
+            optimizeDeps: {},
             build: {
                 minify: true,
                 lib: {
-                    entry: path.resolve(__dirname, "src/animation/index.ts"),
+                    entry: path.resolve(import.meta.dirname, "src/animation/index.ts"),
                     name: "Keyframes",
                     fileName: "keyframes",
                     formats: ["es", "cjs"],
                 },
+                rollupOptions: {
+                    external: ["vue", "prettier"],
+                },
             },
-            plugins: [...defaultPlugins, dts({ rollupTypes: true })],
+            esbuild: {
+                drop: ["console", "debugger"],
+            },
+            plugins: [...defaultPlugins, dts({ rollupTypes: true, include: ["src/"] })],
         };
     } else if (mode.mode === "gh-pages") {
         return {
             ...defaultOptions,
+            base: "./",
             root: "./demo/cube/",
             build: {
-                outDir: path.resolve(__dirname, "./dist/"),
+                outDir: path.resolve(import.meta.dirname, "./dist/"),
                 emptyOutDir: true,
                 minify: true,
-                sourcemap: true,
+                sourcemap: false,
+                rollupOptions: {
+                    output: {
+                        manualChunks(id) {
+                            if (id.includes("node_modules")) {
+                                if (id.includes("three")) return "vendor-three";
+                                if (id.includes("monaco")) return "vendor-monaco";
+                                if (id.includes("prettier")) return "vendor-prettier";
+                                if (id.includes("highlight")) return "vendor-highlight";
+                            }
+                        },
+                    },
+                },
             },
             plugins: [...defaultPlugins],
         };
     } else {
-        return {};
+        // Dev mode: serve the demo app with HMR
+        return {
+            ...defaultOptions,
+            root: "./demo/cube/",
+            optimizeDeps: {
+                include: [
+                    "vue",
+                    "reka-ui",
+                    "@vueuse/core",
+                    "lucide-vue-next",
+                    "vue-sonner",
+                    "three",
+                    "monaco-editor",
+                    "highlight.js/lib/core",
+                    "prettier",
+                ],
+            },
+            plugins: [...defaultPlugins],
+        };
     }
 });

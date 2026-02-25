@@ -1,42 +1,21 @@
 {
     "compilerOptions": {
-        "target": "ESNext",
-        "sourceMap": false,
+        "target": "ES2022",
         "module": "ESNext",
-        "moduleResolution": "node",
-        "lib": [
-            "ESNext",
-            "DOM",
-        ],
-        "experimentalDecorators": true,
+        "moduleResolution": "bundler",
+        "lib": ["ES2022", "ES2023", "DOM"],
+        "strict": true,
+        "verbatimModuleSyntax": true,
         "resolveJsonModule": true,
-        "alwaysStrict": true,
-        "strict": false,
-        "allowSyntheticDefaultImports": true,
+        "skipLibCheck": true,
         "baseUrl": ".",
         "paths": {
-            "@src/*": [
-                "src/*"
-            ],
-            "@styles/*": [
-                "demo/@/styles/*"
-            ],
-            "@components/*": [
-                "demo/@/components/*"
-            ],
-            "@utils/*": [
-                "demo/@/utils/*"
-            ],
-            "@assets/*": [
-                "assets/*"
-            ],
-        },
-        "types": [
-            "unplugin-vue-macros/macros-global"
-        ]
+            "@src/*": ["src/*"],
+            "@styles/*": ["demo/@/styles/*"],
+            "@components/*": ["demo/@/components/*"],
+            "@utils/*": ["demo/@/utils/*"],
+            "@assets/*": ["assets/*"]
+        }
     },
-    "include": [
-        "src/",
-        "demo/"
-    ],
+    "include": ["src/", "demo/"]
 }

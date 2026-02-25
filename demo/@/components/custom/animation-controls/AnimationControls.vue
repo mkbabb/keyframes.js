@@ -65,7 +65,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
 import { KeyframesStringControls } from "@components/custom/animation-controls";
 
 import * as animations from "@src/animation/animations";
-import { onMounted } from "vue";
+import { onMounted, useTemplateRef } from "vue";
 import AnimationControlsControls from "./AnimationControlsControls.vue";
 import { getStoredAnimationGroupControlOptions } from "./animationStores";
 import ColorPicker from "@components/custom/ColorPicker.vue";
@@ -102,7 +102,7 @@ const emit = defineEmits<{
     ): void;
 }>();
 
-const tabsContentEl = $ref<HTMLElement>(null);
+const tabsContentEl = useTemplateRef<HTMLElement>("tabsContentEl");
 
 storedControls.colorOptions ??= {};
 
@@ -121,7 +121,7 @@ const fadeIn = animations
     .group(animations.fadeIn({ duration: 50 }));
 
 const selectControl = async (key: string) => {
-    const activeChild = tabsContentEl?.querySelector(
+    const activeChild = tabsContentEl.value?.querySelector(
         `[data-state="active"]`,
     ) as HTMLElement;
 
@@ -132,7 +132,7 @@ const selectControl = async (key: string) => {
 
     storedControls.selectedControl = key.toString();
 
-    const newActiveChild = tabsContentEl?.querySelector(
+    const newActiveChild = tabsContentEl.value?.querySelector(
         `[id$="${key}"]`,
     ) as HTMLElement;
 
@@ -142,4 +142,4 @@ const selectControl = async (key: string) => {
 onMounted(() => {});
 </script>
 
-<style scoped lang="scss"></style>
+<style scoped></style>

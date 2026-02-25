@@ -271,7 +271,7 @@ import { camelCaseToHyphen } from "@src/utils";
 
 import { Trash } from "lucide-vue-next";
 
-import { onMounted, watch } from "vue";
+import { onMounted, ref, watch } from "vue";
 import {
     defaultStoredAnimationOptions,
     getStoredAnimationOptions,
@@ -280,6 +280,8 @@ import AnimationVisualizer from "./AnimationVisualizer.vue";
 import {
     DIRECTIONS,
     FILL_MODES,
+} from "@src/animation/constants";
+import type {
     TimingFunction,
     TimingFunctionNames,
 } from "@src/animation/constants";
@@ -359,7 +361,7 @@ const updateTimingFunctionFromName = (key: TimingFunctionNames | "cubic-bezier")
     setAnimationTimingFunction(timingFunction);
 };
 
-let prevT = $ref(0);
+const prevT = ref(0);
 const toggleAnimation = () => {
     if (!animation.started && !isGrouped) {
         animation.play();
@@ -367,10 +369,10 @@ const toggleAnimation = () => {
         animation.pause(!isGrouped);
 
         if (animation.paused) {
-            prevT = animation.t;
+            prevT.value = animation.t;
         } else {
-            animation.pausedTime += animation.t - prevT;
-            prevT = 0;
+            animation.pausedTime += animation.t - prevT.value;
+            prevT.value = 0;
         }
     }
 };
@@ -382,4 +384,4 @@ onMounted(() => {
 });
 </script>
 
-<style scoped lang="scss"></style>
+<style scoped></style>

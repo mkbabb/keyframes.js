@@ -1,18 +1,20 @@
 import { timingFunctions } from "@src/easing";
+import { any as parseAny } from "@mkbabb/parse-that";
 import { lerp } from "../math";
 import { CSSKeyframes } from "../parsing/keyframes";
+import { tryParse } from "../parsing/utils";
 import { FunctionValue, ValueArray, ValueUnit } from "../units";
 import { COMPUTED_UNITS } from "../units/constants";
 import { getComputedValue, normalizeValueUnits } from "../units/normalize";
 import { flattenObject, isCSSStyleName, unflattenObjectToString } from "../units/utils";
-import {
+import type {
     InterpolatedVar,
     TemplateAnimationFrame,
     TimingFunction,
     TimingFunctionNames,
     Vars,
 } from "./constants";
-import { Color } from "@src/units/color";
+import type { Color } from "@src/units/color";
 
 export const getTimingFunction = (
     timingFunction: TimingFunction | TimingFunctionNames | undefined,
@@ -26,12 +28,12 @@ export const getTimingFunction = (
     return timingFunction;
 };
 
-export function lerpComputedValue<T>(
+export function lerpComputedValue(
     t: number,
-    { start, stop, value }: InterpolatedVar<T>,
+    { start, stop, value }: InterpolatedVar<any>,
 ) {
-    const newStartValueUnit = getComputedValue(start.clone(), start.targets?.[0]);
-    const newStopValueUnit = getComputedValue(stop.clone(), stop.targets?.[0]);
+    const newStartValueUnit = getComputedValue(start.clone(), start.targets?.[0] as HTMLElement);
+    const newStopValueUnit = getComputedValue(stop.clone(), stop.targets?.[0] as HTMLElement);
 
     const newUnit = !COMPUTED_UNITS.includes(newStartValueUnit.unit)
         ? newStartValueUnit.unit
@@ -49,29 +51,33 @@ export function lerpColorValue(
     t: number,
     { start, stop, value }: InterpolatedVar<Color>,
 ) {
-    start.value.keys().forEach((key) => {
+    start.value.keys().forEach((key: string) => {
         value.value[key] = lerp(t, start.value[key], stop.value[key]);
     });
     return value;
 }
 
-export function lerpObjectValue<T>(
+export function lerpObjectValue(
     t: number,
-    { start, stop, value }: InterpolatedVar<T>,
+    { start, stop, value }: InterpolatedVar<Record<string, number>>,
 ) {
-    Object.keys(start.value).forEach((key) => {
-        value.value[key] = lerp(t, start.value[key], stop.value[key]);
+    Object.keys(start.value as Record<string, number>).forEach((key) => {
+        (value.value as Record<string, number>)[key] = lerp(
+            t,
+            (start.value as Record<string, number>)[key],
+            (stop.value as Record<string, number>)[key],
+        );
     });
     return value;
 }
 
-export function lerpValue<T>(t: number, value: InterpolatedVar<T>) {
+export function lerpValue(t: number, value: InterpolatedVar<any>) {
     const { start, stop, computed } = value;
 
     if (typeof start.value === "number" && typeof stop.value === "number") {
         value.value.value = lerp(t, start.value, stop.value);
     } else if (start.unit === "color") {
-        lerpColorValue(t, value);
+        lerpColorValue(t, value as InterpolatedVar<Color>);
     } else if (computed) {
         lerpComputedValue(t, value);
     }
@@ -82,7 +88,7 @@ export function lerpValue<T>(t: number, value: InterpolatedVar<T>) {
 export function parseAndFlattenObject(input: any) {
     const flat = flattenObject(input);
 
-    const parse = (key: string, value: any) => {
+    const parse = (key: string, value: any): any => {
         const childKey = key.split(".").pop();
         const mainKey = key.split(".").shift();
 
@@ -98,12 +104,16 @@ export function parseAndFlattenObject(input: any) {
             return value.map((v) => parse(key, v)).flat();
         }
 
-        const p = CSSKeyframes.FunctionArgs.map((v) => {
-            v.setSubProperty(childKey);
-            return v;
-        })
-            .or(CSSKeyframes.Value)
-            .tryParse(String(value)) as ValueUnit | ValueArray;
+        const p = tryParse(
+            parseAny(
+                CSSKeyframes.FunctionArgs.map((v: ValueArray) => {
+                    v.setSubProperty(childKey);
+                    return v;
+                }),
+                CSSKeyframes.Value,
+            ),
+            String(value),
+        ) as ValueUnit | ValueArray;
 
         p.setProperty(mainKey);
 
@@ -112,7 +122,7 @@ export function parseAndFlattenObject(input: any) {
 
     const parsedVars = Object.entries(flat)
         .map(([key, value]) => [key, parse(key, value)])
-        .reduce((acc, [key, value]) => {
+        .reduce((acc: Record<string, any>, [key, value]) => {
             acc[key as string] = value;
             return acc;
         }, {});
@@ -138,7 +148,7 @@ export const createInterpVarValue = (
         Array(Math.abs(maxLength - right.length)).fill(new ValueUnit(0)),
     );
 
-    return newLeft.map((l, i) => normalizeValueUnits(l, newRight[i]));
+    return newLeft.map((l: any, i: any) => normalizeValueUnits(l, newRight[i]));
 };
 
 export function calcFrameTime<V extends Vars>(
@@ -165,7 +175,7 @@ export function transformTargetsStyle<V extends Vars>(
 
     targets.forEach((target) => {
         Object.entries(styleStringVars).forEach(([key, value]) => {
-            target.style[key] = value;
+            (target.style as any)[key] = value;
         });
     });
 }

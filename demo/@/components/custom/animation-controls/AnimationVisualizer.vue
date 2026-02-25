@@ -24,12 +24,13 @@
 </template>
 
 <script setup lang="ts">
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
 
 import { KeyframesStringControls } from "@components/custom/animation-controls";
 
 import * as animations from "@src/animation/animations";
-import { Ref, computed, onMounted, onUnmounted, watch } from "vue";
 import AnimationControlsControls from "./AnimationControlsControls.vue";
 import { getStoredAnimationGroupControlOptions } from "./animationStores";
 import Card from "@components/ui/card/Card.vue";
@@ -40,8 +41,9 @@ import { FunctionValue, ValueUnit } from "@src/units";
 import { parseCSSValueUnit } from "@src/parsing/units";
 import { parseCSSKeyframesValue } from "@src/parsing/keyframes";
 import { getComputedValue } from "@src/units/normalize";
-import { AnimationOptions } from "@src/animation/constants";
 import { CSSKeyframesAnimation } from "@src/animation";
+
+import type { AnimationOptions } from "@src/animation/constants";
 
 window.addEventListener("resize", () => {
     getComputedValue.cache.clear();
@@ -52,21 +54,21 @@ const animationOptions = defineModel<AnimationOptions>({
     required: true,
 });
 
-const transformValues = $ref({} as any);
+const transformValues = ref({} as any);
 
-const ballStartValues = $ref({
+const ballStartValues = ref({
     translateX: parseCSSKeyframesValue("translateX(0px)"),
     translateY: parseCSSKeyframesValue("translateY(0px)"),
 });
 
-const ballEndValues = $ref({
+const ballEndValues = ref({
     translateX: parseCSSKeyframesValue("translateX(0px)"),
     translateY: parseCSSKeyframesValue("translateY(10px)"),
 });
 
 const getOptions = () => {
     return {
-        ...(animationOptions?.value ?? {}),
+        ...(animationOptions.value ?? {}),
         // direction: "alternate",
         duration: 1000,
         // iterationCount: Infinity,
@@ -78,19 +80,19 @@ const setOptions = () => {
     ballAnim.setOptions(options);
 };
 
-watch(animationOptions.value, setOptions);
+watch(animationOptions, setOptions);
 
 // watch(transformValues, (value) => {
 //     const { x, y, z } = value.translate;
 
-//     ballStartValues.translateX.setValue(x);
-//     ballStartValues.translateY.setValue(y);
+//     ballStartValues.value.translateX.setValue(x);
+//     ballStartValues.value.translateY.setValue(y);
 
-//     ballEndValues.translateX.setValue(x);
-//     ballEndValues.translateY.setValue(y);
+//     ballEndValues.value.translateX.setValue(x);
+//     ballEndValues.value.translateY.setValue(y);
 // });
 
-const ballEl = $ref<HTMLElement | null>(null);
+const ballEl = ref<HTMLElement | null>(null);
 
 // const ballAnim = new CSSKeyframesAnimation().fromCSSKeyframes(/*css*/ `
 // @keyframes ball {
@@ -125,14 +127,14 @@ const ballTranslationAnim = new CSSKeyframesAnimation({
 }).fromVars([
     {
         transform: {
-            translateX: ballStartValues.translateX,
-            translateY: ballStartValues.translateY,
+            translateX: ballStartValues.value.translateX,
+            translateY: ballStartValues.value.translateY,
         },
     },
     {
         transform: {
-            translateX: ballEndValues.translateX,
-            translateY: ballEndValues.translateY,
+            translateX: ballEndValues.value.translateX,
+            translateY: ballEndValues.value.translateY,
         },
     },
 ]);
@@ -140,8 +142,8 @@ const ballTranslationAnim = new CSSKeyframesAnimation({
 onMounted(() => {
     setOptions();
 
-    ballAnim.setTargets(ballEl);
-    ballTranslationAnim.setTargets(ballEl);
+    ballAnim.setTargets(ballEl.value);
+    ballTranslationAnim.setTargets(ballEl.value);
 
     ballAnim.play();
     // ballTranslationAnim.play();
@@ -154,7 +156,7 @@ onUnmounted(() => {
 });
 </script>
 
-<style scoped lang="scss">
+<style scoped>
 @keyframes ball {
     0% {
         transform: translateX(0);
@@ -164,8 +166,6 @@ onUnmounted(() => {
     }
 }
 .animate-ball {
-    // animation: ball 1s linear infinite alternate;
+    /* animation: ball 1s linear infinite alternate; */
 }
 </style>
-import { CSSKeyframesAnimation } from "@src/animation"; import { AnimationOptions } from
-"@src/animation/constants";import { CSSKeyframesAnimation } from "@src/animation";

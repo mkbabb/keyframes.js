@@ -1,17 +1,18 @@
 import { Animation, getAnimationId } from ".";
 import { ValueArray } from "../units";
-import { TransformFunction, Vars } from "./constants";
+import { cancelAnimationFrame, requestAnimationFrame } from "../utils";
+import type { TransformFunction, Vars } from "./constants";
 
-export interface AnimationGroupObject<V> {
+export interface AnimationGroupObject<V extends Vars> {
     [key: string]: {
         animation: Animation<V>;
         values: Vars<ValueArray>;
     };
 }
 
-export class AnimationGroup<V> {
+export class AnimationGroup<V extends Vars> {
     animations: AnimationGroupObject<V> = {};
-    transform: TransformFunction<V>;
+    transform!: TransformFunction<V>;
 
     superKey: string | undefined;
 

@@ -17,13 +17,13 @@
 </template>
 
 <script setup lang="ts">
-import { watch } from "vue";
+import { ref, computed, watch } from "vue";
 import { useWindowSize } from "@vueuse/core";
 
 const HTML_SPACE = "\u00a0";
 const { width } = useWindowSize();
 
-let { text, offset } = $defineProps({
+const props = defineProps({
     text: {
         type: String,
         required: true,
@@ -34,28 +34,28 @@ let { text, offset } = $defineProps({
     },
 });
 
-let newText = $ref(text.replace(/ /g, HTML_SPACE));
+const newText = ref(props.text.replace(/ /g, HTML_SPACE));
 
-let brokenText = $ref(newText.replace(/\s/g, HTML_SPACE + "\n"));
+const brokenText = ref(newText.value.replace(/\s/g, HTML_SPACE + "\n"));
 
-let currentText = $ref(brokenText);
+const currentText = ref(brokenText.value);
 
-const duration = $computed(() => `${currentText.length * offset + offset * 10}s`);
+const duration = computed(() => `${currentText.value.length * props.offset + props.offset * 10}s`);
 
 watch(
     () => width.value,
     (val) => {
         if (val < 768) {
-            currentText = brokenText;
+            currentText.value = brokenText.value;
         } else {
-            currentText = newText;
+            currentText.value = newText.value;
         }
     },
     { immediate: true },
 );
 </script>
 
-<style lang="scss" scoped>
+<style scoped>
 .lift-down {
     display: inline-block;
     animation: liftDown 3s ease-in-out infinite;

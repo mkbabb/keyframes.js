@@ -8,39 +8,32 @@
 import { Animation } from "@src/animation/index";
 import * as animations from "@src/animation/animations";
 import { sleep } from "@src/utils";
-import { on } from "events";
 import {
-    Ref,
     getCurrentInstance,
-    onActivated,
-    onBeforeMount,
-    onBeforeUnmount,
     onBeforeUpdate,
-    onDeactivated,
     onMounted,
-    onRenderTriggered,
-    onUnmounted,
-    onUpdated,
+    ref,
+    useTemplateRef,
     watch,
 } from "vue";
 
-const fadeIn = $ref(animations.fadeIn());
-const fadeOut = $ref(animations.fadeOut());
+const fadeIn = ref(animations.fadeIn());
+const fadeOut = ref(animations.fadeOut());
 
 const instance = getCurrentInstance();
 
-const el = $ref<HTMLElement | null>(null);
+const el = useTemplateRef<HTMLElement>("el");
 
-let children = $ref<HTMLElement[]>([]);
+const children = ref<HTMLElement[]>([]);
 
-const enter = fadeIn;
-const leave = fadeOut;
+const enter = fadeIn.value;
+const leave = fadeOut.value;
 
 const onEnter = async () => {
     console.log("Entering");
 
-    enter.setTargets(...children);
-    leave.setTargets(...children);
+    enter.setTargets(...children.value);
+    leave.setTargets(...children.value);
 
     leave.stop();
     enter.play();
@@ -62,9 +55,9 @@ const watcher = (el: HTMLElement) => {
 };
 
 watch(
-    () => children.some(watcher),
+    () => children.value.some(watcher),
     () => {
-        if (children.some(watcher)) {
+        if (children.value.some(watcher)) {
             onLeave();
         }
     },
@@ -72,7 +65,7 @@ watch(
 
 onMounted(() => {
     // children = instance?.subTree?.children?.map((child) => child.el as HTMLElement);
-    children = el.childNodes as unknown as HTMLElement[];
+    children.value = el.value!.childNodes as unknown as HTMLElement[];
     onEnter();
 });
 

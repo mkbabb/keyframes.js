@@ -390,7 +390,7 @@
 import { computed, onMounted, reactive, watch } from "vue";
 import { Animated } from "@components/custom/animation-controls";
 // @ts-ignore
-import "@styles/utils.scss";
+import "@styles/utils.css";
 import OrbitalDrag from "@components/custom/orbital-drag/OrbitalDrag.vue";
 import { RotateCcw, Lock, LockOpen } from "lucide-vue-next";
 import { DarkModeToggle } from "@components/custom/dark-mode-toggle";
@@ -445,9 +445,9 @@ import {
     SelectValue,
 } from "@components/ui/select";
 
-import "@styles/style.scss";
+import "@styles/style.css";
 
-import { TransformState } from "@components/custom/orbital-drag";
+import type { TransformState } from "@components/custom/orbital-drag";
 import { clamp } from "@src/math";
 import { transformTargetsStyle } from "@src/animation/utils";
 import { AnimationGroup } from "@src/animation/group";
@@ -908,14 +908,14 @@ onMounted(() => {
     fixMatrix();
 });
 </script>
-<style scoped lang="scss">
+<style scoped>
 .grid-background {
     background-size: 1rem !important;
     background-repeat: repeat;
 
-    // perspective: 900px;
+    /* perspective: 900px; */
 
-    // transform:  rotate3d(-1, 1, 0, 30deg) rotateX(90deg)  ;
+    /* transform:  rotate3d(-1, 1, 0, 30deg) rotateX(90deg)  ; */
 }
 
 .graph {

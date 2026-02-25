@@ -1,6 +1,6 @@
 import { CSSKeyframesAnimation } from ".";
 import { CSSCubicBezier, steppedEase } from "../easing";
-import { InputAnimationOptions } from "./constants";
+import type { InputAnimationOptions } from "./constants";
 
 const fadeInKeyframes = /*css*/ `
   from {

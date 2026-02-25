@@ -246,11 +246,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from "vue";
+import { ref, computed, watch, onMounted, useTemplateRef } from "vue";
 import { Card, CardContent, CardTitle, CardHeader } from "@components/ui/card";
 import { Button } from "@components/ui/button";
 import { Input } from "@components/ui/input";
-import { SliderRoot, SliderTrack, SliderRange, SliderThumb } from "radix-vue";
+import { SliderRoot, SliderTrack, SliderRange, SliderThumb } from "reka-ui";
 
 import { Plus, SquarePlus } from "lucide-vue-next";
 
@@ -275,19 +275,61 @@ import {
 } from "@components/ui/select";
 import CopyButton from "./CopyButton.vue";
 import { lerpColorValue, lerpObjectValue, lerpValue } from "@src/animation/utils";
-import { InterpolatedVar } from "@src/animation/constants";
+import type { InterpolatedVar } from "@src/animation/constants";
 import {
-    ColorSpace,
     COLOR_SPACE_RANGES,
     COLOR_SPACE_NAMES,
     COLOR_SPACE_DENORM_UNITS,
 } from "@src/units/color/constants";
-import { Color, OKLABColor } from "@src/units/color";
+import type { ColorSpace } from "@src/units/color/constants";
+import type { Color, OKLABColor } from "@src/units/color";
 import { toast } from "vue-sonner";
 import { debounce } from "@src/utils";
 import Label from "@components/ui/label/Label.vue";
 import Separator from "@components/ui/separator/Separator.vue";
 import { Shuffle } from "lucide-vue-next";
+import * as animations from "@src/animation/animations";
+import { CSSKeyframesAnimation } from "@src/animation";
+import type { Animation } from "@src/animation";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@components/ui/tooltip";
+import { rand, useDark, useLocalStorage, useMagicKeys } from "@vueuse/core";
+import { getStoredAnimationGroupControlOptions } from "./animation-controls/animationStores";
+
+const props = defineProps<{
+    color: string;
+    animation: Animation;
+}>();
+
+const emit = defineEmits<{
+    (e: "update", color: ValueUnit<Color<ValueUnit<number>>, "color">): void;
+}>();
+
+const storedControls = getStoredAnimationGroupControlOptions(props.animation);
+
+const isDragging = ref(false);
+
+const spectrumRef = useTemplateRef<HTMLElement>("spectrumRef");
+
+const currentColor = ref(parseAndNormalizeColor(props.color)) as ReturnType<typeof ref<ValueUnit<
+    Color<ValueUnit<number>>,
+    "color"
+>>>;
+
+// add 6 white colors to the saved colors:
+const savedColors = ref([]) as ReturnType<typeof ref<ValueUnit<Color<ValueUnit<number>>, "color">[]>>;
+
+for (let i = 0; i < 6; i++) {
+    savedColors.value.push(parseAndNormalizeColor("white"));
+}
+
+const currentColorSpace = computed(() => currentColor.value.superType[1] as ColorSpace);
+
+const selectedColorSpace = ref<ColorSpace>(currentColorSpace.value);
 
 const selectAll = (event: MouseEvent) => {
     const target = event.target as HTMLSpanElement;
@@ -322,7 +364,7 @@ const generateRandomColor = (
         duration: 700,
     })
         .fromVars(
-            [{ color: currentColor.clone() }, { color: color.clone() }],
+            [{ color: currentColor.value.clone() }, { color: color.clone() }],
             ({ color }) => {
                 updateFromColor(color[0]);
             },
@@ -383,20 +425,18 @@ const createGradientStops = (
     }, []);
 };
 
-const parseAndNormalizeColor = (value: string) => {
+function parseAndNormalizeColor(value: string) {
     const color = parseCSSColor(value);
     return normalizeColorUnit(color);
-};
+}
 
 const parseAndSetColor = debounce(
     (newVal: string) => {
         try {
-            inputColor = newVal;
-
             const color = parseAndNormalizeColor(newVal);
 
-            currentColor = color;
-            selectedColorSpace = color.superType[1] as ColorSpace;
+            currentColor.value = color;
+            selectedColorSpace.value = color.superType[1] as ColorSpace;
 
             emit("update", denormalizedCurrentColor.value);
 
@@ -409,39 +449,8 @@ const parseAndSetColor = debounce(
     false,
 );
 
-let { color: inputColor, animation } = $defineProps<{
-    color: string;
-    animation: Animation;
-}>();
-
-const emit = defineEmits<{
-    (e: "update", color: ValueUnit<Color<ValueUnit<number>>, "color">): void;
-}>();
-
-const storedControls = getStoredAnimationGroupControlOptions(animation);
-
-let isDragging = $ref(false);
-
-let spectrumRef = $ref<HTMLElement | null>(null);
-
-let currentColor = $ref(parseAndNormalizeColor(inputColor)) as ValueUnit<
-    Color<ValueUnit<number>>,
-    "color"
->;
-
-// add 6 white colors to the saved colors:
-const savedColors = $ref([]) as ValueUnit<Color<ValueUnit<number>>, "color">[];
-
-for (let i = 0; i < 6; i++) {
-    savedColors.push(parseAndNormalizeColor("white"));
-}
-
-let currentColorSpace = computed(() => currentColor.superType[1] as ColorSpace);
-
-let selectedColorSpace = $ref<ColorSpace>(currentColorSpace.value);
-
 const denormalizedCurrentColor = computed(() => {
-    return normalizeColorUnit(currentColor, true, false);
+    return normalizeColorUnit(currentColor.value, true, false);
 });
 
 const currentColorOpaque = computed(() => {
@@ -466,7 +475,7 @@ const currentColorComponentsFormatted = computed(() => {
 });
 
 const currentColorRanges = computed(() => {
-    return currentColor.value.keys().reduce((acc, key) => {
+    return currentColor.value.value.keys().reduce((acc, key) => {
         const unit = COLOR_SPACE_DENORM_UNITS[currentColorSpace.value][key];
         const range = COLOR_SPACE_RANGES[currentColorSpace.value][key];
         const { min, max } = range[unit] ?? range["number"];
@@ -478,12 +487,12 @@ const currentColorRanges = computed(() => {
 });
 
 const hslColor = computed(() => {
-    const hsl = colorUnit2(currentColor, "hsl", true, false, false);
+    const hsl = colorUnit2(currentColor.value, "hsl", true, false, false);
     return hsl;
 });
 
 const hsvColor = computed(() => {
-    const hsv = colorUnit2(currentColor, "hsv", true, false, false);
+    const hsv = colorUnit2(currentColor.value, "hsv", true, false, false);
     return hsv;
 });
 
@@ -493,12 +502,12 @@ const onSavedColorClick = (
     color: ValueUnit<Color<ValueUnit<number>>, "color">,
     ix: number,
 ) => {
-    const temp = currentColor.clone();
+    const temp = currentColor.value.clone();
 
-    currentColor = color.clone();
+    currentColor.value = color.clone();
 
     if (keys.current.has("meta")) {
-        savedColors[ix] = temp;
+        savedColors.value[ix] = temp;
     }
 
     emit("update", denormalizedCurrentColor.value);
@@ -517,7 +526,7 @@ const isBlankColor = (color: ValueUnit<Color<ValueUnit<number>>, "color">) => {
 
 // watch for dark mode changes, update the blank colors:
 watch(isDark, () => {
-    savedColors.forEach((color) => {
+    savedColors.value.forEach((color) => {
         if (isBlankColor(color)) {
             color.value
                 .entries()
@@ -530,37 +539,37 @@ watch(isDark, () => {
 });
 
 const addColorClick = () => {
-    const colorIx = savedColors.findIndex((color) => {
-        return color.value.toString() === currentColor.value.toString();
+    const colorIx = savedColors.value.findIndex((color) => {
+        return color.value.toString() === currentColor.value.value.toString();
     });
     if (colorIx !== -1) {
         return;
     }
 
-    const blankColorIx = savedColors.findIndex((color) => {
+    const blankColorIx = savedColors.value.findIndex((color) => {
         return isBlankColor(color);
     });
     if (blankColorIx !== -1) {
-        savedColors[blankColorIx] = currentColor.clone();
+        savedColors.value[blankColorIx] = currentColor.value.clone();
         return;
     }
 
-    const color = currentColor.clone();
+    const color = currentColor.value.clone();
     const normalized = normalizeColorUnit(color, true, false);
 
-    savedColors.push(currentColor.clone());
+    savedColors.value.push(currentColor.value.clone());
 };
 
 const updateFromColor = (color: ValueUnit<Color<ValueUnit<number>>, "color">) => {
     const converted = colorUnit2(color, currentColorSpace.value, true);
-    currentColor = converted as any;
+    currentColor.value = converted as any;
 
     emit("update", denormalizedCurrentColor.value);
 };
 
 const updateToColorSpace = (to: ColorSpace) => {
-    currentColor = colorUnit2(currentColor, to, true);
-    selectedColorSpace = to;
+    currentColor.value = colorUnit2(currentColor.value, to, true);
+    selectedColorSpace.value = to;
 
     emit("update", denormalizedCurrentColor.value);
 };
@@ -571,7 +580,7 @@ const updateColorComponent = (
     normalized: boolean = false,
 ) => {
     if (normalized) {
-        currentColor.value[component].value = value;
+        currentColor.value.value[component].value = value;
     } else {
         const normalizedValue = normalizeColorUnitComponent(
             value,
@@ -581,7 +590,7 @@ const updateColorComponent = (
             false,
         );
 
-        currentColor.value[component].value = normalizedValue.value;
+        currentColor.value.value[component].value = normalizedValue.value;
     }
 
     emit("update", denormalizedCurrentColor.value);
@@ -596,9 +605,9 @@ const updateHue = (value: number) => {
 };
 
 const updateSpectrumColor = (event: MouseEvent) => {
-    if (!spectrumRef) return;
+    if (!spectrumRef.value) return;
 
-    const rect = spectrumRef.getBoundingClientRect();
+    const rect = spectrumRef.value.getBoundingClientRect();
     const x = clamp(event.clientX - rect.left, 0, rect.width);
     const y = clamp(event.clientY - rect.top, 0, rect.height);
 
@@ -614,23 +623,23 @@ const updateSpectrumColor = (event: MouseEvent) => {
 };
 
 const handleSpectrumChange = (event: MouseEvent) => {
-    isDragging = true;
+    isDragging.value = true;
     updateSpectrumColor(event);
 };
 
 const handleSpectrumMove = (event: MouseEvent) => {
-    if (isDragging) {
+    if (isDragging.value) {
         updateSpectrumColor(event);
     }
 };
 
 const stopDragging = () => {
-    isDragging = false;
+    isDragging.value = false;
 };
 
 const spectrumStyle = computed(() => {
     let { h, s, l } = hslColor.value.value;
-    const denormalized = normalizeColorUnit(currentColor, true, false);
+    const denormalized = normalizeColorUnit(currentColor.value, true, false);
     denormalized.value.alpha.value = 30;
 
     h.value = clamp(h.value, 0, 1);
@@ -685,29 +694,15 @@ const componentsSlidersStyle = computed(() => {
     return gradients;
 });
 
-watch(
-    () => selectedColorSpace,
-    (newVal) => {
-        updateToColorSpace(newVal);
-    },
-);
-
-import * as animations from "@src/animation/animations";
-import { Animation, CSSKeyframesAnimation } from "@src/animation";
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from "@components/ui/tooltip";
-import { rand, useDark, useLocalStorage, useMagicKeys } from "@vueuse/core";
-import { getStoredAnimationGroupControlOptions } from "./animation-controls/animationStores";
+watch(selectedColorSpace, (newVal) => {
+    updateToColorSpace(newVal);
+});
 
 const hover = animations.hover({ duration: "2s" });
 
 // generate a list of offsets for each color component
 const sliderAnimOffsets = computed(() => {
-    const offsets = currentColor.value
+    const offsets = currentColor.value.value
         .keys()
         .map((component) => {
             const offset = Math.random();
@@ -726,13 +721,13 @@ const sliderAnimOffsets = computed(() => {
 //     direction: "alternate",
 //     duration: "10s"
 // }).fromVars([{ t: 0 }, { t: 1 }], ({ t: [x] }) => {
-//     currentColor.value.entries().forEach(([component, value]) => {
+//     currentColor.value.value.entries().forEach(([component, value]) => {
 //         value.value = x.valueOf();
 //     });
 // });
 
 onMounted(() => {
-    hover.setTargets(spectrumRef);
+    hover.setTargets(spectrumRef.value);
     hover.play();
 
     // slidersAnim.play();

@@ -1,45 +1,64 @@
-import P from "parsimmon";
+import { Parser, all, any, regex, string, whitespace } from "@mkbabb/parse-that";
 import { FunctionValue, ValueArray, ValueUnit } from "../units";
 import { camelCaseToHyphen, hyphenToCamelCase, memoize } from "../utils";
 import { CSSValueUnit } from "./units";
-import * as utils from "./utils";
+import { istring, identifier, number, tryParse } from "./utils";
 
-const handleFunc = (r: P.Language, name?: P.Parser<any>) => {
-    return P.seq(
-        name ? name : utils.identifier,
-        r.FunctionArgs.wrap(r.lparen, r.rparen),
+const lparen = string("(");
+const rparen = string(")");
+const semi = string(";");
+const colon = string(":");
+const lcurly = string("{");
+const rcurly = string("}");
+const comma = string(",");
+const dot = string(".");
+
+const ws = whitespace;
+
+const FunctionArgs: Parser<ValueArray> = Parser.lazy(() =>
+    Value.sepBy(any(comma, ws))
+        .trim(ws)
+        .map((v: ValueUnit[]) => new ValueArray(...v)),
+);
+
+const handleFunc = (name?: Parser<any>) => {
+    return all(
+        name ? name : identifier,
+        FunctionArgs.wrap(lparen, rparen),
     );
 };
 
-const handleVar = (r: P.Language) => {
-    return P.string("var")
-        .then(r.String.trim(r.ws).wrap(r.lparen, r.rparen))
-        .map((value) => {
+const handleVar = () => {
+    const varContent = regex(/[^)]+/);
+    return string("var")
+        .next(varContent.trim(ws).wrap(lparen, rparen))
+        .map((value: string) => {
             return new ValueUnit(value, "var");
         });
 };
 
-const handleCalc = (r: P.Language) => {
-    const calcContent = P.lazy(() =>
-        P.alt(
-            P.regexp(/[^()]+/),
+const handleCalc = () => {
+    const calcContent: Parser<string[]> = Parser.lazy(() =>
+        any(
+            regex(/[^()]+/),
             calcContent
-                .atLeast(1)
-                .wrap(r.lparen, r.rparen)
-                .map((nested) => `(${nested.join(" ")})`),
-        ).atLeast(1),
+                .many(1)
+                .wrap(lparen, rparen)
+                .map((nested: string[][]) => `(${nested.join(" ")})`),
+        ).many(1),
     );
 
-    return P.string("calc")
-        .then(
-            P.alt(
-                r.Value.trim(r.ws)
-                    .wrap(r.lparen, r.rparen)
-                    .map((v) => v),
-                calcContent.wrap(r.lparen, r.rparen).map((parts) => parts.join(" ")),
+    return string("calc")
+        .next(
+            any(
+                Parser.lazy(() => Value).trim(ws)
+                    .wrap(lparen, rparen),
+                calcContent
+                    .wrap(lparen, rparen)
+                    .map((parts: unknown) => (parts as string[]).join(" ")),
             ),
         )
-        .map((v) => {
+        .map((v: any) => {
             return v instanceof ValueUnit ? v : new ValueUnit(v, "calc");
         });
 };
@@ -47,37 +66,37 @@ const handleCalc = (r: P.Language) => {
 const TRANSFORM_FUNCTIONS = ["translate", "scale", "rotate", "skew"];
 const TRANSFORM_DIMENSIONS = ["x", "y", "z"];
 
-const transformDimensions = TRANSFORM_DIMENSIONS.map(utils.istring);
-const transformFunctions = TRANSFORM_FUNCTIONS.map(utils.istring);
+const transformDimensions = TRANSFORM_DIMENSIONS.map(istring);
+const transformFunctions = TRANSFORM_FUNCTIONS.map(istring);
 
-const handleTransform = (r: P.Language) => {
-    const nameParser = P.seq(
-        P.alt(...transformFunctions),
-        P.alt(...transformDimensions, P.string("")),
+const handleTransform = () => {
+    const nameParser = all(
+        any(...transformFunctions),
+        any(...transformDimensions, string("")),
     );
 
     const makeTransformName = (name: string, dim: string) => {
         return name + dim.toUpperCase();
     };
 
-    const p = handleFunc(r, nameParser);
+    const p = handleFunc(nameParser);
 
-    return p.map(([[name, dim], values]: [string[], ValueUnit[]]) => {
-        name = name.toLowerCase();
+    return p.map(([[name, dim], values]: any) => {
+        const lowerName = (name as string).toLowerCase();
 
-        const transformObject = {};
+        const transformObject: Record<string, any> = {};
 
         if (dim) {
-            const newName = name + dim.toUpperCase();
+            const newName = lowerName + (dim as string).toUpperCase();
             transformObject[newName] = values[0];
         } else if (values.length === 1) {
-            TRANSFORM_DIMENSIONS.forEach((d, i) => {
-                const newName = makeTransformName(name, d);
+            TRANSFORM_DIMENSIONS.forEach((d) => {
+                const newName = makeTransformName(lowerName, d);
                 transformObject[newName] = values[0];
             });
         } else {
-            values.forEach((v, i) => {
-                const newName = makeTransformName(name, TRANSFORM_DIMENSIONS[i]);
+            values.forEach((v: any, i: number) => {
+                const newName = makeTransformName(lowerName, TRANSFORM_DIMENSIONS[i]);
                 transformObject[newName] = v;
             });
         }
@@ -90,248 +109,223 @@ const handleTransform = (r: P.Language) => {
     });
 };
 
-const gradientDirections = {
+const gradientDirections: Record<string, string> = {
     left: "270",
     right: "90",
     top: "0",
     bottom: "180",
 };
 
-const handleGradient = (r: P.Language) => {
-    const name = P.alt(...["linear-gradient", "radial-gradient"].map(utils.istring));
-    const sideOrCorner = P.seq(
-        P.string("to").skip(r.ws),
-        P.alt(...["left", "right", "top", "bottom"].map(utils.istring)),
-    ).map(([to, direction]) => {
-        direction = gradientDirections[direction.toLowerCase()];
-        return new ValueUnit(direction, "deg");
+const handleGradient = () => {
+    const name = any(...["linear-gradient", "radial-gradient"].map(istring));
+    const sideOrCorner = all(
+        string("to").skip(ws),
+        any(...["left", "right", "top", "bottom"].map(istring)),
+    ).map(([, direction]: [string, string]) => {
+        const dir = gradientDirections[direction.toLowerCase()];
+        return new ValueUnit(dir, "deg");
     });
 
-    const direction = P.alt(CSSValueUnit.Angle, sideOrCorner);
+    const direction = any(CSSValueUnit.Angle, sideOrCorner);
 
-    const lengthPercentage = P.alt(CSSValueUnit.Length, CSSValueUnit.Percentage);
+    const lengthPercentage = any(CSSValueUnit.Length, CSSValueUnit.Percentage);
 
-    const linearColorStop = P.seq(
+    const linearColorStop = all(
         CSSValueUnit.Color,
-        P.sepBy(lengthPercentage, r.ws),
+        lengthPercentage.sepBy(ws),
     ).map(([color, stops]: [any, any]) => {
-        if (!stops) {
+        if (!stops || stops.length === 0) {
             return [color];
         } else {
             return [color, ...stops];
         }
     });
 
-    const colorStopList = P.seq(
+    const colorStopList = all(
         linearColorStop,
-        r.comma.trim(r.ws).then(linearColorStop.or(lengthPercentage)).many(),
-    ).map(([first, rest]) => {
+        comma.trim(ws).next(any(linearColorStop, lengthPercentage)).many(),
+    ).map(([first, rest]: [any, any[]]) => {
         return [first, ...rest];
     });
 
-    const linearGradient = P.seq(
+    const linearGradient = all(
         name,
-        P.seq(utils.opt(direction.skip(r.comma)), colorStopList)
-            .trim(r.ws)
-            .wrap(r.lparen, r.rparen)
-            .map(([direction, stops]) => {
-                if (!direction) {
+        all(direction.skip(comma).opt(), colorStopList)
+            .trim(ws)
+            .wrap(lparen, rparen)
+            .map(([dir, stops]: [any, any]) => {
+                if (!dir) {
                     return [stops];
                 } else {
-                    return [direction, ...stops].flat();
+                    return [dir, ...stops].flat();
                 }
             }),
-    ).map(([name, values]) => {
-        return new FunctionValue(name, values);
+    ).map(([name, values]: [string, any[]]) => {
+        return new FunctionValue(name, values as any[]);
     });
 
     return linearGradient;
 };
 
-const handleCubicBezier = (r: P.Language) => {
-    return handleFunc(r, P.string("cubic-bezier")).map((v) => {
+const handleCubicBezier = () => {
+    return handleFunc(string("cubic-bezier")).map((v: any) => {
         return new FunctionValue("cubic-bezier", v[1]);
     });
 };
 
-export const CSSKeyframes = P.createLanguage({
-    ws: () => P.optWhitespace,
+const CSSString = regex(/[^\(\)\{\}\s,;]+/).map((x: string) => new ValueUnit(x));
 
-    semi: () => P.string(";"),
-    colon: () => P.string(":"),
-    lcurly: () => P.string("{"),
-    rcurly: () => P.string("}"),
-    lparen: () => P.string("("),
-    rparen: () => P.string(")"),
+const Function_: Parser<any> = any(
+    handleTransform(),
+    handleVar(),
+    handleCalc(),
+    handleGradient(),
+    handleCubicBezier(),
+    handleFunc().map(([name, values]: [string, any]) => {
+        return new FunctionValue(name, values);
+    }),
+);
 
-    comma: () => P.string(","),
+const JSON_: Parser<any> = all(lcurly, regex(/[^{}]+/), rcurly).map(
+    (x: string[]) => {
+        const s = x.join("\n");
+        const obj = JSON.parse(s);
+        return new ValueUnit(obj, "json");
+    },
+);
 
-    Rule: (r) => P.string("@keyframes").trim(r.ws).then(utils.identifier),
+const Value: Parser<any> = any(CSSValueUnit.Value, Function_, JSON_, CSSString).trim(ws);
 
-    String: () => P.regexp(/[^\(\)\{\}\s,;]+/).map((x) => new ValueUnit(x)),
+const Values = Value.sepBy(ws);
 
-    FunctionArgs: (r) =>
-        r.Value.sepBy(r.comma.or(r.ws))
-            .trim(r.ws)
-            .map((v) => new ValueArray(...v)),
+const Variables = all(
+    identifier
+        .skip(colon)
+        .trim(ws)
+        .map((x: string) => hyphenToCamelCase(x)),
+    Values.skip(semi).trim(ws),
+).map(([name, values]: [string, any[]]) => {
+    const va = new ValueArray(...values).flat() as any;
+    va.setProperty(name);
+    return {
+        [name]: va,
+    };
+});
 
-    Function: (r) =>
-        P.alt(
-            handleTransform(r),
-            handleVar(r),
-            handleCalc(r),
-            handleGradient(r),
-            handleCubicBezier(r),
-            handleFunc(r).map(([name, values]) => {
-                return new FunctionValue(name, values);
-            }),
-        ),
+const TimePercentage = any(
+    CSSValueUnit.TimePercentage.trim(ws).map((v: ValueUnit) => {
+        return v.toString();
+    }),
+    number.map((v: number) => {
+        return `${v}%`;
+    }),
+);
+const TimePercentages = TimePercentage.sepBy(comma).trim(ws);
 
-    JSON: (r) =>
-        P.seq(r.lcurly, P.regexp(/[^{}]+/), r.rcurly).map((x) => {
-            const s = x.join("\n");
-            let obj = eval("(" + s + ")");
-            return new ValueUnit(obj, "json");
-        }),
+const Body = Variables.many()
+    .trim(ws)
+    .wrap(lcurly, rcurly)
+    .map((values: Record<string, any>[]) => Object.assign({}, ...values));
 
-    Value: (r) => P.alt(CSSValueUnit.Value, r.Function, r.JSON, r.String).trim(r.ws),
+const Rule = string("@keyframes").trim(ws).next(identifier);
 
-    Values: (r) => r.Value.sepBy(r.ws),
+const Keyframe = all(TimePercentages, Body).map(([percents, values]: [string[], any]) => {
+    return percents.reduce((acc: Map<string, any>, percent: string) => {
+        acc.set(percent, values);
+        return acc;
+    }, new Map<string, any>());
+});
 
-    Variables: (r) =>
-        P.seq(
-            utils.identifier
-                .skip(r.colon)
-                .trim(r.ws)
-                .map((x) => hyphenToCamelCase(x)),
-            r.Values.skip(r.semi).trim(r.ws),
-        ).map(([name, values]) => {
-            values = new ValueArray(...values).flat();
-
-            values.setProperty(name);
-
-            return {
-                [name]: values,
-            };
-        }),
-
-    TimePercentage: (r) =>
-        P.alt(
-            CSSValueUnit.TimePercentage.trim(r.ws).map((v) => {
-                return v.toString();
-            }),
-            utils.number.map((v) => {
-                return `${v}%`;
-            }),
-        ),
-    TimePercentages: (r) => r.TimePercentage.sepBy(r.comma).trim(r.ws),
-
-    Body: (r) =>
-        r.Variables.many()
-            .trim(r.ws)
-            .wrap(r.lcurly, r.rcurly)
-            .map((values) => Object.assign({}, ...values)),
-
-    Keyframe: (r) =>
-        P.seq(r.TimePercentages, r.Body).map(([percents, values]) => {
-            return percents.reduce((acc, percent) => {
+const Keyframes = any(
+    Rule.next(
+        Keyframe.many(1).trim(ws).wrap(lcurly, rcurly).trim(ws),
+    ),
+    Keyframe.many(1).trim(ws),
+).map((keyframes: Map<string, any>[]) => {
+    return keyframes.reduce((acc: Map<string, any[]>, keyframe: Map<string, any>) => {
+        for (const [percent, values] of keyframe) {
+            if (!acc.has(percent)) {
                 acc.set(percent, values);
-                return acc;
-            }, new Map<string, any>());
-        }),
-    Keyframes: (r) =>
-        P.alt(
-            r.Rule.then(
-                r.Keyframe.atLeast(1).trim(r.ws).wrap(r.lcurly, r.rcurly).trim(r.ws),
-            ),
-            r.Keyframe.atLeast(1).trim(r.ws),
-        ).map((keyframes) => {
-            return keyframes.reduce((acc, keyframe) => {
-                for (let [percent, values] of keyframe) {
-                    if (!acc.has(percent)) {
-                        acc.set(percent, values);
-                    } else {
-                        acc.set(percent, { ...acc.get(percent), ...values });
-                    }
-                }
-                return acc;
-            }, new Map<string, any[]>());
-        }),
-});
-
-export const CSSClass = P.createLanguage({
-    ws: () => P.optWhitespace,
-
-    semi: () => P.string(";"),
-    colon: () => P.string(":"),
-    lcurly: () => P.string("{"),
-    rcurly: () => P.string("}"),
-    lparen: () => P.string("("),
-    rparen: () => P.string(")"),
-
-    comma: () => P.string(","),
-    dot: () => P.string("."),
-
-    Rule: (r) => r.dot.trim(r.ws).then(utils.identifier).trim(r.ws),
-    Class: (r) =>
-        r.Rule.then(
-            CSSKeyframes.Body.map((values) => {
-                const options = {};
-
-                for (let [key, value] of Object.entries(values)) {
-                    if (key.includes("animation")) {
-                        const newKey = key
-                            .replace(/^animation/i, "")
-                            .replace(/^\w/, (c) => c.toLowerCase());
-
-                        const newValue = camelCaseToHyphen(value.toString());
-                        options[newKey] = newValue;
-
-                        delete values[key];
-                    }
-                }
-
-                return {
-                    options,
-                    values,
-                };
-            }),
-        ),
-});
-
-export const CSSAnimationKeyframes = P.createLanguage({
-    ws: () => P.optWhitespace,
-    Value: (r) =>
-        P.alt(
-            CSSClass.Class.or(P.whitespace).map((value) => {
-                return value;
-            }),
-            CSSKeyframes.Keyframes.map((value) => {
-                return {
-                    keyframes: value,
-                };
-            }),
-        ),
-    Values: (r) =>
-        r.Value.sepBy(r.ws).map((values) => {
-            {
-                return Object.assign({}, ...values);
+            } else {
+                acc.set(percent, { ...acc.get(percent), ...values });
             }
-        }),
+        }
+        return acc;
+    }, new Map<string, any[]>());
 });
+
+// CSSClass language
+const ClassRule = dot.trim(ws).next(identifier).trim(ws);
+
+const CSSClassBody = Body.map((values: Record<string, any>) => {
+    const options: Record<string, any> = {};
+
+    for (const [key, value] of Object.entries(values)) {
+        if (key.includes("animation")) {
+            const newKey = key
+                .replace(/^animation/i, "")
+                .replace(/^\w/, (c: string) => c.toLowerCase());
+
+            const newValue = camelCaseToHyphen(value.toString());
+            options[newKey] = newValue;
+
+            delete values[key];
+        }
+    }
+
+    return {
+        options,
+        values,
+    };
+});
+
+const CSSClass = ClassRule.next(CSSClassBody);
+
+// CSSAnimationKeyframes
+const AnimationValue: Parser<any> = any(
+    CSSClass.map((value: any) => value),
+    Keyframes.map((value: Map<string, any>) => ({
+        keyframes: value,
+    })),
+);
+
+const AnimationValues = AnimationValue.sepBy(ws).map((values: any[]) => {
+    return Object.assign({}, ...values);
+});
+
+// Exported parsers
+export const CSSKeyframes = {
+    Value,
+    Values,
+    FunctionArgs,
+    Function: Function_,
+    JSON: JSON_,
+    Body,
+    Rule,
+    Keyframe,
+    Keyframes,
+    TimePercentage,
+    TimePercentages,
+    Variables,
+};
+
+export const CSSAnimationKeyframes = {
+    Value: AnimationValue,
+    Values: AnimationValues,
+};
 
 export const parseCSSKeyframesValue = memoize(
     (input: string): ValueUnit | FunctionValue => {
-        return CSSKeyframes.Value.tryParse(input);
+        return tryParse(Value, input);
     },
 );
 
 export const parseCSSKeyframes = memoize(
-    (input: string): Map<string, any> => CSSKeyframes.Keyframes.tryParse(input),
+    (input: string): Map<string, any> => tryParse(Keyframes, input),
 );
 
 export const parseCSSAnimationKeyframes = memoize((input: string) => {
-    const { options, values, keyframes } = CSSAnimationKeyframes.Values.tryParse(input);
+    const { options, values, keyframes } = tryParse(AnimationValues, input);
     return {
         options,
         values,
@@ -340,19 +334,22 @@ export const parseCSSAnimationKeyframes = memoize((input: string) => {
 });
 
 export const parseCSSPercent = memoize((input: string | number): number =>
-    CSSValueUnit.Percentage.tryParse(String(input)).valueOf(),
+    tryParse(CSSValueUnit.Percentage, String(input)).valueOf(),
 );
 
 export const parseCSSTime = memoize((input: string) => {
-    return CSSValueUnit.Time.map((v: ValueUnit) => {
-        if (v.unit === "ms") {
-            return v.value;
-        } else if (v.unit === "s") {
-            return v.value * 1000;
-        } else {
-            return v.value;
-        }
-    }).tryParse(input) as number;
+    return tryParse(
+        CSSValueUnit.Time.map((v: ValueUnit) => {
+            if (v.unit === "ms") {
+                return v.value;
+            } else if (v.unit === "s") {
+                return v.value * 1000;
+            } else {
+                return v.value;
+            }
+        }),
+        input,
+    ) as number;
 });
 
 export const reverseCSSTime = memoize((time: number): string => {

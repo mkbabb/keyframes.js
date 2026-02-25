@@ -1,6 +1,6 @@
-import { Animation } from "@src/animation";
-import { AnimationFrame, AnimationOptions, Vars } from "@src/animation/constants";
-import { ValueUnit } from "@src/units";
+import type { Animation } from "@src/animation";
+import type { AnimationFrame, AnimationOptions, Vars } from "@src/animation/constants";
+import type { ValueUnit } from "@src/units";
 import { unflattenObjectToString } from "@src/units/utils";
 import prettier from "prettier";
 import prettierPostCSSPlugin from "prettier/plugins/postcss";
@@ -58,7 +58,7 @@ export function parseCSSAnimationOrKeyframes(keyframes: string): {
     }
 }
 
-export const CSSKeyframesToStrings = async <V>(animation: Animation<V>) => {
+export const CSSKeyframesToStrings = async <V extends Vars>(animation: Animation<V>) => {
     const frameStrings = animation.frames.map(async (frame) => {
         let css = CSSKeyframeToString(frame);
 
@@ -150,7 +150,7 @@ export async function CSSKeyframesToString<V extends Vars>(
         if (!keyframesMap.has(cssString)) {
             keyframesMap.set(cssString, [frame.start]);
         } else {
-            keyframesMap.get(cssString).push(frame.start);
+            keyframesMap.get(cssString)!.push(frame.start);
         }
     });
 

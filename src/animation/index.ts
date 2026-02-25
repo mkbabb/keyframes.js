@@ -7,11 +7,15 @@ import { ValueUnit } from "../units";
 import {
     isObject,
     memoizeDecorator,
+    cancelAnimationFrame,
     requestAnimationFrame,
     seekPreviousValue,
     sleep,
 } from "../utils";
 import {
+    defaultOptions,
+} from "./constants";
+import type {
     AnimationFrame,
     AnimationOptions,
     InputAnimationOptions,
@@ -20,7 +24,6 @@ import {
     TimingFunctionNames,
     TransformFunction,
     Vars,
-    defaultOptions,
 } from "./constants";
 import { AnimationGroup } from "./group";
 import {
@@ -96,7 +99,7 @@ export class Animation<V extends Vars = any> {
             frame.start.unit === "ms" ||
             !frame.start.unit
         ) {
-            const value = convertToMs(frame.start.value, frame.start.unit);
+            const value = convertToMs(frame.start.value, frame.start.unit as any);
 
             frame.start.value = (value / this.options.duration) * 100;
             frame.start.unit = "%";
@@ -131,9 +134,9 @@ export class Animation<V extends Vars = any> {
                 getTimingFunction(timingFunction) ?? this.options.timingFunction,
         } as TemplateAnimationFrame<K>;
 
-        this.convertFrameStart(templateFrame);
+        this.convertFrameStart(templateFrame as unknown as TemplateAnimationFrame<V>);
 
-        this.templateFrames.push(templateFrame);
+        this.templateFrames.push(templateFrame as unknown as TemplateAnimationFrame<V>);
         this.frameId += 1;
 
         return this as unknown as Animation<K>;
@@ -180,12 +183,12 @@ export class Animation<V extends Vars = any> {
             ixs,
             start: startFrame.start,
             time,
-            vars: undefined,
-            flatVars: undefined,
+            vars: undefined as unknown as V,
+            flatVars: undefined as unknown as V,
             interpVars: {},
             transform,
             timingFunction,
-        };
+        } as AnimationFrame<V>;
     }
 
     reconcileVars(ix: number) {
@@ -300,7 +303,8 @@ export class Animation<V extends Vars = any> {
         }
 
         const prevDuration = this.options.duration;
-        const ratio = duration / prevDuration;
+        const d = duration ?? prevDuration;
+        const ratio = d / prevDuration;
 
         for (let i = 0; i < this.frames.length; i++) {
             const frame = this.frames[i];
@@ -308,7 +312,7 @@ export class Animation<V extends Vars = any> {
             frame.time.stop *= ratio;
         }
 
-        this.options.duration = duration;
+        this.options.duration = d;
 
         return this;
     }
@@ -317,17 +321,17 @@ export class Animation<V extends Vars = any> {
         if (typeof delay === "string") {
             delay = parseCSSTime(delay);
         }
-        this.options.delay = delay;
+        this.options.delay = delay ?? 0;
         return this;
     }
 
     setDirection(direction: InputAnimationOptions["direction"]) {
-        this.options.direction = direction;
+        this.options.direction = direction ?? "normal";
         return this;
     }
 
     setFillMode(fillMode: InputAnimationOptions["fillMode"]) {
-        this.options.fillMode = fillMode;
+        this.options.fillMode = fillMode ?? "forwards";
         return this;
     }
 
@@ -369,7 +373,7 @@ export class Animation<V extends Vars = any> {
                 const eased = frame.timingFunction(scaled);
 
                 Object.values(frame.interpVars).forEach((values: any) => {
-                    values.forEach((v) => {
+                    values.forEach((v: any) => {
                         lerpValue(eased, v);
                     });
                 });

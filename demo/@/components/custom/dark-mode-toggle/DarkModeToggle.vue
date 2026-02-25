@@ -27,7 +27,7 @@ const { size } = defineProps({
 });
 </script>
 
-<style scoped lang="scss">
+<style scoped>
 .dark-mode-toggle-button {
     cursor: pointer;
     border: 0;

@@ -1,5 +1,6 @@
 import { easeInOutCubic, timingFunctions } from "../easing";
-import { ValueArray, ValueUnit } from "../units";
+import type { ValueArray, ValueUnit, InterpolatedVar } from "../units";
+export type { InterpolatedVar } from "../units";
 
 export const DIRECTIONS = [
     "normal",
@@ -14,15 +15,6 @@ export type TimingFunctionNames = keyof typeof timingFunctions;
 
 export type Vars<T = any> = {
     [arg: string]: number | string | T;
-};
-
-export type InterpolatedVar<T> = {
-    start: ValueUnit;
-    stop: ValueUnit;
-
-    value: ValueUnit;
-
-    computed: boolean;
 };
 
 export type TransformFunction<V extends Vars> = (v: V, t: number) => void;

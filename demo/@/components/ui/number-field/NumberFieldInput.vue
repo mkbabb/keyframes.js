@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { NumberFieldInput } from 'radix-vue'
+import { NumberFieldInput } from 'reka-ui'
 import { cn } from '@utils/utils'
 </script>
 

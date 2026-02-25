@@ -233,7 +233,7 @@ import {
 
 import { Input } from "@components/ui/input";
 
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 
 import CopyButton from "@components/custom/CopyButton.vue";
 
@@ -327,17 +327,17 @@ const storedControls = getStoredAnimationGroupControlOptions(animation);
 
 storedControls.keyframeControls ??= defaultKeyframeControls;
 
-const cssKeyframesStringEl = $ref(null);
-let cssKeyframesString = $ref("");
+const cssKeyframesStringEl = useTemplateRef<HTMLElement>("cssKeyframesStringEl");
+const cssKeyframesString = ref("");
 
-const addKeyframesEl = $ref(null);
-let addKeyframesString = $ref(storedControls.keyframeControls.addKeyframes);
+const addKeyframesEl = useTemplateRef<HTMLElement>("addKeyframesEl");
+const addKeyframesString = ref(storedControls.keyframeControls.addKeyframes);
 
-let templateFrameStrings = $ref<string[]>([]);
+const templateFrameStrings = ref<string[]>([]);
 
-const keyframeRefs = $ref([]);
+const keyframeRefs = ref<any[]>([]);
 
-const tabsListEl = $ref(null);
+const tabsListEl = ref<HTMLElement | null>(null);
 
 const setHighlightingString = (el: HTMLElement, s: string) => {
     if (el) {
@@ -347,7 +347,7 @@ const setHighlightingString = (el: HTMLElement, s: string) => {
 };
 
 const getFormatWidth = (el?: HTMLElement) => {
-    el ??= tabsListEl;
+    el ??= tabsListEl.value!;
 
     if (el == null || el.offsetWidth == null) {
         return undefined;
@@ -371,8 +371,8 @@ const updateCSSAnimationKeyframesStringFromAnimation = async (
             getFormatWidth(),
         ));
 
-    cssKeyframesString = keyframesString;
-    setHighlightingString(cssKeyframesStringEl, keyframesString);
+    cssKeyframesString.value = keyframesString;
+    setHighlightingString(cssKeyframesStringEl.value!, keyframesString);
 
     highlightCSS();
 
@@ -387,7 +387,7 @@ watch(
     },
     (v) => {
         if (v && storedControls.keyframeControls.dialogOpen) {
-            updateAddKeyframesString(addKeyframesString);
+            updateAddKeyframesString(addKeyframesString.value);
         }
     },
 );
@@ -503,9 +503,9 @@ const updateAddKeyframesString = (keyframesString: string) => {
         const sel = window.getSelection();
 
         storedControls.keyframeControls.addKeyframes = formatted;
-        addKeyframesString = formatted;
+        addKeyframesString.value = formatted;
 
-        setHighlightingString(addKeyframesEl, addKeyframesString);
+        setHighlightingString(addKeyframesEl.value!, addKeyframesString.value);
 
         highlightCSS();
 
@@ -516,7 +516,7 @@ const updateAddKeyframesString = (keyframesString: string) => {
 };
 
 const addKeyframesStringToAnimation = (keyframesString: string) => {
-    addKeyframesString = keyframesString;
+    addKeyframesString.value = keyframesString;
     storedControls.keyframeControls.addKeyframes = keyframesString;
 
     const parseAndUpdate = () => {
@@ -546,7 +546,7 @@ const addKeyframesStringToAnimation = (keyframesString: string) => {
 
         storedControls.keyframeControls.dialogOpen = false;
 
-        addKeyframesString = "";
+        addKeyframesString.value = "";
         storedControls.keyframeControls.addKeyframes = "";
     };
 
@@ -574,11 +574,11 @@ const removeKeyframe = async (e: Event, frameIx: number) => {
         return;
     }
 
-    const el1 = keyframeRefs[frameIx];
+    const el1 = keyframeRefs.value[frameIx];
     const el2 =
-        frameIx < keyframeRefs.length - 1
-            ? keyframeRefs[frameIx + 1]
-            : keyframeRefs[frameIx - 1];
+        frameIx < keyframeRefs.value.length - 1
+            ? keyframeRefs.value[frameIx + 1]
+            : keyframeRefs.value[frameIx - 1];
 
     await animations
         .warpLeft()
@@ -601,8 +601,8 @@ const removeKeyframe = async (e: Event, frameIx: number) => {
     updateAllStringsAndAnimation();
 };
 
-const progressBarKeyframesEl = $ref(null);
-const progressBarAddKeyframesEl = $ref(null);
+const progressBarKeyframesEl = useTemplateRef<HTMLElement>("progressBarKeyframesEl");
+const progressBarAddKeyframesEl = useTemplateRef<HTMLElement>("progressBarAddKeyframesEl");
 
 const animateProgressBar = (el: HTMLElement) => {
     new CSSKeyframesAnimation(
@@ -622,27 +622,27 @@ const animateProgressBar = (el: HTMLElement) => {
         .play();
 };
 
-let hljsStyle = $ref(null);
-let keyframesStyle = $ref(null);
+const hljsStyle = ref<HTMLStyleElement | null>(null);
+const keyframesStyle = ref<HTMLStyleElement | null>(null);
 
-let prevPaused = $ref(false);
+const prevPaused = ref(false);
 
 const applyCSSStyles = () => {
     const wasApplied =
-        keyframesStyle && keyframesStyle.innerHTML.includes(cssKeyframesString);
+        keyframesStyle.value && keyframesStyle.value.innerHTML.includes(cssKeyframesString.value);
 
     if (wasApplied) {
-        animation.paused = prevPaused;
-        keyframesStyle.innerHTML = "";
+        animation.paused = prevPaused.value;
+        keyframesStyle.value!.innerHTML = "";
 
         animation.targets.forEach((t) => t.classList.remove(keyframesStyleId));
 
         brushAnimation.pause();
     } else {
-        prevPaused = animation.paused;
+        prevPaused.value = animation.paused;
         animation.paused = animation.started;
 
-        keyframesStyle.innerHTML = cssKeyframesString;
+        keyframesStyle.value!.innerHTML = cssKeyframesString.value;
 
         animation.targets.forEach((t) => t.classList.add(keyframesStyleId));
 
@@ -650,7 +650,7 @@ const applyCSSStyles = () => {
     }
 };
 
-const brush = $ref<HTMLElement>(null);
+const brush = useTemplateRef<HTMLElement>("brush");
 
 const brushAnimation = new CSSKeyframesAnimation({
     duration: 700,
@@ -674,11 +674,11 @@ const brushAnimation = new CSSKeyframesAnimation({
 
 const isDark = useDark({ disableTransition: false });
 const setCodeTheme = () => {
-    if (!hljsStyle) {
+    if (!hljsStyle.value) {
         return;
     }
 
-    hljsStyle.innerHTML = isDark.value ? githubDark : githubLight;
+    hljsStyle.value.innerHTML = isDark.value ? githubDark : githubLight;
 };
 watch(isDark, () => {
     setCodeTheme();
@@ -688,12 +688,12 @@ const highlightCSS = (el?: HTMLElement) => {
     const existingHLJSStyle = document.head.querySelector("#highlightjs-theme");
 
     if (!existingHLJSStyle) {
-        hljsStyle = document.createElement("style");
-        hljsStyle.id = "highlightjs-theme";
+        hljsStyle.value = document.createElement("style");
+        hljsStyle.value.id = "highlightjs-theme";
 
-        document.head.appendChild(hljsStyle);
+        document.head.appendChild(hljsStyle.value);
     } else {
-        hljsStyle = existingHLJSStyle;
+        hljsStyle.value = existingHLJSStyle as HTMLStyleElement;
     }
 
     setCodeTheme();
@@ -701,12 +701,12 @@ const highlightCSS = (el?: HTMLElement) => {
     const existingKeyframesStyle = document.head.querySelector(`#${keyframesStyleId}`);
 
     if (!existingKeyframesStyle) {
-        keyframesStyle = document.createElement("style");
-        keyframesStyle.id = keyframesStyleId;
+        keyframesStyle.value = document.createElement("style");
+        keyframesStyle.value.id = keyframesStyleId;
 
-        document.head.appendChild(keyframesStyle);
+        document.head.appendChild(keyframesStyle.value);
     } else {
-        keyframesStyle = existingKeyframesStyle;
+        keyframesStyle.value = existingKeyframesStyle as HTMLStyleElement;
     }
 
     const highlight = (e: HTMLElement) => {
@@ -721,17 +721,17 @@ const highlightCSS = (el?: HTMLElement) => {
         e.setAttribute("highlighted", "true");
     };
 
-    highlight(el);
-    highlight(cssKeyframesStringEl);
+    highlight(el!);
+    highlight(cssKeyframesStringEl.value!);
 
     const pres = document.querySelectorAll("pre");
     pres.forEach(highlight);
 };
 
 const updateAllStrings = async () => {
-    templateFrameStrings = [];
+    templateFrameStrings.value = [];
 
-    templateFrameStrings = await CSSKeyframesToStrings(animation);
+    templateFrameStrings.value = await CSSKeyframesToStrings(animation);
 
     const keyframesString = await updateCSSAnimationKeyframesStringFromAnimation();
 
@@ -757,31 +757,31 @@ watch(animation.templateFrames, async () => {
 });
 
 watch(
-    () => addKeyframesEl,
+    () => addKeyframesEl.value,
     () => {
-        if (!addKeyframesEl) {
+        if (!addKeyframesEl.value) {
             return;
         }
-        highlightCSS(addKeyframesEl);
+        highlightCSS(addKeyframesEl.value);
     },
 );
 
 onMounted(() => {
-    brushAnimation.setTargets(brush);
+    brushAnimation.setTargets(brush.value);
 
     updateAllStrings();
 });
 </script>
 
-<style scoped lang="scss">
+<style scoped>
 .progress-bar {
     --height: 0.5rem;
 
-    // width: 100%;
+    /* width: 100%; */
 
     height: var(--height);
 
-    // bottom: var(--offset);
+    /* bottom: var(--offset); */
     border-radius: 5px;
     background-image: linear-gradient(
         to right,

@@ -79,6 +79,7 @@ const state = ref<State>({
 function dispatch(action: Action) {
   switch (action.type) {
     case actionTypes.ADD_TOAST:
+      // @ts-expect-error — will be fixed by shadcn-vue regeneration
       state.value.toasts = [action.toast, ...state.value.toasts].slice(0, TOAST_LIMIT)
       break
 

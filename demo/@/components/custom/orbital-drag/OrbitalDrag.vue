@@ -20,16 +20,9 @@ import { clamp } from "@src/math";
 import { ANGLE_UNITS } from "@src/units/constants";
 import { useEventListener, useRafFn } from "@vueuse/core";
 import * as THREE from "three";
-import { onMounted, onUnmounted, watch } from "vue";
-import {
-    TransformBounds,
-    TransformState,
-    VelocityState,
-    axes,
-    defaultTransformBounds,
-    defaultTransformState,
-    defaultVelocityState,
-} from ".";
+import { onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
+import type { TransformBounds, TransformState, VelocityState } from ".";
+import { axes, defaultTransformBounds, defaultTransformState, defaultVelocityState } from ".";
 
 const normalizeAngle = (angle: number, unit: (typeof ANGLE_UNITS)[number]): number => {
     switch (unit) {
@@ -77,19 +70,19 @@ if (Object.keys(model.value).length === 0) {
     Object.assign(model.value, defaultTransformState);
 }
 
-const containerRef = $ref<HTMLElement | null>(null);
+const containerRef = useTemplateRef<HTMLElement>("containerRef");
 
-let isDragging = $ref(false);
-let isTouching = $ref(false);
-let isScrolling = $ref(false);
+const isDragging = ref(false);
+const isTouching = ref(false);
+const isScrolling = ref(false);
 
 const getDefaultPreviousMousePosition = () => {
     return { x: 0, y: 0 };
 };
 
-let previousMousePosition = $ref(getDefaultPreviousMousePosition());
+const previousMousePosition = ref(getDefaultPreviousMousePosition());
 
-let previousWheelState = $ref(getDefaultPreviousMousePosition());
+const previousWheelState = ref(getDefaultPreviousMousePosition());
 
 const getDefaultGestureState = () => {
     return {
@@ -99,9 +92,9 @@ const getDefaultGestureState = () => {
     };
 };
 
-let previousGestureState = $ref(getDefaultGestureState());
+const previousGestureState = ref(getDefaultGestureState());
 
-let pressedKeys = $ref<PressedKeys>({
+const pressedKeys = ref<PressedKeys>({
     x: false,
     y: false,
     z: false,
@@ -120,9 +113,9 @@ const getDefaultVelocityState = () => {
     return JSON.parse(JSON.stringify(defaultVelocityState));
 };
 
-let velocity = $ref<VelocityState>(getDefaultVelocityState());
+const velocity = ref<VelocityState>(getDefaultVelocityState());
 
-let bounds = props.bounds ?? defaultTransformBounds;
+const bounds = props.bounds ?? defaultTransformBounds;
 
 const rotateAroundAxis = (axis: THREE.Vector3, angle: number) => {
     const quaternion = new THREE.Quaternion();
@@ -174,25 +167,25 @@ const getUserXY = (event: MouseEvent | TouchEvent) => {
 
 const startDrag = (event: MouseEvent | TouchEvent) => {
     if (isTouchEventFallback(event)) {
-        isTouching = true;
+        isTouching.value = true;
         event.preventDefault();
     }
 
-    previousMousePosition = getUserXY(event);
-    isDragging = true;
+    previousMousePosition.value = getUserXY(event);
+    isDragging.value = true;
 };
 
 const stopDrag = (event: MouseEvent | TouchEvent) => {
-    isTouching = false;
-    isDragging = false;
+    isTouching.value = false;
+    isDragging.value = false;
 };
 
 const startGesture = (event: any) => {
     event.preventDefault();
 
-    isTouching = true;
+    isTouching.value = true;
 
-    previousGestureState = {
+    previousGestureState.value = {
         x: event.screenX,
         y: event.screenY,
         scale: event.scale ?? 1,
@@ -200,7 +193,7 @@ const startGesture = (event: any) => {
 };
 
 const stopGesture = () => {
-    isTouching = false;
+    isTouching.value = false;
 };
 
 const updateTransform = (
@@ -214,7 +207,7 @@ const updateTransform = (
     }
 
     model.value[category][axis] = value;
-    velocity[category][axis] = velocityValue;
+    velocity.value[category][axis] = velocityValue;
 
     for (const [k, v] of Object.entries(model.value[category])) {
         const [min, max] = bounds[category][k];
@@ -266,12 +259,12 @@ const updateRotation = (
 };
 
 const drag = (event: MouseEvent | TouchEvent) => {
-    if (!isDragging) return;
+    if (!isDragging.value) return;
 
     const { x, y } = getUserXY(event);
 
-    const deltaX = x - previousMousePosition.x;
-    const deltaY = y - previousMousePosition.y;
+    const deltaX = x - previousMousePosition.value.x;
+    const deltaY = y - previousMousePosition.value.y;
 
     console.log({ model: model.value });
 
@@ -279,26 +272,26 @@ const drag = (event: MouseEvent | TouchEvent) => {
 
     if (Math.abs(delta) < 1e-4) return;
 
-    if (pressedKeys.x || pressedKeys.y || pressedKeys.z) {
+    if (pressedKeys.value.x || pressedKeys.value.y || pressedKeys.value.z) {
         handleAxisSpecificDrag(deltaX, deltaY);
-    } else if (pressedKeys.shift) {
+    } else if (pressedKeys.value.shift) {
         updateTranslation("x", deltaX);
         updateTranslation("y", deltaY);
     } else {
         updateRotation(["x", "y", "z"], deltaX, deltaY);
     }
 
-    previousMousePosition = { x, y };
+    previousMousePosition.value = { x, y };
 };
 
 const gesture = (event: any) => {
-    if (!isTouching || isScrolling) return;
+    if (!isTouching.value || isScrolling.value) return;
 
     const { screenX, screenY, scale } = event;
 
-    const deltaX = screenX - previousGestureState.x;
-    const deltaY = screenY - previousGestureState.y;
-    const deltaScale = (scale - previousGestureState.scale) / (scaleFactor / 1.25);
+    const deltaX = screenX - previousGestureState.value.x;
+    const deltaY = screenY - previousGestureState.value.y;
+    const deltaScale = (scale - previousGestureState.value.scale) / (scaleFactor / 1.25);
 
     if (
         Math.abs(deltaX) < 1e-4 &&
@@ -314,31 +307,31 @@ const gesture = (event: any) => {
     updateScale("y", deltaScale);
     updateScale("z", deltaScale);
 
-    previousGestureState = { x: screenX, y: screenY, scale };
+    previousGestureState.value = { x: screenX, y: screenY, scale };
 };
 
 const handleAxisSpecificDrag = (deltaX: number, deltaY: number) => {
     const delta = Math.abs(deltaX) > Math.abs(deltaY) ? deltaX : deltaY;
 
-    if (pressedKeys.x) {
-        if (pressedKeys.shift) updateTranslation("x", delta);
-        else if (pressedKeys.ctrl || pressedKeys.meta) updateScale("x", delta);
+    if (pressedKeys.value.x) {
+        if (pressedKeys.value.shift) updateTranslation("x", delta);
+        else if (pressedKeys.value.ctrl || pressedKeys.value.meta) updateScale("x", delta);
         else updateRotation(["x"], deltaX, deltaY);
     }
-    if (pressedKeys.y) {
-        if (pressedKeys.shift) updateTranslation("y", delta);
-        else if (pressedKeys.ctrl || pressedKeys.meta) updateScale("y", delta);
+    if (pressedKeys.value.y) {
+        if (pressedKeys.value.shift) updateTranslation("y", delta);
+        else if (pressedKeys.value.ctrl || pressedKeys.value.meta) updateScale("y", delta);
         else updateRotation(["y"], deltaX, deltaY);
     }
-    if (pressedKeys.z) {
-        if (pressedKeys.shift) updateTranslation("z", delta);
-        else if (pressedKeys.ctrl || pressedKeys.meta) updateScale("z", delta);
+    if (pressedKeys.value.z) {
+        if (pressedKeys.value.shift) updateTranslation("z", delta);
+        else if (pressedKeys.value.ctrl || pressedKeys.value.meta) updateScale("z", delta);
         else updateRotation(["z"], deltaX, deltaY);
     }
 };
 
 const handleWheel = (event: WheelEvent) => {
-    if (!isScrolling) {
+    if (!isScrolling.value) {
         return;
     }
 
@@ -353,12 +346,12 @@ const handleWheel = (event: WheelEvent) => {
 
     if (Math.abs(delta) < 1e-4) return;
 
-    if (pressedKeys.x || pressedKeys.y || pressedKeys.z) {
+    if (pressedKeys.value.x || pressedKeys.value.y || pressedKeys.value.z) {
         handleAxisSpecificDrag(deltaX, deltaY);
-    } else if (pressedKeys.shift) {
+    } else if (pressedKeys.value.shift) {
         updateTranslation("x", deltaX);
         updateTranslation("y", deltaY);
-    } else if (pressedKeys.ctrl || pressedKeys.meta || ctrlKey) {
+    } else if (pressedKeys.value.ctrl || pressedKeys.value.meta || ctrlKey) {
         updateScale("x", deltaY);
         updateScale("y", deltaY);
         updateScale("z", deltaY);
@@ -366,7 +359,7 @@ const handleWheel = (event: WheelEvent) => {
         updateRotation(["x", "y", "z"], -deltaX, -deltaY);
     }
 
-    previousWheelState = { x: deltaX, y: deltaY };
+    previousWheelState.value = { x: deltaX, y: deltaY };
 };
 
 const handleKeyDown = (event: KeyboardEvent) => {
@@ -384,24 +377,24 @@ const updatePressedKeys = (event: KeyboardEvent, isPressed: boolean) => {
         case "x":
         case "y":
         case "z":
-            pressedKeys[key as "x" | "y" | "z"] = isPressed;
+            pressedKeys.value[key as "x" | "y" | "z"] = isPressed;
             break;
         case "shift":
-            pressedKeys.shift = isPressed;
+            pressedKeys.value.shift = isPressed;
             break;
         case "control":
-            pressedKeys.ctrl = isPressed;
+            pressedKeys.value.ctrl = isPressed;
             break;
         case "meta":
-            pressedKeys.meta = isPressed;
+            pressedKeys.value.meta = isPressed;
             break;
     }
 };
 
 const applyInertia = () => {
-    if (isDragging || isTouching) return;
+    if (isDragging.value || isTouching.value) return;
 
-    Object.entries(velocity).forEach(([category, value]) => {
+    Object.entries(velocity.value).forEach(([category, value]) => {
         for (const [k, v] of Object.entries(value)) {
             if (Math.abs(v) > 0.01) {
                 updateTransform(
@@ -411,7 +404,7 @@ const applyInertia = () => {
                     v * inertiaFactor,
                 );
             } else {
-                velocity[category][k] = 0;
+                velocity.value[category][k] = 0;
             }
         }
     });
@@ -426,7 +419,7 @@ onMounted(() => {
         containerRef,
         "wheel",
         (event) => {
-            isScrolling = true;
+            isScrolling.value = true;
             handleWheel(event as WheelEvent);
         },
         { passive: false },
@@ -437,7 +430,7 @@ onMounted(() => {
         clearTimeout(wheelEventEndTimeout);
 
         wheelEventEndTimeout = setTimeout(() => {
-            isScrolling = false;
+            isScrolling.value = false;
         }, 200);
     });
 
@@ -460,11 +453,11 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-    if (!containerRef) {
+    if (!containerRef.value) {
         return;
     }
 
-    containerRef.removeEventListener("wheel", handleWheel);
+    containerRef.value.removeEventListener("wheel", handleWheel);
 
     window.removeEventListener("keydown", handleKeyDown);
     window.removeEventListener("keyup", handleKeyUp);
@@ -485,13 +478,13 @@ onUnmounted(() => {
 });
 
 watch(
-    () => isDragging || isTouching,
+    () => isDragging.value || isTouching.value,
     (newValue) => {
         if (newValue) return;
 
-        Object.entries(velocity).forEach(([category, value]) => {
+        Object.entries(velocity.value).forEach(([category, value]) => {
             for (const [k, v] of Object.entries(value)) {
-                velocity[category][k] *= 0.5;
+                velocity.value[category][k] *= 0.5;
             }
         });
 

@@ -9,7 +9,7 @@
 import { onMounted } from "vue";
 import { CSSKeyframesAnimation, Keyframes } from "@src/animation";
 import { AnimationControls } from "@components/custom/animation-controls";
-import "../styles/style.scss";
+import "../styles/style.css";
 
 const box = $ref<HTMLElement>();
 

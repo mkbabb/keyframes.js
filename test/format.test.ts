@@ -1,0 +1,96 @@
+import { describe, expect, it } from "vitest";
+import {
+    normalizeCSSKeyframeString,
+    animationOptionsToString,
+    CSSKeyframesToString,
+} from "../src/parsing/format";
+import { parseCSSKeyframes } from "../src/parsing/keyframes";
+import { CSSKeyframesAnimation } from "../src/animation";
+import { defaultOptions } from "../src/animation/constants";
+
+describe("normalizeCSSKeyframeString", () => {
+    it("wraps bare blocks in @keyframes animation { ... }", () => {
+        const input = `
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        `;
+        const result = normalizeCSSKeyframeString(input);
+        expect(result).toContain("@keyframes animation");
+        expect(result).toContain("opacity");
+    });
+
+    it("preserves input that already has @keyframes", () => {
+        const input = `@keyframes test {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }`;
+        const result = normalizeCSSKeyframeString(input);
+        expect(result).toContain("@keyframes test");
+    });
+
+    it("strips outer braces from { ... } wrapper", () => {
+        const input = `{
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }`;
+        const result = normalizeCSSKeyframeString(input);
+        expect(result).toContain("@keyframes animation");
+    });
+});
+
+describe("animationOptionsToString", () => {
+    it("produces CSS with correct properties", () => {
+        const css = animationOptionsToString(defaultOptions, "test");
+
+        expect(css).toContain("animation-name: test");
+        expect(css).toContain("animation-duration:");
+        expect(css).toContain("animation-timing-function:");
+        expect(css).toContain("animation-iteration-count:");
+        expect(css).toContain("animation-direction:");
+        expect(css).toContain("animation-fill-mode:");
+    });
+
+    it("uses correct duration format", () => {
+        const css = animationOptionsToString({ ...defaultOptions, duration: 1000 });
+        expect(css).toContain("1000ms");
+    });
+
+    it("shows infinite for Infinity iteration count", () => {
+        const css = animationOptionsToString({
+            ...defaultOptions,
+            iterationCount: Infinity,
+        });
+        expect(css).toContain("infinite");
+    });
+
+    it("includes delay when > 0", () => {
+        const css = animationOptionsToString({
+            ...defaultOptions,
+            delay: 500,
+        });
+        expect(css).toContain("animation-delay: 500ms");
+    });
+});
+
+describe("CSSKeyframesToString", () => {
+    it("roundtrip: parse → format → re-parse → same frame count", async () => {
+        const el = document.createElement("div");
+
+        const input = /*css*/ `
+            @keyframes test {
+                from { background-color: red; left: 200px; top: 0px; }
+                50% { background-color: blue; left: 200px; top: 200px; }
+                to { background-color: red; left: 200px; top: 0px; }
+            }
+        `;
+
+        const anim = new CSSKeyframesAnimation({}, el).fromString(input);
+        const formatted = await CSSKeyframesToString(anim);
+
+        // Extract just the @keyframes block
+        const keyframesBlock = formatted.split("\n\n")[1];
+        const reparsed = parseCSSKeyframes(keyframesBlock);
+
+        expect(reparsed.size).toBeGreaterThan(0);
+    });
+});

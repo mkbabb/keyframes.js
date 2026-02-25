@@ -18,9 +18,8 @@ import { Clipboard, ClipboardCheck } from "lucide-vue-next";
 
 import { Button } from "@components/ui/button";
 
-import { on } from "events";
-import { onMounted } from "vue";
-import { InputAnimationOptions } from "@src/animation/constants";
+import { onMounted, ref, useTemplateRef } from "vue";
+import type { InputAnimationOptions } from "@src/animation/constants";
 import { CSSKeyframesAnimation } from "@src/animation";
 import { AnimationGroup } from "@src/animation/group";
 
@@ -31,10 +30,10 @@ const { text } = defineProps({
     },
 });
 
-let isCopied = $ref(false);
+const isCopied = ref(false);
 
-const clipboard = $ref<HTMLElement>(null);
-const clipboardChecked = $ref<HTMLElement>(null);
+const clipboard = useTemplateRef<HTMLElement>("clipboard");
+const clipboardChecked = useTemplateRef<HTMLElement>("clipboardChecked");
 
 const copyToClipboard = (text) => {
     navigator.clipboard
@@ -81,17 +80,17 @@ group.singleTarget = false;
 const handleClick = () => {
     copyToClipboard(text);
 
-    isCopied = true;
+    isCopied.value = true;
 
     group.play();
 };
 
 onMounted(() => {
-    clipboardCheckedAnim.setTargets(clipboardChecked);
-    clipboardAnim.setTargets(clipboard);
+    clipboardCheckedAnim.setTargets(clipboardChecked.value);
+    clipboardAnim.setTargets(clipboard.value);
 });
 </script>
-<style scoped lang="scss">
+<style scoped>
 .clipboard {
     bottom: 0;
     left: 0;

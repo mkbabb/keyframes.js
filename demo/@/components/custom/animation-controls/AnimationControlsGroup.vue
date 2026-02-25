@@ -202,7 +202,7 @@ import {
     getStoredAnimationGroupControlOptions,
     resetAllStores,
 } from "./animationStores";
-import { SelectIcon } from "radix-vue";
+import { SelectIcon } from "reka-ui";
 import { useDark, useWindowSize } from "@vueuse/core";
 import AnimatedText from "./AnimatedText.vue";
 import { rgb2ColorFilter } from "@src/units/color/colorFilter";
@@ -328,7 +328,7 @@ onMounted(() => {
 });
 </script>
 
-<style scoped lang="scss">
+<style scoped>
 .rainbow {
     --gradient: linear-gradient(
         90deg,

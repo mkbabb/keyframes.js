@@ -1,5 +1,5 @@
 import { getAnimationId, Animation } from "@src/animation";
-import { InputAnimationOptions } from "@src/animation/constants";
+import type { InputAnimationOptions } from "@src/animation/constants";
 import { jumpTerms } from "@src/easing";
 
 export type StoredAnimationOptions = {
@@ -67,7 +67,7 @@ export const getAnimationSuperKey = (
     }
 
     if (typeof animation === "string") return animation;
-    return animation.superKey ?? "default";
+    return animation!.superKey ?? "default";
 };
 
 export const getStoredAnimationOptions = (
@@ -75,7 +75,7 @@ export const getStoredAnimationOptions = (
     superKey: Animation<any> | string | undefined = undefined,
 ): StoredAnimationOptions => {
     superKey = getAnimationSuperKey(superKey, animationId);
-    animationId = getAnimationId(animationId);
+    animationId = getAnimationId(animationId!);
 
     let animationGroupOptions = animationGroupsOptionsStore.value[superKey];
 
@@ -104,7 +104,7 @@ export const createAnimationUUId = (
     superKey: Animation<any> | string | undefined = undefined,
 ) => {
     superKey = getAnimationSuperKey(superKey, animationId);
-    animationId = getAnimationId(animationId);
+    animationId = getAnimationId(animationId!);
 
     return `${superKey}-${animationId}`;
 };

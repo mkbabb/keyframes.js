@@ -97,7 +97,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, useTemplateRef } from "vue";
 import {
     Select,
     SelectContent,
@@ -125,9 +125,10 @@ import Button from "@components/ui/button/Button.vue";
 
 import CopyButton from "@components/custom/CopyButton.vue";
 import { useStorage } from "@vueuse/core";
-import { StoredAnimationOptions, getStoredAnimationOptions } from "./animationStores";
+import type { StoredAnimationOptions } from "./animationStores";
+import { getStoredAnimationOptions } from "./animationStores";
 import { Snowflake } from "lucide-vue-next";
-import { TimingFunction } from "@src/animation/constants";
+import type { TimingFunction } from "@src/animation/constants";
 
 const { animation } = defineProps({
     animation: {
@@ -142,36 +143,36 @@ const emit = defineEmits<{
     (e: "updateTimingFunction", timingFunction: TimingFunction): void;
 }>();
 
-let selectedPreset = $ref("ease");
-let timingValues = $ref(storedAnimationOptions.cubicBezierOptions.controlPoints);
-let timingString = computed(() =>
-    cubicBezierToString(...(timingValues as [number, number, number, number])),
+const selectedPreset = ref("ease");
+const timingValues = ref(storedAnimationOptions.cubicBezierOptions.controlPoints);
+const timingString = computed(() =>
+    cubicBezierToString(...(timingValues.value as [number, number, number, number])),
 );
 
-let controlPoints = $ref([
+const controlPoints = ref([
     { x: 0, y: 0 },
-    { x: timingValues[0], y: timingValues[1] },
-    { x: timingValues[2], y: timingValues[3] },
+    { x: timingValues.value[0], y: timingValues.value[1] },
+    { x: timingValues.value[2], y: timingValues.value[3] },
     { x: 1, y: 1 },
 ]);
 
-let cubicBezierPath = computed(() => {
-    let scaledValues = timingValues.map((v) => v);
+const cubicBezierPath = computed(() => {
+    const scaledValues = timingValues.value.map((v) => v);
     return cubicBezierToSVG(...(scaledValues as [number, number, number, number]));
 });
 
-let SVGEl = $ref<SVGSVGElement | null>(null);
-let pathEl = $ref<SVGGElement | null>(null);
+const SVGEl = useTemplateRef<SVGSVGElement>("SVGEl");
+const pathEl = useTemplateRef<SVGGElement>("pathEl");
 
 const updateTimingFunction = () => {
-    storedAnimationOptions.cubicBezierOptions.controlPoints = timingValues;
+    storedAnimationOptions.cubicBezierOptions.controlPoints = timingValues.value;
 
     const timingFunction = CSSCubicBezier(
-        ...(timingValues as [number, number, number, number]),
+        ...(timingValues.value as [number, number, number, number]),
     );
 
-    if (pathEl) {
-        pathEl.innerHTML = cubicBezierPath.value;
+    if (pathEl.value) {
+        pathEl.value.innerHTML = cubicBezierPath.value;
     }
 
     emit("updateTimingFunction", timingFunction);
@@ -179,38 +180,38 @@ const updateTimingFunction = () => {
     return timingFunction;
 };
 
-let isDragging = $ref(false);
-let currentPointIndex = $ref<number | null>(null);
+const isDragging = ref(false);
+const currentPointIndex = ref<number | null>(null);
 
-let startCubicBezierDragging = (event: MouseEvent) => {
+const startCubicBezierDragging = (event: MouseEvent) => {
     const target = (event.target as SVGElement).closest("circle");
     if (target) {
-        isDragging = true;
-        currentPointIndex = parseInt(target.getAttribute("data-index")!);
+        isDragging.value = true;
+        currentPointIndex.value = parseInt(target.getAttribute("data-index")!);
     }
 };
 
 const stopCubicBezierDragging = () => {
-    isDragging = false;
-    currentPointIndex = null;
+    isDragging.value = false;
+    currentPointIndex.value = null;
 };
 
 const cubicBezierDrag = (event: MouseEvent) => {
-    if (isDragging && currentPointIndex !== null) {
-        if (currentPointIndex === 0 || currentPointIndex === 3) return;
+    if (isDragging.value && currentPointIndex.value !== null) {
+        if (currentPointIndex.value === 0 || currentPointIndex.value === 3) return;
 
-        const svgRect = pathEl!.getBoundingClientRect();
+        const svgRect = pathEl.value!.getBoundingClientRect();
         const { width, height, left, top } = svgRect;
 
         const x = (event.clientX - left) / width;
         const y = 1 - (event.clientY - top) / height;
 
-        controlPoints[currentPointIndex] = { x, y };
-        timingValues = [
-            controlPoints[1].x,
-            controlPoints[1].y,
-            controlPoints[2].x,
-            controlPoints[2].y,
+        controlPoints.value[currentPointIndex.value] = { x, y };
+        timingValues.value = [
+            controlPoints.value[1].x,
+            controlPoints.value[1].y,
+            controlPoints.value[2].x,
+            controlPoints.value[2].y,
         ];
 
         updateTimingFunction();
@@ -218,14 +219,14 @@ const cubicBezierDrag = (event: MouseEvent) => {
 };
 
 const updateCubicBezierPreset = (key: string) => {
-    timingValues = JSON.parse(JSON.stringify(bezierPresets[key]));
-    controlPoints[1] = {
-        x: timingValues[0],
-        y: timingValues[1],
+    timingValues.value = JSON.parse(JSON.stringify(bezierPresets[key]));
+    controlPoints.value[1] = {
+        x: timingValues.value[0],
+        y: timingValues.value[1],
     };
-    controlPoints[2] = {
-        x: timingValues[2],
-        y: timingValues[3],
+    controlPoints.value[2] = {
+        x: timingValues.value[2],
+        y: timingValues.value[3],
     };
 
     updateTimingFunction();
@@ -249,11 +250,11 @@ const cubicBezierAnim = new CSSKeyframesAnimation({
 
         const [y1, y2] = [v, 1 - v];
 
-        controlPoints[1].y = y1;
-        controlPoints[2].y = y2;
+        controlPoints.value[1].y = y1;
+        controlPoints.value[2].y = y2;
 
-        timingValues[1] = y1;
-        timingValues[3] = y2;
+        timingValues.value[1] = y1;
+        timingValues.value[3] = y2;
 
         updateTimingFunction();
     },
@@ -266,7 +267,7 @@ onMounted(() => {
 });
 </script>
 
-<style scoped lang="scss">
+<style scoped>
 :deep(.bezier-curve) {
     width: 100%;
     aspect-ratio: 1 / 1;

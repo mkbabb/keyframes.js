@@ -131,7 +131,7 @@ import {
 
 import { Input } from "@components/ui/input";
 
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 
 import CopyButton from "@components/custom/CopyButton.vue";
 
@@ -235,18 +235,18 @@ const storedControls = getStoredAnimationGroupControlOptions(animation);
 
 storedControls.keyframeControls ??= defaultKeyframeControls;
 
-const cssKeyframesStringEl = $ref(null);
-let cssKeyframesString = $ref("");
+const cssKeyframesStringEl = useTemplateRef<HTMLElement>("cssKeyframesStringEl");
+const cssKeyframesString = ref("");
 
-const addKeyframesEl = $ref(null);
-let addKeyframesString = $ref(storedControls.keyframeControls.addKeyframes);
+const addKeyframesEl = useTemplateRef<HTMLElement>("addKeyframesEl");
+const addKeyframesString = ref(storedControls.keyframeControls.addKeyframes);
 
-const keyframeRefs = $ref([]);
+const keyframeRefs = ref<any[]>([]);
 
-const tabsListEl = $ref(null);
+const tabsListEl = ref<HTMLElement | null>(null);
 
 const getFormatWidth = (el?: HTMLElement) => {
-    el ??= tabsListEl;
+    el ??= tabsListEl.value!;
 
     if (el == null || el.offsetWidth == null) {
         return undefined;
@@ -260,13 +260,13 @@ const getTmpAnimationName = () => {
 };
 
 const updateCSSAnimationKeyframesStringFromAnimation = async () => {
-    cssKeyframesString = await CSSKeyframesToString(
+    cssKeyframesString.value = await CSSKeyframesToString(
         animation,
         getTmpAnimationName(),
         getFormatWidth(),
     );
 
-    return cssKeyframesString;
+    return cssKeyframesString.value;
 };
 
 const formatCSSKeyframesString = async (
@@ -385,12 +385,12 @@ const updateAnimationFromKeyframeString = debounce(
 const updateAddKeyframesString = (keyframesString: string) => {
     formatCSS(keyframesString, getFormatWidth()).then((formatted) => {
         storedControls.keyframeControls.addKeyframes = formatted;
-        addKeyframesString = formatted;
+        addKeyframesString.value = formatted;
     });
 };
 
 const addKeyframesStringToAnimation = (keyframesString: string) => {
-    addKeyframesString = keyframesString;
+    addKeyframesString.value = keyframesString;
     storedControls.keyframeControls.addKeyframes = keyframesString;
 
     const parseAndUpdate = () => {
@@ -418,7 +418,7 @@ const addKeyframesStringToAnimation = (keyframesString: string) => {
 
         storedControls.keyframeControls.dialogOpen = false;
 
-        addKeyframesString = "";
+        addKeyframesString.value = "";
         storedControls.keyframeControls.addKeyframes = "";
     };
 
@@ -445,11 +445,11 @@ const removeKeyframe = async (e: Event, frameIx: number) => {
         return;
     }
 
-    const el1 = keyframeRefs[frameIx];
+    const el1 = keyframeRefs.value[frameIx];
     const el2 =
-        frameIx < keyframeRefs.length - 1
-            ? keyframeRefs[frameIx + 1]
-            : keyframeRefs[frameIx - 1];
+        frameIx < keyframeRefs.value.length - 1
+            ? keyframeRefs.value[frameIx + 1]
+            : keyframeRefs.value[frameIx - 1];
 
     await animations
         .warpLeft()
@@ -470,26 +470,26 @@ const removeKeyframe = async (e: Event, frameIx: number) => {
     // animation.updateFrom(tmpAnimation);
 };
 
-let keyframesStyle = $ref(null);
+const keyframesStyle = ref<HTMLStyleElement | null>(null);
 
-let prevPaused = $ref(false);
+const prevPaused = ref(false);
 
 const applyCSSStyles = () => {
     const wasApplied =
-        keyframesStyle && keyframesStyle.innerHTML.includes(cssKeyframesString);
+        keyframesStyle.value && keyframesStyle.value.innerHTML.includes(cssKeyframesString.value);
 
     if (wasApplied) {
-        animation.paused = prevPaused;
-        keyframesStyle.innerHTML = "";
+        animation.paused = prevPaused.value;
+        keyframesStyle.value!.innerHTML = "";
 
         animation.targets.forEach((t) => t.classList.remove(keyframesStyleId));
 
         brushAnimation.pause();
     } else {
-        prevPaused = animation.paused;
+        prevPaused.value = animation.paused;
         animation.paused = animation.started;
 
-        keyframesStyle.innerHTML = cssKeyframesString;
+        keyframesStyle.value!.innerHTML = cssKeyframesString.value;
 
         animation.targets.forEach((t) => t.classList.add(keyframesStyleId));
 
@@ -497,7 +497,7 @@ const applyCSSStyles = () => {
     }
 };
 
-const brushEl = $ref<HTMLElement>(null);
+const brushEl = useTemplateRef<HTMLElement>("brushEl");
 
 const brushAnimation = new CSSKeyframesAnimation({
     duration: 700,
@@ -531,12 +531,12 @@ const createKeyframesStyleEl = (el?: HTMLElement) => {
     const existingKeyframesStyle = document.head.querySelector(`#${keyframesStyleId}`);
 
     if (!existingKeyframesStyle) {
-        keyframesStyle = document.createElement("style");
-        keyframesStyle.id = keyframesStyleId;
+        keyframesStyle.value = document.createElement("style");
+        keyframesStyle.value.id = keyframesStyleId;
 
-        document.head.appendChild(keyframesStyle);
+        document.head.appendChild(keyframesStyle.value);
     } else {
-        keyframesStyle = existingKeyframesStyle;
+        keyframesStyle.value = existingKeyframesStyle as HTMLStyleElement;
     }
 };
 
@@ -545,14 +545,14 @@ let cssKeyframesStringEditor: monaco.editor.IStandaloneCodeEditor;
 const parseErrorShake = animations.shake();
 
 onMounted(async () => {
-    brushAnimation.setTargets(brushEl);
+    brushAnimation.setTargets(brushEl.value);
 
     createKeyframesStyleEl();
 
     await updateCSSAnimationKeyframesStringFromAnimation();
 
-    cssKeyframesStringEditor = monaco.editor.create(cssKeyframesStringEl, {
-        value: cssKeyframesString,
+    cssKeyframesStringEditor = monaco.editor.create(cssKeyframesStringEl.value!, {
+        value: cssKeyframesString.value,
         language: "css",
         fontLigatures: true,
         theme: isDark.value ? "dark-theme" : "light-theme",
@@ -569,19 +569,19 @@ onMounted(async () => {
         updateAnimationFromKeyframesString(cssKeyframesStringEditor);
     });
 
-    parseErrorShake.setTargets(cssKeyframesStringEl);
+    parseErrorShake.setTargets(cssKeyframesStringEl.value);
 });
 </script>
 
-<style scoped lang="scss">
+<style scoped>
 .progress-bar {
     --height: 0.5rem;
 
-    // width: 100%;
+    /* width: 100%; */
 
     height: var(--height);
 
-    // bottom: var(--offset);
+    /* bottom: var(--offset); */
     border-radius: 5px;
     background-image: linear-gradient(
         to right,

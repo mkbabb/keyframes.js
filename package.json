@@ -25,6 +25,7 @@
     "types": "./dist/keyframes.d.ts",
     "exports": {
         ".": {
+            "types": "./dist/keyframes.d.ts",
             "import": "./dist/keyframes.js",
             "require": "./dist/keyframes.cjs"
         }
@@ -33,7 +34,7 @@
         "dist"
     ],
     "scripts": {
-        "dev": "vite --port 8080 --mode production",
+        "dev": "vite --port 8080",
         "build": "vite build --mode production",
         "gh-pages": "vite build --mode gh-pages",
         "test": "vitest"
@@ -43,13 +44,17 @@
         "url": "git+https://github.com/mkbabb/keyframes.js.git"
     },
     "author": "",
+    "engines": {
+        "node": ">=22"
+    },
     "license": "ISC",
     "bugs": {
         "url": "https://github.com/mkbabb/keyframes.js/issues"
     },
     "homepage": "https://github.com/mkbabb/keyframes.js#readme",
     "dependencies": {
-        "parsimmon": "^1.18.1"
+        "@mkbabb/parse-that": "^0.6.0",
+        "@mkbabb/value.js": "^0.3.1"
     },
     "devDependencies": {
         "@fortawesome/fontawesome-svg-core": "^6.6.0",
@@ -59,48 +64,40 @@
         "@fortawesome/vue-fontawesome": "^3.0.8",
         "@iconify-json/radix-icons": "^1.1.14",
         "@iconify/vue": "^4.1.2",
-        "@mhsdesign/jit-browser-tailwindcss": "^0.4.1",
-        "@types/d3-color": "^3.1.3",
-        "@types/node": "^20.14.11",
-        "@types/parsimmon": "^1.10.9",
-        "@types/prettier": "^2.7.3",
+        "@tailwindcss/postcss": "^4.1",
+        "@types/node": "^24.1.0",
         "@types/three": "^0.166.0",
-        "@unovis/ts": "^1.4.3",
-        "@unovis/vue": "^1.4.3",
+        "@unovis/ts": "^1.5.2",
+        "@unovis/vue": "^1.5.2",
         "@vee-validate/zod": "^4.13.2",
-        "@vitejs/plugin-vue": "^5.0.5",
-        "@vueuse/core": "^10.11.0",
-        "autoprefixer": "^10.4.19",
-        "class-variance-authority": "^0.7.0",
+        "@vitejs/plugin-vue": "^6.0.0",
+        "@vueuse/core": "^14.2.1",
+        "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
-        "d3-color": "^3.1.0",
-        "embla-carousel-vue": "^8.1.7",
-        "gl-matrix": "^3.4.3",
-        "highlight.js": "^11.10.0",
-        "jsdom": "^24.1.0",
-        "lucide-vue-next": "^0.411.0",
+        "embla-carousel-vue": "^8.6.0",
+        "highlight.js": "^11.11.1",
+        "jsdom": "^26.1.0",
+        "lucide-vue-next": "^0.525.0",
         "monaco-editor": "^0.50.0",
         "monaco-themes": "^0.4.4",
-        "prettier": "^3.3.3",
+        "prettier": "^3.6.2",
         "prettier-plugin-classnames": "^0.7.0",
         "prettier-plugin-merge": "^0.7.0",
         "prettier-plugin-organize-imports": "^4.0.0",
         "prettier-plugin-tailwindcss": "^0.6.5",
-        "radix-vue": "^1.9.1",
-        "sass": "^1.77.8",
-        "tailwind-merge": "^2.4.0",
-        "tailwindcss": "^3.4.6",
-        "tailwindcss-animate": "^1.0.7",
+        "reka-ui": "^2.0.0",
+        "tailwind-merge": "^3.3.1",
+        "tailwindcss": "^4.1.11",
         "three": "^0.166.1",
-        "typescript": "^5.5.3",
-        "unplugin-vue-macros": "^2.9.5",
+        "tw-animate-css": "^1.2.5",
+        "typescript": "^5.8.3",
         "v-calendar": "^3.1.2",
         "vaul-vue": "^0.2.0",
         "vee-validate": "^4.13.2",
-        "vite": "^5.3.4",
-        "vite-plugin-dts": "^4.0.0-beta.1",
-        "vitest": "^2.0.3",
-        "vue": "^3.4.33",
+        "vite": "^7.0.6",
+        "vite-plugin-dts": "^4.5.4",
+        "vitest": "^3.2.4",
+        "vue": "^3.5.18",
         "vue-sonner": "^1.1.3",
         "zod": "^3.23.8"
     }

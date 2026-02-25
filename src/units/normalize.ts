@@ -1,4 +1,4 @@
-import { InterpolatedVar } from "@src/animation/constants";
+import type { InterpolatedVar } from "@mkbabb/value.js";
 import { ValueUnit } from ".";
 import { parseCSSKeyframesValue } from "../parsing/keyframes";
 import { parseCSSValueUnit } from "../parsing/units";
@@ -33,19 +33,19 @@ export const getComputedValue = memoize(
                 value.value &&
                 target
             ) {
-                const originalValue = target.style[value.property];
+                const originalValue = (target.style as any)[value.property as string];
 
                 const newValue = value.subProperty
                     ? `${value.subProperty}(${value.toString()})`
                     : value.toString();
 
-                target.style[value.property] = newValue;
+                (target.style as any)[value.property as string] = newValue;
 
                 const computed = getComputedStyle(target).getPropertyValue(
-                    value.property,
+                    value.property as string,
                 );
 
-                target.style[value.property] = originalValue;
+                (target.style as any)[value.property as string] = originalValue;
 
                 const p = parseCSSKeyframesValue(computed);
 
@@ -56,7 +56,7 @@ export const getComputedValue = memoize(
                 if (p.name.startsWith("matrix")) {
                     const matrixValues = unpackMatrixValues(p);
 
-                    const matrixSubValue = matrixValues[value.subProperty];
+                    const matrixSubValue = (matrixValues as any)[value.subProperty as string];
 
                     if (matrixSubValue != null) {
                         return new ValueUnit(matrixSubValue, "px", [
@@ -74,7 +74,7 @@ export const getComputedValue = memoize(
 
         return newValue.coalesce(value);
     },
-    { keyFn: (value, target) => `${value.toString()}-${JSON.stringify(target)}` },
+    { keyFn: (value: any, target: any) => `${value.toString()}-${JSON.stringify(target)}` },
 );
 
 export const normalizeNumericUnits = (
@@ -98,7 +98,7 @@ export const normalizeNumericUnits = (
         switch (superType) {
             case "length":
                 return {
-                    value: convertToPixels(value.value, value.unit, value.targets?.[0]),
+                    value: convertToPixels(value.value, value.unit as any, value.targets?.[0]),
                     unit: "px",
                 };
             case "angle":
@@ -117,7 +117,7 @@ export const normalizeNumericUnits = (
                     unit: "dpi",
                 };
             default:
-                return { value: value.value, unit: value.unit };
+                return { value: value.value, unit: value.unit as string };
         }
     };
 
@@ -125,10 +125,10 @@ export const normalizeNumericUnits = (
 
     if (inplace) {
         a.value = newA.value;
-        a.unit = newA.unit;
+        a.unit = newA.unit as any;
 
         b.value = newB.value;
-        b.unit = newB.unit;
+        b.unit = newB.unit as any;
 
         return [a, b];
     } else {
@@ -163,10 +163,10 @@ export function normalizeValueUnits(left: ValueUnit, right: ValueUnit) {
         value: left.clone(),
     } as InterpolatedVar<any>;
 
-    if (isColorUnit(left) && isColorUnit(right)) {
+    if (isColorUnit(left as any) && isColorUnit(right as any)) {
         const [leftCollapsed, rightCollapsed] = normalizeColorUnits(
-            left,
-            right,
+            left as any,
+            right as any,
             "lab",
             true,
         );
@@ -189,7 +189,8 @@ export function normalizeValueUnits(left: ValueUnit, right: ValueUnit) {
     }
 
     out.computed =
-        COMPUTED_UNITS.includes(left.unit) || COMPUTED_UNITS.includes(right.unit);
+        (COMPUTED_UNITS as readonly string[]).includes(left.unit as string) ||
+        (COMPUTED_UNITS as readonly string[]).includes(right.unit as string);
 
     return out;
 }

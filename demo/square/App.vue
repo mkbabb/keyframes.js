@@ -10,7 +10,7 @@ import { onMounted } from "vue";
 import { $ref } from "unplugin-vue-macros/macros";
 import { CSSKeyframesAnimation } from "../../src/animation";
 import AnimationControls from "../components/AnimationControls.vue";
-import "../style.scss";
+import "../style.css";
 
 const box = $ref<HTMLElement>();
 
