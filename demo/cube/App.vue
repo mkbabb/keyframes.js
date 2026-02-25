@@ -1,30 +1,35 @@
 <template>
-    <div class="grid items-center justify-items-center justify-center relative">
-        <div ref="gridBackground" class="w-full h-full absolute grid-background"></div>
+    <div class="relative grid items-center justify-center justify-items-center">
+        <div
+            ref="gridBackground"
+            class="grid-background absolute h-full w-full"
+        ></div>
 
         <div
             :class="
-                'sticky p-4 lg:absolute col-span-2 z-[100] pointer-events-none top-0 w-full h-fit lg:w-min lg:right-0 flex flex-row-reverse lg:gap-4 gap-6 items-center justify-items-center lg:items-start lg:justify-center justify-between ' +
-                (!storedControls.selectedAnimation ? '' : ' ')
+                `pointer-events-none sticky top-0 z-[100] col-span-2 flex h-fit w-full
+                flex-row-reverse items-center justify-between justify-items-center gap-6 p-4
+                lg:absolute lg:right-0 lg:w-min lg:items-start lg:justify-center lg:gap-4 ` +
+                (!storedControls.selectedAnimation ? '' : '')
             "
         >
             <DarkModeToggle
-                class="pointer-events-auto hover:opacity-50 hover:scale-105 w-8 aspect-square"
+                class="pointer-events-auto aspect-square w-8 hover:scale-105 hover:opacity-50"
             />
             <HoverCard
                 v-model:open="hoverCardStates.mbabb"
                 :open-delay="0"
-                class="pointer-events-auto"
+                class="bg-sky-700 px-4 py-2 text-white hover:bg-sky-800 sm:px-8 sm:py-3"
             >
                 <HoverCardTrigger
                     @click="hoverCardStates.mbabb = true"
-                    class="pointer-events-auto fira-code"
-                    ><Button class="p-0 m-0 cursor-pointer" variant="link"
+                    class="fira-code pointer-events-auto"
+                    ><Button class="m-0 cursor-pointer p-0" variant="link"
                         >@mbabb</Button
                     >
                 </HoverCardTrigger>
-                <HoverCardContent class="z-[100] pointer-events-auto">
-                    <div class="flex gap-4 p-4 fira-code">
+                <HoverCardContent class="pointer-events-auto z-[100]">
+                    <div class="fira-code flex gap-4 p-4">
                         <Avatar>
                             <AvatarImage
                                 src="https://avatars.githubusercontent.com/u/2848617?v=4"
@@ -62,14 +67,16 @@
                                 setPPMode();
                             }
                         "
-                        class="ppmycota-logo-sm w-12 h-12 m-0 p-0 stroke-2 font-bold hover:scale-105 cursor-pointer pointer-events-auto"
+                        class="ppmycota-logo-sm pointer-events-auto m-0 h-12 w-12 cursor-pointer stroke-2 p-0
+                            font-bold hover:scale-105"
                     ></div>
                 </HoverCardTrigger>
-                <HoverCardContent class="z-[100] pointer-events-auto">
-                    <div class="flex gap-4 h-fit-content p-4">
+                <HoverCardContent class="pointer-events-auto z-[100]">
+                    <div class="h-fit-content flex gap-4 p-4">
                         <div
                             ref="ppmycotaLogoEl"
-                            class="ppmycota-logo-sm z-20 w-12 h-12 stroke-2 font-bold hover:scale-105 cursor-pointer"
+                            class="ppmycota-logo-sm z-20 h-12 w-12 cursor-pointer stroke-2 font-bold
+                                hover:scale-105"
                         ></div>
                         <div>
                             <h4 class="fraunces">🙂‍↔️ 🌱 🍄‍🟫</h4>
@@ -88,9 +95,11 @@
 
         <template v-if="!storedControls.selectedAnimation">
             <div
-                class="lg:mt-16 mt-20 absolute px-6 w-screen h-0 grid items-center gap-0 left-0 top-0"
+                class="absolute left-0 top-0 mt-20 grid h-0 w-screen items-center gap-0 px-6 lg:mt-16"
             >
-                <h1 class="fraunces font-bold lg:text-7xl text-5xl p-0 grid lg:flex">
+                <h1
+                    class="fraunces grid p-0 text-5xl font-bold lg:flex lg:text-7xl"
+                >
                     <div>
                         <AnimatedText
                             class="depth-text"
@@ -105,12 +114,15 @@
                         ></AnimatedText>
                     </div>
                 </h1>
-                <h2 class="fraunces italic font-light text-4xl w-full">
-                    from the list <List class="inline"></List> below.
+                <h2 class="fraunces w-full text-4xl font-light italic">
+                    from the list
+                    <List class="inline"></List> below.
                 </h2>
-                <h2 class="fraunces italic font-light text-xl w-full opacity-50">
+                <h2
+                    class="fraunces w-full text-xl font-light italic opacity-50"
+                >
                     or drag M. cubért
-                    <span class="not-italic leading-none text-start">🙂‍↔️</span>
+                    <span class="text-start not-italic leading-none">🙂‍↔️</span>
                 </h2>
             </div>
         </template>
@@ -131,28 +143,33 @@
             <template #tabs-content>
                 <TabsContent value="matrix-controls">
                     <Card>
-                        <CardContent class="grid items-center justify-center gap-4 p-6">
+                        <CardContent
+                            class="grid items-center justify-center gap-4 p-6"
+                        >
                             <div
-                                class="p-0 m-0 h-[fit-content] w-[fit-content] gap-1 grid grid-cols-4 items-center justify-items-center relative"
+                                class="relative m-0 grid h-[fit-content] w-[fit-content] grid-cols-4 items-center
+                                    justify-items-center gap-1 p-0"
                             >
                                 <div
-                                    class="h-20 w-20 shadow-sm grid relative rounded-md"
+                                    class="relative grid h-20 w-20 rounded-md shadow-sm"
                                     v-for="(value, i) in matrix3dEnd.values"
                                 >
                                     <Input
                                         :class="
-                                            'absolute top-0 left-0 w-full h-full p-0 text-center text-ellipsis text-2xl bg-transparent z-10 fira-code' +
+                                            `fira-code absolute left-0 top-0 z-10 h-full w-full text-ellipsis bg-transparent
+                                            p-0 text-center text-2xl` +
                                             [
                                                 storedControls.matrixOptions
                                                     .selectedMatrixCell === i
-                                                    ? ' focus:font-bold font-bold'
+                                                    ? 'font-bold focus:font-bold'
                                                     : '',
                                             ]
                                         "
                                         :model-value="
                                             (
                                                 Math.round(
-                                                    (value.valueOf() as number) * 100,
+                                                    (value.valueOf() as number) *
+                                                        100,
                                                 ) / 100
                                             )
                                                 .toFixed(2)
@@ -161,8 +178,12 @@
                                         @update:model-value="
                                             (v) => updateMatrixCell(v, i)
                                         "
-                                        :start="getSliderOptionsFromIx(i).bounds[0]"
-                                        :end="getSliderOptionsFromIx(i).bounds[1]"
+                                        :start="
+                                            getSliderOptionsFromIx(i).bounds[0]
+                                        "
+                                        :end="
+                                            getSliderOptionsFromIx(i).bounds[1]
+                                        "
                                         :step="getSliderOptionsFromIx(i).step"
                                         @click="
                                             (e) =>
@@ -172,11 +193,18 @@
                                     />
                                     <div
                                         :class="
-                                            'absolute top-0 left-0 w-full h-full p-0 text-center text-5xl opacity-20 dark:opacity-75 flex items-center justify-center justify-items-center fraunces ' +
-                                            [getAxisFromIx(i).toLocaleLowerCase()]
+                                            `fraunces absolute left-0 top-0 flex h-full w-full items-center justify-center
+                                            justify-items-center p-0 text-center text-5xl opacity-20 dark:opacity-75 ` +
+                                            [
+                                                getAxisFromIx(
+                                                    i,
+                                                ).toLocaleLowerCase(),
+                                            ]
                                         "
                                     >
-                                        <template v-if="getTransformFromIx(i) !== ''">
+                                        <template
+                                            v-if="getTransformFromIx(i) !== ''"
+                                        >
                                             {{ getTransformFromIx(i)
                                             }}<sub>{{
                                                 getAxisFromIx(i).toLowerCase()
@@ -192,7 +220,8 @@
                             <Slider
                                 :model-value="[
                                     matrix3dEnd.values[
-                                        storedControls.matrixOptions.selectedMatrixCell
+                                        storedControls.matrixOptions
+                                            .selectedMatrixCell
                                     ].valueOf() as number,
                                 ]"
                                 @update:model-value="
@@ -205,17 +234,20 @@
                                 "
                                 :min="
                                     getSliderOptionsFromIx(
-                                        storedControls.matrixOptions.selectedMatrixCell,
+                                        storedControls.matrixOptions
+                                            .selectedMatrixCell,
                                     ).bounds[0]
                                 "
                                 :max="
                                     getSliderOptionsFromIx(
-                                        storedControls.matrixOptions.selectedMatrixCell,
+                                        storedControls.matrixOptions
+                                            .selectedMatrixCell,
                                     ).bounds[1]
                                 "
                                 :step="
                                     getSliderOptionsFromIx(
-                                        storedControls.matrixOptions.selectedMatrixCell,
+                                        storedControls.matrixOptions
+                                            .selectedMatrixCell,
                                     ).step
                                 "
                                 class="w-full"
@@ -223,12 +255,12 @@
 
                             <div class="grid grid-cols-2 gap-2">
                                 <Button
-                                    class="cursor-pointer fira-code"
+                                    class="fira-code cursor-pointer"
                                     @click="resetMatrix"
                                     ><RotateCcw class="mr-4" />Reset</Button
                                 >
                                 <Button
-                                    class="cursor-pointer fira-code"
+                                    class="fira-code cursor-pointer"
                                     @click="
                                         storedControls.matrixOptions.fixed =
                                             !storedControls.matrixOptions.fixed;
@@ -241,7 +273,9 @@
                                     "
                                 >
                                     <Lock
-                                        v-if="!storedControls.matrixOptions.fixed"
+                                        v-if="
+                                            !storedControls.matrixOptions.fixed
+                                        "
                                         class="mr-4"
                                     />
 
@@ -261,26 +295,28 @@
 
             <template #animation-content>
                 <div
-                    class="grid items-center justify-items-center justify-center h-screen w-screen overflow-hidden"
+                    class="grid h-screen w-screen items-center justify-center justify-items-center
+                        overflow-hidden"
                 >
                     <div
                         ref="graph"
                         class="graph preserve-3d grid items-center justify-center justify-items-center"
                     >
                         <OrbitalDrag
-                            class="relative preserve-3d flex items-center justify-center justify-items-center"
+                            class="preserve-3d relative flex items-center justify-center justify-items-center"
                             v-bind:model-value="transformSliderValues"
                         >
                             <div
                                 ref="cube"
-                                class="relative cube preserve-3d flex items-center justify-center justify-items-center animation"
+                                class="cube preserve-3d animation relative flex items-center justify-center
+                                    justify-items-center"
                             >
                                 <span
                                     class="contents"
                                     v-if="!storedControls.selectedAnimation"
                                 >
                                     <Loader2
-                                        class="absolute w-[30vw] h-[30vh] animate-spin"
+                                        class="absolute h-[30vh] w-[30vw] animate-spin"
                                     ></Loader2>
                                 </span>
                                 <div
@@ -311,7 +347,7 @@
                                         <div
                                             :class="[
                                                 'h-full w-full font-bold',
-                                                'flex items-center justify-center ',
+                                                'flex items-center justify-center',
                                             ]"
                                             :style="{
                                                 backgroundColor: side.color,
@@ -319,8 +355,8 @@
                                         >
                                             <span
                                                 :class="[
-                                                    'fraunces text-5xl h-full w-full font-bold',
-                                                    'flex items-center justify-center z-50',
+                                                    'fraunces h-full w-full text-5xl font-bold',
+                                                    'z-50 flex items-center justify-center',
                                                 ]"
                                                 >{{ side.content }}</span
                                             >
@@ -329,10 +365,10 @@
 
                                     <template v-else>
                                         <div
-                                            class="absolute w-full h-full ppmycota-cube"
+                                            class="ppmycota-cube absolute h-full w-full"
                                         ></div>
                                         <div
-                                            class="absolute w-full h-full ppmycota-logo-lg"
+                                            class="ppmycota-logo-lg absolute h-full w-full"
                                         ></div>
                                     </template>
                                 </div>
@@ -352,18 +388,12 @@
 <script setup lang="ts">
 // import { $ref } from "unplugin-vue-macros/macros";
 import { computed, onMounted, reactive, watch } from "vue";
-
 import { Animated } from "@components/custom/animation-controls";
-
 // @ts-ignore
 import "@styles/utils.scss";
-
 import OrbitalDrag from "@components/custom/orbital-drag/OrbitalDrag.vue";
-
 import { RotateCcw, Lock, LockOpen } from "lucide-vue-next";
-
 import { DarkModeToggle } from "@components/custom/dark-mode-toggle";
-
 import {
     HoverCard,
     HoverCardContent,
@@ -380,9 +410,7 @@ import {
     getStoredAnimationOptions,
     getStoredAnimationGroupControlOptions,
 } from "@components/custom/animation-controls/animationStores";
-
 import { Loader2 } from "lucide-vue-next";
-
 import { Slider } from "@components/ui/slider";
 import { Button } from "@components/ui/button";
 import {
@@ -450,7 +478,9 @@ const hoverCardStates = $ref({
     mbabb: false,
 });
 
-const colorOptionsColor = computed(() => storedControls?.colorOptions?.color ?? "red");
+const colorOptionsColor = computed(
+    () => storedControls?.colorOptions?.color ?? "red",
+);
 
 const setPPMode = () => {
     const colorFilter1 =
@@ -540,7 +570,11 @@ const getTransformFromIx = (i: number) => {
 const getSliderOptionsFromIx = (i: number) => {
     let transform = getTransformFromIx(i);
     transform =
-        transform === "T" ? "translate" : transform === "S" ? "scale" : "rotate";
+        transform === "T"
+            ? "translate"
+            : transform === "S"
+              ? "scale"
+              : "rotate";
 
     return transformSliderOptions[transform];
 };
@@ -646,11 +680,24 @@ function updateTransformations() {
         translate.y,
         translate.z,
     ]);
-    const scalingMatrix = mat4.fromScaling(mat4.create(), [scale.x, scale.y, scale.z]);
+    const scalingMatrix = mat4.fromScaling(mat4.create(), [
+        scale.x,
+        scale.y,
+        scale.z,
+    ]);
 
-    const rotationX = mat4.fromXRotation(mat4.create(), rotate.x * (Math.PI / 180));
-    const rotationY = mat4.fromYRotation(mat4.create(), rotate.y * (Math.PI / 180));
-    const rotationZ = mat4.fromZRotation(mat4.create(), rotate.z * (Math.PI / 180));
+    const rotationX = mat4.fromXRotation(
+        mat4.create(),
+        rotate.x * (Math.PI / 180),
+    );
+    const rotationY = mat4.fromYRotation(
+        mat4.create(),
+        rotate.y * (Math.PI / 180),
+    );
+    const rotationZ = mat4.fromZRotation(
+        mat4.create(),
+        rotate.z * (Math.PI / 180),
+    );
 
     const rotationMatrix = mat4.multiply(mat4.create(), rotationX, rotationY);
     mat4.multiply(rotationMatrix, rotationMatrix, rotationZ);
@@ -673,7 +720,9 @@ watch(transformSliderValues, updateTransformations);
 
 const resetMatrix = () => {
     const toMatrix = mat4.create();
-    const fromMatrix = matrix3dEnd.values.map((value) => value.valueOf()) as mat4;
+    const fromMatrix = matrix3dEnd.values.map((value) =>
+        value.valueOf(),
+    ) as mat4;
 
     animateUpdateMatrix(fromMatrix, toMatrix, true);
 };
@@ -689,27 +738,34 @@ const fixMatrix = () => {
 const matrixAnimationOptions = getStoredAnimationOptions("Matrix", superKey);
 
 const matrixAnim = $ref(
-    new CSSKeyframesAnimation(matrixAnimationOptions.animationOptions).fromVars([
-        {
-            transform: {
-                matrix3d: matrix3dStart,
+    new CSSKeyframesAnimation(matrixAnimationOptions.animationOptions).fromVars(
+        [
+            {
+                transform: {
+                    matrix3d: matrix3dStart,
+                },
             },
-        },
-        {
-            transform: {
-                matrix3d: matrix3dEnd,
+            {
+                transform: {
+                    matrix3d: matrix3dEnd,
+                },
             },
-        },
-    ]),
+        ],
+    ),
 );
 
 matrixAnim.name = "Matrix";
 matrixAnim.superKey = superKey;
 
-const rotationAnimationOptions = getStoredAnimationOptions("Rotations", superKey);
+const rotationAnimationOptions = getStoredAnimationOptions(
+    "Rotations",
+    superKey,
+);
 
 const rotationAnim = $ref(
-    new CSSKeyframesAnimation(rotationAnimationOptions.animationOptions).fromKeyframes({
+    new CSSKeyframesAnimation(
+        rotationAnimationOptions.animationOptions,
+    ).fromKeyframes({
         from: {
             transform: {
                 rotateX: "0deg",
@@ -732,21 +788,51 @@ rotationAnim.superKey = superKey;
 
 const hoverAnimationOptions = getStoredAnimationOptions("Hover", superKey);
 
-const hoverAnim = $ref(animations.hover(hoverAnimationOptions.animationOptions));
+const hoverAnim = $ref(
+    animations.hover(hoverAnimationOptions.animationOptions),
+);
 hoverAnim.name = "Hover";
 hoverAnim.superKey = superKey;
 
 const animationGroup = $ref(
-    new AnimationGroup(rotationAnim as any, matrixAnim as any, hoverAnim as any),
+    new AnimationGroup(
+        rotationAnim as any,
+        matrixAnim as any,
+        hoverAnim as any,
+    ),
 );
 
 const cubeSides = [
-    { class: "front", content: "1", color: "rgba(255, 0, 0, 0.8)" },
-    { class: "right", content: "2", color: "rgba(0, 255, 0, 0.8)" },
-    { class: "back", content: "3", color: "rgba(0, 0, 255, 0.8)" },
-    { class: "left", content: "4", color: "rgba(255, 255, 0, 0.8)" },
-    { class: "top", content: "5", color: "rgba(255, 0, 255, 0.8)" },
-    { class: "bottom", content: "6", color: "rgba(0, 255, 255, 0.8)" },
+    {
+        class: "front",
+        content: "1",
+        color: "rgba(255, 0, 0, 0.8)",
+    },
+    {
+        class: "right",
+        content: "2",
+        color: "rgba(0, 255, 0, 0.8)",
+    },
+    {
+        class: "back",
+        content: "3",
+        color: "rgba(0, 0, 255, 0.8)",
+    },
+    {
+        class: "left",
+        content: "4",
+        color: "rgba(255, 255, 0, 0.8)",
+    },
+    {
+        class: "top",
+        content: "5",
+        color: "rgba(255, 0, 255, 0.8)",
+    },
+    {
+        class: "bottom",
+        content: "6",
+        color: "rgba(0, 255, 255, 0.8)",
+    },
 ];
 
 const cube = $ref<HTMLElement>();
@@ -770,7 +856,10 @@ const changeGraphPerspectiveAnim = new CSSKeyframesAnimation({
     },
 ]);
 
-const hoverMatrixGroup = new AnimationGroup(hoverAnim as any, matrixAnim as any);
+const hoverMatrixGroup = new AnimationGroup(
+    hoverAnim as any,
+    matrixAnim as any,
+);
 
 watch(
     () => storedControls.selectedAnimation,
