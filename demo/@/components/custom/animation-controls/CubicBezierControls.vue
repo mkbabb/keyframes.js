@@ -5,75 +5,80 @@
             <div
                 class="w-full whitespace-pre h-8 m-0 p-0 mt-1 ml-1 text-xs flex items-center italic justify-items-center gap-2 fira-code"
             >
-                {{ timingString.replace("cubic-bezier", "")
-                }}<CopyButton class="hover:scale-105" :text="timingString" />
+                {{ timingString.replace("cubic-bezier", "") }}
+                <TooltipProvider :delay-duration="200">
+                    <Tooltip>
+                        <TooltipTrigger as-child>
+                            <CopyButton class="hover:scale-105" :text="timingString" />
+                        </TooltipTrigger>
+                        <TooltipContent class="fira-code text-xs">
+                            Copy to clipboard
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
             </div>
         </CardHeader>
-        <CardContent
-        class="p-0 m-0"
-            @mouseenter="
-                () => {
-                    // cubicBezierAnim.pause();
-                }
-            "
-            @mouseleave="
-                (e) => {
-                    // cubicBezierAnim.pause();
-                }
-            "
-        >
+        <CardContent class="p-0 m-0">
             <svg
                 ref="SVGEl"
                 class="bezier-curve"
-                viewBox="0 -1.5 1 2"
+                :viewBox="`0 ${viewBox.minY} 1 ${viewBox.height}`"
                 xmlns="http://www.w3.org/2000/svg"
-                @mousedown="startCubicBezierDragging"
-                @mousemove="cubicBezierDrag"
-                @mouseup="stopCubicBezierDragging"
-                @mouseleave="stopCubicBezierDragging"
+                @mousedown="startDragging"
+                @mousemove="onDrag"
+                @mouseup="stopDragging"
+                @mouseleave="stopDragging"
             >
-                <g ref="pathEl"></g>
-                <circle
-                    v-for="(point, index) in controlPoints"
-                    :key="index"
-                    :cx="point.x"
-                    :cy="point.y"
-                    :data-index="index"
-                    @mouseover="
-                        (e) => {
-                            (e.target as HTMLElement).style.setProperty(
-                                '--stroke-width',
-                                '0.15',
-                            );
-                        }
-                    "
-                    @mouseleave="
-                        (e) => {
-                            (e.target as HTMLElement).style.setProperty(
-                                '--stroke-width',
-                                '0.1',
-                            );
-                        }
-                    "
-                />
+                <g class="bezier-group">
+                    <!-- Grid lines -->
+                    <line x1="0" y1="0" x2="1" y2="0" class="grid-line" />
+                    <line x1="0" y1="1" x2="1" y2="1" class="grid-line" />
+                    <line x1="0" y1="0" x2="0" y2="1" class="grid-line" />
+                    <line x1="1" y1="0" x2="1" y2="1" class="grid-line" />
+
+                    <!-- Control handle lines -->
+                    <line
+                        :x1="controlPoints[0].x"
+                        :y1="controlPoints[0].y"
+                        :x2="controlPoints[1].x"
+                        :y2="controlPoints[1].y"
+                        class="handle-line"
+                    />
+                    <line
+                        :x1="controlPoints[3].x"
+                        :y1="controlPoints[3].y"
+                        :x2="controlPoints[2].x"
+                        :y2="controlPoints[2].y"
+                        class="handle-line"
+                    />
+
+                    <!-- Cubic bezier curve — single smooth C command -->
+                    <path :d="bezierPathD" class="bezier-path" />
+
+                    <!-- Control points -->
+                    <circle
+                        v-for="(point, index) in controlPoints"
+                        :key="index"
+                        :cx="point.x"
+                        :cy="point.y"
+                        :data-index="index"
+                        :class="[
+                            'control-point',
+                            index === 0 || index === 3
+                                ? 'endpoint'
+                                : 'handle',
+                        ]"
+                    />
+                </g>
             </svg>
 
-            <div class="flex gap-2 items-center justify-center">
-                <Snowflake
-                    class="hover:scale-105 cursor-pointer w-6 h-6"
-                    @click="
-                        () => {
-                            // cubicBezierAnim.pause();
-                        }
-                    "
-                >
-                </Snowflake>
+            <div class="flex gap-2 items-center justify-center mt-2">
                 <Select
                     :model-value="selectedPreset"
                     @update:model-value="
                         (key) => {
-                            selectedPreset = key;
-                            updateCubicBezierPreset(key as any);
+                            selectedPreset = String(key);
+                            updateCubicBezierPreset(String(key));
                         }
                     "
                 >
@@ -110,24 +115,23 @@ import {
 import {
     Card,
     CardContent,
-    CardDescription,
-    CardFooter,
     CardHeader,
     CardTitle,
 } from "@components/ui/card";
 
-import { Label } from "@components/ui/label";
-import { CSSCubicBezier, bezierPresets } from "@src/easing";
-import { cubicBezierToSVG, cubicBezierToString } from "@src/math";
-import { Animation, CSSKeyframesAnimation } from "@src/animation/index";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@components/ui/tooltip";
 
-import Button from "@components/ui/button/Button.vue";
+import { CSSCubicBezier, bezierPresets } from "@src/easing";
+import { cubicBezierToString } from "@src/math";
+import { Animation } from "@src/animation/index";
 
 import CopyButton from "@components/custom/CopyButton.vue";
-import { useStorage } from "@vueuse/core";
-import type { StoredAnimationOptions } from "./animationStores";
 import { getStoredAnimationOptions } from "./animationStores";
-import { Snowflake } from "lucide-vue-next";
 import type { TimingFunction } from "@src/animation/constants";
 
 const { animation } = defineProps({
@@ -156,13 +160,21 @@ const controlPoints = ref([
     { x: 1, y: 1 },
 ]);
 
-const cubicBezierPath = computed(() => {
-    const scaledValues = timingValues.value.map((v) => v);
-    return cubicBezierToSVG(...(scaledValues as [number, number, number, number]));
+// Compute viewBox to fit all control points with padding
+const viewBox = computed(() => {
+    const ys = controlPoints.value.map((p) => p.y);
+    const minY = Math.min(-0.1, ...ys) - 0.15;
+    const maxY = Math.max(1.1, ...ys) + 0.15;
+    return { minY, height: maxY - minY };
+});
+
+// Proper SVG cubic bezier path — a single smooth curve, no segmentation
+const bezierPathD = computed(() => {
+    const [p0, p1, p2, p3] = controlPoints.value;
+    return `M ${p0.x} ${p0.y} C ${p1.x} ${p1.y}, ${p2.x} ${p2.y}, ${p3.x} ${p3.y}`;
 });
 
 const SVGEl = useTemplateRef<SVGSVGElement>("SVGEl");
-const pathEl = useTemplateRef<SVGGElement>("pathEl");
 
 const updateTimingFunction = () => {
     storedAnimationOptions.cubicBezierOptions.controlPoints = timingValues.value;
@@ -170,10 +182,6 @@ const updateTimingFunction = () => {
     const timingFunction = CSSCubicBezier(
         ...(timingValues.value as [number, number, number, number]),
     );
-
-    if (pathEl.value) {
-        pathEl.value.innerHTML = cubicBezierPath.value;
-    }
 
     emit("updateTimingFunction", timingFunction);
 
@@ -183,43 +191,61 @@ const updateTimingFunction = () => {
 const isDragging = ref(false);
 const currentPointIndex = ref<number | null>(null);
 
-const startCubicBezierDragging = (event: MouseEvent) => {
-    const target = (event.target as SVGElement).closest("circle");
-    if (target) {
-        isDragging.value = true;
-        currentPointIndex.value = parseInt(target.getAttribute("data-index")!);
-    }
+// Convert mouse position to SVG coordinate space
+const mouseToSVG = (event: MouseEvent): { x: number; y: number } => {
+    const svg = SVGEl.value!;
+    const rect = svg.getBoundingClientRect();
+
+    // Parse viewBox
+    const vb = viewBox.value;
+
+    // Map pixel position to viewBox coordinates
+    const x = ((event.clientX - rect.left) / rect.width) * 1; // viewBox width = 1
+    const y = vb.minY + ((event.clientY - rect.top) / rect.height) * vb.height;
+
+    // The CSS transform flips Y, so negate
+    return { x, y: -y };
 };
 
-const stopCubicBezierDragging = () => {
+const startDragging = (event: MouseEvent) => {
+    const target = (event.target as SVGElement).closest("circle");
+    if (!target) return;
+
+    const index = parseInt(target.getAttribute("data-index")!);
+    if (index === 0 || index === 3) return; // endpoints not draggable
+
+    isDragging.value = true;
+    currentPointIndex.value = index;
+};
+
+const stopDragging = () => {
     isDragging.value = false;
     currentPointIndex.value = null;
 };
 
-const cubicBezierDrag = (event: MouseEvent) => {
-    if (isDragging.value && currentPointIndex.value !== null) {
-        if (currentPointIndex.value === 0 || currentPointIndex.value === 3) return;
+const onDrag = (event: MouseEvent) => {
+    if (!isDragging.value || currentPointIndex.value === null) return;
 
-        const svgRect = pathEl.value!.getBoundingClientRect();
-        const { width, height, left, top } = svgRect;
+    const { x, y } = mouseToSVG(event);
 
-        const x = (event.clientX - left) / width;
-        const y = 1 - (event.clientY - top) / height;
+    // Clamp x to 0-1 range (CSS spec requirement for cubic-bezier x values)
+    const clampedX = Math.max(0, Math.min(1, x));
 
-        controlPoints.value[currentPointIndex.value] = { x, y };
-        timingValues.value = [
-            controlPoints.value[1].x,
-            controlPoints.value[1].y,
-            controlPoints.value[2].x,
-            controlPoints.value[2].y,
-        ];
+    controlPoints.value[currentPointIndex.value] = { x: clampedX, y };
+    timingValues.value = [
+        controlPoints.value[1].x,
+        controlPoints.value[1].y,
+        controlPoints.value[2].x,
+        controlPoints.value[2].y,
+    ];
 
-        updateTimingFunction();
-    }
+    updateTimingFunction();
 };
 
 const updateCubicBezierPreset = (key: string) => {
-    timingValues.value = JSON.parse(JSON.stringify(bezierPresets[key]));
+    timingValues.value = JSON.parse(
+        JSON.stringify((bezierPresets as unknown as Record<string, number[]>)[key]),
+    );
     controlPoints.value[1] = {
         x: timingValues.value[0],
         y: timingValues.value[1],
@@ -232,38 +258,8 @@ const updateCubicBezierPreset = (key: string) => {
     updateTimingFunction();
 };
 
-const cubicBezierAnim = new CSSKeyframesAnimation({
-    duration: 1000,
-    iterationCount: "infinite",
-    direction: "alternate",
-}).fromString(
-    /*css*/ `@keyframes move {
-            0% {
-                transform: translateY(0);
-            }
-            100% {
-                transform: translateY(1.5);
-            }
-}`,
-    ({ transform }) => {
-        const v = transform.valueOf();
-
-        const [y1, y2] = [v, 1 - v];
-
-        controlPoints.value[1].y = y1;
-        controlPoints.value[2].y = y2;
-
-        timingValues.value[1] = y1;
-        timingValues.value[3] = y2;
-
-        updateTimingFunction();
-    },
-);
-
 onMounted(() => {
     updateTimingFunction();
-
-    // cubicBezierAnim.play();
 });
 </script>
 
@@ -271,31 +267,53 @@ onMounted(() => {
 :deep(.bezier-curve) {
     width: 100%;
     aspect-ratio: 1 / 1;
-    --stroke-width: 0.1;
 
-    --circle-color: hsl(var(--foreground));
-    --path-color: hsl(var(--ppmycota-primary));
+    .bezier-group {
+        transform: scaleY(-1);
+    }
 
-    circle {
-        r: calc(var(--stroke-width) / 2);
-        stroke: var(--circle-color);
-        fill: var(--circle-color);
-        stroke-width: 0;
-        cursor: move;
+    .grid-line {
+        stroke: hsl(var(--muted-foreground));
+        stroke-width: 0.005;
+        opacity: 0.25;
     }
-    circle:nth-child(5),
-    circle:nth-child(2) {
-        --circle-color: var(--path-color);
-        cursor: not-allowed;
+
+    .handle-line {
+        stroke: hsl(var(--muted-foreground));
+        stroke-width: 0.015;
+        stroke-dasharray: 0.03 0.02;
+        opacity: 0.5;
     }
-    g path {
-        stroke: var(--path-color);
-        stroke-width: var(--stroke-width);
+
+    .bezier-path {
+        stroke: hsl(var(--ppmycota-primary, var(--foreground)));
+        stroke-width: 0.03;
         fill: none;
+        stroke-linecap: round;
     }
-    > * {
-        --scale: 1;
-        transform: scale(var(--scale), calc(-1 * var(--scale)));
+
+    .control-point {
+        r: 0.04;
+        transition: r 0.15s ease, opacity 0.15s ease;
+        cursor: move;
+
+        &.endpoint {
+            fill: hsl(var(--ppmycota-primary, var(--foreground)));
+            stroke: none;
+            cursor: default;
+            r: 0.025;
+            opacity: 0.5;
+        }
+
+        &.handle {
+            fill: hsl(var(--foreground));
+            stroke: hsl(var(--background));
+            stroke-width: 0.015;
+
+            &:hover {
+                r: 0.06;
+            }
+        }
     }
 }
 </style>

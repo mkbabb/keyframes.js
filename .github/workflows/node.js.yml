@@ -7,25 +7,36 @@ on:
         branches: ["master"]
 
 jobs:
-    build-and-test:
+    test:
         runs-on: ubuntu-latest
-
+        timeout-minutes: 10
         steps:
             - uses: actions/checkout@v4
-            - uses: actions/setup-node@v5
+            - name: Use Node.js 24
+              uses: actions/setup-node@v5
               with:
                   node-version: 24
                   cache: "npm"
             - run: npm ci
             - run: npm test -- --run
-            - run: npm run build
 
-            - name: Build demo
-              run: npm run gh-pages
+    deploy:
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - name: Use Node.js 24
+              uses: actions/setup-node@v5
+              with:
+                  node-version: 24
+                  cache: "npm"
+            - run: npm ci
+            - run: npm run build
+            - run: npm run gh-pages
+            - run: cp CNAME dist/
 
             - name: Deploy
-              if: github.ref == 'refs/heads/master'
-              uses: peaceiris/actions-gh-pages@v3
+              uses: peaceiris/actions-gh-pages@v4
               with:
                   github_token: ${{ secrets.GITHUB_TOKEN }}
                   publish_dir: ./dist

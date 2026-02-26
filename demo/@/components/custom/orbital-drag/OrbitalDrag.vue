@@ -24,20 +24,6 @@ import { onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
 import type { TransformBounds, TransformState, VelocityState } from ".";
 import { axes, defaultTransformBounds, defaultTransformState, defaultVelocityState } from ".";
 
-const normalizeAngle = (angle: number, unit: (typeof ANGLE_UNITS)[number]): number => {
-    switch (unit) {
-        case "rad":
-            return angle % (2 * Math.PI);
-        case "grad":
-            return angle % 400;
-        case "turn":
-            return angle % 1;
-        default:
-        case "deg":
-            return angle % 360;
-    }
-};
-
 type PressedKeys = {
     x: boolean;
     y: boolean;
@@ -74,25 +60,9 @@ const containerRef = useTemplateRef<HTMLElement>("containerRef");
 
 const isDragging = ref(false);
 const isTouching = ref(false);
-const isScrolling = ref(false);
 
-const getDefaultPreviousMousePosition = () => {
-    return { x: 0, y: 0 };
-};
-
-const previousMousePosition = ref(getDefaultPreviousMousePosition());
-
-const previousWheelState = ref(getDefaultPreviousMousePosition());
-
-const getDefaultGestureState = () => {
-    return {
-        x: 0,
-        y: 0,
-        scale: 1,
-    };
-};
-
-const previousGestureState = ref(getDefaultGestureState());
+const previousMousePosition = ref({ x: 0, y: 0 });
+const previousGestureState = ref({ x: 0, y: 0, scale: 1 });
 
 const pressedKeys = ref<PressedKeys>({
     x: false,
@@ -106,48 +76,44 @@ const pressedKeys = ref<PressedKeys>({
 const sensitivity = props.sensitivity ?? 0.5;
 const translationFactor = props.translationFactor ?? 0.8;
 const inertiaFactor = props.inertiaFactor ?? 0.95;
-const rotationUnit = props.rotationUnit ?? "deg";
 const scaleFactor = props.scaleFactor ?? 0.02;
 
-const getDefaultVelocityState = () => {
-    return JSON.parse(JSON.stringify(defaultVelocityState));
-};
-
-const velocity = ref<VelocityState>(getDefaultVelocityState());
+const velocity = ref<VelocityState>(JSON.parse(JSON.stringify(defaultVelocityState)));
 
 const bounds = props.bounds ?? defaultTransformBounds;
 
-const rotateAroundAxis = (axis: THREE.Vector3, angle: number) => {
-    const quaternion = new THREE.Quaternion();
-    quaternion.setFromAxisAngle(axis, angle);
+// Persistent quaternion — the source of truth for rotation.
+// Never reconstructed from Euler angles; only multiplied by delta quaternions.
+const currentQuaternion = new THREE.Quaternion();
 
-    let { x, y, z } = model.value.rotate;
-    // Convert degrees to radians
-    const currentEuler = new THREE.Euler(
-        x * (Math.PI / 180),
-        y * (Math.PI / 180),
-        z * (Math.PI / 180),
-        "XYZ",
-    );
+// Angular velocity for inertia: axis + speed, not per-Euler-component.
+const angularVelocity = ref({ axis: new THREE.Vector3(0, 1, 0), speed: 0 });
 
-    const currentQuaternion = new THREE.Quaternion().setFromEuler(currentEuler);
-
-    // Apply new rotation
-    currentQuaternion.premultiply(quaternion);
-
-    // Convert back to Euler angles
-    const newEuler = new THREE.Euler().setFromQuaternion(currentQuaternion, "XYZ");
-
-    // Convert radians to degrees
-    const newX = newEuler.x * (180 / Math.PI);
-    const newY = newEuler.y * (180 / Math.PI);
-    const newZ = newEuler.z * (180 / Math.PI);
-
+const quaternionToEulerDegrees = (q: THREE.Quaternion) => {
+    const euler = new THREE.Euler().setFromQuaternion(q, "XYZ");
     return {
-        x: newX,
-        y: newY,
-        z: newZ,
+        x: euler.x * (180 / Math.PI),
+        y: euler.y * (180 / Math.PI),
+        z: euler.z * (180 / Math.PI),
     };
+};
+
+const syncRotationToModel = () => {
+    const angles = quaternionToEulerDegrees(currentQuaternion);
+    model.value.rotate.x = angles.x;
+    model.value.rotate.y = angles.y;
+    model.value.rotate.z = angles.z;
+    emit("rotate", { ...model.value.rotate });
+};
+
+const applyRotation = (axis: THREE.Vector3, angle: number) => {
+    if (Math.abs(angle) < 1e-10) return;
+
+    const deltaQuat = new THREE.Quaternion().setFromAxisAngle(axis, angle);
+    currentQuaternion.premultiply(deltaQuat);
+    currentQuaternion.normalize();
+
+    syncRotationToModel();
 };
 
 const isTouchEventFallback = (event: MouseEvent | TouchEvent): event is TouchEvent => {
@@ -156,13 +122,11 @@ const isTouchEventFallback = (event: MouseEvent | TouchEvent): event is TouchEve
 
 const getUserXY = (event: MouseEvent | TouchEvent) => {
     if (isTouchEventFallback(event)) {
-        return {
-            x: event.touches[0].clientX,
-            y: event.touches[0].clientY,
-        };
-    } else {
-        return { x: event.clientX, y: event.clientY };
+        const touch = event.touches[0] ?? event.changedTouches[0];
+        if (!touch) return previousMousePosition.value;
+        return { x: touch.clientX, y: touch.clientY };
     }
+    return { x: event.clientX, y: event.clientY };
 };
 
 const startDrag = (event: MouseEvent | TouchEvent) => {
@@ -170,21 +134,18 @@ const startDrag = (event: MouseEvent | TouchEvent) => {
         isTouching.value = true;
         event.preventDefault();
     }
-
     previousMousePosition.value = getUserXY(event);
     isDragging.value = true;
 };
 
-const stopDrag = (event: MouseEvent | TouchEvent) => {
+const stopDrag = () => {
     isTouching.value = false;
     isDragging.value = false;
 };
 
 const startGesture = (event: any) => {
     event.preventDefault();
-
     isTouching.value = true;
-
     previousGestureState.value = {
         x: event.screenX,
         y: event.screenY,
@@ -196,35 +157,30 @@ const stopGesture = () => {
     isTouching.value = false;
 };
 
-const updateTransform = (
-    category: keyof TransformState,
+const updateLinearTransform = (
+    category: "translate" | "scale",
     axis: (typeof axes)[number],
     value: number,
     velocityValue: number,
 ) => {
-    if (category === "rotate") {
-        value = normalizeAngle(value, rotationUnit);
+    (model.value[category] as Record<string, number>)[axis] = value;
+    (velocity.value[category] as Record<string, number>)[axis] = velocityValue;
+
+    for (const [k, v] of Object.entries(model.value[category] as Record<string, number>)) {
+        const categoryBounds = (bounds as unknown as Record<string, Record<string, [number, number]>>)[category];
+        const [min, max] = categoryBounds[k];
+        (model.value[category] as unknown as Record<string, number>)[k] = clamp(v, min, max);
     }
 
-    model.value[category][axis] = value;
-    velocity.value[category][axis] = velocityValue;
-
-    for (const [k, v] of Object.entries(model.value[category])) {
-        const [min, max] = bounds[category][k];
-        model.value[category][k] = clamp(v, min, max);
-    }
-
-    if (category === "rotate") {
-        emit("rotate", { ...model.value.rotate });
-    } else if (category === "translate") {
+    if (category === "translate") {
         emit("translate", { ...model.value.translate });
-    } else if (category === "scale") {
+    } else {
         emit("scale", { ...model.value.scale });
     }
 };
 
 const updateTranslation = (axis: (typeof axes)[number], delta: number) => {
-    updateTransform(
+    updateLinearTransform(
         "translate",
         axis,
         model.value.translate[axis] + delta * translationFactor,
@@ -233,7 +189,7 @@ const updateTranslation = (axis: (typeof axes)[number], delta: number) => {
 };
 
 const updateScale = (axis: (typeof axes)[number], delta: number) => {
-    updateTransform(
+    updateLinearTransform(
         "scale",
         axis,
         model.value.scale[axis] + delta * scaleFactor,
@@ -241,21 +197,38 @@ const updateScale = (axis: (typeof axes)[number], delta: number) => {
     );
 };
 
-const updateRotation = (
-    axis: (typeof axes)[number][],
-    deltaX: number,
-    deltaY: number,
-) => {
-    const rotationAxis = new THREE.Vector3(-deltaY, deltaX, 0).normalize();
-    const rotationAngle =
-        (Math.sqrt(deltaX * deltaX + deltaY * deltaY) * sensitivity) / 25;
+const updateRotation = (deltaX: number, deltaY: number) => {
+    const axis = new THREE.Vector3(-deltaY, deltaX, 0);
+    const magnitude = axis.length();
+    if (magnitude < 1e-6) return;
 
-    const newAngles = rotateAroundAxis(rotationAxis, rotationAngle);
+    axis.normalize();
+    const angle = (magnitude * sensitivity) / 25;
 
-    axis.forEach((a) => {
-        const delta = newAngles[a] - model.value.rotate[a];
-        updateTransform("rotate", a, newAngles[a], delta * sensitivity);
-    });
+    applyRotation(axis, angle);
+
+    // Store angular velocity for inertia
+    angularVelocity.value.axis.copy(axis);
+    angularVelocity.value.speed = angle;
+};
+
+const updateAxisRotation = (constrainedAxes: (typeof axes)[number][], deltaX: number, deltaY: number) => {
+    // For single-axis constrained rotation, project onto that axis
+    const magnitude = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    if (magnitude < 1e-6) return;
+
+    const angle = (magnitude * sensitivity) / 25;
+
+    for (const a of constrainedAxes) {
+        const axis = new THREE.Vector3(
+            a === "x" ? 1 : 0,
+            a === "y" ? 1 : 0,
+            a === "z" ? 1 : 0,
+        );
+        applyRotation(axis, angle * Math.sign(a === "x" ? -deltaY : deltaX));
+    }
+
+    angularVelocity.value.speed = angle;
 };
 
 const drag = (event: MouseEvent | TouchEvent) => {
@@ -266,26 +239,22 @@ const drag = (event: MouseEvent | TouchEvent) => {
     const deltaX = x - previousMousePosition.value.x;
     const deltaY = y - previousMousePosition.value.y;
 
-    console.log({ model: model.value });
-
-    const delta = deltaX + deltaY;
-
-    if (Math.abs(delta) < 1e-4) return;
+    if (Math.abs(deltaX) < 0.5 && Math.abs(deltaY) < 0.5) return;
 
     if (pressedKeys.value.x || pressedKeys.value.y || pressedKeys.value.z) {
-        handleAxisSpecificDrag(deltaX, deltaY);
+        handleAxisSpecificInput(deltaX, deltaY);
     } else if (pressedKeys.value.shift) {
         updateTranslation("x", deltaX);
         updateTranslation("y", deltaY);
     } else {
-        updateRotation(["x", "y", "z"], deltaX, deltaY);
+        updateRotation(deltaX, deltaY);
     }
 
     previousMousePosition.value = { x, y };
 };
 
 const gesture = (event: any) => {
-    if (!isTouching.value || isScrolling.value) return;
+    if (!isTouching.value) return;
 
     const { screenX, screenY, scale } = event;
 
@@ -293,12 +262,9 @@ const gesture = (event: any) => {
     const deltaY = screenY - previousGestureState.value.y;
     const deltaScale = (scale - previousGestureState.value.scale) / (scaleFactor / 1.25);
 
-    if (
-        Math.abs(deltaX) < 1e-4 &&
-        Math.abs(deltaY) < 1e-4 &&
-        Math.abs(deltaScale) < 1e-4
-    )
+    if (Math.abs(deltaX) < 1e-4 && Math.abs(deltaY) < 1e-4 && Math.abs(deltaScale) < 1e-4) {
         return;
+    }
 
     updateTranslation("x", deltaX);
     updateTranslation("y", deltaY);
@@ -310,31 +276,27 @@ const gesture = (event: any) => {
     previousGestureState.value = { x: screenX, y: screenY, scale };
 };
 
-const handleAxisSpecificDrag = (deltaX: number, deltaY: number) => {
+const handleAxisSpecificInput = (deltaX: number, deltaY: number) => {
     const delta = Math.abs(deltaX) > Math.abs(deltaY) ? deltaX : deltaY;
 
     if (pressedKeys.value.x) {
         if (pressedKeys.value.shift) updateTranslation("x", delta);
         else if (pressedKeys.value.ctrl || pressedKeys.value.meta) updateScale("x", delta);
-        else updateRotation(["x"], deltaX, deltaY);
+        else updateAxisRotation(["x"], deltaX, deltaY);
     }
     if (pressedKeys.value.y) {
         if (pressedKeys.value.shift) updateTranslation("y", delta);
         else if (pressedKeys.value.ctrl || pressedKeys.value.meta) updateScale("y", delta);
-        else updateRotation(["y"], deltaX, deltaY);
+        else updateAxisRotation(["y"], deltaX, deltaY);
     }
     if (pressedKeys.value.z) {
         if (pressedKeys.value.shift) updateTranslation("z", delta);
         else if (pressedKeys.value.ctrl || pressedKeys.value.meta) updateScale("z", delta);
-        else updateRotation(["z"], deltaX, deltaY);
+        else updateAxisRotation(["z"], deltaX, deltaY);
     }
 };
 
 const handleWheel = (event: WheelEvent) => {
-    if (!isScrolling.value) {
-        return;
-    }
-
     event.preventDefault();
 
     let { deltaX, deltaY, ctrlKey } = event;
@@ -342,12 +304,10 @@ const handleWheel = (event: WheelEvent) => {
     deltaX = deltaX / 10;
     deltaY = deltaY / 10;
 
-    const delta = deltaX + deltaY;
-
-    if (Math.abs(delta) < 1e-4) return;
+    if (Math.abs(deltaX) < 1e-4 && Math.abs(deltaY) < 1e-4) return;
 
     if (pressedKeys.value.x || pressedKeys.value.y || pressedKeys.value.z) {
-        handleAxisSpecificDrag(deltaX, deltaY);
+        handleAxisSpecificInput(deltaX, deltaY);
     } else if (pressedKeys.value.shift) {
         updateTranslation("x", deltaX);
         updateTranslation("y", deltaY);
@@ -356,23 +316,12 @@ const handleWheel = (event: WheelEvent) => {
         updateScale("y", deltaY);
         updateScale("z", deltaY);
     } else {
-        updateRotation(["x", "y", "z"], -deltaX, -deltaY);
+        updateRotation(-deltaX, -deltaY);
     }
-
-    previousWheelState.value = { x: deltaX, y: deltaY };
-};
-
-const handleKeyDown = (event: KeyboardEvent) => {
-    updatePressedKeys(event, true);
-};
-
-const handleKeyUp = (event: KeyboardEvent) => {
-    updatePressedKeys(event, false);
 };
 
 const updatePressedKeys = (event: KeyboardEvent, isPressed: boolean) => {
     const key = event.key.toLowerCase();
-
     switch (key) {
         case "x":
         case "y":
@@ -394,48 +343,55 @@ const updatePressedKeys = (event: KeyboardEvent, isPressed: boolean) => {
 const applyInertia = () => {
     if (isDragging.value || isTouching.value) return;
 
-    Object.entries(velocity.value).forEach(([category, value]) => {
-        for (const [k, v] of Object.entries(value)) {
+    // Rotational inertia via persistent quaternion
+    if (Math.abs(angularVelocity.value.speed) > 1e-4) {
+        applyRotation(angularVelocity.value.axis, angularVelocity.value.speed);
+        angularVelocity.value.speed *= inertiaFactor;
+    } else {
+        angularVelocity.value.speed = 0;
+    }
+
+    // Linear inertia (translate + scale)
+    for (const category of ["translate", "scale"] as const) {
+        for (const [k, v] of Object.entries(velocity.value[category])) {
             if (Math.abs(v) > 0.01) {
-                updateTransform(
-                    category as any,
-                    k as any,
-                    model.value[category][k] + v,
+                updateLinearTransform(
+                    category,
+                    k as (typeof axes)[number],
+                    (model.value[category] as Record<string, number>)[k] + v,
                     v * inertiaFactor,
                 );
             } else {
-                velocity.value[category][k] = 0;
+                (velocity.value[category] as Record<string, number>)[k] = 0;
             }
         }
-    });
+    }
 };
 
 const { pause, resume } = useRafFn(applyInertia);
 
-let wheelEventEndTimeout = null;
-
 onMounted(() => {
+    // Initialize quaternion from model's initial Euler angles
+    const { x, y, z } = model.value.rotate;
+    const euler = new THREE.Euler(
+        x * (Math.PI / 180),
+        y * (Math.PI / 180),
+        z * (Math.PI / 180),
+        "XYZ",
+    );
+    currentQuaternion.setFromEuler(euler);
+
     useEventListener(
         containerRef,
         "wheel",
         (event) => {
-            isScrolling.value = true;
             handleWheel(event as WheelEvent);
         },
         { passive: false },
     );
-    useEventListener(window, "wheel", handleWheel, { passive: false });
 
-    window.addEventListener("wheel", () => {
-        clearTimeout(wheelEventEndTimeout);
-
-        wheelEventEndTimeout = setTimeout(() => {
-            isScrolling.value = false;
-        }, 200);
-    });
-
-    useEventListener(window, "keydown", handleKeyDown);
-    useEventListener(window, "keyup", handleKeyUp);
+    useEventListener(window, "keydown", (e: KeyboardEvent) => updatePressedKeys(e, true));
+    useEventListener(window, "keyup", (e: KeyboardEvent) => updatePressedKeys(e, false));
 
     useEventListener(window, "mousemove", drag);
     useEventListener(window, "mouseup", stopDrag);
@@ -453,40 +409,23 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-    if (!containerRef.value) {
-        return;
-    }
-
-    containerRef.value.removeEventListener("wheel", handleWheel);
-
-    window.removeEventListener("keydown", handleKeyDown);
-    window.removeEventListener("keyup", handleKeyUp);
-
-    window.removeEventListener("mousemove", drag);
-    window.removeEventListener("mouseup", stopDrag);
-    window.removeEventListener("mouseleave", stopDrag);
-
-    window.removeEventListener("touchmove", drag);
-    window.removeEventListener("touchstart", startDrag);
-    window.removeEventListener("touchend", stopDrag);
-
-    window.removeEventListener("gesturestart", startGesture);
-    window.removeEventListener("gesturechange", gesture);
-    window.removeEventListener("gestureend", stopGesture);
-
     pause();
 });
 
 watch(
     () => isDragging.value || isTouching.value,
-    (newValue) => {
-        if (newValue) return;
+    (active) => {
+        if (active) return;
 
-        Object.entries(velocity.value).forEach(([category, value]) => {
-            for (const [k, v] of Object.entries(value)) {
-                velocity.value[category][k] *= 0.5;
+        // Dampen angular velocity on release
+        angularVelocity.value.speed *= 0.5;
+
+        // Dampen linear velocities on release
+        for (const category of ["translate", "scale"] as const) {
+            for (const k of Object.keys(velocity.value[category])) {
+                (velocity.value[category] as Record<string, number>)[k] *= 0.5;
             }
-        });
+        }
 
         applyInertia();
     },

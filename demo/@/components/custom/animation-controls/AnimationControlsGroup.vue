@@ -48,7 +48,7 @@
                             :model-value="storedControls.selectedAnimation"
                             @update:model-value="
                                 (key) => {
-                                    return (storedControls.selectedAnimation = key);
+                                    return (storedControls.selectedAnimation = String(key));
                                 }
                             "
                         >
@@ -114,24 +114,22 @@
         </div>
     </div>
 
-    <ClientOnly>
-        <Teleport to="html">
-            <Toaster
-                :toastOptions="{
-                    unstyled: true,
-                    classes: {
-                        toast: 'bg-foreground text-background rounded-md fraunces px-6 py-4 grid grid-cols-1 gap-2 shadow-lg h-32 lg:w-96 w-full ',
-                        title: 'font-bold text-xl',
-                        description: 'font-normal text-md',
-                        actionButton: '',
-                        cancelButton: '',
-                        closeButton: '',
-                    },
-                }"
-                :theme="isDark ? 'dark' : 'light'"
-            />
-        </Teleport>
-    </ClientOnly>
+    <Teleport to="html">
+        <Toaster
+            :toastOptions="{
+                unstyled: true,
+                classes: {
+                    toast: 'bg-foreground text-background rounded-md fraunces px-6 py-4 grid grid-cols-1 gap-2 shadow-lg h-32 lg:w-96 w-full ',
+                    title: 'font-bold text-xl',
+                    description: 'font-normal text-md',
+                    actionButton: '',
+                    cancelButton: '',
+                    closeButton: '',
+                },
+            }"
+            :theme="isDark ? 'dark' : 'light'"
+        />
+    </Teleport>
 </template>
 
 <script setup lang="ts">
@@ -231,7 +229,7 @@ const findAnimationGroupObject = (animation: Animation<any>) => {
 const sliderUpdate = ({ t, animation }: { t: number; animation: Animation<any> }) => {
     const groupObject = findAnimationGroupObject(animation);
 
-    const groupAnimation = groupObject.animation;
+    const groupAnimation = groupObject!.animation;
 
     const paused = groupAnimation.paused;
     const prevT = groupAnimation.t;
@@ -289,7 +287,7 @@ const reset = (target: HTMLElement, all: boolean = false) => {
     //         .play();
 
     animationGroup.reset();
-    storedControls.selectedAnimation = null;
+    storedControls.selectedAnimation = "";
 
     if (all) {
         resetAllStores();

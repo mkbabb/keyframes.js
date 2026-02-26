@@ -19,12 +19,12 @@
     </button>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { changeTheme } from ".";
 
-const { size } = defineProps({
-    size: { type: String, default: "2rem" },
-});
+const { size } = defineProps<{
+    size?: string;
+}>();
 </script>
 
 <style scoped>

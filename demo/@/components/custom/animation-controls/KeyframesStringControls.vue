@@ -165,7 +165,6 @@ import {
     getStoredAnimationGroupControlOptions,
 } from "./animationStores";
 import Button from "@components/ui/button/Button.vue";
-import { set } from "zod";
 import { Menubar, MenubarTrigger, MenubarMenu } from "@components/ui/menubar";
 
 import { parseCSSValueUnit } from "@src/parsing/units";
@@ -278,7 +277,7 @@ const formatCSSKeyframesString = async (
 
     editor.setValue(keyframesString);
 
-    editor.setPosition(cursorPosition);
+    editor.setPosition(cursorPosition!);
 
     toast.success("Keyframes formatted");
 
@@ -287,8 +286,6 @@ const formatCSSKeyframesString = async (
 
 function onKeyDown(e: KeyboardEvent) {
     const { target, key } = e;
-
-    console.log(key);
 
     if (key === "Ï") {
         e.preventDefault();
@@ -326,11 +323,11 @@ const updateAnimationFromKeyframesString = debounce(
 
         try {
             parseAndUpdate();
-        } catch (e) {
+        } catch (e: unknown) {
             parseErrorShake.play();
 
             toast.error("Failed to parse keyframes 🔧", {
-                description: e.message,
+                description: (e as Error).message,
                 duration: 10000,
                 action: {
                     label: "Retry",
@@ -364,9 +361,9 @@ const updateAnimationFromKeyframeString = debounce(
 
         try {
             await parseAndUpdate();
-        } catch (e) {
+        } catch (e: unknown) {
             toast.error("Could not update keyframe", {
-                description: e.message,
+                description: (e as Error).message,
                 duration: 10000,
                 action: {
                     label: "Retry",
@@ -406,7 +403,7 @@ const addKeyframesStringToAnimation = (keyframesString: string) => {
             tmpAnimation.addFrame(f.start, f.vars, f.transform, f.timingFunction);
         });
         Object.entries(keyframes).forEach(([start, vars]) => {
-            tmpAnimation.addFrame(parseFloat(start), vars);
+            tmpAnimation.addFrame(parseFloat(start), vars as Partial<any>);
         });
 
         tmpAnimation.parse();
@@ -424,9 +421,9 @@ const addKeyframesStringToAnimation = (keyframesString: string) => {
 
     try {
         parseAndUpdate();
-    } catch (e) {
+    } catch (e: unknown) {
         toast.error("Could not add keyframes", {
-            description: e.message,
+            description: (e as Error).message,
             duration: 10000,
             action: {
                 label: "Retry",
@@ -545,7 +542,7 @@ let cssKeyframesStringEditor: monaco.editor.IStandaloneCodeEditor;
 const parseErrorShake = animations.shake();
 
 onMounted(async () => {
-    brushAnimation.setTargets(brushEl.value);
+    brushAnimation.setTargets(brushEl.value!);
 
     createKeyframesStyleEl();
 
@@ -569,7 +566,7 @@ onMounted(async () => {
         updateAnimationFromKeyframesString(cssKeyframesStringEditor);
     });
 
-    parseErrorShake.setTargets(cssKeyframesStringEl.value);
+    parseErrorShake.setTargets(cssKeyframesStringEl.value!);
 });
 </script>
 

@@ -1,32 +1,31 @@
 <template>
     <div class="container">
-        <AnimationControlsGroup :animations="animations" />
+        <AnimationControlsGroup :animation-group="animationGroup" />
         <canvas ref="canvas"></canvas>
     </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted } from "vue";
+import { onMounted, useTemplateRef } from "vue";
 import * as THREE from "three";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 import { CSSKeyframesAnimation } from "@src/animation";
+import { AnimationGroup } from "@src/animation/group";
 import { CSSCubicBezier } from "@src/easing";
 import { AnimationControlsGroup } from "@components/custom/animation-controls/";
 
-import "../styles/style.css";
-import { MeshLambertMaterial } from "three";
+import "@styles/style.css";
 
-let canvas = $ref(null);
+const canvasEl = useTemplateRef<HTMLCanvasElement>("canvas");
 
-const tesselateSphere = (color1, color2, radius) => {
+const tesselateSphere = (color1: string, color2: string, radius: number) => {
     const tileSize = 64;
     const boardSize = tileSize * 16;
 
-    // Create a checkerboard texture
     const canvas = document.createElement("canvas");
     canvas.width = canvas.height = boardSize;
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d")!;
     ctx.fillStyle = color1;
     ctx.fillRect(0, 0, boardSize, boardSize);
 
@@ -40,14 +39,13 @@ const tesselateSphere = (color1, color2, radius) => {
     }
     const texture = new THREE.CanvasTexture(canvas);
 
-    const geometry = new THREE.SphereGeometry(radius, 32, 32); // create a sphere buffer geometry with 32 segments in both directions
+    const geometry = new THREE.SphereGeometry(radius, 32, 32);
     const material = new THREE.MeshLambertMaterial({
         map: texture,
     });
-    const mesh = new THREE.Mesh(geometry, material); // create a mesh using the geometry and material
+    const mesh = new THREE.Mesh(geometry, material);
 
-    // Generate UV coordinates
-    const uvs = [];
+    const uvs: number[] = [];
     const vertices = geometry.attributes.position.array;
     for (let i = 0; i < vertices.length; i += 3) {
         const x = vertices[i];
@@ -67,7 +65,7 @@ const tesselateSphere = (color1, color2, radius) => {
 let sphereMesh: ReturnType<typeof tesselateSphere>;
 const boxSize = 12;
 
-const transform = (t, vars) => {
+const transform = (vars: Record<string, any>) => {
     Object.assign(sphereMesh.position, vars.position);
     Object.assign(sphereMesh.rotation, vars.rotation);
 
@@ -82,7 +80,7 @@ const rotations = new CSSKeyframesAnimation({
     duration: 20000,
     iterationCount: Infinity,
     timingFunction: "linear",
-}).fromCSSKeyframes(
+}).fromString(
     /*css*/
     `@keyframes animation {
         from {
@@ -112,7 +110,7 @@ const bouncingX = new CSSKeyframesAnimation({
     iterationCount: Infinity,
     direction: "alternate",
     timingFunction: "linear",
-}).fromCSSKeyframes(
+}).fromString(
     /*css*/
     `@keyframes animation {
         0%, 50%, 100% {
@@ -156,7 +154,7 @@ const bouncingZ = new CSSKeyframesAnimation({
     iterationCount: Infinity,
     direction: "alternate",
     timingFunction: "linear",
-}).fromCSSKeyframes(
+}).fromString(
     /*css*/
     `@keyframes animation {
         0%, 50%, 100% {
@@ -173,16 +171,21 @@ const bouncingZ = new CSSKeyframesAnimation({
     transform,
 );
 
-const animations = $ref({
-    rotations: rotations.animation,
-    bouncingX: bouncingX.animation,
-    bouncingY: bouncingY.animation,
-    bouncingZ: bouncingZ.animation,
-});
+rotations.name = "Rotations";
+bouncingX.name = "Bouncing X";
+bouncingY.name = "Bouncing Y";
+bouncingZ.name = "Bouncing Z";
 
-// Mount the renderer to the component's container element
+const animationGroup = new AnimationGroup(
+    rotations,
+    bouncingX,
+    bouncingY,
+    bouncingZ,
+);
+
 onMounted(() => {
-    // Set up the scene, camera, and renderer
+    const canvas = canvasEl.value!;
+
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(
         75,
@@ -193,7 +196,7 @@ onMounted(() => {
 
     camera.position.z = boxSize;
     camera.position.y = boxSize / 3;
-    const renderer = new THREE.WebGLRenderer({ antialias: true, canvas: canvas });
+    const renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
     renderer.setPixelRatio(window.devicePixelRatio * 2);
     renderer.setClearColor("white", 1);
 
@@ -217,9 +220,9 @@ onMounted(() => {
     scene.add(sphereMesh);
 
     const controls = new OrbitControls(camera, renderer.domElement);
-    controls.listenToKeyEvents(window); // optional
+    controls.listenToKeyEvents(window);
 
-    controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
+    controls.enableDamping = true;
     controls.dampingFactor = 0.05;
 
     controls.screenSpacePanning = false;
@@ -230,9 +233,7 @@ onMounted(() => {
 
     function animate() {
         requestAnimationFrame(animate);
-
-        controls.update(); // only required if controls.enableDamping = true, or if controls.autoRotate = true
-
+        controls.update();
         render();
     }
 

@@ -24,8 +24,7 @@ const { dependencies } = toRefs(props)
 provideDependencies(dependencies)
 
 const shapes = computed(() => {
-  // @ts-expect-error ignore {} not assignable to object
-  const val: { [key in keyof T]: Shape } = {}
+  const val = {} as { [key in keyof T]: Shape }
   const baseSchema = getObjectFormSchema(props.schema)
   const shape = baseSchema.shape
   Object.keys(shape).forEach((name) => {
@@ -47,8 +46,7 @@ const shapes = computed(() => {
 })
 
 const fields = computed(() => {
-  // @ts-expect-error ignore {} not assignable to object
-  const val: { [key in keyof z.infer<T>]: { shape: Shape, fieldName: string, config: ConfigItem } } = {}
+  const val = {} as { [key in keyof z.infer<T>]: { shape: Shape, fieldName: string, config: ConfigItem } }
   for (const key in shapes.value) {
     const shape = shapes.value[key]
     val[key as keyof z.infer<T>] = {
@@ -94,7 +92,7 @@ const formComponentProps = computed(() => {
           <AutoFormField
             :config="fieldConfig?.[key as keyof typeof fieldConfig] as ConfigItem"
             :field-name="key.toString()"
-            :shape="shape"
+            :shape="(shape as Shape)"
           />
         </slot>
       </template>

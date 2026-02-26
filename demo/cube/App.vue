@@ -186,9 +186,7 @@
                                         "
                                         :step="getSliderOptionsFromIx(i).step"
                                         @click="
-                                            (e) =>
-                                                (storedControls.matrixOptions.selectedMatrixCell =
-                                                    i)
+                                            storedControls.matrixOptions.selectedMatrixCell = i
                                         "
                                     />
                                     <div
@@ -225,11 +223,11 @@
                                     ].valueOf() as number,
                                 ]"
                                 @update:model-value="
-                                    ([value]) => {
+                                    (val: any) => {
                                         matrix3dEnd.values[
                                             storedControls.matrixOptions
                                                 .selectedMatrixCell
-                                        ].setValue(value);
+                                        ].setValue(val[0]);
                                     }
                                 "
                                 :min="
@@ -263,8 +261,7 @@
                                     class="fira-code cursor-pointer"
                                     @click="
                                         storedControls.matrixOptions.fixed =
-                                            !storedControls.matrixOptions.fixed;
-                                        fixMatrix();
+                                            !storedControls.matrixOptions.fixed
                                     "
                                     :class="
                                         storedControls.matrixOptions.fixed
@@ -304,7 +301,7 @@
                     >
                         <OrbitalDrag
                             class="preserve-3d relative flex items-center justify-center justify-items-center"
-                            v-bind:model-value="transformSliderValues"
+                            v-model="transformSliderValues"
                         >
                             <div
                                 ref="cube"
@@ -386,13 +383,10 @@
 </template>
 
 <script setup lang="ts">
-// import { $ref } from "unplugin-vue-macros/macros";
-import { computed, onMounted, reactive, watch } from "vue";
-import { Animated } from "@components/custom/animation-controls";
-// @ts-ignore
+import { onMounted, ref, useTemplateRef, watch } from "vue";
 import "@styles/utils.css";
 import OrbitalDrag from "@components/custom/orbital-drag/OrbitalDrag.vue";
-import { RotateCcw, Lock, LockOpen } from "lucide-vue-next";
+import { RotateCcw, Lock, LockOpen, Loader2, List } from "lucide-vue-next";
 import { DarkModeToggle } from "@components/custom/dark-mode-toggle";
 import {
     HoverCard,
@@ -403,59 +397,30 @@ import { Avatar, AvatarImage } from "@components/ui/avatar";
 import { mat4 } from "gl-matrix";
 import * as animations from "@src/animation/animations";
 import { CSSKeyframesAnimation } from "@src/animation/index";
-import { easeInBounce, linear, jumpTerms } from "@src/easing";
+import { easeInBounce } from "@src/easing";
 import { FunctionValue, ValueUnit } from "@src/units";
-import { AnimationControlsGroup } from "@components/custom/animation-controls";
+import {
+    AnimationControlsGroup,
+    AnimatedText,
+} from "@components/custom/animation-controls";
 import {
     getStoredAnimationOptions,
     getStoredAnimationGroupControlOptions,
 } from "@components/custom/animation-controls/animationStores";
-import { Loader2 } from "lucide-vue-next";
 import { Slider } from "@components/ui/slider";
 import { Button } from "@components/ui/button";
-import {
-    Menubar,
-    MenubarContent,
-    MenubarItem,
-    MenubarMenu,
-    MenubarSeparator,
-    MenubarShortcut,
-    MenubarTrigger,
-} from "@components/ui/menubar";
-
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-} from "@components/ui/card";
+import { Card, CardContent } from "@components/ui/card";
 import { Input } from "@components/ui/input";
-import { Label } from "@components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
-import { AnimatedText } from "@components/custom/animation-controls";
-import {
-    Select,
-    SelectContent,
-    SelectGroup,
-    SelectItem,
-    SelectLabel,
-    SelectTrigger,
-    SelectValue,
-} from "@components/ui/select";
+import { TabsContent, TabsTrigger } from "@components/ui/tabs";
 
 import "@styles/style.css";
 
-import type { TransformState } from "@components/custom/orbital-drag";
-import { clamp } from "@src/math";
 import { transformTargetsStyle } from "@src/animation/utils";
 import { AnimationGroup } from "@src/animation/group";
 import { toast } from "vue-sonner";
-import { List } from "lucide-vue-next";
 
-let startScreenText = $ref("Select an animation");
-let ellipsisText = $ref("...");
+const startScreenText = ref("Select an animation");
+const ellipsisText = ref("...");
 
 const MATRIX_AXES = ["x", "y", "z", "w"];
 
@@ -463,7 +428,6 @@ const superKey = "Cube";
 
 const defaultMatrixOptions = {
     fixed: true,
-
     selectedMatrixCell: 0,
 };
 
@@ -471,36 +435,25 @@ const storedControls = getStoredAnimationGroupControlOptions(superKey);
 
 storedControls.matrixOptions ??= defaultMatrixOptions;
 
-const ppmycotaLogoEl = $ref<HTMLElement>(null);
+const ppmycotaLogoEl = useTemplateRef<HTMLElement>("ppmycotaLogoEl");
 
-const hoverCardStates = $ref({
+const hoverCardStates = ref({
     ppmycota: false,
     mbabb: false,
 });
 
-const colorOptionsColor = computed(
-    () => storedControls?.colorOptions?.color ?? "red",
-);
-
 const setPPMode = () => {
-    const colorFilter1 =
-        "invert(83%) sepia(25%) saturate(519%) hue-rotate(123deg) brightness(85%) contrast(103%)";
-    const colorFilter2 =
-        "invert(58%) sepia(34%) saturate(2172%) hue-rotate(219deg) brightness(98%) contrast(106%)";
-
     storedControls.ppMode = !storedControls.ppMode;
 
     if (storedControls.ppMode) {
-        // ppmycotaLogoEl.style.filter = colorFilter2;
-        toast.success("PP Mode activated! 🎉", {
+        toast.success("PP Mode activated!", {
             duration: 3000,
-            description: "🙂‍↔️ 🌱 🍄‍🟫",
+            description: "PP Mode",
         });
     } else {
-        // ppmycotaLogoEl.style.filter = colorFilter1;
-        toast.error("PP Mode deactivated! 😢", {
+        toast.error("PP Mode deactivated!", {
             duration: 3000,
-            description: "🙂‍↔️ 🌱 🍄‍🟫",
+            description: "PP Mode",
         });
     }
 };
@@ -511,12 +464,12 @@ const createMatrix = () =>
         [...mat4.create()].map((v) => new ValueUnit(v)),
     );
 
-const matrix3dStart = $ref(createMatrix());
-const matrix3dEnd = $ref(createMatrix());
+const matrix3dStart = ref(createMatrix());
+const matrix3dEnd = ref(createMatrix());
 
 storedControls.ppMode ??= false;
 
-const transformSliderValues = $ref({
+const transformSliderValues = ref({
     translate: {
         x: 0,
         y: 0,
@@ -562,45 +515,43 @@ const getTransformFromIx = (i: number) => {
         return "S";
     } else if (i === 3 || i === 7 || i === 11) {
         return "P";
-    } else {
-        return "";
     }
+    return "";
 };
 
 const getSliderOptionsFromIx = (i: number) => {
-    let transform = getTransformFromIx(i);
-    transform =
+    const transform = getTransformFromIx(i);
+    const key =
         transform === "T"
             ? "translate"
             : transform === "S"
               ? "scale"
               : "rotate";
 
-    return transformSliderOptions[transform];
+    return transformSliderOptions[key];
 };
 
 const syncTransformations = (reset: boolean = false) => {
-    const values = matrix3dEnd.valueOf();
+    const values = matrix3dEnd.value.valueOf();
 
-    transformSliderValues.translate.x = values[12];
-    transformSliderValues.translate.y = values[13];
-    transformSliderValues.translate.z = values[14];
+    transformSliderValues.value.translate.x = values[12];
+    transformSliderValues.value.translate.y = values[13];
+    transformSliderValues.value.translate.z = values[14];
 
     if (!reset) return;
 
-    transformSliderValues.rotate.x = Math.acos(values[0]);
-    transformSliderValues.rotate.y = Math.acos(values[5]);
-    transformSliderValues.rotate.z = Math.acos(values[10]);
+    transformSliderValues.value.rotate.x = Math.acos(values[0]);
+    transformSliderValues.value.rotate.y = Math.acos(values[5]);
+    transformSliderValues.value.rotate.z = Math.acos(values[10]);
 
-    transformSliderValues.scale.x = values[0];
-    transformSliderValues.scale.y = values[5];
-    transformSliderValues.scale.z = values[10];
+    transformSliderValues.value.scale.x = values[0];
+    transformSliderValues.value.scale.y = values[5];
+    transformSliderValues.value.scale.z = values[10];
 };
 
 const updateMatrixCell = (to: number | string, ix: number) => {
-    to = typeof to === "string" ? parseFloat(to) : to;
-
-    const from = matrix3dEnd.valueOf()[ix];
+    const toNum = typeof to === "string" ? parseFloat(to) : to;
+    const from = matrix3dEnd.value.valueOf()[ix];
 
     new CSSKeyframesAnimation({
         duration: 300,
@@ -611,41 +562,45 @@ const updateMatrixCell = (to: number | string, ix: number) => {
                     value: from,
                 },
                 {
-                    value: to,
+                    value: toNum,
                 },
             ],
             ({ value }) => {
-                matrix3dEnd.setValue(value.valueOf(), ix);
+                matrix3dEnd.value.setValue(value.valueOf(), ix);
                 syncTransformations();
             },
         )
         .play();
 };
 
+const cubeEl = useTemplateRef<HTMLElement>("cube");
+const graphEl = useTemplateRef<HTMLElement>("graph");
+const gridBackgroundEl = useTemplateRef<HTMLElement>("gridBackground");
+
 const animateUpdateMatrix = (
     fromMatrix: mat4,
     toMatrix: mat4,
     reset: boolean = false,
 ) => {
-    const transformFunc = ({ transform: { matrix3d } }) => {
-        matrix3d = matrix3d.valueOf();
+    const transformFunc = ({ transform: { matrix3d } }: any) => {
+        const matrixValues = matrix3d.valueOf();
 
-        matrix3dEnd.values.forEach((value, i) => {
-            value.setValue(matrix3d[i]);
+        matrix3dEnd.value.values.forEach((value, i) => {
+            value.setValue(matrixValues[i]);
             syncTransformations(reset);
         });
 
-        if (matrixAnim.playing()) {
+        if (matrixAnim.value.playing()) {
             return;
         }
 
         transformTargetsStyle(
             {
                 transform: {
-                    matrix3d: matrix3dEnd,
+                    matrix3d: matrix3dEnd.value,
                 },
             },
-            [cube],
+            [cubeEl.value!],
             false,
         );
     };
@@ -673,7 +628,7 @@ const animateUpdateMatrix = (
 };
 
 function updateTransformations() {
-    const { translate, rotate, scale } = transformSliderValues;
+    const { translate, rotate, scale } = transformSliderValues.value;
 
     const translationMatrix = mat4.fromTranslation(mat4.create(), [
         translate.x,
@@ -706,63 +661,69 @@ function updateTransformations() {
     mat4.multiply(transformationMatrix, translationMatrix, rotationMatrix);
     mat4.multiply(transformationMatrix, transformationMatrix, scalingMatrix);
 
-    matrix3dEnd.values.forEach((value, i) => {
+    matrix3dEnd.value.values.forEach((value, i) => {
         value.setValue(transformationMatrix[i]);
     });
-    matrix3dStart.values.forEach((value, i) => {
+    matrix3dStart.value.values.forEach((value, i) => {
         value.setValue(transformationMatrix[i]);
     });
 
     syncTransformations();
 }
 
-watch(transformSliderValues, updateTransformations);
+watch(transformSliderValues, () => {
+    updateTransformations();
+
+    if (cubeEl.value) {
+        transformTargetsStyle(
+            {
+                transform: {
+                    matrix3d: matrix3dEnd.value,
+                },
+            },
+            [cubeEl.value],
+            false,
+        );
+    }
+}, { deep: true });
 
 const resetMatrix = () => {
     const toMatrix = mat4.create();
-    const fromMatrix = matrix3dEnd.values.map((value) =>
+    const fromMatrix = matrix3dEnd.value.values.map((value) =>
         value.valueOf(),
     ) as mat4;
 
     animateUpdateMatrix(fromMatrix, toMatrix, true);
 };
 
-const fixMatrix = () => {
-    // if (matrix3dStart.values == matrix3dEnd.values) {
-    //     matrix3dStart.values = [...mat4.create()].map((v) => new ValueUnit(v));
-    // } else {
-    // matrix3dStart.values = matrix3dEnd.values;
-    // }
-};
-
 const matrixAnimationOptions = getStoredAnimationOptions("Matrix", superKey);
 
-const matrixAnim = $ref(
+const matrixAnim = ref(
     new CSSKeyframesAnimation(matrixAnimationOptions.animationOptions).fromVars(
         [
             {
                 transform: {
-                    matrix3d: matrix3dStart,
+                    matrix3d: matrix3dStart.value,
                 },
             },
             {
                 transform: {
-                    matrix3d: matrix3dEnd,
+                    matrix3d: matrix3dEnd.value,
                 },
             },
         ],
     ),
 );
 
-matrixAnim.name = "Matrix";
-matrixAnim.superKey = superKey;
+matrixAnim.value.name = "Matrix";
+matrixAnim.value.superKey = superKey;
 
 const rotationAnimationOptions = getStoredAnimationOptions(
     "Rotations",
     superKey,
 );
 
-const rotationAnim = $ref(
+const rotationAnim = ref(
     new CSSKeyframesAnimation(
         rotationAnimationOptions.animationOptions,
     ).fromKeyframes({
@@ -783,22 +744,22 @@ const rotationAnim = $ref(
     }),
 );
 
-rotationAnim.name = "Rotations";
-rotationAnim.superKey = superKey;
+rotationAnim.value.name = "Rotations";
+rotationAnim.value.superKey = superKey;
 
 const hoverAnimationOptions = getStoredAnimationOptions("Hover", superKey);
 
-const hoverAnim = $ref(
+const hoverAnim = ref(
     animations.hover(hoverAnimationOptions.animationOptions),
 );
-hoverAnim.name = "Hover";
-hoverAnim.superKey = superKey;
+hoverAnim.value.name = "Hover";
+hoverAnim.value.superKey = superKey;
 
-const animationGroup = $ref(
+const animationGroup = ref(
     new AnimationGroup(
-        rotationAnim as any,
-        matrixAnim as any,
-        hoverAnim as any,
+        rotationAnim.value as any,
+        matrixAnim.value as any,
+        hoverAnim.value as any,
     ),
 );
 
@@ -835,11 +796,6 @@ const cubeSides = [
     },
 ];
 
-const cube = $ref<HTMLElement>();
-const graph = $ref<HTMLElement>();
-
-const gridBackground = $ref<HTMLElement>();
-
 const changeGraphPerspectiveAnim = new CSSKeyframesAnimation({
     duration: 700,
     timingFunction: "easeInBounce",
@@ -857,8 +813,8 @@ const changeGraphPerspectiveAnim = new CSSKeyframesAnimation({
 ]);
 
 const hoverMatrixGroup = new AnimationGroup(
-    hoverAnim as any,
-    matrixAnim as any,
+    hoverAnim.value as any,
+    matrixAnim.value as any,
 );
 
 watch(
@@ -874,7 +830,7 @@ watch(
 );
 
 watch(
-    () => animationGroup.playing(),
+    () => animationGroup.value.playing(),
     (playing) => {
         if (!playing) {
             hoverMatrixGroup.forcePlay();
@@ -887,11 +843,11 @@ watch(
 );
 
 onMounted(() => {
-    rotationAnim.setTargets(cube);
-    matrixAnim.setTargets(cube);
-    hoverAnim.setTargets(cube);
+    rotationAnim.value.setTargets(cubeEl.value!);
+    matrixAnim.value.setTargets(cubeEl.value!);
+    hoverAnim.value.setTargets(cubeEl.value!);
 
-    changeGraphPerspectiveAnim.setTargets(graph);
+    changeGraphPerspectiveAnim.setTargets(graphEl.value!);
 
     changeGraphPerspectiveAnim.play();
 
@@ -903,9 +859,7 @@ onMounted(() => {
     </svg>
 `);
 
-    gridBackground.style.backgroundImage = `url("data:image/svg+xml,${encodedSVG}")`;
-
-    fixMatrix();
+    gridBackgroundEl.value!.style.backgroundImage = `url("data:image/svg+xml,${encodedSVG}")`;
 });
 </script>
 <style scoped>

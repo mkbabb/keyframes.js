@@ -1,17 +1,17 @@
 <template>
     <div class="container">
-        <AnimationControls :animation="anim.animation" />
+        <AnimationControls :animation="anim" />
         <div ref="box" class="box">heyyyy</div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted } from "vue";
-import { CSSKeyframesAnimation, Keyframes } from "@src/animation";
+import { onMounted, useTemplateRef } from "vue";
+import { CSSKeyframesAnimation } from "@src/animation";
 import { AnimationControls } from "@components/custom/animation-controls";
-import "../styles/style.css";
+import "@styles/style.css";
 
-const box = $ref<HTMLElement>();
+const box = useTemplateRef<HTMLElement>("box");
 
 const anim = new CSSKeyframesAnimation({
     duration: 2000,
@@ -20,71 +20,23 @@ const anim = new CSSKeyframesAnimation({
     fillMode: "forwards",
 });
 
-const transformKeyframes = (t: number, vars) => {
-    const { transform, backgroundColor, rotate } = vars;
-
-    console.log(vars);
-
-    if (transform) {
-        box.style.transform = `translate(${transform.x}, ${transform.y})`;
-    }
-
-    if (backgroundColor) {
-        box.style.backgroundColor = backgroundColor;
-    }
-
-    if (rotate) {
-        box.style.transform += ` rotate(${rotate})`;
-    }
-};
-
-const keyframes: Keyframes<any> = [
-    [
-        "0%",
-        {
-            rotate: "0turn",
-            transform: {
-                x: "-100%",
-                y: "-100%",
-            },
-            backgroundColor: "#C462D8",
-        },
-        transformKeyframes,
-    ],
-    [
-        "100%",
-        {
-            rotate: "1turn",
-            transform: {
-                x: "50%",
-                y: "75%",
-            },
-            backgroundColor: "#E85252",
-        },
-    ],
-];
-
 const CSSKeyframes = /*css*/ `
 @keyframes mijn-keyframes {
     0% {
         transform: translateX(-100%) translateY(-100%) rotate(0turn);
-        background-color: 5000k;
+        background-color: #C462D8;
     }
     100% {
         transform: translateX(50%) translateY(75%) rotate(1turn);
-        background-color: 1000k;
+        background-color: #E85252;
     }
 }
 `;
 
-// anim.fromKeyframes(keyframes);
-
-anim.fromCSSKeyframes(CSSKeyframes);
-
-console.log(anim.animation.frames);
+anim.fromString(CSSKeyframes);
 
 onMounted(() => {
-    anim.setTargets(box);
+    anim.setTargets(box.value!);
 });
 </script>
 

@@ -8,7 +8,7 @@
                     :model-value="reverseCSSTime(animation.options.duration)"
                     class="fira-code"
                     @change="
-                        (e) => {
+                        (e: Event) => {
                             const value = (e.target as HTMLInputElement).value;
                             animation.setDuration(value);
                             storedAnimationOptions.animationOptions.duration = value;
@@ -22,7 +22,7 @@
                     type="string"
                     :model-value="reverseCSSTime(animation.options.delay)"
                     @change="
-                        (e) => {
+                        (e: Event) => {
                             const value = (e.target as HTMLInputElement).value;
                             animation.setDelay(value);
                             storedAnimationOptions.animationOptions.delay = value;
@@ -39,7 +39,7 @@
                     ]"
                     type="string"
                     @change="
-                        (e) => {
+                        (e: Event) => {
                             const value = (e.target as HTMLInputElement).value;
                             animation.setIterationCount(value);
                             storedAnimationOptions.animationOptions.iterationCount =
@@ -197,7 +197,7 @@
                         :max="animation.options.duration"
                         @input="sliderUpdate"
                         :model-value="[animation.t]"
-                        @update:model-value="([t]) => (animation.t = t)"
+                        @update:model-value="(val: any) => (animation.t = val[0])"
                     />
 
                     <div :class="'col-span-2 grid grid-cols-5 gap-2 w-full'">
@@ -295,8 +295,7 @@ timingFunctionsAnd = Object.fromEntries(
     Object.entries(timingFunctionsAnd).map(([k, v]) => [camelCaseToHyphen(k), v]),
 ) as any;
 
-const tmpUpdate = (v) => {
-    console.log(v);
+const tmpUpdate = (v: unknown) => {
     return v;
 };
 
@@ -348,7 +347,7 @@ const setAnimationTimingFunction = (timingFunction: TimingFunction) => {
 };
 
 const updateTimingFunctionFromName = (key: TimingFunctionNames | "cubic-bezier") => {
-    let timingFunction = timingFunctions[key] as TimingFunction;
+    let timingFunction = (timingFunctions as Record<string, TimingFunction | ((...args: any[]) => TimingFunction)>)[key] as TimingFunction;
 
     if (key === "steps") {
         const { steps, jumpTerm } = storedAnimationOptions.stepOptions;

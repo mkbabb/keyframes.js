@@ -19,9 +19,9 @@
                         <SelectContent>
                             <SelectGroup class="fira-code">
                                 <SelectItem
-                                    v-for="space in Object.keys(COLOR_SPACE_RANGES)"
+                                    v-for="space in Object.keys(colorSpaceRanges)"
                                     :value="space"
-                                    >{{ COLOR_SPACE_NAMES[space] }}</SelectItem
+                                    >{{ colorSpaceNames[space] }}</SelectItem
                                 >
                             </SelectGroup>
                         </SelectContent>
@@ -43,7 +43,7 @@
                 >
                     <template
                         v-for="([component, value], ix) in Object.entries(
-                            COLOR_SPACE_RANGES[currentColorSpace],
+                            colorSpaceRanges[currentColorSpace],
                         ).filter(([key]) => key !== 'alpha')"
                         :key="component"
                     >
@@ -60,7 +60,7 @@
                             >{{ currentColorComponentsFormatted[component]
                             }}{{
                                 Object.entries(
-                                    COLOR_SPACE_RANGES[currentColorSpace],
+                                    colorSpaceRanges[currentColorSpace],
                                 ).filter(([key]) => key !== "alpha").length -
                                     1 ===
                                 ix
@@ -134,7 +134,7 @@
                 <div class="grid gap-2">
                     <div
                         v-for="[component, value] in Object.entries(
-                            COLOR_SPACE_RANGES[currentColorSpace],
+                            colorSpaceRanges[currentColorSpace],
                         )"
                         :key="component"
                         class="grid w-full items-start"
@@ -151,9 +151,9 @@
                             :max="1"
                             :step="0.001"
                             class="relative flex w-full touch-none select-none items-center"
-                            :model-value="[currentColor.value[component].value]"
+                            :model-value="[(currentColor!.value as any)[component].value]"
                             @update:model-value="
-                                ([v]) => updateColorComponent(v, component, true)
+                                (val: any) => updateColorComponent(val[0], component, true)
                             "
                         >
                             <SliderTrack
@@ -174,7 +174,7 @@
                                         />
                                     </TooltipTrigger>
                                     <TooltipContent class="fira-code">
-                                        {{ denormalizedCurrentColor.value[component].toFixed(2) }}
+                                        {{ (denormalizedCurrentColor.value as any)[component].toFixed(2) }}
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>
@@ -311,6 +311,10 @@ const emit = defineEmits<{
 
 const storedControls = getStoredAnimationGroupControlOptions(props.animation);
 
+// Typed aliases for template use (avoids string-indexing errors on readonly typed objects)
+const colorSpaceNames = COLOR_SPACE_NAMES as Record<string, string>;
+const colorSpaceRanges = COLOR_SPACE_RANGES as Record<string, Record<string, any>>;
+
 const isDragging = ref(false);
 
 const spectrumRef = useTemplateRef<HTMLElement>("spectrumRef");
@@ -324,14 +328,14 @@ const currentColor = ref(parseAndNormalizeColor(props.color)) as ReturnType<type
 const savedColors = ref([]) as ReturnType<typeof ref<ValueUnit<Color<ValueUnit<number>>, "color">[]>>;
 
 for (let i = 0; i < 6; i++) {
-    savedColors.value.push(parseAndNormalizeColor("white"));
+    savedColors.value!.push(parseAndNormalizeColor("white"));
 }
 
-const currentColorSpace = computed(() => currentColor.value.superType[1] as ColorSpace);
+const currentColorSpace = computed(() => currentColor.value!.superType![1] as ColorSpace);
 
 const selectedColorSpace = ref<ColorSpace>(currentColorSpace.value);
 
-const selectAll = (event: MouseEvent) => {
+const selectAll = (event: FocusEvent) => {
     const target = event.target as HTMLSpanElement;
     const range = document.createRange();
 
@@ -347,10 +351,10 @@ const selectAll = (event: MouseEvent) => {
 
 const generateRandomColor = (
     colorSpace: ColorSpace,
-): ValueUnit<Color<ValueUnit<number>>> => {
+): ValueUnit<Color<ValueUnit<number>>, "color"> => {
     let color = parseAndNormalizeColor("white");
 
-    color = colorUnit2(color, colorSpace, true, false, true);
+    color = colorUnit2(color, colorSpace, true, false, true) as ValueUnit<Color<ValueUnit<number>>, "color">;
 
     color.value
         .entries()
@@ -364,9 +368,9 @@ const generateRandomColor = (
         duration: 700,
     })
         .fromVars(
-            [{ color: currentColor.value.clone() }, { color: color.clone() }],
+            [{ color: currentColor.value!.clone() }, { color: color.clone() }],
             ({ color }) => {
-                updateFromColor(color[0]);
+                updateFromColor(color[0] as ValueUnit<Color<ValueUnit<number>>, "color">);
             },
         )
         .play();
@@ -386,25 +390,25 @@ const copyToClipboard = (text: string) => {
 };
 
 const createGradientStops = (
-    color: ValueUnit<Color<ValueUnit<number>>>,
+    color: ValueUnit<Color<ValueUnit<number>>, "color">,
     component: string,
     steps: number,
     to?: ColorSpace,
     normalized: boolean = false,
 ) => {
     color = color.clone();
-    color = normalized ? color : normalizeColorUnit(color);
+    color = normalized ? color : normalizeColorUnit(color) as typeof color;
 
     to ??= color.value.colorSpace;
 
     const colorStops = Array.from({ length: steps }).map((_, ix) => {
         let newColor = color.clone();
 
-        newColor.value[component].value = ix / steps;
+        (newColor.value as any)[component].value = ix / steps;
 
-        newColor = colorUnit2(newColor, to, true, false, true);
+        newColor = colorUnit2(newColor, to, true, false, true) as typeof newColor;
 
-        return normalizeColorUnit(newColor, true, true).toString();
+        return (normalizeColorUnit(newColor, true, true) as typeof newColor).toString();
     });
 
     return colorStops.reduce((acc, colorString, ix, arr) => {
@@ -422,11 +426,11 @@ const createGradientStops = (
         // }
 
         return acc;
-    }, []);
+    }, [] as string[]);
 };
 
-function parseAndNormalizeColor(value: string) {
-    const color = parseCSSColor(value);
+function parseAndNormalizeColor(value: string): ValueUnit<Color<ValueUnit<number>>, "color"> {
+    const color = parseCSSColor(value) as ValueUnit<Color<ValueUnit<number>>, "color">;
     return normalizeColorUnit(color);
 }
 
@@ -436,7 +440,7 @@ const parseAndSetColor = debounce(
             const color = parseAndNormalizeColor(newVal);
 
             currentColor.value = color;
-            selectedColorSpace.value = color.superType[1] as ColorSpace;
+            selectedColorSpace.value = color.superType![1] as ColorSpace;
 
             emit("update", denormalizedCurrentColor.value);
 
@@ -450,7 +454,7 @@ const parseAndSetColor = debounce(
 );
 
 const denormalizedCurrentColor = computed(() => {
-    return normalizeColorUnit(currentColor.value, true, false);
+    return normalizeColorUnit(currentColor.value!, true, false) as ValueUnit<Color<ValueUnit<number>>, "color">;
 });
 
 const currentColorOpaque = computed(() => {
@@ -471,29 +475,29 @@ const currentColorComponentsFormatted = computed(() => {
         .reduce((acc, [key, value]) => {
             acc[key] = value;
             return acc;
-        }, {});
+        }, {} as Record<string, string>);
 });
 
 const currentColorRanges = computed(() => {
-    return currentColor.value.value.keys().reduce((acc, key) => {
-        const unit = COLOR_SPACE_DENORM_UNITS[currentColorSpace.value][key];
-        const range = COLOR_SPACE_RANGES[currentColorSpace.value][key];
+    return currentColor.value!.value.keys().reduce((acc, key) => {
+        const unit = (COLOR_SPACE_DENORM_UNITS as Record<string, Record<string, string>>)[currentColorSpace.value][key];
+        const range = (COLOR_SPACE_RANGES as Record<string, Record<string, Record<string, { min: number; max: number }>>>)[currentColorSpace.value][key];
         const { min, max } = range[unit] ?? range["number"];
 
         acc[key] = `(${min}${unit} - ${max}${unit})`;
 
         return acc;
-    }, {});
+    }, {} as Record<string, string>);
 });
 
 const hslColor = computed(() => {
-    const hsl = colorUnit2(currentColor.value, "hsl", true, false, false);
-    return hsl;
+    const hsl = colorUnit2(currentColor.value!, "hsl", true, false, false);
+    return hsl as ValueUnit<Color<ValueUnit<number>>, "color">;
 });
 
 const hsvColor = computed(() => {
-    const hsv = colorUnit2(currentColor.value, "hsv", true, false, false);
-    return hsv;
+    const hsv = colorUnit2(currentColor.value!, "hsv", true, false, false);
+    return hsv as ValueUnit<Color<ValueUnit<number>>, "color">;
 });
 
 const keys = useMagicKeys();
@@ -502,12 +506,12 @@ const onSavedColorClick = (
     color: ValueUnit<Color<ValueUnit<number>>, "color">,
     ix: number,
 ) => {
-    const temp = currentColor.value.clone();
+    const temp = currentColor.value!.clone();
 
     currentColor.value = color.clone();
 
     if (keys.current.has("meta")) {
-        savedColors.value[ix] = temp;
+        savedColors.value![ix] = temp;
     }
 
     emit("update", denormalizedCurrentColor.value);
@@ -526,7 +530,7 @@ const isBlankColor = (color: ValueUnit<Color<ValueUnit<number>>, "color">) => {
 
 // watch for dark mode changes, update the blank colors:
 watch(isDark, () => {
-    savedColors.value.forEach((color) => {
+    savedColors.value!.forEach((color) => {
         if (isBlankColor(color)) {
             color.value
                 .entries()
@@ -539,36 +543,36 @@ watch(isDark, () => {
 });
 
 const addColorClick = () => {
-    const colorIx = savedColors.value.findIndex((color) => {
-        return color.value.toString() === currentColor.value.value.toString();
+    const colorIx = savedColors.value!.findIndex((color) => {
+        return color.value.toString() === currentColor.value!.value.toString();
     });
     if (colorIx !== -1) {
         return;
     }
 
-    const blankColorIx = savedColors.value.findIndex((color) => {
+    const blankColorIx = savedColors.value!.findIndex((color) => {
         return isBlankColor(color);
     });
     if (blankColorIx !== -1) {
-        savedColors.value[blankColorIx] = currentColor.value.clone();
+        savedColors.value![blankColorIx] = currentColor.value!.clone();
         return;
     }
 
-    const color = currentColor.value.clone();
+    const color = currentColor.value!.clone();
     const normalized = normalizeColorUnit(color, true, false);
 
-    savedColors.value.push(currentColor.value.clone());
+    savedColors.value!.push(currentColor.value!.clone());
 };
 
 const updateFromColor = (color: ValueUnit<Color<ValueUnit<number>>, "color">) => {
-    const converted = colorUnit2(color, currentColorSpace.value, true);
-    currentColor.value = converted as any;
+    const converted = colorUnit2(color, currentColorSpace.value, true) as ValueUnit<Color<ValueUnit<number>>, "color">;
+    currentColor.value = converted;
 
     emit("update", denormalizedCurrentColor.value);
 };
 
 const updateToColorSpace = (to: ColorSpace) => {
-    currentColor.value = colorUnit2(currentColor.value, to, true);
+    currentColor.value = colorUnit2(currentColor.value!, to, true) as ValueUnit<Color<ValueUnit<number>>, "color">;
     selectedColorSpace.value = to;
 
     emit("update", denormalizedCurrentColor.value);
@@ -580,17 +584,17 @@ const updateColorComponent = (
     normalized: boolean = false,
 ) => {
     if (normalized) {
-        currentColor.value.value[component].value = value;
+        (currentColor.value!.value as any)[component].value = value;
     } else {
         const normalizedValue = normalizeColorUnitComponent(
             value,
-            denormalizedCurrentColor.value.value[component].unit,
+            (denormalizedCurrentColor.value.value as any)[component].unit,
             currentColorSpace.value,
             component,
             false,
         );
 
-        currentColor.value.value[component].value = normalizedValue.value;
+        (currentColor.value!.value as any)[component].value = normalizedValue.value;
     }
 
     emit("update", denormalizedCurrentColor.value);
@@ -639,7 +643,7 @@ const stopDragging = () => {
 
 const spectrumStyle = computed(() => {
     let { h, s, l } = hslColor.value.value;
-    const denormalized = normalizeColorUnit(currentColor.value, true, false);
+    const denormalized = normalizeColorUnit(currentColor.value!, true, false);
     denormalized.value.alpha.value = 30;
 
     h.value = clamp(h.value, 0, 1);
@@ -664,7 +668,7 @@ const spectrumDotStyle = computed(() => {
 });
 
 const hueSliderStyle = computed(() => {
-    const color = parseCSSColor("hsl(0, 100%, 50%)");
+    const color = parseCSSColor("hsl(0, 100%, 50%)") as ValueUnit<Color<ValueUnit<number>>, "color">;
     const gradient = createGradientStops(color, "h", 10, "oklab");
 
     return {
@@ -680,7 +684,7 @@ const componentsSlidersStyle = computed(() => {
         .entries()
         .map(([component, value]) => {
             const color = currentColorOpaque.value.clone();
-            color.value[component].value = 0;
+            (color.value as any)[component].value = 0;
 
             const gradient = createGradientStops(color, component, steps, to, false);
 
@@ -689,7 +693,7 @@ const componentsSlidersStyle = computed(() => {
         .reduce((acc, [component, gradient]) => {
             acc[component] = gradient;
             return acc;
-        }, {});
+        }, {} as Record<string, string[]>);
 
     return gradients;
 });
@@ -702,16 +706,16 @@ const hover = animations.hover({ duration: "2s" });
 
 // generate a list of offsets for each color component
 const sliderAnimOffsets = computed(() => {
-    const offsets = currentColor.value.value
+    const offsets = currentColor.value!.value
         .keys()
         .map((component) => {
             const offset = Math.random();
-            return [component, offset];
+            return [component, offset] as const;
         })
         .reduce((acc, [component, offset]) => {
-            acc[component] = offset;
+            acc[component as string] = offset;
             return acc;
-        }, {});
+        }, {} as Record<string, number>);
 
     return offsets;
 });
@@ -727,7 +731,7 @@ const sliderAnimOffsets = computed(() => {
 // });
 
 onMounted(() => {
-    hover.setTargets(spectrumRef.value);
+    hover.setTargets(spectrumRef.value!);
     hover.play();
 
     // slidersAnim.play();

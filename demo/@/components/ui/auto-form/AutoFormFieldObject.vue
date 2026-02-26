@@ -18,8 +18,7 @@ const props = defineProps<{
 }>()
 
 const shapes = computed(() => {
-  // @ts-expect-error ignore {} not assignable to object
-  const val: { [key in keyof T]: Shape } = {}
+  const val = {} as { [key in keyof T]: Shape }
 
   if (!props.schema)
     return
@@ -66,7 +65,7 @@ provide(FieldContextKey, fieldContext)
                   :config="config?.[key as keyof typeof config] as ConfigItem"
                   :field-name="`${fieldName}.${key.toString()}`"
                   :label="key.toString()"
-                  :shape="shape"
+                  :shape="(shape as Shape)"
                 />
               </template>
             </AccordionContent>

@@ -28,7 +28,7 @@
                 <CommandItem
                     v-for="anim in animations"
                     :key="anim.name"
-                    :value="anim.name"
+                    :value="anim.name ?? ''"
                     @select="() => handleSelectAnimation(anim)"
                 >
                     Change to {{ anim.name }}

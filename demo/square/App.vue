@@ -1,18 +1,17 @@
 <template>
     <div class="container">
-        <AnimationControls :animation="anim.animation" />
+        <AnimationControls :animation="anim" />
         <div ref="box" class="box">heyyyy</div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted } from "vue";
-import { $ref } from "unplugin-vue-macros/macros";
-import { CSSKeyframesAnimation } from "../../src/animation";
-import AnimationControls from "../components/AnimationControls.vue";
-import "../style.css";
+import { onMounted, useTemplateRef } from "vue";
+import { CSSKeyframesAnimation } from "@src/animation";
+import { AnimationControls } from "@components/custom/animation-controls";
+import "@styles/style.css";
 
-const box = $ref<HTMLElement>();
+const box = useTemplateRef<HTMLElement>("box");
 
 const anim = new CSSKeyframesAnimation({
     duration: 2000,
@@ -21,21 +20,23 @@ const anim = new CSSKeyframesAnimation({
     fillMode: "forwards",
 });
 
-const transformFunc = (t: number, vars) => {
+const transformFunc = (vars: Record<string, any>) => {
+    const el = box.value;
+    if (!el) return;
+
     const { transform, backgroundColor, fontSize, rotate } = vars;
 
     if (transform) {
-        box.style.transform = `translate(${transform.x}, ${transform.y})`;
-        box.style.transform += ` scale(${transform.a.b.c.d})`;
+        el.style.transform = `translate(${transform.x}, ${transform.y}) scale(${transform.a.b.c.d})`;
     }
     if (backgroundColor) {
-        box.style.backgroundColor = backgroundColor;
+        el.style.backgroundColor = backgroundColor;
     }
     if (fontSize) {
-        box.style.fontSize = fontSize;
+        el.style.fontSize = fontSize;
     }
     if (rotate) {
-        box.style.transform += ` rotate(${rotate})`;
+        el.style.transform += ` rotate(${rotate})`;
     }
 };
 
@@ -62,42 +63,33 @@ const transformEnd = {
         },
     },
 };
-anim.fromKeyframes([
-    [
-        "0%",
-        {
+
+anim.fromKeyframes(
+    {
+        "0%": {
             rotate: "0turn",
             transform: transformStart,
             backgroundColor: "#C462D8",
         },
-        transformFunc,
-    ],
-    [
-        "500ms",
-        {
+        "50%": {
             backgroundColor: "#6280D8",
         },
-    ],
-    [
-        75,
-        {
+        "75%": {
             backgroundColor: "#52E898",
             fontSize: "1rem",
         },
-    ],
-    [
-        "100ms",
-        {
+        "100%": {
             rotate: "1turn",
             transform: transformEnd,
             backgroundColor: "#E85252",
             fontSize: "3rem",
         },
-    ],
-]);
+    },
+    transformFunc,
+);
 
 onMounted(() => {
-    anim.setTargets(box);
+    anim.setTargets(box.value!);
 });
 </script>
 

@@ -142,8 +142,8 @@ const ballTranslationAnim = new CSSKeyframesAnimation({
 onMounted(() => {
     setOptions();
 
-    ballAnim.setTargets(ballEl.value);
-    ballTranslationAnim.setTargets(ballEl.value);
+    ballAnim.setTargets(ballEl.value!);
+    ballTranslationAnim.setTargets(ballEl.value!);
 
     ballAnim.play();
     // ballTranslationAnim.play();

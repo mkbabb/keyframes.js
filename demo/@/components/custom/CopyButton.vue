@@ -35,7 +35,7 @@ const isCopied = ref(false);
 const clipboard = useTemplateRef<HTMLElement>("clipboard");
 const clipboardChecked = useTemplateRef<HTMLElement>("clipboardChecked");
 
-const copyToClipboard = (text) => {
+const copyToClipboard = (text: string) => {
     navigator.clipboard
         .writeText(text)
         .then(() => {})
@@ -86,8 +86,8 @@ const handleClick = () => {
 };
 
 onMounted(() => {
-    clipboardCheckedAnim.setTargets(clipboardChecked.value);
-    clipboardAnim.setTargets(clipboard.value);
+    clipboardCheckedAnim.setTargets(clipboardChecked.value!);
+    clipboardAnim.setTargets(clipboard.value!);
 });
 </script>
 <style scoped>

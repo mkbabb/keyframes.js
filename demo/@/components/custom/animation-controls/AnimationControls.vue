@@ -120,7 +120,7 @@ const fadeIn = animations
     .blurIn({ duration: 75 })
     .group(animations.fadeIn({ duration: 50 }));
 
-const selectControl = async (key: string) => {
+const selectControl = async (key: string | number) => {
     const activeChild = tabsContentEl.value?.querySelector(
         `[data-state="active"]`,
     ) as HTMLElement;

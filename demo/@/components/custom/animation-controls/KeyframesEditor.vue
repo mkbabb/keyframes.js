@@ -50,7 +50,7 @@
                                             .innerText;
 
                                         updateAnimationFromKeyframeString(value, i);
-                                        animateProgressBar(progressBarKeyframesEl);
+                                        animateProgressBar(progressBarKeyframesEl!);
                                     }
                                 "
                                 @keydown="onKeyDown"
@@ -76,7 +76,7 @@
                 @update:model-value="
                     (starts) => {
                         animation.templateFrames.forEach((frame, i) => {
-                            frame.start.value = starts[i];
+                            frame.start.value = starts![i];
                         });
                         updateAllStringsAndAnimation();
                     }
@@ -154,7 +154,7 @@
                                                     addKeyframesString,
                                                 );
                                                 animateProgressBar(
-                                                    progressBarAddKeyframesEl,
+                                                    progressBarAddKeyframesEl!,
                                                 );
                                             }
                                         "
@@ -249,9 +249,7 @@ import {
     Pencil,
 } from "lucide-vue-next";
 
-// @ts-ignore
 import githubDark from "highlight.js/styles/github-dark.css?inline";
-// @ts-ignore
 import githubLight from "highlight.js/styles/github.css?inline";
 
 import { useDark } from "@vueuse/core";
@@ -269,10 +267,10 @@ import {
     getStoredAnimationGroupControlOptions,
 } from "./animationStores";
 import Button from "@components/ui/button/Button.vue";
-import { set } from "zod";
 import { Menubar, MenubarTrigger, MenubarMenu } from "@components/ui/menubar";
 
 import { parseCSSValueUnit } from "@src/parsing/units";
+import { convert2 } from "@src/units/utils";
 
 import {
     Dialog,
@@ -353,7 +351,7 @@ const getFormatWidth = (el?: HTMLElement) => {
         return undefined;
     }
 
-    return convertToCh(el.offsetWidth, "px", el);
+    return convert2(el.offsetWidth, "px", "ch", el);
 };
 
 const getTmpAnimationName = () => {
@@ -430,7 +428,7 @@ const updateAnimationFromKeyframesString = debounce((keyframesString: string) =>
         const tmpAnimation = new CSSKeyframesAnimation(
             options,
             ...animation.targets,
-        ).fromString(keyframes).animation;
+        ).fromString(keyframes);
 
         animation.options = tmpAnimation.options;
         animation.templateFrames = tmpAnimation.templateFrames;
@@ -448,7 +446,7 @@ const updateAnimationFromKeyframesString = debounce((keyframesString: string) =>
         parseAndUpdate();
     } catch (e) {
         toast.error("Could not update keyframes", {
-            description: e.message,
+            description: (e as Error).message,
             duration: 10000,
             action: {
                 label: "Retry",
@@ -482,7 +480,7 @@ const updateAnimationFromKeyframeString = debounce(
             await parseAndUpdate();
         } catch (e) {
             toast.error("Could not update keyframe", {
-                description: e.message,
+                description: (e as Error).message,
                 duration: 10000,
                 action: {
                     label: "Retry",
@@ -532,7 +530,7 @@ const addKeyframesStringToAnimation = (keyframesString: string) => {
             tmpAnimation.addFrame(f.start, f.vars, f.transform, f.timingFunction);
         });
         Object.entries(keyframes).forEach(([start, vars]) => {
-            tmpAnimation.addFrame(parseFloat(start), vars);
+            tmpAnimation.addFrame(parseFloat(start), vars as Partial<any>);
         });
 
         tmpAnimation.parse();
@@ -554,7 +552,7 @@ const addKeyframesStringToAnimation = (keyframesString: string) => {
         parseAndUpdate();
     } catch (e) {
         toast.error("Could not add keyframes", {
-            description: e.message,
+            description: (e as Error).message,
             duration: 10000,
             action: {
                 label: "Retry",
@@ -596,7 +594,9 @@ const removeKeyframe = async (e: Event, frameIx: number) => {
 
     tmpAnimation.parse();
 
-    animation.updateFrom(tmpAnimation);
+    animation.options = tmpAnimation.options;
+    animation.templateFrames = tmpAnimation.templateFrames;
+    animation.parse();
 
     updateAllStringsAndAnimation();
 };
@@ -767,7 +767,7 @@ watch(
 );
 
 onMounted(() => {
-    brushAnimation.setTargets(brush.value);
+    brushAnimation.setTargets(brush.value!);
 
     updateAllStrings();
 });
