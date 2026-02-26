@@ -177,7 +177,7 @@
                             .timingFunction as any) === 'cubic-bezier'
                     "
                 >
-                    <Separator class="w-full col-span-2 my-4"></Separator>
+                    <Separator class="w-full col-span-2 my-2"></Separator>
                     <CubicBezierControls
                         :animation="animation"
                         @update-timing-function="setAnimationTimingFunction"

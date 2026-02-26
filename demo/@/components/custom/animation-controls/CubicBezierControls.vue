@@ -1,9 +1,9 @@
 <template>
-    <Card class="grid gap-2 w-full dark:border-none shadow-none border-none p-0">
-        <CardHeader class="grid gap-0 p-0">
+    <Card class="grid gap-0 w-full dark:border-none shadow-none border-none p-0">
+        <CardHeader class="grid gap-0 p-0 pb-1">
             <CardTitle class="fraunces">cubic-bézier</CardTitle>
             <div
-                class="w-full whitespace-pre h-8 m-0 p-0 mt-1 ml-1 text-xs flex items-center italic justify-items-center gap-2 fira-code"
+                class="w-full whitespace-pre h-6 m-0 p-0 ml-1 text-xs flex items-center italic justify-items-center gap-2 fira-code"
             >
                 {{ timingString.replace("cubic-bezier", "") }}
                 <TooltipProvider :delay-duration="200">
@@ -29,26 +29,20 @@
                 @mouseup="stopDragging"
                 @mouseleave="stopDragging"
             >
-                <g class="bezier-group">
-                    <!-- Grid lines -->
-                    <line x1="0" y1="0" x2="1" y2="0" class="grid-line" />
-                    <line x1="0" y1="1" x2="1" y2="1" class="grid-line" />
-                    <line x1="0" y1="0" x2="0" y2="1" class="grid-line" />
-                    <line x1="1" y1="0" x2="1" y2="1" class="grid-line" />
-
+                <g>
                     <!-- Control handle lines -->
                     <line
-                        :x1="controlPoints[0].x"
-                        :y1="controlPoints[0].y"
-                        :x2="controlPoints[1].x"
-                        :y2="controlPoints[1].y"
+                        :x1="svgPoints[0].x"
+                        :y1="svgPoints[0].y"
+                        :x2="svgPoints[1].x"
+                        :y2="svgPoints[1].y"
                         class="handle-line"
                     />
                     <line
-                        :x1="controlPoints[3].x"
-                        :y1="controlPoints[3].y"
-                        :x2="controlPoints[2].x"
-                        :y2="controlPoints[2].y"
+                        :x1="svgPoints[3].x"
+                        :y1="svgPoints[3].y"
+                        :x2="svgPoints[2].x"
+                        :y2="svgPoints[2].y"
                         class="handle-line"
                     />
 
@@ -57,7 +51,7 @@
 
                     <!-- Control points -->
                     <circle
-                        v-for="(point, index) in controlPoints"
+                        v-for="(point, index) in svgPoints"
                         :key="index"
                         :cx="point.x"
                         :cy="point.y"
@@ -72,7 +66,7 @@
                 </g>
             </svg>
 
-            <div class="flex gap-2 items-center justify-center mt-2">
+            <div class="flex gap-2 items-center justify-center">
                 <Select
                     :model-value="selectedPreset"
                     @update:model-value="
@@ -160,17 +154,25 @@ const controlPoints = ref([
     { x: 1, y: 1 },
 ]);
 
-// Compute viewBox to fit all control points with padding
+// Convert bezier Y (0=bottom, 1=top) to SVG Y (0=top, increases downward)
+const toSvgY = (y: number) => 1 - y;
+
+// SVG-space control points (Y flipped for display)
+const svgPoints = computed(() =>
+    controlPoints.value.map((p) => ({ x: p.x, y: toSvgY(p.y) })),
+);
+
+// Compute viewBox to fit all SVG points with tight padding
 const viewBox = computed(() => {
-    const ys = controlPoints.value.map((p) => p.y);
-    const minY = Math.min(-0.1, ...ys) - 0.15;
-    const maxY = Math.max(1.1, ...ys) + 0.15;
+    const ys = svgPoints.value.map((p) => p.y);
+    const minY = Math.min(0, ...ys) - 0.08;
+    const maxY = Math.max(1, ...ys) + 0.08;
     return { minY, height: maxY - minY };
 });
 
 // Proper SVG cubic bezier path — a single smooth curve, no segmentation
 const bezierPathD = computed(() => {
-    const [p0, p1, p2, p3] = controlPoints.value;
+    const [p0, p1, p2, p3] = svgPoints.value;
     return `M ${p0.x} ${p0.y} C ${p1.x} ${p1.y}, ${p2.x} ${p2.y}, ${p3.x} ${p3.y}`;
 });
 
@@ -191,20 +193,19 @@ const updateTimingFunction = () => {
 const isDragging = ref(false);
 const currentPointIndex = ref<number | null>(null);
 
-// Convert mouse position to SVG coordinate space
+// Convert mouse position to bezier coordinate space using SVG's native CTM
 const mouseToSVG = (event: MouseEvent): { x: number; y: number } => {
     const svg = SVGEl.value!;
-    const rect = svg.getBoundingClientRect();
+    const ctm = svg.getScreenCTM();
+    if (!ctm) return { x: 0, y: 0 };
 
-    // Parse viewBox
-    const vb = viewBox.value;
+    const inverseCTM = ctm.inverse();
+    // Transform screen coordinates to SVG viewBox coordinates
+    const svgX = inverseCTM.a * event.clientX + inverseCTM.c * event.clientY + inverseCTM.e;
+    const svgY = inverseCTM.b * event.clientX + inverseCTM.d * event.clientY + inverseCTM.f;
 
-    // Map pixel position to viewBox coordinates
-    const x = ((event.clientX - rect.left) / rect.width) * 1; // viewBox width = 1
-    const y = vb.minY + ((event.clientY - rect.top) / rect.height) * vb.height;
-
-    // The CSS transform flips Y, so negate
-    return { x, y: -y };
+    // Convert SVG Y back to bezier Y (inverse of toSvgY: svgY = 1 - bezierY)
+    return { x: svgX, y: 1 - svgY };
 };
 
 const startDragging = (event: MouseEvent) => {
@@ -267,16 +268,7 @@ onMounted(() => {
 :deep(.bezier-curve) {
     width: 100%;
     aspect-ratio: 1 / 1;
-
-    .bezier-group {
-        transform: scaleY(-1);
-    }
-
-    .grid-line {
-        stroke: hsl(var(--muted-foreground));
-        stroke-width: 0.005;
-        opacity: 0.25;
-    }
+    margin: 0;
 
     .handle-line {
         stroke: hsl(var(--muted-foreground));
@@ -298,11 +290,11 @@ onMounted(() => {
         cursor: move;
 
         &.endpoint {
-            fill: hsl(var(--ppmycota-primary, var(--foreground)));
+            fill: black;
             stroke: none;
             cursor: default;
             r: 0.025;
-            opacity: 0.5;
+            opacity: 0.6;
         }
 
         &.handle {
