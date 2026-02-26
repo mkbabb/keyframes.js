@@ -70,7 +70,7 @@ const { size } = defineProps<{
     transition: transform 500ms ease-out;
 }
 
-.dark {
+:global(.dark) {
     .dark-mode-toggle-button::before {
         animation: pulseToLight 650ms ease-out;
     }
