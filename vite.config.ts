@@ -21,7 +21,6 @@ const defaultOptions = {
             "@components": path.resolve(import.meta.dirname, "demo/@/components"),
             "@utils": path.resolve(import.meta.dirname, "demo/@/utils"),
             "@assets": path.resolve(import.meta.dirname, "assets"),
-            "monaco-themes": path.resolve(import.meta.dirname, "node_modules/monaco-themes"),
         },
     },
 };

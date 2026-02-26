@@ -148,7 +148,7 @@ import {
 } from "lucide-vue-next";
 
 import DarkTheme from "monaco-themes/themes/Dracula.json";
-import LightTheme from "monaco-themes/themes/Github.json";
+import LightTheme from "monaco-themes/themes/GitHub.json";
 
 import { useDark } from "@vueuse/core";
 
