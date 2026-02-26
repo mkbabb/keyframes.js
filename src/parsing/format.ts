@@ -119,7 +119,7 @@ export function animationOptionsToString(
         css += `  animation-delay: ${reverseCSSTime(options.delay)};\n`;
     }
 
-    css = `.animation {\n${css}}\n`;
+    css = `.${name} {\n${css}}\n`;
 
     return css;
 }

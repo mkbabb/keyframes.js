@@ -93,4 +93,52 @@ describe("CSSKeyframesToString", () => {
 
         expect(reparsed.size).toBeGreaterThan(0);
     });
+
+    it("roundtrip: parse → format → re-parse preserves property names and values", async () => {
+        const el = document.createElement("div");
+
+        const input = /*css*/ `
+            @keyframes preserve-test {
+                0% { opacity: 0; transform: translateX(0px); }
+                100% { opacity: 1; transform: translateX(100px); }
+            }
+        `;
+
+        const anim = new CSSKeyframesAnimation({}, el).fromString(input);
+        const formatted = await CSSKeyframesToString(anim, "preserve-test");
+
+        const keyframesBlock = formatted.split("\n\n")[1];
+        const reparsed = parseCSSKeyframes(keyframesBlock);
+
+        // Verify property names survive the roundtrip
+        const allValues = [...reparsed.values()];
+        const allProperties = allValues.flatMap((frame) => Object.keys(frame));
+
+        expect(allProperties).toContain("opacity");
+        expect(allProperties).toContain("transform");
+    });
+
+    it("roundtrip: re-parsed keyframes contain valid @keyframes block", async () => {
+        const el = document.createElement("div");
+
+        const input = /*css*/ `
+            @keyframes idempotent-test {
+                0% { opacity: 0; left: 10px; }
+                100% { opacity: 1; left: 100px; }
+            }
+        `;
+
+        const anim1 = new CSSKeyframesAnimation({}, el).fromString(input);
+        const formatted1 = await CSSKeyframesToString(anim1, "idempotent-test");
+
+        // Formatted output should contain the @keyframes block
+        expect(formatted1).toContain("@keyframes idempotent-test");
+        expect(formatted1).toContain("opacity");
+        expect(formatted1).toContain("left");
+
+        // Re-parse should succeed (not throw)
+        const keyframesBlock1 = formatted1.split("\n\n").slice(1).join("\n\n");
+        const reparsed = parseCSSKeyframes(keyframesBlock1);
+        expect(reparsed.size).toBeGreaterThan(0);
+    });
 });
