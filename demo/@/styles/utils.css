@@ -96,6 +96,31 @@
     color: transparent;
 }
 
+.pastel-rainbow {
+    background: linear-gradient(
+        90deg,
+        hsl(0, 70%, 75%) 0%,
+        hsl(25, 75%, 72%) 12.5%,
+        hsl(50, 75%, 75%) 25%,
+        hsl(130, 55%, 70%) 37.5%,
+        hsl(220, 65%, 72%) 50%,
+        hsl(260, 55%, 72%) 62.5%,
+        hsl(280, 60%, 75%) 75%,
+        hsl(0, 70%, 75%) 87.5%,
+        hsl(0, 70%, 75%) 100%
+    );
+}
+
+.paintbrush-rainbow {
+    color: hsl(0, 80%, 70%);
+    animation: rainbow-hue 3s linear infinite;
+}
+
+@keyframes rainbow-hue {
+    from { filter: hue-rotate(0deg) saturate(1.5) brightness(1.1); }
+    to { filter: hue-rotate(360deg) saturate(1.5) brightness(1.1); }
+}
+
 .disabled {
     opacity: 0.5;
     pointer-events: none;

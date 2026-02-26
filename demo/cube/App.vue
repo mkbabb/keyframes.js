@@ -1,96 +1,137 @@
 <template>
-    <div class="relative grid items-center justify-center justify-items-center">
+    <TooltipProvider :delay-duration="100" :skip-delay-duration="0">
+    <div class="relative grid min-h-dvh lg:h-dvh w-dvw items-center justify-items-stretch lg:justify-items-center lg:justify-center overflow-x-hidden lg:overflow-hidden">
         <div
             ref="gridBackground"
-            class="grid-background absolute h-full w-full"
+            class="grid-background pointer-events-none fixed inset-0 h-dvh w-dvw"
         ></div>
 
         <div
-            :class="
-                `pointer-events-none sticky top-0 z-[100] col-span-2 flex h-fit w-full
-                flex-row-reverse items-center justify-between justify-items-center gap-6 p-4
-                lg:absolute lg:right-0 lg:w-min lg:items-start lg:justify-center lg:gap-4 ` +
-                (!storedControls.selectedAnimation ? '' : '')
-            "
+            class="pointer-events-none absolute top-0 left-0 right-0 z-50 flex items-center justify-between p-2 lg:p-4"
         >
-            <DarkModeToggle
-                class="pointer-events-auto aspect-square w-8 hover:scale-105 hover:opacity-50"
-            />
-            <HoverCard
-                v-model:open="hoverCardStates.mbabb"
-                :open-delay="0"
-                class="bg-sky-700 px-4 py-2 text-white hover:bg-sky-800 sm:px-8 sm:py-3"
-            >
-                <HoverCardTrigger
-                    @click="hoverCardStates.mbabb = true"
-                    class="fira-code pointer-events-auto"
-                    ><Button class="m-0 cursor-pointer p-0" variant="link"
-                        >@mbabb</Button
-                    >
-                </HoverCardTrigger>
-                <HoverCardContent class="pointer-events-auto z-[100]">
-                    <div class="fira-code flex gap-4 p-4">
-                        <Avatar>
-                            <AvatarImage
-                                src="https://avatars.githubusercontent.com/u/2848617?v=4"
-                            >
-                            </AvatarImage>
-                        </Avatar>
-                        <div>
-                            <h4 class="text-sm font-semibold hover:underline">
-                                <a href="https://github.com/mkbabb">@mbabb</a>
-                            </h4>
-                            <p>
-                                Check out the project on
-                                <a
-                                    class="font-bold hover:underline"
-                                    href="https://github.com/mkbabb/keyframes.js"
-                                    >GitHub</a
-                                >🎉
-                            </p>
-                        </div>
-                    </div>
-                </HoverCardContent>
-            </HoverCard>
-
-            <HoverCard
-                :open-delay="0"
-                v-model:open="hoverCardStates.ppmycota"
-                class="pointer-events-auto"
-            >
-                <HoverCardTrigger
-                    ><div
-                        ref="ppmycotaLogoEl"
-                        @click="
-                            (e) => {
-                                hoverCardStates.ppmycota = true;
-                                setPPMode();
-                            }
-                        "
-                        class="ppmycota-logo-sm pointer-events-auto m-0 h-12 w-12 cursor-pointer stroke-2 p-0
-                            font-bold hover:scale-105"
-                    ></div>
-                </HoverCardTrigger>
-                <HoverCardContent class="pointer-events-auto z-[100]">
-                    <div class="h-fit-content flex gap-4 p-4">
-                        <div
+            <!-- Left: PP + @mbabb -->
+            <div class="flex items-center gap-2 lg:gap-4">
+                <HoverCard
+                    :open-delay="0"
+                    v-model:open="hoverCardStates.ppmycota"
+                    class="pointer-events-auto"
+                >
+                    <HoverCardTrigger
+                        ><div
                             ref="ppmycotaLogoEl"
-                            class="ppmycota-logo-sm z-20 h-12 w-12 cursor-pointer stroke-2 font-bold
-                                hover:scale-105"
+                            @click="
+                                (e) => {
+                                    hoverCardStates.ppmycota = true;
+                                    setPPMode();
+                                }
+                            "
+                            class="ppmycota-logo-sm pointer-events-auto m-0 h-8 w-8 lg:h-12 lg:w-12 cursor-pointer stroke-2 p-0
+                                font-bold hover:scale-105"
                         ></div>
-                        <div>
-                            <h4 class="fraunces">🙂‍↔️ 🌱 🍄‍🟫</h4>
-                            <p>
-                                <a
-                                    class="fraunces font-bold hover:underline"
-                                    href="https://ppmycota.com"
-                                    >ppmycota.com</a
-                                >
-                            </p>
+                    </HoverCardTrigger>
+                    <HoverCardContent class="pointer-events-auto z-[100]">
+                        <div class="h-fit-content flex gap-4 p-4">
+                            <div
+                                ref="ppmycotaLogoEl"
+                                class="ppmycota-logo-sm z-20 h-12 w-12 cursor-pointer stroke-2 font-bold
+                                    hover:scale-105"
+                            ></div>
+                            <div>
+                                <h4 class="fraunces">🙂‍↔️ 🌱 🍄‍🟫</h4>
+                                <p>
+                                    <a
+                                        class="fraunces font-bold hover:underline"
+                                        href="https://ppmycota.com"
+                                        >ppmycota.com</a
+                                    >
+                                </p>
+                            </div>
                         </div>
-                    </div>
-                </HoverCardContent>
-            </HoverCard>
+                    </HoverCardContent>
+                </HoverCard>
+
+                <HoverCard
+                    v-model:open="hoverCardStates.mbabb"
+                    :open-delay="0"
+                >
+                    <HoverCardTrigger
+                        @click="hoverCardStates.mbabb = true"
+                        class="fira-code pointer-events-auto"
+                        ><Button class="m-0 cursor-pointer p-0 text-xs lg:text-sm" variant="link"
+                            >@mbabb</Button
+                        >
+                    </HoverCardTrigger>
+                    <HoverCardContent class="pointer-events-auto z-[100]">
+                        <div class="fira-code flex gap-4 p-4">
+                            <Avatar>
+                                <AvatarImage
+                                    src="https://avatars.githubusercontent.com/u/2848617?v=4"
+                                >
+                                </AvatarImage>
+                            </Avatar>
+                            <div>
+                                <h4 class="text-sm font-semibold hover:underline">
+                                    <a href="https://github.com/mkbabb">@mbabb</a>
+                                </h4>
+                                <p>
+                                    Check out the project on
+                                    <a
+                                        class="font-bold hover:underline"
+                                        href="https://github.com/mkbabb/keyframes.js"
+                                        >GitHub</a
+                                    >🎉
+                                </p>
+                            </div>
+                        </div>
+                    </HoverCardContent>
+                </HoverCard>
+            </div>
+
+            <!-- Right: Share + Dark mode -->
+            <div class="flex items-center gap-2 lg:gap-4">
+                <Popover v-model:open="sharePopoverOpen">
+                    <PopoverTrigger as-child>
+                        <Share2
+                            :class="[
+                                'pointer-events-auto w-5 h-5 cursor-pointer hover:scale-105 transition-colors',
+                                sharePopoverOpen ? 'opacity-100' : 'hover:opacity-50'
+                            ]"
+                        />
+                    </PopoverTrigger>
+                    <PopoverContent class="w-72 p-2 pointer-events-auto" align="end">
+                        <div class="flex items-center gap-1.5">
+                            <Input
+                                v-model="loadHashInput"
+                                placeholder="Paste share URL..."
+                                class="fira-code text-xs h-8 flex-1"
+                                @keydown.enter="loadFromInput"
+                            />
+                            <Button
+                                size="sm"
+                                variant="ghost"
+                                class="h-8 w-8 p-0 shrink-0 cursor-pointer"
+                                @click="loadFromInput"
+                                title="Load shared state"
+                            >
+                                <ArrowRight class="w-4 h-4" />
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant="ghost"
+                                class="h-8 w-8 p-0 shrink-0 cursor-pointer"
+                                @click="shareState"
+                                title="Copy share link"
+                            >
+                                <Clipboard class="w-4 h-4" />
+                            </Button>
+                        </div>
+                    </PopoverContent>
+                </Popover>
+                <DarkModeToggle
+                    title="Toggle dark mode"
+                    class="pointer-events-auto aspect-square w-8 hover:scale-105 hover:opacity-50"
+                />
+            </div>
         </div>
 
         <template v-if="!storedControls.selectedAnimation">
@@ -151,7 +192,7 @@
                                     justify-items-center gap-1 p-0"
                             >
                                 <div
-                                    class="relative grid h-20 w-20 rounded-md shadow-sm"
+                                    class="relative grid h-20 w-20 rounded-lg shadow-sm"
                                     v-for="(value, i) in matrix3dEnd.values"
                                 >
                                     <Input
@@ -179,12 +220,12 @@
                                             (v) => updateMatrixCell(v, i)
                                         "
                                         :start="
-                                            getSliderOptionsFromIx(i).bounds[0]
+                                            matrixCellMeta[i].sliderOptions.bounds[0]
                                         "
                                         :end="
-                                            getSliderOptionsFromIx(i).bounds[1]
+                                            matrixCellMeta[i].sliderOptions.bounds[1]
                                         "
-                                        :step="getSliderOptionsFromIx(i).step"
+                                        :step="matrixCellMeta[i].sliderOptions.step"
                                         @click="
                                             storedControls.matrixOptions.selectedMatrixCell = i
                                         "
@@ -193,23 +234,19 @@
                                         :class="
                                             `fraunces absolute left-0 top-0 flex h-full w-full items-center justify-center
                                             justify-items-center p-0 text-center text-5xl opacity-20 dark:opacity-75 ` +
-                                            [
-                                                getAxisFromIx(
-                                                    i,
-                                                ).toLocaleLowerCase(),
-                                            ]
+                                            [matrixCellMeta[i].axis.toLocaleLowerCase()]
                                         "
                                     >
                                         <template
-                                            v-if="getTransformFromIx(i) !== ''"
+                                            v-if="matrixCellMeta[i].transform !== ''"
                                         >
-                                            {{ getTransformFromIx(i)
+                                            {{ matrixCellMeta[i].transform
                                             }}<sub>{{
-                                                getAxisFromIx(i).toLowerCase()
+                                                matrixCellMeta[i].axis.toLowerCase()
                                             }}</sub>
                                         </template>
                                         <template v-else>{{
-                                            getAxisFromIx(i)
+                                            matrixCellMeta[i].axis
                                         }}</template>
                                     </div>
                                 </div>
@@ -231,59 +268,54 @@
                                     }
                                 "
                                 :min="
-                                    getSliderOptionsFromIx(
-                                        storedControls.matrixOptions
-                                            .selectedMatrixCell,
-                                    ).bounds[0]
+                                    matrixCellMeta[storedControls.matrixOptions.selectedMatrixCell].sliderOptions.bounds[0]
                                 "
                                 :max="
-                                    getSliderOptionsFromIx(
-                                        storedControls.matrixOptions
-                                            .selectedMatrixCell,
-                                    ).bounds[1]
+                                    matrixCellMeta[storedControls.matrixOptions.selectedMatrixCell].sliderOptions.bounds[1]
                                 "
                                 :step="
-                                    getSliderOptionsFromIx(
-                                        storedControls.matrixOptions
-                                            .selectedMatrixCell,
-                                    ).step
+                                    matrixCellMeta[storedControls.matrixOptions.selectedMatrixCell].sliderOptions.step
                                 "
                                 class="w-full"
                             ></Slider>
 
                             <div class="grid grid-cols-2 gap-2">
-                                <Button
-                                    class="fira-code cursor-pointer"
-                                    @click="resetMatrix"
-                                    ><RotateCcw class="mr-4" />Reset</Button
-                                >
-                                <Button
-                                    class="fira-code cursor-pointer"
-                                    @click="
-                                        storedControls.matrixOptions.fixed =
-                                            !storedControls.matrixOptions.fixed
-                                    "
-                                    :class="
-                                        storedControls.matrixOptions.fixed
-                                            ? 'clicked'
-                                            : ''
-                                    "
-                                >
-                                    <Lock
-                                        v-if="
-                                            !storedControls.matrixOptions.fixed
+                                <IconTooltip text="Reset matrix">
+                                    <Button
+                                        class="fira-code cursor-pointer"
+                                        @click="resetMatrix"
+                                        ><RotateCcw class="mr-4" />Reset</Button
+                                    >
+                                </IconTooltip>
+                                <IconTooltip :text="storedControls.matrixOptions.fixed ? 'Unlock matrix' : 'Lock matrix'">
+                                    <Button
+                                        class="fira-code cursor-pointer"
+                                        @click="
+                                            storedControls.matrixOptions.fixed =
+                                                !storedControls.matrixOptions.fixed
                                         "
-                                        class="mr-4"
-                                    />
+                                        :class="
+                                            storedControls.matrixOptions.fixed
+                                                ? 'clicked'
+                                                : ''
+                                        "
+                                    >
+                                        <Lock
+                                            v-if="
+                                                !storedControls.matrixOptions.fixed
+                                            "
+                                            class="mr-4"
+                                        />
 
-                                    <LockOpen v-else class="mr-4" />
+                                        <LockOpen v-else class="mr-4" />
 
-                                    {{
-                                        !storedControls.matrixOptions.fixed
-                                            ? "Fixed"
-                                            : "Free&nbsp"
-                                    }}
-                                </Button>
+                                        {{
+                                            !storedControls.matrixOptions.fixed
+                                                ? "Fixed"
+                                                : "Free&nbsp"
+                                        }}
+                                    </Button>
+                                </IconTooltip>
                             </div>
                         </CardContent>
                     </Card>
@@ -292,8 +324,8 @@
 
             <template #animation-content>
                 <div
-                    class="grid h-screen w-screen items-center justify-center justify-items-center
-                        overflow-hidden"
+                    class="grid h-full w-full max-w-full items-center justify-center justify-items-center
+                        overflow-visible"
                 >
                     <div
                         ref="graph"
@@ -380,14 +412,17 @@
             </template>
         </AnimationControlsGroup>
     </div>
+    </TooltipProvider>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, useTemplateRef, watch } from "vue";
+import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 import "@styles/utils.css";
 import OrbitalDrag from "@components/custom/orbital-drag/OrbitalDrag.vue";
-import { RotateCcw, Lock, LockOpen, Loader2, List } from "lucide-vue-next";
+import { RotateCcw, Lock, LockOpen, Loader2, List, Share2, Clipboard, ArrowRight } from "lucide-vue-next";
 import { DarkModeToggle } from "@components/custom/dark-mode-toggle";
+import IconTooltip from "@components/custom/IconTooltip.vue";
+import { TooltipProvider } from "@components/ui/tooltip";
 import {
     HoverCard,
     HoverCardContent,
@@ -406,12 +441,16 @@ import {
 import {
     getStoredAnimationOptions,
     getStoredAnimationGroupControlOptions,
+    encodeStateToHash,
+    getAllState,
+    decodeStateFromHash,
 } from "@components/custom/animation-controls/animationStores";
 import { Slider } from "@components/ui/slider";
 import { Button } from "@components/ui/button";
 import { Card, CardContent } from "@components/ui/card";
 import { Input } from "@components/ui/input";
 import { TabsContent, TabsTrigger } from "@components/ui/tabs";
+import { Popover, PopoverTrigger, PopoverContent } from "@components/ui/popover";
 
 import "@styles/style.css";
 
@@ -441,6 +480,52 @@ const hoverCardStates = ref({
     ppmycota: false,
     mbabb: false,
 });
+
+const sharePopoverOpen = ref(false);
+const loadHashInput = ref("");
+
+const shareState = async () => {
+    const state = getAllState();
+    const hash = encodeStateToHash(state);
+    const url = `${window.location.origin}${window.location.pathname}#${hash}`;
+
+    try {
+        await navigator.clipboard.writeText(url);
+        sharePopoverOpen.value = false;
+        toast.success("Link copied to clipboard!", {
+            duration: 3000,
+            description: "Share this URL to restore the current animation state.",
+        });
+    } catch {
+        window.location.hash = hash;
+        sharePopoverOpen.value = false;
+        toast.info("URL updated — copy from address bar", {
+            duration: 5000,
+        });
+    }
+};
+
+const loadFromInput = () => {
+    let hash = loadHashInput.value.trim();
+    if (!hash) return;
+
+    // Extract hash from URL if a full URL was pasted
+    const hashIndex = hash.indexOf("#");
+    if (hashIndex !== -1) {
+        hash = hash.slice(hashIndex + 1);
+    }
+
+    const state = decodeStateFromHash(hash);
+    if (!state) {
+        toast.error("Invalid shared state", { duration: 3000 });
+        return;
+    }
+
+    // Apply state and reload
+    window.location.hash = hash;
+    sharePopoverOpen.value = false;
+    window.location.reload();
+};
 
 const setPPMode = () => {
     storedControls.ppMode = !storedControls.ppMode;
@@ -530,6 +615,15 @@ const getSliderOptionsFromIx = (i: number) => {
 
     return transformSliderOptions[key];
 };
+
+// Pre-computed metadata for the 16 matrix cells to avoid recalculating in template
+const matrixCellMeta = computed(() =>
+    Array.from({ length: 16 }, (_, i) => ({
+        axis: getAxisFromIx(i),
+        transform: getTransformFromIx(i),
+        sliderOptions: getSliderOptionsFromIx(i),
+    })),
+);
 
 const syncTransformations = (reset: boolean = false) => {
     const values = matrix3dEnd.value.valueOf();
@@ -671,19 +765,26 @@ function updateTransformations() {
     syncTransformations();
 }
 
+let transformUpdateScheduled = false;
 watch(transformSliderValues, () => {
-    updateTransformations();
+    if (!transformUpdateScheduled) {
+        transformUpdateScheduled = true;
+        requestAnimationFrame(() => {
+            transformUpdateScheduled = false;
+            updateTransformations();
 
-    if (cubeEl.value) {
-        transformTargetsStyle(
-            {
-                transform: {
-                    matrix3d: matrix3dEnd.value,
-                },
-            },
-            [cubeEl.value],
-            false,
-        );
+            if (cubeEl.value) {
+                transformTargetsStyle(
+                    {
+                        transform: {
+                            matrix3d: matrix3dEnd.value,
+                        },
+                    },
+                    [cubeEl.value],
+                    false,
+                );
+            }
+        });
     }
 }, { deep: true });
 
@@ -763,6 +864,7 @@ const animationGroup = ref(
     ),
 );
 
+
 const cubeSides = [
     {
         class: "front",
@@ -812,9 +914,22 @@ const changeGraphPerspectiveAnim = new CSSKeyframesAnimation({
     },
 ]);
 
+// Separate animation instances for the idle hover/matrix group
+// to avoid conflicting with animationGroup's managed flag.
+const idleHoverAnim = animations.hover(hoverAnimationOptions.animationOptions);
+idleHoverAnim.name = "IdleHover";
+
+const idleMatrixAnim = new CSSKeyframesAnimation(matrixAnimationOptions.animationOptions).fromVars(
+    [
+        { transform: { matrix3d: matrix3dStart.value } },
+        { transform: { matrix3d: matrix3dEnd.value } },
+    ],
+);
+idleMatrixAnim.name = "IdleMatrix";
+
 const hoverMatrixGroup = new AnimationGroup(
-    hoverAnim.value as any,
-    matrixAnim.value as any,
+    idleHoverAnim as any,
+    idleMatrixAnim as any,
 );
 
 watch(
@@ -846,6 +961,9 @@ onMounted(() => {
     rotationAnim.value.setTargets(cubeEl.value!);
     matrixAnim.value.setTargets(cubeEl.value!);
     hoverAnim.value.setTargets(cubeEl.value!);
+
+    idleHoverAnim.setTargets(cubeEl.value!);
+    idleMatrixAnim.setTargets(cubeEl.value!);
 
     changeGraphPerspectiveAnim.setTargets(graphEl.value!);
 
@@ -928,11 +1046,15 @@ onMounted(() => {
     --rotationX: 360deg;
 
     height: calc(var(--side-size) * 2);
+    will-change: transform;
+    contain: style;
 }
 
 .cube-side {
     width: var(--side-size);
     height: var(--side-size);
+    backface-visibility: hidden;
+    will-change: transform;
 
     &.front {
         transform: rotateY(0deg) translateZ(var(--side-offset));

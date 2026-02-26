@@ -1,24 +1,23 @@
 <template>
     <div
-        class="grid lg:h-screen h-full max-h-screen-md w-full max-w-screen-md z-10 relative overflow-y-scroll"
+        class="flex flex-col h-full w-full z-10 relative overflow-x-hidden lg:overflow-hidden lg:max-w-screen-md lg:w-[400px]"
     >
         <Tabs
-            class="p-4 w-full h-full flex flex-col justify-start"
+            class="p-4 pt-12 lg:pt-4 w-full flex-1 min-h-0 flex flex-col justify-start"
             :model-value="storedControls.selectedControl"
             @update:model-value="selectControl"
         >
             <span class="grid">
                 <TabsList
-                    class="overflow-x-scroll w-full flex items-center justify-around fraunces bg-transparent scrollbar-hidden"
+                    class="overflow-x-scroll w-full flex items-center justify-around fraunces bg-transparent scrollbar-hidden pr-10 lg:pr-0"
                 >
                     <TabsTrigger value="controls">Controls</TabsTrigger>
                     <TabsTrigger value="keyframes">Keyframes</TabsTrigger>
-                    <TabsTrigger value="color">Color</TabsTrigger>
                     <slot name="tabs-trigger"></slot>
                 </TabsList>
             </span>
 
-            <div ref="tabsContentEl" class="contents">
+            <div ref="tabsContentEl" class="flex-1 min-h-0 overflow-y-auto flex flex-col">
                 <TabsContent value="controls">
                     <AnimationControlsControls
                         :animation="animation"
@@ -28,10 +27,11 @@
                                 emit('sliderUpdate', v);
                             }
                         "
+                        @toggle-play="emit('togglePlay')"
                     ></AnimationControlsControls>
                 </TabsContent>
 
-                <TabsContent value="keyframes">
+                <TabsContent value="keyframes" class="flex-1 min-h-0 flex flex-col">
                     <KeyframesStringControls
                         @keyframes-update="
                             (v) => {
@@ -40,15 +40,6 @@
                         "
                         :animation="animation"
                     ></KeyframesStringControls>
-                </TabsContent>
-
-                <TabsContent value="color">
-                    <ColorPicker
-                        @update="setColor"
-                        :color="color"
-                        :animation="animation"
-                        class="w-full"
-                    ></ColorPicker>
                 </TabsContent>
 
                 <slot name="tabs-content"></slot>
@@ -62,15 +53,11 @@ import { Animation } from "@src/animation/index";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
 
-import { KeyframesStringControls } from "@components/custom/animation-controls";
+import { defineAsyncComponent, onMounted, useTemplateRef } from "vue";
 
-import * as animations from "@src/animation/animations";
-import { onMounted, useTemplateRef } from "vue";
+const KeyframesStringControls = defineAsyncComponent(() => import("./KeyframesStringControls.vue"));
 import AnimationControlsControls from "./AnimationControlsControls.vue";
 import { getStoredAnimationGroupControlOptions } from "./animationStores";
-import ColorPicker from "@components/custom/ColorPicker.vue";
-import { Color } from "@src/units/color";
-import { ValueUnit } from "@src/units";
 
 const { animation, isGrouped } = defineProps({
     animation: {
@@ -100,43 +87,13 @@ const emit = defineEmits<{
             animation: Animation<any>;
         },
     ): void;
+    (e: "togglePlay"): void;
 }>();
 
 const tabsContentEl = useTemplateRef<HTMLElement>("tabsContentEl");
 
-storedControls.colorOptions ??= {};
-
-const color = storedControls?.colorOptions?.color ?? "red";
-
-const setColor = (val: ValueUnit<Color<ValueUnit<number>>>) => {
-    storedControls.colorOptions.color = val.value.toString();
-};
-
-const fadeOut = animations
-    .blurOut({ duration: 75 })
-    .group(animations.fadeOut({ duration: 50 }));
-
-const fadeIn = animations
-    .blurIn({ duration: 75 })
-    .group(animations.fadeIn({ duration: 50 }));
-
-const selectControl = async (key: string | number) => {
-    const activeChild = tabsContentEl.value?.querySelector(
-        `[data-state="active"]`,
-    ) as HTMLElement;
-
-    fadeOut.stop();
-    fadeIn.stop();
-
-    await fadeOut.setTargets(activeChild).play();
-
+const selectControl = (key: string | number) => {
     storedControls.selectedControl = key.toString();
-
-    const newActiveChild = tabsContentEl.value?.querySelector(
-        `[id$="${key}"]`,
-    ) as HTMLElement;
-
-    await fadeIn.setTargets(newActiveChild).play();
 };
 
 onMounted(() => {});

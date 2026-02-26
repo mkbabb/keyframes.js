@@ -1,6 +1,6 @@
 <template>
     <div
-        class="w-full min-h-screen lg:max-w-screen-xl grid lg:grid-cols-3 grid-cols-1 lg:grid-rows-1 justify-items-center justify-center items-center lg:overflow-hidden relative"
+        class="w-full min-h-dvh lg:h-dvh grid lg:grid-cols-3 grid-cols-1 lg:grid-rows-[1fr_auto] grid-rows-[auto_auto_auto] justify-items-stretch lg:justify-items-center items-center relative"
         v-bind="$attrs"
     >
         <template
@@ -8,9 +8,10 @@
         >
             <AnimationControls
                 v-if="storedControls.selectedAnimation == name"
-                class="col-span-1"
+                class="col-span-1 lg:row-start-1 lg:overflow-y-auto lg:max-h-full"
                 @slider-update="sliderUpdate"
                 @keyframes-update="keyframesUpdate"
+                @toggle-play="toggleAnimationGroup"
                 :animation="groupObject.animation"
                 :is-grouped="true"
             >
@@ -25,30 +26,35 @@
         </template>
 
         <div
-            :class="
-                '' +
-                (storedControls?.selectedAnimation == null
-                    ? 'col-span-3'
-                    : 'col-span-2')
-            "
+            :class="[
+                'justify-self-stretch min-h-0 h-[100dvh] lg:h-auto overflow-hidden',
+                storedControls?.selectedAnimation
+                    ? 'lg:col-start-2 lg:col-end-4'
+                    : 'lg:col-start-1 lg:col-end-4',
+                'col-span-full lg:row-start-1 row-start-2'
+            ]"
         >
             <slot name="animation-content"> </slot>
         </div>
 
         <div
-            class="fixed bottom-0 p-2 m-0 w-screen h-[min-content] flex items-center justify-center justify-items-center"
+            class="p-2 m-0 z-50 flex items-center justify-center justify-items-center col-span-full row-start-3 lg:row-start-2"
         >
             <Menubar
-                class="p-6 mb-8 lg:mb-2 px-4 flex items-center gap-1 justify-items-center border-none rounded-lg"
+                class="p-1.5 px-3 flex items-center gap-2 justify-items-center border-none rounded-xl"
             >
                 <MenubarMenu>
+                    <IconTooltip text="Select animation">
                     <div class="relative">
                         <Select
                             class="p-0 m-0 cursor-pointer"
                             :model-value="storedControls.selectedAnimation"
                             @update:model-value="
                                 (key) => {
-                                    return (storedControls.selectedAnimation = String(key));
+                                    storedControls.selectedAnimation = String(key);
+                                    if (!animationGroup.started) {
+                                        animationGroup.play();
+                                    }
                                 }
                             "
                         >
@@ -65,51 +71,70 @@
                             <SelectContent>
                                 <SelectGroup class="fira-code">
                                     <template
-                                        v-for="key in Object.keys(
+                                        v-for="[key, groupObj] in Object.entries(
                                             animationGroup.animations,
                                         )"
                                     >
-                                        <SelectItem class="" :value="key">{{
-                                            key
-                                        }}</SelectItem>
+                                        <SelectItem class="" :value="key">
+                                            <span class="flex items-center gap-2">
+                                                <span
+                                                    :class="[
+                                                        'inline-block w-2 h-2 rounded-full',
+                                                        groupObj.animation.playing()
+                                                            ? 'bg-green-500'
+                                                            : groupObj.animation.started
+                                                              ? 'bg-yellow-500'
+                                                              : 'bg-gray-400',
+                                                    ]"
+                                                ></span>
+                                                <span :class="groupObj.animation.playing() ? 'font-bold' : ''">{{ key }}</span>
+                                            </span>
+                                        </SelectItem>
                                     </template>
                                 </SelectGroup>
                             </SelectContent>
                         </Select>
                     </div>
+                    </IconTooltip>
                 </MenubarMenu>
 
-                <MenubarMenu>
-                    <MenubarTrigger>
-                        <RotateCcw
-                            class="p-0 m-0 cursor-pointer hover:scale-105"
-                            @click="(e) => reset($el as HTMLElement, false)"
-                    /></MenubarTrigger>
-                </MenubarMenu>
+                <IconTooltip text="Reset animation">
+                    <RotateCcw
+                        ref="resetIconEl"
+                        class="p-0 m-0 cursor-pointer hover:scale-105"
+                        @click="() => { resetIconSpin(); reset(false); }"
+                    />
+                </IconTooltip>
+
+                <IconTooltip text="Clear all & reload">
+                    <Trash
+                        ref="trashIconEl"
+                        class="p-0 m-0 cursor-pointer hover:scale-105"
+                        @click="() => { trashIconShake(); reset(true); }"
+                    />
+                </IconTooltip>
 
                 <MenubarMenu>
-                    <MenubarTrigger>
-                        <Trash
-                            class="p-0 m-0 cursor-pointer hover:scale-105"
-                            @click="(e) => reset(e.target as HTMLElement, true)"
-                    /></MenubarTrigger>
+                    <IconTooltip :text="animationGroup.playing() ? 'Pause' : 'Play'">
+                        <Button
+                            :class="[
+                                'w-10 h-7 text-xl text-white cursor-pointer rounded-xl hover:scale-105',
+                                animationGroup.playing() ? 'rainbow-vivid' : 'rainbow-pastel',
+                            ]"
+                            @click="toggleAnimationGroup"
+                        >
+                            <font-awesome-icon
+                                class="icon"
+                                :icon="
+                                    animationGroup.playing()
+                                        ? ['fas', 'pause']
+                                        : ['fas', 'play']
+                                "
+                            />
+                        </Button>
+                    </IconTooltip>
                 </MenubarMenu>
 
-                <MenubarMenu>
-                    <Button
-                        class="w-12 h-8 text-xl text-white cursor-pointer rainbow rounded-lg hover:scale-105"
-                        @click="toggleAnimationGroup"
-                    >
-                        <font-awesome-icon
-                            class="icon"
-                            :icon="
-                                animationGroup.playing()
-                                    ? ['fas', 'pause']
-                                    : ['fas', 'play']
-                            "
-                        />
-                    </Button>
-                </MenubarMenu>
             </Menubar>
         </div>
     </div>
@@ -119,9 +144,9 @@
             :toastOptions="{
                 unstyled: true,
                 classes: {
-                    toast: 'bg-foreground text-background rounded-md fraunces px-6 py-4 grid grid-cols-1 gap-2 shadow-lg h-32 lg:w-96 w-full ',
-                    title: 'font-bold text-xl',
-                    description: 'font-normal text-md',
+                    toast: 'bg-foreground text-background rounded-xl fraunces px-4 py-3 grid grid-cols-1 gap-1 shadow-lg lg:w-80 w-64 max-w-[90vw]',
+                    title: 'font-bold text-base',
+                    description: 'font-normal text-sm',
                     actionButton: '',
                     cancelButton: '',
                     closeButton: '',
@@ -133,43 +158,17 @@
 </template>
 
 <script setup lang="ts">
-import { Teleport, onMounted, ref, watch } from "vue";
+import { Teleport, useTemplateRef } from "vue";
 import { Toaster, toast } from "vue-sonner";
-
-import CommandPalette from "@components/custom/CommandPalette.vue";
-
-import { DarkModeToggle } from "@components/custom/dark-mode-toggle";
-
-import { Avatar, AvatarImage } from "@components/ui/avatar";
 
 import {
     Menubar,
-    MenubarCheckboxItem,
-    MenubarContent,
-    MenubarItem,
     MenubarMenu,
-    MenubarRadioGroup,
-    MenubarRadioItem,
-    MenubarSeparator,
-    MenubarShortcut,
-    MenubarSub,
-    MenubarSubContent,
-    MenubarSubTrigger,
-    MenubarTrigger,
 } from "@components/ui/menubar";
 
-import { Input } from "@components/ui/input";
-import { Label } from "@components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
-
 import {
-    ArrowBigDown,
-    ArrowDown,
     List,
-    Pause,
-    Play,
     Trash,
-    WandSparkles,
 } from "lucide-vue-next";
 
 import {
@@ -182,15 +181,8 @@ import {
     SelectValue,
 } from "@components/ui/select";
 
-import {
-    HoverCard,
-    HoverCardContent,
-    HoverCardTrigger,
-} from "@components/ui/hover-card";
-
-import { RotateCcw, Lock } from "lucide-vue-next";
-
-import { ArrowBigLeft, Clipboard, Loader2 } from "lucide-vue-next";
+import { RotateCcw } from "lucide-vue-next";
+import IconTooltip from "@components/custom/IconTooltip.vue";
 
 import { Animation, CSSKeyframesAnimation } from "@src/animation/index";
 import AnimationControls from "./AnimationControls.vue";
@@ -201,10 +193,7 @@ import {
     resetAllStores,
 } from "./animationStores";
 import { SelectIcon } from "reka-ui";
-import { useDark, useWindowSize } from "@vueuse/core";
-import AnimatedText from "./AnimatedText.vue";
-import { rgb2ColorFilter } from "@src/units/color/colorFilter";
-import { parseCSSColor } from "@src/parsing/units";
+import { useDark } from "@vueuse/core";
 import { AnimationGroup } from "@src/animation/group";
 
 const isDark = useDark({ disableTransition: false });
@@ -228,19 +217,21 @@ const findAnimationGroupObject = (animation: Animation<any>) => {
 
 const sliderUpdate = ({ t, animation }: { t: number; animation: Animation<any> }) => {
     const groupObject = findAnimationGroupObject(animation);
-
     const groupAnimation = groupObject!.animation;
-
-    const paused = groupAnimation.paused;
-    const prevT = groupAnimation.t;
+    const wasPaused = groupAnimation.paused;
 
     groupAnimation.paused = false;
     groupAnimation.t = t;
 
-    animationGroup.transformFramesGrouped(t);
+    // Adjust startTime so the next tick() continues from the scrubbed position
+    // instead of reverting to the previous time.
+    if (groupAnimation.startTime !== undefined) {
+        groupAnimation.startTime = performance.now() - t;
+        groupAnimation.pausedTime = 0;
+    }
 
-    groupAnimation.paused = paused;
-    groupAnimation.t = prevT;
+    animationGroup.transformFramesGrouped(t);
+    groupAnimation.paused = wasPaused;
 };
 
 const toggleAnimationGroup = () => {
@@ -266,28 +257,9 @@ const keyframesUpdate = (e: { animation: Animation<any> }) => {
     }
 };
 
-const reset = (target: HTMLElement, all: boolean = false) => {
-    //     new CSSKeyframesAnimation(
-    //         {
-    //             duration: 700,
-    //             timingFunction: "easeInBounce",
-    //         },
-    //         target,
-    //     )
-    //         .fromString(
-    //             /*css*/ `@keyframes rotate {
-    //     0% {
-    //         transform: rotate(0deg);
-    //     }
-    //     100% {
-    //         transform: rotate(360deg);
-    //     }
-    // }`,
-    //         )
-    //         .play();
-
-    animationGroup.reset();
-    storedControls.selectedAnimation = "";
+const reset = (all: boolean = false) => {
+    animationGroup.stop();
+    storedControls.selectedAnimation = null as any;
 
     if (all) {
         resetAllStores();
@@ -295,51 +267,74 @@ const reset = (target: HTMLElement, all: boolean = false) => {
     }
 };
 
-onMounted(() => {
-    const targetColor1 = parseCSSColor("#77d1c8");
-    const targetColor2 = parseCSSColor("#a4de6a");
+const resetIconEl = useTemplateRef<HTMLElement>("resetIconEl");
+const trashIconEl = useTemplateRef<HTMLElement>("trashIconEl");
 
-    // const colorFilter1 = rgb2ColorFilter(targetColor1);
-    // const colorFilter2 = rgb2ColorFilter(targetColor2);
+const resetSpinAnim = new CSSKeyframesAnimation({
+    duration: 400,
+    timingFunction: "easeOutCubic",
+}).fromString(/*css*/ `@keyframes twist {
+    0% { transform: perspective(200px) rotateY(0deg) scale(1); }
+    40% { transform: perspective(200px) rotateY(-180deg) scale(0.85); }
+    100% { transform: perspective(200px) rotateY(-360deg) scale(1); }
+}`);
 
-    // new CSSKeyframesAnimation({
-    //     duration: 1000,
-    //     iterationCount: "infinite",
-    //     direction: "alternate",
-    // })
-    //     .fromCSSKeyframes(
-    //         /*css*/ `@keyframes color-change {
-    //         0% {
-    //             filter: ${colorFilter1};
-    //         }
-    //         100% {
-    //             filter: ${colorFilter2};
-    //         }
-    //     }`,
-    //         (t, { filter }) => {
-    //             const v = filter.toString();
+const trashShakeAnim = new CSSKeyframesAnimation({
+    duration: 400,
+    timingFunction: "easeInOutCubic",
+}).fromString(/*css*/ `@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-3px) rotate(-5deg); }
+    40% { transform: translateX(3px) rotate(5deg); }
+    60% { transform: translateX(-2px) rotate(-3deg); }
+    80% { transform: translateX(2px) rotate(3deg); }
+}`);
 
-    //             ppmycotaLogoEl.value.style.filter = v;
-    //         },
-    //     )
-    //     .play();
-});
+const resetIconSpin = () => {
+    if (resetIconEl.value) {
+        resetSpinAnim.setTargets(resetIconEl.value);
+        resetSpinAnim.reset();
+        resetSpinAnim.play();
+    }
+};
+
+const trashIconShake = () => {
+    if (trashIconEl.value) {
+        trashShakeAnim.setTargets(trashIconEl.value);
+        trashShakeAnim.reset();
+        trashShakeAnim.play();
+    }
+};
+
 </script>
 
 <style scoped>
-.rainbow {
-    --gradient: linear-gradient(
+.rainbow-pastel {
+    background: linear-gradient(
         90deg,
-        rgba(255, 0, 0, 1) 0%,
-        rgba(255, 127, 0, 1) 12.5%,
-        rgba(255, 255, 0, 1) 25%,
-        rgba(0, 255, 0, 1) 37.5%,
-        rgba(0, 0, 255, 1) 50%,
-        rgba(75, 0, 130, 1) 62.5%,
-        rgba(143, 0, 255, 1) 75%,
-        rgba(255, 0, 0, 1) 87.5%,
-        rgba(255, 0, 0, 1) 100%
+        hsl(0, 50%, 78%) 0%,
+        hsl(25, 55%, 76%) 12.5%,
+        hsl(50, 55%, 78%) 25%,
+        hsl(130, 35%, 74%) 37.5%,
+        hsl(220, 45%, 76%) 50%,
+        hsl(260, 35%, 76%) 62.5%,
+        hsl(280, 40%, 78%) 75%,
+        hsl(0, 50%, 78%) 100%
     );
-    background: var(--gradient);
+    transition: filter 0.3s ease;
+}
+.rainbow-vivid {
+    background: linear-gradient(
+        90deg,
+        hsl(0, 85%, 60%) 0%,
+        hsl(30, 90%, 55%) 14%,
+        hsl(55, 90%, 55%) 28%,
+        hsl(130, 70%, 50%) 42%,
+        hsl(210, 80%, 55%) 57%,
+        hsl(260, 70%, 60%) 71%,
+        hsl(300, 75%, 60%) 85%,
+        hsl(0, 85%, 60%) 100%
+    );
+    transition: filter 0.3s ease;
 }
 </style>

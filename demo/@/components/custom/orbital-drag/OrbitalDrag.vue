@@ -19,7 +19,7 @@
 import { clamp } from "@src/math";
 import { ANGLE_UNITS } from "@src/units/constants";
 import { useEventListener, useRafFn } from "@vueuse/core";
-import * as THREE from "three";
+import { quat, vec3 } from "gl-matrix";
 import { onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
 import type { TransformBounds, TransformState, VelocityState } from ".";
 import { axes, defaultTransformBounds, defaultTransformState, defaultVelocityState } from ".";
@@ -73,9 +73,9 @@ const pressedKeys = ref<PressedKeys>({
     meta: false,
 });
 
-const sensitivity = props.sensitivity ?? 0.5;
+const sensitivity = props.sensitivity ?? 0.15;
 const translationFactor = props.translationFactor ?? 0.8;
-const inertiaFactor = props.inertiaFactor ?? 0.95;
+const inertiaFactor = props.inertiaFactor ?? 0.92;
 const scaleFactor = props.scaleFactor ?? 0.02;
 
 const velocity = ref<VelocityState>(JSON.parse(JSON.stringify(defaultVelocityState)));
@@ -84,17 +84,49 @@ const bounds = props.bounds ?? defaultTransformBounds;
 
 // Persistent quaternion — the source of truth for rotation.
 // Never reconstructed from Euler angles; only multiplied by delta quaternions.
-const currentQuaternion = new THREE.Quaternion();
+const currentQuaternion = quat.create();
 
 // Angular velocity for inertia: axis + speed, not per-Euler-component.
-const angularVelocity = ref({ axis: new THREE.Vector3(0, 1, 0), speed: 0 });
+const angularVelocityAxis = vec3.fromValues(0, 1, 0);
+const angularVelocitySpeed = ref(0);
 
-const quaternionToEulerDegrees = (q: THREE.Quaternion) => {
-    const euler = new THREE.Euler().setFromQuaternion(q, "XYZ");
+// Extract Euler angles (XYZ order) from a quaternion — replaces THREE.Euler.setFromQuaternion
+const quaternionToEulerDegrees = (q: quat) => {
+    // Extract rotation matrix elements from quaternion
+    const [x, y, z, w] = q;
+    const x2 = x + x, y2 = y + y, z2 = z + z;
+    const xx = x * x2, xy = x * y2, xz = x * z2;
+    const yy = y * y2, yz = y * z2, zz = z * z2;
+    const wx = w * x2, wy = w * y2, wz = w * z2;
+
+    // Rotation matrix elements (column-major like gl-matrix)
+    const m11 = 1 - (yy + zz);
+    const m12 = xy + wz;
+    const m13 = xz - wy;
+    const m21 = xy - wz;
+    const m22 = 1 - (xx + zz);
+    const m23 = yz + wx;
+    // const m31 = xz + wy;
+    // const m32 = yz - wx;
+    const m33 = 1 - (xx + yy);
+
+    // XYZ Euler extraction
+    const sy = clamp(m13, -1, 1);
+    const ey = -Math.asin(sy);
+
+    let ex: number, ez: number;
+    if (Math.abs(sy) < 0.9999) {
+        ex = Math.atan2(m23, m33);
+        ez = Math.atan2(m12, m11);
+    } else {
+        ex = Math.atan2(-m21, m22); // m32
+        ez = 0;
+    }
+
     return {
-        x: euler.x * (180 / Math.PI),
-        y: euler.y * (180 / Math.PI),
-        z: euler.z * (180 / Math.PI),
+        x: ex * (180 / Math.PI),
+        y: ey * (180 / Math.PI),
+        z: ez * (180 / Math.PI),
     };
 };
 
@@ -106,12 +138,14 @@ const syncRotationToModel = () => {
     emit("rotate", { ...model.value.rotate });
 };
 
-const applyRotation = (axis: THREE.Vector3, angle: number) => {
+const applyRotation = (axis: vec3, angle: number) => {
     if (Math.abs(angle) < 1e-10) return;
 
-    const deltaQuat = new THREE.Quaternion().setFromAxisAngle(axis, angle);
-    currentQuaternion.premultiply(deltaQuat);
-    currentQuaternion.normalize();
+    const deltaQuat = quat.create();
+    quat.setAxisAngle(deltaQuat, axis, angle);
+    // premultiply: currentQuaternion = deltaQuat * currentQuaternion
+    quat.multiply(currentQuaternion, deltaQuat, currentQuaternion);
+    quat.normalize(currentQuaternion, currentQuaternion);
 
     syncRotationToModel();
 };
@@ -198,29 +232,28 @@ const updateScale = (axis: (typeof axes)[number], delta: number) => {
 };
 
 const updateRotation = (deltaX: number, deltaY: number) => {
-    const axis = new THREE.Vector3(-deltaY, deltaX, 0);
-    const magnitude = axis.length();
+    const axis = vec3.fromValues(-deltaY, deltaX, 0);
+    const magnitude = vec3.length(axis);
     if (magnitude < 1e-6) return;
 
-    axis.normalize();
+    vec3.normalize(axis, axis);
     const angle = (magnitude * sensitivity) / 25;
 
     applyRotation(axis, angle);
 
     // Store angular velocity for inertia
-    angularVelocity.value.axis.copy(axis);
-    angularVelocity.value.speed = angle;
+    vec3.copy(angularVelocityAxis, axis);
+    angularVelocitySpeed.value = angle;
 };
 
 const updateAxisRotation = (constrainedAxes: (typeof axes)[number][], deltaX: number, deltaY: number) => {
-    // For single-axis constrained rotation, project onto that axis
     const magnitude = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
     if (magnitude < 1e-6) return;
 
     const angle = (magnitude * sensitivity) / 25;
 
     for (const a of constrainedAxes) {
-        const axis = new THREE.Vector3(
+        const axis = vec3.fromValues(
             a === "x" ? 1 : 0,
             a === "y" ? 1 : 0,
             a === "z" ? 1 : 0,
@@ -228,7 +261,7 @@ const updateAxisRotation = (constrainedAxes: (typeof axes)[number][], deltaX: nu
         applyRotation(axis, angle * Math.sign(a === "x" ? -deltaY : deltaX));
     }
 
-    angularVelocity.value.speed = angle;
+    angularVelocitySpeed.value = angle;
 };
 
 const drag = (event: MouseEvent | TouchEvent) => {
@@ -344,11 +377,11 @@ const applyInertia = () => {
     if (isDragging.value || isTouching.value) return;
 
     // Rotational inertia via persistent quaternion
-    if (Math.abs(angularVelocity.value.speed) > 1e-4) {
-        applyRotation(angularVelocity.value.axis, angularVelocity.value.speed);
-        angularVelocity.value.speed *= inertiaFactor;
+    if (Math.abs(angularVelocitySpeed.value) > 1e-4) {
+        applyRotation(angularVelocityAxis, angularVelocitySpeed.value);
+        angularVelocitySpeed.value *= inertiaFactor;
     } else {
-        angularVelocity.value.speed = 0;
+        angularVelocitySpeed.value = 0;
     }
 
     // Linear inertia (translate + scale)
@@ -373,13 +406,19 @@ const { pause, resume } = useRafFn(applyInertia);
 onMounted(() => {
     // Initialize quaternion from model's initial Euler angles
     const { x, y, z } = model.value.rotate;
-    const euler = new THREE.Euler(
-        x * (Math.PI / 180),
-        y * (Math.PI / 180),
-        z * (Math.PI / 180),
-        "XYZ",
-    );
-    currentQuaternion.setFromEuler(euler);
+    const DEG2RAD = Math.PI / 180;
+
+    // Build quaternion from XYZ Euler angles
+    const qx = quat.create();
+    quat.setAxisAngle(qx, [1, 0, 0], x * DEG2RAD);
+    const qy = quat.create();
+    quat.setAxisAngle(qy, [0, 1, 0], y * DEG2RAD);
+    const qz = quat.create();
+    quat.setAxisAngle(qz, [0, 0, 1], z * DEG2RAD);
+
+    // XYZ order: qz * qy * qx
+    quat.multiply(currentQuaternion, qz, qy);
+    quat.multiply(currentQuaternion, currentQuaternion, qx);
 
     useEventListener(
         containerRef,
@@ -393,15 +432,17 @@ onMounted(() => {
     useEventListener(window, "keydown", (e: KeyboardEvent) => updatePressedKeys(e, true));
     useEventListener(window, "keyup", (e: KeyboardEvent) => updatePressedKeys(e, false));
 
+    // mousemove/mouseup on window for cross-element tracking once drag starts
     useEventListener(window, "mousemove", drag);
     useEventListener(window, "mouseup", stopDrag);
     useEventListener(window, "mouseleave", stopDrag);
 
+    // Touch events: start only on container, move/end on window for tracking
+    useEventListener(containerRef, "touchstart", startDrag, { passive: false });
     useEventListener(window, "touchmove", drag);
-    useEventListener(window, "touchstart", startDrag);
     useEventListener(window, "touchend", stopDrag);
 
-    useEventListener(window, "gesturestart", startGesture);
+    useEventListener(containerRef, "gesturestart", startGesture);
     useEventListener(window, "gesturechange", gesture);
     useEventListener(window, "gestureend", stopGesture);
 
@@ -418,7 +459,7 @@ watch(
         if (active) return;
 
         // Dampen angular velocity on release
-        angularVelocity.value.speed *= 0.5;
+        angularVelocitySpeed.value *= 0.3;
 
         // Dampen linear velocities on release
         for (const category of ["translate", "scale"] as const) {
