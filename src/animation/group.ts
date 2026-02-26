@@ -35,6 +35,8 @@ export class AnimationGroup<V extends Vars> {
                 values: {},
                 animation,
             };
+
+            animation.managed = true;
         }
 
         this.singleTarget = animations.every(
@@ -177,8 +179,15 @@ export class AnimationGroup<V extends Vars> {
     }
 
     reset() {
+        // Apply fillBackwards first so targets snap to their initial frame
+        // before clearing animation state (prevents visual glitches like cube cutoff)
         Object.values(this.animations).forEach((groupObject) => {
-            groupObject.animation.reset();
+            const anim = groupObject.animation;
+            if (anim.started && anim.frames.length > 0) {
+                anim.interpFrames(0, true);
+            }
+            anim.managed = false;
+            anim.reset();
         });
 
         this.started = false;

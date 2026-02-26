@@ -72,6 +72,9 @@ export class Animation<V extends Vars = any> {
     reversed: boolean = false;
     paused: boolean = false;
 
+    /** When true, this animation is managed by an AnimationGroup and should not run its own rAF loop. */
+    managed: boolean = false;
+
     unflatten: boolean = true;
 
     private resolvePromise: ((value: void | PromiseLike<void>) => void) | null = null;
@@ -327,6 +330,17 @@ export class Animation<V extends Vars = any> {
 
     setDirection(direction: InputAnimationOptions["direction"]) {
         this.options.direction = direction ?? "normal";
+
+        // Immediately update reversed flag so mid-iteration direction changes take effect
+        this.reversed = false;
+        if (
+            this.options.direction === "reverse" ||
+            this.options.direction === "alternate-reverse" ||
+            (this.options.direction === "alternate" && this.iteration % 2 === 1)
+        ) {
+            this.reversed = true;
+        }
+
         return this;
     }
 
@@ -361,32 +375,35 @@ export class Animation<V extends Vars = any> {
     interpFrames(t: number, transformFrames: boolean = false) {
         t = this.reversed ? this.options.duration - t : t;
 
-        return this.frames
-            .map((frame) => {
-                const { start, stop } = frame.time;
+        const result: Record<string, any> = {};
 
-                if (t < start || t > stop) {
-                    return;
+        for (let i = 0; i < this.frames.length; i++) {
+            const frame = this.frames[i];
+            const { start, stop } = frame.time;
+
+            if (t < start || t > stop) {
+                continue;
+            }
+
+            const scaled = scale(t, start, stop, 0, 1);
+            const eased = frame.timingFunction(scaled);
+
+            const interpVarValues = Object.values(frame.interpVars);
+            for (let j = 0; j < interpVarValues.length; j++) {
+                const values = interpVarValues[j] as any[];
+                for (let k = 0; k < values.length; k++) {
+                    lerpValue(eased, values[k]);
                 }
+            }
 
-                const scaled = scale(t, start, stop, 0, 1);
-                const eased = frame.timingFunction(scaled);
+            if (transformFrames) {
+                frame.transform(this.unflatten ? frame.vars : frame.flatVars, t);
+            }
 
-                Object.values(frame.interpVars).forEach((values: any) => {
-                    values.forEach((v: any) => {
-                        lerpValue(eased, v);
-                    });
-                });
+            Object.assign(result, frame.flatVars);
+        }
 
-                if (transformFrames) {
-                    frame.transform(this.unflatten ? frame.vars : frame.flatVars, t);
-                }
-
-                return frame.flatVars;
-            })
-            .reduce((acc, vars) => {
-                return { ...acc, ...vars };
-            }, {});
+        return result;
     }
 
     async onStart() {
@@ -458,6 +475,11 @@ export class Animation<V extends Vars = any> {
     }
 
     async draw(t: number) {
+        if (this.managed) {
+            console.warn("Animation.draw() called on a managed animation — skipping standalone rAF loop.");
+            return;
+        }
+
         t = await this.tick(t);
 
         if (this.paused) {
@@ -477,6 +499,11 @@ export class Animation<V extends Vars = any> {
     }
 
     async play(): Promise<void> {
+        if (this.managed) {
+            console.warn("Animation.play() called on a managed animation — the group controls playback.");
+            return;
+        }
+
         return new Promise((resolve) => {
             this.resolvePromise = resolve;
             this.handleId = requestAnimationFrame(this.draw.bind(this));
@@ -502,10 +529,20 @@ export class Animation<V extends Vars = any> {
         return !(!this.started || this.paused);
     }
 
+    /** Returns the effective time accounting for direction reversal. */
+    get effectiveT(): number {
+        return this.reversed ? this.options.duration - this.t : this.t;
+    }
+
     reset() {
         this.done = false;
         this.started = false;
         this.paused = false;
+        this.reversed = false;
+        this.iteration = 0;
+        this.startTime = undefined;
+        this.pausedTime = 0;
+        this.t = 0;
 
         return this;
     }
