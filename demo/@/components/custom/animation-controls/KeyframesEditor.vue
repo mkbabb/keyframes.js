@@ -54,7 +54,7 @@
                                     }
                                 "
                                 @keydown="onKeyDown"
-                                class="hljs css p-2 min-h-32 cursor-text rounded-md text-sm bg-transparent outline-none border-none z-100"
+                                class="hljs css p-2 min-h-32 cursor-text rounded-lg text-sm bg-transparent outline-none border-none z-100"
                                 contenteditable="true"
                             ><code>{{ formatCSSKeyframeString(s) }}</code></pre>
                         </div>
@@ -141,7 +141,7 @@
                                                 addKeyframesString = value;
                                             }
                                         "
-                                        class="hljs css min-h-[25vh] p-2 cursor-text rounded-md text-sm bg-transparent outline-none border-none z-100"
+                                        class="hljs css min-h-[25vh] p-2 cursor-text rounded-lg text-sm bg-transparent outline-none border-none z-100"
                                         contenteditable="true"
                                     ><code>{{ addKeyframesString }}</code></pre>
                                 </div>

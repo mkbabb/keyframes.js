@@ -24,7 +24,8 @@ export type StoredAnimationGroupOptions = {
 };
 
 export type StoredAnimationGroupsOptions = {
-    [name: string]: StoredAnimationGroupOptions;
+    _storeTimestamp?: number;
+    [name: string]: StoredAnimationGroupOptions | number | undefined;
 };
 
 export const defaultAnimationOptions = {
@@ -52,10 +53,37 @@ export const defaultStoredAnimationOptions = {
 import { useStorage } from "@vueuse/core";
 import { ref } from "vue";
 
+const STORE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+const checkAndResetExpiredStore = <T extends { _storeTimestamp?: number }>(
+    store: { value: T },
+    defaultValue: T,
+) => {
+    const timestamp = store.value._storeTimestamp;
+    if (timestamp && Date.now() - timestamp > STORE_TTL_MS) {
+        store.value = { ...defaultValue, _storeTimestamp: Date.now() };
+    } else if (!timestamp) {
+        store.value._storeTimestamp = Date.now();
+    }
+};
+
+const touchTimestamp = <T extends { _storeTimestamp?: number }>(store: { value: T }) => {
+    store.value._storeTimestamp = Date.now();
+};
+
 const animationGroupsOptionsStore = useStorage(
     "animation-groups-options-store",
-    {} as StoredAnimationGroupsOptions,
+    { _storeTimestamp: Date.now() } as StoredAnimationGroupsOptions,
 );
+
+const animationGroupsControlOptionsStore = useStorage(
+    "animation-groups-control-options-store",
+    { _storeTimestamp: Date.now() } as StoredAnimationGroupsControlOptions,
+);
+
+// Check TTL on module load
+checkAndResetExpiredStore(animationGroupsOptionsStore, { _storeTimestamp: Date.now() });
+checkAndResetExpiredStore(animationGroupsControlOptionsStore, { _storeTimestamp: Date.now() } as any);
 
 export const getAnimationSuperKey = (
     superKey: Animation<any> | string | undefined,
@@ -77,26 +105,28 @@ export const getStoredAnimationOptions = (
     superKey = getAnimationSuperKey(superKey, animationId);
     animationId = getAnimationId(animationId!);
 
-    let animationGroupOptions = animationGroupsOptionsStore.value[superKey];
+    touchTimestamp(animationGroupsOptionsStore);
+
+    let animationGroupOptions = animationGroupsOptionsStore.value[superKey] as StoredAnimationGroupOptions | undefined;
 
     if (!animationGroupOptions) {
         animationGroupsOptionsStore.value[superKey] = {
             [animationId]: {},
         } as StoredAnimationGroupOptions;
 
-        animationGroupOptions = animationGroupsOptionsStore.value[superKey];
+        animationGroupOptions = animationGroupsOptionsStore.value[superKey] as StoredAnimationGroupOptions;
     }
 
     if (
         !animationGroupOptions[animationId] ||
         Object.keys(animationGroupOptions[animationId]).length === 0
     ) {
-        animationGroupsOptionsStore.value[superKey][animationId] = JSON.parse(
+        (animationGroupsOptionsStore.value[superKey] as StoredAnimationGroupOptions)[animationId] = JSON.parse(
             JSON.stringify(defaultStoredAnimationOptions),
         );
     }
 
-    return animationGroupsOptionsStore.value[superKey][animationId];
+    return (animationGroupsOptionsStore.value[superKey] as StoredAnimationGroupOptions)[animationId];
 };
 
 export const createAnimationUUId = (
@@ -117,7 +147,8 @@ export type StoredAnimationGroupControlOptions = {
 };
 
 export type StoredAnimationGroupsControlOptions = {
-    [name: string]: StoredAnimationGroupControlOptions;
+    _storeTimestamp?: number;
+    [name: string]: StoredAnimationGroupControlOptions | number | undefined;
 };
 
 const defaultStoredAnimationGroupControlOptions = {
@@ -125,15 +156,12 @@ const defaultStoredAnimationGroupControlOptions = {
     selectedAnimation: null,
 };
 
-const animationGroupsControlOptionsStore = useStorage(
-    "animation-groups-control-options-store",
-    {} as StoredAnimationGroupsControlOptions,
-);
-
 export const getStoredAnimationGroupControlOptions = (
     superKey: Animation<any> | string | undefined = undefined,
 ): StoredAnimationGroupControlOptions => {
     superKey = getAnimationSuperKey(superKey, superKey);
+
+    touchTimestamp(animationGroupsControlOptionsStore);
 
     if (!animationGroupsControlOptionsStore.value[superKey]) {
         animationGroupsControlOptionsStore.value[superKey] = JSON.parse(
@@ -141,12 +169,12 @@ export const getStoredAnimationGroupControlOptions = (
         );
     }
 
-    return animationGroupsControlOptionsStore.value[superKey];
+    return animationGroupsControlOptionsStore.value[superKey] as StoredAnimationGroupControlOptions;
 };
 
 export const resetAllStores = () => {
-    animationGroupsOptionsStore.value = {};
-    animationGroupsControlOptionsStore.value = {};
+    animationGroupsOptionsStore.value = { _storeTimestamp: Date.now() };
+    animationGroupsControlOptionsStore.value = { _storeTimestamp: Date.now() };
 };
 
 export const deepDefaultStore = (store: any, defaultStore: any) => {
@@ -159,4 +187,49 @@ export const deepDefaultStore = (store: any, defaultStore: any) => {
     }
 };
 
-// resetAllStores();
+// --- URL hash sharing (lossless, compressed) ---
+
+export const encodeStateToHash = (state: object): string => {
+    const json = JSON.stringify(state);
+    // Use base64 encoding (no fflate dependency needed for basic sharing)
+    return btoa(encodeURIComponent(json));
+};
+
+export const decodeStateFromHash = (hash: string): object | null => {
+    try {
+        const json = decodeURIComponent(atob(hash));
+        return JSON.parse(json);
+    } catch {
+        return null;
+    }
+};
+
+export const getAllState = (): object => {
+    return {
+        options: animationGroupsOptionsStore.value,
+        controls: animationGroupsControlOptionsStore.value,
+    };
+};
+
+export const restoreStateFromHash = () => {
+    const hash = window.location.hash.slice(1);
+    if (!hash) return false;
+
+    const state = decodeStateFromHash(hash) as any;
+    if (!state) return false;
+
+    if (state.options) {
+        Object.assign(animationGroupsOptionsStore.value, state.options);
+    }
+    if (state.controls) {
+        Object.assign(animationGroupsControlOptionsStore.value, state.controls);
+    }
+
+    // Clear hash after restoring to avoid stale state
+    history.replaceState(null, "", window.location.pathname + window.location.search);
+
+    return true;
+};
+
+// Attempt to restore state from URL hash on module load
+restoreStateFromHash();

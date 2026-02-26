@@ -1,239 +1,312 @@
 <template>
     <div class="grid items-center gap-4 justify-items-center">
-        <Card>
-            <CardContent class="relative grid items-center grid-cols-2 gap-1">
-                <Label class="fraunces">Duration</Label>
-                <Input
-                    type="string"
-                    :model-value="reverseCSSTime(animation.options.duration)"
-                    class="fira-code"
-                    @change="
-                        (e: Event) => {
-                            const value = (e.target as HTMLInputElement).value;
-                            animation.setDuration(value);
-                            storedAnimationOptions.animationOptions.duration = value;
-                        }
-                    "
-                />
+        <Card class="w-full">
+            <CardContent class="relative grid gap-1 px-4 py-3">
+                <!-- Sliding panel container -->
+                <div class="relative w-full overflow-clip p-[3px] -m-[3px]">
+                    <!-- Main controls panel -->
+                    <Transition name="slide-main">
+                        <div
+                            v-if="!showDetailPanel"
+                            key="main"
+                            class="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-2 w-full"
+                        >
+                            <IconTooltip text="Animation length (e.g. 5s, 200ms)">
+                                <label class="fira-code text-xs text-muted-foreground cursor-help">duration</label>
+                            </IconTooltip>
+                            <Input
+                                type="string"
+                                :model-value="reverseCSSTime(animation.options.duration)"
+                                class="fira-code"
+                                @change="
+                                    (e: Event) => {
+                                        const value = (e.target as HTMLInputElement).value;
+                                        animation.setDuration(value);
+                                        storedAnimationOptions.animationOptions.duration = value;
+                                    }
+                                "
+                            />
 
-                <Label class="fraunces">Delay</Label>
-                <Input
-                    class="fira-code"
-                    type="string"
-                    :model-value="reverseCSSTime(animation.options.delay)"
-                    @change="
-                        (e: Event) => {
-                            const value = (e.target as HTMLInputElement).value;
-                            animation.setDelay(value);
-                            storedAnimationOptions.animationOptions.delay = value;
-                        }
-                    "
-                />
+                            <IconTooltip text="Delay before start (e.g. 0s, 500ms)">
+                                <label class="fira-code text-xs text-muted-foreground cursor-help">delay</label>
+                            </IconTooltip>
+                            <Input
+                                class="fira-code"
+                                type="string"
+                                :model-value="reverseCSSTime(animation.options.delay)"
+                                @change="
+                                    (e: Event) => {
+                                        const value = (e.target as HTMLInputElement).value;
+                                        animation.setDelay(value);
+                                        storedAnimationOptions.animationOptions.delay = value;
+                                    }
+                                "
+                            />
 
-                <Label class="fraunces">Iteration Count</Label>
-                <Input
-                    :class="[
-                        !isFinite(animation.options.iterationCount)
-                            ? 'fraunces text-3xl'
-                            : 'fira-code',
-                    ]"
-                    type="string"
-                    @change="
-                        (e: Event) => {
-                            const value = (e.target as HTMLInputElement).value;
-                            animation.setIterationCount(value);
-                            storedAnimationOptions.animationOptions.iterationCount =
-                                value;
-                        }
-                    "
-                    :model-value="
-                        isFinite(animation.options.iterationCount)
-                            ? animation.options.iterationCount
-                            : '∞'
-                    "
-                />
+                            <IconTooltip text="Repeat count (number or 'infinite')">
+                                <label class="fira-code text-xs text-muted-foreground cursor-help">iterations</label>
+                            </IconTooltip>
+                            <Input
+                                :class="[
+                                    !isFinite(animation.options.iterationCount)
+                                        ? 'fraunces text-3xl'
+                                        : 'fira-code',
+                                ]"
+                                type="string"
+                                @change="
+                                    (e: Event) => {
+                                        const value = (e.target as HTMLInputElement).value;
+                                        animation.setIterationCount(value);
+                                        storedAnimationOptions.animationOptions.iterationCount =
+                                            value;
+                                    }
+                                "
+                                :model-value="
+                                    isFinite(animation.options.iterationCount)
+                                        ? animation.options.iterationCount
+                                        : '∞'
+                                "
+                            />
 
-                <Label class="fraunces">Direction</Label>
-                <Select
-                    :model-value="animation.options.direction"
-                    @update:model-value="
-                        (key: any) => {
-                            animation.setDirection(key);
-                            storedAnimationOptions.animationOptions.direction = key;
-                        }
-                    "
-                >
-                    <SelectTrigger class="fira-code">
-                        <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectGroup class="fira-code">
-                            <SelectItem
-                                v-for="direction in DIRECTIONS"
-                                :value="direction"
-                                >{{ direction }}</SelectItem
+                            <IconTooltip text="Playback direction">
+                                <label class="fira-code text-xs text-muted-foreground cursor-help">direction</label>
+                            </IconTooltip>
+                            <Select
+                                :model-value="animation.options.direction"
+                                @update:model-value="
+                                    (key: any) => {
+                                        animation.setDirection(key);
+                                        storedAnimationOptions.animationOptions.direction = key;
+                                    }
+                                "
                             >
-                        </SelectGroup>
-                    </SelectContent>
-                </Select>
+                                <SelectTrigger class="fira-code">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectGroup class="fira-code">
+                                        <SelectItem
+                                            v-for="direction in DIRECTIONS"
+                                            :value="direction"
+                                            >{{ direction }}</SelectItem
+                                        >
+                                    </SelectGroup>
+                                </SelectContent>
+                            </Select>
 
-                <Label class="fraunces">Fill Mode</Label>
-                <Select
-                    :model-value="animation.options.fillMode"
-                    @update:model-value="
-                        (key: any) => {
-                            animation.setFillMode(key);
-                            storedAnimationOptions.animationOptions.fillMode = key;
-                        }
-                    "
-                >
-                    <SelectTrigger class="fira-code">
-                        <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectGroup class="fira-code">
-                            <template v-for="mode in FILL_MODES">
-                                <SelectItem :value="mode">{{ mode }}</SelectItem>
+                            <IconTooltip text="Style applied when not playing">
+                                <label class="fira-code text-xs text-muted-foreground cursor-help">fill mode</label>
+                            </IconTooltip>
+                            <Select
+                                :model-value="animation.options.fillMode"
+                                @update:model-value="
+                                    (key: any) => {
+                                        animation.setFillMode(key);
+                                        storedAnimationOptions.animationOptions.fillMode = key;
+                                    }
+                                "
+                            >
+                                <SelectTrigger class="fira-code">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectGroup class="fira-code">
+                                        <template v-for="mode in FILL_MODES">
+                                            <SelectItem :value="mode">{{ mode }}</SelectItem>
+                                        </template>
+                                    </SelectGroup>
+                                </SelectContent>
+                            </Select>
+
+                            <IconTooltip text="Timing function curve">
+                                <label class="fira-code text-xs text-muted-foreground cursor-help">easing</label>
+                            </IconTooltip>
+                            <Select
+                                :model-value="
+                                    storedAnimationOptions.animationOptions.timingFunction as any
+                                "
+                                @update:model-value="
+                                    (key: any) => {
+                                        updateTimingFunctionFromName(key);
+                                        storedAnimationOptions.animationOptions.timingFunction =
+                                            key;
+                                    }
+                                "
+                            >
+                                <SelectTrigger class="fira-code">
+                                    <span class="flex items-center gap-1.5">
+                                        <span
+                                            v-if="DETAIL_TIMING_FUNCTIONS.has(storedAnimationOptions.animationOptions.timingFunction as string)"
+                                            class="inline-block w-1.5 h-1.5 rounded-full bg-foreground/50 shrink-0"
+                                        ></span>
+                                        <SelectValue />
+                                    </span>
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectGroup class="fira-code">
+                                        <SelectItem
+                                            v-for="timingFunction in Object.keys(
+                                                timingFunctionsAnd,
+                                            )"
+                                            :value="timingFunction"
+                                        >
+                                            <span class="flex items-center gap-1.5">
+                                                <span
+                                                    v-if="DETAIL_TIMING_FUNCTIONS.has(timingFunction)"
+                                                    class="inline-block w-1.5 h-1.5 rounded-full bg-foreground/50 shrink-0"
+                                                    :title="'Has granular controls'"
+                                                ></span>
+                                                {{ timingFunction }}
+                                            </span>
+                                        </SelectItem>
+                                    </SelectGroup>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </Transition>
+
+                    <!-- Detail panel (cubic-bezier / steps) -->
+                    <Transition name="slide-detail">
+                        <div
+                            v-if="showDetailPanel"
+                            key="detail"
+                            class="w-full grid justify-items-center"
+                        >
+                            <button
+                                class="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground cursor-pointer transition-colors mb-2 fira-code justify-self-start"
+                                @click="exitDetailPanel"
+                            >
+                                <ArrowLeft class="w-3.5 h-3.5" />
+                                back to controls
+                            </button>
+
+                            <template
+                                v-if="(storedAnimationOptions.animationOptions.timingFunction as any) === 'cubic-bezier'"
+                            >
+                                <CubicBezierControls
+                                    :animation="animation"
+                                    @update-timing-function="setAnimationTimingFunction"
+                                    class="w-full"
+                                ></CubicBezierControls>
                             </template>
-                        </SelectGroup>
-                    </SelectContent>
-                </Select>
 
-                <Label class="fraunces">Timing Function</Label>
-                <Select
-                    :model-value="
-                        storedAnimationOptions.animationOptions.timingFunction as any
-                    "
-                    @update:model-value="
-                        (key: any) => {
-                            updateTimingFunctionFromName(key);
-                            storedAnimationOptions.animationOptions.timingFunction =
-                                key;
-                        }
-                    "
-                >
-                    <SelectTrigger class="fira-code">
-                        <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectGroup class="fira-code">
-                            <SelectItem
-                                v-for="timingFunction in Object.keys(
-                                    timingFunctionsAnd,
-                                )"
-                                :value="timingFunction"
+                            <template
+                                v-else-if="storedAnimationOptions.animationOptions.timingFunction === 'steps'"
                             >
-                                {{ timingFunction }}
-                            </SelectItem>
-                        </SelectGroup>
-                    </SelectContent>
-                </Select>
+                                <Card class="border-none shadow-none">
+                                    <CardHeader class="p-0 pb-2">
+                                        <CardTitle class="fraunces">steps</CardTitle>
+                                    </CardHeader>
+                                    <CardContent class="p-0 grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-2">
+                                        <label class="fira-code text-xs text-muted-foreground">count</label>
+                                        <Input
+                                            type="number"
+                                            class="fira-code"
+                                            :model-value="storedAnimationOptions.stepOptions.steps"
+                                            @update:model-value="
+                                                (key: any) => {
+                                                    storedAnimationOptions.stepOptions.steps = key;
+                                                    updateTimingFunctionFromName('steps');
+                                                }
+                                            "
+                                        />
 
-                <template
-                    v-if="
-                        storedAnimationOptions.animationOptions.timingFunction ===
-                        'steps'
-                    "
-                >
-                    <Separator class="w-full col-span-2 mt-4 mb-4"></Separator>
-                    <Label>Steps</Label>
-                    <Input
-                        type="number"
-                        :model-value="storedAnimationOptions.stepOptions.steps"
-                        @update:model-value="
-                            (key: any) => {
-                                storedAnimationOptions.stepOptions.steps = key;
-                                updateTimingFunctionFromName('steps');
-                            }
-                        "
-                    />
+                                        <label class="fira-code text-xs text-muted-foreground">jump term</label>
+                                        <Select
+                                            :model-value="storedAnimationOptions.stepOptions.jumpTerm"
+                                            @update:model-value="
+                                                (key: any) => {
+                                                    storedAnimationOptions.stepOptions.jumpTerm = key;
+                                                    updateTimingFunctionFromName('steps');
+                                                }
+                                            "
+                                        >
+                                            <SelectTrigger class="fira-code">
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectGroup class="fira-code">
+                                                    <SelectItem v-for="j in jumpTerms" :value="j">
+                                                        {{ j }}
+                                                    </SelectItem>
+                                                </SelectGroup>
+                                            </SelectContent>
+                                        </Select>
+                                    </CardContent>
+                                </Card>
+                            </template>
+                        </div>
+                    </Transition>
+                </div>
 
-                    <Label>Jump Term</Label>
-                    <Select
-                        :model-value="storedAnimationOptions.stepOptions.jumpTerm"
-                        @update:model-value="
-                            (key: any) => {
-                                storedAnimationOptions.stepOptions.jumpTerm = key;
-                                updateTimingFunctionFromName('steps');
-                            }
-                        "
-                    >
-                        <SelectTrigger>
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectGroup>
-                                <SelectItem v-for="j in jumpTerms" :value="j">
-                                    {{ j }}
-                                </SelectItem>
-                            </SelectGroup>
-                        </SelectContent>
-                    </Select>
-                </template>
-
-                <template
-                    v-if="
-                        (storedAnimationOptions.animationOptions
-                            .timingFunction as any) === 'cubic-bezier'
-                    "
-                >
-                    <Separator class="w-full col-span-2 my-2"></Separator>
-                    <CubicBezierControls
-                        :animation="animation"
-                        @update-timing-function="setAnimationTimingFunction"
-                        class="col-span-2"
-                    ></CubicBezierControls>
-                </template>
-
+                <!-- Slider, buttons, visualizer — always visible -->
                 <div
                     :class="
-                        'col-span-2 mt-2 w-full h-full grid gap-2 sticky bottom-0 bg-background rounded-md' +
+                        'col-span-2 mt-2 w-full h-full grid gap-2 bg-background rounded-xl' +
                         (!animation.started ? ' disabled' : '')
                     "
                 >
-                    <Slider
-                        class="col-span-2 p-2"
-                        :min="0"
-                        :max="animation.options.duration"
-                        @input="sliderUpdate"
-                        :model-value="[animation.t]"
-                        @update:model-value="(val: any) => (animation.t = val[0])"
-                    />
+                    <IconTooltip text="Scrub animation timeline">
+                        <Slider
+                            class="col-span-2 p-2 timeline-slider"
+                            :min="0"
+                            :max="animation.options.duration"
+                            @input="sliderUpdate"
+                            :model-value="[animation.effectiveT]"
+                            @update:model-value="(val: any) => (animation.t = val[0])"
+                        />
+                    </IconTooltip>
 
-                    <div :class="'col-span-2 grid grid-cols-5 gap-2 w-full'">
-                        <Button class="col-span-2 text-xl" @click="toggleAnimation">
-                            <font-awesome-icon
-                                class="icon"
-                                :icon="
-                                    animation.playing()
-                                        ? ['fas', 'pause']
-                                        : ['fas', 'play']
+                    <div class="col-span-2 grid grid-cols-3 gap-2 w-full">
+                        <IconTooltip :text="animation.playing() ? 'Pause' : (isGrouped && !animation.started ? 'Start animation group' : 'Play')">
+                            <Button
+                                :class="[
+                                    'h-10 w-full rounded-xl p-0',
+                                    isGrouped && !animation.started
+                                        ? 'bg-accent-red/30 text-accent-red border-accent-red/40 hover:bg-accent-red/50'
+                                        : '',
+                                ]"
+                                :variant="isGrouped && !animation.started ? 'outline' : 'outline'"
+                                @click="toggleAnimation"
+                            >
+                                <font-awesome-icon
+                                    class="icon text-sm"
+                                    :icon="
+                                        animation.playing()
+                                            ? ['fas', 'pause']
+                                            : ['fas', 'play']
+                                    "
+                                />
+                            </Button>
+                        </IconTooltip>
+                        <IconTooltip text="Reverse direction">
+                            <Button class="h-10 w-full rounded-xl p-0" variant="outline" @click="animation.reverse()">
+                                <font-awesome-icon
+                                    class="icon text-sm"
+                                    :icon="['fas', 'rotate-right']"
+                                />
+                            </Button>
+                        </IconTooltip>
+                        <IconTooltip text="Reset to defaults">
+                            <Button
+                                class="h-10 w-full rounded-xl p-0"
+                                variant="outline"
+                                @click="
+                                    () => {
+                                        Object.assign(
+                                            storedAnimationOptions,
+                                            defaultStoredAnimationOptions,
+                                        );
+                                    }
                                 "
-                            />
-                        </Button>
-                        <Button class="col-span-2 text-xl" @click="animation.reverse()">
-                            <font-awesome-icon
-                                class="icon"
-                                :icon="['fas', 'rotate-right']"
-                            />
-                        </Button>
-                        <Button
-                            class="col-span-1 text-xl"
-                            @click="
-                                () => {
-                                    Object.assign(
-                                        storedAnimationOptions,
-                                        defaultStoredAnimationOptions,
-                                    );
-                                }
-                            "
-                            ><Trash></Trash>
-                        </Button>
+                                ><Trash class="w-4 h-4" />
+                            </Button>
+                        </IconTooltip>
                     </div>
 
                     <AnimationVisualizer
                         class="col-span-2 w-full"
-                        v-bind:model-value="animation.options"
+                        :animation="animation"
                     ></AnimationVisualizer>
                 </div>
             </CardContent>
@@ -250,9 +323,8 @@ import { reverseCSSTime } from "@src/parsing/keyframes";
 import { Button } from "@components/ui/button";
 import { Slider } from "@components/ui/slider";
 
-import { Card, CardContent } from "@components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@components/ui/card";
 import { Input } from "@components/ui/input";
-import { Label } from "@components/ui/label";
 
 import { Separator } from "@components/ui/separator";
 
@@ -269,9 +341,10 @@ import { CubicBezierControls } from "@components/custom/animation-controls";
 
 import { camelCaseToHyphen } from "@src/utils";
 
-import { Trash } from "lucide-vue-next";
+import { Trash, ArrowLeft } from "lucide-vue-next";
+import IconTooltip from "@components/custom/IconTooltip.vue";
 
-import { onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import {
     defaultStoredAnimationOptions,
     getStoredAnimationOptions,
@@ -285,7 +358,6 @@ import type {
     TimingFunction,
     TimingFunctionNames,
 } from "@src/animation/constants";
-import CardTitle from "@components/ui/card/CardTitle.vue";
 
 let timingFunctionsAnd = {
     "cubic-bezier": "cubic-bezier",
@@ -295,9 +367,7 @@ timingFunctionsAnd = Object.fromEntries(
     Object.entries(timingFunctionsAnd).map(([k, v]) => [camelCaseToHyphen(k), v]),
 ) as any;
 
-const tmpUpdate = (v: unknown) => {
-    return v;
-};
+const DETAIL_TIMING_FUNCTIONS = new Set(["cubic-bezier", "steps"]);
 
 const { animation, isGrouped } = defineProps({
     animation: {
@@ -313,6 +383,31 @@ const { animation, isGrouped } = defineProps({
 
 const storedAnimationOptions = getStoredAnimationOptions(animation);
 
+// Track whether to show the detail panel
+const showDetailPanel = computed(
+    () => DETAIL_TIMING_FUNCTIONS.has(
+        storedAnimationOptions.animationOptions.timingFunction as string,
+    ),
+);
+
+// Store the previous non-detail timing function for the back button
+const previousTimingFunction = ref<string>("ease-in-out");
+
+watch(
+    () => storedAnimationOptions.animationOptions.timingFunction as string,
+    (newVal, oldVal) => {
+        if (oldVal && !DETAIL_TIMING_FUNCTIONS.has(oldVal as string)) {
+            previousTimingFunction.value = oldVal as string;
+        }
+    },
+);
+
+const exitDetailPanel = () => {
+    const prev = previousTimingFunction.value;
+    storedAnimationOptions.animationOptions.timingFunction = prev as any;
+    updateTimingFunctionFromName(prev as TimingFunctionNames);
+};
+
 const emit = defineEmits<{
     (
         e: "sliderUpdate",
@@ -321,6 +416,7 @@ const emit = defineEmits<{
             animation: Animation<any>;
         },
     ): void;
+    (e: "togglePlay"): void;
 }>();
 
 const sliderUpdate = (e: Event) => {
@@ -362,10 +458,17 @@ const updateTimingFunctionFromName = (key: TimingFunctionNames | "cubic-bezier")
 
 const prevT = ref(0);
 const toggleAnimation = () => {
+    if (isGrouped && !animation.started) {
+        emit("togglePlay");
+        return;
+    }
+
     if (!animation.started && !isGrouped) {
         animation.play();
+    } else if (isGrouped) {
+        animation.paused = !animation.paused;
     } else {
-        animation.pause(!isGrouped);
+        animation.pause();
 
         if (animation.paused) {
             prevT.value = animation.t;
@@ -383,4 +486,38 @@ onMounted(() => {
 });
 </script>
 
-<style scoped></style>
+<style scoped>
+/* Slide transitions for controls ↔ detail panels */
+.slide-main-enter-active,
+.slide-detail-enter-active {
+    transition: opacity 0.15s ease;
+}
+.slide-main-leave-active,
+.slide-detail-leave-active {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    transition: opacity 0.1s ease;
+}
+.slide-main-enter-from,
+.slide-main-leave-to,
+.slide-detail-enter-from,
+.slide-detail-leave-to {
+    opacity: 0;
+}
+
+/* Timeline slider: pastel green track */
+.timeline-slider :deep(.bg-primary) {
+    background-color: hsl(142 40% 72%);
+}
+.timeline-slider :deep(.border-primary) {
+    border-color: hsl(142 40% 60%);
+}
+:global(.dark) .timeline-slider :deep(.bg-primary) {
+    background-color: hsl(142 30% 40%);
+}
+:global(.dark) .timeline-slider :deep(.border-primary) {
+    border-color: hsl(142 30% 50%);
+}
+</style>

@@ -21,14 +21,28 @@
         <CardContent class="p-0 m-0">
             <svg
                 ref="SVGEl"
-                class="bezier-curve"
+                class="bezier-curve mx-auto"
                 :viewBox="`0 ${viewBox.minY} 1 ${viewBox.height}`"
+                preserveAspectRatio="xMidYMid meet"
                 xmlns="http://www.w3.org/2000/svg"
-                @mousedown="startDragging"
-                @mousemove="onDrag"
-                @mouseup="stopDragging"
-                @mouseleave="stopDragging"
+                style="touch-action: none;"
+                @pointerdown="startDragging"
+                @pointermove="onDrag"
+                @pointerup="stopDragging"
+                @pointerleave="stopDragging"
+                @pointercancel="stopDragging"
             >
+                <!-- Bounding box and reference grid -->
+                <rect x="0" y="0" width="1" height="1" class="bounding-box" />
+                <line x1="0" y1="1" x2="1" y2="0" class="diagonal-ref" />
+                <!-- Subtle grid lines at 25% intervals -->
+                <line x1="0.25" y1="0" x2="0.25" y2="1" class="grid-line" />
+                <line x1="0.5" y1="0" x2="0.5" y2="1" class="grid-line" />
+                <line x1="0.75" y1="0" x2="0.75" y2="1" class="grid-line" />
+                <line x1="0" y1="0.25" x2="1" y2="0.25" class="grid-line" />
+                <line x1="0" y1="0.5" x2="1" y2="0.5" class="grid-line" />
+                <line x1="0" y1="0.75" x2="1" y2="0.75" class="grid-line" />
+
                 <g>
                     <!-- Control handle lines -->
                     <line
@@ -193,8 +207,8 @@ const updateTimingFunction = () => {
 const isDragging = ref(false);
 const currentPointIndex = ref<number | null>(null);
 
-// Convert mouse position to bezier coordinate space using SVG's native CTM
-const mouseToSVG = (event: MouseEvent): { x: number; y: number } => {
+// Convert pointer position to bezier coordinate space using SVG's native CTM
+const pointerToSVG = (event: PointerEvent): { x: number; y: number } => {
     const svg = SVGEl.value!;
     const ctm = svg.getScreenCTM();
     if (!ctm) return { x: 0, y: 0 };
@@ -208,7 +222,7 @@ const mouseToSVG = (event: MouseEvent): { x: number; y: number } => {
     return { x: svgX, y: 1 - svgY };
 };
 
-const startDragging = (event: MouseEvent) => {
+const startDragging = (event: PointerEvent) => {
     const target = (event.target as SVGElement).closest("circle");
     if (!target) return;
 
@@ -217,6 +231,9 @@ const startDragging = (event: MouseEvent) => {
 
     isDragging.value = true;
     currentPointIndex.value = index;
+
+    // Capture pointer for reliable cross-element tracking on touch
+    (event.target as Element).setPointerCapture(event.pointerId);
 };
 
 const stopDragging = () => {
@@ -224,10 +241,10 @@ const stopDragging = () => {
     currentPointIndex.value = null;
 };
 
-const onDrag = (event: MouseEvent) => {
+const onDrag = (event: PointerEvent) => {
     if (!isDragging.value || currentPointIndex.value === null) return;
 
-    const { x, y } = mouseToSVG(event);
+    const { x, y } = pointerToSVG(event);
 
     // Clamp x to 0-1 range (CSS spec requirement for cubic-bezier x values)
     const clampedX = Math.max(0, Math.min(1, x));
@@ -267,8 +284,27 @@ onMounted(() => {
 <style scoped>
 :deep(.bezier-curve) {
     width: 100%;
-    aspect-ratio: 1 / 1;
+    max-height: 200px;
     margin: 0;
+
+    .bounding-box {
+        fill: none;
+        stroke: hsl(var(--border));
+        stroke-width: 0.01;
+    }
+
+    .diagonal-ref {
+        stroke: hsl(var(--muted-foreground));
+        stroke-width: 0.005;
+        stroke-dasharray: 0.02 0.015;
+        opacity: 0.3;
+    }
+
+    .grid-line {
+        stroke: hsl(var(--border));
+        stroke-width: 0.005;
+        opacity: 0.4;
+    }
 
     .handle-line {
         stroke: hsl(var(--muted-foreground));

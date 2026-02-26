@@ -1,110 +1,107 @@
 <template>
-    <Card class="p-0 m-0">
-        <CardContent class="relative m-0 p-0 grid grid-cols-1">
+    <div class="flex flex-col h-full min-h-0 min-w-0">
+    <Card class="p-0 m-0 flex-1 min-h-0 flex flex-col">
+        <CardContent class="relative m-0 p-0 grid grid-cols-1 flex-1 min-h-0">
             <div
                 @keydown="onKeyDown"
                 ref="cssKeyframesStringEl"
-                class="h-[75vh] w-full overflow-scroll rounded-sm"
+                class="h-full min-h-[350px] w-full rounded-lg"
             ></div>
         </CardContent>
-    </Card>
 
-    <div class="grid gap-4 sticky bottom-0 rounded-md">
-        <Menubar class="w-full mt-4 flex justify-evenly gap-2 overflow-x-scroll">
-            <MenubarMenu>
-                <MenubarTrigger>
-                    <WandSparkles></WandSparkles>
-                </MenubarTrigger>
-            </MenubarMenu>
+        <div
+            class="flex justify-evenly items-center gap-2 px-3 py-1.5"
+            :style="{ backgroundColor: editorBgColor }"
+        >
+            <IconTooltip text="Format CSS">
+                <WandSparkles
+                    class="w-5 h-5 cursor-pointer hover:scale-105 hover:opacity-50"
+                    @click="() => formatCSSKeyframesString(cssKeyframesStringEditor)"
+                />
+            </IconTooltip>
 
-            <MenubarMenu>
-                <MenubarTrigger>
-                    <Dialog
-                        v-model:open="storedControls.keyframeControls.dialogOpen"
-                        @update:open="
-                            (value) => {
-                                storedControls.keyframeControls.dialogOpen = value;
+            <IconTooltip text="Add keyframes">
+                <FilePlus2
+                    class="w-5 h-5 cursor-pointer hover:scale-105 hover:opacity-50 stroke-2"
+                    @click="storedControls.keyframeControls.dialogOpen = true"
+                />
+            </IconTooltip>
+
+            <Dialog
+                v-model:open="storedControls.keyframeControls.dialogOpen"
+                @update:open="
+                    (value) => {
+                        storedControls.keyframeControls.dialogOpen = value;
+                    }
+                "
+            >
+                <DialogContent
+                    @interact-outside="
+                        (event) => {
+                            const target = event.target as HTMLElement;
+                            if (target?.closest('[data-sonner-toaster]'))
+                                return event.preventDefault();
+                        }
+                    "
+                >
+                    <DialogTitle class="fira-code text-base font-medium">
+                        Add keyframes
+                    </DialogTitle>
+                    <DialogDescription class="fira-code text-sm text-muted-foreground">
+                        Paste CSS @keyframes to merge into the animation
+                    </DialogDescription>
+                    <pre
+                        ref="addKeyframesEl"
+                        @input="
+                            (e) => {
+                                const value = (e.target as HTMLElement)
+                                    .innerText;
+
+                                storedControls.keyframeControls.addKeyframes =
+                                    value;
+                                addKeyframesString = value;
                             }
                         "
-                    >
-                        <DialogTrigger as-child>
-                            <FilePlus2
-                                class="cursor-pointer hover:scale-105 rounded-lg stroke-2"
-                            ></FilePlus2
-                        ></DialogTrigger>
-
-                        <DialogContent
-                            @interact-outside="
-                                (event) => {
-                                    const target = event.target as HTMLElement;
-                                    if (target?.closest('[data-sonner-toaster]'))
-                                        return event.preventDefault();
+                        class="fira-code min-h-[20vh] p-3 cursor-text rounded-lg text-sm bg-muted/50 outline-none border border-border"
+                        contenteditable="true"
+                    ><code>{{ addKeyframesString }}</code></pre>
+                    <DialogFooter>
+                        <Button
+                            class="cursor-pointer gap-2"
+                            @click="
+                                () => {
+                                    addKeyframesStringToAnimation(
+                                        addKeyframesString,
+                                    );
                                 }
                             "
-                        >
-                            <DialogTitle>
-                                <CardTitle class="text-3xl">Add keyframes</CardTitle>
-                                <DialogDescription class="fraunces">
-                                    Add keyframes to the animation
-                                </DialogDescription>
-                            </DialogTitle>
-                            <div>
-                                <pre
-                                    ref="addKeyframesEl"
-                                    @input="
-                                        (e) => {
-                                            const value = (e.target as HTMLElement)
-                                                .innerText;
+                            >Add<FilePlus2 class="w-4 h-4" />
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
-                                            storedControls.keyframeControls.addKeyframes =
-                                                value;
-                                            addKeyframesString = value;
-                                        }
-                                    "
-                                    class="hljs css min-h-[25vh] p-2 cursor-text rounded-md text-sm bg-transparent outline-none border-none z-100"
-                                    contenteditable="true"
-                                ><code>{{ addKeyframesString }}</code></pre>
-                            </div>
-                            <DialogFooter class="sticky bottom-0 class grid">
-                                <Button
-                                    type="submit"
-                                    @click="
-                                        () => {
-                                            addKeyframesStringToAnimation(
-                                                addKeyframesString,
-                                            );
-                                        }
-                                    "
-                                    >Add Keyframes<FileIcon></FileIcon
-                                ></Button>
-                            </DialogFooter>
-                        </DialogContent> </Dialog
-                ></MenubarTrigger>
-            </MenubarMenu>
+            <IconTooltip text="Copy to clipboard">
+                <CopyButton
+                    class="w-5 h-5 hover:scale-105"
+                    :text="cssKeyframesString"
+                />
+            </IconTooltip>
 
-            <MenubarMenu>
-                <MenubarTrigger>
-                    <CopyButton
-                        class="w-6 h-6 hover:scale-105"
-                        :text="cssKeyframesString"
-                    />
-                </MenubarTrigger>
-            </MenubarMenu>
-
-            <MenubarMenu>
-                <MenubarTrigger>
-                    <Paintbrush
-                        ref="brushEl"
-                        @click="
-                            () => {
-                                applyCSSStyles();
-                            }
-                        "
-                        class="cursor-pointer bg-transparent hover:bg-transparent hover:scale-105"
-                    />
-                </MenubarTrigger>
-            </MenubarMenu>
-        </Menubar>
+            <IconTooltip text="Apply as CSS">
+                <Paintbrush
+                    ref="brushEl"
+                    @click="() => { applyCSSStyles(); }"
+                    :class="[
+                        'w-5 h-5 cursor-pointer hover:scale-105 transition-colors',
+                        cssApplied
+                            ? 'paintbrush-rainbow'
+                            : 'hover:opacity-50'
+                    ]"
+                />
+            </IconTooltip>
+        </div>
+    </Card>
     </div>
 </template>
 <script setup lang="ts">
@@ -165,7 +162,6 @@ import {
     getStoredAnimationGroupControlOptions,
 } from "./animationStores";
 import Button from "@components/ui/button/Button.vue";
-import { Menubar, MenubarTrigger, MenubarMenu } from "@components/ui/menubar";
 
 import { parseCSSValueUnit } from "@src/parsing/units";
 
@@ -194,6 +190,7 @@ import {
     formatCSS,
     parseCSSAnimationOrKeyframes,
 } from "@src/parsing/format";
+import IconTooltip from "@components/custom/IconTooltip.vue";
 
 monaco.editor.defineTheme("dark-theme", DarkTheme as any);
 monaco.editor.defineTheme("light-theme", LightTheme as any);
@@ -236,6 +233,8 @@ storedControls.keyframeControls ??= defaultKeyframeControls;
 
 const cssKeyframesStringEl = useTemplateRef<HTMLElement>("cssKeyframesStringEl");
 const cssKeyframesString = ref("");
+const isFormatting = ref(false);
+const cssApplied = ref(false);
 
 const addKeyframesEl = useTemplateRef<HTMLElement>("addKeyframesEl");
 const addKeyframesString = ref(storedControls.keyframeControls.addKeyframes);
@@ -275,9 +274,10 @@ const formatCSSKeyframesString = async (
 
     const cursorPosition = editor.getPosition();
 
+    isFormatting.value = true;
     editor.setValue(keyframesString);
-
     editor.setPosition(cursorPosition!);
+    setTimeout(() => { isFormatting.value = false; }, 300);
 
     toast.success("Keyframes formatted");
 
@@ -318,7 +318,9 @@ const updateAnimationFromKeyframesString = debounce(
 
             storedControls.keyframeControls.keyframes = keyframesString;
 
-            toast.success("Keyframes parsed 🎉");
+            if (!isFormatting.value) {
+                toast.success("Keyframes parsed 🎉");
+            }
         };
 
         try {
@@ -387,6 +389,11 @@ const updateAddKeyframesString = (keyframesString: string) => {
 };
 
 const addKeyframesStringToAnimation = (keyframesString: string) => {
+    if (!keyframesString.trim()) {
+        storedControls.keyframeControls.dialogOpen = false;
+        return;
+    }
+
     addKeyframesString.value = keyframesString;
     storedControls.keyframeControls.addKeyframes = keyframesString;
 
@@ -472,51 +479,47 @@ const keyframesStyle = ref<HTMLStyleElement | null>(null);
 const prevPaused = ref(false);
 
 const applyCSSStyles = () => {
-    const wasApplied =
-        keyframesStyle.value && keyframesStyle.value.innerHTML.includes(cssKeyframesString.value);
-
-    if (wasApplied) {
+    if (cssApplied.value) {
         animation.paused = prevPaused.value;
         keyframesStyle.value!.innerHTML = "";
-
-        animation.targets.forEach((t) => t.classList.remove(keyframesStyleId));
-
+        animation.targets.forEach((t) => t.classList.remove(getTmpAnimationName()));
         brushAnimation.pause();
+        cssApplied.value = false;
     } else {
         prevPaused.value = animation.paused;
         animation.paused = animation.started;
-
         keyframesStyle.value!.innerHTML = cssKeyframesString.value;
-
-        animation.targets.forEach((t) => t.classList.add(keyframesStyleId));
-
+        animation.targets.forEach((t) => t.classList.add(getTmpAnimationName()));
         brushAnimation.play();
+        cssApplied.value = true;
     }
 };
 
 const brushEl = useTemplateRef<HTMLElement>("brushEl");
 
 const brushAnimation = new CSSKeyframesAnimation({
-    duration: 700,
-    timingFunction: "linear",
+    duration: 1200,
+    timingFunction: "ease-in-out",
     iterationCount: "infinite",
     direction: "alternate",
 }).fromString(
     /*css*/
-    `@keyframes paintbrushWipe {
-                0%, 100% {
-                    transform: rotate(0deg);
-                }
-                20%, 30%, 40% {
-                    transform: rotate(30deg);
-                }
-                60%, 70%, 80% {
-                    transform: rotate(-90deg);
-                }
-            }`,
+    `@keyframes paintbrushStroke {
+        0% { transform: translateX(0px) rotate(0deg); }
+        30% { transform: translateX(2px) rotate(-8deg); }
+        70% { transform: translateX(-2px) rotate(8deg); }
+        100% { transform: translateX(0px) rotate(0deg); }
+    }`,
 );
 
 const isDark = useDark({ disableTransition: false });
+
+const editorBgColor = computed(() =>
+    isDark.value
+        ? (DarkTheme as any).colors?.["editor.background"] ?? "#282a36"
+        : (LightTheme as any).colors?.["editor.background"] ?? "#fff",
+);
+
 const setCodeTheme = () => {
     monaco.editor.setTheme(isDark.value ? "dark-theme" : "light-theme");
 };
@@ -556,6 +559,9 @@ onMounted(async () => {
         fontSize: 14,
         fontFamily: "Fira Code",
         minimap: { enabled: false },
+        wordWrap: "on",
+        scrollBeyondLastLine: false,
+        automaticLayout: true,
         padding: {
             top: 16,
             bottom: 16,
@@ -592,5 +598,3 @@ onMounted(async () => {
     );
 }
 </style>
-import { CSSKeyframesToString, formatCSS, parseCSSAnimationOrKeyframes } from
-"@src/parsing/format";, formatCSS, parseCSSAnimationOrKeyframes
