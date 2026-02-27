@@ -96,13 +96,15 @@ export function parseAndFlattenObject(input: any) {
         const mainKey = key.split(".").shift();
 
         if (value instanceof ValueUnit) {
-            value.setProperty(mainKey);
-            return value;
+            const cloned = value.clone();
+            cloned.setProperty(mainKey);
+            return cloned;
         } else if (value instanceof FunctionValue) {
-            value.setProperty(mainKey);
-            value.setSubProperty(childKey);
+            const cloned = value.clone();
+            cloned.setProperty(mainKey);
+            cloned.setSubProperty(childKey);
 
-            return value.values.flat();
+            return cloned.values.flat();
         } else if (value instanceof ValueArray) {
             return value.map((v) => parse(key, v)).flat();
         }

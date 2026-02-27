@@ -674,7 +674,11 @@ export class CSSKeyframesAnimation<V extends Vars> extends Animation<V> {
 
         const p = parseCSSKeyframes(keyframes);
 
-        for (const [percent, frame] of p.entries()) {
+        for (const [percent, cachedFrame] of p.entries()) {
+            // Clone the frame to avoid mutating the memoized parse cache
+            const frame = Object.fromEntries(
+                Object.entries(cachedFrame).map(([k, v]) => [k, v?.clone ? v.clone() : v]),
+            );
             const tfValue = frame.animationTimingFunction ?? frame.timingFunction;
             delete frame.animationTimingFunction;
             delete frame.timingFunction;

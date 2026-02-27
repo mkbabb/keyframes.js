@@ -165,8 +165,8 @@ export const normalizeNumericUnits = (
 };
 
 export function normalizeValueUnits(left: ValueUnit, right: ValueUnit, colorSpace: string = "oklab", hueMethod?: HueInterpolationMethod) {
-    left = left.coalesce(right, true);
-    right = right.coalesce(left, true);
+    left = left.coalesce(right);
+    right = right.coalesce(left);
 
     const out = {
         start: left,
