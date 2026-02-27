@@ -28,7 +28,7 @@
 
         <div
             :class="[
-                'justify-self-stretch min-h-0 h-[100dvh] lg:h-auto overflow-hidden',
+                'justify-self-stretch min-h-0 h-[100dvh] lg:h-auto overflow-visible',
                 storedControls?.selectedAnimation
                     ? 'lg:col-start-2 lg:col-end-4'
                     : 'lg:col-start-1 lg:col-end-4',

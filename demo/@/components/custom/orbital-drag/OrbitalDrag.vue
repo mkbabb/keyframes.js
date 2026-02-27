@@ -74,9 +74,14 @@ const pressedKeys = ref<PressedKeys>({
 });
 
 const sensitivity = props.sensitivity ?? 0.15;
+const touchSensitivity = sensitivity * 2.5;
 const translationFactor = props.translationFactor ?? 0.8;
 const inertiaFactor = props.inertiaFactor ?? 0.92;
 const scaleFactor = props.scaleFactor ?? 0.02;
+
+// Pinch tracking for standard touch events (non-Safari)
+const previousPinchDistance = ref(0);
+const previousPinchCenter = ref({ x: 0, y: 0 });
 
 const velocity = ref<VelocityState>(JSON.parse(JSON.stringify(defaultVelocityState)));
 
@@ -163,10 +168,27 @@ const getUserXY = (event: MouseEvent | TouchEvent) => {
     return { x: event.clientX, y: event.clientY };
 };
 
+const getTouchDistance = (event: TouchEvent) => {
+    if (event.touches.length < 2) return 0;
+    const t0 = event.touches[0], t1 = event.touches[1];
+    const dx = t1.clientX - t0.clientX, dy = t1.clientY - t0.clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+};
+
+const getTouchCenter = (event: TouchEvent) => {
+    if (event.touches.length < 2) return getUserXY(event);
+    const t0 = event.touches[0], t1 = event.touches[1];
+    return { x: (t0.clientX + t1.clientX) / 2, y: (t0.clientY + t1.clientY) / 2 };
+};
+
 const startDrag = (event: MouseEvent | TouchEvent) => {
     if (isTouchEventFallback(event)) {
         isTouching.value = true;
         event.preventDefault();
+        if (event.touches.length >= 2) {
+            previousPinchDistance.value = getTouchDistance(event);
+            previousPinchCenter.value = getTouchCenter(event);
+        }
     }
     previousMousePosition.value = getUserXY(event);
     isDragging.value = true;
@@ -175,6 +197,7 @@ const startDrag = (event: MouseEvent | TouchEvent) => {
 const stopDrag = () => {
     isTouching.value = false;
     isDragging.value = false;
+    previousPinchDistance.value = 0;
 };
 
 const startGesture = (event: any) => {
@@ -231,13 +254,14 @@ const updateScale = (axis: (typeof axes)[number], delta: number) => {
     );
 };
 
-const updateRotation = (deltaX: number, deltaY: number) => {
+const updateRotation = (deltaX: number, deltaY: number, isTouch = false) => {
     const axis = vec3.fromValues(-deltaY, deltaX, 0);
     const magnitude = vec3.length(axis);
     if (magnitude < 1e-6) return;
 
     vec3.normalize(axis, axis);
-    const angle = (magnitude * sensitivity) / 25;
+    const s = isTouch ? touchSensitivity : sensitivity;
+    const angle = (magnitude * s) / 25;
 
     applyRotation(axis, angle);
 
@@ -267,6 +291,30 @@ const updateAxisRotation = (constrainedAxes: (typeof axes)[number][], deltaX: nu
 const drag = (event: MouseEvent | TouchEvent) => {
     if (!isDragging.value) return;
 
+    const isTouch = isTouchEventFallback(event);
+
+    // Handle 2-finger pinch/pan via standard touch events (non-Safari fallback)
+    if (isTouch && event.touches.length >= 2) {
+        const dist = getTouchDistance(event);
+        const center = getTouchCenter(event);
+
+        if (previousPinchDistance.value > 0) {
+            const deltaScale = (dist - previousPinchDistance.value) / (1 / (scaleFactor * 2));
+            const deltaCX = center.x - previousPinchCenter.value.x;
+            const deltaCY = center.y - previousPinchCenter.value.y;
+
+            updateTranslation("x", deltaCX);
+            updateTranslation("y", deltaCY);
+            updateScale("x", deltaScale);
+            updateScale("y", deltaScale);
+            updateScale("z", deltaScale);
+        }
+
+        previousPinchDistance.value = dist;
+        previousPinchCenter.value = center;
+        return;
+    }
+
     const { x, y } = getUserXY(event);
 
     const deltaX = x - previousMousePosition.value.x;
@@ -280,7 +328,7 @@ const drag = (event: MouseEvent | TouchEvent) => {
         updateTranslation("x", deltaX);
         updateTranslation("y", deltaY);
     } else {
-        updateRotation(deltaX, deltaY);
+        updateRotation(deltaX, deltaY, isTouch);
     }
 
     previousMousePosition.value = { x, y };

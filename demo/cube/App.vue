@@ -1,19 +1,18 @@
 <template>
-    <div class="relative grid min-h-dvh lg:h-dvh w-dvw items-center justify-items-stretch lg:justify-items-center lg:justify-center overflow-x-hidden lg:overflow-hidden">
+    <div class="relative grid min-h-dvh lg:h-dvh w-dvw items-center justify-items-stretch lg:justify-items-center lg:justify-center">
         <div
             ref="gridBackground"
             class="grid-background pointer-events-none fixed inset-0 h-dvh w-dvw"
         ></div>
 
         <div
-            class="pointer-events-none absolute top-0 left-0 right-0 z-50 flex items-center justify-between p-2 lg:p-4"
+            class="pointer-events-none absolute top-0 left-0 right-0 lg:left-auto z-50 flex items-center justify-between lg:justify-end lg:gap-4 p-2 lg:p-4"
         >
-            <!-- Left: PP + @mbabb (mobile only) -->
-            <div class="flex lg:hidden items-center gap-2">
+            <!-- PP + @mbabb -->
+            <div class="pointer-events-auto flex items-center gap-2">
                 <HoverCard
                     :open-delay="0"
                     v-model:open="hoverCardStates.ppmycota"
-                    class="pointer-events-auto"
                 >
                     <HoverCardTrigger
                         ><div
@@ -24,14 +23,13 @@
                                     setPPMode();
                                 }
                             "
-                            class="ppmycota-logo-sm pointer-events-auto m-0 h-8 w-8 lg:h-12 lg:w-12 cursor-pointer stroke-2 p-0
+                            class="ppmycota-logo-sm m-0 h-8 w-8 lg:h-12 lg:w-12 cursor-pointer stroke-2 p-0
                                 font-bold hover:scale-105"
                         ></div>
                     </HoverCardTrigger>
-                    <HoverCardContent class="pointer-events-auto z-[100]">
+                    <HoverCardContent class="z-[100]">
                         <div class="h-fit-content flex gap-4 p-4">
                             <div
-                                ref="ppmycotaLogoEl"
                                 class="ppmycota-logo-sm z-20 h-12 w-12 cursor-pointer stroke-2 font-bold
                                     hover:scale-105"
                             ></div>
@@ -55,12 +53,12 @@
                 >
                     <HoverCardTrigger
                         @click="hoverCardStates.mbabb = true"
-                        class="fira-code pointer-events-auto"
+                        class="fira-code"
                         ><Button class="m-0 cursor-pointer p-0 text-xs lg:text-sm" variant="link"
                             >@mbabb</Button
                         >
                     </HoverCardTrigger>
-                    <HoverCardContent class="pointer-events-auto z-[100]">
+                    <HoverCardContent class="z-[100]">
                         <div class="fira-code flex gap-4 p-4">
                             <Avatar>
                                 <AvatarImage
@@ -86,92 +84,19 @@
                 </HoverCard>
             </div>
 
-            <!-- Right: PP + @mbabb (desktop) + Share + Dark mode -->
-            <div class="flex items-center gap-2 lg:gap-4">
-                <HoverCard
-                    :open-delay="0"
-                    v-model:open="hoverCardStates.ppmycota"
-                    class="pointer-events-auto hidden lg:block"
-                >
-                    <HoverCardTrigger
-                        ><div
-                            @click="
-                                (e) => {
-                                    hoverCardStates.ppmycota = true;
-                                    setPPMode();
-                                }
-                            "
-                            class="ppmycota-logo-sm pointer-events-auto m-0 h-12 w-12 cursor-pointer stroke-2 p-0
-                                font-bold hover:scale-105"
-                        ></div>
-                    </HoverCardTrigger>
-                    <HoverCardContent class="pointer-events-auto z-[100]">
-                        <div class="h-fit-content flex gap-4 p-4">
-                            <div
-                                class="ppmycota-logo-sm z-20 h-12 w-12 cursor-pointer stroke-2 font-bold
-                                    hover:scale-105"
-                            ></div>
-                            <div>
-                                <h4 class="fraunces">🙂‍↔️ 🌱 🍄‍🟫</h4>
-                                <p>
-                                    <a
-                                        class="fraunces font-bold hover:underline"
-                                        href="https://ppmycota.com"
-                                        >ppmycota.com</a
-                                    >
-                                </p>
-                            </div>
-                        </div>
-                    </HoverCardContent>
-                </HoverCard>
-
-                <HoverCard
-                    v-model:open="hoverCardStates.mbabb"
-                    :open-delay="0"
-                    class="hidden lg:block"
-                >
-                    <HoverCardTrigger
-                        @click="hoverCardStates.mbabb = true"
-                        class="fira-code pointer-events-auto"
-                        ><Button class="m-0 cursor-pointer p-0" variant="link"
-                            >@mbabb</Button
-                        >
-                    </HoverCardTrigger>
-                    <HoverCardContent class="pointer-events-auto z-[100]">
-                        <div class="fira-code flex gap-4 p-4">
-                            <Avatar>
-                                <AvatarImage
-                                    src="https://avatars.githubusercontent.com/u/2848617?v=4"
-                                >
-                                </AvatarImage>
-                            </Avatar>
-                            <div>
-                                <h4 class="text-sm font-semibold hover:underline">
-                                    <a href="https://github.com/mkbabb">@mbabb</a>
-                                </h4>
-                                <p>
-                                    Check out the project on
-                                    <a
-                                        class="font-bold hover:underline"
-                                        href="https://github.com/mkbabb/keyframes.js"
-                                        >GitHub</a
-                                    >🎉
-                                </p>
-                            </div>
-                        </div>
-                    </HoverCardContent>
-                </HoverCard>
-
+            <!-- Share + Dark mode -->
+            <div class="pointer-events-auto flex items-center gap-2 lg:gap-4">
                 <Popover v-model:open="sharePopoverOpen">
                     <PopoverTrigger as-child>
                         <Share2
+                            title="Share"
                             :class="[
-                                'pointer-events-auto w-5 h-5 cursor-pointer hover:scale-105 transition-colors',
+                                'w-5 h-5 cursor-pointer hover:scale-105 transition-colors',
                                 sharePopoverOpen ? 'opacity-100' : 'hover:opacity-50'
                             ]"
                         />
                     </PopoverTrigger>
-                    <PopoverContent class="w-72 p-2 pointer-events-auto" align="end">
+                    <PopoverContent class="w-72 p-2" align="end">
                         <div class="flex items-center gap-1.5">
                             <Input
                                 v-model="loadHashInput"
@@ -202,7 +127,7 @@
                 </Popover>
                 <DarkModeToggle
                     title="Toggle dark mode"
-                    class="pointer-events-auto aspect-square w-8 hover:scale-105 hover:opacity-50"
+                    class="aspect-square w-8 hover:scale-105 hover:opacity-50"
                 />
             </div>
         </div>
@@ -1112,7 +1037,7 @@ onMounted(() => {
 }
 
 .cube {
-    --side-size: 25vh;
+    --side-size: min(25vh, 25vw);
     --side-offset: calc(var(--side-size) / 2);
     --rotationX: 360deg;
 

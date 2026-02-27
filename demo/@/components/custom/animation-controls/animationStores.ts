@@ -205,10 +205,10 @@ export const decodeStateFromHash = (hash: string): object | null => {
 };
 
 export const getAllState = (): object => {
-    return {
-        options: animationGroupsOptionsStore.value,
-        controls: animationGroupsControlOptionsStore.value,
-    };
+    // Strip _storeTimestamp so the same logical state always produces the same hash
+    const { _storeTimestamp: _1, ...options } = animationGroupsOptionsStore.value;
+    const { _storeTimestamp: _2, ...controls } = animationGroupsControlOptionsStore.value;
+    return { options, controls };
 };
 
 export const restoreStateFromHash = () => {
