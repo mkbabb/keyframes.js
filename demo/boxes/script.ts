@@ -165,6 +165,9 @@ pauseButton.addEventListener("click", () => {
 
 const tSlider = document.querySelector<HTMLInputElement>("#t-slider")!;
 tSlider.addEventListener("input", () => {
+    if (anim.playing()) {
+        anim.pause();
+    }
     const t = parseFloat(tSlider.value);
     const s = scale(t, 0, 1, 0, anim.options.duration);
 

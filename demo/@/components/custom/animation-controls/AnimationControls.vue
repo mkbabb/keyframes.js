@@ -1,4 +1,5 @@
 <template>
+    <TooltipProvider :delay-duration="100" :skip-delay-duration="0">
     <div
         class="flex flex-col h-full w-full z-10 relative overflow-x-hidden lg:overflow-hidden lg:max-w-screen-md lg:w-[400px]"
     >
@@ -46,12 +47,14 @@
             </div>
         </Tabs>
     </div>
+    </TooltipProvider>
 </template>
 
 <script setup lang="ts">
 import { Animation } from "@src/animation/index";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
+import { TooltipProvider } from "@components/ui/tooltip";
 
 import { defineAsyncComponent, onMounted, useTemplateRef } from "vue";
 

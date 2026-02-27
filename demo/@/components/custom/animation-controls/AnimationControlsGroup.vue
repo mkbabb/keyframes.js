@@ -1,4 +1,5 @@
 <template>
+    <TooltipProvider :delay-duration="100" :skip-delay-duration="0">
     <div
         class="w-full min-h-dvh lg:h-dvh grid lg:grid-cols-3 grid-cols-1 lg:grid-rows-[1fr_auto] grid-rows-[auto_auto_auto] justify-items-stretch lg:justify-items-center items-center relative"
         v-bind="$attrs"
@@ -139,6 +140,8 @@
         </div>
     </div>
 
+    </TooltipProvider>
+
     <Teleport to="html">
         <Toaster
             :toastOptions="{
@@ -183,6 +186,7 @@ import {
 
 import { RotateCcw } from "lucide-vue-next";
 import IconTooltip from "@components/custom/IconTooltip.vue";
+import { TooltipProvider } from "@components/ui/tooltip";
 
 import { Animation, CSSKeyframesAnimation } from "@src/animation/index";
 import AnimationControls from "./AnimationControls.vue";

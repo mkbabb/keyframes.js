@@ -1,5 +1,4 @@
 <template>
-    <TooltipProvider :delay-duration="100" :skip-delay-duration="0">
     <div class="relative grid min-h-dvh lg:h-dvh w-dvw items-center justify-items-stretch lg:justify-items-center lg:justify-center overflow-x-hidden lg:overflow-hidden">
         <div
             ref="gridBackground"
@@ -459,7 +458,7 @@
                                             <span
                                                 :class="[
                                                     'fraunces h-full w-full text-5xl font-bold',
-                                                    'z-50 flex items-center justify-center',
+                                                    'flex items-center justify-center',
                                                 ]"
                                                 >{{ side.content }}</span
                                             >
@@ -486,7 +485,6 @@
             </template>
         </AnimationControlsGroup>
     </div>
-    </TooltipProvider>
 </template>
 
 <script setup lang="ts">
@@ -496,7 +494,6 @@ import OrbitalDrag from "@components/custom/orbital-drag/OrbitalDrag.vue";
 import { RotateCcw, Lock, LockOpen, Loader2, List, Share2, Clipboard, ArrowRight } from "lucide-vue-next";
 import { DarkModeToggle } from "@components/custom/dark-mode-toggle";
 import IconTooltip from "@components/custom/IconTooltip.vue";
-import { TooltipProvider } from "@components/ui/tooltip";
 import {
     HoverCard,
     HoverCardContent,

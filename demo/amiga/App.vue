@@ -79,29 +79,26 @@ const transform = (vars: Record<string, any>) => {
 const rotations = new CSSKeyframesAnimation({
     duration: 20000,
     iterationCount: Infinity,
-    timingFunction: "linear",
-}).fromString(
-    /*css*/
-    `@keyframes animation {
-        from {
+    timingFunction: CSSCubicBezier(0.2, 0.65, 0.6, 1),
+}).fromVars(
+    [
+        {
             rotation: {
                 x: 0,
                 y: 0,
                 z: 0,
-            };
-            colorT: 0;
-            timing-function: cubic-bezier(0.2, 0.65, 0.6, 1);
-        }
-        to {
+            },
+            colorT: 0,
+        },
+        {
             rotation: {
                 x: 2 * Math.PI,
                 y: 2 * Math.PI,
                 z: 2 * Math.PI,
-            };
-            colorT: 1;
-            timing-function: cubic-bezier(0.2, 0.65, 0.6, 1);
-        }
-    }`,
+            },
+            colorT: 1,
+        },
+    ],
     transform,
 );
 
@@ -110,20 +107,14 @@ const bouncingX = new CSSKeyframesAnimation({
     iterationCount: Infinity,
     direction: "alternate",
     timingFunction: "linear",
-}).fromString(
-    /*css*/
-    `@keyframes animation {
-        0%, 50%, 100% {
-            position: {
-                x: ${-boxSize / 2 + 1},
-            };
-        }
-        25%, 75% {
-            position: {
-                x: ${boxSize / 2 - 1},
-            };
-        }
-    }`,
+}).fromKeyframes(
+    {
+        "0%": { position: { x: -boxSize / 2 + 1 } },
+        "25%": { position: { x: boxSize / 2 - 1 } },
+        "50%": { position: { x: -boxSize / 2 + 1 } },
+        "75%": { position: { x: boxSize / 2 - 1 } },
+        "100%": { position: { x: -boxSize / 2 + 1 } },
+    },
     transform,
 );
 
@@ -154,20 +145,14 @@ const bouncingZ = new CSSKeyframesAnimation({
     iterationCount: Infinity,
     direction: "alternate",
     timingFunction: "linear",
-}).fromString(
-    /*css*/
-    `@keyframes animation {
-        0%, 50%, 100% {
-            position: {
-                z: ${-boxSize / 2 + 1},
-            };
-        }
-        25%, 75% {
-            position: {
-                z: ${boxSize / 2 - 1},
-            };
-        }
-    }`,
+}).fromKeyframes(
+    {
+        "0%": { position: { z: -boxSize / 2 + 1 } },
+        "25%": { position: { z: boxSize / 2 - 1 } },
+        "50%": { position: { z: -boxSize / 2 + 1 } },
+        "75%": { position: { z: boxSize / 2 - 1 } },
+        "100%": { position: { z: -boxSize / 2 + 1 } },
+    },
     transform,
 );
 
