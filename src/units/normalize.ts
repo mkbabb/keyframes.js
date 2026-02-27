@@ -14,6 +14,17 @@ import {
     unpackMatrixValues,
 } from "./utils";
 
+const elementIdMap = new WeakMap<HTMLElement, number>();
+let nextElementId = 0;
+const getElementId = (el: HTMLElement) => {
+    let id = elementIdMap.get(el);
+    if (id === undefined) {
+        id = nextElementId++;
+        elementIdMap.set(el, id);
+    }
+    return id;
+};
+
 export const getComputedValue = memoize(
     (value: ValueUnit, target: HTMLElement) => {
         const get = () => {
@@ -74,7 +85,7 @@ export const getComputedValue = memoize(
 
         return newValue.coalesce(value);
     },
-    { keyFn: (value: any, target: any) => `${value.toString()}-${JSON.stringify(target)}` },
+    { keyFn: (value: any, target: any) => `${value.toString()}-${target ? getElementId(target) : 'null'}` },
 );
 
 export const normalizeNumericUnits = (

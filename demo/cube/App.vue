@@ -416,7 +416,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
+import { computed, markRaw, onMounted, ref, shallowRef, useTemplateRef, watch } from "vue";
 import "@styles/utils.css";
 import OrbitalDrag from "@components/custom/orbital-drag/OrbitalDrag.vue";
 import { RotateCcw, Lock, LockOpen, Loader2, List, Share2, Clipboard, ArrowRight } from "lucide-vue-next";
@@ -799,8 +799,8 @@ const resetMatrix = () => {
 
 const matrixAnimationOptions = getStoredAnimationOptions("Matrix", superKey);
 
-const matrixAnim = ref(
-    new CSSKeyframesAnimation(matrixAnimationOptions.animationOptions).fromVars(
+const matrixAnim = shallowRef(
+    markRaw(new CSSKeyframesAnimation(matrixAnimationOptions.animationOptions).fromVars(
         [
             {
                 transform: {
@@ -813,7 +813,7 @@ const matrixAnim = ref(
                 },
             },
         ],
-    ),
+    )),
 );
 
 matrixAnim.value.name = "Matrix";
@@ -824,8 +824,8 @@ const rotationAnimationOptions = getStoredAnimationOptions(
     superKey,
 );
 
-const rotationAnim = ref(
-    new CSSKeyframesAnimation(
+const rotationAnim = shallowRef(
+    markRaw(new CSSKeyframesAnimation(
         rotationAnimationOptions.animationOptions,
     ).fromKeyframes({
         from: {
@@ -842,7 +842,7 @@ const rotationAnim = ref(
                 rotateZ: "360deg",
             },
         },
-    }),
+    })),
 );
 
 rotationAnim.value.name = "Rotations";
@@ -850,18 +850,18 @@ rotationAnim.value.superKey = superKey;
 
 const hoverAnimationOptions = getStoredAnimationOptions("Hover", superKey);
 
-const hoverAnim = ref(
-    animations.hover(hoverAnimationOptions.animationOptions),
+const hoverAnim = shallowRef(
+    markRaw(animations.hover(hoverAnimationOptions.animationOptions)),
 );
 hoverAnim.value.name = "Hover";
 hoverAnim.value.superKey = superKey;
 
-const animationGroup = ref(
-    new AnimationGroup(
+const animationGroup = shallowRef(
+    markRaw(new AnimationGroup(
         rotationAnim.value as any,
         matrixAnim.value as any,
         hoverAnim.value as any,
-    ),
+    )),
 );
 
 

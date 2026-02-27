@@ -37,7 +37,8 @@
         "dev": "vite --port 8080",
         "build": "vite build --mode production",
         "gh-pages": "vite build --mode gh-pages",
-        "test": "vitest"
+        "test": "vitest",
+        "bench": "vitest bench"
     },
     "repository": {
         "type": "git",

@@ -69,6 +69,8 @@ export type AnimationOptions = {
     fillMode: (typeof FILL_MODES)[number];
 
     timingFunction: TimingFunction;
+
+    useWAAPI: boolean;
 };
 
 export type InputAnimationOptions = Partial<{
@@ -81,6 +83,9 @@ export type InputAnimationOptions = Partial<{
     fillMode: (typeof FILL_MODES)[number];
 
     timingFunction: TimingFunction | TimingFunctionNames | undefined;
+
+    /** When true (default), eligible animations may use the Web Animations API for compositor-thread execution. Set to false to force rAF. */
+    useWAAPI: boolean;
 }>;
 
 export const defaultOptions: AnimationOptions = {
@@ -90,4 +95,27 @@ export const defaultOptions: AnimationOptions = {
     direction: "normal",
     fillMode: "forwards",
     timingFunction: easeInOutCubic,
+    useWAAPI: true,
+};
+
+export type BlendMode = "replace" | "add" | "weighted";
+
+export interface AnimationLayerConfig {
+    /** Higher wins. Default: 0 */
+    zIndex: number;
+    /** 0–1 for 'weighted' blend mode. Default: 1 */
+    weight: number;
+    /** Default: 'replace' (backward compat) */
+    blendMode: BlendMode;
+    /** Layer toggle. Default: true */
+    enabled: boolean;
+    /** Optional property whitelist — only these properties will be output from this layer */
+    properties?: Set<string>;
+}
+
+export const defaultLayerConfig: AnimationLayerConfig = {
+    zIndex: 0,
+    weight: 1,
+    blendMode: "replace",
+    enabled: true,
 };

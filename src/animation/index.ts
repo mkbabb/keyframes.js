@@ -34,6 +34,7 @@ import {
     parseAndFlattenObject,
     transformTargetsStyle,
 } from "./utils";
+import { isWAAPIEligible, playWAAPI } from "./waapi";
 
 export const getAnimationId = (animation: Animation | string): string => {
     if (typeof animation === "string") return animation;
@@ -349,6 +350,11 @@ export class Animation<V extends Vars = any> {
         return this;
     }
 
+    setUseWAAPI(useWAAPI: InputAnimationOptions["useWAAPI"]) {
+        this.options.useWAAPI = useWAAPI ?? true;
+        return this;
+    }
+
     setOptions(options: Partial<InputAnimationOptions>) {
         this.setTimingFunction(options.timingFunction);
         this.setDuration(options.duration);
@@ -356,6 +362,7 @@ export class Animation<V extends Vars = any> {
         this.setDelay(options.delay);
         this.setDirection(options.direction);
         this.setFillMode(options.fillMode);
+        this.setUseWAAPI(options.useWAAPI);
         return this;
     }
 
@@ -498,16 +505,41 @@ export class Animation<V extends Vars = any> {
         }
     }
 
+    /** Internal rAF-based play loop. */
+    private _playRAF(): Promise<void> {
+        return new Promise((resolve) => {
+            this.resolvePromise = resolve;
+            this.handleId = requestAnimationFrame(this.draw.bind(this));
+        });
+    }
+
+    /** Play via the Web Animations API for compositor-thread execution. */
+    private async _playWAAPI(): Promise<void> {
+        try {
+            await playWAAPI(this);
+            this.reset();
+        } catch {
+            // WAAPI failed — fall back to rAF
+            return this._playRAF();
+        }
+    }
+
     async play(): Promise<void> {
         if (this.managed) {
             console.warn("Animation.play() called on a managed animation — the group controls playback.");
             return;
         }
 
-        return new Promise((resolve) => {
-            this.resolvePromise = resolve;
-            this.handleId = requestAnimationFrame(this.draw.bind(this));
-        });
+        if (
+            this.options.useWAAPI &&
+            this.targets.length > 0 &&
+            typeof this.targets[0]?.animate === "function" &&
+            isWAAPIEligible(this)
+        ) {
+            return this._playWAAPI();
+        }
+
+        return this._playRAF();
     }
 
     pause(draw: boolean = true) {

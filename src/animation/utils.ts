@@ -32,8 +32,8 @@ export function lerpComputedValue(
     t: number,
     { start, stop, value }: InterpolatedVar<any>,
 ) {
-    const newStartValueUnit = getComputedValue(start.clone(), start.targets?.[0] as HTMLElement);
-    const newStopValueUnit = getComputedValue(stop.clone(), stop.targets?.[0] as HTMLElement);
+    const newStartValueUnit = getComputedValue(start, start.targets?.[0] as HTMLElement);
+    const newStopValueUnit = getComputedValue(stop, stop.targets?.[0] as HTMLElement);
 
     const newUnit = !COMPUTED_UNITS.includes(newStartValueUnit.unit)
         ? newStartValueUnit.unit
@@ -85,6 +85,8 @@ export function lerpValue(t: number, value: InterpolatedVar<any>) {
     return value;
 }
 
+const tryParseCache = new Map<string, ValueUnit | ValueArray>();
+
 export function parseAndFlattenObject(input: any) {
     const flat = flattenObject(input);
 
@@ -104,6 +106,15 @@ export function parseAndFlattenObject(input: any) {
             return value.map((v) => parse(key, v)).flat();
         }
 
+        const strValue = String(value);
+        const cacheKey = `${childKey}:${strValue}`;
+        const cached = tryParseCache.get(cacheKey);
+        if (cached) {
+            const cloned = cached.clone();
+            cloned.setProperty(mainKey);
+            return cloned;
+        }
+
         const p = tryParse(
             parseAny(
                 CSSKeyframes.FunctionArgs.map((v: ValueArray) => {
@@ -112,10 +123,11 @@ export function parseAndFlattenObject(input: any) {
                 }),
                 CSSKeyframes.Value,
             ),
-            String(value),
+            strValue,
         ) as ValueUnit | ValueArray;
 
         p.setProperty(mainKey);
+        tryParseCache.set(cacheKey, p.clone());
 
         return p;
     };

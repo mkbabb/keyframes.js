@@ -1,14 +1,24 @@
 import { Animation, getAnimationId } from ".";
+import { lerp } from "../math";
 import { ValueArray } from "../units";
 import { cancelAnimationFrame, requestAnimationFrame } from "../utils";
-import type { TransformFunction, Vars } from "./constants";
+import type { AnimationLayerConfig, TransformFunction, Vars } from "./constants";
+import { defaultLayerConfig } from "./constants";
+
+export interface AnimationGroupEntry<V extends Vars> {
+    animation: Animation<V>;
+    values: Vars<ValueArray>;
+    layer: AnimationLayerConfig;
+}
 
 export interface AnimationGroupObject<V extends Vars> {
-    [key: string]: {
-        animation: Animation<V>;
-        values: Vars<ValueArray>;
-    };
+    [key: string]: AnimationGroupEntry<V>;
 }
+
+/** Input type for AnimationGroup constructor — bare Animation or Animation with layer config. */
+export type AnimationGroupInput<V extends Vars> =
+    | Animation<V>
+    | { animation: Animation<V>; layer?: Partial<AnimationLayerConfig> };
 
 export class AnimationGroup<V extends Vars> {
     animations: AnimationGroupObject<V> = {};
@@ -25,8 +35,20 @@ export class AnimationGroup<V extends Vars> {
     handleId: number | any = undefined;
     resolvePromise: ((value: void | PromiseLike<void>) => void) | null = null;
 
-    constructor(...animations: Animation<V>[]) {
-        for (const animation of animations) {
+    constructor(...inputs: (Animation<V> | AnimationGroupInput<V>)[]) {
+        const animations: Animation<V>[] = [];
+
+        for (const input of inputs) {
+            let animation: Animation<V>;
+            let layerConfig: Partial<AnimationLayerConfig> | undefined;
+
+            if (input instanceof Animation) {
+                animation = input;
+            } else {
+                animation = input.animation;
+                layerConfig = input.layer;
+            }
+
             this.transform ??= animation.frames[0].transform;
 
             const name = getAnimationId(animation);
@@ -34,9 +56,11 @@ export class AnimationGroup<V extends Vars> {
             this.animations[name] = {
                 values: {},
                 animation,
+                layer: { ...defaultLayerConfig, ...layerConfig },
             };
 
             animation.managed = true;
+            animations.push(animation);
         }
 
         this.singleTarget = animations.every(
@@ -78,24 +102,83 @@ export class AnimationGroup<V extends Vars> {
     }
 
     transformFramesGrouped(t: number) {
-        let groupedValues: Vars<ValueArray> = {};
+        const groupedValues: Vars<ValueArray> = {};
+
+        // Collect entries, filter by enabled, sort by zIndex
+        const entries = Object.values(this.animations);
+
+        // Sort by zIndex ascending (highest last → wins on 'replace')
+        entries.sort((a, b) => a.layer.zIndex - b.layer.zIndex);
 
         let done = true;
-        for (const groupObject of Object.values(this.animations)) {
-            const { animation, values } = groupObject;
+        for (const groupObject of entries) {
+            const { animation, values, layer } = groupObject;
 
             done = done && animation.done;
 
+            if (!layer.enabled) continue;
+
             if (!(animation.done || animation.paused)) {
                 const vars = animation.interpFrames(animation.t, false);
-
                 Object.assign(values, vars);
             }
 
-            groupedValues = {
-                ...groupedValues,
-                ...values,
-            };
+            // Apply property whitelist filter
+            const filteredValues = layer.properties
+                ? Object.fromEntries(
+                      Object.entries(values).filter(([key]) => layer.properties!.has(key)),
+                  )
+                : values;
+
+            // Blend based on mode
+            switch (layer.blendMode) {
+                case "replace":
+                    Object.assign(groupedValues, filteredValues);
+                    break;
+
+                case "add":
+                    for (const [key, val] of Object.entries(filteredValues)) {
+                        if (key in groupedValues) {
+                            const existing = groupedValues[key] as any;
+                            const incoming = val as any;
+                            // Accumulate numeric ValueUnit values
+                            if (
+                                existing != null &&
+                                typeof existing.value === "number" &&
+                                incoming != null &&
+                                typeof incoming.value === "number"
+                            ) {
+                                existing.value = existing.value + incoming.value;
+                            } else {
+                                groupedValues[key] = val;
+                            }
+                        } else {
+                            groupedValues[key] = val;
+                        }
+                    }
+                    break;
+
+                case "weighted":
+                    for (const [key, val] of Object.entries(filteredValues)) {
+                        if (key in groupedValues && layer.weight < 1) {
+                            const existing = groupedValues[key] as any;
+                            const incoming = val as any;
+                            if (
+                                existing != null &&
+                                typeof existing.value === "number" &&
+                                incoming != null &&
+                                typeof incoming.value === "number"
+                            ) {
+                                existing.value = lerp(layer.weight, existing.value, incoming.value);
+                            } else {
+                                groupedValues[key] = val;
+                            }
+                        } else {
+                            groupedValues[key] = val;
+                        }
+                    }
+                    break;
+            }
         }
 
         this.done = done;
@@ -220,5 +303,28 @@ export class AnimationGroup<V extends Vars> {
         Object.values(this.animations).forEach((groupObject) => {
             groupObject.animation.paused = false;
         });
+    }
+
+    // --- Layer management API ---
+
+    /** Set layer config for an animation by name or reference. Chainable. */
+    setLayerConfig(nameOrAnim: string | Animation<V>, config: Partial<AnimationLayerConfig>) {
+        const key = typeof nameOrAnim === "string" ? nameOrAnim : getAnimationId(nameOrAnim);
+        const entry = this.animations[key];
+        if (entry) {
+            Object.assign(entry.layer, config);
+        }
+        return this;
+    }
+
+    /** Convenience toggle for enabling/disabling a layer. Chainable. */
+    setLayerEnabled(nameOrAnim: string | Animation<V>, enabled: boolean) {
+        return this.setLayerConfig(nameOrAnim, { enabled });
+    }
+
+    /** Read the layer config for an animation. */
+    getLayerConfig(nameOrAnim: string | Animation<V>): AnimationLayerConfig | undefined {
+        const key = typeof nameOrAnim === "string" ? nameOrAnim : getAnimationId(nameOrAnim);
+        return this.animations[key]?.layer;
     }
 }

@@ -59,7 +59,8 @@ let rafId: number | null = null;
 
 const syncBallWithAnimation = () => {
     const anim = props.animation;
-    if (anim.started && anim.options.duration > 0) {
+    // Skip interpolation when paused — still schedule RAF for when animation resumes
+    if (anim.started && !anim.paused && anim.options.duration > 0) {
         const progress = Math.max(0, Math.min(anim.effectiveT / anim.options.duration, 1));
         const ballT = progress * ballAnim.options.duration;
         ballAnim.interpFrames(ballT, true);
