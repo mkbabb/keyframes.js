@@ -1,5 +1,18 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi, beforeAll } from "vitest";
 import { CSSKeyframesAnimation } from "../src/animation";
+
+// Polyfill AnimationEvent for jsdom
+if (typeof globalThis.AnimationEvent === "undefined") {
+    (globalThis as any).AnimationEvent = class AnimationEvent extends Event {
+        animationName: string;
+        elapsedTime: number;
+        constructor(type: string, init?: { animationName?: string; elapsedTime?: number }) {
+            super(type, init);
+            this.animationName = init?.animationName ?? "";
+            this.elapsedTime = init?.elapsedTime ?? 0;
+        }
+    };
+}
 
 describe("Animation option setters", () => {
     it("setDuration('2s') → 2000", () => {
@@ -155,5 +168,152 @@ describe("Animation interpolation", () => {
         expect(vars).toBeDefined();
         // The interpolated value should be roughly at the midpoint
         // (adjusted by timing function)
+    });
+});
+
+describe("Fractional iteration count", () => {
+    it("iteration count 2.5 marks done after 3rd iteration start", async () => {
+        const anim = new CSSKeyframesAnimation({
+            duration: 100,
+            iterationCount: 2.5,
+            useWAAPI: false,
+        }).fromString(`
+            from { opacity: 0; }
+            to { opacity: 1; }
+        `);
+
+        // iterationCount=2.5, so iterationCount-1=1.5
+        // iteration 0: onEnd → 0 >= 1.5? No → iteration becomes 1
+        // iteration 1: onEnd → 1 >= 1.5? No → iteration becomes 2
+        // iteration 2: onEnd → 2 >= 1.5? Yes → done
+        anim.iteration = 0;
+        await anim.onEnd();
+        expect(anim.done).toBe(false);
+        expect(anim.iteration).toBe(1);
+
+        await anim.onEnd();
+        expect(anim.done).toBe(false);
+        expect(anim.iteration).toBe(2);
+
+        await anim.onEnd();
+        expect(anim.done).toBe(true);
+    });
+});
+
+describe("alternate-reverse direction", () => {
+    it("reverses on even iterations, plays forward on odd", async () => {
+        const anim = new CSSKeyframesAnimation({
+            duration: 100,
+            direction: "alternate-reverse",
+            iterationCount: Infinity,
+            delay: 0,
+            useWAAPI: false,
+        }).fromString(`
+            from { opacity: 0; }
+            to { opacity: 1; }
+        `);
+
+        // iteration 0 (even) → should be reversed
+        anim.iteration = 0;
+        await anim.onStart();
+        expect(anim.reversed).toBe(true);
+
+        // iteration 1 (odd) → should not be reversed
+        anim.iteration = 1;
+        await anim.onStart();
+        expect(anim.reversed).toBe(false);
+
+        // iteration 2 (even) → should be reversed
+        anim.iteration = 2;
+        await anim.onStart();
+        expect(anim.reversed).toBe(true);
+    });
+});
+
+describe("Animation events", () => {
+    it("dispatches animationstart on first tick", async () => {
+        const el = document.createElement("div");
+        const anim = new CSSKeyframesAnimation({
+            duration: 100,
+            delay: 0,
+            useWAAPI: false,
+        }).fromString(`
+            from { opacity: 0; }
+            to { opacity: 1; }
+        `);
+        anim.setTargets(el);
+
+        const startHandler = vi.fn();
+        el.addEventListener("animationstart", startHandler);
+
+        await anim.tick(0);
+
+        expect(startHandler).toHaveBeenCalledTimes(1);
+    });
+
+    it("dispatches animationend when done", async () => {
+        const el = document.createElement("div");
+        const anim = new CSSKeyframesAnimation({
+            duration: 100,
+            iterationCount: 1,
+            delay: 0,
+            useWAAPI: false,
+        }).fromString(`
+            from { opacity: 0; }
+            to { opacity: 1; }
+        `);
+        anim.setTargets(el);
+
+        const endHandler = vi.fn();
+        el.addEventListener("animationend", endHandler);
+
+        // Start the animation
+        await anim.tick(0);
+        // Advance past duration to trigger onEnd
+        await anim.tick(200);
+
+        expect(endHandler).toHaveBeenCalledTimes(1);
+    });
+
+    it("dispatches animationiteration on iteration boundary", async () => {
+        const el = document.createElement("div");
+        const anim = new CSSKeyframesAnimation({
+            duration: 100,
+            iterationCount: 3,
+            delay: 0,
+            useWAAPI: false,
+        }).fromString(`
+            from { opacity: 0; }
+            to { opacity: 1; }
+        `);
+        anim.setTargets(el);
+
+        const iterHandler = vi.fn();
+        el.addEventListener("animationiteration", iterHandler);
+
+        // Start
+        await anim.tick(0);
+        // End first iteration (not last)
+        await anim.tick(200);
+
+        expect(iterHandler).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe("colorSpace option", () => {
+    it("defaults to oklab", () => {
+        const anim = new CSSKeyframesAnimation({});
+        expect(anim.options.colorSpace).toBe("oklab");
+    });
+
+    it("setColorSpace changes the value", () => {
+        const anim = new CSSKeyframesAnimation({});
+        anim.setColorSpace("lab");
+        expect(anim.options.colorSpace).toBe("lab");
+    });
+
+    it("accepts colorSpace in constructor options", () => {
+        const anim = new CSSKeyframesAnimation({ colorSpace: "srgb" });
+        expect(anim.options.colorSpace).toBe("srgb");
     });
 });

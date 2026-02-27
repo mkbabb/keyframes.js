@@ -1,6 +1,8 @@
 import { easeInOutCubic, timingFunctions } from "../easing";
 import type { ValueArray, ValueUnit, InterpolatedVar } from "../units";
+import type { HueInterpolationMethod } from "@mkbabb/value.js";
 export type { InterpolatedVar } from "../units";
+export type { HueInterpolationMethod } from "@mkbabb/value.js";
 
 export const DIRECTIONS = [
     "normal",
@@ -71,6 +73,10 @@ export type AnimationOptions = {
     timingFunction: TimingFunction;
 
     useWAAPI: boolean;
+
+    colorSpace: string;
+
+    hueMethod?: HueInterpolationMethod;
 };
 
 export type InputAnimationOptions = Partial<{
@@ -86,6 +92,10 @@ export type InputAnimationOptions = Partial<{
 
     /** When true (default), eligible animations may use the Web Animations API for compositor-thread execution. Set to false to force rAF. */
     useWAAPI: boolean;
+
+    colorSpace?: string;
+
+    hueMethod?: HueInterpolationMethod;
 }>;
 
 export const defaultOptions: AnimationOptions = {
@@ -96,6 +106,7 @@ export const defaultOptions: AnimationOptions = {
     fillMode: "forwards",
     timingFunction: easeInOutCubic,
     useWAAPI: true,
+    colorSpace: "oklab",
 };
 
 export type BlendMode = "replace" | "add" | "weighted";

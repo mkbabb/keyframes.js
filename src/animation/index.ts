@@ -80,6 +80,16 @@ export class Animation<V extends Vars = any> {
 
     private resolvePromise: ((value: void | PromiseLike<void>) => void) | null = null;
 
+    private dispatchAnimationEvent(type: string) {
+        if (typeof AnimationEvent === "undefined") return;
+        for (const target of this.targets) {
+            target.dispatchEvent(new AnimationEvent(type, {
+                animationName: this.name ?? "",
+                elapsedTime: this.t / 1000,
+            }));
+        }
+    }
+
     constructor(
         options?: Partial<InputAnimationOptions>,
         targets?: HTMLElement[] | HTMLElement | undefined,
@@ -220,6 +230,8 @@ export class Animation<V extends Vars = any> {
                 startIx,
                 endIx,
                 this.parsedVars,
+                this.options.colorSpace,
+                this.options.hueMethod,
             );
 
             if (frameIx === -1) {
@@ -336,7 +348,7 @@ export class Animation<V extends Vars = any> {
         this.reversed = false;
         if (
             this.options.direction === "reverse" ||
-            this.options.direction === "alternate-reverse" ||
+            (this.options.direction === "alternate-reverse" && this.iteration % 2 === 0) ||
             (this.options.direction === "alternate" && this.iteration % 2 === 1)
         ) {
             this.reversed = true;
@@ -355,6 +367,16 @@ export class Animation<V extends Vars = any> {
         return this;
     }
 
+    setColorSpace(colorSpace: InputAnimationOptions["colorSpace"]) {
+        this.options.colorSpace = colorSpace ?? "oklab";
+        return this;
+    }
+
+    setHueMethod(hueMethod: InputAnimationOptions["hueMethod"]) {
+        this.options.hueMethod = hueMethod;
+        return this;
+    }
+
     setOptions(options: Partial<InputAnimationOptions>) {
         this.setTimingFunction(options.timingFunction);
         this.setDuration(options.duration);
@@ -363,6 +385,8 @@ export class Animation<V extends Vars = any> {
         this.setDirection(options.direction);
         this.setFillMode(options.fillMode);
         this.setUseWAAPI(options.useWAAPI);
+        this.setColorSpace(options.colorSpace);
+        this.setHueMethod(options.hueMethod);
         return this;
     }
 
@@ -418,7 +442,7 @@ export class Animation<V extends Vars = any> {
 
         if (
             this.options.direction === "reverse" ||
-            this.options.direction === "alternate-reverse" ||
+            (this.options.direction === "alternate-reverse" && this.iteration % 2 === 0) ||
             (this.options.direction === "alternate" && this.iteration % 2 === 1)
         ) {
             this.reverse();
@@ -449,11 +473,13 @@ export class Animation<V extends Vars = any> {
 
         this.startTime = undefined;
 
-        if (this.iteration === this.options.iterationCount - 1) {
+        if (this.iteration >= this.options.iterationCount - 1) {
             this.done = true;
             this.iteration = 0;
+            this.dispatchAnimationEvent("animationend");
         } else {
             this.iteration += 1;
+            this.dispatchAnimationEvent("animationiteration");
         }
     }
 
@@ -461,6 +487,7 @@ export class Animation<V extends Vars = any> {
         if (this.startTime === undefined) {
             await this.onStart();
             this.startTime = t + this.options.delay;
+            this.dispatchAnimationEvent("animationstart");
         }
 
         if (this.paused && this.pausedTime === 0) {
@@ -648,7 +675,11 @@ export class CSSKeyframesAnimation<V extends Vars> extends Animation<V> {
         const p = parseCSSKeyframes(keyframes);
 
         for (const [percent, frame] of p.entries()) {
-            this.addFrame(percent, frame, transform);
+            const tfValue = frame.animationTimingFunction ?? frame.timingFunction;
+            delete frame.animationTimingFunction;
+            delete frame.timingFunction;
+            const resolvedTF = tfValue ? getTimingFunction(tfValue.toString()) : undefined;
+            this.addFrame(percent, frame, transform, resolvedTF);
             this.parsedVars.push(frame);
         }
 

@@ -113,4 +113,82 @@ describe("parseCSSKeyframes", () => {
         const frames = parseCSSKeyframes(input);
         expect(frames.size).toBe(2);
     });
+
+    it("strips CSS comments and parses correctly", () => {
+        const input = /*css*/ `
+            @keyframes test {
+                /* Start frame */
+                0% {
+                    opacity: 0; /* fully transparent */
+                }
+                /* End frame */
+                100% {
+                    opacity: 1;
+                }
+            }
+        `;
+
+        const frames = parseCSSKeyframes(input);
+        expect(frames.size).toBe(2);
+        expect(frames.has("0%")).toBe(true);
+        expect(frames.has("100%")).toBe(true);
+    });
+
+    it("ignores !important in keyframe declarations", () => {
+        const input = /*css*/ `
+            @keyframes test {
+                0% {
+                    opacity: 0 !important;
+                }
+                100% {
+                    opacity: 1 !important;
+                }
+            }
+        `;
+
+        const frames = parseCSSKeyframes(input);
+        expect(frames.size).toBe(2);
+        expect(frames.has("0%")).toBe(true);
+        expect(frames.has("100%")).toBe(true);
+    });
+
+    it("handles optional trailing semicolons", () => {
+        const input = /*css*/ `
+            @keyframes test {
+                0% {
+                    opacity: 0
+                }
+                100% {
+                    opacity: 1
+                }
+            }
+        `;
+
+        const frames = parseCSSKeyframes(input);
+        expect(frames.size).toBe(2);
+        expect(frames.has("0%")).toBe(true);
+        expect(frames.has("100%")).toBe(true);
+    });
+
+    it("parses per-keyframe animation-timing-function", () => {
+        const input = /*css*/ `
+            @keyframes test {
+                0% {
+                    opacity: 0;
+                    animation-timing-function: cubic-bezier(0.42, 0, 1, 1);
+                }
+                100% {
+                    opacity: 1;
+                }
+            }
+        `;
+
+        const frames = parseCSSKeyframes(input);
+        expect(frames.size).toBe(2);
+        expect(frames.has("0%")).toBe(true);
+        // The timing function should be parsed as part of the frame
+        const frame0 = frames.get("0%");
+        expect(frame0).toBeDefined();
+        expect(frame0.animationTimingFunction).toBeDefined();
+    });
 });

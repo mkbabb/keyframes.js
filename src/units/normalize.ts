@@ -1,4 +1,4 @@
-import type { InterpolatedVar } from "@mkbabb/value.js";
+import type { InterpolatedVar, HueInterpolationMethod } from "@mkbabb/value.js";
 import { ValueUnit } from ".";
 import { parseCSSKeyframesValue } from "../parsing/keyframes";
 import { parseCSSValueUnit } from "../parsing/units";
@@ -164,7 +164,7 @@ export const normalizeNumericUnits = (
     }
 };
 
-export function normalizeValueUnits(left: ValueUnit, right: ValueUnit) {
+export function normalizeValueUnits(left: ValueUnit, right: ValueUnit, colorSpace: string = "oklab", hueMethod?: HueInterpolationMethod) {
     left = left.coalesce(right, true);
     right = right.coalesce(left, true);
 
@@ -178,8 +178,11 @@ export function normalizeValueUnits(left: ValueUnit, right: ValueUnit) {
         const [leftCollapsed, rightCollapsed] = normalizeColorUnits(
             left as any,
             right as any,
-            "lab",
+            colorSpace as any,
             true,
+            false,
+            false,
+            hueMethod,
         );
 
         out.start = leftCollapsed;

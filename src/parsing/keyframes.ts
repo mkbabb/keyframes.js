@@ -2,7 +2,19 @@ import { Parser, all, any, regex, string, whitespace } from "@mkbabb/parse-that"
 import { FunctionValue, ValueArray, ValueUnit } from "../units";
 import { camelCaseToHyphen, hyphenToCamelCase, memoize } from "../utils";
 import { CSSValueUnit } from "./units";
-import { istring, identifier, number, tryParse } from "./utils";
+import { identifier, number, tryParse } from "./utils";
+
+// Import shared parsers from value.js instead of duplicating them
+import { CSSFunction } from "@mkbabb/value.js";
+
+const stripCSSComments = (input: string): string =>
+    input.replace(/\/\*[\s\S]*?\*\//g, "");
+
+const stripImportant = (input: string): string =>
+    input.replace(/\s*!important/gi, "");
+
+const sanitizeCSSInput = (input: string): string =>
+    stripImportant(stripCSSComments(input));
 
 const lparen = string("(");
 const rparen = string(")");
@@ -15,176 +27,9 @@ const dot = string(".");
 
 const ws = whitespace;
 
-const FunctionArgs: Parser<ValueArray> = Parser.lazy(() =>
-    Value.sepBy(any(comma, ws))
-        .trim(ws)
-        .map((v: ValueUnit[]) => new ValueArray(...v)),
-);
-
-const handleFunc = (name?: Parser<any>) => {
-    return all(
-        name ? name : identifier,
-        FunctionArgs.wrap(lparen, rparen),
-    );
-};
-
-const handleVar = () => {
-    const varContent = regex(/[^)]+/);
-    return string("var")
-        .next(varContent.trim(ws).wrap(lparen, rparen))
-        .map((value: string) => {
-            return new ValueUnit(value, "var");
-        });
-};
-
-const handleCalc = () => {
-    const calcContent: Parser<string[]> = Parser.lazy(() =>
-        any(
-            regex(/[^()]+/),
-            calcContent
-                .many(1)
-                .wrap(lparen, rparen)
-                .map((nested: string[][]) => `(${nested.join(" ")})`),
-        ).many(1),
-    );
-
-    return string("calc")
-        .next(
-            any(
-                Parser.lazy(() => Value).trim(ws)
-                    .wrap(lparen, rparen),
-                calcContent
-                    .wrap(lparen, rparen)
-                    .map((parts: unknown) => (parts as string[]).join(" ")),
-            ),
-        )
-        .map((v: any) => {
-            return v instanceof ValueUnit ? v : new ValueUnit(v, "calc");
-        });
-};
-
-const TRANSFORM_FUNCTIONS = ["translate", "scale", "rotate", "skew"];
-const TRANSFORM_DIMENSIONS = ["x", "y", "z"];
-
-const transformDimensions = TRANSFORM_DIMENSIONS.map(istring);
-const transformFunctions = TRANSFORM_FUNCTIONS.map(istring);
-
-const handleTransform = () => {
-    const nameParser = all(
-        any(...transformFunctions),
-        any(...transformDimensions, string("")),
-    );
-
-    const makeTransformName = (name: string, dim: string) => {
-        return name + dim.toUpperCase();
-    };
-
-    const p = handleFunc(nameParser);
-
-    return p.map(([[name, dim], values]: any) => {
-        const lowerName = (name as string).toLowerCase();
-
-        const transformObject: Record<string, any> = {};
-
-        if (dim) {
-            const newName = lowerName + (dim as string).toUpperCase();
-            transformObject[newName] = values[0];
-        } else if (values.length === 1) {
-            TRANSFORM_DIMENSIONS.forEach((d) => {
-                const newName = makeTransformName(lowerName, d);
-                transformObject[newName] = values[0];
-            });
-        } else {
-            values.forEach((v: any, i: number) => {
-                const newName = makeTransformName(lowerName, TRANSFORM_DIMENSIONS[i]);
-                transformObject[newName] = v;
-            });
-        }
-
-        const newValues = Object.entries(transformObject).map(([k, v]) => {
-            return new FunctionValue(k, [v as any]);
-        });
-
-        return new ValueArray(...newValues);
-    });
-};
-
-const gradientDirections: Record<string, string> = {
-    left: "270",
-    right: "90",
-    top: "0",
-    bottom: "180",
-};
-
-const handleGradient = () => {
-    const name = any(...["linear-gradient", "radial-gradient"].map(istring));
-    const sideOrCorner = all(
-        string("to").skip(ws),
-        any(...["left", "right", "top", "bottom"].map(istring)),
-    ).map(([, direction]: [string, string]) => {
-        const dir = gradientDirections[direction.toLowerCase()];
-        return new ValueUnit(dir, "deg");
-    });
-
-    const direction = any(CSSValueUnit.Angle, sideOrCorner);
-
-    const lengthPercentage = any(CSSValueUnit.Length, CSSValueUnit.Percentage);
-
-    const linearColorStop = all(
-        CSSValueUnit.Color,
-        lengthPercentage.sepBy(ws),
-    ).map(([color, stops]: [any, any]) => {
-        if (!stops || stops.length === 0) {
-            return [color];
-        } else {
-            return [color, ...stops];
-        }
-    });
-
-    const colorStopList = all(
-        linearColorStop,
-        comma.trim(ws).next(any(linearColorStop, lengthPercentage)).many(),
-    ).map(([first, rest]: [any, any[]]) => {
-        return [first, ...rest];
-    });
-
-    const linearGradient = all(
-        name,
-        all(direction.skip(comma).opt(), colorStopList)
-            .trim(ws)
-            .wrap(lparen, rparen)
-            .map(([dir, stops]: [any, any]) => {
-                if (!dir) {
-                    return [stops];
-                } else {
-                    return [dir, ...stops].flat();
-                }
-            }),
-    ).map(([name, values]: [string, any[]]) => {
-        return new FunctionValue(name, values as any[]);
-    });
-
-    return linearGradient;
-};
-
-const handleCubicBezier = () => {
-    return handleFunc(string("cubic-bezier")).map((v: any) => {
-        return new FunctionValue("cubic-bezier", v[1]);
-    });
-};
-
-const CSSString = regex(/[^\(\)\{\}\s,;]+/).map((x: string) => new ValueUnit(x));
-
-const Function_: Parser<any> = any(
-    handleTransform(),
-    handleVar(),
-    handleCalc(),
-    handleGradient(),
-    handleCubicBezier(),
-    handleFunc().map(([name, values]: [string, any]) => {
-        return new FunctionValue(name, values);
-    }),
-);
+// Use value.js shared parsers for transforms, gradients, var(), calc(), etc.
+// These were previously duplicated here — now they come from CSSFunction.Function
+const Function_ = CSSFunction.Function;
 
 const JSON_: Parser<any> = all(lcurly, regex(/[^{}]+/), rcurly).map(
     (x: string[]) => {
@@ -194,7 +39,7 @@ const JSON_: Parser<any> = all(lcurly, regex(/[^{}]+/), rcurly).map(
     },
 );
 
-const Value: Parser<any> = any(CSSValueUnit.Value, Function_, JSON_, CSSString).trim(ws);
+const Value: Parser<any> = any(CSSValueUnit.Value, Function_, JSON_, regex(/[^\(\)\{\}\s,;]+/).map((x: string) => new ValueUnit(x))).trim(ws);
 
 const Values = Value.sepBy(ws);
 
@@ -203,7 +48,7 @@ const Variables = all(
         .skip(colon)
         .trim(ws)
         .map((x: string) => hyphenToCamelCase(x)),
-    Values.skip(semi).trim(ws),
+    Values.skip(semi.opt()).trim(ws),
 ).map(([name, values]: [string, any[]]) => {
     const va = new ValueArray(...values).flat() as any;
     va.setProperty(name);
@@ -297,7 +142,7 @@ const AnimationValues = AnimationValue.sepBy(ws).map((values: any[]) => {
 export const CSSKeyframes = {
     Value,
     Values,
-    FunctionArgs,
+    FunctionArgs: CSSFunction.FunctionArgs,
     Function: Function_,
     JSON: JSON_,
     Body,
@@ -316,16 +161,16 @@ export const CSSAnimationKeyframes = {
 
 export const parseCSSKeyframesValue = memoize(
     (input: string): ValueUnit | FunctionValue => {
-        return tryParse(Value, input);
+        return tryParse(Value, sanitizeCSSInput(input));
     },
 );
 
 export const parseCSSKeyframes = memoize(
-    (input: string): Map<string, any> => tryParse(Keyframes, input),
+    (input: string): Map<string, any> => tryParse(Keyframes, sanitizeCSSInput(input)),
 );
 
 export const parseCSSAnimationKeyframes = memoize((input: string) => {
-    const { options, values, keyframes } = tryParse(AnimationValues, input);
+    const { options, values, keyframes } = tryParse(AnimationValues, sanitizeCSSInput(input));
     return {
         options,
         values,

@@ -8,6 +8,7 @@ import { COMPUTED_UNITS } from "../units/constants";
 import { getComputedValue, normalizeValueUnits } from "../units/normalize";
 import { flattenObject, isCSSStyleName, unflattenObjectToString } from "../units/utils";
 import type {
+    HueInterpolationMethod,
     InterpolatedVar,
     TemplateAnimationFrame,
     TimingFunction,
@@ -147,6 +148,8 @@ export const createInterpVarValue = (
     startIx: number,
     endIx: number,
     vars: any[],
+    colorSpace: string = "oklab",
+    hueMethod?: HueInterpolationMethod,
 ) => {
     const left = vars[startIx][v];
     const right = vars[endIx][v];
@@ -160,7 +163,7 @@ export const createInterpVarValue = (
         Array(Math.abs(maxLength - right.length)).fill(new ValueUnit(0)),
     );
 
-    return newLeft.map((l: any, i: any) => normalizeValueUnits(l, newRight[i]));
+    return newLeft.map((l: any, i: any) => normalizeValueUnits(l, newRight[i], colorSpace, hueMethod));
 };
 
 export function calcFrameTime<V extends Vars>(
