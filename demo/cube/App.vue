@@ -9,8 +9,8 @@
         <div
             class="pointer-events-none absolute top-0 left-0 right-0 z-50 flex items-center justify-between p-2 lg:p-4"
         >
-            <!-- Left: PP + @mbabb -->
-            <div class="flex items-center gap-2 lg:gap-4">
+            <!-- Left: PP + @mbabb (mobile only) -->
+            <div class="flex lg:hidden items-center gap-2">
                 <HoverCard
                     :open-delay="0"
                     v-model:open="hoverCardStates.ppmycota"
@@ -87,8 +87,82 @@
                 </HoverCard>
             </div>
 
-            <!-- Right: Share + Dark mode -->
+            <!-- Right: PP + @mbabb (desktop) + Share + Dark mode -->
             <div class="flex items-center gap-2 lg:gap-4">
+                <HoverCard
+                    :open-delay="0"
+                    v-model:open="hoverCardStates.ppmycota"
+                    class="pointer-events-auto hidden lg:block"
+                >
+                    <HoverCardTrigger
+                        ><div
+                            @click="
+                                (e) => {
+                                    hoverCardStates.ppmycota = true;
+                                    setPPMode();
+                                }
+                            "
+                            class="ppmycota-logo-sm pointer-events-auto m-0 h-12 w-12 cursor-pointer stroke-2 p-0
+                                font-bold hover:scale-105"
+                        ></div>
+                    </HoverCardTrigger>
+                    <HoverCardContent class="pointer-events-auto z-[100]">
+                        <div class="h-fit-content flex gap-4 p-4">
+                            <div
+                                class="ppmycota-logo-sm z-20 h-12 w-12 cursor-pointer stroke-2 font-bold
+                                    hover:scale-105"
+                            ></div>
+                            <div>
+                                <h4 class="fraunces">🙂‍↔️ 🌱 🍄‍🟫</h4>
+                                <p>
+                                    <a
+                                        class="fraunces font-bold hover:underline"
+                                        href="https://ppmycota.com"
+                                        >ppmycota.com</a
+                                    >
+                                </p>
+                            </div>
+                        </div>
+                    </HoverCardContent>
+                </HoverCard>
+
+                <HoverCard
+                    v-model:open="hoverCardStates.mbabb"
+                    :open-delay="0"
+                    class="hidden lg:block"
+                >
+                    <HoverCardTrigger
+                        @click="hoverCardStates.mbabb = true"
+                        class="fira-code pointer-events-auto"
+                        ><Button class="m-0 cursor-pointer p-0" variant="link"
+                            >@mbabb</Button
+                        >
+                    </HoverCardTrigger>
+                    <HoverCardContent class="pointer-events-auto z-[100]">
+                        <div class="fira-code flex gap-4 p-4">
+                            <Avatar>
+                                <AvatarImage
+                                    src="https://avatars.githubusercontent.com/u/2848617?v=4"
+                                >
+                                </AvatarImage>
+                            </Avatar>
+                            <div>
+                                <h4 class="text-sm font-semibold hover:underline">
+                                    <a href="https://github.com/mkbabb">@mbabb</a>
+                                </h4>
+                                <p>
+                                    Check out the project on
+                                    <a
+                                        class="font-bold hover:underline"
+                                        href="https://github.com/mkbabb/keyframes.js"
+                                        >GitHub</a
+                                    >🎉
+                                </p>
+                            </div>
+                        </div>
+                    </HoverCardContent>
+                </HoverCard>
+
                 <Popover v-model:open="sharePopoverOpen">
                     <PopoverTrigger as-child>
                         <Share2
