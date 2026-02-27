@@ -45,9 +45,9 @@ export function isWAAPIEligible(animation: Animation): boolean {
 
     // 3. All frames must use the same timing function
     if (animation.frames.length > 1) {
-        const firstTF = animation.frames[0].timingFunction;
+        const firstTF = animation.frames[0]!.timingFunction;
         for (let i = 1; i < animation.frames.length; i++) {
-            if (animation.frames[i].timingFunction !== firstTF) {
+            if (animation.frames[i]!.timingFunction !== firstTF) {
                 return false;
             }
         }

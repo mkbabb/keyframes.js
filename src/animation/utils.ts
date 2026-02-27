@@ -65,8 +65,8 @@ export function lerpObjectValue(
     Object.keys(start.value as Record<string, number>).forEach((key) => {
         (value.value as Record<string, number>)[key] = lerp(
             t,
-            (start.value as Record<string, number>)[key],
-            (stop.value as Record<string, number>)[key],
+            (start.value as Record<string, number>)[key]!,
+            (stop.value as Record<string, number>)[key]!,
         );
     });
     return value;

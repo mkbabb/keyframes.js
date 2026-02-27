@@ -633,7 +633,7 @@ const applyCSSStyles = () => {
 
     if (wasApplied) {
         animation.paused = prevPaused.value;
-        keyframesStyle.value!.innerHTML = "";
+        keyframesStyle.value!.textContent = "";
 
         animation.targets.forEach((t) => t.classList.remove(keyframesStyleId));
 
@@ -642,7 +642,7 @@ const applyCSSStyles = () => {
         prevPaused.value = animation.paused;
         animation.paused = animation.started;
 
-        keyframesStyle.value!.innerHTML = cssKeyframesString.value;
+        keyframesStyle.value!.textContent = cssKeyframesString.value;
 
         animation.targets.forEach((t) => t.classList.add(keyframesStyleId));
 
@@ -678,7 +678,7 @@ const setCodeTheme = () => {
         return;
     }
 
-    hljsStyle.value.innerHTML = isDark.value ? githubDark : githubLight;
+    hljsStyle.value.textContent = isDark.value ? githubDark : githubLight;
 };
 watch(isDark, () => {
     setCodeTheme();

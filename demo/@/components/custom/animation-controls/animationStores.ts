@@ -71,19 +71,39 @@ const touchTimestamp = <T extends { _storeTimestamp?: number }>(store: { value: 
     store.value._storeTimestamp = Date.now();
 };
 
-const animationGroupsOptionsStore = useStorage(
-    "animation-groups-options-store",
-    { _storeTimestamp: Date.now() } as StoredAnimationGroupsOptions,
-);
+let _animationGroupsOptionsStore: ReturnType<typeof useStorage<StoredAnimationGroupsOptions>> | null = null;
+const getAnimationGroupsOptionsStore = (): ReturnType<typeof useStorage<StoredAnimationGroupsOptions>> => {
+    if (!_animationGroupsOptionsStore) {
+        try {
+            _animationGroupsOptionsStore = useStorage(
+                "animation-groups-options-store",
+                { _storeTimestamp: Date.now() } as StoredAnimationGroupsOptions,
+            );
+            checkAndResetExpiredStore(_animationGroupsOptionsStore, { _storeTimestamp: Date.now() });
+        } catch {
+            // Safari private browsing or no localStorage — fall back to a plain ref
+            _animationGroupsOptionsStore = ref({ _storeTimestamp: Date.now() } as StoredAnimationGroupsOptions) as any;
+        }
+    }
+    return _animationGroupsOptionsStore!;
+};
 
-const animationGroupsControlOptionsStore = useStorage(
-    "animation-groups-control-options-store",
-    { _storeTimestamp: Date.now() } as StoredAnimationGroupsControlOptions,
-);
-
-// Check TTL on module load
-checkAndResetExpiredStore(animationGroupsOptionsStore, { _storeTimestamp: Date.now() });
-checkAndResetExpiredStore(animationGroupsControlOptionsStore, { _storeTimestamp: Date.now() } as any);
+let _animationGroupsControlOptionsStore: ReturnType<typeof useStorage<StoredAnimationGroupsControlOptions>> | null = null;
+const getAnimationGroupsControlOptionsStore = (): ReturnType<typeof useStorage<StoredAnimationGroupsControlOptions>> => {
+    if (!_animationGroupsControlOptionsStore) {
+        try {
+            _animationGroupsControlOptionsStore = useStorage(
+                "animation-groups-control-options-store",
+                { _storeTimestamp: Date.now() } as StoredAnimationGroupsControlOptions,
+            );
+            checkAndResetExpiredStore(_animationGroupsControlOptionsStore, { _storeTimestamp: Date.now() } as StoredAnimationGroupsControlOptions);
+        } catch {
+            // Safari private browsing or no localStorage — fall back to a plain ref
+            _animationGroupsControlOptionsStore = ref({ _storeTimestamp: Date.now() } as StoredAnimationGroupsControlOptions) as any;
+        }
+    }
+    return _animationGroupsControlOptionsStore!;
+};
 
 export const getAnimationSuperKey = (
     superKey: Animation<any> | string | undefined,
@@ -105,6 +125,7 @@ export const getStoredAnimationOptions = (
     superKey = getAnimationSuperKey(superKey, animationId);
     animationId = getAnimationId(animationId!);
 
+    const animationGroupsOptionsStore = getAnimationGroupsOptionsStore();
     touchTimestamp(animationGroupsOptionsStore);
 
     let animationGroupOptions = animationGroupsOptionsStore.value[superKey] as StoredAnimationGroupOptions | undefined;
@@ -117,16 +138,17 @@ export const getStoredAnimationOptions = (
         animationGroupOptions = animationGroupsOptionsStore.value[superKey] as StoredAnimationGroupOptions;
     }
 
+    const existing = animationGroupOptions[animationId];
     if (
-        !animationGroupOptions[animationId] ||
-        Object.keys(animationGroupOptions[animationId]).length === 0
+        !existing ||
+        Object.keys(existing).length === 0
     ) {
         (animationGroupsOptionsStore.value[superKey] as StoredAnimationGroupOptions)[animationId] = JSON.parse(
             JSON.stringify(defaultStoredAnimationOptions),
         );
     }
 
-    return (animationGroupsOptionsStore.value[superKey] as StoredAnimationGroupOptions)[animationId];
+    return (animationGroupsOptionsStore.value[superKey] as StoredAnimationGroupOptions)[animationId]!;
 };
 
 export const createAnimationUUId = (
@@ -161,6 +183,7 @@ export const getStoredAnimationGroupControlOptions = (
 ): StoredAnimationGroupControlOptions => {
     superKey = getAnimationSuperKey(superKey, superKey);
 
+    const animationGroupsControlOptionsStore = getAnimationGroupsControlOptionsStore();
     touchTimestamp(animationGroupsControlOptionsStore);
 
     if (!animationGroupsControlOptionsStore.value[superKey]) {
@@ -173,8 +196,8 @@ export const getStoredAnimationGroupControlOptions = (
 };
 
 export const resetAllStores = () => {
-    animationGroupsOptionsStore.value = { _storeTimestamp: Date.now() };
-    animationGroupsControlOptionsStore.value = { _storeTimestamp: Date.now() };
+    getAnimationGroupsOptionsStore().value = { _storeTimestamp: Date.now() };
+    getAnimationGroupsControlOptionsStore().value = { _storeTimestamp: Date.now() };
 };
 
 export const deepDefaultStore = (store: any, defaultStore: any) => {
@@ -206,23 +229,31 @@ export const decodeStateFromHash = (hash: string): object | null => {
 
 export const getAllState = (): object => {
     // Strip _storeTimestamp so the same logical state always produces the same hash
-    const { _storeTimestamp: _1, ...options } = animationGroupsOptionsStore.value;
-    const { _storeTimestamp: _2, ...controls } = animationGroupsControlOptionsStore.value;
+    const { _storeTimestamp: _1, ...options } = getAnimationGroupsOptionsStore().value;
+    const { _storeTimestamp: _2, ...controls } = getAnimationGroupsControlOptionsStore().value;
     return { options, controls };
+};
+
+const isValidState = (state: unknown): state is { options?: object; controls?: object } => {
+    if (typeof state !== "object" || state === null) return false;
+    const s = state as Record<string, unknown>;
+    if (s.options !== undefined && (typeof s.options !== "object" || s.options === null)) return false;
+    if (s.controls !== undefined && (typeof s.controls !== "object" || s.controls === null)) return false;
+    return true;
 };
 
 export const restoreStateFromHash = () => {
     const hash = window.location.hash.slice(1);
     if (!hash) return false;
 
-    const state = decodeStateFromHash(hash) as any;
-    if (!state) return false;
+    const state = decodeStateFromHash(hash);
+    if (!state || !isValidState(state)) return false;
 
     if (state.options) {
-        Object.assign(animationGroupsOptionsStore.value, state.options);
+        Object.assign(getAnimationGroupsOptionsStore().value, state.options);
     }
     if (state.controls) {
-        Object.assign(animationGroupsControlOptionsStore.value, state.controls);
+        Object.assign(getAnimationGroupsControlOptionsStore().value, state.controls);
     }
 
     // Clear hash after restoring to avoid stale state

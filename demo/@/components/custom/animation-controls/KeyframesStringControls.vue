@@ -128,7 +128,7 @@ import {
 
 import { Input } from "@components/ui/input";
 
-import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
+import { computed, onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
 
 import CopyButton from "@components/custom/CopyButton.vue";
 
@@ -234,6 +234,7 @@ storedControls.keyframeControls ??= defaultKeyframeControls;
 const cssKeyframesStringEl = useTemplateRef<HTMLElement>("cssKeyframesStringEl");
 const cssKeyframesString = ref("");
 const isFormatting = ref(false);
+let formattingTimeoutId: ReturnType<typeof setTimeout> | undefined;
 const cssApplied = ref(false);
 
 const addKeyframesEl = useTemplateRef<HTMLElement>("addKeyframesEl");
@@ -277,7 +278,8 @@ const formatCSSKeyframesString = async (
     isFormatting.value = true;
     editor.setValue(keyframesString);
     editor.setPosition(cursorPosition!);
-    setTimeout(() => { isFormatting.value = false; }, 300);
+    clearTimeout(formattingTimeoutId);
+    formattingTimeoutId = setTimeout(() => { isFormatting.value = false; }, 300);
 
     toast.success("Keyframes formatted");
 
@@ -481,14 +483,14 @@ const prevPaused = ref(false);
 const applyCSSStyles = () => {
     if (cssApplied.value) {
         animation.paused = prevPaused.value;
-        keyframesStyle.value!.innerHTML = "";
+        keyframesStyle.value!.textContent = "";
         animation.targets.forEach((t) => t.classList.remove(getTmpAnimationName()));
         brushAnimation.pause();
         cssApplied.value = false;
     } else {
         prevPaused.value = animation.paused;
         animation.paused = animation.started;
-        keyframesStyle.value!.innerHTML = cssKeyframesString.value;
+        keyframesStyle.value!.textContent = cssKeyframesString.value;
         animation.targets.forEach((t) => t.classList.add(getTmpAnimationName()));
         brushAnimation.play();
         cssApplied.value = true;
@@ -573,6 +575,11 @@ onMounted(async () => {
     });
 
     parseErrorShake.setTargets(cssKeyframesStringEl.value!);
+});
+
+onUnmounted(() => {
+    clearTimeout(formattingTimeoutId);
+    cssKeyframesStringEditor?.dispose();
 });
 </script>
 

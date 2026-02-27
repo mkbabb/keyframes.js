@@ -97,7 +97,7 @@ function clearContainer(container: HTMLElement) {
 
 function percentile(sorted: number[], p: number): number {
     const idx = Math.floor((p / 100) * sorted.length);
-    return sorted[Math.min(idx, sorted.length - 1)];
+    return sorted[Math.min(idx, sorted.length - 1)]!;
 }
 
 function measureFrames(durationMs: number): Promise<{ deltas: number[]; jsTimePerFrame: number[] }> {

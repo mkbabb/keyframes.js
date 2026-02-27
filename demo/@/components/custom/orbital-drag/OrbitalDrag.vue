@@ -2,14 +2,6 @@
     <div
         ref="containerRef"
         @mousedown="startDrag"
-        @mousemove="drag"
-        @mouseup="stopDrag"
-        @touchstart="startDrag"
-        @touchmove="drag"
-        @touchend="stopDrag"
-        @gesturestart="startGesture"
-        @gesturechange="gesture"
-        @gestureend="stopGesture"
     >
         <slot></slot>
     </div>

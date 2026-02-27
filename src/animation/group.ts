@@ -49,7 +49,7 @@ export class AnimationGroup<V extends Vars> {
                 layerConfig = input.layer;
             }
 
-            this.transform ??= animation.frames[0].transform;
+            this.transform ??= animation.frames[0]!.transform;
 
             const name = getAnimationId(animation);
 
@@ -64,7 +64,7 @@ export class AnimationGroup<V extends Vars> {
         }
 
         this.singleTarget = animations.every(
-            (animation) => animation.targets[0] === animations[0].targets[0],
+            (animation) => animation.targets[0] === animations[0]?.targets[0],
         );
     }
 
@@ -86,7 +86,7 @@ export class AnimationGroup<V extends Vars> {
         );
 
         this.singleTarget = animations.every(
-            (animation) => animation.targets[0] === animations[0].targets[0],
+            (animation) => animation.targets[0] === animations[0]?.targets[0],
         );
 
         return this;
@@ -193,14 +193,16 @@ export class AnimationGroup<V extends Vars> {
             this.onStart();
         }
 
-        Object.values(this.animations).forEach(async (groupObject) => {
-            if (
-                !groupObject.animation.paused ||
-                groupObject.animation.pausedTime === 0
-            ) {
-                await groupObject.animation.tick(t);
-            }
-        });
+        await Promise.all(
+            Object.values(this.animations).map(async (groupObject) => {
+                if (
+                    !groupObject.animation.paused ||
+                    groupObject.animation.pausedTime === 0
+                ) {
+                    await groupObject.animation.tick(t);
+                }
+            }),
+        );
 
         if (this.done) {
             this.onEnd();

@@ -26,6 +26,7 @@ import type {
     Vars,
 } from "./constants";
 import { AnimationGroup } from "./group";
+export { AnimationGroup } from "./group";
 import {
     calcFrameTime,
     createInterpVarValue,
@@ -79,6 +80,7 @@ export class Animation<V extends Vars = any> {
     unflatten: boolean = true;
 
     private resolvePromise: ((value: void | PromiseLike<void>) => void) | null = null;
+    private _playingPromise: Promise<void> | null = null;
 
     private dispatchAnimationEvent(type: string) {
         if (typeof AnimationEvent === "undefined") return;
@@ -157,10 +159,8 @@ export class Animation<V extends Vars = any> {
     }
 
     createFrame(startIx: number, endIx: number): AnimationFrame<V> {
-        const [startFrame, endFrame] = [
-            this.templateFrames[startIx],
-            this.templateFrames[endIx],
-        ];
+        const startFrame = this.templateFrames[startIx]!;
+        const endFrame = this.templateFrames[endIx]!;
 
         const ixs = {
             start: startIx,
@@ -177,7 +177,7 @@ export class Animation<V extends Vars = any> {
                 this.frames,
                 (f) => f.transform != null,
             )!;
-            transform = this.frames[transformIx].transform;
+            transform = this.frames[transformIx]!.transform;
         }
 
         let timingFunction = startFrame.timingFunction;
@@ -187,7 +187,7 @@ export class Animation<V extends Vars = any> {
                 this.frames,
                 (f) => f.timingFunction != null,
             )!;
-            timingFunction = this.frames[timingFunctionIx].timingFunction;
+            timingFunction = this.frames[timingFunctionIx]!.timingFunction;
         }
 
         const id = this.frameId++;
@@ -222,7 +222,7 @@ export class Animation<V extends Vars = any> {
             );
             const frame =
                 frameIx !== -1
-                    ? this.frames[frameIx]
+                    ? this.frames[frameIx]!
                     : this.createFrame(startIx, endIx);
 
             frame.interpVars[v] = createInterpVarValue(
@@ -306,8 +306,11 @@ export class Animation<V extends Vars = any> {
         ) {
             this.options.iterationCount = Infinity;
         } else if (typeof iterationCount === "string") {
-            this.options.iterationCount = parseFloat(iterationCount.trim());
+            const parsed = parseFloat(iterationCount.trim());
+            if (isNaN(parsed) || parsed < 0) return this;
+            this.options.iterationCount = parsed;
         } else {
+            if (isNaN(iterationCount) || iterationCount < 0) return this;
             this.options.iterationCount = iterationCount;
         }
         return this;
@@ -318,12 +321,14 @@ export class Animation<V extends Vars = any> {
             duration = parseCSSTime(duration);
         }
 
+        const d = duration ?? this.options.duration;
+        if (!isFinite(d) || d <= 0) return this;
+
         const prevDuration = this.options.duration;
-        const d = duration ?? prevDuration;
         const ratio = d / prevDuration;
 
         for (let i = 0; i < this.frames.length; i++) {
-            const frame = this.frames[i];
+            const frame = this.frames[i]!;
             frame.time.start *= ratio;
             frame.time.stop *= ratio;
         }
@@ -373,7 +378,9 @@ export class Animation<V extends Vars = any> {
     }
 
     setHueMethod(hueMethod: InputAnimationOptions["hueMethod"]) {
-        this.options.hueMethod = hueMethod;
+        if (hueMethod !== undefined) {
+            this.options.hueMethod = hueMethod;
+        }
         return this;
     }
 
@@ -409,7 +416,7 @@ export class Animation<V extends Vars = any> {
         const result: Record<string, any> = {};
 
         for (let i = 0; i < this.frames.length; i++) {
-            const frame = this.frames[i];
+            const frame = this.frames[i]!;
             const { start, stop } = frame.time;
 
             if (t < start || t > stop) {
@@ -423,7 +430,7 @@ export class Animation<V extends Vars = any> {
             for (let j = 0; j < interpVarValues.length; j++) {
                 const values = interpVarValues[j] as any[];
                 for (let k = 0; k < values.length; k++) {
-                    lerpValue(eased, values[k]);
+                    lerpValue(eased, values[k]!);
                 }
             }
 
@@ -453,9 +460,9 @@ export class Animation<V extends Vars = any> {
         }
 
         if (this.options.delay > 0) {
-            this.pause();
+            this.paused = true;
             await sleep(this.options.delay);
-            this.pause();
+            this.paused = false;
         }
 
         this.started = true;
@@ -557,24 +564,39 @@ export class Animation<V extends Vars = any> {
             return;
         }
 
+        if (this._playingPromise) return this._playingPromise;
+
+        let result: Promise<void>;
         if (
             this.options.useWAAPI &&
             this.targets.length > 0 &&
             typeof this.targets[0]?.animate === "function" &&
             isWAAPIEligible(this)
         ) {
-            return this._playWAAPI();
+            result = this._playWAAPI();
+        } else {
+            result = this._playRAF();
         }
 
-        return this._playRAF();
+        this._playingPromise = result;
+        result.finally(() => { this._playingPromise = null; });
+        return result;
     }
 
     pause(draw: boolean = true) {
         if (this.paused && draw) {
-            this.handleId = requestAnimationFrame(this.draw.bind(this));
+            return this.resume();
         }
         if (this.started) {
-            this.paused = !this.paused;
+            this.paused = true;
+        }
+        return this;
+    }
+
+    resume() {
+        if (this.started && this.paused) {
+            this.paused = false;
+            this.handleId = requestAnimationFrame(this.draw.bind(this));
         }
         return this;
     }
@@ -639,7 +661,7 @@ export class CSSKeyframesAnimation<V extends Vars> extends Animation<V> {
         transform ??= this.transform.bind(this);
 
         for (let i = 0; i < vars.length; i++) {
-            const v = vars[i];
+            const v = vars[i]!;
             const percent = Math.round((i / (vars.length - 1)) * 100);
             this.addFrame(percent, v, transform);
         }
@@ -677,13 +699,13 @@ export class CSSKeyframesAnimation<V extends Vars> extends Animation<V> {
         for (const [percent, cachedFrame] of p.entries()) {
             // Clone the frame to avoid mutating the memoized parse cache
             const frame = Object.fromEntries(
-                Object.entries(cachedFrame).map(([k, v]) => [k, v?.clone ? v.clone() : v]),
-            );
+                Object.entries(cachedFrame).map(([k, v]) => [k, (v as any)?.clone ? (v as any).clone() : v]),
+            ) as Record<string, any>;
             const tfValue = frame.animationTimingFunction ?? frame.timingFunction;
             delete frame.animationTimingFunction;
             delete frame.timingFunction;
             const resolvedTF = tfValue ? getTimingFunction(tfValue.toString()) : undefined;
-            this.addFrame(percent, frame, transform, resolvedTF);
+            this.addFrame(percent, frame as Partial<V>, transform, resolvedTF);
             this.parsedVars.push(frame);
         }
 

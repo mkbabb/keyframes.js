@@ -25,13 +25,14 @@
 
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from "vue";
+import { useEventListener } from "@vueuse/core";
 
 import OrbitalDrag from "../orbital-drag/OrbitalDrag.vue";
 import { getComputedValue } from "@src/units/normalize";
 import { CSSKeyframesAnimation } from "@src/animation";
 import { Animation } from "@src/animation/index";
 
-window.addEventListener("resize", () => {
+useEventListener(window, "resize", () => {
     getComputedValue.cache.clear();
 });
 
