@@ -8,3 +8,4 @@ my_venv/
 auth/
 _*
 dist/
+.playwright-mcp/
