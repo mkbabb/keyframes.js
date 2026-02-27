@@ -1,12 +1,12 @@
 # keyframes.js ![image](./assets/cube.png)
 
-Create keyframe animations for **anything** in JavaScript; specify your keyframes in standards-complaint CSS.
+CSS keyframe animations for anything in JavaScript. Specify your keyframes in standards-compliant CSS; animate any object, DOM element, or data structure.
 
-[demo 🌈](https://mkbabb.github.io/keyframes.js/)
+[demo](https://mkbabb.github.io/keyframes.js/)
 
-## Quick Start using `CSS`
+## Quick Start
 
-#### Create a new `CSSKeyframesAnimation` object:
+Create a `CSSKeyframesAnimation`, feed it CSS `@keyframes`, add targets, play:
 
 ```ts
 const anim = new CSSKeyframesAnimation({
@@ -15,307 +15,299 @@ const anim = new CSSKeyframesAnimation({
     direction: "alternate",
     fillMode: "forwards",
 });
-```
 
-#### Specify your keyframes in CSS:
-
-```css
-@keyframes mijn-keyframes {
-    from {
-        transform: translateX(-100%) translateY(-100%) rotate(0turn);
-        background-color: #C462D8;
+anim.fromString(`
+    @keyframes mijn-keyframes {
+        from {
+            transform: translateX(-100%) translateY(-100%) rotate(0turn);
+            background-color: #C462D8;
+        }
+        100% {
+            transform: translateX(50%) translateY(75%) rotate(1turn);
+            background-color: #E85252;
+        }
     }
-    100% {
-        transform: translateX(50%) translateY(75%) rotate(1turn);
-        background-color: #E85252;
-    }
-}
-```
+`);
 
-#### Add the keyframes to your animation, and add target elements to animate:
-
-```ts
-const CSSKeyframes = /* the above string */  ...
-anim.fromCSSKeyframes(CSSKeyframes);
-anim.addTargets(document.getElementById("myElement"));
-```
-
-#### Play ▶️
-
-```ts
+anim.setTargets(document.getElementById("myElement"));
 anim.play();
 ```
 
-This will animate the above element by way of its style properties, as specified in the keyframes. This is only the default behaviour; you can get far more funky with it.
+This animates the element's style properties as specified in the keyframes. The default behavior, but you can get far more inventive with it.
 
-The above is plucked directly from the [`demo/simple`](demo/simple/App.vue) Vue file.
+Plucked directly from the [`demo/simple`](demo/simple/App.vue) Vue file.
 
 ## Table of Contents
 
-- [keyframes.js ](#keyframesjs-)
-  - [Quick Start using `CSS`](#quick-start-using-css)
-      - [Create a new `CSSKeyframesAnimation` object:](#create-a-new-csskeyframesanimation-object)
-      - [Specify your keyframes in CSS:](#specify-your-keyframes-in-css)
-      - [Add the keyframes to your animation, and add target elements to animate:](#add-the-keyframes-to-your-animation-and-add-target-elements-to-animate)
-      - [Play ▶️](#play-️)
-  - [Table of Contents](#table-of-contents)
-  - [Installation](#installation)
-  - [`Animation`](#animation)
-    - [`AnimationOptions`:](#animationoptions)
-    - [The transform function](#the-transform-function)
-    - [The timing function](#the-timing-function)
-      - [Step Functions](#step-functions)
-      - [Bézier Curves](#bézier-curves)
-      - [Graphing Bézier Curves](#graphing-bézier-curves)
-      - [Just gimme the `t` value](#just-gimme-the-t-value)
-    - [`TemplateAnimationFrame`](#templateanimationframe)
-      - [Reification of a `TemplateAnimationFrame`](#reification-of-a-templateanimationframe)
-        - [Variable Resolution](#variable-resolution)
-  - [`CSSKeyframesAnimation`](#csskeyframesanimation)
-    - [Parsing CSS Keyframes; `keyframes.ts`](#parsing-css-keyframes-keyframests)
-    - [Units: `units.ts` \& `CSS Units`](#units-unitsts--css-units)
-      - [Unit class hierarchy](#unit-class-hierarchy)
-      - [Unit interpolation and resolution](#unit-interpolation-and-resolution)
+- [Installation](#installation)
+- [Project Structure](#project-structure)
+- [Animation](#animation)
+  - [AnimationOptions](#animationoptions)
+  - [Transform Function](#the-transform-function)
+  - [Timing Function](#the-timing-function)
+  - [TemplateAnimationFrame](#templateanimationframe)
+- [CSSKeyframesAnimation](#csskeyframesanimation)
+  - [Parsing CSS Keyframes](#parsing-css-keyframes)
+  - [Units](#units)
+- [AnimationGroup](#animationgroup)
+- [Presets](#presets)
+- [Build & Development](#build--development)
 
 ## Installation
 
 ```bash
-npm install keyframes.ts
+npm install @mkbabb/keyframes.js
 ```
 
-Which will _mostly_ work both in and out of the browser. Anything that leverages the the `DOM`, of course, won't work outside of the browser (things like `getComputedStyle`, `document`, etc.).
+Works both in and out of the browser. Anything that touches the DOM (`getComputedStyle`, `document`, etc.) won't work in Node.
 
-## `Animation`
+## Project Structure
 
-The `Animation` object is the driver behind `CSSKeyFramesAnimation` and `AnimationGroup`.
+```
+src/
+├── animation/           # Animation engine: classes, group, presets, interpolation, WAAPI
+│   ├── index.ts         # Animation, CSSKeyframesAnimation
+│   ├── group.ts         # AnimationGroup — multi-animation compositor
+│   ├── animations.ts    # 30+ preset animations
+│   ├── constants.ts     # Types & defaults
+│   ├── utils.ts         # Frame calc, value interpolation
+│   └── waapi.ts         # Web Animations API delegation
+├── parsing/             # CSS @keyframes parsing & serialization
+│   ├── keyframes.ts     # @keyframes grammar (parse-that combinators)
+│   ├── format.ts        # Animation → CSS string (Prettier)
+│   ├── units.ts         # Re-export: CSS value/color parsers
+│   └── utils.ts         # Re-export: parser combinators
+├── units/               # Value types & normalization
+│   ├── normalize.ts     # DOM-aware unit normalization
+│   ├── color/           # Color space classes, converters, normalization
+│   └── *.ts             # Re-export barrels from @mkbabb/value.js
+├── easing.ts            # Re-export: easing functions
+├── math.ts              # Re-export: clamp, lerp, bezier
+└── utils.ts             # Re-export + memoizeDecorator
 
-Every `Animation` is composed of (at a high level):
+demo/                    # Vue 3 demo apps
+├── @/                   # Shared: animation controls, shadcn-vue UI, styles
+├── cube/                # 3D sphere + AnimationGroup + Three.js (default demo)
+├── simple/              # Minimal single-animation example
+├── square/              # Custom transform function
+├── amiga/               # Physics-like 3D sphere
+├── balls/               # Vanilla JS: CSS vars + staggered animations
+├── boxes/               # Vanilla JS: matrix3d transforms
+└── bench/               # Performance benchmarks (rAF vs CSS vs WAAPI)
 
--   options: the options for the animation; `AnimationOptions`
--   a transform function: the function to interpolate between keyframes
--   a timing function: the function to ease the animation, which can also be set by the `AnimationOptions`
--   keyframes: the keyframes for the animation; `TemplateAnimationFrame`
+test/                    # Vitest (jsdom) — 11 suites
+bench/                   # Vitest benchmarks — 3 suites
+```
 
-### [`AnimationOptions`](src/animation.ts#L139):
+## Animation
 
--   duration: time in milliseconds of the entire animation
--   delay: time in milliseconds before the animation starts
--   iterationCount: number of times the animation should repeat
--   direction: direction of the animation (normal, reverse, alternate, alternate-reverse)
--   fillMode: how the animation should apply styles before and after it plays (none, forwards, backwards, both)
--   timing function: the timing function to use for easing, tweening, etc., the animation
--
+The `Animation` object drives `CSSKeyframesAnimation` and `AnimationGroup`. It's composed of:
+
+- **options** (`AnimationOptions`)
+- **transform function**: interpolates between keyframes
+- **timing function**: eases the animation
+- **keyframes** (`TemplateAnimationFrame`)
+
+### `AnimationOptions`
+
+- `duration`: time in milliseconds (default: 1000)
+- `delay`: time in milliseconds before the animation begins (default: 0)
+- `iterationCount`: number of repetitions (default: 1)
+- `direction`: `normal`, `reverse`, `alternate`, `alternate-reverse`
+- `fillMode`: `none`, `forwards`, `backwards`, `both`
+- `timingFunction`: easing function (default: `easeInOutCubic`)
+- `colorSpace`: color interpolation space (default: `oklab`)
+- `useWAAPI`: delegate to Web Animations API when eligible (default: `true`)
 
 ### The transform function
 
-The type signature of the transform function is as follows:
-
 ```ts
-type TransformFunction<V extends Vars> = (t: number, v: V) => void;
+type TransformFunction<V extends Vars> = (v: V, t: number) => void;
 ```
 
-And it's called for each timestep `t` of the animation, where `t` is a number between 0 and the duration of the animation. The transform function is responsible for doing whatever you'd like to do with the variables `v` at each timestep `t`.
+Called at each timestep `t` (0 to `duration`) with the interpolated variables `v`. The variables arrive in the same shape you specified in your keyframes—deeply nested objects included.
 
-The variables `v` are the interpolated values at time `t`, given to you in almost exactly the same form as you originally specified them in the keyframes. Deeply nested objects are supported, as are just about anything else you can think of.
-
-Every value therein is parsed as a CSS value unit, so you can specify things like `1px`, `1em`, `1%`, `1deg`, etc. The library will handle the conversion for you, though two interpolate between two different units, they must be of the same super type (e.g. `px` and `em` are both `length`s, so they can be interpolated; `px` and `deg` are not, so they cannot). See the `collapseNumericType` function within [`units.ts`](src/units.ts) for more information.
+Every value is parsed as a CSS value unit (`1px`, `1em`, `1deg`, etc.). To interpolate between two units they must share a supertype: `px` and `em` are both **length**, so they interpolate; `px` and `deg` are not.
 
 ### The timing function
-
-The timing, or easing, tweening, etc., function is responsible for determining how the animation progresses over time. The type signature of the timing function is as follows:
 
 ```ts
 type TimingFunction = (t: number) => number;
 ```
 
-Where `t` is a number between 0 and 1, and the return value is also a number between 0 and 1. The timing function is responsible for determining how the animation progresses over time, and can be anything from a simple linear function to a complex Bezier curve.
+Takes `t` in `[0, 1]`, returns `[0, 1]`. All CSS timing functions are implemented in [`easing.ts`](src/easing.ts).
 
-All CSS timing functions are supported, and are implemented in [`easing.ts`](src/easing.ts).
+#### Step functions
 
-#### Step Functions
+Implemented as `steppedEase(t, steps, jumpTerm)`:
 
-A special case and multi-parameter variant of a timing function, implemented as `steppedEase`, which takes (in addition to `t`) two parameters:
+- `jump-none`: the value is held until the end of the step
+- `jump-start` / `start`: step occurs at the start
+- `jump-end` / `end`: step occurs at the end
+- `jump-both` / `both`: steps at both boundaries
 
--   the number of steps
--   the direction, or jump term, of the step
+#### Bezier curves
 
-Valid jump terms are:
+`cubicBezier(t, x1, y1, x2, y2)` implements the cubic case. The general case uses de Casteljau's algorithm iteratively.
 
--   `jump-none`: the step occurs at the start of the step, but the value is held until the end of the step
--   `jump-start` | `start`: the step occurs at the start of the step
--   `jump-end` | `end`: the step occurs at the end of the step
--   `jump-both` | `both`: the step occurs at the start and end of the step
+Both are in [`math.ts`](src/math.ts). For Bezier visualizations, see [this Desmos graph](https://www.desmos.com/calculator/tvivnkflzv) or the `timing-functions` demo.
 
-#### Bézier Curves
-
-Bézier curves are parametric curves defined by a set of control points.
-
-The `cubicBezier` function implements the special cubic case of the more general Bézier curve, taking in control points for `x1`, `y1`, `x2`, and `y2`, and returning the x and y coordinates of the curve at time `t`.
+`CSSCubicBezier` is the higher-order convenience: takes control points, returns a `t → value` function. CSS's named easings are built from it:
 
 ```ts
-const [x, y] = cubicBezier(t / duration, 0.09, 0.91, 0.5, 1.5);
-```
-
-The general case of calculating a point along a Bézier curve at time `t`, specified at control points `x1, ..., xn`, `y1, ..., yn`, is performed using `deCasteljau`'s algorithm, implemented iteratively as simply the `deCasteljau` function.
-
-Both of the above, along with other math utilities, are implemented in [`math.ts`](src/math.ts).
-
-#### Graphing Bézier Curves
-
-If you're interested in more Bézier visualizations, check out [this](https://www.desmos.com/calculator/tvivnkflzv) Desmos graph.
-
-Or use any of the demos in the [`demo`](demo) folder, click on `timing-functions` and then `bezier`.
-
-#### Just gimme the `t` value
-
-OK ✨
-
-`CSSBezier` is the function you're looking for. It's a high-order function that takes in the control points of the Bezier curve and returns a function that takes in a time `t` and returns the value of the Bezier curve at that time.
-
-For example, CSS's `easeInBounce` is defined as
-
-```ts
-function easeInBounce(t: number) {
-    t = CSSBezier(0.09, 0.91, 0.5, 1.5)(t);
-    return t;
-}
+const easeInBounce = (t: number) => CSSCubicBezier(0.09, 0.91, 0.5, 1.5)(t);
 ```
 
 ### `TemplateAnimationFrame`
 
-A `TemplateAnimationFrame` object, or template keyframe, is a keyframe that's not yet been resolved to a concrete keyframe. It's composed of:
+A template keyframe prior to resolution. Composed of:
 
--   id: the unique id of the keyframe; autoincremented number
--   start: the start time of the keyframe
--   vars: the variables of the keyframe to be interpolated
--   transform: the transform function of the keyframe
--   timingFunction: the timing function of the keyframe
+- `id`: auto-incremented identifier
+- `start`: start time (CSS time string, number, or percentage)
+- `vars`: the variables to interpolate
+- `transform`: per-keyframe transform function (optional)
+- `timingFunction`: per-keyframe timing function (optional)
 
-Keyframes can have unique transform and timing functions, but that's not typical: usually you'll specify one transform and timing function for the entire animation (once a transform function is specified, it's used for all keyframes, similarly for the timing function; no need to list it twice).
+Once a transform or timing function is specified, it propagates to all subsequent keyframes.
 
-#### Reification of a `TemplateAnimationFrame`
+#### Reification
 
-A `TemplateAnimationFrame` is reified into a concrete keyframe by the following process:
+Template keyframes are reified into concrete keyframes by:
 
--   parse the start time: this can be input as a string, which can take on any valid CSS time format (e.g. `1s`, `100ms`, `1.5s`, `1.5ms`, etc.), or as a number, or as a percentage (e.g. `50%`).
-    -   All times are then normalized to a percentage of the total duration of the animation.
--   resolve the transform and timing functions if they're null: if they are, they're resolved to the default transform and timing functions specified in the `AnimationOptions`.
+1. **Parsing start times**: CSS time formats (`1s`, `100ms`), raw numbers, or percentages (`50%`). All normalized to a percentage of total duration.
+2. **Resolving functions**: null transforms and timing functions fall back to the `AnimationOptions` defaults.
+3. **Sorting** by start percentage.
+4. **Resolving variables** across keyframes—every keyframe ends up with the same variable set.
+5. **Computing durations** from sorted start/stop times.
 
-Once all of the `TemplateAnimationFrame` objects have been added to an `Animation`, they're further parsed into a concrete keyframe by the following process:
+#### Variable resolution
 
--   sort the keyframes by their starting percentage
--   resolve the variables for each keyframe
--   resolve the keyframes' start and stop times
--   calculate the keyframes' duration
-
-##### Variable Resolution
-
-This is done so that every keyframe has the same set of variables, and so that the variables are resolved to their concrete values. Take the following example:
+Keyframes needn't declare the same variables. The resolver walks backward from each keyframe, seeking the most recent definition of each variable. If none exists, the default value (typically `0`) is used.
 
 ```ts
-const keyframeVars1 = {
-    x: 0,
-    y: 0,
-};
-const keyframeVars2 = {
-    z: 0,
-};
-const keyframeVars3 = {
-    x: 1,
-    y: 1,
-    z: 1,
-};
+const kf1 = { start: "0s",   vars: { x: 0, y: 0 } };
+const kf2 = { start: "500ms", vars: { x: 1 } };
+const kf3 = { start: "100%", vars: { x: 0, y: 1 } };
 ```
 
-Notice that `x` and `y` are defined in the first and third keyframes, but not in the second. We handle this by working through the keyframes backwards and seeking the most recent keyframe that has the variable defined.
-
-If it's not defined in any previous keyframes, we set it to the default value of the variable (usually `0`).
-
-All of this above nets you the ability to specify keyframes in a rather hap-hazard way (perhaps not such a good thing 😅). For example, the below is a valid set of keyframes:
-
-```ts
-const duration = 1000;
-const keyframe1 = {
-    start: "0s",
-    vars: {
-        x: 0,
-        y: 0,
-    },
-};
-
-const keyframe2 = {
-    start: "100%",
-    vars: {
-        x: 0,
-        y: 1,
-    },
-};
-
-const keyframe3 = {
-    start: "500ms",
-    vars: {
-        x: 1,
-    },
-};
-```
+`kf2` gets `y: 0` from `kf1`. This lets you specify keyframes loosely.
 
 ## `CSSKeyframesAnimation`
 
-An abstraction over the `Animation` object, the `CSSKeyframesAnimation` object is responsible for creating animations from CSS keyframes. This is done by parsing the CSS keyframes into a series of `TemplateAnimationFrame` objects, thereupon adding them to a base `Animation` object.
+An abstraction over `Animation` that parses CSS `@keyframes` into `TemplateAnimationFrame` objects, then adds them to a base `Animation`.
 
-### Parsing CSS Keyframes; [`keyframes.ts`](src/parsing/keyframes.ts)
+Three ways to create keyframes:
 
-Most of the CSS spec. is supported, including:
+```ts
+// From CSS string (memoized parse)
+anim.fromString(`from { opacity: 0; } to { opacity: 1; }`);
 
--   `from`, `to`, and percentages
--   time units (`s`, `ms`, etc.)
--   lengths (`px`, `em`, etc.)
--   angles (`deg`, `rad`, etc.)
--   colors (`#fff`, `rgb(255, 255, 255)`, `lab(100, 0, 0)`, `lightblue`, etc.)
--   transforms (`translateX(100%)`, `rotate(1turn)`, etc.)
--   variables (`var(--my-var)`)
--   resolved math expressions (`calc(100% - 10px)`)
--   Any `key: value` pair that can be parsed by the `CSS` parser, where value can be
-    -   any CSS value
-    -   any CSS function
-    -   any list of CSS values or functions
--   a limited subset of `JSON`-like objects, though the implemention of `JSON-CSS` is on the roadmap
+// From keyframe map
+anim.fromKeyframes({ "0%": { opacity: 0 }, "100%": { opacity: 1 } });
 
-The implemented parser currently leverages the [`parsimmon`](https://github.com/jneen/parsimmon) parser combinator library 🙂‍↔
+// From variable array
+anim.fromVars([{ opacity: 0 }, { opacity: 1 }]);
+```
 
-### Units: [`units.ts`](src/units.ts) & [`CSS Units`](src/parsing/units.ts)
+The default transform applies interpolated values to `element.style` for each target.
 
-A great deal of care has gone into the parsing and resolving of units within the CSS spec. Herein, we cover the following unit types:
+### Parsing CSS keyframes
 
--   `length`
--   `angle`
--   `time`
--   `resolution`
--   `percentage`
--   `color`
+[`keyframes.ts`](src/parsing/keyframes.ts) covers most of the CSS spec:
 
-See the parser within the [`CSS Units file`](src/parsing/units.ts) for more information.
+- `from`, `to`, and percentages
+- Time units (`s`, `ms`)
+- Lengths (`px`, `em`, etc.)
+- Angles (`deg`, `rad`, etc.)
+- Colors (`#fff`, `rgb(255, 255, 255)`, `lab(100, 0, 0)`, `lightblue`, etc.)
+- Transforms (`translateX(100%)`, `rotate(1turn)`, etc.)
+- Variables (`var(--my-var)`)
+- Math expressions (`calc(100% - 10px)`)
+- Any `key: value` pair parseable as a CSS value, function, or list thereof
 
-#### Unit class hierarchy
+The parser uses [`@mkbabb/parse-that`](https://github.com/mkbabb/parse-that) and [`@mkbabb/value.js`](https://github.com/mkbabb/value.js) for CSS value parsing. All exported parse functions are memoized.
 
-A `unit` value comes in three forms, specified in the general [`units.ts`](src/units.ts) file:
+### Units
 
--   `ValueUnit`: a value with a string unit and an array of super types
--   `FunctionValue`: a function with a string name and an array of `ValueUnit`s
--   `ValueArray`: an array of `ValueUnit`s
+Thorough unit parsing and resolution, covering:
 
-Each of these has defined a set of core functions:
+- **length**, **angle**, **time**, **resolution**, **percentage**, **color**
 
--   `toString()`: returns the string representation of the unit, e.g. `1px` or `translateX(100%)`
--   `valueOf()`: if the value is unit-less, returns the value; otherwise, returns the string variant
--   `lerp(t: number,
-other: FunctionValue<T> | ValueArray<T> | ValueUnit<T>,
-target?: HTMLElement,)`: interpolates between two units
+See [`units/`](src/units/) and [`parsing/units.ts`](src/parsing/units.ts).
 
-Note that any `ValueUnit` type variant can be interpolated between another; insofar as, a `ValeUnit` can be interpolated between a `FunctionValue` or `ValueArray`, and vice versa. The values thereof are aligned to the smallest array length of the two: the interpolation is then performed on each element of the array.
+A `unit` value takes one of three forms:
 
-#### Unit interpolation and resolution
+- `ValueUnit`: a value with a string unit and an array of supertypes
+- `FunctionValue`: a function name with an array of `ValueUnit`s
+- `ValueArray`: an array of `ValueUnit`s
 
-Units that are of the same supertype can be interpolated between. For example, `px` and `em` are both `length`s, so they can be interpolated between. `px` and `deg` are not, so they cannot.
+Each defines `toString()`, `valueOf()`, and `lerp(t, other, target?)`. Any `ValueUnit` variant can interpolate with any other—values are aligned to the shorter array, then interpolated element-wise.
 
-Supertypes also contain information about the realtive or absolute nature of the unit. For example, `px` is an absolute length, while `em` is a relative length. This information is used to resolve the units to a common supertype, which is then used to interpolate between the two units.
+Units of the same supertype interpolate freely. Supertypes also encode whether a unit is relative or absolute (`px` is absolute; `em` is relative), used to resolve to a common base before interpolation.
+
+Interpolation dispatch: numeric values use `lerp`; colors use perceptual interpolation (`oklab` by default, configurable); computed units (`vh`, `vw`, `calc`, `var`) resolve against the live DOM at interpolation time.
+
+## `AnimationGroup`
+
+Composites multiple animations with layer blending. Each animation gets a layer config controlling how it merges with others.
+
+```ts
+const group = anim1.group(anim2, anim3);
+group.setTargets(element);
+group.play();
+```
+
+Three blend modes:
+
+- **`replace`**: highest `zIndex` wins (default)
+- **`add`**: numeric values accumulate
+- **`weighted`**: linear interpolation by `weight` (0–1)
+
+Layer configuration per animation: `zIndex`, `weight`, `blendMode`, `enabled`, `properties` (whitelist). Property whitelisting enables effect layering—one layer animates position, another animates opacity.
+
+The group manages its own `requestAnimationFrame` loop and marks child animations as `managed`.
+
+## Presets
+
+30+ ready-to-use animations in [`animations.ts`](src/animation/animations.ts). All return `CSSKeyframesAnimation` instances and accept optional `InputAnimationOptions`:
+
+```ts
+import { fadeIn, bounce, spinner } from "@mkbabb/keyframes.js";
+
+const anim = fadeIn({ duration: 500 });
+anim.setTargets(element);
+anim.play();
+```
+
+**Fade**: `fadeIn`, `fadeOut` · **Attention**: `pulse`, `heartbeat`, `glow`, `shake`, `bounce` · **Entrance/Exit**: `flip`, `rotateIn`, `slideIn`, `slideInLeft/Right`, `slideOutLeft/Right`, `blurIn/Out/InOut`, `jumpUp/Down`, `warpLeft/Right` · **Effects**: `hover`, `typewriter`, `typingCursor`, `rainbowText`, `progressBar`, `skeletonLoading`, `spinner`, `parallaxScroll`, `gradientBackground`, `rotateScale`, `accordionExpand`, `notificationBounce`, `textFocusBlur`
+
+## Web Animations API
+
+When `useWAAPI` is `true` (default), eligible animations run on the compositor thread via `Element.animate()`. Eligibility requires: DOM targets, uniform timing function across frames, no computed units, no custom transform function, no LAB/OKLAB colors. Falls back to `requestAnimationFrame` silently.
+
+## Build & Development
+
+```sh
+npm run build        # library → dist/keyframes.js + keyframes.cjs + keyframes.d.ts
+npm run gh-pages     # demo → dist/
+npm run dev          # vite dev server on :8080 (cube demo)
+npm test             # vitest (jsdom)
+npm run bench        # vitest bench
+```
+
+**Dependencies**: [`@mkbabb/value.js`](https://github.com/mkbabb/value.js) (ValueUnit, Color, math, parsing, normalization) and [`@mkbabb/parse-that`](https://github.com/mkbabb/parse-that) (parser combinators).
+
+**TypeScript**: `strict: true`, `verbatimModuleSyntax: true`, `target: ES2022`, `moduleResolution: bundler`.
+
+**Node**: >=22. **License**: GPL-3.0.
+
+## Sources, acknowledgements, &c.
+
+- [CSS Animations Level 1](https://www.w3.org/TR/css-animations-1/). W3C. — `@keyframes`, `animation-*` properties, timing model.
+- [CSS Easing Functions Level 2](https://www.w3.org/TR/css-easing-2/). W3C. — `linear()` piecewise easing, `steps()` jump terms, `cubic-bezier()`.
+- [CSS Transforms Module Level 2](https://www.w3.org/TR/css-transforms-2/). W3C. — `matrix3d()`, decomposition algorithm, quaternion interpolation.
+- [CSSOM View Module](https://www.w3.org/TR/cssom-view-1/). W3C. — `getComputedStyle`, unit resolution for relative values.
+- [Web Animations API](https://www.w3.org/TR/web-animations-1/). W3C. — `Element.animate()`; the WAAPI delegation path.
+- [`@mkbabb/value.js`](https://github.com/mkbabb/value.js) — CSS value parsing, color spaces, unit conversion, easing functions.
+- [`@mkbabb/parse-that`](https://github.com/mkbabb/parse-that) — Parser combinators for the `@keyframes` grammar.
+- de Casteljau, P. (1959). *Outillages méthodes calcul*. — The recursive subdivision algorithm used for general Bezier curves.
