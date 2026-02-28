@@ -192,7 +192,9 @@ export const getStoredAnimationGroupControlOptions = (
         );
     }
 
-    return animationGroupsControlOptionsStore.value[superKey] as StoredAnimationGroupControlOptions;
+    const controls = animationGroupsControlOptionsStore.value[superKey] as StoredAnimationGroupControlOptions;
+
+    return controls;
 };
 
 export const resetAllStores = () => {

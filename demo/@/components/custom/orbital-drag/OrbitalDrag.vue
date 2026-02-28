@@ -1,8 +1,5 @@
 <template>
-    <div
-        ref="containerRef"
-        @mousedown="startDrag"
-    >
+    <div ref="containerRef">
         <slot></slot>
     </div>
 </template>
@@ -74,6 +71,12 @@ const scaleFactor = props.scaleFactor ?? 0.02;
 // Pinch tracking for standard touch events (non-Safari)
 const previousPinchDistance = ref(0);
 const previousPinchCenter = ref({ x: 0, y: 0 });
+
+// Wheel activity tracking — wheel events don't set isDragging/isTouching,
+// so applyInertia would decay velocity between wheel events. Track a
+// timeout so inertia only kicks in after scrolling stops.
+const isWheeling = ref(false);
+let wheelTimeout: ReturnType<typeof setTimeout> | null = null;
 
 const velocity = ref<VelocityState>(JSON.parse(JSON.stringify(defaultVelocityState)));
 
@@ -285,6 +288,11 @@ const drag = (event: MouseEvent | TouchEvent) => {
 
     const isTouch = isTouchEventFallback(event);
 
+    // Prevent browser from taking over the touch gesture (scroll/zoom)
+    if (isTouch) {
+        event.preventDefault();
+    }
+
     // Handle 2-finger pinch/pan via standard touch events (non-Safari fallback)
     if (isTouch && event.touches.length >= 2) {
         const dist = getTouchDistance(event);
@@ -379,6 +387,13 @@ const handleWheel = (event: WheelEvent) => {
 
     if (Math.abs(deltaX) < 1e-4 && Math.abs(deltaY) < 1e-4) return;
 
+    // Mark wheel as active so applyInertia doesn't decay mid-scroll
+    isWheeling.value = true;
+    if (wheelTimeout) clearTimeout(wheelTimeout);
+    wheelTimeout = setTimeout(() => {
+        isWheeling.value = false;
+    }, 100);
+
     if (pressedKeys.value.x || pressedKeys.value.y || pressedKeys.value.z) {
         handleAxisSpecificInput(deltaX, deltaY);
     } else if (pressedKeys.value.shift) {
@@ -414,7 +429,7 @@ const updatePressedKeys = (event: KeyboardEvent, isPressed: boolean) => {
 };
 
 const applyInertia = () => {
-    if (isDragging.value || isTouching.value) return;
+    if (isDragging.value || isTouching.value || isWheeling.value) return;
 
     // Rotational inertia via persistent quaternion
     if (Math.abs(angularVelocitySpeed.value) > 1e-4) {
@@ -472,18 +487,22 @@ onMounted(() => {
     useEventListener(window, "keydown", (e: KeyboardEvent) => updatePressedKeys(e, true));
     useEventListener(window, "keyup", (e: KeyboardEvent) => updatePressedKeys(e, false));
 
-    // mousemove/mouseup on window for cross-element tracking once drag starts
+    // mousedown on container to initiate drag; move/up on window for cross-element tracking
+    useEventListener(containerRef, "mousedown", startDrag);
     useEventListener(window, "mousemove", drag);
     useEventListener(window, "mouseup", stopDrag);
     useEventListener(window, "mouseleave", stopDrag);
 
-    // Touch events: start only on container, move/end on window for tracking
+    // Touch events: start only on container, move/end on window for tracking.
+    // touchmove/gesturechange MUST be { passive: false } on window — Chrome marks
+    // window-level touch listeners as passive by default, which prevents
+    // preventDefault() and lets the browser hijack the gesture after ~300ms.
     useEventListener(containerRef, "touchstart", startDrag, { passive: false });
-    useEventListener(window, "touchmove", drag);
+    useEventListener(window, "touchmove", drag, { passive: false });
     useEventListener(window, "touchend", stopDrag);
 
-    useEventListener(containerRef, "gesturestart", startGesture);
-    useEventListener(window, "gesturechange", gesture);
+    useEventListener(containerRef, "gesturestart", startGesture, { passive: false });
+    useEventListener(window, "gesturechange", gesture, { passive: false });
     useEventListener(window, "gestureend", stopGesture);
 
     resume();

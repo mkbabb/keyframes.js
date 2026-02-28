@@ -60,8 +60,10 @@ let rafId: number | null = null;
 
 const syncBallWithAnimation = () => {
     const anim = props.animation;
-    // Skip interpolation when paused — still schedule RAF for when animation resumes
-    if (anim.started && !anim.paused && anim.options.duration > 0) {
+    // Always sync position when there's a valid duration — effectiveT is meaningful
+    // even when paused (shows scrubbed position). The ball should reflect the
+    // current animation time regardless of play state.
+    if (anim.options.duration > 0) {
         const progress = Math.max(0, Math.min(anim.effectiveT / anim.options.duration, 1));
         const ballT = progress * ballAnim.options.duration;
         ballAnim.interpFrames(ballT, true);

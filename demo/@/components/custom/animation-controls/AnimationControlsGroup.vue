@@ -55,6 +55,7 @@
                                     storedControls.selectedAnimation = String(key);
                                     if (!animationGroup.started) {
                                         animationGroup.play();
+                                        syncPlayState(true);
                                     }
                                 }
                             "
@@ -81,14 +82,14 @@
                                                 <span
                                                     :class="[
                                                         'inline-block w-2 h-2 rounded-full',
-                                                        groupObj.animation.playing()
+                                                        isPlaying
                                                             ? 'bg-green-500'
-                                                            : groupObj.animation.started
+                                                            : animationGroup.started
                                                               ? 'bg-yellow-500'
                                                               : 'bg-gray-400',
                                                     ]"
                                                 ></span>
-                                                <span :class="groupObj.animation.playing() ? 'font-bold' : ''">{{ key }}</span>
+                                                <span :class="storedControls.selectedAnimation === key ? 'font-bold' : ''">{{ key }}</span>
                                             </span>
                                         </SelectItem>
                                     </template>
@@ -116,18 +117,18 @@
                 </IconTooltip>
 
                 <MenubarMenu>
-                    <IconTooltip :text="animationGroup.playing() ? 'Pause' : 'Play'">
+                    <IconTooltip :text="isPlaying ? 'Pause' : 'Play'">
                         <Button
                             :class="[
                                 'w-10 h-7 text-xl text-white cursor-pointer rounded-xl hover:scale-105',
-                                animationGroup.playing() ? 'rainbow-vivid' : 'rainbow-pastel',
+                                isPlaying ? 'rainbow-vivid' : 'rainbow-pastel',
                             ]"
                             @click="toggleAnimationGroup"
                         >
                             <font-awesome-icon
                                 class="icon"
                                 :icon="
-                                    animationGroup.playing()
+                                    isPlaying
                                         ? ['fas', 'pause']
                                         : ['fas', 'play']
                                 "
@@ -155,13 +156,13 @@
                     closeButton: '',
                 },
             }"
-            :theme="isDark ? 'dark' : 'light'"
+            theme="system"
         />
     </Teleport>
 </template>
 
 <script setup lang="ts">
-import { Teleport, useTemplateRef } from "vue";
+import { ref, Teleport, useTemplateRef } from "vue";
 import { Toaster, toast } from "vue-sonner";
 
 import {
@@ -179,7 +180,6 @@ import {
     SelectContent,
     SelectGroup,
     SelectItem,
-    SelectLabel,
     SelectTrigger,
     SelectValue,
 } from "@components/ui/select";
@@ -197,10 +197,7 @@ import {
     resetAllStores,
 } from "./animationStores";
 import { SelectIcon } from "reka-ui";
-import { useDark } from "@vueuse/core";
 import { AnimationGroup } from "@src/animation/group";
-
-const isDark = useDark({ disableTransition: false });
 
 const { superKey, animationGroup } = defineProps<{
     animationGroup: AnimationGroup<any>;
@@ -209,9 +206,27 @@ const { superKey, animationGroup } = defineProps<{
 
 const storedControls = getStoredAnimationGroupControlOptions(superKey);
 
+// Auto-select first animation on fresh load so controls are visible immediately
+if (!storedControls.selectedAnimation) {
+    const allNames = Object.keys(animationGroup.animations);
+    storedControls.selectedAnimation = allNames[0] ?? null;
+}
+
 const emit = defineEmits<{
-    (e: "selectedAnimation", val: string): void;
+    (e: "playStateChange", playing: boolean): void;
 }>();
+
+// Reactive flag for play state — animationGroup is markRaw so its internal
+// state changes don't trigger Vue re-renders. We sync this manually.
+const isPlaying = ref(animationGroup.playing());
+
+const syncPlayState = (playing?: boolean) => {
+    if (playing === undefined) {
+        playing = animationGroup.playing();
+    }
+    isPlaying.value = playing;
+    emit("playStateChange", playing);
+};
 
 const findAnimationGroupObject = (animation: Animation<any>) => {
     return Object.values(animationGroup.animations).find(
@@ -241,16 +256,15 @@ const sliderUpdate = ({ t, animation }: { t: number; animation: Animation<any> }
 const toggleAnimationGroup = () => {
     if (!animationGroup.started) {
         if (!storedControls.selectedAnimation) {
-            toast.info("Selected rotations!", {
-                duration: 3000,
-                description: "✨",
-            });
-            storedControls.selectedAnimation = "Rotations";
+            const allNames = Object.keys(animationGroup.animations);
+            storedControls.selectedAnimation = allNames[0] ?? null;
         }
 
         animationGroup.play();
+        syncPlayState(true);
     } else {
         animationGroup.pause();
+        syncPlayState();
     }
 };
 
@@ -263,6 +277,7 @@ const keyframesUpdate = (e: { animation: Animation<any> }) => {
 
 const reset = (all: boolean = false) => {
     animationGroup.stop();
+    syncPlayState();
     storedControls.selectedAnimation = null as any;
 
     if (all) {

@@ -252,7 +252,13 @@ export class AnimationGroup<V extends Vars> {
         if (this.started) {
             this.paused = !this.paused;
             Object.values(this.animations).forEach((groupObject) => {
-                groupObject.animation.pause(false);
+                if (this.paused) {
+                    groupObject.animation.pause(false);
+                } else {
+                    // Unpause children directly — don't call resume() which would
+                    // start each child's own rAF loop. The group's draw() handles ticking.
+                    groupObject.animation.paused = false;
+                }
             });
         }
 

@@ -169,7 +169,7 @@
         <AnimationControlsGroup
             :animation-group="animationGroup"
             :super-key="superKey"
-            @selected-animation="(s) => (storedControls.selectedAnimation = s)"
+            @play-state-change="onPlayStateChange"
         >
             <template #tabs-trigger>
                 <TabsTrigger
@@ -330,9 +330,10 @@
                         class="graph preserve-3d grid items-center justify-center justify-items-center"
                     >
                         <OrbitalDrag
-                            class="preserve-3d relative flex items-center justify-center justify-items-center"
+                            class="preserve-3d relative flex items-center justify-center justify-items-center select-none"
                             v-model="transformSliderValues"
                         >
+                            <div :class="['idle-hover preserve-3d', { playing: isGroupPlaying }]">
                             <div
                                 ref="cube"
                                 class="cube preserve-3d animation relative flex items-center justify-center
@@ -360,7 +361,7 @@
                                     <span
                                         :class="
                                             'rainbow-wrapper ' +
-                                            (!animationGroup.playing()
+                                            (!isGroupPlaying
                                                 ? 'opacity-100'
                                                 : 'opacity-25')
                                         "
@@ -399,6 +400,7 @@
                                         ></div>
                                     </template>
                                 </div>
+                            </div>
                             </div>
                         </OrbitalDrag>
 
@@ -763,6 +765,10 @@ function updateTransformations() {
 
 let transformUpdateScheduled = false;
 watch(transformSliderValues, () => {
+    // Don't apply manual transforms while the animation group is playing —
+    // the animation group's rAF loop owns the cube's transform during playback.
+    if (isGroupPlaying.value) return;
+
     if (!transformUpdateScheduled) {
         transformUpdateScheduled = true;
         requestAnimationFrame(() => {
@@ -910,23 +916,6 @@ const changeGraphPerspectiveAnim = new CSSKeyframesAnimation({
     },
 ]);
 
-// Separate animation instances for the idle hover/matrix group
-// to avoid conflicting with animationGroup's managed flag.
-const idleHoverAnim = animations.hover(hoverAnimationOptions.animationOptions);
-idleHoverAnim.name = "IdleHover";
-
-const idleMatrixAnim = new CSSKeyframesAnimation(matrixAnimationOptions.animationOptions).fromVars(
-    [
-        { transform: { matrix3d: matrix3dStart.value } },
-        { transform: { matrix3d: matrix3dEnd.value } },
-    ],
-);
-idleMatrixAnim.name = "IdleMatrix";
-
-const hoverMatrixGroup = new AnimationGroup(
-    idleHoverAnim as any,
-    idleMatrixAnim as any,
-);
 
 watch(
     () => storedControls.selectedAnimation,
@@ -940,32 +929,23 @@ watch(
     },
 );
 
-watch(
-    () => animationGroup.value.playing(),
-    (playing) => {
-        if (!playing) {
-            hoverMatrixGroup.forcePlay();
-            hoverMatrixGroup.play();
-        } else {
-            hoverMatrixGroup.forcePlay();
-            hoverMatrixGroup.paused = true;
-        }
-    },
-);
+// Reactive flag for the animation group's play state.
+// animationGroup is shallowRef(markRaw(...)) so Vue can't track its internal
+// state changes. We sync this via the @play-state-change event.
+const isGroupPlaying = ref(false);
+
+const onPlayStateChange = (playing: boolean) => {
+    isGroupPlaying.value = playing;
+};
 
 onMounted(() => {
     rotationAnim.value.setTargets(cubeEl.value!);
     matrixAnim.value.setTargets(cubeEl.value!);
     hoverAnim.value.setTargets(cubeEl.value!);
 
-    idleHoverAnim.setTargets(cubeEl.value!);
-    idleMatrixAnim.setTargets(cubeEl.value!);
-
     changeGraphPerspectiveAnim.setTargets(graphEl.value!);
 
     changeGraphPerspectiveAnim.play();
-
-    hoverMatrixGroup.play();
 
     const encodedSVG = encodeURIComponent(`
     <svg class="tmp" xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2 2'>
@@ -1034,6 +1014,17 @@ onMounted(() => {
     &.z {
         transform: rotateY(90deg);
     }
+}
+
+.idle-hover {
+    animation: idle-bob 3s ease-in-out infinite alternate;
+}
+.idle-hover.playing {
+    animation: none;
+}
+@keyframes idle-bob {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(5px); }
 }
 
 .cube {

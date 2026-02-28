@@ -1,6 +1,6 @@
 <template>
     <div class="grid items-center gap-4 justify-items-center">
-        <Card class="w-full">
+        <Card class="w-full overflow-hidden">
             <CardContent class="relative grid gap-1 px-4 py-3">
                 <!-- Sliding panel container -->
                 <div class="relative w-full overflow-clip p-[3px] -m-[3px]">
@@ -243,7 +243,7 @@
                 <div
                     :class="
                         'col-span-2 mt-2 w-full h-full grid gap-2 bg-background rounded-xl' +
-                        (!animation.started ? ' disabled' : '')
+                        (!isAnimStarted ? ' disabled' : '')
                     "
                 >
                     <IconTooltip text="Scrub animation timeline">
@@ -252,27 +252,27 @@
                             :min="0"
                             :max="animation.options.duration"
                             @input="sliderUpdate"
-                            :model-value="[animation.effectiveT]"
+                            :model-value="[currentT]"
                             @update:model-value="(val: any) => (animation.t = val[0])"
                         />
                     </IconTooltip>
 
                     <div class="col-span-2 grid grid-cols-3 gap-2 w-full">
-                        <IconTooltip :text="animation.playing() ? 'Pause' : (isGrouped && !animation.started ? 'Start animation group' : 'Play')">
+                        <IconTooltip :text="isAnimPlaying ? 'Pause' : (isGrouped && !isAnimStarted ? 'Start animation group' : 'Play')">
                             <Button
                                 :class="[
                                     'h-10 w-full rounded-xl p-0',
-                                    isGrouped && !animation.started
+                                    isGrouped && !isAnimStarted
                                         ? 'bg-accent-red/30 text-accent-red border-accent-red/40 hover:bg-accent-red/50'
                                         : '',
                                 ]"
-                                :variant="isGrouped && !animation.started ? 'outline' : 'outline'"
+                                :variant="isGrouped && !isAnimStarted ? 'outline' : 'outline'"
                                 @click="toggleAnimation"
                             >
                                 <font-awesome-icon
                                     class="icon text-sm"
                                     :icon="
-                                        animation.playing()
+                                        isAnimPlaying
                                             ? ['fas', 'pause']
                                             : ['fas', 'play']
                                     "
@@ -344,7 +344,7 @@ import { camelCaseToHyphen } from "@src/utils";
 import { Trash, ArrowLeft } from "lucide-vue-next";
 import IconTooltip from "@components/custom/IconTooltip.vue";
 
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import {
     defaultStoredAnimationOptions,
     getStoredAnimationOptions,
@@ -382,6 +382,30 @@ const { animation, isGrouped } = defineProps({
 });
 
 const storedAnimationOptions = getStoredAnimationOptions(animation);
+
+// rAF-driven reactivity bridge: animation is markRaw, so Vue can't track
+// property changes. We sync reactive refs every frame for the slider + buttons.
+const currentT = ref(animation.effectiveT);
+const isAnimPlaying = ref(animation.playing());
+const isAnimStarted = ref(animation.started);
+let syncRafId: number | null = null;
+
+const syncAnimationState = () => {
+    currentT.value = animation.effectiveT;
+    isAnimPlaying.value = animation.playing();
+    isAnimStarted.value = animation.started;
+    syncRafId = requestAnimationFrame(syncAnimationState);
+};
+
+onMounted(() => {
+    syncRafId = requestAnimationFrame(syncAnimationState);
+});
+
+onUnmounted(() => {
+    if (syncRafId !== null) {
+        cancelAnimationFrame(syncRafId);
+    }
+});
 
 // Track whether to show the detail panel
 const showDetailPanel = computed(
