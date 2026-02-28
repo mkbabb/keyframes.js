@@ -7,6 +7,7 @@
         </div>
 
         <div class="pointer-events-auto flex items-center gap-2 lg:gap-4">
+            <slot name="header-actions"></slot>
             <slot name="right">
                 <SharePopover />
                 <DarkModeToggle

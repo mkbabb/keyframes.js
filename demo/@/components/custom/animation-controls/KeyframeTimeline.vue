@@ -38,6 +38,18 @@
                 </Button>
             </IconTooltip>
 
+            <IconTooltip text="Add CSS @keyframes">
+                <Button
+                    size="sm"
+                    variant="outline"
+                    class="gap-1.5 cursor-pointer"
+                    @click="addCSSDialogOpen = true"
+                >
+                    <FilePlus2 class="w-4 h-4" />
+                    Add CSS
+                </Button>
+            </IconTooltip>
+
             <IconTooltip text="Clear all keyframes">
                 <Button
                     size="sm"
@@ -48,35 +60,58 @@
                     <Trash class="w-4 h-4" />
                 </Button>
             </IconTooltip>
+
+            <!-- Zoom indicator -->
+            <span
+                v-if="zoomLevel > 1"
+                class="fira-code text-[10px] text-muted-foreground ml-auto"
+            >{{ zoomLevel.toFixed(1) }}x</span>
+        </div>
+
+        <!-- Zoom mini range bar -->
+        <div
+            v-if="zoomLevel > 1"
+            class="relative h-1.5 rounded-full bg-muted/50 border border-border/30"
+        >
+            <div
+                class="absolute top-0 h-full rounded-full bg-primary/40"
+                :style="{
+                    left: `${(panOffset / 100) * 100}%`,
+                    width: `${(100 / zoomLevel / 100) * 100}%`,
+                }"
+            ></div>
         </div>
 
         <!-- Timeline Track -->
         <div
             ref="trackEl"
-            class="timeline-track relative h-12 rounded-lg border border-border bg-muted/30 cursor-pointer select-none"
+            class="timeline-track relative h-12 rounded-lg border border-border bg-muted/30 cursor-pointer select-none overflow-hidden"
             style="touch-action: none"
             @pointerdown="onTrackPointerDown"
             @pointermove="onTrackPointerMove"
             @pointerup="onTrackPointerUp"
             @pointercancel="onTrackPointerUp"
+            @wheel.prevent="onWheel"
+            @touchstart.passive="onTouchStart"
+            @touchmove.passive="onTouchMove"
+            @touchend.passive="onTouchEnd"
         >
             <!-- Tick marks -->
             <div
-                v-for="tick in [0, 25, 50, 75, 100]"
+                v-for="tick in visibleTicks"
                 :key="tick"
                 class="absolute top-0 h-full border-l border-border/30"
-                :style="{ left: `${tick}%` }"
+                :style="{ left: `${percentToPosition(tick)}%` }"
             >
                 <span
                     class="fira-code absolute -top-5 left-0 -translate-x-1/2 text-[10px] text-muted-foreground"
-                    >{{ tick }}%</span
-                >
+                >{{ tick }}%</span>
             </div>
 
             <!-- Playhead -->
             <div
                 class="absolute top-0 h-full w-0.5 bg-primary z-10 pointer-events-none transition-[left] duration-75"
-                :style="{ left: `${scrubT * 100}%` }"
+                :style="{ left: `${percentToPosition(scrubT * 100)}%` }"
             ></div>
 
             <!-- Keyframe markers -->
@@ -91,9 +126,21 @@
                         ? 'bg-primary border-primary scale-125'
                         : 'bg-background border-foreground/50 hover:border-primary hover:scale-110',
                 ]"
-                :style="{ left: `${kf.percent}%` }"
+                :style="{ left: `${percentToPosition(kf.percent)}%` }"
                 @pointerdown.stop="onMarkerPointerDown($event, kf.id)"
             ></div>
+
+            <!-- Timeline Carets -->
+            <TimelineCaret
+                v-for="kf in sortedKeyframes"
+                :key="'caret-' + kf.id"
+                :keyframe-id="kf.id"
+                :percent="kf.percent"
+                :position="percentToPosition(kf.percent)"
+                :is-selected="selectedKeyframeId === kf.id"
+                @update:percent="(p) => moveKeyframe(kf.id, p)"
+                @select="selectedKeyframeId = kf.id"
+            />
         </div>
 
         <!-- Selected Keyframe Editor -->
@@ -220,6 +267,35 @@
                 </DialogFooter>
             </DialogContent>
         </Dialog>
+
+        <!-- Add CSS dialog -->
+        <Dialog v-model:open="addCSSDialogOpen">
+            <DialogContent>
+                <DialogTitle class="fira-code text-base font-medium"
+                    >Add CSS @keyframes</DialogTitle
+                >
+                <DialogDescription class="fira-code text-sm text-muted-foreground"
+                    >Paste CSS @keyframes to merge into the timeline</DialogDescription
+                >
+                <pre
+                    ref="addCSSTextEl"
+                    @input="
+                        (e) => {
+                            addCSSText = (e.target as HTMLElement).innerText;
+                        }
+                    "
+                    class="fira-code min-h-[20vh] p-3 cursor-text rounded-lg text-sm bg-muted/50 outline-none border border-border"
+                    contenteditable="true"
+                ><code>{{ addCSSText }}</code></pre>
+                <DialogFooter>
+                    <Button
+                        class="cursor-pointer gap-2"
+                        @click="doAddCSS"
+                        >Add<FilePlus2 class="w-4 h-4" />
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     </div>
 </template>
 
@@ -230,6 +306,7 @@ import {
     Camera,
     Download,
     Upload,
+    FilePlus2,
     Trash,
     X,
     Plus,
@@ -247,6 +324,7 @@ import {
     DialogTitle,
 } from "@components/ui/dialog";
 import { useTimeline } from "./useTimeline";
+import TimelineCaret from "./TimelineCaret.vue";
 import type { InputAnimationOptions } from "@src/animation/constants";
 
 const props = defineProps<{
@@ -278,6 +356,98 @@ const draggingKeyframeId = ref<string | null>(null);
 const newPropName = ref("");
 const importDialogOpen = ref(false);
 const importText = ref("");
+const addCSSDialogOpen = ref(false);
+const addCSSText = ref("");
+
+// --- Zoom/Pan state ---
+const zoomLevel = ref(1);
+const panOffset = ref(0); // percent units (0-100 range)
+
+const percentToPosition = (pct: number): number => {
+    return (pct - panOffset.value) * zoomLevel.value;
+};
+
+const positionToPercent = (pos: number): number => {
+    return pos / zoomLevel.value + panOffset.value;
+};
+
+const clampPan = () => {
+    const maxPan = 100 - 100 / zoomLevel.value;
+    panOffset.value = Math.max(0, Math.min(maxPan, panOffset.value));
+};
+
+// Dynamic tick marks based on zoom level
+const visibleTicks = computed(() => {
+    let step: number;
+    if (zoomLevel.value >= 8) step = 1;
+    else if (zoomLevel.value >= 5) step = 5;
+    else if (zoomLevel.value >= 3) step = 10;
+    else step = 25;
+
+    const ticks: number[] = [];
+    const visibleStart = panOffset.value;
+    const visibleEnd = panOffset.value + 100 / zoomLevel.value;
+
+    for (let t = 0; t <= 100; t += step) {
+        if (t >= visibleStart - step && t <= visibleEnd + step) {
+            ticks.push(t);
+        }
+    }
+    return ticks;
+});
+
+// --- Zoom handlers ---
+const onWheel = (event: WheelEvent) => {
+    if (event.ctrlKey || event.metaKey) {
+        // Zoom centered on pointer
+        const rect = trackEl.value!.getBoundingClientRect();
+        const pointerX = (event.clientX - rect.left) / rect.width;
+        const pointerPercent = positionToPercent(pointerX * 100);
+
+        const factor = event.deltaY < 0 ? 1.05 : 1 / 1.05;
+        const newZoom = Math.max(1, Math.min(10, zoomLevel.value * factor));
+
+        // Adjust pan so pointer stays at same percent
+        panOffset.value = pointerPercent - (pointerX * 100) / newZoom;
+        zoomLevel.value = newZoom;
+        clampPan();
+    } else if (event.shiftKey && zoomLevel.value > 1) {
+        // Horizontal pan
+        panOffset.value += event.deltaY * 0.1 / zoomLevel.value;
+        clampPan();
+    }
+};
+
+// Touch pinch zoom
+let initialPinchDist = 0;
+let initialPinchZoom = 1;
+
+const getTouchDist = (touches: TouchList): number => {
+    if (touches.length < 2) return 0;
+    const dx = touches[1]!.clientX - touches[0]!.clientX;
+    const dy = touches[1]!.clientY - touches[0]!.clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+};
+
+const onTouchStart = (event: TouchEvent) => {
+    if (event.touches.length === 2) {
+        initialPinchDist = getTouchDist(event.touches);
+        initialPinchZoom = zoomLevel.value;
+    }
+};
+
+const onTouchMove = (event: TouchEvent) => {
+    if (event.touches.length === 2 && initialPinchDist > 0) {
+        const dist = getTouchDist(event.touches);
+        const scale = dist / initialPinchDist;
+        zoomLevel.value = Math.max(1, Math.min(10, initialPinchZoom * scale));
+        clampPan();
+    }
+};
+
+const onTouchEnd = () => {
+    initialPinchDist = 0;
+};
 
 const selectedKeyframe = computed(() =>
     state.value.keyframes.find((kf) => kf.id === selectedKeyframeId.value),
@@ -287,7 +457,8 @@ const getPercentFromPointer = (event: PointerEvent): number => {
     if (!trackEl.value) return 0;
     const rect = trackEl.value.getBoundingClientRect();
     const x = event.clientX - rect.left;
-    return Math.max(0, Math.min(100, (x / rect.width) * 100));
+    const posPercent = (x / rect.width) * 100;
+    return Math.max(0, Math.min(100, positionToPercent(posPercent)));
 };
 
 const onTrackPointerDown = (event: PointerEvent) => {
@@ -336,6 +507,14 @@ const doImport = () => {
         importCSS(importText.value);
         importDialogOpen.value = false;
         importText.value = "";
+    }
+};
+
+const doAddCSS = () => {
+    if (addCSSText.value.trim()) {
+        importCSS(addCSSText.value);
+        addCSSDialogOpen.value = false;
+        addCSSText.value = "";
     }
 };
 </script>

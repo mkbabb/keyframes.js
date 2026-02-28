@@ -239,6 +239,125 @@
                     </Transition>
                 </div>
 
+                <!-- Layer Settings (only when in a group) -->
+                <Collapsible v-if="isGrouped && layerConfig" class="mt-3">
+                    <CollapsibleTrigger class="flex items-center gap-2 w-full text-sm font-medium cursor-pointer hover:text-foreground text-muted-foreground transition-colors">
+                        <Layers class="w-4 h-4" /> Layer Settings
+                        <ChevronDown class="w-3 h-3 ml-auto transition-transform" />
+                    </CollapsibleTrigger>
+                    <CollapsibleContent class="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-2 pt-3">
+                        <IconTooltip text="Stacking order in animation group">
+                            <label class="fira-code text-xs text-muted-foreground cursor-help">z-index</label>
+                        </IconTooltip>
+                        <Input
+                            type="number"
+                            class="fira-code"
+                            :model-value="layerConfig.zIndex"
+                            @change="(e: Event) => emitLayerUpdate({ zIndex: parseInt((e.target as HTMLInputElement).value) || 0 })"
+                        />
+
+                        <IconTooltip text="How this layer blends with others">
+                            <label class="fira-code text-xs text-muted-foreground cursor-help">blend mode</label>
+                        </IconTooltip>
+                        <Select
+                            :model-value="layerConfig.blendMode"
+                            @update:model-value="(v: any) => emitLayerUpdate({ blendMode: v })"
+                        >
+                            <SelectTrigger class="fira-code">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectGroup class="fira-code">
+                                    <SelectItem value="replace">replace</SelectItem>
+                                    <SelectItem value="add">add</SelectItem>
+                                    <SelectItem value="weighted">weighted</SelectItem>
+                                </SelectGroup>
+                            </SelectContent>
+                        </Select>
+
+                        <template v-if="layerConfig.blendMode === 'weighted'">
+                            <IconTooltip text="Blend weight (0 = none, 1 = full)">
+                                <label class="fira-code text-xs text-muted-foreground cursor-help">weight</label>
+                            </IconTooltip>
+                            <Slider
+                                class="py-2"
+                                :min="0"
+                                :max="1"
+                                :step="0.01"
+                                :model-value="[layerConfig.weight]"
+                                @update:model-value="(v: any) => emitLayerUpdate({ weight: v[0] })"
+                            />
+                        </template>
+
+                        <IconTooltip text="Enable/disable this layer">
+                            <label class="fira-code text-xs text-muted-foreground cursor-help">enabled</label>
+                        </IconTooltip>
+                        <div class="flex items-center">
+                            <Switch
+                                :checked="layerConfig.enabled"
+                                @update:checked="(v: boolean) => emitLayerUpdate({ enabled: v })"
+                            />
+                        </div>
+                    </CollapsibleContent>
+                </Collapsible>
+
+                <!-- Advanced Animation Options -->
+                <Collapsible class="mt-3">
+                    <CollapsibleTrigger class="flex items-center gap-2 w-full text-sm font-medium cursor-pointer hover:text-foreground text-muted-foreground transition-colors">
+                        <Settings class="w-4 h-4" /> Advanced
+                        <ChevronDown class="w-3 h-3 ml-auto transition-transform" />
+                    </CollapsibleTrigger>
+                    <CollapsibleContent class="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-2 pt-3">
+                        <IconTooltip text="Use Web Animations API for compositor-thread execution">
+                            <label class="fira-code text-xs text-muted-foreground cursor-help">use WAAPI</label>
+                        </IconTooltip>
+                        <div class="flex items-center">
+                            <Switch
+                                :checked="animation.options.useWAAPI"
+                                @update:checked="(v: boolean) => { animation.options.useWAAPI = v; }"
+                            />
+                        </div>
+
+                        <IconTooltip text="Color interpolation space">
+                            <label class="fira-code text-xs text-muted-foreground cursor-help">color space</label>
+                        </IconTooltip>
+                        <Select
+                            :model-value="animation.options.colorSpace ?? 'oklab'"
+                            @update:model-value="(v: any) => { animation.options.colorSpace = v; }"
+                        >
+                            <SelectTrigger class="fira-code">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectGroup class="fira-code">
+                                    <SelectItem v-for="cs in COLOR_SPACES" :key="cs" :value="cs">{{ cs }}</SelectItem>
+                                </SelectGroup>
+                            </SelectContent>
+                        </Select>
+
+                        <template v-if="HUE_COLOR_SPACES.has(animation.options.colorSpace ?? 'oklab')">
+                            <IconTooltip text="Hue interpolation method">
+                                <label class="fira-code text-xs text-muted-foreground cursor-help">hue method</label>
+                            </IconTooltip>
+                            <Select
+                                :model-value="animation.options.hueMethod ?? 'shorter'"
+                                @update:model-value="(v: any) => { animation.options.hueMethod = v; }"
+                            >
+                                <SelectTrigger class="fira-code">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectGroup class="fira-code">
+                                        <SelectItem v-for="hm in HUE_METHODS" :key="hm" :value="hm">{{ hm }}</SelectItem>
+                                    </SelectGroup>
+                                </SelectContent>
+                            </Select>
+                        </template>
+                    </CollapsibleContent>
+                </Collapsible>
+
+                <Separator class="mt-3" />
+
                 <!-- Slider, buttons, visualizer — always visible -->
                 <div
                     :class="
@@ -327,6 +446,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@components/ui/card";
 import { Input } from "@components/ui/input";
 
 import { Separator } from "@components/ui/separator";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@components/ui/collapsible";
+import { Switch } from "@components/ui/switch";
 
 import {
     Select,
@@ -341,7 +462,7 @@ import { CubicBezierControls } from "@components/custom/animation-controls";
 
 import { camelCaseToHyphen } from "@src/utils";
 
-import { Trash, ArrowLeft } from "lucide-vue-next";
+import { Trash, ArrowLeft, Layers, Settings, ChevronDown } from "lucide-vue-next";
 import IconTooltip from "@components/custom/IconTooltip.vue";
 
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
@@ -355,9 +476,14 @@ import {
     FILL_MODES,
 } from "@src/animation/constants";
 import type {
+    AnimationLayerConfig,
     TimingFunction,
     TimingFunctionNames,
 } from "@src/animation/constants";
+
+const COLOR_SPACES = ["oklab", "srgb", "lab", "lch", "oklch"] as const;
+const HUE_METHODS = ["shorter", "longer", "increasing", "decreasing"] as const;
+const HUE_COLOR_SPACES = new Set(["lch", "oklch", "hsl"]);
 
 let timingFunctionsAnd = {
     "cubic-bezier": "cubic-bezier",
@@ -369,17 +495,11 @@ timingFunctionsAnd = Object.fromEntries(
 
 const DETAIL_TIMING_FUNCTIONS = new Set(["cubic-bezier", "steps"]);
 
-const { animation, isGrouped } = defineProps({
-    animation: {
-        type: Animation,
-        required: true,
-    },
-    isGrouped: {
-        type: Boolean,
-        required: false,
-        default: false,
-    },
-});
+const { animation, isGrouped, layerConfig } = defineProps<{
+    animation: Animation<any>;
+    isGrouped?: boolean;
+    layerConfig?: AnimationLayerConfig;
+}>();
 
 const storedAnimationOptions = getStoredAnimationOptions(animation);
 
@@ -441,7 +561,12 @@ const emit = defineEmits<{
         },
     ): void;
     (e: "togglePlay"): void;
+    (e: "layerConfigUpdate", val: Partial<AnimationLayerConfig>): void;
 }>();
+
+const emitLayerUpdate = (updates: Partial<AnimationLayerConfig>) => {
+    emit("layerConfigUpdate", updates);
+};
 
 const sliderUpdate = (e: Event) => {
     const t = parseFloat((e.target as HTMLInputElement).value);

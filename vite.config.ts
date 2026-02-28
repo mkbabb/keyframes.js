@@ -75,6 +75,25 @@ export default defineConfig((mode) => {
             },
             plugins: [...defaultPlugins],
         };
+    } else if (mode.mode === "playground") {
+        // Playground demo: asset manager + multi-element animations
+        return {
+            ...defaultOptions,
+            root: "./demo/playground/",
+            optimizeDeps: {
+                include: [
+                    "vue",
+                    "reka-ui",
+                    "@vueuse/core",
+                    "lucide-vue-next",
+                    "vue-sonner",
+                    "monaco-editor",
+                    "highlight.js/lib/core",
+                    "prettier",
+                ],
+            },
+            plugins: [...defaultPlugins],
+        };
     } else {
         // Dev mode: serve the demo app with HMR
         return {

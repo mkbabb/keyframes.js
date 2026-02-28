@@ -13,8 +13,10 @@
                 @slider-update="sliderUpdate"
                 @keyframes-update="keyframesUpdate"
                 @toggle-play="toggleAnimationGroup"
+                @layer-config-update="(v) => updateLayerConfig(name, v)"
                 :animation="groupObject.animation"
                 :is-grouped="true"
+                :layer-config="groupObject.layer"
             >
                 <template #tabs-trigger>
                     <slot name="tabs-trigger" :selected-animation="storedControls.selectedAnimation" :is-playing="isPlaying"></slot>
@@ -42,11 +44,17 @@
             class="p-2 m-0 z-50 flex items-center justify-center justify-items-center col-span-full row-start-3 lg:row-start-2"
         >
             <Menubar
-                class="p-1.5 px-3 flex items-center gap-2 justify-items-center border-none rounded-xl"
+                ref="menubarEl"
+                :class="[
+                    'flex items-center justify-items-center border-none rounded-xl transition-[padding,gap] duration-300 ease-out',
+                    isMenuExpanded ? 'p-2.5 px-5 gap-4' : 'p-1.5 px-3 gap-2',
+                ]"
+                @mouseenter="onMenuEnter"
+                @mouseleave="onMenuLeave"
             >
                 <MenubarMenu>
                     <IconTooltip text="Select animation">
-                    <div class="relative">
+                    <div class="relative flex items-center gap-1.5">
                         <Select
                             class="p-0 m-0 cursor-pointer"
                             :model-value="storedControls.selectedAnimation"
@@ -101,26 +109,31 @@
                 </MenubarMenu>
 
                 <IconTooltip text="Reset animation">
-                    <RotateCcw
-                        ref="resetIconEl"
-                        class="p-0 m-0 cursor-pointer hover:scale-105"
-                        @click="() => { resetIconSpin(); reset(false); }"
-                    />
+                    <span class="flex items-center gap-1.5 cursor-pointer" @click="() => { resetIconSpin(); reset(false); }">
+                        <RotateCcw
+                            ref="resetIconEl"
+                            class="p-0 m-0 hover:scale-105"
+                        />
+                        <span v-if="isMenuExpanded" class="fira-code text-xs whitespace-nowrap">Reset</span>
+                    </span>
                 </IconTooltip>
 
                 <IconTooltip text="Clear all & reload">
-                    <Trash
-                        ref="trashIconEl"
-                        class="p-0 m-0 cursor-pointer hover:scale-105"
-                        @click="() => { trashIconShake(); reset(true); }"
-                    />
+                    <span class="flex items-center gap-1.5 cursor-pointer" @click="() => { trashIconShake(); reset(true); }">
+                        <Trash
+                            ref="trashIconEl"
+                            class="p-0 m-0 hover:scale-105"
+                        />
+                        <span v-if="isMenuExpanded" class="fira-code text-xs whitespace-nowrap">Clear</span>
+                    </span>
                 </IconTooltip>
 
                 <MenubarMenu>
                     <IconTooltip :text="isPlaying ? 'Pause' : 'Play'">
                         <Button
                             :class="[
-                                'w-10 h-7 text-xl text-white cursor-pointer rounded-xl hover:scale-105',
+                                'text-xl text-white cursor-pointer rounded-xl hover:scale-105 transition-all duration-300',
+                                isMenuExpanded ? 'w-14 h-8' : 'w-10 h-7',
                                 isPlaying ? 'rainbow-vivid' : 'rainbow-pastel',
                             ]"
                             @click="toggleAnimationGroup"
@@ -162,7 +175,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, Teleport, useTemplateRef } from "vue";
+import { onUnmounted, ref, Teleport, useTemplateRef } from "vue";
 import { Toaster, toast } from "vue-sonner";
 
 import {
@@ -268,6 +281,10 @@ const toggleAnimationGroup = () => {
     }
 };
 
+const updateLayerConfig = (name: string, config: Partial<import("@src/animation/constants").AnimationLayerConfig>) => {
+    animationGroup.setLayerConfig(name, config);
+};
+
 const keyframesUpdate = (e: { animation: Animation<any> }) => {
     const groupObject = findAnimationGroupObject(e.animation);
     if (groupObject != null) {
@@ -324,6 +341,58 @@ const trashIconShake = () => {
         trashShakeAnim.play();
     }
 };
+
+// --- Springy expandable menubar ---
+const menubarEl = useTemplateRef<HTMLElement>("menubarEl");
+const isMenuExpanded = ref(false);
+let collapseTimeoutId: ReturnType<typeof setTimeout> | undefined;
+
+const expandAnim = new CSSKeyframesAnimation({
+    duration: 350,
+    timingFunction: "bounceInEase",
+    fillMode: "forwards",
+}).fromString(/*css*/ `@keyframes menuExpand {
+    0%   { transform: scaleX(0.85) scaleY(0.92); }
+    60%  { transform: scaleX(1.03) scaleY(1.02); }
+    100% { transform: scaleX(1) scaleY(1); }
+}`);
+
+const collapseAnim = new CSSKeyframesAnimation({
+    duration: 300,
+    timingFunction: "easeOutCubic",
+    fillMode: "forwards",
+}).fromString(/*css*/ `@keyframes menuCollapse {
+    0%   { transform: scaleX(1) scaleY(1); }
+    100% { transform: scaleX(0.85) scaleY(0.92); }
+}`);
+
+const onMenuEnter = () => {
+    clearTimeout(collapseTimeoutId);
+    isMenuExpanded.value = true;
+    if (menubarEl.value) {
+        collapseAnim.reset();
+        expandAnim.setTargets(menubarEl.value);
+        expandAnim.reset();
+        expandAnim.play();
+    }
+};
+
+const onMenuLeave = () => {
+    clearTimeout(collapseTimeoutId);
+    collapseTimeoutId = setTimeout(() => {
+        isMenuExpanded.value = false;
+        if (menubarEl.value) {
+            expandAnim.reset();
+            collapseAnim.setTargets(menubarEl.value);
+            collapseAnim.reset();
+            collapseAnim.play();
+        }
+    }, 2000);
+};
+
+onUnmounted(() => {
+    clearTimeout(collapseTimeoutId);
+});
 
 </script>
 
