@@ -10,6 +10,8 @@ demo/
 │   ├── components/
 │   │   ├── custom/
 │   │   │   ├── animation-controls/  # Core control suite (see below)
+│   │   │   ├── editor-shell/        # Reusable editor layout (see below)
+│   │   │   ├── matrix-editor/       # 4×4 matrix3d cell grid + slider
 │   │   │   ├── dark-mode-toggle/    # Sun/moon SVG toggle (@vueuse useDark)
 │   │   │   ├── orbital-drag/        # Quaternion-based 3D drag (gl-matrix)
 │   │   │   ├── ColorPicker.vue      # Multi-color-space picker (value.js Color)
@@ -17,12 +19,18 @@ demo/
 │   │   │   ├── CopyButton.vue      # Clipboard + feedback animation
 │   │   │   └── IconTooltip.vue      # Tooltip wrapper
 │   │   └── ui/                      # shadcn-vue components (50+)
+│   ├── composables/
+│   │   ├── useShareState.ts         # URL hash share/load with no-reload restore
+│   │   └── useTransformState.ts     # Matrix3d math, transform sliders, rAF watcher
 │   ├── styles/
 │   │   ├── style.css                # Tailwind v4 + light/dark theme vars
 │   │   └── utils.css                # Fonts (Fraunces, Fira Code), rainbow effects, 3D
 │   └── utils/
 │       └── utils.ts                 # cn() — clsx + tailwind-merge
-├── cube/          # 3D sphere: AnimationGroup, Three.js, OrbitalDrag, matrix editor
+├── cube/          # 3D cube: AnimationGroup, OrbitalDrag, matrix editor
+│   ├── App.vue            # ~170 lines — composes EditorShell + CubeTarget
+│   ├── CubeTarget.vue     # Cube sides, OrbitalDrag, idle bob, pp mode, axis lines
+│   └── useCubeAnimations.ts # Cube-specific animation creation (matrix, rotation, hover)
 ├── simple/        # Minimal: single CSSKeyframesAnimation + controls
 ├── square/        # Custom transform fn with object-based keyframes
 ├── amiga/         # Physics-like 3D sphere, multi-axis bounce
@@ -35,22 +43,45 @@ demo/
 
 The primary UI for interacting with animations across demos.
 
-- **AnimationControls.vue** — Tab panel: Controls | Keyframes. Wraps a single `Animation`.
+- **AnimationControls.vue** — Tab panel: Controls | Keyframes | Timeline. Wraps a single `Animation`.
 - **AnimationControlsControls.vue** — Sliders for duration, delay, iterations, direction, fill, easing. Cubic-bezier + steps editors.
-- **AnimationControlsGroup.vue** — Orchestrates `AnimationGroup`: animation selector dropdown, play/pause, reset.
+- **AnimationControlsGroup.vue** — Orchestrates `AnimationGroup`: animation selector dropdown, play/pause, reset. Exposes slot props (`selectedAnimation`, `isPlaying`) for consumer-side conditional rendering.
 - **CubicBezierControls.vue** — SVG bezier curve editor with draggable control points.
 - **KeyframesStringControls.vue** — Monaco editor for CSS @keyframes with format/apply/copy.
+- **KeyframeTimeline.vue** — Visual horizontal timeline: draggable diamond markers, playhead, snapshot capture, property editor, CSS import/export.
 - **KeyframesEditor.vue** — Frame-by-frame position/CSS editing.
 - **AnimationVisualizer.vue** — Timeline progress ball (draggable via OrbitalDrag).
 - **AnimatedText.vue** — Staggered per-character animation.
 - **Animated.vue** — Fade in/out wrapper using library presets.
 - **animationStores.ts** — localStorage state: animation options, group configs, URL hash sharing (base64 encode/decode, 7-day TTL).
+- **timelineTypes.ts** — `TimelineKeyframe`, `TimelineState` interfaces + default capture properties.
+- **timelineEngine.ts** — `buildAnimationFromTimeline`, `exportTimelineToCSS`, `importCSSToTimeline`.
+- **snapshotCapture.ts** — `captureSnapshot` reads `getComputedStyle` to create keyframes.
+- **useTimeline.ts** — Composable: timeline state, keyframe CRUD, scrubbing, animation rebuild, CSS import/export.
+
+## Editor Shell (`@/components/custom/editor-shell/`)
+
+Reusable full-page animation editor layout. Slot-driven — accepts any target element.
+
+- **EditorShell.vue** — Grid background, header, start screen, `AnimationControlsGroup` wrapper. Slots: `#header-left`, `#header-right`, `#start-screen`, `#tabs-trigger`, `#tabs-content`, `#target`.
+- **EditorHeader.vue** — Fixed-position header bar with left/right slot areas.
+- **EditorStartScreen.vue** — "Select an animation..." overlay with configurable text.
+- **SharePopover.vue** — Self-contained share/load popover using `useShareState`.
+
+## Matrix Editor (`@/components/custom/matrix-editor/`)
+
+- **MatrixEditor.vue** — 4×4 matrix3d cell grid with slider, reset/lock buttons. Props-driven via `matrix3dEnd`, `matrixCellMeta`, `superKey`.
+
+## Composables (`@/composables/`)
+
+- **useShareState.ts** — URL hash encode/decode, clipboard copy, no-reload state restore via `stateVersion` counter.
+- **useTransformState.ts** — Matrix3d creation, transform slider values, cell metadata, rAF-debounced watcher, animated matrix reset.
 
 ## Demo Apps
 
 | Demo | Framework | Key Feature |
 |------|-----------|-------------|
-| `cube/` | Vue + Three.js | 4 synchronized animations, 3D sphere, matrix editor, URL sharing |
+| `cube/` | Vue | 3 synchronized animations, 3D cube, matrix editor, EditorShell, URL sharing |
 | `simple/` | Vue | Single animation: translateX/Y + rotate + color |
 | `square/` | Vue | Custom transform fn, nested object interpolation |
 | `amiga/` | Vue + Three.js | 3D sphere with bouncing on X/Y/Z axes |
@@ -70,7 +101,7 @@ The primary UI for interacting with animations across demos.
 ## Conventions
 
 - Tailwind v4 with CSS variable theme (light/dark via `.dark` class)
-- Path aliases: `@components/`, `@styles/`, `@utils/`
+- Path aliases: `@components/`, `@composables/`, `@styles/`, `@utils/`
 - Lazy-loaded heavy components (`defineAsyncComponent` for Monaco)
 - Safari private browsing: localStorage fallback to plain `ref()`
 - Touch support: pinch/drag in OrbitalDrag, touch controls in demos

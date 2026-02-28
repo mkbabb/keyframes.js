@@ -19,6 +19,7 @@
             "@styles/*": ["demo/@/styles/*"],
             "@components/*": ["demo/@/components/*"],
             "@utils/*": ["demo/@/utils/*"],
+            "@composables/*": ["demo/@/composables/*"],
             "@assets/*": ["assets/*"]
         }
     },

@@ -14,6 +14,7 @@
                 >
                     <TabsTrigger value="controls">Controls</TabsTrigger>
                     <TabsTrigger value="keyframes">Keyframes</TabsTrigger>
+                    <TabsTrigger value="timeline">Timeline</TabsTrigger>
                     <slot name="tabs-trigger"></slot>
                 </TabsList>
             </span>
@@ -43,6 +44,13 @@
                     ></KeyframesStringControls>
                 </TabsContent>
 
+                <TabsContent value="timeline">
+                    <KeyframeTimeline
+                        :targets="animation.targets"
+                        :animation-options="animation.options"
+                    />
+                </TabsContent>
+
                 <slot name="tabs-content"></slot>
             </div>
         </Tabs>
@@ -59,6 +67,7 @@ import { TooltipProvider } from "@components/ui/tooltip";
 import { defineAsyncComponent, onMounted, useTemplateRef } from "vue";
 
 const KeyframesStringControls = defineAsyncComponent(() => import("./KeyframesStringControls.vue"));
+const KeyframeTimeline = defineAsyncComponent(() => import("./KeyframeTimeline.vue"));
 import AnimationControlsControls from "./AnimationControlsControls.vue";
 import { getStoredAnimationGroupControlOptions } from "./animationStores";
 

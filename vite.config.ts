@@ -20,6 +20,7 @@ const defaultOptions = {
             "@styles": path.resolve(import.meta.dirname, "demo/@/styles"),
             "@components": path.resolve(import.meta.dirname, "demo/@/components"),
             "@utils": path.resolve(import.meta.dirname, "demo/@/utils"),
+            "@composables": path.resolve(import.meta.dirname, "demo/@/composables"),
             "@assets": path.resolve(import.meta.dirname, "assets"),
         },
     },

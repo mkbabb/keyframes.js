@@ -46,8 +46,8 @@ src/
 └── env.d.ts             # Vue *.vue module declaration
 
 demo/                    # Vue 3 demo apps (see demo/CLAUDE.md)
-├── @/                   # Shared: animation controls, UI (shadcn-vue), styles
-├── cube/                # 3D sphere + AnimationGroup + Three.js
+├── @/                   # Shared: editor shell, composables, UI (shadcn-vue), styles
+├── cube/                # 3D cube + AnimationGroup + matrix editor
 ├── simple/              # Minimal: single animation + controls
 ├── square/              # Custom transform function demo
 ├── amiga/               # Physics-like 3D sphere
@@ -97,7 +97,7 @@ Most of `src/` is thin re-export barrels over `value.js`. Local logic lives in:
 - TypeScript `strict: true`, `verbatimModuleSyntax: true`, `exactOptionalPropertyTypes: true`
 - `moduleResolution: bundler`, `target: ES2022`
 - `import type` for type-only imports
-- Path aliases: `@src/`, `@components/`, `@styles/`, `@utils/`, `@assets/`
+- Path aliases: `@src/`, `@components/`, `@composables/`, `@styles/`, `@utils/`, `@assets/`
 - Memoization via `memoize()` (from value.js) and local `memoizeDecorator`
 - All exported parsing functions are memoized
 - Prettier: 4-space indent, 80-char width, tailwind + import sort plugins

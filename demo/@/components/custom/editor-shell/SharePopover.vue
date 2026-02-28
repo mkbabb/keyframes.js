@@ -1,0 +1,56 @@
+<template>
+    <Popover v-model:open="sharePopoverOpen">
+        <PopoverTrigger as-child>
+            <Share2
+                title="Share"
+                :class="[
+                    'w-5 h-5 cursor-pointer hover:scale-105 transition-colors',
+                    sharePopoverOpen ? 'opacity-100' : 'hover:opacity-50',
+                ]"
+            />
+        </PopoverTrigger>
+        <PopoverContent class="w-72 p-2" align="end">
+            <div class="flex items-center gap-1.5">
+                <Input
+                    v-model="loadHashInput"
+                    placeholder="Paste share URL..."
+                    class="fira-code text-xs h-8 flex-1"
+                    @keydown.enter="loadFromInput"
+                />
+                <Button
+                    size="sm"
+                    variant="ghost"
+                    class="h-8 w-8 p-0 shrink-0 cursor-pointer"
+                    @click="loadFromInput"
+                    title="Load shared state"
+                >
+                    <ArrowRight class="w-4 h-4" />
+                </Button>
+                <Button
+                    size="sm"
+                    variant="ghost"
+                    class="h-8 w-8 p-0 shrink-0 cursor-pointer"
+                    @click="shareState"
+                    title="Copy share link"
+                >
+                    <Clipboard class="w-4 h-4" />
+                </Button>
+            </div>
+        </PopoverContent>
+    </Popover>
+</template>
+
+<script setup lang="ts">
+import { Share2, Clipboard, ArrowRight } from "lucide-vue-next";
+import {
+    Popover,
+    PopoverTrigger,
+    PopoverContent,
+} from "@components/ui/popover";
+import { Input } from "@components/ui/input";
+import { Button } from "@components/ui/button";
+import { useShareState } from "@composables/useShareState";
+
+const { sharePopoverOpen, loadHashInput, shareState, loadFromInput } =
+    useShareState();
+</script>

@@ -17,11 +17,11 @@
                 :is-grouped="true"
             >
                 <template #tabs-trigger>
-                    <slot name="tabs-trigger"></slot>
+                    <slot name="tabs-trigger" :selected-animation="storedControls.selectedAnimation" :is-playing="isPlaying"></slot>
                 </template>
 
                 <template #tabs-content>
-                    <slot name="tabs-content"></slot>
+                    <slot name="tabs-content" :selected-animation="storedControls.selectedAnimation" :is-playing="isPlaying"></slot>
                 </template>
             </AnimationControls>
         </template>
@@ -35,7 +35,7 @@
                 'col-span-full lg:row-start-1 row-start-2'
             ]"
         >
-            <slot name="animation-content"> </slot>
+            <slot name="animation-content" :selected-animation="storedControls.selectedAnimation" :is-playing="isPlaying"> </slot>
         </div>
 
         <div
