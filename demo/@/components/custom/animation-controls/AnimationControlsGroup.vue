@@ -30,7 +30,7 @@
 
         <div
             :class="[
-                'justify-self-stretch min-h-0 h-[100dvh] lg:h-auto overflow-visible',
+                'justify-self-stretch min-h-0 h-[100dvh] lg:h-full overflow-visible',
                 storedControls?.selectedAnimation
                     ? 'lg:col-start-2 lg:col-end-4'
                     : 'lg:col-start-1 lg:col-end-4',
@@ -306,6 +306,13 @@ const reset = (all: boolean = false) => {
 const resetIconEl = useTemplateRef<HTMLElement>("resetIconEl");
 const trashIconEl = useTemplateRef<HTMLElement>("trashIconEl");
 
+/** Resolve a template ref to a raw HTMLElement (handles component instances). */
+const resolveEl = (ref: any): HTMLElement | null => {
+    if (!ref) return null;
+    if (ref instanceof HTMLElement) return ref;
+    return ref.$el instanceof HTMLElement ? ref.$el : null;
+};
+
 const resetSpinAnim = new CSSKeyframesAnimation({
     duration: 400,
     timingFunction: "easeOutCubic",
@@ -327,16 +334,18 @@ const trashShakeAnim = new CSSKeyframesAnimation({
 }`);
 
 const resetIconSpin = () => {
-    if (resetIconEl.value) {
-        resetSpinAnim.setTargets(resetIconEl.value);
+    const el = resolveEl(resetIconEl.value);
+    if (el) {
+        resetSpinAnim.setTargets(el);
         resetSpinAnim.reset();
         resetSpinAnim.play();
     }
 };
 
 const trashIconShake = () => {
-    if (trashIconEl.value) {
-        trashShakeAnim.setTargets(trashIconEl.value);
+    const el = resolveEl(trashIconEl.value);
+    if (el) {
+        trashShakeAnim.setTargets(el);
         trashShakeAnim.reset();
         trashShakeAnim.play();
     }
@@ -369,9 +378,10 @@ const collapseAnim = new CSSKeyframesAnimation({
 const onMenuEnter = () => {
     clearTimeout(collapseTimeoutId);
     isMenuExpanded.value = true;
-    if (menubarEl.value) {
+    const el = resolveEl(menubarEl.value);
+    if (el) {
         collapseAnim.reset();
-        expandAnim.setTargets(menubarEl.value);
+        expandAnim.setTargets(el);
         expandAnim.reset();
         expandAnim.play();
     }
@@ -381,9 +391,10 @@ const onMenuLeave = () => {
     clearTimeout(collapseTimeoutId);
     collapseTimeoutId = setTimeout(() => {
         isMenuExpanded.value = false;
-        if (menubarEl.value) {
+        const el = resolveEl(menubarEl.value);
+        if (el) {
             expandAnim.reset();
-            collapseAnim.setTargets(menubarEl.value);
+            collapseAnim.setTargets(el);
             collapseAnim.reset();
             collapseAnim.play();
         }

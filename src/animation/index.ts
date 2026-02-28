@@ -85,6 +85,7 @@ export class Animation<V extends Vars = any> {
     private dispatchAnimationEvent(type: string) {
         if (typeof AnimationEvent === "undefined") return;
         for (const target of this.targets) {
+            if (typeof target?.dispatchEvent !== "function") continue;
             target.dispatchEvent(new AnimationEvent(type, {
                 animationName: this.name ?? "",
                 elapsedTime: this.t / 1000,

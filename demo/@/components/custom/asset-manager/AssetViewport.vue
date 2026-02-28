@@ -70,7 +70,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, useTemplateRef } from "vue";
+import { shallowReactive, useTemplateRef } from "vue";
 import type { Asset, AssetTransform, HandleType } from "./assetTypes";
 
 const props = defineProps<{
@@ -87,7 +87,7 @@ const emit = defineEmits<{
 }>();
 
 const viewportEl = useTemplateRef<HTMLElement>("viewportEl");
-const assetElMap: Record<string, HTMLElement> = reactive({});
+const assetElMap: Record<string, HTMLElement> = shallowReactive({});
 
 const RESIZE_HANDLES: { type: HandleType; style: Record<string, string>; cursor: string }[] = [
     { type: "tl", style: { top: "-4px", left: "-4px" }, cursor: "cursor-nwse-resize" },

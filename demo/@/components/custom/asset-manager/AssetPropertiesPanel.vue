@@ -115,15 +115,15 @@
                 <template v-if="animationNames && animationNames.length > 0">
                     <label class="fira-code text-[10px] text-muted-foreground">animation</label>
                     <Select
-                        :model-value="asset.animationName ?? ''"
-                        @update:model-value="(v: any) => emit('update', asset.id, { animationName: v || undefined })"
+                        :model-value="asset.animationName ?? '__none__'"
+                        @update:model-value="(v: any) => emit('update', asset.id, { animationName: v === '__none__' ? undefined : v })"
                     >
                         <SelectTrigger class="fira-code text-xs h-6">
                             <SelectValue placeholder="None" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectGroup class="fira-code text-xs">
-                                <SelectItem value="">None</SelectItem>
+                                <SelectItem value="__none__">None</SelectItem>
                                 <SelectItem v-for="name in animationNames" :key="name" :value="name">
                                     {{ name }}
                                 </SelectItem>

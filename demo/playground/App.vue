@@ -35,7 +35,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { ref, toRaw, watch } from "vue";
 import { TabsContent, TabsTrigger } from "@components/ui/tabs";
 import { EditorShell } from "@components/custom/editor-shell";
 import { AssetLayerPanel, AssetViewport, useAssetManager } from "@components/custom/asset-manager";
@@ -70,7 +70,9 @@ watch(
             if (asset.animationName && elMap[asset.id]) {
                 const entry = animationGroup.animations[asset.animationName];
                 if (entry) {
-                    entry.animation.setTargets(elMap[asset.id]!);
+                    // toRaw unwraps any Vue reactive proxy so the animation
+                    // engine receives a real HTMLElement with dispatchEvent etc.
+                    entry.animation.setTargets(toRaw(elMap[asset.id]!));
                 }
             }
         }
