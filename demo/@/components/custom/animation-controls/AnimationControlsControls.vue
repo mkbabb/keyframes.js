@@ -239,13 +239,16 @@
                     </Transition>
                 </div>
 
+                <Separator class="mt-1" />
+
                 <!-- Layer Settings (only when in a group) -->
-                <Collapsible v-if="isGrouped && layerConfig" class="mt-3">
-                    <CollapsibleTrigger class="flex items-center gap-2 w-full text-sm font-medium cursor-pointer hover:text-foreground text-muted-foreground transition-colors">
-                        <Layers class="w-4 h-4" /> Layer Settings
+                <Collapsible v-if="isGrouped && layerConfig">
+                    <CollapsibleTrigger class="flex items-center gap-2 w-full py-1.5 fira-code text-xs cursor-pointer hover:text-foreground text-muted-foreground transition-colors">
+                        <Layers class="w-3.5 h-3.5" />
+                        <span>layer</span>
                         <ChevronDown class="w-3 h-3 ml-auto transition-transform" />
                     </CollapsibleTrigger>
-                    <CollapsibleContent class="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-2 pt-3">
+                    <CollapsibleContent class="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-2 pb-2">
                         <IconTooltip text="Stacking order in animation group">
                             <label class="fira-code text-xs text-muted-foreground cursor-help">z-index</label>
                         </IconTooltip>
@@ -257,7 +260,7 @@
                         />
 
                         <IconTooltip text="How this layer blends with others">
-                            <label class="fira-code text-xs text-muted-foreground cursor-help">blend mode</label>
+                            <label class="fira-code text-xs text-muted-foreground cursor-help">blend</label>
                         </IconTooltip>
                         <Select
                             :model-value="layerConfig.blendMode"
@@ -299,17 +302,19 @@
                             />
                         </div>
                     </CollapsibleContent>
+                    <Separator />
                 </Collapsible>
 
                 <!-- Advanced Animation Options -->
-                <Collapsible class="mt-3">
-                    <CollapsibleTrigger class="flex items-center gap-2 w-full text-sm font-medium cursor-pointer hover:text-foreground text-muted-foreground transition-colors">
-                        <Settings class="w-4 h-4" /> Advanced
+                <Collapsible>
+                    <CollapsibleTrigger class="flex items-center gap-2 w-full py-1.5 fira-code text-xs cursor-pointer hover:text-foreground text-muted-foreground transition-colors">
+                        <Settings class="w-3.5 h-3.5" />
+                        <span>advanced</span>
                         <ChevronDown class="w-3 h-3 ml-auto transition-transform" />
                     </CollapsibleTrigger>
-                    <CollapsibleContent class="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-2 pt-3">
+                    <CollapsibleContent class="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-2 pb-2">
                         <IconTooltip text="Use Web Animations API for compositor-thread execution">
-                            <label class="fira-code text-xs text-muted-foreground cursor-help">use WAAPI</label>
+                            <label class="fira-code text-xs text-muted-foreground cursor-help">WAAPI</label>
                         </IconTooltip>
                         <div class="flex items-center">
                             <Switch
@@ -356,7 +361,7 @@
                     </CollapsibleContent>
                 </Collapsible>
 
-                <Separator class="mt-3" />
+                <Separator />
 
                 <!-- Slider, buttons, visualizer — always visible -->
                 <div

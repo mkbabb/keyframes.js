@@ -8,32 +8,14 @@
             :model-value="storedControls.selectedControl"
             @update:model-value="selectControl"
         >
-            <div class="flex items-center gap-2 mb-1">
-                <!-- Copy & Format actions -->
-                <div class="flex items-center gap-1">
-                    <IconTooltip text="Copy CSS">
-                        <CopyButton
-                            class="w-4 h-4 hover:scale-105 cursor-pointer"
-                            :text="keyframesControlsRef?.getCSSString?.() ?? ''"
-                        />
-                    </IconTooltip>
-                    <IconTooltip text="Format CSS">
-                        <WandSparkles
-                            class="w-4 h-4 cursor-pointer hover:scale-105 hover:opacity-50 text-muted-foreground hover:text-foreground"
-                            @click="keyframesControlsRef?.formatCSS?.()"
-                        />
-                    </IconTooltip>
-                </div>
-
-                <TabsList
-                    class="overflow-x-scroll w-full flex items-center justify-around fraunces bg-background border-4 border-gray-700 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.8)] dark:shadow-gray-700 rounded-xl scrollbar-hidden pr-10 lg:pr-0"
-                >
-                    <TabsTrigger value="controls">Controls</TabsTrigger>
-                    <TabsTrigger value="keyframes">Keyframes</TabsTrigger>
-                    <TabsTrigger value="timeline">Timeline</TabsTrigger>
-                    <slot name="tabs-trigger"></slot>
-                </TabsList>
-            </div>
+            <TabsList
+                class="overflow-x-scroll w-full flex items-center justify-around fraunces bg-background border-4 border-gray-700 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.8)] dark:shadow-gray-700 rounded-xl scrollbar-hidden pr-10 lg:pr-0 mb-1"
+            >
+                <TabsTrigger value="controls">Controls</TabsTrigger>
+                <TabsTrigger value="keyframes">Keyframes</TabsTrigger>
+                <TabsTrigger value="timeline">Timeline</TabsTrigger>
+                <slot name="tabs-trigger"></slot>
+            </TabsList>
 
             <div ref="tabsContentEl" class="flex-1 min-h-0 overflow-y-auto flex flex-col pr-3 pb-3">
                 <TabsContent value="controls">
@@ -85,10 +67,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
 import { TooltipProvider } from "@components/ui/tooltip";
 
 import { defineAsyncComponent, ref, useTemplateRef } from "vue";
-
-import { WandSparkles } from "lucide-vue-next";
-import CopyButton from "@components/custom/CopyButton.vue";
-import IconTooltip from "@components/custom/IconTooltip.vue";
 
 const KeyframesStringControls = defineAsyncComponent(() => import("./KeyframesStringControls.vue"));
 const KeyframeTimeline = defineAsyncComponent(() => import("./KeyframeTimeline.vue"));

@@ -1,10 +1,9 @@
 <template>
-    <Card class="p-0">
-        <CardContent class="p-3 grid gap-2">
-            <span class="fira-code text-xs font-semibold text-muted-foreground">Properties</span>
+    <div class="grid gap-2">
+        <span class="fira-code text-xs font-semibold text-muted-foreground">properties</span>
 
-            <!-- Name -->
-            <div class="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-1.5">
+        <!-- Name -->
+        <div class="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-1.5">
                 <label class="fira-code text-[10px] text-muted-foreground">name</label>
                 <Input
                     :model-value="asset.name"
@@ -131,14 +130,12 @@
                         </SelectContent>
                     </Select>
                 </template>
-            </div>
-        </CardContent>
-    </Card>
+        </div>
+    </div>
 </template>
 
 <script setup lang="ts">
 import type { Asset, AssetTransform } from "./assetTypes";
-import { Card, CardContent } from "@components/ui/card";
 import { Input } from "@components/ui/input";
 import { Slider } from "@components/ui/slider";
 import {
