@@ -1,11 +1,10 @@
 <template>
-    <div class="flex flex-col h-full min-h-0 min-w-0">
-    <Card class="p-0 m-0 flex-1 min-h-0 flex flex-col overflow-hidden">
-        <CardContent class="relative m-0 p-0 grid grid-cols-1 flex-1 min-h-0">
+    <div class="min-w-0">
+        <div class="relative">
             <div
                 @keydown="onKeyDown"
                 ref="cssKeyframesStringEl"
-                class="h-full min-h-[350px] w-full rounded-lg"
+                class="h-[450px] w-full rounded-lg border-4 border-gray-700 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.8)] dark:shadow-gray-700 overflow-hidden"
             ></div>
 
             <!-- Floating Apply as CSS button -->
@@ -21,8 +20,7 @@
                     ]"
                 />
             </IconTooltip>
-        </CardContent>
-    </Card>
+        </div>
     </div>
 </template>
 <script setup lang="ts">
@@ -32,10 +30,6 @@ import {
     parseCSSAnimationKeyframes,
 } from "@src/parsing/keyframes";
 import { debounce } from "@src/utils";
-import {
-    Card,
-    CardContent,
-} from "@components/ui/card";
 
 import { onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
 
@@ -105,10 +99,11 @@ const cssApplied = ref(false);
 
 const getFormatWidth = () => {
     const el = cssKeyframesStringEl.value;
-    if (el == null || el.offsetWidth == null) {
+    if (el == null || el.offsetWidth == null || el.offsetWidth === 0) {
         return undefined;
     }
-    return convert2(el.offsetWidth, "px", "ch", el);
+    const ch = convert2(el.offsetWidth, "px", "ch", el);
+    return ch != null ? Math.floor(ch) : undefined;
 };
 
 const getTmpAnimationName = () => {
@@ -269,14 +264,12 @@ let cssKeyframesStringEditor: monaco.editor.IStandaloneCodeEditor;
 
 const parseErrorShake = animations.shake();
 
-onMounted(async () => {
-    brushAnimation.setTargets(brushEl.value!);
-
-    createKeyframesStyleEl();
+const initMonacoEditor = async () => {
+    const el = cssKeyframesStringEl.value!;
 
     await updateCSSAnimationKeyframesStringFromAnimation();
 
-    cssKeyframesStringEditor = monaco.editor.create(cssKeyframesStringEl.value!, {
+    cssKeyframesStringEditor = monaco.editor.create(el, {
         value: cssKeyframesString.value,
         language: "css",
         fontLigatures: true,
@@ -297,11 +290,39 @@ onMounted(async () => {
         updateAnimationFromKeyframesString(cssKeyframesStringEditor);
     });
 
-    parseErrorShake.setTargets(cssKeyframesStringEl.value!);
+    parseErrorShake.setTargets(el);
+};
+
+let resizeObserver: ResizeObserver | null = null;
+
+onMounted(() => {
+    brushAnimation.setTargets(brushEl.value!);
+    createKeyframesStyleEl();
+
+    const el = cssKeyframesStringEl.value!;
+
+    // Monaco needs a visible container with real dimensions.
+    // reka-ui TabsContent hides inactive tabs with `hidden` (display:none),
+    // so the element may have 0×0 when onMounted fires.
+    if (el.offsetWidth > 0 && el.offsetHeight > 0) {
+        initMonacoEditor();
+    } else {
+        // Wait for the container to become visible (tab activation).
+        resizeObserver = new ResizeObserver((entries) => {
+            const entry = entries[0];
+            if (entry && entry.contentRect.width > 0 && entry.contentRect.height > 0) {
+                resizeObserver?.disconnect();
+                resizeObserver = null;
+                initMonacoEditor();
+            }
+        });
+        resizeObserver.observe(el);
+    }
 });
 
 onUnmounted(() => {
     clearTimeout(formattingTimeoutId);
+    resizeObserver?.disconnect();
     cssKeyframesStringEditor?.dispose();
 });
 
