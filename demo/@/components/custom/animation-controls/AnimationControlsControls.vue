@@ -1,9 +1,9 @@
 <template>
-    <div class="grid items-center gap-4 justify-items-center">
-        <Card class="w-full overflow-hidden">
-            <CardContent class="relative grid gap-1 px-4 py-3">
+    <div class="grid items-center gap-4">
+        <Card class="w-full overflow-visible">
+            <CardContent class="relative grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 px-4 py-3">
                 <!-- Sliding panel container -->
-                <div class="relative w-full overflow-clip p-[3px] -m-[3px]">
+                <div class="relative w-full overflow-clip p-1 -m-1 col-span-2">
                     <!-- Main controls panel -->
                     <Transition name="slide-main">
                         <div
@@ -239,80 +239,75 @@
                     </Transition>
                 </div>
 
-                <Separator class="mt-1" />
+                <Separator class="my-2 col-span-2" />
 
-                <!-- Layer Settings (only when in a group) -->
-                <Collapsible v-if="isGrouped && layerConfig">
-                    <CollapsibleTrigger class="flex items-center gap-2 w-full py-1.5 fira-code text-xs cursor-pointer hover:text-foreground text-muted-foreground transition-colors">
-                        <Layers class="w-3.5 h-3.5" />
-                        <span>layer</span>
-                        <ChevronDown class="w-3 h-3 ml-auto transition-transform" />
+                <!-- Advanced (includes layer settings when grouped) -->
+                <Collapsible class="col-span-2 grid grid-cols-[subgrid]">
+                    <CollapsibleTrigger class="col-span-2 grid grid-cols-[subgrid] items-center w-full py-1.5 fira-code text-xs cursor-pointer hover:text-foreground text-muted-foreground transition-colors">
+                        <span>advanced</span>
+                        <div class="flex items-center justify-end border border-transparent px-3 mr-2">
+                            <ChevronDown class="w-4 h-4 opacity-50 transition-transform" />
+                        </div>
                     </CollapsibleTrigger>
-                    <CollapsibleContent class="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-2 pb-2">
-                        <IconTooltip text="Stacking order in animation group">
-                            <label class="fira-code text-xs text-muted-foreground cursor-help">z-index</label>
-                        </IconTooltip>
-                        <Input
-                            type="number"
-                            class="fira-code"
-                            :model-value="layerConfig.zIndex"
-                            @change="(e: Event) => emitLayerUpdate({ zIndex: parseInt((e.target as HTMLInputElement).value) || 0 })"
-                        />
-
-                        <IconTooltip text="How this layer blends with others">
-                            <label class="fira-code text-xs text-muted-foreground cursor-help">blend</label>
-                        </IconTooltip>
-                        <Select
-                            :model-value="layerConfig.blendMode"
-                            @update:model-value="(v: any) => emitLayerUpdate({ blendMode: v })"
-                        >
-                            <SelectTrigger class="fira-code">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectGroup class="fira-code">
-                                    <SelectItem value="replace">replace</SelectItem>
-                                    <SelectItem value="add">add</SelectItem>
-                                    <SelectItem value="weighted">weighted</SelectItem>
-                                </SelectGroup>
-                            </SelectContent>
-                        </Select>
-
-                        <template v-if="layerConfig.blendMode === 'weighted'">
-                            <IconTooltip text="Blend weight (0 = none, 1 = full)">
-                                <label class="fira-code text-xs text-muted-foreground cursor-help">weight</label>
+                    <CollapsibleContent class="col-span-2 grid grid-cols-[subgrid] items-center gap-x-3 gap-y-2 pb-2">
+                        <!-- Layer Settings (only when in a group) -->
+                        <template v-if="isGrouped && layerConfig">
+                            <IconTooltip text="Stacking order in animation group">
+                                <label class="fira-code text-xs text-muted-foreground cursor-help">z-index</label>
                             </IconTooltip>
-                            <Slider
-                                class="py-2"
-                                :min="0"
-                                :max="1"
-                                :step="0.01"
-                                :model-value="[layerConfig.weight]"
-                                @update:model-value="(v: any) => emitLayerUpdate({ weight: v[0] })"
+                            <Input
+                                type="number"
+                                class="fira-code"
+                                :model-value="layerConfig.zIndex"
+                                @change="(e: Event) => emitLayerUpdate({ zIndex: parseInt((e.target as HTMLInputElement).value) || 0 })"
                             />
+
+                            <IconTooltip text="How this layer blends with others">
+                                <label class="fira-code text-xs text-muted-foreground cursor-help">blend</label>
+                            </IconTooltip>
+                            <Select
+                                :model-value="layerConfig.blendMode"
+                                @update:model-value="(v: any) => emitLayerUpdate({ blendMode: v })"
+                            >
+                                <SelectTrigger class="fira-code">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectGroup class="fira-code">
+                                        <SelectItem value="replace">replace</SelectItem>
+                                        <SelectItem value="add">add</SelectItem>
+                                        <SelectItem value="weighted">weighted</SelectItem>
+                                    </SelectGroup>
+                                </SelectContent>
+                            </Select>
+
+                            <template v-if="layerConfig.blendMode === 'weighted'">
+                                <IconTooltip text="Blend weight (0 = none, 1 = full)">
+                                    <label class="fira-code text-xs text-muted-foreground cursor-help">weight</label>
+                                </IconTooltip>
+                                <Slider
+                                    class="py-2"
+                                    :min="0"
+                                    :max="1"
+                                    :step="0.01"
+                                    :model-value="[layerConfig.weight]"
+                                    @update:model-value="(v: any) => emitLayerUpdate({ weight: v[0] })"
+                                />
+                            </template>
+
+                            <IconTooltip text="Enable/disable this layer">
+                                <label class="fira-code text-xs text-muted-foreground cursor-help">enabled</label>
+                            </IconTooltip>
+                            <div class="flex items-center">
+                                <Switch
+                                    :checked="layerConfig.enabled"
+                                    @update:checked="(v: boolean) => emitLayerUpdate({ enabled: v })"
+                                />
+                            </div>
+
+                            <Separator class="col-span-2 my-1" />
                         </template>
 
-                        <IconTooltip text="Enable/disable this layer">
-                            <label class="fira-code text-xs text-muted-foreground cursor-help">enabled</label>
-                        </IconTooltip>
-                        <div class="flex items-center">
-                            <Switch
-                                :checked="layerConfig.enabled"
-                                @update:checked="(v: boolean) => emitLayerUpdate({ enabled: v })"
-                            />
-                        </div>
-                    </CollapsibleContent>
-                    <Separator />
-                </Collapsible>
-
-                <!-- Advanced Animation Options -->
-                <Collapsible>
-                    <CollapsibleTrigger class="flex items-center gap-2 w-full py-1.5 fira-code text-xs cursor-pointer hover:text-foreground text-muted-foreground transition-colors">
-                        <Settings class="w-3.5 h-3.5" />
-                        <span>advanced</span>
-                        <ChevronDown class="w-3 h-3 ml-auto transition-transform" />
-                    </CollapsibleTrigger>
-                    <CollapsibleContent class="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-2 pb-2">
                         <IconTooltip text="Use Web Animations API for compositor-thread execution">
                             <label class="fira-code text-xs text-muted-foreground cursor-help">WAAPI</label>
                         </IconTooltip>
@@ -361,7 +356,7 @@
                     </CollapsibleContent>
                 </Collapsible>
 
-                <Separator />
+                <Separator class="my-2 col-span-2" />
 
                 <!-- Slider, buttons, visualizer — always visible -->
                 <div
@@ -467,7 +462,7 @@ import { CubicBezierControls } from "@components/custom/animation-controls";
 
 import { camelCaseToHyphen } from "@src/utils";
 
-import { Trash, ArrowLeft, Layers, Settings, ChevronDown } from "lucide-vue-next";
+import { Trash, ArrowLeft, ChevronDown } from "lucide-vue-next";
 import IconTooltip from "@components/custom/IconTooltip.vue";
 
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
