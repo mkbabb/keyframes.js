@@ -13,7 +13,7 @@ demo/
 │   │   │   ├── editor-shell/        # Reusable editor layout (see below)
 │   │   │   ├── matrix-editor/       # 4×4 matrix3d cell grid + slider
 │   │   │   ├── dark-mode-toggle/    # Sun/moon SVG toggle (@vueuse useDark)
-│   │   │   ├── orbital-drag/        # Quaternion-based 3D drag (gl-matrix)
+│   │   │   ├── orbital-drag/        # Quaternion-based 3D drag (gl-matrix, Pointer Events)
 │   │   │   ├── ColorPicker.vue      # Multi-color-space picker (value.js Color)
 │   │   │   ├── CommandPalette.vue   # Cmd+K palette
 │   │   │   ├── CopyButton.vue      # Clipboard + feedback animation
@@ -75,7 +75,7 @@ Reusable full-page animation editor layout. Slot-driven — accepts any target e
 ## Composables (`@/composables/`)
 
 - **useShareState.ts** — URL hash encode/decode, clipboard copy, no-reload state restore via `stateVersion` counter.
-- **useTransformState.ts** — Matrix3d creation, transform slider values, cell metadata, rAF-debounced watcher, animated matrix reset.
+- **useTransformState.ts** — Matrix3d creation (`Rx * Ry * Rz` convention), transform slider values, cell metadata, rAF-debounced watcher, animated matrix reset.
 
 ## Demo Apps
 
@@ -104,4 +104,6 @@ Reusable full-page animation editor layout. Slot-driven — accepts any target e
 - Path aliases: `@components/`, `@composables/`, `@styles/`, `@utils/`
 - Lazy-loaded heavy components (`defineAsyncComponent` for Monaco)
 - Safari private browsing: localStorage fallback to plain `ref()`
-- Touch support: pinch/drag in OrbitalDrag, touch controls in demos
+- Pointer Events + `setPointerCapture` for drag containment (OrbitalDrag); touch pinch on container only
+- Modifier keys (shift/ctrl/meta) read from event properties, not keydown/keyup tracking
+- Euler convention: quaternion ↔ Euler extraction must match `Rx * Ry * Rz` (useTransformState consumption order)

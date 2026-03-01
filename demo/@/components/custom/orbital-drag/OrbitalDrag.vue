@@ -61,9 +61,10 @@ const pressedKeys = ref<PressedKeys>({
 });
 
 const sensitivity = props.sensitivity ?? 0.5;
-const translationFactor = props.translationFactor ?? 0.1;
+const touchSensitivity = sensitivity * 2.5;
+const translationFactor = props.translationFactor ?? 0.8;
 const inertiaFactor = props.inertiaFactor ?? 0.95;
-const scaleFactor = props.scaleFactor ?? 0.01;
+const scaleFactor = props.scaleFactor ?? 0.02;
 
 // Pinch tracking for standard touch events (non-Safari)
 const previousPinchDistance = ref(0);
@@ -87,36 +88,36 @@ const currentQuaternion = quat.create();
 const angularVelocityAxis = vec3.fromValues(0, 1, 0);
 const angularVelocitySpeed = ref(0);
 
-// Extract Euler angles (XYZ order) from a quaternion — replaces THREE.Euler.setFromQuaternion
+// Extract Euler angles from a quaternion for consumption as R = Rx * Ry * Rz.
+// (useTransformState builds: mat4.multiply(Rx, Ry) then *= Rz, so Z acts on
+// the vector first. This is THREE.js "XYZ" order.)
 const quaternionToEulerDegrees = (q: quat) => {
-    // Extract rotation matrix elements from quaternion
     const [x, y, z, w] = q;
     const x2 = x + x, y2 = y + y, z2 = z + z;
     const xx = x * x2, xy = x * y2, xz = x * z2;
     const yy = y * y2, yz = y * z2, zz = z * z2;
     const wx = w * x2, wy = w * y2, wz = w * z2;
 
-    // Rotation matrix elements (column-major like gl-matrix)
-    const m11 = 1 - (yy + zz);
-    const m12 = xy + wz;
-    const m13 = xz - wy;
-    const m21 = xy - wz;
-    const m22 = 1 - (xx + zz);
-    const m23 = yz + wx;
-    // const m31 = xz + wy;
-    // const m32 = yz - wx;
-    const m33 = 1 - (xx + yy);
+    // Rotation matrix R(row, col) from quaternion
+    const r00 = 1 - (yy + zz);
+    const r01 = xy - wz;
+    const r02 = xz + wy; // sin(ey)
+    const r11 = 1 - (xx + zz);
+    const r12 = yz - wx;
+    const r21 = yz + wx;
+    const r22 = 1 - (xx + yy);
 
-    // XYZ Euler extraction
-    const sy = clamp(m13, -1, 1);
-    const ey = -Math.asin(sy);
+    // Rx * Ry * Rz decomposition: R(0,2) = sin(ey)
+    const sy = clamp(r02, -1, 1);
+    const ey = Math.asin(sy);
 
     let ex: number, ez: number;
     if (Math.abs(sy) < 0.9999) {
-        ex = Math.atan2(m23, m33);
-        ez = Math.atan2(m12, m11);
+        ex = Math.atan2(-r12, r22);
+        ez = Math.atan2(-r01, r00);
     } else {
-        ex = Math.atan2(-m21, m22); // m32
+        // Gimbal lock
+        ex = Math.atan2(r21, r11);
         ez = 0;
     }
 
@@ -140,7 +141,7 @@ const applyRotation = (axis: vec3, angle: number) => {
 
     const deltaQuat = quat.create();
     quat.setAxisAngle(deltaQuat, axis, angle);
-    // premultiply: currentQuaternion = deltaQuat * currentQuaternion
+    // premultiply: currentQuaternion = deltaQuat * currentQuaternion (world-space rotation)
     quat.multiply(currentQuaternion, deltaQuat, currentQuaternion);
     quat.normalize(currentQuaternion, currentQuaternion);
 
@@ -173,22 +174,54 @@ const getTouchCenter = (event: TouchEvent) => {
     return { x: (t0.clientX + t1.clientX) / 2, y: (t0.clientY + t1.clientY) / 2 };
 };
 
-const startDrag = (event: MouseEvent | TouchEvent) => {
-    if (isTouchEventFallback(event)) {
+const startDrag = (event: PointerEvent) => {
+    if (event.pointerType === "touch") {
         isTouching.value = true;
-        event.preventDefault();
-        if (event.touches.length >= 2) {
-            previousPinchDistance.value = getTouchDistance(event);
-            previousPinchCenter.value = getTouchCenter(event);
-        }
     }
-    previousMousePosition.value = getUserXY(event);
+    previousMousePosition.value = { x: event.clientX, y: event.clientY };
     isDragging.value = true;
 };
 
 const stopDrag = () => {
     isTouching.value = false;
     isDragging.value = false;
+    previousPinchDistance.value = 0;
+};
+
+const startTouchPinch = (event: TouchEvent) => {
+    if (event.touches.length >= 2) {
+        event.preventDefault();
+        isTouching.value = true;
+        previousPinchDistance.value = getTouchDistance(event);
+        previousPinchCenter.value = getTouchCenter(event);
+    }
+};
+
+const handleTouchPinch = (event: TouchEvent) => {
+    if (!isTouching.value || event.touches.length < 2) return;
+    event.preventDefault();
+
+    const dist = getTouchDistance(event);
+    const center = getTouchCenter(event);
+
+    if (previousPinchDistance.value > 0) {
+        const deltaScale = (dist - previousPinchDistance.value) / (1 / (scaleFactor * 2));
+        const deltaCX = center.x - previousPinchCenter.value.x;
+        const deltaCY = center.y - previousPinchCenter.value.y;
+
+        updateTranslation("x", deltaCX);
+        updateTranslation("y", deltaCY);
+        updateScale("x", deltaScale);
+        updateScale("y", deltaScale);
+        updateScale("z", deltaScale);
+    }
+
+    previousPinchDistance.value = dist;
+    previousPinchCenter.value = center;
+};
+
+const stopTouchPinch = () => {
+    isTouching.value = false;
     previousPinchDistance.value = 0;
 };
 
@@ -248,13 +281,14 @@ const updateScale = (axis: (typeof axes)[number], delta: number) => {
 
 const DEG2RAD = Math.PI / 180;
 
-const updateRotation = (deltaX: number, deltaY: number) => {
+const updateRotation = (deltaX: number, deltaY: number, isTouch = false) => {
     const axis = vec3.fromValues(-deltaY, deltaX, 0);
     const magnitude = vec3.length(axis);
     if (magnitude < 1e-6) return;
 
     vec3.normalize(axis, axis);
-    const angle = magnitude * sensitivity * DEG2RAD;
+    const s = isTouch ? touchSensitivity : sensitivity;
+    const angle = (magnitude * s) / 25;
 
     applyRotation(axis, angle);
 
@@ -264,8 +298,10 @@ const updateRotation = (deltaX: number, deltaY: number) => {
 };
 
 const updateAxisRotation = (constrainedAxes: (typeof axes)[number][], deltaX: number, deltaY: number) => {
-    const delta = Math.abs(deltaX) > Math.abs(deltaY) ? deltaX : deltaY;
-    if (Math.abs(delta) < 1e-6) return;
+    const magnitude = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    if (magnitude < 1e-6) return;
+
+    const angle = (magnitude * sensitivity) / 25;
 
     for (const a of constrainedAxes) {
         const axis = vec3.fromValues(
@@ -273,48 +309,24 @@ const updateAxisRotation = (constrainedAxes: (typeof axes)[number][], deltaX: nu
             a === "y" ? 1 : 0,
             a === "z" ? 1 : 0,
         );
-        // Match old sign convention: X uses delta, Y uses -delta, Z uses delta
-        const sign = a === "y" ? -1 : 1;
-        const angle = delta * sign * sensitivity * DEG2RAD;
-        applyRotation(axis, angle);
+        applyRotation(axis, angle * Math.sign(a === "x" ? -deltaY : deltaX));
     }
 
-    angularVelocitySpeed.value = Math.abs(delta * sensitivity * DEG2RAD);
+    angularVelocitySpeed.value = angle;
 };
 
-const drag = (event: MouseEvent | TouchEvent) => {
+const syncModifiers = (event: { shiftKey: boolean; ctrlKey: boolean; metaKey: boolean }) => {
+    pressedKeys.value.shift = event.shiftKey;
+    pressedKeys.value.ctrl = event.ctrlKey;
+    pressedKeys.value.meta = event.metaKey;
+};
+
+const drag = (event: PointerEvent) => {
     if (!isDragging.value) return;
+    syncModifiers(event);
 
-    const isTouch = isTouchEventFallback(event);
-
-    // Prevent browser from taking over the touch gesture (scroll/zoom)
-    if (isTouch) {
-        event.preventDefault();
-    }
-
-    // Handle 2-finger pinch/pan via standard touch events (non-Safari fallback)
-    if (isTouch && event.touches.length >= 2) {
-        const dist = getTouchDistance(event);
-        const center = getTouchCenter(event);
-
-        if (previousPinchDistance.value > 0) {
-            const deltaScale = (dist - previousPinchDistance.value) / (1 / (scaleFactor * 2));
-            const deltaCX = center.x - previousPinchCenter.value.x;
-            const deltaCY = center.y - previousPinchCenter.value.y;
-
-            updateTranslation("x", deltaCX);
-            updateTranslation("y", deltaCY);
-            updateScale("x", deltaScale);
-            updateScale("y", deltaScale);
-            updateScale("z", deltaScale);
-        }
-
-        previousPinchDistance.value = dist;
-        previousPinchCenter.value = center;
-        return;
-    }
-
-    const { x, y } = getUserXY(event);
+    const isTouch = event.pointerType === "touch";
+    const { clientX: x, clientY: y } = event;
 
     const deltaX = x - previousMousePosition.value.x;
     const deltaY = y - previousMousePosition.value.y;
@@ -329,12 +341,12 @@ const drag = (event: MouseEvent | TouchEvent) => {
     } else if (pressedKeys.value.ctrl || pressedKeys.value.meta) {
         // Z-axis roll from horizontal drag
         const axis = vec3.fromValues(0, 0, 1);
-        const angle = deltaX * sensitivity * DEG2RAD;
+        const angle = ((Math.abs(deltaX) * sensitivity) / 25) * Math.sign(deltaX);
         applyRotation(axis, angle);
         vec3.copy(angularVelocityAxis, axis);
         angularVelocitySpeed.value = Math.abs(angle);
     } else {
-        updateRotation(deltaX, deltaY);
+        updateRotation(deltaX, deltaY, isTouch);
     }
 
     previousMousePosition.value = { x, y };
@@ -385,8 +397,12 @@ const handleAxisSpecificInput = (deltaX: number, deltaY: number) => {
 
 const handleWheel = (event: WheelEvent) => {
     event.preventDefault();
+    syncModifiers(event);
 
-    const { deltaX, deltaY, ctrlKey } = event;
+    let { deltaX, deltaY, ctrlKey } = event;
+
+    deltaX = deltaX / 5;
+    deltaY = deltaY / 5;
 
     if (Math.abs(deltaX) < 1e-4 && Math.abs(deltaY) < 1e-4) return;
 
@@ -403,11 +419,11 @@ const handleWheel = (event: WheelEvent) => {
         updateTranslation("x", deltaX);
         updateTranslation("y", deltaY);
     } else if (pressedKeys.value.ctrl || pressedKeys.value.meta || ctrlKey) {
-        updateScale("x", deltaY);
-        updateScale("y", deltaY);
-        updateScale("z", deltaY);
+        updateScale("x", -deltaY);
+        updateScale("y", -deltaY);
+        updateScale("z", -deltaY);
     } else {
-        updateRotation(deltaX, deltaY);
+        updateRotation(-deltaX, -deltaY);
     }
 };
 
@@ -461,6 +477,29 @@ const applyInertia = () => {
 
 const { pause, resume } = useRafFn(applyInertia);
 
+// Pointer Events: dynamic document listeners only during active drag
+const onPointerDown = (event: PointerEvent) => {
+    startDrag(event);
+    containerRef.value!.setPointerCapture(event.pointerId);
+    const doc = containerRef.value!.ownerDocument;
+    doc.addEventListener("pointermove", onPointerMove, { passive: false });
+    doc.addEventListener("pointerup", onPointerUp);
+    doc.addEventListener("pointercancel", onPointerUp);
+};
+
+const onPointerMove = (event: PointerEvent) => {
+    drag(event);
+};
+
+const onPointerUp = (event: PointerEvent) => {
+    stopDrag();
+    containerRef.value?.releasePointerCapture(event.pointerId);
+    const doc = containerRef.value?.ownerDocument ?? document;
+    doc.removeEventListener("pointermove", onPointerMove);
+    doc.removeEventListener("pointerup", onPointerUp);
+    doc.removeEventListener("pointercancel", onPointerUp);
+};
+
 onMounted(() => {
     // Initialize quaternion from model's initial Euler angles
     const { x, y, z } = model.value.rotate;
@@ -473,9 +512,9 @@ onMounted(() => {
     const qz = quat.create();
     quat.setAxisAngle(qz, [0, 0, 1], z * DEG2RAD);
 
-    // XYZ order: qz * qy * qx
-    quat.multiply(currentQuaternion, qz, qy);
-    quat.multiply(currentQuaternion, currentQuaternion, qx);
+    // Rx * Ry * Rz order: Q = Qx * Qy * Qz
+    quat.multiply(currentQuaternion, qx, qy);
+    quat.multiply(currentQuaternion, currentQuaternion, qz);
 
     useEventListener(
         containerRef,
@@ -489,21 +528,16 @@ onMounted(() => {
     useEventListener(window, "keydown", (e: KeyboardEvent) => updatePressedKeys(e, true));
     useEventListener(window, "keyup", (e: KeyboardEvent) => updatePressedKeys(e, false));
 
-    // mousedown on container to initiate drag; move/up on window for cross-element tracking
-    useEventListener(containerRef, "mousedown", startDrag);
-    useEventListener(window, "mousemove", drag);
-    useEventListener(window, "mouseup", stopDrag);
-    useEventListener(window, "mouseleave", stopDrag);
+    // Pointer Events on container — dynamic doc listeners via setPointerCapture
+    useEventListener(containerRef, "pointerdown", onPointerDown);
 
-    // Touch events: start only on container, move/end on window for tracking.
-    // touchmove/gesturechange MUST be { passive: false } on window — Chrome marks
-    // window-level touch listeners as passive by default, which prevents
-    // preventDefault() and lets the browser hijack the gesture after ~300ms.
-    useEventListener(containerRef, "touchstart", startDrag, { passive: false });
-    useEventListener(window, "touchmove", drag, { passive: false });
-    useEventListener(window, "touchend", stopDrag);
+    // Touch events on container only — for multi-touch pinch (2+ fingers)
+    useEventListener(containerRef, "touchstart", startTouchPinch, { passive: false });
+    useEventListener(containerRef, "touchmove", handleTouchPinch, { passive: false });
+    useEventListener(containerRef, "touchend", stopTouchPinch);
 
-    useEventListener(window, "gesturestart", startGesture, { passive: false });
+    // Safari gesture events: start on container, change/end on window with isTouching guard
+    useEventListener(containerRef, "gesturestart", startGesture, { passive: false });
     useEventListener(window, "gesturechange", gesture, { passive: false });
     useEventListener(window, "gestureend", stopGesture);
 
@@ -519,7 +553,7 @@ watch(
     (active) => {
         if (active) return;
 
-        // Dampen all velocities on release (match old behavior: 0.5 across the board)
+        // Dampen velocities on release — let rAF handle the next frame
         angularVelocitySpeed.value *= 0.5;
 
         for (const category of ["translate", "scale"] as const) {
@@ -535,5 +569,6 @@ watch(
 div {
     cursor: move;
     user-select: none;
+    touch-action: none;
 }
 </style>
