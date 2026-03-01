@@ -6,7 +6,6 @@
 
 <script setup lang="ts">
 import { clamp } from "@src/math";
-import { ANGLE_UNITS } from "@src/units/constants";
 import { useEventListener, useRafFn } from "@vueuse/core";
 import { quat, vec3 } from "gl-matrix";
 import { onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
@@ -26,7 +25,6 @@ const props = defineProps<{
     sensitivity?: number;
     translationFactor?: number;
     inertiaFactor?: number;
-    rotationUnit?: (typeof ANGLE_UNITS)[number];
     scaleFactor?: number;
     bounds?: TransformBounds;
 }>();
@@ -62,11 +60,10 @@ const pressedKeys = ref<PressedKeys>({
     meta: false,
 });
 
-const sensitivity = props.sensitivity ?? 0.15;
-const touchSensitivity = sensitivity * 2.5;
-const translationFactor = props.translationFactor ?? 0.8;
-const inertiaFactor = props.inertiaFactor ?? 0.92;
-const scaleFactor = props.scaleFactor ?? 0.02;
+const sensitivity = props.sensitivity ?? 0.5;
+const translationFactor = props.translationFactor ?? 0.1;
+const inertiaFactor = props.inertiaFactor ?? 0.95;
+const scaleFactor = props.scaleFactor ?? 0.01;
 
 // Pinch tracking for standard touch events (non-Safari)
 const previousPinchDistance = ref(0);
@@ -249,14 +246,15 @@ const updateScale = (axis: (typeof axes)[number], delta: number) => {
     );
 };
 
-const updateRotation = (deltaX: number, deltaY: number, isTouch = false) => {
+const DEG2RAD = Math.PI / 180;
+
+const updateRotation = (deltaX: number, deltaY: number) => {
     const axis = vec3.fromValues(-deltaY, deltaX, 0);
     const magnitude = vec3.length(axis);
     if (magnitude < 1e-6) return;
 
     vec3.normalize(axis, axis);
-    const s = isTouch ? touchSensitivity : sensitivity;
-    const angle = (magnitude * s) / 25;
+    const angle = magnitude * sensitivity * DEG2RAD;
 
     applyRotation(axis, angle);
 
@@ -266,10 +264,8 @@ const updateRotation = (deltaX: number, deltaY: number, isTouch = false) => {
 };
 
 const updateAxisRotation = (constrainedAxes: (typeof axes)[number][], deltaX: number, deltaY: number) => {
-    const magnitude = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-    if (magnitude < 1e-6) return;
-
-    const angle = (magnitude * sensitivity) / 25;
+    const delta = Math.abs(deltaX) > Math.abs(deltaY) ? deltaX : deltaY;
+    if (Math.abs(delta) < 1e-6) return;
 
     for (const a of constrainedAxes) {
         const axis = vec3.fromValues(
@@ -277,10 +273,13 @@ const updateAxisRotation = (constrainedAxes: (typeof axes)[number][], deltaX: nu
             a === "y" ? 1 : 0,
             a === "z" ? 1 : 0,
         );
-        applyRotation(axis, angle * Math.sign(a === "x" ? -deltaY : deltaX));
+        // Match old sign convention: X uses delta, Y uses -delta, Z uses delta
+        const sign = a === "y" ? -1 : 1;
+        const angle = delta * sign * sensitivity * DEG2RAD;
+        applyRotation(axis, angle);
     }
 
-    angularVelocitySpeed.value = angle;
+    angularVelocitySpeed.value = Math.abs(delta * sensitivity * DEG2RAD);
 };
 
 const drag = (event: MouseEvent | TouchEvent) => {
@@ -327,15 +326,22 @@ const drag = (event: MouseEvent | TouchEvent) => {
     } else if (pressedKeys.value.shift) {
         updateTranslation("x", deltaX);
         updateTranslation("y", deltaY);
+    } else if (pressedKeys.value.ctrl || pressedKeys.value.meta) {
+        // Z-axis roll from horizontal drag
+        const axis = vec3.fromValues(0, 0, 1);
+        const angle = deltaX * sensitivity * DEG2RAD;
+        applyRotation(axis, angle);
+        vec3.copy(angularVelocityAxis, axis);
+        angularVelocitySpeed.value = Math.abs(angle);
     } else {
-        updateRotation(deltaX, deltaY, isTouch);
+        updateRotation(deltaX, deltaY);
     }
 
     previousMousePosition.value = { x, y };
 };
 
 const gesture = (event: any) => {
-    if (!isTouching.value) return;
+    if (!isTouching.value || isWheeling.value) return;
 
     const { screenX, screenY, scale } = event;
 
@@ -380,10 +386,7 @@ const handleAxisSpecificInput = (deltaX: number, deltaY: number) => {
 const handleWheel = (event: WheelEvent) => {
     event.preventDefault();
 
-    let { deltaX, deltaY, ctrlKey } = event;
-
-    deltaX = deltaX / 10;
-    deltaY = deltaY / 10;
+    const { deltaX, deltaY, ctrlKey } = event;
 
     if (Math.abs(deltaX) < 1e-4 && Math.abs(deltaY) < 1e-4) return;
 
@@ -404,7 +407,7 @@ const handleWheel = (event: WheelEvent) => {
         updateScale("y", deltaY);
         updateScale("z", deltaY);
     } else {
-        updateRotation(-deltaX, -deltaY);
+        updateRotation(deltaX, deltaY);
     }
 };
 
@@ -461,7 +464,6 @@ const { pause, resume } = useRafFn(applyInertia);
 onMounted(() => {
     // Initialize quaternion from model's initial Euler angles
     const { x, y, z } = model.value.rotate;
-    const DEG2RAD = Math.PI / 180;
 
     // Build quaternion from XYZ Euler angles
     const qx = quat.create();
@@ -501,7 +503,7 @@ onMounted(() => {
     useEventListener(window, "touchmove", drag, { passive: false });
     useEventListener(window, "touchend", stopDrag);
 
-    useEventListener(containerRef, "gesturestart", startGesture, { passive: false });
+    useEventListener(window, "gesturestart", startGesture, { passive: false });
     useEventListener(window, "gesturechange", gesture, { passive: false });
     useEventListener(window, "gestureend", stopGesture);
 
@@ -517,17 +519,14 @@ watch(
     (active) => {
         if (active) return;
 
-        // Dampen angular velocity on release
-        angularVelocitySpeed.value *= 0.3;
+        // Dampen all velocities on release (match old behavior: 0.5 across the board)
+        angularVelocitySpeed.value *= 0.5;
 
-        // Dampen linear velocities on release
         for (const category of ["translate", "scale"] as const) {
             for (const k of Object.keys(velocity.value[category])) {
                 (velocity.value[category] as Record<string, number>)[k] *= 0.5;
             }
         }
-
-        applyInertia();
     },
 );
 </script>
