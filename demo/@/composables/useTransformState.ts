@@ -221,8 +221,6 @@ export function useTransformState(
     watch(
         transformSliderValues,
         () => {
-            if (isGroupPlaying.value) return;
-
             if (!transformUpdateScheduled) {
                 transformUpdateScheduled = true;
                 requestAnimationFrame(() => {
