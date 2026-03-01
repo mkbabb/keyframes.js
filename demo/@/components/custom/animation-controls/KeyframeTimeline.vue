@@ -1,9 +1,9 @@
 <template>
     <div class="flex flex-col gap-3">
-    <Card class="w-full overflow-hidden">
-        <CardContent class="p-4 flex flex-col gap-3">
+    <Card :class="['w-full overflow-hidden transition-all duration-150', props.expanded ? 'border-0 shadow-none bg-transparent' : '']">
+        <CardContent :class="['flex flex-col gap-3', props.expanded ? 'p-2 px-0' : 'p-4']">
         <!-- Toolbar -->
-        <div class="flex items-center gap-1.5">
+        <div class="flex items-center gap-1.5 flex-wrap">
             <IconTooltip text="Snapshot current state">
                 <Button
                     size="sm"
@@ -65,6 +65,17 @@
                 </Button>
             </IconTooltip>
 
+            <IconTooltip :text="props.expanded ? 'Collapse timeline' : 'Expand timeline'">
+                <Button
+                    size="sm"
+                    variant="ghost"
+                    class="cursor-pointer h-7 w-7 p-0"
+                    @click="emit('toggleExpand')"
+                >
+                    <component :is="props.expanded ? Minimize2 : Maximize2" class="w-3.5 h-3.5" />
+                </Button>
+            </IconTooltip>
+
             <!-- Zoom indicator -->
             <span
                 v-if="zoomLevel > 1"
@@ -89,7 +100,10 @@
         <!-- Timeline Track -->
         <div
             ref="trackEl"
-            class="timeline-track relative h-12 rounded-lg border border-border bg-muted/50 hover:bg-muted/70 transition-colors cursor-pointer select-none overflow-x-clip overflow-y-visible"
+            :class="[
+                'timeline-track relative rounded-lg border border-border bg-muted/50 hover:bg-muted/70 transition-all duration-150 cursor-pointer select-none overflow-x-clip overflow-y-visible',
+                props.expanded ? 'h-32' : 'h-12',
+            ]"
             style="touch-action: none"
             @pointerdown="onTrackPointerDown"
             @pointermove="onTrackPointerMove"
@@ -119,20 +133,50 @@
             ></div>
 
             <!-- Keyframe markers -->
-            <div
-                v-for="kf in sortedKeyframes"
-                :key="kf.id"
-                :class="[
-                    'keyframe-marker absolute top-1/2 -translate-x-1/2 -translate-y-1/2 z-20',
-                    'w-4 h-4 rotate-45 rounded-sm cursor-grab',
-                    'border-2 transition-colors',
-                    selectedKeyframeId === kf.id
-                        ? 'bg-primary border-primary scale-125'
-                        : 'bg-background border-foreground/50 hover:border-primary hover:scale-110',
-                ]"
-                :style="{ left: `${percentToPosition(kf.percent)}%` }"
-                @pointerdown.stop="onMarkerPointerDown($event, kf.id)"
-            ></div>
+            <Tooltip v-for="kf in sortedKeyframes" :key="kf.id">
+                <TooltipTrigger as-child>
+                    <div
+                        :class="[
+                            'keyframe-marker absolute top-1/2 -translate-x-1/2 -translate-y-1/2 z-20',
+                            props.expanded ? 'w-6 h-6' : 'w-4 h-4',
+                            'rotate-45 rounded-sm cursor-grab',
+                            'border-2 transition-all',
+                            selectedKeyframeId === kf.id
+                                ? 'bg-primary border-primary scale-125'
+                                : 'bg-background border-foreground/50 hover:border-primary hover:scale-110',
+                        ]"
+                        :style="{ left: `${percentToPosition(kf.percent)}%` }"
+                        @pointerdown.stop="onMarkerPointerDown($event, kf.id)"
+                        @mouseenter="onDiamondHover(kf)"
+                    ></div>
+                </TooltipTrigger>
+                <TooltipContent side="top" :side-offset="8" class="p-2 max-w-56">
+                    <div class="flex flex-col items-center gap-1.5">
+                        <span class="fira-code text-xs font-semibold">{{ Math.round(kf.percent) }}%</span>
+                        <!-- html2canvas capture (non-3D targets) -->
+                        <img
+                            v-if="previewCache[kf.id]"
+                            :src="previewCache[kf.id]"
+                            class="w-36 h-auto rounded border border-border/30"
+                        />
+                        <!-- Ghost box preview from CSS vars -->
+                        <div
+                            v-else-if="Object.keys(getGhostStyle(kf.vars)).length > 0"
+                            class="w-16 h-16 rounded border border-border/30 bg-muted/30"
+                            :style="getGhostStyle(kf.vars)"
+                        ></div>
+                        <div v-if="previewLoading[kf.id]" class="text-muted-foreground text-[10px] fira-code">
+                            Capturing...
+                        </div>
+                        <div class="fira-code text-[10px] text-muted-foreground max-h-24 overflow-y-auto w-full">
+                            <div v-for="[prop, val] in Object.entries(kf.vars)" :key="prop" class="truncate">
+                                <span class="text-foreground/70">{{ prop }}</span>: {{ val }}
+                            </div>
+                            <div v-if="Object.keys(kf.vars).length === 0" class="italic">No properties</div>
+                        </div>
+                    </div>
+                </TooltipContent>
+            </Tooltip>
 
             <!-- Timeline Carets -->
             <TimelineCaret
@@ -146,12 +190,11 @@
                 @select="selectedKeyframeId = kf.id"
             />
         </div>
-        </CardContent>
-    </Card>
+        <!-- Selected Keyframe Editor (inline) -->
+        <Transition name="kf-editor">
+            <div v-if="selectedKeyframe" class="flex flex-col gap-3">
+                <Separator />
 
-        <!-- Selected Keyframe Editor -->
-        <Card v-if="selectedKeyframe" class="p-0">
-            <CardContent class="p-3 grid gap-2">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
                         <span class="fira-code text-sm font-semibold"
@@ -173,73 +216,20 @@
                     </Button>
                 </div>
 
-                <Separator />
+                <CSSCodeEditor
+                    :model-value="selectedKeyframeCSS"
+                    height="250px"
+                    @update:model-value="onKeyframeCSSChange"
+                />
+            </div>
+        </Transition>
 
-                <div class="grid gap-1.5 max-h-40 overflow-y-auto">
-                    <div
-                        v-for="[prop, value] in Object.entries(
-                            selectedKeyframe.vars,
-                        )"
-                        :key="prop"
-                        class="flex items-center gap-1.5"
-                    >
-                        <span
-                            class="fira-code text-xs text-muted-foreground w-28 truncate shrink-0"
-                            :title="prop"
-                            >{{ prop }}</span
-                        >
-                        <Input
-                            :model-value="value"
-                            @update:model-value="
-                                (v) =>
-                                    updateKeyframeProperty(
-                                        selectedKeyframeId!,
-                                        prop,
-                                        v as string,
-                                    )
-                            "
-                            class="fira-code text-xs h-6 flex-1"
-                        />
-                        <Button
-                            size="sm"
-                            variant="ghost"
-                            class="h-6 w-6 p-0 shrink-0 cursor-pointer"
-                            @click="
-                                updateKeyframeProperty(
-                                    selectedKeyframeId!,
-                                    prop,
-                                    '',
-                                )
-                            "
-                        >
-                            <X class="w-3 h-3" />
-                        </Button>
-                    </div>
-                </div>
-
-                <!-- Add property -->
-                <div class="flex items-center gap-1.5">
-                    <Input
-                        v-model="newPropName"
-                        placeholder="property..."
-                        class="fira-code text-xs h-6 flex-1"
-                        @keydown.enter="addPropertyToKeyframe"
-                    />
-                    <Button
-                        size="sm"
-                        variant="ghost"
-                        class="h-6 w-6 p-0 shrink-0 cursor-pointer"
-                        @click="addPropertyToKeyframe"
-                    >
-                        <Plus class="w-3 h-3" />
-                    </Button>
-                </div>
-            </CardContent>
-        </Card>
+        </CardContent>
+    </Card>
 
         <!-- Empty state -->
         <div
-            v-else-if="sortedKeyframes.length === 0"
+            v-if="!selectedKeyframe && sortedKeyframes.length === 0"
             class="text-center py-6 text-muted-foreground text-sm"
         >
             <p class="fira-code">Click "Snapshot" or click the timeline to add keyframes</p>
@@ -306,22 +296,24 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, useTemplateRef } from "vue";
+import { computed, reactive, ref, useTemplateRef } from "vue";
 import type { Ref } from "vue";
 import {
     Camera,
     Download,
+    Maximize2,
+    Minimize2,
     Upload,
     FilePlus2,
     Trash,
     X,
-    Plus,
 } from "lucide-vue-next";
 import IconTooltip from "@components/custom/IconTooltip.vue";
 import { Button } from "@components/ui/button";
 import { Card, CardContent } from "@components/ui/card";
 import { Input } from "@components/ui/input";
 import { Separator } from "@components/ui/separator";
+import CSSCodeEditor from "./CSSCodeEditor.vue";
 import {
     Dialog,
     DialogContent,
@@ -329,6 +321,7 @@ import {
     DialogFooter,
     DialogTitle,
 } from "@components/ui/dialog";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip";
 import { useTimeline } from "./useTimeline";
 import TimelineCaret from "./TimelineCaret.vue";
 import type { InputAnimationOptions } from "@src/animation/constants";
@@ -336,6 +329,11 @@ import type { InputAnimationOptions } from "@src/animation/constants";
 const props = defineProps<{
     targets: HTMLElement[];
     animationOptions?: InputAnimationOptions;
+    expanded?: boolean;
+}>();
+
+const emit = defineEmits<{
+    (e: "toggleExpand"): void;
 }>();
 
 const targetsRef = computed(() => props.targets) as unknown as Ref<HTMLElement[]>;
@@ -351,6 +349,8 @@ const {
     removeKeyframe,
     moveKeyframe,
     updateKeyframeProperty,
+    rebuild,
+    scrubAndCapture,
     exportCSS,
     importCSS,
     clear,
@@ -359,11 +359,40 @@ const {
 const trackEl = useTemplateRef<HTMLElement>("trackEl");
 const selectedKeyframeId = ref<string | null>(null);
 const draggingKeyframeId = ref<string | null>(null);
-const newPropName = ref("");
 const importDialogOpen = ref(false);
 const importText = ref("");
 const addCSSDialogOpen = ref(false);
 const addCSSText = ref("");
+
+// --- Preview cache for diamond hover ---
+import type { TimelineKeyframe } from "./timelineTypes";
+
+const previewCache = reactive<Record<string, string>>({});
+const previewLoading = reactive<Record<string, boolean>>({});
+
+const getGhostStyle = (vars: Record<string, string>): Record<string, string> => {
+    const style: Record<string, string> = {};
+    if (vars["background-color"]) style.backgroundColor = vars["background-color"];
+    if (vars["opacity"]) style.opacity = vars["opacity"];
+    if (vars["transform"]) style.transform = `scale(0.3) ${vars["transform"]}`;
+    if (vars["border-radius"]) style.borderRadius = vars["border-radius"];
+    return style;
+};
+
+const onDiamondHover = async (kf: TimelineKeyframe) => {
+    if (previewCache[kf.id] || previewLoading[kf.id]) return;
+    previewLoading[kf.id] = true;
+    try {
+        const canvas = await scrubAndCapture(kf.percent);
+        if (canvas) {
+            previewCache[kf.id] = canvas.toDataURL("image/png");
+        }
+    } catch {
+        // Capture failed (no animation, 3D not supported, etc.) — ghost preview shown as fallback
+    } finally {
+        previewLoading[kf.id] = false;
+    }
+};
 
 // --- Zoom/Pan state ---
 const zoomLevel = ref(1);
@@ -459,6 +488,34 @@ const selectedKeyframe = computed(() =>
     state.value.keyframes.find((kf) => kf.id === selectedKeyframeId.value),
 );
 
+const selectedKeyframeCSS = computed(() => {
+    if (!selectedKeyframe.value) return "";
+    return Object.entries(selectedKeyframe.value.vars)
+        .map(([prop, value]) => `${prop}: ${value};`)
+        .join("\n");
+});
+
+const onKeyframeCSSChange = (css: string) => {
+    if (!selectedKeyframeId.value) return;
+    const kf = state.value.keyframes.find((k) => k.id === selectedKeyframeId.value);
+    if (!kf) return;
+
+    const newVars: Record<string, string> = {};
+    for (const line of css.split("\n")) {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith("/*")) continue;
+        const colonIdx = trimmed.indexOf(":");
+        if (colonIdx === -1) continue;
+        const prop = trimmed.slice(0, colonIdx).trim();
+        let value = trimmed.slice(colonIdx + 1).trim();
+        if (value.endsWith(";")) value = value.slice(0, -1).trim();
+        if (prop && value) newVars[prop] = value;
+    }
+
+    kf.vars = newVars;
+    rebuild();
+};
+
 const getPercentFromPointer = (event: PointerEvent): number => {
     if (!trackEl.value) return 0;
     const rect = trackEl.value.getBoundingClientRect();
@@ -497,17 +554,6 @@ const onMarkerPointerDown = (event: PointerEvent, id: string) => {
     (event.target as Element).setPointerCapture(event.pointerId);
 };
 
-const addPropertyToKeyframe = () => {
-    if (!selectedKeyframeId.value || !newPropName.value.trim()) return;
-
-    updateKeyframeProperty(
-        selectedKeyframeId.value,
-        newPropName.value.trim(),
-        "",
-    );
-    newPropName.value = "";
-};
-
 const doImport = () => {
     if (importText.value.trim()) {
         importCSS(importText.value);
@@ -540,4 +586,9 @@ const doAddCSS = () => {
 .keyframe-marker:active {
     cursor: grabbing;
 }
+
+.kf-editor-enter-active { transition: opacity 0.15s ease, transform 0.15s ease; }
+.kf-editor-leave-active { transition: opacity 0.1s ease, transform 0.1s ease; }
+.kf-editor-enter-from { opacity: 0; transform: translateY(-8px); }
+.kf-editor-leave-to { opacity: 0; transform: translateY(-4px); }
 </style>

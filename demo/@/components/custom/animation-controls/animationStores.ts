@@ -165,6 +165,7 @@ export type StoredAnimationGroupControlOptions = {
     selectedControl: string;
     selectedAnimation: string;
     selectedKeyframesControl: string;
+    isTimelineExpanded: boolean;
     [name: string]: any;
 };
 
@@ -176,6 +177,7 @@ export type StoredAnimationGroupsControlOptions = {
 const defaultStoredAnimationGroupControlOptions = {
     selectedControl: "controls",
     selectedAnimation: null,
+    isTimelineExpanded: false,
 };
 
 export const getStoredAnimationGroupControlOptions = (

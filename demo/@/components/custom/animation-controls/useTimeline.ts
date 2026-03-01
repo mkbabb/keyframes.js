@@ -198,6 +198,34 @@ export function useTimeline(
         rebuild();
     };
 
+    const scrubAndCapture = async (percent: number): Promise<HTMLCanvasElement | null> => {
+        const target = targets.value[0];
+        if (!target) return null;
+
+        const hasAnimation = !!animation.value;
+        const prevT = scrubT.value;
+
+        if (hasAnimation) {
+            scrub(percent / 100);
+            await new Promise<void>((r) => requestAnimationFrame(r));
+        }
+
+        try {
+            const { default: html2canvas } = await import("html2canvas");
+            return await html2canvas(target, {
+                scale: 0.5,
+                logging: false,
+                backgroundColor: null,
+            });
+        } catch {
+            return null;
+        } finally {
+            if (hasAnimation) {
+                scrub(prevT);
+            }
+        }
+    };
+
     const clear = () => {
         state.value.keyframes = [];
         animation.value = null;
@@ -216,6 +244,7 @@ export function useTimeline(
         updateKeyframeProperty,
         rebuild,
         scrub,
+        scrubAndCapture,
         exportCSS,
         importCSS,
         loadPreset,

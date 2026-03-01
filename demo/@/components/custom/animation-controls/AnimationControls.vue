@@ -9,7 +9,7 @@
             @update:model-value="selectControl"
         >
             <TabsList
-                class="overflow-x-scroll w-full flex items-center justify-around fraunces bg-background border-4 border-gray-700 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.8)] dark:shadow-gray-700 rounded-xl scrollbar-hidden mb-1"
+                class="overflow-x-scroll w-full flex items-center justify-around fraunces bg-background border-4 border-gray-700 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.6)] dark:shadow-gray-700 rounded-xl scrollbar-hidden mb-1"
             >
                 <TabsTrigger value="controls">Controls</TabsTrigger>
                 <TabsTrigger value="keyframes">Keyframes</TabsTrigger>
@@ -46,13 +46,39 @@
                 </TabsContent>
 
                 <TabsContent value="timeline">
-                    <KeyframeTimeline
-                        :targets="animation.targets"
-                        :animation-options="animation.options"
-                    />
+                    <!-- Placeholder shown in the tab when timeline is expanded to bottom bar -->
+                    <div
+                        v-if="storedControls.isTimelineExpanded"
+                        class="flex flex-col items-center justify-center gap-3 py-12 text-muted-foreground"
+                    >
+                        <ChevronDown class="w-6 h-6 animate-bounce" />
+                        <p class="fira-code text-sm">Timeline expanded below</p>
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            class="gap-1.5 cursor-pointer fira-code text-xs"
+                            @click="storedControls.isTimelineExpanded = false"
+                        >
+                            <Minimize2 class="w-3.5 h-3.5" />
+                            Collapse
+                        </Button>
+                    </div>
                 </TabsContent>
 
                 <slot name="tabs-content"></slot>
+
+                <!-- Timeline: outside TabsContent but inside scrollable area so Teleport lifecycle
+                     isn't tied to TabsContent mount/unmount (which breaks moveTeleport).
+                     When collapsed, renders in-place here. When expanded, teleports to bottom bar. -->
+                <Teleport to="#timeline-expanded-target" :disabled="!storedControls.isTimelineExpanded" defer>
+                    <KeyframeTimeline
+                        v-if="isTimelineVisible"
+                        :targets="animation.targets"
+                        :animation-options="animation.options"
+                        :expanded="storedControls.isTimelineExpanded"
+                        @toggle-expand="storedControls.isTimelineExpanded = !storedControls.isTimelineExpanded"
+                    />
+                </Teleport>
             </div>
         </Tabs>
     </div>
@@ -66,7 +92,9 @@ import type { AnimationLayerConfig } from "@src/animation/constants";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
 import { TooltipProvider } from "@components/ui/tooltip";
 
-import { defineAsyncComponent, ref, useTemplateRef } from "vue";
+import { computed, defineAsyncComponent, ref, Teleport, useTemplateRef } from "vue";
+import { ChevronDown, Minimize2 } from "lucide-vue-next";
+import { Button } from "@components/ui/button";
 
 const KeyframesStringControls = defineAsyncComponent(() => import("./KeyframesStringControls.vue"));
 const KeyframeTimeline = defineAsyncComponent(() => import("./KeyframeTimeline.vue"));
@@ -101,6 +129,10 @@ const emit = defineEmits<{
 
 const keyframesControlsRef = ref<InstanceType<typeof KeyframesStringControls> | null>(null);
 const tabsContentEl = useTemplateRef<HTMLElement>("tabsContentEl");
+
+const isTimelineVisible = computed(() =>
+    storedControls.selectedControl === "timeline" || storedControls.isTimelineExpanded,
+);
 
 const selectControl = (key: string | number) => {
     storedControls.selectedControl = key.toString();

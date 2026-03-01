@@ -1,7 +1,7 @@
 <template>
     <TooltipProvider :delay-duration="100" :skip-delay-duration="0">
     <div
-        class="w-dvw min-h-dvh lg:h-dvh grid lg:grid-cols-[380px_1fr_1fr] grid-cols-1 lg:grid-rows-[1fr_auto] grid-rows-[auto_auto_auto] justify-items-stretch items-center relative"
+        class="w-dvw min-h-dvh lg:h-dvh grid lg:grid-cols-[380px_1fr_1fr] grid-cols-1 lg:grid-rows-[1fr_auto_auto] grid-rows-[auto_auto_auto_auto] justify-items-stretch items-center relative"
         v-bind="$attrs"
     >
         <template
@@ -40,13 +40,28 @@
             <slot name="animation-content" :selected-animation="storedControls.selectedAnimation" :is-playing="isPlaying"> </slot>
         </div>
 
+        <!-- Teleport target for expanded timeline (content arrives via Teleport from AnimationControls) -->
         <div
-            class="p-2 m-0 z-50 flex items-center justify-center justify-items-center col-span-full row-start-3 lg:row-start-2"
+            id="timeline-expanded-target"
+            :class="[
+                'col-span-full lg:row-start-2 row-start-3 z-40 transition-all duration-150 ease-out overflow-hidden',
+                storedControls.isTimelineExpanded
+                    ? 'max-h-[60vh] border-t border-border/50 bg-background/95 backdrop-blur-sm px-4 py-3'
+                    : 'max-h-0',
+            ]"
+        ></div>
+
+        <!-- Bottom menubar -->
+        <div
+            :class="[
+                'p-2 m-0 z-50 flex items-center justify-center justify-items-center col-span-full',
+                'lg:row-start-3 row-start-4',
+            ]"
         >
             <Menubar
                 ref="menubarEl"
                 :class="[
-                    'flex items-center justify-items-center border-none rounded-xl transition-[padding,gap] duration-300 ease-out',
+                    'flex items-center justify-items-center border-none rounded-xl transition-[padding,gap] duration-150 ease-out',
                     isMenuExpanded ? 'p-2.5 px-5 gap-4' : 'p-1.5 px-3 gap-2',
                 ]"
                 @mouseenter="onMenuEnter"
@@ -132,7 +147,7 @@
                     <IconTooltip :text="isPlaying ? 'Pause' : 'Play'">
                         <Button
                             :class="[
-                                'text-xl text-white cursor-pointer rounded-xl hover:scale-105 transition-all duration-300',
+                                'text-xl text-white cursor-pointer rounded-xl hover:scale-105 transition-all duration-150',
                                 isMenuExpanded ? 'w-14 h-8' : 'w-10 h-7',
                                 isPlaying ? 'rainbow-vivid' : 'rainbow-pastel',
                             ]"
@@ -149,6 +164,21 @@
                         </Button>
                     </IconTooltip>
                 </MenubarMenu>
+
+                <!-- Timeline controls merged into menubar when expanded -->
+                <template v-if="storedControls.isTimelineExpanded">
+                    <!-- Vertical divider -->
+                    <div class="w-px h-5 bg-border/60 mx-1"></div>
+
+                    <IconTooltip text="Collapse timeline">
+                        <Minimize2
+                            class="p-0 m-0 cursor-pointer hover:scale-105"
+                            @click="storedControls.isTimelineExpanded = false"
+                        />
+                    </IconTooltip>
+
+                    <span class="fira-code text-[10px] text-muted-foreground whitespace-nowrap">Timeline</span>
+                </template>
 
             </Menubar>
         </div>
@@ -185,6 +215,7 @@ import {
 
 import {
     List,
+    Minimize2,
     Trash,
 } from "lucide-vue-next";
 
