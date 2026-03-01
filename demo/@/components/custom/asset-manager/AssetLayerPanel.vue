@@ -6,7 +6,7 @@
                 <span class="fira-code text-xs font-semibold text-muted-foreground">assets</span>
                 <DropdownMenu>
                     <DropdownMenuTrigger as-child>
-                        <Button size="sm" variant="ghost" class="gap-1.5 cursor-pointer h-6 px-2 fira-code text-xs text-muted-foreground hover:text-foreground">
+                        <Button size="sm" variant="ghost" class="gap-1.5 cursor-pointer h-6 px-2 fira-code text-xs">
                             <Plus class="w-3 h-3" /> add
                         </Button>
                     </DropdownMenuTrigger>
@@ -33,7 +33,7 @@
             <Separator />
 
             <!-- Layer list (reversed for visual z-order — top = highest z) -->
-            <div class="flex flex-col gap-0 max-h-60 overflow-y-auto">
+            <div class="flex flex-col gap-px max-h-60 overflow-y-auto">
                 <AssetLayer
                     v-for="asset in reversedAssets"
                     :key="asset.id"
@@ -50,7 +50,7 @@
                     v-if="sortedAssets.length === 0"
                     class="text-center py-6 px-4 text-muted-foreground text-xs"
                 >
-                    <p class="fraunces italic">Add shapes, text, or images to compose your scene</p>
+                    <p class="fira-code">Add shapes, text, or images to compose your scene</p>
                 </div>
             </div>
 

@@ -42,31 +42,31 @@
 
                 <!-- Visibility toggle -->
                 <button
-                    class="shrink-0 cursor-pointer"
+                    class="shrink-0 cursor-pointer rounded p-0.5 hover:bg-muted/80 transition-colors"
                     @click.stop="emit('update', asset.id, { visible: !asset.visible })"
                 >
                     <Eye
                         v-if="asset.visible"
-                        class="w-3.5 h-3.5 text-muted-foreground hover:text-foreground"
+                        class="w-3.5 h-3.5 text-muted-foreground"
                     />
                     <EyeOff
                         v-else
-                        class="w-3.5 h-3.5 text-muted-foreground/40 hover:text-foreground"
+                        class="w-3.5 h-3.5 text-muted-foreground/40"
                     />
                 </button>
 
                 <!-- Lock toggle -->
                 <button
-                    class="shrink-0 cursor-pointer"
+                    class="shrink-0 cursor-pointer rounded p-0.5 hover:bg-muted/80 transition-colors"
                     @click.stop="emit('update', asset.id, { locked: !asset.locked })"
                 >
                     <Lock
                         v-if="asset.locked"
-                        class="w-3.5 h-3.5 text-muted-foreground hover:text-foreground"
+                        class="w-3.5 h-3.5 text-muted-foreground"
                     />
                     <Unlock
                         v-else
-                        class="w-3.5 h-3.5 text-muted-foreground/40 hover:text-foreground"
+                        class="w-3.5 h-3.5 text-muted-foreground/40"
                     />
                 </button>
             </div>

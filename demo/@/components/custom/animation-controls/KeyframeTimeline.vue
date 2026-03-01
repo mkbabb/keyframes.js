@@ -1,15 +1,17 @@
 <template>
     <div class="flex flex-col gap-3">
+    <Card class="w-full overflow-hidden">
+        <CardContent class="p-4 flex flex-col gap-3">
         <!-- Toolbar -->
-        <div class="flex items-center gap-2 flex-wrap">
+        <div class="flex items-center gap-1.5">
             <IconTooltip text="Snapshot current state">
                 <Button
                     size="sm"
-                    variant="outline"
-                    class="gap-1.5 cursor-pointer"
+                    variant="ghost"
+                    class="gap-1.5 cursor-pointer fira-code text-xs h-7 px-2"
                     @click="snapshot()"
                 >
-                    <Camera class="w-4 h-4" />
+                    <Camera class="w-3.5 h-3.5" />
                     Snapshot
                 </Button>
             </IconTooltip>
@@ -17,11 +19,11 @@
             <IconTooltip text="Import CSS @keyframes">
                 <Button
                     size="sm"
-                    variant="outline"
-                    class="gap-1.5 cursor-pointer"
+                    variant="ghost"
+                    class="gap-1.5 cursor-pointer fira-code text-xs h-7 px-2"
                     @click="importDialogOpen = true"
                 >
-                    <Download class="w-4 h-4" />
+                    <Download class="w-3.5 h-3.5" />
                     Import
                 </Button>
             </IconTooltip>
@@ -29,11 +31,11 @@
             <IconTooltip text="Export as CSS @keyframes">
                 <Button
                     size="sm"
-                    variant="outline"
-                    class="gap-1.5 cursor-pointer"
+                    variant="ghost"
+                    class="gap-1.5 cursor-pointer fira-code text-xs h-7 px-2"
                     @click="exportCSS()"
                 >
-                    <Upload class="w-4 h-4" />
+                    <Upload class="w-3.5 h-3.5" />
                     Export
                 </Button>
             </IconTooltip>
@@ -41,30 +43,32 @@
             <IconTooltip text="Add CSS @keyframes">
                 <Button
                     size="sm"
-                    variant="outline"
-                    class="gap-1.5 cursor-pointer"
+                    variant="ghost"
+                    class="gap-1.5 cursor-pointer fira-code text-xs h-7 px-2"
                     @click="addCSSDialogOpen = true"
                 >
-                    <FilePlus2 class="w-4 h-4" />
+                    <FilePlus2 class="w-3.5 h-3.5" />
                     Add CSS
                 </Button>
             </IconTooltip>
+
+            <div class="flex-1"></div>
 
             <IconTooltip text="Clear all keyframes">
                 <Button
                     size="sm"
                     variant="ghost"
-                    class="gap-1.5 cursor-pointer"
+                    class="cursor-pointer h-7 w-7 p-0"
                     @click="clear()"
                 >
-                    <Trash class="w-4 h-4" />
+                    <Trash class="w-3.5 h-3.5" />
                 </Button>
             </IconTooltip>
 
             <!-- Zoom indicator -->
             <span
                 v-if="zoomLevel > 1"
-                class="fira-code text-[10px] text-muted-foreground ml-auto"
+                class="fira-code text-[10px] text-muted-foreground"
             >{{ zoomLevel.toFixed(1) }}x</span>
         </div>
 
@@ -85,7 +89,7 @@
         <!-- Timeline Track -->
         <div
             ref="trackEl"
-            class="timeline-track relative h-12 rounded-lg border border-border bg-muted/30 cursor-pointer select-none overflow-hidden"
+            class="timeline-track relative h-12 rounded-lg border border-border bg-muted/50 hover:bg-muted/70 transition-colors cursor-pointer select-none overflow-x-clip overflow-y-visible"
             style="touch-action: none"
             @pointerdown="onTrackPointerDown"
             @pointermove="onTrackPointerMove"
@@ -110,7 +114,7 @@
 
             <!-- Playhead -->
             <div
-                class="absolute top-0 h-full w-0.5 bg-primary z-10 pointer-events-none transition-[left] duration-75"
+                class="absolute top-0 h-full w-0.5 bg-primary z-10 pointer-events-none"
                 :style="{ left: `${percentToPosition(scrubT * 100)}%` }"
             ></div>
 
@@ -142,6 +146,8 @@
                 @select="selectedKeyframeId = kf.id"
             />
         </div>
+        </CardContent>
+    </Card>
 
         <!-- Selected Keyframe Editor -->
         <Card v-if="selectedKeyframe" class="p-0">
@@ -236,10 +242,10 @@
             v-else-if="sortedKeyframes.length === 0"
             class="text-center py-6 text-muted-foreground text-sm"
         >
-            <p class="fraunces italic">Click "Snapshot" or click the timeline to add keyframes</p>
+            <p class="fira-code">Click "Snapshot" or click the timeline to add keyframes</p>
         </div>
 
-        <!-- Import dialog -->
+    <!-- Import dialog -->
         <Dialog v-model:open="importDialogOpen">
             <DialogContent>
                 <DialogTitle class="fira-code text-base font-medium"
@@ -522,6 +528,7 @@ const doAddCSS = () => {
 <style scoped>
 .timeline-track {
     margin-top: 1.25rem;
+    margin-bottom: 1rem;
 }
 
 .keyframe-marker {
