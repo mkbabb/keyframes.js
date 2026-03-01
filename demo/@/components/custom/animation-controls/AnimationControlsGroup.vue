@@ -1,7 +1,7 @@
 <template>
     <TooltipProvider :delay-duration="100" :skip-delay-duration="0">
     <div
-        class="w-full min-h-dvh lg:h-dvh grid lg:grid-cols-3 grid-cols-1 lg:grid-rows-[1fr_auto] grid-rows-[auto_auto_auto] justify-items-stretch lg:justify-items-center items-center relative"
+        class="w-dvw min-h-dvh lg:h-dvh grid lg:grid-cols-[380px_1fr_1fr] grid-cols-1 lg:grid-rows-[1fr_auto] grid-rows-[auto_auto_auto] justify-items-stretch items-center relative"
         v-bind="$attrs"
     >
         <template
@@ -357,33 +357,35 @@ const isMenuExpanded = ref(false);
 let collapseTimeoutId: ReturnType<typeof setTimeout> | undefined;
 
 const expandAnim = new CSSKeyframesAnimation({
-    duration: 350,
-    timingFunction: "bounceInEase",
+    duration: 180,
+    timingFunction: "easeOutCubic",
     fillMode: "forwards",
 }).fromString(/*css*/ `@keyframes menuExpand {
-    0%   { transform: scaleX(0.85) scaleY(0.92); }
-    60%  { transform: scaleX(1.03) scaleY(1.02); }
+    0%   { transform: scaleX(0.9) scaleY(0.95); }
     100% { transform: scaleX(1) scaleY(1); }
 }`);
 
 const collapseAnim = new CSSKeyframesAnimation({
-    duration: 300,
+    duration: 150,
     timingFunction: "easeOutCubic",
     fillMode: "forwards",
 }).fromString(/*css*/ `@keyframes menuCollapse {
     0%   { transform: scaleX(1) scaleY(1); }
-    100% { transform: scaleX(0.85) scaleY(0.92); }
+    100% { transform: scaleX(0.9) scaleY(0.95); }
 }`);
 
 const onMenuEnter = () => {
     clearTimeout(collapseTimeoutId);
+    const wasExpanded = isMenuExpanded.value;
     isMenuExpanded.value = true;
-    const el = resolveEl(menubarEl.value);
-    if (el) {
-        collapseAnim.reset();
-        expandAnim.setTargets(el);
-        expandAnim.reset();
-        expandAnim.play();
+    if (!wasExpanded) {
+        const el = resolveEl(menubarEl.value);
+        if (el) {
+            collapseAnim.reset();
+            expandAnim.setTargets(el);
+            expandAnim.reset();
+            expandAnim.play();
+        }
     }
 };
 

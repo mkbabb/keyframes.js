@@ -1,7 +1,7 @@
 <template>
     <TooltipProvider :delay-duration="100" :skip-delay-duration="0">
     <div
-        class="flex flex-col h-full w-full z-10 relative overflow-x-hidden lg:overflow-hidden lg:max-w-screen-md lg:w-[400px]"
+        class="flex flex-col h-full w-full z-10 relative overflow-hidden lg:max-w-screen-md isolate"
     >
         <Tabs
             class="p-4 pt-12 lg:pt-4 w-full flex-1 min-h-0 flex flex-col justify-start"
@@ -9,7 +9,7 @@
             @update:model-value="selectControl"
         >
             <TabsList
-                class="overflow-x-scroll w-full flex items-center justify-around fraunces bg-background border-4 border-gray-700 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.8)] dark:shadow-gray-700 rounded-xl scrollbar-hidden pr-10 lg:pr-0 mb-1"
+                class="overflow-x-scroll w-full flex items-center justify-around fraunces bg-background border-4 border-gray-700 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.8)] dark:shadow-gray-700 rounded-xl scrollbar-hidden mb-1"
             >
                 <TabsTrigger value="controls">Controls</TabsTrigger>
                 <TabsTrigger value="keyframes">Keyframes</TabsTrigger>
@@ -17,7 +17,7 @@
                 <slot name="tabs-trigger"></slot>
             </TabsList>
 
-            <div ref="tabsContentEl" class="flex-1 min-h-0 overflow-y-auto flex flex-col pr-3 pb-3">
+            <div ref="tabsContentEl" class="flex-1 min-h-0 overflow-y-auto flex flex-col pb-3">
                 <TabsContent value="controls">
                     <AnimationControlsControls
                         :animation="animation"
@@ -33,7 +33,7 @@
                     ></AnimationControlsControls>
                 </TabsContent>
 
-                <TabsContent value="keyframes" class="flex-1 min-h-0 flex flex-col">
+                <TabsContent value="keyframes">
                     <KeyframesStringControls
                         ref="keyframesControlsRef"
                         @keyframes-update="
