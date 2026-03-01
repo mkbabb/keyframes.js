@@ -43,21 +43,22 @@ demo/
 
 The primary UI for interacting with animations across demos.
 
-- **AnimationControls.vue** — Tab panel: Controls | Keyframes | Timeline. Wraps a single `Animation`.
+- **AnimationControls.vue** — Tab panel: Controls | Keyframes | Timeline. Wraps a single `Animation`. Timeline uses `Teleport` to expand into bottom bar (survives tab switches).
 - **AnimationControlsControls.vue** — Sliders for duration, delay, iterations, direction, fill, easing. Cubic-bezier + steps editors.
-- **AnimationControlsGroup.vue** — Orchestrates `AnimationGroup`: animation selector dropdown, play/pause, reset. Exposes slot props (`selectedAnimation`, `isPlaying`) for consumer-side conditional rendering.
+- **AnimationControlsGroup.vue** — Orchestrates `AnimationGroup`: animation selector dropdown, play/pause, reset. Grid row for expanded timeline target. Exposes slot props (`selectedAnimation`, `isPlaying`).
 - **CubicBezierControls.vue** — SVG bezier curve editor with draggable control points.
-- **KeyframesStringControls.vue** — Monaco editor for CSS @keyframes with format/apply/copy.
-- **KeyframeTimeline.vue** — Visual horizontal timeline: draggable diamond markers, playhead, snapshot capture, property editor, CSS import/export.
+- **CSSCodeEditor.vue** — Reusable Monaco editor wrapper: v-model, formatCSS, dark mode, ResizeObserver deferred init.
+- **KeyframesStringControls.vue** — CSS @keyframes editing via CSSCodeEditor with floating paste/format/apply icons.
+- **KeyframeTimeline.vue** — Horizontal timeline: expand/collapse toggle, draggable diamond markers with hover previews (html2canvas snapshot + ghost CSS fallback), playhead, inline keyframe CSS editing via CSSCodeEditor, import/export.
 - **KeyframesEditor.vue** — Frame-by-frame position/CSS editing.
 - **AnimationVisualizer.vue** — Timeline progress ball (draggable via OrbitalDrag).
 - **AnimatedText.vue** — Staggered per-character animation.
 - **Animated.vue** — Fade in/out wrapper using library presets.
-- **animationStores.ts** — localStorage state: animation options, group configs, URL hash sharing (base64 encode/decode, 7-day TTL).
+- **animationStores.ts** — localStorage state: animation options, group configs, `isTimelineExpanded`, URL hash sharing (base64 encode/decode, 7-day TTL).
 - **timelineTypes.ts** — `TimelineKeyframe`, `TimelineState` interfaces + default capture properties.
 - **timelineEngine.ts** — `buildAnimationFromTimeline`, `exportTimelineToCSS`, `importCSSToTimeline`.
 - **snapshotCapture.ts** — `captureSnapshot` reads `getComputedStyle` to create keyframes.
-- **useTimeline.ts** — Composable: timeline state, keyframe CRUD, scrubbing, animation rebuild, CSS import/export.
+- **useTimeline.ts** — Composable: timeline state, keyframe CRUD, scrubbing, `scrubAndCapture` (html2canvas preview), animation rebuild, CSS import/export.
 
 ## Editor Shell (`@/components/custom/editor-shell/`)
 
@@ -95,7 +96,8 @@ Reusable full-page animation editor layout. Slot-driven — accepts any target e
 - `reka-ui` — headless UI primitives (shadcn-vue basis)
 - `three` + `three/OrbitControls` — 3D rendering (cube, amiga)
 - `gl-matrix` — quaternion math (orbital-drag)
-- `monaco-editor` — CSS keyframes editor
+- `monaco-editor` — CSS keyframes editor (wrapped by CSSCodeEditor)
+- `html2canvas` — keyframe diamond hover previews (timeline)
 - `@mkbabb/value.js` — Color class (ColorPicker)
 
 ## Conventions
