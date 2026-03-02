@@ -17,7 +17,12 @@
                     @click="storedControls.isControlsPanelOpen = !storedControls.isControlsPanelOpen"
                     class="p-1.5 rounded-lg hover:bg-accent/50 cursor-pointer transition-colors"
                 >
-                    <MoreVertical class="w-5 h-5" />
+                    <ChevronDown
+                        :class="[
+                            'w-5 h-5 transition-transform duration-300 ease-out',
+                            storedControls.isControlsPanelOpen ? 'rotate-0' : '-rotate-180',
+                        ]"
+                    />
                 </button>
             </template>
             <template #right>
@@ -59,7 +64,7 @@
 
 <script setup lang="ts">
 import { onMounted, useTemplateRef } from "vue";
-import { MoreVertical } from "lucide-vue-next";
+import { ChevronDown } from "lucide-vue-next";
 import EditorHeader from "./EditorHeader.vue";
 import SharePopover from "./SharePopover.vue";
 import EditorStartScreen from "./EditorStartScreen.vue";

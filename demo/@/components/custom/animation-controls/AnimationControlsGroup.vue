@@ -2,10 +2,7 @@
     <TooltipProvider :delay-duration="100" :skip-delay-duration="0">
     <div
         :class="[
-            'w-dvw grid grid-cols-1 lg:grid-rows-[1fr_auto_auto] justify-items-stretch items-center relative',
-            storedControls.isControlsPanelOpen
-                ? 'min-h-dvh lg:h-dvh grid-rows-[auto_1fr_auto_auto]'
-                : 'h-dvh lg:h-dvh grid-rows-[1fr_auto_auto]',
+            'w-dvw h-dvh grid grid-cols-1 grid-rows-[auto_1fr_auto_auto] lg:grid-rows-[1fr_auto_auto] justify-items-stretch items-center relative',
             storedControls.isControlsPanelOpen && storedControls.selectedAnimation
                 ? 'lg:grid-cols-[380px_1fr_1fr]'
                 : 'lg:grid-cols-[1fr_1fr]',
@@ -13,7 +10,7 @@
         v-bind="$attrs"
     >
         <div :class="[
-            'col-span-1 lg:row-start-1 transition-all duration-300 ease-out overflow-hidden',
+            'col-span-1 row-start-1 lg:row-start-1 transition-[max-height,opacity] duration-300 ease-out overflow-hidden',
             storedControls.isControlsPanelOpen
                 ? 'max-h-[80vh] lg:max-h-full lg:overflow-y-auto opacity-100'
                 : 'max-h-0 lg:max-h-0 opacity-0 pointer-events-none',
@@ -44,15 +41,10 @@
 
         <div
             :class="[
-                'justify-self-stretch min-h-0 overflow-visible overscroll-contain',
-                storedControls.isControlsPanelOpen
-                    ? 'h-[100dvh] lg:h-full'
-                    : 'h-full',
+                'justify-self-stretch min-h-0 h-full overflow-visible overscroll-contain col-span-full row-start-2 lg:row-start-1',
                 storedControls?.selectedAnimation && storedControls.isControlsPanelOpen
                     ? 'lg:col-start-2 lg:col-end-4'
                     : 'lg:col-start-1 lg:col-end-4',
-                'col-span-full lg:row-start-1',
-                storedControls.isControlsPanelOpen ? 'row-start-2' : 'row-start-1',
             ]"
         >
             <slot name="animation-content" :selected-animation="storedControls.selectedAnimation" :is-playing="isPlaying"> </slot>
@@ -62,8 +54,7 @@
         <div
             id="timeline-expanded-target"
             :class="[
-                'col-span-full lg:row-start-2 z-40 transition-all duration-150 ease-out overflow-hidden',
-                storedControls.isControlsPanelOpen ? 'row-start-3' : 'row-start-2',
+                'col-span-full row-start-3 lg:row-start-2 z-40 transition-all duration-150 ease-out overflow-hidden',
                 storedControls.isTimelineExpanded
                     ? 'max-h-[60vh] border-t border-border/50 bg-background/95 backdrop-blur-sm px-4 py-3'
                     : 'max-h-0',
@@ -74,8 +65,7 @@
         <div
             :class="[
                 'p-2 m-0 z-50 flex items-center justify-center justify-items-center col-span-full',
-                'lg:row-start-3',
-                storedControls.isControlsPanelOpen ? 'row-start-4' : 'row-start-3',
+                'row-start-4 lg:row-start-3',
             ]"
         >
             <Menubar
