@@ -12,19 +12,6 @@
             <template #left>
                 <slot name="header-left"></slot>
             </template>
-            <template #header-actions>
-                <button
-                    @click="storedControls.isControlsPanelOpen = !storedControls.isControlsPanelOpen"
-                    class="p-1.5 rounded-lg hover:bg-accent/50 cursor-pointer transition-colors"
-                >
-                    <ChevronDown
-                        :class="[
-                            'w-5 h-5 transition-transform duration-300 ease-out',
-                            storedControls.isControlsPanelOpen ? 'rotate-0' : '-rotate-180',
-                        ]"
-                    />
-                </button>
-            </template>
             <template #right>
                 <slot name="header-right">
                     <SharePopover />
@@ -35,6 +22,21 @@
                 </slot>
             </template>
         </EditorHeader>
+
+        <!-- Centered chevron toggle -->
+        <button
+            @click="storedControls.isControlsPanelOpen = !storedControls.isControlsPanelOpen"
+            class="absolute top-2.5 left-1/2 -translate-x-1/2 z-50 p-1 cursor-pointer"
+        >
+            <ChevronDown
+                :class="[
+                    'w-7 h-7 transition-transform duration-300 ease-out',
+                    storedControls.isControlsPanelOpen
+                        ? 'rotate-0'
+                        : '-rotate-180 chevron-bounce',
+                ]"
+            />
+        </button>
 
         <template v-if="showStartScreen && !storedControls.selectedAnimation">
             <slot name="start-screen">
@@ -118,5 +120,18 @@ onMounted(() => {
 .grid-background {
     background-size: 1rem !important;
     background-repeat: repeat;
+}
+
+.chevron-bounce {
+    animation: chevron-bob 1.5s ease-in-out infinite;
+}
+
+@keyframes chevron-bob {
+    0%, 100% {
+        translate: 0 0;
+    }
+    50% {
+        translate: 0 4px;
+    }
 }
 </style>
