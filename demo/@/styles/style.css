@@ -127,7 +127,7 @@
     html,
     body {
         @apply bg-background text-foreground;
-        overflow-x: hidden;
+        overflow: hidden;
         min-height: 100dvh;
         width: 100vw;
         margin: 0;

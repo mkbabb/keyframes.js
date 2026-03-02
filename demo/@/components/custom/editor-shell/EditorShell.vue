@@ -12,6 +12,14 @@
             <template #left>
                 <slot name="header-left"></slot>
             </template>
+            <template #header-actions>
+                <button
+                    @click="storedControls.isControlsPanelOpen = !storedControls.isControlsPanelOpen"
+                    class="p-1.5 rounded-lg hover:bg-accent/50 cursor-pointer transition-colors"
+                >
+                    <MoreVertical class="w-5 h-5" />
+                </button>
+            </template>
             <template #right>
                 <slot name="header-right">
                     <SharePopover />
@@ -51,6 +59,7 @@
 
 <script setup lang="ts">
 import { onMounted, useTemplateRef } from "vue";
+import { MoreVertical } from "lucide-vue-next";
 import EditorHeader from "./EditorHeader.vue";
 import SharePopover from "./SharePopover.vue";
 import EditorStartScreen from "./EditorStartScreen.vue";

@@ -151,6 +151,12 @@ const cubeSides = [
     contain: style;
 }
 
+@media (max-width: 1023px) {
+    .cube {
+        --side-size: min(50vh, 50vw);
+    }
+}
+
 .cube-side {
     width: var(--side-size);
     height: var(--side-size);

@@ -1,40 +1,58 @@
 <template>
     <TooltipProvider :delay-duration="100" :skip-delay-duration="0">
     <div
-        class="w-dvw min-h-dvh lg:h-dvh grid lg:grid-cols-[380px_1fr_1fr] grid-cols-1 lg:grid-rows-[1fr_auto_auto] grid-rows-[auto_auto_auto_auto] justify-items-stretch items-center relative"
+        :class="[
+            'w-dvw grid grid-cols-1 lg:grid-rows-[1fr_auto_auto] justify-items-stretch items-center relative',
+            storedControls.isControlsPanelOpen
+                ? 'min-h-dvh lg:h-dvh grid-rows-[auto_1fr_auto_auto]'
+                : 'h-dvh lg:h-dvh grid-rows-[1fr_auto_auto]',
+            storedControls.isControlsPanelOpen && storedControls.selectedAnimation
+                ? 'lg:grid-cols-[380px_1fr_1fr]'
+                : 'lg:grid-cols-[1fr_1fr]',
+        ]"
         v-bind="$attrs"
     >
-        <template
-            v-for="[name, groupObject] in Object.entries(animationGroup.animations)"
-        >
-            <AnimationControls
-                v-if="storedControls.selectedAnimation == name"
-                class="col-span-1 lg:row-start-1 lg:overflow-y-auto lg:max-h-full"
-                @slider-update="sliderUpdate"
-                @keyframes-update="keyframesUpdate"
-                @toggle-play="toggleAnimationGroup"
-                @layer-config-update="(v) => updateLayerConfig(name, v)"
-                :animation="groupObject.animation"
-                :is-grouped="true"
-                :layer-config="groupObject.layer"
+        <div :class="[
+            'col-span-1 lg:row-start-1 transition-all duration-300 ease-out overflow-hidden',
+            storedControls.isControlsPanelOpen
+                ? 'max-h-[80vh] lg:max-h-full lg:overflow-y-auto opacity-100'
+                : 'max-h-0 lg:max-h-0 opacity-0 pointer-events-none',
+        ]">
+            <template
+                v-for="[name, groupObject] in Object.entries(animationGroup.animations)"
             >
-                <template #tabs-trigger>
-                    <slot name="tabs-trigger" :selected-animation="storedControls.selectedAnimation" :is-playing="isPlaying"></slot>
-                </template>
+                <AnimationControls
+                    v-if="storedControls.selectedAnimation == name"
+                    @slider-update="sliderUpdate"
+                    @keyframes-update="keyframesUpdate"
+                    @toggle-play="toggleAnimationGroup"
+                    @layer-config-update="(v) => updateLayerConfig(name, v)"
+                    :animation="groupObject.animation"
+                    :is-grouped="true"
+                    :layer-config="groupObject.layer"
+                >
+                    <template #tabs-trigger>
+                        <slot name="tabs-trigger" :selected-animation="storedControls.selectedAnimation" :is-playing="isPlaying"></slot>
+                    </template>
 
-                <template #tabs-content>
-                    <slot name="tabs-content" :selected-animation="storedControls.selectedAnimation" :is-playing="isPlaying"></slot>
-                </template>
-            </AnimationControls>
-        </template>
+                    <template #tabs-content>
+                        <slot name="tabs-content" :selected-animation="storedControls.selectedAnimation" :is-playing="isPlaying"></slot>
+                    </template>
+                </AnimationControls>
+            </template>
+        </div>
 
         <div
             :class="[
-                'justify-self-stretch min-h-0 h-[100dvh] lg:h-full overflow-visible',
-                storedControls?.selectedAnimation
+                'justify-self-stretch min-h-0 overflow-visible overscroll-contain',
+                storedControls.isControlsPanelOpen
+                    ? 'h-[100dvh] lg:h-full'
+                    : 'h-full',
+                storedControls?.selectedAnimation && storedControls.isControlsPanelOpen
                     ? 'lg:col-start-2 lg:col-end-4'
                     : 'lg:col-start-1 lg:col-end-4',
-                'col-span-full lg:row-start-1 row-start-2'
+                'col-span-full lg:row-start-1',
+                storedControls.isControlsPanelOpen ? 'row-start-2' : 'row-start-1',
             ]"
         >
             <slot name="animation-content" :selected-animation="storedControls.selectedAnimation" :is-playing="isPlaying"> </slot>
@@ -44,7 +62,8 @@
         <div
             id="timeline-expanded-target"
             :class="[
-                'col-span-full lg:row-start-2 row-start-3 z-40 transition-all duration-150 ease-out overflow-hidden',
+                'col-span-full lg:row-start-2 z-40 transition-all duration-150 ease-out overflow-hidden',
+                storedControls.isControlsPanelOpen ? 'row-start-3' : 'row-start-2',
                 storedControls.isTimelineExpanded
                     ? 'max-h-[60vh] border-t border-border/50 bg-background/95 backdrop-blur-sm px-4 py-3'
                     : 'max-h-0',
@@ -55,7 +74,8 @@
         <div
             :class="[
                 'p-2 m-0 z-50 flex items-center justify-center justify-items-center col-span-full',
-                'lg:row-start-3 row-start-4',
+                'lg:row-start-3',
+                storedControls.isControlsPanelOpen ? 'row-start-4' : 'row-start-3',
             ]"
         >
             <Menubar
@@ -205,8 +225,9 @@
 </template>
 
 <script setup lang="ts">
-import { onUnmounted, ref, Teleport, useTemplateRef } from "vue";
+import { onUnmounted, ref, Teleport, useTemplateRef, watchEffect } from "vue";
 import { Toaster, toast } from "vue-sonner";
+import { useMediaQuery } from "@vueuse/core";
 
 import {
     Menubar,
@@ -249,6 +270,7 @@ const { superKey, animationGroup } = defineProps<{
 }>();
 
 const storedControls = getStoredAnimationGroupControlOptions(superKey);
+const isMobile = useMediaQuery('(max-width: 1023px)');
 
 // Auto-select first animation on fresh load so controls are visible immediately
 if (!storedControls.selectedAnimation) {
@@ -387,6 +409,19 @@ const menubarEl = useTemplateRef<HTMLElement>("menubarEl");
 const isMenuExpanded = ref(false);
 let collapseTimeoutId: ReturnType<typeof setTimeout> | undefined;
 
+// Mobile: lock body scroll when controls panel is closed
+watchEffect(() => {
+    if (!isMobile.value) return;
+    const overflow = storedControls.isControlsPanelOpen ? '' : 'hidden';
+    document.documentElement.style.overflow = overflow;
+    document.body.style.overflow = overflow;
+});
+
+// Mobile: always keep menubar expanded
+watchEffect(() => {
+    if (isMobile.value) isMenuExpanded.value = true;
+});
+
 const expandAnim = new CSSKeyframesAnimation({
     duration: 180,
     timingFunction: "easeOutCubic",
@@ -406,6 +441,7 @@ const collapseAnim = new CSSKeyframesAnimation({
 }`);
 
 const onMenuEnter = () => {
+    if (isMobile.value) return;
     clearTimeout(collapseTimeoutId);
     const wasExpanded = isMenuExpanded.value;
     isMenuExpanded.value = true;
@@ -421,6 +457,7 @@ const onMenuEnter = () => {
 };
 
 const onMenuLeave = () => {
+    if (isMobile.value) return;
     clearTimeout(collapseTimeoutId);
     collapseTimeoutId = setTimeout(() => {
         isMenuExpanded.value = false;
@@ -436,6 +473,8 @@ const onMenuLeave = () => {
 
 onUnmounted(() => {
     clearTimeout(collapseTimeoutId);
+    document.documentElement.style.overflow = '';
+    document.body.style.overflow = '';
 });
 
 </script>
