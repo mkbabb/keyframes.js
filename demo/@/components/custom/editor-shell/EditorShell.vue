@@ -23,17 +23,17 @@
             </template>
         </EditorHeader>
 
-        <!-- Centered chevron toggle -->
+        <!-- Centered chevron toggle (mobile only) -->
         <button
             @click="storedControls.isControlsPanelOpen = !storedControls.isControlsPanelOpen"
-            class="absolute top-2.5 left-1/2 -translate-x-1/2 z-50 p-1 cursor-pointer"
+            class="absolute top-2.5 left-1/2 -translate-x-1/2 z-50 p-1 cursor-pointer lg:hidden"
         >
             <ChevronDown
                 :class="[
                     'w-7 h-7 transition-transform duration-300 ease-out',
                     storedControls.isControlsPanelOpen
-                        ? 'rotate-0'
-                        : '-rotate-180 chevron-bounce',
+                        ? '-rotate-180'
+                        : 'rotate-0 chevron-bounce',
                 ]"
             />
         </button>

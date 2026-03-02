@@ -3,17 +3,17 @@
     <div
         :class="[
             'w-dvw h-dvh grid grid-cols-1 grid-rows-[auto_1fr_auto_auto] lg:grid-rows-[1fr_auto_auto] justify-items-stretch items-center relative',
-            storedControls.isControlsPanelOpen && storedControls.selectedAnimation
+            storedControls.selectedAnimation
                 ? 'lg:grid-cols-[380px_1fr_1fr]'
                 : 'lg:grid-cols-[1fr_1fr]',
         ]"
         v-bind="$attrs"
     >
         <div :class="[
-            'col-span-1 row-start-1 lg:row-start-1 transition-[max-height,opacity] duration-300 ease-out overflow-hidden',
+            'col-span-1 row-start-1 lg:row-start-1 transition-[max-height,opacity] duration-300 ease-out overflow-hidden lg:!max-h-full lg:!overflow-y-auto lg:!opacity-100 lg:!pointer-events-auto',
             storedControls.isControlsPanelOpen
-                ? 'max-h-[80vh] lg:max-h-full lg:overflow-y-auto opacity-100'
-                : 'max-h-0 lg:max-h-0 opacity-0 pointer-events-none',
+                ? 'max-h-[80vh] opacity-100'
+                : 'max-h-0 opacity-0 pointer-events-none',
         ]">
             <template
                 v-for="[name, groupObject] in Object.entries(animationGroup.animations)"
@@ -42,7 +42,7 @@
         <div
             :class="[
                 'justify-self-stretch min-h-0 h-full overflow-visible overscroll-contain col-span-full row-start-2 lg:row-start-1',
-                storedControls?.selectedAnimation && storedControls.isControlsPanelOpen
+                storedControls?.selectedAnimation
                     ? 'lg:col-start-2 lg:col-end-4'
                     : 'lg:col-start-1 lg:col-end-4',
             ]"
