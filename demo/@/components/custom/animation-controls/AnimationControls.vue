@@ -9,7 +9,7 @@
             @update:model-value="selectControl"
         >
             <!-- Filing tabs header -->
-            <div ref="tabsHeaderEl" class="relative mr-3 mb-0 flex-shrink-0 flex items-stretch bg-gray-100/90 dark:bg-gray-700/85 backdrop-blur-sm rounded-t-lg">
+            <div ref="tabsHeaderEl" class="relative w-fit max-w-full mb-0 flex-shrink-0 flex items-stretch bg-gray-100/90 dark:bg-gray-700/85 backdrop-blur-sm rounded-t-lg">
                 <!-- Bouncy sliding indicator -->
                 <div
                     ref="sliderEl"

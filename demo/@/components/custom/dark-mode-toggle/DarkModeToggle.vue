@@ -21,13 +21,25 @@
 
 <script setup lang="ts">
 import { useDark, useToggle } from "@vueuse/core";
+import { nextTick } from "vue";
 
 defineProps<{
     size?: string;
 }>();
 
 const isDark = useDark({ disableTransition: false });
-const toggleDark = useToggle(isDark);
+const _toggle = useToggle(isDark);
+
+// Safari doesn't repaint when CSS custom properties change via .dark class toggle.
+// After Vue applies the class, briefly nudge zoom to force a full repaint.
+const toggleDark = async () => {
+    _toggle();
+    await nextTick();
+    document.documentElement.style.zoom = "1.000001";
+    requestAnimationFrame(() => {
+        document.documentElement.style.zoom = "";
+    });
+};
 </script>
 
 <style scoped>
