@@ -9,7 +9,7 @@
             @update:model-value="selectControl"
         >
             <!-- Filing tabs header -->
-            <div ref="tabsHeaderEl" class="relative w-fit max-w-full mb-0 flex-shrink-0 flex items-stretch bg-gray-200 dark:bg-gray-700 rounded-t-lg overflow-hidden">
+            <div ref="tabsHeaderEl" class="relative w-fit max-w-full mb-0 flex-shrink-0 flex items-stretch rounded-t-lg">
                 <!-- Bouncy sliding indicator -->
                 <div
                     ref="sliderEl"
@@ -18,7 +18,7 @@
                 />
 
                 <TabsList
-                    class="relative z-10 flex items-stretch justify-start bg-transparent p-0 gap-0 flex-1 min-w-0 overflow-x-auto h-auto rounded-none scrollbar-hidden"
+                    class="relative z-10 flex items-stretch justify-start bg-transparent p-0 gap-0 flex-1 min-w-0 overflow-x-hidden h-auto rounded-none scrollbar-hidden"
                 >
                     <TabsTrigger
                         value="controls"
@@ -38,7 +38,7 @@
                 <button
                     v-if="hasOverflow"
                     @click="scrollToNextTab"
-                    class="shrink-0 z-20 inline-flex items-center pl-8 pr-2 -ml-10 rounded-tr-lg text-gray-400 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white text-sm fraunces select-none cursor-pointer transition-colors"
+                    class="shrink-0 z-20 inline-flex items-center pl-8 pr-2 -ml-10 rounded-tr-lg bg-gray-200 dark:bg-gray-700 text-gray-400 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white text-sm fraunces select-none cursor-pointer transition-colors"
                 >&hellip;</button>
             </div>
 
@@ -180,16 +180,18 @@ const isTimelineVisible = computed(() =>
 );
 
 const fileTabClasses = [
-    "shrink-0 rounded-none rounded-t-lg bg-transparent fraunces",
+    "shrink-0 rounded-none rounded-t-lg fraunces",
     "border border-transparent border-b-0",
     "text-gray-500 dark:text-gray-300",
     "transition-colors duration-150",
-    // Inactive — border only on hover (avoids dips between adjacent rounded tabs)
+    // Inactive — own background so gaps between rounded corners show page bg
+    "data-[state=inactive]:bg-gray-200 dark:data-[state=inactive]:bg-gray-700",
     "data-[state=inactive]:hover:border-gray-500/60",
     "data-[state=inactive]:hover:text-gray-700",
     "dark:data-[state=inactive]:hover:border-gray-400/40",
     "dark:data-[state=inactive]:hover:text-gray-100",
-    // Active
+    // Active — transparent so slider indicator shows through
+    "data-[state=active]:bg-transparent",
     "data-[state=active]:text-gray-900 data-[state=active]:font-semibold data-[state=active]:shadow-none",
     "data-[state=active]:hover:text-gray-900",
     "dark:data-[state=active]:text-white",
