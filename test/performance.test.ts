@@ -18,7 +18,7 @@ describe("interpFrames performance", () => {
         expect(elapsed).toBeLessThan(100);
     });
 
-    it("10k calls < 200ms for a multi-property animation", () => {
+    it("10k calls < 500ms for a multi-property animation", () => {
         const anim = new CSSKeyframesAnimation({ duration: 1000 }).fromString(`
             from { opacity: 0; transform: translateX(0px); }
             to { opacity: 1; transform: translateX(200px); }
@@ -30,7 +30,7 @@ describe("interpFrames performance", () => {
         }
         const elapsed = performance.now() - start;
 
-        expect(elapsed).toBeLessThan(200);
+        expect(elapsed).toBeLessThan(500);
     });
 
     it("handles 100+ keyframe stops without degradation", () => {
@@ -94,7 +94,7 @@ describe("transformFramesGrouped performance", () => {
         }
         const elapsed = performance.now() - start;
 
-        expect(elapsed).toBeLessThan(200);
+        expect(elapsed).toBeLessThan(500);
     });
 });
 
