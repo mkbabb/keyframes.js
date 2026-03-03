@@ -14,7 +14,7 @@
             :class="[
                 'controls-pane group/controls col-span-1 row-start-1 lg:row-start-1 relative z-10 transition-[max-height,opacity] duration-300 ease-out lg:!max-h-full lg:!overflow-y-auto lg:!pointer-events-auto lg:!mt-0',
                 storedControls.isControlsPanelOpen
-                    ? 'max-h-[calc(100dvh-7rem)] mt-12 opacity-100'
+                    ? 'max-h-[calc(100dvh-7rem)] mt-12'
                     : 'max-h-0 opacity-0 pointer-events-none',
                 isPanelTransitionDone && storedControls.isControlsPanelOpen
                     ? 'overflow-y-auto'
@@ -528,18 +528,32 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* Controls pane: idle→75% after 2s, hover→100% immediately (desktop only) */
+/* Controls pane: idle→85% after 2s, hover→100% immediately (desktop only).
+   Shadow lifts subtly on hover and drops back immediately on leave.
+   Opacity persists at 100% for 2s after leaving. */
 @media (min-width: 1024px) {
     .controls-pane {
-        opacity: 0.75;
+        opacity: 0.85;
         transition: opacity 0.5s ease-out 2s;
     }
     .controls-pane:hover {
         opacity: 1;
         transition: opacity 0.2s ease-out;
     }
+    .controls-pane :deep(.controls-card) {
+        box-shadow: 8px 8px 0px 0px rgba(0,0,0,0.8);
+        transition: box-shadow 0.3s ease-out;
+    }
     .controls-pane:hover :deep(.controls-card) {
-        box-shadow: 10px 10px 4px 0px rgba(0,0,0,0.85);
+        box-shadow: 9px 9px 0px 0px rgba(0,0,0,0.8);
+    }
+}
+@media (min-width: 1024px) {
+    :global(.dark) .controls-pane :deep(.controls-card) {
+        box-shadow: 8px 8px 0px 0px rgba(0,0,0,0.6);
+    }
+    :global(.dark) .controls-pane:hover :deep(.controls-card) {
+        box-shadow: 9px 9px 0px 0px rgba(0,0,0,0.6);
     }
 }
 
