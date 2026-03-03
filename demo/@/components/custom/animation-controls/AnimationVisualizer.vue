@@ -2,13 +2,13 @@
     <div class="p-2 w-full h-full">
         <div
             ref="trackEl"
-            class="w-full h-12 p-0 m-0 left-0 top-0 relative cursor-grab active:cursor-grabbing"
-            @pointerdown="onPointerDown"
+            class="w-full h-12 p-0 m-0 left-0 top-0 relative"
         >
             <div class="w-full h-full relative container-inline-size">
                 <div
                     ref="ballEl"
-                    class="absolute z-30 rounded-full h-12 w-12 bg-accent-red text-accent-red-foreground shadow-md will-change-transform pointer-events-none"
+                    class="absolute z-30 rounded-full h-12 w-12 bg-accent-red text-accent-red-foreground shadow-md will-change-transform cursor-grab active:cursor-grabbing"
+                    @pointerdown="onPointerDown"
                 ></div>
 
                 <div
@@ -37,6 +37,10 @@ useEventListener(window, "resize", () => {
 
 const props = defineProps<{
     animation: Animation<any>;
+}>();
+
+const emit = defineEmits<{
+    (e: "scrub", t: number): void;
 }>();
 
 const ballEl = ref<HTMLElement | null>(null);
@@ -83,6 +87,7 @@ const scrubFromPointer = (e: PointerEvent) => {
     const progress = maxX > 0 ? x / maxX : 0;
 
     anim.t = progress * anim.options.duration;
+    emit("scrub", anim.t);
 
     // Also update the ball position immediately during drag
     const ballT = progress * ballAnim.options.duration;
@@ -92,7 +97,8 @@ const scrubFromPointer = (e: PointerEvent) => {
 const onPointerDown = (e: PointerEvent) => {
     if (e.button !== 0) return;
     isDragging = true;
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    // Capture on the track so pointermove/up fire even outside the ball
+    trackEl.value?.setPointerCapture(e.pointerId);
     scrubFromPointer(e);
 };
 

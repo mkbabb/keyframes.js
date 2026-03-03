@@ -426,6 +426,7 @@
                     <AnimationVisualizer
                         class="col-span-2 w-full"
                         :animation="animation"
+                        @scrub="scrubTo"
                     ></AnimationVisualizer>
                 </div>
             </CardContent>
@@ -568,9 +569,7 @@ const emitLayerUpdate = (updates: Partial<AnimationLayerConfig>) => {
     emit("layerConfigUpdate", updates);
 };
 
-const sliderUpdate = (e: Event) => {
-    const t = parseFloat((e.target as HTMLInputElement).value);
-
+const scrubTo = (t: number) => {
     if (!isGrouped) {
         const paused = animation.paused;
         animation.paused = false;
@@ -582,6 +581,10 @@ const sliderUpdate = (e: Event) => {
             animation,
         });
     }
+};
+
+const sliderUpdate = (e: Event) => {
+    scrubTo(parseFloat((e.target as HTMLInputElement).value));
 };
 
 const setAnimationTimingFunction = (timingFunction: TimingFunction) => {
