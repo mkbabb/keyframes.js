@@ -56,7 +56,7 @@
     "homepage": "https://github.com/mkbabb/keyframes.js#readme",
     "dependencies": {
         "@mkbabb/parse-that": "^0.7.0",
-        "@mkbabb/value.js": "^0.4.0"
+        "@mkbabb/value.js": "file:../value.js"
     },
     "devDependencies": {
         "@fortawesome/fontawesome-svg-core": "^6.6.0",

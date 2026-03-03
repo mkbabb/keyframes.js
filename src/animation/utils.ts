@@ -98,6 +98,11 @@ export function parseAndFlattenObject(input: any) {
         if (value instanceof ValueUnit) {
             const cloned = value.clone();
             cloned.setProperty(mainKey);
+            // Set subProperty for computed values (calc, var) so getComputedValue
+            // can reconstruct the CSS expression (e.g., translateX(calc(...)))
+            if (childKey !== mainKey) {
+                cloned.setSubProperty(childKey);
+            }
             return cloned;
         } else if (value instanceof FunctionValue) {
             const cloned = value.clone();
