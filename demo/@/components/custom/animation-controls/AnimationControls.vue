@@ -9,28 +9,28 @@
             @update:model-value="selectControl"
         >
             <!-- Filing tabs header -->
-            <div ref="tabsHeaderEl" class="relative w-fit max-w-full mb-0 flex-shrink-0 flex items-stretch bg-gray-100/90 dark:bg-gray-700/85 backdrop-blur-sm rounded-t-lg">
+            <div ref="tabsHeaderEl" class="relative w-fit max-w-full mb-0 flex-shrink-0 flex items-stretch bg-gray-200 dark:bg-gray-700 rounded-t-lg">
                 <!-- Bouncy sliding indicator -->
                 <div
                     ref="sliderEl"
-                    class="absolute bottom-0 z-20 rounded-t-lg bg-gray-900/10 dark:bg-white/10 border-b-2 border-gray-900/30 dark:border-white/40 pointer-events-none"
+                    class="absolute bottom-0 z-0 rounded-t-lg bg-white dark:bg-gray-500/30 border-b-2 border-gray-300 dark:border-gray-400/30 pointer-events-none"
                     :style="sliderStyle"
                 />
 
                 <TabsList
-                    class="relative z-10 flex items-stretch justify-start bg-transparent p-0 gap-0 flex-1 min-w-0 overflow-x-auto h-auto rounded-none tabs-list-scrollable"
+                    class="relative z-10 flex items-stretch justify-start bg-transparent p-0 gap-0 flex-1 min-w-0 overflow-x-auto h-auto rounded-none scrollbar-hidden"
                 >
                     <TabsTrigger
                         value="controls"
-                        class="file-tab"
+                        :class="fileTabClasses"
                     >Controls</TabsTrigger>
                     <TabsTrigger
                         value="keyframes"
-                        class="file-tab"
+                        :class="fileTabClasses"
                     >Keyframes</TabsTrigger>
                     <TabsTrigger
                         value="timeline"
-                        class="file-tab"
+                        :class="fileTabClasses"
                     >Timeline</TabsTrigger>
                     <slot name="tabs-trigger"></slot>
                 </TabsList>
@@ -38,7 +38,7 @@
                 <button
                     v-if="hasOverflow"
                     @click="scrollToNextTab"
-                    class="shrink-0 z-20 inline-flex items-center pl-8 pr-2 -ml-10 rounded-tr-lg bg-gray-100 dark:bg-gray-700 text-gray-400 hover:text-gray-700 dark:text-white/50 dark:hover:text-white/80 text-sm fraunces select-none cursor-pointer transition-colors"
+                    class="shrink-0 z-20 inline-flex items-center pl-8 pr-2 -ml-10 rounded-tr-lg text-gray-400 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white text-sm fraunces select-none cursor-pointer transition-colors"
                 >&hellip;</button>
             </div>
 
@@ -172,6 +172,25 @@ const isTimelineVisible = computed(() =>
     storedControls.selectedControl === "timeline" || storedControls.isTimelineExpanded,
 );
 
+const fileTabClasses = [
+    "shrink-0 rounded-none rounded-t-lg bg-transparent fraunces",
+    "border border-transparent border-b-0",
+    "text-gray-500 dark:text-gray-300",
+    "transition-colors duration-150",
+    // Inactive
+    "data-[state=inactive]:border-gray-400/40",
+    "data-[state=inactive]:hover:border-gray-500/60",
+    "data-[state=inactive]:hover:text-gray-700",
+    "dark:data-[state=inactive]:border-gray-400/20",
+    "dark:data-[state=inactive]:hover:border-gray-400/40",
+    "dark:data-[state=inactive]:hover:text-gray-100",
+    // Active
+    "data-[state=active]:text-gray-900 data-[state=active]:font-semibold data-[state=active]:shadow-none",
+    "data-[state=active]:hover:text-gray-900",
+    "dark:data-[state=active]:text-white",
+    "dark:data-[state=active]:hover:text-white",
+].join(" ");
+
 // --- Bouncy sliding indicator ---
 const sliderStyle = reactive({
     width: "0px",
@@ -181,7 +200,7 @@ const sliderStyle = reactive({
 });
 
 const updateSlider = (animate = true) => {
-    nextTick(() => {
+    const doUpdate = () => {
         const header = tabsHeaderEl.value;
         if (!header) return;
 
@@ -203,7 +222,15 @@ const updateSlider = (animate = true) => {
         sliderStyle.width = `${w}px`;
         sliderStyle.height = `${h}px`;
         sliderStyle.transform = `translateX(${x}px)`;
-    });
+    };
+
+    // Animated updates need nextTick (DOM state change pending).
+    // Non-animated (scroll) updates run synchronously for tight tracking.
+    if (animate) {
+        nextTick(doUpdate);
+    } else {
+        doUpdate();
+    }
 };
 
 // --- Overflow detection + scroll ---
@@ -232,7 +259,15 @@ const scrollToNextTab = () => {
             const id = btn.id ?? "";
             const triggerIdx = id.indexOf("-trigger-");
             const value = triggerIdx >= 0 ? id.slice(triggerIdx + 9) : null;
-            if (value) selectControl(value);
+            if (value) {
+                // Set directly without animated slider bounce
+                storedControls.selectedControl = value;
+                updateSlider(false);
+                nextTick(() => {
+                    checkOverflow();
+                    scrollActiveTabIntoView();
+                });
+            }
             break;
         }
     }
@@ -298,50 +333,3 @@ watch(
 );
 </script>
 
-<style scoped>
-.tabs-list-scrollable {
-    scrollbar-width: none;
-}
-.tabs-list-scrollable::-webkit-scrollbar {
-    display: none;
-}
-
-/* File-tab styling: inactive tabs get a subtle outline, active tab is solid */
-:deep(.file-tab) {
-    flex-shrink: 0;
-    border-radius: 0;
-    border-top-left-radius: var(--radius);
-    border-top-right-radius: var(--radius);
-    background: transparent;
-    font-family: "Fraunces", serif;
-    border: 1px solid transparent;
-    border-bottom: none;
-    color: rgb(107 114 128); /* gray-500 */
-    transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
-}
-:deep(.file-tab[data-state="inactive"]) {
-    border-color: rgb(107 114 128 / 0.3);
-}
-:deep(.file-tab[data-state="inactive"]:hover) {
-    border-color: rgb(107 114 128 / 0.5);
-    color: rgb(55 65 81); /* gray-700 */
-}
-:deep(.file-tab[data-state="active"]) {
-    color: rgb(17 24 39); /* gray-900 */
-    box-shadow: none;
-}
-
-:global(.dark) :deep(.file-tab) {
-    color: rgb(255 255 255 / 0.6);
-}
-:global(.dark) :deep(.file-tab[data-state="inactive"]) {
-    border-color: rgb(255 255 255 / 0.15);
-}
-:global(.dark) :deep(.file-tab[data-state="inactive"]:hover) {
-    border-color: rgb(255 255 255 / 0.3);
-    color: rgb(255 255 255 / 0.8);
-}
-:global(.dark) :deep(.file-tab[data-state="active"]) {
-    color: white;
-}
-</style>
