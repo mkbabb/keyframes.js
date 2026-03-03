@@ -11,29 +11,11 @@
                 @update:model-value="onEditorChange"
             />
 
-            <!-- Floating Paste + Format icons -->
-            <div class="absolute top-3 right-8 flex flex-col gap-2 z-10">
-                <IconTooltip text="Paste from clipboard">
-                    <ClipboardPaste @click="pasteFromClipboard" class="w-5 h-5 cursor-pointer text-muted-foreground hover:text-foreground hover:scale-105 transition-colors" />
-                </IconTooltip>
-                <IconTooltip text="Format CSS">
-                    <Sparkles @click="formatEditor" class="w-5 h-5 cursor-pointer text-muted-foreground hover:text-foreground hover:scale-105 transition-colors" />
-                </IconTooltip>
-            </div>
-
-            <!-- Floating Apply as CSS button -->
-            <IconTooltip text="Apply as CSS">
-                <Paintbrush
-                    ref="brushEl"
-                    @click="() => { applyCSSStyles(); }"
-                    :class="[
-                        'absolute bottom-3 right-8 w-5 h-5 cursor-pointer hover:scale-105 transition-colors z-10',
-                        cssApplied
-                            ? 'paintbrush-rainbow'
-                            : 'text-muted-foreground hover:text-foreground'
-                    ]"
-                />
-            </IconTooltip>
+            <!-- Hidden brush element for animation target -->
+            <Paintbrush
+                ref="brushEl"
+                class="hidden"
+            />
         </div>
     </div>
 </template>
@@ -47,9 +29,7 @@ import {
 import { onMounted, onUnmounted, ref, useTemplateRef } from "vue";
 
 import {
-    ClipboardPaste,
     Paintbrush,
-    Sparkles,
 } from "lucide-vue-next";
 
 import {
@@ -63,7 +43,6 @@ import * as animations from "@src/animation/animations";
 import {
     CSSKeyframesToString,
 } from "@src/parsing/format";
-import IconTooltip from "@components/custom/IconTooltip.vue";
 import CSSCodeEditor from "./CSSCodeEditor.vue";
 
 const { animation } = defineProps<{
@@ -118,18 +97,6 @@ const formatEditor = async () => {
     await editorRef.value.formatCSS();
     clearTimeout(formattingTimeoutId);
     formattingTimeoutId = setTimeout(() => { isFormatting.value = false; }, 300);
-};
-
-const pasteFromClipboard = async () => {
-    try {
-        const text = await navigator.clipboard.readText();
-        if (text && editorRef.value) {
-            editorRef.value.setValue(text);
-            toast.success("Pasted from clipboard");
-        }
-    } catch {
-        toast.error("Failed to read clipboard");
-    }
 };
 
 function onKeyDown(e: KeyboardEvent) {
@@ -252,6 +219,7 @@ defineExpose({
         }
     },
     getCSSString: () => cssKeyframesString.value,
+    applyCSSStyles,
 });
 </script>
 

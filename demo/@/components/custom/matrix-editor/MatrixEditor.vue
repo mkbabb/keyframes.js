@@ -95,56 +95,13 @@
                 class="w-full"
             ></Slider>
 
-            <div class="grid grid-cols-2 gap-2">
-                <IconTooltip text="Reset matrix">
-                    <Button
-                        class="fira-code cursor-pointer"
-                        @click="resetMatrix"
-                        ><RotateCcw class="mr-4" />Reset</Button
-                    >
-                </IconTooltip>
-                <IconTooltip
-                    :text="
-                        storedControls.matrixOptions.fixed
-                            ? 'Unlock matrix'
-                            : 'Lock matrix'
-                    "
-                >
-                    <Button
-                        class="fira-code cursor-pointer"
-                        @click="
-                            storedControls.matrixOptions.fixed =
-                                !storedControls.matrixOptions.fixed
-                        "
-                        :class="
-                            storedControls.matrixOptions.fixed
-                                ? 'clicked'
-                                : ''
-                        "
-                    >
-                        <Lock
-                            v-if="!storedControls.matrixOptions.fixed"
-                            class="mr-4"
-                        />
-                        <LockOpen v-else class="mr-4" />
-                        {{
-                            !storedControls.matrixOptions.fixed
-                                ? "Fixed"
-                                : "Free&nbsp"
-                        }}
-                    </Button>
-                </IconTooltip>
-            </div>
         </CardContent>
     </Card>
 </template>
 
 <script setup lang="ts">
 import type { ComputedRef, Ref } from "vue";
-import { RotateCcw, Lock, LockOpen } from "lucide-vue-next";
-import IconTooltip from "@components/custom/IconTooltip.vue";
 import { Slider } from "@components/ui/slider";
-import { Button } from "@components/ui/button";
 import { Card, CardContent } from "@components/ui/card";
 import { Input } from "@components/ui/input";
 import type { FunctionValue } from "@src/units";
