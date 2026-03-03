@@ -9,7 +9,7 @@
             @update:model-value="selectControl"
         >
             <!-- Filing tabs header -->
-            <div ref="tabsHeaderEl" class="relative w-fit max-w-full mb-0 flex-shrink-0 flex items-stretch bg-gray-200 dark:bg-gray-700 rounded-t-lg">
+            <div ref="tabsHeaderEl" class="relative w-fit max-w-full mb-0 flex-shrink-0 flex items-stretch bg-gray-200 dark:bg-gray-700 rounded-t-lg overflow-hidden">
                 <!-- Bouncy sliding indicator -->
                 <div
                     ref="sliderEl"
@@ -184,11 +184,9 @@ const fileTabClasses = [
     "border border-transparent border-b-0",
     "text-gray-500 dark:text-gray-300",
     "transition-colors duration-150",
-    // Inactive
-    "data-[state=inactive]:border-gray-400/40",
+    // Inactive — border only on hover (avoids dips between adjacent rounded tabs)
     "data-[state=inactive]:hover:border-gray-500/60",
     "data-[state=inactive]:hover:text-gray-700",
-    "dark:data-[state=inactive]:border-gray-400/20",
     "dark:data-[state=inactive]:hover:border-gray-400/40",
     "dark:data-[state=inactive]:hover:text-gray-100",
     // Active
