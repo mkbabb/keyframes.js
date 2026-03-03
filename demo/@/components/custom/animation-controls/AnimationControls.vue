@@ -18,7 +18,7 @@
                 />
 
                 <TabsList
-                    class="relative z-10 flex items-stretch justify-start bg-transparent p-0 gap-0 flex-1 min-w-0 overflow-clip h-auto rounded-none"
+                    class="relative z-10 flex items-stretch justify-start bg-transparent p-0 gap-0 flex-1 min-w-0 overflow-x-auto h-auto rounded-none tabs-list-scrollable"
                 >
                     <TabsTrigger
                         value="controls"
@@ -34,11 +34,12 @@
                     >Timeline</TabsTrigger>
                     <slot name="tabs-trigger"></slot>
                 </TabsList>
-                <!-- Overflow indicator (overlaps to cover partial text) -->
-                <span
+                <!-- Overflow indicator — click to scroll and reveal next tab -->
+                <button
                     v-if="hasOverflow"
-                    class="shrink-0 z-20 inline-flex items-center pl-6 pr-1 -ml-8 bg-card text-muted-foreground text-sm fraunces select-none"
-                >&hellip;</span>
+                    @click="scrollToNextTab"
+                    class="shrink-0 z-20 inline-flex items-center pl-6 pr-1 -ml-8 bg-card text-muted-foreground hover:text-foreground text-sm fraunces select-none cursor-pointer transition-colors"
+                >&hellip;</button>
             </div>
 
             <div ref="tabsContentEl" class="flex-1 min-h-0 overflow-y-auto flex flex-col pb-5 pr-3">
@@ -205,18 +206,43 @@ const updateSlider = (animate = true) => {
     });
 };
 
-// --- Overflow detection ---
+// --- Overflow detection + scroll ---
 const hasOverflow = ref(false);
 
+const getTabsList = () => tabsHeaderEl.value?.querySelector<HTMLElement>("[role=tablist]");
+
 const checkOverflow = () => {
+    const list = getTabsList();
+    if (!list) return;
+    // True when there's more content to the right
+    hasOverflow.value = list.scrollLeft + list.clientWidth < list.scrollWidth - 2;
+};
+
+const scrollToNextTab = () => {
+    const list = getTabsList();
+    if (!list) return;
+    const buttons = list.querySelectorAll<HTMLElement>("button");
+    const listRect = list.getBoundingClientRect();
+
+    // Find first button whose right edge is past the visible area
+    for (const btn of buttons) {
+        const btnRect = btn.getBoundingClientRect();
+        if (btnRect.right > listRect.right + 2) {
+            btn.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
+            break;
+        }
+    }
+};
+
+const scrollActiveTabIntoView = () => {
     const header = tabsHeaderEl.value;
     if (!header) return;
-    const list = header.querySelector<HTMLElement>("[role=tablist]");
-    if (!list) return;
-    hasOverflow.value = list.scrollWidth > list.clientWidth + 2;
+    const activeBtn = header.querySelector<HTMLElement>("button[data-state=active]");
+    activeBtn?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
 };
 
 let resizeObserver: ResizeObserver | undefined;
+let tabsListEl: HTMLElement | undefined;
 
 onMounted(() => {
     updateSlider(false);
@@ -230,16 +256,23 @@ onMounted(() => {
         });
         resizeObserver.observe(header);
     }
+
+    tabsListEl = getTabsList() ?? undefined;
+    tabsListEl?.addEventListener("scroll", checkOverflow);
 });
 
 onUnmounted(() => {
     resizeObserver?.disconnect();
+    tabsListEl?.removeEventListener("scroll", checkOverflow);
 });
 
 const selectControl = (key: string | number) => {
     storedControls.selectedControl = key.toString();
     updateSlider(true);
-    nextTick(checkOverflow);
+    nextTick(() => {
+        checkOverflow();
+        scrollActiveTabIntoView();
+    });
 };
 
 // Re-measure when slot content changes (e.g., Matrix Controls tab appearing)
@@ -247,9 +280,19 @@ watch(
     () => storedControls.selectedControl,
     () => {
         updateSlider(true);
-        nextTick(checkOverflow);
+        nextTick(() => {
+            checkOverflow();
+            scrollActiveTabIntoView();
+        });
     },
 );
 </script>
 
-<style scoped></style>
+<style scoped>
+.tabs-list-scrollable {
+    scrollbar-width: none;
+}
+.tabs-list-scrollable::-webkit-scrollbar {
+    display: none;
+}
+</style>

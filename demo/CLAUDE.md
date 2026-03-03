@@ -43,7 +43,7 @@ demo/
 
 The primary UI for interacting with animations across demos.
 
-- **AnimationControls.vue** — Tab panel: Controls | Keyframes | Timeline. Wraps a single `Animation`. Timeline uses `Teleport` to expand into bottom bar (survives tab switches).
+- **AnimationControls.vue** — Filing-tab panel: Controls | Keyframes | Timeline. Bouncy sliding indicator (cubic-bezier overshoot), `bg-card` background, overflow `…` when extra tabs exceed width. Timeline uses `Teleport` to expand into bottom bar (survives tab switches).
 - **AnimationControlsControls.vue** — Sliders for duration, delay, iterations, direction, fill, easing. Cubic-bezier + steps editors.
 - **AnimationControlsGroup.vue** — Orchestrates `AnimationGroup`: animation selector dropdown, play/pause, reset. Grid row for expanded timeline target. Exposes slot props (`selectedAnimation`, `isPlaying`).
 - **CubicBezierControls.vue** — SVG bezier curve editor with draggable control points.
@@ -51,7 +51,7 @@ The primary UI for interacting with animations across demos.
 - **KeyframesStringControls.vue** — CSS @keyframes editing via CSSCodeEditor with floating paste/format/apply icons.
 - **KeyframeTimeline.vue** — Horizontal timeline: expand/collapse toggle, draggable diamond markers with hover previews (html2canvas snapshot + ghost CSS fallback), playhead, inline keyframe CSS editing via CSSCodeEditor, import/export.
 - **KeyframesEditor.vue** — Frame-by-frame position/CSS editing.
-- **AnimationVisualizer.vue** — Timeline progress ball (draggable via OrbitalDrag).
+- **AnimationVisualizer.vue** — Timeline progress ball with drag-to-scrub (pointer capture) to set animation `t` value.
 - **AnimatedText.vue** — Staggered per-character animation.
 - **Animated.vue** — Fade in/out wrapper using library presets.
 - **animationStores.ts** — localStorage state: animation options, group configs, `isTimelineExpanded`, URL hash sharing (base64 encode/decode, 7-day TTL).
