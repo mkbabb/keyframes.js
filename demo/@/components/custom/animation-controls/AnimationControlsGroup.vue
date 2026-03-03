@@ -2,7 +2,7 @@
     <TooltipProvider :delay-duration="100" :skip-delay-duration="0">
     <div
         :class="[
-            'w-dvw h-dvh grid grid-cols-1 grid-rows-[auto_1fr_auto_auto] lg:grid-rows-[1fr_auto_auto] justify-items-stretch items-start relative',
+            'w-dvw h-dvh grid grid-cols-1 grid-rows-[auto_1fr_auto] lg:grid-rows-[1fr_auto_auto] justify-items-stretch items-start relative',
             storedControls.selectedAnimation
                 ? 'lg:grid-cols-[380px_1fr_1fr]'
                 : 'lg:grid-cols-[1fr_1fr]',
@@ -12,9 +12,9 @@
         <div
             @transitionend="onPanelTransitionEnd"
             :class="[
-                'col-span-1 row-start-1 lg:row-start-1 transition-[max-height,opacity] duration-300 ease-out lg:!max-h-full lg:!overflow-y-auto lg:!opacity-100 lg:!pointer-events-auto lg:!mt-0',
+                'controls-pane group/controls col-span-1 row-start-1 lg:row-start-1 relative z-10 transition-[max-height,opacity] duration-300 ease-out lg:!max-h-full lg:!overflow-y-auto lg:!pointer-events-auto lg:!mt-0',
                 storedControls.isControlsPanelOpen
-                    ? 'max-h-[calc(100dvh-3rem)] mt-12 opacity-100'
+                    ? 'max-h-[calc(100dvh-7rem)] mt-12 opacity-100'
                     : 'max-h-0 opacity-0 pointer-events-none',
                 isPanelTransitionDone && storedControls.isControlsPanelOpen
                     ? 'overflow-y-auto'
@@ -70,11 +70,8 @@
         <!-- Bottom menubar -->
         <div
             :class="[
-                'p-2 m-0 z-50 flex items-center justify-center justify-items-center col-span-full transition-all duration-300 ease-out',
-                'row-start-4 lg:row-start-3',
-                storedControls.isControlsPanelOpen && isMobile
-                    ? 'translate-y-full opacity-0 pointer-events-none'
-                    : 'translate-y-0 opacity-100',
+                'p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] m-0 z-50 flex items-center justify-center justify-items-center transition-all duration-300 ease-out',
+                'fixed bottom-0 left-0 right-0 lg:static lg:col-span-full lg:row-start-3',
             ]"
         >
             <Menubar
@@ -531,6 +528,21 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* Controls pane: idle→75% after 2s, hover→100% immediately (desktop only) */
+@media (min-width: 1024px) {
+    .controls-pane {
+        opacity: 0.75;
+        transition: opacity 0.5s ease-out 2s;
+    }
+    .controls-pane:hover {
+        opacity: 1;
+        transition: opacity 0.2s ease-out;
+    }
+    .controls-pane:hover :deep(.controls-card) {
+        box-shadow: 10px 10px 4px 0px rgba(0,0,0,0.85);
+    }
+}
+
 .rainbow-pastel {
     background: linear-gradient(
         90deg,

@@ -9,11 +9,11 @@
             @update:model-value="selectControl"
         >
             <!-- Filing tabs header -->
-            <div ref="tabsHeaderEl" class="relative mr-3 mb-0 flex-shrink-0 flex items-stretch bg-card rounded-t-lg">
+            <div ref="tabsHeaderEl" class="relative mr-3 mb-0 flex-shrink-0 flex items-stretch bg-gray-100/90 dark:bg-gray-700/85 backdrop-blur-sm rounded-t-lg">
                 <!-- Bouncy sliding indicator -->
                 <div
                     ref="sliderEl"
-                    class="absolute bottom-0 z-20 rounded-t-lg bg-accent/10 border-b-2 border-accent pointer-events-none"
+                    class="absolute bottom-0 z-20 rounded-t-lg bg-gray-900/10 dark:bg-white/10 border-b-2 border-gray-900/30 dark:border-white/40 pointer-events-none"
                     :style="sliderStyle"
                 />
 
@@ -22,15 +22,15 @@
                 >
                     <TabsTrigger
                         value="controls"
-                        class="shrink-0 rounded-none rounded-t-lg bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground fraunces"
+                        class="shrink-0 rounded-none rounded-t-lg bg-transparent data-[state=active]:shadow-none text-gray-500 data-[state=active]:text-gray-900 dark:text-white/60 dark:data-[state=active]:text-white fraunces"
                     >Controls</TabsTrigger>
                     <TabsTrigger
                         value="keyframes"
-                        class="shrink-0 rounded-none rounded-t-lg bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground fraunces"
+                        class="shrink-0 rounded-none rounded-t-lg bg-transparent data-[state=active]:shadow-none text-gray-500 data-[state=active]:text-gray-900 dark:text-white/60 dark:data-[state=active]:text-white fraunces"
                     >Keyframes</TabsTrigger>
                     <TabsTrigger
                         value="timeline"
-                        class="shrink-0 rounded-none rounded-t-lg bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground fraunces"
+                        class="shrink-0 rounded-none rounded-t-lg bg-transparent data-[state=active]:shadow-none text-gray-500 data-[state=active]:text-gray-900 dark:text-white/60 dark:data-[state=active]:text-white fraunces"
                     >Timeline</TabsTrigger>
                     <slot name="tabs-trigger"></slot>
                 </TabsList>
@@ -38,7 +38,7 @@
                 <button
                     v-if="hasOverflow"
                     @click="scrollToNextTab"
-                    class="shrink-0 z-20 inline-flex items-center pl-6 pr-1 -ml-8 bg-card text-muted-foreground hover:text-foreground text-sm fraunces select-none cursor-pointer transition-colors"
+                    class="shrink-0 z-20 inline-flex items-center pl-8 pr-2 -ml-10 rounded-tr-lg bg-gray-100 dark:bg-gray-700 text-gray-400 hover:text-gray-700 dark:text-white/50 dark:hover:text-white/80 text-sm fraunces select-none cursor-pointer transition-colors"
                 >&hellip;</button>
             </div>
 
@@ -198,7 +198,7 @@ const updateSlider = (animate = true) => {
         const h = btnRect.height;
 
         sliderStyle.transition = animate
-            ? "width 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), height 0.2s ease"
+            ? "width 0.25s ease-out, transform 0.25s ease-out, height 0.2s ease"
             : "none";
         sliderStyle.width = `${w}px`;
         sliderStyle.height = `${h}px`;
@@ -224,11 +224,15 @@ const scrollToNextTab = () => {
     const buttons = list.querySelectorAll<HTMLElement>("button");
     const listRect = list.getBoundingClientRect();
 
-    // Find first button whose right edge is past the visible area
+    // Find first button whose right edge is past the visible area and select it
     for (const btn of buttons) {
         const btnRect = btn.getBoundingClientRect();
         if (btnRect.right > listRect.right + 2) {
-            btn.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
+            // Extract tab value from reka-ui id: "reka-tabs-…-trigger-{value}"
+            const id = btn.id ?? "";
+            const triggerIdx = id.indexOf("-trigger-");
+            const value = triggerIdx >= 0 ? id.slice(triggerIdx + 9) : null;
+            if (value) selectControl(value);
             break;
         }
     }
@@ -241,12 +245,18 @@ const scrollActiveTabIntoView = () => {
     activeBtn?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
 };
 
+const onTabsScroll = () => {
+    checkOverflow();
+    updateSlider(false);
+};
+
 let resizeObserver: ResizeObserver | undefined;
 let tabsListEl: HTMLElement | undefined;
 
 onMounted(() => {
     updateSlider(false);
     checkOverflow();
+    scrollActiveTabIntoView();
 
     const header = tabsHeaderEl.value;
     if (header) {
@@ -258,12 +268,12 @@ onMounted(() => {
     }
 
     tabsListEl = getTabsList() ?? undefined;
-    tabsListEl?.addEventListener("scroll", checkOverflow);
+    tabsListEl?.addEventListener("scroll", onTabsScroll);
 });
 
 onUnmounted(() => {
     resizeObserver?.disconnect();
-    tabsListEl?.removeEventListener("scroll", checkOverflow);
+    tabsListEl?.removeEventListener("scroll", onTabsScroll);
 });
 
 const selectControl = (key: string | number) => {

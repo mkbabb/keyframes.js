@@ -41,7 +41,7 @@ const toggleDark = useToggle(isDark);
     isolation: isolate;
     background: 0;
 
-    transition: all !important;
+    transition: opacity 0.2s ease, background 0.2s ease;
 
     z-index: 999;
 
@@ -60,6 +60,12 @@ const toggleDark = useToggle(isDark);
 }
 
 .dark-mode-toggle-button::before {
+    content: '';
+    display: block;
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    pointer-events: none;
     animation: pulseToDark 650ms ease-out;
 }
 

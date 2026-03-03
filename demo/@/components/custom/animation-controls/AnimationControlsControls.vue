@@ -1,6 +1,6 @@
 <template>
     <div class="grid items-center gap-4">
-        <Card class="w-full overflow-visible">
+        <Card class="w-full overflow-visible transition-shadow duration-300 controls-card">
             <CardContent class="relative grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 px-4 py-3">
                 <!-- Sliding panel container -->
                 <div class="relative w-full overflow-clip p-1 -m-1 col-span-2">
