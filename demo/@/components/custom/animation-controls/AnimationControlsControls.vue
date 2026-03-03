@@ -3,13 +3,13 @@
         <Card class="w-full overflow-visible transition-shadow duration-300 controls-card">
             <CardContent class="relative grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 px-4 py-3">
                 <!-- Sliding panel container -->
-                <div class="relative w-full overflow-clip p-1 -m-1 col-span-2">
+                <div class="relative w-full overflow-clip p-1 -m-1 col-span-2 grid grid-cols-[subgrid]">
                     <!-- Main controls panel -->
                     <Transition name="slide-main">
                         <div
                             v-if="!showDetailPanel"
                             key="main"
-                            class="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-2 w-full"
+                            class="col-span-2 grid grid-cols-[subgrid] items-center gap-x-3 gap-y-2 w-full"
                         >
                             <IconTooltip text="Animation length (e.g. 5s, 200ms)">
                                 <label class="fira-code text-xs text-muted-foreground cursor-help">duration</label>
@@ -170,7 +170,7 @@
                         <div
                             v-if="showDetailPanel"
                             key="detail"
-                            class="w-full grid justify-items-center"
+                            class="col-span-2 w-full grid justify-items-center"
                         >
                             <button
                                 class="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground cursor-pointer transition-colors mb-2 fira-code justify-self-start"
@@ -356,81 +356,76 @@
                     </CollapsibleContent>
                 </Collapsible>
 
-                <Separator class="my-2 col-span-2" />
-
-                <!-- Slider, buttons, visualizer — always visible -->
-                <div
-                    :class="
-                        'col-span-2 mt-2 w-full h-full grid gap-2 bg-background rounded-xl' +
-                        (!isAnimStarted ? ' disabled' : '')
-                    "
-                >
-                    <IconTooltip text="Scrub animation timeline">
-                        <Slider
-                            class="col-span-2 p-2 timeline-slider"
-                            :min="0"
-                            :max="animation.options.duration"
-                            @input="sliderUpdate"
-                            :model-value="[currentT]"
-                            @update:model-value="(val: any) => (animation.t = val[0])"
-                        />
-                    </IconTooltip>
-
-                    <div class="col-span-2 grid grid-cols-3 gap-2 w-full">
-                        <IconTooltip :text="isAnimPlaying ? 'Pause' : (isGrouped && !isAnimStarted ? 'Start animation group' : 'Play')">
-                            <Button
-                                :class="[
-                                    'h-10 w-full rounded-xl p-0',
-                                    isGrouped && !isAnimStarted
-                                        ? 'bg-accent-red/30 text-accent-red border-accent-red/40 hover:bg-accent-red/50'
-                                        : '',
-                                ]"
-                                :variant="isGrouped && !isAnimStarted ? 'outline' : 'outline'"
-                                @click="toggleAnimation"
-                            >
-                                <font-awesome-icon
-                                    class="icon text-sm"
-                                    :icon="
-                                        isAnimPlaying
-                                            ? ['fas', 'pause']
-                                            : ['fas', 'play']
-                                    "
-                                />
-                            </Button>
-                        </IconTooltip>
-                        <IconTooltip text="Reverse direction">
-                            <Button class="h-10 w-full rounded-xl p-0" variant="outline" @click="animation.reverse()">
-                                <font-awesome-icon
-                                    class="icon text-sm"
-                                    :icon="['fas', 'rotate-right']"
-                                />
-                            </Button>
-                        </IconTooltip>
-                        <IconTooltip text="Reset to defaults">
-                            <Button
-                                class="h-10 w-full rounded-xl p-0"
-                                variant="outline"
-                                @click="
-                                    () => {
-                                        Object.assign(
-                                            storedAnimationOptions,
-                                            defaultStoredAnimationOptions,
-                                        );
-                                    }
-                                "
-                                ><Trash class="w-4 h-4" />
-                            </Button>
-                        </IconTooltip>
-                    </div>
-
-                    <AnimationVisualizer
-                        class="col-span-2 w-full"
-                        :animation="animation"
-                        @scrub="scrubTo"
-                    ></AnimationVisualizer>
-                </div>
             </CardContent>
         </Card>
+
+        <!-- Playback controls: teleported to ribbon when this is the active animation -->
+        <Teleport v-if="active" to="#controls-ribbon-target" defer>
+            <div :class="['w-full grid gap-2', !isAnimStarted ? 'disabled' : '']">
+                <IconTooltip text="Scrub animation timeline">
+                    <Slider
+                        class="p-2 timeline-slider"
+                        :min="0"
+                        :max="animation.options.duration"
+                        @input="sliderUpdate"
+                        :model-value="[currentT]"
+                        @update:model-value="(val: any) => (animation.t = val[0])"
+                    />
+                </IconTooltip>
+
+                <div class="grid grid-cols-3 gap-2 w-full">
+                    <Button
+                        :class="[
+                            'h-8 w-full rounded-lg gap-2 fira-code text-xs cursor-pointer hover:scale-105 active:scale-95 transition-transform',
+                            isGrouped && !isAnimStarted
+                                ? 'bg-accent-red/30 text-accent-red border-accent-red/40 hover:bg-accent-red/50'
+                                : '',
+                        ]"
+                        variant="outline"
+                        @click="toggleAnimation"
+                    >
+                        <span>{{ isAnimPlaying ? 'Pause' : 'Play' }}</span>
+                        <font-awesome-icon
+                            class="icon w-3.5 h-3.5"
+                            :icon="
+                                isAnimPlaying
+                                    ? ['fas', 'pause']
+                                    : ['fas', 'play']
+                            "
+                        />
+                    </Button>
+                    <Button
+                        class="h-8 w-full rounded-lg gap-2 fira-code text-xs cursor-pointer hover:scale-105 active:scale-95 transition-transform"
+                        variant="outline"
+                        @click="animation.reverse()"
+                    >
+                        <span>Reverse</span>
+                        <ArrowLeftRight class="w-3.5 h-3.5" />
+                    </Button>
+                    <Button
+                        class="h-8 w-full rounded-lg gap-2 fira-code text-xs cursor-pointer hover:scale-105 active:scale-95 transition-transform"
+                        variant="outline"
+                        @click="
+                            () => {
+                                Object.assign(
+                                    storedAnimationOptions,
+                                    defaultStoredAnimationOptions,
+                                );
+                            }
+                        "
+                    >
+                        <span>Reset</span>
+                        <RotateCcw class="w-3.5 h-3.5" />
+                    </Button>
+                </div>
+
+                <AnimationVisualizer
+                    class="w-full"
+                    :animation="animation"
+                    @scrub="scrubTo"
+                ></AnimationVisualizer>
+            </div>
+        </Teleport>
     </div>
 </template>
 
@@ -463,10 +458,10 @@ import { CubicBezierControls } from "@components/custom/animation-controls";
 
 import { camelCaseToHyphen } from "@src/utils";
 
-import { Trash, ArrowLeft, ChevronDown } from "lucide-vue-next";
+import { ArrowLeft, ArrowLeftRight, ChevronDown, RotateCcw } from "lucide-vue-next";
 import IconTooltip from "@components/custom/IconTooltip.vue";
 
-import { computed, onMounted, onUnmounted, ref, watch } from "vue";
+import { Teleport, computed, onMounted, onUnmounted, ref, watch } from "vue";
 import {
     defaultStoredAnimationOptions,
     getStoredAnimationOptions,
@@ -496,10 +491,11 @@ timingFunctionsAnd = Object.fromEntries(
 
 const DETAIL_TIMING_FUNCTIONS = new Set(["cubic-bezier", "steps"]);
 
-const { animation, isGrouped, layerConfig } = defineProps<{
+const { animation, isGrouped, layerConfig, active } = defineProps<{
     animation: Animation<any>;
     isGrouped?: boolean;
     layerConfig?: AnimationLayerConfig;
+    active?: boolean;
 }>();
 
 const storedAnimationOptions = getStoredAnimationOptions(animation);
