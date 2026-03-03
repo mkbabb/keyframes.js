@@ -85,7 +85,14 @@ export const getComputedValue = memoize(
 
         return newValue.coalesce(value);
     },
-    { keyFn: (value: any, target: any) => `${value.toString()}-${target ? getElementId(target) : 'null'}` },
+    {
+        keyFn: (value: any, target: any) => `${value.toString()}-${target ? getElementId(target) : 'null'}`,
+        // Don't cache when the element is disconnected (e.g. inside a Teleport
+        // defer DocumentFragment). Layout-dependent units like cqw/vh resolve
+        // to 0 without a live DOM context.
+        shouldCache: (_result: any, _value: any, target: any) =>
+            !target || target.isConnected,
+    },
 );
 
 export const normalizeNumericUnits = (

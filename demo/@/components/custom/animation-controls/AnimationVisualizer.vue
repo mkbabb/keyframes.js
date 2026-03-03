@@ -4,7 +4,7 @@
             ref="trackEl"
             class="w-full h-12 p-0 m-0 left-0 top-0 relative"
         >
-            <div class="w-full h-full relative container-inline-size">
+            <div class="w-full h-full relative" style="container-type: inline-size">
                 <div
                     ref="ballEl"
                     class="absolute z-30 rounded-full h-12 w-12 bg-accent-red text-accent-red-foreground shadow-md will-change-transform cursor-grab active:cursor-grabbing"
@@ -132,9 +132,3 @@ onUnmounted(() => {
     ballAnim.stop();
 });
 </script>
-
-<style scoped>
-.container-inline-size {
-    container-type: inline-size;
-}
-</style>
