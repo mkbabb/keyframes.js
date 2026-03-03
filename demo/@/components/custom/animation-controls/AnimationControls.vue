@@ -4,7 +4,7 @@
         class="flex flex-col h-full w-full z-10 relative lg:max-w-screen-md isolate"
     >
         <Tabs
-            class="p-4 pt-12 lg:pt-4 w-full flex-1 min-h-0 flex flex-col justify-start"
+            class="p-4 pt-12 lg:pt-2 w-full flex-1 min-h-0 flex flex-col justify-start"
             :model-value="storedControls.selectedControl"
             @update:model-value="selectControl"
         >
@@ -17,7 +17,7 @@
                 <slot name="tabs-trigger"></slot>
             </TabsList>
 
-            <div ref="tabsContentEl" class="flex-1 min-h-0 overflow-y-auto flex flex-col pb-3">
+            <div ref="tabsContentEl" class="flex-1 min-h-0 overflow-y-auto flex flex-col pb-5 pr-3">
                 <TabsContent value="controls">
                     <AnimationControlsControls
                         :animation="animation"

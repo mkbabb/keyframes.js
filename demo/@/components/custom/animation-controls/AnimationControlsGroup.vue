@@ -2,7 +2,7 @@
     <TooltipProvider :delay-duration="100" :skip-delay-duration="0">
     <div
         :class="[
-            'w-dvw h-dvh grid grid-cols-1 grid-rows-[auto_1fr_auto_auto] lg:grid-rows-[1fr_auto_auto] justify-items-stretch items-center relative',
+            'w-dvw h-dvh grid grid-cols-1 grid-rows-[auto_1fr_auto_auto] lg:grid-rows-[1fr_auto_auto] justify-items-stretch items-start relative',
             storedControls.selectedAnimation
                 ? 'lg:grid-cols-[380px_1fr_1fr]'
                 : 'lg:grid-cols-[1fr_1fr]',
@@ -47,7 +47,7 @@
 
         <div
             :class="[
-                'justify-self-stretch min-h-0 h-full overflow-visible overscroll-contain col-span-full row-start-2 lg:row-start-1',
+                'justify-self-stretch self-center min-h-0 h-full overflow-visible overscroll-contain col-span-full row-start-2 lg:row-start-1',
                 storedControls?.selectedAnimation
                     ? 'lg:col-start-2 lg:col-end-4'
                     : 'lg:col-start-1 lg:col-end-4',
@@ -123,13 +123,14 @@
                                             <span class="flex items-center gap-2">
                                                 <span
                                                     :class="[
-                                                        'inline-block w-2 h-2 rounded-full transition-colors duration-300',
-                                                        isPlaying
-                                                            ? 'bg-green-500 dot-pulse'
-                                                            : isStarted
-                                                              ? 'bg-yellow-500'
-                                                              : 'bg-gray-400',
+                                                        'inline-block w-2.5 h-2.5 rounded-full transition-colors duration-300',
+                                                        !isPlaying && isStarted
+                                                            ? 'bg-yellow-500'
+                                                            : !isPlaying
+                                                              ? 'bg-gray-400'
+                                                              : '',
                                                     ]"
+                                                    :style="isPlaying ? dotStyle(key) : {}"
                                                 ></span>
                                                 <span :class="storedControls.selectedAnimation === key ? 'font-bold' : ''">{{ key }}</span>
                                             </span>
@@ -298,6 +299,41 @@ const emit = defineEmits<{
 // internal state changes don't trigger Vue re-renders. We sync manually.
 const isPlaying = ref(animationGroup.playing());
 const isStarted = ref(animationGroup.started);
+
+// Per-animation progress (0–1 within current iteration), polled via rAF
+const animationProgress = ref<Record<string, number>>({});
+let progressRafId: number | undefined;
+
+const pollProgress = () => {
+    const p: Record<string, number> = {};
+    for (const [name, groupObj] of Object.entries(animationGroup.animations)) {
+        const anim = groupObj.animation;
+        const dur = anim.options.duration ?? 1000;
+        p[name] = dur > 0 ? Math.min(1, Math.max(0, (anim.t ?? 0) / dur)) : 0;
+    }
+    animationProgress.value = p;
+    if (isPlaying.value) {
+        progressRafId = requestAnimationFrame(pollProgress);
+    }
+};
+
+watch(isPlaying, (playing) => {
+    if (playing) {
+        progressRafId = requestAnimationFrame(pollProgress);
+    } else if (progressRafId !== undefined) {
+        cancelAnimationFrame(progressRafId);
+        progressRafId = undefined;
+    }
+});
+
+const dotStyle = (name: string): Record<string, string> => {
+    const p = animationProgress.value[name] ?? 0;
+    const deg = p * 360;
+    return {
+        background: `conic-gradient(rgb(34, 197, 94) ${deg}deg, rgba(34, 197, 94, 0.15) ${deg}deg)`,
+        boxShadow: `0 0 ${2 + p * 3}px ${p * 1.5}px rgba(34, 197, 94, 0.4)`,
+    };
+};
 
 const syncPlayState = (playing?: boolean) => {
     if (playing === undefined) {
@@ -487,6 +523,7 @@ const onMenuLeave = () => {
 
 onUnmounted(() => {
     clearTimeout(collapseTimeoutId);
+    if (progressRafId !== undefined) cancelAnimationFrame(progressRafId);
     document.documentElement.style.overflow = '';
     document.body.style.overflow = '';
 });
@@ -494,21 +531,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.dot-pulse {
-    animation: dot-glow 1.5s ease-in-out infinite;
-}
-
-@keyframes dot-glow {
-    0%, 100% {
-        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.6);
-        transform: scale(1);
-    }
-    50% {
-        box-shadow: 0 0 4px 2px rgba(34, 197, 94, 0.3);
-        transform: scale(1.3);
-    }
-}
-
 .rainbow-pastel {
     background: linear-gradient(
         90deg,
