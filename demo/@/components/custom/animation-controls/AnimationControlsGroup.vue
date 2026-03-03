@@ -24,25 +24,77 @@
             <template
                 v-for="[name, groupObject] in Object.entries(animationGroup.animations)"
             >
-                <AnimationControls
-                    v-if="storedControls.selectedAnimation == name"
-                    @slider-update="sliderUpdate"
-                    @keyframes-update="keyframesUpdate"
-                    @toggle-play="toggleAnimationGroup"
-                    @layer-config-update="(v) => updateLayerConfig(name, v)"
-                    :animation="groupObject.animation"
-                    :is-grouped="true"
-                    :layer-config="groupObject.layer"
-                >
-                    <template #tabs-trigger>
-                        <slot name="tabs-trigger" :selected-animation="storedControls.selectedAnimation" :is-playing="isPlaying"></slot>
-                    </template>
+                <div v-show="storedControls.selectedAnimation == name">
+                    <AnimationControls
+                        :ref="(el: any) => { if (el) animControlRefs[name] = el }"
+                        @slider-update="sliderUpdate"
+                        @keyframes-update="keyframesUpdate"
+                        @toggle-play="toggleAnimationGroup"
+                        @layer-config-update="(v) => updateLayerConfig(name, v)"
+                        :animation="groupObject.animation"
+                        :is-grouped="true"
+                        :layer-config="groupObject.layer"
+                        :active="storedControls.selectedAnimation == name"
+                    >
+                        <template #tabs-trigger>
+                            <slot name="tabs-trigger" :selected-animation="storedControls.selectedAnimation" :is-playing="isPlaying"></slot>
+                        </template>
 
-                    <template #tabs-content>
-                        <slot name="tabs-content" :selected-animation="storedControls.selectedAnimation" :is-playing="isPlaying"></slot>
-                    </template>
-                </AnimationControls>
+                        <template #tabs-content>
+                            <slot name="tabs-content" :selected-animation="storedControls.selectedAnimation" :is-playing="isPlaying"></slot>
+                        </template>
+                    </AnimationControls>
+                </div>
             </template>
+
+            <!-- Persistent controls ribbon -->
+            <div v-if="storedControls.selectedAnimation" class="flex-shrink-0 pl-4 pr-7 pb-3 pt-1">
+                <Card class="overflow-visible controls-card">
+                    <CardContent class="p-3">
+                        <!-- Controls tab: filled via Teleport from AnimationControlsControls -->
+                        <div id="controls-ribbon-target" v-show="storedControls.selectedControl === 'controls'"></div>
+
+                        <!-- Keyframes tab -->
+                        <div v-if="storedControls.selectedControl === 'keyframes'" class="flex items-center justify-center gap-2 flex-wrap">
+                            <Button size="sm" variant="outline"
+                                class="h-8 gap-1.5 cursor-pointer fira-code text-xs px-3 rounded-lg hover:scale-105 active:scale-95 transition-transform"
+                                @click="activeKeyframesRef?.copyCSS?.()"
+                            >
+                                <Copy class="w-3.5 h-3.5" /> Copy
+                            </Button>
+                            <Button size="sm" variant="outline"
+                                class="h-8 gap-1.5 cursor-pointer fira-code text-xs px-3 rounded-lg hover:scale-105 active:scale-95 transition-transform"
+                                @click="activeKeyframesRef?.formatCSS?.()"
+                            >
+                                <Sparkles class="w-3.5 h-3.5" /> Format
+                            </Button>
+                            <Button size="sm" variant="outline"
+                                class="h-8 gap-1.5 cursor-pointer fira-code text-xs px-3 rounded-lg hover:scale-105 active:scale-95 transition-transform"
+                                @click="activeKeyframesRef?.applyCSSStyles?.()"
+                            >
+                                <Paintbrush class="w-3.5 h-3.5" /> Apply CSS
+                            </Button>
+                        </div>
+
+                        <!-- Timeline tab -->
+                        <div v-else-if="storedControls.selectedControl === 'timeline'" class="flex items-center justify-center gap-2 flex-wrap">
+                            <Button size="sm" variant="outline"
+                                class="h-8 gap-1.5 cursor-pointer fira-code text-xs px-3 rounded-lg hover:scale-105 active:scale-95 transition-transform"
+                                @click="storedControls.isTimelineExpanded = !storedControls.isTimelineExpanded"
+                            >
+                                <Maximize2 v-if="!storedControls.isTimelineExpanded" class="w-3.5 h-3.5" />
+                                <Minimize2 v-else class="w-3.5 h-3.5" />
+                                {{ storedControls.isTimelineExpanded ? 'Collapse' : 'Expand' }}
+                            </Button>
+                        </div>
+
+                        <!-- Other tabs (matrix controls, etc.) via slot -->
+                        <div v-else-if="storedControls.selectedControl !== 'controls'" class="flex items-center justify-center gap-2 flex-wrap">
+                            <slot name="ribbon-content" :selected-control="storedControls.selectedControl"></slot>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
         </div>
 
         <div
@@ -222,7 +274,7 @@
 </template>
 
 <script setup lang="ts">
-import { onUnmounted, ref, Teleport, useTemplateRef, watch, watchEffect } from "vue";
+import { computed, onUnmounted, reactive, ref, Teleport, useTemplateRef, watch, watchEffect } from "vue";
 import { Toaster, toast } from "vue-sonner";
 import { useMediaQuery } from "@vueuse/core";
 
@@ -232,8 +284,12 @@ import {
 } from "@components/ui/menubar";
 
 import {
+    Copy,
     List,
+    Maximize2,
     Minimize2,
+    Paintbrush,
+    Sparkles,
     Trash,
 } from "lucide-vue-next";
 
@@ -253,6 +309,7 @@ import { TooltipProvider } from "@components/ui/tooltip";
 import { Animation, CSSKeyframesAnimation } from "@src/animation/index";
 import AnimationControls from "./AnimationControls.vue";
 import Button from "@components/ui/button/Button.vue";
+import { Card, CardContent } from "@components/ui/card";
 
 import {
     getStoredAnimationGroupControlOptions,
@@ -268,6 +325,14 @@ const { superKey, animationGroup } = defineProps<{
 
 const storedControls = getStoredAnimationGroupControlOptions(superKey);
 const isMobile = useMediaQuery('(max-width: 1023px)');
+
+// Collect refs to each AnimationControls for ribbon actions
+const animControlRefs = reactive<Record<string, any>>({});
+
+const activeKeyframesRef = computed(() => {
+    const name = storedControls.selectedAnimation;
+    return name ? animControlRefs[name]?.keyframesControlsRef : null;
+});
 
 // Track whether the panel's max-height transition has completed
 const isPanelTransitionDone = ref(storedControls.isControlsPanelOpen);
@@ -550,10 +615,10 @@ onUnmounted(() => {
 }
 @media (min-width: 1024px) {
     :global(.dark) .controls-pane :deep(.controls-card) {
-        box-shadow: 8px 8px 0px 0px rgba(0,0,0,0.6);
+        box-shadow: 8px 8px 0px 0px hsl(var(--shadow) / 0.5);
     }
     :global(.dark) .controls-pane:hover :deep(.controls-card) {
-        box-shadow: 9px 9px 0px 0px rgba(0,0,0,0.6);
+        box-shadow: 9px 9px 0px 0px hsl(var(--shadow) / 0.6);
     }
 }
 

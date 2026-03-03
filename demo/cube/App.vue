@@ -107,6 +107,25 @@
             </TabsContent>
         </template>
 
+        <template #ribbon-content="{ selectedControl }">
+            <template v-if="selectedControl === 'matrix-controls'">
+                <Button size="sm" variant="outline"
+                    class="h-8 gap-1.5 cursor-pointer fira-code text-xs px-3 rounded-lg hover:scale-105 active:scale-95 transition-transform"
+                    @click="resetMatrix()"
+                >
+                    <RotateCcw class="w-3.5 h-3.5" /> Reset
+                </Button>
+                <Button size="sm" variant="outline"
+                    class="h-8 gap-1.5 cursor-pointer fira-code text-xs px-3 rounded-lg hover:scale-105 active:scale-95 transition-transform"
+                    @click="storedControls.matrixOptions.fixed = !storedControls.matrixOptions.fixed"
+                >
+                    <Lock v-if="!storedControls.matrixOptions?.fixed" class="w-3.5 h-3.5" />
+                    <LockOpen v-else class="w-3.5 h-3.5" />
+                    {{ storedControls.matrixOptions?.fixed ? 'Free' : 'Fixed' }}
+                </Button>
+            </template>
+        </template>
+
         <template #target>
             <CubeTarget
                 ref="cubeTargetRef"
@@ -130,6 +149,7 @@ import {
 import { Avatar, AvatarImage } from "@components/ui/avatar";
 import { Button } from "@components/ui/button";
 import { TabsContent, TabsTrigger } from "@components/ui/tabs";
+import { Lock, LockOpen, RotateCcw } from "lucide-vue-next";
 
 import { EditorShell, EditorStartScreen } from "@components/custom/editor-shell";
 import { MatrixEditor } from "@components/custom/matrix-editor";
