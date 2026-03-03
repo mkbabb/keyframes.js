@@ -1,5 +1,5 @@
 <template>
-    <div ref="containerRef">
+    <div ref="containerRef" :style="containerStyle">
         <slot></slot>
     </div>
 </template>
@@ -8,7 +8,7 @@
 import { clamp } from "@src/math";
 import { useEventListener, useRafFn } from "@vueuse/core";
 import { quat, vec3 } from "gl-matrix";
-import { onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
+import { computed, onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
 import type { TransformBounds, TransformState, VelocityState } from ".";
 import { axes, defaultTransformBounds, defaultTransformState, defaultVelocityState } from ".";
 
@@ -27,6 +27,7 @@ const props = defineProps<{
     inertiaFactor?: number;
     scaleFactor?: number;
     bounds?: TransformBounds;
+    applyTransformToContainer?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -61,7 +62,7 @@ const pressedKeys = ref<PressedKeys>({
 });
 
 const sensitivity = props.sensitivity ?? 0.5;
-const touchSensitivity = sensitivity * 2.5;
+const touchSensitivity = sensitivity * 0.5;
 const translationFactor = props.translationFactor ?? 0.8;
 const inertiaFactor = props.inertiaFactor ?? 0.95;
 const scaleFactor = props.scaleFactor ?? 0.02;
@@ -79,6 +80,16 @@ let wheelTimeout: ReturnType<typeof setTimeout> | null = null;
 const velocity = ref<VelocityState>(JSON.parse(JSON.stringify(defaultVelocityState)));
 
 const bounds = props.bounds ?? defaultTransformBounds;
+
+const containerStyle = computed(() => {
+    if (!props.applyTransformToContainer) return {};
+    const { rotate, translate, scale: s } = model.value;
+    return {
+        transformStyle: 'preserve-3d' as const,
+        willChange: 'transform' as const,
+        transform: `translate3d(${translate.x}px, ${translate.y}px, ${translate.z}px) rotateX(${rotate.x}deg) rotateY(${rotate.y}deg) rotateZ(${rotate.z}deg) scale3d(${s.x}, ${s.y}, ${s.z})`,
+    };
+});
 
 // Persistent quaternion — the source of truth for rotation.
 // Never reconstructed from Euler angles; only multiplied by delta quaternions.
@@ -297,11 +308,12 @@ const updateRotation = (deltaX: number, deltaY: number, isTouch = false) => {
     angularVelocitySpeed.value = angle;
 };
 
-const updateAxisRotation = (constrainedAxes: (typeof axes)[number][], deltaX: number, deltaY: number) => {
+const updateAxisRotation = (constrainedAxes: (typeof axes)[number][], deltaX: number, deltaY: number, isTouch = false) => {
     const magnitude = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
     if (magnitude < 1e-6) return;
 
-    const angle = (magnitude * sensitivity) / 25;
+    const s = isTouch ? touchSensitivity : sensitivity;
+    const angle = (magnitude * s) / 25;
 
     for (const a of constrainedAxes) {
         const axis = vec3.fromValues(
@@ -334,14 +346,15 @@ const drag = (event: PointerEvent) => {
     if (Math.abs(deltaX) < 0.5 && Math.abs(deltaY) < 0.5) return;
 
     if (pressedKeys.value.x || pressedKeys.value.y || pressedKeys.value.z) {
-        handleAxisSpecificInput(deltaX, deltaY);
+        handleAxisSpecificInput(deltaX, deltaY, isTouch);
     } else if (pressedKeys.value.shift) {
         updateTranslation("x", deltaX);
         updateTranslation("y", deltaY);
     } else if (pressedKeys.value.ctrl || pressedKeys.value.meta) {
         // Z-axis roll from horizontal drag
         const axis = vec3.fromValues(0, 0, 1);
-        const angle = ((Math.abs(deltaX) * sensitivity) / 25) * Math.sign(deltaX);
+        const s = isTouch ? touchSensitivity : sensitivity;
+        const angle = ((Math.abs(deltaX) * s) / 25) * Math.sign(deltaX);
         applyRotation(axis, angle);
         vec3.copy(angularVelocityAxis, axis);
         angularVelocitySpeed.value = Math.abs(angle);
@@ -354,6 +367,7 @@ const drag = (event: PointerEvent) => {
 
 const gesture = (event: any) => {
     if (!isTouching.value || isWheeling.value) return;
+    event.preventDefault();
 
     const { screenX, screenY, scale } = event;
 
@@ -375,23 +389,23 @@ const gesture = (event: any) => {
     previousGestureState.value = { x: screenX, y: screenY, scale };
 };
 
-const handleAxisSpecificInput = (deltaX: number, deltaY: number) => {
+const handleAxisSpecificInput = (deltaX: number, deltaY: number, isTouch = false) => {
     const delta = Math.abs(deltaX) > Math.abs(deltaY) ? deltaX : deltaY;
 
     if (pressedKeys.value.x) {
         if (pressedKeys.value.shift) updateTranslation("x", delta);
         else if (pressedKeys.value.ctrl || pressedKeys.value.meta) updateScale("x", delta);
-        else updateAxisRotation(["x"], deltaX, deltaY);
+        else updateAxisRotation(["x"], deltaX, deltaY, isTouch);
     }
     if (pressedKeys.value.y) {
         if (pressedKeys.value.shift) updateTranslation("y", delta);
         else if (pressedKeys.value.ctrl || pressedKeys.value.meta) updateScale("y", delta);
-        else updateAxisRotation(["y"], deltaX, deltaY);
+        else updateAxisRotation(["y"], deltaX, deltaY, isTouch);
     }
     if (pressedKeys.value.z) {
         if (pressedKeys.value.shift) updateTranslation("z", delta);
         else if (pressedKeys.value.ctrl || pressedKeys.value.meta) updateScale("z", delta);
-        else updateAxisRotation(["z"], deltaX, deltaY);
+        else updateAxisRotation(["z"], deltaX, deltaY, isTouch);
     }
 };
 

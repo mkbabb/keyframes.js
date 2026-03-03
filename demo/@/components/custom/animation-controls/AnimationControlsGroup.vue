@@ -9,12 +9,18 @@
         ]"
         v-bind="$attrs"
     >
-        <div :class="[
-            'col-span-1 row-start-1 lg:row-start-1 transition-[max-height,opacity] duration-300 ease-out overflow-hidden lg:!max-h-full lg:!overflow-y-auto lg:!opacity-100 lg:!pointer-events-auto',
-            storedControls.isControlsPanelOpen
-                ? 'max-h-[80vh] opacity-100'
-                : 'max-h-0 opacity-0 pointer-events-none',
-        ]">
+        <div
+            @transitionend="onPanelTransitionEnd"
+            :class="[
+                'col-span-1 row-start-1 lg:row-start-1 transition-[max-height,opacity] duration-300 ease-out lg:!max-h-full lg:!overflow-y-auto lg:!opacity-100 lg:!pointer-events-auto lg:!mt-0',
+                storedControls.isControlsPanelOpen
+                    ? 'max-h-[calc(100dvh-3rem)] mt-12 opacity-100'
+                    : 'max-h-0 opacity-0 pointer-events-none',
+                isPanelTransitionDone && storedControls.isControlsPanelOpen
+                    ? 'overflow-y-auto'
+                    : 'overflow-hidden',
+            ]"
+        >
             <template
                 v-for="[name, groupObject] in Object.entries(animationGroup.animations)"
             >
@@ -64,8 +70,11 @@
         <!-- Bottom menubar -->
         <div
             :class="[
-                'p-2 m-0 z-50 flex items-center justify-center justify-items-center col-span-full',
+                'p-2 m-0 z-50 flex items-center justify-center justify-items-center col-span-full transition-all duration-300 ease-out',
                 'row-start-4 lg:row-start-3',
+                storedControls.isControlsPanelOpen && isMobile
+                    ? 'translate-y-full opacity-0 pointer-events-none'
+                    : 'translate-y-0 opacity-100',
             ]"
         >
             <Menubar
@@ -114,10 +123,10 @@
                                             <span class="flex items-center gap-2">
                                                 <span
                                                     :class="[
-                                                        'inline-block w-2 h-2 rounded-full',
+                                                        'inline-block w-2 h-2 rounded-full transition-colors duration-300',
                                                         isPlaying
-                                                            ? 'bg-green-500'
-                                                            : animationGroup.started
+                                                            ? 'bg-green-500 animate-pulse'
+                                                            : isStarted
                                                               ? 'bg-yellow-500'
                                                               : 'bg-gray-400',
                                                     ]"
@@ -215,7 +224,7 @@
 </template>
 
 <script setup lang="ts">
-import { onUnmounted, ref, Teleport, useTemplateRef, watchEffect } from "vue";
+import { onUnmounted, ref, Teleport, useTemplateRef, watch, watchEffect } from "vue";
 import { Toaster, toast } from "vue-sonner";
 import { useMediaQuery } from "@vueuse/core";
 
@@ -262,6 +271,19 @@ const { superKey, animationGroup } = defineProps<{
 const storedControls = getStoredAnimationGroupControlOptions(superKey);
 const isMobile = useMediaQuery('(max-width: 1023px)');
 
+// Track whether the panel's max-height transition has completed
+const isPanelTransitionDone = ref(storedControls.isControlsPanelOpen);
+
+watch(() => storedControls.isControlsPanelOpen, (open) => {
+    if (!open) isPanelTransitionDone.value = false;
+});
+
+const onPanelTransitionEnd = (e: TransitionEvent) => {
+    if (e.propertyName === 'max-height' && storedControls.isControlsPanelOpen) {
+        isPanelTransitionDone.value = true;
+    }
+};
+
 // Auto-select first animation on fresh load so controls are visible immediately
 if (!storedControls.selectedAnimation) {
     const allNames = Object.keys(animationGroup.animations);
@@ -272,15 +294,17 @@ const emit = defineEmits<{
     (e: "playStateChange", playing: boolean): void;
 }>();
 
-// Reactive flag for play state — animationGroup is markRaw so its internal
-// state changes don't trigger Vue re-renders. We sync this manually.
+// Reactive flags for play/started state — animationGroup is markRaw so its
+// internal state changes don't trigger Vue re-renders. We sync manually.
 const isPlaying = ref(animationGroup.playing());
+const isStarted = ref(animationGroup.started);
 
 const syncPlayState = (playing?: boolean) => {
     if (playing === undefined) {
         playing = animationGroup.playing();
     }
     isPlaying.value = playing;
+    isStarted.value = animationGroup.started;
     emit("playStateChange", playing);
 };
 

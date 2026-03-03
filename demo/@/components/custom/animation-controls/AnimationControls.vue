@@ -1,7 +1,7 @@
 <template>
     <TooltipProvider :delay-duration="100" :skip-delay-duration="0">
     <div
-        class="flex flex-col h-full w-full z-10 relative overflow-hidden lg:max-w-screen-md isolate"
+        class="flex flex-col h-full w-full z-10 relative lg:max-w-screen-md isolate"
     >
         <Tabs
             class="p-4 pt-12 lg:pt-4 w-full flex-1 min-h-0 flex flex-col justify-start"

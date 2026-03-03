@@ -9,6 +9,7 @@
             <OrbitalDrag
                 class="preserve-3d relative flex items-center justify-center justify-items-center select-none"
                 v-model="transform"
+                :apply-transform-to-container="isPlaying"
             >
                 <div
                     :class="[

@@ -1,6 +1,6 @@
 <template>
     <div
-        class="absolute left-0 top-0 mt-20 grid h-0 w-screen items-center gap-0 px-6 lg:mt-16"
+        class="absolute left-0 top-0 z-30 mt-20 grid h-0 w-screen items-center gap-0 px-6 lg:mt-16"
     >
         <h1
             class="fraunces grid p-0 text-5xl font-bold lg:flex lg:text-7xl"

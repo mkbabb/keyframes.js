@@ -227,7 +227,10 @@ export function useTransformState(
                     transformUpdateScheduled = false;
                     updateTransformations();
 
-                    if (targetRef.value) {
+                    // Only write to the target element when NOT playing.
+                    // When playing, OrbitalDrag's container handles the manual
+                    // transform and AnimationGroup handles the target element.
+                    if (!isGroupPlaying.value && targetRef.value) {
                         transformTargetsStyle(
                             {
                                 transform: {
@@ -243,6 +246,18 @@ export function useTransformState(
         },
         { deep: true },
     );
+
+    // Re-apply manual transform when animation stops
+    watch(isGroupPlaying, (playing, wasPlaying) => {
+        if (!playing && wasPlaying && targetRef.value) {
+            updateTransformations();
+            transformTargetsStyle(
+                { transform: { matrix3d: matrix3dEnd.value } },
+                [targetRef.value],
+                false,
+            );
+        }
+    });
 
     return {
         matrix3dStart,
