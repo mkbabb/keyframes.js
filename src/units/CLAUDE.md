@@ -43,7 +43,11 @@ All from `@mkbabb/value.js`:
 
 **Conversions**: `convertToPixels`, `convertToMs`, `convertToDegrees`, `convertToDPI`, `convertAbsoluteUnitToPixels`, `convert2`
 
+`convertToPixels` handles: absolute (`px`, `cm`, `mm`, `Q`, `in`, `pt`, `pc`), viewport (`vh`, `vw`, `vmin`, `vmax`), font-relative (`em`, `rem`, `ch`, `ex`), percentage (`%`), and container query (`cqw`, `cqh`, `cqi`, `cqb`, `cqmin`, `cqmax`) units. Container query units require a DOM element with a `container-type: inline-size|size` ancestor.
+
 **Object utils**: `flattenObject`, `unflattenObject`, `unflattenObjectToString`, `isCSSStyleName`, `isColorUnit`
+
+`flattenObject` treats `calc()` expressions as atomic — they are not decomposed into sub-expressions but preserved as `ValueUnit("expression", "calc")` to maintain key alignment during animation frame pairing.
 
 **Color classes**: `Color`, `RGBColor`, `HSLColor`, `HSVColor`, `HWBColor`, `LABColor`, `LCHColor`, `OKLABColor`, `OKLCHColor`, `XYZColor`, `KelvinColor`, `LinearSRGBColor`, `DisplayP3Color`, `AdobeRGBColor`, `ProPhotoRGBColor`, `Rec2020Color`
 
