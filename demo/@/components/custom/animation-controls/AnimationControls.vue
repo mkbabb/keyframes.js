@@ -48,6 +48,7 @@
                         :animation="animation"
                         :is-grouped="isGrouped"
                         :layer-config="layerConfig"
+                        :active="active"
                         @slider-update="
                             (v) => {
                                 emit('sliderUpdate', v);
@@ -96,13 +97,18 @@
                      isn't tied to TabsContent mount/unmount (which breaks moveTeleport).
                      When collapsed, renders in-place here. When expanded, teleports to bottom bar. -->
                 <Teleport to="#timeline-expanded-target" :disabled="!storedControls.isTimelineExpanded" defer>
-                    <KeyframeTimeline
+                    <div
                         v-if="isTimelineVisible"
-                        :targets="animation.targets"
-                        :animation-options="animation.options"
-                        :expanded="storedControls.isTimelineExpanded"
-                        @toggle-expand="storedControls.isTimelineExpanded = !storedControls.isTimelineExpanded"
-                    />
+                        :key="storedControls.selectedControl"
+                        class="animate-in fade-in slide-in-from-right-2 duration-150"
+                    >
+                        <KeyframeTimeline
+                            :targets="animation.targets"
+                            :animation-options="animation.options"
+                            :expanded="storedControls.isTimelineExpanded"
+                            @toggle-expand="storedControls.isTimelineExpanded = !storedControls.isTimelineExpanded"
+                        />
+                    </div>
                 </Teleport>
             </div>
         </Tabs>
@@ -137,10 +143,11 @@ const KeyframeTimeline = defineAsyncComponent(() => import("./KeyframeTimeline.v
 import AnimationControlsControls from "./AnimationControlsControls.vue";
 import { getStoredAnimationGroupControlOptions } from "./animationStores";
 
-const { animation, isGrouped, layerConfig } = defineProps<{
+const { animation, isGrouped, layerConfig, active } = defineProps<{
     animation: Animation<any>;
     isGrouped?: boolean;
     layerConfig?: AnimationLayerConfig;
+    active?: boolean;
 }>();
 
 const storedControls = getStoredAnimationGroupControlOptions(animation);
@@ -331,5 +338,9 @@ watch(
         });
     },
 );
+
+defineExpose({
+    keyframesControlsRef,
+});
 </script>
 
