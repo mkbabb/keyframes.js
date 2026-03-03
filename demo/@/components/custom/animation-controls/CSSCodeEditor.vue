@@ -14,7 +14,7 @@ import { onMounted, onUnmounted, useTemplateRef, watch } from "vue";
 import * as monaco from "monaco-editor";
 import DarkTheme from "monaco-themes/themes/Dracula.json";
 import LightTheme from "monaco-themes/themes/GitHub.json";
-import { useDark } from "@vueuse/core";
+import { useGlobalDark } from "@components/custom/dark-mode-toggle";
 import { formatCSS } from "@src/parsing/format";
 import { convert2 } from "@src/units/utils";
 import { debounce } from "@src/utils";
@@ -47,7 +47,7 @@ const emit = defineEmits<{
 }>();
 
 const containerEl = useTemplateRef<HTMLElement>("containerEl");
-const isDark = useDark({ disableTransition: false });
+const { isDark } = useGlobalDark();
 
 let editor: monaco.editor.IStandaloneCodeEditor | undefined;
 let resizeObserver: ResizeObserver | null = null;

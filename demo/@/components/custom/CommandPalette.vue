@@ -73,11 +73,9 @@ import {
 
 import { Animation } from "@src/animation";
 
-// import { changeTheme } from "../dark-mode-toggle";
+import { useGlobalDark } from "@components/custom/dark-mode-toggle";
 
-import { useDark } from "@vueuse/core";
-
-const isDark = useDark({ disableTransition: false });
+const { isDark } = useGlobalDark();
 
 // Props and emits
 const { animations, superKey } = defineProps<{

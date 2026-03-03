@@ -470,11 +470,11 @@ watchEffect(() => {
 });
 
 const expandAnim = new CSSKeyframesAnimation({
-    duration: 180,
-    timingFunction: "easeOutCubic",
+    duration: 350,
+    timingFunction: "cubicBezier(0.34, 1.56, 0.64, 1)",
     fillMode: "forwards",
 }).fromString(/*css*/ `@keyframes menuExpand {
-    0%   { transform: scaleX(0.9) scaleY(0.95); }
+    0%   { transform: scaleX(0.85) scaleY(0.9); }
     100% { transform: scaleX(1) scaleY(1); }
 }`);
 

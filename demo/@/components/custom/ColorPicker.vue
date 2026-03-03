@@ -297,7 +297,8 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@components/ui/tooltip";
-import { rand, useDark, useLocalStorage, useMagicKeys } from "@vueuse/core";
+import { rand, useLocalStorage, useMagicKeys } from "@vueuse/core";
+import { useGlobalDark } from "@components/custom/dark-mode-toggle";
 import { getStoredAnimationGroupControlOptions } from "./animation-controls/animationStores";
 
 const props = defineProps<{
@@ -517,7 +518,7 @@ const onSavedColorClick = (
     emit("update", denormalizedCurrentColor.value);
 };
 
-const isDark = useDark({ disableTransition: false });
+const { isDark } = useGlobalDark();
 
 const isBlankColor = (color: ValueUnit<Color<ValueUnit<number>>, "color">) => {
     return color.value

@@ -252,7 +252,7 @@ import {
 import githubDark from "highlight.js/styles/github-dark.css?inline";
 import githubLight from "highlight.js/styles/github.css?inline";
 
-import { useDark } from "@vueuse/core";
+import { useGlobalDark } from "@components/custom/dark-mode-toggle";
 
 import { Separator } from "@components/ui/separator";
 
@@ -672,7 +672,7 @@ const brushAnimation = new CSSKeyframesAnimation({
             }`,
 );
 
-const isDark = useDark({ disableTransition: false });
+const { isDark } = useGlobalDark();
 const setCodeTheme = () => {
     if (!hljsStyle.value) {
         return;

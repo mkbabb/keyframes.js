@@ -22,15 +22,15 @@
                 >
                     <TabsTrigger
                         value="controls"
-                        class="shrink-0 rounded-none rounded-t-lg bg-transparent data-[state=active]:shadow-none text-gray-500 data-[state=active]:text-gray-900 dark:text-white/60 dark:data-[state=active]:text-white fraunces"
+                        class="file-tab"
                     >Controls</TabsTrigger>
                     <TabsTrigger
                         value="keyframes"
-                        class="shrink-0 rounded-none rounded-t-lg bg-transparent data-[state=active]:shadow-none text-gray-500 data-[state=active]:text-gray-900 dark:text-white/60 dark:data-[state=active]:text-white fraunces"
+                        class="file-tab"
                     >Keyframes</TabsTrigger>
                     <TabsTrigger
                         value="timeline"
-                        class="shrink-0 rounded-none rounded-t-lg bg-transparent data-[state=active]:shadow-none text-gray-500 data-[state=active]:text-gray-900 dark:text-white/60 dark:data-[state=active]:text-white fraunces"
+                        class="file-tab"
                     >Timeline</TabsTrigger>
                     <slot name="tabs-trigger"></slot>
                 </TabsList>
@@ -304,5 +304,44 @@ watch(
 }
 .tabs-list-scrollable::-webkit-scrollbar {
     display: none;
+}
+
+/* File-tab styling: inactive tabs get a subtle outline, active tab is solid */
+:deep(.file-tab) {
+    flex-shrink: 0;
+    border-radius: 0;
+    border-top-left-radius: var(--radius);
+    border-top-right-radius: var(--radius);
+    background: transparent;
+    font-family: "Fraunces", serif;
+    border: 1px solid transparent;
+    border-bottom: none;
+    color: rgb(107 114 128); /* gray-500 */
+    transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+:deep(.file-tab[data-state="inactive"]) {
+    border-color: rgb(107 114 128 / 0.3);
+}
+:deep(.file-tab[data-state="inactive"]:hover) {
+    border-color: rgb(107 114 128 / 0.5);
+    color: rgb(55 65 81); /* gray-700 */
+}
+:deep(.file-tab[data-state="active"]) {
+    color: rgb(17 24 39); /* gray-900 */
+    box-shadow: none;
+}
+
+:global(.dark) :deep(.file-tab) {
+    color: rgb(255 255 255 / 0.6);
+}
+:global(.dark) :deep(.file-tab[data-state="inactive"]) {
+    border-color: rgb(255 255 255 / 0.15);
+}
+:global(.dark) :deep(.file-tab[data-state="inactive"]:hover) {
+    border-color: rgb(255 255 255 / 0.3);
+    color: rgb(255 255 255 / 0.8);
+}
+:global(.dark) :deep(.file-tab[data-state="active"]) {
+    color: white;
 }
 </style>
