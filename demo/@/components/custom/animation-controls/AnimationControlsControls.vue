@@ -243,9 +243,9 @@
 
                 <!-- Advanced (includes layer settings when grouped) -->
                 <Collapsible class="col-span-2 grid grid-cols-[subgrid]">
-                    <CollapsibleTrigger class="col-span-2 grid grid-cols-[subgrid] items-center w-full py-1.5 fira-code text-xs cursor-pointer hover:text-foreground text-muted-foreground transition-colors">
+                    <CollapsibleTrigger class="col-span-2 flex items-center justify-between w-full py-1.5 fira-code text-xs cursor-pointer hover:text-foreground text-muted-foreground transition-colors">
                         <span>advanced</span>
-                        <div class="flex items-center justify-end border border-transparent px-3 mr-2">
+                        <div class="flex items-center px-3 mr-2">
                             <ChevronDown class="w-4 h-4 opacity-50 transition-transform" />
                         </div>
                     </CollapsibleTrigger>

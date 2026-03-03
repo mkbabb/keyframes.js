@@ -90,6 +90,7 @@
             <TabsTrigger
                 v-if="selectedAnimation === 'Matrix'"
                 value="matrix-controls"
+                class="shrink-0 rounded-none rounded-t-lg bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground fraunces"
                 >Matrix Controls</TabsTrigger
             >
         </template>

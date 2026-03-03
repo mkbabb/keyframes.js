@@ -8,14 +8,38 @@
             :model-value="storedControls.selectedControl"
             @update:model-value="selectControl"
         >
-            <TabsList
-                class="overflow-x-scroll w-full flex items-center justify-around fraunces bg-background border-4 border-gray-700 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.6)] dark:shadow-gray-700 rounded-xl scrollbar-hidden mb-1"
-            >
-                <TabsTrigger value="controls">Controls</TabsTrigger>
-                <TabsTrigger value="keyframes">Keyframes</TabsTrigger>
-                <TabsTrigger value="timeline">Timeline</TabsTrigger>
-                <slot name="tabs-trigger"></slot>
-            </TabsList>
+            <!-- Filing tabs header -->
+            <div ref="tabsHeaderEl" class="relative mr-3 mb-0 flex-shrink-0 flex items-stretch bg-card rounded-t-lg">
+                <!-- Bouncy sliding indicator -->
+                <div
+                    ref="sliderEl"
+                    class="absolute bottom-0 z-20 rounded-t-lg bg-accent/10 border-b-2 border-accent pointer-events-none"
+                    :style="sliderStyle"
+                />
+
+                <TabsList
+                    class="relative z-10 flex items-stretch justify-start bg-transparent p-0 gap-0 flex-1 min-w-0 overflow-clip h-auto rounded-none"
+                >
+                    <TabsTrigger
+                        value="controls"
+                        class="shrink-0 rounded-none rounded-t-lg bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground fraunces"
+                    >Controls</TabsTrigger>
+                    <TabsTrigger
+                        value="keyframes"
+                        class="shrink-0 rounded-none rounded-t-lg bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground fraunces"
+                    >Keyframes</TabsTrigger>
+                    <TabsTrigger
+                        value="timeline"
+                        class="shrink-0 rounded-none rounded-t-lg bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground fraunces"
+                    >Timeline</TabsTrigger>
+                    <slot name="tabs-trigger"></slot>
+                </TabsList>
+                <!-- Overflow indicator (overlaps to cover partial text) -->
+                <span
+                    v-if="hasOverflow"
+                    class="shrink-0 z-20 inline-flex items-center pl-6 pr-1 -ml-8 bg-card text-muted-foreground text-sm fraunces select-none"
+                >&hellip;</span>
+            </div>
 
             <div ref="tabsContentEl" class="flex-1 min-h-0 overflow-y-auto flex flex-col pb-5 pr-3">
                 <TabsContent value="controls">
@@ -92,7 +116,18 @@ import type { AnimationLayerConfig } from "@src/animation/constants";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
 import { TooltipProvider } from "@components/ui/tooltip";
 
-import { computed, defineAsyncComponent, ref, Teleport, useTemplateRef } from "vue";
+import {
+    computed,
+    defineAsyncComponent,
+    nextTick,
+    onMounted,
+    onUnmounted,
+    reactive,
+    ref,
+    Teleport,
+    useTemplateRef,
+    watch,
+} from "vue";
 import { ChevronDown, Minimize2 } from "lucide-vue-next";
 import { Button } from "@components/ui/button";
 
@@ -129,14 +164,92 @@ const emit = defineEmits<{
 
 const keyframesControlsRef = ref<InstanceType<typeof KeyframesStringControls> | null>(null);
 const tabsContentEl = useTemplateRef<HTMLElement>("tabsContentEl");
+const tabsHeaderEl = useTemplateRef<HTMLElement>("tabsHeaderEl");
+const sliderEl = useTemplateRef<HTMLElement>("sliderEl");
 
 const isTimelineVisible = computed(() =>
     storedControls.selectedControl === "timeline" || storedControls.isTimelineExpanded,
 );
 
+// --- Bouncy sliding indicator ---
+const sliderStyle = reactive({
+    width: "0px",
+    height: "0px",
+    transform: "translateX(0px)",
+    transition: "none",
+});
+
+const updateSlider = (animate = true) => {
+    nextTick(() => {
+        const header = tabsHeaderEl.value;
+        if (!header) return;
+
+        const list = header.querySelector<HTMLElement>("[role=tablist]");
+        const activeBtn = header.querySelector<HTMLElement>("button[data-state=active]");
+        if (!activeBtn || !list) return;
+
+        // Position slider relative to header
+        const headerRect = header.getBoundingClientRect();
+        const btnRect = activeBtn.getBoundingClientRect();
+
+        const x = btnRect.left - headerRect.left;
+        const w = btnRect.width;
+        const h = btnRect.height;
+
+        sliderStyle.transition = animate
+            ? "width 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), height 0.2s ease"
+            : "none";
+        sliderStyle.width = `${w}px`;
+        sliderStyle.height = `${h}px`;
+        sliderStyle.transform = `translateX(${x}px)`;
+    });
+};
+
+// --- Overflow detection ---
+const hasOverflow = ref(false);
+
+const checkOverflow = () => {
+    const header = tabsHeaderEl.value;
+    if (!header) return;
+    const list = header.querySelector<HTMLElement>("[role=tablist]");
+    if (!list) return;
+    hasOverflow.value = list.scrollWidth > list.clientWidth + 2;
+};
+
+let resizeObserver: ResizeObserver | undefined;
+
+onMounted(() => {
+    updateSlider(false);
+    checkOverflow();
+
+    const header = tabsHeaderEl.value;
+    if (header) {
+        resizeObserver = new ResizeObserver(() => {
+            updateSlider(false);
+            checkOverflow();
+        });
+        resizeObserver.observe(header);
+    }
+});
+
+onUnmounted(() => {
+    resizeObserver?.disconnect();
+});
+
 const selectControl = (key: string | number) => {
     storedControls.selectedControl = key.toString();
+    updateSlider(true);
+    nextTick(checkOverflow);
 };
+
+// Re-measure when slot content changes (e.g., Matrix Controls tab appearing)
+watch(
+    () => storedControls.selectedControl,
+    () => {
+        updateSlider(true);
+        nextTick(checkOverflow);
+    },
+);
 </script>
 
 <style scoped></style>
