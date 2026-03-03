@@ -247,18 +247,6 @@ export function useTransformState(
         { deep: true },
     );
 
-    // Re-apply manual transform when animation stops
-    watch(isGroupPlaying, (playing, wasPlaying) => {
-        if (!playing && wasPlaying && targetRef.value) {
-            updateTransformations();
-            transformTargetsStyle(
-                { transform: { matrix3d: matrix3dEnd.value } },
-                [targetRef.value],
-                false,
-            );
-        }
-    });
-
     return {
         matrix3dStart,
         matrix3dEnd,

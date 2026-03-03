@@ -125,7 +125,7 @@
                                                     :class="[
                                                         'inline-block w-2 h-2 rounded-full transition-colors duration-300',
                                                         isPlaying
-                                                            ? 'bg-green-500 animate-pulse'
+                                                            ? 'bg-green-500 dot-pulse'
                                                             : isStarted
                                                               ? 'bg-yellow-500'
                                                               : 'bg-gray-400',
@@ -494,6 +494,21 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+.dot-pulse {
+    animation: dot-glow 1.5s ease-in-out infinite;
+}
+
+@keyframes dot-glow {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.6);
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 0 4px 2px rgba(34, 197, 94, 0.3);
+        transform: scale(1.3);
+    }
+}
+
 .rainbow-pastel {
     background: linear-gradient(
         90deg,
