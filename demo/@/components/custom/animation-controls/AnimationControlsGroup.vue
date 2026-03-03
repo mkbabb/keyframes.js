@@ -48,7 +48,7 @@
             </template>
 
             <!-- Persistent controls ribbon -->
-            <div v-if="storedControls.selectedAnimation" class="flex-shrink-0 pl-4 pr-7 pb-3 pt-1">
+            <div v-if="storedControls.selectedAnimation" class="flex-shrink-0 pl-4 pr-7 pb-2 -mt-1">
                 <Card class="overflow-visible controls-card">
                     <CardContent class="p-3">
                         <!-- Controls tab: filled via Teleport from AnimationControlsControls -->
