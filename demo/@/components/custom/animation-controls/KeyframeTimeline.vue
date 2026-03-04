@@ -569,6 +569,15 @@ const doAddCSS = () => {
         addCSSText.value = "";
     }
 };
+
+const openImportDialog = () => {
+    importDialogOpen.value = true;
+};
+
+defineExpose({
+    snapshot,
+    openImportDialog,
+});
 </script>
 
 <style scoped>

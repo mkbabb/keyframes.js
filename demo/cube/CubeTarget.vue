@@ -1,6 +1,8 @@
 <template>
     <div
         class="grid h-full w-full max-w-full items-center justify-center justify-items-center overflow-visible"
+        style="touch-action: none; overscroll-behavior: contain"
+        @wheel.prevent
     >
         <div
             ref="graphEl"

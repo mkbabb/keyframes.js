@@ -41,6 +41,8 @@ const props = defineProps<{
 
 const emit = defineEmits<{
     (e: "scrub", t: number): void;
+    (e: "dragStart"): void;
+    (e: "dragEnd"): void;
 }>();
 
 const ballEl = ref<HTMLElement | null>(null);
@@ -59,6 +61,7 @@ const ballAnim = new CSSKeyframesAnimation().fromString(/*css*/ `
 
 let rafId: number | null = null;
 let isDragging = false;
+let scrubRafPending = false;
 
 const syncBallWithAnimation = () => {
     const anim = props.animation;
@@ -73,7 +76,7 @@ const syncBallWithAnimation = () => {
     rafId = requestAnimationFrame(syncBallWithAnimation);
 };
 
-// --- Drag-to-scrub ---
+// --- Drag-to-scrub (rAF-batched to one update per frame) ---
 const scrubFromPointer = (e: PointerEvent) => {
     const track = trackEl.value;
     const anim = props.animation;
@@ -87,16 +90,25 @@ const scrubFromPointer = (e: PointerEvent) => {
     const progress = maxX > 0 ? x / maxX : 0;
 
     anim.t = progress * anim.options.duration;
-    emit("scrub", anim.t);
 
     // Also update the ball position immediately during drag
     const ballT = progress * ballAnim.options.duration;
     ballAnim.interpFrames(ballT, true);
+
+    // Batch scrub emit to one per frame
+    if (!scrubRafPending) {
+        scrubRafPending = true;
+        requestAnimationFrame(() => {
+            scrubRafPending = false;
+            emit("scrub", anim.t);
+        });
+    }
 };
 
 const onPointerDown = (e: PointerEvent) => {
     if (e.button !== 0) return;
     isDragging = true;
+    emit("dragStart");
     // Capture on the track so pointermove/up fire even outside the ball
     trackEl.value?.setPointerCapture(e.pointerId);
     scrubFromPointer(e);
@@ -109,10 +121,12 @@ useEventListener(trackEl, "pointermove", (e: PointerEvent) => {
 
 useEventListener(trackEl, "pointerup", () => {
     isDragging = false;
+    emit("dragEnd");
 });
 
 useEventListener(trackEl, "pointercancel", () => {
     isDragging = false;
+    emit("dragEnd");
 });
 
 onMounted(() => {

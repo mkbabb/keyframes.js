@@ -128,6 +128,7 @@
     body {
         @apply bg-background text-foreground;
         overflow: hidden;
+        overscroll-behavior: none;
         min-height: 100dvh;
         width: 100vw;
         margin: 0;

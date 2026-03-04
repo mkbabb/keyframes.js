@@ -14,8 +14,8 @@
             :class="[
                 'controls-pane group/controls col-span-1 row-start-1 lg:row-start-1 relative z-10 transition-[max-height,opacity] duration-300 ease-out lg:!max-h-full lg:!overflow-y-auto lg:!pointer-events-auto lg:!mt-0',
                 storedControls.isControlsPanelOpen
-                    ? 'max-h-[calc(100dvh-7rem)] mt-12'
-                    : 'max-h-0 opacity-0 pointer-events-none',
+                    ? 'max-h-[calc(100dvh-7rem)] mt-12 visible'
+                    : 'max-h-0 opacity-0 pointer-events-none invisible',
                 isPanelTransitionDone && storedControls.isControlsPanelOpen
                     ? 'overflow-y-auto'
                     : 'overflow-hidden',
@@ -47,7 +47,7 @@
                 </div>
             </template>
 
-            <!-- Persistent controls ribbon -->
+            <!-- Persistent controls ribbon — lives inside the collapsible pane, hidden when panel is closed -->
             <div v-if="storedControls.selectedAnimation" class="flex-shrink-0 pl-4 pr-7 pb-2">
                 <Card class="overflow-visible controls-card">
                     <CardContent class="p-3">
@@ -78,6 +78,18 @@
 
                         <!-- Timeline tab -->
                         <div v-else-if="storedControls.selectedControl === 'timeline'" class="flex items-center justify-center gap-2 flex-wrap">
+                            <Button size="sm" variant="outline"
+                                class="h-8 gap-1.5 cursor-pointer fira-code text-xs px-3 rounded-lg hover:scale-105 active:scale-95 transition-transform"
+                                @click="activeTimelineRef?.snapshot?.()"
+                            >
+                                <Camera class="w-3.5 h-3.5" /> Snapshot
+                            </Button>
+                            <Button size="sm" variant="outline"
+                                class="h-8 gap-1.5 cursor-pointer fira-code text-xs px-3 rounded-lg hover:scale-105 active:scale-95 transition-transform"
+                                @click="activeTimelineRef?.openImportDialog?.()"
+                            >
+                                <Download class="w-3.5 h-3.5" /> Import
+                            </Button>
                             <Button size="sm" variant="outline"
                                 class="h-8 gap-1.5 cursor-pointer fira-code text-xs px-3 rounded-lg hover:scale-105 active:scale-95 transition-transform"
                                 @click="storedControls.isTimelineExpanded = !storedControls.isTimelineExpanded"
@@ -284,7 +296,9 @@ import {
 } from "@components/ui/menubar";
 
 import {
+    Camera,
     Copy,
+    Download,
     List,
     Maximize2,
     Minimize2,
@@ -332,6 +346,11 @@ const animControlRefs = reactive<Record<string, any>>({});
 const activeKeyframesRef = computed(() => {
     const name = storedControls.selectedAnimation;
     return name ? animControlRefs[name]?.keyframesControlsRef : null;
+});
+
+const activeTimelineRef = computed(() => {
+    const name = storedControls.selectedAnimation;
+    return name ? animControlRefs[name]?.timelineRef : null;
 });
 
 // Track whether the panel's max-height transition has completed
@@ -521,14 +540,6 @@ const menubarEl = useTemplateRef<HTMLElement>("menubarEl");
 const isMenuExpanded = ref(false);
 let collapseTimeoutId: ReturnType<typeof setTimeout> | undefined;
 
-// Mobile: lock body scroll when controls panel is closed
-watchEffect(() => {
-    if (!isMobile.value) return;
-    const overflow = storedControls.isControlsPanelOpen ? '' : 'hidden';
-    document.documentElement.style.overflow = overflow;
-    document.body.style.overflow = overflow;
-});
-
 // Mobile: always keep menubar expanded
 watchEffect(() => {
     if (isMobile.value) isMenuExpanded.value = true;
@@ -586,8 +597,6 @@ const onMenuLeave = () => {
 onUnmounted(() => {
     clearTimeout(collapseTimeoutId);
     if (progressRafId !== undefined) cancelAnimationFrame(progressRafId);
-    document.documentElement.style.overflow = '';
-    document.body.style.overflow = '';
 });
 
 </script>

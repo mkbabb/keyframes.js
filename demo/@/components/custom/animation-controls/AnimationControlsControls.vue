@@ -367,9 +367,9 @@
                         class="p-2 timeline-slider"
                         :min="0"
                         :max="animation.options.duration"
-                        @input="sliderUpdate"
+                        @input="(e: Event) => { if (!isVisualizerDragging) sliderUpdate(e); }"
                         :model-value="[currentT]"
-                        @update:model-value="(val: any) => (animation.t = val[0])"
+                        @update:model-value="(val: any) => { if (!isVisualizerDragging) animation.t = val[0]; }"
                     />
                 </IconTooltip>
 
@@ -423,6 +423,8 @@
                     class="w-full"
                     :animation="animation"
                     @scrub="scrubTo"
+                    @drag-start="isVisualizerDragging = true"
+                    @drag-end="isVisualizerDragging = false"
                 ></AnimationVisualizer>
             </div>
         </Teleport>
@@ -499,6 +501,9 @@ const { animation, isGrouped, layerConfig, active } = defineProps<{
 }>();
 
 const storedAnimationOptions = getStoredAnimationOptions(animation);
+
+// When the visualizer ball is being dragged, the slider should not write to animation.t
+const isVisualizerDragging = ref(false);
 
 // rAF-driven reactivity bridge: animation is markRaw, so Vue can't track
 // property changes. We sync reactive refs every frame for the slider + buttons.

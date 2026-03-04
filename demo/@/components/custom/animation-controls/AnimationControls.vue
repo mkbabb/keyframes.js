@@ -18,7 +18,8 @@
                 />
 
                 <TabsList
-                    class="relative z-10 flex items-stretch justify-start bg-transparent p-0 gap-0 flex-1 min-w-0 overflow-x-hidden h-auto rounded-none scrollbar-hidden"
+                    ref="tabsListRef"
+                    class="relative z-10 flex items-stretch justify-start bg-transparent p-0 gap-0 flex-1 min-w-0 overflow-x-auto h-auto rounded-none scrollbar-hidden"
                 >
                     <TabsTrigger
                         value="controls"
@@ -38,7 +39,8 @@
                 <button
                     v-if="hasOverflow"
                     @click="scrollToNextTab"
-                    class="shrink-0 z-20 inline-flex items-center pl-8 pr-2 -ml-10 rounded-tr-lg bg-gray-200 dark:bg-gray-700 text-gray-400 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white text-sm fraunces select-none cursor-pointer transition-colors"
+                    class="shrink-0 z-20 inline-flex items-center pl-8 pr-2 -ml-10 rounded-tr-lg text-gray-400 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white text-sm fraunces select-none cursor-pointer transition-colors"
+                    style="background: linear-gradient(to right, transparent, hsl(var(--muted)) 40%)"
                 >&hellip;</button>
             </div>
 
@@ -103,6 +105,7 @@
                         class="animate-in fade-in slide-in-from-right-2 duration-150"
                     >
                         <KeyframeTimeline
+                            ref="timelineRef"
                             :targets="animation.targets"
                             :animation-options="animation.options"
                             :expanded="storedControls.isTimelineExpanded"
@@ -171,8 +174,10 @@ const emit = defineEmits<{
 }>();
 
 const keyframesControlsRef = ref<InstanceType<typeof KeyframesStringControls> | null>(null);
+const timelineRef = ref<InstanceType<typeof KeyframeTimeline> | null>(null);
 const tabsContentEl = useTemplateRef<HTMLElement>("tabsContentEl");
 const tabsHeaderEl = useTemplateRef<HTMLElement>("tabsHeaderEl");
+const tabsListRef = useTemplateRef<HTMLElement>("tabsListRef");
 const sliderEl = useTemplateRef<HTMLElement>("sliderEl");
 
 const isTimelineVisible = computed(() =>
@@ -258,22 +263,24 @@ const scrollToNextTab = () => {
     const buttons = list.querySelectorAll<HTMLElement>("button");
     const listRect = list.getBoundingClientRect();
 
-    // Find first button whose right edge is past the visible area and select it
+    // Find first button whose right edge is past the visible area
     for (const btn of buttons) {
         const btnRect = btn.getBoundingClientRect();
         if (btnRect.right > listRect.right + 2) {
+            // Scroll into view first so user sees the animation
+            btn.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
+
             // Extract tab value from reka-ui id: "reka-tabs-…-trigger-{value}"
             const id = btn.id ?? "";
             const triggerIdx = id.indexOf("-trigger-");
             const value = triggerIdx >= 0 ? id.slice(triggerIdx + 9) : null;
             if (value) {
-                // Set directly without animated slider bounce
-                storedControls.selectedControl = value;
-                updateSlider(false);
-                nextTick(() => {
-                    checkOverflow();
-                    scrollActiveTabIntoView();
-                });
+                // Select after scroll animation completes
+                setTimeout(() => {
+                    storedControls.selectedControl = value;
+                    updateSlider(true);
+                    nextTick(() => checkOverflow());
+                }, 200);
             }
             break;
         }
@@ -293,7 +300,30 @@ const onTabsScroll = () => {
 };
 
 let resizeObserver: ResizeObserver | undefined;
+let intersectionObserver: IntersectionObserver | undefined;
 let tabsListEl: HTMLElement | undefined;
+
+const setupTabIntersectionObserver = () => {
+    const list = getTabsList();
+    if (!list) return;
+
+    intersectionObserver?.disconnect();
+    intersectionObserver = new IntersectionObserver(
+        (entries) => {
+            for (const entry of entries) {
+                const btn = entry.target as HTMLElement;
+                btn.style.transition = "opacity 0.2s ease";
+                btn.style.opacity = entry.intersectionRatio < 0.9 ? "0.3" : "1";
+            }
+        },
+        { root: list, threshold: [0, 0.5, 0.9, 1] },
+    );
+
+    const buttons = list.querySelectorAll<HTMLElement>("button");
+    for (const btn of buttons) {
+        intersectionObserver.observe(btn);
+    }
+};
 
 onMounted(() => {
     updateSlider(false);
@@ -311,10 +341,13 @@ onMounted(() => {
 
     tabsListEl = getTabsList() ?? undefined;
     tabsListEl?.addEventListener("scroll", onTabsScroll);
+
+    setupTabIntersectionObserver();
 });
 
 onUnmounted(() => {
     resizeObserver?.disconnect();
+    intersectionObserver?.disconnect();
     tabsListEl?.removeEventListener("scroll", onTabsScroll);
 });
 
@@ -335,12 +368,14 @@ watch(
         nextTick(() => {
             checkOverflow();
             scrollActiveTabIntoView();
+            setupTabIntersectionObserver();
         });
     },
 );
 
 defineExpose({
     keyframesControlsRef,
+    timelineRef,
 });
 </script>
 

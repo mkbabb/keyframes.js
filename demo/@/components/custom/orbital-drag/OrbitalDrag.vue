@@ -413,10 +413,12 @@ const handleWheel = (event: WheelEvent) => {
     event.preventDefault();
     syncModifiers(event);
 
-    let { deltaX, deltaY, ctrlKey } = event;
+    let { deltaX: rawDX, deltaY: rawDY, ctrlKey } = event;
 
-    deltaX = deltaX / 5;
-    deltaY = deltaY / 5;
+    // Logarithmic dampening: responsive for small deltas, capped for large ones
+    const logDampen = (v: number) => Math.sign(v) * Math.log1p(Math.abs(v)) * 1.5;
+    let deltaX = logDampen(rawDX);
+    let deltaY = logDampen(rawDY);
 
     if (Math.abs(deltaX) < 1e-4 && Math.abs(deltaY) < 1e-4) return;
 
@@ -425,7 +427,7 @@ const handleWheel = (event: WheelEvent) => {
     if (wheelTimeout) clearTimeout(wheelTimeout);
     wheelTimeout = setTimeout(() => {
         isWheeling.value = false;
-    }, 100);
+    }, 150);
 
     if (pressedKeys.value.x || pressedKeys.value.y || pressedKeys.value.z) {
         handleAxisSpecificInput(deltaX, deltaY);
