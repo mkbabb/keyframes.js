@@ -1,5 +1,9 @@
 import type { Animation } from "@src/animation";
-import type { AnimationFrame, AnimationOptions, Vars } from "@src/animation/constants";
+import type {
+    AnimationFrame,
+    AnimationOptions,
+    Vars,
+} from "@src/animation/constants";
 import type { ValueUnit } from "@src/units";
 import { unflattenObjectToString } from "@src/units/utils";
 import prettier from "prettier";
@@ -21,6 +25,7 @@ export async function formatCSS(
     return await prettier.format(css, {
         parser: "scss",
         plugins: [prettierPostCSSPlugin],
+        // TODO(LOW): Consider requiring explicit formatter width in strict pipelines instead of default substitution.
         printWidth: printWidth ?? DEFAULT_WIDTH,
     });
 }
@@ -49,16 +54,21 @@ export function parseCSSAnimationOrKeyframes(keyframes: string): {
 } {
     keyframes = normalizeCSSKeyframeString(keyframes);
 
+    // TODO(CRITICAL): Stop silently downgrading animation parsing to bare keyframes parsing.
+    // Invalid animation declarations should fail explicitly so callers can migrate inputs.
     try {
         return parseCSSAnimationKeyframes(keyframes);
     } catch (e) {
+        // TODO(HIGH): Replace this compatibility fallback with an explicit thrown parse error.
         return {
             keyframes: parseCSSKeyframes(keyframes),
         };
     }
 }
 
-export const CSSKeyframesToStrings = async <V extends Vars>(animation: Animation<V>) => {
+export const CSSKeyframesToStrings = async <V extends Vars>(
+    animation: Animation<V>,
+) => {
     const frameStrings = animation.frames.map(async (frame) => {
         let css = CSSKeyframeToString(frame);
 

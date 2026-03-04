@@ -1,7 +1,11 @@
 import { convertToMs, unflattenObject } from "@src/units/utils";
 import { easeInOutCubic } from "../easing";
 import { clamp, scale } from "../math";
-import { parseCSSKeyframes, parseCSSPercent, parseCSSTime } from "../parsing/keyframes";
+import {
+    parseCSSKeyframes,
+    parseCSSPercent,
+    parseCSSTime,
+} from "../parsing/keyframes";
 import { parseCSSValueUnit } from "../parsing/units";
 import { ValueUnit } from "../units";
 import {
@@ -12,9 +16,7 @@ import {
     seekPreviousValue,
     sleep,
 } from "../utils";
-import {
-    defaultOptions,
-} from "./constants";
+import { defaultOptions } from "./constants";
 import type {
     AnimationFrame,
     AnimationOptions,
@@ -33,9 +35,19 @@ import {
     getTimingFunction,
     lerpValue,
     parseAndFlattenObject,
+    type ParsedVarMap,
     transformTargetsStyle,
 } from "./utils";
 import { isWAAPIEligible, playWAAPI } from "./waapi";
+
+const hasClone = (value: unknown): value is { clone: () => unknown } => {
+    if (typeof value !== "object" || value == null) {
+        return false;
+    }
+
+    const maybeClone = (value as { clone?: unknown }).clone;
+    return typeof maybeClone === "function";
+};
 
 export const getAnimationId = (animation: Animation | string): string => {
     if (typeof animation === "string") return animation;
@@ -54,7 +66,7 @@ export class Animation<V extends Vars = any> {
     options: AnimationOptions;
 
     templateFrames: TemplateAnimationFrame<V>[] = [];
-    parsedVars: any[] = [];
+    parsedVars: ParsedVarMap[] = [];
 
     frameId: number = 0;
 
@@ -79,17 +91,21 @@ export class Animation<V extends Vars = any> {
 
     unflatten: boolean = true;
 
-    private resolvePromise: ((value: void | PromiseLike<void>) => void) | null = null;
+    private resolvePromise: ((value: void | PromiseLike<void>) => void) | null =
+        null;
     private _playingPromise: Promise<void> | null = null;
 
     private dispatchAnimationEvent(type: string) {
+        // TODO(MEDIUM): Throw explicit capability errors when AnimationEvent/dispatchEvent is unavailable instead of silently skipping.
         if (typeof AnimationEvent === "undefined") return;
         for (const target of this.targets) {
             if (typeof target?.dispatchEvent !== "function") continue;
-            target.dispatchEvent(new AnimationEvent(type, {
-                animationName: this.name ?? "",
-                elapsedTime: this.t / 1000,
-            }));
+            target.dispatchEvent(
+                new AnimationEvent(type, {
+                    animationName: this.name ?? "",
+                    elapsedTime: this.t / 1000,
+                }),
+            );
         }
     }
 
@@ -116,7 +132,8 @@ export class Animation<V extends Vars = any> {
             frame.start.unit === "ms" ||
             !frame.start.unit
         ) {
-            const value = convertToMs(frame.start.value, frame.start.unit as any);
+            const timeUnit = frame.start.unit === "s" ? "s" : "ms";
+            const value = convertToMs(frame.start.value, timeUnit);
 
             frame.start.value = (value / this.options.duration) * 100;
             frame.start.unit = "%";
@@ -148,12 +165,17 @@ export class Animation<V extends Vars = any> {
             vars,
             transform,
             timingFunction:
-                getTimingFunction(timingFunction) ?? this.options.timingFunction,
+                getTimingFunction(timingFunction) ??
+                this.options.timingFunction,
         } as TemplateAnimationFrame<K>;
 
-        this.convertFrameStart(templateFrame as unknown as TemplateAnimationFrame<V>);
+        this.convertFrameStart(
+            templateFrame as unknown as TemplateAnimationFrame<V>,
+        );
 
-        this.templateFrames.push(templateFrame as unknown as TemplateAnimationFrame<V>);
+        this.templateFrames.push(
+            templateFrame as unknown as TemplateAnimationFrame<V>,
+        );
         this.frameId += 1;
 
         return this as unknown as Animation<K>;
@@ -208,9 +230,14 @@ export class Animation<V extends Vars = any> {
 
     reconcileVars(ix: number) {
         const startVars = this.parsedVars[ix];
+        if (!startVars) {
+            return;
+        }
 
         Object.keys(startVars).forEach((v) => {
-            const varIx = this.parsedVars.findIndex((f, i) => i > ix && f[v] != null);
+            const varIx = this.parsedVars.findIndex(
+                (f, i) => i > ix && f[v] != null,
+            );
 
             if (varIx === -1) {
                 return;
@@ -233,7 +260,7 @@ export class Animation<V extends Vars = any> {
                 this.parsedVars,
                 this.options.colorSpace,
                 this.options.hueMethod,
-            );
+            ) as AnimationFrame<V>["interpVars"][string];
 
             if (frameIx === -1) {
                 this.frames.push(frame);
@@ -247,10 +274,12 @@ export class Animation<V extends Vars = any> {
         this.templateFrames.sort((a, b) => a.start.value - b.start.value);
 
         this.parsedVars = this.templateFrames.map((frame) => {
-            const parsed = parseAndFlattenObject(frame.vars);
+            const parsed = parseAndFlattenObject(
+                frame.vars as Record<string, unknown>,
+            );
 
             Object.values(parsed).forEach((values) => {
-                (values as any).setTargets(this.targets);
+                values.setTargets(this.targets);
             });
 
             return parsed;
@@ -274,18 +303,19 @@ export class Animation<V extends Vars = any> {
         // Filter out frames that have no interpolated variables
         this.frames = this.frames.filter(
             (frame) =>
-                frame.interpVars != null && Object.keys(frame.interpVars).length > 0,
+                frame.interpVars != null &&
+                Object.keys(frame.interpVars).length > 0,
         );
 
         // Set the vars for each frame
         this.frames.forEach((frame) => {
-            frame.flatVars = Object.entries(frame.interpVars).reduce(
-                (acc, [key, value]) => {
-                    acc[key] = value.map((v) => v.value);
-                    return acc;
-                },
-                {} as any,
-            );
+            const flatVars = Object.entries(frame.interpVars).reduce<
+                Record<string, ValueUnit[]>
+            >((acc, [key, value]) => {
+                acc[key] = value.map((v) => v.value);
+                return acc;
+            }, {});
+            frame.flatVars = flatVars as unknown as V;
             frame.vars = unflattenObject(frame.flatVars);
         });
 
@@ -293,6 +323,7 @@ export class Animation<V extends Vars = any> {
     }
 
     setTimingFunction(timingFunction: InputAnimationOptions["timingFunction"]) {
+        // TODO(HIGH): Remove implicit timing-function defaulting here; reject unknown timing functions explicitly.
         this.options.timingFunction =
             getTimingFunction(timingFunction) ?? easeInOutCubic;
         return this;
@@ -308,9 +339,11 @@ export class Animation<V extends Vars = any> {
             this.options.iterationCount = Infinity;
         } else if (typeof iterationCount === "string") {
             const parsed = parseFloat(iterationCount.trim());
+            // TODO(CRITICAL): Replace silent invalid-input no-op with explicit error for malformed iterationCount strings.
             if (isNaN(parsed) || parsed < 0) return this;
             this.options.iterationCount = parsed;
         } else {
+            // TODO(HIGH): Replace silent invalid-input no-op with explicit error for invalid numeric iterationCount values.
             if (isNaN(iterationCount) || iterationCount < 0) return this;
             this.options.iterationCount = iterationCount;
         }
@@ -323,6 +356,7 @@ export class Animation<V extends Vars = any> {
         }
 
         const d = duration ?? this.options.duration;
+        // TODO(HIGH): Stop silently preserving previous duration on invalid input; throw a validation error.
         if (!isFinite(d) || d <= 0) return this;
 
         const prevDuration = this.options.duration;
@@ -343,18 +377,21 @@ export class Animation<V extends Vars = any> {
         if (typeof delay === "string") {
             delay = parseCSSTime(delay);
         }
+        // TODO(MEDIUM): Avoid implicit delay defaulting on undefined input in strict mode; require explicit intent.
         this.options.delay = delay ?? 0;
         return this;
     }
 
     setDirection(direction: InputAnimationOptions["direction"]) {
+        // TODO(MEDIUM): Avoid implicit direction fallback; reject missing direction when strict option validation is enabled.
         this.options.direction = direction ?? "normal";
 
         // Immediately update reversed flag so mid-iteration direction changes take effect
         this.reversed = false;
         if (
             this.options.direction === "reverse" ||
-            (this.options.direction === "alternate-reverse" && this.iteration % 2 === 0) ||
+            (this.options.direction === "alternate-reverse" &&
+                this.iteration % 2 === 0) ||
             (this.options.direction === "alternate" && this.iteration % 2 === 1)
         ) {
             this.reversed = true;
@@ -364,16 +401,19 @@ export class Animation<V extends Vars = any> {
     }
 
     setFillMode(fillMode: InputAnimationOptions["fillMode"]) {
+        // TODO(MEDIUM): Avoid implicit fill-mode fallback; reject missing fill mode when strict option validation is enabled.
         this.options.fillMode = fillMode ?? "forwards";
         return this;
     }
 
     setUseWAAPI(useWAAPI: InputAnimationOptions["useWAAPI"]) {
+        // TODO(LOW): Avoid implicit WAAPI opt-in defaulting here; validate explicit policy selection upstream.
         this.options.useWAAPI = useWAAPI ?? true;
         return this;
     }
 
     setColorSpace(colorSpace: InputAnimationOptions["colorSpace"]) {
+        // TODO(MEDIUM): Avoid implicit color-space fallback; require explicit color-space selection in strict mode.
         this.options.colorSpace = colorSpace ?? "oklab";
         return this;
     }
@@ -414,7 +454,7 @@ export class Animation<V extends Vars = any> {
     interpFrames(t: number, transformFrames: boolean = false) {
         t = this.reversed ? this.options.duration - t : t;
 
-        const result: Record<string, any> = {};
+        const result: Record<string, ValueUnit[]> = {};
 
         for (let i = 0; i < this.frames.length; i++) {
             const frame = this.frames[i]!;
@@ -427,16 +467,17 @@ export class Animation<V extends Vars = any> {
             const scaled = scale(t, start, stop, 0, 1);
             const eased = frame.timingFunction(scaled);
 
-            const interpVarValues = Object.values(frame.interpVars);
-            for (let j = 0; j < interpVarValues.length; j++) {
-                const values = interpVarValues[j] as any[];
-                for (let k = 0; k < values.length; k++) {
-                    lerpValue(eased, values[k]!);
+            for (const values of Object.values(frame.interpVars)) {
+                for (const value of values) {
+                    lerpValue(eased, value);
                 }
             }
 
             if (transformFrames) {
-                frame.transform(this.unflatten ? frame.vars : frame.flatVars, t);
+                frame.transform(
+                    this.unflatten ? frame.vars : frame.flatVars,
+                    t,
+                );
             }
 
             Object.assign(result, frame.flatVars);
@@ -450,13 +491,17 @@ export class Animation<V extends Vars = any> {
 
         if (
             this.options.direction === "reverse" ||
-            (this.options.direction === "alternate-reverse" && this.iteration % 2 === 0) ||
+            (this.options.direction === "alternate-reverse" &&
+                this.iteration % 2 === 0) ||
             (this.options.direction === "alternate" && this.iteration % 2 === 1)
         ) {
             this.reverse();
         }
 
-        if (this.options.fillMode === "backwards" || this.options.fillMode === "both") {
+        if (
+            this.options.fillMode === "backwards" ||
+            this.options.fillMode === "both"
+        ) {
             this.fillBackwards();
         }
 
@@ -470,7 +515,10 @@ export class Animation<V extends Vars = any> {
     }
 
     async onEnd() {
-        if (this.options.fillMode === "forwards" || this.options.fillMode === "both") {
+        if (
+            this.options.fillMode === "forwards" ||
+            this.options.fillMode === "both"
+        ) {
             this.fillForwards();
         } else if (
             this.options.fillMode === "none" ||
@@ -518,7 +566,10 @@ export class Animation<V extends Vars = any> {
 
     async draw(t: number) {
         if (this.managed) {
-            console.warn("Animation.draw() called on a managed animation — skipping standalone rAF loop.");
+            // TODO(HIGH): Convert managed-animation guard from warning+return into explicit misuse error.
+            console.warn(
+                "Animation.draw() called on a managed animation — skipping standalone rAF loop.",
+            );
             return;
         }
 
@@ -554,6 +605,7 @@ export class Animation<V extends Vars = any> {
             await playWAAPI(this);
             this.reset();
         } catch {
+            // TODO(CRITICAL): Remove WAAPI->rAF recovery path and fail explicitly when WAAPI execution errors.
             // WAAPI failed — fall back to rAF
             return this._playRAF();
         }
@@ -561,7 +613,10 @@ export class Animation<V extends Vars = any> {
 
     async play(): Promise<void> {
         if (this.managed) {
-            console.warn("Animation.play() called on a managed animation — the group controls playback.");
+            // TODO(HIGH): Convert managed-animation guard from warning+return into explicit misuse error.
+            console.warn(
+                "Animation.play() called on a managed animation — the group controls playback.",
+            );
             return;
         }
 
@@ -576,11 +631,14 @@ export class Animation<V extends Vars = any> {
         ) {
             result = this._playWAAPI();
         } else {
+            // TODO(HIGH): Replace implicit eligibility fallback with explicit strategy selection/failure semantics.
             result = this._playRAF();
         }
 
         this._playingPromise = result;
-        result.finally(() => { this._playingPromise = null; });
+        result.finally(() => {
+            this._playingPromise = null;
+        });
         return result;
     }
 
@@ -651,7 +709,10 @@ export class Animation<V extends Vars = any> {
 }
 
 export class CSSKeyframesAnimation<V extends Vars> extends Animation<V> {
-    constructor(options?: Partial<InputAnimationOptions>, ...targets: HTMLElement[]) {
+    constructor(
+        options?: Partial<InputAnimationOptions>,
+        ...targets: HTMLElement[]
+    ) {
         super(options, targets);
 
         this.unflatten = false;
@@ -659,6 +720,7 @@ export class CSSKeyframesAnimation<V extends Vars> extends Animation<V> {
 
     fromVars(vars: V[], transform?: TransformFunction<V>) {
         this.unflatten = transform != null;
+        // TODO(MEDIUM): Require an explicit transform strategy instead of defaulting to instance transform.
         transform ??= this.transform.bind(this);
 
         for (let i = 0; i < vars.length; i++) {
@@ -677,13 +739,19 @@ export class CSSKeyframesAnimation<V extends Vars> extends Animation<V> {
         transform?: TransformFunction<V>,
     ) {
         this.unflatten = transform != null;
+        // TODO(MEDIUM): Require an explicit transform strategy instead of defaulting to instance transform.
         transform ??= this.transform.bind(this);
 
         if (isObject(keyframes)) {
             keyframes = new Map(Object.entries(keyframes));
         }
 
-        for (const [percent, frame] of (keyframes as any).entries()) {
+        const entries =
+            keyframes instanceof Map
+                ? keyframes.entries()
+                : Object.entries(keyframes);
+
+        for (const [percent, frame] of entries) {
             this.addFrame(percent, frame, transform);
         }
 
@@ -693,6 +761,7 @@ export class CSSKeyframesAnimation<V extends Vars> extends Animation<V> {
 
     fromString(keyframes: string, transform?: TransformFunction<V>) {
         this.unflatten = transform != null;
+        // TODO(MEDIUM): Require an explicit transform strategy instead of defaulting to instance transform.
         transform ??= this.transform.bind(this);
 
         const p = parseCSSKeyframes(keyframes);
@@ -700,14 +769,19 @@ export class CSSKeyframesAnimation<V extends Vars> extends Animation<V> {
         for (const [percent, cachedFrame] of p.entries()) {
             // Clone the frame to avoid mutating the memoized parse cache
             const frame = Object.fromEntries(
-                Object.entries(cachedFrame).map(([k, v]) => [k, (v as any)?.clone ? (v as any).clone() : v]),
-            ) as Record<string, any>;
-            const tfValue = frame.animationTimingFunction ?? frame.timingFunction;
+                Object.entries(cachedFrame).map(([k, v]) => [
+                    k,
+                    hasClone(v) ? v.clone() : v,
+                ]),
+            ) as Record<string, unknown>;
+            const tfValue =
+                frame.animationTimingFunction ?? frame.timingFunction;
             delete frame.animationTimingFunction;
             delete frame.timingFunction;
-            const resolvedTF = tfValue ? getTimingFunction(tfValue.toString()) : undefined;
+            const resolvedTF = tfValue
+                ? getTimingFunction(tfValue.toString() as TimingFunctionNames)
+                : undefined;
             this.addFrame(percent, frame as Partial<V>, transform, resolvedTF);
-            this.parsedVars.push(frame);
         }
 
         this.parse();
@@ -715,7 +789,7 @@ export class CSSKeyframesAnimation<V extends Vars> extends Animation<V> {
         return this;
     }
 
-    transform(vars: any) {
+    transform(vars: V) {
         transformTargetsStyle(vars, this.targets);
     }
 }

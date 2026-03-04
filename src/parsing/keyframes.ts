@@ -1,4 +1,11 @@
-import { Parser, all, any, regex, string, whitespace } from "@mkbabb/parse-that";
+import {
+    Parser,
+    all,
+    any,
+    regex,
+    string,
+    whitespace,
+} from "@mkbabb/parse-that";
 import { FunctionValue, ValueArray, ValueUnit } from "../units";
 import { camelCaseToHyphen, hyphenToCamelCase, memoize } from "../utils";
 import { CSSValueUnit } from "./units";
@@ -27,6 +34,22 @@ const dot = string(".");
 
 const ws = whitespace;
 
+const flattenParsedValues = (
+    values: unknown[],
+): Array<ValueUnit | FunctionValue> => {
+    const out: Array<ValueUnit | FunctionValue> = [];
+    for (const value of values.flat(Infinity)) {
+        if (value instanceof ValueUnit || value instanceof FunctionValue) {
+            out.push(value);
+            continue;
+        }
+        throw new TypeError(
+            `Expected parsed CSS value node, got ${typeof value}.`,
+        );
+    }
+    return out;
+};
+
 // Use value.js shared parsers for transforms, gradients, var(), calc(), etc.
 // These were previously duplicated here — now they come from CSSFunction.Function
 const Function_ = CSSFunction.Function;
@@ -39,7 +62,12 @@ const JSON_: Parser<any> = all(lcurly, regex(/[^{}]+/), rcurly).map(
     },
 );
 
-const Value: Parser<any> = any(CSSValueUnit.Value, Function_, JSON_, regex(/[^\(\)\{\}\s,;]+/).map((x: string) => new ValueUnit(x))).trim(ws);
+const Value: Parser<any> = any(
+    CSSValueUnit.Value,
+    Function_,
+    JSON_,
+    regex(/[^\(\)\{\}\s,;]+/).map((x: string) => new ValueUnit(x)),
+).trim(ws);
 
 const Values = Value.sepBy(ws);
 
@@ -49,8 +77,8 @@ const Variables = all(
         .trim(ws)
         .map((x: string) => hyphenToCamelCase(x)),
     Values.skip(semi.opt()).trim(ws),
-).map(([name, values]: [string, any[]]) => {
-    const va = new ValueArray(...values).flat() as any;
+).map(([name, values]: [string, unknown[]]) => {
+    const va = new ValueArray(...flattenParsedValues(values));
     va.setProperty(name);
     return {
         [name]: va,
@@ -74,29 +102,32 @@ const Body = Variables.many()
 
 const Rule = string("@keyframes").trim(ws).next(identifier);
 
-const Keyframe = all(TimePercentages, Body).map(([percents, values]: [string[], any]) => {
-    return percents.reduce((acc: Map<string, any>, percent: string) => {
-        acc.set(percent, values);
-        return acc;
-    }, new Map<string, any>());
-});
+const Keyframe = all(TimePercentages, Body).map(
+    ([percents, values]: [string[], any]) => {
+        return percents.reduce((acc: Map<string, any>, percent: string) => {
+            acc.set(percent, values);
+            return acc;
+        }, new Map<string, any>());
+    },
+);
 
 const Keyframes = any(
-    Rule.next(
-        Keyframe.many(1).trim(ws).wrap(lcurly, rcurly).trim(ws),
-    ),
+    Rule.next(Keyframe.many(1).trim(ws).wrap(lcurly, rcurly).trim(ws)),
     Keyframe.many(1).trim(ws),
 ).map((keyframes: Map<string, any>[]) => {
-    return keyframes.reduce((acc: Map<string, any[]>, keyframe: Map<string, any>) => {
-        for (const [percent, values] of keyframe) {
-            if (!acc.has(percent)) {
-                acc.set(percent, values);
-            } else {
-                acc.set(percent, { ...acc.get(percent), ...values });
+    return keyframes.reduce(
+        (acc: Map<string, any[]>, keyframe: Map<string, any>) => {
+            for (const [percent, values] of keyframe) {
+                if (!acc.has(percent)) {
+                    acc.set(percent, values);
+                } else {
+                    acc.set(percent, { ...acc.get(percent), ...values });
+                }
             }
-        }
-        return acc;
-    }, new Map<string, any[]>());
+            return acc;
+        },
+        new Map<string, any[]>(),
+    );
 });
 
 // CSSClass language
@@ -166,11 +197,15 @@ export const parseCSSKeyframesValue = memoize(
 );
 
 export const parseCSSKeyframes = memoize(
-    (input: string): Map<string, any> => tryParse(Keyframes, sanitizeCSSInput(input)),
+    (input: string): Map<string, any> =>
+        tryParse(Keyframes, sanitizeCSSInput(input)),
 );
 
 export const parseCSSAnimationKeyframes = memoize((input: string) => {
-    const { options, values, keyframes } = tryParse(AnimationValues, sanitizeCSSInput(input));
+    const { options, values, keyframes } = tryParse(
+        AnimationValues,
+        sanitizeCSSInput(input),
+    );
     return {
         options,
         values,

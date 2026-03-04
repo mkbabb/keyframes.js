@@ -1,13 +1,27 @@
 import { Animation, getAnimationId } from ".";
 import { lerp } from "../math";
-import { ValueArray } from "../units";
 import { cancelAnimationFrame, requestAnimationFrame } from "../utils";
-import type { AnimationLayerConfig, TransformFunction, Vars } from "./constants";
+import type {
+    AnimationLayerConfig,
+    TransformFunction,
+    Vars,
+} from "./constants";
 import { defaultLayerConfig } from "./constants";
+
+const isNumericCarrier = (value: unknown): value is { value: number } => {
+    if (typeof value !== "object" || value == null) {
+        return false;
+    }
+
+    return (
+        "value" in value &&
+        typeof (value as { value?: unknown }).value === "number"
+    );
+};
 
 export interface AnimationGroupEntry<V extends Vars> {
     animation: Animation<V>;
-    values: Vars<ValueArray>;
+    values: Record<string, unknown>;
     layer: AnimationLayerConfig;
 }
 
@@ -49,6 +63,7 @@ export class AnimationGroup<V extends Vars> {
                 layerConfig = input.layer;
             }
 
+            // TODO(MEDIUM): Stop implicitly inheriting the first frame transform for the whole group; require explicit group transform wiring.
             this.transform ??= animation.frames[0]!.transform;
 
             const name = getAnimationId(animation);
@@ -102,7 +117,7 @@ export class AnimationGroup<V extends Vars> {
     }
 
     transformFramesGrouped(t: number) {
-        const groupedValues: Vars<ValueArray> = {};
+        const groupedValues: Record<string, unknown> = {};
 
         // Collect entries, filter by enabled, sort by zIndex
         const entries = Object.values(this.animations);
@@ -126,7 +141,9 @@ export class AnimationGroup<V extends Vars> {
             // Apply property whitelist filter
             const filteredValues = layer.properties
                 ? Object.fromEntries(
-                      Object.entries(values).filter(([key]) => layer.properties!.has(key)),
+                      Object.entries(values).filter(([key]) =>
+                          layer.properties!.has(key),
+                      ),
                   )
                 : values;
 
@@ -139,16 +156,15 @@ export class AnimationGroup<V extends Vars> {
                 case "add":
                     for (const [key, val] of Object.entries(filteredValues)) {
                         if (key in groupedValues) {
-                            const existing = groupedValues[key] as any;
-                            const incoming = val as any;
+                            const existing = groupedValues[key];
+                            const incoming = val;
                             // Accumulate numeric ValueUnit values
                             if (
-                                existing != null &&
-                                typeof existing.value === "number" &&
-                                incoming != null &&
-                                typeof incoming.value === "number"
+                                isNumericCarrier(existing) &&
+                                isNumericCarrier(incoming)
                             ) {
-                                existing.value = existing.value + incoming.value;
+                                existing.value =
+                                    existing.value + incoming.value;
                             } else {
                                 groupedValues[key] = val;
                             }
@@ -161,15 +177,17 @@ export class AnimationGroup<V extends Vars> {
                 case "weighted":
                     for (const [key, val] of Object.entries(filteredValues)) {
                         if (key in groupedValues && layer.weight < 1) {
-                            const existing = groupedValues[key] as any;
-                            const incoming = val as any;
+                            const existing = groupedValues[key];
+                            const incoming = val;
                             if (
-                                existing != null &&
-                                typeof existing.value === "number" &&
-                                incoming != null &&
-                                typeof incoming.value === "number"
+                                isNumericCarrier(existing) &&
+                                isNumericCarrier(incoming)
                             ) {
-                                existing.value = lerp(layer.weight, existing.value, incoming.value);
+                                existing.value = lerp(
+                                    layer.weight,
+                                    existing.value,
+                                    incoming.value,
+                                );
                             } else {
                                 groupedValues[key] = val;
                             }
@@ -258,6 +276,7 @@ export class AnimationGroup<V extends Vars> {
                     anim.pause(false);
                     // Capture pausedTime immediately so the resume path in tick()
                     // can correctly adjust startTime without a one-frame delay.
+                    // TODO(MEDIUM): Replace timing-fix workaround with deterministic pause/resume state transitions.
                     if (anim.pausedTime === 0) {
                         anim.pausedTime = now;
                     }
@@ -279,6 +298,7 @@ export class AnimationGroup<V extends Vars> {
     reset() {
         // Apply fillBackwards first so targets snap to their initial frame
         // before clearing animation state (prevents visual glitches like cube cutoff)
+        // TODO(HIGH): Remove visual-glitch workaround sequencing and define explicit reset/fill contract.
         Object.values(this.animations).forEach((groupObject) => {
             const anim = groupObject.animation;
             if (anim.started && anim.frames.length > 0) {
@@ -323,9 +343,16 @@ export class AnimationGroup<V extends Vars> {
     // --- Layer management API ---
 
     /** Set layer config for an animation by name or reference. Chainable. */
-    setLayerConfig(nameOrAnim: string | Animation<V>, config: Partial<AnimationLayerConfig>) {
-        const key = typeof nameOrAnim === "string" ? nameOrAnim : getAnimationId(nameOrAnim);
+    setLayerConfig(
+        nameOrAnim: string | Animation<V>,
+        config: Partial<AnimationLayerConfig>,
+    ) {
+        const key =
+            typeof nameOrAnim === "string"
+                ? nameOrAnim
+                : getAnimationId(nameOrAnim);
         const entry = this.animations[key];
+        // TODO(HIGH): Throw when callers target a missing animation key instead of silently ignoring the config update.
         if (entry) {
             Object.assign(entry.layer, config);
         }
@@ -338,8 +365,13 @@ export class AnimationGroup<V extends Vars> {
     }
 
     /** Read the layer config for an animation. */
-    getLayerConfig(nameOrAnim: string | Animation<V>): AnimationLayerConfig | undefined {
-        const key = typeof nameOrAnim === "string" ? nameOrAnim : getAnimationId(nameOrAnim);
+    getLayerConfig(
+        nameOrAnim: string | Animation<V>,
+    ): AnimationLayerConfig | undefined {
+        const key =
+            typeof nameOrAnim === "string"
+                ? nameOrAnim
+                : getAnimationId(nameOrAnim);
         return this.animations[key]?.layer;
     }
 }

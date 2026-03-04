@@ -4,6 +4,24 @@ import { COMPUTED_UNITS } from "../units/constants";
 import { transformTargetsStyle } from "./utils";
 import type { Vars } from "./constants";
 
+const hasAnimationTransform = (
+    animation: Animation,
+): animation is Animation & {
+    transform: Animation["frames"][number]["transform"];
+} => {
+    const transform = (animation as { transform?: unknown }).transform;
+    return typeof transform === "function";
+};
+
+const isComputedUnit = (
+    unit: unknown,
+): unit is (typeof COMPUTED_UNITS)[number] => {
+    return (
+        typeof unit === "string" &&
+        (COMPUTED_UNITS as readonly string[]).includes(unit)
+    );
+};
+
 /**
  * Compositor-eligible CSS properties that WAAPI can run off main thread.
  */
@@ -17,6 +35,7 @@ const COMPOSITOR_PROPERTIES = new Set([
     "rotate",
     "scale",
 ]);
+// TODO(LOW): Either enforce this eligibility set directly or remove it as dead compatibility scaffolding.
 
 /**
  * Determines if an animation is eligible for WAAPI delegation.
@@ -29,6 +48,7 @@ const COMPOSITOR_PROPERTIES = new Set([
  * 5. No LAB/OKLAB color interpolation
  */
 export function isWAAPIEligible(animation: Animation): boolean {
+    // TODO(HIGH): Current false returns route callers to rAF fallback; strict mode should surface explicit ineligibility reasons.
     // 1. Must have DOM targets
     if (!animation.targets || animation.targets.length === 0) {
         return false;
@@ -36,9 +56,13 @@ export function isWAAPIEligible(animation: Animation): boolean {
 
     // 2. Check for custom transform function — if any frame has a non-default transform,
     // we can't delegate. We compare against transformTargetsStyle identity.
+    const animationTransform = hasAnimationTransform(animation)
+        ? animation.transform
+        : undefined;
     for (const frame of animation.frames) {
-        const tf = frame.transform as Function;
-        if (tf !== (transformTargetsStyle as Function) && tf !== (animation as any).transform) {
+        const tf = frame.transform;
+        const defaultTransform = transformTargetsStyle as unknown as typeof tf;
+        if (tf !== defaultTransform && tf !== animationTransform) {
             return false;
         }
     }
@@ -59,10 +83,7 @@ export function isWAAPIEligible(animation: Animation): boolean {
             for (const iv of interpVarArr) {
                 const startUnit = iv.start?.unit;
                 const stopUnit = iv.stop?.unit;
-                if (
-                    (startUnit && (COMPUTED_UNITS as readonly string[]).includes(startUnit as string)) ||
-                    (stopUnit && (COMPUTED_UNITS as readonly string[]).includes(stopUnit as string))
-                ) {
+                if (isComputedUnit(startUnit) || isComputedUnit(stopUnit)) {
                     return false;
                 }
             }
@@ -124,23 +145,25 @@ export function toWAAPIOptions(animation: Animation): KeyframeEffectOptions {
     const opts = animation.options;
 
     const directionMap: Record<string, PlaybackDirection> = {
-        "normal": "normal",
-        "reverse": "reverse",
-        "alternate": "alternate",
+        normal: "normal",
+        reverse: "reverse",
+        alternate: "alternate",
         "alternate-reverse": "alternate-reverse",
     };
 
     const fillMap: Record<string, FillMode> = {
-        "none": "none",
-        "forwards": "forwards",
-        "backwards": "backwards",
-        "both": "both",
+        none: "none",
+        forwards: "forwards",
+        backwards: "backwards",
+        both: "both",
     };
 
     return {
         duration: opts.duration,
         delay: opts.delay,
-        iterations: opts.iterationCount === Infinity ? Infinity : opts.iterationCount,
+        iterations:
+            opts.iterationCount === Infinity ? Infinity : opts.iterationCount,
+        // TODO(HIGH): Remove enum fallbacks; throw when direction/fill values are outside supported WAAPI maps.
         direction: directionMap[opts.direction] ?? "normal",
         fill: fillMap[opts.fillMode] ?? "forwards",
         // WAAPI easing is set per-animation — we use the frame's timing function name
@@ -153,7 +176,9 @@ export function toWAAPIOptions(animation: Animation): KeyframeEffectOptions {
  * Play an animation using the Web Animations API.
  * Returns a promise that resolves when the animation completes.
  */
-export async function playWAAPI(animation: Animation): Promise<globalThis.Animation[]> {
+export async function playWAAPI(
+    animation: Animation,
+): Promise<globalThis.Animation[]> {
     const keyframes = toWAAPIKeyframes(animation);
     const options = toWAAPIOptions(animation);
 

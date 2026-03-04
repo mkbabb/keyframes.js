@@ -117,6 +117,7 @@ export interface AnimationLayerConfig {
     /** 0–1 for 'weighted' blend mode. Default: 1 */
     weight: number;
     /** Default: 'replace' (backward compat) */
+    // TODO(MEDIUM): Drop backward-compat defaulting and require callers to choose blend mode explicitly.
     blendMode: BlendMode;
     /** Layer toggle. Default: true */
     enabled: boolean;

@@ -4,15 +4,108 @@ import { parseCSSKeyframesValue } from "../parsing/keyframes";
 import { parseCSSValueUnit } from "../parsing/units";
 import { memoize } from "../utils";
 import { normalizeColorUnits } from "./color/normalize";
-import { COMPUTED_UNITS } from "./constants";
+import {
+    ANGLE_UNITS,
+    COMPUTED_UNITS,
+    LENGTH_UNITS,
+    RESOLUTION_UNITS,
+    TIME_UNITS,
+} from "./constants";
 import {
     convertToDegrees,
     convertToDPI,
     convertToMs,
     convertToPixels,
-    isColorUnit,
     unpackMatrixValues,
 } from "./utils";
+
+type ColorValueUnit = Parameters<typeof normalizeColorUnits>[0];
+type NormalizeColorSpace = Parameters<typeof normalizeColorUnits>[2];
+
+const MATRIX_SUB_PROPERTIES = new Set([
+    "scaleX",
+    "scaleY",
+    "scaleZ",
+    "skewX",
+    "skewY",
+    "skewZ",
+    "translateX",
+    "translateY",
+    "translateZ",
+    "rotateX",
+    "rotateY",
+    "rotateZ",
+    "perspectiveX",
+    "perspectiveY",
+    "perspectiveZ",
+    "perspectiveW",
+] as const);
+
+const isLengthUnit = (unit: unknown): unit is (typeof LENGTH_UNITS)[number] => {
+    return (
+        typeof unit === "string" &&
+        (LENGTH_UNITS as readonly string[]).includes(unit)
+    );
+};
+
+const isAngleUnit = (unit: unknown): unit is (typeof ANGLE_UNITS)[number] => {
+    return (
+        typeof unit === "string" &&
+        (ANGLE_UNITS as readonly string[]).includes(unit)
+    );
+};
+
+const isTimeUnit = (unit: unknown): unit is (typeof TIME_UNITS)[number] => {
+    return (
+        typeof unit === "string" &&
+        (TIME_UNITS as readonly string[]).includes(unit)
+    );
+};
+
+const isResolutionUnit = (
+    unit: unknown,
+): unit is (typeof RESOLUTION_UNITS)[number] => {
+    return (
+        typeof unit === "string" &&
+        (RESOLUTION_UNITS as readonly string[]).includes(unit)
+    );
+};
+
+const isComputedUnit = (
+    unit: unknown,
+): unit is (typeof COMPUTED_UNITS)[number] => {
+    return (
+        typeof unit === "string" &&
+        (COMPUTED_UNITS as readonly string[]).includes(unit)
+    );
+};
+
+const isMatrixSubProperty = (
+    value: string,
+): value is typeof MATRIX_SUB_PROPERTIES extends Set<infer T> ? T : never => {
+    return MATRIX_SUB_PROPERTIES.has(
+        value as typeof MATRIX_SUB_PROPERTIES extends Set<infer T> ? T : never,
+    );
+};
+
+const toNumericValue = (value: unknown, context: string): number => {
+    if (typeof value !== "number" || !Number.isFinite(value)) {
+        throw new TypeError(
+            `Expected numeric ${context}, got ${String(value)}.`,
+        );
+    }
+    return value;
+};
+
+const asColorValueUnit = (value: ValueUnit): ColorValueUnit => {
+    if (value.unit !== "color") {
+        throw new TypeError("Expected a color ValueUnit.");
+    }
+    return value as unknown as ColorValueUnit;
+};
+
+const styleRecord = (style: CSSStyleDeclaration): Record<string, string> =>
+    style as unknown as Record<string, string>;
 
 const elementIdMap = new WeakMap<HTMLElement, number>();
 let nextElementId = 0;
@@ -26,14 +119,16 @@ const getElementId = (el: HTMLElement) => {
 };
 
 export const getComputedValue = memoize(
-    (value: ValueUnit, target: HTMLElement) => {
+    (value: ValueUnit, target?: HTMLElement) => {
         const get = () => {
             if (!target) {
                 return value;
             }
 
             if (value.unit === "var") {
-                const computed = getComputedStyle(target).getPropertyValue(value.value);
+                const computed = getComputedStyle(target).getPropertyValue(
+                    value.value,
+                );
                 return parseCSSValueUnit(computed);
             }
 
@@ -44,19 +139,20 @@ export const getComputedValue = memoize(
                 value.value &&
                 target
             ) {
-                const originalValue = (target.style as any)[value.property as string];
+                const style = styleRecord(target.style);
+                const originalValue = style[value.property] ?? "";
 
                 const newValue = value.subProperty
                     ? `${value.subProperty}(${value.toString()})`
                     : value.toString();
 
-                (target.style as any)[value.property as string] = newValue;
+                style[value.property] = newValue;
 
                 const computed = getComputedStyle(target).getPropertyValue(
-                    value.property as string,
+                    value.property,
                 );
 
-                (target.style as any)[value.property as string] = originalValue;
+                style[value.property] = originalValue;
 
                 const p = parseCSSKeyframesValue(computed);
 
@@ -67,13 +163,15 @@ export const getComputedValue = memoize(
                 if (p.name.startsWith("matrix")) {
                     const matrixValues = unpackMatrixValues(p);
 
-                    const matrixSubValue = (matrixValues as any)[value.subProperty as string];
+                    if (isMatrixSubProperty(value.subProperty)) {
+                        const matrixSubValue = matrixValues[value.subProperty];
 
-                    if (matrixSubValue != null) {
-                        return new ValueUnit(matrixSubValue, "px", [
-                            "length",
-                            "absolute",
-                        ]);
+                        if (matrixSubValue != null) {
+                            return new ValueUnit(matrixSubValue, "px", [
+                                "length",
+                                "absolute",
+                            ]);
+                        }
                     }
                 }
             }
@@ -86,12 +184,16 @@ export const getComputedValue = memoize(
         return newValue.coalesce(value);
     },
     {
-        keyFn: (value: any, target: any) => `${value.toString()}-${target ? getElementId(target) : 'null'}`,
+        keyFn: (value: ValueUnit, target?: HTMLElement) =>
+            `${value.toString()}-${target ? getElementId(target) : "null"}`,
         // Don't cache when the element is disconnected (e.g. inside a Teleport
         // defer DocumentFragment). Layout-dependent units like cqw/vh resolve
         // to 0 without a live DOM context.
-        shouldCache: (_result: any, _value: any, target: any) =>
-            !target || target.isConnected,
+        shouldCache: (
+            _result: ValueUnit,
+            _value: ValueUnit,
+            target?: HTMLElement,
+        ) => !target || target.isConnected,
     },
 );
 
@@ -112,41 +214,72 @@ export const normalizeNumericUnits = (
         value: ValueUnit,
     ): { value: number; unit: string } => {
         const superType = value?.superType?.[0];
+        const numericValue = toNumericValue(value.value, "ValueUnit");
 
         switch (superType) {
             case "length":
+                if (!isLengthUnit(value.unit)) {
+                    throw new TypeError(
+                        `Unsupported length unit: ${String(value.unit)}`,
+                    );
+                }
                 return {
-                    value: convertToPixels(value.value, value.unit as any, value.targets?.[0]),
+                    value: convertToPixels(
+                        numericValue,
+                        value.unit,
+                        value.targets?.[0],
+                    ),
                     unit: "px",
                 };
             case "angle":
+                if (!isAngleUnit(value.unit)) {
+                    throw new TypeError(
+                        `Unsupported angle unit: ${String(value.unit)}`,
+                    );
+                }
                 return {
-                    value: convertToDegrees(value.value, value.unit as any),
+                    value: convertToDegrees(numericValue, value.unit),
                     unit: "deg",
                 };
             case "time":
+                if (!isTimeUnit(value.unit)) {
+                    throw new TypeError(
+                        `Unsupported time unit: ${String(value.unit)}`,
+                    );
+                }
                 return {
-                    value: convertToMs(value.value, value.unit as any),
+                    value: convertToMs(numericValue, value.unit),
                     unit: "ms",
                 };
             case "resolution":
+                if (!isResolutionUnit(value.unit)) {
+                    throw new TypeError(
+                        `Unsupported resolution unit: ${String(value.unit)}`,
+                    );
+                }
                 return {
-                    value: convertToDPI(value.value, value.unit as any),
+                    value: convertToDPI(numericValue, value.unit),
                     unit: "dpi",
                 };
             default:
-                return { value: value.value, unit: value.unit as string };
+                return {
+                    value: numericValue,
+                    unit: typeof value.unit === "string" ? value.unit : "",
+                };
         }
     };
 
-    const [newA, newB] = [convertToNormalizedUnit(a), convertToNormalizedUnit(b)];
+    const [newA, newB] = [
+        convertToNormalizedUnit(a),
+        convertToNormalizedUnit(b),
+    ];
 
     if (inplace) {
         a.value = newA.value;
-        a.unit = newA.unit as any;
+        a.unit = newA.unit;
 
         b.value = newB.value;
-        b.unit = newB.unit as any;
+        b.unit = newB.unit;
 
         return [a, b];
     } else {
@@ -171,7 +304,12 @@ export const normalizeNumericUnits = (
     }
 };
 
-export function normalizeValueUnits(left: ValueUnit, right: ValueUnit, colorSpace: string = "oklab", hueMethod?: HueInterpolationMethod) {
+export function normalizeValueUnits(
+    left: ValueUnit,
+    right: ValueUnit,
+    colorSpace: string = "oklab",
+    hueMethod?: HueInterpolationMethod,
+) {
     left = left.coalesce(right);
     right = right.coalesce(left);
 
@@ -179,13 +317,14 @@ export function normalizeValueUnits(left: ValueUnit, right: ValueUnit, colorSpac
         start: left,
         stop: right,
         value: left.clone(),
-    } as InterpolatedVar<any>;
+        computed: false,
+    } as InterpolatedVar<unknown>;
 
-    if (isColorUnit(left as any) && isColorUnit(right as any)) {
+    if (left.unit === "color" && right.unit === "color") {
         const [leftCollapsed, rightCollapsed] = normalizeColorUnits(
-            left as any,
-            right as any,
-            colorSpace as any,
+            asColorValueUnit(left),
+            asColorValueUnit(right),
+            colorSpace as NormalizeColorSpace,
             true,
             false,
             false,
@@ -209,9 +348,7 @@ export function normalizeValueUnits(left: ValueUnit, right: ValueUnit, colorSpac
         out.value = leftCollapsed.clone();
     }
 
-    out.computed =
-        (COMPUTED_UNITS as readonly string[]).includes(left.unit as string) ||
-        (COMPUTED_UNITS as readonly string[]).includes(right.unit as string);
+    out.computed = isComputedUnit(left.unit) || isComputedUnit(right.unit);
 
     return out;
 }

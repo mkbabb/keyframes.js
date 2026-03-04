@@ -6,7 +6,7 @@ import { tryParse } from "../parsing/utils";
 import { FunctionValue, ValueArray, ValueUnit } from "../units";
 import { COMPUTED_UNITS } from "../units/constants";
 import { getComputedValue, normalizeValueUnits } from "../units/normalize";
-import { flattenObject, isCSSStyleName, unflattenObjectToString } from "../units/utils";
+import { flattenObject, unflattenObjectToString } from "../units/utils";
 import type {
     HueInterpolationMethod,
     InterpolatedVar,
@@ -17,11 +17,58 @@ import type {
 } from "./constants";
 import type { Color } from "@src/units/color";
 
+export type ParsedVarMap = Record<string, ValueArray>;
+
+const flattenToValueUnits = (value: unknown): ValueUnit[] => {
+    if (value instanceof ValueUnit) {
+        return [value.clone()];
+    }
+
+    if (value instanceof FunctionValue) {
+        return value.values.flatMap((entry) => flattenToValueUnits(entry));
+    }
+
+    if (value instanceof ValueArray) {
+        return value.flatMap((entry) => flattenToValueUnits(entry));
+    }
+
+    throw new TypeError(
+        `Expected ValueUnit/FunctionValue/ValueArray, got ${typeof value}`,
+    );
+};
+
+const splitPathKey = (key: string): { mainKey: string; childKey: string } => {
+    const childKey = key.split(".").pop();
+    const mainKey = key.split(".").shift();
+
+    if (!childKey || !mainKey) {
+        throw new Error(`Invalid flattened key: ${key}`);
+    }
+
+    return { mainKey, childKey };
+};
+
+const applyPropertyContext = (
+    values: ValueArray,
+    mainKey: string,
+    childKey: string,
+) => {
+    values.setProperty(mainKey);
+    if (childKey !== mainKey) {
+        values.setSubProperty(childKey);
+    }
+    return values;
+};
+
 export const getTimingFunction = (
     timingFunction: TimingFunction | TimingFunctionNames | undefined,
 ): TimingFunction | undefined => {
     if (typeof timingFunction === "string") {
-        return timingFunctions[timingFunction] as TimingFunction | undefined;
+        const resolved = timingFunctions[timingFunction];
+        if (typeof resolved === "function" && resolved.length <= 1) {
+            return resolved as TimingFunction;
+        }
+        return undefined;
     } else if (timingFunction == null) {
         return undefined;
     }
@@ -33,8 +80,15 @@ export function lerpComputedValue(
     t: number,
     { start, stop, value }: InterpolatedVar<any>,
 ) {
-    const newStartValueUnit = getComputedValue(start, start.targets?.[0] as HTMLElement);
-    const newStopValueUnit = getComputedValue(stop, stop.targets?.[0] as HTMLElement);
+    const target = start.targets?.[0] ?? stop.targets?.[0];
+    if (!target) {
+        throw new Error(
+            "Cannot interpolate computed values without a target element.",
+        );
+    }
+
+    const newStartValueUnit = getComputedValue(start, target);
+    const newStopValueUnit = getComputedValue(stop, target);
 
     const newUnit = !COMPUTED_UNITS.includes(newStartValueUnit.unit)
         ? newStartValueUnit.unit
@@ -86,41 +140,47 @@ export function lerpValue(t: number, value: InterpolatedVar<any>) {
     return value;
 }
 
-const tryParseCache = new Map<string, ValueUnit | ValueArray>();
+const tryParseCache = new Map<string, ValueArray>();
 
-export function parseAndFlattenObject(input: any) {
-    const flat = flattenObject(input);
+export function parseAndFlattenObject(
+    input: Record<string, unknown>,
+): ParsedVarMap {
+    const flat = flattenObject(input) as Record<string, unknown>;
 
-    const parse = (key: string, value: any): any => {
-        const childKey = key.split(".").pop();
-        const mainKey = key.split(".").shift();
+    const parse = (key: string, value: unknown): ValueArray => {
+        const { childKey, mainKey } = splitPathKey(key);
 
         if (value instanceof ValueUnit) {
-            const cloned = value.clone();
-            cloned.setProperty(mainKey);
-            // Set subProperty for computed values (calc, var) so getComputedValue
-            // can reconstruct the CSS expression (e.g., translateX(calc(...)))
-            if (childKey !== mainKey) {
-                cloned.setSubProperty(childKey);
-            }
-            return cloned;
+            return applyPropertyContext(
+                new ValueArray(...flattenToValueUnits(value)),
+                mainKey,
+                childKey,
+            );
         } else if (value instanceof FunctionValue) {
-            const cloned = value.clone();
-            cloned.setProperty(mainKey);
-            cloned.setSubProperty(childKey);
-
-            return cloned.values.flat();
+            const flattened = value.values.flatMap((entry) =>
+                flattenToValueUnits(parse(key, entry)),
+            );
+            return applyPropertyContext(
+                new ValueArray(...flattened),
+                mainKey,
+                childKey,
+            );
         } else if (value instanceof ValueArray) {
-            return value.map((v) => parse(key, v)).flat();
+            const flattened = value.flatMap((entry) =>
+                flattenToValueUnits(parse(key, entry)),
+            );
+            return applyPropertyContext(
+                new ValueArray(...flattened),
+                mainKey,
+                childKey,
+            );
         }
 
         const strValue = String(value);
         const cacheKey = `${childKey}:${strValue}`;
         const cached = tryParseCache.get(cacheKey);
         if (cached) {
-            const cloned = cached.clone();
-            cloned.setProperty(mainKey);
-            return cloned;
+            return applyPropertyContext(cached.clone(), mainKey, childKey);
         }
 
         const p = tryParse(
@@ -132,20 +192,25 @@ export function parseAndFlattenObject(input: any) {
                 CSSKeyframes.Value,
             ),
             strValue,
-        ) as ValueUnit | ValueArray;
+        ) as ValueUnit | ValueArray | FunctionValue;
 
-        p.setProperty(mainKey);
-        tryParseCache.set(cacheKey, p.clone());
+        const parsed = applyPropertyContext(
+            new ValueArray(...flattenToValueUnits(p)),
+            mainKey,
+            childKey,
+        );
+        tryParseCache.set(cacheKey, parsed.clone());
 
-        return p;
+        return parsed;
     };
 
-    const parsedVars = Object.entries(flat)
-        .map(([key, value]) => [key, parse(key, value)])
-        .reduce((acc: Record<string, any>, [key, value]) => {
-            acc[key as string] = value;
+    const parsedVars = Object.entries(flat).reduce<ParsedVarMap>(
+        (acc, [key, value]) => {
+            acc[key] = parse(key, value);
             return acc;
-        }, {});
+        },
+        {},
+    );
 
     return parsedVars;
 }
@@ -154,23 +219,58 @@ export const createInterpVarValue = (
     v: string,
     startIx: number,
     endIx: number,
-    vars: any[],
+    vars: ParsedVarMap[],
     colorSpace: string = "oklab",
     hueMethod?: HueInterpolationMethod,
 ) => {
-    const left = vars[startIx][v];
-    const right = vars[endIx][v];
+    const startVars = vars[startIx];
+    const endVars = vars[endIx];
+    if (!startVars || !endVars) {
+        throw new Error(
+            `Invalid interpolation frame bounds (${startIx} -> ${endIx}).`,
+        );
+    }
+
+    const left = startVars[v];
+    const right = endVars[v];
+    if (!left || !right) {
+        throw new Error(`Missing variable "${v}" in interpolation bounds.`);
+    }
 
     const maxLength = Math.max(left.length, right.length);
+    const padToLength = (arr: ValueArray): ValueUnit[] => {
+        const out = arr.map((entry) => {
+            if (!(entry instanceof ValueUnit)) {
+                throw new TypeError(
+                    `Interpolation for "${v}" requires ValueUnit leaves.`,
+                );
+            }
+            return entry;
+        });
 
-    const newLeft = left.concat(
-        Array(Math.abs(maxLength - left.length)).fill(new ValueUnit(0)),
-    );
-    const newRight = right.concat(
-        Array(Math.abs(maxLength - right.length)).fill(new ValueUnit(0)),
-    );
+        while (out.length < maxLength) {
+            out.push(new ValueUnit(0));
+        }
+        return out;
+    };
 
-    return newLeft.map((l: any, i: any) => normalizeValueUnits(l, newRight[i], colorSpace, hueMethod));
+    const newLeft = padToLength(left);
+    const newRight = padToLength(right);
+
+    return newLeft.map((l, i) => {
+        const r = newRight[i];
+        if (!r) {
+            throw new Error(
+                `Missing right-hand interpolation value at index ${i}.`,
+            );
+        }
+        if (!(l instanceof ValueUnit) || !(r instanceof ValueUnit)) {
+            throw new TypeError(
+                `Interpolation for "${v}" requires ValueUnit leaves.`,
+            );
+        }
+        return normalizeValueUnits(l, r, colorSpace, hueMethod);
+    });
 };
 
 export function calcFrameTime<V extends Vars>(
@@ -197,7 +297,7 @@ export function transformTargetsStyle<V extends Vars>(
 
     targets.forEach((target) => {
         Object.entries(styleStringVars).forEach(([key, value]) => {
-            (target.style as any)[key] = value;
+            target.style.setProperty(key, value);
         });
     });
 }

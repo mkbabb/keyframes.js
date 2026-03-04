@@ -2,13 +2,8 @@ import { computed, markRaw, ref, shallowRef, watch } from "vue";
 import type { Ref, ShallowRef } from "vue";
 import { CSSKeyframesAnimation } from "@src/animation/index";
 import type { InputAnimationOptions } from "@src/animation/constants";
-import {
-    defaultAnimationOptions,
-} from "./animationStores";
-import {
-    DEFAULT_CAPTURE_PROPERTIES,
-    createKeyframeId,
-} from "./timelineTypes";
+import { defaultAnimationOptions } from "./animationStores";
+import { DEFAULT_CAPTURE_PROPERTIES, createKeyframeId } from "./timelineTypes";
 import type { TimelineKeyframe, TimelineState } from "./timelineTypes";
 import { captureSnapshot } from "./snapshotCapture";
 import {
@@ -30,7 +25,8 @@ export function useTimeline(
 
     const animOptions = options ?? ref({ ...defaultAnimationOptions });
 
-    const animation: ShallowRef<CSSKeyframesAnimation<any> | null> = shallowRef(null);
+    const animation: ShallowRef<CSSKeyframesAnimation<any> | null> =
+        shallowRef(null);
 
     const scrubT = ref(0);
     const isPlaying = ref(false);
@@ -66,11 +62,7 @@ export function useTimeline(
         }
 
         const p = percent ?? scrubT.value * 100;
-        const kf = captureSnapshot(
-            target,
-            p,
-            state.value.captureProperties,
-        );
+        const kf = captureSnapshot(target, p, state.value.captureProperties);
 
         state.value.keyframes.push(kf);
         rebuild();
@@ -198,7 +190,9 @@ export function useTimeline(
         rebuild();
     };
 
-    const scrubAndCapture = async (percent: number): Promise<HTMLCanvasElement | null> => {
+    const scrubAndCapture = async (
+        percent: number,
+    ): Promise<HTMLCanvasElement | null> => {
         const target = targets.value[0];
         if (!target) return null;
 
@@ -207,7 +201,9 @@ export function useTimeline(
 
         if (hasAnimation) {
             scrub(percent / 100);
-            await new Promise<void>((r) => requestAnimationFrame(r));
+            await new Promise<void>((resolve) =>
+                requestAnimationFrame(() => resolve()),
+            );
         }
 
         try {
