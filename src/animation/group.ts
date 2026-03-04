@@ -251,13 +251,20 @@ export class AnimationGroup<V extends Vars> {
 
         if (this.started) {
             this.paused = !this.paused;
+            const now = performance.now();
             Object.values(this.animations).forEach((groupObject) => {
+                const anim = groupObject.animation;
                 if (this.paused) {
-                    groupObject.animation.pause(false);
+                    anim.pause(false);
+                    // Capture pausedTime immediately so the resume path in tick()
+                    // can correctly adjust startTime without a one-frame delay.
+                    if (anim.pausedTime === 0) {
+                        anim.pausedTime = now;
+                    }
                 } else {
                     // Unpause children directly — don't call resume() which would
                     // start each child's own rAF loop. The group's draw() handles ticking.
-                    groupObject.animation.paused = false;
+                    anim.paused = false;
                 }
             });
         }

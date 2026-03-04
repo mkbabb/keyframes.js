@@ -49,6 +49,9 @@ const containerRef = useTemplateRef<HTMLElement>("containerRef");
 const isDragging = ref(false);
 const isTouching = ref(false);
 
+// Track active touch pointer IDs — when 2+ are down, drag() should skip rotation
+const activeTouchPointers = new Set<number>();
+
 const previousMousePosition = ref({ x: 0, y: 0 });
 const previousGestureState = ref({ x: 0, y: 0, scale: 1 });
 
@@ -187,15 +190,21 @@ const getTouchCenter = (event: TouchEvent) => {
 
 const startDrag = (event: PointerEvent) => {
     if (event.pointerType === "touch") {
+        activeTouchPointers.add(event.pointerId);
         isTouching.value = true;
     }
     previousMousePosition.value = { x: event.clientX, y: event.clientY };
     isDragging.value = true;
 };
 
-const stopDrag = () => {
-    isTouching.value = false;
-    isDragging.value = false;
+const stopDrag = (event?: PointerEvent) => {
+    if (event?.pointerType === "touch") {
+        activeTouchPointers.delete(event.pointerId);
+    }
+    if (activeTouchPointers.size === 0) {
+        isTouching.value = false;
+    }
+    isDragging.value = activeTouchPointers.size <= 0;
     previousPinchDistance.value = 0;
 };
 
@@ -335,6 +344,8 @@ const syncModifiers = (event: { shiftKey: boolean; ctrlKey: boolean; metaKey: bo
 
 const drag = (event: PointerEvent) => {
     if (!isDragging.value) return;
+    // Skip rotation when 2+ touch pointers are down (pinch gesture)
+    if (activeTouchPointers.size >= 2) return;
     syncModifiers(event);
 
     const isTouch = event.pointerType === "touch";
@@ -508,7 +519,7 @@ const onPointerMove = (event: PointerEvent) => {
 };
 
 const onPointerUp = (event: PointerEvent) => {
-    stopDrag();
+    stopDrag(event);
     containerRef.value?.releasePointerCapture(event.pointerId);
     const doc = containerRef.value?.ownerDocument ?? document;
     doc.removeEventListener("pointermove", onPointerMove);
