@@ -20,6 +20,7 @@ demo/
 │   │   │   └── IconTooltip.vue      # Tooltip wrapper
 │   │   └── ui/                      # shadcn-vue components (50+)
 │   ├── composables/
+│   │   ├── useKeyboardShortcuts.ts  # Singleton keyboard shortcut registry (Mod, combo parsing)
 │   │   ├── useShareState.ts         # URL hash share/load with no-reload restore
 │   │   └── useTransformState.ts     # Matrix3d math, transform sliders, rAF watcher
 │   ├── styles/
@@ -44,14 +45,14 @@ demo/
 The primary UI for interacting with animations across demos.
 
 - **AnimationControls.vue** — Filing-tab panel: Controls | Keyframes | Timeline. Bouncy sliding indicator (cubic-bezier overshoot), `bg-card` background, overflow `…` when extra tabs exceed width. Timeline uses `Teleport` to expand into bottom bar (survives tab switches).
-- **AnimationControlsControls.vue** — Sliders for duration, delay, iterations, direction, fill, easing. Cubic-bezier + steps editors.
-- **AnimationControlsGroup.vue** — Orchestrates `AnimationGroup`: animation selector dropdown, play/pause, reset. Grid row for expanded timeline target. Exposes slot props (`selectedAnimation`, `isPlaying`).
+- **AnimationControlsControls.vue** — Sliders for duration, delay, iterations, direction, fill, easing. Cubic-bezier + steps editors. Playback ribbon (slider + visualizer + play/pause/reverse/reset) teleported to active animation. Emits `scrubStart`/`scrubEnd` for group-level pause during drag.
+- **AnimationControlsGroup.vue** — Orchestrates `AnimationGroup`: animation selector dropdown, play/pause, reset, keyboard shortcuts. Always-expanded menubar. Pauses group during scrub (slider or visualizer drag), resumes on release. Grid row for expanded timeline target. Exposes slot props (`selectedAnimation`, `isPlaying`).
 - **CubicBezierControls.vue** — SVG bezier curve editor with draggable control points.
 - **CSSCodeEditor.vue** — Reusable Monaco editor wrapper: v-model, formatCSS, dark mode, ResizeObserver deferred init.
 - **KeyframesStringControls.vue** — CSS @keyframes editing via CSSCodeEditor with floating paste/format/apply icons.
 - **KeyframeTimeline.vue** — Horizontal timeline: expand/collapse toggle, draggable diamond markers with hover previews (html2canvas snapshot + ghost CSS fallback), playhead, inline keyframe CSS editing via CSSCodeEditor, import/export.
 - **KeyframesEditor.vue** — Frame-by-frame position/CSS editing.
-- **AnimationVisualizer.vue** — Timeline progress ball with drag-to-scrub (pointer capture) to set animation `t` value.
+- **AnimationVisualizer.vue** — Timeline progress ball: grab-only on the ball (pointer capture), linear pixel positioning (no animation timing curve), rAF sync from `effectiveT` when idle.
 - **AnimatedText.vue** — Staggered per-character animation.
 - **Animated.vue** — Fade in/out wrapper using library presets.
 - **animationStores.ts** — localStorage state: animation options, group configs, `isTimelineExpanded`, URL hash sharing (base64 encode/decode, 7-day TTL).
@@ -75,6 +76,7 @@ Reusable full-page animation editor layout. Slot-driven — accepts any target e
 
 ## Composables (`@/composables/`)
 
+- **useKeyboardShortcuts.ts** — Singleton keyboard shortcut registry (`createGlobalState`). Single `window` keydown listener, `Mod` alias (Meta on macOS, Ctrl elsewhere), editable target detection (input/textarea/contenteditable/Monaco). Auto-cleanup via `onScopeDispose`.
 - **useShareState.ts** — URL hash encode/decode, clipboard copy, no-reload state restore via `stateVersion` counter.
 - **useTransformState.ts** — Matrix3d creation (`Rx * Ry * Rz` convention), transform slider values, cell metadata, rAF-debounced watcher, animated matrix reset.
 
@@ -106,6 +108,7 @@ Reusable full-page animation editor layout. Slot-driven — accepts any target e
 - Path aliases: `@components/`, `@composables/`, `@styles/`, `@utils/`
 - Lazy-loaded heavy components (`defineAsyncComponent` for Monaco)
 - Safari private browsing: localStorage fallback to plain `ref()`
-- Pointer Events + `setPointerCapture` for drag containment (OrbitalDrag); touch pinch on container only
+- Pointer Events + `setPointerCapture` for drag containment (OrbitalDrag, AnimationVisualizer); touch pinch on container only
+- Keyboard shortcuts via `registerShortcut()` composable; skipped in editable targets (input, textarea, Monaco)
 - Modifier keys (shift/ctrl/meta) read from event properties, not keydown/keyup tracking
 - Euler convention: quaternion ↔ Euler extraction must match `Rx * Ry * Rz` (useTransformState consumption order)

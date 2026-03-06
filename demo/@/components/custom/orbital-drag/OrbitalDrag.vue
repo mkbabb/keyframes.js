@@ -73,6 +73,10 @@ const scaleFactor = props.scaleFactor ?? 0.02;
 // Pinch tracking for standard touch events (non-Safari)
 const previousPinchDistance = ref(0);
 const previousPinchCenter = ref({ x: 0, y: 0 });
+const previousPinchAngle = ref(0);
+
+// Flag to reset previousMousePosition after pinch-to-single-finger transition
+const justExitedPinch = ref(false);
 
 // Wheel activity tracking — wheel events don't set isDragging/isTouching,
 // so applyInertia would decay velocity between wheel events. Track a
@@ -188,6 +192,12 @@ const getTouchCenter = (event: TouchEvent) => {
     return { x: (t0.clientX + t1.clientX) / 2, y: (t0.clientY + t1.clientY) / 2 };
 };
 
+const getTouchAngle = (event: TouchEvent) => {
+    if (event.touches.length < 2) return 0;
+    const t0 = event.touches[0], t1 = event.touches[1];
+    return Math.atan2(t1.clientY - t0.clientY, t1.clientX - t0.clientX);
+};
+
 const startDrag = (event: PointerEvent) => {
     if (event.pointerType === "touch") {
         activeTouchPointers.add(event.pointerId);
@@ -199,12 +209,17 @@ const startDrag = (event: PointerEvent) => {
 
 const stopDrag = (event?: PointerEvent) => {
     if (event?.pointerType === "touch") {
+        const wasPinching = activeTouchPointers.size >= 2;
         activeTouchPointers.delete(event.pointerId);
+        isDragging.value = activeTouchPointers.size > 0;
+        isTouching.value = activeTouchPointers.size > 0;
+        // Flag pinch-to-single-finger transition to avoid rotation jump
+        if (wasPinching && activeTouchPointers.size === 1) {
+            justExitedPinch.value = true;
+        }
+    } else {
+        isDragging.value = false;
     }
-    if (activeTouchPointers.size === 0) {
-        isTouching.value = false;
-    }
-    isDragging.value = activeTouchPointers.size <= 0;
     previousPinchDistance.value = 0;
 };
 
@@ -214,6 +229,7 @@ const startTouchPinch = (event: TouchEvent) => {
         isTouching.value = true;
         previousPinchDistance.value = getTouchDistance(event);
         previousPinchCenter.value = getTouchCenter(event);
+        previousPinchAngle.value = getTouchAngle(event);
     }
 };
 
@@ -223,6 +239,7 @@ const handleTouchPinch = (event: TouchEvent) => {
 
     const dist = getTouchDistance(event);
     const center = getTouchCenter(event);
+    const angle = getTouchAngle(event);
 
     if (previousPinchDistance.value > 0) {
         const deltaScale = (dist - previousPinchDistance.value) / (1 / (scaleFactor * 2));
@@ -234,15 +251,31 @@ const handleTouchPinch = (event: TouchEvent) => {
         updateScale("x", deltaScale);
         updateScale("y", deltaScale);
         updateScale("z", deltaScale);
+
+        // Two-finger rotation around Z axis
+        if (previousPinchAngle.value !== 0) {
+            let deltaAngle = angle - previousPinchAngle.value;
+            // Normalize to [-PI, PI]
+            if (deltaAngle > Math.PI) deltaAngle -= 2 * Math.PI;
+            if (deltaAngle < -Math.PI) deltaAngle += 2 * Math.PI;
+
+            const zAxis = vec3.fromValues(0, 0, 1);
+            applyRotation(zAxis, deltaAngle);
+            vec3.copy(angularVelocityAxis, zAxis);
+            angularVelocitySpeed.value = Math.abs(deltaAngle);
+        }
     }
 
     previousPinchDistance.value = dist;
     previousPinchCenter.value = center;
+    previousPinchAngle.value = angle;
 };
 
-const stopTouchPinch = () => {
-    isTouching.value = false;
-    previousPinchDistance.value = 0;
+const stopTouchPinch = (event: TouchEvent) => {
+    if (event.touches.length < 2) {
+        previousPinchDistance.value = 0;
+        previousPinchAngle.value = 0;
+    }
 };
 
 const startGesture = (event: any) => {
@@ -312,9 +345,11 @@ const updateRotation = (deltaX: number, deltaY: number, isTouch = false) => {
 
     applyRotation(axis, angle);
 
-    // Store angular velocity for inertia
-    vec3.copy(angularVelocityAxis, axis);
-    angularVelocitySpeed.value = angle;
+    // EMA-smoothed angular velocity for inertia
+    const alpha = 0.3;
+    vec3.lerp(angularVelocityAxis, angularVelocityAxis, axis, alpha);
+    vec3.normalize(angularVelocityAxis, angularVelocityAxis);
+    angularVelocitySpeed.value = alpha * angle + (1 - alpha) * angularVelocitySpeed.value;
 };
 
 const updateAxisRotation = (constrainedAxes: (typeof axes)[number][], deltaX: number, deltaY: number, isTouch = false) => {
@@ -350,6 +385,13 @@ const drag = (event: PointerEvent) => {
 
     const isTouch = event.pointerType === "touch";
     const { clientX: x, clientY: y } = event;
+
+    // After pinch-to-single-finger transition, reset position to avoid jump
+    if (justExitedPinch.value) {
+        justExitedPinch.value = false;
+        previousMousePosition.value = { x, y };
+        return;
+    }
 
     const deltaX = x - previousMousePosition.value.x;
     const deltaY = y - previousMousePosition.value.y;

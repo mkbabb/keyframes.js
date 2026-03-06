@@ -4,7 +4,7 @@
         class="flex flex-col h-full w-full z-10 relative lg:max-w-screen-md isolate"
     >
         <Tabs
-            class="p-4 pt-12 lg:pt-2 pb-2 w-full flex-1 min-h-0 flex flex-col justify-start"
+            class="p-4 pt-2 pb-2 w-full flex-1 min-h-0 flex flex-col justify-start"
             :model-value="storedControls.selectedControl"
             @update:model-value="selectControl"
         >
@@ -51,13 +51,11 @@
                         :is-grouped="isGrouped"
                         :layer-config="layerConfig"
                         :active="active"
-                        @slider-update="
-                            (v) => {
-                                emit('sliderUpdate', v);
-                            }
-                        "
+                        @slider-update="(v) => emit('sliderUpdate', v)"
                         @toggle-play="emit('togglePlay')"
                         @layer-config-update="(v) => emit('layerConfigUpdate', v)"
+                        @scrub-start="emit('scrubStart')"
+                        @scrub-end="emit('scrubEnd')"
                     ></AnimationControlsControls>
                 </TabsContent>
 
@@ -171,6 +169,8 @@ const emit = defineEmits<{
     ): void;
     (e: "togglePlay"): void;
     (e: "layerConfigUpdate", val: Partial<AnimationLayerConfig>): void;
+    (e: "scrubStart"): void;
+    (e: "scrubEnd"): void;
 }>();
 
 const keyframesControlsRef = ref<InstanceType<typeof KeyframesStringControls> | null>(null);
@@ -376,6 +376,7 @@ watch(
 defineExpose({
     keyframesControlsRef,
     timelineRef,
+    selectControl,
 });
 </script>
 

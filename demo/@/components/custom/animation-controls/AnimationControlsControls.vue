@@ -242,14 +242,24 @@
                 <Separator class="my-2 col-span-2" />
 
                 <!-- Advanced (includes layer settings when grouped) -->
-                <Collapsible class="col-span-2 grid grid-cols-[subgrid]">
-                    <CollapsibleTrigger class="col-span-2 flex items-center justify-between w-full py-1.5 fira-code text-xs cursor-pointer hover:text-foreground text-muted-foreground transition-colors">
-                        <span>advanced</span>
-                        <div class="flex items-center px-3 mr-2">
-                            <ChevronDown class="w-4 h-4 opacity-50 transition-transform" />
-                        </div>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent class="col-span-2 grid grid-cols-[subgrid] items-center gap-x-3 gap-y-2 pb-2">
+                <div
+                    @click="advancedOpen = !advancedOpen"
+                    role="button"
+                    tabindex="0"
+                    @keydown.enter="advancedOpen = !advancedOpen"
+                    @keydown.space.prevent="advancedOpen = !advancedOpen"
+                    class="col-span-2 grid grid-cols-[subgrid] gap-x-3 items-center w-full py-1.5 cursor-pointer hover:text-foreground text-muted-foreground transition-colors"
+                >
+                    <span class="fira-code text-xs">advanced</span>
+                    <div class="flex items-center justify-end px-3">
+                        <ChevronDown class="w-4 h-4 opacity-50 transition-transform duration-200" :class="advancedOpen ? 'rotate-180' : ''" />
+                    </div>
+                </div>
+                <div
+                    class="col-span-2 grid grid-cols-[subgrid] transition-[grid-template-rows] duration-200 ease-out"
+                    :class="advancedOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'"
+                >
+                    <div class="col-span-2 grid grid-cols-[subgrid] items-center gap-x-3 gap-y-2 overflow-hidden" :class="advancedOpen ? 'pb-2' : ''">
                         <!-- Layer Settings (only when in a group) -->
                         <template v-if="isGrouped && layerConfig">
                             <IconTooltip text="Stacking order in animation group">
@@ -353,8 +363,8 @@
                                 </SelectContent>
                             </Select>
                         </template>
-                    </CollapsibleContent>
-                </Collapsible>
+                    </div>
+                </div>
 
             </CardContent>
         </Card>
@@ -367,9 +377,10 @@
                         class="p-2 timeline-slider"
                         :min="0"
                         :max="animation.options.duration"
-                        @input="(e: Event) => { if (!isVisualizerDragging) sliderUpdate(e); }"
                         :model-value="[currentT]"
-                        @update:model-value="(val: any) => { if (!isVisualizerDragging) animation.t = val[0]; }"
+                        @update:model-value="(val: any) => scrubTo(val[0])"
+                        @pointerdown="onSliderDown"
+                        @value-commit="onSliderCommit"
                     />
                 </IconTooltip>
 
@@ -423,8 +434,8 @@
                     class="w-full"
                     :animation="animation"
                     @scrub="scrubTo"
-                    @drag-start="isVisualizerDragging = true"
-                    @drag-end="isVisualizerDragging = false"
+                    @drag-start="emit('scrubStart')"
+                    @drag-end="emit('scrubEnd')"
                 ></AnimationVisualizer>
             </div>
         </Teleport>
@@ -444,7 +455,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@components/ui/card";
 import { Input } from "@components/ui/input";
 
 import { Separator } from "@components/ui/separator";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@components/ui/collapsible";
 import { Switch } from "@components/ui/switch";
 
 import {
@@ -502,8 +512,7 @@ const { animation, isGrouped, layerConfig, active } = defineProps<{
 
 const storedAnimationOptions = getStoredAnimationOptions(animation);
 
-// When the visualizer ball is being dragged, the slider should not write to animation.t
-const isVisualizerDragging = ref(false);
+const advancedOpen = ref(false);
 
 // rAF-driven reactivity bridge: animation is markRaw, so Vue can't track
 // property changes. We sync reactive refs every frame for the slider + buttons.
@@ -564,10 +573,35 @@ const emit = defineEmits<{
     ): void;
     (e: "togglePlay"): void;
     (e: "layerConfigUpdate", val: Partial<AnimationLayerConfig>): void;
+    (e: "scrubStart"): void;
+    (e: "scrubEnd"): void;
 }>();
 
 const emitLayerUpdate = (updates: Partial<AnimationLayerConfig>) => {
     emit("layerConfigUpdate", updates);
+};
+
+let sliderScrubActive = false;
+
+const onSliderDown = () => {
+    sliderScrubActive = true;
+    emit("scrubStart");
+    window.addEventListener("pointerup", onSliderUp, { once: true });
+};
+
+const onSliderUp = () => {
+    if (sliderScrubActive) {
+        sliderScrubActive = false;
+        emit("scrubEnd");
+    }
+};
+
+const onSliderCommit = () => {
+    if (sliderScrubActive) {
+        sliderScrubActive = false;
+        window.removeEventListener("pointerup", onSliderUp);
+        emit("scrubEnd");
+    }
 };
 
 const scrubTo = (t: number) => {
@@ -582,10 +616,6 @@ const scrubTo = (t: number) => {
             animation,
         });
     }
-};
-
-const sliderUpdate = (e: Event) => {
-    scrubTo(parseFloat((e.target as HTMLInputElement).value));
 };
 
 const setAnimationTimingFunction = (timingFunction: TimingFunction) => {

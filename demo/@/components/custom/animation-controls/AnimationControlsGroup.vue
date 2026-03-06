@@ -1,18 +1,14 @@
 <template>
     <TooltipProvider :delay-duration="100" :skip-delay-duration="0">
     <div
-        :class="[
-            'w-dvw h-dvh grid grid-cols-1 grid-rows-[auto_1fr_auto] lg:grid-rows-[1fr_auto_auto] justify-items-stretch items-start relative',
-            storedControls.selectedAnimation
-                ? 'lg:grid-cols-[380px_1fr_1fr]'
-                : 'lg:grid-cols-[1fr_1fr]',
-        ]"
+        class="w-dvw h-dvh grid grid-cols-1 grid-rows-[auto_1fr_auto] lg:grid-rows-[1fr_auto_auto] lg:grid-cols-[380px_1fr_1fr] justify-items-stretch items-start relative"
         v-bind="$attrs"
     >
         <div
+            v-show="storedControls.selectedAnimation"
             @transitionend="onPanelTransitionEnd"
             :class="[
-                'controls-pane group/controls col-span-1 row-start-1 lg:row-start-1 relative z-10 transition-[max-height,opacity] duration-300 ease-out lg:!max-h-full lg:!overflow-y-auto lg:!pointer-events-auto lg:!mt-0',
+                'controls-pane group/controls col-start-1 row-start-1 lg:row-start-1 min-w-0 relative z-10 transition-[max-height,opacity] duration-300 ease-out lg:!max-h-full lg:!overflow-y-auto lg:!pointer-events-auto lg:!mt-0',
                 storedControls.isControlsPanelOpen
                     ? 'max-h-[calc(100dvh-7rem)] mt-12 visible'
                     : 'max-h-0 opacity-0 pointer-events-none invisible',
@@ -31,6 +27,8 @@
                         @keyframes-update="keyframesUpdate"
                         @toggle-play="toggleAnimationGroup"
                         @layer-config-update="(v) => updateLayerConfig(name, v)"
+                        @scrub-start="onScrubStart"
+                        @scrub-end="onScrubEnd"
                         :animation="groupObject.animation"
                         :is-grouped="true"
                         :layer-config="groupObject.layer"
@@ -92,11 +90,15 @@
                             </Button>
                             <Button size="sm" variant="outline"
                                 class="h-8 gap-1.5 cursor-pointer fira-code text-xs px-3 rounded-lg hover:scale-105 active:scale-95 transition-transform"
-                                @click="storedControls.isTimelineExpanded = !storedControls.isTimelineExpanded"
+                                @click="activeTimelineRef?.exportCSS?.()"
                             >
-                                <Maximize2 v-if="!storedControls.isTimelineExpanded" class="w-3.5 h-3.5" />
-                                <Minimize2 v-else class="w-3.5 h-3.5" />
-                                {{ storedControls.isTimelineExpanded ? 'Collapse' : 'Expand' }}
+                                <Upload class="w-3.5 h-3.5" /> Export
+                            </Button>
+                            <Button size="sm" variant="outline"
+                                class="h-8 gap-1.5 cursor-pointer fira-code text-xs px-3 rounded-lg hover:scale-105 active:scale-95 transition-transform"
+                                @click="activeTimelineRef?.openAddCSSDialog?.()"
+                            >
+                                <FilePlus2 class="w-3.5 h-3.5" /> Add CSS
                             </Button>
                         </div>
 
@@ -139,13 +141,7 @@
             ]"
         >
             <Menubar
-                ref="menubarEl"
-                :class="[
-                    'flex items-center justify-items-center border-none rounded-xl transition-[padding,gap] duration-150 ease-out',
-                    isMenuExpanded ? 'p-2.5 px-5 gap-4' : 'p-1.5 px-3 gap-2',
-                ]"
-                @mouseenter="onMenuEnter"
-                @mouseleave="onMenuLeave"
+                class="flex items-center justify-items-center border-none rounded-xl p-2.5 px-5 gap-4"
             >
                 <MenubarMenu>
                     <IconTooltip text="Select animation">
@@ -210,7 +206,7 @@
                             ref="resetIconEl"
                             class="p-0 m-0 hover:scale-105"
                         />
-                        <span v-if="isMenuExpanded" class="fira-code text-xs whitespace-nowrap">Reset</span>
+                        <span class="fira-code text-xs whitespace-nowrap">Reset</span>
                     </span>
                 </IconTooltip>
 
@@ -220,7 +216,7 @@
                             ref="trashIconEl"
                             class="p-0 m-0 hover:scale-105"
                         />
-                        <span v-if="isMenuExpanded" class="fira-code text-xs whitespace-nowrap">Clear</span>
+                        <span class="fira-code text-xs whitespace-nowrap">Clear</span>
                     </span>
                 </IconTooltip>
 
@@ -229,7 +225,7 @@
                         <Button
                             :class="[
                                 'text-xl text-white cursor-pointer rounded-xl hover:scale-105 transition-all duration-150',
-                                isMenuExpanded ? 'w-14 h-8' : 'w-10 h-7',
+                                'w-14 h-8',
                                 isPlaying ? 'rainbow-vivid' : 'rainbow-pastel',
                             ]"
                             @click="toggleAnimationGroup"
@@ -286,9 +282,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onUnmounted, reactive, ref, Teleport, useTemplateRef, watch, watchEffect } from "vue";
+import { computed, onUnmounted, reactive, ref, Teleport, useTemplateRef, watch } from "vue";
 import { Toaster, toast } from "vue-sonner";
-import { useMediaQuery } from "@vueuse/core";
 
 import {
     Menubar,
@@ -299,12 +294,13 @@ import {
     Camera,
     Copy,
     Download,
+    FilePlus2,
     List,
-    Maximize2,
     Minimize2,
     Paintbrush,
     Sparkles,
     Trash,
+    Upload,
 } from "lucide-vue-next";
 
 import {
@@ -331,6 +327,7 @@ import {
 } from "./animationStores";
 import { SelectIcon } from "reka-ui";
 import { AnimationGroup } from "@src/animation/group";
+import { registerShortcut } from "@composables/useKeyboardShortcuts";
 
 const { superKey, animationGroup } = defineProps<{
     animationGroup: AnimationGroup<any>;
@@ -338,7 +335,6 @@ const { superKey, animationGroup } = defineProps<{
 }>();
 
 const storedControls = getStoredAnimationGroupControlOptions(superKey);
-const isMobile = useMediaQuery('(max-width: 1023px)');
 
 // Collect refs to each AnimationControls for ribbon actions
 const animControlRefs = reactive<Record<string, any>>({});
@@ -366,10 +362,12 @@ const onPanelTransitionEnd = (e: TransitionEvent) => {
     }
 };
 
-// Auto-select first animation on fresh load so controls are visible immediately
-if (!storedControls.selectedAnimation) {
-    const allNames = Object.keys(animationGroup.animations);
-    storedControls.selectedAnimation = allNames[0] ?? null;
+// Validate stored selection — clear stale values that don't match current animations
+if (
+    storedControls.selectedAnimation &&
+    !animationGroup.animations[storedControls.selectedAnimation]
+) {
+    storedControls.selectedAnimation = null as any;
 }
 
 const emit = defineEmits<{
@@ -429,6 +427,24 @@ const findAnimationGroupObject = (animation: Animation<any>) => {
     return Object.values(animationGroup.animations).find(
         (a) => a.animation.id == animation.id,
     );
+};
+
+let wasPlayingBeforeScrub = false;
+
+const onScrubStart = () => {
+    wasPlayingBeforeScrub = animationGroup.playing();
+    if (wasPlayingBeforeScrub) {
+        animationGroup.pause();
+        syncPlayState();
+    }
+};
+
+const onScrubEnd = () => {
+    if (wasPlayingBeforeScrub) {
+        animationGroup.pause(); // toggle back to playing
+        syncPlayState(true);
+        wasPlayingBeforeScrub = false;
+    }
 };
 
 const sliderUpdate = ({ t, animation }: { t: number; animation: Animation<any> }) => {
@@ -535,69 +551,68 @@ const trashIconShake = () => {
     }
 };
 
-// --- Springy expandable menubar ---
-const menubarEl = useTemplateRef<HTMLElement>("menubarEl");
-const isMenuExpanded = ref(false);
-let collapseTimeoutId: ReturnType<typeof setTimeout> | undefined;
-
-// Mobile: always keep menubar expanded
-watchEffect(() => {
-    if (isMobile.value) isMenuExpanded.value = true;
-});
-
-const expandAnim = new CSSKeyframesAnimation({
-    duration: 350,
-    timingFunction: "cubicBezier(0.34, 1.56, 0.64, 1)",
-    fillMode: "forwards",
-}).fromString(/*css*/ `@keyframes menuExpand {
-    0%   { transform: scaleX(0.85) scaleY(0.9); }
-    100% { transform: scaleX(1) scaleY(1); }
-}`);
-
-const collapseAnim = new CSSKeyframesAnimation({
-    duration: 150,
-    timingFunction: "easeOutCubic",
-    fillMode: "forwards",
-}).fromString(/*css*/ `@keyframes menuCollapse {
-    0%   { transform: scaleX(1) scaleY(1); }
-    100% { transform: scaleX(0.9) scaleY(0.95); }
-}`);
-
-const onMenuEnter = () => {
-    if (isMobile.value) return;
-    clearTimeout(collapseTimeoutId);
-    const wasExpanded = isMenuExpanded.value;
-    isMenuExpanded.value = true;
-    if (!wasExpanded) {
-        const el = resolveEl(menubarEl.value);
-        if (el) {
-            collapseAnim.reset();
-            expandAnim.setTargets(el);
-            expandAnim.reset();
-            expandAnim.play();
-        }
-    }
-};
-
-const onMenuLeave = () => {
-    if (isMobile.value) return;
-    clearTimeout(collapseTimeoutId);
-    collapseTimeoutId = setTimeout(() => {
-        isMenuExpanded.value = false;
-        const el = resolveEl(menubarEl.value);
-        if (el) {
-            expandAnim.reset();
-            collapseAnim.setTargets(el);
-            collapseAnim.reset();
-            collapseAnim.play();
-        }
-    }, 2000);
-};
-
 onUnmounted(() => {
-    clearTimeout(collapseTimeoutId);
     if (progressRafId !== undefined) cancelAnimationFrame(progressRafId);
 });
+
+// --- Keyboard shortcuts ---
+
+registerShortcut("Space", () => toggleAnimationGroup(), { preventDefault: true });
+registerShortcut("Escape", () => reset(false));
+registerShortcut("Home", () => scrubActive(0), { preventDefault: true });
+registerShortcut("End", () => scrubActive(1), { preventDefault: true });
+registerShortcut("ArrowLeft", () => scrubActive(getActiveT() - 0.01), { preventDefault: true });
+registerShortcut("ArrowRight", () => scrubActive(getActiveT() + 0.01), { preventDefault: true });
+registerShortcut("Shift+ArrowLeft", () => scrubActive(getActiveT() - 0.1), { preventDefault: true });
+registerShortcut("Shift+ArrowRight", () => scrubActive(getActiveT() + 0.1), { preventDefault: true });
+registerShortcut("1", () => switchTab("controls"));
+registerShortcut("2", () => switchTab("keyframes"));
+registerShortcut("3", () => switchTab("timeline"));
+registerShortcut("[", () => cycleAnimation(-1));
+registerShortcut("]", () => cycleAnimation(1));
+registerShortcut("Mod+S", () => activeKeyframesRef.value?.copyCSS?.(), { preventDefault: true });
+registerShortcut("R", () => { resetIconSpin(); reset(false); });
+registerShortcut("Delete", () => activeTimelineRef.value?.removeSelectedKeyframe?.());
+
+function getActiveT(): number {
+    const name = storedControls.selectedAnimation;
+    if (!name) return 0;
+    const groupObj = animationGroup.animations[name];
+    if (!groupObj) return 0;
+    const anim = groupObj.animation;
+    const dur = anim.options.duration ?? 1000;
+    return dur > 0 ? anim.t / dur : 0;
+}
+
+function scrubActive(fraction: number) {
+    const name = storedControls.selectedAnimation;
+    if (!name) return;
+    const groupObj = animationGroup.animations[name];
+    if (!groupObj) return;
+    const anim = groupObj.animation;
+    const dur = anim.options.duration ?? 1000;
+    const t = Math.max(0, Math.min(dur, fraction * dur));
+    sliderUpdate({ t, animation: anim });
+}
+
+function switchTab(tab: string) {
+    const name = storedControls.selectedAnimation;
+    if (!name) return;
+    const ctrl = animControlRefs[name];
+    ctrl?.selectControl?.(tab);
+}
+
+function cycleAnimation(direction: number) {
+    const names = Object.keys(animationGroup.animations);
+    if (names.length === 0) return;
+    const currentIdx = names.indexOf(storedControls.selectedAnimation ?? "");
+    const nextIdx = (currentIdx + direction + names.length) % names.length;
+    storedControls.selectedAnimation = names[nextIdx]!;
+    if (!animationGroup.started) {
+        animationGroup.play();
+        syncPlayState(true);
+    }
+}
 
 </script>
 

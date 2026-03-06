@@ -1,100 +1,46 @@
 <template>
     <div class="flex flex-col gap-3">
     <Card :class="['w-full overflow-hidden transition-all duration-150', props.expanded ? 'border-0 shadow-none bg-transparent' : '']">
-        <CardContent :class="['flex flex-col gap-3', props.expanded ? 'p-2 px-0' : 'p-4']">
-        <!-- Toolbar -->
-        <div class="flex items-center gap-1.5 flex-wrap">
-            <IconTooltip text="Snapshot current state">
-                <Button
-                    size="sm"
-                    variant="ghost"
-                    class="gap-1.5 cursor-pointer fira-code text-xs h-7 px-2"
-                    @click="snapshot()"
-                >
-                    <Camera class="w-3.5 h-3.5" />
-                    Snapshot
-                </Button>
-            </IconTooltip>
-
-            <IconTooltip text="Import CSS @keyframes">
-                <Button
-                    size="sm"
-                    variant="ghost"
-                    class="gap-1.5 cursor-pointer fira-code text-xs h-7 px-2"
-                    @click="importDialogOpen = true"
-                >
-                    <Download class="w-3.5 h-3.5" />
-                    Import
-                </Button>
-            </IconTooltip>
-
-            <IconTooltip text="Export as CSS @keyframes">
-                <Button
-                    size="sm"
-                    variant="ghost"
-                    class="gap-1.5 cursor-pointer fira-code text-xs h-7 px-2"
-                    @click="exportCSS()"
-                >
-                    <Upload class="w-3.5 h-3.5" />
-                    Export
-                </Button>
-            </IconTooltip>
-
-            <IconTooltip text="Add CSS @keyframes">
-                <Button
-                    size="sm"
-                    variant="ghost"
-                    class="gap-1.5 cursor-pointer fira-code text-xs h-7 px-2"
-                    @click="addCSSDialogOpen = true"
-                >
-                    <FilePlus2 class="w-3.5 h-3.5" />
-                    Add CSS
-                </Button>
-            </IconTooltip>
-
-            <div class="flex-1"></div>
-
+        <CardContent :class="['relative flex flex-col gap-3', props.expanded ? 'p-2 px-0' : 'p-4']">
+        <!-- Pane action buttons (top-right) -->
+        <div class="absolute top-2 right-2 z-30 flex items-center gap-0.5">
             <IconTooltip text="Clear all keyframes">
                 <Button
                     size="sm"
                     variant="ghost"
-                    class="cursor-pointer h-7 w-7 p-0"
+                    class="cursor-pointer h-7 w-7 p-0 opacity-50 hover:opacity-100"
                     @click="clear()"
                 >
                     <Trash class="w-3.5 h-3.5" />
                 </Button>
             </IconTooltip>
-
             <IconTooltip :text="props.expanded ? 'Collapse timeline' : 'Expand timeline'">
                 <Button
                     size="sm"
                     variant="ghost"
-                    class="cursor-pointer h-7 w-7 p-0"
+                    class="cursor-pointer h-7 w-7 p-0 opacity-50 hover:opacity-100"
                     @click="emit('toggleExpand')"
                 >
                     <component :is="props.expanded ? Minimize2 : Maximize2" class="w-3.5 h-3.5" />
                 </Button>
             </IconTooltip>
-
-            <!-- Zoom indicator -->
-            <span
-                v-if="zoomLevel > 1"
-                class="fira-code text-[10px] text-muted-foreground"
-            >{{ zoomLevel.toFixed(1) }}x</span>
         </div>
 
         <!-- Zoom mini range bar -->
         <div
             v-if="zoomLevel > 1"
-            class="relative h-1.5 rounded-full bg-muted/50 border border-border/30"
+            class="flex items-center gap-2"
         >
-            <div
-                class="absolute top-0 h-full rounded-full bg-primary/40"
-                :style="{
-                    left: `${(panOffset / 100) * 100}%`,
-                    width: `${(100 / zoomLevel / 100) * 100}%`,
-                }"
-            ></div>
+            <div class="relative flex-1 h-1.5 rounded-full bg-muted/50 border border-border/30">
+                <div
+                    class="absolute top-0 h-full rounded-full bg-primary/40"
+                    :style="{
+                        left: `${(panOffset / 100) * 100}%`,
+                        width: `${(100 / zoomLevel / 100) * 100}%`,
+                    }"
+                ></div>
+            </div>
+            <span class="fira-code text-[10px] text-muted-foreground shrink-0">{{ zoomLevel.toFixed(1) }}x</span>
         </div>
 
         <!-- Timeline Track -->
@@ -227,14 +173,6 @@
         </CardContent>
     </Card>
 
-        <!-- Empty state -->
-        <div
-            v-if="!selectedKeyframe && sortedKeyframes.length === 0"
-            class="text-center py-6 text-muted-foreground text-sm"
-        >
-            <p class="fira-code">Click "Snapshot" or click the timeline to add keyframes</p>
-        </div>
-
     <!-- Import dialog -->
         <Dialog v-model:open="importDialogOpen">
             <DialogContent>
@@ -299,11 +237,9 @@
 import { computed, reactive, ref, useTemplateRef } from "vue";
 import type { Ref } from "vue";
 import {
-    Camera,
     Download,
     Maximize2,
     Minimize2,
-    Upload,
     FilePlus2,
     Trash,
     X,
@@ -574,9 +510,24 @@ const openImportDialog = () => {
     importDialogOpen.value = true;
 };
 
+const openAddCSSDialog = () => {
+    addCSSDialogOpen.value = true;
+};
+
+const removeSelectedKeyframe = () => {
+    if (selectedKeyframeId.value) {
+        removeKeyframe(selectedKeyframeId.value);
+        selectedKeyframeId.value = null;
+    }
+};
+
 defineExpose({
     snapshot,
     openImportDialog,
+    openAddCSSDialog,
+    exportCSS,
+    removeSelectedKeyframe,
+    selectedKeyframeId,
 });
 </script>
 

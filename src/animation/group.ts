@@ -46,6 +46,8 @@ export class AnimationGroup<V extends Vars> {
 
     singleTarget = true;
 
+    lastTickTime: number = 0;
+
     handleId: number | any = undefined;
     resolvePromise: ((value: void | PromiseLike<void>) => void) | null = null;
 
@@ -207,6 +209,8 @@ export class AnimationGroup<V extends Vars> {
     }
 
     async tick(t: number) {
+        this.lastTickTime = t;
+
         if (!this.started) {
             this.onStart();
         }
@@ -269,14 +273,13 @@ export class AnimationGroup<V extends Vars> {
 
         if (this.started) {
             this.paused = !this.paused;
-            const now = performance.now();
+            const now = this.lastTickTime || performance.now();
             Object.values(this.animations).forEach((groupObject) => {
                 const anim = groupObject.animation;
                 if (this.paused) {
                     anim.pause(false);
-                    // Capture pausedTime immediately so the resume path in tick()
-                    // can correctly adjust startTime without a one-frame delay.
-                    // TODO(MEDIUM): Replace timing-fix workaround with deterministic pause/resume state transitions.
+                    // Use the last rAF timestamp (not performance.now()) so
+                    // resume correctly adjusts startTime without a forward jump.
                     if (anim.pausedTime === 0) {
                         anim.pausedTime = now;
                     }
@@ -286,6 +289,16 @@ export class AnimationGroup<V extends Vars> {
                     anim.paused = false;
                 }
             });
+
+            // Render one final frame at pause so visual matches the pause moment
+            if (this.paused && this.singleTarget) {
+                for (const groupObject of Object.values(this.animations)) {
+                    const anim = groupObject.animation;
+                    const vars = anim.interpFrames(anim.t, false);
+                    Object.assign(groupObject.values, vars);
+                }
+                this.transformFramesGrouped(now);
+            }
         }
 
         if (prevPaused) {
@@ -311,6 +324,7 @@ export class AnimationGroup<V extends Vars> {
         this.started = false;
         this.done = false;
         this.paused = false;
+        this.lastTickTime = 0;
 
         return this;
     }
