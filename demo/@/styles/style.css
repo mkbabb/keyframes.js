@@ -129,6 +129,7 @@
         @apply bg-background text-foreground;
         overflow: hidden;
         overscroll-behavior: none;
+        touch-action: manipulation;
         min-height: 100dvh;
         width: 100vw;
         margin: 0;
