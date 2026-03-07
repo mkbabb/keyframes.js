@@ -439,6 +439,14 @@ export class Animation<V extends Vars = any> {
     }
 
     reverse() {
+        // Adjust startTime so effectiveT remains continuous across the flip.
+        // Before: effectiveT = reversed ? duration - t : t
+        // After flip we need the same effectiveT, so shift raw t to (duration - t).
+        if (this.startTime !== undefined) {
+            const rawT = this.t;
+            const shift = this.options.duration - 2 * rawT;
+            this.startTime -= shift;
+        }
         this.reversed = !this.reversed;
         return this;
     }
