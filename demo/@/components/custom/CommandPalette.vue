@@ -54,9 +54,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
-import { useMagicKeys, useStorage } from "@vueuse/core";
-
-import { Dialog } from "@components/ui/dialog/";
+import { useMagicKeys } from "@vueuse/core";
 
 import {
     Command,
@@ -69,54 +67,39 @@ import {
     CommandSeparator,
 } from "@components/ui/command";
 
-// import { getStoredAnimationGroupControlOptions } from "./animationStores";
-
 import { Animation } from "@src/animation";
 
 import { useGlobalDark } from "@components/custom/dark-mode-toggle";
 
 const { isDark } = useGlobalDark();
 
-// Props and emits
 const { animations, superKey } = defineProps<{
     animations: Animation<any>[];
     superKey: string;
 }>();
 
-// const storedControls = getStoredAnimationGroupControlOptions(superKey);
-
-// Command palette state
 const open = ref(false);
 
-// Theme
-
-// Keyboard shortcut
 const keys = useMagicKeys();
 const cmdK = keys["Cmd+K"];
 
-// Open/close command palette
 function toggleOpen() {
     open.value = !open.value;
 }
 
-// Watch for keyboard shortcut
 watch(cmdK, (pressed) => {
     if (pressed) toggleOpen();
 });
 
-// Command handlers
 function handleSelectControl(control: string) {
-    // storedControls.selectedControl = control;
     toggleOpen();
 }
 
 function handleToggleDarkMode() {
-    // changeTheme();
     toggleOpen();
 }
 
 function handleSelectAnimation(animation: Animation<any>) {
-    // storedControls.selectedAnimation = animation.name;
     toggleOpen();
 }
 </script>

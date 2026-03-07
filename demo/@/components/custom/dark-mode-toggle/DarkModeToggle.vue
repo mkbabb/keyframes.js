@@ -22,10 +22,6 @@
 <script setup lang="ts">
 import { useGlobalDark } from ".";
 
-defineProps<{
-    size?: string;
-}>();
-
 const { toggleDark } = useGlobalDark();
 </script>
 

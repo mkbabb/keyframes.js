@@ -142,12 +142,9 @@ import CopyButton from "@components/custom/CopyButton.vue";
 import { getStoredAnimationOptions } from "./animationStores";
 import type { TimingFunction } from "@src/animation/constants";
 
-const { animation } = defineProps({
-    animation: {
-        type: Animation<any>,
-        required: true,
-    },
-});
+const { animation } = defineProps<{
+    animation: Animation<any>;
+}>();
 
 const storedAnimationOptions = getStoredAnimationOptions(animation);
 
@@ -282,66 +279,66 @@ onMounted(() => {
 </script>
 
 <style scoped>
-:deep(.bezier-curve) {
+.bezier-curve {
     width: 100%;
     max-height: 200px;
     margin: 0;
+}
 
-    .bounding-box {
-        fill: none;
-        stroke: hsl(var(--border));
-        stroke-width: 0.01;
-    }
+.bounding-box {
+    fill: none;
+    stroke: hsl(var(--border));
+    stroke-width: 0.01;
+}
 
-    .diagonal-ref {
-        stroke: hsl(var(--muted-foreground));
-        stroke-width: 0.005;
-        stroke-dasharray: 0.02 0.015;
-        opacity: 0.3;
-    }
+.diagonal-ref {
+    stroke: hsl(var(--muted-foreground));
+    stroke-width: 0.005;
+    stroke-dasharray: 0.02 0.015;
+    opacity: 0.3;
+}
 
-    .grid-line {
-        stroke: hsl(var(--border));
-        stroke-width: 0.005;
-        opacity: 0.4;
-    }
+.grid-line {
+    stroke: hsl(var(--border));
+    stroke-width: 0.005;
+    opacity: 0.4;
+}
 
-    .handle-line {
-        stroke: hsl(var(--muted-foreground));
-        stroke-width: 0.015;
-        stroke-dasharray: 0.03 0.02;
-        opacity: 0.5;
-    }
+.handle-line {
+    stroke: hsl(var(--muted-foreground));
+    stroke-width: 0.015;
+    stroke-dasharray: 0.03 0.02;
+    opacity: 0.5;
+}
 
-    .bezier-path {
-        stroke: hsl(var(--ppmycota-primary, var(--foreground)));
-        stroke-width: 0.03;
-        fill: none;
-        stroke-linecap: round;
-    }
+.bezier-path {
+    stroke: hsl(var(--ppmycota-primary, var(--foreground)));
+    stroke-width: 0.03;
+    fill: none;
+    stroke-linecap: round;
+}
 
-    .control-point {
-        r: 0.04;
-        transition: r 0.15s ease, opacity 0.15s ease;
-        cursor: move;
+.control-point {
+    r: 0.04;
+    transition: r 0.15s ease, opacity 0.15s ease;
+    cursor: move;
+}
 
-        &.endpoint {
-            fill: black;
-            stroke: none;
-            cursor: default;
-            r: 0.025;
-            opacity: 0.6;
-        }
+.control-point.endpoint {
+    fill: black;
+    stroke: none;
+    cursor: default;
+    r: 0.025;
+    opacity: 0.6;
+}
 
-        &.handle {
-            fill: hsl(var(--foreground));
-            stroke: hsl(var(--background));
-            stroke-width: 0.015;
+.control-point.handle {
+    fill: hsl(var(--foreground));
+    stroke: hsl(var(--background));
+    stroke-width: 0.015;
+}
 
-            &:hover {
-                r: 0.06;
-            }
-        }
-    }
+.control-point.handle:hover {
+    r: 0.06;
 }
 </style>

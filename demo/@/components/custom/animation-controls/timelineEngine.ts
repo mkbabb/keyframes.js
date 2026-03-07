@@ -37,7 +37,7 @@ export function buildAnimationFromTimeline(
     }
 
     const anim = new CSSKeyframesAnimation(options, ...targets).fromKeyframes(
-        keyframesMap as any,
+        keyframesMap as Record<string, Record<string, string>>,
     );
     anim.name = state.animationName;
 

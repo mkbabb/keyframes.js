@@ -88,7 +88,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, readonly } from "vue";
 import type { Asset, AssetKind, AssetTransform } from "./assetTypes";
 import { useAssetManager } from "./useAssetManager";
 import AssetLayer from "./AssetLayer.vue";
@@ -172,9 +172,9 @@ const onDragStart = (event: PointerEvent, id: string) => {
 };
 
 defineExpose({
-    state,
-    sortedAssets,
-    selectedAssets,
+    state: readonly(state),
+    sortedAssets: readonly(sortedAssets),
+    selectedAssets: readonly(selectedAssets),
     addAsset,
     updateAsset,
     updateTransform,

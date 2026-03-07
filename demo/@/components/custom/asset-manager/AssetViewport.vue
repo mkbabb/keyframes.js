@@ -70,7 +70,7 @@
 </template>
 
 <script setup lang="ts">
-import { shallowReactive, useTemplateRef } from "vue";
+import { readonly, shallowReactive, useTemplateRef } from "vue";
 import type { Asset, AssetTransform, HandleType } from "./assetTypes";
 
 const props = defineProps<{
@@ -241,5 +241,5 @@ const onHandlePointerDown = (event: PointerEvent, assetId: string, handleType: H
     el.addEventListener("pointerup", onUp);
 };
 
-defineExpose({ assetElMap });
+defineExpose({ assetElMap: readonly(assetElMap) });
 </script>

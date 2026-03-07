@@ -82,7 +82,7 @@ const getAnimationGroupsOptionsStore = (): ReturnType<typeof useStorage<StoredAn
             checkAndResetExpiredStore(_animationGroupsOptionsStore, { _storeTimestamp: Date.now() });
         } catch {
             // Safari private browsing or no localStorage — fall back to a plain ref
-            _animationGroupsOptionsStore = ref({ _storeTimestamp: Date.now() } as StoredAnimationGroupsOptions) as any;
+            _animationGroupsOptionsStore = ref({ _storeTimestamp: Date.now() }) as ReturnType<typeof useStorage<StoredAnimationGroupsOptions>>;
         }
     }
     return _animationGroupsOptionsStore!;
@@ -99,7 +99,7 @@ const getAnimationGroupsControlOptionsStore = (): ReturnType<typeof useStorage<S
             checkAndResetExpiredStore(_animationGroupsControlOptionsStore, { _storeTimestamp: Date.now() } as StoredAnimationGroupsControlOptions);
         } catch {
             // Safari private browsing or no localStorage — fall back to a plain ref
-            _animationGroupsControlOptionsStore = ref({ _storeTimestamp: Date.now() } as StoredAnimationGroupsControlOptions) as any;
+            _animationGroupsControlOptionsStore = ref({ _storeTimestamp: Date.now() }) as ReturnType<typeof useStorage<StoredAnimationGroupsControlOptions>>;
         }
     }
     return _animationGroupsControlOptionsStore!;
@@ -143,9 +143,7 @@ export const getStoredAnimationOptions = (
         !existing ||
         Object.keys(existing).length === 0
     ) {
-        (animationGroupsOptionsStore.value[superKey] as StoredAnimationGroupOptions)[animationId] = JSON.parse(
-            JSON.stringify(defaultStoredAnimationOptions),
-        );
+        (animationGroupsOptionsStore.value[superKey] as StoredAnimationGroupOptions)[animationId] = structuredClone(defaultStoredAnimationOptions);
     }
 
     return (animationGroupsOptionsStore.value[superKey] as StoredAnimationGroupOptions)[animationId]!;
@@ -175,9 +173,10 @@ export type StoredAnimationGroupsControlOptions = {
     [name: string]: StoredAnimationGroupControlOptions | number | undefined;
 };
 
-const defaultStoredAnimationGroupControlOptions = {
+const defaultStoredAnimationGroupControlOptions: StoredAnimationGroupControlOptions = {
     selectedControl: "controls",
-    selectedAnimation: null,
+    selectedAnimation: "",
+    selectedKeyframesControl: "string",
     isTimelineExpanded: false,
     isControlsPanelOpen: true,
 };
@@ -191,9 +190,7 @@ export const getStoredAnimationGroupControlOptions = (
     touchTimestamp(animationGroupsControlOptionsStore);
 
     if (!animationGroupsControlOptionsStore.value[superKey]) {
-        animationGroupsControlOptionsStore.value[superKey] = JSON.parse(
-            JSON.stringify(defaultStoredAnimationGroupControlOptions),
-        );
+        animationGroupsControlOptionsStore.value[superKey] = structuredClone(defaultStoredAnimationGroupControlOptions);
     }
 
     const controls = animationGroupsControlOptionsStore.value[superKey] as StoredAnimationGroupControlOptions;
@@ -201,9 +198,34 @@ export const getStoredAnimationGroupControlOptions = (
     return controls;
 };
 
+const STORE_KEYS = [
+    "animation-groups-options-store",
+    "animation-groups-control-options-store",
+    "asset-manager-state",
+] as const;
+
 export const resetAllStores = () => {
+    // Reset reactive refs
     getAnimationGroupsOptionsStore().value = { _storeTimestamp: Date.now() };
     getAnimationGroupsControlOptionsStore().value = { _storeTimestamp: Date.now() };
+
+    // Also clear localStorage directly — useStorage writeback may not flush before reload
+    try {
+        for (const key of STORE_KEYS) {
+            localStorage.removeItem(key);
+        }
+    } catch {
+        // Safari private browsing — no-op
+    }
+
+    // Clear URL hash so restoreStateFromHash() doesn't re-populate on reload
+    if (window.location.hash) {
+        history.replaceState(null, "", window.location.pathname + window.location.search);
+    }
+
+    // Reset module-level singletons so they're recreated fresh on next access
+    _animationGroupsOptionsStore = null;
+    _animationGroupsControlOptionsStore = null;
 };
 
 export const deepDefaultStore = (store: any, defaultStore: any) => {
