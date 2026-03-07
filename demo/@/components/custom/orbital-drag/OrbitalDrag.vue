@@ -253,7 +253,6 @@ onMounted(() => {
     useEventListener(window, "gesturechange", pinch.gesture as (event: Event) => void, { passive: false });
     useEventListener(window, "gestureend", pinch.stopGesture);
 
-    inertia.resume();
 });
 
 onUnmounted(() => {

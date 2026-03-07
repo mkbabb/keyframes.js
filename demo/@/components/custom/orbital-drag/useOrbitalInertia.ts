@@ -1,5 +1,6 @@
 import { useRafFn } from "@vueuse/core";
 import type { Ref } from "vue";
+import { watch } from "vue";
 import type { TransformState, VelocityState } from ".";
 import { axes } from ".";
 
@@ -36,6 +37,16 @@ export function useOrbitalInertia(params: OrbitalInertiaParams) {
         updateLinearTransform,
     } = params;
 
+    const hasVelocity = () => {
+        if (Math.abs(angularVelocitySpeed.value) > 1e-4) return true;
+        for (const category of ["translate", "scale"] as const) {
+            for (const v of Object.values(velocity.value[category])) {
+                if (Math.abs(v as number) > 0.01) return true;
+            }
+        }
+        return false;
+    };
+
     const applyInertia = () => {
         if (isDragging.value || isTouching.value || isWheeling.value) return;
 
@@ -66,9 +77,24 @@ export function useOrbitalInertia(params: OrbitalInertiaParams) {
                 }
             }
         }
+
+        // Auto-pause when all velocities have decayed to zero
+        if (!hasVelocity()) {
+            pause();
+        }
     };
 
-    const { pause, resume } = useRafFn(applyInertia);
+    const { pause, resume } = useRafFn(applyInertia, { immediate: false });
+
+    // Auto-resume the inertia loop when a gesture ends with residual velocity
+    watch(
+        () => isDragging.value || isTouching.value || isWheeling.value,
+        (active) => {
+            if (!active && hasVelocity()) {
+                resume();
+            }
+        },
+    );
 
     return { pause, resume };
 }

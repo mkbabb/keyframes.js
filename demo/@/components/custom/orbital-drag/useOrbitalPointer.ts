@@ -317,7 +317,7 @@ export function useOrbitalPointer(params: OrbitalPointerParams) {
         startDrag(event);
         containerRef.value!.setPointerCapture(event.pointerId);
         const doc = containerRef.value!.ownerDocument;
-        doc.addEventListener("pointermove", onPointerMove, { passive: false });
+        doc.addEventListener("pointermove", onPointerMove);
         doc.addEventListener("pointerup", onPointerUp);
         doc.addEventListener("pointercancel", onPointerUp);
     };
