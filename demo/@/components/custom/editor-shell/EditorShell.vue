@@ -65,18 +65,25 @@
                 <slot name="target" v-bind="slotProps"></slot>
             </template>
         </AnimationControlsGroup>
+
+        <KeyboardShortcutsModal
+            :open="shortcutsOpen"
+            @update:open="shortcutsOpen = $event"
+        />
     </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, useTemplateRef } from "vue";
+import { onMounted, ref, useTemplateRef } from "vue";
 import { ChevronDown } from "lucide-vue-next";
 import EditorHeader from "./EditorHeader.vue";
 import SharePopover from "./SharePopover.vue";
 import EditorStartScreen from "./EditorStartScreen.vue";
+import KeyboardShortcutsModal from "@components/custom/KeyboardShortcutsModal.vue";
 import { DarkModeToggle } from "@components/custom/dark-mode-toggle";
 import { AnimationControlsGroup } from "@components/custom/animation-controls";
 import { getStoredAnimationGroupControlOptions } from "@components/custom/animation-controls/animationStores";
+import { registerShortcut } from "@composables/useKeyboardShortcuts";
 import type { AnimationGroup } from "@src/animation/group";
 
 import "@styles/utils.css";
@@ -101,6 +108,9 @@ const emit = defineEmits<{
 }>();
 
 const storedControls = getStoredAnimationGroupControlOptions(props.superKey);
+
+const shortcutsOpen = ref(false);
+registerShortcut("?", () => { shortcutsOpen.value = !shortcutsOpen.value; }, { label: "Show shortcuts", group: "General" });
 
 const gridBackgroundEl = useTemplateRef<HTMLElement>("gridBackgroundEl");
 

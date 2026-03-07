@@ -1,15 +1,20 @@
 import { createGlobalState, useEventListener } from "@vueuse/core";
-import { onScopeDispose } from "vue";
+import { computed, onScopeDispose, ref } from "vue";
 
 export interface ShortcutOptions {
     /** Fire even when focus is in input/textarea/contenteditable. Default: false */
     allowInInput?: boolean;
     /** Call preventDefault on the event. Default: false */
     preventDefault?: boolean;
+    /** Human-readable label for the shortcuts modal */
+    label?: string;
+    /** Group name for display (e.g. "Playback", "Navigation") */
+    group?: string;
 }
 
-interface RegisteredShortcut {
+export interface RegisteredShortcut {
     combo: ParsedCombo;
+    raw: string;
     handler: (e: KeyboardEvent) => void;
     options: ShortcutOptions;
 }
@@ -23,7 +28,7 @@ interface ParsedCombo {
     mod: boolean; // Mod = Meta on mac, Ctrl elsewhere
 }
 
-const isMac =
+export const isMac =
     typeof navigator !== "undefined" &&
     /Mac|iPhone|iPad|iPod/.test(navigator.platform);
 
@@ -52,6 +57,14 @@ function parseCombo(combo: string): ParsedCombo {
     return parsed;
 }
 
+/** Normalize key aliases so registrations like "Space" or "Delete" work cross-platform. */
+const KEY_ALIASES: Record<string, string[]> = {
+    space: [" "],
+    delete: ["backspace", "delete"],
+    enter: ["enter", "return"],
+    escape: ["escape", "esc"],
+};
+
 function matchesCombo(e: KeyboardEvent, combo: ParsedCombo): boolean {
     // Check modifiers
     const wantCtrl = combo.ctrl || (combo.mod && !isMac);
@@ -59,12 +72,25 @@ function matchesCombo(e: KeyboardEvent, combo: ParsedCombo): boolean {
 
     if (e.ctrlKey !== wantCtrl) return false;
     if (e.metaKey !== wantMeta) return false;
-    if (e.shiftKey !== combo.shift) return false;
     if (e.altKey !== combo.alt) return false;
 
-    // Match key (case-insensitive for letters, exact for special keys)
-    if (e.key === combo.key) return true;
-    if (e.key.toLowerCase() === combo.key.toLowerCase()) return true;
+    // For printable chars that inherently require shift (e.g. "?", "!", "+"),
+    // don't enforce shift match unless shift was explicitly in the combo.
+    const isPrintableShifted = e.key.length === 1 && e.shiftKey && !combo.shift;
+    if (!isPrintableShifted && e.shiftKey !== combo.shift) return false;
+
+    const comboKeyLower = combo.key.toLowerCase();
+    const eventKeyLower = e.key.toLowerCase();
+
+    // Direct match
+    if (eventKeyLower === comboKeyLower) return true;
+
+    // Alias match (e.g. combo "Space" matches e.key " ")
+    const aliases = KEY_ALIASES[comboKeyLower];
+    if (aliases && aliases.some((a) => a.toLowerCase() === eventKeyLower)) return true;
+
+    // Also match against e.code (e.g. "Space", "Delete", "Backspace")
+    if (e.code.toLowerCase() === comboKeyLower) return true;
 
     return false;
 }
@@ -78,8 +104,35 @@ function isEditableTarget(el: Element | null): boolean {
     return false;
 }
 
+/** Format a combo string for display (resolve Mod to platform symbol). */
+export function formatCombo(raw: string): string {
+    return raw
+        .split("+")
+        .map((p) => {
+            const lower = p.trim().toLowerCase();
+            if (lower === "mod") return isMac ? "\u2318" : "Ctrl";
+            if (lower === "shift") return isMac ? "\u21E7" : "Shift";
+            if (lower === "alt" || lower === "option") return isMac ? "\u2325" : "Alt";
+            if (lower === "ctrl" || lower === "control") return isMac ? "\u2303" : "Ctrl";
+            if (lower === "meta" || lower === "cmd") return "\u2318";
+            if (lower === "space") return "Space";
+            if (lower === "arrowleft") return "\u2190";
+            if (lower === "arrowright") return "\u2192";
+            if (lower === "arrowup") return "\u2191";
+            if (lower === "arrowdown") return "\u2193";
+            if (lower === "delete") return isMac ? "\u232B" : "Del";
+            if (lower === "escape") return "Esc";
+            if (lower === "enter") return "\u23CE";
+            if (lower === "home") return "Home";
+            if (lower === "end") return "End";
+            return p.trim();
+        })
+        .join(isMac ? "" : "+");
+}
+
 const useShortcutRegistry = createGlobalState(() => {
     const shortcuts = new Set<RegisteredShortcut>();
+    const version = ref(0);
 
     useEventListener(window, "keydown", (e: KeyboardEvent) => {
         for (const shortcut of shortcuts) {
@@ -101,7 +154,12 @@ const useShortcutRegistry = createGlobalState(() => {
         }
     });
 
-    return { shortcuts };
+    const labeled = computed(() => {
+        version.value;
+        return [...shortcuts].filter((s) => s.options.label);
+    });
+
+    return { shortcuts, version, labeled };
 });
 
 /**
@@ -113,21 +171,30 @@ export function registerShortcut(
     handler: (e: KeyboardEvent) => void,
     options: ShortcutOptions = {},
 ): () => void {
-    const { shortcuts } = useShortcutRegistry();
+    const { shortcuts, version } = useShortcutRegistry();
 
     const entry: RegisteredShortcut = {
         combo: parseCombo(combo),
+        raw: combo,
         handler,
         options,
     };
 
     shortcuts.add(entry);
+    version.value++;
 
     const cleanup = () => {
         shortcuts.delete(entry);
+        version.value++;
     };
 
     onScopeDispose(cleanup);
 
     return cleanup;
+}
+
+/** Get all labeled shortcuts (reactive). */
+export function useRegisteredShortcuts() {
+    const { labeled } = useShortcutRegistry();
+    return labeled;
 }
