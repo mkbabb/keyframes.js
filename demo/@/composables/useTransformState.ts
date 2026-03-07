@@ -62,6 +62,7 @@ const getSliderOptionsFromIx = (i: number) => {
 
 export function useTransformState(
     isGroupPlaying: Ref<boolean>,
+    isGroupStarted: Ref<boolean>,
     targetRef: Ref<HTMLElement | undefined>,
 ) {
     const matrix3dStart = ref(createMatrix());
@@ -227,10 +228,11 @@ export function useTransformState(
                     transformUpdateScheduled = false;
                     updateTransformations();
 
-                    // Only write to the target element when NOT playing.
-                    // When playing, OrbitalDrag's container handles the manual
-                    // transform and AnimationGroup handles the target element.
-                    if (!isGroupPlaying.value && targetRef.value) {
+                    // Only write to the target element when the animation has
+                    // never been started. When started (playing or paused),
+                    // OrbitalDrag's container handles the drag transform and
+                    // AnimationGroup handles the target element.
+                    if (!isGroupStarted.value && targetRef.value) {
                         transformTargetsStyle(
                             {
                                 transform: {

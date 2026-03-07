@@ -48,6 +48,7 @@
             :animation-group="animationGroup"
             :super-key="superKey"
             @play-state-change="onPlayStateChange"
+            @start-state-change="(s: boolean) => emit('startStateChange', s)"
         >
             <template #tabs-trigger="slotProps">
                 <slot name="tabs-trigger" v-bind="slotProps"></slot>
@@ -105,6 +106,7 @@ const props = withDefaults(
 
 const emit = defineEmits<{
     (e: "playStateChange", playing: boolean): void;
+    (e: "startStateChange", started: boolean): void;
 }>();
 
 const storedControls = getStoredAnimationGroupControlOptions(props.superKey);

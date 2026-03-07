@@ -3,6 +3,7 @@
         :animation-group="animationGroup"
         :super-key="superKey"
         @play-state-change="isGroupPlaying = $event"
+        @start-state-change="isGroupStarted = $event"
     >
         <template #header-left>
             <HoverCard
@@ -130,6 +131,7 @@
             <CubeTarget
                 ref="cubeTargetRef"
                 :is-playing="isGroupPlaying"
+                :is-started="isGroupStarted"
                 :pp-mode="storedControls.ppMode ?? false"
                 :show-loader="!storedControls.selectedAnimation"
                 v-model:transform="transformSliderValues"
@@ -172,6 +174,7 @@ const hoverCardStates = ref({
 });
 
 const isGroupPlaying = ref(false);
+const isGroupStarted = ref(false);
 
 const cubeTargetRef = ref<InstanceType<typeof CubeTarget>>();
 
@@ -184,7 +187,7 @@ const {
     matrixCellMeta,
     updateMatrixCell,
     resetMatrix,
-} = useTransformState(isGroupPlaying, cubeElRef);
+} = useTransformState(isGroupPlaying, isGroupStarted, cubeElRef);
 
 const { animationGroup, setTargets } = useCubeAnimations(
     matrix3dStart,

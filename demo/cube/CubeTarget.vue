@@ -11,7 +11,7 @@
             <OrbitalDrag
                 class="preserve-3d relative flex items-center justify-center justify-items-center select-none"
                 v-model="transform"
-                :apply-transform-to-container="isPlaying"
+                :apply-transform-to-container="props.isPlaying || props.isStarted"
             >
                 <div
                     :class="[
@@ -101,8 +101,9 @@ import { Loader2 } from "lucide-vue-next";
 import OrbitalDrag from "@components/custom/orbital-drag/OrbitalDrag.vue";
 import type { TransformState } from "@components/custom/orbital-drag";
 
-defineProps<{
+const props = defineProps<{
     isPlaying: boolean;
+    isStarted: boolean;
     ppMode: boolean;
     showLoader: boolean;
 }>();

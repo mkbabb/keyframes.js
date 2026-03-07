@@ -240,6 +240,7 @@ if (
 
 const emit = defineEmits<{
     (e: "playStateChange", playing: boolean): void;
+    (e: "startStateChange", started: boolean): void;
 }>();
 
 // Reactive flags for play/started state — animationGroup is markRaw so its
@@ -290,6 +291,7 @@ const syncPlayState = (playing?: boolean) => {
     isPlaying.value = playing;
     isStarted.value = animationGroup.started;
     emit("playStateChange", playing);
+    emit("startStateChange", animationGroup.started);
 };
 
 const findAnimationGroupObject = (animation: Animation<any>) => {
