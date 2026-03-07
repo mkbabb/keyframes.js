@@ -50,7 +50,7 @@
                         >@mbabb</Button
                     >
                 </HoverCardTrigger>
-                <HoverCardContent class="z-[100] p-4 min-w-[17rem]">
+                <HoverCardContent class="z-[100] p-4 min-w-[17rem] fraunces">
                     <div class="flex items-center gap-3">
                         <Avatar>
                             <AvatarImage
