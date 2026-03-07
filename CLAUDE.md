@@ -26,7 +26,7 @@ src/
 ├── parsing/             # CSS @keyframes parsing (see parsing/CLAUDE.md)
 │   ├── keyframes.ts     # @keyframes grammar via parse-that combinators
 │   ├── format.ts        # Animation → CSS string serialization (Prettier)
-│   ├── units.ts         # Re-export: CSSValueUnit, parseCSSColor from value.js
+│   ├── units.ts         # Re-export: CSSColor, CSSValueUnit, parseCSSColor, parseCSSValueUnit from value.js
 │   ├── utils.ts         # Re-export: parser combinators from value.js
 │   └── index.ts         # Barrel
 ├── units/               # Value types & normalization (see units/CLAUDE.md)
@@ -37,8 +37,8 @@ src/
 │   └── color/           # Color space classes, normalization, conversion
 │       ├── index.ts     # Re-export: Color, RGBColor, OKLABColor, etc.
 │       ├── constants.ts # Re-export: color ranges, white points, matrices
-│       ├── normalize.ts # Re-export: normalizeColorUnits
-│       ├── utils.ts     # Re-export: 40+ color space converters
+│       ├── normalize.ts # Re-export: normalizeColorUnits, normalizeColor, normalizeColorUnit, normalizeColorUnitComponent, colorUnit2
+│       ├── utils.ts     # Re-export: ~60 color space converters/utilities
 │       └── colorFilter.ts # Re-export: rgb2ColorFilter
 ├── easing.ts            # Re-export barrel: easing fns from value.js
 ├── math.ts              # Re-export barrel: clamp, lerp, bezier from value.js
@@ -50,7 +50,8 @@ demo/                    # Vue 3 demo apps (see demo/CLAUDE.md)
 ├── cube/                # 3D cube + AnimationGroup + matrix editor
 ├── simple/              # Minimal: single animation + controls
 ├── square/              # Custom transform function demo
-├── amiga/               # Physics-like 3D sphere
+├── amiga/               # 3D animated sphere (Three.js)
+├── playground/          # Asset playground: drag-and-drop viewport with preset animation binding
 ├── balls/               # Vanilla JS: CSS vars + staggered anim
 ├── boxes/               # Vanilla JS: matrix3d transforms
 └── bench/               # Performance benchmark suite
@@ -100,7 +101,7 @@ Most of `src/` is thin re-export barrels over `value.js`. Local logic lives in:
 - Path aliases: `@src/`, `@components/`, `@composables/`, `@styles/`, `@utils/`, `@assets/`
 - Memoization via `memoize()` (from value.js) and local `memoizeDecorator`
 - All exported parsing functions are memoized
-- Prettier: 4-space indent, 80-char width, tailwind + import sort plugins
+- Prettier: 4-space indent, 80-char width, plugins: tailwind, organize-imports, classnames, merge
 - Node >=22
 
 ## Architecture Notes
@@ -109,4 +110,4 @@ Most of `src/` is thin re-export barrels over `value.js`. Local logic lives in:
 - **Playback modes**: rAF-based (default), WAAPI (opt-in for compositor-thread), managed (AnimationGroup controls)
 - **Interpolation dispatch**: numeric → `lerp`; color → perceptual (`oklab` default); computed units (`vh`, `calc`, `var`) → DOM resolution
 - **Layer blending** (AnimationGroup): `replace` (z-order), `add` (accumulate), `weighted` (lerp by weight)
-- **WAAPI eligibility**: requires DOM targets, uniform timing, no computed units, no custom transforms, no LAB/OKLAB colors
+- **WAAPI eligibility**: requires DOM targets, uniform timing, no computed units, no custom transforms, no color interpolation

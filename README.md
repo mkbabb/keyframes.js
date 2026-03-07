@@ -87,10 +87,11 @@ src/
 
 demo/                    # Vue 3 demo apps
 ├── @/                   # Shared: animation controls, shadcn-vue UI, styles
-├── cube/                # 3D sphere + AnimationGroup + Three.js (default demo)
+├── cube/                # 3D cube + AnimationGroup + matrix editor (default demo)
 ├── simple/              # Minimal single-animation example
 ├── square/              # Custom transform function
-├── amiga/               # Physics-like 3D sphere
+├── amiga/               # 3D animated sphere (Three.js)
+├── playground/          # Asset playground: drag-and-drop viewport with preset animation binding
 ├── balls/               # Vanilla JS: CSS vars + staggered animations
 ├── boxes/               # Vanilla JS: matrix3d transforms
 └── bench/               # Performance benchmarks (rAF vs CSS vs WAAPI)
@@ -117,6 +118,7 @@ The `Animation` object drives `CSSKeyframesAnimation` and `AnimationGroup`. It's
 - `fillMode`: `none`, `forwards`, `backwards`, `both`
 - `timingFunction`: easing function (default: `easeInOutCubic`)
 - `colorSpace`: color interpolation space (default: `oklab`)
+- `hueMethod`: hue interpolation method for cylindrical color spaces (optional)
 - `useWAAPI`: delegate to Web Animations API when eligible (default: `true`)
 
 ### The transform function
@@ -199,7 +201,7 @@ An abstraction over `Animation` that parses CSS `@keyframes` into `TemplateAnima
 Three ways to create keyframes:
 
 ```ts
-// From CSS string (memoized parse)
+// From CSS string (underlying parser is memoized; results cloned per call)
 anim.fromString(`from { opacity: 0; } to { opacity: 1; }`);
 
 // From keyframe map
@@ -283,7 +285,7 @@ anim.play();
 
 ## Web Animations API
 
-When `useWAAPI` is `true` (default), eligible animations run on the compositor thread via `Element.animate()`. Eligibility requires: DOM targets, uniform timing function across frames, no computed units, no custom transform function, no LAB/OKLAB colors. Falls back to `requestAnimationFrame` silently.
+When `useWAAPI` is `true` (default), eligible animations run on the compositor thread via `Element.animate()`. Eligibility requires: DOM targets, uniform timing function across frames, no computed units, no custom transform function, no color interpolation. Falls back to `requestAnimationFrame` silently.
 
 ## Build & Development
 

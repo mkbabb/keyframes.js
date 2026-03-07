@@ -28,7 +28,7 @@ Keyframes
 ```
 
 ### Exported Parsers
-- `CSSKeyframes` — parser object: `Value`, `Values`, `Function_`, `JSON`, `Body`, `Rule`, `Keyframe`, `Keyframes`, `TimePercentage`, `Variables`
+- `CSSKeyframes` — parser object: `Value`, `Values`, `FunctionArgs`, `Function`, `JSON`, `Body`, `Rule`, `Keyframe`, `Keyframes`, `TimePercentage`, `TimePercentages`, `Variables`
 - `CSSAnimationKeyframes` — animation-specific: parses CSS classes with `animation-*` properties alongside keyframes
 
 ### Exported Functions (all memoized)
@@ -47,9 +47,11 @@ Applied before parsing: strips `/* comments */` and `!important`.
 
 - `formatCSS(css, printWidth?)` — Prettier with SCSS/PostCSS (default 80-char)
 - `CSSKeyframesToString(animation, name?, printWidth?)` — full @keyframes + options class
+- `CSSKeyframesToStrings(animation, name?, printWidth?)` — per-frame formatting, returns `Promise<string[]>`
 - `CSSKeyframeToString(frame)` — single frame body
 - `animationOptionsToString(options, name?)` — `.name { animation-*: ...; }`
 - `normalizeCSSKeyframeString(keyframe)` — wraps bare keyframes in @keyframes header
+- `formatCSSKeyframeString(keyframe)` — strips @keyframes header/footer from a keyframe string
 - `parseCSSAnimationOrKeyframes(css)` — tries animation parse, falls back to keyframes-only
 
 Deduplicates identical frames (comma-separated selectors). Cleans Prettier artifacts.

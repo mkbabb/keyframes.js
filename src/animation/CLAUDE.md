@@ -21,15 +21,18 @@ Core engine. Manages keyframes, timing, interpolation, playback.
 
 - **Frame lifecycle**: `addFrame()` → `parse()` → `AnimationFrame[]` with precomputed `interpVars`
 - **Playback**: `play()` / `pause()` / `resume()` / `stop()` / `reset()`
-- **Config**: `setDuration()`, `setDelay()`, `setDirection()`, `setFillMode()`, `setTimingFunction()`, `setIterationCount()`, `setColorSpace()`, `setHueMethod()`, `setUseWAAPI()`
+- **Config**: `setDuration()`, `setDelay()`, `setDirection()`, `setFillMode()`, `setTimingFunction()`, `setIterationCount()`, `setColorSpace()`, `setHueMethod()`, `setUseWAAPI()`, `setOptions()` (bulk), `setTargets()`
 - **Interpolation**: `interpFrames(t, transformFrames?)` — samples all active frames at time `t`
 - **Fill**: `fillForwards()` / `fillBackwards()` — applies first/last frame values
+- **Playback queries**: `playing()`, `effectiveT` (getter, direction-adjusted time)
+- **Mutation**: `reverse()` — flips `reversed` flag and adjusts `startTime`
+- **Composition**: `group()` — convenience factory for `AnimationGroup`
 - **Events**: dispatches `animationstart`, `animationiteration`, `animationend` on targets
 
 ### `CSSKeyframesAnimation<V>` extends `Animation<V>`
 Adds CSS @keyframes parsing layer.
 
-- `fromString(css)` — parse @keyframes string (memoized)
+- `fromString(css)` — parse @keyframes string (underlying `parseCSSKeyframes` is memoized; results are cloned per call)
 - `fromKeyframes(map)` — from `Map<string, Vars>` or plain object
 - `fromVars(vars[])` — from array of variable snapshots
 - `transform(vars)` — default: applies interpolated values to `element.style`
@@ -39,6 +42,9 @@ Composites multiple animations with layer blending.
 
 - **Blend modes**: `replace` (z-order wins), `add` (accumulate), `weighted` (lerp by weight)
 - **Layer config**: `zIndex`, `weight`, `blendMode`, `enabled`, `properties` (whitelist)
+- **Layer API**: `setLayerConfig()`, `setLayerEnabled()`, `getLayerConfig()`
+- **Playback**: `play()`, `pause()`, `stop()`, `reset()`, `forcePause()`, `forcePlay()`, `playing()`
+- **Setup**: `setTargets()`, `setSuperKey()`
 - Manages own rAF loop; marks child animations as `managed = true`
 - Handles single-target vs multi-target rendering paths
 
@@ -55,7 +61,7 @@ Requires all of:
 - Default `transformTargetsStyle` (no custom transform fn)
 - Uniform timing function across all frames
 - No computed units (`vh`, `vw`, `calc`, `var`)
-- No LAB/OKLAB color interpolation
+- No color interpolation (any color unit, not just LAB/OKLAB)
 
 Falls back to rAF silently on ineligibility or error.
 
@@ -72,7 +78,7 @@ Fade: `fadeIn`, `fadeOut` | Attention: `pulse`, `heartbeat`, `glow`, `shake`, `b
 - `TransformFunction<V>` — `(v: V, t: number) => void`
 - `TemplateAnimationFrame<V>` — user-defined: `{id, start, vars, transform?, timingFunction?}`
 - `AnimationFrame<V>` — compiled: adds `ixs`, `time`, `flatVars`, `interpVars`
-- `AnimationOptions` — `{duration, delay, iterationCount, direction, fillMode, timingFunction, useWAAPI, colorSpace}`
+- `AnimationOptions` — `{duration, delay, iterationCount, direction, fillMode, timingFunction, useWAAPI, colorSpace, hueMethod?}`
 - `BlendMode` — `'replace' | 'add' | 'weighted'`
 
 Defaults: 1000ms duration, 0 delay, 1 iteration, normal direction, forwards fill, easeInOutCubic, WAAPI on, oklab color space.
