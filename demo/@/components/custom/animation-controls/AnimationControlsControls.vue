@@ -166,77 +166,14 @@
                     </Transition>
 
                     <!-- Detail panel (cubic-bezier / steps) -->
-                    <Transition name="slide-detail">
-                        <div
-                            v-if="showDetailPanel"
-                            key="detail"
-                            class="col-span-2 w-full grid justify-items-center"
-                        >
-                            <button
-                                class="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground cursor-pointer transition-colors mb-2 fira-code justify-self-start"
-                                @click="exitDetailPanel"
-                            >
-                                <ArrowLeft class="w-3.5 h-3.5" />
-                                back to controls
-                            </button>
-
-                            <template
-                                v-if="(storedAnimationOptions.animationOptions.timingFunction as any) === 'cubic-bezier'"
-                            >
-                                <CubicBezierControls
-                                    :animation="animation"
-                                    @update-timing-function="setAnimationTimingFunction"
-                                    class="w-full"
-                                ></CubicBezierControls>
-                            </template>
-
-                            <template
-                                v-else-if="storedAnimationOptions.animationOptions.timingFunction === 'steps'"
-                            >
-                                <Card class="border-none shadow-none">
-                                    <CardHeader class="p-0 pb-2">
-                                        <CardTitle class="fraunces">steps</CardTitle>
-                                    </CardHeader>
-                                    <CardContent class="p-0 grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-2">
-                                        <label class="fira-code text-xs text-muted-foreground">count</label>
-                                        <Input
-                                            type="number"
-                                            class="fira-code"
-                                            :model-value="storedAnimationOptions.stepOptions.steps"
-                                            @update:model-value="
-                                                (key: any) => {
-                                                    storedAnimationOptions.stepOptions.steps = key;
-                                                    updateTimingFunctionFromName('steps');
-                                                }
-                                            "
-                                        />
-
-                                        <label class="fira-code text-xs text-muted-foreground">jump term</label>
-                                        <Select
-                                            :model-value="storedAnimationOptions.stepOptions.jumpTerm"
-                                            @update:model-value="
-                                                (key: any) => {
-                                                    storedAnimationOptions.stepOptions.jumpTerm = key;
-                                                    updateTimingFunctionFromName('steps');
-                                                }
-                                            "
-                                        >
-                                            <SelectTrigger class="fira-code">
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectGroup class="fira-code">
-                                                    <SelectItem v-for="j in jumpTerms" :value="j">
-                                                        {{ j }}
-                                                    </SelectItem>
-                                                </SelectGroup>
-                                            </SelectContent>
-                                        </Select>
-                                    </CardContent>
-                                </Card>
-                            </template>
-                        </div>
-                    </Transition>
+                    <TimingFunctionPanel
+                        :animation="animation"
+                        :stored-animation-options="storedAnimationOptions"
+                        :show-detail-panel="showDetailPanel"
+                        :timing-functions-and="timingFunctionsAnd"
+                        @exit-detail-panel="exitDetailPanel"
+                        @update-timing-function="updateTimingFunctionFromName"
+                    />
                 </div>
 
                 <Separator class="my-2 col-span-2" />
@@ -384,7 +321,7 @@
                     />
                 </IconTooltip>
 
-                <div class="grid grid-cols-3 gap-2 w-full">
+                <div class="grid grid-cols-2 gap-2 w-full">
                     <Button
                         :class="[
                             'h-8 w-full rounded-lg gap-2 fira-code text-xs cursor-pointer hover:scale-105 active:scale-95 transition-transform',
@@ -397,7 +334,7 @@
                     >
                         <span>{{ isAnimPlaying ? 'Pause' : 'Play' }}</span>
                         <font-awesome-icon
-                            class="icon w-3.5 h-3.5"
+                            class="icon w-4 h-4"
                             :icon="
                                 isAnimPlaying
                                     ? ['fas', 'pause']
@@ -406,27 +343,22 @@
                         />
                     </Button>
                     <Button
-                        class="h-8 w-full rounded-lg gap-2 fira-code text-xs cursor-pointer hover:scale-105 active:scale-95 transition-transform"
+                        :class="[
+                            'h-8 w-full rounded-lg gap-2 fira-code text-xs cursor-pointer hover:scale-105 active:scale-95 transition-transform',
+                            userReversed
+                                ? 'bg-primary/10 border-primary/40'
+                                : '',
+                        ]"
                         variant="outline"
-                        @click="animation.reverse()"
+                        @click="toggleReverse"
                     >
                         <span>Reverse</span>
-                        <ArrowLeftRight class="w-3.5 h-3.5" />
-                    </Button>
-                    <Button
-                        class="h-8 w-full rounded-lg gap-2 fira-code text-xs cursor-pointer hover:scale-105 active:scale-95 transition-transform"
-                        variant="outline"
-                        @click="
-                            () => {
-                                Object.assign(
-                                    storedAnimationOptions,
-                                    defaultStoredAnimationOptions,
-                                );
-                            }
-                        "
-                    >
-                        <span>Reset</span>
-                        <RotateCcw class="w-3.5 h-3.5" />
+                        <ArrowLeftRight
+                            :class="[
+                                'w-5 h-5 transition-transform duration-200',
+                                userReversed ? 'scale-x-[-1]' : '',
+                            ]"
+                        />
                     </Button>
                 </div>
 
@@ -445,13 +377,13 @@
 <script setup lang="ts">
 import { Animation } from "@src/animation/index";
 
-import { CSSCubicBezier, jumpTerms, timingFunctions } from "@src/easing";
+import { CSSCubicBezier, timingFunctions } from "@src/easing";
 import { reverseCSSTime } from "@src/parsing/keyframes";
 
 import { Button } from "@components/ui/button";
 import { Slider } from "@components/ui/slider";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@components/ui/card";
+import { Card, CardContent } from "@components/ui/card";
 import { Input } from "@components/ui/input";
 
 import { Separator } from "@components/ui/separator";
@@ -466,16 +398,15 @@ import {
     SelectValue,
 } from "@components/ui/select";
 
-import { CubicBezierControls } from "@components/custom/animation-controls";
-
 import { camelCaseToHyphen } from "@src/utils";
 
-import { ArrowLeft, ArrowLeftRight, ChevronDown, RotateCcw } from "lucide-vue-next";
+import { ArrowLeftRight, ChevronDown } from "lucide-vue-next";
+import TimingFunctionPanel from "./TimingFunctionPanel.vue";
+import { useAnimationSync } from "./useAnimationSync";
 import IconTooltip from "@components/custom/IconTooltip.vue";
 
 import { Teleport, computed, onMounted, onUnmounted, ref, watch } from "vue";
 import {
-    defaultStoredAnimationOptions,
     getStoredAnimationOptions,
 } from "./animationStores";
 import AnimationVisualizer from "./AnimationVisualizer.vue";
@@ -516,27 +447,13 @@ const advancedOpen = ref(false);
 
 // rAF-driven reactivity bridge: animation is markRaw, so Vue can't track
 // property changes. We sync reactive refs every frame for the slider + buttons.
-const currentT = ref(animation.effectiveT);
-const isAnimPlaying = ref(animation.playing());
-const isAnimStarted = ref(animation.started);
-let syncRafId: number | null = null;
+const { currentT, isPlaying: isAnimPlaying, isStarted: isAnimStarted } = useAnimationSync(animation);
 
-const syncAnimationState = () => {
-    currentT.value = animation.effectiveT;
-    isAnimPlaying.value = animation.playing();
-    isAnimStarted.value = animation.started;
-    syncRafId = requestAnimationFrame(syncAnimationState);
+const userReversed = ref(false);
+const toggleReverse = () => {
+    animation.reverse();
+    userReversed.value = !userReversed.value;
 };
-
-onMounted(() => {
-    syncRafId = requestAnimationFrame(syncAnimationState);
-});
-
-onUnmounted(() => {
-    if (syncRafId !== null) {
-        cancelAnimationFrame(syncRafId);
-    }
-});
 
 // Track whether to show the detail panel
 const showDetailPanel = computed(
@@ -662,6 +579,11 @@ const toggleAnimation = () => {
     }
 };
 
+onUnmounted(() => {
+    // Clean up any pending pointerup listener from slider scrubbing
+    window.removeEventListener("pointerup", onSliderUp);
+});
+
 onMounted(() => {
     updateTimingFunctionFromName(
         storedAnimationOptions.animationOptions.timingFunction as TimingFunctionNames,
@@ -691,16 +613,18 @@ onMounted(() => {
 }
 
 /* Timeline slider: pastel green track */
+.timeline-slider {
+    --slider-track-color: hsl(142 40% 72%);
+    --slider-border-color: hsl(142 40% 60%);
+}
+:global(.dark) .timeline-slider {
+    --slider-track-color: hsl(142 30% 40%);
+    --slider-border-color: hsl(142 30% 50%);
+}
 .timeline-slider :deep(.bg-primary) {
-    background-color: hsl(142 40% 72%);
+    background-color: var(--slider-track-color);
 }
 .timeline-slider :deep(.border-primary) {
-    border-color: hsl(142 40% 60%);
-}
-:global(.dark) .timeline-slider :deep(.bg-primary) {
-    background-color: hsl(142 30% 40%);
-}
-:global(.dark) .timeline-slider :deep(.border-primary) {
-    border-color: hsl(142 30% 50%);
+    border-color: var(--slider-border-color);
 }
 </style>

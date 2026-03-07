@@ -134,131 +134,18 @@
         ></div>
 
         <!-- Bottom menubar -->
-        <div
-            :class="[
-                'p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] m-0 z-50 flex items-center justify-center justify-items-center transition-all duration-300 ease-out',
-                'fixed bottom-0 left-0 right-0 lg:static lg:col-span-full lg:row-start-3',
-            ]"
-        >
-            <Menubar
-                class="flex items-center justify-items-center border-none rounded-xl p-2.5 px-5 gap-4"
-            >
-                <MenubarMenu>
-                    <IconTooltip text="Select animation">
-                    <div class="relative flex items-center gap-1.5">
-                        <Select
-                            class="p-0 m-0 cursor-pointer"
-                            :model-value="storedControls.selectedAnimation"
-                            @update:model-value="
-                                (key) => {
-                                    storedControls.selectedAnimation = String(key);
-                                    if (!animationGroup.started) {
-                                        animationGroup.play();
-                                        syncPlayState(true);
-                                    }
-                                }
-                            "
-                        >
-                            <SelectTrigger
-                                class="border-none rounded-none h-4 focus:ring-0 hover:scale-105 fira-code"
-                            >
-                                <SelectIcon v-if="!storedControls.selectedAnimation"
-                                    ><List></List
-                                ></SelectIcon>
-                                <SelectValue class="text-ellipsis">{{
-                                    storedControls.selectedAnimation
-                                }}</SelectValue>
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectGroup class="fira-code">
-                                    <template
-                                        v-for="[key, groupObj] in Object.entries(
-                                            animationGroup.animations,
-                                        )"
-                                    >
-                                        <SelectItem class="" :value="key">
-                                            <span class="flex items-center gap-2">
-                                                <span
-                                                    :class="[
-                                                        'inline-block w-2.5 h-2.5 rounded-full transition-colors duration-300',
-                                                        !isPlaying && isStarted
-                                                            ? 'bg-yellow-500'
-                                                            : !isPlaying
-                                                              ? 'bg-gray-400'
-                                                              : '',
-                                                    ]"
-                                                    :style="isPlaying ? dotStyle(key) : {}"
-                                                ></span>
-                                                <span :class="storedControls.selectedAnimation === key ? 'font-bold' : ''">{{ key }}</span>
-                                            </span>
-                                        </SelectItem>
-                                    </template>
-                                </SelectGroup>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    </IconTooltip>
-                </MenubarMenu>
-
-                <IconTooltip text="Reset animation">
-                    <span class="flex items-center gap-1.5 cursor-pointer" @click="() => { resetIconSpin(); reset(false); }">
-                        <RotateCcw
-                            ref="resetIconEl"
-                            class="p-0 m-0 hover:scale-105"
-                        />
-                        <span class="fira-code text-xs whitespace-nowrap">Reset</span>
-                    </span>
-                </IconTooltip>
-
-                <IconTooltip text="Clear all & reload">
-                    <span class="flex items-center gap-1.5 cursor-pointer" @click="() => { trashIconShake(); reset(true); }">
-                        <Trash
-                            ref="trashIconEl"
-                            class="p-0 m-0 hover:scale-105"
-                        />
-                        <span class="fira-code text-xs whitespace-nowrap">Clear</span>
-                    </span>
-                </IconTooltip>
-
-                <MenubarMenu>
-                    <IconTooltip :text="isPlaying ? 'Pause' : 'Play'">
-                        <Button
-                            :class="[
-                                'text-xl text-white cursor-pointer rounded-xl hover:scale-105 transition-all duration-150',
-                                'w-14 h-8',
-                                isPlaying ? 'rainbow-vivid' : 'rainbow-pastel',
-                            ]"
-                            @click="toggleAnimationGroup"
-                        >
-                            <font-awesome-icon
-                                class="icon"
-                                :icon="
-                                    isPlaying
-                                        ? ['fas', 'pause']
-                                        : ['fas', 'play']
-                                "
-                            />
-                        </Button>
-                    </IconTooltip>
-                </MenubarMenu>
-
-                <!-- Timeline controls merged into menubar when expanded -->
-                <template v-if="storedControls.isTimelineExpanded">
-                    <!-- Vertical divider -->
-                    <div class="w-px h-5 bg-border/60 mx-1"></div>
-
-                    <IconTooltip text="Collapse timeline">
-                        <Minimize2
-                            class="p-0 m-0 cursor-pointer hover:scale-105"
-                            @click="storedControls.isTimelineExpanded = false"
-                        />
-                    </IconTooltip>
-
-                    <span class="fira-code text-[10px] text-muted-foreground whitespace-nowrap">Timeline</span>
-                </template>
-
-            </Menubar>
-        </div>
+        <AnimationMenuBar
+            ref="menuBarRef"
+            :stored-controls="storedControls"
+            :is-playing="isPlaying"
+            :is-started="isStarted"
+            :animation-progress="animationProgress"
+            :animation-names="Object.keys(animationGroup.animations)"
+            @toggle-play="toggleAnimationGroup"
+            @reset="(all: boolean) => all ? clear() : reset()"
+            @select-animation="onSelectAnimation"
+            @expand-timeline="(v) => { storedControls.isTimelineExpanded = v; }"
+        />
     </div>
 
     </TooltipProvider>
@@ -282,42 +169,24 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onUnmounted, reactive, ref, Teleport, useTemplateRef, watch } from "vue";
+import { computed, onUnmounted, reactive, ref, Teleport, watch } from "vue";
 import { Toaster, toast } from "vue-sonner";
-
-import {
-    Menubar,
-    MenubarMenu,
-} from "@components/ui/menubar";
 
 import {
     Camera,
     Copy,
     Download,
     FilePlus2,
-    List,
-    Minimize2,
     Paintbrush,
     Sparkles,
-    Trash,
     Upload,
 } from "lucide-vue-next";
 
-import {
-    Select,
-    SelectContent,
-    SelectGroup,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@components/ui/select";
-
-import { RotateCcw } from "lucide-vue-next";
-import IconTooltip from "@components/custom/IconTooltip.vue";
 import { TooltipProvider } from "@components/ui/tooltip";
 
-import { Animation, CSSKeyframesAnimation } from "@src/animation/index";
+import { Animation } from "@src/animation/index";
 import AnimationControls from "./AnimationControls.vue";
+import AnimationMenuBar from "./AnimationMenuBar.vue";
 import Button from "@components/ui/button/Button.vue";
 import { Card, CardContent } from "@components/ui/card";
 
@@ -325,7 +194,6 @@ import {
     getStoredAnimationGroupControlOptions,
     resetAllStores,
 } from "./animationStores";
-import { SelectIcon } from "reka-ui";
 import { AnimationGroup } from "@src/animation/group";
 import { registerShortcut } from "@composables/useKeyboardShortcuts";
 
@@ -405,13 +273,14 @@ watch(isPlaying, (playing) => {
     }
 });
 
-const dotStyle = (name: string): Record<string, string> => {
-    const p = animationProgress.value[name] ?? 0;
-    const deg = p * 360;
-    return {
-        background: `conic-gradient(rgb(34, 197, 94) ${deg}deg, rgba(34, 197, 94, 0.15) ${deg}deg)`,
-        boxShadow: `0 0 ${2 + p * 3}px ${p * 1.5}px rgba(34, 197, 94, 0.4)`,
-    };
+const menuBarRef = ref<InstanceType<typeof AnimationMenuBar> | null>(null);
+
+const onSelectAnimation = (name: string) => {
+    storedControls.selectedAnimation = name;
+    if (!animationGroup.started) {
+        animationGroup.play();
+        syncPlayState(true);
+    }
 };
 
 const syncPlayState = (playing?: boolean) => {
@@ -492,63 +361,17 @@ const keyframesUpdate = (e: { animation: Animation<any> }) => {
     }
 };
 
-const reset = (all: boolean = false) => {
+const reset = () => {
+    animationGroup.stop();
+    syncPlayState();
+};
+
+const clear = () => {
     animationGroup.stop();
     syncPlayState();
     storedControls.selectedAnimation = null as any;
-
-    if (all) {
-        resetAllStores();
-        window.location.reload();
-    }
-};
-
-const resetIconEl = useTemplateRef<HTMLElement>("resetIconEl");
-const trashIconEl = useTemplateRef<HTMLElement>("trashIconEl");
-
-/** Resolve a template ref to a raw HTMLElement (handles component instances). */
-const resolveEl = (ref: any): HTMLElement | null => {
-    if (!ref) return null;
-    if (ref instanceof HTMLElement) return ref;
-    return ref.$el instanceof HTMLElement ? ref.$el : null;
-};
-
-const resetSpinAnim = new CSSKeyframesAnimation({
-    duration: 400,
-    timingFunction: "easeOutCubic",
-}).fromString(/*css*/ `@keyframes twist {
-    0% { transform: perspective(200px) rotateY(0deg) scale(1); }
-    40% { transform: perspective(200px) rotateY(-180deg) scale(0.85); }
-    100% { transform: perspective(200px) rotateY(-360deg) scale(1); }
-}`);
-
-const trashShakeAnim = new CSSKeyframesAnimation({
-    duration: 400,
-    timingFunction: "easeInOutCubic",
-}).fromString(/*css*/ `@keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    20% { transform: translateX(-3px) rotate(-5deg); }
-    40% { transform: translateX(3px) rotate(5deg); }
-    60% { transform: translateX(-2px) rotate(-3deg); }
-    80% { transform: translateX(2px) rotate(3deg); }
-}`);
-
-const resetIconSpin = () => {
-    const el = resolveEl(resetIconEl.value);
-    if (el) {
-        resetSpinAnim.setTargets(el);
-        resetSpinAnim.reset();
-        resetSpinAnim.play();
-    }
-};
-
-const trashIconShake = () => {
-    const el = resolveEl(trashIconEl.value);
-    if (el) {
-        trashShakeAnim.setTargets(el);
-        trashShakeAnim.reset();
-        trashShakeAnim.play();
-    }
+    resetAllStores();
+    window.location.reload();
 };
 
 onUnmounted(() => {
@@ -557,22 +380,22 @@ onUnmounted(() => {
 
 // --- Keyboard shortcuts ---
 
-registerShortcut("Space", () => toggleAnimationGroup(), { preventDefault: true });
-registerShortcut("Escape", () => reset(false));
-registerShortcut("Home", () => scrubActive(0), { preventDefault: true });
-registerShortcut("End", () => scrubActive(1), { preventDefault: true });
-registerShortcut("ArrowLeft", () => scrubActive(getActiveT() - 0.01), { preventDefault: true });
-registerShortcut("ArrowRight", () => scrubActive(getActiveT() + 0.01), { preventDefault: true });
-registerShortcut("Shift+ArrowLeft", () => scrubActive(getActiveT() - 0.1), { preventDefault: true });
-registerShortcut("Shift+ArrowRight", () => scrubActive(getActiveT() + 0.1), { preventDefault: true });
-registerShortcut("1", () => switchTab("controls"));
-registerShortcut("2", () => switchTab("keyframes"));
-registerShortcut("3", () => switchTab("timeline"));
-registerShortcut("[", () => cycleAnimation(-1));
-registerShortcut("]", () => cycleAnimation(1));
-registerShortcut("Mod+S", () => activeKeyframesRef.value?.copyCSS?.(), { preventDefault: true });
-registerShortcut("R", () => { resetIconSpin(); reset(false); });
-registerShortcut("Delete", () => activeTimelineRef.value?.removeSelectedKeyframe?.());
+registerShortcut("Space", () => toggleAnimationGroup(), { preventDefault: true, label: "Play / Pause", group: "Playback" });
+registerShortcut("Escape", () => reset(), { label: "Stop animation", group: "Playback" });
+registerShortcut("R", () => { menuBarRef.value?.resetIconSpin(); reset(); }, { label: "Reset animation", group: "Playback" });
+registerShortcut("ArrowLeft", () => scrubActive(getActiveT() - 0.01), { preventDefault: true, label: "Scrub back", group: "Playback" });
+registerShortcut("ArrowRight", () => scrubActive(getActiveT() + 0.01), { preventDefault: true, label: "Scrub forward", group: "Playback" });
+registerShortcut("Shift+ArrowLeft", () => scrubActive(getActiveT() - 0.1), { preventDefault: true, label: "Scrub back (large)", group: "Playback" });
+registerShortcut("Shift+ArrowRight", () => scrubActive(getActiveT() + 0.1), { preventDefault: true, label: "Scrub forward (large)", group: "Playback" });
+registerShortcut("Home", () => scrubActive(0), { preventDefault: true, label: "Jump to start", group: "Playback" });
+registerShortcut("End", () => scrubActive(1), { preventDefault: true, label: "Jump to end", group: "Playback" });
+registerShortcut("[", () => cycleAnimation(-1), { label: "Previous animation", group: "Navigation" });
+registerShortcut("]", () => cycleAnimation(1), { label: "Next animation", group: "Navigation" });
+registerShortcut("1", () => switchTab("controls"), { label: "Controls tab", group: "Navigation" });
+registerShortcut("2", () => switchTab("keyframes"), { label: "Keyframes tab", group: "Navigation" });
+registerShortcut("3", () => switchTab("timeline"), { label: "Timeline tab", group: "Navigation" });
+registerShortcut("Mod+S", () => activeKeyframesRef.value?.copyCSS?.(), { preventDefault: true, label: "Copy CSS", group: "Actions" });
+registerShortcut("Delete", () => activeTimelineRef.value?.removeSelectedKeyframe?.(), { label: "Delete keyframe", group: "Actions" });
 
 function getActiveT(): number {
     const name = storedControls.selectedAnimation;
@@ -629,49 +452,23 @@ function cycleAnimation(direction: number) {
         opacity: 1;
         transition: opacity 0.2s ease-out;
     }
+    .controls-pane {
+        --controls-card-shadow: 8px 8px 0px 0px rgba(0,0,0,0.8);
+        --controls-card-shadow-hover: 9px 9px 0px 0px rgba(0,0,0,0.8);
+    }
     .controls-pane :deep(.controls-card) {
-        box-shadow: 8px 8px 0px 0px rgba(0,0,0,0.8);
+        box-shadow: var(--controls-card-shadow);
         transition: box-shadow 0.3s ease-out;
     }
     .controls-pane:hover :deep(.controls-card) {
-        box-shadow: 9px 9px 0px 0px rgba(0,0,0,0.8);
+        box-shadow: var(--controls-card-shadow-hover);
     }
 }
 @media (min-width: 1024px) {
-    :global(.dark) .controls-pane :deep(.controls-card) {
-        box-shadow: 8px 8px 0px 0px hsl(var(--shadow) / 0.5);
-    }
-    :global(.dark) .controls-pane:hover :deep(.controls-card) {
-        box-shadow: 9px 9px 0px 0px hsl(var(--shadow) / 0.6);
+    :global(.dark) .controls-pane {
+        --controls-card-shadow: 8px 8px 0px 0px hsl(var(--shadow) / 0.5);
+        --controls-card-shadow-hover: 9px 9px 0px 0px hsl(var(--shadow) / 0.6);
     }
 }
 
-.rainbow-pastel {
-    background: linear-gradient(
-        90deg,
-        hsl(0, 50%, 78%) 0%,
-        hsl(25, 55%, 76%) 12.5%,
-        hsl(50, 55%, 78%) 25%,
-        hsl(130, 35%, 74%) 37.5%,
-        hsl(220, 45%, 76%) 50%,
-        hsl(260, 35%, 76%) 62.5%,
-        hsl(280, 40%, 78%) 75%,
-        hsl(0, 50%, 78%) 100%
-    );
-    transition: filter 0.3s ease;
-}
-.rainbow-vivid {
-    background: linear-gradient(
-        90deg,
-        hsl(0, 85%, 60%) 0%,
-        hsl(30, 90%, 55%) 14%,
-        hsl(55, 90%, 55%) 28%,
-        hsl(130, 70%, 50%) 42%,
-        hsl(210, 80%, 55%) 57%,
-        hsl(260, 70%, 60%) 71%,
-        hsl(300, 75%, 60%) 85%,
-        hsl(0, 85%, 60%) 100%
-    );
-    transition: filter 0.3s ease;
-}
 </style>

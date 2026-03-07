@@ -27,6 +27,7 @@ import {
 } from "@src/parsing/keyframes";
 
 import { onMounted, onUnmounted, ref, useTemplateRef } from "vue";
+import { useHighlightCSS } from "./useHighlightCSS";
 
 import {
     Paintbrush,
@@ -146,21 +147,21 @@ const onEditorChange = (value: string) => {
     }
 };
 
-const keyframesStyle = ref<HTMLStyleElement | null>(null);
+const { setContent, clear } = useHighlightCSS(keyframesStyleId);
 
 const prevPaused = ref(false);
 
 const applyCSSStyles = () => {
     if (cssApplied.value) {
         animation.paused = prevPaused.value;
-        keyframesStyle.value!.textContent = "";
+        clear();
         animation.targets.forEach((t) => t.classList.remove(getTmpAnimationName()));
         brushAnimation.pause();
         cssApplied.value = false;
     } else {
         prevPaused.value = animation.paused;
         animation.paused = animation.started;
-        keyframesStyle.value!.textContent = cssKeyframesString.value;
+        setContent(cssKeyframesString.value);
         animation.targets.forEach((t) => t.classList.add(getTmpAnimationName()));
         brushAnimation.play();
         cssApplied.value = true;
@@ -184,24 +185,10 @@ const brushAnimation = new CSSKeyframesAnimation({
     }`,
 );
 
-const createKeyframesStyleEl = () => {
-    const existingKeyframesStyle = document.head.querySelector(`#${keyframesStyleId}`);
-
-    if (!existingKeyframesStyle) {
-        keyframesStyle.value = document.createElement("style");
-        keyframesStyle.value.id = keyframesStyleId;
-
-        document.head.appendChild(keyframesStyle.value);
-    } else {
-        keyframesStyle.value = existingKeyframesStyle as HTMLStyleElement;
-    }
-};
-
 const parseErrorShake = animations.shake();
 
 onMounted(async () => {
     brushAnimation.setTargets(brushEl.value!);
-    createKeyframesStyleEl();
     await updateCSSAnimationKeyframesStringFromAnimation();
 });
 

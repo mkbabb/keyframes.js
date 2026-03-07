@@ -7,4 +7,7 @@ export { default as Animated } from "./Animated.vue";
 export { default as KeyframesEditor } from "./KeyframesEditor.vue";
 export { default as AnimationControlsControls } from "./AnimationControlsControls.vue";
 export { default as AnimationVisualizer } from "./AnimationVisualizer.vue";
+export { default as AnimationMenuBar } from "./AnimationMenuBar.vue";
+export { default as TimingFunctionPanel } from "./TimingFunctionPanel.vue";
+export { useAnimationSync } from "./useAnimationSync";
 // export { default as CommandPalette } from "./CommandPalette.vue";
