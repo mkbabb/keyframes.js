@@ -7,33 +7,12 @@
 
 <script setup lang="ts">
 import { onMounted, useTemplateRef } from "vue";
-import { CSSKeyframesAnimation } from "@src/animation";
 import { AnimationControls } from "@components/custom/animation-controls";
 import "@styles/style.css";
+import { useSimpleAnimations } from "./useSimpleAnimations";
 
 const box = useTemplateRef<HTMLElement>("box");
-
-const anim = new CSSKeyframesAnimation({
-    duration: 2000,
-    iterationCount: Infinity,
-    direction: "alternate",
-    fillMode: "forwards",
-});
-
-const CSSKeyframes = /*css*/ `
-@keyframes mijn-keyframes {
-    0% {
-        transform: translateX(-100%) translateY(-100%) rotate(0turn);
-        background-color: #C462D8;
-    }
-    100% {
-        transform: translateX(50%) translateY(75%) rotate(1turn);
-        background-color: #E85252;
-    }
-}
-`;
-
-anim.fromString(CSSKeyframes);
+const { anim } = useSimpleAnimations();
 
 onMounted(() => {
     anim.setTargets(box.value!);
