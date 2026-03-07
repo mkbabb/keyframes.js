@@ -259,9 +259,9 @@ onUnmounted(() => {
     inertia.pause();
 });
 
-// Dampen velocities on release of drag/touch
+// Dampen velocities on release of drag/touch/wheel
 watch(
-    () => pointer.isDragging.value || pointer.isTouching.value,
+    () => pointer.isDragging.value || pointer.isTouching.value || pointer.isWheeling.value,
     (active) => {
         if (active) return;
 

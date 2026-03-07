@@ -255,6 +255,8 @@ export function useOrbitalPointer(params: OrbitalPointerParams) {
         if (wheelTimeout) clearTimeout(wheelTimeout);
         wheelTimeout = setTimeout(() => {
             isWheeling.value = false;
+            // Kill residual velocity — wheel has no meaningful "release momentum"
+            angularVelocitySpeed.value = 0;
         }, 150);
 
         if (
@@ -314,6 +316,8 @@ export function useOrbitalPointer(params: OrbitalPointerParams) {
     };
 
     const onPointerDown = (event: PointerEvent) => {
+        // Prevent iOS Safari from initiating its own gesture handling
+        event.preventDefault();
         startDrag(event);
         containerRef.value!.setPointerCapture(event.pointerId);
         const doc = containerRef.value!.ownerDocument;
