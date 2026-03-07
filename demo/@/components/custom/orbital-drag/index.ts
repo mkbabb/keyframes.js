@@ -1,6 +1,7 @@
 import { mat4 } from "gl-matrix";
 
 export { default as OrbitalDrag } from "./OrbitalDrag.vue";
+export type { GestureEvent, PressedKeys } from "./types";
 
 export const axes = ["x", "y", "z"] as const;
 
