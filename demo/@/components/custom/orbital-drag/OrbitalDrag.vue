@@ -105,12 +105,18 @@ const quaternionToEulerDegrees = (q: quat) => {
     };
 };
 
+/** Set by gesture composables during active interaction to suppress emit overhead. */
+let isInteracting = false;
+
 const syncRotationToModel = () => {
     const angles = quaternionToEulerDegrees(currentQuaternion);
     model.value.rotate.x = angles.x;
     model.value.rotate.y = angles.y;
     model.value.rotate.z = angles.z;
-    emit("rotate", { ...model.value.rotate });
+    // Skip emit during active interaction to reduce reactivity cascade on iOS
+    if (!isInteracting) {
+        emit("rotate", { ...model.value.rotate });
+    }
 };
 
 const applyRotation = (axis: vec3, angle: number) => {
@@ -259,11 +265,15 @@ onUnmounted(() => {
     inertia.pause();
 });
 
-// Dampen velocities on release of drag/touch/wheel
+// Dampen velocities on release of drag/touch/wheel + emit deferred rotation
 watch(
     () => pointer.isDragging.value || pointer.isTouching.value || pointer.isWheeling.value,
     (active) => {
+        isInteracting = active;
         if (active) return;
+
+        // Emit final rotation now that interaction ended
+        emit("rotate", { ...model.value.rotate });
 
         angularVelocitySpeed.value *= 0.5;
 

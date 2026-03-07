@@ -38,7 +38,7 @@
                                 'cube-side',
                                 side.class,
                                 'rounded-lg',
-                                'transition-all duration-500 ease-in-out',
+                                'transition-[background-color,opacity] duration-500 ease-in-out',
                                 'absolute z-10 flex items-center justify-center',
                             ]"
                         >

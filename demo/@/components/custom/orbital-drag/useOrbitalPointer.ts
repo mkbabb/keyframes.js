@@ -180,9 +180,12 @@ export function useOrbitalPointer(params: OrbitalPointerParams) {
             activeTouchPointers.delete(event.pointerId);
             isDragging.value = activeTouchPointers.size > 0;
             isTouching.value = activeTouchPointers.size > 0;
-            // Flag pinch-to-single-finger transition to avoid rotation jump
             if (wasPinching && activeTouchPointers.size === 1) {
+                // Flag pinch-to-single-finger transition to avoid rotation jump
                 justExitedPinch.value = true;
+            } else if (activeTouchPointers.size === 0) {
+                // Clear stale flag when all fingers lift
+                justExitedPinch.value = false;
             }
         } else {
             isDragging.value = false;
@@ -306,13 +309,39 @@ export function useOrbitalPointer(params: OrbitalPointerParams) {
         drag(event);
     };
 
-    const onPointerUp = (event: PointerEvent) => {
-        stopDrag(event);
-        containerRef.value?.releasePointerCapture(event.pointerId);
+    const removeDocListeners = () => {
         const doc = containerRef.value?.ownerDocument ?? document;
         doc.removeEventListener("pointermove", onPointerMove);
         doc.removeEventListener("pointerup", onPointerUp);
-        doc.removeEventListener("pointercancel", onPointerUp);
+        doc.removeEventListener("pointercancel", onPointerCancel);
+    };
+
+    const onPointerUp = (event: PointerEvent) => {
+        stopDrag(event);
+        try {
+            containerRef.value?.releasePointerCapture(event.pointerId);
+        } catch { /* iOS may throw if already released */ }
+        // Only remove doc listeners when no touch pointers remain
+        if (event.pointerType !== "touch" || activeTouchPointers.size === 0) {
+            removeDocListeners();
+        }
+    };
+
+    const onPointerCancel = (event: PointerEvent) => {
+        if (event.pointerType === "touch") {
+            // On iOS Safari, pointercancel during pinch means
+            // we can't trust remaining touch state
+            activeTouchPointers.clear();
+            isDragging.value = false;
+            isTouching.value = false;
+            justExitedPinch.value = false;
+        } else {
+            stopDrag(event);
+        }
+        try {
+            containerRef.value?.releasePointerCapture(event.pointerId);
+        } catch { /* iOS may throw if already released */ }
+        removeDocListeners();
     };
 
     const onPointerDown = (event: PointerEvent) => {
@@ -323,7 +352,7 @@ export function useOrbitalPointer(params: OrbitalPointerParams) {
         const doc = containerRef.value!.ownerDocument;
         doc.addEventListener("pointermove", onPointerMove);
         doc.addEventListener("pointerup", onPointerUp);
-        doc.addEventListener("pointercancel", onPointerUp);
+        doc.addEventListener("pointercancel", onPointerCancel);
     };
 
     return {
