@@ -63,7 +63,7 @@
                         </div>
                     </div>
                     <hr class="my-2 border-border/50" />
-                    <a href="https://github.com/mkbabb/keyframes.js" target="_blank" rel="noopener noreferrer" class="block text-sm text-foreground hover:underline">View project on GitHub 🎊</a>
+                    <a href="https://github.com/mkbabb/keyframes.js" target="_blank" rel="noopener noreferrer" class="block text-sm text-foreground hover:underline">View project on GitHub 🎉</a>
                 </HoverCardContent>
             </HoverCard>
         </template>
