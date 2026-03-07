@@ -342,6 +342,9 @@ const toggleAnimationGroup = () => {
         if (!storedControls.selectedAnimation) {
             const allNames = Object.keys(animationGroup.animations);
             storedControls.selectedAnimation = allNames[0] ?? null;
+            // On mobile, don't auto-expand the controls panel when auto-selecting
+            // (desktop ignores this via lg:!max-h-full override)
+            storedControls.isControlsPanelOpen = false;
         }
 
         animationGroup.play();

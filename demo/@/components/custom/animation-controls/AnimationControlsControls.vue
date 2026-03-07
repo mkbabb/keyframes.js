@@ -521,15 +521,22 @@ const onSliderCommit = () => {
     }
 };
 
-const scrubTo = (t: number) => {
+const scrubTo = (effectiveT: number) => {
+    // Slider and visualizer operate in effectiveT space (visual position).
+    // Convert to raw t for internal animation state.
+    const rawT = animation.reversed
+        ? animation.options.duration - effectiveT
+        : effectiveT;
+
     if (!isGrouped) {
         const paused = animation.paused;
         animation.paused = false;
-        animation.interpFrames(t, true);
+        animation.t = rawT;
+        animation.interpFrames(effectiveT, true);
         animation.paused = paused;
     } else {
         emit("sliderUpdate", {
-            t,
+            t: rawT,
             animation,
         });
     }
