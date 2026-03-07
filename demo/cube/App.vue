@@ -41,7 +41,7 @@
                 :open-delay="0"
             >
                 <HoverCardTrigger
-                    @click="hoverCardStates.mbabb = true"
+                    @click="hoverCardStates.mbabb = !hoverCardStates.mbabb"
                     class="fira-code"
                 >
                     <Button
@@ -50,29 +50,20 @@
                         >@mbabb</Button
                     >
                 </HoverCardTrigger>
-                <HoverCardContent class="z-[100]">
-                    <div class="fira-code flex gap-4 p-4">
+                <HoverCardContent class="z-[100] p-4 min-w-[17rem]">
+                    <div class="flex items-center gap-3">
                         <Avatar>
                             <AvatarImage
                                 src="https://avatars.githubusercontent.com/u/2848617?v=4"
                             ></AvatarImage>
                         </Avatar>
-                        <div>
-                            <h4 class="text-sm font-semibold hover:underline">
-                                <a href="https://github.com/mkbabb"
-                                    >@mbabb</a
-                                >
-                            </h4>
-                            <p>
-                                Check out the project on
-                                <a
-                                    class="font-bold hover:underline"
-                                    href="https://github.com/mkbabb/keyframes.js"
-                                    >GitHub</a
-                                >&#x1F389;
-                            </p>
+                        <div class="flex-1 min-w-0">
+                            <a href="https://github.com/mkbabb" target="_blank" rel="noopener noreferrer" class="fira-code text-sm font-semibold text-foreground hover:underline">@mbabb</a>
+                            <p class="mt-0.5 text-xs italic text-muted-foreground">CSS keyframe animation engine</p>
                         </div>
                     </div>
+                    <hr class="my-2 border-border/50" />
+                    <a href="https://github.com/mkbabb/keyframes.js" target="_blank" rel="noopener noreferrer" class="block text-sm text-foreground hover:underline">View project on GitHub</a>
                 </HoverCardContent>
             </HoverCard>
         </template>
