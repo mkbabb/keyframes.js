@@ -42,7 +42,7 @@
             >
                 <HoverCardTrigger
                     @click="hoverCardStates.mbabb = !hoverCardStates.mbabb"
-                    class="fira-code"
+                    class="font-mono"
                 >
                     <Button
                         class="m-0 cursor-pointer p-0 text-xs lg:text-sm"
@@ -58,7 +58,7 @@
                             ></AvatarImage>
                         </Avatar>
                         <div class="flex-1 min-w-0">
-                            <a href="https://github.com/mkbabb" target="_blank" rel="noopener noreferrer" class="fira-code text-sm font-semibold text-foreground hover:underline">@mbabb</a>
+                            <a href="https://github.com/mkbabb" target="_blank" rel="noopener noreferrer" class="font-mono text-sm font-semibold text-foreground hover:underline">@mbabb</a>
                             <p class="mt-0.5 text-xs italic text-muted-foreground">CSS keyframe animation engine</p>
                         </div>
                     </div>
