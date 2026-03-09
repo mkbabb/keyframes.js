@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useVModel } from '@vueuse/core'
 import { ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import type { Calendar } from 'v-calendar'
 import { DatePicker } from 'v-calendar'
@@ -30,7 +29,6 @@ defineOptions({
   inheritAttrs: false,
 })
 const props = withDefaults(defineProps< {
-  modelValue?: string | number | Date | DatePickerModel
   modelModifiers?: object
   columns?: number
   type?: 'single' | 'range'
@@ -38,13 +36,8 @@ const props = withDefaults(defineProps< {
   type: 'single',
   columns: 1,
 })
-const emits = defineEmits<{
-  (e: 'update:modelValue', payload: typeof props.modelValue): void
-}>()
 
-const modelValue = useVModel(props, 'modelValue', emits, {
-  passive: true,
-})
+const modelValue = defineModel<string | number | Date | DatePickerModel>()
 
 const datePicker = ref<InstanceType<typeof DatePicker>>()
 // @ts-expect-error in this current version of v-calendar has the calendaRef instance, which is required to handle arrow nav.

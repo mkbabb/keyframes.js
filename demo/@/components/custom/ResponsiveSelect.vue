@@ -2,10 +2,8 @@
     <template v-if="!isMobile">
         <!-- Desktop: normal Select -->
         <Select
-            :model-value="modelValue"
-            :open="open"
-            @update:open="(v: boolean) => emit('update:open', v)"
-            @update:model-value="(v: any) => emit('update:modelValue', v)"
+            v-model="modelValue"
+            v-model:open="open"
         >
             <SelectTrigger :class="triggerClass">
                 <slot name="trigger" :value="modelValue">
@@ -63,7 +61,7 @@
                         :key="item.value"
                         @click="
                             () => {
-                                emit('update:modelValue', item.value);
+                                modelValue = item.value;
                                 drawerOpen = false;
                             }
                         "
@@ -119,21 +117,17 @@ export interface ResponsiveSelectItem {
     label?: string;
 }
 
-const props = defineProps<{
-    modelValue: string;
+defineProps<{
     items: ResponsiveSelectItem[];
     class?: string;
     triggerClass?: string;
     contentClass?: string;
     groupClass?: string;
     title?: string;
-    open?: boolean;
 }>();
 
-const emit = defineEmits<{
-    (e: "update:modelValue", value: string): void;
-    (e: "update:open", value: boolean): void;
-}>();
+const modelValue = defineModel<string>({ required: true });
+const open = defineModel<boolean>('open');
 
 const isMobile = useMediaQuery("(max-width: 1023px)");
 const drawerOpen = ref(false);
