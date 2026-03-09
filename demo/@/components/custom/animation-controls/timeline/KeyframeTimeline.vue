@@ -177,62 +177,24 @@
     </Card>
 
     <!-- Import dialog -->
-        <Dialog v-model:open="importDialogOpen">
-            <DialogContent>
-                <DialogTitle class="instrument-serif text-lg font-medium"
-                    >Import CSS @keyframes</DialogTitle
-                >
-                <DialogDescription class="instrument-serif text-lg text-muted-foreground"
-                    >Paste CSS @keyframes to load into the timeline</DialogDescription
-                >
-                <pre
-                    ref="importTextEl"
-                    @input="
-                        (e) => {
-                            importText = (e.target as HTMLElement).innerText;
-                        }
-                    "
-                    class="fira-code min-h-[20vh] p-3 cursor-text rounded-lg text-sm bg-muted/50 outline-none border border-border"
-                    contenteditable="true"
-                ><code>{{ importText }}</code></pre>
-                <DialogFooter>
-                    <Button
-                        class="cursor-pointer gap-2"
-                        @click="doImport"
-                        >Import<Download class="w-4 h-4" />
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+        <CSSPasteDialog
+            v-model:open="importDialogOpen"
+            title="Import CSS @keyframes"
+            description="Paste CSS @keyframes to load into the timeline"
+            button-label="Import"
+            :button-icon="Download"
+            @submit="doImport"
+        />
 
         <!-- Add CSS dialog -->
-        <Dialog v-model:open="addCSSDialogOpen">
-            <DialogContent>
-                <DialogTitle class="instrument-serif text-lg font-medium"
-                    >Add CSS @keyframes</DialogTitle
-                >
-                <DialogDescription class="instrument-serif text-lg text-muted-foreground"
-                    >Paste CSS @keyframes to merge into the timeline</DialogDescription
-                >
-                <pre
-                    ref="addCSSTextEl"
-                    @input="
-                        (e) => {
-                            addCSSText = (e.target as HTMLElement).innerText;
-                        }
-                    "
-                    class="fira-code min-h-[20vh] p-3 cursor-text rounded-lg text-sm bg-muted/50 outline-none border border-border"
-                    contenteditable="true"
-                ><code>{{ addCSSText }}</code></pre>
-                <DialogFooter>
-                    <Button
-                        class="cursor-pointer gap-2"
-                        @click="doAddCSS"
-                        >Add<FilePlus2 class="w-4 h-4" />
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+        <CSSPasteDialog
+            v-model:open="addCSSDialogOpen"
+            title="Add CSS @keyframes"
+            description="Paste CSS @keyframes to merge into the timeline"
+            button-label="Add"
+            :button-icon="FilePlus2"
+            @submit="doAddCSS"
+        />
     </div>
 </template>
 
@@ -248,18 +210,12 @@ import {
     X,
 } from "lucide-vue-next";
 import IconTooltip from "@components/custom/IconTooltip.vue";
+import CSSPasteDialog from "@components/custom/CSSPasteDialog.vue";
 import { Button } from "@components/ui/button";
 import { Card, CardContent } from "@components/ui/card";
 import { Input } from "@components/ui/input";
 import { Separator } from "@components/ui/separator";
 import CSSCodeEditor from "../keyframes/CSSCodeEditor.vue";
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogTitle,
-} from "@components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip";
 import { useTimeline } from "./useTimeline";
 import TimelineCaret from "./TimelineCaret.vue";
@@ -299,9 +255,7 @@ const trackEl = useTemplateRef<HTMLElement>("trackEl");
 const selectedKeyframeId = ref<string | null>(null);
 const draggingKeyframeId = ref<string | null>(null);
 const importDialogOpen = ref(false);
-const importText = ref("");
 const addCSSDialogOpen = ref(false);
-const addCSSText = ref("");
 
 // --- Preview cache for diamond hover ---
 import type { TimelineKeyframe } from "./timelineTypes";
@@ -493,19 +447,17 @@ const onMarkerPointerDown = (event: PointerEvent, id: string) => {
     (event.target as Element).setPointerCapture(event.pointerId);
 };
 
-const doImport = () => {
-    if (importText.value.trim()) {
-        importCSS(importText.value);
+const doImport = (text: string) => {
+    if (text.trim()) {
+        importCSS(text);
         importDialogOpen.value = false;
-        importText.value = "";
     }
 };
 
-const doAddCSS = () => {
-    if (addCSSText.value.trim()) {
-        importCSS(addCSSText.value);
+const doAddCSS = (text: string) => {
+    if (text.trim()) {
+        importCSS(text);
         addCSSDialogOpen.value = false;
-        addCSSText.value = "";
     }
 };
 
