@@ -1,17 +1,25 @@
 <template>
     <div
-        class="pointer-events-none absolute top-0 left-0 right-0 lg:left-auto z-50 flex items-center justify-between lg:justify-end lg:gap-4 p-2 lg:p-4"
+        class="pointer-events-none absolute top-0 left-0 right-0 z-50 flex items-center justify-between p-2 lg:p-4"
+        @mouseleave="onGroupMouseLeave"
     >
-        <!-- Left section: always visible -->
-        <div class="pointer-events-auto flex items-center gap-2">
+        <!-- Left side — mobile sidebar toggle slot -->
+        <div class="pointer-events-auto shrink-0">
             <slot name="left"></slot>
         </div>
 
-        <div class="pointer-events-auto flex items-center gap-0">
-            <!-- Collapsible right items — accordion width -->
-            <div :class="['header-items-wrapper overflow-hidden flex items-center gap-2 lg:gap-4', isCollapsed ? 'header-collapsed' : '']">
-                <slot name="header-actions"></slot>
-                <slot name="right">
+        <div
+            class="pointer-events-auto flex items-center"
+            @mouseenter="onRibbonMouseEnter"
+        >
+            <!-- Collapsible items — accordion width -->
+            <div
+                :class="[
+                    'header-items-wrapper overflow-hidden flex items-center gap-2 lg:gap-4',
+                    isVisible ? '' : 'header-collapsed',
+                ]"
+            >
+                <slot name="items">
                     <SharePopover />
                     <DarkModeToggle
                         title="Toggle dark mode"
@@ -20,39 +28,89 @@
                 </slot>
             </div>
 
-            <!-- Three-dot toggle (desktop only) — always in same position -->
-            <button
-                @click="isCollapsed = !isCollapsed"
-                class="hidden lg:flex items-center justify-center p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/50 cursor-pointer transition-colors shrink-0"
-                :title="isCollapsed ? 'Show header' : 'Collapse header'"
+            <!-- Anchor — always visible, click to pin/unpin -->
+            <div
+                class="shrink-0"
+                @click="onAnchorClick"
             >
-                <EllipsisVertical class="w-4 h-4" />
-            </button>
+                <slot name="anchor" :pinned="isPinned"></slot>
+            </div>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
-import { EllipsisVertical } from "lucide-vue-next";
+import { ref, computed, onBeforeUnmount } from "vue";
 import SharePopover from "./SharePopover.vue";
 import { DarkModeToggle } from "@components/custom/dark-mode-toggle";
 
-const isCollapsed = ref(false);
+const isExpanded = ref(false);
+const isPinned = ref(false);
+
+let hoverTimeout: ReturnType<typeof setTimeout> | undefined;
+
+const isVisible = computed(() => isExpanded.value || isPinned.value);
+
+function clearHoverTimeout() {
+    if (hoverTimeout != null) {
+        clearTimeout(hoverTimeout);
+        hoverTimeout = undefined;
+    }
+}
+
+function startHideTimeout() {
+    clearHoverTimeout();
+    hoverTimeout = setTimeout(() => {
+        isExpanded.value = false;
+    }, 2000);
+}
+
+function onRibbonMouseEnter() {
+    clearHoverTimeout();
+    isExpanded.value = true;
+}
+
+function onGroupMouseLeave() {
+    if (!isPinned.value) {
+        startHideTimeout();
+    }
+}
+
+function onAnchorClick() {
+    if (isPinned.value) {
+        isPinned.value = false;
+        startHideTimeout();
+    } else {
+        isPinned.value = true;
+        isExpanded.value = true;
+        clearHoverTimeout();
+    }
+}
+
+onBeforeUnmount(() => {
+    clearHoverTimeout();
+});
 </script>
 
 <style scoped>
+.header-items-wrapper {
+    max-width: 500px;
+    margin-right: 0.5rem;
+    opacity: 1;
+    transition:
+        max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+        margin-right 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+        opacity 0.25s ease-out;
+}
 @media (min-width: 1024px) {
     .header-items-wrapper {
-        max-width: 500px;
-        opacity: 1;
-        transition: max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-                    opacity 0.25s ease-out;
+        margin-right: 1rem;
     }
-    .header-collapsed {
-        max-width: 0;
-        opacity: 0;
-        pointer-events: none;
-    }
+}
+.header-collapsed {
+    max-width: 0;
+    margin-right: 0;
+    opacity: 0;
+    pointer-events: none;
 }
 </style>

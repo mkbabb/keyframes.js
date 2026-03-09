@@ -6,15 +6,6 @@
         ]"
         v-bind="$attrs"
     >
-        <!-- Mobile restore button — shown when panel is closed -->
-        <button
-            v-if="storedControls.selectedAnimation && !storedControls.isControlsPanelOpen"
-            @click="storedControls.isControlsPanelOpen = true"
-            class="lg:hidden fixed top-14 left-2 z-50 p-2 rounded-lg bg-muted/50 backdrop-blur-sm text-muted-foreground hover:text-foreground cursor-pointer"
-        >
-            <PanelLeft class="w-4 h-4" />
-        </button>
-
         <div
             v-show="storedControls.selectedAnimation"
             @transitionend="onPanelTransitionEnd"
@@ -29,18 +20,11 @@
                 isMinimized ? 'controls-minimized' : '',
             ]"
         >
-            <!-- Mobile close button -->
-            <button
-                @click="storedControls.isControlsPanelOpen = false"
-                class="lg:hidden absolute top-2 right-2 z-30 p-1.5 rounded-lg bg-muted/50 text-muted-foreground hover:text-foreground cursor-pointer"
-            >
-                <X class="w-4 h-4" />
-            </button>
-            <!-- Restore button — appears when accordion is collapsed -->
+            <!-- Restore button — appears when accordion is collapsed (desktop only) -->
             <button
                 v-if="storedControls.selectedAnimation"
                 @click="isMinimized = false"
-                class="restore-btn"
+                class="restore-btn hidden lg:flex"
                 title="Restore controls"
             >
                 <PanelLeft class="w-4 h-4" />
@@ -149,7 +133,7 @@
 
         <div
             :class="[
-                'justify-self-stretch self-center min-h-0 h-full overflow-visible overscroll-contain col-span-full row-start-2 lg:row-start-1',
+                'justify-self-stretch self-center min-h-0 h-full overflow-visible overscroll-contain col-span-full row-start-1 -row-end-1 lg:row-end-auto',
                 storedControls?.selectedAnimation
                     ? 'lg:col-start-2 lg:col-end-4'
                     : 'lg:col-start-1 lg:col-end-4',

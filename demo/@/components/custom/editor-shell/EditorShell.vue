@@ -10,9 +10,18 @@
 
         <EditorHeader>
             <template #left>
-                <slot name="header-left"></slot>
+                <button
+                    v-if="storedControls.selectedAnimation"
+                    @click="storedControls.isControlsPanelOpen = !storedControls.isControlsPanelOpen"
+                    class="p-1.5 rounded-lg cursor-pointer lg:hidden transition-colors"
+                    :class="storedControls.isControlsPanelOpen ? 'text-foreground' : 'text-muted-foreground chevron-bounce'"
+                >
+                    <Minus v-if="storedControls.isControlsPanelOpen" class="w-5 h-5" />
+                    <PanelLeft v-else class="w-5 h-5" />
+                </button>
             </template>
-            <template #right>
+            <template #items>
+                <slot name="header-left"></slot>
                 <slot name="header-right">
                     <SharePopover />
                     <DarkModeToggle
@@ -21,16 +30,10 @@
                     />
                 </slot>
             </template>
+            <template #anchor="{ pinned }">
+                <slot name="header-anchor" :pinned="pinned"></slot>
+            </template>
         </EditorHeader>
-
-        <!-- Sidebar toggle (mobile only) -->
-        <button
-            @click="storedControls.isControlsPanelOpen = !storedControls.isControlsPanelOpen"
-            class="absolute top-2.5 left-2 z-50 p-1.5 rounded-lg cursor-pointer lg:hidden transition-colors"
-            :class="storedControls.isControlsPanelOpen ? 'text-foreground' : 'text-muted-foreground chevron-bounce'"
-        >
-            <PanelLeft class="w-5 h-5" />
-        </button>
 
         <template v-if="showStartScreen && !storedControls.selectedAnimation">
             <slot name="start-screen">
@@ -70,7 +73,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref, useTemplateRef } from "vue";
-import { PanelLeft } from "lucide-vue-next";
+import { Minus, PanelLeft } from "lucide-vue-next";
 import EditorHeader from "./EditorHeader.vue";
 import SharePopover from "./SharePopover.vue";
 import EditorStartScreen from "./EditorStartScreen.vue";

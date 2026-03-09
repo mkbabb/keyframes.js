@@ -14,7 +14,7 @@
                     <div
                         ref="ppmycotaLogoEl"
                         @click="setPPMode()"
-                        class="ppmycota-logo-sm m-0 h-8 w-8 lg:h-12 lg:w-12 cursor-pointer stroke-2 p-0 font-bold hover:scale-105"
+                        class="ppmycota-logo-sm m-0 h-8 w-8 lg:h-10 lg:w-10 cursor-pointer stroke-2 p-0 font-bold hover:scale-105"
                     ></div>
                 </HoverCardTrigger>
                 <HoverCardContent class="z-[100] p-4 min-w-[17rem] instrument-serif">
@@ -31,21 +31,26 @@
                     <a href="https://ppmycota.com" target="_blank" rel="noopener noreferrer" class="block text-sm text-foreground hover:underline">ppmycota.com</a>
                 </HoverCardContent>
             </HoverCard>
+        </template>
 
+        <template #header-anchor="{ pinned }">
             <HoverCard
-                v-model:open="hoverCardStates.mbabb"
-                :open-delay="0"
-            >
-                <HoverCardTrigger
-                    @click="hoverCardStates.mbabb = !hoverCardStates.mbabb"
-                    class="font-mono"
+                    v-model:open="hoverCardStates.mbabb"
+                    :open-delay="0"
                 >
-                    <Button
-                        class="m-0 cursor-pointer p-0 text-xs lg:text-sm"
-                        variant="link"
-                        >@mbabb</Button
+                    <HoverCardTrigger
+                        @click="hoverCardStates.mbabb = !hoverCardStates.mbabb"
+                        class="font-mono"
                     >
-                </HoverCardTrigger>
+                        <Button
+                            :class="[
+                                'm-0 cursor-pointer p-0 text-xs lg:text-sm transition-all duration-200',
+                                pinned ? 'underline underline-offset-4 text-foreground' : 'no-underline',
+                            ]"
+                            variant="link"
+                            >@mbabb</Button
+                        >
+                    </HoverCardTrigger>
                 <HoverCardContent class="z-[100] p-4 min-w-[17rem] instrument-serif">
                     <div class="flex items-center gap-3">
                         <Avatar>
