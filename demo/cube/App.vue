@@ -1,5 +1,6 @@
 <template>
     <EditorShell
+        ref="editorShellRef"
         :animation-group="animationGroup"
         :super-key="superKey"
         @play-state-change="(v: boolean) => isGroupPlaying = v"
@@ -51,7 +52,7 @@
             />
         </template>
 
-        <template #header-anchor="{ pinned }">
+        <template #header-anchor="{ pinned, toggled }">
             <HoverCard
                 v-model:open="hoverCardStates.mbabb"
                 :open-delay="300"
@@ -59,10 +60,9 @@
             >
                 <HoverCardTrigger>
                     <Button
-                        @click.stop="onMbabbClick"
                         :class="[
                             'm-0 cursor-pointer p-0 text-xs lg:text-sm transition-all duration-200 font-mono font-normal',
-                            mbabbToggled
+                            toggled
                                 ? 'underline underline-offset-4 text-foreground decoration-2'
                                 : pinned
                                     ? 'underline underline-offset-4 text-foreground'
@@ -153,7 +153,7 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 
 import {
     HoverCard,
@@ -183,12 +183,13 @@ const superKey = "Cube";
 const storedControls = getStoredAnimationGroupControlOptions(superKey);
 storedControls.ppMode ??= false;
 
+const editorShellRef = ref<InstanceType<typeof EditorShell> | null>(null);
+const headerRibbonRef = computed(() => editorShellRef.value?.headerRibbonRef);
+
 const hoverCardStates = ref({
     ppmycota: false,
     mbabb: false,
 });
-
-const mbabbToggled = ref(false);
 
 // Auto-dismiss hover cards after a timeout
 let autoDismissTimer: ReturnType<typeof setTimeout> | undefined;
@@ -227,19 +228,17 @@ watch(() => hoverCardStates.value.mbabb, (open) => {
     }
 });
 
-// mbabb click toggles controls panel, not the hover card.
-// Cooldown prevents hover from immediately reopening the card after click.
+// mbabb click cooldown prevents hover from immediately reopening the card after anchor click.
 let mbabbClickCooldown = false;
 let mbabbCooldownTimer: ReturnType<typeof setTimeout> | undefined;
 
-const onMbabbClick = () => {
-    mbabbToggled.value = !mbabbToggled.value;
+watch(() => headerRibbonRef.value?.isToggled, (toggled) => {
     hoverCardStates.value.mbabb = false;
     mbabbClickCooldown = true;
     clearTimeout(mbabbCooldownTimer);
     mbabbCooldownTimer = setTimeout(() => { mbabbClickCooldown = false; }, 600);
-    storedControls.isControlsPanelOpen = mbabbToggled.value;
-};
+    storedControls.isControlsPanelOpen = !!toggled;
+});
 
 const isGroupPlaying = ref(false);
 const isGroupStarted = ref(false);

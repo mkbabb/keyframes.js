@@ -8,7 +8,7 @@
             class="grid-background pointer-events-none fixed inset-0 h-dvh w-dvw"
         ></div>
 
-        <EditorHeader>
+        <HeaderRibbon ref="headerRibbonRef" position="right">
             <template #left>
                 <button
                     v-if="storedControls.selectedAnimation"
@@ -30,10 +30,10 @@
                     />
                 </slot>
             </template>
-            <template #anchor="{ pinned }">
-                <slot name="header-anchor" :pinned="pinned"></slot>
+            <template #anchor="{ pinned, toggled }">
+                <slot name="header-anchor" :pinned="pinned" :toggled="toggled"></slot>
             </template>
-        </EditorHeader>
+        </HeaderRibbon>
 
         <template v-if="showStartScreen && !storedControls.selectedAnimation">
             <slot name="start-screen">
@@ -73,7 +73,7 @@
 <script setup lang="ts">
 import { onMounted, ref, useTemplateRef } from "vue";
 import { Minus, PanelLeft } from "lucide-vue-next";
-import EditorHeader from "./EditorHeader.vue";
+import { HeaderRibbon } from "@components/custom/header-ribbon";
 import SharePopover from "./SharePopover.vue";
 import EditorStartScreen from "./EditorStartScreen.vue";
 import KeyboardShortcutsModal from "@components/custom/KeyboardShortcutsModal.vue";
@@ -107,6 +107,8 @@ const emit = defineEmits<{
 
 const storedControls = getStoredAnimationGroupControlOptions(props.superKey);
 
+const headerRibbonRef = ref<InstanceType<typeof HeaderRibbon> | null>(null);
+
 const shortcutsOpen = ref(false);
 registerShortcut("?", () => { shortcutsOpen.value = !shortcutsOpen.value; }, { label: "Show shortcuts", group: "General" });
 
@@ -126,6 +128,8 @@ onMounted(() => {
         gridBackgroundEl.value.style.backgroundImage = `url("data:image/svg+xml,${encodedSVG}")`;
     }
 });
+
+defineExpose({ headerRibbonRef });
 </script>
 
 <style scoped>
