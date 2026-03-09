@@ -73,19 +73,19 @@
                                 <!-- Keyframes tab -->
                                 <div v-if="storedControls.selectedControl === 'keyframes'" class="flex items-center justify-center gap-2 flex-wrap">
                                     <Button size="sm" variant="outline"
-                                        class="h-8 gap-1.5 cursor-pointer instrument-serif text-base px-3 rounded-lg hover:scale-105 active:scale-95 transition-transform"
+                                        :class="RIBBON_BUTTON_CLASS"
                                         @click="activeKeyframesRef?.copyCSS?.()"
                                     >
                                         <Copy class="w-3.5 h-3.5" /> Copy
                                     </Button>
                                     <Button size="sm" variant="outline"
-                                        class="h-8 gap-1.5 cursor-pointer instrument-serif text-base px-3 rounded-lg hover:scale-105 active:scale-95 transition-transform"
+                                        :class="RIBBON_BUTTON_CLASS"
                                         @click="activeKeyframesRef?.formatCSS?.()"
                                     >
                                         <Sparkles class="w-3.5 h-3.5" /> Format
                                     </Button>
                                     <Button size="sm" variant="outline"
-                                        class="h-8 gap-1.5 cursor-pointer instrument-serif text-base px-3 rounded-lg hover:scale-105 active:scale-95 transition-transform"
+                                        :class="RIBBON_BUTTON_CLASS"
                                         @click="activeKeyframesRef?.applyCSSStyles?.()"
                                     >
                                         <Paintbrush class="w-3.5 h-3.5" /> Apply CSS
@@ -95,25 +95,25 @@
                                 <!-- Timeline tab -->
                                 <div v-else-if="storedControls.selectedControl === 'timeline'" class="flex items-center justify-center gap-2 flex-wrap">
                                     <Button size="sm" variant="outline"
-                                        class="h-8 gap-1.5 cursor-pointer instrument-serif text-base px-3 rounded-lg hover:scale-105 active:scale-95 transition-transform"
+                                        :class="RIBBON_BUTTON_CLASS"
                                         @click="activeTimelineRef?.snapshot?.()"
                                     >
                                         <Camera class="w-3.5 h-3.5" /> Snapshot
                                     </Button>
                                     <Button size="sm" variant="outline"
-                                        class="h-8 gap-1.5 cursor-pointer instrument-serif text-base px-3 rounded-lg hover:scale-105 active:scale-95 transition-transform"
+                                        :class="RIBBON_BUTTON_CLASS"
                                         @click="activeTimelineRef?.openImportDialog?.()"
                                     >
                                         <Download class="w-3.5 h-3.5" /> Import
                                     </Button>
                                     <Button size="sm" variant="outline"
-                                        class="h-8 gap-1.5 cursor-pointer instrument-serif text-base px-3 rounded-lg hover:scale-105 active:scale-95 transition-transform"
+                                        :class="RIBBON_BUTTON_CLASS"
                                         @click="activeTimelineRef?.exportCSS?.()"
                                     >
                                         <Upload class="w-3.5 h-3.5" /> Export
                                     </Button>
                                     <Button size="sm" variant="outline"
-                                        class="h-8 gap-1.5 cursor-pointer instrument-serif text-base px-3 rounded-lg hover:scale-105 active:scale-95 transition-transform"
+                                        :class="RIBBON_BUTTON_CLASS"
                                         @click="activeTimelineRef?.openAddCSSDialog?.()"
                                     >
                                         <FilePlus2 class="w-3.5 h-3.5" /> Add CSS
@@ -189,7 +189,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onUnmounted, reactive, ref, Teleport, watch } from "vue";
+import { computed, reactive, ref, Teleport, watchEffect } from "vue";
 import { Toaster, toast } from "vue-sonner";
 
 import {
@@ -208,7 +208,7 @@ import {
 import { TooltipProvider } from "@components/ui/tooltip";
 
 import { Animation } from "@src/animation/index";
-import AnimationControls from "./AnimationControls.vue";
+import AnimationControls from "./controls/AnimationControls.vue";
 import AnimationMenuBar from "./AnimationMenuBar.vue";
 import Button from "@components/ui/button/Button.vue";
 import { Card, CardContent } from "@components/ui/card";
@@ -219,6 +219,10 @@ import {
 } from "./animationStores";
 import { AnimationGroup } from "@src/animation/group";
 import { registerShortcut } from "@composables/useKeyboardShortcuts";
+import { useAnimationGroupPlayback } from "./useAnimationGroupPlayback";
+import { useAnimationProgress } from "./useAnimationProgress";
+
+const RIBBON_BUTTON_CLASS = "h-8 gap-1.5 cursor-pointer instrument-serif text-base px-3 rounded-lg hover:scale-105 active:scale-95 transition-transform";
 
 const { superKey, animationGroup } = defineProps<{
     animationGroup: AnimationGroup<any>;
@@ -244,6 +248,7 @@ const activeTimelineRef = computed(() => {
 const isPanelTransitionDone = ref(storedControls.isControlsPanelOpen);
 const isMinimized = ref(false);
 
+import { watch } from "vue";
 
 watch(() => storedControls.isControlsPanelOpen, (open) => {
     if (!open) isPanelTransitionDone.value = false;
@@ -255,130 +260,36 @@ const onPanelTransitionEnd = (e: TransitionEvent) => {
     }
 };
 
-// Validate stored selection — clear stale values that don't match current animations
-if (
-    storedControls.selectedAnimation &&
-    !animationGroup.animations[storedControls.selectedAnimation]
-) {
-    storedControls.selectedAnimation = null as any;
-}
+// Validate stored selection — clear stale values via watchEffect (reacts to group changes)
+watchEffect(() => {
+    if (
+        storedControls.selectedAnimation &&
+        !animationGroup.animations[storedControls.selectedAnimation]
+    ) {
+        storedControls.selectedAnimation = null as any;
+    }
+});
 
 const emit = defineEmits<{
     (e: "playStateChange", playing: boolean): void;
     (e: "startStateChange", started: boolean): void;
 }>();
 
-// Reactive flags for play/started state — animationGroup is markRaw so its
-// internal state changes don't trigger Vue re-renders. We sync manually.
-const isPlaying = ref(animationGroup.playing());
-const isStarted = ref(animationGroup.started);
+const {
+    isPlaying,
+    isStarted,
+    syncPlayState,
+    findAnimationGroupObject,
+    onSelectAnimation,
+    toggleAnimationGroup,
+    onScrubStart,
+    onScrubEnd,
+    sliderUpdate,
+} = useAnimationGroupPlayback(animationGroup, storedControls, emit as any);
 
-// Per-animation progress (0–1 within current iteration), polled via rAF
-const animationProgress = ref<Record<string, number>>({});
-let progressRafId: number | undefined;
-
-const pollProgress = () => {
-    const p: Record<string, number> = {};
-    for (const [name, groupObj] of Object.entries(animationGroup.animations)) {
-        const anim = groupObj.animation;
-        const dur = anim.options.duration ?? 1000;
-        p[name] = dur > 0 ? Math.min(1, Math.max(0, (anim.t ?? 0) / dur)) : 0;
-    }
-    animationProgress.value = p;
-    if (isPlaying.value) {
-        progressRafId = requestAnimationFrame(pollProgress);
-    }
-};
-
-watch(isPlaying, (playing) => {
-    if (playing) {
-        progressRafId = requestAnimationFrame(pollProgress);
-    } else if (progressRafId !== undefined) {
-        cancelAnimationFrame(progressRafId);
-        progressRafId = undefined;
-    }
-});
+const { animationProgress } = useAnimationProgress(animationGroup, isPlaying);
 
 const menuBarRef = ref<InstanceType<typeof AnimationMenuBar> | null>(null);
-
-const onSelectAnimation = (name: string) => {
-    storedControls.selectedAnimation = name;
-    if (!animationGroup.started) {
-        animationGroup.play();
-        syncPlayState(true);
-    }
-};
-
-const syncPlayState = (playing?: boolean) => {
-    if (playing === undefined) {
-        playing = animationGroup.playing();
-    }
-    isPlaying.value = playing;
-    isStarted.value = animationGroup.started;
-    emit("playStateChange", playing);
-    emit("startStateChange", animationGroup.started);
-};
-
-const findAnimationGroupObject = (animation: Animation<any>) => {
-    return Object.values(animationGroup.animations).find(
-        (a) => a.animation.id == animation.id,
-    );
-};
-
-let wasPlayingBeforeScrub = false;
-
-const onScrubStart = () => {
-    wasPlayingBeforeScrub = animationGroup.playing();
-    if (wasPlayingBeforeScrub) {
-        animationGroup.pause();
-        syncPlayState();
-    }
-};
-
-const onScrubEnd = () => {
-    if (wasPlayingBeforeScrub) {
-        animationGroup.pause(); // toggle back to playing
-        syncPlayState(true);
-        wasPlayingBeforeScrub = false;
-    }
-};
-
-const sliderUpdate = ({ t, animation }: { t: number; animation: Animation<any> }) => {
-    const groupObject = findAnimationGroupObject(animation);
-    const groupAnimation = groupObject!.animation;
-    const wasPaused = groupAnimation.paused;
-
-    groupAnimation.paused = false;
-    groupAnimation.t = t;
-
-    // Adjust startTime so the next tick() continues from the scrubbed position
-    // instead of reverting to the previous time.
-    if (groupAnimation.startTime !== undefined) {
-        groupAnimation.startTime = performance.now() - t;
-        groupAnimation.pausedTime = 0;
-    }
-
-    animationGroup.transformFramesGrouped(t);
-    groupAnimation.paused = wasPaused;
-};
-
-const toggleAnimationGroup = () => {
-    if (!animationGroup.started) {
-        if (!storedControls.selectedAnimation) {
-            const allNames = Object.keys(animationGroup.animations);
-            storedControls.selectedAnimation = allNames[0] ?? null;
-            // On mobile, don't auto-expand the controls panel when auto-selecting
-            // (desktop ignores this via lg:!max-h-full override)
-            storedControls.isControlsPanelOpen = false;
-        }
-
-        animationGroup.play();
-        syncPlayState(true);
-    } else {
-        animationGroup.pause();
-        syncPlayState();
-    }
-};
 
 const updateLayerConfig = (name: string, config: Partial<import("@src/animation/constants").AnimationLayerConfig>) => {
     animationGroup.setLayerConfig(name, config);
@@ -403,10 +314,6 @@ const clear = () => {
     resetAllStores();
     window.location.reload();
 };
-
-onUnmounted(() => {
-    if (progressRafId !== undefined) cancelAnimationFrame(progressRafId);
-});
 
 // --- Keyboard shortcuts ---
 
