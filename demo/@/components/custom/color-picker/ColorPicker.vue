@@ -150,8 +150,8 @@ import {
 } from "@src/units/color/constants";
 import type { ColorSpace } from "@src/units/color/constants";
 import { debounce } from "@src/utils";
-import { toast } from "vue-sonner";
 import { useMagicKeys } from "@vueuse/core";
+import { useClipboard } from "@composables/useClipboard";
 import { useGlobalDark } from "@components/custom/dark-mode-toggle";
 import { CSSKeyframesAnimation } from "@src/animation";
 import type { Animation } from "@src/animation";
@@ -236,16 +236,7 @@ const generateRandomColor = (
     return color;
 };
 
-const copyToClipboard = (text: string) => {
-    navigator.clipboard
-        .writeText(text)
-        .then(() => {
-            toast.success("Copied to clipboard 📋");
-        })
-        .catch((err) => {
-            toast.error("Could not copy to clipboard: " + err);
-        });
-};
+const { copy: copyToClipboard } = useClipboard();
 
 const createGradientStops = (
     color: ColorValueUnit,

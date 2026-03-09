@@ -1,5 +1,4 @@
 import { ref } from "vue";
-import type { Ref } from "vue";
 import {
     encodeStateToHash,
     decodeStateFromHash,
@@ -7,11 +6,13 @@ import {
     restoreStateFromHash,
 } from "@components/custom/animation-controls/animationStores";
 import { toast } from "vue-sonner";
+import { useClipboard } from "@composables/useClipboard";
 
 export function useShareState() {
     const sharePopoverOpen = ref(false);
     const loadHashInput = ref("");
     const stateVersion = ref(0);
+    const { copy } = useClipboard();
 
     const shareState = async () => {
         const state = getAllState();
@@ -19,13 +20,8 @@ export function useShareState() {
         const url = `${window.location.origin}${window.location.pathname}#${hash}`;
 
         try {
-            await navigator.clipboard.writeText(url);
+            await copy(url, "Link copied to clipboard!");
             sharePopoverOpen.value = false;
-            toast.success("Link copied to clipboard!", {
-                duration: 3000,
-                description:
-                    "Share this URL to restore the current animation state.",
-            });
         } catch {
             window.location.hash = hash;
             sharePopoverOpen.value = false;

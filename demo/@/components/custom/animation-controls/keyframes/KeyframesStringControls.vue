@@ -41,6 +41,7 @@ import {
 } from "../animationStores";
 import { reverseCSSTime } from "@src/parsing/keyframes";
 import { toast } from "vue-sonner";
+import { useClipboard } from "@composables/useClipboard";
 
 import * as animations from "@src/animation/animations";
 
@@ -48,6 +49,8 @@ import {
     CSSKeyframesToString,
 } from "@src/parsing/format";
 import CSSCodeEditor from "./CSSCodeEditor.vue";
+
+const { copy } = useClipboard();
 
 const { animation } = defineProps<{
     animation: Animation<any>;
@@ -234,8 +237,7 @@ defineExpose({
     formatCSS: formatEditor,
     copyCSS: async () => {
         if (cssKeyframesString.value) {
-            await navigator.clipboard.writeText(cssKeyframesString.value);
-            toast.success("CSS copied to clipboard");
+            await copy(cssKeyframesString.value, "CSS copied to clipboard");
         }
     },
     getCSSString: () => cssKeyframesString.value,

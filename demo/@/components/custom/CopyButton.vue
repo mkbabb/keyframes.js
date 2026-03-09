@@ -14,12 +14,11 @@
 <script setup lang="ts">
 import { Clipboard, ClipboardCheck } from "lucide-vue-next";
 
-import { Button } from "@components/ui/button";
-
 import { onMounted, ref, useTemplateRef } from "vue";
 import type { InputAnimationOptions } from "@src/animation/constants";
 import { CSSKeyframesAnimation } from "@src/animation";
 import { AnimationGroup } from "@src/animation/group";
+import { useClipboard } from "@composables/useClipboard";
 
 const { text } = defineProps({
     text: {
@@ -33,14 +32,7 @@ const isCopied = ref(false);
 const clipboard = useTemplateRef<HTMLElement>("clipboard");
 const clipboardChecked = useTemplateRef<HTMLElement>("clipboardChecked");
 
-const copyToClipboard = (text: string) => {
-    navigator.clipboard
-        .writeText(text)
-        .then(() => {})
-        .catch((err) => {
-            console.error("Could not copy text: ", err);
-        });
-};
+const { copy } = useClipboard();
 
 const options: Partial<InputAnimationOptions> = {
     duration: 200,
@@ -76,7 +68,7 @@ const group = new AnimationGroup(clipboardAnim, clipboardCheckedAnim);
 group.singleTarget = false;
 
 const handleClick = () => {
-    copyToClipboard(text);
+    copy(text);
 
     isCopied.value = true;
 
