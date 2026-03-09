@@ -61,7 +61,7 @@
                     <Button
                         @click.stop="onMbabbClick"
                         :class="[
-                            'm-0 cursor-pointer p-0 text-xs lg:text-sm transition-all duration-200 font-mono',
+                            'm-0 cursor-pointer p-0 text-xs lg:text-sm transition-all duration-200 font-mono font-normal',
                             mbabbToggled
                                 ? 'underline underline-offset-4 text-foreground decoration-2'
                                 : pinned
@@ -176,7 +176,7 @@ import { getStoredAnimationGroupControlOptions } from "@components/custom/animat
 import { useTransformState } from "@composables/useTransformState";
 import { useCubeAnimations } from "./useCubeAnimations";
 
-import { toast } from "vue-sonner";
+
 
 const superKey = "Cube";
 
@@ -264,17 +264,6 @@ const { animationGroup, setTargets } = useCubeAnimations(
 
 const setPPMode = () => {
     storedControls.ppMode = !storedControls.ppMode;
-    if (storedControls.ppMode) {
-        toast.success("PP Mode activated!", {
-            duration: 3000,
-            description: "PP Mode",
-        });
-    } else {
-        toast.error("PP Mode deactivated!", {
-            duration: 3000,
-            description: "PP Mode",
-        });
-    }
 };
 
 watch(

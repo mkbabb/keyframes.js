@@ -31,7 +31,7 @@
                             }}</SelectValue>
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectGroup class="instrument-serif text-base">
+                            <SelectGroup class="instrument-serif text-lg">
                                 <template
                                     v-for="name in animationNames"
                                 >
