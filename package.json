@@ -34,8 +34,8 @@
         "dist"
     ],
     "scripts": {
-        "dev": "vite --port 8080",
-        "dev:playground": "vite --mode playground --port 8081",
+        "dev": "vite",
+        "dev:playground": "vite --mode playground",
         "build": "vite build --mode production",
         "gh-pages": "vite build --mode gh-pages",
         "test": "vitest",
