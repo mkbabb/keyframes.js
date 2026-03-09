@@ -22,28 +22,23 @@
         />
 
         <template v-if="layerConfig.blendMode === 'weighted'">
-            <IconTooltip text="Blend weight (0 = none, 1 = full)">
-                <label class="instrument-serif text-base text-muted-foreground cursor-help">weight</label>
-            </IconTooltip>
-            <Slider
-                class="py-2"
+            <LabeledSlider
+                label="weight"
+                tooltip="Blend weight (0 = none, 1 = full)"
+                :model-value="layerConfig.weight"
                 :min="0"
                 :max="1"
                 :step="0.01"
-                :model-value="[layerConfig.weight]"
-                @update:model-value="(v: any) => emit('update', { weight: v[0] })"
+                @update:model-value="(v: number) => emit('update', { weight: v })"
             />
         </template>
 
-        <IconTooltip text="Enable/disable this layer">
-            <label class="instrument-serif text-base text-muted-foreground cursor-help">enabled</label>
-        </IconTooltip>
-        <div class="flex items-center">
-            <Switch
-                :checked="layerConfig.enabled"
-                @update:checked="(v: boolean) => emit('update', { enabled: v })"
-            />
-        </div>
+        <LabeledSwitch
+            label="enabled"
+            tooltip="Enable/disable this layer"
+            :checked="layerConfig.enabled"
+            @update:checked="(v: boolean) => emit('update', { enabled: v })"
+        />
 
         <Separator class="col-span-2 my-1" />
     </template>
@@ -53,18 +48,13 @@
 import type { AnimationLayerConfig } from "@src/animation/constants";
 import IconTooltip from "@components/custom/IconTooltip.vue";
 import LabeledSelect from "@components/custom/LabeledSelect.vue";
+import LabeledSlider from "@components/custom/LabeledSlider.vue";
+import LabeledSwitch from "@components/custom/LabeledSwitch.vue";
 import { Input } from "@components/ui/input";
-import { Slider } from "@components/ui/slider";
 import { Separator } from "@components/ui/separator";
-import { Switch } from "@components/ui/switch";
+import { BLEND_MODE_DESCRIPTIONS } from "../animationDescriptions";
 
 const BLEND_MODES = ["replace", "add", "weighted"] as const;
-
-const BLEND_MODE_DESCRIPTIONS: Record<string, string> = {
-    "replace": "overwrites lower layers",
-    "add": "accumulates with layers",
-    "weighted": "lerps by weight factor",
-};
 
 defineProps<{
     layerConfig: AnimationLayerConfig;

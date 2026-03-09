@@ -1,13 +1,10 @@
 <template>
-    <IconTooltip text="Use Web Animations API for compositor-thread execution">
-        <label class="instrument-serif text-base text-muted-foreground cursor-help">WAAPI</label>
-    </IconTooltip>
-    <div class="flex items-center">
-        <Switch
-            :checked="animation.options.useWAAPI"
-            @update:checked="(v: boolean) => { animation.options.useWAAPI = v; }"
-        />
-    </div>
+    <LabeledSwitch
+        label="WAAPI"
+        tooltip="Use Web Animations API for compositor-thread execution"
+        :checked="animation.options.useWAAPI"
+        @update:checked="(v: boolean) => { animation.options.useWAAPI = v; }"
+    />
 
     <LabeledSelect
         :model-value="animation.options.colorSpace ?? 'oklab'"
@@ -36,28 +33,16 @@
 
 <script setup lang="ts">
 import type { Animation } from "@src/animation/index";
-import IconTooltip from "@components/custom/IconTooltip.vue";
 import LabeledSelect from "@components/custom/LabeledSelect.vue";
-import { Switch } from "@components/ui/switch";
+import LabeledSwitch from "@components/custom/LabeledSwitch.vue";
+import {
+    COLOR_SPACE_DESCRIPTIONS,
+    HUE_METHOD_DESCRIPTIONS,
+} from "../animationDescriptions";
 
 const COLOR_SPACES = ["oklab", "srgb", "lab", "lch", "oklch"] as const;
 const HUE_METHODS = ["shorter", "longer", "increasing", "decreasing"] as const;
 const HUE_COLOR_SPACES = new Set(["lch", "oklch", "hsl"]);
-
-const COLOR_SPACE_DESCRIPTIONS: Record<string, string> = {
-    "oklab": "perceptually uniform (default)",
-    "srgb": "standard RGB gamut",
-    "lab": "CIE L*a*b* perceptual",
-    "lch": "cylindrical lab (hue aware)",
-    "oklch": "cylindrical oklab (hue aware)",
-};
-
-const HUE_METHOD_DESCRIPTIONS: Record<string, string> = {
-    "shorter": "shortest arc",
-    "longer": "longest arc",
-    "increasing": "always clockwise",
-    "decreasing": "always counter-clockwise",
-};
 
 defineProps<{
     animation: Animation<any>;
