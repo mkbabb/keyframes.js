@@ -65,8 +65,7 @@
         </AnimationControlsGroup>
 
         <KeyboardShortcutsModal
-            :open="shortcutsOpen"
-            @update:open="shortcutsOpen = $event"
+            v-model:open="shortcutsOpen"
         />
     </div>
 </template>

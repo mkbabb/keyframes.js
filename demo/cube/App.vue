@@ -2,8 +2,8 @@
     <EditorShell
         :animation-group="animationGroup"
         :super-key="superKey"
-        @play-state-change="isGroupPlaying = $event"
-        @start-state-change="isGroupStarted = $event"
+        @play-state-change="(v: boolean) => isGroupPlaying = v"
+        @start-state-change="(v: boolean) => isGroupStarted = v"
     >
         <template #header-left>
             <HoverCard

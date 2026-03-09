@@ -1,5 +1,5 @@
 <template>
-    <Dialog :open="open" @update:open="$emit('update:open', $event)">
+    <Dialog v-model:open="open">
         <DialogContent class="max-w-md backdrop-blur-sm">
             <DialogHeader>
                 <DialogTitle class="fira-code text-base">Keyboard Shortcuts</DialogTitle>
@@ -51,8 +51,7 @@ import {
     isMac,
 } from "@composables/useKeyboardShortcuts";
 
-defineProps<{ open: boolean }>();
-defineEmits<{ (e: "update:open", value: boolean): void }>();
+const open = defineModel<boolean>('open', { required: true });
 
 const shortcuts = useRegisteredShortcuts();
 

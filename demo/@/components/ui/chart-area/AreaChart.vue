@@ -67,7 +67,7 @@ function handleLegendItemClick(d: BulletLegendItemInterface, i: number) {
     <VisXYContainer :style="{ height: isMounted ? '100%' : 'auto' }" :margin="{ left: 20, right: 20 }" :data="data">
       <svg width="0" height="0">
         <defs>
-          <linearGradient v-for="(color, i) in colors" :id="`${chartRef}-color-${i}`" :key="i" x1="0" y1="0" x2="0" y2="1">
+          <linearGradient v-for="(color, i) in colors" :id="`${chartRef}-color-${i}`" :key="color" x1="0" y1="0" x2="0" y2="1">
             <template v-if="showGradiant">
               <stop offset="5%" :stop-color="color" stop-opacity="0.4" />
               <stop offset="95%" :stop-color="color" stop-opacity="0" />
