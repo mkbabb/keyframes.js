@@ -2,7 +2,7 @@
 
 CSS keyframe animations for anything in JavaScript. Specify your keyframes in standards-compliant CSS; animate any object, DOM element, or data structure.
 
-[demo](https://mkbabb.github.io/keyframes.js/)
+[Try the demo here!](https://keyframes.babb.dev/)
 
 ## Quick Start
 
