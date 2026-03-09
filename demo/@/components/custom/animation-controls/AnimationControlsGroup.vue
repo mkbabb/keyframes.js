@@ -10,7 +10,7 @@
             v-show="storedControls.selectedAnimation"
             @transitionend="onPanelTransitionEnd"
             :class="[
-                'controls-pane group/controls col-start-1 row-start-1 lg:row-start-1 min-w-0 relative z-10 transition-[max-height,opacity] duration-350 ease-[cubic-bezier(0.4,0,0.2,1)] lg:!max-h-full lg:!mt-0',
+                'controls-pane group/controls col-start-1 row-start-1 lg:row-start-1 min-w-0 relative z-10 transition-[max-height,opacity] duration-350 ease-[cubic-bezier(0.4,0,0.2,1)] lg:transition-[max-height] lg:!max-h-full lg:!mt-0',
                 storedControls.isControlsPanelOpen
                     ? 'max-h-[calc(100dvh-7rem)] mt-12 visible'
                     : 'max-h-0 opacity-0 pointer-events-none invisible',
@@ -148,7 +148,7 @@
             :class="[
                 'col-span-full row-start-3 lg:row-start-2 z-40 transition-[max-height,opacity] duration-350 ease-[cubic-bezier(0.4,0,0.2,1)] overflow-hidden',
                 storedControls.isTimelineExpanded
-                    ? 'max-h-[60vh] border-t border-border/50 bg-background/95 backdrop-blur-sm px-4 py-3'
+                    ? 'max-h-[60vh] border-t border-border/50 bg-background/60 backdrop-blur-xl backdrop-saturate-150 px-4 py-3'
                     : 'max-h-0',
             ]"
         ></div>
@@ -378,24 +378,27 @@ function cycleAnimation(direction: number) {
 
 <style scoped>
 @media (min-width: 1024px) {
-    /* Controls pane: idle→75% after 10s, hover→100% immediately.
+    /* Controls pane: idle→75%, hover→100% immediately, lingers 3s after hover ends.
        !important overrides Tailwind opacity-0/invisible from mobile collapse. */
     .controls-pane {
         opacity: 0.75 !important;
         visibility: visible !important;
         pointer-events: auto !important;
-        transition: opacity 0.5s ease-out 10s;
+        transition: opacity 0.6s ease-in-out 2.5s;
         overflow: hidden;
         --controls-card-shadow: 4px 4px 0px 0px rgba(0,0,0,0.5);
         --controls-card-shadow-hover: 5px 5px 0px 0px rgba(0,0,0,0.6);
     }
     .controls-pane:hover {
         opacity: 1 !important;
-        transition: opacity 0.2s ease-out;
+        transition: opacity 0.3s ease-out;
     }
     .controls-pane :deep(.controls-card) {
         box-shadow: var(--controls-card-shadow);
         transition: box-shadow 0.3s ease-out;
+        backdrop-filter: blur(20px) saturate(1.4);
+        -webkit-backdrop-filter: blur(20px) saturate(1.4);
+        background: hsl(var(--background) / 0.6);
     }
     .controls-pane:hover :deep(.controls-card) {
         box-shadow: var(--controls-card-shadow-hover);

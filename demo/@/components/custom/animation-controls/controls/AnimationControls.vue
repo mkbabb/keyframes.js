@@ -4,12 +4,12 @@
         class="flex flex-col h-full w-full overflow-hidden z-10 relative lg:max-w-screen-md isolate"
     >
         <Tabs
-            class="p-4 pt-2 pb-2 w-full flex-1 min-h-0 flex flex-col justify-start"
+            class="pl-4 pr-7 pt-2 pb-2 w-full flex-1 min-h-0 flex flex-col justify-start"
             :model-value="storedControls.selectedControl"
             @update:model-value="selectControl"
         >
             <!-- Tabs header -->
-            <div ref="tabsHeaderEl" class="relative w-full flex items-center flex-shrink-0 bg-muted/50 rounded-lg px-1 py-0.5">
+            <div ref="tabsHeaderEl" class="relative w-full flex items-center flex-shrink-0 bg-background/40 backdrop-blur-xl backdrop-saturate-150 border border-border/30 rounded-lg px-1 py-0.5 overflow-hidden">
                 <TabsList
                     ref="tabsListRef"
                     :class="[
@@ -32,7 +32,7 @@
                 </button>
             </div>
 
-            <div ref="tabsContentEl" class="flex-1 min-h-0 overflow-y-auto flex flex-col pb-1 pr-3">
+            <div ref="tabsContentEl" class="flex-1 min-h-0 overflow-y-auto flex flex-col pb-1">
                 <TabsContent value="controls">
                     <AnimationControlsControls
                         :animation="animation"

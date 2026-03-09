@@ -6,7 +6,7 @@
         ]"
     >
         <Menubar
-            class="flex items-center justify-items-center border-none rounded-xl p-2.5 px-5 gap-4 bg-muted/50"
+            class="flex items-center justify-items-center border border-border/30 rounded-xl p-2.5 px-5 gap-4 bg-background/40 backdrop-blur-xl backdrop-saturate-150"
         >
             <MenubarMenu>
                 <IconTooltip text="Select animation">
