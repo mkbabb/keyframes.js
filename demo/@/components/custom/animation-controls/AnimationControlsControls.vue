@@ -16,7 +16,7 @@
                             </IconTooltip>
                             <Input
                                 type="string"
-                                :model-value="reverseCSSTime(animation.options.duration)"
+                                :model-value="storedAnimationOptions.animationOptions.duration"
                                 class="fira-code"
                                 @change="
                                     (e: Event) => {
@@ -33,7 +33,7 @@
                             <Input
                                 class="fira-code"
                                 type="string"
-                                :model-value="reverseCSSTime(animation.options.delay)"
+                                :model-value="storedAnimationOptions.animationOptions.delay"
                                 @change="
                                     (e: Event) => {
                                         const value = (e.target as HTMLInputElement).value;
@@ -48,7 +48,7 @@
                             </IconTooltip>
                             <Input
                                 :class="[
-                                    !isFinite(animation.options.iterationCount)
+                                    storedAnimationOptions.animationOptions.iterationCount === 'infinite' || storedAnimationOptions.animationOptions.iterationCount === Infinity
                                         ? 'instrument-serif text-3xl'
                                         : 'fira-code',
                                 ]"
@@ -62,9 +62,9 @@
                                     }
                                 "
                                 :model-value="
-                                    isFinite(animation.options.iterationCount)
-                                        ? animation.options.iterationCount
-                                        : '∞'
+                                    storedAnimationOptions.animationOptions.iterationCount === 'infinite' || storedAnimationOptions.animationOptions.iterationCount === Infinity
+                                        ? '∞'
+                                        : storedAnimationOptions.animationOptions.iterationCount
                                 "
                             />
 
@@ -72,7 +72,7 @@
                                 <label class="instrument-serif text-base text-muted-foreground cursor-help">direction</label>
                             </IconTooltip>
                             <Select
-                                :model-value="animation.options.direction"
+                                :model-value="storedAnimationOptions.animationOptions.direction ?? 'normal'"
                                 :open="isSelectOpen('direction')"
                                 @update:open="(v: boolean) => onSelectOpenChange('direction', v)"
                                 @update:model-value="
@@ -104,7 +104,7 @@
                                 <label class="instrument-serif text-base text-muted-foreground cursor-help">fill mode</label>
                             </IconTooltip>
                             <Select
-                                :model-value="animation.options.fillMode"
+                                :model-value="storedAnimationOptions.animationOptions.fillMode ?? 'forwards'"
                                 :open="isSelectOpen('fillMode')"
                                 @update:open="(v: boolean) => onSelectOpenChange('fillMode', v)"
                                 @update:model-value="

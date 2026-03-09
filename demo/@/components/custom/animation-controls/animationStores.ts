@@ -29,8 +29,9 @@ export type StoredAnimationGroupsOptions = {
 };
 
 export const defaultAnimationOptions = {
-    duration: 5000,
-    iterationCount: Infinity,
+    duration: "5s",
+    delay: "0ms",
+    iterationCount: "infinite",
     fillMode: "forwards",
     direction: "alternate",
     timingFunction: "ease-in-out",

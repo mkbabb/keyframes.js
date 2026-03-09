@@ -26,6 +26,7 @@ import {
     parseCSSAnimationKeyframes,
 } from "@src/parsing/keyframes";
 
+
 import { onMounted, onUnmounted, ref, useTemplateRef } from "vue";
 import { useHighlightCSS } from "./useHighlightCSS";
 
@@ -36,7 +37,9 @@ import {
 import {
     createAnimationUUId,
     getStoredAnimationGroupControlOptions,
+    getStoredAnimationOptions,
 } from "./animationStores";
+import { reverseCSSTime } from "@src/parsing/keyframes";
 import { toast } from "vue-sonner";
 
 import * as animations from "@src/animation/animations";
@@ -108,19 +111,49 @@ function onKeyDown(e: KeyboardEvent) {
     }
 }
 
+const storedAnimationOptions = getStoredAnimationOptions(animation);
+
+const syncStoredOptionsFromAnimation = (parsedOptions?: Record<string, any>) => {
+    const opts = animation.options;
+    const stored = storedAnimationOptions.animationOptions;
+
+    stored.duration = reverseCSSTime(opts.duration);
+    stored.delay = reverseCSSTime(opts.delay);
+    stored.iterationCount = isFinite(opts.iterationCount)
+        ? opts.iterationCount
+        : "infinite";
+    stored.direction = opts.direction;
+    stored.fillMode = opts.fillMode;
+
+    // Use the raw parsed timing function name (string) when available,
+    // since reverse-lookup by function reference is unreliable (closures).
+    if (parsedOptions?.timingFunction) {
+        stored.timingFunction = parsedOptions.timingFunction;
+    }
+};
+
 const onEditorChange = (value: string) => {
     const parseAndUpdate = () => {
-        const { keyframes } = parseCSSAnimationKeyframes(value);
+        const { keyframes, options } = parseCSSAnimationKeyframes(value);
 
         const tmpAnimation = new CSSKeyframesAnimation(
             animation.options,
             ...animation.targets,
         ).fromKeyframes(keyframes);
 
-        animation.options = tmpAnimation.options;
+        // Apply parsed animation options (duration, easing, etc.) if present
+        if (options) {
+            animation.setOptions(options);
+        }
+
         animation.templateFrames = tmpAnimation.templateFrames;
 
         animation.parse();
+
+        // Sync stored animation options so the Controls tab reflects changes.
+        // Pass the raw parsed options so we can use the string timing function
+        // name directly (avoids unreliable function-reference reverse-lookup).
+        syncStoredOptionsFromAnimation(options);
 
         emit("keyframesUpdate", {
             animation,
