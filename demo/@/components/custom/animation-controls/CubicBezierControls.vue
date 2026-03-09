@@ -9,7 +9,7 @@
                 <TooltipProvider :delay-duration="200">
                     <Tooltip>
                         <TooltipTrigger as-child>
-                            <CopyButton class="hover:scale-105" :text="timingString" />
+                            <CopyButton class="hover:scale-105 w-4 h-4" :text="timingString" />
                         </TooltipTrigger>
                         <TooltipContent class="fira-code text-xs">
                             Copy to clipboard
@@ -266,10 +266,11 @@ const onDrag = (event: PointerEvent) => {
 
     const { x, y } = pointerToSVG(event);
 
-    // Clamp x to 0-1 range (CSS spec requirement for cubic-bezier x values)
+    // Clamp x to 0-1 (CSS spec), y to -3..3 (3x the unit square)
     const clampedX = Math.max(0, Math.min(1, x));
+    const clampedY = Math.max(-2, Math.min(2, y));
 
-    controlPoints.value[currentPointIndex.value] = { x: clampedX, y };
+    controlPoints.value[currentPointIndex.value] = { x: clampedX, y: clampedY };
     timingValues.value = [
         controlPoints.value[1].x,
         controlPoints.value[1].y,
