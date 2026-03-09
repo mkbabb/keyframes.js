@@ -7,7 +7,8 @@
     >
         <template #header-left>
             <HoverCard
-                :open-delay="0"
+                :open-delay="200"
+                :close-delay="150"
                 v-model:open="hoverCardStates.ppmycota"
             >
                 <HoverCardTrigger>
@@ -33,24 +34,43 @@
             </HoverCard>
         </template>
 
+        <template #header-right>
+            <TooltipProvider :delay-duration="300">
+                <Tooltip>
+                    <TooltipTrigger as-child>
+                        <span class="inline-flex">
+                            <SharePopover />
+                        </span>
+                    </TooltipTrigger>
+                    <TooltipContent class="instrument-serif text-base">Share or load animation state</TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
+            <DarkModeToggle
+                title="Toggle dark mode"
+                class="aspect-square w-8 hover:scale-105"
+            />
+        </template>
+
         <template #header-anchor="{ pinned }">
             <HoverCard
-                    v-model:open="hoverCardStates.mbabb"
-                    :open-delay="0"
-                >
-                    <HoverCardTrigger
-                        @click="hoverCardStates.mbabb = !hoverCardStates.mbabb"
-                        class="font-mono"
-                    >
-                        <Button
-                            :class="[
-                                'm-0 cursor-pointer p-0 text-xs lg:text-sm transition-all duration-200',
-                                pinned ? 'underline underline-offset-4 text-foreground' : 'no-underline',
-                            ]"
-                            variant="link"
-                            >@mbabb</Button
-                        >
-                    </HoverCardTrigger>
+                v-model:open="hoverCardStates.mbabb"
+                :open-delay="300"
+                :close-delay="200"
+            >
+                <HoverCardTrigger>
+                    <Button
+                        @click.stop="onMbabbClick"
+                        :class="[
+                            'm-0 cursor-pointer p-0 text-xs lg:text-sm transition-all duration-200 font-mono',
+                            mbabbToggled
+                                ? 'underline underline-offset-4 text-foreground decoration-2'
+                                : pinned
+                                    ? 'underline underline-offset-4 text-foreground'
+                                    : 'no-underline',
+                        ]"
+                        variant="link"
+                    >@mbabb</Button>
+                </HoverCardTrigger>
                 <HoverCardContent class="z-[100] p-4 min-w-[17rem] instrument-serif">
                     <div class="flex items-center gap-3">
                         <Avatar>
@@ -133,7 +153,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue";
+import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 
 import {
     HoverCard,
@@ -146,6 +166,9 @@ import { TabsContent, TabsTrigger } from "@components/ui/tabs";
 import { Lock, LockOpen, RotateCcw } from "lucide-vue-next";
 
 import { EditorShell, EditorStartScreen } from "@components/custom/editor-shell";
+import { SharePopover } from "@components/custom/editor-shell";
+import { DarkModeToggle } from "@components/custom/dark-mode-toggle";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@components/ui/tooltip";
 import { MatrixEditor } from "@components/custom/matrix-editor";
 import CubeTarget from "./CubeTarget.vue";
 
@@ -164,6 +187,59 @@ const hoverCardStates = ref({
     ppmycota: false,
     mbabb: false,
 });
+
+const mbabbToggled = ref(false);
+
+// Auto-dismiss hover cards after a timeout
+let autoDismissTimer: ReturnType<typeof setTimeout> | undefined;
+const AUTO_DISMISS_MS = 4000;
+
+function clearAutoDismiss() {
+    if (autoDismissTimer != null) {
+        clearTimeout(autoDismissTimer);
+        autoDismissTimer = undefined;
+    }
+}
+
+function scheduleAutoDismiss(key: keyof typeof hoverCardStates.value) {
+    clearAutoDismiss();
+    autoDismissTimer = setTimeout(() => {
+        hoverCardStates.value[key] = false;
+    }, AUTO_DISMISS_MS);
+}
+
+// Exclusive hovers: opening one dismisses the other
+watch(() => hoverCardStates.value.ppmycota, (open) => {
+    if (open) {
+        hoverCardStates.value.mbabb = false;
+        scheduleAutoDismiss("ppmycota");
+    }
+});
+
+watch(() => hoverCardStates.value.mbabb, (open) => {
+    if (open && mbabbClickCooldown) {
+        hoverCardStates.value.mbabb = false;
+        return;
+    }
+    if (open) {
+        hoverCardStates.value.ppmycota = false;
+        scheduleAutoDismiss("mbabb");
+    }
+});
+
+// mbabb click toggles controls panel, not the hover card.
+// Cooldown prevents hover from immediately reopening the card after click.
+let mbabbClickCooldown = false;
+let mbabbCooldownTimer: ReturnType<typeof setTimeout> | undefined;
+
+const onMbabbClick = () => {
+    mbabbToggled.value = !mbabbToggled.value;
+    hoverCardStates.value.mbabb = false;
+    mbabbClickCooldown = true;
+    clearTimeout(mbabbCooldownTimer);
+    mbabbCooldownTimer = setTimeout(() => { mbabbClickCooldown = false; }, 600);
+    storedControls.isControlsPanelOpen = mbabbToggled.value;
+};
 
 const isGroupPlaying = ref(false);
 const isGroupStarted = ref(false);
@@ -221,6 +297,11 @@ onMounted(() => {
         cubeElRef.value = cubeEl;
         setTargets(cubeEl, graphEl);
     }
+});
+
+onBeforeUnmount(() => {
+    clearAutoDismiss();
+    clearTimeout(mbabbCooldownTimer);
 });
 </script>
 
