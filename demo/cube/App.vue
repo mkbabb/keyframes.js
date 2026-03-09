@@ -17,22 +17,18 @@
                         class="ppmycota-logo-sm m-0 h-8 w-8 lg:h-12 lg:w-12 cursor-pointer stroke-2 p-0 font-bold hover:scale-105"
                     ></div>
                 </HoverCardTrigger>
-                <HoverCardContent class="z-[100]">
-                    <div class="h-fit-content flex gap-4 p-4">
+                <HoverCardContent class="z-[100] p-4 min-w-[17rem] instrument-serif">
+                    <div class="flex items-center gap-3">
                         <div
-                            class="ppmycota-logo-sm z-20 h-12 w-12 cursor-pointer stroke-2 font-bold hover:scale-105"
+                            class="ppmycota-logo-sm z-20 h-10 w-10 shrink-0 stroke-2 font-bold"
                         ></div>
-                        <div>
-                            <h4 class="fraunces">&#x1F642;&#x200D;&#x2194;&#xFE0F; &#x1F331; &#x1F344;&#x200D;&#x1F7EB;</h4>
-                            <p>
-                                <a
-                                    class="fraunces font-bold hover:underline"
-                                    href="https://ppmycota.com"
-                                    >ppmycota.com</a
-                                >
-                            </p>
+                        <div class="flex-1 min-w-0">
+                            <a href="https://ppmycota.com" target="_blank" rel="noopener noreferrer" class="text-sm font-semibold text-foreground hover:underline">ppmycota</a>
+                            <p class="mt-0.5 text-xs italic text-muted-foreground">&#x1F642;&#x200D;&#x2194;&#xFE0F; &#x1F331; &#x1F344;&#x200D;&#x1F7EB;</p>
                         </div>
                     </div>
+                    <hr class="my-2 border-border/50" />
+                    <a href="https://ppmycota.com" target="_blank" rel="noopener noreferrer" class="block text-sm text-foreground hover:underline">ppmycota.com</a>
                 </HoverCardContent>
             </HoverCard>
 
@@ -50,7 +46,7 @@
                         >@mbabb</Button
                     >
                 </HoverCardTrigger>
-                <HoverCardContent class="z-[100] p-4 min-w-[17rem] fraunces">
+                <HoverCardContent class="z-[100] p-4 min-w-[17rem] instrument-serif">
                     <div class="flex items-center gap-3">
                         <Avatar>
                             <AvatarImage
@@ -82,7 +78,7 @@
             <TabsTrigger
                 v-if="selectedAnimation === 'Matrix'"
                 value="matrix-controls"
-                class="shrink-0 rounded-none rounded-t-lg fraunces border border-transparent border-b-0 text-gray-500 dark:text-gray-300 transition-colors duration-150 data-[state=inactive]:bg-gray-200 dark:data-[state=inactive]:bg-gray-700 data-[state=inactive]:hover:border-gray-500/60 data-[state=inactive]:hover:text-gray-700 dark:data-[state=inactive]:hover:border-gray-400/40 dark:data-[state=inactive]:hover:text-gray-100 data-[state=active]:bg-transparent data-[state=active]:text-gray-900 data-[state=active]:font-semibold data-[state=active]:shadow-none data-[state=active]:hover:text-gray-900 dark:data-[state=active]:text-white dark:data-[state=active]:hover:text-white"
+                class="shrink-0 instrument-serif px-3 py-1.5 text-lg bg-transparent rounded-none transition-colors duration-150 data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground data-[state=active]:text-foreground data-[state=active]:font-semibold border-b-2 border-transparent data-[state=active]:border-foreground"
                 >Matrix Controls</TabsTrigger
             >
         </template>

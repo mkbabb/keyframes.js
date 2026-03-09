@@ -123,7 +123,7 @@
                                     <CardTitle class="text-3xl"
                                         >Add keyframes</CardTitle
                                     >
-                                    <DialogDescription class="fraunces">
+                                    <DialogDescription class="instrument-serif">
                                         Add keyframes to the animation
                                     </DialogDescription>
                                 </DialogTitle>

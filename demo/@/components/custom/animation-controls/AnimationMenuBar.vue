@@ -6,7 +6,7 @@
         ]"
     >
         <Menubar
-            class="flex items-center justify-items-center border-none rounded-xl p-2.5 px-5 gap-4"
+            class="flex items-center justify-items-center border-none rounded-xl p-2.5 px-5 gap-4 bg-muted/50"
         >
             <MenubarMenu>
                 <IconTooltip text="Select animation">
@@ -21,7 +21,7 @@
                         "
                     >
                         <SelectTrigger
-                            class="border-none rounded-none h-4 focus:ring-0 hover:scale-105 fira-code"
+                            class="border-none rounded-none h-4 focus:ring-0 hover:scale-105 fira-code bg-transparent"
                         >
                             <SelectIcon v-if="!storedControls.selectedAnimation"
                                 ><List></List
@@ -65,7 +65,7 @@
                         ref="resetIconEl"
                         class="p-0 m-0 hover:scale-105"
                     />
-                    <span class="fira-code text-xs whitespace-nowrap">Reset</span>
+                    <span class="instrument-serif text-lg whitespace-nowrap">Reset</span>
                 </span>
             </IconTooltip>
 
@@ -75,7 +75,7 @@
                         ref="trashIconEl"
                         class="p-0 m-0 hover:scale-105"
                     />
-                    <span class="fira-code text-xs whitespace-nowrap">Clear</span>
+                    <span class="instrument-serif text-lg whitespace-nowrap">Clear</span>
                 </span>
             </IconTooltip>
 
@@ -113,7 +113,7 @@
                     />
                 </IconTooltip>
 
-                <span class="fira-code text-[10px] text-muted-foreground whitespace-nowrap">Timeline</span>
+                <span class="instrument-serif text-base text-muted-foreground whitespace-nowrap">Timeline</span>
             </template>
 
         </Menubar>

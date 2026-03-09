@@ -28,7 +28,7 @@
             >
                 <Card class="border-none shadow-none">
                     <CardHeader class="p-0 pb-2">
-                        <CardTitle class="fraunces">steps</CardTitle>
+                        <CardTitle class="instrument-serif">steps</CardTitle>
                     </CardHeader>
                     <CardContent class="p-0 grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-2">
                         <label class="fira-code text-xs text-muted-foreground">count</label>

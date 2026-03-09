@@ -1,5 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;700&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap");
 
 :root {
     --ppmycota-primary: 248, 88%, 71%;
@@ -9,8 +9,9 @@
     transform-style: preserve-3d;
 }
 
-.fraunces {
-    font-family: "Fraunces", sans-serif;
+.instrument-serif {
+    font-family: "Instrument Serif", Georgia, serif;
+    letter-spacing: 0.02em;
 }
 
 .fira-code {

@@ -1,113 +1,149 @@
 <template>
     <TooltipProvider :delay-duration="100" :skip-delay-duration="0">
     <div
-        class="w-dvw h-dvh grid grid-cols-1 grid-rows-[auto_1fr_auto] lg:grid-rows-[1fr_auto_auto] lg:grid-cols-[380px_1fr_1fr] justify-items-stretch items-start relative"
+        :class="[
+            'controls-layout w-dvw h-dvh grid grid-cols-1 grid-rows-[auto_1fr_auto] lg:grid-rows-[1fr_auto_auto] lg:grid-cols-[380px_1fr_1fr] justify-items-stretch items-start relative',
+        ]"
         v-bind="$attrs"
     >
+        <!-- Mobile restore button — shown when panel is closed -->
+        <button
+            v-if="storedControls.selectedAnimation && !storedControls.isControlsPanelOpen"
+            @click="storedControls.isControlsPanelOpen = true"
+            class="lg:hidden fixed top-14 left-2 z-50 p-2 rounded-lg bg-muted/50 backdrop-blur-sm text-muted-foreground hover:text-foreground cursor-pointer"
+        >
+            <PanelLeft class="w-4 h-4" />
+        </button>
+
         <div
             v-show="storedControls.selectedAnimation"
             @transitionend="onPanelTransitionEnd"
             :class="[
-                'controls-pane group/controls col-start-1 row-start-1 lg:row-start-1 min-w-0 relative z-10 transition-[max-height,opacity] duration-300 ease-out lg:!max-h-full lg:!overflow-y-auto lg:!pointer-events-auto lg:!mt-0',
+                'controls-pane group/controls col-start-1 row-start-1 lg:row-start-1 min-w-0 relative z-10 transition-[max-height,opacity] duration-350 ease-[cubic-bezier(0.4,0,0.2,1)] lg:!max-h-full lg:!mt-0',
                 storedControls.isControlsPanelOpen
                     ? 'max-h-[calc(100dvh-7rem)] mt-12 visible'
                     : 'max-h-0 opacity-0 pointer-events-none invisible',
                 isPanelTransitionDone && storedControls.isControlsPanelOpen
                     ? 'overflow-y-auto'
                     : 'overflow-hidden',
+                isMinimized ? 'controls-minimized' : '',
             ]"
         >
-            <template
-                v-for="[name, groupObject] in Object.entries(animationGroup.animations)"
+            <!-- Mobile close button -->
+            <button
+                @click="storedControls.isControlsPanelOpen = false"
+                class="lg:hidden absolute top-2 right-2 z-30 p-1.5 rounded-lg bg-muted/50 text-muted-foreground hover:text-foreground cursor-pointer"
             >
-                <div v-show="storedControls.selectedAnimation == name">
-                    <AnimationControls
-                        :ref="(el: any) => { if (el) animControlRefs[name] = el }"
-                        @slider-update="sliderUpdate"
-                        @keyframes-update="keyframesUpdate"
-                        @toggle-play="toggleAnimationGroup"
-                        @layer-config-update="(v) => updateLayerConfig(name, v)"
-                        @scrub-start="onScrubStart"
-                        @scrub-end="onScrubEnd"
-                        :animation="groupObject.animation"
-                        :is-grouped="true"
-                        :layer-config="groupObject.layer"
-                        :active="storedControls.selectedAnimation == name"
+                <X class="w-4 h-4" />
+            </button>
+            <!-- Restore button — appears when accordion is collapsed -->
+            <button
+                v-if="storedControls.selectedAnimation"
+                @click="isMinimized = false"
+                class="restore-btn"
+                title="Restore controls"
+            >
+                <PanelLeft class="w-4 h-4" />
+            </button>
+
+            <!-- Accordion content wrapper — shrinks width when minimized -->
+            <div class="controls-content-wrapper h-full overflow-hidden">
+                <div class="controls-content h-full overflow-hidden flex flex-col">
+                    <template
+                        v-for="[name, groupObject] in Object.entries(animationGroup.animations)"
                     >
-                        <template #tabs-trigger>
-                            <slot name="tabs-trigger" :selected-animation="storedControls.selectedAnimation" :is-playing="isPlaying"></slot>
-                        </template>
+                        <div v-show="storedControls.selectedAnimation == name">
+                            <AnimationControls
+                                :ref="(el: any) => { if (el) animControlRefs[name] = el }"
+                                @slider-update="sliderUpdate"
+                                @keyframes-update="keyframesUpdate"
+                                @toggle-play="toggleAnimationGroup"
+                                @layer-config-update="(v) => updateLayerConfig(name, v)"
+                                @scrub-start="onScrubStart"
+                                @scrub-end="onScrubEnd"
+                                @minimize="isMinimized = true"
+                                :animation="groupObject.animation"
+                                :is-grouped="true"
+                                :layer-config="groupObject.layer"
+                                :active="storedControls.selectedAnimation == name"
+                                :show-minimize="true"
+                            >
+                                <template #tabs-trigger>
+                                    <slot name="tabs-trigger" :selected-animation="storedControls.selectedAnimation" :is-playing="isPlaying"></slot>
+                                </template>
 
-                        <template #tabs-content>
-                            <slot name="tabs-content" :selected-animation="storedControls.selectedAnimation" :is-playing="isPlaying"></slot>
-                        </template>
-                    </AnimationControls>
+                                <template #tabs-content>
+                                    <slot name="tabs-content" :selected-animation="storedControls.selectedAnimation" :is-playing="isPlaying"></slot>
+                                </template>
+                            </AnimationControls>
+                        </div>
+                    </template>
+
+                    <!-- Persistent controls ribbon -->
+                    <div v-if="storedControls.selectedAnimation" class="flex-shrink-0 pl-4 pr-7 pb-2">
+                        <Card class="overflow-visible controls-card">
+                            <CardContent class="p-3">
+                                <!-- Controls tab: filled via Teleport from AnimationControlsControls -->
+                                <div id="controls-ribbon-target" v-show="storedControls.selectedControl === 'controls'"></div>
+
+                                <!-- Keyframes tab -->
+                                <div v-if="storedControls.selectedControl === 'keyframes'" class="flex items-center justify-center gap-2 flex-wrap">
+                                    <Button size="sm" variant="outline"
+                                        class="h-8 gap-1.5 cursor-pointer instrument-serif text-base px-3 rounded-lg hover:scale-105 active:scale-95 transition-transform"
+                                        @click="activeKeyframesRef?.copyCSS?.()"
+                                    >
+                                        <Copy class="w-3.5 h-3.5" /> Copy
+                                    </Button>
+                                    <Button size="sm" variant="outline"
+                                        class="h-8 gap-1.5 cursor-pointer instrument-serif text-base px-3 rounded-lg hover:scale-105 active:scale-95 transition-transform"
+                                        @click="activeKeyframesRef?.formatCSS?.()"
+                                    >
+                                        <Sparkles class="w-3.5 h-3.5" /> Format
+                                    </Button>
+                                    <Button size="sm" variant="outline"
+                                        class="h-8 gap-1.5 cursor-pointer instrument-serif text-base px-3 rounded-lg hover:scale-105 active:scale-95 transition-transform"
+                                        @click="activeKeyframesRef?.applyCSSStyles?.()"
+                                    >
+                                        <Paintbrush class="w-3.5 h-3.5" /> Apply CSS
+                                    </Button>
+                                </div>
+
+                                <!-- Timeline tab -->
+                                <div v-else-if="storedControls.selectedControl === 'timeline'" class="flex items-center justify-center gap-2 flex-wrap">
+                                    <Button size="sm" variant="outline"
+                                        class="h-8 gap-1.5 cursor-pointer instrument-serif text-base px-3 rounded-lg hover:scale-105 active:scale-95 transition-transform"
+                                        @click="activeTimelineRef?.snapshot?.()"
+                                    >
+                                        <Camera class="w-3.5 h-3.5" /> Snapshot
+                                    </Button>
+                                    <Button size="sm" variant="outline"
+                                        class="h-8 gap-1.5 cursor-pointer instrument-serif text-base px-3 rounded-lg hover:scale-105 active:scale-95 transition-transform"
+                                        @click="activeTimelineRef?.openImportDialog?.()"
+                                    >
+                                        <Download class="w-3.5 h-3.5" /> Import
+                                    </Button>
+                                    <Button size="sm" variant="outline"
+                                        class="h-8 gap-1.5 cursor-pointer instrument-serif text-base px-3 rounded-lg hover:scale-105 active:scale-95 transition-transform"
+                                        @click="activeTimelineRef?.exportCSS?.()"
+                                    >
+                                        <Upload class="w-3.5 h-3.5" /> Export
+                                    </Button>
+                                    <Button size="sm" variant="outline"
+                                        class="h-8 gap-1.5 cursor-pointer instrument-serif text-base px-3 rounded-lg hover:scale-105 active:scale-95 transition-transform"
+                                        @click="activeTimelineRef?.openAddCSSDialog?.()"
+                                    >
+                                        <FilePlus2 class="w-3.5 h-3.5" /> Add CSS
+                                    </Button>
+                                </div>
+
+                                <!-- Other tabs (matrix controls, etc.) via slot -->
+                                <div v-else-if="storedControls.selectedControl !== 'controls'" class="flex items-center justify-center gap-2 flex-wrap">
+                                    <slot name="ribbon-content" :selected-control="storedControls.selectedControl"></slot>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
                 </div>
-            </template>
-
-            <!-- Persistent controls ribbon — lives inside the collapsible pane, hidden when panel is closed -->
-            <div v-if="storedControls.selectedAnimation" class="flex-shrink-0 pl-4 pr-7 pb-2">
-                <Card class="overflow-visible controls-card">
-                    <CardContent class="p-3">
-                        <!-- Controls tab: filled via Teleport from AnimationControlsControls -->
-                        <div id="controls-ribbon-target" v-show="storedControls.selectedControl === 'controls'"></div>
-
-                        <!-- Keyframes tab -->
-                        <div v-if="storedControls.selectedControl === 'keyframes'" class="flex items-center justify-center gap-2 flex-wrap">
-                            <Button size="sm" variant="outline"
-                                class="h-8 gap-1.5 cursor-pointer fira-code text-xs px-3 rounded-lg hover:scale-105 active:scale-95 transition-transform"
-                                @click="activeKeyframesRef?.copyCSS?.()"
-                            >
-                                <Copy class="w-3.5 h-3.5" /> Copy
-                            </Button>
-                            <Button size="sm" variant="outline"
-                                class="h-8 gap-1.5 cursor-pointer fira-code text-xs px-3 rounded-lg hover:scale-105 active:scale-95 transition-transform"
-                                @click="activeKeyframesRef?.formatCSS?.()"
-                            >
-                                <Sparkles class="w-3.5 h-3.5" /> Format
-                            </Button>
-                            <Button size="sm" variant="outline"
-                                class="h-8 gap-1.5 cursor-pointer fira-code text-xs px-3 rounded-lg hover:scale-105 active:scale-95 transition-transform"
-                                @click="activeKeyframesRef?.applyCSSStyles?.()"
-                            >
-                                <Paintbrush class="w-3.5 h-3.5" /> Apply CSS
-                            </Button>
-                        </div>
-
-                        <!-- Timeline tab -->
-                        <div v-else-if="storedControls.selectedControl === 'timeline'" class="flex items-center justify-center gap-2 flex-wrap">
-                            <Button size="sm" variant="outline"
-                                class="h-8 gap-1.5 cursor-pointer fira-code text-xs px-3 rounded-lg hover:scale-105 active:scale-95 transition-transform"
-                                @click="activeTimelineRef?.snapshot?.()"
-                            >
-                                <Camera class="w-3.5 h-3.5" /> Snapshot
-                            </Button>
-                            <Button size="sm" variant="outline"
-                                class="h-8 gap-1.5 cursor-pointer fira-code text-xs px-3 rounded-lg hover:scale-105 active:scale-95 transition-transform"
-                                @click="activeTimelineRef?.openImportDialog?.()"
-                            >
-                                <Download class="w-3.5 h-3.5" /> Import
-                            </Button>
-                            <Button size="sm" variant="outline"
-                                class="h-8 gap-1.5 cursor-pointer fira-code text-xs px-3 rounded-lg hover:scale-105 active:scale-95 transition-transform"
-                                @click="activeTimelineRef?.exportCSS?.()"
-                            >
-                                <Upload class="w-3.5 h-3.5" /> Export
-                            </Button>
-                            <Button size="sm" variant="outline"
-                                class="h-8 gap-1.5 cursor-pointer fira-code text-xs px-3 rounded-lg hover:scale-105 active:scale-95 transition-transform"
-                                @click="activeTimelineRef?.openAddCSSDialog?.()"
-                            >
-                                <FilePlus2 class="w-3.5 h-3.5" /> Add CSS
-                            </Button>
-                        </div>
-
-                        <!-- Other tabs (matrix controls, etc.) via slot -->
-                        <div v-else-if="storedControls.selectedControl !== 'controls'" class="flex items-center justify-center gap-2 flex-wrap">
-                            <slot name="ribbon-content" :selected-control="storedControls.selectedControl"></slot>
-                        </div>
-                    </CardContent>
-                </Card>
             </div>
         </div>
 
@@ -126,7 +162,7 @@
         <div
             id="timeline-expanded-target"
             :class="[
-                'col-span-full row-start-3 lg:row-start-2 z-40 transition-all duration-150 ease-out overflow-hidden',
+                'col-span-full row-start-3 lg:row-start-2 z-40 transition-[max-height,opacity] duration-350 ease-[cubic-bezier(0.4,0,0.2,1)] overflow-hidden',
                 storedControls.isTimelineExpanded
                     ? 'max-h-[60vh] border-t border-border/50 bg-background/95 backdrop-blur-sm px-4 py-3'
                     : 'max-h-0',
@@ -155,7 +191,7 @@
             :toastOptions="{
                 unstyled: true,
                 classes: {
-                    toast: 'bg-foreground text-background rounded-xl fraunces px-4 py-3 grid grid-cols-1 gap-1 shadow-lg lg:w-80 w-64 max-w-[90vw]',
+                    toast: 'bg-foreground text-background rounded-xl instrument-serif px-4 py-3 grid grid-cols-1 gap-1 shadow-lg lg:w-80 w-64 max-w-[90vw]',
                     title: 'font-bold text-base',
                     description: 'font-normal text-sm',
                     actionButton: '',
@@ -176,10 +212,13 @@ import {
     Camera,
     Copy,
     Download,
+
     FilePlus2,
     Paintbrush,
+    PanelLeft,
     Sparkles,
     Upload,
+    X,
 } from "lucide-vue-next";
 
 import { TooltipProvider } from "@components/ui/tooltip";
@@ -219,6 +258,8 @@ const activeTimelineRef = computed(() => {
 
 // Track whether the panel's max-height transition has completed
 const isPanelTransitionDone = ref(storedControls.isControlsPanelOpen);
+const isMinimized = ref(false);
+
 
 watch(() => storedControls.isControlsPanelOpen, (open) => {
     if (!open) isPanelTransitionDone.value = false;
@@ -445,21 +486,21 @@ function cycleAnimation(direction: number) {
 </script>
 
 <style scoped>
-/* Controls pane: idle→85% after 2s, hover→100% immediately (desktop only).
-   Shadow lifts subtly on hover and drops back immediately on leave.
-   Opacity persists at 100% for 2s after leaving. */
 @media (min-width: 1024px) {
+    /* Controls pane: idle→75% after 10s, hover→100% immediately.
+       !important overrides Tailwind opacity-0/invisible from mobile collapse. */
     .controls-pane {
-        opacity: 0.85;
-        transition: opacity 0.5s ease-out 2s;
+        opacity: 0.75 !important;
+        visibility: visible !important;
+        pointer-events: auto !important;
+        transition: opacity 0.5s ease-out 10s;
+        overflow: hidden;
+        --controls-card-shadow: 4px 4px 0px 0px rgba(0,0,0,0.5);
+        --controls-card-shadow-hover: 5px 5px 0px 0px rgba(0,0,0,0.6);
     }
     .controls-pane:hover {
-        opacity: 1;
+        opacity: 1 !important;
         transition: opacity 0.2s ease-out;
-    }
-    .controls-pane {
-        --controls-card-shadow: 8px 8px 0px 0px rgba(0,0,0,0.8);
-        --controls-card-shadow-hover: 9px 9px 0px 0px rgba(0,0,0,0.8);
     }
     .controls-pane :deep(.controls-card) {
         box-shadow: var(--controls-card-shadow);
@@ -468,12 +509,61 @@ function cycleAnimation(direction: number) {
     .controls-pane:hover :deep(.controls-card) {
         box-shadow: var(--controls-card-shadow-hover);
     }
+
+    /* Accordion collapse — width shrinks instead of translateX */
+    .controls-content-wrapper {
+        width: 100%;
+        overflow: hidden;
+        transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                    opacity 0.25s ease-out;
+        opacity: 1;
+    }
+    .controls-content {
+        min-width: 380px;
+    }
+    .controls-minimized .controls-content-wrapper {
+        width: 0;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    /* Restore button — positioned absolutely, tracks the shrinking edge */
+    .restore-btn {
+        position: absolute;
+        top: 0.75rem;
+        left: 0;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 0.5rem;
+        color: hsl(var(--muted-foreground));
+        cursor: pointer;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s ease-out 0.15s,
+                    background-color 0.15s ease-out;
+        border: none;
+        background: transparent;
+    }
+    .restore-btn:hover {
+        background: hsl(var(--accent));
+        color: hsl(var(--foreground));
+    }
+    .controls-minimized .restore-btn {
+        opacity: 1;
+        pointer-events: auto;
+    }
+    .controls-minimized {
+        opacity: 1 !important;
+    }
 }
 @media (min-width: 1024px) {
     :global(.dark) .controls-pane {
-        --controls-card-shadow: 8px 8px 0px 0px hsl(var(--shadow) / 0.5);
-        --controls-card-shadow-hover: 9px 9px 0px 0px hsl(var(--shadow) / 0.6);
+        --controls-card-shadow: 4px 4px 0px 0px hsl(var(--shadow) / 0.3);
+        --controls-card-shadow-hover: 5px 5px 0px 0px hsl(var(--shadow) / 0.4);
     }
 }
-
 </style>

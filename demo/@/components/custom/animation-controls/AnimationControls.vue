@@ -1,47 +1,35 @@
 <template>
     <TooltipProvider :delay-duration="100" :skip-delay-duration="0">
     <div
-        class="flex flex-col h-full w-full z-10 relative lg:max-w-screen-md isolate"
+        class="flex flex-col h-full w-full overflow-hidden z-10 relative lg:max-w-screen-md isolate"
     >
         <Tabs
             class="p-4 pt-2 pb-2 w-full flex-1 min-h-0 flex flex-col justify-start"
             :model-value="storedControls.selectedControl"
             @update:model-value="selectControl"
         >
-            <!-- Filing tabs header -->
-            <div ref="tabsHeaderEl" class="relative w-fit max-w-full mb-0 flex-shrink-0 flex items-stretch rounded-t-lg">
-                <!-- Bouncy sliding indicator -->
-                <div
-                    ref="sliderEl"
-                    class="absolute bottom-0 z-0 rounded-t-lg bg-white dark:bg-gray-500/30 border-b-2 border-gray-300 dark:border-gray-400/30 pointer-events-none"
-                    :style="sliderStyle"
-                />
-
+            <!-- Tabs header -->
+            <div ref="tabsHeaderEl" class="relative w-full flex items-center flex-shrink-0 bg-muted/50 rounded-lg px-1 py-0.5">
                 <TabsList
                     ref="tabsListRef"
-                    class="relative z-10 flex items-stretch justify-start bg-transparent p-0 gap-0 flex-1 min-w-0 overflow-x-auto h-auto rounded-none scrollbar-hidden"
+                    :class="[
+                        'relative flex items-center justify-start bg-transparent p-0 gap-0 flex-1 min-w-0 overflow-x-auto h-auto rounded-none scrollbar-hidden',
+                        overflowClass,
+                    ]"
                 >
-                    <TabsTrigger
-                        value="controls"
-                        :class="fileTabClasses"
-                    >Controls</TabsTrigger>
-                    <TabsTrigger
-                        value="keyframes"
-                        :class="fileTabClasses"
-                    >Keyframes</TabsTrigger>
-                    <TabsTrigger
-                        value="timeline"
-                        :class="fileTabClasses"
-                    >Timeline</TabsTrigger>
+                    <TabsTrigger value="controls" :class="tabClasses">Controls</TabsTrigger>
+                    <TabsTrigger value="keyframes" :class="tabClasses">Keyframes</TabsTrigger>
+                    <TabsTrigger value="timeline" :class="tabClasses">Timeline</TabsTrigger>
                     <slot name="tabs-trigger"></slot>
                 </TabsList>
-                <!-- Overflow indicator — click to scroll and reveal next tab -->
                 <button
-                    v-if="hasOverflow"
-                    @click="scrollToNextTab"
-                    class="shrink-0 z-20 inline-flex items-center pl-8 pr-2 -ml-10 rounded-tr-lg text-gray-400 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white text-sm fraunces select-none cursor-pointer transition-colors"
-                    style="background: linear-gradient(to right, transparent, hsl(var(--muted)) 40%)"
-                >&hellip;</button>
+                    v-if="showMinimize"
+                    @click="emit('minimize')"
+                    class="hidden lg:flex shrink-0 ml-1 p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent cursor-pointer transition-colors"
+                    title="Minimize controls"
+                >
+                    <Minus class="w-3.5 h-3.5" />
+                </button>
             </div>
 
             <div ref="tabsContentEl" class="flex-1 min-h-0 overflow-y-auto flex flex-col pb-1 pr-3">
@@ -130,13 +118,12 @@ import {
     nextTick,
     onMounted,
     onUnmounted,
-    reactive,
     ref,
     Teleport,
     useTemplateRef,
     watch,
 } from "vue";
-import { ChevronDown, Minimize2 } from "lucide-vue-next";
+import { ChevronDown, Minus, Minimize2 } from "lucide-vue-next";
 import { Button } from "@components/ui/button";
 
 const KeyframesStringControls = defineAsyncComponent(() => import("./KeyframesStringControls.vue"));
@@ -144,11 +131,12 @@ const KeyframeTimeline = defineAsyncComponent(() => import("./KeyframeTimeline.v
 import AnimationControlsControls from "./AnimationControlsControls.vue";
 import { getStoredAnimationGroupControlOptions } from "./animationStores";
 
-const { animation, isGrouped, layerConfig, active } = defineProps<{
+const { animation, isGrouped, layerConfig, active, showMinimize } = defineProps<{
     animation: Animation<any>;
     isGrouped?: boolean;
     layerConfig?: AnimationLayerConfig;
     active?: boolean;
+    showMinimize?: boolean;
 }>();
 
 const storedControls = getStoredAnimationGroupControlOptions(animation);
@@ -171,6 +159,7 @@ const emit = defineEmits<{
     (e: "layerConfigUpdate", val: Partial<AnimationLayerConfig>): void;
     (e: "scrubStart"): void;
     (e: "scrubEnd"): void;
+    (e: "minimize"): void;
 }>();
 
 const keyframesControlsRef = ref<InstanceType<typeof KeyframesStringControls> | null>(null);
@@ -178,113 +167,39 @@ const timelineRef = ref<InstanceType<typeof KeyframeTimeline> | null>(null);
 const tabsContentEl = useTemplateRef<HTMLElement>("tabsContentEl");
 const tabsHeaderEl = useTemplateRef<HTMLElement>("tabsHeaderEl");
 const tabsListRef = useTemplateRef<HTMLElement>("tabsListRef");
-const sliderEl = useTemplateRef<HTMLElement>("sliderEl");
 
 const isTimelineVisible = computed(() =>
     storedControls.selectedControl === "timeline" || storedControls.isTimelineExpanded,
 );
 
-const fileTabClasses = [
-    "shrink-0 rounded-none rounded-t-lg fraunces",
-    "border border-transparent border-b-0",
-    "text-gray-500 dark:text-gray-300",
+const tabClasses = [
+    "shrink-0 instrument-serif px-3 py-1.5 text-lg bg-transparent rounded-none",
     "transition-colors duration-150",
-    // Inactive — own background so gaps between rounded corners show page bg
-    "data-[state=inactive]:bg-gray-200 dark:data-[state=inactive]:bg-gray-700",
-    "data-[state=inactive]:hover:border-gray-500/60",
-    "data-[state=inactive]:hover:text-gray-700",
-    "dark:data-[state=inactive]:hover:border-gray-400/40",
-    "dark:data-[state=inactive]:hover:text-gray-100",
-    // Active — transparent so slider indicator shows through
-    "data-[state=active]:bg-transparent",
-    "data-[state=active]:text-gray-900 data-[state=active]:font-semibold data-[state=active]:shadow-none",
-    "data-[state=active]:hover:text-gray-900",
-    "dark:data-[state=active]:text-white",
-    "dark:data-[state=active]:hover:text-white",
+    "data-[state=inactive]:text-muted-foreground",
+    "data-[state=inactive]:hover:text-foreground",
+    "data-[state=active]:text-foreground data-[state=active]:font-semibold",
+    "border-b-2 border-transparent",
+    "data-[state=active]:border-foreground",
 ].join(" ");
 
-// --- Bouncy sliding indicator ---
-const sliderStyle = reactive({
-    width: "0px",
-    height: "0px",
-    transform: "translateX(0px)",
-    transition: "none",
+// --- Overflow detection (left + right) ---
+const overflowLeft = ref(false);
+const overflowRight = ref(false);
+
+const overflowClass = computed(() => {
+    if (overflowLeft.value && overflowRight.value) return "tabs-overflow-both";
+    if (overflowLeft.value) return "tabs-overflow-left";
+    if (overflowRight.value) return "tabs-overflow-right";
+    return "";
 });
-
-const updateSlider = (animate = true) => {
-    const doUpdate = () => {
-        const header = tabsHeaderEl.value;
-        if (!header) return;
-
-        const list = header.querySelector<HTMLElement>("[role=tablist]");
-        const activeBtn = header.querySelector<HTMLElement>("button[data-state=active]");
-        if (!activeBtn || !list) return;
-
-        // Position slider relative to header
-        const headerRect = header.getBoundingClientRect();
-        const btnRect = activeBtn.getBoundingClientRect();
-
-        const x = btnRect.left - headerRect.left;
-        const w = btnRect.width;
-        const h = btnRect.height;
-
-        sliderStyle.transition = animate
-            ? "width 0.25s ease-out, transform 0.25s ease-out, height 0.2s ease"
-            : "none";
-        sliderStyle.width = `${w}px`;
-        sliderStyle.height = `${h}px`;
-        sliderStyle.transform = `translateX(${x}px)`;
-    };
-
-    // Animated updates need nextTick (DOM state change pending).
-    // Non-animated (scroll) updates run synchronously for tight tracking.
-    if (animate) {
-        nextTick(doUpdate);
-    } else {
-        doUpdate();
-    }
-};
-
-// --- Overflow detection + scroll ---
-const hasOverflow = ref(false);
 
 const getTabsList = () => tabsHeaderEl.value?.querySelector<HTMLElement>("[role=tablist]");
 
 const checkOverflow = () => {
     const list = getTabsList();
     if (!list) return;
-    // True when there's more content to the right
-    hasOverflow.value = list.scrollLeft + list.clientWidth < list.scrollWidth - 2;
-};
-
-const scrollToNextTab = () => {
-    const list = getTabsList();
-    if (!list) return;
-    const buttons = list.querySelectorAll<HTMLElement>("button");
-    const listRect = list.getBoundingClientRect();
-
-    // Find first button whose right edge is past the visible area
-    for (const btn of buttons) {
-        const btnRect = btn.getBoundingClientRect();
-        if (btnRect.right > listRect.right + 2) {
-            // Scroll into view first so user sees the animation
-            btn.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
-
-            // Extract tab value from reka-ui id: "reka-tabs-…-trigger-{value}"
-            const id = btn.id ?? "";
-            const triggerIdx = id.indexOf("-trigger-");
-            const value = triggerIdx >= 0 ? id.slice(triggerIdx + 9) : null;
-            if (value) {
-                // Select after scroll animation completes
-                setTimeout(() => {
-                    storedControls.selectedControl = value;
-                    updateSlider(true);
-                    nextTick(() => checkOverflow());
-                }, 200);
-            }
-            break;
-        }
-    }
+    overflowLeft.value = list.scrollLeft > 2;
+    overflowRight.value = list.scrollLeft + list.clientWidth < list.scrollWidth - 2;
 };
 
 const scrollActiveTabIntoView = () => {
@@ -296,44 +211,18 @@ const scrollActiveTabIntoView = () => {
 
 const onTabsScroll = () => {
     checkOverflow();
-    updateSlider(false);
 };
 
 let resizeObserver: ResizeObserver | undefined;
-let intersectionObserver: IntersectionObserver | undefined;
 let tabsListEl: HTMLElement | undefined;
 
-const setupTabIntersectionObserver = () => {
-    const list = getTabsList();
-    if (!list) return;
-
-    intersectionObserver?.disconnect();
-    intersectionObserver = new IntersectionObserver(
-        (entries) => {
-            for (const entry of entries) {
-                const btn = entry.target as HTMLElement;
-                btn.style.transition = "opacity 0.2s ease";
-                btn.style.opacity = entry.intersectionRatio < 0.9 ? "0.3" : "1";
-            }
-        },
-        { root: list, threshold: [0, 0.5, 0.9, 1] },
-    );
-
-    const buttons = list.querySelectorAll<HTMLElement>("button");
-    for (const btn of buttons) {
-        intersectionObserver.observe(btn);
-    }
-};
-
 onMounted(() => {
-    updateSlider(false);
     checkOverflow();
     scrollActiveTabIntoView();
 
     const header = tabsHeaderEl.value;
     if (header) {
         resizeObserver = new ResizeObserver(() => {
-            updateSlider(false);
             checkOverflow();
         });
         resizeObserver.observe(header);
@@ -341,19 +230,15 @@ onMounted(() => {
 
     tabsListEl = getTabsList() ?? undefined;
     tabsListEl?.addEventListener("scroll", onTabsScroll);
-
-    setupTabIntersectionObserver();
 });
 
 onUnmounted(() => {
     resizeObserver?.disconnect();
-    intersectionObserver?.disconnect();
     tabsListEl?.removeEventListener("scroll", onTabsScroll);
 });
 
 const selectControl = (key: string | number) => {
     storedControls.selectedControl = key.toString();
-    updateSlider(true);
     nextTick(() => {
         checkOverflow();
         scrollActiveTabIntoView();
@@ -364,11 +249,9 @@ const selectControl = (key: string | number) => {
 watch(
     () => storedControls.selectedControl,
     () => {
-        updateSlider(true);
         nextTick(() => {
             checkOverflow();
             scrollActiveTabIntoView();
-            setupTabIntersectionObserver();
         });
     },
 );
@@ -377,6 +260,22 @@ defineExpose({
     keyframesControlsRef,
     timelineRef,
     selectControl,
+    tabClasses,
 });
 </script>
+
+<style scoped>
+.tabs-overflow-right {
+    mask-image: linear-gradient(to right, black calc(100% - 2.5rem), transparent);
+    -webkit-mask-image: linear-gradient(to right, black calc(100% - 2.5rem), transparent);
+}
+.tabs-overflow-left {
+    mask-image: linear-gradient(to right, transparent, black 2.5rem);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 2.5rem);
+}
+.tabs-overflow-both {
+    mask-image: linear-gradient(to right, transparent, black 2.5rem, black calc(100% - 2.5rem), transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 2.5rem, black calc(100% - 2.5rem), transparent);
+}
+</style>
 

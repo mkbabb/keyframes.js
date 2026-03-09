@@ -23,19 +23,13 @@
             </template>
         </EditorHeader>
 
-        <!-- Centered chevron toggle (mobile only) -->
+        <!-- Sidebar toggle (mobile only) -->
         <button
             @click="storedControls.isControlsPanelOpen = !storedControls.isControlsPanelOpen"
-            class="absolute top-2.5 left-1/2 -translate-x-1/2 z-50 p-1 cursor-pointer lg:hidden"
+            class="absolute top-2.5 left-2 z-50 p-1.5 rounded-lg cursor-pointer lg:hidden transition-colors"
+            :class="storedControls.isControlsPanelOpen ? 'text-foreground' : 'text-muted-foreground chevron-bounce'"
         >
-            <ChevronDown
-                :class="[
-                    'w-7 h-7 transition-transform duration-300 ease-out',
-                    storedControls.isControlsPanelOpen
-                        ? '-rotate-180'
-                        : 'rotate-0 chevron-bounce',
-                ]"
-            />
+            <PanelLeft class="w-5 h-5" />
         </button>
 
         <template v-if="showStartScreen && !storedControls.selectedAnimation">
@@ -76,7 +70,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref, useTemplateRef } from "vue";
-import { ChevronDown } from "lucide-vue-next";
+import { PanelLeft } from "lucide-vue-next";
 import EditorHeader from "./EditorHeader.vue";
 import SharePopover from "./SharePopover.vue";
 import EditorStartScreen from "./EditorStartScreen.vue";

@@ -7,6 +7,10 @@
         >
             <div ref="containerEl" class="w-full h-full relative" style="container-type: inline-size">
                 <div
+                    class="absolute top-1/2 left-[1.5rem] w-[calc(100%-3rem)] h-1 -translate-y-1/2 rounded-full bg-accent-red/20 pointer-events-none"
+                ></div>
+
+                <div
                     ref="ballEl"
                     :class="[
                         'absolute z-30 rounded-full h-12 w-12 bg-accent-red text-accent-red-foreground shadow-md will-change-transform',

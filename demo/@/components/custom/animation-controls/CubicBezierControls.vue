@@ -1,7 +1,7 @@
 <template>
     <Card class="grid gap-0 w-full dark:border-none shadow-none border-none p-0">
         <CardHeader class="grid gap-0 p-0 pb-1">
-            <CardTitle class="fraunces">cubic-bézier</CardTitle>
+            <CardTitle class="instrument-serif">cubic-bézier</CardTitle>
             <div
                 class="w-full whitespace-pre h-6 m-0 p-0 ml-1 text-xs flex items-center italic justify-items-center gap-2 fira-code"
             >
@@ -25,11 +25,10 @@
                 :viewBox="`0 ${viewBox.minY} 1 ${viewBox.height}`"
                 preserveAspectRatio="xMidYMid meet"
                 xmlns="http://www.w3.org/2000/svg"
-                style="touch-action: none;"
+                style="touch-action: none; user-select: none;"
                 @pointerdown="startDragging"
                 @pointermove="onDrag"
                 @pointerup="stopDragging"
-                @pointerleave="stopDragging"
                 @pointercancel="stopDragging"
             >
                 <!-- Bounding box and reference grid -->
@@ -220,20 +219,44 @@ const pointerToSVG = (event: PointerEvent): { x: number; y: number } => {
 };
 
 const startDragging = (event: PointerEvent) => {
-    const target = (event.target as SVGElement).closest("circle");
-    if (!target) return;
+    // Prevent iOS Safari gesture handling (scroll, zoom)
+    event.preventDefault();
 
-    const index = parseInt(target.getAttribute("data-index")!);
-    if (index === 0 || index === 3) return; // endpoints not draggable
+    const { x, y } = pointerToSVG(event);
+
+    // Proximity-based hit detection — larger radius for touch to compensate
+    // for finger size on iOS / mobile
+    const hitRadius = event.pointerType === "touch" ? 0.15 : 0.08;
+    let closestIndex: number | null = null;
+    let closestDist = Infinity;
+
+    for (const i of [1, 2]) {
+        const p = controlPoints.value[i];
+        const dist = Math.hypot(p.x - x, p.y - y);
+        if (dist < hitRadius && dist < closestDist) {
+            closestDist = dist;
+            closestIndex = i;
+        }
+    }
+
+    if (closestIndex === null) return;
 
     isDragging.value = true;
-    currentPointIndex.value = index;
+    currentPointIndex.value = closestIndex;
 
-    // Capture pointer for reliable cross-element tracking on touch
-    (event.target as Element).setPointerCapture(event.pointerId);
+    // Capture on SVG root for reliable cross-element tracking on iOS WebKit
+    // (capturing on SVG circle elements is unreliable on iOS)
+    try {
+        SVGEl.value?.setPointerCapture(event.pointerId);
+    } catch { /* iOS may throw if capture fails */ }
 };
 
-const stopDragging = () => {
+const stopDragging = (event?: PointerEvent) => {
+    if (event && isDragging.value) {
+        try {
+            SVGEl.value?.releasePointerCapture(event.pointerId);
+        } catch { /* iOS may throw if already released */ }
+    }
     isDragging.value = false;
     currentPointIndex.value = null;
 };
@@ -288,32 +311,32 @@ onMounted(() => {
 .bounding-box {
     fill: none;
     stroke: hsl(var(--border));
-    stroke-width: 0.01;
+    stroke-width: 0.02;
 }
 
 .diagonal-ref {
     stroke: hsl(var(--muted-foreground));
-    stroke-width: 0.005;
+    stroke-width: 0.01;
     stroke-dasharray: 0.02 0.015;
     opacity: 0.3;
 }
 
 .grid-line {
     stroke: hsl(var(--border));
-    stroke-width: 0.005;
+    stroke-width: 0.01;
     opacity: 0.4;
 }
 
 .handle-line {
     stroke: hsl(var(--muted-foreground));
-    stroke-width: 0.015;
+    stroke-width: 0.03;
     stroke-dasharray: 0.03 0.02;
     opacity: 0.5;
 }
 
 .bezier-path {
     stroke: hsl(var(--ppmycota-primary, var(--foreground)));
-    stroke-width: 0.03;
+    stroke-width: 0.06;
     fill: none;
     stroke-linecap: round;
 }
@@ -335,7 +358,7 @@ onMounted(() => {
 .control-point.handle {
     fill: hsl(var(--foreground));
     stroke: hsl(var(--background));
-    stroke-width: 0.015;
+    stroke-width: 0.03;
 }
 
 .control-point.handle:hover {

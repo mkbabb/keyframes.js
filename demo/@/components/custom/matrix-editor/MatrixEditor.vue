@@ -1,17 +1,17 @@
 <template>
     <Card>
-        <CardContent class="grid items-center justify-center gap-4 p-6">
+        <CardContent class="grid items-center justify-center gap-3 p-3">
             <div
-                class="relative m-0 grid h-[fit-content] w-[fit-content] grid-cols-4 items-center justify-items-center gap-1 p-0"
+                class="matrix-grid relative m-0 grid h-[fit-content] w-full grid-cols-4 items-center justify-items-stretch gap-1 p-0"
             >
                 <div
-                    class="relative grid h-20 w-20 rounded-lg shadow-sm"
+                    class="relative grid aspect-square min-h-[3.5rem] rounded-lg shadow-sm"
                     v-for="(value, i) in matrix3dEnd.values"
                 >
                     <Input
                         :class="
                             `fira-code absolute left-0 top-0 z-10 h-full w-full text-ellipsis bg-transparent
-                            p-0 text-center text-2xl` +
+                            p-0 text-center text-base` +
                             [
                                 storedControls.matrixOptions
                                     .selectedMatrixCell === i
@@ -44,8 +44,8 @@
                     />
                     <div
                         :class="
-                            `fraunces absolute left-0 top-0 flex h-full w-full items-center justify-center
-                            justify-items-center p-0 text-center text-5xl opacity-20 dark:opacity-75 ` +
+                            `instrument-serif absolute left-0 top-0 flex h-full w-full items-center justify-center
+                            justify-items-center p-0 text-center text-3xl opacity-20 dark:opacity-75 ` +
                             [matrixCellMeta[i].axis.toLocaleLowerCase()]
                         "
                     >

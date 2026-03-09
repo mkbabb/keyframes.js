@@ -2,8 +2,8 @@
     <div class="flex flex-col gap-3">
     <Card :class="['w-full overflow-hidden transition-all duration-150', props.expanded ? 'border-0 shadow-none bg-transparent' : '']">
         <CardContent :class="['relative flex flex-col gap-3', props.expanded ? 'p-2 px-0' : 'p-4']">
-        <!-- Pane action buttons (top-right) -->
-        <div class="absolute top-2 right-2 z-30 flex items-center gap-0.5">
+        <!-- Pane action buttons -->
+        <div class="flex items-center justify-end gap-1">
             <IconTooltip text="Clear all keyframes">
                 <Button
                     size="sm"
@@ -40,7 +40,7 @@
                     }"
                 ></div>
             </div>
-            <span class="fira-code text-[10px] text-muted-foreground shrink-0">{{ zoomLevel.toFixed(1) }}x</span>
+            <span class="instrument-serif text-sm text-muted-foreground shrink-0">{{ zoomLevel.toFixed(1) }}x</span>
         </div>
 
         <!-- Timeline Track -->
@@ -68,7 +68,7 @@
                 :style="{ left: `${percentToPosition(tick)}%` }"
             >
                 <span
-                    class="fira-code absolute -top-5 left-0 -translate-x-1/2 text-[10px] text-muted-foreground"
+                    class="instrument-serif absolute -top-5 left-0 -translate-x-1/2 text-sm text-muted-foreground"
                 >{{ tick }}%</span>
             </div>
 
@@ -176,10 +176,10 @@
     <!-- Import dialog -->
         <Dialog v-model:open="importDialogOpen">
             <DialogContent>
-                <DialogTitle class="fira-code text-base font-medium"
+                <DialogTitle class="instrument-serif text-lg font-medium"
                     >Import CSS @keyframes</DialogTitle
                 >
-                <DialogDescription class="fira-code text-sm text-muted-foreground"
+                <DialogDescription class="instrument-serif text-lg text-muted-foreground"
                     >Paste CSS @keyframes to load into the timeline</DialogDescription
                 >
                 <pre
@@ -205,10 +205,10 @@
         <!-- Add CSS dialog -->
         <Dialog v-model:open="addCSSDialogOpen">
             <DialogContent>
-                <DialogTitle class="fira-code text-base font-medium"
+                <DialogTitle class="instrument-serif text-lg font-medium"
                     >Add CSS @keyframes</DialogTitle
                 >
-                <DialogDescription class="fira-code text-sm text-muted-foreground"
+                <DialogDescription class="instrument-serif text-lg text-muted-foreground"
                     >Paste CSS @keyframes to merge into the timeline</DialogDescription
                 >
                 <pre

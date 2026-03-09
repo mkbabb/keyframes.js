@@ -3,7 +3,7 @@
         ref="containerEl"
         :class="[
             'w-full rounded-lg overflow-hidden',
-            border ? 'border-4 border-gray-700 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.6)] dark:shadow-gray-700' : '',
+            border ? 'border-2 border-gray-700 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.6)] dark:shadow-gray-700' : '',
         ]"
         :style="{ height }"
     ></div>
@@ -19,6 +19,18 @@ import { formatCSS } from "@src/parsing/format";
 import { convert2 } from "@src/units/utils";
 import { debounce } from "@src/utils";
 import { toast } from "vue-sonner";
+
+import EditorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker";
+import CSSWorker from "monaco-editor/esm/vs/language/css/css.worker?worker";
+
+self.MonacoEnvironment = {
+    getWorker(_workerId: string, label: string) {
+        if (label === "css" || label === "scss" || label === "less") {
+            return new CSSWorker();
+        }
+        return new EditorWorker();
+    },
+};
 
 monaco.editor.defineTheme("dark-theme", DarkTheme as any);
 monaco.editor.defineTheme("light-theme", LightTheme as any);

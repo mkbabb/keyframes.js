@@ -12,7 +12,7 @@
                             class="col-span-2 grid grid-cols-[subgrid] items-center gap-x-3 gap-y-2 w-full"
                         >
                             <IconTooltip text="Animation length (e.g. 5s, 200ms)">
-                                <label class="fira-code text-xs text-muted-foreground cursor-help">duration</label>
+                                <label class="instrument-serif text-base text-muted-foreground cursor-help">duration</label>
                             </IconTooltip>
                             <Input
                                 type="string"
@@ -28,7 +28,7 @@
                             />
 
                             <IconTooltip text="Delay before start (e.g. 0s, 500ms)">
-                                <label class="fira-code text-xs text-muted-foreground cursor-help">delay</label>
+                                <label class="instrument-serif text-base text-muted-foreground cursor-help">delay</label>
                             </IconTooltip>
                             <Input
                                 class="fira-code"
@@ -44,12 +44,12 @@
                             />
 
                             <IconTooltip text="Repeat count (number or 'infinite')">
-                                <label class="fira-code text-xs text-muted-foreground cursor-help">iterations</label>
+                                <label class="instrument-serif text-base text-muted-foreground cursor-help">iterations</label>
                             </IconTooltip>
                             <Input
                                 :class="[
                                     !isFinite(animation.options.iterationCount)
-                                        ? 'fraunces text-3xl'
+                                        ? 'instrument-serif text-3xl'
                                         : 'fira-code',
                                 ]"
                                 type="string"
@@ -69,7 +69,7 @@
                             />
 
                             <IconTooltip text="Playback direction">
-                                <label class="fira-code text-xs text-muted-foreground cursor-help">direction</label>
+                                <label class="instrument-serif text-base text-muted-foreground cursor-help">direction</label>
                             </IconTooltip>
                             <Select
                                 :model-value="animation.options.direction"
@@ -88,14 +88,18 @@
                                         <SelectItem
                                             v-for="direction in DIRECTIONS"
                                             :value="direction"
-                                            >{{ direction }}</SelectItem
                                         >
+                                            {{ direction }}
+                                            <template #extra>
+                                                <span v-if="DIRECTION_DESCRIPTIONS[direction]" class="ml-auto pl-2 text-[10px] text-muted-foreground whitespace-nowrap">{{ DIRECTION_DESCRIPTIONS[direction] }}</span>
+                                            </template>
+                                        </SelectItem>
                                     </SelectGroup>
                                 </SelectContent>
                             </Select>
 
                             <IconTooltip text="Style applied when not playing">
-                                <label class="fira-code text-xs text-muted-foreground cursor-help">fill mode</label>
+                                <label class="instrument-serif text-base text-muted-foreground cursor-help">fill mode</label>
                             </IconTooltip>
                             <Select
                                 :model-value="animation.options.fillMode"
@@ -111,15 +115,21 @@
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectGroup class="fira-code">
-                                        <template v-for="mode in FILL_MODES">
-                                            <SelectItem :value="mode">{{ mode }}</SelectItem>
-                                        </template>
+                                        <SelectItem
+                                            v-for="mode in FILL_MODES"
+                                            :value="mode"
+                                        >
+                                            {{ mode }}
+                                            <template #extra>
+                                                <span v-if="FILL_MODE_DESCRIPTIONS[mode]" class="ml-auto pl-2 text-[10px] text-muted-foreground whitespace-nowrap">{{ FILL_MODE_DESCRIPTIONS[mode] }}</span>
+                                            </template>
+                                        </SelectItem>
                                     </SelectGroup>
                                 </SelectContent>
                             </Select>
 
                             <IconTooltip text="Timing function curve">
-                                <label class="fira-code text-xs text-muted-foreground cursor-help">easing</label>
+                                <label class="instrument-serif text-base text-muted-foreground cursor-help">easing</label>
                             </IconTooltip>
                             <Select
                                 :model-value="
@@ -139,6 +149,16 @@
                                             v-if="DETAIL_TIMING_FUNCTIONS.has(storedAnimationOptions.animationOptions.timingFunction as string)"
                                             class="inline-block w-1.5 h-1.5 rounded-full bg-foreground/50 shrink-0"
                                         ></span>
+                                        <svg viewBox="-0.05 -0.3 1.1 1.6" class="w-6 h-4 shrink-0">
+                                            <path
+                                                :d="getCurvePath(storedAnimationOptions.animationOptions.timingFunction as string)"
+                                                fill="none"
+                                                class="stroke-[hsl(var(--ppmycota-primary,var(--foreground)))]"
+                                                stroke-width="0.2"
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                            />
+                                        </svg>
                                         <SelectValue />
                                     </span>
                                 </SelectTrigger>
@@ -154,10 +174,25 @@
                                                 <span
                                                     v-if="DETAIL_TIMING_FUNCTIONS.has(timingFunction)"
                                                     class="inline-block w-1.5 h-1.5 rounded-full bg-foreground/50 shrink-0"
-                                                    :title="'Has granular controls'"
                                                 ></span>
+                                                <svg viewBox="-0.05 -0.3 1.1 1.6" class="w-7 h-5 shrink-0">
+                                                    <path
+                                                        :d="getCurvePath(timingFunction)"
+                                                        fill="none"
+                                                        class="stroke-[hsl(var(--ppmycota-primary,var(--foreground)))]"
+                                                        stroke-width="0.18"
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                    />
+                                                </svg>
                                                 {{ timingFunction }}
                                             </span>
+                                            <template #extra>
+                                                <span
+                                                    v-if="TIMING_DESCRIPTIONS[timingFunction]"
+                                                    class="ml-auto pl-2 text-[10px] text-muted-foreground leading-tight whitespace-nowrap"
+                                                >{{ TIMING_DESCRIPTIONS[timingFunction] }}</span>
+                                            </template>
                                         </SelectItem>
                                     </SelectGroup>
                                 </SelectContent>
@@ -187,20 +222,20 @@
                     @keydown.space.prevent="advancedOpen = !advancedOpen"
                     class="col-span-2 grid grid-cols-[subgrid] gap-x-3 items-center w-full py-1.5 cursor-pointer hover:text-foreground text-muted-foreground transition-colors"
                 >
-                    <span class="fira-code text-xs">advanced</span>
+                    <span class="instrument-serif text-base">advanced</span>
                     <div class="flex items-center justify-end px-3">
                         <ChevronDown class="w-4 h-4 opacity-50 transition-transform duration-200" :class="advancedOpen ? 'rotate-180' : ''" />
                     </div>
                 </div>
                 <div
-                    class="col-span-2 grid grid-cols-[subgrid] transition-[grid-template-rows] duration-200 ease-out"
+                    class="col-span-2 grid grid-cols-[subgrid] transition-[grid-template-rows] duration-350 ease-[cubic-bezier(0.4,0,0.2,1)]"
                     :class="advancedOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'"
                 >
                     <div class="col-span-2 grid grid-cols-[subgrid] items-center gap-x-3 gap-y-2 overflow-hidden" :class="advancedOpen ? 'pb-2' : ''">
                         <!-- Layer Settings (only when in a group) -->
                         <template v-if="isGrouped && layerConfig">
                             <IconTooltip text="Stacking order in animation group">
-                                <label class="fira-code text-xs text-muted-foreground cursor-help">z-index</label>
+                                <label class="instrument-serif text-base text-muted-foreground cursor-help">z-index</label>
                             </IconTooltip>
                             <Input
                                 type="number"
@@ -210,7 +245,7 @@
                             />
 
                             <IconTooltip text="How this layer blends with others">
-                                <label class="fira-code text-xs text-muted-foreground cursor-help">blend</label>
+                                <label class="instrument-serif text-base text-muted-foreground cursor-help">blend</label>
                             </IconTooltip>
                             <Select
                                 :model-value="layerConfig.blendMode"
@@ -221,16 +256,19 @@
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectGroup class="fira-code">
-                                        <SelectItem value="replace">replace</SelectItem>
-                                        <SelectItem value="add">add</SelectItem>
-                                        <SelectItem value="weighted">weighted</SelectItem>
+                                        <SelectItem v-for="bm in ['replace', 'add', 'weighted']" :key="bm" :value="bm">
+                                            {{ bm }}
+                                            <template #extra>
+                                                <span class="ml-auto pl-2 text-[10px] text-muted-foreground whitespace-nowrap">{{ BLEND_MODE_DESCRIPTIONS[bm] }}</span>
+                                            </template>
+                                        </SelectItem>
                                     </SelectGroup>
                                 </SelectContent>
                             </Select>
 
                             <template v-if="layerConfig.blendMode === 'weighted'">
                                 <IconTooltip text="Blend weight (0 = none, 1 = full)">
-                                    <label class="fira-code text-xs text-muted-foreground cursor-help">weight</label>
+                                    <label class="instrument-serif text-base text-muted-foreground cursor-help">weight</label>
                                 </IconTooltip>
                                 <Slider
                                     class="py-2"
@@ -243,7 +281,7 @@
                             </template>
 
                             <IconTooltip text="Enable/disable this layer">
-                                <label class="fira-code text-xs text-muted-foreground cursor-help">enabled</label>
+                                <label class="instrument-serif text-base text-muted-foreground cursor-help">enabled</label>
                             </IconTooltip>
                             <div class="flex items-center">
                                 <Switch
@@ -256,7 +294,7 @@
                         </template>
 
                         <IconTooltip text="Use Web Animations API for compositor-thread execution">
-                            <label class="fira-code text-xs text-muted-foreground cursor-help">WAAPI</label>
+                            <label class="instrument-serif text-base text-muted-foreground cursor-help">WAAPI</label>
                         </IconTooltip>
                         <div class="flex items-center">
                             <Switch
@@ -266,7 +304,7 @@
                         </div>
 
                         <IconTooltip text="Color interpolation space">
-                            <label class="fira-code text-xs text-muted-foreground cursor-help">color space</label>
+                            <label class="instrument-serif text-base text-muted-foreground cursor-help">color space</label>
                         </IconTooltip>
                         <Select
                             :model-value="animation.options.colorSpace ?? 'oklab'"
@@ -277,14 +315,19 @@
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectGroup class="fira-code">
-                                    <SelectItem v-for="cs in COLOR_SPACES" :key="cs" :value="cs">{{ cs }}</SelectItem>
+                                    <SelectItem v-for="cs in COLOR_SPACES" :key="cs" :value="cs">
+                                        {{ cs }}
+                                        <template #extra>
+                                            <span v-if="COLOR_SPACE_DESCRIPTIONS[cs]" class="ml-auto pl-2 text-[10px] text-muted-foreground whitespace-nowrap">{{ COLOR_SPACE_DESCRIPTIONS[cs] }}</span>
+                                        </template>
+                                    </SelectItem>
                                 </SelectGroup>
                             </SelectContent>
                         </Select>
 
                         <template v-if="HUE_COLOR_SPACES.has(animation.options.colorSpace ?? 'oklab')">
                             <IconTooltip text="Hue interpolation method">
-                                <label class="fira-code text-xs text-muted-foreground cursor-help">hue method</label>
+                                <label class="instrument-serif text-base text-muted-foreground cursor-help">hue method</label>
                             </IconTooltip>
                             <Select
                                 :model-value="animation.options.hueMethod ?? 'shorter'"
@@ -295,7 +338,12 @@
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectGroup class="fira-code">
-                                        <SelectItem v-for="hm in HUE_METHODS" :key="hm" :value="hm">{{ hm }}</SelectItem>
+                                        <SelectItem v-for="hm in HUE_METHODS" :key="hm" :value="hm">
+                                            {{ hm }}
+                                            <template #extra>
+                                                <span v-if="HUE_METHOD_DESCRIPTIONS[hm]" class="ml-auto pl-2 text-[10px] text-muted-foreground whitespace-nowrap">{{ HUE_METHOD_DESCRIPTIONS[hm] }}</span>
+                                            </template>
+                                        </SelectItem>
                                     </SelectGroup>
                                 </SelectContent>
                             </Select>
@@ -324,7 +372,7 @@
                 <div class="grid grid-cols-2 gap-2 w-full">
                     <Button
                         :class="[
-                            'h-8 w-full rounded-lg gap-2 fira-code text-xs cursor-pointer hover:scale-105 active:scale-95 transition-transform',
+                            'h-8 w-full rounded-lg gap-2 instrument-serif text-base cursor-pointer hover:scale-105 active:scale-95 transition-transform',
                             isGrouped && !isAnimStarted
                                 ? 'bg-accent-red/30 text-accent-red border-accent-red/40 hover:bg-accent-red/50'
                                 : '',
@@ -344,7 +392,7 @@
                     </Button>
                     <Button
                         :class="[
-                            'h-8 w-full rounded-lg gap-2 fira-code text-xs cursor-pointer hover:scale-105 active:scale-95 transition-transform',
+                            'h-8 w-full rounded-lg gap-2 instrument-serif text-base cursor-pointer hover:scale-105 active:scale-95 transition-transform',
                             userReversed
                                 ? 'bg-primary/10 border-primary/40'
                                 : '',
@@ -377,7 +425,7 @@
 <script setup lang="ts">
 import { Animation } from "@src/animation/index";
 
-import { CSSCubicBezier, timingFunctions } from "@src/easing";
+import { CSSCubicBezier, steppedEase, timingFunctions } from "@src/easing";
 import { reverseCSSTime } from "@src/parsing/keyframes";
 
 import { Button } from "@components/ui/button";
@@ -433,6 +481,129 @@ timingFunctionsAnd = Object.fromEntries(
 ) as any;
 
 const DETAIL_TIMING_FUNCTIONS = new Set(["cubic-bezier", "steps"]);
+
+const DIRECTION_DESCRIPTIONS: Record<string, string> = {
+    "normal": "plays forward",
+    "reverse": "plays backward",
+    "alternate": "forward then backward",
+    "alternate-reverse": "backward then forward",
+};
+
+const FILL_MODE_DESCRIPTIONS: Record<string, string> = {
+    "none": "no styles when idle",
+    "forwards": "keeps end state",
+    "backwards": "applies start state before delay",
+    "both": "forwards + backwards",
+};
+
+const BLEND_MODE_DESCRIPTIONS: Record<string, string> = {
+    "replace": "overwrites lower layers",
+    "add": "accumulates with layers",
+    "weighted": "lerps by weight factor",
+};
+
+const COLOR_SPACE_DESCRIPTIONS: Record<string, string> = {
+    "oklab": "perceptually uniform (default)",
+    "srgb": "standard RGB gamut",
+    "lab": "CIE L*a*b* perceptual",
+    "lch": "cylindrical lab (hue aware)",
+    "oklch": "cylindrical oklab (hue aware)",
+};
+
+const HUE_METHOD_DESCRIPTIONS: Record<string, string> = {
+    "shorter": "shortest arc",
+    "longer": "longest arc",
+    "increasing": "always clockwise",
+    "decreasing": "always counter-clockwise",
+};
+
+// Pithy descriptions for each timing function
+const TIMING_DESCRIPTIONS: Record<string, string> = {
+    "cubic-bezier": "custom curve",
+    "linear": "constant velocity",
+    "ease": "gentle start & end",
+    "ease-in": "slow start, fast end",
+    "ease-out": "fast start, slow end",
+    "ease-in-out": "slow start & end",
+    "ease-in-back": "pulls back first",
+    "ease-out-back": "overshoots, settles",
+    "ease-in-out-back": "pull back & overshoot",
+    "ease-in-quad": "quadratic acceleration",
+    "ease-out-quad": "quadratic deceleration",
+    "ease-in-out-quad": "quadratic both",
+    "ease-in-cubic": "cubic acceleration",
+    "ease-out-cubic": "cubic deceleration",
+    "ease-in-out-cubic": "cubic both",
+    "ease-in-sine": "sinusoidal ramp up",
+    "ease-out-sine": "sinusoidal ramp down",
+    "ease-in-out-sine": "sinusoidal both",
+    "ease-in-circ": "circular ramp up",
+    "ease-out-circ": "circular ramp down",
+    "ease-in-out-circ": "circular both",
+    "ease-in-expo": "exponential ramp",
+    "ease-out-expo": "exponential decay",
+    "ease-in-out-expo": "exponential both",
+    "ease-in-bounce": "bouncing ramp up",
+    "bounce-in-ease": "bounce entrance",
+    "bounce-in-ease-half": "half bounce in",
+    "bounce-out-ease": "bounce landing",
+    "bounce-out-ease-half": "half bounce out",
+    "bounce-in-out-ease": "bounce both ends",
+    "smooth-step3": "hermite interpolation",
+    "smooth-step-3": "hermite interpolation",
+    "steps": "discrete jumps",
+    "step-start": "jump at start",
+    "step-end": "jump at end",
+};
+
+// Generate SVG path data for a timing function curve
+function generateCurveSVGPath(fn: (t: number) => number, n = 32): string {
+    const pts: string[] = [];
+    for (let i = 0; i <= n; i++) {
+        const t = i / n;
+        const v = fn(t);
+        pts.push(`${t.toFixed(3)},${(1 - v).toFixed(3)}`);
+    }
+    return `M ${pts.join(" L ")}`;
+}
+
+// Step function: draw explicit staircase (not sampled)
+function generateStepSVGPath(n = 4): string {
+    const parts = ["M 0,1"];
+    for (let i = 0; i < n; i++) {
+        const y = (1 - (i + 1) / n).toFixed(3);
+        const x1 = (i / n).toFixed(3);
+        const x2 = ((i + 1) / n).toFixed(3);
+        parts.push(`L ${x1},${y}`, `L ${x2},${y}`);
+    }
+    return parts.join(" ");
+}
+
+const curvePathCache = new Map<string, string>();
+
+function getCurvePath(name: string): string {
+    const cached = curvePathCache.get(name);
+    if (cached) return cached;
+
+    let path: string;
+    if (name === "cubic-bezier") {
+        path = generateCurveSVGPath(CSSCubicBezier(0.4, 0, 0.2, 1));
+    } else if (name === "steps") {
+        path = generateStepSVGPath(4);
+    } else if (name === "step-start") {
+        path = generateStepSVGPath(1);
+    } else if (name === "step-end") {
+        path = "M 0,1 L 1,1 L 1,0";
+    } else {
+        const fn = (timingFunctionsAnd as Record<string, any>)[name];
+        path = typeof fn === "function"
+            ? generateCurveSVGPath(fn)
+            : generateCurveSVGPath((t: number) => t);
+    }
+
+    curvePathCache.set(name, path);
+    return path;
+}
 
 const { animation, isGrouped, layerConfig, active } = defineProps<{
     animation: Animation<any>;

@@ -1,7 +1,7 @@
 <template>
     <div class="grid gap-4 relative">
         <Card>
-            <CardHeader class="fraunces w-full mb-0 pb-2">
+            <CardHeader class="instrument-serif w-full mb-0 pb-2">
                 <h2 class="text-xl italic flex w-full relative">
                     <Select
                         :model-value="selectedColorSpace"
@@ -71,7 +71,7 @@
                     </template>
                 </CardTitle>
             </CardHeader>
-            <CardContent class="fraunces grid gap-4">
+            <CardContent class="instrument-serif grid gap-4">
                 <ColorSpectrumPicker
                     :current-color="currentColor!"
                     :hsl-color="hslColor"

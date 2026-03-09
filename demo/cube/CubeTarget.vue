@@ -67,7 +67,7 @@
                                 >
                                     <span
                                         :class="[
-                                            'fraunces h-full w-full text-5xl font-bold',
+                                            'instrument-serif h-full w-full text-5xl font-bold',
                                             'flex items-center justify-center',
                                         ]"
                                         >{{ side.content }}</span

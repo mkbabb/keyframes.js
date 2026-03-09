@@ -3,7 +3,7 @@
         <TooltipTrigger as-child>
             <slot />
         </TooltipTrigger>
-        <TooltipContent class="fira-code text-xs">{{ text }}</TooltipContent>
+        <TooltipContent class="instrument-serif text-base">{{ text }}</TooltipContent>
     </Tooltip>
 </template>
 
