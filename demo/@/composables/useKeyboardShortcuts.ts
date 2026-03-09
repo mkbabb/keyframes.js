@@ -104,30 +104,35 @@ function isEditableTarget(el: Element | null): boolean {
     return false;
 }
 
+/** Format a single combo part to its display symbol. */
+function formatPart(p: string): string {
+    const lower = p.trim().toLowerCase();
+    if (lower === "mod") return isMac ? "\u2318" : "Ctrl";
+    if (lower === "shift") return isMac ? "\u21E7" : "Shift";
+    if (lower === "alt" || lower === "option") return isMac ? "\u2325" : "Alt";
+    if (lower === "ctrl" || lower === "control") return isMac ? "\u2303" : "Ctrl";
+    if (lower === "meta" || lower === "cmd") return "\u2318";
+    if (lower === "space") return isMac ? "\u2423" : "Space";
+    if (lower === "arrowleft") return "\u2190";
+    if (lower === "arrowright") return "\u2192";
+    if (lower === "arrowup") return "\u2191";
+    if (lower === "arrowdown") return "\u2193";
+    if (lower === "delete") return isMac ? "\u232B" : "Del";
+    if (lower === "escape") return "Esc";
+    if (lower === "enter") return "\u23CE";
+    if (lower === "home") return "Home";
+    if (lower === "end") return "End";
+    return p.trim();
+}
+
+/** Format a combo string into individual display parts (for rendering as separate <kbd> elements). */
+export function formatComboParts(raw: string): string[] {
+    return raw.split("+").map(formatPart);
+}
+
 /** Format a combo string for display (resolve Mod to platform symbol). */
 export function formatCombo(raw: string): string {
-    return raw
-        .split("+")
-        .map((p) => {
-            const lower = p.trim().toLowerCase();
-            if (lower === "mod") return isMac ? "\u2318" : "Ctrl";
-            if (lower === "shift") return isMac ? "\u21E7" : "Shift";
-            if (lower === "alt" || lower === "option") return isMac ? "\u2325" : "Alt";
-            if (lower === "ctrl" || lower === "control") return isMac ? "\u2303" : "Ctrl";
-            if (lower === "meta" || lower === "cmd") return "\u2318";
-            if (lower === "space") return "Space";
-            if (lower === "arrowleft") return "\u2190";
-            if (lower === "arrowright") return "\u2192";
-            if (lower === "arrowup") return "\u2191";
-            if (lower === "arrowdown") return "\u2193";
-            if (lower === "delete") return isMac ? "\u232B" : "Del";
-            if (lower === "escape") return "Esc";
-            if (lower === "enter") return "\u23CE";
-            if (lower === "home") return "Home";
-            if (lower === "end") return "End";
-            return p.trim();
-        })
-        .join(isMac ? "" : "+");
+    return formatComboParts(raw).join(isMac ? "" : "+");
 }
 
 const useShortcutRegistry = createGlobalState(() => {
