@@ -32,9 +32,10 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, useTemplateRef } from "vue";
-import { useEventListener } from "@vueuse/core";
+import { onMounted, useTemplateRef } from "vue";
 import type { Animation } from "@src/animation/index";
+import { useRafLoop } from "@composables/useRafLoop";
+import { useDragCapture } from "@composables/useDragCapture";
 
 const props = defineProps<{
     animation: Animation<any>;
@@ -49,9 +50,7 @@ const emit = defineEmits<{
 const ballEl = useTemplateRef<HTMLElement>('ball');
 const trackEl = useTemplateRef<HTMLElement>("trackEl");
 const containerEl = useTemplateRef<HTMLElement>("containerEl");
-const isDragging = ref(false);
 
-let rafId: number | null = null;
 let grabOffset = 0;
 
 /** Max translateX in pixels (container width − ball width). */
@@ -91,7 +90,25 @@ const applyProgress = (progress: number) => {
     emit("scrub", t);
 };
 
-const syncBallWithAnimation = () => {
+const { isDragging, onPointerDown } = useDragCapture({
+    onStart: (e) => {
+        const ball = ballEl.value;
+        if (!ball) return;
+        const ballRect = ball.getBoundingClientRect();
+        grabOffset = e.clientX - (ballRect.left + ballRect.width / 2);
+        emit("dragStart");
+        applyProgress(progressFromPointerX(e.clientX));
+    },
+    onMove: (e) => {
+        applyProgress(progressFromPointerX(e.clientX));
+    },
+    onEnd: () => {
+        grabOffset = 0;
+        emit("dragEnd");
+    },
+});
+
+const { start: startSync } = useRafLoop(() => {
     const anim = props.animation;
     if (!isDragging.value && anim.options.duration > 0) {
         const progress = Math.max(
@@ -100,52 +117,7 @@ const syncBallWithAnimation = () => {
         );
         setBallProgress(progress);
     }
-    rafId = requestAnimationFrame(syncBallWithAnimation);
-};
-
-const onPointerDown = (e: PointerEvent) => {
-    if (e.button !== 0) return;
-
-    const ball = ballEl.value;
-    if (!ball) return;
-
-    const ballRect = ball.getBoundingClientRect();
-    const ballCenterX = ballRect.left + ballRect.width / 2;
-    grabOffset = e.clientX - ballCenterX;
-
-    isDragging.value = true;
-    emit("dragStart");
-    ball.setPointerCapture(e.pointerId);
-
-    applyProgress(progressFromPointerX(e.clientX));
-};
-
-useEventListener(ballEl, "pointermove", (e: PointerEvent) => {
-    if (!isDragging.value) return;
-    applyProgress(progressFromPointerX(e.clientX));
 });
 
-useEventListener(ballEl, "pointerup", () => {
-    if (!isDragging.value) return;
-    isDragging.value = false;
-    grabOffset = 0;
-    emit("dragEnd");
-});
-
-useEventListener(ballEl, "pointercancel", () => {
-    if (!isDragging.value) return;
-    isDragging.value = false;
-    grabOffset = 0;
-    emit("dragEnd");
-});
-
-onMounted(() => {
-    rafId = requestAnimationFrame(syncBallWithAnimation);
-});
-
-onUnmounted(() => {
-    if (rafId !== null) {
-        cancelAnimationFrame(rafId);
-    }
-});
+onMounted(startSync);
 </script>
