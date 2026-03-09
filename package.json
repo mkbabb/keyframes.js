@@ -1,6 +1,6 @@
 {
     "name": "@mkbabb/keyframes.js",
-    "version": "1.1.4",
+    "version": "1.1.6",
     "description": "Create keyframe animations for anything in JavaScript; specify your keyframes in standards-complaint CSS.",
     "licenses": [
         {
@@ -55,8 +55,8 @@
     },
     "homepage": "https://github.com/mkbabb/keyframes.js#readme",
     "dependencies": {
-        "@mkbabb/parse-that": "^0.7.0",
-        "@mkbabb/value.js": "file:../value.js"
+        "@mkbabb/parse-that": "latest",
+        "@mkbabb/value.js": "latest"
     },
     "devDependencies": {
         "@fortawesome/fontawesome-svg-core": "^6.6.0",
