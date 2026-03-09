@@ -73,6 +73,8 @@
                             </IconTooltip>
                             <Select
                                 :model-value="animation.options.direction"
+                                :open="isSelectOpen('direction')"
+                                @update:open="(v: boolean) => onSelectOpenChange('direction', v)"
                                 @update:model-value="
                                     (key: any) => {
                                         animation.setDirection(key);
@@ -103,6 +105,8 @@
                             </IconTooltip>
                             <Select
                                 :model-value="animation.options.fillMode"
+                                :open="isSelectOpen('fillMode')"
+                                @update:open="(v: boolean) => onSelectOpenChange('fillMode', v)"
                                 @update:model-value="
                                     (key: any) => {
                                         animation.setFillMode(key);
@@ -131,10 +135,16 @@
                             <IconTooltip text="Timing function curve">
                                 <label class="instrument-serif text-base text-muted-foreground cursor-help">easing</label>
                             </IconTooltip>
-                            <Select
+                            <ResponsiveSelect
                                 :model-value="
                                     storedAnimationOptions.animationOptions.timingFunction as any
                                 "
+                                :items="easingItems"
+                                :open="isSelectOpen('easing')"
+                                @update:open="(v: boolean) => onSelectOpenChange('easing', v)"
+                                trigger-class="fira-code"
+                                group-class="fira-code"
+                                title="Easing"
                                 @update:model-value="
                                     (key: any) => {
                                         updateTimingFunctionFromName(key);
@@ -143,15 +153,11 @@
                                     }
                                 "
                             >
-                                <SelectTrigger class="fira-code">
+                                <template #trigger="{ value }">
                                     <span class="flex items-center gap-1.5">
-                                        <span
-                                            v-if="DETAIL_TIMING_FUNCTIONS.has(storedAnimationOptions.animationOptions.timingFunction as string)"
-                                            class="inline-block w-1.5 h-1.5 rounded-full bg-foreground/50 shrink-0"
-                                        ></span>
                                         <svg viewBox="-0.05 -0.3 1.1 1.6" class="w-6 h-4 shrink-0">
                                             <path
-                                                :d="getCurvePath(storedAnimationOptions.animationOptions.timingFunction as string)"
+                                                :d="getCurvePath(value as string)"
                                                 fill="none"
                                                 class="stroke-[hsl(var(--ppmycota-primary,var(--foreground)))]"
                                                 stroke-width="0.2"
@@ -159,44 +165,31 @@
                                                 stroke-linejoin="round"
                                             />
                                         </svg>
-                                        <SelectValue />
+                                        <span :class="['fira-code', DETAIL_TIMING_FUNCTIONS.has(value as string) ? 'gold-shimmer' : '']">{{ value }}</span>
                                     </span>
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectGroup class="fira-code">
-                                        <SelectItem
-                                            v-for="timingFunction in Object.keys(
-                                                timingFunctionsAnd,
-                                            )"
-                                            :value="timingFunction"
-                                        >
-                                            <span class="flex items-center gap-1.5">
-                                                <span
-                                                    v-if="DETAIL_TIMING_FUNCTIONS.has(timingFunction)"
-                                                    class="inline-block w-1.5 h-1.5 rounded-full bg-foreground/50 shrink-0"
-                                                ></span>
-                                                <svg viewBox="-0.05 -0.3 1.1 1.6" class="w-7 h-5 shrink-0">
-                                                    <path
-                                                        :d="getCurvePath(timingFunction)"
-                                                        fill="none"
-                                                        class="stroke-[hsl(var(--ppmycota-primary,var(--foreground)))]"
-                                                        stroke-width="0.18"
-                                                        stroke-linecap="round"
-                                                        stroke-linejoin="round"
-                                                    />
-                                                </svg>
-                                                {{ timingFunction }}
-                                            </span>
-                                            <template #extra>
-                                                <span
-                                                    v-if="TIMING_DESCRIPTIONS[timingFunction]"
-                                                    class="ml-auto pl-2 text-[10px] text-muted-foreground leading-tight whitespace-nowrap"
-                                                >{{ TIMING_DESCRIPTIONS[timingFunction] }}</span>
-                                            </template>
-                                        </SelectItem>
-                                    </SelectGroup>
-                                </SelectContent>
-                            </Select>
+                                </template>
+                                <template #item="{ item }">
+                                    <span class="flex items-center gap-1.5">
+                                        <svg viewBox="-0.05 -0.3 1.1 1.6" class="w-7 h-5 shrink-0">
+                                            <path
+                                                :d="getCurvePath(item.value)"
+                                                fill="none"
+                                                class="stroke-[hsl(var(--ppmycota-primary,var(--foreground)))]"
+                                                stroke-width="0.18"
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                            />
+                                        </svg>
+                                        <span :class="['fira-code', DETAIL_TIMING_FUNCTIONS.has(item.value) ? 'gold-shimmer' : '']">{{ item.value }}</span>
+                                    </span>
+                                </template>
+                                <template #item-extra="{ item }">
+                                    <span
+                                        v-if="TIMING_DESCRIPTIONS[item.value]"
+                                        class="ml-auto pl-2 text-[10px] text-muted-foreground leading-tight whitespace-nowrap"
+                                    >{{ TIMING_DESCRIPTIONS[item.value] }}</span>
+                                </template>
+                            </ResponsiveSelect>
                         </div>
                     </Transition>
 
@@ -211,6 +204,7 @@
                     />
                 </div>
 
+                <template v-if="!showDetailPanel">
                 <Separator class="my-2 col-span-2" />
 
                 <!-- Advanced (includes layer settings when grouped) -->
@@ -249,6 +243,8 @@
                             </IconTooltip>
                             <Select
                                 :model-value="layerConfig.blendMode"
+                                :open="isSelectOpen('blend')"
+                                @update:open="(v: boolean) => onSelectOpenChange('blend', v)"
                                 @update:model-value="(v: any) => emitLayerUpdate({ blendMode: v })"
                             >
                                 <SelectTrigger class="fira-code">
@@ -308,6 +304,8 @@
                         </IconTooltip>
                         <Select
                             :model-value="animation.options.colorSpace ?? 'oklab'"
+                            :open="isSelectOpen('colorSpace')"
+                            @update:open="(v: boolean) => onSelectOpenChange('colorSpace', v)"
                             @update:model-value="(v: any) => { animation.options.colorSpace = v; }"
                         >
                             <SelectTrigger class="fira-code">
@@ -331,6 +329,8 @@
                             </IconTooltip>
                             <Select
                                 :model-value="animation.options.hueMethod ?? 'shorter'"
+                                :open="isSelectOpen('hueMethod')"
+                                @update:open="(v: boolean) => onSelectOpenChange('hueMethod', v)"
                                 @update:model-value="(v: any) => { animation.options.hueMethod = v; }"
                             >
                                 <SelectTrigger class="fira-code">
@@ -350,6 +350,7 @@
                         </template>
                     </div>
                 </div>
+                </template>
 
             </CardContent>
         </Card>
@@ -452,6 +453,7 @@ import { ArrowLeftRight, ChevronDown } from "lucide-vue-next";
 import TimingFunctionPanel from "./TimingFunctionPanel.vue";
 import { useAnimationSync } from "./useAnimationSync";
 import IconTooltip from "@components/custom/IconTooltip.vue";
+import ResponsiveSelect from "@components/custom/ResponsiveSelect.vue";
 
 import { Teleport, computed, onMounted, onUnmounted, ref, watch } from "vue";
 import {
@@ -481,6 +483,10 @@ timingFunctionsAnd = Object.fromEntries(
 ) as any;
 
 const DETAIL_TIMING_FUNCTIONS = new Set(["cubic-bezier", "steps"]);
+
+const easingItems = Object.keys(timingFunctionsAnd).map((key) => ({
+    value: key,
+}));
 
 const DIRECTION_DESCRIPTIONS: Record<string, string> = {
     "normal": "plays forward",
@@ -616,6 +622,13 @@ const storedAnimationOptions = getStoredAnimationOptions(animation);
 
 const advancedOpen = ref(false);
 
+// Only one dropdown open at a time
+const openSelect = ref<string | null>(null);
+const isSelectOpen = (name: string) => openSelect.value === name;
+const onSelectOpenChange = (name: string, open: boolean) => {
+    openSelect.value = open ? name : null;
+};
+
 // rAF-driven reactivity bridge: animation is markRaw, so Vue can't track
 // property changes. We sync reactive refs every frame for the slider + buttons.
 const { currentT, isPlaying: isAnimPlaying, isStarted: isAnimStarted } = useAnimationSync(animation);
@@ -626,29 +639,27 @@ const toggleReverse = () => {
     userReversed.value = !userReversed.value;
 };
 
-// Track whether to show the detail panel
+// Track whether to show the detail panel — open when a detail timing function
+// is selected, but allow the user to close it (back button) without changing
+// the active timing function.
+const detailPanelDismissed = ref(false);
+
 const showDetailPanel = computed(
     () => DETAIL_TIMING_FUNCTIONS.has(
         storedAnimationOptions.animationOptions.timingFunction as string,
-    ),
+    ) && !detailPanelDismissed.value,
 );
 
-// Store the previous non-detail timing function for the back button
-const previousTimingFunction = ref<string>("ease-in-out");
-
+// Re-open the detail panel when user re-selects a detail timing function
 watch(
     () => storedAnimationOptions.animationOptions.timingFunction as string,
-    (newVal, oldVal) => {
-        if (oldVal && !DETAIL_TIMING_FUNCTIONS.has(oldVal as string)) {
-            previousTimingFunction.value = oldVal as string;
-        }
+    () => {
+        detailPanelDismissed.value = false;
     },
 );
 
 const exitDetailPanel = () => {
-    const prev = previousTimingFunction.value;
-    storedAnimationOptions.animationOptions.timingFunction = prev as any;
-    updateTimingFunctionFromName(prev as TimingFunctionNames);
+    detailPanelDismissed.value = true;
 };
 
 const emit = defineEmits<{
@@ -804,5 +815,19 @@ onMounted(() => {
 }
 .timeline-slider :deep(.border-primary) {
     border-color: var(--slider-border-color);
+}
+
+.gold-shimmer {
+    background: linear-gradient(90deg, #b8860b, #ffd700, #daa520, #ffd700, #b8860b);
+    background-size: 200% 100%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    animation: shimmer 3s linear infinite;
+}
+
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
 }
 </style>
