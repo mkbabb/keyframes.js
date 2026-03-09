@@ -16,11 +16,16 @@ demo/
 │   │   │   ├── matrix-editor/       # 4×4 matrix3d cell grid + slider
 │   │   │   ├── dark-mode-toggle/    # Sun/moon SVG toggle (@vueuse useDark)
 │   │   │   ├── orbital-drag/        # Quaternion-based 3D drag (gl-matrix, Pointer Events)
+│   │   │   ├── Animated.vue         # Fade in/out wrapper using library presets
+│   │   │   ├── AnimatedText.vue     # Staggered per-character animation
 │   │   │   ├── ColorPicker.vue      # Standalone color picker (legacy)
 │   │   │   ├── CommandPalette.vue   # Cmd+K palette
 │   │   │   ├── CopyButton.vue      # Clipboard + feedback animation
+│   │   │   ├── IconTooltip.vue      # Tooltip wrapper
 │   │   │   ├── KeyboardShortcutsModal.vue # Dialog showing registered keyboard shortcuts
-│   │   │   └── IconTooltip.vue      # Tooltip wrapper
+│   │   │   ├── LabeledInput.vue     # DRY: label + tooltip + input row
+│   │   │   ├── LabeledSelect.vue    # DRY: label + tooltip + select dropdown row
+│   │   │   └── ResponsiveSelect.vue # Select with custom trigger/item/extra slots
 │   │   └── ui/                      # shadcn-vue components (50+)
 │   ├── composables/
 │   │   ├── useKeyboardShortcuts.ts  # Singleton keyboard shortcut registry (Mod, combo parsing)
@@ -46,29 +51,43 @@ demo/
 
 ## Animation Controls (`@/components/custom/animation-controls/`)
 
-The primary UI for interacting with animations across demos.
+The primary UI for interacting with animations across demos. Organized into subdirectories by concern.
 
-- **AnimationControls.vue** — Filing-tab panel: Controls | Keyframes | Timeline. Bouncy sliding indicator (cubic-bezier overshoot), `bg-card` background, overflow `…` when extra tabs exceed width. Timeline uses `Teleport` to expand into bottom bar (survives tab switches).
-- **AnimationControlsControls.vue** — Sliders for duration, delay, iterations, direction, fill, easing. Cubic-bezier + steps editors. Playback ribbon (slider + visualizer + play/pause/reverse/reset) teleported to active animation. Emits `scrubStart`/`scrubEnd` for group-level pause during drag.
-- **AnimationControlsGroup.vue** — Orchestrates `AnimationGroup`: pauses group during scrub (slider or visualizer drag), resumes on release. Grid row for expanded timeline target. Exposes slot props (`selectedAnimation`, `isPlaying`).
-- **AnimationMenuBar.vue** — Bottom-fixed menubar: animation selector dropdown, play/pause, reset, keyboard shortcuts.
-- **TimingFunctionPanel.vue** — Detail panel for editing cubic-bezier or steps timing functions, with back-navigation.
-- **CubicBezierControls.vue** — SVG bezier curve editor with draggable control points.
-- **CSSCodeEditor.vue** — Reusable Monaco editor wrapper: v-model, formatCSS, dark mode, ResizeObserver deferred init.
-- **KeyframesStringControls.vue** — CSS @keyframes editing via CSSCodeEditor with floating paste/format/apply icons.
-- **KeyframeTimeline.vue** — Horizontal timeline: expand/collapse toggle, draggable diamond markers with hover previews (html2canvas snapshot + ghost CSS fallback), playhead, inline keyframe CSS editing via CSSCodeEditor, import/export.
-- **TimelineCaret.vue** — Positioned caret for keyframe percent labels with inline editing.
-- **KeyframesEditor.vue** — Frame-by-frame position/CSS editing.
-- **AnimationVisualizer.vue** — Timeline progress ball: grab-only on the ball (pointer capture), linear pixel positioning (no animation timing curve), rAF sync from `effectiveT` when idle.
-- **AnimatedText.vue** — Staggered per-character animation.
-- **Animated.vue** — Fade in/out wrapper using library presets.
+- **AnimationControlsGroup.vue** — Orchestrates `AnimationGroup`: pauses group during scrub, resumes on release. Delegates playback to `useAnimationGroupPlayback`, progress polling to `useAnimationProgress`.
+- **AnimationMenuBar.vue** — Bottom-fixed menubar: animation selector dropdown, play/pause, reset.
 - **animationStores.ts** — localStorage state: animation options, group configs, `isTimelineExpanded`, URL hash sharing (base64 encode/decode, 7-day TTL).
+- **useAnimationGroupPlayback.ts** — Composable: scrub-pause-resume state machine, play/pause orchestration, animation selection.
+- **useAnimationProgress.ts** — Composable: rAF-driven progress polling for all animations in group.
+
+### `controls/` — Sliders, easing editors, playback ribbon
+
+- **AnimationControls.vue** — Filing-tab panel: Controls | Keyframes | Timeline. Bouncy sliding indicator, `Teleport`-based timeline expansion.
+- **AnimationControlsControls.vue** — Duration, delay, iterations, direction, fill, easing (uses `LabeledInput`/`LabeledSelect`). Crossfade transition between main controls and detail panel (cubic-bezier/steps).
+- **PlaybackRibbon.vue** — Slider + visualizer + play/pause/reverse. Teleported to active animation.
+- **TimingFunctionPanel.vue** — Detail panel for cubic-bezier or steps editing, with back-navigation.
+- **CubicBezierControls.vue** — SVG bezier curve editor with draggable control points.
+- **LayerConfigPanel.vue** — Z-index, blend mode, weight, enabled toggle (grouped animations).
+- **ColorInterpolationPanel.vue** — Color space + hue method selects.
+- **AnimationVisualizer.vue** — Timeline progress ball: pointer capture, linear positioning, rAF sync.
+- **useAnimationSync.ts** — Composable: bridges `markRaw` Animation objects to Vue reactivity via rAF polling. Exposes `currentT`, `isPlaying`, `isStarted`, `isReversed`.
+- **timingCurveUtils.ts** — Pure functions: `generateCurveSVGPath`, `generateStepSVGPath`, `getCurvePath` with cache.
+
+### `keyframes/` — CSS @keyframes editing
+
+- **CSSCodeEditor.vue** — Reusable Monaco editor wrapper: `defineModel`, formatCSS, dark mode, ResizeObserver deferred init.
+- **KeyframesStringControls.vue** — CSS @keyframes editing via CSSCodeEditor with copy/format/apply actions.
+- **KeyframesEditor.vue** — Frame-by-frame position/CSS editing. Uses `KeyframeCard` for each frame.
+- **KeyframeCard.vue** — Single keyframe: start input, contenteditable CSS, remove/copy buttons.
+- **useHighlightCSS.ts** — Composable: manages a `<style>` element in `document.head` for dynamic CSS injection.
+
+### `timeline/` — Horizontal keyframe timeline
+
+- **KeyframeTimeline.vue** — Expand/collapse, draggable diamond markers, hover previews (html2canvas), playhead, inline CSS editing, import/export.
+- **TimelineCaret.vue** — Positioned caret for keyframe percent labels with inline editing.
 - **timelineTypes.ts** — `TimelineKeyframe`, `TimelineState` interfaces + default capture properties.
 - **timelineEngine.ts** — `buildAnimationFromTimeline`, `exportTimelineToCSS`, `importCSSToTimeline`.
 - **snapshotCapture.ts** — `captureSnapshot` reads `getComputedStyle` to create keyframes.
-- **useTimeline.ts** — Composable: timeline state, keyframe CRUD, scrubbing, `scrubAndCapture` (html2canvas preview), animation rebuild, CSS import/export.
-- **useAnimationSync.ts** — Composable: bridges `markRaw` Animation objects to Vue reactivity via rAF polling. Exposes `currentT`, `isPlaying`, `isStarted`, `isReversed`.
-- **useHighlightCSS.ts** — Composable: manages a `<style>` element in `document.head` for dynamic CSS injection.
+- **useTimeline.ts** — Composable: timeline state, keyframe CRUD, scrubbing, `scrubAndCapture`, animation rebuild, CSS import/export.
 
 ## Editor Shell (`@/components/custom/editor-shell/`)
 
@@ -88,6 +107,7 @@ Reusable full-page animation editor layout. Slot-driven — accepts any target e
 - **useKeyboardShortcuts.ts** — Singleton keyboard shortcut registry (`createGlobalState`). Single `window` keydown listener, `Mod` alias (Meta on macOS, Ctrl elsewhere), editable target detection (input/textarea/contenteditable/Monaco). Auto-cleanup via `onScopeDispose`.
 - **useShareState.ts** — URL hash encode/decode, clipboard copy, no-reload state restore via `stateVersion` counter.
 - **useTransformState.ts** — Matrix3d creation (`Rx * Ry * Rz` convention), transform slider values, cell metadata, rAF-debounced watcher, animated matrix reset.
+- **useExclusiveSelect.ts** — Mutual-exclusion for dropdowns: only one open at a time.
 
 ## Demo Apps
 
@@ -116,6 +136,7 @@ Reusable full-page animation editor layout. Slot-driven — accepts any target e
 
 - Tailwind v4 with CSS variable theme (light/dark via `.dark` class)
 - Path aliases: `@components/`, `@composables/`, `@styles/`, `@utils/`
+- `defineModel()` for two-way binding (Input, Textarea, CSSCodeEditor, ResponsiveSelect, Calendar)
 - Lazy-loaded heavy components (`defineAsyncComponent` for `KeyframesStringControls`, `KeyframeTimeline`—which contain Monaco)
 - Safari private browsing: localStorage fallback to plain `ref()`
 - Pointer Events + `setPointerCapture` for drag containment (OrbitalDrag, AnimationVisualizer); touch pinch on container only
