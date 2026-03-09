@@ -5,6 +5,7 @@ import { CSSKeyframesToString } from "@src/parsing/format";
 import { camelCaseToHyphen, hyphenToCamelCase } from "@src/utils";
 import type { TimelineKeyframe, TimelineState } from "./timelineTypes";
 import { createKeyframeId } from "./timelineTypes";
+import { flattenVars } from "@utils/flattenVars";
 
 /**
  * Convert timeline keyframes into a CSSKeyframesAnimation.
@@ -76,7 +77,7 @@ export function importCSSToTimeline(css: string): TimelineKeyframe[] {
         if (isNaN(percent)) continue;
 
         const flatVars: Record<string, string> = {};
-        flattenVars(vars as Record<string, any>, "", flatVars);
+        flattenVars(vars as Record<string, any>, "", flatVars, camelCaseToHyphen);
 
         keyframes.push({
             id: createKeyframeId(),
@@ -88,21 +89,3 @@ export function importCSSToTimeline(css: string): TimelineKeyframe[] {
     return keyframes;
 }
 
-/**
- * Flatten nested vars into CSS property strings.
- */
-function flattenVars(
-    obj: Record<string, any>,
-    prefix: string,
-    result: Record<string, string>,
-) {
-    for (const [key, value] of Object.entries(obj)) {
-        const prop = prefix ? `${prefix}-${camelCaseToHyphen(key)}` : camelCaseToHyphen(key);
-
-        if (typeof value === "object" && value !== null && !value.valueOf) {
-            flattenVars(value, prop, result);
-        } else {
-            result[prop] = String(value);
-        }
-    }
-}

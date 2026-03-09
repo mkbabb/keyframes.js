@@ -11,6 +11,7 @@ import {
     exportTimelineToCSS,
     importCSSToTimeline,
 } from "./timelineEngine";
+import { flattenVars } from "@utils/flattenVars";
 import { toast } from "vue-sonner";
 
 export function useTimeline(
@@ -176,7 +177,7 @@ export function useTimeline(
                     : 0;
 
             const vars: Record<string, string> = {};
-            flattenToVars(frame.vars, "", vars);
+            flattenVars(frame.vars, "", vars);
 
             keyframes.push({
                 id: createKeyframeId(),
@@ -248,22 +249,3 @@ export function useTimeline(
     };
 }
 
-function flattenToVars(
-    obj: Record<string, any>,
-    prefix: string,
-    result: Record<string, string>,
-) {
-    for (const [key, value] of Object.entries(obj)) {
-        const prop = prefix ? `${prefix}-${key}` : key;
-
-        if (
-            typeof value === "object" &&
-            value !== null &&
-            typeof value.valueOf !== "function"
-        ) {
-            flattenToVars(value, prop, result);
-        } else {
-            result[prop] = String(value);
-        }
-    }
-}
