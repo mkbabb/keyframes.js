@@ -1,6 +1,6 @@
 <template>
     <div class="flex flex-col gap-3">
-    <Card :class="['w-full overflow-hidden transition-all duration-150', props.expanded ? 'border-0 shadow-none bg-transparent' : '']">
+    <Card :class="['w-full overflow-visible transition-all duration-150', props.expanded ? 'border-0 shadow-none bg-transparent' : '']">
         <CardContent :class="['relative flex flex-col gap-3', props.expanded ? 'p-2 px-0' : 'p-4']">
         <!-- Pane action buttons -->
         <div class="flex items-center justify-end gap-1">
@@ -68,7 +68,10 @@
                 :style="{ left: `${percentToPosition(tick)}%` }"
             >
                 <span
-                    class="instrument-serif absolute -top-5 left-0 -translate-x-1/2 text-sm text-muted-foreground"
+                    :class="[
+                        'instrument-serif absolute -top-5 left-0 text-sm text-muted-foreground whitespace-nowrap',
+                        percentToPosition(tick) <= 2 ? 'translate-x-0' : percentToPosition(tick) >= 98 ? '-translate-x-full' : '-translate-x-1/2',
+                    ]"
                 >{{ tick }}%</span>
             </div>
 
@@ -249,7 +252,7 @@ import { Button } from "@components/ui/button";
 import { Card, CardContent } from "@components/ui/card";
 import { Input } from "@components/ui/input";
 import { Separator } from "@components/ui/separator";
-import CSSCodeEditor from "./CSSCodeEditor.vue";
+import CSSCodeEditor from "../keyframes/CSSCodeEditor.vue";
 import {
     Dialog,
     DialogContent,

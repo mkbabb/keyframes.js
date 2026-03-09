@@ -38,7 +38,7 @@ import {
     createAnimationUUId,
     getStoredAnimationGroupControlOptions,
     getStoredAnimationOptions,
-} from "./animationStores";
+} from "../animationStores";
 import { reverseCSSTime } from "@src/parsing/keyframes";
 import { toast } from "vue-sonner";
 

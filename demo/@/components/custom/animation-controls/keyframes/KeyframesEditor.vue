@@ -2,63 +2,24 @@
     <div class="contents">
         <Card class="p-0 m-0">
             <CardContent class="p-2 m-0 mt-0 grid gap-4 relative">
-                <template v-for="(s, i) in templateFrameStrings" :key="i">
-                    <div class="grid" :ref="(el) => (keyframeRefs[i] = el)">
-                        <Input
-                            class="sticky z-[100] bg-transparent top-0 text-2xl w-16 text-ellipsis aspect-square font-semibold leading-none tracking-tight border-transparent p-0 m-0 shadow-none focus:border-transparent focus:shadow-none border-none"
-                            :model-value="animation.templateFrames[i].start.toString()"
-                            @update:model-value="
-                                (val) => {
-                                    animation.templateFrames[i].start =
-                                        parseCSSValueUnit(String(val));
-                                    updateAllStringsAndAnimation();
-                                }
-                            "
-                        >
-                        </Input>
-
-                        <div class="relative">
-                            <div
-                                class="absolute top-2 right-4 grid gap-1 items-center justify-center justify-items-center"
-                            >
-                                <div class="flex">
-                                    <X
-                                        @click="(e) => removeKeyframe(e, i)"
-                                        class="p-0 m-0 hover:scale-105 cursor-pointer stroke-2 w-6 h-6 text-red-500 hover:text-red-700 bg-transparent hover:bg-transparent"
-                                    >
-                                    </X>
-                                    <CopyButton class="h-6 w-6" :text="s" />
-                                </div>
-                                <div
-                                    class="italic opacity-25 z-0 pointer-events-none grid gap-1"
-                                >
-                                    <Label
-                                        class="text-sm font-light leading-none fira-code"
-                                        >f {{ i }}</Label
-                                    >
-                                    <Label
-                                        class="text-sm font-light leading-none fira-code"
-                                        >s
-                                        {{ animation.templateFrames[i].start }}</Label
-                                    >
-                                </div>
-                            </div>
-                            <pre
-                                @input="
-                                    (e) => {
-                                        const value = (e.target as HTMLElement)
-                                            .innerText;
-
-                                        updateAnimationFromKeyframeString(value, i);
-                                        animateProgressBar(progressBarKeyframesEl!);
-                                    }
-                                "
-                                @keydown="onKeyDown"
-                                class="hljs css p-2 min-h-32 cursor-text rounded-lg text-sm bg-transparent outline-none border-none z-100"
-                                contenteditable="true"
-                            ><code>{{ formatCSSKeyframeString(s) }}</code></pre>
-                        </div>
-                    </div>
+                <template v-for="(s, i) in templateFrameStrings" :key="animation.templateFrames[i]?.id ?? i">
+                    <KeyframeCard
+                        :ref="(el: any) => (keyframeRefs[i] = el?.$el ?? el)"
+                        :frame-string="s"
+                        :formatted-c-s-s="formatCSSKeyframeString(s)"
+                        :frame-start="animation.templateFrames[i].start.toString()"
+                        :index="i"
+                        @update-start="(val) => {
+                            animation.templateFrames[i].start = parseCSSValueUnit(val);
+                            updateAllStringsAndAnimation();
+                        }"
+                        @update-c-s-s="(value) => {
+                            updateAnimationFromKeyframeString(value, i);
+                            animateProgressBar(progressBarKeyframesEl!);
+                        }"
+                        @remove="(e) => removeKeyframe(e, i)"
+                        @keydown="onKeyDown"
+                    />
 
                     <Separator
                         class="w-full"
@@ -204,49 +165,36 @@
 <script setup lang="ts">
 import { Animation, CSSKeyframesAnimation } from "@src/animation/index";
 import {
-    CSSKeyframeToString,
     CSSKeyframesToString,
     CSSKeyframesToStrings,
     formatCSS,
     formatCSSKeyframeString,
-    normalizeCSSKeyframeString,
     parseCSSAnimationOrKeyframes,
 } from "@src/parsing/format";
 import {
-    CSSAnimationKeyframes,
     parseCSSAnimationKeyframes,
-    parseCSSKeyframes,
 } from "@src/parsing/keyframes";
 import { debounce } from "@src/utils";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
 
 import { Slider } from "@components/ui/slider";
 
 import {
     Card,
     CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
     CardTitle,
 } from "@components/ui/card";
 
-import { Input } from "@components/ui/input";
-
-import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
+import { computed, onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
 
 import CopyButton from "@components/custom/CopyButton.vue";
-
-import { Toggle } from "@components/ui/toggle";
+import KeyframeCard from "./KeyframeCard.vue";
 
 import {
     FileIcon,
     FilePlus2,
-    Minus,
     Paintbrush,
-    Plus,
+    WandSparkles,
     X,
-    Pencil,
 } from "lucide-vue-next";
 
 import githubDark from "highlight.js/styles/github-dark.css?inline";
@@ -256,16 +204,13 @@ import { useGlobalDark } from "@components/custom/dark-mode-toggle";
 
 import { Separator } from "@components/ui/separator";
 
-import { WandSparkles, BookOpenText } from "lucide-vue-next";
-
 import hljs from "highlight.js";
 
 import css from "highlight.js/lib/languages/css";
 import {
     createAnimationUUId,
-    getAnimationSuperKey,
     getStoredAnimationGroupControlOptions,
-} from "./animationStores";
+} from "../animationStores";
 import Button from "@components/ui/button/Button.vue";
 import { Menubar, MenubarTrigger, MenubarMenu } from "@components/ui/menubar";
 
@@ -277,14 +222,11 @@ import {
     DialogContent,
     DialogDescription,
     DialogFooter,
-    DialogHeader,
     DialogTitle,
     DialogTrigger,
 } from "@components/ui/dialog";
 
 import { toast } from "vue-sonner";
-
-import { Label } from "@components/ui/label";
 
 import { useMagicKeys } from "@vueuse/core";
 import * as animations from "@src/animation/animations";
@@ -439,7 +381,7 @@ const updateAnimationFromKeyframesString = debounce((keyframesString: string) =>
             animation,
         });
 
-        updateAllStrings();
+        debouncedUpdateAllStrings();
     };
 
     try {
@@ -770,6 +712,14 @@ onMounted(() => {
     brushAnimation.setTargets(brush.value!);
 
     updateAllStrings();
+});
+
+onUnmounted(() => {
+    // Clean up style elements injected into document.head
+    hljsStyle.value?.remove();
+    keyframesStyle.value?.remove();
+    // Stop brush animation
+    brushAnimation.pause();
 });
 </script>
 

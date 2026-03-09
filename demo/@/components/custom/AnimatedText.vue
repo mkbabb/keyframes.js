@@ -1,5 +1,5 @@
 <template>
-    <template v-for="(char, index) in currentText" :key="index">
+    <template v-for="(char, index) in currentText" :key="`${index}-${char}`">
         <span
             class="lift-down"
             v-bind="$attrs"

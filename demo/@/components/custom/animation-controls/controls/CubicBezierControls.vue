@@ -68,6 +68,7 @@
                         :key="index"
                         :cx="point.x"
                         :cy="point.y"
+                        :r="index === 0 || index === 3 ? 0.025 : 0.04"
                         :data-index="index"
                         :class="[
                             'control-point',
@@ -138,7 +139,7 @@ import { cubicBezierToString } from "@src/math";
 import { Animation } from "@src/animation/index";
 
 import CopyButton from "@components/custom/CopyButton.vue";
-import { getStoredAnimationOptions } from "./animationStores";
+import { getStoredAnimationOptions } from "../animationStores";
 import type { TimingFunction } from "@src/animation/constants";
 
 const { animation } = defineProps<{

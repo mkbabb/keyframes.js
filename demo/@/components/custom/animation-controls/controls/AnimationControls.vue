@@ -126,10 +126,10 @@ import {
 import { ChevronDown, Minus, Minimize2 } from "lucide-vue-next";
 import { Button } from "@components/ui/button";
 
-const KeyframesStringControls = defineAsyncComponent(() => import("./KeyframesStringControls.vue"));
-const KeyframeTimeline = defineAsyncComponent(() => import("./KeyframeTimeline.vue"));
+const KeyframesStringControls = defineAsyncComponent(() => import("../keyframes/KeyframesStringControls.vue"));
+const KeyframeTimeline = defineAsyncComponent(() => import("../timeline/KeyframeTimeline.vue"));
 import AnimationControlsControls from "./AnimationControlsControls.vue";
-import { getStoredAnimationGroupControlOptions } from "./animationStores";
+import { getStoredAnimationGroupControlOptions } from "../animationStores";
 
 const { animation, isGrouped, layerConfig, active, showMinimize } = defineProps<{
     animation: Animation<any>;

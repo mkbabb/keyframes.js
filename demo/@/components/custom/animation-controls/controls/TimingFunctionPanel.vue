@@ -1,8 +1,5 @@
 <template>
-    <Transition name="slide-detail">
         <div
-            v-if="showDetailPanel"
-            key="detail"
             class="col-span-2 w-full grid justify-items-center"
         >
             <button
@@ -69,13 +66,12 @@
                 </Card>
             </template>
         </div>
-    </Transition>
 </template>
 
 <script setup lang="ts">
 import type { Animation } from "@src/animation/index";
 import type { TimingFunction, TimingFunctionNames } from "@src/animation/constants";
-import type { StoredAnimationOptions } from "./animationStores";
+import type { StoredAnimationOptions } from "../animationStores";
 
 import { jumpTerms } from "@src/easing";
 
@@ -95,10 +91,9 @@ import { CubicBezierControls } from "@components/custom/animation-controls";
 
 import { ArrowLeft } from "lucide-vue-next";
 
-const { animation, storedAnimationOptions, showDetailPanel, timingFunctionsAnd } = defineProps<{
+const { animation, storedAnimationOptions, timingFunctionsAnd } = defineProps<{
     animation: Animation<any>;
     storedAnimationOptions: StoredAnimationOptions;
-    showDetailPanel: boolean;
     timingFunctionsAnd: Record<string, any>;
 }>();
 
@@ -109,18 +104,4 @@ const emit = defineEmits<{
 </script>
 
 <style scoped>
-.slide-detail-enter-active {
-    transition: opacity 0.15s ease;
-}
-.slide-detail-leave-active {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    transition: opacity 0.1s ease;
-}
-.slide-detail-enter-from,
-.slide-detail-leave-to {
-    opacity: 0;
-}
 </style>

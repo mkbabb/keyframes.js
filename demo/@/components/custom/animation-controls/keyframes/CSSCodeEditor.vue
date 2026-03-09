@@ -38,7 +38,6 @@ monaco.languages.register({ id: "css" });
 
 const props = withDefaults(
     defineProps<{
-        modelValue: string;
         height?: string;
         fontSize?: number;
         lineNumbers?: boolean;
@@ -54,9 +53,7 @@ const props = withDefaults(
     },
 );
 
-const emit = defineEmits<{
-    (e: "update:modelValue", value: string): void;
-}>();
+const modelValue = defineModel<string>({ required: true });
 
 const containerEl = useTemplateRef<HTMLElement>("containerEl");
 const { isDark } = useGlobalDark();
@@ -74,7 +71,7 @@ const getFormatWidth = () => {
 
 const debouncedEmit = debounce(
     (value: string) => {
-        emit("update:modelValue", value);
+        modelValue.value = value;
     },
     200,
     false,
@@ -84,7 +81,7 @@ const initEditor = () => {
     const el = containerEl.value!;
 
     editor = monaco.editor.create(el, {
-        value: props.modelValue,
+        value: modelValue.value,
         language: "css",
         fontLigatures: true,
         theme: isDark.value ? "dark-theme" : "light-theme",
@@ -114,7 +111,7 @@ const setCodeTheme = () => {
 watch(isDark, setCodeTheme);
 
 watch(
-    () => props.modelValue,
+    modelValue,
     (newVal) => {
         if (editor && editor.getValue() !== newVal) {
             const pos = editor.getPosition();

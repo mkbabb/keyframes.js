@@ -11,7 +11,7 @@
                 ></div>
 
                 <div
-                    ref="ballEl"
+                    ref="ball"
                     :class="[
                         'absolute z-30 rounded-full h-12 w-12 bg-accent-red text-accent-red-foreground shadow-md will-change-transform',
                         isDragging ? 'cursor-grabbing' : 'cursor-grab',
@@ -46,7 +46,7 @@ const emit = defineEmits<{
     (e: "dragEnd"): void;
 }>();
 
-const ballEl = ref<HTMLElement | null>(null);
+const ballEl = useTemplateRef<HTMLElement>('ball');
 const trackEl = useTemplateRef<HTMLElement>("trackEl");
 const containerEl = useTemplateRef<HTMLElement>("containerEl");
 const isDragging = ref(false);
