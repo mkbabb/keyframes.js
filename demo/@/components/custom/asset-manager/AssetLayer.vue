@@ -24,20 +24,11 @@
                 />
 
                 <!-- Name -->
-                <span
-                    v-if="!isRenaming"
+                <EditableLabel
+                    ref="editableLabelRef"
+                    :model-value="asset.name"
                     class="fira-code text-xs flex-1 truncate"
-                    @dblclick="startRename"
-                >{{ asset.name }}</span>
-                <input
-                    v-else
-                    ref="renameInputEl"
-                    v-model="renameValue"
-                    class="fira-code text-xs flex-1 bg-transparent border-b border-primary outline-none min-w-0"
-                    @blur="commitRename"
-                    @keydown.enter="commitRename"
-                    @keydown.escape="isRenaming = false"
-                    @click.stop
+                    @update:model-value="(v: string) => emit('update', asset.id, { name: v })"
                 />
 
                 <!-- Visibility toggle -->
@@ -81,7 +72,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, useTemplateRef } from "vue";
+import { computed, ref, useTemplateRef } from "vue";
 import type { Asset, AssetKind } from "./assetTypes";
 import {
     GripVertical,
@@ -102,6 +93,7 @@ import {
     ContextMenuSeparator,
     ContextMenuTrigger,
 } from "@components/ui/context-menu";
+import EditableLabel from "@components/custom/EditableLabel.vue";
 
 const props = defineProps<{
     asset: Asset;
@@ -126,20 +118,9 @@ const ICON_MAP: Record<AssetKind, any> = {
 
 const kindIcon = computed(() => ICON_MAP[props.asset.kind]);
 
-const isRenaming = ref(false);
-const renameValue = ref("");
-const renameInputEl = useTemplateRef<HTMLInputElement>("renameInputEl");
+const editableLabelRef = useTemplateRef<InstanceType<typeof EditableLabel>>("editableLabelRef");
 
 const startRename = () => {
-    renameValue.value = props.asset.name;
-    isRenaming.value = true;
-    nextTick(() => renameInputEl.value?.select());
-};
-
-const commitRename = () => {
-    if (isRenaming.value && renameValue.value.trim()) {
-        emit("update", props.asset.id, { name: renameValue.value.trim() });
-    }
-    isRenaming.value = false;
+    editableLabelRef.value?.startRename();
 };
 </script>
