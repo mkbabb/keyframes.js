@@ -77,7 +77,8 @@ const Variables = all(
         .trim(ws)
         .map((x: string) => hyphenToCamelCase(x)),
     Values.skip(semi.opt()).trim(ws),
-).map(([name, values]: [string, unknown[]]) => {
+).map((result: any) => {
+    const [name, values] = result as [string, any[]];
     const va = new ValueArray(...flattenParsedValues(values));
     va.setProperty(name);
     return {
@@ -201,20 +202,25 @@ export const parseCSSKeyframes = memoize(
         tryParse(Keyframes, sanitizeCSSInput(input)),
 );
 
-export const parseCSSAnimationKeyframes = memoize((input: string) => {
-    const { options, values, keyframes } = tryParse(
+export const parseCSSAnimationKeyframes = memoize((input: string): {
+    keyframes: any;
+    options?: Record<string, any>;
+    values?: any;
+} => {
+    const result = tryParse(
         AnimationValues,
         sanitizeCSSInput(input),
-    );
-    return {
-        options,
-        values,
-        keyframes,
+    ) as { options?: Record<string, any>; values?: any; keyframes: any };
+    const out: { keyframes: any; options?: Record<string, any>; values?: any } = {
+        keyframes: result.keyframes,
     };
+    if (result.options != null) out.options = result.options;
+    if (result.values != null) out.values = result.values;
+    return out;
 });
 
 export const parseCSSPercent = memoize((input: string | number): number =>
-    tryParse(CSSValueUnit.Percentage, String(input)).valueOf(),
+    (tryParse(CSSValueUnit.Percentage, String(input)) as ValueUnit).valueOf(),
 );
 
 export const parseCSSTime = memoize((input: string) => {

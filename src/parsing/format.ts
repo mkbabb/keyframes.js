@@ -49,7 +49,7 @@ export function normalizeCSSKeyframeString(keyframe: string) {
 
 export function parseCSSAnimationOrKeyframes(keyframes: string): {
     keyframes: any;
-    options?: AnimationOptions;
+    options?: Record<string, any>;
     values?: any;
 } {
     keyframes = normalizeCSSKeyframeString(keyframes);
