@@ -21,7 +21,7 @@
                         "
                     >
                         <SelectTrigger
-                            class="border-none rounded-none h-4 focus:ring-0 hover:scale-105 fira-code bg-transparent"
+                            class="border-none rounded-none h-4 focus:ring-0 hover:scale-105 instrument-serif text-lg bg-transparent"
                         >
                             <SelectIcon v-if="!storedControls.selectedAnimation"
                                 ><List></List
@@ -31,7 +31,7 @@
                             }}</SelectValue>
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectGroup class="fira-code">
+                            <SelectGroup class="instrument-serif text-base">
                                 <template
                                     v-for="name in animationNames"
                                 >
