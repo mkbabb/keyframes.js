@@ -2,12 +2,7 @@
     "name": "@mkbabb/keyframes.js",
     "version": "1.1.6",
     "description": "Create keyframe animations for anything in JavaScript; specify your keyframes in standards-complaint CSS.",
-    "licenses": [
-        {
-            "type": "GNU GPL v3",
-            "url": "https://www.gnu.org/licenses/gpl-3.0.html"
-        }
-    ],
+    "license": "MIT",
     "keywords": [
         "keyframes",
         "keyframes-library",
@@ -49,7 +44,6 @@
     "engines": {
         "node": ">=22"
     },
-    "license": "ISC",
     "bugs": {
         "url": "https://github.com/mkbabb/keyframes.js/issues"
     },
