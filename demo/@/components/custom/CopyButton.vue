@@ -1,12 +1,10 @@
 <template>
     <span
-        v-bind="$attrs"
-        class="cursor-pointer relative text-foreground p-0 m-0"
+        class="cursor-pointer relative inline-block text-foreground p-0 m-0"
         @click="handleClick"
     >
-        <Clipboard v-bind="$attrs" class="clipboard" ref="clipboard" />
+        <Clipboard class="clipboard" ref="clipboard" />
         <ClipboardCheck
-            v-bind="$attrs"
             class="clipboard opacity-0"
             ref="clipboardChecked"
         />
