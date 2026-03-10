@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>keyframes.js</title>
+        <link rel="icon" href="../cube/cube.png" />
+
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;700&display=swap"
+        />
+        <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap"
+        />
+
+        <script type="module">
+            import { createApp } from "vue";
+            import App from "./App.vue";
+
+            import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+            import { library } from "@fortawesome/fontawesome-svg-core";
+
+            import {
+                faRotateRight,
+                faClipboard,
+                faPause,
+                faPlay,
+                faPaintRoller,
+            } from "@fortawesome/free-solid-svg-icons";
+
+            library.add(faRotateRight, faClipboard, faPause, faPlay, faPaintRoller);
+
+            const app = createApp(App);
+            app.component("font-awesome-icon", FontAwesomeIcon).mount("#app");
+        </script>
+    </head>
+
+    <body>
+        <div style="display: contents" id="app"></div>
+    </body>
+</html>

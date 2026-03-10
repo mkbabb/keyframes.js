@@ -1,0 +1,213 @@
+<template>
+    <div
+        class="grid h-full w-full max-w-full items-center justify-center justify-items-center overflow-visible"
+        style="touch-action: none; overscroll-behavior: contain"
+        @wheel.prevent
+    >
+        <CubeTarget
+            ref="cubeTargetRef"
+            :is-playing="isPlaying"
+            :is-started="isStarted"
+            :pp-mode="storedControls.ppMode ?? false"
+            :show-loader="!props.hideLoader && !storedControls.selectedAnimation"
+            v-model:transform="transformSliderValues"
+        />
+    </div>
+</template>
+
+<script setup lang="ts">
+import { computed, h, onBeforeUnmount, onMounted, ref, watch } from "vue";
+
+const props = defineProps<{
+    hideLoader?: boolean;
+}>();
+
+import {
+    HoverCard,
+    HoverCardContent,
+    HoverCardTrigger,
+} from "@components/ui/hover-card";
+import { TabsContent, TabsTrigger } from "@components/ui/tabs";
+import { Button } from "@components/ui/button";
+import { Lock, LockOpen, RotateCcw } from "lucide-vue-next";
+
+import { MatrixEditor } from "@components/custom/matrix-editor";
+import { EditorStartScreen } from "@components/custom/editor-shell";
+import CubeTarget from "../../cube/CubeTarget.vue";
+
+import { getStoredAnimationGroupControlOptions } from "@components/custom/animation-controls/animationStores";
+import { useTransformState } from "@composables/useTransformState";
+import { useCubeAnimations } from "../../cube/useCubeAnimations";
+import { sharedCubeTransform } from "../cubeTransformStore";
+
+const superKey = "Cube";
+
+const storedControls = getStoredAnimationGroupControlOptions(superKey);
+storedControls.ppMode ??= false;
+
+const isPlaying = ref(false);
+const isStarted = ref(false);
+
+const cubeTargetRef = ref<InstanceType<typeof CubeTarget>>();
+const cubeElRef = ref<HTMLElement | undefined>();
+
+const {
+    matrix3dStart,
+    matrix3dEnd,
+    transformSliderValues,
+    matrixCellMeta,
+    updateMatrixCell,
+    resetMatrix,
+} = useTransformState(isPlaying, isStarted, cubeElRef, sharedCubeTransform.value);
+
+const { animationGroup, setTargets } = useCubeAnimations(
+    matrix3dStart,
+    matrix3dEnd,
+);
+
+const setPPMode = () => {
+    storedControls.ppMode = !storedControls.ppMode;
+};
+
+watch(
+    () => storedControls.selectedAnimation,
+    (selectedAnimation) => {
+        if (
+            selectedAnimation !== "Matrix" &&
+            storedControls.selectedControl === "matrix-controls"
+        ) {
+            storedControls.selectedControl = "controls";
+        }
+    },
+);
+
+// Ppmycota hover card state
+const ppmycotaOpen = ref(false);
+let autoDismissTimer: ReturnType<typeof setTimeout> | undefined;
+
+function clearAutoDismiss() {
+    if (autoDismissTimer != null) {
+        clearTimeout(autoDismissTimer);
+        autoDismissTimer = undefined;
+    }
+}
+
+watch(ppmycotaOpen, (open) => {
+    clearAutoDismiss();
+    if (open) {
+        autoDismissTimer = setTimeout(() => { ppmycotaOpen.value = false; }, 4000);
+    }
+});
+
+// --- Slot sub-components exposed via defineExpose ---
+
+const headerLeft = () =>
+    h(HoverCard, { openDelay: 200, closeDelay: 150, open: ppmycotaOpen.value, "onUpdate:open": (v: boolean) => { ppmycotaOpen.value = v; } }, {
+        default: () => [
+            h(HoverCardTrigger, null, {
+                default: () => h("div", {
+                    onClick: setPPMode,
+                    class: "ppmycota-logo-sm m-0 h-8 w-8 lg:h-10 lg:w-10 cursor-pointer stroke-2 p-0 font-bold hover:scale-105",
+                }),
+            }),
+            h(HoverCardContent, { class: "z-[100] p-4 min-w-[17rem] instrument-serif" }, {
+                default: () => [
+                    h("div", { class: "flex items-center gap-3" }, [
+                        h("div", { class: "ppmycota-logo-sm z-20 h-10 w-10 shrink-0 stroke-2 font-bold" }),
+                        h("div", { class: "flex-1 min-w-0" }, [
+                            h("a", { href: "https://ppmycota.com", target: "_blank", rel: "noopener noreferrer", class: "text-sm font-semibold text-foreground hover:underline" }, "ppmycota"),
+                            h("p", { class: "mt-0.5 text-xs italic text-muted-foreground", innerHTML: "&#x1F642;&#x200D;&#x2194;&#xFE0F; &#x1F331; &#x1F344;&#x200D;&#x1F7EB;" }),
+                        ]),
+                    ]),
+                    h("hr", { class: "my-2 border-border/50" }),
+                    h("a", { href: "https://ppmycota.com", target: "_blank", rel: "noopener noreferrer", class: "block text-sm text-foreground hover:underline" }, "ppmycota.com"),
+                ],
+            }),
+        ],
+    });
+
+const startScreen = () =>
+    h(EditorStartScreen, {
+        title: "Select an animation",
+        ellipsis: "...",
+        subtitle: "from the list",
+        subtitleSuffix: "below.",
+        hint: "or drag M. cubert \u{1F642}\u200D\u2194\uFE0F",
+    });
+
+const tabsTrigger = (slotProps: { selectedAnimation: string }) =>
+    slotProps.selectedAnimation === "Matrix"
+        ? h(TabsTrigger, {
+            value: "matrix-controls",
+            class: "shrink-0 instrument-serif px-3 py-1.5 text-lg bg-transparent rounded-none transition-colors duration-150 data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground data-[state=active]:text-foreground data-[state=active]:font-semibold border-b-2 border-transparent data-[state=active]:border-foreground",
+        }, { default: () => "Matrix Controls" })
+        : null;
+
+const tabsContent = () =>
+    h(TabsContent, { value: "matrix-controls" }, {
+        default: () => h(MatrixEditor, {
+            matrix3dEnd: matrix3dEnd.value,
+            matrixCellMeta: matrixCellMeta.value,
+            superKey,
+            onUpdateMatrixCell: updateMatrixCell,
+            onResetMatrix: resetMatrix,
+        }),
+    });
+
+const ribbonContent = (slotProps: { selectedControl: string }) =>
+    slotProps.selectedControl === "matrix-controls"
+        ? [
+            h(Button, {
+                size: "sm", variant: "outline",
+                class: "h-8 gap-1.5 cursor-pointer fira-code text-xs px-3 rounded-lg hover:scale-105 active:scale-95 transition-transform",
+                onClick: () => resetMatrix(),
+            }, { default: () => [h(RotateCcw, { class: "w-3.5 h-3.5" }), " Reset"] }),
+            h(Button, {
+                size: "sm", variant: "outline",
+                class: "h-8 gap-1.5 cursor-pointer fira-code text-xs px-3 rounded-lg hover:scale-105 active:scale-95 transition-transform",
+                onClick: () => { storedControls.matrixOptions.fixed = !storedControls.matrixOptions.fixed; },
+            }, {
+                default: () => [
+                    !storedControls.matrixOptions?.fixed ? h(Lock, { class: "w-3.5 h-3.5" }) : h(LockOpen, { class: "w-3.5 h-3.5" }),
+                    ` ${storedControls.matrixOptions?.fixed ? "Free" : "Fixed"}`,
+                ],
+            }),
+        ]
+        : null;
+
+onMounted(() => {
+    const cubeEl = cubeTargetRef.value?.cubeEl;
+    const graphEl = cubeTargetRef.value?.graphEl;
+
+    if (cubeEl && graphEl) {
+        cubeElRef.value = cubeEl;
+        setTargets(cubeEl, graphEl);
+    }
+});
+
+onBeforeUnmount(() => {
+    clearAutoDismiss();
+    animationGroup.value.stop();
+
+    // Persist transform state so it carries over on next mount (home ↔ cube)
+    const t = transformSliderValues.value;
+    sharedCubeTransform.value = {
+        rotate: { ...t.rotate },
+        translate: { ...t.translate },
+        scale: { ...t.scale },
+        matrix: t.matrix,
+    };
+});
+
+defineExpose({
+    animationGroup: computed(() => animationGroup.value),
+    superKey,
+    isPlaying,
+    isStarted,
+    headerLeft,
+    startScreen,
+    tabsTrigger,
+    tabsContent,
+    ribbonContent,
+});
+</script>
