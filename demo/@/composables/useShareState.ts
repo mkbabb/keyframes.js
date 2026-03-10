@@ -8,7 +8,7 @@ import {
 import { toast } from "vue-sonner";
 import { useClipboard } from "@composables/useClipboard";
 
-export function useShareState() {
+export function useShareState(onSceneRestore?: (sceneId: string) => void) {
     const sharePopoverOpen = ref(false);
     const loadHashInput = ref("");
     const stateVersion = ref(0);
@@ -49,9 +49,14 @@ export function useShareState() {
 
         // Apply state without page reload
         window.location.hash = hash;
-        restoreStateFromHash();
+        const result = restoreStateFromHash();
         sharePopoverOpen.value = false;
         stateVersion.value++;
+
+        // Switch to the shared scene if present
+        if (result.activeScene && onSceneRestore) {
+            onSceneRestore(result.activeScene);
+        }
 
         toast.success("State restored!", {
             duration: 3000,

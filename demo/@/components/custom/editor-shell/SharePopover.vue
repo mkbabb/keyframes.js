@@ -51,6 +51,10 @@ import { Input } from "@components/ui/input";
 import { Button } from "@components/ui/button";
 import { useShareState } from "@composables/useShareState";
 
+const props = defineProps<{
+    onSceneRestore?: (sceneId: string) => void;
+}>();
+
 const { sharePopoverOpen, loadHashInput, shareState, loadFromInput } =
-    useShareState();
+    useShareState(props.onSceneRestore);
 </script>

@@ -35,15 +35,18 @@
             </template>
         </HeaderRibbon>
 
-        <template v-if="showStartScreen && !storedControls.selectedAnimation">
+        <template v-if="showStartScreen">
             <slot name="start-screen">
                 <EditorStartScreen />
             </slot>
         </template>
 
         <AnimationControlsGroup
+            :key="superKey"
             :animation-group="animationGroup"
             :super-key="superKey"
+            :auto-play="autoPlay"
+            :hide-controls="showStartScreen"
             @play-state-change="onPlayStateChange"
             @start-state-change="(s: boolean) => emit('startStateChange', s)"
         >
@@ -59,8 +62,8 @@
                 <slot name="ribbon-content" v-bind="slotProps"></slot>
             </template>
 
-            <template #animation-content="slotProps">
-                <slot name="target" v-bind="slotProps"></slot>
+            <template #animation-content>
+                <slot name="target"></slot>
             </template>
         </AnimationControlsGroup>
 
@@ -71,7 +74,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, useTemplateRef } from "vue";
+import { computed, onMounted, ref, useTemplateRef } from "vue";
 import { Minus, PanelLeft } from "lucide-vue-next";
 import { HeaderRibbon } from "@components/custom/header-ribbon";
 import SharePopover from "./SharePopover.vue";
@@ -92,11 +95,13 @@ const props = withDefaults(
         superKey?: string;
         showStartScreen?: boolean;
         gridBackground?: boolean;
+        autoPlay?: boolean;
     }>(),
     {
         superKey: undefined,
         showStartScreen: true,
         gridBackground: true,
+        autoPlay: false,
     },
 );
 
@@ -105,7 +110,7 @@ const emit = defineEmits<{
     (e: "startStateChange", started: boolean): void;
 }>();
 
-const storedControls = getStoredAnimationGroupControlOptions(props.superKey);
+const storedControls = computed(() => getStoredAnimationGroupControlOptions(props.superKey));
 
 const headerRibbonRef = ref<InstanceType<typeof HeaderRibbon> | null>(null);
 

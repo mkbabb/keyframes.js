@@ -64,16 +64,26 @@ export function useTransformState(
     isGroupPlaying: Ref<boolean>,
     isGroupStarted: Ref<boolean>,
     targetRef: Ref<HTMLElement | undefined>,
+    initialTransform?: TransformState,
 ) {
     const matrix3dStart = ref(createMatrix());
     const matrix3dEnd = ref(createMatrix());
 
-    const transformSliderValues = ref<TransformState>({
-        translate: { x: 0, y: 0, z: 0 },
-        rotate: { x: 0, y: 0, z: 0 },
-        scale: { x: 1, y: 1, z: 1 },
-        matrix: mat4.create(),
-    });
+    const transformSliderValues = ref<TransformState>(
+        initialTransform
+            ? {
+                  translate: { ...initialTransform.translate },
+                  rotate: { ...initialTransform.rotate },
+                  scale: { ...initialTransform.scale },
+                  matrix: mat4.clone(initialTransform.matrix ?? mat4.create()),
+              }
+            : {
+                  translate: { x: 0, y: 0, z: 0 },
+                  rotate: { x: 0, y: 0, z: 0 },
+                  scale: { x: 1, y: 1, z: 1 },
+                  matrix: mat4.create(),
+              },
+    );
 
     const matrixCellMeta: ComputedRef<MatrixCellMeta[]> = computed(() =>
         Array.from({ length: 16 }, (_, i) => ({
