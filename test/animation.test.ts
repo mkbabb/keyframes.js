@@ -300,6 +300,48 @@ describe("Animation events", () => {
     });
 });
 
+describe("Animation.at() progress API", () => {
+    it("at(0) returns first frame values", () => {
+        const anim = new CSSKeyframesAnimation({ duration: 1000 }).fromString(`
+            from { opacity: 0; }
+            to { opacity: 1; }
+        `);
+        const vars = anim.at(0);
+        expect(vars).toBeDefined();
+    });
+
+    it("at(1) returns last frame values", () => {
+        const anim = new CSSKeyframesAnimation({ duration: 1000 }).fromString(`
+            from { opacity: 0; }
+            to { opacity: 1; }
+        `);
+        const vars = anim.at(1);
+        expect(vars).toBeDefined();
+    });
+
+    it("at() ignores reversed flag", () => {
+        const anim = new CSSKeyframesAnimation({ duration: 1000 }).fromString(`
+            from { left: 0px; }
+            to { left: 100px; }
+        `);
+        anim.reversed = true;
+        const vars = anim.at(0.5);
+        expect(vars).toBeDefined();
+        // reversed flag should be restored
+        expect(anim.reversed).toBe(true);
+    });
+
+    it("at() clamps progress to [0, 1]", () => {
+        const anim = new CSSKeyframesAnimation({ duration: 1000 }).fromString(`
+            from { opacity: 0; }
+            to { opacity: 1; }
+        `);
+        // Should not throw
+        anim.at(-0.5);
+        anim.at(1.5);
+    });
+});
+
 describe("colorSpace option", () => {
     it("defaults to oklab", () => {
         const anim = new CSSKeyframesAnimation({});

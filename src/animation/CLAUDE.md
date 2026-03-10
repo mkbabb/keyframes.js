@@ -6,8 +6,12 @@ Core animation engine. Library entry point (`index.ts` → `dist/keyframes.js`).
 
 ```
 animation/
-├── index.ts         # Animation, CSSKeyframesAnimation — main classes
+├── index.ts         # Animation, CSSKeyframesAnimation — main classes + re-exports
 ├── group.ts         # AnimationGroup — multi-animation compositor with layer blending
+├── numeric.ts       # NumericAnimation — keyframe interp over {key: number} objects
+├── smooth.ts        # SmoothProgress — exponential smoothing for progress values
+├── morph.ts         # ElementMorph — position/scale interp between DOM rects
+├── timeline.ts      # Timeline (abstract), ScrollTimeline, ManualTimeline
 ├── animations.ts    # 30+ preset animations (fadeIn, bounce, shake, spinner, etc.)
 ├── constants.ts     # Types + defaults (AnimationOptions, Vars, AnimationFrame, etc.)
 ├── utils.ts         # Frame calculation, value interpolation, timing resolution
@@ -47,6 +51,39 @@ Composites multiple animations with layer blending.
 - **Setup**: `setTargets()`, `setSuperKey()`
 - Manages own rAF loop; marks child animations as `managed = true`
 - Handles single-target vs multi-target rendering paths
+
+### `NumericAnimation<T extends Record<string, number>>`
+Keyframe interpolation over plain numeric objects. Zero-allocation — returns same object reference.
+
+- `at(progress)` — sample at [0,1], returns `T`
+- `updateKeyframe(index, values)` — modify keyframe, recomputes segments
+- Supports 2+ keyframes, explicit positions, per-segment timing functions
+
+### `SmoothProgress`
+Exponential smoothing for progress values.
+
+- `setTarget(value)` → `tick()` or `tickDt(dt)` → `current`
+- `snap()` — instant convergence; `reset(value?)` — reset state
+- `settled` — true when converged within `snapThreshold`
+- Frame-rate independent via `tickDt(dt)` (dt in ms)
+
+### `ElementMorph`
+Interpolates position and scale between two DOM elements (or `MorphRect` objects).
+
+- `measure(from, to)` — (re)compute deltas
+- `at(progress)` → `{translateX, translateY, scaleX, scaleY}`
+- `toCSSTransform(progress)` → CSS transform string
+- `apply(element, progress)` — writes `transform` + `transformOrigin`
+
+### `Timeline` (abstract), `ScrollTimeline`, `ManualTimeline`
+Progress drivers. Compose easing and smoothing; caller owns the rAF loop.
+
+- Pipeline: `sample() → clamp [0,1] → easing → boundary snap → smoothing → progress`
+- `tick()` / `tickDt(dt)` — advance one frame
+- `progress`, `settled`, `snap()`, `reset(value?)`
+- **`ScrollTimeline`**: scroll position → progress. `threshold` (viewport fraction), injectable `getScrollY`/`getViewportHeight` for testing.
+- **`ManualTimeline`**: `set(value)` → progress. Smoothing off by default.
+- Boundary snapping: raw ≤ 0 or ≥ 1 → `smoother.snap()` for instant convergence.
 
 ## Playback Modes
 

@@ -1,0 +1,85 @@
+import { NumericAnimation } from "./numeric";
+import type { TimingFunction, TimingFunctionNames } from "./constants";
+
+export interface MorphRect {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
+
+export interface ElementMorphOptions {
+    timingFunction?: TimingFunction | TimingFunctionNames;
+    transformOrigin?: string;
+}
+
+interface MorphValues {
+    [key: string]: number;
+    translateX: number;
+    translateY: number;
+    scaleX: number;
+    scaleY: number;
+}
+
+const toRect = (source: HTMLElement | MorphRect): MorphRect => {
+    if (source instanceof HTMLElement) {
+        const r = source.getBoundingClientRect();
+        return { x: r.x, y: r.y, width: r.width, height: r.height };
+    }
+    return source;
+};
+
+export class ElementMorph {
+    private animation!: NumericAnimation<MorphValues>;
+    private transformOrigin: string;
+    private timingFunction: TimingFunction | TimingFunctionNames | undefined;
+
+    constructor(
+        from: HTMLElement | MorphRect,
+        to: HTMLElement | MorphRect,
+        options?: ElementMorphOptions,
+    ) {
+        this.transformOrigin = options?.transformOrigin ?? "top left";
+        this.timingFunction = options?.timingFunction;
+        this.measure(from, to);
+    }
+
+    /** Re-measure source and destination, rebuilding the internal animation. */
+    measure(from: HTMLElement | MorphRect, to: HTMLElement | MorphRect): this {
+        const f = toRect(from);
+        const t = toRect(to);
+
+        const dx = t.x - f.x;
+        const dy = t.y - f.y;
+        const sx = f.width === 0 ? 1 : t.width / f.width;
+        const sy = f.height === 0 ? 1 : t.height / f.height;
+
+        this.animation = new NumericAnimation<MorphValues>(
+            [
+                { translateX: 0, translateY: 0, scaleX: 1, scaleY: 1 },
+                { translateX: dx, translateY: dy, scaleX: sx, scaleY: sy },
+            ],
+            { timingFunction: this.timingFunction },
+        );
+
+        return this;
+    }
+
+    /** Get raw transform values at the given progress [0, 1]. */
+    at(progress: number): MorphValues {
+        return this.animation.at(progress);
+    }
+
+    /** Get a CSS transform string at the given progress [0, 1]. */
+    toCSSTransform(progress: number): string {
+        const { translateX, translateY, scaleX, scaleY } =
+            this.animation.at(progress);
+        return `translate(${translateX}px, ${translateY}px) scale(${scaleX}, ${scaleY})`;
+    }
+
+    /** Apply the morph transform to an element at the given progress [0, 1]. */
+    apply(element: HTMLElement, progress: number): void {
+        element.style.transform = this.toCSSTransform(progress);
+        element.style.transformOrigin = this.transformOrigin;
+    }
+}

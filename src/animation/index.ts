@@ -32,6 +32,14 @@ import type {
 } from "./constants";
 import { AnimationGroup } from "./group";
 export { AnimationGroup } from "./group";
+export { NumericAnimation } from "./numeric";
+export type { NumericAnimationOptions } from "./numeric";
+export { SmoothProgress } from "./smooth";
+export type { SmoothProgressOptions } from "./smooth";
+export { ElementMorph } from "./morph";
+export type { MorphRect, ElementMorphOptions } from "./morph";
+export { Timeline, ScrollTimeline, ManualTimeline } from "./timeline";
+export type { TimelineOptions, ScrollTimelineOptions } from "./timeline";
 import {
     calcFrameTime,
     createInterpVarValue,
@@ -460,6 +468,22 @@ export class Animation<V extends Vars = any> {
 
     fillBackwards() {
         this.interpFrames(0, true);
+    }
+
+    /**
+     * Stateless progress query. Maps [0,1] from first keyframe to last,
+     * regardless of playback direction. `apply=true` invokes transform callbacks.
+     */
+    at(
+        progress: number,
+        apply: boolean = false,
+    ): Record<string, ValueUnit[]> {
+        const saved = this.reversed;
+        this.reversed = false;
+        const t = clamp(progress, 0, 1) * this.options.duration;
+        const result = this.interpFrames(t, apply);
+        this.reversed = saved;
+        return result;
     }
 
     interpFrames(t: number, transformFrames: boolean = false) {

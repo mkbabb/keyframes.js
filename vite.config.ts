@@ -42,7 +42,7 @@ export default defineConfig((mode) => {
                     formats: ["es"],
                 },
                 rollupOptions: {
-                    external: ["vue", "prettier"],
+                    external: ["vue", "prettier", "@mkbabb/parse-that", "@mkbabb/value.js"],
                 },
             },
             esbuild: {

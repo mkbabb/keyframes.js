@@ -19,6 +19,10 @@ src/
 ├── animation/           # Animation engine (see animation/CLAUDE.md)
 │   ├── index.ts         # Animation, CSSKeyframesAnimation classes
 │   ├── group.ts         # AnimationGroup — multi-animation compositor
+│   ├── numeric.ts       # NumericAnimation — keyframe interp over {key: number} objects
+│   ├── smooth.ts        # SmoothProgress — exponential smoothing for progress values
+│   ├── morph.ts         # ElementMorph — position/scale interp between DOM elements
+│   ├── timeline.ts      # Timeline (abstract), ScrollTimeline, ManualTimeline
 │   ├── animations.ts    # 30+ preset animations (fadeIn, bounce, etc.)
 │   ├── constants.ts     # Types, defaults (AnimationOptions, Vars, etc.)
 │   ├── utils.ts         # Frame calc, value interpolation, timing
@@ -56,17 +60,21 @@ demo/                    # Vue 3 demo apps (see demo/CLAUDE.md)
 ├── boxes/               # Vanilla JS: matrix3d transforms
 └── bench/               # Performance benchmark suite
 
-test/                    # Vitest (jsdom) — 11 files, ~2750 lines
+test/                    # Vitest (jsdom) — 15 files, 261 tests
 ├── animation.test.ts    # Animation options, setters, frame creation
 ├── easing.test.ts       # Easing functions, bezier, stepped
 ├── editor-parsing.test.ts # Complex CSS parsing, editor integration
 ├── equivalence.test.ts  # Animation equivalence across input types
 ├── format.test.ts       # CSS formatting, normalization
 ├── group.test.ts        # AnimationGroup orchestration
+├── morph.test.ts        # ElementMorph position/scale interpolation
+├── numeric.test.ts      # NumericAnimation keyframe interpolation
 ├── parsing.test.ts      # CSS time/percent/keyframes parsing
 ├── performance.test.ts  # Perf benchmarks, memory
 ├── presets.test.ts      # Preset animation library
 ├── sharing.test.ts      # State cloning, reuse
+├── smooth.test.ts       # SmoothProgress exponential smoothing
+├── timeline.test.ts     # Timeline, ScrollTimeline, ManualTimeline
 └── units.test.ts        # Unit conversions, color parsing, interpolation
 
 bench/                   # Vitest bench — 3 files
@@ -79,7 +87,7 @@ bench/                   # Vitest bench — 3 files
 
 `src/animation/index.ts` — builds to `dist/keyframes.js` (ESM) + `dist/keyframes.cjs` (CJS) + `dist/keyframes.d.ts`.
 
-Primary exports: `Animation`, `CSSKeyframesAnimation`, `AnimationGroup`, `getAnimationId`.
+Primary exports: `Animation`, `CSSKeyframesAnimation`, `AnimationGroup`, `NumericAnimation`, `SmoothProgress`, `ElementMorph`, `Timeline`, `ScrollTimeline`, `ManualTimeline`, `getAnimationId`.
 
 ## Dependencies
 
@@ -111,3 +119,7 @@ Most of `src/` is thin re-export barrels over `value.js`. Local logic lives in:
 - **Interpolation dispatch**: numeric → `lerp`; color → perceptual (`oklab` default); computed units (`vh`, `calc`, `var`) → DOM resolution
 - **Layer blending** (AnimationGroup): `replace` (z-order), `add` (accumulate), `weighted` (lerp by weight)
 - **WAAPI eligibility**: requires DOM targets, uniform timing, no computed units, no custom transforms, no color interpolation
+- **General primitives**: `NumericAnimation` (zero-alloc keyframe interp), `SmoothProgress` (exponential smoothing), `ElementMorph` (rect-to-rect transform), `Timeline` (progress driver)
+- **Timeline pipeline**: `sample() → clamp → easing → boundary snap → smoothing → progress`. No rAF ownership — caller drives the loop.
+- **ScrollTimeline**: injectable `getScrollY`/`getViewportHeight` callbacks for testing without DOM
+- **ManualTimeline**: smoothing off by default; set raw value, get immediate result
