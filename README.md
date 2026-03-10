@@ -1,6 +1,6 @@
 # keyframes.js ![image](./assets/cube.png)
 
-CSS keyframe animations for anything in JavaScript. Specify your keyframes in standards-compliant CSS; animate any object, DOM element, or data structure.
+CSS keyframe animations for anything in JavaScript. Specify your keyframes in standards-compliant CSS; animate any object, DOM element, or data structure. General-purpose interpolation primitives — smoothing, morphing, scroll-driven timelines — ship alongside.
 
 [Try the demo here!](https://keyframes.babb.dev/)
 
@@ -41,11 +41,6 @@ Plucked directly from the [`demo/simple`](demo/simple/App.vue) Vue file.
 
 - [Installation](#installation)
 - [Project Structure](#project-structure)
-- [General-Purpose Primitives](#general-purpose-primitives)
-  - [NumericAnimation](#numericanimation)
-  - [SmoothProgress](#smoothprogress)
-  - [ElementMorph](#elementmorph)
-  - [Timeline](#timeline)
 - [Animation](#animation)
   - [AnimationOptions](#animationoptions)
   - [Transform Function](#the-transform-function)
@@ -56,6 +51,12 @@ Plucked directly from the [`demo/simple`](demo/simple/App.vue) Vue file.
   - [Units](#units)
 - [AnimationGroup](#animationgroup)
 - [Presets](#presets)
+- [Web Animations API](#web-animations-api)
+- [Beyond CSS](#beyond-css)
+  - [NumericAnimation](#numericanimation)
+  - [SmoothProgress](#smoothprogress)
+  - [ElementMorph](#elementmorph)
+  - [Timeline](#timeline)
 - [Build & Development](#build--development)
 
 ## Installation
@@ -108,71 +109,6 @@ demo/                    # Vue 3 demo apps
 test/                    # Vitest (jsdom) — 15 suites, 261 tests
 bench/                   # Vitest benchmarks — 3 suites
 ```
-
-## General-Purpose Primitives
-
-Beyond CSS keyframes, the library provides composable building blocks for any interpolation task:
-
-### `NumericAnimation`
-
-Keyframe interpolation over plain `{key: number}` objects. Zero-allocation hot path — returns the same object reference each call.
-
-```ts
-const anim = new NumericAnimation([
-    { x: 0, y: 0, opacity: 0 },
-    { x: 100, y: 200, opacity: 1 },
-]);
-
-anim.at(0.5); // => { x: 50, y: 100, opacity: 0.5 }
-```
-
-Supports multiple keyframes with explicit positions and per-segment timing functions.
-
-### `SmoothProgress`
-
-Exponential smoothing for progress values. Frame-rate independent via `tickDt(dt)`.
-
-```ts
-const smooth = new SmoothProgress({ damping: 0.15 });
-smooth.setTarget(1);
-smooth.tick();       // asymptotically approaches 1
-smooth.snap();       // instantly converge
-```
-
-### `ElementMorph`
-
-Interpolates position and scale between two DOM elements (or rects). Produces CSS transforms.
-
-```ts
-const morph = new ElementMorph(sourceEl, targetEl);
-morph.apply(element, progress); // writes transform + transformOrigin
-```
-
-Re-measures on demand via `morph.measure(from, to)`.
-
-### `Timeline`
-
-Abstract progress driver. Composes easing and smoothing; caller owns the rAF loop.
-
-```ts
-const timeline = new ScrollTimeline({
-    threshold: 0.35,
-    easing: easeOutCubic,
-    smoothing: { damping: 0.15 },
-});
-
-function update() {
-    const p = timeline.tick(); // eased → boundary-snapped → smoothed
-    morph.apply(element, p);
-    requestAnimationFrame(update);
-}
-```
-
-Subclasses:
-- **`ScrollTimeline`** — scroll position → progress. Injectable `getScrollY`/`getViewportHeight` for testing.
-- **`ManualTimeline`** — externally set value → progress. Smoothing off by default.
-
-Composition pattern: `timeline.tick() → progress → interpolator.at(progress) → values → apply`.
 
 ## Animation
 
@@ -360,6 +296,69 @@ anim.play();
 ## Web Animations API
 
 When `useWAAPI` is `true` (default), eligible animations run on the compositor thread via `Element.animate()`. Eligibility requires: DOM targets, uniform timing function across frames, no computed units, no custom transform function, no color interpolation. Falls back to `requestAnimationFrame` silently.
+
+## Beyond CSS
+
+The library also ships general-purpose interpolation primitives, decoupled from CSS and the DOM. These compose into a pipeline: `timeline → progress → interpolator → values → apply`.
+
+### `NumericAnimation`
+
+Keyframe interpolation over plain `{key: number}` objects. Zero-allocation hot path — returns the same object reference each call.
+
+```ts
+const anim = new NumericAnimation([
+    { x: 0, y: 0, opacity: 0 },
+    { x: 100, y: 200, opacity: 1 },
+]);
+
+anim.at(0.5); // => { x: 50, y: 100, opacity: 0.5 }
+```
+
+Supports multiple keyframes with explicit positions and per-segment timing functions.
+
+### `SmoothProgress`
+
+Exponential smoothing for progress values. Frame-rate independent via `tickDt(dt)`.
+
+```ts
+const smooth = new SmoothProgress({ damping: 0.15 });
+smooth.setTarget(1);
+smooth.tick();       // asymptotically approaches 1
+smooth.snap();       // instantly converge
+```
+
+### `ElementMorph`
+
+Interpolates position and scale between two DOM elements (or rects). Produces CSS transforms.
+
+```ts
+const morph = new ElementMorph(sourceEl, targetEl);
+morph.apply(element, progress); // writes transform + transformOrigin
+```
+
+Re-measures on demand via `morph.measure(from, to)`.
+
+### `Timeline`
+
+Abstract progress driver. Composes easing and smoothing; the caller owns the rAF loop.
+
+```ts
+const timeline = new ScrollTimeline({
+    threshold: 0.35,
+    easing: easeOutCubic,
+    smoothing: { damping: 0.15 },
+});
+
+function update() {
+    const p = timeline.tick(); // eased → boundary-snapped → smoothed
+    morph.apply(element, p);
+    requestAnimationFrame(update);
+}
+```
+
+Subclasses:
+- **`ScrollTimeline`** — scroll position → progress. Injectable `getScrollY`/`getViewportHeight` for testing.
+- **`ManualTimeline`** — externally set value → progress. Smoothing off by default.
 
 ## Build & Development
 
