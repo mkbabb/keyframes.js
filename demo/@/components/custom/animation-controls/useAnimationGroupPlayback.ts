@@ -3,16 +3,17 @@ import type { Animation } from "@src/animation/index";
 import type { AnimationGroup } from "@src/animation/group";
 
 export function useAnimationGroupPlayback(
-    animationGroup: AnimationGroup<any>,
+    getAnimationGroup: () => AnimationGroup<any>,
     storedControls: any,
     emit: (event: string, ...args: any[]) => void,
 ) {
-    const isPlaying = ref(animationGroup.playing());
-    const isStarted = ref(animationGroup.started);
+    const isPlaying = ref(getAnimationGroup().playing());
+    const isStarted = ref(getAnimationGroup().started);
 
     let wasPlayingBeforeScrub = false;
 
     const syncPlayState = (playing?: boolean) => {
+        const animationGroup = getAnimationGroup();
         if (playing === undefined) {
             playing = animationGroup.playing();
         }
@@ -23,12 +24,13 @@ export function useAnimationGroupPlayback(
     };
 
     const findAnimationGroupObject = (animation: Animation<any>) => {
-        return Object.values(animationGroup.animations).find(
+        return Object.values(getAnimationGroup().animations).find(
             (a) => a.animation.id == animation.id,
         );
     };
 
     const onSelectAnimation = (name: string) => {
+        const animationGroup = getAnimationGroup();
         storedControls.selectedAnimation = name;
         if (!animationGroup.started) {
             animationGroup.play();
@@ -37,6 +39,7 @@ export function useAnimationGroupPlayback(
     };
 
     const toggleAnimationGroup = () => {
+        const animationGroup = getAnimationGroup();
         if (!animationGroup.started) {
             if (!storedControls.selectedAnimation) {
                 const allNames = Object.keys(animationGroup.animations);
@@ -53,6 +56,7 @@ export function useAnimationGroupPlayback(
     };
 
     const onScrubStart = () => {
+        const animationGroup = getAnimationGroup();
         wasPlayingBeforeScrub = animationGroup.playing();
         if (wasPlayingBeforeScrub) {
             animationGroup.pause();
@@ -62,27 +66,33 @@ export function useAnimationGroupPlayback(
 
     const onScrubEnd = () => {
         if (wasPlayingBeforeScrub) {
-            animationGroup.pause(); // toggle back to playing
+            getAnimationGroup().pause(); // toggle back to playing
             syncPlayState(true);
             wasPlayingBeforeScrub = false;
         }
     };
 
     const sliderUpdate = ({ t, animation }: { t: number; animation: Animation<any> }) => {
+        const animationGroup = getAnimationGroup();
         const groupObject = findAnimationGroupObject(animation);
         const groupAnimation = groupObject!.animation;
-        const wasPaused = groupAnimation.paused;
 
-        groupAnimation.paused = false;
         groupAnimation.t = t;
 
+        // Record the logical pause point so Animation.tick() can correctly
+        // adjust startTime on resume without a timestamp mismatch.
         if (groupAnimation.startTime !== undefined) {
-            groupAnimation.startTime = performance.now() - t;
-            groupAnimation.pausedTime = 0;
+            groupAnimation.pausedTime = groupAnimation.startTime + t;
         }
 
+        // Explicitly interpolate the scrubbed animation's frames so that
+        // transformFramesGrouped picks up the new values. Without this,
+        // the paused guard inside transformFramesGrouped skips interpFrames
+        // and the visual stays frozen at the pre-scrub position.
+        const vars = groupAnimation.interpFrames(groupAnimation.t, false);
+        Object.assign(groupObject!.values, vars);
+
         animationGroup.transformFramesGrouped(t);
-        groupAnimation.paused = wasPaused;
     };
 
     return {

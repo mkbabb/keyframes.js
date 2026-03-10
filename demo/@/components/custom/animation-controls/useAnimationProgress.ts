@@ -4,13 +4,14 @@ import type { AnimationGroup } from "@src/animation/group";
 import { useRafLoop } from "@composables/useRafLoop";
 
 export function useAnimationProgress(
-    animationGroup: AnimationGroup<any>,
+    getAnimationGroup: () => AnimationGroup<any>,
     isPlaying: Ref<boolean>,
 ) {
     const animationProgress = ref<Record<string, number>>({});
 
     useRafLoop(
         () => {
+            const animationGroup = getAnimationGroup();
             const p: Record<string, number> = {};
             for (const [name, groupObj] of Object.entries(animationGroup.animations)) {
                 const anim = groupObj.animation;

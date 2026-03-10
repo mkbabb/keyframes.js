@@ -7,7 +7,7 @@
         v-bind="$attrs"
     >
         <div
-            v-show="storedControls.selectedAnimation"
+            v-show="storedControls.selectedAnimation && !hideControls"
             @transitionend="onPanelTransitionEnd"
             :class="[
                 'controls-pane group/controls col-start-1 row-start-1 lg:row-start-1 min-w-0 relative z-10 transition-[max-height,opacity] duration-350 ease-[cubic-bezier(0.4,0,0.2,1)] lg:transition-[max-height] lg:!max-h-full lg:!mt-0',
@@ -134,12 +134,12 @@
         <div
             :class="[
                 'justify-self-stretch self-center min-h-0 h-full overflow-visible overscroll-contain col-span-full row-start-1 -row-end-1 lg:row-end-auto',
-                storedControls?.selectedAnimation
+                storedControls?.selectedAnimation && !hideControls
                     ? 'lg:col-start-2 lg:col-end-4'
                     : 'lg:col-start-1 lg:col-end-4',
             ]"
         >
-            <slot name="animation-content" :selected-animation="storedControls.selectedAnimation" :is-playing="isPlaying"> </slot>
+            <slot name="animation-content"></slot>
         </div>
 
         <!-- Teleport target for expanded timeline (content arrives via Teleport from AnimationControls) -->
@@ -189,7 +189,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref, Teleport, watchEffect } from "vue";
+import { computed, onMounted, reactive, ref, Teleport, watchEffect } from "vue";
 import { Toaster, toast } from "vue-sonner";
 
 import {
@@ -224,9 +224,11 @@ import { useAnimationProgress } from "./useAnimationProgress";
 
 const RIBBON_BUTTON_CLASS = "h-8 gap-1.5 cursor-pointer instrument-serif text-base px-3 rounded-lg hover:scale-105 active:scale-95 transition-transform";
 
-const { superKey, animationGroup } = defineProps<{
+const { superKey, animationGroup, autoPlay, hideControls } = defineProps<{
     animationGroup: AnimationGroup<any>;
     superKey?: string;
+    autoPlay?: boolean;
+    hideControls?: boolean;
 }>();
 
 const storedControls = getStoredAnimationGroupControlOptions(superKey);
@@ -260,9 +262,13 @@ const onPanelTransitionEnd = (e: TransitionEvent) => {
     }
 };
 
-// Validate stored selection — clear stale values via watchEffect (reacts to group changes)
+// Validate stored selection — clear stale values via watchEffect (reacts to group changes).
+// Skip validation when the group has no animations (e.g. empty placeholder during init)
+// to avoid clearing a valid localStorage selection before the real group arrives.
 watchEffect(() => {
+    const hasAnimations = Object.keys(animationGroup.animations).length > 0;
     if (
+        hasAnimations &&
         storedControls.selectedAnimation &&
         !animationGroup.animations[storedControls.selectedAnimation]
     ) {
@@ -285,9 +291,26 @@ const {
     onScrubStart,
     onScrubEnd,
     sliderUpdate,
-} = useAnimationGroupPlayback(animationGroup, storedControls, emit as any);
+} = useAnimationGroupPlayback(() => animationGroup, storedControls, emit as any);
 
-const { animationProgress } = useAnimationProgress(animationGroup, isPlaying);
+const { animationProgress } = useAnimationProgress(() => animationGroup, isPlaying);
+
+// Sync play state when the animationGroup prop changes (e.g. after scene-switch
+// restoration sets the group to playing). Without this, isPlaying/isStarted refs
+// stay stale from the initial mount.
+watch(() => animationGroup, () => {
+    const group = animationGroup;
+    if (group.started) {
+        syncPlayState();
+    }
+}, { flush: 'post' });
+
+// Auto-play on mount if requested (e.g. when navigating from home to a scene).
+onMounted(() => {
+    if (autoPlay && Object.keys(animationGroup.animations).length > 0) {
+        toggleAnimationGroup();
+    }
+});
 
 const menuBarRef = ref<InstanceType<typeof AnimationMenuBar> | null>(null);
 

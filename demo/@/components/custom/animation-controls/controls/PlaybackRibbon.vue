@@ -1,6 +1,6 @@
 <template>
-    <div :class="['w-full grid gap-2', !isAnimStarted ? 'disabled' : '']">
-        <IconTooltip text="Scrub animation timeline">
+    <div class="w-full grid gap-2">
+        <IconTooltip :class="!isAnimStarted ? 'disabled' : ''" text="Scrub animation timeline">
             <Slider
                 class="p-2 timeline-slider"
                 :min="0"
@@ -54,7 +54,7 @@
         </div>
 
         <AnimationVisualizer
-            class="w-full"
+            :class="['w-full', !isAnimStarted ? 'disabled' : '']"
             :animation="animation"
             @scrub="scrubTo"
             @drag-start="emit('scrubStart')"

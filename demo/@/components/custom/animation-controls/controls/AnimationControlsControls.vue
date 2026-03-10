@@ -280,7 +280,7 @@ const { isOpen, setOpen } = useExclusiveSelect();
 
 // rAF-driven reactivity bridge: animation is markRaw, so Vue can't track
 // property changes. We sync reactive refs every frame for the slider + buttons.
-const { currentT, isPlaying: isAnimPlaying, isStarted: isAnimStarted } = useAnimationSync(animation);
+const { currentT, isPlaying: isAnimPlaying, isStarted: isAnimStarted } = useAnimationSync(() => animation);
 
 const userReversed = ref(false);
 const toggleReverse = () => {
