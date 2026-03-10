@@ -325,8 +325,8 @@ export function normalizeValueUnits(
             asColorValueUnit(left),
             asColorValueUnit(right),
             colorSpace as NormalizeColorSpace,
-            true,
             false,
+            true,
             false,
             hueMethod,
         );

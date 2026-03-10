@@ -107,7 +107,18 @@ export function lerpColorValue(
     { start, stop, value }: InterpolatedVar<Color>,
 ) {
     start.value.keys().forEach((key: string) => {
-        value.value[key] = lerp(t, start.value[key], stop.value[key]);
+        const sv = start.value[key];
+        const ev = stop.value[key];
+        const sn = sv instanceof ValueUnit ? sv.value : sv;
+        const en = ev instanceof ValueUnit ? ev.value : ev;
+        const result = lerp(t, sn, en);
+
+        const current = value.value[key];
+        if (current instanceof ValueUnit) {
+            current.value = result;
+        } else {
+            value.value[key] = result;
+        }
     });
     return value;
 }

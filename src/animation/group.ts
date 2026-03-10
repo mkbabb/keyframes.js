@@ -302,7 +302,7 @@ export class AnimationGroup<V extends Vars> {
         }
 
         if (prevPaused) {
-            requestAnimationFrame(this.draw.bind(this));
+            this.handleId = requestAnimationFrame(this.draw.bind(this));
         }
 
         return this;
