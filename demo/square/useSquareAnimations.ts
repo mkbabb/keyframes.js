@@ -1,6 +1,8 @@
 import { CSSKeyframesAnimation } from "@src/animation";
 import type { Ref } from "vue";
 
+export const SUPER_KEY = "Square";
+
 export function useSquareAnimations(box: Ref<HTMLElement | undefined>) {
     const anim = new CSSKeyframesAnimation({
         duration: 2000,

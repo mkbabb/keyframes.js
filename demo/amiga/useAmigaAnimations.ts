@@ -8,14 +8,18 @@ const BOX_SIZE = 12;
 
 export { BOX_SIZE };
 
+export const SUPER_KEY = "Amiga";
+
 export function useAmigaAnimations(getSphere: () => THREE.Mesh<THREE.SphereGeometry, THREE.MeshLambertMaterial>) {
     const transform = (vars: Record<string, any>) => {
         const sphereMesh = getSphere();
+        if (!sphereMesh) return;
         Object.assign(sphereMesh.position, vars.position);
         Object.assign(sphereMesh.rotation, vars.rotation);
 
         if (vars.colorT) {
-            const colorT = vars.colorT.values[0].value;
+            const raw = vars.colorT;
+            const colorT = Array.isArray(raw) ? raw[0].value : raw;
             const color = new THREE.Color().setHSL(colorT, 1, 0.95);
             sphereMesh.material.color = color;
         }
@@ -102,9 +106,13 @@ export function useAmigaAnimations(getSphere: () => THREE.Mesh<THREE.SphereGeome
     );
 
     rotations.name = "Rotations";
+    rotations.superKey = SUPER_KEY;
     bouncingX.name = "Bouncing X";
+    bouncingX.superKey = SUPER_KEY;
     bouncingY.name = "Bouncing Y";
+    bouncingY.superKey = SUPER_KEY;
     bouncingZ.name = "Bouncing Z";
+    bouncingZ.superKey = SUPER_KEY;
 
     const animationGroup = new AnimationGroup(
         rotations,
@@ -112,6 +120,10 @@ export function useAmigaAnimations(getSphere: () => THREE.Mesh<THREE.SphereGeome
         bouncingY,
         bouncingZ,
     );
+
+    // Force per-animation transform path — the grouped path passes flat ValueUnit
+    // values which don't match the nested object structure our transform expects.
+    animationGroup.singleTarget = false;
 
     return { animationGroup, rotations, bouncingX, bouncingY, bouncingZ };
 }
