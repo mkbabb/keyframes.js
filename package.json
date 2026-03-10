@@ -16,13 +16,11 @@
     ],
     "type": "module",
     "main": "./dist/keyframes.js",
-    "module": "./dist/keyframes.js",
     "types": "./dist/keyframes.d.ts",
     "exports": {
         ".": {
             "types": "./dist/keyframes.d.ts",
-            "import": "./dist/keyframes.js",
-            "require": "./dist/keyframes.cjs"
+            "import": "./dist/keyframes.js"
         }
     },
     "files": [
@@ -50,7 +48,7 @@
     "homepage": "https://github.com/mkbabb/keyframes.js#readme",
     "dependencies": {
         "@mkbabb/parse-that": "latest",
-        "@mkbabb/value.js": "latest"
+        "@mkbabb/value.js": "file:../value.js"
     },
     "devDependencies": {
         "@fortawesome/fontawesome-svg-core": "^6.6.0",

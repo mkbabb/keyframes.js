@@ -39,7 +39,7 @@ export default defineConfig((mode) => {
                     entry: path.resolve(import.meta.dirname, "src/animation/index.ts"),
                     name: "Keyframes",
                     fileName: "keyframes",
-                    formats: ["es", "cjs"],
+                    formats: ["es"],
                 },
                 rollupOptions: {
                     external: ["vue", "prettier"],
@@ -54,7 +54,7 @@ export default defineConfig((mode) => {
         return {
             ...defaultOptions,
             base: "./",
-            root: "./demo/cube/",
+            root: "./demo/app/",
             build: {
                 outDir: path.resolve(import.meta.dirname, "./dist/"),
                 emptyOutDir: true,
@@ -98,7 +98,7 @@ export default defineConfig((mode) => {
         // Dev mode: serve the demo app with HMR
         return {
             ...defaultOptions,
-            root: "./demo/cube/",
+            root: "./demo/app/",
             optimizeDeps: {
                 include: [
                     "vue",
