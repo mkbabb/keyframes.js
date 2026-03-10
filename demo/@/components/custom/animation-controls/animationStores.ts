@@ -256,14 +256,52 @@ export const decodeStateFromHash = (hash: string): object | null => {
     }
 };
 
+// --- Per-scene playback state (in-memory, ephemeral) ---
+
+export interface AnimationPlaybackSnapshot {
+    t: number;
+    reversed: boolean;
+    iteration: number;
+}
+
+export interface ScenePlaybackState {
+    playing: boolean;
+    started: boolean;
+    /** Per-animation playback snapshot (raw t, reversed flag, iteration) */
+    animations: Record<string, AnimationPlaybackSnapshot>;
+}
+
+const _scenePlaybackStates = new Map<string, ScenePlaybackState>();
+
+export const saveScenePlaybackState = (superKey: string, state: ScenePlaybackState) => {
+    _scenePlaybackStates.set(superKey, state);
+};
+
+export const getScenePlaybackState = (superKey: string): ScenePlaybackState | undefined => {
+    return _scenePlaybackStates.get(superKey);
+};
+
+export const clearScenePlaybackState = (superKey: string) => {
+    _scenePlaybackStates.delete(superKey);
+};
+
+// Active scene tracking for share state
+let _activeSceneId: string | undefined;
+
+export const setActiveScene = (sceneId: string) => {
+    _activeSceneId = sceneId;
+};
+
+export const getActiveScene = (): string | undefined => _activeSceneId;
+
 export const getAllState = (): object => {
     // Strip _storeTimestamp so the same logical state always produces the same hash
     const { _storeTimestamp: _1, ...options } = getAnimationGroupsOptionsStore().value;
     const { _storeTimestamp: _2, ...controls } = getAnimationGroupsControlOptionsStore().value;
-    return { options, controls };
+    return { options, controls, activeScene: _activeSceneId };
 };
 
-const isValidState = (state: unknown): state is { options?: object; controls?: object } => {
+const isValidState = (state: unknown): state is { options?: object; controls?: object; activeScene?: string } => {
     if (typeof state !== "object" || state === null) return false;
     const s = state as Record<string, unknown>;
     if (s.options !== undefined && (typeof s.options !== "object" || s.options === null)) return false;
@@ -271,12 +309,12 @@ const isValidState = (state: unknown): state is { options?: object; controls?: o
     return true;
 };
 
-export const restoreStateFromHash = () => {
+export const restoreStateFromHash = (): { restored: boolean; activeScene?: string } => {
     const hash = window.location.hash.slice(1);
-    if (!hash) return false;
+    if (!hash) return { restored: false };
 
     const state = decodeStateFromHash(hash);
-    if (!state || !isValidState(state)) return false;
+    if (!state || !isValidState(state)) return { restored: false };
 
     if (state.options) {
         Object.assign(getAnimationGroupsOptionsStore().value, state.options);
@@ -288,8 +326,11 @@ export const restoreStateFromHash = () => {
     // Clear hash after restoring to avoid stale state
     history.replaceState(null, "", window.location.pathname + window.location.search);
 
-    return true;
+    return { restored: true, activeScene: state.activeScene };
 };
 
 // Attempt to restore state from URL hash on module load
-restoreStateFromHash();
+const _hashRestoreResult = restoreStateFromHash();
+if (_hashRestoreResult.activeScene) {
+    _activeSceneId = _hashRestoreResult.activeScene;
+}
