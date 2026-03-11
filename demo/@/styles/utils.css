@@ -17,6 +17,12 @@
     font-family: "Fira Code", monospace;
 }
 
+.ios-text-entry-safe {
+    font-size: max(16px, var(--ios-text-entry-size, 16px)) !important;
+    line-height: var(--ios-text-entry-line-height, 1.25);
+    -webkit-text-size-adjust: 100%;
+}
+
 .rainbow-border {
     border: solid 5px transparent;
     border-radius: 50px;

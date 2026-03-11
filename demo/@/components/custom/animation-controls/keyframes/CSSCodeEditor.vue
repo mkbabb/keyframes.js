@@ -15,6 +15,7 @@ import * as monaco from "monaco-editor";
 import DarkTheme from "monaco-themes/themes/Dracula.json";
 import LightTheme from "monaco-themes/themes/GitHub.json";
 import { useGlobalDark } from "@components/custom/dark-mode-toggle";
+import { clampIOSNoZoomFontSize } from "@utils/iosTextEntry";
 import { formatCSS } from "@src/parsing/format";
 import { convert2 } from "@src/units/utils";
 import { debounce } from "@src/utils";
@@ -85,7 +86,7 @@ const initEditor = () => {
         language: "css",
         fontLigatures: true,
         theme: isDark.value ? "dark-theme" : "light-theme",
-        fontSize: props.fontSize,
+        fontSize: clampIOSNoZoomFontSize(props.fontSize),
         fontFamily: "Fira Code",
         minimap: { enabled: false },
         wordWrap: "on",

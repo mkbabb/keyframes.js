@@ -4,7 +4,7 @@
     </IconTooltip>
     <Input
         :type="type ?? 'string'"
-        :class="inputClass ?? 'fira-code'"
+        :class="[iosNoZoomClass, inputClass ?? 'fira-code']"
         :model-value="modelValue"
         @change="(e: Event) => emit('update:modelValue', (e.target as HTMLInputElement).value)"
     />
@@ -13,6 +13,7 @@
 <script setup lang="ts">
 import IconTooltip from "@components/custom/IconTooltip.vue";
 import { Input } from "@components/ui/input";
+import { getIOSNoZoomTextEntryClass } from "@utils/iosTextEntry";
 
 defineProps<{
     modelValue: string | number;
@@ -25,4 +26,6 @@ defineProps<{
 const emit = defineEmits<{
     (e: "update:modelValue", value: string): void;
 }>();
+
+const iosNoZoomClass = getIOSNoZoomTextEntryClass();
 </script>

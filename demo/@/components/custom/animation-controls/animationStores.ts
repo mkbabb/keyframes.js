@@ -326,7 +326,9 @@ export const restoreStateFromHash = (): { restored: boolean; activeScene?: strin
     // Clear hash after restoring to avoid stale state
     history.replaceState(null, "", window.location.pathname + window.location.search);
 
-    return { restored: true, activeScene: state.activeScene };
+    return state.activeScene === undefined
+        ? { restored: true }
+        : { restored: true, activeScene: state.activeScene };
 };
 
 // Attempt to restore state from URL hash on module load

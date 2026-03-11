@@ -102,7 +102,10 @@
                                                 addKeyframesString = value;
                                             }
                                         "
-                                        class="hljs css min-h-[25vh] p-2 cursor-text rounded-lg text-sm bg-transparent outline-none border-none z-100"
+                                        :class="[
+                                            iosNoZoomClass,
+                                            'hljs css min-h-[25vh] p-2 cursor-text rounded-lg text-sm bg-transparent outline-none border-none z-100',
+                                        ]"
                                         contenteditable="true"
                                     ><code>{{ addKeyframesString }}</code></pre>
                                 </div>
@@ -225,6 +228,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@components/ui/dialog";
+import { getIOSNoZoomTextEntryClass } from "@utils/iosTextEntry";
 
 import { toast } from "vue-sonner";
 
@@ -264,6 +268,7 @@ const defaultKeyframeControls = {
 };
 
 const storedControls = getStoredAnimationGroupControlOptions(animation);
+const iosNoZoomClass = getIOSNoZoomTextEntryClass();
 
 storedControls.keyframeControls ??= defaultKeyframeControls;
 

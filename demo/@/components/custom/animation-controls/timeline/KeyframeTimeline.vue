@@ -152,7 +152,7 @@
                         <Input
                             v-model="selectedKeyframe.label"
                             placeholder="Label..."
-                            class="fira-code text-xs h-6 w-32"
+                            :class="[iosNoZoomClass, 'fira-code text-xs h-6 w-32']"
                         />
                     </div>
                     <Button
@@ -217,6 +217,7 @@ import { Input } from "@components/ui/input";
 import { Separator } from "@components/ui/separator";
 import CSSCodeEditor from "../keyframes/CSSCodeEditor.vue";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip";
+import { getIOSNoZoomTextEntryClass } from "@utils/iosTextEntry";
 import { useTimeline } from "./useTimeline";
 import TimelineCaret from "./TimelineCaret.vue";
 import type { InputAnimationOptions } from "@src/animation/constants";
@@ -256,6 +257,7 @@ const selectedKeyframeId = ref<string | null>(null);
 const draggingKeyframeId = ref<string | null>(null);
 const importDialogOpen = ref(false);
 const addCSSDialogOpen = ref(false);
+const iosNoZoomClass = getIOSNoZoomTextEntryClass();
 
 // --- Preview cache for diamond hover ---
 import type { TimelineKeyframe } from "./timelineTypes";

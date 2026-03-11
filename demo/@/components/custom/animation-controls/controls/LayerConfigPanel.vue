@@ -16,7 +16,7 @@
         </IconTooltip>
         <Input
             type="number"
-            class="fira-code"
+            :class="[iosNoZoomClass, 'fira-code']"
             :model-value="layerConfig.zIndex"
             @change="(e: Event) => emit('update', { zIndex: parseInt((e.target as HTMLInputElement).value) || 0 })"
         />
@@ -52,6 +52,7 @@ import LabeledSlider from "@components/custom/LabeledSlider.vue";
 import LabeledSwitch from "@components/custom/LabeledSwitch.vue";
 import { Input } from "@components/ui/input";
 import { Separator } from "@components/ui/separator";
+import { getIOSNoZoomTextEntryClass } from "@utils/iosTextEntry";
 import { BLEND_MODE_DESCRIPTIONS } from "../animationDescriptions";
 
 const BLEND_MODES = ["replace", "add", "weighted"] as const;
@@ -65,4 +66,6 @@ defineProps<{
 const emit = defineEmits<{
     (e: "update", val: Partial<AnimationLayerConfig>): void;
 }>();
+
+const iosNoZoomClass = getIOSNoZoomTextEntryClass();
 </script>

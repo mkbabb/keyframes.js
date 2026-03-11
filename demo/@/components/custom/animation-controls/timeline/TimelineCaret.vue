@@ -16,7 +16,10 @@
             ref="inputEl"
             type="number"
             :value="Math.round(percent)"
-            class="fira-code text-[10px] w-10 h-5 text-center bg-background border border-border rounded px-0.5 outline-none focus:ring-1 focus:ring-primary"
+            :class="[
+                iosNoZoomClass,
+                'fira-code text-[10px] w-10 h-5 text-center bg-background border border-border rounded px-0.5 outline-none focus:ring-1 focus:ring-primary',
+            ]"
             min="0"
             max="100"
             @blur="commitEdit"
@@ -30,6 +33,7 @@
 
 <script setup lang="ts">
 import { nextTick, ref, useTemplateRef } from "vue";
+import { getIOSNoZoomTextEntryClass } from "@utils/iosTextEntry";
 
 const props = defineProps<{
     keyframeId: string;
@@ -45,6 +49,7 @@ const emit = defineEmits<{
 
 const isEditing = ref(false);
 const inputEl = useTemplateRef<HTMLInputElement>("inputEl");
+const iosNoZoomClass = getIOSNoZoomTextEntryClass();
 
 const startEdit = () => {
     emit("select");
