@@ -47,8 +47,8 @@
     },
     "homepage": "https://github.com/mkbabb/keyframes.js#readme",
     "dependencies": {
-        "@mkbabb/parse-that": "^0.8.0",
-        "@mkbabb/value.js": "^0.5.0"
+        "@mkbabb/parse-that": "^0.8.1",
+        "@mkbabb/value.js": "^0.5.1"
     },
     "devDependencies": {
         "@fortawesome/fontawesome-svg-core": "^6.6.0",
