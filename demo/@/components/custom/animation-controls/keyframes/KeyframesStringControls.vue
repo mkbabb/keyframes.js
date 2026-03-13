@@ -162,7 +162,7 @@ const onEditorChange = (value: string) => {
             animation,
         });
 
-        storedControls.keyframeControls.keyframes = value;
+        storedControls.keyframeControls!.keyframes = value;
 
         if (!isFormatting.value) {
             toast.success("Keyframes parsed 🎉");

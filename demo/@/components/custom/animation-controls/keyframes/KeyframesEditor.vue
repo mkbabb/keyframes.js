@@ -58,10 +58,10 @@
                 <MenubarMenu>
                     <MenubarTrigger>
                         <Dialog
-                            v-model:open="storedControls.keyframeControls.dialogOpen"
+                            v-model:open="kfControls.dialogOpen"
                             @update:open="
                                 (value) => {
-                                    storedControls.keyframeControls.dialogOpen = value;
+                                    kfControls.dialogOpen = value;
                                 }
                             "
                         >
@@ -97,15 +97,12 @@
                                                 const value = (e.target as HTMLElement)
                                                     .innerText;
 
-                                                storedControls.keyframeControls.addKeyframes =
+                                                kfControls.addKeyframes =
                                                     value;
                                                 addKeyframesString = value;
                                             }
                                         "
-                                        :class="[
-                                            iosNoZoomClass,
-                                            'hljs css min-h-[25vh] p-2 cursor-text rounded-lg text-sm bg-transparent outline-none border-none z-100',
-                                        ]"
+                                        class="hljs css min-h-[25vh] p-2 cursor-text rounded-lg text-sm bg-transparent outline-none border-none z-100"
                                         contenteditable="true"
                                     ><code>{{ addKeyframesString }}</code></pre>
                                 </div>
@@ -167,17 +164,7 @@
 </template>
 <script setup lang="ts">
 import { Animation, CSSKeyframesAnimation } from "@src/animation/index";
-import {
-    CSSKeyframesToString,
-    CSSKeyframesToStrings,
-    formatCSS,
-    formatCSSKeyframeString,
-    parseCSSAnimationOrKeyframes,
-} from "@src/parsing/format";
-import {
-    parseCSSAnimationKeyframes,
-} from "@src/parsing/keyframes";
-import { debounce } from "@src/utils";
+import { formatCSSKeyframeString } from "@src/parsing/format";
 
 import { Slider } from "@components/ui/slider";
 
@@ -187,7 +174,7 @@ import {
     CardTitle,
 } from "@components/ui/card";
 
-import { computed, onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
+import { onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
 
 import CopyButton from "@components/custom/CopyButton.vue";
 import KeyframeCard from "./KeyframeCard.vue";
@@ -210,15 +197,10 @@ import { Separator } from "@components/ui/separator";
 import hljs from "highlight.js";
 
 import css from "highlight.js/lib/languages/css";
-import {
-    createAnimationUUId,
-    getStoredAnimationGroupControlOptions,
-} from "../animationStores";
 import Button from "@components/ui/button/Button.vue";
 import { Menubar, MenubarTrigger, MenubarMenu } from "@components/ui/menubar";
 
 import { parseCSSValueUnit } from "@src/parsing/units";
-import { convert2 } from "@src/units/utils";
 
 import {
     Dialog,
@@ -228,12 +210,11 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@components/ui/dialog";
-import { getIOSNoZoomTextEntryClass } from "@utils/iosTextEntry";
-
-import { toast } from "vue-sonner";
 
 import { useMagicKeys } from "@vueuse/core";
 import * as animations from "@src/animation/animations";
+
+import { useKeyframesEditor } from "./useKeyframesEditor";
 
 hljs.registerLanguage("css", css);
 
@@ -257,71 +238,32 @@ const emit = defineEmits<{
     ): void;
 }>();
 
-const animationUUID = createAnimationUUId(animation, animation.superKey);
-const keyframesStyleId = `keyframes-style-${animationUUID}`;
-
-const defaultKeyframeControls = {
-    selectedKeyframesControl: "keyframes",
-    dialogOpen: false,
-    keyframes: "",
-    addKeyframes: "",
-};
-
-const storedControls = getStoredAnimationGroupControlOptions(animation);
-const iosNoZoomClass = getIOSNoZoomTextEntryClass();
-
-storedControls.keyframeControls ??= defaultKeyframeControls;
+const {
+    cssKeyframesString,
+    addKeyframesString,
+    templateFrameStrings,
+    animationUUID,
+    keyframesStyleId,
+    storedControls,
+    kfControls,
+    updateAllStrings,
+    updateAllStringsAndAnimation,
+    updateAnimationFromKeyframesString,
+    updateAnimationFromKeyframeString,
+    updateAddKeyframesString: composableUpdateAddKeyframesString,
+    addKeyframesStringToAnimation,
+    removeKeyframeData,
+} = useKeyframesEditor(animation, emit);
 
 const cssKeyframesStringEl = useTemplateRef<HTMLElement>("cssKeyframesStringEl");
-const cssKeyframesString = ref("");
-
 const addKeyframesEl = useTemplateRef<HTMLElement>("addKeyframesEl");
-const addKeyframesString = ref(storedControls.keyframeControls.addKeyframes);
-
-const templateFrameStrings = ref<string[]>([]);
-
 const keyframeRefs = ref<any[]>([]);
-
-const tabsListEl = ref<HTMLElement | null>(null);
 
 const setHighlightingString = (el: HTMLElement, s: string) => {
     if (el) {
         el.setAttribute("highlighted", "");
         el.innerHTML = s;
     }
-};
-
-const getFormatWidth = (el?: HTMLElement) => {
-    el ??= tabsListEl.value!;
-
-    if (el == null || el.offsetWidth == null) {
-        return undefined;
-    }
-
-    return convert2(el.offsetWidth, "px", "ch", el);
-};
-
-const getTmpAnimationName = () => {
-    return keyframesStyleId.replace("keyframes-style-", "").toLowerCase();
-};
-
-const updateCSSAnimationKeyframesStringFromAnimation = async (
-    cssAnimationKeyframes?: string,
-) => {
-    const keyframesString =
-        cssAnimationKeyframes ??
-        (await CSSKeyframesToString(
-            animation,
-            getTmpAnimationName(),
-            getFormatWidth(),
-        ));
-
-    cssKeyframesString.value = keyframesString;
-    setHighlightingString(cssKeyframesStringEl.value!, keyframesString);
-
-    highlightCSS();
-
-    return keyframesString;
 };
 
 const keys = useMagicKeys({ reactive: true });
@@ -331,11 +273,23 @@ watch(
         return (keys["Shift"] && keys["Alt"] && keys["F"]) || keys["Ï"];
     },
     (v) => {
-        if (v && storedControls.keyframeControls.dialogOpen) {
+        if (v && kfControls.dialogOpen) {
             updateAddKeyframesString(addKeyframesString.value);
         }
     },
 );
+
+const updateAddKeyframesString = async (keyframesString: string) => {
+    const formatted = await composableUpdateAddKeyframesString(keyframesString);
+
+    setHighlightingString(addKeyframesEl.value!, formatted);
+    highlightCSS();
+
+    const sel = window.getSelection();
+    if (sel) {
+        sel.collapseToEnd();
+    }
+};
 
 function onKeyDown(e: KeyboardEvent) {
     const { target, key } = e;
@@ -365,157 +319,8 @@ function onKeyDown(e: KeyboardEvent) {
     highlightCSS();
 }
 
-const updateAnimationFromKeyframesString = debounce((keyframesString: string) => {
-    storedControls.keyframeControls.keyframes = keyframesString;
-
-    const parseAndUpdate = () => {
-        const { options, values, keyframes } =
-            parseCSSAnimationKeyframes(keyframesString);
-
-        const tmpAnimation = new CSSKeyframesAnimation(
-            options,
-            ...animation.targets,
-        ).fromString(keyframes);
-
-        animation.options = tmpAnimation.options;
-        animation.templateFrames = tmpAnimation.templateFrames;
-
-        animation.parse();
-
-        emit("keyframesUpdate", {
-            animation,
-        });
-
-        debouncedUpdateAllStrings();
-    };
-
-    try {
-        parseAndUpdate();
-    } catch (e) {
-        toast.error("Could not update keyframes", {
-            description: (e as Error).message,
-            duration: 10000,
-            action: {
-                label: "Retry",
-                onClick: () => {
-                    updateAnimationFromKeyframesString(keyframesString);
-                },
-            },
-        });
-        console.error(e);
-    }
-}, 1000);
-
-const updateAnimationFromKeyframeString = debounce(
-    async (keyframeString: string, frameIx: number) => {
-        const parseAndUpdate = async () => {
-            const start = animation.templateFrames[frameIx].start;
-            keyframeString = `${start} { ${keyframeString} }`;
-
-            const { keyframes, options } = parseCSSAnimationOrKeyframes(keyframeString);
-            const [_, newVars] = Object.entries(keyframes)[0];
-
-            Object.assign(animation.options, options ?? animation.options);
-            Object.assign(animation.templateFrames[frameIx].vars, newVars);
-
-            animation.parse();
-
-            updateAllStringsAndAnimation();
-        };
-
-        try {
-            await parseAndUpdate();
-        } catch (e) {
-            toast.error("Could not update keyframe", {
-                description: (e as Error).message,
-                duration: 10000,
-                action: {
-                    label: "Retry",
-                    onClick: () => {
-                        updateAnimationFromKeyframeString(keyframeString, frameIx);
-                    },
-                },
-            });
-
-            console.error(e);
-        }
-    },
-    1000,
-);
-
-const updateAddKeyframesString = (keyframesString: string) => {
-    formatCSS(keyframesString, getFormatWidth()).then((formatted) => {
-        const sel = window.getSelection();
-
-        storedControls.keyframeControls.addKeyframes = formatted;
-        addKeyframesString.value = formatted;
-
-        setHighlightingString(addKeyframesEl.value!, addKeyframesString.value);
-
-        highlightCSS();
-
-        if (sel) {
-            sel.collapseToEnd();
-        }
-    });
-};
-
-const addKeyframesStringToAnimation = (keyframesString: string) => {
-    addKeyframesString.value = keyframesString;
-    storedControls.keyframeControls.addKeyframes = keyframesString;
-
-    const parseAndUpdate = () => {
-        const { options, values, keyframes } =
-            parseCSSAnimationOrKeyframes(keyframesString);
-
-        const tmpAnimation = new Animation(
-            options ?? animation.options,
-            animation.targets,
-        );
-
-        animation.templateFrames.forEach((f) => {
-            tmpAnimation.addFrame(f.start, f.vars, f.transform, f.timingFunction);
-        });
-        Object.entries(keyframes).forEach(([start, vars]) => {
-            tmpAnimation.addFrame(parseFloat(start), vars as Partial<any>);
-        });
-
-        tmpAnimation.parse();
-
-        Object.assign(animation.options, tmpAnimation.options);
-        Object.assign(animation.templateFrames, tmpAnimation.templateFrames);
-
-        animation.parse();
-
-        updateAllStrings();
-
-        storedControls.keyframeControls.dialogOpen = false;
-
-        addKeyframesString.value = "";
-        storedControls.keyframeControls.addKeyframes = "";
-    };
-
-    try {
-        parseAndUpdate();
-    } catch (e) {
-        toast.error("Could not add keyframes", {
-            description: (e as Error).message,
-            duration: 10000,
-            action: {
-                label: "Retry",
-                onClick: () => {
-                    addKeyframesStringToAnimation(keyframesString);
-                },
-            },
-        });
-
-        console.error(e);
-    }
-};
-
 const removeKeyframe = async (e: Event, frameIx: number) => {
     if (animation.templateFrames.length <= 1) {
-        toast.error("Cannot remove last keyframe");
         return;
     }
 
@@ -531,21 +336,7 @@ const removeKeyframe = async (e: Event, frameIx: number) => {
         .group(animations.jumpUp().setTargets(el2))
         .play();
 
-    const tmpAnimation = new Animation(animation.options, animation.targets);
-
-    animation.templateFrames.forEach((f, i) => {
-        if (i !== frameIx) {
-            tmpAnimation.addFrame(f.start, f.vars, f.transform, f.timingFunction);
-        }
-    });
-
-    tmpAnimation.parse();
-
-    animation.options = tmpAnimation.options;
-    animation.templateFrames = tmpAnimation.templateFrames;
-    animation.parse();
-
-    updateAllStringsAndAnimation();
+    removeKeyframeData(frameIx);
 };
 
 const progressBarKeyframesEl = useTemplateRef<HTMLElement>("progressBarKeyframesEl");
@@ -675,32 +466,10 @@ const highlightCSS = (el?: HTMLElement) => {
     pres.forEach(highlight);
 };
 
-const updateAllStrings = async () => {
-    templateFrameStrings.value = [];
-
-    templateFrameStrings.value = await CSSKeyframesToStrings(animation);
-
-    const keyframesString = await updateCSSAnimationKeyframesStringFromAnimation();
-
-    return keyframesString;
-};
-
-const debouncedUpdateAllStrings = debounce(updateAllStrings, 100);
-
-const updateAllStringsAndAnimation = async () => {
-    const reversedKeyframesString = await updateAllStrings();
-    updateAnimationFromKeyframesString(reversedKeyframesString);
-};
-
-watch(
-    () => storedControls.keyframeControls.selectedKeyframesControl,
-    () => {
-        updateAllStrings();
-    },
-);
-
-watch(animation.templateFrames, async () => {
-    debouncedUpdateAllStrings();
+// Watch cssKeyframesString to apply highlighting when it changes
+watch(cssKeyframesString, (newVal) => {
+    setHighlightingString(cssKeyframesStringEl.value!, newVal);
+    highlightCSS();
 });
 
 watch(
