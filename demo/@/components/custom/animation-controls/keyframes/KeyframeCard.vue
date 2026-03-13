@@ -35,10 +35,7 @@
             <pre
                 @input="(e) => emit('updateCSS', (e.target as HTMLElement).innerText)"
                 @keydown="(e) => emit('keydown', e)"
-                :class="[
-                    iosNoZoomClass,
-                    'hljs css p-2 min-h-32 cursor-text rounded-lg text-sm bg-transparent outline-none border-none z-100',
-                ]"
+                class="hljs css p-2 min-h-32 cursor-text rounded-lg text-sm bg-transparent outline-none border-none z-100"
                 contenteditable="true"
             ><code>{{ formattedCSS }}</code></pre>
         </div>
@@ -49,7 +46,6 @@
 import { Input } from "@components/ui/input";
 import { Label } from "@components/ui/label";
 import CopyButton from "@components/custom/CopyButton.vue";
-import { getIOSNoZoomTextEntryClass } from "@utils/iosTextEntry";
 import { X } from "lucide-vue-next";
 
 defineProps<{
@@ -66,5 +62,4 @@ const emit = defineEmits<{
     (e: "keydown", event: KeyboardEvent): void;
 }>();
 
-const iosNoZoomClass = getIOSNoZoomTextEntryClass();
 </script>

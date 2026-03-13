@@ -31,7 +31,7 @@
                         <label class="fira-code text-xs text-muted-foreground">count</label>
                         <Input
                             type="number"
-                            :class="[iosNoZoomClass, 'fira-code']"
+                            class="fira-code"
                             :model-value="storedAnimationOptions.stepOptions.steps"
                             @update:model-value="
                                 (key: any) => {
@@ -88,8 +88,6 @@ import {
 } from "@components/ui/select";
 
 import { CubicBezierControls } from "@components/custom/animation-controls";
-import { getIOSNoZoomTextEntryClass } from "@utils/iosTextEntry";
-
 import { ArrowLeft } from "lucide-vue-next";
 
 const { animation, storedAnimationOptions, timingFunctionsAnd } = defineProps<{
@@ -103,5 +101,4 @@ const emit = defineEmits<{
     (e: "updateTimingFunction", key: TimingFunctionNames | "cubic-bezier"): void;
 }>();
 
-const iosNoZoomClass = getIOSNoZoomTextEntryClass();
 </script>

@@ -8,18 +8,22 @@
             class="grid-background pointer-events-none fixed inset-0 h-dvh w-dvw"
         ></div>
 
+        <!-- Mobile controls toggle — fixed top-left, independent of HeaderRibbon -->
+        <div
+            v-if="storedControls.selectedAnimation"
+            class="fixed top-0 left-0 z-40 px-4 pt-4 pb-2 lg:hidden"
+        >
+            <button
+                @click="storedControls.isControlsPanelOpen = !storedControls.isControlsPanelOpen"
+                class="p-1.5 rounded-lg cursor-pointer transition-colors"
+                :class="storedControls.isControlsPanelOpen ? 'text-foreground' : 'text-muted-foreground'"
+            >
+                <Minus v-if="storedControls.isControlsPanelOpen" class="w-5 h-5" />
+                <PanelLeft v-else class="w-5 h-5" />
+            </button>
+        </div>
+
         <HeaderRibbon ref="headerRibbonRef" position="right">
-            <template #left>
-                <button
-                    v-if="storedControls.selectedAnimation"
-                    @click="storedControls.isControlsPanelOpen = !storedControls.isControlsPanelOpen"
-                    class="p-1.5 rounded-lg cursor-pointer lg:hidden transition-colors"
-                    :class="storedControls.isControlsPanelOpen ? 'text-foreground' : 'text-muted-foreground chevron-bounce'"
-                >
-                    <Minus v-if="storedControls.isControlsPanelOpen" class="w-5 h-5" />
-                    <PanelLeft v-else class="w-5 h-5" />
-                </button>
-            </template>
             <template #items>
                 <slot name="header-left"></slot>
                 <slot name="header-right">
@@ -76,6 +80,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, useTemplateRef } from "vue";
 import { Minus, PanelLeft } from "lucide-vue-next";
+import { initIOSPlatformClass } from "@utils/iosTextEntry";
 import { HeaderRibbon } from "@components/custom/header-ribbon";
 import SharePopover from "./SharePopover.vue";
 import EditorStartScreen from "./EditorStartScreen.vue";
@@ -88,6 +93,8 @@ import type { AnimationGroup } from "@src/animation/group";
 
 import "@styles/utils.css";
 import "@styles/style.css";
+
+initIOSPlatformClass();
 
 const props = withDefaults(
     defineProps<{
@@ -143,16 +150,4 @@ defineExpose({ headerRibbonRef });
     background-repeat: repeat;
 }
 
-.chevron-bounce {
-    animation: chevron-bob 1.5s ease-in-out infinite;
-}
-
-@keyframes chevron-bob {
-    0%, 100% {
-        translate: 0 0;
-    }
-    50% {
-        translate: 0 4px;
-    }
-}
 </style>

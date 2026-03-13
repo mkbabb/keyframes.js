@@ -14,7 +14,7 @@
             <pre
                 ref="textEl"
                 @input="onInput"
-                :class="[preClass, iosNoZoomClass]"
+                :class="preClass"
                 contenteditable="true"
             ><code>{{ text }}</code></pre>
             <DialogFooter>
@@ -39,7 +39,6 @@ import {
     DialogFooter,
     DialogTitle,
 } from "@components/ui/dialog";
-import { getIOSNoZoomTextEntryClass } from "@utils/iosTextEntry";
 
 const props = withDefaults(
     defineProps<{
@@ -59,8 +58,6 @@ const props = withDefaults(
 const modelOpen = defineModel<boolean>("open", { required: true });
 const text = ref(props.initialText);
 const textEl = useTemplateRef<HTMLElement>("textEl");
-const iosNoZoomClass = getIOSNoZoomTextEntryClass();
-
 const emit = defineEmits<{
     (e: "submit", text: string): void;
 }>();

@@ -29,16 +29,10 @@
                                 <label class="instrument-serif text-base text-muted-foreground cursor-help">iterations</label>
                             </IconTooltip>
                             <Input
-                                :class="[
-                                    iosNoZoomClass,
+                                :class="
                                     storedAnimationOptions.animationOptions.iterationCount === 'infinite' || storedAnimationOptions.animationOptions.iterationCount === Infinity
                                         ? 'instrument-serif text-3xl'
-                                        : 'fira-code',
-                                ]"
-                                :style="
-                                    storedAnimationOptions.animationOptions.iterationCount === 'infinite' || storedAnimationOptions.animationOptions.iterationCount === Infinity
-                                        ? { '--ios-text-entry-size': '1.875rem' }
-                                        : undefined
+                                        : 'fira-code'
                                 "
                                 type="string"
                                 @change="
@@ -235,7 +229,6 @@ import IconTooltip from "@components/custom/IconTooltip.vue";
 import LabeledSelect from "@components/custom/LabeledSelect.vue";
 import LabeledInput from "@components/custom/LabeledInput.vue";
 import ResponsiveSelect from "@components/custom/ResponsiveSelect.vue";
-import { getIOSNoZoomTextEntryClass } from "@utils/iosTextEntry";
 
 import { Teleport, computed, onMounted, ref, watch } from "vue";
 import {
@@ -265,8 +258,6 @@ let timingFunctionsAnd = {
 timingFunctionsAnd = Object.fromEntries(
     Object.entries(timingFunctionsAnd).map(([k, v]) => [camelCaseToHyphen(k), v]),
 ) as any;
-
-const iosNoZoomClass = getIOSNoZoomTextEntryClass();
 
 const DETAIL_TIMING_FUNCTIONS = new Set(["cubic-bezier", "steps"]);
 

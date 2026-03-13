@@ -4,8 +4,6 @@ export interface NavigatorLike {
     maxTouchPoints?: number;
 }
 
-export const IOS_NO_ZOOM_TEXT_ENTRY_CLASS = "ios-text-entry-safe";
-
 const getNavigatorLike = (): NavigatorLike => {
     if (typeof navigator === "undefined") {
         return {};
@@ -37,7 +35,9 @@ export const clampIOSNoZoomFontSize = (
     navigatorLike: NavigatorLike = getNavigatorLike(),
 ): number => (isIOSLikePlatform(navigatorLike) ? Math.max(fontSize, 16) : fontSize);
 
-export const getIOSNoZoomTextEntryClass = (
-    navigatorLike: NavigatorLike = getNavigatorLike(),
-): string | undefined =>
-    isIOSLikePlatform(navigatorLike) ? IOS_NO_ZOOM_TEXT_ENTRY_CLASS : undefined;
+/** Set `.ios` on `<html>` once at app startup so CSS can scope iOS-only rules. */
+export const initIOSPlatformClass = (): void => {
+    if (typeof document !== "undefined" && isIOSLikePlatform()) {
+        document.documentElement.classList.add("ios");
+    }
+};
