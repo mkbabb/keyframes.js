@@ -127,8 +127,11 @@ import { Avatar, AvatarImage } from "@components/ui/avatar";
 import { Button } from "@components/ui/button";
 
 import { AnimationGroup } from "@src/animation/group";
-import { getStoredAnimationGroupControlOptions, setActiveScene, saveScenePlaybackState, getScenePlaybackState, clearScenePlaybackState } from "@components/custom/animation-controls/animationStores";
+import { getStoredAnimationGroupControlOptions, setActiveScene, saveScenePlaybackState, getScenePlaybackState, clearScenePlaybackState, initFromHash } from "@components/custom/animation-controls/animationStores";
 import type { ScenePlaybackState } from "@components/custom/animation-controls/animationStores";
+
+// Restore shared state from URL hash before components read stored options
+initFromHash();
 
 import CubeScene from "./scenes/CubeScene.vue";
 import SceneNav from "./SceneNav.vue";
@@ -271,7 +274,7 @@ function switchScene(id: string) {
                 }
             }
         }
-        controls.isControlsPanelOpen = true;
+        controls.isControlsPanelOpen = window.innerWidth >= 1024;
         return;
     }
 
@@ -279,8 +282,8 @@ function switchScene(id: string) {
     const newControls = getStoredAnimationGroupControlOptions(newScene.superKey);
     newControls.isControlsPanelOpen = wasOpen;
 
-    // If coming from home, auto-open the controls panel
-    if (wasHome) {
+    // If coming from home, auto-open the controls panel (desktop only)
+    if (wasHome && window.innerWidth >= 1024) {
         newControls.isControlsPanelOpen = true;
     }
 }

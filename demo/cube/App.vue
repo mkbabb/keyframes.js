@@ -172,7 +172,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@compo
 import { MatrixEditor } from "@components/custom/matrix-editor";
 import CubeTarget from "./CubeTarget.vue";
 
-import { getStoredAnimationGroupControlOptions } from "@components/custom/animation-controls/animationStores";
+import { getStoredAnimationGroupControlOptions, initFromHash } from "@components/custom/animation-controls/animationStores";
+
+// Restore shared state from URL hash before components read stored options
+initFromHash();
 import { useTransformState } from "@composables/useTransformState";
 import { useCubeAnimations } from "./useCubeAnimations";
 
@@ -237,7 +240,10 @@ watch(() => headerRibbonRef.value?.isToggled, (toggled) => {
     mbabbClickCooldown = true;
     clearTimeout(mbabbCooldownTimer);
     mbabbCooldownTimer = setTimeout(() => { mbabbClickCooldown = false; }, 600);
-    storedControls.isControlsPanelOpen = !!toggled;
+    // Only sync controls panel on desktop — mobile uses its own toggle
+    if (window.innerWidth >= 1024) {
+        storedControls.isControlsPanelOpen = !!toggled;
+    }
 });
 
 const isGroupPlaying = ref(false);
