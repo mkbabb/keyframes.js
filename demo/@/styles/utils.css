@@ -17,9 +17,11 @@
     font-family: "Fira Code", monospace;
 }
 
-.ios-text-entry-safe {
-    font-size: max(16px, var(--ios-text-entry-size, 16px)) !important;
-    line-height: var(--ios-text-entry-line-height, 1.25);
+.ios input,
+.ios textarea,
+.ios select,
+.ios [contenteditable] {
+    font-size: max(1rem, 1em);
     -webkit-text-size-adjust: 100%;
 }
 
@@ -154,8 +156,6 @@
     top: 0;
     bottom: 0;
     position: absolute;
-    background-color: none;
-
     background: linear-gradient(
         124deg,
         #ff2400,
