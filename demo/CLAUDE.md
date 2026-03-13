@@ -55,7 +55,13 @@ The primary UI for interacting with animations across demos. Organized into subd
 
 - **AnimationControlsGroup.vue** — Orchestrates `AnimationGroup`: pauses group during scrub, resumes on release. Delegates playback to `useAnimationGroupPlayback`, progress polling to `useAnimationProgress`.
 - **AnimationMenuBar.vue** — Bottom-fixed menubar: animation selector dropdown, play/pause, reset.
-- **animationStores.ts** — localStorage state: animation options, group configs, `isTimelineExpanded`, URL hash sharing (base64 encode/decode, 7-day TTL).
+- **animationStores/** — Directory module (barrel re-export via `index.ts`). Split by concern:
+  - `animationOptionsStore.ts` — `StoredAnimationOptions` types + defaults, lazy localStorage singleton, `getStoredAnimationOptions`, `createAnimationUUId`.
+  - `controlOptionsStore.ts` — `StoredAnimationGroupControlOptions` (typed, no index signature), lazy localStorage singleton, `getStoredAnimationGroupControlOptions`.
+  - `hashSharing.ts` — `encodeStateToHash`, `decodeStateFromHash`, `getAllState`, `restoreStateFromHash`, `initFromHash`.
+  - `scenePlayback.ts` — `ScenePlaybackState`, per-scene ephemeral playback CRUD, active scene tracking.
+  - `storeUtils.ts` — `checkAndResetExpiredStore`, `touchTimestamp`, `deepDefaultStore`, `getAnimationSuperKey`, TTL/key constants.
+  - `index.ts` — barrel re-export + `resetAllStores`.
 - **useAnimationGroupPlayback.ts** — Composable: scrub-pause-resume state machine, play/pause orchestration, animation selection.
 - **useAnimationProgress.ts** — Composable: rAF-driven progress polling for all animations in group.
 
@@ -76,13 +82,15 @@ The primary UI for interacting with animations across demos. Organized into subd
 
 - **CSSCodeEditor.vue** — Reusable Monaco editor wrapper: `defineModel`, formatCSS, dark mode, ResizeObserver deferred init.
 - **KeyframesStringControls.vue** — CSS @keyframes editing via CSSCodeEditor with copy/format/apply actions.
-- **KeyframesEditor.vue** — Frame-by-frame position/CSS editing. Uses `KeyframeCard` for each frame.
+- **KeyframesEditor.vue** — Frame-by-frame position/CSS editing. Uses `KeyframeCard` for each frame. DOM-specific logic (highlight.js, brush animation, progress bars).
+- **useKeyframesEditor.ts** — Composable: CSS string management, stored controls, parsing/formatting, debounced updates extracted from KeyframesEditor.
 - **KeyframeCard.vue** — Single keyframe: start input, contenteditable CSS, remove/copy buttons.
 - **useHighlightCSS.ts** — Composable: manages a `<style>` element in `document.head` for dynamic CSS injection.
 
 ### `timeline/` — Horizontal keyframe timeline
 
-- **KeyframeTimeline.vue** — Expand/collapse, draggable diamond markers, hover previews (html2canvas), playhead, inline CSS editing, import/export.
+- **KeyframeTimeline.vue** — Expand/collapse, draggable diamond markers, hover previews (html2canvas), playhead, inline CSS editing, import/export. Delegates zoom/pan to `useZoomPan`.
+- **useZoomPan.ts** — Composable: zoom level, pan offset, coordinate transforms, wheel/pinch handlers.
 - **TimelineCaret.vue** — Positioned caret for keyframe percent labels with inline editing.
 - **timelineTypes.ts** — `TimelineKeyframe`, `TimelineState` interfaces + default capture properties.
 - **timelineEngine.ts** — `buildAnimationFromTimeline`, `exportTimelineToCSS`, `importCSSToTimeline`.
@@ -106,7 +114,8 @@ Reusable full-page animation editor layout. Slot-driven — accepts any target e
 
 - **useKeyboardShortcuts.ts** — Singleton keyboard shortcut registry (`createGlobalState`). Single `window` keydown listener, `Mod` alias (Meta on macOS, Ctrl elsewhere), editable target detection (input/textarea/contenteditable/Monaco). Auto-cleanup via `onScopeDispose`.
 - **useShareState.ts** — URL hash encode/decode, clipboard copy, no-reload state restore via `stateVersion` counter.
-- **useTransformState.ts** — Matrix3d creation (`Rx * Ry * Rz` convention), transform slider values, cell metadata, rAF-debounced watcher, animated matrix reset.
+- **transformMath.ts** — Pure utilities: `createMatrix`, axis/transform index helpers, slider option constants, `MatrixCellMeta` interface.
+- **useTransformState.ts** — Composable: reactive transform slider values, rAF-debounced watcher, animated matrix reset. Imports math from `transformMath.ts`.
 - **useExclusiveSelect.ts** — Mutual-exclusion for dropdowns: only one open at a time.
 
 ## Demo Apps
