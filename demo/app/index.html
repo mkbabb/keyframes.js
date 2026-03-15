@@ -5,7 +5,7 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>keyframes.js</title>
-        <link rel="icon" href="../cube/cube.png" />
+        <link rel="icon" href="../../assets/icons/cube-icon-sm.png" />
 
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -18,6 +18,18 @@
             href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap"
         />
 
+        <!-- Sync dark mode class before first paint to prevent FOUC on Safari -->
+        <script>
+            (function() {
+                var s = localStorage.getItem('vueuse-color-scheme');
+                var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                var dark = s === 'dark' || (s !== 'light' && (s === 'auto' || s == null) && prefersDark);
+                if (dark) {
+                    document.documentElement.classList.add('dark');
+                    document.documentElement.style.colorScheme = 'dark';
+                }
+            })();
+        </script>
         <script type="module">
             import { createApp } from "vue";
             import App from "./App.vue";
