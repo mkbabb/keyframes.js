@@ -17,6 +17,17 @@
             href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap"
         />
 
+        <script>
+            (function() {
+                var s = localStorage.getItem('vueuse-color-scheme');
+                var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                var dark = s === 'dark' || (s !== 'light' && (s === 'auto' || s == null) && prefersDark);
+                if (dark) {
+                    document.documentElement.classList.add('dark');
+                    document.documentElement.style.colorScheme = 'dark';
+                }
+            })();
+        </script>
         <script type="module">
             import { createApp } from "vue";
             import App from "./App.vue";

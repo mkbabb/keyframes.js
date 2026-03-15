@@ -93,6 +93,7 @@ const initEditor = () => {
         scrollBeyondLastLine: false,
         automaticLayout: true,
         lineNumbers: props.lineNumbers ? "on" : "off",
+        accessibilitySupport: "off",
         padding: {
             top: props.padding,
             bottom: props.padding,

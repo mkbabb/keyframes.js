@@ -1,96 +1,94 @@
 <template>
     <div
         :class="[
-            'p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] m-0 z-50 flex items-center justify-center justify-items-center transition-all duration-300 ease-out',
-            'fixed bottom-0 left-0 right-0 lg:static lg:col-span-full lg:row-start-3',
+            'px-2 py-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))] m-0 flex items-center justify-center justify-items-center',
+            'fixed bottom-0 left-0 right-0 z-40',
         ]"
     >
-        <Menubar
-            class="flex items-center justify-items-center border border-border/30 rounded-xl p-2.5 px-5 gap-4 bg-background/40 backdrop-blur-xl backdrop-saturate-150"
-        >
-            <MenubarMenu>
+        <GlassDock :collapse-delay="2500" :start-collapsed="true" :fit-content="true">
+            <!-- Expanded state: full controls -->
+            <div class="flex items-center gap-3">
                 <IconTooltip text="Select animation">
-                <div class="relative flex items-center gap-1.5">
-                    <Select
-                        class="p-0 m-0 cursor-pointer"
-                        :model-value="storedControls.selectedAnimation"
-                        @update:model-value="
-                            (key) => {
-                                emit('selectAnimation', String(key));
-                            }
-                        "
-                    >
-                        <SelectTrigger
-                            class="border-none rounded-none h-4 focus:ring-0 hover:scale-105 instrument-serif text-lg bg-transparent"
+                    <div class="relative flex items-center gap-1.5">
+                        <Select
+                            class="p-0 m-0 cursor-pointer"
+                            :model-value="storedControls.selectedAnimation"
+                            @update:model-value="
+                                (key) => {
+                                    emit('selectAnimation', String(key));
+                                }
+                            "
                         >
-                            <SelectIcon v-if="!storedControls.selectedAnimation"
-                                ><List></List
-                            ></SelectIcon>
-                            <SelectValue class="text-ellipsis">{{
-                                storedControls.selectedAnimation
-                            }}</SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectGroup class="instrument-serif text-lg">
-                                <template
-                                    v-for="name in animationNames"
-                                >
-                                    <SelectItem class="" :value="name">
-                                        <span class="flex items-center gap-2">
-                                            <span
-                                                :class="[
-                                                    'inline-block w-2.5 h-2.5 rounded-full transition-colors duration-300',
-                                                    !isPlaying && isStarted
-                                                        ? 'bg-yellow-500'
-                                                        : !isPlaying
-                                                          ? 'bg-gray-400'
-                                                          : '',
-                                                ]"
-                                                :style="isPlaying ? dotStyle(name) : {}"
-                                            ></span>
-                                            <span :class="storedControls.selectedAnimation === name ? 'font-bold' : ''">{{ name }}</span>
-                                        </span>
-                                    </SelectItem>
-                                </template>
-                            </SelectGroup>
-                        </SelectContent>
-                    </Select>
-                </div>
+                            <SelectTrigger
+                                class="border-none rounded-none h-4 focus:ring-0 hover:scale-105 instrument-serif text-lg bg-transparent"
+                            >
+                                <SelectIcon v-if="!storedControls.selectedAnimation"
+                                    ><List></List
+                                ></SelectIcon>
+                                <SelectValue class="text-ellipsis">{{
+                                    storedControls.selectedAnimation
+                                }}</SelectValue>
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectGroup class="instrument-serif text-lg">
+                                    <template
+                                        v-for="name in animationNames"
+                                    >
+                                        <SelectItem class="" :value="name">
+                                            <span class="flex items-center gap-2">
+                                                <span
+                                                    :class="[
+                                                        'inline-block w-2.5 h-2.5 rounded-full transition-colors duration-[var(--duration-fast)]',
+                                                        !isPlaying && isStarted
+                                                            ? 'bg-yellow-500'
+                                                            : !isPlaying
+                                                              ? 'bg-gray-400'
+                                                              : '',
+                                                    ]"
+                                                    :style="isPlaying ? dotStyle(name) : {}"
+                                                ></span>
+                                                <span :class="storedControls.selectedAnimation === name ? 'font-bold' : ''">{{ name }}</span>
+                                            </span>
+                                        </SelectItem>
+                                    </template>
+                                </SelectGroup>
+                            </SelectContent>
+                        </Select>
+                    </div>
                 </IconTooltip>
-            </MenubarMenu>
 
-            <IconTooltip text="Reset animation">
-                <span class="flex items-center gap-1.5 cursor-pointer" @click="() => { resetIconSpin(); emit('reset', false); }">
-                    <RotateCcw
-                        ref="resetIconEl"
-                        class="p-0 m-0 hover:scale-105"
-                    />
-                    <span class="instrument-serif text-lg whitespace-nowrap">Reset</span>
-                </span>
-            </IconTooltip>
+                <!-- Vertical divider -->
+                <div class="dock-separator"></div>
 
-            <IconTooltip text="Clear all & reload">
-                <span class="flex items-center gap-1.5 cursor-pointer" @click="() => { trashIconShake(); emit('reset', true); }">
-                    <Trash
-                        ref="trashIconEl"
-                        class="p-0 m-0 hover:scale-105"
-                    />
-                    <span class="instrument-serif text-lg whitespace-nowrap">Clear</span>
-                </span>
-            </IconTooltip>
+                <IconTooltip text="Reset animation">
+                    <button class="dock-icon-btn" @click="() => { resetIconSpin(); emit('reset', false); }">
+                        <RotateCcw
+                            ref="resetIconEl"
+                            class="w-5 h-5"
+                        />
+                    </button>
+                </IconTooltip>
 
-            <MenubarMenu>
+                <IconTooltip text="Clear all & reload">
+                    <button class="dock-icon-btn" @click="() => { trashIconShake(); emit('reset', true); }">
+                        <Trash
+                            ref="trashIconEl"
+                            class="w-5 h-5"
+                        />
+                    </button>
+                </IconTooltip>
+
                 <IconTooltip :text="isPlaying ? 'Pause' : 'Play'">
                     <Button
                         :class="[
-                            'text-xl text-white cursor-pointer rounded-xl hover:scale-105 transition-all duration-150',
-                            'w-14 h-8',
+                            'text-xl text-white cursor-pointer rounded-full hover:scale-105 transition-transform duration-[var(--duration-fast)]',
+                            'w-10 h-10 shrink-0',
                             isPlaying ? 'rainbow-vivid' : 'rainbow-pastel',
                         ]"
                         @click="emit('togglePlay')"
                     >
                         <font-awesome-icon
-                            class="icon"
+                            :class="['icon', !isPlaying ? 'pl-px' : '']"
                             :icon="
                                 isPlaying
                                     ? ['fas', 'pause']
@@ -99,34 +97,50 @@
                         />
                     </Button>
                 </IconTooltip>
-            </MenubarMenu>
 
-            <!-- Timeline controls merged into menubar when expanded -->
-            <template v-if="storedControls.isTimelineExpanded">
-                <!-- Vertical divider -->
-                <div class="w-px h-5 bg-border/60 mx-1"></div>
+                <!-- Timeline controls merged into menubar when expanded -->
+                <template v-if="storedControls.isTimelineExpanded">
+                    <div class="dock-separator"></div>
 
-                <IconTooltip text="Collapse timeline">
-                    <Minimize2
-                        class="p-0 m-0 cursor-pointer hover:scale-105"
-                        @click="emit('expandTimeline', false)"
+                    <IconTooltip text="Collapse timeline">
+                        <button class="dock-icon-btn" @click="emit('expandTimeline', false)">
+                            <Minimize2 class="w-5 h-5" />
+                        </button>
+                    </IconTooltip>
+
+                    <span class="instrument-serif text-base text-muted-foreground whitespace-nowrap">Timeline</span>
+                </template>
+            </div>
+
+            <!-- Collapsed state: animation name first, play button on right -->
+            <template #collapsed>
+                <span v-if="storedControls.selectedAnimation" class="instrument-serif text-base text-foreground truncate max-w-[120px]">
+                    {{ storedControls.selectedAnimation }}
+                </span>
+                <Button
+                    :class="[
+                        'text-white cursor-pointer rounded-full hover:scale-105 transition-transform duration-[var(--duration-fast)]',
+                        'w-8 h-8 shrink-0 text-sm',
+                        isPlaying ? 'rainbow-vivid' : 'rainbow-pastel',
+                    ]"
+                    @click.stop="emit('togglePlay')"
+                >
+                    <font-awesome-icon
+                        :class="['icon', !isPlaying ? 'pl-px' : '']"
+                        :icon="
+                            isPlaying
+                                ? ['fas', 'pause']
+                                : ['fas', 'play']
+                        "
                     />
-                </IconTooltip>
-
-                <span class="instrument-serif text-base text-muted-foreground whitespace-nowrap">Timeline</span>
+                </Button>
             </template>
-
-        </Menubar>
+        </GlassDock>
     </div>
 </template>
 
 <script setup lang="ts">
 import { useTemplateRef } from "vue";
-
-import {
-    Menubar,
-    MenubarMenu,
-} from "@components/ui/menubar";
 
 import {
     List,
@@ -149,6 +163,7 @@ import IconTooltip from "@components/custom/IconTooltip.vue";
 import { CSSKeyframesAnimation } from "@src/animation/index";
 import Button from "@components/ui/button/Button.vue";
 import { SelectIcon } from "reka-ui";
+import { GlassDock } from "@components/custom/dock";
 
 import type { StoredAnimationGroupControlOptions } from "./animationStores";
 
@@ -240,7 +255,7 @@ defineExpose({ resetIconSpin, trashIconShake });
         hsl(280, 40%, 78%) 75%,
         hsl(0, 50%, 78%) 100%
     );
-    transition: filter 0.3s ease;
+    transition: filter var(--duration-slow) var(--ease-standard);
 }
 .rainbow-vivid {
     background: linear-gradient(
@@ -254,6 +269,6 @@ defineExpose({ resetIconSpin, trashIconShake });
         hsl(300, 75%, 60%) 85%,
         hsl(0, 85%, 60%) 100%
     );
-    transition: filter 0.3s ease;
+    transition: filter var(--duration-slow) var(--ease-standard);
 }
 </style>

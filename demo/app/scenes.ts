@@ -54,9 +54,4 @@ export const scenes: SceneDescriptor[] = [
 export const allScenes = [homeScene, ...scenes];
 export const sceneMap = new Map(allScenes.map((s) => [s.id, s]));
 
-// Preload heavy scenes immediately — the dynamic import starts the fetch
-// without blocking. When defineAsyncComponent later resolves the same module,
-// it's already cached.
-const _preloads = [import("./scenes/AmigaScene.vue")].map((p) =>
-    p.catch(() => {}),
-);
+// Heavy scenes (Amiga/Three.js) load on demand via defineAsyncComponent.

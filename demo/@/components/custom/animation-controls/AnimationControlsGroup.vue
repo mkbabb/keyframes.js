@@ -2,36 +2,27 @@
     <TooltipProvider :delay-duration="100" :skip-delay-duration="0">
     <div
         :class="[
-            'controls-layout w-dvw h-dvh grid grid-cols-1 grid-rows-[auto_1fr_auto] lg:grid-rows-[1fr_auto_auto] lg:grid-cols-[380px_1fr_1fr] justify-items-stretch items-start relative',
+            'controls-layout w-dvw h-dvh grid grid-cols-1 grid-rows-[auto_1fr] lg:grid-rows-[1fr_auto] lg:grid-cols-[400px_1fr_1fr] justify-items-stretch items-start relative',
         ]"
         v-bind="$attrs"
     >
         <div
             v-show="storedControls.selectedAnimation && !hideControls"
             @transitionend="onPanelTransitionEnd"
+            @mouseenter="onPaneMouseEnter"
+            @mouseleave="onPaneMouseLeave"
             :class="[
-                'controls-pane group/controls col-start-1 row-start-1 lg:row-start-1 min-w-0 relative z-10 transition-[max-height,opacity] duration-350 ease-[cubic-bezier(0.4,0,0.2,1)] lg:transition-[max-height] lg:!max-h-full lg:!mt-0',
+                'controls-pane group/controls col-start-1 row-start-1 lg:row-start-1 min-w-0 relative z-[var(--z-controls)]',
+                'controls-pane--mobile',
                 storedControls.isControlsPanelOpen
-                    ? 'max-h-[calc(100dvh-7rem)] mt-12 visible'
-                    : 'max-h-0 opacity-0 pointer-events-none invisible',
+                    ? 'controls-pane--open'
+                    : 'controls-pane--closed',
+                isPaneHovered ? 'controls-pane--hovered' : '',
                 isPanelTransitionDone && storedControls.isControlsPanelOpen
                     ? 'overflow-y-auto'
                     : 'overflow-hidden',
-                isMinimized ? 'controls-minimized' : '',
             ]"
         >
-            <!-- Restore button — appears when accordion is collapsed (desktop only) -->
-            <button
-                v-if="storedControls.selectedAnimation"
-                @click="isMinimized = false"
-                class="restore-btn hidden lg:flex"
-                title="Restore controls"
-            >
-                <PanelLeft class="w-4 h-4" />
-            </button>
-
-            <!-- Accordion content wrapper — shrinks width when minimized -->
-            <div class="controls-content-wrapper h-full overflow-hidden">
                 <div class="controls-content h-full overflow-hidden flex flex-col">
                     <template
                         v-for="[name, groupObject] in Object.entries(animationGroup.animations)"
@@ -45,12 +36,10 @@
                                 @layer-config-update="(v) => updateLayerConfig(name, v)"
                                 @scrub-start="onScrubStart"
                                 @scrub-end="onScrubEnd"
-                                @minimize="isMinimized = true"
                                 :animation="groupObject.animation"
                                 :is-grouped="true"
                                 :layer-config="groupObject.layer"
                                 :active="storedControls.selectedAnimation == name"
-                                :show-minimize="true"
                             >
                                 <template #tabs-trigger>
                                     <slot name="tabs-trigger" :selected-animation="storedControls.selectedAnimation" :is-playing="isPlaying"></slot>
@@ -128,15 +117,11 @@
                         </Card>
                     </div>
                 </div>
-            </div>
         </div>
 
         <div
             :class="[
-                'justify-self-stretch self-center min-h-0 h-full overflow-visible overscroll-contain col-span-full row-start-1 -row-end-1 lg:row-end-auto',
-                storedControls?.selectedAnimation && !hideControls
-                    ? 'lg:col-start-2 lg:col-end-4'
-                    : 'lg:col-start-1 lg:col-end-4',
+                'justify-self-stretch self-center min-h-0 h-full overflow-visible overscroll-contain col-span-full row-start-1 -row-end-1 lg:row-end-auto lg:col-start-2 lg:col-end-4',
             ]"
         >
             <slot name="animation-content"></slot>
@@ -146,15 +131,17 @@
         <div
             id="timeline-expanded-target"
             :class="[
-                'col-span-full row-start-3 lg:row-start-2 z-40 transition-[max-height,opacity] duration-350 ease-[cubic-bezier(0.4,0,0.2,1)] overflow-hidden',
+                'col-span-full row-start-2 z-[var(--z-dock)] overflow-hidden',
+                'transition-[max-height,opacity] duration-350 ease-[var(--ease-standard)]',
                 storedControls.isTimelineExpanded
-                    ? 'max-h-[60vh] border-t border-border/50 bg-background/60 backdrop-blur-xl backdrop-saturate-150 px-4 py-3'
+                    ? 'max-h-[60vh] border-t border-border/50 glass px-4 py-3'
                     : 'max-h-0',
             ]"
         ></div>
 
-        <!-- Bottom menubar -->
+        <!-- Bottom menubar — hidden when no animation scene is active -->
         <AnimationMenuBar
+            v-show="!hideControls"
             ref="menuBarRef"
             :stored-controls="storedControls"
             :is-playing="isPlaying"
@@ -189,7 +176,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, Teleport, watchEffect } from "vue";
+import { computed, onMounted, onUnmounted, reactive, ref, Teleport, watchEffect } from "vue";
 import { Toaster, toast } from "vue-sonner";
 
 import {
@@ -199,10 +186,8 @@ import {
 
     FilePlus2,
     Paintbrush,
-    PanelLeft,
     Sparkles,
     Upload,
-    X,
 } from "lucide-vue-next";
 
 import { TooltipProvider } from "@components/ui/tooltip";
@@ -248,7 +233,6 @@ const activeTimelineRef = computed(() => {
 
 // Track whether the panel's max-height transition has completed
 const isPanelTransitionDone = ref(storedControls.isControlsPanelOpen);
-const isMinimized = ref(false);
 
 import { watch } from "vue";
 
@@ -310,6 +294,30 @@ onMounted(() => {
     if (autoPlay && Object.keys(animationGroup.animations).length > 0) {
         toggleAnimationGroup();
     }
+});
+
+// --- Controls pane hover with linger delay ---
+const isPaneHovered = ref(false);
+let paneHoverTimer: ReturnType<typeof setTimeout> | null = null;
+
+function onPaneMouseEnter() {
+    if (paneHoverTimer) {
+        clearTimeout(paneHoverTimer);
+        paneHoverTimer = null;
+    }
+    isPaneHovered.value = true;
+}
+
+function onPaneMouseLeave() {
+    // Keep hovered state for 2s after mouse leaves so opacity lingers at 1
+    paneHoverTimer = setTimeout(() => {
+        isPaneHovered.value = false;
+        paneHoverTimer = null;
+    }, 2000);
+}
+
+onUnmounted(() => {
+    if (paneHoverTimer) clearTimeout(paneHoverTimer);
 });
 
 const menuBarRef = ref<InstanceType<typeof AnimationMenuBar> | null>(null);
@@ -400,87 +408,73 @@ function cycleAnimation(direction: number) {
 </script>
 
 <style scoped>
+/* ── Mobile: slide open/closed via max-height ── */
+.controls-pane--mobile {
+    transition:
+        max-height 0.5s var(--ease-spring),
+        opacity 0.3s ease;
+}
+.controls-pane--open {
+    max-height: calc(100dvh - 7rem);
+    margin-top: 3rem;
+    opacity: 1;
+    visibility: visible;
+}
+.controls-pane--closed {
+    max-height: 0;
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+}
+
+/* ── Desktop ── */
 @media (min-width: 1024px) {
-    /* Controls pane: idle→75%, hover→100% immediately, lingers 3s after hover ends.
-       !important overrides Tailwind opacity-0/invisible from mobile collapse. */
-    .controls-pane {
-        opacity: 0.75 !important;
-        visibility: visible !important;
-        pointer-events: auto !important;
-        transition: opacity 0.6s ease-in-out 2.5s;
-        overflow: hidden;
-        --controls-card-shadow: 4px 4px 0px 0px rgba(0,0,0,0.5);
-        --controls-card-shadow-hover: 5px 5px 0px 0px rgba(0,0,0,0.6);
+    .controls-pane--mobile {
+        max-height: none;
+        margin-top: 0;
+        transform-origin: center center;
     }
-    .controls-pane:hover {
-        opacity: 1 !important;
-        transition: opacity 0.3s ease-out;
+    .controls-pane--open {
+        max-height: none;
+        opacity: 0.75;
+        transform: scale(1);
+        visibility: visible;
+        pointer-events: auto;
+        transition:
+            opacity 0.4s ease-in-out,
+            transform 0.5s var(--ease-spring);
     }
+    .controls-pane--closed {
+        max-height: none;
+        opacity: 0;
+        transform: scale(0.96);
+        visibility: hidden;
+        pointer-events: none;
+        transition:
+            opacity 0.4s ease-in-out,
+            transform 0.5s var(--ease-spring);
+    }
+    /* JS-driven hover class: instant in, lingers 2s via timer */
+    .controls-pane--hovered.controls-pane--open {
+        opacity: 1;
+        transition:
+            opacity 0.4s ease-in-out,
+            transform 0.3s ease-out;
+    }
+
     .controls-pane :deep(.controls-card) {
-        box-shadow: var(--controls-card-shadow);
+        box-shadow: var(--shadow-card);
         transition: box-shadow 0.3s ease-out;
-        backdrop-filter: blur(20px) saturate(1.4);
-        -webkit-backdrop-filter: blur(20px) saturate(1.4);
+        backdrop-filter: var(--glass-blur-heavy);
+        -webkit-backdrop-filter: var(--glass-blur-heavy);
         background: hsl(var(--background) / 0.6);
     }
-    .controls-pane:hover :deep(.controls-card) {
-        box-shadow: var(--controls-card-shadow-hover);
+    .controls-pane--hovered :deep(.controls-card) {
+        box-shadow: var(--shadow-card-hover);
     }
 
-    /* Accordion collapse — width shrinks instead of translateX */
-    .controls-content-wrapper {
-        width: 100%;
-        overflow: hidden;
-        transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-                    opacity 0.25s ease-out;
-        opacity: 1;
-    }
     .controls-content {
-        min-width: 380px;
-    }
-    .controls-minimized .controls-content-wrapper {
-        width: 0;
-        opacity: 0;
-        pointer-events: none;
-    }
-
-    /* Restore button — positioned absolutely, tracks the shrinking edge */
-    .restore-btn {
-        position: absolute;
-        top: 0.75rem;
-        left: 0;
-        z-index: 20;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 40px;
-        height: 40px;
-        border-radius: 0.5rem;
-        color: hsl(var(--muted-foreground));
-        cursor: pointer;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.25s ease-out 0.15s,
-                    background-color 0.15s ease-out;
-        border: none;
-        background: transparent;
-    }
-    .restore-btn:hover {
-        background: hsl(var(--accent));
-        color: hsl(var(--foreground));
-    }
-    .controls-minimized .restore-btn {
-        opacity: 1;
-        pointer-events: auto;
-    }
-    .controls-minimized {
-        opacity: 1 !important;
-    }
-}
-@media (min-width: 1024px) {
-    :global(.dark) .controls-pane {
-        --controls-card-shadow: 4px 4px 0px 0px hsl(var(--shadow) / 0.3);
-        --controls-card-shadow-hover: 5px 5px 0px 0px hsl(var(--shadow) / 0.4);
+        min-width: 400px;
     }
 }
 </style>

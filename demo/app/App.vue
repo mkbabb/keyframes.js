@@ -1,5 +1,71 @@
 <template>
-    <SceneNav :current="currentSceneId" @switch="switchScene" />
+    <TopDock
+        :current-scene-id="currentSceneId"
+        :scenes="scenes"
+        :home-scene-id="HOME_SCENE_ID"
+        :current-label="currentLabel"
+        :has-selected-animation="!!storedControls.selectedAnimation && !isHome"
+        :is-controls-panel-open="storedControls.isControlsPanelOpen"
+        @switch-scene="switchScene"
+        @toggle-controls-panel="storedControls.isControlsPanelOpen = !storedControls.isControlsPanelOpen"
+    >
+        <template #items>
+            <!-- @mbabb popover -->
+            <DockPopover direction="down" :collapse-delay="1200">
+                <template #trigger>
+                    <span class="text-xs lg:text-sm font-mono cursor-pointer">@mbabb</span>
+                </template>
+                <div class="p-2.5 min-w-[16rem] flex flex-col gap-1.5">
+                    <!-- Share -->
+                    <div class="flex items-center gap-2.5 px-1.5 py-1 rounded-lg hover:bg-foreground/5 transition-colors">
+                        <SharePopover :on-scene-restore="(id: string) => switchScene(id)" />
+                        <div class="flex-1 min-w-0">
+                            <span class="instrument-serif text-sm text-foreground">Share</span>
+                            <p class="instrument-serif text-[11px] text-muted-foreground leading-tight">Copy link or load shared state</p>
+                        </div>
+                    </div>
+
+                    <!-- Dark mode -->
+                    <div class="flex items-center gap-2.5 px-1.5 py-1 rounded-lg hover:bg-foreground/5 transition-colors">
+                        <DarkModeToggle
+                            title="Toggle dark mode"
+                            class="aspect-square w-5"
+                        />
+                        <span class="instrument-serif text-sm text-foreground">Dark mode</span>
+                    </div>
+
+                    <hr class="border-border/40 my-0.5" />
+
+                    <!-- ppmycota logo -->
+                    <div class="flex items-center gap-2.5 px-1.5 py-1">
+                        <div class="ppmycota-logo-sm w-5 h-5 shrink-0"></div>
+                        <div class="flex-1 min-w-0">
+                            <span class="instrument-serif text-sm text-[hsl(var(--ppmycota-primary))]">ppmycota</span>
+                            <p class="instrument-serif text-[11px] text-muted-foreground leading-tight">&#x1F642;&#x200D;&#x2194;&#xFE0F; &#x1F331; &#x1F344;&#x200D;&#x1F7EB;</p>
+                            <a href="https://ppmycota.com" target="_blank" rel="noopener noreferrer" class="instrument-serif text-[10px] text-muted-foreground hover:text-foreground hover:underline transition-colors">ppmycota.com</a>
+                        </div>
+                    </div>
+
+                    <!-- @mbabb -->
+                    <div class="flex items-center gap-2.5 px-1.5 py-1">
+                        <Avatar class="w-7 h-7">
+                            <AvatarImage
+                                src="https://avatars.githubusercontent.com/u/2848617?v=4"
+                            ></AvatarImage>
+                        </Avatar>
+                        <div class="flex-1 min-w-0">
+                            <a href="https://github.com/mkbabb" target="_blank" rel="noopener noreferrer" class="font-mono text-xs font-semibold text-foreground hover:underline">@mbabb</a>
+                            <p class="instrument-serif text-[11px] text-muted-foreground leading-tight">CSS keyframe animation engine</p>
+                        </div>
+                    </div>
+
+                    <hr class="border-border/40 my-0.5" />
+
+                    <a href="https://github.com/mkbabb/keyframes.js" target="_blank" rel="noopener noreferrer" class="block text-xs text-muted-foreground hover:text-foreground hover:underline instrument-serif px-1.5 py-0.5 transition-colors">View on GitHub</a>
+                </div>
+            </DockPopover>
+        </template>
+    </TopDock>
 
     <EditorShell
         :animation-group="currentAnimationGroup"
@@ -9,61 +75,6 @@
         @play-state-change="onPlayStateChange"
         @start-state-change="(v: boolean) => { if (sceneRef) sceneRef.isStarted = v; }"
     >
-        <template #header-right>
-            <component :is="sceneHeaderLeft" v-if="sceneHeaderLeft" />
-            <TooltipProvider :delay-duration="300">
-                <Tooltip>
-                    <TooltipTrigger as-child>
-                        <span class="inline-flex">
-                            <SharePopover :on-scene-restore="(id: string) => switchScene(id)" />
-                        </span>
-                    </TooltipTrigger>
-                    <TooltipContent class="instrument-serif text-base">Share or load animation state</TooltipContent>
-                </Tooltip>
-            </TooltipProvider>
-            <DarkModeToggle
-                title="Toggle dark mode"
-                class="aspect-square w-8 hover:scale-105"
-            />
-        </template>
-
-        <template #header-anchor="{ pinned, toggled }">
-            <HoverCard
-                v-model:open="hoverCardOpen"
-                :open-delay="300"
-                :close-delay="200"
-            >
-                <HoverCardTrigger>
-                    <Button
-                        :class="[
-                            'm-0 cursor-pointer p-0 text-xs lg:text-sm transition-all duration-200 font-mono font-normal',
-                            toggled
-                                ? 'underline underline-offset-4 text-foreground decoration-2'
-                                : pinned
-                                    ? 'underline underline-offset-4 text-foreground'
-                                    : 'no-underline',
-                        ]"
-                        variant="link"
-                    >@mbabb</Button>
-                </HoverCardTrigger>
-                <HoverCardContent class="z-[100] p-4 min-w-[17rem] instrument-serif">
-                    <div class="flex items-center gap-3">
-                        <Avatar>
-                            <AvatarImage
-                                src="https://avatars.githubusercontent.com/u/2848617?v=4"
-                            ></AvatarImage>
-                        </Avatar>
-                        <div class="flex-1 min-w-0">
-                            <a href="https://github.com/mkbabb" target="_blank" rel="noopener noreferrer" class="font-mono text-sm font-semibold text-foreground hover:underline">@mbabb</a>
-                            <p class="mt-0.5 text-xs italic text-muted-foreground">CSS keyframe animation engine</p>
-                        </div>
-                    </div>
-                    <hr class="my-2 border-border/50" />
-                    <a href="https://github.com/mkbabb/keyframes.js" target="_blank" rel="noopener noreferrer" class="block text-sm text-foreground hover:underline">View project on GitHub &#x1F389;</a>
-                </HoverCardContent>
-            </HoverCard>
-        </template>
-
         <template #start-screen>
             <EditorStartScreen
                 title="Select an animation"
@@ -116,15 +127,13 @@
 </template>
 
 <script setup lang="ts">
-import { markRaw, nextTick, ref, shallowRef, watch } from "vue";
+import { computed, markRaw, nextTick, ref, shallowRef, watch } from "vue";
 
 import { EditorShell, EditorStartScreen } from "@components/custom/editor-shell";
 import { SharePopover } from "@components/custom/editor-shell";
 import { DarkModeToggle } from "@components/custom/dark-mode-toggle";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@components/ui/tooltip";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@components/ui/hover-card";
 import { Avatar, AvatarImage } from "@components/ui/avatar";
-import { Button } from "@components/ui/button";
+import { TopDock, DockPopover } from "@components/custom/dock";
 
 import { AnimationGroup } from "@src/animation/group";
 import { getStoredAnimationGroupControlOptions, setActiveScene, saveScenePlaybackState, getScenePlaybackState, clearScenePlaybackState, initFromHash } from "@components/custom/animation-controls/animationStores";
@@ -134,9 +143,8 @@ import type { ScenePlaybackState } from "@components/custom/animation-controls/a
 initFromHash();
 
 import CubeScene from "./scenes/CubeScene.vue";
-import SceneNav from "./SceneNav.vue";
 import { useSceneManager } from "./useSceneManager";
-import { HOME_SCENE_ID } from "./scenes";
+import { scenes, sceneMap, HOME_SCENE_ID } from "./scenes";
 
 const { currentSceneId, currentScene, isHome, switchScene: rawSwitchScene } = useSceneManager();
 
@@ -151,12 +159,13 @@ const sceneRef = shallowRef<any>(null);
 // (double-mount) on initial page load that causes visual clipping.
 const currentAnimationGroup = shallowRef<AnimationGroup<any>>(markRaw(new AnimationGroup()));
 const currentSuperKey = shallowRef<string>(currentScene.value.superKey);
-const hoverCardOpen = ref(false);
 const autoPlayNext = ref(false);
 
-// Explicit reactive ref for scene-provided slot components.
-// shallowRef on sceneRef doesn't track nested property access in templates.
-const sceneHeaderLeft = shallowRef<any>(null);
+const currentLabel = computed(
+    () => sceneMap.get(currentSceneId.value)?.label ?? "Home",
+);
+
+const storedControls = computed(() => getStoredAnimationGroupControlOptions(currentSuperKey.value));
 
 function onPlayStateChange(playing: boolean) {
     // If play is pressed while on the home screen, switch to cube and auto-play
@@ -258,7 +267,6 @@ function switchScene(id: string) {
         currentSuperKey.value = "__home__";
         currentAnimationGroup.value = markRaw(new AnimationGroup());
         sceneRef.value = null;
-        sceneHeaderLeft.value = null;
         return;
     }
 
@@ -293,7 +301,6 @@ watch(
     (group) => {
         if (!group) return;
         const superKey = sceneRef.value!.superKey;
-        sceneHeaderLeft.value = sceneRef.value?.headerLeft ?? null;
 
         // Detect the "stable" fire: when superKey hasn't changed, this is
         // the second watcher fire after ACG's key-triggered remount cycle.
@@ -310,6 +317,7 @@ watch(
             const names = Object.keys(group.animations);
             if (names.length > 0) {
                 controls.selectedAnimation = names[0]!;
+                controls.isControlsPanelOpen = window.innerWidth >= 1024;
             }
         }
 
@@ -341,7 +349,7 @@ watch(
 <style>
 .scene-enter-active,
 .scene-leave-active {
-    transition: opacity 0.15s ease-out;
+    transition: opacity var(--duration-fast) ease-out;
 }
 .scene-enter-from,
 .scene-leave-to {

@@ -2,6 +2,7 @@
     <Card class="grid gap-0 w-full dark:border-none shadow-none border-none p-0">
         <CardHeader class="grid gap-0 p-0 pb-1">
             <CardTitle class="instrument-serif">cubic-bézier</CardTitle>
+            <p v-if="editingCurveName" class="fira-code text-xs text-muted-foreground ml-1 mb-0.5">editing: {{ editingCurveName }}</p>
             <div
                 class="w-full whitespace-pre h-6 m-0 p-0 ml-1 text-xs flex items-center italic justify-items-center gap-2 fira-code"
             >
@@ -142,8 +143,9 @@ import CopyButton from "@components/custom/CopyButton.vue";
 import { getStoredAnimationOptions } from "../animationStores";
 import type { TimingFunction } from "@src/animation/constants";
 
-const { animation } = defineProps<{
+const { animation, editingCurveName } = defineProps<{
     animation: Animation<any>;
+    editingCurveName?: string;
 }>();
 
 const storedAnimationOptions = getStoredAnimationOptions(animation);
@@ -306,7 +308,7 @@ onMounted(() => {
 <style scoped>
 .bezier-curve {
     width: 100%;
-    max-height: 200px;
+    max-height: 280px;
     margin: 0;
 }
 
@@ -345,7 +347,7 @@ onMounted(() => {
 
 .control-point {
     r: 0.04;
-    transition: r 0.15s ease, opacity 0.15s ease;
+    transition: r var(--duration-fast) var(--ease-standard), opacity var(--duration-fast) var(--ease-standard);
     cursor: move;
 }
 

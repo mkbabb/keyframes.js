@@ -8,21 +8,6 @@
             class="grid-background pointer-events-none fixed inset-0 h-dvh w-dvw"
         ></div>
 
-        <!-- Mobile controls toggle — fixed top-left, independent of HeaderRibbon -->
-        <div
-            v-if="storedControls.selectedAnimation"
-            class="fixed top-0 left-0 z-40 px-4 pt-4 pb-2 lg:hidden"
-        >
-            <button
-                @click="storedControls.isControlsPanelOpen = !storedControls.isControlsPanelOpen"
-                class="p-1.5 rounded-lg cursor-pointer transition-colors"
-                :class="storedControls.isControlsPanelOpen ? 'text-foreground' : 'text-muted-foreground'"
-            >
-                <Minus v-if="storedControls.isControlsPanelOpen" class="w-5 h-5" />
-                <PanelLeft v-else class="w-5 h-5" />
-            </button>
-        </div>
-
         <HeaderRibbon ref="headerRibbonRef" position="right">
             <template #items>
                 <slot name="header-left"></slot>
@@ -78,8 +63,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, useTemplateRef } from "vue";
-import { Minus, PanelLeft } from "lucide-vue-next";
+import { onMounted, ref, useTemplateRef } from "vue";
+
 import { initIOSPlatformClass } from "@utils/iosTextEntry";
 import { HeaderRibbon } from "@components/custom/header-ribbon";
 import SharePopover from "./SharePopover.vue";
@@ -87,7 +72,7 @@ import EditorStartScreen from "./EditorStartScreen.vue";
 import KeyboardShortcutsModal from "@components/custom/KeyboardShortcutsModal.vue";
 import { DarkModeToggle } from "@components/custom/dark-mode-toggle";
 import { AnimationControlsGroup } from "@components/custom/animation-controls";
-import { getStoredAnimationGroupControlOptions } from "@components/custom/animation-controls/animationStores";
+
 import { registerShortcut } from "@composables/useKeyboardShortcuts";
 import type { AnimationGroup } from "@src/animation/group";
 
@@ -116,8 +101,6 @@ const emit = defineEmits<{
     (e: "playStateChange", playing: boolean): void;
     (e: "startStateChange", started: boolean): void;
 }>();
-
-const storedControls = computed(() => getStoredAnimationGroupControlOptions(props.superKey));
 
 const headerRibbonRef = ref<InstanceType<typeof HeaderRibbon> | null>(null);
 

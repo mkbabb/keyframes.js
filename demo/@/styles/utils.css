@@ -4,6 +4,79 @@
     --ppmycota-primary: 248, 88%, 71%;
 }
 
+/* ── Glassmorphism & dock component utilities ── */
+@layer components {
+    .glass {
+        background: var(--glass-bg);
+        backdrop-filter: var(--glass-blur);
+        -webkit-backdrop-filter: var(--glass-blur);
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--glass-shadow);
+    }
+
+    .glass-elevated {
+        background: var(--glass-bg-heavy);
+        backdrop-filter: var(--glass-blur-heavy);
+        -webkit-backdrop-filter: var(--glass-blur-heavy);
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--glass-shadow-elevated);
+    }
+
+    .dock-icon-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: var(--radius-pill);
+        border: none;
+        background: transparent;
+        color: hsl(var(--foreground) / 0.7);
+        cursor: pointer;
+        transition: all var(--duration-fast) var(--ease-standard);
+        flex-shrink: 0;
+        padding: 0;
+    }
+
+    .dock-icon-btn:hover:not(:disabled) {
+        background: hsl(var(--foreground) / 0.08);
+        color: hsl(var(--foreground));
+        transform: scale(1.1);
+    }
+
+    .dock-icon-btn:active:not(:disabled) {
+        transform: scale(0.92);
+    }
+
+    .dock-icon-btn:focus-visible {
+        box-shadow: 0 0 0 2px hsl(var(--ring) / 0.4);
+        outline: none;
+    }
+
+    .dock-icon-btn:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+    }
+
+    .dock-icon-btn.is-active,
+    .dock-icon-btn.active {
+        background: hsl(var(--foreground) / 0.08);
+        color: hsl(var(--foreground));
+    }
+
+    .dock-separator {
+        width: 1px;
+        height: 1.25rem;
+        margin: 0 0.25rem;
+        background: hsl(var(--foreground) / 0.15);
+        flex-shrink: 0;
+    }
+
+    .dock-spacer {
+        flex: 1;
+    }
+}
+
 .preserve-3d {
     transform-style: preserve-3d;
 }
@@ -220,6 +293,8 @@
 .ppmycota-logo-sm {
     background-image: url("@assets/ppmycota-logo-3.svg") !important;
     background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
 
     filter: invert(55%) sepia(80%) saturate(1496%) hue-rotate(220deg) brightness(95%)
         contrast(103%);

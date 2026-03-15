@@ -9,7 +9,7 @@
                 ]"
             />
         </PopoverTrigger>
-        <PopoverContent class="w-72 p-2" align="end">
+        <PopoverContent class="w-72 p-2" align="start" :side-offset="8">
             <div class="flex items-center gap-1.5">
                 <Input
                     v-model="loadHashInput"

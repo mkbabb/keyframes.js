@@ -3,7 +3,7 @@
             class="col-span-2 w-full grid justify-items-center"
         >
             <button
-                class="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground cursor-pointer transition-colors mb-2 fira-code justify-self-start"
+                class="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground cursor-pointer transition-colors mb-2 instrument-serif justify-self-start"
                 @click="emit('exitDetailPanel')"
             >
                 <ArrowLeft class="w-3.5 h-3.5" />
@@ -15,6 +15,7 @@
             >
                 <CubicBezierControls
                     :animation="animation"
+                    :editing-curve-name="editingCurveName"
                     @update-timing-function="() => emit('updateTimingFunction', 'cubic-bezier')"
                     class="w-full"
                 ></CubicBezierControls>
@@ -90,10 +91,11 @@ import {
 import { CubicBezierControls } from "@components/custom/animation-controls";
 import { ArrowLeft } from "lucide-vue-next";
 
-const { animation, storedAnimationOptions, timingFunctionsAnd } = defineProps<{
+const { animation, storedAnimationOptions, timingFunctionsAnd, editingCurveName } = defineProps<{
     animation: Animation<any>;
     storedAnimationOptions: StoredAnimationOptions;
     timingFunctionsAnd: Record<string, any>;
+    editingCurveName?: string;
 }>();
 
 const emit = defineEmits<{

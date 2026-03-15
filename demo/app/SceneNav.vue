@@ -7,9 +7,8 @@
         <div
             :class="[
                 'scene-nav-shell pointer-events-auto relative flex items-center',
-                'rounded-xl border border-white/20 shadow-lg',
-                'bg-white/60 dark:bg-black/40 backdrop-blur-xl backdrop-saturate-150',
-                'transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]',
+                'rounded-xl glass',
+                'transition-all duration-300 ease-[var(--ease-spring)]',
                 isExpanded
                     ? 'px-2 py-1.5 gap-1'
                     : 'px-3 py-1 gap-1.5 h-6 cursor-pointer',
@@ -120,8 +119,8 @@ function onSelect(id: string) {
 <style scoped>
 .scene-nav-shell {
     transition:
-        padding 0.5s cubic-bezier(0.4, 1.1, 0.6, 1),
-        gap 0.5s cubic-bezier(0.4, 1.1, 0.6, 1),
+        padding 0.5s var(--ease-spring),
+        gap 0.5s var(--ease-spring),
         box-shadow 0.3s ease;
 }
 

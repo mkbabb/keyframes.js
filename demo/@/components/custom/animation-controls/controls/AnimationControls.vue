@@ -9,11 +9,11 @@
             @update:model-value="selectControl"
         >
             <!-- Tabs header -->
-            <div ref="tabsHeaderEl" class="relative w-full flex items-center flex-shrink-0 bg-background/40 backdrop-blur-xl backdrop-saturate-150 border border-border/30 rounded-lg px-1 py-0.5 overflow-hidden">
+            <div ref="tabsHeaderEl" class="relative w-fit flex items-center justify-center flex-shrink-0 glass rounded-xl px-1 py-0.5 overflow-hidden">
                 <TabsList
                     ref="tabsListRef"
                     :class="[
-                        'relative flex items-center justify-start bg-transparent p-0 gap-0 flex-1 min-w-0 overflow-x-auto h-auto rounded-none scrollbar-hidden',
+                        'relative flex items-center justify-center bg-transparent p-0 gap-0 w-fit max-w-full min-w-0 overflow-x-auto h-auto rounded-none scrollbar-hidden',
                         overflowClass,
                     ]"
                 >
@@ -22,14 +22,6 @@
                     <TabsTrigger value="timeline" :class="tabClasses">Timeline</TabsTrigger>
                     <slot name="tabs-trigger"></slot>
                 </TabsList>
-                <button
-                    v-if="showMinimize"
-                    @click="emit('minimize')"
-                    class="hidden lg:flex shrink-0 ml-1 p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent cursor-pointer transition-colors"
-                    title="Minimize controls"
-                >
-                    <Minus class="w-3.5 h-3.5" />
-                </button>
             </div>
 
             <div ref="tabsContentEl" class="flex-1 min-h-0 overflow-y-auto flex flex-col pb-1">
@@ -88,7 +80,7 @@
                     <div
                         v-if="isTimelineVisible"
                         :key="storedControls.selectedControl"
-                        class="animate-in fade-in slide-in-from-right-2 duration-150"
+                        class="animate-in fade-in slide-in-from-right-2 duration-[var(--duration-fast)]"
                     >
                         <KeyframeTimeline
                             ref="timelineRef"
@@ -123,7 +115,7 @@ import {
     useTemplateRef,
     watch,
 } from "vue";
-import { ChevronDown, Minus, Minimize2 } from "lucide-vue-next";
+import { ChevronDown, Minimize2 } from "lucide-vue-next";
 import { Button } from "@components/ui/button";
 
 const KeyframesStringControls = defineAsyncComponent(() => import("../keyframes/KeyframesStringControls.vue"));
@@ -131,12 +123,11 @@ const KeyframeTimeline = defineAsyncComponent(() => import("../timeline/Keyframe
 import AnimationControlsControls from "./AnimationControlsControls.vue";
 import { getStoredAnimationGroupControlOptions } from "../animationStores";
 
-const { animation, isGrouped, layerConfig, active, showMinimize } = defineProps<{
+const { animation, isGrouped, layerConfig, active } = defineProps<{
     animation: Animation<any>;
     isGrouped?: boolean;
     layerConfig?: AnimationLayerConfig;
     active?: boolean;
-    showMinimize?: boolean;
 }>();
 
 const storedControls = getStoredAnimationGroupControlOptions(animation);
@@ -159,7 +150,6 @@ const emit = defineEmits<{
     (e: "layerConfigUpdate", val: Partial<AnimationLayerConfig>): void;
     (e: "scrubStart"): void;
     (e: "scrubEnd"): void;
-    (e: "minimize"): void;
 }>();
 
 const keyframesControlsRef = ref<InstanceType<typeof KeyframesStringControls> | null>(null);
@@ -173,13 +163,11 @@ const isTimelineVisible = computed(() =>
 );
 
 const tabClasses = [
-    "shrink-0 instrument-serif px-3 py-1.5 text-lg bg-transparent rounded-none",
-    "transition-colors duration-150",
+    "shrink-0 instrument-serif px-3 py-1.5 text-lg bg-transparent rounded-lg",
+    "transition-all duration-[var(--duration-fast)]",
     "data-[state=inactive]:text-muted-foreground",
-    "data-[state=inactive]:hover:text-foreground",
-    "data-[state=active]:text-foreground data-[state=active]:font-semibold",
-    "border-b-2 border-transparent",
-    "data-[state=active]:border-foreground",
+    "data-[state=inactive]:hover:text-foreground data-[state=inactive]:hover:bg-foreground/5",
+    "data-[state=active]:text-foreground data-[state=active]:font-semibold data-[state=active]:bg-foreground/8",
 ].join(" ");
 
 // --- Overflow detection (left + right) ---
