@@ -5,7 +5,7 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>keyframes.js</title>
-        <link rel="icon" href="./assets/cube-CrhWuGpy.png" />
+        <link rel="icon" href="./assets/cube-icon-sm-CqZgfax4.png" />
 
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -18,11 +18,23 @@
             href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap"
         />
 
-      <script type="module" crossorigin src="./assets/index-D_UXhEW1.js"></script>
-      <link rel="modulepreload" crossorigin href="./assets/vendor-highlight-C8scQmU1.js">
+        <!-- Sync dark mode class before first paint to prevent FOUC on Safari -->
+        <script>
+            (function() {
+                var s = localStorage.getItem('vueuse-color-scheme');
+                var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                var dark = s === 'dark' || (s !== 'light' && (s === 'auto' || s == null) && prefersDark);
+                if (dark) {
+                    document.documentElement.classList.add('dark');
+                    document.documentElement.style.colorScheme = 'dark';
+                }
+            })();
+        </script>
+      <script type="module" crossorigin src="./assets/index-S1HgMS13.js"></script>
+      <link rel="modulepreload" crossorigin href="./assets/vendor-highlight-Dj46zkyv.js">
       <link rel="modulepreload" crossorigin href="./assets/vendor-monaco-BS62pb6i.js">
       <link rel="stylesheet" crossorigin href="./assets/vendor-monaco-bo9aZu7E.css">
-      <link rel="stylesheet" crossorigin href="./assets/index-CgYhYDXy.css">
+      <link rel="stylesheet" crossorigin href="./assets/index-Psnr7TNS.css">
     </head>
 
     <body>
