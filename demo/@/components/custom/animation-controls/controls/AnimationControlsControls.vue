@@ -2,14 +2,11 @@
     <div class="grid items-center gap-4">
         <Card class="w-full overflow-visible transition-shadow duration-300 controls-card">
             <CardContent class="relative grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 px-4 py-3">
-                <!-- Sliding panel container -->
-                <div class="relative w-full overflow-clip p-1 -m-1 col-span-2 grid grid-cols-[subgrid]">
-                    <Transition name="panel-fade">
+                <!-- Sliding panel container — both panels always rendered, stacked in same grid cell -->
+                <div class="panel-stack col-span-2 grid grid-cols-[subgrid]">
                     <!-- Main controls panel -->
                         <div
-                            v-if="!showDetailPanel"
-                            key="main"
-                            class="col-span-2 grid grid-cols-[subgrid] items-center gap-x-3 gap-y-2 w-full"
+                            :class="['panel-layer col-span-2 grid grid-cols-[subgrid] items-center gap-x-3 gap-y-2 w-full', showDetailPanel ? 'panel-inactive' : 'panel-active']"
                         >
                             <LabeledInput
                                 :model-value="storedAnimationOptions.animationOptions.duration"
@@ -26,7 +23,7 @@
                             />
 
                             <IconTooltip text="Repeat count (number or 'infinite')">
-                                <label class="instrument-serif text-base text-muted-foreground cursor-help">iterations</label>
+                                <label class="instrument-serif text-lg text-muted-foreground cursor-help">iterations</label>
                             </IconTooltip>
                             <Input
                                 :class="
@@ -72,9 +69,16 @@
                                 @update:open="(v) => setOpen('fillMode', v)"
                             />
 
-                            <IconTooltip text="Timing function curve">
-                                <label class="instrument-serif text-base text-muted-foreground cursor-help">easing</label>
-                            </IconTooltip>
+                            <div class="flex items-center gap-1.5">
+                                <IconTooltip text="Timing function curve">
+                                    <label :class="['instrument-serif text-lg text-muted-foreground cursor-help', isDetailEasing ? 'gold-shimmer' : '']">easing</label>
+                                </IconTooltip>
+                                <IconTooltip text="Edit easing curve">
+                                    <button class="easing-edit-btn cursor-pointer p-0.5 hover:scale-110 transition-transform duration-[var(--duration-fast)]" @click.stop="onEditIconClick(storedAnimationOptions.animationOptions.timingFunction as string)">
+                                        <Pencil class="w-3.5 h-3.5" />
+                                    </button>
+                                </IconTooltip>
+                            </div>
                             <ResponsiveSelect
                                 :model-value="
                                     storedAnimationOptions.animationOptions.timingFunction as any
@@ -94,10 +98,13 @@
                                 "
                             >
                                 <template #trigger="{ value }">
-                                    <span class="items-center gap-1.5 min-w-0" style="display: flex; overflow: visible; -webkit-line-clamp: unset;">
+                                    <span
+                                        class="items-center gap-1.5 min-w-0 cursor-pointer"
+                                        style="display: flex; overflow: visible; -webkit-line-clamp: unset;"
+                                    >
                                         <svg viewBox="-0.05 -0.3 1.1 1.6" class="w-5 h-4 shrink-0">
                                             <path
-                                                :d="getCurvePath(value as string, timingFunctionsAnd)"
+                                                :d="activeCurvePath"
                                                 fill="none"
                                                 class="stroke-[hsl(var(--ppmycota-primary,var(--foreground)))]"
                                                 stroke-width="0.15"
@@ -105,7 +112,7 @@
                                                 stroke-linejoin="round"
                                             />
                                         </svg>
-                                        <span :class="['fira-code truncate', DETAIL_TIMING_FUNCTIONS.has(value as string) ? 'gold-shimmer' : '']" :title="value as string">{{ value }}</span>
+                                        <span :class="['fira-code truncate', isDetailEasing ? 'gold-shimmer' : '']" :title="value as string">{{ value }}</span>
                                     </span>
                                 </template>
                                 <template #item="{ item }">
@@ -134,19 +141,18 @@
 
                     <!-- Detail panel (cubic-bezier / steps) -->
                     <TimingFunctionPanel
-                        v-else
-                        key="detail"
+                        :class="['panel-layer', showDetailPanel ? 'panel-active' : 'panel-inactive']"
                         :animation="animation"
                         :stored-animation-options="storedAnimationOptions"
                         :timing-functions-and="timingFunctionsAnd"
+                        :editing-curve-name="convertedFromName ?? undefined"
                         @exit-detail-panel="exitDetailPanel"
                         @update-timing-function="updateTimingFunctionFromName"
                     />
-                    </Transition>
                 </div>
 
                 <template v-if="!showDetailPanel">
-                <Separator class="my-2 col-span-2" />
+                <Separator class="my-1 col-span-2" />
 
                 <!-- Advanced (includes layer settings when grouped) -->
                 <div
@@ -157,13 +163,13 @@
                     @keydown.space.prevent="advancedOpen = !advancedOpen"
                     class="col-span-2 grid grid-cols-[subgrid] gap-x-3 items-center w-full py-1.5 cursor-pointer hover:text-foreground text-muted-foreground transition-colors"
                 >
-                    <span class="instrument-serif text-base">advanced</span>
+                    <span class="instrument-serif text-lg">advanced</span>
                     <div class="flex items-center justify-end px-3">
-                        <ChevronDown class="w-4 h-4 opacity-50 transition-transform duration-200" :class="advancedOpen ? 'rotate-180' : ''" />
+                        <ChevronDown class="w-4 h-4 opacity-50 transition-transform duration-[var(--duration-normal)]" :class="advancedOpen ? 'rotate-180' : ''" />
                     </div>
                 </div>
                 <div
-                    class="col-span-2 grid grid-cols-[subgrid] transition-[grid-template-rows] duration-350 ease-[cubic-bezier(0.4,0,0.2,1)]"
+                    class="col-span-2 grid grid-cols-[subgrid] transition-[grid-template-rows] duration-[var(--duration-slow)] ease-[var(--ease-standard)]"
                     :class="advancedOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'"
                 >
                     <div class="col-span-2 grid grid-cols-[subgrid] items-center gap-x-3 gap-y-2 overflow-hidden" :class="advancedOpen ? 'pb-2' : ''">
@@ -219,7 +225,7 @@ import { Separator } from "@components/ui/separator";
 
 import { camelCaseToHyphen } from "@src/utils";
 
-import { ChevronDown } from "lucide-vue-next";
+import { ChevronDown, Pencil } from "lucide-vue-next";
 import TimingFunctionPanel from "./TimingFunctionPanel.vue";
 import PlaybackRibbon from "./PlaybackRibbon.vue";
 import LayerConfigPanel from "./LayerConfigPanel.vue";
@@ -244,7 +250,7 @@ import type {
     TimingFunctionNames,
 } from "@src/animation/constants";
 import { useExclusiveSelect } from "@composables/useExclusiveSelect";
-import { getCurvePath } from "./timingCurveUtils";
+import { getCurvePath, generateCurveSVGPath, generateStepSVGPath } from "./timingCurveUtils";
 import {
     DIRECTION_DESCRIPTIONS,
     FILL_MODE_DESCRIPTIONS,
@@ -261,6 +267,42 @@ timingFunctionsAnd = Object.fromEntries(
 
 const DETAIL_TIMING_FUNCTIONS = new Set(["cubic-bezier", "steps"]);
 
+// Named easing → cubic-bezier control point mappings
+const NAMED_EASING_BEZIER: Record<string, [number, number, number, number]> = {
+    "ease": [0.25, 0.1, 0.25, 1.0],
+    "ease-in": [0.42, 0, 1.0, 1.0],
+    "ease-out": [0, 0, 0.58, 1.0],
+    "ease-in-out": [0.42, 0, 0.58, 1.0],
+    "ease-in-sine": [0.47, 0, 0.745, 0.715],
+    "ease-out-sine": [0.39, 0.575, 0.565, 1],
+    "ease-in-out-sine": [0.445, 0.05, 0.55, 0.95],
+    "ease-in-cubic": [0.55, 0.055, 0.675, 0.19],
+    "ease-out-cubic": [0.215, 0.61, 0.355, 1],
+    "ease-in-out-cubic": [0.645, 0.045, 0.355, 1],
+    "ease-in-quad": [0.55, 0.085, 0.68, 0.53],
+    "ease-out-quad": [0.25, 0.46, 0.45, 0.94],
+    "ease-in-out-quad": [0.455, 0.03, 0.515, 0.955],
+    "ease-in-quart": [0.895, 0.03, 0.685, 0.22],
+    "ease-out-quart": [0.165, 0.84, 0.44, 1],
+    "ease-in-out-quart": [0.77, 0, 0.175, 1],
+    "ease-in-quint": [0.755, 0.05, 0.855, 0.06],
+    "ease-out-quint": [0.23, 1, 0.32, 1],
+    "ease-in-out-quint": [0.86, 0, 0.07, 1],
+    "ease-in-expo": [0.95, 0.05, 0.795, 0.035],
+    "ease-out-expo": [0.19, 1, 0.22, 1],
+    "ease-in-out-expo": [1, 0, 0, 1],
+    "ease-in-circ": [0.6, 0.04, 0.98, 0.335],
+    "ease-out-circ": [0.075, 0.82, 0.165, 1],
+    "ease-in-out-circ": [0.785, 0.135, 0.15, 0.86],
+    "ease-in-back": [0.6, -0.28, 0.735, 0.045],
+    "ease-out-back": [0.175, 0.885, 0.32, 1.275],
+    "ease-in-out-back": [0.68, -0.55, 0.265, 1.55],
+    "linear": [0, 0, 1, 1],
+};
+
+/** The name of the easing we auto-converted FROM (for subtitle display) */
+const convertedFromName = ref<string | null>(null);
+
 const easingItems = Object.keys(timingFunctionsAnd).map((key) => ({
     value: key,
 }));
@@ -273,6 +315,20 @@ const { animation, isGrouped, layerConfig, active } = defineProps<{
 }>();
 
 const storedAnimationOptions = getStoredAnimationOptions(animation);
+
+/** Reactive SVG path for the current timing function (including edited cubic-bezier/steps). */
+const activeCurvePath = computed(() => {
+    const name = storedAnimationOptions.animationOptions.timingFunction as string;
+    if (name === "cubic-bezier") {
+        const [x1, y1, x2, y2] = storedAnimationOptions.cubicBezierOptions.controlPoints;
+        return generateCurveSVGPath(CSSCubicBezier(x1, y1, x2, y2));
+    }
+    if (name === "steps") {
+        const { steps } = storedAnimationOptions.stepOptions;
+        return generateStepSVGPath(steps);
+    }
+    return getCurvePath(name, timingFunctionsAnd);
+});
 
 const advancedOpen = ref(false);
 
@@ -293,34 +349,71 @@ const toggleReverse = () => {
 // the active timing function.
 const detailPanelDismissed = ref(true);
 
+// Flag: only auto-open the editor when the edit icon was used, not from dropdown selection
+const openEditorOnChange = ref(false);
+
+const isDetailEasing = computed(
+    () => DETAIL_TIMING_FUNCTIONS.has(
+        storedAnimationOptions.animationOptions.timingFunction as string,
+    ),
+);
+
 const showDetailPanel = computed(
     () => DETAIL_TIMING_FUNCTIONS.has(
         storedAnimationOptions.animationOptions.timingFunction as string,
     ) && !detailPanelDismissed.value,
 );
 
-// Re-open the detail panel when user selects a detail timing function
-// (watches value change) or re-selects the same one (watches dropdown close)
+// Re-open the detail panel only when triggered via edit icon
 watch(
     () => storedAnimationOptions.animationOptions.timingFunction as string,
     () => {
-        detailPanelDismissed.value = false;
-    },
-);
-watch(
-    () => isOpen('easing'),
-    (nowOpen, wasOpen) => {
-        if (wasOpen && !nowOpen) {
-            const tf = storedAnimationOptions.animationOptions.timingFunction as string;
-            if (DETAIL_TIMING_FUNCTIONS.has(tf)) {
-                detailPanelDismissed.value = false;
-            }
+        if (openEditorOnChange.value) {
+            detailPanelDismissed.value = false;
+            openEditorOnChange.value = false;
         }
     },
 );
 
+/** Called from the edit icon — opens the curve editor */
+const onEditIconClick = (currentEasing: string) => {
+    openEditorOnChange.value = true;
+    onEasingLabelClick(currentEasing);
+};
+
+const onEasingLabelClick = (currentEasing: string) => {
+    if (currentEasing === "steps") {
+        // Open steps editor as-is
+        storedAnimationOptions.animationOptions.timingFunction = "steps" as any;
+        detailPanelDismissed.value = false;
+        return;
+    }
+
+    if (currentEasing === "cubic-bezier") {
+        // Already cubic-bezier — just open the editor
+        detailPanelDismissed.value = false;
+        convertedFromName.value = null;
+        return;
+    }
+
+    // Named easing → auto-convert to cubic-bezier
+    const bezierPoints = NAMED_EASING_BEZIER[currentEasing];
+    if (bezierPoints) {
+        storedAnimationOptions.cubicBezierOptions.controlPoints = [...bezierPoints];
+        convertedFromName.value = currentEasing;
+    } else {
+        // Fallback: linear approximation
+        storedAnimationOptions.cubicBezierOptions.controlPoints = [0, 0, 1, 1];
+        convertedFromName.value = currentEasing;
+    }
+    storedAnimationOptions.animationOptions.timingFunction = "cubic-bezier" as any;
+    updateTimingFunctionFromName("cubic-bezier");
+    detailPanelDismissed.value = false;
+};
+
 const exitDetailPanel = () => {
     detailPanelDismissed.value = true;
+    convertedFromName.value = null;
 };
 
 const emit = defineEmits<{
@@ -389,21 +482,25 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* Crossfade: entering panel provides height; leaving panel overlays and fades out */
-.panel-fade-enter-active {
-    transition: opacity 0.15s ease;
+/* Grid-stacked panels: both always rendered, active determines height */
+.panel-layer {
+    grid-row: 1;
+    grid-column: 1 / -1;
+    transition: opacity var(--duration-normal) ease;
 }
-.panel-fade-leave-active {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    pointer-events: none;
-    transition: opacity 0.1s ease;
+.panel-layer.panel-active {
+    opacity: 1;
+    pointer-events: auto;
 }
-.panel-fade-enter-from,
-.panel-fade-leave-to {
+.panel-layer.panel-inactive {
     opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    visibility: hidden;
+}
+
+.easing-edit-btn {
+    color: #daa520;
 }
 
 .gold-shimmer {

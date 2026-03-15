@@ -1,6 +1,6 @@
 <template>
     <IconTooltip :text="tooltip">
-        <label class="instrument-serif text-base text-muted-foreground cursor-help">{{ label }}</label>
+        <label class="instrument-serif text-lg text-muted-foreground cursor-help">{{ label }}</label>
     </IconTooltip>
     <Select
         :model-value="modelValue"

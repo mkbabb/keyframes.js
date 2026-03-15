@@ -17,7 +17,7 @@
                 :class="[
                     'h-8 w-full rounded-lg gap-2 instrument-serif text-base cursor-pointer hover:scale-105 active:scale-95 transition-transform',
                     isGrouped && !isAnimStarted
-                        ? 'bg-accent-red/30 text-accent-red border-accent-red/40 hover:bg-accent-red/50'
+                        ? 'bg-accent-red/30 text-accent-red border-accent-red/40 hover:bg-accent-red/50 hover:text-accent-red'
                         : '',
                 ]"
                 variant="outline"
@@ -25,7 +25,7 @@
             >
                 <span>{{ isAnimPlaying ? 'Pause' : 'Play' }}</span>
                 <font-awesome-icon
-                    class="icon w-4 h-4"
+                    :class="['icon w-4 h-4', !isAnimPlaying ? 'pl-px' : '']"
                     :icon="
                         isAnimPlaying
                             ? ['fas', 'pause']
