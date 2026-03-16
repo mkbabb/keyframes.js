@@ -262,18 +262,41 @@ const stopDragging = (event?: PointerEvent) => {
     }
     isDragging.value = false;
     currentPointIndex.value = null;
+    smoothedY = null;
 };
+
+// Rubber-band: inside [0,1] is 1:1, outside decays asymptotically.
+// `k` controls resistance — higher = harder to pull past bounds.
+const RUBBER_K = 0.5;
+const RUBBER_MAX = 2; // absolute clamp
+
+function rubberBand(value: number, lo: number, hi: number): number {
+    if (value >= lo && value <= hi) return value;
+    if (value > hi) {
+        const over = value - hi;
+        return hi + over / (1 + over * RUBBER_K);
+    }
+    const under = lo - value;
+    return lo - under / (1 + under * RUBBER_K);
+}
+
+// Exponential smoothing to dampen rapid back-and-forth movement
+const SMOOTH_FACTOR = 0.35; // 0 = no smoothing, 1 = frozen
+let smoothedY: number | null = null;
 
 const onDrag = (event: PointerEvent) => {
     if (!isDragging.value || currentPointIndex.value === null) return;
 
     const { x, y } = pointerToSVG(event);
 
-    // Clamp x to 0-1 (CSS spec), y to -3..3 (3x the unit square)
     const clampedX = Math.max(0, Math.min(1, x));
-    const clampedY = Math.max(-2, Math.min(2, y));
+    const dampedY = Math.max(-RUBBER_MAX, Math.min(RUBBER_MAX, rubberBand(y, 0, 1)));
 
-    controlPoints.value[currentPointIndex.value] = { x: clampedX, y: clampedY };
+    // Apply exponential smoothing to Y
+    if (smoothedY === null) smoothedY = dampedY;
+    else smoothedY = smoothedY + (dampedY - smoothedY) * (1 - SMOOTH_FACTOR);
+
+    controlPoints.value[currentPointIndex.value] = { x: clampedX, y: smoothedY };
     timingValues.value = [
         controlPoints.value[1].x,
         controlPoints.value[1].y,
