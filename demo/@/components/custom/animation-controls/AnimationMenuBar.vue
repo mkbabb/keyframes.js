@@ -30,7 +30,7 @@
                                 }}</SelectValue>
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectGroup class="dock-select-group">
+                                <SelectGroup class="instrument-serif text-lg">
                                     <template
                                         v-for="name in animationNames"
                                     >

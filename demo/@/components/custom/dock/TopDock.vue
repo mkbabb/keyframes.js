@@ -2,7 +2,6 @@
 import { computed } from "vue";
 import { ChevronDown, Home, PanelLeftClose, PanelLeftOpen, SlidersHorizontal, Braces, Clock, Grid3X3 } from "lucide-vue-next";
 import { GlassDock } from ".";
-import { DockPopover } from ".";
 import {
     Select,
     SelectContent,
@@ -22,7 +21,7 @@ const sceneIcons: Record<string, string> = {
     square: squareIcon,
 };
 
-const CONTROL_TABS: { value: string; label: string; icon: string }[] = [
+const CONTROL_TABS: { value: string; label: string; icon?: string }[] = [
     { value: "controls", label: "Controls", icon: "SlidersHorizontal" },
     { value: "keyframes", label: "Keyframes", icon: "Braces" },
     { value: "timeline", label: "Timeline", icon: "Clock" },
@@ -57,9 +56,6 @@ const emit = defineEmits<{
     (e: "toggleControlsPanel"): void;
     (e: "updateSelectedControl", value: string): void;
 }>();
-
-// Select components rendered in GlassDock's slot auto-inject dockKeepOpen/dockRelease
-// from GlassDock (they're descendants in the component tree). No manual wiring needed.
 </script>
 
 <template>
@@ -83,15 +79,15 @@ const emit = defineEmits<{
                     <!-- Controls tab selector -->
                     <Select
                         v-if="hasSelectedAnimation"
-                        :model-value="selectedControl"
+                        :model-value="selectedControl ?? 'controls'"
                         @update:model-value="(v) => emit('updateSelectedControl', String(v))"
                     >
-                        <SelectTrigger class="dock-select-trigger">
+                        <SelectTrigger class="border-none h-auto p-0 focus:ring-0 bg-transparent instrument-serif text-lg gap-1 w-auto [&>span]:line-clamp-none [&>svg:last-child]:w-3 [&>svg:last-child]:h-3">
                             <component :is="TAB_ICONS[allControlTabs.find(t => t.value === selectedControl)?.icon ?? 'SlidersHorizontal']" class="w-4 h-4 shrink-0 text-muted-foreground" />
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectGroup class="dock-select-group">
+                            <SelectGroup class="instrument-serif text-lg">
                                 <SelectItem v-for="tab in allControlTabs" :key="tab.value" :value="tab.value" hide-indicator>
                                     <span class="flex items-center gap-2">
                                         <component v-if="tab.icon && TAB_ICONS[tab.icon]" :is="TAB_ICONS[tab.icon]" class="w-4 h-4 shrink-0 text-muted-foreground" />
@@ -110,13 +106,13 @@ const emit = defineEmits<{
                         :model-value="currentSceneId"
                         @update:model-value="(id) => emit('switchScene', String(id))"
                     >
-                        <SelectTrigger class="dock-select-trigger">
+                        <SelectTrigger class="border-none h-auto p-0 focus:ring-0 bg-transparent instrument-serif text-lg gap-1 w-auto [&>span]:line-clamp-none [&>svg:last-child]:w-3 [&>svg:last-child]:h-3">
                             <img v-if="sceneIcons[currentSceneId]" :src="sceneIcons[currentSceneId]" class="w-5 h-5 shrink-0 object-contain" />
                             <Home v-else class="w-3.5 h-3.5 text-muted-foreground shrink-0" />
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectGroup class="dock-select-group">
+                            <SelectGroup class="instrument-serif text-lg">
                                 <SelectItem :value="homeSceneId" hide-indicator>
                                     <span class="flex items-center gap-2">
                                         <span :class="['inline-block w-2 h-2 rounded-full shrink-0', currentSceneId === homeSceneId ? 'bg-green-500' : 'bg-gray-400']"></span>
