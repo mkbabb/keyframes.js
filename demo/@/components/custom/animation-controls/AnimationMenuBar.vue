@@ -81,20 +81,14 @@
                 <IconTooltip :text="isPlaying ? 'Pause' : 'Play'">
                     <Button
                         :class="[
-                            'dock-play-btn text-xl text-white cursor-pointer rounded-full',
+                            'dock-play-btn text-xl text-white cursor-pointer rounded-full p-0',
                             'w-10 h-10 shrink-0',
                             isPlaying ? 'rainbow-vivid' : 'rainbow-pastel',
                         ]"
                         @click="emit('togglePlay')"
                     >
-                        <font-awesome-icon
-                            :class="['icon', !isPlaying ? 'pl-px' : '']"
-                            :icon="
-                                isPlaying
-                                    ? ['fas', 'pause']
-                                    : ['fas', 'play']
-                            "
-                        />
+                        <Pause v-if="isPlaying" class="w-5 h-5" />
+                        <Play v-else class="w-5 h-5 pl-0.5" />
                     </Button>
                 </IconTooltip>
 
@@ -119,20 +113,14 @@
                 </span>
                 <Button
                     :class="[
-                        'dock-play-btn text-white cursor-pointer rounded-full',
+                        'dock-play-btn text-white cursor-pointer rounded-full p-0',
                         'w-8 h-8 shrink-0 text-sm',
                         isPlaying ? 'rainbow-vivid' : 'rainbow-pastel',
                     ]"
                     @click.stop="onCollapsedPlayClick()"
                 >
-                    <font-awesome-icon
-                        :class="['icon', !isPlaying ? 'pl-px' : '']"
-                        :icon="
-                            isPlaying
-                                ? ['fas', 'pause']
-                                : ['fas', 'play']
-                        "
-                    />
+                    <Pause v-if="isPlaying" class="w-4 h-4" />
+                    <Play v-else class="w-4 h-4 pl-px" />
                 </Button>
             </template>
         </GlassDock>
@@ -145,6 +133,8 @@ import { useTemplateRef } from "vue";
 import {
     List,
     Minimize2,
+    Pause,
+    Play,
     Trash,
 } from "lucide-vue-next";
 

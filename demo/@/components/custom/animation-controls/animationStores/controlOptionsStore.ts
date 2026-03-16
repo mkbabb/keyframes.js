@@ -1,7 +1,7 @@
 import type { Animation } from "@src/animation";
 import { useStorage } from "@vueuse/core";
 import { ref } from "vue";
-import { checkAndResetExpiredStore, touchTimestamp, getAnimationSuperKey } from "./storeUtils";
+import { checkAndResetExpiredStore, getAnimationSuperKey } from "./storeUtils";
 
 export type StoredAnimationGroupControlOptions = {
     selectedControl: string;
@@ -73,7 +73,6 @@ export const getStoredAnimationGroupControlOptions = (
 
     const animationGroupsControlOptionsStore =
         getAnimationGroupsControlOptionsStore();
-    touchTimestamp(animationGroupsControlOptionsStore);
 
     if (!animationGroupsControlOptionsStore.value[superKey]) {
         animationGroupsControlOptionsStore.value[superKey] = structuredClone(

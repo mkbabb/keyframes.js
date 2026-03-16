@@ -11,30 +11,26 @@
         <link
             rel="stylesheet"
             href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;700&display=swap"
+            media="print"
+            onload="this.media='all'"
         />
         <link
             rel="stylesheet"
             href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap"
+            media="print"
+            onload="this.media='all'"
         />
+        <noscript>
+            <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;700&display=swap" />
+            <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" />
+        </noscript>
 
         <script type="module">
             import { createApp } from "vue";
             import App from "./App.vue";
 
-            import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-            import { library } from "@fortawesome/fontawesome-svg-core";
-
-            import {
-                faRotateRight,
-                faClipboard,
-                faPause,
-                faPlay,
-                faPaintRoller,
-            } from "@fortawesome/free-solid-svg-icons";
-
-            library.add(faRotateRight, faClipboard, faPause, faPlay, faPaintRoller);
             const app = createApp(App);
-            app.component("font-awesome-icon", FontAwesomeIcon).mount("#app");
+            app.mount("#app");
         </script>
     </head>
     <body>

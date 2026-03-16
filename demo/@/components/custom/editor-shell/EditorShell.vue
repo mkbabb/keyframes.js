@@ -71,7 +71,7 @@ import SharePopover from "./SharePopover.vue";
 import EditorStartScreen from "./EditorStartScreen.vue";
 import KeyboardShortcutsModal from "@components/custom/KeyboardShortcutsModal.vue";
 import { DarkModeToggle } from "@components/custom/dark-mode-toggle";
-import { AnimationControlsGroup } from "@components/custom/animation-controls";
+import AnimationControlsGroup from "@components/custom/animation-controls/AnimationControlsGroup.vue";
 
 import { registerShortcut } from "@composables/useKeyboardShortcuts";
 import type { AnimationGroup } from "@src/animation/group";

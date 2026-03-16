@@ -34,7 +34,7 @@
 
 <script setup lang="ts">
 import { List } from "lucide-vue-next";
-import { AnimatedText } from "@components/custom/animation-controls";
+import AnimatedText from "@components/custom/AnimatedText.vue";
 
 withDefaults(
     defineProps<{

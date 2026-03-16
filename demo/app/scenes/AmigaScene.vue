@@ -8,7 +8,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef } from "vue";
+import { computed, onActivated, onBeforeUnmount, onDeactivated, onMounted, ref, useTemplateRef } from "vue";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
@@ -25,6 +25,7 @@ let rafId: number | undefined;
 let controls: OrbitControls | undefined;
 let resizeObserver: ResizeObserver | undefined;
 let scene: THREE.Scene | undefined;
+let camera: THREE.PerspectiveCamera | undefined;
 
 const { animationGroup } = useAmigaAnimations(() => sphereMesh);
 
@@ -32,7 +33,7 @@ onMounted(() => {
     const canvas = canvasEl.value!;
 
     scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(
+    camera = new THREE.PerspectiveCamera(
         75,
         canvas.clientWidth / canvas.clientHeight,
         0.1,
@@ -90,20 +91,39 @@ onMounted(() => {
     });
     ro.observe(canvas);
 
-    function animate() {
-        rafId = requestAnimationFrame(animate);
-        controls!.update();
-        renderer!.render(scene!, camera);
-    }
-
-    animate();
+    startRenderLoop();
 
     resizeObserver = ro;
 });
 
+function startRenderLoop() {
+    if (rafId != null) return;
+    function animate() {
+        rafId = requestAnimationFrame(animate);
+        controls?.update();
+        if (renderer && scene && camera) renderer.render(scene, camera);
+    }
+    animate();
+}
+
+function stopRenderLoop() {
+    if (rafId != null) {
+        cancelAnimationFrame(rafId);
+        rafId = undefined;
+    }
+}
+
+onDeactivated(() => {
+    stopRenderLoop();
+});
+
+onActivated(() => {
+    startRenderLoop();
+});
+
 onBeforeUnmount(() => {
     animationGroup.stop();
-    if (rafId != null) cancelAnimationFrame(rafId);
+    stopRenderLoop();
     resizeObserver?.disconnect();
     controls?.dispose();
 

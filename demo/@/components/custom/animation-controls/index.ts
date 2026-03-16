@@ -1,12 +1,2 @@
-export { default as AnimationControls } from "./controls/AnimationControls.vue";
-export { default as AnimationControlsGroup } from "./AnimationControlsGroup.vue";
-export { default as CubicBezierControls } from "./controls/CubicBezierControls.vue";
-export { default as KeyframesStringControls } from "./keyframes/KeyframesStringControls.vue";
-export { default as KeyframesEditor } from "./keyframes/KeyframesEditor.vue";
-export { default as AnimationControlsControls } from "./controls/AnimationControlsControls.vue";
-export { default as AnimationVisualizer } from "./controls/AnimationVisualizer.vue";
-export { default as AnimationMenuBar } from "./AnimationMenuBar.vue";
-export { default as TimingFunctionPanel } from "./controls/TimingFunctionPanel.vue";
-export { useAnimationSync } from "./controls/useAnimationSync";
-export { default as AnimatedText } from "../AnimatedText.vue";
-export { default as Animated } from "../Animated.vue";
+// Barrel removed to prevent eager loading of heavy dependencies (highlight.js, monaco).
+// Import components directly from their .vue files instead.

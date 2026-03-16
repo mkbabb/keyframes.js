@@ -7,7 +7,7 @@
 
 <script setup lang="ts">
 import { onMounted, useTemplateRef } from "vue";
-import { AnimationControls } from "@components/custom/animation-controls";
+import AnimationControls from "@components/custom/animation-controls/controls/AnimationControls.vue";
 import "@styles/style.css";
 import { useSquareAnimations } from "./useSquareAnimations";
 

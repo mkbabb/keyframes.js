@@ -100,21 +100,18 @@
         </template>
 
         <template #target>
+            <!-- KeepAlive caches up to 3 scene instances so returning to a scene
+                 doesn't re-evaluate lazy modules (Monaco, Three.js, etc.).
+                 Home + Cube share the same key so CubeScene persists across home ↔ cube. -->
             <Transition name="scene" mode="out-in">
-                <!-- Home + Cube share the same CubeScene instance (same key = no remount).
-                     Transform state persists across home ↔ cube transitions. -->
-                <CubeScene
-                    v-if="isHome || currentSceneId === 'cube'"
-                    key="cube"
-                    ref="sceneRef"
-                    :hide-loader="isHome"
-                />
-                <component
-                    v-else-if="currentScene.component"
-                    :is="currentScene.component"
-                    :key="currentSceneId"
-                    ref="sceneRef"
-                />
+                <KeepAlive :max="3">
+                    <component
+                        :is="activeSceneComponent"
+                        :key="activeSceneKey"
+                        ref="sceneRef"
+                        v-bind="activeSceneProps"
+                    />
+                </KeepAlive>
             </Transition>
         </template>
     </EditorShell>
@@ -166,6 +163,22 @@ const autoPlayNext = ref(false);
 const currentLabel = computed(
     () => sceneMap.get(currentSceneId.value)?.label ?? "Home",
 );
+
+// Unified scene component/key/props for KeepAlive (requires single child)
+const activeSceneComponent = computed(() => {
+    if (isHome.value || currentSceneId.value === 'cube') return CubeScene;
+    return currentScene.value.component;
+});
+const activeSceneKey = computed(() => {
+    if (isHome.value || currentSceneId.value === 'cube') return 'cube';
+    return currentSceneId.value;
+});
+const activeSceneProps = computed(() => {
+    if (isHome.value || currentSceneId.value === 'cube') {
+        return { hideLoader: isHome.value };
+    }
+    return {};
+});
 
 const storedControls = computed(() => getStoredAnimationGroupControlOptions(currentSuperKey.value));
 

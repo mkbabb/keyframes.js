@@ -3,7 +3,7 @@ import type { InputAnimationOptions } from "@src/animation/constants";
 import { jumpTerms } from "@src/easing";
 import { useStorage } from "@vueuse/core";
 import { ref } from "vue";
-import { checkAndResetExpiredStore, touchTimestamp, getAnimationSuperKey } from "./storeUtils";
+import { checkAndResetExpiredStore, getAnimationSuperKey } from "./storeUtils";
 
 export type StoredAnimationOptions = {
     animationOptions: InputAnimationOptions;
@@ -89,7 +89,6 @@ export const getStoredAnimationOptions = (
     animationId = getAnimationId(animationId!);
 
     const animationGroupsOptionsStore = getAnimationGroupsOptionsStore();
-    touchTimestamp(animationGroupsOptionsStore);
 
     let animationGroupOptions = animationGroupsOptionsStore.value[
         superKey

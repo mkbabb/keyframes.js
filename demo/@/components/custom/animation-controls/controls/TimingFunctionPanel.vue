@@ -88,7 +88,8 @@ import {
     SelectValue,
 } from "@components/ui/select";
 
-import { CubicBezierControls } from "@components/custom/animation-controls";
+import { defineAsyncComponent } from "vue";
+const CubicBezierControls = defineAsyncComponent(() => import("./CubicBezierControls.vue"));
 import { ArrowLeft } from "lucide-vue-next";
 
 const { animation, storedAnimationOptions, timingFunctionsAnd, editingCurveName } = defineProps<{

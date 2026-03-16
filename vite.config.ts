@@ -1,4 +1,4 @@
-import { defineConfig } from "vite";
+import { defineConfig, type Plugin } from "vite";
 import path from "path";
 
 import Vue from "@vitejs/plugin-vue";
@@ -6,6 +6,30 @@ import Vue from "@vitejs/plugin-vue";
 import dts from "vite-plugin-dts";
 
 import tailwindcss from "@tailwindcss/postcss";
+
+/**
+ * Vite plugin: makes CSS <link> tags for lazy vendor chunks non-render-blocking.
+ * Converts `<link rel="stylesheet" href="...vendor-monaco...">` to use
+ * `media="print" onload="this.media='all'"` so they don't block first paint.
+ */
+function deferLazyCSSPlugin(patterns: string[]): Plugin {
+    return {
+        name: "defer-lazy-css",
+        enforce: "post",
+        transformIndexHtml(html) {
+            for (const pattern of patterns) {
+                const re = new RegExp(
+                    `<link rel="stylesheet"([^>]*href="[^"]*${pattern}[^"]*"[^>]*)>`,
+                    "g",
+                );
+                html = html.replace(re, (_, attrs) => {
+                    return `<link rel="stylesheet"${attrs} media="print" onload="this.media='all'">`;
+                });
+            }
+            return html;
+        },
+    };
+}
 
 const defaultOptions = {
     css: {
@@ -51,6 +75,9 @@ export default defineConfig((mode) => {
             plugins: [...defaultPlugins, dts({ rollupTypes: true, include: ["src/"] })],
         };
     } else if (mode.mode === "gh-pages") {
+        // Heavy lazy chunks that should NOT be modulepreloaded or render-blocking
+        const lazyChunks = ["vendor-monaco", "vendor-three", "vendor-prettier", "vendor-highlight", "html2canvas"];
+
         return {
             ...defaultOptions,
             base: "./",
@@ -60,6 +87,15 @@ export default defineConfig((mode) => {
                 emptyOutDir: true,
                 minify: true,
                 sourcemap: false,
+                modulePreload: {
+                    resolveDependencies(filename, deps) {
+                        // Exclude heavy lazy-loaded vendor chunks from modulepreload.
+                        // Without this, Vite injects <link rel="modulepreload"> for Monaco (3.7 MB),
+                        // Three.js, Prettier etc. into the HTML, defeating code splitting.
+                        return deps.filter(dep => !lazyChunks.some(c => dep.includes(c)));
+                    },
+                },
+                cssCodeSplit: true,
                 rollupOptions: {
                     output: {
                         manualChunks(id) {
@@ -68,12 +104,14 @@ export default defineConfig((mode) => {
                                 if (id.includes("monaco")) return "vendor-monaco";
                                 if (id.includes("prettier")) return "vendor-prettier";
                                 if (id.includes("highlight")) return "vendor-highlight";
+                                if (id.includes("reka-ui")) return "vendor-reka-ui";
+                                if (id.includes("lucide")) return "vendor-lucide";
                             }
                         },
                     },
                 },
             },
-            plugins: [...defaultPlugins],
+            plugins: [...defaultPlugins, deferLazyCSSPlugin(["vendor-monaco"])],
         };
     } else if (mode.mode === "playground") {
         // Playground demo: asset manager + multi-element animations
@@ -87,9 +125,6 @@ export default defineConfig((mode) => {
                     "@vueuse/core",
                     "lucide-vue-next",
                     "vue-sonner",
-                    "monaco-editor",
-                    "highlight.js/lib/core",
-                    "prettier",
                 ],
             },
             plugins: [...defaultPlugins],
@@ -106,10 +141,6 @@ export default defineConfig((mode) => {
                     "@vueuse/core",
                     "lucide-vue-next",
                     "vue-sonner",
-                    "three",
-                    "monaco-editor",
-                    "highlight.js/lib/core",
-                    "prettier",
                 ],
             },
             plugins: [...defaultPlugins],

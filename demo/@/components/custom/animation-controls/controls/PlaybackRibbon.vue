@@ -32,14 +32,8 @@
                 @click="emit('togglePlay')"
             >
                 <span>{{ isAnimPlaying ? 'Pause' : 'Play' }}</span>
-                <font-awesome-icon
-                    :class="['icon w-4 h-4', !isAnimPlaying ? 'pl-px' : '']"
-                    :icon="
-                        isAnimPlaying
-                            ? ['fas', 'pause']
-                            : ['fas', 'play']
-                    "
-                />
+                <Pause v-if="isAnimPlaying" class="w-4 h-4" />
+                <Play v-else class="w-4 h-4 pl-px" />
             </Button>
             <Button
                 :class="[
@@ -77,7 +71,7 @@ import type { Animation } from "@src/animation/index";
 
 import { Button } from "@components/ui/button";
 import { Slider } from "@components/ui/slider";
-import { ArrowLeftRight } from "lucide-vue-next";
+import { ArrowLeftRight, Pause, Play } from "lucide-vue-next";
 import IconTooltip from "@components/custom/IconTooltip.vue";
 import AnimationVisualizer from "./AnimationVisualizer.vue";
 import { useTouchGate } from "@composables/useTouchGate";
