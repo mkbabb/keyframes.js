@@ -3,6 +3,12 @@ export interface SmoothProgressOptions {
     damping: number;
     /** Snap to target when |target - current| < threshold. Default 0.001 */
     snapThreshold: number;
+    /**
+     * Minimum change required to update the target. Changes smaller than this
+     * are ignored, filtering high-frequency noise (e.g. sub-pixel scroll jitter).
+     * Default 0 (disabled — every change is accepted).
+     */
+    targetEpsilon: number;
     /** Starting value. Default 0 */
     initial: number;
     /** Clamp current to [0, 1]. Default true */
@@ -12,6 +18,7 @@ export interface SmoothProgressOptions {
 const defaultSmoothOptions: SmoothProgressOptions = {
     damping: 0.1,
     snapThreshold: 0.001,
+    targetEpsilon: 0,
     initial: 0,
     clamp: true,
 };
@@ -45,7 +52,8 @@ export class SmoothProgress {
         if (this.options.clamp) {
             target = Math.max(0, Math.min(1, target));
         }
-        if (target !== this.targetValue) {
+        const delta = Math.abs(target - this.targetValue);
+        if (delta > 0 && delta >= this.options.targetEpsilon) {
             this.targetValue = target;
             this.isSettled = false;
         }

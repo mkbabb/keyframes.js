@@ -327,6 +327,8 @@ smooth.tick();       // asymptotically approaches 1
 smooth.snap();       // instantly converge
 ```
 
+Options: `damping` (lerp factor, default 0.1), `snapThreshold` (auto-snap distance, default 0.001), `targetEpsilon` (ignore target changes smaller than this — filters scroll jitter, default 0), `initial`, `clamp`.
+
 ### `ElementMorph`
 
 Interpolates position and scale between two DOM elements (or rects). Produces CSS transforms.
@@ -340,25 +342,29 @@ Re-measures on demand via `morph.measure(from, to)`.
 
 ### `Timeline`
 
-Abstract progress driver. Composes easing and smoothing; the caller owns the rAF loop.
+Abstract progress driver. Pipeline: `sample() → clamp → easing → boundary snap → smoothing`.
 
 ```ts
 const timeline = new ScrollTimeline({
     threshold: 0.35,
     easing: easeOutCubic,
-    smoothing: { damping: 0.15 },
+    boundaryEpsilon: 0.005,
+    smoothing: { damping: 0.15, targetEpsilon: 0.002 },
 });
 
 function update() {
-    const p = timeline.tick(); // eased → boundary-snapped → smoothed
-    morph.apply(element, p);
+    const p = timeline.tick();
     requestAnimationFrame(update);
 }
 ```
 
+Options: `easing`, `smoothing` (`SmoothProgressOptions` or `false`), `boundaryEpsilon` (snap eased values within this distance of 0/1 to the boundary — prevents scroll-endpoint oscillation, default 0.005).
+
 Subclasses:
-- **`ScrollTimeline`** — scroll position → progress. Injectable `getScrollY`/`getViewportHeight` for testing.
+- **`ScrollTimeline`** — scroll position → progress. `threshold` sets viewport fraction for full progress (default 0.35). Injectable `getScrollY`/`getViewportHeight`.
 - **`ManualTimeline`** — externally set value → progress. Smoothing off by default.
+
+See [`docs/scroll-morph.md`](docs/scroll-morph.md) for an architecture guide on building jitter-free scroll-driven morph animations.
 
 ## Build & Development
 

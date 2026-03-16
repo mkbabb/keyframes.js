@@ -7,6 +7,14 @@ export interface TimelineOptions {
     easing?: TimingFunction | TimingFunctionNames | undefined;
     /** SmoothProgress config. `false` disables smoothing. Default: enabled. */
     smoothing?: Partial<SmoothProgressOptions> | false | undefined;
+    /**
+     * Boundary snap zone. When the eased progress is within this distance of
+     * 0 or 1, the smoother snaps instantly instead of lerping. Prevents
+     * oscillation at scroll endpoints where micro-jitter alternates between
+     * boundary and non-boundary values each frame.
+     * Default 0.005.
+     */
+    boundaryEpsilon?: number | undefined;
 }
 
 const resolveEasing = (
@@ -27,9 +35,11 @@ export abstract class Timeline {
     private smoother: SmoothProgress | null;
     private easingFn: TimingFunction | null;
     private currentProgress: number = 0;
+    private boundaryEpsilon: number;
 
     constructor(options?: TimelineOptions) {
         this.easingFn = resolveEasing(options?.easing);
+        this.boundaryEpsilon = options?.boundaryEpsilon ?? 0.005;
 
         if (options?.smoothing === false) {
             this.smoother = null;
@@ -48,9 +58,14 @@ export abstract class Timeline {
         let raw = clamp01(this.sample());
         if (this.easingFn) raw = this.easingFn(raw);
 
+        // Snap to exact boundary when within epsilon — prevents oscillation
+        // from micro-jitter alternating between snap and lerp each frame.
+        const eps = this.boundaryEpsilon;
+        if (raw <= eps) raw = 0;
+        else if (raw >= 1 - eps) raw = 1;
+
         if (this.smoother) {
             this.smoother.setTarget(raw);
-            // Snap at boundaries for instant response
             if (raw <= 0 || raw >= 1) {
                 this.smoother.snap();
             } else {
@@ -67,6 +82,10 @@ export abstract class Timeline {
     tickDt(dt: number): number {
         let raw = clamp01(this.sample());
         if (this.easingFn) raw = this.easingFn(raw);
+
+        const eps = this.boundaryEpsilon;
+        if (raw <= eps) raw = 0;
+        else if (raw >= 1 - eps) raw = 1;
 
         if (this.smoother) {
             this.smoother.setTarget(raw);
