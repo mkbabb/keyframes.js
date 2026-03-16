@@ -3,7 +3,8 @@
  * Compact popover that expands from a dock button.
  * Stays open while mouse is inside. Click to toggle.
  */
-import { ref, inject, watch, onUnmounted, onMounted } from "vue";
+import { ref, inject, watch, onUnmounted, onMounted, nextTick, useTemplateRef } from "vue";
+import type { Ref } from "vue";
 
 // Track all popover instances so opening one collapses the others
 const allPopovers = new Set<{ expanded: { value: boolean }, scheduleCollapse: (d: number) => void }>();
@@ -23,15 +24,25 @@ let collapseTimer: ReturnType<typeof setTimeout> | null = null;
 
 const self = { expanded, scheduleCollapse: (d: number) => scheduleCollapse(d) };
 allPopovers.add(self);
-onUnmounted(() => { clearTimer(); allPopovers.delete(self); });
+onUnmounted(() => { clearTimer(); removeClickAwayListener(); allPopovers.delete(self); });
 
 // Hold parent GlassDock open while this popover is expanded
 const dockKeepOpen = inject<(() => void) | null>("dockKeepOpen", null);
 const dockRelease = inject<(() => void) | null>("dockRelease", null);
 
+// Guard: inject parent dock's expanded state
+const dockExpanded = inject<Ref<boolean>>("dockExpanded", ref(true));
+
 watch(expanded, (isExpanded) => {
     if (isExpanded) dockKeepOpen?.();
     else dockRelease?.();
+});
+
+// Force-close popover when parent dock collapses
+watch(dockExpanded, (isExpanded) => {
+    if (!isExpanded && expanded.value) {
+        expanded.value = false;
+    }
 });
 
 function clearTimer() {
@@ -39,6 +50,8 @@ function clearTimer() {
 }
 
 function onEnter() {
+    // Guard: don't open if parent dock is collapsing
+    if (!dockExpanded.value) return;
     clearTimer();
     // Collapse all other popovers
     for (const p of allPopovers) {
@@ -57,11 +70,45 @@ function toggle() {
     expanded.value ? scheduleCollapse(0) : onEnter();
 }
 
+// --- Click-away: collapse when clicking outside .dock-popover ---
+const popoverEl = useTemplateRef<HTMLElement>("popoverEl");
+let removeClickAwayFn: (() => void) | null = null;
+
+function onClickAway(e: PointerEvent) {
+    const root = popoverEl.value;
+    if (!root || root.contains(e.target as Node)) return;
+    expanded.value = false;
+}
+
+function installClickAway() {
+    // Defer to next tick so the opening click doesn't trigger close
+    nextTick(() => {
+        document.addEventListener("pointerdown", onClickAway, true);
+        removeClickAwayFn = () => {
+            document.removeEventListener("pointerdown", onClickAway, true);
+            removeClickAwayFn = null;
+        };
+    });
+}
+
+function removeClickAwayListener() {
+    removeClickAwayFn?.();
+}
+
+watch(expanded, (isExpanded) => {
+    if (isExpanded) {
+        installClickAway();
+    } else {
+        removeClickAwayListener();
+    }
+});
+
 defineExpose({ expanded, expand: onEnter, collapse: () => { expanded.value = false; } });
 </script>
 
 <template>
     <div
+        ref="popoverEl"
         class="dock-popover"
         :class="{ expanded, ['dir-' + direction]: true }"
         @mouseenter="onEnter"
