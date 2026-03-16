@@ -10,9 +10,9 @@ import { getStoredAnimationOptions } from "@components/custom/animation-controls
 export const SUPER_KEY = "Cube";
 
 export const CUBE_ANIMATION_NAMES = {
-    Matrix: CUBE_ANIMATION_NAMES.Matrix,
-    Rotations: CUBE_ANIMATION_NAMES.Rotations,
-    Hover: CUBE_ANIMATION_NAMES.Hover,
+    Matrix: "Matrix",
+    Rotations: "Rotations",
+    Hover: "Hover",
 } as const;
 
 export function useCubeAnimations(
