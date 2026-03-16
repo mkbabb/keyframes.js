@@ -6,8 +6,11 @@
         :current-label="currentLabel"
         :has-selected-animation="!!storedControls.selectedAnimation && !isHome"
         :is-controls-panel-open="storedControls.isControlsPanelOpen"
+        :selected-control="storedControls.selectedControl"
+        :extra-control-tabs="sceneRef?.extraControlTabs ?? []"
         @switch-scene="switchScene"
         @toggle-controls-panel="storedControls.isControlsPanelOpen = !storedControls.isControlsPanelOpen"
+        @update-selected-control="(v: string) => { storedControls.selectedControl = v; }"
     >
         <template #items>
             <!-- @mbabb popover -->
@@ -36,13 +39,13 @@
 
                     <hr class="border-border/40 my-0.5" />
 
-                    <!-- ppmycota logo -->
-                    <div class="flex items-center gap-2.5 px-1.5 py-1">
-                        <div class="ppmycota-logo-sm w-5 h-5 shrink-0"></div>
+                    <!-- ppmycota logo — toggles pp mode -->
+                    <div class="flex items-center gap-2.5 px-1.5 py-1 rounded-lg hover:bg-foreground/5 transition-colors cursor-pointer" @click="togglePpMode">
+                        <div class="ppmycota-logo-sm w-7 h-7 shrink-0 hover:scale-105 transition-transform"></div>
                         <div class="flex-1 min-w-0">
                             <span class="instrument-serif text-sm text-[hsl(var(--ppmycota-primary))]">ppmycota</span>
                             <p class="instrument-serif text-[11px] text-muted-foreground leading-tight">&#x1F642;&#x200D;&#x2194;&#xFE0F; &#x1F331; &#x1F344;&#x200D;&#x1F7EB;</p>
-                            <a href="https://ppmycota.com" target="_blank" rel="noopener noreferrer" class="instrument-serif text-[10px] text-muted-foreground hover:text-foreground hover:underline transition-colors">ppmycota.com</a>
+                            <a href="https://ppmycota.com" target="_blank" rel="noopener noreferrer" class="instrument-serif text-[10px] text-muted-foreground hover:text-foreground hover:underline transition-colors" @click.stop>ppmycota.com</a>
                         </div>
                     </div>
 
@@ -56,12 +59,9 @@
                         <div class="flex-1 min-w-0">
                             <a href="https://github.com/mkbabb" target="_blank" rel="noopener noreferrer" class="font-mono text-xs font-semibold text-foreground hover:underline">@mbabb</a>
                             <p class="instrument-serif text-[11px] text-muted-foreground leading-tight">CSS keyframe animation engine</p>
+                            <a href="https://github.com/mkbabb/keyframes.js" target="_blank" rel="noopener noreferrer" class="instrument-serif text-[11px] text-muted-foreground hover:text-foreground hover:underline transition-colors">View the project on Github 🎉</a>
                         </div>
                     </div>
-
-                    <hr class="border-border/40 my-0.5" />
-
-                    <a href="https://github.com/mkbabb/keyframes.js" target="_blank" rel="noopener noreferrer" class="block text-xs text-muted-foreground hover:text-foreground hover:underline instrument-serif px-1.5 py-0.5 transition-colors">View on GitHub</a>
                 </div>
             </DockPopover>
         </template>
@@ -127,7 +127,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, markRaw, nextTick, ref, shallowRef, watch } from "vue";
+import { computed, markRaw, nextTick, provide, ref, shallowRef, watch } from "vue";
 
 import { EditorShell, EditorStartScreen } from "@components/custom/editor-shell";
 import { SharePopover } from "@components/custom/editor-shell";
@@ -141,6 +141,14 @@ import type { ScenePlaybackState } from "@components/custom/animation-controls/a
 
 // Restore shared state from URL hash before components read stored options
 initFromHash();
+
+// Tabs in the controls pane are managed via the TopDock controls tab dropdown
+provide("tabsExternallyManaged", true);
+
+// Dock hover → controls pane opacity. Provided here so both TopDock (sibling)
+// and AnimationMenuBar (descendant of EditorShell) share the same ref.
+const dockHoveredRef = ref(false);
+provide("controlsPaneHover", dockHoveredRef);
 
 import CubeScene from "./scenes/CubeScene.vue";
 import { useSceneManager } from "./useSceneManager";
@@ -166,6 +174,10 @@ const currentLabel = computed(
 );
 
 const storedControls = computed(() => getStoredAnimationGroupControlOptions(currentSuperKey.value));
+
+function togglePpMode() {
+    storedControls.value.ppMode = !(storedControls.value.ppMode ?? false);
+}
 
 function onPlayStateChange(playing: boolean) {
     // If play is pressed while on the home screen, switch to cube and auto-play
@@ -347,12 +359,22 @@ watch(
 </script>
 
 <style>
-.scene-enter-active,
-.scene-leave-active {
-    transition: opacity var(--duration-fast) ease-out;
+.scene-enter-active {
+    transition:
+        opacity 0.35s ease-out,
+        transform 0.4s var(--ease-spring);
 }
-.scene-enter-from,
+.scene-leave-active {
+    transition:
+        opacity 0.25s ease-in,
+        transform 0.25s ease-in;
+}
+.scene-enter-from {
+    opacity: 0;
+    transform: scale(0.97);
+}
 .scene-leave-to {
     opacity: 0;
+    transform: scale(1.02);
 }
 </style>
