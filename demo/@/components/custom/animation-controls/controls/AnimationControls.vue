@@ -8,8 +8,8 @@
             :model-value="storedControls.selectedControl"
             @update:model-value="selectControl"
         >
-            <!-- Tabs header -->
-            <div ref="tabsHeaderEl" class="relative w-fit flex items-center justify-center flex-shrink-0 glass rounded-xl px-1 py-0.5 overflow-hidden">
+            <!-- Tabs header (hidden when managed externally via TopDock) -->
+            <div v-if="!tabsExternallyManaged" ref="tabsHeaderEl" class="relative w-fit flex items-center justify-center flex-shrink-0 glass rounded-xl px-1 py-0.5 overflow-hidden">
                 <TabsList
                     ref="tabsListRef"
                     :class="[
@@ -107,6 +107,7 @@ import { TooltipProvider } from "@components/ui/tooltip";
 import {
     computed,
     defineAsyncComponent,
+    inject,
     nextTick,
     onMounted,
     onUnmounted,
@@ -131,6 +132,9 @@ const { animation, isGrouped, layerConfig, active } = defineProps<{
 }>();
 
 const storedControls = getStoredAnimationGroupControlOptions(animation);
+
+// When true, the tab header is hidden (tabs are managed externally, e.g. via TopDock)
+const tabsExternallyManaged = inject<boolean>("tabsExternallyManaged", false);
 
 const emit = defineEmits<{
     (

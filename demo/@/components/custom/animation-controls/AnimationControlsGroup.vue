@@ -7,10 +7,12 @@
         v-bind="$attrs"
     >
         <div
+            ref="controlsPaneEl"
             v-show="storedControls.selectedAnimation && !hideControls"
             @transitionend="onPanelTransitionEnd"
             @mouseenter="onPaneMouseEnter"
             @mouseleave="onPaneMouseLeave"
+            @scroll="checkVerticalOverflow"
             :class="[
                 'controls-pane group/controls col-start-1 row-start-1 lg:row-start-1 min-w-0 relative z-[var(--z-controls)]',
                 'controls-pane--mobile',
@@ -21,6 +23,7 @@
                 isPanelTransitionDone && storedControls.isControlsPanelOpen
                     ? 'overflow-y-auto'
                     : 'overflow-hidden',
+                scrollFadeClass,
             ]"
         >
                 <div class="controls-content h-full overflow-hidden flex flex-col">
@@ -176,7 +179,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, reactive, ref, Teleport, watchEffect } from "vue";
+import { computed, inject, onMounted, onUnmounted, provide, reactive, ref, Teleport, useTemplateRef, watchEffect } from "vue";
+import type { Ref } from "vue";
 import { Toaster, toast } from "vue-sonner";
 
 import {
@@ -297,27 +301,79 @@ onMounted(() => {
 });
 
 // --- Controls pane hover with linger delay ---
-const isPaneHovered = ref(false);
-let paneHoverTimer: ReturnType<typeof setTimeout> | null = null;
+// Pane becomes opaque when hovering the pane itself OR any dock (top/bottom).
+// A linger timer keeps it opaque briefly after mouse leaves.
+const isPaneDirectHover = ref(false);
+// Injected from App.vue — shared between TopDock and bottom dock GlassDock instances
+const isDockHovered = inject<Ref<boolean>>("controlsPaneHover", ref(false));
+const isPaneHovered = computed(() => isPaneDirectHover.value || isDockHovered.value);
 
-function onPaneMouseEnter() {
+let paneHoverTimer: ReturnType<typeof setTimeout> | null = null;
+const HOVER_LINGER_MS = 2000;
+
+function clearHoverTimer() {
     if (paneHoverTimer) {
         clearTimeout(paneHoverTimer);
         paneHoverTimer = null;
     }
-    isPaneHovered.value = true;
+}
+
+function scheduleHoverEnd() {
+    clearHoverTimer();
+    paneHoverTimer = setTimeout(() => {
+        isPaneDirectHover.value = false;
+        paneHoverTimer = null;
+    }, HOVER_LINGER_MS);
+}
+
+function onPaneMouseEnter() {
+    clearHoverTimer();
+    isPaneDirectHover.value = true;
 }
 
 function onPaneMouseLeave() {
-    // Keep hovered state for 2s after mouse leaves so opacity lingers at 1
-    paneHoverTimer = setTimeout(() => {
-        isPaneHovered.value = false;
-        paneHoverTimer = null;
-    }, 2000);
+    scheduleHoverEnd();
 }
 
 onUnmounted(() => {
-    if (paneHoverTimer) clearTimeout(paneHoverTimer);
+    clearHoverTimer();
+});
+
+// --- Mobile vertical scroll fade ---
+const controlsPaneEl = useTemplateRef<HTMLElement>("controlsPaneEl");
+const overflowTop = ref(false);
+const overflowBottom = ref(false);
+
+const scrollFadeClass = computed(() => {
+    if (overflowTop.value && overflowBottom.value) return "scroll-fade-both";
+    if (overflowTop.value) return "scroll-fade-top";
+    if (overflowBottom.value) return "scroll-fade-bottom";
+    return "";
+});
+
+function checkVerticalOverflow() {
+    const el = controlsPaneEl.value;
+    if (!el) {
+        overflowTop.value = false;
+        overflowBottom.value = false;
+        return;
+    }
+    overflowTop.value = el.scrollTop > 2;
+    overflowBottom.value = el.scrollTop + el.clientHeight < el.scrollHeight - 2;
+}
+
+let scrollFadeResizeObserver: ResizeObserver | null = null;
+
+watch(isPanelTransitionDone, () => checkVerticalOverflow());
+
+onMounted(() => {
+    scrollFadeResizeObserver = new ResizeObserver(() => checkVerticalOverflow());
+    const el = controlsPaneEl.value;
+    if (el) scrollFadeResizeObserver.observe(el);
+});
+
+onUnmounted(() => {
+    scrollFadeResizeObserver?.disconnect();
 });
 
 const menuBarRef = ref<InstanceType<typeof AnimationMenuBar> | null>(null);
@@ -419,12 +475,20 @@ function cycleAnimation(direction: number) {
     margin-top: 3rem;
     opacity: 1;
     visibility: visible;
+    transition:
+        max-height 0.5s var(--ease-spring),
+        opacity 0.3s ease,
+        visibility 0s 0s;
 }
 .controls-pane--closed {
     max-height: 0;
     opacity: 0;
     pointer-events: none;
     visibility: hidden;
+    transition:
+        max-height 0.5s var(--ease-spring),
+        opacity 0.3s ease,
+        visibility 0s 0.5s;
 }
 
 /* ── Desktop ── */
@@ -441,8 +505,9 @@ function cycleAnimation(direction: number) {
         visibility: visible;
         pointer-events: auto;
         transition:
-            opacity 0.4s ease-in-out,
-            transform 0.5s var(--ease-spring);
+            opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+            transform 0.5s var(--ease-spring),
+            visibility 0s 0s;
     }
     .controls-pane--closed {
         max-height: none;
@@ -451,14 +516,15 @@ function cycleAnimation(direction: number) {
         visibility: hidden;
         pointer-events: none;
         transition:
-            opacity 0.4s ease-in-out,
-            transform 0.5s var(--ease-spring);
+            opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+            transform 0.5s var(--ease-spring),
+            visibility 0s 0.5s;
     }
-    /* JS-driven hover class: instant in, lingers 2s via timer */
+    /* Hovered via pane or dock: fully opaque */
     .controls-pane--hovered.controls-pane--open {
         opacity: 1;
         transition:
-            opacity 0.4s ease-in-out,
+            opacity 0.3s cubic-bezier(0, 0, 0.2, 1),
             transform 0.3s ease-out;
     }
 
@@ -475,6 +541,22 @@ function cycleAnimation(direction: number) {
 
     .controls-content {
         min-width: 400px;
+    }
+}
+
+/* ── Mobile vertical scroll fade ── */
+@media (max-width: 1023px) {
+    .scroll-fade-top {
+        mask-image: linear-gradient(to bottom, transparent, black 2.5rem);
+        -webkit-mask-image: linear-gradient(to bottom, transparent, black 2.5rem);
+    }
+    .scroll-fade-bottom {
+        mask-image: linear-gradient(to bottom, black calc(100% - 2.5rem), transparent);
+        -webkit-mask-image: linear-gradient(to bottom, black calc(100% - 2.5rem), transparent);
+    }
+    .scroll-fade-both {
+        mask-image: linear-gradient(to bottom, transparent, black 2.5rem, black calc(100% - 2.5rem), transparent);
+        -webkit-mask-image: linear-gradient(to bottom, transparent, black 2.5rem, black calc(100% - 2.5rem), transparent);
     }
 }
 </style>
