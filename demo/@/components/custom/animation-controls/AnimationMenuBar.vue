@@ -30,11 +30,11 @@
                                 }}</SelectValue>
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectGroup class="instrument-serif text-lg">
+                                <SelectGroup class="dock-select-group">
                                     <template
                                         v-for="name in animationNames"
                                     >
-                                        <SelectItem class="pl-2 [&>span:first-child]:hidden" :value="name">
+                                        <SelectItem hide-indicator :value="name">
                                             <span class="flex items-center gap-2">
                                                 <span
                                                     :class="[

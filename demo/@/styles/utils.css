@@ -64,6 +64,38 @@
         color: hsl(var(--foreground));
     }
 
+    .dock-select-trigger {
+        border: none;
+        height: auto;
+        padding: 0;
+        background: transparent;
+        font-family: "Instrument Serif", serif;
+        font-size: 1.125rem; /* text-lg */
+        line-height: 1.75rem;
+        gap: 0.25rem;
+        width: auto;
+
+        &:focus {
+            box-shadow: none;
+            outline: none;
+        }
+
+        & > span {
+            -webkit-line-clamp: unset;
+        }
+
+        & > svg:last-child {
+            width: 0.75rem;
+            height: 0.75rem;
+        }
+    }
+
+    .dock-select-group {
+        font-family: "Instrument Serif", serif;
+        font-size: 1.125rem;
+        line-height: 1.75rem;
+    }
+
     .dock-separator {
         width: 1px;
         height: 1.25rem;

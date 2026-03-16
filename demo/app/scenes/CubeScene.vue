@@ -37,10 +37,10 @@ import CubeTarget from "../../cube/CubeTarget.vue";
 
 import { getStoredAnimationGroupControlOptions } from "@components/custom/animation-controls/animationStores";
 import { useTransformState } from "@composables/useTransformState";
-import { useCubeAnimations } from "../../cube/useCubeAnimations";
+import { useCubeAnimations, SUPER_KEY, CUBE_ANIMATION_NAMES } from "../../cube/useCubeAnimations";
 import { sharedCubeTransform } from "../cubeTransformStore";
 
-const superKey = "Cube";
+const superKey = SUPER_KEY;
 
 const storedControls = getStoredAnimationGroupControlOptions(superKey);
 storedControls.ppMode ??= false;
@@ -73,7 +73,7 @@ watch(
     () => storedControls.selectedAnimation,
     (selectedAnimation) => {
         if (
-            selectedAnimation !== "Matrix" &&
+            selectedAnimation !== CUBE_ANIMATION_NAMES.Matrix &&
             storedControls.selectedControl === "matrix-controls"
         ) {
             storedControls.selectedControl = "controls";
@@ -132,7 +132,7 @@ const startScreen = () =>
     });
 
 const tabsTrigger = (slotProps: { selectedAnimation: string }) =>
-    slotProps.selectedAnimation === "Matrix"
+    slotProps.selectedAnimation === CUBE_ANIMATION_NAMES.Matrix
         ? h(TabsTrigger, {
             value: "matrix-controls",
             class: "shrink-0 instrument-serif px-3 py-1.5 text-lg bg-transparent rounded-none transition-colors duration-150 data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground data-[state=active]:text-foreground data-[state=active]:font-semibold border-b-2 border-transparent data-[state=active]:border-foreground",
@@ -196,7 +196,7 @@ onBeforeUnmount(() => {
 });
 
 const extraControlTabs = computed(() =>
-    storedControls.selectedAnimation === "Matrix"
+    storedControls.selectedAnimation === CUBE_ANIMATION_NAMES.Matrix
         ? [{ value: "matrix-controls", label: "Matrix Controls", icon: "Grid3X3" }]
         : [],
 );

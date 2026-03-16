@@ -7,14 +7,20 @@ import { ValueUnit } from "@src/units";
 import * as animations from "@src/animation/animations";
 import { getStoredAnimationOptions } from "@components/custom/animation-controls/animationStores";
 
-const SUPER_KEY = "Cube";
+export const SUPER_KEY = "Cube";
+
+export const CUBE_ANIMATION_NAMES = {
+    Matrix: CUBE_ANIMATION_NAMES.Matrix,
+    Rotations: CUBE_ANIMATION_NAMES.Rotations,
+    Hover: CUBE_ANIMATION_NAMES.Hover,
+} as const;
 
 export function useCubeAnimations(
     matrix3dStart: Ref<FunctionValue>,
     matrix3dEnd: Ref<FunctionValue>,
 ) {
     const matrixAnimationOptions = getStoredAnimationOptions(
-        "Matrix",
+        CUBE_ANIMATION_NAMES.Matrix,
         SUPER_KEY,
     );
 
@@ -28,11 +34,11 @@ export function useCubeAnimations(
             ]),
         ),
     );
-    matrixAnim.value.name = "Matrix";
+    matrixAnim.value.name = CUBE_ANIMATION_NAMES.Matrix;
     matrixAnim.value.superKey = SUPER_KEY;
 
     const rotationAnimationOptions = getStoredAnimationOptions(
-        "Rotations",
+        CUBE_ANIMATION_NAMES.Rotations,
         SUPER_KEY,
     );
 
@@ -58,18 +64,18 @@ export function useCubeAnimations(
             }),
         ),
     );
-    rotationAnim.value.name = "Rotations";
+    rotationAnim.value.name = CUBE_ANIMATION_NAMES.Rotations;
     rotationAnim.value.superKey = SUPER_KEY;
 
     const hoverAnimationOptions = getStoredAnimationOptions(
-        "Hover",
+        CUBE_ANIMATION_NAMES.Hover,
         SUPER_KEY,
     );
 
     const hoverAnim = shallowRef(
         markRaw(animations.hover(hoverAnimationOptions.animationOptions)),
     );
-    hoverAnim.value.name = "Hover";
+    hoverAnim.value.name = CUBE_ANIMATION_NAMES.Hover;
     hoverAnim.value.superKey = SUPER_KEY;
 
     const animationGroup = shallowRef(

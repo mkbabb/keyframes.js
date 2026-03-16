@@ -86,13 +86,13 @@ const emit = defineEmits<{
                         :model-value="selectedControl"
                         @update:model-value="(v) => emit('updateSelectedControl', String(v))"
                     >
-                        <SelectTrigger class="border-none h-auto p-0 focus:ring-0 bg-transparent instrument-serif text-lg gap-1 w-auto [&>span]:line-clamp-none [&>svg:last-child]:w-3 [&>svg:last-child]:h-3">
+                        <SelectTrigger class="dock-select-trigger">
                             <component :is="TAB_ICONS[allControlTabs.find(t => t.value === selectedControl)?.icon ?? 'SlidersHorizontal']" class="w-4 h-4 shrink-0 text-muted-foreground" />
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectGroup class="instrument-serif text-lg">
-                                <SelectItem v-for="tab in allControlTabs" :key="tab.value" :value="tab.value" class="pl-2 [&>span:first-child]:hidden">
+                            <SelectGroup class="dock-select-group">
+                                <SelectItem v-for="tab in allControlTabs" :key="tab.value" :value="tab.value" hide-indicator>
                                     <span class="flex items-center gap-2">
                                         <component v-if="tab.icon && TAB_ICONS[tab.icon]" :is="TAB_ICONS[tab.icon]" class="w-4 h-4 shrink-0 text-muted-foreground" />
                                         <span :class="['inline-block w-2 h-2 rounded-full shrink-0', selectedControl === tab.value ? 'bg-green-500' : 'bg-gray-400']"></span>
@@ -110,14 +110,14 @@ const emit = defineEmits<{
                         :model-value="currentSceneId"
                         @update:model-value="(id) => emit('switchScene', String(id))"
                     >
-                        <SelectTrigger class="border-none h-auto p-0 focus:ring-0 bg-transparent instrument-serif text-lg gap-1 w-auto [&>span]:line-clamp-none [&>svg:last-child]:w-3 [&>svg:last-child]:h-3">
+                        <SelectTrigger class="dock-select-trigger">
                             <img v-if="sceneIcons[currentSceneId]" :src="sceneIcons[currentSceneId]" class="w-5 h-5 shrink-0 object-contain" />
                             <Home v-else class="w-3.5 h-3.5 text-muted-foreground shrink-0" />
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectGroup class="instrument-serif text-lg">
-                                <SelectItem :value="homeSceneId" class="pl-2 [&>span:first-child]:hidden">
+                            <SelectGroup class="dock-select-group">
+                                <SelectItem :value="homeSceneId" hide-indicator>
                                     <span class="flex items-center gap-2">
                                         <span :class="['inline-block w-2 h-2 rounded-full shrink-0', currentSceneId === homeSceneId ? 'bg-green-500' : 'bg-gray-400']"></span>
                                         <Home class="w-3.5 h-3.5 text-muted-foreground shrink-0" />
@@ -128,7 +128,7 @@ const emit = defineEmits<{
                                     v-for="scene in scenes"
                                     :key="scene.id"
                                     :value="scene.id"
-                                    class="pl-2 [&>span:first-child]:hidden"
+                                    hide-indicator
                                 >
                                     <span class="flex items-center gap-2">
                                         <span :class="['inline-block w-2 h-2 rounded-full shrink-0', currentSceneId === scene.id ? 'bg-green-500' : 'bg-gray-400']"></span>
