@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, watch, nextTick, onMounted, onUnmounted, useTemplateRef, provide } from "vue";
+import { ref, watch, nextTick, onMounted, onUnmounted, useTemplateRef, provide, inject } from "vue";
+import type { Ref } from "vue";
 
 const props = withDefaults(
     defineProps<{
@@ -20,18 +21,25 @@ let ignoreEvents = true;
 
 const dockEl = useTemplateRef<HTMLElement>("dockEl");
 
-// Child components (e.g. DockPopover, Select) can hold the dock open
+// Child components (e.g. DockPopover, Select) can hold the dock open.
+// Provided via inject so any descendant in the slot tree can use it.
 let keepOpenCount = 0;
 
-provide("dockKeepOpen", () => {
+function keepOpen() {
     keepOpenCount++;
     clearTimer();
-});
+}
 
-provide("dockRelease", () => {
+function release() {
     keepOpenCount = Math.max(0, keepOpenCount - 1);
     if (keepOpenCount === 0) scheduleCollapse();
-});
+}
+
+provide("dockKeepOpen", keepOpen);
+provide("dockRelease", release);
+
+// When inside an AnimationControlsGroup, drive its controls pane hover state
+const controlsPaneHover = inject<Ref<boolean> | null>("controlsPaneHover", null);
 
 onMounted(() => {
     setTimeout(() => {
@@ -58,15 +66,24 @@ function onEnter() {
     if (ignoreEvents) return;
     clearTimer();
     expanded.value = true;
+    if (controlsPaneHover) controlsPaneHover.value = true;
 }
 
-function onLeave() {
+function onLeave(e: MouseEvent) {
+    if (controlsPaneHover) controlsPaneHover.value = false;
+    // If mouse moved to a descendant (e.g. absolutely-positioned child
+    // that extends beyond dock bounds), don't collapse
+    const root = dockEl.value;
+    if (root && e.relatedTarget instanceof Node && root.contains(e.relatedTarget)) return;
+    // If a child component is holding the dock open (e.g. Select portal), skip
+    if (keepOpenCount > 0) return;
     scheduleCollapse();
 }
 
 function onFocusOut(e: FocusEvent) {
     const root = e.currentTarget as HTMLElement;
     if (e.relatedTarget && root.contains(e.relatedTarget as Node)) return;
+    if (keepOpenCount > 0) return;
     scheduleCollapse();
 }
 
@@ -105,8 +122,35 @@ function onTransitionEnd(e: TransitionEvent) {
     }
 }
 
-defineExpose({ expanded, expand: onEnter, collapse: () => { expanded.value = false; } });
-onUnmounted(clearTimer);
+// Click-away collapse: when expanded, a pointerdown outside the dock collapses it
+function onPointerDownOutside(e: PointerEvent) {
+    const root = dockEl.value;
+    if (!root || root.contains(e.target as Node)) return;
+    if (keepOpenCount > 0) return;
+    clearTimer();
+    expanded.value = false;
+}
+
+let removeClickAway: (() => void) | null = null;
+
+watch(expanded, (isExpanded) => {
+    if (isExpanded) {
+        // Use capture phase so we get the event before anything else
+        document.addEventListener("pointerdown", onPointerDownOutside, true);
+        removeClickAway = () => {
+            document.removeEventListener("pointerdown", onPointerDownOutside, true);
+            removeClickAway = null;
+        };
+    } else {
+        removeClickAway?.();
+    }
+});
+
+defineExpose({ expanded, expand: onEnter, collapse: () => { expanded.value = false; }, keepOpen, release });
+onUnmounted(() => {
+    clearTimer();
+    removeClickAway?.();
+});
 </script>
 
 <template>
