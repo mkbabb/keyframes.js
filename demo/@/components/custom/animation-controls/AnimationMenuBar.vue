@@ -5,7 +5,7 @@
             'fixed bottom-0 left-0 right-0 z-40',
         ]"
     >
-        <GlassDock :collapse-delay="2500" :start-collapsed="true" :fit-content="true">
+        <GlassDock ref="dockRef" :collapse-delay="2500" :start-collapsed="true" :fit-content="true">
             <!-- Expanded state: full controls -->
             <div class="flex items-center gap-3">
                 <IconTooltip text="Select animation">
@@ -34,7 +34,7 @@
                                     <template
                                         v-for="name in animationNames"
                                     >
-                                        <SelectItem class="" :value="name">
+                                        <SelectItem class="pl-2 [&>span:first-child]:hidden" :value="name">
                                             <span class="flex items-center gap-2">
                                                 <span
                                                     :class="[
@@ -108,13 +108,13 @@
                         </button>
                     </IconTooltip>
 
-                    <span class="instrument-serif text-base text-muted-foreground whitespace-nowrap">Timeline</span>
+                    <span class="instrument-serif text-lg text-muted-foreground whitespace-nowrap">Timeline</span>
                 </template>
             </div>
 
             <!-- Collapsed state: animation name first, play button on right -->
             <template #collapsed>
-                <span v-if="storedControls.selectedAnimation" class="instrument-serif text-base text-foreground truncate max-w-[120px]">
+                <span v-if="storedControls.selectedAnimation" class="instrument-serif text-lg text-foreground whitespace-nowrap font-semibold">
                     {{ storedControls.selectedAnimation }}
                 </span>
                 <Button
@@ -123,7 +123,7 @@
                         'w-8 h-8 shrink-0 text-sm',
                         isPlaying ? 'rainbow-vivid' : 'rainbow-pastel',
                     ]"
-                    @click.stop="emit('togglePlay')"
+                    @click.stop="onCollapsedPlayClick()"
                 >
                     <font-awesome-icon
                         :class="['icon', !isPlaying ? 'pl-px' : '']"
@@ -166,6 +166,13 @@ import { SelectIcon } from "reka-ui";
 import { GlassDock } from "@components/custom/dock";
 
 import type { StoredAnimationGroupControlOptions } from "./animationStores";
+
+const dockRef = useTemplateRef<InstanceType<typeof GlassDock>>("dockRef");
+
+function onCollapsedPlayClick() {
+    dockRef.value?.expand();
+    emit('togglePlay');
+}
 
 const { storedControls, isPlaying, isStarted, animationProgress, animationNames } = defineProps<{
     storedControls: StoredAnimationGroupControlOptions;
