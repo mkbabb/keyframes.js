@@ -1,15 +1,23 @@
 <template>
     <div class="w-full grid gap-2">
         <IconTooltip :class="!isAnimStarted ? 'disabled' : ''" text="Scrub animation timeline">
-            <Slider
-                class="p-2 timeline-slider"
-                :min="0"
-                :max="animation.options.duration"
-                :model-value="[currentT]"
-                @update:model-value="(val: any) => scrubTo(val[0])"
-                @pointerdown="onSliderDown"
-                @value-commit="onSliderCommit"
-            />
+            <div
+                :class="['touch-gate-target', gate.isActive.value ? 'touch-gate-active' : '']"
+                @pointerdown.capture="gatedSliderDown"
+                @touchmove="gate.handleScrollCheck"
+                @touchend="gate.handleTouchEnd"
+            >
+                <Slider
+                    ref="sliderRef"
+                    class="p-2 timeline-slider"
+                    :min="0"
+                    :max="animation.options.duration"
+                    :model-value="[currentT]"
+                    @update:model-value="(val: any) => scrubTo(val[0])"
+                    @pointerdown="onSliderDown"
+                    @value-commit="onSliderCommit"
+                />
+            </div>
         </IconTooltip>
 
         <div class="grid grid-cols-2 gap-2 w-full">
@@ -72,6 +80,7 @@ import { Slider } from "@components/ui/slider";
 import { ArrowLeftRight } from "lucide-vue-next";
 import IconTooltip from "@components/custom/IconTooltip.vue";
 import AnimationVisualizer from "./AnimationVisualizer.vue";
+import { useTouchGate } from "@composables/useTouchGate";
 
 const { animation, isGrouped } = defineProps<{
     animation: Animation<any>;
@@ -90,7 +99,19 @@ const emit = defineEmits<{
     (e: "toggleReverse"): void;
 }>();
 
+const gate = useTouchGate();
+
 let sliderScrubActive = false;
+
+/** Capture-phase handler on the wrapper: gate touch interactions on mobile. */
+const gatedSliderDown = (e: PointerEvent) => {
+    const wrapper = (e.currentTarget as HTMLElement);
+    if (!gate.handleTouchStart(wrapper, e.clientY)) {
+        // Gate not active — prevent the slider from receiving the event
+        e.stopPropagation();
+        e.preventDefault();
+    }
+};
 
 const onSliderDown = () => {
     sliderScrubActive = true;

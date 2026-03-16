@@ -3,7 +3,7 @@
         <div
             ref="trackEl"
             class="w-full h-12 p-0 m-0 left-0 top-0 relative"
-            style="touch-action: none"
+            :style="{ touchAction: gate.isActive.value || !gate.isTouchDevice ? 'none' : 'pan-y' }"
         >
             <div ref="containerEl" class="w-full h-full relative" style="container-type: inline-size">
                 <div
@@ -13,10 +13,13 @@
                 <div
                     ref="ball"
                     :class="[
-                        'absolute z-30 rounded-full h-12 w-12 bg-accent-red text-accent-red-foreground shadow-md will-change-transform',
+                        'absolute z-30 rounded-full h-12 w-12 bg-accent-red text-accent-red-foreground shadow-md will-change-transform touch-gate-target',
                         isDragging ? 'cursor-grabbing' : 'cursor-grab',
+                        gate.isActive.value ? 'touch-gate-active' : '',
                     ]"
-                    @pointerdown="onPointerDown"
+                    @pointerdown="gatedPointerDown"
+                    @touchmove="gate.handleScrollCheck"
+                    @touchend="gate.handleTouchEnd"
                 ></div>
 
                 <div
@@ -36,6 +39,7 @@ import { onMounted, useTemplateRef } from "vue";
 import type { Animation } from "@src/animation/index";
 import { useRafLoop } from "@composables/useRafLoop";
 import { useDragCapture } from "@composables/useDragCapture";
+import { useTouchGate } from "@composables/useTouchGate";
 
 const props = defineProps<{
     animation: Animation<any>;
@@ -50,6 +54,8 @@ const emit = defineEmits<{
 const ballEl = useTemplateRef<HTMLElement>('ball');
 const trackEl = useTemplateRef<HTMLElement>("trackEl");
 const containerEl = useTemplateRef<HTMLElement>("containerEl");
+
+const gate = useTouchGate();
 
 let grabOffset = 0;
 
@@ -96,6 +102,7 @@ const { isDragging, onPointerDown } = useDragCapture({
         if (!ball) return;
         const ballRect = ball.getBoundingClientRect();
         grabOffset = e.clientX - (ballRect.left + ballRect.width / 2);
+        gate.suppressDeactivate(true);
         emit("dragStart");
         applyProgress(progressFromPointerX(e.clientX));
     },
@@ -104,9 +111,18 @@ const { isDragging, onPointerDown } = useDragCapture({
     },
     onEnd: () => {
         grabOffset = 0;
+        gate.suppressDeactivate(false);
         emit("dragEnd");
     },
 });
+
+/** Gate pointer-down through touch gate on mobile. */
+const gatedPointerDown = (e: PointerEvent) => {
+    const ball = ballEl.value;
+    if (!ball) return;
+    if (!gate.handleTouchStart(ball, e.clientY)) return;
+    onPointerDown(e);
+};
 
 const { start: startSync } = useRafLoop(() => {
     const anim = props.animation;

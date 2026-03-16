@@ -46,6 +46,9 @@
     :root {
         color-scheme: light;
 
+        /* ── Dock margin ── */
+        --dock-margin: 1rem;
+
         /* ── Duration tokens ── */
         --duration-fast: 0.15s;
         --duration-normal: 0.25s;
@@ -185,4 +188,14 @@
             height: 100dvh;
         }
     }
+}
+
+/* ── Touch gate feedback ── */
+.touch-gate-target {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+    transition: outline-color var(--duration-normal) ease;
+}
+.touch-gate-active {
+    outline-color: hsl(var(--ring) / 0.5);
 }
