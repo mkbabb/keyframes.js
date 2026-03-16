@@ -48,7 +48,7 @@ withDefaults(
         title: "Select an animation",
         ellipsis: "...",
         subtitle: "from the list",
-        subtitleSuffix: "below.",
+        subtitleSuffix: "above.",
         hint: undefined,
     },
 );

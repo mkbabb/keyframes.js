@@ -128,10 +128,6 @@ const headerLeft = () =>
 
 const startScreen = () =>
     h(EditorStartScreen, {
-        title: "Select an animation",
-        ellipsis: "...",
-        subtitle: "from the list",
-        subtitleSuffix: "below.",
         hint: "or drag M. cubert \u{1F642}\u200D\u2194\uFE0F",
     });
 

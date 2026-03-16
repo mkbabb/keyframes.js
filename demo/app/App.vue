@@ -76,13 +76,7 @@
         @start-state-change="(v: boolean) => { if (sceneRef) sceneRef.isStarted = v; }"
     >
         <template #start-screen>
-            <EditorStartScreen
-                title="Select an animation"
-                ellipsis="..."
-                subtitle="from the list"
-                subtitleSuffix="below."
-                hint="or drag M. cubert &#x1F642;&#x200D;&#x2194;&#xFE0F;"
-            />
+            <EditorStartScreen hint="or drag M. cubert &#x1F642;&#x200D;&#x2194;&#xFE0F;" />
         </template>
 
         <template #tabs-trigger="slotProps">
