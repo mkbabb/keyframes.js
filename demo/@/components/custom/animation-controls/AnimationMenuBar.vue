@@ -1,7 +1,7 @@
 <template>
     <div
         :class="[
-            'px-2 py-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))] m-0 flex items-center justify-center justify-items-center',
+            'px-2 py-1.5 pb-[max(var(--dock-margin),env(safe-area-inset-bottom))] m-0 flex items-center justify-center justify-items-center',
             'fixed bottom-0 left-0 right-0 z-40',
         ]"
     >
@@ -20,7 +20,7 @@
                             "
                         >
                             <SelectTrigger
-                                class="border-none rounded-none h-4 focus:ring-0 hover:scale-105 instrument-serif text-lg bg-transparent"
+                                class="dock-select-trigger border-none rounded-none h-auto focus:ring-0 instrument-serif text-lg bg-transparent"
                             >
                                 <SelectIcon v-if="!storedControls.selectedAnimation"
                                     ><List></List
@@ -29,12 +29,12 @@
                                     storedControls.selectedAnimation
                                 }}</SelectValue>
                             </SelectTrigger>
-                            <SelectContent>
-                                <SelectGroup class="instrument-serif text-lg">
+                            <SelectContent class="min-w-[12rem]">
+                                <SelectGroup class="instrument-serif text-xl">
                                     <template
                                         v-for="name in animationNames"
                                     >
-                                        <SelectItem hide-indicator :value="name">
+                                        <SelectItem class="py-2 px-3" hide-indicator :value="name">
                                             <span class="flex items-center gap-2">
                                                 <span
                                                     :class="[
@@ -81,7 +81,7 @@
                 <IconTooltip :text="isPlaying ? 'Pause' : 'Play'">
                     <Button
                         :class="[
-                            'text-xl text-white cursor-pointer rounded-full hover:scale-105 transition-transform duration-[var(--duration-fast)]',
+                            'dock-play-btn text-xl text-white cursor-pointer rounded-full',
                             'w-10 h-10 shrink-0',
                             isPlaying ? 'rainbow-vivid' : 'rainbow-pastel',
                         ]"
@@ -108,7 +108,7 @@
                         </button>
                     </IconTooltip>
 
-                    <span class="instrument-serif text-lg text-muted-foreground whitespace-nowrap">Timeline</span>
+                    <span class="dock-label instrument-serif text-lg whitespace-nowrap">Timeline</span>
                 </template>
             </div>
 
@@ -119,7 +119,7 @@
                 </span>
                 <Button
                     :class="[
-                        'text-white cursor-pointer rounded-full hover:scale-105 transition-transform duration-[var(--duration-fast)]',
+                        'dock-play-btn text-white cursor-pointer rounded-full',
                         'w-8 h-8 shrink-0 text-sm',
                         isPlaying ? 'rainbow-vivid' : 'rainbow-pastel',
                     ]"
@@ -170,8 +170,7 @@ import type { StoredAnimationGroupControlOptions } from "./animationStores";
 const dockRef = useTemplateRef<InstanceType<typeof GlassDock>>("dockRef");
 
 function onCollapsedPlayClick() {
-    dockRef.value?.expand();
-    emit('togglePlay');
+    emit('togglePlay'); // No expand — user tapped play, not the dock
 }
 
 const { storedControls, isPlaying, isStarted, animationProgress, animationNames } = defineProps<{
@@ -262,7 +261,6 @@ defineExpose({ resetIconSpin, trashIconShake });
         hsl(280, 40%, 78%) 75%,
         hsl(0, 50%, 78%) 100%
     );
-    transition: filter var(--duration-slow) var(--ease-standard);
 }
 .rainbow-vivid {
     background: linear-gradient(
@@ -276,6 +274,5 @@ defineExpose({ resetIconSpin, trashIconShake });
         hsl(300, 75%, 60%) 85%,
         hsl(0, 85%, 60%) 100%
     );
-    transition: filter var(--duration-slow) var(--ease-standard);
 }
 </style>
