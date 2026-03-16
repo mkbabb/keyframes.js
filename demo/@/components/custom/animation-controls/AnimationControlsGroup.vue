@@ -250,6 +250,13 @@ const onPanelTransitionEnd = (e: TransitionEvent) => {
     }
 };
 
+// Auto-show controls pane when switching tabs while pane is hidden
+watch(() => storedControls.selectedControl, (newVal, oldVal) => {
+    if (newVal !== oldVal && !storedControls.isControlsPanelOpen) {
+        storedControls.isControlsPanelOpen = true;
+    }
+});
+
 // Validate stored selection — clear stale values via watchEffect (reacts to group changes).
 // Skip validation when the group has no animations (e.g. empty placeholder during init)
 // to avoid clearing a valid localStorage selection before the real group arrives.
