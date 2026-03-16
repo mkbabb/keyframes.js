@@ -114,42 +114,33 @@ defineExpose({ isPinned, isExpanded, isVisible, isToggled });
 </script>
 
 <style scoped>
-/* Shared base */
 .header-items-wrapper {
     max-width: 500px;
     opacity: 1;
     overflow: visible;
+    transition:
+        max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+        margin 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+        opacity 0.25s ease-out;
 }
 
-/* Left-aligned: items expand to the right of anchor */
 .header-items-left {
     margin-left: 0.75rem;
-    transition:
-        max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-        margin-left 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-        opacity 0.25s ease-out;
 }
-.header-collapsed-left {
-    max-width: 0;
-    margin-left: 0;
-    opacity: 0;
-    pointer-events: none;
-    overflow: hidden;
-}
-
-/* Right-aligned: items expand to the left of anchor */
 .header-items-right {
     margin-right: 0.75rem;
-    transition:
-        max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-        margin-right 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-        opacity 0.25s ease-out;
 }
-.header-collapsed-right {
+
+:is(.header-collapsed-left, .header-collapsed-right) {
     max-width: 0;
-    margin-right: 0;
     opacity: 0;
     pointer-events: none;
     overflow: hidden;
+}
+.header-collapsed-left {
+    margin-left: 0;
+}
+.header-collapsed-right {
+    margin-right: 0;
 }
 </style>
