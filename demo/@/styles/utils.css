@@ -2,6 +2,74 @@
 
 :root {
     --ppmycota-primary: 248, 88%, 71%;
+
+    /* ── Rainbow gradient stops (shared across variants) ── */
+    --rainbow-red: hsl(0, 85%, 60%);
+    --rainbow-orange: hsl(30, 90%, 55%);
+    --rainbow-yellow: hsl(55, 90%, 55%);
+    --rainbow-green: hsl(130, 70%, 50%);
+    --rainbow-blue: hsl(210, 80%, 55%);
+    --rainbow-indigo: hsl(260, 70%, 60%);
+    --rainbow-violet: hsl(300, 75%, 60%);
+
+    --rainbow-pastel-red: hsl(0, 50%, 78%);
+    --rainbow-pastel-orange: hsl(25, 55%, 76%);
+    --rainbow-pastel-yellow: hsl(50, 55%, 78%);
+    --rainbow-pastel-green: hsl(130, 35%, 74%);
+    --rainbow-pastel-blue: hsl(220, 45%, 76%);
+    --rainbow-pastel-indigo: hsl(260, 35%, 76%);
+    --rainbow-pastel-violet: hsl(280, 40%, 78%);
+}
+
+/* ── Button interaction variant ── */
+.btn-interactive {
+    transition: all var(--duration-fast) var(--ease-standard);
+}
+.btn-interactive:hover {
+    transform: scale(1.05);
+}
+.btn-interactive:active {
+    transform: scale(0.95);
+}
+
+/* ── Tab trigger variants ── */
+.tab-trigger-base {
+    flex-shrink: 0;
+    font-family: var(--font-serif);
+    letter-spacing: 0.02em;
+    padding: 0.375rem 0.75rem;
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+    background: transparent;
+    transition: all var(--duration-fast) var(--ease-standard);
+}
+.tab-trigger-base[data-state="inactive"] {
+    color: hsl(var(--muted-foreground));
+}
+.tab-trigger-base[data-state="inactive"]:hover {
+    color: hsl(var(--foreground));
+}
+.tab-trigger-base[data-state="active"] {
+    color: hsl(var(--foreground));
+    font-weight: 600;
+}
+
+.tab-trigger-pill {
+    border-radius: var(--radius-lg);
+}
+.tab-trigger-pill[data-state="inactive"]:hover {
+    background: hsl(var(--foreground) / 0.05);
+}
+.tab-trigger-pill[data-state="active"] {
+    background: hsl(var(--foreground) / 0.08);
+}
+
+.tab-trigger-underline {
+    border-radius: 0;
+    border-bottom: 2px solid transparent;
+}
+.tab-trigger-underline[data-state="active"] {
+    border-bottom-color: hsl(var(--foreground));
 }
 
 /* ── Glassmorphism & dock component utilities ── */
@@ -145,12 +213,12 @@
 }
 
 .instrument-serif {
-    font-family: "Instrument Serif", Georgia, serif;
+    font-family: var(--font-serif);
     letter-spacing: 0.02em;
 }
 
 .fira-code {
-    font-family: "Fira Code", monospace;
+    font-family: var(--font-mono);
 }
 
 .ios input,
@@ -168,15 +236,13 @@
         linear-gradient(currentColor, currentColor) padding-box,
         linear-gradient(
                 to right,
-                #ff2400,
-                #e81d1d,
-                #e8b71d,
-                #e3e81d,
-                #1de840,
-                #1ddde8,
-                #2b1de8,
-                #dd00f3,
-                #dd00f3
+                var(--rainbow-red),
+                var(--rainbow-orange),
+                var(--rainbow-yellow),
+                var(--rainbow-green),
+                var(--rainbow-blue),
+                var(--rainbow-indigo),
+                var(--rainbow-violet)
             )
             border-box;
 }
@@ -228,30 +294,31 @@
 .rainbow-text {
     background-image: linear-gradient(
         to right,
-        #f00 0%,
-        #ff0 17%,
-        #0f0 33%,
-        #0ff 50%,
-        #00f 67%,
-        #f0f 83%,
-        #f00 100%
+        var(--rainbow-red) 0%,
+        var(--rainbow-orange) 14%,
+        var(--rainbow-yellow) 28%,
+        var(--rainbow-green) 42%,
+        var(--rainbow-blue) 57%,
+        var(--rainbow-indigo) 71%,
+        var(--rainbow-violet) 85%,
+        var(--rainbow-red) 100%
     ) !important;
     background-clip: text;
     color: transparent;
 }
 
-.pastel-rainbow {
+.pastel-rainbow,
+.rainbow-pastel {
     background: linear-gradient(
         90deg,
-        hsl(0, 70%, 75%) 0%,
-        hsl(25, 75%, 72%) 12.5%,
-        hsl(50, 75%, 75%) 25%,
-        hsl(130, 55%, 70%) 37.5%,
-        hsl(220, 65%, 72%) 50%,
-        hsl(260, 55%, 72%) 62.5%,
-        hsl(280, 60%, 75%) 75%,
-        hsl(0, 70%, 75%) 87.5%,
-        hsl(0, 70%, 75%) 100%
+        var(--rainbow-pastel-red) 0%,
+        var(--rainbow-pastel-orange) 12.5%,
+        var(--rainbow-pastel-yellow) 25%,
+        var(--rainbow-pastel-green) 37.5%,
+        var(--rainbow-pastel-blue) 50%,
+        var(--rainbow-pastel-indigo) 62.5%,
+        var(--rainbow-pastel-violet) 75%,
+        var(--rainbow-pastel-red) 100%
     );
 }
 
@@ -265,19 +332,29 @@
     to { filter: hue-rotate(360deg) saturate(1.5) brightness(1.1); }
 }
 
-.disabled {
+.is-disabled {
     opacity: 0.5;
     pointer-events: none;
+}
+
+.rainbow-vivid {
+    background: linear-gradient(
+        90deg,
+        var(--rainbow-red) 0%,
+        var(--rainbow-orange) 14%,
+        var(--rainbow-yellow) 28%,
+        var(--rainbow-green) 42%,
+        var(--rainbow-blue) 57%,
+        var(--rainbow-indigo) 71%,
+        var(--rainbow-violet) 85%,
+        var(--rainbow-red) 100%
+    );
 }
 
 .rainbow-wrapper {
     height: 100%;
     width: 100%;
-    left: 0;
-    right: 0;
-    top: 0;
-    bottom: 0;
-
+    inset: 0;
     position: absolute;
 }
 
@@ -285,24 +362,17 @@
     content: "";
     height: 100%;
     width: 100%;
-
-    left: 0;
-    right: 0;
-
-    top: 0;
-    bottom: 0;
+    inset: 0;
     position: absolute;
     background: linear-gradient(
         124deg,
-        #ff2400,
-        #e81d1d,
-        #e8b71d,
-        #e3e81d,
-        #1de840,
-        #1ddde8,
-        #2b1de8,
-        #dd00f3,
-        #dd00f3
+        var(--rainbow-red),
+        var(--rainbow-orange),
+        var(--rainbow-yellow),
+        var(--rainbow-green),
+        var(--rainbow-blue),
+        var(--rainbow-indigo),
+        var(--rainbow-violet)
     );
 
     background-size: 800% 800%;

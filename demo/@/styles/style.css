@@ -40,6 +40,9 @@
     --radius-lg: 1rem;
     --radius-md: calc(var(--radius) - 2px);
     --radius-sm: calc(var(--radius) - 4px);
+
+    --font-serif: "Instrument Serif", Georgia, serif;
+    --font-mono: "Fira Code", monospace;
 }
 
 @layer base {
@@ -86,8 +89,18 @@
         --shadow-sm: 0 2px 8px hsl(var(--foreground) / 0.06);
         --shadow-md: 0 4px 16px hsl(var(--foreground) / 0.08);
         --shadow-lg: 0 4px 20px hsl(var(--foreground) / 0.12);
-        --shadow-card: 4px 4px 0px 0px rgba(0,0,0,0.5);
-        --shadow-card-hover: 5px 5px 0px 0px rgba(0,0,0,0.6);
+        --shadow-card: 4px 4px 0px 0px rgba(0, 0, 0, 0.5);
+        --shadow-card-hover: 5px 5px 0px 0px rgba(0, 0, 0, 0.6);
+
+        /* ── Progress / slider color tokens ── */
+        --color-progress: 142 71% 45%;
+        --color-slider-track: 142 40% 72%;
+        --color-slider-border: 142 40% 60%;
+
+        /* ── Gold accent tokens ── */
+        --color-gold: 43 74% 49%;
+        --color-gold-light: 51 100% 50%;
+        --color-gold-dark: 34 87% 38%;
 
         --background: 0 0% 100%;
         --foreground: 222.2 84% 4.9%;
@@ -130,6 +143,14 @@
         color-scheme: dark;
         --shadow-card: 4px 4px 0px 0px hsl(var(--shadow) / 0.3);
         --shadow-card-hover: 5px 5px 0px 0px hsl(var(--shadow) / 0.4);
+
+        --color-progress: 142 50% 55%;
+        --color-slider-track: 142 30% 40%;
+        --color-slider-border: 142 30% 50%;
+
+        --color-gold: 43 74% 55%;
+        --color-gold-light: 51 100% 55%;
+        --color-gold-dark: 34 87% 45%;
 
         --background: 222.2 84% 4.9%;
         --foreground: 210 40% 98%;
