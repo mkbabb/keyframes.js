@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { ChevronDown, Home, PanelLeftClose, PanelLeftOpen, SlidersHorizontal, Braces, Clock, Grid3X3 } from "lucide-vue-next";
+import { ChevronDown, ChevronUp, Home, PanelLeftClose, PanelLeftOpen, SlidersHorizontal, Braces, Clock, Grid3X3 } from "lucide-vue-next";
+import { useMediaQuery } from "@vueuse/core";
 import { GlassDock } from ".";
 import {
     Select,
@@ -51,6 +52,8 @@ const allControlTabs = computed(() => {
     return tabs;
 });
 
+const isMobile = useMediaQuery("(max-width: 1023px)");
+
 const emit = defineEmits<{
     (e: "switchScene", id: string): void;
     (e: "toggleControlsPanel"): void;
@@ -70,8 +73,14 @@ const emit = defineEmits<{
                         class="dock-icon-btn"
                         @click="emit('toggleControlsPanel')"
                     >
-                        <PanelLeftClose v-if="isControlsPanelOpen" class="w-5 h-5" />
-                        <PanelLeftOpen v-else class="w-5 h-5" />
+                        <template v-if="isMobile">
+                            <ChevronUp v-if="isControlsPanelOpen" class="w-5 h-5" />
+                            <ChevronDown v-else class="w-5 h-5" />
+                        </template>
+                        <template v-else>
+                            <PanelLeftClose v-if="isControlsPanelOpen" class="w-5 h-5" />
+                            <PanelLeftOpen v-else class="w-5 h-5" />
+                        </template>
                     </button>
 
                     <div v-if="hasSelectedAnimation" class="dock-separator"></div>
