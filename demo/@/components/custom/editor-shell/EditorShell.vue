@@ -4,7 +4,6 @@
     >
         <div
             v-if="gridBackground"
-            ref="gridBackgroundEl"
             class="grid-background pointer-events-none fixed inset-0 h-dvh w-dvw"
         ></div>
 
@@ -63,7 +62,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, useTemplateRef } from "vue";
+import { ref } from "vue";
 
 import { initIOSPlatformClass } from "@utils/iosTextEntry";
 import { HeaderRibbon } from "@components/custom/header-ribbon";
@@ -107,30 +106,18 @@ const headerRibbonRef = ref<InstanceType<typeof HeaderRibbon> | null>(null);
 const shortcutsOpen = ref(false);
 registerShortcut("?", () => { shortcutsOpen.value = !shortcutsOpen.value; }, { label: "Show shortcuts", group: "General" });
 
-const gridBackgroundEl = useTemplateRef<HTMLElement>("gridBackgroundEl");
-
 const onPlayStateChange = (playing: boolean) => {
     emit("playStateChange", playing);
 };
 
-onMounted(() => {
-    if (props.gridBackground && gridBackgroundEl.value) {
-        const encodedSVG = encodeURIComponent(`
-    <svg class="tmp" xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2 2'>
-        <path d='M1 2V0h1v1H0v1z' fill-opacity='0.10'/>
-    </svg>
-`);
-        gridBackgroundEl.value.style.backgroundImage = `url("data:image/svg+xml,${encodedSVG}")`;
-    }
-});
 
 defineExpose({ headerRibbonRef });
 </script>
 
 <style scoped>
 .grid-background {
-    background-size: 1rem !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2 2'%3E%3Cpath d='M1 2V0h1v1H0v1z' fill-opacity='0.10'/%3E%3C/svg%3E");
+    background-size: 1rem;
     background-repeat: repeat;
 }
-
 </style>
