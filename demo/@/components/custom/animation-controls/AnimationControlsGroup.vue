@@ -7,18 +7,23 @@
         v-bind="$attrs"
     >
         <div
-            ref="controlsPaneEl"
             v-show="storedControls.selectedAnimation && !hideControls"
             @transitionend="onPanelTransitionEnd"
-            @mouseenter="onPaneMouseEnter"
-            @mouseleave="onPaneMouseLeave"
-            @scroll="checkVerticalOverflow"
             :class="[
-                'controls-pane group/controls col-start-1 row-start-1 lg:row-start-1 min-w-0 relative z-[var(--z-controls)]',
+                'controls-pane-wrapper col-start-1 row-start-1 lg:row-start-1 min-w-0 relative z-[var(--z-controls)]',
                 'controls-pane--mobile',
                 storedControls.isControlsPanelOpen
                     ? 'controls-pane--open'
                     : 'controls-pane--closed',
+            ]"
+        >
+        <div
+            ref="controlsPaneEl"
+            @mouseenter="onPaneMouseEnter"
+            @mouseleave="onPaneMouseLeave"
+            @scroll="checkVerticalOverflow"
+            :class="[
+                'controls-pane group/controls min-w-0',
                 isPaneHovered ? 'controls-pane--hovered' : '',
                 isPanelTransitionDone && storedControls.isControlsPanelOpen
                     ? 'overflow-y-auto'
@@ -120,6 +125,7 @@
                         </Card>
                     </div>
                 </div>
+        </div>
         </div>
 
         <div
@@ -245,7 +251,7 @@ watch(() => storedControls.isControlsPanelOpen, (open) => {
 });
 
 const onPanelTransitionEnd = (e: TransitionEvent) => {
-    if (e.propertyName === 'max-height' && storedControls.isControlsPanelOpen) {
+    if (e.propertyName === 'grid-template-rows' && storedControls.isControlsPanelOpen) {
         isPanelTransitionDone.value = true;
     }
 };
@@ -471,67 +477,76 @@ function cycleAnimation(direction: number) {
 </script>
 
 <style scoped>
-/* ── Mobile: slide open/closed via max-height ── */
-.controls-pane--mobile {
-    transition:
-        max-height 0.5s var(--ease-spring),
-        opacity 0.3s ease;
+/* ── Mobile: height via grid-template-rows, opacity on inner pane ── */
+.controls-pane-wrapper {
+    --pane-duration: 0.35s;
+    display: grid;
+    margin-top: 4rem;
+    max-height: calc(100dvh - 8rem);
 }
-.controls-pane--open {
-    max-height: calc(100dvh - 7rem);
-    margin-top: 3rem;
-    opacity: 1;
-    visibility: visible;
-    transition:
-        max-height 0.5s var(--ease-spring),
-        opacity 0.3s ease,
-        visibility 0s 0s;
+.controls-pane-wrapper.controls-pane--open {
+    grid-template-rows: 1fr;
+    transition: grid-template-rows var(--pane-duration) var(--ease-decelerate);
 }
-.controls-pane--closed {
-    max-height: 0;
-    opacity: 0;
+.controls-pane-wrapper.controls-pane--closed {
+    grid-template-rows: 0fr;
     pointer-events: none;
-    visibility: hidden;
-    transition:
-        max-height 0.5s var(--ease-spring),
-        opacity 0.3s ease,
-        visibility 0s 0.5s;
+    transition: grid-template-rows var(--pane-duration) var(--ease-standard);
+}
+.controls-pane {
+    overflow: hidden;
+    transition: opacity var(--pane-duration) var(--ease-standard);
+}
+.controls-pane--open .controls-pane {
+    opacity: 1;
+}
+.controls-pane--closed .controls-pane {
+    opacity: 0;
 }
 
 /* ── Desktop ── */
 @media (min-width: 1024px) {
-    .controls-pane--mobile {
+    .controls-pane-wrapper {
         max-height: none;
         margin-top: 0;
+        display: block;
         transform-origin: center center;
     }
-    .controls-pane--open {
-        max-height: none;
-        opacity: 0.75;
+    .controls-pane-wrapper.controls-pane--open {
         transform: scale(1);
         visibility: visible;
         pointer-events: auto;
         transition:
-            opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1),
             transform 0.5s var(--ease-spring),
             visibility 0s 0s;
     }
-    .controls-pane--closed {
-        max-height: none;
-        opacity: 0;
+    .controls-pane-wrapper.controls-pane--closed {
         transform: scale(0.96);
         visibility: hidden;
         pointer-events: none;
         transition:
-            opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
             transform 0.5s var(--ease-spring),
             visibility 0s 0.5s;
     }
+    .controls-pane--open .controls-pane {
+        opacity: 0.75;
+        transition:
+            opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .controls-pane--closed .controls-pane {
+        opacity: 0;
+        transition:
+            opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
     /* Hovered via pane or dock: fully opaque */
-    .controls-pane--hovered.controls-pane--open {
+    .controls-pane--hovered.controls-pane--open .controls-pane {
         opacity: 1;
         transition:
-            opacity 0.3s cubic-bezier(0, 0, 0.2, 1),
+            opacity 0.3s cubic-bezier(0, 0, 0.2, 1);
+    }
+    .controls-pane--hovered.controls-pane--open {
+        transform: scale(1);
+        transition:
             transform 0.3s ease-out;
     }
 
