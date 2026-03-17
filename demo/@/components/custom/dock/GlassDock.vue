@@ -1,18 +1,21 @@
 <script setup lang="ts">
-import { watch, nextTick, useTemplateRef, inject } from "vue";
+import { watch, useTemplateRef, inject } from "vue";
 import type { Ref } from "vue";
 import { useDockState } from "@composables/useDockState";
+import { useDockTransition } from "@composables/useDockTransition";
 
 const props = withDefaults(
     defineProps<{
         collapseDelay?: number;
         startCollapsed?: boolean;
         fitContent?: boolean;
+        fadeMs?: number;
     }>(),
     {
         collapseDelay: 1800,
         startCollapsed: true,
         fitContent: false,
+        fadeMs: 60,
     },
 );
 
@@ -35,41 +38,18 @@ const {
     rootEl: dockEl,
 });
 
+const { visualExpanded, isTransitioning, onTransitionEnd } = useDockTransition({
+    expanded,
+    rootEl: dockEl,
+    fadeMs: props.fadeMs,
+});
+
 // When inside an AnimationControlsGroup, drive its controls pane hover state
 const controlsPaneHover = inject<Ref<boolean> | null>("controlsPaneHover", null);
 
 watch(expanded, (isExpanded) => {
     if (controlsPaneHover) controlsPaneHover.value = isExpanded;
 });
-
-// Animate width between states by measuring natural sizes
-watch(expanded, () => {
-    const el = dockEl.value;
-    if (!el) return;
-
-    // Capture current rendered width
-    const from = el.getBoundingClientRect().width;
-
-    // Let DOM update with new active layer
-    nextTick(() => {
-        // Remove explicit width to measure natural size of new state
-        el.style.width = "";
-        const to = el.getBoundingClientRect().width;
-
-        // Set to old width, then animate to new
-        el.style.width = `${from}px`;
-        requestAnimationFrame(() => {
-            el.style.width = `${to}px`;
-        });
-    });
-});
-
-function onTransitionEnd(e: TransitionEvent) {
-    if (e.propertyName === "width" && e.target === dockEl.value) {
-        // Clear explicit width so element returns to natural sizing
-        dockEl.value!.style.width = "";
-    }
-}
 
 defineExpose({ expanded, isPinned, expand, collapse, keepOpen, release });
 </script>
@@ -85,11 +65,11 @@ defineExpose({ expanded, isPinned, expand, collapse, keepOpen, release });
         @focusout="onFocusOut"
         @transitionend="onTransitionEnd"
     >
-        <div class="dock-layers">
-            <div :class="['dock-layer dock-layer--full', { 'layer-active': expanded }]" :inert="!expanded">
+        <div class="dock-layers" :class="{ 'dock-transitioning': isTransitioning }">
+            <div :class="['dock-layer dock-layer--full', { 'layer-active': visualExpanded }]" :inert="!expanded">
                 <slot />
             </div>
-            <div :class="['dock-layer dock-layer--summary', { 'layer-active': !expanded }]" :inert="expanded" @click="onClickCollapsed">
+            <div :class="['dock-layer dock-layer--summary', { 'layer-active': !visualExpanded }]" :inert="expanded" @click="onClickCollapsed">
                 <slot name="collapsed" />
             </div>
         </div>
@@ -107,13 +87,13 @@ defineExpose({ expanded, isPinned, expand, collapse, keepOpen, release });
     -webkit-backdrop-filter: var(--glass-blur);
     border: 1px solid var(--glass-border);
     box-shadow: var(--glass-shadow);
-    overflow: visible;
     white-space: nowrap;
+    --ease-dock: cubic-bezier(0.18, 1.4, 0.4, 1);
     transition:
-        width 0.4s var(--ease-spring),
-        padding 0.4s var(--ease-spring),
+        width 0.25s var(--ease-dock),
+        padding 0.25s var(--ease-dock),
         box-shadow var(--duration-normal) var(--ease-standard),
-        transform 0.4s var(--ease-spring),
+        transform 0.25s var(--ease-dock),
         background var(--duration-normal) var(--ease-standard),
         border-color var(--duration-normal) var(--ease-standard);
 }
@@ -141,6 +121,11 @@ defineExpose({ expanded, isPinned, expand, collapse, keepOpen, release });
 /* ── Layer stacking via grid ── */
 .dock-layers {
     display: grid;
+    transition: opacity 60ms var(--ease-standard);
+}
+
+.dock-layers.dock-transitioning {
+    opacity: 0;
 }
 
 .dock-layer {
@@ -150,16 +135,13 @@ defineExpose({ expanded, isPinned, expand, collapse, keepOpen, release });
     gap: 0.5rem;
     min-height: 2rem;
     white-space: nowrap;
-    transition: opacity var(--duration-normal) var(--ease-standard);
 }
 
 .dock-layer.layer-active {
-    opacity: 1;
     pointer-events: auto;
 }
 
 .dock-layer:not(.layer-active) {
-    opacity: 0;
     pointer-events: none;
     position: absolute;
     visibility: hidden;

@@ -16,6 +16,7 @@ export function useDockState(options: UseDockStateOptions) {
     const state = ref<DockState>("collapsed");
     const expanded = ref(false);
     const isPinned = ref(false);
+    const isMouseInside = ref(false);
 
     let collapseTimer: ReturnType<typeof setTimeout> | null = null;
     let keepOpenCount = 0;
@@ -40,7 +41,7 @@ export function useDockState(options: UseDockStateOptions) {
     }
 
     function scheduleCollapse() {
-        if (keepOpenCount > 0) return;
+        if (keepOpenCount > 0 || isMouseInside.value) return;
         clearTimer();
         collapseTimer = setTimeout(() => {
             state.value = "collapsed";
@@ -65,6 +66,7 @@ export function useDockState(options: UseDockStateOptions) {
 
     function onMouseEnter() {
         if (ignoreEvents) return;
+        isMouseInside.value = true;
         clearTimer();
         if (state.value === "collapsed") {
             state.value = "hover";
@@ -84,6 +86,7 @@ export function useDockState(options: UseDockStateOptions) {
             )
                 return;
         }
+        isMouseInside.value = false;
         if (state.value === "hover") {
             if (keepOpenCount > 0) return;
             scheduleCollapse();
