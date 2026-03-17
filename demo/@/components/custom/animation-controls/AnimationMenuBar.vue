@@ -2,7 +2,7 @@
     <div
         :class="[
             'px-2 py-1.5 pb-[max(var(--dock-margin),env(safe-area-inset-bottom))] m-0 flex items-center justify-center justify-items-center',
-            'fixed bottom-0 left-0 right-0 z-40',
+            'fixed bottom-0 left-0 right-0 z-[var(--z-dock)]',
         ]"
     >
         <GlassDock ref="dockRef" :collapse-delay="2500" :start-collapsed="true" :fit-content="true">
@@ -182,8 +182,8 @@ const dotStyle = (name: string): Record<string, string> => {
     const p = animationProgress[name] ?? 0;
     const deg = p * 360;
     return {
-        background: `conic-gradient(rgb(34, 197, 94) ${deg}deg, rgba(34, 197, 94, 0.15) ${deg}deg)`,
-        boxShadow: `0 0 ${2 + p * 3}px ${p * 1.5}px rgba(34, 197, 94, 0.4)`,
+        background: `conic-gradient(hsl(var(--color-progress)) ${deg}deg, hsl(var(--color-progress) / 0.15) ${deg}deg)`,
+        boxShadow: `0 0 ${2 + p * 3}px ${p * 1.5}px hsl(var(--color-progress) / 0.4)`,
     };
 };
 
@@ -238,31 +238,3 @@ const trashIconShake = () => {
 defineExpose({ resetIconSpin, trashIconShake });
 </script>
 
-<style scoped>
-.rainbow-pastel {
-    background: linear-gradient(
-        90deg,
-        hsl(0, 50%, 78%) 0%,
-        hsl(25, 55%, 76%) 12.5%,
-        hsl(50, 55%, 78%) 25%,
-        hsl(130, 35%, 74%) 37.5%,
-        hsl(220, 45%, 76%) 50%,
-        hsl(260, 35%, 76%) 62.5%,
-        hsl(280, 40%, 78%) 75%,
-        hsl(0, 50%, 78%) 100%
-    );
-}
-.rainbow-vivid {
-    background: linear-gradient(
-        90deg,
-        hsl(0, 85%, 60%) 0%,
-        hsl(30, 90%, 55%) 14%,
-        hsl(55, 90%, 55%) 28%,
-        hsl(130, 70%, 50%) 42%,
-        hsl(210, 80%, 55%) 57%,
-        hsl(260, 70%, 60%) 71%,
-        hsl(300, 75%, 60%) 85%,
-        hsl(0, 85%, 60%) 100%
-    );
-}
-</style>

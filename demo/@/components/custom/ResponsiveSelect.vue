@@ -66,7 +66,7 @@
                             }
                         "
                         :class="[
-                            'flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition-colors',
+                            'flex items-center gap-3 px-3 py-2 rounded-md cursor-pointer transition-colors',
                             item.value === modelValue
                                 ? 'bg-accent text-accent-foreground font-semibold'
                                 : 'hover:bg-muted',

@@ -2,7 +2,7 @@
     <div class="p-2 w-full h-full">
         <div
             ref="trackEl"
-            class="w-full h-12 p-0 m-0 left-0 top-0 relative"
+            class="w-full h-12 relative"
             :style="{ touchAction: gate.isActive.value || !gate.isTouchDevice ? 'none' : 'pan-y' }"
         >
             <div ref="containerEl" class="w-full h-full relative" style="container-type: inline-size">

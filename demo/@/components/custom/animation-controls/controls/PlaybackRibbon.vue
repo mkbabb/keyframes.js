@@ -1,6 +1,6 @@
 <template>
     <div class="w-full grid gap-2">
-        <IconTooltip :class="!isAnimStarted ? 'disabled' : ''" text="Scrub animation timeline">
+        <IconTooltip :class="!isAnimStarted ? 'is-disabled' : ''" text="Scrub animation timeline">
             <div
                 :class="['touch-gate-target', gate.isActive.value ? 'touch-gate-active' : '']"
                 @pointerdown.capture="gatedSliderDown"
@@ -23,7 +23,7 @@
         <div class="grid grid-cols-2 gap-2 w-full">
             <Button
                 :class="[
-                    'h-8 w-full rounded-lg gap-2 instrument-serif text-base cursor-pointer hover:scale-105 active:scale-95 transition-transform',
+                    'h-8 w-full rounded-lg gap-2 instrument-serif text-base cursor-pointer btn-interactive',
                     isGrouped && !isAnimStarted
                         ? 'bg-accent-red/30 text-accent-red border-accent-red/40 hover:bg-accent-red/50 hover:text-accent-red'
                         : '',
@@ -37,11 +37,10 @@
             </Button>
             <Button
                 :class="[
-                    'h-8 w-full rounded-lg gap-2 instrument-serif text-base cursor-pointer hover:scale-105 active:scale-95 transition-transform',
-                    userReversed
-                        ? 'bg-primary/10 border-primary/40'
-                        : '',
+                    'h-8 w-full rounded-lg gap-2 instrument-serif text-base cursor-pointer btn-interactive',
+                    'aria-pressed:bg-primary/10 aria-pressed:border-primary/40',
                 ]"
+                :aria-pressed="userReversed"
                 variant="outline"
                 @click="emit('toggleReverse')"
             >
@@ -56,7 +55,7 @@
         </div>
 
         <AnimationVisualizer
-            :class="['w-full', !isAnimStarted ? 'disabled' : '']"
+            :class="['w-full', !isAnimStarted ? 'is-disabled' : '']"
             :animation="animation"
             @scrub="scrubTo"
             @drag-start="emit('scrubStart')"
@@ -153,19 +152,11 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* Timeline slider: pastel green track */
-.timeline-slider {
-    --slider-track-color: hsl(142 40% 72%);
-    --slider-border-color: hsl(142 40% 60%);
-}
-:global(.dark) .timeline-slider {
-    --slider-track-color: hsl(142 30% 40%);
-    --slider-border-color: hsl(142 30% 50%);
-}
+/* Timeline slider: themed green track */
 .timeline-slider :deep(.bg-primary) {
-    background-color: var(--slider-track-color);
+    background-color: hsl(var(--color-slider-track));
 }
 .timeline-slider :deep(.border-primary) {
-    border-color: var(--slider-border-color);
+    border-color: hsl(var(--color-slider-border));
 }
 </style>

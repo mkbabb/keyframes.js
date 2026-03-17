@@ -133,7 +133,7 @@
                                 <template #item-extra="{ item }">
                                     <span
                                         v-if="TIMING_DESCRIPTIONS[item.value]"
-                                        class="ml-auto pl-2 text-[10px] text-muted-foreground leading-tight whitespace-nowrap"
+                                        class="ml-auto pl-2 text-xs text-muted-foreground leading-tight whitespace-nowrap"
                                     >{{ TIMING_DESCRIPTIONS[item.value] }}</span>
                                 </template>
                             </ResponsiveSelect>
@@ -500,16 +500,16 @@ onMounted(() => {
 }
 
 .easing-edit-btn {
-    color: #daa520;
+    color: hsl(var(--color-gold));
 }
 
 .gold-shimmer {
-    background: linear-gradient(90deg, #b8860b, #ffd700, #daa520, #ffd700, #b8860b);
+    background: linear-gradient(90deg, hsl(var(--color-gold-dark)), hsl(var(--color-gold-light)), hsl(var(--color-gold)), hsl(var(--color-gold-light)), hsl(var(--color-gold-dark)));
     background-size: 200% 100%;
     background-clip: text;
     -webkit-background-clip: text;
     color: transparent;
-    animation: shimmer 3s linear infinite;
+    animation: shimmer var(--duration-linger) linear infinite;
 }
 
 @keyframes shimmer {

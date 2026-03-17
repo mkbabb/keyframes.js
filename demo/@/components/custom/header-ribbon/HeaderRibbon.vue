@@ -1,7 +1,7 @@
 <template>
     <div
         :class="[
-            'fixed z-40 pointer-events-none w-fit flex items-center px-4 pt-4 pb-2',
+            'fixed z-[var(--z-dock)] pointer-events-none w-fit flex items-center px-4 pt-4 pb-2',
             position === 'left' ? 'top-0 left-0' : 'top-0 right-0',
         ]"
         @mouseleave="onGroupMouseLeave"
@@ -63,6 +63,7 @@ const props = withDefaults(
 const isExpanded = ref(false);
 const isPinned = ref(false);
 const isToggled = ref(false);
+const isMouseOver = ref(false);
 
 let hoverTimeout: ReturnType<typeof setTimeout> | undefined;
 
@@ -76,6 +77,8 @@ function clearHoverTimeout() {
 }
 
 function startHideTimeout() {
+    // Don't schedule collapse while mouse is still over the ribbon
+    if (isMouseOver.value) return;
     clearHoverTimeout();
     hoverTimeout = setTimeout(() => {
         isExpanded.value = false;
@@ -83,11 +86,13 @@ function startHideTimeout() {
 }
 
 function onRibbonMouseEnter() {
+    isMouseOver.value = true;
     clearHoverTimeout();
     isExpanded.value = true;
 }
 
 function onGroupMouseLeave() {
+    isMouseOver.value = false;
     if (!isPinned.value) {
         startHideTimeout();
     }
@@ -115,13 +120,14 @@ defineExpose({ isPinned, isExpanded, isVisible, isToggled });
 
 <style scoped>
 .header-items-wrapper {
-    max-width: 500px;
+    --header-max-width: 500px;
+    max-width: var(--header-max-width);
     opacity: 1;
     overflow: visible;
     transition:
-        max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-        margin 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-        opacity 0.25s ease-out;
+        max-width var(--duration-slow) var(--ease-standard),
+        margin var(--duration-slow) var(--ease-standard),
+        opacity var(--duration-normal) var(--ease-decelerate);
 }
 
 .header-items-left {

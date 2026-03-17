@@ -166,13 +166,7 @@ const isTimelineVisible = computed(() =>
     storedControls.selectedControl === "timeline" || storedControls.isTimelineExpanded,
 );
 
-const tabClasses = [
-    "shrink-0 instrument-serif px-3 py-1.5 text-lg bg-transparent rounded-lg",
-    "transition-all duration-[var(--duration-fast)]",
-    "data-[state=inactive]:text-muted-foreground",
-    "data-[state=inactive]:hover:text-foreground data-[state=inactive]:hover:bg-foreground/5",
-    "data-[state=active]:text-foreground data-[state=active]:font-semibold data-[state=active]:bg-foreground/8",
-].join(" ");
+const tabClasses = "tab-trigger-base tab-trigger-pill";
 
 // --- Overflow detection (left + right) ---
 const overflowLeft = ref(false);
@@ -257,17 +251,19 @@ defineExpose({
 </script>
 
 <style scoped>
+.tabs-overflow-right,
+.tabs-overflow-left,
+.tabs-overflow-both {
+    --tabs-mask-fade: 2.5rem;
+}
 .tabs-overflow-right {
-    mask-image: linear-gradient(to right, black calc(100% - 2.5rem), transparent);
-    -webkit-mask-image: linear-gradient(to right, black calc(100% - 2.5rem), transparent);
+    mask-image: linear-gradient(to right, black calc(100% - var(--tabs-mask-fade)), transparent);
 }
 .tabs-overflow-left {
-    mask-image: linear-gradient(to right, transparent, black 2.5rem);
-    -webkit-mask-image: linear-gradient(to right, transparent, black 2.5rem);
+    mask-image: linear-gradient(to right, transparent, black var(--tabs-mask-fade));
 }
 .tabs-overflow-both {
-    mask-image: linear-gradient(to right, transparent, black 2.5rem, black calc(100% - 2.5rem), transparent);
-    -webkit-mask-image: linear-gradient(to right, transparent, black 2.5rem, black calc(100% - 2.5rem), transparent);
+    mask-image: linear-gradient(to right, transparent, black var(--tabs-mask-fade), black calc(100% - var(--tabs-mask-fade)), transparent);
 }
 </style>
 
