@@ -10,7 +10,7 @@
             <HoverCard
                 :open-delay="200"
                 :close-delay="150"
-                v-model:open="hoverCardStates.ppmycota"
+                v-model:open="ppmycotaHoverOpen"
             >
                 <HoverCardTrigger>
                     <div
@@ -19,7 +19,7 @@
                         class="ppmycota-logo-sm m-0 h-8 w-8 lg:h-10 lg:w-10 cursor-pointer stroke-2 p-0 font-bold hover:scale-105"
                     ></div>
                 </HoverCardTrigger>
-                <HoverCardContent class="z-[100] p-4 min-w-[17rem] instrument-serif">
+                <HoverCardContent class="z-[var(--z-modal)] p-4 min-w-[17rem] instrument-serif">
                     <div class="flex items-center gap-3">
                         <div
                             class="ppmycota-logo-sm z-20 h-10 w-10 shrink-0 stroke-2 font-bold"
@@ -53,12 +53,8 @@
         </template>
 
         <template #header-anchor="{ pinned, toggled }">
-            <HoverCard
-                v-model:open="hoverCardStates.mbabb"
-                :open-delay="300"
-                :close-delay="200"
-            >
-                <HoverCardTrigger>
+            <Popover v-model:open="mbabbPopoverOpen">
+                <PopoverTrigger as-child>
                     <Button
                         :class="[
                             'm-0 cursor-pointer p-0 text-xs lg:text-sm transition-all duration-200 font-mono font-normal',
@@ -70,8 +66,8 @@
                         ]"
                         variant="link"
                     >@mbabb</Button>
-                </HoverCardTrigger>
-                <HoverCardContent class="z-[100] p-4 min-w-[17rem] instrument-serif">
+                </PopoverTrigger>
+                <PopoverContent class="z-[var(--z-modal)] p-4 min-w-[17rem] w-auto instrument-serif">
                     <div class="flex items-center gap-3">
                         <Avatar>
                             <AvatarImage
@@ -85,8 +81,8 @@
                     </div>
                     <hr class="my-2 border-border/50" />
                     <a href="https://github.com/mkbabb/keyframes.js" target="_blank" rel="noopener noreferrer" class="block text-sm text-foreground hover:underline">View project on GitHub 🎉</a>
-                </HoverCardContent>
-            </HoverCard>
+                </PopoverContent>
+            </Popover>
         </template>
 
         <template #start-screen>
@@ -97,7 +93,7 @@
             <TabsTrigger
                 v-if="selectedAnimation === 'Matrix'"
                 value="matrix-controls"
-                class="shrink-0 instrument-serif px-3 py-1.5 text-lg bg-transparent rounded-none transition-colors duration-150 data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground data-[state=active]:text-foreground data-[state=active]:font-semibold border-b-2 border-transparent data-[state=active]:border-foreground"
+                class="tab-trigger-base tab-trigger-underline"
                 >Matrix Controls</TabsTrigger
             >
         </template>
@@ -117,13 +113,13 @@
         <template #ribbon-content="{ selectedControl }">
             <template v-if="selectedControl === 'matrix-controls'">
                 <Button size="sm" variant="outline"
-                    class="h-8 gap-1.5 cursor-pointer fira-code text-xs px-3 rounded-lg hover:scale-105 active:scale-95 transition-transform"
+                    class="h-8 gap-1.5 cursor-pointer fira-code text-xs px-3 rounded-lg btn-interactive"
                     @click="resetMatrix()"
                 >
                     <RotateCcw class="w-3.5 h-3.5" /> Reset
                 </Button>
                 <Button size="sm" variant="outline"
-                    class="h-8 gap-1.5 cursor-pointer fira-code text-xs px-3 rounded-lg hover:scale-105 active:scale-95 transition-transform"
+                    class="h-8 gap-1.5 cursor-pointer fira-code text-xs px-3 rounded-lg btn-interactive"
                     @click="storedControls.matrixOptions.fixed = !storedControls.matrixOptions.fixed"
                 >
                     <Lock v-if="!storedControls.matrixOptions?.fixed" class="w-3.5 h-3.5" />
@@ -154,6 +150,7 @@ import {
     HoverCardContent,
     HoverCardTrigger,
 } from "@components/ui/hover-card";
+import { Popover, PopoverContent, PopoverTrigger } from "@components/ui/popover";
 import { Avatar, AvatarImage } from "@components/ui/avatar";
 import { Button } from "@components/ui/button";
 import { TabsContent, TabsTrigger } from "@components/ui/tabs";
@@ -183,12 +180,10 @@ storedControls.ppMode ??= false;
 const editorShellRef = ref<InstanceType<typeof EditorShell> | null>(null);
 const headerRibbonRef = computed(() => editorShellRef.value?.headerRibbonRef);
 
-const hoverCardStates = ref({
-    ppmycota: false,
-    mbabb: false,
-});
+const ppmycotaHoverOpen = ref(false);
+const mbabbPopoverOpen = ref(false);
 
-// Auto-dismiss hover cards after a timeout
+// Auto-dismiss ppmycota hover card
 let autoDismissTimer: ReturnType<typeof setTimeout> | undefined;
 const AUTO_DISMISS_MS = 4000;
 
@@ -199,41 +194,21 @@ function clearAutoDismiss() {
     }
 }
 
-function scheduleAutoDismiss(key: keyof typeof hoverCardStates.value) {
-    clearAutoDismiss();
-    autoDismissTimer = setTimeout(() => {
-        hoverCardStates.value[key] = false;
-    }, AUTO_DISMISS_MS);
-}
-
-// Exclusive hovers: opening one dismisses the other
-watch(() => hoverCardStates.value.ppmycota, (open) => {
+watch(ppmycotaHoverOpen, (open) => {
     if (open) {
-        hoverCardStates.value.mbabb = false;
-        scheduleAutoDismiss("ppmycota");
+        mbabbPopoverOpen.value = false;
+        clearAutoDismiss();
+        autoDismissTimer = setTimeout(() => { ppmycotaHoverOpen.value = false; }, AUTO_DISMISS_MS);
     }
 });
 
-watch(() => hoverCardStates.value.mbabb, (open) => {
-    if (open && mbabbClickCooldown) {
-        hoverCardStates.value.mbabb = false;
-        return;
-    }
-    if (open) {
-        hoverCardStates.value.ppmycota = false;
-        scheduleAutoDismiss("mbabb");
-    }
+// Close mbabb popover when ppmycota opens
+watch(mbabbPopoverOpen, (open) => {
+    if (open) ppmycotaHoverOpen.value = false;
 });
-
-// mbabb click cooldown prevents hover from immediately reopening the card after anchor click.
-let mbabbClickCooldown = false;
-let mbabbCooldownTimer: ReturnType<typeof setTimeout> | undefined;
 
 watch(() => headerRibbonRef.value?.isToggled, (toggled) => {
-    hoverCardStates.value.mbabb = false;
-    mbabbClickCooldown = true;
-    clearTimeout(mbabbCooldownTimer);
-    mbabbCooldownTimer = setTimeout(() => { mbabbClickCooldown = false; }, 600);
+    mbabbPopoverOpen.value = false;
     // Only sync controls panel on desktop — mobile uses its own toggle
     if (window.innerWidth >= 1024) {
         storedControls.isControlsPanelOpen = !!toggled;
@@ -289,7 +264,6 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
     clearAutoDismiss();
-    clearTimeout(mbabbCooldownTimer);
 });
 </script>
 
