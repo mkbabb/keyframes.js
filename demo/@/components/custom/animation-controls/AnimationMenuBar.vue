@@ -160,7 +160,8 @@ import type { StoredAnimationGroupControlOptions } from "./animationStores";
 const dockRef = useTemplateRef<InstanceType<typeof GlassDock>>("dockRef");
 
 function onCollapsedPlayClick() {
-    emit('togglePlay'); // No expand — user tapped play, not the dock
+    dockRef.value?.expand();
+    emit('togglePlay');
 }
 
 const { storedControls, isPlaying, isStarted, animationProgress, animationNames } = defineProps<{

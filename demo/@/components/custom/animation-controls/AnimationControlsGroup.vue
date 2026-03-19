@@ -15,6 +15,7 @@
                 storedControls.isControlsPanelOpen
                     ? 'controls-pane--open'
                     : 'controls-pane--closed',
+                isPaneHovered ? 'controls-pane--hovered' : '',
             ]"
         >
         <div
@@ -24,14 +25,13 @@
             @scroll="checkVerticalOverflow"
             :class="[
                 'controls-pane group/controls min-w-0',
-                isPaneHovered ? 'controls-pane--hovered' : '',
                 isPanelTransitionDone && storedControls.isControlsPanelOpen
                     ? 'overflow-y-auto'
                     : 'overflow-hidden',
                 scrollFadeClass,
             ]"
         >
-                <div class="controls-content h-full overflow-hidden flex flex-col">
+                <div class="controls-content h-full flex flex-col">
                     <template
                         v-for="[name, groupObject] in Object.entries(animationGroup.animations)"
                     >
@@ -557,12 +557,14 @@ function cycleAnimation(direction: number) {
         -webkit-backdrop-filter: var(--glass-blur-heavy);
         background: hsl(var(--background) / 0.6);
     }
-    .controls-pane--hovered :deep(.controls-card) {
+    .controls-pane--hovered .controls-pane :deep(.controls-card) {
         box-shadow: var(--shadow-card-hover);
     }
 
     .controls-content {
         min-width: 400px;
+        padding-right: 6px;
+        padding-bottom: 6px;
     }
 }
 

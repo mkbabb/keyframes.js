@@ -30,7 +30,7 @@ const defaultStoredAnimationGroupControlOptions: StoredAnimationGroupControlOpti
         selectedAnimation: "",
         selectedKeyframesControl: "string",
         isTimelineExpanded: false,
-        isControlsPanelOpen: false,
+        isControlsPanelOpen: true,
     };
 
 let _animationGroupsControlOptionsStore: ReturnType<

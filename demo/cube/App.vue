@@ -53,8 +53,8 @@
         </template>
 
         <template #header-anchor="{ pinned, toggled }">
-            <Popover v-model:open="mbabbPopoverOpen">
-                <PopoverTrigger as-child>
+            <DropdownMenu>
+                <DropdownMenuTrigger as-child>
                     <Button
                         :class="[
                             'm-0 cursor-pointer p-0 text-xs lg:text-sm transition-all duration-200 font-mono font-normal',
@@ -66,23 +66,33 @@
                         ]"
                         variant="link"
                     >@mbabb</Button>
-                </PopoverTrigger>
-                <PopoverContent class="z-[var(--z-modal)] p-4 min-w-[17rem] w-auto instrument-serif">
-                    <div class="flex items-center gap-3">
-                        <Avatar>
-                            <AvatarImage
-                                src="https://avatars.githubusercontent.com/u/2848617?v=4"
-                            ></AvatarImage>
-                        </Avatar>
-                        <div class="flex-1 min-w-0">
-                            <a href="https://github.com/mkbabb" target="_blank" rel="noopener noreferrer" class="font-mono text-sm font-semibold text-foreground hover:underline">@mbabb</a>
-                            <p class="mt-0.5 text-xs italic text-muted-foreground">CSS keyframe animation engine</p>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent class="z-[var(--z-modal)] min-w-[17rem] w-auto instrument-serif text-base">
+                    <DropdownMenuLabel class="font-normal px-3 py-2">
+                        <div class="flex items-center gap-3">
+                            <Avatar>
+                                <AvatarImage
+                                    src="https://avatars.githubusercontent.com/u/2848617?v=4"
+                                ></AvatarImage>
+                            </Avatar>
+                            <div class="flex-1 min-w-0">
+                                <span class="font-mono text-sm font-semibold text-foreground">@mbabb</span>
+                                <p class="mt-0.5 text-xs italic text-muted-foreground">CSS keyframe animation engine</p>
+                            </div>
                         </div>
-                    </div>
-                    <hr class="my-2 border-border/50" />
-                    <a href="https://github.com/mkbabb/keyframes.js" target="_blank" rel="noopener noreferrer" class="block text-sm text-foreground hover:underline">View project on GitHub 🎉</a>
-                </PopoverContent>
-            </Popover>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem as-child>
+                        <a href="https://github.com/mkbabb" target="_blank" rel="noopener noreferrer" class="cursor-pointer">GitHub Profile</a>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem as-child>
+                        <a href="https://github.com/mkbabb/keyframes.js" target="_blank" rel="noopener noreferrer" class="cursor-pointer">View Project on GitHub</a>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem as-child>
+                        <a href="https://ppmycota.com" target="_blank" rel="noopener noreferrer" class="cursor-pointer">ppmycota.com</a>
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
         </template>
 
         <template #start-screen>
@@ -150,7 +160,14 @@ import {
     HoverCardContent,
     HoverCardTrigger,
 } from "@components/ui/hover-card";
-import { Popover, PopoverContent, PopoverTrigger } from "@components/ui/popover";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@components/ui/dropdown-menu";
 import { Avatar, AvatarImage } from "@components/ui/avatar";
 import { Button } from "@components/ui/button";
 import { TabsContent, TabsTrigger } from "@components/ui/tabs";
@@ -181,7 +198,6 @@ const editorShellRef = ref<InstanceType<typeof EditorShell> | null>(null);
 const headerRibbonRef = computed(() => editorShellRef.value?.headerRibbonRef);
 
 const ppmycotaHoverOpen = ref(false);
-const mbabbPopoverOpen = ref(false);
 
 // Auto-dismiss ppmycota hover card
 let autoDismissTimer: ReturnType<typeof setTimeout> | undefined;
@@ -196,19 +212,12 @@ function clearAutoDismiss() {
 
 watch(ppmycotaHoverOpen, (open) => {
     if (open) {
-        mbabbPopoverOpen.value = false;
         clearAutoDismiss();
         autoDismissTimer = setTimeout(() => { ppmycotaHoverOpen.value = false; }, AUTO_DISMISS_MS);
     }
 });
 
-// Close mbabb popover when ppmycota opens
-watch(mbabbPopoverOpen, (open) => {
-    if (open) ppmycotaHoverOpen.value = false;
-});
-
 watch(() => headerRibbonRef.value?.isToggled, (toggled) => {
-    mbabbPopoverOpen.value = false;
     // Only sync controls panel on desktop — mobile uses its own toggle
     if (window.innerWidth >= 1024) {
         storedControls.isControlsPanelOpen = !!toggled;

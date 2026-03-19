@@ -42,7 +42,7 @@
             <button
                 @click="drawerOpen = true"
                 :class="[
-                    'flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none',
+                    'flex h-10 w-full items-center justify-between rounded-full border border-input bg-background px-3 py-2 text-sm focus:outline-none',
                     triggerClass,
                 ]"
             >
@@ -66,7 +66,7 @@
                             }
                         "
                         :class="[
-                            'flex items-center gap-3 px-3 py-2 rounded-md cursor-pointer transition-colors',
+                            'flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors',
                             item.value === modelValue
                                 ? 'bg-accent text-accent-foreground font-semibold'
                                 : 'hover:bg-muted',

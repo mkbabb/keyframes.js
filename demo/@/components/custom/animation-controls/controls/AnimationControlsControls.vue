@@ -2,12 +2,11 @@
     <div class="grid items-center gap-4">
         <Card class="w-full overflow-visible transition-shadow duration-300 controls-card">
             <CardContent class="relative grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 px-4 py-3">
-                <!-- Sliding panel container — both panels always rendered, stacked in same grid cell -->
+                <!-- Sliding panel container — each panel in its own collapsible row -->
                 <div class="panel-stack col-span-2 grid grid-cols-[subgrid]">
                     <!-- Main controls panel -->
-                        <div
-                            :class="['panel-layer col-span-2 grid grid-cols-[subgrid] items-center gap-x-3 gap-y-2 w-full', showDetailPanel ? 'panel-inactive' : 'panel-active']"
-                        >
+                    <div :class="['panel-row', !(showDetailPanel || advancedOpen) ? 'panel-row--active' : 'panel-row--inactive']">
+                        <div class="panel-content grid grid-cols-[subgrid] items-center gap-x-3 gap-y-2 w-full">
                             <LabeledInput
                                 :model-value="storedAnimationOptions.animationOptions.duration"
                                 label="duration"
@@ -137,59 +136,70 @@
                                     >{{ TIMING_DESCRIPTIONS[item.value] }}</span>
                                 </template>
                             </ResponsiveSelect>
+
+                            <Separator class="my-1 col-span-2" />
+
+                            <!-- Advanced — navigate to sub-pane -->
+                            <div
+                                @click="advancedOpen = true"
+                                role="button"
+                                tabindex="0"
+                                @keydown.enter="advancedOpen = true"
+                                @keydown.space.prevent="advancedOpen = true"
+                                class="col-span-2 grid grid-cols-[subgrid] gap-x-3 items-center w-full py-1.5 cursor-pointer hover:text-foreground text-muted-foreground transition-colors"
+                            >
+                                <span class="instrument-serif text-lg">advanced</span>
+                                <div class="flex items-center justify-end px-3">
+                                    <ChevronRight class="w-4 h-4 opacity-50" />
+                                </div>
+                            </div>
                         </div>
+                    </div>
 
                     <!-- Detail panel (cubic-bezier / steps) -->
-                    <TimingFunctionPanel
-                        :class="['panel-layer', showDetailPanel ? 'panel-active' : 'panel-inactive']"
-                        :animation="animation"
-                        :stored-animation-options="storedAnimationOptions"
-                        :timing-functions-and="timingFunctionsAnd"
-                        :editing-curve-name="convertedFromName ?? undefined"
-                        @exit-detail-panel="exitDetailPanel"
-                        @update-timing-function="updateTimingFunctionFromName"
-                    />
-                </div>
+                    <div :class="['panel-row', showDetailPanel ? 'panel-row--active' : 'panel-row--inactive']">
+                        <div class="panel-content">
+                            <TimingFunctionPanel
+                                :animation="animation"
+                                :stored-animation-options="storedAnimationOptions"
+                                :timing-functions-and="timingFunctionsAnd"
+                                :editing-curve-name="convertedFromName ?? undefined"
+                                @exit-detail-panel="exitDetailPanel"
+                                @update-timing-function="updateTimingFunctionFromName"
+                            />
+                        </div>
+                    </div>
 
-                <template v-if="!showDetailPanel">
-                <Separator class="my-1 col-span-2" />
+                    <!-- Advanced sub-pane -->
+                    <div :class="['panel-row', advancedOpen && !showDetailPanel ? 'panel-row--active' : 'panel-row--inactive']">
+                        <div class="panel-content grid grid-cols-[subgrid] items-start gap-x-3 gap-y-2 w-full">
+                            <div class="col-span-2 flex items-center gap-1 mb-1">
+                                <button
+                                    class="cursor-pointer p-0.5 hover:scale-110 transition-transform duration-[var(--duration-fast)] text-muted-foreground hover:text-foreground"
+                                    @click="advancedOpen = false"
+                                >
+                                    <ArrowLeft class="w-4 h-4" />
+                                </button>
+                                <span class="instrument-serif text-lg text-muted-foreground">advanced</span>
+                            </div>
 
-                <!-- Advanced (includes layer settings when grouped) -->
-                <div
-                    @click="advancedOpen = !advancedOpen"
-                    role="button"
-                    tabindex="0"
-                    @keydown.enter="advancedOpen = !advancedOpen"
-                    @keydown.space.prevent="advancedOpen = !advancedOpen"
-                    class="col-span-2 grid grid-cols-[subgrid] gap-x-3 items-center w-full py-1.5 cursor-pointer hover:text-foreground text-muted-foreground transition-colors"
-                >
-                    <span class="instrument-serif text-lg">advanced</span>
-                    <div class="flex items-center justify-end px-3">
-                        <ChevronDown class="w-4 h-4 opacity-50 transition-transform duration-[var(--duration-normal)]" :class="advancedOpen ? 'rotate-180' : ''" />
+                            <!-- Layer Settings (only when in a group) -->
+                            <LayerConfigPanel
+                                v-if="isGrouped && layerConfig"
+                                :layer-config="layerConfig"
+                                :is-open="isOpen"
+                                :set-open="setOpen"
+                                @update="(v) => emit('layerConfigUpdate', v)"
+                            />
+
+                            <ColorInterpolationPanel
+                                :animation="animation"
+                                :is-open="isOpen"
+                                :set-open="setOpen"
+                            />
+                        </div>
                     </div>
                 </div>
-                <div
-                    class="col-span-2 grid grid-cols-[subgrid] transition-[grid-template-rows] duration-[var(--duration-slow)] ease-[var(--ease-standard)]"
-                    :class="advancedOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'"
-                >
-                    <div class="col-span-2 grid grid-cols-[subgrid] items-center gap-x-3 gap-y-2 overflow-hidden" :class="advancedOpen ? 'pb-2' : ''">
-                        <!-- Layer Settings (only when in a group) -->
-                        <LayerConfigPanel
-                            v-if="isGrouped && layerConfig"
-                            :layer-config="layerConfig"
-                            :is-open="isOpen"
-                            :set-open="setOpen"
-                            @update="(v) => emit('layerConfigUpdate', v)"
-                        />
-
-                        <ColorInterpolationPanel
-                            :animation="animation"
-                            :is-open="isOpen"
-                            :set-open="setOpen"
-                        />
-                    </div>
-                </div>
-                </template>
 
             </CardContent>
         </Card>
@@ -225,7 +235,7 @@ import { Separator } from "@components/ui/separator";
 
 import { camelCaseToHyphen } from "@src/utils";
 
-import { ChevronDown, Pencil } from "lucide-vue-next";
+import { ChevronDown, ChevronRight, ArrowLeft, Pencil } from "lucide-vue-next";
 import TimingFunctionPanel from "./TimingFunctionPanel.vue";
 import PlaybackRibbon from "./PlaybackRibbon.vue";
 import LayerConfigPanel from "./LayerConfigPanel.vue";
@@ -482,21 +492,32 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* Grid-stacked panels: both always rendered, active determines height */
-.panel-layer {
-    grid-row: 1;
+/* Collapsible panel rows: each panel in its own row that animates height via grid-template-rows */
+.panel-row {
+    display: grid;
     grid-column: 1 / -1;
-    transition: opacity var(--duration-normal) ease;
+    grid-template-columns: subgrid;
+    transition: grid-template-rows var(--duration-normal) var(--ease-standard);
 }
-.panel-layer.panel-active {
+.panel-row--active {
+    grid-template-rows: 1fr;
+}
+.panel-row--inactive {
+    grid-template-rows: 0fr;
+}
+.panel-content {
+    overflow: hidden;
+    min-height: 0;
+    grid-column: 1 / -1;
+    transition: opacity var(--duration-normal) var(--ease-standard);
+}
+.panel-row--active > .panel-content {
     opacity: 1;
     pointer-events: auto;
 }
-.panel-layer.panel-inactive {
+.panel-row--inactive > .panel-content {
     opacity: 0;
     pointer-events: none;
-    position: absolute;
-    visibility: hidden;
 }
 
 .easing-edit-btn {
