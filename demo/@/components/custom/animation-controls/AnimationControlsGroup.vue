@@ -510,7 +510,8 @@ function cycleAnimation(direction: number) {
     /* dock-margin gap from screen top to dock, dock ~2.75rem tall,
        then another dock-margin gap before the pane starts */
     margin-top: calc(var(--dock-margin) * 2 + 2.75rem);
-    max-height: clamp(20rem, 70dvh, 50rem);
+    /* Leave room for the bottom dock (~5rem) below the pane */
+    max-height: calc(100dvh - var(--dock-margin) * 2 - 2.75rem - 5rem);
 }
 .controls-pane-wrapper.controls-pane--open {
     grid-template-rows: 1fr;
@@ -522,6 +523,8 @@ function cycleAnimation(direction: number) {
     transition: grid-template-rows var(--pane-duration) var(--ease-standard);
 }
 .controls-pane {
+    /* overflow: hidden is needed for grid-template-rows: 0fr collapse;
+       the template toggles to overflow-y: auto when fully open via Tailwind class. */
     overflow: hidden;
     transition: opacity var(--pane-duration) var(--ease-standard);
 }
@@ -604,11 +607,11 @@ function cycleAnimation(direction: number) {
         align-content: center;
     }
 
-    /* Clamp controls to desktop width and center horizontally */
+    /* Fill available width with side margins on mobile */
     .controls-pane-wrapper {
-        max-width: 440px;
+        max-width: min(440px, 100dvw);
         margin-inline: auto;
-        padding-inline: 1rem;
+        padding-inline: 0.75rem;
     }
 
     .scroll-fade-top {
