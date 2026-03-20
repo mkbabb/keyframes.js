@@ -97,6 +97,79 @@ const applyProgress = (progress: number) => {
     emit("scrub", t);
 };
 
+// ── Inertia / momentum on release ────────────────────────────────
+
+/** Friction coefficient — higher = stops faster. 0.92 gives a nice short coast. */
+const FRICTION = 0.92;
+/** Minimum velocity (in progress/ms) below which coasting stops. */
+const VELOCITY_EPSILON = 0.00002;
+
+let lastProgress = 0;
+let lastMoveTime = 0;
+/** Exponentially smoothed velocity in progress units per ms. */
+let velocity = 0;
+let coastRafId: number | null = null;
+
+/** Track velocity from drag movement samples. */
+const trackVelocity = (progress: number) => {
+    const now = performance.now();
+    const dt = now - lastMoveTime;
+    if (dt > 0 && dt < 200) {
+        // Exponential smoothing — blends new sample with running estimate
+        // to filter out jitter while preserving directional intent.
+        const instantV = (progress - lastProgress) / dt;
+        velocity = velocity * 0.6 + instantV * 0.4;
+    }
+    lastProgress = progress;
+    lastMoveTime = now;
+};
+
+/** Cancel any in-flight coast animation. */
+const stopCoast = () => {
+    if (coastRafId !== null) {
+        cancelAnimationFrame(coastRafId);
+        coastRafId = null;
+    }
+};
+
+/**
+ * After the user releases the ball, coast with decaying velocity
+ * until friction brings it to rest or it hits the [0, 1] boundary.
+ */
+const startCoast = () => {
+    if (Math.abs(velocity) < VELOCITY_EPSILON) return;
+
+    let coastProgress = lastProgress;
+    let prevTime = performance.now();
+
+    const coast = () => {
+        const now = performance.now();
+        const dt = now - prevTime;
+        prevTime = now;
+
+        velocity *= FRICTION;
+        coastProgress += velocity * dt;
+
+        // Clamp and stop at boundaries
+        if (coastProgress <= 0) { coastProgress = 0; velocity = 0; }
+        if (coastProgress >= 1) { coastProgress = 1; velocity = 0; }
+
+        applyProgress(coastProgress);
+        lastProgress = coastProgress;
+
+        if (Math.abs(velocity) > VELOCITY_EPSILON) {
+            coastRafId = requestAnimationFrame(coast);
+        } else {
+            coastRafId = null;
+            emit("dragEnd");
+        }
+    };
+
+    coastRafId = requestAnimationFrame(coast);
+};
+
+// ── Drag capture ─────────────────────────────────────────────────
+
 const { isDragging, onPointerDown } = useDragCapture({
     onStart: (e) => {
         const ball = ballEl.value;
@@ -104,16 +177,34 @@ const { isDragging, onPointerDown } = useDragCapture({
         const ballRect = ball.getBoundingClientRect();
         grabOffset = e.clientX - (ballRect.left + ballRect.width / 2);
         gate.suppressDeactivate(true);
+
+        // Reset velocity tracking
+        velocity = 0;
+        lastMoveTime = performance.now();
+        stopCoast();
+
         emit("dragStart");
-        applyProgress(progressFromPointerX(e.clientX));
+
+        const p = progressFromPointerX(e.clientX);
+        lastProgress = p;
+        applyProgress(p);
     },
     onMove: (e) => {
-        applyProgress(progressFromPointerX(e.clientX));
+        const p = progressFromPointerX(e.clientX);
+        trackVelocity(p);
+        applyProgress(p);
     },
     onEnd: () => {
         grabOffset = 0;
         gate.suppressDeactivate(false);
-        emit("dragEnd");
+
+        // If there's meaningful velocity, coast with inertia.
+        // dragEnd is emitted when the coast finishes (or immediately if no coast).
+        if (Math.abs(velocity) > VELOCITY_EPSILON) {
+            startCoast();
+        } else {
+            emit("dragEnd");
+        }
     },
 });
 
@@ -125,12 +216,13 @@ const gatedPointerDown = (e: PointerEvent) => {
     onPointerDown(e);
 };
 
-// Only poll when animation is actively playing (or being dragged)
+// ── Playback sync (rAF only while playing or dragging) ───────────
+
 const shouldSync = computed(() => props.isPlaying || isDragging.value);
 
 useRafLoop(() => {
     const anim = props.animation;
-    if (!isDragging.value && anim.options.duration > 0) {
+    if (!isDragging.value && coastRafId === null && anim.options.duration > 0) {
         const progress = Math.max(
             0,
             Math.min(anim.effectiveT / anim.options.duration, 1),
