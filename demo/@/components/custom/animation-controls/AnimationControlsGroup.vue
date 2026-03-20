@@ -89,11 +89,8 @@
                                         ]"
                                         @click="activeKeyframesRef?.applyCSSStyles?.()"
                                     >
-                                        <Paintbrush :class="[
-                                            'w-3.5 h-3.5',
-                                            activeKeyframesRef?.cssApplied ? '' : 'rainbow-text',
-                                        ]" />
-                                        {{ activeKeyframesRef?.cssApplied ? 'Unapply CSS' : 'Apply CSS' }}
+                                        <Paintbrush class="w-3.5 h-3.5" :style="!activeKeyframesRef?.cssApplied ? { stroke: 'url(#rainbow-gradient)' } : {}" />
+                                        {{ activeKeyframesRef?.cssApplied ? 'Remove CSS' : 'Apply CSS' }}
                                     </Button>
                                 </div>
 
@@ -170,6 +167,20 @@
             @expand-timeline="(v) => { storedControls.isTimelineExpanded = v; }"
         />
     </div>
+
+    <!-- Hidden SVG gradient definition for rainbow icon strokes -->
+    <svg width="0" height="0" class="absolute">
+        <defs>
+            <linearGradient id="rainbow-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="hsl(0, 85%, 60%)" />
+                <stop offset="20%" stop-color="hsl(30, 90%, 55%)" />
+                <stop offset="40%" stop-color="hsl(55, 90%, 55%)" />
+                <stop offset="60%" stop-color="hsl(130, 70%, 50%)" />
+                <stop offset="80%" stop-color="hsl(210, 80%, 55%)" />
+                <stop offset="100%" stop-color="hsl(300, 75%, 60%)" />
+            </linearGradient>
+        </defs>
+    </svg>
 
     </TooltipProvider>
 
