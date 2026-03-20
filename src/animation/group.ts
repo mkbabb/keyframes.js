@@ -51,7 +51,22 @@ export class AnimationGroup<V extends Vars> {
     handleId: number | any = undefined;
     resolvePromise: ((value: void | PromiseLike<void>) => void) | null = null;
 
+    /**
+     * Pre-bound draw callback — allocated once in constructor to avoid
+     * creating a new closure on every requestAnimationFrame reschedule.
+     */
+    private _boundDraw: (t: number) => void;
+
+    /**
+     * Cached entries array, sorted by layer zIndex. Rebuilt on demand
+     * via dirty flag to avoid Object.values() allocation on every frame.
+     */
+    private _entries: AnimationGroupEntry<V>[] = [];
+    private _entriesDirty = true;
+
     constructor(...inputs: (Animation<V> | AnimationGroupInput<V>)[]) {
+        this._boundDraw = this.draw.bind(this);
+
         const animations: Animation<V>[] = [];
 
         for (const input of inputs) {
@@ -83,31 +98,56 @@ export class AnimationGroup<V extends Vars> {
         this.singleTarget = animations.every(
             (animation) => animation.targets[0] === animations[0]?.targets[0],
         );
+
+        this.invalidateEntries();
     }
+
+    // ── Entry cache ──────────────────────────────────────────────────
+
+    /**
+     * Returns the animation entries sorted by layer zIndex.
+     * Uses dirty-flag caching — only rebuilds when the animations object
+     * or layer configs are mutated. All hot-path iteration (tick, draw,
+     * transformFramesGrouped) uses this instead of Object.values().
+     */
+    private getEntries(): AnimationGroupEntry<V>[] {
+        if (this._entriesDirty) {
+            this._entries = Object.values(this.animations);
+            this._entries.sort((a, b) => a.layer.zIndex - b.layer.zIndex);
+            this._entriesDirty = false;
+        }
+        return this._entries;
+    }
+
+    /** Mark entries cache stale. Called at all mutation boundaries. */
+    private invalidateEntries(): void {
+        this._entriesDirty = true;
+    }
+
+    // ── Setup ────────────────────────────────────────────────────────
 
     setSuperKey(superKey: string) {
         this.superKey = superKey;
-        Object.values(this.animations).forEach((groupObject) => {
-            groupObject.animation.superKey = superKey;
-        });
+        for (const entry of this.getEntries()) {
+            entry.animation.superKey = superKey;
+        }
         return this;
     }
 
     setTargets(...targets: HTMLElement[]) {
-        Object.values(this.animations).forEach((groupObject) => {
-            groupObject.animation.setTargets(...targets);
-        });
+        const entries = this.getEntries();
+        for (const entry of entries) {
+            entry.animation.setTargets(...targets);
+        }
 
-        const animations = Object.values(this.animations).map(
-            (groupObject) => groupObject.animation,
-        );
-
-        this.singleTarget = animations.every(
-            (animation) => animation.targets[0] === animations[0]?.targets[0],
+        this.singleTarget = entries.every(
+            (entry) => entry.animation.targets[0] === entries[0]?.animation.targets[0],
         );
 
         return this;
     }
+
+    // ── Lifecycle hooks ──────────────────────────────────────────────
 
     onStart() {
         this.started = true;
@@ -118,14 +158,17 @@ export class AnimationGroup<V extends Vars> {
         return this;
     }
 
+    // ── Frame rendering ──────────────────────────────────────────────
+
+    /**
+     * Composite all animation values into a single grouped transform.
+     * Called per-frame for single-target groups. Applies layer blending
+     * (replace / add / weighted) in zIndex order, then calls the group
+     * transform function with the merged values.
+     */
     transformFramesGrouped(t: number) {
         const groupedValues: Record<string, unknown> = {};
-
-        // Collect entries, filter by enabled, sort by zIndex
-        const entries = Object.values(this.animations);
-
-        // Sort by zIndex ascending (highest last → wins on 'replace')
-        entries.sort((a, b) => a.layer.zIndex - b.layer.zIndex);
+        const entries = this.getEntries();
 
         let done = true;
         for (const groupObject of entries) {
@@ -208,23 +251,58 @@ export class AnimationGroup<V extends Vars> {
         return groupedValues;
     }
 
-    async tick(t: number) {
+    /**
+     * Render the current animation state as a static frame.
+     * Called on pause to ensure the visual matches the exact pause moment.
+     * Handles both single-target (grouped blending) and multi-target
+     * (per-child interpFrames) paths.
+     */
+    private renderPauseFrame(): void {
+        const entries = this.getEntries();
+        const now = this.lastTickTime || performance.now();
+
+        // Interpolate each child's current state
+        for (const entry of entries) {
+            const vars = entry.animation.interpFrames(entry.animation.t, false);
+            // For single-target, accumulate into entry.values for blending
+            if (this.singleTarget) {
+                Object.assign(entry.values, vars);
+            }
+        }
+
+        if (this.singleTarget) {
+            this.transformFramesGrouped(now);
+        } else {
+            // Multi-target: apply each child's interpolated vars directly to its targets
+            for (const entry of entries) {
+                entry.animation.interpFrames(entry.animation.t, true);
+            }
+        }
+    }
+
+    // ── Playback loop ────────────────────────────────────────────────
+
+    /**
+     * Advance all child animations to timestamp `t`.
+     * Synchronous — child tick() calls complete synchronously in practice
+     * (no async frame interpolation). Uses cached entries to avoid
+     * Object.values() allocation per frame.
+     */
+    tick(t: number) {
         this.lastTickTime = t;
 
         if (!this.started) {
             this.onStart();
         }
 
-        await Promise.all(
-            Object.values(this.animations).map(async (groupObject) => {
-                if (
-                    !groupObject.animation.paused ||
-                    groupObject.animation.pausedTime === 0
-                ) {
-                    await groupObject.animation.tick(t);
-                }
-            }),
-        );
+        for (const entry of this.getEntries()) {
+            const anim = entry.animation;
+            // Tick children that are either unpaused, or paused but not yet
+            // recorded their pause timestamp (need one final tick to snapshot).
+            if (!anim.paused || anim.pausedTime === 0) {
+                anim.tick(t);
+            }
+        }
 
         if (this.done) {
             this.onEnd();
@@ -233,8 +311,13 @@ export class AnimationGroup<V extends Vars> {
         return this;
     }
 
-    async draw(t: number) {
-        await this.tick(t);
+    /**
+     * Main animation frame callback. Ticks all children, then renders
+     * (single-target: grouped blending; multi-target: per-child).
+     * Reschedules itself via rAF until done.
+     */
+    draw(t: number) {
+        this.tick(t);
 
         if (this.paused) {
             return;
@@ -243,16 +326,16 @@ export class AnimationGroup<V extends Vars> {
         if (this.singleTarget) {
             this.transformFramesGrouped(t);
         } else {
-            this.done = Object.values(this.animations)
-                .map(({ animation }) => {
-                    animation.interpFrames(animation.t, true);
-                    return animation;
-                })
-                .every((animation) => animation.done);
+            let allDone = true;
+            for (const entry of this.getEntries()) {
+                entry.animation.interpFrames(entry.animation.t, true);
+                allDone = allDone && entry.animation.done;
+            }
+            this.done = allDone;
         }
 
         if (!this.done) {
-            this.handleId = requestAnimationFrame(this.draw.bind(this));
+            this.handleId = requestAnimationFrame(this._boundDraw);
         } else {
             this.reset();
             if (this.resolvePromise) {
@@ -261,48 +344,58 @@ export class AnimationGroup<V extends Vars> {
         }
     }
 
+    /**
+     * Start the animation group. Returns a promise that resolves
+     * when all child animations complete (or on explicit stop/reset).
+     */
     async play() {
         return new Promise((resolve) => {
             this.resolvePromise = resolve;
-            this.handleId = requestAnimationFrame(this.draw.bind(this));
+            this.handleId = requestAnimationFrame(this._boundDraw);
         });
     }
 
+    /**
+     * Toggle pause state. Calling pause() when playing pauses; calling
+     * pause() when paused resumes. (Toggle semantics preserved for
+     * backward compatibility with demo's toggleAnimationGroup.)
+     *
+     * On pause: explicitly cancels the rAF loop and renders a final
+     * frame snapshot so the visual matches the exact pause moment.
+     * On resume: re-registers the rAF loop.
+     */
     pause() {
-        const prevPaused = this.paused;
+        if (!this.started) return this;
 
-        if (this.started) {
-            this.paused = !this.paused;
-            const now = this.lastTickTime || performance.now();
-            Object.values(this.animations).forEach((groupObject) => {
-                const anim = groupObject.animation;
-                if (this.paused) {
-                    anim.pause(false);
-                    // Use the last rAF timestamp (not performance.now()) so
-                    // resume correctly adjusts startTime without a forward jump.
-                    if (anim.pausedTime === 0) {
-                        anim.pausedTime = now;
-                    }
-                } else {
-                    // Unpause children directly — don't call resume() which would
-                    // start each child's own rAF loop. The group's draw() handles ticking.
-                    anim.paused = false;
-                }
-            });
+        this.paused = !this.paused;
+        const now = this.lastTickTime || performance.now();
 
-            // Render one final frame at pause so visual matches the pause moment
-            if (this.paused && this.singleTarget) {
-                for (const groupObject of Object.values(this.animations)) {
-                    const anim = groupObject.animation;
-                    const vars = anim.interpFrames(anim.t, false);
-                    Object.assign(groupObject.values, vars);
+        // Propagate pause/unpause to all child animations
+        for (const entry of this.getEntries()) {
+            const anim = entry.animation;
+            if (this.paused) {
+                anim.pause(false);
+                // Use the last rAF timestamp (not performance.now()) so
+                // resume correctly adjusts startTime without a forward jump.
+                if (anim.pausedTime === 0) {
+                    anim.pausedTime = now;
                 }
-                this.transformFramesGrouped(now);
+            } else {
+                // Unpause children directly — don't call resume() which would
+                // start each child's own rAF loop. The group's draw() handles ticking.
+                anim.paused = false;
             }
         }
 
-        if (prevPaused) {
-            this.handleId = requestAnimationFrame(this.draw.bind(this));
+        if (this.paused) {
+            // Stop the rAF loop immediately — don't wait for draw() to self-terminate
+            cancelAnimationFrame(this.handleId);
+            this.handleId = undefined;
+            // Render final frame so the visual matches the pause moment
+            this.renderPauseFrame();
+        } else {
+            // Resume: restart the draw loop
+            this.handleId = requestAnimationFrame(this._boundDraw);
         }
 
         return this;
@@ -312,14 +405,14 @@ export class AnimationGroup<V extends Vars> {
         // Apply fillBackwards first so targets snap to their initial frame
         // before clearing animation state (prevents visual glitches like cube cutoff)
         // TODO(HIGH): Remove visual-glitch workaround sequencing and define explicit reset/fill contract.
-        Object.values(this.animations).forEach((groupObject) => {
-            const anim = groupObject.animation;
+        for (const entry of this.getEntries()) {
+            const anim = entry.animation;
             if (anim.started && anim.frames.length > 0) {
                 anim.interpFrames(0, true);
             }
             anim.managed = false;
             anim.reset();
-        });
+        }
 
         this.started = false;
         this.done = false;
@@ -331,6 +424,7 @@ export class AnimationGroup<V extends Vars> {
 
     stop() {
         cancelAnimationFrame(this.handleId);
+        this.handleId = undefined;
         this.reset();
 
         return this;
@@ -342,19 +436,19 @@ export class AnimationGroup<V extends Vars> {
 
     forcePause() {
         this.paused = true;
-        Object.values(this.animations).forEach((groupObject) => {
-            groupObject.animation.paused = true;
-        });
+        for (const entry of this.getEntries()) {
+            entry.animation.paused = true;
+        }
     }
 
     forcePlay() {
         this.paused = false;
-        Object.values(this.animations).forEach((groupObject) => {
-            groupObject.animation.paused = false;
-        });
+        for (const entry of this.getEntries()) {
+            entry.animation.paused = false;
+        }
     }
 
-    // --- Layer management API ---
+    // ── Layer management API ─────────────────────────────────────────
 
     /** Set layer config for an animation by name or reference. Chainable. */
     setLayerConfig(
@@ -369,6 +463,8 @@ export class AnimationGroup<V extends Vars> {
         // TODO(HIGH): Throw when callers target a missing animation key instead of silently ignoring the config update.
         if (entry) {
             Object.assign(entry.layer, config);
+            // zIndex or enabled may have changed — invalidate the sorted cache
+            this.invalidateEntries();
         }
         return this;
     }
