@@ -2,8 +2,9 @@
     <div
         :class="[
             'px-2 py-1.5 pb-[max(var(--dock-margin),env(safe-area-inset-bottom))] m-0 flex items-center justify-center justify-items-center',
-            'fixed bottom-0 left-0 right-0 z-[var(--z-dock)]',
+            'fixed left-0 right-0 z-[var(--z-dock)]',
         ]"
+        style="bottom: var(--work-area-bottom-offset, 0px);"
     >
         <GlassDock ref="dockRef" :collapse-delay="2500" :start-collapsed="true" :fit-content="true">
             <!-- Expanded state: full controls -->
@@ -238,4 +239,3 @@ const trashIconShake = () => {
 
 defineExpose({ resetIconSpin, trashIconShake });
 </script>
-

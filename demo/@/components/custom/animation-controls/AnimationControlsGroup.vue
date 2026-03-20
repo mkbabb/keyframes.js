@@ -2,7 +2,7 @@
     <TooltipProvider :delay-duration="100" :skip-delay-duration="0">
     <div
         :class="[
-            'controls-layout w-dvw h-dvh grid grid-cols-1 grid-rows-[auto_1fr] lg:grid-rows-[1fr_auto] lg:grid-cols-[400px_1fr_1fr] justify-items-stretch items-start relative',
+            'controls-layout grid grid-cols-1 grid-rows-[auto_1fr] lg:grid-rows-[1fr_auto] lg:grid-cols-[400px_1fr_1fr] justify-items-stretch items-start relative',
         ]"
         v-bind="$attrs"
     >
@@ -251,7 +251,7 @@ watch(() => storedControls.isControlsPanelOpen, (open) => {
 });
 
 const onPanelTransitionEnd = (e: TransitionEvent) => {
-    if (e.propertyName === 'grid-template-rows' && storedControls.isControlsPanelOpen) {
+    if (e.propertyName === 'max-height' && storedControls.isControlsPanelOpen) {
         isPanelTransitionDone.value = true;
     }
 };
@@ -477,21 +477,29 @@ function cycleAnimation(direction: number) {
 </script>
 
 <style scoped>
+.controls-layout {
+    width: min(100dvw, var(--work-area-max-width, 100dvw));
+    height: min(100dvh, var(--work-area-max-height, 100dvh));
+    max-width: 100dvw;
+    max-height: 100dvh;
+    margin: auto;
+}
+
 /* ── Mobile: height via grid-template-rows, opacity on inner pane ── */
 .controls-pane-wrapper {
     --pane-duration: 0.35s;
-    display: grid;
-    margin-top: 4rem;
-    max-height: calc(100dvh - 8rem);
+    --pane-open-max-height: min(calc(100% - 2.5rem), clamp(44rem, 86dvh, 60rem));
+    margin-top: 3.5rem;
+    overflow: hidden;
 }
 .controls-pane-wrapper.controls-pane--open {
-    grid-template-rows: 1fr;
-    transition: grid-template-rows var(--pane-duration) var(--ease-decelerate);
+    max-height: var(--pane-open-max-height);
+    transition: max-height var(--pane-duration) var(--ease-decelerate);
 }
 .controls-pane-wrapper.controls-pane--closed {
-    grid-template-rows: 0fr;
+    max-height: 0;
     pointer-events: none;
-    transition: grid-template-rows var(--pane-duration) var(--ease-standard);
+    transition: max-height var(--pane-duration) var(--ease-standard);
 }
 .controls-pane {
     overflow: hidden;
@@ -570,6 +578,10 @@ function cycleAnimation(direction: number) {
 
 /* ── Mobile vertical scroll fade ── */
 @media (max-width: 1023px) {
+    .controls-layout {
+        align-content: center;
+    }
+
     .scroll-fade-top {
         mask-image: linear-gradient(to bottom, transparent, black 2.5rem);
         -webkit-mask-image: linear-gradient(to bottom, transparent, black 2.5rem);

@@ -51,6 +51,11 @@
 
         /* ── Dock margin ── */
         --dock-margin: 1rem;
+        --work-area-max-width: clamp(72rem, 94vw, 120rem);
+        --work-area-max-height: clamp(44rem, 88dvh, 66rem);
+        --work-area-height: min(100dvh, var(--work-area-max-height));
+        --work-area-top-offset: max(calc((100dvh - var(--work-area-height)) / 2), 0px);
+        --work-area-bottom-offset: var(--work-area-top-offset);
 
         /* ── Duration tokens ── */
         --duration-fast: 0.15s;
@@ -185,6 +190,16 @@
 
         --accent-red: 5 55% 50%;
         --accent-red-foreground: 0 0% 95%;
+    }
+
+    @media (max-width: 1023px) {
+        :root {
+            --work-area-max-width: 100dvw;
+            --work-area-max-height: clamp(44rem, 94dvh, 64rem);
+            --work-area-height: min(100dvh, var(--work-area-max-height));
+            --work-area-top-offset: max(calc((100dvh - var(--work-area-height)) / 2), 0px);
+            --work-area-bottom-offset: var(--work-area-top-offset);
+        }
     }
 }
 

@@ -1,6 +1,6 @@
 <template>
     <div
-        class="relative grid h-dvh max-h-dvh w-dvw overflow-hidden items-center justify-items-stretch lg:justify-items-center lg:justify-center"
+        class="editor-shell relative grid h-dvh max-h-dvh w-dvw overflow-hidden place-items-center"
     >
         <div
             v-if="gridBackground"
