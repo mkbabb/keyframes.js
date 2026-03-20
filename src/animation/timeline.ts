@@ -53,8 +53,13 @@ export abstract class Timeline {
     /** Subclass returns raw [0,1] progress from its source. */
     protected abstract sample(): number;
 
-    /** Advance one frame. Applies easing -> boundary snap -> smoothing. */
-    tick(): number {
+    /**
+     * Shared progress pipeline: sample → clamp → easing → boundary snap.
+     * Returns the processed raw value. Does NOT advance the smoother —
+     * the caller (tick or tickDt) drives the smoother with the appropriate
+     * time-step method.
+     */
+    private applyPipeline(): number {
         let raw = clamp01(this.sample());
         if (this.easingFn) raw = this.easingFn(raw);
 
@@ -64,40 +69,51 @@ export abstract class Timeline {
         if (raw <= eps) raw = 0;
         else if (raw >= 1 - eps) raw = 1;
 
+        return raw;
+    }
+
+    /**
+     * Finalize progress after the smoother has been advanced (or bypassed).
+     * Snaps the smoother at boundaries [0, 1] for instant convergence.
+     */
+    private finalizeProgress(raw: number): number {
         if (this.smoother) {
             this.smoother.setTarget(raw);
             if (raw <= 0 || raw >= 1) {
                 this.smoother.snap();
-            } else {
-                this.smoother.tick();
             }
-            this.currentProgress = this.smoother.current;
-        } else {
-            this.currentProgress = raw;
         }
+        this.currentProgress = this.smoother ? this.smoother.current : raw;
         return this.currentProgress;
     }
 
-    /** Frame-rate independent variant. dt in ms. */
-    tickDt(dt: number): number {
-        let raw = clamp01(this.sample());
-        if (this.easingFn) raw = this.easingFn(raw);
+    /** Advance one frame. Applies easing → boundary snap → smoothing. */
+    tick(): number {
+        const raw = this.applyPipeline();
 
-        const eps = this.boundaryEpsilon;
-        if (raw <= eps) raw = 0;
-        else if (raw >= 1 - eps) raw = 1;
-
-        if (this.smoother) {
+        if (this.smoother && raw > 0 && raw < 1) {
             this.smoother.setTarget(raw);
-            if (raw <= 0 || raw >= 1) {
-                this.smoother.snap();
-            } else {
-                this.smoother.tickDt(dt);
-            }
+            this.smoother.tick();
             this.currentProgress = this.smoother.current;
         } else {
-            this.currentProgress = raw;
+            this.finalizeProgress(raw);
         }
+
+        return this.currentProgress;
+    }
+
+    /** Frame-rate independent variant. `dt` in milliseconds. */
+    tickDt(dt: number): number {
+        const raw = this.applyPipeline();
+
+        if (this.smoother && raw > 0 && raw < 1) {
+            this.smoother.setTarget(raw);
+            this.smoother.tickDt(dt);
+            this.currentProgress = this.smoother.current;
+        } else {
+            this.finalizeProgress(raw);
+        }
+
         return this.currentProgress;
     }
 
