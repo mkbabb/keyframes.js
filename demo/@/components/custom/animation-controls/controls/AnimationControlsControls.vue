@@ -1,6 +1,6 @@
 <template>
     <div class="grid items-center gap-4">
-        <Card class="w-full overflow-visible transition-shadow duration-300 controls-card">
+        <Card class="w-full overflow-visible transition-shadow duration-[var(--duration-normal)] controls-card">
             <CardContent class="relative grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 px-4 py-3">
                 <!-- Sliding panel container — each panel in its own collapsible row -->
                 <div class="panel-stack col-span-2 grid grid-cols-[subgrid]">
@@ -73,7 +73,7 @@
                                     <label :class="['instrument-serif text-lg text-muted-foreground cursor-help', isDetailEasing ? 'gold-shimmer' : '']">easing</label>
                                 </IconTooltip>
                                 <IconTooltip text="Edit easing curve">
-                                    <button class="easing-edit-btn cursor-pointer p-0.5 hover:scale-110 transition-transform duration-[var(--duration-fast)]" @click.stop="onEditIconClick(storedAnimationOptions.animationOptions.timingFunction as string)">
+                                    <button class="dock-icon-btn easing-edit-btn min-w-0 h-auto p-0.5" @click.stop="onEditIconClick(storedAnimationOptions.animationOptions.timingFunction as string)">
                                         <Pencil class="w-3.5 h-3.5" />
                                     </button>
                                 </IconTooltip>
@@ -98,8 +98,7 @@
                             >
                                 <template #trigger="{ value }">
                                     <span
-                                        class="items-center gap-1.5 min-w-0 cursor-pointer"
-                                        style="display: flex; overflow: visible; -webkit-line-clamp: unset;"
+                                        class="!flex items-center gap-1.5 min-w-0 cursor-pointer ![-webkit-line-clamp:unset] !overflow-visible"
                                     >
                                         <svg viewBox="-0.05 -0.3 1.1 1.6" class="w-5 h-4 shrink-0">
                                             <path
@@ -175,7 +174,7 @@
                         <div class="panel-content grid grid-cols-[subgrid] items-start gap-x-3 gap-y-2 w-full">
                             <div class="col-span-2 flex items-center gap-1 mb-1">
                                 <button
-                                    class="cursor-pointer p-0.5 hover:scale-110 transition-transform duration-[var(--duration-fast)] text-muted-foreground hover:text-foreground"
+                                    class="dock-icon-btn min-w-0 h-auto p-0.5 text-muted-foreground"
                                     @click="advancedOpen = false"
                                 >
                                     <ArrowLeft class="w-4 h-4" />
@@ -246,7 +245,7 @@ import LabeledSelect from "@components/custom/LabeledSelect.vue";
 import LabeledInput from "@components/custom/LabeledInput.vue";
 import ResponsiveSelect from "@components/custom/ResponsiveSelect.vue";
 
-import { Teleport, computed, onMounted, ref, watch } from "vue";
+import { Teleport, computed, onMounted, ref, toRef, watch } from "vue";
 import {
     getStoredAnimationOptions,
 } from "../animationStores";
@@ -317,12 +316,15 @@ const easingItems = Object.keys(timingFunctionsAnd).map((key) => ({
     value: key,
 }));
 
-const { animation, isGrouped, layerConfig, active } = defineProps<{
+const props = defineProps<{
     animation: Animation<any>;
     isGrouped?: boolean;
+    isPlaying?: boolean;
     layerConfig?: AnimationLayerConfig;
     active?: boolean;
 }>();
+
+const { animation, isGrouped, layerConfig, active } = props;
 
 const storedAnimationOptions = getStoredAnimationOptions(animation);
 
@@ -346,7 +348,9 @@ const { isOpen, setOpen } = useExclusiveSelect();
 
 // rAF-driven reactivity bridge: animation is markRaw, so Vue can't track
 // property changes. We sync reactive refs every frame for the slider + buttons.
-const { currentT, isPlaying: isAnimPlaying, isStarted: isAnimStarted } = useAnimationSync(() => animation);
+// isPlaying guard comes from the parent (useAnimationGroupPlayback) — not polled.
+const isPlayingRef = toRef(() => props.isPlaying ?? false);
+const { currentT, isPlaying: isAnimPlaying, isStarted: isAnimStarted } = useAnimationSync(() => animation, isPlayingRef);
 
 const userReversed = ref(false);
 const toggleReverse = () => {
@@ -509,6 +513,10 @@ onMounted(() => {
     overflow: hidden;
     min-height: 0;
     grid-column: 1 / -1;
+    /* Inset padding so focus rings (ring-2 + ring-offset-2 = 4px) aren't clipped
+       by the overflow:hidden required for grid-template-rows collapse animation. */
+    padding: 2px;
+    margin: -2px;
     transition: opacity var(--duration-normal) var(--ease-standard);
 }
 .panel-row--active > .panel-content {

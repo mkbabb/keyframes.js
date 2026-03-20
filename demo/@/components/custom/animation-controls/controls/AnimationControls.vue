@@ -29,6 +29,7 @@
                     <AnimationControlsControls
                         :animation="animation"
                         :is-grouped="isGrouped"
+                        :is-playing="isPlayingProp"
                         :layer-config="layerConfig"
                         :active="active"
                         @slider-update="(v) => emit('sliderUpdate', v)"
@@ -124,9 +125,10 @@ const KeyframeTimeline = defineAsyncComponent(() => import("../timeline/Keyframe
 import AnimationControlsControls from "./AnimationControlsControls.vue";
 import { getStoredAnimationGroupControlOptions } from "../animationStores";
 
-const { animation, isGrouped, layerConfig, active } = defineProps<{
+const { animation, isGrouped, isPlaying: isPlayingProp, layerConfig, active } = defineProps<{
     animation: Animation<any>;
     isGrouped?: boolean;
+    isPlaying?: boolean;
     layerConfig?: AnimationLayerConfig;
     active?: boolean;
 }>();

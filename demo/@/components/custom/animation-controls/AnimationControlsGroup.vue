@@ -46,6 +46,7 @@
                                 @scrub-end="onScrubEnd"
                                 :animation="groupObject.animation"
                                 :is-grouped="true"
+                                :is-playing="isPlaying"
                                 :layer-config="groupObject.layer"
                                 :active="storedControls.selectedAnimation == name"
                             >
@@ -141,7 +142,7 @@
             id="timeline-expanded-target"
             :class="[
                 'col-span-full row-start-2 z-[var(--z-dock)] overflow-hidden',
-                'transition-[max-height,opacity] duration-350 ease-[var(--ease-standard)]',
+                'transition-[max-height,opacity] duration-[var(--duration-slow)] ease-[var(--ease-standard)]',
                 storedControls.isTimelineExpanded
                     ? 'max-h-[60vh] border-t border-border/50 glass px-4 py-3'
                     : 'max-h-0',
@@ -150,7 +151,6 @@
 
         <!-- Bottom menubar — hidden when no animation scene is active -->
         <AnimationMenuBar
-            v-show="!hideControls"
             ref="menuBarRef"
             :stored-controls="storedControls"
             :is-playing="isPlaying"
@@ -217,7 +217,7 @@ import { registerShortcut } from "@composables/useKeyboardShortcuts";
 import { useAnimationGroupPlayback } from "./useAnimationGroupPlayback";
 import { useAnimationProgress } from "./useAnimationProgress";
 
-const RIBBON_BUTTON_CLASS = "h-8 gap-1.5 cursor-pointer instrument-serif text-base px-3 rounded-lg hover:scale-105 active:scale-95 transition-transform";
+const RIBBON_BUTTON_CLASS = "h-8 gap-1.5 instrument-serif text-base rounded-lg btn-interactive";
 
 const { superKey, animationGroup, autoPlay, hideControls } = defineProps<{
     animationGroup: AnimationGroup<any>;
@@ -485,21 +485,23 @@ function cycleAnimation(direction: number) {
     margin: auto;
 }
 
-/* ── Mobile: height via grid-template-rows, opacity on inner pane ── */
+/* ── Mobile: grid-template-rows drives height, child opacity fades ── */
 .controls-pane-wrapper {
     --pane-duration: 0.35s;
-    --pane-open-max-height: min(calc(100% - 2.5rem), clamp(44rem, 86dvh, 60rem));
-    margin-top: 3.5rem;
-    overflow: hidden;
+    display: grid;
+    /* dock-margin gap from screen top to dock, dock ~2.75rem tall,
+       then another dock-margin gap before the pane starts */
+    margin-top: calc(var(--dock-margin) * 2 + 2.75rem);
+    max-height: clamp(20rem, 70dvh, 50rem);
 }
 .controls-pane-wrapper.controls-pane--open {
-    max-height: var(--pane-open-max-height);
-    transition: max-height var(--pane-duration) var(--ease-decelerate);
+    grid-template-rows: 1fr;
+    transition: grid-template-rows var(--pane-duration) var(--ease-decelerate);
 }
 .controls-pane-wrapper.controls-pane--closed {
-    max-height: 0;
+    grid-template-rows: 0fr;
     pointer-events: none;
-    transition: max-height var(--pane-duration) var(--ease-standard);
+    transition: grid-template-rows var(--pane-duration) var(--ease-standard);
 }
 .controls-pane {
     overflow: hidden;
@@ -516,7 +518,9 @@ function cycleAnimation(direction: number) {
 @media (min-width: 1024px) {
     .controls-pane-wrapper {
         max-height: none;
+        max-width: none;
         margin-top: 0;
+        padding-inline: 0;
         display: block;
         transform-origin: center center;
     }
@@ -525,7 +529,7 @@ function cycleAnimation(direction: number) {
         visibility: visible;
         pointer-events: auto;
         transition:
-            transform 0.5s var(--ease-spring),
+            transform var(--duration-panel) var(--ease-spring),
             visibility 0s 0s;
     }
     .controls-pane-wrapper.controls-pane--closed {
@@ -533,34 +537,34 @@ function cycleAnimation(direction: number) {
         visibility: hidden;
         pointer-events: none;
         transition:
-            transform 0.5s var(--ease-spring),
-            visibility 0s 0.5s;
+            transform var(--duration-panel) var(--ease-spring),
+            visibility 0s var(--duration-panel);
     }
     .controls-pane--open .controls-pane {
         opacity: 0.75;
         transition:
-            opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity var(--duration-panel) var(--ease-standard);
     }
     .controls-pane--closed .controls-pane {
         opacity: 0;
         transition:
-            opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity var(--duration-panel) var(--ease-standard);
     }
     /* Hovered via pane or dock: fully opaque */
     .controls-pane--hovered.controls-pane--open .controls-pane {
         opacity: 1;
         transition:
-            opacity 0.3s cubic-bezier(0, 0, 0.2, 1);
+            opacity var(--duration-slow) var(--ease-decelerate);
     }
     .controls-pane--hovered.controls-pane--open {
         transform: scale(1);
         transition:
-            transform 0.3s ease-out;
+            transform var(--duration-slow) var(--ease-decelerate);
     }
 
     .controls-pane :deep(.controls-card) {
         box-shadow: var(--shadow-card);
-        transition: box-shadow 0.3s ease-out;
+        transition: box-shadow var(--duration-slow) var(--ease-decelerate);
         backdrop-filter: var(--glass-blur-heavy);
         -webkit-backdrop-filter: var(--glass-blur-heavy);
         background: hsl(var(--background) / 0.6);
@@ -580,6 +584,13 @@ function cycleAnimation(direction: number) {
 @media (max-width: 1023px) {
     .controls-layout {
         align-content: center;
+    }
+
+    /* Clamp controls to desktop width and center horizontally */
+    .controls-pane-wrapper {
+        max-width: 440px;
+        margin-inline: auto;
+        padding-inline: 1rem;
     }
 
     .scroll-fade-top {
