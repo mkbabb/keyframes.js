@@ -5,7 +5,7 @@
             class="w-full h-12 relative"
             :style="{ touchAction: gate.isActive.value || !gate.isTouchDevice ? 'none' : 'pan-y' }"
         >
-            <div ref="containerEl" class="w-full h-full relative" style="container-type: inline-size">
+            <div ref="containerEl" class="w-full h-full relative container-inline-size">
                 <div
                     class="absolute top-1/2 left-[1.5rem] w-[calc(100%-3rem)] h-1 -translate-y-1/2 rounded-full bg-accent-red/20 pointer-events-none"
                 ></div>
@@ -35,7 +35,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, useTemplateRef } from "vue";
+import { computed, toRef, useTemplateRef } from "vue";
 import type { Animation } from "@src/animation/index";
 import { useRafLoop } from "@composables/useRafLoop";
 import { useDragCapture } from "@composables/useDragCapture";
@@ -43,6 +43,7 @@ import { useTouchGate } from "@composables/useTouchGate";
 
 const props = defineProps<{
     animation: Animation<any>;
+    isPlaying: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -124,7 +125,10 @@ const gatedPointerDown = (e: PointerEvent) => {
     onPointerDown(e);
 };
 
-const { start: startSync } = useRafLoop(() => {
+// Only poll when animation is actively playing (or being dragged)
+const shouldSync = computed(() => props.isPlaying || isDragging.value);
+
+useRafLoop(() => {
     const anim = props.animation;
     if (!isDragging.value && anim.options.duration > 0) {
         const progress = Math.max(
@@ -133,7 +137,5 @@ const { start: startSync } = useRafLoop(() => {
         );
         setBallProgress(progress);
     }
-});
-
-onMounted(startSync);
+}, { guard: shouldSync });
 </script>

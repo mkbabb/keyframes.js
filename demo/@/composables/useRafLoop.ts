@@ -14,8 +14,17 @@ export function useRafLoop(
     let rafId: number | null = null;
     const isActive = ref(false);
 
+    const guard = options?.guard;
+
     const loop = (time: DOMHighResTimeStamp) => {
         callback(time);
+        // Re-check guard AFTER callback (which may update the guard ref)
+        // so we stop on the same frame the guard goes false.
+        if (guard && !guard.value) {
+            rafId = null;
+            isActive.value = false;
+            return;
+        }
         rafId = requestAnimationFrame(loop);
     };
 
