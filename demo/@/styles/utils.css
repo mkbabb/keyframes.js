@@ -206,6 +206,27 @@
     .dock-spacer {
         flex: 1;
     }
+
+    /* ── Status indicator dot ── */
+    .status-dot {
+        display: inline-block;
+        width: 0.5rem;
+        height: 0.5rem;
+        border-radius: 9999px;
+        flex-shrink: 0;
+        transition: color var(--duration-fast) var(--ease-standard),
+            background var(--duration-fast) var(--ease-standard),
+            box-shadow var(--duration-fast) var(--ease-standard);
+    }
+    .status-dot--active {
+        background: hsl(var(--color-status-active));
+    }
+    .status-dot--paused {
+        background: hsl(var(--color-status-paused));
+    }
+    .status-dot--idle {
+        background: hsl(var(--color-status-idle));
+    }
 }
 
 .preserve-3d {

@@ -61,10 +61,12 @@
         --duration-fast: 0.15s;
         --duration-normal: 0.25s;
         --duration-slow: 0.35s;
+        --duration-panel: 0.5s;
         --duration-linger: 2.5s;
 
         /* ── Easing tokens ── */
         --ease-spring: cubic-bezier(0.22, 1.6, 0.36, 1);
+        --ease-dock: cubic-bezier(0.18, 1.4, 0.4, 1);
         --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
         --ease-decelerate: cubic-bezier(0, 0, 0.2, 1);
         --ease-accelerate: cubic-bezier(0.4, 0, 1, 1);
@@ -94,13 +96,18 @@
         --shadow-sm: 0 2px 8px hsl(var(--foreground) / 0.06);
         --shadow-md: 0 4px 16px hsl(var(--foreground) / 0.08);
         --shadow-lg: 0 4px 20px hsl(var(--foreground) / 0.12);
-        --shadow-card: 4px 4px 0px 0px rgba(0, 0, 0, 0.5);
-        --shadow-card-hover: 5px 5px 0px 0px rgba(0, 0, 0, 0.6);
+        --shadow-card: 4px 4px 0px 0px hsl(var(--shadow) / 0.5);
+        --shadow-card-hover: 5px 5px 0px 0px hsl(var(--shadow) / 0.6);
 
         /* ── Progress / slider color tokens ── */
         --color-progress: 142 71% 45%;
         --color-slider-track: 142 40% 72%;
         --color-slider-border: 142 40% 60%;
+
+        /* ── Status indicator tokens ── */
+        --color-status-active: var(--color-progress);
+        --color-status-paused: var(--color-gold);
+        --color-status-idle: var(--muted-foreground);
 
         /* ── Gold accent tokens ── */
         --color-gold: 43 74% 49%;
