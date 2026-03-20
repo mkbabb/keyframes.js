@@ -3,7 +3,7 @@ import { type VariantProps, cva } from 'class-variance-authority'
 export { default as Toggle } from './Toggle.vue'
 
 export const toggleVariants = cva(
-  'inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-all duration-[var(--duration-fast)] ease-[var(--ease-standard)] hover:bg-muted hover:text-muted-foreground active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=on]:bg-accent data-[state=on]:text-accent-foreground',
+  'inline-flex items-center justify-center rounded-md text-sm font-medium transition-all duration-[var(--duration-fast)] ease-[var(--ease-standard)] hover:bg-muted hover:text-muted-foreground active:scale-[0.97] focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_hsl(var(--ring)/0.4)] disabled:pointer-events-none disabled:opacity-50 data-[state=on]:bg-accent data-[state=on]:text-accent-foreground',
   {
     variants: {
       variant: {

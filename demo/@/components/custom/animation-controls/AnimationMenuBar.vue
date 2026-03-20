@@ -21,7 +21,7 @@
                             "
                         >
                             <SelectTrigger
-                                class="dock-select-trigger border-none rounded-none h-auto focus:ring-0 instrument-serif text-lg bg-transparent"
+                                class="dock-select-trigger border-none h-auto focus:ring-0 instrument-serif text-lg bg-transparent"
                             >
                                 <SelectIcon v-if="!storedControls.selectedAnimation"
                                     ><List></List
