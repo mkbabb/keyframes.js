@@ -85,12 +85,12 @@
                                     <Button size="sm" variant="outline"
                                         :class="[
                                             RIBBON_BUTTON_CLASS,
-                                            activeKeyframesRef?.cssApplied ? 'rainbow-vivid text-white border-transparent' : '',
+                                            activeKeyframesRef?.cssApplied ? 'rainbow-vivid text-white !border-transparent' : '',
                                         ]"
                                         @click="activeKeyframesRef?.applyCSSStyles?.()"
                                     >
                                         <Paintbrush class="w-3.5 h-3.5" :style="!activeKeyframesRef?.cssApplied ? { stroke: 'url(#rainbow-gradient)' } : {}" />
-                                        {{ activeKeyframesRef?.cssApplied ? 'Remove CSS' : 'Apply CSS' }}
+                                        Apply CSS
                                     </Button>
                                 </div>
 
