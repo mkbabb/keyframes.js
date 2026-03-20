@@ -82,17 +82,16 @@
                                     >
                                         <Sparkles class="w-3.5 h-3.5 text-[hsl(var(--color-gold))]" /> Format
                                     </Button>
-                                    <Button size="sm"
-                                        :variant="activeKeyframesRef?.cssApplied ? 'default' : 'outline'"
+                                    <Button size="sm" variant="outline"
                                         :class="[
                                             RIBBON_BUTTON_CLASS,
-                                            activeKeyframesRef?.cssApplied ? 'rainbow-vivid text-white' : '',
+                                            activeKeyframesRef?.cssApplied ? 'rainbow-vivid text-white border-transparent' : '',
                                         ]"
                                         @click="activeKeyframesRef?.applyCSSStyles?.()"
                                     >
                                         <Paintbrush :class="[
                                             'w-3.5 h-3.5',
-                                            activeKeyframesRef?.cssApplied ? '' : 'paintbrush-rainbow',
+                                            activeKeyframesRef?.cssApplied ? '' : 'rainbow-text',
                                         ]" />
                                         {{ activeKeyframesRef?.cssApplied ? 'Unapply CSS' : 'Apply CSS' }}
                                     </Button>
