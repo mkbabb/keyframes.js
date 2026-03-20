@@ -1,5 +1,5 @@
 <template>
-    <Card class="grid gap-0 w-full dark:border-none shadow-none border-none p-0">
+    <Card plain class="grid gap-0 w-full p-0">
         <CardHeader class="grid gap-0 p-0 pb-1">
             <CardTitle class="instrument-serif">cubic-bézier</CardTitle>
             <p v-if="editingCurveName" class="fira-code text-xs text-muted-foreground ml-1 mb-0.5">editing: {{ editingCurveName }}</p>

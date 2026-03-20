@@ -83,7 +83,7 @@ const groupedShortcuts = computed(() => {
     color: hsl(var(--foreground));
     background: hsl(var(--muted));
     border: 1px solid hsl(var(--border));
-    border-radius: 0.25rem;
+    border-radius: var(--radius-sm);
     box-shadow: 0 1px 0 1px hsl(var(--border) / 0.3);
 }
 </style>

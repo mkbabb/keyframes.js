@@ -4,7 +4,7 @@
             <Share2
                 title="Share"
                 :class="[
-                    'w-5 h-5 cursor-pointer hover:scale-105 transition-colors',
+                    'w-5 h-5 cursor-pointer hover:scale-105 transition-all duration-[var(--duration-fast)]',
                     sharePopoverOpen ? 'opacity-100' : 'hover:opacity-50',
                 ]"
             />

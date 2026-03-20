@@ -155,12 +155,12 @@ const ribbonContent = (slotProps: { selectedControl: string }) =>
         ? [
             h(Button, {
                 size: "sm", variant: "outline",
-                class: "h-8 gap-1.5 cursor-pointer fira-code text-xs px-3 rounded-lg hover:scale-105 active:scale-95 transition-transform",
+                class: "h-8 gap-1.5 cursor-pointer fira-code text-xs px-3 rounded-lg btn-interactive",
                 onClick: () => resetMatrix(),
             }, { default: () => [h(RotateCcw, { class: "w-3.5 h-3.5" }), " Reset"] }),
             h(Button, {
                 size: "sm", variant: "outline",
-                class: "h-8 gap-1.5 cursor-pointer fira-code text-xs px-3 rounded-lg hover:scale-105 active:scale-95 transition-transform",
+                class: "h-8 gap-1.5 cursor-pointer fira-code text-xs px-3 rounded-lg btn-interactive",
                 onClick: () => { storedControls.matrixOptions.fixed = !storedControls.matrixOptions.fixed; },
             }, {
                 default: () => [

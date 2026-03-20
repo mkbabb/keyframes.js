@@ -506,7 +506,7 @@ onUnmounted(() => {
     height: var(--height);
 
     /* bottom: var(--offset); */
-    border-radius: 5px;
+    border-radius: var(--radius-md);
     background-image: linear-gradient(
         to right,
         #f00 0%,

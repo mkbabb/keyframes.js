@@ -24,7 +24,7 @@
             <template
                 v-else-if="storedAnimationOptions.animationOptions.timingFunction === 'steps'"
             >
-                <Card class="border-none shadow-none">
+                <Card plain>
                     <CardHeader class="p-0 pb-2">
                         <CardTitle class="instrument-serif">steps</CardTitle>
                     </CardHeader>

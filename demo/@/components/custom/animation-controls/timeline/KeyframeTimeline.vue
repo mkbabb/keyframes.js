@@ -91,7 +91,7 @@
                             'border-2 transition-all',
                             selectedKeyframeId === kf.id
                                 ? 'bg-primary border-primary scale-125'
-                                : 'bg-background border-foreground/50 hover:border-primary hover:scale-110',
+                                : 'bg-background border-foreground/50 hover:border-primary hover:scale-105',
                         ]"
                         :style="{ left: `${percentToPosition(kf.percent)}%` }"
                         @pointerdown.stop="onMarkerPointerDown($event, kf.id)"
