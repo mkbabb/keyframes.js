@@ -13,44 +13,44 @@
         @update-selected-control="(v: string) => { storedControls.selectedControl = v; }"
     >
         <template #items>
-            <!-- @mbabb popover -->
-            <DockPopover direction="down" :collapse-delay="1200">
-                <template #trigger>
-                    <span class="text-xs lg:text-sm font-mono cursor-pointer">@mbabb</span>
-                </template>
-                <div class="p-2.5 min-w-[16rem] flex flex-col gap-1.5">
+            <!-- @mbabb dropdown -->
+            <DropdownMenu>
+                <DropdownMenuTrigger as-child>
+                    <button class="dock-icon-btn text-xs lg:text-sm font-mono cursor-pointer">@mbabb</button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" :side-offset="8" class="min-w-[16rem] p-1.5">
                     <!-- Share -->
-                    <div class="flex items-center gap-2.5 px-1.5 py-1 rounded-lg hover:bg-foreground/5 transition-colors">
+                    <DropdownMenuItem @select.prevent class="flex items-center gap-2.5 px-1.5 py-1 rounded-lg">
                         <SharePopover :on-scene-restore="(id: string) => switchScene(id)" />
                         <div class="flex-1 min-w-0">
                             <span class="instrument-serif text-sm text-foreground">Share</span>
                             <p class="instrument-serif text-[11px] text-muted-foreground leading-tight">Copy link or load shared state</p>
                         </div>
-                    </div>
+                    </DropdownMenuItem>
 
                     <!-- Dark mode -->
-                    <div class="flex items-center gap-2.5 px-1.5 py-1 rounded-lg hover:bg-foreground/5 transition-colors">
+                    <DropdownMenuItem @select.prevent class="flex items-center gap-2.5 px-1.5 py-1 rounded-lg">
                         <DarkModeToggle
                             title="Toggle dark mode"
                             class="aspect-square w-5"
                         />
                         <span class="instrument-serif text-sm text-foreground">Dark mode</span>
-                    </div>
+                    </DropdownMenuItem>
 
-                    <hr class="border-border/40 my-0.5" />
+                    <DropdownMenuSeparator />
 
                     <!-- ppmycota logo — toggles pp mode -->
-                    <div class="flex items-center gap-2.5 px-1.5 py-1 rounded-lg hover:bg-foreground/5 transition-colors cursor-pointer" @click="togglePpMode">
+                    <DropdownMenuItem @select.prevent class="flex items-center gap-2.5 px-1.5 py-1 rounded-lg cursor-pointer" @click="togglePpMode">
                         <div class="ppmycota-logo-sm w-7 h-7 shrink-0 hover:scale-105 transition-transform"></div>
                         <div class="flex-1 min-w-0">
                             <span class="instrument-serif text-sm text-[hsl(var(--ppmycota-primary))]">ppmycota</span>
                             <p class="instrument-serif text-[11px] text-muted-foreground leading-tight">&#x1F642;&#x200D;&#x2194;&#xFE0F; &#x1F331; &#x1F344;&#x200D;&#x1F7EB;</p>
                             <a href="https://ppmycota.com" target="_blank" rel="noopener noreferrer" class="instrument-serif text-[10px] text-muted-foreground hover:text-foreground hover:underline transition-colors" @click.stop>ppmycota.com</a>
                         </div>
-                    </div>
+                    </DropdownMenuItem>
 
                     <!-- @mbabb -->
-                    <div class="flex items-center gap-2.5 px-1.5 py-1">
+                    <DropdownMenuItem @select.prevent class="flex items-center gap-2.5 px-1.5 py-1">
                         <Avatar class="w-7 h-7">
                             <AvatarImage
                                 src="https://avatars.githubusercontent.com/u/2848617?v=4"
@@ -59,11 +59,11 @@
                         <div class="flex-1 min-w-0">
                             <a href="https://github.com/mkbabb" target="_blank" rel="noopener noreferrer" class="font-mono text-xs font-semibold text-foreground hover:underline">@mbabb</a>
                             <p class="instrument-serif text-[11px] text-muted-foreground leading-tight">CSS keyframe animation engine</p>
-                            <a href="https://github.com/mkbabb/keyframes.js" target="_blank" rel="noopener noreferrer" class="instrument-serif text-[11px] text-muted-foreground hover:text-foreground hover:underline transition-colors">View the project on Github 🎉</a>
+                            <a href="https://github.com/mkbabb/keyframes.js" target="_blank" rel="noopener noreferrer" class="instrument-serif text-[11px] text-muted-foreground hover:text-foreground hover:underline transition-colors">View the project on Github &#x1F389;</a>
                         </div>
-                    </div>
-                </div>
-            </DockPopover>
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
         </template>
     </TopDock>
 
@@ -124,7 +124,14 @@ import { EditorShell, EditorStartScreen } from "@components/custom/editor-shell"
 import { SharePopover } from "@components/custom/editor-shell";
 import { DarkModeToggle } from "@components/custom/dark-mode-toggle";
 import { Avatar, AvatarImage } from "@components/ui/avatar";
-import { TopDock, DockPopover } from "@components/custom/dock";
+import { TopDock } from "@components/custom/dock";
+import {
+    DropdownMenu,
+    DropdownMenuTrigger,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+} from "@components/ui/dropdown-menu";
 
 import { AnimationGroup } from "@src/animation/group";
 import { getStoredAnimationGroupControlOptions, setActiveScene, saveScenePlaybackState, getScenePlaybackState, clearScenePlaybackState, initFromHash } from "@components/custom/animation-controls/animationStores";
@@ -368,13 +375,13 @@ watch(
 <style>
 .scene-enter-active {
     transition:
-        opacity 0.35s ease-out,
-        transform 0.4s var(--ease-spring);
+        opacity var(--duration-slow) var(--ease-decelerate),
+        transform var(--duration-slow) var(--ease-spring);
 }
 .scene-leave-active {
     transition:
-        opacity 0.25s ease-in,
-        transform 0.25s ease-in;
+        opacity var(--duration-normal) var(--ease-accelerate),
+        transform var(--duration-normal) var(--ease-accelerate);
 }
 .scene-enter-from {
     opacity: 0;
