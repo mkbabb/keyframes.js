@@ -14,6 +14,7 @@ import { ValueUnit } from "../units";
 import {
     isObject,
     memoizeDecorator,
+    binarySearchRange,
     cancelAnimationFrame,
     requestAnimationFrame,
     seekPreviousValue,
@@ -105,6 +106,12 @@ export class Animation<V extends Vars = any> {
     private resolvePromise: ((value: void | PromiseLike<void>) => void) | null =
         null;
     private _playingPromise: Promise<void> | null = null;
+
+    /**
+     * Pre-bound draw callback — allocated once to avoid creating a new
+     * closure on every requestAnimationFrame reschedule.
+     */
+    private _boundDraw = this.draw.bind(this);
 
     private dispatchAnimationEvent(type: string) {
         // TODO(MEDIUM): Throw explicit capability errors when AnimationEvent/dispatchEvent is unavailable instead of silently skipping.
@@ -234,25 +241,61 @@ export class Animation<V extends Vars = any> {
             vars: undefined as unknown as V,
             flatVars: undefined as unknown as V,
             interpVars: {},
+            allInterpVars: [],
             transform,
             timingFunction,
         } as AnimationFrame<V>;
     }
 
-    reconcileVars(ix: number) {
+    /**
+     * Build an index mapping each variable name to the frame indices where
+     * it appears. Used by reconcileVars() for O(1) "next occurrence" lookups
+     * instead of O(N) findIndex scans per variable.
+     */
+    private buildVarIndex(): Map<string, number[]> {
+        const index = new Map<string, number[]>();
+        for (let i = 0; i < this.parsedVars.length; i++) {
+            for (const key of Object.keys(this.parsedVars[i]!)) {
+                let arr = index.get(key);
+                if (!arr) {
+                    arr = [];
+                    index.set(key, arr);
+                }
+                arr.push(i);
+            }
+        }
+        return index;
+    }
+
+    /**
+     * Reconcile interpolation variables across non-adjacent keyframes.
+     * For each variable at frame `ix`, find the next frame that also
+     * defines that variable and create an interpolation segment between them.
+     *
+     * Uses a pre-built variable index (from buildVarIndex) to avoid
+     * O(frames²) findIndex scans.
+     */
+    reconcileVars(ix: number, varIndex: Map<string, number[]>) {
         const startVars = this.parsedVars[ix];
         if (!startVars) {
             return;
         }
 
-        Object.keys(startVars).forEach((v) => {
-            const varIx = this.parsedVars.findIndex(
-                (f, i) => i > ix && f[v] != null,
-            );
+        for (const v of Object.keys(startVars)) {
+            // Use the pre-built index to find the next frame defining this variable
+            const occurrences = varIndex.get(v);
+            if (!occurrences) continue;
 
-            if (varIx === -1) {
-                return;
+            // Find first occurrence after ix
+            let varIx = -1;
+            for (const idx of occurrences) {
+                if (idx > ix) {
+                    varIx = idx;
+                    break;
+                }
             }
+
+            if (varIx === -1) continue;
 
             const [startIx, endIx] = [ix, varIx];
 
@@ -276,7 +319,7 @@ export class Animation<V extends Vars = any> {
             if (frameIx === -1) {
                 this.frames.push(frame);
             }
-        });
+        }
     }
 
     parse() {
@@ -300,8 +343,9 @@ export class Animation<V extends Vars = any> {
             this.frames.push(this.createFrame(i, i + 1));
         }
 
-        // Perform variable reconciliation
-        this.frames.forEach((_, ix) => this.reconcileVars(ix));
+        // Perform variable reconciliation using pre-built index for O(1) lookups
+        const varIndex = this.buildVarIndex();
+        this.frames.forEach((_, ix) => this.reconcileVars(ix, varIndex));
 
         // Sort frames by start time, then by stop time
         this.frames.sort((a, b) => {
@@ -318,7 +362,7 @@ export class Animation<V extends Vars = any> {
                 Object.keys(frame.interpVars).length > 0,
         );
 
-        // Set the vars for each frame
+        // Set the vars for each frame and pre-flatten interpVars for hot-path iteration
         this.frames.forEach((frame) => {
             const flatVars = Object.entries(frame.interpVars).reduce<
                 Record<string, ValueUnit[]>
@@ -328,6 +372,8 @@ export class Animation<V extends Vars = any> {
             }, {});
             frame.flatVars = flatVars as unknown as V;
             frame.vars = unflattenObject(frame.flatVars);
+            // Pre-flatten for zero-alloc iteration in interpFrames()
+            frame.allInterpVars = Object.values(frame.interpVars).flat();
         });
 
         return this;
@@ -486,26 +532,45 @@ export class Animation<V extends Vars = any> {
         return result;
     }
 
+    /**
+     * Interpolate all active frames at time `t`. This is the hot path —
+     * called once per rAF frame during playback.
+     *
+     * Uses binary search (O(log N)) to find the first matching frame,
+     * then scans neighbors to collect all overlapping frames at `t`
+     * (multiple properties may share the same time range).
+     *
+     * @param t - Current animation time in milliseconds
+     * @param transformFrames - If true, applies each frame's transform function to targets
+     * @returns Merged flat vars from all active frames
+     */
     interpFrames(t: number, transformFrames: boolean = false) {
         t = this.reversed ? this.options.duration - t : t;
 
         const result: Record<string, ValueUnit[]> = {};
+        const frames = this.frames;
+        const len = frames.length;
 
-        for (let i = 0; i < this.frames.length; i++) {
-            const frame = this.frames[i]!;
+        // Binary search for the first frame containing t
+        const seedIdx = binarySearchRange(
+            frames,
+            t,
+            (f) => f.time.start,
+            (f) => f.time.stop,
+        );
+
+        if (seedIdx === -1) return result;
+
+        // Process the seed frame, then expand to collect all overlapping frames.
+        // Frames are sorted by (time.start, time.stop), so overlapping frames
+        // at the same time are contiguous neighbors.
+        const processFrame = (frame: AnimationFrame<V>) => {
             const { start, stop } = frame.time;
-
-            if (t < start || t > stop) {
-                continue;
-            }
-
             const scaled = scale(t, start, stop, 0, 1);
             const eased = frame.timingFunction(scaled);
 
-            for (const values of Object.values(frame.interpVars)) {
-                for (const value of values) {
-                    lerpValue(eased, value);
-                }
+            for (const iv of frame.allInterpVars) {
+                lerpValue(eased, iv);
             }
 
             if (transformFrames) {
@@ -516,6 +581,20 @@ export class Animation<V extends Vars = any> {
             }
 
             Object.assign(result, frame.flatVars);
+        };
+
+        // Scan backward from seed (inclusive) to first frame that doesn't contain t
+        for (let i = seedIdx; i >= 0; i--) {
+            const f = frames[i]!;
+            if (t < f.time.start || t > f.time.stop) break;
+            processFrame(f);
+        }
+
+        // Scan forward from seed+1 to last frame that contains t
+        for (let i = seedIdx + 1; i < len; i++) {
+            const f = frames[i]!;
+            if (t < f.time.start || t > f.time.stop) break;
+            processFrame(f);
         }
 
         return result;
@@ -617,7 +696,7 @@ export class Animation<V extends Vars = any> {
         this.interpFrames(t, true);
 
         if (!this.done) {
-            this.handleId = requestAnimationFrame(this.draw.bind(this));
+            this.handleId = requestAnimationFrame(this._boundDraw);
         } else {
             this.reset();
             if (this.resolvePromise) {
@@ -630,7 +709,7 @@ export class Animation<V extends Vars = any> {
     private _playRAF(): Promise<void> {
         return new Promise((resolve) => {
             this.resolvePromise = resolve;
-            this.handleId = requestAnimationFrame(this.draw.bind(this));
+            this.handleId = requestAnimationFrame(this._boundDraw);
         });
     }
 
@@ -690,7 +769,7 @@ export class Animation<V extends Vars = any> {
     resume() {
         if (this.started && this.paused) {
             this.paused = false;
-            this.handleId = requestAnimationFrame(this.draw.bind(this));
+            this.handleId = requestAnimationFrame(this._boundDraw);
         }
         return this;
     }

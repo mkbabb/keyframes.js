@@ -54,6 +54,13 @@ export interface AnimationFrame<V extends Vars> {
         [arg: string]: Array<InterpolatedVar<V>>;
     };
 
+    /**
+     * Pre-flattened array of all interpolation variables across all properties.
+     * Built once during parse() to avoid Object.values().flat() allocation
+     * on every interpFrames() call in the hot path.
+     */
+    allInterpVars: Array<InterpolatedVar<V>>;
+
     transform: TransformFunction<V>;
 
     timingFunction: TimingFunction;

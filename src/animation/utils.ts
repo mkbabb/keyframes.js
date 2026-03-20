@@ -137,9 +137,32 @@ export function lerpObjectValue(
     return value;
 }
 
-export function lerpValue(t: number, value: InterpolatedVar<any>) {
-    const { start, stop, computed } = value;
+/** Lerp a simple numeric InterpolatedVar in-place. */
+export function lerpNumericValue(
+    t: number,
+    { start, stop, value }: InterpolatedVar<number>,
+) {
+    value.value = lerp(t, start.value, stop.value);
+    return value;
+}
 
+/**
+ * Interpolate a single InterpolatedVar at progress `t`.
+ *
+ * Uses a pre-resolved dispatch function (`_lerp`) when available (set during
+ * frame creation in createInterpVarValue). Falls back to runtime type checks
+ * for backward compatibility with externally constructed InterpolatedVar objects.
+ */
+export function lerpValue(t: number, value: InterpolatedVar<any>) {
+    // Fast path: use pre-dispatched function (avoids 3 type checks per call)
+    const dispatch = (value as any)._lerp;
+    if (dispatch) {
+        dispatch(t, value);
+        return value;
+    }
+
+    // Fallback: runtime type dispatch (for externally constructed InterpolatedVars)
+    const { start, stop, computed } = value;
     if (typeof start.value === "number" && typeof stop.value === "number") {
         value.value.value = lerp(t, start.value, stop.value);
     } else if (start.unit === "color") {
@@ -280,7 +303,18 @@ export const createInterpVarValue = (
                 `Interpolation for "${v}" requires ValueUnit leaves.`,
             );
         }
-        return normalizeValueUnits(l, r, colorSpace, hueMethod);
+        const iv = normalizeValueUnits(l, r, colorSpace, hueMethod);
+
+        // Pre-resolve the interpolation dispatch function based on value type.
+        // This avoids 3 sequential type checks per call in the hot path —
+        // the type is invariant once the frame is created.
+        (iv as any)._lerp = iv.computed
+            ? lerpComputedValue
+            : iv.start.unit === "color"
+                ? lerpColorValue
+                : lerpNumericValue;
+
+        return iv;
     });
 };
 

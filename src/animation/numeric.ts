@@ -1,4 +1,5 @@
 import { lerp, scale, clamp } from "../math";
+import { binarySearchRange } from "../utils";
 import { getTimingFunction } from "./utils";
 import type { TimingFunction, TimingFunctionNames } from "./constants";
 
@@ -81,23 +82,26 @@ export class NumericAnimation<T extends Record<string, number>> {
         };
     }
 
-    /** Map [0, 1] progress to interpolated values. Zero allocation. */
+    /**
+     * Map [0, 1] progress to interpolated values. Zero allocation —
+     * returns the same pre-allocated result object on every call.
+     *
+     * Uses O(log N) binary search over segments. Falls back to the
+     * last segment if progress is past the final stop position.
+     */
     at(progress: number): T {
         const p = clamp(progress, 0, 1) * 100;
 
-        // Find active segment
-        let seg = this.segments[0]!;
-        for (let i = 0; i < this.segments.length; i++) {
-            const s = this.segments[i]!;
-            if (p >= s.startPos && p <= s.stopPos) {
-                seg = s;
-                break;
-            }
-            // Past end — use last segment
-            if (i === this.segments.length - 1) {
-                seg = s;
-            }
-        }
+        // O(log N) segment lookup
+        let segIdx = binarySearchRange(
+            this.segments,
+            p,
+            (s) => s.startPos,
+            (s) => s.stopPos,
+        );
+        // Past end or between gaps — clamp to last segment
+        if (segIdx === -1) segIdx = this.segments.length - 1;
+        const seg = this.segments[segIdx]!;
 
         const scaled = scale(
             clamp(p, seg.startPos, seg.stopPos),
