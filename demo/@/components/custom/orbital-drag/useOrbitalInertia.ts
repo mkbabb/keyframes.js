@@ -47,13 +47,24 @@ export function useOrbitalInertia(params: OrbitalInertiaParams) {
         return false;
     };
 
+    /** Target frame interval for frame-rate-independent decay (ms). */
+    const TARGET_DT = 1000 / 60;
+    let lastInertiaTime = 0;
+
     const applyInertia = () => {
         if (isDragging.value || isTouching.value || isWheeling.value) return;
+
+        // Frame-rate-independent decay: scale the friction exponent by
+        // the actual frame delta so inertia feels identical at 30, 60, or 120fps.
+        const now = performance.now();
+        const dt = lastInertiaTime > 0 ? Math.min(now - lastInertiaTime, 100) : TARGET_DT;
+        lastInertiaTime = now;
+        const decay = Math.pow(inertiaFactor, dt / TARGET_DT);
 
         // Rotational inertia via persistent quaternion
         if (Math.abs(angularVelocitySpeed.value) > 1e-4) {
             applyRotation(angularVelocityAxis, angularVelocitySpeed.value);
-            angularVelocitySpeed.value *= inertiaFactor;
+            angularVelocitySpeed.value *= decay;
         } else {
             angularVelocitySpeed.value = 0;
         }
@@ -68,7 +79,7 @@ export function useOrbitalInertia(params: OrbitalInertiaParams) {
                         (model.value[category] as Record<string, number>)[
                             k
                         ]! + v,
-                        v * inertiaFactor,
+                        v * decay,
                     );
                 } else {
                     (
@@ -80,6 +91,7 @@ export function useOrbitalInertia(params: OrbitalInertiaParams) {
 
         // Auto-pause when all velocities have decayed to zero
         if (!hasVelocity()) {
+            lastInertiaTime = 0;
             pause();
         }
     };

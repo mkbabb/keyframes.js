@@ -275,11 +275,13 @@ watch(
         // Emit final rotation now that interaction ended
         emit("rotate", { ...model.value.rotate });
 
-        angularVelocitySpeed.value *= 0.5;
+        // Gentle initial velocity dampen on release — preserves most of the
+        // momentum for a smooth handoff to the inertia decay loop.
+        angularVelocitySpeed.value *= 0.8;
 
         for (const category of ["translate", "scale"] as const) {
             for (const k of Object.keys(velocity.value[category])) {
-                (velocity.value[category] as Record<string, number>)[k] *= 0.5;
+                (velocity.value[category] as Record<string, number>)[k] *= 0.8;
             }
         }
     },

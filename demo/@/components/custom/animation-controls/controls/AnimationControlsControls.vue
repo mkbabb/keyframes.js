@@ -538,7 +538,7 @@ onMounted(() => {
     background-clip: text;
     -webkit-background-clip: text;
     color: transparent;
-    animation: shimmer var(--duration-linger) linear infinite;
+    animation: shimmer 5s linear infinite;
 }
 
 @keyframes shimmer {
