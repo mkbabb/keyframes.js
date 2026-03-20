@@ -19,7 +19,7 @@ const forwardedProps = useForwardProps(delegatedProps);
         v-bind="forwardedProps"
         :class="
             cn(
-                'inline-flex items-center justify-center whitespace-nowrap rounded-sm p-1 px-3 text-base font-medium transition-all duration-[var(--duration-fast)] ease-[var(--ease-standard)] focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 data-[state=active]:text-foreground hover:text-foreground/70',
+                'inline-flex items-center justify-center whitespace-nowrap rounded-sm p-1 px-3 text-sm font-medium transition-all duration-[var(--duration-fast)] ease-[var(--ease-standard)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:text-foreground hover:text-foreground/70',
                 props.class,
             )
         "
