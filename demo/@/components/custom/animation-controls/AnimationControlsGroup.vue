@@ -507,11 +507,10 @@ function cycleAnimation(direction: number) {
 .controls-pane-wrapper {
     --pane-duration: 0.35s;
     display: grid;
-    /* dock-margin gap from screen top to dock, dock ~2.75rem tall,
-       then another dock-margin gap before the pane starts */
-    margin-top: calc(var(--dock-margin) * 2 + 2.75rem);
-    /* Leave room for the bottom dock (~5rem) below the pane */
-    max-height: calc(100dvh - var(--dock-margin) * 2 - 2.75rem - 5rem);
+    /* Half dock-margin above dock + dock height + half dock-margin gap */
+    margin-top: calc(var(--dock-margin) + 2.75rem);
+    /* Fill viewport minus top dock area and bottom dock (~4rem) */
+    max-height: calc(100dvh - var(--dock-margin) - 2.75rem - 4rem);
 }
 .controls-pane-wrapper.controls-pane--open {
     grid-template-rows: 1fr;
@@ -523,9 +522,10 @@ function cycleAnimation(direction: number) {
     transition: grid-template-rows var(--pane-duration) var(--ease-standard);
 }
 .controls-pane {
-    /* overflow: hidden is needed for grid-template-rows: 0fr collapse;
-       the template toggles to overflow-y: auto when fully open via Tailwind class. */
-    overflow: hidden;
+    /* min-height: 0 enables grid-template-rows: 0fr collapse.
+       overflow is managed by the template: overflow-hidden during collapse,
+       overflow-y-auto when fully open (via Tailwind class toggle). */
+    min-height: 0;
     transition: opacity var(--pane-duration) var(--ease-standard);
 }
 .controls-pane--open .controls-pane {

@@ -64,7 +64,7 @@ const emit = defineEmits<{
 <template>
     <div
         class="fixed left-1/2 -translate-x-1/2 z-[var(--z-dock)] flex items-center justify-center pointer-events-none"
-        style="top: calc(var(--work-area-top-offset, 0px) + var(--dock-margin));"
+        style="top: calc(var(--work-area-top-offset, 0px) + var(--dock-margin) / 2);"
     >
         <div class="pointer-events-auto">
             <GlassDock :collapse-delay="2500" :start-collapsed="true" :fit-content="true">

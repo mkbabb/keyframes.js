@@ -1,7 +1,7 @@
 <template>
     <div
         :class="[
-            'px-2 py-1.5 pb-[max(var(--dock-margin),env(safe-area-inset-bottom))] m-0 flex items-center justify-center justify-items-center',
+            'px-2 py-1.5 pb-[max(calc(var(--dock-margin)/2),env(safe-area-inset-bottom))] m-0 flex items-center justify-center justify-items-center',
             'fixed left-0 right-0 z-[var(--z-dock)]',
         ]"
         style="bottom: var(--work-area-bottom-offset, 0px);"
