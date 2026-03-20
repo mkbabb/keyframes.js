@@ -29,6 +29,16 @@ export function useAnimationGroupPlayback(
         );
     };
 
+    const setAnimationScrubTime = (animation: Animation<any>, t: number) => {
+        animation.t = t;
+
+        // Record the logical pause point so Animation.tick() can correctly
+        // adjust startTime on resume without a timestamp mismatch.
+        if (animation.startTime !== undefined) {
+            animation.pausedTime = animation.startTime + t;
+        }
+    };
+
     const onSelectAnimation = (name: string) => {
         const animationGroup = getAnimationGroup();
         storedControls.selectedAnimation = name;
@@ -74,25 +84,39 @@ export function useAnimationGroupPlayback(
 
     const sliderUpdate = ({ t, animation }: { t: number; animation: Animation<any> }) => {
         const animationGroup = getAnimationGroup();
-        const groupObject = findAnimationGroupObject(animation);
-        const groupAnimation = groupObject!.animation;
+        const selectedDuration = animation.options.duration ?? 1000;
+        const selectedEffectiveT = animation.reversed
+            ? selectedDuration - t
+            : t;
+        const normalizedProgress = selectedDuration > 0
+            ? Math.max(0, Math.min(1, selectedEffectiveT / selectedDuration))
+            : 0;
 
-        groupAnimation.t = t;
+        for (const groupObject of Object.values(animationGroup.animations)) {
+            const childAnimation = groupObject.animation;
+            const childDuration = childAnimation.options.duration ?? 1000;
+            const childEffectiveT = normalizedProgress * childDuration;
+            const childRawT = childAnimation.reversed
+                ? childDuration - childEffectiveT
+                : childEffectiveT;
 
-        // Record the logical pause point so Animation.tick() can correctly
-        // adjust startTime on resume without a timestamp mismatch.
-        if (groupAnimation.startTime !== undefined) {
-            groupAnimation.pausedTime = groupAnimation.startTime + t;
+            setAnimationScrubTime(childAnimation, childRawT);
+
+            const vars = childAnimation.interpFrames(childAnimation.t, false);
+            Object.assign(groupObject.values, vars);
         }
 
-        // Explicitly interpolate the scrubbed animation's frames so that
-        // transformFramesGrouped picks up the new values. Without this,
-        // the paused guard inside transformFramesGrouped skips interpFrames
-        // and the visual stays frozen at the pre-scrub position.
-        const vars = groupAnimation.interpFrames(groupAnimation.t, false);
-        Object.assign(groupObject!.values, vars);
+        if (animationGroup.singleTarget) {
+            animationGroup.transformFramesGrouped(t);
+            return;
+        }
 
-        animationGroup.transformFramesGrouped(t);
+        animationGroup.done = Object.values(animationGroup.animations)
+            .map(({ animation: childAnimation }) => {
+                childAnimation.interpFrames(childAnimation.t, true);
+                return childAnimation.done;
+            })
+            .every(Boolean);
     };
 
     return {
