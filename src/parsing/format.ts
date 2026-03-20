@@ -152,20 +152,36 @@ export async function CSSKeyframesToString<V extends Vars>(
     printWidth: number | undefined = undefined,
 ) {
     const options = animation.options;
+
+    // Build keyframes from template frames (the declared stops: 0%, 50%, 100%, etc.)
+    // rather than interpolation frames (which are transition pairs, not stops).
+    // Sample the animation at each stop's percentage to get the resolved CSS values.
     const keyframesMap = new Map<string, ValueUnit[]>();
 
-    animation.frames.forEach(async (frame) => {
-        const cssString = CSSKeyframeToString(frame);
+    for (const templateFrame of animation.templateFrames) {
+        const percent = templateFrame.start;
+        const progress = percent.value / 100;
+        const vars = animation.at(progress, false);
 
-        if (!keyframesMap.has(cssString)) {
-            keyframesMap.set(cssString, [frame.start]);
+        const css = Object.entries(unflattenObjectToString(vars))
+            .map(([propName, v]) => {
+                propName = camelCaseToHyphen(propName);
+                return `  ${propName}: ${v};`;
+            })
+            .join("\n")
+            .trim();
+
+        const body = `{\n${css}\n}`;
+
+        if (!keyframesMap.has(body)) {
+            keyframesMap.set(body, [percent]);
         } else {
-            keyframesMap.get(cssString)!.push(frame.start);
+            keyframesMap.get(body)!.push(percent);
         }
-    });
+    }
 
     let keyframesString = "";
-    for (let [css, percents] of keyframesMap) {
+    for (const [css, percents] of keyframesMap) {
         keyframesString += `${percents.join(", ")} ${css}`;
     }
 
