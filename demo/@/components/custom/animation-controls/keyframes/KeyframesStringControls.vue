@@ -242,6 +242,7 @@ defineExpose({
     },
     getCSSString: () => cssKeyframesString.value,
     applyCSSStyles,
+    cssApplied,
 });
 </script>
 
