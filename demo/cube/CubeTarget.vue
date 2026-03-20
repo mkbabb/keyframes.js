@@ -38,7 +38,7 @@
                                 'cube-side',
                                 side.class,
                                 'rounded-lg',
-                                'transition-[background-color,opacity] duration-500 ease-in-out',
+                                'transition-[background-color,opacity] duration-[var(--duration-panel)] ease-in-out',
                                 'absolute z-10 flex items-center justify-center',
                             ]"
                         >
@@ -146,7 +146,7 @@ const cubeSides = [
 }
 
 .cube {
-    --side-size: min(25vh, 25vw);
+    --side-size: min(25vh, 25vw, 15rem);
     --side-offset: calc(var(--side-size) / 2);
     --rotationX: 360deg;
 
@@ -157,7 +157,7 @@ const cubeSides = [
 
 @media (max-width: 1023px) {
     .cube {
-        --side-size: min(50vh, 50vw);
+        --side-size: min(50vh, 50vw, 18rem);
     }
 }
 

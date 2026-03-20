@@ -39,11 +39,11 @@
                                             <span class="flex items-center gap-2">
                                                 <span
                                                     :class="[
-                                                        'inline-block w-2.5 h-2.5 rounded-full transition-colors duration-[var(--duration-fast)]',
+                                                        'status-dot w-2.5 h-2.5',
                                                         !isPlaying && isStarted
-                                                            ? 'bg-yellow-500'
+                                                            ? 'status-dot--paused'
                                                             : !isPlaying
-                                                              ? 'bg-gray-400'
+                                                              ? 'status-dot--idle'
                                                               : '',
                                                     ]"
                                                     :style="isPlaying ? dotStyle(name) : {}"

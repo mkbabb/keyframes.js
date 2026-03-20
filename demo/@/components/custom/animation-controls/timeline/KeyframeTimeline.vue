@@ -1,6 +1,6 @@
 <template>
     <div class="flex flex-col gap-3">
-    <Card :class="['w-full overflow-visible transition-all duration-150', props.expanded ? 'border-0 shadow-none bg-transparent' : '']">
+    <Card :class="['w-full overflow-visible transition-all duration-[var(--duration-fast)]', props.expanded ? 'border-0 shadow-none bg-transparent' : '']">
         <CardContent :class="['relative flex flex-col gap-3', props.expanded ? 'p-2 px-0' : 'p-4']">
         <!-- Pane action buttons -->
         <div class="flex items-center justify-end gap-1">
@@ -47,10 +47,9 @@
         <div
             ref="trackEl"
             :class="[
-                'timeline-track relative rounded-lg border border-border bg-muted/50 hover:bg-muted/70 transition-all duration-150 cursor-pointer select-none overflow-x-clip overflow-y-visible',
+                'timeline-track relative rounded-lg border border-border bg-muted/50 hover:bg-muted/70 transition-all duration-[var(--duration-fast)] cursor-pointer select-none overflow-x-clip overflow-y-visible touch-none',
                 props.expanded ? 'h-32' : 'h-12',
             ]"
-            style="touch-action: none"
             @pointerdown="onTrackPointerDown"
             @pointermove="onTrackPointerMove"
             @pointerup="onTrackPointerUp"

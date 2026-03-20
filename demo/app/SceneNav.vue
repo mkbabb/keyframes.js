@@ -1,6 +1,6 @@
 <template>
     <div
-        class="scene-nav fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center justify-center"
+        class="scene-nav fixed top-4 left-1/2 -translate-x-1/2 z-[var(--z-popover)] flex items-center justify-center"
         @mouseenter="onMouseEnter"
         @mouseleave="onMouseLeave"
     >
@@ -8,7 +8,7 @@
             :class="[
                 'scene-nav-shell pointer-events-auto relative flex items-center',
                 'rounded-xl glass',
-                'transition-all duration-300 ease-[var(--ease-spring)]',
+                'transition-all duration-[var(--duration-slow)] ease-[var(--ease-spring)]',
                 isExpanded
                     ? 'px-2 py-1.5 gap-1'
                     : 'px-3 py-1 gap-1.5 h-6 cursor-pointer',
@@ -31,7 +31,7 @@
                     <button
                         @click="onSelect(HOME_SCENE_ID)"
                         :class="[
-                            'whitespace-nowrap px-3.5 py-1.5 text-base instrument-serif cursor-pointer rounded-lg transition-all duration-150 shrink-0',
+                            'whitespace-nowrap px-3.5 py-1.5 text-base instrument-serif cursor-pointer rounded-lg transition-all duration-[var(--duration-fast)] shrink-0',
                             current === HOME_SCENE_ID
                                 ? 'bg-foreground/10 text-foreground font-semibold shadow-sm'
                                 : 'text-muted-foreground hover:text-foreground hover:bg-foreground/5',
@@ -49,7 +49,7 @@
                         :key="scene.id"
                         @click="onSelect(scene.id)"
                         :class="[
-                            'whitespace-nowrap px-3.5 py-1.5 text-base instrument-serif cursor-pointer rounded-lg transition-all duration-150 shrink-0',
+                            'whitespace-nowrap px-3.5 py-1.5 text-base instrument-serif cursor-pointer rounded-lg transition-all duration-[var(--duration-fast)] shrink-0',
                             scene.id === current
                                 ? 'bg-foreground/10 text-foreground font-semibold shadow-sm'
                                 : 'text-muted-foreground hover:text-foreground hover:bg-foreground/5',

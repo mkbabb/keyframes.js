@@ -1,7 +1,7 @@
 <template>
     <div
         ref="viewportEl"
-        class="absolute inset-0 z-40 pointer-events-none overflow-hidden"
+        class="absolute inset-0 z-[var(--z-dock)] pointer-events-none overflow-hidden"
         @pointerdown.self="deselectAll"
     >
         <!-- Rendered assets -->

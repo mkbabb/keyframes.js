@@ -1,6 +1,6 @@
 <template>
     <div
-        class="pointer-events-none absolute top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-2"
+        class="pointer-events-none absolute top-0 left-0 right-0 z-[var(--z-dock)] flex items-center justify-between px-4 py-2"
         @mouseleave="onGroupMouseLeave"
     >
         <!-- Left side — mobile sidebar toggle slot -->
@@ -98,9 +98,9 @@ onBeforeUnmount(() => {
     margin-right: 0.75rem;
     opacity: 1;
     transition:
-        max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-        margin-right 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-        opacity 0.25s ease-out;
+        max-width var(--duration-slow) var(--ease-standard),
+        margin-right var(--duration-slow) var(--ease-standard),
+        opacity var(--duration-normal) var(--ease-decelerate);
     overflow: visible;
 }
 .header-collapsed {

@@ -22,11 +22,10 @@
         <CardContent class="p-0 m-0">
             <svg
                 ref="SVGEl"
-                class="bezier-curve mx-auto"
+                class="bezier-curve mx-auto touch-none select-none"
                 :viewBox="`0 ${viewBox.minY} 1 ${viewBox.height}`"
                 preserveAspectRatio="xMidYMid meet"
                 xmlns="http://www.w3.org/2000/svg"
-                style="touch-action: none; user-select: none;"
                 @pointerdown="startDragging"
                 @pointermove="onDrag"
                 @pointerup="stopDragging"

@@ -47,7 +47,7 @@
                 <span>Reverse</span>
                 <ArrowLeftRight
                     :class="[
-                        'w-5 h-5 transition-transform duration-200',
+                        'w-5 h-5 transition-transform duration-[var(--duration-fast)]',
                         userReversed ? 'scale-x-[-1]' : '',
                     ]"
                 />
@@ -57,6 +57,7 @@
         <AnimationVisualizer
             :class="['w-full', !isAnimStarted ? 'is-disabled' : '']"
             :animation="animation"
+            :is-playing="isAnimPlaying"
             @scrub="scrubTo"
             @drag-start="emit('scrubStart')"
             @drag-end="emit('scrubEnd')"

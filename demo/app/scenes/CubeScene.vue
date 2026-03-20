@@ -135,7 +135,7 @@ const tabsTrigger = (slotProps: { selectedAnimation: string }) =>
     slotProps.selectedAnimation === CUBE_ANIMATION_NAMES.Matrix
         ? h(TabsTrigger, {
             value: "matrix-controls",
-            class: "shrink-0 instrument-serif px-3 py-1.5 text-lg bg-transparent rounded-none transition-colors duration-150 data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground data-[state=active]:text-foreground data-[state=active]:font-semibold border-b-2 border-transparent data-[state=active]:border-foreground",
+            class: "shrink-0 instrument-serif px-3 py-1.5 text-lg bg-transparent rounded-none transition-colors duration-[var(--duration-fast)] data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground data-[state=active]:text-foreground data-[state=active]:font-semibold border-b-2 border-transparent data-[state=active]:border-foreground",
         }, { default: () => "Matrix Controls" })
         : null;
 

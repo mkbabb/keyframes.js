@@ -63,7 +63,7 @@ const emit = defineEmits<{
 
 <template>
     <div
-        class="fixed left-1/2 -translate-x-1/2 z-40 flex items-center justify-center pointer-events-none"
+        class="fixed left-1/2 -translate-x-1/2 z-[var(--z-dock)] flex items-center justify-center pointer-events-none"
         style="top: calc(var(--work-area-top-offset, 0px) + var(--dock-margin));"
     >
         <div class="pointer-events-auto">
@@ -103,7 +103,7 @@ const emit = defineEmits<{
                                 <SelectItem v-for="tab in allControlTabs" :key="tab.value" :value="tab.value" class="py-2 px-3" hide-indicator>
                                     <span class="flex items-center gap-2">
                                         <component v-if="tab.icon && TAB_ICONS[tab.icon]" :is="TAB_ICONS[tab.icon]" class="w-4 h-4 shrink-0 text-muted-foreground" />
-                                        <span :class="['inline-block w-2 h-2 rounded-full shrink-0', selectedControl === tab.value ? 'bg-green-500' : 'bg-gray-400']"></span>
+                                        <span :class="['status-dot', selectedControl === tab.value ? 'status-dot--active' : 'status-dot--idle']"></span>
                                         <span :class="selectedControl === tab.value ? 'font-bold' : ''">{{ tab.label }}</span>
                                     </span>
                                 </SelectItem>
@@ -127,7 +127,7 @@ const emit = defineEmits<{
                             <SelectGroup class="instrument-serif text-xl">
                                 <SelectItem :value="homeSceneId" class="py-2 px-3" hide-indicator>
                                     <span class="flex items-center gap-2">
-                                        <span :class="['inline-block w-2 h-2 rounded-full shrink-0', currentSceneId === homeSceneId ? 'bg-green-500' : 'bg-gray-400']"></span>
+                                        <span :class="['status-dot', currentSceneId === homeSceneId ? 'status-dot--active' : 'status-dot--idle']"></span>
                                         <Home class="w-3.5 h-3.5 text-muted-foreground shrink-0" />
                                         <span :class="currentSceneId === homeSceneId ? 'font-bold' : ''">Home</span>
                                     </span>
@@ -140,7 +140,7 @@ const emit = defineEmits<{
                                     hide-indicator
                                 >
                                     <span class="flex items-center gap-2">
-                                        <span :class="['inline-block w-2 h-2 rounded-full shrink-0', currentSceneId === scene.id ? 'bg-green-500' : 'bg-gray-400']"></span>
+                                        <span :class="['status-dot', currentSceneId === scene.id ? 'status-dot--active' : 'status-dot--idle']"></span>
                                         <img v-if="sceneIcons[scene.id]" :src="sceneIcons[scene.id]" class="w-5 h-5 shrink-0 object-contain" />
                                         <span :class="currentSceneId === scene.id ? 'font-bold' : ''">{{ scene.label }}</span>
                                     </span>

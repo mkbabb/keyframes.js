@@ -57,7 +57,7 @@
                 <DropdownMenuTrigger as-child>
                     <Button
                         :class="[
-                            'm-0 cursor-pointer p-0 text-xs lg:text-sm transition-all duration-200 font-mono font-normal',
+                            'm-0 cursor-pointer p-0 text-xs lg:text-sm transition-all duration-[var(--duration-fast)] font-mono font-normal',
                             toggled
                                 ? 'underline underline-offset-4 text-foreground decoration-2'
                                 : pinned

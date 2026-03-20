@@ -35,7 +35,7 @@
             <pre
                 @input="(e) => emit('updateCSS', (e.target as HTMLElement).innerText)"
                 @keydown="(e) => emit('keydown', e)"
-                class="hljs css p-2 min-h-32 cursor-text rounded-lg text-sm bg-transparent outline-none border-none z-100"
+                class="hljs css p-2 min-h-32 cursor-text rounded-lg text-sm bg-transparent outline-none border-none relative"
                 contenteditable="true"
             ><code>{{ formattedCSS }}</code></pre>
         </div>

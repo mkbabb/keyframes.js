@@ -88,12 +88,11 @@ defineExpose({ expanded, isPinned, expand, collapse, keepOpen, release });
     border: 1px solid var(--glass-border);
     box-shadow: var(--glass-shadow);
     white-space: nowrap;
-    --ease-dock: cubic-bezier(0.18, 1.4, 0.4, 1);
     transition:
-        width 0.25s var(--ease-dock),
-        padding 0.25s var(--ease-dock),
+        width var(--duration-normal) var(--ease-dock),
+        padding var(--duration-normal) var(--ease-dock),
         box-shadow var(--duration-normal) var(--ease-standard),
-        transform 0.25s var(--ease-dock),
+        transform var(--duration-normal) var(--ease-dock),
         background var(--duration-normal) var(--ease-standard),
         border-color var(--duration-normal) var(--ease-standard);
 }

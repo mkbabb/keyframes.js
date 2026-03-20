@@ -1,6 +1,6 @@
 <template>
     <div
-        class="absolute left-0 top-0 z-30 mt-28 grid h-0 w-screen items-center gap-0 px-6 lg:mt-24 pointer-events-none"
+        class="absolute left-0 top-0 z-[var(--z-controls)] mt-28 grid h-0 w-screen items-center gap-0 px-6 lg:mt-24 pointer-events-none"
     >
         <h1
             class="instrument-serif grid p-0 text-6xl font-bold lg:flex lg:text-8xl"

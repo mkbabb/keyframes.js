@@ -102,7 +102,7 @@
                                                 addKeyframesString = value;
                                             }
                                         "
-                                        class="hljs css min-h-[25vh] p-2 cursor-text rounded-lg text-sm bg-transparent outline-none border-none z-100"
+                                        class="hljs css min-h-[25vh] p-2 cursor-text rounded-lg text-sm bg-transparent outline-none border-none relative"
                                         contenteditable="true"
                                     ><code>{{ addKeyframesString }}</code></pre>
                                 </div>
