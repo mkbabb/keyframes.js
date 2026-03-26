@@ -2,9 +2,9 @@ import { clamp } from "@src/math";
 import { vec3 } from "gl-matrix";
 import { ref } from "vue";
 import type { Ref, ShallowRef } from "vue";
-import type { TransformBounds, TransformState, VelocityState } from ".";
-import { axes } from ".";
-import type { PressedKeys } from "./types";
+import type { TransformBounds, TransformState, VelocityState } from "..";
+import { axes } from "..";
+import type { PressedKeys } from "../types";
 
 export interface OrbitalPointerParams {
     model: Ref<TransformState>;

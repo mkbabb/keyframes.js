@@ -11,9 +11,9 @@ import { quat, vec3 } from "gl-matrix";
 import { computed, onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
 import type { TransformBounds, TransformState, VelocityState } from ".";
 import { axes, defaultTransformBounds, defaultTransformState, defaultVelocityState } from ".";
-import { useOrbitalInertia } from "./useOrbitalInertia";
-import { useOrbitalPinch } from "./useOrbitalPinch";
-import { useOrbitalPointer } from "./useOrbitalPointer";
+import { useOrbitalInertia } from "./composables/useOrbitalInertia";
+import { useOrbitalPinch } from "./composables/useOrbitalPinch";
+import { useOrbitalPointer } from "./composables/useOrbitalPointer";
 
 const props = defineProps<{
     sensitivity?: number;

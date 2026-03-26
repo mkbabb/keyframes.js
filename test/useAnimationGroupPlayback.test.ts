@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { CSSKeyframesAnimation } from "../src/animation";
 import { AnimationGroup } from "../src/animation/group";
-import { useAnimationGroupPlayback } from "../demo/@/components/custom/animation-controls/useAnimationGroupPlayback";
+import { useAnimationGroupPlayback } from "../demo/@/components/custom/animation-controls/composables/useAnimationGroupPlayback";
 
 const extractNumeric = (value: unknown): number => {
     if (Array.isArray(value)) {

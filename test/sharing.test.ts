@@ -3,7 +3,7 @@ import {
     encodeStateToHash,
     decodeStateFromHash,
     getAllState,
-} from "../demo/@/components/custom/animation-controls/animationStores/index";
+} from "../demo/@/components/custom/animation-controls/stores/index";
 
 describe("encodeStateToHash / decodeStateFromHash", () => {
     it("round-trip: encode then decode returns original state", () => {

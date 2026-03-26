@@ -5,7 +5,7 @@ import { CSSKeyframesToString } from "@src/parsing/format";
 import { camelCaseToHyphen, hyphenToCamelCase } from "@src/utils";
 import type { TimelineKeyframe, TimelineState } from "./timelineTypes";
 import { createKeyframeId } from "./timelineTypes";
-import { flattenVars } from "@utils/flattenVars";
+import { flattenVars } from "./flattenVars";
 
 /**
  * Convert timeline keyframes into a CSSKeyframesAnimation.

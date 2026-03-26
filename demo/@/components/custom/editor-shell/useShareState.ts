@@ -4,15 +4,15 @@ import {
     decodeStateFromHash,
     getAllState,
     restoreStateFromHash,
-} from "@components/custom/animation-controls/animationStores";
+} from "@components/custom/animation-controls/stores";
 import { toast } from "vue-sonner";
-import { useClipboard } from "@composables/useClipboard";
+import { copyToClipboard } from "@mkbabb/glass-ui";
 
 export function useShareState(onSceneRestore?: (sceneId: string) => void) {
     const sharePopoverOpen = ref(false);
     const loadHashInput = ref("");
     const stateVersion = ref(0);
-    const { copy } = useClipboard();
+    const copy = copyToClipboard;
 
     const shareState = async () => {
         const state = getAllState();

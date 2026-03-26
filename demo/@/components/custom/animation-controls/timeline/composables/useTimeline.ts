@@ -2,7 +2,7 @@ import { computed, markRaw, ref, shallowRef, watch } from "vue";
 import type { Ref, ShallowRef } from "vue";
 import { CSSKeyframesAnimation } from "@src/animation/index";
 import type { InputAnimationOptions } from "@src/animation/constants";
-import { defaultAnimationOptions } from "../animationStores";
+import { defaultAnimationOptions } from "../../stores";
 import { DEFAULT_CAPTURE_PROPERTIES, createKeyframeId } from "./timelineTypes";
 import type { TimelineKeyframe, TimelineState } from "./timelineTypes";
 import { captureSnapshot } from "./snapshotCapture";
@@ -11,7 +11,7 @@ import {
     exportTimelineToCSS,
     importCSSToTimeline,
 } from "./timelineEngine";
-import { flattenVars } from "@utils/flattenVars";
+import { flattenVars } from "./flattenVars";
 import { toast } from "vue-sonner";
 
 export function useTimeline(

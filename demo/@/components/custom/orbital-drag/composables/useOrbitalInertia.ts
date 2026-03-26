@@ -1,8 +1,8 @@
 import { useRafFn } from "@vueuse/core";
 import type { Ref } from "vue";
 import { watch } from "vue";
-import type { TransformState, VelocityState } from ".";
-import { axes } from ".";
+import type { TransformState, VelocityState } from "..";
+import { axes } from "..";
 
 export interface OrbitalInertiaParams {
     model: Ref<TransformState>;

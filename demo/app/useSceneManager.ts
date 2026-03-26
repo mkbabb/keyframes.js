@@ -1,6 +1,6 @@
 import { computed, ref, watch } from "vue";
 import { scenes, sceneMap, HOME_SCENE_ID, homeScene, type SceneDescriptor } from "./scenes";
-import { getActiveScene } from "@components/custom/animation-controls/animationStores";
+import { getActiveScene } from "@components/custom/animation-controls/stores";
 
 const STORAGE_KEY = "keyframes-js-active-scene";
 
