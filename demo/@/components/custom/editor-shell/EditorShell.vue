@@ -23,11 +23,13 @@
             </template>
         </HeaderRibbon>
 
-        <template v-if="showStartScreen">
-            <slot name="start-screen">
-                <EditorStartScreen />
-            </slot>
-        </template>
+        <Transition name="fade" appear>
+            <div v-if="showStartScreen" class="absolute inset-0 z-[var(--z-content)] flex items-center justify-center pointer-events-none">
+                <slot name="start-screen">
+                    <EditorStartScreen />
+                </slot>
+            </div>
+        </Transition>
 
         <AnimationControlsGroup
             :key="superKey"
@@ -69,10 +71,9 @@ import { HeaderRibbon } from "@components/custom/header-ribbon";
 import SharePopover from "./SharePopover.vue";
 import EditorStartScreen from "./EditorStartScreen.vue";
 import KeyboardShortcutsModal from "@components/custom/KeyboardShortcutsModal.vue";
-import { DarkModeToggle } from "@components/custom/dark-mode-toggle";
 import AnimationControlsGroup from "@components/custom/animation-controls/AnimationControlsGroup.vue";
 
-import { registerShortcut } from "@composables/useKeyboardShortcuts";
+import { registerShortcut, DarkModeToggle } from "@mkbabb/glass-ui";
 import type { AnimationGroup } from "@src/animation/group";
 
 import "@styles/utils.css";
@@ -119,5 +120,8 @@ defineExpose({ headerRibbonRef });
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2 2'%3E%3Cpath d='M1 2V0h1v1H0v1z' fill-opacity='0.10'/%3E%3C/svg%3E");
     background-size: 1rem;
     background-repeat: repeat;
+}
+:where(.dark) .grid-background {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2 2'%3E%3Cpath d='M1 2V0h1v1H0v1z' fill='white' fill-opacity='0.08'/%3E%3C/svg%3E");
 }
 </style>

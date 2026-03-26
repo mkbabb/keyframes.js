@@ -8,14 +8,14 @@
                     <div :class="['panel-row', !(showDetailPanel || advancedOpen) ? 'panel-row--active' : 'panel-row--inactive']">
                         <div class="panel-content grid grid-cols-[subgrid] items-center gap-x-3 gap-y-2 w-full">
                             <LabeledInput
-                                :model-value="storedAnimationOptions.animationOptions.duration"
+                                :model-value="storedAnimationOptions.animationOptions.duration ?? '5s'"
                                 label="duration"
                                 tooltip="Animation length (e.g. 5s, 200ms)"
                                 @update:model-value="(v) => { animation.setDuration(v); storedAnimationOptions.animationOptions.duration = v; }"
                             />
 
                             <LabeledInput
-                                :model-value="storedAnimationOptions.animationOptions.delay"
+                                :model-value="storedAnimationOptions.animationOptions.delay ?? '0ms'"
                                 label="delay"
                                 tooltip="Delay before start (e.g. 0s, 500ms)"
                                 @update:model-value="(v) => { animation.setDelay(v); storedAnimationOptions.animationOptions.delay = v; }"
@@ -42,7 +42,7 @@
                                 :model-value="
                                     storedAnimationOptions.animationOptions.iterationCount === 'infinite' || storedAnimationOptions.animationOptions.iterationCount === Infinity
                                         ? '∞'
-                                        : storedAnimationOptions.animationOptions.iterationCount
+                                        : storedAnimationOptions.animationOptions.iterationCount ?? 'infinite'
                                 "
                             />
 
@@ -54,7 +54,7 @@
                                 label="direction"
                                 tooltip="Playback direction"
                                 @update:model-value="(v) => { animation.setDirection(v as any); storedAnimationOptions.animationOptions.direction = v as any; }"
-                                @update:open="(v) => setOpen('direction', v)"
+                                @update:open="(v: boolean | undefined) => setOpen('direction', v ?? false)"
                             />
 
                             <LabeledSelect
@@ -65,7 +65,7 @@
                                 label="fill mode"
                                 tooltip="Style applied when not playing"
                                 @update:model-value="(v) => { animation.setFillMode(v as any); storedAnimationOptions.animationOptions.fillMode = v as any; }"
-                                @update:open="(v) => setOpen('fillMode', v)"
+                                @update:open="(v: boolean | undefined) => setOpen('fillMode', v ?? false)"
                             />
 
                             <div class="flex items-center gap-1.5">
@@ -84,7 +84,7 @@
                                 "
                                 :items="easingItems"
                                 :open="isOpen('easing')"
-                                @update:open="(v: boolean) => setOpen('easing', v)"
+                                @update:open="(v: boolean | undefined) => setOpen('easing', v ?? false)"
                                 trigger-class="fira-code"
                                 group-class="fira-code"
                                 title="Easing"
@@ -162,7 +162,7 @@
                                 :animation="animation"
                                 :stored-animation-options="storedAnimationOptions"
                                 :timing-functions-and="timingFunctionsAnd"
-                                :editing-curve-name="convertedFromName ?? undefined"
+                                v-bind="convertedFromName != null ? { editingCurveName: convertedFromName } : {}"
                                 @exit-detail-panel="exitDetailPanel"
                                 @update-timing-function="updateTimingFunctionFromName"
                             />
@@ -191,11 +191,6 @@
                                 @update="(v) => emit('layerConfigUpdate', v)"
                             />
 
-                            <ColorInterpolationPanel
-                                :animation="animation"
-                                :is-open="isOpen"
-                                :set-open="setOpen"
-                            />
                         </div>
                     </div>
                 </div>
@@ -225,96 +220,35 @@
 <script setup lang="ts">
 import { Animation } from "@src/animation/index";
 
-import { CSSCubicBezier, steppedEase, timingFunctions } from "@src/easing";
+import { Card, CardContent, Input, Separator, IconTooltip, LabeledSelect, LabeledInput } from "@mkbabb/glass-ui";
 
-import { Card, CardContent } from "@components/ui/card";
-import { Input } from "@components/ui/input";
-
-import { Separator } from "@components/ui/separator";
-
-import { camelCaseToHyphen } from "@src/utils";
-
-import { ChevronDown, ChevronRight, ArrowLeft, Pencil } from "lucide-vue-next";
+import { ChevronRight, ArrowLeft, Pencil } from "lucide-vue-next";
 import TimingFunctionPanel from "./TimingFunctionPanel.vue";
 import PlaybackRibbon from "./PlaybackRibbon.vue";
 import LayerConfigPanel from "./LayerConfigPanel.vue";
-import ColorInterpolationPanel from "./ColorInterpolationPanel.vue";
-import { useAnimationSync } from "./useAnimationSync";
-import IconTooltip from "@components/custom/IconTooltip.vue";
-import LabeledSelect from "@components/custom/LabeledSelect.vue";
-import LabeledInput from "@components/custom/LabeledInput.vue";
+import { useAnimationSync } from "./composables/useAnimationSync";
+import { useTimingFunctionEditor } from "./composables/useTimingFunctionEditor";
 import ResponsiveSelect from "@components/custom/ResponsiveSelect.vue";
 
-import { Teleport, computed, onMounted, ref, toRef, watch } from "vue";
+import { Teleport, onMounted, ref, toRef } from "vue";
 import {
     getStoredAnimationOptions,
-} from "../animationStores";
+} from "../stores";
 import {
     DIRECTIONS,
     FILL_MODES,
 } from "@src/animation/constants";
 import type {
     AnimationLayerConfig,
-    TimingFunction,
     TimingFunctionNames,
 } from "@src/animation/constants";
-import { useExclusiveSelect } from "@composables/useExclusiveSelect";
-import { getCurvePath, generateCurveSVGPath, generateStepSVGPath } from "./timingCurveUtils";
+import { getCurvePath } from "./composables/timingCurveUtils";
 import {
     DIRECTION_DESCRIPTIONS,
     FILL_MODE_DESCRIPTIONS,
     TIMING_DESCRIPTIONS,
+    DETAIL_TIMING_FUNCTIONS,
 } from "../animationDescriptions";
-
-let timingFunctionsAnd = {
-    "cubic-bezier": "cubic-bezier",
-    ...timingFunctions,
-};
-timingFunctionsAnd = Object.fromEntries(
-    Object.entries(timingFunctionsAnd).map(([k, v]) => [camelCaseToHyphen(k), v]),
-) as any;
-
-const DETAIL_TIMING_FUNCTIONS = new Set(["cubic-bezier", "steps"]);
-
-// Named easing → cubic-bezier control point mappings
-const NAMED_EASING_BEZIER: Record<string, [number, number, number, number]> = {
-    "ease": [0.25, 0.1, 0.25, 1.0],
-    "ease-in": [0.42, 0, 1.0, 1.0],
-    "ease-out": [0, 0, 0.58, 1.0],
-    "ease-in-out": [0.42, 0, 0.58, 1.0],
-    "ease-in-sine": [0.47, 0, 0.745, 0.715],
-    "ease-out-sine": [0.39, 0.575, 0.565, 1],
-    "ease-in-out-sine": [0.445, 0.05, 0.55, 0.95],
-    "ease-in-cubic": [0.55, 0.055, 0.675, 0.19],
-    "ease-out-cubic": [0.215, 0.61, 0.355, 1],
-    "ease-in-out-cubic": [0.645, 0.045, 0.355, 1],
-    "ease-in-quad": [0.55, 0.085, 0.68, 0.53],
-    "ease-out-quad": [0.25, 0.46, 0.45, 0.94],
-    "ease-in-out-quad": [0.455, 0.03, 0.515, 0.955],
-    "ease-in-quart": [0.895, 0.03, 0.685, 0.22],
-    "ease-out-quart": [0.165, 0.84, 0.44, 1],
-    "ease-in-out-quart": [0.77, 0, 0.175, 1],
-    "ease-in-quint": [0.755, 0.05, 0.855, 0.06],
-    "ease-out-quint": [0.23, 1, 0.32, 1],
-    "ease-in-out-quint": [0.86, 0, 0.07, 1],
-    "ease-in-expo": [0.95, 0.05, 0.795, 0.035],
-    "ease-out-expo": [0.19, 1, 0.22, 1],
-    "ease-in-out-expo": [1, 0, 0, 1],
-    "ease-in-circ": [0.6, 0.04, 0.98, 0.335],
-    "ease-out-circ": [0.075, 0.82, 0.165, 1],
-    "ease-in-out-circ": [0.785, 0.135, 0.15, 0.86],
-    "ease-in-back": [0.6, -0.28, 0.735, 0.045],
-    "ease-out-back": [0.175, 0.885, 0.32, 1.275],
-    "ease-in-out-back": [0.68, -0.55, 0.265, 1.55],
-    "linear": [0, 0, 1, 1],
-};
-
-/** The name of the easing we auto-converted FROM (for subtitle display) */
-const convertedFromName = ref<string | null>(null);
-
-const easingItems = Object.keys(timingFunctionsAnd).map((key) => ({
-    value: key,
-}));
 
 const props = defineProps<{
     animation: Animation<any>;
@@ -324,110 +258,36 @@ const props = defineProps<{
     active?: boolean;
 }>();
 
-const { animation, isGrouped, layerConfig, active } = props;
+const storedAnimationOptions = getStoredAnimationOptions(props.animation);
 
-const storedAnimationOptions = getStoredAnimationOptions(animation);
+const {
+    timingFunctionsAnd,
+    easingItems,
+    convertedFromName,
+    advancedOpen,
+    isDetailEasing,
+    showDetailPanel,
+    activeCurvePath,
+    onEditIconClick,
+    exitDetailPanel,
+    updateTimingFunctionFromName,
+} = useTimingFunctionEditor(() => props.animation, storedAnimationOptions);
 
-/** Reactive SVG path for the current timing function (including edited cubic-bezier/steps). */
-const activeCurvePath = computed(() => {
-    const name = storedAnimationOptions.animationOptions.timingFunction as string;
-    if (name === "cubic-bezier") {
-        const [x1, y1, x2, y2] = storedAnimationOptions.cubicBezierOptions.controlPoints;
-        return generateCurveSVGPath(CSSCubicBezier(x1, y1, x2, y2));
-    }
-    if (name === "steps") {
-        const { steps } = storedAnimationOptions.stepOptions;
-        return generateStepSVGPath(steps);
-    }
-    return getCurvePath(name, timingFunctionsAnd);
-});
-
-const advancedOpen = ref(false);
-
-const { isOpen, setOpen } = useExclusiveSelect();
+// Exclusive select mutex: only one dropdown open at a time
+const openSelect = ref<string | null>(null);
+const isOpen = (name: string) => openSelect.value === name;
+const setOpen = (name: string, open: boolean) => { openSelect.value = open ? name : null; };
 
 // rAF-driven reactivity bridge: animation is markRaw, so Vue can't track
 // property changes. We sync reactive refs every frame for the slider + buttons.
 // isPlaying guard comes from the parent (useAnimationGroupPlayback) — not polled.
 const isPlayingRef = toRef(() => props.isPlaying ?? false);
-const { currentT, isPlaying: isAnimPlaying, isStarted: isAnimStarted } = useAnimationSync(() => animation, isPlayingRef);
+const { currentT, isPlaying: isAnimPlaying, isStarted: isAnimStarted } = useAnimationSync(() => props.animation, isPlayingRef);
 
 const userReversed = ref(false);
 const toggleReverse = () => {
-    animation.reverse();
+    props.animation.reverse();
     userReversed.value = !userReversed.value;
-};
-
-// Track whether to show the detail panel — open when a detail timing function
-// is selected, but allow the user to close it (back button) without changing
-// the active timing function.
-const detailPanelDismissed = ref(true);
-
-// Flag: only auto-open the editor when the edit icon was used, not from dropdown selection
-const openEditorOnChange = ref(false);
-
-const isDetailEasing = computed(
-    () => DETAIL_TIMING_FUNCTIONS.has(
-        storedAnimationOptions.animationOptions.timingFunction as string,
-    ),
-);
-
-const showDetailPanel = computed(
-    () => DETAIL_TIMING_FUNCTIONS.has(
-        storedAnimationOptions.animationOptions.timingFunction as string,
-    ) && !detailPanelDismissed.value,
-);
-
-// Re-open the detail panel only when triggered via edit icon
-watch(
-    () => storedAnimationOptions.animationOptions.timingFunction as string,
-    () => {
-        if (openEditorOnChange.value) {
-            detailPanelDismissed.value = false;
-            openEditorOnChange.value = false;
-        }
-    },
-);
-
-/** Called from the edit icon — opens the curve editor */
-const onEditIconClick = (currentEasing: string) => {
-    openEditorOnChange.value = true;
-    onEasingLabelClick(currentEasing);
-};
-
-const onEasingLabelClick = (currentEasing: string) => {
-    if (currentEasing === "steps") {
-        // Open steps editor as-is
-        storedAnimationOptions.animationOptions.timingFunction = "steps" as any;
-        detailPanelDismissed.value = false;
-        return;
-    }
-
-    if (currentEasing === "cubic-bezier") {
-        // Already cubic-bezier — just open the editor
-        detailPanelDismissed.value = false;
-        convertedFromName.value = null;
-        return;
-    }
-
-    // Named easing → auto-convert to cubic-bezier
-    const bezierPoints = NAMED_EASING_BEZIER[currentEasing];
-    if (bezierPoints) {
-        storedAnimationOptions.cubicBezierOptions.controlPoints = [...bezierPoints];
-        convertedFromName.value = currentEasing;
-    } else {
-        // Fallback: linear approximation
-        storedAnimationOptions.cubicBezierOptions.controlPoints = [0, 0, 1, 1];
-        convertedFromName.value = currentEasing;
-    }
-    storedAnimationOptions.animationOptions.timingFunction = "cubic-bezier" as any;
-    updateTimingFunctionFromName("cubic-bezier");
-    detailPanelDismissed.value = false;
-};
-
-const exitDetailPanel = () => {
-    detailPanelDismissed.value = true;
-    convertedFromName.value = null;
 };
 
 const emit = defineEmits<{
@@ -444,45 +304,22 @@ const emit = defineEmits<{
     (e: "scrubEnd"): void;
 }>();
 
-const setAnimationTimingFunction = (timingFunction: TimingFunction) => {
-    animation.options.timingFunction = timingFunction;
-    animation.frames.forEach((frame) => {
-        frame.timingFunction = timingFunction;
-    });
-};
-
-const updateTimingFunctionFromName = (key: TimingFunctionNames | "cubic-bezier") => {
-    let timingFunction = (timingFunctions as Record<string, TimingFunction | ((...args: any[]) => TimingFunction)>)[key] as TimingFunction;
-
-    if (key === "steps") {
-        const { steps, jumpTerm } = storedAnimationOptions.stepOptions;
-        timingFunction = timingFunctions[key](steps, jumpTerm);
-    } else if (key === "cubic-bezier") {
-        timingFunction = CSSCubicBezier(
-            ...storedAnimationOptions.cubicBezierOptions.controlPoints,
-        );
-    }
-    setAnimationTimingFunction(timingFunction);
-};
-
 const prevT = ref(0);
 const toggleAnimation = () => {
-    if (isGrouped && !animation.started) {
+    if (props.isGrouped) {
         emit("togglePlay");
         return;
     }
 
-    if (!animation.started && !isGrouped) {
-        animation.play();
-    } else if (isGrouped) {
-        animation.paused = !animation.paused;
+    if (!props.animation.started) {
+        props.animation.play();
     } else {
-        animation.pause();
+        props.animation.pause();
 
-        if (animation.paused) {
-            prevT.value = animation.t;
+        if (props.animation.paused) {
+            prevT.value = props.animation.t;
         } else {
-            animation.pausedTime += animation.t - prevT.value;
+            props.animation.pausedTime += props.animation.t - prevT.value;
             prevT.value = 0;
         }
     }

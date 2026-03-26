@@ -101,12 +101,10 @@
 
 <script setup lang="ts">
 import type { ComputedRef, Ref } from "vue";
-import { Slider } from "@components/ui/slider";
-import { Card, CardContent } from "@components/ui/card";
-import { Input } from "@components/ui/input";
+import { Slider, Card, CardContent, Input } from "@mkbabb/glass-ui";
 import type { FunctionValue } from "@src/units";
-import type { MatrixCellMeta } from "@composables/useTransformState";
-import { getStoredAnimationGroupControlOptions } from "@components/custom/animation-controls/animationStores";
+import type { MatrixCellMeta } from "./useTransformState";
+import { getStoredAnimationGroupControlOptions } from "@components/custom/animation-controls/stores";
 
 const props = defineProps<{
     matrix3dEnd: FunctionValue;

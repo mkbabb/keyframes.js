@@ -24,7 +24,7 @@
                         <SharePopover :on-scene-restore="(id: string) => switchScene(id)" />
                         <div class="flex-1 min-w-0">
                             <span class="instrument-serif text-sm text-foreground">Share</span>
-                            <p class="instrument-serif text-[11px] text-muted-foreground leading-tight">Copy link or load shared state</p>
+                            <p class="instrument-serif text-2xs text-muted-foreground leading-tight">Copy link or load shared state</p>
                         </div>
                     </DropdownMenuItem>
 
@@ -44,8 +44,8 @@
                         <div class="ppmycota-logo-sm w-7 h-7 shrink-0 hover:scale-105 transition-transform"></div>
                         <div class="flex-1 min-w-0">
                             <span class="instrument-serif text-sm text-[hsl(var(--ppmycota-primary))]">ppmycota</span>
-                            <p class="instrument-serif text-[11px] text-muted-foreground leading-tight">&#x1F642;&#x200D;&#x2194;&#xFE0F; &#x1F331; &#x1F344;&#x200D;&#x1F7EB;</p>
-                            <a href="https://ppmycota.com" target="_blank" rel="noopener noreferrer" class="instrument-serif text-[10px] text-muted-foreground hover:text-foreground hover:underline transition-colors" @click.stop>ppmycota.com</a>
+                            <p class="instrument-serif text-2xs text-muted-foreground leading-tight">&#x1F642;&#x200D;&#x2194;&#xFE0F; &#x1F331; &#x1F344;&#x200D;&#x1F7EB;</p>
+                            <a href="https://ppmycota.com" target="_blank" rel="noopener noreferrer" class="instrument-serif text-2xs text-muted-foreground hover:text-foreground hover:underline transition-colors" @click.stop>ppmycota.com</a>
                         </div>
                     </DropdownMenuItem>
 
@@ -58,8 +58,8 @@
                         </Avatar>
                         <div class="flex-1 min-w-0">
                             <a href="https://github.com/mkbabb" target="_blank" rel="noopener noreferrer" class="font-mono text-xs font-semibold text-foreground hover:underline">@mbabb</a>
-                            <p class="instrument-serif text-[11px] text-muted-foreground leading-tight">CSS keyframe animation engine</p>
-                            <a href="https://github.com/mkbabb/keyframes.js" target="_blank" rel="noopener noreferrer" class="instrument-serif text-[11px] text-muted-foreground hover:text-foreground hover:underline transition-colors">View the project on Github &#x1F389;</a>
+                            <p class="instrument-serif text-2xs text-muted-foreground leading-tight">CSS keyframe animation engine</p>
+                            <a href="https://github.com/mkbabb/keyframes.js" target="_blank" rel="noopener noreferrer" class="instrument-serif text-2xs text-muted-foreground hover:text-foreground hover:underline transition-colors">View the project on Github &#x1F389;</a>
                         </div>
                     </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -119,34 +119,36 @@
 
 <script setup lang="ts">
 import { computed, markRaw, nextTick, provide, ref, shallowRef, watch } from "vue";
+import { CONTROLS_PANE_HOVER_KEY, TABS_EXTERNALLY_MANAGED_KEY } from "@components/custom/animation-controls/injectionKeys";
 
 import { EditorShell, EditorStartScreen } from "@components/custom/editor-shell";
 import { SharePopover } from "@components/custom/editor-shell";
-import { DarkModeToggle } from "@components/custom/dark-mode-toggle";
-import { Avatar, AvatarImage } from "@components/ui/avatar";
-import { TopDock } from "@components/custom/dock";
 import {
+    DarkModeToggle,
+    Avatar,
+    AvatarImage,
     DropdownMenu,
     DropdownMenuTrigger,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuSeparator,
-} from "@components/ui/dropdown-menu";
+} from "@mkbabb/glass-ui";
+import { TopDock } from "@components/custom/dock";
 
 import { AnimationGroup } from "@src/animation/group";
-import { getStoredAnimationGroupControlOptions, setActiveScene, saveScenePlaybackState, getScenePlaybackState, clearScenePlaybackState, initFromHash } from "@components/custom/animation-controls/animationStores";
-import type { ScenePlaybackState } from "@components/custom/animation-controls/animationStores";
+import { getStoredAnimationGroupControlOptions, setActiveScene, saveScenePlaybackState, getScenePlaybackState, clearScenePlaybackState, initFromHash } from "@components/custom/animation-controls/stores";
+import type { ScenePlaybackState } from "@components/custom/animation-controls/stores";
 
 // Restore shared state from URL hash before components read stored options
 initFromHash();
 
 // Tabs in the controls pane are managed via the TopDock controls tab dropdown
-provide("tabsExternallyManaged", true);
+provide(TABS_EXTERNALLY_MANAGED_KEY, true);
 
 // Dock hover → controls pane opacity. Provided here so both TopDock (sibling)
 // and AnimationMenuBar (descendant of EditorShell) share the same ref.
 const dockHoveredRef = ref(false);
-provide("controlsPaneHover", dockHoveredRef);
+provide(CONTROLS_PANE_HOVER_KEY, dockHoveredRef);
 
 import CubeScene from "./scenes/CubeScene.vue";
 import { useSceneManager } from "./useSceneManager";
@@ -309,6 +311,9 @@ function switchScene(id: string) {
             }
         }
         controls.isControlsPanelOpen = window.innerWidth >= 1024;
+        // Reset autoPlayNext after the watcher in AnimationControlsGroup
+        // has had a chance to consume it during this reactive flush.
+        nextTick(() => { autoPlayNext.value = false; });
         return;
     }
 

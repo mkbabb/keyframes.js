@@ -118,28 +118,22 @@ import {
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@components/ui/select";
-
-import {
     Card,
     CardContent,
     CardHeader,
     CardTitle,
-} from "@components/ui/card";
-
-import {
     Tooltip,
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
-} from "@components/ui/tooltip";
+} from "@mkbabb/glass-ui";
 
 import { CSSCubicBezier, bezierPresets } from "@src/easing";
 import { cubicBezierToString } from "@src/math";
 import { Animation } from "@src/animation/index";
 
 import CopyButton from "@components/custom/CopyButton.vue";
-import { getStoredAnimationOptions } from "../animationStores";
+import { getStoredAnimationOptions } from "../stores";
 import type { TimingFunction } from "@src/animation/constants";
 
 const { animation, editingCurveName } = defineProps<{

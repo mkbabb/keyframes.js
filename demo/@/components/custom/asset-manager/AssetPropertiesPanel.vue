@@ -4,7 +4,7 @@
 
         <!-- Name -->
         <div class="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-1.5">
-                <label class="fira-code text-[10px] text-muted-foreground">name</label>
+                <label class="fira-code text-2xs text-muted-foreground">name</label>
                 <Input
                     :model-value="asset.name"
                     class="fira-code text-xs h-6"
@@ -12,7 +12,7 @@
                 />
 
                 <!-- Position -->
-                <label class="fira-code text-[10px] text-muted-foreground">x</label>
+                <label class="fira-code text-2xs text-muted-foreground">x</label>
                 <Input
                     type="number"
                     :model-value="asset.transform.x"
@@ -20,7 +20,7 @@
                     @change="(e: Event) => emit('updateTransform', asset.id, { x: parseFloat((e.target as HTMLInputElement).value) || 0 })"
                 />
 
-                <label class="fira-code text-[10px] text-muted-foreground">y</label>
+                <label class="fira-code text-2xs text-muted-foreground">y</label>
                 <Input
                     type="number"
                     :model-value="asset.transform.y"
@@ -29,7 +29,7 @@
                 />
 
                 <!-- Size -->
-                <label class="fira-code text-[10px] text-muted-foreground">width</label>
+                <label class="fira-code text-2xs text-muted-foreground">width</label>
                 <Input
                     type="number"
                     :model-value="asset.transform.width"
@@ -37,7 +37,7 @@
                     @change="(e: Event) => emit('updateTransform', asset.id, { width: Math.max(1, parseFloat((e.target as HTMLInputElement).value) || 0) })"
                 />
 
-                <label class="fira-code text-[10px] text-muted-foreground">height</label>
+                <label class="fira-code text-2xs text-muted-foreground">height</label>
                 <Input
                     type="number"
                     :model-value="asset.transform.height"
@@ -46,7 +46,7 @@
                 />
 
                 <!-- Rotation -->
-                <label class="fira-code text-[10px] text-muted-foreground">rotation</label>
+                <label class="fira-code text-2xs text-muted-foreground">rotation</label>
                 <div class="flex items-center gap-2">
                     <Slider
                         class="flex-1"
@@ -56,12 +56,12 @@
                         :model-value="[asset.transform.rotation]"
                         @update:model-value="(v: any) => emit('updateTransform', asset.id, { rotation: v[0] })"
                     />
-                    <span class="fira-code text-[10px] text-muted-foreground w-8 text-right">{{ Math.round(asset.transform.rotation) }}°</span>
+                    <span class="fira-code text-2xs text-muted-foreground w-8 text-right">{{ Math.round(asset.transform.rotation) }}°</span>
                 </div>
 
                 <!-- Kind-specific properties -->
                 <template v-if="asset.kind !== 'text' && asset.kind !== 'svg'">
-                    <label class="fira-code text-[10px] text-muted-foreground">bg color</label>
+                    <label class="fira-code text-2xs text-muted-foreground">bg color</label>
                     <Input
                         :model-value="asset.backgroundColor ?? ''"
                         class="fira-code text-xs h-6"
@@ -70,7 +70,7 @@
                 </template>
 
                 <template v-if="asset.kind === 'rectangle' || asset.kind === 'circle'">
-                    <label class="fira-code text-[10px] text-muted-foreground">radius</label>
+                    <label class="fira-code text-2xs text-muted-foreground">radius</label>
                     <Input
                         type="number"
                         :model-value="asset.borderRadius ?? 0"
@@ -80,14 +80,14 @@
                 </template>
 
                 <template v-if="asset.kind === 'text'">
-                    <label class="fira-code text-[10px] text-muted-foreground">text</label>
+                    <label class="fira-code text-2xs text-muted-foreground">text</label>
                     <Input
                         :model-value="asset.text ?? ''"
                         class="fira-code text-xs h-6"
                         @change="(e: Event) => emit('update', asset.id, { text: (e.target as HTMLInputElement).value })"
                     />
 
-                    <label class="fira-code text-[10px] text-muted-foreground">font size</label>
+                    <label class="fira-code text-2xs text-muted-foreground">font size</label>
                     <Input
                         type="number"
                         :model-value="asset.fontSize ?? 32"
@@ -95,14 +95,14 @@
                         @change="(e: Event) => emit('update', asset.id, { fontSize: parseFloat((e.target as HTMLInputElement).value) || 32 })"
                     />
 
-                    <label class="fira-code text-[10px] text-muted-foreground">font</label>
+                    <label class="fira-code text-2xs text-muted-foreground">font</label>
                     <Input
                         :model-value="asset.fontFamily ?? 'Fraunces'"
                         class="fira-code text-xs h-6"
                         @change="(e: Event) => emit('update', asset.id, { fontFamily: (e.target as HTMLInputElement).value })"
                     />
 
-                    <label class="fira-code text-[10px] text-muted-foreground">color</label>
+                    <label class="fira-code text-2xs text-muted-foreground">color</label>
                     <Input
                         :model-value="asset.color ?? '#1e293b'"
                         class="fira-code text-xs h-6"
@@ -112,7 +112,7 @@
 
                 <!-- Animation binding -->
                 <template v-if="animationNames && animationNames.length > 0">
-                    <label class="fira-code text-[10px] text-muted-foreground">animation</label>
+                    <label class="fira-code text-2xs text-muted-foreground">animation</label>
                     <Select
                         :model-value="asset.animationName ?? '__none__'"
                         @update:model-value="(v: any) => emit('update', asset.id, { animationName: v === '__none__' ? undefined : v })"
@@ -136,16 +136,16 @@
 
 <script setup lang="ts">
 import type { Asset, AssetTransform } from "./assetTypes";
-import { Input } from "@components/ui/input";
-import { Slider } from "@components/ui/slider";
 import {
+    Input,
+    Slider,
     Select,
     SelectContent,
     SelectGroup,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@components/ui/select";
+} from "@mkbabb/glass-ui";
 
 defineProps<{
     asset: Asset;

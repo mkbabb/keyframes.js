@@ -13,7 +13,7 @@
                 <div
                     ref="ball"
                     :class="[
-                        'absolute z-30 rounded-full h-12 w-12 bg-accent-red text-accent-red-foreground shadow-md will-change-transform touch-gate-target',
+                        'absolute z-[var(--z-bar)] rounded-full h-12 w-12 bg-accent-red text-accent-red-foreground shadow-md will-change-transform touch-gate-target',
                         isDragging ? 'cursor-grabbing' : 'cursor-grab',
                         gate.isActive.value ? 'touch-gate-active' : '',
                     ]"
@@ -37,9 +37,9 @@
 <script setup lang="ts">
 import { computed, toRef, useTemplateRef } from "vue";
 import type { Animation } from "@src/animation/index";
-import { useRafLoop } from "@composables/useRafLoop";
-import { useDragCapture } from "@composables/useDragCapture";
-import { useTouchGate } from "@composables/useTouchGate";
+import { useRafLoop } from "../composables/useRafLoop";
+import { useDragCapture } from "./composables/useDragCapture";
+import { useTouchGate } from "@mkbabb/glass-ui";
 
 const props = defineProps<{
     animation: Animation<any>;
@@ -216,11 +216,11 @@ const gatedPointerDown = (e: PointerEvent) => {
     onPointerDown(e);
 };
 
-// ── Playback sync (rAF only while playing or dragging) ───────────
+// ── Playback sync ───────────
+// Always poll — the animation's effectiveT changes during playback, slider scrub,
+// and visualizer drag. The cost is one progress calc + setBallProgress per frame.
 
-const shouldSync = computed(() => props.isPlaying || isDragging.value);
-
-useRafLoop(() => {
+const { start: startSync } = useRafLoop(() => {
     const anim = props.animation;
     if (!isDragging.value && coastRafId === null && anim.options.duration > 0) {
         const progress = Math.max(
@@ -229,5 +229,6 @@ useRafLoop(() => {
         );
         setBallProgress(progress);
     }
-}, { guard: shouldSync });
+});
+startSync();
 </script>

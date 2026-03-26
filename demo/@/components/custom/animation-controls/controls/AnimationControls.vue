@@ -1,7 +1,7 @@
 <template>
     <TooltipProvider :delay-duration="100" :skip-delay-duration="0">
     <div
-        class="flex flex-col h-full w-full overflow-hidden z-10 relative lg:max-w-screen-md isolate"
+        class="flex flex-col h-full w-full overflow-hidden z-[var(--z-content)] relative lg:max-w-screen-md isolate"
     >
         <Tabs
             class="pl-4 pr-7 pt-2 pb-2 w-full flex-1 min-h-0 flex flex-col justify-start"
@@ -102,8 +102,7 @@
 import { Animation } from "@src/animation/index";
 import type { AnimationLayerConfig } from "@src/animation/constants";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
-import { TooltipProvider } from "@components/ui/tooltip";
+import { Tabs, TabsContent, TabsList, TabsTrigger, TooltipProvider, Button } from "@mkbabb/glass-ui";
 
 import {
     computed,
@@ -111,19 +110,19 @@ import {
     inject,
     nextTick,
     onMounted,
-    onUnmounted,
     ref,
     Teleport,
     useTemplateRef,
     watch,
 } from "vue";
+import { TABS_EXTERNALLY_MANAGED_KEY } from "../injectionKeys";
 import { ChevronDown, Minimize2 } from "lucide-vue-next";
-import { Button } from "@components/ui/button";
+import { useScrollFade } from "../composables/useScrollFade";
 
 const KeyframesStringControls = defineAsyncComponent(() => import("../keyframes/KeyframesStringControls.vue"));
 const KeyframeTimeline = defineAsyncComponent(() => import("../timeline/KeyframeTimeline.vue"));
 import AnimationControlsControls from "./AnimationControlsControls.vue";
-import { getStoredAnimationGroupControlOptions } from "../animationStores";
+import { getStoredAnimationGroupControlOptions } from "../stores";
 
 const { animation, isGrouped, isPlaying: isPlayingProp, layerConfig, active } = defineProps<{
     animation: Animation<any>;
@@ -136,7 +135,7 @@ const { animation, isGrouped, isPlaying: isPlayingProp, layerConfig, active } = 
 const storedControls = getStoredAnimationGroupControlOptions(animation);
 
 // When true, the tab header is hidden (tabs are managed externally, e.g. via TopDock)
-const tabsExternallyManaged = inject<boolean>("tabsExternallyManaged", false);
+const tabsExternallyManaged = inject(TABS_EXTERNALLY_MANAGED_KEY, false);
 
 const emit = defineEmits<{
     (
@@ -170,25 +169,15 @@ const isTimelineVisible = computed(() =>
 
 const tabClasses = "tab-trigger-base tab-trigger-pill";
 
-// --- Overflow detection (left + right) ---
-const overflowLeft = ref(false);
-const overflowRight = ref(false);
+// --- Overflow detection (left + right) via shared composable ---
+const tabsListElRef = ref<HTMLElement | null>(null);
 
-const overflowClass = computed(() => {
-    if (overflowLeft.value && overflowRight.value) return "tabs-overflow-both";
-    if (overflowLeft.value) return "tabs-overflow-left";
-    if (overflowRight.value) return "tabs-overflow-right";
-    return "";
+const { fadeClass: overflowClass, check: checkOverflow } = useScrollFade({
+    el: tabsListElRef,
+    axis: "x",
+    classPrefix: "tabs-overflow",
+    observeEl: tabsHeaderEl,
 });
-
-const getTabsList = () => tabsHeaderEl.value?.querySelector<HTMLElement>("[role=tablist]");
-
-const checkOverflow = () => {
-    const list = getTabsList();
-    if (!list) return;
-    overflowLeft.value = list.scrollLeft > 2;
-    overflowRight.value = list.scrollLeft + list.clientWidth < list.scrollWidth - 2;
-};
 
 const scrollActiveTabIntoView = () => {
     const header = tabsHeaderEl.value;
@@ -197,32 +186,10 @@ const scrollActiveTabIntoView = () => {
     activeBtn?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
 };
 
-const onTabsScroll = () => {
-    checkOverflow();
-};
-
-let resizeObserver: ResizeObserver | undefined;
-let tabsListEl: HTMLElement | undefined;
-
 onMounted(() => {
-    checkOverflow();
+    tabsListElRef.value =
+        tabsHeaderEl.value?.querySelector<HTMLElement>("[role=tablist]") ?? null;
     scrollActiveTabIntoView();
-
-    const header = tabsHeaderEl.value;
-    if (header) {
-        resizeObserver = new ResizeObserver(() => {
-            checkOverflow();
-        });
-        resizeObserver.observe(header);
-    }
-
-    tabsListEl = getTabsList() ?? undefined;
-    tabsListEl?.addEventListener("scroll", onTabsScroll);
-});
-
-onUnmounted(() => {
-    resizeObserver?.disconnect();
-    tabsListEl?.removeEventListener("scroll", onTabsScroll);
 });
 
 const selectControl = (key: string | number) => {

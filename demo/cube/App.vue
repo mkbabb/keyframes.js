@@ -159,32 +159,35 @@ import {
     HoverCard,
     HoverCardContent,
     HoverCardTrigger,
-} from "@components/ui/hover-card";
-import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
-} from "@components/ui/dropdown-menu";
-import { Avatar, AvatarImage } from "@components/ui/avatar";
-import { Button } from "@components/ui/button";
-import { TabsContent, TabsTrigger } from "@components/ui/tabs";
+    Avatar,
+    AvatarImage,
+    Button,
+    TabsContent,
+    TabsTrigger,
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+    DarkModeToggle,
+} from "@mkbabb/glass-ui";
 import { Lock, LockOpen, RotateCcw } from "lucide-vue-next";
 
 import { EditorShell, EditorStartScreen } from "@components/custom/editor-shell";
 import { SharePopover } from "@components/custom/editor-shell";
-import { DarkModeToggle } from "@components/custom/dark-mode-toggle";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@components/ui/tooltip";
 import { MatrixEditor } from "@components/custom/matrix-editor";
 import CubeTarget from "./CubeTarget.vue";
 
-import { getStoredAnimationGroupControlOptions, initFromHash } from "@components/custom/animation-controls/animationStores";
+import { getStoredAnimationGroupControlOptions, initFromHash } from "@components/custom/animation-controls/stores";
 
 // Restore shared state from URL hash before components read stored options
 initFromHash();
-import { useTransformState } from "@composables/useTransformState";
+import { useTransformState } from "@components/custom/matrix-editor/useTransformState";
 import { useCubeAnimations } from "./useCubeAnimations";
 
 

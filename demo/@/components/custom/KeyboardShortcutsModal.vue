@@ -44,11 +44,11 @@ import {
     DialogDescription,
     DialogHeader,
     DialogTitle,
-} from "@components/ui/dialog";
+} from "@mkbabb/glass-ui";
 import {
     useRegisteredShortcuts,
     formatComboParts,
-} from "@composables/useKeyboardShortcuts";
+} from "@mkbabb/glass-ui";
 
 const open = defineModel<boolean>('open', { required: true });
 

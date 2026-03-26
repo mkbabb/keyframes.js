@@ -3,7 +3,7 @@
         <p class="text-sm text-muted-foreground">
             Press
             <kbd
-                class="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100"
+                class="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-2xs font-medium text-muted-foreground opacity-100"
             >
                 <span class="text-xs">⌘</span>K
             </kbd>
@@ -65,11 +65,10 @@ import {
     CommandItem,
     CommandList,
     CommandSeparator,
-} from "@components/ui/command";
+    useGlobalDark,
+} from "@mkbabb/glass-ui";
 
 import { Animation } from "@src/animation";
-
-import { useGlobalDark } from "@components/custom/dark-mode-toggle";
 
 const { isDark } = useGlobalDark();
 

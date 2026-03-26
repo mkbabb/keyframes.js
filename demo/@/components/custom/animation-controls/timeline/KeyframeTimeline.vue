@@ -113,10 +113,10 @@
                             class="w-16 h-16 rounded border border-border/30 bg-muted/30"
                             :style="getGhostStyle(kf.vars)"
                         ></div>
-                        <div v-if="previewLoading[kf.id]" class="text-muted-foreground text-[10px] fira-code">
+                        <div v-if="previewLoading[kf.id]" class="text-muted-foreground text-2xs fira-code">
                             Capturing...
                         </div>
-                        <div class="fira-code text-[10px] text-muted-foreground max-h-24 overflow-y-auto w-full">
+                        <div class="fira-code text-2xs text-muted-foreground max-h-24 overflow-y-auto w-full">
                             <div v-for="[prop, val] in Object.entries(kf.vars)" :key="prop" class="truncate">
                                 <span class="text-foreground/70">{{ prop }}</span>: {{ val }}
                             </div>
@@ -208,16 +208,21 @@ import {
     Trash,
     X,
 } from "lucide-vue-next";
-import IconTooltip from "@components/custom/IconTooltip.vue";
 import CSSPasteDialog from "@components/custom/CSSPasteDialog.vue";
-import { Button } from "@components/ui/button";
-import { Card, CardContent } from "@components/ui/card";
-import { Input } from "@components/ui/input";
-import { Separator } from "@components/ui/separator";
+import {
+    IconTooltip,
+    Button,
+    Card,
+    CardContent,
+    Input,
+    Separator,
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from "@mkbabb/glass-ui";
 import CSSCodeEditor from "../keyframes/CSSCodeEditor.vue";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip";
-import { useTimeline } from "./useTimeline";
-import { useZoomPan } from "./useZoomPan";
+import { useTimeline } from "./composables/useTimeline";
+import { useZoomPan } from "./composables/useZoomPan";
 import TimelineCaret from "./TimelineCaret.vue";
 import type { InputAnimationOptions } from "@src/animation/constants";
 
@@ -258,7 +263,7 @@ const importDialogOpen = ref(false);
 const addCSSDialogOpen = ref(false);
 
 // --- Preview cache for diamond hover ---
-import type { TimelineKeyframe } from "./timelineTypes";
+import type { TimelineKeyframe } from "./composables/timelineTypes";
 
 const previewCache = reactive<Record<string, string>>({});
 const previewLoading = reactive<Record<string, boolean>>({});

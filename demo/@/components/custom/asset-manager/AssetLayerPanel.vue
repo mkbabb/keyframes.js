@@ -93,17 +93,18 @@ import type { Asset, AssetKind, AssetTransform } from "./assetTypes";
 import { useAssetManager } from "./useAssetManager";
 import AssetLayer from "./AssetLayer.vue";
 import AssetPropertiesPanel from "./AssetPropertiesPanel.vue";
-import { Button } from "@components/ui/button";
-import { Card, CardContent } from "@components/ui/card";
-import { Input } from "@components/ui/input";
-import { Separator } from "@components/ui/separator";
-import { Switch } from "@components/ui/switch";
 import {
+    Button,
+    Card,
+    CardContent,
+    Input,
+    Separator,
+    Switch,
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
-} from "@components/ui/dropdown-menu";
+} from "@mkbabb/glass-ui";
 import {
     Plus,
     Square,

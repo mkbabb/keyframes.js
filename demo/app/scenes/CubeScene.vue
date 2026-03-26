@@ -26,17 +26,18 @@ import {
     HoverCard,
     HoverCardContent,
     HoverCardTrigger,
-} from "@components/ui/hover-card";
-import { TabsContent, TabsTrigger } from "@components/ui/tabs";
-import { Button } from "@components/ui/button";
+    TabsContent,
+    TabsTrigger,
+    Button,
+} from "@mkbabb/glass-ui";
 import { Lock, LockOpen, RotateCcw } from "lucide-vue-next";
 
 import { MatrixEditor } from "@components/custom/matrix-editor";
 import { EditorStartScreen } from "@components/custom/editor-shell";
 import CubeTarget from "../../cube/CubeTarget.vue";
 
-import { getStoredAnimationGroupControlOptions } from "@components/custom/animation-controls/animationStores";
-import { useTransformState } from "@composables/useTransformState";
+import { getStoredAnimationGroupControlOptions } from "@components/custom/animation-controls/stores";
+import { useTransformState } from "@components/custom/matrix-editor/useTransformState";
 import { useCubeAnimations, SUPER_KEY, CUBE_ANIMATION_NAMES } from "../../cube/useCubeAnimations";
 import { sharedCubeTransform } from "../cubeTransformStore";
 
@@ -110,7 +111,7 @@ const headerLeft = () =>
                     class: "ppmycota-logo-sm m-0 h-8 w-8 lg:h-10 lg:w-10 cursor-pointer stroke-2 p-0 font-bold hover:scale-105",
                 }),
             }),
-            h(HoverCardContent, { class: "z-[100] p-4 min-w-[17rem] instrument-serif" }, {
+            h(HoverCardContent, { class: "z-[var(--z-hovercard)] p-4 min-w-[17rem] instrument-serif" }, {
                 default: () => [
                     h("div", { class: "flex items-center gap-3" }, [
                         h("div", { class: "ppmycota-logo-sm z-20 h-10 w-10 shrink-0 stroke-2 font-bold" }),

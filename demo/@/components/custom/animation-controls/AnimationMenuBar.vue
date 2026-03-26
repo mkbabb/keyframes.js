@@ -146,17 +146,17 @@ import {
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@components/ui/select";
+    Button,
+    IconTooltip,
+} from "@mkbabb/glass-ui";
 
 import { RotateCcw } from "lucide-vue-next";
-import IconTooltip from "@components/custom/IconTooltip.vue";
 
 import { CSSKeyframesAnimation } from "@src/animation/index";
-import Button from "@components/ui/button/Button.vue";
 import { SelectIcon } from "reka-ui";
 import { GlassDock } from "@components/custom/dock";
 
-import type { StoredAnimationGroupControlOptions } from "./animationStores";
+import type { StoredAnimationGroupControlOptions } from "./stores";
 
 const dockRef = useTemplateRef<InstanceType<typeof GlassDock>>("dockRef");
 

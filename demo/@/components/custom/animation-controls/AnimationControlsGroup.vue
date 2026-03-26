@@ -22,7 +22,6 @@
             ref="controlsPaneEl"
             @mouseenter="onPaneMouseEnter"
             @mouseleave="onPaneMouseLeave"
-            @scroll="checkVerticalOverflow"
             :class="[
                 'controls-pane group/controls min-w-0',
                 isPanelTransitionDone && storedControls.isControlsPanelOpen
@@ -203,8 +202,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onMounted, onUnmounted, provide, reactive, ref, Teleport, useTemplateRef, watchEffect } from "vue";
-import type { Ref } from "vue";
+import { computed, onMounted, reactive, ref, Teleport, useTemplateRef, watchEffect } from "vue";
+import { usePaneHover } from "./composables/usePaneHover";
 import { Toaster, toast } from "vue-sonner";
 
 import {
@@ -218,24 +217,23 @@ import {
     Upload,
 } from "lucide-vue-next";
 
-import { TooltipProvider } from "@components/ui/tooltip";
+import { TooltipProvider, Button, Card, CardContent } from "@mkbabb/glass-ui";
 
 import { Animation } from "@src/animation/index";
 import AnimationControls from "./controls/AnimationControls.vue";
 import AnimationMenuBar from "./AnimationMenuBar.vue";
-import Button from "@components/ui/button/Button.vue";
-import { Card, CardContent } from "@components/ui/card";
 
 import {
     getStoredAnimationGroupControlOptions,
     resetAllStores,
-} from "./animationStores";
+} from "./stores";
 import { AnimationGroup } from "@src/animation/group";
-import { registerShortcut } from "@composables/useKeyboardShortcuts";
-import { useAnimationGroupPlayback } from "./useAnimationGroupPlayback";
-import { useAnimationProgress } from "./useAnimationProgress";
+import { registerShortcut } from "@mkbabb/glass-ui";
+import { useAnimationGroupPlayback } from "./composables/useAnimationGroupPlayback";
+import { useAnimationProgress } from "./composables/useAnimationProgress";
+import { useScrollFade } from "./composables/useScrollFade";
 
-const RIBBON_BUTTON_CLASS = "h-8 gap-1.5 instrument-serif text-base rounded-lg btn-interactive";
+const RIBBON_BUTTON_CLASS = "h-8 gap-1.5 instrument-serif text-base rounded-full btn-interactive";
 
 const { superKey, animationGroup, autoPlay, hideControls } = defineProps<{
     animationGroup: AnimationGroup<any>;
@@ -332,79 +330,16 @@ onMounted(() => {
 });
 
 // --- Controls pane hover with linger delay ---
-// Pane becomes opaque when hovering the pane itself OR any dock (top/bottom).
-// A linger timer keeps it opaque briefly after mouse leaves.
-const isPaneDirectHover = ref(false);
-// Injected from App.vue — shared between TopDock and bottom dock GlassDock instances
-const isDockHovered = inject<Ref<boolean>>("controlsPaneHover", ref(false));
-const isPaneHovered = computed(() => isPaneDirectHover.value || isDockHovered.value);
-
-let paneHoverTimer: ReturnType<typeof setTimeout> | null = null;
-const HOVER_LINGER_MS = 2000;
-
-function clearHoverTimer() {
-    if (paneHoverTimer) {
-        clearTimeout(paneHoverTimer);
-        paneHoverTimer = null;
-    }
-}
-
-function scheduleHoverEnd() {
-    clearHoverTimer();
-    paneHoverTimer = setTimeout(() => {
-        isPaneDirectHover.value = false;
-        paneHoverTimer = null;
-    }, HOVER_LINGER_MS);
-}
-
-function onPaneMouseEnter() {
-    clearHoverTimer();
-    isPaneDirectHover.value = true;
-}
-
-function onPaneMouseLeave() {
-    scheduleHoverEnd();
-}
-
-onUnmounted(() => {
-    clearHoverTimer();
-});
+const { isPaneHovered, onPaneMouseEnter, onPaneMouseLeave } = usePaneHover();
 
 // --- Mobile vertical scroll fade ---
 const controlsPaneEl = useTemplateRef<HTMLElement>("controlsPaneEl");
-const overflowTop = ref(false);
-const overflowBottom = ref(false);
 
-const scrollFadeClass = computed(() => {
-    if (overflowTop.value && overflowBottom.value) return "scroll-fade-both";
-    if (overflowTop.value) return "scroll-fade-top";
-    if (overflowBottom.value) return "scroll-fade-bottom";
-    return "";
-});
-
-function checkVerticalOverflow() {
-    const el = controlsPaneEl.value;
-    if (!el) {
-        overflowTop.value = false;
-        overflowBottom.value = false;
-        return;
-    }
-    overflowTop.value = el.scrollTop > 2;
-    overflowBottom.value = el.scrollTop + el.clientHeight < el.scrollHeight - 2;
-}
-
-let scrollFadeResizeObserver: ResizeObserver | null = null;
-
-watch(isPanelTransitionDone, () => checkVerticalOverflow());
-
-onMounted(() => {
-    scrollFadeResizeObserver = new ResizeObserver(() => checkVerticalOverflow());
-    const el = controlsPaneEl.value;
-    if (el) scrollFadeResizeObserver.observe(el);
-});
-
-onUnmounted(() => {
-    scrollFadeResizeObserver?.disconnect();
+const { fadeClass: scrollFadeClass } = useScrollFade({
+    el: controlsPaneEl,
+    axis: "y",
+    classPrefix: "scroll-fade",
+    retrigger: isPanelTransitionDone,
 });
 
 const menuBarRef = ref<InstanceType<typeof AnimationMenuBar> | null>(null);
@@ -430,6 +365,9 @@ const clear = () => {
     syncPlayState();
     storedControls.selectedAnimation = null as any;
     resetAllStores();
+    try {
+        localStorage.setItem("keyframes-js-active-scene", "home");
+    } catch {}
     window.location.reload();
 };
 
@@ -544,6 +482,7 @@ function cycleAnimation(direction: number) {
         padding-inline: 0;
         display: block;
         transform-origin: center center;
+        overflow: visible;
     }
     .controls-pane-wrapper.controls-pane--open {
         transform: scale(1);
@@ -596,8 +535,9 @@ function cycleAnimation(direction: number) {
 
     .controls-content {
         min-width: 400px;
-        padding-right: 6px;
-        padding-bottom: 6px;
+        /* Extra padding to prevent card box-shadow clipping */
+        padding-right: 12px;
+        padding-bottom: 12px;
     }
 }
 

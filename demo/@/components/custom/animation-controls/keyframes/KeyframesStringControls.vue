@@ -28,7 +28,7 @@ import {
 
 
 import { onMounted, onUnmounted, ref, useTemplateRef } from "vue";
-import { useHighlightCSS } from "./useHighlightCSS";
+import { useApplyCSS } from "./composables/useApplyCSS";
 
 import {
     Paintbrush,
@@ -38,10 +38,10 @@ import {
     createAnimationUUId,
     getStoredAnimationGroupControlOptions,
     getStoredAnimationOptions,
-} from "../animationStores";
+} from "../stores";
 import { reverseCSSTime } from "@src/parsing/keyframes";
 import { toast } from "vue-sonner";
-import { useClipboard } from "@composables/useClipboard";
+import { copyToClipboard } from "@mkbabb/glass-ui";
 
 import * as animations from "@src/animation/animations";
 
@@ -50,7 +50,7 @@ import {
 } from "@src/parsing/format";
 import CSSCodeEditor from "./CSSCodeEditor.vue";
 
-const { copy } = useClipboard();
+const copy = copyToClipboard;
 
 const { animation } = defineProps<{
     animation: Animation<any>;
@@ -83,7 +83,6 @@ const editorRef = ref<InstanceType<typeof CSSCodeEditor> | null>(null);
 const cssKeyframesString = ref("");
 const isFormatting = ref(false);
 let formattingTimeoutId: ReturnType<typeof setTimeout> | undefined;
-const cssApplied = ref(false);
 
 const getTmpAnimationName = () => {
     return keyframesStyleId.replace("keyframes-style-", "").toLowerCase();
@@ -183,24 +182,19 @@ const onEditorChange = (value: string) => {
     }
 };
 
-const { setContent, clear } = useHighlightCSS(keyframesStyleId);
-
-const prevPaused = ref(false);
+const { isApplied: cssApplied, toggle: toggleApplyCSS, clear: clearApplyCSS } = useApplyCSS({
+    getAnimation: () => animation,
+    styleId: keyframesStyleId,
+    getCSSString: () => cssKeyframesString.value,
+    getClassName: () => getTmpAnimationName(),
+});
 
 const applyCSSStyles = () => {
+    toggleApplyCSS();
     if (cssApplied.value) {
-        animation.paused = prevPaused.value;
-        clear();
-        animation.targets.forEach((t) => t.classList.remove(getTmpAnimationName()));
-        brushAnimation.pause();
-        cssApplied.value = false;
-    } else {
-        prevPaused.value = animation.paused;
-        animation.paused = animation.started;
-        setContent(cssKeyframesString.value);
-        animation.targets.forEach((t) => t.classList.add(getTmpAnimationName()));
         brushAnimation.play();
-        cssApplied.value = true;
+    } else {
+        brushAnimation.pause();
     }
 };
 

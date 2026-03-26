@@ -46,10 +46,10 @@ import {
     Popover,
     PopoverTrigger,
     PopoverContent,
-} from "@components/ui/popover";
-import { Input } from "@components/ui/input";
-import { Button } from "@components/ui/button";
-import { useShareState } from "@composables/useShareState";
+    Input,
+    Button,
+} from "@mkbabb/glass-ui";
+import { useShareState } from "./useShareState";
 
 const props = defineProps<{
     onSceneRestore?: (sceneId: string) => void;

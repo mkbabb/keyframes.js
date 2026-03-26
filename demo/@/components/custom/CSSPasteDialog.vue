@@ -31,14 +31,14 @@
 <script setup lang="ts">
 import { ref, useTemplateRef, watch } from "vue";
 import type { Component } from "vue";
-import { Button } from "@components/ui/button";
 import {
+    Button,
     Dialog,
     DialogContent,
     DialogDescription,
     DialogFooter,
     DialogTitle,
-} from "@components/ui/dialog";
+} from "@mkbabb/glass-ui";
 
 const props = withDefaults(
     defineProps<{

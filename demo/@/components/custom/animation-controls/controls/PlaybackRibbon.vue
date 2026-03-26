@@ -2,14 +2,15 @@
     <div class="w-full grid gap-2">
         <IconTooltip :class="!isAnimStarted ? 'is-disabled' : ''" text="Scrub animation timeline">
             <div
-                :class="['touch-gate-target', gate.isActive.value ? 'touch-gate-active' : '']"
+                :class="['touch-gate-target timeline-green', gate.isActive.value ? 'touch-gate-active' : '']"
                 @pointerdown.capture="gatedSliderDown"
                 @touchmove="gate.handleScrollCheck"
                 @touchend="gate.handleTouchEnd"
             >
                 <Slider
                     ref="sliderRef"
-                    class="p-2 timeline-slider"
+                    variant="timeline"
+                    class="p-2"
                     :min="0"
                     :max="animation.options.duration"
                     :model-value="[currentT]"
@@ -23,7 +24,7 @@
         <div class="grid grid-cols-2 gap-2 w-full">
             <Button
                 :class="[
-                    'h-8 w-full rounded-lg gap-2 instrument-serif text-base cursor-pointer btn-interactive',
+                    'h-8 w-full rounded-full gap-2 instrument-serif text-base cursor-pointer btn-interactive',
                     isGrouped && !isAnimStarted
                         ? 'bg-accent-red/30 text-accent-red border-accent-red/40 hover:bg-accent-red/50 hover:text-accent-red'
                         : '',
@@ -37,7 +38,7 @@
             </Button>
             <Button
                 :class="[
-                    'h-8 w-full rounded-lg gap-2 instrument-serif text-base cursor-pointer btn-interactive',
+                    'h-8 w-full rounded-full gap-2 instrument-serif text-base cursor-pointer btn-interactive',
                     'aria-pressed:bg-primary/10 aria-pressed:border-primary/40',
                 ]"
                 :aria-pressed="userReversed"
@@ -69,12 +70,9 @@
 import { onUnmounted } from "vue";
 import type { Animation } from "@src/animation/index";
 
-import { Button } from "@components/ui/button";
-import { Slider } from "@components/ui/slider";
+import { Button, Slider, IconTooltip, useTouchGate } from "@mkbabb/glass-ui";
 import { ArrowLeftRight, Pause, Play } from "lucide-vue-next";
-import IconTooltip from "@components/custom/IconTooltip.vue";
 import AnimationVisualizer from "./AnimationVisualizer.vue";
-import { useTouchGate } from "@composables/useTouchGate";
 
 const { animation, isGrouped } = defineProps<{
     animation: Animation<any>;
@@ -153,11 +151,18 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* Timeline slider: themed green track */
-.timeline-slider :deep(.bg-primary) {
-    background-color: hsl(var(--color-slider-track));
+/* Green-themed timeline slider using project color tokens */
+.timeline-green :deep(.slider-track) {
+    background-color: hsl(var(--color-slider-track) / 0.15);
 }
-.timeline-slider :deep(.border-primary) {
-    border-color: hsl(var(--color-slider-border));
+.timeline-green :deep(.slider-track > span) {
+    background-color: hsl(var(--color-slider-track) / 0.4) !important;
+}
+.timeline-green :deep(.slider-thumb) {
+    background-color: hsl(var(--color-progress)) !important;
+}
+.timeline-green :deep(.slider-thumb:hover) {
+    background-color: hsl(var(--color-progress) / 0.8) !important;
 }
 </style>
+

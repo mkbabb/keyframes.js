@@ -36,7 +36,7 @@
 
 <script setup lang="ts">
 import { ref, toRaw, watch } from "vue";
-import { TabsContent, TabsTrigger } from "@components/ui/tabs";
+import { TabsContent, TabsTrigger } from "@mkbabb/glass-ui";
 import { EditorShell } from "@components/custom/editor-shell";
 import { AssetLayerPanel, AssetViewport, useAssetManager } from "@components/custom/asset-manager";
 import { usePlaygroundAnimations } from "./usePlaygroundAnimations";

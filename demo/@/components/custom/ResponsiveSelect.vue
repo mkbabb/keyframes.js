@@ -103,14 +103,11 @@ import {
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@components/ui/select";
-
-import {
     Drawer,
     DrawerContent,
     DrawerHeader,
     DrawerTitle,
-} from "@components/ui/drawer";
+} from "@mkbabb/glass-ui";
 
 export interface ResponsiveSelectItem {
     value: string;

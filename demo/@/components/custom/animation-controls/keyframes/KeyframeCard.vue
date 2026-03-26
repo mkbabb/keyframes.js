@@ -1,7 +1,7 @@
 <template>
     <div class="grid">
         <Input
-            class="sticky z-[100] bg-transparent top-0 text-2xl w-16 text-ellipsis aspect-square font-semibold leading-none tracking-tight border-transparent p-0 m-0 shadow-none focus:border-transparent focus:shadow-none border-none"
+            class="sticky z-[var(--z-modal)] bg-transparent top-0 text-2xl w-16 text-ellipsis aspect-square font-semibold leading-none tracking-tight border-transparent p-0 m-0 shadow-none focus:border-transparent focus:shadow-none border-none"
             :model-value="frameStart"
             @update:model-value="(val) => emit('updateStart', String(val))"
         >
@@ -43,8 +43,7 @@
 </template>
 
 <script setup lang="ts">
-import { Input } from "@components/ui/input";
-import { Label } from "@components/ui/label";
+import { Input, Label } from "@mkbabb/glass-ui";
 import CopyButton from "@components/custom/CopyButton.vue";
 import { X } from "lucide-vue-next";
 

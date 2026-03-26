@@ -72,21 +72,23 @@
 <script setup lang="ts">
 import type { Animation } from "@src/animation/index";
 import type { TimingFunction, TimingFunctionNames } from "@src/animation/constants";
-import type { StoredAnimationOptions } from "../animationStores";
+import type { StoredAnimationOptions } from "../stores";
 
 import { jumpTerms } from "@src/easing";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@components/ui/card";
-import { Input } from "@components/ui/input";
-
 import {
+    Card,
+    CardContent,
+    CardHeader,
+    CardTitle,
+    Input,
     Select,
     SelectContent,
     SelectGroup,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@components/ui/select";
+} from "@mkbabb/glass-ui";
 
 import { defineAsyncComponent } from "vue";
 const CubicBezierControls = defineAsyncComponent(() => import("./CubicBezierControls.vue"));

@@ -46,12 +46,7 @@
 
 <script setup lang="ts">
 import type { AnimationLayerConfig } from "@src/animation/constants";
-import IconTooltip from "@components/custom/IconTooltip.vue";
-import LabeledSelect from "@components/custom/LabeledSelect.vue";
-import LabeledSlider from "@components/custom/LabeledSlider.vue";
-import LabeledSwitch from "@components/custom/LabeledSwitch.vue";
-import { Input } from "@components/ui/input";
-import { Separator } from "@components/ui/separator";
+import { LabeledSelect, LabeledSlider, LabeledSwitch, IconTooltip, Input, Separator } from "@mkbabb/glass-ui";
 import { BLEND_MODE_DESCRIPTIONS } from "../animationDescriptions";
 
 const BLEND_MODES = ["replace", "add", "weighted"] as const;

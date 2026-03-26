@@ -92,7 +92,7 @@ import {
     ContextMenuItem,
     ContextMenuSeparator,
     ContextMenuTrigger,
-} from "@components/ui/context-menu";
+} from "@mkbabb/glass-ui";
 import EditableLabel from "@components/custom/EditableLabel.vue";
 
 const props = defineProps<{

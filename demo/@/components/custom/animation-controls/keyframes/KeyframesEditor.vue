@@ -166,15 +166,24 @@
 import { Animation, CSSKeyframesAnimation } from "@src/animation/index";
 import { formatCSSKeyframeString } from "@src/parsing/format";
 
-import { Slider } from "@components/ui/slider";
-
 import {
+    Slider,
     Card,
     CardContent,
     CardTitle,
-} from "@components/ui/card";
+    Separator,
+    Button,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogTitle,
+    DialogTrigger,
+    useGlobalDark,
+} from "@mkbabb/glass-ui";
 
 import { onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
+import { useApplyCSS } from "./composables/useApplyCSS";
 
 import CopyButton from "@components/custom/CopyButton.vue";
 import KeyframeCard from "./KeyframeCard.vue";
@@ -190,31 +199,17 @@ import {
 import githubDark from "highlight.js/styles/github-dark.css?inline";
 import githubLight from "highlight.js/styles/github.css?inline";
 
-import { useGlobalDark } from "@components/custom/dark-mode-toggle";
-
-import { Separator } from "@components/ui/separator";
-
 import hljs from "highlight.js";
 
 import css from "highlight.js/lib/languages/css";
-import Button from "@components/ui/button/Button.vue";
 import { Menubar, MenubarTrigger, MenubarMenu } from "@components/ui/menubar";
 
 import { parseCSSValueUnit } from "@src/parsing/units";
 
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogTitle,
-    DialogTrigger,
-} from "@components/ui/dialog";
-
 import { useMagicKeys } from "@vueuse/core";
 import * as animations from "@src/animation/animations";
 
-import { useKeyframesEditor } from "./useKeyframesEditor";
+import { useKeyframesEditor } from "./composables/useKeyframesEditor";
 
 hljs.registerLanguage("css", css);
 
@@ -253,7 +248,7 @@ const {
     updateAddKeyframesString: composableUpdateAddKeyframesString,
     addKeyframesStringToAnimation,
     removeKeyframeData,
-} = useKeyframesEditor(animation, emit);
+} = useKeyframesEditor(() => animation, emit);
 
 const cssKeyframesStringEl = useTemplateRef<HTMLElement>("cssKeyframesStringEl");
 const addKeyframesEl = useTemplateRef<HTMLElement>("addKeyframesEl");
@@ -361,30 +356,20 @@ const animateProgressBar = (el: HTMLElement) => {
 };
 
 const hljsStyle = ref<HTMLStyleElement | null>(null);
-const keyframesStyle = ref<HTMLStyleElement | null>(null);
 
-const prevPaused = ref(false);
+const { isApplied: cssApplied, toggle: toggleApplyCSS, clear: clearApplyCSS } = useApplyCSS({
+    getAnimation: () => animation,
+    styleId: keyframesStyleId,
+    getCSSString: () => cssKeyframesString.value,
+    getClassName: () => keyframesStyleId,
+});
 
 const applyCSSStyles = () => {
-    const wasApplied =
-        keyframesStyle.value && keyframesStyle.value.innerHTML.includes(cssKeyframesString.value);
-
-    if (wasApplied) {
-        animation.paused = prevPaused.value;
-        keyframesStyle.value!.textContent = "";
-
-        animation.targets.forEach((t) => t.classList.remove(keyframesStyleId));
-
-        brushAnimation.pause();
-    } else {
-        prevPaused.value = animation.paused;
-        animation.paused = animation.started;
-
-        keyframesStyle.value!.textContent = cssKeyframesString.value;
-
-        animation.targets.forEach((t) => t.classList.add(keyframesStyleId));
-
+    toggleApplyCSS();
+    if (cssApplied.value) {
         brushAnimation.play();
+    } else {
+        brushAnimation.pause();
     }
 };
 
@@ -436,17 +421,6 @@ const highlightCSS = (el?: HTMLElement) => {
 
     setCodeTheme();
 
-    const existingKeyframesStyle = document.head.querySelector(`#${keyframesStyleId}`);
-
-    if (!existingKeyframesStyle) {
-        keyframesStyle.value = document.createElement("style");
-        keyframesStyle.value.id = keyframesStyleId;
-
-        document.head.appendChild(keyframesStyle.value);
-    } else {
-        keyframesStyle.value = existingKeyframesStyle as HTMLStyleElement;
-    }
-
     const highlight = (e: HTMLElement) => {
         if (!e || e.getAttribute("highlighted")) {
             return;
@@ -489,9 +463,8 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-    // Clean up style elements injected into document.head
+    // Clean up hljs style element injected into document.head
     hljsStyle.value?.remove();
-    keyframesStyle.value?.remove();
     // Stop brush animation
     brushAnimation.pause();
 });
