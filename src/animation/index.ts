@@ -36,7 +36,7 @@ import type {
 import { AnimationGroup } from "./group";
 export { AnimationGroup } from "./group";
 export { NumericAnimation } from "./numeric";
-export type { NumericAnimationOptions } from "./numeric";
+export type { NumericAnimationOptions, NumericFrameCallback } from "./numeric";
 export { SmoothProgress } from "./smooth";
 export type { SmoothProgressOptions } from "./smooth";
 export { ElementMorph } from "./morph";

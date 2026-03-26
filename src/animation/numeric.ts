@@ -1,5 +1,5 @@
 import { lerp, scale, clamp } from "../math";
-import { binarySearchRange } from "../utils";
+import { binarySearchRange, requestAnimationFrame, cancelAnimationFrame } from "../utils";
 import { getTimingFunction } from "./utils";
 import type { TimingFunction, TimingFunctionNames } from "./constants";
 
@@ -14,18 +14,41 @@ interface NumericSegment<T extends Record<string, number>> {
 
 export interface NumericAnimationOptions {
     timingFunction?: TimingFunction | TimingFunctionNames | undefined;
+    /** Playback duration in milliseconds. Required for `.play()`. */
+    duration?: number | undefined;
     /** Explicit positions as percentages [0-100]. Auto-distributes if omitted. */
     positions?: number[] | undefined;
 }
 
+/** Callback invoked each frame during `.play()` with the interpolated values. */
+export type NumericFrameCallback<T extends Record<string, number>> = (values: T) => void;
+
 const linear: TimingFunction = (t: number) => t;
 
+/**
+ * Zero-allocation numeric keyframe interpolator.
+ *
+ * Interpolates plain `Record<string, number>` keyframes using O(log N)
+ * binary-search segment lookup. Designed for canvas/WebGL render loops
+ * where CSS value parsing and DOM targets are unnecessary overhead.
+ *
+ * Two usage modes:
+ * - **Stateless**: call `.at(progress)` from your own render loop
+ * - **Managed**: call `.play(onFrame?)` to run a rAF-driven playback
+ *   that resolves when the animation completes
+ */
 export class NumericAnimation<T extends Record<string, number>> {
     private keyframes: T[];
     private segments: NumericSegment<T>[];
     private positions: number[];
     private timingFn: TimingFunction;
     private result: T;
+    private _duration: number;
+
+    // Playback state
+    private _rafId: number | null = null;
+    private _resolve: (() => void) | null = null;
+    private _startTime: number | undefined = undefined;
 
     constructor(keyframes: T[], options?: NumericAnimationOptions) {
         if (keyframes.length < 2) {
@@ -35,6 +58,7 @@ export class NumericAnimation<T extends Record<string, number>> {
         }
 
         this.keyframes = keyframes.map((kf) => ({ ...kf }));
+        this._duration = options?.duration ?? 0;
         this.timingFn =
             (options?.timingFunction
                 ? getTimingFunction(options.timingFunction)
@@ -142,5 +166,66 @@ export class NumericAnimation<T extends Record<string, number>> {
         }
 
         return this;
+    }
+
+    // ── Playback ─────────────────────────────────────────────────────
+
+    /**
+     * Play the animation over its duration using requestAnimationFrame.
+     *
+     * Calls `onFrame` each frame with the interpolated values (the same
+     * zero-allocation object returned by `.at()`). Returns a Promise that
+     * resolves when the animation completes or is stopped.
+     *
+     * @param onFrame — optional per-frame callback receiving interpolated values
+     * @param duration — override the duration set in constructor options (ms)
+     */
+    play(onFrame?: NumericFrameCallback<T>, duration?: number): Promise<void> {
+        const dur = duration ?? this._duration;
+        if (dur <= 0) {
+            throw new Error(
+                "NumericAnimation.play() requires a duration > 0. " +
+                "Pass it in the constructor options or as a parameter to play().",
+            );
+        }
+
+        this.stop();
+
+        return new Promise<void>((resolve) => {
+            this._resolve = resolve;
+            this._startTime = undefined;
+
+            const tick = (now: number) => {
+                if (this._startTime === undefined) this._startTime = now;
+                const progress = clamp((now - this._startTime) / dur, 0, 1);
+                const values = this.at(progress);
+
+                onFrame?.(values);
+
+                if (progress < 1) {
+                    this._rafId = requestAnimationFrame(tick);
+                } else {
+                    this._cleanup();
+                }
+            };
+
+            this._rafId = requestAnimationFrame(tick);
+        });
+    }
+
+    /** Cancel a running `.play()` animation. The play promise resolves immediately. */
+    stop(): void {
+        if (this._rafId !== null) {
+            cancelAnimationFrame(this._rafId);
+        }
+        this._cleanup();
+    }
+
+    private _cleanup(): void {
+        this._rafId = null;
+        this._startTime = undefined;
+        const resolve = this._resolve;
+        this._resolve = null;
+        resolve?.();
     }
 }

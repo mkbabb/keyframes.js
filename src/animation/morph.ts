@@ -10,6 +10,8 @@ export interface MorphRect {
 
 export interface ElementMorphOptions {
     timingFunction?: TimingFunction | TimingFunctionNames;
+    /** Playback duration in milliseconds. Required for `.play()`. */
+    duration?: number;
     transformOrigin?: string;
 }
 
@@ -29,10 +31,19 @@ const toRect = (source: HTMLElement | MorphRect): MorphRect => {
     return source;
 };
 
+/**
+ * Interpolate position and scale between two elements or rects.
+ *
+ * Two usage modes:
+ * - **Stateless**: call `.at(progress)` or `.toCSSTransform(progress)`
+ * - **Managed**: call `.play(element)` to animate an element from source
+ *   to destination over the configured duration
+ */
 export class ElementMorph {
     private animation!: NumericAnimation<MorphValues>;
     private transformOrigin: string;
     private timingFunction: TimingFunction | TimingFunctionNames | undefined;
+    private duration: number;
 
     constructor(
         from: HTMLElement | MorphRect,
@@ -41,6 +52,7 @@ export class ElementMorph {
     ) {
         this.transformOrigin = options?.transformOrigin ?? "top left";
         this.timingFunction = options?.timingFunction;
+        this.duration = options?.duration ?? 0;
         this.measure(from, to);
     }
 
@@ -59,7 +71,7 @@ export class ElementMorph {
                 { translateX: 0, translateY: 0, scaleX: 1, scaleY: 1 },
                 { translateX: dx, translateY: dy, scaleX: sx, scaleY: sy },
             ],
-            { timingFunction: this.timingFunction },
+            { timingFunction: this.timingFunction, duration: this.duration },
         );
 
         return this;
@@ -81,5 +93,24 @@ export class ElementMorph {
     apply(element: HTMLElement, progress: number): void {
         element.style.transform = this.toCSSTransform(progress);
         element.style.transformOrigin = this.transformOrigin;
+    }
+
+    /**
+     * Animate an element from source to destination over the configured duration.
+     *
+     * @param element — the element to apply transforms to
+     * @param duration — override the duration set in constructor options (ms)
+     */
+    play(element: HTMLElement, duration?: number): Promise<void> {
+        return this.animation.play((values) => {
+            const { translateX, translateY, scaleX, scaleY } = values;
+            element.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scaleX}, ${scaleY})`;
+            element.style.transformOrigin = this.transformOrigin;
+        }, duration ?? this.duration);
+    }
+
+    /** Cancel a running `.play()` animation. */
+    stop(): void {
+        this.animation.stop();
     }
 }

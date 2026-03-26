@@ -303,18 +303,28 @@ The library also ships general-purpose interpolation primitives, decoupled from 
 
 ### `NumericAnimation`
 
-Keyframe interpolation over plain `{key: number}` objects. Zero-allocation hot path — returns the same object reference each call.
+Keyframe interpolation over plain `{key: number}` objects. Zero-allocation hot path — returns the same object reference each call. Two usage modes: stateless `.at()` queries, or managed `.play()` with rAF-driven playback.
 
 ```ts
+// Stateless — drive from your own render loop
 const anim = new NumericAnimation([
     { x: 0, y: 0, opacity: 0 },
     { x: 100, y: 200, opacity: 1 },
 ]);
-
 anim.at(0.5); // => { x: 50, y: 100, opacity: 0.5 }
+
+// Managed — rAF playback with per-frame callback
+const anim = new NumericAnimation(
+    [{ angle: 0 }, { angle: Math.PI * 4 }],
+    { duration: 2500, timingFunction: easeOutCubic },
+);
+await anim.play(({ angle }) => {
+    ctx.clearRect(0, 0, w, h);
+    drawDial(angle);
+});
 ```
 
-Supports multiple keyframes with explicit positions and per-segment timing functions.
+Options: `duration` (ms, required for `.play()`), `timingFunction`, `positions` (explicit keyframe positions as percentages). Call `.stop()` to cancel a running playback — the play promise resolves immediately.
 
 ### `SmoothProgress`
 
@@ -331,14 +341,22 @@ Options: `damping` (lerp factor, default 0.1), `snapThreshold` (auto-snap distan
 
 ### `ElementMorph`
 
-Interpolates position and scale between two DOM elements (or rects). Produces CSS transforms.
+Interpolates position and scale between two DOM elements (or rects). Produces CSS transforms. Stateless `.apply()` or managed `.play()`.
 
 ```ts
+// Stateless
 const morph = new ElementMorph(sourceEl, targetEl);
 morph.apply(element, progress); // writes transform + transformOrigin
+
+// Managed playback
+const morph = new ElementMorph(sourceEl, targetEl, {
+    duration: 400,
+    timingFunction: easeOutCubic,
+});
+await morph.play(element);
 ```
 
-Re-measures on demand via `morph.measure(from, to)`.
+Re-measures on demand via `morph.measure(from, to)`. Call `.stop()` to cancel.
 
 ### `Timeline`
 
