@@ -6,7 +6,7 @@
         <div
             v-if="!isEditing"
             :class="[
-                'fira-code text-[10px] cursor-pointer select-none transition-colors whitespace-nowrap',
+                'fira-code text-2xs cursor-pointer select-none transition-colors whitespace-nowrap',
                 isSelected ? 'text-primary font-semibold' : 'text-muted-foreground hover:text-foreground',
             ]"
             @click.stop="startEdit"
@@ -16,7 +16,7 @@
             ref="inputEl"
             type="number"
             :value="Math.round(percent)"
-            class="fira-code text-[10px] w-10 h-5 text-center bg-background border border-border rounded px-0.5 outline-none focus:ring-1 focus:ring-primary"
+            class="fira-code text-2xs w-10 h-5 text-center bg-background border border-border rounded px-0.5 outline-none focus:ring-1 focus:ring-primary"
             min="0"
             max="100"
             @blur="commitEdit"
