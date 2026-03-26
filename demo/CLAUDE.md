@@ -12,13 +12,11 @@ demo/
 │   │   │   ├── animation-controls/  # Core control suite (see below)
 │   │   │   ├── editor-shell/        # Reusable editor layout (see below)
 │   │   │   ├── asset-manager/         # Asset playground: viewport, layer panel, drag-and-drop
-│   │   │   ├── color-picker/         # Multi-color-space picker suite (spectrum, sliders, saved)
 │   │   │   ├── matrix-editor/       # 4×4 matrix3d cell grid + slider
 │   │   │   ├── dark-mode-toggle/    # Sun/moon SVG toggle (@vueuse useDark)
 │   │   │   ├── orbital-drag/        # Quaternion-based 3D drag (gl-matrix, Pointer Events)
 │   │   │   ├── Animated.vue         # Fade in/out wrapper using library presets
 │   │   │   ├── AnimatedText.vue     # Staggered per-character animation
-│   │   │   ├── ColorPicker.vue      # Standalone color picker (legacy)
 │   │   │   ├── CommandPalette.vue   # Cmd+K palette
 │   │   │   ├── CopyButton.vue      # Clipboard + feedback animation
 │   │   │   ├── IconTooltip.vue      # Tooltip wrapper
@@ -139,7 +137,7 @@ Reusable full-page animation editor layout. Slot-driven — accepts any target e
 - `gl-matrix` — quaternion math (orbital-drag); used directly but only present as a transitive dependency
 - `monaco-editor` — CSS keyframes editor (wrapped by CSSCodeEditor)
 - `html2canvas` — keyframe diamond hover previews (timeline)
-- `@mkbabb/value.js` — Color class (ColorPicker)
+- `@mkbabb/value.js` — Color class, math, easing, parsing
 
 ## Conventions
 

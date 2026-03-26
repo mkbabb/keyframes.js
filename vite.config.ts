@@ -46,6 +46,7 @@ const defaultOptions = {
             "@utils": path.resolve(import.meta.dirname, "demo/@/utils"),
             "@composables": path.resolve(import.meta.dirname, "demo/@/composables"),
             "@assets": path.resolve(import.meta.dirname, "assets"),
+            "@mkbabb/keyframes.js": path.resolve(import.meta.dirname, "src/animation"),
         },
     },
 };
