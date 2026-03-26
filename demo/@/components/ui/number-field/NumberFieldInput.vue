@@ -1,8 +1,0 @@
-<script setup lang="ts">
-import { NumberFieldInput } from 'reka-ui'
-import { cn } from '@utils/utils'
-</script>
-
-<template>
-  <NumberFieldInput data-slot="input" :class="cn('flex h-10 w-full rounded-md border border-input bg-background py-2 text-sm text-center placeholder:text-muted-foreground focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_hsl(var(--ring)/0.4)] disabled:cursor-not-allowed disabled:opacity-50')" />
-</template>
