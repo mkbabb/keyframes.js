@@ -32,8 +32,11 @@
                 />
 
                 <!-- Visibility toggle -->
-                <button
-                    class="shrink-0 cursor-pointer rounded p-0.5 hover:bg-muted/80 transition-colors"
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    class="shrink-0 h-auto w-auto rounded p-0.5 hover:bg-muted/80 transition-colors"
+                    :aria-label="asset.visible ? 'Hide layer' : 'Show layer'"
                     @click.stop="emit('update', asset.id, { visible: !asset.visible })"
                 >
                     <Eye
@@ -44,11 +47,14 @@
                         v-else
                         class="w-3.5 h-3.5 text-muted-foreground/40"
                     />
-                </button>
+                </Button>
 
                 <!-- Lock toggle -->
-                <button
-                    class="shrink-0 cursor-pointer rounded p-0.5 hover:bg-muted/80 transition-colors"
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    class="shrink-0 h-auto w-auto rounded p-0.5 hover:bg-muted/80 transition-colors"
+                    :aria-label="asset.locked ? 'Unlock layer' : 'Lock layer'"
                     @click.stop="emit('update', asset.id, { locked: !asset.locked })"
                 >
                     <Lock
@@ -59,7 +65,7 @@
                         v-else
                         class="w-3.5 h-3.5 text-muted-foreground/40"
                     />
-                </button>
+                </Button>
             </div>
         </ContextMenuTrigger>
         <ContextMenuContent class="fira-code text-xs">
@@ -87,6 +93,7 @@ import {
     Code2,
 } from "lucide-vue-next";
 import {
+    Button,
     ContextMenu,
     ContextMenuContent,
     ContextMenuItem,
