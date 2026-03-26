@@ -52,8 +52,8 @@
     },
     "devDependencies": {
         "@iconify-json/radix-icons": "^1.1.14",
-        "@mkbabb/glass-ui": "file:../glass-ui",
         "@iconify/vue": "^4.1.2",
+        "@mkbabb/glass-ui": "file:../glass-ui",
         "@tailwindcss/postcss": "^4.1",
         "@types/node": "^24.1.0",
         "@types/three": "^0.166.0",
