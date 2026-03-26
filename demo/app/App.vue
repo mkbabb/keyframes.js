@@ -18,7 +18,7 @@
                 <DropdownMenuTrigger as-child>
                     <button class="dock-icon-btn text-xs lg:text-sm font-mono cursor-pointer">@mbabb</button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" :side-offset="8" class="min-w-[16rem] p-1.5">
+                <DropdownMenuContent align="end" :side-offset="8" class="z-[var(--z-modal)] min-w-[17rem] instrument-serif text-base p-1.5">
                     <!-- Share -->
                     <DropdownMenuItem @select.prevent class="flex items-center gap-2.5 px-1.5 py-1 rounded-lg">
                         <SharePopover :on-scene-restore="(id: string) => switchScene(id)" />

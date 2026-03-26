@@ -5,7 +5,7 @@
         :show-start-screen="false"
     >
         <template #tabs-trigger="{ selectedAnimation }">
-            <TabsTrigger value="assets">Assets</TabsTrigger>
+            <TabsTrigger value="assets" class="tab-trigger-base tab-trigger-pill">Assets</TabsTrigger>
         </template>
 
         <template #tabs-content>
