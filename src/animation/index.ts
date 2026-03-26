@@ -1,8 +1,10 @@
 import { convertToMs, unflattenObject } from "@src/units/utils";
 import { easeInOutCubic } from "../easing";
 
-// Re-export easing functions from value.js
+// Re-export easing functions and math/utility primitives from value.js
 export * from "../easing";
+export * from "../math";
+export { sleep, requestAnimationFrame, cancelAnimationFrame } from "../utils";
 import { clamp, scale } from "../math";
 import {
     parseCSSKeyframes,
