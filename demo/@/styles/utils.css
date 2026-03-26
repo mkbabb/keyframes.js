@@ -72,40 +72,6 @@
 }
 
 /* ── Rainbow variants (use project-specific --rainbow-* tokens) ── */
-.rainbow-border {
-    border: solid 5px transparent;
-    border-radius: 50px;
-    background:
-        linear-gradient(currentColor, currentColor) padding-box,
-        linear-gradient(
-                to right,
-                var(--rainbow-red),
-                var(--rainbow-orange),
-                var(--rainbow-yellow),
-                var(--rainbow-green),
-                var(--rainbow-blue),
-                var(--rainbow-indigo),
-                var(--rainbow-violet)
-            )
-            border-box;
-}
-
-.rainbow-text {
-    background-image: linear-gradient(
-        to right,
-        var(--rainbow-red) 0%,
-        var(--rainbow-orange) 14%,
-        var(--rainbow-yellow) 28%,
-        var(--rainbow-green) 42%,
-        var(--rainbow-blue) 57%,
-        var(--rainbow-indigo) 71%,
-        var(--rainbow-violet) 85%,
-        var(--rainbow-red) 100%
-    ) !important;
-    background-clip: text;
-    color: transparent;
-}
-
 .pastel-rainbow,
 .rainbow-pastel {
     background: linear-gradient(
@@ -133,16 +99,6 @@
         var(--rainbow-violet) 85%,
         var(--rainbow-red) 100%
     );
-}
-
-.paintbrush-rainbow {
-    color: hsl(0, 80%, 70%);
-    animation: rainbow-hue-vivid 3s linear infinite;
-}
-
-@keyframes rainbow-hue-vivid {
-    from { filter: hue-rotate(0deg) saturate(1.5) brightness(1.1); }
-    to { filter: hue-rotate(360deg) saturate(1.5) brightness(1.1); }
 }
 
 .rainbow-wrapper {

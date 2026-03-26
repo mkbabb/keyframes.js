@@ -13,7 +13,6 @@ demo/
 │   │   │   ├── editor-shell/        # Reusable editor layout (see below)
 │   │   │   ├── asset-manager/         # Asset playground: viewport, layer panel, drag-and-drop
 │   │   │   ├── matrix-editor/       # 4×4 matrix3d cell grid + slider
-│   │   │   ├── dark-mode-toggle/    # Sun/moon SVG toggle (@vueuse useDark)
 │   │   │   ├── orbital-drag/        # Quaternion-based 3D drag (gl-matrix, Pointer Events)
 │   │   │   ├── Animated.vue         # Fade in/out wrapper using library presets
 │   │   │   ├── AnimatedText.vue     # Staggered per-character animation
