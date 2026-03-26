@@ -6,7 +6,7 @@
                 <span class="fira-code text-xs font-semibold text-muted-foreground">assets</span>
                 <DropdownMenu>
                     <DropdownMenuTrigger as-child>
-                        <Button size="sm" variant="ghost" class="gap-1.5 cursor-pointer h-6 px-2 fira-code text-xs">
+                        <Button size="sm" variant="ghost" class="gap-1.5 h-6 px-2 fira-code text-xs">
                             <Plus class="w-3 h-3" /> add
                         </Button>
                     </DropdownMenuTrigger>

@@ -9,7 +9,7 @@
                 ]"
             />
         </PopoverTrigger>
-        <PopoverContent class="w-72 p-2" align="start" :side-offset="8">
+        <PopoverContent class="z-[var(--z-popover)] w-72 p-2" align="start" :side-offset="8">
             <div class="flex items-center gap-1.5">
                 <Input
                     v-model="loadHashInput"
@@ -20,7 +20,7 @@
                 <Button
                     size="sm"
                     variant="ghost"
-                    class="h-8 w-8 p-0 shrink-0 cursor-pointer"
+                    class="h-8 w-8 p-0 shrink-0"
                     @click="loadFromInput"
                     title="Load shared state"
                 >
@@ -29,7 +29,7 @@
                 <Button
                     size="sm"
                     variant="ghost"
-                    class="h-8 w-8 p-0 shrink-0 cursor-pointer"
+                    class="h-8 w-8 p-0 shrink-0"
                     @click="shareState"
                     title="Copy share link"
                 >

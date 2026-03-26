@@ -63,7 +63,7 @@
                         <Button
                             size="sm"
                             variant="ghost"
-                            class="gap-1.5 cursor-pointer fira-code text-xs"
+                            class="gap-1.5 fira-code text-xs"
                             @click="storedControls.isTimelineExpanded = false"
                         >
                             <Minimize2 class="w-3.5 h-3.5" />

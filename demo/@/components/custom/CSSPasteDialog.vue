@@ -20,7 +20,7 @@
             <DialogFooter>
                 <slot name="footer-extra" />
                 <Button
-                    class="cursor-pointer gap-2"
+                    class="gap-2"
                     @click="onSubmit"
                 >{{ buttonLabel }}<component v-if="buttonIcon" :is="buttonIcon" class="w-4 h-4" /></Button>
             </DialogFooter>

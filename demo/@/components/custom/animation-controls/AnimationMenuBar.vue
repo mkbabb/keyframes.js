@@ -82,7 +82,7 @@
                 <IconTooltip :text="isPlaying ? 'Pause' : 'Play'">
                     <Button
                         :class="[
-                            'dock-play-btn text-xl text-white cursor-pointer rounded-full p-0',
+                            'dock-play-btn text-xl text-white rounded-full p-0',
                             'w-10 h-10 shrink-0',
                             isPlaying ? 'rainbow-vivid' : 'rainbow-pastel',
                         ]"
@@ -114,7 +114,7 @@
                 </span>
                 <Button
                     :class="[
-                        'dock-play-btn text-white cursor-pointer rounded-full p-0',
+                        'dock-play-btn text-white rounded-full p-0',
                         'w-8 h-8 shrink-0 text-sm',
                         isPlaying ? 'rainbow-vivid' : 'rainbow-pastel',
                     ]"

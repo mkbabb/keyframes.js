@@ -8,7 +8,8 @@
                 <Button
                     size="sm"
                     variant="ghost"
-                    class="cursor-pointer h-7 w-7 p-0 opacity-50 hover:opacity-100"
+                    class="h-7 w-7 p-0 opacity-50 hover:opacity-100"
+                    aria-label="Clear all keyframes"
                     @click="clear()"
                 >
                     <Trash class="w-3.5 h-3.5" />
@@ -18,7 +19,8 @@
                 <Button
                     size="sm"
                     variant="ghost"
-                    class="cursor-pointer h-7 w-7 p-0 opacity-50 hover:opacity-100"
+                    class="h-7 w-7 p-0 opacity-50 hover:opacity-100"
+                    :aria-label="props.expanded ? 'Collapse timeline' : 'Expand timeline'"
                     @click="emit('toggleExpand')"
                 >
                     <component :is="props.expanded ? Minimize2 : Maximize2" class="w-3.5 h-3.5" />
@@ -157,7 +159,8 @@
                     <Button
                         size="sm"
                         variant="ghost"
-                        class="h-6 w-6 p-0 cursor-pointer"
+                        class="h-6 w-6 p-0"
+                        aria-label="Remove keyframe"
                         @click="removeKeyframe(selectedKeyframeId!)"
                     >
                         <X class="w-3 h-3" />

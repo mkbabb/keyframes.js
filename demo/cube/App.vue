@@ -57,7 +57,7 @@
                 <DropdownMenuTrigger as-child>
                     <Button
                         :class="[
-                            'm-0 cursor-pointer p-0 text-xs lg:text-sm transition-all duration-[var(--duration-fast)] font-mono font-normal',
+                            'm-0 p-0 text-xs lg:text-sm transition-all duration-[var(--duration-fast)] font-mono font-normal',
                             toggled
                                 ? 'underline underline-offset-4 text-foreground decoration-2'
                                 : pinned
@@ -123,13 +123,13 @@
         <template #ribbon-content="{ selectedControl }">
             <template v-if="selectedControl === 'matrix-controls'">
                 <Button size="sm" variant="outline"
-                    class="h-8 gap-1.5 cursor-pointer fira-code text-xs px-3 rounded-lg btn-interactive"
+                    class="h-8 gap-1.5 fira-code text-xs px-3 rounded-lg btn-interactive"
                     @click="resetMatrix()"
                 >
                     <RotateCcw class="w-3.5 h-3.5" /> Reset
                 </Button>
                 <Button size="sm" variant="outline"
-                    class="h-8 gap-1.5 cursor-pointer fira-code text-xs px-3 rounded-lg btn-interactive"
+                    class="h-8 gap-1.5 fira-code text-xs px-3 rounded-lg btn-interactive"
                     @click="storedControls.matrixOptions.fixed = !storedControls.matrixOptions.fixed"
                 >
                     <Lock v-if="!storedControls.matrixOptions?.fixed" class="w-3.5 h-3.5" />

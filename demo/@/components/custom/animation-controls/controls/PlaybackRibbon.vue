@@ -24,10 +24,8 @@
         <div class="grid grid-cols-2 gap-2 w-full">
             <Button
                 :class="[
-                    'h-8 w-full rounded-full gap-2 instrument-serif text-base cursor-pointer btn-interactive',
-                    isGrouped && !isAnimStarted
-                        ? 'bg-accent-red/30 text-accent-red border-accent-red/40 hover:bg-accent-red/50 hover:text-accent-red'
-                        : '',
+                    'h-8 w-full rounded-full gap-2 instrument-serif text-base btn-interactive',
+                    'bg-accent-red/20 text-accent-red border-accent-red/40 hover:bg-accent-red/30',
                 ]"
                 variant="outline"
                 @click="emit('togglePlay')"
@@ -38,7 +36,7 @@
             </Button>
             <Button
                 :class="[
-                    'h-8 w-full rounded-full gap-2 instrument-serif text-base cursor-pointer btn-interactive',
+                    'h-8 w-full rounded-full gap-2 instrument-serif text-base btn-interactive',
                     'aria-pressed:bg-primary/10 aria-pressed:border-primary/40',
                 ]"
                 :aria-pressed="userReversed"
