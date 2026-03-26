@@ -1,3 +1,2 @@
-export { default as GlassDock } from "./GlassDock.vue";
-export { default as DockPopover } from "./DockPopover.vue";
+export { GlassDock, DockLayerGroup } from "@mkbabb/glass-ui";
 export { default as TopDock } from "./TopDock.vue";
