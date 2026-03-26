@@ -1,4 +1,4 @@
-import { computed, ref } from "vue";
+import { computed } from "vue";
 import type { ComputedRef } from "vue";
 import { useStorage } from "@vueuse/core";
 import {
@@ -36,15 +36,10 @@ const DEFAULT_STYLES: Record<AssetKind, Partial<Asset>> = {
 };
 
 export function useAssetManager() {
-    let state;
-    try {
-        state = useStorage<AssetManagerState>(
-            "asset-manager-state",
-            { ...defaultAssetManagerState },
-        );
-    } catch {
-        state = ref<AssetManagerState>({ ...defaultAssetManagerState });
-    }
+    const state = useStorage<AssetManagerState>(
+        "asset-manager-state",
+        { ...defaultAssetManagerState },
+    );
 
     const sortedAssets: ComputedRef<Asset[]> = computed(() =>
         [...state.value.assets].sort((a, b) => a.zIndex - b.zIndex),

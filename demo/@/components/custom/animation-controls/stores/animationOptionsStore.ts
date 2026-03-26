@@ -1,8 +1,7 @@
 import { getAnimationId, Animation } from "@src/animation";
 import type { InputAnimationOptions } from "@src/animation/constants";
 import { jumpTerms } from "@src/easing";
-import { useStorage } from "@vueuse/core";
-import { ref } from "vue";
+import { createGlobalState, useStorage } from "@vueuse/core";
 import { checkAndResetExpiredStore, getAnimationSuperKey } from "./storeUtils";
 
 export type StoredAnimationOptions = {
@@ -55,31 +54,14 @@ export const defaultStoredAnimationOptions = {
     cubicBezierOptions: defaultCubicBezierOptions,
 } as StoredAnimationOptions;
 
-let _animationGroupsOptionsStore: ReturnType<
-    typeof useStorage<StoredAnimationGroupsOptions>
-> | null = null;
-
-export const getAnimationGroupsOptionsStore = (): ReturnType<
-    typeof useStorage<StoredAnimationGroupsOptions>
-> => {
-    if (!_animationGroupsOptionsStore) {
-        try {
-            _animationGroupsOptionsStore = useStorage(
-                "animation-groups-options-store",
-                { _storeTimestamp: Date.now() } as StoredAnimationGroupsOptions,
-            );
-            checkAndResetExpiredStore(_animationGroupsOptionsStore, {
-                _storeTimestamp: Date.now(),
-            });
-        } catch {
-            // Safari private browsing or no localStorage — fall back to a plain ref
-            _animationGroupsOptionsStore = ref({
-                _storeTimestamp: Date.now(),
-            }) as ReturnType<typeof useStorage<StoredAnimationGroupsOptions>>;
-        }
-    }
-    return _animationGroupsOptionsStore!;
-};
+export const useAnimationGroupsOptionsStore = createGlobalState(() => {
+    const store = useStorage<StoredAnimationGroupsOptions>(
+        "animation-groups-options-store",
+        { _storeTimestamp: Date.now() } as StoredAnimationGroupsOptions,
+    );
+    checkAndResetExpiredStore(store, { _storeTimestamp: Date.now() });
+    return store;
+});
 
 export const getStoredAnimationOptions = (
     animationId: Animation<any> | string | undefined = undefined,
@@ -88,7 +70,7 @@ export const getStoredAnimationOptions = (
     superKey = getAnimationSuperKey(superKey, animationId);
     animationId = getAnimationId(animationId!);
 
-    const animationGroupsOptionsStore = getAnimationGroupsOptionsStore();
+    const animationGroupsOptionsStore = useAnimationGroupsOptionsStore();
 
     let animationGroupOptions = animationGroupsOptionsStore.value[
         superKey
@@ -130,7 +112,8 @@ export const createAnimationUUId = (
     return `${superKey}-${animationId}`;
 };
 
-/** Reset the module-level singleton (used by resetAllStores). */
+/** Reset the store to defaults (used by resetAllStores). */
 export const _resetAnimationGroupsOptionsStore = () => {
-    _animationGroupsOptionsStore = null;
+    const store = useAnimationGroupsOptionsStore();
+    store.value = { _storeTimestamp: Date.now() } as StoredAnimationGroupsOptions;
 };

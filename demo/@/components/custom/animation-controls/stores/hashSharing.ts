@@ -1,5 +1,5 @@
-import { getAnimationGroupsOptionsStore } from "./animationOptionsStore";
-import { getAnimationGroupsControlOptionsStore } from "./controlOptionsStore";
+import { useAnimationGroupsOptionsStore } from "./animationOptionsStore";
+import { useAnimationGroupsControlOptionsStore } from "./controlOptionsStore";
 import { _setActiveSceneId, getActiveScene } from "./scenePlayback";
 
 // --- URL hash sharing (lossless, compressed) ---
@@ -22,9 +22,9 @@ export const decodeStateFromHash = (hash: string): object | null => {
 export const getAllState = (): object => {
     // Strip _storeTimestamp so the same logical state always produces the same hash
     const { _storeTimestamp: _1, ...options } =
-        getAnimationGroupsOptionsStore().value;
+        useAnimationGroupsOptionsStore().value;
     const { _storeTimestamp: _2, ...controls } =
-        getAnimationGroupsControlOptionsStore().value;
+        useAnimationGroupsControlOptionsStore().value;
     return { options, controls, activeScene: getActiveScene() };
 };
 
@@ -57,11 +57,11 @@ export const restoreStateFromHash = (): {
     if (!state || !isValidState(state)) return { restored: false };
 
     if (state.options) {
-        Object.assign(getAnimationGroupsOptionsStore().value, state.options);
+        Object.assign(useAnimationGroupsOptionsStore().value, state.options);
     }
     if (state.controls) {
         Object.assign(
-            getAnimationGroupsControlOptionsStore().value,
+            useAnimationGroupsControlOptionsStore().value,
             state.controls,
         );
     }

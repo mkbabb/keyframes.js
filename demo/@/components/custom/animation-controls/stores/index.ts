@@ -10,7 +10,7 @@ export {
     defaultStepOptions,
     defaultCubicBezierOptions,
     defaultStoredAnimationOptions,
-    getAnimationGroupsOptionsStore,
+    useAnimationGroupsOptionsStore,
     getStoredAnimationOptions,
     createAnimationUUId,
 } from "./animationOptionsStore";
@@ -18,7 +18,7 @@ export {
 export {
     type StoredAnimationGroupControlOptions,
     type StoredAnimationGroupsControlOptions,
-    getAnimationGroupsControlOptionsStore,
+    useAnimationGroupsControlOptionsStore,
     getStoredAnimationGroupControlOptions,
 } from "./controlOptionsStore";
 
@@ -40,34 +40,21 @@ export {
     getActiveScene,
 } from "./scenePlayback";
 
-export { deepDefaultStore, getAnimationSuperKey, STORE_KEYS } from "./storeUtils";
+export { getAnimationSuperKey, STORE_KEYS } from "./storeUtils";
 
-// --- resetAllStores (needs access to both store singletons) ---
-
-import { getAnimationGroupsOptionsStore, _resetAnimationGroupsOptionsStore } from "./animationOptionsStore";
-import { getAnimationGroupsControlOptionsStore, _resetAnimationGroupsControlOptionsStore } from "./controlOptionsStore";
+import { _resetAnimationGroupsOptionsStore } from "./animationOptionsStore";
+import { _resetAnimationGroupsControlOptionsStore } from "./controlOptionsStore";
 import { STORE_KEYS } from "./storeUtils";
 
 export const resetAllStores = () => {
-    // Reset reactive refs
-    getAnimationGroupsOptionsStore().value = { _storeTimestamp: Date.now() };
-    getAnimationGroupsControlOptionsStore().value = { _storeTimestamp: Date.now() };
+    _resetAnimationGroupsOptionsStore();
+    _resetAnimationGroupsControlOptionsStore();
 
-    // Also clear localStorage directly — useStorage writeback may not flush before reload
-    try {
-        for (const key of STORE_KEYS) {
-            localStorage.removeItem(key);
-        }
-    } catch {
-        // Safari private browsing — no-op
+    for (const key of STORE_KEYS) {
+        localStorage.removeItem(key);
     }
 
-    // Clear URL hash so restoreStateFromHash() doesn't re-populate on reload
     if (window.location.hash) {
         history.replaceState(null, "", window.location.pathname + window.location.search);
     }
-
-    // Reset module-level singletons so they're recreated fresh on next access
-    _resetAnimationGroupsOptionsStore();
-    _resetAnimationGroupsControlOptionsStore();
 };

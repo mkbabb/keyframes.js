@@ -1,6 +1,5 @@
 import type { Animation } from "@src/animation";
-import { useStorage } from "@vueuse/core";
-import { ref } from "vue";
+import { createGlobalState, useStorage } from "@vueuse/core";
 import { checkAndResetExpiredStore, getAnimationSuperKey } from "./storeUtils";
 
 export type StoredAnimationGroupControlOptions = {
@@ -33,38 +32,16 @@ const defaultStoredAnimationGroupControlOptions: StoredAnimationGroupControlOpti
         isControlsPanelOpen: true,
     };
 
-let _animationGroupsControlOptionsStore: ReturnType<
-    typeof useStorage<StoredAnimationGroupsControlOptions>
-> | null = null;
-
-export const getAnimationGroupsControlOptionsStore = (): ReturnType<
-    typeof useStorage<StoredAnimationGroupsControlOptions>
-> => {
-    if (!_animationGroupsControlOptionsStore) {
-        try {
-            _animationGroupsControlOptionsStore = useStorage(
-                "animation-groups-control-options-store",
-                {
-                    _storeTimestamp: Date.now(),
-                } as StoredAnimationGroupsControlOptions,
-            );
-            checkAndResetExpiredStore(
-                _animationGroupsControlOptionsStore,
-                {
-                    _storeTimestamp: Date.now(),
-                } as StoredAnimationGroupsControlOptions,
-            );
-        } catch {
-            // Safari private browsing or no localStorage — fall back to a plain ref
-            _animationGroupsControlOptionsStore = ref({
-                _storeTimestamp: Date.now(),
-            }) as ReturnType<
-                typeof useStorage<StoredAnimationGroupsControlOptions>
-            >;
-        }
-    }
-    return _animationGroupsControlOptionsStore!;
-};
+export const useAnimationGroupsControlOptionsStore = createGlobalState(() => {
+    const store = useStorage<StoredAnimationGroupsControlOptions>(
+        "animation-groups-control-options-store",
+        { _storeTimestamp: Date.now() } as StoredAnimationGroupsControlOptions,
+    );
+    checkAndResetExpiredStore(store, {
+        _storeTimestamp: Date.now(),
+    } as StoredAnimationGroupsControlOptions);
+    return store;
+});
 
 export const getStoredAnimationGroupControlOptions = (
     superKey: Animation<any> | string | undefined = undefined,
@@ -72,7 +49,7 @@ export const getStoredAnimationGroupControlOptions = (
     superKey = getAnimationSuperKey(superKey, superKey);
 
     const animationGroupsControlOptionsStore =
-        getAnimationGroupsControlOptionsStore();
+        useAnimationGroupsControlOptionsStore();
 
     if (!animationGroupsControlOptionsStore.value[superKey]) {
         animationGroupsControlOptionsStore.value[superKey] = structuredClone(
@@ -87,7 +64,8 @@ export const getStoredAnimationGroupControlOptions = (
     return controls;
 };
 
-/** Reset the module-level singleton (used by resetAllStores). */
+/** Reset the store to defaults (used by resetAllStores). */
 export const _resetAnimationGroupsControlOptionsStore = () => {
-    _animationGroupsControlOptionsStore = null;
+    const store = useAnimationGroupsControlOptionsStore();
+    store.value = { _storeTimestamp: Date.now() } as StoredAnimationGroupsControlOptions;
 };

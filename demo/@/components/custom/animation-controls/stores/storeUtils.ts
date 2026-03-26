@@ -20,22 +20,6 @@ export const checkAndResetExpiredStore = <T extends { _storeTimestamp?: number }
     }
 };
 
-export const touchTimestamp = <T extends { _storeTimestamp?: number }>(store: {
-    value: T;
-}) => {
-    store.value._storeTimestamp = Date.now();
-};
-
-export const deepDefaultStore = (store: any, defaultStore: any) => {
-    for (const key in defaultStore) {
-        if (store[key] === undefined || store[key] === null) {
-            store[key] = defaultStore[key];
-        } else if (typeof store[key] === "object") {
-            deepDefaultStore(store[key], defaultStore[key]);
-        }
-    }
-};
-
 export const getAnimationSuperKey = (
     superKey: Animation<any> | string | undefined,
     animation: Animation<any> | string | undefined = undefined,
