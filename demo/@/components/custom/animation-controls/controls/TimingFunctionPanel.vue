@@ -2,13 +2,14 @@
         <div
             class="col-span-2 w-full grid justify-items-center"
         >
-            <button
-                class="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground cursor-pointer transition-colors mb-2 instrument-serif justify-self-start"
+            <Button
+                variant="ghost"
+                class="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors mb-2 instrument-serif justify-self-start px-0 h-auto"
                 @click="emit('exitDetailPanel')"
             >
                 <ArrowLeft class="w-3.5 h-3.5" />
                 back to controls
-            </button>
+            </Button>
 
             <template
                 v-if="(storedAnimationOptions.animationOptions.timingFunction as any) === 'cubic-bezier'"
@@ -77,6 +78,7 @@ import type { StoredAnimationOptions } from "../stores";
 import { jumpTerms } from "@src/easing";
 
 import {
+    Button,
     Card,
     CardContent,
     CardHeader,

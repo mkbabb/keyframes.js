@@ -26,37 +26,39 @@
 
             <!-- Expanded: home + separator + scene pills -->
             <template v-else>
-                <div class="flex items-center gap-0.5 overflow-x-auto max-w-[80vw] scrollbar-none">
+                <div class="flex items-center gap-0.5 overflow-x-auto max-w-[80vw] scrollbar-hidden">
                     <!-- Home button -->
-                    <button
+                    <Button
+                        variant="ghost"
                         @click="onSelect(HOME_SCENE_ID)"
                         :class="[
-                            'whitespace-nowrap px-3.5 py-1.5 text-base instrument-serif cursor-pointer rounded-lg transition-all duration-[var(--duration-fast)] shrink-0',
+                            'whitespace-nowrap px-3.5 py-1.5 text-base instrument-serif rounded-lg transition-all duration-[var(--duration-fast)] shrink-0',
                             current === HOME_SCENE_ID
                                 ? 'bg-foreground/10 text-foreground font-semibold shadow-sm'
                                 : 'text-muted-foreground hover:text-foreground hover:bg-foreground/5',
                         ]"
                     >
                         <Home class="w-4 h-4" />
-                    </button>
+                    </Button>
 
                     <!-- Vertical separator -->
                     <div class="w-px h-5 bg-border/60 mx-1 shrink-0"></div>
 
                     <!-- Scene pills -->
-                    <button
+                    <Button
                         v-for="scene in scenes"
                         :key="scene.id"
+                        variant="ghost"
                         @click="onSelect(scene.id)"
                         :class="[
-                            'whitespace-nowrap px-3.5 py-1.5 text-base instrument-serif cursor-pointer rounded-lg transition-all duration-[var(--duration-fast)] shrink-0',
+                            'whitespace-nowrap px-3.5 py-1.5 text-base instrument-serif rounded-lg transition-all duration-[var(--duration-fast)] shrink-0',
                             scene.id === current
                                 ? 'bg-foreground/10 text-foreground font-semibold shadow-sm'
                                 : 'text-muted-foreground hover:text-foreground hover:bg-foreground/5',
                         ]"
                     >
                         {{ scene.label }}
-                    </button>
+                    </Button>
                 </div>
             </template>
         </div>
@@ -66,6 +68,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { ChevronDown, Home, Layers } from "lucide-vue-next";
+import { Button } from "@mkbabb/glass-ui";
 import { scenes, sceneMap, HOME_SCENE_ID } from "./scenes";
 
 const props = defineProps<{
@@ -122,13 +125,5 @@ function onSelect(id: string) {
         padding 0.5s var(--ease-spring),
         gap 0.5s var(--ease-spring),
         box-shadow 0.3s ease;
-}
-
-.scrollbar-none {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-}
-.scrollbar-none::-webkit-scrollbar {
-    display: none;
 }
 </style>
