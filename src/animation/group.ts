@@ -284,25 +284,26 @@ export class AnimationGroup<V extends Vars> {
 
     /**
      * Advance all child animations to timestamp `t`.
-     * Synchronous — child tick() calls complete synchronously in practice
-     * (no async frame interpolation). Uses cached entries to avoid
-     * Object.values() allocation per frame.
+     * Awaits all child tick() promises so deferred state updates
+     * (startTime, this.t) resolve before interpFrames reads them.
      */
-    tick(t: number) {
+    async tick(t: number) {
         this.lastTickTime = t;
 
         if (!this.started) {
             this.onStart();
         }
 
+        const promises: Promise<number>[] = [];
         for (const entry of this.getEntries()) {
             const anim = entry.animation;
             // Tick children that are either unpaused, or paused but not yet
             // recorded their pause timestamp (need one final tick to snapshot).
             if (!anim.paused || anim.pausedTime === 0) {
-                anim.tick(t);
+                promises.push(anim.tick(t));
             }
         }
+        await Promise.all(promises);
 
         if (this.done) {
             this.onEnd();
@@ -316,8 +317,8 @@ export class AnimationGroup<V extends Vars> {
      * (single-target: grouped blending; multi-target: per-child).
      * Reschedules itself via rAF until done.
      */
-    draw(t: number) {
-        this.tick(t);
+    async draw(t: number) {
+        await this.tick(t);
 
         if (this.paused) {
             return;
