@@ -17,6 +17,8 @@
     /* ── Dock tokens ── */
     --dock-margin: 0.5rem;
     --dock-h: calc(2.5rem + 0.75rem + 3px);
+    --dock-icon-height: 2.75rem;
+    --menubar-reserve: 4rem;
     --work-area-max-width: clamp(72rem, 94vw, 120rem);
     --work-area-max-height: clamp(44rem, 88dvh, 66rem);
     --work-area-height: min(100dvh, var(--work-area-max-height));

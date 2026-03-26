@@ -446,9 +446,9 @@ function cycleAnimation(direction: number) {
     --pane-duration: 0.35s;
     display: grid;
     /* Half dock-margin above dock + dock height + half dock-margin gap */
-    margin-top: calc(var(--dock-margin) + 2.75rem);
-    /* Fill viewport minus top dock area and bottom dock (~4rem) */
-    max-height: calc(100dvh - var(--dock-margin) - 2.75rem - 4rem);
+    margin-top: calc(var(--dock-margin) + var(--dock-icon-height));
+    /* Fill viewport minus top dock area and bottom menubar */
+    max-height: calc(100dvh - var(--dock-margin) - var(--dock-icon-height) - var(--menubar-reserve));
 }
 .controls-pane-wrapper.controls-pane--open {
     grid-template-rows: 1fr;
