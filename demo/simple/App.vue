@@ -23,7 +23,7 @@ onMounted(() => {
 @import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;700&display=swap");
 
 * {
-    font-family: "Fira Code", monospace;
+    font-family: var(--font-mono);
 }
 
 .container {
@@ -49,10 +49,10 @@ onMounted(() => {
     --size: 12rem;
     width: var(--size);
     height: var(--size);
-    border-radius: 0.5rem;
+    border-radius: var(--radius-lg);
     font-weight: bold;
 
-    font-size: 1rem;
+    font-size: var(--type-body);
     background-color: aquamarine;
 
     box-shadow: 0 0 0 0.5rem rgba(255, 255, 255, 0.5);

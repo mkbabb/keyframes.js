@@ -76,14 +76,14 @@ const groupedShortcuts = computed(() => {
     min-width: 1.5rem;
     height: 1.5rem;
     padding: 0 0.35rem;
-    font-family: "Fira Code", monospace;
-    font-size: 0.65rem;
+    font-family: var(--font-mono);
+    font-size: var(--type-micro);
     font-weight: 500;
     line-height: 1;
     color: hsl(var(--foreground));
     background: hsl(var(--muted));
     border: 1px solid hsl(var(--border));
     border-radius: var(--radius-sm);
-    box-shadow: 0 1px 0 1px hsl(var(--border) / 0.3);
+    box-shadow: var(--shadow-kbd);
 }
 </style>

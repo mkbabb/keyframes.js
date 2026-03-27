@@ -131,7 +131,7 @@ const cubeSides = [
 }
 
 .idle-hover {
-    animation: idle-bob 3s ease-in-out infinite alternate;
+    animation: idle-bob 3s var(--ease-standard) infinite alternate;
 }
 .idle-hover.playing {
     animation: none;
@@ -197,15 +197,15 @@ const cubeSides = [
     pointer-events: none;
 
     &.x {
-        --color: rgb(218, 59, 59);
+        --color: var(--axis-x);
         transform: rotateX(0deg);
     }
     &.y {
-        --color: rgb(66, 175, 66);
+        --color: var(--axis-y);
         transform: rotateZ(90deg);
     }
     &.z {
-        --color: rgb(61, 61, 235);
+        --color: var(--axis-z);
         transform: rotateY(90deg);
     }
 }

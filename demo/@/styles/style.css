@@ -25,6 +25,15 @@
     --work-area-top-offset: max(calc((100dvh - var(--work-area-height)) / 2), 0px);
     --work-area-bottom-offset: var(--work-area-top-offset);
 
+    /* ── 3D axis color tokens ── */
+    --axis-x: rgb(218, 59, 59);
+    --axis-y: rgb(66, 175, 66);
+    --axis-z: rgb(61, 61, 235);
+    --axis-w: hsl(var(--foreground));
+
+    /* ── Keyboard shortcut key shadow ── */
+    --shadow-kbd: 0 1px 0 1px hsl(var(--border) / 0.3);
+
     /* ── Box shadow tokens (project-specific cartoon shadows) ── */
     --shadow-card: 4px 4px 0px 0px hsl(var(--shadow) / 0.5);
     --shadow-card-hover: 5px 5px 0px 0px hsl(var(--shadow) / 0.6);
@@ -141,7 +150,7 @@
 .touch-gate-target {
     outline: 2px solid transparent;
     outline-offset: 2px;
-    transition: outline-color var(--duration-normal) ease;
+    transition: outline-color var(--duration-normal) var(--ease-standard);
 }
 .touch-gate-active {
     outline-color: hsl(var(--ring) / 0.5);

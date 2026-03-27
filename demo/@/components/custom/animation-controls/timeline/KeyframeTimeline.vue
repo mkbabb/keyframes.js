@@ -426,16 +426,16 @@ defineExpose({
 
 .keyframe-marker {
     transition:
-        transform 0.15s ease,
-        border-color 0.15s ease;
+        transform var(--duration-fast) var(--ease-standard),
+        border-color var(--duration-fast) var(--ease-standard);
 }
 
 .keyframe-marker:active {
     cursor: grabbing;
 }
 
-.kf-editor-enter-active { transition: opacity 0.15s ease, transform 0.15s ease; }
-.kf-editor-leave-active { transition: opacity 0.1s ease, transform 0.1s ease; }
+.kf-editor-enter-active { transition: opacity var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard); }
+.kf-editor-leave-active { transition: opacity var(--duration-instant) var(--ease-standard), transform var(--duration-instant) var(--ease-standard); }
 .kf-editor-enter-from { opacity: 0; transform: translateY(-8px); }
 .kf-editor-leave-to { opacity: 0; transform: translateY(-4px); }
 </style>

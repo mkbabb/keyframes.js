@@ -127,7 +127,7 @@
     background-size: 800% 800%;
     opacity: 0.75;
     z-index: 1;
-    animation: rainbow 5s ease infinite;
+    animation: rainbow 5s var(--ease-standard) infinite;
 }
 
 @keyframes rainbow {
@@ -155,7 +155,7 @@
 
 /* Tab panel slide-in on switch */
 [data-state="active"][role="tabpanel"] {
-    animation: enter 150ms ease-out;
+    animation: enter var(--duration-fast) var(--ease-out);
     --tw-enter-opacity: 0;
     --tw-enter-translate-x: 0.5rem;
 }

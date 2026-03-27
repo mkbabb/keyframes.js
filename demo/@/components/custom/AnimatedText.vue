@@ -58,7 +58,7 @@ watch(
 <style scoped>
 .lift-down {
     display: inline-block;
-    animation: liftDown 3s ease-in-out infinite;
+    animation: liftDown 3s var(--ease-standard) infinite;
     animation-fill-mode: forwards;
 }
 
@@ -82,7 +82,7 @@ watch(
 
 .dot-fade {
     display: inline-block;
-    animation: dotFade v-bind("duration") ease-in-out infinite;
+    animation: dotFade v-bind("duration") var(--ease-standard) infinite;
     animation-fill-mode: forwards;
 }
 

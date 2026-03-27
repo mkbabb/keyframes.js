@@ -107,7 +107,7 @@ body {
 }
 
 canvas {
-    background-color: #fff;
+    background-color: hsl(var(--background));
     height: 100%;
     width: 100%;
 

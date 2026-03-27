@@ -122,8 +122,8 @@ function onSelect(id: string) {
 <style scoped>
 .scene-nav-shell {
     transition:
-        padding 0.5s var(--ease-spring),
-        gap 0.5s var(--ease-spring),
-        box-shadow 0.3s ease;
+        padding var(--duration-panel) var(--ease-spring),
+        gap var(--duration-panel) var(--ease-spring),
+        box-shadow var(--duration-normal) var(--ease-standard);
 }
 </style>

@@ -137,19 +137,19 @@ const resetMatrix = () => {
 
 <style scoped>
 .x {
-    --color: rgb(218, 59, 59);
+    --color: var(--axis-x);
     color: var(--color);
 }
 .y {
-    --color: rgb(66, 175, 66);
+    --color: var(--axis-y);
     color: var(--color);
 }
 .z {
-    --color: rgb(61, 61, 235);
+    --color: var(--axis-z);
     color: var(--color);
 }
 .w {
-    --color: black;
+    --color: var(--axis-w);
     color: var(--color);
 }
 </style>
