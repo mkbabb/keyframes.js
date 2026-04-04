@@ -1,24 +1,7 @@
 /* Fonts loaded via <link> in HTML for preloading — see index.html files */
 
 :root {
-    --ppmycota-primary: 248, 88%, 71%;
-
-    /* ── Rainbow gradient stops (shared across variants) ── */
-    --rainbow-red: hsl(0, 85%, 60%);
-    --rainbow-orange: hsl(30, 90%, 55%);
-    --rainbow-yellow: hsl(55, 90%, 55%);
-    --rainbow-green: hsl(130, 70%, 50%);
-    --rainbow-blue: hsl(210, 80%, 55%);
-    --rainbow-indigo: hsl(260, 70%, 60%);
-    --rainbow-violet: hsl(300, 75%, 60%);
-
-    --rainbow-pastel-red: hsl(0, 50%, 78%);
-    --rainbow-pastel-orange: hsl(25, 55%, 76%);
-    --rainbow-pastel-yellow: hsl(50, 55%, 78%);
-    --rainbow-pastel-green: hsl(130, 35%, 74%);
-    --rainbow-pastel-blue: hsl(220, 45%, 76%);
-    --rainbow-pastel-indigo: hsl(260, 35%, 76%);
-    --rainbow-pastel-violet: hsl(280, 40%, 78%);
+    --ppmycota-primary: hsl(248 88% 71%);
 }
 
 /* ── Tab trigger variants (project-specific) ── */
@@ -33,13 +16,13 @@
     transition: all var(--duration-fast) var(--ease-standard);
 }
 .tab-trigger-base[data-state="inactive"] {
-    color: hsl(var(--muted-foreground));
+    color: var(--muted-foreground);
 }
 .tab-trigger-base[data-state="inactive"]:hover {
-    color: hsl(var(--foreground));
+    color: var(--foreground);
 }
 .tab-trigger-base[data-state="active"] {
-    color: hsl(var(--foreground));
+    color: var(--foreground);
     font-weight: 600;
 }
 
@@ -47,10 +30,10 @@
     border-radius: var(--radius-lg);
 }
 .tab-trigger-pill[data-state="inactive"]:hover {
-    background: hsl(var(--foreground) / 0.05);
+    background: color-mix(in srgb, var(--foreground) 5%, transparent);
 }
 .tab-trigger-pill[data-state="active"] {
-    background: hsl(var(--foreground) / 0.08);
+    background: color-mix(in srgb, var(--foreground) 8%, transparent);
 }
 
 .tab-trigger-underline {
@@ -58,82 +41,44 @@
     border-bottom: 2px solid transparent;
 }
 .tab-trigger-underline[data-state="active"] {
-    border-bottom-color: hsl(var(--foreground));
+    border-bottom-color: var(--foreground);
+}
+
+/* ── Playback button variants ── */
+.btn-playback {
+    height: 2rem;
+    width: 100%;
+    border-radius: var(--radius-pill);
+    gap: 0.5rem;
+    font-size: var(--type-body, 1rem);
+    font-family: var(--font-serif);
+    letter-spacing: 0.02em;
+}
+.btn-playback-accent {
+    background: color-mix(in srgb, var(--accent-red) 20%, transparent);
+    color: var(--accent-red);
+    border-color: color-mix(in srgb, var(--accent-red) 40%, transparent);
+}
+.btn-playback-accent:hover {
+    background: color-mix(in srgb, var(--accent-red) 30%, transparent);
+}
+
+.btn-playback:focus-visible {
+    box-shadow: var(--focus-ring-shadow);
+    outline: none;
+}
+.btn-playback:active {
+    transform: scale(var(--scale-press));
+}
+.btn-playback:disabled {
+    opacity: 0.5;
+    pointer-events: none;
 }
 
 /* ── Project-specific font aliases ── */
 .instrument-serif {
     font-family: var(--font-serif);
     letter-spacing: 0.02em;
-}
-
-.fira-code {
-    font-family: var(--font-mono);
-}
-
-/* ── Rainbow variants (use project-specific --rainbow-* tokens) ── */
-.pastel-rainbow,
-.rainbow-pastel {
-    background: linear-gradient(
-        90deg,
-        var(--rainbow-pastel-red) 0%,
-        var(--rainbow-pastel-orange) 12.5%,
-        var(--rainbow-pastel-yellow) 25%,
-        var(--rainbow-pastel-green) 37.5%,
-        var(--rainbow-pastel-blue) 50%,
-        var(--rainbow-pastel-indigo) 62.5%,
-        var(--rainbow-pastel-violet) 75%,
-        var(--rainbow-pastel-red) 100%
-    );
-}
-
-.rainbow-vivid {
-    background: linear-gradient(
-        90deg,
-        var(--rainbow-red) 0%,
-        var(--rainbow-orange) 14%,
-        var(--rainbow-yellow) 28%,
-        var(--rainbow-green) 42%,
-        var(--rainbow-blue) 57%,
-        var(--rainbow-indigo) 71%,
-        var(--rainbow-violet) 85%,
-        var(--rainbow-red) 100%
-    );
-}
-
-.rainbow-wrapper {
-    height: 100%;
-    width: 100%;
-    inset: 0;
-    position: absolute;
-}
-
-.rainbow-wrapper:before {
-    content: "";
-    height: 100%;
-    width: 100%;
-    inset: 0;
-    position: absolute;
-    background: linear-gradient(
-        124deg,
-        var(--rainbow-red),
-        var(--rainbow-orange),
-        var(--rainbow-yellow),
-        var(--rainbow-green),
-        var(--rainbow-blue),
-        var(--rainbow-indigo),
-        var(--rainbow-violet)
-    );
-    background-size: 800% 800%;
-    opacity: 0.75;
-    z-index: 1;
-    animation: rainbow 5s var(--ease-standard) infinite;
-}
-
-@keyframes rainbow {
-    0% { background-position: 0% 82%; }
-    50% { background-position: 100% 19%; }
-    100% { background-position: 0% 82%; }
 }
 
 /* ── Utilities ── */
@@ -162,7 +107,7 @@
 
 /* ── Ppmycota branding ── */
 .ppmycota-cube {
-    background-color: hsl(var(--secondary));
+    background-color: var(--secondary);
     opacity: 0.75;
 }
 

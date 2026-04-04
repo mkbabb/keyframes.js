@@ -1,116 +1,50 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "@mkbabb/glass-ui/styles";
-@import "@mkbabb/glass-ui/presets/keyframes-js";
-
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-    --color-accent-red: hsl(var(--accent-red));
-    --color-accent-red-foreground: hsl(var(--accent-red-foreground));
+    --font-display: "Instrument Serif", Georgia, serif;
+    --font-serif: "Instrument Serif", Georgia, serif;
+    --font-mono: "Fira Code", monospace;
+
+    --color-accent-red: var(--accent-red);
+    --color-accent-red-foreground: var(--accent-red-foreground);
 }
 
 /* Project-specific tokens — OUTSIDE @layer so they override glass-ui defaults */
 :root {
     color-scheme: light;
 
-    /* ── Dock tokens ── */
-    --dock-margin: 0.5rem;
-    --dock-h: calc(2.5rem + 0.75rem + 3px);
+    /* ── Dock tokens (override glass-ui defaults if needed) ── */
     --dock-icon-height: 2.75rem;
-    --menubar-reserve: 4rem;
     --work-area-max-width: clamp(72rem, 94vw, 120rem);
     --work-area-max-height: clamp(44rem, 88dvh, 66rem);
     --work-area-height: min(100dvh, var(--work-area-max-height));
-    --work-area-top-offset: max(calc((100dvh - var(--work-area-height)) / 2), 0px);
+    --work-area-top-offset: max(calc((100dvh - var(--work-area-height)) / 4), 0px);
     --work-area-bottom-offset: var(--work-area-top-offset);
 
     /* ── 3D axis color tokens ── */
     --axis-x: rgb(218, 59, 59);
     --axis-y: rgb(66, 175, 66);
     --axis-z: rgb(61, 61, 235);
-    --axis-w: hsl(var(--foreground));
-
-    /* ── Keyboard shortcut key shadow ── */
-    --shadow-kbd: 0 1px 0 1px hsl(var(--border) / 0.3);
-
-    /* ── Box shadow tokens (project-specific cartoon shadows) ── */
-    --shadow-card: 4px 4px 0px 0px hsl(var(--shadow) / 0.5);
-    --shadow-card-hover: 5px 5px 0px 0px hsl(var(--shadow) / 0.6);
+    --axis-w: var(--foreground);
 
     /* ── Progress / slider color tokens ── */
-    --color-progress: 142 71% 45%;
-    --color-slider-track: 142 40% 72%;
-    --color-slider-border: 142 40% 60%;
+    --color-progress: hsl(142 71% 45%);
+    --color-slider-track: hsl(142 40% 72%);
 
-    /* ── Status indicator tokens ── */
-    --color-status-active: var(--color-progress);
-    --color-status-paused: var(--color-gold);
-    --color-status-idle: var(--muted-foreground);
-
-    /* ── Gold accent tokens ── */
-    --color-gold: 43 74% 49%;
-    --color-gold-light: 51 100% 50%;
-    --color-gold-dark: 34 87% 38%;
-
-    /* ── Color palette ── */
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --ring: 222.2 84% 4.9%;
-    --radius: 0.5rem;
-    --shadow: 0, 0%, 65%;
-    --accent-red: 0 72% 63%;
-    --accent-red-foreground: 0 0% 100%;
+    /* ── Accent red tokens ── */
+    --accent-red: hsl(0 72% 63%);
+    --accent-red-foreground: hsl(0 0% 100%);
 }
 
 .dark {
     color-scheme: dark;
-    --shadow-card: 4px 4px 0px 0px hsl(var(--shadow) / 0.85);
-    --shadow-card-hover: 5px 5px 0px 0px hsl(var(--shadow) / 0.95);
-    --color-progress: 142 50% 55%;
-    --color-slider-track: 142 30% 40%;
-    --color-slider-border: 142 30% 50%;
-    --color-gold: 43 74% 55%;
-    --color-gold-light: 51 100% 55%;
-    --color-gold-dark: 34 87% 45%;
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --ring: 212.7 26.8% 83.9%;
-    --shadow: 0, 0%, 65%;
-    --accent-red: 5 55% 50%;
-    --accent-red-foreground: 0 0% 95%;
+    --color-progress: hsl(142 50% 55%);
+    --color-slider-track: hsl(142 30% 40%);
+    --accent-red: hsl(5 55% 50%);
+    --accent-red-foreground: hsl(0 0% 95%);
 }
 
 @media (max-width: 1023px) {
@@ -118,7 +52,7 @@
         --work-area-max-width: 100dvw;
         --work-area-max-height: clamp(44rem, 94dvh, 64rem);
         --work-area-height: min(100dvh, var(--work-area-max-height));
-        --work-area-top-offset: max(calc((100dvh - var(--work-area-height)) / 2), 0px);
+        --work-area-top-offset: max(calc((100dvh - var(--work-area-height)) / 4), 0px);
         --work-area-bottom-offset: var(--work-area-top-offset);
     }
 }
@@ -144,14 +78,4 @@
             height: 100dvh;
         }
     }
-}
-
-/* ── Touch gate feedback ── */
-.touch-gate-target {
-    outline: 2px solid transparent;
-    outline-offset: 2px;
-    transition: outline-color var(--duration-normal) var(--ease-standard);
-}
-.touch-gate-active {
-    outline-color: hsl(var(--ring) / 0.5);
 }
