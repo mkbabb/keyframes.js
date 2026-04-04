@@ -27,6 +27,7 @@
         "dist"
     ],
     "scripts": {
+        "prepare": "vite build --mode production",
         "dev": "vite",
         "dev:playground": "vite --mode playground",
         "build": "vite build --mode production",
