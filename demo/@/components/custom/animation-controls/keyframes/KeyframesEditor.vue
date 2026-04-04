@@ -29,7 +29,7 @@
             </CardContent>
         </Card>
 
-        <div class="grid gap-4 sticky bottom-0 bg-background rounded-md p-4 pt-4 m-4">
+        <div class="grid gap-4 sticky bottom-0 bg-background rounded-panel p-4 pt-4 m-4">
             <Slider
                 :model-value="
                     animation.templateFrames.map((frame) => frame.start.value)

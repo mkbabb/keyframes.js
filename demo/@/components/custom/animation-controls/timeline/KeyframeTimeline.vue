@@ -1,6 +1,6 @@
 <template>
     <div class="flex flex-col gap-3">
-    <Card :class="['w-full overflow-visible transition-all duration-[var(--duration-fast)]', props.expanded ? 'border-0 shadow-none bg-transparent' : '']">
+    <Card :class="['w-full overflow-visible transition-all duration-fast', props.expanded ? 'border-0 shadow-none bg-transparent' : '']">
         <CardContent :class="['relative flex flex-col gap-3', props.expanded ? 'p-2 px-0' : 'p-4']">
         <!-- Pane action buttons -->
         <div class="flex items-center justify-end gap-1">
@@ -49,7 +49,7 @@
         <div
             ref="trackEl"
             :class="[
-                'timeline-track relative rounded-lg border border-border bg-muted/50 hover:bg-muted/70 transition-all duration-[var(--duration-fast)] cursor-pointer select-none overflow-x-clip overflow-y-visible touch-none',
+                'timeline-track relative rounded-lg border border-border bg-muted/50 hover:bg-muted/70 transition-all duration-fast cursor-pointer select-none overflow-x-clip overflow-y-visible touch-none',
                 props.expanded ? 'h-32' : 'h-12',
             ]"
             @pointerdown="onTrackPointerDown"
@@ -102,7 +102,7 @@
                 </TooltipTrigger>
                 <TooltipContent side="top" :side-offset="8" class="p-2 max-w-56">
                     <div class="flex flex-col items-center gap-1.5">
-                        <span class="fira-code text-xs font-semibold">{{ Math.round(kf.percent) }}%</span>
+                        <span class="font-mono text-xs font-semibold">{{ Math.round(kf.percent) }}%</span>
                         <!-- html2canvas capture (non-3D targets) -->
                         <img
                             v-if="previewCache[kf.id]"
@@ -115,10 +115,10 @@
                             class="w-16 h-16 rounded border border-border/30 bg-muted/30"
                             :style="getGhostStyle(kf.vars)"
                         ></div>
-                        <div v-if="previewLoading[kf.id]" class="text-muted-foreground text-2xs fira-code">
+                        <div v-if="previewLoading[kf.id]" class="text-muted-foreground text-2xs font-mono">
                             Capturing...
                         </div>
-                        <div class="fira-code text-2xs text-muted-foreground max-h-24 overflow-y-auto w-full">
+                        <div class="font-mono text-2xs text-muted-foreground max-h-24 overflow-y-auto w-full">
                             <div v-for="[prop, val] in Object.entries(kf.vars)" :key="prop" class="truncate">
                                 <span class="text-foreground/70">{{ prop }}</span>: {{ val }}
                             </div>
@@ -147,13 +147,13 @@
 
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
-                        <span class="fira-code text-sm font-semibold"
+                        <span class="font-mono text-sm font-semibold"
                             >{{ Math.round(selectedKeyframe.percent) }}%</span
                         >
                         <Input
                             v-model="selectedKeyframe.label"
                             placeholder="Label..."
-                            class="fira-code text-xs h-6 w-32"
+                            class="font-mono text-xs h-6 w-32"
                         />
                     </div>
                     <Button

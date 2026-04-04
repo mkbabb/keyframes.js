@@ -16,7 +16,7 @@
         </IconTooltip>
         <Input
             type="number"
-            class="fira-code"
+            class="font-mono"
             :model-value="layerConfig.zIndex"
             @change="(e: Event) => emit('update', { zIndex: parseInt((e.target as HTMLInputElement).value) || 0 })"
         />

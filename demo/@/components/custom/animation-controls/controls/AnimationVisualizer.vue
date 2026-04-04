@@ -13,7 +13,7 @@
                 <div
                     ref="ball"
                     :class="[
-                        'absolute z-[var(--z-bar)] rounded-full h-12 w-12 bg-accent-red text-accent-red-foreground shadow-md will-change-transform touch-gate-target',
+                        'absolute z-bar rounded-full h-12 w-12 bg-accent-red text-accent-red-foreground shadow-md will-change-transform touch-gate-target',
                         isDragging ? 'cursor-grabbing' : 'cursor-grab',
                         gate.isActive.value ? 'touch-gate-active' : '',
                     ]"

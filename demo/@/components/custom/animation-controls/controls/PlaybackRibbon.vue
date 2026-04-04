@@ -23,10 +23,7 @@
 
         <div class="grid grid-cols-2 gap-2 w-full">
             <Button
-                :class="[
-                    'h-8 w-full rounded-full gap-2 instrument-serif text-base btn-interactive',
-                    'bg-accent-red/20 text-accent-red border-accent-red/40 hover:bg-accent-red/30',
-                ]"
+                class="btn-playback btn-playback-accent"
                 variant="outline"
                 @click="emit('togglePlay')"
             >
@@ -46,7 +43,7 @@
                 <span>Reverse</span>
                 <ArrowLeftRight
                     :class="[
-                        'w-5 h-5 transition-transform duration-[var(--duration-fast)]',
+                        'w-5 h-5 transition-transform duration-fast',
                         userReversed ? 'scale-x-[-1]' : '',
                     ]"
                 />
@@ -151,16 +148,16 @@ onUnmounted(() => {
 <style scoped>
 /* Green-themed timeline slider using project color tokens */
 .timeline-green :deep(.slider-track) {
-    background-color: hsl(var(--color-slider-track) / 0.15);
+    background-color: color-mix(in srgb, var(--color-slider-track) 15%, transparent);
 }
 .timeline-green :deep(.slider-track > span) {
-    background-color: hsl(var(--color-slider-track) / 0.4) !important;
+    background-color: color-mix(in srgb, var(--color-slider-track) 40%, transparent) !important;
 }
 .timeline-green :deep(.slider-thumb) {
-    background-color: hsl(var(--color-progress)) !important;
+    background-color: var(--color-progress) !important;
 }
 .timeline-green :deep(.slider-thumb:hover) {
-    background-color: hsl(var(--color-progress) / 0.8) !important;
+    background-color: color-mix(in srgb, var(--color-progress) 80%, transparent) !important;
 }
 </style>
 

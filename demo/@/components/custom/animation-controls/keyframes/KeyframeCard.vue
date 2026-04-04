@@ -1,7 +1,7 @@
 <template>
     <div class="grid">
         <Input
-            class="sticky z-[var(--z-modal)] bg-transparent top-0 text-2xl w-16 text-ellipsis aspect-square font-semibold leading-none tracking-tight border-transparent p-0 m-0 shadow-none focus:border-transparent focus:shadow-none border-none"
+            class="sticky z-modal bg-transparent top-0 text-2xl w-16 text-ellipsis aspect-square font-semibold leading-none tracking-tight border-transparent p-0 m-0 shadow-none focus:border-transparent focus:shadow-none border-none"
             :model-value="frameStart"
             @update:model-value="(val) => emit('updateStart', String(val))"
         >
@@ -23,11 +23,11 @@
                     class="italic opacity-25 z-0 pointer-events-none grid gap-1"
                 >
                     <Label
-                        class="text-sm font-light leading-none fira-code"
+                        class="text-sm font-light leading-none font-mono"
                         >f {{ index }}</Label
                     >
                     <Label
-                        class="text-sm font-light leading-none fira-code"
+                        class="text-sm font-light leading-none font-mono"
                         >s {{ frameStart }}</Label
                     >
                 </div>

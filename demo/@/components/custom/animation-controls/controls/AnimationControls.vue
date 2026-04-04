@@ -1,7 +1,7 @@
 <template>
     <TooltipProvider :delay-duration="100" :skip-delay-duration="0">
     <div
-        class="flex flex-col h-full w-full overflow-hidden z-[var(--z-content)] relative lg:max-w-screen-md isolate"
+        class="flex flex-col h-full w-full overflow-hidden z-content relative lg:max-w-screen-md isolate"
     >
         <Tabs
             class="pl-4 pr-7 pt-2 pb-2 w-full flex-1 min-h-0 flex flex-col justify-start"
@@ -9,7 +9,7 @@
             @update:model-value="selectControl"
         >
             <!-- Tabs header (hidden when managed externally via TopDock) -->
-            <div v-if="!tabsExternallyManaged" ref="tabsHeaderEl" class="relative w-fit flex items-center justify-center flex-shrink-0 glass rounded-xl px-1 py-0.5 overflow-hidden">
+            <div v-if="!tabsExternallyManaged" ref="tabsHeaderEl" class="relative w-fit flex items-center justify-center flex-shrink-0 glass-subtle rounded-panel px-1 py-0.5 overflow-hidden">
                 <TabsList
                     ref="tabsListRef"
                     :class="[
@@ -59,11 +59,11 @@
                         class="flex flex-col items-center justify-center gap-3 py-12 text-muted-foreground"
                     >
                         <ChevronDown class="w-6 h-6 animate-bounce" />
-                        <p class="fira-code text-sm">Timeline expanded below</p>
+                        <p class="font-mono text-sm">Timeline expanded below</p>
                         <Button
                             size="sm"
                             variant="ghost"
-                            class="gap-1.5 fira-code text-xs"
+                            class="gap-1.5 font-mono text-xs"
                             @click="storedControls.isTimelineExpanded = false"
                         >
                             <Minimize2 class="w-3.5 h-3.5" />
@@ -81,7 +81,7 @@
                     <div
                         v-if="isTimelineVisible"
                         :key="storedControls.selectedControl"
-                        class="animate-in fade-in slide-in-from-right-2 duration-[var(--duration-fast)]"
+                        class="animate-in fade-in slide-in-from-right-2 duration-fast"
                     >
                         <KeyframeTimeline
                             ref="timelineRef"

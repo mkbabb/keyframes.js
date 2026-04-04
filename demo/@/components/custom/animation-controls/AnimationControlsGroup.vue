@@ -10,7 +10,7 @@
             v-show="storedControls.selectedAnimation && !hideControls"
             @transitionend="onPanelTransitionEnd"
             :class="[
-                'controls-pane-wrapper col-start-1 row-start-1 lg:row-start-1 min-w-0 relative z-[var(--z-controls)]',
+                'controls-pane-wrapper col-start-1 row-start-1 lg:row-start-1 min-w-0 relative z-controls',
                 'controls-pane--mobile',
                 storedControls.isControlsPanelOpen
                     ? 'controls-pane--open'
@@ -62,7 +62,7 @@
 
                     <!-- Persistent controls ribbon -->
                     <div v-if="storedControls.selectedAnimation" class="flex-shrink-0 pl-4 pr-7 pb-2">
-                        <Card class="overflow-visible controls-card">
+                        <Card class="overflow-visible glass-card">
                             <CardContent class="p-3">
                                 <!-- Controls tab: filled via Teleport from AnimationControlsControls -->
                                 <div id="controls-ribbon-target" v-show="storedControls.selectedControl === 'controls'"></div>
@@ -79,7 +79,7 @@
                                         :class="RIBBON_BUTTON_CLASS"
                                         @click="activeKeyframesRef?.formatCSS?.()"
                                     >
-                                        <Sparkles class="w-3.5 h-3.5 text-[hsl(var(--color-gold))]" /> Format
+                                        <Sparkles class="w-3.5 h-3.5 text-[var(--color-gold)]" /> Format
                                     </Button>
                                     <Button size="sm" variant="outline"
                                         :class="[
@@ -144,10 +144,10 @@
         <div
             id="timeline-expanded-target"
             :class="[
-                'col-span-full row-start-2 z-[var(--z-dock)] overflow-hidden',
-                'transition-[max-height,opacity] duration-[var(--duration-slow)] ease-[var(--ease-standard)]',
+                'col-span-full row-start-2 z-dock overflow-hidden',
+                'transition-[max-height,opacity] duration-slow ease-standard',
                 storedControls.isTimelineExpanded
-                    ? 'max-h-[60vh] border-t border-border/50 glass px-4 py-3'
+                    ? 'max-h-[60vh] border-t border-border/50 glass-subtle px-4 py-3'
                     : 'max-h-0',
             ]"
         ></div>
@@ -448,7 +448,7 @@ function cycleAnimation(direction: number) {
     /* Half dock-margin above dock + dock height + half dock-margin gap */
     margin-top: calc(var(--dock-margin) + var(--dock-icon-height));
     /* Fill viewport minus top dock area and bottom menubar */
-    max-height: calc(100dvh - var(--dock-margin) - var(--dock-icon-height) - var(--menubar-reserve));
+    max-height: calc(100dvh - var(--dock-margin) - var(--dock-icon-height) - var(--dock-menubar-reserve));
 }
 .controls-pane-wrapper.controls-pane--open {
     grid-template-rows: 1fr;
@@ -522,14 +522,10 @@ function cycleAnimation(direction: number) {
             transform var(--duration-slow) var(--ease-decelerate);
     }
 
-    .controls-pane :deep(.controls-card) {
-        box-shadow: var(--shadow-card);
+    .controls-pane :deep(.glass-card) {
         transition: box-shadow var(--duration-slow) var(--ease-decelerate);
-        backdrop-filter: var(--glass-blur-heavy);
-        -webkit-backdrop-filter: var(--glass-blur-heavy);
-        background: hsl(var(--background) / 0.6);
     }
-    .controls-pane--hovered .controls-pane :deep(.controls-card) {
+    .controls-pane--hovered .controls-pane :deep(.glass-card) {
         box-shadow: var(--shadow-card-hover);
     }
 
