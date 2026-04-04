@@ -1,6 +1,6 @@
 <template>
     <div class="grid items-center gap-4">
-        <Card class="w-full overflow-visible transition-shadow duration-[var(--duration-normal)] controls-card">
+        <Card class="w-full overflow-visible transition-shadow duration-normal glass-card">
             <CardContent class="relative grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 px-4 py-3">
                 <!-- Sliding panel container — each panel in its own collapsible row -->
                 <div class="panel-stack col-span-2 grid grid-cols-[subgrid]">
@@ -28,7 +28,7 @@
                                 :class="
                                     storedAnimationOptions.animationOptions.iterationCount === 'infinite' || storedAnimationOptions.animationOptions.iterationCount === Infinity
                                         ? 'instrument-serif text-3xl'
-                                        : 'fira-code'
+                                        : 'font-mono'
                                 "
                                 type="string"
                                 @change="
@@ -78,63 +78,16 @@
                                     </button>
                                 </IconTooltip>
                             </div>
-                            <ResponsiveSelect
-                                :model-value="
-                                    storedAnimationOptions.animationOptions.timingFunction as any
-                                "
-                                :items="easingItems"
-                                :open="isOpen('easing')"
-                                @update:open="(v: boolean | undefined) => setOpen('easing', v ?? false)"
-                                trigger-class="fira-code"
-                                group-class="fira-code"
-                                title="Easing"
+                            <EasingSelect
+                                :model-value="storedAnimationOptions.animationOptions.timingFunction as string"
+                                :timing-functions-and="timingFunctionsAnd"
                                 @update:model-value="
-                                    (key: any) => {
+                                    (key: string) => {
                                         updateTimingFunctionFromName(key);
-                                        storedAnimationOptions.animationOptions.timingFunction =
-                                            key;
+                                        storedAnimationOptions.animationOptions.timingFunction = key;
                                     }
                                 "
-                            >
-                                <template #trigger="{ value }">
-                                    <span
-                                        class="!flex items-center gap-1.5 min-w-0 cursor-pointer ![-webkit-line-clamp:unset] !overflow-visible"
-                                    >
-                                        <svg viewBox="-0.05 -0.3 1.1 1.6" class="w-5 h-4 shrink-0">
-                                            <path
-                                                :d="activeCurvePath"
-                                                fill="none"
-                                                class="stroke-[hsl(var(--ppmycota-primary,var(--foreground)))]"
-                                                stroke-width="0.15"
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                            />
-                                        </svg>
-                                        <span :class="['fira-code truncate', isDetailEasing ? 'gold-shimmer' : '']" :title="value as string">{{ value }}</span>
-                                    </span>
-                                </template>
-                                <template #item="{ item }">
-                                    <span class="flex items-center gap-1.5">
-                                        <svg viewBox="-0.05 -0.3 1.1 1.6" class="w-7 h-5 shrink-0">
-                                            <path
-                                                :d="getCurvePath(item.value, timingFunctionsAnd)"
-                                                fill="none"
-                                                class="stroke-[hsl(var(--ppmycota-primary,var(--foreground)))]"
-                                                stroke-width="0.18"
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                            />
-                                        </svg>
-                                        <span :class="['fira-code', DETAIL_TIMING_FUNCTIONS.has(item.value) ? 'gold-shimmer' : '']">{{ item.value }}</span>
-                                    </span>
-                                </template>
-                                <template #item-extra="{ item }">
-                                    <span
-                                        v-if="TIMING_DESCRIPTIONS[item.value]"
-                                        class="ml-auto pl-2 text-xs text-muted-foreground leading-tight whitespace-nowrap"
-                                    >{{ TIMING_DESCRIPTIONS[item.value] }}</span>
-                                </template>
-                            </ResponsiveSelect>
+                            />
 
                             <Separator class="my-1 col-span-2" />
 
@@ -156,12 +109,13 @@
                     </div>
 
                     <!-- Detail panel (cubic-bezier / steps) -->
-                    <div :class="['panel-row', showDetailPanel ? 'panel-row--active' : 'panel-row--inactive']">
+                    <div :class="['panel-row panel-row--detail', showDetailPanel ? 'panel-row--active' : 'panel-row--inactive']">
                         <div class="panel-content">
                             <TimingFunctionPanel
                                 :animation="animation"
                                 :stored-animation-options="storedAnimationOptions"
                                 :timing-functions-and="timingFunctionsAnd"
+                                :progress="normalizedProgress"
                                 v-bind="convertedFromName != null ? { editingCurveName: convertedFromName } : {}"
                                 @exit-detail-panel="exitDetailPanel"
                                 @update-timing-function="updateTimingFunctionFromName"
@@ -228,9 +182,9 @@ import PlaybackRibbon from "./PlaybackRibbon.vue";
 import LayerConfigPanel from "./LayerConfigPanel.vue";
 import { useAnimationSync } from "./composables/useAnimationSync";
 import { useTimingFunctionEditor } from "./composables/useTimingFunctionEditor";
-import ResponsiveSelect from "@components/custom/ResponsiveSelect.vue";
+import EasingSelect from "@components/custom/EasingSelect.vue";
 
-import { Teleport, onMounted, ref, toRef } from "vue";
+import { Teleport, computed, onMounted, ref, toRef } from "vue";
 import {
     getStoredAnimationOptions,
 } from "../stores";
@@ -242,12 +196,9 @@ import type {
     AnimationLayerConfig,
     TimingFunctionNames,
 } from "@src/animation/constants";
-import { getCurvePath } from "./composables/timingCurveUtils";
 import {
     DIRECTION_DESCRIPTIONS,
     FILL_MODE_DESCRIPTIONS,
-    TIMING_DESCRIPTIONS,
-    DETAIL_TIMING_FUNCTIONS,
 } from "../animationDescriptions";
 
 const props = defineProps<{
@@ -262,12 +213,10 @@ const storedAnimationOptions = getStoredAnimationOptions(props.animation);
 
 const {
     timingFunctionsAnd,
-    easingItems,
     convertedFromName,
     advancedOpen,
     isDetailEasing,
     showDetailPanel,
-    activeCurvePath,
     onEditIconClick,
     exitDetailPanel,
     updateTimingFunctionFromName,
@@ -283,6 +232,12 @@ const setOpen = (name: string, open: boolean) => { openSelect.value = open ? nam
 // isPlaying guard comes from the parent (useAnimationGroupPlayback) — not polled.
 const isPlayingRef = toRef(() => props.isPlaying ?? false);
 const { currentT, isPlaying: isAnimPlaying, isStarted: isAnimStarted } = useAnimationSync(() => props.animation, isPlayingRef);
+
+const normalizedProgress = computed(() => {
+    const dur = props.animation.options.duration;
+    if (!dur || dur <= 0) return 0;
+    return Math.max(0, Math.min(1, currentT.value / dur));
+});
 
 const userReversed = ref(false);
 const toggleReverse = () => {
@@ -365,21 +320,13 @@ onMounted(() => {
     pointer-events: none;
 }
 
+/* Constrain detail panel height so the bezier editor doesn't shift the page */
+.panel-row--detail.panel-row--active > .panel-content {
+    max-height: min(50vh, 480px);
+    overflow-y: auto;
+}
+
 .easing-edit-btn {
-    color: hsl(var(--color-gold));
-}
-
-.gold-shimmer {
-    background: linear-gradient(90deg, hsl(var(--color-gold-dark)), hsl(var(--color-gold-light)), hsl(var(--color-gold)), hsl(var(--color-gold-light)), hsl(var(--color-gold-dark)));
-    background-size: 200% 100%;
-    background-clip: text;
-    -webkit-background-clip: text;
-    color: transparent;
-    animation: shimmer 5s linear infinite;
-}
-
-@keyframes shimmer {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
+    color: var(--color-gold);
 }
 </style>
