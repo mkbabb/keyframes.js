@@ -2,9 +2,10 @@
     <div
         :class="[
             'px-2 py-1.5 pb-[max(calc(var(--dock-margin)/2),env(safe-area-inset-bottom))] m-0 flex items-center justify-center justify-items-center',
-            'fixed left-0 right-0 z-[var(--z-dock)]',
+            'fixed left-0 right-0 z-dock',
         ]"
         style="bottom: var(--work-area-bottom-offset, 0px);"
+        @pointerdown="onWrapperPointerDown"
     >
         <GlassDock ref="dockRef" :collapse-delay="2500" :start-collapsed="true" :fit-content="true">
             <!-- Expanded state: full controls -->
@@ -165,6 +166,24 @@ function onCollapsedPlayClick() {
     emit('togglePlay');
 }
 
+/** During dock transition, pointer-events:none on dock-layers makes clicks
+ *  fall through to this wrapper. Fire togglePlay so the first click works. */
+function onWrapperPointerDown(e: PointerEvent) {
+    const el = dockRef.value?.$el as HTMLElement | undefined;
+    if (!el?.querySelector('.dock-transitioning')) return;
+    // Only intercept if the click is within the dock's visual bounds
+    const rect = el.getBoundingClientRect();
+    if (
+        e.clientX >= rect.left &&
+        e.clientX <= rect.right &&
+        e.clientY >= rect.top &&
+        e.clientY <= rect.bottom
+    ) {
+        e.stopPropagation();
+        emit('togglePlay');
+    }
+}
+
 const { storedControls, isPlaying, isStarted, animationProgress, animationNames } = defineProps<{
     storedControls: StoredAnimationGroupControlOptions;
     isPlaying: boolean;
@@ -184,8 +203,8 @@ const dotStyle = (name: string): Record<string, string> => {
     const p = animationProgress[name] ?? 0;
     const deg = p * 360;
     return {
-        background: `conic-gradient(hsl(var(--color-progress)) ${deg}deg, hsl(var(--color-progress) / 0.15) ${deg}deg)`,
-        boxShadow: `0 0 ${2 + p * 3}px ${p * 1.5}px hsl(var(--color-progress) / 0.4)`,
+        background: `conic-gradient(var(--color-progress) ${deg}deg, color-mix(in srgb, var(--color-progress) 15%, transparent) ${deg}deg)`,
+        boxShadow: `0 0 ${2 + p * 3}px ${p * 1.5}px color-mix(in srgb, var(--color-progress) 40%, transparent)`,
     };
 };
 
