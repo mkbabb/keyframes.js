@@ -2,7 +2,7 @@
 import { computed, inject, watch, useTemplateRef } from "vue";
 import type { Ref } from "vue";
 import { CONTROLS_PANE_HOVER_KEY } from "../animation-controls/injectionKeys";
-import { ChevronDown, ChevronUp, Home, PanelLeftClose, PanelLeftOpen, SlidersHorizontal, Braces, Clock, Grid3X3 } from "lucide-vue-next";
+import { Activity, ChevronDown, ChevronUp, Home, PanelLeftClose, PanelLeftOpen, SlidersHorizontal, Braces, Clock, Grid3X3 } from "lucide-vue-next";
 import { useMediaQuery } from "@vueuse/core";
 import { GlassDock, DockLayerGroup } from ".";
 import { usePopupMutex } from "@mkbabb/glass-ui";
@@ -18,11 +18,13 @@ import {
 import cubeIcon from "@assets/icons/cube-icon-sm.png";
 import amigaIcon from "@assets/icons/amiga-icon-sm.png";
 import squareIcon from "@assets/icons/square-icon-sm.png";
+import easingIcon from "@assets/icons/easing-icon-sm.svg";
 
 const sceneIcons: Record<string, string> = {
     cube: cubeIcon,
     amiga: amigaIcon,
     square: squareIcon,
+    easing: easingIcon,
 };
 
 const CONTROL_TABS: { value: string; label: string; icon?: string }[] = [
@@ -36,6 +38,7 @@ const TAB_ICONS: Record<string, any> = {
     Braces,
     Clock,
     Grid3X3,
+    Activity,
 };
 
 const props = defineProps<{
@@ -89,8 +92,8 @@ const activeLayer = computed(() => {
 
 <template>
     <div
-        class="fixed left-1/2 -translate-x-1/2 z-[var(--z-dock)] flex items-center justify-center pointer-events-none"
-        style="top: calc(var(--work-area-top-offset, 0px) + var(--dock-margin) / 2);"
+        class="fixed left-1/2 -translate-x-1/2 z-dock flex items-center justify-center pointer-events-none"
+        style="top: calc(var(--work-area-top-offset, 0px) + var(--dock-margin) / 4);"
     >
         <div class="pointer-events-auto">
             <GlassDock ref="dockRef" :collapse-delay="2500" :start-collapsed="true" :fit-content="true" :always-expanded="isMobile">

@@ -18,7 +18,7 @@
                 <DropdownMenuTrigger as-child>
                     <button class="dock-icon-btn text-xs lg:text-sm font-mono cursor-pointer">@mbabb</button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" :side-offset="8" class="z-[var(--z-modal)] min-w-[17rem] instrument-serif text-base p-1.5">
+                <DropdownMenuContent align="end" :side-offset="8" class="z-modal min-w-[17rem] instrument-serif text-base p-1.5">
                     <!-- Share -->
                     <DropdownMenuItem @select.prevent class="flex items-center gap-2.5 px-1.5 py-1 rounded-lg">
                         <SharePopover :on-scene-restore="(id: string) => switchScene(id)" />
@@ -43,7 +43,7 @@
                     <DropdownMenuItem @select.prevent class="flex items-center gap-2.5 px-1.5 py-1 rounded-lg cursor-pointer" @click="togglePpMode">
                         <div class="ppmycota-logo-sm w-7 h-7 shrink-0 hover:scale-105 transition-transform"></div>
                         <div class="flex-1 min-w-0">
-                            <span class="instrument-serif text-sm text-[hsl(var(--ppmycota-primary))]">ppmycota</span>
+                            <span class="instrument-serif text-sm text-[var(--ppmycota-primary)]">ppmycota</span>
                             <p class="instrument-serif text-2xs text-muted-foreground leading-tight">&#x1F642;&#x200D;&#x2194;&#xFE0F; &#x1F331; &#x1F344;&#x200D;&#x1F7EB;</p>
                             <a href="https://ppmycota.com" target="_blank" rel="noopener noreferrer" class="instrument-serif text-2xs text-muted-foreground hover:text-foreground hover:underline transition-colors" @click.stop>ppmycota.com</a>
                         </div>

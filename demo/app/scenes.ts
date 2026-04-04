@@ -49,6 +49,14 @@ export const scenes: SceneDescriptor[] = [
             () => import("./scenes/SquareScene.vue"),
         ),
     },
+    {
+        id: "easing",
+        label: "Easing",
+        superKey: "Easing",
+        component: defineAsyncComponent(
+            () => import("./scenes/EasingScene.vue"),
+        ),
+    },
 ];
 
 export const allScenes = [homeScene, ...scenes];

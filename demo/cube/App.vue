@@ -19,7 +19,7 @@
                         class="ppmycota-logo-sm m-0 h-8 w-8 lg:h-10 lg:w-10 cursor-pointer stroke-2 p-0 font-bold hover:scale-105"
                     ></div>
                 </HoverCardTrigger>
-                <HoverCardContent class="z-[var(--z-modal)] p-4 min-w-[17rem] instrument-serif">
+                <HoverCardContent class="z-modal p-4 min-w-[17rem] instrument-serif">
                     <div class="flex items-center gap-3">
                         <div
                             class="ppmycota-logo-sm z-20 h-10 w-10 shrink-0 stroke-2 font-bold"
@@ -57,7 +57,7 @@
                 <DropdownMenuTrigger as-child>
                     <Button
                         :class="[
-                            'm-0 p-0 text-xs lg:text-sm transition-all duration-[var(--duration-fast)] font-mono font-normal',
+                            'm-0 p-0 text-xs lg:text-sm transition-all duration-fast font-mono font-normal',
                             toggled
                                 ? 'underline underline-offset-4 text-foreground decoration-2'
                                 : pinned
@@ -67,7 +67,7 @@
                         variant="link"
                     >@mbabb</Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent class="z-[var(--z-modal)] min-w-[17rem] w-auto instrument-serif text-base">
+                <DropdownMenuContent class="z-modal min-w-[17rem] w-auto instrument-serif text-base">
                     <DropdownMenuLabel class="font-normal px-3 py-2">
                         <div class="flex items-center gap-3">
                             <Avatar>
@@ -123,13 +123,13 @@
         <template #ribbon-content="{ selectedControl }">
             <template v-if="selectedControl === 'matrix-controls'">
                 <Button size="sm" variant="outline"
-                    class="h-8 gap-1.5 fira-code text-xs px-3 rounded-lg btn-interactive"
+                    class="h-8 gap-1.5 font-mono text-xs px-3 rounded-lg btn-interactive"
                     @click="resetMatrix()"
                 >
                     <RotateCcw class="w-3.5 h-3.5" /> Reset
                 </Button>
                 <Button size="sm" variant="outline"
-                    class="h-8 gap-1.5 fira-code text-xs px-3 rounded-lg btn-interactive"
+                    class="h-8 gap-1.5 font-mono text-xs px-3 rounded-lg btn-interactive"
                     @click="storedControls.matrixOptions.fixed = !storedControls.matrixOptions.fixed"
                 >
                     <Lock v-if="!storedControls.matrixOptions?.fixed" class="w-3.5 h-3.5" />

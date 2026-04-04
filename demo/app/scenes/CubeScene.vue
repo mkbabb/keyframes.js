@@ -111,7 +111,7 @@ const headerLeft = () =>
                     class: "ppmycota-logo-sm m-0 h-8 w-8 lg:h-10 lg:w-10 cursor-pointer stroke-2 p-0 font-bold hover:scale-105",
                 }),
             }),
-            h(HoverCardContent, { class: "z-[var(--z-hovercard)] p-4 min-w-[17rem] instrument-serif" }, {
+            h(HoverCardContent, { class: "z-hovercard p-4 min-w-[17rem] instrument-serif" }, {
                 default: () => [
                     h("div", { class: "flex items-center gap-3" }, [
                         h("div", { class: "ppmycota-logo-sm z-20 h-10 w-10 shrink-0 stroke-2 font-bold" }),
@@ -136,7 +136,7 @@ const tabsTrigger = (slotProps: { selectedAnimation: string }) =>
     slotProps.selectedAnimation === CUBE_ANIMATION_NAMES.Matrix
         ? h(TabsTrigger, {
             value: "matrix-controls",
-            class: "shrink-0 instrument-serif px-3 py-1.5 text-lg bg-transparent rounded-none transition-colors duration-[var(--duration-fast)] data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground data-[state=active]:text-foreground data-[state=active]:font-semibold border-b-2 border-transparent data-[state=active]:border-foreground",
+            class: "tab-trigger-base tab-trigger-underline",
         }, { default: () => "Matrix Controls" })
         : null;
 
@@ -156,12 +156,12 @@ const ribbonContent = (slotProps: { selectedControl: string }) =>
         ? [
             h(Button, {
                 size: "sm", variant: "outline",
-                class: "h-8 gap-1.5 cursor-pointer fira-code text-xs px-3 rounded-lg btn-interactive",
+                class: "h-8 gap-1.5 cursor-pointer font-mono text-xs px-3 rounded-lg btn-interactive",
                 onClick: () => resetMatrix(),
             }, { default: () => [h(RotateCcw, { class: "w-3.5 h-3.5" }), " Reset"] }),
             h(Button, {
                 size: "sm", variant: "outline",
-                class: "h-8 gap-1.5 cursor-pointer fira-code text-xs px-3 rounded-lg btn-interactive",
+                class: "h-8 gap-1.5 cursor-pointer font-mono text-xs px-3 rounded-lg btn-interactive",
                 onClick: () => { storedControls.matrixOptions.fixed = !storedControls.matrixOptions.fixed; },
             }, {
                 default: () => [
