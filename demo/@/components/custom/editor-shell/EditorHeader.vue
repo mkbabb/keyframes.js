@@ -1,6 +1,6 @@
 <template>
     <div
-        class="pointer-events-none absolute top-0 left-0 right-0 z-[var(--z-dock)] flex items-center justify-between px-4 py-2"
+        class="pointer-events-none absolute top-0 left-0 right-0 z-dock flex items-center justify-between px-4 py-2"
         @mouseleave="onGroupMouseLeave"
     >
         <!-- Left side — mobile sidebar toggle slot -->

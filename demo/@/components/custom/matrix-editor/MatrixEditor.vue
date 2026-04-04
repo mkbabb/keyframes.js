@@ -10,7 +10,7 @@
                 >
                     <Input
                         :class="
-                            `fira-code absolute left-0 top-0 z-10 h-full w-full text-ellipsis bg-transparent
+                            `font-mono absolute left-0 top-0 z-10 h-full w-full text-ellipsis bg-transparent
                             p-0 text-center text-base` +
                             [
                                 storedControls.matrixOptions

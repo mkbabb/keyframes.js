@@ -4,17 +4,17 @@
             <Share2
                 title="Share"
                 :class="[
-                    'w-5 h-5 cursor-pointer hover:scale-105 transition-all duration-[var(--duration-fast)]',
+                    'w-5 h-5 cursor-pointer hover:scale-105 transition-all duration-fast',
                     sharePopoverOpen ? 'opacity-100' : 'hover:opacity-50',
                 ]"
             />
         </PopoverTrigger>
-        <PopoverContent class="z-[var(--z-popover)] w-72 p-2" align="start" :side-offset="8">
+        <PopoverContent class="z-popover w-72 p-2" align="start" :side-offset="8">
             <div class="flex items-center gap-1.5">
                 <Input
                     v-model="loadHashInput"
                     placeholder="Paste share URL..."
-                    class="fira-code text-xs h-8 flex-1"
+                    class="font-mono text-xs h-8 flex-1"
                     @keydown.enter="loadFromInput"
                 />
                 <Button

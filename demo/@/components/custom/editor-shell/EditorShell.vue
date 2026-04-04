@@ -24,7 +24,7 @@
         </HeaderRibbon>
 
         <Transition name="fade" appear>
-            <div v-if="showStartScreen" class="absolute inset-0 z-[var(--z-content)] flex items-center justify-center pointer-events-none">
+            <div v-if="showStartScreen" class="absolute inset-0 z-content flex items-center justify-center pointer-events-none">
                 <slot name="start-screen">
                     <EditorStartScreen />
                 </slot>

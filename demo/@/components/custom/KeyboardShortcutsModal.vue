@@ -2,14 +2,14 @@
     <Dialog v-model:open="open">
         <DialogContent class="max-w-md backdrop-blur-sm">
             <DialogHeader>
-                <DialogTitle class="fira-code text-base">Keyboard Shortcuts</DialogTitle>
-                <DialogDescription class="fira-code text-xs text-muted-foreground">
+                <DialogTitle class="font-mono text-base">Keyboard Shortcuts</DialogTitle>
+                <DialogDescription class="font-mono text-xs text-muted-foreground">
                     Press <kbd class="kbd">?</kbd> to toggle this panel
                 </DialogDescription>
             </DialogHeader>
             <div class="grid gap-4 max-h-[60vh] overflow-y-auto pr-1">
                 <div v-for="[group, items] in groupedShortcuts" :key="group">
-                    <h3 class="fira-code text-xs font-semibold text-muted-foreground mb-2">
+                    <h3 class="font-mono text-xs font-semibold text-muted-foreground mb-2">
                         {{ group }}
                     </h3>
                     <div class="grid gap-1">
@@ -18,7 +18,7 @@
                             :key="shortcut.raw"
                             class="flex items-center justify-between py-1.5 px-2 rounded-md hover:bg-muted/50 transition-colors"
                         >
-                            <span class="fira-code text-xs text-foreground">
+                            <span class="font-mono text-xs text-foreground">
                                 {{ shortcut.options.label }}
                             </span>
                             <div class="flex gap-0.5">
@@ -67,23 +67,3 @@ const groupedShortcuts = computed(() => {
 });
 
 </script>
-
-<style scoped>
-.kbd {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 1.5rem;
-    height: 1.5rem;
-    padding: 0 0.35rem;
-    font-family: var(--font-mono);
-    font-size: var(--type-micro);
-    font-weight: 500;
-    line-height: 1;
-    color: hsl(var(--foreground));
-    background: hsl(var(--muted));
-    border: 1px solid hsl(var(--border));
-    border-radius: var(--radius-sm);
-    box-shadow: var(--shadow-kbd);
-}
-</style>

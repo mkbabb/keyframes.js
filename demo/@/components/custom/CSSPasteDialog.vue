@@ -51,7 +51,7 @@ const props = withDefaults(
     }>(),
     {
         initialText: "",
-        preClass: "fira-code min-h-[20vh] p-3 cursor-text rounded-lg text-sm bg-muted/50 outline-none border border-border",
+        preClass: "font-mono min-h-[20vh] p-3 cursor-text rounded-lg text-sm bg-muted/50 outline-none border border-border",
     },
 );
 
