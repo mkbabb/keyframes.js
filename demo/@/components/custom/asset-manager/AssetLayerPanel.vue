@@ -3,14 +3,14 @@
         <CardContent class="p-0">
             <!-- Header: title + add dropdown -->
             <div class="flex items-center justify-between px-4 pt-3 pb-2">
-                <span class="fira-code text-xs font-semibold text-muted-foreground">assets</span>
+                <span class="font-mono text-xs font-semibold text-muted-foreground">assets</span>
                 <DropdownMenu>
                     <DropdownMenuTrigger as-child>
-                        <Button size="sm" variant="ghost" class="gap-1.5 h-6 px-2 fira-code text-xs">
+                        <Button size="sm" variant="ghost" class="gap-1.5 h-6 px-2 font-mono text-xs">
                             <Plus class="w-3 h-3" /> add
                         </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" class="fira-code text-xs">
+                    <DropdownMenuContent align="end" class="font-mono text-xs">
                         <DropdownMenuItem @click="addAsset('rectangle')">
                             <Square class="w-3.5 h-3.5 mr-2" /> Rectangle
                         </DropdownMenuItem>
@@ -50,7 +50,7 @@
                     v-if="sortedAssets.length === 0"
                     class="text-center py-6 px-4 text-muted-foreground text-xs"
                 >
-                    <p class="fira-code">Add shapes, text, or images to compose your scene</p>
+                    <p class="font-mono">Add shapes, text, or images to compose your scene</p>
                 </div>
             </div>
 
@@ -70,7 +70,7 @@
             <!-- Footer: grid snap -->
             <Separator />
             <div class="flex items-center gap-3 px-4 py-2.5">
-                <label class="fira-code text-xs text-muted-foreground">grid snap</label>
+                <label class="font-mono text-xs text-muted-foreground">grid snap</label>
                 <Switch
                     :checked="state.gridSnap"
                     @update:checked="(v: boolean) => { state.gridSnap = v; }"
@@ -80,7 +80,7 @@
                     type="number"
                     :model-value="state.gridSize"
                     @change="(e: Event) => { state.gridSize = Math.max(1, parseInt((e.target as HTMLInputElement).value) || 16); }"
-                    class="fira-code text-xs h-6 w-14"
+                    class="font-mono text-xs h-6 w-14"
                 />
             </div>
         </CardContent>

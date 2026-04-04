@@ -27,7 +27,7 @@
                 <EditableLabel
                     ref="editableLabelRef"
                     :model-value="asset.name"
-                    class="fira-code text-xs flex-1 truncate"
+                    class="font-mono text-xs flex-1 truncate"
                     @update:model-value="(v: string) => emit('update', asset.id, { name: v })"
                 />
 
@@ -68,7 +68,7 @@
                 </Button>
             </div>
         </ContextMenuTrigger>
-        <ContextMenuContent class="fira-code text-xs">
+        <ContextMenuContent class="font-mono text-xs">
             <ContextMenuItem @click="startRename">Rename</ContextMenuItem>
             <ContextMenuItem @click="emit('duplicate', asset.id)">Duplicate</ContextMenuItem>
             <ContextMenuSeparator />

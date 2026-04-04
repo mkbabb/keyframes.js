@@ -1,7 +1,7 @@
 <template>
     <div
         ref="viewportEl"
-        class="absolute inset-0 z-[var(--z-dock)] pointer-events-none overflow-hidden"
+        class="absolute inset-0 z-dock pointer-events-none overflow-hidden"
         @pointerdown.self="deselectAll"
     >
         <!-- Rendered assets -->
@@ -114,7 +114,7 @@ const assetStyle = (asset: Asset) => {
             ? (asset.backgroundColor ?? "transparent")
             : "transparent",
         borderRadius: asset.borderRadius != null ? `${asset.borderRadius}px` : undefined,
-        outline: isSelected(asset.id) ? "2px solid hsl(var(--primary))" : undefined,
+        outline: isSelected(asset.id) ? "2px solid var(--primary)" : undefined,
         outlineOffset: "2px",
     };
 };
