@@ -329,6 +329,14 @@ export declare class CSSKeyframesAnimation<V extends Vars> extends Animation_2<V
     constructor(options?: Partial<InputAnimationOptions>, ...targets: HTMLElement[]);
     fromVars(vars: V[], transform?: TransformFunction<V>): this;
     fromKeyframes(keyframes: Map<string, Partial<V>> | Record<string, Partial<V>>, transform?: TransformFunction<V>): this;
+    /**
+     * Property registry from `@property` declarations parsed by
+     * `fromString`. Empty when the input had no `@property` rules.
+     * Consumers can read this to recover the type metadata for
+     * custom properties (syntax string, initial value, inheritance
+     * flag) without re-parsing the source CSS.
+     */
+    propertyRegistry: Map<string, PropertyDescriptor_2>;
     fromString(keyframes: string, transform?: TransformFunction<V>): this;
     transform(vars: V): void;
 }
@@ -527,7 +535,62 @@ export declare interface NumericAnimationOptions {
 /** Callback invoked each frame during `.play()` with the interpolated values. */
 export declare type NumericFrameCallback<T extends Record<string, number>> = (values: T) => void;
 
+export declare const parseCSSKeyframes: ((input: string) => Map<string, any>) & {
+    cache: Map<string, {
+        value: Map<string, any>;
+        timestamp: number;
+    }>;
+};
+
+export declare const parseCSSPercent: ((input: string | number) => number) & {
+    cache: Map<string, {
+        value: number;
+        timestamp: number;
+    }>;
+};
+
+/**
+ * Parse a stylesheet block containing zero or more `@property`
+ * declarations and one or more `@keyframes` rules. Returns the
+ * property registry alongside the merged keyframes map.
+ *
+ * Used by `CSSKeyframesAnimation.fromString` when the input
+ * contains custom-property declarations — the registry tells the
+ * parser how to interpret unknown property names without rejecting
+ * them as invalid CSS.
+ */
+export declare const parseCSSStyleBlock: ((input: string) => ParsedStyleBlock) & {
+    cache: Map<string, {
+        value: ParsedStyleBlock;
+        timestamp: number;
+    }>;
+};
+
+export declare const parseCSSTime: ((input: string) => number) & {
+    cache: Map<string, {
+        value: number;
+        timestamp: number;
+    }>;
+};
+
+/**
+ * A CSS stylesheet block holding zero or more `@property`
+ * declarations followed by `@keyframes` (or vice versa). Either
+ * section may be empty.
+ */
+export declare interface ParsedStyleBlock {
+    properties: Map<string, PropertyDescriptor_2>;
+    keyframes: Map<string, any>;
+}
+
 declare type ParsedVarMap = Record<string, ValueArray>;
+
+declare interface PropertyDescriptor_2 {
+    syntax?: string;
+    inherits?: boolean;
+    initialValue?: ValueArray;
+}
+export { PropertyDescriptor_2 as PropertyDescriptor }
 
 export { requestAnimationFrame_2 as requestAnimationFrame }
 

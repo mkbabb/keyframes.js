@@ -9,8 +9,22 @@ import { clamp, scale } from "../math";
 import {
     parseCSSKeyframes,
     parseCSSPercent,
+    parseCSSStyleBlock,
     parseCSSTime,
+    type PropertyDescriptor,
+    type ParsedStyleBlock,
 } from "../parsing/keyframes";
+
+// Re-export the parser surface so consumers can import it from the
+// library's main entry point.
+export {
+    parseCSSKeyframes,
+    parseCSSStyleBlock,
+    parseCSSPercent,
+    parseCSSTime,
+    type PropertyDescriptor,
+    type ParsedStyleBlock,
+};
 import { parseCSSValueUnit } from "../parsing/units";
 import { ValueUnit } from "../units";
 import {
@@ -875,12 +889,31 @@ export class CSSKeyframesAnimation<V extends Vars> extends Animation<V> {
         return this;
     }
 
+    /**
+     * Property registry from `@property` declarations parsed by
+     * `fromString`. Empty when the input had no `@property` rules.
+     * Consumers can read this to recover the type metadata for
+     * custom properties (syntax string, initial value, inheritance
+     * flag) without re-parsing the source CSS.
+     */
+    propertyRegistry: Map<string, PropertyDescriptor> = new Map();
+
     fromString(keyframes: string, transform?: TransformFunction<V>) {
         this.unflatten = transform != null;
         // TODO(MEDIUM): Require an explicit transform strategy instead of defaulting to instance transform.
         transform ??= this.transform.bind(this);
 
-        const p = parseCSSKeyframes(keyframes);
+        // Detect `@property` preambles. The full style-block parser
+        // handles them; the keyframes-only parser is the fast path
+        // for inputs without custom property declarations.
+        const hasProperties = /@property\b/i.test(keyframes);
+        const p: Map<string, any> = hasProperties
+            ? (() => {
+                  const block = parseCSSStyleBlock(keyframes);
+                  this.propertyRegistry = new Map(block.properties);
+                  return block.keyframes;
+              })()
+            : parseCSSKeyframes(keyframes);
 
         for (const [percent, cachedFrame] of p.entries()) {
             // Clone the frame to avoid mutating the memoized parse cache

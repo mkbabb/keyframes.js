@@ -5,6 +5,7 @@ import {
     reverseCSSIterationCount,
     parseCSSKeyframes,
     parseCSSAnimationKeyframes,
+    parseCSSStyleBlock,
 } from "../src/parsing/keyframes";
 
 describe("parseCSSTime", () => {
@@ -190,5 +191,72 @@ describe("parseCSSKeyframes", () => {
         const frame0 = frames.get("0%");
         expect(frame0).toBeDefined();
         expect(frame0.animationTimingFunction).toBeDefined();
+    });
+});
+
+
+describe("parseCSSStyleBlock — @property + @keyframes", () => {
+    it("parses a single @property declaration", () => {
+        const input = `
+            @property --my-prop {
+                syntax: "<number>";
+                inherits: false;
+                initial-value: 0;
+            }
+            @keyframes test {
+                0% { opacity: 0; }
+                100% { opacity: 1; }
+            }
+        `;
+        const block = parseCSSStyleBlock(input);
+        expect(block.properties.size).toBe(1);
+        expect(block.properties.has("--my-prop")).toBe(true);
+        const desc = block.properties.get("--my-prop")!;
+        expect(desc.syntax).toBe("<number>");
+        expect(desc.inherits).toBe(false);
+        expect(block.keyframes.size).toBe(2);
+    });
+
+    it("parses custom-property-only keyframe rules", () => {
+        const input = `
+            @property --bbnf-outer-3_px {
+                syntax: "<number>";
+                inherits: false;
+                initial-value: 0;
+            }
+            @keyframes mascot {
+                0% { --bbnf-outer-3_px: 0; }
+                100% { --bbnf-outer-3_px: 10; }
+            }
+        `;
+        const block = parseCSSStyleBlock(input);
+        expect(block.keyframes.size).toBe(2);
+        const last = block.keyframes.get("100%");
+        expect(last).toBeDefined();
+        // The custom property name is preserved verbatim (no
+        // hyphenToCamelCase mangling).
+        expect(last["--bbnf-outer-3_px"]).toBeDefined();
+    });
+
+    it("preserves custom property names with underscores", () => {
+        const input = `
+            @keyframes wave {
+                0% { --foo_bar_baz: 1; }
+            }
+        `;
+        const block = parseCSSStyleBlock(input);
+        const frame = block.keyframes.get("0%");
+        expect(frame["--foo_bar_baz"]).toBeDefined();
+    });
+
+    it("handles multiple @property preambles + a @keyframes block", () => {
+        const input = `
+            @property --a { syntax: "<number>"; inherits: false; initial-value: 0; }
+            @property --b { syntax: "<number>"; inherits: false; initial-value: 0; }
+            @keyframes mix { 0% { --a: 1; --b: 2; } 100% { --a: 3; --b: 4; } }
+        `;
+        const block = parseCSSStyleBlock(input);
+        expect(block.properties.size).toBe(2);
+        expect(block.keyframes.size).toBe(2);
     });
 });

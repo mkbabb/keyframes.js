@@ -5,10 +5,13 @@ export {
     parseCSSKeyframesValue,
     parseCSSKeyframes,
     parseCSSAnimationKeyframes,
+    parseCSSStyleBlock,
     parseCSSPercent,
     parseCSSTime,
     reverseCSSTime,
     reverseCSSIterationCount,
+    type PropertyDescriptor,
+    type ParsedStyleBlock,
 } from "./keyframes";
 
 export { CSSColor, parseCSSColor, CSSValueUnit, parseCSSValueUnit } from "./units";

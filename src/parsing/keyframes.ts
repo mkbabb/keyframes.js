@@ -14,6 +14,15 @@ import { identifier, number, tryParse } from "./utils";
 // Import shared parsers from value.js instead of duplicating them
 import { CSSFunction } from "@mkbabb/value.js";
 
+/**
+ * CSS custom property identifier — `--foo`, `--bbnf-outer-3_px`,
+ * etc. Per the CSS Custom Properties spec the name after `--`
+ * follows the standard CSS ident rules but in practice authoring
+ * tools (and our own bbnf encoding) include underscores, so we
+ * accept the broader `[a-zA-Z0-9_-]+` body too.
+ */
+const customPropertyName = regex(/--[a-zA-Z_][a-zA-Z0-9_-]*/);
+
 const stripCSSComments = (input: string): string =>
     input.replace(/\/\*[\s\S]*?\*\//g, "");
 
@@ -71,11 +80,23 @@ const Value: Parser<any> = any(
 
 const Values = Value.sepBy(ws);
 
+/**
+ * Property name in a declaration: either a CSS custom property
+ * (`--foo`) or a regular hyphenated identifier (`background-color`).
+ *
+ * Custom property names are preserved verbatim — they're a free
+ * namespace defined by the author, so renaming `--bbnf-outer-3_px`
+ * to its camelCase form would be lossy and wrong. Regular
+ * identifiers go through the legacy `hyphenToCamelCase` mapping so
+ * `background-color` becomes the JS-friendly `backgroundColor`.
+ */
+const declarationName = any(
+    customPropertyName,
+    identifier.map((x: string) => hyphenToCamelCase(x)),
+);
+
 const Variables = all(
-    identifier
-        .skip(colon)
-        .trim(ws)
-        .map((x: string) => hyphenToCamelCase(x)),
+    declarationName.skip(colon).trim(ws),
     Values.skip(semi.opt()).trim(ws),
 ).map((result: any) => {
     const [name, values] = result as [string, any[]];
@@ -130,6 +151,116 @@ const Keyframes = any(
         new Map<string, any[]>(),
     );
 });
+
+// ─── @property descriptor ──────────────────────────────────────────────
+//
+// CSS Properties and Values API Level 1:
+//   @property --my-prop {
+//       syntax: "<number>";
+//       inherits: false;
+//       initial-value: 0;
+//   }
+//
+// We capture `syntax` (a quoted string), `inherits` (`true | false`),
+// and `initial-value` (any CSS value). The descriptor is exposed as
+// a `PropertyDescriptor` map keyed by the property name including
+// the leading `--`.
+
+export interface PropertyDescriptor {
+    syntax?: string;
+    inherits?: boolean;
+    initialValue?: ValueArray;
+}
+
+const QuotedString = regex(/"[^"]*"/).map((x: string) =>
+    x.slice(1, -1),
+);
+
+const Boolean_ = any(
+    string("true").map(() => true),
+    string("false").map(() => false),
+);
+
+const PropertyDescriptorBody = Variables.many()
+    .trim(ws)
+    .wrap(lcurly, rcurly)
+    .map((entries: Record<string, any>[]) => {
+        const merged: Record<string, any> = Object.assign({}, ...entries);
+        const desc: PropertyDescriptor = {};
+        // `syntax: "<number>"` — value parsed as a single
+        // identifier-like ValueUnit; we want the underlying string.
+        if (merged.syntax !== undefined) {
+            const raw = merged.syntax;
+            const text = String(raw).replace(/^"|"$/g, "");
+            desc.syntax = text;
+        }
+        if (merged.inherits !== undefined) {
+            const v = String(merged.inherits).toLowerCase();
+            desc.inherits = v === "true";
+        }
+        // CSS uses `initial-value`; hyphenToCamelCase mapped it to
+        // `initialValue` already.
+        if (merged.initialValue !== undefined) {
+            desc.initialValue = merged.initialValue;
+        }
+        return desc;
+    });
+
+// Allow either the `Variables`-based body OR a literal-tolerant
+// version that accepts `"<number>"` string syntax values. The
+// `Variables` Body works for the common case because the parser
+// already accepts arbitrary token bodies.
+const PropertyRule = all(
+    string("@property").trim(ws).next(customPropertyName.trim(ws)),
+    PropertyDescriptorBody,
+).map(([name, descriptor]: [string, PropertyDescriptor]) => ({
+    name,
+    descriptor,
+}));
+
+/**
+ * A CSS stylesheet block holding zero or more `@property`
+ * declarations followed by `@keyframes` (or vice versa). Either
+ * section may be empty.
+ */
+export interface ParsedStyleBlock {
+    properties: Map<string, PropertyDescriptor>;
+    keyframes: Map<string, any>;
+}
+
+const StyleBlockEntry: Parser<
+    | { kind: "property"; name: string; descriptor: PropertyDescriptor }
+    | { kind: "keyframes"; map: Map<string, any> }
+> = any(
+    PropertyRule.map((p: { name: string; descriptor: PropertyDescriptor }) => ({
+        kind: "property" as const,
+        name: p.name,
+        descriptor: p.descriptor,
+    })),
+    Keyframes.map((map: Map<string, any>) => ({
+        kind: "keyframes" as const,
+        map,
+    })),
+);
+
+const StyleBlock = StyleBlockEntry.sepBy(ws)
+    .trim(ws)
+    .map((entries: any[]): ParsedStyleBlock => {
+        const properties = new Map<string, PropertyDescriptor>();
+        let keyframes = new Map<string, any>();
+        for (const entry of entries) {
+            if (entry.kind === "property") {
+                properties.set(entry.name, entry.descriptor);
+            } else if (entry.kind === "keyframes") {
+                // Merge multiple @keyframes blocks (last write wins
+                // per percent step).
+                for (const [pct, vals] of entry.map.entries()) {
+                    keyframes.set(pct, vals);
+                }
+            }
+        }
+        return { properties, keyframes };
+    });
 
 // CSSClass language
 const ClassRule = dot.trim(ws).next(identifier).trim(ws);
@@ -200,6 +331,21 @@ export const parseCSSKeyframesValue = memoize(
 export const parseCSSKeyframes = memoize(
     (input: string): Map<string, any> =>
         tryParse(Keyframes, sanitizeCSSInput(input)),
+);
+
+/**
+ * Parse a stylesheet block containing zero or more `@property`
+ * declarations and one or more `@keyframes` rules. Returns the
+ * property registry alongside the merged keyframes map.
+ *
+ * Used by `CSSKeyframesAnimation.fromString` when the input
+ * contains custom-property declarations — the registry tells the
+ * parser how to interpret unknown property names without rejecting
+ * them as invalid CSS.
+ */
+export const parseCSSStyleBlock = memoize(
+    (input: string): ParsedStyleBlock =>
+        tryParse(StyleBlock, sanitizeCSSInput(input)),
 );
 
 export const parseCSSAnimationKeyframes = memoize((input: string): {
