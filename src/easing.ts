@@ -9,5 +9,5 @@ export {
     easeInCirc, easeOutCirc, easeInOutCirc,
     easeInExpo, easeOutExpo, easeInOutExpo,
     jumpTerms, steppedEase, stepStart, stepEnd,
-    bezierPresets, timingFunctions,
+    bezierPresets, timingFunctions, timingFunctionDescriptions,
 } from "@mkbabb/value.js";
