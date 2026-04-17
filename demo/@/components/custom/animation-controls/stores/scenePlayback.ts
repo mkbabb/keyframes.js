@@ -31,17 +31,3 @@ export const getScenePlaybackState = (
 export const clearScenePlaybackState = (superKey: string) => {
     _scenePlaybackStates.delete(superKey);
 };
-
-// Active scene tracking for share state
-let _activeSceneId: string | undefined;
-
-export const setActiveScene = (sceneId: string) => {
-    _activeSceneId = sceneId;
-};
-
-export const getActiveScene = (): string | undefined => _activeSceneId;
-
-/** Used internally by hashSharing to set active scene from restored state. */
-export const _setActiveSceneId = (id: string | undefined) => {
-    _activeSceneId = id;
-};

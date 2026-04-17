@@ -16,7 +16,7 @@
             <!-- @mbabb dropdown -->
             <DropdownMenu>
                 <DropdownMenuTrigger as-child>
-                    <button class="dock-icon-btn text-xs lg:text-sm font-mono cursor-pointer">@mbabb</button>
+                    <DockDropdownTrigger aria-label="@mbabb menu" class="text-xs lg:text-sm font-mono">@mbabb</DockDropdownTrigger>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" :side-offset="8" class="z-modal min-w-[17rem] instrument-serif text-base p-1.5">
                     <!-- Share -->
@@ -103,7 +103,7 @@
             <!-- KeepAlive caches up to 3 scene instances so returning to a scene
                  doesn't re-evaluate lazy modules (Monaco, Three.js, etc.).
                  Home + Cube share the same key so CubeScene persists across home ↔ cube. -->
-            <Transition name="scene" mode="out-in">
+            <Transition name="scene" mode="out-in" :css="ready">
                 <KeepAlive :max="3">
                     <component
                         :is="activeSceneComponent"
@@ -127,6 +127,7 @@ import {
     DarkModeToggle,
     Avatar,
     AvatarImage,
+    DockDropdownTrigger,
     DropdownMenu,
     DropdownMenuTrigger,
     DropdownMenuContent,
@@ -136,11 +137,8 @@ import {
 import { TopDock } from "@components/custom/dock";
 
 import { AnimationGroup } from "@src/animation/group";
-import { getStoredAnimationGroupControlOptions, setActiveScene, saveScenePlaybackState, getScenePlaybackState, clearScenePlaybackState, initFromHash } from "@components/custom/animation-controls/stores";
+import { getStoredAnimationGroupControlOptions, saveScenePlaybackState, getScenePlaybackState, clearScenePlaybackState } from "@components/custom/animation-controls/stores";
 import type { ScenePlaybackState } from "@components/custom/animation-controls/stores";
-
-// Restore shared state from URL hash before components read stored options
-initFromHash();
 
 // Tabs in the controls pane are managed via the TopDock controls tab dropdown
 provide(TABS_EXTERNALLY_MANAGED_KEY, true);
@@ -151,14 +149,11 @@ const dockHoveredRef = ref(false);
 provide(CONTROLS_PANE_HOVER_KEY, dockHoveredRef);
 
 import CubeScene from "./scenes/CubeScene.vue";
-import { useSceneManager } from "./useSceneManager";
-import { scenes, sceneMap, HOME_SCENE_ID } from "./scenes";
+import { useSceneRouter } from "./useSceneRouter";
+import { useSceneUrl } from "./useSceneUrl";
+import { sceneMap, HOME_SCENE_ID } from "./scenes";
 
-const { currentSceneId, currentScene, isHome, switchScene: rawSwitchScene } = useSceneManager();
-
-// Keep share state in sync with the active scene
-setActiveScene(currentSceneId.value);
-watch(currentSceneId, (id) => setActiveScene(id));
+const { currentSceneId, currentScene, isHome, ready, scenes, switchScene: rawSwitchScene } = useSceneRouter();
 
 const sceneRef = shallowRef<any>(null);
 
@@ -168,6 +163,9 @@ const sceneRef = shallowRef<any>(null);
 const currentAnimationGroup = shallowRef<AnimationGroup<any>>(markRaw(new AnimationGroup()));
 const currentSuperKey = shallowRef<string>(currentScene.value.superKey);
 const autoPlayNext = ref(false);
+
+// Bidirectional ?anim= query param sync
+useSceneUrl(currentSuperKey);
 
 const currentLabel = computed(
     () => sceneMap.get(currentSceneId.value)?.label ?? "Home",

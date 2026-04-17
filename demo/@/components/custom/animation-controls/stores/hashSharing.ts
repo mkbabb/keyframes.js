@@ -1,12 +1,10 @@
 import { useAnimationGroupsOptionsStore } from "./animationOptionsStore";
 import { useAnimationGroupsControlOptionsStore } from "./controlOptionsStore";
-import { _setActiveSceneId, getActiveScene } from "./scenePlayback";
 
-// --- URL hash sharing (lossless, compressed) ---
+// --- URL state sharing (lossless, base64-encoded) ---
 
 export const encodeStateToHash = (state: object): string => {
     const json = JSON.stringify(state);
-    // Use base64 encoding (no fflate dependency needed for basic sharing)
     return btoa(encodeURIComponent(json));
 };
 
@@ -19,13 +17,13 @@ export const decodeStateFromHash = (hash: string): object | null => {
     }
 };
 
-export const getAllState = (): object => {
+export const getAllState = (activeScene: string | undefined): object => {
     // Strip _storeTimestamp so the same logical state always produces the same hash
     const { _storeTimestamp: _1, ...options } =
         useAnimationGroupsOptionsStore().value;
     const { _storeTimestamp: _2, ...controls } =
         useAnimationGroupsControlOptionsStore().value;
-    return { options, controls, activeScene: getActiveScene() };
+    return { options, controls, activeScene };
 };
 
 const isValidState = (
@@ -46,14 +44,16 @@ const isValidState = (
     return true;
 };
 
-export const restoreStateFromHash = (): {
-    restored: boolean;
-    activeScene?: string;
-} => {
-    const hash = window.location.hash.slice(1);
-    if (!hash) return { restored: false };
+/**
+ * Restore state from a base64-encoded state param string.
+ * Caller is responsible for URL cleanup (the router owns the URL).
+ */
+export const restoreStateFromParam = (
+    stateParam: string,
+): { restored: boolean; activeScene?: string } => {
+    if (!stateParam) return { restored: false };
 
-    const state = decodeStateFromHash(hash);
+    const state = decodeStateFromHash(stateParam);
     if (!state || !isValidState(state)) return { restored: false };
 
     if (state.options) {
@@ -66,29 +66,7 @@ export const restoreStateFromHash = (): {
         );
     }
 
-    // Clear hash after restoring to avoid stale state
-    history.replaceState(
-        null,
-        "",
-        window.location.pathname + window.location.search,
-    );
-
     return state.activeScene === undefined
         ? { restored: true }
         : { restored: true, activeScene: state.activeScene };
-};
-
-/**
- * Initialize state from URL hash. Call explicitly in App.vue onMounted
- * instead of relying on module-level side effects.
- */
-export const initFromHash = (): {
-    restored: boolean;
-    activeScene?: string;
-} => {
-    const result = restoreStateFromHash();
-    if (result.activeScene) {
-        _setActiveSceneId(result.activeScene);
-    }
-    return result;
 };

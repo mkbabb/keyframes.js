@@ -26,8 +26,7 @@ export {
     encodeStateToHash,
     decodeStateFromHash,
     getAllState,
-    restoreStateFromHash,
-    initFromHash,
+    restoreStateFromParam,
 } from "./hashSharing";
 
 export {
@@ -36,8 +35,6 @@ export {
     saveScenePlaybackState,
     getScenePlaybackState,
     clearScenePlaybackState,
-    setActiveScene,
-    getActiveScene,
 } from "./scenePlayback";
 
 export { getAnimationSuperKey, STORE_KEYS } from "./storeUtils";
@@ -52,9 +49,5 @@ export const resetAllStores = () => {
 
     for (const key of STORE_KEYS) {
         localStorage.removeItem(key);
-    }
-
-    if (window.location.hash) {
-        history.replaceState(null, "", window.location.pathname + window.location.search);
     }
 };

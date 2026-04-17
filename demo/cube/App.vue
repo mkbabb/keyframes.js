@@ -183,10 +183,14 @@ import { SharePopover } from "@components/custom/editor-shell";
 import { MatrixEditor } from "@components/custom/matrix-editor";
 import CubeTarget from "./CubeTarget.vue";
 
-import { getStoredAnimationGroupControlOptions, initFromHash } from "@components/custom/animation-controls/stores";
+import { getStoredAnimationGroupControlOptions, restoreStateFromParam } from "@components/custom/animation-controls/stores";
 
 // Restore shared state from URL hash before components read stored options
-initFromHash();
+const hash = window.location.hash.slice(1);
+if (hash) {
+    restoreStateFromParam(hash);
+    history.replaceState(null, "", window.location.pathname + window.location.search);
+}
 import { useTransformState } from "@components/custom/matrix-editor/useTransformState";
 import { useCubeAnimations } from "./useCubeAnimations";
 
