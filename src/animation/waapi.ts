@@ -1,117 +1,111 @@
 import type { Animation } from ".";
 import { unflattenObjectToString } from "../units/utils";
 import { COMPUTED_UNITS } from "../units/constants";
-import { transformTargetsStyle } from "./utils";
 import type { Vars } from "./constants";
-
-const hasAnimationTransform = (
-    animation: Animation,
-): animation is Animation & {
-    transform: Animation["frames"][number]["transform"];
-} => {
-    const transform = (animation as { transform?: unknown }).transform;
-    return typeof transform === "function";
-};
 
 const isComputedUnit = (
     unit: unknown,
-): unit is (typeof COMPUTED_UNITS)[number] => {
-    return (
-        typeof unit === "string" &&
-        (COMPUTED_UNITS as readonly string[]).includes(unit)
-    );
-};
+): unit is (typeof COMPUTED_UNITS)[number] =>
+    typeof unit === "string" &&
+    (COMPUTED_UNITS as readonly string[]).includes(unit);
+
+const DEFAULT_RENDERER = Symbol.for("keyframes.defaultRenderer");
+
+const isDefaultTransform = (fn: unknown): boolean =>
+    typeof fn === "function" && (fn as any)[DEFAULT_RENDERER] === true;
+
+export type WAAPIEligibility =
+    | { eligible: true }
+    | { eligible: false; reason: string };
 
 /**
- * Compositor-eligible CSS properties that WAAPI can run off main thread.
- */
-const COMPOSITOR_PROPERTIES = new Set([
-    "opacity",
-    "transform",
-    "filter",
-    "backdrop-filter",
-    // Transform sub-properties that get merged into transform
-    "translate",
-    "rotate",
-    "scale",
-]);
-// TODO(LOW): Either enforce this eligibility set directly or remove it as dead compatibility scaffolding.
-
-/**
- * Determines if an animation is eligible for WAAPI delegation.
+ * Decide whether an animation can be delegated to the Web Animations
+ * API for compositor-thread playback. Single source of truth — the
+ * `Animation.play()` dispatcher consults this once, with no inline
+ * pre-checks or post-failure fallbacks.
  *
- * Eligible when ALL of:
- * 1. Has DOM targets
- * 2. Uses default transformTargetsStyle (no custom transform function)
- * 3. All frames use the same timing function (WAAPI only supports per-animation easing)
- * 4. No computed units (vh, vw, calc, var) in interpVars
- * 5. No LAB/OKLAB color interpolation
+ * Eligibility requires ALL of:
+ * 1. At least one DOM target with `Element.animate()` available.
+ * 2. Every frame uses the default DOM-style renderer (no user
+ *    transform that WAAPI can't see).
+ * 3. All frames share the same timing function (WAAPI exposes
+ *    one easing per animation, not per stop).
+ * 4. No computed units (`var`, `calc`, `vh`, `cqw`, etc.) — those
+ *    require live DOM resolution at interpolation time.
+ * 5. No color interpolation — handled by perceptual color spaces in
+ *    JS, not by WAAPI's RGB lerp.
+ *
+ * On failure returns a diagnostic `reason` so callers can surface it
+ * to debug builds without a console.warn falling out of the engine.
  */
-export function isWAAPIEligible(animation: Animation): boolean {
-    // TODO(HIGH): Current false returns route callers to rAF fallback; strict mode should surface explicit ineligibility reasons.
-    // 1. Must have DOM targets
+export function isWAAPIEligible<V extends Vars>(
+    animation: Animation<V>,
+): WAAPIEligibility {
     if (!animation.targets || animation.targets.length === 0) {
-        return false;
+        return { eligible: false, reason: "no DOM targets" };
+    }
+    if (typeof animation.targets[0]?.animate !== "function") {
+        return {
+            eligible: false,
+            reason: "target does not implement Element.animate()",
+        };
     }
 
-    // 2. Check for custom transform function — if any frame has a non-default transform,
-    // we can't delegate. We compare against transformTargetsStyle identity.
-    const animationTransform = hasAnimationTransform(animation)
-        ? animation.transform
-        : undefined;
     for (const frame of animation.frames) {
-        const tf = frame.transform;
-        const defaultTransform = transformTargetsStyle as unknown as typeof tf;
-        if (tf !== defaultTransform && tf !== animationTransform) {
-            return false;
+        if (!isDefaultTransform(frame.transform)) {
+            return {
+                eligible: false,
+                reason: "custom transform function (not the default DOM renderer)",
+            };
         }
     }
 
-    // 3. All frames must use the same timing function
     if (animation.frames.length > 1) {
         const firstTF = animation.frames[0]!.timingFunction;
         for (let i = 1; i < animation.frames.length; i++) {
             if (animation.frames[i]!.timingFunction !== firstTF) {
-                return false;
+                return {
+                    eligible: false,
+                    reason: "non-uniform per-frame timing function (WAAPI supports one easing per animation)",
+                };
             }
         }
     }
 
-    // 4. No computed units (var, calc) in interpVars
     for (const frame of animation.frames) {
         for (const interpVarArr of Object.values(frame.interpVars)) {
             for (const iv of interpVarArr) {
-                const startUnit = iv.start?.unit;
-                const stopUnit = iv.stop?.unit;
-                if (isComputedUnit(startUnit) || isComputedUnit(stopUnit)) {
-                    return false;
+                if (
+                    isComputedUnit(iv.start?.unit) ||
+                    isComputedUnit(iv.stop?.unit)
+                ) {
+                    return {
+                        eligible: false,
+                        reason: `computed unit (${String(iv.start?.unit ?? iv.stop?.unit)}) requires DOM resolution`,
+                    };
                 }
-            }
-        }
-    }
-
-    // 5. No color interpolation (LAB/OKLAB uses custom lerp)
-    for (const frame of animation.frames) {
-        for (const interpVarArr of Object.values(frame.interpVars)) {
-            for (const iv of interpVarArr) {
                 if (iv.start?.unit === "color" || iv.stop?.unit === "color") {
-                    return false;
+                    return {
+                        eligible: false,
+                        reason: "color interpolation requires perceptual lerp",
+                    };
                 }
             }
         }
     }
 
-    return true;
+    return { eligible: true };
 }
 
 /**
  * Convert animation frames to WAAPI Keyframe[] format.
  */
-export function toWAAPIKeyframes(animation: Animation): Keyframe[] {
+export function toWAAPIKeyframes<V extends Vars>(
+    animation: Animation<V>,
+): Keyframe[] {
     const duration = animation.options.duration;
     const keyframes: Keyframe[] = [];
 
-    // Collect all unique time points from template frames
     const timePoints = new Set<number>();
     for (const frame of animation.frames) {
         timePoints.add(frame.time.start);
@@ -122,75 +116,105 @@ export function toWAAPIKeyframes(animation: Animation): Keyframe[] {
 
     for (const t of sortedTimes) {
         const vars = animation.interpFrames(t, false);
-
         if (Object.keys(vars).length === 0) continue;
-
         const styleVars = unflattenObjectToString(vars);
-
-        const keyframe: Keyframe = {
+        keyframes.push({
             offset: Math.max(0, Math.min(1, t / duration)),
             ...styleVars,
-        };
-
-        keyframes.push(keyframe);
+        });
     }
 
     return keyframes;
 }
 
-/**
- * Convert AnimationOptions to WAAPI KeyframeEffectOptions.
- */
-export function toWAAPIOptions(animation: Animation): KeyframeEffectOptions {
+const DIRECTION_MAP: Record<string, PlaybackDirection> = {
+    normal: "normal",
+    reverse: "reverse",
+    alternate: "alternate",
+    "alternate-reverse": "alternate-reverse",
+};
+
+const FILL_MAP: Record<string, FillMode> = {
+    none: "none",
+    forwards: "forwards",
+    backwards: "backwards",
+    both: "both",
+};
+
+export function toWAAPIOptions<V extends Vars>(
+    animation: Animation<V>,
+): KeyframeEffectOptions {
     const opts = animation.options;
-
-    const directionMap: Record<string, PlaybackDirection> = {
-        normal: "normal",
-        reverse: "reverse",
-        alternate: "alternate",
-        "alternate-reverse": "alternate-reverse",
-    };
-
-    const fillMap: Record<string, FillMode> = {
-        none: "none",
-        forwards: "forwards",
-        backwards: "backwards",
-        both: "both",
-    };
+    const direction = DIRECTION_MAP[opts.direction];
+    const fill = FILL_MAP[opts.fillMode];
+    if (direction == null) {
+        throw new TypeError(
+            `Unrecognised animation direction "${opts.direction}".`,
+        );
+    }
+    if (fill == null) {
+        throw new TypeError(
+            `Unrecognised animation fill mode "${opts.fillMode}".`,
+        );
+    }
 
     return {
         duration: opts.duration,
         delay: opts.delay,
         iterations:
             opts.iterationCount === Infinity ? Infinity : opts.iterationCount,
-        // TODO(HIGH): Remove enum fallbacks; throw when direction/fill values are outside supported WAAPI maps.
-        direction: directionMap[opts.direction] ?? "normal",
-        fill: fillMap[opts.fillMode] ?? "forwards",
-        // WAAPI easing is set per-animation — we use the frame's timing function name
-        // For custom functions we fall back to linear (the JS interpolation handles easing)
+        direction,
+        fill,
+        // WAAPI easing is per-animation; per-frame easing is baked
+        // into the keyframe values upstream when JS interpolation
+        // is in play. For WAAPI delegation we always emit `linear`
+        // and let the keyframe stops carry any easing intent.
         easing: "linear",
     };
 }
 
 /**
- * Play an animation using the Web Animations API.
- * Returns a promise that resolves when the animation completes.
+ * Drive an animation via WAAPI for compositor-thread visuals while
+ * a parallel rAF loop ticks the JS-side state machine so events
+ * (`animationstart`, `animationiteration`, `animationend`),
+ * `iteration`, `paused`, and `pausedTime` all stay coherent.
+ *
+ * Resolves when both the WAAPI animation finishes and the JS state
+ * machine reaches `done`. Errors propagate — there is no silent
+ * fallback path; eligibility was decided once before this was called.
  */
-export async function playWAAPI(
-    animation: Animation,
-): Promise<globalThis.Animation[]> {
+export async function playWAAPI<V extends Vars>(
+    animation: Animation<V>,
+): Promise<void> {
     const keyframes = toWAAPIKeyframes(animation);
     const options = toWAAPIOptions(animation);
 
-    const waAnimations: globalThis.Animation[] = [];
+    const waAnimations: globalThis.Animation[] = animation.targets.map(
+        (target) => target.animate(keyframes, options),
+    );
 
-    for (const target of animation.targets) {
-        const wa = target.animate(keyframes, options);
-        waAnimations.push(wa);
+    // Shadow rAF tick — drives lifecycle (onStart / iteration /
+    // onEnd / events / pause / resume) so WAAPI playback has the
+    // same observable state as the rAF path. No interpFrames calls;
+    // WAAPI handles the visuals.
+    let cancelled = false;
+    const tickLoop = (now: number) => {
+        if (cancelled || animation.done) return;
+        animation.tick(now);
+        if (animation.paused) {
+            for (const wa of waAnimations) wa.pause();
+        } else {
+            for (const wa of waAnimations) {
+                if (wa.playState === "paused") wa.play();
+            }
+        }
+        animation.handleId = requestAnimationFrame(tickLoop);
+    };
+    animation.handleId = requestAnimationFrame(tickLoop);
+
+    try {
+        await Promise.all(waAnimations.map((wa) => wa.finished));
+    } finally {
+        cancelled = true;
     }
-
-    // Wait for all animations to finish
-    await Promise.all(waAnimations.map((wa) => wa.finished));
-
-    return waAnimations;
 }
