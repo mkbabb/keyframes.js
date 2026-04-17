@@ -149,20 +149,15 @@ const onStepsChange = (e: Event) => {
 </script>
 
 <style scoped>
-.duration-slider :deep(.slider-track) {
-    background-color: color-mix(in srgb, var(--color-slider-track) 15%, transparent);
-    height: 4px;
+.duration-slider {
+    --slider-track-bg: color-mix(in srgb, var(--color-slider-track) 15%, transparent);
+    --slider-track-height: 4px;
+    --slider-range-bg: color-mix(in srgb, var(--color-slider-track) 40%, transparent);
+    --slider-thumb-bg: var(--color-progress);
+    --slider-thumb-size: 0.75rem;
 }
-.duration-slider :deep(.slider-track > span) {
-    background-color: color-mix(in srgb, var(--color-slider-track) 40%, transparent) !important;
-}
-.duration-slider :deep(.slider-thumb) {
-    background-color: var(--color-progress) !important;
-    width: 0.75rem;
-    height: 0.75rem;
-}
-.duration-slider :deep(.slider-thumb:hover) {
-    background-color: color-mix(in srgb, var(--color-progress) 80%, transparent) !important;
+.duration-slider:hover {
+    --slider-thumb-bg: color-mix(in srgb, var(--color-progress) 80%, transparent);
 }
 .duration-input {
     height: auto;

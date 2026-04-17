@@ -16,9 +16,9 @@
                     :model-value="viewMode"
                     @update:model-value="onViewModeChange"
                 >
-                    <SelectTrigger class="w-auto min-w-28 h-7 border-none bg-transparent instrument-serif text-sm gap-1 focus:ring-0 [&>svg:last-child]:w-3 [&>svg:last-child]:h-3 shrink-0 ml-3">
+                    <DockSelectTrigger aria-label="View mode" class="instrument-serif text-sm ml-3">
                         <SelectValue placeholder="Singular" />
-                    </SelectTrigger>
+                    </DockSelectTrigger>
                     <SelectContent class="min-w-40 instrument-serif">
                         <SelectItem value="singular">Singular</SelectItem>
                         <SelectSeparator />
@@ -75,7 +75,7 @@
                             :class="[
                                 'track-label font-mono text-xs shrink-0 w-36 text-right pr-3 truncate',
                                 curve.name === demo.currentEasingName.value
-                                    ? 'text-[var(--color-progress)] font-semibold'
+                                    ? 'track-label--active'
                                     : 'text-muted-foreground',
                             ]"
                             :title="curve.name"
@@ -104,11 +104,11 @@
 <script setup lang="ts">
 import { computed, inject, ref, useTemplateRef, onMounted, onUnmounted, watch } from "vue";
 import {
+    DockSelectTrigger,
     Select,
     SelectContent,
     SelectItem,
     SelectSeparator,
-    SelectTrigger,
     SelectValue,
 } from "@mkbabb/glass-ui";
 
@@ -134,9 +134,31 @@ const onViewModeChange = (v: unknown) => {
     viewMode.value = String(v);
 };
 
-const BALL_SIZE_SINGULAR = 72; // 4.5rem
-const BALL_SIZE_ACTIVE = 36;   // 2.25rem
-const BALL_SIZE_MUTED = 24;    // 1.5rem
+// Ball sizes are defined as CSS custom properties on the component root
+// (see <style> block) — read once after mount so JS + CSS stay in sync.
+const ballSizes = ref({ singular: 72, active: 36, muted: 24 });
+const BALL_SIZE_SINGULAR = computed(() => ballSizes.value.singular);
+const BALL_SIZE_ACTIVE = computed(() => ballSizes.value.active);
+const BALL_SIZE_MUTED = computed(() => ballSizes.value.muted);
+
+const readBallSizes = () => {
+    const container = trackContainerEl.value;
+    if (!container) return;
+    const root = container.closest<HTMLElement>(".glass-card") ?? container;
+    const styles = getComputedStyle(root);
+    const toPx = (v: string): number => {
+        const n = parseFloat(v);
+        if (isNaN(n)) return 0;
+        // CSS returns computed length in px for rem-declared values
+        return n;
+    };
+    const singular = toPx(styles.getPropertyValue("--track-ball-size-singular"));
+    const active = toPx(styles.getPropertyValue("--track-ball-size-active"));
+    const muted = toPx(styles.getPropertyValue("--track-ball-size-muted"));
+    if (singular) ballSizes.value.singular = singular;
+    if (active) ballSizes.value.active = active;
+    if (muted) ballSizes.value.muted = muted;
+};
 
 const easedValue = computed(() => demo.currentEasingFn.value(demo.progress.value));
 
@@ -191,10 +213,10 @@ const singularBallEl = useTemplateRef<HTMLElement>("singularBallEl");
 const trackWidth = ref(0);
 
 /** For singular mode, the track runs from ball center to ball center. */
-const getSingularMaxX = () => trackWidth.value - BALL_SIZE_SINGULAR;
+const getSingularMaxX = () => trackWidth.value - BALL_SIZE_SINGULAR.value;
 
 const getBallX = (fn: TimingFunction, isActive: boolean, isSingular: boolean): number => {
-    const size = isSingular ? BALL_SIZE_SINGULAR : isActive ? BALL_SIZE_ACTIVE : BALL_SIZE_MUTED;
+    const size = isSingular ? BALL_SIZE_SINGULAR.value : isActive ? BALL_SIZE_ACTIVE.value : BALL_SIZE_MUTED.value;
     const maxX = trackWidth.value - size;
     if (maxX <= 0) return 0;
     return fn(demo.progress.value) * maxX;
@@ -227,6 +249,7 @@ const measureTrackWidth = () => {
 };
 
 onMounted(() => {
+    readBallSizes();
     measureTrackWidth();
     resizeObs = new ResizeObserver(() => measureTrackWidth());
     if (trackContainerEl.value) resizeObs.observe(trackContainerEl.value);
@@ -251,7 +274,7 @@ const progressFromPointerX = (clientX: number): number => {
     const rect = inner.getBoundingClientRect();
     const maxX = getSingularMaxX();
     if (maxX <= 0) return 0;
-    const x = clientX - rect.left - BALL_SIZE_SINGULAR / 2 - grabOffset;
+    const x = clientX - rect.left - BALL_SIZE_SINGULAR.value / 2 - grabOffset;
     return Math.max(0, Math.min(x / maxX, 1));
 };
 
@@ -292,6 +315,15 @@ const onBallPointerDown = (e: PointerEvent) => {
 </script>
 
 <style>
+/* Track-ball sizing tokens — read by JS via getComputedStyle so CSS is the
+   single source of truth. Values are intentionally in px (not rem) because
+   JS reads computed lengths that would require dpi-aware conversion otherwise. */
+.glass-card {
+    --track-ball-size-singular: 72px;
+    --track-ball-size-active: 36px;
+    --track-ball-size-muted: 24px;
+}
+
 .track-row {
     display: flex;
     align-items: center;
@@ -323,26 +355,26 @@ const onBallPointerDown = (e: PointerEvent) => {
 }
 
 .track-ball--active {
-    width: 2.25rem;
-    height: 2.25rem;
-    margin-top: -1.125rem;
+    width: var(--track-ball-size-active);
+    height: var(--track-ball-size-active);
+    margin-top: calc(var(--track-ball-size-active) / -2);
     background: var(--color-progress);
     box-shadow: 0 2px 10px color-mix(in srgb, var(--color-progress) 35%, transparent);
     pointer-events: none;
 }
 
 .track-ball--muted {
-    width: 1.5rem;
-    height: 1.5rem;
-    margin-top: -0.75rem;
+    width: var(--track-ball-size-muted);
+    height: var(--track-ball-size-muted);
+    margin-top: calc(var(--track-ball-size-muted) / -2);
     background: color-mix(in srgb, var(--color-progress) 20%, transparent);
     pointer-events: none;
 }
 
 .track-ball--singular {
-    width: 4.5rem;
-    height: 4.5rem;
-    margin-top: -2.25rem;
+    width: var(--track-ball-size-singular);
+    height: var(--track-ball-size-singular);
+    margin-top: calc(var(--track-ball-size-singular) / -2);
     background: var(--color-progress);
     box-shadow: 0 4px 20px color-mix(in srgb, var(--color-progress) 40%, transparent);
     touch-action: none;
@@ -378,5 +410,10 @@ const onBallPointerDown = (e: PointerEvent) => {
 
 .track-label {
     line-height: 1;
+}
+
+.track-label--active {
+    color: var(--color-progress);
+    font-weight: 600;
 }
 </style>
