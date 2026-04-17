@@ -1,5 +1,6 @@
 import { lerp, scale, clamp } from "../math";
-import { binarySearchRange, requestAnimationFrame, cancelAnimationFrame } from "../utils";
+import { binarySearchRange } from "../utils";
+import { RAFPlayback } from "./playback";
 import { getTimingFunction } from "./utils";
 import type { TimingFunction, TimingFunctionNames } from "./constants";
 
@@ -45,10 +46,8 @@ export class NumericAnimation<T extends Record<string, number>> {
     private result: T;
     private _duration: number;
 
-    // Playback state
-    private _rafId: number | null = null;
-    private _resolve: (() => void) | null = null;
-    private _startTime: number | undefined = undefined;
+    // Shared rAF lifecycle for `.play()` / `.stop()`.
+    private _playback = new RAFPlayback();
 
     constructor(keyframes: T[], options?: NumericAnimationOptions) {
         if (keyframes.length < 2) {
@@ -182,50 +181,14 @@ export class NumericAnimation<T extends Record<string, number>> {
      */
     play(onFrame?: NumericFrameCallback<T>, duration?: number): Promise<void> {
         const dur = duration ?? this._duration;
-        if (dur <= 0) {
-            throw new Error(
-                "NumericAnimation.play() requires a duration > 0. " +
-                "Pass it in the constructor options or as a parameter to play().",
-            );
-        }
-
-        this.stop();
-
-        return new Promise<void>((resolve) => {
-            this._resolve = resolve;
-            this._startTime = undefined;
-
-            const tick = (now: number) => {
-                if (this._startTime === undefined) this._startTime = now;
-                const progress = clamp((now - this._startTime) / dur, 0, 1);
-                const values = this.at(progress);
-
-                onFrame?.(values);
-
-                if (progress < 1) {
-                    this._rafId = requestAnimationFrame(tick);
-                } else {
-                    this._cleanup();
-                }
-            };
-
-            this._rafId = requestAnimationFrame(tick);
+        return this._playback.play(dur, (progress) => {
+            const values = this.at(progress);
+            onFrame?.(values);
         });
     }
 
     /** Cancel a running `.play()` animation. The play promise resolves immediately. */
     stop(): void {
-        if (this._rafId !== null) {
-            cancelAnimationFrame(this._rafId);
-        }
-        this._cleanup();
-    }
-
-    private _cleanup(): void {
-        this._rafId = null;
-        this._startTime = undefined;
-        const resolve = this._resolve;
-        this._resolve = null;
-        resolve?.();
+        this._playback.stop();
     }
 }
