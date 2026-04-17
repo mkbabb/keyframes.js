@@ -34,6 +34,10 @@ import { jumpTerms } from '@mkbabb/value.js';
 import { lerp } from '@mkbabb/value.js';
 import { linear } from '@mkbabb/value.js';
 import { logerp } from '@mkbabb/value.js';
+import { parseCSSPercent } from '@mkbabb/value.js';
+import { parseCSSStylesheet } from '@mkbabb/value.js';
+import { parseCSSTime } from '@mkbabb/value.js';
+import { PropertyDescriptor as PropertyDescriptor_2 } from '@mkbabb/value.js';
 import { requestAnimationFrame as requestAnimationFrame_2 } from '@mkbabb/value.js';
 import { scale } from '@mkbabb/value.js';
 import { sleep } from '@mkbabb/value.js';
@@ -41,6 +45,8 @@ import { smoothStep3 } from '@mkbabb/value.js';
 import { stepEnd } from '@mkbabb/value.js';
 import { steppedEase } from '@mkbabb/value.js';
 import { stepStart } from '@mkbabb/value.js';
+import { Stylesheet } from '@mkbabb/value.js';
+import { timingFunctionDescriptions } from '@mkbabb/value.js';
 import { timingFunctions } from '@mkbabb/value.js';
 import { ValueArray } from '@mkbabb/value.js';
 import { ValueUnit } from '@mkbabb/value.js';
@@ -58,15 +64,25 @@ declare class Animation_2<V extends Vars = any> {
     handleId: number | any;
     startTime: number | undefined;
     pausedTime: number;
-    prevTime: number;
     t: number;
     iteration: number;
     started: boolean;
     done: boolean;
     reversed: boolean;
     paused: boolean;
-    /** When true, this animation is managed by an AnimationGroup and should not run its own rAF loop. */
+    /**
+     * True when an `AnimationGroup` is driving this animation's
+     * `tick()` and `interpFrames()` from its own rAF loop. Set by
+     * the group at construction; standalone `.play()` / `.draw()`
+     * throw when this is true rather than racing the group.
+     */
     managed: boolean;
+    /**
+     * If the most recent `play()` was rejected by WAAPI eligibility
+     * but `useWAAPI: true` was requested, this records the reason.
+     * Queryable by debug builds — no console output is produced.
+     */
+    waapiIneligibleReason: string | undefined;
     unflatten: boolean;
     private resolvePromise;
     private _playingPromise;
@@ -133,7 +149,15 @@ declare class Animation_2<V extends Vars = any> {
     draw(t: number): Promise<void>;
     /** Internal rAF-based play loop. */
     private _playRAF;
-    /** Play via the Web Animations API for compositor-thread execution. */
+    /**
+     * Play via the Web Animations API. WAAPI handles visuals on the
+     * compositor thread; a shadow rAF loop in `playWAAPI` drives
+     * `tick()` so events, iteration count, pause/resume, and other
+     * lifecycle state stay coherent with the rAF path.
+     *
+     * No silent fallback — eligibility is decided once in `play()`
+     * before this is invoked, and runtime errors propagate.
+     */
     private _playWAAPI;
     play(): Promise<void>;
     pause(draw?: boolean): this;
@@ -148,7 +172,7 @@ declare class Animation_2<V extends Vars = any> {
 }
 export { Animation_2 as Animation }
 
-declare interface AnimationFrame<V extends Vars> {
+export declare interface AnimationFrame<V extends Vars> {
     id: number;
     start: ValueUnit;
     ixs: {
@@ -256,7 +280,11 @@ export declare class AnimationGroup<V extends Vars> {
     playing(): boolean;
     forcePause(): void;
     forcePlay(): void;
-    /** Set layer config for an animation by name or reference. Chainable. */
+    /**
+     * Set layer config for an animation by name or reference.
+     * Chainable. Throws when the key doesn't match a registered
+     * animation — silent no-ops were hiding consumer bugs.
+     */
     setLayerConfig(nameOrAnim: string | Animation_2<V>, config: Partial<AnimationLayerConfig>): this;
     /** Convenience toggle for enabling/disabling a layer. Chainable. */
     setLayerEnabled(nameOrAnim: string | Animation_2<V>, enabled: boolean): this;
@@ -280,7 +308,7 @@ declare interface AnimationGroupObject<V extends Vars> {
     [key: string]: AnimationGroupEntry<V>;
 }
 
-declare interface AnimationLayerConfig {
+export declare interface AnimationLayerConfig {
     /** Higher wins. Default: 0 */
     zIndex: number;
     /** 0–1 for 'weighted' blend mode. Default: 1 */
@@ -293,7 +321,7 @@ declare interface AnimationLayerConfig {
     properties?: Set<string>;
 }
 
-declare type AnimationOptions = {
+export declare type AnimationOptions = {
     duration: number;
     delay: number;
     iterationCount: number;
@@ -307,7 +335,7 @@ declare type AnimationOptions = {
 
 export { bezierPresets }
 
-declare type BlendMode = "replace" | "add" | "weighted";
+export declare type BlendMode = "replace" | "add" | "weighted";
 
 export { bounceInEase }
 
@@ -349,7 +377,11 @@ export { cubicBezierToSVG }
 
 export { deCasteljau }
 
-declare const DIRECTIONS: readonly ["normal", "reverse", "alternate", "alternate-reverse"];
+export declare const defaultLayerConfig: AnimationLayerConfig;
+
+export declare const defaultOptions: AnimationOptions;
+
+export declare const DIRECTIONS: readonly ["normal", "reverse", "alternate", "alternate-reverse"];
 
 export { easeInBounce }
 
@@ -423,11 +455,30 @@ export declare interface ElementMorphOptions {
     transformOrigin?: string;
 }
 
-declare const FILL_MODES: readonly ["none", "forwards", "backwards", "both"];
+export declare const FILL_MODES: readonly ["none", "forwards", "backwards", "both"];
 
 export declare const getAnimationId: (animation: Animation_2 | string) => string;
 
-declare type InputAnimationOptions = Partial<{
+/**
+ * Resolve a timing-function input to a callable `TimingFunction`.
+ *
+ * Accepts:
+ *   - a `TimingFunction` — returned as-is
+ *   - a named entry in `timingFunctions` (`ease-out-cubic`,
+ *     `easeOutCubic`, `linear`, etc.) — looked up in the registry
+ *   - a CSS `cubic-bezier(x1, y1, x2, y2)` literal string —
+ *     parsed to control points and resolved via `CSSCubicBezier`
+ *   - `undefined` or a name/literal the registry can't find —
+ *     returns `undefined` so callers can fall back to their
+ *     default (usually `easeInOutCubic`)
+ *
+ * Higher-arity factory entries (`steps`, `step-start`, `step-end`)
+ * live in the registry but require construction arguments; they
+ * return `undefined` here so callers can invoke them explicitly.
+ */
+export declare const getTimingFunction: (timingFunction: TimingFunction | TimingFunctionNames | string | undefined) => TimingFunction | undefined;
+
+export declare type InputAnimationOptions = Partial<{
     duration: number | string;
     delay: number | string;
     iterationCount: number | string | "infinite" | undefined;
@@ -441,6 +492,8 @@ declare type InputAnimationOptions = Partial<{
 }>;
 
 export { interpBezier }
+
+export { InterpolatedVar }
 
 export { jumpTerms }
 
@@ -492,9 +545,7 @@ export declare class NumericAnimation<T extends Record<string, number>> {
     private timingFn;
     private result;
     private _duration;
-    private _rafId;
-    private _resolve;
-    private _startTime;
+    private _playback;
     constructor(keyframes: T[], options?: NumericAnimationOptions);
     private buildSegments;
     private buildSegment;
@@ -521,7 +572,6 @@ export declare class NumericAnimation<T extends Record<string, number>> {
     play(onFrame?: NumericFrameCallback<T>, duration?: number): Promise<void>;
     /** Cancel a running `.play()` animation. The play promise resolves immediately. */
     stop(): void;
-    private _cleanup;
 }
 
 export declare interface NumericAnimationOptions {
@@ -535,61 +585,14 @@ export declare interface NumericAnimationOptions {
 /** Callback invoked each frame during `.play()` with the interpolated values. */
 export declare type NumericFrameCallback<T extends Record<string, number>> = (values: T) => void;
 
-export declare const parseCSSKeyframes: ((input: string) => Map<string, any>) & {
-    cache: Map<string, {
-        value: Map<string, any>;
-        timestamp: number;
-    }>;
-};
+export { parseCSSPercent }
 
-export declare const parseCSSPercent: ((input: string | number) => number) & {
-    cache: Map<string, {
-        value: number;
-        timestamp: number;
-    }>;
-};
+export { parseCSSStylesheet }
 
-/**
- * Parse a stylesheet block containing zero or more `@property`
- * declarations and one or more `@keyframes` rules. Returns the
- * property registry alongside the merged keyframes map.
- *
- * Used by `CSSKeyframesAnimation.fromString` when the input
- * contains custom-property declarations — the registry tells the
- * parser how to interpret unknown property names without rejecting
- * them as invalid CSS.
- */
-export declare const parseCSSStyleBlock: ((input: string) => ParsedStyleBlock) & {
-    cache: Map<string, {
-        value: ParsedStyleBlock;
-        timestamp: number;
-    }>;
-};
-
-export declare const parseCSSTime: ((input: string) => number) & {
-    cache: Map<string, {
-        value: number;
-        timestamp: number;
-    }>;
-};
-
-/**
- * A CSS stylesheet block holding zero or more `@property`
- * declarations followed by `@keyframes` (or vice versa). Either
- * section may be empty.
- */
-export declare interface ParsedStyleBlock {
-    properties: Map<string, PropertyDescriptor_2>;
-    keyframes: Map<string, any>;
-}
+export { parseCSSTime }
 
 declare type ParsedVarMap = Record<string, ValueArray>;
 
-declare interface PropertyDescriptor_2 {
-    syntax?: string;
-    inherits?: boolean;
-    initialValue?: ValueArray;
-}
 export { PropertyDescriptor_2 as PropertyDescriptor }
 
 export { requestAnimationFrame_2 as requestAnimationFrame }
@@ -660,7 +663,9 @@ export { steppedEase }
 
 export { stepStart }
 
-declare interface TemplateAnimationFrame<V extends Vars> {
+export { Stylesheet }
+
+export declare interface TemplateAnimationFrame<V extends Vars> {
     id: number;
     start: ValueUnit;
     vars: V;
@@ -688,6 +693,12 @@ export declare abstract class Timeline {
      * Snaps the smoother at boundaries [0, 1] for instant convergence.
      */
     private finalizeProgress;
+    /**
+     * Shared advance step. When `dt` is undefined, drives the
+     * smoother in frame-rate-dependent mode (`tick()`); when given,
+     * uses the frame-rate-independent variant (`tickDt(dt)`).
+     */
+    private _advance;
     /** Advance one frame. Applies easing → boundary snap → smoothing. */
     tick(): number;
     /** Frame-rate independent variant. `dt` in milliseconds. */
@@ -715,15 +726,17 @@ export declare interface TimelineOptions {
     boundaryEpsilon?: number | undefined;
 }
 
-declare type TimingFunction = (t: number) => number;
+export declare type TimingFunction = (t: number) => number;
 
-declare type TimingFunctionNames = keyof typeof timingFunctions;
+export { timingFunctionDescriptions }
+
+export declare type TimingFunctionNames = keyof typeof timingFunctions;
 
 export { timingFunctions }
 
-declare type TransformFunction<V extends Vars> = (v: V, t: number) => void;
+export declare type TransformFunction<V extends Vars> = (v: V, t: number) => void;
 
-declare type Vars<T = any> = {
+export declare type Vars<T = any> = {
     [arg: string]: number | string | T;
 };
 
