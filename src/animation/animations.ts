@@ -1,5 +1,5 @@
+import { CSSCubicBezier, steppedEase } from "@mkbabb/value.js";
 import { CSSKeyframesAnimation } from ".";
-import { CSSCubicBezier, steppedEase } from "../easing";
 import type { InputAnimationOptions } from "./constants";
 
 const fadeInKeyframes = /*css*/ `

@@ -1,6 +1,9 @@
+import {
+    cancelAnimationFrame,
+    lerp,
+    requestAnimationFrame,
+} from "@mkbabb/value.js";
 import { Animation, getAnimationId } from ".";
-import { lerp } from "../math";
-import { cancelAnimationFrame, requestAnimationFrame } from "../utils";
 import type {
     AnimationLayerConfig,
     TransformFunction,

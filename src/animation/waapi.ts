@@ -1,6 +1,5 @@
+import { COMPUTED_UNITS, unflattenObjectToString } from "@mkbabb/value.js";
 import type { Animation } from ".";
-import { unflattenObjectToString } from "../units/utils";
-import { COMPUTED_UNITS } from "../units/constants";
 import type { Vars } from "./constants";
 
 const isComputedUnit = (

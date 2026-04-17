@@ -1,5 +1,8 @@
-import { clamp } from "@mkbabb/value.js";
-import { cancelAnimationFrame, requestAnimationFrame } from "../utils";
+import {
+    cancelAnimationFrame,
+    clamp,
+    requestAnimationFrame,
+} from "@mkbabb/value.js";
 
 /**
  * Shared rAF playback lifecycle for stateless interpolators

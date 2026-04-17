@@ -1,17 +1,21 @@
-import { CSSCubicBezier, timingFunctions } from "@src/easing";
 import { any as parseAny } from "@mkbabb/parse-that";
 import {
+    CSSCubicBezier,
+    flattenObject,
+    FunctionValue,
     lerpColorValue,
     lerpComputedValue,
     lerpNumericValue,
     lerpValue,
     normalizeValueUnits,
     prepareInterpVar,
+    timingFunctions,
+    tryParse,
+    unflattenObjectToString,
+    ValueArray,
+    ValueUnit,
 } from "@mkbabb/value.js";
 import { CSSKeyframes } from "../parsing/keyframes";
-import { tryParse } from "../parsing/utils";
-import { FunctionValue, ValueArray, ValueUnit } from "../units";
-import { flattenObject, unflattenObjectToString } from "../units/utils";
 import type {
     HueInterpolationMethod,
     TemplateAnimationFrame,

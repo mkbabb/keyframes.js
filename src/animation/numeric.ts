@@ -1,4 +1,4 @@
-import { lerp, scale, clamp } from "../math";
+import { clamp, lerp, scale } from "@mkbabb/value.js";
 import { binarySearchRange } from "../utils";
 import { RAFPlayback } from "./playback";
 import { getTimingFunction } from "./utils";

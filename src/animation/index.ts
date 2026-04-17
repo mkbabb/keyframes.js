@@ -1,38 +1,80 @@
-import { convertToMs, unflattenObject } from "@src/units/utils";
-import { easeInOutCubic } from "../easing";
-
-// Re-export easing functions and math/utility primitives from value.js
-export * from "../easing";
-export * from "../math";
-export { sleep, requestAnimationFrame, cancelAnimationFrame } from "../utils";
-import { clamp, scale } from "../math";
 import {
-    parseCSSStylesheet,
+    cancelAnimationFrame,
+    clamp,
+    convertToMs,
+    easeInOutCubic,
+    isObject,
     parseCSSPercent,
+    parseCSSStylesheet,
     parseCSSTime,
+    parseCSSValueUnit,
+    requestAnimationFrame,
+    scale,
+    seekPreviousValue,
+    sleep,
+    unflattenObject,
+    ValueUnit,
     type PropertyDescriptor,
     type Stylesheet,
 } from "@mkbabb/value.js";
+import { binarySearchRange } from "../utils";
 
-// Re-export the value.js stylesheet surface so consumers that
-// historically imported these from `keyframes.js` continue to work.
+// Public API re-exports of value.js primitives the keyframes.js
+// surface has historically exposed. Wave 4 will trim these once
+// downstream consumers migrate to importing from @mkbabb/value.js
+// directly. Kept narrow and explicit — no wildcard re-exports.
 export {
-    parseCSSStylesheet,
+    cancelAnimationFrame,
     parseCSSPercent,
+    parseCSSStylesheet,
     parseCSSTime,
+    requestAnimationFrame,
+    sleep,
     type PropertyDescriptor,
     type Stylesheet,
-};
-import { parseCSSValueUnit } from "../parsing/units";
-import { ValueUnit } from "../units";
-import {
-    isObject,
-    binarySearchRange,
-    cancelAnimationFrame,
-    requestAnimationFrame,
-    seekPreviousValue,
-    sleep,
-} from "../utils";
+} from "@mkbabb/value.js";
+export {
+    bezierPresets,
+    bounceInEase,
+    bounceInEaseHalf,
+    bounceInOutEase,
+    bounceOutEase,
+    bounceOutEaseHalf,
+    clamp,
+    cubicBezier,
+    cubicBezierToSVG,
+    cubicBezierToString,
+    CSSCubicBezier,
+    deCasteljau,
+    easeInBounce,
+    easeInCirc,
+    easeInCubic,
+    easeInExpo,
+    easeInOutCirc,
+    easeInOutCubic,
+    easeInOutExpo,
+    easeInOutQuad,
+    easeInOutSine,
+    easeInQuad,
+    easeInSine,
+    easeOutCirc,
+    easeOutCubic,
+    easeOutExpo,
+    easeOutQuad,
+    easeOutSine,
+    interpBezier,
+    jumpTerms,
+    lerp,
+    linear,
+    logerp,
+    scale,
+    smoothStep3,
+    stepEnd,
+    stepStart,
+    steppedEase,
+    timingFunctionDescriptions,
+    timingFunctions,
+} from "@mkbabb/value.js";
 import { resolveKeyframes } from "./adapter";
 import { defaultOptions } from "./constants";
 import type {

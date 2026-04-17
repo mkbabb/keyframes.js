@@ -1,7 +1,7 @@
+import { timingFunctions } from "@mkbabb/value.js";
 import { SmoothProgress } from "./smooth";
 import type { SmoothProgressOptions } from "./smooth";
 import type { TimingFunction, TimingFunctionNames } from "./constants";
-import { timingFunctions } from "../easing";
 
 export interface TimelineOptions {
     easing?: TimingFunction | TimingFunctionNames | undefined;

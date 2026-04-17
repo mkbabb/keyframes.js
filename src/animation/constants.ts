@@ -1,8 +1,12 @@
-import { easeInOutCubic, timingFunctions } from "../easing";
-import type { ValueArray, ValueUnit, InterpolatedVar } from "../units";
-import type { HueInterpolationMethod } from "@mkbabb/value.js";
-export type { InterpolatedVar } from "../units";
-export type { HueInterpolationMethod } from "@mkbabb/value.js";
+import {
+    easeInOutCubic,
+    timingFunctions,
+    type HueInterpolationMethod,
+    type InterpolatedVar,
+    type ValueArray,
+    type ValueUnit,
+} from "@mkbabb/value.js";
+export type { HueInterpolationMethod, InterpolatedVar } from "@mkbabb/value.js";
 
 export const DIRECTIONS = [
     "normal",
