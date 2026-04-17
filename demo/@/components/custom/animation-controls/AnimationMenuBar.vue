@@ -5,7 +5,6 @@
             'fixed left-0 right-0 z-dock',
         ]"
         style="bottom: var(--work-area-bottom-offset, 0px);"
-        @pointerdown="onWrapperPointerDown"
     >
         <GlassDock ref="dockRef" :collapse-delay="2500" :start-collapsed="true" :fit-content="true">
             <!-- Expanded state: full controls -->
@@ -21,8 +20,9 @@
                                 }
                             "
                         >
-                            <SelectTrigger
-                                class="dock-select-trigger border-none h-auto focus:ring-0 instrument-serif text-lg bg-transparent"
+                            <DockSelectTrigger
+                                aria-label="Select animation"
+                                class="instrument-serif text-lg"
                             >
                                 <SelectIcon v-if="!storedControls.selectedAnimation"
                                     ><List></List
@@ -30,7 +30,7 @@
                                 <SelectValue class="text-ellipsis">{{
                                     storedControls.selectedAnimation
                                 }}</SelectValue>
-                            </SelectTrigger>
+                            </DockSelectTrigger>
                             <SelectContent class="min-w-[12rem]">
                                 <SelectGroup class="instrument-serif text-xl">
                                     <template
@@ -63,25 +63,26 @@
                 <div class="dock-separator"></div>
 
                 <IconTooltip text="Reset animation">
-                    <button class="dock-icon-btn" @click="() => { resetIconSpin(); emit('reset', false); }">
+                    <DockIconButton title="Reset animation" @click="() => { resetIconSpin(); emit('reset', false); }">
                         <RotateCcw
                             ref="resetIconEl"
-                            class="w-5 h-5"
+                            class="icon-lg"
                         />
-                    </button>
+                    </DockIconButton>
                 </IconTooltip>
 
                 <IconTooltip text="Clear all & reload">
-                    <button class="dock-icon-btn" @click="() => { trashIconShake(); emit('reset', true); }">
+                    <DockIconButton title="Clear all & reload" @click="() => { trashIconShake(); emit('reset', true); }">
                         <Trash
                             ref="trashIconEl"
-                            class="w-5 h-5"
+                            class="icon-lg"
                         />
-                    </button>
+                    </DockIconButton>
                 </IconTooltip>
 
                 <IconTooltip :text="isPlaying ? 'Pause' : 'Play'">
                     <Button
+                        :aria-label="isPlaying ? 'Pause animation' : 'Play animation'"
                         :class="[
                             'dock-play-btn text-xl text-white rounded-full p-0',
                             'w-10 h-10 shrink-0',
@@ -89,8 +90,8 @@
                         ]"
                         @click="emit('togglePlay')"
                     >
-                        <Pause v-if="isPlaying" class="w-5 h-5" />
-                        <Play v-else class="w-5 h-5 pl-0.5" />
+                        <Pause v-if="isPlaying" class="icon-lg" />
+                        <Play v-else class="icon-lg pl-0.5" />
                     </Button>
                 </IconTooltip>
 
@@ -99,9 +100,9 @@
                     <div class="dock-separator"></div>
 
                     <IconTooltip text="Collapse timeline">
-                        <button class="dock-icon-btn" @click="emit('expandTimeline', false)">
-                            <Minimize2 class="w-5 h-5" />
-                        </button>
+                        <DockIconButton title="Collapse timeline" @click="emit('expandTimeline', false)">
+                            <Minimize2 class="icon-lg" />
+                        </DockIconButton>
                     </IconTooltip>
 
                     <span class="dock-label instrument-serif text-lg whitespace-nowrap">Timeline</span>
@@ -114,6 +115,7 @@
                     {{ storedControls.selectedAnimation }}
                 </span>
                 <Button
+                    :aria-label="isPlaying ? 'Pause animation' : 'Play animation'"
                     :class="[
                         'dock-play-btn text-white rounded-full p-0',
                         'w-8 h-8 shrink-0 text-sm',
@@ -121,8 +123,8 @@
                     ]"
                     @click.stop="onCollapsedPlayClick()"
                 >
-                    <Pause v-if="isPlaying" class="w-4 h-4" />
-                    <Play v-else class="w-4 h-4 pl-px" />
+                    <Pause v-if="isPlaying" class="icon-md" />
+                    <Play v-else class="icon-md pl-px" />
                 </Button>
             </template>
         </GlassDock>
@@ -141,11 +143,12 @@ import {
 } from "lucide-vue-next";
 
 import {
+    DockIconButton,
+    DockSelectTrigger,
     Select,
     SelectContent,
     SelectGroup,
     SelectItem,
-    SelectTrigger,
     SelectValue,
     Button,
     IconTooltip,
@@ -166,24 +169,6 @@ function onCollapsedPlayClick() {
     emit('togglePlay');
 }
 
-/** During dock transition, pointer-events:none on dock-layers makes clicks
- *  fall through to this wrapper. Fire togglePlay so the first click works. */
-function onWrapperPointerDown(e: PointerEvent) {
-    const el = dockRef.value?.$el as HTMLElement | undefined;
-    if (!el?.querySelector('.dock-transitioning')) return;
-    // Only intercept if the click is within the dock's visual bounds
-    const rect = el.getBoundingClientRect();
-    if (
-        e.clientX >= rect.left &&
-        e.clientX <= rect.right &&
-        e.clientY >= rect.top &&
-        e.clientY <= rect.bottom
-    ) {
-        e.stopPropagation();
-        emit('togglePlay');
-    }
-}
-
 const { storedControls, isPlaying, isStarted, animationProgress, animationNames } = defineProps<{
     storedControls: StoredAnimationGroupControlOptions;
     isPlaying: boolean;
@@ -199,13 +184,10 @@ const emit = defineEmits<{
     (e: "expandTimeline", expanded: boolean): void;
 }>();
 
+/** Set a single CSS custom property; the stylesheet computes gradient + shadow. */
 const dotStyle = (name: string): Record<string, string> => {
     const p = animationProgress[name] ?? 0;
-    const deg = p * 360;
-    return {
-        background: `conic-gradient(var(--color-progress) ${deg}deg, color-mix(in srgb, var(--color-progress) 15%, transparent) ${deg}deg)`,
-        boxShadow: `0 0 ${2 + p * 3}px ${p * 1.5}px color-mix(in srgb, var(--color-progress) 40%, transparent)`,
-    };
+    return { "--dot-p": String(p) };
 };
 
 /** Resolve a template ref to a raw HTMLElement (handles component instances). */
@@ -258,3 +240,18 @@ const trashIconShake = () => {
 
 defineExpose({ resetIconSpin, trashIconShake });
 </script>
+
+<style scoped>
+/* Progress dot: conic gradient + glow driven by --dot-p (0–1) custom property.
+   Avoids per-frame string allocation — only the property value changes. */
+.status-dot[style*="--dot-p"] {
+    --deg: calc(var(--dot-p) * 360deg);
+    --glow-spread: calc(2px + var(--dot-p) * 3px);
+    --glow-blur: calc(var(--dot-p) * 1.5px);
+    background: conic-gradient(
+        var(--color-progress) var(--deg),
+        color-mix(in srgb, var(--color-progress) 15%, transparent) var(--deg)
+    );
+    box-shadow: 0 0 var(--glow-spread) var(--glow-blur) color-mix(in srgb, var(--color-progress) 40%, transparent);
+}
+</style>

@@ -7,11 +7,12 @@ import { useMediaQuery } from "@vueuse/core";
 import { GlassDock, DockLayerGroup } from ".";
 import { usePopupMutex } from "@mkbabb/glass-ui";
 import {
+    DockIconButton,
+    DockSelectTrigger,
     Select,
     SelectContent,
     SelectGroup,
     SelectItem,
-    SelectTrigger,
     SelectValue,
 } from "@mkbabb/glass-ui";
 
@@ -75,7 +76,8 @@ watch(() => dockRef.value?.expanded, (isExpanded) => {
 });
 
 // ── Popup mutex: only one dropdown at a time ──
-const { isAnyOpen, popupModel } = usePopupMutex<"scene" | "controls">();
+const dockEl = computed(() => (dockRef.value?.$el as HTMLElement) ?? null);
+const { isAnyOpen, popupModel } = usePopupMutex<"scene" | "controls">({ rootEl: dockEl });
 const sceneSelectOpen = popupModel("scene");
 const controlsSelectOpen = popupModel("controls");
 
@@ -101,20 +103,20 @@ const activeLayer = computed(() => {
                     <!-- Main navigation layer -->
                     <div v-bind="layerProps('main')" class="flex items-center gap-2">
                         <!-- Controls collapse -->
-                        <button
+                        <DockIconButton
                             v-if="hasSelectedAnimation"
-                            class="dock-icon-btn"
+                            :title="isControlsPanelOpen ? 'Close controls' : 'Open controls'"
                             @click="emit('toggleControlsPanel')"
                         >
                             <template v-if="isMobile">
-                                <ChevronUp v-if="isControlsPanelOpen" class="w-5 h-5" />
-                                <ChevronDown v-else class="w-5 h-5" />
+                                <ChevronUp v-if="isControlsPanelOpen" class="icon-lg" />
+                                <ChevronDown v-else class="icon-lg" />
                             </template>
                             <template v-else>
-                                <PanelLeftClose v-if="isControlsPanelOpen" class="w-5 h-5" />
-                                <PanelLeftOpen v-else class="w-5 h-5" />
+                                <PanelLeftClose v-if="isControlsPanelOpen" class="icon-lg" />
+                                <PanelLeftOpen v-else class="icon-lg" />
                             </template>
-                        </button>
+                        </DockIconButton>
 
                         <div v-if="hasSelectedAnimation" class="dock-separator"></div>
 
@@ -126,15 +128,15 @@ const activeLayer = computed(() => {
                             @update:open="controlsSelectOpen = $event"
                             @update:model-value="(v) => emit('updateSelectedControl', String(v))"
                         >
-                            <SelectTrigger class="dock-select-trigger border-none h-auto focus:ring-0 bg-transparent instrument-serif text-lg gap-1 w-auto [&>span]:line-clamp-none [&>svg:last-child]:w-3 [&>svg:last-child]:h-3">
-                                <component :is="TAB_ICONS[allControlTabs.find(t => t.value === selectedControl)?.icon ?? 'SlidersHorizontal']" class="w-4 h-4 shrink-0 text-muted-foreground" />
+                            <DockSelectTrigger aria-label="Controls tab" class="instrument-serif text-lg [&>span]:line-clamp-none">
+                                <component :is="TAB_ICONS[allControlTabs.find(t => t.value === selectedControl)?.icon ?? 'SlidersHorizontal']" class="icon-md text-muted-foreground" />
                                 <SelectValue />
-                            </SelectTrigger>
+                            </DockSelectTrigger>
                             <SelectContent class="min-w-[12rem]">
                                 <SelectGroup class="instrument-serif text-xl">
                                     <SelectItem v-for="tab in allControlTabs" :key="tab.value" :value="tab.value" class="py-2 px-3" hide-indicator>
                                         <span class="flex items-center gap-2">
-                                            <component v-if="tab.icon && TAB_ICONS[tab.icon]" :is="TAB_ICONS[tab.icon]" class="w-4 h-4 shrink-0 text-muted-foreground" />
+                                            <component v-if="tab.icon && TAB_ICONS[tab.icon]" :is="TAB_ICONS[tab.icon]" class="icon-md text-muted-foreground" />
                                             <span :class="['status-dot', selectedControl === tab.value ? 'status-dot--active' : 'status-dot--idle']"></span>
                                             <span :class="selectedControl === tab.value ? 'font-bold' : ''">{{ tab.label }}</span>
                                         </span>
@@ -152,17 +154,17 @@ const activeLayer = computed(() => {
                             @update:open="sceneSelectOpen = $event"
                             @update:model-value="(id) => emit('switchScene', String(id))"
                         >
-                            <SelectTrigger class="dock-select-trigger border-none h-auto focus:ring-0 bg-transparent instrument-serif text-lg gap-1 w-auto [&>span]:line-clamp-none [&>svg:last-child]:w-3 [&>svg:last-child]:h-3">
+                            <DockSelectTrigger aria-label="Scene" class="instrument-serif text-lg [&>span]:line-clamp-none">
                                 <img v-if="sceneIcons[currentSceneId]" :src="sceneIcons[currentSceneId]" class="w-5 h-5 shrink-0 object-contain" />
-                                <Home v-else class="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                                <Home v-else class="icon-sm text-muted-foreground" />
                                 <SelectValue />
-                            </SelectTrigger>
+                            </DockSelectTrigger>
                             <SelectContent class="min-w-[12rem]">
                                 <SelectGroup class="instrument-serif text-xl">
                                     <SelectItem :value="homeSceneId" class="py-2 px-3" hide-indicator>
                                         <span class="flex items-center gap-2">
                                             <span :class="['status-dot', currentSceneId === homeSceneId ? 'status-dot--active' : 'status-dot--idle']"></span>
-                                            <Home class="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                                            <Home class="icon-sm text-muted-foreground" />
                                             <span :class="currentSceneId === homeSceneId ? 'font-bold' : ''">Home</span>
                                         </span>
                                     </SelectItem>
@@ -193,11 +195,11 @@ const activeLayer = computed(() => {
                 <!-- Collapsed state -->
                 <template #collapsed>
                     <img v-if="sceneIcons[currentSceneId]" :src="sceneIcons[currentSceneId]" class="w-5 h-5 shrink-0 object-contain" />
-                    <Home v-else class="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                    <Home v-else class="icon-sm text-muted-foreground" />
                     <span class="text-lg instrument-serif font-semibold text-foreground whitespace-nowrap">
                         {{ currentLabel }}
                     </span>
-                    <ChevronDown class="w-3 h-3 text-muted-foreground shrink-0" />
+                    <ChevronDown class="icon-xs text-muted-foreground" />
                 </template>
             </GlassDock>
         </div>

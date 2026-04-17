@@ -7,12 +7,12 @@
 /* ── Tab trigger variants (project-specific) ── */
 .tab-trigger-base {
     flex-shrink: 0;
+    background: transparent;
+    padding: 0.375rem 0.75rem;
+    font-size: var(--type-prose, 1.125rem);
+    line-height: 1.75rem;
     font-family: var(--font-serif);
     letter-spacing: 0.02em;
-    padding: 0.375rem 0.75rem;
-    font-size: 1.125rem;
-    line-height: 1.75rem;
-    background: transparent;
     transition: all var(--duration-fast) var(--ease-standard);
 }
 .tab-trigger-base[data-state="inactive"] {
@@ -48,8 +48,8 @@
 .btn-playback {
     height: 2rem;
     width: 100%;
-    border-radius: var(--radius-pill);
     gap: 0.5rem;
+    border-radius: var(--radius-pill);
     font-size: var(--type-body, 1rem);
     font-family: var(--font-serif);
     letter-spacing: 0.02em;
@@ -73,12 +73,44 @@
 .btn-playback:disabled {
     opacity: 0.5;
     pointer-events: none;
+    cursor: not-allowed;
+}
+.btn-playback[aria-pressed="true"] {
+    background: color-mix(in srgb, var(--primary) 15%, transparent);
+    border-color: color-mix(in srgb, var(--primary) 30%, var(--border));
 }
 
 /* ── Project-specific font aliases ── */
 .instrument-serif {
     font-family: var(--font-serif);
     letter-spacing: 0.02em;
+}
+
+/* ── Standalone demo layout (simple, square) ── */
+.demo-container {
+    display: grid;
+    --padding: 0.5rem;
+    padding: var(--padding);
+    min-height: calc(100% - 2 * var(--padding));
+    width: calc(100% - 2 * var(--padding));
+    grid-template-areas: "animation-controls box";
+    grid-template-columns: 1fr 2fr;
+    gap: 1rem;
+}
+
+.demo-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    --size: 12rem;
+    width: var(--size);
+    height: var(--size);
+    border-radius: var(--radius-lg);
+    font-weight: bold;
+    font-size: var(--type-body);
+    background-color: aquamarine;
+    box-shadow: 0 0 0 0.5rem color-mix(in srgb, var(--background) 50%, transparent);
 }
 
 /* ── Utilities ── */
@@ -112,17 +144,15 @@
 }
 
 .ppmycota-logo-lg {
-    background-image: url("@assets/ppmycota-logo-2.svg") !important;
+    background-image: url("@assets/ppmycota-logo-2.svg");
     background-size: cover;
-    filter: invert(55%) sepia(80%) saturate(1496%) hue-rotate(220deg) brightness(95%)
-        contrast(103%);
+    filter: var(--filter-brand-color);
 }
 
 .ppmycota-logo-sm {
-    background-image: url("@assets/ppmycota-logo-3.svg") !important;
+    background-image: url("@assets/ppmycota-logo-3.svg");
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
-    filter: invert(55%) sepia(80%) saturate(1496%) hue-rotate(220deg) brightness(95%)
-        contrast(103%);
+    filter: var(--filter-brand-color);
 }

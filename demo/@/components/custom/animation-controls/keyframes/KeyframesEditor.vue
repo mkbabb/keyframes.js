@@ -1,6 +1,6 @@
 <template>
     <div class="contents">
-        <Card class="p-0 m-0">
+        <Card class="glass-card p-0 m-0">
             <CardContent class="p-2 m-0 mt-0 grid gap-4 relative">
                 <template v-for="(s, i) in templateFrameStrings" :key="animation.templateFrames[i]?.id ?? i">
                     <KeyframeCard
@@ -472,23 +472,16 @@ onUnmounted(() => {
 
 <style scoped>
 .progress-bar {
-    --height: 0.5rem;
-
-    /* width: 100%; */
-
-    height: var(--height);
-
-    /* bottom: var(--offset); */
-    border-radius: var(--radius-md);
-    background-image: linear-gradient(
+    @apply h-2 rounded-md;
+    background: linear-gradient(
         to right,
-        #f00 0%,
-        #ff0 17%,
-        #0f0 33%,
-        #0ff 50%,
-        #00f 67%,
-        #f0f 83%,
-        #f00 100%
+        var(--rainbow-red) 0%,
+        var(--rainbow-yellow) 17%,
+        var(--rainbow-green) 33%,
+        hsl(180 80% 50%) 50%,
+        var(--rainbow-blue) 67%,
+        var(--rainbow-violet) 83%,
+        var(--rainbow-red) 100%
     );
 }
 </style>

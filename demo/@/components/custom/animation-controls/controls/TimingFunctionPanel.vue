@@ -7,7 +7,7 @@
                 class="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors mb-2 instrument-serif justify-self-start px-0 h-auto"
                 @click="emit('exitDetailPanel')"
             >
-                <ArrowLeft class="w-3.5 h-3.5" />
+                <ArrowLeft class="icon-sm" />
                 back to controls
             </Button>
 
@@ -25,7 +25,7 @@
                             <TooltipProvider :delay-duration="200">
                                 <Tooltip>
                                     <TooltipTrigger as-child>
-                                        <CopyButton class="hover:scale-105 w-4 h-4" :text="timingString" />
+                                        <CopyButton class="hover:scale-105 icon-md" :text="timingString" />
                                     </TooltipTrigger>
                                     <TooltipContent class="font-mono text-xs">
                                         Copy to clipboard

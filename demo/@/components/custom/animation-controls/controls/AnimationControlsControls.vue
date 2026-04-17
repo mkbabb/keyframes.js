@@ -73,9 +73,9 @@
                                     <label :class="['instrument-serif text-lg text-muted-foreground cursor-help', isDetailEasing ? 'gold-shimmer' : '']">easing</label>
                                 </IconTooltip>
                                 <IconTooltip text="Edit easing curve">
-                                    <button class="dock-icon-btn easing-edit-btn min-w-0 h-auto p-0.5" @click.stop="onEditIconClick(storedAnimationOptions.animationOptions.timingFunction as string)">
-                                        <Pencil class="w-3.5 h-3.5" />
-                                    </button>
+                                    <DockIconButton compact title="Edit easing curve" class="easing-edit-btn" @click.stop="onEditIconClick(storedAnimationOptions.animationOptions.timingFunction as string)">
+                                        <Pencil class="icon-sm" />
+                                    </DockIconButton>
                                 </IconTooltip>
                             </div>
                             <EasingSelect
@@ -102,7 +102,7 @@
                             >
                                 <span class="instrument-serif text-lg">advanced</span>
                                 <div class="flex items-center justify-end px-3">
-                                    <ChevronRight class="w-4 h-4 opacity-50" />
+                                    <ChevronRight class="icon-md opacity-50" />
                                 </div>
                             </div>
                         </div>
@@ -127,12 +127,14 @@
                     <div :class="['panel-row', advancedOpen && !showDetailPanel ? 'panel-row--active' : 'panel-row--inactive']">
                         <div class="panel-content grid grid-cols-[subgrid] items-start gap-x-3 gap-y-2 w-full">
                             <div class="col-span-2 flex items-center gap-1 mb-1">
-                                <button
-                                    class="dock-icon-btn min-w-0 h-auto p-0.5 text-muted-foreground"
+                                <DockIconButton
+                                    compact
+                                    title="Back"
+                                    class="text-muted-foreground"
                                     @click="advancedOpen = false"
                                 >
-                                    <ArrowLeft class="w-4 h-4" />
-                                </button>
+                                    <ArrowLeft class="icon-md" />
+                                </DockIconButton>
                                 <span class="instrument-serif text-lg text-muted-foreground">advanced</span>
                             </div>
 
@@ -174,7 +176,7 @@
 <script setup lang="ts">
 import { Animation } from "@src/animation/index";
 
-import { Card, CardContent, Input, Separator, IconTooltip, LabeledSelect, LabeledInput } from "@mkbabb/glass-ui";
+import { Card, CardContent, DockIconButton, Input, Separator, IconTooltip, LabeledSelect, LabeledInput } from "@mkbabb/glass-ui";
 
 import { ChevronRight, ArrowLeft, Pencil } from "lucide-vue-next";
 import TimingFunctionPanel from "./TimingFunctionPanel.vue";

@@ -73,13 +73,13 @@
                                         :class="RIBBON_BUTTON_CLASS"
                                         @click="activeKeyframesRef?.copyCSS?.()"
                                     >
-                                        <Copy class="w-3.5 h-3.5" /> Copy
+                                        <Copy class="icon-sm" /> Copy
                                     </Button>
                                     <Button size="sm" variant="outline"
                                         :class="RIBBON_BUTTON_CLASS"
                                         @click="activeKeyframesRef?.formatCSS?.()"
                                     >
-                                        <Sparkles class="w-3.5 h-3.5 text-[var(--color-gold)]" /> Format
+                                        <Sparkles class="icon-sm text-[var(--color-gold)]" /> Format
                                     </Button>
                                     <Button size="sm" variant="outline"
                                         :class="[
@@ -88,7 +88,7 @@
                                         ]"
                                         @click="activeKeyframesRef?.applyCSSStyles?.()"
                                     >
-                                        <Paintbrush class="w-3.5 h-3.5" :style="!activeKeyframesRef?.cssApplied ? { stroke: 'url(#rainbow-gradient)' } : {}" />
+                                        <Paintbrush class="icon-sm" :style="!activeKeyframesRef?.cssApplied ? { stroke: 'url(#rainbow-gradient)' } : {}" />
                                         Apply CSS
                                     </Button>
                                 </div>
@@ -99,25 +99,25 @@
                                         :class="RIBBON_BUTTON_CLASS"
                                         @click="activeTimelineRef?.snapshot?.()"
                                     >
-                                        <Camera class="w-3.5 h-3.5" /> Snapshot
+                                        <Camera class="icon-sm" /> Snapshot
                                     </Button>
                                     <Button size="sm" variant="outline"
                                         :class="RIBBON_BUTTON_CLASS"
                                         @click="activeTimelineRef?.openImportDialog?.()"
                                     >
-                                        <Download class="w-3.5 h-3.5" /> Import
+                                        <Download class="icon-sm" /> Import
                                     </Button>
                                     <Button size="sm" variant="outline"
                                         :class="RIBBON_BUTTON_CLASS"
                                         @click="activeTimelineRef?.exportCSS?.()"
                                     >
-                                        <Upload class="w-3.5 h-3.5" /> Export
+                                        <Upload class="icon-sm" /> Export
                                     </Button>
                                     <Button size="sm" variant="outline"
                                         :class="RIBBON_BUTTON_CLASS"
                                         @click="activeTimelineRef?.openAddCSSDialog?.()"
                                     >
-                                        <FilePlus2 class="w-3.5 h-3.5" /> Add CSS
+                                        <FilePlus2 class="icon-sm" /> Add CSS
                                     </Button>
                                 </div>
 
@@ -171,12 +171,12 @@
     <svg width="0" height="0" class="absolute">
         <defs>
             <linearGradient id="rainbow-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="hsl(0, 85%, 60%)" />
-                <stop offset="20%" stop-color="hsl(30, 90%, 55%)" />
-                <stop offset="40%" stop-color="hsl(55, 90%, 55%)" />
-                <stop offset="60%" stop-color="hsl(130, 70%, 50%)" />
-                <stop offset="80%" stop-color="hsl(210, 80%, 55%)" />
-                <stop offset="100%" stop-color="hsl(300, 75%, 60%)" />
+                <stop offset="0%" :style="{ stopColor: 'var(--rainbow-red)' }" />
+                <stop offset="20%" :style="{ stopColor: 'var(--rainbow-orange)' }" />
+                <stop offset="40%" :style="{ stopColor: 'var(--rainbow-yellow)' }" />
+                <stop offset="60%" :style="{ stopColor: 'var(--rainbow-green)' }" />
+                <stop offset="80%" :style="{ stopColor: 'var(--rainbow-blue)' }" />
+                <stop offset="100%" :style="{ stopColor: 'var(--rainbow-violet)' }" />
             </linearGradient>
         </defs>
     </svg>
@@ -441,9 +441,8 @@ function cycleAnimation(direction: number) {
     margin: auto;
 }
 
-/* ── Mobile: grid-template-rows drives height, child opacity fades ── */
+/* ── Mobile: grid-template-rows drives height, opacity fades ── */
 .controls-pane-wrapper {
-    --pane-duration: 0.35s;
     display: grid;
     /* Half dock-margin above dock + dock height + half dock-margin gap */
     margin-top: calc(var(--dock-margin) + var(--dock-icon-height));
@@ -452,19 +451,16 @@ function cycleAnimation(direction: number) {
 }
 .controls-pane-wrapper.controls-pane--open {
     grid-template-rows: 1fr;
-    transition: grid-template-rows var(--pane-duration) var(--ease-decelerate);
+    transition: grid-template-rows var(--duration-panel) var(--ease-out);
 }
 .controls-pane-wrapper.controls-pane--closed {
     grid-template-rows: 0fr;
     pointer-events: none;
-    transition: grid-template-rows var(--pane-duration) var(--ease-standard);
+    transition: grid-template-rows var(--duration-panel) var(--ease-standard);
 }
 .controls-pane {
-    /* min-height: 0 enables grid-template-rows: 0fr collapse.
-       overflow is managed by the template: overflow-hidden during collapse,
-       overflow-y-auto when fully open (via Tailwind class toggle). */
     min-height: 0;
-    transition: opacity var(--pane-duration) var(--ease-standard);
+    transition: opacity var(--duration-panel) var(--ease-standard);
 }
 .controls-pane--open .controls-pane {
     opacity: 1;
@@ -473,7 +469,7 @@ function cycleAnimation(direction: number) {
     opacity: 0;
 }
 
-/* ── Desktop ── */
+/* ── Desktop: springy pane-left slide ── */
 @media (min-width: 1024px) {
     .controls-pane-wrapper {
         max-height: none;
@@ -481,52 +477,32 @@ function cycleAnimation(direction: number) {
         margin-top: 0;
         padding-inline: 0;
         display: block;
-        transform-origin: center center;
         overflow: visible;
     }
     .controls-pane-wrapper.controls-pane--open {
-        transform: scale(1);
         visibility: visible;
         pointer-events: auto;
-        transition:
-            transform var(--duration-panel) var(--ease-spring),
-            visibility 0s 0s;
+        transition: visibility 0s 0s;
     }
     .controls-pane-wrapper.controls-pane--closed {
-        transform: scale(0.96);
         visibility: hidden;
         pointer-events: none;
-        transition:
-            transform var(--duration-panel) var(--ease-spring),
-            visibility 0s var(--duration-panel);
+        transition: visibility 0s var(--duration-slow);
     }
+    /* Spring in from left, ease out to left */
     .controls-pane--open .controls-pane {
-        opacity: 0.75;
+        opacity: 1;
+        transform: translateX(0);
         transition:
-            opacity var(--duration-panel) var(--ease-standard);
+            opacity var(--duration-normal) var(--ease-out),
+            transform var(--duration-slow) var(--spring-snappy);
     }
     .controls-pane--closed .controls-pane {
         opacity: 0;
+        transform: translateX(-110%) rotate(-2deg);
         transition:
-            opacity var(--duration-panel) var(--ease-standard);
-    }
-    /* Hovered via pane or dock: fully opaque */
-    .controls-pane--hovered.controls-pane--open .controls-pane {
-        opacity: 1;
-        transition:
-            opacity var(--duration-slow) var(--ease-decelerate);
-    }
-    .controls-pane--hovered.controls-pane--open {
-        transform: scale(1);
-        transition:
-            transform var(--duration-slow) var(--ease-decelerate);
-    }
-
-    .controls-pane :deep(.glass-card) {
-        transition: box-shadow var(--duration-slow) var(--ease-decelerate);
-    }
-    .controls-pane--hovered .controls-pane :deep(.glass-card) {
-        box-shadow: var(--shadow-card-hover);
+            opacity var(--duration-fast) var(--ease-in),
+            transform var(--duration-normal) var(--ease-out);
     }
 
     .controls-content {
@@ -550,17 +526,16 @@ function cycleAnimation(direction: number) {
         padding-inline: 0.75rem;
     }
 
-    .scroll-fade-top {
-        mask-image: linear-gradient(to bottom, transparent, black 2.5rem);
-        -webkit-mask-image: linear-gradient(to bottom, transparent, black 2.5rem);
-    }
-    .scroll-fade-bottom {
-        mask-image: linear-gradient(to bottom, black calc(100% - 2.5rem), transparent);
-        -webkit-mask-image: linear-gradient(to bottom, black calc(100% - 2.5rem), transparent);
+    /* Override glass-ui fade width for this pane's wider fade distance.
+       scroll-fade-both aliases scroll-fade-y (composable uses -both suffix). */
+    .scroll-fade-top,
+    .scroll-fade-bottom,
+    .scroll-fade-both {
+        --mask-fade-width: 2.5rem;
     }
     .scroll-fade-both {
-        mask-image: linear-gradient(to bottom, transparent, black 2.5rem, black calc(100% - 2.5rem), transparent);
-        -webkit-mask-image: linear-gradient(to bottom, transparent, black 2.5rem, black calc(100% - 2.5rem), transparent);
+        mask-image: linear-gradient(to bottom, transparent, black var(--mask-fade-width), black calc(100% - var(--mask-fade-width)), transparent);
+        -webkit-mask-image: linear-gradient(to bottom, transparent, black var(--mask-fade-width), black calc(100% - var(--mask-fade-width)), transparent);
     }
 }
 </style>

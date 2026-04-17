@@ -22,8 +22,8 @@
                 <span
                     :style="{
                         fontSize: `${asset.fontSize ?? 32}px`,
-                        fontFamily: asset.fontFamily ?? 'Fraunces',
-                        color: asset.color ?? '#1e293b',
+                        fontFamily: asset.fontFamily ?? 'var(--font-display)',
+                        color: asset.color ?? 'var(--foreground)',
                     }"
                     class="block w-full h-full flex items-center justify-center whitespace-nowrap"
                 >{{ asset.text ?? "Text" }}</span>
@@ -47,7 +47,7 @@
                     v-for="handle in RESIZE_HANDLES"
                     :key="handle.type"
                     :class="[
-                        'absolute w-2.5 h-2.5 bg-background border-2 border-primary rounded-sm z-30',
+                        'absolute w-2.5 h-2.5 bg-background border-2 border-primary rounded-sm z-bar',
                         handle.cursor,
                     ]"
                     :style="handle.style"
@@ -56,7 +56,7 @@
 
                 <!-- Rotation handle -->
                 <div
-                    class="absolute -top-8 left-1/2 -translate-x-1/2 flex flex-col items-center z-30"
+                    class="absolute -top-8 left-1/2 -translate-x-1/2 flex flex-col items-center z-bar"
                 >
                     <div
                         class="w-3.5 h-3.5 rounded-full bg-background border-2 border-primary cursor-grab"
@@ -89,15 +89,16 @@ const emit = defineEmits<{
 const viewportEl = useTemplateRef<HTMLElement>("viewportEl");
 const assetElMap: Record<string, HTMLElement> = shallowReactive({});
 
+const INSET = "var(--resize-handle-inset)";
 const RESIZE_HANDLES: { type: HandleType; style: Record<string, string>; cursor: string }[] = [
-    { type: "tl", style: { top: "-4px", left: "-4px" }, cursor: "cursor-nwse-resize" },
-    { type: "tr", style: { top: "-4px", right: "-4px" }, cursor: "cursor-nesw-resize" },
-    { type: "bl", style: { bottom: "-4px", left: "-4px" }, cursor: "cursor-nesw-resize" },
-    { type: "br", style: { bottom: "-4px", right: "-4px" }, cursor: "cursor-nwse-resize" },
-    { type: "t", style: { top: "-4px", left: "50%", transform: "translateX(-50%)" }, cursor: "cursor-ns-resize" },
-    { type: "b", style: { bottom: "-4px", left: "50%", transform: "translateX(-50%)" }, cursor: "cursor-ns-resize" },
-    { type: "l", style: { top: "50%", left: "-4px", transform: "translateY(-50%)" }, cursor: "cursor-ew-resize" },
-    { type: "r", style: { top: "50%", right: "-4px", transform: "translateY(-50%)" }, cursor: "cursor-ew-resize" },
+    { type: "tl", style: { top: INSET, left: INSET }, cursor: "cursor-nwse-resize" },
+    { type: "tr", style: { top: INSET, right: INSET }, cursor: "cursor-nesw-resize" },
+    { type: "bl", style: { bottom: INSET, left: INSET }, cursor: "cursor-nesw-resize" },
+    { type: "br", style: { bottom: INSET, right: INSET }, cursor: "cursor-nwse-resize" },
+    { type: "t", style: { top: INSET, left: "50%", transform: "translateX(-50%)" }, cursor: "cursor-ns-resize" },
+    { type: "b", style: { bottom: INSET, left: "50%", transform: "translateX(-50%)" }, cursor: "cursor-ns-resize" },
+    { type: "l", style: { top: "50%", left: INSET, transform: "translateY(-50%)" }, cursor: "cursor-ew-resize" },
+    { type: "r", style: { top: "50%", right: INSET, transform: "translateY(-50%)" }, cursor: "cursor-ew-resize" },
 ];
 
 const isSelected = (id: string) => props.selectedAssetIds.includes(id);

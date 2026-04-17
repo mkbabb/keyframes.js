@@ -28,8 +28,8 @@
                 @click="emit('togglePlay')"
             >
                 <span>{{ isAnimPlaying ? 'Pause' : 'Play' }}</span>
-                <Pause v-if="isAnimPlaying" class="w-4 h-4" />
-                <Play v-else class="w-4 h-4 pl-px" />
+                <Pause v-if="isAnimPlaying" class="icon-md" />
+                <Play v-else class="icon-md pl-px" />
             </Button>
             <Button
                 :class="[
@@ -43,7 +43,7 @@
                 <span>Reverse</span>
                 <ArrowLeftRight
                     :class="[
-                        'w-5 h-5 transition-transform duration-fast',
+                        'icon-lg transition-transform duration-fast',
                         userReversed ? 'scale-x-[-1]' : '',
                     ]"
                 />
@@ -147,17 +147,13 @@ onUnmounted(() => {
 
 <style scoped>
 /* Green-themed timeline slider using project color tokens */
-.timeline-green :deep(.slider-track) {
-    background-color: color-mix(in srgb, var(--color-slider-track) 15%, transparent);
+.timeline-green {
+    --slider-track-bg: color-mix(in srgb, var(--color-slider-track) 15%, transparent);
+    --slider-range-bg: color-mix(in srgb, var(--color-slider-track) 40%, transparent);
+    --slider-thumb-bg: var(--color-progress);
 }
-.timeline-green :deep(.slider-track > span) {
-    background-color: color-mix(in srgb, var(--color-slider-track) 40%, transparent) !important;
-}
-.timeline-green :deep(.slider-thumb) {
-    background-color: var(--color-progress) !important;
-}
-.timeline-green :deep(.slider-thumb:hover) {
-    background-color: color-mix(in srgb, var(--color-progress) 80%, transparent) !important;
+.timeline-green:hover {
+    --slider-thumb-bg: color-mix(in srgb, var(--color-progress) 80%, transparent);
 }
 </style>
 

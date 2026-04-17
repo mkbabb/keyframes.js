@@ -7,7 +7,7 @@
         >
             <div ref="containerEl" class="w-full h-full relative container-inline-size">
                 <div
-                    class="absolute top-1/2 left-[1.5rem] w-[calc(100%-3rem)] h-1 -translate-y-1/2 rounded-full bg-accent-red/20 pointer-events-none"
+                    class="absolute top-1/2 left-6 w-[calc(100%-3rem)] h-1 -translate-y-1/2 rounded-full bg-accent-red/20 pointer-events-none"
                 ></div>
 
                 <div
@@ -23,11 +23,11 @@
                 ></div>
 
                 <div
-                    class="absolute top-0 left-0 rounded-full z-10 h-full aspect-square bg-accent-red/30 shadow-sm pointer-events-none"
+                    class="absolute top-0 left-0 rounded-full z-content h-full aspect-square bg-accent-red/30 shadow-sm pointer-events-none"
                 ></div>
 
                 <div
-                    class="absolute top-0 translate-x-[calc(100cqw_-_100%)] rounded-full z-10 h-full aspect-square bg-accent-red/15 border-2 border-dashed border-accent-red/40 pointer-events-none"
+                    class="absolute top-0 translate-x-[calc(100cqw_-_100%)] rounded-full z-content h-full aspect-square bg-accent-red/15 border-2 border-dashed border-accent-red/40 pointer-events-none"
                 ></div>
             </div>
         </div>

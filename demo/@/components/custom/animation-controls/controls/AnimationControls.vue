@@ -66,7 +66,7 @@
                             class="gap-1.5 font-mono text-xs"
                             @click="storedControls.isTimelineExpanded = false"
                         >
-                            <Minimize2 class="w-3.5 h-3.5" />
+                            <Minimize2 class="icon-sm" />
                             Collapse
                         </Button>
                     </div>

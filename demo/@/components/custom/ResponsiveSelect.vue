@@ -49,7 +49,7 @@
                 <slot name="trigger" :value="modelValue">
                     {{ modelValue }}
                 </slot>
-                <ChevronDown class="w-4 h-4 shrink-0 opacity-50" />
+                <ChevronDown class="icon-md opacity-50" />
             </button>
             <DrawerContent>
                 <DrawerHeader v-if="title">

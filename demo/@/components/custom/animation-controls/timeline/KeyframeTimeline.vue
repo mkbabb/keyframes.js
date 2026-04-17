@@ -1,6 +1,6 @@
 <template>
     <div class="flex flex-col gap-3">
-    <Card :class="['w-full overflow-visible transition-all duration-fast', props.expanded ? 'border-0 shadow-none bg-transparent' : '']">
+    <Card :class="['w-full overflow-visible glass-card transition-shadow duration-normal', props.expanded ? 'border-0 shadow-none bg-transparent' : '']">
         <CardContent :class="['relative flex flex-col gap-3', props.expanded ? 'p-2 px-0' : 'p-4']">
         <!-- Pane action buttons -->
         <div class="flex items-center justify-end gap-1">
@@ -12,7 +12,7 @@
                     aria-label="Clear all keyframes"
                     @click="clear()"
                 >
-                    <Trash class="w-3.5 h-3.5" />
+                    <Trash class="icon-sm" />
                 </Button>
             </IconTooltip>
             <IconTooltip :text="props.expanded ? 'Collapse timeline' : 'Expand timeline'">
@@ -23,7 +23,7 @@
                     :aria-label="props.expanded ? 'Collapse timeline' : 'Expand timeline'"
                     @click="emit('toggleExpand')"
                 >
-                    <component :is="props.expanded ? Minimize2 : Maximize2" class="w-3.5 h-3.5" />
+                    <component :is="props.expanded ? Minimize2 : Maximize2" class="icon-sm" />
                 </Button>
             </IconTooltip>
         </div>
@@ -78,7 +78,7 @@
 
             <!-- Playhead -->
             <div
-                class="absolute top-0 h-full w-0.5 bg-primary z-10 pointer-events-none"
+                class="absolute top-0 h-full w-0.5 bg-primary z-content pointer-events-none"
                 :style="{ left: `${percentToPosition(scrubT * 100)}%` }"
             ></div>
 
@@ -87,7 +87,7 @@
                 <TooltipTrigger as-child>
                     <div
                         :class="[
-                            'keyframe-marker absolute top-1/2 -translate-x-1/2 -translate-y-1/2 z-20',
+                            'keyframe-marker absolute top-1/2 -translate-x-1/2 -translate-y-1/2 z-controls',
                             props.expanded ? 'w-6 h-6' : 'w-4 h-4',
                             'rotate-45 rounded-sm cursor-grab',
                             'border-2 transition-all',
@@ -163,7 +163,7 @@
                         aria-label="Remove keyframe"
                         @click="removeKeyframe(selectedKeyframeId!)"
                     >
-                        <X class="w-3 h-3" />
+                        <X class="icon-xs" />
                     </Button>
                 </div>
 

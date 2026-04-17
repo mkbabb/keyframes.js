@@ -4,7 +4,6 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-    --font-display: "Instrument Serif", Georgia, serif;
     --font-serif: "Instrument Serif", Georgia, serif;
     --font-mono: "Fira Code", monospace;
 
@@ -16,18 +15,24 @@
 :root {
     color-scheme: light;
 
-    /* ── Dock tokens (override glass-ui defaults if needed) ── */
+    /* ── Layout ── */
     --dock-icon-height: 2.75rem;
     --work-area-max-width: clamp(72rem, 94vw, 120rem);
     --work-area-max-height: clamp(44rem, 88dvh, 66rem);
     --work-area-height: min(100dvh, var(--work-area-max-height));
-    --work-area-top-offset: max(calc((100dvh - var(--work-area-height)) / 4), 0px);
+    /* ¼ offset: positions work area above visual center for balanced feel */
+    --work-area-vertical-bias: 4;
+    --work-area-top-offset: max(calc((100dvh - var(--work-area-height)) / var(--work-area-vertical-bias)), 0px);
     --work-area-bottom-offset: var(--work-area-top-offset);
 
+    /* ── Component offsets ── */
+    --caret-offset: 14px;
+    --resize-handle-inset: -4px;
+
     /* ── 3D axis color tokens ── */
-    --axis-x: rgb(218, 59, 59);
-    --axis-y: rgb(66, 175, 66);
-    --axis-z: rgb(61, 61, 235);
+    --axis-x: hsl(0 72% 54%);
+    --axis-y: hsl(120 47% 47%);
+    --axis-z: hsl(240 76% 58%);
     --axis-w: var(--foreground);
 
     /* ── Progress / slider color tokens ── */
@@ -37,6 +42,9 @@
     /* ── Accent red tokens ── */
     --accent-red: hsl(0 72% 63%);
     --accent-red-foreground: hsl(0 0% 100%);
+
+    /* ── Branding filter (approximates --ppmycota-primary via CSS filter) ── */
+    --filter-brand-color: invert(55%) sepia(80%) saturate(1496%) hue-rotate(220deg) brightness(95%) contrast(103%);
 }
 
 .dark {
@@ -52,7 +60,7 @@
         --work-area-max-width: 100dvw;
         --work-area-max-height: clamp(44rem, 94dvh, 64rem);
         --work-area-height: min(100dvh, var(--work-area-max-height));
-        --work-area-top-offset: max(calc((100dvh - var(--work-area-height)) / 4), 0px);
+        --work-area-top-offset: max(calc((100dvh - var(--work-area-height)) / var(--work-area-vertical-bias)), 0px);
         --work-area-bottom-offset: var(--work-area-top-offset);
     }
 }

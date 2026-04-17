@@ -213,7 +213,6 @@ const vCalendarSlots = computed(() => {
 		transform var(--vc-slide-duration) var(--vc-slide-timing),
 		opacity var(--vc-slide-duration) var(--vc-slide-timing),
 		-webkit-transform var(--vc-slide-duration) var(--vc-slide-timing);
-	-webkit-backface-visibility: hidden;
 	backface-visibility: hidden;
 	pointer-events: none;
 }

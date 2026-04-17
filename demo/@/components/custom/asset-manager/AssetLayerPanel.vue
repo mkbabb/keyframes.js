@@ -7,24 +7,24 @@
                 <DropdownMenu>
                     <DropdownMenuTrigger as-child>
                         <Button size="sm" variant="ghost" class="gap-1.5 h-6 px-2 font-mono text-xs">
-                            <Plus class="w-3 h-3" /> add
+                            <Plus class="icon-xs" /> add
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" class="font-mono text-xs">
                         <DropdownMenuItem @click="addAsset('rectangle')">
-                            <Square class="w-3.5 h-3.5 mr-2" /> Rectangle
+                            <Square class="icon-sm mr-2" /> Rectangle
                         </DropdownMenuItem>
                         <DropdownMenuItem @click="addAsset('circle')">
-                            <Circle class="w-3.5 h-3.5 mr-2" /> Circle
+                            <Circle class="icon-sm mr-2" /> Circle
                         </DropdownMenuItem>
                         <DropdownMenuItem @click="addAsset('text')">
-                            <Type class="w-3.5 h-3.5 mr-2" /> Text
+                            <Type class="icon-sm mr-2" /> Text
                         </DropdownMenuItem>
                         <DropdownMenuItem @click="addAsset('image')">
-                            <Image class="w-3.5 h-3.5 mr-2" /> Image
+                            <Image class="icon-sm mr-2" /> Image
                         </DropdownMenuItem>
                         <DropdownMenuItem @click="addAsset('svg')">
-                            <Code2 class="w-3.5 h-3.5 mr-2" /> SVG
+                            <Code2 class="icon-sm mr-2" /> SVG
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>

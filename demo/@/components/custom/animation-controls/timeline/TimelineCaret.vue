@@ -1,7 +1,7 @@
 <template>
     <div
         class="absolute flex flex-col items-center"
-        :style="{ left: `${position}%`, top: 'calc(50% + 14px)', transform: 'translateX(-50%)' }"
+        :style="{ left: `${position}%`, top: 'calc(50% + var(--caret-offset))', transform: 'translateX(-50%)' }"
     >
         <div
             v-if="!isEditing"

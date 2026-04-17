@@ -13,14 +13,14 @@
             >
                 <!-- Drag handle -->
                 <GripVertical
-                    class="w-3.5 h-3.5 text-muted-foreground/50 shrink-0 cursor-grab"
+                    class="icon-sm text-muted-foreground/50 cursor-grab"
                     @pointerdown.stop="emit('dragStart', $event, asset.id)"
                 />
 
                 <!-- Kind icon -->
                 <component
                     :is="kindIcon"
-                    class="w-3.5 h-3.5 text-muted-foreground shrink-0"
+                    class="icon-sm text-muted-foreground"
                 />
 
                 <!-- Name -->
@@ -41,11 +41,11 @@
                 >
                     <Eye
                         v-if="asset.visible"
-                        class="w-3.5 h-3.5 text-muted-foreground"
+                        class="icon-sm text-muted-foreground"
                     />
                     <EyeOff
                         v-else
-                        class="w-3.5 h-3.5 text-muted-foreground/40"
+                        class="icon-sm text-muted-foreground/40"
                     />
                 </Button>
 
@@ -59,11 +59,11 @@
                 >
                     <Lock
                         v-if="asset.locked"
-                        class="w-3.5 h-3.5 text-muted-foreground"
+                        class="icon-sm text-muted-foreground"
                     />
                     <Unlock
                         v-else
-                        class="w-3.5 h-3.5 text-muted-foreground/40"
+                        class="icon-sm text-muted-foreground/40"
                     />
                 </Button>
             </div>

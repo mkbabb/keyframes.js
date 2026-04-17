@@ -1,13 +1,15 @@
 <template>
     <Popover v-model:open="sharePopoverOpen">
         <PopoverTrigger as-child>
-            <Share2
-                title="Share"
+            <button
+                aria-label="Share animation"
                 :class="[
-                    'w-5 h-5 cursor-pointer hover:scale-105 transition-all duration-fast',
+                    'inline-flex items-center justify-center cursor-pointer hover:scale-105 transition-all duration-fast bg-transparent border-none p-0',
                     sharePopoverOpen ? 'opacity-100' : 'hover:opacity-50',
                 ]"
-            />
+            >
+                <Share2 class="icon-lg" />
+            </button>
         </PopoverTrigger>
         <PopoverContent class="z-popover w-72 p-2" align="start" :side-offset="8">
             <div class="flex items-center gap-1.5">
@@ -24,7 +26,7 @@
                     @click="loadFromInput"
                     title="Load shared state"
                 >
-                    <ArrowRight class="w-4 h-4" />
+                    <ArrowRight class="icon-md" />
                 </Button>
                 <Button
                     size="sm"
@@ -33,7 +35,7 @@
                     @click="shareState"
                     title="Copy share link"
                 >
-                    <Clipboard class="w-4 h-4" />
+                    <Clipboard class="icon-md" />
                 </Button>
             </div>
         </PopoverContent>

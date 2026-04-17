@@ -110,10 +110,15 @@ export function useKeyframesEditor(
                 const { options, values, keyframes } =
                     parseCSSAnimationKeyframes(keyframesString);
 
+                // Old callsite passed the already-parsed `keyframes`
+                // map to `fromString`, which technically expected a
+                // string. The keyframes-map flow uses `fromKeyframes`,
+                // which accepts a `Map<percent, vars>` directly and
+                // skips the redundant re-parse.
                 const tmpAnimation = new CSSKeyframesAnimation(
                     options,
                     ...animation.targets,
-                ).fromString(keyframes);
+                ).fromKeyframes(keyframes as any);
 
                 animation.options = tmpAnimation.options;
                 animation.templateFrames = tmpAnimation.templateFrames;
