@@ -1,52 +1,8 @@
-import { bezierPresets } from '@mkbabb/value.js';
-import { bounceInEase } from '@mkbabb/value.js';
-import { bounceInEaseHalf } from '@mkbabb/value.js';
-import { bounceInOutEase } from '@mkbabb/value.js';
-import { bounceOutEase } from '@mkbabb/value.js';
-import { bounceOutEaseHalf } from '@mkbabb/value.js';
-import { cancelAnimationFrame as cancelAnimationFrame_2 } from '@mkbabb/value.js';
-import { clamp } from '@mkbabb/value.js';
-import { CSSCubicBezier } from '@mkbabb/value.js';
-import { cubicBezier } from '@mkbabb/value.js';
-import { cubicBezierToString } from '@mkbabb/value.js';
-import { cubicBezierToSVG } from '@mkbabb/value.js';
-import { deCasteljau } from '@mkbabb/value.js';
-import { easeInBounce } from '@mkbabb/value.js';
-import { easeInCirc } from '@mkbabb/value.js';
-import { easeInCubic } from '@mkbabb/value.js';
-import { easeInExpo } from '@mkbabb/value.js';
-import { easeInOutCirc } from '@mkbabb/value.js';
-import { easeInOutCubic } from '@mkbabb/value.js';
-import { easeInOutExpo } from '@mkbabb/value.js';
-import { easeInOutQuad } from '@mkbabb/value.js';
-import { easeInOutSine } from '@mkbabb/value.js';
-import { easeInQuad } from '@mkbabb/value.js';
-import { easeInSine } from '@mkbabb/value.js';
-import { easeOutCirc } from '@mkbabb/value.js';
-import { easeOutCubic } from '@mkbabb/value.js';
-import { easeOutExpo } from '@mkbabb/value.js';
-import { easeOutQuad } from '@mkbabb/value.js';
-import { easeOutSine } from '@mkbabb/value.js';
+import { extractAnimationOptions } from '@mkbabb/value.js';
 import { HueInterpolationMethod } from '@mkbabb/value.js';
-import { interpBezier } from '@mkbabb/value.js';
 import { InterpolatedVar } from '@mkbabb/value.js';
-import { jumpTerms } from '@mkbabb/value.js';
-import { lerp } from '@mkbabb/value.js';
-import { linear } from '@mkbabb/value.js';
-import { logerp } from '@mkbabb/value.js';
-import { parseCSSPercent } from '@mkbabb/value.js';
-import { parseCSSStylesheet } from '@mkbabb/value.js';
-import { parseCSSTime } from '@mkbabb/value.js';
 import { PropertyDescriptor as PropertyDescriptor_2 } from '@mkbabb/value.js';
-import { requestAnimationFrame as requestAnimationFrame_2 } from '@mkbabb/value.js';
-import { scale } from '@mkbabb/value.js';
-import { sleep } from '@mkbabb/value.js';
-import { smoothStep3 } from '@mkbabb/value.js';
-import { stepEnd } from '@mkbabb/value.js';
-import { steppedEase } from '@mkbabb/value.js';
-import { stepStart } from '@mkbabb/value.js';
 import { Stylesheet } from '@mkbabb/value.js';
-import { timingFunctionDescriptions } from '@mkbabb/value.js';
 import { timingFunctions } from '@mkbabb/value.js';
 import { ValueArray } from '@mkbabb/value.js';
 import { ValueUnit } from '@mkbabb/value.js';
@@ -142,7 +98,7 @@ declare class Animation_2<V extends Vars = any> {
      * @param transformFrames - If true, applies each frame's transform function to targets
      * @returns Merged flat vars from all active frames
      */
-    interpFrames(t: number, transformFrames?: boolean): Record<string, ValueUnit[]>;
+    interpFrames(t: number, transformFrames?: boolean): Record<string, ValueUnit<any, string | undefined>[]>;
     onStart(): Promise<void>;
     onEnd(): Promise<void>;
     tick(t: number): Promise<number>;
@@ -333,25 +289,7 @@ export declare type AnimationOptions = {
     hueMethod?: HueInterpolationMethod;
 };
 
-export { bezierPresets }
-
 export declare type BlendMode = "replace" | "add" | "weighted";
-
-export { bounceInEase }
-
-export { bounceInEaseHalf }
-
-export { bounceInOutEase }
-
-export { bounceOutEase }
-
-export { bounceOutEaseHalf }
-
-export { cancelAnimationFrame_2 as cancelAnimationFrame }
-
-export { clamp }
-
-export { CSSCubicBezier }
 
 export declare class CSSKeyframesAnimation<V extends Vars> extends Animation_2<V> {
     constructor(options?: Partial<InputAnimationOptions>, ...targets: HTMLElement[]);
@@ -369,51 +307,11 @@ export declare class CSSKeyframesAnimation<V extends Vars> extends Animation_2<V
     transform(vars: V): void;
 }
 
-export { cubicBezier }
-
-export { cubicBezierToString }
-
-export { cubicBezierToSVG }
-
-export { deCasteljau }
-
 export declare const defaultLayerConfig: AnimationLayerConfig;
 
 export declare const defaultOptions: AnimationOptions;
 
 export declare const DIRECTIONS: readonly ["normal", "reverse", "alternate", "alternate-reverse"];
-
-export { easeInBounce }
-
-export { easeInCirc }
-
-export { easeInCubic }
-
-export { easeInExpo }
-
-export { easeInOutCirc }
-
-export { easeInOutCubic }
-
-export { easeInOutExpo }
-
-export { easeInOutQuad }
-
-export { easeInOutSine }
-
-export { easeInQuad }
-
-export { easeInSine }
-
-export { easeOutCirc }
-
-export { easeOutCubic }
-
-export { easeOutExpo }
-
-export { easeOutQuad }
-
-export { easeOutSine }
 
 /**
  * Interpolate position and scale between two elements or rects.
@@ -491,17 +389,7 @@ export declare type InputAnimationOptions = Partial<{
     hueMethod?: HueInterpolationMethod;
 }>;
 
-export { interpBezier }
-
 export { InterpolatedVar }
-
-export { jumpTerms }
-
-export { lerp }
-
-export { linear }
-
-export { logerp }
 
 export declare class ManualTimeline extends Timeline {
     private value;
@@ -585,19 +473,37 @@ export declare interface NumericAnimationOptions {
 /** Callback invoked each frame during `.play()` with the interpolated values. */
 export declare type NumericFrameCallback<T extends Record<string, number>> = (values: T) => void;
 
-export { parseCSSPercent }
-
-export { parseCSSStylesheet }
-
-export { parseCSSTime }
-
 declare type ParsedVarMap = Record<string, ValueArray>;
 
-export { PropertyDescriptor_2 as PropertyDescriptor }
+/**
+ * Result of normalising a CSS keyframes input down to the shape the
+ * `CSSKeyframesAnimation.fromString` flow expects: a `Map<percent →
+ * vars>` of ready-to-add frames, plus side data (per-keyframe timing
+ * functions, the `@property` registry, and any animation-shorthand
+ * options that came from a sibling style rule).
+ */
+export declare interface ResolvedKeyframes {
+    /** percent-string → flat `{prop: value}` snapshot */
+    keyframes: Map<string, Record<string, unknown>>;
+    /** per-keyframe `animation-timing-function`, keyed by percent string */
+    timingFunctions: Map<string, string>;
+    /** `@property --foo { ... }` registry */
+    properties: Map<string, PropertyDescriptor_2>;
+    /**
+     * Animation options recovered from a top-level style rule's
+     * `animation` shorthand or longhand declarations (if any). Empty
+     * when the input has no matching style rule.
+     */
+    options: ReturnType<typeof extractAnimationOptions>;
+}
 
-export { requestAnimationFrame_2 as requestAnimationFrame }
-
-export { scale }
+/**
+ * Normalise a CSS string (or pre-parsed Stylesheet) into the shape
+ * `CSSKeyframesAnimation.fromString` consumes. The single entry
+ * point: replaces the legacy `parseCSSKeyframes` /
+ * `parseCSSStyleBlock` / `parseCSSAnimationKeyframes` fork.
+ */
+export declare const resolveKeyframes: (input: string | Stylesheet) => ResolvedKeyframes;
 
 export declare class ScrollTimeline extends Timeline {
     private threshold;
@@ -615,8 +521,6 @@ export declare interface ScrollTimelineOptions extends TimelineOptions {
     /** Custom viewport height supplier. Default: window.innerHeight. */
     getViewportHeight?: (() => number) | undefined;
 }
-
-export { sleep }
 
 export declare class SmoothProgress {
     private options;
@@ -654,16 +558,6 @@ export declare interface SmoothProgressOptions {
     /** Clamp current to [0, 1]. Default true */
     clamp: boolean;
 }
-
-export { smoothStep3 }
-
-export { stepEnd }
-
-export { steppedEase }
-
-export { stepStart }
-
-export { Stylesheet }
 
 export declare interface TemplateAnimationFrame<V extends Vars> {
     id: number;
@@ -728,11 +622,7 @@ export declare interface TimelineOptions {
 
 export declare type TimingFunction = (t: number) => number;
 
-export { timingFunctionDescriptions }
-
 export declare type TimingFunctionNames = keyof typeof timingFunctions;
-
-export { timingFunctions }
 
 export declare type TransformFunction<V extends Vars> = (v: V, t: number) => void;
 

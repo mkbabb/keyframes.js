@@ -19,62 +19,10 @@ import {
 } from "@mkbabb/value.js";
 import { binarySearchRange } from "./internal/binarySearch";
 
-// Public API re-exports of value.js primitives the keyframes.js
-// surface has historically exposed. Wave 4 will trim these once
-// downstream consumers migrate to importing from @mkbabb/value.js
-// directly. Kept narrow and explicit — no wildcard re-exports.
-export {
-    cancelAnimationFrame,
-    parseCSSPercent,
-    parseCSSStylesheet,
-    parseCSSTime,
-    requestAnimationFrame,
-    sleep,
-    type PropertyDescriptor,
-    type Stylesheet,
-} from "@mkbabb/value.js";
-export {
-    bezierPresets,
-    bounceInEase,
-    bounceInEaseHalf,
-    bounceInOutEase,
-    bounceOutEase,
-    bounceOutEaseHalf,
-    clamp,
-    cubicBezier,
-    cubicBezierToSVG,
-    cubicBezierToString,
-    CSSCubicBezier,
-    deCasteljau,
-    easeInBounce,
-    easeInCirc,
-    easeInCubic,
-    easeInExpo,
-    easeInOutCirc,
-    easeInOutCubic,
-    easeInOutExpo,
-    easeInOutQuad,
-    easeInOutSine,
-    easeInQuad,
-    easeInSine,
-    easeOutCirc,
-    easeOutCubic,
-    easeOutExpo,
-    easeOutQuad,
-    easeOutSine,
-    interpBezier,
-    jumpTerms,
-    lerp,
-    linear,
-    logerp,
-    scale,
-    smoothStep3,
-    stepEnd,
-    stepStart,
-    steppedEase,
-    timingFunctionDescriptions,
-    timingFunctions,
-} from "@mkbabb/value.js";
+// keyframes.js's public surface is now strictly animation-domain.
+// Value-level primitives (easings, math, parsing, normalize, lerp,
+// ValueUnit/Color/etc.) have a single canonical home in
+// @mkbabb/value.js — consumers import them there.
 import { resolveKeyframes } from "./adapter";
 export { resolveKeyframes } from "./adapter";
 export type { ResolvedKeyframes } from "./adapter";

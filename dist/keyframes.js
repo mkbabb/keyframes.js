@@ -1,7 +1,6 @@
-import { parseCSSStylesheet as k, extractAnimationOptions as tt, extractProperties as W, extractKeyframes as P, easeInOutCubic as z, lerp as B, requestAnimationFrame as g, cancelAnimationFrame as T, clamp as V, CSSFunction as j, CSSValues as I, memoize as A, extractStyleRules as et, parseCSSValue as st, hyphenToCamelCase as M, CSSCubicBezier as it, timingFunctions as N, ValueUnit as y, prepareInterpVar as rt, normalizeValueUnits as nt, flattenObject as Y, unflattenObjectToString as q, ValueArray as v, FunctionValue as H, tryParse as at, scale as G, COMPUTED_UNITS as ot, convertToMs as lt, parseCSSValueUnit as ht, seekPreviousValue as D, unflattenObject as ut, parseCSSTime as $, sleep as ct, isObject as ft, lerpValue as pt } from "@mkbabb/value.js";
-import { CSSCubicBezier as ne, bezierPresets as ae, bounceInEase as oe, bounceInEaseHalf as le, bounceInOutEase as he, bounceOutEase as ue, bounceOutEaseHalf as ce, cancelAnimationFrame as fe, clamp as pe, cubicBezier as me, cubicBezierToSVG as de, cubicBezierToString as ge, deCasteljau as ye, easeInBounce as be, easeInCirc as ve, easeInCubic as we, easeInExpo as Fe, easeInOutCirc as Ve, easeInOutCubic as Se, easeInOutExpo as Te, easeInOutQuad as Ie, easeInOutSine as Ee, easeInQuad as ke, easeInSine as Pe, easeOutCirc as Ae, easeOutCubic as Oe, easeOutExpo as Me, easeOutQuad as _e, easeOutSine as Ce, interpBezier as xe, jumpTerms as je, lerp as De, linear as $e, logerp as Re, parseCSSPercent as Ke, parseCSSStylesheet as Le, parseCSSTime as Ue, requestAnimationFrame as We, scale as ze, sleep as Be, smoothStep3 as Ne, stepEnd as Ye, stepStart as qe, steppedEase as He, timingFunctionDescriptions as Ge, timingFunctions as Xe } from "@mkbabb/value.js";
-import { any as mt } from "@mkbabb/parse-that";
-function X(i, t, e, s) {
+import { parseCSSStylesheet as Y, extractAnimationOptions as q, extractProperties as z, extractKeyframes as B, easeInOutCubic as x, lerp as j, requestAnimationFrame as g, cancelAnimationFrame as I, clamp as V, CSSCubicBezier as H, timingFunctions as C, ValueUnit as y, prepareInterpVar as X, normalizeValueUnits as G, flattenObject as D, unflattenObjectToString as $, ValueArray as w, FunctionValue as R, CSSFunction as Z, tryParse as J, CSSValues as Q, scale as K, COMPUTED_UNITS as tt, convertToMs as et, parseCSSValueUnit as st, seekPreviousValue as k, unflattenObject as it, parseCSSTime as A, sleep as rt, isObject as nt, lerpValue as at } from "@mkbabb/value.js";
+import { any as ot } from "@mkbabb/parse-that";
+function L(i, t, e, s) {
   let r = 0, n = i.length - 1;
   for (; r <= n; ) {
     const a = r + n >> 1, o = i[a];
@@ -11,31 +10,31 @@ function X(i, t, e, s) {
   }
   return -1;
 }
-const dt = (i) => {
+const lt = (i) => {
   const t = {};
   for (const e of i.declarations)
     t[e.name] = e.value;
   return t;
-}, gt = (i) => {
+}, ht = (i) => {
   const t = [];
   for (const e of i.selectors)
     e.kind === "percent" ? t.push(`${e.value}%`) : t.push(e.name);
   return t;
-}, yt = (i) => {
-  const t = P(i);
+}, ut = (i) => {
+  const t = B(i);
   for (const e of t.values())
     if (e.length > 0) return e;
   return [];
-}, bt = (i) => {
+}, ct = (i) => {
   const t = i.trim();
   return /@keyframes\b/i.test(t) || t.length === 0 ? i : `@keyframes anonymous {
 ${t}
 }`;
-}, vt = (i) => {
-  const t = typeof i == "string" ? k(bt(i)) : i, e = yt(t), s = /* @__PURE__ */ new Map(), r = /* @__PURE__ */ new Map();
+}, ft = (i) => {
+  const t = typeof i == "string" ? Y(ct(i)) : i, e = ut(t), s = /* @__PURE__ */ new Map(), r = /* @__PURE__ */ new Map();
   for (const n of e) {
-    const a = dt(n);
-    for (const o of gt(n)) {
+    const a = lt(n);
+    for (const o of ht(n)) {
       const l = s.get(o);
       s.set(o, { ...l ?? {}, ...a }), n.timingFunction != null && r.set(o, n.timingFunction);
     }
@@ -43,30 +42,30 @@ ${t}
   return {
     keyframes: s,
     timingFunctions: r,
-    properties: W(t),
-    options: tt(t)
+    properties: z(t),
+    options: q(t)
   };
-}, Qt = [
+}, Lt = [
   "normal",
   "reverse",
   "alternate",
   "alternate-reverse"
-], Zt = ["none", "forwards", "backwards", "both"], wt = {
+], Ut = ["none", "forwards", "backwards", "both"], pt = {
   duration: 1e3,
   delay: 0,
   iterationCount: 1,
   direction: "normal",
   fillMode: "forwards",
-  timingFunction: z,
+  timingFunction: x,
   useWAAPI: !0,
   colorSpace: "oklab"
-}, Ft = {
+}, dt = {
   zIndex: 0,
   weight: 1,
   blendMode: "replace",
   enabled: !0
-}, S = (i) => typeof i != "object" || i == null ? !1 : "value" in i && typeof i.value == "number";
-class Vt {
+}, T = (i) => typeof i != "object" || i == null ? !1 : "value" in i && typeof i.value == "number";
+class mt {
   animations = {};
   transform;
   superKey;
@@ -93,12 +92,12 @@ class Vt {
     const e = [];
     for (const s of t) {
       let r, n;
-      s instanceof J ? r = s : (r = s.animation, n = s.layer), this.transform == null && r.frames[0] != null && (this.transform = r.frames[0].transform);
-      const a = O(r);
+      s instanceof W ? r = s : (r = s.animation, n = s.layer), this.transform == null && r.frames[0] != null && (this.transform = r.frames[0].transform);
+      const a = E(r);
       this.animations[a] = {
         values: {},
         animation: r,
-        layer: { ...Ft, ...n }
+        layer: { ...dt, ...n }
       }, r.managed = !0, e.push(r);
     }
     this.singleTarget = e.every(
@@ -171,7 +170,7 @@ class Vt {
           for (const [h, c] of Object.entries(u))
             if (h in e) {
               const f = e[h], p = c;
-              S(f) && S(p) ? f.value = f.value + p.value : e[h] = c;
+              T(f) && T(p) ? f.value = f.value + p.value : e[h] = c;
             } else
               e[h] = c;
           break;
@@ -179,7 +178,7 @@ class Vt {
           for (const [h, c] of Object.entries(u))
             if (h in e) {
               const f = e[h], p = c;
-              S(f) && S(p) ? f.value = B(
+              T(f) && T(p) ? f.value = j(
                 l.weight,
                 f.value,
                 p.value
@@ -268,7 +267,7 @@ class Vt {
       const s = e.animation;
       this.paused ? (s.pause(!1), s.pausedTime === 0 && (s.pausedTime = t)) : s.paused = !1;
     }
-    return this.paused ? (T(this.handleId), this.handleId = void 0, this.renderPauseFrame()) : this.handleId = g(this._boundDraw), this;
+    return this.paused ? (I(this.handleId), this.handleId = void 0, this.renderPauseFrame()) : this.handleId = g(this._boundDraw), this;
   }
   reset() {
     for (const t of this.getEntries()) {
@@ -278,7 +277,7 @@ class Vt {
     return this.started = !1, this.done = !1, this.paused = !1, this.lastTickTime = 0, this;
   }
   stop() {
-    return T(this.handleId), this.handleId = void 0, this.reset(), this;
+    return I(this.handleId), this.handleId = void 0, this.reset(), this;
   }
   playing() {
     return !(!this.started || this.paused);
@@ -300,7 +299,7 @@ class Vt {
    * animation — silent no-ops were hiding consumer bugs.
    */
   setLayerConfig(t, e) {
-    const s = typeof t == "string" ? t : O(t), r = this.animations[s];
+    const s = typeof t == "string" ? t : E(t), r = this.animations[s];
     if (!r)
       throw new Error(
         `AnimationGroup.setLayerConfig: no animation registered for key "${s}". Known keys: ${Object.keys(this.animations).join(", ") || "(none)"}.`
@@ -313,11 +312,11 @@ class Vt {
   }
   /** Read the layer config for an animation. */
   getLayerConfig(t) {
-    const e = typeof t == "string" ? t : O(t);
+    const e = typeof t == "string" ? t : E(t);
     return this.animations[e]?.layer;
   }
 }
-class St {
+class gt {
   // `requestAnimationFrame` returns `number` in browsers but the
   // shared `requestAnimationFrame` shim falls back to `setTimeout`
   // in non-DOM environments (jsdom/Node) which returns
@@ -348,7 +347,7 @@ class St {
   }
   /** Cancel a running playback. The play promise resolves immediately. */
   stop() {
-    this._rafId !== null && T(this._rafId), this._cleanup();
+    this._rafId !== null && I(this._rafId), this._cleanup();
   }
   _cleanup() {
     this._rafId = null, this._startTime = void 0;
@@ -356,176 +355,89 @@ class St {
     this._resolve = null, t?.();
   }
 }
-const R = {
-  Value: I.Value,
-  Values: I.Values,
-  FunctionArgs: j.FunctionArgs,
-  Function: j.Function
-}, Tt = (i) => {
-  const t = {};
-  for (const e of i.declarations) {
-    const s = e.name.startsWith("--") ? e.name : M(e.name);
-    t[s] = e.value;
-  }
-  return i.timingFunction != null && (t.animationTimingFunction = i.timingFunction), t;
-}, _ = (i) => {
-  const t = /* @__PURE__ */ new Map();
-  for (const e of i) {
-    const s = Tt(e);
-    for (const r of e.selectors) {
-      const n = r.kind === "percent" ? `${r.value}%` : r.name, a = t.get(n);
-      t.set(n, { ...a ?? {}, ...s });
-    }
-  }
-  return t;
-}, C = (i) => {
-  const t = i.trim();
-  return /@keyframes\b/i.test(t) || t.length === 0 ? i : `@keyframes anonymous {
-${t}
-}`;
-}, It = (i) => {
-  const t = k(C(i));
-  for (const e of P(t).values())
-    if (e.length > 0) return e;
-  return [];
-};
-A(
-  (i) => _(It(i))
-);
-const Et = (i) => {
-  const t = {};
-  for (const e of i) {
-    if (!e.name.startsWith("animation")) continue;
-    const s = M(e.name).replace(/^animation/, "").replace(/^./, (r) => r.toLowerCase());
-    t[s] = e.value.toString();
-  }
-  return t;
-}, kt = (i) => {
-  const t = {};
-  for (const e of i) {
-    if (e.name.startsWith("animation")) continue;
-    const s = e.name.startsWith("--") ? e.name : M(e.name);
-    t[s] = e.value;
-  }
-  return t;
-};
-A(
-  (i) => {
-    const t = k(C(i)), e = _(
-      (() => {
-        for (const l of P(t).values())
-          if (l.length > 0) return l;
-        return [];
-      })()
-    ), s = et(t);
-    if (s.length === 0)
-      return { keyframes: e };
-    const r = s[0], n = { keyframes: e }, a = Et(r.declarations), o = kt(r.declarations);
-    return Object.keys(a).length > 0 && (n.options = a), Object.keys(o).length > 0 && (n.values = o), n;
-  }
-);
-A(
-  (i) => {
-    const t = k(C(i));
-    return {
-      properties: W(t),
-      keyframes: _(
-        (() => {
-          for (const e of P(t).values())
-            if (e.length > 0) return e;
-          return [];
-        })()
-      )
-    };
-  }
-);
-A(
-  (i) => st(i)
-);
-I.Value, I.Values;
-const w = (i) => {
+const v = (i) => {
   if (i instanceof y)
     return [i.clone()];
-  if (i instanceof H)
-    return i.values.flatMap((t) => w(t));
-  if (i instanceof v)
-    return i.flatMap((t) => w(t));
+  if (i instanceof R)
+    return i.values.flatMap((t) => v(t));
+  if (i instanceof w)
+    return i.flatMap((t) => v(t));
   throw new TypeError(
     `Expected ValueUnit/FunctionValue/ValueArray, got ${typeof i}`
   );
-}, Pt = (i) => {
+}, yt = (i) => {
   const t = i.split(".").pop(), e = i.split(".").shift();
   if (!t || !e)
     throw new Error(`Invalid flattened key: ${i}`);
   return { mainKey: e, childKey: t };
-}, F = (i, t, e) => (i.setProperty(t), e !== t && i.setSubProperty(e), i), At = /^\s*cubic-bezier\s*\(\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*\)\s*$/i, E = (i) => {
+}, F = (i, t, e) => (i.setProperty(t), e !== t && i.setSubProperty(e), i), bt = /^\s*cubic-bezier\s*\(\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*\)\s*$/i, S = (i) => {
   if (i == null)
     return;
   if (typeof i != "string")
     return i;
-  const t = i.match(At);
+  const t = i.match(bt);
   if (t) {
     const s = t.slice(1, 5).map(
       (r) => Number.parseFloat(r ?? "")
     );
     if (s.length === 4 && s.every((r) => Number.isFinite(r))) {
       const [r, n, a, o] = s;
-      return it(r, n, a, o);
+      return H(r, n, a, o);
     }
   }
-  const e = N[i];
+  const e = C[i];
   if (typeof e == "function" && e.length <= 1)
     return e;
-}, K = /* @__PURE__ */ new Map();
-function Ot(i) {
-  const t = Y(i), e = (r, n) => {
-    const { childKey: a, mainKey: o } = Pt(r);
+}, _ = /* @__PURE__ */ new Map();
+function wt(i) {
+  const t = D(i), e = (r, n) => {
+    const { childKey: a, mainKey: o } = yt(r);
     if (n instanceof y)
       return F(
-        new v(...w(n)),
+        new w(...v(n)),
         o,
         a
       );
-    if (n instanceof H) {
-      const m = n.values.flatMap(
-        (d) => w(e(r, d))
+    if (n instanceof R) {
+      const d = n.values.flatMap(
+        (m) => v(e(r, m))
       );
       return F(
-        new v(...m),
+        new w(...d),
         o,
         a
       );
-    } else if (n instanceof v) {
-      const m = n.flatMap(
-        (d) => w(e(r, d))
+    } else if (n instanceof w) {
+      const d = n.flatMap(
+        (m) => v(e(r, m))
       );
       return F(
-        new v(...m),
+        new w(...d),
         o,
         a
       );
     }
-    const l = String(n), u = `${a}:${l}`, h = K.get(u);
+    const l = String(n), u = `${a}:${l}`, h = _.get(u);
     if (h)
       return F(h.clone(), o, a);
-    const c = R.FunctionArgs.map(
-      (m) => (m.setSubProperty(a), m)
-    ), f = at(
-      mt(c, R.Value),
+    const c = Z.FunctionArgs.map(
+      (d) => (d.setSubProperty(a), d)
+    ), f = J(
+      ot(c, Q.Value),
       l
     ), p = F(
-      new v(...w(f)),
+      new w(...v(f)),
       o,
       a
     );
-    return K.set(u, p.clone()), p;
+    return _.set(u, p.clone()), p;
   };
   return Object.entries(t).reduce(
     (r, [n, a]) => (r[n] = e(n, a), r),
     {}
   );
 }
-const Mt = (i, t, e, s, r = "oklab", n) => {
+const vt = (i, t, e, s, r = "oklab", n) => {
   const a = s[t], o = s[e];
   if (!a || !o)
     throw new Error(
@@ -534,51 +446,51 @@ const Mt = (i, t, e, s, r = "oklab", n) => {
   const l = a[i], u = o[i];
   if (!l || !u)
     throw new Error(`Missing variable "${i}" in interpolation bounds.`);
-  const h = Math.max(l.length, u.length), c = (m) => {
-    const d = m.map((b) => {
+  const h = Math.max(l.length, u.length), c = (d) => {
+    const m = d.map((b) => {
       if (!(b instanceof y))
         throw new TypeError(
           `Interpolation for "${i}" requires ValueUnit leaves.`
         );
       return b;
     });
-    for (; d.length < h; )
-      d.push(new y(0));
-    return d;
+    for (; m.length < h; )
+      m.push(new y(0));
+    return m;
   }, f = c(l), p = c(u);
-  return f.map((m, d) => {
-    const b = p[d];
+  return f.map((d, m) => {
+    const b = p[m];
     if (!b)
       throw new Error(
-        `Missing right-hand interpolation value at index ${d}.`
+        `Missing right-hand interpolation value at index ${m}.`
       );
-    if (!(m instanceof y) || !(b instanceof y))
+    if (!(d instanceof y) || !(b instanceof y))
       throw new TypeError(
         `Interpolation for "${i}" requires ValueUnit leaves.`
       );
-    const x = { colorSpace: r };
-    return n !== void 0 && (x.hueMethod = n), rt(nt(m, b, x));
+    const P = { colorSpace: r };
+    return n !== void 0 && (P.hueMethod = n), X(G(d, b, P));
   });
 };
-function _t(i, t, e) {
+function Ft(i, t, e) {
   const [s, r] = [i.start, t.start];
   return {
     start: s.value * e / 100,
     stop: r.value * e / 100
   };
 }
-function Q(i, t, e = !0) {
-  i = e ? i : Y(i);
-  const s = q(i);
+function U(i, t, e = !0) {
+  i = e ? i : D(i);
+  const s = $(i);
   t.forEach((r) => {
     Object.entries(s).forEach(([n, a]) => {
       r.style.setProperty(n, a);
     });
   });
 }
-Q[/* @__PURE__ */ Symbol.for("keyframes.defaultRenderer")] = !0;
-const Ct = (i) => i;
-class xt {
+U[/* @__PURE__ */ Symbol.for("keyframes.defaultRenderer")] = !0;
+const Vt = (i) => i;
+class Tt {
   keyframes;
   segments;
   positions;
@@ -586,13 +498,13 @@ class xt {
   result;
   _duration;
   // Shared rAF lifecycle for `.play()` / `.stop()`.
-  _playback = new St();
+  _playback = new gt();
   constructor(t, e) {
     if (t.length < 2)
       throw new Error(
         "NumericAnimation requires at least 2 keyframes."
       );
-    if (this.keyframes = t.map((s) => ({ ...s })), this._duration = e?.duration ?? 0, this.timingFn = (e?.timingFunction ? E(e.timingFunction) : void 0) ?? Ct, e?.positions) {
+    if (this.keyframes = t.map((s) => ({ ...s })), this._duration = e?.duration ?? 0, this.timingFn = (e?.timingFunction ? S(e.timingFunction) : void 0) ?? Vt, e?.positions) {
       if (e.positions.length !== t.length)
         throw new Error(
           "positions length must match keyframes length."
@@ -630,14 +542,14 @@ class xt {
    */
   at(t) {
     const e = V(t, 0, 1) * 100;
-    let s = X(
+    let s = L(
       this.segments,
       e,
       (o) => o.startPos,
       (o) => o.stopPos
     );
     s === -1 && (s = this.segments.length - 1);
-    const r = this.segments[s], n = G(
+    const r = this.segments[s], n = K(
       V(e, r.startPos, r.stopPos),
       r.startPos,
       r.stopPos,
@@ -645,7 +557,7 @@ class xt {
       1
     ), a = r.timingFunction(n);
     for (let o = 0; o < r.keys.length; o++)
-      this.result[r.keys[o]] = B(
+      this.result[r.keys[o]] = j(
         a,
         r.startVals[o],
         r.stopVals[o]
@@ -683,20 +595,20 @@ class xt {
     this._playback.stop();
   }
 }
-const jt = {
+const It = {
   damping: 0.1,
   snapThreshold: 1e-3,
   targetEpsilon: 0,
   initial: 0,
   clamp: !0
 };
-class Dt {
+class St {
   options;
   targetValue;
   currentValue;
   isSettled;
   constructor(t) {
-    this.options = { ...jt, ...t }, this.targetValue = this.options.initial, this.currentValue = this.options.initial, this.isSettled = !0;
+    this.options = { ...It, ...t }, this.targetValue = this.options.initial, this.currentValue = this.options.initial, this.isSettled = !0;
   }
   get target() {
     return this.targetValue;
@@ -738,14 +650,14 @@ class Dt {
     this.targetValue = e, this.currentValue = e, this.isSettled = !0;
   }
 }
-const L = (i) => {
+const M = (i) => {
   if (i instanceof HTMLElement) {
     const t = i.getBoundingClientRect();
     return { x: t.x, y: t.y, width: t.width, height: t.height };
   }
   return i;
 };
-class Jt {
+class Nt {
   animation;
   transformOrigin;
   timingFunction;
@@ -755,8 +667,8 @@ class Jt {
   }
   /** Re-measure source and destination, rebuilding the internal animation. */
   measure(t, e) {
-    const s = L(t), r = L(e), n = r.x - s.x, a = r.y - s.y, o = s.width === 0 ? 1 : r.width / s.width, l = s.height === 0 ? 1 : r.height / s.height;
-    return this.animation = new xt(
+    const s = M(t), r = M(e), n = r.x - s.x, a = r.y - s.y, o = s.width === 0 ? 1 : r.width / s.width, l = s.height === 0 ? 1 : r.height / s.height;
+    return this.animation = new Tt(
       [
         { translateX: 0, translateY: 0, scaleX: 1, scaleY: 1 },
         { translateX: n, translateY: a, scaleX: o, scaleY: l }
@@ -794,19 +706,19 @@ class Jt {
     this.animation.stop();
   }
 }
-const $t = (i) => {
+const Et = (i) => {
   if (i == null) return null;
   if (typeof i == "function") return i;
-  const t = N[i];
+  const t = C[i];
   return typeof t == "function" && t.length <= 1 ? t : null;
-}, Rt = (i) => Math.max(0, Math.min(1, i));
-class Z {
+}, Pt = (i) => Math.max(0, Math.min(1, i));
+class N {
   smoother;
   easingFn;
   currentProgress = 0;
   boundaryEpsilon;
   constructor(t) {
-    this.easingFn = $t(t?.easing), this.boundaryEpsilon = t?.boundaryEpsilon ?? 5e-3, t?.smoothing === !1 ? this.smoother = null : this.smoother = new Dt(
+    this.easingFn = Et(t?.easing), this.boundaryEpsilon = t?.boundaryEpsilon ?? 5e-3, t?.smoothing === !1 ? this.smoother = null : this.smoother = new St(
       t?.smoothing
     );
   }
@@ -817,7 +729,7 @@ class Z {
    * time-step method.
    */
   applyPipeline() {
-    let t = Rt(this.sample());
+    let t = Pt(this.sample());
     this.easingFn && (t = this.easingFn(t));
     const e = this.boundaryEpsilon;
     return t <= e ? t = 0 : t >= 1 - e && (t = 1), t;
@@ -863,7 +775,7 @@ class Z {
     this.smoother && this.smoother.reset(e), this.currentProgress = e;
   }
 }
-class te extends Z {
+class Wt extends N {
   threshold;
   getScrollY;
   getViewportHeight;
@@ -875,7 +787,7 @@ class te extends Z {
     return t <= 0 ? 0 : this.getScrollY() / t;
   }
 }
-class ee extends Z {
+class Yt extends N {
   value = 0;
   constructor(t) {
     super({ smoothing: !1, ...t });
@@ -888,8 +800,8 @@ class ee extends Z {
     return this.value;
   }
 }
-const U = (i) => typeof i == "string" && ot.includes(i), Kt = /* @__PURE__ */ Symbol.for("keyframes.defaultRenderer"), Lt = (i) => typeof i == "function" && i[Kt] === !0;
-function Ut(i) {
+const O = (i) => typeof i == "string" && tt.includes(i), kt = /* @__PURE__ */ Symbol.for("keyframes.defaultRenderer"), At = (i) => typeof i == "function" && i[kt] === !0;
+function _t(i) {
   if (!i.targets || i.targets.length === 0)
     return { eligible: !1, reason: "no DOM targets" };
   if (typeof i.targets[0]?.animate != "function")
@@ -898,7 +810,7 @@ function Ut(i) {
       reason: "target does not implement Element.animate()"
     };
   for (const t of i.frames)
-    if (!Lt(t.transform))
+    if (!At(t.transform))
       return {
         eligible: !1,
         reason: "custom transform function (not the default DOM renderer)"
@@ -915,7 +827,7 @@ function Ut(i) {
   for (const t of i.frames)
     for (const e of Object.values(t.interpVars))
       for (const s of e) {
-        if (U(s.start?.unit) || U(s.stop?.unit))
+        if (O(s.start?.unit) || O(s.stop?.unit))
           return {
             eligible: !1,
             reason: `computed unit (${String(s.start?.unit ?? s.stop?.unit)}) requires DOM resolution`
@@ -928,7 +840,7 @@ function Ut(i) {
       }
   return { eligible: !0 };
 }
-function Wt(i) {
+function Mt(i) {
   const t = i.options.duration, e = [], s = /* @__PURE__ */ new Set();
   for (const n of i.frames)
     s.add(n.time.start), s.add(n.time.stop);
@@ -936,7 +848,7 @@ function Wt(i) {
   for (const n of r) {
     const a = i.interpFrames(n, !1);
     if (Object.keys(a).length === 0) continue;
-    const o = q(a);
+    const o = $(a);
     e.push({
       offset: Math.max(0, Math.min(1, n / t)),
       ...o
@@ -944,19 +856,19 @@ function Wt(i) {
   }
   return e;
 }
-const zt = {
+const Ot = {
   normal: "normal",
   reverse: "reverse",
   alternate: "alternate",
   "alternate-reverse": "alternate-reverse"
-}, Bt = {
+}, xt = {
   none: "none",
   forwards: "forwards",
   backwards: "backwards",
   both: "both"
 };
-function Nt(i) {
-  const t = i.options, e = zt[t.direction], s = Bt[t.fillMode];
+function jt(i) {
+  const t = i.options, e = Ot[t.direction], s = xt[t.fillMode];
   if (e == null)
     throw new TypeError(
       `Unrecognised animation direction "${t.direction}".`
@@ -978,8 +890,8 @@ function Nt(i) {
     easing: "linear"
   };
 }
-async function Yt(i) {
-  const t = Wt(i), e = Nt(i), s = i.targets.map(
+async function Ct(i) {
+  const t = Mt(i), e = jt(i), s = i.targets.map(
     (a) => a.animate(t, e)
   );
   let r = !1;
@@ -1000,10 +912,10 @@ async function Yt(i) {
     r = !0;
   }
 }
-const qt = (i) => typeof i != "object" || i == null ? !1 : typeof i.clone == "function", O = (i) => typeof i == "string" ? i : i.name ?? String(i.id);
-let Ht = 0;
-class J {
-  id = Ht++;
+const Dt = (i) => typeof i != "object" || i == null ? !1 : typeof i.clone == "function", E = (i) => typeof i == "string" ? i : i.name ?? String(i.id);
+let $t = 0;
+class W {
+  id = $t++;
   name;
   superKey;
   targets;
@@ -1053,24 +965,24 @@ class J {
         );
   }
   constructor(t, e, s, r) {
-    this.options = {}, this.setOptions({ ...wt, ...t ?? {} }), this.targets = e == null ? [] : Array.isArray(e) ? e : [e], this.name = s, this.superKey = r;
+    this.options = {}, this.setOptions({ ...pt, ...t ?? {} }), this.targets = e == null ? [] : Array.isArray(e) ? e : [e], this.name = s, this.superKey = r;
   }
   convertFrameStart(t) {
     if (t.start.unit === "s" || t.start.unit === "ms" || !t.start.unit) {
-      const e = t.start.unit === "s" ? "s" : "ms", s = lt(t.start.value, e);
+      const e = t.start.unit === "s" ? "s" : "ms", s = et(t.start.value, e);
       t.start.value = s / this.options.duration * 100, t.start.unit = "%";
     }
     return t.start.value = V(t.start.value, 0, 100), t;
   }
   addFrame(t, e, s, r) {
     typeof t == "number" ? t = String(t) + "%" : typeof t == "string" ? t = t : t instanceof y && (t = String(t));
-    const n = ht(t);
+    const n = st(t);
     let a = {
       id: this.frameId,
       start: n,
       vars: e,
       transform: s,
-      timingFunction: E(r) ?? this.options.timingFunction
+      timingFunction: S(r) ?? this.options.timingFunction
     };
     return this.convertFrameStart(
       a
@@ -1082,10 +994,10 @@ class J {
     const s = this.templateFrames[t], r = this.templateFrames[e], n = {
       start: t,
       stop: e
-    }, a = _t(s, r, this.options.duration);
+    }, a = Ft(s, r, this.options.duration);
     let o = s.transform;
     if (o == null) {
-      const h = D(
+      const h = k(
         t,
         this.frames,
         (c) => c.transform != null
@@ -1094,7 +1006,7 @@ class J {
     }
     let l = s.timingFunction;
     if (l == null) {
-      const h = D(
+      const h = k(
         t,
         this.frames,
         (c) => c.timingFunction != null
@@ -1152,7 +1064,7 @@ class J {
         const [o, l] = [t, a], u = this.frames.findIndex(
           (c) => c.ixs.start === o && c.ixs.stop === l
         ), h = u !== -1 ? this.frames[u] : this.createFrame(o, l);
-        h.interpVars[r] = Mt(
+        h.interpVars[r] = vt(
           r,
           o,
           l,
@@ -1164,7 +1076,7 @@ class J {
   }
   parse() {
     this.frames = [], this.templateFrames.sort((e, s) => e.start.value - s.start.value), this.parsedVars = this.templateFrames.map((e) => {
-      const s = Ot(
+      const s = wt(
         e.vars
       );
       return Object.values(s).forEach((r) => {
@@ -1178,11 +1090,11 @@ class J {
       (e) => e.interpVars != null && Object.keys(e.interpVars).length > 0
     ), this.frames.forEach((e) => {
       const s = Object.entries(e.interpVars).reduce((r, [n, a]) => (r[n] = a.map((o) => o.value), r), {});
-      e.flatVars = s, e.vars = ut(e.flatVars), e.allInterpVars = Object.values(e.interpVars).flat();
+      e.flatVars = s, e.vars = it(e.flatVars), e.allInterpVars = Object.values(e.interpVars).flat();
     }), this;
   }
   setTimingFunction(t) {
-    return this.options.timingFunction = E(t) ?? z, this;
+    return this.options.timingFunction = S(t) ?? x, this;
   }
   setIterationCount(t) {
     if (!t || t === "infinite" || t === "∞" || t === "Infinity")
@@ -1198,7 +1110,7 @@ class J {
     return this;
   }
   setDuration(t) {
-    typeof t == "string" && (t = $(t));
+    typeof t == "string" && (t = A(t));
     const e = t ?? this.options.duration;
     if (!isFinite(e) || e <= 0) return this;
     const s = this.options.duration, r = e / s;
@@ -1209,7 +1121,7 @@ class J {
     return this.options.duration = e, this;
   }
   setDelay(t) {
-    return typeof t == "string" && (t = $(t)), this.options.delay = t ?? 0, this;
+    return typeof t == "string" && (t = A(t)), this.options.delay = t ?? 0, this;
   }
   setDirection(t) {
     return this.options.direction = t ?? "normal", this.reversed = !1, (this.options.direction === "reverse" || this.options.direction === "alternate-reverse" && this.iteration % 2 === 0 || this.options.direction === "alternate" && this.iteration % 2 === 1) && (this.reversed = !0), this;
@@ -1266,7 +1178,7 @@ class J {
    */
   interpFrames(t, e = !1) {
     t = this.reversed ? this.options.duration - t : t;
-    const s = {}, r = this.frames, n = r.length, a = X(
+    const s = {}, r = this.frames, n = r.length, a = L(
       r,
       t,
       (l) => l.time.start,
@@ -1274,9 +1186,9 @@ class J {
     );
     if (a === -1) return s;
     const o = (l) => {
-      const { start: u, stop: h } = l.time, c = G(t, u, h, 0, 1), f = l.timingFunction(c);
+      const { start: u, stop: h } = l.time, c = K(t, u, h, 0, 1), f = l.timingFunction(c);
       for (const p of l.allInterpVars)
-        pt(f, p);
+        at(f, p);
       e && l.transform(
         this.unflatten ? l.vars : l.flatVars,
         t
@@ -1295,7 +1207,7 @@ class J {
     return s;
   }
   async onStart() {
-    this.reversed = !1, (this.options.direction === "reverse" || this.options.direction === "alternate-reverse" && this.iteration % 2 === 0 || this.options.direction === "alternate" && this.iteration % 2 === 1) && this.reverse(), (this.options.fillMode === "backwards" || this.options.fillMode === "both") && this.fillBackwards(), this.options.delay > 0 && (this.paused = !0, await ct(this.options.delay), this.paused = !1), this.started = !0;
+    this.reversed = !1, (this.options.direction === "reverse" || this.options.direction === "alternate-reverse" && this.iteration % 2 === 0 || this.options.direction === "alternate" && this.iteration % 2 === 1) && this.reverse(), (this.options.fillMode === "backwards" || this.options.fillMode === "both") && this.fillBackwards(), this.options.delay > 0 && (this.paused = !0, await rt(this.options.delay), this.paused = !1), this.started = !0;
   }
   async onEnd() {
     this.options.fillMode === "forwards" || this.options.fillMode === "both" ? this.fillForwards() : (this.options.fillMode === "none" || this.options.fillMode === "backwards") && this.fillBackwards(), this.startTime = void 0, this.iteration >= this.options.iterationCount - 1 ? (this.done = !0, this.iteration = 0, this.dispatchAnimationEvent("animationend")) : (this.iteration += 1, this.dispatchAnimationEvent("animationiteration"));
@@ -1332,7 +1244,7 @@ class J {
    * before this is invoked, and runtime errors propagate.
    */
   async _playWAAPI() {
-    await Yt(this), this.reset();
+    await Ct(this), this.reset();
   }
   async play() {
     if (this.managed)
@@ -1342,7 +1254,7 @@ class J {
     if (this._playingPromise) return this._playingPromise;
     let t;
     if (this.options.useWAAPI) {
-      const e = Ut(this);
+      const e = _t(this);
       e.eligible ? (this.waapiIneligibleReason = void 0, t = this._playWAAPI()) : (this.waapiIneligibleReason = e.reason, t = this._playRAF());
     } else
       this.waapiIneligibleReason = void 0, t = this._playRAF();
@@ -1357,7 +1269,7 @@ class J {
     return this.started && this.paused && (this.paused = !1, this.handleId = g(this._boundDraw)), this;
   }
   stop() {
-    T(this.handleId), this.reset();
+    I(this.handleId), this.reset();
   }
   playing() {
     return !(!this.started || this.paused);
@@ -1379,10 +1291,10 @@ class J {
     }), this;
   }
   group(...t) {
-    return new Vt(this, ...t);
+    return new mt(this, ...t);
   }
 }
-class se extends J {
+class qt extends W {
   constructor(t, ...e) {
     super(t, e), this.unflatten = !1;
   }
@@ -1395,7 +1307,7 @@ class se extends J {
     return this.parse(), this;
   }
   fromKeyframes(t, e) {
-    this.unflatten = e != null, e ??= this.transform.bind(this), ft(t) && (t = new Map(Object.entries(t)));
+    this.unflatten = e != null, e ??= this.transform.bind(this), nt(t) && (t = new Map(Object.entries(t)));
     const s = t instanceof Map ? t.entries() : Object.entries(t);
     for (const [r, n] of s)
       this.addFrame(r, n, e);
@@ -1411,83 +1323,38 @@ class se extends J {
   propertyRegistry = /* @__PURE__ */ new Map();
   fromString(t, e) {
     this.unflatten = e != null, e ??= this.transform.bind(this);
-    const s = vt(t);
+    const s = ft(t);
     this.propertyRegistry = s.properties;
     for (const [r, n] of s.keyframes.entries()) {
       const a = Object.fromEntries(
         Object.entries(n).map(([u, h]) => [
           u,
-          qt(h) ? h.clone() : h
+          Dt(h) ? h.clone() : h
         ])
-      ), o = s.timingFunctions.get(r), l = o ? E(o) : void 0;
+      ), o = s.timingFunctions.get(r), l = o ? S(o) : void 0;
       this.addFrame(r, a, e, l);
     }
     return this.parse(), this;
   }
   transform(t) {
-    Q(t, this.targets);
+    U(t, this.targets);
   }
 }
 export {
-  J as Animation,
-  Vt as AnimationGroup,
-  ne as CSSCubicBezier,
-  se as CSSKeyframesAnimation,
-  Qt as DIRECTIONS,
-  Jt as ElementMorph,
-  Zt as FILL_MODES,
-  ee as ManualTimeline,
-  xt as NumericAnimation,
-  te as ScrollTimeline,
-  Dt as SmoothProgress,
-  Z as Timeline,
-  ae as bezierPresets,
-  oe as bounceInEase,
-  le as bounceInEaseHalf,
-  he as bounceInOutEase,
-  ue as bounceOutEase,
-  ce as bounceOutEaseHalf,
-  fe as cancelAnimationFrame,
-  pe as clamp,
-  me as cubicBezier,
-  de as cubicBezierToSVG,
-  ge as cubicBezierToString,
-  ye as deCasteljau,
-  Ft as defaultLayerConfig,
-  wt as defaultOptions,
-  be as easeInBounce,
-  ve as easeInCirc,
-  we as easeInCubic,
-  Fe as easeInExpo,
-  Ve as easeInOutCirc,
-  Se as easeInOutCubic,
-  Te as easeInOutExpo,
-  Ie as easeInOutQuad,
-  Ee as easeInOutSine,
-  ke as easeInQuad,
-  Pe as easeInSine,
-  Ae as easeOutCirc,
-  Oe as easeOutCubic,
-  Me as easeOutExpo,
-  _e as easeOutQuad,
-  Ce as easeOutSine,
-  O as getAnimationId,
-  E as getTimingFunction,
-  xe as interpBezier,
-  je as jumpTerms,
-  De as lerp,
-  $e as linear,
-  Re as logerp,
-  Ke as parseCSSPercent,
-  Le as parseCSSStylesheet,
-  Ue as parseCSSTime,
-  We as requestAnimationFrame,
-  ze as scale,
-  Be as sleep,
-  Ne as smoothStep3,
-  Ye as stepEnd,
-  qe as stepStart,
-  He as steppedEase,
-  Ge as timingFunctionDescriptions,
-  Xe as timingFunctions
+  W as Animation,
+  mt as AnimationGroup,
+  qt as CSSKeyframesAnimation,
+  Lt as DIRECTIONS,
+  Nt as ElementMorph,
+  Ut as FILL_MODES,
+  Yt as ManualTimeline,
+  Tt as NumericAnimation,
+  Wt as ScrollTimeline,
+  St as SmoothProgress,
+  N as Timeline,
+  dt as defaultLayerConfig,
+  pt as defaultOptions,
+  E as getAnimationId,
+  S as getTimingFunction,
+  ft as resolveKeyframes
 };
