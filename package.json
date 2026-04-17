@@ -49,7 +49,8 @@
     "homepage": "https://github.com/mkbabb/keyframes.js#readme",
     "dependencies": {
         "@mkbabb/parse-that": "^0.8.1",
-        "@mkbabb/value.js": "^0.5.1"
+        "@mkbabb/value.js": "file:../value.js",
+        "vue-router": "^5.0.4"
     },
     "devDependencies": {
         "@iconify-json/radix-icons": "^1.1.14",
