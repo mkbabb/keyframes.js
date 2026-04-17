@@ -87,34 +87,32 @@ export abstract class Timeline {
         return this.currentProgress;
     }
 
-    /** Advance one frame. Applies easing → boundary snap → smoothing. */
-    tick(): number {
+    /**
+     * Shared advance step. When `dt` is undefined, drives the
+     * smoother in frame-rate-dependent mode (`tick()`); when given,
+     * uses the frame-rate-independent variant (`tickDt(dt)`).
+     */
+    private _advance(dt?: number): number {
         const raw = this.applyPipeline();
-
         if (this.smoother && raw > 0 && raw < 1) {
             this.smoother.setTarget(raw);
-            this.smoother.tick();
+            if (dt === undefined) this.smoother.tick();
+            else this.smoother.tickDt(dt);
             this.currentProgress = this.smoother.current;
         } else {
             this.finalizeProgress(raw);
         }
-
         return this.currentProgress;
+    }
+
+    /** Advance one frame. Applies easing → boundary snap → smoothing. */
+    tick(): number {
+        return this._advance();
     }
 
     /** Frame-rate independent variant. `dt` in milliseconds. */
     tickDt(dt: number): number {
-        const raw = this.applyPipeline();
-
-        if (this.smoother && raw > 0 && raw < 1) {
-            this.smoother.setTarget(raw);
-            this.smoother.tickDt(dt);
-            this.currentProgress = this.smoother.current;
-        } else {
-            this.finalizeProgress(raw);
-        }
-
-        return this.currentProgress;
+        return this._advance(dt);
     }
 
     get progress(): number {
