@@ -1,5 +1,5 @@
 import { clamp, lerp, scale } from "@mkbabb/value.js";
-import { binarySearchRange } from "../utils";
+import { binarySearchRange } from "./internal/binarySearch";
 import { RAFPlayback } from "./playback";
 import { getTimingFunction } from "./utils";
 import type { TimingFunction, TimingFunctionNames } from "./constants";

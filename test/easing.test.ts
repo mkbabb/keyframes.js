@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
     CSSCubicBezier,
-    timingFunctions,
     steppedEase,
-} from "../src/easing";
+    timingFunctions,
+} from "@mkbabb/value.js";
 
 describe("easing re-exports (smoke tests)", () => {
     it("timingFunctions['ease-in-quad'] is a function", () => {

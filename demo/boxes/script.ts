@@ -1,8 +1,8 @@
+import { easeInOutCubic, linear, scale } from "@mkbabb/value.js";
 import { transformTargetsStyle } from "@src/animation/utils";
-import { CSSKeyframesAnimation } from "../../src/animation";
-import { easeInOutCubic, linear } from "../../src/easing";
-import { scale } from "../../src/math";
-import { parseCSSKeyframes } from "../../src/parsing/keyframes";
+import { CSSKeyframesAnimation, resolveKeyframes } from "../../src/animation";
+
+const parseCSSKeyframes = (input: string) => resolveKeyframes(input).keyframes;
 
 const boxEl = document.querySelector<HTMLElement>("#box")!;
 

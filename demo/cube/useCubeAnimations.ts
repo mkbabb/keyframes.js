@@ -1,9 +1,8 @@
+import { FunctionValue, ValueUnit } from "@mkbabb/value.js";
 import { markRaw, shallowRef } from "vue";
 import type { Ref } from "vue";
 import { CSSKeyframesAnimation } from "@src/animation/index";
 import { AnimationGroup } from "@src/animation/group";
-import { FunctionValue } from "@src/units";
-import { ValueUnit } from "@src/units";
 import * as animations from "@src/animation/animations";
 import { getStoredAnimationOptions } from "@components/custom/animation-controls/stores";
 

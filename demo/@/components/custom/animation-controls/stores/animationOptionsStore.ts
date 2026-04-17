@@ -1,6 +1,6 @@
+import { jumpTerms } from "@mkbabb/value.js";
 import { getAnimationId, Animation } from "@src/animation";
 import type { InputAnimationOptions } from "@src/animation/constants";
-import { jumpTerms } from "@src/easing";
 import { createGlobalState, useStorage } from "@vueuse/core";
 import { checkAndResetExpiredStore, getAnimationSuperKey } from "./storeUtils";
 

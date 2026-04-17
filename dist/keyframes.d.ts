@@ -142,7 +142,7 @@ declare class Animation_2<V extends Vars = any> {
      * @param transformFrames - If true, applies each frame's transform function to targets
      * @returns Merged flat vars from all active frames
      */
-    interpFrames(t: number, transformFrames?: boolean): Record<string, ValueUnit<any, string | undefined>[]>;
+    interpFrames(t: number, transformFrames?: boolean): Record<string, ValueUnit[]>;
     onStart(): Promise<void>;
     onEnd(): Promise<void>;
     tick(t: number): Promise<number>;

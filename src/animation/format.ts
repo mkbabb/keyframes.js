@@ -1,66 +1,23 @@
-import type { Animation } from "@src/animation";
-import type {
-    AnimationFrame,
-    AnimationOptions,
-    Vars,
-} from "@src/animation/constants";
-import type { ValueUnit } from "@src/units";
-import { unflattenObjectToString } from "@src/units/utils";
-import prettier from "prettier";
-import prettierPostCSSPlugin from "prettier/plugins/postcss";
-import { timingFunctions } from "../easing";
-import { camelCaseToHyphen } from "../utils";
 import {
-    parseCSSAnimationKeyframes,
-    parseCSSKeyframes,
+    camelCaseToHyphen,
+    formatCSS,
     reverseCSSTime,
-} from "./keyframes";
+    timingFunctions,
+    unflattenObjectToString,
+    ValueUnit,
+} from "@mkbabb/value.js";
+import type { Animation } from ".";
+import type { AnimationFrame, AnimationOptions, Vars } from "./constants";
+
+// Animation-domain CSS serialisation. The primitive `formatCSS`
+// (Prettier wrapper) lives in value.js — re-exported here for the
+// convenience of consumers that already import animation-class
+// helpers from this module.
+export { formatCSS };
 
 const DEFAULT_WIDTH = 80;
-
-export async function formatCSS(
-    css: string,
-    printWidth: number | undefined = undefined,
-) {
-    return await prettier.format(css, {
-        parser: "scss",
-        plugins: [prettierPostCSSPlugin],
-        // TODO(LOW): Consider requiring explicit formatter width in strict pipelines instead of default substitution.
-        printWidth: printWidth ?? DEFAULT_WIDTH,
-    });
-}
-
 const DEFAULT_KEYFRAME_HEADER = `@keyframes animation {\n`;
 const DEFAULT_KEYFRAME_FOOTER = `\n}`;
-
-export function normalizeCSSKeyframeString(keyframe: string) {
-    keyframe = keyframe.trim();
-
-    if (keyframe.startsWith("{") && keyframe.endsWith("}")) {
-        keyframe = keyframe.slice(1, -1);
-    }
-
-    if (!keyframe.includes("@keyframes")) {
-        keyframe = DEFAULT_KEYFRAME_HEADER + keyframe + DEFAULT_KEYFRAME_FOOTER;
-    }
-
-    return keyframe;
-}
-
-/**
- * Parse a CSS string that may carry both an `.classname { animation:
- * ... }` declaration and one or more `@keyframes` blocks. The
- * grammar (in value.js) handles both shapes uniformly — there is no
- * separate "fallback" parser. Errors propagate so malformed inputs
- * surface to the caller instead of silently degrading.
- */
-export function parseCSSAnimationOrKeyframes(keyframes: string): {
-    keyframes: any;
-    options?: Record<string, any>;
-    values?: any;
-} {
-    return parseCSSAnimationKeyframes(normalizeCSSKeyframeString(keyframes));
-}
 
 export const CSSKeyframesToStrings = async <V extends Vars>(
     animation: Animation<V>,
@@ -108,7 +65,7 @@ export function animationOptionsToString(
 
     let timingFunctionName =
         Object.entries(timingFunctions)
-            .filter(([name, func]) => func === options.timingFunction)
+            .filter(([_name, func]) => func === options.timingFunction)
             .map(([name]) => name)?.[0] ?? "linear";
 
     timingFunctionName = camelCaseToHyphen(timingFunctionName);

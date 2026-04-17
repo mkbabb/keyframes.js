@@ -164,7 +164,7 @@
 </template>
 <script setup lang="ts">
 import { Animation, CSSKeyframesAnimation } from "@src/animation/index";
-import { formatCSSKeyframeString } from "@src/parsing/format";
+import { formatCSSKeyframeString } from "@src/animation/format";
 
 import {
     Slider,
@@ -204,7 +204,7 @@ import hljs from "highlight.js";
 import css from "highlight.js/lib/languages/css";
 import { Menubar, MenubarTrigger, MenubarMenu } from "@components/ui/menubar";
 
-import { parseCSSValueUnit } from "@src/parsing/units";
+import { parseCSSValueUnit } from "@mkbabb/value.js";
 
 import { useMagicKeys } from "@vueuse/core";
 import * as animations from "@src/animation/animations";

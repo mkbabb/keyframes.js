@@ -1,4 +1,4 @@
-import { CSSCubicBezier, timingFunctions } from "@src/easing";
+import { CSSCubicBezier, timingFunctions } from "@mkbabb/value.js";
 
 // Generate SVG path data for a timing function curve
 export function generateCurveSVGPath(fn: (t: number) => number, n = 32): string {

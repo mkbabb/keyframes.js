@@ -1,6 +1,9 @@
+import {
+    camelCaseToHyphen,
+    CSSCubicBezier,
+    timingFunctions,
+} from "@mkbabb/value.js";
 import { Animation } from "@src/animation/index";
-import { CSSCubicBezier, timingFunctions } from "@src/easing";
-import { camelCaseToHyphen } from "@src/utils";
 
 import type {
     TimingFunction,

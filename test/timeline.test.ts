@@ -3,7 +3,7 @@ import {
     ManualTimeline,
     ScrollTimeline,
 } from "../src/animation/timeline";
-import { easeOutCubic } from "../src/easing";
+import { easeOutCubic } from "@mkbabb/value.js";
 
 describe("ManualTimeline", () => {
     it("returns set value immediately (no smoothing)", () => {

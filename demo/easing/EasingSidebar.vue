@@ -109,7 +109,7 @@ import CopyButton from "@components/custom/CopyButton.vue";
 import EasingSelect from "@components/custom/EasingSelect.vue";
 import EasingCurveCanvas from "@components/custom/EasingCurveCanvas.vue";
 import type { EasingDemoContext } from "./easingKeys";
-import { parseCSSTime } from "@src/parsing";
+import { parseCSSTime } from "@mkbabb/value.js";
 
 const JUMP_TERMS = ["jump-start", "jump-end", "jump-none", "jump-both"];
 

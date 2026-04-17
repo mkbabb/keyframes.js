@@ -121,8 +121,12 @@ import type { Animation } from "@src/animation/index";
 import type { TimingFunction, TimingFunctionNames } from "@src/animation/constants";
 import type { StoredAnimationOptions } from "../stores";
 
-import { CSSCubicBezier, bezierPresets, jumpTerms } from "@src/easing";
-import { cubicBezierToString } from "@src/math";
+import {
+    bezierPresets,
+    CSSCubicBezier,
+    cubicBezierToString,
+    jumpTerms,
+} from "@mkbabb/value.js";
 import { generateCurveSVGPath } from "./composables/timingCurveUtils";
 
 import {

@@ -114,8 +114,7 @@ import {
 
 import { EASING_DEMO_KEY } from "./easingKeys";
 import { EASING_GROUPS, getFamilyForCurve } from "./easingGroups";
-import { timingFunctions } from "@src/easing";
-import { camelCaseToHyphen } from "@src/utils";
+import { camelCaseToHyphen, timingFunctions } from "@mkbabb/value.js";
 import type { TimingFunction } from "@src/animation/constants";
 
 const demo = inject(EASING_DEMO_KEY)!;

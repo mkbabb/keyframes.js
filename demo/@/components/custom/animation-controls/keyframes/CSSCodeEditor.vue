@@ -16,9 +16,7 @@ import DarkTheme from "monaco-themes/themes/Dracula.json";
 import LightTheme from "monaco-themes/themes/GitHub.json";
 import { useGlobalDark } from "@mkbabb/glass-ui";
 import { clampIOSNoZoomFontSize } from "@utils/iosTextEntry";
-import { formatCSS } from "@src/parsing/format";
-import { convert2 } from "@src/units/utils";
-import { debounce } from "@src/utils";
+import { convert2, debounce, formatCSS } from "@mkbabb/value.js";
 import { toast } from "vue-sonner";
 
 import EditorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker";

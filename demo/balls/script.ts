@@ -1,6 +1,9 @@
-import { CSSKeyframesAnimation } from "../../src/animation";
-import { CSSCubicBezier } from "../../src/easing";
-import { parseCSSKeyframes } from "../../src/parsing/keyframes";
+import { CSSCubicBezier } from "@mkbabb/value.js";
+import { CSSKeyframesAnimation, resolveKeyframes } from "../../src/animation";
+
+// `resolveKeyframes` returns the legacy `Map<percent, vars>` shape
+// from a CSS string by walking value.js's Stylesheet AST.
+const parseCSSKeyframes = (input: string) => resolveKeyframes(input).keyframes;
 
 const boxes = document.querySelectorAll<HTMLElement>(".anim .box")!;
 

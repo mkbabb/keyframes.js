@@ -1,42 +1,12 @@
 import { describe, expect, it } from "vitest";
+import { CSSKeyframesAnimation, resolveKeyframes } from "../src/animation";
 import {
-    normalizeCSSKeyframeString,
     animationOptionsToString,
     CSSKeyframesToString,
-} from "../src/parsing/format";
-import { parseCSSKeyframes } from "../src/parsing/keyframes";
-import { CSSKeyframesAnimation } from "../src/animation";
+} from "../src/animation/format";
 import { defaultOptions } from "../src/animation/constants";
 
-describe("normalizeCSSKeyframeString", () => {
-    it("wraps bare blocks in @keyframes animation { ... }", () => {
-        const input = `
-            0% { opacity: 0; }
-            100% { opacity: 1; }
-        `;
-        const result = normalizeCSSKeyframeString(input);
-        expect(result).toContain("@keyframes animation");
-        expect(result).toContain("opacity");
-    });
-
-    it("preserves input that already has @keyframes", () => {
-        const input = `@keyframes test {
-            0% { opacity: 0; }
-            100% { opacity: 1; }
-        }`;
-        const result = normalizeCSSKeyframeString(input);
-        expect(result).toContain("@keyframes test");
-    });
-
-    it("strips outer braces from { ... } wrapper", () => {
-        const input = `{
-            0% { opacity: 0; }
-            100% { opacity: 1; }
-        }`;
-        const result = normalizeCSSKeyframeString(input);
-        expect(result).toContain("@keyframes animation");
-    });
-});
+const parseCSSKeyframes = (input: string) => resolveKeyframes(input).keyframes;
 
 describe("animationOptionsToString", () => {
     it("produces CSS with correct properties", () => {
@@ -87,8 +57,8 @@ describe("CSSKeyframesToString", () => {
         const anim = new CSSKeyframesAnimation({}, el).fromString(input);
         const formatted = await CSSKeyframesToString(anim);
 
-        // Extract just the @keyframes block
-        const keyframesBlock = formatted.split("\n\n")[1];
+        // Extract just the @keyframes block (formatter emits class rule + @keyframes block separated by blank line)
+        const keyframesBlock = formatted.split("\n\n")[1] ?? formatted;
         const reparsed = parseCSSKeyframes(keyframesBlock);
 
         expect(reparsed.size).toBeGreaterThan(0);
@@ -107,7 +77,7 @@ describe("CSSKeyframesToString", () => {
         const anim = new CSSKeyframesAnimation({}, el).fromString(input);
         const formatted = await CSSKeyframesToString(anim, "preserve-test");
 
-        const keyframesBlock = formatted.split("\n\n")[1];
+        const keyframesBlock = formatted.split("\n\n")[1] ?? formatted;
         const reparsed = parseCSSKeyframes(keyframesBlock);
 
         // Verify property names survive the roundtrip
@@ -137,7 +107,10 @@ describe("CSSKeyframesToString", () => {
         expect(formatted1).toContain("left");
 
         // Re-parse should succeed (not throw)
-        const keyframesBlock1 = formatted1.split("\n\n").slice(1).join("\n\n");
+        const keyframesBlock1 = formatted1
+            .split("\n\n")
+            .slice(1)
+            .join("\n\n");
         const reparsed = parseCSSKeyframes(keyframesBlock1);
         expect(reparsed.size).toBeGreaterThan(0);
     });

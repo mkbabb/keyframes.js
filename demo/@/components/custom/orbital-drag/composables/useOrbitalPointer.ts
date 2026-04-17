@@ -1,4 +1,4 @@
-import { clamp } from "@src/math";
+import { clamp } from "@mkbabb/value.js";
 import { vec3 } from "gl-matrix";
 import { ref } from "vue";
 import type { Ref, ShallowRef } from "vue";

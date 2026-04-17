@@ -1,8 +1,8 @@
+import { easeInBounce } from "@mkbabb/value.js";
 import { computed, ref, watch } from "vue";
 import type { ComputedRef, Ref } from "vue";
 import { mat4 } from "gl-matrix";
 import { CSSKeyframesAnimation } from "@src/animation/index";
-import { easeInBounce } from "@src/easing";
 import { transformTargetsStyle } from "@src/animation/utils";
 import type { TransformState } from "@components/custom/orbital-drag";
 import {

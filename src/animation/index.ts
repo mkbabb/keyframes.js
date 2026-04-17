@@ -17,7 +17,7 @@ import {
     type PropertyDescriptor,
     type Stylesheet,
 } from "@mkbabb/value.js";
-import { binarySearchRange } from "../utils";
+import { binarySearchRange } from "./internal/binarySearch";
 
 // Public API re-exports of value.js primitives the keyframes.js
 // surface has historically exposed. Wave 4 will trim these once
@@ -76,6 +76,8 @@ export {
     timingFunctions,
 } from "@mkbabb/value.js";
 import { resolveKeyframes } from "./adapter";
+export { resolveKeyframes } from "./adapter";
+export type { ResolvedKeyframes } from "./adapter";
 import { defaultOptions } from "./constants";
 import type {
     AnimationFrame,

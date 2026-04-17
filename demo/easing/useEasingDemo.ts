@@ -1,8 +1,13 @@
+import {
+    camelCaseToHyphen,
+    CSSCubicBezier,
+    cubicBezierToString,
+    steppedEase,
+    stepEnd,
+    stepStart,
+    timingFunctions,
+} from "@mkbabb/value.js";
 import { computed, markRaw, onActivated, onDeactivated, ref, watch } from "vue";
-
-import { CSSCubicBezier, steppedEase, stepStart, stepEnd, timingFunctions } from "@src/easing";
-import { cubicBezierToString } from "@src/math";
-import { camelCaseToHyphen } from "@src/utils";
 
 import { CSSKeyframesAnimation } from "@src/animation/index";
 import { AnimationGroup } from "@src/animation/group";

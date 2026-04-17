@@ -20,11 +20,17 @@
     </div>
 </template>
 <script setup lang="ts">
-import { Animation, CSSKeyframesAnimation } from "@src/animation/index";
-
 import {
-    parseCSSAnimationKeyframes,
-} from "@src/parsing/keyframes";
+    extractAnimationOptions,
+    extractStyleRules,
+    parseCSSStylesheet,
+    reverseCSSTime,
+} from "@mkbabb/value.js";
+import {
+    Animation,
+    CSSKeyframesAnimation,
+    resolveKeyframes,
+} from "@src/animation/index";
 
 
 import { onMounted, onUnmounted, ref, useTemplateRef } from "vue";
@@ -39,15 +45,26 @@ import {
     getStoredAnimationGroupControlOptions,
     getStoredAnimationOptions,
 } from "../stores";
-import { reverseCSSTime } from "@src/parsing/keyframes";
 import { toast } from "vue-sonner";
 import { copyToClipboard } from "@mkbabb/glass-ui";
 
 import * as animations from "@src/animation/animations";
 
-import {
-    CSSKeyframesToString,
-} from "@src/parsing/format";
+import { CSSKeyframesToString } from "@src/animation/format";
+
+const parseCSSAnimationKeyframes = (input: string) => {
+    const ast = parseCSSStylesheet(input);
+    const resolved = resolveKeyframes(ast);
+    const options = extractAnimationOptions(ast);
+    const values: Record<string, unknown> = {};
+    for (const rule of extractStyleRules(ast)) {
+        for (const decl of rule.declarations) {
+            if (!decl.name.startsWith("animation"))
+                values[decl.name] = decl.value;
+        }
+    }
+    return { keyframes: resolved.keyframes, options, values };
+};
 import CSSCodeEditor from "./CSSCodeEditor.vue";
 
 const copy = copyToClipboard;

@@ -1,15 +1,46 @@
-import { Animation, CSSKeyframesAnimation } from "@src/animation/index";
+import {
+    convert2,
+    debounce,
+    extractAnimationOptions,
+    extractStyleRules,
+    formatCSS,
+    parseCSSStylesheet,
+    parseCSSValueUnit,
+    type AnimationOptions as CSSAnimationOptions,
+} from "@mkbabb/value.js";
+import {
+    Animation,
+    CSSKeyframesAnimation,
+    resolveKeyframes,
+} from "@src/animation/index";
 import {
     CSSKeyframesToString,
     CSSKeyframesToStrings,
-    formatCSS,
-    parseCSSAnimationOrKeyframes,
-} from "@src/parsing/format";
-import { parseCSSAnimationKeyframes } from "@src/parsing/keyframes";
-import { parseCSSValueUnit } from "@src/parsing/units";
-import { convert2 } from "@src/units/utils";
-import { debounce } from "@src/utils";
+} from "@src/animation/format";
 import { ref, watch } from "vue";
+
+// Inline adapter: produce the legacy { keyframes, options, values }
+// shape from value.js's Stylesheet AST. `keyframes` is the Map from
+// `resolveKeyframes`; `options` are CSS animation-* longhands /
+// shorthand from any top-level style rule; `values` are the
+// non-animation declarations from that style rule.
+const parseAnimationCSS = (input: string) => {
+    const ast = parseCSSStylesheet(
+        /@keyframes\b/i.test(input)
+            ? input
+            : `@keyframes anonymous {\n${input}\n}`,
+    );
+    const resolved = resolveKeyframes(ast);
+    const options: CSSAnimationOptions = extractAnimationOptions(ast);
+    const values: Record<string, unknown> = {};
+    for (const rule of extractStyleRules(ast)) {
+        for (const decl of rule.declarations) {
+            if (!decl.name.startsWith("animation"))
+                values[decl.name] = decl.value;
+        }
+    }
+    return { keyframes: resolved.keyframes, options, values };
+};
 import {
     createAnimationUUId,
     getStoredAnimationGroupControlOptions,
@@ -108,15 +139,19 @@ export function useKeyframesEditor(
 
             const parseAndUpdate = () => {
                 const { options, values, keyframes } =
-                    parseCSSAnimationKeyframes(keyframesString);
+                    parseAnimationCSS(keyframesString);
 
                 // Old callsite passed the already-parsed `keyframes`
                 // map to `fromString`, which technically expected a
                 // string. The keyframes-map flow uses `fromKeyframes`,
                 // which accepts a `Map<percent, vars>` directly and
                 // skips the redundant re-parse.
+                // value.js's CSS-spec AnimationOptions is structurally
+                // equivalent to keyframes.js's broader InputAnimationOptions
+                // for the fields CSS authors set (duration, delay, etc.) —
+                // cast across the boundary.
                 const tmpAnimation = new CSSKeyframesAnimation(
-                    options,
+                    options as Record<string, unknown>,
                     ...animation.targets,
                 ).fromKeyframes(keyframes as any);
 
@@ -160,7 +195,7 @@ export function useKeyframesEditor(
                 keyframeString = `${start} { ${keyframeString} }`;
 
                 const { keyframes, options } =
-                    parseCSSAnimationOrKeyframes(keyframeString);
+                    parseAnimationCSS(keyframeString);
                 const [_, newVars] = Object.entries(keyframes)[0]!;
 
                 Object.assign(
@@ -215,10 +250,10 @@ export function useKeyframesEditor(
 
         const parseAndUpdate = () => {
             const { options, values, keyframes } =
-                parseCSSAnimationOrKeyframes(keyframesString);
+                parseAnimationCSS(keyframesString);
 
             const tmpAnimation = new Animation(
-                options ?? animation.options,
+                (options ?? animation.options) as Record<string, unknown>,
                 animation.targets,
             );
 

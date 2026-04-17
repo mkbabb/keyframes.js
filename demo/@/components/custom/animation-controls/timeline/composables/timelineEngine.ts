@@ -1,8 +1,12 @@
-import { CSSKeyframesAnimation } from "@src/animation/index";
+import { camelCaseToHyphen, hyphenToCamelCase } from "@mkbabb/value.js";
+import {
+    CSSKeyframesAnimation,
+    resolveKeyframes,
+} from "@src/animation/index";
 import type { InputAnimationOptions } from "@src/animation/constants";
-import { parseCSSKeyframes } from "@src/parsing/keyframes";
-import { CSSKeyframesToString } from "@src/parsing/format";
-import { camelCaseToHyphen, hyphenToCamelCase } from "@src/utils";
+import { CSSKeyframesToString } from "@src/animation/format";
+
+const parseCSSKeyframes = (input: string) => resolveKeyframes(input).keyframes;
 import type { TimelineKeyframe, TimelineState } from "./timelineTypes";
 import { createKeyframeId } from "./timelineTypes";
 import { flattenVars } from "./flattenVars";

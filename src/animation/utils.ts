@@ -1,6 +1,8 @@
 import { any as parseAny } from "@mkbabb/parse-that";
 import {
     CSSCubicBezier,
+    CSSFunction,
+    CSSValues,
     flattenObject,
     FunctionValue,
     lerpColorValue,
@@ -15,7 +17,6 @@ import {
     ValueArray,
     ValueUnit,
 } from "@mkbabb/value.js";
-import { CSSKeyframes } from "../parsing/keyframes";
 import type {
     HueInterpolationMethod,
     TemplateAnimationFrame,
@@ -183,14 +184,14 @@ export function parseAndFlattenObject(
         // so the Parser<T> classes are nominally distinct from
         // TypeScript's perspective. The runtime is the same. Cast
         // to `any` to bypass the cross-realm type comparison.
-        const fnArgs = (CSSKeyframes.FunctionArgs as any).map(
+        const fnArgs = (CSSFunction.FunctionArgs as any).map(
             (v: ValueArray) => {
                 v.setSubProperty(childKey);
                 return v;
             },
         );
         const p = tryParse(
-            (parseAny as any)(fnArgs, CSSKeyframes.Value),
+            (parseAny as any)(fnArgs, CSSValues.Value),
             strValue,
         ) as ValueUnit | ValueArray | FunctionValue;
 
