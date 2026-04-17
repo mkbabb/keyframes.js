@@ -85,23 +85,15 @@ onMounted(() => {
 });
 </script>
 
-<style>
-body {
-    background-size: 1rem;
-    background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%202%202%22%3E%3Cpath%20d%3D%22M1%202V0h1v1H0v1z%22%20fill-opacity%3D%22.05%22%2F%3E%3C%2Fsvg%3E");
-}
-
+<style scoped>
 .container {
     --padding: 0.5rem;
     display: grid;
     padding: var(--padding);
-
     width: 100%;
     height: 100%;
-
     grid-template-areas: "animation-controls animation";
     grid-template-columns: 25% 1fr;
-
     gap: 1rem;
     overflow: hidden;
 }
@@ -110,7 +102,14 @@ canvas {
     background-color: var(--background);
     height: 100%;
     width: 100%;
-
     grid-area: animation;
+}
+</style>
+
+<style>
+/* Body-level grid background — must be global */
+body {
+    background-size: 1rem;
+    background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%202%202%22%3E%3Cpath%20d%3D%22M1%202V0h1v1H0v1z%22%20fill-opacity%3D%22.05%22%2F%3E%3C%2Fsvg%3E");
 }
 </style>
