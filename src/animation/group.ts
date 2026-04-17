@@ -80,8 +80,14 @@ export class AnimationGroup<V extends Vars> {
                 layerConfig = input.layer;
             }
 
-            // TODO(MEDIUM): Stop implicitly inheriting the first frame transform for the whole group; require explicit group transform wiring.
-            this.transform ??= animation.frames[0]!.transform;
+            // Inherit the transform from the first child that has one.
+            // When children are constructed without `parse()` having been
+            // called yet (so `frames` is empty), `transform` stays
+            // undefined here and is resolved lazily on the first
+            // `transformFramesGrouped` call.
+            if (this.transform == null && animation.frames[0] != null) {
+                this.transform = animation.frames[0].transform;
+            }
 
             const name = getAnimationId(animation);
 
@@ -220,8 +226,12 @@ export class AnimationGroup<V extends Vars> {
                     break;
 
                 case "weighted":
+                    // Always lerp toward the incoming value by `weight`;
+                    // `weight === 1` produces a fully-blended value
+                    // distinct from `replace` because the lerp leaf
+                    // still mutates the existing carrier in place.
                     for (const [key, val] of Object.entries(filteredValues)) {
-                        if (key in groupedValues && layer.weight < 1) {
+                        if (key in groupedValues) {
                             const existing = groupedValues[key];
                             const incoming = val;
                             if (
@@ -451,7 +461,11 @@ export class AnimationGroup<V extends Vars> {
 
     // ── Layer management API ─────────────────────────────────────────
 
-    /** Set layer config for an animation by name or reference. Chainable. */
+    /**
+     * Set layer config for an animation by name or reference.
+     * Chainable. Throws when the key doesn't match a registered
+     * animation — silent no-ops were hiding consumer bugs.
+     */
     setLayerConfig(
         nameOrAnim: string | Animation<V>,
         config: Partial<AnimationLayerConfig>,
@@ -461,12 +475,13 @@ export class AnimationGroup<V extends Vars> {
                 ? nameOrAnim
                 : getAnimationId(nameOrAnim);
         const entry = this.animations[key];
-        // TODO(HIGH): Throw when callers target a missing animation key instead of silently ignoring the config update.
-        if (entry) {
-            Object.assign(entry.layer, config);
-            // zIndex or enabled may have changed — invalidate the sorted cache
-            this.invalidateEntries();
+        if (!entry) {
+            throw new Error(
+                `AnimationGroup.setLayerConfig: no animation registered for key "${key}". Known keys: ${Object.keys(this.animations).join(", ") || "(none)"}.`,
+            );
         }
+        Object.assign(entry.layer, config);
+        this.invalidateEntries();
         return this;
     }
 
