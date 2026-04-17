@@ -1,21 +1,34 @@
-import { timingFunctions } from "@src/easing";
+import { CSSCubicBezier, timingFunctions } from "@src/easing";
 import { any as parseAny } from "@mkbabb/parse-that";
-import { lerp } from "../math";
+import {
+    lerpColorValue,
+    lerpComputedValue,
+    lerpNumericValue,
+    lerpValue,
+    normalizeValueUnits,
+    prepareInterpVar,
+} from "@mkbabb/value.js";
 import { CSSKeyframes } from "../parsing/keyframes";
 import { tryParse } from "../parsing/utils";
 import { FunctionValue, ValueArray, ValueUnit } from "../units";
-import { COMPUTED_UNITS } from "../units/constants";
-import { getComputedValue, normalizeValueUnits } from "../units/normalize";
 import { flattenObject, unflattenObjectToString } from "../units/utils";
 import type {
     HueInterpolationMethod,
-    InterpolatedVar,
     TemplateAnimationFrame,
     TimingFunction,
     TimingFunctionNames,
     Vars,
 } from "./constants";
-import type { Color } from "@src/units/color";
+
+// Re-export value.js interpolation primitives so consumers of
+// keyframes.js continue to find them at this path. New code should
+// import from @mkbabb/value.js directly.
+export {
+    lerpColorValue,
+    lerpComputedValue,
+    lerpNumericValue,
+    lerpValue,
+};
 
 export type ParsedVarMap = Record<string, ValueArray>;
 
@@ -60,119 +73,63 @@ const applyPropertyContext = (
     return values;
 };
 
-export const getTimingFunction = (
-    timingFunction: TimingFunction | TimingFunctionNames | undefined,
-): TimingFunction | undefined => {
-    if (typeof timingFunction === "string") {
-        const resolved = timingFunctions[timingFunction];
-        if (typeof resolved === "function" && resolved.length <= 1) {
-            return resolved as TimingFunction;
-        }
-        return undefined;
-    } else if (timingFunction == null) {
-        return undefined;
-    }
-
-    return timingFunction;
-};
-
-export function lerpComputedValue(
-    t: number,
-    { start, stop, value }: InterpolatedVar<any>,
-) {
-    const target = start.targets?.[0] ?? stop.targets?.[0];
-    if (!target) {
-        throw new Error(
-            "Cannot interpolate computed values without a target element.",
-        );
-    }
-
-    const newStartValueUnit = getComputedValue(start, target);
-    const newStopValueUnit = getComputedValue(stop, target);
-
-    const newUnit = !COMPUTED_UNITS.includes(newStartValueUnit.unit)
-        ? newStartValueUnit.unit
-        : newStopValueUnit.unit;
-
-    const newValue = lerp(t, newStartValueUnit.value, newStopValueUnit.value);
-
-    value.value = newValue;
-    value.unit = newUnit;
-
-    return value;
-}
-
-export function lerpColorValue(
-    t: number,
-    { start, stop, value }: InterpolatedVar<Color>,
-) {
-    start.value.keys().forEach((key: string) => {
-        const sv = start.value[key];
-        const ev = stop.value[key];
-        const sn = sv instanceof ValueUnit ? sv.value : sv;
-        const en = ev instanceof ValueUnit ? ev.value : ev;
-        const result = lerp(t, sn, en);
-
-        const current = value.value[key];
-        if (current instanceof ValueUnit) {
-            current.value = result;
-        } else {
-            value.value[key] = result;
-        }
-    });
-    return value;
-}
-
-export function lerpObjectValue(
-    t: number,
-    { start, stop, value }: InterpolatedVar<Record<string, number>>,
-) {
-    Object.keys(start.value as Record<string, number>).forEach((key) => {
-        (value.value as Record<string, number>)[key] = lerp(
-            t,
-            (start.value as Record<string, number>)[key]!,
-            (stop.value as Record<string, number>)[key]!,
-        );
-    });
-    return value;
-}
-
-/** Lerp a simple numeric InterpolatedVar in-place. */
-export function lerpNumericValue(
-    t: number,
-    { start, stop, value }: InterpolatedVar<number>,
-) {
-    value.value = lerp(t, start.value, stop.value);
-    return value;
-}
+/**
+ * Match a CSS `cubic-bezier(x1, y1, x2, y2)` literal. Accepts
+ * arbitrary whitespace and signed decimals. Standards-compliant
+ * CSS timing-function syntax, as specified by CSS Easing Level 1.
+ */
+const CUBIC_BEZIER_LITERAL =
+    /^\s*cubic-bezier\s*\(\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*\)\s*$/i;
 
 /**
- * Interpolate a single InterpolatedVar at progress `t`.
+ * Resolve a timing-function input to a callable `TimingFunction`.
  *
- * Uses a pre-resolved dispatch function (`_lerp`) when available (set during
- * frame creation in createInterpVarValue). Falls back to runtime type checks
- * for backward compatibility with externally constructed InterpolatedVar objects.
+ * Accepts:
+ *   - a `TimingFunction` — returned as-is
+ *   - a named entry in `timingFunctions` (`ease-out-cubic`,
+ *     `easeOutCubic`, `linear`, etc.) — looked up in the registry
+ *   - a CSS `cubic-bezier(x1, y1, x2, y2)` literal string —
+ *     parsed to control points and resolved via `CSSCubicBezier`
+ *   - `undefined` or a name/literal the registry can't find —
+ *     returns `undefined` so callers can fall back to their
+ *     default (usually `easeInOutCubic`)
+ *
+ * Higher-arity factory entries (`steps`, `step-start`, `step-end`)
+ * live in the registry but require construction arguments; they
+ * return `undefined` here so callers can invoke them explicitly.
  */
-export function lerpValue(t: number, value: InterpolatedVar<any>) {
-    // Fast path: use pre-dispatched function (avoids 3 type checks per call)
-    const dispatch = (value as any)._lerp;
-    if (dispatch) {
-        dispatch(t, value);
-        return value;
+export const getTimingFunction = (
+    timingFunction: TimingFunction | TimingFunctionNames | string | undefined,
+): TimingFunction | undefined => {
+    if (timingFunction == null) {
+        return undefined;
+    }
+    if (typeof timingFunction !== "string") {
+        return timingFunction;
     }
 
-    // Fallback: runtime type dispatch (for externally constructed InterpolatedVars)
-    const { start, stop, computed } = value;
-    if (typeof start.value === "number" && typeof stop.value === "number") {
-        value.value.value = lerp(t, start.value, stop.value);
-    } else if (start.unit === "color") {
-        lerpColorValue(t, value as InterpolatedVar<Color>);
-    } else if (computed) {
-        lerpComputedValue(t, value);
+    // CSS `cubic-bezier(x1, y1, x2, y2)` literal.
+    const bezierMatch = timingFunction.match(CUBIC_BEZIER_LITERAL);
+    if (bezierMatch) {
+        const parts = bezierMatch.slice(1, 5).map((s) =>
+            Number.parseFloat(s ?? ""),
+        );
+        if (parts.length === 4 && parts.every((n) => Number.isFinite(n))) {
+            const [x1, y1, x2, y2] = parts as [number, number, number, number];
+            return CSSCubicBezier(x1, y1, x2, y2);
+        }
     }
 
-    return value;
-}
+    const resolved = timingFunctions[timingFunction as TimingFunctionNames];
+    if (typeof resolved === "function" && resolved.length <= 1) {
+        return resolved as TimingFunction;
+    }
+    return undefined;
+};
+
+// lerpComputedValue / lerpColorValue / lerpNumericValue / lerpValue
+// now live in @mkbabb/value.js. Re-exported above for keyframes.js
+// API compatibility.
 
 const tryParseCache = new Map<string, ValueArray>();
 
@@ -217,14 +174,19 @@ export function parseAndFlattenObject(
             return applyPropertyContext(cached.clone(), mainKey, childKey);
         }
 
+        // value.js and keyframes.js each ship their own copy of
+        // @mkbabb/parse-that under different node_modules realms,
+        // so the Parser<T> classes are nominally distinct from
+        // TypeScript's perspective. The runtime is the same. Cast
+        // to `any` to bypass the cross-realm type comparison.
+        const fnArgs = (CSSKeyframes.FunctionArgs as any).map(
+            (v: ValueArray) => {
+                v.setSubProperty(childKey);
+                return v;
+            },
+        );
         const p = tryParse(
-            parseAny(
-                CSSKeyframes.FunctionArgs.map((v: ValueArray) => {
-                    v.setSubProperty(childKey);
-                    return v;
-                }),
-                CSSKeyframes.Value,
-            ),
+            (parseAny as any)(fnArgs, CSSKeyframes.Value),
             strValue,
         ) as ValueUnit | ValueArray | FunctionValue;
 
@@ -303,18 +265,9 @@ export const createInterpVarValue = (
                 `Interpolation for "${v}" requires ValueUnit leaves.`,
             );
         }
-        const iv = normalizeValueUnits(l, r, colorSpace, hueMethod);
-
-        // Pre-resolve the interpolation dispatch function based on value type.
-        // This avoids 3 sequential type checks per call in the hot path —
-        // the type is invariant once the frame is created.
-        (iv as any)._lerp = iv.computed
-            ? lerpComputedValue
-            : iv.start.unit === "color"
-                ? lerpColorValue
-                : lerpNumericValue;
-
-        return iv;
+        const opts: { colorSpace?: string; hueMethod?: HueInterpolationMethod } = { colorSpace };
+        if (hueMethod !== undefined) opts.hueMethod = hueMethod;
+        return prepareInterpVar(normalizeValueUnits(l, r, opts));
     });
 };
 
@@ -331,6 +284,13 @@ export function calcFrameTime<V extends Vars>(
     };
 }
 
+/**
+ * Default DOM-style renderer used by `Animation.transform` when no
+ * user-supplied transform is provided. Marked with the
+ * `keyframes.defaultRenderer` Symbol so the WAAPI eligibility check
+ * can detect "user supplied a custom transform" without resorting to
+ * fragile function-identity comparisons.
+ */
 export function transformTargetsStyle<V extends Vars>(
     vars: V,
     targets: HTMLElement[],
@@ -346,3 +306,4 @@ export function transformTargetsStyle<V extends Vars>(
         });
     });
 }
+(transformTargetsStyle as any)[Symbol.for("keyframes.defaultRenderer")] = true;

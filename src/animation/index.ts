@@ -7,35 +7,33 @@ export * from "../math";
 export { sleep, requestAnimationFrame, cancelAnimationFrame } from "../utils";
 import { clamp, scale } from "../math";
 import {
-    parseCSSKeyframes,
+    parseCSSStylesheet,
     parseCSSPercent,
-    parseCSSStyleBlock,
     parseCSSTime,
     type PropertyDescriptor,
-    type ParsedStyleBlock,
-} from "../parsing/keyframes";
+    type Stylesheet,
+} from "@mkbabb/value.js";
 
-// Re-export the parser surface so consumers can import it from the
-// library's main entry point.
+// Re-export the value.js stylesheet surface so consumers that
+// historically imported these from `keyframes.js` continue to work.
 export {
-    parseCSSKeyframes,
-    parseCSSStyleBlock,
+    parseCSSStylesheet,
     parseCSSPercent,
     parseCSSTime,
     type PropertyDescriptor,
-    type ParsedStyleBlock,
+    type Stylesheet,
 };
 import { parseCSSValueUnit } from "../parsing/units";
 import { ValueUnit } from "../units";
 import {
     isObject,
-    memoizeDecorator,
     binarySearchRange,
     cancelAnimationFrame,
     requestAnimationFrame,
     seekPreviousValue,
     sleep,
 } from "../utils";
+import { resolveKeyframes } from "./adapter";
 import { defaultOptions } from "./constants";
 import type {
     AnimationFrame,
@@ -57,6 +55,24 @@ export { ElementMorph } from "./morph";
 export type { MorphRect, ElementMorphOptions } from "./morph";
 export { Timeline, ScrollTimeline, ManualTimeline } from "./timeline";
 export type { TimelineOptions, ScrollTimelineOptions } from "./timeline";
+
+// Public animation type surface — consumers should prefer these
+// over redefining their own `TimingFn`, `AnimationOptions`, etc.
+export { getTimingFunction } from "./utils";
+export type {
+    TimingFunction,
+    TimingFunctionNames,
+    TransformFunction,
+    AnimationOptions,
+    InputAnimationOptions,
+    TemplateAnimationFrame,
+    AnimationFrame,
+    BlendMode,
+    AnimationLayerConfig,
+    Vars,
+    InterpolatedVar,
+} from "./constants";
+export { DIRECTIONS, FILL_MODES, defaultOptions, defaultLayerConfig } from "./constants";
 import {
     calcFrameTime,
     createInterpVarValue,
@@ -104,7 +120,6 @@ export class Animation<V extends Vars = any> {
 
     startTime: number | undefined = undefined;
     pausedTime: number = 0;
-    prevTime: number = 0;
     t: number = 0;
 
     iteration: number = 0;
@@ -114,8 +129,20 @@ export class Animation<V extends Vars = any> {
     reversed: boolean = false;
     paused: boolean = false;
 
-    /** When true, this animation is managed by an AnimationGroup and should not run its own rAF loop. */
+    /**
+     * True when an `AnimationGroup` is driving this animation's
+     * `tick()` and `interpFrames()` from its own rAF loop. Set by
+     * the group at construction; standalone `.play()` / `.draw()`
+     * throw when this is true rather than racing the group.
+     */
     managed: boolean = false;
+
+    /**
+     * If the most recent `play()` was rejected by WAAPI eligibility
+     * but `useWAAPI: true` was requested, this records the reason.
+     * Queryable by debug builds — no console output is produced.
+     */
+    waapiIneligibleReason: string | undefined = undefined;
 
     unflatten: boolean = true;
 
@@ -696,11 +723,9 @@ export class Animation<V extends Vars = any> {
 
     async draw(t: number) {
         if (this.managed) {
-            // TODO(HIGH): Convert managed-animation guard from warning+return into explicit misuse error.
-            console.warn(
-                "Animation.draw() called on a managed animation — skipping standalone rAF loop.",
+            throw new Error(
+                "Animation.draw() called on a managed animation — the AnimationGroup owns the rAF loop. Call group.play()/pause()/stop() instead.",
             );
-            return;
         }
 
         t = await this.tick(t);
@@ -729,39 +754,41 @@ export class Animation<V extends Vars = any> {
         });
     }
 
-    /** Play via the Web Animations API for compositor-thread execution. */
+    /**
+     * Play via the Web Animations API. WAAPI handles visuals on the
+     * compositor thread; a shadow rAF loop in `playWAAPI` drives
+     * `tick()` so events, iteration count, pause/resume, and other
+     * lifecycle state stay coherent with the rAF path.
+     *
+     * No silent fallback — eligibility is decided once in `play()`
+     * before this is invoked, and runtime errors propagate.
+     */
     private async _playWAAPI(): Promise<void> {
-        try {
-            await playWAAPI(this);
-            this.reset();
-        } catch {
-            // TODO(CRITICAL): Remove WAAPI->rAF recovery path and fail explicitly when WAAPI execution errors.
-            // WAAPI failed — fall back to rAF
-            return this._playRAF();
-        }
+        await playWAAPI(this);
+        this.reset();
     }
 
     async play(): Promise<void> {
         if (this.managed) {
-            // TODO(HIGH): Convert managed-animation guard from warning+return into explicit misuse error.
-            console.warn(
-                "Animation.play() called on a managed animation — the group controls playback.",
+            throw new Error(
+                "Animation.play() called on a managed animation — the AnimationGroup owns the rAF loop. Call group.play() instead.",
             );
-            return;
         }
 
         if (this._playingPromise) return this._playingPromise;
 
         let result: Promise<void>;
-        if (
-            this.options.useWAAPI &&
-            this.targets.length > 0 &&
-            typeof this.targets[0]?.animate === "function" &&
-            isWAAPIEligible(this)
-        ) {
-            result = this._playWAAPI();
+        if (this.options.useWAAPI) {
+            const elig = isWAAPIEligible(this);
+            if (elig.eligible) {
+                this.waapiIneligibleReason = undefined;
+                result = this._playWAAPI();
+            } else {
+                this.waapiIneligibleReason = elig.reason;
+                result = this._playRAF();
+            }
         } else {
-            // TODO(HIGH): Replace implicit eligibility fallback with explicit strategy selection/failure semantics.
+            this.waapiIneligibleReason = undefined;
             result = this._playRAF();
         }
 
@@ -903,19 +930,14 @@ export class CSSKeyframesAnimation<V extends Vars> extends Animation<V> {
         // TODO(MEDIUM): Require an explicit transform strategy instead of defaulting to instance transform.
         transform ??= this.transform.bind(this);
 
-        // Detect `@property` preambles. The full style-block parser
-        // handles them; the keyframes-only parser is the fast path
-        // for inputs without custom property declarations.
-        const hasProperties = /@property\b/i.test(keyframes);
-        const p: Map<string, any> = hasProperties
-            ? (() => {
-                  const block = parseCSSStyleBlock(keyframes);
-                  this.propertyRegistry = new Map(block.properties);
-                  return block.keyframes;
-              })()
-            : parseCSSKeyframes(keyframes);
+        // Single grammar in value.js handles every input shape:
+        // bare @keyframes, @property + @keyframes, .class +
+        // @keyframes, multi-keyframes, mixed at-rules. No regex
+        // pre-detection or fallback parser path.
+        const resolved = resolveKeyframes(keyframes);
+        this.propertyRegistry = resolved.properties;
 
-        for (const [percent, cachedFrame] of p.entries()) {
+        for (const [percent, cachedFrame] of resolved.keyframes.entries()) {
             // Clone the frame to avoid mutating the memoized parse cache
             const frame = Object.fromEntries(
                 Object.entries(cachedFrame).map(([k, v]) => [
@@ -923,12 +945,9 @@ export class CSSKeyframesAnimation<V extends Vars> extends Animation<V> {
                     hasClone(v) ? v.clone() : v,
                 ]),
             ) as Record<string, unknown>;
-            const tfValue =
-                frame.animationTimingFunction ?? frame.timingFunction;
-            delete frame.animationTimingFunction;
-            delete frame.timingFunction;
-            const resolvedTF = tfValue
-                ? getTimingFunction(tfValue.toString() as TimingFunctionNames)
+            const tfText = resolved.timingFunctions.get(percent);
+            const resolvedTF = tfText
+                ? getTimingFunction(tfText as TimingFunctionNames)
                 : undefined;
             this.addFrame(percent, frame as Partial<V>, transform, resolvedTF);
         }
