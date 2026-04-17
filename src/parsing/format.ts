@@ -47,23 +47,19 @@ export function normalizeCSSKeyframeString(keyframe: string) {
     return keyframe;
 }
 
+/**
+ * Parse a CSS string that may carry both an `.classname { animation:
+ * ... }` declaration and one or more `@keyframes` blocks. The
+ * grammar (in value.js) handles both shapes uniformly — there is no
+ * separate "fallback" parser. Errors propagate so malformed inputs
+ * surface to the caller instead of silently degrading.
+ */
 export function parseCSSAnimationOrKeyframes(keyframes: string): {
     keyframes: any;
     options?: Record<string, any>;
     values?: any;
 } {
-    keyframes = normalizeCSSKeyframeString(keyframes);
-
-    // TODO(CRITICAL): Stop silently downgrading animation parsing to bare keyframes parsing.
-    // Invalid animation declarations should fail explicitly so callers can migrate inputs.
-    try {
-        return parseCSSAnimationKeyframes(keyframes);
-    } catch (e) {
-        // TODO(HIGH): Replace this compatibility fallback with an explicit thrown parse error.
-        return {
-            keyframes: parseCSSKeyframes(keyframes),
-        };
-    }
+    return parseCSSAnimationKeyframes(normalizeCSSKeyframeString(keyframes));
 }
 
 export const CSSKeyframesToStrings = async <V extends Vars>(
