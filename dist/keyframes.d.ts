@@ -96,9 +96,13 @@ declare class Animation_2<V extends Vars = any> {
      *
      * @param t - Current animation time in milliseconds
      * @param transformFrames - If true, applies each frame's transform function to targets
+     * @param out - Optional output object to write results into. When
+     *   provided, its keys are cleared first so no stale keys from a
+     *   previous call leak through. Pass this per-animation to achieve
+     *   zero-allocation steady-state playback.
      * @returns Merged flat vars from all active frames
      */
-    interpFrames(t: number, transformFrames?: boolean): Record<string, ValueUnit<any, string | undefined>[]>;
+    interpFrames(t: number, transformFrames?: boolean, out?: Record<string, ValueUnit[]>): Record<string, ValueUnit<any, string | undefined>[]>;
     onStart(): Promise<void>;
     onEnd(): Promise<void>;
     tick(t: number): Promise<number>;
@@ -195,15 +199,31 @@ export declare class AnimationGroup<V extends Vars> {
      * Called per-frame for single-target groups. Applies layer blending
      * (replace / add / weighted) in zIndex order, then calls the group
      * transform function with the merged values.
+     *
+     * Refreshes every child's values at its current `t` in place —
+     * `interpFrames(t, false, entry.values)` clears and rewrites the
+     * long-lived buffer, so no stale keys leak across frames and no
+     * fresh object is allocated per entry per frame.
      */
     transformFramesGrouped(t: number): Record<string, unknown>;
     /**
-     * Render the current animation state as a static frame.
-     * Called on pause to ensure the visual matches the exact pause moment.
-     * Handles both single-target (grouped blending) and multi-target
-     * (per-child interpFrames) paths.
+     * Render the current composition as a static frame using each
+     * child's current `t`. Single-target groups go through the
+     * blended transform; multi-target groups apply each child's
+     * interpolated vars directly to its own targets.
+     *
+     * This is the public entry point for scenarios that mutate a
+     * child's state outside the rAF loop (scrubbing, state restore,
+     * pause snapshots) and need the visual to update immediately.
      */
-    private renderPauseFrame;
+    render(): void;
+    /**
+     * Set a child animation's current time without touching its
+     * siblings. Updates `pausedTime` so the child resumes correctly
+     * from the scrub position. Chainable. Call `render()` afterwards
+     * to reflect the change visually.
+     */
+    setChildTime(nameOrAnim: string | Animation_2<V>, t: number): this;
     /**
      * Advance all child animations to timestamp `t`.
      * Awaits all child tick() promises so deferred state updates
@@ -522,11 +542,17 @@ export declare interface ScrollTimelineOptions extends TimelineOptions {
     getViewportHeight?: (() => number) | undefined;
 }
 
+/** Per-frame callback for `.play()` mode. Receives the smoothed current value. */
+declare type SmoothFrameCallback = (value: number) => void;
+
 export declare class SmoothProgress {
     private options;
     private targetValue;
     private currentValue;
     private isSettled;
+    private _rafId;
+    private _lastFrameT;
+    private _onFrame;
     constructor(options?: Partial<SmoothProgressOptions>);
     get target(): number;
     get current(): number;
@@ -540,6 +566,26 @@ export declare class SmoothProgress {
     snap(): void;
     /** Reset to a specific value (default 0). */
     reset(value?: number): void;
+    /**
+     * Start a managed rAF loop that calls `tickDt(dt)` each frame until
+     * `settled`, invoking `onFrame(current)` per tick. Idempotent — repeat
+     * calls re-bind the callback without spawning a second loop. Once
+     * settled the loop auto-stops; `setTarget()` while a callback is
+     * bound auto-resumes the loop without needing another `.play()`.
+     *
+     * Symmetric with `NumericAnimation.play(onFrame)`: library owns rAF,
+     * consumer provides a per-frame callback. Consumers that already
+     * drive their own rAF (e.g. canvas renderers) should continue to
+     * call `.tickDt(dt)` directly and never invoke `.play()`.
+     */
+    play(onFrame?: SmoothFrameCallback): void;
+    /**
+     * Cancel the managed rAF loop and detach the per-frame callback.
+     * Pairs with `.play()`. Does not touch current/target/settled state.
+     */
+    stop(): void;
+    private _startLoop;
+    private _stopLoop;
 }
 
 export declare interface SmoothProgressOptions {
