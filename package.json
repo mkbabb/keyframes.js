@@ -28,6 +28,7 @@
     ],
     "scripts": {
         "prepare": "vite build --mode production",
+        "check": "tsc --noEmit",
         "dev": "vite",
         "dev:playground": "vite --mode playground",
         "build": "vite build --mode production",
