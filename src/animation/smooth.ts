@@ -18,6 +18,16 @@ export interface SmoothProgressOptions {
     initial: number;
     /** Clamp current to [0, 1]. Default true */
     clamp: boolean;
+    /**
+     * When true, honor `prefers-reduced-motion: reduce` by snapping to
+     * target immediately rather than damping. `setTarget` short-circuits
+     * the smooth-toward path; `play()` invokes `onFrame` once with the
+     * target value. Default false (back-compat — consumers opt in).
+     *
+     * The check uses `matchMedia` if available; on SSR / Node the option
+     * is a no-op (animations proceed normally).
+     */
+    respectReducedMotion: boolean;
 }
 
 /** Per-frame callback for `.play()` mode. Receives the smoothed current value. */
@@ -29,7 +39,16 @@ const defaultSmoothOptions: SmoothProgressOptions = {
     targetEpsilon: 0,
     initial: 0,
     clamp: true,
+    respectReducedMotion: false,
 };
+
+/** Feature-detect reduced-motion preference. SSR-safe (returns false). */
+function prefersReducedMotion(): boolean {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+        return false;
+    }
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
 
 export class SmoothProgress {
     private options: SmoothProgressOptions;
@@ -72,6 +91,15 @@ export class SmoothProgress {
         const delta = Math.abs(target - this.targetValue);
         if (delta > 0 && delta >= this.options.targetEpsilon) {
             this.targetValue = target;
+            // Reduced-motion: snap directly to target rather than damping.
+            // The settled state stays true and any bound `onFrame` fires
+            // once with the new value.
+            if (this.options.respectReducedMotion && prefersReducedMotion()) {
+                this.currentValue = target;
+                this.isSettled = true;
+                this._onFrame?.(target);
+                return;
+            }
             this.isSettled = false;
             // Auto-resume the managed loop if `.play()` attached a
             // callback and the loop has idled after a prior settle.
@@ -162,6 +190,14 @@ export class SmoothProgress {
      */
     play(onFrame?: SmoothFrameCallback): void {
         this._onFrame = onFrame;
+        // Reduced-motion: short-circuit to immediate target snap. No rAF
+        // loop spawned; the callback fires once with the target value.
+        if (this.options.respectReducedMotion && prefersReducedMotion()) {
+            this.currentValue = this.targetValue;
+            this.isSettled = true;
+            onFrame?.(this.currentValue);
+            return;
+        }
         if (this.isSettled) {
             onFrame?.(this.currentValue);
             return;

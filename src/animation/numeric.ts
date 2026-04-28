@@ -19,6 +19,24 @@ export interface NumericAnimationOptions {
     duration?: number | undefined;
     /** Explicit positions as percentages [0-100]. Auto-distributes if omitted. */
     positions?: number[] | undefined;
+    /**
+     * When true, honor `prefers-reduced-motion: reduce` by snapping to the
+     * final keyframe values immediately rather than interpolating over
+     * `duration`. The play promise resolves on the next microtask. Default
+     * false (back-compat — consumers opt in).
+     *
+     * The check uses `matchMedia` if available; on SSR / Node the option
+     * is a no-op (animations proceed normally).
+     */
+    respectReducedMotion?: boolean | undefined;
+}
+
+/** Feature-detect reduced-motion preference. SSR-safe (returns false). */
+function prefersReducedMotion(): boolean {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+        return false;
+    }
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
 /** Callback invoked each frame during `.play()` with the interpolated values. */
@@ -45,6 +63,7 @@ export class NumericAnimation<T extends Record<string, number>> {
     private timingFn: TimingFunction;
     private result: T;
     private _duration: number;
+    private _respectReducedMotion: boolean;
 
     // Shared rAF lifecycle for `.play()` / `.stop()`.
     private _playback = new RAFPlayback();
@@ -58,6 +77,7 @@ export class NumericAnimation<T extends Record<string, number>> {
 
         this.keyframes = keyframes.map((kf) => ({ ...kf }));
         this._duration = options?.duration ?? 0;
+        this._respectReducedMotion = options?.respectReducedMotion ?? false;
         this.timingFn =
             (options?.timingFunction
                 ? getTimingFunction(options.timingFunction)
@@ -181,6 +201,13 @@ export class NumericAnimation<T extends Record<string, number>> {
      */
     play(onFrame?: NumericFrameCallback<T>, duration?: number): Promise<void> {
         const dur = duration ?? this._duration;
+        // Reduced-motion: snap to final keyframe and resolve immediately.
+        // No rAF loop spawned; the callback fires once with the final values.
+        if (this._respectReducedMotion && prefersReducedMotion()) {
+            const finalValues = this.at(1);
+            onFrame?.(finalValues);
+            return Promise.resolve();
+        }
         return this._playback.play(dur, (progress) => {
             const values = this.at(progress);
             onFrame?.(values);
