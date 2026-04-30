@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { computed, inject, watch, useTemplateRef } from "vue";
+import { computed, inject, ref, watch, useTemplateRef } from "vue";
 import type { Ref } from "vue";
 import { CONTROLS_PANE_HOVER_KEY } from "../animation-controls/injectionKeys";
 import { Activity, ChevronDown, ChevronUp, Home, PanelLeftClose, PanelLeftOpen, SlidersHorizontal, Braces, Clock, Grid3X3 } from "lucide-vue-next";
 import { useMediaQuery } from "@vueuse/core";
 import { GlassDock, DockLayerGroup } from ".";
-import { usePopupMutex } from "@mkbabb/glass-ui";
 import {
     DockIconButton,
+    DockLayer,
     DockSelectTrigger,
     Select,
     SelectContent,
@@ -76,8 +76,21 @@ watch(() => dockRef.value?.expanded, (isExpanded) => {
 });
 
 // ── Popup mutex: only one dropdown at a time ──
-const dockEl = computed(() => (dockRef.value?.$el as HTMLElement) ?? null);
-const { isAnyOpen, popupModel } = usePopupMutex<"scene" | "controls">({ rootEl: dockEl });
+type PopupKey = "scene" | "controls";
+const openPopup = ref<PopupKey | null>(null);
+const isAnyOpen = computed(() => openPopup.value !== null);
+function popupModel(key: PopupKey) {
+    return computed({
+        get: () => openPopup.value === key,
+        set: (open: boolean) => {
+            if (open) {
+                openPopup.value = key;
+            } else if (openPopup.value === key) {
+                openPopup.value = null;
+            }
+        },
+    });
+}
 const sceneSelectOpen = popupModel("scene");
 const controlsSelectOpen = popupModel("controls");
 
@@ -99,9 +112,8 @@ const activeLayer = computed(() => {
     >
         <div class="pointer-events-auto">
             <GlassDock ref="dockRef" :collapse-delay="2500" :start-collapsed="true" :fit-content="true" :always-expanded="isMobile">
-                <DockLayerGroup :active-layer="activeLayer" v-slot="{ layerProps }">
-                    <!-- Main navigation layer -->
-                    <div v-bind="layerProps('main')" class="flex items-center gap-2">
+                <DockLayerGroup :active="activeLayer" :show-rail="false">
+                    <DockLayer id="main" class="flex items-center gap-2">
                         <!-- Controls collapse -->
                         <DockIconButton
                             v-if="hasSelectedAnimation"
@@ -189,7 +201,7 @@ const activeLayer = computed(() => {
 
                         <!-- Header items slot -->
                         <slot name="items" />
-                    </div>
+                    </DockLayer>
                 </DockLayerGroup>
 
                 <!-- Collapsed state -->
