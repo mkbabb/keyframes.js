@@ -46,7 +46,7 @@ import {
     getStoredAnimationOptions,
 } from "../stores";
 import { toast } from "vue-sonner";
-import { copyToClipboard } from "@mkbabb/glass-ui";
+import { copyText } from "@utils/clipboard";
 
 import * as animations from "@src/animation/animations";
 
@@ -66,8 +66,6 @@ const parseCSSAnimationKeyframes = (input: string) => {
     return { keyframes: resolved.keyframes, options, values };
 };
 import CSSCodeEditor from "./CSSCodeEditor.vue";
-
-const copy = copyToClipboard;
 
 const { animation } = defineProps<{
     animation: Animation<any>;
@@ -248,7 +246,7 @@ defineExpose({
     formatCSS: formatEditor,
     copyCSS: async () => {
         if (cssKeyframesString.value) {
-            await copy(cssKeyframesString.value, "CSS copied to clipboard");
+            await copyText(cssKeyframesString.value, "CSS copied to clipboard");
         }
     },
     getCSSString: () => cssKeyframesString.value,

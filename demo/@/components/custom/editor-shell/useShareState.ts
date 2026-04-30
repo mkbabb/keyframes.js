@@ -7,7 +7,7 @@ import {
     restoreStateFromParam,
 } from "@components/custom/animation-controls/stores";
 import { toast } from "vue-sonner";
-import { copyToClipboard } from "@mkbabb/glass-ui";
+import { copyText } from "@utils/clipboard";
 
 export function useShareState(onSceneRestore?: (sceneId: string) => void) {
     const router = useRouter();
@@ -15,7 +15,6 @@ export function useShareState(onSceneRestore?: (sceneId: string) => void) {
     const sharePopoverOpen = ref(false);
     const loadHashInput = ref("");
     const stateVersion = ref(0);
-    const copy = copyToClipboard;
 
     const shareState = async () => {
         const activeScene = route.name as string;
@@ -30,7 +29,7 @@ export function useShareState(onSceneRestore?: (sceneId: string) => void) {
         const url = `${window.location.origin}${resolved.href}`;
 
         try {
-            await copy(url, "Link copied to clipboard!");
+            await copyText(url, "Link copied to clipboard!");
             sharePopoverOpen.value = false;
         } catch {
             // Fallback: set the state param in the URL directly

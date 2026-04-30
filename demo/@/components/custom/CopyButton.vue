@@ -18,7 +18,7 @@ import { onMounted, ref, useTemplateRef } from "vue";
 import type { InputAnimationOptions } from "@src/animation/constants";
 import { CSSKeyframesAnimation } from "@src/animation";
 import { AnimationGroup } from "@src/animation/group";
-import { copyToClipboard } from "@mkbabb/glass-ui";
+import { copyText } from "@utils/clipboard";
 
 const { text } = defineProps({
     text: {
@@ -31,8 +31,6 @@ const isCopied = ref(false);
 
 const clipboard = useTemplateRef<HTMLElement>("clipboard");
 const clipboardChecked = useTemplateRef<HTMLElement>("clipboardChecked");
-
-const copy = copyToClipboard;
 
 const options: Partial<InputAnimationOptions> = {
     duration: 200,
@@ -68,7 +66,7 @@ const group = new AnimationGroup(clipboardAnim, clipboardCheckedAnim);
 group.singleTarget = false;
 
 const handleClick = () => {
-    copy(text);
+    copyText(text);
 
     isCopied.value = true;
 
