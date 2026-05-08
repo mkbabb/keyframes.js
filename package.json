@@ -31,6 +31,7 @@
         "check": "tsc --noEmit",
         "dev": "vite",
         "dev:playground": "vite --mode playground",
+        "prebuild": "node scripts/freshness-gate.mjs --pre",
         "build": "vite build --mode production",
         "gh-pages": "vite build --mode gh-pages",
         "test": "vitest",
