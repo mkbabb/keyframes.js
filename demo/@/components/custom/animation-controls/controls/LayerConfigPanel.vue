@@ -46,7 +46,10 @@
 
 <script setup lang="ts">
 import type { AnimationLayerConfig } from "@src/animation/constants";
-import { LabeledSelect, LabeledSlider, LabeledSwitch, IconTooltip, Input, Separator } from "@mkbabb/glass-ui";
+import { LabeledSelect, LabeledSlider, LabeledSwitch } from "@mkbabb/glass-ui/labeled-field";
+import { IconTooltip } from "@mkbabb/glass-ui/icon-tooltip";
+import { Input } from "@mkbabb/glass-ui/forms";
+import { Separator } from "@mkbabb/glass-ui";
 import { BLEND_MODE_DESCRIPTIONS } from "../animationDescriptions";
 
 const BLEND_MODES = ["replace", "add", "weighted"] as const;

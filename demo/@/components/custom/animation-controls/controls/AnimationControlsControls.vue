@@ -10,6 +10,7 @@
                             <LabeledInput
                                 :model-value="storedAnimationOptions.animationOptions.duration ?? '5s'"
                                 label="duration"
+                                label-class="font-mono text-base text-muted-foreground"
                                 tooltip="Animation length (e.g. 5s, 200ms)"
                                 @update:model-value="(v) => { animation.setDuration(v); storedAnimationOptions.animationOptions.duration = v; }"
                             />
@@ -17,32 +18,25 @@
                             <LabeledInput
                                 :model-value="storedAnimationOptions.animationOptions.delay ?? '0ms'"
                                 label="delay"
+                                label-class="font-mono text-base text-muted-foreground"
                                 tooltip="Delay before start (e.g. 0s, 500ms)"
                                 @update:model-value="(v) => { animation.setDelay(v); storedAnimationOptions.animationOptions.delay = v; }"
                             />
 
-                            <IconTooltip text="Repeat count (number or 'infinite')">
-                                <label class="instrument-serif text-lg text-muted-foreground cursor-help">iterations</label>
-                            </IconTooltip>
-                            <Input
-                                :class="
-                                    storedAnimationOptions.animationOptions.iterationCount === 'infinite' || storedAnimationOptions.animationOptions.iterationCount === Infinity
-                                        ? 'instrument-serif text-3xl'
-                                        : 'font-mono'
-                                "
-                                type="string"
-                                @change="
-                                    (e: Event) => {
-                                        const value = (e.target as HTMLInputElement).value;
-                                        animation.setIterationCount(value);
-                                        storedAnimationOptions.animationOptions.iterationCount =
-                                            value;
-                                    }
-                                "
+                            <LabeledInput
                                 :model-value="
                                     storedAnimationOptions.animationOptions.iterationCount === 'infinite' || storedAnimationOptions.animationOptions.iterationCount === Infinity
                                         ? '∞'
-                                        : storedAnimationOptions.animationOptions.iterationCount ?? 'infinite'
+                                        : String(storedAnimationOptions.animationOptions.iterationCount ?? 'infinite')
+                                "
+                                label="iterations"
+                                label-class="font-mono text-base text-muted-foreground"
+                                tooltip="Repeat count (number or 'infinite')"
+                                @update:model-value="
+                                    (v: string) => {
+                                        animation.setIterationCount(v);
+                                        storedAnimationOptions.animationOptions.iterationCount = v;
+                                    }
                                 "
                             />
 
@@ -52,6 +46,7 @@
                                 :items="DIRECTIONS"
                                 :descriptions="DIRECTION_DESCRIPTIONS"
                                 label="direction"
+                                label-class="font-mono text-base text-muted-foreground"
                                 tooltip="Playback direction"
                                 @update:model-value="(v) => { animation.setDirection(v as any); storedAnimationOptions.animationOptions.direction = v as any; }"
                                 @update:open="(v: boolean | undefined) => setOpen('direction', v ?? false)"
@@ -63,6 +58,7 @@
                                 :items="FILL_MODES"
                                 :descriptions="FILL_MODE_DESCRIPTIONS"
                                 label="fill mode"
+                                label-class="font-mono text-base text-muted-foreground"
                                 tooltip="Style applied when not playing"
                                 @update:model-value="(v) => { animation.setFillMode(v as any); storedAnimationOptions.animationOptions.fillMode = v as any; }"
                                 @update:open="(v: boolean | undefined) => setOpen('fillMode', v ?? false)"
@@ -70,7 +66,7 @@
 
                             <div class="flex items-center gap-1.5">
                                 <IconTooltip text="Timing function curve">
-                                    <label :class="['instrument-serif text-lg text-muted-foreground cursor-help', isDetailEasing ? 'gold-shimmer' : '']">easing</label>
+                                    <label :class="['font-mono text-base text-muted-foreground cursor-help', isDetailEasing ? 'gold-shimmer' : '']">easing</label>
                                 </IconTooltip>
                                 <IconTooltip text="Edit easing curve">
                                     <DockIconButton compact title="Edit easing curve" class="easing-edit-btn" @click.stop="onEditIconClick(storedAnimationOptions.animationOptions.timingFunction as string)">
@@ -100,7 +96,7 @@
                                 @keydown.space.prevent="advancedOpen = true"
                                 class="col-span-2 grid grid-cols-[subgrid] gap-x-3 items-center w-full py-1.5 cursor-pointer hover:text-foreground text-muted-foreground transition-colors"
                             >
-                                <span class="instrument-serif text-lg">advanced</span>
+                                <span class="font-mono text-base">advanced</span>
                                 <div class="flex items-center justify-end px-3">
                                     <ChevronRight class="icon-md opacity-50" />
                                 </div>
@@ -135,7 +131,7 @@
                                 >
                                     <ArrowLeft class="icon-md" />
                                 </DockIconButton>
-                                <span class="instrument-serif text-lg text-muted-foreground">advanced</span>
+                                <span class="font-mono text-base text-muted-foreground">advanced</span>
                             </div>
 
                             <!-- Layer Settings (only when in a group) -->
@@ -176,7 +172,10 @@
 <script setup lang="ts">
 import { Animation } from "@src/animation/index";
 
-import { Card, CardContent, DockIconButton, Input, Separator, IconTooltip, LabeledSelect, LabeledInput } from "@mkbabb/glass-ui";
+import { Card, CardContent, Separator } from "@mkbabb/glass-ui";
+import { DockIconButton } from "@mkbabb/glass-ui/dock";
+import { IconTooltip } from "@mkbabb/glass-ui/icon-tooltip";
+import { LabeledSelect, LabeledInput } from "@mkbabb/glass-ui/labeled-field";
 
 import { ChevronRight, ArrowLeft, Pencil } from "lucide-vue-next";
 import TimingFunctionPanel from "./TimingFunctionPanel.vue";

@@ -65,8 +65,8 @@ import {
     CommandItem,
     CommandList,
     CommandSeparator,
-    useGlobalDark,
 } from "@mkbabb/glass-ui";
+import { useGlobalDark } from "@mkbabb/glass-ui/dark";
 
 import { Animation } from "@src/animation";
 

@@ -6,7 +6,15 @@
         ]"
         style="bottom: var(--work-area-bottom-offset, 0px);"
     >
-        <GlassDock ref="dockRef" :collapse-delay="2500" :start-collapsed="true" :fit-content="true">
+        <!--
+            Always-expanded so the play/pause and other transport buttons
+            stay at a stable x position. When the dock collapsed to a
+            summary pill and expanded on hover, the summary's play button
+            and the full layer's play button sat at different x — a user
+            who hovered the collapsed button then clicked without moving
+            the mouse would land on a sibling button instead.
+        -->
+        <GlassDock ref="dockRef" :always-expanded="true" :fit-content="true">
             <!-- Expanded state: full controls -->
             <div class="flex items-center gap-3">
                 <IconTooltip text="Select animation">
@@ -145,14 +153,16 @@ import {
 import {
     DockIconButton,
     DockSelectTrigger,
+} from "@mkbabb/glass-ui/dock";
+import {
     Select,
     SelectContent,
     SelectGroup,
     SelectItem,
     SelectValue,
     Button,
-    IconTooltip,
 } from "@mkbabb/glass-ui";
+import { IconTooltip } from "@mkbabb/glass-ui/icon-tooltip";
 
 import { RotateCcw } from "lucide-vue-next";
 

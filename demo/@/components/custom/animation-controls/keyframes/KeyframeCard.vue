@@ -43,7 +43,8 @@
 </template>
 
 <script setup lang="ts">
-import { Input, Label } from "@mkbabb/glass-ui";
+import { Label } from "@mkbabb/glass-ui";
+import { Input } from "@mkbabb/glass-ui/forms";
 import CopyButton from "@components/custom/CopyButton.vue";
 import { X } from "lucide-vue-next";
 

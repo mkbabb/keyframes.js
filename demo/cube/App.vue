@@ -174,8 +174,8 @@ import {
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
-    DarkModeToggle,
 } from "@mkbabb/glass-ui";
+import { DarkModeToggle } from "@mkbabb/glass-ui/controls";
 import { Lock, LockOpen, RotateCcw } from "lucide-vue-next";
 
 import { EditorShell, EditorStartScreen } from "@components/custom/editor-shell";

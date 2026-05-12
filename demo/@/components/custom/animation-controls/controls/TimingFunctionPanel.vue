@@ -135,7 +135,6 @@ import {
     CardContent,
     CardHeader,
     CardTitle,
-    Input,
     Select,
     SelectContent,
     SelectGroup,
@@ -147,6 +146,7 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@mkbabb/glass-ui";
+import { Input } from "@mkbabb/glass-ui/forms";
 
 import { computed, ref } from "vue";
 import { ArrowLeft } from "lucide-vue-next";

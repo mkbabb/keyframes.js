@@ -73,7 +73,8 @@ import EditorStartScreen from "./EditorStartScreen.vue";
 import KeyboardShortcutsModal from "@components/custom/KeyboardShortcutsModal.vue";
 import AnimationControlsGroup from "@components/custom/animation-controls/AnimationControlsGroup.vue";
 
-import { registerShortcut, DarkModeToggle } from "@mkbabb/glass-ui";
+import { registerShortcut } from "@mkbabb/glass-ui/keyboard";
+import { DarkModeToggle } from "@mkbabb/glass-ui/controls";
 import type { AnimationGroup } from "@src/animation/group";
 
 import "@styles/utils.css";

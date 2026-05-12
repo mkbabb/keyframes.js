@@ -97,7 +97,6 @@ import {
     Button,
     Card,
     CardContent,
-    Input,
     Separator,
     Switch,
     DropdownMenu,
@@ -105,6 +104,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@mkbabb/glass-ui";
+import { Input } from "@mkbabb/glass-ui/forms";
 import {
     Plus,
     Square,

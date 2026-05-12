@@ -101,7 +101,8 @@
 
 <script setup lang="ts">
 import type { ComputedRef, Ref } from "vue";
-import { Slider, Card, CardContent, Input } from "@mkbabb/glass-ui";
+import { Slider, Card, CardContent } from "@mkbabb/glass-ui";
+import { Input } from "@mkbabb/glass-ui/forms";
 import type { FunctionValue } from "@mkbabb/value.js";
 import type { MatrixCellMeta } from "./useTransformState";
 import { getStoredAnimationGroupControlOptions } from "@components/custom/animation-controls/stores";

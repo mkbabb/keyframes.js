@@ -103,8 +103,8 @@
 
 <script setup lang="ts">
 import { computed, inject, ref, useTemplateRef, onMounted, onUnmounted, watch } from "vue";
+import { DockSelectTrigger } from "@mkbabb/glass-ui/dock";
 import {
-    DockSelectTrigger,
     Select,
     SelectContent,
     SelectItem,

@@ -179,8 +179,8 @@ import {
     DialogFooter,
     DialogTitle,
     DialogTrigger,
-    useGlobalDark,
 } from "@mkbabb/glass-ui";
+import { useGlobalDark } from "@mkbabb/glass-ui/dark";
 
 import { onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
 import { useApplyCSS } from "./composables/useApplyCSS";

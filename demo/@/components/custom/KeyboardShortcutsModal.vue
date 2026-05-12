@@ -48,7 +48,7 @@ import {
 import {
     useRegisteredShortcuts,
     formatComboParts,
-} from "@mkbabb/glass-ui";
+} from "@mkbabb/glass-ui/keyboard";
 
 const open = defineModel<boolean>('open', { required: true });
 

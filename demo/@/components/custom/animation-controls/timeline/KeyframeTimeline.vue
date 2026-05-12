@@ -213,16 +213,16 @@ import {
 } from "lucide-vue-next";
 import CSSPasteDialog from "@components/custom/CSSPasteDialog.vue";
 import {
-    IconTooltip,
     Button,
     Card,
     CardContent,
-    Input,
     Separator,
     Tooltip,
     TooltipContent,
     TooltipTrigger,
 } from "@mkbabb/glass-ui";
+import { Input } from "@mkbabb/glass-ui/forms";
+import { IconTooltip } from "@mkbabb/glass-ui/icon-tooltip";
 import CSSCodeEditor from "../keyframes/CSSCodeEditor.vue";
 import { useTimeline } from "./composables/useTimeline";
 import { useZoomPan } from "./composables/useZoomPan";

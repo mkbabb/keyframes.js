@@ -228,7 +228,7 @@ import {
     resetAllStores,
 } from "./stores";
 import { AnimationGroup } from "@src/animation/group";
-import { registerShortcut } from "@mkbabb/glass-ui";
+import { registerShortcut } from "@mkbabb/glass-ui/keyboard";
 import { useAnimationGroupPlayback } from "./composables/useAnimationGroupPlayback";
 import { useAnimationProgress } from "./composables/useAnimationProgress";
 import { useScrollFade } from "./composables/useScrollFade";

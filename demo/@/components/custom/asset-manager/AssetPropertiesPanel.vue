@@ -137,7 +137,6 @@
 <script setup lang="ts">
 import type { Asset, AssetTransform } from "./assetTypes";
 import {
-    Input,
     Slider,
     Select,
     SelectContent,
@@ -146,6 +145,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@mkbabb/glass-ui";
+import { Input } from "@mkbabb/glass-ui/forms";
 
 defineProps<{
     asset: Asset;

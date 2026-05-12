@@ -95,7 +95,6 @@
 import {
     Card,
     CardContent,
-    Input,
     Select,
     SelectContent,
     SelectItem,
@@ -103,6 +102,7 @@ import {
     SelectValue,
     Slider,
 } from "@mkbabb/glass-ui";
+import { Input } from "@mkbabb/glass-ui/forms";
 import { toast } from "vue-sonner";
 
 import CopyButton from "@components/custom/CopyButton.vue";

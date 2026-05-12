@@ -42,7 +42,7 @@
 <script setup lang="ts">
 import { ref, computed, onBeforeUnmount } from "vue";
 import SharePopover from "./SharePopover.vue";
-import { DarkModeToggle } from "@mkbabb/glass-ui";
+import { DarkModeToggle } from "@mkbabb/glass-ui/controls";
 
 const isExpanded = ref(false);
 const isPinned = ref(false);

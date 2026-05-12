@@ -65,7 +65,8 @@
 import { onUnmounted } from "vue";
 import type { Animation } from "@src/animation/index";
 
-import { Button, Slider, IconTooltip, useTouchGate } from "@mkbabb/glass-ui";
+import { Button, Slider, useTouchGate } from "@mkbabb/glass-ui";
+import { IconTooltip } from "@mkbabb/glass-ui/icon-tooltip";
 import { ArrowLeftRight, Pause, Play } from "lucide-vue-next";
 import AnimationVisualizer from "./AnimationVisualizer.vue";
 

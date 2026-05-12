@@ -48,9 +48,9 @@ import {
     Popover,
     PopoverTrigger,
     PopoverContent,
-    Input,
     Button,
 } from "@mkbabb/glass-ui";
+import { Input } from "@mkbabb/glass-ui/forms";
 import { useShareState } from "./useShareState";
 
 const props = defineProps<{

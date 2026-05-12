@@ -73,7 +73,7 @@
         :show-start-screen="isHome"
         :auto-play="autoPlayNext"
         @play-state-change="onPlayStateChange"
-        @start-state-change="(v: boolean) => { if (sceneRef) sceneRef.isStarted = v; }"
+        @start-state-change="onStartStateChange"
     >
         <template #start-screen>
             <EditorStartScreen hint="or drag M. cubert &#x1F642;&#x200D;&#x2194;&#xFE0F;" />
@@ -124,16 +124,16 @@ import { CONTROLS_PANE_HOVER_KEY, TABS_EXTERNALLY_MANAGED_KEY } from "@component
 import { EditorShell, EditorStartScreen } from "@components/custom/editor-shell";
 import { SharePopover } from "@components/custom/editor-shell";
 import {
-    DarkModeToggle,
     Avatar,
     AvatarImage,
-    DockDropdownTrigger,
     DropdownMenu,
     DropdownMenuTrigger,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuSeparator,
 } from "@mkbabb/glass-ui";
+import { DarkModeToggle } from "@mkbabb/glass-ui/controls";
+import { DockDropdownTrigger } from "@mkbabb/glass-ui/dock";
 import { TopDock } from "@components/custom/dock";
 
 import { AnimationGroup } from "@src/animation/group";
@@ -194,14 +194,30 @@ function togglePpMode() {
 }
 
 function onPlayStateChange(playing: boolean) {
-    // If play is pressed while on the home screen, switch to cube and auto-play
-    if (isHome.value) {
+    // Home "play" is a user gesture — it navigates to cube and auto-plays.
+    // Gate on the empty home group (no animations) so re-activating a cached
+    // scene whose group was already started can't spuriously warp us away.
+    const group = currentAnimationGroup.value;
+    const isHomeEmptyGroup = Object.keys(group.animations).length === 0;
+    if (isHome.value && playing && isHomeEmptyGroup) {
         autoPlayNext.value = true;
         switchScene("cube");
         return;
     }
     if (sceneRef.value && 'isPlaying' in sceneRef.value) {
         sceneRef.value.isPlaying = playing;
+    }
+}
+
+function onStartStateChange(started: boolean) {
+    // Writing via script handler (not inline template) so the assignment
+    // is scheduled against `sceneRef.value` at call time, not captured
+    // from a stale template-closure reference. Without this, the sibling
+    // CubeScene's `isStarted` ref would remain at its `ref(false)`
+    // default, which defeats the drag-during-playback gate in
+    // `useTransformState` and produces compositing jitter.
+    if (sceneRef.value && 'isStarted' in sceneRef.value) {
+        sceneRef.value.isStarted = started;
     }
 }
 
@@ -272,27 +288,19 @@ function switchScene(id: string) {
     const prevControls = getStoredAnimationGroupControlOptions(currentSuperKey.value);
     const wasOpen = prevControls.isControlsPanelOpen;
     const wasHome = isHome.value;
-    const wasCubeOrHome = wasHome || currentSceneId.value === "cube";
 
     // Save playback state before switching
     saveCurrentPlaybackState();
 
     rawSwitchScene(id);
 
-    // Home↔Cube: CubeScene stays mounted (same key), just toggle controls
-    if (id === HOME_SCENE_ID && wasCubeOrHome) {
-        // Going to home from cube — keep CubeScene mounted, hide controls
-        // showStartScreen is bound to isHome, so start screen appears automatically
+    // Home uses the cube component/key unconditionally (activeSceneKey is
+    // always 'cube' when isHome), so regardless of the previous scene the
+    // KeepAlive slot transitions into the (possibly cached) CubeScene.
+    // Hide the cube's controls so only the start screen is visible.
+    if (id === HOME_SCENE_ID) {
         const cubeControls = getStoredAnimationGroupControlOptions("Cube");
         cubeControls.isControlsPanelOpen = false;
-        return;
-    }
-
-    if (id === HOME_SCENE_ID) {
-        // Going to home from a non-cube scene — CubeScene will mount fresh
-        currentSuperKey.value = "__home__";
-        currentAnimationGroup.value = markRaw(new AnimationGroup());
-        sceneRef.value = null;
         return;
     }
 
@@ -342,11 +350,17 @@ watch(
         const controls = getStoredAnimationGroupControlOptions(superKey);
         if (isHome.value) {
             controls.isControlsPanelOpen = false;
-        } else if (!controls.selectedAnimation) {
-            const names = Object.keys(group.animations);
-            if (names.length > 0) {
-                controls.selectedAnimation = names[0]!;
-                controls.isControlsPanelOpen = window.innerWidth >= 1024;
+        } else {
+            // Pick the first animation when none is selected yet.
+            if (!controls.selectedAnimation) {
+                const names = Object.keys(group.animations);
+                if (names.length > 0) controls.selectedAnimation = names[0]!;
+            }
+            // Controls panel is open by default whenever a non-home scene
+            // mounts (e.g. page reload, direct deep link). User can close
+            // it during a session; it reopens on the next scene mount.
+            if (window.innerWidth >= 1024) {
+                controls.isControlsPanelOpen = true;
             }
         }
 

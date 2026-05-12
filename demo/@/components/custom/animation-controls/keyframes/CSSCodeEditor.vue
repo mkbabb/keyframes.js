@@ -14,7 +14,7 @@ import { onMounted, onUnmounted, useTemplateRef, watch } from "vue";
 import * as monaco from "monaco-editor";
 import DarkTheme from "monaco-themes/themes/Dracula.json";
 import LightTheme from "monaco-themes/themes/GitHub.json";
-import { useGlobalDark } from "@mkbabb/glass-ui";
+import { useGlobalDark } from "@mkbabb/glass-ui/dark";
 import { clampIOSNoZoomFontSize } from "@utils/iosTextEntry";
 import { convert2, debounce, formatCSS } from "@mkbabb/value.js";
 import { toast } from "vue-sonner";
