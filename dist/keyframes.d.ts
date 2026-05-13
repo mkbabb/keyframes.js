@@ -453,6 +453,7 @@ export declare class NumericAnimation<T extends Record<string, number>> {
     private timingFn;
     private result;
     private _duration;
+    private _respectReducedMotion;
     private _playback;
     constructor(keyframes: T[], options?: NumericAnimationOptions);
     private buildSegments;
@@ -488,6 +489,16 @@ export declare interface NumericAnimationOptions {
     duration?: number | undefined;
     /** Explicit positions as percentages [0-100]. Auto-distributes if omitted. */
     positions?: number[] | undefined;
+    /**
+     * When true, honor `prefers-reduced-motion: reduce` by snapping to the
+     * final keyframe values immediately rather than interpolating over
+     * `duration`. The play promise resolves on the next microtask. Default
+     * false (back-compat — consumers opt in).
+     *
+     * The check uses `matchMedia` if available; on SSR / Node the option
+     * is a no-op (animations proceed normally).
+     */
+    respectReducedMotion?: boolean | undefined;
 }
 
 /** Callback invoked each frame during `.play()` with the interpolated values. */
@@ -603,6 +614,16 @@ export declare interface SmoothProgressOptions {
     initial: number;
     /** Clamp current to [0, 1]. Default true */
     clamp: boolean;
+    /**
+     * When true, honor `prefers-reduced-motion: reduce` by snapping to
+     * target immediately rather than damping. `setTarget` short-circuits
+     * the smooth-toward path; `play()` invokes `onFrame` once with the
+     * target value. Default false (back-compat — consumers opt in).
+     *
+     * The check uses `matchMedia` if available; on SSR / Node the option
+     * is a no-op (animations proceed normally).
+     */
+    respectReducedMotion: boolean;
 }
 
 export declare interface TemplateAnimationFrame<V extends Vars> {
