@@ -577,12 +577,22 @@ export class Animation<V extends Vars = any> {
      *
      * @param t - Current animation time in milliseconds
      * @param transformFrames - If true, applies each frame's transform function to targets
+     * @param out - Optional output object to write results into. When
+     *   provided, its keys are cleared first so no stale keys from a
+     *   previous call leak through. Pass this per-animation to achieve
+     *   zero-allocation steady-state playback.
      * @returns Merged flat vars from all active frames
      */
-    interpFrames(t: number, transformFrames: boolean = false) {
+    interpFrames(
+        t: number,
+        transformFrames: boolean = false,
+        out: Record<string, ValueUnit[]> = {},
+    ) {
         t = this.reversed ? this.options.duration - t : t;
 
-        const result: Record<string, ValueUnit[]> = {};
+        const result = out;
+        for (const k in result) delete result[k];
+
         const frames = this.frames;
         const len = frames.length;
 

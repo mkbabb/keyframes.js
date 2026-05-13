@@ -183,34 +183,41 @@ export function useTransformState(
         animateUpdateMatrix(fromMatrix, toMatrix, true);
     };
 
-    // rAF-debounced watcher for transform slider changes
+    // rAF-debounced watcher for transform slider changes.
+    //
+    // When the animation group is started (playing or paused), the drag
+    // rotation is applied to OrbitalDrag's container element via CSS
+    // compose — the AnimationGroup owns the cube's transform and its
+    // end-keyframe matrix must stay stable so interpolation is smooth.
+    // Rebuilding `matrix3dEnd` from drag rotation mid-play caused the
+    // animation's endpoint to move every frame, producing visible jitter.
+    //
+    // The watcher therefore only rebuilds matrix3dEnd / writes to the
+    // target when the group hasn't started — matrix editor sliders still
+    // call updateTransformations() explicitly for their own path.
     let transformUpdateScheduled = false;
     watch(
         transformSliderValues,
         () => {
-            if (!transformUpdateScheduled) {
-                transformUpdateScheduled = true;
-                requestAnimationFrame(() => {
-                    transformUpdateScheduled = false;
-                    updateTransformations();
+            if (isGroupStarted.value) return;
+            if (transformUpdateScheduled) return;
+            transformUpdateScheduled = true;
+            requestAnimationFrame(() => {
+                transformUpdateScheduled = false;
+                updateTransformations();
 
-                    // Only write to the target element when the animation has
-                    // never been started. When started (playing or paused),
-                    // OrbitalDrag's container handles the drag transform and
-                    // AnimationGroup handles the target element.
-                    if (!isGroupStarted.value && targetRef.value) {
-                        transformTargetsStyle(
-                            {
-                                transform: {
-                                    matrix3d: matrix3dEnd.value,
-                                },
+                if (targetRef.value) {
+                    transformTargetsStyle(
+                        {
+                            transform: {
+                                matrix3d: matrix3dEnd.value,
                             },
-                            [targetRef.value],
-                            false,
-                        );
-                    }
-                });
-            }
+                        },
+                        [targetRef.value],
+                        false,
+                    );
+                }
+            });
         },
         { deep: true },
     );

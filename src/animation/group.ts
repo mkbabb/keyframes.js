@@ -2,6 +2,7 @@ import {
     cancelAnimationFrame,
     lerp,
     requestAnimationFrame,
+    type ValueUnit,
 } from "@mkbabb/value.js";
 import { Animation, getAnimationId } from ".";
 import type {
@@ -174,6 +175,11 @@ export class AnimationGroup<V extends Vars> {
      * Called per-frame for single-target groups. Applies layer blending
      * (replace / add / weighted) in zIndex order, then calls the group
      * transform function with the merged values.
+     *
+     * Refreshes every child's values at its current `t` in place —
+     * `interpFrames(t, false, entry.values)` clears and rewrites the
+     * long-lived buffer, so no stale keys leak across frames and no
+     * fresh object is allocated per entry per frame.
      */
     transformFramesGrouped(t: number) {
         const groupedValues: Record<string, unknown> = {};
@@ -181,16 +187,17 @@ export class AnimationGroup<V extends Vars> {
 
         let done = true;
         for (const groupObject of entries) {
-            const { animation, values, layer } = groupObject;
+            const { animation, layer, values } = groupObject;
 
             done = done && animation.done;
 
             if (!layer.enabled) continue;
 
-            if (!(animation.done || animation.paused)) {
-                const vars = animation.interpFrames(animation.t, false);
-                Object.assign(values, vars);
-            }
+            // Refresh in place. `values` is reset by interpFrames before
+            // new keys are assigned, so the done/paused early-return
+            // from the previous implementation is unnecessary — a
+            // scrubbed child's fresh state is always reflected here.
+            animation.interpFrames(animation.t, false, values as Record<string, ValueUnit[]>);
 
             // Apply property whitelist filter
             const filteredValues = layer.properties
@@ -265,32 +272,49 @@ export class AnimationGroup<V extends Vars> {
     }
 
     /**
-     * Render the current animation state as a static frame.
-     * Called on pause to ensure the visual matches the exact pause moment.
-     * Handles both single-target (grouped blending) and multi-target
-     * (per-child interpFrames) paths.
+     * Render the current composition as a static frame using each
+     * child's current `t`. Single-target groups go through the
+     * blended transform; multi-target groups apply each child's
+     * interpolated vars directly to its own targets.
+     *
+     * This is the public entry point for scenarios that mutate a
+     * child's state outside the rAF loop (scrubbing, state restore,
+     * pause snapshots) and need the visual to update immediately.
      */
-    private renderPauseFrame(): void {
-        const entries = this.getEntries();
+    render(): void {
         const now = this.lastTickTime || performance.now();
-
-        // Interpolate each child's current state
-        for (const entry of entries) {
-            const vars = entry.animation.interpFrames(entry.animation.t, false);
-            // For single-target, accumulate into entry.values for blending
-            if (this.singleTarget) {
-                Object.assign(entry.values, vars);
-            }
-        }
-
         if (this.singleTarget) {
             this.transformFramesGrouped(now);
         } else {
-            // Multi-target: apply each child's interpolated vars directly to its targets
-            for (const entry of entries) {
+            for (const entry of this.getEntries()) {
                 entry.animation.interpFrames(entry.animation.t, true);
             }
         }
+    }
+
+    /**
+     * Set a child animation's current time without touching its
+     * siblings. Updates `pausedTime` so the child resumes correctly
+     * from the scrub position. Chainable. Call `render()` afterwards
+     * to reflect the change visually.
+     */
+    setChildTime(nameOrAnim: string | Animation<V>, t: number) {
+        const key =
+            typeof nameOrAnim === "string"
+                ? nameOrAnim
+                : getAnimationId(nameOrAnim);
+        const entry = this.animations[key];
+        if (!entry) {
+            throw new Error(
+                `AnimationGroup.setChildTime: no animation registered for key "${key}". Known keys: ${Object.keys(this.animations).join(", ") || "(none)"}.`,
+            );
+        }
+        const anim = entry.animation;
+        anim.t = t;
+        if (anim.startTime !== undefined) {
+            anim.pausedTime = anim.startTime + t;
+        }
+        return this;
     }
 
     // ── Playback loop ────────────────────────────────────────────────
@@ -310,8 +334,6 @@ export class AnimationGroup<V extends Vars> {
         const promises: Promise<number>[] = [];
         for (const entry of this.getEntries()) {
             const anim = entry.animation;
-            // Tick children that are either unpaused, or paused but not yet
-            // recorded their pause timestamp (need one final tick to snapshot).
             if (!anim.paused || anim.pausedTime === 0) {
                 promises.push(anim.tick(t));
             }
@@ -406,7 +428,7 @@ export class AnimationGroup<V extends Vars> {
             cancelAnimationFrame(this.handleId);
             this.handleId = undefined;
             // Render final frame so the visual matches the pause moment
-            this.renderPauseFrame();
+            this.render();
         } else {
             // Resume: restart the draw loop
             this.handleId = requestAnimationFrame(this._boundDraw);

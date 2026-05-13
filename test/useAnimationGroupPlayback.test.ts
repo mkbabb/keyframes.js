@@ -35,7 +35,7 @@ function createPositionAnimation(
 }
 
 describe("useAnimationGroupPlayback.sliderUpdate", () => {
-    it("uses grouped composition for single-target animation groups", () => {
+    it("scrubs only the targeted animation in a single-target group", () => {
         const renderState = { x: 0, y: 0 };
         const xAnim = createPositionAnimation("X", "x", renderState);
         const yAnim = createPositionAnimation("Y", "y", renderState);
@@ -58,16 +58,20 @@ describe("useAnimationGroupPlayback.sliderUpdate", () => {
 
         xAnim.startTime = 1000;
         yAnim.startTime = 1500;
+        yAnim.t = 250;
+
         sliderUpdate({ t: 300, animation: xAnim });
 
-        expect(transformFramesGrouped).toHaveBeenCalledOnce();
-        expect(transformFramesGrouped).toHaveBeenCalledWith(300);
+        expect(xAnim.t).toBe(300);
         expect(xAnim.pausedTime).toBe(1300);
-        expect(yAnim.t).toBeCloseTo(300, 4);
-        expect(yAnim.pausedTime).toBe(1800);
+        // Sibling's t and pausedTime are untouched
+        expect(yAnim.t).toBe(250);
+        expect(yAnim.pausedTime).toBe(0);
+        // Single-target groups go through the composed transform
+        expect(transformFramesGrouped).toHaveBeenCalledOnce();
     });
 
-    it("re-renders per-animation transforms for non-single-target groups", () => {
+    it("scrubs only the targeted animation in a multi-target group", () => {
         const renderState = { x: 0, y: 0 };
         const xAnim = createPositionAnimation("X", "x", renderState);
         const yAnim = createPositionAnimation("Y", "y", renderState);
@@ -91,13 +95,18 @@ describe("useAnimationGroupPlayback.sliderUpdate", () => {
 
         sliderUpdate({ t: 500, animation: xAnim });
 
+        // Multi-target groups go through per-child transforms, not the composed path
         expect(transformFramesGrouped).not.toHaveBeenCalled();
-        expect(renderState.x).toBeCloseTo(50, 4);
-        expect(renderState.y).toBeCloseTo(50, 4);
+        expect(xAnim.t).toBe(500);
         expect(xAnim.pausedTime).toBe(1000);
+        // Sibling's t is untouched
+        expect(yAnim.t).toBe(250);
+        // Both children render at their own current t
+        expect(renderState.x).toBeCloseTo(50, 4);
+        expect(renderState.y).toBeCloseTo(25, 4);
     });
 
-    it("maps selected progress onto child durations across the whole group", () => {
+    it("leaves untouched siblings' durations alone when a longer animation is scrubbed", () => {
         const renderState = { x: 0, y: 0 };
         const xAnim = createPositionAnimation("X", "x", renderState);
         const yAnim = createPositionAnimation("Y", "y", renderState);
@@ -117,9 +126,11 @@ describe("useAnimationGroupPlayback.sliderUpdate", () => {
 
         sliderUpdate({ t: 1000, animation: yAnim });
 
-        expect(xAnim.t).toBeCloseTo(500, 4);
-        expect(yAnim.t).toBeCloseTo(1000, 4);
-        expect(renderState.x).toBeCloseTo(50, 4);
+        // Only yAnim's t moves; xAnim remains at its starting t
+        expect(yAnim.t).toBe(1000);
+        expect(xAnim.t).toBe(0);
+        // Render reflects each child's own t (yAnim halfway, xAnim at start)
         expect(renderState.y).toBeCloseTo(50, 4);
+        expect(renderState.x).toBeCloseTo(0, 4);
     });
 });
