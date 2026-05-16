@@ -16,7 +16,7 @@
                     <div
                         ref="ppmycotaLogoEl"
                         @click="setPPMode()"
-                        class="ppmycota-logo-sm m-0 h-8 w-8 lg:h-10 lg:w-10 cursor-pointer stroke-2 p-0 font-bold hover:scale-105"
+                        class="ppmycota-logo-sm m-0 h-8 w-8 lg:h-10 lg:w-10 cursor-pointer stroke-2 p-0 font-bold scale-on-hover"
                     ></div>
                 </HoverCardTrigger>
                 <HoverCardContent class="z-modal p-4 min-w-[17rem] instrument-serif">
@@ -48,7 +48,7 @@
             </TooltipProvider>
             <DarkModeToggle
                 title="Toggle dark mode"
-                class="aspect-square w-8 hover:scale-105"
+                class="aspect-square w-8 scale-on-hover"
             />
         </template>
 

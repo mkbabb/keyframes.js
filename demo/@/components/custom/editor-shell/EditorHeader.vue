@@ -23,7 +23,7 @@
                     <SharePopover />
                     <DarkModeToggle
                         title="Toggle dark mode"
-                        class="aspect-square w-8 hover:scale-105 hover:opacity-50"
+                        class="aspect-square w-8 scale-on-hover hover:opacity-50"
                     />
                 </slot>
             </div>

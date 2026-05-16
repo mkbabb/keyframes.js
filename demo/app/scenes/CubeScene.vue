@@ -108,7 +108,7 @@ const headerLeft = () =>
             h(HoverCardTrigger, null, {
                 default: () => h("div", {
                     onClick: setPPMode,
-                    class: "ppmycota-logo-sm m-0 h-8 w-8 lg:h-10 lg:w-10 cursor-pointer stroke-2 p-0 font-bold hover:scale-105",
+                    class: "ppmycota-logo-sm m-0 h-8 w-8 lg:h-10 lg:w-10 cursor-pointer stroke-2 p-0 font-bold scale-on-hover",
                 }),
             }),
             h(HoverCardContent, { class: "z-hovercard p-4 min-w-[17rem] instrument-serif" }, {

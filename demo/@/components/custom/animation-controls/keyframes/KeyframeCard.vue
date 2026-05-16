@@ -14,7 +14,7 @@
                 <div class="flex">
                     <X
                         @click="(e) => emit('remove', e)"
-                        class="p-0 m-0 hover:scale-105 cursor-pointer stroke-2 w-6 h-6 text-red-500 hover:text-red-700 bg-transparent hover:bg-transparent"
+                        class="p-0 m-0 scale-on-hover cursor-pointer stroke-2 w-6 h-6 text-red-500 hover:text-red-700 bg-transparent hover:bg-transparent"
                     >
                     </X>
                     <CopyButton class="h-6 w-6" :text="frameString" />

@@ -41,7 +41,7 @@
 
                     <!-- ppmycota logo — toggles pp mode -->
                     <DropdownMenuItem @select.prevent class="flex items-center gap-2.5 px-1.5 py-1 rounded-lg cursor-pointer" @click="togglePpMode">
-                        <div class="ppmycota-logo-sm w-7 h-7 shrink-0 hover:scale-105 transition-transform"></div>
+                        <div class="ppmycota-logo-sm w-7 h-7 shrink-0 scale-on-hover"></div>
                         <div class="flex-1 min-w-0">
                             <span class="instrument-serif text-sm text-[var(--ppmycota-primary)]">ppmycota</span>
                             <p class="instrument-serif text-2xs text-muted-foreground leading-tight">&#x1F642;&#x200D;&#x2194;&#xFE0F; &#x1F331; &#x1F344;&#x200D;&#x1F7EB;</p>

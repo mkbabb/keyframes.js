@@ -14,7 +14,7 @@
                     <SharePopover />
                     <DarkModeToggle
                         title="Toggle dark mode"
-                        class="aspect-square w-8 hover:scale-105"
+                        class="aspect-square w-8 scale-on-hover"
                     />
                 </slot>
             </template>
@@ -67,7 +67,7 @@
 import { ref } from "vue";
 
 import { initIOSPlatformClass } from "@utils/iosTextEntry";
-import { HeaderRibbon } from "@components/custom/header-ribbon";
+import { HeaderRibbon } from "@mkbabb/glass-ui/header-ribbon";
 import SharePopover from "./SharePopover.vue";
 import EditorStartScreen from "./EditorStartScreen.vue";
 import KeyboardShortcutsModal from "@components/custom/KeyboardShortcutsModal.vue";

@@ -25,7 +25,7 @@
                             <TooltipProvider :delay-duration="200">
                                 <Tooltip>
                                     <TooltipTrigger as-child>
-                                        <CopyButton class="hover:scale-105 icon-md" :text="timingString" />
+                                        <CopyButton class="scale-on-hover icon-md" :text="timingString" />
                                     </TooltipTrigger>
                                     <TooltipContent class="font-mono text-xs">
                                         Copy to clipboard

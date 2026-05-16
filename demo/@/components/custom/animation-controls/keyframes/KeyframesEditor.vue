@@ -67,7 +67,7 @@
                         >
                             <DialogTrigger as-child>
                                 <FilePlus2
-                                    class="cursor-pointer hover:scale-105 rounded-lg stroke-2"
+                                    class="cursor-pointer scale-on-hover rounded-lg stroke-2"
                                 ></FilePlus2
                             ></DialogTrigger>
 
@@ -134,7 +134,7 @@
                 <MenubarMenu>
                     <MenubarTrigger>
                         <CopyButton
-                            class="w-6 h-6 hover:scale-105"
+                            class="w-6 h-6 scale-on-hover"
                             :text="cssKeyframesString"
                         />
                     </MenubarTrigger>
@@ -149,7 +149,7 @@
                                     applyCSSStyles();
                                 }
                             "
-                            class="cursor-pointer bg-transparent hover:bg-transparent hover:scale-105"
+                            class="cursor-pointer bg-transparent hover:bg-transparent scale-on-hover"
                         />
                     </MenubarTrigger>
                 </MenubarMenu>

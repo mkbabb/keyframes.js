@@ -102,7 +102,7 @@ declare class Animation_2<V extends Vars = any> {
      *   zero-allocation steady-state playback.
      * @returns Merged flat vars from all active frames
      */
-    interpFrames(t: number, transformFrames?: boolean, out?: Record<string, ValueUnit[]>): Record<string, ValueUnit<any, string | undefined>[]>;
+    interpFrames(t: number, transformFrames?: boolean, out?: Record<string, ValueUnit[]>): Record<string, ValueUnit[]>;
     onStart(): Promise<void>;
     onEnd(): Promise<void>;
     tick(t: number): Promise<number>;

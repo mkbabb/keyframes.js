@@ -4,7 +4,7 @@
             <button
                 aria-label="Share animation"
                 :class="[
-                    'inline-flex items-center justify-center cursor-pointer hover:scale-105 transition-all duration-fast bg-transparent border-none p-0',
+                    'inline-flex items-center justify-center cursor-pointer scale-on-hover transition-all duration-fast bg-transparent border-none p-0',
                     sharePopoverOpen ? 'opacity-100' : 'hover:opacity-50',
                 ]"
             >
