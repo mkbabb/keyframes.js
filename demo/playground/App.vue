@@ -28,6 +28,7 @@
                     @select="selectAsset"
                     @deselect-all="deselectAll"
                     @update-transform="updateTransform"
+                    @add="addAsset"
                 />
             </div>
         </template>
@@ -39,6 +40,7 @@ import { ref, toRaw, watch } from "vue";
 import { TabsContent, TabsTrigger } from "@mkbabb/glass-ui";
 import { EditorShell } from "@components/custom/editor-shell";
 import { AssetLayerPanel, AssetViewport, useAssetManager } from "@components/custom/asset-manager";
+import { getStoredAnimationGroupControlOptions } from "@components/custom/animation-controls/stores";
 import { usePlaygroundAnimations } from "./usePlaygroundAnimations";
 
 import "@styles/utils.css";
@@ -46,10 +48,23 @@ import "@styles/style.css";
 
 const { animationGroup, animationNames, superKey } = usePlaygroundAnimations();
 
+// The controls pane (which hosts the "Assets" tab content) only renders when
+// a non-empty `selectedAnimation` is set. The playground has no animation
+// picker — it binds animations per-asset — so seed the control store here:
+// select the first preset and route the pane to the Assets tab, making the
+// asset manager reachable on a cold boot.
+const playgroundControls = getStoredAnimationGroupControlOptions(superKey);
+if (!playgroundControls.selectedAnimation || !animationGroup.animations[playgroundControls.selectedAnimation]) {
+    playgroundControls.selectedAnimation = animationNames[0] ?? "";
+}
+playgroundControls.selectedControl = "assets";
+playgroundControls.isControlsPanelOpen = true;
+
 const {
     state: assetState,
     sortedAssets,
     selectedAssets,
+    addAsset,
     selectAsset,
     deselectAll,
     updateTransform,

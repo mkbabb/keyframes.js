@@ -1,5 +1,8 @@
 <template>
-    <div class="easing-curve-canvas-wrapper w-full overflow-hidden rounded-xl">
+    <GlassPanel
+        variant="wash"
+        class="easing-curve-canvas-wrapper w-full overflow-hidden rounded-card p-2"
+    >
         <svg
             ref="svgEl"
             class="easing-curve-canvas w-full touch-none select-none"
@@ -96,11 +99,12 @@
                 class="traveling-dot"
             />
         </svg>
-    </div>
+    </GlassPanel>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, useTemplateRef } from "vue";
+import { GlassPanel } from "@mkbabb/glass-ui/glass-panel";
 
 const props = defineProps<{
     easingFn: (t: number) => number;
@@ -261,9 +265,13 @@ const onDrag = (event: PointerEvent) => {
 </script>
 
 <style scoped>
+/* The canvas fills the available pane width and holds a square aspect so
+   the curve scales with its container (container-query-friendly) rather
+   than being locked into a fixed sidebar-column height (Qρ §5.2). */
 .easing-curve-canvas {
     min-height: 140px;
-    max-height: 360px;
+    aspect-ratio: 1;
+    display: block;
 }
 
 .bounding-box {
@@ -293,7 +301,9 @@ const onDrag = (event: PointerEvent) => {
 }
 
 .bezier-path {
-    stroke: var(--ppmycota-primary, var(--foreground));
+    /* The curve carries the design-system accent in all modes; pp-mode can
+       still retint via the --ppmycota-primary cascade when it is defined. */
+    stroke: var(--ppmycota-primary, var(--primary));
     stroke-width: 0.04;
     fill: none;
     stroke-linecap: round;
@@ -325,7 +335,7 @@ const onDrag = (event: PointerEvent) => {
 }
 
 .traveling-dot {
-    fill: var(--ppmycota-primary, var(--foreground));
+    fill: var(--ppmycota-primary, var(--primary));
     opacity: 0.9;
     transition: none;
 }

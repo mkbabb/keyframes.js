@@ -4,6 +4,33 @@
         class="absolute inset-0 z-dock pointer-events-none overflow-hidden"
         @pointerdown.self="deselectAll"
     >
+        <!-- Empty state — shown when the viewport has no assets -->
+        <div
+            v-if="sortedAssets.length === 0"
+            class="absolute inset-0 flex items-center justify-center pointer-events-none"
+        >
+            <Card class="pointer-events-auto glass-card max-w-sm mx-6">
+                <CardContent class="flex flex-col items-center gap-3 px-8 py-7 text-center">
+                    <Shapes class="size-8 text-muted-foreground" />
+                    <p class="instrument-serif text-lg text-foreground">
+                        Compose a scene
+                    </p>
+                    <p class="font-mono text-xs text-muted-foreground">
+                        Add a shape, text, or image — then bind it to an animation
+                        from the Assets panel.
+                    </p>
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        class="gap-1.5 font-mono text-xs mt-1"
+                        @click="emit('add', 'rectangle')"
+                    >
+                        <Plus class="icon-sm" /> Add a shape
+                    </Button>
+                </CardContent>
+            </Card>
+        </div>
+
         <!-- Rendered assets -->
         <div
             v-for="asset in sortedAssets"
@@ -71,7 +98,9 @@
 
 <script setup lang="ts">
 import { readonly, shallowReactive, useTemplateRef } from "vue";
-import type { Asset, AssetTransform, HandleType } from "./assetTypes";
+import { Button, Card, CardContent } from "@mkbabb/glass-ui";
+import { Plus, Shapes } from "lucide-vue-next";
+import type { Asset, AssetKind, AssetTransform, HandleType } from "./assetTypes";
 
 const props = defineProps<{
     sortedAssets: Asset[];
@@ -84,6 +113,7 @@ const emit = defineEmits<{
     (e: "select", id: string, additive: boolean): void;
     (e: "deselectAll"): void;
     (e: "updateTransform", id: string, transform: Partial<AssetTransform>): void;
+    (e: "add", kind: AssetKind): void;
 }>();
 
 const viewportEl = useTemplateRef<HTMLElement>("viewportEl");

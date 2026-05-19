@@ -74,6 +74,7 @@
             <label class="instrument-serif text-xs text-muted-foreground shrink-0">duration</label>
             <div class="duration-slider flex-1">
                 <Slider
+                    size="sm"
                     :model-value="[demo.duration.value]"
                     :min="300"
                     :max="5000"
@@ -149,12 +150,13 @@ const onStepsChange = (e: Event) => {
 </script>
 
 <style scoped>
+/* Geometry is the `size` prop (size="sm" → 4px track / 12px thumb), not a
+   wrapper token — the size-axis root class shadows wrapper-set geometry
+   custom properties (Qρ §5.4). Only the colour tokens carry here. */
 .duration-slider {
     --slider-track-bg: color-mix(in srgb, var(--color-slider-track) 15%, transparent);
-    --slider-track-height: 4px;
     --slider-range-bg: color-mix(in srgb, var(--color-slider-track) 40%, transparent);
     --slider-thumb-bg: var(--color-progress);
-    --slider-thumb-size: 0.75rem;
 }
 .duration-slider:hover {
     --slider-thumb-bg: color-mix(in srgb, var(--color-progress) 80%, transparent);
