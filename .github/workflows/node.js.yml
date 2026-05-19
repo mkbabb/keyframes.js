@@ -31,12 +31,11 @@ jobs:
                   node-version: 24
                   cache: "npm"
             - run: npm ci
-            - run: npm run build
             - run: npm run gh-pages
-            - run: cp CNAME dist/
+            - run: cp CNAME dist/gh-pages/
 
             - name: Deploy
               uses: peaceiris/actions-gh-pages@v4
               with:
                   github_token: ${{ secrets.GITHUB_TOKEN }}
-                  publish_dir: ./dist
+                  publish_dir: ./dist/gh-pages

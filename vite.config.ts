@@ -214,7 +214,13 @@ export default defineConfig((mode) => {
                 fs: { allow: devFsAllow },
             },
             build: {
-                outDir: path.resolve(import.meta.dirname, "./dist/"),
+                // Demo (gh-pages) output is routed to a SEPARATE outDir so a
+                // demo build never clobbers the library `dist/keyframes.{js,d.ts}`
+                // the package's `exports` map resolves to. `production` mode
+                // (the library build) keeps the default `dist/`; the two builds
+                // no longer share an `emptyOutDir` target. See the cross-repo
+                // dev-resolution contract — glass-ui Q.W6.
+                outDir: path.resolve(import.meta.dirname, "./dist/gh-pages/"),
                 emptyOutDir: true,
                 minify: true,
                 sourcemap: false,
