@@ -136,6 +136,12 @@ const defaultOptions = {
     },
 
     resolve: {
+        // No hard `dist/` alias and no self-alias for any `@mkbabb/*` package.
+        // `@mkbabb/keyframes.js` (this package) reaches its own source via the
+        // `@src` alias / relative paths; `@mkbabb/glass-ui` + `@mkbabb/value.js`
+        // (workspace siblings) resolve through their own `exports` maps via the
+        // `file:` symlink in `node_modules`. See the cross-repo dev-resolution
+        // contract — glass-ui/docs/precepts/cross-repo-dev-resolution.md §2.3.
         alias: {
             "@src": path.resolve(import.meta.dirname, "src"),
             "@styles": path.resolve(import.meta.dirname, "demo/@/styles"),
@@ -143,10 +149,30 @@ const defaultOptions = {
             "@utils": path.resolve(import.meta.dirname, "demo/@/utils"),
             "@composables": path.resolve(import.meta.dirname, "demo/@/composables"),
             "@assets": path.resolve(import.meta.dirname, "assets"),
-            "@mkbabb/keyframes.js": path.resolve(import.meta.dirname, "src/animation"),
         },
     },
 };
+
+/**
+ * Dev/serve `resolve.conditions` per the cross-repo dev-resolution contract
+ * (glass-ui/docs/precepts/cross-repo-dev-resolution.md §2.2).
+ *
+ * `development` MUST lead so a workspace-linked `@mkbabb/*` sibling resolves to
+ * its live `src/` rather than a stale/absent `dist/`. Vite auto-injects
+ * `development` in serve mode, but an explicit array is self-documenting and
+ * survives a Vite-default change. Production/library `build` configs omit
+ * `development` — they externalise siblings (see the production branch).
+ */
+const devConditions = ["development", "module", "browser", "default"];
+
+/**
+ * Dev/serve `server.fs.allow` per the contract §2.2.3. The `development`
+ * branch resolves a sibling's `src/`, and `src/`-relative assets (CSS, fonts,
+ * WASM) are served over Vite's `/@fs/` channel — which requires the sibling
+ * root to be inside `server.fs.allow`. The workspace root covers every linked
+ * `@mkbabb/*` sibling (glass-ui, value.js) consumed via `file:../`.
+ */
+const devFsAllow = [path.resolve(import.meta.dirname, "..")];
 
 const defaultPlugins = [Vue()];
 
@@ -180,6 +206,13 @@ export default defineConfig((mode) => {
             ...defaultOptions,
             base: "./",
             root: "./demo/app/",
+            resolve: {
+                ...defaultOptions.resolve,
+                conditions: devConditions,
+            },
+            server: {
+                fs: { allow: devFsAllow },
+            },
             build: {
                 outDir: path.resolve(import.meta.dirname, "./dist/"),
                 emptyOutDir: true,
@@ -216,6 +249,13 @@ export default defineConfig((mode) => {
         return {
             ...defaultOptions,
             root: "./demo/playground/",
+            resolve: {
+                ...defaultOptions.resolve,
+                conditions: devConditions,
+            },
+            server: {
+                fs: { allow: devFsAllow },
+            },
             optimizeDeps: {
                 include: [
                     "vue",
@@ -232,6 +272,13 @@ export default defineConfig((mode) => {
         return {
             ...defaultOptions,
             root: "./demo/app/",
+            resolve: {
+                ...defaultOptions.resolve,
+                conditions: devConditions,
+            },
+            server: {
+                fs: { allow: devFsAllow },
+            },
             optimizeDeps: {
                 include: [
                     "vue",

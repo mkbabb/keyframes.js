@@ -21,7 +21,8 @@
         ".": {
             "development": "./src/animation/index.ts",
             "types": "./dist/keyframes.d.ts",
-            "import": "./dist/keyframes.js"
+            "import": "./dist/keyframes.js",
+            "default": "./dist/keyframes.js"
         }
     },
     "files": [
