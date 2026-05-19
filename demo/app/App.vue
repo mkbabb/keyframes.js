@@ -100,17 +100,30 @@
         </template>
 
         <template #target>
-            <!-- KeepAlive caches up to 3 scene instances so returning to a scene
-                 doesn't re-evaluate lazy modules (Monaco, Three.js, etc.).
+            <!-- Scene host. Vue's documented nesting for an async scene swapped
+                 through a transition is Transition > KeepAlive > Suspense > async
+                 component. <Suspense> resolves the async chunk BEFORE its vnode is
+                 handed up to KeepAlive/Transition, so the out-in transition's leave
+                 hook never walks a torn-down (null subTree) async-wrapper subtree —
+                 the getNextHostNode crash (Qρ F1 / Qσ D1) cannot occur.
+
+                 KeepAlive caches up to 3 resolved scene instances so returning to a
+                 scene doesn't re-evaluate lazy modules (Monaco, Three.js, etc.).
                  Home + Cube share the same key so CubeScene persists across home ↔ cube. -->
             <Transition name="scene" mode="out-in" :css="ready">
                 <KeepAlive :max="3">
-                    <component
-                        :is="activeSceneComponent"
-                        :key="activeSceneKey"
-                        ref="sceneRef"
-                        v-bind="activeSceneProps"
-                    />
+                    <Suspense :key="activeSceneKey">
+                        <component
+                            :is="activeSceneComponent"
+                            ref="sceneRef"
+                            v-bind="activeSceneProps"
+                        />
+                        <template #fallback>
+                            <div class="flex h-full w-full items-center justify-center">
+                                <span class="instrument-serif text-lg text-muted-foreground animate-pulse">Loading scene&#x2026;</span>
+                            </div>
+                        </template>
+                    </Suspense>
                 </KeepAlive>
             </Transition>
         </template>

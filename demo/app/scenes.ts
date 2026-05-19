@@ -32,14 +32,9 @@ export const scenes: SceneDescriptor[] = [
         id: "amiga",
         label: "Amiga",
         superKey: "Amiga",
-        component: defineAsyncComponent({
-            loader: () => import("./scenes/AmigaScene.vue"),
-            delay: 100,
-            loadingComponent: {
-                template:
-                    '<div class="flex items-center justify-center h-full w-full"><span class="text-muted-foreground instrument-serif text-lg animate-pulse">Loading scene...</span></div>',
-            },
-        }),
+        component: defineAsyncComponent(
+            () => import("./scenes/AmigaScene.vue"),
+        ),
     },
     {
         id: "square",
@@ -62,4 +57,7 @@ export const scenes: SceneDescriptor[] = [
 export const allScenes = [homeScene, ...scenes];
 export const sceneMap = new Map(allScenes.map((s) => [s.id, s]));
 
-// Heavy scenes (Amiga/Three.js) load on demand via defineAsyncComponent.
+// All scenes load on demand via defineAsyncComponent for code-splitting.
+// App.vue mounts each under <Suspense> so the async chunk resolves before
+// the scene <Transition> sees its vnode — the loading surface is the
+// <Suspense> #fallback slot, so the descriptors carry no loadingComponent.
