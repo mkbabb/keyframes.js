@@ -115,10 +115,10 @@
                             class="w-16 h-16 rounded border border-border/30 bg-muted/30"
                             :style="getGhostStyle(kf.vars)"
                         ></div>
-                        <div v-if="previewLoading[kf.id]" class="text-muted-foreground text-2xs font-mono">
+                        <div v-if="previewLoading[kf.id]" class="text-muted-foreground text-admin-label font-mono">
                             Capturing...
                         </div>
-                        <div class="font-mono text-2xs text-muted-foreground max-h-24 overflow-y-auto w-full">
+                        <div class="font-mono text-admin-label text-muted-foreground max-h-24 overflow-y-auto w-full">
                             <div v-for="[prop, val] in Object.entries(kf.vars)" :key="prop" class="truncate">
                                 <span class="text-foreground/70">{{ prop }}</span>: {{ val }}
                             </div>

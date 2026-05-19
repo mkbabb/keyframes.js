@@ -7,7 +7,7 @@
         <div
             :class="[
                 'scene-nav-shell pointer-events-auto relative flex items-center',
-                'rounded-panel glass-subtle',
+                'rounded-panel glass-wash',
                 'transition-all duration-slow ease-spring-smooth',
                 isExpanded
                     ? 'px-2 py-1.5 gap-1'

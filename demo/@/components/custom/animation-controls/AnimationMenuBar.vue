@@ -46,17 +46,18 @@
                                     >
                                         <SelectItem class="py-2 px-3" hide-indicator :value="name">
                                             <span class="flex items-center gap-2">
+                                                <!-- Playing: live conic-gradient progress ring driven by --dot-p.
+                                                     Idle/paused: discrete glass-ui StatusDot state colour. -->
                                                 <span
-                                                    :class="[
-                                                        'status-dot w-2.5 h-2.5',
-                                                        !isPlaying && isStarted
-                                                            ? 'status-dot--paused'
-                                                            : !isPlaying
-                                                              ? 'status-dot--idle'
-                                                              : '',
-                                                    ]"
-                                                    :style="isPlaying ? dotStyle(name) : {}"
+                                                    v-if="isPlaying"
+                                                    class="progress-dot w-2.5 h-2.5"
+                                                    :style="dotStyle(name)"
                                                 ></span>
+                                                <StatusDot
+                                                    v-else
+                                                    size="md"
+                                                    :variant="isStarted ? 'paused' : 'idle'"
+                                                />
                                                 <span :class="storedControls.selectedAnimation === name ? 'font-bold' : ''">{{ name }}</span>
                                             </span>
                                         </SelectItem>
@@ -90,9 +91,10 @@
 
                 <IconTooltip :text="isPlaying ? 'Pause' : 'Play'">
                     <Button
+                        variant="ghost"
                         :aria-label="isPlaying ? 'Pause animation' : 'Play animation'"
                         :class="[
-                            'dock-play-btn text-xl text-white rounded-full p-0',
+                            'scale-on-hover text-xl text-white rounded-full p-0',
                             'w-10 h-10 shrink-0',
                             isPlaying ? 'rainbow-vivid' : 'rainbow-pastel',
                         ]"
@@ -123,9 +125,10 @@
                     {{ storedControls.selectedAnimation }}
                 </span>
                 <Button
+                    variant="ghost"
                     :aria-label="isPlaying ? 'Pause animation' : 'Play animation'"
                     :class="[
-                        'dock-play-btn text-white rounded-full p-0',
+                        'scale-on-hover text-white rounded-full p-0',
                         'w-8 h-8 shrink-0 text-sm',
                         isPlaying ? 'rainbow-vivid' : 'rainbow-pastel',
                     ]"
@@ -163,6 +166,7 @@ import {
     Button,
 } from "@mkbabb/glass-ui";
 import { IconTooltip } from "@mkbabb/glass-ui/icon-tooltip";
+import { StatusDot } from "@mkbabb/glass-ui/status-dot";
 
 import { RotateCcw } from "lucide-vue-next";
 
@@ -253,8 +257,12 @@ defineExpose({ resetIconSpin, trashIconShake });
 
 <style scoped>
 /* Progress dot: conic gradient + glow driven by --dot-p (0–1) custom property.
+   The active-playing companion to glass-ui's discrete <StatusDot>.
    Avoids per-frame string allocation — only the property value changes. */
-.status-dot[style*="--dot-p"] {
+.progress-dot {
+    display: inline-block;
+    flex-shrink: 0;
+    border-radius: var(--radius-pill);
     --deg: calc(var(--dot-p) * 360deg);
     --glow-spread: calc(2px + var(--dot-p) * 3px);
     --glow-blur: calc(var(--dot-p) * 1.5px);

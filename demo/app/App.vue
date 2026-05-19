@@ -24,7 +24,7 @@
                         <SharePopover :on-scene-restore="(id: string) => switchScene(id)" />
                         <div class="flex-1 min-w-0">
                             <span class="instrument-serif text-sm text-foreground">Share</span>
-                            <p class="instrument-serif text-2xs text-muted-foreground leading-tight">Copy link or load shared state</p>
+                            <p class="instrument-serif text-admin-label text-muted-foreground leading-tight">Copy link or load shared state</p>
                         </div>
                     </DropdownMenuItem>
 
@@ -44,8 +44,8 @@
                         <div class="ppmycota-logo-sm w-7 h-7 shrink-0 scale-on-hover"></div>
                         <div class="flex-1 min-w-0">
                             <span class="instrument-serif text-sm text-[var(--ppmycota-primary)]">ppmycota</span>
-                            <p class="instrument-serif text-2xs text-muted-foreground leading-tight">&#x1F642;&#x200D;&#x2194;&#xFE0F; &#x1F331; &#x1F344;&#x200D;&#x1F7EB;</p>
-                            <a href="https://ppmycota.com" target="_blank" rel="noopener noreferrer" class="instrument-serif text-2xs text-muted-foreground hover:text-foreground hover:underline transition-colors" @click.stop>ppmycota.com</a>
+                            <p class="instrument-serif text-admin-label text-muted-foreground leading-tight">&#x1F642;&#x200D;&#x2194;&#xFE0F; &#x1F331; &#x1F344;&#x200D;&#x1F7EB;</p>
+                            <a href="https://ppmycota.com" target="_blank" rel="noopener noreferrer" class="instrument-serif text-admin-label text-muted-foreground hover:text-foreground hover:underline transition-colors" @click.stop>ppmycota.com</a>
                         </div>
                     </DropdownMenuItem>
 
@@ -58,8 +58,8 @@
                         </Avatar>
                         <div class="flex-1 min-w-0">
                             <a href="https://github.com/mkbabb" target="_blank" rel="noopener noreferrer" class="font-mono text-xs font-semibold text-foreground hover:underline">@mbabb</a>
-                            <p class="instrument-serif text-2xs text-muted-foreground leading-tight">CSS keyframe animation engine</p>
-                            <a href="https://github.com/mkbabb/keyframes.js" target="_blank" rel="noopener noreferrer" class="instrument-serif text-2xs text-muted-foreground hover:text-foreground hover:underline transition-colors">View the project on Github &#x1F389;</a>
+                            <p class="instrument-serif text-admin-label text-muted-foreground leading-tight">CSS keyframe animation engine</p>
+                            <a href="https://github.com/mkbabb/keyframes.js" target="_blank" rel="noopener noreferrer" class="instrument-serif text-admin-label text-muted-foreground hover:text-foreground hover:underline transition-colors">View the project on Github &#x1F389;</a>
                         </div>
                     </DropdownMenuItem>
                 </DropdownMenuContent>

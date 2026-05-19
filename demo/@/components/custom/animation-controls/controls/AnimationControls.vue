@@ -9,7 +9,7 @@
             @update:model-value="selectControl"
         >
             <!-- Tabs header (hidden when managed externally via TopDock) -->
-            <div v-if="!tabsExternallyManaged" ref="tabsHeaderEl" class="relative w-fit flex items-center justify-center flex-shrink-0 glass-subtle rounded-panel px-1 py-0.5 overflow-hidden">
+            <div v-if="!tabsExternallyManaged" ref="tabsHeaderEl" class="relative w-fit flex items-center justify-center flex-shrink-0 glass-wash rounded-panel px-1 py-0.5 overflow-hidden">
                 <TabsList
                     ref="tabsListRef"
                     :class="[

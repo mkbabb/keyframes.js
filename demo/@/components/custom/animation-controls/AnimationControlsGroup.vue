@@ -2,7 +2,7 @@
     <TooltipProvider :delay-duration="100" :skip-delay-duration="0">
     <div
         :class="[
-            'controls-layout grid grid-cols-1 grid-rows-[auto_1fr] lg:grid-rows-[1fr_auto] lg:grid-cols-[400px_1fr_1fr] justify-items-stretch items-start relative',
+            'controls-layout grid grid-cols-1 grid-rows-[auto_1fr_auto] lg:grid-rows-[1fr_auto] lg:grid-cols-[400px_1fr_1fr] justify-items-stretch items-start relative',
         ]"
         v-bind="$attrs"
     >
@@ -132,9 +132,13 @@
         </div>
         </div>
 
+        <!-- Animation stage. Mobile: a dedicated 1fr row track (row 2) below the
+             `auto` controls-pane row — the pane no longer overlays/clips the
+             stage at narrow widths (Qσ V1). Desktop: stage spans cols 2-4 of
+             the 3-col [400px 1fr 1fr] grid, controls-pane keeps col 1. -->
         <div
             :class="[
-                'justify-self-stretch self-center min-h-0 h-full overflow-visible overscroll-contain col-span-full row-start-1 -row-end-1 lg:row-end-auto lg:col-start-2 lg:col-end-4',
+                'justify-self-stretch self-center min-h-0 h-full overflow-visible overscroll-contain col-span-full row-start-2 lg:row-start-1 lg:row-end-auto lg:col-start-2 lg:col-end-4',
             ]"
         >
             <slot name="animation-content"></slot>
@@ -144,10 +148,10 @@
         <div
             id="timeline-expanded-target"
             :class="[
-                'col-span-full row-start-2 z-dock overflow-hidden',
+                'col-span-full row-start-3 lg:row-start-2 z-dock overflow-hidden',
                 'transition-[max-height,opacity] duration-slow ease-standard',
                 storedControls.isTimelineExpanded
-                    ? 'max-h-[60vh] border-t border-border/50 glass-subtle px-4 py-3'
+                    ? 'max-h-[60vh] border-t border-border/50 glass-wash px-4 py-3'
                     : 'max-h-0',
             ]"
         ></div>

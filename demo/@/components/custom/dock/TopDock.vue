@@ -17,6 +17,7 @@ import {
     SelectItem,
     SelectValue,
 } from "@mkbabb/glass-ui";
+import { StatusDot } from "@mkbabb/glass-ui/status-dot";
 
 import cubeIcon from "@assets/icons/cube-icon-sm.png";
 import amigaIcon from "@assets/icons/amiga-icon-sm.png";
@@ -151,7 +152,7 @@ const activeLayer = computed(() => {
                                     <SelectItem v-for="tab in allControlTabs" :key="tab.value" :value="tab.value" class="py-2 px-3" hide-indicator>
                                         <span class="flex items-center gap-2">
                                             <component v-if="tab.icon && TAB_ICONS[tab.icon]" :is="TAB_ICONS[tab.icon]" class="icon-md text-muted-foreground" />
-                                            <span :class="['status-dot', selectedControl === tab.value ? 'status-dot--active' : 'status-dot--idle']"></span>
+                                            <StatusDot :variant="selectedControl === tab.value ? 'active' : 'idle'" />
                                             <span :class="selectedControl === tab.value ? 'font-bold' : ''">{{ tab.label }}</span>
                                         </span>
                                     </SelectItem>
@@ -177,7 +178,7 @@ const activeLayer = computed(() => {
                                 <SelectGroup class="instrument-serif text-xl">
                                     <SelectItem :value="homeSceneId" class="py-2 px-3" hide-indicator>
                                         <span class="flex items-center gap-2">
-                                            <span :class="['status-dot', currentSceneId === homeSceneId ? 'status-dot--active' : 'status-dot--idle']"></span>
+                                            <StatusDot :variant="currentSceneId === homeSceneId ? 'active' : 'idle'" />
                                             <Home class="icon-sm text-muted-foreground" />
                                             <span :class="currentSceneId === homeSceneId ? 'font-bold' : ''">Home</span>
                                         </span>
@@ -190,7 +191,7 @@ const activeLayer = computed(() => {
                                         hide-indicator
                                     >
                                         <span class="flex items-center gap-2">
-                                            <span :class="['status-dot', currentSceneId === scene.id ? 'status-dot--active' : 'status-dot--idle']"></span>
+                                            <StatusDot :variant="currentSceneId === scene.id ? 'active' : 'idle'" />
                                             <img v-if="sceneIcons[scene.id]" :src="sceneIcons[scene.id]" class="w-5 h-5 shrink-0 object-contain" />
                                             <span :class="currentSceneId === scene.id ? 'font-bold' : ''">{{ scene.label }}</span>
                                         </span>
