@@ -155,24 +155,15 @@ const defaultOptions = {
 
 /**
  * Dev/serve `resolve.conditions` per the cross-repo dev-resolution contract
- * (glass-ui/docs/precepts/cross-repo-dev-resolution.md §2.2).
+ * (glass-ui/docs/precepts/cross-repo-dev-resolution.md, contract-v2).
  *
- * `development` MUST lead so a workspace-linked `@mkbabb/*` sibling resolves to
- * its live `src/` rather than a stale/absent `dist/`. Vite auto-injects
- * `development` in serve mode, but an explicit array is self-documenting and
- * survives a Vite-default change. Production/library `build` configs omit
- * `development` — they externalise siblings (see the production branch).
+ * contract-v2 abrogates the `development` condition: a workspace-linked
+ * `@mkbabb/*` sibling resolves to its own `dist/` in dev and prod alike,
+ * kept always-fresh by the sibling's own `build:watch`. No `development`
+ * arm, no sibling-`src/` deep-import — `["module","browser","default"]`
+ * is the standard browser-target resolution order.
  */
-const devConditions = ["development", "module", "browser", "default"];
-
-/**
- * Dev/serve `server.fs.allow` per the contract §2.2.3. The `development`
- * branch resolves a sibling's `src/`, and `src/`-relative assets (CSS, fonts,
- * WASM) are served over Vite's `/@fs/` channel — which requires the sibling
- * root to be inside `server.fs.allow`. The workspace root covers every linked
- * `@mkbabb/*` sibling (glass-ui, value.js) consumed via `file:../`.
- */
-const devFsAllow = [path.resolve(import.meta.dirname, "..")];
+const devConditions = ["module", "browser", "default"];
 
 const defaultPlugins = [Vue()];
 
@@ -209,9 +200,6 @@ export default defineConfig((mode) => {
             resolve: {
                 ...defaultOptions.resolve,
                 conditions: devConditions,
-            },
-            server: {
-                fs: { allow: devFsAllow },
             },
             build: {
                 // Demo (gh-pages) output is routed to a SEPARATE outDir so a
@@ -259,9 +247,6 @@ export default defineConfig((mode) => {
                 ...defaultOptions.resolve,
                 conditions: devConditions,
             },
-            server: {
-                fs: { allow: devFsAllow },
-            },
             optimizeDeps: {
                 include: [
                     "vue",
@@ -281,9 +266,6 @@ export default defineConfig((mode) => {
             resolve: {
                 ...defaultOptions.resolve,
                 conditions: devConditions,
-            },
-            server: {
-                fs: { allow: devFsAllow },
             },
             optimizeDeps: {
                 include: [
