@@ -157,9 +157,9 @@ export class NumericAnimation<T extends Record<string, number>> {
 
         for (let i = 0; i < seg.keys.length; i++) {
             (this.result as Record<string, number>)[seg.keys[i]!] = lerp(
-                eased,
                 seg.startVals[i]!,
                 seg.stopVals[i]!,
+                eased,
             );
         }
 

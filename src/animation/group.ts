@@ -249,9 +249,9 @@ export class AnimationGroup<V extends Vars> {
                                 isNumericCarrier(incoming)
                             ) {
                                 existing.value = lerp(
-                                    layer.weight,
                                     existing.value,
                                     incoming.value,
+                                    layer.weight,
                                 );
                             } else {
                                 groupedValues[key] = val;
