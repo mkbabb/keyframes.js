@@ -18,7 +18,11 @@ import {
     ValueUnit,
 } from "@mkbabb/value.js";
 import type {
+    ColorSpace,
     HueInterpolationMethod,
+    NormalizeValueUnitsOptions,
+} from "@mkbabb/value.js";
+import type {
     TemplateAnimationFrame,
     TimingFunction,
     TimingFunctionNames,
@@ -221,7 +225,7 @@ export const createInterpVarValue = (
     startIx: number,
     endIx: number,
     vars: ParsedVarMap[],
-    colorSpace: string = "oklab",
+    colorSpace: ColorSpace = "oklab",
     hueMethod?: HueInterpolationMethod,
 ) => {
     const startVars = vars[startIx];
@@ -270,7 +274,7 @@ export const createInterpVarValue = (
                 `Interpolation for "${v}" requires ValueUnit leaves.`,
             );
         }
-        const opts: { colorSpace?: string; hueMethod?: HueInterpolationMethod } = { colorSpace };
+        const opts: NormalizeValueUnitsOptions = { colorSpace };
         if (hueMethod !== undefined) opts.hueMethod = hueMethod;
         return prepareInterpVar(normalizeValueUnits(l, r, opts));
     });

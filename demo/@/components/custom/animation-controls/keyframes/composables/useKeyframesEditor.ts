@@ -6,7 +6,7 @@ import {
     formatCSS,
     parseCSSStylesheet,
     parseCSSValueUnit,
-    type AnimationOptions as CSSAnimationOptions,
+    type CSSAnimationOptions,
 } from "@mkbabb/value.js";
 import {
     Animation,

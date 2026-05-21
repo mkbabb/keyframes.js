@@ -187,7 +187,34 @@ export default defineConfig((mode) => {
             esbuild: {
                 drop: ["console", "debugger"],
             },
-            plugins: [...defaultPlugins, dts({ rollupTypes: true, include: ["src/"] })],
+            plugins: [
+                ...defaultPlugins,
+                // vite-plugin-dts derives its rollup-stub path from
+                // `relative(entryRoot, entry)` — which only matches the
+                // actual emit location when TSC's effective `rootDir`
+                // also equals `entryRoot`. With the project's default
+                // tsconfig (no explicit `rootDir`, multi-dir `include`)
+                // TSC's rootDir auto-resolves to the project root, so
+                // `src/animation/index.ts` emits to `dist/src/animation/
+                // index.d.ts` while the stub-writer looks for
+                // `dist/index.d.ts` — and API Extractor rolls up the
+                // empty stub, yielding a 12-byte `export {}` artifact.
+                //
+                // Pinning both `entryRoot` AND `compilerOptions.rootDir`
+                // to the library entry's directory keeps emit and
+                // stub-write in lockstep.
+                dts({
+                    rollupTypes: true,
+                    include: ["src/"],
+                    entryRoot: "src/animation",
+                    compilerOptions: {
+                        rootDir: path.resolve(
+                            import.meta.dirname,
+                            "src/animation",
+                        ),
+                    },
+                }),
+            ],
         };
     } else if (mode.mode === "gh-pages") {
         // Heavy lazy chunks that should NOT be modulepreloaded or render-blocking
