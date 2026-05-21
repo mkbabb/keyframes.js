@@ -180,7 +180,7 @@ export default defineConfig((mode) => {
                     fileName: "keyframes",
                     formats: ["es"],
                 },
-                rollupOptions: {
+                rolldownOptions: {
                     external: ["vue", "prettier", "@mkbabb/parse-that", "@mkbabb/value.js"],
                 },
             },
@@ -221,7 +221,7 @@ export default defineConfig((mode) => {
                     },
                 },
                 cssCodeSplit: true,
-                rollupOptions: {
+                rolldownOptions: {
                     output: {
                         manualChunks(id) {
                             if (id.includes("node_modules")) {
