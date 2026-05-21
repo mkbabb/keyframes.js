@@ -13,14 +13,13 @@
         "verbatimModuleSyntax": true,
         "resolveJsonModule": true,
         "skipLibCheck": true,
-        "baseUrl": ".",
         "paths": {
-            "@src/*": ["src/*"],
-            "@styles/*": ["demo/@/styles/*"],
-            "@components/*": ["demo/@/components/*"],
-            "@utils/*": ["demo/@/utils/*"],
-            "@composables/*": ["demo/@/composables/*"],
-            "@assets/*": ["assets/*"]
+            "@src/*": ["./src/*"],
+            "@styles/*": ["./demo/@/styles/*"],
+            "@components/*": ["./demo/@/components/*"],
+            "@utils/*": ["./demo/@/utils/*"],
+            "@composables/*": ["./demo/@/composables/*"],
+            "@assets/*": ["./assets/*"]
         }
     },
     "include": ["src/", "demo/"]
