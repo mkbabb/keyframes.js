@@ -43,7 +43,7 @@
 </template>
 
 <script setup lang="ts">
-import { Share2, Clipboard, ArrowRight } from "lucide-vue-next";
+import { Share2, Clipboard, ArrowRight } from "@lucide/vue";
 import {
     Popover,
     PopoverTrigger,

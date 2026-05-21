@@ -151,7 +151,7 @@ import {
     Pause,
     Play,
     Trash,
-} from "lucide-vue-next";
+} from "@lucide/vue";
 
 import {
     DockIconButton,
@@ -168,7 +168,7 @@ import {
 import { IconTooltip } from "@mkbabb/glass-ui/icon-tooltip";
 import { StatusDot } from "@mkbabb/glass-ui/status-dot";
 
-import { RotateCcw } from "lucide-vue-next";
+import { RotateCcw } from "@lucide/vue";
 
 import { CSSKeyframesAnimation } from "@src/animation/index";
 import { SelectIcon } from "reka-ui";

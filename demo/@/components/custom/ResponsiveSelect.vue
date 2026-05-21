@@ -94,7 +94,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useMediaQuery } from "@vueuse/core";
-import { ChevronDown } from "lucide-vue-next";
+import { ChevronDown } from "@lucide/vue";
 
 import {
     Select,

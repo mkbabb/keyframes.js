@@ -38,7 +38,7 @@ import { useApplyCSS } from "./composables/useApplyCSS";
 
 import {
     Paintbrush,
-} from "lucide-vue-next";
+} from "@lucide/vue";
 
 import {
     createAnimationUUId,

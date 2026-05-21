@@ -99,7 +99,7 @@
 <script setup lang="ts">
 import { readonly, shallowReactive, useTemplateRef } from "vue";
 import { Button, Card, CardContent } from "@mkbabb/glass-ui";
-import { Plus, Shapes } from "lucide-vue-next";
+import { Plus, Shapes } from "@lucide/vue";
 import type { Asset, AssetKind, AssetTransform, HandleType } from "./assetTypes";
 
 const props = defineProps<{

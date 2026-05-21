@@ -7,7 +7,7 @@ import {
   type MenubarRadioItemProps,
   useForwardPropsEmits,
 } from 'reka-ui'
-import { Circle } from 'lucide-vue-next'
+import { Circle } from "@lucide/vue"
 import { cn } from '@utils/utils'
 
 const props = defineProps<MenubarRadioItemProps & { class?: HTMLAttributes['class'] }>()

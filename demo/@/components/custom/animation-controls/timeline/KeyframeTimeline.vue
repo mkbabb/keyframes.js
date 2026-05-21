@@ -210,7 +210,7 @@ import {
     FilePlus2,
     Trash,
     X,
-} from "lucide-vue-next";
+} from "@lucide/vue";
 import CSSPasteDialog from "@components/custom/CSSPasteDialog.vue";
 import {
     Button,

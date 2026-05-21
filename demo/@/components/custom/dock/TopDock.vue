@@ -2,7 +2,7 @@
 import { computed, inject, ref, watch, useTemplateRef } from "vue";
 import type { Ref } from "vue";
 import { CONTROLS_PANE_HOVER_KEY } from "../animation-controls/injectionKeys";
-import { Activity, ChevronDown, ChevronUp, Home, PanelLeftClose, PanelLeftOpen, SlidersHorizontal, Braces, Clock, Grid3X3 } from "lucide-vue-next";
+import { Activity, ChevronDown, ChevronUp, Home, PanelLeftClose, PanelLeftOpen, SlidersHorizontal, Braces, Clock, Grid3X3 } from "@lucide/vue";
 import { useMediaQuery } from "@vueuse/core";
 import { GlassDock, DockLayerGroup } from ".";
 import {

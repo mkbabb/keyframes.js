@@ -112,7 +112,7 @@ import {
     Type,
     Image,
     Code2,
-} from "lucide-vue-next";
+} from "@lucide/vue";
 
 defineProps<{
     animationNames?: string[];

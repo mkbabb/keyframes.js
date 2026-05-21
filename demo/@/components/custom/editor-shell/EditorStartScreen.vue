@@ -33,7 +33,7 @@
 </template>
 
 <script setup lang="ts">
-import { List } from "lucide-vue-next";
+import { List } from "@lucide/vue";
 import AnimatedText from "@components/custom/AnimatedText.vue";
 
 withDefaults(

@@ -46,7 +46,7 @@
 import { Label } from "@mkbabb/glass-ui";
 import { Input } from "@mkbabb/glass-ui/forms";
 import CopyButton from "@components/custom/CopyButton.vue";
-import { X } from "lucide-vue-next";
+import { X } from "@lucide/vue";
 
 defineProps<{
     frameString: string;

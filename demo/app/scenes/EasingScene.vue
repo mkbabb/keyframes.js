@@ -7,7 +7,7 @@
 <script setup lang="ts">
 import { computed, h, provide, ref } from "vue";
 import { TabsContent, TabsTrigger, Button } from "@mkbabb/glass-ui";
-import { Pause, Play, RotateCcw } from "lucide-vue-next";
+import { Pause, Play, RotateCcw } from "@lucide/vue";
 
 import { getStoredAnimationGroupControlOptions } from "@components/custom/animation-controls/stores";
 

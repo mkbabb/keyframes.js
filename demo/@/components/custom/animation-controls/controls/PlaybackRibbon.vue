@@ -67,7 +67,7 @@ import type { Animation } from "@src/animation/index";
 
 import { Button, Slider, useTouchGate } from "@mkbabb/glass-ui";
 import { IconTooltip } from "@mkbabb/glass-ui/icon-tooltip";
-import { ArrowLeftRight, Pause, Play } from "lucide-vue-next";
+import { ArrowLeftRight, Pause, Play } from "@lucide/vue";
 import AnimationVisualizer from "./AnimationVisualizer.vue";
 
 const { animation, isGrouped } = defineProps<{

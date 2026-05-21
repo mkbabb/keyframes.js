@@ -149,7 +149,7 @@ import {
 import { Input } from "@mkbabb/glass-ui/forms";
 
 import { computed, ref } from "vue";
-import { ArrowLeft } from "lucide-vue-next";
+import { ArrowLeft } from "@lucide/vue";
 import CopyButton from "@components/custom/CopyButton.vue";
 import EasingCurveCanvas from "@components/custom/EasingCurveCanvas.vue";
 

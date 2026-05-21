@@ -116,7 +116,7 @@ import {
     watch,
 } from "vue";
 import { TABS_EXTERNALLY_MANAGED_KEY } from "../injectionKeys";
-import { ChevronDown, Minimize2 } from "lucide-vue-next";
+import { ChevronDown, Minimize2 } from "@lucide/vue";
 import { useScrollFade } from "../composables/useScrollFade";
 
 const KeyframesStringControls = defineAsyncComponent(() => import("../keyframes/KeyframesStringControls.vue"));

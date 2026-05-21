@@ -30,7 +30,7 @@ import {
     TabsTrigger,
     Button,
 } from "@mkbabb/glass-ui";
-import { Lock, LockOpen, RotateCcw } from "lucide-vue-next";
+import { Lock, LockOpen, RotateCcw } from "@lucide/vue";
 
 import { MatrixEditor } from "@components/custom/matrix-editor";
 import { EditorStartScreen } from "@components/custom/editor-shell";

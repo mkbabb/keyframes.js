@@ -97,7 +97,7 @@
 
 <script setup lang="ts">
 import { useTemplateRef } from "vue";
-import { Loader2 } from "lucide-vue-next";
+import { Loader2 } from "@lucide/vue";
 import OrbitalDrag from "@components/custom/orbital-drag/OrbitalDrag.vue";
 import type { TransformState } from "@components/custom/orbital-drag";
 

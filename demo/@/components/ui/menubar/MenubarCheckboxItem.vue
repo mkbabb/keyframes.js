@@ -7,7 +7,7 @@ import {
   MenubarItemIndicator,
   useForwardPropsEmits,
 } from 'reka-ui'
-import { Check } from 'lucide-vue-next'
+import { Check } from "@lucide/vue"
 import { cn } from '@utils/utils'
 
 const props = defineProps<MenubarCheckboxItemProps & { class?: HTMLAttributes['class'] }>()

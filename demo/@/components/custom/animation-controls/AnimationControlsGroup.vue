@@ -219,7 +219,7 @@ import {
     Paintbrush,
     Sparkles,
     Upload,
-} from "lucide-vue-next";
+} from "@lucide/vue";
 
 import { TooltipProvider, Button, Card, CardContent } from "@mkbabb/glass-ui";
 

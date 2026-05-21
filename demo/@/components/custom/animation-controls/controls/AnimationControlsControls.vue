@@ -177,7 +177,7 @@ import { DockIconButton } from "@mkbabb/glass-ui/dock";
 import { IconTooltip } from "@mkbabb/glass-ui/icon-tooltip";
 import { LabeledSelect, LabeledInput } from "@mkbabb/glass-ui/labeled-field";
 
-import { ChevronRight, ArrowLeft, Pencil } from "lucide-vue-next";
+import { ChevronRight, ArrowLeft, Pencil } from "@lucide/vue";
 import TimingFunctionPanel from "./TimingFunctionPanel.vue";
 import PlaybackRibbon from "./PlaybackRibbon.vue";
 import LayerConfigPanel from "./LayerConfigPanel.vue";

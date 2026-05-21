@@ -12,7 +12,7 @@
 </template>
 
 <script setup lang="ts">
-import { Clipboard, ClipboardCheck } from "lucide-vue-next";
+import { Clipboard, ClipboardCheck } from "@lucide/vue";
 
 import { onMounted, ref, useTemplateRef } from "vue";
 import type { InputAnimationOptions } from "@src/animation/constants";

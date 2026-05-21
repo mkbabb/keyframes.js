@@ -194,7 +194,7 @@ import {
     Paintbrush,
     WandSparkles,
     X,
-} from "lucide-vue-next";
+} from "@lucide/vue";
 
 import githubDark from "highlight.js/styles/github-dark.css?inline";
 import githubLight from "highlight.js/styles/github.css?inline";
