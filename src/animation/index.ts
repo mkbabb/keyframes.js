@@ -43,6 +43,14 @@ export { NumericAnimation } from "./numeric";
 export type { NumericAnimationOptions, NumericFrameCallback } from "./numeric";
 export { SmoothProgress } from "./smooth";
 export type { SmoothProgressOptions } from "./smooth";
+export { SpringProgress } from "./spring";
+export type {
+    SpringProgressOptions,
+    SpringSubscriber,
+    SpringFrameCallback,
+} from "./spring";
+export { springLinearStops } from "./springLinearStops";
+export type { SpringLinearStopsOptions } from "./springLinearStops";
 export { ElementMorph } from "./morph";
 export type { MorphRect, ElementMorphOptions } from "./morph";
 export { Timeline, ScrollTimeline, ManualTimeline } from "./timeline";
