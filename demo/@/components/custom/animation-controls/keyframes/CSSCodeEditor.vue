@@ -12,8 +12,12 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, useTemplateRef, watch } from "vue";
 import * as monaco from "monaco-editor";
-import DarkTheme from "monaco-themes/themes/Dracula.json";
-import LightTheme from "monaco-themes/themes/GitHub.json";
+// Theme JSONs are vendored locally: monaco-themes@0.4.x only exports `.` and
+// `./dist/monaco-themes.js` in its `exports` field, so `monaco-themes/themes/*`
+// is not resolvable under the strict bundler (Vite 8 / Rolldown). These two
+// small theme definitions live alongside this editor instead.
+import DarkTheme from "./monaco-themes/Dracula.json";
+import LightTheme from "./monaco-themes/GitHub.json";
 import { useGlobalDark } from "@mkbabb/glass-ui/dark";
 import { clampIOSNoZoomFontSize } from "@utils/iosTextEntry";
 import { convert2, debounce, formatCSS } from "@mkbabb/value.js";
