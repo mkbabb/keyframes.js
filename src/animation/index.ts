@@ -51,6 +51,8 @@ export type {
 } from "./spring";
 export { springLinearStops } from "./springLinearStops";
 export type { SpringLinearStopsOptions } from "./springLinearStops";
+export { springTimingFunction } from "./springTimingFunction";
+export type { SpringTimingFunctionOptions } from "./springTimingFunction";
 export { ElementMorph } from "./morph";
 export type { MorphRect, ElementMorphOptions } from "./morph";
 export { Timeline, ScrollTimeline, ManualTimeline } from "./timeline";
