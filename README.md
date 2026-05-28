@@ -398,7 +398,16 @@ npm run bench        # vitest bench
 
 **TypeScript**: `strict: true`, `verbatimModuleSyntax: true`, `target: ES2022`, `moduleResolution: bundler`.
 
-**Node**: >=22. **License**: GPL-3.0.
+**Node**: >=22.
+
+## Contributing
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md). The README shape follows the perimeter-level
+[canonical README shape](https://github.com/mkbabb/glass-ui/blob/master/docs/precepts/canonical-readme-shape.md).
+
+## License
+
+[MIT](./LICENSE) © 2026 Mike Babb.
 
 ## Sources, acknowledgements, &c.
 

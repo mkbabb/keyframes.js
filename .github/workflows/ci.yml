@@ -1,0 +1,36 @@
+# ci — PR + push-to-master gate matrix for @mkbabb/keyframes.js (G.W5 Sub-wave C).
+#
+# Wires keyframes.js's real package.json scripts: check (tsc --noEmit) →
+# build (vite build --mode production) → test (vitest). keyframes.js
+# defines no proof:* gates; its release surface is the dist/ bundle + the
+# dynamic value.js re-export, both exercised by build + test.
+#
+# Cross-repo dependency-order note: keyframes.js resolves @mkbabb/value.js
+# via the npm registry (^0.10.0). A breaking value.js publish surfaces here
+# at the `npm ci` + build step — the standard chore(deps) bump routes the
+# breakage through a PR.
+name: ci
+
+on:
+    pull_request:
+        branches: [master]
+    push:
+        branches: [master]
+
+jobs:
+    gates:
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 24
+                  cache: "npm"
+            - run: npm ci
+            - name: check (tsc --noEmit)
+              run: npm run check
+            - name: build
+              run: npm run build
+            - name: test
+              run: npm test -- --run

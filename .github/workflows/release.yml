@@ -1,0 +1,35 @@
+# release — publish @mkbabb/keyframes.js to npm on a v*.*.* tag (G.W5 Sub-wave C).
+#
+# Re-runs the release gate (check → build → test) before npm publish.
+# keyframes.js sits between value.js and glass-ui in the publish chain —
+# it resolves @mkbabb/value.js via the registry, so value.js's tag-publish
+# must land first when a coordinated bump crosses both.
+#
+# Publish auth: NPM_TOKEN repository secret. Runs only on tag refs.
+name: release
+
+on:
+    push:
+        tags:
+            - "v*.*.*"
+
+jobs:
+    publish:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 24
+                  registry-url: "https://registry.npmjs.org"
+            - run: npm ci
+            - name: check (tsc --noEmit)
+              run: npm run check
+            - name: build
+              run: npm run build
+            - name: test
+              run: npm test -- --run
+            - name: publish
+              run: npm publish --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

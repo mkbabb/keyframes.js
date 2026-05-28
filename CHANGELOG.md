@@ -1,5 +1,14 @@
 # Changelog
 
+## v2.1.1 — 2026-05-28 (G.W5 — value.js seam canon)
+
+Published as part of the muster tranche G release-engineering wave (G.W5 sub-wave A).
+The `@mkbabb/value.js` dependency migrates from the `file:../value.js` seam to the
+`^0.10.0` npm-registry semver pin — the published artifact resolves value.js through
+the registry, and the dynamic re-export of value.js stays contract-stable. No public
+API change versus v2.1.0; this is the seam-canon publish that lands keyframes.js on
+the registry-resolved consumer-default path.
+
 ## v2.1.0 — 2026-05-13 (AB.W6 settle)
 
 Settles the long-standing `w.w2.1-keyframes-prebuild` operator WIP branch
