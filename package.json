@@ -55,7 +55,7 @@
   "homepage": "https://github.com/mkbabb/keyframes.js#readme",
   "dependencies": {
     "@mkbabb/parse-that": "^0.8.2",
-    "@mkbabb/value.js": "file:../value.js"
+    "@mkbabb/value.js": "^0.10.0"
   },
   "devDependencies": {
     "@iconify-json/radix-icons": "^1.2.6",
