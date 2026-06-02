@@ -36,7 +36,7 @@
 
 <script setup lang="ts">
 import { computed, toRef, useTemplateRef } from "vue";
-import type { Animation } from "@src/animation/index";
+import type { Animation } from "@src/animation/engine";
 import { useRafLoop } from "../composables/useRafLoop";
 import { useDragCapture } from "./composables/useDragCapture";
 import { useTouchGate } from "@mkbabb/glass-ui";

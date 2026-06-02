@@ -30,7 +30,7 @@ import {
     Animation,
     CSSKeyframesAnimation,
     resolveKeyframes,
-} from "@src/animation/index";
+} from "@src/animation/engine";
 
 
 import { onMounted, onUnmounted, ref, useTemplateRef } from "vue";

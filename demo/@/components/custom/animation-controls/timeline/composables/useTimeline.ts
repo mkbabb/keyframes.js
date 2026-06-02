@@ -1,6 +1,6 @@
 import { computed, markRaw, ref, shallowRef, watch } from "vue";
 import type { Ref, ShallowRef } from "vue";
-import { CSSKeyframesAnimation } from "@src/animation/index";
+import { CSSKeyframesAnimation } from "@src/animation/engine";
 import type { InputAnimationOptions } from "@src/animation/constants";
 import { defaultAnimationOptions } from "../../stores";
 import { DEFAULT_CAPTURE_PROPERTIES, createKeyframeId } from "./timelineTypes";

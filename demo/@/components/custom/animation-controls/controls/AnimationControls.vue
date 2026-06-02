@@ -99,7 +99,7 @@
 </template>
 
 <script setup lang="ts">
-import { Animation } from "@src/animation/index";
+import { Animation } from "@src/animation/engine";
 import type { AnimationLayerConfig } from "@src/animation/constants";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger, TooltipProvider, Button } from "@mkbabb/glass-ui";

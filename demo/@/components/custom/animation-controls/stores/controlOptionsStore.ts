@@ -1,4 +1,4 @@
-import type { Animation } from "@src/animation";
+import type { Animation } from "@src/animation/engine";
 import { createGlobalState, useStorage } from "@vueuse/core";
 import { checkAndResetExpiredStore, getAnimationSuperKey } from "./storeUtils";
 

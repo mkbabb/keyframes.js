@@ -2,7 +2,7 @@ import { camelCaseToHyphen, hyphenToCamelCase } from "@mkbabb/value.js";
 import {
     CSSKeyframesAnimation,
     resolveKeyframes,
-} from "@src/animation/index";
+} from "@src/animation/engine";
 import type { InputAnimationOptions } from "@src/animation/constants";
 import { CSSKeyframesToString } from "@src/animation/format";
 

@@ -1,6 +1,6 @@
 {
   "name": "@mkbabb/keyframes.js",
-  "version": "2.1.1",
+  "version": "2.2.0",
   "description": "Create keyframe animations for anything in JavaScript; specify your keyframes in standards-complaint CSS.",
   "license": "MIT",
   "keywords": [
@@ -15,6 +15,7 @@
     "parsing"
   ],
   "type": "module",
+  "sideEffects": false,
   "main": "./dist/keyframes.js",
   "types": "./dist/keyframes.d.ts",
   "exports": {

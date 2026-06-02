@@ -9,6 +9,13 @@ export interface MorphRect {
 }
 
 export interface ElementMorphOptions {
+    /**
+     * Easing as a callable `TimingFunction`, OR a string easing *name*
+     * from value.js's registry (`"ease-out-cubic"`, `"easeOutCubic"`, …).
+     * `ElementMorph` composes `NumericAnimation`, so a callable keeps the
+     * path value.js-free while a string name resolves LAZILY through the
+     * dynamic engine boundary on the first `.play()` (or `await .ready()`).
+     */
     timingFunction?: TimingFunction | TimingFunctionNames;
     /** Playback duration in milliseconds. Required for `.play()`. */
     duration?: number;
@@ -75,6 +82,17 @@ export class ElementMorph {
         );
 
         return this;
+    }
+
+    /**
+     * Resolve a pending string easing *name* through the dynamic engine
+     * boundary. No-op for callable / omitted easing. Stateless `.at()` /
+     * `.toCSSTransform()` consumers that pass a name can `await .ready()`
+     * first to interpolate with the resolved easing; `.play()` awaits it
+     * automatically before the first frame.
+     */
+    ready(): Promise<void> {
+        return this.animation.ready();
     }
 
     /** Get raw transform values at the given progress [0, 1]. */

@@ -1,7 +1,7 @@
 import {
     cancelAnimationFrame,
     requestAnimationFrame,
-} from "@mkbabb/value.js";
+} from "./internal/leaves";
 
 /**
  * iOS-style spring physics options. The pair `(response, dampingFraction)`

@@ -9,7 +9,7 @@ import {
 } from "vue";
 
 import { AnimationGroup } from "@src/animation/group";
-import { CSSKeyframesAnimation } from "@src/animation/index";
+import { CSSKeyframesAnimation } from "@src/animation/engine";
 import { SpringProgress } from "@src/animation/spring";
 import { springTimingFunction } from "@src/animation/springTimingFunction";
 import { NumericAnimation } from "@src/animation/numeric";

@@ -9,7 +9,7 @@ import {
 } from "@mkbabb/value.js";
 import { computed, markRaw, onActivated, onDeactivated, ref, watch } from "vue";
 
-import { CSSKeyframesAnimation } from "@src/animation/index";
+import { CSSKeyframesAnimation } from "@src/animation/engine";
 import { AnimationGroup } from "@src/animation/group";
 import type { TimingFunction } from "@src/animation/constants";
 

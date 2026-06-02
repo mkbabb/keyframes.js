@@ -1,7 +1,7 @@
 import {
     cancelAnimationFrame,
     requestAnimationFrame,
-} from "@mkbabb/value.js";
+} from "./internal/leaves";
 
 export interface SmoothProgressOptions {
     /** Damping factor (0, 1]. Higher = faster convergence. Default 0.1 */

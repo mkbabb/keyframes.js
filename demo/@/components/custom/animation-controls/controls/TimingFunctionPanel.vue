@@ -117,7 +117,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Animation } from "@src/animation/index";
+import type { Animation } from "@src/animation/engine";
 import type { TimingFunction, TimingFunctionNames } from "@src/animation/constants";
 import type { StoredAnimationOptions } from "../stores";
 

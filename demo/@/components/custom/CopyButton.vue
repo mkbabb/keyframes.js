@@ -16,7 +16,7 @@ import { Clipboard, ClipboardCheck } from "@lucide/vue";
 
 import { onMounted, ref, useTemplateRef } from "vue";
 import type { InputAnimationOptions } from "@src/animation/constants";
-import { CSSKeyframesAnimation } from "@src/animation";
+import { CSSKeyframesAnimation } from "@src/animation/engine";
 import { AnimationGroup } from "@src/animation/group";
 import { copyText } from "@utils/clipboard";
 

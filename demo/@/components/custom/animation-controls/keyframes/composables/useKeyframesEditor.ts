@@ -12,7 +12,7 @@ import {
     Animation,
     CSSKeyframesAnimation,
     resolveKeyframes,
-} from "@src/animation/index";
+} from "@src/animation/engine";
 import {
     CSSKeyframesToString,
     CSSKeyframesToStrings,

@@ -170,7 +170,7 @@ import { StatusDot } from "@mkbabb/glass-ui/status-dot";
 
 import { RotateCcw } from "@lucide/vue";
 
-import { CSSKeyframesAnimation } from "@src/animation/index";
+import { CSSKeyframesAnimation } from "@src/animation/engine";
 import { SelectIcon } from "reka-ui";
 import { GlassDock } from "@components/custom/dock";
 

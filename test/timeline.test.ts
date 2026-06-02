@@ -27,6 +27,21 @@ describe("ManualTimeline", () => {
         expect(p).toBeCloseTo(easeOutCubic(0.5), 10);
     });
 
+    it("resolves a string-name easing lazily via the engine boundary", async () => {
+        const tl = new ManualTimeline({ easing: "ease-out-cubic" });
+        await tl.ready();
+        tl.set(0.5);
+        const p = tl.tick();
+        expect(p).toBeCloseTo(easeOutCubic(0.5), 10);
+    });
+
+    it("string-name easing is identity until ready() resolves", () => {
+        // No await — resolution has not landed, so tick() applies identity.
+        const tl = new ManualTimeline({ easing: "ease-out-cubic" });
+        tl.set(0.5);
+        expect(tl.tick()).toBeCloseTo(0.5, 10);
+    });
+
     it("supports smoothing when explicitly enabled", () => {
         const tl = new ManualTimeline({
             smoothing: { damping: 0.5, snapThreshold: 0.01 },

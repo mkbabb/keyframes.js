@@ -1,10 +1,6 @@
-import {
-    cancelAnimationFrame,
-    lerp,
-    requestAnimationFrame,
-    type ValueUnit,
-} from "@mkbabb/value.js";
-import { Animation, getAnimationId } from ".";
+import { type ValueUnit } from "@mkbabb/value.js";
+import { cancelAnimationFrame, lerp, requestAnimationFrame } from "./internal/leaves";
+import { Animation, getAnimationId } from "./engine";
 import type {
     AnimationLayerConfig,
     TransformFunction,

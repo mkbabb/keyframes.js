@@ -2,7 +2,7 @@ import {
     cancelAnimationFrame,
     clamp,
     requestAnimationFrame,
-} from "@mkbabb/value.js";
+} from "./internal/leaves";
 
 /**
  * Shared rAF playback lifecycle for stateless interpolators

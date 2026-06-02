@@ -1,13 +1,80 @@
 # Changelog
 
+## v2.2.0 — value.js static/dynamic boundary (KF-B1)
+
+Carves the package barrel along the value.js seam so the light physics/
+interpolation engines no longer drag the heavy CSS-parsing surface — or
+`@mkbabb/value.js` — into a consumer's static graph.
+
+### The boundary
+
+- **LIGHT engines stay static and value.js-free.** `SpringProgress`,
+  `SmoothProgress`, `NumericAnimation`, `ElementMorph`, the `Timeline`
+  family, and the spring-stop helpers now reach their handful of leaf
+  helpers — `requestAnimationFrame` / `cancelAnimationFrame` /
+  `clamp` / `lerp` / `scale` — from a new local `src/animation/internal/
+  leaves.ts` instead of `@mkbabb/value.js`. A consumer that imports only
+  these has **zero** static import edge to value.js. Verified against the
+  built dist: the `dist/keyframes.js` barrel statically imports only the
+  leaf chunk; a spring-only bundle contains no value.js code.
+
+- **HEAVY engine moves behind a dynamic boundary.** `Animation`,
+  `CSSKeyframesAnimation`, `AnimationGroup`, `getTimingFunction`,
+  `resolveKeyframes`, and the animation-options constants (`DIRECTIONS`,
+  `FILL_MODES`, `defaultOptions`, `defaultLayerConfig`) live in
+  `src/animation/engine.ts` and are reached through a new async accessor:
+
+  ```ts
+  import { loadAnimationEngine } from "@mkbabb/keyframes.js";
+  const { CSSKeyframesAnimation } = await loadAnimationEngine();
+  const anim = new CSSKeyframesAnimation(opts).fromString(css);
+  ```
+
+  `loadAnimationEngine()` does `await import("./engine")`, so the
+  value.js-bearing graph (the `ValueUnit`/`Color`/CSS-parser/easing-
+  registry surface) loads only on first await and never enters a
+  light-only consumer's static graph. The dist now ships a split
+  `engine-*.js` chunk that the barrel reaches via dynamic import.
+
+### Breaking changes
+
+- **The heavy classes are no longer static named exports of the barrel.**
+  `import { Animation } from "@mkbabb/keyframes.js"` as a *value* is
+  retired in favour of `await loadAnimationEngine()`. The class **types**
+  remain on the static barrel (`import type { Animation } from
+  "@mkbabb/keyframes.js"` still resolves), so type annotations are
+  unaffected — only the runtime constructors moved.
+
+- **The light engines resolve string easing names lazily — callable
+  easing stays static and value.js-free.** `NumericAnimation`,
+  `ElementMorph`, and the `Timeline` family still accept
+  `timingFunction` / `easing` as a callable `TimingFunction` OR a string
+  easing *name* (`"ease-out-cubic"`, `"easeOutCubic"`, `"linear"`, …), as
+  before. A **callable** is used directly — no dynamic import, nothing
+  value.js pulled into the static graph (this is the gate path). A
+  **string name** is resolved LAZILY through the dynamic engine boundary:
+  `NumericAnimation` / `ElementMorph` resolve before the first `.play()`
+  frame (or an explicit `await .ready()`); `Timeline` kicks off resolution
+  from its constructor and applies the eased value once it lands (also
+  awaitable via `.ready()`). The value.js-bearing easing registry loads
+  only when a named easing is actually used, so a callable-only consumer's
+  static graph stays value.js-free. The full `Animation` /
+  `CSSKeyframesAnimation` engine accepts string names eagerly as before.
+
+### Build
+
+- `package.json` gains `"sideEffects": false` so a bundler may tree-shake
+  the unused static re-exports out of the single dist barrel.
+
 ## v2.1.1 — 2026-05-28 (G.W5 — value.js seam canon)
 
 Published as part of the muster tranche G release-engineering wave (G.W5 sub-wave A).
 The `@mkbabb/value.js` dependency migrates from the `file:../value.js` seam to the
 `^0.10.0` npm-registry semver pin — the published artifact resolves value.js through
-the registry, and the dynamic re-export of value.js stays contract-stable. No public
-API change versus v2.1.0; this is the seam-canon publish that lands keyframes.js on
-the registry-resolved consumer-default path.
+the registry. No public API change versus v2.1.0; this is the seam-canon publish that
+lands keyframes.js on the registry-resolved consumer-default path. (Note: this release
+re-exported value.js *statically*; the dynamic re-export boundary it gestured at did
+not yet exist in the source — it lands in v2.2.0 above.)
 
 ## v2.1.0 — 2026-05-13 (AB.W6 settle)
 

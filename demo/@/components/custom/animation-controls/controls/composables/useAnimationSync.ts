@@ -1,5 +1,5 @@
 import { ref, type Ref } from "vue";
-import type { Animation } from "@src/animation/index";
+import type { Animation } from "@src/animation/engine";
 import { useRafLoop } from "../../composables/useRafLoop";
 
 /**

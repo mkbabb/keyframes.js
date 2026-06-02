@@ -3,7 +3,7 @@ import {
     CSSCubicBezier,
     timingFunctions,
 } from "@mkbabb/value.js";
-import { Animation } from "@src/animation/index";
+import { Animation } from "@src/animation/engine";
 
 import type {
     TimingFunction,

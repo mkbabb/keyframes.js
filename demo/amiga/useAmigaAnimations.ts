@@ -1,7 +1,7 @@
 import { CSSCubicBezier } from "@mkbabb/value.js";
 import * as THREE from "three";
 
-import { CSSKeyframesAnimation } from "@src/animation";
+import { CSSKeyframesAnimation } from "@src/animation/engine";
 import { AnimationGroup } from "@src/animation/group";
 
 const BOX_SIZE = 12;

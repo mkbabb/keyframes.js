@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { CSSKeyframesAnimation } from "../src/animation";
+import { CSSKeyframesAnimation } from "../src/animation/engine";
 import { AnimationGroup } from "../src/animation/group";
 import { useAnimationGroupPlayback } from "../demo/@/components/custom/animation-controls/composables/useAnimationGroupPlayback";
 

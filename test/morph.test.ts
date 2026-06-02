@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { easeOutCubic } from "@mkbabb/value.js";
 import { ElementMorph } from "../src/animation/morph";
 import type { MorphRect } from "../src/animation/morph";
 
@@ -72,5 +73,37 @@ describe("ElementMorph", () => {
         const el = document.createElement("div");
         morph.apply(el, 0);
         expect(el.style.transformOrigin).toBe("center center");
+    });
+
+    it("string-name easing interpolates as linear until ready() resolves", () => {
+        const morph = new ElementMorph(from, to, {
+            timingFunction: "ease-out-cubic",
+        });
+        // Before resolution: linear fallback (midpoint is half the delta).
+        expect(morph.at(0.5).translateX).toBeCloseTo(100);
+    });
+
+    it("ready() resolves a string-name easing through the engine boundary", async () => {
+        const morph = new ElementMorph(from, to, {
+            timingFunction: "ease-out-cubic",
+        });
+        await morph.ready();
+        // Endpoints stay exact, midpoint follows the eased curve.
+        expect(morph.at(0).translateX).toBeCloseTo(0);
+        expect(morph.at(1).translateX).toBeCloseTo(200);
+        expect(morph.at(0.5).translateX).toBeCloseTo(200 * easeOutCubic(0.5));
+        expect(morph.at(0.5).translateX).toBeGreaterThan(120);
+    });
+
+    it("play() resolves a string-name easing and lands on the destination", async () => {
+        const morph = new ElementMorph(from, to, {
+            timingFunction: "easeOutCubic",
+            duration: 50,
+        });
+        const el = document.createElement("div");
+        await morph.play(el);
+        // Final transform is the full delta (translate 200,100 scale 2,2).
+        expect(el.style.transform).toContain("translate(200px, 100px)");
+        expect(el.style.transform).toContain("scale(2, 2)");
     });
 });

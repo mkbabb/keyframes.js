@@ -6,7 +6,7 @@ import {
     unflattenObjectToString,
     ValueUnit,
 } from "@mkbabb/value.js";
-import type { Animation } from ".";
+import type { Animation } from "./engine";
 import type { AnimationFrame, AnimationOptions, Vars } from "./constants";
 
 // Animation-domain CSS serialisation. The primitive `formatCSS`

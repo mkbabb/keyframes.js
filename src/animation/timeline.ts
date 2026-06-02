@@ -1,9 +1,21 @@
-import { timingFunctions } from "@mkbabb/value.js";
 import { SmoothProgress } from "./smooth";
 import type { SmoothProgressOptions } from "./smooth";
 import type { TimingFunction, TimingFunctionNames } from "./constants";
 
 export interface TimelineOptions {
+    /**
+     * Easing as a callable `TimingFunction`, OR a string easing *name*
+     * from value.js's registry (`"ease-out-cubic"`, `"easeOutCubic"`, …).
+     *
+     * A **callable** is applied directly and keeps `Timeline` value.js-free.
+     *
+     * A **string name** is resolved LAZILY through the dynamic engine
+     * boundary: the constructor kicks off an `await import(...)` and the
+     * resolved easing is applied once it lands (subsequent `tick()`s use
+     * it). Until then `tick()` runs with the identity easing. Consumers
+     * that need the eased value on the very first `tick()` can
+     * `await timeline.ready()` first.
+     */
     easing?: TimingFunction | TimingFunctionNames | undefined;
     /** SmoothProgress config. `false` disables smoothing. Default: enabled. */
     smoothing?: Partial<SmoothProgressOptions> | false | undefined;
@@ -17,18 +29,6 @@ export interface TimelineOptions {
     boundaryEpsilon?: number | undefined;
 }
 
-const resolveEasing = (
-    easing: TimingFunction | TimingFunctionNames | undefined,
-): TimingFunction | null => {
-    if (easing == null) return null;
-    if (typeof easing === "function") return easing;
-    const fn = timingFunctions[easing];
-    if (typeof fn === "function" && fn.length <= 1) {
-        return fn as TimingFunction;
-    }
-    return null;
-};
-
 const clamp01 = (v: number): number => Math.max(0, Math.min(1, v));
 
 export abstract class Timeline {
@@ -36,10 +36,26 @@ export abstract class Timeline {
     private easingFn: TimingFunction | null;
     private currentProgress: number = 0;
     private boundaryEpsilon: number;
+    // Memoized resolve-once promise for a pending string easing name.
+    // `null` when easing was a callable / omitted (nothing to resolve).
+    private _easingReady: Promise<void> | null = null;
 
     constructor(options?: TimelineOptions) {
-        this.easingFn = resolveEasing(options?.easing);
         this.boundaryEpsilon = options?.boundaryEpsilon ?? 0.005;
+
+        const easing = options?.easing;
+        if (typeof easing === "function") {
+            // Callable — applied directly, value.js-free path.
+            this.easingFn = easing;
+        } else if (typeof easing === "string") {
+            // String name — identity until lazily resolved through the
+            // engine boundary. Resolution is kicked off now (fire-and-forget)
+            // and also awaitable via `ready()`.
+            this.easingFn = null;
+            void this.resolveEasingName(easing);
+        } else {
+            this.easingFn = null;
+        }
 
         if (options?.smoothing === false) {
             this.smoother = null;
@@ -48,6 +64,32 @@ export abstract class Timeline {
                 options?.smoothing as Partial<SmoothProgressOptions> | undefined,
             );
         }
+    }
+
+    /**
+     * Lazily resolve a string easing *name* through the dynamic engine
+     * boundary. Memoized — the `await import("./engine")` and
+     * `getTimingFunction` lookup run at most once.
+     */
+    private resolveEasingName(name: TimingFunctionNames): Promise<void> {
+        if (this._easingReady) return this._easingReady;
+        // Direct dynamic import of the engine module — the ONLY value.js
+        // edge, reached only when a named easing is actually used.
+        this._easingReady = import("./engine").then((engine) => {
+            const resolved = engine.getTimingFunction(name);
+            if (resolved) this.easingFn = resolved;
+        });
+        return this._easingReady;
+    }
+
+    /**
+     * Resolve a pending string easing *name* through the dynamic engine
+     * boundary. No-op (resolved promise) for callable / omitted easing.
+     * `await timeline.ready()` before the first `tick()` to apply the
+     * eased value immediately rather than letting it land asynchronously.
+     */
+    ready(): Promise<void> {
+        return this._easingReady ?? Promise.resolve();
     }
 
     /** Subclass returns raw [0,1] progress from its source. */

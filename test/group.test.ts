@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { CSSKeyframesAnimation, Animation } from "../src/animation";
+import { CSSKeyframesAnimation, Animation } from "../src/animation/engine";
 import { AnimationGroup } from "../src/animation/group";
 import type { AnimationLayerConfig } from "../src/animation/constants";
 

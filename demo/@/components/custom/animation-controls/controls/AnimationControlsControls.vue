@@ -170,7 +170,7 @@
 </template>
 
 <script setup lang="ts">
-import { Animation } from "@src/animation/index";
+import { Animation } from "@src/animation/engine";
 
 import { Card, CardContent, Separator } from "@mkbabb/glass-ui";
 import { DockIconButton } from "@mkbabb/glass-ui/dock";

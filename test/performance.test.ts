@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CSSKeyframesAnimation } from "../src/animation";
+import { CSSKeyframesAnimation } from "../src/animation/engine";
 import { AnimationGroup } from "../src/animation/group";
 
 describe("interpFrames performance", () => {

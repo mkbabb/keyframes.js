@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CSSKeyframesAnimation, resolveKeyframes } from "../src/animation";
+import { CSSKeyframesAnimation, resolveKeyframes } from "../src/animation/engine";
 import {
     animationOptionsToString,
     CSSKeyframesToString,

@@ -1,4 +1,4 @@
-import { CSSKeyframesAnimation } from "@src/animation";
+import { CSSKeyframesAnimation } from "@src/animation/engine";
 import type { Ref } from "vue";
 
 export const SUPER_KEY = "Square";

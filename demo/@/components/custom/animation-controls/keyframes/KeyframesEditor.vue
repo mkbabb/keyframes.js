@@ -163,7 +163,7 @@
     </div>
 </template>
 <script setup lang="ts">
-import { Animation, CSSKeyframesAnimation } from "@src/animation/index";
+import { Animation, CSSKeyframesAnimation } from "@src/animation/engine";
 import { formatCSSKeyframeString } from "@src/animation/format";
 
 import {

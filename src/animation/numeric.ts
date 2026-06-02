@@ -1,7 +1,6 @@
-import { clamp, lerp, scale } from "@mkbabb/value.js";
 import { binarySearchRange } from "./internal/binarySearch";
+import { clamp, lerp, scale } from "./internal/leaves";
 import { RAFPlayback } from "./playback";
-import { getTimingFunction } from "./utils";
 import type { TimingFunction, TimingFunctionNames } from "./constants";
 
 interface NumericSegment<T extends Record<string, number>> {
@@ -14,6 +13,22 @@ interface NumericSegment<T extends Record<string, number>> {
 }
 
 export interface NumericAnimationOptions {
+    /**
+     * Easing as a callable `TimingFunction`, OR a string easing *name*
+     * from value.js's registry (`"ease-out-cubic"`, `"easeOutCubic"`,
+     * `"linear"`, …).
+     *
+     * A **callable** is used directly and keeps this engine value.js-free —
+     * no dynamic import, nothing pulled into the static graph.
+     *
+     * A **string name** is resolved LAZILY through the dynamic engine
+     * boundary: on the first `.play()` (or an explicit `await .ready()`)
+     * the engine module is `await import(...)`-ed and the name looked up
+     * via `getTimingFunction`, so the value.js-bearing easing registry
+     * loads only when a named easing is actually used. The resolved
+     * callable is cached on the instance (resolved once per animation).
+     * Until resolution, `.at()` interpolates with a linear fallback.
+     */
     timingFunction?: TimingFunction | TimingFunctionNames | undefined;
     /** Playback duration in milliseconds. Required for `.play()`. */
     duration?: number | undefined;
@@ -65,6 +80,14 @@ export class NumericAnimation<T extends Record<string, number>> {
     private _duration: number;
     private _respectReducedMotion: boolean;
 
+    // A string easing *name* awaiting lazy resolution through the engine
+    // boundary. `null` once resolved (or when a callable/undefined easing
+    // was supplied, which needs no resolution).
+    private _pendingEasingName: TimingFunctionNames | null = null;
+    // Memoized resolve-once promise so concurrent `.play()` / `.ready()`
+    // calls share a single `await import("./engine")`.
+    private _easingReady: Promise<void> | null = null;
+
     // Shared rAF lifecycle for `.play()` / `.stop()`.
     private _playback = new RAFPlayback();
 
@@ -78,10 +101,19 @@ export class NumericAnimation<T extends Record<string, number>> {
         this.keyframes = keyframes.map((kf) => ({ ...kf }));
         this._duration = options?.duration ?? 0;
         this._respectReducedMotion = options?.respectReducedMotion ?? false;
-        this.timingFn =
-            (options?.timingFunction
-                ? getTimingFunction(options.timingFunction)
-                : undefined) ?? linear;
+
+        const easing = options?.timingFunction;
+        if (typeof easing === "function") {
+            // Callable — used directly. No engine load, value.js-free path.
+            this.timingFn = easing;
+        } else if (typeof easing === "string") {
+            // String name — resolved lazily via the engine boundary on the
+            // first `.play()` / `.ready()`. Linear fallback until then.
+            this.timingFn = linear;
+            this._pendingEasingName = easing;
+        } else {
+            this.timingFn = linear;
+        }
 
         if (options?.positions) {
             if (options.positions.length !== keyframes.length) {
@@ -123,6 +155,36 @@ export class NumericAnimation<T extends Record<string, number>> {
             stopVals: keys.map((k) => stop[k] as number),
             timingFunction: this.timingFn,
         };
+    }
+
+    /**
+     * Resolve a pending string easing *name* through the dynamic engine
+     * boundary. A no-op (resolved promise) when easing was supplied as a
+     * callable or omitted. Memoized — the `await import("./engine")` and
+     * `getTimingFunction` lookup run at most once per instance.
+     *
+     * `.play()` awaits this before the first frame; stateless `.at()`
+     * consumers that pass a name can `await animation.ready()` first to
+     * interpolate with the resolved easing rather than the linear fallback.
+     */
+    ready(): Promise<void> {
+        if (this._pendingEasingName === null) return Promise.resolve();
+        if (this._easingReady) return this._easingReady;
+
+        const name = this._pendingEasingName;
+        // Direct dynamic import of the engine module — the ONLY value.js
+        // edge, and only reached when a named easing is actually used.
+        this._easingReady = import("./engine").then((engine) => {
+            const resolved = engine.getTimingFunction(name);
+            if (resolved) {
+                this.timingFn = resolved;
+                // Segments captured `this.timingFn` by value at build time —
+                // rebuild so they pick up the resolved easing.
+                this.segments = this.buildSegments();
+            }
+            this._pendingEasingName = null;
+        });
+        return this._easingReady;
     }
 
     /**
@@ -199,16 +261,23 @@ export class NumericAnimation<T extends Record<string, number>> {
      * @param onFrame — optional per-frame callback receiving interpolated values
      * @param duration — override the duration set in constructor options (ms)
      */
-    play(onFrame?: NumericFrameCallback<T>, duration?: number): Promise<void> {
+    async play(
+        onFrame?: NumericFrameCallback<T>,
+        duration?: number,
+    ): Promise<void> {
+        // Resolve a pending string easing name before the first frame.
+        // No-op (and no engine load) for callable / undefined easing.
+        await this.ready();
+
         const dur = duration ?? this._duration;
         // Reduced-motion: snap to final keyframe and resolve immediately.
         // No rAF loop spawned; the callback fires once with the final values.
         if (this._respectReducedMotion && prefersReducedMotion()) {
             const finalValues = this.at(1);
             onFrame?.(finalValues);
-            return Promise.resolve();
+            return;
         }
-        return this._playback.play(dur, (progress) => {
+        await this._playback.play(dur, (progress) => {
             const values = this.at(progress);
             onFrame?.(values);
         });

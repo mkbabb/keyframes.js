@@ -223,7 +223,7 @@ import {
 
 import { TooltipProvider, Button, Card, CardContent } from "@mkbabb/glass-ui";
 
-import { Animation } from "@src/animation/index";
+import { Animation } from "@src/animation/engine";
 import AnimationControls from "./controls/AnimationControls.vue";
 import AnimationMenuBar from "./AnimationMenuBar.vue";
 

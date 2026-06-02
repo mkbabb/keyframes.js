@@ -63,7 +63,7 @@
 
 <script setup lang="ts">
 import { onUnmounted } from "vue";
-import type { Animation } from "@src/animation/index";
+import type { Animation } from "@src/animation/engine";
 
 import { Button, Slider, useTouchGate } from "@mkbabb/glass-ui";
 import { IconTooltip } from "@mkbabb/glass-ui/icon-tooltip";

@@ -1,5 +1,5 @@
 import { ref } from "vue";
-import type { Animation } from "@src/animation/index";
+import type { Animation } from "@src/animation/engine";
 import type { AnimationGroup } from "@src/animation/group";
 
 export function useAnimationGroupPlayback(

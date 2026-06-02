@@ -1,0 +1,81 @@
+/**
+ * Leaf math + rAF shims, inlined locally so the light engines
+ * (`SpringProgress`, `SmoothProgress`, `NumericAnimation`, `RAFPlayback`)
+ * carry ZERO static import edge to `@mkbabb/value.js`.
+ *
+ * These are trivial, pure helpers — value.js owns the canonical copies,
+ * but re-homing them here is the only way to sever the static edge: an
+ * external `@mkbabb/value.js` import survives bundling as a bare module
+ * specifier even when the symbol is a one-liner, so a spring-only
+ * consumer would otherwise drag value.js into its graph. The heavy
+ * parsing surface (`Animation` / `CSSKeyframesAnimation`) keeps importing
+ * value.js directly — it genuinely needs `ValueUnit`/`Color`/parse.
+ *
+ * Kept byte-for-byte equivalent to value.js's `clamp`/`scale`/`lerp`
+ * (src/math.ts) and `requestAnimationFrame`/`cancelAnimationFrame`
+ * (src/utils.ts) so behaviour is identical across the seam.
+ */
+
+/** 60 fps frame budget in milliseconds — the non-DOM rAF fallback delay. */
+export const FRAME_RATE = 1000 / 60;
+
+/** Constrain a value between a lower and upper bound. */
+export function clamp(value: number, min: number, max: number): number {
+    return Math.min(Math.max(value, min), max);
+}
+
+/** Linear mapping of a value from one range to another. */
+export function scale(
+    value: number,
+    fromMin: number,
+    fromMax: number,
+    toMin: number = 0,
+    toMax: number = 1,
+): number {
+    if (fromMax === fromMin) {
+        throw new Error("fromMax and fromMin cannot be equal");
+    }
+    const slope = (toMax - toMin) / (fromMax - fromMin);
+    return (value - fromMin) * slope + toMin;
+}
+
+/**
+ * Linear interpolation between two values.
+ * Canonical (a, b, t) — value-pair first, parameter last.
+ */
+export function lerp(start: number, end: number, t: number): number {
+    return (1 - t) * start + t * end;
+}
+
+/**
+ * rAF shim with a `setTimeout` fallback for non-DOM environments
+ * (jsdom / Node), where it returns a `NodeJS.Timeout` rather than a
+ * numeric handle. Either suffices as an opaque cancel handle.
+ */
+export function requestAnimationFrame(callback: FrameRequestCallback) {
+    if (typeof window !== "undefined" && window.requestAnimationFrame) {
+        return window.requestAnimationFrame(callback);
+    }
+
+    let delay = FRAME_RATE;
+    let prevT = Date.now();
+
+    return setTimeout(() => {
+        const t = Date.now();
+        const delta = t - prevT;
+
+        prevT = t;
+        delay = Math.max(0, FRAME_RATE - delta);
+
+        callback(t);
+    }, delay);
+}
+
+/** Cancel a handle from the local `requestAnimationFrame` shim. */
+export function cancelAnimationFrame(handle: number | undefined | null | any) {
+    if (typeof window !== "undefined" && window.cancelAnimationFrame) {
+        return window.cancelAnimationFrame(handle);
+    }
+
+    clearTimeout(handle);
+}
