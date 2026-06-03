@@ -1,5 +1,23 @@
 # Changelog
 
+## 3.0.0
+
+### Major Changes
+
+- d84faf5: Tranche A — the value.js boundary hardened, the release CI runnable, and the engine on its own modern-web baseline.
+
+    **Boundary, gated (not asserted).** A `proof:boundary` CI gate builds a spring-only entry and fails the build if any light module reintroduces a static `@mkbabb/value.js` edge — the KF-B1 light/heavy split is now proven by construction, not a CHANGELOG sentence. `"sideEffects": false` and the `loadAnimationEngine()` dynamic boundary are unchanged.
+
+    **Boundary ergonomics.** String easing _names_ now resolve through one shared `EasingResolvable` contract: resolution is kicked off eagerly at construction, so a named curve lands by the first frame instead of silently interpolating linearly until `await .ready()`. A residual same-tick synchronous `.at()`/`tick()` before resolution emits a one-time dev-only warning (stripped from the published bundle). `RAFPlayback` is exported and owns the shared reduced-motion snap gate.
+
+    **Reduced motion, everywhere.** `prefers-reduced-motion: reduce` is honored on the heavy path now, not just the light interpolators. Opt in with `respectReducedMotion: true` on `Animation`/`CSSKeyframesAnimation` (snaps `play()` to the final frame in a single paint) and on `NumericAnimation`/`ElementMorph` (via the exported `RAFPlayback` gate); set `group.respectReducedMotion = true` on an `AnimationGroup`. SSR-safe no-op off-DOM.
+
+    **INP.** `AnimationGroup.tick()` yields to the main thread (`scheduler.yield()` with a `MessageChannel` fallback) between child batches for large groups, so a big per-frame composite no longer runs as one long task.
+
+    **WAAPI springs.** A spring `Animation` delegated to the Web Animations API now runs its true overshoot/settle curve on the compositor — `springTimingFunction` carries its CSS `linear()` equivalent, which the WAAPI path emits instead of a flattened `linear` ramp.
+
+    **Release.** The library build is glass-ui-free: `@mkbabb/glass-ui` is an optional demo-only dependency a clean runner skips, and the CI gate is library-scoped (`check:lib` → `build:lib` → `test` → `proof:boundary`). The package publishes with npm provenance.
+
 ## v2.2.0 — value.js static/dynamic boundary (KF-B1)
 
 Carves the package barrel along the value.js seam so the light physics/
@@ -13,7 +31,7 @@ interpolation engines no longer drag the heavy CSS-parsing surface — or
   family, and the spring-stop helpers now reach their handful of leaf
   helpers — `requestAnimationFrame` / `cancelAnimationFrame` /
   `clamp` / `lerp` / `scale` — from a new local `src/animation/internal/
-  leaves.ts` instead of `@mkbabb/value.js`. A consumer that imports only
+leaves.ts` instead of `@mkbabb/value.js`. A consumer that imports only
   these has **zero** static import edge to value.js. Verified against the
   built dist: the `dist/keyframes.js` barrel statically imports only the
   leaf chunk; a spring-only bundle contains no value.js code.
@@ -24,32 +42,32 @@ interpolation engines no longer drag the heavy CSS-parsing surface — or
   `FILL_MODES`, `defaultOptions`, `defaultLayerConfig`) live in
   `src/animation/engine.ts` and are reached through a new async accessor:
 
-  ```ts
-  import { loadAnimationEngine } from "@mkbabb/keyframes.js";
-  const { CSSKeyframesAnimation } = await loadAnimationEngine();
-  const anim = new CSSKeyframesAnimation(opts).fromString(css);
-  ```
+    ```ts
+    import { loadAnimationEngine } from "@mkbabb/keyframes.js";
+    const { CSSKeyframesAnimation } = await loadAnimationEngine();
+    const anim = new CSSKeyframesAnimation(opts).fromString(css);
+    ```
 
-  `loadAnimationEngine()` does `await import("./engine")`, so the
-  value.js-bearing graph (the `ValueUnit`/`Color`/CSS-parser/easing-
-  registry surface) loads only on first await and never enters a
-  light-only consumer's static graph. The dist now ships a split
-  `engine-*.js` chunk that the barrel reaches via dynamic import.
+    `loadAnimationEngine()` does `await import("./engine")`, so the
+    value.js-bearing graph (the `ValueUnit`/`Color`/CSS-parser/easing-
+    registry surface) loads only on first await and never enters a
+    light-only consumer's static graph. The dist now ships a split
+    `engine-*.js` chunk that the barrel reaches via dynamic import.
 
 ### Breaking changes
 
 - **The heavy classes are no longer static named exports of the barrel.**
-  `import { Animation } from "@mkbabb/keyframes.js"` as a *value* is
+  `import { Animation } from "@mkbabb/keyframes.js"` as a _value_ is
   retired in favour of `await loadAnimationEngine()`. The class **types**
   remain on the static barrel (`import type { Animation } from
-  "@mkbabb/keyframes.js"` still resolves), so type annotations are
+"@mkbabb/keyframes.js"` still resolves), so type annotations are
   unaffected — only the runtime constructors moved.
 
 - **The light engines resolve string easing names lazily — callable
   easing stays static and value.js-free.** `NumericAnimation`,
   `ElementMorph`, and the `Timeline` family still accept
   `timingFunction` / `easing` as a callable `TimingFunction` OR a string
-  easing *name* (`"ease-out-cubic"`, `"easeOutCubic"`, `"linear"`, …), as
+  easing _name_ (`"ease-out-cubic"`, `"easeOutCubic"`, `"linear"`, …), as
   before. A **callable** is used directly — no dynamic import, nothing
   value.js pulled into the static graph (this is the gate path). A
   **string name** is resolved LAZILY through the dynamic engine boundary:
@@ -73,7 +91,7 @@ The `@mkbabb/value.js` dependency migrates from the `file:../value.js` seam to t
 `^0.10.0` npm-registry semver pin — the published artifact resolves value.js through
 the registry. No public API change versus v2.1.0; this is the seam-canon publish that
 lands keyframes.js on the registry-resolved consumer-default path. (Note: this release
-re-exported value.js *statically*; the dynamic re-export boundary it gestured at did
+re-exported value.js _statically_; the dynamic re-export boundary it gestured at did
 not yet exist in the source — it lands in v2.2.0 above.)
 
 ## v2.1.0 — 2026-05-13 (AB.W6 settle)
