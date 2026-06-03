@@ -1,7 +1,5 @@
-import {
-    cancelAnimationFrame,
-    requestAnimationFrame,
-} from "./internal/leaves";
+import { cancelAnimationFrame, requestAnimationFrame } from "./internal/leaves";
+import { prefersReducedMotion } from "./internal/reduced-motion";
 
 export interface SmoothProgressOptions {
     /** Damping factor (0, 1]. Higher = faster convergence. Default 0.1 */
@@ -41,14 +39,6 @@ const defaultSmoothOptions: SmoothProgressOptions = {
     clamp: true,
     respectReducedMotion: false,
 };
-
-/** Feature-detect reduced-motion preference. SSR-safe (returns false). */
-function prefersReducedMotion(): boolean {
-    if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
-        return false;
-    }
-    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-}
 
 export class SmoothProgress {
     private options: SmoothProgressOptions;
@@ -125,10 +115,7 @@ export class SmoothProgress {
         }
 
         if (this.options.clamp) {
-            this.currentValue = Math.max(
-                0,
-                Math.min(1, this.currentValue),
-            );
+            this.currentValue = Math.max(0, Math.min(1, this.currentValue));
         }
 
         return this.currentValue;
@@ -139,8 +126,7 @@ export class SmoothProgress {
         if (this.isSettled) return this.currentValue;
 
         const factor = 1 - Math.exp((-this.options.damping * dt) / 16.667);
-        this.currentValue +=
-            (this.targetValue - this.currentValue) * factor;
+        this.currentValue += (this.targetValue - this.currentValue) * factor;
 
         if (
             Math.abs(this.targetValue - this.currentValue) <
@@ -151,10 +137,7 @@ export class SmoothProgress {
         }
 
         if (this.options.clamp) {
-            this.currentValue = Math.max(
-                0,
-                Math.min(1, this.currentValue),
-            );
+            this.currentValue = Math.max(0, Math.min(1, this.currentValue));
         }
 
         return this.currentValue;

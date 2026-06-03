@@ -1,17 +1,29 @@
-# release — publish @mkbabb/keyframes.js to npm on a v*.*.* tag (G.W5 Sub-wave C).
+# release — publish @mkbabb/keyframes.js to npm on a v*.*.* tag.
 #
-# Re-runs the release gate (check → build → test) before npm publish.
-# keyframes.js sits between value.js and glass-ui in the publish chain —
-# it resolves @mkbabb/value.js via the registry, so value.js's tag-publish
-# must land first when a coordinated bump crosses both.
+# Re-runs the LIBRARY-SCOPED release gate (check:lib → build:lib → test →
+# proof:boundary) before `npm publish`. Every step is glass-ui-free (A inv β):
+# `@mkbabb/glass-ui` is an OPTIONAL `file:../glass-ui` dependency a clean
+# runner skips, so the publish leg builds the library without the demo seam.
 #
-# Publish auth: NPM_TOKEN repository secret. Runs only on tag refs.
+# keyframes.js sits between value.js and glass-ui in the publish chain — it
+# resolves @mkbabb/value.js via the registry, so value.js's tag-publish must
+# land first when a coordinated bump crosses both.
+#
+# Provenance: `npm publish --provenance` attaches a signed build-provenance
+# attestation (SLSA) generated from this workflow's OIDC identity. Requires
+# `id-token: write`. Publish auth stays the NPM_TOKEN repository secret; the
+# OIDC token signs the attestation, the npm token authenticates the publish.
+# Runs only on tag refs.
 name: release
 
 on:
     push:
         tags:
             - "v*.*.*"
+
+permissions:
+    contents: read
+    id-token: write
 
 jobs:
     publish:
@@ -23,13 +35,15 @@ jobs:
                   node-version: 24
                   registry-url: "https://registry.npmjs.org"
             - run: npm ci
-            - name: check (tsc --noEmit)
-              run: npm run check
-            - name: build
-              run: npm run build
+            - name: check (tsc --noEmit, library-scoped)
+              run: npm run check:lib
+            - name: build (library)
+              run: npm run build:lib
             - name: test
               run: npm test -- --run
-            - name: publish
-              run: npm publish --access public
+            - name: proof:boundary (value.js static/dynamic boundary gate)
+              run: npm run proof:boundary
+            - name: publish (with provenance)
+              run: npm publish --provenance --access public
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

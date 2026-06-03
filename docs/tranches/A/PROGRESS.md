@@ -5,21 +5,24 @@ The plan is `A.md`; the close report is `FINAL.md` (authored at W5).
 
 ## Phase
 
-**DEVELOPMENT** (W0 reconciliation + W1 design). The implementation half (W2-W5)
-is authored-now-run-later and opens only on explicit user authorization. The
-dev/impl boundary lands at the W1 design-doc close; the `build:lib` CI repair
-rides W1 as the dev→impl hinge.
+**COMPLETE** — all six waves landed on explicit user authorization (2026-06-03);
+released as 3.0.0 (one major) via the changeset + the CI provenance publish. The
+tranche close is `FINAL.md`; the release record is `CHANGELOG.md`. 286 tests
+green (was 260; +26); clean-runner library gate + `proof:boundary` green. An
+adversarial multi-agent review ran before publish and caught one real defect (the
+`AnimationGroup` reduced-motion snap repainting children to the initial frame via
+`reset()`); fixed + gated by two new final-visual assertions.
 
 ## Wave status
 
 | Wave | Title | Phase | Status | Hard gate |
 |---|---|---|---|---|
-| **A.W0** | Format reconciliation + hygiene | DEV | planned | Scaffold + W0-W5 specs authored; changeset↔tranche contract codified; CI-break issue filed; `src/animation/CLAUDE.md` re-synced to boundary topology; precepts gitlink confirmed `63240e6`. |
-| **A.W1** | Design slice + release-CI repair | DEV→IMPL hinge | planned | Design doc authored; clean-runner `npm ci && npm run build:lib && npm test` green with no `file:` resolution. |
-| **A.W2** | Boundary ergonomics | IMPL | planned | `EasingResolvable` retires the 3 `.ready()` copies; silent-linear window closed; `.at()`-pre-resolution detectable; zero static value.js edge. |
-| **A.W3** | `proof:boundary` gate | IMPL | planned | Gate builds spring-only entry, asserts 0 value.js bytes + 0 `engine-*` static edge, wired into CI; negative test bites. |
-| **A.W4** | Engine modern-web/perf pass | IMPL | planned | Reduced-motion snaps on the heavy path; `scheduler.yield()` breaks >50ms group tasks (Playwright trace); WAAPI `linear()` landed-or-refuted; README posture section. |
-| **A.W5** | Close ceremony + release | IMPL (LAST) | planned | π (build-verification floor) + ι + overfitting + `FINAL.md` + changeset cut (publish user-domain). |
+| **A.W0** | Format reconciliation + hygiene | DEV | **landed** | Scaffold + W0-W5 specs + design doc + FINAL authored; changeset↔tranche contract codified; CI-break issue #1 filed; `src/animation/CLAUDE.md` re-synced to the boundary topology; precepts gitlink confirmed `63240e6`; hygiene (gitignore + dock-PNG archival). |
+| **A.W1** | Design slice + release-CI repair | DEV→IMPL hinge | **landed** | Design doc authored; glass-ui→optionalDependencies + lockfile regen + `tsconfig.lib.json`/`check:lib`/`build:lib` + provenance + `node.js.yml` retired. Clean-runner `npm ci && check:lib && build:lib && test && proof:boundary` green with no `file:` resolution (verified via a full repo copy to /tmp). |
+| **A.W2** | Boundary ergonomics | IMPL | **landed** | `EasingResolvable` retires the hand-rolled resolvers (numeric/timeline; morph delegates); silent-linear window closed (eager-resolve + dev-warn); `.at()`-pre-resolution detectable; zero static value.js edge. 11 focused tests. |
+| **A.W3** | `proof:boundary` gate | IMPL | **landed** | `scripts/proof-boundary.mjs` builds a spring-only source entry, asserts 0 value.js + 0 `engine.ts` static edge, wired into CI; negative test (value.js import into `spring.ts`) turned it RED → reverted → PASS. |
+| **A.W4** | Engine modern-web/perf pass | IMPL | **landed** | Exported RAFPlayback PRM gate; heavy `Animation`/`AnimationGroup` reduced-motion snaps; `scheduler.yield()` group batching (INP); WAAPI spring `linear()` = LAND; README posture. 15 tests. LoAF observer + Playwright >50ms trace named-forward (see W4.md). |
+| **A.W5** | Close ceremony + release | IMPL (LAST) | **landed** | π build-verification floor (286 tests + build:lib + proof:boundary green) + ι + overfitting audit + `FINAL.md` + 3.0.0 changeset cut; publish via the CI provenance leg on the `v3.0.0` tag. |
 
 ## Verified facts at A-open (W0 evidence)
 
@@ -44,6 +47,7 @@ rides W1 as the dev→impl hinge.
 
 1. **The changeset cut + tag + publish.** A.W5 writes the changeset; the `Version Packages` PR → `v*.*.*` tag → `release.yml` → `npm publish` is user-domain (outward-facing, confirm-first). A.W1 makes that leg runnable on a clean runner for the first time but does not run it.
 2. **File the CI-break issue** (A.W0) — `gh issue create` is a write to the GitHub remote; orchestrator/user-domain.
+3. **Constellation-adoption fold** — `audit/constellation-adoption-2026-06-02.md` books keyframes' dev.sh/deploy.sh (library SHAPE) + screenshot archival (2 dock PNGs → `-Aarchive`) + before/after π adoption (A.W4-conditional) + precepts bump + cruft sweep (51 logs + 7 `.DS_Store`); all BOOKED, none executed.
 
 ## Open deferrals
 

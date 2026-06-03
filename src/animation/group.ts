@@ -1,5 +1,11 @@
 import { type ValueUnit } from "@mkbabb/value.js";
-import { cancelAnimationFrame, lerp, requestAnimationFrame } from "./internal/leaves";
+import {
+    cancelAnimationFrame,
+    lerp,
+    requestAnimationFrame,
+} from "./internal/leaves";
+import { prefersReducedMotion } from "./internal/reduced-motion";
+import { yieldToMain } from "./internal/scheduler";
 import { Animation, getAnimationId } from "./engine";
 import type {
     AnimationLayerConfig,
@@ -43,6 +49,21 @@ export class AnimationGroup<V extends Vars> {
     paused = false;
     started = false;
     done = false;
+
+    /**
+     * When true, `play()` honors `prefers-reduced-motion: reduce` by snapping
+     * every child to its final frame in a single composite instead of running
+     * the rAF draw loop. SSR-safe no-op off-DOM. Default false.
+     */
+    respectReducedMotion = false;
+
+    /**
+     * Children-per-slice before `tick()` yields to the main thread. Groups at
+     * or under this size tick in one slice (fast path); larger groups tick in
+     * batches with a `scheduler.yield()` between them so a big per-frame
+     * composite doesn't run as one long task (INP relief).
+     */
+    static readonly YIELD_BATCH = 32;
 
     singleTarget = true;
 
@@ -147,7 +168,8 @@ export class AnimationGroup<V extends Vars> {
         }
 
         this.singleTarget = entries.every(
-            (entry) => entry.animation.targets[0] === entries[0]?.animation.targets[0],
+            (entry) =>
+                entry.animation.targets[0] === entries[0]?.animation.targets[0],
         );
 
         return this;
@@ -193,7 +215,11 @@ export class AnimationGroup<V extends Vars> {
             // new keys are assigned, so the done/paused early-return
             // from the previous implementation is unnecessary — a
             // scrubbed child's fresh state is always reflected here.
-            animation.interpFrames(animation.t, false, values as Record<string, ValueUnit[]>);
+            animation.interpFrames(
+                animation.t,
+                false,
+                values as Record<string, ValueUnit[]>,
+            );
 
             // Apply property whitelist filter
             const filteredValues = layer.properties
@@ -327,20 +353,43 @@ export class AnimationGroup<V extends Vars> {
             this.onStart();
         }
 
-        const promises: Promise<number>[] = [];
-        for (const entry of this.getEntries()) {
-            const anim = entry.animation;
-            if (!anim.paused || anim.pausedTime === 0) {
-                promises.push(anim.tick(t));
+        const entries = this.getEntries();
+        const BATCH = AnimationGroup.YIELD_BATCH;
+
+        if (entries.length <= BATCH) {
+            // Fast path — small groups tick in a single slice, no yield.
+            await this._tickSlice(entries, t);
+        } else {
+            // Large groups tick in batches with a main-thread yield between
+            // them, so the per-frame work doesn't run as one long task.
+            for (let i = 0; i < entries.length; i += BATCH) {
+                await this._tickSlice(entries.slice(i, i + BATCH), t);
+                if (i + BATCH < entries.length) {
+                    await yieldToMain();
+                }
             }
         }
-        await Promise.all(promises);
 
         if (this.done) {
             this.onEnd();
         }
 
         return this;
+    }
+
+    /** Advance one slice of children to timestamp `t`, awaiting their ticks together. */
+    private async _tickSlice(
+        slice: AnimationGroupEntry<V>[],
+        t: number,
+    ): Promise<void> {
+        const promises: Promise<number>[] = [];
+        for (const entry of slice) {
+            const anim = entry.animation;
+            if (!anim.paused || anim.pausedTime === 0) {
+                promises.push(anim.tick(t));
+            }
+        }
+        await Promise.all(promises);
     }
 
     /**
@@ -379,12 +428,64 @@ export class AnimationGroup<V extends Vars> {
     /**
      * Start the animation group. Returns a promise that resolves
      * when all child animations complete (or on explicit stop/reset).
+     *
+     * Under `respectReducedMotion` + an active `prefers-reduced-motion`
+     * query, snaps every child to its final frame in a single composite —
+     * no rAF draw loop — then settles exactly as a completed play would.
      */
     async play() {
+        if (this.respectReducedMotion && prefersReducedMotion()) {
+            return this._playReducedMotion();
+        }
         return new Promise((resolve) => {
             this.resolvePromise = resolve;
             this.handleId = requestAnimationFrame(this._boundDraw);
         });
+    }
+
+    /**
+     * `prefers-reduced-motion` snap for the group: advance every child to its
+     * final frame, composite a single paint, then settle child + group state
+     * for replay — no rAF loop, no motion. The final frame STAYS on the
+     * target(s): reduced motion shows the END state, matching
+     * `Animation._playReducedMotion`.
+     *
+     * Deliberately does NOT route through `reset()` — `reset()` repaints every
+     * child to frame 0 (`interpFrames(0, true)`, the fillBackwards
+     * cube-cutoff workaround), which would clobber the snapped final frame and
+     * leave, e.g., a `fadeIn` group invisible. The child `Animation.reset()`
+     * clears state flags only and does not repaint, so it is safe here.
+     */
+    private _playReducedMotion(): Promise<void> {
+        this.onStart();
+        const now = this.lastTickTime || performance.now();
+        this.lastTickTime = now;
+
+        // Snap every child to its final frame and apply it to the target(s).
+        for (const entry of this.getEntries()) {
+            const anim = entry.animation;
+            anim.started = true;
+            anim.t = anim.options.duration;
+            anim.interpFrames(anim.t, true);
+        }
+
+        if (this.singleTarget) {
+            // Composite the snapped children into one final paint.
+            this.transformFramesGrouped(now);
+        }
+
+        // Settle for replay WITHOUT reset()'s frame-0 repaint, so the final
+        // frame survives on the target(s).
+        for (const entry of this.getEntries()) {
+            entry.animation.managed = false;
+            entry.animation.reset();
+        }
+        this.started = false;
+        this.done = false;
+        this.paused = false;
+        this.lastTickTime = 0;
+
+        return Promise.resolve();
     }
 
     /**

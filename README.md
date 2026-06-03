@@ -52,6 +52,7 @@ Plucked directly from the [`demo/simple`](demo/simple/App.vue) Vue file.
 - [AnimationGroup](#animationgroup)
 - [Presets](#presets)
 - [Web Animations API](#web-animations-api)
+- [Baseline, tree-shaking & reduced motion](#baseline-tree-shaking--reduced-motion)
 - [Beyond CSS](#beyond-css)
   - [NumericAnimation](#numericanimation)
   - [SmoothProgress](#smoothprogress)
@@ -296,6 +297,31 @@ anim.play();
 ## Web Animations API
 
 When `useWAAPI` is `true` (default), eligible animations run on the compositor thread via `Element.animate()`. Eligibility requires: DOM targets, uniform timing function across frames, no computed units, no custom transform function, no color interpolation. Falls back to `requestAnimationFrame` silently.
+
+A spring timing function (`springTimingFunction`) carries its CSS `linear()` equivalent, so a WAAPI-delegated spring animation runs the true overshoot/settle curve on the compositor instead of a flattened `linear` ramp — the JS easing and the compositor curve are one solver.
+
+## Baseline, tree-shaking & reduced motion
+
+keyframes.js targets a modern-web Baseline and documents the tier of every platform facility it leans on:
+
+| Facility | Baseline tier | Behavior |
+|---|---|---|
+| `prefers-reduced-motion` | Widely available | Native `matchMedia`; SSR-safe no-op off-DOM |
+| `scheduler.yield()` | Newly available | Feature-detected; falls back to a `MessageChannel` macrotask (≤20 LOC) |
+| WAAPI `linear()` springs | Newly available | Feature-detected; the rAF spring path is the default fallback |
+| `Element.animate()` (WAAPI) | Widely available | Opt-out via `useWAAPI: false` |
+
+**Tree-shaking — the value.js boundary.** The package is `"sideEffects": false` and splits along a static/dynamic boundary. The light physics/interpolation engines — `SpringProgress`, `SmoothProgress`, `NumericAnimation`, `ElementMorph`, the `Timeline` family, `RAFPlayback`, and the spring-stop helpers — carry **zero** static import edge to `@mkbabb/value.js`. A consumer that imports only these never pulls value.js (or the heavy CSS-keyframe parser) into its graph; the heavy engine (`Animation`, `CSSKeyframesAnimation`, `AnimationGroup`) is reached only through `loadAnimationEngine()`'s dynamic `import()`. This boundary is **gated in CI** by `proof:boundary`, which builds a spring-only entry and fails the build if any light module reintroduces a static value.js edge.
+
+**Reduced motion.** Both the light and heavy engines honor `prefers-reduced-motion: reduce`. Opt in per surface:
+
+- **Light interpolators** (`NumericAnimation`, `SmoothProgress`, `SpringProgress`, `ElementMorph`) — pass `respectReducedMotion: true`. `RAFPlayback` owns the shared snap-to-final gate, so the managed `.play()` path skips the rAF loop and lands on the final value in a single paint.
+- **Heavy engine** (`Animation` / `CSSKeyframesAnimation`) — pass `respectReducedMotion: true`; `play()` snaps to the final frame (a single paint, `animationstart` → `animationend`) instead of running the rAF/WAAPI loop.
+- **`AnimationGroup`** — set `group.respectReducedMotion = true`; `play()` composites every child's final frame once rather than driving the draw loop.
+
+Off-DOM (SSR / Node) the check is a no-op and animations proceed normally.
+
+**INP.** `AnimationGroup` composites N children per frame; for large groups (`> AnimationGroup.YIELD_BATCH`) `tick()` yields to the main thread between batches via `scheduler.yield()` (feature-detected) so a big composite doesn't run as one long task.
 
 ## Beyond CSS
 

@@ -29,6 +29,7 @@ import {
     type PropertyDescriptor,
 } from "@mkbabb/value.js";
 import { binarySearchRange } from "./internal/binarySearch";
+import { prefersReducedMotion } from "./internal/reduced-motion";
 import { resolveKeyframes } from "./adapter";
 import { defaultOptions } from "./constants";
 import type {
@@ -481,6 +482,13 @@ export class Animation<V extends Vars = any> {
         return this;
     }
 
+    setRespectReducedMotion(
+        respectReducedMotion: InputAnimationOptions["respectReducedMotion"],
+    ) {
+        this.options.respectReducedMotion = respectReducedMotion ?? false;
+        return this;
+    }
+
     setColorSpace(colorSpace: InputAnimationOptions["colorSpace"]) {
         // TODO(MEDIUM): Avoid implicit color-space fallback; require explicit color-space selection in strict mode.
         this.options.colorSpace = colorSpace ?? "oklab";
@@ -502,6 +510,7 @@ export class Animation<V extends Vars = any> {
         this.setDirection(options.direction);
         this.setFillMode(options.fillMode);
         this.setUseWAAPI(options.useWAAPI);
+        this.setRespectReducedMotion(options.respectReducedMotion);
         this.setColorSpace(options.colorSpace);
         this.setHueMethod(options.hueMethod);
         return this;
@@ -532,10 +541,7 @@ export class Animation<V extends Vars = any> {
      * Stateless progress query. Maps [0,1] from first keyframe to last,
      * regardless of playback direction. `apply=true` invokes transform callbacks.
      */
-    at(
-        progress: number,
-        apply: boolean = false,
-    ): Record<string, ValueUnit[]> {
+    at(progress: number, apply: boolean = false): Record<string, ValueUnit[]> {
         const saved = this.reversed;
         this.reversed = false;
         const t = clamp(progress, 0, 1) * this.options.duration;
@@ -747,6 +753,24 @@ export class Animation<V extends Vars = any> {
         this.reset();
     }
 
+    /**
+     * `prefers-reduced-motion` snap: jump to the final frame in a single
+     * paint — no rAF/WAAPI loop. The lifecycle stays observable
+     * (`animationstart` → fill final → `animationend`) so consumers' event
+     * wiring is identical to a completed normal play.
+     */
+    private async _playReducedMotion(): Promise<void> {
+        this.started = true;
+        this.dispatchAnimationEvent("animationstart");
+        // The visually-complete end state — the same frame a forwards fill
+        // settles on. Reduced-motion shows the result without the motion.
+        this.fillForwards();
+        this.iteration = 0;
+        this.done = true;
+        this.dispatchAnimationEvent("animationend");
+        this.reset();
+    }
+
     async play(): Promise<void> {
         if (this.managed) {
             throw new Error(
@@ -757,7 +781,11 @@ export class Animation<V extends Vars = any> {
         if (this._playingPromise) return this._playingPromise;
 
         let result: Promise<void>;
-        if (this.options.useWAAPI) {
+        if (this.options.respectReducedMotion && prefersReducedMotion()) {
+            // Reduced-motion wins over WAAPI/rAF — snap to the final frame.
+            this.waapiIneligibleReason = undefined;
+            result = this._playReducedMotion();
+        } else if (this.options.useWAAPI) {
             const elig = isWAAPIEligible(this);
             if (elig.eligible) {
                 this.waapiIneligibleReason = undefined;

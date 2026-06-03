@@ -1,7 +1,5 @@
-import {
-    cancelAnimationFrame,
-    requestAnimationFrame,
-} from "./internal/leaves";
+import { cancelAnimationFrame, requestAnimationFrame } from "./internal/leaves";
+import { prefersReducedMotion } from "./internal/reduced-motion";
 
 /**
  * iOS-style spring physics options. The pair `(response, dampingFraction)`
@@ -62,17 +60,6 @@ const defaultSpringOptions: SpringProgressOptions = {
     velocitySettleThreshold: 1e-3,
     respectReducedMotion: false,
 };
-
-/** Feature-detect reduced-motion preference. SSR-safe (returns false). */
-function prefersReducedMotion(): boolean {
-    if (
-        typeof window === "undefined" ||
-        typeof window.matchMedia !== "function"
-    ) {
-        return false;
-    }
-    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-}
 
 /**
  * Live-target spring tracker. Sibling of `SmoothProgress` for animations
@@ -269,8 +256,7 @@ export class SpringProgress {
             // Derivative.
             vRel =
                 decay *
-                ((B * wd - A * z * w) * cos -
-                    (A * wd + B * z * w) * sin);
+                ((B * wd - A * z * w) * cos - (A * wd + B * z * w) * sin);
         } else if (z === 1) {
             // Critically damped.
             const decay = Math.exp(-w * t);

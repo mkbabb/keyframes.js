@@ -1,5 +1,10 @@
 import type { TimingFunction } from "./constants";
+import { tagCSSEasing } from "./internal/css-easing";
 import { SpringProgress } from "./spring";
+import {
+    springLinearStops,
+    type SpringLinearStopsOptions,
+} from "./springLinearStops";
 
 /**
  * Options for sampling a spring response curve into a callable
@@ -87,7 +92,7 @@ export function springTimingFunction(
     samples[sampleCount] = 1;
     spring.dispose();
 
-    return (t: number): number => {
+    const easing: TimingFunction = (t: number): number => {
         if (t <= 0) return 0;
         if (t >= 1) return 1;
         const x = t * sampleCount;
@@ -97,4 +102,17 @@ export function springTimingFunction(
         const b = samples[i + 1]!;
         return a + (b - a) * frac;
     };
+
+    // Tag the closure with its CSS `linear()` equivalent (same solver, same
+    // preset), so an `Animation` eased by this spring can run the real
+    // overshoot/settle on the compositor via WAAPI instead of falling back to
+    // bare `linear`. The JS easing and the CSS string describe ONE curve.
+    const stopOpts: SpringLinearStopsOptions = {
+        response: opts.response,
+        dampingFraction: opts.dampingFraction,
+    };
+    if (opts.settleThreshold !== undefined)
+        stopOpts.settleThreshold = opts.settleThreshold;
+    if (opts.maxDuration !== undefined) stopOpts.maxDuration = opts.maxDuration;
+    return tagCSSEasing(easing, springLinearStops(stopOpts));
 }

@@ -1,4 +1,5 @@
 import { COMPUTED_UNITS, unflattenObjectToString } from "@mkbabb/value.js";
+import { getCSSEasing } from "./internal/css-easing";
 import type { Animation } from "./engine";
 import type { Vars } from "./constants";
 
@@ -157,6 +158,23 @@ export function toWAAPIOptions<V extends Vars>(
         );
     }
 
+    // WAAPI exposes ONE easing per animation. When the uniform timing
+    // function carries a CSS easing string — today a spring's `linear()`
+    // stops, which `springTimingFunction` tags its closure with — emit it so
+    // the compositor runs the true curve between the sampled keyframe
+    // endpoints. Otherwise fall back to bare `linear` (the keyframe stops
+    // carry whatever intent JS interpolation baked in). Eligibility already
+    // guaranteed a uniform timing function, so reading frame 0's is enough.
+    //
+    // NOTE: WAAPI applies this easing PER SEGMENT (between consecutive
+    // keyframe stops). For the dominant spring case — a 2-stop from→to — that
+    // is the whole animation. A spring across 3+ stops would restart the curve
+    // each segment; uniform-timing eligibility plus the typical 2-stop spring
+    // keep that edge rare.
+    const uniformTiming =
+        animation.frames[0]?.timingFunction ?? animation.options.timingFunction;
+    const easing = getCSSEasing(uniformTiming) ?? "linear";
+
     return {
         duration: opts.duration,
         delay: opts.delay,
@@ -164,11 +182,7 @@ export function toWAAPIOptions<V extends Vars>(
             opts.iterationCount === Infinity ? Infinity : opts.iterationCount,
         direction,
         fill,
-        // WAAPI easing is per-animation; per-frame easing is baked
-        // into the keyframe values upstream when JS interpolation
-        // is in play. For WAAPI delegation we always emit `linear`
-        // and let the keyframe stops carry any easing intent.
-        easing: "linear",
+        easing,
     };
 }
 

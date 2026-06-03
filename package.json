@@ -29,13 +29,16 @@
     "dist"
   ],
   "scripts": {
-    "prepare": "vite build --mode production",
+    "prepare": "npm run build:lib",
     "check": "tsc --noEmit",
+    "check:lib": "tsc --noEmit -p tsconfig.lib.json",
     "dev": "vite",
     "dev:playground": "vite --mode playground",
-    "build": "vite build --mode production",
+    "build": "npm run build:lib",
+    "build:lib": "vite build --mode production",
     "build:watch": "vite build --watch --mode production",
     "gh-pages": "vite build --mode gh-pages",
+    "proof:boundary": "node scripts/proof-boundary.mjs",
     "test": "vitest",
     "bench": "vitest bench"
   },
@@ -58,11 +61,13 @@
     "@mkbabb/parse-that": "^0.8.2",
     "@mkbabb/value.js": "^0.10.0"
   },
+  "optionalDependencies": {
+    "@mkbabb/glass-ui": "file:../glass-ui"
+  },
   "devDependencies": {
     "@iconify-json/radix-icons": "^1.2.6",
     "@iconify/vue": "^4.1.2",
     "@lucide/vue": "^1.16.0",
-    "@mkbabb/glass-ui": "file:../glass-ui",
     "@tailwindcss/postcss": "^4.3.0",
     "@types/node": "^24.12.4",
     "@types/three": "^0.166.0",

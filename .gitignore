@@ -9,3 +9,7 @@ auth/
 _*
 dist/
 .playwright-mcp/
+.wrangler/
+# proof:boundary writes a throwaway spring-only entry it removes on exit;
+# ignore it in case a crashed run leaves one behind.
+.proof-spring-entry.*

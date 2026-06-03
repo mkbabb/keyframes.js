@@ -90,6 +90,14 @@ export type AnimationOptions = {
 
     useWAAPI: boolean;
 
+    /**
+     * When true, honor `prefers-reduced-motion: reduce` by snapping the
+     * `Animation`/`AnimationGroup` `play()` path to the final frame in a
+     * single paint instead of running the rAF/WAAPI loop. SSR-safe no-op
+     * off-DOM. Default false (consumers opt in).
+     */
+    respectReducedMotion: boolean;
+
     colorSpace: ColorSpace;
 
     hueMethod?: HueInterpolationMethod;
@@ -109,6 +117,9 @@ export type InputAnimationOptions = Partial<{
     /** When true (default), eligible animations may use the Web Animations API for compositor-thread execution. Set to false to force rAF. */
     useWAAPI: boolean;
 
+    /** When true, snap `play()` to the final frame under `prefers-reduced-motion: reduce`. Default false. */
+    respectReducedMotion: boolean;
+
     colorSpace?: ColorSpace;
 
     hueMethod?: HueInterpolationMethod;
@@ -122,6 +133,7 @@ export const defaultOptions: AnimationOptions = {
     fillMode: "forwards",
     timingFunction: easeInOutCubic,
     useWAAPI: true,
+    respectReducedMotion: false,
     colorSpace: "oklab",
 };
 
