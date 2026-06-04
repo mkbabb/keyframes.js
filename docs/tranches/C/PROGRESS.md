@@ -45,6 +45,26 @@ the W1-W5 specs + the audit evidence + the checked-in capture harness).
 - **The capture harness** (`scripts/capture.mjs`) — CHECKED IN + re-runnable
   (18 screenshots, 0 console errors); closes the precept-adherence CRITICAL
   that B's harness lived in /tmp.
+- **The animation audit** (`audit/animation/SUMMARY.md` + 6 lanes:
+  dock-harden / slides-facility / ios-dock-animation / ios-animation-general /
+  playwright-empirical / affordance-hierarchy). MEASURED (local playwright)
+  verdict: the spring scene IS iOS-grade (runs `SpringProgress`, 0.5%
+  overshoot) but everywhere else hand-rolls — the dock's MOST-SEEN morph plays
+  a non-spring bezier on the VT path (+27.5%, no settle), scenes HARD-CUT, the
+  cube bob is CSS not engine, and **reduced-motion is a measured FAIL (the demo
+  gates NOTHING — the JS spring tweens under `reduce`)**. The headline gestalt:
+  the constellation should DOGFOOD keyframes' iOS spring engine
+  (`SpringProgress`/`springTimingFunction`/`Timeline`) for iOS-grade motion +
+  free reduced-motion — extending C.W3's inv ζ from "no hand-rolled rAF" to
+  "iOS-quality motion." The hardening also REFUTED 5 dock-plan claims (folded
+  honestly into dock-forward.md §11: WAVE-1's fix is shape B′ not (A) — (A)
+  would break keyframes' live collapsed play button; the VT-parity motion gap;
+  3 stale claims struck).
+  **C.W3 (inv ζ) extends to motion quality** — scene-swap as an engine-driven
+  morph, cube idle-bob → `SpringProgress`, reduced-motion honored in every
+  scene (the measured FAIL). The dock VT-parity + the slides dogfood (the
+  `slides` repo bundles the `--spring-*` tokens but transitions with plain CSS,
+  zero spring) route OUTWARD (glass-ui / slides own them).
 
 ## Verified facts at C-open
 

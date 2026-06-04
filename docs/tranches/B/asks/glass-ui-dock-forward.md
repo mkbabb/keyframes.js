@@ -481,3 +481,81 @@ All seven waves land in glass-ui on its own clean checkout, gated on its own
 CI. This file is the proposal; the constellation ledger binding
 (`HUB/docs/constellation/ADOPTION-ASKS.md`, fourier-owned) is the
 orchestration lead's to route.
+
+---
+
+## §11 — Hardening corrections (the adversarial pass + the animation audit)
+
+A 6-agent hardening (`docs/tranches/C/audit/animation/*` — adversarial review
++ local-playwright measurement + iOS-animation research) REFUTED several
+claims in §1-§10 above. Per inv ε (the close cannot overclaim), they are
+recorded and corrected here rather than silently rewritten. Full evidence:
+`audit/animation/dock-harden.md` + `audit/animation/SUMMARY.md`.
+
+### C-1 — WAVE-1 fix shape INVERTED: B′, not (A) [the most important correction]
+WAVE-1 above declares shape **(A) collapsed-pill-as-disclosure PREFERRED** and
+cites keyframes' `AnimationMenuBar.vue:181-184` as proof it is safe. **Both are
+wrong.** `AnimationMenuBar` renders a **live one-tap play button in the
+collapsed `#collapsed` slot** (`:127-138`) — the iOS Now-Playing mini-bar
+pattern — which shape (A) ("no live controls in the summary") would DELETE. And
+the citation is a category error: `AnimationMenuBar` is `:always-expanded`
+(`:17`), so `shouldGateTouch()` returns false (`GlassDock.vue:264-266`) — the
+touch gate NEVER runs for it; `onCollapsedPlayClick` exists for play-button
+positional stability across layers, NOT as a two-tap workaround.
+
+**The correct fix is shape B′** (which the plan never evaluated): the gate only
+needs to DISTINGUISH a tap from a scroll — it does NOT need to SWALLOW the tap.
+On the resolved-tap branch, do NOT `preventDefault` the touchend
+(`GlassDock.vue:275-276,290-291`); let the native compatibility `click` flow to
+the inner control, and expand the dock on that real click (a capture-phase root
+listener). No `elementFromPoint`, no synthetic dispatch, no frame sequencing —
+it rides the browser's own tap→click and supports live collapsed controls.
+Shape (A) becomes an **opt-in `collapsedDisclosure` mode** for docks whose
+summary is genuinely a summary (keyframes `TopDock`, fourier's three). The
+ranking inverts: **B′ is the load-bearing fix; (A) is the opt-in.**
+
+The shape (B) capture-and-replay in §WAVE-1 is racier than stated: under the VT
+path the leaving pane is held painted, so `elementFromPoint` resolves the wrong
+pane; coordinate-based synthetic click is geometrically unsound mid-width-morph.
+B′ avoids all of it.
+
+### C-2 — WAVE-1 test premise corrected: NOT "zero coverage"
+`§WAVE-1` claims "zero behavioural coverage exists for the touch path." FALSE —
+`src/composables/__tests__/useTouchGate.test.ts` ships 4 tests. The corrected
+(stronger) premise: the gate is unit-tested IN ISOLATION and PASSES with the
+two-tap bug present (it tests `activate()`, which is correct in isolation) — so
+a gate-level unit test can NEVER catch this. The untested seam is the
+`GlassDock`↔gate INTEGRATION (`grep touch|tap dock/__tests__` → 0). The hard
+gate must be a mounted-`GlassDock` integration test (the spec is right; the
+premise was wrong — correct it so a reviewer doesn't dismiss the wave on
+finding the existing test).
+
+### C-3 — WAVE-6 RE-HEADLINED: VT-path spring parity is the dock's real motion gap
+WAVE-6 frames the layer-transition work as `layerProps(id)` ergonomics (the
+value.js fork). The MEASURED motion gap is bigger and the plan buries it: the
+dock's collapsed↔expanded morph (the most-seen dock animation) forks its timing
+per engine — the FLIP fallback rides keyframes' `--spring-snappy` `linear()`
+(+6.8%, settles), but the **native View-Transitions path (the default on modern
+Chromium — what users SEE)** uses `--ease-apple-spring`
+`cubic-bezier(0.175,0.885,0.32,1.275)` (+27.5%, NO settle) — a bezier forgery of
+a spring. The fix: point `--vt-ease` for `.gl-dock-layer` at the keyframes-
+derived spring (the `linear()` form of the same `(response,dampingFraction)`).
+glass-ui's AT tranche books this as `W6-dock-c proof:dock-motion-parity` but it
+is NOT landed (`grep dock-resize-spring src/` → 0). **Elevate VT-parity to
+WAVE-6's headline; the fork deletion is the secondary benefit.** (See
+`audit/animation/SUMMARY.md §3.6` for the full measurement.)
+
+### C-4 — Two §-claims STRUCK (already fixed in live source)
+- **WAVE-5 point 5 "sub-44px coarse-pointer"** — already fixed at
+  `dock.css:1134-1137` (the 44px coarse floor ships). STRIKE from WAVE-5.
+- **WAVE-2 "keyframes has TWO mutex copies"** — `useExclusiveSelect.ts` does
+  NOT exist; keyframes has ONE inline mutex. Correct WAVE-2's retires and the
+  convergence's "2 copies in one repo" claim.
+
+### C-5 — A new dock MOTION wave (folds C-3 + the iOS press-lift)
+Beyond the API/convergence waves, the animation audit adds a **`dock:motion`**
+concern: VT-path spring parity (C-3), the icon press/hover as a short
+`.interactiveSpring` lift, and (ideally) the collapse↔expand as a runtime
+`SpringProgress` (re-targetable mid-gesture) — the iOS dock's defining feel,
+all keyframes-engine-native. This sits beside WAVE-1 as the dock's
+motion-quality fold; glass-ui's AT `W6-dock-c` is its booked home.

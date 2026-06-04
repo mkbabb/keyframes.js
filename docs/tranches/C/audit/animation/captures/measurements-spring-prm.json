@@ -1,0 +1,40 @@
+{
+  "prmEmulated": true,
+  "spanPx": 64.12,
+  "distinctIntermediatePositions": 20,
+  "firstFew": [
+    {
+      "t": 0,
+      "bx": 624
+    },
+    {
+      "t": 15,
+      "bx": 622.75
+    },
+    {
+      "t": 51,
+      "bx": 617.5
+    },
+    {
+      "t": 52,
+      "bx": 612.98
+    },
+    {
+      "t": 69,
+      "bx": 607.45
+    },
+    {
+      "t": 88,
+      "bx": 602.03
+    },
+    {
+      "t": 106,
+      "bx": 596.72
+    },
+    {
+      "t": 146,
+      "bx": 589.31
+    }
+  ],
+  "verdict": "JS SpringProgress STILL ANIMATES under reduce (tweened through 20 positions) — demo omits respectReducedMotion; glass-ui CSS reset cannot touch the JS rAF loop"
+}

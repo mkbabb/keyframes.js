@@ -1,0 +1,23 @@
+{
+  "idleBob_normal": {
+    "found": true,
+    "animationName": "idle-bob-cb248207",
+    "animationPlayState": "running",
+    "translateYmin": 0,
+    "translateYmax": 5,
+    "translateYrange": 5,
+    "sampleCount": 409,
+    "moving": true
+  },
+  "idleBob_reducedMotion": {
+    "found": true,
+    "animationName": "idle-bob-cb248207",
+    "animationPlayState": "running",
+    "translateYmin": 0,
+    "translateYmax": 0,
+    "translateYrange": 0,
+    "sampleCount": 409,
+    "moving": false
+  },
+  "verdict": "idle-bob suppressed under reduce"
+}
