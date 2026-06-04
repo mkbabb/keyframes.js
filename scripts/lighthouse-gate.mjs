@@ -71,18 +71,16 @@ const ALLOWANCES = {
             "docs/tranches/B/asks/glass-ui-adoption-asks.md",
         audits: ["button-name", "label", "aria-input-field-name"],
     },
-    // bucket-w2 → REMOVED at C.W2 close (the design/a11y sweep that lands the
-    // demo-owned leaf closes). These are keyframes-OWNED and WILL be fixed in
-    // W2 — the lead deletes this bucket when W2 ships them:
-    //   image-alt      — dock/keyframe/asset <img> alts (a11y-responsive 5)
-    //   color-contrast — .square-box on-color (a11y-responsive 4)
-    // NB: `landmark-one-main` is deliberately NOT bucketed — S1 closes it in
-    // THIS wave (the real `<main>`), so it MUST pass; if S1 regresses, this
-    // gate reddens on it (that is S1's bite, asserted here).
-    "bucket-w2": {
-        trigger: "C.W2 close (demo a11y sweep: image-alt + square-box contrast)",
-        audits: ["image-alt", "color-contrast"],
-    },
+    // bucket-w2 → EMPTIED at the C.W2 a11y close: both demo-owned leaves are
+    // closed, so they are now REQUIRED to pass (this gate reddens if either
+    // regresses):
+    //   • color-contrast — the spring scene's `.settled-badge` green-on-tint was
+    //     1.97:1; C.W2 pushes the badge text toward --foreground (theme-aware)
+    //     so it reads ≥4.5:1 in light + dark (verified via axe color-contrast).
+    //   • image-alt — never fired (no demo <img> lacks alt); the precautionary
+    //     entry is removed so a future missing alt bites HERE, not silently.
+    // NB: `landmark-one-main` is deliberately NOT bucketed — S1 closed it (the
+    // real `<main>`), so it MUST pass; if S1 regresses, this gate reddens.
 };
 
 // Flattened set of every allowed audit id, for O(1) membership.

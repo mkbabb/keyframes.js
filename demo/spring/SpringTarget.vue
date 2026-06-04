@@ -186,7 +186,13 @@ const onKeydown = (e: KeyboardEvent) => {
 
 .settled-badge {
     background: color-mix(in srgb, var(--color-progress) 14%, transparent);
-    color: var(--color-progress);
+    /* AA contrast on the light-green tint: push the green text toward the
+       foreground (dark in light mode, light in dark mode) so it reads ≥4.5:1
+       against the badge tint in BOTH themes — the bare --color-progress green
+       on its own 14% tint was 1.97:1 (the C.W2 a11y leaf, lighthouse
+       color-contrast). The green hue survives the mix; only the lightness
+       moves to meet AA. */
+    color: color-mix(in srgb, var(--color-progress) 50%, var(--foreground));
 }
 
 .tracking-badge {
