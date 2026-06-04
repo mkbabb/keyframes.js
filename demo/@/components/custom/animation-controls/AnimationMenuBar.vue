@@ -30,7 +30,7 @@
                         >
                             <DockSelectTrigger
                                 aria-label="Select animation"
-                                class="instrument-serif text-lg"
+                                class="dock-label"
                             >
                                 <SelectIcon v-if="!storedControls.selectedAnimation"
                                     ><List></List
@@ -40,7 +40,7 @@
                                 }}</SelectValue>
                             </DockSelectTrigger>
                             <SelectContent class="min-w-[12rem]">
-                                <SelectGroup class="instrument-serif text-xl">
+                                <SelectGroup class="dock-label">
                                     <template
                                         v-for="name in animationNames"
                                     >
@@ -115,13 +115,13 @@
                         </DockIconButton>
                     </IconTooltip>
 
-                    <span class="dock-label instrument-serif text-lg whitespace-nowrap">Timeline</span>
+                    <span class="dock-label whitespace-nowrap">Timeline</span>
                 </template>
             </div>
 
             <!-- Collapsed state: animation name first, play button on right -->
             <template #collapsed>
-                <span v-if="storedControls.selectedAnimation" class="instrument-serif text-lg text-foreground whitespace-nowrap font-semibold">
+                <span v-if="storedControls.selectedAnimation" class="dock-label text-foreground whitespace-nowrap font-semibold">
                     {{ storedControls.selectedAnimation }}
                 </span>
                 <Button

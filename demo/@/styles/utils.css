@@ -80,12 +80,6 @@
     border-color: color-mix(in srgb, var(--primary) 30%, var(--border));
 }
 
-/* ── Project-specific font aliases ── */
-.instrument-serif {
-    font-family: var(--font-serif);
-    letter-spacing: 0.02em;
-}
-
 /* ── Standalone demo layout (simple, square) ── */
 .demo-container {
     display: grid;

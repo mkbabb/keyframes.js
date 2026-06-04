@@ -43,7 +43,7 @@ export const SCENES = [
     // amiga renders a full-bleed Three.js <canvas> — an edge-floating dock over
     // its bleed is the intended design, NOT occlusion (C.W1 § Design decisions).
     { key: "amiga", route: "amiga", subjectSelector: "canvas", dockFloatAllowed: true },
-    { key: "square", route: "square", subjectSelector: ".square-box", dockFloatAllowed: false },
+    { key: "square", route: "square", subjectSelector: ".demo-box", dockFloatAllowed: false },
     {
         key: "easing",
         route: "easing",

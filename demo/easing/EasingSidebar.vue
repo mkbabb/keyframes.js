@@ -35,7 +35,7 @@
         <Card v-if="demo.isSteps.value" plain class="p-0">
             <CardContent class="grid grid-cols-2 gap-2 p-2">
                 <div class="grid gap-1">
-                    <label class="instrument-serif text-xs text-muted-foreground">steps</label>
+                    <label class="text-admin-label text-muted-foreground">steps</label>
                     <Input
                         type="number"
                         :model-value="demo.stepOptions.value.steps"
@@ -46,7 +46,7 @@
                     />
                 </div>
                 <div class="grid gap-1">
-                    <label class="instrument-serif text-xs text-muted-foreground">jump</label>
+                    <label class="text-admin-label text-muted-foreground">jump</label>
                     <Select
                         :model-value="demo.stepOptions.value.jumpTerm"
                         @update:model-value="(v) => { demo.stepOptions.value.jumpTerm = String(v); }"
@@ -71,7 +71,7 @@
 
         <!-- Duration control -->
         <div class="flex items-center gap-2 px-1">
-            <label class="instrument-serif text-xs text-muted-foreground shrink-0">duration</label>
+            <label class="text-admin-label text-muted-foreground shrink-0">duration</label>
             <div class="duration-slider flex-1">
                 <Slider
                     size="sm"

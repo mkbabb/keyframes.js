@@ -5,7 +5,7 @@
             <CardContent class="grid gap-3 p-3">
                 <div class="grid gap-1.5">
                     <div class="flex items-center justify-between">
-                        <label class="instrument-serif text-xs text-muted-foreground">response</label>
+                        <label class="text-admin-label text-muted-foreground">response</label>
                         <span class="font-mono text-xs text-foreground tabular-nums">{{ demo.response.value.toFixed(2) }}s</span>
                     </div>
                     <div class="spring-slider">
@@ -22,7 +22,7 @@
                 </div>
                 <div class="grid gap-1.5">
                     <div class="flex items-center justify-between">
-                        <label class="instrument-serif text-xs text-muted-foreground">dampingFraction (&zeta;)</label>
+                        <label class="text-admin-label text-muted-foreground">dampingFraction (&zeta;)</label>
                         <span class="font-mono text-xs text-foreground tabular-nums">{{ demo.dampingFraction.value.toFixed(2) }}</span>
                     </div>
                     <div class="spring-slider">
@@ -51,7 +51,7 @@
                 :class="{ 'preset-active': isActivePreset(t) }"
                 @click="applyPreset(t.preset)"
             >
-                <span class="instrument-serif text-sm text-foreground capitalize">{{ t.preset.name }}</span>
+                <span class="text-small text-foreground capitalize">{{ t.preset.name }}</span>
                 <span class="font-mono text-[0.6rem] text-muted-foreground">{{ t.preset.response }} / {{ t.preset.dampingFraction }}</span>
             </Button>
         </div>
@@ -59,7 +59,7 @@
         <!-- Side-by-side canonical comparison -->
         <Card plain class="p-0">
             <CardContent class="grid gap-2.5 p-3">
-                <span class="instrument-serif text-xs text-muted-foreground">canonical springs &mdash; re-seat all together</span>
+                <span class="text-small text-muted-foreground">canonical springs &mdash; re-seat all together</span>
                 <div
                     v-for="t in demo.tracks"
                     :key="t.preset.name"
@@ -81,7 +81,7 @@
         <Card plain class="p-0 overflow-hidden">
             <CardContent class="grid gap-2 p-2">
                 <div class="flex items-center justify-between px-1">
-                    <span class="instrument-serif text-xs text-muted-foreground">springLinearStops() &rarr; CSS</span>
+                    <span class="text-small text-muted-foreground">springLinearStops() &rarr; CSS</span>
                     <CopyButton class="shrink-0 w-4 h-4" :text="linearStopsCss" />
                 </div>
                 <CSSCodeEditor

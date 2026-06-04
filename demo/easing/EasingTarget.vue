@@ -1,11 +1,11 @@
 <template>
     <div class="flex flex-col items-center justify-center gap-4 h-full w-full px-6 lg:px-8 max-w-3xl mx-auto overflow-hidden dock-inset">
 
-        <div class="glass-card w-full flex-1 min-h-0 flex flex-col overflow-hidden">
+        <div class="glass-card easing-target w-full flex-1 min-h-0 flex flex-col overflow-hidden">
             <!-- Header: easing name + view mode dropdown -->
             <div class="flex items-center justify-between px-4 py-2.5 border-b border-border/40 shrink-0">
                 <div class="flex items-baseline gap-3 min-w-0">
-                    <span class="instrument-serif text-xl lg:text-2xl text-foreground truncate">
+                    <span class="text-heading text-foreground truncate">
                         {{ demo.currentEasingName.value }}
                     </span>
                     <span class="font-mono text-xs text-muted-foreground tabular-nums whitespace-nowrap">
@@ -16,10 +16,10 @@
                     :model-value="viewMode"
                     @update:model-value="onViewModeChange"
                 >
-                    <DockSelectTrigger aria-label="View mode" class="instrument-serif text-sm ml-3">
+                    <DockSelectTrigger aria-label="View mode" class="dock-label ml-3">
                         <SelectValue placeholder="Singular" />
                     </DockSelectTrigger>
-                    <SelectContent class="min-w-40 instrument-serif">
+                    <SelectContent class="min-w-40 text-small">
                         <SelectItem value="singular">Singular</SelectItem>
                         <SelectSeparator />
                         <SelectItem
@@ -139,7 +139,7 @@ const BALL_SIZE_MUTED = computed(() => ballSizes.value.muted);
 const readBallSizes = () => {
     const container = trackContainerEl.value;
     if (!container) return;
-    const root = container.closest<HTMLElement>(".glass-card") ?? container;
+    const root = container.closest<HTMLElement>(".easing-target") ?? container;
     const styles = getComputedStyle(root);
     const toPx = (v: string): number => {
         const n = parseFloat(v);
@@ -260,11 +260,13 @@ const onScrubEnd = () => {
 };
 </script>
 
-<style>
+<style scoped>
 /* Comparison-track ball sizing tokens — read by JS via getComputedStyle so
    CSS is the single source of truth. Values are intentionally in px (not rem)
-   because JS reads computed lengths. */
-.glass-card {
+   because JS reads computed lengths. Scoped to the component's own
+   `.easing-target` root so they never leak onto the shared `.glass-card`
+   primitive (the JS reads them via `container.closest(".easing-target")`). */
+.easing-target {
     --track-ball-size-active: 36px;
     --track-ball-size-muted: 24px;
 }

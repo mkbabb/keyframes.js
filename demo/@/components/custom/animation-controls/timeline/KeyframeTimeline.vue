@@ -42,7 +42,7 @@
                     }"
                 ></div>
             </div>
-            <span class="instrument-serif text-sm text-muted-foreground shrink-0">{{ zoomLevel.toFixed(1) }}x</span>
+            <span class="text-small text-muted-foreground shrink-0">{{ zoomLevel.toFixed(1) }}x</span>
         </div>
 
         <!-- Timeline Track -->
@@ -70,7 +70,7 @@
             >
                 <span
                     :class="[
-                        'instrument-serif absolute -top-5 left-0 text-sm text-muted-foreground whitespace-nowrap',
+                        'text-small absolute -top-5 left-0 text-muted-foreground whitespace-nowrap',
                         percentToPosition(tick) <= 2 ? 'translate-x-0' : percentToPosition(tick) >= 98 ? '-translate-x-full' : '-translate-x-1/2',
                     ]"
                 >{{ tick }}%</span>

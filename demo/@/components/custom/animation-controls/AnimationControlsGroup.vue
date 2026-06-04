@@ -199,7 +199,7 @@
             :toastOptions="{
                 unstyled: true,
                 classes: {
-                    toast: 'bg-foreground text-background rounded-xl instrument-serif px-4 py-3 grid grid-cols-1 gap-1 shadow-lg lg:w-80 w-64 max-w-[90vw]',
+                    toast: 'bg-foreground text-background rounded-xl text-body px-4 py-3 grid grid-cols-1 gap-1 shadow-lg lg:w-80 w-64 max-w-[90vw]',
                     title: 'font-bold text-base',
                     description: 'font-normal text-sm',
                     actionButton: '',
@@ -244,7 +244,7 @@ import { useAnimationGroupPlayback } from "./composables/useAnimationGroupPlayba
 import { useAnimationProgress } from "./composables/useAnimationProgress";
 import { useScrollFade } from "./composables/useScrollFade";
 
-const RIBBON_BUTTON_CLASS = "h-8 gap-1.5 instrument-serif text-base rounded-full btn-interactive";
+const RIBBON_BUTTON_CLASS = "h-8 gap-1.5 text-body rounded-full btn-interactive";
 
 const { superKey, animationGroup, autoPlay, hideControls } = defineProps<{
     animationGroup: AnimationGroup<any>;

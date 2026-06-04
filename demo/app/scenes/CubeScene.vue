@@ -111,7 +111,7 @@ const headerLeft = () =>
                     class: "ppmycota-logo-sm m-0 h-8 w-8 lg:h-10 lg:w-10 cursor-pointer stroke-2 p-0 font-bold scale-on-hover",
                 }),
             }),
-            h(HoverCardContent, { class: "z-hovercard p-4 min-w-[17rem] instrument-serif" }, {
+            h(HoverCardContent, { class: "z-hovercard p-4 min-w-[17rem] text-small" }, {
                 default: () => [
                     h("div", { class: "flex items-center gap-3" }, [
                         h("div", { class: "ppmycota-logo-sm z-20 h-10 w-10 shrink-0 stroke-2 font-bold" }),

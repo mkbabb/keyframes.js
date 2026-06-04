@@ -73,7 +73,7 @@ const ribbonContent = (slotProps: { selectedControl: string }) =>
                   Button,
                   {
                       variant: "outline",
-                      class: "h-8 w-full rounded-full gap-2 instrument-serif text-base btn-interactive",
+                      class: "h-8 w-full rounded-full gap-2 text-body btn-interactive",
                       onClick: () => demo.toggleTarget(),
                   },
                   {
@@ -87,7 +87,7 @@ const ribbonContent = (slotProps: { selectedControl: string }) =>
                   Button,
                   {
                       variant: "outline",
-                      class: "h-8 w-full rounded-full gap-2 instrument-serif text-base btn-interactive",
+                      class: "h-8 w-full rounded-full gap-2 text-body btn-interactive",
                       onClick: () => demo.reset(),
                   },
                   {

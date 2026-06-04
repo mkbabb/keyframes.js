@@ -44,8 +44,8 @@
                     />
                     <div
                         :class="
-                            `instrument-serif absolute left-0 top-0 flex h-full w-full items-center justify-center
-                            justify-items-center p-0 text-center text-3xl opacity-20 dark:opacity-75 ` +
+                            `text-heading absolute left-0 top-0 flex h-full w-full items-center justify-center
+                            justify-items-center p-0 text-center opacity-20 dark:opacity-75 ` +
                             [matrixCellMeta[i].axis.toLocaleLowerCase()]
                         "
                     >

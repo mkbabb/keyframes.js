@@ -33,7 +33,7 @@
             </Button>
             <Button
                 :class="[
-                    'h-8 w-full rounded-full gap-2 instrument-serif text-base btn-interactive',
+                    'h-8 w-full rounded-full gap-2 text-body btn-interactive',
                     'aria-pressed:bg-primary/10 aria-pressed:border-primary/40',
                 ]"
                 :aria-pressed="userReversed"

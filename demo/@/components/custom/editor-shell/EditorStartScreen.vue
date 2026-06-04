@@ -3,7 +3,7 @@
         class="absolute left-0 top-0 z-controls mt-28 grid h-0 w-screen items-center gap-0 px-6 lg:mt-24 pointer-events-none"
     >
         <h1
-            class="instrument-serif grid p-0 text-6xl lg:flex lg:text-8xl"
+            class="text-display-4 grid p-0 lg:flex"
         >
             <div>
                 <AnimatedText
@@ -19,13 +19,13 @@
                 ></AnimatedText>
             </div>
         </h1>
-        <h2 class="instrument-serif w-full text-5xl font-light italic">
+        <h2 class="text-title w-full italic">
             {{ subtitle }}
             <List class="inline"></List> {{ subtitleSuffix }}
         </h2>
         <h2
             v-if="hint"
-            class="instrument-serif w-full text-2xl font-light italic opacity-50"
+            class="text-subheading w-full italic text-muted-foreground"
         >
             {{ hint }}
         </h2>

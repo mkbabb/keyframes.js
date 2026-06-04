@@ -3,7 +3,7 @@
         ref="containerEl"
         :class="[
             'w-full rounded-lg overflow-hidden',
-            border ? 'border-2 border-gray-700 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.6)] dark:shadow-gray-700' : '',
+            border ? 'cartoon-surface' : '',
         ]"
         :style="{ height }"
     ></div>

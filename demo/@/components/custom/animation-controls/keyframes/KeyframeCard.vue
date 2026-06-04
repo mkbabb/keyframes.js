@@ -1,7 +1,7 @@
 <template>
     <div class="grid">
         <Input
-            class="sticky z-modal bg-transparent top-0 text-2xl w-16 text-ellipsis aspect-square font-semibold leading-none tracking-tight border-transparent p-0 m-0 shadow-none focus:border-transparent focus:shadow-none border-none"
+            class="sticky z-modal bg-transparent top-0 text-subheading w-16 text-ellipsis aspect-square font-semibold leading-none tracking-tight border-transparent p-0 m-0 shadow-none focus:border-transparent focus:shadow-none border-none"
             :model-value="frameStart"
             @update:model-value="(val) => emit('updateStart', String(val))"
         >

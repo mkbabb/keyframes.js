@@ -9,8 +9,8 @@
                 }
             "
         >
-            <DialogTitle class="instrument-serif text-lg font-medium">{{ title }}</DialogTitle>
-            <DialogDescription class="instrument-serif text-lg text-muted-foreground">{{ description }}</DialogDescription>
+            <DialogTitle class="text-subheading">{{ title }}</DialogTitle>
+            <DialogDescription class="text-body text-muted-foreground">{{ description }}</DialogDescription>
             <pre
                 ref="textEl"
                 @input="onInput"

@@ -30,7 +30,7 @@
             <template v-for="(group, gi) in EASING_GROUPS" :key="group.family">
                 <SelectSeparator v-if="gi > 0" />
                 <SelectGroup>
-                    <SelectLabel class="instrument-serif text-xs text-muted-foreground px-2 py-1">
+                    <SelectLabel class="text-admin-label text-muted-foreground px-2 py-1">
                         {{ group.family }}
                     </SelectLabel>
                     <SelectItem

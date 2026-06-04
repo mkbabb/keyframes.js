@@ -71,15 +71,19 @@ const CONTROL_STATES = RUN_OPEN ? ["closed", "open"] : ["closed"];
 // The C.W1 HARD gate (S2) surfaced ONE real occlusion: on mobile the small
 // 192×192 square subject parks at y≈539–731 on a 667px viewport — below centre,
 // behind the bottom dock (y 607–661) — because the square scene's work-area
-// (clamp(44rem,94dvh,64rem)=704px) overflows the mobile viewport. The FIX is
-// C.W2's mobile work-area / --dock-menubar-reserve / --work-area-vertical-bias
-// layout tokens (they park the subject in the optical centre, clear of the
-// dock). Until C.W2 lands, these tags are a NAMED allowance: the gate stays
-// HARD on every OTHER scene × viewport × axis + any NEW occlusion + the
-// KF_OCCLUSION_INJECT bite test. Removal trigger: C.W2 — delete the matching
-// entries; a stale entry that now PASSES is failed loudly so it cannot linger
-// and mask a future regression.
-const W2_PENDING_OCCLUSION = new Set([
+// (clamp(44rem,94dvh,64rem)=704px) OVERFLOWS the 667px mobile viewport. C.W2
+// defined the --dock-menubar-reserve / --work-area-vertical-bias tokens, but
+// the bias only distributes POSITIVE slack — on mobile the work-area exceeds
+// the viewport so slack is ZERO and the bias is inert. The FIX is therefore
+// mobile work-area SIZING (the work-area must fit viewport−dock-reserve so the
+// centred subject clears the dock), which lands in C.W3's demo-layout/scene
+// wave (with the cross-scene visual verification it needs to not clip the
+// taller easing/spring subjects). Until C.W3, these tags are a NAMED allowance:
+// the gate stays HARD on every OTHER scene × viewport × axis + any NEW occlusion
+// + the KF_OCCLUSION_INJECT bite test. Removal trigger: C.W3 — delete the
+// matching entries; a stale entry that now PASSES is failed loudly so it cannot
+// linger and mask a future regression.
+const PENDING_OCCLUSION = new Set([
     "square/mobile/closed",
     "square/mobile/open",
 ]);
@@ -303,13 +307,13 @@ async function main() {
                         console.log(
                             `  ✓ ${tag} subject ${subject.w}×${subject.h} in-bounds, no overflow, no content occlusion${floatNote}`,
                         );
-                        if (W2_PENDING_OCCLUSION.has(tag.trim())) {
+                        if (PENDING_OCCLUSION.has(tag.trim())) {
                             staleAllowances.push(tag.trim());
                         }
-                    } else if (W2_PENDING_OCCLUSION.has(tag.trim())) {
+                    } else if (PENDING_OCCLUSION.has(tag.trim())) {
                         for (const m of local) {
                             console.warn(
-                                `  ⊘ ${tag} ${m} [W2-PENDING ALLOWANCE — removed when C.W2 lands the mobile work-area/dock-reserve fix]`,
+                                `  ⊘ ${tag} ${m} [W2-PENDING ALLOWANCE — removed when C.W3 lands the mobile work-area sizing fix]`,
                             );
                             pending.push(`${tag.trim()}: ${m}`);
                         }
@@ -331,15 +335,15 @@ async function main() {
 
     if (pending.length > 0) {
         console.warn(
-            `\nocclusion-gate — ${pending.length} NAMED W2-PENDING allowance(s) (inv ε; removal trigger: C.W2 mobile work-area/dock-reserve fix):`,
+            `\nocclusion-gate — ${pending.length} NAMED W2-PENDING allowance(s) (inv ε; removal trigger: C.W3 mobile work-area sizing fix):`,
         );
         for (const p of pending) console.warn(`  ⊘ ${p}`);
     }
     if (staleAllowances.length > 0) {
         console.error(
-            `\nocclusion-gate — FAIL: ${staleAllowances.length} W2-pending allowance(s) now PASS — they are STALE and MUST be removed from W2_PENDING_OCCLUSION (inv ε: an allowance that no longer bites cannot linger and mask a future regression):`,
+            `\nocclusion-gate — FAIL: ${staleAllowances.length} W2-pending allowance(s) now PASS — they are STALE and MUST be removed from PENDING_OCCLUSION (inv ε: an allowance that no longer bites cannot linger and mask a future regression):`,
         );
-        for (const s of staleAllowances) console.error(`  ✗ STALE (remove from W2_PENDING_OCCLUSION): ${s}`);
+        for (const s of staleAllowances) console.error(`  ✗ STALE (remove from PENDING_OCCLUSION): ${s}`);
         process.exit(1);
     }
     if (failures.length > 0) {

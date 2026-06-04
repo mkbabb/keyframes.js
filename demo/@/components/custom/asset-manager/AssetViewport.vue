@@ -12,7 +12,7 @@
             <Card class="pointer-events-auto glass-card max-w-sm mx-6">
                 <CardContent class="flex flex-col items-center gap-3 px-8 py-7 text-center">
                     <Shapes class="size-8 text-muted-foreground" />
-                    <p class="instrument-serif text-lg text-foreground">
+                    <p class="text-heading text-foreground">
                         Compose a scene
                     </p>
                     <p class="font-mono text-xs text-muted-foreground">

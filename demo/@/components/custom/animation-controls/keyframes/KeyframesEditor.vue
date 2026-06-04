@@ -81,10 +81,10 @@
                                 "
                             >
                                 <DialogTitle>
-                                    <CardTitle class="text-3xl"
+                                    <CardTitle class="text-heading"
                                         >Add keyframes</CardTitle
                                     >
-                                    <DialogDescription class="instrument-serif">
+                                    <DialogDescription class="text-subheading text-muted-foreground">
                                         Add keyframes to the animation
                                     </DialogDescription>
                                 </DialogTitle>

@@ -53,7 +53,7 @@
             </button>
             <DrawerContent>
                 <DrawerHeader v-if="title">
-                    <DrawerTitle class="instrument-serif text-xl">{{ title }}</DrawerTitle>
+                    <DrawerTitle class="text-subheading">{{ title }}</DrawerTitle>
                 </DrawerHeader>
                 <div :class="['max-h-[60dvh] overflow-y-auto px-4 py-4', groupClass]">
                     <div

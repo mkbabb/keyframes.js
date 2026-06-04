@@ -12,7 +12,7 @@
         />
 
         <IconTooltip text="Stacking order in animation group">
-            <label class="instrument-serif text-base text-muted-foreground cursor-help">z-index</label>
+            <label class="text-body text-muted-foreground cursor-help">z-index</label>
         </IconTooltip>
         <Input
             type="number"

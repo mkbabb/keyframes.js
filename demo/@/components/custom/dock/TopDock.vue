@@ -143,12 +143,12 @@ const activeLayer = computed(() => {
                             @update:open="controlsSelectOpen = $event"
                             @update:model-value="(v) => emit('updateSelectedControl', String(v))"
                         >
-                            <DockSelectTrigger aria-label="Controls tab" class="instrument-serif text-lg [&>span]:line-clamp-none">
+                            <DockSelectTrigger aria-label="Controls tab" class="dock-label [&>span]:line-clamp-none">
                                 <component :is="TAB_ICONS[allControlTabs.find(t => t.value === selectedControl)?.icon ?? 'SlidersHorizontal']" class="icon-md text-muted-foreground" />
                                 <SelectValue />
                             </DockSelectTrigger>
                             <SelectContent class="min-w-[12rem]">
-                                <SelectGroup class="instrument-serif text-xl">
+                                <SelectGroup class="dock-label">
                                     <SelectItem v-for="tab in allControlTabs" :key="tab.value" :value="tab.value" class="py-2 px-3" hide-indicator>
                                         <span class="flex items-center gap-2">
                                             <component v-if="tab.icon && TAB_ICONS[tab.icon]" :is="TAB_ICONS[tab.icon]" class="icon-md text-muted-foreground" />
@@ -169,13 +169,13 @@ const activeLayer = computed(() => {
                             @update:open="sceneSelectOpen = $event"
                             @update:model-value="(id) => emit('switchScene', String(id))"
                         >
-                            <DockSelectTrigger aria-label="Scene" class="instrument-serif text-lg [&>span]:line-clamp-none">
+                            <DockSelectTrigger aria-label="Scene" class="dock-label [&>span]:line-clamp-none">
                                 <img v-if="sceneIcons[currentSceneId]" :src="sceneIcons[currentSceneId]" :alt="`${currentSceneId} scene`" class="w-5 h-5 shrink-0 object-contain" />
                                 <Home v-else class="icon-sm text-muted-foreground" />
                                 <SelectValue />
                             </DockSelectTrigger>
                             <SelectContent class="min-w-[12rem]">
-                                <SelectGroup class="instrument-serif text-xl">
+                                <SelectGroup class="dock-label">
                                     <SelectItem :value="homeSceneId" class="py-2 px-3" hide-indicator>
                                         <span class="flex items-center gap-2">
                                             <StatusDot :variant="currentSceneId === homeSceneId ? 'active' : 'idle'" />
@@ -211,7 +211,7 @@ const activeLayer = computed(() => {
                 <template #collapsed>
                     <img v-if="sceneIcons[currentSceneId]" :src="sceneIcons[currentSceneId]" :alt="`${currentSceneId} scene`" class="w-5 h-5 shrink-0 object-contain" />
                     <Home v-else class="icon-sm text-muted-foreground" />
-                    <span class="text-lg instrument-serif font-semibold text-foreground whitespace-nowrap">
+                    <span class="dock-label font-semibold text-foreground whitespace-nowrap">
                         {{ currentLabel }}
                     </span>
                     <ChevronDown class="icon-xs text-muted-foreground" />

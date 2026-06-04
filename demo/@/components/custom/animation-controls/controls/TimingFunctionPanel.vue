@@ -4,7 +4,7 @@
         >
             <Button
                 variant="ghost"
-                class="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors mb-2 instrument-serif justify-self-start px-0 h-auto"
+                class="flex items-center gap-1.5 text-small text-muted-foreground hover:text-foreground transition-colors mb-2 justify-self-start px-0 h-auto"
                 @click="emit('exitDetailPanel')"
             >
                 <ArrowLeft class="icon-sm" />
@@ -16,7 +16,7 @@
             >
                 <Card plain class="grid gap-0 w-full p-0">
                     <CardHeader class="grid gap-0 p-0 pb-1">
-                        <CardTitle class="instrument-serif">cubic-bézier</CardTitle>
+                        <CardTitle class="text-heading">cubic-bézier</CardTitle>
                         <p v-if="editingCurveName" class="font-mono text-xs text-muted-foreground ml-1 mb-0.5">editing: {{ editingCurveName }}</p>
                         <div
                             class="w-full whitespace-pre h-6 m-0 p-0 ml-1 text-xs flex items-center italic justify-items-center gap-2 font-mono"
@@ -73,7 +73,7 @@
             >
                 <Card plain>
                     <CardHeader class="p-0 pb-2">
-                        <CardTitle class="instrument-serif">steps</CardTitle>
+                        <CardTitle class="text-heading">steps</CardTitle>
                     </CardHeader>
                     <CardContent class="p-0 grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-2">
                         <label class="font-mono text-xs text-muted-foreground">count</label>

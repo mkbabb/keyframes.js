@@ -4,7 +4,7 @@
         <div class="glass-card w-full flex-1 min-h-0 flex flex-col overflow-hidden">
             <div class="flex items-center justify-between px-4 py-2.5 border-b border-border/40 shrink-0">
                 <div class="flex items-baseline gap-3 min-w-0">
-                    <span class="instrument-serif text-xl lg:text-2xl text-foreground truncate">
+                    <span class="text-heading text-foreground truncate">
                         SpringProgress
                     </span>
                     <span class="font-mono text-xs text-muted-foreground tabular-nums whitespace-nowrap">
@@ -43,7 +43,7 @@
                         :style="{ left: `calc(${demo.liveValue.value * 100}%)` }"
                     ></div>
                 </div>
-                <p class="instrument-serif text-sm text-muted-foreground text-center">
+                <p class="text-small text-muted-foreground text-center">
                     Tap or drag the rail &mdash; the ball springs to the new target. Adjust
                     <span class="font-mono text-xs">response</span> /
                     <span class="font-mono text-xs">dampingFraction</span> in the panel.
@@ -53,7 +53,7 @@
             <!-- springTimingFunction sweep -->
             <div class="px-4 py-3 border-t border-border/40 shrink-0">
                 <div class="flex items-center justify-between mb-2">
-                    <span class="instrument-serif text-sm text-foreground">springTimingFunction sweep</span>
+                    <span class="text-small text-foreground">springTimingFunction sweep</span>
                     <span class="font-mono text-xs text-muted-foreground tabular-nums">{{ demo.sampled.value.toFixed(3) }}</span>
                 </div>
                 <div class="sampler-track relative h-9">
