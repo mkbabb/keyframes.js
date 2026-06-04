@@ -1,0 +1,131 @@
+design findings by severity: {'blocker': 4, 'high': 14, 'medium': 15, 'low': 10} | total 43
+
+[blocker] (keyframes-demo) Hero headline overlay prints directly over the cube on home-mobile (text fully occludes the 3D target)
+    pages: home-mobile | home-mobile.png (375): 'Select an animation' + 'from the list ... above.' render
+    →B: Do not let the hero headline and the scene target occupy the same centered region. Either (a) constrain the start screen to the top band and push the cube below it on mob
+[blocker] (keyframes-demo) Cube clipped off the right viewport edge on cube laptop + desktop (and home laptop/desktop) — only ~half the cube is visible
+    pages: cube-laptop,cube-desktop,home-laptop,home-desktop | cube-laptop.png (1280) + cube-desktop.png (1440): cube hard-clipped at right edg
+    →B: Clamp/reset the cube's resting translate so the full cube always fits within the work-area bounds on mount, regardless of persisted transform. Consider not persisting (or
+[blocker] (keyframes-demo) Amiga, Square, Easing, Spring scenes render a completely empty viewport at BOTH mobile and desktop
+    pages: amiga,square,easing,spring | Screenshots amiga-mobile/amiga-desktop, square-mobile/square-desktop, easing-mob
+    →B: For each non-cube scene, ensure the target subject is visible and centered in the stage at idle (before play) at every viewport. Concretely: (a) seed SquareScene/SpringTa
+[blocker] (keyframes-demo) Production gh-pages build emits a blank app — only a 698-byte preload shim, no app entry, no CSS (Rolldown tree-shook the inline-module bootstrap)
+    pages: home,cube,amiga,square,easing,spring | dist/gh-pages/index.html (built) references only `<script type="module" crossori
+    →B: FIRST step of the loading-perf wave. Extract the inline `<script type="module">` (demo/app/index.html:38-46) into a real `demo/app/main.ts` and reference it via `<script 
+[high] (keyframes-demo) Headline overlaps the parked cube on home laptop + desktop
+    pages: home-laptop,home-desktop | home-laptop.png (1280) + home-desktop.png (1440): the giant 'Select an animation
+    →B: Once the cube is re-centered/clamped (previous finding), define an explicit two-zone home layout: headline column on the left, cube confined to the right within bounds, w
+[high] (either) Top dock rounded top edge is clipped by the viewport on mobile (flush at y=0)
+    pages: amiga-mobile,square-mobile,easing-mobile,spring-mobile,cube-mobile | amiga-mobile.png, square-mobile.png, easing-mobile.png, spring-mobile.png, cube-
+    →B: Give the top dock a guaranteed minimum top inset on mobile (e.g. max(env(safe-area-inset-top), 0.5rem) plus the dock margin) so the pill never touches the viewport top. V
+[high] (keyframes-demo) TopDock pill is clipped at the top viewport edge on mobile across all 6 pages (no safe-area-inset-top)
+    pages: home,cube,amiga,square,easing,spring | home-mobile.png / cube-mobile.png / amiga-mobile.png / square-mobile.png / easin
+    →B: Demo-owned. Change TopDock.vue:114 to `top: calc(max(var(--work-area-top-offset, 0px), env(safe-area-inset-top, 0px)) + var(--dock-margin) / 2)` (mirror the bottom dock's
+[high] (keyframes-demo) TopDock overlaps the hero headline and the cube on mobile (occlusion)
+    pages: home,cube | home-mobile.png — the 'Home ⌄ | @mbabb' pill sits directly over the top of the '
+    →B: Demo-owned. Reserve top clearance equal to the dock height + safe-area on mobile: add top padding/scroll-margin to the work area (or push the EditorShell content/headline
+[high] (keyframes-demo) Hero headline is off the φ-ladder — raw Tailwind text-6xl / lg:text-8xl instead of a canonical display rung
+    pages: home | demo/@/components/custom/editor-shell/EditorStartScreen.vue:6 (h1 class="instrum
+    →B: Replace the hero h1/h2 raw rungs with glass-ui semantic display/heading utilities: headline → .text-display-mega (or .text-display-hero if a bigger poster register is wan
+[high] (keyframes-demo) Entire demo bypasses the glass-ui φ type scale — every surface uses raw Tailwind rungs
+    pages: home,cube,amiga,square,easing,spring | Demo-wide grep of *.vue: text-sm×30, text-base×18, text-lg×10, text-xl×7, text-2
+    →B: Adopt a canonical rung mapping across the demo: body copy → .text-body/.text-prose; small/admin labels → .text-small/.text-caption/.text-admin-label (mono); tab + dock la
+[high] (keyframes-demo) Dual display-serif split (Instrument Serif vs Fraunces) is unintentional and incoherent — pick one display serif
+    pages: home,cube,amiga,square,easing,spring | demo/@/styles/style.css:7 (--font-serif: "Instrument Serif"); glass-ui dist reso
+    →B: Choose ONE display serif as the canonical display face and make it consistent. Recommended: keep Instrument Serif as the demo's identity face by overriding glass-ui's --f
+[high] (keyframes-demo) Desktop animation stage is off-center: cube parks/clips against the right edge on cube + home at 1440
+    pages: cube,home | cube-desktop.png and home-desktop.png: the cube is jammed against and clipped by
+    →B: When the controls pane is closed on desktop, the stage should occupy and center within the FULL viewport, not cols 2-4. Either collapse col-1 to 0 (grid-template-columns 
+[high] (keyframes-demo) Cube/sphere resting position is inconsistent across viewports — centered on mobile, clipped on desktop
+    pages: cube,home | cube-mobile.png (cube centered, fills ~70% width) vs cube-desktop.png (cube clip
+    →B: Define a single intended resting transform/position for the target that yields visible centering at 375, 1280 and 1440. After fixing the grid centering (#2), verify the c
+[high] (keyframes-demo) Home hero overlaps the cube and reflows to a cramped 3-line wrap on mobile
+    pages: home | home-mobile.png: 'Select an / an / animation' wraps across three lines at text-6
+    →B: On mobile, reposition the cube clear of the hero text band (e.g. park it below the headline or reduce its size on the home overlay) so the start-screen text never overlap
+[high] (keyframes-demo) Type system forks glass-ui wholesale: Instrument Serif override + .instrument-serif alias replaces the entire .text-display*/.text-heading utility family (dual-serif split)
+    pages: home,cube,amiga,square,easing,spring | demo/@/styles/style.css:7 (--font-serif: "Instrument Serif"); demo/@/components/
+    →B: Decide the brand intent explicitly. If Instrument Serif is the demo's deliberate brand face, formalize it in the token system: set --font-display: "Instrument Serif" (not
+[high] (keyframes-demo) Home hero is off the phi-ladder: raw Tailwind text-6xl/text-8xl instead of glass-ui's golden-ratio display utilities
+    pages: home | demo/@/components/custom/editor-shell/EditorStartScreen.vue:6 (text-6xl lg:text-
+    →B: Replace class="instrument-serif grid p-0 text-6xl lg:flex lg:text-8xl" on the h1 with the glass-ui .text-hero (or .text-display-hero) utility, and the h2 subtitle text-5x
+[high] (keyframes-demo) Loading splash shows centered bold 'keyframes.js' that does not match the real top-left 'Select an animation' home hero — a content-swap flash, not a smooth handoff
+    pages: home | demo/app/index.html:50-78 (`.loading-skeleton` grid place-items:center, `.loadin
+    →B: Remove the `.loading-skeleton`/`.loading-title` block and its inline `<style>` from demo/app/index.html entirely (after the build is repaired so the app actually paints).
+[high] (keyframes-demo) gh-pages prod build has no CI gate — the broken build can ship silently on a manual deploy
+    pages: home,cube,amiga,square,easing,spring | .github/workflows/ci.yml:43-44 (only `build (library) -> npm run build:lib`); do
+    →B: Add a demo-build smoke job (separate from the library gate, may use the `file:../glass-ui` sibling or a published version) that runs `npm run gh-pages` and asserts: entry
+[medium] (keyframes-demo) Both top dock and bottom playback menubar share z-dock=40, occluding any scene content that reaches the top/bottom ~64px bands
+    pages: home-mobile,cube-mobile,cube-laptop,cube-desktop | TopDock.vue:113 (z-dock) + AnimationMenuBar.vue:5-7 (fixed bottom z-dock) + glas
+    →B: Reserve dock exclusion zones: pad the scene/work-area by the dock heights (top and bottom) so scene content can never render into the dock bands. The --work-area-top-offs
+[medium] (keyframes-demo) index.html 'keyframes.js' loading splash is a full-screen overlay occluding first paint (user wants it removed)
+    pages: home-mobile,home-laptop,home-desktop | index.html:50-81 — .loading-skeleton { display:grid; height:100dvh; width:100dvw
+    →B: Remove the .loading-skeleton splash block (index.html:53-80), leaving an empty #app. If a placeholder is still desired, replace the centered 'keyframes.js' title with a n
+[medium] (keyframes-demo) Scene canvas blank on amiga/square/easing/spring across all viewports — scene effectively absent (potential clipping/load, not occlusion)
+    pages: amiga-mobile,amiga-laptop,amiga-desktop,square-mobile,square-laptop,square-desktop,easing-mobile,easing-laptop,easing-desktop,spring-mobile,spring-laptop,spring-desktop | amiga-mobile/laptop/desktop, square-*, easing-*, spring-* all show only the top 
+    →B: In tranche B, re-capture these pages after the scene's first frame is guaranteed painted (await scene-ready) to distinguish a screenshot-timing artifact from a real off-s
+[medium] (either) Bottom transport dock overlaps the cube's parked position and axis crosshair (home/cube desktop + mobile)
+    pages: home,cube | home-desktop.png / cube-desktop.png — the bottom dock (list ⌄ | reset | trash | 
+    →B: Mostly cube-scene owned (re-center/clamp the cube so it never parks off-screen or under the dock) — coordinate with the cube-clipping finding. Dock-side (demo-owned): ens
+[medium] (glass-ui) Known dock double-click bug is masked here by always-expanded mounts, but remains a glass-ui defect
+    pages: home,cube,amiga,square,easing,spring | TopDock.vue:117 `:always-expanded="isMobile"`; AnimationMenuBar.vue:17 `:always-
+    →B: glass-ui-owned: fix the touch-gate so a collapsed-dock control's FIRST tap both expands AND dispatches the intended action (or makes the collapsed pill a single full-pill
+[medium] (keyframes-demo) Bottom dock icon-only controls lack visible labels; legibility relies on hover tooltips that don't exist on touch
+    pages: home,cube,amiga,square,easing,spring | All bottom-dock screenshots — reset (RotateCcw), trash (Trash), and the rainbow 
+    →B: Demo-owned. Keep icon-only on desktop but (a) ensure the destructive trash action has a confirm step or distinct accent before clear-all-and-reload, and (b) on touch surf
+[medium] (keyframes-demo) Hero rendered in a zero-height (h-0) overlay grid — headline box is clipped and italic subtitle descenders are at risk
+    pages: home | demo/@/components/custom/editor-shell/EditorStartScreen.vue:3 (class="... grid h
+    →B: Give the hero a real line-box: drop `h-0`, set explicit `line-height` via the φ leading tokens (--type-leading-display for the headline, --type-leading-body for subtitle)
+[medium] (keyframes-demo) Decorative hint 'or drag M. cubert 🥯' relies on emoji + an inline <List> icon mid-sentence — fragile, off-scale, low-contrast
+    pages: home | demo/app/App.vue:79 + demo/app/scenes/CubeScene.vue:132 (hint: 'or drag M. cuber
+    →B: Decide the hint/subtitle decorative treatment deliberately: (a) align the inline List icon to the serif baseline with explicit size + vertical-align (or replace it with a
+[medium] (keyframes-demo) Easing and spring pages have no typographic hierarchy — blank canvas with only a dock label
+    pages: easing,spring | easing-mobile/laptop/desktop.png and spring-mobile/laptop/desktop.png are entire
+    →B: Confirm whether the empty easing/spring canvas is the intended idle state or a render gap (the visualization may simply not have painted in the screenshot). If intended-e
+[medium] (keyframes-demo) Desktop work-area max-width creates centered dead side-margins, reinforcing the off-center feel
+    pages: home,cube,amiga,square,easing,spring | demo/@/styles/style.css:20 '--work-area-max-width: clamp(72rem, 94vw, 120rem)' c
+    →B: After centering the stage (#2), confirm the work-area clamp still yields a visually centered subject; consider letting the stage center against the true viewport (not the
+[medium] (keyframes-demo) CSSCodeEditor hand-rolls a cartoon shadow with literal border-gray-700 + shadow-[4px_4px_0px_0px_rgba(0,0,0,0.6)] instead of the .cartoon-surface utility / --shadow-cartoon-md token
+    pages: cube,square,amiga | demo/@/components/custom/animation-controls/keyframes/CSSCodeEditor.vue:6; glass
+    →B: Replace the arbitrary classes with the .cartoon-surface utility (or box-shadow: var(--shadow-cartoon-md) + border-color: var(--glass-border-resting)), dropping the dark:s
+[medium] (keyframes-demo) index.html loading splash hardcodes off-token colors (#1a1a1a/#fff/#0a0a0a/#e5e5e5) and a literal Instrument Serif stack - and the user wants it removed
+    pages: home,cube,amiga,square,easing,spring | demo/app/index.html:53-80 (inline <style> skeleton, hardcoded hex + font-family:
+    →B: Remove the .loading-skeleton block from demo/app/index.html (the user's stated goal). If any pre-mount placeholder is retained, hardcode the resolved warm-cream token val
+[medium] (keyframes-demo) Easing page renders effectively empty on desktop - the EasingTarget glass-card is absent from the work area, leaving only the two docks over a bare grid
+    pages: easing | easing-desktop.png (only TopDock pill + bottom menubar visible, empty center); d
+    →B: Confirm the intended default state of the easing scene on direct nav/empty load and ensure the EasingTarget glass-card renders immediately (not gated behind opening the c
+[medium] (keyframes-demo) Per-scene Suspense fallback is an unstyled pulsing text string with no layout reservation — bare 'Loading scene…' centered in an empty viewport
+    pages: amiga,square,easing,spring,cube | App.vue:121-125 — `<template #fallback><div class="flex h-full w-full items-cent
+    →B: Replace the text fallback with a layout-stable skeleton: keep the editor shell chrome (header/dock) mounted and show a glass-ui-tokenized placeholder in the target region
+[medium] (keyframes-demo) Critical-CSS / instant-paint apparatus is well-designed but currently dead — both vite plugins no-op because the broken build emits no CSS
+    pages: home,cube,amiga,square,easing,spring | vite.config.ts:44-129 (criticalCSSPlugin: matches `index-*.css` in bundle, inlin
+    →B: After repairing the entry, verify the built index.html actually contains the `<style data-critical>` block AND a deferred `<link ... media="print" onload>` for `index-*.c
+[low] (keyframes-demo) Cube axis guide-lines (dashed green/red) bleed past all four viewport edges on cube + home
+    pages: cube-mobile,cube-laptop,cube-desktop,home-laptop,home-desktop | cube-laptop.png/cube-desktop.png/home-laptop.png/home-desktop.png: green dashed 
+    →B: Hide the axis guide-lines on the home/start screen, and/or fade them out near the viewport edges so they don't read as clipped strays crossing the headline. Keep them onl
+[low] (keyframes-demo) TopDock collapsed-pill chevron and the @mbabb divider read as low-contrast / decorative on mobile
+    pages: home,cube,amiga,square,easing,spring | home-mobile.png / cube-mobile.png — the 'Home ⌄' / 'Cube ⌄' chevron (TopDock.vue
+    →B: Demo-owned. Bump the scene chevron from icon-xs to icon-sm and raise its contrast (use text-muted-foreground at a stronger step) so the selector affordance is clear; give
+[low] (keyframes-demo) Bottom dock animation-name Select truncation/empty-state affordance is ambiguous
+    pages: home,cube,amiga,square,easing,spring | AnimationMenuBar.vue:31-67 — DockSelectTrigger shows a list-glyph + chevron when
+    →B: Demo-owned. Give the empty-state trigger a short placeholder ('Animation' / 'Select') instead of a bare glyph, and cap the trigger with a sensible max-width + ellipsis so
+[low] (keyframes-demo) Both docks float over an empty work area on amiga/square/easing/spring — vertical rhythm leaves the page feeling unanchored, not a dock defect per se
+    pages: amiga,square,easing,spring | amiga-desktop.png / square-desktop.png / easing-desktop.png / spring-desktop.png
+    →B: Demo-owned verification. After scene content is rendered for amiga/square/easing/spring, re-screenshot and confirm neither dock overlaps the scene target; reuse the cube 
+[low] (either) Three type families compete inside the dock — Instrument Serif label + Fira Code @mbabb badge + system emoji
+    pages: home,cube,amiga,square,easing,spring | demo/app/App.vue:19 (DockDropdownTrigger 'class="text-xs lg:text-sm font-mono">@
+    →B: Either commit to the mono handle as an intentional accent (size it via .text-mono-caption / --type-caption so it sits on a ladder rung and add deliberate tracking) or uni
+[low] (keyframes-demo) Loading splash 'keyframes.js' uses an off-ladder bespoke clamp and bold Instrument Serif — and the user wants it removed
+    pages: home,cube,amiga,square,easing,spring | demo/app/index.html:68-73 (.loading-title { font-size: clamp(2.5rem, 6vw, 5rem);
+    →B: Remove the loading-title splash entirely (per the stated user goal). If a minimal first-paint placeholder is still wanted, replace the bold bespoke-clamp 'keyframes.js' t
+[low] (either) Top dock scene-switcher sits at the extreme top edge — awkward one-handed reach on tall mobile devices
+    pages: home,cube,amiga,square,easing,spring | All *-mobile.png: the scene pill (Home/Cube/Amiga/...) is pinned to the very top
+    →B: Acceptable to keep top-docked nav, but consider surfacing scene-switching (or at least a back-to-home affordance) in the bottom thumb zone on mobile, or confirm via the d
+[low] (keyframes-demo) SquareScene uses a literal rgba(255,255,255,0.5) box-shadow halo instead of a --background/--surface-tint-* token
+    pages: square | demo/app/scenes/SquareScene.vue:52 (box-shadow: 0 0 0 0.5rem rgba(255, 255, 255,
+    →B: Replace the literal rgba(255,255,255,0.5) with color-mix(in srgb, var(--background) 50%, transparent) (matching utils.css .demo-box) or reuse the .demo-box class so dark 
+[low] (keyframes-demo) Positive baseline: glass surfaces, blur, shadow and motion are consumed idiomatically - no hand-rolled glassmorphism in demo source
+    pages: home,cube,easing | grep for backdrop-filter/blur( in demo source = 0 hits; glass class usage at Ani
+    →B: Scope tranche-B glass-idiom work to typography migration (Instrument Serif/Fraunces decision + phi-ladder utility adoption) and the four localized off-token sites; do not
+[low] (keyframes-demo) Google-Fonts Instrument Serif is render-deferred (media=print swap) but the home hero IS Instrument Serif — risk of FOIT/late swap on the primary headline
+    pages: home,cube,amiga,square,easing,spring | demo/app/index.html:16-25 (Instrument Serif via fonts.googleapis.com, media="pri
+    →B: Self-host Instrument Serif (woff2) alongside the glass-ui Fira Code subsystem and `<link rel="preload" as="font" crossorigin>` only the regular+italic weights actually us
