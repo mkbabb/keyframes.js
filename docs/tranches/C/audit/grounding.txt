@@ -28,5 +28,4 @@ Measured on master @ c66e6f3 (post-B), to corroborate the dual 6-agent audit.
   showcase AND the ≥2nd consumer several engine surfaces need (overfitting).
 
 ## a11y residual (cross-checks the a11y-responsive lens)
-- DockIconButton without title/aria-label: 11 (the lighthouse button-name fails).
-  Some are demo-owned, some glass-ui-owned (route outward, inv-16).
+- DockIconButton accessible names: the earlier `grep DockIconButton | grep -v title=` count of "11" was a GREP ARTIFACT (multi-line attributes / closing tags), CORRECTED by the cross-repo dock audit (audit/dock/divergence-map.md §6): all consumer DockIconButton sites ARE named. The real lighthouse `button-name` fails come from glass-ui's glass-wash select/switch buttons (glass-ui-owned), not DockIconButton. The residual is the UNENFORCED name contract → glass-ui dock-forward WAVE-5 (outward).

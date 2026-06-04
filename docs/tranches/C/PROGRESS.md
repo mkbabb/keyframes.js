@@ -38,8 +38,10 @@ the W1-W5 specs + the audit evidence + the checked-in capture harness).
   reduced-motion-honored-nowhere CRITICAL; the dead scene-swap CSS; the
   undefined `--dock-menubar-reserve`/`--spring-snappy` breaking animations.
 - **Lead grounding** (`audit/grounding.txt`) — the cross-check (0 src TODOs;
-  57 serif sites; dead CSS App.vue:407-421; 7 rAF vs 1 light-engine; 11
-  unnamed dock buttons).
+  57 serif sites; dead CSS App.vue:407-421; 7 rAF vs 1 light-engine). The "11 unnamed
+  dock buttons" figure was a grep artifact — STRUCK per the cross-repo dock
+  audit (all sites named); the residual is the unenforced glass-ui name
+  contract (dock-forward WAVE-5, outward).
 - **The capture harness** (`scripts/capture.mjs`) — CHECKED IN + re-runnable
   (18 screenshots, 0 console errors); closes the precept-adherence CRITICAL
   that B's harness lived in /tmp.
@@ -63,7 +65,18 @@ the W1-W5 specs + the audit evidence + the checked-in capture harness).
 1. **glass-ui asks** — ASK-1 (dock double-click), ASK-2 (VAL-9 token regen),
    **ASK-3 (LabeledField label-association)** — glass-ui-owned (inv-16),
    filed in `docs/tranches/B/asks/glass-ui-adoption-asks.md`.
-2. **The B 3.1.0 release + the C release** (W5 changeset → tag → publish) —
+2. **The glass-ui DOCK-FORWARD proposal** — a constellation-wide dock audit
+   (glass-ui source + the 3 consumers keyframes/value.js/fourier, 6 agents)
+   refines ASK-1 into **7 ranked dock-forward waves** for glass-ui
+   (`docs/tranches/B/asks/glass-ui-dock-forward.md`; evidence under
+   `audit/dock/{glass-ui,keyframes,value-js,fourier,divergence-map}.md`):
+   WAVE-1 `dock:touch-gate` (P0, the double-click fix + the missing touch
+   behavioural test) → mutex / placement / expand-events convergences →
+   a11y-contract → layer-transition de-fork → trigger/badge closers.
+   keyframes proposes; glass-ui owns + runs (inv-16). The cross-repo synthesis
+   STRUCK two stale figures (the "11 unnamed dock buttons" grep artifact + the
+   "40px touch target" — glass-ui ships a 44px coarse floor).
+3. **The B 3.1.0 release + the C release** (W5 changeset → tag → publish) —
    user-domain, as in A/B.
 
 ## Open deferrals
