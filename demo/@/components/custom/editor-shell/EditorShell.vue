@@ -31,9 +31,14 @@
             </div>
         </Transition>
 
-        <!-- The single <main> landmark (lighthouse landmark-one-main). `contents`
-             keeps it out of the grid's box model so the layout is unchanged. -->
-        <main class="contents" aria-label="Animation editor">
+        <!-- The single <main> landmark (lighthouse landmark-one-main). A REAL
+             layout box — not `display:contents`, which strips the box AND the
+             implicit `main` role from the a11y tree. `place-self-stretch` fills
+             the grid's single center cell (the full viewport the `contents`
+             wrapper transparently passed through); `grid place-items-center`
+             re-centers the AnimationControlsGroup work area exactly as the
+             shell root did before — byte-identical layout, real landmark box. -->
+        <main class="grid place-items-center place-self-stretch">
         <AnimationControlsGroup
             :key="superKey"
             :animation-group="animationGroup"

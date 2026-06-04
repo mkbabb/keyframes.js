@@ -28,14 +28,22 @@ the changeset owns release — they do not duplicate.
   source-greps for dormant static specifiers (import / export-from / bare
   side-effect). The A coverage hole (only `SpringProgress` proven) is
   closed; both negative-bite forms demonstrated red→revert.
-- **inv β — the library build is glass-ui-free, RECONCILED.** The committed
-  lockfile records `@mkbabb/glass-ui` as an optional `file:../glass-ui` dep
-  with `optional: true`; a clean runner cleanly SKIPS it (NOT a dangling
-  symlink — the W0 finding, resolved by W1's regen). Verified by a /tmp
-  clean-runner archive run (`../glass-ui` ABSENT): `npm ci` + check:lib +
-  build:lib + test 309/309 + proof:boundary all green. inv β holds on the
-  optional-skip. **This supersedes A's "regenerated glass-ui-absent" prose**
-  — see § A-record reconciliation.
+- **inv β — the library build is glass-ui-free, RECONCILED (disposition b,
+  honestly stated; C.W1 S5).** The committed lockfile records
+  `@mkbabb/glass-ui` as an optional `file:../glass-ui` dep with `optional:
+  true` (the `../glass-ui` node + 5 references). On a sibling-absent clean
+  runner `npm ci` LINKS a dangling `node_modules/@mkbabb/glass-ui ->
+  ../../../glass-ui` whose target is MISSING — npm TOLERATES the dangling
+  optional link non-fatally; it does NOT "cleanly skip" it. inv β survives
+  because the library graph never dereferences the link: verified by a /tmp
+  clean-runner archive run (`../glass-ui` ABSENT) — `npm ci` + check:lib +
+  build:lib + test 309/309 + proof:boundary all green with the link dangling.
+  Disposition (a) — a genuinely glass-ui-absent lockfile — is unreachable
+  without deleting the `optionalDependencies` declaration, which breaks the
+  `file:../glass-ui` demo dev install (verified C.W1 S5: removing the
+  declaration leaves glass-ui unlinked even with the sibling present); (b) is
+  the spec's reserved contingency, shipped. **This supersedes A's "regenerated
+  glass-ui-absent" prose** — see § A-record reconciliation.
 - **inv γ — the demo cannot ship blank (NEW).** `scripts/demo-smoke.mjs`
   asserts the BUILT `dist/gh-pages/` carries a substantial app entry that
   mounts + paints, CSS emits, no splash, heavy chunks off the critical
@@ -63,11 +71,16 @@ the W0 plan-audit catalogued — a known-wrong figure must not propagate to C:
    paint-then-settle `reset()`.
 2. **The glass-ui-present-vs-"absent" lockfile claim.** A's FINAL/W1 assert
    the lockfile was "regenerated glass-ui-absent"; it was glass-ui-PRESENT
-   (optional). B.W6 RESOLVES this honestly: the lockfile records glass-ui
-   optional with `optional: true`, a clean runner SKIPS it, and the /tmp
-   clean-runner archive run proves inv β holds on the skip (not on absence).
-   The true inv β artefact is the optional-skip, verified — recorded here
-   as the correction.
+   (optional). B.W6 + C.W1 S5 RESOLVE this honestly: the lockfile records
+   glass-ui optional with `optional: true` (disposition b), a clean runner
+   LINKS a dangling `node_modules/@mkbabb/glass-ui` (target missing) which npm
+   TOLERATES non-fatally — NOT a "clean skip." inv β holds because the library
+   graph never dereferences the link, proven by the /tmp clean-runner archive
+   run. Disposition (a) (genuinely glass-ui-absent) is unreachable without
+   deleting the `optionalDependencies` declaration the demo dev install needs
+   (verified C.W1 S5). The true inv β artefact is the tolerated-dangling-link
+   under (b), stated exactly here and in W6.md / ci.yml — no "cleanly skips"
+   claim survives.
 3. **The `261→286` off-by-one.** A.md's title claimed `261→286` tests; the
    real A base was 260 (A's FINAL/PROGRESS were correct, the title was
    not). B treats A's FINAL as authority and records B's totals against the

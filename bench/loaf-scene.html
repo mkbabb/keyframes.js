@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>keyframes.js — LoAF bench scene</title>
+        <style>
+            html,
+            body {
+                margin: 0;
+                padding: 0;
+                background: #0b0b0f;
+                overflow: hidden;
+            }
+            #stage {
+                position: relative;
+                width: 100vw;
+                height: 100vh;
+            }
+            .cell {
+                position: absolute;
+                width: 18px;
+                height: 18px;
+                border-radius: 4px;
+                background: hsl(210 90% 60%);
+                will-change: transform, opacity, background-color;
+                contain: layout paint;
+            }
+        </style>
+
+        <!--
+            The bench page resolves the library's externalised peers the same
+            way a registry consumer would: a bare specifier per peer. The gate
+            (`playwright.bench.ts`) rewrites these placeholder URLs to the
+            HTTP roots it serves the three dist trees from, so the page loads
+            the BUILT `dist/keyframes.js` engine, not a re-bundle.
+        -->
+        <script type="importmap">
+            {
+                "imports": {
+                    "@mkbabb/keyframes.js": "/kf/keyframes.js",
+                    "@mkbabb/value.js": "/value/value.js",
+                    "@mkbabb/parse-that": "/parse-that/parse.js",
+                    "@kf/loaf-observer": "/observer/loaf-observer.js"
+                }
+            }
+        </script>
+    </head>
+    <body>
+        <div id="stage"></div>
+
+        <script type="module">
+            // The observer is mounted EXPLICITLY here — this page is the bench
+            // surface, and it does NOT inherit the prod app's
+            // `import.meta.env.DEV`-guarded mount (`demo/app/main.ts`), so the
+            // production demo build stays observer-free while the bench drives
+            // the real observer source (`demo/app/loaf-observer.ts`, transpiled
+            // and served by the gate). `KF_LOAF_NO_OBSERVER=1` makes the gate
+            // serve a no-op observer module so the bite-test can prove the gate
+            // reddens when nothing populates `window.__kfLoaf`.
+            import { observeLongAnimationFrames } from "@kf/loaf-observer";
+            import { loadAnimationEngine } from "@mkbabb/keyframes.js";
+
+            // The gate always passes `count` (its COMPOSITE_COUNT, default
+            // 200); the fallback only applies when the page is opened manually.
+            const params = new URLSearchParams(location.search);
+            const COUNT = Number(params.get("count") ?? 200);
+            const INJECT_BLOCK = params.get("block") === "1";
+
+            // The contract the gate reads: `window.__kfLoaf` (50ms threshold).
+            observeLongAnimationFrames(50);
+
+            const stage = document.getElementById("stage");
+
+            async function main() {
+                const { CSSKeyframesAnimation, AnimationGroup } =
+                    await loadAnimationEngine();
+
+                const w = window.innerWidth;
+                const h = window.innerHeight;
+                const cols = Math.ceil(Math.sqrt(COUNT));
+
+                // The large composite: COUNT staggered keyframe animations over
+                // COUNT DOM cells, blended into ONE AnimationGroup. This is the
+                // "bench scene" — a per-frame composite large enough that a
+                // naive (un-yielded) tick would break the 50ms long-animation
+                // -frame budget; the engine's `scheduler.yield()` batching
+                // (AnimationGroup.YIELD_BATCH) is what keeps each frame short.
+                const inputs = [];
+                for (let i = 0; i < COUNT; i++) {
+                    const el = document.createElement("div");
+                    el.className = "cell";
+                    const col = i % cols;
+                    const row = Math.floor(i / cols);
+                    el.style.left = `${(col / cols) * w}px`;
+                    el.style.top = `${(row / cols) * h}px`;
+                    stage.appendChild(el);
+
+                    const dx = ((i * 37) % w) - w / 2;
+                    const dy = ((i * 53) % h) - h / 2;
+                    const hue = (i * 7) % 360;
+                    const anim = new CSSKeyframesAnimation({
+                        duration: 1200,
+                        iterationCount: 1,
+                    }).fromString(`
+                        0% {
+                            transform: translate(0px, 0px) scale(1) rotate(0deg);
+                            opacity: 1;
+                            background-color: hsl(210 90% 60%);
+                        }
+                        50% {
+                            transform: translate(${dx}px, ${dy}px) scale(1.6) rotate(180deg);
+                            opacity: 0.55;
+                            background-color: hsl(${hue} 90% 60%);
+                        }
+                        100% {
+                            transform: translate(0px, 0px) scale(1) rotate(360deg);
+                            opacity: 1;
+                            background-color: hsl(210 90% 60%);
+                        }
+                    `);
+                    anim.name = `cell-${i}`;
+                    anim.targets = [el];
+                    anim.started = true;
+                    inputs.push(anim);
+                }
+
+                const group = new AnimationGroup(...inputs);
+
+                // Optional synthetic block — the bite-test injects a >50ms
+                // main-thread task INSIDE the group's per-frame draw so the
+                // observer records a long-animation-frame and the gate reddens.
+                if (INJECT_BLOCK) {
+                    const origTick = group.tick.bind(group);
+                    let blocked = false;
+                    group.tick = async (t) => {
+                        if (!blocked) {
+                            blocked = true;
+                            const end = performance.now() + 120;
+                            // Busy-wait: synchronous main-thread block.
+                            while (performance.now() < end) {
+                                Math.sqrt(Math.random());
+                            }
+                        }
+                        return origTick(t);
+                    };
+                }
+
+                // Settle: let the browser paint the constructed scene + flush
+                // any LoAF entries the ONE-TIME setup produced (building 600
+                // DOM nodes + parsing 600 keyframe animations is page
+                // construction, not the animation loop). Then RESET the ring so
+                // the gate measures only the AnimationGroup DRAW LOOP — the
+                // surface `scheduler.yield()` batching exists to keep short.
+                await new Promise((r) =>
+                    requestAnimationFrame(() => requestAnimationFrame(r)),
+                );
+                // Truncate IN PLACE — the observer holds a closure reference to
+                // this array (`records = window.__kfLoaf ??= []`); reassigning
+                // would orphan its writes.
+                if (Array.isArray(window.__kfLoaf)) window.__kfLoaf.length = 0;
+
+                await group.play();
+
+                // Give the LoAF observer's queued entries one more frame to
+                // flush before the gate samples `window.__kfLoaf`.
+                await new Promise((r) =>
+                    requestAnimationFrame(() => requestAnimationFrame(r)),
+                );
+
+                window.__kfBenchDone = true;
+            }
+
+            main().catch((err) => {
+                window.__kfBenchError = String(err && err.stack ? err.stack : err);
+                window.__kfBenchDone = true;
+            });
+        </script>
+    </body>
+</html>

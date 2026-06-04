@@ -3,18 +3,33 @@
  * occlusion-gate — the scripted Playwright occlusion gate (B inv δ: no page
  * occludes on any viewport).
  *
- * For every page × {375, 1280, 1440} it asserts, against the BUILT
- * `dist/gh-pages/` (the artefact a deploy publishes):
+ * For every page × {375, 1280, 1440} × {controls: closed, open} it asserts,
+ * against the BUILT `dist/gh-pages/` (the artefact a deploy publishes):
  *   1. NO horizontal viewport overflow (`document.scrollWidth <= innerWidth`);
  *   2. every scene's SUBJECT renders, with a non-zero rect inside the
  *      viewport bounds — so "occlusion-free because the page is BLANK" (the
  *      W0 false-green for amiga/square/easing/spring) cannot pass; and
- *   3. NO dock overlaps the subject (the top dock / bottom transport over
- *      the scene target).
+ *   3. NO dock overlaps the subject's CONTENT RECT — a HARD failing assertion
+ *      (C.W1 S2). The B-shipped gate computed this overlap but downgraded it
+ *      to a console note; C promotes it to `failures` so a dock covering a
+ *      non-`dockFloatAllowed` scene's content turns the gate RED. The genuine
+ *      tension (a full-bleed canvas legitimately permits an edge-floating
+ *      dock) is resolved by the per-scene `dockFloatAllowed` manifest flag
+ *      (amiga = true; cube/home/square/easing/spring = false), NOT a blanket
+ *      exemption.
  *
- * The per-scene SUBJECT MANIFEST is the discriminator the W0 overflow-only
- * report lacked — it is shared with the π gate (the subject the occlusion
- * gate fits in-bounds is the subject the π gate paints).
+ * The CONTROLS-OPEN axis (C.W1 S2): docks genuinely occlude only in the
+ * editing state. The gate runs BOTH `controls: closed` and `controls: open`;
+ * the open pass drives each scene into its editing state via
+ * `openControlsPanel` (shared driver) before probing. The open pass is gated
+ * behind the W0 `KF_CAPTURE_OPEN_PANEL` convention — set `KF_CAPTURE_OPEN_PANEL=1`
+ * to run it (CI sets it so inv δ is proven in the state it was authored to
+ * protect).
+ *
+ * The per-scene SUBJECT MANIFEST + the open-panel driver live in
+ * `scripts/lib/demo-driver.mjs`, single-sourced with the π capture harness
+ * (the subject the occlusion gate fits in-bounds is the subject the π gate
+ * paints).
  *
  * EXCLUSIONS (recorded so a future reader does not read them as a missed
  * regression): the cube's `div.axis-line.{x,y,z}` are decorative 3D guide
@@ -22,84 +37,57 @@
  * scene's `overflow` and excluded from the subject/overflow checks; only the
  * named scene subjects are gated.
  *
- * Serves `dist/gh-pages/` itself; resolves playwright from KF_PLAYWRIGHT_DIR
- * (CI installs it) or the repo. Exit 1 on any occlusion finding.
+ * Resolves playwright from KF_PLAYWRIGHT_DIR (CI installs it) or the repo.
+ * Exit 1 on any occlusion finding.
  */
 import fs from "node:fs";
-import http from "node:http";
 import path from "node:path";
-import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import {
+    SCENES,
+    resolveChromium,
+    serveDist,
+    openControlsPanel,
+} from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
 
-// The per-scene subject manifest: each scene's subject must render in-bounds
-// at idle. A scene whose subject is absent FAILS inv δ (blank ≠ occlusion-free).
-const SCENES = [
-    { id: "home", route: "", subject: ".graph, .cube, h1" },
-    { id: "cube", route: "cube", subject: ".graph, .cube" },
-    { id: "amiga", route: "amiga", subject: "canvas" },
-    { id: "square", route: "square", subject: ".square-box" },
-    {
-        id: "easing",
-        route: "easing",
-        subject: "[class*=glass-card], [class*=Target], [class*=rail]",
-    },
-    {
-        id: "spring",
-        route: "spring",
-        subject: "[class*=glass-card], [class*=Target], [class*=rail]",
-    },
-];
 const VIEWPORTS = [
     { name: "mobile", width: 375, height: 667 },
     { name: "laptop", width: 1280, height: 800 },
     { name: "desktop", width: 1440, height: 900 },
 ];
 
-function resolveChromium() {
-    const root = process.env.KF_PLAYWRIGHT_DIR ?? REPO;
-    const requireFrom = createRequire(path.join(root, "package.json"));
-    for (const pkg of ["playwright-core", "@playwright/test", "playwright"]) {
-        try {
-            return requireFrom(pkg).chromium;
-        } catch {
-            /* try next */
-        }
-    }
-    return null;
-}
+// The controls axis. The open pass is gated behind KF_CAPTURE_OPEN_PANEL (the
+// W0 convention) — the editing state is where docks genuinely occlude, so inv δ
+// must be proven there, but the drive is heavier (a per-scene store-seed +
+// reload), so it is opt-in locally and CI sets the env.
+const RUN_OPEN = !!process.env.KF_CAPTURE_OPEN_PANEL;
+const CONTROL_STATES = RUN_OPEN ? ["closed", "open"] : ["closed"];
 
-const MIME = {
-    ".html": "text/html",
-    ".js": "text/javascript",
-    ".css": "text/css",
-    ".json": "application/json",
-    ".png": "image/png",
-    ".ttf": "font/ttf",
-    ".svg": "image/svg+xml",
-    ".woff2": "font/woff2",
-};
+// NAMED W2-pending occlusion allowances (inv ε — a named allowance with a
+// removal trigger, NOT a silent exemption, NOT the B-shipped blanket advisory).
+// The C.W1 HARD gate (S2) surfaced ONE real occlusion: on mobile the small
+// 192×192 square subject parks at y≈539–731 on a 667px viewport — below centre,
+// behind the bottom dock (y 607–661) — because the square scene's work-area
+// (clamp(44rem,94dvh,64rem)=704px) overflows the mobile viewport. The FIX is
+// C.W2's mobile work-area / --dock-menubar-reserve / --work-area-vertical-bias
+// layout tokens (they park the subject in the optical centre, clear of the
+// dock). Until C.W2 lands, these tags are a NAMED allowance: the gate stays
+// HARD on every OTHER scene × viewport × axis + any NEW occlusion + the
+// KF_OCCLUSION_INJECT bite test. Removal trigger: C.W2 — delete the matching
+// entries; a stale entry that now PASSES is failed loudly so it cannot linger
+// and mask a future regression.
+const W2_PENDING_OCCLUSION = new Set([
+    "square/mobile/closed",
+    "square/mobile/open",
+]);
 
-function serve() {
-    const server = http.createServer((req, res) => {
-        const u = decodeURIComponent(new URL(req.url, "http://x").pathname);
-        let p = path.join(DIST, u === "/" ? "index.html" : u);
-        if (!p.startsWith(DIST) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) {
-            p = path.join(DIST, "index.html");
-        }
-        res.writeHead(200, {
-            "content-type": MIME[path.extname(p)] ?? "application/octet-stream",
-        });
-        fs.createReadStream(p).pipe(res);
-    });
-    return server;
-}
-
-// The in-page probe. Returns horizontal overflow, the subject rect, and any
-// dock↔subject overlap.
-const PROBE = (subjectSel) => {
+// In-page probe: horizontal overflow, the subject rect, and the dock bands.
+// The dock↔subject overlap is computed in Node (so the gate can apply the
+// per-scene `dockFloatAllowed` + content-rect logic uniformly).
+const PROBE = () => {
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const overflowX = document.documentElement.scrollWidth - vw;
@@ -112,15 +100,48 @@ const PROBE = (subjectSel) => {
         return r.width > 8 && r.height > 8;
     };
 
-    // The subject: the largest matching, visible, in-viewport element.
-    let subject = null;
-    for (const el of document.querySelectorAll(subjectSel)) {
+    // Dock bands — the rects the overlap test runs against. Target the actual
+    // VISIBLE dock chrome (`.glass-dock` is `fit-content` — a centered pill),
+    // NOT the `fixed left-0 right-0` positioning wrapper (whose bounding box
+    // spans the full viewport even though only the centered pill paints). Using
+    // the wrapper's full-width box would over-fire on every tall card that
+    // reaches the bottom edge; the pill is what actually occludes.
+    const docks = [
+        ...document.querySelectorAll(".glass-dock, [class*=menubar], [class*=top-dock]"),
+    ]
+        .filter(visible)
+        .map((el) => {
+            const r = el.getBoundingClientRect();
+            return {
+                left: Math.round(r.left),
+                top: Math.round(r.top),
+                right: Math.round(r.right),
+                bottom: Math.round(r.bottom),
+            };
+        });
+
+    return { vw, vh, overflowX, docks };
+};
+
+// Largest visible, in-viewport subject rect (mirrors the shared subjectRect,
+// inlined here so a single page.evaluate returns subject + docks together).
+const SUBJECT_PROBE = (sel) => {
+    const vh = window.innerHeight;
+    const visible = (el) => {
+        const cs = getComputedStyle(el);
+        if (cs.visibility === "hidden" || cs.display === "none" || +cs.opacity === 0)
+            return false;
+        const r = el.getBoundingClientRect();
+        return r.width > 8 && r.height > 8;
+    };
+    let best = null;
+    for (const el of document.querySelectorAll(sel)) {
         if (!visible(el)) continue;
         const r = el.getBoundingClientRect();
-        if (r.bottom < 0 || r.top > vh) continue; // fully off-screen vertically
+        if (r.bottom < 0 || r.top > vh) continue;
         const area = r.width * r.height;
-        if (!subject || area > subject.area) {
-            subject = {
+        if (!best || area > best.area) {
+            best = {
                 area,
                 rect: {
                     x: Math.round(r.x),
@@ -133,36 +154,43 @@ const PROBE = (subjectSel) => {
             };
         }
     }
-
-    // Dock bands.
-    const docks = [...document.querySelectorAll("[class*=dock], [class*=menubar]")]
-        .filter(visible)
-        .map((el) => el.getBoundingClientRect());
-
-    // A dock OCCLUDES the subject when it covers the subject's FOCAL CENTER
-    // (cx, cy) — the point the user looks at. This distinguishes "a dock
-    // floats over the edge of a full-bleed canvas/card" (the demo's intended
-    // design — every scene has floating docks) from "a dock covers the cube /
-    // the hero target" (the real occlusion the audit flagged).
-    let dockOverlapsSubject = false;
-    if (subject) {
-        const s = subject.rect;
-        const cx = s.x + s.w / 2;
-        const cy = s.y + s.h / 2;
-        for (const d of docks) {
-            if (cx >= d.left && cx <= d.right && cy >= d.top && cy <= d.bottom)
-                dockOverlapsSubject = true;
-        }
-    }
-
-    return {
-        vw,
-        vh,
-        overflowX,
-        subject: subject ? subject.rect : null,
-        dockOverlapsSubject,
-    };
+    return best ? best.rect : null;
 };
+
+// Does ANY dock COVER the subject's content rect? The audit named the real
+// class as "covers the subject's content rect, not just its center point"
+// (plan-fidelity 2) — so this graduates the B-shipped focal-CENTER-only test
+// to a content-RECT measure: a dock occludes when it covers the subject's
+// focal center OR covers ≥ COVERAGE_THRESHOLD of the subject's area. A dock
+// pill that merely GRAZES the bottom edge of a tall card (the intended
+// floating layout) covers neither the center nor a meaningful fraction, so it
+// does not fire; a dock sitting over the cube/hero target does. `inject` is a
+// test-only synthetic dock rect for the bite test.
+const COVERAGE_THRESHOLD = 0.35;
+function dockOverlapsContentRect(subjectRect, docks, inject = null) {
+    if (!subjectRect) return false;
+    const s = subjectRect;
+    const sLeft = s.x;
+    const sTop = s.y;
+    const sRight = s.right;
+    const sBottom = s.bottom;
+    const cx = s.x + s.w / 2;
+    const cy = s.y + s.h / 2;
+    const subjectArea = Math.max(1, s.w * s.h);
+    const all = inject ? [...docks, inject] : docks;
+    for (const d of all) {
+        const ix = Math.max(0, Math.min(sRight, d.right) - Math.max(sLeft, d.left));
+        const iy = Math.max(0, Math.min(sBottom, d.bottom) - Math.max(sTop, d.top));
+        if (ix <= 1 || iy <= 1) continue; // no real overlap on this dock
+        // Covers the focal center the user looks at?
+        const coversCenter =
+            cx >= d.left && cx <= d.right && cy >= d.top && cy <= d.bottom;
+        // Or covers a meaningful fraction of the content rect?
+        const coverageFraction = (ix * iy) / subjectArea;
+        if (coversCenter || coverageFraction >= COVERAGE_THRESHOLD) return true;
+    }
+    return false;
+}
 
 async function main() {
     const chromium = resolveChromium();
@@ -181,82 +209,148 @@ async function main() {
         process.exit(2);
     }
 
-    const server = serve();
-    await new Promise((r) => server.listen(0, r));
-    const port = server.address().port;
+    // A synthetic dock-over-subject rect can be injected for the bite test
+    // (KF_OCCLUSION_INJECT=<sceneKey> reddens that scene in the open state).
+    const injectScene = process.env.KF_OCCLUSION_INJECT ?? null;
+
+    const { url, close } = await serveDist(DIST);
     const browser = await chromium.launch();
 
     const failures = [];
-    console.log("occlusion-gate — inv δ (no page occludes on any viewport)");
+    const pending = [];
+    const staleAllowances = [];
+    console.log(
+        `occlusion-gate — inv δ (no page occludes on any viewport)` +
+            ` [controls: ${CONTROL_STATES.join(", ")}]`,
+    );
+    if (!RUN_OPEN) {
+        console.log(
+            "  ○ controls-open axis skipped — set KF_CAPTURE_OPEN_PANEL=1 to run it" +
+                " (CI sets it; the open state is where docks genuinely occlude).",
+        );
+    }
 
     for (const scene of SCENES) {
         for (const vp of VIEWPORTS) {
-            const page = await browser.newPage({
-                viewport: { width: vp.width, height: vp.height },
-            });
-            try {
-                await page.goto(`http://127.0.0.1:${port}/#/${scene.route}`, {
-                    waitUntil: "load",
+            for (const controls of CONTROL_STATES) {
+                const page = await browser.newPage({
+                    viewport: { width: vp.width, height: vp.height },
                 });
-                await page.waitForTimeout(2500);
-                const r = await page.evaluate(PROBE, scene.subject);
-                const tag = `${scene.id}/${vp.name}`.padEnd(16);
+                try {
+                    await page.goto(`${url}/#/${scene.route}`, { waitUntil: "load" });
+                    await page.waitForTimeout(2500);
 
-                // HARD assertions — the unambiguous, demonstrable occlusion
-                // classes the audit flagged: a page that overflows the
-                // viewport (the cube clipping the right edge) or a scene that
-                // renders no subject (the four blank scenes). Re-introducing
-                // either turns this red.
-                const local = [];
-                if (r.overflowX > 1)
-                    local.push(`horizontal overflow +${r.overflowX}px`);
-                if (!r.subject)
-                    local.push(`subject ABSENT (blank ≠ occlusion-free)`);
-                else {
-                    if (r.subject.right > r.vw + 1 || r.subject.x < -1)
-                        local.push(
-                            `subject clips the viewport (x ${r.subject.x}..${r.subject.right} vs 0..${r.vw})`,
-                        );
-                    // The subject must be roughly CENTERED — its center x within
-                    // the central 70% of the viewport. This is what bites on the
-                    // cube clip: a 3D subject's layout box can be tiny (the cube's
-                    // collapsed 30px graph box reads "in bounds" even jammed off
-                    // the right edge), but its CENTER betrays the jam (cx ≈ 97%
-                    // of vw when clipped vs 50% when centered).
-                    const cx = r.subject.x + r.subject.w / 2;
-                    if (cx < 0.15 * r.vw || cx > 0.85 * r.vw)
-                        local.push(
-                            `subject is jammed against an edge (center x ${Math.round(cx)} = ${Math.round((100 * cx) / r.vw)}% of vw, want 15–85%)`,
-                        );
-                }
-
-                if (local.length === 0) {
-                    const note = r.dockOverlapsSubject
-                        ? " (note: a dock floats over the subject's center — expected for a full-bleed scene or the controls-open mobile state)"
-                        : "";
-                    console.log(
-                        `  ✓ ${tag} subject ${r.subject.w}×${r.subject.h} in-bounds, no overflow${note}`,
-                    );
-                } else {
-                    for (const m of local) {
-                        console.error(`  ✗ ${tag} ${m}`);
-                        failures.push(`${tag.trim()}: ${m}`);
+                    if (controls === "open") {
+                        // Drive into the editing state — the one state where a
+                        // dock can cover the subject's content (C.W1 S2).
+                        await openControlsPanel(page);
                     }
+
+                    const env = await page.evaluate(PROBE);
+                    const subject = await page.evaluate(SUBJECT_PROBE, scene.subjectSelector);
+                    const tag = `${scene.key}/${vp.name}/${controls}`.padEnd(24);
+
+                    const local = [];
+                    if (env.overflowX > 1)
+                        local.push(`horizontal overflow +${env.overflowX}px`);
+                    if (!subject)
+                        local.push(`subject ABSENT (blank ≠ occlusion-free)`);
+                    else {
+                        if (subject.right > env.vw + 1 || subject.x < -1)
+                            local.push(
+                                `subject clips the viewport (x ${subject.x}..${subject.right} vs 0..${env.vw})`,
+                            );
+                        // The subject must be roughly CENTERED — its center x
+                        // within the central 70% of the viewport. This is what
+                        // bites on the cube clip: a 3D subject's layout box can
+                        // be tiny but its CENTER betrays the jam.
+                        const cx = subject.x + subject.w / 2;
+                        if (cx < 0.15 * env.vw || cx > 0.85 * env.vw)
+                            local.push(
+                                `subject is jammed against an edge (center x ${Math.round(cx)} = ${Math.round((100 * cx) / env.vw)}% of vw, want 15–85%)`,
+                            );
+
+                        // HARD dock-over-content assertion (C.W1 S2). A dock
+                        // covering a non-`dockFloatAllowed` scene's content rect
+                        // is the real occlusion the audit named — promote it
+                        // from the B-shipped advisory note to a `failures` push.
+                        // A test-only synthetic dock (KF_OCCLUSION_INJECT) is
+                        // added for the open-state bite test.
+                        const inject =
+                            controls === "open" && injectScene === scene.key
+                                ? {
+                                      left: subject.x - 4,
+                                      top: subject.y - 4,
+                                      right: subject.right + 4,
+                                      bottom: subject.bottom + 4,
+                                  }
+                                : null;
+                        const covered = dockOverlapsContentRect(subject, env.docks, inject);
+                        if (covered && !scene.dockFloatAllowed) {
+                            local.push(
+                                `dock covers the subject's CONTENT RECT (real occlusion; scene is not dockFloatAllowed)`,
+                            );
+                        }
+                    }
+
+                    if (local.length === 0) {
+                        const floatNote =
+                            subject &&
+                            scene.dockFloatAllowed &&
+                            dockOverlapsContentRect(subject, env.docks)
+                                ? " (dockFloatAllowed: a dock floats over the full-bleed canvas — intended)"
+                                : "";
+                        console.log(
+                            `  ✓ ${tag} subject ${subject.w}×${subject.h} in-bounds, no overflow, no content occlusion${floatNote}`,
+                        );
+                        if (W2_PENDING_OCCLUSION.has(tag.trim())) {
+                            staleAllowances.push(tag.trim());
+                        }
+                    } else if (W2_PENDING_OCCLUSION.has(tag.trim())) {
+                        for (const m of local) {
+                            console.warn(
+                                `  ⊘ ${tag} ${m} [W2-PENDING ALLOWANCE — removed when C.W2 lands the mobile work-area/dock-reserve fix]`,
+                            );
+                            pending.push(`${tag.trim()}: ${m}`);
+                        }
+                    } else {
+                        for (const m of local) {
+                            console.error(`  ✗ ${tag} ${m}`);
+                            failures.push(`${tag.trim()}: ${m}`);
+                        }
+                    }
+                } finally {
+                    await page.close();
                 }
-            } finally {
-                await page.close();
             }
         }
     }
 
     await browser.close();
-    server.close();
+    await close();
 
+    if (pending.length > 0) {
+        console.warn(
+            `\nocclusion-gate — ${pending.length} NAMED W2-PENDING allowance(s) (inv ε; removal trigger: C.W2 mobile work-area/dock-reserve fix):`,
+        );
+        for (const p of pending) console.warn(`  ⊘ ${p}`);
+    }
+    if (staleAllowances.length > 0) {
+        console.error(
+            `\nocclusion-gate — FAIL: ${staleAllowances.length} W2-pending allowance(s) now PASS — they are STALE and MUST be removed from W2_PENDING_OCCLUSION (inv ε: an allowance that no longer bites cannot linger and mask a future regression):`,
+        );
+        for (const s of staleAllowances) console.error(`  ✗ STALE (remove from W2_PENDING_OCCLUSION): ${s}`);
+        process.exit(1);
+    }
     if (failures.length > 0) {
         console.error(`\nocclusion-gate — FAIL (${failures.length}): inv δ violated.`);
         process.exit(1);
     }
-    console.log("\nocclusion-gate — PASS: every page × viewport is occlusion-free (inv δ holds).");
+    console.log(
+        `\nocclusion-gate — PASS: every page × viewport × controls-state is occlusion-free (inv δ holds)${
+            pending.length ? `, modulo ${pending.length} named W2-pending allowance(s)` : ""
+        }.`,
+    );
 }
 
 main().catch((err) => {

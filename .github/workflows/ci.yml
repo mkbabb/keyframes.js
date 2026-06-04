@@ -11,10 +11,18 @@
 #     proof:boundary — bundle EVERY light barrel entry and assert 0 value.js +
 #                0 static engine edge per entry, the heavy engine dynamic-only,
 #                no dormant static specifier (A inv α, widened in B.W2)
-#   `@mkbabb/glass-ui` is an OPTIONAL `file:../glass-ui` dependency; a clean
-#   runner has no sibling checkout, so `npm ci` cleanly SKIPS it
-#   (`optional: true`) — verified by the /tmp clean-runner archive run. The
-#   library gate therefore runs glass-ui-free.
+#   `@mkbabb/glass-ui` is an OPTIONAL `file:../glass-ui` dependency. On a clean
+#   runner the sibling is absent, so `npm ci` links `node_modules/@mkbabb/glass-ui
+#   -> ../../../glass-ui` whose target is MISSING: npm tolerates the dangling
+#   optional link non-fatally (exit 0), and the library graph never dereferences
+#   it (check:lib / build:lib / proof:boundary / test all green with the link
+#   dangling — verified by the /tmp clean-runner archive run). The library gate
+#   therefore runs glass-ui-free. NB: this is disposition (b) — the lockfile
+#   carries the optional `../glass-ui` node (`grep -c '"../glass-ui"\|@mkbabb/
+#   glass-ui' package-lock.json` = 5). A genuinely glass-ui-absent lockfile
+#   (disposition a) is unreachable without deleting the `optionalDependencies`
+#   declaration, which removes the `file:../glass-ui` link the demo dev install
+#   needs; (b) is the spec's reserved contingency, stated honestly here (C.W1 S5).
 #
 #   demo-smoke (DEMO) — the demo legitimately needs glass-ui, so this is a
 #   SEPARATE job that installs the published package + a browser and asserts
@@ -89,8 +97,8 @@ jobs:
                   npm run build
             - name: npm ci (picks up the built file:../glass-ui)
               run: npm ci
-            - name: install playwright (demo-gate only; --no-save keeps the lib posture)
-              run: npm i --no-save @playwright/test
+            - name: install playwright + lighthouse (demo-gate only; --no-save keeps the lib posture)
+              run: npm i --no-save @playwright/test lighthouse
             - name: install chromium
               run: npx playwright install --with-deps chromium
             - name: build the demo (gh-pages)
@@ -99,5 +107,36 @@ jobs:
               run: node scripts/demo-smoke.mjs
             - name: inv δ — no page occludes on any viewport
               run: node scripts/occlusion-gate.mjs
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            # C.W1 S6 — the lighthouse A11y=100 (demo-owned) + SEO≥90 hard gate
+            # W5 deferred. Drives each scene into its OPEN-panel editing state
+            # (the product as USED, not the splash) and scores a11y+seo. HARD on
+            # any a11y audit OUTSIDE the two named allowance buckets
+            # (bucket-glassui → ASK-3 adoption; bucket-w2 → W2 close), on any
+            # regression of an already-passing audit, and on SEO<90. The buckets
+            # are an explicit manifest in the script — not a silent exemption —
+            # and the gate tightens by deletion as those closes land. lighthouse
+            # resolves from the repo root (the `npm i --no-save lighthouse` above).
+            - name: A11y (demo-owned) = 100 + SEO ≥ 90 — open-panel lighthouse gate
+              run: node scripts/lighthouse-gate.mjs
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            # C.W1 S4 — the LoAF >50ms-trace gate: the dev-only LoAF observer's
+            # REAL 2nd consumer (closing the LoAF + >50ms-trace chronics + the
+            # overfitting violation as ONE perf-evidence subsystem). The gate
+            # launches Chromium against a served bench page that mounts the
+            # observer EXPLICITLY (the prod demo stays observer-free), drives a
+            # large AnimationGroup composite, reads `window.__kfLoaf`, and FAILS
+            # on any >50ms main-thread block. It needs the LIBRARY build
+            # (`dist/keyframes.js`) the bench page imports — so build:lib runs
+            # here LAST (its `dist/` empty no longer disturbs the gh-pages gates
+            # above, which have all run). Chromium resolves from the repo
+            # (`npm i --no-save @playwright/test` above); KF_REQUIRE_BROWSER
+            # turns the playwright-absent skip into a hard CI failure.
+            - name: build the library (dist/keyframes.js for the bench page)
+              run: npm run build:lib
+            - name: LoAF >50ms-trace gate (observer's 2nd consumer)
+              run: npm run bench -- --run bench/playwright.bench.ts
               env:
                   KF_REQUIRE_BROWSER: "1"
