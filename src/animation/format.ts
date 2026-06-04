@@ -63,10 +63,15 @@ export function animationOptionsToString(
     const duration = reverseCSSTime(options.duration);
     css += `  animation-duration: ${duration};\n`;
 
+    // A CSS-twinned easing serializes as its faithful CSS string (a
+    // spring's `linear()`, a `cubic-bezier()` literal); otherwise reverse-
+    // look-up the callable in the registry, falling back to `linear`.
     let timingFunctionName =
-        Object.entries(timingFunctions)
-            .filter(([_name, func]) => func === options.timingFunction)
-            .map(([name]) => name)?.[0] ?? "linear";
+        options.timingFunction.css ??
+        (Object.entries(timingFunctions)
+            .filter(([_name, func]) => func === options.timingFunction.fn)
+            .map(([name]) => name)?.[0] ??
+            "linear");
 
     timingFunctionName = camelCaseToHyphen(timingFunctionName);
 

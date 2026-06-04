@@ -230,7 +230,6 @@ describe("AnimationGroup lifecycle", () => {
         const a = createOpacityAnim("a");
         const group = new AnimationGroup(a);
         group.started = true;
-        group.handleId = 999;
 
         group.stop();
 

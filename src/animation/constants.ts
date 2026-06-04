@@ -32,13 +32,30 @@ export type TransformFunction<V extends Vars> = (v: V, t: number) => void;
 
 export type TimingFunction = (t: number) => number;
 
+/**
+ * The typed easing value — a callable curve plus, when one exists, the CSS
+ * easing string that reproduces it (e.g. a spring's `linear()` stops).
+ *
+ * Replaces the former Symbol-on-a-closure side channel: the "this closure
+ * has a CSS twin" fact now flows through the type system, so wrapping or
+ * binding the callable can no longer silently drop it. `waapi.ts` reads
+ * `.css` to run the true curve on the compositor; everything else reads
+ * `.fn`.
+ */
+export interface Easing {
+    /** The callable curve — the hot-path interpolation function. */
+    fn: TimingFunction;
+    /** CSS easing string that faithfully reproduces `fn`, when one exists. */
+    css?: string;
+}
+
 export interface TemplateAnimationFrame<V extends Vars> {
     id: number;
     start: ValueUnit;
     vars: V;
 
     transform?: TransformFunction<V>;
-    timingFunction?: TimingFunction;
+    timingFunction?: Easing;
 }
 
 export interface AnimationFrame<V extends Vars> {
@@ -72,7 +89,7 @@ export interface AnimationFrame<V extends Vars> {
 
     transform: TransformFunction<V>;
 
-    timingFunction: TimingFunction;
+    timingFunction: Easing;
 }
 
 export type AnimationOptions = {
@@ -86,7 +103,7 @@ export type AnimationOptions = {
 
     fillMode: (typeof FILL_MODES)[number];
 
-    timingFunction: TimingFunction;
+    timingFunction: Easing;
 
     useWAAPI: boolean;
 
@@ -112,7 +129,12 @@ export type InputAnimationOptions = Partial<{
     direction: (typeof DIRECTIONS)[number];
     fillMode: (typeof FILL_MODES)[number];
 
-    timingFunction: TimingFunction | TimingFunctionNames | undefined;
+    timingFunction:
+        | TimingFunction
+        | Easing
+        | TimingFunctionNames
+        | string
+        | undefined;
 
     /** When true (default), eligible animations may use the Web Animations API for compositor-thread execution. Set to false to force rAF. */
     useWAAPI: boolean;
@@ -131,7 +153,7 @@ export const defaultOptions: AnimationOptions = {
     iterationCount: 1,
     direction: "normal",
     fillMode: "forwards",
-    timingFunction: easeInOutCubic,
+    timingFunction: { fn: easeInOutCubic },
     useWAAPI: true,
     respectReducedMotion: false,
     colorSpace: "oklab",
@@ -144,8 +166,12 @@ export interface AnimationLayerConfig {
     zIndex: number;
     /** 0–1 for 'weighted' blend mode. Default: 1 */
     weight: number;
-    /** Default: 'replace' (backward compat) */
-    // TODO(MEDIUM): Drop backward-compat defaulting and require callers to choose blend mode explicitly.
+    /**
+     * Default: 'replace'. Defaulting on a genuinely-omitted blend mode is
+     * the sanctioned contract (the fail-explicit seam throws only on
+     * malformed PRESENT input, never on omission) — an unspecified layer
+     * blends by replacement, the least-surprising composite.
+     */
     blendMode: BlendMode;
     /** Layer toggle. Default: true */
     enabled: boolean;

@@ -14,7 +14,10 @@ export const fadeIn = (options?: InputAnimationOptions) =>
     new CSSKeyframesAnimation({
         duration: 700,
         timingFunction: "ease-in-out",
-        // TODO(LOW): In strict mode, remove blanket options merge fallback and validate explicit overrides.
+        // Preset-default + consumer-override merge: genuine-omission
+        // defaulting is the sanctioned contract; malformed PRESENT values
+        // throw in the setters (the fail-explicit seam), so the spread
+        // cannot mask bad input.
         ...(options ?? {}),
     }).fromString(fadeInKeyframes);
 

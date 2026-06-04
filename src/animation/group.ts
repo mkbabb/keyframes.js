@@ -1,11 +1,8 @@
-import { type ValueUnit } from "@mkbabb/value.js";
-import {
-    cancelAnimationFrame,
-    lerp,
-    requestAnimationFrame,
-} from "./internal/leaves";
-import { prefersReducedMotion } from "./internal/reduced-motion";
+import { ValueUnit } from "@mkbabb/value.js";
+import { lerp } from "./internal/leaves";
+import { withReducedMotion } from "./internal/reduced-motion";
 import { yieldToMain } from "./internal/scheduler";
+import { RAFPlayback } from "./playback";
 import { Animation, getAnimationId } from "./engine";
 import type {
     AnimationLayerConfig,
@@ -14,16 +11,13 @@ import type {
 } from "./constants";
 import { defaultLayerConfig } from "./constants";
 
-const isNumericCarrier = (value: unknown): value is { value: number } => {
-    if (typeof value !== "object" || value == null) {
-        return false;
-    }
-
-    return (
-        "value" in value &&
-        typeof (value as { value?: unknown }).value === "number"
-    );
-};
+/**
+ * Typed blend-carrier guard — the group is heavy-side (it statically
+ * composes the engine), so the real `ValueUnit` class is available for an
+ * `instanceof` check instead of structural duck-typing on `{ value }`.
+ */
+const isNumericUnit = (value: unknown): value is ValueUnit<number> =>
+    value instanceof ValueUnit && typeof value.value === "number";
 
 export interface AnimationGroupEntry<V extends Vars> {
     animation: Animation<V>;
@@ -69,14 +63,16 @@ export class AnimationGroup<V extends Vars> {
 
     lastTickTime: number = 0;
 
-    handleId: number | any = undefined;
+    /** THE rAF owner for the group's draw loop. */
+    readonly playback = new RAFPlayback();
     resolvePromise: ((value: void | PromiseLike<void>) => void) | null = null;
+    private _playingPromise: Promise<void> | null = null;
 
     /**
-     * Pre-bound draw callback — allocated once in constructor to avoid
-     * creating a new closure on every requestAnimationFrame reschedule.
+     * Pre-bound frame callback — allocated once in constructor to avoid
+     * creating a new closure on every playback loop start.
      */
-    private _boundDraw: (t: number) => void;
+    private _boundFrame: (t: number) => Promise<boolean>;
 
     /**
      * Cached entries array, sorted by layer zIndex. Rebuilt on demand
@@ -86,7 +82,7 @@ export class AnimationGroup<V extends Vars> {
     private _entriesDirty = true;
 
     constructor(...inputs: (Animation<V> | AnimationGroupInput<V>)[]) {
-        this._boundDraw = this.draw.bind(this);
+        this._boundFrame = this._frame.bind(this);
 
         const animations: Animation<V>[] = [];
 
@@ -243,8 +239,8 @@ export class AnimationGroup<V extends Vars> {
                             const incoming = val;
                             // Accumulate numeric ValueUnit values
                             if (
-                                isNumericCarrier(existing) &&
-                                isNumericCarrier(incoming)
+                                isNumericUnit(existing) &&
+                                isNumericUnit(incoming)
                             ) {
                                 existing.value =
                                     existing.value + incoming.value;
@@ -267,8 +263,8 @@ export class AnimationGroup<V extends Vars> {
                             const existing = groupedValues[key];
                             const incoming = val;
                             if (
-                                isNumericCarrier(existing) &&
-                                isNumericCarrier(incoming)
+                                isNumericUnit(existing) &&
+                                isNumericUnit(incoming)
                             ) {
                                 existing.value = lerp(
                                     existing.value,
@@ -393,15 +389,16 @@ export class AnimationGroup<V extends Vars> {
     }
 
     /**
-     * Main animation frame callback. Ticks all children, then renders
+     * One frame of the group's draw loop, driven by the shared
+     * `RAFPlayback.loop`. Ticks all children, then renders
      * (single-target: grouped blending; multi-target: per-child).
-     * Reschedules itself via rAF until done.
+     * Returns whether the loop should continue.
      */
-    async draw(t: number) {
+    private async _frame(t: number): Promise<boolean> {
         await this.tick(t);
 
         if (this.paused) {
-            return;
+            return false;
         }
 
         if (this.singleTarget) {
@@ -416,45 +413,63 @@ export class AnimationGroup<V extends Vars> {
         }
 
         if (!this.done) {
-            this.handleId = requestAnimationFrame(this._boundDraw);
-        } else {
-            this.reset();
-            if (this.resolvePromise) {
-                this.resolvePromise();
-            }
+            return true;
         }
+
+        // Completion: every child's `onEnd` already painted its rest frame
+        // per its fill contract, and the composite above rendered the
+        // blended result — settle is pure teardown, never a repaint. (The
+        // former completion-path `reset()` repainted frame 0, so a fadeIn
+        // group ended invisible — the quirk the rest-position contract
+        // retires.)
+        this.settle();
+        this._resolvePlay();
+        return false;
+    }
+
+    private _resolvePlay() {
+        const resolve = this.resolvePromise;
+        this.resolvePromise = null;
+        resolve?.();
     }
 
     /**
      * Start the animation group. Returns a promise that resolves
      * when all child animations complete (or on explicit stop/reset).
+     * Re-entrant: a `play()` while one is in flight returns the same
+     * promise rather than leaking a second draw loop.
      *
      * Under `respectReducedMotion` + an active `prefers-reduced-motion`
      * query, snaps every child to its final frame in a single composite —
      * no rAF draw loop — then settles exactly as a completed play would.
      */
-    async play() {
-        if (this.respectReducedMotion && prefersReducedMotion()) {
-            return this._playReducedMotion();
-        }
-        return new Promise((resolve) => {
-            this.resolvePromise = resolve;
-            this.handleId = requestAnimationFrame(this._boundDraw);
+    async play(): Promise<void> {
+        if (this._playingPromise) return this._playingPromise;
+
+        const result = withReducedMotion(
+            this.respectReducedMotion,
+            () => this._playReducedMotion(),
+            () =>
+                new Promise<void>((resolve) => {
+                    this.resolvePromise = resolve;
+                    this.playback.loop(this._boundFrame);
+                }),
+        );
+
+        this._playingPromise = result;
+        result.finally(() => {
+            this._playingPromise = null;
         });
+        return result;
     }
 
     /**
-     * `prefers-reduced-motion` snap for the group: advance every child to its
-     * final frame, composite a single paint, then settle child + group state
-     * for replay — no rAF loop, no motion. The final frame STAYS on the
-     * target(s): reduced motion shows the END state, matching
+     * `prefers-reduced-motion` snap for the group: rest = final, paint it,
+     * settle — the SAME terminal path a completed play takes, with the
+     * motion elided. Every child advances to its final frame, one composite
+     * paints, and `settle()` (pure teardown, never a repaint) readies the
+     * group for replay. The final frame stays on the target(s), matching
      * `Animation._playReducedMotion`.
-     *
-     * Deliberately does NOT route through `reset()` — `reset()` repaints every
-     * child to frame 0 (`interpFrames(0, true)`, the fillBackwards
-     * cube-cutoff workaround), which would clobber the snapped final frame and
-     * leave, e.g., a `fadeIn` group invisible. The child `Animation.reset()`
-     * clears state flags only and does not repaint, so it is safe here.
      */
     private _playReducedMotion(): Promise<void> {
         this.onStart();
@@ -474,16 +489,7 @@ export class AnimationGroup<V extends Vars> {
             this.transformFramesGrouped(now);
         }
 
-        // Settle for replay WITHOUT reset()'s frame-0 repaint, so the final
-        // frame survives on the target(s).
-        for (const entry of this.getEntries()) {
-            entry.animation.managed = false;
-            entry.animation.reset();
-        }
-        this.started = false;
-        this.done = false;
-        this.paused = false;
-        this.lastTickTime = 0;
+        this.settle();
 
         return Promise.resolve();
     }
@@ -521,30 +527,30 @@ export class AnimationGroup<V extends Vars> {
         }
 
         if (this.paused) {
-            // Stop the rAF loop immediately — don't wait for draw() to self-terminate
-            cancelAnimationFrame(this.handleId);
-            this.handleId = undefined;
+            // Stop the loop immediately — don't wait for the frame callback
+            // to self-terminate
+            this.playback.stop();
             // Render final frame so the visual matches the pause moment
             this.render();
         } else {
             // Resume: restart the draw loop
-            this.handleId = requestAnimationFrame(this._boundDraw);
+            this.playback.loop(this._boundFrame);
         }
 
         return this;
     }
 
-    reset() {
-        // Apply fillBackwards first so targets snap to their initial frame
-        // before clearing animation state (prevents visual glitches like cube cutoff)
-        // TODO(HIGH): Remove visual-glitch workaround sequencing and define explicit reset/fill contract.
+    /**
+     * Pure state teardown — never paints. The group analogue of
+     * `Animation.settle()`: releases every child (`managed = false`,
+     * `child.settle()`) and clears the group's own playback flags.
+     * Completion and the reduced-motion snap both end here, leaving the
+     * rest frame (per each child's fill contract) on the target(s).
+     */
+    settle() {
         for (const entry of this.getEntries()) {
-            const anim = entry.animation;
-            if (anim.started && anim.frames.length > 0) {
-                anim.interpFrames(0, true);
-            }
-            anim.managed = false;
-            anim.reset();
+            entry.animation.managed = false;
+            entry.animation.settle();
         }
 
         this.started = false;
@@ -555,10 +561,33 @@ export class AnimationGroup<V extends Vars> {
         return this;
     }
 
+    /**
+     * Explicit rewind: paint every started child back to its INITIAL
+     * frame, then settle. This is the user-facing "return to start" —
+     * rest position `initial` painted deliberately, not a completion side
+     * effect. (Completion does NOT come here; it settles where the fill
+     * contract rested the pixels.)
+     */
+    reset() {
+        for (const entry of this.getEntries()) {
+            const anim = entry.animation;
+            if (anim.started && anim.frames.length > 0) {
+                anim.interpFrames(0, true);
+            }
+        }
+
+        return this.settle();
+    }
+
+    /**
+     * Halt the draw loop, rewind to the initial frame (the transport-stop
+     * semantic the demo's controls expect), and resolve any pending
+     * `play()` promise.
+     */
     stop() {
-        cancelAnimationFrame(this.handleId);
-        this.handleId = undefined;
+        this.playback.stop();
         this.reset();
+        this._resolvePlay();
 
         return this;
     }

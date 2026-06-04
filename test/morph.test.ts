@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { easeOutCubic } from "@mkbabb/value.js";
+import { resolveEasing } from "../src/animation/easing";
+import { AnimationOptionError } from "../src/animation/internal/errors";
 import { ElementMorph } from "../src/animation/morph";
 import type { MorphRect } from "../src/animation/morph";
 
@@ -75,19 +77,19 @@ describe("ElementMorph", () => {
         expect(el.style.transformOrigin).toBe("center center");
     });
 
-    it("string-name easing interpolates as linear until ready() resolves", () => {
-        const morph = new ElementMorph(from, to, {
-            timingFunction: "ease-out-cubic",
-        });
-        // Before resolution: linear fallback (midpoint is half the delta).
-        expect(morph.at(0.5).translateX).toBeCloseTo(100);
+    it("throws AnimationOptionError on a string easing name (fail-explicit)", () => {
+        expect(
+            () =>
+                new ElementMorph(from, to, {
+                    // @ts-expect-error — string names are rejected by the type AND at runtime
+                    timingFunction: "ease-out-cubic",
+                }),
+        ).toThrow(AnimationOptionError);
     });
 
-    it("ready() resolves a string-name easing through the engine boundary", async () => {
-        const morph = new ElementMorph(from, to, {
-            timingFunction: "ease-out-cubic",
-        });
-        await morph.ready();
+    it("applies an easing resolved up front via resolveEasing", async () => {
+        const easing = await resolveEasing("ease-out-cubic");
+        const morph = new ElementMorph(from, to, { timingFunction: easing });
         // Endpoints stay exact, midpoint follows the eased curve.
         expect(morph.at(0).translateX).toBeCloseTo(0);
         expect(morph.at(1).translateX).toBeCloseTo(200);
@@ -95,9 +97,10 @@ describe("ElementMorph", () => {
         expect(morph.at(0.5).translateX).toBeGreaterThan(120);
     });
 
-    it("play() resolves a string-name easing and lands on the destination", async () => {
+    it("play() with a resolved easing lands on the destination", async () => {
+        const easing = await resolveEasing("easeOutCubic");
         const morph = new ElementMorph(from, to, {
-            timingFunction: "easeOutCubic",
+            timingFunction: easing,
             duration: 50,
         });
         const el = document.createElement("div");

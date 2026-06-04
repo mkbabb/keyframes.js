@@ -1,8 +1,9 @@
+import { toEasing } from "./easing";
 import { binarySearchRange } from "./internal/binarySearch";
-import { EasingResolvable } from "./internal/easing-resolvable";
+import { AnimationOptionError } from "./internal/errors";
 import { clamp, lerp, scale } from "./internal/leaves";
 import { RAFPlayback } from "./playback";
-import type { TimingFunction, TimingFunctionNames } from "./constants";
+import type { Easing, TimingFunction } from "./constants";
 
 interface NumericSegment<T extends Record<string, number>> {
     startPos: number;
@@ -15,24 +16,19 @@ interface NumericSegment<T extends Record<string, number>> {
 
 export interface NumericAnimationOptions {
     /**
-     * Easing as a callable `TimingFunction`, OR a string easing *name*
-     * from value.js's registry (`"ease-out-cubic"`, `"easeOutCubic"`,
-     * `"linear"`, …).
+     * Easing as a callable `TimingFunction` or a typed `Easing` — both
+     * synchronous and value.js-free, so this engine never touches the
+     * dynamic boundary.
      *
-     * A **callable** is used directly and keeps this engine value.js-free —
-     * no dynamic import, nothing pulled into the static graph.
+     * A string easing *name* is NOT accepted here (fail-explicit: it
+     * throws). Resolve a name once, up front, through the async factory:
      *
-     * A **string name** is resolved through the dynamic engine boundary via
-     * the shared `EasingResolvable` contract: resolution is kicked off
-     * EAGERLY at construction (an `await import("./engine")` looks the name
-     * up via `getTimingFunction`), so the value.js-bearing easing registry
-     * loads only when a named easing is actually used and the named curve
-     * lands by the first frame. Until it lands, `.at()` interpolates with the
-     * identity fallback and emits a one-time dev-only warning; `await
-     * .ready()` first to interpolate with the named curve from the very first
-     * synchronous `.at()`.
+     * ```ts
+     * const easing = await resolveEasing("easeOutCubic");
+     * new NumericAnimation(frames, { timingFunction: easing });
+     * ```
      */
-    timingFunction?: TimingFunction | TimingFunctionNames | undefined;
+    timingFunction?: TimingFunction | Easing | undefined;
     /** Playback duration in milliseconds. Required for `.play()`. */
     duration?: number | undefined;
     /** Explicit positions as percentages [0-100]. Auto-distributes if omitted. */
@@ -74,10 +70,9 @@ export class NumericAnimation<T extends Record<string, number>> {
     private _duration: number;
     private _respectReducedMotion: boolean;
 
-    // The one shared string-easing-name resolver (eager-resolve + memoized
-    // `.ready()` + dev-warn + identity fallback). Holds the live easing the
-    // segments capture by value; rebuilds them on resolution via the callback.
-    private _easing: EasingResolvable;
+    // The resolved easing callable — synchronous from construction. The
+    // linear default mirrors CSS `linear`: interpolation without easing.
+    private _easingFn: TimingFunction;
 
     // Shared rAF lifecycle for `.play()` / `.stop()`.
     private _playback = new RAFPlayback();
@@ -91,13 +86,19 @@ export class NumericAnimation<T extends Record<string, number>> {
         this._duration = options?.duration ?? 0;
         this._respectReducedMotion = options?.respectReducedMotion ?? false;
 
-        // Segments capture the easing by value at build time, so a resolved
-        // name must rebuild them. Eager-resolve is kicked off inside the
-        // resolver's constructor; the callback fires on the later microtask
-        // once `this.segments` already exists (the import is always async).
-        this._easing = new EasingResolvable(options?.timingFunction, () => {
-            this.segments = this.buildSegments();
-        });
+        const easing = options?.timingFunction;
+        if (typeof easing === "string") {
+            // Fail-explicit: a string name needs the async registry —
+            // never a silent identity fallback.
+            throw new AnimationOptionError(
+                "timingFunction",
+                easing,
+                "NumericAnimation accepts a callable TimingFunction or a " +
+                    "typed Easing; resolve a string name first via " +
+                    "`await resolveEasing(name)`.",
+            );
+        }
+        this._easingFn = easing == null ? (t) => t : toEasing(easing).fn;
 
         if (options?.positions) {
             if (options.positions.length !== keyframes.length) {
@@ -137,24 +138,8 @@ export class NumericAnimation<T extends Record<string, number>> {
             keys,
             startVals: keys.map((k) => start[k] as number),
             stopVals: keys.map((k) => stop[k] as number),
-            timingFunction: this._easing.fn,
+            timingFunction: this._easingFn,
         };
-    }
-
-    /**
-     * Resolve a pending string easing *name* through the dynamic engine
-     * boundary. A no-op (resolved promise) when easing was supplied as a
-     * callable or omitted. Memoized via the shared `EasingResolvable` — the
-     * `await import("./engine")` and `getTimingFunction` lookup run at most
-     * once per instance.
-     *
-     * Resolution is already kicked off eagerly at construction; `.play()`
-     * awaits this before the first frame, and stateless `.at()` consumers
-     * that pass a name can `await animation.ready()` first to interpolate
-     * with the resolved easing rather than the identity fallback.
-     */
-    ready(): Promise<void> {
-        return this._easing.ready();
     }
 
     /**
@@ -165,10 +150,6 @@ export class NumericAnimation<T extends Record<string, number>> {
      * last segment if progress is past the final stop position.
      */
     at(progress: number): T {
-        // A synchronous `.at()` while a string easing name is still resolving
-        // interpolates with the identity fallback — surface it once in dev.
-        this._easing.warnIfPending("NumericAnimation.at()");
-
         const p = clamp(progress, 0, 1) * 100;
 
         // O(log N) segment lookup
@@ -239,10 +220,6 @@ export class NumericAnimation<T extends Record<string, number>> {
         onFrame?: NumericFrameCallback<T>,
         duration?: number,
     ): Promise<void> {
-        // Resolve a pending string easing name before the first frame.
-        // No-op (and no engine load) for callable / undefined easing.
-        await this.ready();
-
         const dur = duration ?? this._duration;
         // Reduced-motion snap (snap to final keyframe, no rAF loop) is owned
         // by the shared RAFPlayback gate — passed through, not re-implemented.

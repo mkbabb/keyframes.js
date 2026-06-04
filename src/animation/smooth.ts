@@ -1,5 +1,5 @@
-import { cancelAnimationFrame, requestAnimationFrame } from "./internal/leaves";
-import { prefersReducedMotion } from "./internal/reduced-motion";
+import { withReducedMotion } from "./internal/reduced-motion";
+import { RAFPlayback } from "./playback";
 
 export interface SmoothProgressOptions {
     /** Damping factor (0, 1]. Higher = faster convergence. Default 0.1 */
@@ -46,13 +46,12 @@ export class SmoothProgress {
     private currentValue: number;
     private isSettled: boolean;
 
-    // Managed rAF lifecycle for `.play()` / `.stop()`. Symmetric with
-    // `NumericAnimation.play(onFrame)`: the engine owns the loop so
-    // consumers never reimplement rAF glue. Auto-stops on settle;
+    // Managed playback for `.play()` / `.stop()` — loop ownership delegates
+    // to the shared RAFPlayback driver (this class is a pure stepper: it
+    // implements `Tickable` via `tickDt`/`settled`). Auto-stops on settle;
     // `setTarget()` while `onFrame` is attached and the loop is idle
     // auto-resumes the loop.
-    private _rafId: ReturnType<typeof requestAnimationFrame> | null = null;
-    private _lastFrameT: number = 0;
+    private _playback = new RAFPlayback();
     private _onFrame: SmoothFrameCallback | undefined = undefined;
 
     constructor(options?: Partial<SmoothProgressOptions>) {
@@ -81,22 +80,26 @@ export class SmoothProgress {
         const delta = Math.abs(target - this.targetValue);
         if (delta > 0 && delta >= this.options.targetEpsilon) {
             this.targetValue = target;
-            // Reduced-motion: snap directly to target rather than damping.
-            // The settled state stays true and any bound `onFrame` fires
-            // once with the new value.
-            if (this.options.respectReducedMotion && prefersReducedMotion()) {
-                this.currentValue = target;
-                this.isSettled = true;
-                this._onFrame?.(target);
-                return;
-            }
-            this.isSettled = false;
-            // Auto-resume the managed loop if `.play()` attached a
-            // callback and the loop has idled after a prior settle.
-            if (this._onFrame && this._rafId === null) {
-                this._startLoop();
-            }
+            withReducedMotion(
+                this.options.respectReducedMotion,
+                // Snap directly to target — settled stays true, any bound
+                // `onFrame` fires once with the new value, no loop.
+                () => this._snapSettled(),
+                () => {
+                    this.isSettled = false;
+                    // Auto-resume the managed loop if `.play()` attached a
+                    // callback and the loop idled after a prior settle.
+                    if (this._onFrame) this._startLoop();
+                },
+            );
         }
+    }
+
+    /** Reduced-motion snap: jump to target, settle, emit once. */
+    private _snapSettled(): void {
+        this.currentValue = this.targetValue;
+        this.isSettled = true;
+        this._onFrame?.(this.currentValue);
     }
 
     /** Advance one step using fixed damping. Returns current value. */
@@ -147,7 +150,7 @@ export class SmoothProgress {
     snap(): void {
         this.currentValue = this.targetValue;
         this.isSettled = true;
-        this._stopLoop();
+        this._playback.stop();
     }
 
     /** Reset to a specific value (default 0). */
@@ -156,7 +159,7 @@ export class SmoothProgress {
         this.targetValue = v;
         this.currentValue = v;
         this.isSettled = true;
-        this._stopLoop();
+        this._playback.stop();
     }
 
     /**
@@ -173,19 +176,18 @@ export class SmoothProgress {
      */
     play(onFrame?: SmoothFrameCallback): void {
         this._onFrame = onFrame;
-        // Reduced-motion: short-circuit to immediate target snap. No rAF
-        // loop spawned; the callback fires once with the target value.
-        if (this.options.respectReducedMotion && prefersReducedMotion()) {
-            this.currentValue = this.targetValue;
-            this.isSettled = true;
-            onFrame?.(this.currentValue);
-            return;
-        }
-        if (this.isSettled) {
-            onFrame?.(this.currentValue);
-            return;
-        }
-        this._startLoop();
+        withReducedMotion(
+            this.options.respectReducedMotion,
+            // Short-circuit to an immediate target snap — one emit, no loop.
+            () => this._snapSettled(),
+            () => {
+                if (this.isSettled) {
+                    onFrame?.(this.currentValue);
+                    return;
+                }
+                this._startLoop();
+            },
+        );
     }
 
     /**
@@ -194,31 +196,15 @@ export class SmoothProgress {
      */
     stop(): void {
         this._onFrame = undefined;
-        this._stopLoop();
+        this._playback.stop();
     }
 
+    /**
+     * Arm the shared driver: it steps `tickDt(dt)` once per frame until
+     * `settled` flips true, emitting `onFrame` per step. Idempotent —
+     * the driver no-ops while already running.
+     */
     private _startLoop(): void {
-        if (this._rafId !== null) return;
-        this._lastFrameT = 0;
-        const frame = (now: number): void => {
-            const dt = this._lastFrameT ? now - this._lastFrameT : 16.667;
-            this._lastFrameT = now;
-            const v = this.tickDt(dt);
-            this._onFrame?.(v);
-            if (this.isSettled) {
-                this._stopLoop();
-                return;
-            }
-            this._rafId = requestAnimationFrame(frame);
-        };
-        this._rafId = requestAnimationFrame(frame);
-    }
-
-    private _stopLoop(): void {
-        if (this._rafId !== null) {
-            cancelAnimationFrame(this._rafId);
-            this._rafId = null;
-        }
-        this._lastFrameT = 0;
+        this._playback.drive(this, () => this._onFrame?.(this.currentValue));
     }
 }

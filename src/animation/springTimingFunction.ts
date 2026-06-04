@@ -1,5 +1,4 @@
-import type { TimingFunction } from "./constants";
-import { tagCSSEasing } from "./internal/css-easing";
+import type { Easing, TimingFunction } from "./constants";
 import { SpringProgress } from "./spring";
 import {
     springLinearStops,
@@ -39,20 +38,21 @@ export interface SpringTimingFunctionOptions {
 }
 
 /**
- * Sample a `SpringProgress(target=1, initial=0)` solver and return a
- * pure `TimingFunction` — `(t: number) => number` over t∈[0,1] — that
- * `ElementMorph`, `NumericAnimation`, and `Animation.addFrame` accept
- * directly (anywhere a `TimingFunction` is taken).
+ * Sample a `SpringProgress(target=1, initial=0)` solver and return a typed
+ * {@link Easing}: `.fn` is the callable curve — `(t: number) => number`
+ * over t∈[0,1] — that `ElementMorph`, `NumericAnimation`, and
+ * `Animation.addFrame` accept directly, and `.css` is the CSS `linear()`
+ * string that reproduces it (same solver, same preset), so a WAAPI
+ * delegation runs the true overshoot/settle on the compositor.
  *
  * This is the JS-easing sibling of `springLinearStops`: same solver,
  * same `(response, dampingFraction)` surface, same default
  * `maxDuration = response * 4`. Where `springLinearStops` emits a CSS
- * `linear()` string for stylesheets/tokens, this returns a closure for
- * code paths that drive interpolation directly and cannot consume a
- * `linear()` string.
+ * `linear()` string for stylesheets/tokens, this returns the typed pair
+ * for code paths that drive interpolation directly.
  *
- * The returned curve satisfies `f(0) = 0` and `f(1) = 1` exactly.
- * Interior values may exceed 1 for ζ < 1 (overshoot) — e.g. the bouncy
+ * The curve satisfies `fn(0) = 0` and `fn(1) = 1` exactly. Interior
+ * values may exceed 1 for ζ < 1 (overshoot) — e.g. the bouncy
  * `response 0.5 / ζ 0.45` preset peaks at ≈ 1.205 mid-curve — which is
  * the whole point: feeding this into `ElementMorph` produces the
  * canonical iOS spring overshoot without hand-rolling stops or a
@@ -64,7 +64,7 @@ export interface SpringTimingFunctionOptions {
  */
 export function springTimingFunction(
     opts: SpringTimingFunctionOptions,
-): TimingFunction {
+): Easing {
     const sampleCount = opts.sampleCount ?? 64;
     const settleThreshold = opts.settleThreshold ?? 1e-3;
     const maxDuration = opts.maxDuration ?? opts.response * 4;
@@ -92,7 +92,7 @@ export function springTimingFunction(
     samples[sampleCount] = 1;
     spring.dispose();
 
-    const easing: TimingFunction = (t: number): number => {
+    const fn: TimingFunction = (t: number): number => {
         if (t <= 0) return 0;
         if (t >= 1) return 1;
         const x = t * sampleCount;
@@ -103,10 +103,12 @@ export function springTimingFunction(
         return a + (b - a) * frac;
     };
 
-    // Tag the closure with its CSS `linear()` equivalent (same solver, same
-    // preset), so an `Animation` eased by this spring can run the real
-    // overshoot/settle on the compositor via WAAPI instead of falling back to
-    // bare `linear`. The JS easing and the CSS string describe ONE curve.
+    // Pair the callable with its CSS `linear()` equivalent (same solver,
+    // same preset) as a typed Easing, so an `Animation` eased by this spring
+    // can run the real overshoot/settle on the compositor via WAAPI instead
+    // of falling back to bare `linear`. The JS easing and the CSS string
+    // describe ONE curve — and the pairing flows through the type system,
+    // not a Symbol tag that wrapping/binding would silently drop.
     const stopOpts: SpringLinearStopsOptions = {
         response: opts.response,
         dampingFraction: opts.dampingFraction,
@@ -114,5 +116,5 @@ export function springTimingFunction(
     if (opts.settleThreshold !== undefined)
         stopOpts.settleThreshold = opts.settleThreshold;
     if (opts.maxDuration !== undefined) stopOpts.maxDuration = opts.maxDuration;
-    return tagCSSEasing(easing, springLinearStops(stopOpts));
+    return { fn, css: springLinearStops(stopOpts) };
 }

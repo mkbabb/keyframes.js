@@ -4,6 +4,8 @@ import {
     ScrollTimeline,
 } from "../src/animation/timeline";
 import { easeOutCubic } from "@mkbabb/value.js";
+import { resolveEasing } from "../src/animation/easing";
+import { AnimationOptionError } from "../src/animation/internal/errors";
 
 describe("ManualTimeline", () => {
     it("returns set value immediately (no smoothing)", () => {
@@ -27,19 +29,22 @@ describe("ManualTimeline", () => {
         expect(p).toBeCloseTo(easeOutCubic(0.5), 10);
     });
 
-    it("resolves a string-name easing lazily via the engine boundary", async () => {
-        const tl = new ManualTimeline({ easing: "ease-out-cubic" });
-        await tl.ready();
+    it("applies an easing resolved up front via resolveEasing", async () => {
+        const easing = await resolveEasing("ease-out-cubic");
+        const tl = new ManualTimeline({ easing });
         tl.set(0.5);
         const p = tl.tick();
         expect(p).toBeCloseTo(easeOutCubic(0.5), 10);
     });
 
-    it("string-name easing is identity until ready() resolves", () => {
-        // No await — resolution has not landed, so tick() applies identity.
-        const tl = new ManualTimeline({ easing: "ease-out-cubic" });
-        tl.set(0.5);
-        expect(tl.tick()).toBeCloseTo(0.5, 10);
+    it("throws AnimationOptionError on a string easing name (fail-explicit)", () => {
+        expect(
+            () =>
+                new ManualTimeline({
+                    // @ts-expect-error — string names are rejected by the type AND at runtime
+                    easing: "ease-out-cubic",
+                }),
+        ).toThrow(AnimationOptionError);
     });
 
     it("supports smoothing when explicitly enabled", () => {

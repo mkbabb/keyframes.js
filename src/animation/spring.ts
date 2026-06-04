@@ -1,5 +1,5 @@
-import { cancelAnimationFrame, requestAnimationFrame } from "./internal/leaves";
-import { prefersReducedMotion } from "./internal/reduced-motion";
+import { withReducedMotion } from "./internal/reduced-motion";
+import { RAFPlayback } from "./playback";
 
 /**
  * iOS-style spring physics options. The pair `(response, dampingFraction)`
@@ -103,10 +103,11 @@ export class SpringProgress {
     private subscribers: Set<SpringSubscriber> = new Set();
     private disposed: boolean = false;
 
-    // Managed rAF lifecycle for `.play()` / `.stop()`. Symmetric with
+    // Managed playback for `.play()` / `.stop()` — loop ownership delegates
+    // to the shared RAFPlayback driver (this class is a pure stepper: it
+    // implements `Tickable` via `tickDt`/`settled`). Symmetric with
     // `SmoothProgress.play(onFrame)`.
-    private _rafId: ReturnType<typeof requestAnimationFrame> | null = null;
-    private _lastFrameT: number = 0;
+    private _playback = new RAFPlayback();
     private _onFrame: SpringFrameCallback | undefined = undefined;
 
     constructor(options?: Partial<SpringProgressOptions>) {
@@ -166,29 +167,33 @@ export class SpringProgress {
     private reseatTarget(target: number): void {
         this.targetValue = target;
 
-        // Reduced-motion: snap to target with zero velocity.
-        if (this.options.respectReducedMotion && prefersReducedMotion()) {
-            this.currentValue = target;
-            this.currentVelocity = 0;
-            this.isSettled = true;
-            this.originValue = target;
-            this.originVelocity = 0;
-            this.elapsed = 0;
-            this.emit();
-            this._stopLoop();
-            return;
-        }
+        withReducedMotion(
+            this.options.respectReducedMotion,
+            // Snap to target with zero velocity — one emit, no loop.
+            () => this._snapSettled(),
+            () => {
+                // Re-seat origin to current state; reset elapsed clock.
+                this.originValue = this.currentValue;
+                this.originVelocity = this.currentVelocity;
+                this.elapsed = 0;
+                this.isSettled = false;
 
-        // Re-seat origin to current state; reset elapsed clock.
-        this.originValue = this.currentValue;
-        this.originVelocity = this.currentVelocity;
+                // Auto-resume the managed loop if `.play()` attached a callback.
+                if (this._onFrame) this._startLoop();
+            },
+        );
+    }
+
+    /** Reduced-motion snap: jump to target at zero velocity, settle, emit once. */
+    private _snapSettled(): void {
+        this.currentValue = this.targetValue;
+        this.currentVelocity = 0;
+        this.originValue = this.targetValue;
+        this.originVelocity = 0;
         this.elapsed = 0;
-        this.isSettled = false;
-
-        // Auto-resume the managed loop if `.play()` attached a callback.
-        if (this._onFrame && this._rafId === null) {
-            this._startLoop();
-        }
+        this.isSettled = true;
+        this.emit();
+        this._playback.stop();
     }
 
     /**
@@ -206,6 +211,15 @@ export class SpringProgress {
         this.checkSettled();
         this.emit();
         return this.currentValue;
+    }
+
+    /**
+     * Millisecond-clock sibling of {@link tick} — the {@link Tickable}
+     * surface the shared `RAFPlayback.drive` loop steps. The spring math is
+     * in seconds; rAF (and the driver) deal in milliseconds.
+     */
+    tickDt(dt: number): number {
+        return this.tick(dt / 1000);
     }
 
     /**
@@ -297,14 +311,7 @@ export class SpringProgress {
 
     /** Immediately set value = target, zero velocity. */
     snap(): void {
-        this.currentValue = this.targetValue;
-        this.currentVelocity = 0;
-        this.originValue = this.targetValue;
-        this.originVelocity = 0;
-        this.elapsed = 0;
-        this.isSettled = true;
-        this.emit();
-        this._stopLoop();
+        this._snapSettled();
     }
 
     /** Reset position + velocity to a specified value (default 0). */
@@ -319,7 +326,7 @@ export class SpringProgress {
         this.elapsed = 0;
         this.isSettled = vel === 0;
         this.emit();
-        this._stopLoop();
+        this._playback.stop();
     }
 
     // ── Subscribe / dispose ──────────────────────────────────────────
@@ -346,7 +353,7 @@ export class SpringProgress {
     /** Tear down the spring. Cancels the rAF loop and clears subscribers. */
     dispose(): void {
         this.disposed = true;
-        this._stopLoop();
+        this._playback.stop();
         this.subscribers.clear();
     }
 
@@ -362,49 +369,34 @@ export class SpringProgress {
     play(onFrame?: SpringFrameCallback): void {
         if (this.disposed) return;
         this._onFrame = onFrame;
-        if (this.options.respectReducedMotion && prefersReducedMotion()) {
-            this.currentValue = this.targetValue;
-            this.currentVelocity = 0;
-            this.isSettled = true;
-            onFrame?.(this.currentValue, this.currentVelocity);
-            return;
-        }
-        if (this.isSettled) {
-            onFrame?.(this.currentValue, this.currentVelocity);
-            return;
-        }
-        this._startLoop();
+        withReducedMotion(
+            this.options.respectReducedMotion,
+            // Snap to target at zero velocity — one emit, no loop.
+            () => this._snapSettled(),
+            () => {
+                if (this.isSettled) {
+                    onFrame?.(this.currentValue, this.currentVelocity);
+                    return;
+                }
+                this._startLoop();
+            },
+        );
     }
 
     /** Cancel the managed rAF loop and detach the per-frame callback. */
     stop(): void {
         this._onFrame = undefined;
-        this._stopLoop();
+        this._playback.stop();
     }
 
+    /**
+     * Arm the shared driver: it steps `tickDt(dt)` once per frame until
+     * `settled` flips true, emitting `onFrame` per step. Idempotent —
+     * the driver no-ops while already running.
+     */
     private _startLoop(): void {
-        if (this._rafId !== null) return;
-        this._lastFrameT = 0;
-        const frame = (now: number): void => {
-            const dtMs = this._lastFrameT ? now - this._lastFrameT : 16.667;
-            this._lastFrameT = now;
-            // Spring math is in seconds; rAF gives milliseconds.
-            this.tick(dtMs / 1000);
-            this._onFrame?.(this.currentValue, this.currentVelocity);
-            if (this.isSettled) {
-                this._stopLoop();
-                return;
-            }
-            this._rafId = requestAnimationFrame(frame);
-        };
-        this._rafId = requestAnimationFrame(frame);
-    }
-
-    private _stopLoop(): void {
-        if (this._rafId !== null) {
-            cancelAnimationFrame(this._rafId);
-            this._rafId = null;
-        }
-        this._lastFrameT = 0;
+        this._playback.drive(this, () =>
+            this._onFrame?.(this.currentValue, this.currentVelocity),
+        );
     }
 }

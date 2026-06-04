@@ -46,6 +46,12 @@ export type { MorphRect, ElementMorphOptions } from "./morph";
 export { Timeline, ScrollTimeline, ManualTimeline } from "./timeline";
 export type { TimelineOptions, ScrollTimelineOptions } from "./timeline";
 export { RAFPlayback } from "./playback";
+export type { RAFPlaybackOptions, Tickable } from "./playback";
+// Easing construction at the boundary: `toEasing` normalizes a callable /
+// typed Easing synchronously (value.js-free); `resolveEasing` resolves a
+// string name through the dynamic engine boundary, fail-explicit.
+export { resolveEasing, toEasing } from "./easing";
+export { AnimationOptionError, UnknownEasingError } from "./internal/errors";
 
 // ── TYPE surface (erased; no runtime edge) ───────────────────────────────
 // The animation-domain types consumers should prefer over redefining their
@@ -55,6 +61,7 @@ export type {
     TimingFunction,
     TimingFunctionNames,
     TransformFunction,
+    Easing,
     AnimationOptions,
     InputAnimationOptions,
     TemplateAnimationFrame,
