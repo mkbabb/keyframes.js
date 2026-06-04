@@ -203,8 +203,17 @@ export default defineConfig((mode) => {
                 // Pinning both `entryRoot` AND `compilerOptions.rootDir`
                 // to the library entry's directory keeps emit and
                 // stub-write in lockstep.
+                //
+                // vite-plugin-dts 5 (unplugin-dts): the roll-up option is
+                // `bundleTypes` (v4's `rollupTypes` is silently ignored —
+                // no validation error) and `@microsoft/api-extractor`
+                // moved from a bundled dependency to an OPTIONAL peer the
+                // consumer provides (devDependency here). Both are
+                // load-bearing: without either, the build stays green and
+                // emits per-module .d.ts but NO rolled-up keyframes.d.ts —
+                // the dts byte-check in CI is what catches it.
                 dts({
-                    rollupTypes: true,
+                    bundleTypes: true,
                     include: ["src/"],
                     entryRoot: "src/animation",
                     compilerOptions: {
@@ -250,20 +259,91 @@ export default defineConfig((mode) => {
                 cssCodeSplit: true,
                 rolldownOptions: {
                     output: {
-                        manualChunks(id) {
-                            if (id.includes("node_modules")) {
-                                if (id.includes("three")) return "vendor-three";
-                                if (id.includes("monaco")) return "vendor-monaco";
-                                if (id.includes("prettier")) return "vendor-prettier";
-                                if (id.includes("highlight")) return "vendor-highlight";
-                                if (id.includes("reka-ui")) return "vendor-reka-ui";
-                                if (id.includes("lucide")) return "vendor-lucide";
-                            }
+                        // rolldown-NATIVE chunk grouping (first match wins).
+                        // The former rollup-style manualChunks shim let
+                        // rolldown park SHARED commons — vite's
+                        // __vitePreload helper, the cn() leaf utils —
+                        // INSIDE vendor-monaco, which made the 4 MB editor
+                        // a STATIC import of the app entry (the exact
+                        // eager-leak inv γ exists to prevent). With
+                        // advancedChunks, unmatched commons land in the
+                        // runtime/common chunk, never a vendor group.
+                        advancedChunks: {
+                            groups: [
+                                // Vite's __vitePreload helper is imported by
+                                // every dynamic-importing chunk INCLUDING the
+                                // entry — it gets its own first-match micro-
+                                // chunk so no vendor group (rolldown kept
+                                // parking it inside vendor-monaco, dragging
+                                // 4 MB onto the entry's critical path) can
+                                // ever own it.
+                                {
+                                    name: "preload-helper",
+                                    test: /vite[\\/]preload-helper/,
+                                },
+                                {
+                                    name: "vendor-monaco",
+                                    test: /node_modules[\\/]monaco/,
+                                },
+                                {
+                                    name: "vendor-three",
+                                    test: /node_modules[\\/][^\\/]*three/,
+                                },
+                                {
+                                    name: "vendor-prettier",
+                                    test: /node_modules[\\/][^\\/]*prettier/,
+                                },
+                                {
+                                    name: "vendor-highlight",
+                                    test: /node_modules[\\/][^\\/]*highlight/,
+                                },
+                                {
+                                    name: "vendor-reka-ui",
+                                    test: /node_modules[\\/]reka-ui/,
+                                },
+                                {
+                                    name: "vendor-lucide",
+                                    test: /node_modules[\\/][^\\/]*lucide/,
+                                },
+                            ],
                         },
                     },
                 },
             },
-            plugins: [...defaultPlugins, deferLazyCSSPlugin(["vendor-monaco"]), criticalCSSPlugin()],
+            plugins: [
+                ...defaultPlugins,
+                deferLazyCSSPlugin(["vendor-monaco"]),
+                criticalCSSPlugin(),
+                // KF_ANALYZE=1: dump each chunk's import edges + the modules
+                // that landed in it, to dist/gh-pages/_chunks.json — the
+                // instrument for hunting eager-leak regressions (inv γ).
+                ...(process.env.KF_ANALYZE
+                    ? [
+                          {
+                              name: "kf-chunk-analyze",
+                              generateBundle(_o: unknown, bundle: Record<string, any>) {
+                                  const out: Record<string, unknown> = {};
+                                  for (const [name, chunk] of Object.entries(bundle)) {
+                                      if ((chunk as any).type !== "chunk") continue;
+                                      out[name] = {
+                                          isEntry: (chunk as any).isEntry,
+                                          imports: (chunk as any).imports,
+                                          dynamicImports: (chunk as any).dynamicImports,
+                                          modules: Object.keys((chunk as any).modules ?? {}).map((m) =>
+                                              m.replace(/^.*node_modules\//, "nm:").replace(import.meta.dirname + "/", ""),
+                                          ),
+                                      };
+                                  }
+                                  (this as any).emitFile({
+                                      type: "asset",
+                                      fileName: "_chunks.json",
+                                      source: JSON.stringify(out, null, 2),
+                                  });
+                              },
+                          },
+                      ]
+                    : []),
+            ],
         };
     } else if (mode.mode === "playground") {
         // Playground demo: asset manager + multi-element animations

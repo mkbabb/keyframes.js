@@ -31,6 +31,9 @@
             </div>
         </Transition>
 
+        <!-- The single <main> landmark (lighthouse landmark-one-main). `contents`
+             keeps it out of the grid's box model so the layout is unchanged. -->
+        <main class="contents" aria-label="Animation editor">
         <AnimationControlsGroup
             :key="superKey"
             :animation-group="animationGroup"
@@ -56,6 +59,7 @@
                 <slot name="target"></slot>
             </template>
         </AnimationControlsGroup>
+        </main>
 
         <KeyboardShortcutsModal
             v-model:open="shortcutsOpen"

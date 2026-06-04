@@ -117,9 +117,13 @@ export function useTimingFunctionEditor(
 
     const setAnimationTimingFunction = (timingFunction: TimingFunction) => {
         const animation = getAnimation();
-        animation.options.timingFunction = timingFunction;
+        // The engine carries easing as a typed `Easing` ({ fn, css? });
+        // wrap the bare callable once and share the reference across
+        // frames so WAAPI uniform-timing eligibility sees ONE easing.
+        const easing = { fn: timingFunction };
+        animation.options.timingFunction = easing;
         animation.frames.forEach((frame) => {
-            frame.timingFunction = timingFunction;
+            frame.timingFunction = easing;
         });
     };
 

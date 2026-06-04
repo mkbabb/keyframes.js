@@ -29,3 +29,22 @@ export function prefersReducedMotion(): boolean {
     }
     return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
+
+/**
+ * THE reduced-motion gate — every play path in the engine routes through
+ * this one contract instead of hand-writing the
+ * `if (respect && prefersReducedMotion()) …` dance per surface.
+ *
+ * `snap` is the surface's one-line "jump to the terminal state, emit once,
+ * no loop" closure; `run` is its normal animated path. Detection was
+ * unified by `prefersReducedMotion()`; this unifies the *response* so the
+ * seven formerly hand-written snap bodies (which had already drifted —
+ * one carried a repaint bug) collapse to per-surface one-liners.
+ */
+export function withReducedMotion<T>(
+    respect: boolean | undefined,
+    snap: () => T,
+    run: () => T,
+): T {
+    return respect && prefersReducedMotion() ? snap() : run();
+}

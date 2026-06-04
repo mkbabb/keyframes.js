@@ -63,12 +63,21 @@ export function animationOptionsToString(
     const duration = reverseCSSTime(options.duration);
     css += `  animation-duration: ${duration};\n`;
 
-    let timingFunctionName =
-        Object.entries(timingFunctions)
-            .filter(([_name, func]) => func === options.timingFunction)
-            .map(([name]) => name)?.[0] ?? "linear";
-
-    timingFunctionName = camelCaseToHyphen(timingFunctionName);
+    // A CSS-twinned easing serializes as its faithful CSS string VERBATIM
+    // (a spring's `linear()`, a `cubic-bezier()` literal) — it is already
+    // CSS and must NOT be hyphenated (`camelCaseToHyphen` would mangle any
+    // uppercase). Otherwise reverse-look-up the callable in the registry and
+    // hyphenate the camelCase registry key (`easeOutCubic` → `ease-out-cubic`).
+    let timingFunctionName: string;
+    if (options.timingFunction.css !== undefined) {
+        timingFunctionName = options.timingFunction.css;
+    } else {
+        const registryName =
+            Object.entries(timingFunctions)
+                .filter(([_name, func]) => func === options.timingFunction.fn)
+                .map(([name]) => name)?.[0] ?? "linear";
+        timingFunctionName = camelCaseToHyphen(registryName);
+    }
 
     css += `  animation-timing-function: ${timingFunctionName};\n`;
 

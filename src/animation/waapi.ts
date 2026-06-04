@@ -1,5 +1,4 @@
 import { COMPUTED_UNITS, unflattenObjectToString } from "@mkbabb/value.js";
-import { getCSSEasing } from "./internal/css-easing";
 import type { Animation } from "./engine";
 import type { Vars } from "./constants";
 
@@ -8,11 +7,6 @@ const isComputedUnit = (
 ): unit is (typeof COMPUTED_UNITS)[number] =>
     typeof unit === "string" &&
     (COMPUTED_UNITS as readonly string[]).includes(unit);
-
-const DEFAULT_RENDERER = Symbol.for("keyframes.defaultRenderer");
-
-const isDefaultTransform = (fn: unknown): boolean =>
-    typeof fn === "function" && (fn as any)[DEFAULT_RENDERER] === true;
 
 export type WAAPIEligibility =
     | { eligible: true }
@@ -52,7 +46,12 @@ export function isWAAPIEligible<V extends Vars>(
     }
 
     for (const frame of animation.frames) {
-        if (!isDefaultTransform(frame.transform)) {
+        // Reference comparison against the instance's ONE default renderer —
+        // typed and bind-proof, unlike the former Symbol tag (which
+        // `Function.prototype.bind` silently dropped, making every
+        // CSSKeyframesAnimation read as "custom transform" and the whole
+        // WAAPI path dead in practice).
+        if (!animation.usesDefaultRenderer(frame.transform)) {
             return {
                 eligible: false,
                 reason: "custom transform function (not the default DOM renderer)",
@@ -60,16 +59,46 @@ export function isWAAPIEligible<V extends Vars>(
         }
     }
 
-    if (animation.frames.length > 1) {
-        const firstTF = animation.frames[0]!.timingFunction;
+    const firstTF = animation.frames[0]?.timingFunction;
+    if (firstTF && animation.frames.length > 1) {
         for (let i = 1; i < animation.frames.length; i++) {
-            if (animation.frames[i]!.timingFunction !== firstTF) {
+            // Compare the CALLABLE identity, not the Easing wrapper — two
+            // frames eased by the same resolved `fn` wrapped in distinct
+            // `{ fn }` objects are uniform.
+            if (animation.frames[i]!.timingFunction.fn !== firstTF.fn) {
                 return {
                     eligible: false,
                     reason: "non-uniform per-frame timing function (WAAPI supports one easing per animation)",
                 };
             }
         }
+        // WAAPI applies its single easing PER SEGMENT (between consecutive
+        // keyframe stops). A CSS-twinned easing (a spring's `linear()`)
+        // across 2+ segments would restart the curve at every stop —
+        // silently wrong on the compositor — so it stays on the rAF path,
+        // which runs the true curve across the whole span.
+        if (firstTF.css !== undefined) {
+            return {
+                eligible: false,
+                reason: "CSS-twinned easing across multiple segments (WAAPI restarts the curve per segment)",
+            };
+        }
+    }
+
+    // WAAPI may delegate ONLY when the (uniform) easing has a FAITHFUL CSS
+    // representation — a `.css` twin (a spring's `linear()`, an explicit
+    // `cubic-bezier()`/CSS-keyword/`steps()` easing). A bespoke callable
+    // (the value.js `easeInOutCubic` default, `easeOutCubic`, `bounceInEase`,
+    // a user closure) has NO faithful CSS twin, so delegating it would run
+    // BARE LINEAR on the compositor — a silent visual regression. Those stay
+    // on the rAF path, which runs the true curve. (Pre-KF-B1 the WAAPI path
+    // was dead in practice, so this keeps the resurrection faithful:
+    // delegate only when the curve round-trips to CSS.)
+    if (firstTF && firstTF.css === undefined) {
+        return {
+            eligible: false,
+            reason: "easing has no faithful CSS twin (would run bare linear on the compositor)",
+        };
     }
 
     for (const frame of animation.frames) {
@@ -159,21 +188,16 @@ export function toWAAPIOptions<V extends Vars>(
     }
 
     // WAAPI exposes ONE easing per animation. When the uniform timing
-    // function carries a CSS easing string — today a spring's `linear()`
-    // stops, which `springTimingFunction` tags its closure with — emit it so
-    // the compositor runs the true curve between the sampled keyframe
-    // endpoints. Otherwise fall back to bare `linear` (the keyframe stops
-    // carry whatever intent JS interpolation baked in). Eligibility already
-    // guaranteed a uniform timing function, so reading frame 0's is enough.
-    //
-    // NOTE: WAAPI applies this easing PER SEGMENT (between consecutive
-    // keyframe stops). For the dominant spring case — a 2-stop from→to — that
-    // is the whole animation. A spring across 3+ stops would restart the curve
-    // each segment; uniform-timing eligibility plus the typical 2-stop spring
-    // keep that edge rare.
+    // function carries a CSS twin — `Easing.css`, e.g. a spring's `linear()`
+    // stops from `springTimingFunction` — emit it so the compositor runs the
+    // true curve between the sampled keyframe endpoints. Otherwise fall back
+    // to bare `linear` (the keyframe stops carry whatever intent JS
+    // interpolation baked in). Eligibility already guaranteed a uniform
+    // timing function AND rejects a CSS-twinned easing across multiple
+    // segments (per-segment curve restart), so reading frame 0's is enough.
     const uniformTiming =
         animation.frames[0]?.timingFunction ?? animation.options.timingFunction;
-    const easing = getCSSEasing(uniformTiming) ?? "linear";
+    const easing = uniformTiming.css ?? "linear";
 
     return {
         duration: opts.duration,
@@ -205,15 +229,19 @@ export async function playWAAPI<V extends Vars>(
     const waAnimations: globalThis.Animation[] = animation.targets.map(
         (target) => target.animate(keyframes, options),
     );
+    // Expose the handles on the instance so the engine's lifecycle methods
+    // (`stop`/`reset`) can cancel the compositor animations — cancelling
+    // rejects `wa.finished`, which the catch below treats as a halt.
+    animation._waAnimations = waAnimations;
 
-    // Shadow rAF tick — drives lifecycle (onStart / iteration /
+    // Shadow tick loop — drives lifecycle (onStart / iteration /
     // onEnd / events / pause / resume) so WAAPI playback has the
     // same observable state as the rAF path. No interpFrames calls;
-    // WAAPI handles the visuals.
-    let cancelled = false;
-    const tickLoop = (now: number) => {
-        if (cancelled || animation.done) return;
-        animation.tick(now);
+    // WAAPI handles the visuals. Rides the animation's own RAFPlayback
+    // driver so `stop()` halts it uniformly with every other loop.
+    animation.playback.loop(async (now: number) => {
+        if (animation.done) return false;
+        await animation.tick(now);
         if (animation.paused) {
             for (const wa of waAnimations) wa.pause();
         } else {
@@ -221,13 +249,17 @@ export async function playWAAPI<V extends Vars>(
                 if (wa.playState === "paused") wa.play();
             }
         }
-        animation.handleId = requestAnimationFrame(tickLoop);
-    };
-    animation.handleId = requestAnimationFrame(tickLoop);
+        return !animation.done;
+    });
 
     try {
         await Promise.all(waAnimations.map((wa) => wa.finished));
+    } catch {
+        // `Animation.stop()`/`reset()` cancelled the compositor animations,
+        // rejecting `finished` with an AbortError — a deliberate halt, not
+        // an error. Swallow it so the awaited `play()` resolves cleanly.
     } finally {
-        cancelled = true;
+        animation.playback.stop();
+        animation._waAnimations = [];
     }
 }

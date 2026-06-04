@@ -1,5 +1,5 @@
 import { NumericAnimation } from "./numeric";
-import type { TimingFunction, TimingFunctionNames } from "./constants";
+import type { Easing, TimingFunction } from "./constants";
 
 export interface MorphRect {
     x: number;
@@ -10,13 +10,12 @@ export interface MorphRect {
 
 export interface ElementMorphOptions {
     /**
-     * Easing as a callable `TimingFunction`, OR a string easing *name*
-     * from value.js's registry (`"ease-out-cubic"`, `"easeOutCubic"`, …).
-     * `ElementMorph` composes `NumericAnimation`, so a callable keeps the
-     * path value.js-free while a string name resolves LAZILY through the
-     * dynamic engine boundary on the first `.play()` (or `await .ready()`).
+     * Easing as a callable `TimingFunction` or a typed `Easing` —
+     * synchronous and value.js-free (`ElementMorph` composes
+     * `NumericAnimation`, which enforces the same contract). Resolve a
+     * string name first via `await resolveEasing(name)`.
      */
-    timingFunction?: TimingFunction | TimingFunctionNames;
+    timingFunction?: TimingFunction | Easing;
     /** Playback duration in milliseconds. Required for `.play()`. */
     duration?: number;
     transformOrigin?: string;
@@ -49,7 +48,7 @@ const toRect = (source: HTMLElement | MorphRect): MorphRect => {
 export class ElementMorph {
     private animation!: NumericAnimation<MorphValues>;
     private transformOrigin: string;
-    private timingFunction: TimingFunction | TimingFunctionNames | undefined;
+    private timingFunction: TimingFunction | Easing | undefined;
     private duration: number;
 
     constructor(
@@ -82,17 +81,6 @@ export class ElementMorph {
         );
 
         return this;
-    }
-
-    /**
-     * Resolve a pending string easing *name* through the dynamic engine
-     * boundary. No-op for callable / omitted easing. Stateless `.at()` /
-     * `.toCSSTransform()` consumers that pass a name can `await .ready()`
-     * first to interpolate with the resolved easing; `.play()` awaits it
-     * automatically before the first frame.
-     */
-    ready(): Promise<void> {
-        return this.animation.ready();
     }
 
     /** Get raw transform values at the given progress [0, 1]. */

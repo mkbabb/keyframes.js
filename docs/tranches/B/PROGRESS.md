@@ -5,23 +5,23 @@ report is `FINAL.md` (authored at W7). Audit evidence is under `audit/`.
 
 ## Phase
 
-**DEVELOPMENT** (W0 — audit + planning, RUN now). The implementation half
-(W1-W7) is authored-now-run-later and opens only on explicit user authorization.
-No engine or demo source is written in development. The dev/impl boundary lands
-at the W0 close (this board + B.md + the W1-W7 specs + the audit evidence).
+**IMPLEMENTATION COMPLETE** (W0-W7 landed on branch `tranche-b`, PR #2).
+The development half (W0) closed the audits; the implementation half
+(W1-W7) is executed and gated. FINAL.md records the close; the publish leg
+(changeset → tag → release.yml provenance) is user-domain, confirm-first.
 
 ## Wave status
 
 | Wave | Title | Phase | Status | Hard gate |
 |---|---|---|---|---|
 | **B.W0** | Audit + precept edict + before/after harness | DEV | **in progress** | B.md + W1-W7 specs + this board; precept before/after edict committed (`8ccf9f4`, push pending); BEFORE harness + 18 screenshots + occlusion + lighthouse + dep matrix on disk; deferred ledger complete; full prompt recap. |
-| **B.W1** | Dependency upgrade (matrix → gated bump) | IMPL | planned | Demo/tooling deps to latest behind a regression gate; majors breaking-read; library deps confirmed latest. |
-| **B.W2** | Engine debt transposed (gestalt) | IMPL | planned | One `ReducedMotionSnap` contract; group reset/fill contract retires the TODO(HIGH); fail-explicit honored; eager-resolve catch; 16 TODOs classified; `proof:boundary` all-light-entries. |
-| **B.W3** | Demo correctness + occlusion-free (inv δ) | IMPL | planned | 4 blank scenes render at idle; cube never clips; hero never overlays; top dock clears mobile safe-area; Playwright occlusion gate green on every page × {375,1280,1440}. |
-| **B.W4** | Loading perf (prod build + splash + lazy) | IMPL | planned | gh-pages emits real entry+CSS (bootstrap → main.ts); splash removed + instant paint; monaco/three lazy; real prod-perf measured; demo smoke gate (inv γ). |
-| **B.W5** | Design system (φ-ladder + serif + a11y/SEO) | IMPL | planned | glass-ui `text-display-*`/`--type-*` adopted; one display serif; ad-hoc CSS → tokens; a11y (`landmark-one-main`,`image-alt`) + SEO closed; dock double-click → glass-ui ask. |
-| **B.W6** | Perfected CI (inv γ+δ + boundary + lockfile) | IMPL | planned | Demo smoke gate; occlusion gate; `proof:boundary` all-entries; lockfile reconciled glass-ui-absent + /tmp verify; before/after π gate; node-20 actions → v5. |
-| **B.W7** | Close ceremony (π full + DELTA + release) | IMPL (LAST) | planned | AFTER capture + per-page DELTA.md (full visual binding); π not floor; ι + overfitting + FINAL (reconciles A's stale W4.md / lockfile prose / off-by-one) + changeset. |
+| **B.W1** | Dependency upgrade (matrix → gated bump) | IMPL | **done** | Demo/tooling deps to latest behind a regression gate; majors breaking-read; library deps confirmed latest. |
+| **B.W2** | Engine debt transposed (gestalt) | IMPL | **done** | One `ReducedMotionSnap` contract; group reset/fill contract retires the TODO(HIGH); fail-explicit honored; eager-resolve catch; 16 TODOs classified; `proof:boundary` all-light-entries. |
+| **B.W3** | Demo correctness + occlusion-free (inv δ) | IMPL | **done** | 4 blank scenes render at idle; cube never clips; hero never overlays; top dock clears mobile safe-area; Playwright occlusion gate green on every page × {375,1280,1440}. |
+| **B.W4** | Loading perf (prod build + splash + lazy) | IMPL | **done** | gh-pages emits real entry+CSS (bootstrap → main.ts); splash removed + instant paint; monaco/three lazy; real prod-perf measured; demo smoke gate (inv γ). |
+| **B.W5** | Design system (φ-ladder + serif + a11y/SEO) | IMPL | **done** | glass-ui `text-display-*`/`--type-*` adopted; one display serif; ad-hoc CSS → tokens; a11y (`landmark-one-main`,`image-alt`) + SEO closed; dock double-click → glass-ui ask. |
+| **B.W6** | Perfected CI (inv γ+δ + boundary + lockfile) | IMPL | **done** | Demo smoke gate; occlusion gate; `proof:boundary` all-entries; lockfile reconciled glass-ui-absent + /tmp verify; before/after π gate; node-20 actions → v5. |
+| **B.W7** | Close ceremony (π full + DELTA + release) | IMPL (LAST) | **done** | AFTER capture + per-page DELTA.md (full visual binding); π not floor; ι + overfitting + FINAL (reconciles A's stale W4.md / lockfile prose / off-by-one) + changeset. |
 
 ## W0 audit evidence (on disk)
 

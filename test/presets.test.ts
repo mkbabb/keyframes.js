@@ -57,7 +57,7 @@ describe("animation presets", () => {
         it("typewriter: steppedEase timing function works", () => {
             const anim = typewriter();
             expect(anim.frames.length).toBeGreaterThan(0);
-            expect(typeof anim.options.timingFunction).toBe("function");
+            expect(typeof anim.options.timingFunction.fn).toBe("function");
         });
 
         it("spinner: border-radius shorthand parses", () => {

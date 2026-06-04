@@ -1,24 +1,24 @@
-import { EasingResolvable } from "./internal/easing-resolvable";
+import { toEasing } from "./easing";
+import { AnimationOptionError } from "./internal/errors";
 import { SmoothProgress } from "./smooth";
 import type { SmoothProgressOptions } from "./smooth";
-import type { TimingFunction, TimingFunctionNames } from "./constants";
+import type { Easing, TimingFunction } from "./constants";
 
 export interface TimelineOptions {
     /**
-     * Easing as a callable `TimingFunction`, OR a string easing *name*
-     * from value.js's registry (`"ease-out-cubic"`, `"easeOutCubic"`, …).
+     * Easing as a callable `TimingFunction` or a typed `Easing` — both
+     * synchronous and value.js-free, so the `Timeline` family never touches
+     * the dynamic boundary.
      *
-     * A **callable** is applied directly and keeps `Timeline` value.js-free.
+     * A string easing *name* is NOT accepted here (fail-explicit: it
+     * throws). Resolve a name once, up front, through the async factory:
      *
-     * A **string name** is resolved through the dynamic engine boundary via
-     * the shared `EasingResolvable` contract: the constructor kicks off an
-     * eager `await import(...)` and the resolved easing is applied once it
-     * lands (subsequent `tick()`s use it). Until then `tick()` runs with the
-     * identity easing and emits a one-time dev-only warning. Consumers that
-     * need the eased value on the very first `tick()` can
-     * `await timeline.ready()` first.
+     * ```ts
+     * const easing = await resolveEasing("ease-out-cubic");
+     * new ScrollTimeline({ easing });
+     * ```
      */
-    easing?: TimingFunction | TimingFunctionNames | undefined;
+    easing?: TimingFunction | Easing | undefined;
     /** SmoothProgress config. `false` disables smoothing. Default: enabled. */
     smoothing?: Partial<SmoothProgressOptions> | false | undefined;
     /**
@@ -35,17 +35,28 @@ const clamp01 = (v: number): number => Math.max(0, Math.min(1, v));
 
 export abstract class Timeline {
     private smoother: SmoothProgress | null;
-    // The one shared string-easing-name resolver (eager-resolve + memoized
-    // `.ready()` + dev-warn + identity fallback). `applyPipeline` reads
-    // `.fn` live each tick, so a resolved name takes effect with no callback.
-    private _easing: EasingResolvable;
+    // The resolved easing callable — synchronous from construction. The
+    // identity default means "no easing applied" for the omitted case.
+    private _easingFn: TimingFunction;
     private currentProgress: number = 0;
     private boundaryEpsilon: number;
 
     constructor(options?: TimelineOptions) {
         this.boundaryEpsilon = options?.boundaryEpsilon ?? 0.005;
 
-        this._easing = new EasingResolvable(options?.easing);
+        const easing = options?.easing;
+        if (typeof easing === "string") {
+            // Fail-explicit: a string name needs the async registry —
+            // never a silent identity fallback.
+            throw new AnimationOptionError(
+                "easing",
+                easing,
+                "Timeline accepts a callable TimingFunction or a typed " +
+                    "Easing; resolve a string name first via " +
+                    "`await resolveEasing(name)`.",
+            );
+        }
+        this._easingFn = easing == null ? (t) => t : toEasing(easing).fn;
 
         if (options?.smoothing === false) {
             this.smoother = null;
@@ -58,17 +69,6 @@ export abstract class Timeline {
         }
     }
 
-    /**
-     * Resolve a pending string easing *name* through the dynamic engine
-     * boundary. No-op (resolved promise) for callable / omitted easing.
-     * Resolution is already kicked off eagerly at construction; `await
-     * timeline.ready()` before the first `tick()` to apply the eased value
-     * immediately rather than letting it land asynchronously.
-     */
-    ready(): Promise<void> {
-        return this._easing.ready();
-    }
-
     /** Subclass returns raw [0,1] progress from its source. */
     protected abstract sample(): number;
 
@@ -79,14 +79,9 @@ export abstract class Timeline {
      * time-step method.
      */
     private applyPipeline(): number {
-        // A `tick()` while a string easing name is still resolving applies the
-        // identity fallback — surface it once in dev.
-        this._easing.warnIfPending("Timeline.tick()");
-
         let raw = clamp01(this.sample());
-        // `.fn` is the identity fallback until a name resolves, so applying it
-        // unconditionally is a no-op for the omitted-easing case.
-        raw = this._easing.fn(raw);
+        // The identity default makes this a no-op for the omitted-easing case.
+        raw = this._easingFn(raw);
 
         // Snap to exact boundary when within epsilon — prevents oscillation
         // from micro-jitter alternating between snap and lerp each frame.

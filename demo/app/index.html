@@ -4,7 +4,13 @@
         <meta charset="UTF-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>keyframes.js</title>
+        <title>keyframes.js — CSS keyframe animations for anything in JavaScript</title>
+        <meta
+            name="description"
+            content="keyframes.js parses CSS @keyframes and animates any object or DOM element in JavaScript — springs, scroll timelines, element morphs, and a live editor demo."
+        />
+        <meta name="robots" content="index, follow" />
+        <link rel="canonical" href="https://mkbabb.github.io/keyframes.js/" />
         <link rel="icon" href="../../assets/icons/cube-icon-sm.png" />
 
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -35,49 +41,17 @@
                 }
             })();
         </script>
-        <script type="module">
-            import { createApp } from "vue";
-            import App from "./App.vue";
-            import { router } from "./router";
-
-            const app = createApp(App);
-            app.use(router);
-            app.mount("#app");
-        </script>
+        <!-- The app bootstrap is a real module file (a graph ROOT rolldown
+             must keep), never an inline module (a graph LEAF it may — and
+             once did — tree-shake into a blank production build). -->
+        <script type="module" src="./main.ts"></script>
     </head>
 
     <body>
-        <!-- Loading skeleton: renders instantly before JS/CSS loads.
-             Vue's mount replaces this content. Matches the home screen layout. -->
-        <div style="display: contents" id="app">
-            <style>
-                .loading-skeleton {
-                    display: grid;
-                    height: 100dvh;
-                    width: 100dvw;
-                    place-items: center;
-                    font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif;
-                    color: #1a1a1a;
-                    background: #fff;
-                    overflow: hidden;
-                }
-                .dark .loading-skeleton {
-                    color: #e5e5e5;
-                    background: #0a0a0a;
-                }
-                .loading-title {
-                    font-size: clamp(2.5rem, 6vw, 5rem);
-                    font-weight: bold;
-                    opacity: 0;
-                    animation: skeleton-fade 0.4s ease-out 0.05s forwards;
-                }
-                @keyframes skeleton-fade {
-                    to { opacity: 1; }
-                }
-            </style>
-            <div class="loading-skeleton">
-                <div class="loading-title">keyframes.js</div>
-            </div>
-        </div>
+        <!-- No splash: criticalCSSPlugin inlines the themed background +
+             body geometry for an instant, layout-stable first paint, and
+             the app's true first frame (the hero) mounts directly onto it —
+             nothing to content-swap. -->
+        <div id="app"></div>
     </body>
 </html>

@@ -13,14 +13,11 @@
  * loads this graph. See `./index` for the boundary contract.
  */
 import {
-    cancelAnimationFrame,
     clamp,
     convertToMs,
-    easeInOutCubic,
     isObject,
     parseCSSTime,
     parseCSSValueUnit,
-    requestAnimationFrame,
     scale,
     seekPreviousValue,
     sleep,
@@ -28,17 +25,19 @@ import {
     ValueUnit,
     type PropertyDescriptor,
 } from "@mkbabb/value.js";
+import { cssTwinFor } from "./easing";
 import { binarySearchRange } from "./internal/binarySearch";
-import { prefersReducedMotion } from "./internal/reduced-motion";
+import { AnimationOptionError, parseOption } from "./internal/errors";
+import { withReducedMotion } from "./internal/reduced-motion";
+import { RAFPlayback } from "./playback";
 import { resolveKeyframes } from "./adapter";
-import { defaultOptions } from "./constants";
+import { DIRECTIONS, FILL_MODES, defaultOptions } from "./constants";
 import type {
     AnimationFrame,
     AnimationOptions,
+    Easing,
     InputAnimationOptions,
     TemplateAnimationFrame,
-    TimingFunction,
-    TimingFunctionNames,
     TransformFunction,
     Vars,
 } from "./constants";
@@ -53,6 +52,54 @@ import {
     transformTargetsStyle,
 } from "./utils";
 import { isWAAPIEligible, playWAAPI } from "./waapi";
+
+/** `parseCSSTime` that converts a parse failure to `undefined` for the option seam. */
+const tryParseTime = (raw: string): number | undefined => {
+    try {
+        const parsed = parseCSSTime(raw);
+        return Number.isFinite(parsed) ? parsed : undefined;
+    } catch {
+        return undefined;
+    }
+};
+
+/**
+ * Resolve heavy-surface easing input — a callable, a typed `Easing`, a
+ * registry name, or a `cubic-bezier()` literal — to a typed `Easing`.
+ * Fail-explicit: unresolvable input throws; there is no silent fallback
+ * to a default curve.
+ */
+const resolveEasingOption = (
+    option: string,
+    input: NonNullable<InputAnimationOptions["timingFunction"]>,
+): Easing => {
+    if (typeof input === "function") return { fn: input };
+    if (typeof input === "object") {
+        if (typeof (input as Easing).fn === "function") {
+            return input as Easing;
+        }
+        throw new AnimationOptionError(
+            option,
+            input,
+            "an Easing must carry a callable `fn`",
+        );
+    }
+    const fn = getTimingFunction(input);
+    if (!fn) {
+        throw new AnimationOptionError(
+            option,
+            input,
+            "unknown timing function — pass a callable TimingFunction, a " +
+                "typed Easing, a registry name, or a cubic-bezier() literal",
+        );
+    }
+    // Attach the faithful CSS twin when one exists (CSS keyword,
+    // cubic-bezier()/steps() literal) so a WAAPI delegation runs the true
+    // curve; value.js bespoke names (easeOutCubic, …) get none and stay on
+    // the rAF path.
+    const css = cssTwinFor(input);
+    return css ? { fn, css } : { fn };
+};
 
 const hasClone = (value: unknown): value is { clone: () => unknown } => {
     if (typeof value !== "object" || value == null) {
@@ -86,7 +133,21 @@ export class Animation<V extends Vars = any> {
 
     frames: AnimationFrame<V>[] = [];
 
-    handleId: number | any = undefined;
+    /**
+     * THE rAF owner for this animation — the standalone rAF play loop and
+     * the WAAPI shadow tick both ride it, so `stop()` halts either
+     * uniformly and no raw rAF handle leaks onto the instance.
+     */
+    readonly playback = new RAFPlayback();
+
+    /**
+     * The live WAAPI compositor animations during a `_playWAAPI` delegation
+     * (one per target), populated by `playWAAPI` and cleared on teardown.
+     * The lifecycle methods (`stop`/`reset`) cancel these so a stopped
+     * compositor animation never keeps painting and the awaited play
+     * promise never hangs. Empty on the rAF path.
+     */
+    _waAnimations: globalThis.Animation[] = [];
 
     startTime: number | undefined = undefined;
     pausedTime: number = 0;
@@ -121,13 +182,32 @@ export class Animation<V extends Vars = any> {
     private _playingPromise: Promise<void> | null = null;
 
     /**
-     * Pre-bound draw callback — allocated once to avoid creating a new
-     * closure on every requestAnimationFrame reschedule.
+     * Pre-bound frame callback — allocated once to avoid creating a new
+     * closure on every playback loop start.
      */
-    private _boundDraw = this.draw.bind(this);
+    private _boundFrame = this._frame.bind(this);
+
+    /**
+     * The instance's ONE default DOM-style renderer, allocated once.
+     * "Did the consumer supply a custom transform?" is a reference
+     * comparison against this single value ({@link usesDefaultRenderer}) —
+     * typed and bind-proof, unlike a Symbol tag on a closure, which
+     * `Function.prototype.bind` silently drops.
+     */
+    protected readonly _defaultTransform: TransformFunction<V> = (vars) =>
+        transformTargetsStyle(vars, this.targets);
+
+    /** True when `fn` is this instance's default DOM-style renderer. */
+    usesDefaultRenderer(fn: TransformFunction<V> | undefined): boolean {
+        return fn === this._defaultTransform;
+    }
 
     private dispatchAnimationEvent(type: string) {
-        // TODO(MEDIUM): Throw explicit capability errors when AnimationEvent/dispatchEvent is unavailable instead of silently skipping.
+        // SSR-safe capability contract: `AnimationEvent`/`dispatchEvent` are
+        // DOM capabilities — when absent (Node, non-element targets) the
+        // lifecycle proceeds without events rather than throwing, mirroring
+        // the off-DOM posture of `prefersReducedMotion()`. Event delivery is
+        // an observation channel, not a library-internal contract.
         if (typeof AnimationEvent === "undefined") return;
         for (const target of this.targets) {
             if (typeof target?.dispatchEvent !== "function") continue;
@@ -178,7 +258,7 @@ export class Animation<V extends Vars = any> {
         start: number | string | ValueUnit<number>,
         vars: Partial<K>,
         transform?: TransformFunction<K>,
-        timingFunction?: TimingFunction | TimingFunctionNames,
+        timingFunction?: InputAnimationOptions["timingFunction"],
     ): Animation<K> {
         if (typeof start === "number") {
             start = String(start) + "%";
@@ -195,9 +275,12 @@ export class Animation<V extends Vars = any> {
             start: parsedStart,
             vars,
             transform,
+            // Genuine omission inherits the animation's easing; a present-
+            // but-unresolvable input throws (fail-explicit).
             timingFunction:
-                getTimingFunction(timingFunction) ??
-                this.options.timingFunction,
+                timingFunction == null
+                    ? this.options.timingFunction
+                    : resolveEasingOption("timingFunction", timingFunction),
         } as TemplateAnimationFrame<K>;
 
         this.convertFrameStart(
@@ -392,42 +475,74 @@ export class Animation<V extends Vars = any> {
         return this;
     }
 
+    /**
+     * Option setters — the fail-explicit contract.
+     *
+     * Genuine omission (`undefined`/`null`) means "use the default" and is
+     * always accepted; present-but-malformed input THROWS a typed
+     * `AnimationOptionError` naming the option and the offending value.
+     * This is the same posture the layer API chose ("silent no-ops were
+     * hiding consumer bugs") applied to the whole options surface — no
+     * silent fallback, no silently-preserved previous value.
+     */
     setTimingFunction(timingFunction: InputAnimationOptions["timingFunction"]) {
-        // TODO(HIGH): Remove implicit timing-function defaulting here; reject unknown timing functions explicitly.
         this.options.timingFunction =
-            getTimingFunction(timingFunction) ?? easeInOutCubic;
+            timingFunction == null
+                ? defaultOptions.timingFunction
+                : resolveEasingOption("timingFunction", timingFunction);
         return this;
     }
 
     setIterationCount(iterationCount: InputAnimationOptions["iterationCount"]) {
+        if (iterationCount == null) {
+            this.options.iterationCount = defaultOptions.iterationCount;
+            return this;
+        }
         if (
-            !iterationCount ||
             iterationCount === "infinite" ||
             iterationCount === "∞" ||
-            iterationCount === "Infinity"
+            iterationCount === "Infinity" ||
+            iterationCount === Infinity
         ) {
             this.options.iterationCount = Infinity;
-        } else if (typeof iterationCount === "string") {
-            const parsed = parseFloat(iterationCount.trim());
-            // TODO(CRITICAL): Replace silent invalid-input no-op with explicit error for malformed iterationCount strings.
-            if (isNaN(parsed) || parsed < 0) return this;
-            this.options.iterationCount = parsed;
-        } else {
-            // TODO(HIGH): Replace silent invalid-input no-op with explicit error for invalid numeric iterationCount values.
-            if (isNaN(iterationCount) || iterationCount < 0) return this;
-            this.options.iterationCount = iterationCount;
+            return this;
         }
+        this.options.iterationCount = parseOption(
+            "iterationCount",
+            iterationCount,
+            (raw) => {
+                const n =
+                    typeof raw === "string"
+                        ? Number.parseFloat(raw.trim())
+                        : (raw as number);
+                return typeof n === "number" && !Number.isNaN(n) && n >= 0
+                    ? n
+                    : undefined;
+            },
+            'expected a non-negative count, "infinite", or Infinity',
+        );
         return this;
     }
 
     setDuration(duration: InputAnimationOptions["duration"]) {
-        if (typeof duration === "string") {
-            duration = parseCSSTime(duration);
-        }
+        // Genuine omission: keep the current duration (the constructor
+        // always seeds the default; a bare `setDuration()` is a no-op).
+        if (duration == null) return this;
 
-        const d = duration ?? this.options.duration;
-        // TODO(HIGH): Stop silently preserving previous duration on invalid input; throw a validation error.
-        if (!isFinite(d) || d <= 0) return this;
+        const d = parseOption(
+            "duration",
+            duration,
+            (raw) => {
+                const n =
+                    typeof raw === "string"
+                        ? tryParseTime(raw)
+                        : (raw as number);
+                return typeof n === "number" && isFinite(n) && n > 0
+                    ? n
+                    : undefined;
+            },
+            "expected a positive duration in milliseconds or a CSS time string",
+        );
 
         const prevDuration = this.options.duration;
         const ratio = d / prevDuration;
@@ -444,17 +559,37 @@ export class Animation<V extends Vars = any> {
     }
 
     setDelay(delay: InputAnimationOptions["delay"]) {
-        if (typeof delay === "string") {
-            delay = parseCSSTime(delay);
+        if (delay == null) {
+            this.options.delay = defaultOptions.delay;
+            return this;
         }
-        // TODO(MEDIUM): Avoid implicit delay defaulting on undefined input in strict mode; require explicit intent.
-        this.options.delay = delay ?? 0;
+        this.options.delay = parseOption(
+            "delay",
+            delay,
+            (raw) => {
+                const n =
+                    typeof raw === "string"
+                        ? tryParseTime(raw)
+                        : (raw as number);
+                // Negative delays are valid CSS (start mid-animation).
+                return typeof n === "number" && isFinite(n) ? n : undefined;
+            },
+            "expected a delay in milliseconds or a CSS time string",
+        );
         return this;
     }
 
     setDirection(direction: InputAnimationOptions["direction"]) {
-        // TODO(MEDIUM): Avoid implicit direction fallback; reject missing direction when strict option validation is enabled.
-        this.options.direction = direction ?? "normal";
+        if (direction == null) {
+            direction = defaultOptions.direction;
+        } else if (!DIRECTIONS.includes(direction)) {
+            throw new AnimationOptionError(
+                "direction",
+                direction,
+                `expected one of: ${DIRECTIONS.join(", ")}`,
+            );
+        }
+        this.options.direction = direction;
 
         // Immediately update reversed flag so mid-iteration direction changes take effect
         this.reversed = false;
@@ -471,27 +606,58 @@ export class Animation<V extends Vars = any> {
     }
 
     setFillMode(fillMode: InputAnimationOptions["fillMode"]) {
-        // TODO(MEDIUM): Avoid implicit fill-mode fallback; reject missing fill mode when strict option validation is enabled.
-        this.options.fillMode = fillMode ?? "forwards";
+        if (fillMode == null) {
+            fillMode = defaultOptions.fillMode;
+        } else if (!FILL_MODES.includes(fillMode)) {
+            throw new AnimationOptionError(
+                "fillMode",
+                fillMode,
+                `expected one of: ${FILL_MODES.join(", ")}`,
+            );
+        }
+        this.options.fillMode = fillMode;
         return this;
     }
 
     setUseWAAPI(useWAAPI: InputAnimationOptions["useWAAPI"]) {
-        // TODO(LOW): Avoid implicit WAAPI opt-in defaulting here; validate explicit policy selection upstream.
-        this.options.useWAAPI = useWAAPI ?? true;
+        if (useWAAPI == null) {
+            this.options.useWAAPI = defaultOptions.useWAAPI;
+            return this;
+        }
+        if (typeof useWAAPI !== "boolean") {
+            throw new AnimationOptionError(
+                "useWAAPI",
+                useWAAPI,
+                "expected a boolean",
+            );
+        }
+        this.options.useWAAPI = useWAAPI;
         return this;
     }
 
     setRespectReducedMotion(
         respectReducedMotion: InputAnimationOptions["respectReducedMotion"],
     ) {
-        this.options.respectReducedMotion = respectReducedMotion ?? false;
+        if (respectReducedMotion == null) {
+            this.options.respectReducedMotion =
+                defaultOptions.respectReducedMotion;
+            return this;
+        }
+        if (typeof respectReducedMotion !== "boolean") {
+            throw new AnimationOptionError(
+                "respectReducedMotion",
+                respectReducedMotion,
+                "expected a boolean",
+            );
+        }
+        this.options.respectReducedMotion = respectReducedMotion;
         return this;
     }
 
     setColorSpace(colorSpace: InputAnimationOptions["colorSpace"]) {
-        // TODO(MEDIUM): Avoid implicit color-space fallback; require explicit color-space selection in strict mode.
-        this.options.colorSpace = colorSpace ?? "oklab";
+        // Type-enforced at the boundary (value.js's ColorSpace union);
+        // genuine omission defaults to the perceptual default.
+        this.options.colorSpace = colorSpace ?? defaultOptions.colorSpace;
         return this;
     }
 
@@ -535,6 +701,30 @@ export class Animation<V extends Vars = any> {
 
     fillBackwards() {
         this.interpFrames(0, true);
+    }
+
+    /**
+     * Where the playhead rests after a completed play — derived ONCE from
+     * `fillMode` (forwards/both → final; none/backwards → initial). This is
+     * the explicit rest-position contract: completion paints the rest frame
+     * per this derivation, and the reduced-motion snap is "rest = final,
+     * paint it, settle" — the same path a `fillMode: forwards` completion
+     * takes, not a separate code path.
+     */
+    get restPosition(): "initial" | "final" {
+        return this.options.fillMode === "forwards" ||
+            this.options.fillMode === "both"
+            ? "final"
+            : "initial";
+    }
+
+    /** Paint the rest frame per the fill contract. */
+    paintRest() {
+        if (this.restPosition === "final") {
+            this.fillForwards();
+        } else {
+            this.fillBackwards();
+        }
     }
 
     /**
@@ -595,7 +785,7 @@ export class Animation<V extends Vars = any> {
         const processFrame = (frame: AnimationFrame<V>) => {
             const { start, stop } = frame.time;
             const scaled = scale(t, start, stop, 0, 1);
-            const eased = frame.timingFunction(scaled);
+            const eased = frame.timingFunction.fn(scaled);
 
             for (const iv of frame.allInterpVars) {
                 lerpValue(eased, iv);
@@ -657,17 +847,9 @@ export class Animation<V extends Vars = any> {
     }
 
     async onEnd() {
-        if (
-            this.options.fillMode === "forwards" ||
-            this.options.fillMode === "both"
-        ) {
-            this.fillForwards();
-        } else if (
-            this.options.fillMode === "none" ||
-            this.options.fillMode === "backwards"
-        ) {
-            this.fillBackwards();
-        }
+        // Completion paints the rest frame per the fill contract — the one
+        // place "where does the playhead rest?" is decided.
+        this.paintRest();
 
         this.startTime = undefined;
 
@@ -706,69 +888,95 @@ export class Animation<V extends Vars = any> {
         return this.t;
     }
 
-    async draw(t: number) {
-        if (this.managed) {
-            throw new Error(
-                "Animation.draw() called on a managed animation — the AnimationGroup owns the rAF loop. Call group.play()/pause()/stop() instead.",
-            );
-        }
-
+    /**
+     * One frame of the standalone rAF play path, driven by the shared
+     * `RAFPlayback.loop`. Returns whether the loop should continue.
+     */
+    private async _frame(t: number): Promise<boolean> {
         t = await this.tick(t);
 
         if (this.paused) {
-            return;
+            return false;
         }
-
-        this.interpFrames(t, true);
 
         if (!this.done) {
-            this.handleId = requestAnimationFrame(this._boundDraw);
-        } else {
-            this.reset();
-            if (this.resolvePromise) {
-                this.resolvePromise();
-            }
+            this.interpFrames(t, true);
+            return true;
         }
+
+        // Completion: `onEnd` (inside tick) ALREADY painted the rest frame
+        // per the fill contract. Do NOT re-paint here — an
+        // `interpFrames(duration)` would clobber that rest paint with the
+        // final frame, so a `fillMode: none` animation would end at its
+        // final frame instead of resting at its initial one. settle is pure
+        // teardown, never a repaint.
+        this.settle();
+        this._resolvePlay();
+        return false;
     }
 
-    /** Internal rAF-based play loop. */
+    private _resolvePlay() {
+        const resolve = this.resolvePromise;
+        this.resolvePromise = null;
+        resolve?.();
+    }
+
+    /** Internal rAF-based play loop — loop ownership rides `this.playback`. */
     private _playRAF(): Promise<void> {
         return new Promise((resolve) => {
             this.resolvePromise = resolve;
-            this.handleId = requestAnimationFrame(this._boundDraw);
+            this.playback.loop(this._boundFrame);
         });
     }
 
     /**
      * Play via the Web Animations API. WAAPI handles visuals on the
-     * compositor thread; a shadow rAF loop in `playWAAPI` drives
-     * `tick()` so events, iteration count, pause/resume, and other
-     * lifecycle state stay coherent with the rAF path.
+     * compositor thread; a shadow loop in `playWAAPI` (riding
+     * `this.playback`) drives `tick()` so events, iteration count,
+     * pause/resume, and other lifecycle state stay coherent with the
+     * rAF path.
      *
      * No silent fallback — eligibility is decided once in `play()`
      * before this is invoked, and runtime errors propagate.
      */
     private async _playWAAPI(): Promise<void> {
         await playWAAPI(this);
-        this.reset();
+        this.settle();
     }
 
     /**
-     * `prefers-reduced-motion` snap: jump to the final frame in a single
-     * paint — no rAF/WAAPI loop. The lifecycle stays observable
-     * (`animationstart` → fill final → `animationend`) so consumers' event
-     * wiring is identical to a completed normal play.
+     * Cancel the live WAAPI compositor animations (if any). Cancelling
+     * rejects each `wa.finished`, which `playWAAPI` catches as a halt — so
+     * this both stops the compositor paint AND unblocks the awaited play
+     * promise. No-op on the rAF path.
+     */
+    private _cancelWAAPI(): void {
+        if (this._waAnimations.length === 0) return;
+        for (const wa of this._waAnimations) {
+            try {
+                wa.cancel();
+            } catch {
+                /* a finished/detached WAAPI animation throws on cancel — ignore */
+            }
+        }
+        this._waAnimations = [];
+    }
+
+    /**
+     * `prefers-reduced-motion` snap: rest = final, paint it, settle — the
+     * SAME terminal path a `fillMode: forwards` completion takes, with the
+     * motion elided. The lifecycle stays observable (`animationstart` →
+     * final paint → `animationend`) so consumers' event wiring is identical
+     * to a completed normal play.
      */
     private async _playReducedMotion(): Promise<void> {
         this.started = true;
         this.dispatchAnimationEvent("animationstart");
-        // The visually-complete end state — the same frame a forwards fill
-        // settles on. Reduced-motion shows the result without the motion.
         this.fillForwards();
         this.iteration = 0;
         this.done = true;
         this.dispatchAnimationEvent("animationend");
-        this.reset();
+        this.settle();
     }
 
     async play(): Promise<void> {
@@ -780,24 +988,27 @@ export class Animation<V extends Vars = any> {
 
         if (this._playingPromise) return this._playingPromise;
 
-        let result: Promise<void>;
-        if (this.options.respectReducedMotion && prefersReducedMotion()) {
+        const result = withReducedMotion(
+            this.options.respectReducedMotion,
             // Reduced-motion wins over WAAPI/rAF — snap to the final frame.
-            this.waapiIneligibleReason = undefined;
-            result = this._playReducedMotion();
-        } else if (this.options.useWAAPI) {
-            const elig = isWAAPIEligible(this);
-            if (elig.eligible) {
+            () => {
                 this.waapiIneligibleReason = undefined;
-                result = this._playWAAPI();
-            } else {
-                this.waapiIneligibleReason = elig.reason;
-                result = this._playRAF();
-            }
-        } else {
-            this.waapiIneligibleReason = undefined;
-            result = this._playRAF();
-        }
+                return this._playReducedMotion();
+            },
+            () => {
+                if (this.options.useWAAPI) {
+                    const elig = isWAAPIEligible(this);
+                    if (elig.eligible) {
+                        this.waapiIneligibleReason = undefined;
+                        return this._playWAAPI();
+                    }
+                    this.waapiIneligibleReason = elig.reason;
+                    return this._playRAF();
+                }
+                this.waapiIneligibleReason = undefined;
+                return this._playRAF();
+            },
+        );
 
         this._playingPromise = result;
         result.finally(() => {
@@ -819,14 +1030,31 @@ export class Animation<V extends Vars = any> {
     resume() {
         if (this.started && this.paused) {
             this.paused = false;
-            this.handleId = requestAnimationFrame(this._boundDraw);
+            if (this._waAnimations.length > 0) {
+                // WAAPI: the shadow loop is still installed (it keeps
+                // rescheduling while paused, pausing the compositor each
+                // frame), so it resumes the curve on its next tick. Do NOT
+                // start the rAF `_frame` loop — that would race the shadow
+                // loop and orphan the paused compositor animation. Nudge the
+                // compositor directly for an immediate resume.
+                for (const wa of this._waAnimations) wa.play();
+            } else if (!this.playback.running) {
+                this.playback.loop(this._boundFrame);
+            }
         }
         return this;
     }
 
+    /**
+     * Halt playback where it stands: cancel the loop AND the WAAPI
+     * compositor animations, settle state, and resolve any pending `play()`
+     * promise. Never paints — `reset()` is the explicit rewind.
+     */
     stop() {
-        cancelAnimationFrame(this.handleId);
-        this.reset();
+        this._cancelWAAPI();
+        this.playback.stop();
+        this.settle();
+        this._resolvePlay();
     }
 
     playing() {
@@ -838,7 +1066,14 @@ export class Animation<V extends Vars = any> {
         return this.reversed ? this.options.duration - this.t : this.t;
     }
 
-    reset() {
+    /**
+     * Pure state teardown — flags, clocks, iteration. NEVER paints. This is
+     * the terminal half of the rest-position contract: completion paints
+     * the rest frame (via `onEnd` → `paintRest`) and then settles; the
+     * reduced-motion snap paints final and then settles. Settling is
+     * orthogonal to where the pixels rest.
+     */
+    settle() {
         this.done = false;
         this.started = false;
         this.paused = false;
@@ -849,6 +1084,20 @@ export class Animation<V extends Vars = any> {
         this.t = 0;
 
         return this;
+    }
+
+    /**
+     * Explicit rewind: paint the INITIAL frame, then settle. This is the
+     * user-facing "return to start" — rest position `initial`, painted
+     * deliberately — distinct from `settle()`, which tears down state and
+     * leaves the pixels where they rest.
+     */
+    reset() {
+        this._cancelWAAPI();
+        if (this.started && this.frames.length > 0) {
+            this.fillBackwards();
+        }
+        return this.settle();
     }
 
     setTargets(...targets: HTMLElement[]) {
@@ -882,10 +1131,22 @@ export class CSSKeyframesAnimation<V extends Vars> extends Animation<V> {
         this.unflatten = false;
     }
 
-    fromVars(vars: V[], transform?: TransformFunction<V>) {
+    /**
+     * One transform-resolution seam for the three `from*` entry points:
+     * a supplied transform is the consumer's renderer (vars arrive
+     * unflattened); genuine omission resolves to the instance's ONE
+     * default DOM-style renderer, which keeps WAAPI eligibility a
+     * reference comparison (`usesDefaultRenderer`).
+     */
+    private resolveTransform(
+        transform: TransformFunction<V> | undefined,
+    ): TransformFunction<V> {
         this.unflatten = transform != null;
-        // TODO(MEDIUM): Require an explicit transform strategy instead of defaulting to instance transform.
-        transform ??= this.transform.bind(this);
+        return transform ?? this._defaultTransform;
+    }
+
+    fromVars(vars: V[], transform?: TransformFunction<V>) {
+        transform = this.resolveTransform(transform);
 
         for (let i = 0; i < vars.length; i++) {
             const v = vars[i]!;
@@ -902,9 +1163,7 @@ export class CSSKeyframesAnimation<V extends Vars> extends Animation<V> {
         keyframes: Map<string, Partial<V>> | Record<string, Partial<V>>,
         transform?: TransformFunction<V>,
     ) {
-        this.unflatten = transform != null;
-        // TODO(MEDIUM): Require an explicit transform strategy instead of defaulting to instance transform.
-        transform ??= this.transform.bind(this);
+        transform = this.resolveTransform(transform);
 
         if (isObject(keyframes)) {
             keyframes = new Map(Object.entries(keyframes));
@@ -933,9 +1192,7 @@ export class CSSKeyframesAnimation<V extends Vars> extends Animation<V> {
     propertyRegistry: Map<string, PropertyDescriptor> = new Map();
 
     fromString(keyframes: string, transform?: TransformFunction<V>) {
-        this.unflatten = transform != null;
-        // TODO(MEDIUM): Require an explicit transform strategy instead of defaulting to instance transform.
-        transform ??= this.transform.bind(this);
+        transform = this.resolveTransform(transform);
 
         // Single grammar in value.js handles every input shape:
         // bare @keyframes, @property + @keyframes, .class +
@@ -952,11 +1209,20 @@ export class CSSKeyframesAnimation<V extends Vars> extends Animation<V> {
                     hasClone(v) ? v.clone() : v,
                 ]),
             ) as Record<string, unknown>;
+            // CSS parsing stays LENIENT (a forgiving language): an
+            // unrecognized per-keyframe `animation-timing-function` falls
+            // back to the inherited easing rather than throwing. The
+            // fail-explicit throw is reserved for the explicit
+            // setter/addFrame API where a bad value is a consumer bug, not
+            // a parse outcome.
             const tfText = resolved.timingFunctions.get(percent);
-            const resolvedTF = tfText
-                ? getTimingFunction(tfText as TimingFunctionNames)
-                : undefined;
-            this.addFrame(percent, frame as Partial<V>, transform, resolvedTF);
+            const resolvedFn = tfText ? getTimingFunction(tfText) : undefined;
+            this.addFrame(
+                percent,
+                frame as Partial<V>,
+                transform,
+                resolvedFn ? { fn: resolvedFn } : undefined,
+            );
         }
 
         this.parse();

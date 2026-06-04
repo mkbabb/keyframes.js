@@ -3,7 +3,7 @@ import {
     clamp,
     requestAnimationFrame,
 } from "./internal/leaves";
-import { prefersReducedMotion } from "./internal/reduced-motion";
+import { withReducedMotion } from "./internal/reduced-motion";
 
 /** Per-playback options for {@link RAFPlayback.play}. */
 export interface RAFPlaybackOptions {
@@ -23,15 +23,35 @@ export interface RAFPlaybackOptions {
 }
 
 /**
- * Shared rAF playback lifecycle for stateless interpolators
- * (`NumericAnimation`, `ElementMorph`). Owns the rAF handle, start
- * timestamp, resolve callback, AND the `prefers-reduced-motion` gate so the
- * interpolator classes don't each reimplement the same loop or the same
- * reduced-motion snap.
+ * A dt-driven stepper the {@link RAFPlayback.drive} loop can own:
+ * `SmoothProgress` and `SpringProgress` implement it directly. The driver
+ * steps `tickDt(dt)` once per frame until `settled` flips true.
+ */
+export interface Tickable {
+    /** Advance the stepper by `dt` milliseconds. */
+    tickDt(dt: number): void;
+    /** True when the stepper has converged — the driver stops the loop. */
+    readonly settled: boolean;
+}
+
+/**
+ * THE managed rAF driver. Owns the rAF handle, start timestamp, dt clock,
+ * and resolve callback for every loop in the engine, in three shapes:
  *
- * Not used by the full `Animation` class — that engine has a richer
- * lifecycle (iteration, direction, fill modes, events) that doesn't
- * factor into this primitive; it carries its own reduced-motion snap.
+ * - {@link play} — duration-based progress loop (`NumericAnimation`,
+ *   `ElementMorph`), with the light reduced-motion snap gate built in.
+ * - {@link drive} — settle-based dt loop over a {@link Tickable}
+ *   (`SmoothProgress`, `SpringProgress`): steps until the stepper settles,
+ *   auto-stopping; idempotent so target re-seats can re-arm it.
+ * - {@link loop} — self-rescheduling frame loop over an async callback
+ *   (`Animation`, `AnimationGroup`, the WAAPI shadow tick): the callback
+ *   returns `true` to continue; rescheduling waits for the (possibly
+ *   async) callback to complete, so a slow frame never double-schedules.
+ *
+ * The formerly hand-rolled copies of this lifecycle — `SmoothProgress` /
+ * `SpringProgress` `_startLoop`/`_stopLoop` byte-siblings, the
+ * `AnimationGroup` draw loop, `Animation._playRAF`, and the WAAPI shadow
+ * loop — all delegate here. No other module owns a rAF handle.
  */
 export class RAFPlayback {
     // `requestAnimationFrame` returns `number` in browsers but the
@@ -40,7 +60,22 @@ export class RAFPlayback {
     // `NodeJS.Timeout`. Either suffices as an opaque cancel handle.
     private _rafId: ReturnType<typeof requestAnimationFrame> | null = null;
     private _startTime: number | undefined = undefined;
+    private _lastFrameT: number = 0;
     private _resolve: (() => void) | null = null;
+    /**
+     * Monotonic generation counter, bumped on every `play`/`drive`/`loop`/
+     * `stop`. A loop's async frame captures its generation and reschedules
+     * ONLY when it still matches — so a `stop()` + restart while an async
+     * frame is mid-flight cannot let the stale callback re-arm a second rAF
+     * chain (the generation-unaware `_rafId !== null` guard could, because
+     * the restart repopulated `_rafId`).
+     */
+    private _gen: number = 0;
+
+    /** True while this driver owns a scheduled rAF callback. */
+    get running(): boolean {
+        return this._rafId !== null;
+    }
 
     /**
      * Drive `onTick(progress)` once per frame for `duration` ms.
@@ -64,38 +99,96 @@ export class RAFPlayback {
 
         this.stop();
 
-        // Reduced-motion: snap to the final frame in a single paint.
-        if (options?.respectReducedMotion && prefersReducedMotion()) {
-            onTick(1);
-            return Promise.resolve();
-        }
+        return withReducedMotion(
+            options?.respectReducedMotion,
+            // Reduced-motion: snap to the final frame in a single paint.
+            () => {
+                onTick(1);
+                return Promise.resolve();
+            },
+            () =>
+                new Promise<void>((resolve) => {
+                    this._resolve = resolve;
+                    this._startTime = undefined;
 
-        return new Promise<void>((resolve) => {
-            this._resolve = resolve;
-            this._startTime = undefined;
+                    const tick = (now: number) => {
+                        if (this._startTime === undefined)
+                            this._startTime = now;
+                        const progress = clamp(
+                            (now - this._startTime) / duration,
+                            0,
+                            1,
+                        );
+                        onTick(progress);
 
-            const tick = (now: number) => {
-                if (this._startTime === undefined) this._startTime = now;
-                const progress = clamp(
-                    (now - this._startTime) / duration,
-                    0,
-                    1,
-                );
-                onTick(progress);
+                        if (progress < 1) {
+                            this._rafId = requestAnimationFrame(tick);
+                        } else {
+                            this._cleanup();
+                        }
+                    };
 
-                if (progress < 1) {
                     this._rafId = requestAnimationFrame(tick);
-                } else {
-                    this._cleanup();
-                }
-            };
-
-            this._rafId = requestAnimationFrame(tick);
-        });
+                }),
+        );
     }
 
-    /** Cancel a running playback. The play promise resolves immediately. */
+    /**
+     * Drive a {@link Tickable}'s dt-stepper once per frame until it
+     * settles, invoking `onFrame` after each step. Idempotent — a call
+     * while the loop is already running is a no-op, so consumers re-arm
+     * freely on every target re-seat. The loop auto-stops on settle.
+     */
+    drive(tickable: Tickable, onFrame?: () => void): void {
+        if (this._rafId !== null) return;
+        this._lastFrameT = 0;
+
+        const frame = (now: number): void => {
+            const dt = this._lastFrameT ? now - this._lastFrameT : 16.667;
+            this._lastFrameT = now;
+            tickable.tickDt(dt);
+            onFrame?.();
+            if (tickable.settled) {
+                this._cleanup();
+                return;
+            }
+            this._rafId = requestAnimationFrame(frame);
+        };
+
+        this._rafId = requestAnimationFrame(frame);
+    }
+
+    /**
+     * Self-rescheduling frame loop over an async callback. `cb(now)`
+     * returns `true` to continue; the next frame is scheduled only after
+     * the callback (and any awaited work inside it) completes. `stop()`
+     * between frames halts the loop — the in-flight callback finishes,
+     * no further frame is scheduled.
+     */
+    loop(cb: (now: number) => boolean | Promise<boolean>): void {
+        this.stop();
+        const gen = ++this._gen;
+
+        const frame = (now: number): void => {
+            void Promise.resolve(cb(now)).then((cont) => {
+                // A stale callback from a prior generation (stop()+restart
+                // mid-frame) must never reschedule, even though `_rafId` has
+                // been repopulated by the restart.
+                if (gen !== this._gen) return;
+                if (cont && this._rafId !== null) {
+                    this._rafId = requestAnimationFrame(frame);
+                } else if (!cont) {
+                    this._cleanup();
+                }
+            });
+        };
+
+        this._rafId = requestAnimationFrame(frame);
+    }
+
+    /** Cancel a running playback. A pending play promise resolves immediately. */
     stop(): void {
+        this._gen++;
         if (this._rafId !== null) {
             cancelAnimationFrame(this._rafId);
         }
@@ -105,6 +198,7 @@ export class RAFPlayback {
     private _cleanup(): void {
         this._rafId = null;
         this._startTime = undefined;
+        this._lastFrameT = 0;
         const resolve = this._resolve;
         this._resolve = null;
         resolve?.();

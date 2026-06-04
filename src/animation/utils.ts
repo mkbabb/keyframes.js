@@ -6,11 +6,13 @@ import {
     flattenObject,
     FunctionValue,
     lerpColorValue,
+    jumpTerms,
     lerpComputedValue,
     lerpNumericValue,
     lerpValue,
     normalizeValueUnits,
     prepareInterpVar,
+    steppedEase,
     timingFunctions,
     tryParse,
     unflattenObjectToString,
@@ -91,6 +93,12 @@ const CUBIC_BEZIER_LITERAL =
     /^\s*cubic-bezier\s*\(\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*\)\s*$/i;
 
 /**
+ * Match a CSS `steps(n[, position])` literal per CSS Easing Level 1.
+ */
+const STEPS_LITERAL =
+    /^\s*steps\s*\(\s*(\d+)\s*(?:,\s*(jump-start|jump-end|jump-none|jump-both|start|end|both)\s*)?\)\s*$/i;
+
+/**
  * Resolve a timing-function input to a callable `TimingFunction`.
  *
  * Accepts:
@@ -99,13 +107,12 @@ const CUBIC_BEZIER_LITERAL =
  *     `easeOutCubic`, `linear`, etc.) — looked up in the registry
  *   - a CSS `cubic-bezier(x1, y1, x2, y2)` literal string —
  *     parsed to control points and resolved via `CSSCubicBezier`
+ *   - a CSS `steps(n[, position])` literal plus the `step-start` /
+ *     `step-end` keywords — resolved via `steppedEase`, so the full
+ *     CSS Easing Level 1 vocabulary round-trips through `fromString`
  *   - `undefined` or a name/literal the registry can't find —
- *     returns `undefined` so callers can fall back to their
- *     default (usually `easeInOutCubic`)
- *
- * Higher-arity factory entries (`steps`, `step-start`, `step-end`)
- * live in the registry but require construction arguments; they
- * return `undefined` here so callers can invoke them explicitly.
+ *     returns `undefined` so callers can decide (the option setters
+ *     throw a typed `AnimationOptionError`, fail-explicit)
  */
 export const getTimingFunction = (
     timingFunction: TimingFunction | TimingFunctionNames | string | undefined,
@@ -128,6 +135,19 @@ export const getTimingFunction = (
             return CSSCubicBezier(x1, y1, x2, y2);
         }
     }
+
+    // CSS `steps(n[, position])` literal + the step keywords.
+    const stepsMatch = timingFunction.match(STEPS_LITERAL);
+    if (stepsMatch) {
+        const count = Number.parseInt(stepsMatch[1]!, 10);
+        const term = (stepsMatch[2]?.toLowerCase() ??
+            "end") as (typeof jumpTerms)[number];
+        if (count > 0 && (jumpTerms as readonly string[]).includes(term)) {
+            return steppedEase(count, term);
+        }
+    }
+    if (timingFunction === "step-start") return steppedEase(1, "jump-start");
+    if (timingFunction === "step-end") return steppedEase(1, "jump-end");
 
     const resolved = timingFunctions[timingFunction as TimingFunctionNames];
     if (typeof resolved === "function" && resolved.length <= 1) {
@@ -295,10 +315,10 @@ export function calcFrameTime<V extends Vars>(
 
 /**
  * Default DOM-style renderer used by `Animation.transform` when no
- * user-supplied transform is provided. Marked with the
- * `keyframes.defaultRenderer` Symbol so the WAAPI eligibility check
- * can detect "user supplied a custom transform" without resorting to
- * fragile function-identity comparisons.
+ * user-supplied transform is provided. "Is this the default renderer?"
+ * is decided by reference comparison against the Animation instance's
+ * one `_defaultTransform` (`usesDefaultRenderer`) — typed and
+ * bind-proof, not a Symbol tag a wrapper would silently drop.
  */
 export function transformTargetsStyle<V extends Vars>(
     vars: V,
@@ -315,4 +335,3 @@ export function transformTargetsStyle<V extends Vars>(
         });
     });
 }
-(transformTargetsStyle as any)[Symbol.for("keyframes.defaultRenderer")] = true;

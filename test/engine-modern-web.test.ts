@@ -3,7 +3,6 @@ import { RAFPlayback } from "../src/animation/playback";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
 import { AnimationGroup } from "../src/animation/group";
 import { springTimingFunction } from "../src/animation/springTimingFunction";
-import { getCSSEasing } from "../src/animation/internal/css-easing";
 import { toWAAPIOptions } from "../src/animation/waapi";
 import { yieldToMain } from "../src/animation/internal/scheduler";
 
@@ -192,16 +191,15 @@ describe("yieldToMain + AnimationGroup tick batching", () => {
 // ── WAAPI spring linear() widening (LAND) ─────────────────────────────────
 
 describe("WAAPI spring linear() widening", () => {
-    it("springTimingFunction tags its closure with a CSS linear() string", () => {
+    it("springTimingFunction carries its CSS linear() twin on the typed Easing", () => {
         const tf = springTimingFunction({
             response: 0.5,
             dampingFraction: 0.5,
         });
-        const css = getCSSEasing(tf);
-        expect(css).toMatch(/^linear\(/);
-        // The tag does not change the closure's numeric behavior.
-        expect(tf(0)).toBe(0);
-        expect(tf(1)).toBe(1);
+        expect(tf.css).toMatch(/^linear\(/);
+        // The pairing does not change the callable's numeric behavior.
+        expect(tf.fn(0)).toBe(0);
+        expect(tf.fn(1)).toBe(1);
     });
 
     it("toWAAPIOptions emits the spring linear() instead of bare linear", () => {

@@ -14,10 +14,29 @@
 /**
  * Yield to the main thread, resolving on the next scheduler turn.
  *
- * Strategy is feature-detected per call (a cheap check) rather than cached,
- * so the active scheduler is always honored: native `scheduler.yield()` →
- * `MessageChannel` macrotask → `setTimeout(0)`.
+ * The native `scheduler.yield` is probed LIVE on each call (two cheap
+ * checks) — a polyfill or late-installed scheduler is always honored.
+ * The fallback choice (`MessageChannel` vs `setTimeout`) IS cached: those
+ * capabilities are fixed for the environment's lifetime, so re-detecting
+ * them on every yield of a large batched group is pure overhead.
  */
+let fallback: (() => Promise<void>) | null = null;
+
+const detectFallback = (): (() => Promise<void>) => {
+    if (typeof MessageChannel === "function") {
+        return () =>
+            new Promise<void>((resolve) => {
+                const channel = new MessageChannel();
+                channel.port1.onmessage = () => {
+                    channel.port1.close();
+                    resolve();
+                };
+                channel.port2.postMessage(undefined);
+            });
+    }
+    return () => new Promise<void>((resolve) => setTimeout(resolve, 0));
+};
+
 export function yieldToMain(): Promise<void> {
     const scheduler = (
         globalThis as { scheduler?: { yield?: () => Promise<void> } }
@@ -25,15 +44,6 @@ export function yieldToMain(): Promise<void> {
     if (scheduler && typeof scheduler.yield === "function") {
         return scheduler.yield();
     }
-    if (typeof MessageChannel === "function") {
-        return new Promise<void>((resolve) => {
-            const channel = new MessageChannel();
-            channel.port1.onmessage = () => {
-                channel.port1.close();
-                resolve();
-            };
-            channel.port2.postMessage(undefined);
-        });
-    }
-    return new Promise<void>((resolve) => setTimeout(resolve, 0));
+    fallback ??= detectFallback();
+    return fallback();
 }

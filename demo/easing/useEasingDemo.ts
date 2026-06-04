@@ -292,9 +292,11 @@ export function useEasingDemo() {
 
     // Sync dummy animation's timing function
     watch(currentEasingFn, (fn) => {
-        dummyAnimation.options.timingFunction = fn;
+        // Typed easing: wrap the callable once, share the reference.
+        const easing = { fn };
+        dummyAnimation.options.timingFunction = easing;
         dummyAnimation.frames.forEach((frame) => {
-            frame.timingFunction = fn;
+            frame.timingFunction = easing;
         });
     });
 

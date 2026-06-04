@@ -1,19 +1,25 @@
 # ci — PR + push-to-master gate matrix for @mkbabb/keyframes.js.
 #
-# LIBRARY-SCOPED gate (A inv β — the library build is glass-ui-free). Every
-# step touches only the publishable surface (`src/` → `dist/`):
+# TWO gate postures, by inv β:
 #
-#   check:lib  — tsc --noEmit -p tsconfig.lib.json   (src/ only; never demo)
-#   build:lib  — vite build --mode production         (library entry; externals
-#                value.js + glass-ui; demo graph untouched)
-#   test       — vitest (test/, jsdom)                (no glass-ui imports)
-#   proof:boundary — build a spring-only entry and count value.js bytes +
-#                static engine-* edges (A inv α — the boundary is gated)
+#   gates (LIBRARY) — glass-ui-FREE. Every step touches only the
+#   publishable surface (`src/` → `dist/`):
+#     check:lib  — tsc --noEmit -p tsconfig.lib.json   (src/ only; never demo)
+#     build:lib  — vite build --mode production         (library entry; externals
+#                  value.js + glass-ui; demo graph untouched)
+#     test       — vitest (test/, jsdom)                (no glass-ui imports)
+#     proof:boundary — bundle EVERY light barrel entry and assert 0 value.js +
+#                0 static engine edge per entry, the heavy engine dynamic-only,
+#                no dormant static specifier (A inv α, widened in B.W2)
+#   `@mkbabb/glass-ui` is an OPTIONAL `file:../glass-ui` dependency; a clean
+#   runner has no sibling checkout, so `npm ci` cleanly SKIPS it
+#   (`optional: true`) — verified by the /tmp clean-runner archive run. The
+#   library gate therefore runs glass-ui-free.
 #
-# `@mkbabb/glass-ui` is an OPTIONAL `file:../glass-ui` dependency (demo-dev
-# only). A clean runner has no sibling checkout, so npm skips it and the
-# library gate runs glass-ui-free. The demo / gh-pages build is a separate
-# dev-machine arm the release path does not require.
+#   demo-smoke (DEMO) — the demo legitimately needs glass-ui, so this is a
+#   SEPARATE job that installs the published package + a browser and asserts
+#   the BUILT gh-pages demo paints (B inv γ) and occludes nothing (B inv δ).
+#   A blank/tree-shaken build or an occluded page fails CI here.
 #
 # Cross-repo dependency-order note: keyframes.js resolves @mkbabb/value.js
 # via the npm registry (^0.10.0). A breaking value.js publish surfaces here
@@ -29,11 +35,12 @@ on:
 
 jobs:
     gates:
+        name: library gate (glass-ui-free)
         runs-on: ubuntu-latest
         timeout-minutes: 10
         steps:
-            - uses: actions/checkout@v4
-            - uses: actions/setup-node@v4
+            - uses: actions/checkout@v5
+            - uses: actions/setup-node@v5
               with:
                   node-version: 24
                   cache: "npm"
@@ -42,7 +49,55 @@ jobs:
               run: npm run check:lib
             - name: build (library)
               run: npm run build:lib
+            - name: dts artefact is real (not a 12-byte empty stub)
+              run: |
+                  test -f dist/keyframes.d.ts
+                  bytes=$(wc -c < dist/keyframes.d.ts)
+                  echo "dist/keyframes.d.ts = $bytes bytes"
+                  test "$bytes" -gt 10000
+                  grep -q "class Animation" dist/keyframes.d.ts
+                  grep -q "loadAnimationEngine" dist/keyframes.d.ts
             - name: test
               run: npm test -- --run
-            - name: proof:boundary (value.js static/dynamic boundary gate)
+            - name: proof:boundary (value.js static/dynamic boundary gate, all light entries)
               run: npm run proof:boundary
+
+    demo-smoke:
+        name: demo gate (inv γ paints + inv δ occlusion-free)
+        runs-on: ubuntu-latest
+        timeout-minutes: 20
+        steps:
+            - uses: actions/checkout@v5
+            - uses: actions/setup-node@v5
+              with:
+                  node-version: 24
+                  cache: "npm"
+            # The demo arm needs glass-ui (the library gate does not). The
+            # PUBLISHED tarball ships only `dist/styles/` while tailwind's CSS
+            # `@import "@mkbabb/glass-ui/styles"` resolves the SOURCE's root
+            # `styles/` (it does not honor the package `exports` map) — so the
+            # demo build resolves glass-ui ONLY against the sibling source the
+            # `file:../glass-ui` optional dep points at. Check out + build that
+            # sibling (it consumes keyframes/value.js from the REGISTRY — no
+            # circular sibling dep), so the demo build resolves it exactly as a
+            # dev machine does.
+            - name: check out + build the glass-ui sibling (file:../glass-ui)
+              run: |
+                  git clone --depth 1 https://github.com/mkbabb/glass-ui.git "$GITHUB_WORKSPACE/../glass-ui"
+                  cd "$GITHUB_WORKSPACE/../glass-ui"
+                  npm ci
+                  npm run build
+            - name: npm ci (picks up the built file:../glass-ui)
+              run: npm ci
+            - name: install playwright (demo-gate only; --no-save keeps the lib posture)
+              run: npm i --no-save @playwright/test
+            - name: install chromium
+              run: npx playwright install --with-deps chromium
+            - name: build the demo (gh-pages)
+              run: npm run gh-pages
+            - name: inv γ — the demo cannot ship blank
+              run: node scripts/demo-smoke.mjs
+            - name: inv δ — no page occludes on any viewport
+              run: node scripts/occlusion-gate.mjs
+              env:
+                  KF_REQUIRE_BROWSER: "1"
