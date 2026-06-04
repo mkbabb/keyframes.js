@@ -203,8 +203,17 @@ export default defineConfig((mode) => {
                 // Pinning both `entryRoot` AND `compilerOptions.rootDir`
                 // to the library entry's directory keeps emit and
                 // stub-write in lockstep.
+                //
+                // vite-plugin-dts 5 (unplugin-dts): the roll-up option is
+                // `bundleTypes` (v4's `rollupTypes` is silently ignored —
+                // no validation error) and `@microsoft/api-extractor`
+                // moved from a bundled dependency to an OPTIONAL peer the
+                // consumer provides (devDependency here). Both are
+                // load-bearing: without either, the build stays green and
+                // emits per-module .d.ts but NO rolled-up keyframes.d.ts —
+                // the dts byte-check in CI is what catches it.
                 dts({
-                    rollupTypes: true,
+                    bundleTypes: true,
                     include: ["src/"],
                     entryRoot: "src/animation",
                     compilerOptions: {
