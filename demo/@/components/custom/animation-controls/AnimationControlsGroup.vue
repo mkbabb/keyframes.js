@@ -134,11 +134,18 @@
 
         <!-- Animation stage. Mobile: a dedicated 1fr row track (row 2) below the
              `auto` controls-pane row — the pane no longer overlays/clips the
-             stage at narrow widths (Qσ V1). Desktop: stage spans cols 2-4 of
-             the 3-col [400px 1fr 1fr] grid, controls-pane keeps col 1. -->
+             stage at narrow widths (Qσ V1). Desktop: the stage spans the FULL
+             3-col grid (col 1-4) so the subject centers in the viewport, NOT
+             in cols 2-3 — which, when the controls pane is closed/hidden,
+             collapsed the `1fr 1fr` tracks to zero width and jammed the cube
+             off the right edge (B.W3 BLOCKER: the cube was ~half-clipped at
+             1280/1440). The controls-pane (col-1, z-controls, position:
+             relative) overlays the stage's left edge when open — its own
+             400px backdrop sits above the centered stage, so an open pane
+             frames the subject without shifting it. -->
         <div
             :class="[
-                'justify-self-stretch self-center min-h-0 h-full overflow-visible overscroll-contain col-span-full row-start-2 lg:row-start-1 lg:row-end-auto lg:col-start-2 lg:col-end-4',
+                'justify-self-stretch self-center min-h-0 h-full overflow-visible overscroll-contain col-span-full row-start-2 lg:row-start-1 lg:row-end-auto lg:col-start-1 lg:col-end-4',
             ]"
         >
             <slot name="animation-content"></slot>

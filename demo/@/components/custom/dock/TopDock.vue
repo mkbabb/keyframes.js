@@ -111,7 +111,7 @@ const activeLayer = computed(() => {
 <template>
     <div
         class="fixed left-1/2 -translate-x-1/2 z-dock flex items-center justify-center pointer-events-none"
-        style="top: calc(var(--work-area-top-offset, 0px) + var(--dock-margin) / 4);"
+        style="top: calc(max(var(--work-area-top-offset, 0px), env(safe-area-inset-top, 0px)) + var(--dock-margin) / 4);"
     >
         <div class="pointer-events-auto">
             <GlassDock ref="dockRef" :collapse-delay="2500" :start-collapsed="true" :fit-content="true" :always-expanded="isMobile">
