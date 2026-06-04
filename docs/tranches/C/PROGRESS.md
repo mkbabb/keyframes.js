@@ -76,6 +76,18 @@ the W1-W5 specs + the audit evidence + the checked-in capture harness).
    keyframes proposes; glass-ui owns + runs (inv-16). The cross-repo synthesis
    STRUCK two stale figures (the "11 unnamed dock buttons" grep artifact + the
    "40px touch target" — glass-ui ships a 44px coarse floor).
+   **The dock CONVERGENCE + naming plan**
+   (`docs/tranches/B/asks/glass-ui-dock-convergence.md`) adds the two missing
+   dimensions: a canonical role vocabulary (`ChromeDock`/`TransportDock`/
+   `CanvasDock`/`ToolDock`) replacing the per-app names (TopDock/Dock/
+   EditorControlsDock…), ONE canonical `useDock*` name per folded composable
+   (today `useExclusiveSelect`≡`usePopupMutex`), and the leverage-the-base
+   end-state (each consumer dock → a thin `<Role>Dock` slot-filler over the
+   base, zero hand-roll). keyframes' OWN obligations (rename `TopDock`→
+   `ChromeDock` + `AnimationMenuBar`→`TransportDock`; converge the two mutex
+   copies; delete the local `dock/index.ts` re-export; swap each hand-roll for
+   the base) are GATED on glass-ui landing the base dock waves, and land in C's
+   demo waves once unblocked.
 3. **The B 3.1.0 release + the C release** (W5 changeset → tag → publish) —
    user-domain, as in A/B.
 
