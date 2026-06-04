@@ -65,19 +65,32 @@ jobs:
     demo-smoke:
         name: demo gate (inv γ paints + inv δ occlusion-free)
         runs-on: ubuntu-latest
-        timeout-minutes: 15
+        timeout-minutes: 20
         steps:
             - uses: actions/checkout@v5
             - uses: actions/setup-node@v5
               with:
                   node-version: 24
                   cache: "npm"
-            - run: npm ci
-            # The demo arm needs glass-ui (the library gate does not): install
-            # the published package + a browser, WITHOUT touching package.json /
-            # the lockfile (so the glass-ui-free library posture is unchanged).
-            - name: install demo deps (published glass-ui + playwright)
-              run: npm i --no-save @mkbabb/glass-ui @playwright/test
+            # The demo arm needs glass-ui (the library gate does not). The
+            # PUBLISHED tarball ships only `dist/styles/` while tailwind's CSS
+            # `@import "@mkbabb/glass-ui/styles"` resolves the SOURCE's root
+            # `styles/` (it does not honor the package `exports` map) — so the
+            # demo build resolves glass-ui ONLY against the sibling source the
+            # `file:../glass-ui` optional dep points at. Check out + build that
+            # sibling (it consumes keyframes/value.js from the REGISTRY — no
+            # circular sibling dep), so the demo build resolves it exactly as a
+            # dev machine does.
+            - name: check out + build the glass-ui sibling (file:../glass-ui)
+              run: |
+                  git clone --depth 1 https://github.com/mkbabb/glass-ui.git "$GITHUB_WORKSPACE/../glass-ui"
+                  cd "$GITHUB_WORKSPACE/../glass-ui"
+                  npm ci
+                  npm run build
+            - name: npm ci (picks up the built file:../glass-ui)
+              run: npm ci
+            - name: install playwright (demo-gate only; --no-save keeps the lib posture)
+              run: npm i --no-save @playwright/test
             - name: install chromium
               run: npx playwright install --with-deps chromium
             - name: build the demo (gh-pages)
