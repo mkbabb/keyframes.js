@@ -170,7 +170,7 @@ const activeLayer = computed(() => {
                             @update:model-value="(id) => emit('switchScene', String(id))"
                         >
                             <DockSelectTrigger aria-label="Scene" class="instrument-serif text-lg [&>span]:line-clamp-none">
-                                <img v-if="sceneIcons[currentSceneId]" :src="sceneIcons[currentSceneId]" class="w-5 h-5 shrink-0 object-contain" />
+                                <img v-if="sceneIcons[currentSceneId]" :src="sceneIcons[currentSceneId]" :alt="`${currentSceneId} scene`" class="w-5 h-5 shrink-0 object-contain" />
                                 <Home v-else class="icon-sm text-muted-foreground" />
                                 <SelectValue />
                             </DockSelectTrigger>
@@ -192,7 +192,7 @@ const activeLayer = computed(() => {
                                     >
                                         <span class="flex items-center gap-2">
                                             <StatusDot :variant="currentSceneId === scene.id ? 'active' : 'idle'" />
-                                            <img v-if="sceneIcons[scene.id]" :src="sceneIcons[scene.id]" class="w-5 h-5 shrink-0 object-contain" />
+                                            <img v-if="sceneIcons[scene.id]" :src="sceneIcons[scene.id]" :alt="`${scene.label} scene`" class="w-5 h-5 shrink-0 object-contain" />
                                             <span :class="currentSceneId === scene.id ? 'font-bold' : ''">{{ scene.label }}</span>
                                         </span>
                                     </SelectItem>
@@ -209,7 +209,7 @@ const activeLayer = computed(() => {
 
                 <!-- Collapsed state -->
                 <template #collapsed>
-                    <img v-if="sceneIcons[currentSceneId]" :src="sceneIcons[currentSceneId]" class="w-5 h-5 shrink-0 object-contain" />
+                    <img v-if="sceneIcons[currentSceneId]" :src="sceneIcons[currentSceneId]" :alt="`${currentSceneId} scene`" class="w-5 h-5 shrink-0 object-contain" />
                     <Home v-else class="icon-sm text-muted-foreground" />
                     <span class="text-lg instrument-serif font-semibold text-foreground whitespace-nowrap">
                         {{ currentLabel }}
