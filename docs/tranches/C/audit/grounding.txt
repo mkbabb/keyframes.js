@@ -1,0 +1,32 @@
+# Tranche C — lead's independent grounding (cross-check for the 12-agent audit)
+
+Measured on master @ c66e6f3 (post-B), to corroborate the dual 6-agent audit.
+
+## Engine (cross-checks the engine-fidelity lane)
+- Residual TODO/FIXME in src/: 0 (B.W2 retired all 16). The engine surface is
+  TODO-free; further work is transposition-for-elegance, not debt-clearing.
+
+## Typography φ-ladder fork (cross-checks the typography lens) — HEADLINE
+- .instrument-serif alias: 57 uses across 23 files.
+- raw Tailwind display rungs: text-6xl ×1, text-8xl ×1, text-5xl ×2, text-2xl ×4.
+- raw body rungs: text-xl ×7, text-lg ×10, text-base ×18, text-sm ×30.
+- => the demo bypasses glass-ui's φ type-ladder wholesale. B.W5 closed the
+  gateable a11y/SEO but DEFERRED this migration. It is C's headline design item.
+
+## Dead scene-swap (cross-checks the layout-rhythm lens)
+- demo/app/App.vue:407-421 still defines .scene-enter-active / .scene-leave-active
+  / .scene-enter-from / .scene-leave-to — DEAD CSS: B.W3 removed the wrapping
+  <Transition> (it broke async scene loading), so scenes now HARD-CUT and the
+  swap CSS is orphaned. C must restore an idiomatic scene swap that does NOT
+  re-break async loading, and remove the dead CSS (no-legacy).
+
+## Demo dogfooding (cross-checks the motion-dogfood lens)
+- demo files with raw requestAnimationFrame: 7.
+- demo files using the light engines (NumericAnimation/SpringProgress/Timeline): 1.
+- => the shop-window hand-rolls rAF where it could DOGFOOD its own engine. C
+  should transpose the demo's hand-rolled loops onto the light engines — a
+  showcase AND the ≥2nd consumer several engine surfaces need (overfitting).
+
+## a11y residual (cross-checks the a11y-responsive lens)
+- DockIconButton without title/aria-label: 11 (the lighthouse button-name fails).
+  Some are demo-owned, some glass-ui-owned (route outward, inv-16).

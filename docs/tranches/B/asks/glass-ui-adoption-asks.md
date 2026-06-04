@@ -58,3 +58,22 @@ file is fourier-owned (inv-16); keyframes authors the ask here and the lead
 binds it into the ledger. keyframes' obligation is the enabler (ASK-2
 `springLinearStops` stable export — landed) and the mask removal (ASK-1)
 once glass-ui ships.
+
+## ASK-3 — glass-ui `LabeledField` renders a `<label>` with no control association (C.W1)
+
+**Symptom.** glass-ui's `LabeledField` (consumed across the demo's controls)
+renders a visible `<label>` element that is NOT associated with its control
+(no `for`/`id` pairing, no wrapping). Lighthouse flags `label` +
+`aria-input-field-name` on every page with an open controls panel (a11y
+craters to 75-79 — tranche-C design-findings, a11y-responsive CRITICAL). The
+demo cannot fix this without forking the vendor component.
+
+**Ask.** In glass-ui, associate `LabeledField`'s `<label>` with its slotted
+control — either wrap the control in the `<label>`, or generate an `id` +
+`for`, or forward `aria-labelledby`. Owner: glass-ui `LabeledField`. Trigger:
+glass-ui's next a11y/forms tranche.
+
+**keyframes-side enabler.** None — purely glass-ui-internal. The demo's
+controls consume `LabeledField` idiomatically; the fix is the vendor's. Until
+it ships, the demo's open-panel a11y is capped by the vendor component, which
+C.W1 records (it does NOT aria-band-aid around the vendor, inv-16).
