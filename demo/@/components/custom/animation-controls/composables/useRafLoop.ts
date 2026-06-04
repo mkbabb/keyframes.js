@@ -1,8 +1,13 @@
 import { watch, onUnmounted, ref } from "vue";
 import type { Ref } from "vue";
+import { RAFPlayback } from "@src/animation/playback";
 
 /**
- * A composable that manages a requestAnimationFrame loop with optional reactive guard.
+ * A composable that manages a per-frame loop with optional reactive guard.
+ *
+ * A thin reactive skin over the engine's {@link RAFPlayback.loop} driver: the
+ * self-rescheduling lifecycle (and its `_gen` restart-safety against
+ * double-scheduling on rapid start/stop) lives in `RAFPlayback`, not here.
  *
  * When `guard` is provided, the loop auto-starts when guard becomes true and
  * auto-stops when it becomes false. Without a guard, the loop must be started manually.
@@ -11,34 +16,26 @@ export function useRafLoop(
     callback: (time: DOMHighResTimeStamp) => void,
     options?: { guard?: Ref<boolean> },
 ) {
-    let rafId: number | null = null;
+    const playback = new RAFPlayback();
     const isActive = ref(false);
 
     const guard = options?.guard;
 
-    const loop = (time: DOMHighResTimeStamp) => {
-        callback(time);
-        // Re-check guard AFTER callback (which may update the guard ref)
-        // so we stop on the same frame the guard goes false.
-        if (guard && !guard.value) {
-            rafId = null;
-            isActive.value = false;
-            return;
-        }
-        rafId = requestAnimationFrame(loop);
-    };
-
     const start = () => {
-        if (rafId !== null) return;
+        if (playback.running) return;
         isActive.value = true;
-        rafId = requestAnimationFrame(loop);
+        playback.loop((time) => {
+            callback(time);
+            // Re-check guard AFTER callback (which may update the guard ref)
+            // so we stop on the same frame the guard goes false.
+            const cont = !guard || guard.value;
+            if (!cont) isActive.value = false;
+            return cont;
+        });
     };
 
     const stop = () => {
-        if (rafId !== null) {
-            cancelAnimationFrame(rafId);
-            rafId = null;
-        }
+        playback.stop();
         isActive.value = false;
     };
 

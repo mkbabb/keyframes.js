@@ -130,11 +130,15 @@ const cubeSides = [
     perspective: 1200px;
 }
 
-.idle-hover {
-    animation: idle-bob 3s var(--ease-standard) infinite alternate;
-}
-.idle-hover.playing {
-    animation: none;
+/* CSS twin of the engine's reduced-motion gate: the always-on idle bob runs
+   only when the user has not asked the OS to reduce motion. */
+@media (prefers-reduced-motion: no-preference) {
+    .idle-hover {
+        animation: idle-bob 3s var(--ease-standard) infinite alternate;
+    }
+    .idle-hover.playing {
+        animation: none;
+    }
 }
 @keyframes idle-bob {
     0% {
@@ -210,3 +214,4 @@ const cubeSides = [
     }
 }
 </style>
+

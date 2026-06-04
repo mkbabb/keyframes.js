@@ -39,6 +39,7 @@
     "build:watch": "vite build --watch --mode production",
     "gh-pages": "vite build --mode gh-pages",
     "proof:boundary": "node scripts/proof-boundary.mjs",
+    "proof:dogfood": "node scripts/proof-dogfood.mjs",
     "test": "vitest",
     "bench": "vitest bench"
   },

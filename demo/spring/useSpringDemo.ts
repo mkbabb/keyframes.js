@@ -13,6 +13,7 @@ import { CSSKeyframesAnimation } from "@src/animation/engine";
 import { SpringProgress } from "@src/animation/spring";
 import { springTimingFunction } from "@src/animation/springTimingFunction";
 import { NumericAnimation } from "@src/animation/numeric";
+import { RAFPlayback } from "@src/animation/playback";
 
 import { SPRING_PRESETS, type SpringPreset } from "./springPresets";
 
@@ -28,6 +29,7 @@ export interface SpringTrack {
 }
 
 const SETTLE = 1e-4;
+const SAMPLER_DURATION = 1400;
 
 /**
  * Drives the SpringProgress / springTimingFunction showcase.
@@ -40,8 +42,10 @@ const SETTLE = 1e-4;
  *   `NumericAnimation` so the JS-easing sampler is visible alongside the
  *   live physics tracker.
  *
- * A single shared rAF loop ticks every tracker — the SpringProgress solver is
- * analytic, so a global clock keeps all rows phase-aligned.
+ * One owned `RAFPlayback` `loop`s the whole comparison row off a single
+ * shared clock — the SpringProgress solver is analytic, so a global clock
+ * keeps every row phase-aligned (and the `loop` driver carries the engine's
+ * `_gen` generation-guard, so a rapid pause/resume can never double-schedule).
  */
 export function useSpringDemo() {
     // ── Interactive params ───────────────────────────────────────────
@@ -90,7 +94,9 @@ export function useSpringDemo() {
 
     // ── springTimingFunction sampler → NumericAnimation ──────────────
     // Sample the *same* (response, dampingFraction) the user is editing so the
-    // sampled JS easing visibly mirrors the live physics tracker.
+    // sampled JS easing visibly mirrors the live physics tracker. The ping-pong
+    // (0→1→0) is the keyframe sequence itself — a linear phase sweep through it
+    // alternates for free, so the showcase owns no hand-synced phase math.
     const sampled = ref(0);
     const samplerCss = computed(
         () =>
@@ -104,30 +110,27 @@ export function useSpringDemo() {
             dampingFraction: dampingFraction.value,
         });
         return new NumericAnimation<{ x: number }>(
-            [{ x: 0 }, { x: 1 }],
-            { timingFunction: fn, duration: 1400 },
+            [{ x: 0 }, { x: 1 }, { x: 0 }],
+            { timingFunction: fn },
         );
     }
 
-    // The sampler runs on its own normalized clock so its [0,1] sweep loops
+    // The sampler runs on its own normalized clock so its 0→1→0 sweep loops
     // independently of the live target re-seats.
-    const samplerDuration = 1400;
     let samplerStart = 0;
 
     // ── Shared rAF loop ──────────────────────────────────────────────
     const isPlaying = ref(true);
-    let rafId: number | null = null;
-    let lastT = 0;
+    const playback = markRaw(new RAFPlayback());
+    let lastNow = 0;
 
-    const tick = (now: DOMHighResTimeStamp) => {
-        if (!isPlaying.value) {
-            rafId = null;
-            return;
-        }
+    const frame = (now: DOMHighResTimeStamp): boolean => {
+        if (!isPlaying.value) return false;
 
-        const dtMs = lastT ? now - lastT : 16.667;
-        lastT = now;
-        const dt = dtMs / 1000;
+        // dt from the single shared clock. First frame seeds the clock and
+        // steps by zero (tickDt(0) is a no-op) — no magic-number dt seed.
+        const dt = lastNow ? (now - lastNow) / 1000 : 0;
+        lastNow = now;
 
         // Interactive spring.
         liveSpring.tick(dt);
@@ -143,19 +146,18 @@ export function useSpringDemo() {
             t.settled.value = t.spring.settled;
         }
 
-        // springTimingFunction sweep (ping-pong 0→1→0).
+        // springTimingFunction sweep — `direction: alternate` as keyframes.
         if (!samplerStart) samplerStart = now;
-        const cycle = ((now - samplerStart) / samplerDuration) % 2;
-        const phase = cycle <= 1 ? cycle : 2 - cycle;
+        const phase = ((now - samplerStart) / SAMPLER_DURATION) % 1;
         sampled.value = samplerAnim.at(phase).x;
 
-        rafId = requestAnimationFrame(tick);
+        return true;
     };
 
     const ensureLoop = () => {
-        if (rafId === null && isPlaying.value) {
-            lastT = 0;
-            rafId = requestAnimationFrame(tick);
+        if (isPlaying.value && !playback.running) {
+            lastNow = 0;
+            playback.loop(frame);
         }
     };
 
@@ -217,6 +219,7 @@ export function useSpringDemo() {
     };
     const pause = () => {
         isPlaying.value = false;
+        playback.stop();
     };
     const togglePlay = () => (isPlaying.value ? pause() : play());
 
@@ -230,19 +233,16 @@ export function useSpringDemo() {
 
     // ── KeepAlive lifecycle ──────────────────────────────────────────
     onActivated(ensureLoop);
-    onDeactivated(() => {
-        if (rafId !== null) {
-            cancelAnimationFrame(rafId);
-            rafId = null;
-        }
-    });
+    onDeactivated(() => playback.stop());
 
-    // ── Dummy animation for the scene contract ───────────────────────
-    // The cockpit's bottom bar drives `animationGroup`; keep a no-op group
-    // whose paused flag mirrors our rAF loop (mirrors useEasingDemo).
-    const dummyAnimation = markRaw(
+    // ── Scene-contract group ─────────────────────────────────────────
+    // The bottom bar's transport (`AnimationControlsGroup`) requires an
+    // `AnimationGroup`; this scene's motion is the light SpringProgress /
+    // NumericAnimation trackers above, so the group is a minimal placeholder
+    // whose `paused` flag mirrors the preview loop — it drives no motion.
+    const contractAnim = markRaw(
         new CSSKeyframesAnimation({
-            duration: samplerDuration,
+            duration: SAMPLER_DURATION,
             iterationCount: "infinite",
             direction: "alternate",
             timingFunction: springTimingFunction({
@@ -251,10 +251,10 @@ export function useSpringDemo() {
             }),
         }).fromVars([{ opacity: 0 }, { opacity: 1 }]),
     );
-    dummyAnimation.name = "Spring Preview";
-    dummyAnimation.superKey = "Spring";
+    contractAnim.name = "Spring Preview";
+    contractAnim.superKey = "Spring";
 
-    const animationGroup = markRaw(new AnimationGroup(dummyAnimation));
+    const animationGroup = markRaw(new AnimationGroup(contractAnim));
     animationGroup.started = true;
     animationGroup.paused = false;
 

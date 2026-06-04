@@ -37,6 +37,7 @@ export const defaultAnimationOptions = {
     fillMode: "forwards",
     direction: "alternate",
     timingFunction: "ease-in-out",
+    respectReducedMotion: true,
 } as InputAnimationOptions;
 
 export const defaultStepOptions = {

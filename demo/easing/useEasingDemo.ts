@@ -11,6 +11,8 @@ import { computed, markRaw, onActivated, onDeactivated, ref, watch } from "vue";
 
 import { CSSKeyframesAnimation } from "@src/animation/engine";
 import { AnimationGroup } from "@src/animation/group";
+import { NumericAnimation } from "@src/animation/numeric";
+import { RAFPlayback } from "@src/animation/playback";
 import type { TimingFunction } from "@src/animation/constants";
 
 import {
@@ -48,6 +50,9 @@ export function useEasingDemo() {
     const stepOptions = ref({ steps: 4, jumpTerm: "jump-end" as string });
     const duration = ref(1500);
     const isPlaying = ref(true);
+    // The raw [0,1] time parameter the preview sweeps. Each curve (the selected
+    // one and every comparison track) eases THIS in the view layer, so it stays
+    // the linear time axis — the scrubber writes it directly while paused.
     const progress = ref(0);
 
     // ── Derived state ──────────────────────────────────────────────
@@ -117,45 +122,43 @@ export function useEasingDemo() {
             });
     });
 
-    // ── rAF progress loop ──────────────────────────────────────────
+    // ── Preview sweep: NumericAnimation (direction: "alternate") ────
+    // The 0→1→0 ping-pong is the keyframe sequence itself — a normalized phase
+    // sweep through it alternates for free, so the preview owns no hand-synced
+    // ping-pong math. The animation is linear: `progress` is the raw time axis
+    // the view layer eases per-curve, so the preview must NOT pre-ease it.
+    const sweep = markRaw(
+        new NumericAnimation<{ p: number }>([{ p: 0 }, { p: 1 }, { p: 0 }]),
+    );
 
+    const playback = markRaw(new RAFPlayback());
     let startTime = 0;
-    let rafId: number | null = null;
-    let pausedProgress = 0;
 
-    const tick = (now: DOMHighResTimeStamp) => {
-        if (!isPlaying.value) {
-            // External pause (e.g. bottom bar). Clean up so the watcher can restart.
-            pausedProgress = progress.value;
-            rafId = null;
-            return;
+    const frame = (now: DOMHighResTimeStamp): boolean => {
+        if (!isPlaying.value) return false;
+        // One full alternate cycle (0→1→0) per `2 * duration`.
+        const phase = ((now - startTime) / (duration.value * 2)) % 1;
+        progress.value = sweep.at(phase).p;
+        return true;
+    };
+
+    const ensureLoop = () => {
+        if (isPlaying.value && !playback.running) {
+            startTime = performance.now() - progress.value * duration.value * 2;
+            playback.loop(frame);
         }
-
-        const elapsed = now - startTime;
-        const dur = duration.value;
-        // Ping-pong: forward then reverse
-        const cycle = elapsed / dur;
-        const phase = cycle % 2;
-        progress.value = phase <= 1 ? phase : 2 - phase;
-
-        rafId = requestAnimationFrame(tick);
     };
 
     const play = () => {
         if (isPlaying.value) return;
         isPlaying.value = true;
-        startTime = performance.now() - pausedProgress * duration.value;
-        rafId = requestAnimationFrame(tick);
+        ensureLoop();
     };
 
     const pause = () => {
         if (!isPlaying.value) return;
         isPlaying.value = false;
-        pausedProgress = progress.value;
-        if (rafId !== null) {
-            cancelAnimationFrame(rafId);
-            rafId = null;
-        }
+        playback.stop();
     };
 
     const togglePlay = () => {
@@ -165,33 +168,16 @@ export function useEasingDemo() {
 
     const reset = () => {
         progress.value = 0;
-        pausedProgress = 0;
         startTime = performance.now();
     };
 
-    // Auto-start
+    // Auto-start + KeepAlive lifecycle.
     watch(isPlaying, (playing) => {
-        if (playing && rafId === null) {
-            startTime = performance.now() - pausedProgress * duration.value;
-            rafId = requestAnimationFrame(tick);
-        }
+        if (playing) ensureLoop();
     }, { immediate: true });
 
-    // KeepAlive lifecycle
-    onActivated(() => {
-        if (isPlaying.value && rafId === null) {
-            startTime = performance.now() - progress.value * duration.value;
-            rafId = requestAnimationFrame(tick);
-        }
-    });
-
-    onDeactivated(() => {
-        if (rafId !== null) {
-            cancelAnimationFrame(rafId);
-            rafId = null;
-        }
-        pausedProgress = progress.value;
-    });
+    onActivated(ensureLoop);
+    onDeactivated(() => playback.stop());
 
     // ── Methods ────────────────────────────────────────────────────
 
@@ -261,9 +247,13 @@ export function useEasingDemo() {
         return false;
     };
 
-    // ── Dummy animation for scene contract ─────────────────────────
-
-    const dummyAnimation = markRaw(
+    // ── Scene-contract group ───────────────────────────────────────
+    // The bottom bar's transport (`AnimationControlsGroup`) requires an
+    // `AnimationGroup`; this scene's motion is the light `NumericAnimation`
+    // above, so the group is a minimal placeholder whose `paused` flag mirrors
+    // the preview loop — it drives no motion (no per-frame re-seat). Its easing
+    // mirrors the selected curve only so the bottom-bar readout matches.
+    const contractAnim = markRaw(
         new CSSKeyframesAnimation({
             duration: duration.value,
             iterationCount: "infinite",
@@ -271,37 +261,20 @@ export function useEasingDemo() {
             timingFunction: currentEasingFn.value,
         }).fromVars([{ opacity: 0 }, { opacity: 1 }]),
     );
-    dummyAnimation.name = "Easing Preview";
-    dummyAnimation.superKey = "Easing";
+    contractAnim.name = "Easing Preview";
+    contractAnim.superKey = "Easing";
 
-    const animationGroup = markRaw(new AnimationGroup(dummyAnimation as any));
+    const animationGroup = markRaw(new AnimationGroup(contractAnim as any));
 
     // Pre-start the group so the bottom bar sees it as "playing" and
     // toggleAnimationGroup correctly toggles pause instead of first-start.
     animationGroup.started = true;
     animationGroup.paused = false;
 
-    // Keep the group's play state in sync with the demo's rAF loop.
-    // When the bottom bar toggles play, AnimationControlsGroup calls
-    // animationGroup.pause() which flips `paused`. We watch that and
-    // sync our rAF loop. Conversely, when the ribbon toggles play,
-    // we update the group's paused flag.
+    // Keep the group's paused flag in sync with the preview loop so the bottom
+    // bar's play button reflects (and toggles) the actual preview state.
     watch(isPlaying, (playing) => {
         animationGroup.paused = !playing;
-    });
-
-    // Sync dummy animation's timing function
-    watch(currentEasingFn, (fn) => {
-        // Typed easing: wrap the callable once, share the reference.
-        const easing = { fn };
-        dummyAnimation.options.timingFunction = easing;
-        dummyAnimation.frames.forEach((frame) => {
-            frame.timingFunction = easing;
-        });
-    });
-
-    watch(duration, (dur) => {
-        dummyAnimation.setDuration(dur);
     });
 
     return {

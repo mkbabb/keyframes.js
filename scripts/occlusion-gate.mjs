@@ -72,17 +72,22 @@ const CONTROL_STATES = RUN_OPEN ? ["closed", "open"] : ["closed"];
 // 192×192 square subject parks at y≈539–731 on a 667px viewport — below centre,
 // behind the bottom dock (y 607–661) — because the square scene's work-area
 // (clamp(44rem,94dvh,64rem)=704px) OVERFLOWS the 667px mobile viewport. C.W2
-// defined the --dock-menubar-reserve / --work-area-vertical-bias tokens, but
-// the bias only distributes POSITIVE slack — on mobile the work-area exceeds
-// the viewport so slack is ZERO and the bias is inert. The FIX is therefore
-// mobile work-area SIZING (the work-area must fit viewport−dock-reserve so the
-// centred subject clears the dock), which lands in C.W3's demo-layout/scene
-// wave (with the cross-scene visual verification it needs to not clip the
-// taller easing/spring subjects). Until C.W3, these tags are a NAMED allowance:
-// the gate stays HARD on every OTHER scene × viewport × axis + any NEW occlusion
-// + the KF_OCCLUSION_INJECT bite test. Removal trigger: C.W3 — delete the
-// matching entries; a stale entry that now PASSES is failed loudly so it cannot
-// linger and mask a future regression.
+// defined the --dock-menubar-reserve / --work-area-vertical-bias tokens, then
+// C.W3 landed the mobile work-area SIZING fix (--work-area-max-height capped at
+// min(64rem, 100dvh − --dock-band-reserve) so the work-area reserves the dock
+// band + regains positive slack — a real improvement). But a RESIDUAL
+// ≥35%-content-overlap persists on this SMALLEST subject for two reasons:
+//   (closed) the 0.42:0.58 optical split gives the bottom only 0.58×slack,
+//     which under-reserves the full dock band when slack ≈ the band; and
+//   (open) the controls-pane-wrapper starves the row-2 stage 1fr, so the
+//     subject reaches the dock band — a controls-grid COMPOSITION concern, not
+//     work-area sizing.
+// Both are square-scene-mobile composition residuals (the minimal "custom
+// transform fn" demo cramming its controls + small subject on the narrowest
+// viewport). Booked as a focused square-scene mobile-composition pass (removal
+// trigger). The gate stays HARD on every OTHER scene × viewport × axis + any NEW
+// occlusion + the KF_OCCLUSION_INJECT bite test; a stale entry that PASSES is
+// failed loudly so it cannot linger and mask a future regression.
 const PENDING_OCCLUSION = new Set([
     "square/mobile/closed",
     "square/mobile/open",

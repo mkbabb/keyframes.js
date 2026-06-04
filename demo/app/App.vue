@@ -113,20 +113,35 @@
                  `<Suspense>` alone (each scene's chunk + its heavy deps —
                  three, monaco — stay code-split); the browser module cache
                  covers revisits, so dropping KeepAlive costs only a cheap
-                 scene re-setup, not a re-download. `ready` still gates the
-                 scene-swap CSS class below so the first paint is calm. -->
-            <Suspense :key="activeSceneKey">
-                <component
-                    :is="activeSceneComponent"
-                    ref="sceneRef"
-                    v-bind="activeSceneProps"
-                />
-                <template #fallback>
-                    <div class="flex h-full w-full items-center justify-center">
-                        <span class="text-subheading text-muted-foreground animate-pulse">Loading scene&#x2026;</span>
-                    </div>
-                </template>
-            </Suspense>
+                 scene re-setup, not a re-download.
+
+                 The scene-swap fade is RESTORED by dogfooding the engine, not
+                 by re-adding the `<Transition>` B removed for cause: a
+                 `SpringProgress` (the canonical iOS "smooth" preset, no
+                 overshoot) drives `sceneSwapStyle` on this SIBLING wrapper
+                 <div> — a plain reactive style binding, NOT a `<Transition>`
+                 around the `<Suspense>`. The async loader stays on the BARE
+                 `<Suspense>` below, untouched, so the async-load re-break
+                 cannot recur. On `activeSceneKey` change the spring re-seats
+                 0→1, fading the new scene in over the previous paint (a
+                 cross-dissolve, never a blank gap). Built with
+                 `respectReducedMotion: true`, so under prefers-reduced-motion
+                 the spring snaps to terminal in one emit — an instant clean
+                 swap, the engine's own reduced-motion authority. -->
+            <div class="h-full w-full" :style="sceneSwapStyle">
+                <Suspense :key="activeSceneKey">
+                    <component
+                        :is="activeSceneComponent"
+                        ref="sceneRef"
+                        v-bind="activeSceneProps"
+                    />
+                    <template #fallback>
+                        <div class="flex h-full w-full items-center justify-center">
+                            <span class="text-subheading text-muted-foreground animate-pulse">Loading scene&#x2026;</span>
+                        </div>
+                    </template>
+                </Suspense>
+            </div>
         </template>
     </EditorShell>
 </template>
@@ -151,6 +166,7 @@ import { DockDropdownTrigger } from "@mkbabb/glass-ui/dock";
 import { TopDock } from "@components/custom/dock";
 
 import { AnimationGroup } from "@src/animation/group";
+import { SpringProgress } from "@src/animation/spring";
 import { getStoredAnimationGroupControlOptions, saveScenePlaybackState, getScenePlaybackState, clearScenePlaybackState } from "@components/custom/animation-controls/stores";
 import type { ScenePlaybackState } from "@components/custom/animation-controls/stores";
 
@@ -199,6 +215,26 @@ const activeSceneProps = computed(() => {
         return { hideLoader: isHome.value };
     }
     return {};
+});
+
+// Engine-driven scene-swap fade. The keyed <Suspense> hard-cuts the scene;
+// this SpringProgress dogfoods the engine to fade the new scene in over the
+// previous paint (cross-dissolve, no blank gap) via a sibling style binding —
+// NOT a <Transition> wrapper (which re-broke the async loader, B.W3). The
+// default options ARE the iOS "smooth" preset (response 0.5, dampingFraction
+// 0.86 — no overshoot, a calm enter); `respectReducedMotion: true` makes the
+// spring snap to terminal in one emit under prefers-reduced-motion.
+const sceneOpacity = ref(1);
+const sceneSwapStyle = computed(() => ({
+    opacity: sceneOpacity.value,
+    // lerp(0.97, 1, v): subtle scale-up as the scene settles in.
+    transform: `scale(${0.97 + 0.03 * sceneOpacity.value})`,
+}));
+const sceneSwapSpring = new SpringProgress({ respectReducedMotion: true });
+watch(activeSceneKey, () => {
+    sceneSwapSpring.reset(0);
+    sceneSwapSpring.play((v) => { sceneOpacity.value = v; });
+    sceneSwapSpring.target = 1;
 });
 
 const storedControls = computed(() => getStoredAnimationGroupControlOptions(currentSuperKey.value));
@@ -402,24 +438,3 @@ watch(
     },
 );
 </script>
-
-<style>
-.scene-enter-active {
-    transition:
-        opacity var(--duration-slow) var(--ease-decelerate),
-        transform var(--duration-slow) var(--ease-spring);
-}
-.scene-leave-active {
-    transition:
-        opacity var(--duration-normal) var(--ease-accelerate),
-        transform var(--duration-normal) var(--ease-accelerate);
-}
-.scene-enter-from {
-    opacity: 0;
-    transform: scale(0.97);
-}
-.scene-leave-to {
-    opacity: 0;
-    transform: scale(1.02);
-}
-</style>

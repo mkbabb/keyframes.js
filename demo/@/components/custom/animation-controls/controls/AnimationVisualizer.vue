@@ -35,8 +35,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, toRef, useTemplateRef } from "vue";
+import { useTemplateRef } from "vue";
 import type { Animation } from "@src/animation/engine";
+import { SmoothProgress } from "@src/animation/smooth";
+import { SpringProgress } from "@src/animation/spring";
+import { RAFPlayback } from "@src/animation/playback";
 import { useRafLoop } from "../composables/useRafLoop";
 import { useDragCapture } from "./composables/useDragCapture";
 import { useTouchGate } from "@mkbabb/glass-ui";
@@ -97,75 +100,75 @@ const applyProgress = (progress: number) => {
     emit("scrub", t);
 };
 
-// ── Inertia / momentum on release ────────────────────────────────
-
-/** Friction coefficient — higher = stops faster. 0.92 gives a nice short coast. */
-const FRICTION = 0.92;
-/** Minimum velocity (in progress/ms) below which coasting stops. */
-const VELOCITY_EPSILON = 0.00002;
+// ── Inertia / momentum on release (engine-driven) ────────────────
+// The two hand-rolled physics loops are now the engine's two flagship
+// light trackers: SmoothProgress (exponential velocity estimator) and
+// SpringProgress (analytic decay-to-rest coast), driven by RAFPlayback.
 
 let lastProgress = 0;
 let lastMoveTime = 0;
-/** Exponentially smoothed velocity in progress units per ms. */
-let velocity = 0;
-let coastRafId: number | null = null;
 
-/** Track velocity from drag movement samples. */
+/**
+ * Exponentially-smoothed drag velocity, in progress units per ms.
+ * SmoothProgress IS the `v = v*α + instantV*(1-α)` recurrence — fed the
+ * raw per-sample velocity, its `.current` is the filtered estimate. No
+ * clamp (velocity is signed, unbounded), no settle snap during sampling.
+ */
+const velocityEstimator = new SmoothProgress({ damping: 0.4, clamp: false });
+
+/**
+ * Release coast. Seated to the nearest boundary in the fling direction,
+ * with the released velocity as the spring's initial velocity — its
+ * analytic damped-decay solver carries the momentum to rest. Under
+ * reduced-motion it snaps to the boundary in one emit.
+ */
+const coastSpring = new SpringProgress({
+    response: 0.45,
+    dampingFraction: 1,
+    respectReducedMotion: true,
+});
+const coastPlayback = new RAFPlayback();
+
+/** Feed each drag sample's instant velocity into the smoother. */
 const trackVelocity = (progress: number) => {
     const now = performance.now();
     const dt = now - lastMoveTime;
     if (dt > 0 && dt < 200) {
-        // Exponential smoothing — blends new sample with running estimate
-        // to filter out jitter while preserving directional intent.
-        const instantV = (progress - lastProgress) / dt;
-        velocity = velocity * 0.6 + instantV * 0.4;
+        velocityEstimator.setTarget((progress - lastProgress) / dt);
+        velocityEstimator.tick();
     }
     lastProgress = progress;
     lastMoveTime = now;
 };
 
-/** Cancel any in-flight coast animation. */
-const stopCoast = () => {
-    if (coastRafId !== null) {
-        cancelAnimationFrame(coastRafId);
-        coastRafId = null;
-    }
-};
+/** Below this release speed (progress/ms) a tap positions without coasting. */
+const FLING_THRESHOLD = 0.00002;
 
 /**
- * After the user releases the ball, coast with decaying velocity
- * until friction brings it to rest or it hits the [0, 1] boundary.
+ * Seat the coast spring at the release point with the released velocity
+ * and let RAFPlayback.drive carry it to the boundary the fling points at,
+ * settling itself. `drive` re-arms idempotently and auto-stops on
+ * `spring.settled`. A release without a fling has nothing to coast.
  */
 const startCoast = () => {
-    if (Math.abs(velocity) < VELOCITY_EPSILON) return;
+    const velocity = velocityEstimator.current; // progress / ms
+    if (Math.abs(velocity) < FLING_THRESHOLD) {
+        emit("dragEnd");
+        return;
+    }
 
-    let coastProgress = lastProgress;
-    let prevTime = performance.now();
+    // Seat at the release point with the released velocity (ms → s for the
+    // spring's units/second convention) and aim at the fling-direction
+    // boundary; the analytic decay carries the momentum there.
+    coastSpring.reset(lastProgress, velocity * 1000);
+    coastSpring.target = velocity > 0 ? 1 : 0;
 
-    const coast = () => {
-        const now = performance.now();
-        const dt = now - prevTime;
-        prevTime = now;
-
-        velocity *= FRICTION;
-        coastProgress += velocity * dt;
-
-        // Clamp and stop at boundaries
-        if (coastProgress <= 0) { coastProgress = 0; velocity = 0; }
-        if (coastProgress >= 1) { coastProgress = 1; velocity = 0; }
-
-        applyProgress(coastProgress);
-        lastProgress = coastProgress;
-
-        if (Math.abs(velocity) > VELOCITY_EPSILON) {
-            coastRafId = requestAnimationFrame(coast);
-        } else {
-            coastRafId = null;
-            emit("dragEnd");
-        }
-    };
-
-    coastRafId = requestAnimationFrame(coast);
+    coastPlayback.drive(coastSpring, () => {
+        const p = Math.max(0, Math.min(coastSpring.value, 1));
+        lastProgress = p;
+        applyProgress(p);
+        if (coastSpring.settled) emit("dragEnd");
+    });
 };
 
 // ── Drag capture ─────────────────────────────────────────────────
@@ -178,10 +181,10 @@ const { isDragging, onPointerDown } = useDragCapture({
         grabOffset = e.clientX - (ballRect.left + ballRect.width / 2);
         gate.suppressDeactivate(true);
 
-        // Reset velocity tracking
-        velocity = 0;
+        // Reset velocity tracking + cancel any in-flight coast.
+        velocityEstimator.reset(0);
         lastMoveTime = performance.now();
-        stopCoast();
+        coastPlayback.stop();
 
         emit("dragStart");
 
@@ -198,13 +201,9 @@ const { isDragging, onPointerDown } = useDragCapture({
         grabOffset = 0;
         gate.suppressDeactivate(false);
 
-        // If there's meaningful velocity, coast with inertia.
-        // dragEnd is emitted when the coast finishes (or immediately if no coast).
-        if (Math.abs(velocity) > VELOCITY_EPSILON) {
-            startCoast();
-        } else {
-            emit("dragEnd");
-        }
+        // Coast with inertia. The spring settles immediately (and emits
+        // dragEnd) when the release velocity is negligible.
+        startCoast();
     },
 });
 
@@ -222,7 +221,7 @@ const gatedPointerDown = (e: PointerEvent) => {
 
 const { start: startSync } = useRafLoop(() => {
     const anim = props.animation;
-    if (!isDragging.value && coastRafId === null && anim.options.duration > 0) {
+    if (!isDragging.value && !coastPlayback.running && anim.options.duration > 0) {
         const progress = Math.max(
             0,
             Math.min(anim.effectiveT / anim.options.duration, 1),
