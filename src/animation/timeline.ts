@@ -75,8 +75,7 @@ export abstract class Timeline {
     /**
      * Shared progress pipeline: sample → clamp → easing → boundary snap.
      * Returns the processed raw value. Does NOT advance the smoother —
-     * the caller (tick or tickDt) drives the smoother with the appropriate
-     * time-step method.
+     * `_advance` drives it.
      */
     private applyPipeline(): number {
         let raw = clamp01(this.sample());
@@ -93,41 +92,31 @@ export abstract class Timeline {
     }
 
     /**
-     * Finalize progress after the smoother has been advanced (or bypassed).
-     * Snaps the smoother at boundaries [0, 1] for instant convergence.
+     * Shared advance step: pipeline → ONE `setTarget` → ONE branch. At a
+     * boundary ([0,1]) the smoother snaps for instant convergence; in the
+     * interior it steps `tickDt(dt)` (the canonical ms step). Returns the
+     * resulting progress.
      */
-    private finalizeProgress(raw: number): number {
+    private _advance(dt: number): number {
+        const raw = this.applyPipeline();
         if (this.smoother) {
             this.smoother.setTarget(raw);
-            if (raw <= 0 || raw >= 1) {
-                this.smoother.snap();
-            }
+            if (raw <= 0 || raw >= 1) this.smoother.snap();
+            else this.smoother.tickDt(dt);
+            this.currentProgress = this.smoother.current;
+        } else {
+            this.currentProgress = raw;
         }
-        this.currentProgress = this.smoother ? this.smoother.current : raw;
         return this.currentProgress;
     }
 
     /**
-     * Shared advance step. When `dt` is undefined, drives the
-     * smoother in frame-rate-dependent mode (`tick()`); when given,
-     * uses the frame-rate-independent variant (`tickDt(dt)`).
+     * Advance one frame at a nominal 60fps step. Applies
+     * easing → boundary snap → smoothing. Use {@link tickDt} when you own
+     * a real frame clock.
      */
-    private _advance(dt?: number): number {
-        const raw = this.applyPipeline();
-        if (this.smoother && raw > 0 && raw < 1) {
-            this.smoother.setTarget(raw);
-            if (dt === undefined) this.smoother.tick();
-            else this.smoother.tickDt(dt);
-            this.currentProgress = this.smoother.current;
-        } else {
-            this.finalizeProgress(raw);
-        }
-        return this.currentProgress;
-    }
-
-    /** Advance one frame. Applies easing → boundary snap → smoothing. */
     tick(): number {
-        return this._advance();
+        return this._advance(16.667);
     }
 
     /** Frame-rate independent variant. `dt` in milliseconds. */

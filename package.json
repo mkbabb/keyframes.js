@@ -92,6 +92,7 @@
     "prettier-plugin-organize-imports": "^4.3.0",
     "prettier-plugin-tailwindcss": "^0.8.0",
     "reka-ui": "^2.9.9",
+    "rolldown": "^1.0.0",
     "tailwind-merge": "^3.6.0",
     "tailwindcss": "^4.3.0",
     "three": "^0.184.0",

@@ -129,18 +129,18 @@ export function useSpringDemo() {
 
         // dt from the single shared clock. First frame seeds the clock and
         // steps by zero (tickDt(0) is a no-op) — no magic-number dt seed.
-        const dt = lastNow ? (now - lastNow) / 1000 : 0;
+        const dt = lastNow ? now - lastNow : 0;
         lastNow = now;
 
         // Interactive spring.
-        liveSpring.tick(dt);
+        liveSpring.tickDt(dt);
         liveValue.value = liveSpring.value;
         liveVelocity.value = liveSpring.velocity;
         liveSettled.value = liveSpring.settled;
 
         // Canonical presets.
         for (const t of tracks) {
-            t.spring.tick(dt);
+            t.spring.tickDt(dt);
             t.value.value = t.spring.value;
             t.velocity.value = t.spring.velocity;
             t.settled.value = t.spring.settled;

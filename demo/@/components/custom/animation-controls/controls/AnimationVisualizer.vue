@@ -135,7 +135,7 @@ const trackVelocity = (progress: number) => {
     const dt = now - lastMoveTime;
     if (dt > 0 && dt < 200) {
         velocityEstimator.setTarget((progress - lastProgress) / dt);
-        velocityEstimator.tick();
+        velocityEstimator.tickDt(dt);
     }
     lastProgress = progress;
     lastMoveTime = now;

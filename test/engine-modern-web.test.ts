@@ -1,7 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { RAFPlayback } from "../src/animation/playback";
+import type { Tickable } from "../src/animation/playback";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
 import { AnimationGroup } from "../src/animation/group";
+import { SmoothProgress } from "../src/animation/smooth";
+import { SpringProgress } from "../src/animation/spring";
 import { springTimingFunction } from "../src/animation/springTimingFunction";
 import { toWAAPIOptions } from "../src/animation/waapi";
 import { yieldToMain } from "../src/animation/internal/scheduler";
@@ -220,5 +223,138 @@ describe("WAAPI spring linear() widening", () => {
             timingFunction: (t: number) => t * t,
         }).fromString(`from { opacity: 0; } to { opacity: 1; }`);
         expect(toWAAPIOptions(anim).easing).toBe("linear");
+    });
+});
+
+// ── S1: one generation-guarded loop core — drive cannot double-schedule ───
+//
+// A manual rAF queue makes scheduling deterministic: each scheduled callback
+// is held until `step()` runs it, and we count how many callbacks are LIVE
+// (scheduled but not yet run). A correct single-chain loop never has more
+// than one live callback at a time; a double-scheduled chain shows two.
+
+describe("RAFPlayback.drive — one generation-guarded core (S1)", () => {
+    let queue: Map<number, FrameRequestCallback>;
+    let nextId: number;
+    let realRaf: typeof window.requestAnimationFrame;
+    let realCancel: typeof window.cancelAnimationFrame;
+
+    beforeEach(() => {
+        queue = new Map();
+        nextId = 1;
+        realRaf = window.requestAnimationFrame;
+        realCancel = window.cancelAnimationFrame;
+        window.requestAnimationFrame = ((cb: FrameRequestCallback) => {
+            const id = nextId++;
+            queue.set(id, cb);
+            return id;
+        }) as typeof window.requestAnimationFrame;
+        window.cancelAnimationFrame = ((id: number) => {
+            queue.delete(id);
+        }) as typeof window.cancelAnimationFrame;
+    });
+
+    afterEach(() => {
+        window.requestAnimationFrame = realRaf;
+        window.cancelAnimationFrame = realCancel;
+    });
+
+    /** Run every currently-queued callback once; the `_run` `.then` that
+     *  reschedules is a microtask, so await a flush after draining. */
+    async function step(now: number): Promise<void> {
+        const live = [...queue.entries()];
+        queue.clear();
+        for (const [, cb] of live) cb(now);
+        await Promise.resolve();
+        await Promise.resolve();
+    }
+
+    it("a stop()+restart mid-frame (re-entrant onFrame) spawns NO second rAF chain", async () => {
+        const pb = new RAFPlayback();
+        // A stepper that never settles, so the loop keeps rescheduling.
+        const tickable: Tickable = {
+            settled: false,
+            tickDt: () => 0,
+        };
+
+        let reentered = false;
+        const onFrame = () => {
+            // On the FIRST frame, re-enter synchronously: stop the live loop
+            // and immediately re-arm it — the classic mid-frame restart that
+            // the old `_rafId !== null`-only guard let double-schedule.
+            if (!reentered) {
+                reentered = true;
+                pb.stop();
+                pb.drive(tickable, onFrame);
+            }
+        };
+
+        pb.drive(tickable, onFrame);
+        expect(queue.size).toBe(1); // one scheduled frame
+
+        await step(16); // runs the frame → onFrame re-enters stop()+drive()
+        // The stale (first) chain must NOT reschedule; only the restart's
+        // chain survives. Exactly ONE live callback, never two.
+        expect(queue.size).toBe(1);
+
+        await step(32); // advance the surviving chain one more frame
+        expect(queue.size).toBe(1); // still a single chain, no fork
+
+        pb.stop();
+        expect(queue.size).toBe(0);
+    });
+});
+
+// ── S2: one canonical tickDt(ms) step — no units foot-gun ─────────────────
+
+describe("tickDt(dt: ms) is the canonical step across steppers (S2)", () => {
+    it("tickDt(16) advances the same physical amount on smooth + spring", () => {
+        // SmoothProgress: a 16ms step is frame-rate-independent damping.
+        const smooth = new SmoothProgress({ damping: 0.2, clamp: false });
+        smooth.setTarget(1);
+        const sA = smooth.tickDt(16);
+        // SpringProgress: tickDt(16) must mean 16 MILLISECONDS (= 0.016s),
+        // not 16 seconds — the old `tick(16)` seconds foot-gun would settle
+        // instantly. After one 16ms step the spring has barely moved.
+        const spring = new SpringProgress({
+            response: 0.5,
+            dampingFraction: 0.86,
+        });
+        spring.target = 1;
+        const pA = spring.tickDt(16);
+        expect(pA).toBeGreaterThan(0);
+        expect(pA).toBeLessThan(0.2); // 16ms, NOT 16s — nowhere near settled
+        expect(sA).toBeGreaterThan(0);
+        expect(sA).toBeLessThan(1);
+
+        // Two 16ms steps advance the SAME physical span as one 32ms step
+        // (frame-rate independence holds in ONE unit, ms, for both steppers).
+        const smoothSplit = new SmoothProgress({ damping: 0.2, clamp: false });
+        smoothSplit.setTarget(1);
+        smoothSplit.tickDt(16);
+        const smoothTwo = smoothSplit.tickDt(16);
+        const smoothOnce = new SmoothProgress({ damping: 0.2, clamp: false });
+        smoothOnce.setTarget(1);
+        const smoothJump = smoothOnce.tickDt(32);
+        // Exponential damping composes exactly: e^(-d·16/F)·e^(-d·16/F) =
+        // e^(-d·32/F), so split and single-jump agree to machine epsilon.
+        expect(smoothTwo).toBeCloseTo(smoothJump, 12);
+
+        const springSplit = new SpringProgress({
+            response: 0.5,
+            dampingFraction: 0.86,
+        });
+        springSplit.target = 1;
+        springSplit.tickDt(16);
+        const springTwo = springSplit.tickDt(16);
+        const springOnce = new SpringProgress({
+            response: 0.5,
+            dampingFraction: 0.86,
+        });
+        springOnce.target = 1;
+        const springJump = springOnce.tickToTime(0.032);
+        // The analytic spring closed-form: two 16ms steps reach the same
+        // (x, v) as a single seek to 32ms — same ms unit, same physics.
+        expect(springTwo).toBeCloseTo(springJump, 9);
     });
 });

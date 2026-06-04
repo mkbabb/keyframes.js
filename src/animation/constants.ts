@@ -1,4 +1,5 @@
 import {
+    COLOR_SPACE_RANGES,
     easeInOutCubic,
     timingFunctions,
     type ColorSpace,
@@ -21,6 +22,27 @@ export const DIRECTIONS = [
 ] as const;
 
 export const FILL_MODES = ["none", "forwards", "backwards", "both"] as const;
+
+/**
+ * The valid `colorSpace` values — the runtime key-set of value.js's
+ * `COLOR_SPACE_RANGES`, the SAME source the `ColorSpace` type derives from
+ * (`keyof typeof COLOR_SPACE_RANGES`). Drawing it from the registry keeps the
+ * fail-explicit setter's accept-list from drifting from the type.
+ */
+export const COLOR_SPACES = Object.keys(COLOR_SPACE_RANGES) as ColorSpace[];
+
+/**
+ * The valid `hueMethod` values — the closed CSS Color 4 union
+ * `HueInterpolationMethod`. value.js exposes this only as a type (no runtime
+ * array), so the spec's four members are pinned here, typed against the union
+ * so a drift fails to compile.
+ */
+export const HUE_METHODS = [
+    "shorter",
+    "longer",
+    "increasing",
+    "decreasing",
+] as const satisfies readonly HueInterpolationMethod[];
 
 export type TimingFunctionNames = keyof typeof timingFunctions;
 

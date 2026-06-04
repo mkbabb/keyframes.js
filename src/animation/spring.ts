@@ -197,11 +197,26 @@ export class SpringProgress {
     }
 
     /**
-     * Advance by `dt` seconds. Uses the analytic closed-form solution
-     * accumulated from the last target re-seat (so per-frame error is
+     * THE canonical step: advance by `dt` MILLISECONDS — the {@link Tickable}
+     * surface the shared `RAFPlayback.drive` loop steps, and the one unit
+     * every stepper's public step takes. Returns the new value.
+     *
+     * The spring math is in seconds; this converts and delegates to the
+     * private analytic stepper {@link _stepSeconds}.
+     */
+    tickDt(dt: number): number {
+        return this._stepSeconds(dt / 1000);
+    }
+
+    /**
+     * Analytic per-frame step in SECONDS — the spring's native clock.
+     * @internal — the canonical public step is the millisecond `tickDt`;
+     * only the seconds-based spring samplers (`springLinearStops`,
+     * `springTimingFunction`) drive this directly. Uses the closed-form
+     * solution accumulated from the last target re-seat (per-frame error is
      * O(machine epsilon), not O(dt²) like Euler).
      */
-    tick(dt: number): number {
+    _stepSeconds(dt: number): number {
         if (this.disposed || this.isSettled || dt <= 0) {
             return this.currentValue;
         }
@@ -211,15 +226,6 @@ export class SpringProgress {
         this.checkSettled();
         this.emit();
         return this.currentValue;
-    }
-
-    /**
-     * Millisecond-clock sibling of {@link tick} — the {@link Tickable}
-     * surface the shared `RAFPlayback.drive` loop steps. The spring math is
-     * in seconds; rAF (and the driver) deal in milliseconds.
-     */
-    tickDt(dt: number): number {
-        return this.tick(dt / 1000);
     }
 
     /**

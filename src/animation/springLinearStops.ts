@@ -61,7 +61,7 @@ export function springLinearStops(opts: SpringLinearStopsOptions): string {
     const dt = maxDuration / (sampleCount + 1);
 
     for (let i = 1; i <= sampleCount; i++) {
-        spring.tick(dt);
+        spring._stepSeconds(dt);
         const pct = (i / (sampleCount + 1)) * 100;
         const v = spring.settled ? 1 : spring.value;
         stops.push(`${v.toFixed(5)} ${pct.toFixed(3)}%`);

@@ -1,17 +1,20 @@
 import { describe, expect, it, vi } from "vitest";
 import { SpringProgress } from "../src/animation/spring";
 
+/** 60fps frame step in milliseconds — the canonical `tickDt` unit. */
+const FRAME_MS = 1000 / 60;
+
 /** Run the spring's analytic solver in 60fps steps until settled or max ticks. */
 function runUntilSettled(
     spring: SpringProgress,
     maxTicks = 6000,
-    dt = 1 / 60,
+    dt = FRAME_MS,
 ): { ticks: number; peak: number; trough: number } {
     let peak = -Infinity;
     let trough = Infinity;
     let i = 0;
     for (; i < maxTicks; i++) {
-        spring.tick(dt);
+        spring.tickDt(dt);
         if (spring.value > peak) peak = spring.value;
         if (spring.value < trough) trough = spring.value;
         if (spring.settled) break;
@@ -109,7 +112,7 @@ describe("SpringProgress", () => {
             sp.target = 1;
             let last = sp.value;
             for (let i = 0; i < 10000; i++) {
-                sp.tick(1 / 60);
+                sp.tickDt(FRAME_MS);
                 // Monotone non-decreasing approach.
                 expect(sp.value).toBeGreaterThanOrEqual(last - 1e-9);
                 last = sp.value;
@@ -129,7 +132,7 @@ describe("SpringProgress", () => {
             });
             sp.target = 1;
             // Step into the middle of the trajectory.
-            for (let i = 0; i < 10; i++) sp.tick(1 / 60);
+            for (let i = 0; i < 10; i++) sp.tickDt(FRAME_MS);
             const midValue = sp.value;
             const midVelocity = sp.velocity;
             expect(midValue).toBeGreaterThan(0);
@@ -163,7 +166,7 @@ describe("SpringProgress", () => {
             b.target = 1;
 
             // Incremental.
-            for (let i = 0; i < 12; i++) a.tick(1 / 60);
+            for (let i = 0; i < 12; i++) a.tickDt(FRAME_MS);
             // Closed-form to same elapsed.
             b.tickToTime(12 / 60);
 
@@ -181,7 +184,7 @@ describe("SpringProgress", () => {
                 dampingFraction: 0.7,
             });
             sp.target = 1;
-            sp.tick(1 / 60);
+            sp.tickDt(FRAME_MS);
             expect(Math.abs(sp.velocity)).toBeGreaterThan(0);
             runUntilSettled(sp);
             expect(sp.velocity).toBe(0);
@@ -198,7 +201,7 @@ describe("SpringProgress", () => {
             const fn = vi.fn();
             const unsub = sp.subscribe(fn);
             sp.target = 1;
-            sp.tick(1 / 60);
+            sp.tickDt(FRAME_MS);
             expect(fn).toHaveBeenCalled();
             const [v, vel] = fn.mock.calls[0]!;
             expect(typeof v).toBe("number");
@@ -215,10 +218,10 @@ describe("SpringProgress", () => {
             const fn = vi.fn();
             const unsub = sp.subscribe(fn);
             sp.target = 1;
-            sp.tick(1 / 60);
+            sp.tickDt(FRAME_MS);
             const beforeUnsub = fn.mock.calls.length;
             unsub();
-            sp.tick(1 / 60);
+            sp.tickDt(FRAME_MS);
             expect(fn.mock.calls.length).toBe(beforeUnsub);
             sp.dispose();
         });
@@ -233,7 +236,7 @@ describe("SpringProgress", () => {
             sp.subscribe(a);
             sp.subscribe(b);
             sp.target = 1;
-            sp.tick(1 / 60);
+            sp.tickDt(FRAME_MS);
             expect(a).toHaveBeenCalled();
             expect(b).toHaveBeenCalled();
             sp.dispose();
@@ -250,7 +253,7 @@ describe("SpringProgress", () => {
             sp.subscribe(fn);
             sp.target = 1;
             sp.dispose();
-            sp.tick(1 / 60);
+            sp.tickDt(FRAME_MS);
             // After dispose, tick is a no-op — no further emissions.
             expect(fn).not.toHaveBeenCalled();
         });
@@ -263,8 +266,8 @@ describe("SpringProgress", () => {
                 dampingFraction: 0.5,
             });
             sp.target = 1;
-            sp.tick(1 / 60);
-            sp.tick(1 / 60);
+            sp.tickDt(FRAME_MS);
+            sp.tickDt(FRAME_MS);
             sp.snap();
             expect(sp.value).toBe(1);
             expect(sp.velocity).toBe(0);
@@ -274,7 +277,7 @@ describe("SpringProgress", () => {
         it("reset returns to specified value, target = value", () => {
             const sp = new SpringProgress();
             sp.target = 1;
-            sp.tick(1 / 60);
+            sp.tickDt(FRAME_MS);
             sp.reset(0.25);
             expect(sp.value).toBe(0.25);
             expect(sp.target).toBe(0.25);

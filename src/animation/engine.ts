@@ -31,7 +31,13 @@ import { AnimationOptionError, parseOption } from "./internal/errors";
 import { withReducedMotion } from "./internal/reduced-motion";
 import { RAFPlayback } from "./playback";
 import { resolveKeyframes } from "./adapter";
-import { DIRECTIONS, FILL_MODES, defaultOptions } from "./constants";
+import {
+    COLOR_SPACES,
+    DIRECTIONS,
+    FILL_MODES,
+    HUE_METHODS,
+    defaultOptions,
+} from "./constants";
 import type {
     AnimationFrame,
     AnimationOptions,
@@ -655,16 +661,33 @@ export class Animation<V extends Vars = any> {
     }
 
     setColorSpace(colorSpace: InputAnimationOptions["colorSpace"]) {
-        // Type-enforced at the boundary (value.js's ColorSpace union);
-        // genuine omission defaults to the perceptual default.
-        this.options.colorSpace = colorSpace ?? defaultOptions.colorSpace;
+        if (colorSpace == null) {
+            this.options.colorSpace = defaultOptions.colorSpace;
+            return this;
+        }
+        if (!COLOR_SPACES.includes(colorSpace)) {
+            throw new AnimationOptionError(
+                "colorSpace",
+                colorSpace,
+                `expected one of: ${COLOR_SPACES.join(", ")}`,
+            );
+        }
+        this.options.colorSpace = colorSpace;
         return this;
     }
 
     setHueMethod(hueMethod: InputAnimationOptions["hueMethod"]) {
-        if (hueMethod !== undefined) {
-            this.options.hueMethod = hueMethod;
+        // Genuine omission leaves `hueMethod` unset (the color machinery picks
+        // the space's default); a present-but-malformed value throws.
+        if (hueMethod == null) return this;
+        if (!(HUE_METHODS as readonly string[]).includes(hueMethod)) {
+            throw new AnimationOptionError(
+                "hueMethod",
+                hueMethod,
+                `expected one of: ${HUE_METHODS.join(", ")}`,
+            );
         }
+        this.options.hueMethod = hueMethod;
         return this;
     }
 

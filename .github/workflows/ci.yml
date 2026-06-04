@@ -57,14 +57,37 @@ jobs:
               run: npm run check:lib
             - name: build (library)
               run: npm run build:lib
-            - name: dts artefact is real (not a 12-byte empty stub)
+            - name: dts artefact is real + the 15 public runtime symbols roll up
               run: |
                   test -f dist/keyframes.d.ts
                   bytes=$(wc -c < dist/keyframes.d.ts)
                   echo "dist/keyframes.d.ts = $bytes bytes"
                   test "$bytes" -gt 10000
-                  grep -q "class Animation" dist/keyframes.d.ts
-                  grep -q "loadAnimationEngine" dist/keyframes.d.ts
+                  # The 15 PUBLIC runtime symbols the library ships: the 14 light
+                  # barrel exports + the loadAnimationEngine dynamic accessor. Each
+                  # must roll up to the dts as a PRECISE `export declare …` anchor
+                  # — NOT a loose substring. The former `grep "class Animation"`
+                  # matched the `Animation_2` collision-rename / `AnimationGroup` /
+                  # `AnimationOptionError`, proving none of them; a dropped symbol
+                  # passed green. A symbol ships either directly
+                  # (`export declare class|function|const NAME…`) or, when
+                  # API-Extractor must collision-rename it (`ScrollTimeline_2`), as
+                  # an `export { <rename> as NAME }` aliased re-export — either proves it.
+                  SYMS="NumericAnimation SmoothProgress SpringProgress springLinearStops springTimingFunction ElementMorph Timeline ScrollTimeline ManualTimeline RAFPlayback resolveEasing toEasing AnimationOptionError UnknownEasingError loadAnimationEngine"
+                  missing=""
+                  for sym in $SYMS; do
+                    if grep -qE "^export declare (abstract class|class|function|const|enum) ${sym}[<(:; ]" dist/keyframes.d.ts \
+                       || grep -qE "^export \{ [A-Za-z0-9_]+ as ${sym} \}" dist/keyframes.d.ts; then
+                      :
+                    else
+                      missing="$missing $sym"
+                    fi
+                  done
+                  if [ -n "$missing" ]; then
+                    echo "dts MISSING public runtime symbol declaration(s):$missing"
+                    exit 1
+                  fi
+                  echo "dts public-symbol set complete: 15/15"
             - name: test
               run: npm test -- --run
             - name: proof:boundary (value.js static/dynamic boundary gate, all light entries)
@@ -89,9 +112,15 @@ jobs:
             # sibling (it consumes keyframes/value.js from the REGISTRY — no
             # circular sibling dep), so the demo build resolves it exactly as a
             # dev machine does.
-            - name: check out + build the glass-ui sibling (file:../glass-ui)
+            # PINNED to a known-good glass-ui tag (NOT the default branch): a
+            # foreign repo's moving HEAD is a reproducibility hole — a glass-ui
+            # main break (its own build, a peer/dep bump, a renamed build
+            # script) would red keyframes CI for a change with zero keyframes
+            # diff. The pin advances via an explicit chore(ci) bump — the same
+            # routed-through-a-PR discipline the value.js dep-order note keeps.
+            - name: check out + build the glass-ui sibling (file:../glass-ui, pinned)
               run: |
-                  git clone --depth 1 https://github.com/mkbabb/glass-ui.git "$GITHUB_WORKSPACE/../glass-ui"
+                  git clone --depth 1 --branch v3.2.0 https://github.com/mkbabb/glass-ui.git "$GITHUB_WORKSPACE/../glass-ui"
                   cd "$GITHUB_WORKSPACE/../glass-ui"
                   npm ci
                   npm run build

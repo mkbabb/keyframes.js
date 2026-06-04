@@ -22,20 +22,20 @@ describe("SmoothProgress", () => {
         expect(sp.settled).toBe(false);
     });
 
-    it("tick() moves current toward target", () => {
+    it("tickDt() moves current toward target", () => {
         const sp = new SmoothProgress({ damping: 0.5 });
         sp.setTarget(1);
-        const v1 = sp.tick();
+        const v1 = sp.tickDt(16.667);
         expect(v1).toBeGreaterThan(0);
         expect(v1).toBeLessThan(1);
-        const v2 = sp.tick();
+        const v2 = sp.tickDt(16.667);
         expect(v2).toBeGreaterThan(v1);
     });
 
     it("eventually settles at target", () => {
         const sp = new SmoothProgress({ damping: 0.5, snapThreshold: 0.01 });
         sp.setTarget(1);
-        for (let i = 0; i < 100; i++) sp.tick();
+        for (let i = 0; i < 100; i++) sp.tickDt(16.667);
         expect(sp.settled).toBe(true);
         expect(sp.current).toBe(1);
     });
@@ -51,7 +51,7 @@ describe("SmoothProgress", () => {
     it("reset() returns to specified value", () => {
         const sp = new SmoothProgress();
         sp.setTarget(1);
-        sp.tick();
+        sp.tickDt(16.667);
         sp.reset(0.3);
         expect(sp.current).toBe(0.3);
         expect(sp.target).toBe(0.3);
@@ -81,9 +81,9 @@ describe("SmoothProgress", () => {
         expect(v2).toBeGreaterThan(v1);
     });
 
-    it("tick() returns current when already settled", () => {
+    it("tickDt() returns current when already settled", () => {
         const sp = new SmoothProgress({ initial: 0.5 });
-        expect(sp.tick()).toBe(0.5);
+        expect(sp.tickDt(16.667)).toBe(0.5);
     });
 
     describe("play() / stop()", () => {

@@ -100,6 +100,50 @@ describe("strict option validation (AnimationOptionError)", () => {
         );
     });
 
+    it("setColorSpace throws on a malformed present value, defaults on omission", () => {
+        const anim = new Animation();
+        // Present-but-malformed: the seam, not a silent `?? default` accept.
+        expect(() => anim.setColorSpace("bogus" as never)).toThrow(
+            AnimationOptionError,
+        );
+        expect(() => anim.setColorSpace("srgbbb" as never)).toThrow(
+            /colorSpace/,
+        );
+        // A valid space is written through.
+        anim.setColorSpace("oklch");
+        expect(anim.options.colorSpace).toBe("oklch");
+        // Genuine omission still defaults — the only accepted non-value.
+        anim.setColorSpace(undefined);
+        expect(anim.options.colorSpace).toBe(defaultOptions.colorSpace);
+    });
+
+    it("setHueMethod throws on a malformed present value, omission leaves it unset", () => {
+        const anim = new Animation();
+        expect(() => anim.setHueMethod("bogus" as never)).toThrow(
+            AnimationOptionError,
+        );
+        expect(() => anim.setHueMethod("bogus" as never)).toThrow(/hueMethod/);
+        // A valid CSS Color 4 hue method is written through.
+        anim.setHueMethod("longer");
+        expect(anim.options.hueMethod).toBe("longer");
+        // Genuine omission is the accepted no-op (the prior value survives).
+        anim.setHueMethod(undefined);
+        expect(anim.options.hueMethod).toBe("longer");
+    });
+
+    it("setColorSpace error carries the option name and offending value", () => {
+        const anim = new Animation();
+        try {
+            anim.setColorSpace("srgbbb" as never);
+            expect.unreachable("should have thrown");
+        } catch (e) {
+            const err = e as AnimationOptionError;
+            expect(err.name).toBe("AnimationOptionError");
+            expect(err.option).toBe("colorSpace");
+            expect(err.value).toBe("srgbbb");
+        }
+    });
+
     it("the error carries the option name and offending value", () => {
         const anim = new Animation();
         try {

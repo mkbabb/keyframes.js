@@ -355,7 +355,7 @@ describe("colorSpace option", () => {
     });
 
     it("accepts colorSpace in constructor options", () => {
-        const anim = new CSSKeyframesAnimation({ colorSpace: "srgb" });
-        expect(anim.options.colorSpace).toBe("srgb");
+        const anim = new CSSKeyframesAnimation({ colorSpace: "oklab" });
+        expect(anim.options.colorSpace).toBe("oklab");
     });
 });

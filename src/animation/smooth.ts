@@ -102,29 +102,10 @@ export class SmoothProgress {
         this._onFrame?.(this.currentValue);
     }
 
-    /** Advance one step using fixed damping. Returns current value. */
-    tick(): number {
-        if (this.isSettled) return this.currentValue;
-
-        this.currentValue +=
-            (this.targetValue - this.currentValue) * this.options.damping;
-
-        if (
-            Math.abs(this.targetValue - this.currentValue) <
-            this.options.snapThreshold
-        ) {
-            this.currentValue = this.targetValue;
-            this.isSettled = true;
-        }
-
-        if (this.options.clamp) {
-            this.currentValue = Math.max(0, Math.min(1, this.currentValue));
-        }
-
-        return this.currentValue;
-    }
-
-    /** Frame-rate independent tick. dt is in milliseconds. */
+    /**
+     * THE canonical step: advance by `dt` milliseconds, frame-rate
+     * independent. Returns the new current value.
+     */
     tickDt(dt: number): number {
         if (this.isSettled) return this.currentValue;
 

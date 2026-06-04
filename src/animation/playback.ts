@@ -28,15 +28,16 @@ export interface RAFPlaybackOptions {
  * steps `tickDt(dt)` once per frame until `settled` flips true.
  */
 export interface Tickable {
-    /** Advance the stepper by `dt` milliseconds. */
-    tickDt(dt: number): void;
+    /** Advance the stepper by `dt` milliseconds; returns the new value. */
+    tickDt(dt: number): number;
     /** True when the stepper has converged — the driver stops the loop. */
     readonly settled: boolean;
 }
 
 /**
  * THE managed rAF driver. Owns the rAF handle, start timestamp, dt clock,
- * and resolve callback for every loop in the engine, in three shapes:
+ * and resolve callback for every loop in the engine. ONE generation-guarded
+ * frame-scheduler core ({@link _run}) backs three thin entry shapes:
  *
  * - {@link play} — duration-based progress loop (`NumericAnimation`,
  *   `ElementMorph`), with the light reduced-motion snap gate built in.
@@ -47,6 +48,10 @@ export interface Tickable {
  *   (`Animation`, `AnimationGroup`, the WAAPI shadow tick): the callback
  *   returns `true` to continue; rescheduling waits for the (possibly
  *   async) callback to complete, so a slow frame never double-schedules.
+ *
+ * Because all three ride one core, none can diverge — the generation guard
+ * that makes `loop` safe against a `stop()` + restart mid-frame protects
+ * `drive` and `play` identically.
  *
  * The formerly hand-rolled copies of this lifecycle — `SmoothProgress` /
  * `SpringProgress` `_startLoop`/`_stopLoop` byte-siblings, the
@@ -75,6 +80,34 @@ export class RAFPlayback {
     /** True while this driver owns a scheduled rAF callback. */
     get running(): boolean {
         return this._rafId !== null;
+    }
+
+    /**
+     * THE generation-guarded frame-scheduler core. `step(now)` does one
+     * frame's work and returns `true` to continue, `false` to finish; it
+     * may be async (the next frame waits for it). Every frame captures the
+     * generation taken at start, and reschedules ONLY when it still matches
+     * — so a `stop()` + restart mid-frame (even while an async `step` is in
+     * flight) cannot let a stale chain re-arm a second rAF on top of the
+     * restart's freshly-repopulated `_rafId`. On `false` (or a stale
+     * generation that finishes) the loop cleans up. `play`/`drive`/`loop`
+     * are the three thin entry shapes over this one core.
+     */
+    private _run(step: (now: number) => boolean | Promise<boolean>): void {
+        const gen = ++this._gen;
+
+        const frame = (now: number): void => {
+            void Promise.resolve(step(now)).then((cont) => {
+                if (gen !== this._gen) return;
+                if (cont) {
+                    this._rafId = requestAnimationFrame(frame);
+                } else {
+                    this._cleanup();
+                }
+            });
+        };
+
+        this._rafId = requestAnimationFrame(frame);
     }
 
     /**
@@ -111,7 +144,7 @@ export class RAFPlayback {
                     this._resolve = resolve;
                     this._startTime = undefined;
 
-                    const tick = (now: number) => {
+                    this._run((now) => {
                         if (this._startTime === undefined)
                             this._startTime = now;
                         const progress = clamp(
@@ -120,15 +153,8 @@ export class RAFPlayback {
                             1,
                         );
                         onTick(progress);
-
-                        if (progress < 1) {
-                            this._rafId = requestAnimationFrame(tick);
-                        } else {
-                            this._cleanup();
-                        }
-                    };
-
-                    this._rafId = requestAnimationFrame(tick);
+                        return progress < 1;
+                    });
                 }),
         );
     }
@@ -143,19 +169,13 @@ export class RAFPlayback {
         if (this._rafId !== null) return;
         this._lastFrameT = 0;
 
-        const frame = (now: number): void => {
+        this._run((now) => {
             const dt = this._lastFrameT ? now - this._lastFrameT : 16.667;
             this._lastFrameT = now;
             tickable.tickDt(dt);
             onFrame?.();
-            if (tickable.settled) {
-                this._cleanup();
-                return;
-            }
-            this._rafId = requestAnimationFrame(frame);
-        };
-
-        this._rafId = requestAnimationFrame(frame);
+            return !tickable.settled;
+        });
     }
 
     /**
@@ -167,23 +187,7 @@ export class RAFPlayback {
      */
     loop(cb: (now: number) => boolean | Promise<boolean>): void {
         this.stop();
-        const gen = ++this._gen;
-
-        const frame = (now: number): void => {
-            void Promise.resolve(cb(now)).then((cont) => {
-                // A stale callback from a prior generation (stop()+restart
-                // mid-frame) must never reschedule, even though `_rafId` has
-                // been repopulated by the restart.
-                if (gen !== this._gen) return;
-                if (cont && this._rafId !== null) {
-                    this._rafId = requestAnimationFrame(frame);
-                } else if (!cont) {
-                    this._cleanup();
-                }
-            });
-        };
-
-        this._rafId = requestAnimationFrame(frame);
+        this._run(cb);
     }
 
     /** Cancel a running playback. A pending play promise resolves immediately. */

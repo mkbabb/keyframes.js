@@ -85,7 +85,7 @@ export function springTimingFunction(
     samples[0] = 0;
     const dt = maxDuration / sampleCount;
     for (let i = 1; i <= sampleCount; i++) {
-        spring.tick(dt);
+        spring._stepSeconds(dt);
         samples[i] = spring.settled ? 1 : spring.value;
     }
     // Pin the final sample to the settled target so f(1) === 1 exactly.

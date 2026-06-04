@@ -24,15 +24,26 @@
  *      barrel's `export { … } from` statements, so a new light export is
  *      proven automatically; it cannot drift behind the gate. A sanity
  *      floor asserts the parse found the known core (a silently-empty
- *      parse fails the gate, not passes it).
+ *      parse fails the gate, not passes it). A STRUCTURAL barrel invariant
+ *      backs the parse: the barrel may hold NO direct runtime light export
+ *      (`export const/function/class/let/var`) other than the dynamic
+ *      `loadAnimationEngine` accessor — so a light value authored inline on
+ *      the barrel (which `export { … } from` parsing would never see)
+ *      cannot drift unproven; it reddens the gate until re-expressed as a
+ *      `export { … } from` re-export the entry derivation captures.
  *   3. DYNAMIC-CHUNK PRESENCE — bundling `loadAnimationEngine` must emit
  *      the heavy engine as a NON-ENTRY dynamic chunk: a build that drops
  *      the dynamic boundary (eager-importing the engine, or tree-shaking
  *      the accessor away) turns the gate red.
- *   4. SOURCE-GREP COMPLEMENT — the light modules' SOURCE files must hold
- *      no static `from "@mkbabb/value.js"` specifier at all, catching the
- *      dead-but-armed import class (`void _probe`) that tree-shaking
- *      removes from the bundle graph before assertion 1 can see it.
+ *   4. SOURCE-GREP COMPLEMENT — every SOURCE module that actually appears
+ *      in a light entry's static graph (derived from assertion 1's real
+ *      module sets, never a hand-maintained name list) must hold no static
+ *      `@mkbabb/value.js` value-specifier — bare, named, re-export, OR
+ *      subpath (`@mkbabb/value.js/…`) — catching the dead-but-armed import
+ *      class (`void _probe`) and the bare side-effect `import` that
+ *      tree-shaking removes from the bundle graph before assertion 1 can
+ *      see it. The light/heavy split is the import truth itself, not a
+ *      rename-fragile basename allowlist.
  *
  * value.js + parse-that are deliberately NOT externalized, so a
  * reintroduced STATIC edge bundles their source into the entry chunk and
@@ -65,6 +76,30 @@ const rel = (id) =>
         .replace(REPO + path.sep, "")
         .replace(/.*node_modules[\\/]/, "node_modules/");
 
+/**
+ * Does a source file hold a STATIC value.js value-specifier? Catches every
+ * import/export shape that arms a runtime edge — bare side-effect, named,
+ * default, re-export, `export *` — AND the subpath form
+ * (`@mkbabb/value.js/dist/value.js`), so the grep is self-sufficient and not
+ * contingent on value.js's exports-map staying subpath-free. `import type` /
+ * `export type` are erased at build, so they're stripped first (no edge).
+ */
+function holdsValueJsSpecifier(src) {
+    const stripped = src.replace(/\b(?:import|export)\s+type\s[^;]*;/g, "");
+    // `@mkbabb/value.js` OR any subpath `@mkbabb/value.js/…`:
+    const SPEC = String.raw`@mkbabb\/value\.js(?:\/[^"']*)?`;
+    return (
+        // `import X from "…"` / `export { X } from "…"` / `export * from "…"`
+        new RegExp(
+            String.raw`(?:^|\n)\s*(?:import|export)\b[^;'"]*from\s+["']${SPEC}["']`,
+        ).test(stripped) ||
+        // bare side-effect `import "…"` (no `from`)
+        new RegExp(
+            String.raw`(?:^|\n)\s*import\s+["']${SPEC}["']`,
+        ).test(stripped)
+    );
+}
+
 /** Parse the barrel's runtime value exports — the light surface the gate proves. */
 function parseLightExports() {
     const src = fs.readFileSync(ENTRY_SRC, "utf8");
@@ -86,6 +121,31 @@ function parseLightExports() {
         }
     }
     return names;
+}
+
+/**
+ * The barrel's structural invariant: every LIGHT export is a `export { … }
+ * from` re-export (which assertion 1 then bundles + proves). The ONE permitted
+ * direct runtime export is the dynamic `loadAnimationEngine` accessor (proven
+ * by assertion 3, not 1). Any OTHER direct light export — `export const foo`,
+ * `export function`, `export class`, `export let/var` — would be invisible to
+ * `parseLightExports` and silently unproven, contradicting inv α's "a new
+ * light export is proven automatically." Return the offending declarations.
+ */
+function strayDirectExports() {
+    const src = fs
+        .readFileSync(ENTRY_SRC, "utf8")
+        // strip block + line comments so a commented example doesn't fire
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/(?:^|\n)\s*\/\/[^\n]*/g, "");
+    const stray = [];
+    for (const m of src.matchAll(
+        /(?:^|\n)\s*export\s+(?:default\s+)?(const|let|var|function|class)\s+([A-Za-z0-9_$]+)/g,
+    )) {
+        if (m[2] === "loadAnimationEngine") continue; // the one dynamic accessor
+        stray.push(`export ${m[1]} ${m[2]}`);
+    }
+    return stray;
 }
 
 /** Bundle one named export off the barrel; return the rolldown output. */
@@ -136,6 +196,19 @@ async function main() {
             );
         }
     }
+    // Structural barrel invariant: no direct runtime light export can drift
+    // past the `export { … } from` entry derivation. The one dynamic accessor
+    // (`loadAnimationEngine`) is exempt — assertion 3 proves it.
+    for (const decl of strayDirectExports()) {
+        failures.push(
+            `barrel holds a direct runtime export \`${decl}\` — only ` +
+                `\`export { … } from\` re-exports (which assertion 1 bundles + ` +
+                `proves) and the dynamic \`loadAnimationEngine\` accessor are ` +
+                `allowed on the barrel. A direct light value is invisible to ` +
+                `the entry derivation and silently unproven; re-express it as a ` +
+                `re-export from its submodule.`,
+        );
+    }
 
     console.log("proof:boundary — light-surface static module graphs");
     console.log(
@@ -143,12 +216,23 @@ async function main() {
     );
 
     // ── 1. Per-entry negative coverage ─────────────────────────────────
+    // The union of every SOURCE module that appears in a light entry's static
+    // graph — this IS the light surface (the import truth), and assertion 4
+    // source-greps exactly it (no hand-maintained heavy/light name list).
+    const lightSourceModules = new Set();
     for (const name of lightExports) {
         const output = await bundleEntry(name, `.proof-${name}-entry.mjs`);
         const entry = output.find((o) => o.type === "chunk" && o.isEntry);
         if (!entry) {
             failures.push(`entry "${name}": no entry chunk emitted.`);
             continue;
+        }
+        for (const id of entry.moduleIds) {
+            // Real repo source `.ts` only — skip the synthetic `.proof-*.mjs`
+            // probe entry and any externalized package id.
+            if (id.endsWith(".ts") && id.startsWith(REPO + path.sep)) {
+                lightSourceModules.add(id);
+            }
         }
         const valueJsStatic = entry.moduleIds.filter(isValueJs);
         const engineStatic = entry.moduleIds.filter(isHeavyEngine);
@@ -211,49 +295,23 @@ async function main() {
 
     // ── 4. Source-grep complement (dormant static specifiers) ──────────
     {
-        // Heavy-side modules legitimately import value.js statically; every
-        // OTHER module under src/animation (the light surface + internal/)
-        // must not — even via a dead, tree-shaken import.
-        const HEAVY = new Set([
-            "engine.ts",
-            "group.ts",
-            "waapi.ts",
-            "adapter.ts",
-            "constants.ts",
-            "utils.ts",
-            "format.ts",
-            "animations.ts",
-        ]);
+        // The light surface is the import truth assertion 1 already computed —
+        // every SOURCE module reachable from a light entry. Each must hold no
+        // static value.js value-specifier, even a dead/tree-shaken one
+        // (`void _probe`) or a bare side-effect `import "@mkbabb/value.js"`
+        // that rolldown strips before assertion 1's count sees it. No
+        // hand-maintained heavy/light name list: a module is "light" iff a
+        // light entry actually reaches it, so a rename, a basename collision
+        // (`internal/utils.ts` vs `utils.ts`), or a new module cannot drift.
         const offenders = [];
-        const walk = (dir) => {
-            for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
-                const p = path.join(dir, e.name);
-                if (e.isDirectory()) walk(p);
-                else if (e.name.endsWith(".ts") && !HEAVY.has(e.name)) {
-                    // `import type` / `export type` are erased at build — only
-                    // VALUE specifiers arm a static edge. Strip the type forms,
-                    // then match EVERY static specifier shape that survives:
-                    //   import X from "value.js"        (default/named)
-                    //   import "value.js"               (bare side-effect)
-                    //   export { X } from "value.js"    (re-export)
-                    //   export * from "value.js"
-                    const src = fs
-                        .readFileSync(p, "utf8")
-                        .replace(/\b(?:import|export)\s+type\s[^;]*;/g, "");
-                    if (
-                        /(?:^|\n)\s*(?:import|export)\b[^;'"]*from\s+["']@mkbabb\/value\.js["']/.test(
-                            src,
-                        ) ||
-                        /(?:^|\n)\s*import\s+["']@mkbabb\/value\.js["']/.test(src)
-                    ) {
-                        offenders.push(rel(p));
-                    }
-                }
+        for (const id of lightSourceModules) {
+            if (holdsValueJsSpecifier(fs.readFileSync(id, "utf8"))) {
+                offenders.push(rel(id));
             }
-        };
-        walk(ANIM);
+        }
         console.log(
-            `  source-grep complement: ${offenders.length} dormant static specifier(s)`,
+            `  source-grep complement: ${lightSourceModules.size} light source` +
+                ` module(s), ${offenders.length} dormant static specifier(s)`,
         );
         if (offenders.length > 0) {
             failures.push(
