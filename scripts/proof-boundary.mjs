@@ -69,9 +69,20 @@ const rel = (id) =>
 function parseLightExports() {
     const src = fs.readFileSync(ENTRY_SRC, "utf8");
     const names = [];
-    for (const m of src.matchAll(/^export \{ ([^}]+) \} from "[^"]+";/gm)) {
-        for (const name of m[1].split(",").map((s) => s.trim())) {
-            if (name) names.push(name);
+    // Match `export { ... } from "..."` INCLUDING multi-line blocks (the
+    // formatter reflows long export lists), but NOT `export type { ... }`
+    // (types carry no runtime edge). `[\s\S]*?` spans newlines.
+    for (const m of src.matchAll(
+        /(?:^|\n)\s*export\s*\{([\s\S]*?)\}\s*from\s*["'][^"']+["']/g,
+    )) {
+        // Skip a `export type { ... }` statement (the leading-keyword check):
+        // the match starts at `export {`, so a `type` here is an INLINE
+        // `export { type Foo, Bar }` — drop the type-prefixed names, keep
+        // the runtime ones.
+        for (const raw of m[1].split(",").map((s) => s.trim())) {
+            if (!raw || /^type\s/.test(raw)) continue;
+            // `Foo as Bar` exports the local name Foo; bundle by the local.
+            names.push(raw.split(/\s+as\s+/)[0].trim());
         }
     }
     return names;
@@ -218,18 +229,25 @@ async function main() {
             for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
                 const p = path.join(dir, e.name);
                 if (e.isDirectory()) walk(p);
-                else if (
-                    e.name.endsWith(".ts") &&
-                    !HEAVY.has(e.name) &&
-                    /(^|\n)import\s[^;]*from\s+["']@mkbabb\/value\.js["']/.test(
-                        // `import type` is erased at build — only VALUE
-                        // imports arm a static edge.
-                        fs
-                            .readFileSync(p, "utf8")
-                            .replace(/import\s+type\s[^;]*;/g, ""),
-                    )
-                ) {
-                    offenders.push(rel(p));
+                else if (e.name.endsWith(".ts") && !HEAVY.has(e.name)) {
+                    // `import type` / `export type` are erased at build — only
+                    // VALUE specifiers arm a static edge. Strip the type forms,
+                    // then match EVERY static specifier shape that survives:
+                    //   import X from "value.js"        (default/named)
+                    //   import "value.js"               (bare side-effect)
+                    //   export { X } from "value.js"    (re-export)
+                    //   export * from "value.js"
+                    const src = fs
+                        .readFileSync(p, "utf8")
+                        .replace(/\b(?:import|export)\s+type\s[^;]*;/g, "");
+                    if (
+                        /(?:^|\n)\s*(?:import|export)\b[^;'"]*from\s+["']@mkbabb\/value\.js["']/.test(
+                            src,
+                        ) ||
+                        /(?:^|\n)\s*import\s+["']@mkbabb\/value\.js["']/.test(src)
+                    ) {
+                        offenders.push(rel(p));
+                    }
                 }
             }
         };

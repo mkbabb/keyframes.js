@@ -59,10 +59,13 @@ export function isWAAPIEligible<V extends Vars>(
         }
     }
 
-    if (animation.frames.length > 1) {
-        const firstTF = animation.frames[0]!.timingFunction;
+    const firstTF = animation.frames[0]?.timingFunction;
+    if (firstTF && animation.frames.length > 1) {
         for (let i = 1; i < animation.frames.length; i++) {
-            if (animation.frames[i]!.timingFunction !== firstTF) {
+            // Compare the CALLABLE identity, not the Easing wrapper — two
+            // frames eased by the same resolved `fn` wrapped in distinct
+            // `{ fn }` objects are uniform.
+            if (animation.frames[i]!.timingFunction.fn !== firstTF.fn) {
                 return {
                     eligible: false,
                     reason: "non-uniform per-frame timing function (WAAPI supports one easing per animation)",
@@ -80,6 +83,22 @@ export function isWAAPIEligible<V extends Vars>(
                 reason: "CSS-twinned easing across multiple segments (WAAPI restarts the curve per segment)",
             };
         }
+    }
+
+    // WAAPI may delegate ONLY when the (uniform) easing has a FAITHFUL CSS
+    // representation — a `.css` twin (a spring's `linear()`, an explicit
+    // `cubic-bezier()`/CSS-keyword/`steps()` easing). A bespoke callable
+    // (the value.js `easeInOutCubic` default, `easeOutCubic`, `bounceInEase`,
+    // a user closure) has NO faithful CSS twin, so delegating it would run
+    // BARE LINEAR on the compositor — a silent visual regression. Those stay
+    // on the rAF path, which runs the true curve. (Pre-KF-B1 the WAAPI path
+    // was dead in practice, so this keeps the resurrection faithful:
+    // delegate only when the curve round-trips to CSS.)
+    if (firstTF && firstTF.css === undefined) {
+        return {
+            eligible: false,
+            reason: "easing has no faithful CSS twin (would run bare linear on the compositor)",
+        };
     }
 
     for (const frame of animation.frames) {
@@ -210,6 +229,10 @@ export async function playWAAPI<V extends Vars>(
     const waAnimations: globalThis.Animation[] = animation.targets.map(
         (target) => target.animate(keyframes, options),
     );
+    // Expose the handles on the instance so the engine's lifecycle methods
+    // (`stop`/`reset`) can cancel the compositor animations — cancelling
+    // rejects `wa.finished`, which the catch below treats as a halt.
+    animation._waAnimations = waAnimations;
 
     // Shadow tick loop — drives lifecycle (onStart / iteration /
     // onEnd / events / pause / resume) so WAAPI playback has the
@@ -231,7 +254,12 @@ export async function playWAAPI<V extends Vars>(
 
     try {
         await Promise.all(waAnimations.map((wa) => wa.finished));
+    } catch {
+        // `Animation.stop()`/`reset()` cancelled the compositor animations,
+        // rejecting `finished` with an AbortError — a deliberate halt, not
+        // an error. Swallow it so the awaited `play()` resolves cleanly.
     } finally {
         animation.playback.stop();
+        animation._waAnimations = [];
     }
 }

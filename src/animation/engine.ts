@@ -25,6 +25,7 @@ import {
     ValueUnit,
     type PropertyDescriptor,
 } from "@mkbabb/value.js";
+import { cssTwinFor } from "./easing";
 import { binarySearchRange } from "./internal/binarySearch";
 import { AnimationOptionError, parseOption } from "./internal/errors";
 import { withReducedMotion } from "./internal/reduced-motion";
@@ -92,7 +93,12 @@ const resolveEasingOption = (
                 "typed Easing, a registry name, or a cubic-bezier() literal",
         );
     }
-    return { fn };
+    // Attach the faithful CSS twin when one exists (CSS keyword,
+    // cubic-bezier()/steps() literal) so a WAAPI delegation runs the true
+    // curve; value.js bespoke names (easeOutCubic, …) get none and stay on
+    // the rAF path.
+    const css = cssTwinFor(input);
+    return css ? { fn, css } : { fn };
 };
 
 const hasClone = (value: unknown): value is { clone: () => unknown } => {
@@ -133,6 +139,15 @@ export class Animation<V extends Vars = any> {
      * uniformly and no raw rAF handle leaks onto the instance.
      */
     readonly playback = new RAFPlayback();
+
+    /**
+     * The live WAAPI compositor animations during a `_playWAAPI` delegation
+     * (one per target), populated by `playWAAPI` and cleared on teardown.
+     * The lifecycle methods (`stop`/`reset`) cancel these so a stopped
+     * compositor animation never keeps painting and the awaited play
+     * promise never hangs. Empty on the rAF path.
+     */
+    _waAnimations: globalThis.Animation[] = [];
 
     startTime: number | undefined = undefined;
     pausedTime: number = 0;
@@ -884,14 +899,17 @@ export class Animation<V extends Vars = any> {
             return false;
         }
 
-        this.interpFrames(t, true);
-
         if (!this.done) {
+            this.interpFrames(t, true);
             return true;
         }
 
-        // Completion: `onEnd` (inside tick) already painted the rest frame
-        // per the fill contract — settle is pure teardown, never a repaint.
+        // Completion: `onEnd` (inside tick) ALREADY painted the rest frame
+        // per the fill contract. Do NOT re-paint here — an
+        // `interpFrames(duration)` would clobber that rest paint with the
+        // final frame, so a `fillMode: none` animation would end at its
+        // final frame instead of resting at its initial one. settle is pure
+        // teardown, never a repaint.
         this.settle();
         this._resolvePlay();
         return false;
@@ -924,6 +942,24 @@ export class Animation<V extends Vars = any> {
     private async _playWAAPI(): Promise<void> {
         await playWAAPI(this);
         this.settle();
+    }
+
+    /**
+     * Cancel the live WAAPI compositor animations (if any). Cancelling
+     * rejects each `wa.finished`, which `playWAAPI` catches as a halt — so
+     * this both stops the compositor paint AND unblocks the awaited play
+     * promise. No-op on the rAF path.
+     */
+    private _cancelWAAPI(): void {
+        if (this._waAnimations.length === 0) return;
+        for (const wa of this._waAnimations) {
+            try {
+                wa.cancel();
+            } catch {
+                /* a finished/detached WAAPI animation throws on cancel — ignore */
+            }
+        }
+        this._waAnimations = [];
     }
 
     /**
@@ -994,17 +1030,28 @@ export class Animation<V extends Vars = any> {
     resume() {
         if (this.started && this.paused) {
             this.paused = false;
-            this.playback.loop(this._boundFrame);
+            if (this._waAnimations.length > 0) {
+                // WAAPI: the shadow loop is still installed (it keeps
+                // rescheduling while paused, pausing the compositor each
+                // frame), so it resumes the curve on its next tick. Do NOT
+                // start the rAF `_frame` loop — that would race the shadow
+                // loop and orphan the paused compositor animation. Nudge the
+                // compositor directly for an immediate resume.
+                for (const wa of this._waAnimations) wa.play();
+            } else if (!this.playback.running) {
+                this.playback.loop(this._boundFrame);
+            }
         }
         return this;
     }
 
     /**
-     * Halt playback where it stands: cancel the loop, settle state, and
-     * resolve any pending `play()` promise. Never paints — `reset()` is
-     * the explicit rewind.
+     * Halt playback where it stands: cancel the loop AND the WAAPI
+     * compositor animations, settle state, and resolve any pending `play()`
+     * promise. Never paints — `reset()` is the explicit rewind.
      */
     stop() {
+        this._cancelWAAPI();
         this.playback.stop();
         this.settle();
         this._resolvePlay();
@@ -1046,6 +1093,7 @@ export class Animation<V extends Vars = any> {
      * leaves the pixels where they rest.
      */
     reset() {
+        this._cancelWAAPI();
         if (this.started && this.frames.length > 0) {
             this.fillBackwards();
         }
@@ -1161,8 +1209,20 @@ export class CSSKeyframesAnimation<V extends Vars> extends Animation<V> {
                     hasClone(v) ? v.clone() : v,
                 ]),
             ) as Record<string, unknown>;
+            // CSS parsing stays LENIENT (a forgiving language): an
+            // unrecognized per-keyframe `animation-timing-function` falls
+            // back to the inherited easing rather than throwing. The
+            // fail-explicit throw is reserved for the explicit
+            // setter/addFrame API where a bad value is a consumer bug, not
+            // a parse outcome.
             const tfText = resolved.timingFunctions.get(percent);
-            this.addFrame(percent, frame as Partial<V>, transform, tfText);
+            const resolvedFn = tfText ? getTimingFunction(tfText) : undefined;
+            this.addFrame(
+                percent,
+                frame as Partial<V>,
+                transform,
+                resolvedFn ? { fn: resolvedFn } : undefined,
+            );
         }
 
         this.parse();

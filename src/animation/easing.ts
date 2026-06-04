@@ -26,13 +26,26 @@ import { UnknownEasingError } from "./internal/errors";
 export const toEasing = (input: TimingFunction | Easing): Easing =>
     typeof input === "function" ? { fn: input } : input;
 
+/** CSS easing keywords that are themselves valid `animation-timing-function`. */
+const CSS_NATIVE_KEYWORD = /^(linear|ease|ease-in|ease-out|ease-in-out)$/;
+/** CSS `cubic-bezier(...)` / `steps(...)` literals + the `step-*` keywords. */
+const CSS_FUNCTION_EASING = /^(cubic-bezier\(|steps\(|step-start$|step-end$)/;
+
 /**
- * Names that are themselves valid CSS easing syntax — for these the
- * resolved {@link Easing} carries `css` so a WAAPI delegation can run the
- * native curve instead of falling back to bare `linear`.
+ * The faithful CSS easing string for an easing NAME / literal, or
+ * `undefined` when the name has no faithful CSS twin (value.js bespoke
+ * curves — `easeOutCubic`, `bounceInEase` — do NOT map to a CSS keyword).
+ *
+ * This is what makes a WAAPI delegation faithful: only an easing whose
+ * `.css` is set delegates to the compositor; everything else runs the true
+ * curve on the rAF path. Pure string logic — value.js-free.
  */
-const CSS_NATIVE_EASING =
-    /^(linear|ease|ease-in|ease-out|ease-in-out)$|^cubic-bezier\(/;
+export const cssTwinFor = (name: string): string | undefined => {
+    const trimmed = name.trim();
+    if (CSS_NATIVE_KEYWORD.test(trimmed)) return trimmed;
+    if (CSS_FUNCTION_EASING.test(trimmed)) return trimmed;
+    return undefined;
+};
 
 /**
  * Resolve a string easing name (a value.js registry entry — `"easeOutCubic"`,
@@ -70,8 +83,7 @@ export async function resolveEasing(name: string): Promise<Easing> {
     }
 
     const easing: Easing = { fn };
-    if (CSS_NATIVE_EASING.test(name)) {
-        easing.css = name;
-    }
+    const css = cssTwinFor(name);
+    if (css) easing.css = css;
     return easing;
 }

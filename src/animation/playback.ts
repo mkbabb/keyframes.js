@@ -62,6 +62,15 @@ export class RAFPlayback {
     private _startTime: number | undefined = undefined;
     private _lastFrameT: number = 0;
     private _resolve: (() => void) | null = null;
+    /**
+     * Monotonic generation counter, bumped on every `play`/`drive`/`loop`/
+     * `stop`. A loop's async frame captures its generation and reschedules
+     * ONLY when it still matches — so a `stop()` + restart while an async
+     * frame is mid-flight cannot let the stale callback re-arm a second rAF
+     * chain (the generation-unaware `_rafId !== null` guard could, because
+     * the restart repopulated `_rafId`).
+     */
+    private _gen: number = 0;
 
     /** True while this driver owns a scheduled rAF callback. */
     get running(): boolean {
@@ -158,9 +167,14 @@ export class RAFPlayback {
      */
     loop(cb: (now: number) => boolean | Promise<boolean>): void {
         this.stop();
+        const gen = ++this._gen;
 
         const frame = (now: number): void => {
             void Promise.resolve(cb(now)).then((cont) => {
+                // A stale callback from a prior generation (stop()+restart
+                // mid-frame) must never reschedule, even though `_rafId` has
+                // been repopulated by the restart.
+                if (gen !== this._gen) return;
                 if (cont && this._rafId !== null) {
                     this._rafId = requestAnimationFrame(frame);
                 } else if (!cont) {
@@ -174,6 +188,7 @@ export class RAFPlayback {
 
     /** Cancel a running playback. A pending play promise resolves immediately. */
     stop(): void {
+        this._gen++;
         if (this._rafId !== null) {
             cancelAnimationFrame(this._rafId);
         }

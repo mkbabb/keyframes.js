@@ -12,7 +12,7 @@
                                 label="duration"
                                 label-class="font-mono text-base text-muted-foreground"
                                 tooltip="Animation length (e.g. 5s, 200ms)"
-                                @update:model-value="(v) => { animation.setDuration(v); storedAnimationOptions.animationOptions.duration = v; }"
+                                @update:model-value="(v) => { trySetOption(() => animation.setDuration(v)); storedAnimationOptions.animationOptions.duration = v; }"
                             />
 
                             <LabeledInput
@@ -20,7 +20,7 @@
                                 label="delay"
                                 label-class="font-mono text-base text-muted-foreground"
                                 tooltip="Delay before start (e.g. 0s, 500ms)"
-                                @update:model-value="(v) => { animation.setDelay(v); storedAnimationOptions.animationOptions.delay = v; }"
+                                @update:model-value="(v) => { trySetOption(() => animation.setDelay(v)); storedAnimationOptions.animationOptions.delay = v; }"
                             />
 
                             <LabeledInput
@@ -34,7 +34,7 @@
                                 tooltip="Repeat count (number or 'infinite')"
                                 @update:model-value="
                                     (v: string) => {
-                                        animation.setIterationCount(v);
+                                        trySetOption(() => animation.setIterationCount(v));
                                         storedAnimationOptions.animationOptions.iterationCount = v;
                                     }
                                 "
@@ -211,6 +211,23 @@ const props = defineProps<{
 }>();
 
 const storedAnimationOptions = getStoredAnimationOptions(props.animation);
+
+/**
+ * The engine setters are fail-explicit — a malformed PRESENT value throws
+ * an `AnimationOptionError` (B.W2). User input mid-keystroke is routinely
+ * malformed (an empty field, a partial number), so guard the live handlers:
+ * an empty value is omission (no-op), anything else attempts the set and
+ * swallows the typed error until the input is valid. The store still
+ * records the raw string so the field round-trips.
+ */
+const trySetOption = (apply: () => void) => {
+    try {
+        apply();
+    } catch (e) {
+        if ((e as Error)?.name !== "AnimationOptionError") throw e;
+        // malformed-in-progress input — ignore until it parses
+    }
+};
 
 const {
     timingFunctionsAnd,
