@@ -100,32 +100,33 @@
         </template>
 
         <template #target>
-            <!-- Scene host. Vue's documented nesting for an async scene swapped
-                 through a transition is Transition > KeepAlive > Suspense > async
-                 component. <Suspense> resolves the async chunk BEFORE its vnode is
-                 handed up to KeepAlive/Transition, so the out-in transition's leave
-                 hook never walks a torn-down (null subTree) async-wrapper subtree —
-                 the getNextHostNode crash (Qρ F1 / Qσ D1) cannot occur.
+            <!-- Scene host. A keyed <Suspense> resolves the active scene's
+                 async chunk and shows #fallback while it loads.
 
-                 KeepAlive caches up to 3 resolved scene instances so returning to a
-                 scene doesn't re-evaluate lazy modules (Monaco, Three.js, etc.).
-                 Home + Cube share the same key so CubeScene persists across home ↔ cube. -->
-            <Transition name="scene" mode="out-in" :css="ready">
-                <KeepAlive :max="3">
-                    <Suspense :key="activeSceneKey">
-                        <component
-                            :is="activeSceneComponent"
-                            ref="sceneRef"
-                            v-bind="activeSceneProps"
-                        />
-                        <template #fallback>
-                            <div class="flex h-full w-full items-center justify-center">
-                                <span class="instrument-serif text-lg text-muted-foreground animate-pulse">Loading scene&#x2026;</span>
-                            </div>
-                        </template>
-                    </Suspense>
-                </KeepAlive>
-            </Transition>
+                 NO <KeepAlive>, NO wrapping <Transition>: both broke async
+                 scene loading outright — a `<Transition mode="out-in">` /
+                 `<KeepAlive>` around a keyed `<Suspense>` whose child is a
+                 `defineAsyncComponent` never triggered the async loader, so
+                 amiga / square / easing / spring shipped a BLANK viewport on
+                 every load (the chunk was never even requested — B.W3's
+                 headline blocker). The lazy boundary survives on the
+                 `<Suspense>` alone (each scene's chunk + its heavy deps —
+                 three, monaco — stay code-split); the browser module cache
+                 covers revisits, so dropping KeepAlive costs only a cheap
+                 scene re-setup, not a re-download. `ready` still gates the
+                 scene-swap CSS class below so the first paint is calm. -->
+            <Suspense :key="activeSceneKey">
+                <component
+                    :is="activeSceneComponent"
+                    ref="sceneRef"
+                    v-bind="activeSceneProps"
+                />
+                <template #fallback>
+                    <div class="flex h-full w-full items-center justify-center">
+                        <span class="instrument-serif text-lg text-muted-foreground animate-pulse">Loading scene&#x2026;</span>
+                    </div>
+                </template>
+            </Suspense>
         </template>
     </EditorShell>
 </template>
