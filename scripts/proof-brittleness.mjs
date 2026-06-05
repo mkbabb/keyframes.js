@@ -39,7 +39,6 @@ import { fileURLToPath } from "node:url";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEMO = path.join(REPO, "demo");
-const BUILT = path.join(REPO, "dist/gh-pages"); // the gh-pages demo build output
 
 const toPosix = (p) => p.split(path.sep).join("/");
 const relPosix = (abs) => toPosix(path.relative(REPO, abs));
@@ -62,19 +61,6 @@ function collect(dir, exts, out = []) {
     return out;
 }
 
-/** Walk a dir collecting files matching one of `exts` WITHOUT skipping dist/. */
-function collectIncludingDist(dir, exts, out = []) {
-    if (!fs.existsSync(dir)) return out;
-    for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
-        if (e.isDirectory()) {
-            if (e.name === "node_modules" || e.name === ".git") continue;
-            collectIncludingDist(path.join(dir, e.name), exts, out);
-        } else if (exts.has(path.extname(e.name))) {
-            out.push(path.join(dir, e.name));
-        }
-    }
-    return out;
-}
 
 const read = (p) => fs.readFileSync(p, "utf8");
 
@@ -278,9 +264,6 @@ function main() {
 
     // ── 3. @SUPPORTS GUARDS for the named properties ───────────────────
     {
-        // Prefer the BUILT demo CSS (it tests the cascade that actually ships);
-        // fall back to source CSS + <style> blocks if the demo is not built yet
-        // (so the gate is runnable locally without a build step).
         let cssSources = [];
         let where = "";
         // Check the demo's OWN source guards (CSS + <style> blocks), NOT the

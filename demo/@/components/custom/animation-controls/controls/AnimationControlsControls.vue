@@ -161,6 +161,7 @@
                 :user-reversed="userReversed"
                 @scrub-start="() => { wake(); emit('scrubStart'); }"
                 @scrub-end="emit('scrubEnd')"
+                @scrubbed="wake"
                 @slider-update="(v) => { wake(); emit('sliderUpdate', v); }"
                 @toggle-play="toggleAnimation"
                 @toggle-reverse="toggleReverse"

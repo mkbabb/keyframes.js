@@ -87,6 +87,10 @@ const { animation, isGrouped } = defineProps<{
 const emit = defineEmits<{
     (e: "scrubStart"): void;
     (e: "scrubEnd"): void;
+    // Wake-only: fires on EVERY scrub (pointer, keyboard, or visualizer) so a
+    // settled sync loop re-arms even on a keyboard-arrow nudge of a non-grouped
+    // animation (which mutates `animation.t` directly without a `sliderUpdate`).
+    (e: "scrubbed"): void;
     (e: "sliderUpdate", val: { t: number; animation: Animation<any> }): void;
     (e: "togglePlay"): void;
     (e: "toggleReverse"): void;
@@ -144,6 +148,11 @@ const scrubTo = (effectiveT: number) => {
             animation,
         });
     }
+
+    // Re-arm any idled sync loop regardless of branch (covers the keyboard-arrow
+    // scrub of a non-grouped animation, which the branch above handles inline
+    // without a `sliderUpdate`).
+    emit("scrubbed");
 };
 
 onUnmounted(() => {
