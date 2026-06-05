@@ -33,6 +33,7 @@
                 </div>
             </div>
             <pre
+                ref="preEl"
                 @input="(e) => emit('updateCSS', (e.target as HTMLElement).innerText)"
                 @keydown="(e) => emit('keydown', e)"
                 class="hljs css p-2 min-h-32 cursor-text rounded-lg text-small bg-transparent outline-none border-none relative"
@@ -43,6 +44,7 @@
 </template>
 
 <script setup lang="ts">
+import { useTemplateRef } from "vue";
 import { Label } from "@mkbabb/glass-ui";
 import { Input } from "@mkbabb/glass-ui/forms";
 import CopyButton from "@components/custom/CopyButton.vue";
@@ -62,4 +64,9 @@ const emit = defineEmits<{
     (e: "keydown", event: KeyboardEvent): void;
 }>();
 
+// The card's own contenteditable <pre> — surfaced for the parent's scoped
+// highlight collection (a declared child-ref contract, no querySelector).
+const preEl = useTemplateRef<HTMLElement>("preEl");
+
+defineExpose({ preEl });
 </script>

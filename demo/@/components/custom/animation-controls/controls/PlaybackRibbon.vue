@@ -67,9 +67,9 @@
 // shared across this ribbon and the scene play buttons.
 import "./playback-button.css";
 
-import { onUnmounted } from "vue";
 import type { Animation } from "@src/animation/engine";
 
+import { useEventListener } from "@vueuse/core";
 import { Button, Slider, useTouchGate } from "@mkbabb/glass-ui";
 import { IconTooltip } from "@mkbabb/glass-ui/icon-tooltip";
 import { ArrowLeftRight, Pause, Play } from "@lucide/vue";
@@ -110,12 +110,6 @@ const gatedSliderDown = (e: PointerEvent) => {
     }
 };
 
-const onSliderDown = () => {
-    sliderScrubActive = true;
-    emit("scrubStart");
-    window.addEventListener("pointerup", onSliderUp, { once: true });
-};
-
 const onSliderUp = () => {
     if (sliderScrubActive) {
         sliderScrubActive = false;
@@ -123,10 +117,21 @@ const onSliderUp = () => {
     }
 };
 
+// One honest cleanup path: vueuse owns the window pointerup lifecycle (auto-
+// cleanup on scope dispose). The listener stays registered and the
+// `sliderScrubActive` guard makes it a no-op unless a scrub is in flight — the
+// idiomatic vueuse form, with no once:true crutch and no manual
+// removeEventListener double-bookkeeping.
+useEventListener(window, "pointerup", onSliderUp);
+
+const onSliderDown = () => {
+    sliderScrubActive = true;
+    emit("scrubStart");
+};
+
 const onSliderCommit = () => {
     if (sliderScrubActive) {
         sliderScrubActive = false;
-        window.removeEventListener("pointerup", onSliderUp);
         emit("scrubEnd");
     }
 };
@@ -154,10 +159,6 @@ const scrubTo = (effectiveT: number) => {
     // without a `sliderUpdate`).
     emit("scrubbed");
 };
-
-onUnmounted(() => {
-    window.removeEventListener("pointerup", onSliderUp);
-});
 </script>
 
 <style scoped>

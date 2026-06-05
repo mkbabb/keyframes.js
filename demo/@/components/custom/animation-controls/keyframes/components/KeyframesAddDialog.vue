@@ -154,21 +154,3 @@ onMounted(() => {
     }
 });
 </script>
-
-<style scoped>
-/* The add-dialog progress bar lives in this component now (was inside the
-   editor's scoped style); reads off the demo-owned --rainbow-* family. */
-.progress-bar {
-    @apply h-2 rounded-md;
-    background: linear-gradient(
-        to right,
-        var(--rainbow-red) 0%,
-        var(--rainbow-yellow) 17%,
-        var(--rainbow-green) 33%,
-        var(--rainbow-cyan) 50%,
-        var(--rainbow-blue) 67%,
-        var(--rainbow-violet) 83%,
-        var(--rainbow-red) 100%
-    );
-}
-</style>

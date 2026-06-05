@@ -245,19 +245,3 @@ onUnmounted(() => {
     brushAnimation.pause();
 });
 </script>
-
-<style scoped>
-.progress-bar {
-    @apply h-2 rounded-md;
-    background: linear-gradient(
-        to right,
-        var(--rainbow-red) 0%,
-        var(--rainbow-yellow) 17%,
-        var(--rainbow-green) 33%,
-        var(--rainbow-cyan) 50%,
-        var(--rainbow-blue) 67%,
-        var(--rainbow-violet) 83%,
-        var(--rainbow-red) 100%
-    );
-}
-</style>

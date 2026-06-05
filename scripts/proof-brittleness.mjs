@@ -32,6 +32,19 @@
  *      rules covering `dvh`, `env(safe-area-inset-*)`, and `-webkit-mask-image`.
  *      BITE: the demo has zero `@supports` today, so this reds until the guards
  *      land.
+ *
+ *   4. NO HAND-ROLLED LISTENER/OBSERVER — zero manual `.addEventListener(` /
+ *      `new ResizeObserver` in demo reactive code (`.vue` / `.ts`, comment-
+ *      blanked, `dist/` excluded) OUTSIDE the documented `LISTENER_ALLOWLIST`
+ *      (the genuinely-imperative engine-loop sites). This is the second half of
+ *      the inv-ζ dogfood discipline `proof:dogfood` began for rAF: a hand-rolled
+ *      listener re-implements lifecycle `@vueuse/core`'s `useEventListener` /
+ *      `useResizeObserver` already own (auto-cleanup via `tryOnScopeDispose`,
+ *      a `stop()` handle for the dynamic-drag case). The allowlist mirrors the
+ *      `proof:decomposition` `ASYNC_ALLOWLIST` (explicit Set, per-entry
+ *      rationale, stale-entry guard so it cannot rot). BITE: the 6
+ *      `addEventListener` files + the 3 `ResizeObserver` files red it before
+ *      E.W2; after S1–S3 the surface rides vueuse and the allowlist is empty.
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -44,6 +57,24 @@ const toPosix = (p) => p.split(path.sep).join("/");
 const relPosix = (abs) => toPosix(path.relative(REPO, abs));
 
 const SKIP_DIR = new Set(["dist", "node_modules", ".git"]);
+
+// The listener/observer allowlist (clause 4): repo-relative POSIX paths whose
+// manual `.addEventListener(` / `new ResizeObserver` is a genuinely-imperative
+// engine-loop site, NOT a hand-roll a vueuse primitive replaces 1:1. Mirrors the
+// `proof:decomposition` ASYNC_ALLOWLIST: an explicit Set, each entry carrying a
+// rationale, with a stale-entry guard below (an allowlisted path matching no hit
+// reds the gate) so the list cannot rot. A future justified exception is a
+// deliberate diff to THIS Set with its rationale.
+//
+// EMPTY today: E.W2 transposed every demo listener/observer onto vueuse —
+// SpringTarget/PlaybackRibbon window listeners → useEventListener, the drag
+// sites → useDragCapture/useEventListener stop(), EasingTarget/CSSCodeEditor/
+// AmigaScene observers → useResizeObserver. AmigaScene's canvas-resize observer
+// CONVERTED (useResizeObserver), so it is not allowlisted; its sibling Three.js
+// present loop stays a proof:decomposition concern (rAF), out of clause 4's scope.
+const LISTENER_ALLOWLIST = new Set([
+    // (none — the demo listener/observer surface rides @vueuse/core entirely)
+]);
 
 const failures = [];
 
@@ -335,6 +366,74 @@ function main() {
             console.log(
                 `  ✓ [supports] @supports guards cover dvh, ` +
                     `env(safe-area-inset-*), and -webkit-mask-image`,
+            );
+        }
+    }
+
+    // ── 4. NO HAND-ROLLED LISTENER/OBSERVER ────────────────────────────
+    {
+        // A manual `.addEventListener(` or `new ResizeObserver` — the listener/
+        // observer hand-roll the inv-ζ dogfood discipline removes for rAF.
+        const LISTENER = /\.addEventListener\s*\(|new\s+ResizeObserver\b/;
+        // Hit-bearing allowlist paths, so the stale guard can prune dead entries.
+        const allowlistedHitPaths = new Set();
+        const offenders = [];
+
+        for (const abs of reactiveFiles) {
+            const rel = relPosix(abs);
+            // Blank comments first: a code comment that NAMES the listener it
+            // transposed (or documents the pattern) must not red the gate —
+            // only a real `.addEventListener(` / `new ResizeObserver` does.
+            const src = blankComments(read(abs));
+            const lines = src.split("\n");
+            for (let i = 0; i < lines.length; i++) {
+                if (!LISTENER.test(lines[i])) continue;
+                if (LISTENER_ALLOWLIST.has(rel)) {
+                    allowlistedHitPaths.add(rel);
+                    continue;
+                }
+                offenders.push({ rel, line: i + 1, text: lines[i].trim() });
+            }
+        }
+
+        if (offenders.length > 0) {
+            failures.push(
+                `[listener] ${offenders.length} manual .addEventListener( / ` +
+                    `new ResizeObserver call(s) in demo reactive code outside the ` +
+                    `LISTENER_ALLOWLIST — the listener/observer surface must ride ` +
+                    `@vueuse/core (useEventListener / useResizeObserver: ` +
+                    `tryOnScopeDispose cleanup, a stop() handle for the dynamic ` +
+                    `case), the inv-ζ dogfood discipline (E.W2 §S1–S3). Convert ` +
+                    `the site, or add a justified LISTENER_ALLOWLIST entry. ` +
+                    `Sites:\n      ` +
+                    offenders
+                        .slice(0, 12)
+                        .map((o) => `${o.rel}:${o.line}  ${o.text}`)
+                        .join("\n      ") +
+                    (offenders.length > 12
+                        ? `\n      … and ${offenders.length - 12} more`
+                        : ""),
+            );
+        }
+
+        // Stale-allowlist guard: an allowlist entry pointing at a file with no
+        // matching hit is dead and must be pruned (mirrors the
+        // proof:decomposition ASYNC_ALLOWLIST stale guard).
+        for (const a of LISTENER_ALLOWLIST) {
+            if (!allowlistedHitPaths.has(a)) {
+                failures.push(
+                    `[listener] LISTENER_ALLOWLIST entry "${a}" matches no manual ` +
+                        `.addEventListener( / new ResizeObserver site — it is ` +
+                        `STALE; remove it.`,
+                );
+            }
+        }
+
+        if (offenders.length === 0) {
+            console.log(
+                `  ✓ [listener] zero manual .addEventListener( / new ` +
+                    `ResizeObserver in demo reactive code outside the ` +
+                    `LISTENER_ALLOWLIST (${LISTENER_ALLOWLIST.size} allowlisted)`,
             );
         }
     }

@@ -1,4 +1,5 @@
-import { ref, onUnmounted } from "vue";
+import { ref } from "vue";
+import { useEventListener } from "@vueuse/core";
 
 export interface DragCaptureHandlers {
     onStart?: (e: PointerEvent) => void;
@@ -9,14 +10,20 @@ export interface DragCaptureHandlers {
 /**
  * Composable for pointer-capture-based drag interactions.
  *
- * Returns `onPointerDown` to attach to the drag target. Internally manages
- * `setPointerCapture`, `pointermove`, and `pointerup`/`pointercancel` listeners,
- * cleaning up on unmount.
+ * Returns `onPointerDown` to attach to the drag target. On pointer-down it
+ * captures the pointer and registers `pointermove`/`pointerup`/`pointercancel`
+ * via `useEventListener`, whose `stop()` handles are called on drag-end.
+ * vueuse's `tryOnScopeDispose` cleans up any listener still live at unmount
+ * (the mid-drag-unmount leak the manual remove path missed).
  */
 export function useDragCapture(handlers: DragCaptureHandlers) {
     const isDragging = ref(false);
-    let activePointerId: number | null = null;
-    let activeTarget: Element | null = null;
+    let stops: (() => void)[] = [];
+
+    const removeListeners = () => {
+        for (const stop of stops) stop();
+        stops = [];
+    };
 
     const onPointerMove = (e: PointerEvent) => {
         if (!isDragging.value) return;
@@ -26,39 +33,24 @@ export function useDragCapture(handlers: DragCaptureHandlers) {
     const onPointerUp = (e: PointerEvent) => {
         if (!isDragging.value) return;
         isDragging.value = false;
-        activePointerId = null;
         handlers.onEnd?.(e);
         removeListeners();
-    };
-
-    const addListeners = (el: Element) => {
-        activeTarget = el;
-        el.addEventListener("pointermove", onPointerMove as EventListener);
-        el.addEventListener("pointerup", onPointerUp as EventListener);
-        el.addEventListener("pointercancel", onPointerUp as EventListener);
-    };
-
-    const removeListeners = () => {
-        if (!activeTarget) return;
-        activeTarget.removeEventListener("pointermove", onPointerMove as EventListener);
-        activeTarget.removeEventListener("pointerup", onPointerUp as EventListener);
-        activeTarget.removeEventListener("pointercancel", onPointerUp as EventListener);
-        activeTarget = null;
     };
 
     const onPointerDown = (e: PointerEvent) => {
         if (e.button !== 0) return;
         isDragging.value = true;
-        activePointerId = e.pointerId;
 
         const target = e.currentTarget as Element;
         target.setPointerCapture(e.pointerId);
-        addListeners(target);
+        stops = [
+            useEventListener(target, "pointermove", onPointerMove),
+            useEventListener(target, "pointerup", onPointerUp),
+            useEventListener(target, "pointercancel", onPointerUp),
+        ];
 
         handlers.onStart?.(e);
     };
-
-    onUnmounted(removeListeners);
 
     return { isDragging, onPointerDown };
 }

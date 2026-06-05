@@ -100,6 +100,7 @@
 import { readonly, shallowReactive, useTemplateRef } from "vue";
 import { Button, Card, CardContent } from "@mkbabb/glass-ui";
 import { Plus, Shapes } from "@lucide/vue";
+import { useDragCapture } from "@components/custom/animation-controls/controls/composables/useDragCapture";
 import type { Asset, AssetKind, AssetTransform, HandleType } from "./assetTypes";
 
 const props = defineProps<{
@@ -163,36 +164,26 @@ const snapValue = (val: number): number => {
 const deselectAll = () => emit("deselectAll");
 
 // --- Asset dragging ---
-const onAssetPointerDown = (event: PointerEvent, asset: Asset) => {
-    if (asset.locked) return;
+let moveStartX = 0;
+let moveStartY = 0;
+let moveAssetId = "";
+let moveStartTransform: AssetTransform | null = null;
+let moveSelectedIds: string[] = [];
 
-    const additive = event.shiftKey;
-    emit("select", asset.id, additive);
+const { onPointerDown: onAssetDrag } = useDragCapture({
+    onMove: (e) => {
+        if (!moveStartTransform) return;
+        const dx = e.clientX - moveStartX;
+        const dy = e.clientY - moveStartY;
 
-    const el = event.currentTarget as Element;
-    el.setPointerCapture(event.pointerId);
-
-    const startX = event.clientX;
-    const startY = event.clientY;
-    const startTransform = { ...asset.transform };
-
-    // For multi-select drag, capture all selected transforms
-    const selectedIds = additive
-        ? props.selectedAssetIds
-        : [asset.id];
-
-    const onMove = (e: PointerEvent) => {
-        const dx = e.clientX - startX;
-        const dy = e.clientY - startY;
-
-        for (const id of selectedIds) {
+        for (const id of moveSelectedIds) {
             const a = props.sortedAssets.find((a) => a.id === id);
             if (!a || a.locked) continue;
 
-            if (id === asset.id) {
+            if (id === moveAssetId) {
                 emit("updateTransform", id, {
-                    x: snapValue(startTransform.x + dx),
-                    y: snapValue(startTransform.y + dy),
+                    x: snapValue(moveStartTransform.x + dx),
+                    y: snapValue(moveStartTransform.y + dy),
                 });
             } else {
                 emit("updateTransform", id, {
@@ -201,42 +192,47 @@ const onAssetPointerDown = (event: PointerEvent, asset: Asset) => {
                 });
             }
         }
-    };
+    },
+});
 
-    const onUp = () => {
-        el.removeEventListener("pointermove", onMove as any);
-        el.removeEventListener("pointerup", onUp);
-    };
+const onAssetPointerDown = (event: PointerEvent, asset: Asset) => {
+    if (asset.locked) return;
 
-    el.addEventListener("pointermove", onMove as any);
-    el.addEventListener("pointerup", onUp);
+    const additive = event.shiftKey;
+    emit("select", asset.id, additive);
+
+    moveStartX = event.clientX;
+    moveStartY = event.clientY;
+    moveAssetId = asset.id;
+    moveStartTransform = { ...asset.transform };
+    // For multi-select drag, capture all selected transforms
+    moveSelectedIds = additive ? props.selectedAssetIds : [asset.id];
+
+    onAssetDrag(event);
 };
 
 // --- Handle dragging (resize / rotate) ---
-const onHandlePointerDown = (event: PointerEvent, assetId: string, handleType: HandleType) => {
-    const asset = props.sortedAssets.find((a) => a.id === assetId);
-    if (!asset) return;
+let handleStartX = 0;
+let handleStartY = 0;
+let handleAssetId = "";
+let handleType: HandleType | null = null;
+let handleStartT: AssetTransform | null = null;
 
-    const el = event.target as Element;
-    el.setPointerCapture(event.pointerId);
-
-    const startX = event.clientX;
-    const startY = event.clientY;
-    const startT = { ...asset.transform };
-
-    const onMove = (e: PointerEvent) => {
-        const dx = e.clientX - startX;
-        const dy = e.clientY - startY;
+const { onPointerDown: onHandleDrag } = useDragCapture({
+    onMove: (e) => {
+        if (!handleStartT || !handleType) return;
+        const dx = e.clientX - handleStartX;
+        const dy = e.clientY - handleStartY;
 
         if (handleType === "rotate") {
             // Compute angle from center of asset to pointer
-            const centerX = startT.x + startT.width / 2;
-            const centerY = startT.y + startT.height / 2;
+            const centerX = handleStartT.x + handleStartT.width / 2;
+            const centerY = handleStartT.y + handleStartT.height / 2;
             const vpRect = viewportEl.value?.getBoundingClientRect();
             const px = e.clientX - (vpRect?.left ?? 0);
             const py = e.clientY - (vpRect?.top ?? 0);
             const angle = Math.atan2(py - centerY, px - centerX) * (180 / Math.PI) + 90;
-            emit("updateTransform", assetId, { rotation: Math.round(angle) });
+            emit("updateTransform", handleAssetId, { rotation: Math.round(angle) });
             return;
         }
 
@@ -244,32 +240,37 @@ const onHandlePointerDown = (event: PointerEvent, assetId: string, handleType: H
 
         // Resize logic
         if (handleType.includes("r")) {
-            update.width = Math.max(16, snapValue(startT.width + dx));
+            update.width = Math.max(16, snapValue(handleStartT.width + dx));
         }
         if (handleType.includes("l")) {
-            const newW = Math.max(16, snapValue(startT.width - dx));
+            const newW = Math.max(16, snapValue(handleStartT.width - dx));
             update.width = newW;
-            update.x = snapValue(startT.x + (startT.width - newW));
+            update.x = snapValue(handleStartT.x + (handleStartT.width - newW));
         }
         if (handleType.includes("b")) {
-            update.height = Math.max(16, snapValue(startT.height + dy));
+            update.height = Math.max(16, snapValue(handleStartT.height + dy));
         }
         if (handleType.includes("t") && handleType !== "rotate") {
-            const newH = Math.max(16, snapValue(startT.height - dy));
+            const newH = Math.max(16, snapValue(handleStartT.height - dy));
             update.height = newH;
-            update.y = snapValue(startT.y + (startT.height - newH));
+            update.y = snapValue(handleStartT.y + (handleStartT.height - newH));
         }
 
-        emit("updateTransform", assetId, update);
-    };
+        emit("updateTransform", handleAssetId, update);
+    },
+});
 
-    const onUp = () => {
-        el.removeEventListener("pointermove", onMove as any);
-        el.removeEventListener("pointerup", onUp);
-    };
+const onHandlePointerDown = (event: PointerEvent, assetId: string, type: HandleType) => {
+    const asset = props.sortedAssets.find((a) => a.id === assetId);
+    if (!asset) return;
 
-    el.addEventListener("pointermove", onMove as any);
-    el.addEventListener("pointerup", onUp);
+    handleStartX = event.clientX;
+    handleStartY = event.clientY;
+    handleAssetId = assetId;
+    handleType = type;
+    handleStartT = { ...asset.transform };
+
+    onHandleDrag(event);
 };
 
 defineExpose({ assetElMap: readonly(assetElMap) });

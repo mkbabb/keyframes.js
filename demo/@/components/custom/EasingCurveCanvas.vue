@@ -114,9 +114,7 @@ const props = defineProps<{
     editable?: boolean;
 }>();
 
-const emit = defineEmits<{
-    (e: "update:bezierPoints", points: [number, number, number, number]): void;
-}>();
+const emit = defineEmits<{ (e: "update:bezierPoints", points: [number, number, number, number]): void }>();
 
 const svgEl = useTemplateRef<SVGSVGElement>("svgEl");
 

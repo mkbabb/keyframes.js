@@ -106,33 +106,15 @@
 
         <template #target>
             <!-- Scene host. A keyed <Suspense> resolves the active scene's
-                 async chunk and shows #fallback while it loads.
-
-                 NO <KeepAlive>, NO wrapping <Transition>: both broke async
-                 scene loading outright — a `<Transition mode="out-in">` /
-                 `<KeepAlive>` around a keyed `<Suspense>` whose child is a
-                 `defineAsyncComponent` never triggered the async loader, so
-                 amiga / square / easing / spring shipped a BLANK viewport on
-                 every load (the chunk was never even requested — B.W3's
-                 headline blocker). The lazy boundary survives on the
-                 `<Suspense>` alone (each scene's chunk + its heavy deps —
-                 three, monaco — stay code-split); the browser module cache
-                 covers revisits, so dropping KeepAlive costs only a cheap
-                 scene re-setup, not a re-download.
-
-                 The scene-swap fade is RESTORED by dogfooding the engine, not
-                 by re-adding the `<Transition>` B removed for cause: a
-                 `SpringProgress` (the canonical iOS "smooth" preset, no
-                 overshoot) drives `sceneSwapStyle` on this SIBLING wrapper
-                 <div> — a plain reactive style binding, NOT a `<Transition>`
-                 around the `<Suspense>`. The async loader stays on the BARE
-                 `<Suspense>` below, untouched, so the async-load re-break
-                 cannot recur. On `activeSceneKey` change the spring re-seats
-                 0→1, fading the new scene in over the previous paint (a
-                 cross-dissolve, never a blank gap). Built with
-                 `respectReducedMotion: true`, so under prefers-reduced-motion
-                 the spring snaps to terminal in one emit — an instant clean
-                 swap, the engine's own reduced-motion authority. -->
+                 async chunk and shows #fallback while it loads. NO <KeepAlive>,
+                 NO wrapping <Transition>: both broke the async loader outright
+                 (wrapping a keyed <Suspense> over a `defineAsyncComponent`
+                 never triggered the chunk fetch — amiga/square/easing/spring
+                 shipped a BLANK viewport, B.W3's headline blocker). The lazy
+                 boundary survives on the BARE <Suspense> alone; the fade rides
+                 `sceneSwapStyle` on this SIBLING <div> (SpringProgress +
+                 rationale in `useSceneSwap`), never a wrapper <Transition>, so
+                 the re-break can't recur. -->
             <div class="h-full w-full" :style="sceneSwapStyle">
                 <Suspense :key="activeSceneKey">
                     <component
@@ -152,34 +134,22 @@
 </template>
 
 <script setup lang="ts">
-// The ppmycota brand-mark rules (uncaged from utils.css, D.W2.S2). App.vue is
-// the app entry that mounts every brand-mark consumer (header logo here,
-// CubeScene hover-card logo, CubeTarget cube face); a single non-scoped partial
-// is the smallest shared scope for the recurring mark.
+// The ppmycota brand-mark rules (uncaged from utils.css, D.W2.S2) — a single
+// non-scoped partial is the smallest shared scope for every brand-mark consumer
+// App.vue mounts (header logo, CubeScene hover-card logo, CubeTarget cube face).
 import "@styles/brand.css";
 
 import { computed, markRaw, nextTick, provide, ref, shallowRef, watch } from "vue";
 import { CONTROLS_PANE_HOVER_KEY, TABS_EXTERNALLY_MANAGED_KEY } from "@components/custom/animation-controls/injectionKeys";
 
-import { EditorShell, EditorStartScreen } from "@components/custom/editor-shell";
-import { SharePopover } from "@components/custom/editor-shell";
-import {
-    Avatar,
-    AvatarImage,
-    DropdownMenu,
-    DropdownMenuTrigger,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-} from "@mkbabb/glass-ui";
+import { EditorShell, EditorStartScreen, SharePopover } from "@components/custom/editor-shell";
+import { Avatar, AvatarImage, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@mkbabb/glass-ui";
 import { DarkModeToggle } from "@mkbabb/glass-ui/controls";
 import { DockDropdownTrigger } from "@mkbabb/glass-ui/dock";
 import { TopDock } from "@components/custom/dock";
 
 import { AnimationGroup } from "@src/animation/group";
-import { SpringProgress } from "@src/animation/spring";
-import { getStoredAnimationGroupControlOptions, saveScenePlaybackState, getScenePlaybackState, clearScenePlaybackState } from "@components/custom/animation-controls/stores";
-import type { ScenePlaybackState } from "@components/custom/animation-controls/stores";
+import { getStoredAnimationGroupControlOptions, getScenePlaybackState, clearScenePlaybackState } from "@components/custom/animation-controls/stores";
 
 // Tabs in the controls pane are managed via the TopDock controls tab dropdown
 provide(TABS_EXTERNALLY_MANAGED_KEY, true);
@@ -192,6 +162,8 @@ provide(CONTROLS_PANE_HOVER_KEY, dockHoveredRef);
 import CubeScene from "./scenes/CubeScene.vue";
 import { useSceneRouter } from "./useSceneRouter";
 import { useSceneUrl } from "./useSceneUrl";
+import { usePlaybackSnapshot } from "./usePlaybackSnapshot";
+import { useSceneSwap } from "./useSceneSwap";
 import { sceneMap, HOME_SCENE_ID } from "./scenes";
 
 const { currentSceneId, currentScene, isHome, ready, scenes, switchScene: rawSwitchScene } = useSceneRouter();
@@ -208,9 +180,7 @@ const autoPlayNext = ref(false);
 // Bidirectional ?anim= query param sync
 useSceneUrl(currentSuperKey);
 
-const currentLabel = computed(
-    () => sceneMap.get(currentSceneId.value)?.label ?? "Home",
-);
+const currentLabel = computed(() => sceneMap.get(currentSceneId.value)?.label ?? "Home");
 
 // Unified scene component/key/props for KeepAlive (requires single child)
 const activeSceneComponent = computed(() => {
@@ -228,25 +198,10 @@ const activeSceneProps = computed(() => {
     return {};
 });
 
-// Engine-driven scene-swap fade. The keyed <Suspense> hard-cuts the scene;
-// this SpringProgress dogfoods the engine to fade the new scene in over the
-// previous paint (cross-dissolve, no blank gap) via a sibling style binding —
-// NOT a <Transition> wrapper (which re-broke the async loader, B.W3). The
-// default options ARE the iOS "smooth" preset (response 0.5, dampingFraction
-// 0.86 — no overshoot, a calm enter); `respectReducedMotion: true` makes the
-// spring snap to terminal in one emit under prefers-reduced-motion.
-const sceneOpacity = ref(1);
-const sceneSwapStyle = computed(() => ({
-    opacity: sceneOpacity.value,
-    // lerp(0.97, 1, v): subtle scale-up as the scene settles in.
-    transform: `scale(${0.97 + 0.03 * sceneOpacity.value})`,
-}));
-const sceneSwapSpring = new SpringProgress({ respectReducedMotion: true });
-watch(activeSceneKey, () => {
-    sceneSwapSpring.reset(0);
-    sceneSwapSpring.play((v) => { sceneOpacity.value = v; });
-    sceneSwapSpring.target = 1;
-});
+// Scene-swap cross-dissolve (SpringProgress) + per-scene playback codec — the
+// engine choreography + rationale live in the colocated composables.
+const { sceneSwapStyle } = useSceneSwap(activeSceneKey);
+const { saveCurrentPlaybackState, restoreGroupPlaybackState } = usePlaybackSnapshot(currentSuperKey, currentAnimationGroup);
 
 const storedControls = computed(() => getStoredAnimationGroupControlOptions(currentSuperKey.value));
 
@@ -279,69 +234,6 @@ function onStartStateChange(started: boolean) {
     // `useTransformState` and produces compositing jitter.
     if (sceneRef.value && 'isStarted' in sceneRef.value) {
         sceneRef.value.isStarted = started;
-    }
-}
-
-/** Snapshot the current scene's animation playback state before leaving. */
-function saveCurrentPlaybackState() {
-    const key = currentSuperKey.value;
-    const group = currentAnimationGroup.value;
-    if (!key || key.startsWith("__") || !group.started) return;
-
-    const animations: Record<string, { t: number; reversed: boolean; iteration: number }> = {};
-    for (const [name, { animation }] of Object.entries(group.animations)) {
-        animations[name] = {
-            t: animation.t,
-            reversed: animation.reversed,
-            iteration: animation.iteration,
-        };
-    }
-    saveScenePlaybackState(key, {
-        playing: group.playing(),
-        started: group.started,
-        animations,
-    });
-}
-
-/**
- * Restore a saved playback state onto a fresh AnimationGroup.
- * Sets each animation to the saved T value (with correct direction),
- * renders the frame, and resumes playing if it was playing before.
- */
-function restoreGroupPlaybackState(group: AnimationGroup<any>, savedState: ScenePlaybackState) {
-    const now = performance.now();
-
-    group.started = true;
-    group.lastTickTime = now;
-
-    for (const [name, groupObject] of Object.entries(group.animations)) {
-        const snap = savedState.animations[name];
-        if (!snap) continue;
-
-        const anim = groupObject.animation;
-
-        anim.managed = true;
-        anim.started = true;
-        anim.reversed = snap.reversed;
-        anim.iteration = snap.iteration;
-        anim.startTime = now - snap.t;
-        anim.t = snap.t;
-        anim.paused = true;
-        anim.pausedTime = now;
-
-        // Interpolate frames at the saved T to populate values
-        const vars = anim.interpFrames(snap.t, false);
-        Object.assign(groupObject.values, vars);
-    }
-
-    // Render the restored frame
-    group.paused = true;
-    group.transformFramesGrouped(now);
-
-    if (savedState.playing) {
-        // Resume from the restored paused state: unpauses children and
-        // restarts the rAF draw loop.
-        group.resume();
     }
 }
 

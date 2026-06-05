@@ -7,7 +7,7 @@
         >
             <div ref="containerEl" class="w-full h-full relative container-inline-size">
                 <div
-                    class="absolute top-1/2 left-6 w-[calc(100%-3rem)] h-1 -translate-y-1/2 rounded-full bg-accent-red/20 pointer-events-none"
+                    class="absolute top-1/2 left-6 w-[calc(100%-var(--visualizer-track-gutter))] h-1 -translate-y-1/2 rounded-full bg-accent-red/20 pointer-events-none"
                 ></div>
 
                 <div

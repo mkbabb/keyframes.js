@@ -8,7 +8,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onActivated, onBeforeUnmount, onDeactivated, onMounted, ref, useTemplateRef } from "vue";
+import { computed, onActivated, onBeforeUnmount, onDeactivated, onMounted, useTemplateRef } from "vue";
+import { useResizeObserver } from "@vueuse/core";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
@@ -23,7 +24,6 @@ let sphereMesh: ReturnType<typeof tesselateSphere>;
 let renderer: THREE.WebGLRenderer | undefined;
 let rafId: number | undefined;
 let controls: OrbitControls | undefined;
-let resizeObserver: ResizeObserver | undefined;
 let scene: THREE.Scene | undefined;
 let camera: THREE.PerspectiveCamera | undefined;
 
@@ -80,20 +80,21 @@ onMounted(() => {
     controls.dampingFactor = 0.05;
     controls.screenSpacePanning = false;
 
-    // Handle resize
-    const ro = new ResizeObserver(() => {
-        const w = canvas.clientWidth;
-        const h = canvas.clientHeight;
-        if (w === 0 || h === 0) return;
-        camera.aspect = w / h;
-        camera.updateProjectionMatrix();
-        renderer!.setSize(w, h, false);
-    });
-    ro.observe(canvas);
-
     startRenderLoop();
+});
 
-    resizeObserver = ro;
+// Canvas resize → camera-aspect. A plain reactive DOM observer (not the
+// imperative present loop) — vueuse owns its lifecycle (tryOnScopeDispose
+// cleanup) and reads the owned `canvasEl` ref. The guard covers the pre-mount
+// window before `camera`/`renderer` exist.
+useResizeObserver(canvasEl, () => {
+    if (!camera || !renderer) return;
+    const w = canvasEl.value!.clientWidth;
+    const h = canvasEl.value!.clientHeight;
+    if (w === 0 || h === 0) return;
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    renderer.setSize(w, h, false);
 });
 
 function startRenderLoop() {
@@ -124,7 +125,6 @@ onActivated(() => {
 onBeforeUnmount(() => {
     animationGroup.stop();
     stopRenderLoop();
-    resizeObserver?.disconnect();
     controls?.dispose();
 
     // Dispose all Three.js geometries and materials to free GPU memory

@@ -70,6 +70,7 @@
 
 <script setup lang="ts">
 import { inject, useTemplateRef } from "vue";
+import { useEventListener } from "@vueuse/core";
 import { SPRING_DEMO_KEY } from "./springKeys";
 
 const demo = inject(SPRING_DEMO_KEY)!;
@@ -93,20 +94,18 @@ const onPointerDown = (e: PointerEvent) => {
     dragging = true;
     railEl.value?.setPointerCapture(e.pointerId);
     demo.reseat(positionFromEvent(e));
-    window.addEventListener("pointermove", onPointerMove);
-    window.addEventListener("pointerup", onPointerUp);
 };
 
-const onPointerMove = (e: PointerEvent) => {
+// vueuse owns the lifecycle (auto-cleanup on scope dispose); the handlers stay
+// registered and early-return unless a drag is in flight — the idiomatic form.
+useEventListener(window, "pointermove", (e: PointerEvent) => {
     if (!dragging) return;
     demo.reseat(positionFromEvent(e));
-};
+});
 
-const onPointerUp = () => {
+useEventListener(window, "pointerup", () => {
     dragging = false;
-    window.removeEventListener("pointermove", onPointerMove);
-    window.removeEventListener("pointerup", onPointerUp);
-};
+});
 
 const onKeydown = (e: KeyboardEvent) => {
     if (e.key === "ArrowRight" || e.key === "ArrowUp") {

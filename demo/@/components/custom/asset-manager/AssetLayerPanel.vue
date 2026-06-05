@@ -90,6 +90,7 @@
 <script setup lang="ts">
 import { computed, readonly } from "vue";
 import type { Asset, AssetKind, AssetTransform } from "./assetTypes";
+import { useDragCapture } from "@components/custom/animation-controls/controls/composables/useDragCapture";
 import { useAssetManager } from "./useAssetManager";
 import AssetLayer from "./AssetLayer.vue";
 import AssetPropertiesPanel from "./AssetPropertiesPanel.vue";
@@ -137,13 +138,8 @@ const reversedAssets = computed(() => [...sortedAssets.value].reverse());
 let dragId: string | null = null;
 let dragStartY = 0;
 
-const onDragStart = (event: PointerEvent, id: string) => {
-    dragId = id;
-    dragStartY = event.clientY;
-    const el = event.target as Element;
-    el.setPointerCapture(event.pointerId);
-
-    const onMove = (e: PointerEvent) => {
+const { onPointerDown: onReorderDrag } = useDragCapture({
+    onMove: (e) => {
         if (!dragId) return;
         const deltaY = e.clientY - dragStartY;
         // Each row ~32px
@@ -160,16 +156,16 @@ const onDragStart = (event: PointerEvent, id: string) => {
                 dragStartY = e.clientY;
             }
         }
-    };
-
-    const onUp = () => {
+    },
+    onEnd: () => {
         dragId = null;
-        el.removeEventListener("pointermove", onMove as any);
-        el.removeEventListener("pointerup", onUp);
-    };
+    },
+});
 
-    el.addEventListener("pointermove", onMove as any);
-    el.addEventListener("pointerup", onUp);
+const onDragStart = (event: PointerEvent, id: string) => {
+    dragId = id;
+    dragStartY = event.clientY;
+    onReorderDrag(event);
 };
 
 defineExpose({

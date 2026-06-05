@@ -18,10 +18,13 @@
  *
  * CLAUSES (each BITES):
  *
- *   1. CEILINGS — every demo component/composable under
- *      `demo/@/components/custom/animation-controls/**` is ≤ its ceiling
- *      (350L for `.vue`, 250L for `.ts`). Re-adding a 400L component reddens it.
- *      The five W0-flagged units (552/487/441/383/251) must each drop under.
+ *   1. CEILINGS — every demo component/composable under the EXTENDED sweep
+ *      (`animation-controls/**` + `demo/app/**` + `orbital-drag/**` + the named
+ *      `EasingCurveCanvas.vue`) is ≤ its ceiling (350L `.vue`, 250L `.ts`),
+ *      modulo a rationale-bearing per-file `CEILING_OVERRIDE` (E.W1 §S4, with a
+ *      stale-entry guard). Re-adding a 400L component reddens it. The five
+ *      D-flagged units (552/487/441/383/251) AND the two E.W1 seams
+ *      (App.vue@452, useOrbitalPointer@376) must each drop under.
  *
  *   2. PARSE ADAPTER — exactly ONE definition of `parseAnimationCSS`: a single
  *      `export` in `keyframes/utils/`, and ZERO inline copies (the two W0
@@ -54,11 +57,38 @@ const CONTROLS = path.join(
     "demo/@/components/custom/animation-controls",
 );
 
+// E.W1 extended the ceiling sweep OUTSIDE the controls tree to the two seams the
+// post-D assay found: the app entry shell (`demo/app/**`) and the orbital-drag
+// input/transform seam (`orbital-drag/**`). Same ceilings, so the gate BITES
+// there too — App.vue@452 + useOrbitalPointer@376 were red before E.W1's thin.
+const APP = path.join(REPO, "demo/app");
+const ORBITAL = path.join(
+    REPO,
+    "demo/@/components/custom/orbital-drag",
+);
+// EasingCurveCanvas is the named cohesive curve-editor (E.W1 §S4): swept as a
+// single named file so its disposition (trimmed to ≤350, NOT split) BITES.
+const EASING_CURVE_CANVAS = path.join(
+    REPO,
+    "demo/@/components/custom/EasingCurveCanvas.vue",
+);
+
 const toPosix = (p) => p.split(path.sep).join("/");
 const relPosix = (abs) => toPosix(path.relative(REPO, abs));
 
 // Line ceilings, by extension (D.W1's forcing function).
 const CEILING = { ".vue": 350, ".ts": 250 };
+
+// Per-file ceiling exceptions (E.W1 §S4 / §DD4). A unit appears here ONLY when
+// it is ONE cohesive concern that the natural-seam rule (D.W1 §DD1) forbids
+// splitting to shed a handful of lines — never to launder a real conflation.
+// Each entry carries its line cap + the cohesion rationale, and the stale-entry
+// guard below prunes any override whose file no longer exceeds the base ceiling
+// (mirrors the ASYNC_ALLOWLIST stale guard). EMPTY today: EasingCurveCanvas was
+// trimmed to ≤350 (the smaller honest move), so no override is owed.
+const CEILING_OVERRIDE = new Map([
+    // e.g. ["demo/.../Foo.vue", { cap: 360, why: "one cohesive X — splitting fragments the concern (D.W1 §DD1)" }]
+]);
 
 // Directories that never hold reviewable SOURCE.
 const SKIP_DIR = new Set(["dist", "node_modules", ".git"]);
@@ -111,24 +141,46 @@ function main() {
         process.exit(3);
     }
 
+    // Clauses 2–4 are controls-specific (the parse adapter, the timeline utils,
+    // the async blobs) — they sweep the controls tree only.
     const sources = collectSources(CONTROLS);
     sources.sort();
 
-    console.log("proof:decomposition — D.W1 (the demo decomposed)");
+    // Clause 1 (ceilings) sweeps the EXTENDED set: controls + app + orbital +
+    // the one named EasingCurveCanvas file (E.W1 §S5). Deduped + sorted.
+    const ceilingSources = [
+        ...new Set([
+            ...sources,
+            ...collectSources(APP),
+            ...collectSources(ORBITAL),
+            ...(fs.existsSync(EASING_CURVE_CANVAS) ? [EASING_CURVE_CANVAS] : []),
+        ]),
+    ].sort();
+
+    console.log("proof:decomposition — D.W1 + E.W1 (the demo decomposed)");
     console.log(
-        `  animation-controls source files scanned: ${sources.length} ` +
+        `  source files scanned: ${ceilingSources.length} across ` +
+            `animation-controls/** + demo/app/** + orbital-drag/** ` +
             `(dist/ excluded)`,
     );
 
     // ── 1. CEILINGS ────────────────────────────────────────────────────
+    // A per-file CEILING_OVERRIDE raises the cap for a NAMED cohesive unit; the
+    // stale guard below reds any override whose file is now under the base
+    // ceiling (a dead exception). Track which overrides actually bit.
     const overCeiling = [];
-    for (const abs of sources) {
+    const usedOverrides = new Set();
+    for (const abs of ceilingSources) {
         const ext = path.extname(abs);
-        const ceiling = CEILING[ext];
-        if (ceiling == null) continue;
+        const base = CEILING[ext];
+        if (base == null) continue;
+        const rel = relPosix(abs);
+        const override = CEILING_OVERRIDE.get(rel);
+        const ceiling = override ? override.cap : base;
         const lines = fs.readFileSync(abs, "utf8").split("\n").length;
+        if (override && lines > base) usedOverrides.add(rel);
         if (lines > ceiling) {
-            overCeiling.push({ rel: relPosix(abs), lines, ceiling });
+            overCeiling.push({ rel, lines, ceiling, override });
         }
     }
     if (overCeiling.length > 0) {
@@ -136,13 +188,31 @@ function main() {
             failures.push(
                 `[ceiling] ${o.rel}: ${o.lines}L exceeds the ${o.ceiling}L ` +
                     `ceiling for ${path.extname(o.rel)} — split at its natural ` +
-                    `concern seam into colocated sub-units (D.W1 §S1–S3).`,
+                    `concern seam into colocated sub-units (D.W1 §S1–S3 / E.W1 ` +
+                    `§S1–S3), or (only for a genuinely cohesive unit) add a ` +
+                    `rationale-bearing CEILING_OVERRIDE entry (E.W1 §S4).`,
             );
         }
     } else {
         console.log(
-            `  ✓ [ceiling] all files ≤ ceiling (350L .vue / 250L .ts)`,
+            `  ✓ [ceiling] all files ≤ ceiling (350L .vue / 250L .ts)` +
+                (CEILING_OVERRIDE.size > 0
+                    ? `; ${CEILING_OVERRIDE.size} named override(s)`
+                    : ""),
         );
+    }
+
+    // Stale CEILING_OVERRIDE guard — an override whose file is now under the
+    // base ceiling is dead and must be pruned (mirrors the ASYNC_ALLOWLIST
+    // stale guard). Keeps the exception map from silently accruing slack.
+    for (const [rel, meta] of CEILING_OVERRIDE) {
+        if (!usedOverrides.has(rel)) {
+            failures.push(
+                `[ceiling] CEILING_OVERRIDE entry "${rel}" (cap ${meta.cap}, ` +
+                    `"${meta.why}") matches no file over its base ceiling — it ` +
+                    `is STALE; remove it.`,
+            );
+        }
     }
 
     // ── 2. PARSE ADAPTER — exactly ONE definition ──────────────────────

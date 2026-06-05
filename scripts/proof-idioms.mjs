@@ -99,10 +99,16 @@ function main() {
         const rainbowRefs = new Set();
         const colorGoldReferenced = { hit: false };
         let scaleHoverReferenced = false;
+        let goldShimmerReferenced = false;
         let enterReferenced = false;
         const RAINBOW_REF = /var\(\s*--rainbow-([a-z]+)\s*\)/g;
         const COLOR_GOLD_REF = /var\(\s*--color-gold\s*\)/;
         const SCALE_HOVER_REF = /\bscale-on-hover\b/;
+        // .gold-shimmer is a CLASS utility (like .scale-on-hover) — the
+        // detail-curve hover shimmer applied as a class string, NOT a var()
+        // (the shape the D.W2 clause derived references from, which is why it
+        // missed this rent; E.W3.S5 extends the class-shape branch to it).
+        const GOLD_SHIMMER_REF = /\bgold-shimmer\b/;
         // The tab-panel slide consumes the keyframe via `animation: enter …`.
         const ENTER_REF = /\banimation:\s*enter\b/;
 
@@ -114,6 +120,7 @@ function main() {
             for (const m of src.matchAll(RAINBOW_REF)) rainbowRefs.add(m[1]);
             if (COLOR_GOLD_REF.test(src)) colorGoldReferenced.hit = true;
             if (SCALE_HOVER_REF.test(src)) scaleHoverReferenced = true;
+            if (GOLD_SHIMMER_REF.test(src)) goldShimmerReferenced = true;
             if (ENTER_REF.test(src)) enterReferenced = true;
         }
 
@@ -121,6 +128,7 @@ function main() {
             `  referenced idioms: --rainbow-{${[...rainbowRefs].sort().join(",")}}` +
                 `  --color-gold:${colorGoldReferenced.hit}` +
                 `  .scale-on-hover:${scaleHoverReferenced}` +
+                `  .gold-shimmer:${goldShimmerReferenced}` +
                 `  @keyframes-enter:${enterReferenced}`,
         );
 
@@ -144,6 +152,12 @@ function main() {
         }
         if (scaleHoverReferenced && !hasDef(/\.scale-on-hover\b/)) {
             missing.push(".scale-on-hover (utility rule)");
+        }
+        // Anchor on the rule's OPENING brace so a renamed/stubbed selector
+        // (e.g. `.gold-shimmer-STUBBED {`) does NOT satisfy the definition — the
+        // gate must red when the demo-local rule is removed (E.W3.S5 falsifiable).
+        if (goldShimmerReferenced && !hasDef(/\.gold-shimmer\s*\{/)) {
+            missing.push(".gold-shimmer (utility rule)");
         }
         if (enterReferenced && !hasDef(/@keyframes\s+enter\b/)) {
             missing.push("@keyframes enter");
@@ -246,6 +260,114 @@ function main() {
                         `selectors`,
                 );
             }
+        }
+    }
+
+    // ── 4. LITERALS TOKENIZED — the named recurring brackets are gone (E.W3.S2) ─
+    // Each literal RECURS or encodes a coupling, so it earns a token; the call
+    // site must read var(--token), not the raw bracket. BITES: each literal is a
+    // verified live site pre-E.W3.
+    {
+        const LITERALS = [
+            ["min-w-[12rem]", /min-w-\[12rem\]/, "--dropdown-min-width"],
+            ["w-[30vw]", /\bw-\[30vw\]/, "--target-viewport-w"],
+            [
+                "w-[calc(100%-3rem)]",
+                /w-\[calc\(100%-3rem\)\]/,
+                "--visualizer-track-gutter",
+            ],
+            [
+                "max-h-[min(24rem,60dvh)]",
+                /max-h-\[min\(24rem,\s*60dvh\)\]/,
+                "--easing-dropdown-max-h",
+            ],
+        ];
+        const vueFiles = collect(DEMO, new Set([".vue"]));
+        const hits = [];
+        for (const abs of vueFiles) {
+            const src = read(abs);
+            const lines = src.split("\n");
+            for (let i = 0; i < lines.length; i++) {
+                for (const [name, re, token] of LITERALS) {
+                    if (re.test(lines[i])) {
+                        hits.push({ rel: relPosix(abs), line: i + 1, name, token });
+                    }
+                }
+            }
+        }
+        if (hits.length > 0) {
+            failures.push(
+                `[tokenized] ${hits.length} un-tokenized literal(s) survive in ` +
+                    `demo .vue — route each to its design-idioms.css token:\n      ` +
+                    hits
+                        .map(
+                            (h) =>
+                                `${h.rel}:${h.line}  ${h.name} → var(${h.token})`,
+                        )
+                        .join("\n      "),
+            );
+        } else {
+            console.log(
+                `  ✓ [tokenized] zero min-w-[12rem] / w-[30vw] / ` +
+                    `w-[calc(100%-3rem)] / max-h-[min(24rem,60dvh)] in demo .vue ` +
+                    `(each routed to its token)`,
+            );
+        }
+    }
+
+    // ── 5. PROGRESS-BAR SINGLE-SOURCED — exactly ONE definition (E.W3.S4) ──
+    // The `.progress-bar` rainbow brush-sweep rule was duplicated verbatim in two
+    // `<style scoped>` blocks; the canonical home is design-idioms.css (beside the
+    // --rainbow-* family it reads). Assert exactly one definition across demo
+    // source. BITE: a re-introduced scoped copy reds it.
+    {
+        const PB_DEF = /\.progress-bar\s*\{/g;
+        const srcFiles = collect(DEMO, new Set([".vue", ".css"]));
+        const defs = [];
+        for (const abs of srcFiles) {
+            const src = read(abs);
+            const lines = src.split("\n");
+            for (let i = 0; i < lines.length; i++) {
+                if (PB_DEF.test(lines[i])) {
+                    PB_DEF.lastIndex = 0;
+                    defs.push({ rel: relPosix(abs), line: i + 1 });
+                }
+            }
+        }
+        if (defs.length !== 1) {
+            failures.push(
+                `[progress-bar] expected exactly ONE .progress-bar definition ` +
+                    `(the shared design-idioms.css rule), found ${defs.length}:\n      ` +
+                    defs.map((d) => `${d.rel}:${d.line}`).join("\n      ") +
+                    `\n    Dedup to the demo-owned idiom layer; the class stays ` +
+                    `applied in the consuming templates (E.W3.S4).`,
+            );
+        } else {
+            console.log(
+                `  ✓ [progress-bar] exactly one .progress-bar definition ` +
+                    `(${defs[0].rel}:${defs[0].line}) — single-sourced`,
+            );
+        }
+    }
+
+    // ── 6. PANEL-MAX-H IS DVH — the vh/dvh reconcile is gate-locked (E.W3.S3) ─
+    // --panel-max-h must be defined as 60dvh (the mobile-correct unit), not 60vh.
+    // BITE: the former 60vh reds it.
+    {
+        const idiomSrc = fs.existsSync(DESIGN_IDIOMS) ? read(DESIGN_IDIOMS) : "";
+        const isDvh = /--panel-max-h\s*:\s*60dvh\b/.test(idiomSrc);
+        const isVh = /--panel-max-h\s*:\s*60vh\b/.test(idiomSrc);
+        if (!isDvh || isVh) {
+            failures.push(
+                `[panel-max-h] --panel-max-h must be defined as 60dvh in ` +
+                    `design-idioms.css (the mobile-correct, single-sourced unit; ` +
+                    `E.W3.S3)${isVh ? " — found the un-reconciled 60vh" : " — no 60dvh definition found"}.`,
+            );
+        } else {
+            console.log(
+                `  ✓ [panel-max-h] --panel-max-h reconciled to 60dvh ` +
+                    `(one token, one mobile-correct unit)`,
+            );
         }
     }
 

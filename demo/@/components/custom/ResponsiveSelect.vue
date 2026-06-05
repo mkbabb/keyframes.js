@@ -55,7 +55,7 @@
                 <DrawerHeader v-if="title">
                     <DrawerTitle class="text-subheading">{{ title }}</DrawerTitle>
                 </DrawerHeader>
-                <div :class="['max-h-[60dvh] overflow-y-auto px-4 py-4', groupClass]">
+                <div :class="['max-h-[var(--panel-max-h)] overflow-y-auto px-4 py-4', groupClass]">
                     <div
                         v-for="item in items"
                         :key="item.value"

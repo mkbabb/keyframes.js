@@ -26,7 +26,7 @@
                 >{{ modelValue }}</span>
             </span>
         </SelectTrigger>
-        <SelectContent class="max-h-[min(24rem,60dvh)]">
+        <SelectContent class="max-h-[var(--easing-dropdown-max-h)]">
             <template v-for="(group, gi) in EASING_GROUPS" :key="group.family">
                 <SelectSeparator v-if="gi > 0" />
                 <SelectGroup>

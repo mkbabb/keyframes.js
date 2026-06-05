@@ -28,7 +28,7 @@
                             v-if="showLoader"
                         >
                             <Loader2
-                                class="absolute h-[var(--target-viewport-h)] w-[30vw] animate-spin"
+                                class="absolute h-[var(--target-viewport-h)] w-[var(--target-viewport-w)] animate-spin"
                             ></Loader2>
                         </span>
                         <div

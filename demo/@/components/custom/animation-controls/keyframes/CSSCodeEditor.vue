@@ -11,6 +11,7 @@
 
 <script setup lang="ts">
 import { onMounted, onUnmounted, useTemplateRef, watch } from "vue";
+import { useResizeObserver } from "@vueuse/core";
 import * as monaco from "monaco-editor";
 // Theme JSONs are vendored locally: monaco-themes@0.4.x only exports `.` and
 // `./dist/monaco-themes.js` in its `exports` field, so `monaco-themes/themes/*`
@@ -62,7 +63,6 @@ const containerEl = useTemplateRef<HTMLElement>("containerEl");
 const { isDark } = useGlobalDark();
 
 let editor: monaco.editor.IStandaloneCodeEditor | undefined;
-let resizeObserver: ResizeObserver | null = null;
 let isSettingValue = false;
 
 const getFormatWidth = () => {
@@ -152,21 +152,22 @@ onMounted(() => {
     const el = containerEl.value!;
     if (el.offsetWidth > 0 && el.offsetHeight > 0) {
         initEditor();
-    } else {
-        resizeObserver = new ResizeObserver((entries) => {
-            const entry = entries[0];
-            if (entry && entry.contentRect.width > 0 && entry.contentRect.height > 0) {
-                resizeObserver?.disconnect();
-                resizeObserver = null;
-                initEditor();
-            }
-        });
-        resizeObserver.observe(el);
+        return;
     }
+    // Deferred init: wait for the container to gain non-zero size, then
+    // initialise once and self-stop — the one-shot lifecycle vueuse's
+    // `useResizeObserver` expresses via its returned `stop()` handle (and
+    // auto-cleans on scope dispose if we unmount before the size resolves).
+    const { stop } = useResizeObserver(el, (entries) => {
+        const entry = entries[0];
+        if (entry && entry.contentRect.width > 0 && entry.contentRect.height > 0) {
+            stop();
+            initEditor();
+        }
+    });
 });
 
 onUnmounted(() => {
-    resizeObserver?.disconnect();
     editor?.dispose();
 });
 

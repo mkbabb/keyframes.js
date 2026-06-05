@@ -98,7 +98,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, ref, useTemplateRef, onMounted, onUnmounted, watch } from "vue";
+import { computed, inject, ref, useTemplateRef, onMounted, watch } from "vue";
+import { useResizeObserver } from "@vueuse/core";
 import { DockSelectTrigger } from "@mkbabb/glass-ui/dock";
 import {
     Select,
@@ -214,8 +215,6 @@ const getBallX = (fn: TimingFunction, isActive: boolean, _isSingular: boolean): 
     return fn(demo.progress.value) * maxX;
 };
 
-let resizeObs: ResizeObserver | undefined;
-
 const measureTrackWidth = () => {
     // The comparison tracks are uniform width (each is `flex-1`); read the
     // first owned track ref rather than a string-class querySelector.
@@ -228,13 +227,11 @@ const measureTrackWidth = () => {
 onMounted(() => {
     readBallSizes();
     measureTrackWidth();
-    resizeObs = new ResizeObserver(() => measureTrackWidth());
-    if (trackContainerEl.value) resizeObs.observe(trackContainerEl.value);
 });
 
-onUnmounted(() => {
-    resizeObs?.disconnect();
-});
+// vueuse owns the observer lifecycle (tryOnScopeDispose cleanup) — re-measure
+// the comparison-track width off the owned `trackContainerEl` ref on resize.
+useResizeObserver(trackContainerEl, () => measureTrackWidth());
 
 // ── Singular scrubber (glass-ui Slider) ────────────────────────
 // Feature parity with the hand-rolled track-ball: drag scrubs progress,

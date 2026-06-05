@@ -39,7 +39,7 @@
                                     storedControls.selectedAnimation
                                 }}</SelectValue>
                             </DockSelectTrigger>
-                            <SelectContent class="min-w-[12rem]">
+                            <SelectContent class="min-w-[var(--dropdown-min-width)]">
                                 <SelectGroup class="dock-label">
                                     <template
                                         v-for="name in animationNames"

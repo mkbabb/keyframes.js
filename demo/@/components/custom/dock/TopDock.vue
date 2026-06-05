@@ -147,7 +147,7 @@ const activeLayer = computed(() => {
                                 <component :is="TAB_ICONS[allControlTabs.find(t => t.value === selectedControl)?.icon ?? 'SlidersHorizontal']" class="icon-md text-muted-foreground" />
                                 <SelectValue />
                             </DockSelectTrigger>
-                            <SelectContent class="min-w-[12rem]">
+                            <SelectContent class="min-w-[var(--dropdown-min-width)]">
                                 <SelectGroup class="dock-label">
                                     <SelectItem v-for="tab in allControlTabs" :key="tab.value" :value="tab.value" class="py-2 px-3" hide-indicator>
                                         <span class="flex items-center gap-2">
@@ -174,7 +174,7 @@ const activeLayer = computed(() => {
                                 <Home v-else class="icon-sm text-muted-foreground" />
                                 <SelectValue />
                             </DockSelectTrigger>
-                            <SelectContent class="min-w-[12rem]">
+                            <SelectContent class="min-w-[var(--dropdown-min-width)]">
                                 <SelectGroup class="dock-label">
                                     <SelectItem :value="homeSceneId" class="py-2 px-3" hide-indicator>
                                         <span class="flex items-center gap-2">

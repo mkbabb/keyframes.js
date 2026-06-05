@@ -17,9 +17,9 @@
                         overflowClass,
                     ]"
                 >
-                    <TabsTrigger value="controls" :class="tabClasses">Controls</TabsTrigger>
-                    <TabsTrigger value="keyframes" :class="tabClasses">Keyframes</TabsTrigger>
-                    <TabsTrigger value="timeline" :class="tabClasses">Timeline</TabsTrigger>
+                    <TabsTrigger :ref="(el: any) => setTabTriggerRef('controls', el)" value="controls" :class="tabClasses">Controls</TabsTrigger>
+                    <TabsTrigger :ref="(el: any) => setTabTriggerRef('keyframes', el)" value="keyframes" :class="tabClasses">Keyframes</TabsTrigger>
+                    <TabsTrigger :ref="(el: any) => setTabTriggerRef('timeline', el)" value="timeline" :class="tabClasses">Timeline</TabsTrigger>
                     <slot name="tabs-trigger"></slot>
                 </TabsList>
             </div>
@@ -168,6 +168,16 @@ const tabsContentEl = useTemplateRef<HTMLElement>("tabsContentEl");
 const tabsHeaderEl = useTemplateRef<HTMLElement>("tabsHeaderEl");
 const tabsListRef = useTemplateRef<HTMLElement>("tabsListRef");
 
+// Owned tab-trigger element refs, keyed by tab value. The active tab is the one
+// whose key matches `storedControls.selectedControl` (Vue state) — no DOM
+// `data-state` re-read.
+const tabTriggerEls = new Map<string, HTMLElement>();
+const setTabTriggerRef = (value: string, el: any) => {
+    const node = (el?.$el ?? el) as HTMLElement | null;
+    if (node) tabTriggerEls.set(value, node);
+    else tabTriggerEls.delete(value);
+};
+
 const isTimelineVisible = computed(() =>
     storedControls.selectedControl === "timeline" || storedControls.isTimelineExpanded,
 );
@@ -185,13 +195,17 @@ const { fadeClass: overflowClass, check: checkOverflow } = useScrollFade({
 });
 
 const scrollActiveTabIntoView = () => {
-    const header = tabsHeaderEl.value;
-    if (!header) return;
-    const activeBtn = header.querySelector<HTMLElement>("button[data-state=active]");
+    // Active tab = the trigger whose value matches Vue's `selectedControl` —
+    // read the state, scroll the OWNED trigger ref (not a DOM `data-state` read).
+    const activeBtn = tabTriggerEls.get(storedControls.selectedControl);
     activeBtn?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
 };
 
 onMounted(() => {
+    // The reka-ui <TabsList> renders the `role=tablist` element; there is no
+    // public ref for it, so this is a single DOCUMENTED vendor-DOM contract
+    // (the `[data-sonner-toaster]` disposition, D.W3). If reka-ui ships a ref,
+    // a later follow-on adopts it.
     tabsListElRef.value =
         tabsHeaderEl.value?.querySelector<HTMLElement>("[role=tablist]") ?? null;
     scrollActiveTabIntoView();

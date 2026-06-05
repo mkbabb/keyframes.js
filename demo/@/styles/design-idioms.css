@@ -65,6 +65,14 @@
        --gold base, so light mode is isomorphic. */
     --color-gold: hsl(43 74% 49%);
 
+    /* The full gold RAMP the .gold-shimmer gradient sweeps (S1). glass-ui's
+       shimmer reads --color-gold-dark / --color-gold-light around the
+       --color-gold mid-stop; the demo owned only the mid-stop until now. These
+       derivations match glass-ui's --gold-dark / --gold-light (light mode) so
+       the localized shimmer paints the identical metallic gradient. */
+    --color-gold-light: hsl(51 100% 50%);
+    --color-gold-dark: hsl(34 87% 38%);
+
     /* ── Hover-lift scale ──
        The amount .scale-on-hover lifts on hover. Mirrors glass-ui's
        --scale-hover default so the lift is isomorphic; named here so the demo
@@ -76,9 +84,25 @@
        so the component migration (the sibling S3 task) routes each literal to
        ONE token rather than re-typing the fraction. Defined here so the idiom
        layer is the single source for the demo's structural constants. */
-    --panel-max-h: 60vh; /* max-h-[60vh] panel caps (the dvh variants stay dvh) */
+    --panel-max-h: 60dvh; /* max-h-[var(--panel-max-h)] panel caps — ONE unit (dvh):
+                             mobile-correct (tracks the dynamic viewport, no URL-bar
+                             over-reservation), reconciled from the former 60vh +
+                             two stray 60dvh literals (E.W3.S3). */
     --dock-panel-width: 17rem; /* w-[17rem] dock / header panel width (recurs ×2) */
-    --target-viewport-h: 30vh; /* h-[30vh] / w-[30vw] cube-target viewport fraction */
+    --dropdown-min-width: 12rem; /* min-w-[var(--dropdown-min-width)] SelectContent
+                                    dropdown min (recurs ×3 — AnimationMenuBar +
+                                    TopDock ×2; distinct from the wider --dock-panel-width). */
+    --target-viewport-h: 30vh; /* h-[var(--target-viewport-h)] cube-target viewport height */
+    --target-viewport-w: 30vw; /* w-[var(--target-viewport-w)] cube-target viewport WIDTH
+                                  — the dimensional sibling of --target-viewport-h (a vh
+                                  token cannot name a vw width; E.W3.S2 corrects the conflation). */
+    --visualizer-track-gutter: 3rem; /* w-[calc(100%-var(--visualizer-track-gutter))] track
+                                        inset — couples to the left-6 (1.5rem) inset each side
+                                        = 3rem total gutter; one token keeps the calc and the
+                                        inset in sync (E.W3.S2). */
+    --easing-dropdown-max-h: min(24rem, 60dvh); /* max-h-[var(--easing-dropdown-max-h)] easing
+                                                   SelectContent cap — its 60dvh half is the S3
+                                                   reconciled unit. */
 
     /* ── The below-plane stacking rung ──
        Reconciles the one orphan raw `z-index: -10` (CubeTarget.vue, the
@@ -89,9 +113,13 @@
     --z-behind: -10;
 }
 
-/* Dark-mode gold parity — class-based, matching the demo's `.dark` idiom. */
+/* Dark-mode gold parity — class-based, matching the demo's `.dark` idiom.
+   The full ramp lifts in lockstep with glass-ui's dark --gold-light / --gold-dark
+   so the localized .gold-shimmer gradient stays isomorphic in dark mode too. */
 .dark {
     --color-gold: hsl(43 74% 55%);
+    --color-gold-light: hsl(51 100% 55%);
+    --color-gold-dark: hsl(34 87% 45%);
 }
 
 /* ── .text-gold utility ──
@@ -122,6 +150,65 @@
     .scale-on-hover {
         transition: none;
     }
+}
+
+/* ── .gold-shimmer ──
+   The detail-curve hover-shimmer utility — applied ×3 across the easing
+   affordances (AnimationControlsControls.vue, EasingSelect.vue ×2). Until now
+   it resolved ONLY through the transitive glass-ui import (the inv-η rent at the
+   utility tier D.W2's `var()`-shaped clause shape did not sweep); the day
+   glass-ui renames or drops it, the demo's three shimmers silently flatten with
+   no error and no gate. Defined here with glass-ui-matching values (isomorphic),
+   binding to the demo-owned --color-gold ramp: a metallic gradient sweeping the
+   gold-dark→light→mid→light→dark stops, clipped to the text fill. The slide is
+   wrapped in a prefers-reduced-motion-respecting block — PRM users get the
+   static gold gradient without the sweep (the load-bearing fill stays). */
+.gold-shimmer {
+    background: linear-gradient(
+        90deg,
+        var(--color-gold-dark),
+        var(--color-gold-light),
+        var(--color-gold),
+        var(--color-gold-light),
+        var(--color-gold-dark)
+    );
+    background-size: 250% 100%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+}
+@media (prefers-reduced-motion: no-preference) {
+    .gold-shimmer {
+        animation: gold-shimmer-slide var(--duration-shimmer, 5s) linear infinite;
+    }
+}
+@keyframes gold-shimmer-slide {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* ── .progress-bar ──
+   The keyframe-editor brush-sweep bar (S4) — the rainbow gradient reading the
+   demo-owned --rainbow-* family (six stops + the cyan mid). Was duplicated
+   verbatim in two `<style scoped>` blocks (KeyframesEditor.vue,
+   KeyframesAddDialog.vue); single-sourced here beside the family it consumes,
+   both components apply the class through this owned layer. */
+.progress-bar {
+    @apply h-2 rounded-md;
+    background: linear-gradient(
+        to right,
+        var(--rainbow-red) 0%,
+        var(--rainbow-yellow) 17%,
+        var(--rainbow-green) 33%,
+        var(--rainbow-cyan) 50%,
+        var(--rainbow-blue) 67%,
+        var(--rainbow-violet) 83%,
+        var(--rainbow-red) 100%
+    );
 }
 
 /* ── @keyframes enter ──

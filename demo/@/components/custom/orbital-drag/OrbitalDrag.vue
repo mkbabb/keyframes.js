@@ -167,6 +167,60 @@ const updateAxisRotation = (constrainedAxes: (typeof axes)[number][], deltaX: nu
     angularVelocitySpeed.value = angle;
 };
 
+// ── Linear transform appliers ───────────────────────────────────────
+// The translate/scale counterparts of the rotation appliers above — they
+// mutate the `model`/`velocity` this component owns and emit the category,
+// so they belong here beside `applyRotation`, NOT in the pointer reader.
+// `useOrbitalPointer` receives them as callbacks (symmetric with rotation).
+
+const updateLinearTransform = (
+    category: "translate" | "scale",
+    axis: (typeof axes)[number],
+    value: number,
+    velocityValue: number,
+) => {
+    (model.value[category] as Record<string, number>)[axis] = value;
+    (velocity.value[category] as Record<string, number>)[axis] = velocityValue;
+
+    const categoryBounds = (bounds as unknown as Record<string, Record<string, [number, number]>>)[category]!;
+    for (const [k, v] of Object.entries(model.value[category] as Record<string, number>)) {
+        const [min, max] = categoryBounds[k]!;
+        (model.value[category] as unknown as Record<string, number>)[k] = clamp(v, min, max);
+    }
+
+    if (category === "translate") emit("translate", { ...model.value.translate });
+    else emit("scale", { ...model.value.scale });
+};
+
+const updateTranslation = (axis: (typeof axes)[number], delta: number) => {
+    updateLinearTransform("translate", axis, model.value.translate[axis] + delta * translationFactor, delta * translationFactor);
+};
+
+const updateScale = (axis: (typeof axes)[number], delta: number) => {
+    updateLinearTransform("scale", axis, model.value.scale[axis] + delta * scaleFactor, delta * scaleFactor);
+};
+
+const handleAxisSpecificInput = (deltaX: number, deltaY: number, isTouch = false) => {
+    const keys = pointer.pressedKeys.value;
+    const delta = Math.abs(deltaX) > Math.abs(deltaY) ? deltaX : deltaY;
+
+    if (keys.x) {
+        if (keys.shift) updateTranslation("x", delta);
+        else if (keys.ctrl || keys.meta) updateScale("x", delta);
+        else updateAxisRotation(["x"], deltaX, deltaY, isTouch);
+    }
+    if (keys.y) {
+        if (keys.shift) updateTranslation("y", delta);
+        else if (keys.ctrl || keys.meta) updateScale("y", delta);
+        else updateAxisRotation(["y"], deltaX, deltaY, isTouch);
+    }
+    if (keys.z) {
+        if (keys.shift) updateTranslation("z", delta);
+        else if (keys.ctrl || keys.meta) updateScale("z", delta);
+        else updateAxisRotation(["z"], deltaX, deltaY, isTouch);
+    }
+};
+
 // ── Compose gesture handling ────────────────────────────────────────
 
 // Pinch must be created before pointer so we can pass resetPinchDistance as onStopDrag.
@@ -174,21 +228,17 @@ const updateAxisRotation = (constrainedAxes: (typeof axes)[number][], deltaX: nu
 let pinchResetFn: (() => void) | undefined;
 
 const pointer = useOrbitalPointer({
-    model,
-    velocity,
-    bounds,
     sensitivity,
     touchSensitivity,
-    translationFactor,
-    scaleFactor,
     containerRef,
     updateRotation,
-    updateAxisRotation,
     applyRotation,
+    updateTranslation,
+    updateScale,
+    handleAxisSpecificInput,
     angularVelocityAxis,
     angularVelocitySpeed,
     onStopDrag: () => pinchResetFn?.(),
-    emit,
 });
 
 const pinch = useOrbitalPinch({
@@ -196,8 +246,8 @@ const pinch = useOrbitalPinch({
     isTouching: pointer.isTouching,
     isWheeling: pointer.isWheeling,
     scaleFactor,
-    updateTranslation: pointer.updateTranslation,
-    updateScale: pointer.updateScale,
+    updateTranslation,
+    updateScale,
     applyRotation,
     angularVelocityAxis,
     angularVelocitySpeed,
@@ -215,7 +265,7 @@ const inertia = useOrbitalInertia({
     angularVelocitySpeed,
     applyRotation,
     angularVelocityAxis,
-    updateLinearTransform: pointer.updateLinearTransform,
+    updateLinearTransform,
 });
 
 // ── Lifecycle ───────────────────────────────────────────────────────

@@ -1,11 +1,11 @@
 <template>
-    <div ref="listEl" class="contents">
+    <div class="contents">
         <template
             v-for="(s, i) in frameStrings"
             :key="frames[i]?.id ?? i"
         >
             <KeyframeCard
-                :ref="(el: any) => (cardRefs[i] = el?.$el ?? el)"
+                :ref="(el: any) => setCardRef(i, el)"
                 :frame-string="s"
                 :formatted-c-s-s="formatCSSKeyframeString(s)"
                 :frame-start="frames[i].start.toString()"
@@ -25,7 +25,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, useTemplateRef } from "vue";
+import { computed, ref } from "vue";
 import { Separator } from "@mkbabb/glass-ui";
 import { formatCSSKeyframeString } from "@src/animation/format";
 import KeyframeCard from "../KeyframeCard.vue";
@@ -42,13 +42,25 @@ const emit = defineEmits<{
     (e: "keydown", event: KeyboardEvent): void;
 }>();
 
-const listEl = useTemplateRef<HTMLElement>("listEl");
-// Each card's root `$el`, captured for the remove animation + highlight scope.
-const cardRefs = ref<any[]>([]);
+// The KeyframeCard child instances — a declared child-ref contract. Each card
+// exposes its root `$el` (for the remove animation) and its `preEl` (the <pre>
+// code block, for scoped highlighting) via defineExpose.
+const cardInstances = ref<any[]>([]);
+const setCardRef = (i: number, el: any) => {
+    cardInstances.value[i] = el;
+};
 
-/** The list's own <pre> code blocks — for scoped highlighting (no global sweep). */
+// Each card's root `$el`, derived for the remove animation + highlight scope.
+const cardRefs = computed(() =>
+    cardInstances.value.map((c) => c?.$el ?? c),
+);
+
+/** The list's own <pre> code blocks — collected from the cards' exposed `preEl`
+ *  child refs (no querySelectorAll). */
 const getPreElements = (): HTMLElement[] =>
-    listEl.value ? Array.from(listEl.value.querySelectorAll("pre")) : [];
+    cardInstances.value
+        .map((c) => c?.preEl)
+        .filter((el): el is HTMLElement => el != null);
 
 defineExpose({ cardRefs, getPreElements });
 </script>
