@@ -43,13 +43,20 @@ tranche docs) is the dev/impl boundary. It produces **no engine, demo, or
 library source** — only the audit evidence, the ledgers, and the wave specs.
 This is exactly D.W0's dev/impl boundary.
 
-**E.W1–W6 await authorization.** The implementation half is authored-now,
+**E.W1–W11 await authorization.** The implementation half is authored-now,
 run-later: it opens only on explicit user authorization, gated on keyframes'
 own green CI (inv-27). inv-16 holds: only keyframes.js is written; the glass-ui
 `LabeledField` a11y (ASK-3), the `--spring-*` codegen (ASK-2), and the reka-ui
 dialog seam stay OUTWARD. The publish leg (the stacked B `3.1.0` + C `major` +
-D `major` + E `minor`/`patch` changesets → tag → release) is user-domain,
-confirm-first.
+D `major` + E `minor` changesets → tag → release) is user-domain, confirm-first.
+
+**The mandate is BINDING + sweep-enforced** (`E.md` §Mandate): NO quick
+solutions / NO workarounds (no documented-limitation hatch beside a real fix —
+the one found, E.W7 S1's "KISS minimum" branch, is excised), transpositions for
+elegance·simplicity·performance, NO legacy (no alias / deprecated path /
+polyfill — feature-detect with the JS path as the genuine fallback),
+measure-first, isomorphic-unless-named, KISS (the ALREADY-SOTA record binding),
+and the mandate travels verbatim inside `valuejs-sota-handoff.md`.
 
 **Planned DAG (run-later):** E.W0 (now) → **BAND 1** E.W1 ∥ E.W2 ∥ E.W3 (largely
 file-disjoint demo lanes — encapsulation-vs-listener-vs-style) + E.W5 (engine

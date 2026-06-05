@@ -23,6 +23,42 @@ authored-now-run-later wave specs; the implementation phase opens only on explic
 user authorization, gated on keyframes' own green CI. No engine, demo, or library
 source is written in development — exactly D.W0's dev/impl boundary.
 
+## § Mandate (binding — every wave, every fold, every hand-off)
+
+The precepts the whole tranche set runs under, stated once at the charter's
+front and BINDING on every E wave (W0–W11), every gate, and every cross-repo
+hand-off this tranche emits:
+
+- **NO quick solutions, NO workarounds** — idiomatic, gestalt approaches only.
+  A wave may not pin a bug as a "documented contract", patch a symptom at the
+  wrong seam, or offer a weaker-alternative escape hatch beside the real fix
+  (the hard gates are written to pass ONLY the transposition).
+- **Architectural transpositions in the sake of elegance, simplicity, and
+  performance above all are both necessary and desirable** — this is a
+  development product. E.W7's correctness fixes land at the root seam, E.W8 IS
+  a transposition (the `NumericAnimation` SoA discipline ported up to
+  `FrameCompiler`), the value.js hand-off's Wave A/D are transpositions
+  (`any()`→`dispatch()`, the interpolation carrier) — sequenced as such, never
+  as patches.
+- **NO legacy code** — no compat alias, no deprecated path kept beside its
+  replacement, no polyfill (feature-detect with the JS path as the genuine
+  fallback — E.W9's discipline; `scroll-timeline-polyfill` is by-name
+  forbidden). A replaced surface is replaced in one motion; a removed name is
+  removed.
+- **Measure-first** — every perf claim lands behind a shaped bench or is
+  recorded-withheld (the D-3 discipline). **Isomorphic** — pixels/behaviour
+  stable unless a befitting delta is NAMED. **KISS** — the §ALREADY-SOTA record
+  is binding: manufacture no work where the kernel already leads. **inv-16** —
+  E writes only keyframes.js; value.js/glass-ui items route as hand-offs/OUT.
+
+ENFORCED, not asserted: an adversarial precept sweep over the authored tranche
+(alias/shim/back-compat/polyfill/punt-language/escape-hatch classes) found ONE
+violation — E.W7 S1's "OR (KISS minimum) document the contract" hatch — which is
+EXCISED (the WHAT now mandates the re-derive transposition the gate always
+required); the mandate block now also travels verbatim inside
+`valuejs-sota-handoff.md` (a charter that leaves this repo carries its precepts
+with it).
+
 ## § Thesis
 
 D's headline — "the demo refined, the engine transposed to its gestalt, the dock
@@ -779,8 +815,10 @@ own green CI, isomorphic + no-legacy throughout.
 
 ## § Style discipline
 
-Greenfield voice — keyframes.js is the product. E's distinguishing discipline is
-*honest provenance*: E's content is NET-NEW, not folded debt, and it says so
+Greenfield voice — keyframes.js is the product. The §Mandate is the spine (NO
+quick solutions / NO workarounds / transpositions for elegance·simplicity·
+performance / NO legacy — binding, sweep-enforced). E's distinguishing discipline
+is *honest provenance*: E's content is NET-NEW, not folded debt, and it says so
 plainly — D was the terminal home for every keyframes-owned deferral (zero KFE),
 so E's waves are the findings of a fresh post-D 6-lane assay, never re-litigated
 debt or laundered punts. Em dashes unspaced. Every wave item carries WHAT + WHY;
