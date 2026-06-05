@@ -16,6 +16,30 @@
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
+        <!-- C4 font preload (E.W4 S4): the hero <h1 class="text-display-4">
+             (EditorStartScreen.vue) is the LCP element, set in Instrument Serif
+             REGULAR (--font-display). The non-blocking stylesheet below discovers
+             the woff2 only after the print-media CSS loads + the onload swap, so
+             the LCP face arrives late and swaps from the metric-matched fallback
+             mid-paint. Preloading the EXACT above-the-fold face — Instrument
+             Serif upright, latin subset (the heading "Select an animation…" is
+             upright latin) — starts that fetch in the head, in parallel with the
+             stylesheet, so the web font is on-disk by the time the swap fires.
+             ONE face only (the guide forbids over-preloading: italic + latin-ext
+             are not above the fold). `crossorigin` is mandatory — a font fetch is
+             always CORS-anonymous, and a preload without it double-fetches. The
+             URL is the gstatic v5 latin woff2 the css2 endpoint serves modern
+             Chromium; if Google bumps the family version it serves the old file
+             indefinitely (the stylesheet remains the source of truth — a stale
+             preload simply misses the cache, never 404s the render). -->
+        <link
+            rel="preload"
+            as="font"
+            type="font/woff2"
+            href="https://fonts.gstatic.com/s/instrumentserif/v5/jizHRFtNs2ka5fXjeivQ4LroWlx-6zAjjH7Motmp5g.woff2"
+            crossorigin
+        />
+
         <!-- Fira Code arrives self-hosted via @mkbabb/glass-ui/styles cascade.
              Instrument Serif remains Google-Fonts-loaded (not in glass-ui font subsystem).
              Non-blocking pattern: media="print" prevents render-block, onload swaps to "all". -->

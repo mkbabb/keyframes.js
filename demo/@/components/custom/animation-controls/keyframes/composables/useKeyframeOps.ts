@@ -1,5 +1,6 @@
 import { formatCSS } from "@mkbabb/value.js";
 import { Animation, CSSKeyframesAnimation } from "@src/animation/engine";
+import { yieldToMain } from "@src/animation/internal/scheduler";
 import { debounce } from "@mkbabb/value.js";
 import { toast } from "vue-sonner";
 import type { KeyframesState } from "./useKeyframesState";
@@ -31,6 +32,29 @@ function withErrorToast(
 }
 
 /**
+ * The async sibling of `withErrorToast` — same error/retry contract, but
+ * `await`s `fn` so an op that yields the main thread mid-work (the engine's
+ * `yieldToMain`, S4 INP relief) still routes a throw through the toast+retry
+ * path. Used by the heavy parse→compile edit op.
+ */
+async function withErrorToastAsync(
+    fn: () => Promise<void>,
+    message: string,
+    retry: () => void,
+): Promise<void> {
+    try {
+        await fn();
+    } catch (e) {
+        toast.error(message, {
+            description: (e as Error).message,
+            duration: 10000,
+            action: { label: "Retry", onClick: retry },
+        });
+        console.error(e);
+    }
+}
+
+/**
  * The string-edit → animation mutation ops: fold an edited keyframes/keyframe
  * string back into the live `Animation`, add/remove a keyframe. One-way
  * dependency on the string-generation callbacks (`StringSync`) — no cycle.
@@ -48,10 +72,23 @@ export function useKeyframeOps(
         (keyframesString: string) => {
             kfControls.keyframes = keyframesString;
 
-            withErrorToast(
-                () => {
+            // S4 (INP relief): this is the demo's heaviest edit op — a full CSS
+            // parse THEN a fresh compile, run on every Monaco edit. Splitting it
+            // with the engine's OWN `yieldToMain` (one yield ladder in the
+            // codebase — the same `scheduler.yield`→`MessageChannel`→`setTimeout`
+            // probe `AnimationGroup` rides) lets the browser service input/paint
+            // between the parse and the compile, so a large keyframes edit never
+            // lands as one > 50 ms long task. `void` — the debounced caller is
+            // fire-and-forget; the throw path is owned by `withErrorToastAsync`.
+            void withErrorToastAsync(
+                async () => {
                     const { options, keyframes } =
                         parseAnimationCSS(keyframesString);
+
+                    // Yield AFTER the parse, BEFORE the compile: the two heaviest
+                    // slices land in separate tasks, so neither monopolizes the
+                    // main thread during an active edit.
+                    await yieldToMain();
 
                     // value.js's CSS-spec AnimationOptions is structurally
                     // equivalent to keyframes.js's broader InputAnimationOptions

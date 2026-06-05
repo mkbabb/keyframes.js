@@ -43,16 +43,18 @@
                 <!-- B-2 (CWV/INP): force-mount the Monaco-heavy keyframes pane and
                      cache it via content-visibility:hidden when inactive, instead
                      of letting reka unmount it (which re-spins Monaco's worker /
-                     model / themes on every switch-back). aria-hidden + the
-                     focus-move on reveal keep the cached pane out of the AT tree
-                     while inactive. Scoped to THIS Monaco pane only — the
-                     lightweight controls pane stays default-unmounted. -->
+                     model / themes on every switch-back). `inert` (not bare
+                     aria-hidden, which leaves focusable Monaco descendants in the
+                     tab order — the aria-hidden-focus a11y defect) takes the cached
+                     pane out of BOTH the tab order and the AT tree while inactive;
+                     the focus-move on reveal restores it. Scoped to THIS Monaco
+                     pane only — the lightweight controls pane stays unmounted. -->
                 <TabsContent
                     value="keyframes"
                     force-mount
                     ref="keyframesPaneEl"
                     :class="['monaco-pane', keyframesActive ? '' : 'inactive']"
-                    :aria-hidden="keyframesActive ? undefined : 'true'"
+                    :inert="!keyframesActive"
                 >
                     <KeyframesStringControls
                         ref="keyframesControlsRef"
@@ -196,12 +198,14 @@ const isTimelineVisible = computed(() =>
 );
 
 // B-2: the keyframes pane is force-mounted and content-visibility-cached when
-// inactive. `keyframesActive` toggles the `.inactive` class + aria-hidden.
+// inactive. `keyframesActive` toggles the `.inactive` class + the `inert`
+// attribute (inert, not bare aria-hidden, so focusable Monaco descendants leave
+// the tab order too — closing the aria-hidden-focus a11y defect).
 const keyframesPaneEl = useTemplateRef<any>("keyframesPaneEl");
 const keyframesActive = computed(() => storedControls.selectedControl === "keyframes");
 
 // On reveal, move focus into the freshly-shown Monaco pane (the cached pane was
-// aria-hidden + content-visibility:hidden while inactive) and let Monaco's
+// inert + content-visibility:hidden while inactive) and let Monaco's
 // deferred ResizeObserver re-measure now that the box has layout again. reka's
 // roving focus stays intact because the pane was force-mounted (never torn down).
 watch(keyframesActive, (active) => {

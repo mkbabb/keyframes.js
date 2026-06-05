@@ -44,6 +44,8 @@
     "proof:decomposition": "node scripts/proof-decomposition.mjs",
     "proof:idioms": "node scripts/proof-idioms.mjs",
     "proof:brittleness": "node scripts/proof-brittleness.mjs",
+    "proof:modern-web": "node scripts/proof-modern-web.mjs",
+    "proof:lighthouse-mobile": "node scripts/proof-lighthouse-mobile.mjs",
     "proof:demo-elevate": "node scripts/proof-demo-elevate.mjs",
     "proof:platform-adopt": "node scripts/proof-platform-adopt.mjs && vitest run test/platform-adopt.test.ts",
     "proof:zero-alloc": "vitest run test/zero-alloc.test.ts test/snap-symmetry.test.ts test/frame-compiler.test.ts",

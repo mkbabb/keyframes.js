@@ -66,6 +66,7 @@ const isMobile = useMediaQuery("(max-width: 1023px)");
 
 const emit = defineEmits<{
     (e: "switchScene", id: string): void;
+    (e: "warmScene", id: string): void;
     (e: "toggleControlsPanel"): void;
     (e: "updateSelectedControl", value: string): void;
 }>();
@@ -189,6 +190,7 @@ const activeLayer = computed(() => {
                                         :value="scene.id"
                                         class="py-2 px-3"
                                         hide-indicator
+                                        @pointerenter="emit('warmScene', scene.id)"
                                     >
                                         <span class="flex items-center gap-2">
                                             <StatusDot :variant="currentSceneId === scene.id ? 'active' : 'idle'" />

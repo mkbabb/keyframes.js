@@ -1,5 +1,9 @@
 import { defineAsyncComponent, type Component } from "vue";
 
+/** A scene's dynamic-import loader — the exact thunk `defineAsyncComponent`
+ *  wraps, retained so `warmScene` can warm the chunk on hover (S5). */
+type SceneLoader = () => Promise<unknown>;
+
 export interface SceneDescriptor {
     id: string;
     label: string;
@@ -7,6 +11,34 @@ export interface SceneDescriptor {
     component?: Component;
     showStartScreen?: boolean;
     gridBackground?: boolean;
+}
+
+// id → the raw dynamic-import thunk. Built from the SAME loader the scene's
+// `defineAsyncComponent` wraps (declared once below), so warming and mounting
+// share one import edge — Vite dedupes the in-flight/settled module, so a warmed
+// chunk is reused (no double fetch) when the scene actually mounts.
+const sceneLoaders = new Map<string, SceneLoader>();
+
+/** Declare a route-lazy scene once: register its loader for hover-warmup AND
+ *  wrap it in `defineAsyncComponent` for `<Suspense>` mount. One source of the
+ *  import thunk — warm and mount can never drift onto different chunks. */
+function lazyScene(id: string, loader: SceneLoader): Component {
+    sceneLoaders.set(id, loader);
+    return defineAsyncComponent(loader as () => Promise<Component>);
+}
+
+/**
+ * S5 — warm a scene's dynamic-import chunk on pointer-enter of its nav target,
+ * so a subsequent switch has no chunk-fetch stall. Pure prefetch: the loader's
+ * promise is fired and dropped (Vite caches the module), with NO behaviour
+ * change — a rejected warm is swallowed (the real mount surfaces the error via
+ * `<Suspense>`). The Vite dynamic-import warmup, NOT Speculation Rules: the demo
+ * is an SPA (client-routed scenes, no document navigation), and the guide is
+ * explicit that Speculation Rules DO NOT apply to SPAs.
+ */
+export function warmScene(id: string): void {
+    const loader = sceneLoaders.get(id);
+    if (loader) void loader().catch(() => {});
 }
 
 /** The home/hero landing scene — no component, just the start screen. */
@@ -24,41 +56,31 @@ export const scenes: SceneDescriptor[] = [
         id: "cube",
         label: "Cube",
         superKey: "Cube",
-        component: defineAsyncComponent(
-            () => import("./scenes/CubeScene.vue"),
-        ),
+        component: lazyScene("cube", () => import("./scenes/CubeScene.vue")),
     },
     {
         id: "amiga",
         label: "Amiga",
         superKey: "Amiga",
-        component: defineAsyncComponent(
-            () => import("./scenes/AmigaScene.vue"),
-        ),
+        component: lazyScene("amiga", () => import("./scenes/AmigaScene.vue")),
     },
     {
         id: "square",
         label: "Square",
         superKey: "Square",
-        component: defineAsyncComponent(
-            () => import("./scenes/SquareScene.vue"),
-        ),
+        component: lazyScene("square", () => import("./scenes/SquareScene.vue")),
     },
     {
         id: "easing",
         label: "Easing",
         superKey: "Easing",
-        component: defineAsyncComponent(
-            () => import("./scenes/EasingScene.vue"),
-        ),
+        component: lazyScene("easing", () => import("./scenes/EasingScene.vue")),
     },
     {
         id: "spring",
         label: "Spring",
         superKey: "Spring",
-        component: defineAsyncComponent(
-            () => import("./scenes/SpringScene.vue"),
-        ),
+        component: lazyScene("spring", () => import("./scenes/SpringScene.vue")),
     },
     {
         // The @starting-style + spring-linear() copy-paste artifact scene: a
@@ -67,7 +89,8 @@ export const scenes: SceneDescriptor[] = [
         id: "starting-style",
         label: "Discrete",
         superKey: "StartingStyle",
-        component: defineAsyncComponent(
+        component: lazyScene(
+            "starting-style",
             () => import("./scenes/StartingStyleScene.vue"),
         ),
     },

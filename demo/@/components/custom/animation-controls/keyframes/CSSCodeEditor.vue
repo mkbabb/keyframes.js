@@ -12,7 +12,23 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, useTemplateRef, watch } from "vue";
 import { useResizeObserver } from "@vueuse/core";
-import * as monaco from "monaco-editor";
+// Monaco (the ~4 MB editor namespace) is the demo's single largest module. A
+// static `import * as monaco` here pulled it onto the eager graph of EVERY scene
+// chunk that reaches CSSCodeEditor (the Spring sidebar imports it statically),
+// so a scene's first paint paid Monaco's bytes before any editor mounted — the
+// spring-mobile LCP outlier (E.W4 S1). Everything that statically links the
+// `vendor-monaco` chunk is now DYNAMIC, resolved once at first editor mount:
+//   • the namespace `import("monaco-editor")`, AND
+//   • the two `?worker` entry-points — a STATIC `?worker` import still emits a
+//     tiny worker-proxy edge INTO `vendor-monaco`, so a static worker import
+//     re-eagerizes the chunk it is meant to defer. Importing the `?worker`
+//     modules dynamically (inside the same boot) keeps that edge off every
+//     scene's initial graph.
+// Vite splits each behind the editor-mount boundary, so a non-editor scene never
+// loads `vendor-monaco`. The editor is byte-identical once mounted — only the
+// eager load of a not-yet-visible editor disappears. The TYPE side stays static
+// (`import type`) — erased under `verbatimModuleSyntax`, no runtime edge.
+import type * as Monaco from "monaco-editor";
 // Theme JSONs are vendored locally: monaco-themes@0.4.x only exports `.` and
 // `./dist/monaco-themes.js` in its `exports` field, so `monaco-themes/themes/*`
 // is not resolvable under the strict bundler (Vite 8 / Rolldown). These two
@@ -24,21 +40,38 @@ import { clampIOSNoZoomFontSize } from "@utils/iosTextEntry";
 import { convert2, debounce, formatCSS } from "@mkbabb/value.js";
 import { toast } from "vue-sonner";
 
-import EditorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker";
-import CSSWorker from "monaco-editor/esm/vs/language/css/css.worker?worker";
+// The resolved Monaco namespace + a single in-flight boot promise. The boot is
+// idempotent and module-scoped: the FIRST editor to mount loads + configures
+// Monaco once (worker env, themes, the `css` language), every later editor
+// awaits the same settled promise — no double-register, no second 4 MB fetch.
+let monaco: typeof Monaco | undefined;
+let monacoBoot: Promise<typeof Monaco> | undefined;
 
-self.MonacoEnvironment = {
-    getWorker(_workerId: string, label: string) {
-        if (label === "css" || label === "scss" || label === "less") {
-            return new CSSWorker();
-        }
-        return new EditorWorker();
-    },
-};
-
-monaco.editor.defineTheme("dark-theme", DarkTheme as any);
-monaco.editor.defineTheme("light-theme", LightTheme as any);
-monaco.languages.register({ id: "css" });
+function bootMonaco(): Promise<typeof Monaco> {
+    return (monacoBoot ??= Promise.all([
+        import("monaco-editor"),
+        // Each `?worker` virtual module default-exports a Worker constructor; a
+        // dynamic import keeps its monaco-proxy edge off the eager scene graph.
+        import("monaco-editor/esm/vs/editor/editor.worker?worker"),
+        import("monaco-editor/esm/vs/language/css/css.worker?worker"),
+    ]).then(([m, editorWorker, cssWorker]) => {
+        const EditorWorker = editorWorker.default;
+        const CSSWorker = cssWorker.default;
+        self.MonacoEnvironment = {
+            getWorker(_workerId: string, label: string) {
+                if (label === "css" || label === "scss" || label === "less") {
+                    return new CSSWorker();
+                }
+                return new EditorWorker();
+            },
+        };
+        m.editor.defineTheme("dark-theme", DarkTheme as any);
+        m.editor.defineTheme("light-theme", LightTheme as any);
+        m.languages.register({ id: "css" });
+        monaco = m;
+        return m;
+    }));
+}
 
 const props = withDefaults(
     defineProps<{
@@ -62,8 +95,12 @@ const modelValue = defineModel<string>({ required: true });
 const containerEl = useTemplateRef<HTMLElement>("containerEl");
 const { isDark } = useGlobalDark();
 
-let editor: monaco.editor.IStandaloneCodeEditor | undefined;
+let editor: Monaco.editor.IStandaloneCodeEditor | undefined;
 let isSettingValue = false;
+// Set on unmount so an `initEditor` that resolves AFTER the component is gone
+// (Monaco's chunk was still in flight) disposes its editor instead of leaking
+// it over a detached node.
+let disposed = false;
 
 const getFormatWidth = () => {
     const el = containerEl.value;
@@ -80,10 +117,17 @@ const debouncedEmit = debounce(
     false,
 );
 
-const initEditor = () => {
-    const el = containerEl.value!;
+const initEditor = async () => {
+    const el = containerEl.value;
+    // The container may have unmounted while Monaco's chunk was in flight; bail
+    // cleanly rather than create an editor over a detached node.
+    if (!el) return;
+    const m = await bootMonaco();
+    // Lost the race: the component unmounted while the chunk loaded. Do not
+    // create an editor over the now-detached container.
+    if (disposed || !containerEl.value) return;
 
-    editor = monaco.editor.create(el, {
+    editor = m.editor.create(el, {
         value: modelValue.value,
         language: "css",
         fontLigatures: true,
@@ -109,7 +153,9 @@ const initEditor = () => {
 };
 
 const setCodeTheme = () => {
-    monaco.editor.setTheme(isDark.value ? "dark-theme" : "light-theme");
+    // No-op until Monaco has booted; `initEditor` sets the correct theme at
+    // create time, so a dark-mode toggle before boot loses nothing.
+    monaco?.editor.setTheme(isDark.value ? "dark-theme" : "light-theme");
 };
 
 watch(isDark, setCodeTheme);
@@ -168,6 +214,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+    disposed = true;
     editor?.dispose();
 });
 

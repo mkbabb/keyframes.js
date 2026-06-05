@@ -376,10 +376,17 @@ function main() {
 
     // ── 4. rAF/TIMEOUT BLOBS GONE ──────────────────────────────────────
     {
+        // Strip comments first — the clause matches CALLS, not a prose mention
+        // (e.g. a docstring naming the engine's `scheduler.yield→…→setTimeout`
+        // fallback ladder is not a hand-rolled timer).
+        const stripComments = (s) =>
+            s
+                .replace(/\/\*[\s\S]*?\*\//g, " ")
+                .replace(/(^|[^:])\/\/[^\n]*/g, "$1");
         const hits = [];
         for (const abs of sources) {
             const rel = relPosix(abs);
-            const m = fs.readFileSync(abs, "utf8").match(ASYNC);
+            const m = stripComments(fs.readFileSync(abs, "utf8")).match(ASYNC);
             if (m) hits.push({ rel, count: m.length });
         }
         const residual = hits.filter((h) => !ASYNC_ALLOWLIST.has(h.rel));

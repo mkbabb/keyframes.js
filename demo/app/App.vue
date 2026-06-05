@@ -9,6 +9,7 @@
         :selected-control="storedControls.selectedControl"
         :extra-control-tabs="sceneRef?.extraControlTabs ?? []"
         @switch-scene="runSceneSwitch"
+        @warm-scene="warmScene"
         @toggle-controls-panel="storedControls.isControlsPanelOpen = !storedControls.isControlsPanelOpen"
         @update-selected-control="(v: string) => { storedControls.selectedControl = v; }"
     >
@@ -171,7 +172,7 @@ import { usePlaybackSnapshot } from "./usePlaybackSnapshot";
 import { useSceneSwap } from "./useSceneSwap";
 import { useSceneTransition } from "./useSceneTransition";
 import { useSceneGroupSync } from "./useSceneGroupSync";
-import { sceneMap, HOME_SCENE_ID } from "./scenes";
+import { sceneMap, warmScene, HOME_SCENE_ID } from "./scenes";
 
 const { currentSceneId, currentScene, isHome, ready, scenes, switchScene: rawSwitchScene } = useSceneRouter();
 
