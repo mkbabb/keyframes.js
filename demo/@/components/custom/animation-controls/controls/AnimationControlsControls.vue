@@ -287,7 +287,7 @@ const toggleAnimation = () => {
     if (!props.animation.started) {
         props.animation.play();
     } else {
-        props.animation.pause();
+        props.animation.toggle();
 
         if (props.animation.paused) {
             prevT.value = props.animation.t;

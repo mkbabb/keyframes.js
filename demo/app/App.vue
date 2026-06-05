@@ -328,8 +328,9 @@ function restoreGroupPlaybackState(group: AnimationGroup<any>, savedState: Scene
     group.transformFramesGrouped(now);
 
     if (savedState.playing) {
-        // Toggle from paused → playing: unpauses children and starts rAF loop
-        group.pause();
+        // Resume from the restored paused state: unpauses children and
+        // restarts the rAF draw loop.
+        group.resume();
     }
 }
 

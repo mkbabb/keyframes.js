@@ -9,12 +9,6 @@ import {
 import type { Animation } from "./engine";
 import type { AnimationFrame, AnimationOptions, Vars } from "./constants";
 
-// Animation-domain CSS serialisation. The primitive `formatCSS`
-// (Prettier wrapper) lives in value.js — re-exported here for the
-// convenience of consumers that already import animation-class
-// helpers from this module.
-export { formatCSS };
-
 const DEFAULT_WIDTH = 80;
 const DEFAULT_KEYFRAME_HEADER = `@keyframes animation {\n`;
 const DEFAULT_KEYFRAME_FOOTER = `\n}`;

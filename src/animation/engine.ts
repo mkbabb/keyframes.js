@@ -14,18 +14,14 @@
  */
 import {
     clamp,
-    convertToMs,
     isObject,
+    lerpValue,
     parseCSSTime,
-    parseCSSValueUnit,
     scale,
-    seekPreviousValue,
     sleep,
-    unflattenObject,
     ValueUnit,
     type PropertyDescriptor,
 } from "@mkbabb/value.js";
-import { cssTwinFor } from "./easing";
 import { binarySearchRange } from "./internal/binarySearch";
 import { AnimationOptionError, parseOption } from "./internal/errors";
 import { withReducedMotion } from "./internal/reduced-motion";
@@ -41,19 +37,15 @@ import {
 import type {
     AnimationFrame,
     AnimationOptions,
-    Easing,
     InputAnimationOptions,
     TemplateAnimationFrame,
     TransformFunction,
     Vars,
 } from "./constants";
 import { AnimationGroup } from "./group";
+import { FrameCompiler, resolveEasingOption } from "./frame-compiler";
 import {
-    calcFrameTime,
-    createInterpVarValue,
     getTimingFunction,
-    lerpValue,
-    parseAndFlattenObject,
     type ParsedVarMap,
     transformTargetsStyle,
 } from "./utils";
@@ -67,44 +59,6 @@ const tryParseTime = (raw: string): number | undefined => {
     } catch {
         return undefined;
     }
-};
-
-/**
- * Resolve heavy-surface easing input — a callable, a typed `Easing`, a
- * registry name, or a `cubic-bezier()` literal — to a typed `Easing`.
- * Fail-explicit: unresolvable input throws; there is no silent fallback
- * to a default curve.
- */
-const resolveEasingOption = (
-    option: string,
-    input: NonNullable<InputAnimationOptions["timingFunction"]>,
-): Easing => {
-    if (typeof input === "function") return { fn: input };
-    if (typeof input === "object") {
-        if (typeof (input as Easing).fn === "function") {
-            return input as Easing;
-        }
-        throw new AnimationOptionError(
-            option,
-            input,
-            "an Easing must carry a callable `fn`",
-        );
-    }
-    const fn = getTimingFunction(input);
-    if (!fn) {
-        throw new AnimationOptionError(
-            option,
-            input,
-            "unknown timing function — pass a callable TimingFunction, a " +
-                "typed Easing, a registry name, or a cubic-bezier() literal",
-        );
-    }
-    // Attach the faithful CSS twin when one exists (CSS keyword,
-    // cubic-bezier()/steps() literal) so a WAAPI delegation runs the true
-    // curve; value.js bespoke names (easeOutCubic, …) get none and stay on
-    // the rAF path.
-    const css = cssTwinFor(input);
-    return css ? { fn, css } : { fn };
 };
 
 const hasClone = (value: unknown): value is { clone: () => unknown } => {
@@ -132,12 +86,14 @@ export class Animation<V extends Vars = any> {
 
     options: AnimationOptions;
 
-    templateFrames: TemplateAnimationFrame<V>[] = [];
-    parsedVars: ParsedVarMap[] = [];
-
-    frameId: number = 0;
-
-    frames: AnimationFrame<V>[] = [];
+    /**
+     * The frame-compilation half — template frames → sampled `frames[]`.
+     * `Animation` composes one and delegates `addFrame`/`parse` + the frame
+     * accessors (`templateFrames`/`parsedVars`/`frames`/`frameId`) to it.
+     * Assigned in the constructor once `options` exists (the compiler holds a
+     * live reference to that options object).
+     */
+    compiler!: FrameCompiler<V>;
 
     /**
      * THE rAF owner for this animation — the standalone rAF play loop and
@@ -168,7 +124,7 @@ export class Animation<V extends Vars = any> {
 
     /**
      * True when an `AnimationGroup` is driving this animation's
-     * `tick()` and `interpFrames()` from its own rAF loop. Set by
+     * `advanceTo()` and `interpFrames()` from its own rAF loop. Set by
      * the group at construction; standalone `.play()` / `.draw()`
      * throw when this is true rather than racing the group.
      */
@@ -234,6 +190,12 @@ export class Animation<V extends Vars = any> {
     ) {
         this.options = {} as AnimationOptions;
 
+        // Create the compiler BEFORE `setOptions` — it holds a live reference
+        // to `this.options` (the setters mutate that object in place, never
+        // replace it), and `setOptions` → `setDuration` reads `this.frames`
+        // (which delegates to the compiler), so the compiler must exist first.
+        this.compiler = new FrameCompiler<V>(this.options);
+
         this.setOptions({ ...defaultOptions, ...(options ?? {}) });
 
         this.targets =
@@ -243,241 +205,44 @@ export class Animation<V extends Vars = any> {
         this.superKey = superKey;
     }
 
-    convertFrameStart(frame: TemplateAnimationFrame<V>) {
-        if (
-            frame.start.unit === "s" ||
-            frame.start.unit === "ms" ||
-            !frame.start.unit
-        ) {
-            const timeUnit = frame.start.unit === "s" ? "s" : "ms";
-            const value = convertToMs(frame.start.value, timeUnit);
+    // ── Frame-compiler delegation ────────────────────────────────────
+    // The frame data + the compile pipeline live on `this.compiler`; these
+    // accessors keep the historical public surface intact for the group, the
+    // CSS subclass, the serializer, and consumers.
 
-            frame.start.value = (value / this.options.duration) * 100;
-            frame.start.unit = "%";
-        }
-        frame.start.value = clamp(frame.start.value, 0, 100);
-
-        return frame;
+    get templateFrames(): TemplateAnimationFrame<V>[] {
+        return this.compiler.templateFrames;
+    }
+    set templateFrames(value: TemplateAnimationFrame<V>[]) {
+        this.compiler.templateFrames = value;
     }
 
+    get parsedVars(): ParsedVarMap[] {
+        return this.compiler.parsedVars;
+    }
+
+    get frames(): AnimationFrame<V>[] {
+        return this.compiler.frames;
+    }
+
+    get frameId(): number {
+        return this.compiler.frameId;
+    }
+
+    /** Append a template frame (delegated to the compiler). Chainable. */
     addFrame<K extends V>(
         start: number | string | ValueUnit<number>,
         vars: Partial<K>,
         transform?: TransformFunction<K>,
         timingFunction?: InputAnimationOptions["timingFunction"],
     ): Animation<K> {
-        if (typeof start === "number") {
-            start = String(start) + "%";
-        } else if (typeof start === "string") {
-            start = start;
-        } else if (start instanceof ValueUnit) {
-            start = String(start);
-        }
-
-        const parsedStart = parseCSSValueUnit(start);
-
-        let templateFrame = {
-            id: this.frameId,
-            start: parsedStart,
-            vars,
-            transform,
-            // Genuine omission inherits the animation's easing; a present-
-            // but-unresolvable input throws (fail-explicit).
-            timingFunction:
-                timingFunction == null
-                    ? this.options.timingFunction
-                    : resolveEasingOption("timingFunction", timingFunction),
-        } as TemplateAnimationFrame<K>;
-
-        this.convertFrameStart(
-            templateFrame as unknown as TemplateAnimationFrame<V>,
-        );
-
-        this.templateFrames.push(
-            templateFrame as unknown as TemplateAnimationFrame<V>,
-        );
-        this.frameId += 1;
-
+        this.compiler.addFrame(start, vars, transform, timingFunction);
         return this as unknown as Animation<K>;
     }
 
-    createFrame(startIx: number, endIx: number): AnimationFrame<V> {
-        const startFrame = this.templateFrames[startIx]!;
-        const endFrame = this.templateFrames[endIx]!;
-
-        const ixs = {
-            start: startIx,
-            stop: endIx,
-        };
-
-        const time = calcFrameTime(startFrame, endFrame, this.options.duration);
-
-        let transform = startFrame.transform;
-
-        if (transform == null) {
-            const transformIx = seekPreviousValue(
-                startIx,
-                this.frames,
-                (f) => f.transform != null,
-            )!;
-            transform = this.frames[transformIx]!.transform;
-        }
-
-        let timingFunction = startFrame.timingFunction;
-        if (timingFunction == null) {
-            const timingFunctionIx = seekPreviousValue(
-                startIx,
-                this.frames,
-                (f) => f.timingFunction != null,
-            )!;
-            timingFunction = this.frames[timingFunctionIx]!.timingFunction;
-        }
-
-        const id = this.frameId++;
-
-        return {
-            id,
-            ixs,
-            start: startFrame.start,
-            time,
-            vars: undefined as unknown as V,
-            flatVars: undefined as unknown as V,
-            interpVars: {},
-            allInterpVars: [],
-            transform,
-            timingFunction,
-        } as AnimationFrame<V>;
-    }
-
-    /**
-     * Build an index mapping each variable name to the frame indices where
-     * it appears. Used by reconcileVars() for O(1) "next occurrence" lookups
-     * instead of O(N) findIndex scans per variable.
-     */
-    private buildVarIndex(): Map<string, number[]> {
-        const index = new Map<string, number[]>();
-        for (let i = 0; i < this.parsedVars.length; i++) {
-            for (const key of Object.keys(this.parsedVars[i]!)) {
-                let arr = index.get(key);
-                if (!arr) {
-                    arr = [];
-                    index.set(key, arr);
-                }
-                arr.push(i);
-            }
-        }
-        return index;
-    }
-
-    /**
-     * Reconcile interpolation variables across non-adjacent keyframes.
-     * For each variable at frame `ix`, find the next frame that also
-     * defines that variable and create an interpolation segment between them.
-     *
-     * Uses a pre-built variable index (from buildVarIndex) to avoid
-     * O(frames²) findIndex scans.
-     */
-    reconcileVars(ix: number, varIndex: Map<string, number[]>) {
-        const startVars = this.parsedVars[ix];
-        if (!startVars) {
-            return;
-        }
-
-        for (const v of Object.keys(startVars)) {
-            // Use the pre-built index to find the next frame defining this variable
-            const occurrences = varIndex.get(v);
-            if (!occurrences) continue;
-
-            // Find first occurrence after ix
-            let varIx = -1;
-            for (const idx of occurrences) {
-                if (idx > ix) {
-                    varIx = idx;
-                    break;
-                }
-            }
-
-            if (varIx === -1) continue;
-
-            const [startIx, endIx] = [ix, varIx];
-
-            const frameIx = this.frames.findIndex(
-                (f) => f.ixs.start === startIx && f.ixs.stop === endIx,
-            );
-            const frame =
-                frameIx !== -1
-                    ? this.frames[frameIx]!
-                    : this.createFrame(startIx, endIx);
-
-            frame.interpVars[v] = createInterpVarValue(
-                v,
-                startIx,
-                endIx,
-                this.parsedVars,
-                this.options.colorSpace,
-                this.options.hueMethod,
-            ) as AnimationFrame<V>["interpVars"][string];
-
-            if (frameIx === -1) {
-                this.frames.push(frame);
-            }
-        }
-    }
-
+    /** Compile the template frames into the sampled `frames[]`. Chainable. */
     parse() {
-        this.frames = [];
-
-        this.templateFrames.sort((a, b) => a.start.value - b.start.value);
-
-        this.parsedVars = this.templateFrames.map((frame) => {
-            const parsed = parseAndFlattenObject(
-                frame.vars as Record<string, unknown>,
-            );
-
-            Object.values(parsed).forEach((values) => {
-                values.setTargets(this.targets);
-            });
-
-            return parsed;
-        });
-
-        for (let i = 0; i < this.templateFrames.length - 1; i++) {
-            this.frames.push(this.createFrame(i, i + 1));
-        }
-
-        // Perform variable reconciliation using pre-built index for O(1) lookups
-        const varIndex = this.buildVarIndex();
-        this.frames.forEach((_, ix) => this.reconcileVars(ix, varIndex));
-
-        // Sort frames by start time, then by stop time
-        this.frames.sort((a, b) => {
-            if (a.time.start === b.time.start) {
-                return a.time.stop - b.time.stop;
-            }
-            return a.time.start - b.time.start;
-        });
-
-        // Filter out frames that have no interpolated variables
-        this.frames = this.frames.filter(
-            (frame) =>
-                frame.interpVars != null &&
-                Object.keys(frame.interpVars).length > 0,
-        );
-
-        // Set the vars for each frame and pre-flatten interpVars for hot-path iteration
-        this.frames.forEach((frame) => {
-            const flatVars = Object.entries(frame.interpVars).reduce<
-                Record<string, ValueUnit[]>
-            >((acc, [key, value]) => {
-                acc[key] = value.map((v) => v.value);
-                return acc;
-            }, {});
-            frame.flatVars = flatVars as unknown as V;
-            frame.vars = unflattenObject(frame.flatVars);
-            // Pre-flatten for zero-alloc iteration in interpFrames()
-            frame.allInterpVars = Object.values(frame.interpVars).flat();
-        });
-
+        this.compiler.parse(this.targets);
         return this;
     }
 
@@ -886,7 +651,15 @@ export class Animation<V extends Vars = any> {
         }
     }
 
-    async tick(t: number) {
+    /**
+     * Advance the playhead to absolute clock `t` (a rAF timestamp, NOT a
+     * delta). Lazily runs `onStart` on the first call, reconciles the
+     * pause/resume clock, and ends the iteration once `t` reaches the
+     * duration. This is the DRIVER-layer advance — the one meaning of the
+     * absolute-clock step, distinct from the `tickDt(dt)` stepper surface
+     * the rest of the engine canonicalized to.
+     */
+    async advanceTo(t: number) {
         if (this.startTime === undefined) {
             await this.onStart();
             this.startTime = t + this.options.delay;
@@ -916,7 +689,7 @@ export class Animation<V extends Vars = any> {
      * `RAFPlayback.loop`. Returns whether the loop should continue.
      */
     private async _frame(t: number): Promise<boolean> {
-        t = await this.tick(t);
+        t = await this.advanceTo(t);
 
         if (this.paused) {
             return false;
@@ -955,7 +728,7 @@ export class Animation<V extends Vars = any> {
     /**
      * Play via the Web Animations API. WAAPI handles visuals on the
      * compositor thread; a shadow loop in `playWAAPI` (riding
-     * `this.playback`) drives `tick()` so events, iteration count,
+     * `this.playback`) drives `advanceTo()` so events, iteration count,
      * pause/resume, and other lifecycle state stay coherent with the
      * rAF path.
      *
@@ -1040,10 +813,12 @@ export class Animation<V extends Vars = any> {
         return result;
     }
 
-    pause(draw: boolean = true) {
-        if (this.paused && draw) {
-            return this.resume();
-        }
+    /**
+     * Pause playback — idempotent. Pausing an already-paused (or
+     * not-yet-started) animation is a no-op, never a resume: a method named
+     * `pause` pauses. Use {@link resume} for the explicit resume.
+     */
+    pause() {
         if (this.started) {
             this.paused = true;
         }
@@ -1066,6 +841,11 @@ export class Animation<V extends Vars = any> {
             }
         }
         return this;
+    }
+
+    /** The explicit flip: pauses if playing, resumes if paused. */
+    toggle() {
+        return this.paused ? this.resume() : this.pause();
     }
 
     /**

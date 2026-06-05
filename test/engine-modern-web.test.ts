@@ -178,7 +178,7 @@ describe("yieldToMain + AnimationGroup tick batching", () => {
             (_, i) => opacityAnim("big" + i),
         );
         const group = new AnimationGroup(...children);
-        await group.tick(performance.now());
+        await group.advanceTo(performance.now());
         expect(y).toHaveBeenCalled();
     });
 
@@ -186,7 +186,7 @@ describe("yieldToMain + AnimationGroup tick batching", () => {
         const y = vi.fn(() => Promise.resolve());
         (globalThis as { scheduler?: unknown }).scheduler = { yield: y };
         const group = new AnimationGroup(opacityAnim("s1"), opacityAnim("s2"));
-        await group.tick(performance.now());
+        await group.advanceTo(performance.now());
         expect(y).not.toHaveBeenCalled();
     });
 });

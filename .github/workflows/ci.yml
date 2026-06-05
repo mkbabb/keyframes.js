@@ -92,6 +92,10 @@ jobs:
               run: npm test -- --run
             - name: proof:boundary (value.js static/dynamic boundary gate, all light entries)
               run: npm run proof:boundary
+            - name: proof:engine (D.W4 transposition source gate — tick-canon · seam · pause-honest · snap-symmetry · no-legacy)
+              run: npm run proof:engine
+            - name: proof:zero-alloc (AnimationGroup composite allocates 0 bytes/frame + FrameCompiler seam + snap symmetry)
+              run: npm run proof:zero-alloc
 
     demo-smoke:
         name: demo gate (inv γ paints + inv δ occlusion-free)

@@ -276,16 +276,47 @@ describe("AnimationGroup lifecycle", () => {
         expect(group.started).toBe(true);
     });
 
-    it("pause toggles paused state when started", () => {
+    it("pause pauses and is idempotent (NOT a toggle)", () => {
         const a = createOpacityAnim("a");
         const group = new AnimationGroup(a);
         group.started = true;
 
         group.pause();
         expect(group.paused).toBe(true);
+
+        // A second pause() leaves the group paused — it does NOT secretly
+        // resume (the retired toggle semantics).
+        group.pause();
+        expect(group.paused).toBe(true);
     });
 
-    it("pause does not toggle paused when not started", () => {
+    it("resume resumes and is idempotent", () => {
+        const a = createOpacityAnim("a");
+        const group = new AnimationGroup(a);
+        group.started = true;
+        group.pause();
+        expect(group.paused).toBe(true);
+
+        group.resume();
+        expect(group.paused).toBe(false);
+
+        // A second resume() leaves it playing.
+        group.resume();
+        expect(group.paused).toBe(false);
+    });
+
+    it("toggle flips paused state", () => {
+        const a = createOpacityAnim("a");
+        const group = new AnimationGroup(a);
+        group.started = true;
+
+        group.toggle();
+        expect(group.paused).toBe(true);
+        group.toggle();
+        expect(group.paused).toBe(false);
+    });
+
+    it("pause does not pause when not started", () => {
         const a = createOpacityAnim("a");
         const group = new AnimationGroup(a);
         expect(group.started).toBe(false);

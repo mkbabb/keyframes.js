@@ -72,8 +72,19 @@ export function requestAnimationFrame(callback: FrameRequestCallback) {
 }
 
 /** Cancel a handle from the local `requestAnimationFrame` shim. */
-export function cancelAnimationFrame(handle: number | undefined | null | any) {
-    if (typeof window !== "undefined" && window.cancelAnimationFrame) {
+export function cancelAnimationFrame(
+    handle: number | ReturnType<typeof setTimeout> | undefined | null,
+) {
+    if (handle == null) return;
+
+    // A numeric handle from `window.requestAnimationFrame` cancels through
+    // the DOM API; a `setTimeout` fallback handle clears as a timer. The
+    // shim's two return shapes pair with their two cancel paths.
+    if (
+        typeof handle === "number" &&
+        typeof window !== "undefined" &&
+        window.cancelAnimationFrame
+    ) {
         return window.cancelAnimationFrame(handle);
     }
 

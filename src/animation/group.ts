@@ -52,7 +52,7 @@ export class AnimationGroup<V extends Vars> {
     respectReducedMotion = false;
 
     /**
-     * Children-per-slice before `tick()` yields to the main thread. Groups at
+     * Children-per-slice before `advanceTo()` yields to the main thread. Groups at
      * or under this size tick in one slice (fast path); larger groups tick in
      * batches with a `scheduler.yield()` between them so a big per-frame
      * composite doesn't run as one long task (INP relief).
@@ -80,6 +80,15 @@ export class AnimationGroup<V extends Vars> {
      */
     private _entries: AnimationGroupEntry<V>[] = [];
     private _entriesDirty = true;
+
+    /**
+     * Long-lived composite buffer, cleared in place at the top of
+     * `transformFramesGrouped` (the same zero-alloc idiom `interpFrames`'s
+     * `out` buffer already uses). With it the compositor honours the class's
+     * own zero-alloc discipline — no fresh `groupedValues` object, and no
+     * per-layer `filteredValues` object, allocated per frame.
+     */
+    private _grouped: Record<string, unknown> = {};
 
     constructor(...inputs: (Animation<V> | AnimationGroupInput<V>)[]) {
         this._boundFrame = this._frame.bind(this);
@@ -196,7 +205,12 @@ export class AnimationGroup<V extends Vars> {
      * fresh object is allocated per entry per frame.
      */
     transformFramesGrouped(t: number) {
-        const groupedValues: Record<string, unknown> = {};
+        // Reuse the long-lived composite buffer, cleared in place — the same
+        // zero-alloc idiom `interpFrames` uses for its `out` buffer. No fresh
+        // object per frame.
+        const groupedValues = this._grouped;
+        for (const k in groupedValues) delete groupedValues[k];
+
         const entries = this.getEntries();
 
         let done = true;
@@ -217,27 +231,27 @@ export class AnimationGroup<V extends Vars> {
                 values as Record<string, ValueUnit[]>,
             );
 
-            // Apply property whitelist filter
-            const filteredValues = layer.properties
-                ? Object.fromEntries(
-                      Object.entries(values).filter(([key]) =>
-                          layer.properties!.has(key),
-                      ),
-                  )
-                : values;
+            // The property whitelist is applied INLINE as a key-skip — no
+            // `filteredValues` object, no `Object.entries`/`Object.fromEntries`
+            // array. Each blend arm walks `values` with `for..in` (allocation-
+            // free) and `continue`s on a non-whitelisted key.
+            const whitelist = layer.properties;
 
-            // Blend based on mode
             switch (layer.blendMode) {
                 case "replace":
-                    Object.assign(groupedValues, filteredValues);
+                    for (const key in values) {
+                        if (whitelist && !whitelist.has(key)) continue;
+                        groupedValues[key] = values[key];
+                    }
                     break;
 
                 case "add":
-                    for (const [key, val] of Object.entries(filteredValues)) {
+                    for (const key in values) {
+                        if (whitelist && !whitelist.has(key)) continue;
+                        const incoming = values[key];
                         if (key in groupedValues) {
                             const existing = groupedValues[key];
-                            const incoming = val;
-                            // Accumulate numeric ValueUnit values
+                            // Accumulate numeric ValueUnit values in place.
                             if (
                                 isNumericUnit(existing) &&
                                 isNumericUnit(incoming)
@@ -245,10 +259,10 @@ export class AnimationGroup<V extends Vars> {
                                 existing.value =
                                     existing.value + incoming.value;
                             } else {
-                                groupedValues[key] = val;
+                                groupedValues[key] = incoming;
                             }
                         } else {
-                            groupedValues[key] = val;
+                            groupedValues[key] = incoming;
                         }
                     }
                     break;
@@ -258,10 +272,11 @@ export class AnimationGroup<V extends Vars> {
                     // `weight === 1` produces a fully-blended value
                     // distinct from `replace` because the lerp leaf
                     // still mutates the existing carrier in place.
-                    for (const [key, val] of Object.entries(filteredValues)) {
+                    for (const key in values) {
+                        if (whitelist && !whitelist.has(key)) continue;
+                        const incoming = values[key];
                         if (key in groupedValues) {
                             const existing = groupedValues[key];
-                            const incoming = val;
                             if (
                                 isNumericUnit(existing) &&
                                 isNumericUnit(incoming)
@@ -272,10 +287,10 @@ export class AnimationGroup<V extends Vars> {
                                     layer.weight,
                                 );
                             } else {
-                                groupedValues[key] = val;
+                                groupedValues[key] = incoming;
                             }
                         } else {
-                            groupedValues[key] = val;
+                            groupedValues[key] = incoming;
                         }
                     }
                     break;
@@ -338,11 +353,11 @@ export class AnimationGroup<V extends Vars> {
     // ── Playback loop ────────────────────────────────────────────────
 
     /**
-     * Advance all child animations to timestamp `t`.
-     * Awaits all child tick() promises so deferred state updates
+     * Advance all child animations to absolute clock `t`.
+     * Awaits all child advanceTo() promises so deferred state updates
      * (startTime, this.t) resolve before interpFrames reads them.
      */
-    async tick(t: number) {
+    async advanceTo(t: number) {
         this.lastTickTime = t;
 
         if (!this.started) {
@@ -353,13 +368,13 @@ export class AnimationGroup<V extends Vars> {
         const BATCH = AnimationGroup.YIELD_BATCH;
 
         if (entries.length <= BATCH) {
-            // Fast path — small groups tick in a single slice, no yield.
-            await this._tickSlice(entries, t);
+            // Fast path — small groups advance in a single slice, no yield.
+            await this._advanceSlice(entries, t);
         } else {
-            // Large groups tick in batches with a main-thread yield between
+            // Large groups advance in batches with a main-thread yield between
             // them, so the per-frame work doesn't run as one long task.
             for (let i = 0; i < entries.length; i += BATCH) {
-                await this._tickSlice(entries.slice(i, i + BATCH), t);
+                await this._advanceSlice(entries.slice(i, i + BATCH), t);
                 if (i + BATCH < entries.length) {
                     await yieldToMain();
                 }
@@ -373,8 +388,8 @@ export class AnimationGroup<V extends Vars> {
         return this;
     }
 
-    /** Advance one slice of children to timestamp `t`, awaiting their ticks together. */
-    private async _tickSlice(
+    /** Advance one slice of children to absolute clock `t`, awaiting them together. */
+    private async _advanceSlice(
         slice: AnimationGroupEntry<V>[],
         t: number,
     ): Promise<void> {
@@ -382,7 +397,7 @@ export class AnimationGroup<V extends Vars> {
         for (const entry of slice) {
             const anim = entry.animation;
             if (!anim.paused || anim.pausedTime === 0) {
-                promises.push(anim.tick(t));
+                promises.push(anim.advanceTo(t));
             }
         }
         await Promise.all(promises);
@@ -395,7 +410,7 @@ export class AnimationGroup<V extends Vars> {
      * Returns whether the loop should continue.
      */
     private async _frame(t: number): Promise<boolean> {
-        await this.tick(t);
+        await this.advanceTo(t);
 
         if (this.paused) {
             return false;
@@ -495,49 +510,61 @@ export class AnimationGroup<V extends Vars> {
     }
 
     /**
-     * Toggle pause state. Calling pause() when playing pauses; calling
-     * pause() when paused resumes. (Toggle semantics preserved for
-     * backward compatibility with demo's toggleAnimationGroup.)
+     * Pause the group — idempotent. Pausing an already-paused (or
+     * not-yet-started) group is a no-op, NOT a resume. Mirrors
+     * `Animation.pause`: a method named `pause` pauses, never secretly
+     * resumes. Use {@link toggle} for the explicit flip, {@link resume}
+     * for the explicit resume.
      *
-     * On pause: explicitly cancels the rAF loop and renders a final
-     * frame snapshot so the visual matches the exact pause moment.
-     * On resume: re-registers the rAF loop.
+     * Cancels the rAF loop immediately (don't wait for the frame callback to
+     * self-terminate) and renders a final-frame snapshot so the visual
+     * matches the exact pause moment.
      */
     pause() {
-        if (!this.started) return this;
+        if (!this.started || this.paused) return this;
 
-        this.paused = !this.paused;
+        this.paused = true;
         const now = this.lastTickTime || performance.now();
 
-        // Propagate pause/unpause to all child animations
+        // Propagate the pause to every child.
         for (const entry of this.getEntries()) {
             const anim = entry.animation;
-            if (this.paused) {
-                anim.pause(false);
-                // Use the last rAF timestamp (not performance.now()) so
-                // resume correctly adjusts startTime without a forward jump.
-                if (anim.pausedTime === 0) {
-                    anim.pausedTime = now;
-                }
-            } else {
-                // Unpause children directly — don't call resume() which would
-                // start each child's own rAF loop. The group's draw() handles ticking.
-                anim.paused = false;
+            anim.pause();
+            // Use the last rAF timestamp (not performance.now()) so resume
+            // correctly adjusts startTime without a forward jump.
+            if (anim.pausedTime === 0) {
+                anim.pausedTime = now;
             }
         }
 
-        if (this.paused) {
-            // Stop the loop immediately — don't wait for the frame callback
-            // to self-terminate
-            this.playback.stop();
-            // Render final frame so the visual matches the pause moment
-            this.render();
-        } else {
-            // Resume: restart the draw loop
-            this.playback.loop(this._boundFrame);
-        }
+        this.playback.stop();
+        this.render();
 
         return this;
+    }
+
+    /**
+     * Resume the group — idempotent. Resuming a running (or not-yet-started)
+     * group is a no-op. Unpauses every child DIRECTLY (not via
+     * `child.resume()`, which would start each child's own rAF loop) — the
+     * group's draw loop owns the ticking — and re-registers that loop.
+     */
+    resume() {
+        if (!this.started || !this.paused) return this;
+
+        this.paused = false;
+        for (const entry of this.getEntries()) {
+            entry.animation.paused = false;
+        }
+
+        this.playback.loop(this._boundFrame);
+
+        return this;
+    }
+
+    /** The explicit flip: pauses if playing, resumes if paused. */
+    toggle() {
+        return this.paused ? this.resume() : this.pause();
     }
 
     /**

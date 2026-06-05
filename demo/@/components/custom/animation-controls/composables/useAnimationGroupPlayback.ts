@@ -55,7 +55,7 @@ export function useAnimationGroupPlayback(
             animationGroup.play();
             syncPlayState(true);
         } else {
-            animationGroup.pause();
+            animationGroup.toggle();
             syncPlayState();
         }
     };
@@ -71,7 +71,7 @@ export function useAnimationGroupPlayback(
 
     const onScrubEnd = () => {
         if (wasPlayingBeforeScrub) {
-            getAnimationGroup().pause(); // toggle back to playing
+            getAnimationGroup().resume();
             syncPlayState(true);
             wasPlayingBeforeScrub = false;
         }

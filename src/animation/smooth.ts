@@ -95,11 +95,19 @@ export class SmoothProgress {
         }
     }
 
-    /** Reduced-motion snap: jump to target, settle, emit once. */
+    /**
+     * Reduced-motion snap: jump to target, settle, emit once, and stop the
+     * managed loop — symmetric with `SpringProgress._snapSettled`. A
+     * reduced-motion snap leaves no scheduled `drive` frame on either
+     * stepper; the two `_snapSettled` bodies are now contract-equivalent
+     * (value-set + settle + emit + stop), differing only in the spring's
+     * velocity/origin fields.
+     */
     private _snapSettled(): void {
         this.currentValue = this.targetValue;
         this.isSettled = true;
         this._onFrame?.(this.currentValue);
+        this._playback.stop();
     }
 
     /**

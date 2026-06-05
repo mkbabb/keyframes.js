@@ -241,7 +241,7 @@ export async function playWAAPI<V extends Vars>(
     // driver so `stop()` halts it uniformly with every other loop.
     animation.playback.loop(async (now: number) => {
         if (animation.done) return false;
-        await animation.tick(now);
+        await animation.advanceTo(now);
         if (animation.paused) {
             for (const wa of waAnimations) wa.pause();
         } else {

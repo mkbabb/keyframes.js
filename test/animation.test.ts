@@ -246,7 +246,7 @@ describe("Animation events", () => {
         const startHandler = vi.fn();
         el.addEventListener("animationstart", startHandler);
 
-        await anim.tick(0);
+        await anim.advanceTo(0);
 
         expect(startHandler).toHaveBeenCalledTimes(1);
     });
@@ -268,9 +268,9 @@ describe("Animation events", () => {
         el.addEventListener("animationend", endHandler);
 
         // Start the animation
-        await anim.tick(0);
+        await anim.advanceTo(0);
         // Advance past duration to trigger onEnd
-        await anim.tick(200);
+        await anim.advanceTo(200);
 
         expect(endHandler).toHaveBeenCalledTimes(1);
     });
@@ -292,9 +292,9 @@ describe("Animation events", () => {
         el.addEventListener("animationiteration", iterHandler);
 
         // Start
-        await anim.tick(0);
+        await anim.advanceTo(0);
         // End first iteration (not last)
-        await anim.tick(200);
+        await anim.advanceTo(200);
 
         expect(iterHandler).toHaveBeenCalledTimes(1);
     });

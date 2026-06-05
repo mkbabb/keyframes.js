@@ -1,6 +1,6 @@
 /**
  * `yieldToMain()` — break a long main-thread task so the browser can service
- * input/render between slices (INP relief). Used by `AnimationGroup.tick()`
+ * input/render between slices (INP relief). Used by `AnimationGroup.advanceTo()`
  * to keep a large group's per-frame composite from monopolizing the main
  * thread as one long task.
  *

@@ -5,11 +5,7 @@ import {
     CSSValues,
     flattenObject,
     FunctionValue,
-    lerpColorValue,
     jumpTerms,
-    lerpComputedValue,
-    lerpNumericValue,
-    lerpValue,
     normalizeValueUnits,
     prepareInterpVar,
     steppedEase,
@@ -30,16 +26,6 @@ import type {
     TimingFunctionNames,
     Vars,
 } from "./constants";
-
-// Re-export value.js interpolation primitives so consumers of
-// keyframes.js continue to find them at this path. New code should
-// import from @mkbabb/value.js directly.
-export {
-    lerpColorValue,
-    lerpComputedValue,
-    lerpNumericValue,
-    lerpValue,
-};
 
 export type ParsedVarMap = Record<string, ValueArray>;
 
@@ -155,10 +141,6 @@ export const getTimingFunction = (
     }
     return undefined;
 };
-
-// lerpComputedValue / lerpColorValue / lerpNumericValue / lerpValue
-// now live in @mkbabb/value.js. Re-exported above for keyframes.js
-// API compatibility.
 
 const tryParseCache = new Map<string, ValueArray>();
 

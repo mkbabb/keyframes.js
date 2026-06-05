@@ -40,6 +40,8 @@
     "gh-pages": "vite build --mode gh-pages",
     "proof:boundary": "node scripts/proof-boundary.mjs",
     "proof:dogfood": "node scripts/proof-dogfood.mjs",
+    "proof:engine": "node scripts/proof-engine.mjs",
+    "proof:zero-alloc": "vitest run test/zero-alloc.test.ts test/snap-symmetry.test.ts test/frame-compiler.test.ts",
     "test": "vitest",
     "bench": "vitest bench"
   },
