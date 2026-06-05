@@ -35,20 +35,26 @@ none remains.
 
 ## Phase
 
-**DEVELOPMENT** (E.W0 — RUN now, on branch `tranche-d-impl`). E.W0 (the
-audit-fold: the 6-lane assay on disk, the lighthouse baseline (20 report
-artifacts) + the modern-web comparison, the consolidated deferred ledger, the
-prompt-recap, this plan → the
-tranche docs) is the dev/impl boundary. It produces **no engine, demo, or
-library source** — only the audit evidence, the ledgers, and the wave specs.
-This is exactly D.W0's dev/impl boundary.
+**IMPLEMENTED + CLOSED** (E.W0 DEV → E.W1–W11 + W4 IMPL → E.W6 close), on branch
+`tranche-e-impl` (off `tranche-d-impl` HEAD). All eleven implementation waves
+landed; the close report is `FINAL.md`. Six commits:
 
-**E.W1–W11 await authorization.** The implementation half is authored-now,
-run-later: it opens only on explicit user authorization, gated on keyframes'
-own green CI (inv-27). inv-16 holds: only keyframes.js is written; the glass-ui
-`LabeledField` a11y (ASK-3), the `--spring-*` codegen (ASK-2), and the reka-ui
-dialog seam stay OUTWARD. The publish leg (the stacked B `3.1.0` + C `major` +
-D `major` + E `minor` changesets → tag → release) is user-domain, confirm-first.
+- `391533e` — W1·W2·W3 (demo encapsulation r2 · vueuse listener gestalt · styling r2)
+- `a7f6746` — W7·W5 (5 engine correctness bugs test-locked · standalone zero-alloc · managed-pause doc)
+- `050204f` — W8 (FrameCompiler determinism · editor single-compile)
+- `4ee8e34` — W9·W10 (platform adoption · the orchestration tier — new public API)
+- `d400591` — W11 (View-Transitions · a11y · idiom r3 · first-paint · CWV)
+- `663805e` — W4 (Monaco defer · yield · preload · modern-web checklist)
+
+**Gate: `npm run proof:all` PASS** — every `proof:*` + 460 tests green (tsc clean,
+`proof:boundary` holds). `proof:lighthouse-mobile` + the `capture.mjs` AFTER matrix
+are CI/Playwright-host instruments (environment-gated here, honestly recorded).
+
+inv-16 held throughout: only keyframes.js was written; the glass-ui `LabeledField`
+a11y (ASK-3), the `--spring-*` codegen (ASK-2), and the reka-ui dialog seam stayed
+OUTWARD; W9 S4/S6 (native color / currentColor) are RECORDED needs-value.js-handoff.
+The publish leg (the stacked B `3.1.0` + C `major` + D `major` + E `minor` changesets
+→ tag → release) is user-domain, confirm-first; version owner **Mike Babb**.
 
 **The mandate is BINDING + sweep-enforced** (`E.md` §Mandate): NO quick
 solutions / NO workarounds (no documented-limitation hatch beside a real fix —
