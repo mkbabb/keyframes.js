@@ -1,0 +1,93 @@
+{
+  "scene": "spring",
+  "form": "mobile",
+  "performance": 52,
+  "fcp": "5.4 s",
+  "lcp": "28.1 s",
+  "tbt": "280 ms",
+  "cls": "0.016",
+  "si": "8.4 s",
+  "tti": "28.2 s",
+  "opportunities": [
+    {
+      "id": "total-byte-weight",
+      "title": "Avoid enormous network payloads",
+      "score": 0.5,
+      "displayValue": "Total size was 5,217 KiB",
+      "savingsMs": null,
+      "savingsBytes": null
+    },
+    {
+      "id": "interactive",
+      "title": "Time to Interactive",
+      "score": 0,
+      "displayValue": "28.2 s",
+      "savingsMs": null,
+      "savingsBytes": null
+    },
+    {
+      "id": "largest-contentful-paint",
+      "title": "Largest Contentful Paint",
+      "score": 0,
+      "displayValue": "28.1 s",
+      "savingsMs": null,
+      "savingsBytes": null
+    },
+    {
+      "id": "unused-javascript",
+      "title": "Reduce unused JavaScript",
+      "score": 0,
+      "displayValue": "Est savings of 2,663 KiB",
+      "savingsMs": 13500,
+      "savingsBytes": 2726756
+    },
+    {
+      "id": "speed-index",
+      "title": "Speed Index",
+      "score": 0.18,
+      "displayValue": "8.4 s",
+      "savingsMs": null,
+      "savingsBytes": null
+    },
+    {
+      "id": "first-contentful-paint",
+      "title": "First Contentful Paint",
+      "score": 0.06,
+      "displayValue": "5.4 s",
+      "savingsMs": null,
+      "savingsBytes": null
+    },
+    {
+      "id": "mainthread-work-breakdown",
+      "title": "Minimize main-thread work",
+      "score": 0,
+      "displayValue": "2.2 s",
+      "savingsMs": null,
+      "savingsBytes": null
+    },
+    {
+      "id": "unused-css-rules",
+      "title": "Reduce unused CSS",
+      "score": 0,
+      "displayValue": "Est savings of 139 KiB",
+      "savingsMs": 600,
+      "savingsBytes": 142458
+    },
+    {
+      "id": "total-blocking-time",
+      "title": "Total Blocking Time",
+      "score": 0.81,
+      "displayValue": "280 ms",
+      "savingsMs": null,
+      "savingsBytes": null
+    },
+    {
+      "id": "max-potential-fid",
+      "title": "Max Potential First Input Delay",
+      "score": 0.42,
+      "displayValue": "280 ms",
+      "savingsMs": null,
+      "savingsBytes": null
+    }
+  ]
+}

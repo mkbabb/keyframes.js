@@ -1,0 +1,85 @@
+{
+  "scene": "cube",
+  "form": "mobile",
+  "performance": 65,
+  "fcp": "4.8 s",
+  "lcp": "6.6 s",
+  "tbt": "80 ms",
+  "cls": "0",
+  "si": "4.8 s",
+  "tti": "6.6 s",
+  "opportunities": [
+    {
+      "id": "interactive",
+      "title": "Time to Interactive",
+      "score": 0.58,
+      "displayValue": "6.6 s",
+      "savingsMs": null,
+      "savingsBytes": null
+    },
+    {
+      "id": "largest-contentful-paint",
+      "title": "Largest Contentful Paint",
+      "score": 0.08,
+      "displayValue": "6.6 s",
+      "savingsMs": null,
+      "savingsBytes": null
+    },
+    {
+      "id": "first-contentful-paint",
+      "title": "First Contentful Paint",
+      "score": 0.11,
+      "displayValue": "4.8 s",
+      "savingsMs": null,
+      "savingsBytes": null
+    },
+    {
+      "id": "speed-index",
+      "title": "Speed Index",
+      "score": 0.67,
+      "displayValue": "4.8 s",
+      "savingsMs": null,
+      "savingsBytes": null
+    },
+    {
+      "id": "unused-javascript",
+      "title": "Reduce unused JavaScript",
+      "score": 0,
+      "displayValue": "Est savings of 332 KiB",
+      "savingsMs": 1800,
+      "savingsBytes": 339559
+    },
+    {
+      "id": "max-potential-fid",
+      "title": "Max Potential First Input Delay",
+      "score": 0.62,
+      "displayValue": "210 ms",
+      "savingsMs": null,
+      "savingsBytes": null
+    },
+    {
+      "id": "cache-insight",
+      "title": "Use efficient cache lifetimes",
+      "score": 0,
+      "displayValue": "Est savings of 1,001 KiB",
+      "savingsMs": null,
+      "savingsBytes": null
+    },
+    {
+      "id": "document-latency-insight",
+      "title": "Document request latency",
+      "score": 0.5,
+      "displayValue": "Est savings of 3 KiB",
+      "savingsMs": null,
+      "savingsBytes": null
+    },
+    {
+      "id": "network-dependency-tree-insight",
+      "title": "Network dependency tree",
+      "score": 0,
+      "displayValue": null,
+      "savingsMs": null,
+      "savingsBytes": null
+    }
+  ]
+}

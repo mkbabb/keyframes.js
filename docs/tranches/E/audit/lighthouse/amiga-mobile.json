@@ -1,0 +1,93 @@
+{
+  "scene": "amiga",
+  "form": "mobile",
+  "performance": 48,
+  "fcp": "5.0 s",
+  "lcp": "9.9 s",
+  "tbt": "570 ms",
+  "cls": "0.008",
+  "si": "5.0 s",
+  "tti": "9.9 s",
+  "opportunities": [
+    {
+      "id": "interactive",
+      "title": "Time to Interactive",
+      "score": 0.27,
+      "displayValue": "9.9 s",
+      "savingsMs": null,
+      "savingsBytes": null
+    },
+    {
+      "id": "largest-contentful-paint",
+      "title": "Largest Contentful Paint",
+      "score": 0,
+      "displayValue": "9.9 s",
+      "savingsMs": null,
+      "savingsBytes": null
+    },
+    {
+      "id": "mainthread-work-breakdown",
+      "title": "Minimize main-thread work",
+      "score": 0,
+      "displayValue": "5.1 s",
+      "savingsMs": null,
+      "savingsBytes": null
+    },
+    {
+      "id": "first-contentful-paint",
+      "title": "First Contentful Paint",
+      "score": 0.1,
+      "displayValue": "5.0 s",
+      "savingsMs": null,
+      "savingsBytes": null
+    },
+    {
+      "id": "speed-index",
+      "title": "Speed Index",
+      "score": 0.64,
+      "displayValue": "5.0 s",
+      "savingsMs": null,
+      "savingsBytes": null
+    },
+    {
+      "id": "unused-javascript",
+      "title": "Reduce unused JavaScript",
+      "score": 0,
+      "displayValue": "Est savings of 522 KiB",
+      "savingsMs": 3000,
+      "savingsBytes": 534433
+    },
+    {
+      "id": "bootup-time",
+      "title": "Reduce JavaScript execution time",
+      "score": 0,
+      "displayValue": "1.8 s",
+      "savingsMs": null,
+      "savingsBytes": null
+    },
+    {
+      "id": "max-potential-fid",
+      "title": "Max Potential First Input Delay",
+      "score": 0.03,
+      "displayValue": "620 ms",
+      "savingsMs": null,
+      "savingsBytes": null
+    },
+    {
+      "id": "total-blocking-time",
+      "title": "Total Blocking Time",
+      "score": 0.52,
+      "displayValue": "570 ms",
+      "savingsMs": null,
+      "savingsBytes": null
+    },
+    {
+      "id": "cache-insight",
+      "title": "Use efficient cache lifetimes",
+      "score": 0,
+      "displayValue": "Est savings of 1,525 KiB",
+      "savingsMs": null,
+      "savingsBytes": null
+    }
+  ]
+}
