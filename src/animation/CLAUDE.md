@@ -87,6 +87,23 @@ Composites multiple animations with layer blending (`replace` / `add` / `weighte
 - `respectReducedMotion = true` → `play()` composites every child's final frame once, no draw loop; `play()` is re-entrant (`_playingPromise` guard)
 - Rest-position contract: completion `settle()`s (pure, leaves the rest frame painted by each child's fill); `reset()` is the explicit rewind (paint initial + settle); `stop()` = halt + rewind (transport semantics)
 
+**Managed-child lifecycle (the one contract, stated once).** A child the group
+owns is marked `managed = true` (at attach, `group.ts`). The group OWNS its loop:
+- The child throws on a direct `play()` (`engine.ts` — "the AnimationGroup owns
+  the rAF loop. Call group.play() instead"); it never drives its own rAF.
+- The group's `pause()` propagates to every child AND records the group's LAST
+  rAF timestamp (not `performance.now()`) on each child's `pausedTime`, so
+  `resume()` adjusts `startTime` without a forward jump.
+- The group's `resume()` un-pauses children DIRECTLY (`entry.animation.paused =
+  false`), explicitly NOT via `child.resume()` — `child.resume()` would start
+  each child's own rAF loop and race the group's draw loop.
+- `settle()` releases each child (`managed = false`).
+
+The behaviour is correct as of D.W4 (honest `pause`/`resume`/`toggle`, the
+jump-free `pausedTime`, the no-race resume); this note STATES the contract a
+consumer must honor in one place. `group.ts`'s `pause`/`resume` carry a
+cross-link comment to here.
+
 ### `NumericAnimation<T extends Record<string, number>>` (`numeric.ts`)
 Zero-allocation keyframe interpolation over plain numeric objects. `at(progress)`, `updateKeyframe()`, managed `play()`. Accepts a callable `TimingFunction` or typed `Easing` only (a string name throws — resolve via `await resolveEasing(name)` first); `play()` routes its reduced-motion snap through `RAFPlayback`.
 

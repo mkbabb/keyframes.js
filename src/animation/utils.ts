@@ -3,6 +3,7 @@ import {
     CSSCubicBezier,
     CSSFunction,
     CSSValues,
+    cssLinear,
     flattenObject,
     FunctionValue,
     jumpTerms,
@@ -18,6 +19,7 @@ import {
 import type {
     ColorSpace,
     HueInterpolationMethod,
+    LinearStop,
     NormalizeValueUnitsOptions,
 } from "@mkbabb/value.js";
 import type {
@@ -85,6 +87,49 @@ const STEPS_LITERAL =
     /^\s*steps\s*\(\s*(\d+)\s*(?:,\s*(jump-start|jump-end|jump-none|jump-both|start|end|both)\s*)?\)\s*$/i;
 
 /**
+ * Match a CSS `linear(...)` easing-function literal (CSS Easing Level 2,
+ * Baseline 2023-12-11) — `linear(0, 0.5 25%, 1)`. The parens distinguish it
+ * from the bare `linear` keyword (the registry identity curve), so this only
+ * intercepts the multi-stop form. The inner stop list is parsed by
+ * {@link parseLinearStops}.
+ */
+const LINEAR_LITERAL = /^\s*linear\s*\(\s*(.+)\s*\)\s*$/i;
+
+/**
+ * Parse the inner stop list of a `linear(...)` literal into value.js
+ * `LinearStop[]`. Each comma-separated entry is `<output> [<input%> [<input%>]]`
+ * — a bare output (its input is positionally distributed by `cssLinear`), or
+ * an output with one or two explicit input percentages (two = a flat segment
+ * spanning that input range, per the CSS grammar). Returns `undefined` for a
+ * malformed list so the caller falls through (never a silent wrong curve).
+ */
+const parseLinearStops = (inner: string): LinearStop[] | undefined => {
+    const stops: LinearStop[] = [];
+    for (const part of inner.split(",")) {
+        const tokens = part.trim().split(/\s+/).filter(Boolean);
+        if (tokens.length === 0) return undefined;
+        const output = Number.parseFloat(tokens[0]!);
+        if (!Number.isFinite(output)) return undefined;
+        const positions = tokens.slice(1);
+        if (positions.length === 0) {
+            stops.push({ output });
+            continue;
+        }
+        for (const pos of positions) {
+            // CSS `linear()` stop positions are <percentage>; value.js's
+            // `cssLinear` takes `input` as that percent magnitude (0–100),
+            // not a 0–1 fraction. Strip the `%` and pass the number as-is.
+            const input = Number.parseFloat(
+                pos.endsWith("%") ? pos.slice(0, -1) : pos,
+            );
+            if (!Number.isFinite(input)) return undefined;
+            stops.push({ output, input });
+        }
+    }
+    return stops.length >= 2 ? stops : undefined;
+};
+
+/**
  * Resolve a timing-function input to a callable `TimingFunction`.
  *
  * Accepts:
@@ -134,6 +179,19 @@ export const getTimingFunction = (
     }
     if (timingFunction === "step-start") return steppedEase(1, "jump-start");
     if (timingFunction === "step-end") return steppedEase(1, "jump-end");
+
+    // CSS `linear(...)` multi-stop easing — the curve the engine itself emits
+    // (a spring's `linear()` from `springLinearStops`/`springTimingFunction`,
+    // and any `@keyframes` `animation-timing-function: linear(...)`). Without
+    // this branch a re-imported `linear()` falls through to the registry, fails
+    // the lookup, and the option setter silently defaults to `easeInOutCubic` —
+    // so the rAF JS curve and the compositor `linear()` twin disagree. Reading
+    // it back via value.js's `cssLinear` evaluator closes that round-trip.
+    const linearMatch = timingFunction.match(LINEAR_LITERAL);
+    if (linearMatch) {
+        const stops = parseLinearStops(linearMatch[1]!);
+        if (stops) return cssLinear(stops);
+    }
 
     const resolved = timingFunctions[timingFunction as TimingFunctionNames];
     if (typeof resolved === "function" && resolved.length <= 1) {

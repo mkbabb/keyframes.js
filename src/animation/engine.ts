@@ -150,6 +150,17 @@ export class Animation<V extends Vars = any> {
     private _boundFrame = this._frame.bind(this);
 
     /**
+     * The ONE output buffer for the standalone play loop's `interpFrames`
+     * calls — reused every frame so steady-state playback allocates no
+     * per-frame result object (the primitive-level analogue of the group's
+     * hoisted `_grouped` buffer, gated by `proof:standalone-zero-alloc`).
+     * The play path (`_frame`) never returns this object to a consumer, so
+     * reuse is safe; `at()` (a query whose result the caller keeps) still
+     * allocates a fresh object.
+     */
+    private _interpOut: Record<string, ValueUnit[]> = {};
+
+    /**
      * The instance's ONE default DOM-style renderer, allocated once.
      * "Did the consumer supply a custom transform?" is a reference
      * comparison against this single value ({@link usesDefaultRenderer}) —
@@ -438,6 +449,10 @@ export class Animation<V extends Vars = any> {
             );
         }
         this.options.colorSpace = colorSpace;
+        // Honor the live-options contract: if frames are already compiled, the
+        // color space is baked into their interp carriers — re-derive them so
+        // the change takes effect (not a silent compile-stale no-op).
+        if (this.frames.length > 0) this.compiler.renormalizeColors();
         return this;
     }
 
@@ -453,6 +468,9 @@ export class Animation<V extends Vars = any> {
             );
         }
         this.options.hueMethod = hueMethod;
+        // The hue-interpolation method is baked into compiled cylindrical-space
+        // carriers; re-derive when frames already exist (live-options contract).
+        if (this.frames.length > 0) this.compiler.renormalizeColors();
         return this;
     }
 
@@ -569,41 +587,53 @@ export class Animation<V extends Vars = any> {
 
         // Process the seed frame, then expand to collect all overlapping frames.
         // Frames are sorted by (time.start, time.stop), so overlapping frames
-        // at the same time are contiguous neighbors.
-        const processFrame = (frame: AnimationFrame<V>) => {
-            const { start, stop } = frame.time;
-            const scaled = scale(t, start, stop, 0, 1);
-            const eased = frame.timingFunction.fn(scaled);
-
-            for (const iv of frame.allInterpVars) {
-                lerpValue(eased, iv);
-            }
-
-            if (transformFrames) {
-                frame.transform(
-                    this.unflatten ? frame.vars : frame.flatVars,
-                    t,
-                );
-            }
-
-            Object.assign(result, frame.flatVars);
-        };
+        // at the same time are contiguous neighbors. `processFrame` is a method
+        // (not a per-call closure) so the steady-state play path mints nothing
+        // per frame (D-RT-1).
 
         // Scan backward from seed (inclusive) to first frame that doesn't contain t
         for (let i = seedIdx; i >= 0; i--) {
             const f = frames[i]!;
             if (t < f.time.start || t > f.time.stop) break;
-            processFrame(f);
+            this.processFrame(f, t, transformFrames, result);
         }
 
         // Scan forward from seed+1 to last frame that contains t
         for (let i = seedIdx + 1; i < len; i++) {
             const f = frames[i]!;
             if (t < f.time.start || t > f.time.stop) break;
-            processFrame(f);
+            this.processFrame(f, t, transformFrames, result);
         }
 
         return result;
+    }
+
+    /**
+     * Interpolate ONE active frame at time `t` and merge it into `result`.
+     * Lifted off the `interpFrames` hot loop so playback allocates no
+     * per-frame closure. A zero-width frame (`start === stop`, a degenerate
+     * keyframe pair) snaps to the endpoint instead of dividing by zero in
+     * `scale` (E-RT-5).
+     */
+    private processFrame(
+        frame: AnimationFrame<V>,
+        t: number,
+        transformFrames: boolean,
+        result: Record<string, ValueUnit[]>,
+    ) {
+        const { start, stop } = frame.time;
+        const scaled = start === stop ? 1 : scale(t, start, stop, 0, 1);
+        const eased = frame.timingFunction.fn(scaled);
+
+        for (const iv of frame.allInterpVars) {
+            lerpValue(eased, iv);
+        }
+
+        if (transformFrames) {
+            frame.transform(this.unflatten ? frame.vars : frame.flatVars, t);
+        }
+
+        Object.assign(result, frame.flatVars);
     }
 
     async onStart() {
@@ -696,7 +726,9 @@ export class Animation<V extends Vars = any> {
         }
 
         if (!this.done) {
-            this.interpFrames(t, true);
+            // Reuse the one hoisted buffer — steady-state playback allocates
+            // no per-frame result object (proof:standalone-zero-alloc).
+            this.interpFrames(t, true, this._interpOut);
             return true;
         }
 

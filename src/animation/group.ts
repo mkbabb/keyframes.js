@@ -509,6 +509,15 @@ export class AnimationGroup<V extends Vars> {
         return Promise.resolve();
     }
 
+    // ── The managed-child lifecycle contract (consolidated; full statement in
+    // src/animation/CLAUDE.md → AnimationGroup → "Managed-child lifecycle").
+    // A managed child (`managed = true`) is loop-owned by the group: it throws
+    // on direct `play()` (the group owns the rAF loop); `pause()` propagates to
+    // every child AND records the last rAF clock on each child's `pausedTime`
+    // so `resume()` adjusts `startTime` jump-free; `resume()` un-pauses children
+    // DIRECTLY (never `child.resume()`) so no child rAF loop races the draw
+    // loop; `settle()` releases the child (`managed = false`).
+
     /**
      * Pause the group — idempotent. Pausing an already-paused (or
      * not-yet-started) group is a no-op, NOT a resume. Mirrors

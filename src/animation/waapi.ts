@@ -2,11 +2,43 @@ import { COMPUTED_UNITS, unflattenObjectToString } from "@mkbabb/value.js";
 import type { Animation } from "./engine";
 import type { Vars } from "./constants";
 
-const isComputedUnit = (
-    unit: unknown,
-): unit is (typeof COMPUTED_UNITS)[number] =>
-    typeof unit === "string" &&
-    (COMPUTED_UNITS as readonly string[]).includes(unit);
+/**
+ * Units a delegated WAAPI animation must NOT carry — the layout-dependent
+ * set. value.js's `COMPUTED_UNITS` is only `["var","calc"]` (the units the
+ * engine resolves to a frozen px via a DOM round-trip during interpolation);
+ * but WAAPI freezes a WIDER set. The rAF path re-emits each value as its OWN
+ * unit string every frame (`width: 50vh`), so the browser re-resolves it on
+ * every layout change; WAAPI computes its keyframes' viewport/container units
+ * to px ONCE (at keyframe computation) and does not track a viewport/container
+ * resize mid-animation — diverging from the rAF path. So every viewport- and
+ * container-relative unit (plus `%`, resolved against the containing block)
+ * stays on the rAF path, which is always pixel-correct.
+ *
+ * `var()`/`calc()` stay out for a deliberate, lasting reason beyond "needs DOM
+ * resolution": a registered `@property` custom does not composite anyway (it
+ * rasterizes per frame), so this rejection remains correct even as `@property`
+ * reaches Baseline — it is not an incidental limitation to revisit.
+ *
+ * The guard is conservative by design: rejecting a unit only forgoes the
+ * compositor optimization (the animation runs on rAF, always correct); it
+ * never produces a wrong pixel. So the wider set trades a perf opportunity for
+ * guaranteed isomorphism with the rAF path.
+ */
+const WAAPI_INELIGIBLE_UNITS: ReadonlySet<string> = new Set<string>([
+    ...COMPUTED_UNITS, // var, calc — frozen-px via the computed round-trip
+    "%",
+    // viewport-relative (incl. the small/large/dynamic-viewport families)
+    "vh", "vw", "vmin", "vmax", "vi", "vb",
+    "svh", "svw", "svmin", "svmax", "svi", "svb",
+    "lvh", "lvw", "lvmin", "lvmax", "lvi", "lvb",
+    "dvh", "dvw", "dvmin", "dvmax", "dvi", "dvb",
+    // container-query-relative
+    "cqw", "cqh", "cqi", "cqb", "cqmin", "cqmax",
+]);
+
+/** True when a value's unit would freeze to px under WAAPI delegation. */
+const isComputedUnit = (unit: unknown): boolean =>
+    typeof unit === "string" && WAAPI_INELIGIBLE_UNITS.has(unit);
 
 export type WAAPIEligibility =
     | { eligible: true }
@@ -24,8 +56,11 @@ export type WAAPIEligibility =
  *    transform that WAAPI can't see).
  * 3. All frames share the same timing function (WAAPI exposes
  *    one easing per animation, not per stop).
- * 4. No computed units (`var`, `calc`, `vh`, `cqw`, etc.) — those
- *    require live DOM resolution at interpolation time.
+ * 4. No layout-dependent units — `var`/`calc` (frozen to px via the
+ *    computed round-trip), and every viewport-/container-relative unit
+ *    plus `%` (WAAPI computes these to px once at keyframe computation and
+ *    does not track a resize, unlike the rAF path which re-emits the unit
+ *    string each frame). See {@link WAAPI_INELIGIBLE_UNITS}.
  * 5. No color interpolation — handled by perceptual color spaces in
  *    JS, not by WAAPI's RGB lerp.
  *
@@ -110,7 +145,7 @@ export function isWAAPIEligible<V extends Vars>(
                 ) {
                     return {
                         eligible: false,
-                        reason: `computed unit (${String(iv.start?.unit ?? iv.stop?.unit)}) requires DOM resolution`,
+                        reason: `layout-dependent unit (${String(iv.start?.unit ?? iv.stop?.unit)}) would freeze to px under WAAPI`,
                     };
                 }
                 if (iv.start?.unit === "color" || iv.stop?.unit === "color") {
@@ -254,10 +289,35 @@ export async function playWAAPI<V extends Vars>(
 
     try {
         await Promise.all(waAnimations.map((wa) => wa.finished));
+        // Commit-on-finish (WAAPI W1). A finished `fill: forwards` animation
+        // otherwise "takes precedence over all static styles" indefinitely
+        // (MDN `commitStyles`), overriding the inline rest write and leaking
+        // one live compositor animation per completed play. Converge to the
+        // rAF path's terminal state — rest frame as inline style, ZERO
+        // residual animations — by baking the final value inline (only when
+        // it IS the rest, i.e. a forwards/both fill) then cancelling. The
+        // shared `onEnd → paintRest` writes the LOGICAL rest for every fill
+        // mode; `commitStyles` only guards the forwards case against the
+        // finish-before-paint race. Reaching here means a genuine finish (a
+        // `stop()`/`reset()` cancel rejects `finished` → the catch below).
+        for (const wa of waAnimations) {
+            try {
+                if (
+                    animation.restPosition === "final" &&
+                    typeof wa.commitStyles === "function"
+                ) {
+                    wa.commitStyles();
+                }
+                wa.cancel();
+            } catch {
+                /* already detached/cancelled — nothing to commit or cancel */
+            }
+        }
     } catch {
         // `Animation.stop()`/`reset()` cancelled the compositor animations,
         // rejecting `finished` with an AbortError — a deliberate halt, not
-        // an error. Swallow it so the awaited `play()` resolves cleanly.
+        // an error (`_cancelWAAPI` already cleared the handles). Swallow it so
+        // the awaited `play()` resolves cleanly.
     } finally {
         animation.playback.stop();
         animation._waAnimations = [];

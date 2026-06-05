@@ -86,8 +86,13 @@ export class FrameCompiler<V extends Vars = any> {
     /**
      * The compile inputs live on the owning `Animation`'s `options` object.
      * The compiler holds a REFERENCE to it (the setters mutate it in place,
-     * never replace it), so duration/easing/colorSpace changes are seen
-     * without re-linking.
+     * never replace it), so the NEXT compile always reads the current
+     * `duration`/`easing`/`colorSpace` without re-linking. For values baked
+     * into already-compiled frames, the setter triggers a targeted re-derive:
+     * `setDuration` rescales `frame.time` in place; `setColorSpace`/
+     * `setHueMethod` call {@link renormalizeColors} (the color resolution is
+     * the only baked state that depends on them). No setter silently no-ops a
+     * change to compiled state.
      */
     constructor(private options: AnimationOptions) {}
 
@@ -158,25 +163,33 @@ export class FrameCompiler<V extends Vars = any> {
 
         const time = calcFrameTime(startFrame, endFrame, this.options.duration);
 
+        // `startIx` indexes `templateFrames` (the source keyframes), so the
+        // "inherit the previous declared value" seek must walk THAT array —
+        // not the compiled `frames[]`, whose indices are a different space
+        // (segment order, not keyframe order). Walking `this.frames` with a
+        // template index coincides only in the adjacent main-loop pass; it
+        // reads the wrong frame the moment `reconcileVars` creates a segment
+        // across non-adjacent keyframes (D-1). The inherited value is the
+        // nearest PRECEDING keyframe that declares one.
         let transform = startFrame.transform;
 
         if (transform == null) {
             const transformIx = seekPreviousValue(
                 startIx,
-                this.frames,
+                this.templateFrames,
                 (f) => f.transform != null,
             )!;
-            transform = this.frames[transformIx]!.transform;
+            transform = this.templateFrames[transformIx]!.transform;
         }
 
         let timingFunction = startFrame.timingFunction;
         if (timingFunction == null) {
             const timingFunctionIx = seekPreviousValue(
                 startIx,
-                this.frames,
+                this.templateFrames,
                 (f) => f.timingFunction != null,
             )!;
-            timingFunction = this.frames[timingFunctionIx]!.timingFunction;
+            timingFunction = this.templateFrames[timingFunctionIx]!.timingFunction;
         }
 
         const id = this.frameId++;
@@ -316,17 +329,56 @@ export class FrameCompiler<V extends Vars = any> {
         );
 
         // Set the vars for each frame and pre-flatten interpVars for hot-path iteration
-        this.frames.forEach((frame) => {
-            const flatVars = Object.entries(frame.interpVars).reduce<
-                Record<string, ValueUnit[]>
-            >((acc, [key, value]) => {
-                acc[key] = value.map((v) => v.value);
-                return acc;
-            }, {});
-            frame.flatVars = flatVars as unknown as V;
-            frame.vars = unflattenObject(frame.flatVars);
-            // Pre-flatten for zero-alloc iteration in interpFrames()
-            frame.allInterpVars = Object.values(frame.interpVars).flat();
-        });
+        this.frames.forEach((frame) => this.finalizeFrameVars(frame));
+    }
+
+    /**
+     * Derive a frame's `flatVars`/`vars`/`allInterpVars` from its
+     * `interpVars` — the pre-flattened forms the hot path
+     * (`interpFrames`) iterates without re-walking. Called once per frame
+     * at the tail of `parse`, and again by `renormalizeColors` after a
+     * color-space change re-derives the interp carriers in place.
+     */
+    private finalizeFrameVars(frame: AnimationFrame<V>): void {
+        const flatVars = Object.entries(frame.interpVars).reduce<
+            Record<string, ValueUnit[]>
+        >((acc, [key, value]) => {
+            acc[key] = value.map((v) => v.value);
+            return acc;
+        }, {});
+        frame.flatVars = flatVars as unknown as V;
+        frame.vars = unflattenObject(frame.flatVars);
+        // Pre-flatten for zero-alloc iteration in interpFrames()
+        frame.allInterpVars = Object.values(frame.interpVars).flat();
+    }
+
+    /**
+     * Re-derive the color-resolved interpolation carriers in place after a
+     * `colorSpace`/`hueMethod` change on already-compiled frames. Only the
+     * per-`InterpolatedVar` color resolution depends on the color space —
+     * the flatten/sort/reconcile structure does not — so this re-runs
+     * `createInterpVarValue` over the existing `frames`/`parsedVars` and
+     * rebuilds the hot-path arrays, with NO re-flatten and NO re-sort. The
+     * new carriers derive from the already-target-bound `parsedVars`, the
+     * same provenance `parse` gives them, so DOM binding is preserved.
+     *
+     * The owning `Animation`'s `setColorSpace`/`setHueMethod` call this when
+     * frames already exist; before `parse`, the option is simply read by the
+     * next compile.
+     */
+    renormalizeColors(): void {
+        for (const frame of this.frames) {
+            for (const v of Object.keys(frame.interpVars)) {
+                frame.interpVars[v] = createInterpVarValue(
+                    v,
+                    frame.ixs.start,
+                    frame.ixs.stop,
+                    this.parsedVars,
+                    this.options.colorSpace,
+                    this.options.hueMethod,
+                ) as AnimationFrame<V>["interpVars"][string];
+            }
+            this.finalizeFrameVars(frame);
+        }
     }
 }

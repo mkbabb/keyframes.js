@@ -120,6 +120,30 @@ for (const f of ["src/animation/smooth.ts", "src/animation/spring.ts"]) {
     }
 }
 
+// ── E.W5 BOOK — the managed-child lifecycle contract is documented in ONE place
+// (a NOTE, not code), with a group.ts cross-link. `tryParseCache` eviction stays
+// recorded-WITHHELD (measure-first, the D-3 / E.W5 posture: an unbounded memo with
+// a small working set is not a measured cost — an LRU would be speculative
+// complexity). Both BITE: stub the note → reds; drop the cross-link → reds.
+{
+    const claude = read("src/animation/CLAUDE.md");
+    const hasContract =
+        /Managed-child lifecycle/.test(claude) &&
+        /last(\s|-)*rAF/i.test(claude) &&
+        /never\s+`?child\.resume\(\)`?|not\s+via\s+`?child\.resume/i.test(claude);
+    if (!hasContract) {
+        fail("managed-pause-doc", "src/animation/CLAUDE.md is missing the consolidated managed-child lifecycle contract (loop-owned; last-rAF-clock pausedTime; resume un-pauses directly, never child.resume())");
+    } else {
+        ok("managed-pause-doc", "CLAUDE.md states the managed-child lifecycle contract in one place");
+    }
+    const group = read("src/animation/group.ts");
+    if (!/managed-child lifecycle contract/i.test(group)) {
+        fail("managed-pause-doc", "group.ts is missing the cross-link comment to the CLAUDE.md managed-child lifecycle contract");
+    } else {
+        ok("managed-pause-doc", "group.ts cross-links the lifecycle contract above pause/resume");
+    }
+}
+
 console.log("");
 if (failures.length > 0) {
     console.error("proof:engine — FAIL:\n" + failures.join("\n"));
