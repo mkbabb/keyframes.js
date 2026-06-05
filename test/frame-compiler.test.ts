@@ -51,6 +51,23 @@ describe("FrameCompiler — compile without a clock", () => {
         expect(spansX).toBe(true);
     });
 
+    it("reads the LIVE options object — post-construction mutations are seen", () => {
+        // The compiler holds a REFERENCE to the options object (not a copy), so
+        // `Animation.setDuration`'s in-place mutation is reflected on the next
+        // compile. A copy here would silently desync duration/colorSpace from
+        // the playback class — the split's subtlest failure mode.
+        const opts = { ...defaultOptions, duration: 1000 };
+        const fc = new FrameCompiler(opts);
+        fc.addFrame(0, { opacity: 0 }, render);
+        fc.addFrame(100, { opacity: 1 }, render);
+        fc.parse([]);
+        expect(fc.frames[0]!.time.stop).toBe(1000);
+
+        opts.duration = 2000; // the same object Animation's setters mutate
+        fc.parse([]);
+        expect(fc.frames[0]!.time.stop).toBe(2000);
+    });
+
     it("carries no playback state — it is constructed from options alone", () => {
         const fc = new FrameCompiler({ ...defaultOptions });
         // No `started`/`paused`/`done`/`playback` — a FrameCompiler has none of
