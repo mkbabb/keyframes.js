@@ -47,6 +47,7 @@
     "proof:zero-alloc": "vitest run test/zero-alloc.test.ts test/snap-symmetry.test.ts test/frame-compiler.test.ts",
     "proof:engine-correctness": "vitest run test/engine-correctness.test.ts",
     "proof:standalone-zero-alloc": "vitest run test/standalone-zero-alloc.test.ts",
+    "proof:compile-deterministic": "vitest run test/compile-deterministic.test.ts",
     "test": "vitest",
     "bench": "vitest bench"
   },

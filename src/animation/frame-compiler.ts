@@ -76,11 +76,24 @@ export const resolveEasingOption = (
     return css ? { fn, css } : { fn };
 };
 
+/**
+ * Multiplier for the content-derived compiled `frameId` (FC-2): a segment's
+ * id is `startIx * FRAME_ID_SCALE + stopIx`, unique + deterministic for any
+ * keyframe count below the scale. 1e6 keyframes is far past any real animation.
+ */
+const FRAME_ID_SCALE = 1_000_000;
+
 export class FrameCompiler<V extends Vars = any> {
     templateFrames: TemplateAnimationFrame<V>[] = [];
     parsedVars: ParsedVarMap[] = [];
     frames: AnimationFrame<V>[] = [];
 
+    /**
+     * Next TEMPLATE frame id — a monotonic handle assigned in `addFrame`
+     * (stable across re-parse, since `parse` does not re-add templates).
+     * Compiled-frame ids are content-derived from `(startIx, stopIx)`
+     * (see `createFrame`), NOT this counter, so `parse()` is idempotent.
+     */
     frameId: number = 0;
 
     /**
@@ -192,7 +205,12 @@ export class FrameCompiler<V extends Vars = any> {
             timingFunction = this.templateFrames[timingFunctionIx]!.timingFunction;
         }
 
-        const id = this.frameId++;
+        // Content-derived id keyed on the stable (startIx, stopIx) pair (FC-2).
+        // A monotonic counter made `parse()` non-idempotent — re-compiling the
+        // same input yielded different ids — defeating any byte-equality lock.
+        // The (startIx, stopIx) pair IS the segment's identity, so two parses
+        // of identical input now produce byte-identical frames[], ids included.
+        const id = startIx * FRAME_ID_SCALE + endIx;
 
         return {
             id,

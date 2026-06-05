@@ -56,17 +56,20 @@ export function useKeyframeOps(
                     // value.js's CSS-spec AnimationOptions is structurally
                     // equivalent to keyframes.js's broader InputAnimationOptions
                     // for the fields CSS authors set (duration, delay, etc.).
-                    // The keyframes-map flow uses `fromKeyframes`, which accepts
-                    // a `Map<percent, vars>` directly and skips a re-parse.
-                    const tmpAnimation = new CSSKeyframesAnimation(
+                    // SINGLE COMPILE (E.W8 S0): the throwaway's `fromKeyframes`
+                    // is the ONE compile; transplant its compiled state onto the
+                    // live animation instead of re-`parse()`ing. `compiled` is
+                    // built with the same targets, and its compiler holds
+                    // `compiled.options` — which we adopt — so the compiler's
+                    // live options reference stays consistent (no stale re-parse).
+                    const compiled = new CSSKeyframesAnimation(
                         options as Record<string, unknown>,
                         ...animation.targets,
                     ).fromKeyframes(keyframes as any);
 
-                    animation.options = tmpAnimation.options;
-                    animation.templateFrames = tmpAnimation.templateFrames;
-
-                    animation.parse();
+                    animation.options = compiled.options;
+                    animation.compiler = compiled.compiler;
+                    animation.unflatten = compiled.unflatten;
 
                     emit("keyframesUpdate", { animation });
 
@@ -128,33 +131,17 @@ export function useKeyframeOps(
                 const { options, keyframes } =
                     parseAnimationCSS(keyframesString);
 
-                const tmpAnimation = new Animation(
-                    (options ?? animation.options) as Record<string, unknown>,
-                    animation.targets,
-                );
-
-                animation.templateFrames.forEach((f) => {
-                    tmpAnimation.addFrame(
-                        f.start,
-                        f.vars,
-                        f.transform,
-                        f.timingFunction,
-                    );
-                });
+                // SINGLE COMPILE (E.W8 S0): append the new stops to the LIVE
+                // animation and parse ONCE — no throwaway Animation that re-adds
+                // every existing frame and compiles a first time. A new frame
+                // (no transform) inherits the preceding keyframe's renderer via
+                // the template-index seek (W7 D-1).
+                if (options) {
+                    animation.setOptions(options as Record<string, unknown>);
+                }
                 Object.entries(keyframes).forEach(([start, vars]) => {
-                    tmpAnimation.addFrame(
-                        parseFloat(start),
-                        vars as Partial<any>,
-                    );
+                    animation.addFrame(parseFloat(start), vars as Partial<any>);
                 });
-
-                tmpAnimation.parse();
-
-                Object.assign(animation.options, tmpAnimation.options);
-                Object.assign(
-                    animation.templateFrames,
-                    tmpAnimation.templateFrames,
-                );
 
                 animation.parse();
 
@@ -176,23 +163,12 @@ export function useKeyframeOps(
             return false;
         }
 
-        const tmpAnimation = new Animation(animation.options, animation.targets);
-
-        animation.templateFrames.forEach((f, i) => {
-            if (i !== frameIx) {
-                tmpAnimation.addFrame(
-                    f.start,
-                    f.vars,
-                    f.transform,
-                    f.timingFunction,
-                );
-            }
-        });
-
-        tmpAnimation.parse();
-
-        animation.options = tmpAnimation.options;
-        animation.templateFrames = tmpAnimation.templateFrames;
+        // SINGLE COMPILE (E.W8 S0): drop the keyframe from the LIVE templates and
+        // parse ONCE — no throwaway Animation re-adding every surviving frame and
+        // compiling a first time.
+        animation.templateFrames = animation.templateFrames.filter(
+            (_, i) => i !== frameIx,
+        );
         animation.parse();
 
         updateAllStringsAndAnimation();
