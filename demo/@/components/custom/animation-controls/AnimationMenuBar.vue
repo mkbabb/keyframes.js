@@ -1,7 +1,7 @@
 <template>
     <div
         :class="[
-            'px-2 py-1.5 pb-[max(calc(var(--dock-margin)/2),env(safe-area-inset-bottom))] m-0 flex items-center justify-center justify-items-center',
+            'menubar-safe-pb px-2 py-1.5 m-0 flex items-center justify-center justify-items-center',
             'fixed left-0 right-0 z-dock',
         ]"
         style="bottom: var(--work-area-bottom-offset, 0px);"
@@ -129,7 +129,7 @@
                     :aria-label="isPlaying ? 'Pause animation' : 'Play animation'"
                     :class="[
                         'scale-on-hover text-white rounded-full p-0',
-                        'w-8 h-8 shrink-0 text-sm',
+                        'w-8 h-8 shrink-0',
                         isPlaying ? 'rainbow-vivid' : 'rainbow-pastel',
                     ]"
                     @click.stop="onCollapsedPlayClick()"
@@ -256,6 +256,28 @@ defineExpose({ resetIconSpin, trashIconShake });
 </script>
 
 <style scoped>
+/* ── Bottom-menubar safe-area padding (D.W3.S3) ──
+   Reserves the iOS home-indicator inset below the dock. Was the arbitrary
+   Tailwind value `pb-[max(calc(var(--dock-margin)/2),env(safe-area-inset-bottom))]`
+   with NO fallback inside env() — on a browser without env() support the whole
+   max() collapsed. Now:
+     • the env() carries a 0px fallback (so a browser that parses env() but has
+       no inset still resolves the max() to the dock-margin baseline), and
+     • an @supports-not path supplies the dock-margin baseline directly for
+       browsers that do not understand env(safe-area-inset-bottom) at all.
+   Happy path (modern Safari/Chrome with a notch) is byte-identical. */
+.menubar-safe-pb {
+    padding-bottom: max(
+        calc(var(--dock-margin) / 2),
+        env(safe-area-inset-bottom, 0px)
+    );
+}
+@supports not (padding: env(safe-area-inset-bottom)) {
+    .menubar-safe-pb {
+        padding-bottom: calc(var(--dock-margin) / 2);
+    }
+}
+
 /* Progress dot: conic gradient + glow driven by --dot-p (0–1) custom property.
    The active-playing companion to glass-ui's discrete <StatusDot>.
    Avoids per-frame string allocation — only the property value changes. */

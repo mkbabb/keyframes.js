@@ -28,118 +28,20 @@
             </IconTooltip>
         </div>
 
-        <!-- Zoom mini range bar -->
-        <div
-            v-if="zoomLevel > 1"
-            class="flex items-center gap-2"
-        >
-            <div class="relative flex-1 h-1.5 rounded-full bg-muted/50 border border-border/30">
-                <div
-                    class="absolute top-0 h-full rounded-full bg-primary/40"
-                    :style="{
-                        left: `${(panOffset / 100) * 100}%`,
-                        width: `${(100 / zoomLevel / 100) * 100}%`,
-                    }"
-                ></div>
-            </div>
-            <span class="text-small text-muted-foreground shrink-0">{{ zoomLevel.toFixed(1) }}x</span>
-        </div>
+        <!-- Timeline track: diamonds, playhead, ticks, carets, zoom/pan -->
+        <TimelineTrack
+            :sorted-keyframes="sortedKeyframes"
+            :scrub-t="scrubT"
+            :expanded="props.expanded"
+            :selected-keyframe-id="selectedKeyframeId"
+            :preview-cache="previewCache"
+            :preview-loading="previewLoading"
+            @update:scrub-t="(t) => (scrubT = t)"
+            @move-keyframe="moveKeyframe"
+            @select="(id) => (selectedKeyframeId = id)"
+            @diamond-hover="onDiamondHover"
+        />
 
-        <!-- Timeline Track -->
-        <div
-            ref="trackEl"
-            :class="[
-                'timeline-track relative rounded-lg border border-border bg-muted/50 hover:bg-muted/70 transition-all duration-fast cursor-pointer select-none overflow-x-clip overflow-y-visible touch-none',
-                props.expanded ? 'h-32' : 'h-12',
-            ]"
-            @pointerdown="onTrackPointerDown"
-            @pointermove="onTrackPointerMove"
-            @pointerup="onTrackPointerUp"
-            @pointercancel="onTrackPointerUp"
-            @wheel.prevent="onWheel"
-            @touchstart.passive="onTouchStart"
-            @touchmove.passive="onTouchMove"
-            @touchend.passive="onTouchEnd"
-        >
-            <!-- Tick marks -->
-            <div
-                v-for="tick in visibleTicks"
-                :key="tick"
-                class="absolute top-0 h-full border-l border-border/30"
-                :style="{ left: `${percentToPosition(tick)}%` }"
-            >
-                <span
-                    :class="[
-                        'text-small absolute -top-5 left-0 text-muted-foreground whitespace-nowrap',
-                        percentToPosition(tick) <= 2 ? 'translate-x-0' : percentToPosition(tick) >= 98 ? '-translate-x-full' : '-translate-x-1/2',
-                    ]"
-                >{{ tick }}%</span>
-            </div>
-
-            <!-- Playhead -->
-            <div
-                class="absolute top-0 h-full w-0.5 bg-primary z-content pointer-events-none"
-                :style="{ left: `${percentToPosition(scrubT * 100)}%` }"
-            ></div>
-
-            <!-- Keyframe markers -->
-            <Tooltip v-for="kf in sortedKeyframes" :key="kf.id">
-                <TooltipTrigger as-child>
-                    <div
-                        :class="[
-                            'keyframe-marker absolute top-1/2 -translate-x-1/2 -translate-y-1/2 z-controls',
-                            props.expanded ? 'w-6 h-6' : 'w-4 h-4',
-                            'rotate-45 rounded-sm cursor-grab',
-                            'border-2 transition-all',
-                            selectedKeyframeId === kf.id
-                                ? 'bg-primary border-primary scale-125'
-                                : 'bg-background border-foreground/50 hover:border-primary scale-on-hover',
-                        ]"
-                        :style="{ left: `${percentToPosition(kf.percent)}%` }"
-                        @pointerdown.stop="onMarkerPointerDown($event, kf.id)"
-                        @mouseenter="onDiamondHover(kf)"
-                    ></div>
-                </TooltipTrigger>
-                <TooltipContent side="top" :side-offset="8" class="p-2 max-w-56">
-                    <div class="flex flex-col items-center gap-1.5">
-                        <span class="font-mono text-xs font-semibold">{{ Math.round(kf.percent) }}%</span>
-                        <!-- html2canvas capture (non-3D targets) -->
-                        <img
-                            v-if="previewCache[kf.id]"
-                            :src="previewCache[kf.id]"
-                            class="w-36 h-auto rounded border border-border/30"
-                        />
-                        <!-- Ghost box preview from CSS vars -->
-                        <div
-                            v-else-if="Object.keys(getGhostStyle(kf.vars)).length > 0"
-                            class="w-16 h-16 rounded border border-border/30 bg-muted/30"
-                            :style="getGhostStyle(kf.vars)"
-                        ></div>
-                        <div v-if="previewLoading[kf.id]" class="text-muted-foreground text-admin-label font-mono">
-                            Capturing...
-                        </div>
-                        <div class="font-mono text-admin-label text-muted-foreground max-h-24 overflow-y-auto w-full">
-                            <div v-for="[prop, val] in Object.entries(kf.vars)" :key="prop" class="truncate">
-                                <span class="text-foreground/70">{{ prop }}</span>: {{ val }}
-                            </div>
-                            <div v-if="Object.keys(kf.vars).length === 0" class="italic">No properties</div>
-                        </div>
-                    </div>
-                </TooltipContent>
-            </Tooltip>
-
-            <!-- Timeline Carets -->
-            <TimelineCaret
-                v-for="kf in sortedKeyframes"
-                :key="'caret-' + kf.id"
-                :keyframe-id="kf.id"
-                :percent="kf.percent"
-                :position="percentToPosition(kf.percent)"
-                :is-selected="selectedKeyframeId === kf.id"
-                @update:percent="(p) => moveKeyframe(kf.id, p)"
-                @select="selectedKeyframeId = kf.id"
-            />
-        </div>
         <!-- Selected Keyframe Editor (inline) -->
         <Transition name="kf-editor">
             <div v-if="selectedKeyframe" class="flex flex-col gap-3">
@@ -147,13 +49,13 @@
 
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
-                        <span class="font-mono text-sm font-semibold"
+                        <span class="text-mono-caption font-semibold"
                             >{{ Math.round(selectedKeyframe.percent) }}%</span
                         >
                         <Input
                             v-model="selectedKeyframe.label"
                             placeholder="Label..."
-                            class="font-mono text-xs h-6 w-32"
+                            class="font-mono text-admin-label h-6 w-32"
                         />
                     </div>
                     <Button
@@ -201,7 +103,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref, useTemplateRef } from "vue";
+import { computed, reactive, ref } from "vue";
 import type { Ref } from "vue";
 import {
     Download,
@@ -212,21 +114,13 @@ import {
     X,
 } from "@lucide/vue";
 import CSSPasteDialog from "@components/custom/CSSPasteDialog.vue";
-import {
-    Button,
-    Card,
-    CardContent,
-    Separator,
-    Tooltip,
-    TooltipContent,
-    TooltipTrigger,
-} from "@mkbabb/glass-ui";
+import { Button, Card, CardContent, Separator } from "@mkbabb/glass-ui";
 import { Input } from "@mkbabb/glass-ui/forms";
 import { IconTooltip } from "@mkbabb/glass-ui/icon-tooltip";
 import CSSCodeEditor from "../keyframes/CSSCodeEditor.vue";
 import { useTimeline } from "./composables/useTimeline";
-import { useZoomPan } from "./composables/useZoomPan";
-import TimelineCaret from "./TimelineCaret.vue";
+import TimelineTrack from "./components/TimelineTrack.vue";
+import type { TimelineKeyframe } from "./composables/timelineTypes";
 import type { InputAnimationOptions } from "@src/animation/constants";
 
 const props = defineProps<{
@@ -251,7 +145,6 @@ const {
     snapshot,
     removeKeyframe,
     moveKeyframe,
-    updateKeyframeProperty,
     rebuild,
     scrubAndCapture,
     exportCSS,
@@ -259,26 +152,13 @@ const {
     clear,
 } = useTimeline(targetsRef, optionsRef);
 
-const trackEl = useTemplateRef<HTMLElement>("trackEl");
 const selectedKeyframeId = ref<string | null>(null);
-const draggingKeyframeId = ref<string | null>(null);
 const importDialogOpen = ref(false);
 const addCSSDialogOpen = ref(false);
 
 // --- Preview cache for diamond hover ---
-import type { TimelineKeyframe } from "./composables/timelineTypes";
-
 const previewCache = reactive<Record<string, string>>({});
 const previewLoading = reactive<Record<string, boolean>>({});
-
-const getGhostStyle = (vars: Record<string, string>): Record<string, string> => {
-    const style: Record<string, string> = {};
-    if (vars["background-color"]) style.backgroundColor = vars["background-color"];
-    if (vars["opacity"]) style.opacity = vars["opacity"];
-    if (vars["transform"]) style.transform = `scale(0.3) ${vars["transform"]}`;
-    if (vars["border-radius"]) style.borderRadius = vars["border-radius"];
-    return style;
-};
 
 const onDiamondHover = async (kf: TimelineKeyframe) => {
     if (previewCache[kf.id] || previewLoading[kf.id]) return;
@@ -294,20 +174,6 @@ const onDiamondHover = async (kf: TimelineKeyframe) => {
         previewLoading[kf.id] = false;
     }
 };
-
-// --- Zoom/Pan state ---
-const {
-    zoomLevel,
-    panOffset,
-    percentToPosition,
-    positionToPercent,
-    clampPan,
-    visibleTicks,
-    onWheel,
-    onTouchStart,
-    onTouchMove,
-    onTouchEnd,
-} = useZoomPan(trackEl);
 
 const selectedKeyframe = computed(() =>
     state.value.keyframes.find((kf) => kf.id === selectedKeyframeId.value),
@@ -339,44 +205,6 @@ const onKeyframeCSSChange = (css: string) => {
 
     kf.vars = newVars;
     rebuild();
-};
-
-const getPercentFromPointer = (event: PointerEvent): number => {
-    if (!trackEl.value) return 0;
-    const rect = trackEl.value.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const posPercent = (x / rect.width) * 100;
-    return Math.max(0, Math.min(100, positionToPercent(posPercent)));
-};
-
-const onTrackPointerDown = (event: PointerEvent) => {
-    const percent = getPercentFromPointer(event);
-    scrubT.value = percent / 100;
-    (event.target as Element).setPointerCapture(event.pointerId);
-};
-
-const onTrackPointerMove = (event: PointerEvent) => {
-    if (draggingKeyframeId.value) {
-        const percent = getPercentFromPointer(event);
-        moveKeyframe(draggingKeyframeId.value, percent);
-        return;
-    }
-
-    // Only scrub if pointer is captured (button held)
-    if (event.buttons > 0 && !draggingKeyframeId.value) {
-        const percent = getPercentFromPointer(event);
-        scrubT.value = percent / 100;
-    }
-};
-
-const onTrackPointerUp = () => {
-    draggingKeyframeId.value = null;
-};
-
-const onMarkerPointerDown = (event: PointerEvent, id: string) => {
-    selectedKeyframeId.value = id;
-    draggingKeyframeId.value = id;
-    (event.target as Element).setPointerCapture(event.pointerId);
 };
 
 const doImport = (text: string) => {
@@ -419,21 +247,6 @@ defineExpose({
 </script>
 
 <style scoped>
-.timeline-track {
-    margin-top: 1.25rem;
-    margin-bottom: 1rem;
-}
-
-.keyframe-marker {
-    transition:
-        transform var(--duration-fast) var(--ease-standard),
-        border-color var(--duration-fast) var(--ease-standard);
-}
-
-.keyframe-marker:active {
-    cursor: grabbing;
-}
-
 .kf-editor-enter-active { transition: opacity var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard); }
 .kf-editor-leave-active { transition: opacity var(--duration-instant) var(--ease-standard), transform var(--duration-instant) var(--ease-standard); }
 .kf-editor-enter-from { opacity: 0; transform: translateY(-8px); }

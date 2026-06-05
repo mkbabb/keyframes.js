@@ -1,0 +1,146 @@
+/* ════════════════════════════════════════════════════════════════════════
+   demo/@/styles/design-idioms.css — the demo's OWNED design vocabulary
+   ────────────────────────────────────────────────────────────────────────
+   D.W2.S1 (styling-findings §1). The demo REFERENCES these idioms everywhere
+   (the rainbow gradients, the gold sparkle accent, the 13 hover-lift sites,
+   the tab-panel slide) but, before this file, DEFINED them nowhere in its own
+   tree — they resolved only by accident of the transitive `@mkbabb/glass-ui`
+   + `tw-animate-css` import. That is an ungated, undocumented cross-repo RENT:
+   glass-ui OWNS the `--rainbow-*` / `--color-gold` / `scale-on-hover`
+   vocabulary and is free to rename or drop it; the day it does, the demo's
+   affordances silently flatten with no error and no gate.
+
+   This layer makes the demo OWN what it depends on. It is imported by
+   `style.css` IMMEDIATELY AFTER `@import "@mkbabb/glass-ui/styles"`, so these
+   definitions are the AUTHORITATIVE copy for the demo — the latent rent
+   becomes a deliberate, single-sourced, gate-able contract (proof:idioms
+   clause 1 asserts each idiom resolves from THIS file's contribution to the
+   built demo CSS, not merely from the glass-ui dependency).
+
+   NOT defined here (inv-16 — the demo CONSUMES glass-ui recipes, it does not
+   re-author them): the `.rainbow-vivid` / `.rainbow-pastel` play-button
+   utilities are glass-ui's full multi-stop gradient recipes the demo merely
+   APPLIES. They stay glass-ui-owned; if glass-ui ever drops them that is a
+   glass-ui ASK, not a demo patch.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ── Tokens: the demo's playful spectrum + gold accent + layout constants ──
+   OUTSIDE @layer so these override glass-ui's incidental same-named tokens —
+   the demo's copy is authoritative for the demo. */
+:root {
+    /* ── The rainbow six-colour family ──
+       The demo's canonical playful spectrum. Referenced by the two gradient
+       sites the demo authored:
+         • #rainbow-gradient SVG <linearGradient> — AnimationControlsGroup.vue
+           (the Format paintbrush stroke), six stops red→violet.
+         • the .progress-bar brush-sweep gradient — KeyframesEditor.vue, the
+           same ramp PLUS a cyan mid-stop.
+       Values match the spectrum the demo painted via glass-ui until now, so
+       this localization is isomorphic (pixels unchanged). */
+    --rainbow-red: hsl(0 85% 60%);
+    --rainbow-orange: hsl(30 90% 55%);
+    --rainbow-yellow: hsl(55 90% 55%);
+    --rainbow-green: hsl(130 70% 50%);
+    --rainbow-blue: hsl(210 80% 55%);
+    --rainbow-violet: hsl(300 75% 60%);
+
+    /* The lone inline `hsl(180 80% 50%)` cyan stop in KeyframesEditor's
+       .progress-bar gradient, folded into the family as a NAMED member so the
+       gradient reads off ONE palette (six tokens) rather than five tokens + a
+       literal. The component edit (replace the literal with var(--rainbow-cyan))
+       is the sibling styling task; the token lives here. */
+    --rainbow-cyan: hsl(180 80% 50%);
+
+    /* ── The gold sparkle accent ──
+       The Format-button <Sparkles> accent. Referenced by
+       AnimationControlsGroup.vue (text-[var(--color-gold)], routing to the
+       .text-gold utility below) and AnimationControlsControls.vue
+       (color: var(--color-gold)). Theme-aware: the demo toggles dark mode by
+       the `.dark` CLASS (color-scheme is set imperatively, not via the
+       light-dark() CSS form — see style.css), so a class override is the
+       correct theme mechanism here; light-dark() would not respond to the
+       class toggle. The dark value lifts the lightness so the gold stays
+       legible on the dark surface — a befitting dark-mode-parity delta named
+       in styling-findings §Isomorphism. Light value matches glass-ui's
+       --gold base, so light mode is isomorphic. */
+    --color-gold: hsl(43 74% 49%);
+
+    /* ── Hover-lift scale ──
+       The amount .scale-on-hover lifts on hover. Mirrors glass-ui's
+       --scale-hover default so the lift is isomorphic; named here so the demo
+       owns the magnitude even if glass-ui drops its token. */
+    --scale-hover: 1.08;
+
+    /* ── Layout tokens (S3 — the recurring viewport/width literals) ──
+       Named homes for the bracket-arbitrary values that RECUR across the demo,
+       so the component migration (the sibling S3 task) routes each literal to
+       ONE token rather than re-typing the fraction. Defined here so the idiom
+       layer is the single source for the demo's structural constants. */
+    --panel-max-h: 60vh; /* max-h-[60vh] panel caps (the dvh variants stay dvh) */
+    --dock-panel-width: 17rem; /* w-[17rem] dock / header panel width (recurs ×2) */
+    --target-viewport-h: 30vh; /* h-[30vh] / w-[30vw] cube-target viewport fraction */
+
+    /* ── The below-plane stacking rung ──
+       Reconciles the one orphan raw `z-index: -10` (CubeTarget.vue, the
+       below-plane axis line) into the named z-contract. Sits BELOW
+       glass-ui's --z-content:10 — see the ordered-layer contract in style.css.
+       (Recorded here for D.W3.S2; the orphan's component reconciliation is
+       the brittleness lane's task.) */
+    --z-behind: -10;
+}
+
+/* Dark-mode gold parity — class-based, matching the demo's `.dark` idiom. */
+.dark {
+    --color-gold: hsl(43 74% 55%);
+}
+
+/* ── .text-gold utility ──
+   Consumes --color-gold. Replaces the off-idiom `text-[var(--color-gold)]`
+   arbitrary value on the Format <Sparkles> icon (S3) with a named utility, so
+   the callsite reads `class="text-gold"` and the token resolves through this
+   owned layer. */
+.text-gold {
+    color: var(--color-gold);
+}
+
+/* ── .scale-on-hover ──
+   The demo's most-used interaction idiom — 13 sites across 10 files, the
+   headline of the rent (defined demo-NOWHERE until now). Transitions the
+   `scale` longhand (NOT `transform`) so it composes with sibling transforms,
+   and binds to the demo's duration/easing tokens (glass-ui defaults, owned
+   here). Honors prefers-reduced-motion: users who ask for reduced motion get
+   the lift INSTANTLY (no transition) rather than no affordance — the hover
+   state still reads, only the animation is removed. */
+.scale-on-hover {
+    scale: 1;
+    transition: scale var(--duration-fast, 0.2s) var(--ease-standard, ease);
+}
+.scale-on-hover:hover {
+    scale: var(--scale-hover, 1.08);
+}
+@media (prefers-reduced-motion: reduce) {
+    .scale-on-hover {
+        transition: none;
+    }
+}
+
+/* ── @keyframes enter ──
+   The tab-panel slide-in keyframe. Until now this resolved ONLY through
+   `tw-animate-css`'s internal `enter` name (driven by its private --tw-enter-*
+   custom-property contract) — a second landlord for the same rent. Defined
+   here with the existing --tw-enter-* values (opacity fade + 0.5rem x-translate)
+   so the demo's tab slide no longer depends on the animate-css internal name.
+   The consuming rule ([data-state=active][role=tabpanel]) is component-local
+   and moves to AnimationControls.vue's <style scoped> (sibling S2 task); the
+   keyframe itself is global and belongs here. The --tw-enter-* fallbacks keep
+   it compatible with the existing consuming rule, which sets those vars. */
+@keyframes enter {
+    from {
+        opacity: var(--tw-enter-opacity, 0);
+        transform: translate3d(
+            var(--tw-enter-translate-x, 0.5rem),
+            var(--tw-enter-translate-y, 0),
+            0
+        );
+    }
+}

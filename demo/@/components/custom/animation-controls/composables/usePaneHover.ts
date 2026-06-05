@@ -1,5 +1,6 @@
-import { computed, inject, onUnmounted, ref } from "vue";
-import type { ComputedRef, Ref } from "vue";
+import { computed, inject, ref } from "vue";
+import type { ComputedRef } from "vue";
+import { useTimeoutFn } from "@vueuse/core";
 import { CONTROLS_PANE_HOVER_KEY } from "../injectionKeys";
 
 /**
@@ -15,31 +16,28 @@ export function usePaneHover(lingerMs = 2000): {
 } {
     const isPaneDirectHover = ref(false);
     const isDockHovered = inject(CONTROLS_PANE_HOVER_KEY, ref(false));
-    const isPaneHovered = computed(() => isPaneDirectHover.value || isDockHovered.value);
+    const isPaneHovered = computed(
+        () => isPaneDirectHover.value || isDockHovered.value,
+    );
 
-    let hoverTimer: ReturnType<typeof setTimeout> | null = null;
-
-    function clearTimer() {
-        if (hoverTimer) {
-            clearTimeout(hoverTimer);
-            hoverTimer = null;
-        }
-    }
+    // vueuse owns the timer handle + the scope-dispose cleanup (replaces the
+    // former hand-rolled timer bookkeeping; D.W1.S4).
+    const { start: startLinger, stop: stopLinger } = useTimeoutFn(
+        () => {
+            isPaneDirectHover.value = false;
+        },
+        lingerMs,
+        { immediate: false },
+    );
 
     function onPaneMouseEnter() {
-        clearTimer();
+        stopLinger();
         isPaneDirectHover.value = true;
     }
 
     function onPaneMouseLeave() {
-        clearTimer();
-        hoverTimer = setTimeout(() => {
-            isPaneDirectHover.value = false;
-            hoverTimer = null;
-        }, lingerMs);
+        startLinger();
     }
-
-    onUnmounted(clearTimer);
 
     return { isPaneHovered, onPaneMouseEnter, onPaneMouseLeave };
 }

@@ -111,17 +111,20 @@ const headerLeft = () =>
                     class: "ppmycota-logo-sm m-0 h-8 w-8 lg:h-10 lg:w-10 cursor-pointer stroke-2 p-0 font-bold scale-on-hover",
                 }),
             }),
-            h(HoverCardContent, { class: "z-hovercard p-4 min-w-[17rem] text-small" }, {
+            h(HoverCardContent, { class: "z-hovercard p-4 min-w-[var(--dock-panel-width)] text-small" }, {
                 default: () => [
                     h("div", { class: "flex items-center gap-3" }, [
+                        // z-20: LOCAL stacking — lifts the logo glyph above its
+                        // row siblings inside the hovercard (which itself sits at
+                        // z-hovercard); not an editor z-contract participant.
                         h("div", { class: "ppmycota-logo-sm z-20 h-10 w-10 shrink-0 stroke-2 font-bold" }),
                         h("div", { class: "flex-1 min-w-0" }, [
-                            h("a", { href: "https://ppmycota.com", target: "_blank", rel: "noopener noreferrer", class: "text-sm font-semibold text-foreground hover:underline" }, "ppmycota"),
-                            h("p", { class: "mt-0.5 text-xs italic text-muted-foreground", innerHTML: "&#x1F642;&#x200D;&#x2194;&#xFE0F; &#x1F331; &#x1F344;&#x200D;&#x1F7EB;" }),
+                            h("a", { href: "https://ppmycota.com", target: "_blank", rel: "noopener noreferrer", class: "text-small font-semibold text-foreground hover:underline" }, "ppmycota"),
+                            h("p", { class: "mt-0.5 text-caption text-muted-foreground", innerHTML: "&#x1F642;&#x200D;&#x2194;&#xFE0F; &#x1F331; &#x1F344;&#x200D;&#x1F7EB;" }),
                         ]),
                     ]),
                     h("hr", { class: "my-2 border-border/50" }),
-                    h("a", { href: "https://ppmycota.com", target: "_blank", rel: "noopener noreferrer", class: "block text-sm text-foreground hover:underline" }, "ppmycota.com"),
+                    h("a", { href: "https://ppmycota.com", target: "_blank", rel: "noopener noreferrer", class: "block text-small text-foreground hover:underline" }, "ppmycota.com"),
                 ],
             }),
         ],
@@ -156,12 +159,12 @@ const ribbonContent = (slotProps: { selectedControl: string }) =>
         ? [
             h(Button, {
                 size: "sm", variant: "outline",
-                class: "h-8 gap-1.5 cursor-pointer font-mono text-xs px-3 rounded-lg btn-interactive",
+                class: "h-8 gap-1.5 cursor-pointer text-mono-caption px-3 rounded-lg btn-interactive",
                 onClick: () => resetMatrix(),
             }, { default: () => [h(RotateCcw, { class: "w-3.5 h-3.5" }), " Reset"] }),
             h(Button, {
                 size: "sm", variant: "outline",
-                class: "h-8 gap-1.5 cursor-pointer font-mono text-xs px-3 rounded-lg btn-interactive",
+                class: "h-8 gap-1.5 cursor-pointer text-mono-caption px-3 rounded-lg btn-interactive",
                 onClick: () => { storedControls.matrixOptions.fixed = !storedControls.matrixOptions.fixed; },
             }, {
                 default: () => [

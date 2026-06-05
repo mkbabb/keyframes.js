@@ -59,11 +59,11 @@
                         class="flex flex-col items-center justify-center gap-3 py-12 text-muted-foreground"
                     >
                         <ChevronDown class="w-6 h-6 animate-bounce" />
-                        <p class="font-mono text-sm">Timeline expanded below</p>
+                        <p class="text-mono-caption">Timeline expanded below</p>
                         <Button
                             size="sm"
                             variant="ghost"
-                            class="gap-1.5 font-mono text-xs"
+                            class="gap-1.5 text-mono-caption"
                             @click="storedControls.isTimelineExpanded = false"
                         >
                             <Minimize2 class="icon-sm" />
@@ -99,6 +99,11 @@
 </template>
 
 <script setup lang="ts">
+// Colocated tab-trigger skin + tab-panel slide (uncaged from utils.css, D.W2.S2).
+// Non-scoped global rules — the classes land on reka-ui's <TabsTrigger> /
+// <TabsContent> DOM shared across this host and the scene tab triggers.
+import "./tab-trigger.css";
+
 import { Animation } from "@src/animation/engine";
 import type { AnimationLayerConfig } from "@src/animation/constants";
 
@@ -225,14 +230,25 @@ defineExpose({
 .tabs-overflow-both {
     --tabs-mask-fade: 2.5rem;
 }
-.tabs-overflow-right {
-    mask-image: linear-gradient(to right, black calc(100% - var(--tabs-mask-fade)), transparent);
-}
-.tabs-overflow-left {
-    mask-image: linear-gradient(to right, transparent, black var(--tabs-mask-fade));
-}
-.tabs-overflow-both {
-    mask-image: linear-gradient(to right, transparent, black var(--tabs-mask-fade), black calc(100% - var(--tabs-mask-fade)), transparent);
+
+/* The tab-overflow edge fade degrades to un-faded content on a browser without
+   mask-image support — graceful, not a broken mask (D.W3.S3). Both the
+   standard and -webkit- prefixed declarations are paired (the prior rules
+   carried only the unprefixed form, no-op'ing on older WebKit). */
+@supports (-webkit-mask-image: linear-gradient(#000, #000)) or
+    (mask-image: linear-gradient(#000, #000)) {
+    .tabs-overflow-right {
+        mask-image: linear-gradient(to right, black calc(100% - var(--tabs-mask-fade)), transparent);
+        -webkit-mask-image: linear-gradient(to right, black calc(100% - var(--tabs-mask-fade)), transparent);
+    }
+    .tabs-overflow-left {
+        mask-image: linear-gradient(to right, transparent, black var(--tabs-mask-fade));
+        -webkit-mask-image: linear-gradient(to right, transparent, black var(--tabs-mask-fade));
+    }
+    .tabs-overflow-both {
+        mask-image: linear-gradient(to right, transparent, black var(--tabs-mask-fade), black calc(100% - var(--tabs-mask-fade)), transparent);
+        -webkit-mask-image: linear-gradient(to right, transparent, black var(--tabs-mask-fade), black calc(100% - var(--tabs-mask-fade)), transparent);
+    }
 }
 </style>
 

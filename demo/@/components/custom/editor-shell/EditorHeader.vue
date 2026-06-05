@@ -40,30 +40,26 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onBeforeUnmount } from "vue";
+import { ref, computed } from "vue";
+import { useTimeoutFn } from "@vueuse/core";
 import SharePopover from "./SharePopover.vue";
 import { DarkModeToggle } from "@mkbabb/glass-ui/controls";
 
 const isExpanded = ref(false);
 const isPinned = ref(false);
 
-let hoverTimeout: ReturnType<typeof setTimeout> | undefined;
-
 const isVisible = computed(() => isExpanded.value || isPinned.value);
 
-function clearHoverTimeout() {
-    if (hoverTimeout != null) {
-        clearTimeout(hoverTimeout);
-        hoverTimeout = undefined;
-    }
-}
-
-function startHideTimeout() {
-    clearHoverTimeout();
-    hoverTimeout = setTimeout(() => {
+// Hover-out collapse timer (W1.S4) — vueuse owns the handle + auto-cleanup on
+// unmount (tryOnScopeDispose), replacing the hand-rolled setTimeout/clearTimeout
+// bookkeeping. `immediate: false` so it only runs when started.
+const { start: startHideTimeout, stop: clearHoverTimeout } = useTimeoutFn(
+    () => {
         isExpanded.value = false;
-    }, 2000);
-}
+    },
+    2000,
+    { immediate: false },
+);
 
 function onRibbonMouseEnter() {
     clearHoverTimeout();
@@ -86,10 +82,6 @@ function onAnchorClick() {
         clearHoverTimeout();
     }
 }
-
-onBeforeUnmount(() => {
-    clearHoverTimeout();
-});
 </script>
 
 <style scoped>

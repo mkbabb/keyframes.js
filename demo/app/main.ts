@@ -16,7 +16,6 @@ import { router } from "./router";
 // EditorShell.vue also imports these; Vite dedupes the shared modules, so
 // dev and prod resolve identically.
 import "@styles/style.css";
-import "@styles/utils.css";
 
 const app = createApp(App);
 app.use(router);

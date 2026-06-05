@@ -15,7 +15,7 @@
             <CardContent class="flex items-center gap-2 p-2">
                 <Input
                     :model-value="demo.cssValue.value"
-                    class="font-mono text-xs flex-1 min-w-0"
+                    class="css-value-input text-mono-caption flex-1 min-w-0"
                     placeholder="cubic-bezier(...) or easing name"
                     @keydown.enter="onCSSInput"
                     @blur="onCSSInput"
@@ -41,7 +41,7 @@
                         :model-value="demo.stepOptions.value.steps"
                         :min="1"
                         :max="60"
-                        class="font-mono text-xs"
+                        class="text-mono-caption"
                         @change="onStepsChange"
                     />
                 </div>
@@ -51,7 +51,7 @@
                         :model-value="demo.stepOptions.value.jumpTerm"
                         @update:model-value="(v) => { demo.stepOptions.value.jumpTerm = String(v); }"
                     >
-                        <SelectTrigger class="font-mono text-xs">
+                        <SelectTrigger class="text-mono-caption">
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -59,7 +59,7 @@
                                 v-for="jt in JUMP_TERMS"
                                 :key="jt"
                                 :value="jt"
-                                class="font-mono text-xs"
+                                class="text-mono-caption"
                             >
                                 {{ jt }}
                             </SelectItem>
@@ -84,7 +84,7 @@
             </div>
             <Input
                 :model-value="(demo.duration.value / 1000).toFixed(1) + 's'"
-                class="duration-input font-mono text-xs text-muted-foreground shrink-0 w-14 text-right"
+                class="duration-input text-mono-caption text-muted-foreground shrink-0 w-14 text-right"
                 @keydown.enter="onDurationInput"
                 @blur="onDurationInput"
             />
@@ -150,6 +150,14 @@ const onStepsChange = (e: Event) => {
 </script>
 
 <style scoped>
+/* The free-text easing input adopts the mono-caption rung for size/family,
+   but keeps user-typed content case-as-typed (the mono-caption register
+   uppercases; a `cubic-bezier(...)` or camelCase easing name must read as
+   entered) — an isomorphic guard, not a register change. */
+.css-value-input {
+    text-transform: none;
+}
+
 /* Geometry is the `size` prop (size="sm" → 4px track / 12px thumb), not a
    wrapper token — the size-axis root class shadows wrapper-set geometry
    custom properties (Qρ §5.4). Only the colour tokens carry here. */
@@ -166,6 +174,9 @@ const onStepsChange = (e: Event) => {
     padding: 0.125rem 0.25rem;
     border-color: transparent;
     background: transparent;
+    /* Editable readout — keep the typed `2.0s` case-as-typed (mono-caption
+       uppercases; isomorphic guard). */
+    text-transform: none;
 }
 .duration-input:focus {
     border-color: var(--border);

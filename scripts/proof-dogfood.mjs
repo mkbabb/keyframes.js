@@ -12,7 +12,7 @@
  *   - useEasingDemo ping-pong         → NumericAnimation({ direction: "alternate" })
  *   - useRafLoop lifecycle            → RAFPlayback.loop (Vue-lifecycle skin)
  *
- * Three raw-rAF sites legitimately remain — they are NOT animation loops a
+ * Two raw-rAF sites legitimately remain — they are NOT animation loops a
  * light engine replaces, so they are an EXPLICIT, reviewable allowlist
  * (`ALLOWLIST` below), not a blanket "demo rAF is fine":
  *
@@ -23,9 +23,10 @@
  *   2. demo/@/components/custom/matrix-editor/useTransformState.ts (~:205)
  *        a one-shot post-paint scheduler (write-coalescing debounce) — the
  *        engine has no "run once next frame" surface and shouldn't grow one.
- *   3. demo/@/components/custom/animation-controls/timeline/composables/useTimeline.ts (~:206)
- *        a one-shot await-one-paint before a snapshot — same microtask-after-paint
- *        primitive, not an animation loop.
+ *
+ * (A third site, timeline/composables/useTimeline.ts, was allowlisted while it
+ * held a one-shot await-one-paint before a snapshot; D.W1's decomposition
+ * transposed that primitive away, so the entry was pruned as stale.)
  *
  * The gate greps demo SOURCE (EXCLUDING `dist/` — the git-ignored build output
  * that pollutes a naive grep, plan-findings PART 3 finding 13) for
@@ -58,7 +59,6 @@ const RAF = /\brequestAnimationFrame\b/g;
 const ALLOWLIST = new Set([
     "demo/app/scenes/AmigaScene.vue",
     "demo/@/components/custom/matrix-editor/useTransformState.ts",
-    "demo/@/components/custom/animation-controls/timeline/composables/useTimeline.ts",
 ]);
 
 // Source extensions the demo's rAF could live in. (CSS/HTML cannot host a rAF.)

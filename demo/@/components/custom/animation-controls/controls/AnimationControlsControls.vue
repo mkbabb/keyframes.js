@@ -10,7 +10,7 @@
                             <LabeledInput
                                 :model-value="storedAnimationOptions.animationOptions.duration ?? '5s'"
                                 label="duration"
-                                label-class="font-mono text-base text-muted-foreground"
+                                label-class="text-admin-label text-muted-foreground"
                                 tooltip="Animation length (e.g. 5s, 200ms)"
                                 @update:model-value="(v) => { trySetOption(() => animation.setDuration(v)); storedAnimationOptions.animationOptions.duration = v; }"
                             />
@@ -18,7 +18,7 @@
                             <LabeledInput
                                 :model-value="storedAnimationOptions.animationOptions.delay ?? '0ms'"
                                 label="delay"
-                                label-class="font-mono text-base text-muted-foreground"
+                                label-class="text-admin-label text-muted-foreground"
                                 tooltip="Delay before start (e.g. 0s, 500ms)"
                                 @update:model-value="(v) => { trySetOption(() => animation.setDelay(v)); storedAnimationOptions.animationOptions.delay = v; }"
                             />
@@ -30,7 +30,7 @@
                                         : String(storedAnimationOptions.animationOptions.iterationCount ?? 'infinite')
                                 "
                                 label="iterations"
-                                label-class="font-mono text-base text-muted-foreground"
+                                label-class="text-admin-label text-muted-foreground"
                                 tooltip="Repeat count (number or 'infinite')"
                                 @update:model-value="
                                     (v: string) => {
@@ -46,7 +46,7 @@
                                 :items="DIRECTIONS"
                                 :descriptions="DIRECTION_DESCRIPTIONS"
                                 label="direction"
-                                label-class="font-mono text-base text-muted-foreground"
+                                label-class="text-admin-label text-muted-foreground"
                                 tooltip="Playback direction"
                                 @update:model-value="(v) => { animation.setDirection(v as any); storedAnimationOptions.animationOptions.direction = v as any; }"
                                 @update:open="(v: boolean | undefined) => setOpen('direction', v ?? false)"
@@ -58,7 +58,7 @@
                                 :items="FILL_MODES"
                                 :descriptions="FILL_MODE_DESCRIPTIONS"
                                 label="fill mode"
-                                label-class="font-mono text-base text-muted-foreground"
+                                label-class="text-admin-label text-muted-foreground"
                                 tooltip="Style applied when not playing"
                                 @update:model-value="(v) => { animation.setFillMode(v as any); storedAnimationOptions.animationOptions.fillMode = v as any; }"
                                 @update:open="(v: boolean | undefined) => setOpen('fillMode', v ?? false)"
@@ -66,7 +66,7 @@
 
                             <div class="flex items-center gap-1.5">
                                 <IconTooltip text="Timing function curve">
-                                    <label :class="['font-mono text-base text-muted-foreground cursor-help', isDetailEasing ? 'gold-shimmer' : '']">easing</label>
+                                    <label :class="['text-admin-label text-muted-foreground cursor-help', isDetailEasing ? 'gold-shimmer' : '']">easing</label>
                                 </IconTooltip>
                                 <IconTooltip text="Edit easing curve">
                                     <DockIconButton compact title="Edit easing curve" class="easing-edit-btn" @click.stop="onEditIconClick(storedAnimationOptions.animationOptions.timingFunction as string)">
@@ -96,7 +96,7 @@
                                 @keydown.space.prevent="advancedOpen = true"
                                 class="col-span-2 grid grid-cols-[subgrid] gap-x-3 items-center w-full py-1.5 cursor-pointer hover:text-foreground text-muted-foreground transition-colors"
                             >
-                                <span class="font-mono text-base">advanced</span>
+                                <span class="text-admin-label">advanced</span>
                                 <div class="flex items-center justify-end px-3">
                                     <ChevronRight class="icon-md opacity-50" />
                                 </div>
@@ -131,7 +131,7 @@
                                 >
                                     <ArrowLeft class="icon-md" />
                                 </DockIconButton>
-                                <span class="font-mono text-base text-muted-foreground">advanced</span>
+                                <span class="text-admin-label text-muted-foreground">advanced</span>
                             </div>
 
                             <!-- Layer Settings (only when in a group) -->
@@ -182,6 +182,7 @@ import TimingFunctionPanel from "./TimingFunctionPanel.vue";
 import PlaybackRibbon from "./PlaybackRibbon.vue";
 import LayerConfigPanel from "./LayerConfigPanel.vue";
 import { useAnimationSync } from "./composables/useAnimationSync";
+import { usePlaybackToggle } from "./composables/usePlaybackToggle";
 import { useTimingFunctionEditor } from "./composables/useTimingFunctionEditor";
 import EasingSelect from "@components/custom/EasingSelect.vue";
 
@@ -257,12 +258,6 @@ const normalizedProgress = computed(() => {
     return Math.max(0, Math.min(1, currentT.value / dur));
 });
 
-const userReversed = ref(false);
-const toggleReverse = () => {
-    props.animation.reverse();
-    userReversed.value = !userReversed.value;
-};
-
 const emit = defineEmits<{
     (
         e: "sliderUpdate",
@@ -277,26 +272,11 @@ const emit = defineEmits<{
     (e: "scrubEnd"): void;
 }>();
 
-const prevT = ref(0);
-const toggleAnimation = () => {
-    if (props.isGrouped) {
-        emit("togglePlay");
-        return;
-    }
-
-    if (!props.animation.started) {
-        props.animation.play();
-    } else {
-        props.animation.toggle();
-
-        if (props.animation.paused) {
-            prevT.value = props.animation.t;
-        } else {
-            props.animation.pausedTime += props.animation.t - prevT.value;
-            prevT.value = 0;
-        }
-    }
-};
+const { userReversed, toggleAnimation, toggleReverse } = usePlaybackToggle(
+    () => props.animation,
+    () => props.isGrouped ?? false,
+    () => emit("togglePlay"),
+);
 
 onMounted(() => {
     updateTimingFunctionFromName(

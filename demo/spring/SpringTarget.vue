@@ -7,12 +7,12 @@
                     <span class="text-heading text-foreground truncate">
                         SpringProgress
                     </span>
-                    <span class="font-mono text-xs text-muted-foreground tabular-nums whitespace-nowrap">
+                    <span class="text-mono-caption text-muted-foreground tabular-nums whitespace-nowrap">
                         x = {{ demo.liveValue.value.toFixed(3) }} &middot; v = {{ demo.liveVelocity.value.toFixed(2) }}
                     </span>
                 </div>
                 <span
-                    class="font-mono text-[0.65rem] uppercase tracking-wide px-2 py-0.5 rounded-full"
+                    class="text-admin-label px-2 py-0.5 rounded-full"
                     :class="demo.liveSettled.value ? 'settled-badge' : 'tracking-badge'"
                 >{{ demo.liveSettled.value ? "settled" : "tracking" }}</span>
             </div>
@@ -45,8 +45,8 @@
                 </div>
                 <p class="text-small text-muted-foreground text-center">
                     Tap or drag the rail &mdash; the ball springs to the new target. Adjust
-                    <span class="font-mono text-xs">response</span> /
-                    <span class="font-mono text-xs">dampingFraction</span> in the panel.
+                    <span class="code-token">response</span> /
+                    <span class="code-token">dampingFraction</span> in the panel.
                 </p>
             </div>
 
@@ -54,7 +54,7 @@
             <div class="px-4 py-3 border-t border-border/40 shrink-0">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-small text-foreground">springTimingFunction sweep</span>
-                    <span class="font-mono text-xs text-muted-foreground tabular-nums">{{ demo.sampled.value.toFixed(3) }}</span>
+                    <span class="text-mono-caption text-muted-foreground tabular-nums">{{ demo.sampled.value.toFixed(3) }}</span>
                 </div>
                 <div class="sampler-track relative h-9">
                     <div class="spring-rail-line"></div>
@@ -126,6 +126,15 @@ const onKeydown = (e: KeyboardEvent) => {
 </script>
 
 <style scoped>
+/* Inline code token in prose — the camelCase API names (response,
+   dampingFraction) read as-cased at the prior 12px mono size; the
+   mono-caption rung would uppercase them, so this is the case-preserving
+   inline-code register (isomorphic with the former raw mono caption rung). */
+.code-token {
+    font-family: var(--font-mono);
+    font-size: var(--type-caption);
+}
+
 .spring-rail,
 .sampler-track {
     display: flex;

@@ -16,7 +16,7 @@
                 <Input
                     v-model="loadHashInput"
                     placeholder="Paste share URL..."
-                    class="font-mono text-xs h-8 flex-1"
+                    class="text-mono-caption normal-case h-8 flex-1"
                     @keydown.enter="loadFromInput"
                 />
                 <Button

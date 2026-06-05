@@ -5,7 +5,7 @@
     >
         <SelectTrigger class="font-mono">
             <span
-                class="!flex items-center gap-1.5 min-w-0 cursor-pointer ![-webkit-line-clamp:unset] !overflow-visible"
+                class="easing-trigger-label items-center gap-1.5 min-w-0 cursor-pointer"
             >
                 <svg viewBox="-0.05 -0.3 1.1 1.6" class="w-5 h-4 shrink-0">
                     <path
@@ -55,13 +55,13 @@
                             </svg>
                             <span
                                 :class="[
-                                    'font-mono text-sm',
+                                    'text-mono-caption normal-case',
                                     item.isDetail ? 'gold-shimmer' : '',
                                 ]"
                             >{{ item.name }}</span>
                             <span
                                 v-if="item.description"
-                                class="ml-auto pl-2 font-mono text-xs text-muted-foreground leading-tight whitespace-nowrap"
+                                class="ml-auto pl-2 text-mono-caption normal-case text-muted-foreground leading-tight whitespace-nowrap"
                             >{{ item.description }}</span>
                         </span>
                     </SelectItem>
@@ -110,3 +110,13 @@ const activeCurvePath = computed(() =>
 const getItemPath = (name: string) =>
     getCurvePath(name, props.timingFunctionsAnd);
 </script>
+
+<style scoped>
+/* The trigger label overrides the glass-ui SelectTrigger base (which clamps to
+ * one line) from honest scoped specificity, not `!important` utilities. */
+.easing-trigger-label {
+    display: flex;
+    -webkit-line-clamp: unset;
+    overflow: visible;
+}
+</style>

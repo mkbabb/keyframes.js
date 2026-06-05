@@ -23,11 +23,11 @@
                     class="italic opacity-25 z-0 pointer-events-none grid gap-1"
                 >
                     <Label
-                        class="text-sm font-light leading-none font-mono"
+                        class="text-mono-caption leading-none"
                         >f {{ index }}</Label
                     >
                     <Label
-                        class="text-sm font-light leading-none font-mono"
+                        class="text-mono-caption leading-none"
                         >s {{ frameStart }}</Label
                     >
                 </div>
@@ -35,7 +35,7 @@
             <pre
                 @input="(e) => emit('updateCSS', (e.target as HTMLElement).innerText)"
                 @keydown="(e) => emit('keydown', e)"
-                class="hljs css p-2 min-h-32 cursor-text rounded-lg text-sm bg-transparent outline-none border-none relative"
+                class="hljs css p-2 min-h-32 cursor-text rounded-lg text-small bg-transparent outline-none border-none relative"
                 contenteditable="true"
             ><code>{{ formattedCSS }}</code></pre>
         </div>

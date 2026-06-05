@@ -15,14 +15,14 @@
                     <p class="text-heading text-foreground">
                         Compose a scene
                     </p>
-                    <p class="font-mono text-xs text-muted-foreground">
+                    <p class="text-mono-caption normal-case text-muted-foreground">
                         Add a shape, text, or image — then bind it to an animation
                         from the Assets panel.
                     </p>
                     <Button
                         size="sm"
                         variant="outline"
-                        class="gap-1.5 font-mono text-xs mt-1"
+                        class="gap-1.5 text-mono-caption normal-case mt-1"
                         @click="emit('add', 'rectangle')"
                     >
                         <Plus class="icon-sm" /> Add a shape

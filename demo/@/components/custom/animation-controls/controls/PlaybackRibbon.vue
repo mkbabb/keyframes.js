@@ -62,6 +62,11 @@
 </template>
 
 <script setup lang="ts">
+// Colocated playback-button skin (uncaged from utils.css, D.W2.S2). Non-scoped
+// global rules — the .btn-playback* classes land on reka-ui's <Button> DOM
+// shared across this ribbon and the scene play buttons.
+import "./playback-button.css";
+
 import { onUnmounted } from "vue";
 import type { Animation } from "@src/animation/engine";
 

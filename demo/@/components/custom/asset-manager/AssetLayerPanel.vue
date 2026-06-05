@@ -3,14 +3,14 @@
         <CardContent class="p-0">
             <!-- Header: title + add dropdown -->
             <div class="flex items-center justify-between px-4 pt-3 pb-2">
-                <span class="font-mono text-xs font-semibold text-muted-foreground">assets</span>
+                <span class="text-mono-caption font-semibold text-muted-foreground">assets</span>
                 <DropdownMenu>
                     <DropdownMenuTrigger as-child>
-                        <Button size="sm" variant="ghost" class="gap-1.5 h-6 px-2 font-mono text-xs">
+                        <Button size="sm" variant="ghost" class="gap-1.5 h-6 px-2 text-mono-caption normal-case">
                             <Plus class="icon-xs" /> add
                         </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" class="font-mono text-xs">
+                    <DropdownMenuContent align="end" class="text-mono-caption normal-case">
                         <DropdownMenuItem @click="addAsset('rectangle')">
                             <Square class="icon-sm mr-2" /> Rectangle
                         </DropdownMenuItem>
@@ -48,9 +48,9 @@
 
                 <div
                     v-if="sortedAssets.length === 0"
-                    class="text-center py-6 px-4 text-muted-foreground text-xs"
+                    class="text-center py-6 px-4 text-muted-foreground"
                 >
-                    <p class="font-mono">Add shapes, text, or images to compose your scene</p>
+                    <p class="text-mono-caption normal-case">Add shapes, text, or images to compose your scene</p>
                 </div>
             </div>
 
@@ -70,7 +70,7 @@
             <!-- Footer: grid snap -->
             <Separator />
             <div class="flex items-center gap-3 px-4 py-2.5">
-                <label class="font-mono text-xs text-muted-foreground">grid snap</label>
+                <label class="text-mono-caption text-muted-foreground">grid snap</label>
                 <Switch
                     :checked="state.gridSnap"
                     @update:checked="(v: boolean) => { state.gridSnap = v; }"
@@ -80,7 +80,7 @@
                     type="number"
                     :model-value="state.gridSize"
                     @change="(e: Event) => { state.gridSize = Math.max(1, parseInt((e.target as HTMLInputElement).value) || 16); }"
-                    class="font-mono text-xs h-6 w-14"
+                    class="text-mono-caption normal-case h-6 w-14"
                 />
             </div>
         </CardContent>

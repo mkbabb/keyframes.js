@@ -8,10 +8,13 @@
                     class="relative grid aspect-square min-h-[3.5rem] rounded-lg shadow-sm"
                     v-for="(value, i) in matrix3dEnd.values"
                 >
+                    <!-- z-10 on the Input below is LOCAL stacking: the editable
+                         value field overlays the decorative axis-label div within
+                         the same matrix cell; not an editor z-contract layer. -->
                     <Input
                         :class="
                             `font-mono absolute left-0 top-0 z-10 h-full w-full text-ellipsis bg-transparent
-                            p-0 text-center text-base` +
+                            p-0 text-center text-body` +
                             [
                                 storedControls.matrixOptions
                                     .selectedMatrixCell === i

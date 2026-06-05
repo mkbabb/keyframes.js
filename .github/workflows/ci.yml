@@ -155,6 +155,17 @@ jobs:
               run: node scripts/lighthouse-gate.mjs
               env:
                   KF_REQUIRE_BROWSER: "1"
+            # D.W1/W2/W3 demo refinement gates — source + built-CSS instruments,
+            # each BITES on its exact regression. They run AFTER the gh-pages
+            # build above so proof:brittleness's @supports clause reads the real
+            # built demo CSS (dist/gh-pages/). No browser needed (grep + built-CSS
+            # scan) — they slot in beside the existing demo gates.
+            - name: proof:decomposition (D.W1 — ceilings · ONE parse adapter · pure utils re-homed · no rAF/timeout blobs)
+              run: npm run proof:decomposition
+            - name: proof:idioms (D.W2 — owned design-idioms.css · leaf-tail swept · utils.css monolith uncaged)
+              run: npm run proof:idioms
+            - name: proof:brittleness (D.W3 — no global DOM reach · z-scale single-sourced · @supports guards)
+              run: npm run proof:brittleness
             # C.W1 S4 — the LoAF >50ms-trace gate: the dev-only LoAF observer's
             # REAL 2nd consumer (closing the LoAF + >50ms-trace chronics + the
             # overfitting violation as ONE perf-evidence subsystem). The gate

@@ -43,7 +43,6 @@ import { AssetLayerPanel, AssetViewport, useAssetManager } from "@components/cus
 import { getStoredAnimationGroupControlOptions } from "@components/custom/animation-controls/stores";
 import { usePlaygroundAnimations } from "./usePlaygroundAnimations";
 
-import "@styles/utils.css";
 import "@styles/style.css";
 
 const { animationGroup, animationNames, superKey } = usePlaygroundAnimations();

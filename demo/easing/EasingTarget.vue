@@ -1,14 +1,14 @@
 <template>
     <div class="flex flex-col items-center justify-center gap-4 h-full w-full px-6 lg:px-8 max-w-3xl mx-auto overflow-hidden dock-inset">
 
-        <div class="glass-card easing-target w-full flex-1 min-h-0 flex flex-col overflow-hidden">
+        <div ref="easingTargetEl" class="glass-card easing-target w-full flex-1 min-h-0 flex flex-col overflow-hidden">
             <!-- Header: easing name + view mode dropdown -->
             <div class="flex items-center justify-between px-4 py-2.5 border-b border-border/40 shrink-0">
                 <div class="flex items-baseline gap-3 min-w-0">
                     <span class="text-heading text-foreground truncate">
                         {{ demo.currentEasingName.value }}
                     </span>
-                    <span class="font-mono text-xs text-muted-foreground tabular-nums whitespace-nowrap">
+                    <span class="text-mono-caption text-muted-foreground tabular-nums whitespace-nowrap">
                         f({{ demo.progress.value.toFixed(2) }}) = {{ easedValue.toFixed(3) }}
                     </span>
                 </div>
@@ -69,14 +69,14 @@
                     >
                         <span
                             :class="[
-                                'track-label font-mono text-xs shrink-0 w-36 text-right pr-3 truncate',
+                                'track-label text-mono-caption shrink-0 w-36 text-right pr-3 truncate',
                                 curve.name === demo.currentEasingName.value
                                     ? 'track-label--active'
                                     : 'text-muted-foreground',
                             ]"
                             :title="curve.name"
                         >{{ curve.name }}</span>
-                        <div class="track-container relative flex-1 h-10">
+                        <div ref="trackEls" class="track-container relative flex-1 h-10">
                             <div class="track-line"></div>
                             <div
                                 :class="[
@@ -137,9 +137,8 @@ const BALL_SIZE_ACTIVE = computed(() => ballSizes.value.active);
 const BALL_SIZE_MUTED = computed(() => ballSizes.value.muted);
 
 const readBallSizes = () => {
-    const container = trackContainerEl.value;
-    if (!container) return;
-    const root = container.closest<HTMLElement>(".easing-target") ?? container;
+    const root = easingTargetEl.value ?? trackContainerEl.value;
+    if (!root) return;
     const styles = getComputedStyle(root);
     const toPx = (v: string): number => {
         const n = parseFloat(v);
@@ -200,6 +199,12 @@ const visibleCurves = computed<VisibleCurve[]>(() => {
 // ── Comparison-track measurement ───────────────────────────────
 
 const trackContainerEl = useTemplateRef<HTMLElement>("trackContainerEl");
+// Owned refs replace the former `.closest(".easing-target")` /
+// `.querySelector(".track-container")` string-class DOM walks (W3.S1): the
+// component owns these elements, so it reads their computed vars / width off
+// refs that survive a class rename rather than a brittle selector match.
+const easingTargetEl = useTemplateRef<HTMLElement>("easingTargetEl");
+const trackEls = useTemplateRef<HTMLElement[]>("trackEls");
 const trackWidth = ref(0);
 
 const getBallX = (fn: TimingFunction, isActive: boolean, _isSingular: boolean): number => {
@@ -212,9 +217,9 @@ const getBallX = (fn: TimingFunction, isActive: boolean, _isSingular: boolean): 
 let resizeObs: ResizeObserver | undefined;
 
 const measureTrackWidth = () => {
-    const container = trackContainerEl.value;
-    if (!container) return;
-    const trackEl = container.querySelector<HTMLElement>(".track-container");
+    // The comparison tracks are uniform width (each is `flex-1`); read the
+    // first owned track ref rather than a string-class querySelector.
+    const trackEl = trackEls.value?.[0];
     if (trackEl) {
         trackWidth.value = trackEl.clientWidth;
     }
@@ -265,7 +270,7 @@ const onScrubEnd = () => {
    CSS is the single source of truth. Values are intentionally in px (not rem)
    because JS reads computed lengths. Scoped to the component's own
    `.easing-target` root so they never leak onto the shared `.glass-card`
-   primitive (the JS reads them via `container.closest(".easing-target")`). */
+   primitive (the JS reads them off the owned `easingTargetEl` ref). */
 .easing-target {
     --track-ball-size-active: 36px;
     --track-ball-size-muted: 24px;
@@ -328,6 +333,10 @@ const onScrubEnd = () => {
 
 .track-label {
     line-height: 1;
+    /* camelCase curve identifiers (easeInOutQuad …) read as-cased — the
+       mono-caption rung uppercases; this keeps the label legible (isomorphic
+       guard, not a register change). */
+    text-transform: none;
 }
 
 .track-label--active {

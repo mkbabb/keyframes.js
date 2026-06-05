@@ -28,7 +28,7 @@
                             v-if="showLoader"
                         >
                             <Loader2
-                                class="absolute h-[30vh] w-[30vw] animate-spin"
+                                class="absolute h-[var(--target-viewport-h)] w-[30vw] animate-spin"
                             ></Loader2>
                         </span>
                         <div
@@ -39,6 +39,11 @@
                                 side.class,
                                 'rounded-lg',
                                 'transition-[background-color,opacity] duration-panel ease-in-out',
+                                // z-10: LOCAL stacking inside the 3D cube — each
+                                // face sits above its own .rainbow-wrapper
+                                // background span. NOT a participant in the
+                                // editor z-contract (style.css), so it stays a
+                                // bare local rung, not a semantic z-* layer.
                                 'absolute z-10 flex items-center justify-center',
                             ]"
                         >
@@ -196,7 +201,10 @@ const cubeSides = [
     height: 0px;
     border: 1px dashed var(--color);
     opacity: 0.75;
-    z-index: -10;
+    /* Below the content plane — the demo's named below-stack rung (W3.S2).
+       Reconciles the former orphan raw below-plane value to the z-contract
+       documented in style.css (--z-behind < --z-content). */
+    z-index: var(--z-behind, -10);
     position: absolute;
     pointer-events: none;
 

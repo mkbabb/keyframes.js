@@ -1,13 +1,13 @@
 <template>
     <div class="grid gap-2">
-        <span class="font-mono text-xs font-semibold text-muted-foreground">properties</span>
+        <span class="text-mono-caption font-semibold text-muted-foreground">properties</span>
 
         <!-- Name -->
         <div class="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-1.5">
                 <label class="font-mono text-admin-label text-muted-foreground">name</label>
                 <Input
                     :model-value="asset.name"
-                    class="font-mono text-xs h-6"
+                    class="text-mono-caption normal-case h-6"
                     @change="(e: Event) => emit('update', asset.id, { name: (e.target as HTMLInputElement).value })"
                 />
 
@@ -16,7 +16,7 @@
                 <Input
                     type="number"
                     :model-value="asset.transform.x"
-                    class="font-mono text-xs h-6"
+                    class="text-mono-caption normal-case h-6"
                     @change="(e: Event) => emit('updateTransform', asset.id, { x: parseFloat((e.target as HTMLInputElement).value) || 0 })"
                 />
 
@@ -24,7 +24,7 @@
                 <Input
                     type="number"
                     :model-value="asset.transform.y"
-                    class="font-mono text-xs h-6"
+                    class="text-mono-caption normal-case h-6"
                     @change="(e: Event) => emit('updateTransform', asset.id, { y: parseFloat((e.target as HTMLInputElement).value) || 0 })"
                 />
 
@@ -33,7 +33,7 @@
                 <Input
                     type="number"
                     :model-value="asset.transform.width"
-                    class="font-mono text-xs h-6"
+                    class="text-mono-caption normal-case h-6"
                     @change="(e: Event) => emit('updateTransform', asset.id, { width: Math.max(1, parseFloat((e.target as HTMLInputElement).value) || 0) })"
                 />
 
@@ -41,7 +41,7 @@
                 <Input
                     type="number"
                     :model-value="asset.transform.height"
-                    class="font-mono text-xs h-6"
+                    class="text-mono-caption normal-case h-6"
                     @change="(e: Event) => emit('updateTransform', asset.id, { height: Math.max(1, parseFloat((e.target as HTMLInputElement).value) || 0) })"
                 />
 
@@ -64,7 +64,7 @@
                     <label class="font-mono text-admin-label text-muted-foreground">bg color</label>
                     <Input
                         :model-value="asset.backgroundColor ?? ''"
-                        class="font-mono text-xs h-6"
+                        class="text-mono-caption normal-case h-6"
                         @change="(e: Event) => emit('update', asset.id, { backgroundColor: (e.target as HTMLInputElement).value })"
                     />
                 </template>
@@ -74,7 +74,7 @@
                     <Input
                         type="number"
                         :model-value="asset.borderRadius ?? 0"
-                        class="font-mono text-xs h-6"
+                        class="text-mono-caption normal-case h-6"
                         @change="(e: Event) => emit('update', asset.id, { borderRadius: parseFloat((e.target as HTMLInputElement).value) || 0 })"
                     />
                 </template>
@@ -83,7 +83,7 @@
                     <label class="font-mono text-admin-label text-muted-foreground">text</label>
                     <Input
                         :model-value="asset.text ?? ''"
-                        class="font-mono text-xs h-6"
+                        class="text-mono-caption normal-case h-6"
                         @change="(e: Event) => emit('update', asset.id, { text: (e.target as HTMLInputElement).value })"
                     />
 
@@ -91,21 +91,21 @@
                     <Input
                         type="number"
                         :model-value="asset.fontSize ?? 32"
-                        class="font-mono text-xs h-6"
+                        class="text-mono-caption normal-case h-6"
                         @change="(e: Event) => emit('update', asset.id, { fontSize: parseFloat((e.target as HTMLInputElement).value) || 32 })"
                     />
 
                     <label class="font-mono text-admin-label text-muted-foreground">font</label>
                     <Input
                         :model-value="asset.fontFamily ?? 'Fraunces'"
-                        class="font-mono text-xs h-6"
+                        class="text-mono-caption normal-case h-6"
                         @change="(e: Event) => emit('update', asset.id, { fontFamily: (e.target as HTMLInputElement).value })"
                     />
 
                     <label class="font-mono text-admin-label text-muted-foreground">color</label>
                     <Input
                         :model-value="asset.color ?? '#1e293b'"
-                        class="font-mono text-xs h-6"
+                        class="text-mono-caption normal-case h-6"
                         @change="(e: Event) => emit('update', asset.id, { color: (e.target as HTMLInputElement).value })"
                     />
                 </template>
@@ -117,11 +117,11 @@
                         :model-value="asset.animationName ?? '__none__'"
                         @update:model-value="(v: any) => emit('update', asset.id, { animationName: v === '__none__' ? undefined : v })"
                     >
-                        <SelectTrigger class="font-mono text-xs h-6">
+                        <SelectTrigger class="text-mono-caption normal-case h-6">
                             <SelectValue placeholder="None" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectGroup class="font-mono text-xs">
+                            <SelectGroup class="text-mono-caption normal-case">
                                 <SelectItem value="__none__">None</SelectItem>
                                 <SelectItem v-for="name in animationNames" :key="name" :value="name">
                                     {{ name }}

@@ -1,12 +1,12 @@
 import {
     computed,
     onMounted,
-    onUnmounted,
     ref,
     watch,
     type ComputedRef,
     type Ref,
 } from "vue";
+import { useEventListener, useResizeObserver } from "@vueuse/core";
 
 export interface UseScrollFadeOptions {
     /** The scrollable element to measure. */
@@ -47,8 +47,14 @@ export interface UseScrollFadeReturn {
  * For `axis: "x"` it reads `scrollLeft` / `scrollWidth` / `clientWidth`
  * and generates classes `${prefix}-left`, `${prefix}-right`, `${prefix}-both`.
  *
- * Attaches a scroll listener to `el` and a ResizeObserver to `observeEl`
- * (or `el` when `observeEl` is not provided). Both are cleaned up on unmount.
+ * The scroll listener (on `el`) and the ResizeObserver (on `observeEl`, or `el`
+ * when `observeEl` is not provided) run on vueuse's `useEventListener` /
+ * `useResizeObserver` (D.W3.S4). Both accept the element REF directly: they
+ * auto-detach the listener/observer from the OLD element and re-bind to the new
+ * one on a mid-flight ref swap (no leaked listener on the prior element), and
+ * auto-clean on scope dispose (idempotent unmount). This replaces the
+ * hand-managed `watch(el)` / `watch(observeEl)` / `onMounted` / `onUnmounted`
+ * attach-detach bookkeeping — the re-attach robustness is now structural.
  */
 export function useScrollFade(options: UseScrollFadeOptions): UseScrollFadeReturn {
     const {
@@ -94,57 +100,17 @@ export function useScrollFade(options: UseScrollFadeOptions): UseScrollFadeRetur
         }
     }
 
-    // --- Scroll listener ---
-    let boundScrollEl: HTMLElement | null = null;
+    // Scroll listener — re-binds to the new `el` and detaches the old on swap.
+    useEventListener(el, "scroll", check, { passive: true });
 
-    function attachScrollListener() {
-        detachScrollListener();
-        const scrollEl = el.value;
-        if (scrollEl) {
-            scrollEl.addEventListener("scroll", check, { passive: true });
-            boundScrollEl = scrollEl;
-        }
-    }
+    // ResizeObserver — observes `observeEl` (or `el`); re-binds on ref swap.
+    useResizeObserver(observeEl ?? el, () => check());
 
-    function detachScrollListener() {
-        if (boundScrollEl) {
-            boundScrollEl.removeEventListener("scroll", check);
-            boundScrollEl = null;
-        }
-    }
-
-    // --- ResizeObserver ---
-    let resizeObserver: ResizeObserver | null = null;
-
-    function attachResizeObserver() {
-        detachResizeObserver();
-        const target = (observeEl ?? el).value;
-        if (target) {
-            resizeObserver = new ResizeObserver(() => check());
-            resizeObserver.observe(target);
-        }
-    }
-
-    function detachResizeObserver() {
-        if (resizeObserver) {
-            resizeObserver.disconnect();
-            resizeObserver = null;
-        }
-    }
-
-    // Re-attach listeners when the element ref changes
-    watch(el, () => {
-        attachScrollListener();
-        // If no separate observeEl, re-attach resize observer too
-        if (!observeEl) attachResizeObserver();
-        check();
-    });
-
+    // Re-check overflow when the measured element changes (the geometry of the
+    // new element may differ from the old).
+    watch(el, () => check());
     if (observeEl) {
-        watch(observeEl, () => {
-            attachResizeObserver();
-            check();
-        });
+        watch(observeEl, () => check());
     }
 
     // Watch retrigger
@@ -152,16 +118,7 @@ export function useScrollFade(options: UseScrollFadeOptions): UseScrollFadeRetur
         watch(retrigger, () => check());
     }
 
-    onMounted(() => {
-        attachScrollListener();
-        attachResizeObserver();
-        check();
-    });
-
-    onUnmounted(() => {
-        detachScrollListener();
-        detachResizeObserver();
-    });
+    onMounted(() => check());
 
     return {
         overflowStart,

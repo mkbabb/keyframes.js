@@ -1,0 +1,49 @@
+/* ════════════════════════════════════════════════════════════════════════
+   playback-button.css — the playback-ribbon button skin (D.W2.S2)
+   ────────────────────────────────────────────────────────────────────────
+   Uncaged from the global utils.css monolith and colocated with its owner,
+   PlaybackRibbon.vue. The `.btn-playback*` classes are applied to reka-ui
+   <Button> elements rendered BOTH here and by the scene play buttons
+   (EasingScene / SpringScene). As with tab-trigger.css, the classes land on
+   reka-ui's own DOM and are shared across components, so a `<style scoped>`
+   block is the wrong home (its `[data-v-*]` would change specificity and fail
+   to match the other consumers). A non-scoped colocated partial imported by
+   PlaybackRibbon.vue keeps plain class selectors — IDENTICAL rendering
+   (isomorphic; no specificity change) — while the rules live WITH the playback
+   component that owns them.
+   ════════════════════════════════════════════════════════════════════════ */
+
+.btn-playback {
+    height: 2rem;
+    width: 100%;
+    gap: 0.5rem;
+    border-radius: var(--radius-pill);
+    font-size: var(--type-body, 1rem);
+    font-family: var(--font-serif);
+    letter-spacing: 0.02em;
+}
+.btn-playback-accent {
+    background: color-mix(in srgb, var(--accent-red) 20%, transparent);
+    color: var(--accent-red);
+    border-color: color-mix(in srgb, var(--accent-red) 40%, transparent);
+}
+.btn-playback-accent:hover {
+    background: color-mix(in srgb, var(--accent-red) 30%, transparent);
+}
+
+.btn-playback:focus-visible {
+    box-shadow: var(--focus-ring-shadow);
+    outline: none;
+}
+.btn-playback:active {
+    transform: scale(var(--scale-press));
+}
+.btn-playback:disabled {
+    opacity: 0.5;
+    pointer-events: none;
+    cursor: not-allowed;
+}
+.btn-playback[aria-pressed="true"] {
+    background: color-mix(in srgb, var(--primary) 15%, transparent);
+    border-color: color-mix(in srgb, var(--primary) 30%, var(--border));
+}

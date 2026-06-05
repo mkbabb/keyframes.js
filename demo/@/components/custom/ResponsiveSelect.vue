@@ -42,7 +42,7 @@
             <button
                 @click="drawerOpen = true"
                 :class="[
-                    'flex h-10 w-full items-center justify-between rounded-full border border-input bg-background px-3 py-2 text-sm focus:outline-none',
+                    'flex h-10 w-full items-center justify-between rounded-full border border-input bg-background px-3 py-2 text-small focus:outline-none',
                     triggerClass,
                 ]"
             >

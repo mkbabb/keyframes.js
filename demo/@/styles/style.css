@@ -1,7 +1,40 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "@mkbabb/glass-ui/styles";
+/* The demo's OWNED design idioms — imported IMMEDIATELY AFTER the glass-ui
+   cascade so the demo's --rainbow-* / --color-gold / .scale-on-hover /
+   @keyframes enter definitions are the AUTHORITATIVE copy (the latent
+   cross-repo rent, now owned + gated). See design-idioms.css (D.W2.S1). */
+@import "./design-idioms.css";
 @custom-variant dark (&:where(.dark, .dark *));
+
+/* ════════════════════════════════════════════════════════════════════════
+   Z-INDEX ORDERED-LAYER CONTRACT (D.W3.S2 — recorded here, gated there)
+   ────────────────────────────────────────────────────────────────────────
+   The demo's stacking order is single-sourced from glass-ui's --z-* scale
+   (node_modules/@mkbabb/glass-ui/dist/styles/tokens.css), consumed via the
+   Tailwind utilities z-content / z-controls / z-bar / z-dock / z-overlay /
+   z-popover / z-modal. There is NO demo-local z-scale; the demo OWNS the
+   ORDER as a documented contract so a new component knows where to stack
+   without guessing a raw number. Strictly ascending — a higher rung always
+   paints over a lower one:
+
+     --z-behind   : -10  (below the content plane — the CubeTarget axis line;
+                          demo-owned, defined in design-idioms.css)
+     --z-content  :  10  the scene subject / target plane
+     --z-controls :  20  in-scene controls layered over content
+     --z-bar      :  30  the editor bars (header / menubar chrome)
+     --z-dock     :  40  the bottom dock band
+     --z-overlay  :  50  scrim / backdrop overlays
+     --z-popover  : 130  popovers (share, command palette)
+     --z-modal    : 140  modal dialogs — above everything
+
+   Contract: content < controls < bar < dock < overlay < popover < modal,
+   with --z-behind below the whole stack. Use the SEMANTIC z-* utility for the
+   rung; do NOT introduce a raw z-[N] bracket value (proof:brittleness gates
+   against drift). The one raw `z-index: -10` (CubeTarget axis line) reconciles
+   to --z-behind above.
+   ════════════════════════════════════════════════════════════════════════ */
 
 @theme {
     --font-serif: "Instrument Serif", Georgia, serif;
@@ -117,7 +150,14 @@
     --accent-red: hsl(0 72% 63%);
     --accent-red-foreground: hsl(0 0% 100%);
 
-    /* ── Branding filter (approximates --ppmycota-primary via CSS filter) ── */
+    /* ── Branding ── (uncaged from utils.css, D.W2.S2)
+       The --ppmycota-primary brand colour stays a GLOBAL token (it is a token,
+       not a component rule — styling-findings §S5) so the brand-mark consumers
+       (brand.css) AND the var(--ppmycota-primary, …) fallback readers
+       (EasingSelect / EasingCurveCanvas) all resolve it regardless of which
+       component is mounted. --filter-brand-color approximates it via a CSS
+       filter for the SVG logo marks. */
+    --ppmycota-primary: hsl(248 88% 71%);
     --filter-brand-color: invert(55%) sepia(80%) saturate(1496%) hue-rotate(220deg) brightness(95%) contrast(103%);
 }
 
@@ -184,5 +224,33 @@
         body {
             height: 100dvh;
         }
+    }
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   GENUINELY-GLOBAL UTILITIES (D.W2.S2 — the utils.css fold)
+   ────────────────────────────────────────────────────────────────────────
+   The three cross-cutting utilities that remained after the utils.css monolith
+   was uncaged (the component-specific families moved to their owners' colocated
+   partials: tab-trigger.css, playback-button.css, brand.css, and SquareScene's
+   scoped .demo-box). A standalone file for three utilities no longer earns its
+   name (KISS / no-legacy), so utils.css was DELETED and these fold here into
+   the @layer utilities so they sit below component CSS in the cascade.
+   ════════════════════════════════════════════════════════════════════════ */
+@layer utilities {
+    .container-inline-size {
+        container-type: inline-size;
+    }
+
+    .icon {
+        --size: 1rem;
+        font-size: var(--size);
+        width: var(--size);
+        aspect-ratio: 1/1;
+    }
+
+    .is-disabled {
+        opacity: 0.5;
+        pointer-events: none;
     }
 }

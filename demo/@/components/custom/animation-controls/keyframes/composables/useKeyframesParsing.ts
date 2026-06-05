@@ -1,0 +1,108 @@
+import { debounce } from "@mkbabb/value.js";
+import type { Animation } from "@src/animation/engine";
+import {
+    CSSKeyframesToString,
+    CSSKeyframesToStrings,
+} from "@src/animation/format";
+import { nextTick, watch } from "vue";
+import type { KeyframesState } from "./useKeyframesState";
+import { useKeyframeOps } from "./useKeyframeOps";
+
+/**
+ * The editor's parsing-orchestration half: turns the live `Animation` into its
+ * CSS-string projections (animation → strings) and wires the array/control
+ * watchers. The string-edit → animation mutation ops are colocated in
+ * `useKeyframeOps`, which this composable threads the string-generation
+ * callbacks into (one-way dependency, no cycle).
+ */
+export function useKeyframesParsing(
+    animation: Animation<any>,
+    state: KeyframesState,
+    emit: (event: "keyframesUpdate", val: { animation: Animation<any> }) => void,
+) {
+    const {
+        cssKeyframesString,
+        templateFrameStrings,
+        kfControls,
+        getFormatWidth,
+        getTmpAnimationName,
+    } = state;
+
+    // --- CSS string generation (animation → strings) ---
+
+    const updateCSSAnimationKeyframesStringFromAnimation = async (
+        cssAnimationKeyframes?: string,
+    ) => {
+        const keyframesString =
+            cssAnimationKeyframes ??
+            (await CSSKeyframesToString(
+                animation,
+                getTmpAnimationName(),
+                getFormatWidth(),
+            ));
+
+        cssKeyframesString.value = keyframesString;
+
+        return keyframesString;
+    };
+
+    const updateAllStrings = async () => {
+        templateFrameStrings.value = [];
+        templateFrameStrings.value = await CSSKeyframesToStrings(animation);
+
+        const keyframesString =
+            await updateCSSAnimationKeyframesStringFromAnimation();
+
+        return keyframesString;
+    };
+
+    const debouncedUpdateAllStrings = debounce(updateAllStrings, 100);
+
+    const updateAllStringsAndAnimation = async () => {
+        const reversedKeyframesString = await updateAllStrings();
+        ops.updateAnimationFromKeyframesString(reversedKeyframesString);
+    };
+
+    // --- CSS string → animation ops (colocated) ---
+
+    const ops = useKeyframeOps(animation, state, emit, {
+        updateAllStrings,
+        updateAllStringsAndAnimation,
+        debouncedUpdateAllStrings,
+    });
+
+    // --- Watchers ---
+
+    watch(
+        () => kfControls.selectedKeyframesControl,
+        () => {
+            updateAllStrings();
+        },
+    );
+
+    // The frame array is a `markRaw` source; flush AFTER the render barrier so
+    // a stale frame array can never paint between the array mutation and the
+    // derived-string recompute (D.W3.S4 — deterministic flush). nextTick inside
+    // the post-flush callback drains any same-tick mutations before reprojecting.
+    watch(
+        animation.templateFrames,
+        async () => {
+            await nextTick();
+            debouncedUpdateAllStrings();
+        },
+        { flush: "post" },
+    );
+
+    return {
+        updateCSSAnimationKeyframesStringFromAnimation,
+        updateAllStrings,
+        debouncedUpdateAllStrings,
+        updateAllStringsAndAnimation,
+        updateAnimationFromKeyframesString:
+            ops.updateAnimationFromKeyframesString,
+        updateAnimationFromKeyframeString: ops.updateAnimationFromKeyframeString,
+        updateAddKeyframesString: ops.updateAddKeyframesString,
+        addKeyframesStringToAnimation: ops.addKeyframesStringToAnimation,
+        removeKeyframeData: ops.removeKeyframeData,
+    };
+}

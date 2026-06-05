@@ -17,9 +17,9 @@
                 <Card plain class="grid gap-0 w-full p-0">
                     <CardHeader class="grid gap-0 p-0 pb-1">
                         <CardTitle class="text-heading">cubic-bézier</CardTitle>
-                        <p v-if="editingCurveName" class="font-mono text-xs text-muted-foreground ml-1 mb-0.5">editing: {{ editingCurveName }}</p>
+                        <p v-if="editingCurveName" class="text-mono-caption normal-case text-muted-foreground ml-1 mb-0.5">editing: {{ editingCurveName }}</p>
                         <div
-                            class="w-full whitespace-pre h-6 m-0 p-0 ml-1 text-xs flex items-center italic justify-items-center gap-2 font-mono"
+                            class="w-full whitespace-pre h-6 m-0 p-0 ml-1 text-mono-caption normal-case flex items-center italic justify-items-center gap-2"
                         >
                             {{ timingString.replace("cubic-bezier", "") }}
                             <TooltipProvider :delay-duration="200">
@@ -27,7 +27,7 @@
                                     <TooltipTrigger as-child>
                                         <CopyButton class="scale-on-hover icon-md" :text="timingString" />
                                     </TooltipTrigger>
-                                    <TooltipContent class="font-mono text-xs">
+                                    <TooltipContent class="text-mono-caption normal-case">
                                         Copy to clipboard
                                     </TooltipContent>
                                 </Tooltip>
@@ -76,7 +76,7 @@
                         <CardTitle class="text-heading">steps</CardTitle>
                     </CardHeader>
                     <CardContent class="p-0 grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-2">
-                        <label class="font-mono text-xs text-muted-foreground">count</label>
+                        <label class="text-mono-caption text-muted-foreground">count</label>
                         <Input
                             type="number"
                             class="font-mono"
@@ -89,7 +89,7 @@
                             "
                         />
 
-                        <label class="font-mono text-xs text-muted-foreground">jump term</label>
+                        <label class="text-mono-caption text-muted-foreground">jump term</label>
                         <Select
                             :model-value="storedAnimationOptions.stepOptions.jumpTerm"
                             @update:model-value="

@@ -3,8 +3,7 @@
         <DialogContent
             @interact-outside="
                 (event) => {
-                    const target = event.target as HTMLElement;
-                    if (target?.closest('[data-sonner-toaster]'))
+                    if (isInsideToaster(event.target))
                         return event.preventDefault();
                 }
             "
@@ -39,6 +38,7 @@ import {
     DialogFooter,
     DialogTitle,
 } from "@mkbabb/glass-ui";
+import { isInsideToaster } from "@utils/useToastGuard";
 
 const props = withDefaults(
     defineProps<{
@@ -51,7 +51,7 @@ const props = withDefaults(
     }>(),
     {
         initialText: "",
-        preClass: "font-mono min-h-[20vh] p-3 cursor-text rounded-lg text-sm bg-muted/50 outline-none border border-border",
+        preClass: "font-mono min-h-[20vh] p-3 cursor-text rounded-lg text-small bg-muted/50 outline-none border border-border",
     },
 );
 

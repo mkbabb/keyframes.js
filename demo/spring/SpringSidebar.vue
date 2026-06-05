@@ -6,7 +6,7 @@
                 <div class="grid gap-1.5">
                     <div class="flex items-center justify-between">
                         <label class="text-admin-label text-muted-foreground">response</label>
-                        <span class="font-mono text-xs text-foreground tabular-nums">{{ demo.response.value.toFixed(2) }}s</span>
+                        <span class="text-mono-caption text-foreground tabular-nums">{{ demo.response.value.toFixed(2) }}s</span>
                     </div>
                     <div class="spring-slider">
                         <Slider
@@ -23,7 +23,7 @@
                 <div class="grid gap-1.5">
                     <div class="flex items-center justify-between">
                         <label class="text-admin-label text-muted-foreground">dampingFraction (&zeta;)</label>
-                        <span class="font-mono text-xs text-foreground tabular-nums">{{ demo.dampingFraction.value.toFixed(2) }}</span>
+                        <span class="text-mono-caption text-foreground tabular-nums">{{ demo.dampingFraction.value.toFixed(2) }}</span>
                     </div>
                     <div class="spring-slider">
                         <Slider
@@ -52,7 +52,7 @@
                 @click="applyPreset(t.preset)"
             >
                 <span class="text-small text-foreground capitalize">{{ t.preset.name }}</span>
-                <span class="font-mono text-[0.6rem] text-muted-foreground">{{ t.preset.response }} / {{ t.preset.dampingFraction }}</span>
+                <span class="text-admin-label text-muted-foreground">{{ t.preset.response }} / {{ t.preset.dampingFraction }}</span>
             </Button>
         </div>
 
@@ -65,7 +65,7 @@
                     :key="t.preset.name"
                     class="preset-row"
                 >
-                    <span class="preset-label font-mono text-[0.65rem] shrink-0 w-14 truncate" :title="t.preset.blurb">{{ t.preset.name }}</span>
+                    <span class="preset-label text-admin-label shrink-0 w-14 truncate" :title="t.preset.blurb">{{ t.preset.name }}</span>
                     <div class="preset-track relative flex-1 h-7">
                         <div class="preset-line"></div>
                         <div

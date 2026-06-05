@@ -86,7 +86,6 @@ import { registerShortcut } from "@mkbabb/glass-ui/keyboard";
 import { DarkModeToggle } from "@mkbabb/glass-ui/controls";
 import type { AnimationGroup } from "@src/animation/group";
 
-import "@styles/utils.css";
 import "@styles/style.css";
 
 initIOSPlatformClass();
@@ -126,6 +125,23 @@ defineExpose({ headerRibbonRef });
 </script>
 
 <style scoped>
+/* dvh fallback (W3.S3) — the shell + grid background size with the `dvh`
+   dynamic-viewport unit (h-dvh / max-h-dvh on the root, h-dvh on the grid).
+   On a browser without `dvh` support (older Safari/Firefox) those rules drop
+   silently and the shell mis-sizes. This @supports-not path supplies the
+   static-viewport `vh` baseline so the shell still fills the screen there. On
+   any `dvh`-capable browser this block does not apply — the happy path is
+   byte-identical. */
+@supports not (height: 100dvh) {
+    .editor-shell {
+        height: 100vh;
+        max-height: 100vh;
+    }
+    .grid-background {
+        height: 100vh;
+    }
+}
+
 .grid-background {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2 2'%3E%3Cpath d='M1 2V0h1v1H0v1z' fill-opacity='0.10'/%3E%3C/svg%3E");
     background-size: 1rem;

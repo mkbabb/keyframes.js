@@ -6,131 +6,38 @@
         ]"
         v-bind="$attrs"
     >
-        <div
-            v-show="storedControls.selectedAnimation && !hideControls"
-            @transitionend="onPanelTransitionEnd"
-            :class="[
-                'controls-pane-wrapper col-start-1 row-start-1 lg:row-start-1 min-w-0 relative z-controls',
-                'controls-pane--mobile',
-                storedControls.isControlsPanelOpen
-                    ? 'controls-pane--open'
-                    : 'controls-pane--closed',
-                isPaneHovered ? 'controls-pane--hovered' : '',
-            ]"
+        <ControlsPaneWrapper
+            :animation-group="animationGroup"
+            :stored-controls="storedControls"
+            :hide-controls="hideControls"
+            :is-playing="isPlaying"
+            :anim-control-refs="animControlRefs"
+            :active-keyframes-ref="activeKeyframesRef"
+            :active-timeline-ref="activeTimelineRef"
+            :is-panel-transition-done="isPanelTransitionDone"
+            :is-pane-hovered="isPaneHovered"
+            :scroll-fade-class="scrollFadeClass"
+            :on-panel-transition-end="onPanelTransitionEnd"
+            :on-pane-mouse-enter="onPaneMouseEnter"
+            :on-pane-mouse-leave="onPaneMouseLeave"
+            :set-pane-el="(el) => { controlsPaneEl = el; }"
+            @slider-update="sliderUpdate"
+            @keyframes-update="keyframesUpdate"
+            @toggle-play="toggleAnimationGroup"
+            @layer-config-update="(name, v) => updateLayerConfig(name, v)"
+            @scrub-start="onScrubStart"
+            @scrub-end="onScrubEnd"
         >
-        <div
-            ref="controlsPaneEl"
-            @mouseenter="onPaneMouseEnter"
-            @mouseleave="onPaneMouseLeave"
-            :class="[
-                'controls-pane group/controls min-w-0',
-                isPanelTransitionDone && storedControls.isControlsPanelOpen
-                    ? 'overflow-y-auto'
-                    : 'overflow-hidden',
-                scrollFadeClass,
-            ]"
-        >
-                <div class="controls-content h-full flex flex-col">
-                    <template
-                        v-for="[name, groupObject] in Object.entries(animationGroup.animations)"
-                    >
-                        <div v-show="storedControls.selectedAnimation == name">
-                            <AnimationControls
-                                :ref="(el: any) => { if (el) animControlRefs[name] = el }"
-                                @slider-update="sliderUpdate"
-                                @keyframes-update="keyframesUpdate"
-                                @toggle-play="toggleAnimationGroup"
-                                @layer-config-update="(v) => updateLayerConfig(name, v)"
-                                @scrub-start="onScrubStart"
-                                @scrub-end="onScrubEnd"
-                                :animation="groupObject.animation"
-                                :is-grouped="true"
-                                :is-playing="isPlaying"
-                                :layer-config="groupObject.layer"
-                                :active="storedControls.selectedAnimation == name"
-                            >
-                                <template #tabs-trigger>
-                                    <slot name="tabs-trigger" :selected-animation="storedControls.selectedAnimation" :is-playing="isPlaying"></slot>
-                                </template>
-
-                                <template #tabs-content>
-                                    <slot name="tabs-content" :selected-animation="storedControls.selectedAnimation" :is-playing="isPlaying"></slot>
-                                </template>
-                            </AnimationControls>
-                        </div>
-                    </template>
-
-                    <!-- Persistent controls ribbon -->
-                    <div v-if="storedControls.selectedAnimation" class="flex-shrink-0 pl-4 pr-7 pb-2">
-                        <Card class="overflow-visible glass-card">
-                            <CardContent class="p-3">
-                                <!-- Controls tab: filled via Teleport from AnimationControlsControls -->
-                                <div id="controls-ribbon-target" v-show="storedControls.selectedControl === 'controls'"></div>
-
-                                <!-- Keyframes tab -->
-                                <div v-if="storedControls.selectedControl === 'keyframes'" class="flex items-center justify-center gap-2 flex-wrap">
-                                    <Button size="sm" variant="outline"
-                                        :class="RIBBON_BUTTON_CLASS"
-                                        @click="activeKeyframesRef?.copyCSS?.()"
-                                    >
-                                        <Copy class="icon-sm" /> Copy
-                                    </Button>
-                                    <Button size="sm" variant="outline"
-                                        :class="RIBBON_BUTTON_CLASS"
-                                        @click="activeKeyframesRef?.formatCSS?.()"
-                                    >
-                                        <Sparkles class="icon-sm text-[var(--color-gold)]" /> Format
-                                    </Button>
-                                    <Button size="sm" variant="outline"
-                                        :class="[
-                                            RIBBON_BUTTON_CLASS,
-                                            activeKeyframesRef?.cssApplied ? 'rainbow-vivid text-white !border-transparent' : '',
-                                        ]"
-                                        @click="activeKeyframesRef?.applyCSSStyles?.()"
-                                    >
-                                        <Paintbrush class="icon-sm" :style="!activeKeyframesRef?.cssApplied ? { stroke: 'url(#rainbow-gradient)' } : {}" />
-                                        Apply CSS
-                                    </Button>
-                                </div>
-
-                                <!-- Timeline tab -->
-                                <div v-else-if="storedControls.selectedControl === 'timeline'" class="flex items-center justify-center gap-2 flex-wrap">
-                                    <Button size="sm" variant="outline"
-                                        :class="RIBBON_BUTTON_CLASS"
-                                        @click="activeTimelineRef?.snapshot?.()"
-                                    >
-                                        <Camera class="icon-sm" /> Snapshot
-                                    </Button>
-                                    <Button size="sm" variant="outline"
-                                        :class="RIBBON_BUTTON_CLASS"
-                                        @click="activeTimelineRef?.openImportDialog?.()"
-                                    >
-                                        <Download class="icon-sm" /> Import
-                                    </Button>
-                                    <Button size="sm" variant="outline"
-                                        :class="RIBBON_BUTTON_CLASS"
-                                        @click="activeTimelineRef?.exportCSS?.()"
-                                    >
-                                        <Upload class="icon-sm" /> Export
-                                    </Button>
-                                    <Button size="sm" variant="outline"
-                                        :class="RIBBON_BUTTON_CLASS"
-                                        @click="activeTimelineRef?.openAddCSSDialog?.()"
-                                    >
-                                        <FilePlus2 class="icon-sm" /> Add CSS
-                                    </Button>
-                                </div>
-
-                                <!-- Other tabs (matrix controls, etc.) via slot -->
-                                <div v-else-if="storedControls.selectedControl !== 'controls'" class="flex items-center justify-center gap-2 flex-wrap">
-                                    <slot name="ribbon-content" :selected-control="storedControls.selectedControl"></slot>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-                </div>
-        </div>
-        </div>
+            <template #tabs-trigger="slotProps">
+                <slot name="tabs-trigger" v-bind="slotProps"></slot>
+            </template>
+            <template #tabs-content="slotProps">
+                <slot name="tabs-content" v-bind="slotProps"></slot>
+            </template>
+            <template #ribbon-content="slotProps">
+                <slot name="ribbon-content" v-bind="slotProps"></slot>
+            </template>
+        </ControlsPaneWrapper>
 
         <!-- Animation stage. Mobile: a dedicated 1fr row track (row 2) below the
              `auto` controls-pane row — the pane no longer overlays/clips the
@@ -158,7 +65,7 @@
                 'col-span-full row-start-3 lg:row-start-2 z-dock overflow-hidden',
                 'transition-[max-height,opacity] duration-slow ease-standard',
                 storedControls.isTimelineExpanded
-                    ? 'max-h-[60vh] border-t border-border/50 glass-wash px-4 py-3'
+                    ? 'max-h-[var(--panel-max-h)] border-t border-border/50 glass-wash px-4 py-3'
                     : 'max-h-0',
             ]"
         ></div>
@@ -178,7 +85,11 @@
         />
     </div>
 
-    <!-- Hidden SVG gradient definition for rainbow icon strokes -->
+    <!-- Hidden SVG gradient definition for rainbow icon strokes. The defs stay
+         here (top-level, demo-global) because the Apply-CSS paintbrush in the
+         ribbon strokes `url(#rainbow-gradient)` — the gradient must live where
+         the SVG reference can resolve it. Stops reference the demo-owned
+         --rainbow-* family (design-idioms.css). -->
     <svg width="0" height="0" class="absolute">
         <defs>
             <linearGradient id="rainbow-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -200,8 +111,8 @@
                 unstyled: true,
                 classes: {
                     toast: 'bg-foreground text-background rounded-xl text-body px-4 py-3 grid grid-cols-1 gap-1 shadow-lg lg:w-80 w-64 max-w-[90vw]',
-                    title: 'font-bold text-base',
-                    description: 'font-normal text-sm',
+                    title: 'font-bold text-body',
+                    description: 'font-normal text-small',
                     actionButton: '',
                     cancelButton: '',
                     closeButton: '',
@@ -213,25 +124,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, Teleport, useTemplateRef, watchEffect } from "vue";
-import { usePaneHover } from "./composables/usePaneHover";
-import { Toaster, toast } from "vue-sonner";
+import { computed, onMounted, reactive, ref, Teleport, watch, watchEffect } from "vue";
 
-import {
-    Camera,
-    Copy,
-    Download,
+import { Toaster } from "vue-sonner";
 
-    FilePlus2,
-    Paintbrush,
-    Sparkles,
-    Upload,
-} from "@lucide/vue";
-
-import { TooltipProvider, Button, Card, CardContent } from "@mkbabb/glass-ui";
+import { TooltipProvider } from "@mkbabb/glass-ui";
 
 import { Animation } from "@src/animation/engine";
-import AnimationControls from "./controls/AnimationControls.vue";
+import ControlsPaneWrapper from "./components/ControlsPaneWrapper.vue";
 import AnimationMenuBar from "./AnimationMenuBar.vue";
 
 import {
@@ -242,9 +142,7 @@ import { AnimationGroup } from "@src/animation/group";
 import { registerShortcut } from "@mkbabb/glass-ui/keyboard";
 import { useAnimationGroupPlayback } from "./composables/useAnimationGroupPlayback";
 import { useAnimationProgress } from "./composables/useAnimationProgress";
-import { useScrollFade } from "./composables/useScrollFade";
-
-const RIBBON_BUTTON_CLASS = "h-8 gap-1.5 text-body rounded-full btn-interactive";
+import { useControlsLayout } from "./composables/useControlsLayout";
 
 const { superKey, animationGroup, autoPlay, hideControls } = defineProps<{
     animationGroup: AnimationGroup<any>;
@@ -266,28 +164,6 @@ const activeKeyframesRef = computed(() => {
 const activeTimelineRef = computed(() => {
     const name = storedControls.selectedAnimation;
     return name ? animControlRefs[name]?.timelineRef : null;
-});
-
-// Track whether the panel's max-height transition has completed
-const isPanelTransitionDone = ref(storedControls.isControlsPanelOpen);
-
-import { watch } from "vue";
-
-watch(() => storedControls.isControlsPanelOpen, (open) => {
-    if (!open) isPanelTransitionDone.value = false;
-});
-
-const onPanelTransitionEnd = (e: TransitionEvent) => {
-    if (e.propertyName === 'max-height' && storedControls.isControlsPanelOpen) {
-        isPanelTransitionDone.value = true;
-    }
-};
-
-// Auto-show controls pane when switching tabs while pane is hidden
-watch(() => storedControls.selectedControl, (newVal, oldVal) => {
-    if (newVal !== oldVal && !storedControls.isControlsPanelOpen) {
-        storedControls.isControlsPanelOpen = true;
-    }
 });
 
 // Validate stored selection — clear stale values via watchEffect (reacts to group changes).
@@ -340,18 +216,17 @@ onMounted(() => {
     }
 });
 
-// --- Controls pane hover with linger delay ---
-const { isPaneHovered, onPaneMouseEnter, onPaneMouseLeave } = usePaneHover();
+// --- Controls pane layout (open-state, hover, transition, scroll-fade) ---
+const controlsPaneEl = ref<HTMLElement | null>(null);
 
-// --- Mobile vertical scroll fade ---
-const controlsPaneEl = useTemplateRef<HTMLElement>("controlsPaneEl");
-
-const { fadeClass: scrollFadeClass } = useScrollFade({
-    el: controlsPaneEl,
-    axis: "y",
-    classPrefix: "scroll-fade",
-    retrigger: isPanelTransitionDone,
-});
+const {
+    isPanelTransitionDone,
+    onPanelTransitionEnd,
+    isPaneHovered,
+    onPaneMouseEnter,
+    onPaneMouseLeave,
+    scrollFadeClass,
+} = useControlsLayout(storedControls, controlsPaneEl);
 
 const menuBarRef = ref<InstanceType<typeof AnimationMenuBar> | null>(null);
 
@@ -452,101 +327,9 @@ function cycleAnimation(direction: number) {
     margin: auto;
 }
 
-/* ── Mobile: grid-template-rows drives height, opacity fades ── */
-.controls-pane-wrapper {
-    display: grid;
-    /* Half dock-margin above dock + dock height + half dock-margin gap */
-    margin-top: calc(var(--dock-margin) + var(--dock-icon-height));
-    /* Fill viewport minus top dock area and bottom menubar */
-    max-height: calc(100dvh - var(--dock-margin) - var(--dock-icon-height) - var(--dock-menubar-reserve));
-}
-.controls-pane-wrapper.controls-pane--open {
-    grid-template-rows: 1fr;
-    transition: grid-template-rows var(--duration-panel) var(--ease-out);
-}
-.controls-pane-wrapper.controls-pane--closed {
-    grid-template-rows: 0fr;
-    pointer-events: none;
-    transition: grid-template-rows var(--duration-panel) var(--ease-standard);
-}
-.controls-pane {
-    min-height: 0;
-    transition: opacity var(--duration-panel) var(--ease-standard);
-}
-.controls-pane--open .controls-pane {
-    opacity: 1;
-}
-.controls-pane--closed .controls-pane {
-    opacity: 0;
-}
-
-/* ── Desktop: springy pane-left slide ── */
-@media (min-width: 1024px) {
-    .controls-pane-wrapper {
-        max-height: none;
-        max-width: none;
-        margin-top: 0;
-        padding-inline: 0;
-        display: block;
-        overflow: visible;
-    }
-    .controls-pane-wrapper.controls-pane--open {
-        visibility: visible;
-        pointer-events: auto;
-        transition: visibility 0s 0s;
-    }
-    .controls-pane-wrapper.controls-pane--closed {
-        visibility: hidden;
-        pointer-events: none;
-        transition: visibility 0s var(--duration-slow);
-    }
-    /* Spring in from left, ease out to left */
-    .controls-pane--open .controls-pane {
-        opacity: 1;
-        transform: translateX(0);
-        transition:
-            opacity var(--duration-normal) var(--ease-out),
-            transform var(--duration-slow) var(--spring-snappy);
-    }
-    .controls-pane--closed .controls-pane {
-        opacity: 0;
-        transform: translateX(-110%) rotate(-2deg);
-        transition:
-            opacity var(--duration-fast) var(--ease-in),
-            transform var(--duration-normal) var(--ease-out);
-    }
-
-    .controls-content {
-        min-width: 400px;
-        /* Extra padding to prevent card box-shadow clipping */
-        padding-right: 12px;
-        padding-bottom: 12px;
-    }
-}
-
-/* ── Mobile vertical scroll fade ── */
 @media (max-width: 1023px) {
     .controls-layout {
         align-content: center;
-    }
-
-    /* Fill available width with side margins on mobile */
-    .controls-pane-wrapper {
-        max-width: min(440px, 100dvw);
-        margin-inline: auto;
-        padding-inline: 0.75rem;
-    }
-
-    /* Override glass-ui fade width for this pane's wider fade distance.
-       scroll-fade-both aliases scroll-fade-y (composable uses -both suffix). */
-    .scroll-fade-top,
-    .scroll-fade-bottom,
-    .scroll-fade-both {
-        --mask-fade-width: 2.5rem;
-    }
-    .scroll-fade-both {
-        mask-image: linear-gradient(to bottom, transparent, black var(--mask-fade-width), black calc(100% - var(--mask-fade-width)), transparent);
-        -webkit-mask-image: linear-gradient(to bottom, transparent, black var(--mask-fade-width), black calc(100% - var(--mask-fade-width)), transparent);
     }
 }
 </style>

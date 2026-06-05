@@ -1,5 +1,5 @@
-import { createKeyframeId } from "./timelineTypes";
-import type { TimelineKeyframe } from "./timelineTypes";
+import { createKeyframeId } from "../composables/timelineTypes";
+import type { TimelineKeyframe } from "../composables/timelineTypes";
 
 /**
  * Capture a CSS property snapshot from an element's computed style.

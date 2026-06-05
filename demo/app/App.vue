@@ -16,9 +16,9 @@
             <!-- @mbabb dropdown -->
             <DropdownMenu>
                 <DropdownMenuTrigger as-child>
-                    <DockDropdownTrigger aria-label="@mbabb menu" class="text-xs lg:text-sm font-mono">@mbabb</DockDropdownTrigger>
+                    <DockDropdownTrigger aria-label="@mbabb menu" class="text-mono-caption normal-case lg:text-mono-small">@mbabb</DockDropdownTrigger>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" :side-offset="8" class="z-modal min-w-[17rem] text-body p-1.5">
+                <DropdownMenuContent align="end" :side-offset="8" class="z-modal min-w-[var(--dock-panel-width)] text-body p-1.5">
                     <!-- Share -->
                     <DropdownMenuItem @select.prevent class="flex items-center gap-2.5 px-1.5 py-1 rounded-lg">
                         <SharePopover :on-scene-restore="(id: string) => switchScene(id)" />
@@ -43,7 +43,12 @@
                     <DropdownMenuItem @select.prevent class="flex items-center gap-2.5 px-1.5 py-1 rounded-lg cursor-pointer" @click="togglePpMode">
                         <div class="ppmycota-logo-sm w-7 h-7 shrink-0 scale-on-hover"></div>
                         <div class="flex-1 min-w-0">
-                            <span class="text-small text-[var(--ppmycota-primary)]">ppmycota</span>
+                            <!-- Brand colour consumes the --ppmycota-primary token
+                                 directly (inline, not a text-[var(...)] arbitrary
+                                 utility): the dropdown content is portalled, so an
+                                 inline style is the portal-safe home for the token
+                                 ref while it co-locates with the brand mark (S2). -->
+                            <span class="text-small" :style="{ color: 'var(--ppmycota-primary)' }">ppmycota</span>
                             <p class="text-admin-label text-muted-foreground leading-tight">&#x1F642;&#x200D;&#x2194;&#xFE0F; &#x1F331; &#x1F344;&#x200D;&#x1F7EB;</p>
                             <a href="https://ppmycota.com" target="_blank" rel="noopener noreferrer" class="text-admin-label text-muted-foreground hover:text-foreground hover:underline transition-colors" @click.stop>ppmycota.com</a>
                         </div>
@@ -57,7 +62,7 @@
                             ></AvatarImage>
                         </Avatar>
                         <div class="flex-1 min-w-0">
-                            <a href="https://github.com/mkbabb" target="_blank" rel="noopener noreferrer" class="font-mono text-xs font-semibold text-foreground hover:underline">@mbabb</a>
+                            <a href="https://github.com/mkbabb" target="_blank" rel="noopener noreferrer" class="text-mono-caption normal-case font-semibold text-foreground hover:underline">@mbabb</a>
                             <p class="text-admin-label text-muted-foreground leading-tight">CSS keyframe animation engine</p>
                             <a href="https://github.com/mkbabb/keyframes.js" target="_blank" rel="noopener noreferrer" class="text-admin-label text-muted-foreground hover:text-foreground hover:underline transition-colors">View the project on Github &#x1F389;</a>
                         </div>
@@ -147,6 +152,12 @@
 </template>
 
 <script setup lang="ts">
+// The ppmycota brand-mark rules (uncaged from utils.css, D.W2.S2). App.vue is
+// the app entry that mounts every brand-mark consumer (header logo here,
+// CubeScene hover-card logo, CubeTarget cube face); a single non-scoped partial
+// is the smallest shared scope for the recurring mark.
+import "@styles/brand.css";
+
 import { computed, markRaw, nextTick, provide, ref, shallowRef, watch } from "vue";
 import { CONTROLS_PANE_HOVER_KEY, TABS_EXTERNALLY_MANAGED_KEY } from "@components/custom/animation-controls/injectionKeys";
 

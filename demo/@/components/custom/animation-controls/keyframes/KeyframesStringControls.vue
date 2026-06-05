@@ -20,21 +20,13 @@
     </div>
 </template>
 <script setup lang="ts">
-import {
-    extractAnimationOptions,
-    extractStyleRules,
-    parseCSSStylesheet,
-    reverseCSSTime,
-} from "@mkbabb/value.js";
-import {
-    Animation,
-    CSSKeyframesAnimation,
-    resolveKeyframes,
-} from "@src/animation/engine";
+import { reverseCSSTime } from "@mkbabb/value.js";
+import { Animation, CSSKeyframesAnimation } from "@src/animation/engine";
 
-
-import { onMounted, onUnmounted, ref, useTemplateRef } from "vue";
+import { onMounted, ref, useTemplateRef } from "vue";
+import { useTimeoutFn } from "@vueuse/core";
 import { useApplyCSS } from "./composables/useApplyCSS";
+import { parseAnimationCSS } from "./utils/parseAnimationCSS";
 
 import {
     Paintbrush,
@@ -52,19 +44,6 @@ import * as animations from "@src/animation/animations";
 
 import { CSSKeyframesToString } from "@src/animation/format";
 
-const parseCSSAnimationKeyframes = (input: string) => {
-    const ast = parseCSSStylesheet(input);
-    const resolved = resolveKeyframes(ast);
-    const options = extractAnimationOptions(ast);
-    const values: Record<string, unknown> = {};
-    for (const rule of extractStyleRules(ast)) {
-        for (const decl of rule.declarations) {
-            if (!decl.name.startsWith("animation"))
-                values[decl.name] = decl.value;
-        }
-    }
-    return { keyframes: resolved.keyframes, options, values };
-};
 import CSSCodeEditor from "./CSSCodeEditor.vue";
 
 const { animation } = defineProps<{
@@ -97,7 +76,16 @@ storedControls.keyframeControls ??= defaultKeyframeControls;
 const editorRef = ref<InstanceType<typeof CSSCodeEditor> | null>(null);
 const cssKeyframesString = ref("");
 const isFormatting = ref(false);
-let formattingTimeoutId: ReturnType<typeof setTimeout> | undefined;
+
+// Reset the formatting flag 300ms after a format completes. useTimeoutFn
+// owns the handle + auto-cleans on unmount; re-calling start() restarts it.
+const { start: startFormattingReset } = useTimeoutFn(
+    () => {
+        isFormatting.value = false;
+    },
+    300,
+    { immediate: false },
+);
 
 const getTmpAnimationName = () => {
     return keyframesStyleId.replace("keyframes-style-", "").toLowerCase();
@@ -116,8 +104,7 @@ const formatEditor = async () => {
     if (!editorRef.value) return;
     isFormatting.value = true;
     await editorRef.value.formatCSS();
-    clearTimeout(formattingTimeoutId);
-    formattingTimeoutId = setTimeout(() => { isFormatting.value = false; }, 300);
+    startFormattingReset();
 };
 
 function onKeyDown(e: KeyboardEvent) {
@@ -151,7 +138,7 @@ const syncStoredOptionsFromAnimation = (parsedOptions?: Record<string, any>) => 
 
 const onEditorChange = (value: string) => {
     const parseAndUpdate = () => {
-        const { keyframes, options } = parseCSSAnimationKeyframes(value);
+        const { keyframes, options } = parseAnimationCSS(value);
 
         const tmpAnimation = new CSSKeyframesAnimation(
             animation.options,
@@ -235,10 +222,6 @@ const parseErrorShake = animations.shake();
 onMounted(async () => {
     brushAnimation.setTargets(brushEl.value!);
     await updateCSSAnimationKeyframesStringFromAnimation();
-});
-
-onUnmounted(() => {
-    clearTimeout(formattingTimeoutId);
 });
 
 // Expose methods for parent components
