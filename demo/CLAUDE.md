@@ -16,7 +16,6 @@ demo/
 │   │   │   ├── orbital-drag/        # Quaternion-based 3D drag (gl-matrix, Pointer Events)
 │   │   │   ├── Animated.vue         # Fade in/out wrapper using library presets
 │   │   │   ├── AnimatedText.vue     # Staggered per-character animation
-│   │   │   ├── CommandPalette.vue   # Cmd+K palette
 │   │   │   ├── CopyButton.vue      # Clipboard + feedback animation
 │   │   │   ├── IconTooltip.vue      # Tooltip wrapper
 │   │   │   ├── KeyboardShortcutsModal.vue # Dialog showing registered keyboard shortcuts

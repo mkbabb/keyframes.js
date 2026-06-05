@@ -75,9 +75,6 @@ watch(
     100% {
         transform: translateY(0);
     }
-    200% {
-        transform: translateY(0);
-    }
 }
 
 .dot-fade {
@@ -92,6 +89,20 @@ watch(
         opacity: 0;
     }
     50% {
+        opacity: 1;
+    }
+}
+
+/* PRM guard: the hero is the LCP node and runs perpetual infinite decorative
+   motion. Under prefers-reduced-motion the characters settle to their resting
+   frame (no lift, fully opaque) — the engine's withReducedMotion authority
+   mirrored at the CSS layer for this template-only hero. */
+@media (prefers-reduced-motion: reduce) {
+    .lift-down,
+    .dot-fade {
+        animation: none;
+    }
+    .dot-fade {
         opacity: 1;
     }
 }

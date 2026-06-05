@@ -5,6 +5,7 @@ import { CSSKeyframesAnimation } from "@src/animation/engine";
 import { AnimationGroup } from "@src/animation/group";
 import * as animations from "@src/animation/animations";
 import { getStoredAnimationOptions } from "@components/custom/animation-controls/stores";
+import { useSceneVisibilityPause } from "../app/useSceneVisibilityPause";
 
 export const SUPER_KEY = "Cube";
 
@@ -102,6 +103,17 @@ export function useCubeAnimations(
         changeGraphPerspectiveAnim.setTargets(graphEl);
         changeGraphPerspectiveAnim.play();
     };
+
+    // B-3: pause the cube's engine draw loop while the tab is hidden. The group
+    // owns its rAF; `pause()` records each child's `pausedTime` and `resume()`
+    // re-bases `startTime` so `effectiveT` stays continuous — no forward jump on
+    // return. Only resumes what the hide auto-paused (a user-paused cube stays
+    // paused).
+    useSceneVisibilityPause(
+        () => animationGroup.value.playing(),
+        () => animationGroup.value.pause(),
+        () => animationGroup.value.resume(),
+    );
 
     return {
         matrixAnim,

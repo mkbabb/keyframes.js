@@ -278,20 +278,8 @@ defineExpose({ resetIconSpin, trashIconShake });
     }
 }
 
-/* Progress dot: conic gradient + glow driven by --dot-p (0–1) custom property.
-   The active-playing companion to glass-ui's discrete <StatusDot>.
-   Avoids per-frame string allocation — only the property value changes. */
-.progress-dot {
-    display: inline-block;
-    flex-shrink: 0;
-    border-radius: var(--radius-pill);
-    --deg: calc(var(--dot-p) * 360deg);
-    --glow-spread: calc(2px + var(--dot-p) * 3px);
-    --glow-blur: calc(var(--dot-p) * 1.5px);
-    background: conic-gradient(
-        var(--color-progress) var(--deg),
-        color-mix(in srgb, var(--color-progress) 15%, transparent) var(--deg)
-    );
-    box-shadow: 0 0 var(--glow-spread) var(--glow-blur) color-mix(in srgb, var(--color-progress) 40%, transparent);
-}
+/* The .progress-dot recipe (the active-playing conic-gradient progress ring,
+   applied at the SelectItem above) was PROMOTED to the owned idiom layer
+   (design-idioms.css, E.W11.S4 — beside its sibling .progress-bar), so the
+   progress vocabulary is single-sourced. The call site keeps `class="progress-dot"`. */
 </style>

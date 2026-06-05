@@ -20,6 +20,7 @@ import {
     generateStepSVGPath,
 } from "@components/custom/animation-controls/controls/composables/timingCurveUtils";
 import { NAMED_EASING_BEZIER } from "@components/custom/animation-controls/animationDescriptions";
+import { useSceneVisibilityPause } from "../app/useSceneVisibilityPause";
 import { getFamilyForCurve, getFamilyCurves, type CurveGroupItem } from "./easingGroups";
 
 // ── Static data ────────────────────────────────────────────────────
@@ -178,6 +179,13 @@ export function useEasingDemo() {
 
     onActivated(ensureLoop);
     onDeactivated(() => playback.stop());
+
+    // B-3: idle the preview rAF while the tab is hidden, without disturbing the
+    // user's play/pause intent. `isPlaying` is left untouched (the play button
+    // stays as-is); on return `ensureLoop` only re-arms if the user had it
+    // playing. `ensureLoop` re-seeds `startTime` from the current `progress`, so
+    // the sweep resumes in phase with no jump.
+    useSceneVisibilityPause(() => playback.running, playback.stop, ensureLoop);
 
     // ── Methods ────────────────────────────────────────────────────
 

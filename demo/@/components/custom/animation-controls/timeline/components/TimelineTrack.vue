@@ -54,7 +54,11 @@
                 :style="{ left: `${percentToPosition(scrubT * 100)}%` }"
             ></div>
 
-            <!-- Keyframe markers -->
+            <!-- Keyframe markers — each a keyboard-accessible slider (the
+                 SpringTarget role="slider" template): drag OR arrow-key the
+                 keyframe along the 0–100% track. The visible diamond keeps its
+                 16/24px size; an invisible ≥24px hit pad (::before) meets the
+                 touch-target minimum without moving a pixel of the diamond. -->
             <Tooltip v-for="kf in sortedKeyframes" :key="kf.id">
                 <TooltipTrigger as-child>
                     <div
@@ -67,8 +71,15 @@
                                 ? 'bg-primary border-primary scale-125'
                                 : 'bg-background border-foreground/50 hover:border-primary scale-on-hover',
                         ]"
+                        role="slider"
+                        :aria-label="`Keyframe at ${Math.round(kf.percent)}% — drag or arrow to move`"
+                        :aria-valuenow="Math.round(kf.percent)"
+                        aria-valuemin="0"
+                        aria-valuemax="100"
+                        tabindex="0"
                         :style="{ left: `${percentToPosition(kf.percent)}%` }"
                         @pointerdown.stop="onMarkerPointerDown($event, kf.id)"
+                        @keydown="onMarkerKeydown($event, kf)"
                         @mouseenter="emit('diamondHover', kf)"
                     ></div>
                 </TooltipTrigger>
@@ -182,6 +193,24 @@ const onMarkerPointerDown = (event: PointerEvent, id: string) => {
     draggingKeyframeId.value = id;
     (event.target as Element).setPointerCapture(event.pointerId);
 };
+
+/**
+ * Keyboard slider control — mirrors SpringTarget's arrow/Home/End template.
+ * Arrows step ±1% (±10% with Shift), Home/End jump to the rail ends; the
+ * percent is clamped 0–100 by `moveKeyframe`.
+ */
+const onMarkerKeydown = (event: KeyboardEvent, kf: TimelineKeyframe) => {
+    const step = event.shiftKey ? 10 : 1;
+    let next: number | null = null;
+    if (event.key === "ArrowRight" || event.key === "ArrowUp") next = kf.percent + step;
+    else if (event.key === "ArrowLeft" || event.key === "ArrowDown") next = kf.percent - step;
+    else if (event.key === "Home") next = 0;
+    else if (event.key === "End") next = 100;
+    if (next === null) return;
+    event.preventDefault();
+    emit("select", kf.id);
+    emit("moveKeyframe", kf.id, Math.max(0, Math.min(100, next)));
+};
 </script>
 
 <style scoped>
@@ -194,6 +223,20 @@ const onMarkerPointerDown = (event: PointerEvent, id: string) => {
     transition:
         transform var(--duration-fast) var(--ease-standard),
         border-color var(--duration-fast) var(--ease-standard);
+}
+
+/* Invisible ≥24px pointer/touch pad centered on the diamond — meets the
+   minimum touch-target size for the 16px collapsed diamond without changing
+   the visible mark (the pad inherits pointer/keyboard events for the marker;
+   it counter-rotates so its box is axis-aligned, not a 24px diamond). */
+.keyframe-marker::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 24px;
+    height: 24px;
+    transform: translate(-50%, -50%) rotate(-45deg);
 }
 
 .keyframe-marker:active {

@@ -59,6 +59,11 @@ const RAF = /\brequestAnimationFrame\b/g;
 const ALLOWLIST = new Set([
     "demo/app/scenes/AmigaScene.vue",
     "demo/@/components/custom/matrix-editor/useTransformState.ts",
+    // E.W11 a11y: a ONE-SHOT rAF (not a loop) to re-arm the aria-live region —
+    // clear `liveStatus` then set it on the next paint frame so a repeat copy
+    // re-announces the unchanged text to screen readers. Not an animation a
+    // light engine ships; the engine's feedback flash IS the dogfooded part.
+    "demo/@/components/custom/CopyButton.vue",
 ]);
 
 // Source extensions the demo's rAF could live in. (CSS/HTML cannot host a rAF.)

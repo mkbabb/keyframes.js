@@ -15,6 +15,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 import { tesselateSphere } from "../../amiga/utils";
 import { useAmigaAnimations, BOX_SIZE } from "../../amiga/useAmigaAnimations";
+import { useSceneVisibilityPause } from "../useSceneVisibilityPause";
 
 const superKey = "Amiga";
 
@@ -121,6 +122,16 @@ onDeactivated(() => {
 onActivated(() => {
     startRenderLoop();
 });
+
+// B-3: pause the WebGL present loop while the tab is backgrounded (a hidden tab
+// otherwise drives a full render per frame — pure battery waste). OrbitControls
+// damping continues from rest on resume; nothing to re-base (the render is
+// clock-free), so the sphere picks up exactly where it stood.
+useSceneVisibilityPause(
+    () => rafId != null,
+    stopRenderLoop,
+    startRenderLoop,
+);
 
 onBeforeUnmount(() => {
     animationGroup.stop();

@@ -40,7 +40,20 @@
                     ></AnimationControlsControls>
                 </TabsContent>
 
-                <TabsContent value="keyframes">
+                <!-- B-2 (CWV/INP): force-mount the Monaco-heavy keyframes pane and
+                     cache it via content-visibility:hidden when inactive, instead
+                     of letting reka unmount it (which re-spins Monaco's worker /
+                     model / themes on every switch-back). aria-hidden + the
+                     focus-move on reveal keep the cached pane out of the AT tree
+                     while inactive. Scoped to THIS Monaco pane only — the
+                     lightweight controls pane stays default-unmounted. -->
+                <TabsContent
+                    value="keyframes"
+                    force-mount
+                    ref="keyframesPaneEl"
+                    :class="['monaco-pane', keyframesActive ? '' : 'inactive']"
+                    :aria-hidden="keyframesActive ? undefined : 'true'"
+                >
                     <KeyframesStringControls
                         ref="keyframesControlsRef"
                         @keyframes-update="
@@ -182,6 +195,28 @@ const isTimelineVisible = computed(() =>
     storedControls.selectedControl === "timeline" || storedControls.isTimelineExpanded,
 );
 
+// B-2: the keyframes pane is force-mounted and content-visibility-cached when
+// inactive. `keyframesActive` toggles the `.inactive` class + aria-hidden.
+const keyframesPaneEl = useTemplateRef<any>("keyframesPaneEl");
+const keyframesActive = computed(() => storedControls.selectedControl === "keyframes");
+
+// On reveal, move focus into the freshly-shown Monaco pane (the cached pane was
+// aria-hidden + content-visibility:hidden while inactive) and let Monaco's
+// deferred ResizeObserver re-measure now that the box has layout again. reka's
+// roving focus stays intact because the pane was force-mounted (never torn down).
+watch(keyframesActive, (active) => {
+    if (!active) return;
+    nextTick(() => {
+        // The glass-ui/reka <TabsContent> forwards its root; resolve the DOM
+        // node whether the ref is a component instance ($el) or the element.
+        const node = (keyframesPaneEl.value?.$el ?? keyframesPaneEl.value) as HTMLElement | undefined;
+        // The reka tabpanel root is focusable (tabindex=0) — focus it so the
+        // revealed pane owns the tab sequence; Monaco re-measures on the layout
+        // pass that content-visibility restoration triggers.
+        node?.focus?.();
+    });
+});
+
 const tabClasses = "tab-trigger-base tab-trigger-pill";
 
 // --- Overflow detection (left + right) via shared composable ---
@@ -239,6 +274,23 @@ defineExpose({
 </script>
 
 <style scoped>
+/* B-2: cache the inactive force-mounted Monaco pane. content-visibility:hidden
+   keeps the rendered Monaco subtree in memory but skips its layout/paint while
+   inactive — a switch-back restores the cached pane instead of re-instantiating
+   Monaco's worker/model/themes (the INP win). Baseline 2025-09-15. */
+.monaco-pane.inactive {
+    content-visibility: hidden;
+}
+
+/* Where content-visibility is unsupported, fall back to display:none so the
+   force-mounted pane does not render alongside the active one. The cache benefit
+   is lost there, but correctness (one visible pane) holds. */
+@supports not (content-visibility: hidden) {
+    .monaco-pane.inactive {
+        display: none;
+    }
+}
+
 .tabs-overflow-right,
 .tabs-overflow-left,
 .tabs-overflow-both {

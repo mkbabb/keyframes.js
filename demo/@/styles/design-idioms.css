@@ -122,6 +122,27 @@
     --color-gold-dark: hsl(34 87% 45%);
 }
 
+/* ── The demo-owned :focus-visible contract (E.W11.S3 — the a11y keystone) ──
+   Before this, the keyboard focus ring was owned in exactly ONE place —
+   playback-button.css's `.btn-playback:focus-visible` — rather than as a
+   demo-wide contract, so every OTHER custom interactive surface the demo
+   authored (the role="slider" tracker, the timeline markers/playhead, the
+   visualizer, the CopyButton-turned-<button>) had no shared focus affordance.
+   This establishes the SINGLE demo-owned contract: any element carrying the
+   `.focus-ring` idiom paints glass-ui's canonical `--focus-ring-shadow` (the
+   same token playback-button.css consumes, single-sourced) on `:focus-visible`
+   and suppresses the raw UA outline. `:focus-visible` (not `:focus`) means the
+   ring shows for keyboard/AT focus only — pointer focus stays quiet, so this is
+   a keyboard-only paint, pixel-isomorphic for the mouse/sighted case.
+
+   The per-component a11y roles (role/aria-label/keyboard handlers) are the
+   sibling a11y-uniformity lane; THIS file owns only the shared ring so every
+   swept control inherits one proven, gate-able focus affordance. */
+.focus-ring:focus-visible {
+    box-shadow: var(--focus-ring-shadow);
+    outline: none;
+}
+
 /* ── .text-gold utility ──
    Consumes --color-gold. Replaces the off-idiom `text-[var(--color-gold)]`
    arbitrary value on the Format <Sparkles> icon (S3) with a named utility, so
@@ -209,6 +230,44 @@
         var(--rainbow-violet) 83%,
         var(--rainbow-red) 100%
     );
+}
+
+/* ── .progress-dot ──
+   The active-playing progress ring (E.W11.S4 — promoted from
+   AnimationMenuBar.vue's scoped block to the owned idiom layer, beside its
+   sibling .progress-bar; the same promotion E.W3 §S4 did for .progress-bar).
+   A conic-gradient ring + glow driven by the --dot-p (0–1) custom property —
+   the active-playing companion to glass-ui's discrete <StatusDot>. Driving the
+   gradient by ONE custom-property value (not a re-emitted string per frame)
+   keeps it allocation-free. The call site keeps `class="progress-dot"`; only
+   the definition relocated, so it is pixel-identical (same computed values). */
+.progress-dot {
+    display: inline-block;
+    flex-shrink: 0;
+    border-radius: var(--radius-pill);
+    --deg: calc(var(--dot-p) * 360deg);
+    --glow-spread: calc(2px + var(--dot-p) * 3px);
+    --glow-blur: calc(var(--dot-p) * 1.5px);
+    background: conic-gradient(
+        var(--color-progress) var(--deg),
+        color-mix(in srgb, var(--color-progress) 15%, transparent) var(--deg)
+    );
+    box-shadow: 0 0 var(--glow-spread) var(--glow-blur) color-mix(in srgb, var(--color-progress) 40%, transparent);
+}
+
+/* ── .dock-inset ──
+   The dock-band inset (E.W11.S4 — define-or-delete; DEFINED, two scenes expect
+   it). Referenced as a layout class on the easing + spring scene targets
+   (EasingTarget.vue, SpringTarget.vue) but DEFINED demo-nowhere until now — it
+   resolved to a no-op, silently dropping the intended inset on both scenes (a
+   latent layout bug). The intent: keep the scene subject clear of the bottom
+   dock BAND (the menubar pill exclusion zone), the same reserve the work-area
+   sizing already names. Reserving padding-bottom equal to --dock-band-reserve
+   (the cycle-free dock + safe-area band defined in style.css) lifts the scene
+   content above the dock on those two scenes. NAMED layout-correctness delta:
+   the intended dock-band inset now appears on the two scenes that expect it. */
+.dock-inset {
+    padding-bottom: var(--dock-band-reserve);
 }
 
 /* ── @keyframes enter ──

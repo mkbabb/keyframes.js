@@ -5,6 +5,7 @@
         <img
             v-if="previewSrc"
             :src="previewSrc"
+            :alt="`Rendered preview of the keyframe at ${Math.round(keyframe.percent)}%`"
             class="w-36 h-auto rounded border border-border/30"
         />
         <!-- Ghost box preview from CSS vars -->

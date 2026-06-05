@@ -1,5 +1,10 @@
 <template>
-    <div class="p-2 w-full h-full">
+    <!-- aria-hidden: this big ball is a decorative VISUAL twin of the real
+         reka <Slider> in PlaybackRibbon (same scrub value, same range). One
+         AT slider per scrub value — the <Slider> is it; this is sighted-only
+         flair, so it is hidden from the accessibility tree (the spec's
+         "redundant twin → aria-hidden" disposition). -->
+    <div class="p-2 w-full h-full" aria-hidden="true">
         <div
             ref="trackEl"
             class="w-full h-12 relative"

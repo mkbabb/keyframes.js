@@ -15,6 +15,7 @@ import { springTimingFunction } from "@src/animation/springTimingFunction";
 import { NumericAnimation } from "@src/animation/numeric";
 import { RAFPlayback } from "@src/animation/playback";
 
+import { useSceneVisibilityPause } from "../app/useSceneVisibilityPause";
 import { SPRING_PRESETS, type SpringPreset } from "./springPresets";
 
 /** One live tracker plus its reactive read-out, for the comparison row. */
@@ -234,6 +235,12 @@ export function useSpringDemo() {
     // ── KeepAlive lifecycle ──────────────────────────────────────────
     onActivated(ensureLoop);
     onDeactivated(() => playback.stop());
+
+    // B-3: idle the shared spring rAF while the tab is hidden without touching
+    // the user's play/pause intent. The SpringProgress solver is analytic and
+    // `ensureLoop` reseeds the shared clock (`lastNow = 0`), so the first frame
+    // after resume steps by dt=0 — the comparison row resumes in phase, no jump.
+    useSceneVisibilityPause(() => playback.running, playback.stop, ensureLoop);
 
     // ── Scene-contract group ─────────────────────────────────────────
     // The bottom bar's transport (`AnimationControlsGroup`) requires an

@@ -1,11 +1,18 @@
 import { computed, ref, watch, type ComputedRef } from "vue";
+import { supportsViewTransitions } from "@mkbabb/glass-ui/motion-core";
 import { SpringProgress } from "@src/animation/spring";
 
 /**
- * The engine-dogfooded scene-swap cross-dissolve. The keyed `<Suspense>` host
- * (App.vue) hard-cuts the scene; this `SpringProgress` fades the new scene in
- * over the previous paint via a sibling reactive style binding — NOT a
- * `<Transition>` wrapper.
+ * The engine-dogfooded scene-swap cross-dissolve — the NO-VT FALLBACK. Where
+ * the platform ships native View Transitions (`useSceneTransition`), the
+ * compositor owns the scene cross-fade and this spring ramp stays at rest (one
+ * motion, never two stacked). Where `startViewTransition` is ABSENT, this is the
+ * swap motion, byte-identical to its pre-VT behaviour — the engine still
+ * dogfoods its own SpringProgress on those engines.
+ *
+ * The keyed `<Suspense>` host (App.vue) hard-cuts the scene; this `SpringProgress`
+ * fades the new scene in over the previous paint via a sibling reactive style
+ * binding — NOT a `<Transition>` wrapper.
  *
  * Why a sibling style binding, not a `<Transition>`: a `<Transition mode="out-in">`
  * / `<KeepAlive>` around a keyed `<Suspense>` whose child is a
@@ -23,18 +30,25 @@ import { SpringProgress } from "@src/animation/spring";
  * clean swap, the engine's own reduced-motion authority.
  */
 export function useSceneSwap(activeSceneKey: ComputedRef<string>) {
+    // Feature-detect ONCE: native VT owns the swap motion where supported, so
+    // the spring stands down (no double cross-fade). Elsewhere it drives the swap.
+    const vtOwnsMotion = supportsViewTransitions();
+
     const sceneOpacity = ref(1);
     const sceneSwapStyle = computed(() => ({
         opacity: sceneOpacity.value,
         // lerp(0.97, 1, v): subtle scale-up as the scene settles in.
         transform: `scale(${0.97 + 0.03 * sceneOpacity.value})`,
     }));
-    const sceneSwapSpring = new SpringProgress({ respectReducedMotion: true });
-    watch(activeSceneKey, () => {
-        sceneSwapSpring.reset(0);
-        sceneSwapSpring.play((v) => { sceneOpacity.value = v; });
-        sceneSwapSpring.target = 1;
-    });
+
+    if (!vtOwnsMotion) {
+        const sceneSwapSpring = new SpringProgress({ respectReducedMotion: true });
+        watch(activeSceneKey, () => {
+            sceneSwapSpring.reset(0);
+            sceneSwapSpring.play((v) => { sceneOpacity.value = v; });
+            sceneSwapSpring.target = 1;
+        });
+    }
 
     return { sceneSwapStyle };
 }

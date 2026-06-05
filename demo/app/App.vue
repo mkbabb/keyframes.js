@@ -8,7 +8,7 @@
         :is-controls-panel-open="storedControls.isControlsPanelOpen"
         :selected-control="storedControls.selectedControl"
         :extra-control-tabs="sceneRef?.extraControlTabs ?? []"
-        @switch-scene="switchScene"
+        @switch-scene="runSceneSwitch"
         @toggle-controls-panel="storedControls.isControlsPanelOpen = !storedControls.isControlsPanelOpen"
         @update-selected-control="(v: string) => { storedControls.selectedControl = v; }"
     >
@@ -21,7 +21,7 @@
                 <DropdownMenuContent align="end" :side-offset="8" class="z-modal min-w-[var(--dock-panel-width)] text-body p-1.5">
                     <!-- Share -->
                     <DropdownMenuItem @select.prevent class="flex items-center gap-2.5 px-1.5 py-1 rounded-lg">
-                        <SharePopover :on-scene-restore="(id: string) => switchScene(id)" />
+                        <SharePopover :on-scene-restore="(id: string) => runSceneSwitch(id)" />
                         <div class="flex-1 min-w-0">
                             <span class="text-small text-foreground">Share</span>
                             <p class="text-admin-label text-muted-foreground leading-tight">Copy link or load shared state</p>
@@ -115,7 +115,12 @@
                  `sceneSwapStyle` on this SIBLING <div> (SpringProgress +
                  rationale in `useSceneSwap`), never a wrapper <Transition>, so
                  the re-break can't recur. -->
-            <div class="h-full w-full" :style="sceneSwapStyle">
+            <div
+                ref="sceneHostEl"
+                class="scene-host h-full w-full"
+                tabindex="-1"
+                :style="sceneSwapStyle"
+            >
                 <Suspense :key="activeSceneKey">
                     <component
                         :is="activeSceneComponent"
@@ -139,7 +144,7 @@
 // App.vue mounts (header logo, CubeScene hover-card logo, CubeTarget cube face).
 import "@styles/brand.css";
 
-import { computed, markRaw, nextTick, provide, ref, shallowRef, watch } from "vue";
+import { computed, markRaw, nextTick, provide, ref, shallowRef, useTemplateRef } from "vue";
 import { CONTROLS_PANE_HOVER_KEY, TABS_EXTERNALLY_MANAGED_KEY } from "@components/custom/animation-controls/injectionKeys";
 
 import { EditorShell, EditorStartScreen, SharePopover } from "@components/custom/editor-shell";
@@ -149,7 +154,7 @@ import { DockDropdownTrigger } from "@mkbabb/glass-ui/dock";
 import { TopDock } from "@components/custom/dock";
 
 import { AnimationGroup } from "@src/animation/group";
-import { getStoredAnimationGroupControlOptions, getScenePlaybackState, clearScenePlaybackState } from "@components/custom/animation-controls/stores";
+import { getStoredAnimationGroupControlOptions } from "@components/custom/animation-controls/stores";
 
 // Tabs in the controls pane are managed via the TopDock controls tab dropdown
 provide(TABS_EXTERNALLY_MANAGED_KEY, true);
@@ -164,11 +169,17 @@ import { useSceneRouter } from "./useSceneRouter";
 import { useSceneUrl } from "./useSceneUrl";
 import { usePlaybackSnapshot } from "./usePlaybackSnapshot";
 import { useSceneSwap } from "./useSceneSwap";
+import { useSceneTransition } from "./useSceneTransition";
+import { useSceneGroupSync } from "./useSceneGroupSync";
 import { sceneMap, HOME_SCENE_ID } from "./scenes";
 
 const { currentSceneId, currentScene, isHome, ready, scenes, switchScene: rawSwitchScene } = useSceneRouter();
 
 const sceneRef = shallowRef<any>(null);
+
+// The scene-swap subject: the host the View Transition morphs and the focus
+// target routed to on `transition.finished` (the a11y MANDATORY).
+const sceneHostEl = useTemplateRef<HTMLElement>("sceneHostEl");
 
 // Start with an empty AnimationGroup. Use the scene's actual superKey from the
 // start so ACG mounts with the correct key — avoids an unnecessary remount cycle
@@ -217,7 +228,10 @@ function onPlayStateChange(playing: boolean) {
     const isHomeEmptyGroup = Object.keys(group.animations).length === 0;
     if (isHome.value && playing && isHomeEmptyGroup) {
         autoPlayNext.value = true;
-        switchScene("cube");
+        // The home Play gesture navigates home→cube — route it through the same
+        // View-Transition entry as the dock nav (runSceneSwitch is referenced at
+        // event time, after setup, so the later `const` binding is resolved).
+        runSceneSwitch("cube");
         return;
     }
     if (sceneRef.value && 'isPlaying' in sceneRef.value) {
@@ -287,58 +301,40 @@ function switchScene(id: string) {
     }
 }
 
-watch(
-    () => sceneRef.value?.animationGroup,
-    (group) => {
-        if (!group) return;
-        const superKey = sceneRef.value!.superKey;
+// Native View Transitions wrap the (synchronous) scene-id mutation above; the
+// no-VT path falls through to the SpringProgress cross-dissolve unchanged, and
+// focus routes to the scene host on `finished` (a11y). Every scene-nav entry
+// (the dock @switch-scene, the SharePopover restore) goes through this.
+const { runSceneSwitch } = useSceneTransition(switchScene, sceneHostEl);
 
-        // Detect the "stable" fire: when superKey hasn't changed, this is
-        // the second watcher fire after ACG's key-triggered remount cycle.
-        // The scene has remounted inside the new ACG, targets are set,
-        // and this group instance is the one that will stick around.
-        const isStableFire = currentSuperKey.value === superKey;
-
-        // Configure controls BEFORE updating superKey — the key change
-        // remounts AnimationControlsGroup which reads these during setup.
-        const controls = getStoredAnimationGroupControlOptions(superKey);
-        if (isHome.value) {
-            controls.isControlsPanelOpen = false;
-        } else {
-            // Pick the first animation when none is selected yet.
-            if (!controls.selectedAnimation) {
-                const names = Object.keys(group.animations);
-                if (names.length > 0) controls.selectedAnimation = names[0]!;
-            }
-            // Controls panel is open by default whenever a non-home scene
-            // mounts (e.g. page reload, direct deep link). User can close
-            // it during a session; it reopens on the next scene mount.
-            if (window.innerWidth >= 1024) {
-                controls.isControlsPanelOpen = true;
-            }
-        }
-
-        currentSuperKey.value = superKey;
-        currentAnimationGroup.value = markRaw(group);
-
-        // Restore saved playback state on the stable (second) fire.
-        // By this point the scene has mounted and set targets, so
-        // interpFrames can resolve computed CSS values.
-        if (isStableFire) {
-            const savedState = getScenePlaybackState(superKey);
-            if (savedState) {
-                restoreGroupPlaybackState(group, savedState);
-                clearScenePlaybackState(superKey);
-            }
-        }
-
-        // Clear autoPlay flag after the scene has mounted and the
-        // AnimationControlsGroup consumed it via the prop.
-        if (autoPlayNext.value) {
-            // Keep it true for this render cycle so AnimationControlsGroup
-            // sees it during its mount. Clear on next tick.
-            nextTick(() => { autoPlayNext.value = false; });
-        }
-    },
-);
+// The scene-group ↔ controls/playback-store reconcile across ACG's remount
+// cycle (the double-fire codec) — extracted to keep the scene shell legible.
+useSceneGroupSync({
+    sceneRef,
+    currentSuperKey,
+    currentAnimationGroup,
+    isHome,
+    autoPlayNext,
+    restoreGroupPlaybackState,
+});
 </script>
+
+<style scoped>
+/* The scene-swap subject for the View Transition: a single, stable
+   `view-transition-name` on the scene host means exactly ONE element per VT
+   state (so names never collide, the runtime MANDATORY), and the compositor
+   morphs the old scene paint into the new across every nav. The PRM degrade
+   (`::view-transition-* { animation: none }`) rides glass-ui's
+   view-transition.css, already loaded via the demo's `@import
+   "@mkbabb/glass-ui/styles"` — no demo-side VT CSS duplicates it. */
+.scene-host {
+    view-transition-name: scene-subject;
+}
+
+/* The host is `tabindex="-1"` solely to receive PROGRAMMATIC focus after the
+   transition (the a11y route); it is not a keyboard tab-stop, so suppress its
+   focus ring — the focus moves context for AT without a stray outline. */
+.scene-host:focus {
+    outline: none;
+}
+</style>

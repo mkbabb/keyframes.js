@@ -60,6 +60,17 @@ export const scenes: SceneDescriptor[] = [
             () => import("./scenes/SpringScene.vue"),
         ),
     },
+    {
+        // The @starting-style + spring-linear() copy-paste artifact scene: a
+        // discrete entry/exit transition eased by a keyframes.js spring, with
+        // the emitted linear(...) surfaced behind a copy button.
+        id: "starting-style",
+        label: "Discrete",
+        superKey: "StartingStyle",
+        component: defineAsyncComponent(
+            () => import("./scenes/StartingStyleScene.vue"),
+        ),
+    },
 ];
 
 export const allScenes = [homeScene, ...scenes];
