@@ -158,14 +158,16 @@ D-3 and E.W5's `tryParseCache` were withheld until measured.
 
 ### S1 — `setColorSpace`/`setHueMethod` honor the compiled state (FC-1) — Strand A
 
-**WHAT:** the setters re-derive the compile-baked color machinery on set, OR
-(KISS minimum) are made honest with a lock-test that pins the contract. The
-isomorphism-restoring choice is to re-run the normalize step over the existing
-`interpVars` on set — re-`createInterpVarValue` from `parsedVars`, **no
+**WHAT:** the setters re-derive the compile-baked color machinery on set — the
+transposition, with NO documented-limitation escape hatch (a `setColorSpace` that
+does not change the color space is the same defect class as the secretly-toggling
+`pause` D-5 retired; the mandate forbids pinning the bug as a "contract", and the
+hard gate below only passes the real fix). Re-run the normalize step over the
+existing `interpVars` on set — re-`createInterpVarValue` from `parsedVars`, **no
 re-flatten/re-sort** (the shape work is already done; only the per-`InterpolatedVar`
 color resolution depends on `colorSpace`/`hueMethod`). The doc-comment at
 `frame-compiler.ts:86-92` and the two `CLAUDE.md` references are corrected to
-match whichever contract lands.
+match the now-true live-re-derive contract.
 
 **WHY:** `anim.fromString(css).setColorSpace("lab")` must change the interpolated
 channel values — the API promises a live re-derive (`setDuration` honors it; the

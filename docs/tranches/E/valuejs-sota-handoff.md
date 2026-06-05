@@ -27,6 +27,20 @@ this lane writes** (inv-16: write ONLY `docs/tranches/E/valuejs-sota-handoff.md`
 > · `r-waapi` · `r-interpolation` · `r-cwv-perf`) **deepened** the wave structure
 > and overturned nothing.
 
+**The mandate (travels WITH this charter — the same precepts the keyframes
+tranches run under).** NO quick solutions, NO workarounds — idiomatic, gestalt
+approaches only. This is a development product: **architectural transpositions in
+the sake of elegance, simplicity, and performance above all are both necessary and
+desirable** (Wave A's `any()`→`dispatch()` and Wave D's interpolation carrier ARE
+transpositions, not patches — sequence them as such). **NO legacy code**: no
+compat alias, no deprecated path kept beside its replacement, no polyfill — a
+replaced surface is replaced (the consumer migrates in the same motion), a removed
+name is removed. Every wave is **measure-first** (a perf claim lands behind a bench
+or is recorded-withheld), **isomorphic** (output deep-equal/value-equal unless a
+befitting delta is NAMED — the per-row isomorphism notes are binding), and
+**falsifiably gated** (the per-row gates must bite, not narrate). KISS — §5's
+ALREADY-SOTA record is binding: manufacture no work where value.js already leads.
+
 ---
 
 ## 0. The headline — what value.js is, and where the gaps are
