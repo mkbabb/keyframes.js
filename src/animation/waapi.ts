@@ -1,4 +1,6 @@
 import { COMPUTED_UNITS, unflattenObjectToString } from "@mkbabb/value.js";
+import { createNativeTimeline } from "./timeline";
+import type { NativeTimelineSpec } from "./timeline";
 import type { Animation } from "./engine";
 import type { Vars } from "./constants";
 
@@ -162,7 +164,26 @@ export function isWAAPIEligible<V extends Vars>(
 }
 
 /**
+ * Per-segment count of INTERMEDIATE sample stops emitted between two
+ * consecutive keyframe boundaries (F3, dense sub-segment sampling). WAAPI fills
+ * piecewise-LINEAR between the offsets it is handed, so a multi-component or
+ * unit-converted transform whose true rAF curve BENDS mid-segment would drift
+ * from the JS path between stops. Sampling the true curve at intermediate
+ * offsets — the same idiom `springLinearStops` proves (its 24-stop emit) —
+ * tightens the compositor fill toward the rAF curve. BOUNDED: a fixed,
+ * conservative count keeps the keyframe set small (the boundary endpoints are
+ * unchanged; only the between-stop fill densifies). Strictly fidelity-improving.
+ */
+const WAAPI_SUBSEGMENT_STOPS = 8;
+
+/**
  * Convert animation frames to WAAPI Keyframe[] format.
+ *
+ * Emits a keyframe at every stop boundary AND {@link WAAPI_SUBSEGMENT_STOPS}
+ * intermediate samples per segment (F3) by evaluating the true rAF curve
+ * (`interpFrames`, which runs each frame's per-segment easing) at offsets
+ * between the boundaries — so the compositor's piecewise-linear fill tracks the
+ * JS curve, not just its endpoints.
  */
 export function toWAAPIKeyframes<V extends Vars>(
     animation: Animation<V>,
@@ -178,7 +199,25 @@ export function toWAAPIKeyframes<V extends Vars>(
 
     const sortedTimes = [...timePoints].sort((a, b) => a - b);
 
-    for (const t of sortedTimes) {
+    // Densify: between each pair of consecutive boundaries, interleave evenly
+    // spaced interior sample times. The set dedupes, so a zero-width segment
+    // (start === stop) contributes nothing extra and degenerate inputs stay
+    // boundary-only. A non-positive count (or duration) short-circuits to the
+    // boundary-only emit — pure progressive densification, never a regression.
+    const sampleTimes = new Set<number>(sortedTimes);
+    if (WAAPI_SUBSEGMENT_STOPS > 0 && duration > 0) {
+        for (let i = 1; i < sortedTimes.length; i++) {
+            const a = sortedTimes[i - 1]!;
+            const b = sortedTimes[i]!;
+            const span = b - a;
+            if (span <= 0) continue;
+            for (let s = 1; s <= WAAPI_SUBSEGMENT_STOPS; s++) {
+                sampleTimes.add(a + (span * s) / (WAAPI_SUBSEGMENT_STOPS + 1));
+            }
+        }
+    }
+
+    for (const t of [...sampleTimes].sort((a, b) => a - b)) {
         const vars = animation.interpFrames(t, false);
         if (Object.keys(vars).length === 0) continue;
         const styleVars = unflattenObjectToString(vars);
@@ -322,4 +361,69 @@ export async function playWAAPI<V extends Vars>(
         animation.playback.stop();
         animation._waAnimations = [];
     }
+}
+
+export type NativeScrollAttachment =
+    | { attached: true; animations: globalThis.Animation[] }
+    | { attached: false; reason: string };
+
+/**
+ * The ADDITIVE native `ScrollTimeline`/`ViewTimeline` WAAPI bridge
+ * (D-LIB-2 / F-5 / S-1) — attach an eligible DOM animation to a native
+ * scroll-driven timeline so the compositor samples it from scroll position
+ * with ZERO main-thread sampling.
+ *
+ * Returns `{ attached: false, reason }` (the caller keeps the JS
+ * {@link import("./timeline").Timeline} sampler) when:
+ *  - the curve is not WAAPI-eligible (reuses the one eligibility gate), or
+ *  - the platform lacks the native timeline (`createNativeTimeline` → `null`:
+ *    Firefox today, SSR, jsdom — feature-detect, no polyfill).
+ *
+ * CRITICAL — the ARCH-kill HOLDS. This NEVER replaces the JS sampler: native
+ * scroll-driven is Chromium-only / not-Baseline, and the JS `ScrollTimeline`
+ * is the general (non-DOM-capable) fallback driver. Pure additive fast lane.
+ *
+ * Progress-reconciliation caveat (S5 / W3). The JS `ScrollTimeline` applies
+ * `SmoothProgress` smoothing + a boundary snap (`timeline.ts` pipeline); the
+ * native `animation-range` lane has NEITHER. This bridge attaches the RAW
+ * scroll progress — so for behaviour-equivalence the JS lane must run with
+ * smoothing disabled (`new ScrollTimeline({ smoothing: false })`), or the
+ * divergence is documented. We do NOT smuggle the JS smoother onto the native
+ * lane (there is no seam to). The lifecycle is W7-W1-shaped: an infinite scroll
+ * timeline never resolves `finished` (correctly long-lived) — the handles are
+ * exposed on `animation._waAnimations` so `stop()`/`reset()` cancel them.
+ */
+export function attachNativeScrollTimeline<V extends Vars>(
+    animation: Animation<V>,
+    spec: NativeTimelineSpec,
+): NativeScrollAttachment {
+    const elig = isWAAPIEligible(animation);
+    if (!elig.eligible) {
+        return { attached: false, reason: elig.reason };
+    }
+
+    const timeline = createNativeTimeline(spec);
+    if (timeline == null) {
+        return {
+            attached: false,
+            reason: "native scroll/view timeline unavailable (feature absent)",
+        };
+    }
+
+    const keyframes = toWAAPIKeyframes(animation);
+    // A native scroll-driven animation maps its 0→1 progress over the timeline
+    // range, NOT wall-clock time — but the easing/direction/fill from the one
+    // options builder still shape that progress mapping; `timeline:` swaps the
+    // clock for the scroller. No time-based `duration` smoothing is involved:
+    // the native lane has no SmoothProgress, by construction (see caveat).
+    const options: KeyframeAnimationOptions = {
+        ...toWAAPIOptions(animation),
+        timeline,
+    };
+
+    const animations = animation.targets.map((target) =>
+        target.animate(keyframes, options),
+    );
+    animation._waAnimations = animations;
+    return { attached: true, animations };
 }

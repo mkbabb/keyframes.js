@@ -45,6 +45,72 @@ export interface SpringProgressOptions {
     respectReducedMotion: boolean;
 }
 
+/**
+ * The modern, time-based spring surface — the idiom Motion now leads its
+ * docs with, treating `(response, dampingFraction)` as the advanced
+ * fallback. A pure parameter translation: `response = visualDuration` and
+ * `dampingFraction = 1 − bounce` (clamped). The solver, the `linear()`
+ * sampler, and the live re-seat are unchanged — this is a construction-time
+ * alternate surface, zero hot-path cost.
+ *
+ * Exactly one of `visualDuration` / `duration` selects the perceptual
+ * settle time (the period mapped onto `response`); `bounce` ∈ [−1, 1]
+ * selects overshoot (`0` ≈ critically damped, `> 0` rings, `< 0`
+ * overdamped). The remaining {@link SpringProgressOptions} keys
+ * (`initial`, `initialVelocity`, thresholds, `respectReducedMotion`)
+ * carry through unchanged.
+ */
+export interface SpringDurationOptions
+    extends Partial<
+        Pick<
+            SpringProgressOptions,
+            | "initial"
+            | "initialVelocity"
+            | "settleThreshold"
+            | "velocitySettleThreshold"
+            | "respectReducedMotion"
+        >
+    > {
+    /**
+     * The perceptual settle duration in seconds — mapped directly onto
+     * `response`. The designer-facing name for the same quantity.
+     */
+    visualDuration?: number;
+    /**
+     * Alias of {@link visualDuration} (the Motion `duration` key). When
+     * both are supplied, `visualDuration` wins. Default 0.5.
+     */
+    duration?: number;
+    /**
+     * Overshoot, in [−1, 1]. `0` maps to critically damped (no ring),
+     * `> 0` rings (underdamped), `< 0` is overdamped (sluggish). Mapped
+     * `dampingFraction = 1 − bounce`. Default 0.
+     */
+    bounce?: number;
+}
+
+/**
+ * Translate the time-based `{ visualDuration | duration, bounce }` surface
+ * to the canonical `(response, dampingFraction)` pair — the documented
+ * Motion mapping. `response = visualDuration`; `dampingFraction = 1 −
+ * bounce`, with `bounce` clamped to `[−1, 1]` (so `dampingFraction` lands
+ * in `[0, 2]`). Returns a `Partial<SpringProgressOptions>` the standard
+ * constructor consumes directly — there is no second code path.
+ */
+function durationToSpringOptions(
+    opts: SpringDurationOptions,
+): Partial<SpringProgressOptions> {
+    const {
+        visualDuration,
+        duration,
+        bounce = 0,
+        ...passthrough
+    } = opts;
+    const response = visualDuration ?? duration ?? defaultSpringOptions.response;
+    const dampingFraction = 1 - Math.min(1, Math.max(-1, bounce));
+    return { ...passthrough, response, dampingFraction };
+}
+
 /** Subscriber callback. Receives current position + velocity each emission. */
 export type SpringSubscriber = (value: number, velocity: number) => void;
 
@@ -128,6 +194,22 @@ export class SpringProgress {
             this.zeta < 1
                 ? this.omega * Math.sqrt(1 - this.zeta * this.zeta)
                 : 0;
+    }
+
+    /**
+     * Construct a spring from the modern time-based surface
+     * `{ visualDuration | duration, bounce }` (the idiom Motion leads its
+     * docs with). Pure parameter translation to `(response,
+     * dampingFraction)` — `response = visualDuration`, `dampingFraction =
+     * 1 − bounce` (clamped) — normalized once here, then handed to the
+     * standard constructor. The solver, the `linear()` sampler, and the
+     * live re-seat are identical to the `(response, dampingFraction)`
+     * path: `fromDuration({ visualDuration: d, bounce: b })` is trajectory-
+     * identical to `new SpringProgress({ response: d, dampingFraction: 1 −
+     * b })`.
+     */
+    static fromDuration(options?: SpringDurationOptions): SpringProgress {
+        return new SpringProgress(durationToSpringOptions(options ?? {}));
     }
 
     // ── Reads ────────────────────────────────────────────────────────

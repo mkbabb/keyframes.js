@@ -195,3 +195,66 @@ export class ManualTimeline extends Timeline {
         return this.value;
     }
 }
+
+/**
+ * Spec for the ADDITIVE native scroll-driven bridge (D-LIB-2 / F-5).
+ *
+ * A `kind: "scroll"` request maps to the platform `ScrollTimeline` (scroll
+ * progress over a `source` scroller); `kind: "view"` maps to `ViewTimeline`
+ * (a `subject`'s view progress through its scrollport). `axis` defaults to the
+ * platform default (`block`). value.js-free — these are DOM globals.
+ */
+export type NativeTimelineSpec =
+    | { kind: "scroll"; source?: Element | null; axis?: ScrollAxis }
+    | { kind: "view"; subject: Element; axis?: ScrollAxis; inset?: string };
+
+/**
+ * Feature-detect (`"ScrollTimeline" in window` / `"ViewTimeline" in window`)
+ * and construct a NATIVE `AnimationTimeline` for the additive WAAPI scroll
+ * bridge (D-LIB-2 / F-5). Returns `null` where the platform lacks the API
+ * (Firefox today, SSR, jsdom) — the caller then keeps the JS {@link Timeline}
+ * sampler, which is the proven fallback AND the only general driver over
+ * non-DOM targets.
+ *
+ * CRITICAL — the ARCH-kill HOLDS: this does NOT replace the JS sampler. Native
+ * scroll-driven is Chromium-only / not-Baseline, and the JS `Timeline` is a
+ * strictly more general caller-polled sampler (it also applies `SmoothProgress`
+ * smoothing + boundary snap the native `animation-range` path has none of). The
+ * bridge is a pure additive fast lane where supported + eligible. No polyfill.
+ *
+ * Light: a runtime `in`-detect over the `window` globals — zero static
+ * value.js / engine edge, so importing this keeps `timeline.ts` light.
+ */
+export function createNativeTimeline(
+    spec: NativeTimelineSpec,
+): AnimationTimeline | null {
+    if (typeof window === "undefined") return null;
+
+    // Qualify with `globalThis.` — the bare identifiers `ScrollTimeline` /
+    // `ViewTimeline` would resolve to THIS module's own JS `ScrollTimeline`
+    // class (a foot-gun), not the native platform global. The `globalThis.`
+    // member is the platform's own constructor, typed by lib.dom's
+    // `declare var ScrollTimeline`. The option types are DERIVED from those
+    // constructors (`ConstructorParameters`) — the lib.dom `ScrollTimelineOptions`
+    // is shadowed in this file by the local `ScrollTimelineOptions` interface
+    // (the JS sampler's), so naming it directly would resolve to the wrong type.
+    if (spec.kind === "scroll") {
+        if (typeof globalThis.ScrollTimeline === "undefined") return null;
+        type NativeScrollOptions = NonNullable<
+            ConstructorParameters<typeof globalThis.ScrollTimeline>[0]
+        >;
+        const options: NativeScrollOptions = {};
+        if (spec.source !== undefined) options.source = spec.source;
+        if (spec.axis !== undefined) options.axis = spec.axis;
+        return new globalThis.ScrollTimeline(options);
+    }
+
+    if (typeof globalThis.ViewTimeline === "undefined") return null;
+    type NativeViewOptions = NonNullable<
+        ConstructorParameters<typeof globalThis.ViewTimeline>[0]
+    >;
+    const options: NativeViewOptions = { subject: spec.subject };
+    if (spec.axis !== undefined) options.axis = spec.axis;
+    if (spec.inset !== undefined) options.inset = spec.inset;
+    return new globalThis.ViewTimeline(options);
+}

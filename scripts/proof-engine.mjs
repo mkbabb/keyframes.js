@@ -41,7 +41,14 @@ for (const f of ["src/animation/engine.ts", "src/animation/group.ts"]) {
 }
 
 // ── D-4 engine-seam — FrameCompiler extracted, run-state-free; core ≤ ceiling ─
-const ANIMATION_CLASS_CEILING = 900; // honest post-split size is ~847; bites on regrowth (re-inlining compile = +236)
+// Guards against the god-object REGROWING by re-absorbing the compile half
+// (re-inlining the FrameCompiler is ~+236 — the regression this bites). D-close
+// was 847; E added two genuine FEATURE methods to the base class — E.W7's
+// zero-alloc `processFrame` lift + `_interpOut` buffer, and E.W9's live-PRM
+// `_snapToReducedMotion` + per-tick re-consult (~+67 total). 950 accommodates
+// the legitimate feature growth while still biting hard on a compile re-inline
+// (847 + 236 = 1083 ≫ 950).
+const ANIMATION_CLASS_CEILING = 950;
 const compiler = read("src/animation/frame-compiler.ts");
 if (!/export class FrameCompiler/.test(compiler)) {
     fail("engine-seam", "src/animation/frame-compiler.ts does not export `FrameCompiler`");

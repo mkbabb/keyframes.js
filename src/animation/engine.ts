@@ -719,6 +719,22 @@ export class Animation<V extends Vars = any> {
      * `RAFPlayback.loop`. Returns whether the loop should continue.
      */
     private async _frame(t: number): Promise<boolean> {
+        // Live reduced-motion: a long/infinite animation that was running when
+        // the OS toggled `prefers-reduced-motion: reduce` re-consults the ONE
+        // detector per tick and converges to the SAME terminal state the
+        // up-front gate produces (snap to the rest frame, settle) — the
+        // observation half of the shared detector (D-LIB-3). No-op when the
+        // option is off or the preference is unset (the run() branch returns).
+        const flipped = withReducedMotion(
+            this.options.respectReducedMotion,
+            () => true,
+            () => false,
+        );
+        if (flipped) {
+            await this._snapToReducedMotion();
+            return false;
+        }
+
         t = await this.advanceTo(t);
 
         if (this.paused) {
@@ -805,6 +821,26 @@ export class Animation<V extends Vars = any> {
         this.done = true;
         this.dispatchAnimationEvent("animationend");
         this.settle();
+    }
+
+    /**
+     * Mid-flight reduced-motion snap (D-LIB-3). A running rAF loop detected a
+     * live flip to `reduce`; converge to the rest frame and resolve the
+     * in-flight `play()` exactly as a forwards completion would. Distinct from
+     * `_playReducedMotion` (the up-front gate) only in that `animationstart`
+     * already fired — so here we paint final, mark done, end, settle, and
+     * release the awaiter. The WAAPI lane snaps via the same path: the up-front
+     * gate already routes reduced-motion away from WAAPI, and a live flip on a
+     * WAAPI animation cancels the compositor handles before settling.
+     */
+    private async _snapToReducedMotion(): Promise<void> {
+        this._cancelWAAPI();
+        this.fillForwards();
+        this.iteration = 0;
+        this.done = true;
+        this.dispatchAnimationEvent("animationend");
+        this.settle();
+        this._resolvePlay();
     }
 
     async play(): Promise<void> {
@@ -1062,7 +1098,61 @@ export class CSSKeyframesAnimation<V extends Vars> extends Animation<V> {
 
         this.parse();
 
+        // D-LIB-1: register the parsed `@property` registry with the platform.
+        // Until now the registry was an inert metadata-recovery `Map`; a typed
+        // custom the author declared via `@property` was, to the browser, an
+        // untyped string — so the WAAPI path animated it DISCRETELY (a silent
+        // regression vs the rAF path's JS interpolation). Registering makes the
+        // native path interpolate the typed custom SMOOTHLY (isomorphism-
+        // restoring). Feature-detected; the JS path is the verbatim fallback.
+        this.registerProperties();
+
         return this;
+    }
+
+    /**
+     * Register every parsed `@property` descriptor with the UA via
+     * `CSS.registerProperty` (D-LIB-1) — one guarded pass at the end of
+     * `fromString`. Feature-detected (`CSS.registerProperty` may be absent:
+     * SSR, jsdom, older engines) so it no-ops to today's behaviour where
+     * unsupported. A duplicate-name re-registration throws a benign
+     * `InvalidModificationError` (the global registry is process-wide and
+     * idempotent for a given name) — swallowed per-descriptor so one already-
+     * registered name never aborts the rest of the pass.
+     *
+     * Baseline 2024-07-09 (newly available — feature-detect mandatory).
+     */
+    private registerProperties(): void {
+        if (
+            typeof CSS === "undefined" ||
+            typeof CSS.registerProperty !== "function"
+        ) {
+            return;
+        }
+        for (const [name, descriptor] of this.propertyRegistry) {
+            // `syntax` is required by the platform; a descriptor parsed without
+            // one cannot be registered (it stays an untyped custom). value.js's
+            // `ValueArray.toString()` is the canonical CSS serialization of the
+            // initial value (the same form value.js emits for `initial-value:`).
+            if (descriptor.syntax == null) continue;
+            const definition: PropertyDefinition = {
+                name,
+                syntax: descriptor.syntax,
+                inherits: descriptor.inherits ?? false,
+            };
+            if (descriptor.initialValue != null) {
+                definition.initialValue = descriptor.initialValue.toString();
+            }
+            try {
+                CSS.registerProperty(definition);
+            } catch {
+                // InvalidModificationError on a duplicate name (process-wide
+                // registry) — benign, the property is already registered with
+                // these semantics. Any other throw (malformed syntax/initial
+                // value the UA rejects) likewise must not abort playback: the
+                // JS path remains correct, so swallow and move on.
+            }
+        }
     }
 
     transform(vars: V) {

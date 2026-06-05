@@ -1,5 +1,6 @@
 import { CSSCubicBezier, steppedEase } from "@mkbabb/value.js";
 import { CSSKeyframesAnimation } from "./engine";
+import { springTimingFunction } from "./springTimingFunction";
 import type { InputAnimationOptions } from "./constants";
 
 const fadeInKeyframes = /*css*/ `
@@ -712,3 +713,158 @@ export const jumpDown = (options?: InputAnimationOptions) =>
         timingFunction: "bounce-in-ease",
         ...(options ?? {}),
     }).fromString(jumpDownKeyframes);
+
+// ── Spring-eased presets (E.W10 §S6) ─────────────────────────────────────
+//
+// The preset library above leans on `cubic-bezier`/keyword easings. These
+// reach for the in-house analytic spring via `springTimingFunction` — the
+// same solver `springLinearStops` drives, paired with its CSS `linear()` twin
+// so a WAAPI delegation runs the true overshoot on the compositor. `(response,
+// dampingFraction)` is the SwiftUI-canonical surface; the values below mirror
+// the four glass-ui `--spring-*` token presets (smooth / snappy / bouncy /
+// gentle) so demo and engine speak one spring vocabulary.
+
+/** The four canonical iOS spring presets, as typed `Easing` curves. */
+const SPRING_SMOOTH = { response: 0.5, dampingFraction: 0.86 } as const;
+const SPRING_SNAPPY = { response: 0.35, dampingFraction: 0.78 } as const;
+const SPRING_BOUNCY = { response: 0.5, dampingFraction: 0.5 } as const;
+const SPRING_GENTLE = { response: 0.7, dampingFraction: 0.95 } as const;
+
+const springScaleInKeyframes = /*css*/ `
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+`;
+/**
+ * Spring-eased scale-in entrance — the canonical iOS "pop" with overshoot.
+ * Uses the bouncy spring (ζ 0.5) so the element settles past 1 before resting.
+ */
+export const springScaleIn = (options?: InputAnimationOptions) =>
+    new CSSKeyframesAnimation({
+        duration: 600,
+        timingFunction: springTimingFunction(SPRING_BOUNCY),
+        ...(options ?? {}),
+    }).fromString(springScaleInKeyframes);
+
+const springSlideInKeyframes = /*css*/ `
+  0% {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+`;
+/** Spring-eased slide-up entrance — the snappy spring (ζ 0.78). */
+export const springSlideIn = (options?: InputAnimationOptions) =>
+    new CSSKeyframesAnimation({
+        duration: 600,
+        timingFunction: springTimingFunction(SPRING_SNAPPY),
+        ...(options ?? {}),
+    }).fromString(springSlideInKeyframes);
+
+const springPopKeyframes = /*css*/ `
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+`;
+/** Spring-eased attention "pop" — the bouncy spring drives the scale pulse. */
+export const springPop = (options?: InputAnimationOptions) =>
+    new CSSKeyframesAnimation({
+        duration: 700,
+        timingFunction: springTimingFunction(SPRING_BOUNCY),
+        ...(options ?? {}),
+    }).fromString(springPopKeyframes);
+
+const springWobbleKeyframes = /*css*/ `
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(8deg);
+  }
+`;
+/** Spring-eased wobble — gentle spring (ζ 0.95) for a soft attention nudge. */
+export const springWobble = (options?: InputAnimationOptions) =>
+    new CSSKeyframesAnimation({
+        duration: 800,
+        timingFunction: springTimingFunction(SPRING_GENTLE),
+        ...(options ?? {}),
+    }).fromString(springWobbleKeyframes);
+
+// ── Preset taxonomy (E.W10 §S6) ──────────────────────────────────────────
+//
+// An enter / exit / attention / loop grouping over the existing preset
+// library — the categories the genre (Motion variants, anime.js, animate.css)
+// leads with. Pure organization: every value is an existing exported factory,
+// so the taxonomy adds no new pixels — it makes the library DISCOVERABLE by
+// intent ("show me the entrances") without re-implementing a single preset.
+
+/** Entrance animations — bring an element INTO view. */
+export const enterPresets = {
+    fadeIn,
+    slideIn,
+    slideInLeft,
+    slideInRight,
+    rotateIn,
+    blurIn,
+    springScaleIn,
+    springSlideIn,
+    jumpUp,
+} as const;
+
+/** Exit animations — take an element OUT of view. */
+export const exitPresets = {
+    fadeOut,
+    slideOutLeft,
+    slideOutRight,
+    blurOut,
+    warpLeft,
+    warpRight,
+    jumpDown,
+} as const;
+
+/** Attention animations — a one-shot nudge to draw the eye. */
+export const attentionPresets = {
+    pulse,
+    shake,
+    bounce,
+    flip,
+    notificationBounce,
+    springPop,
+    springWobble,
+} as const;
+
+/** Looping animations — run continuously (`iterationCount: Infinity`). */
+export const loopPresets = {
+    heartbeat,
+    glow,
+    spinner,
+    rainbowText,
+    skeletonLoading,
+    gradientBackground,
+    parallaxScroll,
+    hover,
+    typingCursor,
+} as const;
+
+/**
+ * The full preset taxonomy, grouped by intent. Each leaf is one of the
+ * existing exported factory functions — the taxonomy is a discovery index over
+ * the library, not a second copy of it.
+ */
+export const presetTaxonomy = {
+    enter: enterPresets,
+    exit: exitPresets,
+    attention: attentionPresets,
+    loop: loopPresets,
+} as const;
