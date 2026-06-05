@@ -10,7 +10,7 @@
                             <LabeledInput
                                 :model-value="storedAnimationOptions.animationOptions.duration ?? '5s'"
                                 label="duration"
-                                label-class="text-admin-label text-muted-foreground"
+                                label-class="text-mono-small text-muted-foreground"
                                 tooltip="Animation length (e.g. 5s, 200ms)"
                                 @update:model-value="(v) => { trySetOption(() => animation.setDuration(v)); storedAnimationOptions.animationOptions.duration = v; }"
                             />
@@ -18,7 +18,7 @@
                             <LabeledInput
                                 :model-value="storedAnimationOptions.animationOptions.delay ?? '0ms'"
                                 label="delay"
-                                label-class="text-admin-label text-muted-foreground"
+                                label-class="text-mono-small text-muted-foreground"
                                 tooltip="Delay before start (e.g. 0s, 500ms)"
                                 @update:model-value="(v) => { trySetOption(() => animation.setDelay(v)); storedAnimationOptions.animationOptions.delay = v; }"
                             />
@@ -30,7 +30,7 @@
                                         : String(storedAnimationOptions.animationOptions.iterationCount ?? 'infinite')
                                 "
                                 label="iterations"
-                                label-class="text-admin-label text-muted-foreground"
+                                label-class="text-mono-small text-muted-foreground"
                                 tooltip="Repeat count (number or 'infinite')"
                                 @update:model-value="
                                     (v: string) => {
@@ -46,7 +46,7 @@
                                 :items="DIRECTIONS"
                                 :descriptions="DIRECTION_DESCRIPTIONS"
                                 label="direction"
-                                label-class="text-admin-label text-muted-foreground"
+                                label-class="text-mono-small text-muted-foreground"
                                 tooltip="Playback direction"
                                 @update:model-value="(v) => { animation.setDirection(v as any); storedAnimationOptions.animationOptions.direction = v as any; }"
                                 @update:open="(v: boolean | undefined) => setOpen('direction', v ?? false)"
@@ -58,7 +58,7 @@
                                 :items="FILL_MODES"
                                 :descriptions="FILL_MODE_DESCRIPTIONS"
                                 label="fill mode"
-                                label-class="text-admin-label text-muted-foreground"
+                                label-class="text-mono-small text-muted-foreground"
                                 tooltip="Style applied when not playing"
                                 @update:model-value="(v) => { animation.setFillMode(v as any); storedAnimationOptions.animationOptions.fillMode = v as any; }"
                                 @update:open="(v: boolean | undefined) => setOpen('fillMode', v ?? false)"
@@ -66,7 +66,7 @@
 
                             <div class="flex items-center gap-1.5">
                                 <IconTooltip text="Timing function curve">
-                                    <label :class="['text-admin-label text-muted-foreground cursor-help', isDetailEasing ? 'gold-shimmer' : '']">easing</label>
+                                    <label :class="['text-mono-small text-muted-foreground cursor-help', isDetailEasing ? 'gold-shimmer' : '']">easing</label>
                                 </IconTooltip>
                                 <IconTooltip text="Edit easing curve">
                                     <DockIconButton compact title="Edit easing curve" class="easing-edit-btn" @click.stop="onEditIconClick(storedAnimationOptions.animationOptions.timingFunction as string)">
@@ -96,7 +96,7 @@
                                 @keydown.space.prevent="advancedOpen = true"
                                 class="col-span-2 grid grid-cols-[subgrid] gap-x-3 items-center w-full py-1.5 cursor-pointer hover:text-foreground text-muted-foreground transition-colors"
                             >
-                                <span class="text-admin-label">advanced</span>
+                                <span class="text-mono-small">advanced</span>
                                 <div class="flex items-center justify-end px-3">
                                     <ChevronRight class="icon-md opacity-50" />
                                 </div>
@@ -131,7 +131,7 @@
                                 >
                                     <ArrowLeft class="icon-md" />
                                 </DockIconButton>
-                                <span class="text-admin-label text-muted-foreground">advanced</span>
+                                <span class="text-mono-small text-muted-foreground">advanced</span>
                             </div>
 
                             <!-- Layer Settings (only when in a group) -->
@@ -159,9 +159,9 @@
                 :is-anim-started="isAnimStarted"
                 :is-grouped="isGrouped"
                 :user-reversed="userReversed"
-                @scrub-start="emit('scrubStart')"
+                @scrub-start="() => { wake(); emit('scrubStart'); }"
                 @scrub-end="emit('scrubEnd')"
-                @slider-update="(v) => emit('sliderUpdate', v)"
+                @slider-update="(v) => { wake(); emit('sliderUpdate', v); }"
                 @toggle-play="toggleAnimation"
                 @toggle-reverse="toggleReverse"
             />
@@ -250,7 +250,7 @@ const setOpen = (name: string, open: boolean) => { openSelect.value = open ? nam
 // property changes. We sync reactive refs every frame for the slider + buttons.
 // isPlaying guard comes from the parent (useAnimationGroupPlayback) — not polled.
 const isPlayingRef = toRef(() => props.isPlaying ?? false);
-const { currentT, isPlaying: isAnimPlaying, isStarted: isAnimStarted } = useAnimationSync(() => props.animation, isPlayingRef);
+const { currentT, isPlaying: isAnimPlaying, isStarted: isAnimStarted, wake } = useAnimationSync(() => props.animation, isPlayingRef);
 
 const normalizedProgress = computed(() => {
     const dur = props.animation.options.duration;

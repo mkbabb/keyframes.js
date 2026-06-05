@@ -74,12 +74,12 @@ export function useAnimationSync(
         if (!isActive.value) resume();
     };
 
-    // Resume on the play-state rising edge (an input, not an output → no
-    // deadlock). Pausing is left to the settle-detect so the loop runs a final
-    // window after a pause/stop to capture the settling frames.
-    watch(isPlaying, (playing) => {
-        if (playing) wake();
-    });
+    // Resume on ANY play-state change (an input, not an output → no deadlock):
+    // the rising edge wakes for the happy path; the FALLING edge (pause/stop)
+    // re-arms the settle window so the loop runs once more to capture the
+    // post-stop frame before idling (else `isStarted`/`currentT` could stick at
+    // the pre-stop value). Pausing is left to the settle-detect.
+    watch(isPlaying, () => wake());
 
     // Re-sync when the tab becomes visible again (it may have advanced/changed
     // while hidden, and rAF is throttled/paused by the browser when hidden).
@@ -92,5 +92,10 @@ export function useAnimationSync(
     // it once the animation comes to rest.
     resume();
 
-    return { currentT, isPlaying, isStarted, isReversed };
+    // `wake` is exported so SCRUB entry points can re-arm the loop: scrubbing a
+    // SETTLED (non-playing) animation mutates `effectiveT` via setChildTime()
+    // without touching `isPlaying`, so without this the idled loop would never
+    // observe the scrub and the slider binding (`currentT`) would go stale.
+    // An input-driven wake — no deadlock.
+    return { currentT, isPlaying, isStarted, isReversed, wake };
 }

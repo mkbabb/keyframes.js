@@ -283,18 +283,16 @@ function main() {
         // (so the gate is runnable locally without a build step).
         let cssSources = [];
         let where = "";
-        const builtCss = fs.existsSync(BUILT)
-            ? collectIncludingDist(BUILT, new Set([".css"]))
-            : [];
-        if (builtCss.length > 0) {
-            cssSources = builtCss;
-            where = `built demo CSS (${relPosix(BUILT)})`;
-        } else {
-            // source CSS files + inline <style> blocks in .vue
-            cssSources = collect(DEMO, new Set([".css"]));
-            cssSources.push(...collect(DEMO, new Set([".vue"]))); // <style> blocks
-            where = "demo source CSS + <style> blocks (built CSS absent)";
-        }
+        // Check the demo's OWN source guards (CSS + <style> blocks), NOT the
+        // built bundle: the built CSS merges ~200 VENDOR `@supports` blocks
+        // (color-mix, etc.) that would satisfy these property checks even if the
+        // demo dropped its own guard — a vendor-polluted proxy. The demo
+        // authors all three guards in source (EditorShell `dvh`, AnimationMenuBar
+        // `env()`, AnimationControls/ControlsPaneWrapper `mask-image`), so the
+        // vendor-free, deterministic check is the source itself.
+        cssSources = collect(DEMO, new Set([".css"]));
+        cssSources.push(...collect(DEMO, new Set([".vue"]))); // <style> blocks
+        where = "demo source CSS + <style> blocks (vendor-free)";
 
         // Concatenate the searched CSS once.
         let css = "";

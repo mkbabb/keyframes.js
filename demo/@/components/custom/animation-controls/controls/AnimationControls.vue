@@ -59,11 +59,11 @@
                         class="flex flex-col items-center justify-center gap-3 py-12 text-muted-foreground"
                     >
                         <ChevronDown class="w-6 h-6 animate-bounce" />
-                        <p class="text-mono-caption">Timeline expanded below</p>
+                        <p class="text-mono-small">Timeline expanded below</p>
                         <Button
                             size="sm"
                             variant="ghost"
-                            class="gap-1.5 text-mono-caption"
+                            class="gap-1.5 text-mono-caption normal-case"
                             @click="storedControls.isTimelineExpanded = false"
                         >
                             <Minimize2 class="icon-sm" />

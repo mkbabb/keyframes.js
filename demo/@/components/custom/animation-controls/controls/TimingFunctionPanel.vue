@@ -76,7 +76,7 @@
                         <CardTitle class="text-heading">steps</CardTitle>
                     </CardHeader>
                     <CardContent class="p-0 grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-2">
-                        <label class="text-mono-caption text-muted-foreground">count</label>
+                        <label class="text-mono-caption normal-case text-muted-foreground">count</label>
                         <Input
                             type="number"
                             class="font-mono"
@@ -89,7 +89,7 @@
                             "
                         />
 
-                        <label class="text-mono-caption text-muted-foreground">jump term</label>
+                        <label class="text-mono-caption normal-case text-muted-foreground">jump term</label>
                         <Select
                             :model-value="storedAnimationOptions.stepOptions.jumpTerm"
                             @update:model-value="

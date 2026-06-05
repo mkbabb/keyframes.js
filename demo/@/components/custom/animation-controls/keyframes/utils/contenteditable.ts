@@ -13,7 +13,7 @@ export function insertTabAtCursor(target: HTMLElement): void {
     }
 
     const range = sel.getRangeAt(0);
-    const tabNode = target.ownerDocument.createTextNode("    ");
+    const tabNode = target.ownerDocument.createTextNode("\u00a0\u00a0\u00a0\u00a0");
     range.insertNode(tabNode);
 
     range.setStartAfter(tabNode);

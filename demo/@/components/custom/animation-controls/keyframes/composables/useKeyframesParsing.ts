@@ -80,10 +80,16 @@ export function useKeyframesParsing(
         },
     );
 
-    // The frame array is a `markRaw` source; flush AFTER the render barrier so
-    // a stale frame array can never paint between the array mutation and the
-    // derived-string recompute (D.W3.S4 — deterministic flush). nextTick inside
-    // the post-flush callback drains any same-tick mutations before reprojecting.
+    // `animation.templateFrames` is a `markRaw` array, so this watch fires on
+    // STRUCTURAL changes (a frame added/removed — the array reference's length)
+    // — NOT on element-level edits (`frame.start`/`frame.vars` mutation), which
+    // are un-tracked under markRaw and covered instead by the EXPLICIT
+    // `updateAllStrings()` calls at each mutation site (the single source of
+    // truth). For the structural case the `flush: 'post'` + `nextTick` ordering
+    // (D.W3.S4) keeps the derived strings from reprojecting off a half-applied
+    // array between the mutation and the render barrier. The data-flow is
+    // honest: this watch is the structural projector, the explicit calls are
+    // the edit projector — not a watch that pretends to cover both.
     watch(
         animation.templateFrames,
         async () => {

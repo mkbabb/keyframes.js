@@ -133,12 +133,17 @@ defineExpose({ headerRibbonRef });
    any `dvh`-capable browser this block does not apply — the happy path is
    byte-identical. */
 @supports not (height: 100dvh) {
+    /* A browser without `dvh` also lacks `dvw` (same spec) — supply the static
+       `vw` width baseline alongside the height so the shell does not mis-size
+       horizontally either. */
     .editor-shell {
         height: 100vh;
         max-height: 100vh;
+        width: 100vw;
     }
     .grid-background {
         height: 100vh;
+        width: 100vw;
     }
 }
 

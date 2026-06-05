@@ -63,20 +63,24 @@ export function useTimelineBuild(
     // setup so the loop is torn down on unmount). The single hoisted loop runs
     // for exactly one frame per `nextFrame()` call — it pauses itself and
     // resolves the pending promise on the first tick.
-    let pendingFrame: (() => void) | null = null;
+    // Re-entrancy-safe: ALL callers awaiting the next frame resolve together on
+    // the first tick (the old single `pendingFrame` slot dropped every caller
+    // but the last — a concurrent scrubAndCapture would hang forever). Matches
+    // the old per-call `new Promise(rAF)` semantics: every call resolves.
+    let pendingFrames: Array<() => void> = [];
     const { pause: pauseFrame, resume: resumeFrame } = useRafFn(
         () => {
             pauseFrame();
-            const done = pendingFrame;
-            pendingFrame = null;
-            done?.();
+            const done = pendingFrames;
+            pendingFrames = [];
+            for (const resolve of done) resolve();
         },
         { immediate: false },
     );
 
     const nextFrame = () =>
         new Promise<void>((resolve) => {
-            pendingFrame = resolve;
+            pendingFrames.push(resolve);
             resumeFrame();
         });
 

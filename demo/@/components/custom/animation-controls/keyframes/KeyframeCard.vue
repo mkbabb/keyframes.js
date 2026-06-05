@@ -23,11 +23,11 @@
                     class="italic opacity-25 z-0 pointer-events-none grid gap-1"
                 >
                     <Label
-                        class="text-mono-caption leading-none"
+                        class="text-mono-small font-light leading-none"
                         >f {{ index }}</Label
                     >
                     <Label
-                        class="text-mono-caption leading-none"
+                        class="text-mono-small font-light leading-none"
                         >s {{ frameStart }}</Label
                     >
                 </div>

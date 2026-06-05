@@ -15,7 +15,7 @@
             <CardContent class="flex items-center gap-2 p-2">
                 <Input
                     :model-value="demo.cssValue.value"
-                    class="css-value-input text-mono-caption flex-1 min-w-0"
+                    class="css-value-input text-mono-caption normal-case flex-1 min-w-0"
                     placeholder="cubic-bezier(...) or easing name"
                     @keydown.enter="onCSSInput"
                     @blur="onCSSInput"
@@ -41,7 +41,7 @@
                         :model-value="demo.stepOptions.value.steps"
                         :min="1"
                         :max="60"
-                        class="text-mono-caption"
+                        class="text-mono-caption normal-case"
                         @change="onStepsChange"
                     />
                 </div>
@@ -51,7 +51,7 @@
                         :model-value="demo.stepOptions.value.jumpTerm"
                         @update:model-value="(v) => { demo.stepOptions.value.jumpTerm = String(v); }"
                     >
-                        <SelectTrigger class="text-mono-caption">
+                        <SelectTrigger class="text-mono-caption normal-case">
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -59,7 +59,7 @@
                                 v-for="jt in JUMP_TERMS"
                                 :key="jt"
                                 :value="jt"
-                                class="text-mono-caption"
+                                class="text-mono-caption normal-case"
                             >
                                 {{ jt }}
                             </SelectItem>
@@ -84,7 +84,7 @@
             </div>
             <Input
                 :model-value="(demo.duration.value / 1000).toFixed(1) + 's'"
-                class="duration-input text-mono-caption text-muted-foreground shrink-0 w-14 text-right"
+                class="duration-input text-mono-caption normal-case text-muted-foreground shrink-0 w-14 text-right"
                 @keydown.enter="onDurationInput"
                 @blur="onDurationInput"
             />
