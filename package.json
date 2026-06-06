@@ -57,6 +57,7 @@
     "proof:interp-fastprops": "node --allow-natives-syntax scripts/proof-interp-fastprops.mjs && vitest run test/interp-fastprops.test.ts",
     "proof:sync-step": "vitest run test/sync-step.test.ts",
     "proof:roundtrip-easing": "vitest run test/roundtrip-easing.test.ts",
+    "proof:adapter-capture": "vitest run test/adapter-capture.test.ts",
     "proof:all": "npm run proof:boundary && npm run proof:dogfood && npm run proof:engine && npm run proof:decomposition && npm run proof:idioms && npm run proof:brittleness && npm run proof:demo-elevate && npm run proof:modern-web && npm run proof:zero-alloc && npm run proof:engine-correctness && npm run proof:standalone-zero-alloc && npm run proof:compile-deterministic && npm run proof:platform-adopt && npm run proof:orchestration && npm run proof:bench-runs && vitest run",
     "test": "vitest",
     "bench": "vitest bench"

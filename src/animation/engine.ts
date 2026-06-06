@@ -173,6 +173,13 @@ export class Animation<V extends Vars = any> {
      */
     private _stableKeys: string[] = [];
 
+    /**
+     * The consumer's EXPLICIT constructor options (NOT merged with defaults) —
+     * retained so `fromString` can layer a parsed style-rule `animation`
+     * shorthand UNDER them (constructor-explicit wins over parsed-from-CSS, F.W8).
+     */
+    protected _ctorOptions: Partial<InputAnimationOptions> = {};
+
     /** The compile-stable union of this animation's interpolated keys. */
     get flatKeys(): readonly string[] {
         return this._stableKeys;
@@ -225,7 +232,11 @@ export class Animation<V extends Vars = any> {
         // (which delegates to the compiler), so the compiler must exist first.
         this.compiler = new FrameCompiler<V>(this.options);
 
-        this.setOptions({ ...defaultOptions, ...(options ?? {}) });
+        // Retain the consumer's EXPLICIT options (not merged with defaults) so
+        // `fromString` can apply a sibling style-rule's `animation` shorthand as
+        // the base WITH these constructor-explicit options overriding it (F.W8).
+        this._ctorOptions = options ?? {};
+        this.setOptions({ ...defaultOptions, ...this._ctorOptions });
 
         this.targets =
             targets == null ? [] : Array.isArray(targets) ? targets : [targets];
@@ -1160,6 +1171,36 @@ export class CSSKeyframesAnimation<V extends Vars> extends Animation<V> {
         // pre-detection or fallback parser path.
         const resolved = resolveKeyframes(keyframes);
         this.propertyRegistry = resolved.properties;
+
+        // F.W8 — apply a sibling style rule's `animation` shorthand/longhands as
+        // the option BASE, with the constructor-explicit options overriding it.
+        // value.js's `extractAnimationOptions` returns only the declared fields;
+        // translate its CSS shape to the engine's (infinite → `Infinity`, the
+        // timing-function string flows through `getTimingFunction` as the
+        // per-keyframe case does). No-op (byte-identical) when the input carries
+        // no style rule. The dead `resolved.options` field is now consumed.
+        const opt = resolved.options;
+        const base: Partial<InputAnimationOptions> = {};
+        if (opt.duration != null) base.duration = opt.duration;
+        if (opt.timingFunction != null)
+            base.timingFunction =
+                opt.timingFunction as InputAnimationOptions["timingFunction"];
+        if (opt.iterationCount !== undefined)
+            base.iterationCount =
+                opt.iterationCount === null ? Infinity : opt.iterationCount;
+        if (opt.direction != null)
+            base.direction =
+                opt.direction as NonNullable<
+                    InputAnimationOptions["direction"]
+                >;
+        if (opt.delay != null) base.delay = opt.delay;
+        if (opt.fillMode != null)
+            base.fillMode = opt.fillMode as NonNullable<
+                InputAnimationOptions["fillMode"]
+            >;
+        if (Object.keys(base).length > 0) {
+            this.setOptions({ ...base, ...this._ctorOptions });
+        }
 
         for (const [percent, cachedFrame] of resolved.keyframes.entries()) {
             // Clone the frame to avoid mutating the memoized parse cache
