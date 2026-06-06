@@ -58,6 +58,7 @@
             <template v-else-if="asset.kind === 'image' && asset.imageSrc">
                 <img
                     :src="asset.imageSrc"
+                    :alt="asset.name"
                     class="w-full h-full object-cover"
                     draggable="false"
                 />

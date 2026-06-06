@@ -12,6 +12,26 @@
                 <slot name="header-left"></slot>
                 <slot name="header-right">
                     <SharePopover />
+                    <!-- F.W15.S3 — the VISIBLE shortcuts-discovery trigger. The
+                         19-shortcut registry was discoverable ONLY via the `?`
+                         shortcut (the discoverability paradox); this breaks it
+                         with one control. A plain @click on the EXISTING reka
+                         Dialog state (shortcutsOpen) — the pragmatic landing for
+                         the existing component; the Invoker `command="show-modal"`
+                         path is the forward feature-detected idiom (BOOKed, not
+                         forced — r-modern-web-2026 F-MW-1). Sits in the header
+                         ribbon, not over the dock band → no occlusion (inv δ). -->
+                    <IconTooltip text="Keyboard shortcuts (?)">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label="Show keyboard shortcuts"
+                            class="aspect-square w-8 scale-on-hover"
+                            @click="shortcutsOpen = true"
+                        >
+                            <Keyboard class="icon-sm" />
+                        </Button>
+                    </IconTooltip>
                     <DarkModeToggle
                         title="Toggle dark mode"
                         class="aspect-square w-8 scale-on-hover"
@@ -84,6 +104,9 @@ import AnimationControlsGroup from "@components/custom/animation-controls/Animat
 
 import { registerShortcut } from "@mkbabb/glass-ui/keyboard";
 import { DarkModeToggle } from "@mkbabb/glass-ui/controls";
+import { Button } from "@mkbabb/glass-ui";
+import { IconTooltip } from "@mkbabb/glass-ui/icon-tooltip";
+import { Keyboard } from "@lucide/vue";
 import type { AnimationGroup } from "@src/animation/group";
 
 import "@styles/style.css";

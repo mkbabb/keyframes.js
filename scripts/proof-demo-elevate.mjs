@@ -276,6 +276,52 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
     }
 }
 
+// ── 8. F.W15 — the a11y SHIPs (labeled CSS pane · asset alt · visible trigger) ──
+{
+    // 8a — the contenteditable CSS pane is a LABELED textbox with a visible focus
+    // ring. The full triple (role=textbox + aria-multiline + a non-empty
+    // aria-label) AND the .focus-ring keystone idiom. Bite: strip role/aria-label
+    // → the labeled-textbox assertion reds; remove .focus-ring → the focus-
+    // visibility assertion reds.
+    const card = read("demo/@/components/custom/animation-controls/keyframes/KeyframeCard.vue");
+    const labeled =
+        /role=["']textbox["']/.test(card) &&
+        /aria-multiline=["']true["']/.test(card) &&
+        /:aria-label=["'][^"']*keyframe[^"']*["']/.test(card);
+    const focusRing = /class=["'][^"']*\bfocus-ring\b/.test(card);
+    if (labeled && focusRing) {
+        ok("a11y-w15", "the contenteditable CSS pane is a labeled textbox (role + aria-multiline + aria-label) with a visible .focus-ring");
+    } else if (!labeled) {
+        fail("a11y-w15", "the contenteditable CSS pane is not a labeled textbox (role=textbox + aria-multiline + a keyframe-N aria-label) — E-UX-13 (F.W15.S1)");
+    } else {
+        fail("a11y-w15", "the contenteditable CSS pane has no .focus-ring — its keyboard-focus state is invisible (F.W15.S1)");
+    }
+
+    // 8b — the playground asset <img> carries a meaningful :alt bound to the asset
+    // name. Bite: remove the :alt → this reds (reds today — verified State 2).
+    const viewport = read("demo/@/components/custom/asset-manager/AssetViewport.vue");
+    if (/:alt=["']asset\.name["']/.test(viewport)) {
+        ok("a11y-w15", "the playground asset <img> has a meaningful :alt bound to asset.name (E-UX-8 completed)");
+    } else {
+        fail("a11y-w15", "the playground asset <img> has no :alt=\"asset.name\" — user content unnamed to AT (F.W15.S2)");
+    }
+
+    // 8c — a VISIBLE control (not the `?` shortcut) opens the shortcuts modal by
+    // setting shortcutsOpen. The `?` shortcut still works (additive). Bite: remove
+    // the visible @click="shortcutsOpen = true" → this reds (reds today — toggled
+    // only by `?`).
+    const shell = read("demo/@/components/custom/editor-shell/EditorShell.vue");
+    const hasVisibleTrigger = /@click=["']shortcutsOpen\s*=\s*true["']/.test(shell);
+    const stillHasShortcut = /registerShortcut\(\s*["']\?["']/.test(shell);
+    if (hasVisibleTrigger && stillHasShortcut) {
+        ok("a11y-w15", "a visible @click trigger opens the shortcuts modal (the `?` shortcut still works) — the discoverability paradox is broken");
+    } else if (!hasVisibleTrigger) {
+        fail("a11y-w15", "no visible trigger sets shortcutsOpen = true — the 19-shortcut registry is discoverable only via `?` (F.W15.S3)");
+    } else {
+        fail("a11y-w15", "the `?` shortcut binding was lost — the visible trigger must be ADDITIVE (F.W15.S3)");
+    }
+}
+
 console.log("");
 if (failures.length > 0) {
     console.error("proof:demo-elevate — FAIL:\n" + failures.join("\n"));
