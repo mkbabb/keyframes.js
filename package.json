@@ -60,7 +60,8 @@
     "proof:adapter-capture": "vitest run test/adapter-capture.test.ts",
     "proof:motion-path": "node scripts/proof-motion-path.mjs && vitest run test/motion-path.test.ts",
     "proof:cohesion": "vitest run test/boundary-cohesion.test.ts",
-    "proof:all": "npm run proof:boundary && npm run proof:dogfood && npm run proof:engine && npm run proof:decomposition && npm run proof:idioms && npm run proof:brittleness && npm run proof:demo-elevate && npm run proof:modern-web && npm run proof:zero-alloc && npm run proof:engine-correctness && npm run proof:standalone-zero-alloc && npm run proof:compile-deterministic && npm run proof:platform-adopt && npm run proof:orchestration && npm run proof:bench-runs && vitest run",
+    "proof:ci-coverage": "node scripts/proof-ci-coverage.mjs",
+    "proof:all": "npm run proof:boundary && npm run proof:dogfood && npm run proof:engine && npm run proof:decomposition && npm run proof:idioms && npm run proof:brittleness && npm run proof:demo-elevate && npm run proof:modern-web && npm run proof:zero-alloc && npm run proof:engine-correctness && npm run proof:standalone-zero-alloc && npm run proof:compile-deterministic && npm run proof:platform-adopt && npm run proof:orchestration && npm run proof:interp-fastprops && npm run proof:sync-step && npm run proof:roundtrip-easing && npm run proof:adapter-capture && npm run proof:motion-path && npm run proof:cohesion && npm run proof:bench-runs && npm run proof:ci-coverage && vitest run",
     "test": "vitest",
     "bench": "vitest bench"
   },

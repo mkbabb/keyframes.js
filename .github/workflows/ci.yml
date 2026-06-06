@@ -96,6 +96,35 @@ jobs:
               run: npm run proof:engine
             - name: proof:zero-alloc (AnimationGroup composite allocates 0 bytes/frame + FrameCompiler seam + snap symmetry)
               run: npm run proof:zero-alloc
+            # F.W2 — the library-scoped engine/correctness gates the workflow
+            # previously never ran (E's engine-correctness/standalone-zero-alloc/
+            # compile-deterministic + the whole F gate cohort). Each is a vitest
+            # run / node script over src/ — no demo build needed, so they ride
+            # the fast library job.
+            - name: proof:engine-correctness (E.W7 — five engine correctness locks)
+              run: npm run proof:engine-correctness
+            - name: proof:standalone-zero-alloc (E.W7 — the standalone play-loop buffer)
+              run: npm run proof:standalone-zero-alloc
+            - name: proof:compile-deterministic (E.W8 — byte-deterministic compile ids)
+              run: npm run proof:compile-deterministic
+            - name: proof:orchestration (F.W3 — stagger/FLIP/decay/Sequence behaviour locks)
+              run: npm run proof:orchestration
+            - name: proof:interp-fastprops (F.W4 — the dict-mode buffer fold + single-frame alias)
+              run: npm run proof:interp-fastprops
+            - name: proof:sync-step (F.W5 — the drive sync fast-path + the event-ordering lock)
+              run: npm run proof:sync-step
+            - name: proof:roundtrip-easing (F.W7 — per-keyframe + spring linear() round-trip)
+              run: npm run proof:roundtrip-easing
+            - name: proof:adapter-capture (F.W8 — composition capture + shorthand-applied + AST-decide)
+              run: npm run proof:adapter-capture
+            - name: proof:motion-path (F.W12 — CSS-native MotionPath eligibility + compositor)
+              run: npm run proof:motion-path
+            - name: proof:cohesion (F.W11 — clamp convergence · inverted-tier · preset reachability)
+              run: npm run proof:cohesion
+            - name: proof:bench-runs (F.W1 — the compile/interp/parser benches run, non-empty)
+              run: npm run proof:bench-runs
+            - name: proof:ci-coverage (F.W2 — every proof:* gate is invoked in CI)
+              run: npm run proof:ci-coverage
 
     demo-smoke:
         name: demo gate (inv γ paints + inv δ occlusion-free)
@@ -166,6 +195,21 @@ jobs:
               run: npm run proof:idioms
             - name: proof:brittleness (D.W3 — no global DOM reach · z-scale single-sourced · @supports guards)
               run: npm run proof:brittleness
+            # F.W2 — the THREE inv-tagged demo gates the workflow never ran:
+            # proof:dogfood (inv ζ — the shop-window runs its own engine),
+            # proof:demo-elevate (inv ο — the SOLE View-Transitions lock + the
+            # F.W13-16 a11y/idiom clauses), proof:modern-web (the CWV/modern-web
+            # checklist), and proof:platform-adopt (the feature-detected adopts).
+            # They scan the demo source (+ the built CSS above), so they ride the
+            # demo job after the gh-pages build.
+            - name: proof:dogfood (inv ζ — the demo dogfoods the engine, incl. the F.W10 inertia swap)
+              run: npm run proof:dogfood
+            - name: proof:demo-elevate (inv ο — View Transitions · a11y · idioms · the F.W13-16 clauses)
+              run: npm run proof:demo-elevate
+            - name: proof:modern-web (the modern-web-guidance checklist)
+              run: npm run proof:modern-web
+            - name: proof:platform-adopt (the feature-detected platform adopts)
+              run: npm run proof:platform-adopt
             # C.W1 S4 — the LoAF >50ms-trace gate: the dev-only LoAF observer's
             # REAL 2nd consumer (closing the LoAF + >50ms-trace chronics + the
             # overfitting violation as ONE perf-evidence subsystem). The gate
