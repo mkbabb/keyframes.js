@@ -1,3 +1,4 @@
+import { clamp } from "./internal/leaves";
 import { withReducedMotion } from "./internal/reduced-motion";
 import { RAFPlayback } from "./playback";
 
@@ -107,7 +108,7 @@ function durationToSpringOptions(
         ...passthrough
     } = opts;
     const response = visualDuration ?? duration ?? defaultSpringOptions.response;
-    const dampingFraction = 1 - Math.min(1, Math.max(-1, bounce));
+    const dampingFraction = 1 - clamp(bounce, -1, 1);
     return { ...passthrough, response, dampingFraction };
 }
 

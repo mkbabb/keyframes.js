@@ -1,3 +1,4 @@
+import { clamp } from "./internal/leaves";
 import { withReducedMotion } from "./internal/reduced-motion";
 import { RAFPlayback } from "./playback";
 
@@ -75,7 +76,7 @@ export class SmoothProgress {
 
     setTarget(target: number): void {
         if (this.options.clamp) {
-            target = Math.max(0, Math.min(1, target));
+            target = clamp(target, 0, 1);
         }
         const delta = Math.abs(target - this.targetValue);
         if (delta > 0 && delta >= this.options.targetEpsilon) {
@@ -129,7 +130,7 @@ export class SmoothProgress {
         }
 
         if (this.options.clamp) {
-            this.currentValue = Math.max(0, Math.min(1, this.currentValue));
+            this.currentValue = clamp(this.currentValue, 0, 1);
         }
 
         return this.currentValue;

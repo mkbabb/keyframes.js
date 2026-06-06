@@ -1,4 +1,5 @@
 import { COMPUTED_UNITS, unflattenObjectToString } from "@mkbabb/value.js";
+import { clamp } from "./internal/leaves";
 import { createNativeTimeline } from "./timeline";
 import type { NativeTimelineSpec } from "./timeline";
 import type { Animation } from "./engine";
@@ -265,7 +266,7 @@ export function toWAAPIKeyframes<V extends Vars>(
         if (Object.keys(vars).length === 0) continue;
         const styleVars = unflattenObjectToString(vars);
         keyframes.push({
-            offset: Math.max(0, Math.min(1, t / duration)),
+            offset: clamp(t / duration, 0, 1),
             ...styleVars,
         });
     }

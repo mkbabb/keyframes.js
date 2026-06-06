@@ -282,14 +282,19 @@ The group manages its own `requestAnimationFrame` loop and marks child animation
 
 ## Presets
 
-30+ ready-to-use animations in [`animations.ts`](src/animation/animations.ts). All return `CSSKeyframesAnimation` instances and accept optional `InputAnimationOptions`:
+30+ ready-to-use animations in [`animations.ts`](src/animation/animations.ts). All return `CSSKeyframesAnimation` instances and accept optional `InputAnimationOptions`. Each builds a value.js-bearing `CSSKeyframesAnimation`, so the presets ride the heavy dynamic boundary (the `presets` namespace on `loadAnimationEngine()`) rather than the value.js-free static barrel:
 
 ```ts
-import { fadeIn, bounce, spinner } from "@mkbabb/keyframes.js";
+import { loadAnimationEngine } from "@mkbabb/keyframes.js";
 
-const anim = fadeIn({ duration: 500 });
+const { presets } = await loadAnimationEngine();
+const anim = presets.fadeIn({ duration: 500 });
 anim.setTargets(element);
 anim.play();
+
+// …or the single-call front door (auto-target + auto-play):
+const { animate } = await loadAnimationEngine();
+animate(element, presets.fadeIn());
 ```
 
 **Fade**: `fadeIn`, `fadeOut` · **Attention**: `pulse`, `heartbeat`, `glow`, `shake`, `bounce` · **Entrance/Exit**: `flip`, `rotateIn`, `slideIn`, `slideInLeft/Right`, `slideOutLeft/Right`, `blurIn/Out/InOut`, `jumpUp/Down`, `warpLeft/Right` · **Effects**: `hover`, `typewriter`, `typingCursor`, `rainbowText`, `progressBar`, `skeletonLoading`, `spinner`, `parallaxScroll`, `gradientBackground`, `rotateScale`, `accordionExpand`, `notificationBounce`, `textFocusBlur`

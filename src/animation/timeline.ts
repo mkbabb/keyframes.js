@@ -1,4 +1,5 @@
 import { toEasing } from "./easing";
+import { clamp } from "./internal/leaves";
 import { AnimationOptionError } from "./internal/errors";
 import { SmoothProgress } from "./smooth";
 import type { SmoothProgressOptions } from "./smooth";
@@ -30,8 +31,6 @@ export interface TimelineOptions {
      */
     boundaryEpsilon?: number | undefined;
 }
-
-const clamp01 = (v: number): number => Math.max(0, Math.min(1, v));
 
 export abstract class Timeline {
     private smoother: SmoothProgress | null;
@@ -78,7 +77,7 @@ export abstract class Timeline {
      * `_advance` drives it.
      */
     private applyPipeline(): number {
-        let raw = clamp01(this.sample());
+        let raw = clamp(this.sample(), 0, 1);
         // The identity default makes this a no-op for the omitted-easing case.
         raw = this._easingFn(raw);
 

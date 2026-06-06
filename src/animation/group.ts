@@ -1,5 +1,4 @@
-import { ValueUnit } from "@mkbabb/value.js";
-import { lerp } from "./internal/leaves";
+import { ValueUnit, lerp } from "@mkbabb/value.js";
 import { withReducedMotion } from "./internal/reduced-motion";
 import { yieldToMain } from "./internal/scheduler";
 import { RAFPlayback } from "./playback";

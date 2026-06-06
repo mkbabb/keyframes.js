@@ -102,6 +102,9 @@ export type { AnimationGroupEntry } from "./engine";
 // The single-call front door's type surface (erased; the runtime `animate` rides
 // loadAnimationEngine below, since it constructs the heavy CSSKeyframesAnimation).
 export type { AnimateInput, AnimateOptions, KeyframeMap } from "./animate";
+// CSS-native MotionPath (F.W12) — HEAVY (composes the engine); the runtime rides
+// loadAnimationEngine below. Its option/path types are erased here.
+export type { MotionPathOptions, OffsetPath } from "./motion-path";
 // Heavy-class TYPES stay on the static barrel (erased) so consumers keep
 // `import type { Animation } from "@mkbabb/keyframes.js"` for annotations.
 // The runtime constructors are reached only via `loadAnimationEngine()`.
@@ -111,6 +114,11 @@ export type { Animation, CSSKeyframesAnimation, AnimationGroup } from "./engine"
 import type { Animation, CSSKeyframesAnimation, AnimationGroup } from "./engine";
 import type { ResolvedKeyframes } from "./engine";
 import type { animate as animateImpl } from "./animate";
+import type {
+    MotionPath as MotionPathClass,
+    fromMotionPath as fromMotionPathImpl,
+} from "./motion-path";
+import type * as AnimationPresets from "./animations";
 import type {
     AnimationOptions,
     AnimationLayerConfig,
@@ -142,6 +150,16 @@ export interface AnimationEngine {
     resolveKeyframes: (input: string | Stylesheet) => ResolvedKeyframes;
     /** The single-call front door — dispatch + auto-target + auto-play. */
     animate: typeof animateImpl;
+    /** CSS-native MotionPath (F.W12) — offset-distance over an author offset-path. */
+    MotionPath: typeof MotionPathClass;
+    fromMotionPath: typeof fromMotionPathImpl;
+    /**
+     * The preset library (`fadeIn`, `bounce`, `shake`, …) — heavy (each returns
+     * a `CSSKeyframesAnimation`), so it rides the dynamic boundary as a namespace
+     * instead of the light static barrel: `const { presets } = await
+     * loadAnimationEngine(); presets.fadeIn({ duration: 500 })` (F.W11).
+     */
+    presets: typeof AnimationPresets;
     DIRECTIONS: readonly AnimationOptions["direction"][];
     FILL_MODES: readonly AnimationOptions["fillMode"][];
     defaultOptions: AnimationOptions;
@@ -170,9 +188,19 @@ export const loadAnimationEngine = async (): Promise<AnimationEngine> => {
     // Both pull value.js into the heavy chunk; `animate` lives in its own module
     // (it constructs CSSKeyframesAnimation) and is merged onto the engine surface
     // so consumers reach it the same way: `const { animate } = await loadAnimationEngine()`.
-    const [engine, animateMod] = await Promise.all([
+    const [engine, animateMod, motionMod, presets] = await Promise.all([
         import("./engine"),
         import("./animate"),
+        import("./motion-path"),
+        import("./animations"),
     ]);
-    return Object.assign({ animate: animateMod.animate }, engine);
+    return Object.assign(
+        {
+            animate: animateMod.animate,
+            MotionPath: motionMod.MotionPath,
+            fromMotionPath: motionMod.fromMotionPath,
+            presets,
+        },
+        engine,
+    );
 };
