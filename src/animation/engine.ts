@@ -161,6 +161,22 @@ export class Animation<V extends Vars = any> {
     private _interpOut: Record<string, ValueUnit[]> = {};
 
     /**
+     * The compile-stable union of every frame's `flatVars` keys — the maximal
+     * key-set any `interpFrames` call can write. Fixed at `parse` (the keys
+     * never change across frames; a color-space renormalize re-derives the same
+     * carriers under the same keys). It is what `clearBuffer` null-fills to keep
+     * a reused buffer stale-free WITHOUT `delete` (F.W4 S1 — the V8 dictionary-
+     * mode trap the delete-loop fell into). Exposed (read-only) as `flatKeys`
+     * so the `AnimationGroup` can size its own composite buffer the same way.
+     */
+    private _stableKeys: string[] = [];
+
+    /** The compile-stable union of this animation's interpolated keys. */
+    get flatKeys(): readonly string[] {
+        return this._stableKeys;
+    }
+
+    /**
      * The instance's ONE default DOM-style renderer, allocated once.
      * "Did the consumer supply a custom transform?" is a reference
      * comparison against this single value ({@link usesDefaultRenderer}) —
@@ -254,7 +270,22 @@ export class Animation<V extends Vars = any> {
     /** Compile the template frames into the sampled `frames[]`. Chainable. */
     parse() {
         this.compiler.parse(this.targets);
+        this.computeStableKeys();
         return this;
+    }
+
+    /**
+     * Recompute `_stableKeys` — the union of every compiled frame's `flatVars`
+     * keys — after a (re)compile. The maximal key-set the `clearBuffer`
+     * null-fill resets, so a reused interpolation buffer stays in V8
+     * fast-properties mode without ever calling `delete` (F.W4 S1).
+     */
+    private computeStableKeys() {
+        const seen = new Set<string>();
+        for (const frame of this.frames) {
+            for (const key in frame.flatVars) seen.add(key);
+        }
+        this._stableKeys = [...seen];
     }
 
     /**
@@ -565,12 +596,9 @@ export class Animation<V extends Vars = any> {
     interpFrames(
         t: number,
         transformFrames: boolean = false,
-        out: Record<string, ValueUnit[]> = {},
-    ) {
+        out?: Record<string, ValueUnit[]>,
+    ): Record<string, ValueUnit[]> {
         t = this.reversed ? this.options.duration - t : t;
-
-        const result = out;
-        for (const k in result) delete result[k];
 
         const frames = this.frames;
         const len = frames.length;
@@ -583,43 +611,104 @@ export class Animation<V extends Vars = any> {
             (f) => f.time.stop,
         );
 
-        if (seedIdx === -1) return result;
-
-        // Process the seed frame, then expand to collect all overlapping frames.
-        // Frames are sorted by (time.start, time.stop), so overlapping frames
-        // at the same time are contiguous neighbors. `processFrame` is a method
-        // (not a per-call closure) so the steady-state play path mints nothing
-        // per frame (D-RT-1).
-
-        // Scan backward from seed (inclusive) to first frame that doesn't contain t
-        for (let i = seedIdx; i >= 0; i--) {
-            const f = frames[i]!;
-            if (t < f.time.start || t > f.time.stop) break;
-            this.processFrame(f, t, transformFrames, result);
+        // No active frame: an explicit (reused) buffer is cleared in place via
+        // the stable-key null-fill so it never carries a stale key; a fresh
+        // caller (no buffer) gets a new empty object. F.W4 S1: NO `delete` — the
+        // delete-loop trapped the reused buffer in V8 dictionary mode for the
+        // animation's lifetime (`%HasFastProperties === false`, 3.8–6.2× slower).
+        if (seedIdx === -1) {
+            if (out === undefined) return {};
+            this.clearBuffer(out);
+            return out;
         }
 
-        // Scan forward from seed+1 to last frame that contains t
+        // Frames are sorted by (time.start, time.stop), so the frames active at
+        // `t` are a contiguous run around the seed. Find its bounds without
+        // allocating; `processFrame` is a method (not a per-call closure) so the
+        // steady-state play path mints nothing per frame (D-RT-1).
+        let lo = seedIdx;
+        let hi = seedIdx;
+        for (let i = seedIdx - 1; i >= 0; i--) {
+            const f = frames[i]!;
+            if (t < f.time.start || t > f.time.stop) break;
+            lo = i;
+        }
         for (let i = seedIdx + 1; i < len; i++) {
             const f = frames[i]!;
             if (t < f.time.start || t > f.time.stop) break;
-            this.processFrame(f, t, transformFrames, result);
+            hi = i;
         }
 
+        // Lerp (and optionally apply) every active frame in place. The leaves of
+        // each frame's `flatVars` ARE the `ValueUnit`s just mutated here
+        // (`frame-compiler.ts` `acc[key] = value.map((v) => v.value)`).
+        for (let i = lo; i <= hi; i++) {
+            this.processFrame(frames[i]!, t, transformFrames);
+        }
+
+        // F.W4 S3 — the single-active-frame alias fast-path. The dominant shape
+        // (2-stop `fromString`, every preset, every single-property animation)
+        // has exactly one active frame, and that frame's `flatVars` already holds
+        // the freshly-lerped units — so a fresh caller (no `out` buffer) gets it
+        // returned DIRECTLY, with no clear and no copy. The aliasing-correctness
+        // clause: a caller that passes its OWN buffer (the AnimationGroup's
+        // `entry.values`, the play loop's `_interpOut`) takes the buffer path
+        // below and NEVER the alias, so no consumer mutates a shared frame object
+        // expecting a private copy.
+        if (lo === hi) {
+            const fv = frames[seedIdx]!.flatVars as unknown as Record<
+                string,
+                ValueUnit[]
+            >;
+            if (out === undefined) return fv;
+            this.clearBuffer(out);
+            Object.assign(out, fv);
+            return out;
+        }
+
+        // ≥2 active frames (properties with distinct stop sets). Merge into the
+        // stable-key buffer (a reused `out` is null-filled first, NOT delete-
+        // poisoned; a fresh caller gets a new object whose keys are exactly the
+        // active union). Object.assign into a fast-properties receiver stays at
+        // fixed-offset speed.
+        const result = out ?? {};
+        if (out !== undefined) this.clearBuffer(out);
+        for (let i = lo; i <= hi; i++) {
+            Object.assign(result, frames[i]!.flatVars);
+        }
         return result;
     }
 
     /**
-     * Interpolate ONE active frame at time `t` and merge it into `result`.
-     * Lifted off the `interpFrames` hot loop so playback allocates no
-     * per-frame closure. A zero-width frame (`start === stop`, a degenerate
+     * Clear a reused interpolation buffer to a stale-free state WITHOUT
+     * `delete` — the V8-correct stable-key null-fill (F.W4 S1). The key-set is
+     * compile-stable (`_stableKeys` is the union of every frame's `flatVars`
+     * keys, fixed at `parse`), so null-filling it keeps the buffer in
+     * fast-properties mode AND zero-alloc. Inactive keys read back `undefined`;
+     * every consumer of a reused buffer (the group blend, the unused play-loop
+     * `_interpOut`) skips them — only the standalone return path (which never
+     * reuses a buffer) must be `undefined`-free, and it takes the alias / fresh
+     * merge above.
+     */
+    private clearBuffer(buf: Record<string, ValueUnit[]>) {
+        const keys = this._stableKeys;
+        for (let i = 0; i < keys.length; i++) {
+            buf[keys[i]!] = undefined as unknown as ValueUnit[];
+        }
+    }
+
+    /**
+     * Interpolate ONE active frame at time `t` in place (lerp + optional
+     * transform). Lifted off the `interpFrames` hot loop so playback allocates
+     * no per-frame closure. A zero-width frame (`start === stop`, a degenerate
      * keyframe pair) snaps to the endpoint instead of dividing by zero in
-     * `scale` (E-RT-5).
+     * `scale` (E-RT-5). The merge into the result buffer is done by the caller
+     * (F.W4 S3 — so the single-frame path can alias `flatVars` with no copy).
      */
     private processFrame(
         frame: AnimationFrame<V>,
         t: number,
         transformFrames: boolean,
-        result: Record<string, ValueUnit[]>,
     ) {
         const { start, stop } = frame.time;
         const scaled = start === stop ? 1 : scale(t, start, stop, 0, 1);
@@ -632,8 +721,6 @@ export class Animation<V extends Vars = any> {
         if (transformFrames) {
             frame.transform(this.unflatten ? frame.vars : frame.flatVars, t);
         }
-
-        Object.assign(result, frame.flatVars);
     }
 
     async onStart() {

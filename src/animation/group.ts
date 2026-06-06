@@ -90,6 +90,16 @@ export class AnimationGroup<V extends Vars> {
      */
     private _grouped: Record<string, unknown> = {};
 
+    /**
+     * The compile-stable union of every child's contributed (whitelist-filtered)
+     * keys — what `_grouped` is null-filled to each frame so the composite is
+     * cleared WITHOUT `delete` (F.W4 S2: the delete-loop trapped `_grouped` in
+     * V8 dictionary mode). Recomputed only when the entry set / a layer
+     * whitelist changes (via `invalidateEntries`); stable across frames.
+     */
+    private _groupedKeys: string[] = [];
+    private _groupedKeysDirty = true;
+
     constructor(...inputs: (Animation<V> | AnimationGroupInput<V>)[]) {
         this._boundFrame = this._frame.bind(this);
 
@@ -154,6 +164,28 @@ export class AnimationGroup<V extends Vars> {
     /** Mark entries cache stale. Called at all mutation boundaries. */
     private invalidateEntries(): void {
         this._entriesDirty = true;
+        this._groupedKeysDirty = true;
+    }
+
+    /**
+     * Recompute `_groupedKeys` — the union of each child's contributed keys
+     * (whitelist-filtered when the layer carries one). The maximal key-set the
+     * `transformFramesGrouped` null-fill clears, so the composite buffer stays
+     * in V8 fast-properties mode without `delete` (F.W4 S2). Children are parsed
+     * (their `flatKeys` populated) before the first composite — the group only
+     * blends during play, after child setup — and any later structural change
+     * re-dirties through `invalidateEntries`.
+     */
+    private computeGroupedKeys(): void {
+        const seen = new Set<string>();
+        for (const entry of this.getEntries()) {
+            const whitelist = entry.layer.properties;
+            for (const key of entry.animation.flatKeys) {
+                if (whitelist && !whitelist.has(key)) continue;
+                seen.add(key);
+            }
+        }
+        this._groupedKeys = [...seen];
     }
 
     // ── Setup ────────────────────────────────────────────────────────
@@ -209,7 +241,22 @@ export class AnimationGroup<V extends Vars> {
         // zero-alloc idiom `interpFrames` uses for its `out` buffer. No fresh
         // object per frame.
         const groupedValues = this._grouped;
-        for (const k in groupedValues) delete groupedValues[k];
+        if (this._groupedKeysDirty) {
+            this.computeGroupedKeys();
+            this._groupedKeysDirty = false;
+        }
+
+        // F.W4 S2 — stable-key null-fill clear (NO `delete`: the delete-loop
+        // trapped `_grouped` in V8 dictionary mode, taxing every blend read +
+        // the transform serialize per key per frame). Inactive keys read back
+        // `undefined`; the blend skips them and the first-contributor check
+        // below is `!== undefined` (not `key in`, which the null-fill makes
+        // always-true); the post-blend compaction drops any key no enabled child
+        // contributed so the transform never serializes an `undefined`.
+        const groupedKeys = this._groupedKeys;
+        for (let i = 0; i < groupedKeys.length; i++) {
+            groupedValues[groupedKeys[i]!] = undefined;
+        }
 
         const entries = this.getEntries();
 
@@ -221,10 +268,11 @@ export class AnimationGroup<V extends Vars> {
 
             if (!layer.enabled) continue;
 
-            // Refresh in place. `values` is reset by interpFrames before
-            // new keys are assigned, so the done/paused early-return
-            // from the previous implementation is unnecessary — a
-            // scrubbed child's fresh state is always reflected here.
+            // Refresh in place. `values` is reset by interpFrames (the stable-key
+            // null-fill) before new keys are assigned, so the done/paused
+            // early-return from the previous implementation is unnecessary — a
+            // scrubbed child's fresh state is always reflected here. Inactive
+            // child keys read back `undefined`; the blend arms skip them.
             animation.interpFrames(
                 animation.t,
                 false,
@@ -234,14 +282,16 @@ export class AnimationGroup<V extends Vars> {
             // The property whitelist is applied INLINE as a key-skip — no
             // `filteredValues` object, no `Object.entries`/`Object.fromEntries`
             // array. Each blend arm walks `values` with `for..in` (allocation-
-            // free) and `continue`s on a non-whitelisted key.
+            // free), `continue`s on a non-whitelisted or `undefined` key.
             const whitelist = layer.properties;
 
             switch (layer.blendMode) {
                 case "replace":
                     for (const key in values) {
                         if (whitelist && !whitelist.has(key)) continue;
-                        groupedValues[key] = values[key];
+                        const incoming = values[key];
+                        if (incoming === undefined) continue;
+                        groupedValues[key] = incoming;
                     }
                     break;
 
@@ -249,8 +299,9 @@ export class AnimationGroup<V extends Vars> {
                     for (const key in values) {
                         if (whitelist && !whitelist.has(key)) continue;
                         const incoming = values[key];
-                        if (key in groupedValues) {
-                            const existing = groupedValues[key];
+                        if (incoming === undefined) continue;
+                        const existing = groupedValues[key];
+                        if (existing !== undefined) {
                             // Accumulate numeric ValueUnit values in place.
                             if (
                                 isNumericUnit(existing) &&
@@ -275,7 +326,8 @@ export class AnimationGroup<V extends Vars> {
                     for (const key in values) {
                         if (whitelist && !whitelist.has(key)) continue;
                         const incoming = values[key];
-                        if (key in groupedValues) {
+                        if (incoming === undefined) continue;
+                        if (groupedValues[key] !== undefined) {
                             const existing = groupedValues[key];
                             if (
                                 isNumericUnit(existing) &&
@@ -298,6 +350,17 @@ export class AnimationGroup<V extends Vars> {
         }
 
         this.done = done;
+
+        // Drop any key NO enabled child contributed this frame (a disabled
+        // layer's stale key, or a property whose child does not cover `t`) so the
+        // transform never serializes an `undefined`. In the common case (every
+        // grouped key contributed) this deletes nothing, so `_grouped` stays in
+        // fast-properties mode and the per-frame path is delete-free + zero-alloc
+        // — the rare `delete` is strictly no worse than the old per-frame loop.
+        for (let i = 0; i < groupedKeys.length; i++) {
+            const key = groupedKeys[i]!;
+            if (groupedValues[key] === undefined) delete groupedValues[key];
+        }
 
         this.transform(groupedValues as V, t);
 

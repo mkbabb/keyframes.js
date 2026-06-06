@@ -1,5 +1,5 @@
 import { bench, describe } from "vitest";
-import { CSSKeyframesAnimation } from "../src/animation";
+import { CSSKeyframesAnimation } from "../src/animation/engine";
 import { AnimationGroup } from "../src/animation/group";
 
 describe("interpFrames", () => {
