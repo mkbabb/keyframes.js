@@ -579,3 +579,58 @@ the entire interp path is reached through one dispatch site (`lerpValue → iv._
 (cited inline) or a `file:line` re-grounded against the live trees at 2026-06-06; every
 SOTA/Baseline claim is dated and modern-web-guidance- or spec-grounded via the cited
 research lanes.
+
+---
+
+## 9. glass-ui-HANDOFF — the VT-types enabler (F.W13.S2, inv-16)
+
+**A DISTINCT ledger from the value.js/parse-that columns above.** This section records the
+cross-repo item owned by **`@mkbabb/glass-ui`** (the demo's VT/scroll-CSS substrate), not
+value.js — kept separate so inv-16's "every enabler recorded against its rightful owner"
+holds. The demo writes **nothing** here; it consumes glass-ui's helper and BOOKs the
+typed-transition follow-up until glass-ui ships the param.
+
+### H-1 — `startViewTransition` must accept `{ types }` (the 2026 VT-types API) — glass-ui-HANDOFF
+
+**State (verified live, `r-scroll-vt-2026 H-1`).** The demo's most-seen motion is the
+scene swap: `demo/app/useSceneTransition.ts:32` calls `startViewTransition(() => mutate(id))`
+— the **bare-callback** form. glass-ui 3.2.0's helper
+(`node_modules/@mkbabb/glass-ui/dist/useViewTransition-*.js`) is
+`let n = t.startViewTransition(() => e());` — it takes a single `mutate` callback and **never**
+forwards an options object. The **VT-types API** (`{ update, types }` +
+`:active-view-transition-type()`) became **Baseline Newly available 2026-01-13** (Chrome/Edge
+125, Firefox 147, Safari 18.2) — AFTER E.W11 was authored, so W11 could only use the bare form.
+The engine ships **zero** VT surface (`grep -rn startViewTransition src/` = 0), correctly — the
+substrate is glass-ui-owned.
+
+**The hand-off (owner = glass-ui).** The helper grows an overload:
+
+```
+startViewTransition(mutate, options?: { types?: string[] })
+  → document.startViewTransition({ update: () => mutate(), types })   // object form supported
+  → document.startViewTransition(() => mutate())                       // bare-callback fallback
+  → { instant-mutate fallback }                                        // no VT at all
+```
+
+The `{ finished, transitioned }` return contract is **unchanged**; the PRM degrade already in
+glass-ui's `view-transition.css` applies to typed transitions. The demo CANNOT hand-roll
+`document.startViewTransition({ update, types })` — that bypasses the substrate's feature-detect
++ instant fallback, re-introducing the exact duplication the boundary forbids (inv-16). So it
+routes OUT as a **glass-ui-HANDOFF**, and the consume is BOOKED (B-1).
+
+### Recorded dispositions in this band (named, NOT this wave — each carries its gate)
+
+| Item | Disposition | Gate / reason |
+|------|-------------|---------------|
+| **B-1 — typed/directional scene-VT** | **BOOK** (gated on H-1 + MEASURE-FIRST) | the one-line demo consume the moment glass-ui ships `types`: derive a direction from the ordered scene list, pass `{ types: [direction] }`, key slide rules off `:active-view-transition-type()`. MEASURE-FIRST: a directional slide of a paused spinning-cube snapshot may read WORSE than the calm cross-fade — verify it composes + the spring stands down (`useSceneSwap.ts`) before shipping. |
+| **The `Mod+K` command palette via Invoker** | **BOOK** (the `@click` rewrite **KILLED**) | the single declarative-controls showcase scene behind `'commandForElement' in HTMLButtonElement.prototype` + the `invokers-polyfill` dynamic-import ladder. A wholesale `@click`→`command="--play"` rewrite of a hydrated Vue SPA is LESS legible with NO measured win → gold-plating, KILLED. The minimal VISIBLE shortcuts-discovery trigger SHIPped in F.W15.S3. |
+| **`view()` entry-reveal on the easing track** | **BOOK** | PE-only decorative; glass-ui owns the recipe — consume, never hand-roll; scroll-driven did NOT advance to Baseline. |
+| **`interpolate-size` / `calc-size()` intrinsic-size** | **RECORD** (don't-adopt-until-Baseline) | `interpolate-size: allow-keywords` is Chrome/Edge 129 only (no FF/Safari). The demo's `0fr→1fr` grid-row trick is a working cross-browser solution and is ALREADY-SOTA — adopting the Chromium-only feature would regress FF/Safari to an instant jump. The engine `IntrinsicSizeValue` wave is GAP-NAMED, gated on value.js `calc-size()` (E7 above). |
+| **Fluid display type** (`.text-display-*` rungs) | **glass-ui ASK** | author the fluid rungs once in the dependency (benefits every glass-ui consumer), not a demo override. |
+| **SplitText analogue** | **BOOK** (value.js-free) | `splitText({by})` over `Intl.Segmenter`; the demo grapheme/AT-name fix folds into F.W16.S2. |
+| **MorphSVG / DrawSVG / numeric MotionPath** | **value.js-HANDOFF VJ-F1** (§Wave F, F9) | the path-geometry sampler; the CSS-native MotionPath sliver ships in F.W12. |
+
+**inv-16 compliance.** This section proposes; it does not write glass-ui. The demo's F.W13
+SHIP is the ≤1-line `text-wrap: pretty` on its own prose (`EditorStartScreen.vue`); everything
+else here is a hand-off to glass-ui or a BOOK/RECORD, so the record is accurate and no future
+lane re-litigates what is upstream-owned or already-dispositioned.

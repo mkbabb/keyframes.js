@@ -6,8 +6,8 @@
  * forms (the feature-detect routes, the owned idioms, the a11y roles, the
  * first-paint descriptors, the CWV levers).
  */
-import { readFileSync, existsSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { readFileSync, existsSync, readdirSync } from "node:fs";
+import { dirname, join, extname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -15,6 +15,25 @@ const read = (p) => (existsSync(join(root, p)) ? readFileSync(join(root, p), "ut
 const exists = (p) => existsSync(join(root, p));
 /** Blank /* *​/ block comments so a grep matches real declarations, not prose. */
 const stripComments = (s) => s.replace(/\/\*[\s\S]*?\*\//g, " ");
+
+const SKIP_DIR = new Set(["dist", "node_modules", ".git"]);
+/** Walk a repo-relative dir collecting absolute paths matching one of `exts`. */
+const collect = (relDir, exts, out = []) => {
+    const dir = join(root, relDir);
+    if (!existsSync(dir)) return out;
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+        if (e.isDirectory()) {
+            if (SKIP_DIR.has(e.name)) continue;
+            collect(join(relDir, e.name), exts, out);
+        } else if (exts.has(extname(e.name))) {
+            out.push(join(dir, e.name));
+        }
+    }
+    return out;
+};
+/** All demo .vue/.ts source as strings (dist excluded). */
+const collectDemo = () =>
+    collect("demo", new Set([".vue", ".ts"])).map((p) => readFileSync(p, "utf8"));
 
 const failures = [];
 const fail = (clause, msg) => failures.push(`  ✗ [${clause}] ${msg}`);
@@ -157,6 +176,76 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
         ok("cwv", "the @starting-style artifact scene renders the spring linear() behind a copy button + PRM guard");
     } else {
         fail("cwv", "the @starting-style + spring-linear() copy-paste artifact scene is missing or incomplete");
+    }
+}
+
+// ── 6. F.W13 — baseline-platform adopts (text-wrap SHIP · VT-types boundary) ──
+{
+    // 6a — `text-wrap: pretty` is present on the start-screen running prose, and
+    // scoped to it — NOT applied to the LCP <h1> hero (F.W16's balance-class
+    // substrate). The SHIP is a scoped style block in EditorStartScreen.vue.
+    // Comments stripped so a prose mention ("no text-wrap: pretty support") does
+    // NOT satisfy the presence check — only a real declaration counts.
+    const startScreen = stripComments(read("demo/@/components/custom/editor-shell/EditorStartScreen.vue"));
+    const hasPretty = /text-wrap:\s*pretty/.test(startScreen);
+    // The hero <h1> is `.text-display-4` rendered through AnimatedText — the prose
+    // SHIP must NOT leak onto it. Bite: a `.text-display-4 { text-wrap: pretty }`
+    // (or a `text-wrap: pretty` on the AnimatedText hero layer) reds the scope.
+    const heroLeak =
+        /\.text-display-4[^}]*text-wrap:\s*pretty/.test(startScreen) ||
+        /text-wrap:\s*pretty/.test(stripComments(read("demo/@/components/custom/AnimatedText.vue")));
+    if (hasPretty && !heroLeak) {
+        ok("platform-adopt", "text-wrap: pretty rides the start-screen prose (not the LCP hero) — the F.W13.S1 SHIP");
+    } else if (!hasPretty) {
+        fail("platform-adopt", "no text-wrap: pretty on the start-screen prose (F.W13.S1 SHIP missing)");
+    } else {
+        fail("platform-adopt", "text-wrap: pretty leaked onto the LCP <h1> hero (it is F.W16's balance-class substrate, not this prose SHIP)");
+    }
+
+    // 6b — the demo does NOT hand-roll document.startViewTransition({ ... }) with
+    // an options object (the inv-16 boundary: it consumes glass-ui's helper). The
+    // object-form hand-roll is the negative case (a backtick prose mention of
+    // `document.startViewTransition` in the helper docstring does NOT match — the
+    // pattern requires an OPEN-PAREN + OBJECT-LITERAL call). Bite: add a direct
+    // document.startViewTransition({ update, types }) in the demo → this reds.
+    const handRoll = collectDemo().some((src) => /document\.startViewTransition\s*\(\s*\{/.test(src));
+    const consumesHelper = /from\s+["']@mkbabb\/glass-ui\/motion-core["']/.test(read("demo/app/useSceneTransition.ts"));
+    if (!handRoll && consumesHelper) {
+        ok("platform-adopt", "the demo consumes glass-ui's startViewTransition — no hand-rolled document.startViewTransition({ types }) (inv-16 boundary holds)");
+    } else if (handRoll) {
+        fail("platform-adopt", "the demo hand-rolls document.startViewTransition({ ... }) — bypasses glass-ui's feature-detect + instant fallback (inv-16 forbids; route OUT as glass-ui-HANDOFF H-1)");
+    } else {
+        fail("platform-adopt", "demo/app/useSceneTransition.ts no longer imports startViewTransition from glass-ui (the VT substrate boundary moved)");
+    }
+
+    // 6c — the engine ships ZERO VT surface (the boundary: VT/scroll-CSS is
+    // glass-ui-owned). Bite: add a startViewTransition helper to src/ → this reds.
+    const engineVT = /startViewTransition/.test(
+        collect("src", new Set([".ts"])).map((p) => readFileSync(p, "utf8")).join("\n"),
+    );
+    if (!engineVT) {
+        ok("platform-adopt", "the engine ships zero VT surface (grep startViewTransition src/ = 0) — the boundary holds");
+    } else {
+        fail("platform-adopt", "the engine grew a startViewTransition surface — VT is glass-ui-owned, the engine must ship zero VT (F.W13 §A-2)");
+    }
+
+    // 6d — the VT-types upgrade is recorded as a glass-ui-HANDOFF (H-1) in the
+    // hand-off ledger, with the booked/RECORD layers carrying their dispositions
+    // (so a future lane cannot silently drop them or re-litigate what is
+    // already-dispositioned). Bite: drop H-1 / the BOOK rows → this reds.
+    const ledger = read("docs/tranches/F/valuejs-sota-handoff-v2.md");
+    const ledgerClauses = [
+        [/\bH-1\b/, "H-1 (the VT-types glass-ui-HANDOFF)"],
+        [/glass-ui-HANDOFF/, "the glass-ui-HANDOFF tag"],
+        [/types\?/, "the startViewTransition(mutate, { types? }) helper shape"],
+        [/\bB-1\b/, "B-1 (the typed/directional scene-VT BOOK)"],
+        [/interpolate-size/, "the interpolate-size RECORD"],
+    ];
+    const missingLedger = ledgerClauses.filter(([re]) => !re.test(ledger)).map(([, name]) => name);
+    if (missingLedger.length === 0) {
+        ok("platform-adopt", "H-1 + the booked/RECORD layers are recorded in the hand-off ledger (glass-ui item, distinct from the value.js ledger)");
+    } else {
+        fail("platform-adopt", "the hand-off ledger is missing F.W13 disposition(s): " + missingLedger.join(", "));
     }
 }
 

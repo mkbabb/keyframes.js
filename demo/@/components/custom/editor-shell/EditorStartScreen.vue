@@ -19,13 +19,13 @@
                 ></AnimatedText>
             </div>
         </h1>
-        <h2 class="text-title w-full italic">
+        <h2 class="start-screen-prose text-title w-full italic">
             {{ subtitle }}
             <List class="inline"></List> {{ subtitleSuffix }}
         </h2>
         <h2
             v-if="hint"
-            class="text-subheading w-full italic text-muted-foreground"
+            class="start-screen-prose text-subheading w-full italic text-muted-foreground"
         >
             {{ hint }}
         </h2>
@@ -53,3 +53,18 @@ withDefaults(
     },
 );
 </script>
+
+<style scoped>
+/* F.W13.S1 — `text-wrap: pretty` on the start-screen running prose (the
+   subtitle + hint <h2>s, NOT the LCP <h1> hero — that is F.W16's balance-class
+   substrate). These two headings are multi-line running prose ("from the list
+   below, then press Play." + the optional hint), for which the orphan-avoidance
+   `pretty` algorithm is the better fit than the short-heading `balance` glass-ui
+   applies to the `.text-*` family. Pure progressive enhancement: Chrome/Safari
+   get the improved rag, Firefox (no `text-wrap: pretty` support) falls back to
+   the inherited `balance`/standard wrap, byte-identical to today. Scoped to the
+   demo's own prose — NOT a glass-ui override of the shared `.text-*` utilities. */
+.start-screen-prose {
+    text-wrap: pretty;
+}
+</style>
