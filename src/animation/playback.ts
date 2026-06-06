@@ -96,15 +96,36 @@ export class RAFPlayback {
     private _run(step: (now: number) => boolean | Promise<boolean>): void {
         const gen = ++this._gen;
 
+        const reschedule = (cont: boolean): void => {
+            if (gen !== this._gen) return;
+            if (cont) {
+                this._rafId = requestAnimationFrame(frame);
+            } else {
+                this._cleanup();
+            }
+        };
+
         const frame = (now: number): void => {
-            void Promise.resolve(step(now)).then((cont) => {
-                if (gen !== this._gen) return;
-                if (cont) {
-                    this._rafId = requestAnimationFrame(frame);
-                } else {
-                    this._cleanup();
-                }
-            });
+            // F.W5 S1 — the sync fast-path. A synchronous `step` (every `drive`
+            // stepper: `SmoothProgress`/`SpringProgress`/`Draggable` return a
+            // boolean from `tickDt`) reschedules INLINE — no `Promise.resolve`,
+            // no microtask hop (33 ns/frame, forever, for a stepper that
+            // dispatches no animation events). The async branch is byte-unchanged
+            // for the genuinely-async draw frame (`Animation`/`AnimationGroup`
+            // `loop`, which returns `Promise<boolean>` and carries event-ordering
+            // semantics): the `.then` callback body IS `reschedule`, so behaviour
+            // is identical across both shapes. `typeof (result).then === function`
+            // is the feature-detect (a thenable → async; a boolean → sync), not a
+            // special-case — the async path remains the true path for async work.
+            const result = step(now);
+            if (
+                result &&
+                typeof (result as Promise<boolean>).then === "function"
+            ) {
+                void (result as Promise<boolean>).then(reschedule);
+            } else {
+                reschedule(result as boolean);
+            }
         };
 
         this._rafId = requestAnimationFrame(frame);
