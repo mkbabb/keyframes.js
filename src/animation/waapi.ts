@@ -42,6 +42,31 @@ const WAAPI_INELIGIBLE_UNITS: ReadonlySet<string> = new Set<string>([
 const isComputedUnit = (unit: unknown): boolean =>
     typeof unit === "string" && WAAPI_INELIGIBLE_UNITS.has(unit);
 
+/**
+ * Properties whose `%` resolves against a NON-layout-box reference the
+ * compositor tracks correctly — so their `%` is exempt from the layout-`%`
+ * rejection (F.W12 §Design-decision 3). `offset-distance`'s `%` is relative to
+ * the resolved length of the element's `offset-path`, which WAAPI computes once
+ * at keyframe computation and does not need to re-resolve on a layout resize
+ * (unlike `width: %`, which tracks the containing block). The path itself
+ * (`offset-path`) is a STATIC author value set on the element, not animated, so
+ * the animated scalar is purely `offset-distance`.
+ */
+const PATH_RELATIVE_PERCENT_PROPERTIES: ReadonlySet<string> = new Set<string>([
+    "offset-distance",
+]);
+
+/**
+ * True when the property's `%` is path-relative (exempt from the layout-`%`
+ * rejection). The flattened interpVars key MAY carry a dotted nesting prefix,
+ * so the LEAF segment is matched — `offset-distance` admits whether it arrives
+ * bare or nested. `calc`/`var` units are NOT exempted here (they still freeze);
+ * only the `%` rejection is relaxed for the offset family.
+ */
+const isOffsetPercentProperty = (property: string): boolean =>
+    PATH_RELATIVE_PERCENT_PROPERTIES.has(property) ||
+    PATH_RELATIVE_PERCENT_PROPERTIES.has(property.split(".").pop() ?? property);
+
 export type WAAPIEligibility =
     | { eligible: true }
     | { eligible: false; reason: string };
@@ -139,12 +164,30 @@ export function isWAAPIEligible<V extends Vars>(
     }
 
     for (const frame of animation.frames) {
-        for (const interpVarArr of Object.values(frame.interpVars)) {
+        for (const [property, interpVarArr] of Object.entries(
+            frame.interpVars,
+        )) {
+            // `offset-distance`'s `%` resolves against the PATH LENGTH, not a
+            // layout box (F.W12 §Design-decision 3 / MEASURE-FIRST). The
+            // compositor resolves it correctly at keyframe computation and
+            // does NOT need a per-frame layout round-trip — so it is exempt
+            // from the `%`/computed-unit rejection that keeps viewport- and
+            // container-relative `%` on the rAF path. The exemption is keyed
+            // on the property, so a `width: %` (a real layout box) stays
+            // ineligible — only the path-relative offset family is admitted.
+            const pathRelativePercent = isOffsetPercentProperty(property);
+
             for (const iv of interpVarArr) {
-                if (
-                    isComputedUnit(iv.start?.unit) ||
-                    isComputedUnit(iv.stop?.unit)
-                ) {
+                // Surgical exemption: ONLY the path-relative `%` is relaxed.
+                // `calc`/`var` (and every viewport/container unit) still freeze
+                // and stay ineligible even on the offset family.
+                const startBad =
+                    isComputedUnit(iv.start?.unit) &&
+                    !(pathRelativePercent && iv.start?.unit === "%");
+                const stopBad =
+                    isComputedUnit(iv.stop?.unit) &&
+                    !(pathRelativePercent && iv.stop?.unit === "%");
+                if (startBad || stopBad) {
                     return {
                         eligible: false,
                         reason: `layout-dependent unit (${String(iv.start?.unit ?? iv.stop?.unit)}) would freeze to px under WAAPI`,
