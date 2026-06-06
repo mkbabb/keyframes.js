@@ -28,8 +28,15 @@ export const toEasing = (input: TimingFunction | Easing): Easing =>
 
 /** CSS easing keywords that are themselves valid `animation-timing-function`. */
 const CSS_NATIVE_KEYWORD = /^(linear|ease|ease-in|ease-out|ease-in-out)$/;
-/** CSS `cubic-bezier(...)` / `steps(...)` literals + the `step-*` keywords. */
-const CSS_FUNCTION_EASING = /^(cubic-bezier\(|steps\(|step-start$|step-end$)/;
+/**
+ * CSS `cubic-bezier(...)` / `steps(...)` / `linear(...)` literals + the
+ * `step-*` keywords. `linear(...)` (CSS Easing L2, Baseline 2023) is a faithful
+ * CSS twin like the others — including it lets the engine's OWN spring `linear()`
+ * emission round-trip (emit → re-parse preserves the curve, not collapse to the
+ * bare `linear` keyword) and delegate to the compositor (F.W7).
+ */
+const CSS_FUNCTION_EASING =
+    /^(cubic-bezier\(|steps\(|linear\(|step-start$|step-end$)/;
 
 /**
  * The faithful CSS easing string for an easing NAME / literal, or

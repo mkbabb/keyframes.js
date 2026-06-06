@@ -7,7 +7,26 @@ import {
     ValueUnit,
 } from "@mkbabb/value.js";
 import type { Animation } from "./engine";
-import type { AnimationFrame, AnimationOptions, Vars } from "./constants";
+import type { AnimationFrame, AnimationOptions, Easing, Vars } from "./constants";
+
+/**
+ * Serialize an `Easing` to its CSS `animation-timing-function` token (F.W7).
+ * A CSS-twinned easing emits its faithful CSS string VERBATIM (a spring's
+ * `linear()`, a `cubic-bezier()` literal) — it is already CSS and must NOT be
+ * hyphenated (`camelCaseToHyphen` would mangle any uppercase). Otherwise the
+ * callable is reverse-looked-up in the registry and the camelCase key is
+ * hyphenated (`easeOutCubic` → `ease-out-cubic`). Factored so both the
+ * top-level options serializer and the per-keyframe emitter share ONE faithful
+ * easing→CSS path (the round-trip symmetry the serializer lacked).
+ */
+export function serializeEasing(easing: Easing): string {
+    if (easing.css !== undefined) return easing.css;
+    const registryName =
+        Object.entries(timingFunctions)
+            .filter(([_name, func]) => func === easing.fn)
+            .map(([name]) => name)?.[0] ?? "linear";
+    return camelCaseToHyphen(registryName);
+}
 
 const DEFAULT_WIDTH = 80;
 const DEFAULT_KEYFRAME_HEADER = `@keyframes animation {\n`;
@@ -57,23 +76,7 @@ export function animationOptionsToString(
     const duration = reverseCSSTime(options.duration);
     css += `  animation-duration: ${duration};\n`;
 
-    // A CSS-twinned easing serializes as its faithful CSS string VERBATIM
-    // (a spring's `linear()`, a `cubic-bezier()` literal) — it is already
-    // CSS and must NOT be hyphenated (`camelCaseToHyphen` would mangle any
-    // uppercase). Otherwise reverse-look-up the callable in the registry and
-    // hyphenate the camelCase registry key (`easeOutCubic` → `ease-out-cubic`).
-    let timingFunctionName: string;
-    if (options.timingFunction.css !== undefined) {
-        timingFunctionName = options.timingFunction.css;
-    } else {
-        const registryName =
-            Object.entries(timingFunctions)
-                .filter(([_name, func]) => func === options.timingFunction.fn)
-                .map(([name]) => name)?.[0] ?? "linear";
-        timingFunctionName = camelCaseToHyphen(registryName);
-    }
-
-    css += `  animation-timing-function: ${timingFunctionName};\n`;
+    css += `  animation-timing-function: ${serializeEasing(options.timingFunction)};\n`;
 
     css += `  animation-iteration-count: ${
         isFinite(options.iterationCount) ? options.iterationCount : "infinite"
@@ -114,18 +117,32 @@ export async function CSSKeyframesToString<V extends Vars>(
     // Sample the animation at each stop's percentage to get the resolved CSS values.
     const keyframesMap = new Map<string, ValueUnit[]>();
 
+    // F.W7 — the per-keyframe easing round-trip. `fromString` READS each stop's
+    // `animation-timing-function` (CSS Animations L1: it applies to the interval
+    // STARTING at that stop) and stores it on `templateFrame.timingFunction`;
+    // the serializer must emit it back or the per-stop curve is silently lost on
+    // re-parse. Emit it ONLY when it differs from the top-level default, so a
+    // uniform-easing animation stays byte-identical (the default already rides
+    // the `.class` block).
+    const defaultEasing = serializeEasing(options.timingFunction);
+
     for (const templateFrame of animation.templateFrames) {
         const percent = templateFrame.start;
         const progress = percent.value / 100;
         const vars = animation.at(progress, false);
 
-        const css = Object.entries(unflattenObjectToString(vars))
-            .map(([propName, v]) => {
-                propName = camelCaseToHyphen(propName);
-                return `  ${propName}: ${v};`;
-            })
-            .join("\n")
-            .trim();
+        const decls = Object.entries(unflattenObjectToString(vars)).map(
+            ([propName, v]) => `  ${camelCaseToHyphen(propName)}: ${v};`,
+        );
+
+        const frameEasing = templateFrame.timingFunction
+            ? serializeEasing(templateFrame.timingFunction)
+            : defaultEasing;
+        if (frameEasing !== defaultEasing) {
+            decls.push(`  animation-timing-function: ${frameEasing};`);
+        }
+
+        const css = decls.join("\n").trim();
 
         const body = `{\n${css}\n}`;
 

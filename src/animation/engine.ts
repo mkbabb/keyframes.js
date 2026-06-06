@@ -37,12 +37,14 @@ import {
 import type {
     AnimationFrame,
     AnimationOptions,
+    Easing,
     InputAnimationOptions,
     TemplateAnimationFrame,
     TransformFunction,
     Vars,
 } from "./constants";
 import { AnimationGroup } from "./group";
+import { cssTwinFor } from "./easing";
 import { FrameCompiler, resolveEasingOption } from "./frame-compiler";
 import {
     getTimingFunction,
@@ -1175,12 +1177,16 @@ export class CSSKeyframesAnimation<V extends Vars> extends Animation<V> {
             // a parse outcome.
             const tfText = resolved.timingFunctions.get(percent);
             const resolvedFn = tfText ? getTimingFunction(tfText) : undefined;
-            this.addFrame(
-                percent,
-                frame as Partial<V>,
-                transform,
-                resolvedFn ? { fn: resolvedFn } : undefined,
-            );
+            // Preserve the faithful CSS twin (a `linear()`/`cubic-bezier()`/
+            // `steps()` literal, a CSS keyword) so the per-keyframe easing
+            // round-trips on re-serialize instead of collapsing to the bare
+            // registry name (F.W7 — the read half of the round-trip symmetry).
+            let easing: Easing | undefined;
+            if (resolvedFn) {
+                const css = tfText ? cssTwinFor(tfText) : undefined;
+                easing = css ? { fn: resolvedFn, css } : { fn: resolvedFn };
+            }
+            this.addFrame(percent, frame as Partial<V>, transform, easing);
         }
 
         this.parse();
