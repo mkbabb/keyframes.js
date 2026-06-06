@@ -30,7 +30,15 @@ remains.**
 
 ## Phase
 
-**TRANCHE DEVELOPMENT** (the audit + these docs), on branch `tranche-e-impl` (off
+**IMPLEMENTED + CLOSED** on branch `tranche-f-impl` (off `tranche-e-impl` HEAD). F.W1–F.W17
+are landed behind biting gates; the full `proof:all` suite is green and wired into CI
+(F.W2); the close report is `FINAL.md`. The cross-repo hand-offs (value.js + parse-that)
+were driven directly on each sibling's `tranche-f-handoff` branch (the user explicitly
+relaxed inv-16 for this drive — kf still consumes them unchanged through `lerpValue →
+iv._lerp` on re-pin). The outward legs (push · gh-pages deploy → keyframes.babb.dev · npm
+publish) stay USER-DOMAIN, confirm-first. The history below is the development record.
+
+**(was) TRANCHE DEVELOPMENT** (the audit + these docs), on branch `tranche-e-impl` (off
 `tranche-e-impl` HEAD; D+E IMPLEMENTED + CLOSED). The deep-SOTA assay (F.W0) is RUN — the
 evidence is on disk under `audit/` (27 phase-1 lanes + 5 synthesis lanes, each
 `file:line`-grounded with a SHIP/MEASURE-FIRST/BOOK/KILL/RECORD/HANDOFF disposition and a

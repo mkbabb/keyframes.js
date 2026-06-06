@@ -45,10 +45,18 @@ for (const f of ["src/animation/engine.ts", "src/animation/group.ts"]) {
 // (re-inlining the FrameCompiler is ~+236 — the regression this bites). D-close
 // was 847; E added two genuine FEATURE methods to the base class — E.W7's
 // zero-alloc `processFrame` lift + `_interpOut` buffer, and E.W9's live-PRM
-// `_snapToReducedMotion` + per-tick re-consult (~+67 total). 950 accommodates
-// the legitimate feature growth while still biting hard on a compile re-inline
-// (847 + 236 = 1083 ≫ 950).
-const ANIMATION_CLASS_CEILING = 950;
+// `_snapToReducedMotion` + per-tick re-consult (~+67 total). F added ~95 more
+// of cohesive, gated, MEASURED feature (NOT compile re-absorption): F.W4's
+// stable-key buffer mechanism (`clearBuffer` + `computeStableKeys` + the
+// single-frame alias branch in `interpFrames` — the headline ~3× perf fold) and
+// F.W8's style-rule `animation`-shorthand apply (`_ctorOptions` + the
+// CSS→engine option translation). This is the gated DECISION F.md NEW-3 /
+// a-engine-post-e F-ENG-5 assigned to F: the class is at its cohesive gestalt —
+// a split would be the legacy-shaped "extract-for-line-count" the §Mandate
+// forbids — so the ceiling is EXTENDED with rationale to 1050, NOT the class
+// reflexively split. It still bites HARD on a compile re-inline
+// (847 + 236 = 1083 > 1050) — the regression that actually matters.
+const ANIMATION_CLASS_CEILING = 1050;
 const compiler = read("src/animation/frame-compiler.ts");
 if (!/export class FrameCompiler/.test(compiler)) {
     fail("engine-seam", "src/animation/frame-compiler.ts does not export `FrameCompiler`");
