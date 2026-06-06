@@ -371,6 +371,79 @@ function main() {
         }
     }
 
+    // ── 7. RAIL/BALL PAIR DE-DUPLICATED — the F.W16.S1 honest correction ──────
+    // W11 promoted the WRONG primitive (the conic-gradient .progress-dot PLAYING
+    // RING) under the rail/ball name; the rail-line + scrubber-ball was STILL
+    // authored four ways with drift (3 rail tints, 2 glows, 4 ball sizes). F.W16
+    // promotes the CORRECT primitive: a parameterized .progress-rail/.progress-ball
+    // pair in design-idioms.css, consumed by the scene tracks, with the scoped
+    // rail/ball RE-DEFINITIONS removed.
+    //   BITE: re-author a scoped .spring-rail-line / .track-line / .preset-line
+    //         block (the rail geometry) in a scene → the de-dup clause reds.
+    //   BITE: promote the conic playing-ring (.progress-dot) again instead of the
+    //         rail/ball → the "is it the rail/ball, not the playing-ring" reds.
+    {
+        const idiomSrc = fs.existsSync(DESIGN_IDIOMS) ? read(DESIGN_IDIOMS) : "";
+        // The pair must exist as REAL rules (opening brace anchored — a stubbed
+        // selector does not satisfy it) and be DISTINCT from the playing-ring.
+        const hasRail = /\.progress-rail\s*\{/.test(idiomSrc);
+        const hasBall = /\.progress-ball\s*\{/.test(idiomSrc);
+        // The rail/ball is the rail-LINE + scrubber-ball, NOT the conic playing
+        // ring — the .progress-ball rule must read --color-progress as a solid
+        // fill, not a conic-gradient (the .progress-dot signature).
+        const ballBlock = (idiomSrc.match(/\.progress-ball\s*\{[^}]*\}/) || [""])[0];
+        const isRailBallNotRing = /background:\s*var\(--color-progress\)/.test(ballBlock) && !/conic-gradient/.test(ballBlock);
+
+        // The scene consumers route through the pair (class applied in template).
+        const consumers = [
+            "demo/spring/SpringTarget.vue",
+            "demo/easing/EasingTarget.vue",
+            "demo/spring/SpringSidebar.vue",
+        ];
+        const allConsume = consumers.every((p) => {
+            const src = fs.existsSync(path.join(REPO, p)) ? read(path.join(REPO, p)) : "";
+            return /progress-rail/.test(src) && /progress-ball/.test(src);
+        });
+
+        // ZERO scoped rail/ball RE-DEFINITIONS survive: the former full-geometry
+        // rail-line blocks (.spring-rail-line / .track-line / .preset-line) must
+        // be GONE (no-legacy — replaced in one motion). A re-authored scoped rail
+        // block reds this.
+        const RAIL_REDEFS = /\.spring-rail-line\s*\{|\.track-line\s*\{|\.preset-line\s*\{/;
+        const scopedRail = [];
+        for (const p of consumers) {
+            const abs = path.join(REPO, p);
+            if (!fs.existsSync(abs)) continue;
+            const lines = read(abs).split("\n");
+            for (let i = 0; i < lines.length; i++) {
+                if (RAIL_REDEFS.test(lines[i])) scopedRail.push(`${p}:${i + 1}`);
+            }
+        }
+
+        if (hasRail && hasBall && isRailBallNotRing && allConsume && scopedRail.length === 0) {
+            console.log(
+                `  ✓ [rail-ball] the progress-rail/progress-ball pair is ` +
+                    `single-sourced in design-idioms.css (rail-line + scrubber-ball, ` +
+                    `NOT the playing-ring); the 3 scene tracks consume it; zero ` +
+                    `scoped rail/ball re-definitions (F.W16.S1)`,
+            );
+        } else {
+            const why = [];
+            if (!hasRail) why.push("no .progress-rail rule in design-idioms.css");
+            if (!hasBall) why.push("no .progress-ball rule in design-idioms.css");
+            if (hasBall && !isRailBallNotRing)
+                why.push(".progress-ball is not the rail-line+ball (solid --color-progress fill, no conic-gradient) — the WRONG primitive promoted again");
+            if (!allConsume) why.push("a scene track does not consume progress-rail/progress-ball");
+            if (scopedRail.length > 0)
+                why.push(`scoped rail re-definition(s) survive: ${scopedRail.join(", ")}`);
+            failures.push(
+                `[rail-ball] the rail/ball idiom is not de-duplicated through ` +
+                    `design-idioms.css (F.W16.S1):\n      ` +
+                    why.join("\n      "),
+            );
+        }
+    }
+
     if (failures.length > 0) {
         console.error(
             "\nproof:idioms — FAIL (D.W2 — the design language is not yet localized):",

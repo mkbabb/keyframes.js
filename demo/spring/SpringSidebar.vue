@@ -67,9 +67,9 @@
                 >
                     <span class="preset-label text-admin-label shrink-0 w-14 truncate" :title="t.preset.blurb">{{ t.preset.name }}</span>
                     <div class="preset-track relative flex-1 h-7">
-                        <div class="preset-line"></div>
+                        <div class="progress-rail"></div>
                         <div
-                            class="preset-ball"
+                            class="progress-ball preset-ball"
                             :style="{ left: `calc(${clamp01(t.value.value) * 100}%)` }"
                         ></div>
                     </div>
@@ -159,27 +159,16 @@ watch(generated, (css) => { linearStopsCss.value = css; }, { immediate: true });
     display: flex;
     align-items: center;
 }
-.preset-line {
-    position: absolute;
-    top: 50%;
-    left: 0;
-    width: 100%;
-    height: 2px;
-    transform: translateY(-50%);
-    border-radius: 9999px;
-    background: color-mix(in srgb, var(--color-progress) 10%, transparent);
-    pointer-events: none;
-}
+/* The rail + ball geometry come from the shared .progress-rail / .progress-ball
+   idiom (design-idioms.css). The former 10% rail folds to the canonical 8% (a
+   named befitting motion-cohesion delta). The preset ball is the smallest +
+   quietest (a compact preset indicator), so it suppresses the glow and rides
+   `left:` (the idiom centers vertically; this scoped modifier centers
+   horizontally + sets the per-site size). */
 .preset-ball {
-    position: absolute;
-    top: 50%;
-    width: 1.1rem;
-    height: 1.1rem;
-    margin-left: -0.55rem;
-    margin-top: -0.55rem;
-    border-radius: 9999px;
-    background: var(--color-progress);
-    pointer-events: none;
+    --ball-size: 1.1rem;
+    --ball-glow: 0%;
+    margin-left: calc(var(--ball-size) / -2);
     will-change: left;
 }
 .preset-label {

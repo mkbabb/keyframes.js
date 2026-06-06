@@ -1,27 +1,37 @@
 <template>
-    <template v-for="(char, index) in currentText" :key="`${index}-${char}`">
-        <span
-            class="lift-down"
-            v-bind="$attrs"
-            v-if="char !== '\n'"
-            :style="{
-                animationDelay: `${index * offset}s`,
-                animationDuration: duration,
-            }"
-            >{{ char }}</span
-        >
-        <template v-else>
-            <br class="w-screen" />
+    <!-- F.W16.S2 — the LCP hero's accessible + typographic substrate.
+         (a) A single visually-hidden mirror carries the whole word to AT, so a
+             screen reader reads "Select an animation", not the "S…e…l…e…c…t"
+             per-glyph stream the per-character split produced.
+         (b) The decorative visual layer is aria-hidden — the stagger is now
+             WORD-granular (not per-character), so the text run is NOT shredded
+             into per-glyph inline-blocks and glass-ui's `.text-display-*`
+             `text-wrap: balance` can balance the rag (the run wraps at the real
+             spaces between words). The lift-down motion is preserved at the new
+             granularity (a befitting motion-granularity delta). -->
+    <span class="sr-only">{{ text }}</span>
+    <span aria-hidden="true">
+        <template v-for="(word, index) in words" :key="`${index}-${word}`">
+            <span
+                class="lift-down"
+                v-bind="$attrs"
+                :style="{
+                    animationDelay: `${index * offset}s`,
+                    animationDuration: duration,
+                }"
+                >{{ word }}</span
+            ><template v-if="index < words.length - 1"> </template>
         </template>
-    </template>
+    </span>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from "vue";
-import { useWindowSize } from "@vueuse/core";
+import { computed } from "vue";
 
-const HTML_SPACE = "\u00a0";
-const { width } = useWindowSize();
+// $attrs (e.g. the `dot-fade depth-text` classes the hero passes) bind to the
+// per-word visual spans, not the host — so the decorative classes still apply to
+// the animated layer while the host stays a clean inline.
+defineOptions({ inheritAttrs: false });
 
 const props = defineProps({
     text: {
@@ -34,24 +44,17 @@ const props = defineProps({
     },
 });
 
-const newText = ref(props.text.replace(/ /g, HTML_SPACE));
+// Split into WORDS (whitespace-separated). Word-granular spans let the browser
+// wrap + `text-wrap: balance` the run at real space boundaries — the per-CHARACTER
+// split defeated `balance` (it had nothing to balance once the run was shredded).
+// No `useWindowSize` / `width < 768` JS line-break any more: CSS owns wrapping
+// (the JS media query driving layout was a pre-container-query anti-pattern).
+const words = computed(() =>
+    props.text.split(/\s+/).filter((w) => w.length > 0),
+);
 
-const brokenText = ref(newText.value.replace(/\s/g, HTML_SPACE + "\n"));
-
-const currentText = ref(brokenText.value);
-
-const duration = computed(() => `${currentText.value.length * props.offset + props.offset * 10}s`);
-
-watch(
-    () => width.value,
-    (val) => {
-        if (val < 768) {
-            currentText.value = brokenText.value;
-        } else {
-            currentText.value = newText.value;
-        }
-    },
-    { immediate: true },
+const duration = computed(
+    () => `${props.text.length * props.offset + props.offset * 10}s`,
 );
 </script>
 
@@ -94,9 +97,9 @@ watch(
 }
 
 /* PRM guard: the hero is the LCP node and runs perpetual infinite decorative
-   motion. Under prefers-reduced-motion the characters settle to their resting
-   frame (no lift, fully opaque) — the engine's withReducedMotion authority
-   mirrored at the CSS layer for this template-only hero. */
+   motion. Under prefers-reduced-motion the words settle to their resting frame
+   (no lift, fully opaque) — the engine's withReducedMotion authority mirrored at
+   the CSS layer for this template-only hero. */
 @media (prefers-reduced-motion: reduce) {
     .lift-down,
     .dot-fade {

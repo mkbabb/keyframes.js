@@ -77,10 +77,10 @@
                             :title="curve.name"
                         >{{ curve.name }}</span>
                         <div ref="trackEls" class="track-container relative flex-1 h-10">
-                            <div class="track-line"></div>
+                            <div class="progress-rail"></div>
                             <div
                                 :class="[
-                                    'track-ball',
+                                    'progress-ball track-ball',
                                     curve.name === demo.currentEasingName.value
                                         ? 'track-ball--active'
                                         : 'track-ball--muted',
@@ -291,41 +291,27 @@ const onScrubEnd = () => {
     align-items: center;
 }
 
-.track-line {
-    position: absolute;
-    top: 50%;
-    left: 0;
-    width: 100%;
-    height: 2px;
-    transform: translateY(-50%);
-    border-radius: 9999px;
-    background: color-mix(in srgb, var(--color-progress) 8%, transparent);
-    pointer-events: none;
-}
-
+/* The rail + ball geometry now comes from the shared .progress-rail /
+   .progress-ball idiom (design-idioms.css). EasingTarget is the CANONICAL
+   lineage (rail-tint 8% + ball-glow 35% are the idiom defaults), so the active
+   ball needs no override beyond mapping its JS-read size token onto --ball-size.
+   The track-ball modifiers carry only the per-site variation: the transform-
+   positioning perf hint, the active/muted SIZE (still sourced from the
+   getComputedStyle-read --track-ball-size-* tokens above), and the muted ball's
+   reduced-presence tint + suppressed glow. */
 .track-ball {
-    position: absolute;
-    top: 50%;
     left: 0;
-    border-radius: 9999px;
     will-change: transform;
 }
 
 .track-ball--active {
-    width: var(--track-ball-size-active);
-    height: var(--track-ball-size-active);
-    margin-top: calc(var(--track-ball-size-active) / -2);
-    background: var(--color-progress);
-    box-shadow: 0 2px 10px color-mix(in srgb, var(--color-progress) 35%, transparent);
-    pointer-events: none;
+    --ball-size: var(--track-ball-size-active);
 }
 
 .track-ball--muted {
-    width: var(--track-ball-size-muted);
-    height: var(--track-ball-size-muted);
-    margin-top: calc(var(--track-ball-size-muted) / -2);
+    --ball-size: var(--track-ball-size-muted);
+    --ball-glow: 0%; /* the muted comparison balls carry no glow */
     background: color-mix(in srgb, var(--color-progress) 20%, transparent);
-    pointer-events: none;
 }
 
 .track-label {

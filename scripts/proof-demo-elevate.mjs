@@ -322,6 +322,50 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
     }
 }
 
+// ── 9. F.W16.S2 — the hero typographic + accessible substrate ─────────────────
+// (vitest carries no SFC transform here — the .vue hero surface is gated by this
+// structural a11y instrument, the wave's "hero accessible-name assertion".)
+{
+    // Strip both block (/* */) and line (//) comments so a prose mention of the
+    // deleted anti-pattern ("the former `width < 768` break") does NOT satisfy a
+    // presence check — only live declarations/markup count.
+    const at = stripComments(read("demo/@/components/custom/AnimatedText.vue")).replace(
+        /^\s*\/\/.*$/gm,
+        " ",
+    );
+
+    // 9a — the hero exposes an accessible NAME: a single visually-hidden sr-only
+    // mirror carries the whole text, AND the decorative span layer is aria-hidden
+    // (so AT reads the word, not the per-glyph stream). Bite: strip the sr-only
+    // mirror / aria-hidden → the accessible-name assertion reds (reds pre-F — the
+    // hero read as an "S…e…l…e…c…t" char stream).
+    const srMirror = /class=["']sr-only["'][^>]*>\s*\{\{\s*text\s*\}\}/.test(at);
+    const ariaHidden = /aria-hidden=["']true["']/.test(at);
+    if (srMirror && ariaHidden) {
+        ok("hero", "the hero AnimatedText exposes an accessible name (sr-only mirror of the full text) + aria-hidden on the decorative span layer");
+    } else if (!srMirror) {
+        fail("hero", "AnimatedText has no sr-only mirror of {{ text }} — the LCP hero has no accessible name (F.W16.S2)");
+    } else {
+        fail("hero", "AnimatedText's decorative span layer is not aria-hidden — AT reads the per-glyph stream (F.W16.S2)");
+    }
+
+    // 9b — `text-wrap: balance` is no longer defeated + the JS break is GONE: the
+    // stagger is WORD-granular (split on whitespace, not per character), AND the
+    // useWindowSize / width<768 line-break is deleted. Bite: restore the per-char
+    // split (`in currentText`) or the `useWindowSize` / `width < 768` watch →
+    // the respective half reds.
+    const wordGranular = /\.split\(\/\\s\+\//.test(at) && !/in\s+currentText\b/.test(at);
+    const jsBreakGone =
+        !/useWindowSize/.test(at) && !/width\s*<\s*768/.test(at) && !/<br\b/.test(at);
+    if (wordGranular && jsBreakGone) {
+        ok("hero", "the hero stagger is word-granular (balance can wrap the run) + the JS width<768 break + useWindowSize listener are deleted (CSS owns wrapping)");
+    } else if (!wordGranular) {
+        fail("hero", "the hero is still shredded into per-character spans — defeats text-wrap: balance (F.W16.S2)");
+    } else {
+        fail("hero", "the JS width<768 line-break / useWindowSize listener survives — a pre-container-query anti-pattern CSS now owns (F.W16.S2)");
+    }
+}
+
 console.log("");
 if (failures.length > 0) {
     console.error("proof:demo-elevate — FAIL:\n" + failures.join("\n"));

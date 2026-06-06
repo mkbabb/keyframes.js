@@ -31,7 +31,7 @@
                     @pointerdown="onPointerDown"
                     @keydown="onKeydown"
                 >
-                    <div class="spring-rail-line"></div>
+                    <div class="progress-rail"></div>
                     <!-- Ghost target marker (where the spring is chasing) -->
                     <div
                         class="spring-target-marker"
@@ -39,7 +39,7 @@
                     ></div>
                     <!-- The live spring ball -->
                     <div
-                        class="spring-ball"
+                        class="progress-ball spring-ball"
                         :style="{ left: `calc(${demo.liveValue.value * 100}%)` }"
                     ></div>
                 </div>
@@ -57,9 +57,9 @@
                     <span class="text-mono-caption text-muted-foreground tabular-nums">{{ demo.sampled.value.toFixed(3) }}</span>
                 </div>
                 <div class="sampler-track relative h-9">
-                    <div class="spring-rail-line"></div>
+                    <div class="progress-rail"></div>
                     <div
-                        class="sampler-ball"
+                        class="progress-ball sampler-ball"
                         :style="{ left: `calc(${clampSweep(demo.sampled.value) * 100}%)` }"
                     ></div>
                 </div>
@@ -140,18 +140,17 @@ const onKeydown = (e: KeyboardEvent) => {
     align-items: center;
 }
 
-.spring-rail-line {
-    position: absolute;
-    top: 50%;
-    left: 0;
-    width: 100%;
-    height: 2px;
-    transform: translateY(-50%);
-    border-radius: 9999px;
-    background: color-mix(in srgb, var(--color-progress) 12%, transparent);
-    pointer-events: none;
-}
-
+/* The rail + ball geometry now come from the shared .progress-rail /
+   .progress-ball idiom (design-idioms.css). The consolidation adopts
+   EasingTarget's canonical lineage (rail-tint 8%, ball-glow 35%) — so the former
+   12% rail + 40% glow become the canonical defaults (a named befitting motion-
+   cohesion delta, the same class as the W11 --spring-snappy reconcile). These
+   scoped modifiers carry only the per-site variation: the left-positioned
+   horizontal centering (the idiom centers vertically via margin-top; these balls
+   ride `left:`), the live-ball SIZE, and the sampler ball's translucent fill +
+   suppressed glow.
+   The spring-target-marker is the dashed GHOST target (where the spring is
+   chasing) — a distinct primitive, NOT a rail/ball, so it stays scoped. */
 .spring-target-marker {
     position: absolute;
     top: 50%;
@@ -159,36 +158,23 @@ const onKeydown = (e: KeyboardEvent) => {
     height: 2.5rem;
     margin-left: -1.25rem;
     margin-top: -1.25rem;
-    border-radius: 9999px;
+    border-radius: var(--radius-pill);
     border: 2px dashed color-mix(in srgb, var(--color-progress) 50%, transparent);
     pointer-events: none;
     transition: border-color var(--duration-fast) ease;
 }
 
 .spring-ball {
-    position: absolute;
-    top: 50%;
-    width: 1.75rem;
-    height: 1.75rem;
-    margin-left: -0.875rem;
-    margin-top: -0.875rem;
-    border-radius: 9999px;
-    background: var(--color-progress);
-    box-shadow: 0 2px 12px color-mix(in srgb, var(--color-progress) 40%, transparent);
-    pointer-events: none;
+    --ball-size: 1.75rem;
+    margin-left: calc(var(--ball-size) / -2);
     will-change: left;
 }
 
 .sampler-ball {
-    position: absolute;
-    top: 50%;
-    width: 1.25rem;
-    height: 1.25rem;
-    margin-left: -0.625rem;
-    margin-top: -0.625rem;
-    border-radius: 9999px;
+    --ball-size: 1.25rem;
+    --ball-glow: 0%; /* the sweep sampler is a quiet translucent marker, no glow */
+    margin-left: calc(var(--ball-size) / -2);
     background: color-mix(in srgb, var(--color-progress) 65%, transparent);
-    pointer-events: none;
     will-change: left;
 }
 

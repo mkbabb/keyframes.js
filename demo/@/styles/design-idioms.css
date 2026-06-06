@@ -255,6 +255,54 @@
     box-shadow: 0 0 var(--glow-spread) var(--glow-blur) color-mix(in srgb, var(--color-progress) 40%, transparent);
 }
 
+/* ── .progress-rail / .progress-ball ──
+   The REAL rail-line + scrubber-ball idiom pair (F.W16.S1 — the honest
+   correction of the E record). W11's commit claimed "progress-dot promoted" but
+   promoted the conic-gradient PLAYING-RING (`.progress-dot` above) — a DIFFERENT
+   primitive. The rail/ball — a green ball travelling a tinted rail line — was
+   STILL authored four ways with drift across the newest scenes:
+     • SpringTarget   `.spring-rail-line` (rail-tint 12%) / `.spring-ball`
+       (glow 40%, 1.75rem) / `.sampler-ball` (65% tint, 1.25rem)
+     • EasingTarget   `.track-line` (rail-tint 8%) / `.track-ball--active`
+       (glow 35%, 36px) / `.track-ball--muted` (24px)
+     • SpringSidebar  `.preset-line` (rail-tint 10%) / `.preset-ball`
+       (no glow, 1.1rem)
+   → three rail tints (12/8/10%), two glow strengths (40/35%), four ball sizes —
+   the cross-scene incoherence D.W2's idiom-ownership pass eliminated everywhere
+   ELSE. This promotes the correct primitive ONCE, parameterized by the three
+   custom properties that name the drift axes, defaulting to EasingTarget's
+   AA-contrast lineage (the canonical tint/glow). Each consumer sets only the
+   per-site variation it earns (a befitting motion-cohesion delta — the same
+   class as the W11 --spring-snappy reconcile). ONE green, ONE glow, ONE rail,
+   ONE source. The four scoped blocks are REMOVED (no-legacy).
+
+   --ball-size names the same seam EasingTarget already exposed for its JS
+   getComputedStyle read (--track-ball-size-active/muted); that scene maps its
+   active/muted tokens onto --ball-size per ball so the read stays the source of
+   truth. */
+.progress-rail {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    transform: translateY(-50%);
+    border-radius: var(--radius-pill);
+    background: color-mix(in srgb, var(--color-progress) var(--rail-tint, 8%), transparent);
+    pointer-events: none;
+}
+.progress-ball {
+    position: absolute;
+    top: 50%;
+    width: var(--ball-size, 36px);
+    height: var(--ball-size, 36px);
+    margin-top: calc(var(--ball-size, 36px) / -2);
+    border-radius: var(--radius-pill);
+    background: var(--color-progress);
+    box-shadow: 0 2px 10px color-mix(in srgb, var(--color-progress) var(--ball-glow, 35%), transparent);
+    pointer-events: none;
+}
+
 /* ── .dock-inset ──
    The dock-band inset (E.W11.S4 — define-or-delete; DEFINED, two scenes expect
    it). Referenced as a layout class on the easing + spring scene targets
