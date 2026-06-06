@@ -39,6 +39,20 @@
  * inv ζ true on every future demo edit. Mutation test (the gate must BITE, not
  * merely log): add a bare `requestAnimationFrame` loop to a non-allowlisted demo
  * file → the gate reddens; remove it → green.
+ *
+ * ── ORCHESTRATION DOGFOOD (F.W10 — the inv-ζ analogue reaching the orch tier).
+ * inv ζ's rAF discipline (above) is the LOOP-level dogfood; F.W10 extends it to
+ * the ORCHESTRATION tier the engine shipped in E.W10 (decay/Draggable/Sequence/
+ * stagger). Two added clauses (each BITES on a real grep, not an assertion):
+ *
+ *   1. useOrbitalInertia consumes the engine's analytic `decay()` — and does
+ *      NOT hand-roll the `Math.pow(inertiaFactor, dt/TARGET_DT)` discrete decay
+ *      the engine now owns as a closed form. BITE: re-introduce the
+ *      `Math.pow(... / TARGET_DT)` decay → the clause reds (the hand-roll is
+ *      back, the tier is un-consumed).
+ *   2. the Sequence+stagger demo scene imports `Sequence` AND `stagger` from the
+ *      engine. BITE: delete the scene's Sequence/stagger import → the clause reds
+ *      (a primitive with no exercising scene fails — ship nothing un-dogfooded).
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -68,6 +82,28 @@ const ALLOWLIST = new Set([
 
 // Source extensions the demo's rAF could live in. (CSS/HTML cannot host a rAF.)
 const SOURCE_EXT = new Set([".ts", ".js", ".mjs", ".vue", ".tsx", ".jsx"]);
+
+// ── F.W10 orchestration-dogfood clauses ──────────────────────────────────────
+// Each clause is a (file, predicate) pair grepped against demo SOURCE. The
+// orbital-inertia file MUST import the engine's `decay` AND MUST NOT carry the
+// hand-rolled `Math.pow(... / TARGET_DT)` decay; the Sequence scene MUST import
+// `Sequence` + `stagger` from the engine. Stored repo-relative (POSIX).
+const ORBITAL_INERTIA =
+    "demo/@/components/custom/orbital-drag/composables/useOrbitalInertia.ts";
+const SEQUENCE_DEMO = "demo/sequence/useSequenceDemo.ts";
+
+// The hand-rolled discrete decay the engine's analytic `decay()` replaces — a
+// `Math.pow(<base>, <expr involving / TARGET_DT>)` form. Its RETURN is the inv-ζ
+// regression: re-introducing it means the demo re-derives the physics the engine
+// ships. Matched loosely enough that any `Math.pow(... / TARGET_DT)` reds.
+const HANDROLLED_DECAY = /Math\.pow\([^)]*\/\s*TARGET_DT[^)]*\)/;
+// The genuine dogfood: the engine's `decay` imported from its light surface.
+const IMPORTS_DECAY =
+    /import\s*\{[^}]*\bdecay\b[^}]*\}\s*from\s*["']@src\/animation\/(decay|index)["']/;
+const IMPORTS_SEQUENCE =
+    /import\s*\{[^}]*\bSequence\b[^}]*\}\s*from\s*["']@src\/animation\/(sequence|index)["']/;
+const IMPORTS_STAGGER =
+    /import\s*\{[^}]*\bstagger\b[^}]*\}\s*from\s*["']@src\/animation\/(stagger|index)["']/;
 
 // Directories that never hold reviewable SOURCE: the git-ignored build output
 // (`dist/`) that pollutes a naive grep, plus dependency/VCS noise. Excluding
@@ -156,6 +192,79 @@ function main() {
                 `allowlist entry "${a}" matches no raw-rAF site — it is STALE ` +
                     `(the file is gone, the path drifted, or the exception was ` +
                     `transposed away). Remove it from the proof:dogfood ALLOWLIST.`,
+            );
+        }
+    }
+
+    // ── F.W10 orchestration-dogfood clauses (the inv-ζ analogue) ──────────────
+    console.log(
+        "\n  orchestration tier (F.W10 — decay/Sequence/stagger dogfooded):",
+    );
+
+    const readDemo = (rel) => {
+        const abs = path.join(REPO, rel);
+        return fs.existsSync(abs) ? fs.readFileSync(abs, "utf8") : null;
+    };
+
+    // Strip line + block comments so the hand-rolled-decay regex matches only
+    // LIVE code — the file legitimately NAMES the removed `Math.pow(...,
+    // dt/TARGET_DT)` form in its docstring (explaining what the swap replaced);
+    // that explanatory mention must NOT red the clause, only its return to code.
+    const stripComments = (src) =>
+        src
+            .replace(/\/\*[\s\S]*?\*\//g, "")
+            .replace(/(^|[^:])\/\/[^\n]*/g, "$1");
+
+    // Clause 1 — useOrbitalInertia consumes `decay()`, no hand-rolled Math.pow.
+    const inertiaSrc = readDemo(ORBITAL_INERTIA);
+    if (inertiaSrc === null) {
+        failures.push(
+            `${ORBITAL_INERTIA}: missing — the orbital-inertia decay-swap file ` +
+                `is gone; the F.W10 orchestration-dogfood clause cannot verify.`,
+        );
+    } else {
+        const inertiaCode = stripComments(inertiaSrc);
+        if (HANDROLLED_DECAY.test(inertiaCode)) {
+            failures.push(
+                `${ORBITAL_INERTIA}: hand-rolls a Math.pow(... / TARGET_DT) ` +
+                    `decay — the discrete Euler form the engine's analytic ` +
+                    `decay() replaces. Consume the engine's decay() instead ` +
+                    `(F.W10.S1, the inv-ζ orchestration analogue).`,
+            );
+        } else if (!IMPORTS_DECAY.test(inertiaSrc)) {
+            failures.push(
+                `${ORBITAL_INERTIA}: does NOT import the engine's decay() — the ` +
+                    `orchestration tier is un-consumed (import { decay } from ` +
+                    `"@src/animation/decay").`,
+            );
+        } else {
+            console.log(
+                `  ✓ ${ORBITAL_INERTIA} consumes the engine's decay() (no ` +
+                    `hand-rolled Math.pow decay)`,
+            );
+        }
+    }
+
+    // Clause 2 — the Sequence+stagger scene imports BOTH from the engine.
+    const seqSrc = readDemo(SEQUENCE_DEMO);
+    if (seqSrc === null) {
+        failures.push(
+            `${SEQUENCE_DEMO}: missing — the F.W10 Sequence+stagger demo scene ` +
+                `does not exist (a primitive with no exercising scene fails).`,
+        );
+    } else {
+        const missing = [];
+        if (!IMPORTS_SEQUENCE.test(seqSrc)) missing.push("Sequence");
+        if (!IMPORTS_STAGGER.test(seqSrc)) missing.push("stagger");
+        if (missing.length > 0) {
+            failures.push(
+                `${SEQUENCE_DEMO}: does NOT import ${missing.join(" + ")} from ` +
+                    `the engine — the Sequence+stagger tier is un-dogfooded ` +
+                    `(F.W10.S3).`,
+            );
+        } else {
+            console.log(
+                `  ✓ ${SEQUENCE_DEMO} imports Sequence + stagger from the engine`,
             );
         }
     }

@@ -3,6 +3,15 @@ import type { Ref } from "vue";
 import { watch } from "vue";
 import type { TransformState, VelocityState } from "..";
 import { axes } from "..";
+// inv ζ (orchestration analogue, F.W10.S1): the orbital inertia consumes the
+// engine's SHIPPED analytic `decay()` closed form — it no longer hand-rolls the
+// `Math.pow(inertiaFactor, dt/TARGET_DT)` discrete Euler decay the engine now
+// owns. `decay` is the light surface (zero value.js edge), imported directly
+// like every other demo engine consumer (`@src/animation/*`).
+import { decay } from "@src/animation/decay";
+// The Vue-free measure-first mapping (k from inertiaFactor) + TARGET_DT, kept in
+// a pure module so the inertia-parity gate imports it without the .vue graph.
+import { TARGET_DT, inertiaFactorToFriction } from "./inertiaDecay";
 
 export interface OrbitalInertiaParams {
     model: Ref<TransformState>;
@@ -47,24 +56,45 @@ export function useOrbitalInertia(params: OrbitalInertiaParams) {
         return false;
     };
 
-    /** Target frame interval for frame-rate-independent decay (ms). */
-    const TARGET_DT = 1000 / 60;
+    // The friction `k` the analytic glide bleeds velocity at — derived ONCE so
+    // the felt decay-rate matches the legacy per-frame form (the parity gate).
+    const friction = inertiaFactorToFriction(inertiaFactor);
+
+    // The engine's analytic decay sampler, seeded ONCE with unit velocity so
+    // `unitDecay(t_s).velocity` IS the multiplicative factor e^(−k·t_s) — the
+    // ratio v(t+dt)/v(t) over a frame. The closure is captured once (decay() is
+    // allocation-free per call), so the hot loop only reads it. This is the
+    // genuine dogfood: the per-frame factor comes from the SHIPPED `decay()`
+    // closed form, NOT a hand-rolled `Math.pow`.
+    const unitDecay = decay({ velocity: 1, friction });
+
+    // The analytic velocity-decay factor over a frame of `dtMs` ms. The
+    // per-frame integration structure is preserved (position += current
+    // velocity), so the swap is isomorphism-restoring: same trajectory,
+    // frame-rate-exact (no Euler drift).
+    const decayFactorOver = (dtMs: number): number =>
+        unitDecay(dtMs / 1000).velocity;
+
     let lastInertiaTime = 0;
 
     const applyInertia = () => {
         if (isDragging.value || isTouching.value || isWheeling.value) return;
 
-        // Frame-rate-independent decay: scale the friction exponent by
-        // the actual frame delta so inertia feels identical at 30, 60, or 120fps.
+        // Frame-rate-independent decay: the analytic factor over the actual
+        // frame delta, so inertia feels identical at 30, 60, or 120fps (the
+        // closed form is frame-rate-exact by construction — no Euler drift).
         const now = performance.now();
-        const dt = lastInertiaTime > 0 ? Math.min(now - lastInertiaTime, 100) : TARGET_DT;
+        const dt =
+            lastInertiaTime > 0
+                ? Math.min(now - lastInertiaTime, 100)
+                : TARGET_DT;
         lastInertiaTime = now;
-        const decay = Math.pow(inertiaFactor, dt / TARGET_DT);
+        const factor = decayFactorOver(dt);
 
         // Rotational inertia via persistent quaternion
         if (Math.abs(angularVelocitySpeed.value) > 1e-4) {
             applyRotation(angularVelocityAxis, angularVelocitySpeed.value);
-            angularVelocitySpeed.value *= decay;
+            angularVelocitySpeed.value *= factor;
         } else {
             angularVelocitySpeed.value = 0;
         }
@@ -79,7 +109,7 @@ export function useOrbitalInertia(params: OrbitalInertiaParams) {
                         (model.value[category] as Record<string, number>)[
                             k
                         ]! + v,
-                        v * decay,
+                        v * factor,
                     );
                 } else {
                     (
