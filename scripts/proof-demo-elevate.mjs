@@ -249,6 +249,33 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
     }
 }
 
+// ── 7. F.W14 — undo/redo rides the EXISTING registry (the no-second-listener lock) ──
+{
+    const group = read("demo/@/components/custom/animation-controls/AnimationControlsGroup.vue");
+    // Mod+Z / Mod+Shift+Z are registered through the ONE registry (registerShortcut),
+    // grouped + labeled so they surface in the KeyboardShortcutsModal — NOT a second
+    // window keydown listener. Bite: bind undo via a bare addEventListener → this reds.
+    const undoRegistered = /registerShortcut\(\s*["']Mod\+Z["']/.test(group);
+    const redoRegistered = /registerShortcut\(\s*["']Mod\+Shift\+Z["']/.test(group);
+    const labeled = /label:\s*["']Undo["']/.test(group) && /label:\s*["']Redo["']/.test(group);
+    if (undoRegistered && redoRegistered && labeled) {
+        ok("undo", "Mod+Z / Mod+Shift+Z ride the existing registerShortcut registry (grouped + labeled → surface in the modal)");
+    } else {
+        fail("undo", "undo/redo are not bound through the single registerShortcut registry (Mod+Z/Mod+Shift+Z grouped + labeled) — no second listener allowed (F.W14.S1)");
+    }
+    // The timeline composable wraps the centralized state in useRefHistory (the
+    // idiomatic seam) and exposes undo/redo/canUndo/canRedo — bite: drop the wrap
+    // → the behavioural round-trip test (test/timeline-undo.test.ts) reds, and the
+    // exposure check here reds too.
+    const tl = read("demo/@/components/custom/animation-controls/timeline/composables/useTimeline.ts");
+    const tlComp = read("demo/@/components/custom/animation-controls/timeline/KeyframeTimeline.vue");
+    if (/useRefHistory/.test(tl) && /debounceFilter/.test(tl) && /undo,\s*\n\s*redo,/.test(tlComp + "\n")) {
+        ok("undo", "the timeline wraps state in a debounced useRefHistory + exposes undo/redo (the round-trip is locked by test/timeline-undo.test.ts)");
+    } else {
+        fail("undo", "the timeline does not wrap its state in a debounced useRefHistory exposing undo/redo (F.W14.S1)");
+    }
+}
+
 console.log("");
 if (failures.length > 0) {
     console.error("proof:demo-elevate — FAIL:\n" + failures.join("\n"));

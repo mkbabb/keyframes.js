@@ -4,6 +4,34 @@
         <CardContent :class="['relative flex flex-col gap-3', props.expanded ? 'p-2 px-0' : 'p-4']">
         <!-- Pane action buttons -->
         <div class="flex items-center justify-end gap-1">
+            <!-- Undo / redo (F.W14.S2) — the discoverable affordance for the
+                 Mod+Z / Mod+Shift+Z bindings; bounded by the same canUndo/canRedo
+                 history state. Sits in the timeline card (not over the dock band),
+                 so it does not occlude the dock (inv δ). -->
+            <IconTooltip text="Undo (Mod+Z)">
+                <Button
+                    size="sm"
+                    variant="ghost"
+                    class="h-7 w-7 p-0 opacity-50 hover:opacity-100"
+                    aria-label="Undo"
+                    :disabled="!canUndo"
+                    @click="undo()"
+                >
+                    <Undo2 class="icon-sm" />
+                </Button>
+            </IconTooltip>
+            <IconTooltip text="Redo (Mod+Shift+Z)">
+                <Button
+                    size="sm"
+                    variant="ghost"
+                    class="h-7 w-7 p-0 opacity-50 hover:opacity-100"
+                    aria-label="Redo"
+                    :disabled="!canRedo"
+                    @click="redo()"
+                >
+                    <Redo2 class="icon-sm" />
+                </Button>
+            </IconTooltip>
             <IconTooltip text="Clear all keyframes">
                 <Button
                     size="sm"
@@ -111,6 +139,8 @@ import {
     Minimize2,
     FilePlus2,
     Trash,
+    Undo2,
+    Redo2,
     X,
 } from "@lucide/vue";
 import CSSPasteDialog from "@components/custom/CSSPasteDialog.vue";
@@ -150,6 +180,10 @@ const {
     exportCSS,
     importCSS,
     clear,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
 } = useTimeline(targetsRef, optionsRef);
 
 const selectedKeyframeId = ref<string | null>(null);
@@ -243,6 +277,10 @@ defineExpose({
     exportCSS,
     removeSelectedKeyframe,
     selectedKeyframeId,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
 });
 </script>
 

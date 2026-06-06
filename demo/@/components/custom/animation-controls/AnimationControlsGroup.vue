@@ -275,6 +275,12 @@ registerShortcut("2", () => switchTab("keyframes"), { label: "Keyframes tab", gr
 registerShortcut("3", () => switchTab("timeline"), { label: "Timeline tab", group: "Navigation" });
 registerShortcut("Mod+S", () => activeKeyframesRef.value?.copyCSS?.(), { preventDefault: true, label: "Copy CSS", group: "Actions" });
 registerShortcut("Delete", () => activeTimelineRef.value?.removeSelectedKeyframe?.(), { label: "Delete keyframe", group: "Actions" });
+// Undo / redo over the timeline keyframe state (F.W14.S1) — bound through the
+// ONE existing registry (not a second window listener), so they inherit the
+// editable-target skip + surface in the KeyboardShortcutsModal. The destructive
+// timeline ops (clear / removeKeyframe / inline CSS edits) become reversible.
+registerShortcut("Mod+Z", () => activeTimelineRef.value?.undo?.(), { preventDefault: true, label: "Undo", group: "Actions" });
+registerShortcut("Mod+Shift+Z", () => activeTimelineRef.value?.redo?.(), { preventDefault: true, label: "Redo", group: "Actions" });
 
 function getActiveT(): number {
     const name = storedControls.selectedAnimation;
