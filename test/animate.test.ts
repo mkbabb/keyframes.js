@@ -96,6 +96,98 @@ describe("animate() — front-door dispatch", () => {
     });
 });
 
+describe("animate() — MotionPath dispatch (F.W12 §S2)", () => {
+    const PATH = "path('M 0 0 Q 100 -100 200 0')";
+
+    it("a { path } input routes to fromMotionPath, NOT fromKeyframes / fromVars", () => {
+        // The MotionPath spec is a non-array object that would otherwise satisfy
+        // isKeyframeMap — so the dispatch MUST take the MotionPath branch first.
+        const fromKeyframes = vi.spyOn(
+            CSSKeyframesAnimation.prototype,
+            "fromKeyframes",
+        );
+        const fromVars = vi.spyOn(CSSKeyframesAnimation.prototype, "fromVars");
+
+        const el = document.createElement("div");
+        animate(el, { path: PATH }, { autoPlay: false });
+
+        // The MotionPath branch builds via fromMotionPath's own
+        // fromKeyframes-over-offset-distance — but NOT the generic keyframe-map
+        // route, and never fromVars.
+        expect(fromVars).not.toHaveBeenCalled();
+
+        fromKeyframes.mockRestore();
+        fromVars.mockRestore();
+    });
+
+    it("produces an offset-distance animation over the author offset-path", () => {
+        const el = document.createElement("div");
+        const handle = animate(el, { path: PATH }, { autoPlay: false });
+
+        // (a) the author offset-path is set on the target (the browser owns the
+        // geometry; keyframes only sweeps the scalar).
+        expect(el.style.offsetPath).toBe(PATH);
+
+        // (b) the ONLY interpolating key is offset-distance, sweeping 0% → 100%.
+        const keys = new Set<string>();
+        const endpoints: { start?: string; stop?: string }[] = [];
+        for (const frame of handle.frames) {
+            for (const [key, arr] of Object.entries(frame.interpVars)) {
+                keys.add(key);
+                for (const iv of arr as any[]) {
+                    endpoints.push({
+                        start: `${iv.start?.value}${iv.start?.unit}`,
+                        stop: `${iv.stop?.value}${iv.stop?.unit}`,
+                    });
+                }
+            }
+        }
+        expect([...keys]).toEqual(["offset-distance"]);
+        expect(endpoints).toContainEqual({ start: "0%", stop: "100%" });
+    });
+
+    it("forwards MotionPath knobs (rotate/from/to) and the shared options", () => {
+        const el = document.createElement("div");
+        const handle = animate(
+            el,
+            { path: PATH, rotate: "auto", from: "25%", to: "75%" },
+            { duration: 1500, autoPlay: false },
+        );
+        // tangent-following set on the target …
+        expect(el.style.offsetRotate).toBe("auto");
+        // … the shared animation options flow through …
+        expect(handle.options.duration).toBe(1500);
+        // … and the custom sub-range is the swept endpoints.
+        const seen: string[] = [];
+        for (const frame of handle.frames) {
+            for (const arr of Object.values(frame.interpVars)) {
+                for (const iv of arr as any[]) {
+                    seen.push(`${iv.start?.value}${iv.start?.unit}`);
+                    seen.push(`${iv.stop?.value}${iv.stop?.unit}`);
+                }
+            }
+        }
+        expect(seen).toContain("25%");
+        expect(seen).toContain("75%");
+    });
+
+    it("returns the MotionPath animation as the control handle", () => {
+        const el = document.createElement("div");
+        const handle = animate(el, { path: PATH }, { autoPlay: false });
+        expect(handle).toBeInstanceOf(CSSKeyframesAnimation);
+        expect(handle.targets).toEqual([el]);
+        expect(typeof handle.play).toBe("function");
+    });
+
+    it("BITE: routing { path } to fromVars/fromKeyframes would not set offset-path", () => {
+        // The structural lock — if the dispatch fell through to the keyframe-map
+        // branch, fromMotionPath would never run and offset-path stays empty.
+        const el = document.createElement("div");
+        animate(el, { path: PATH }, { autoPlay: false });
+        expect(el.style.offsetPath).not.toBe("");
+    });
+});
+
 describe("animate() — targeting, play, and the control handle", () => {
     it("returns the constructed animation as the control handle", () => {
         const el = document.createElement("div");

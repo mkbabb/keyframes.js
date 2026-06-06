@@ -16,6 +16,7 @@
  *   • a keyframe map (`Map` / record       → `.fromKeyframes(map)`
  *     of `{ "0%": {...}, "100%": {...} }`)
  *   • a vars array (`[from, to, ...]`)      → `.fromVars(vars)`
+ *   • a MotionPath spec (`{ path, ... }`)   → `fromMotionPath` (F.W12 §S2)
  *
  * ── BOUNDARY: HEAVY (value.js-bearing, but no NEW static edge).
  * `animate.ts` constructs `CSSKeyframesAnimation`, so it statically imports
@@ -28,6 +29,8 @@
  */
 
 import { CSSKeyframesAnimation } from "./engine";
+import { fromMotionPath } from "./motion-path";
+import type { MotionPathOptions } from "./motion-path";
 import type {
     InputAnimationOptions,
     TransformFunction,
@@ -40,14 +43,33 @@ export type KeyframeMap<V extends Vars> =
     | Record<string, Partial<V>>;
 
 /**
- * The declarative input to {@link animate} — one of the three `from*` shapes:
+ * A MotionPath spec — the `{ path, ... }` shape that routes to
+ * {@link fromMotionPath} (F.W12 §S2). It carries the author `offset-path`
+ * (`path`) plus the optional `from`/`to`/`rotate` MotionPath knobs; the
+ * animation-options + `autoPlay` ride {@link AnimateOptions} on the third
+ * argument, exactly as every other `animate()` shape. The discriminating field
+ * is `path` — a `string` no keyframe map / vars array carries.
+ */
+export type MotionPathInput = Pick<
+    MotionPathOptions,
+    "path" | "from" | "to" | "rotate"
+>;
+
+/**
+ * The declarative input to {@link animate} — one of the four `from*` shapes:
  *
  *  • `string`            — a CSS `@keyframes` (or bare keyframe-block) source.
  *  • `KeyframeMap`       — `{ "0%": {...}, "100%": {...} }` or the `Map` form.
  *  • `V[]`               — an ordered vars array (the simplest `[from, to]`
  *                          pair, or more stops), distributed evenly 0→100%.
+ *  • `MotionPathInput`   — `{ path, from?, to?, rotate? }` — an `offset-distance`
+ *                          sweep over an author `offset-path` (F.W12 §S2).
  */
-export type AnimateInput<V extends Vars> = string | KeyframeMap<V> | V[];
+export type AnimateInput<V extends Vars> =
+    | string
+    | KeyframeMap<V>
+    | V[]
+    | MotionPathInput;
 
 /**
  * Options accepted by {@link animate}. The animation-options surface, plus an
@@ -65,6 +87,22 @@ export interface AnimateOptions extends Partial<InputAnimationOptions> {
     autoPlay?: boolean;
 }
 
+/**
+ * Distinguish the MotionPath spec `{ path, ... }` from a keyframe map. Keyed on
+ * a `path: string` field — a keyframe map's keys are percent/keyword stops
+ * (`"0%"`), never a bare `path` string, and a vars array is an array — so the
+ * discrimination is unambiguous. Checked BEFORE {@link isKeyframeMap} (a `Map`
+ * is excluded first since it has no own `path` property to read).
+ */
+const isMotionPathInput = <V extends Vars>(
+    input: AnimateInput<V>,
+): input is MotionPathInput =>
+    typeof input === "object" &&
+    input !== null &&
+    !Array.isArray(input) &&
+    !(input instanceof Map) &&
+    typeof (input as MotionPathInput).path === "string";
+
 /** Distinguish the keyframe-map shape from a vars array at construction time. */
 const isKeyframeMap = <V extends Vars>(
     input: AnimateInput<V>,
@@ -80,7 +118,8 @@ const isKeyframeMap = <V extends Vars>(
  * or pass `autoPlay: false` and drive it yourself.
  *
  * @param target  one or more DOM elements (or a single element) to animate.
- * @param input   a CSS string, a keyframe map, or a vars array (dispatched on).
+ * @param input   a CSS string, a keyframe map, a vars array, or a MotionPath
+ *                spec (`{ path }`) — dispatched on its shape.
  * @param options animation options + optional `transform` / `autoPlay`.
  *
  * @example
@@ -90,6 +129,8 @@ const isKeyframeMap = <V extends Vars>(
  * animate(box, { "0%": { opacity: 0 }, "100%": { opacity: 1 } });
  * // vars array → fromVars
  * animate(box, [{ opacity: 0 }, { opacity: 1 }], { duration: 400 });
+ * // MotionPath spec → fromMotionPath (F.W12 §S2)
+ * animate(box, { path: "path('M 0 0 Q 100 -100 200 0')", rotate: "auto" }, { duration: 2000 });
  */
 export function animate<V extends Vars = any>(
     target: HTMLElement | HTMLElement[],
@@ -97,6 +138,21 @@ export function animate<V extends Vars = any>(
     options?: AnimateOptions,
 ): CSSKeyframesAnimation<V> {
     const { transform, autoPlay = true, ...animOptions } = options ?? {};
+
+    // MotionPath spec → fromMotionPath (F.W12 §S2). Checked FIRST among the
+    // object shapes (a `{ path }` is a non-array object that would otherwise
+    // satisfy isKeyframeMap). `fromMotionPath` owns its own construction +
+    // offset-path set + targeting + autoPlay, so it is a full short-circuit:
+    // we forward target + the path knobs + the shared animation options and
+    // return ITS handle (the same control-handle contract as every other
+    // shape). NO new engine logic — pure construction-time dispatch.
+    if (isMotionPathInput(input)) {
+        return fromMotionPath<V>(target, {
+            ...input,
+            ...animOptions,
+            autoPlay,
+        });
+    }
 
     const animation = new CSSKeyframesAnimation<V>(animOptions);
 
@@ -111,7 +167,7 @@ export function animate<V extends Vars = any>(
         animation.fromKeyframes(input, transform);
     } else {
         throw new Error(
-            "animate(): unrecognized input — pass a CSS @keyframes string, a keyframe map ({ \"0%\": {...} }), or a vars array ([from, to]).",
+            "animate(): unrecognized input — pass a CSS @keyframes string, a keyframe map ({ \"0%\": {...} }), a vars array ([from, to]), or a MotionPath spec ({ path }).",
         );
     }
 
