@@ -20,6 +20,8 @@ const routes: RouteRecordRaw[] = [
     { path: "/square", name: "square", component: Stub },
     { path: "/easing", name: "easing", component: Stub },
     { path: "/spring", name: "spring", component: Stub },
+    { path: "/sequence", name: "sequence", component: Stub },
+    { path: "/motion-path", name: "motion-path", component: Stub },
     { path: "/:pathMatch(.*)*", redirect: "/" },
 ];
 

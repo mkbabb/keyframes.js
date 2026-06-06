@@ -83,6 +83,32 @@ export const scenes: SceneDescriptor[] = [
         component: lazyScene("spring", () => import("./scenes/SpringScene.vue")),
     },
     {
+        // The Sequence + stagger storyboard (F.W10.S3): N children positioned
+        // along one master clock by the `stagger` distribution, driven through
+        // the F.W9 transport (play/pause/reverse/timeScale/scrub). Dogfoods the
+        // engine's TEMPORAL orchestrator the way the cube proves the compositor.
+        id: "sequence",
+        label: "Sequence",
+        superKey: "Sequence",
+        component: lazyScene(
+            "sequence",
+            () => import("./scenes/SequenceScene.vue"),
+        ),
+    },
+    {
+        // The CSS-native MotionPath shop-window (F.W12.S3): a traveller swept
+        // along an author offset-path via fromMotionPath (offset-distance
+        // 0%→100%). WAAPI-eligible, zero geometry math — the browser owns the
+        // path, the engine sweeps the scalar.
+        id: "motion-path",
+        label: "Path",
+        superKey: "MotionPath",
+        component: lazyScene(
+            "motion-path",
+            () => import("./scenes/MotionPathScene.vue"),
+        ),
+    },
+    {
         // The @starting-style + spring-linear() copy-paste artifact scene: a
         // discrete entry/exit transition eased by a keyframes.js spring, with
         // the emitted linear(...) surfaced behind a copy button.
