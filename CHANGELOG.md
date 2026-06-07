@@ -1,5 +1,230 @@
 # Changelog
 
+## 4.0.0
+
+### Major Changes
+
+- d51d03a: Tranche C — the close made honest, the design system made true, the engine dogfooded.
+
+    This release ships alongside the Tranche B engine transposition (the
+    `tranche-b-3-1-0` changeset, cut but never published — folded here so one
+    provenance-signed publish ships both). C's published-library surface is the
+    engine residuals; the design-system + dogfood + integrity work (W1–W3) lands in
+    the demo + CI gates and does not change the published API.
+
+    **The engine unification, completed to its edges (W4).**
+    - **One generation-guarded loop core.** `play`/`drive`/`loop` fold into a single
+      `_run` frame-scheduler; `drive` inherits the `_gen` restart guard `loop` had,
+      so a `stop()`+restart mid-frame can no longer spawn a second rAF chain (the
+      unguarded double-schedule class is now structurally impossible).
+    - **One canonical step: `tickDt(dt: ms): number` on every stepper.** The
+      frame-dependent no-arg `SmoothProgress.tick()` is removed and the
+      seconds-taking `SpringProgress.tick(seconds)` is demoted to a private
+      internal — no public stepper method takes seconds or means four different
+      things. `Tickable.tickDt` is typed `: number` (was `: void`). **Breaking:** if
+      you stepped `SmoothProgress`/`SpringProgress` manually, call `tickDt(ms)`.
+    - **Fail-explicit option contract is now total.** `setColorSpace` /
+      `setHueMethod` join the `parseOption` seam — a malformed PRESENT value throws
+      `AnimationOptionError` (genuine omission still defaults), closing the last two
+      setters that silently accepted invalid input. **Breaking** for callers that
+      relied on an invalid value being silently accepted (e.g. `colorSpace: "srgb"`
+      — value.js's sRGB-family space is `"rgb"`).
+    - **The default easing's compositor path: verified, then withheld.** A single
+      `cubic-bezier()` cannot faithfully reproduce the piecewise Penner
+      `easeInOutCubic` (proven: the best symmetric fit floors at ~0.0208 drift,
+      above the 1e-2 no-visible-drift tolerance), so the default carries no `.css`
+      twin and stays rAF-only — faithful by omission. A standing test reds if a
+      faithful twin is ever found or an unfaithful one shipped.
+    - **`Timeline._advance` deduplicated** to one `setTarget` + one branch.
+
+    **The boundary + release gates hardened.** `proof:boundary` closes its residual
+    false-negative classes (a live bare side-effect import, a `@mkbabb/value.js/...`
+    subpath specifier, a direct `export const` light export now each redden the
+    gate); `rolldown` is declared as the gate's load-bearing dependency; the CI demo
+    gate pins the glass-ui sibling to a tag (no moving-HEAD reproducibility hole).
+
+    SemVer note: the tier is **major** because the combined B+C release changes
+    behavior visible to a 3.0.0 consumer (fail-explicit setters throw where 3.0.0
+    silently accepted; the canonical `tickDt` step). If the team treats the
+    unpublished B 3.1.0 light-engine surface as the baseline (those steppers were
+    never published), the change is additive — the publish owner finalizes the tier
+    at `changeset version`.
+
+- 8ff893f: Tranche D — the demo refined, the engine transposed to its gestalt, the deferrals terminated.
+
+    This release ships alongside the stacked **Tranche B (`tranche-b-3-1-0`) + Tranche C
+    (`tranche-c`)** changesets — both cut, never published — folded here so one
+    provenance-signed publish ships the whole B+C+D engine transposition. D's
+    published-library surface is the **engine transposition (W4)**; the demo refinement
+    (W1 decomposition · W2 design-language localization · W3 brittleness hardening) lands
+    in the demo + CI gates and does not change the published API.
+
+    **The version owner** for the combined B+C+D publish is **Mike Babb** (`mike@babb.dev`),
+    who finalizes the SemVer tier and drives `changeset version` → tag → `release.yml`.
+    The publish leg is **user-domain, confirm-first** — identical to A/B/C.
+
+    **The engine transposed to its gestalt (W4).** A `major` because the renames are
+    intentional and unaliased — a removed name is removed, not shimmed (no-legacy).
+    - **`tick(t)` → `advanceTo(t)` at the driver layer.** `Animation.tick(absoluteClock)`
+      and `AnimationGroup.tick(absoluteClock)` — the absolute-rAF-clock advance — are
+      renamed to `advanceTo(t)`, so `tick` now means exactly one thing across the engine
+      (the `tickDt(dt)` stepper surface C canonicalized). `advanceTo(t)` reads as what it
+      does. No compat alias.
+    - **`AnimationGroup.pause` is honest.** The method that secretly toggled (pause when
+      playing, resume when paused) splits into idempotent `pause()` / `resume()` + an
+      explicit `toggle()`; `Animation` gains the same `toggle()` and its `pause(draw)`
+      toggle-branch + `draw` parameter are retired. A method named `pause` pauses.
+    - **The `Animation` god-object split at the `FrameCompiler` seam.** The ~1019-line
+      class is decomposed: a standalone, run-state-free `FrameCompiler` owns the
+      template→sampled-frames pipeline (`addFrame`/`parse`/reconcile/compile), unit-testable
+      without a clock; `Animation` retains the playback state-machine and composes one.
+      The public barrel is **byte-stable** — `Animation`/`CSSKeyframesAnimation`/
+      `AnimationGroup`/`getAnimationId` and every property the group reads
+      (`frames`/`templateFrames`/`interpFrames`/`options`/`t`/`done`) are unchanged
+      (delegated where the data now lives).
+    - **The `AnimationGroup` compositor allocates zero bytes/frame.** The per-frame
+      `groupedValues` object literal and the per-layer `filteredValues`
+      `Object.fromEntries` are gone — a hoisted instance buffer (cleared in place) + an
+      inlined property-whitelist key-skip. The headline group path now honors the
+      zero-alloc discipline the class's `_entries`/`interpFrames` buffers were built for.
+    - **Retirements (no-legacy).** The deprecated value.js path-compat re-exports
+      (`lerpColorValue`/`lerpComputedValue`/`lerpNumericValue`/`lerpValue` from
+      `animation/utils`, `formatCSS` from `animation/format`) are **deleted** — import
+      from `@mkbabb/value.js` directly. `internal/leaves.ts`'s `| any` widening is
+      tightened to the precise opaque-handle union. The reduced-motion `_snapSettled`
+      snap is symmetric across both steppers (smooth now stops its loop, as spring did).
+
+    A computed-unit "changed-keys write" optimization (D-3) was **measured and withheld**
+    — the keyframes-local benefit is ~0 on the interpolation hot path (every animating
+    key changes every frame; only held constants are cache-skippable) and the real
+    re-serialization cost lives in value.js, outside this package. The measurement is
+    recorded (`test/d3-changed-keys.measure.test.ts`) rather than a speculative
+    optimization shipped.
+
+    New standing CI gates: `proof:engine` (tick-canon · FrameCompiler seam · pause-honest
+    · snap-symmetry · no-legacy) and `proof:zero-alloc` (the compositor allocation probe).
+
+### Minor Changes
+
+- be02978: Tranche B — the engine's debt transposed, the demo made true.
+
+    **Engine (gestalt transposition, net-deletion).** A typed `Easing`
+    (`{ fn, css? }`) replaces the former Symbol-on-a-closure side channels;
+    `resolveEasing(name)` (async, fail-explicit) + `toEasing` replace the
+    `EasingResolvable` resolver — the light engines accept a callable
+    `TimingFunction` or a typed `Easing` only (a string name throws
+    `AnimationOptionError`; resolve it up front). One `RAFPlayback` driver
+    (`play`/`drive`/`loop`) owns every rAF loop; one `withReducedMotion` gate
+    drives every reduced-motion snap; one explicit rest-position/fill contract
+    (`settle()` pure teardown, `reset()` explicit rewind, `restPosition` from
+    `fillMode`). Option setters are fail-explicit: a malformed PRESENT value
+    throws a typed `AnimationOptionError` (genuine omission still defaults).
+    WAAPI delegation is restored (the prior renderer check was bind-broken) and
+    made faithful: it delegates only when the easing has a CSS twin, and
+    `stop()`/`reset()` cancel the compositor animation. New exports: `Easing`,
+    `resolveEasing`, `toEasing`, `AnimationOptionError`, `UnknownEasingError`,
+    `RAFPlaybackOptions`, `Tickable`. `getTimingFunction` now resolves CSS
+    `steps()`/`step-start`/`step-end` (Easing Level 1 complete).
+
+    **Boundary gate widened.** `proof:boundary` now proves every light barrel
+    export (not just `SpringProgress`), the heavy engine's dynamic boundary,
+    and the absence of dormant static value.js specifiers.
+
+    **Demo + CI** (not part of the published library): the production demo
+    build is repaired (it was shipping blank), the four blank scenes render,
+    the cube is no longer clipped, and CI gains demo-paint (inv γ) + occlusion
+    (inv δ) gates.
+
+- fe9b120: Tranche E — the demo elevated to the modern-web standard the engine already held, the
+  engine's correctness gaps closed, and the orchestration tier shipped.
+
+    This release ships atop the stacked **Tranche B (`tranche-b-3-1-0`) + Tranche C
+    (`tranche-c`) + Tranche D (`tranche-d`)** changesets — all cut, never published —
+    folded so one provenance-signed publish ships the whole B+C+D+E provenance (the
+    combined SemVer tier is **major**, driven by C/D; E's own contribution is a
+    non-breaking **minor**).
+
+    **E's published-library surface:**
+    - **New public API (additive, the orchestration tier — E.W10):** `stagger`,
+      `flip`/`flipShared`, `drag`/`Draggable` + `decay`/`decayRest`, the `Sequence`
+      temporal orchestrator (named to not shadow the published `Timeline`),
+      `SpringProgress.fromDuration({ duration | visualDuration, bounce })`, and the
+      single-call `animate(target, input, opts?)` front door. The light helpers carry
+      zero static value.js edge (`proof:boundary` holds); `animate` rides
+      `loadAnimationEngine`.
+    - **Modern-platform adoption (E.W9, feature-detected):** `@property` registration via
+      `CSS.registerProperty`, live `prefers-reduced-motion` observation
+      (`onReducedMotionChange`), dense WAAPI sub-segment sampling, and an ADDITIVE native
+      `ScrollTimeline`/`ViewTimeline` bridge (`createNativeTimeline` /
+      `attachNativeScrollTimeline`) — the JS sampler stays as the proven fallback (the
+      native-replace ARCH-kill holds).
+    - **Engine correctness (E.W7, test-locked):** `setColorSpace`/`setHueMethod` re-derive
+      compiled color carriers; `createFrame` seeks the correct (template) index space;
+      the WAAPI guard rejects the layout-dependent unit set; a finite delegated WAAPI play
+      commits-then-cancels (zero residual filling animations); `getTimingFunction` reads
+      back `linear()` to its true curve. Plus standalone zero-alloc playback (E.W7) and a
+      deterministic content-derived `frameId` (E.W8).
+
+    The **demo** (E.W1 encapsulation r2 · E.W2 the vueuse listener gestalt · E.W3 styling
+    r2 · E.W4 perf + modern-web · E.W11 View-Transitions/a11y/first-paint) lands in the
+    demo + CI gates and does not change the published API. E.W5 is BOOK-only (a doc note).
+
+    **The version owner** for the combined B+C+D+E publish is **Mike Babb**
+    (`mike@babb.dev`), who finalizes the SemVer tier and drives `changeset version` → tag →
+    `release.yml`. The publish leg stays user-domain, confirm-first.
+
+- c901cfb: Tranche F — the single largest measured per-frame win landed, the parsing
+  consumption-seam made whole, the orchestration tier finished + dogfooded, and the
+  verification seam closed. F is net-new and NARROW: ~90% of the post-E stack is
+  ALREADY-SOTA and left untouched.
+
+    This release ships atop the stacked **Tranche B (`tranche-b-3-1-0`) + Tranche C
+    (`tranche-c`) + Tranche D (`tranche-d`) + Tranche E (`tranche-e`)** changesets —
+    all cut, never published — so one provenance-signed publish ships the whole
+    B+C+D+E+F provenance (the combined SemVer tier is **major**, driven by C/D; F's own
+    contribution is a non-breaking **minor**).
+
+    **F's published-library surface:**
+    - **New public API (additive):** `MotionPath` / `fromMotionPath` (F.W12 — CSS-native
+      motion along an author `offset-path`, animating `offset-distance` on the
+      compositor thread, zero value.js dependency; rides `loadAnimationEngine`); the
+      completed `Sequence` transport (F.W9 — `pause`/`resume`/`reverse`/`timeScale`/
+      `progress`/`repeat`/`yoyo` via scalar-field arithmetic over the existing `seek`,
+      C⁰-continuous and seek↔play pixel-identical); the preset library reachable on the
+      heavy surface (F.W11 — `(await loadAnimationEngine()).presets.fadeIn(…)`);
+      `animate({ path })` front-door dispatch (F.W12 S2).
+    - **Engine perf (F.W4, isomorphic / pixel-identical):** the per-frame interpolation
+      buffers are cleared with a stable-key null-fill instead of a `delete`-loop, so the
+      reused `out`/`_grouped`/`entry.values` buffers stay in V8 fast-properties mode
+      (`%HasFastProperties === true`) — threaded-buffer playback ~3.0× (K=2) / 2.8× (K=12)
+      faster; a single-active-frame alias returns `flatVars` directly on the no-buffer
+      path. The `drive` loop-core reschedules synchronously (F.W5 — no per-frame
+      microtask hop for `SmoothProgress`/`SpringProgress`/`Draggable`).
+    - **Parsing correctness (F.W7/F.W8, strictly-more-correct, byte-stable for the common
+      case):** per-keyframe `animation-timing-function` now round-trips on
+      re-serialize (it was read but silently dropped — a CSS-Animations-L1 violation),
+      including the engine's own spring `linear()`; `animation-composition` is captured;
+      a sibling style rule's `animation` shorthand is applied as the option base
+      (constructor-explicit overriding); the bare-keyframes detection decides on the
+      parsed AST (a leading `/* @keyframes */` comment no longer defeats it).
+    - **Cohesion (F.W11, byte-identical):** the 4× open-coded clamp converged onto
+      `internal/leaves.clamp`; `group.ts`'s `lerp` retargeted to value.js (the light leaf's
+      consumer set is purely light again).
+
+    The **demo** (F.W10 dogfood · F.W13 `text-wrap: pretty` · F.W14 undo/redo · F.W15
+    a11y + shortcut discovery · F.W16 the rail/ball idiom + hero a11y) and the
+    **verification seam** (F.W1 the benches fixed + the missing ones authored, F.W2 every
+    `proof:*` gate wired into CI, F.W3 `proof:orchestration` + the public-API tests) land
+    in the demo + CI gates and do not change the published API.
+
+    The computed-unit endpoint cache (F.W6) and the parser hardenings ship in the
+    companion **value.js** and **parse-that** hand-offs (kf consumes them unchanged
+    through the `lerpValue → iv._lerp` seam on re-pin).
+
+    **The version owner** for the combined B+C+D+E+F publish is **Mike Babb**
+    (`mike@babb.dev`), who finalizes the SemVer tier and drives `changeset version` → tag
+    → `release.yml`. The publish leg stays user-domain, confirm-first.
+
 ## 3.0.0
 
 ### Major Changes
