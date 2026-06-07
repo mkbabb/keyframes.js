@@ -61,21 +61,30 @@ the architecture) all manufacture ~nothing.
 
 ## Phase
 
-**TRANCHE DEVELOPMENT** (the deep audit + these docs), on branch `tranche-g-dev` (D+E+F
-IMPLEMENTED + RELEASED — kf `4.0.0`; value.js `0.11.0`, parse-that `0.9.0`, glass-ui
-`3.3.0` all PUBLISHED; keyframes.babb.dev on Cloudflare Pages). The deep audit (G.W0) is
-DONE — the evidence is on disk under `audit/` (16 phase-1 lanes + `a-demo-playwright` +
-5 `_SYNTHESIS-` docs, each `file:line`-grounded with a
-SHIP/MEASURE-FIRST/BOOK/HANDOFF/RECORD disposition and a re-runnable instrument). The
-DEVELOPMENT artifacts are authored: `G.md` (the canonical charter), this board, and the
-five synthesis docs (`_SYNTHESIS-gap-scorecard` — load-bearing — plus
-`-deferred-ledger`, `-frontend`, `-backend-constellation`, `-prompt-recap`).
+**IMPLEMENTED + CLOSED** on branch `tranche-g-impl` (cut `4.1.0` minor — the re-pin +
+DrawSVG/`.finished`/`adoptCompiled` additive API). `proof:all` GREEN (35 gates · 637
+tests + 1 expected-fail), tsc + `check:lib` clean, the demo builds. **Every wave
+G.W1..G.WZ landed** (the per-wave status rows below carry the as-authored spec text;
+the authoritative LANDED close, the convergence record, and the honest deltas are
+`FINAL.md`). The re-pin consumed the published `value.js 0.11.1` (the
+`development`-export fix kf drove + republished provenanced), `parse-that 0.9.0`,
+`glass-ui 3.3.0`. The re-publish leg is USER-DOMAIN, confirm-first; version owner Mike
+Babb.
 
-**G.W1..G.WZ IMPLEMENTATION awaits explicit authorization** — the implementation phase
-opens only on explicit user authorization, gated on keyframes' own green CI (inv-27),
-exactly D.W0's / E.W0's / F.W0's dev/impl boundary. No engine, demo, library, parser,
-test, bench, or CI source is written in development. Each wave spec lands under `waves/`
-at implementation-open carrying its own falsifiable hard gate; G.WZ closes.
+**Status notes for the rows below (as-authored spec, now landed):** the G.W18 row
+projects "DELETE `quaternionToEulerDegrees` (33 lines) / net-negative lines" — the
+LANDED O-1a outcome KEEPS the function (it drives the Euler v-model) and EXTRACTS it
+(plus the reverse `eulerDegreesToQuaternion`) to a colocated `quaternionEuler.ts`; the
+*render leg* collapsed to one native `rotate3d`, and the two-way v-model render path is
+preserved (the convergence pass added the external-Euler→quaternion re-seed). See
+`FINAL.md` for the reconciled record.
+
+**The development genesis (historical).** G was authored in TRANCHE DEVELOPMENT on
+`tranche-g-dev` — the deep audit (G.W0) on disk under `audit/` (16 phase-1 lanes +
+`a-demo-playwright` + 5 `_SYNTHESIS-` docs + the 8 supplemental lanes), the charter
+`G.md`, this board, the wave specs under `waves/`, and the cross-repo hand-off charter.
+Implementation opened on explicit authorization, gated on keyframes' own green CI
+(inv-27), exactly D.W0's / E.W0's / F.W0's dev/impl boundary.
 
 **The MANDATE is BINDING + sweep-enforced** (`G.md § Mandate`, verbatim-in-substance):
 NO quick solutions / NO workarounds (the re-pin is the REAL fix through the unchanged

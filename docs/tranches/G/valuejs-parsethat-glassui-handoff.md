@@ -19,6 +19,51 @@ D/E/F dev/impl boundary).
 
 **The id.** `handoffs`. **The deliverable.** This file only.
 
+---
+
+## ⟢ G-CLOSE STATUS (impl landed — this section is the live state; the charter below is the as-authored plan)
+
+The G implementation landed on `tranche-g-impl` (kf cut **`4.1.0`**). The cross-repo
+state at close:
+
+- **value.js — `0.11.1` PUBLISHED (the upstream unblock the spine consumed).** Consuming
+  the *registry* `value.js 0.11.0` broke every Vite consumer (it shipped an `exports`
+  `"development": "./src/index.ts"` condition while `files: ["dist"]` omits `src/`; Node
+  ignored it, Vite/Vitest applied it → unresolvable). kf drove the fix: `0.11.1` removes
+  the condition, republished provenanced on `v0.11.1`. kf re-pinned `^0.11.1`. The
+  RESIDUAL value.js charter slice (VJ-F1 path-geometry sampler; E1/E2 `linear()`/`steps()`
+  parser → retires kf's `parseLinearStops` shim; MCI-5 identity-aware fn-arity pad → flips
+  kf's `it.fails` `proof:fn-arity-pad` witness; F2/F2b color sentinels; the
+  structured-diagnostics sink + `tryParse` `furthest`; the F3 LRU bound) stays
+  value.js-owned — kf consumes each through the unchanged `lerpValue → iv._lerp` seam with
+  ZERO kf edit. The parse-that realm convergence (value.js re-pins its own parse-that to
+  `^0.9.x`) is surfaced NON-gating by `proof:deps-current` until it bites.
+
+- **parse-that — `0.9.0` consumed.** The withheld `(id,offset)` packrat re-key remains
+  parse-that-owned (build `proof:packrat-position` THEN re-key).
+
+- **glass-ui — AW owns the peer-widening; kf's contribution is `keyframes 4.1.0` itself.**
+  glass-ui's **AW tranche is beginning** and named the upstream unblock: *"keyframes 4.x:
+  widen `@mkbabb/value.js` to admit `^0.11.0` and rebuild/retest the timingFunctions-derived
+  types against value 0.11 (a 4.0.1)."* — DONE (kf is on `value.js ^0.11.1`; the
+  timingFunctions/easing re-exports build + test green against 0.11.x; the re-publish is the
+  `4.1.0` minor). **On that publish, AW widens BOTH glass-ui peers together** (`keyframes
+  ^2.2||^3||^4` + `value ^0.10||^0.11`), build-verified, behind a **born-RED
+  `proof:peer-conformance` gate**. Until then: glass-ui 3.3.0 ships STALE peers
+  (`@mkbabb/keyframes.js ^2.2.0||^3.0.0`, `@mkbabb/value.js ^0.10.0`) — both exclude the
+  current majors — so the demo build keeps the `@mkbabb/keyframes.js → src` **dedup-alias**
+  in `vite.config.ts` (AW explicitly endorsed keeping it). The stale peers are AW's to
+  widen, NOT a kf-side patch (NO vendored fix). The mobile dock occlusion +
+  `startViewTransition({types})` (H-1) + the reka `SelectIcon` re-export remain
+  glass-ui-owned (the kf-demo D.W5 half — rename, barrel-delete, mask-removal — landed in
+  G.W12).
+
+- **deploy — unchanged hand-off:** distil `deploy-pages.yml` into the spine CF-Pages
+  template; fix `dns-cf-sync.sh` (`keyframes.pages.dev`→`keyframes-8uq.pages.dev`); refresh
+  the CONSTELLATION roster.
+
+---
+
 **Provenance (the lanes consolidated).** `a-valuejs-leverage` (F-VJ-1..9), `a-parsethat-leverage`
 (G-PT-1..5), `a-glass-ui` (GG-1..6), `a-constellation-gaps` (G-CONST-1..6 / G-HANDOFF-1..4),
 and the spine synthesis `_SYNTHESIS-backend-constellation` (§§1,2,3,5,6,8,9) + the

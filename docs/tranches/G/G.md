@@ -232,7 +232,7 @@ The finding → wave id map (each row → its disposition headline):
 | TR-1/TR-2 · MCI-1/MCI-5 | **G.W15** | the interpolate-anything + color-fidelity corpus | SHIP-in-G (test-only; the suite is depth-SOTA, breadth-narrow) |
 | TR-3/TR-4 (· TR-5 RECORD) | **G.W16** | the computed-resolution + parse/round-trip corpora | SHIP-in-G (test-only; jsdom+real-DOM split; supersedes G.W2 S4) |
 | GL-1/GL-2 (· GL-4/GL-6 BOOK/RECORD) | **G.W17** | the dead `add`/`weighted` blend leaf fix | SHIP-in-G (HIGH correctness — the ONE real net-new bug) |
-| O-1 (· S-1 RECORD · S-2 BOOK) | **G.W18** | the orbital `rotate3d` output collapse | SHIP-in-G (simplicity, net-negative lines) |
+| O-1 (· S-1 RECORD · S-2 BOOK) | **G.W18** | the orbital `rotate3d` output collapse | SHIP-in-G (simplicity — the render leg collapses to one native `rotate3d`; the quaternion↔Euler math is KEPT for the v-model + colocated to `quaternionEuler.ts`, O-1a; see `FINAL.md` for the landed delta) |
 | MD-1 (· MD-6 RECORD) | **G.W19** | the `adoptCompiled()` engine seam | SHIP-in-G (MED boundary close) |
 | (hand-offs) | **G.WV** | the sibling-repo hand-offs | value.js / parse-that / glass-ui / deploy HAND-OFF |
 | DP-2/PUB-1 | **G.WZ** | the tranche close (D FINAL + G FINAL + re-publish) | — |
