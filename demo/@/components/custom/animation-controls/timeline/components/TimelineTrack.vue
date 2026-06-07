@@ -114,7 +114,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui";
 import { useZoomPan } from "../composables/useZoomPan";
 import TimelineCaret from "../TimelineCaret.vue";
 import TimelineHoverPreview from "./TimelineHoverPreview.vue";
-import type { TimelineKeyframe } from "../composables/timelineTypes";
+import type { TimelineKeyframe } from "../timelineTypes";
 
 const props = defineProps<{
     sortedKeyframes: TimelineKeyframe[];

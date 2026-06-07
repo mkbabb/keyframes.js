@@ -2,7 +2,7 @@
     <TooltipProvider :delay-duration="100" :skip-delay-duration="0">
     <div
         :class="[
-            'controls-layout grid grid-cols-1 grid-rows-[auto_1fr_auto] lg:grid-rows-[1fr_auto] lg:grid-cols-[400px_1fr_1fr] justify-items-stretch items-start relative',
+            'controls-layout grid grid-cols-1 grid-rows-[auto_1fr_auto] lg:grid-rows-[1fr_auto] lg:grid-cols-[var(--controls-pane-width)_1fr_1fr] justify-items-stretch items-start relative',
         ]"
         v-bind="$attrs"
     >
@@ -48,8 +48,9 @@
              off the right edge (B.W3 BLOCKER: the cube was ~half-clipped at
              1280/1440). The controls-pane (col-1, z-controls, position:
              relative) overlays the stage's left edge when open — its own
-             400px backdrop sits above the centered stage, so an open pane
-             frames the subject without shifting it. -->
+             --controls-pane-width backdrop sits above the centered stage (the
+             grid track + the pane min-width single-source that width via the
+             token), so an open pane frames the subject without shifting it. -->
         <div
             :class="[
                 'justify-self-stretch self-center min-h-0 h-full overflow-visible overscroll-contain col-span-full row-start-2 lg:row-start-1 lg:row-end-auto lg:col-start-1 lg:col-end-4',
@@ -124,7 +125,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, Teleport, watch, watchEffect } from "vue";
+import { computed, onMounted, reactive, ref, Teleport, useTemplateRef, watch, watchEffect } from "vue";
 
 import { Toaster } from "vue-sonner";
 
@@ -228,7 +229,7 @@ const {
     scrollFadeClass,
 } = useControlsLayout(storedControls, controlsPaneEl);
 
-const menuBarRef = ref<InstanceType<typeof AnimationMenuBar> | null>(null);
+const menuBarRef = useTemplateRef<InstanceType<typeof AnimationMenuBar>>("menuBarRef");
 
 const updateLayerConfig = (name: string, config: Partial<import("@src/animation/constants").AnimationLayerConfig>) => {
     animationGroup.setLayerConfig(name, config);

@@ -12,7 +12,7 @@
                     </span>
                 </div>
                 <span
-                    class="text-admin-label px-2 py-0.5 rounded-full"
+                    class="status-badge text-admin-label px-2 py-0.5 rounded-full"
                     :class="demo.liveSettled.value ? 'settled-badge' : 'tracking-badge'"
                 >{{ demo.liveSettled.value ? "settled" : "tracking" }}</span>
             </div>
@@ -125,15 +125,6 @@ const onKeydown = (e: KeyboardEvent) => {
 </script>
 
 <style scoped>
-/* Inline code token in prose — the camelCase API names (response,
-   dampingFraction) read as-cased at the prior 12px mono size; the
-   mono-caption rung would uppercase them, so this is the case-preserving
-   inline-code register (isomorphic with the former raw mono caption rung). */
-.code-token {
-    font-family: var(--font-mono);
-    font-size: var(--type-caption);
-}
-
 .spring-rail,
 .sampler-track {
     display: flex;
@@ -176,21 +167,5 @@ const onKeydown = (e: KeyboardEvent) => {
     margin-left: calc(var(--ball-size) / -2);
     background: color-mix(in srgb, var(--color-progress) 65%, transparent);
     will-change: left;
-}
-
-.settled-badge {
-    background: color-mix(in srgb, var(--color-progress) 14%, transparent);
-    /* AA contrast on the light-green tint: push the green text toward the
-       foreground (dark in light mode, light in dark mode) so it reads ≥4.5:1
-       against the badge tint in BOTH themes — the bare --color-progress green
-       on its own 14% tint was 1.97:1 (the C.W2 a11y leaf, lighthouse
-       color-contrast). The green hue survives the mix; only the lightness
-       moves to meet AA. */
-    color: color-mix(in srgb, var(--color-progress) 50%, var(--foreground));
-}
-
-.tracking-badge {
-    background: color-mix(in srgb, var(--muted) 60%, transparent);
-    color: var(--muted-foreground);
 }
 </style>

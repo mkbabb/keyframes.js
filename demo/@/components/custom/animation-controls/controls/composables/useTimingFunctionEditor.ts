@@ -15,7 +15,7 @@ import {
     getCurvePath,
     generateCurveSVGPath,
     generateStepSVGPath,
-} from "./timingCurveUtils";
+} from "../timingCurveUtils";
 import {
     NAMED_EASING_BEZIER,
     DETAIL_TIMING_FUNCTIONS,

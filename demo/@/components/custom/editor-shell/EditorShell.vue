@@ -93,7 +93,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, useTemplateRef } from "vue";
 
 import { initIOSPlatformClass } from "@utils/iosTextEntry";
 import { HeaderRibbon } from "@mkbabb/glass-ui/header-ribbon";
@@ -134,7 +134,7 @@ const emit = defineEmits<{
     (e: "startStateChange", started: boolean): void;
 }>();
 
-const headerRibbonRef = ref<InstanceType<typeof HeaderRibbon> | null>(null);
+const headerRibbonRef = useTemplateRef<InstanceType<typeof HeaderRibbon>>("headerRibbonRef");
 
 const shortcutsOpen = ref(false);
 registerShortcut("?", () => { shortcutsOpen.value = !shortcutsOpen.value; }, { label: "Show shortcuts", group: "General" });

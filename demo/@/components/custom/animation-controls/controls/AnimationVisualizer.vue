@@ -40,7 +40,9 @@
 </template>
 
 <script setup lang="ts">
-import { useTemplateRef } from "vue";
+import { onScopeDispose, useTemplateRef } from "vue";
+import { useResizeObserver } from "@vueuse/core";
+import { bumpLayoutEpoch } from "@mkbabb/value.js";
 import type { Animation } from "@src/animation/engine";
 import { SmoothProgress } from "@src/animation/smooth";
 import { SpringProgress } from "@src/animation/spring";
@@ -63,6 +65,17 @@ const emit = defineEmits<{
 const ballEl = useTemplateRef<HTMLElement>('ball');
 const trackEl = useTemplateRef<HTMLElement>("trackEl");
 const containerEl = useTemplateRef<HTMLElement>("containerEl");
+
+// G.W3 — bust value.js's C1 endpoint cache on a CONTAINER resize the auto-
+// `window.resize` listener cannot see. The dashed twin animates to
+// `calc(100cqw - 100%)` resolved against this `container-inline-size` box; value.js
+// caches the resolved px keyed by a monotonic layoutEpoch bumped on window resize,
+// but a panel/split-pane re-layout that changes the container width WITHOUT a
+// viewport resize never bumps the epoch → the ball serves the stale pre-resize
+// target. Feed the genuine signal value.js exports for exactly this (the demo OWNS
+// its container; the eviction policy stays ONCE in value.js — DRY). useResizeObserver
+// auto-cleans on scope dispose.
+useResizeObserver(containerEl, () => bumpLayoutEpoch());
 
 const gate = useTouchGate();
 
@@ -235,4 +248,9 @@ const { start: startSync } = useRafLoop(() => {
     }
 });
 startSync();
+
+// Stop the raw coast RAFPlayback on dispose — the sync loop rides useRafLoop's
+// auto-cleanup, but coastPlayback is a second raw playback; unmounting mid-fling
+// would otherwise leave it running until the spring settles (a bounded micro-leak).
+onScopeDispose(() => coastPlayback.stop());
 </script>

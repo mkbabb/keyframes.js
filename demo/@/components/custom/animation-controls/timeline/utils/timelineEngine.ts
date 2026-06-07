@@ -6,8 +6,8 @@ import {
 import type { InputAnimationOptions } from "@src/animation/constants";
 import { CSSKeyframesToString } from "@src/animation/format";
 
-import type { TimelineKeyframe, TimelineState } from "../composables/timelineTypes";
-import { createKeyframeId } from "../composables/timelineTypes";
+import type { TimelineKeyframe, TimelineState } from "../timelineTypes";
+import { createKeyframeId } from "../timelineTypes";
 import { flattenVars } from "./flattenVars";
 
 const parseCSSKeyframes = (input: string) => resolveKeyframes(input).keyframes;

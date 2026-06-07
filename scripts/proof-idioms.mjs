@@ -444,6 +444,151 @@ function main() {
         }
     }
 
+    // ── 8. POST-F SCENE RE-FORK SWEPT — the G.W10 idiom finishing sweep ───────
+    // The post-F W10/W12 scenes (sequence/, motion-path/, spring/) were authored
+    // AFTER the D.W2 idiom-ownership sweep + the F §1 rail/ball consolidation, so
+    // they re-forked idioms those passes already retired:
+    //   • .settled-badge/.tracking-badge byte-dup across two scenes (a SILENT fork
+    //     of the a11y-load-bearing 14%/50% AA-contrast lineage),
+    //   • .code-token byte-dup across two scenes,
+    //   • .mp-traveller hand-rolling .progress-ball with drifted glow/blur,
+    //   • a 400px coupled magic number across two files,
+    //   • a two-named mask-fade token shadow (--tabs-mask-fade / --mask-fade-width),
+    //   • an h-[fit-content] arbitrary where h-fit exists.
+    // This clause extends clause 1's OWNED-IDIOMS shape to the promotions:
+    //   (8a) OWNED — .status-badge, .code-token, --controls-pane-width, --mask-fade
+    //        are defined in design-idioms.css (BITE shares clause 1's empty-file).
+    //   (8b) ZERO SCENE RE-FORK — no scene <style scoped> re-authors a promoted
+    //        idiom: no .settled-badge/.tracking-badge/.code-token definition outside
+    //        design-idioms.css, and no scene re-declares a `box-shadow: 0 2px …
+    //        color-mix(… --color-progress …)` on a ball-shaped element.
+    //   (8c) TOKENIZED — the coupled magic numbers reference the token, not the
+    //        literal: the controls grid track + the pane min-width read
+    //        var(--controls-pane-width) (no raw 400px), both fade-mask sites read
+    //        var(--mask-fade) (no divergent --tabs-mask-fade/--mask-fade-width), and
+    //        no h-[fit-content] bracket-arbitrary survives.
+    // BITE: reds TODAY on SpringTarget/SequenceTarget/MotionPathTarget scoped
+    //       blocks + the coupled 400px / two-named fade / h-[fit-content] sites;
+    //       green after the sweep. A scene re-forking a badge/.code-token/ball
+    //       recipe, or a re-introduced raw 400px / divergent fade name / arbitrary,
+    //       reds.
+    {
+        const idiomSrc = fs.existsSync(DESIGN_IDIOMS) ? read(DESIGN_IDIOMS) : "";
+
+        // 8a — the promoted idioms are OWNED in design-idioms.css.
+        const ownedDefs = [
+            [".status-badge (status-tint idiom)", /\.status-badge\s*\{/],
+            [".code-token (inline-code idiom)", /\.code-token\s*\{/],
+            [
+                "--controls-pane-width (layout token)",
+                /--controls-pane-width\s*:/,
+            ],
+            ["--mask-fade (edge-fade token)", /--mask-fade\s*:/],
+        ];
+        const missingOwned = ownedDefs
+            .filter(([, re]) => !re.test(idiomSrc))
+            .map(([label]) => label);
+        if (missingOwned.length > 0) {
+            failures.push(
+                `[scene-refork:owned] design-idioms.css is missing the G.W10 ` +
+                    `promotion(s):\n      ` +
+                    missingOwned.join("\n      ") +
+                    `\n    Promote each to ${relPosix(DESIGN_IDIOMS)} so the ` +
+                    `post-F scenes consume it rather than re-fork (G.W10.S1/S2/S4/S5).`,
+            );
+        }
+
+        // 8b — ZERO scene re-forks a promoted idiom. Sweep demo .vue scoped
+        // <style> blocks, comment-blanked (so a doc-comment naming an idiom does
+        // not false-positive), excluding the idiom layer itself + ui/ + dist/.
+        const sceneFiles = collect(DEMO, new Set([".vue"])).filter((abs) => {
+            const rel = toPosix(abs);
+            return (
+                !rel.includes("/demo/@/components/ui/") &&
+                !rel.endsWith("@/styles/design-idioms.css")
+            );
+        });
+        const blankComments = (s) =>
+            s
+                .replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, " "))
+                .replace(/(^|[^:])\/\/[^\n]*/g, (m, p1) => p1 + " ".repeat(m.length - p1.length));
+        const BADGE_TOKEN_REFORK =
+            /\.settled-badge\s*\{|\.tracking-badge\s*\{|\.code-token\s*\{/;
+        // A ball-shaped re-fork: the .progress-ball box-shadow SIGNATURE — a
+        // `0 2px <blur> color-mix(… --color-progress …)` glow re-declared in a
+        // scene scope. Anchored on the `0 2px` ball signature so it does NOT
+        // false-positive on a card drop-shadow (e.g. StartingStyleTarget's
+        // `.discrete-card` `0 8px 32px …`), which is a distinct primitive.
+        const BALL_BOX_SHADOW =
+            /box-shadow:\s*0\s+2px\s+[\d.]+px\s+color-mix\([^)]*--color-progress[^;]*;/;
+        const reforks = [];
+        for (const abs of sceneFiles) {
+            const src = blankComments(read(abs));
+            const lines = src.split("\n");
+            for (let i = 0; i < lines.length; i++) {
+                if (BADGE_TOKEN_REFORK.test(lines[i]))
+                    reforks.push(`${relPosix(abs)}:${i + 1} (badge/code-token re-fork)`);
+            }
+            // box-shadow can span lines — test the comment-blanked whole file.
+            if (BALL_BOX_SHADOW.test(src))
+                reforks.push(`${relPosix(abs)} (ball box-shadow re-fork)`);
+        }
+        if (reforks.length > 0) {
+            failures.push(
+                `[scene-refork:zero] ${reforks.length} scene re-fork(s) of a ` +
+                    `promoted idiom survive (the byte-dup the G.W10 sweep retired) — ` +
+                    `consume the design-idioms.css idiom, do not re-author it:\n      ` +
+                    reforks.join("\n      "),
+            );
+        }
+
+        // 8c — TOKENIZED: the coupled literals reference the token, not the raw value.
+        const tokenizedFails = [];
+        const fileSrc = (p) => {
+            const abs = path.join(REPO, p);
+            return fs.existsSync(abs) ? read(abs) : "";
+        };
+        const GROUP = "demo/@/components/custom/animation-controls/AnimationControlsGroup.vue";
+        const PANE = "demo/@/components/custom/animation-controls/components/ControlsPaneWrapper.vue";
+        const TABS = "demo/@/components/custom/animation-controls/controls/AnimationControls.vue";
+        const MATRIX = "demo/@/components/custom/matrix-editor/MatrixEditor.vue";
+
+        // Comment-blank each file so a doc-comment NAMING the retired literal/token
+        // (e.g. "the former --tabs-mask-fade shadow is collapsed") does not
+        // false-positive — only LIVE declarations/references count.
+        const groupSrc = blankComments(fileSrc(GROUP));
+        if (/lg:grid-cols-\[400px/.test(groupSrc) || !/var\(--controls-pane-width\)/.test(groupSrc))
+            tokenizedFails.push(`${GROUP}: the lg grid track must read var(--controls-pane-width), not the raw 400px`);
+        const paneSrc = blankComments(fileSrc(PANE));
+        if (/min-width:\s*400px/.test(paneSrc) || !/min-width:\s*var\(--controls-pane-width\)/.test(paneSrc))
+            tokenizedFails.push(`${PANE}: the pane min-width must read var(--controls-pane-width), not the raw 400px`);
+        // Both fade-mask sites read var(--mask-fade); neither divergent local name survives.
+        const tabsSrc = blankComments(fileSrc(TABS));
+        if (/--tabs-mask-fade\b/.test(tabsSrc) || !/var\(--mask-fade\)/.test(tabsSrc))
+            tokenizedFails.push(`${TABS}: the tab-overflow fade must read var(--mask-fade), not the local --tabs-mask-fade name`);
+        if (/--mask-fade-width\b/.test(paneSrc) || !/var\(--mask-fade\)/.test(paneSrc))
+            tokenizedFails.push(`${PANE}: the scroll fade must read var(--mask-fade), not the local --mask-fade-width name`);
+        if (/h-\[fit-content\]/.test(fileSrc(MATRIX)))
+            tokenizedFails.push(`${MATRIX}: h-[fit-content] must be the first-class h-fit utility`);
+
+        if (tokenizedFails.length > 0) {
+            failures.push(
+                `[scene-refork:tokenized] ${tokenizedFails.length} coupled ` +
+                    `magic-number/arbitrary site(s) not routed to the token (G.W10.S4/S5/S6):\n      ` +
+                    tokenizedFails.join("\n      "),
+            );
+        }
+
+        if (missingOwned.length === 0 && reforks.length === 0 && tokenizedFails.length === 0) {
+            console.log(
+                `  ✓ [scene-refork] the post-F scenes consume the promoted idioms ` +
+                    `(.status-badge / .code-token / --controls-pane-width / --mask-fade): ` +
+                    `zero scene re-fork, the coupled 400px + the two-named fade tokenized, ` +
+                    `h-fit (G.W10)`,
+            );
+        }
+    }
+
     if (failures.length > 0) {
         console.error(
             "\nproof:idioms — FAIL (D.W2 — the design language is not yet localized):",

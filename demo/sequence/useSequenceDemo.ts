@@ -1,4 +1,4 @@
-import { computed, markRaw, onActivated, onDeactivated, ref } from "vue";
+import { computed, markRaw, onScopeDispose, ref } from "vue";
 
 import { AnimationGroup } from "@src/animation/group";
 import { CSSKeyframesAnimation } from "@src/animation/engine";
@@ -229,12 +229,12 @@ export function useSequenceDemo() {
         () => resume(),
     );
 
-    onDeactivated(() => {
+    // Stop the mirror + sequence on scope dispose (the genuine unmount seam) —
+    // the host has NO <KeepAlive>, so onDeactivated never fires; this gives the
+    // mid-play swap an honest stop instead of letting the loop wind down detached.
+    onScopeDispose(() => {
         stopMirror();
         sequence.stop();
-    });
-    onActivated(() => {
-        syncFromSequence();
     });
 
     return {

@@ -201,7 +201,9 @@ const emit = defineEmits<{
     }
 
     .controls-content {
-        min-width: 400px;
+        /* Couples to the grid's left track (AnimationControlsGroup) via the
+           --controls-pane-width token — change the track, the pane tracks it. */
+        min-width: var(--controls-pane-width);
         /* Extra padding to prevent card box-shadow clipping */
         padding-right: 12px;
         padding-bottom: 12px;
@@ -217,30 +219,26 @@ const emit = defineEmits<{
         padding-inline: 0.75rem;
     }
 
-    /* Override glass-ui fade width for this pane's wider fade distance.
-       scroll-fade-both aliases scroll-fade-y (composable uses -both suffix). */
-    .scroll-fade-top,
-    .scroll-fade-bottom,
-    .scroll-fade-both {
-        --mask-fade-width: 2.5rem;
-    }
     /* The scroll-fade mask degrades to un-faded (fully visible) content on a
-       browser without mask-image support — graceful, not broken (D.W3.S3). */
+       browser without mask-image support — graceful, not broken (D.W3.S3). The
+       fade magnitude reads the single-sourced --mask-fade token (G.W10.S5 — the
+       former local --mask-fade-width shadow is collapsed).
+       scroll-fade-both aliases scroll-fade-y (composable uses -both suffix). */
     @supports (-webkit-mask-image: linear-gradient(#000, #000)) or
         (mask-image: linear-gradient(#000, #000)) {
         .scroll-fade-both {
             mask-image: linear-gradient(
                 to bottom,
                 transparent,
-                black var(--mask-fade-width),
-                black calc(100% - var(--mask-fade-width)),
+                black var(--mask-fade),
+                black calc(100% - var(--mask-fade)),
                 transparent
             );
             -webkit-mask-image: linear-gradient(
                 to bottom,
                 transparent,
-                black var(--mask-fade-width),
-                black calc(100% - var(--mask-fade-width)),
+                black var(--mask-fade),
+                black calc(100% - var(--mask-fade)),
                 transparent
             );
         }

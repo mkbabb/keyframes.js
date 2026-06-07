@@ -27,7 +27,7 @@
 </template>
 
 <script setup lang="ts">
-import type { TimelineKeyframe } from "../composables/timelineTypes";
+import type { TimelineKeyframe } from "../timelineTypes";
 
 defineProps<{
     keyframe: TimelineKeyframe;

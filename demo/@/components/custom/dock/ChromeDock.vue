@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import { computed, inject, ref, watch, useTemplateRef } from "vue";
-import type { Ref } from "vue";
 import { CONTROLS_PANE_HOVER_KEY } from "../animation-controls/injectionKeys";
 import { Activity, ChevronDown, ChevronUp, Home, PanelLeftClose, PanelLeftOpen, SlidersHorizontal, Braces, Clock, Grid3X3 } from "@lucide/vue";
 import { useMediaQuery } from "@vueuse/core";
-import { GlassDock, DockLayerGroup } from ".";
 import {
+    GlassDock,
     DockIconButton,
-    DockLayer,
     DockSelectTrigger,
 } from "@mkbabb/glass-ui/dock";
 import {
@@ -102,11 +100,6 @@ watch(isAnyOpen, (open) => {
     if (open) dockRef.value?.keepOpen();
     else dockRef.value?.release();
 });
-
-// ── Multi-layer: main navigation + extensibility for future layers ──
-const activeLayer = computed(() => {
-    return "main";
-});
 </script>
 
 <template>
@@ -115,9 +108,13 @@ const activeLayer = computed(() => {
         style="top: calc(max(var(--work-area-top-offset, 0px), env(safe-area-inset-top, 0px)) + var(--dock-margin) / 4);"
     >
         <div class="pointer-events-auto">
-            <GlassDock ref="dockRef" :collapse-delay="2500" :start-collapsed="true" :fit-content="true" :always-expanded="isMobile">
-                <DockLayerGroup :active="activeLayer" :show-rail="false">
-                    <DockLayer id="main" class="flex items-center gap-2">
+            <!-- G.W12.S2: the :always-expanded="isMobile" occlusion-dodge mask is
+                 REMOVED — glass-ui's rebuilt 3.3.0 dock owns the no-occlusion
+                 contract; the occlusion gate re-runs mask-free as the lock. The
+                 dead single-layer DockLayerGroup/DockLayer costume is collapsed —
+                 the items mount directly in the GlassDock default slot. -->
+            <GlassDock ref="dockRef" :collapse-delay="2500" :start-collapsed="true" :fit-content="true">
+                <div class="flex items-center gap-2">
                         <!-- Controls collapse -->
                         <DockIconButton
                             v-if="hasSelectedAnimation"
@@ -206,8 +203,7 @@ const activeLayer = computed(() => {
 
                         <!-- Header items slot -->
                         <slot name="items" />
-                    </DockLayer>
-                </DockLayerGroup>
+                </div>
 
                 <!-- Collapsed state -->
                 <template #collapsed>

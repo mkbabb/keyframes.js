@@ -8,7 +8,7 @@
             :model-value="storedControls.selectedControl"
             @update:model-value="selectControl"
         >
-            <!-- Tabs header (hidden when managed externally via TopDock) -->
+            <!-- Tabs header (hidden when managed externally via ChromeDock) -->
             <div v-if="!tabsExternallyManaged" ref="tabsHeaderEl" class="relative w-fit flex items-center justify-center flex-shrink-0 glass-wash rounded-panel px-1 py-0.5 overflow-hidden">
                 <TabsList
                     ref="tabsListRef"
@@ -154,7 +154,7 @@ const { animation, isGrouped, isPlaying: isPlayingProp, layerConfig, active } = 
 
 const storedControls = getStoredAnimationGroupControlOptions(animation);
 
-// When true, the tab header is hidden (tabs are managed externally, e.g. via TopDock)
+// When true, the tab header is hidden (tabs are managed externally, e.g. via ChromeDock)
 const tabsExternallyManaged = inject(TABS_EXTERNALLY_MANAGED_KEY, false);
 
 const emit = defineEmits<{
@@ -177,8 +177,8 @@ const emit = defineEmits<{
     (e: "scrubEnd"): void;
 }>();
 
-const keyframesControlsRef = ref<InstanceType<typeof KeyframesStringControls> | null>(null);
-const timelineRef = ref<InstanceType<typeof KeyframeTimeline> | null>(null);
+const keyframesControlsRef = useTemplateRef<InstanceType<typeof KeyframesStringControls>>("keyframesControlsRef");
+const timelineRef = useTemplateRef<InstanceType<typeof KeyframeTimeline>>("timelineRef");
 const tabsContentEl = useTemplateRef<HTMLElement>("tabsContentEl");
 const tabsHeaderEl = useTemplateRef<HTMLElement>("tabsHeaderEl");
 const tabsListRef = useTemplateRef<HTMLElement>("tabsListRef");
@@ -295,29 +295,25 @@ defineExpose({
     }
 }
 
-.tabs-overflow-right,
-.tabs-overflow-left,
-.tabs-overflow-both {
-    --tabs-mask-fade: 2.5rem;
-}
-
 /* The tab-overflow edge fade degrades to un-faded content on a browser without
    mask-image support — graceful, not a broken mask (D.W3.S3). Both the
    standard and -webkit- prefixed declarations are paired (the prior rules
-   carried only the unprefixed form, no-op'ing on older WebKit). */
+   carried only the unprefixed form, no-op'ing on older WebKit). The fade
+   magnitude reads the single-sourced --mask-fade token (G.W10.S5 — the former
+   local --tabs-mask-fade shadow is collapsed). */
 @supports (-webkit-mask-image: linear-gradient(#000, #000)) or
     (mask-image: linear-gradient(#000, #000)) {
     .tabs-overflow-right {
-        mask-image: linear-gradient(to right, black calc(100% - var(--tabs-mask-fade)), transparent);
-        -webkit-mask-image: linear-gradient(to right, black calc(100% - var(--tabs-mask-fade)), transparent);
+        mask-image: linear-gradient(to right, black calc(100% - var(--mask-fade)), transparent);
+        -webkit-mask-image: linear-gradient(to right, black calc(100% - var(--mask-fade)), transparent);
     }
     .tabs-overflow-left {
-        mask-image: linear-gradient(to right, transparent, black var(--tabs-mask-fade));
-        -webkit-mask-image: linear-gradient(to right, transparent, black var(--tabs-mask-fade));
+        mask-image: linear-gradient(to right, transparent, black var(--mask-fade));
+        -webkit-mask-image: linear-gradient(to right, transparent, black var(--mask-fade));
     }
     .tabs-overflow-both {
-        mask-image: linear-gradient(to right, transparent, black var(--tabs-mask-fade), black calc(100% - var(--tabs-mask-fade)), transparent);
-        -webkit-mask-image: linear-gradient(to right, transparent, black var(--tabs-mask-fade), black calc(100% - var(--tabs-mask-fade)), transparent);
+        mask-image: linear-gradient(to right, transparent, black var(--mask-fade), black calc(100% - var(--mask-fade)), transparent);
+        -webkit-mask-image: linear-gradient(to right, transparent, black var(--mask-fade), black calc(100% - var(--mask-fade)), transparent);
     }
 }
 </style>

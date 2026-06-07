@@ -41,11 +41,13 @@ export { getAnimationSuperKey, STORE_KEYS } from "./storeUtils";
 
 import { _resetAnimationGroupsOptionsStore } from "./animationOptionsStore";
 import { _resetAnimationGroupsControlOptionsStore } from "./controlOptionsStore";
+import { _resetAssetManagerStore } from "@components/custom/asset-manager/useAssetManager";
 import { STORE_KEYS } from "./storeUtils";
 
 export const resetAllStores = () => {
     _resetAnimationGroupsOptionsStore();
     _resetAnimationGroupsControlOptionsStore();
+    _resetAssetManagerStore();
 
     for (const key of STORE_KEYS) {
         localStorage.removeItem(key);

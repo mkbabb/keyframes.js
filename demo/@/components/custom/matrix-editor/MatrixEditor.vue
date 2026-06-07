@@ -2,7 +2,7 @@
     <Card>
         <CardContent class="grid items-center justify-center gap-3 p-3">
             <div
-                class="matrix-grid relative m-0 grid h-[fit-content] w-full grid-cols-4 items-center justify-items-stretch gap-1 p-0"
+                class="matrix-grid relative m-0 grid h-fit w-full grid-cols-4 items-center justify-items-stretch gap-1 p-0"
             >
                 <div
                     class="relative grid aspect-square min-h-[3.5rem] rounded-lg shadow-sm"

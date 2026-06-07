@@ -82,7 +82,7 @@ import {
     SelectTrigger,
 } from "@mkbabb/glass-ui";
 
-import { getCurvePath } from "@components/custom/animation-controls/controls/composables/timingCurveUtils";
+import { getCurvePath } from "@components/custom/animation-controls/controls/timingCurveUtils";
 import {
     EASING_GROUPS,
     type CurveGroupItem,

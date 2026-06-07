@@ -3,8 +3,8 @@ import type { Ref, ShallowRef } from "vue";
 import { useRafFn } from "@vueuse/core";
 import { CSSKeyframesAnimation } from "@src/animation/engine";
 import type { InputAnimationOptions } from "@src/animation/constants";
-import { createKeyframeId } from "./timelineTypes";
-import type { TimelineKeyframe, TimelineState } from "./timelineTypes";
+import { createKeyframeId } from "../timelineTypes";
+import type { TimelineKeyframe, TimelineState } from "../timelineTypes";
 import {
     buildAnimationFromTimeline,
     exportTimelineToCSS,

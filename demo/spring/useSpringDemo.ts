@@ -1,8 +1,7 @@
 import {
     computed,
     markRaw,
-    onActivated,
-    onDeactivated,
+    onScopeDispose,
     ref,
     watch,
     type Ref,
@@ -232,9 +231,12 @@ export function useSpringDemo() {
         { immediate: true },
     );
 
-    // ── KeepAlive lifecycle ──────────────────────────────────────────
-    onActivated(ensureLoop);
-    onDeactivated(() => playback.stop());
+    // ── Dispose seam ─────────────────────────────────────────────────
+    // Stop the raw RAFPlayback on scope dispose (the genuine unmount seam,
+    // mirroring useRafLoop.ts onUnmounted(stop)). The immediate watcher above is
+    // the single start authority; the host has NO <KeepAlive>, so onDeactivated
+    // never fires and would leak this loop on a play-then-swap.
+    onScopeDispose(() => playback.stop());
 
     // B-3: idle the shared spring rAF while the tab is hidden without touching
     // the user's play/pause intent. The SpringProgress solver is analytic and

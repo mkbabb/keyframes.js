@@ -438,6 +438,116 @@ function main() {
         }
     }
 
+    // ── 4b. NO DEAD ACTIVATION HOOK (G.W9 — the inv-κ lifecycle extension) ──
+    // The same shape clause 4 already forbids (a lifecycle wiring the auto-
+    // dispose seam supersedes): a `<KeepAlive>`-only hook (`onActivated`/
+    // `onDeactivated`) where the scene host has NO `<KeepAlive>`, so it NEVER
+    // fires — dead code that, for a loop-owner, leaks the rAF on swap. The grep
+    // is PAIRED with a real-KeepAlive grep: while zero genuine `<KeepAlive>`/
+    // `keep-alive` exists in the demo render tree, the hooks are forbidden; if a
+    // genuine `<KeepAlive>` is ever added, the pair flips and the hooks are
+    // re-permitted in ONE motion (the stale-guard — no silent rot).
+    {
+        const ACTIVATION_HOOK = /\bon(?:Activated|Deactivated)\s*\(/;
+        // A REAL <KeepAlive> in the render tree: a `<KeepAlive`/`<keep-alive`
+        // ELEMENT (an opening tag), NOT a comment (already blanked) and NOT a
+        // bare identifier mention. We require the `<` opener so a string/import
+        // of the name does not count as a render-tree host.
+        const REAL_KEEPALIVE = /<(?:KeepAlive|keep-alive)\b/;
+
+        let hasRealKeepAlive = false;
+        const hookOffenders = [];
+        for (const abs of reactiveFiles) {
+            const src = blankComments(read(abs));
+            if (REAL_KEEPALIVE.test(src)) hasRealKeepAlive = true;
+            const lines = src.split("\n");
+            for (let i = 0; i < lines.length; i++) {
+                if (ACTIVATION_HOOK.test(lines[i])) {
+                    hookOffenders.push({
+                        rel: relPosix(abs),
+                        line: i + 1,
+                        text: lines[i].trim(),
+                    });
+                }
+            }
+        }
+
+        if (hasRealKeepAlive) {
+            // The paired stale-guard flipped — a genuine <KeepAlive> exists, so
+            // the activation hooks are legitimate; the sub-clause self-relaxes.
+            console.log(
+                `  ✓ [lifecycle] a genuine <KeepAlive> exists in the demo tree ` +
+                    `— onActivated/onDeactivated re-permitted (paired stale-guard)`,
+            );
+        } else if (hookOffenders.length > 0) {
+            failures.push(
+                `[lifecycle] ${hookOffenders.length} onActivated/onDeactivated ` +
+                    `hook(s) while NO <KeepAlive> exists in the demo render tree ` +
+                    `— a <KeepAlive>-only hook that NEVER fires (dead code that, ` +
+                    `for a loop-owner, leaks the rAF on swap). Re-home cleanup on ` +
+                    `onScopeDispose/onBeforeUnmount (mirror useRafLoop.ts ` +
+                    `onUnmounted(stop)), or add a genuine <KeepAlive> host (G.W9 ` +
+                    `§S1–S2). Sites:\n      ` +
+                    hookOffenders
+                        .slice(0, 12)
+                        .map((o) => `${o.rel}:${o.line}  ${o.text}`)
+                        .join("\n      ") +
+                    (hookOffenders.length > 12
+                        ? `\n      … and ${hookOffenders.length - 12} more`
+                        : ""),
+            );
+        } else {
+            console.log(
+                `  ✓ [lifecycle] zero onActivated/onDeactivated while no ` +
+                    `<KeepAlive> in the demo render tree`,
+            );
+        }
+    }
+
+    // ── 4c. EVERY RAW RAFPlayback OWNER STOPS ON DISPOSE (G.W9 widened inv) ──
+    // The widened invariant: a file that owns a raw `new RAFPlayback()` must
+    // also carry a dispose-time stop — either a `.stop()` on an unmount seam
+    // (`onScopeDispose`/`onBeforeUnmount`/`onUnmounted`) OR it rides
+    // `useRafLoop` (whose own `onUnmounted(stop)` auto-cleans). A raw playback
+    // with no dispose stop leaks until it self-settles (bounded) or forever
+    // (perpetual). BITE: today on `coastPlayback` before S3; green after.
+    {
+        const OWNS_RAFPLAYBACK = /\bnew\s+RAFPlayback\b/;
+        const DISPOSE_SEAM =
+            /\bon(?:ScopeDispose|BeforeUnmount|Unmounted)\s*\(/;
+        const STOP_CALL = /\.stop\s*\(\s*\)/;
+
+        const leakers = [];
+        for (const abs of reactiveFiles) {
+            const src = blankComments(read(abs));
+            if (!OWNS_RAFPLAYBACK.test(src)) continue;
+            const rel = relPosix(abs);
+            // A raw playback owner must stop on a dispose seam. (useRafLoop.ts —
+            // the auto-cleanup primitive — passes on its own onUnmounted(stop),
+            // not by exemption: a useRafLoop CALL in a file does NOT cover a
+            // SEPARATE raw playback that file also owns, e.g. coastPlayback.)
+            const hasDisposeStop =
+                DISPOSE_SEAM.test(src) && STOP_CALL.test(src);
+            if (!hasDisposeStop) {
+                leakers.push(rel);
+            }
+        }
+        if (leakers.length > 0) {
+            failures.push(
+                `[rafplayback] ${leakers.length} raw \`new RAFPlayback()\` ` +
+                    `owner(s) with no dispose-time stop() — every raw playback ` +
+                    `must stop on dispose (onScopeDispose/onBeforeUnmount/` +
+                    `onUnmounted, or ride useRafLoop's auto-cleanup), else the ` +
+                    `loop leaks past unmount (G.W9 §S3). Sites:\n      ` +
+                    leakers.join("\n      "),
+            );
+        } else {
+            console.log(
+                `  ✓ [rafplayback] every raw RAFPlayback owner stops on dispose`,
+            );
+        }
+    }
+
     if (failures.length > 0) {
         console.error(
             "\nproof:brittleness — FAIL (D.W3 — brittleness not yet hardened):",

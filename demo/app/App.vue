@@ -1,5 +1,5 @@
 <template>
-    <TopDock
+    <ChromeDock
         :current-scene-id="currentSceneId"
         :scenes="scenes"
         :home-scene-id="HOME_SCENE_ID"
@@ -71,7 +71,7 @@
                 </DropdownMenuContent>
             </DropdownMenu>
         </template>
-    </TopDock>
+    </ChromeDock>
 
     <EditorShell
         :animation-group="currentAnimationGroup"
@@ -152,15 +152,15 @@ import { EditorShell, EditorStartScreen, SharePopover } from "@components/custom
 import { Avatar, AvatarImage, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@mkbabb/glass-ui";
 import { DarkModeToggle } from "@mkbabb/glass-ui/controls";
 import { DockDropdownTrigger } from "@mkbabb/glass-ui/dock";
-import { TopDock } from "@components/custom/dock";
+import ChromeDock from "@components/custom/dock/ChromeDock.vue";
 
 import { AnimationGroup } from "@src/animation/group";
 import { getStoredAnimationGroupControlOptions } from "@components/custom/animation-controls/stores";
 
-// Tabs in the controls pane are managed via the TopDock controls tab dropdown
+// Tabs in the controls pane are managed via the ChromeDock controls tab dropdown
 provide(TABS_EXTERNALLY_MANAGED_KEY, true);
 
-// Dock hover → controls pane opacity. Provided here so both TopDock (sibling)
+// Dock hover → controls pane opacity. Provided here so both ChromeDock (sibling)
 // and AnimationMenuBar (descendant of EditorShell) share the same ref.
 const dockHoveredRef = ref(false);
 provide(CONTROLS_PANE_HOVER_KEY, dockHoveredRef);
@@ -194,7 +194,7 @@ useSceneUrl(currentSuperKey);
 
 const currentLabel = computed(() => sceneMap.get(currentSceneId.value)?.label ?? "Home");
 
-// Unified scene component/key/props for KeepAlive (requires single child)
+// Unified scene component/key/props for the keyed <Suspense> (single child).
 const activeSceneComponent = computed(() => {
     if (isHome.value || currentSceneId.value === 'cube') return CubeScene;
     return currentScene.value.component;
@@ -265,8 +265,9 @@ function switchScene(id: string) {
 
     // Home uses the cube component/key unconditionally (activeSceneKey is
     // always 'cube' when isHome), so regardless of the previous scene the
-    // KeepAlive slot transitions into the (possibly cached) CubeScene.
-    // Hide the cube's controls so only the start screen is visible.
+    // keyed <Suspense> re-mounts CubeScene (the host has no KeepAlive — every
+    // swap is a full unmount/remount). Hide the cube's controls so only the
+    // start screen is visible.
     if (id === HOME_SCENE_ID) {
         const cubeControls = getStoredAnimationGroupControlOptions("Cube");
         cubeControls.isControlsPanelOpen = false;

@@ -10,7 +10,7 @@
                     </span>
                 </div>
                 <span
-                    class="text-admin-label px-2 py-0.5 rounded-full"
+                    class="status-badge text-admin-label px-2 py-0.5 rounded-full"
                     :class="demo.isReversed.value ? 'reverse-badge' : (demo.isPlaying.value ? 'tracking-badge' : 'settled-badge')"
                 >{{ demo.isReversed.value ? "reverse" : (demo.isPlaying.value ? "playing" : "ready") }}</span>
             </div>
@@ -217,25 +217,11 @@ const onScrubKeydown = (e: KeyboardEvent) => {
     will-change: left;
 }
 
-.reverse-badge {
-    background: color-mix(in srgb, var(--rainbow-violet) 16%, transparent);
-    color: color-mix(in srgb, var(--rainbow-violet) 55%, var(--foreground));
-}
-
 /* The active-reverse transport affordance — tints the Reverse button while the
-   playhead walks backward (reads from the demo's progress tone). */
+   playhead walks backward (reads from the demo's progress tone). NOT a status
+   badge — a distinct button-tint primitive, so it stays scoped. */
 .transport-active {
     background: color-mix(in srgb, var(--color-progress) 16%, transparent);
     border-color: color-mix(in srgb, var(--color-progress) 40%, transparent);
-}
-
-.settled-badge {
-    background: color-mix(in srgb, var(--color-progress) 14%, transparent);
-    color: color-mix(in srgb, var(--color-progress) 50%, var(--foreground));
-}
-
-.tracking-badge {
-    background: color-mix(in srgb, var(--muted) 60%, transparent);
-    color: var(--muted-foreground);
 }
 </style>

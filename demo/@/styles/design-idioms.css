@@ -103,6 +103,20 @@
     --easing-dropdown-max-h: min(24rem, 60dvh); /* max-h-[var(--easing-dropdown-max-h)] easing
                                                    SelectContent cap — its 60dvh half is the S3
                                                    reconciled unit. */
+    --controls-pane-width: 400px; /* the controls grid's left track width — a COUPLED
+                                     layout invariant (G.W10.S4): the lg grid track
+                                     (AnimationControlsGroup, lg:grid-cols-[var(--controls-pane-width)_1fr_1fr])
+                                     and the pane min-width (ControlsPaneWrapper) MUST match,
+                                     or the open pane overflows/under-fills its column. Two
+                                     files, one token: change the track and the pane tracks it. */
+    --mask-fade: 2.5rem; /* the edge-fade magnitude — ONE design decision ("how wide is an
+                            edge fade") consumed by BOTH the tab-overflow horizontal fade
+                            (AnimationControls) and the controls-pane vertical scroll fade
+                            (ControlsPaneWrapper). Was forked under two local names
+                            (--tabs-mask-fade / --mask-fade-width) at the same 2.5rem value
+                            (G.W10.S5); single-sourced here. The @supports-paired mask
+                            recipe itself stays scoped (its whole-recipe .edge-fade-{x,y}
+                            promotion is the recorded larger move, not this token unification). */
 
     /* ── The below-plane stacking rung ──
        Reconciles the one orphan raw `z-index: -10` (CubeTarget.vue, the
@@ -301,6 +315,65 @@
     background: var(--color-progress);
     box-shadow: 0 2px 10px color-mix(in srgb, var(--color-progress) var(--ball-glow, 35%), transparent);
     pointer-events: none;
+}
+
+/* ── .status-badge family (settled / tracking / reverse) ──
+   The caption-rung status tint (G.W10.S1 — the honest correction of the
+   post-F W10/W12-scene re-fork). SpringTarget + SequenceTarget BOTH authored
+   `.settled-badge` / `.tracking-badge` byte-identically — and the SequenceTarget
+   copy SILENTLY FORKED the a11y-load-bearing AA-contrast value (it dropped the
+   comment that documents the 14%/50% lineage), so a contrast tune on one copy
+   would drift the other and re-fail contrast with no gate. This promotes the ONE
+   recipe, parameterized by --badge-tone (the only axis that varies), defaulting
+   to the AA-contrast lineage, with the AA comment single-sourced HERE.
+
+   AA-CONTRAST LINEAGE (the C.W2 lighthouse leaf — single-sourced, load-bearing):
+   the tint paints --badge-tone at --badge-tint (14%) over the surface; the text
+   pushes --badge-tone toward --foreground at --badge-text-mix (50%) so it reads
+   ≥4.5:1 against the tint in BOTH themes — the bare --color-progress green on its
+   own 14% tint was 1.97:1 (lighthouse color-contrast). The hue survives the mix;
+   only the lightness moves to meet AA. A future contrast tune lands ONCE here.
+
+   --badge-tone names the same parameterization seam .progress-ball's --ball-glow
+   exposes: each per-site badge sets only --badge-tone, never re-authors the
+   recipe.
+     • .settled-badge  → tone --color-progress (the canonical progress green)
+     • .tracking-badge → tone --muted (its own neutral recipe: muted surface
+       tint + muted-foreground text, no AA mix needed)
+     • .reverse-badge  → tone --rainbow-violet (the reverse-direction tint) */
+.status-badge {
+    --badge-tone: var(--color-progress);
+    --badge-tint: 14%;
+    --badge-text-mix: 50%;
+    background: color-mix(in srgb, var(--badge-tone) var(--badge-tint), transparent);
+    color: color-mix(in srgb, var(--badge-tone) var(--badge-text-mix), var(--foreground));
+}
+.settled-badge {
+    --badge-tone: var(--color-progress);
+}
+/* The neutral tracking tint reads off --muted directly (a muted surface + the
+   muted-foreground text token), so it overrides the tint magnitude + text rule
+   rather than the AA color-mix — its contrast is the glass-ui muted pairing. */
+.tracking-badge {
+    background: color-mix(in srgb, var(--muted) 60%, transparent);
+    color: var(--muted-foreground);
+}
+.reverse-badge {
+    --badge-tone: var(--rainbow-violet);
+    --badge-tint: 16%;
+    --badge-text-mix: 55%;
+}
+
+/* ── .code-token ──
+   The inline-code idiom for in-prose API names (G.W10.S2). SpringTarget +
+   MotionPathTarget BOTH typed this two-property rule byte-identically; promoted
+   ONCE here so the next prose-bearing scene CONSUMES it rather than re-forking.
+   The camelCase API names (response, dampingFraction, offset-distance,
+   offset-path) read AS-CASED at the caption mono size; the mono-caption rung
+   would uppercase them, so this is the case-preserving inline-code register. */
+.code-token {
+    font-family: var(--font-mono);
+    font-size: var(--type-caption);
 }
 
 /* ── .dock-inset ──

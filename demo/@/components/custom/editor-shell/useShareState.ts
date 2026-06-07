@@ -14,7 +14,6 @@ export function useShareState(onSceneRestore?: (sceneId: string) => void) {
     const route = useRoute();
     const sharePopoverOpen = ref(false);
     const loadHashInput = ref("");
-    const stateVersion = ref(0);
 
     const shareState = async () => {
         const activeScene = route.name as string;
@@ -75,7 +74,6 @@ export function useShareState(onSceneRestore?: (sceneId: string) => void) {
 
         const result = restoreStateFromParam(stateParam);
         sharePopoverOpen.value = false;
-        stateVersion.value++;
 
         // Switch to the shared scene if present
         if (result.activeScene && onSceneRestore) {
@@ -93,6 +91,5 @@ export function useShareState(onSceneRestore?: (sceneId: string) => void) {
         loadHashInput,
         shareState,
         loadFromInput,
-        stateVersion,
     };
 }

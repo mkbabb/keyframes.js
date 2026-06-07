@@ -8,7 +8,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onActivated, onBeforeUnmount, onDeactivated, onMounted, useTemplateRef } from "vue";
+import { computed, onBeforeUnmount, onMounted, useTemplateRef } from "vue";
 import { useResizeObserver } from "@vueuse/core";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
@@ -114,14 +114,6 @@ function stopRenderLoop() {
         rafId = undefined;
     }
 }
-
-onDeactivated(() => {
-    stopRenderLoop();
-});
-
-onActivated(() => {
-    startRenderLoop();
-});
 
 // B-3: pause the WebGL present loop while the tab is backgrounded (a hidden tab
 // otherwise drives a full render per frame — pure battery waste). OrbitControls

@@ -16,7 +16,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, h, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, h, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue";
 
 const props = defineProps<{
     hideLoader?: boolean;
@@ -49,7 +49,7 @@ storedControls.ppMode ??= false;
 const isPlaying = ref(false);
 const isStarted = ref(false);
 
-const cubeTargetRef = ref<InstanceType<typeof CubeTarget>>();
+const cubeTargetRef = useTemplateRef<InstanceType<typeof CubeTarget>>("cubeTargetRef");
 const cubeElRef = ref<HTMLElement | undefined>();
 
 const {

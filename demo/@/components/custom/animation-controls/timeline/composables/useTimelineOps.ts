@@ -1,6 +1,6 @@
 import type { Ref } from "vue";
-import { createKeyframeId } from "./timelineTypes";
-import type { TimelineKeyframe, TimelineState } from "./timelineTypes";
+import { createKeyframeId } from "../timelineTypes";
+import type { TimelineKeyframe, TimelineState } from "../timelineTypes";
 import { captureSnapshot } from "../utils/snapshotCapture";
 import { toast } from "vue-sonner";
 

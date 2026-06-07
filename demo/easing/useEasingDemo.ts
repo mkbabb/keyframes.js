@@ -7,7 +7,7 @@ import {
     stepStart,
     timingFunctions,
 } from "@mkbabb/value.js";
-import { computed, markRaw, onActivated, onDeactivated, ref, watch } from "vue";
+import { computed, markRaw, onScopeDispose, ref, watch } from "vue";
 
 import { CSSKeyframesAnimation } from "@src/animation/engine";
 import { AnimationGroup } from "@src/animation/group";
@@ -18,7 +18,7 @@ import type { TimingFunction } from "@src/animation/constants";
 import {
     generateCurveSVGPath,
     generateStepSVGPath,
-} from "@components/custom/animation-controls/controls/composables/timingCurveUtils";
+} from "@components/custom/animation-controls/controls/timingCurveUtils";
 import { NAMED_EASING_BEZIER } from "@components/custom/animation-controls/animationDescriptions";
 import { useSceneVisibilityPause } from "../app/useSceneVisibilityPause";
 import { getFamilyForCurve, getFamilyCurves, type CurveGroupItem } from "./easingGroups";
@@ -172,13 +172,17 @@ export function useEasingDemo() {
         startTime = performance.now();
     };
 
-    // Auto-start + KeepAlive lifecycle.
+    // Auto-start: the immediate watcher starts the loop on mount (each swap-in
+    // re-mounts the scene under the bare keyed <Suspense>, so mount-time start is
+    // the single, complete start authority).
     watch(isPlaying, (playing) => {
         if (playing) ensureLoop();
     }, { immediate: true });
 
-    onActivated(ensureLoop);
-    onDeactivated(() => playback.stop());
+    // Stop the raw RAFPlayback on scope dispose (the genuine unmount seam,
+    // mirroring useRafLoop.ts onUnmounted(stop)) — the scene host has NO
+    // <KeepAlive>, so onDeactivated never fires and would leak this loop on swap.
+    onScopeDispose(() => playback.stop());
 
     // B-3: idle the preview rAF while the tab is hidden, without disturbing the
     // user's play/pause intent. `isPlaying` is left untouched (the play button

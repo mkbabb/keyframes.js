@@ -23,7 +23,7 @@
                     </svg>
                     <!-- The traveller: the engine sets offset-path + sweeps
                          offset-distance on THIS element (fromMotionPath). -->
-                    <div ref="travellerEl" class="mp-traveller">
+                    <div ref="travellerEl" class="progress-ball mp-traveller">
                         <span class="mp-traveller-glyph">&#x1F642;&#x200D;&#x2194;&#xFE0F;</span>
                     </div>
                 </div>
@@ -70,11 +70,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.code-token {
-    font-family: var(--font-mono);
-    font-size: var(--type-caption);
-}
-
 .mp-stage {
     width: min(70vmin, 26rem);
     aspect-ratio: 1;
@@ -98,18 +93,25 @@ onMounted(() => {
 }
 
 /* The traveller rides the engine-set offset-path; its position is the swept
-   offset-distance (the browser resolves geometry from the path). */
+   offset-distance (the browser resolves geometry from the path). It consumes the
+   shared .progress-ball idiom (design-idioms.css) — the recipe it formerly
+   hand-rolled with two drifted literals (the glow/blur drift F §1 consolidated
+   everywhere else). Only the per-site variation lives here:
+     • the offset-path positioning (top:0; left:0 — the engine sweeps
+       offset-distance, so the ball is NOT rail-centered via margin-top),
+     • --ball-size: 2.75rem (the largest ball in the demo),
+     • --ball-glow: 40% — a NAMED per-site motion-cohesion delta (the larger
+       traveller earns a brighter glow; the same seam EasingTarget/Spring use),
+       over the idiom's 35% default. The 12px blur folds to the idiom's 10px.
+     • display: grid; place-items: center — centers the glyph child. */
 .mp-traveller {
-    position: absolute;
     top: 0;
     left: 0;
+    margin-top: 0;
     display: grid;
     place-items: center;
-    width: 2.75rem;
-    height: 2.75rem;
-    border-radius: var(--radius-pill);
-    background: var(--color-progress);
-    box-shadow: 0 2px 12px color-mix(in srgb, var(--color-progress) 40%, transparent);
+    --ball-size: 2.75rem;
+    --ball-glow: 40%;
     will-change: offset-distance;
 }
 

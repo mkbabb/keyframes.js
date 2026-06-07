@@ -1,6 +1,6 @@
 import { computed } from "vue";
 import type { ComputedRef } from "vue";
-import { useStorage } from "@vueuse/core";
+import { createGlobalState, useStorage } from "@vueuse/core";
 import {
     createAssetId,
     defaultAssetManagerState,
@@ -35,10 +35,10 @@ const DEFAULT_STYLES: Record<AssetKind, Partial<Asset>> = {
     svg: { backgroundColor: "transparent" },
 };
 
-export function useAssetManager() {
+export const useAssetManager = createGlobalState(() => {
     const state = useStorage<AssetManagerState>(
         "asset-manager-state",
-        { ...defaultAssetManagerState },
+        structuredClone(defaultAssetManagerState),
     );
 
     const sortedAssets: ComputedRef<Asset[]> = computed(() =>
@@ -186,4 +186,12 @@ export function useAssetManager() {
         reorderAssets,
         duplicateAsset,
     };
-}
+});
+
+/** Reset the live asset store to defaults (used by resetAllStores) —
+ * the symmetric `_reset` the singleton wrap makes possible, mirroring
+ * `_resetAnimationGroupsOptionsStore`. */
+export const _resetAssetManagerStore = () => {
+    const { state } = useAssetManager();
+    state.value = structuredClone(defaultAssetManagerState);
+};

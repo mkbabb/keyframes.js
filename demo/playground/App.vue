@@ -36,7 +36,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, toRaw, watch } from "vue";
+import { ref, toRaw, useTemplateRef, watch } from "vue";
 import { TabsContent, TabsTrigger } from "@mkbabb/glass-ui";
 import { EditorShell } from "@components/custom/editor-shell";
 import { AssetLayerPanel, AssetViewport, useAssetManager } from "@components/custom/asset-manager";
@@ -69,8 +69,8 @@ const {
     updateTransform,
 } = useAssetManager();
 
-const viewportRef = ref<InstanceType<typeof AssetViewport> | null>(null);
-const layerPanelRef = ref<InstanceType<typeof AssetLayerPanel> | null>(null);
+const viewportRef = useTemplateRef<InstanceType<typeof AssetViewport>>("viewportRef");
+const layerPanelRef = useTemplateRef<InstanceType<typeof AssetLayerPanel>>("layerPanelRef");
 
 // Wire asset animation bindings: when an asset has an animationName,
 // set the asset's DOM element as the animation target

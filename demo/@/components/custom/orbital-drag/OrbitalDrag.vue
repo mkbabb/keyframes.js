@@ -48,19 +48,24 @@ const scaleFactor = props.scaleFactor ?? 0.02;
 const bounds = props.bounds ?? defaultTransformBounds;
 
 const velocity = ref<VelocityState>(structuredClone(defaultVelocityState));
+const renderAxis = vec3.create(); // reused getAxisAngle out-param (zero-alloc)
 
 const containerStyle = computed(() => {
     if (!props.applyTransformToContainer) return {};
-    const { rotate, translate, scale: s } = model.value;
+    // `void …rotate.x` registers the reactive dep (syncRotationToModel writes it
+    // per rotation) so the computed re-runs, then renders ONE rotate3d() off the
+    // quaternion's NATIVE axis-angle — no Euler decompose, no Rx·Ry·Rz, no gimbal.
+    void model.value.rotate.x;
+    const { translate, scale: s } = model.value;
+    const angleDeg = quat.getAxisAngle(renderAxis, currentQuaternion) * (180 / Math.PI);
     return {
         transformStyle: 'preserve-3d' as const,
         willChange: 'transform' as const,
-        transform: `translate3d(${translate.x}px, ${translate.y}px, ${translate.z}px) rotateX(${rotate.x}deg) rotateY(${rotate.y}deg) rotateZ(${rotate.z}deg) scale3d(${s.x}, ${s.y}, ${s.z})`,
+        transform: `translate3d(${translate.x}px, ${translate.y}px, ${translate.z}px) rotate3d(${renderAxis[0]}, ${renderAxis[1]}, ${renderAxis[2]}, ${angleDeg}deg) scale3d(${s.x}, ${s.y}, ${s.z})`,
     };
 });
 
-// ── Quaternion core ─────────────────────────────────────────────────
-// Persistent quaternion — the source of truth for rotation.
+// ── Quaternion core — the rotation source of truth ──────────────────
 // Never reconstructed from Euler angles; only multiplied by delta quaternions.
 const currentQuaternion = quat.create();
 
@@ -70,14 +75,13 @@ const angularVelocitySpeed = ref(0);
 
 const DEG2RAD = Math.PI / 180;
 
-// Extract Euler angles from a quaternion for consumption as R = Rx * Ry * Rz.
+// The Euler triple for the v-model ONLY (the slider/share surface; G.W18 O-1a).
 const quaternionToEulerDegrees = (q: quat) => {
     const [x, y, z, w] = q;
     const x2 = x + x, y2 = y + y, z2 = z + z;
     const xx = x * x2, xy = x * y2, xz = x * z2;
     const yy = y * y2, yz = y * z2, zz = z * z2;
     const wx = w * x2, wy = w * y2, wz = w * z2;
-
     const r00 = 1 - (yy + zz);
     const r01 = xy - wz;
     const r02 = xz + wy;
@@ -85,10 +89,8 @@ const quaternionToEulerDegrees = (q: quat) => {
     const r12 = yz - wx;
     const r21 = yz + wx;
     const r22 = 1 - (xx + yy);
-
     const sy = clamp(r02, -1, 1);
     const ey = Math.asin(sy);
-
     let ex: number, ez: number;
     if (Math.abs(sy) < 0.9999) {
         ex = Math.atan2(-r12, r22);

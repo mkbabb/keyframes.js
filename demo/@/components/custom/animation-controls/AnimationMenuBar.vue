@@ -32,9 +32,14 @@
                                 aria-label="Select animation"
                                 class="dock-label"
                             >
-                                <SelectIcon v-if="!storedControls.selectedAnimation"
-                                    ><List></List
-                                ></SelectIcon>
+                                <!-- The empty-state leading glyph — rendered
+                                     directly, not via reka's SelectIcon slot
+                                     (the one headless reach past the glass-ui
+                                     surface; DockSelectTrigger owns the trigger
+                                     + its chevron, GG-6). -->
+                                <List
+                                    v-if="!storedControls.selectedAnimation"
+                                />
                                 <SelectValue class="text-ellipsis">{{
                                     storedControls.selectedAnimation
                                 }}</SelectValue>
@@ -124,9 +129,19 @@
                 <span v-if="storedControls.selectedAnimation" class="dock-label text-foreground whitespace-nowrap font-semibold">
                     {{ storedControls.selectedAnimation }}
                 </span>
+                <!-- The collapsed-dock play mirror — carries a DISTINCT
+                     accessible name from the expanded menubar transport play
+                     (X-3): two play controls with the same "Play animation"
+                     name are indistinguishable to a screen reader. Disambiguated
+                     across BOTH states (Play and Pause) since one ternary drives
+                     both. -->
                 <Button
                     variant="ghost"
-                    :aria-label="isPlaying ? 'Pause animation' : 'Play animation'"
+                    :aria-label="
+                        isPlaying
+                            ? 'Pause animation (collapsed dock)'
+                            : 'Play animation (collapsed dock)'
+                    "
                     :class="[
                         'scale-on-hover text-white rounded-full p-0',
                         'w-8 h-8 shrink-0',
@@ -171,8 +186,7 @@ import { StatusDot } from "@mkbabb/glass-ui/status-dot";
 import { RotateCcw } from "@lucide/vue";
 
 import { CSSKeyframesAnimation } from "@src/animation/engine";
-import { SelectIcon } from "reka-ui";
-import { GlassDock } from "@components/custom/dock";
+import { GlassDock } from "@mkbabb/glass-ui/dock";
 
 import type { StoredAnimationGroupControlOptions } from "./stores";
 

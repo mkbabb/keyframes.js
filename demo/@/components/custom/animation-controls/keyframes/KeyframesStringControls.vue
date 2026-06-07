@@ -73,7 +73,7 @@ const storedControls = getStoredAnimationGroupControlOptions(animation);
 
 storedControls.keyframeControls ??= defaultKeyframeControls;
 
-const editorRef = ref<InstanceType<typeof CSSCodeEditor> | null>(null);
+const editorRef = useTemplateRef<InstanceType<typeof CSSCodeEditor>>("editorRef");
 const cssKeyframesString = ref("");
 const isFormatting = ref(false);
 

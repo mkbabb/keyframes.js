@@ -127,7 +127,7 @@ import {
     cubicBezierToString,
     jumpTerms,
 } from "@mkbabb/value.js";
-import { generateCurveSVGPath } from "./composables/timingCurveUtils";
+import { generateCurveSVGPath } from "./timingCurveUtils";
 
 import {
     Button,

@@ -150,7 +150,7 @@ import { IconTooltip } from "@mkbabb/glass-ui/icon-tooltip";
 import CSSCodeEditor from "../keyframes/CSSCodeEditor.vue";
 import { useTimeline } from "./composables/useTimeline";
 import TimelineTrack from "./components/TimelineTrack.vue";
-import type { TimelineKeyframe } from "./composables/timelineTypes";
+import type { TimelineKeyframe } from "./timelineTypes";
 import type { InputAnimationOptions } from "@src/animation/constants";
 
 const props = defineProps<{

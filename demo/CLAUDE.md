@@ -109,7 +109,7 @@ Reusable full-page animation editor layout. Slot-driven — accepts any target e
 ## Composables (`@/composables/`)
 
 - **useKeyboardShortcuts.ts** — Singleton keyboard shortcut registry (`createGlobalState`). Single `window` keydown listener, `Mod` alias (Meta on macOS, Ctrl elsewhere), editable target detection (input/textarea/contenteditable/Monaco). Auto-cleanup via `onScopeDispose`.
-- **useShareState.ts** — URL hash encode/decode, clipboard copy, no-reload state restore via `stateVersion` counter.
+- **useShareState.ts** — URL hash encode/decode, clipboard copy, no-reload state restore (the store refs re-render directly on restore + the `onSceneRestore` callback).
 - **transformMath.ts** — Pure utilities: `createMatrix`, axis/transform index helpers, slider option constants, `MatrixCellMeta` interface.
 - **useTransformState.ts** — Composable: reactive transform slider values, rAF-debounced watcher, animated matrix reset. Imports math from `transformMath.ts`.
 - **useExclusiveSelect.ts** — Mutual-exclusion for dropdowns: only one open at a time.

@@ -22,6 +22,11 @@ const routes: RouteRecordRaw[] = [
     { path: "/spring", name: "spring", component: Stub },
     { path: "/sequence", name: "sequence", component: Stub },
     { path: "/motion-path", name: "motion-path", component: Stub },
+    // The Discrete (@starting-style) scene is registered in scenes.ts and offered
+    // by the switcher; without its route, switchScene("starting-style") fell to
+    // the catch-all redirect home — a whole registered scene was DEAD (X-6). The
+    // keyed <Suspense> resolves the lazy chunk by name, as for every other scene.
+    { path: "/starting-style", name: "starting-style", component: Stub },
     { path: "/:pathMatch(.*)*", redirect: "/" },
 ];
 
