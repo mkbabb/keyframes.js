@@ -49,14 +49,15 @@ export type SVGDrawTarget = SVGElement & { getTotalLength(): number };
 
 export interface DrawSVGOptions extends Partial<InputAnimationOptions> {
     /**
-     * Start of the draw sweep as a fraction of the stroke, `"0%"` → `"100%"`
-     * (or a bare number read as a `%`). Default `"0%"` — the stroke starts
-     * undrawn (full `stroke-dashoffset`) and draws IN. `"100%"` → `"0%"`
-     * erases it.
+     * Start of the draw sweep — a percent STRING (`"0%"` → `"100%"`) or a 0..1
+     * NUMBER fraction (`0` → `1`), the two unambiguous forms. Default `"0%"` —
+     * the stroke starts undrawn (full `stroke-dashoffset`) and draws IN; `"100%"`
+     * → `"0%"` (or `1` → `0`) erases it. A number outside `[0, 1]` throws (a
+     * percent must be a string — no silent `50`-means-5000% footgun).
      */
     from?: string | number;
 
-    /** End of the draw sweep. Default `"100%"` (fully drawn). */
+    /** End of the draw sweep — same `"100%"`/`1` two-form contract. Default `"100%"`. */
     to?: string | number;
 
     /**
@@ -67,16 +68,30 @@ export interface DrawSVGOptions extends Partial<InputAnimationOptions> {
     autoPlay?: boolean;
 }
 
-/** Parse a draw fraction (`"0%"`, `"100%"`, `50`, `0.5`-as-`%`) to [0, 1]. */
+/**
+ * Parse a draw position to a [0, 1] fraction — two unambiguous forms only: a
+ * percent STRING (`"0%"`..`"100%"`) or a NUMBER already in `[0, 1]`. A number
+ * outside `[0, 1]` throws (fail-explicit — a percent is a string, so `50` cannot
+ * silently mean 5000%; the rest of the engine reads numbers as 0..1 fractions).
+ */
 const asFraction = (v: string | number): number => {
-    const n = typeof v === "number" ? v : parseFloat(v);
-    if (!Number.isFinite(n)) {
+    if (typeof v === "number") {
+        if (!Number.isFinite(v) || v < 0 || v > 1) {
+            throw new Error(
+                `fromDrawSVG(): a numeric draw position is a 0..1 fraction, got ` +
+                    `${JSON.stringify(v)} — pass a fraction in [0, 1] or a percent ` +
+                    `string ("0%".."100%").`,
+            );
+        }
+        return v;
+    }
+    if (!/^\s*\d*\.?\d+\s*%\s*$/.test(v)) {
         throw new Error(
-            `fromDrawSVG(): invalid draw fraction ${JSON.stringify(v)} — ` +
-                `pass a percent string ("0%".."100%") or a number.`,
+            `fromDrawSVG(): invalid draw position ${JSON.stringify(v)} — pass a ` +
+                `percent string ("0%".."100%") or a 0..1 number.`,
         );
     }
-    return n / 100;
+    return parseFloat(v) / 100;
 };
 
 /**

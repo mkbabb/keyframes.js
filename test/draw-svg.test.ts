@@ -100,6 +100,30 @@ describe("DrawSVG — getTotalLength once + dasharray===L + stroke-dashoffset sw
         expect(seen).toContain(LEN * 0.25);
     });
 
+    it("accepts a 0..1 NUMBER fraction equivalently to its percent string", () => {
+        const offsets = (from: string | number, to: string | number) => {
+            const anim = fromDrawSVG(svgTarget().el, { from, to, autoPlay: false });
+            const seen: number[] = [];
+            for (const frame of anim.frames)
+                for (const arr of Object.values(frame.interpVars))
+                    for (const iv of arr as any[]) {
+                        seen.push(iv.start?.value, iv.stop?.value);
+                    }
+            return seen;
+        };
+        // 0.25 (number) === "25%" (string); 0.75 === "75%".
+        expect(offsets(0.25, 0.75)).toEqual(offsets("25%", "75%"));
+    });
+
+    it("BITE: a number outside [0, 1] throws (a percent must be a string — no 50-means-5000% footgun)", () => {
+        expect(() => fromDrawSVG(svgTarget().el, { from: 50, autoPlay: false })).toThrow(
+            /0\.\.1 fraction/i,
+        );
+        expect(() => fromDrawSVG(svgTarget().el, { to: -1, autoPlay: false })).toThrow(
+            /0\.\.1 fraction/i,
+        );
+    });
+
     it("BITE: a non-SVG-geometry target throws (no getTotalLength)", () => {
         const div = document.createElement("div");
         expect(() => fromDrawSVG(div as any)).toThrow(/getTotalLength/i);

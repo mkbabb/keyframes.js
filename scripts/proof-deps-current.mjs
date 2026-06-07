@@ -156,7 +156,14 @@ const handoff = []; // fail-EXPLICIT, non-gating surfacing (the value.js-handoff
     if (existsSync(lockPath)) {
         const lock = JSON.parse(readFileSync(lockPath, "utf8"));
         for (const [path, node] of Object.entries(lock.packages ?? {})) {
-            if (!path.includes("@mkbabb/")) continue;
+            // Key on the node NAME, not just the path — a stale `file:` sibling
+            // is keyed by its on-disk path (e.g. `../glass-ui`), which carries no
+            // `@mkbabb/` segment yet IS an `@mkbabb/*` package; the path-only
+            // filter let it escape the protocol sweep.
+            const isMkbabb =
+                path.includes("@mkbabb/") ||
+                String(node.name ?? "").startsWith("@mkbabb/");
+            if (!isMkbabb) continue;
             const resolved = String(node.resolved ?? "");
             if (node.link === true) {
                 offenders.push(

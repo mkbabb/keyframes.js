@@ -13,12 +13,13 @@
     <span aria-hidden="true">
         <template v-for="(word, index) in words" :key="`${index}-${word}`">
             <!-- The inter-word gap is a per-word margin-inline-end, NOT a
-                 whitespace text node: a whitespace-only node between two
-                 inline-block boxes is collapsed by HTML, so the LCP rendered
-                 "Selectananimation" (0px gap, X-5). A margin survives the
-                 inline-block boxing and preserves the word-split substrate that
-                 lets text-wrap: balance + the sr-only a11y mirror work. The last
-                 word carries no trailing margin (it is not a separator). -->
+                 whitespace text node: Vue's template compiler (whitespace:
+                 'condense', the default) STRIPS the whitespace-only text node
+                 between the per-word <span>s at compile time, so the LCP rendered
+                 "Selectananimation" (0px gap, X-5). A margin needs no rendered
+                 whitespace and preserves the word-split substrate that lets
+                 text-wrap: balance + the sr-only a11y mirror work. The last word
+                 carries no trailing margin (it is not a separator). -->
             <span
                 class="lift-down"
                 v-bind="$attrs"

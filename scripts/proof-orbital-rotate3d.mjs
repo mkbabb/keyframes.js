@@ -104,15 +104,46 @@ if (/rotate3d\(\$\{/.test(sfc)) {
 }
 
 // ── euler-vmodel-kept — O-1a: the Euler extractor SURVIVES for the v-model ─────
+// The pure quaternion↔Euler math is colocated in quaternionEuler.ts (kept under
+// the SFC's line ceiling); the SFC imports + calls it for the v-model triple.
 {
-    const extractorDefined = /const\s+quaternionToEulerDegrees\s*=/.test(sfc);
+    const eulerMod = read("demo/@/components/custom/orbital-drag/quaternionEuler.ts");
+    const extractorDefined =
+        /export\s+const\s+quaternionToEulerDegrees\s*=/.test(eulerMod);
     const stillCalled = /quaternionToEulerDegrees\s*\(\s*currentQuaternion\s*\)/.test(sfc);
     if (extractorDefined && stillCalled) {
-        ok("euler-vmodel-kept", `${SFC}: quaternionToEulerDegrees survives and syncRotationToModel still calls it (the Euler v-model, O-1a)`);
+        ok("euler-vmodel-kept", `${SFC}: quaternionToEulerDegrees survives (colocated in quaternionEuler.ts) and syncRotationToModel still calls it (the Euler v-model, O-1a)`);
     } else {
         fail(
             "euler-vmodel-kept",
-            `${SFC}: quaternionToEulerDegrees defined=${extractorDefined}, called=${stillCalled} — O-1a KEEPS the Euler v-model (the slider/share surface is per-axis Euler-by-design); deleting it while its caller remains is the O-1b widening this wave DEFERS.`,
+            `quaternionToEulerDegrees defined-in-quaternionEuler.ts=${extractorDefined}, called-in-SFC=${stillCalled} — O-1a KEEPS the Euler v-model (the slider/share surface is per-axis Euler-by-design); deleting it while its caller remains is the O-1b widening this wave DEFERS.`,
+        );
+    }
+}
+
+// ── reverse-path — the v-model is two-way: an external Euler write re-seeds the
+// quaternion the render reads (else the container renders the stale dragged
+// orientation). The forward path mutates the quaternion + DERIVES the Euler; the
+// reverse path must rebuild the quaternion FROM the Euler on an external write. ──
+{
+    const rebuildDefined = /rebuildQuaternionFromEuler\s*=/.test(sfc);
+    // a watch on the Euler v-model triple that re-seeds the quaternion.
+    const watchesEulerTriple =
+        /watch\(\s*\(\)\s*=>\s*\[\s*model\.value\.rotate\.x/.test(sfc);
+    const reseedsOnWatch =
+        /rebuildQuaternionFromEuler\(\)/.test(sfc) &&
+        // the rebuild is invoked from somewhere OTHER than only onMounted —
+        // i.e. it appears at least twice (onMounted seed + the reverse-path watch)
+        (sfc.match(/rebuildQuaternionFromEuler\(\)/g) || []).length >= 2;
+    if (rebuildDefined && watchesEulerTriple && reseedsOnWatch) {
+        ok(
+            "reverse-path",
+            `${SFC}: an external Euler write (Reset / slider / share) re-seeds the quaternion via a watch on model.value.rotate → rebuildQuaternionFromEuler (the two-way v-model render path)`,
+        );
+    } else {
+        fail(
+            "reverse-path",
+            `${SFC}: rebuildDefined=${rebuildDefined}, watchesEulerTriple=${watchesEulerTriple}, reseedsOnWatch=${reseedsOnWatch} — the render reads currentQuaternion, so an EXTERNAL write to model.value.rotate must re-seed it (a watch on the Euler triple calling rebuildQuaternionFromEuler); without it the container renders the stale dragged orientation when the v-model is written externally.`,
         );
     }
 }

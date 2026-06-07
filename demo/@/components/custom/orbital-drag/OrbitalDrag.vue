@@ -14,6 +14,7 @@ import { axes, defaultTransformBounds, defaultTransformState, defaultVelocitySta
 import { useOrbitalInertia } from "./composables/useOrbitalInertia";
 import { useOrbitalPinch } from "./composables/useOrbitalPinch";
 import { useOrbitalPointer } from "./composables/useOrbitalPointer";
+import { eulerDegreesToQuaternion, quaternionToEulerDegrees } from "./quaternionEuler";
 
 const props = defineProps<{
     sensitivity?: number;
@@ -73,40 +74,6 @@ const currentQuaternion = quat.create();
 const angularVelocityAxis = vec3.fromValues(0, 1, 0);
 const angularVelocitySpeed = ref(0);
 
-const DEG2RAD = Math.PI / 180;
-
-// The Euler triple for the v-model ONLY (the slider/share surface; G.W18 O-1a).
-const quaternionToEulerDegrees = (q: quat) => {
-    const [x, y, z, w] = q;
-    const x2 = x + x, y2 = y + y, z2 = z + z;
-    const xx = x * x2, xy = x * y2, xz = x * z2;
-    const yy = y * y2, yz = y * z2, zz = z * z2;
-    const wx = w * x2, wy = w * y2, wz = w * z2;
-    const r00 = 1 - (yy + zz);
-    const r01 = xy - wz;
-    const r02 = xz + wy;
-    const r11 = 1 - (xx + zz);
-    const r12 = yz - wx;
-    const r21 = yz + wx;
-    const r22 = 1 - (xx + yy);
-    const sy = clamp(r02, -1, 1);
-    const ey = Math.asin(sy);
-    let ex: number, ez: number;
-    if (Math.abs(sy) < 0.9999) {
-        ex = Math.atan2(-r12, r22);
-        ez = Math.atan2(-r01, r00);
-    } else {
-        ex = Math.atan2(r21, r11);
-        ez = 0;
-    }
-
-    return {
-        x: ex * (180 / Math.PI),
-        y: ey * (180 / Math.PI),
-        z: ez * (180 / Math.PI),
-    };
-};
-
 /** Set by gesture composables during active interaction to suppress emit overhead. */
 let isInteracting = false;
 
@@ -119,6 +86,18 @@ const syncRotationToModel = () => {
     if (!isInteracting) {
         emit("rotate", { ...model.value.rotate });
     }
+};
+
+// Re-seed the quaternion source-of-truth FROM the Euler v-model — the reverse
+// path. The forward path (drag) mutates `currentQuaternion` directly and DERIVES
+// the Euler triple from it (syncRotationToModel); but the v-model is two-way, so
+// an EXTERNAL write to `model.value.rotate` (the matrix-editor Reset, a slider,
+// a restored share-hash) must re-seed the quaternion the render reads — otherwise
+// the container renders the stale dragged orientation. Same `Rx·Ry·Rz`
+// construction onMounted uses (the convention useTransformState consumes).
+const rebuildQuaternionFromEuler = () => {
+    const { x, y, z } = model.value.rotate;
+    eulerDegreesToQuaternion(currentQuaternion, x, y, z);
 };
 
 const applyRotation = (axis: vec3, angle: number) => {
@@ -273,18 +252,8 @@ const inertia = useOrbitalInertia({
 // ── Lifecycle ───────────────────────────────────────────────────────
 
 onMounted(() => {
-    // Initialize quaternion from model's initial Euler angles
-    const { x, y, z } = model.value.rotate;
-
-    const qx = quat.create();
-    quat.setAxisAngle(qx, [1, 0, 0], x * DEG2RAD);
-    const qy = quat.create();
-    quat.setAxisAngle(qy, [0, 1, 0], y * DEG2RAD);
-    const qz = quat.create();
-    quat.setAxisAngle(qz, [0, 0, 1], z * DEG2RAD);
-
-    quat.multiply(currentQuaternion, qx, qy);
-    quat.multiply(currentQuaternion, currentQuaternion, qz);
+    // Initialize the quaternion source-of-truth from the model's initial Euler.
+    rebuildQuaternionFromEuler();
 
     useEventListener(
         containerRef,
@@ -316,6 +285,22 @@ onMounted(() => {
 onUnmounted(() => {
     inertia.pause();
 });
+
+// The reverse path (external Euler → quaternion). The forward path writes
+// `model.value.rotate` as EXACTLY `quaternionToEulerDegrees(currentQuaternion)`,
+// so an echo of our own write is byte-identical to the quaternion's current
+// Euler — skip it. Any OTHER value is an external write (Reset / slider / share)
+// and must re-seed the quaternion the render reads, or the container would render
+// the stale dragged orientation. `flush: 'pre'` re-seeds before the render reads
+// `currentQuaternion` through `containerStyle`'s `void model.value.rotate.x` dep.
+watch(
+    () => [model.value.rotate.x, model.value.rotate.y, model.value.rotate.z],
+    ([x, y, z]) => {
+        const echo = quaternionToEulerDegrees(currentQuaternion);
+        if (x === echo.x && y === echo.y && z === echo.z) return;
+        rebuildQuaternionFromEuler();
+    },
+);
 
 // Dampen velocities on release of drag/touch/wheel + emit deferred rotation
 watch(

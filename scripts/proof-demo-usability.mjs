@@ -86,12 +86,26 @@ console.log("proof:demo-usability — G.W11 (the live-Playwright SHIP set)");
 }
 
 // ── BROWSER half (clauses 2 + 3) ─────────────────────────────────────────────
+// In CI the demo-smoke job sets KF_REQUIRE_BROWSER=1 (it installs playwright +
+// chromium + builds the demo first) — there the browser half MUST run, or X-5/X-3
+// would pass vacuously. Mirror proof:computed-real-dom + occlusion-gate: a skip
+// becomes a hard fail under KF_REQUIRE_BROWSER, so the gate cannot green-report
+// SHIPs it never exercised.
+const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
+const skipOrFail = (reason) => {
+    if (REQUIRE_BROWSER) {
+        fail(
+            `browser half REQUIRED (KF_REQUIRE_BROWSER=1) but ${reason} — ` +
+                "clauses 2+3 (hero word-gap · unique Play aria) cannot pass vacuously",
+        );
+    } else {
+        console.log(`  ○ browser half skipped — ${reason}`);
+    }
+};
+
 async function browserHalf() {
     if (!fs.existsSync(path.join(DIST, "index.html"))) {
-        console.log(
-            "  ○ browser half skipped — dist/gh-pages not built " +
-                "(run `npm run gh-pages` first; clauses 2+3 need the served demo)",
-        );
+        skipOrFail("dist/gh-pages not built (run `npm run gh-pages` first)");
         return;
     }
 
@@ -108,9 +122,8 @@ async function browserHalf() {
             );
             ({ chromium } = requireFrom("@playwright/test"));
         } catch {
-            console.log(
-                "  ○ browser half skipped — playwright not resolvable " +
-                    "(set KF_PLAYWRIGHT_DIR or install @playwright/test)",
+            skipOrFail(
+                "playwright not resolvable (set KF_PLAYWRIGHT_DIR or install @playwright/test)",
             );
             return;
         }
