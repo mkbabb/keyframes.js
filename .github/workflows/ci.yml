@@ -208,6 +208,13 @@ jobs:
               run: npm run proof:demo-elevate
             - name: proof:modern-web (the modern-web-guidance checklist)
               run: npm run proof:modern-web
+              # The guidance corpus is a local-dev aid (npx modern-web-guidance
+              # install) — absent on a clean runner. The gate sanctions this CI
+              # escape: every OTHER clause (font-preload · monaco-deferred ·
+              # yield · checklist-dispositioned · …) still runs + bites; only the
+              # corpus-presence clause is skipped.
+              env:
+                  KF_MWG_OPTIONAL: "1"
             - name: proof:platform-adopt (the feature-detected platform adopts)
               run: npm run proof:platform-adopt
             # C.W1 S4 — the LoAF >50ms-trace gate: the dev-only LoAF observer's
