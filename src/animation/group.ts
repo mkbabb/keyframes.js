@@ -295,21 +295,27 @@ export class AnimationGroup<V extends Vars> {
                     break;
 
                 case "add":
+                    // Accumulate each numeric leaf element in place (the leaf is
+                    // a `ValueUnit[]` — a one-element array for a scalar, an
+                    // N-element array for a multi-component leaf). Numeric add is
+                    // UN-CLAMPED (CSS `animation-composition: add` does not clamp
+                    // at composition; clamping is at use) — `0.8 + 0.8 → 1.6`.
                     for (const key in values) {
                         if (whitelist && !whitelist.has(key)) continue;
                         const incoming = values[key];
                         if (incoming === undefined) continue;
                         const existing = groupedValues[key];
-                        if (existing !== undefined) {
-                            // Accumulate numeric ValueUnit values in place.
-                            if (
-                                isNumericUnit(existing) &&
-                                isNumericUnit(incoming)
-                            ) {
-                                existing.value =
-                                    existing.value + incoming.value;
-                            } else {
-                                groupedValues[key] = incoming;
+                        if (Array.isArray(existing) && Array.isArray(incoming)) {
+                            const n = Math.min(existing.length, incoming.length);
+                            for (let i = 0; i < n; i++) {
+                                if (
+                                    isNumericUnit(existing[i]) &&
+                                    isNumericUnit(incoming[i])
+                                ) {
+                                    existing[i].value += incoming[i].value;
+                                } else {
+                                    existing[i] = incoming[i];
+                                }
                             }
                         } else {
                             groupedValues[key] = incoming;
@@ -318,27 +324,30 @@ export class AnimationGroup<V extends Vars> {
                     break;
 
                 case "weighted":
-                    // Always lerp toward the incoming value by `weight`;
-                    // `weight === 1` produces a fully-blended value
-                    // distinct from `replace` because the lerp leaf
-                    // still mutates the existing carrier in place.
+                    // Lerp each numeric leaf element toward the incoming value by
+                    // `weight`, in place. `weight === 1` produces a fully-blended
+                    // value distinct from `replace` because the lerp leaf still
+                    // mutates the existing carrier in place.
                     for (const key in values) {
                         if (whitelist && !whitelist.has(key)) continue;
                         const incoming = values[key];
                         if (incoming === undefined) continue;
-                        if (groupedValues[key] !== undefined) {
-                            const existing = groupedValues[key];
-                            if (
-                                isNumericUnit(existing) &&
-                                isNumericUnit(incoming)
-                            ) {
-                                existing.value = lerp(
-                                    existing.value,
-                                    incoming.value,
-                                    layer.weight,
-                                );
-                            } else {
-                                groupedValues[key] = incoming;
+                        const existing = groupedValues[key];
+                        if (Array.isArray(existing) && Array.isArray(incoming)) {
+                            const n = Math.min(existing.length, incoming.length);
+                            for (let i = 0; i < n; i++) {
+                                if (
+                                    isNumericUnit(existing[i]) &&
+                                    isNumericUnit(incoming[i])
+                                ) {
+                                    existing[i].value = lerp(
+                                        existing[i].value,
+                                        incoming[i].value,
+                                        layer.weight,
+                                    );
+                                } else {
+                                    existing[i] = incoming[i];
+                                }
                             }
                         } else {
                             groupedValues[key] = incoming;
@@ -520,6 +529,17 @@ export class AnimationGroup<V extends Vars> {
      * query, snaps every child to its final frame in a single composite —
      * no rAF draw loop — then settles exactly as a completed play would.
      */
+    /**
+     * The completion front-door (G.W13) — `await group.finished` resolves once
+     * the in-flight composite play settles. Exposes the ONE held
+     * `_playingPromise` `play()` constructs (the re-entrant guard returns it;
+     * the `finally`-clear nulls it on settle) — NOT a second completion
+     * lifecycle. A settled (or never-played) group resolves immediately.
+     */
+    get finished(): Promise<void> {
+        return this._playingPromise ?? Promise.resolve();
+    }
+
     async play(): Promise<void> {
         if (this._playingPromise) return this._playingPromise;
 

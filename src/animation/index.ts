@@ -105,6 +105,9 @@ export type { AnimateInput, AnimateOptions, KeyframeMap } from "./animate";
 // CSS-native MotionPath (F.W12) — HEAVY (composes the engine); the runtime rides
 // loadAnimationEngine below. Its option/path types are erased here.
 export type { MotionPathOptions, OffsetPath } from "./motion-path";
+// CSS-native DrawSVG (G.W13) — HEAVY (composes the engine); the runtime rides
+// loadAnimationEngine below. Its option/target types are erased here.
+export type { DrawSVGOptions, SVGDrawTarget } from "./draw-svg";
 // Heavy-class TYPES stay on the static barrel (erased) so consumers keep
 // `import type { Animation } from "@mkbabb/keyframes.js"` for annotations.
 // The runtime constructors are reached only via `loadAnimationEngine()`.
@@ -118,6 +121,10 @@ import type {
     MotionPath as MotionPathClass,
     fromMotionPath as fromMotionPathImpl,
 } from "./motion-path";
+import type {
+    DrawSVG as DrawSVGClass,
+    fromDrawSVG as fromDrawSVGImpl,
+} from "./draw-svg";
 import type * as AnimationPresets from "./animations";
 import type {
     AnimationOptions,
@@ -153,6 +160,9 @@ export interface AnimationEngine {
     /** CSS-native MotionPath (F.W12) — offset-distance over an author offset-path. */
     MotionPath: typeof MotionPathClass;
     fromMotionPath: typeof fromMotionPathImpl;
+    /** CSS-native DrawSVG (G.W13) — stroke-dashoffset sweep over the path length. */
+    DrawSVG: typeof DrawSVGClass;
+    fromDrawSVG: typeof fromDrawSVGImpl;
     /**
      * The preset library (`fadeIn`, `bounce`, `shake`, …) — heavy (each returns
      * a `CSSKeyframesAnimation`), so it rides the dynamic boundary as a namespace
@@ -188,17 +198,21 @@ export const loadAnimationEngine = async (): Promise<AnimationEngine> => {
     // Both pull value.js into the heavy chunk; `animate` lives in its own module
     // (it constructs CSSKeyframesAnimation) and is merged onto the engine surface
     // so consumers reach it the same way: `const { animate } = await loadAnimationEngine()`.
-    const [engine, animateMod, motionMod, presets] = await Promise.all([
-        import("./engine"),
-        import("./animate"),
-        import("./motion-path"),
-        import("./animations"),
-    ]);
+    const [engine, animateMod, motionMod, drawMod, presets] =
+        await Promise.all([
+            import("./engine"),
+            import("./animate"),
+            import("./motion-path"),
+            import("./draw-svg"),
+            import("./animations"),
+        ]);
     return Object.assign(
         {
             animate: animateMod.animate,
             MotionPath: motionMod.MotionPath,
             fromMotionPath: motionMod.fromMotionPath,
+            DrawSVG: drawMod.DrawSVG,
+            fromDrawSVG: drawMod.fromDrawSVG,
             presets,
         },
         engine,

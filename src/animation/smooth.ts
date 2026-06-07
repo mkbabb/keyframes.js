@@ -21,7 +21,8 @@ export interface SmoothProgressOptions {
      * When true, honor `prefers-reduced-motion: reduce` by snapping to
      * target immediately rather than damping. `setTarget` short-circuits
      * the smooth-toward path; `play()` invokes `onFrame` once with the
-     * target value. Default false (back-compat — consumers opt in).
+     * target value. Default false (conservative default — opt in to the
+     * reduced-motion snap).
      *
      * The check uses `matchMedia` if available; on SSR / Node the option
      * is a no-op (animations proceed normally).

@@ -107,7 +107,19 @@ export class FrameCompiler<V extends Vars = any> {
      * the only baked state that depends on them). No setter silently no-ops a
      * change to compiled state.
      */
-    constructor(private options: AnimationOptions) {}
+    constructor(private readonly _options: AnimationOptions) {}
+
+    /**
+     * The live options object the compiler reads (a REFERENCE to the owning
+     * `Animation`'s `options` — the setters mutate it in place). Read-only:
+     * the compiler never replaces it. Exposed so `Animation.adoptCompiled`
+     * can re-bind `Animation.options` to the adopted compiler's options object
+     * BY CONSTRUCTION (`this.options === this.compiler.options`, the live-options
+     * invariant — G.W19 / the `6e29236` lock), without poking a private field.
+     */
+    get options(): AnimationOptions {
+        return this._options;
+    }
 
     convertFrameStart(frame: TemplateAnimationFrame<V>) {
         if (

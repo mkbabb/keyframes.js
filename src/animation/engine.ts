@@ -94,8 +94,19 @@ export class Animation<V extends Vars = any> {
      * accessors (`templateFrames`/`parsedVars`/`frames`/`frameId`) to it.
      * Assigned in the constructor once `options` exists (the compiler holds a
      * live reference to that options object).
+     *
+     * READ-ONLY surface (G.W19): the backing `_compiler` is written ONLY by the
+     * constructor and {@link adoptCompiled}. An external `animation.compiler = …`
+     * write was the one cross-boundary reach-in vector that could desync the
+     * live-options reference (`this.options !== this.compiler.options`); making
+     * `compiler` a get-only accessor makes that reach-in a COMPILE error, not a
+     * convention. Adopt a compiled state via `adoptCompiled(source)`.
      */
-    compiler!: FrameCompiler<V>;
+    private _compiler!: FrameCompiler<V>;
+
+    get compiler(): FrameCompiler<V> {
+        return this._compiler;
+    }
 
     /**
      * THE rAF owner for this animation — the standalone rAF play loop and
@@ -230,7 +241,8 @@ export class Animation<V extends Vars = any> {
         // to `this.options` (the setters mutate that object in place, never
         // replace it), and `setOptions` → `setDuration` reads `this.frames`
         // (which delegates to the compiler), so the compiler must exist first.
-        this.compiler = new FrameCompiler<V>(this.options);
+        // Writes the backing field directly (`compiler` is a get-only accessor).
+        this._compiler = new FrameCompiler<V>(this.options);
 
         // Retain the consumer's EXPLICIT options (not merged with defaults) so
         // `fromString` can apply a sibling style-rule's `animation` shorthand as
@@ -283,6 +295,42 @@ export class Animation<V extends Vars = any> {
     /** Compile the template frames into the sampled `frames[]`. Chainable. */
     parse() {
         this.compiler.parse(this.targets);
+        this.computeStableKeys();
+        return this;
+    }
+
+    /**
+     * Adopt another animation's ALREADY-COMPILED state as ONE atomic motion
+     * (G.W19) — the first-class verb for the "single-compile, then transplant"
+     * pattern (E.W8 S0): a throwaway animation is built + compiled ONCE off the
+     * new keyframes, and the live animation adopts that compiled state without a
+     * second compile.
+     *
+     * The transplant moves the `{ compiler, options, unflatten }` triad together
+     * and re-binds the live-options reference BY CONSTRUCTION — `this.options` is
+     * read OFF the adopted compiler, so `this.options === this.compiler.options`
+     * holds without relying on the caller's assignment order. This is the
+     * invariant the demo formerly held by a comment + three ordered field writes;
+     * here it is the method's contract, enforced by `proof:adopt-compiled`. A
+     * `compiler` adopted WITHOUT re-binding `options` would leave the setters
+     * mutating one object while the compiler reads another — the exact desync
+     * the `6e29236` live-options lock guards against.
+     *
+     * Recomputes `_stableKeys` so `flatKeys` (the buffer-sizing contract)
+     * reflects the adopted compiled frames, not the pre-adopt key-set. Chainable.
+     *
+     * @param source an animation whose `compiler` is already compiled.
+     */
+    adoptCompiled(source: Animation<V>): this {
+        // Transplant the compiled compiler whole (its `frames`/`templateFrames`/
+        // `parsedVars` come with it) into the backing field.
+        this._compiler = source.compiler;
+        // Re-bind the live-options reference OFF the adopted compiler, so
+        // `this.options === this.compiler.options` is true by construction.
+        this.options = this.compiler.options;
+        this.unflatten = source.unflatten;
+        // The adopted frames may carry a different key-set — recompute the
+        // stable-key union so the reused interpolation buffer sizes correctly.
         this.computeStableKeys();
         return this;
     }
@@ -941,6 +989,20 @@ export class Animation<V extends Vars = any> {
         this.dispatchAnimationEvent("animationend");
         this.settle();
         this._resolvePlay();
+    }
+
+    /**
+     * The completion front-door (G.W13) — `await anim.finished` resolves once
+     * the in-flight play settles. It exposes the ONE held `_playingPromise`
+     * `play()` already constructs (the re-entrant guard returns it; the
+     * `finally`-clear nulls it on settle) — NOT a second completion lifecycle.
+     * Two reads mid-play return the SAME promise. A settled (or never-played)
+     * animation reads `null` and resolves immediately: "not running" = "nothing
+     * to await" — the honest semantics for a getter that reports current
+     * settledness, not a pre-armed future run.
+     */
+    get finished(): Promise<void> {
+        return this._playingPromise ?? Promise.resolve();
     }
 
     async play(): Promise<void> {

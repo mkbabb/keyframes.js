@@ -93,20 +93,15 @@ export function useKeyframeOps(
                     // value.js's CSS-spec AnimationOptions is structurally
                     // equivalent to keyframes.js's broader InputAnimationOptions
                     // for the fields CSS authors set (duration, delay, etc.).
-                    // SINGLE COMPILE (E.W8 S0): the throwaway's `fromKeyframes`
-                    // is the ONE compile; transplant its compiled state onto the
-                    // live animation instead of re-`parse()`ing. `compiled` is
-                    // built with the same targets, and its compiler holds
-                    // `compiled.options` — which we adopt — so the compiler's
-                    // live options reference stays consistent (no stale re-parse).
+                    // SINGLE COMPILE (E.W8 S0): adopt the throwaway's compiled
+                    // state — `adoptCompiled` re-binds the live-options reference
+                    // and recomputes the key-set (G.W19), so no second compile.
                     const compiled = new CSSKeyframesAnimation(
                         options as Record<string, unknown>,
                         ...animation.targets,
                     ).fromKeyframes(keyframes as any);
 
-                    animation.options = compiled.options;
-                    animation.compiler = compiled.compiler;
-                    animation.unflatten = compiled.unflatten;
+                    animation.adoptCompiled(compiled);
 
                     emit("keyframesUpdate", { animation });
 

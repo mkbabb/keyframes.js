@@ -8,6 +8,7 @@ import {
 } from "@mkbabb/value.js";
 import type { Animation } from "./engine";
 import type { AnimationFrame, AnimationOptions, Easing, Vars } from "./constants";
+import { AnimationOptionError } from "./internal/errors";
 
 /**
  * Serialize an `Easing` to its CSS `animation-timing-function` token (F.W7).
@@ -18,13 +19,28 @@ import type { AnimationFrame, AnimationOptions, Easing, Vars } from "./constants
  * hyphenated (`easeOutCubic` → `ease-out-cubic`). Factored so both the
  * top-level options serializer and the per-keyframe emitter share ONE faithful
  * easing→CSS path (the round-trip symmetry the serializer lacked).
+ *
+ * A custom closure has no faithful CSS `animation-timing-function` twin (G.W4):
+ * when the easing carries no `.css` and is NOT a value.js registry entry, the
+ * curve is genuinely unrepresentable in CSS. The Mandate's rule for a real
+ * structural limit is fail-EXPLICIT — THROW naming the option + the faithful
+ * remedies, rather than silently emitting a WRONG `"linear"` that discards the
+ * curve (the silent contract-mask the prior `?? "linear"` was).
  */
 export function serializeEasing(easing: Easing): string {
     if (easing.css !== undefined) return easing.css;
-    const registryName =
-        Object.entries(timingFunctions)
-            .filter(([_name, func]) => func === easing.fn)
-            .map(([name]) => name)?.[0] ?? "linear";
+    const registryName = Object.entries(timingFunctions).find(
+        ([_name, func]) => func === easing.fn,
+    )?.[0];
+    if (registryName === undefined) {
+        throw new AnimationOptionError(
+            "timingFunction",
+            easing.fn,
+            "a custom TimingFunction has no CSS animation-timing-function " +
+                "representation — attach a faithful Easing.css twin, or use a " +
+                "registry name / cubic-bezier() / linear() literal",
+        );
+    }
     return camelCaseToHyphen(registryName);
 }
 

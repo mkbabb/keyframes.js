@@ -50,13 +50,20 @@ for (const f of ["src/animation/engine.ts", "src/animation/group.ts"]) {
 // stable-key buffer mechanism (`clearBuffer` + `computeStableKeys` + the
 // single-frame alias branch in `interpFrames` — the headline ~3× perf fold) and
 // F.W8's style-rule `animation`-shorthand apply (`_ctorOptions` + the
-// CSS→engine option translation). This is the gated DECISION F.md NEW-3 /
-// a-engine-post-e F-ENG-5 assigned to F: the class is at its cohesive gestalt —
-// a split would be the legacy-shaped "extract-for-line-count" the §Mandate
-// forbids — so the ceiling is EXTENDED with rationale to 1050, NOT the class
-// reflexively split. It still bites HARD on a compile re-inline
-// (847 + 236 = 1083 > 1050) — the regression that actually matters.
-const ANIMATION_CLASS_CEILING = 1050;
+// CSS→engine option translation). G adds two cohesive ADDITIVE one-method
+// landings on the same `this`-bound seam — G.W13's `get finished()` over the
+// held play promise and G.W19's `adoptCompiled()` + the `compiler` field→get-only
+// accessor (~+25). This is the gated DECISION F.md NEW-3 / a-engine-post-e
+// F-ENG-5, re-affirmed by G.W5 (a-deferred-ledger C-6, P-invariant: decide, do
+// not re-defer; a-backend-godmodules G-GM-1, re-verified post-G growth): the
+// class is at its cohesive gestalt — a split would be the legacy-shaped
+// "extract-for-line-count" the §Mandate forbids — so the ceiling is EXTENDED
+// with rationale to 1100, NOT the class reflexively split. It still bites HARD on
+// a compile re-inline (the regression that actually matters: re-absorbing the
+// FrameCompiler is ~+236 → ~1311 ≫ 1100). The sibling file-level cap lives in
+// proof:decomposition (LIBRARY_CEILING_OVERRIDE engine.ts: 1400); both guards
+// carry the SAME G.W5 decision.
+const ANIMATION_CLASS_CEILING = 1100;
 const compiler = read("src/animation/frame-compiler.ts");
 if (!/export class FrameCompiler/.test(compiler)) {
     fail("engine-seam", "src/animation/frame-compiler.ts does not export `FrameCompiler`");

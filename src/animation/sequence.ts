@@ -332,6 +332,18 @@ export class Sequence<V extends Vars = any> {
      * Under `respectReducedMotion` + an active query, snaps to the rest frame
      * in one paint (a terminal `seek(duration)`), no draw loop.
      */
+    /**
+     * The completion front-door (G.W13) — `await sequence.finished` resolves
+     * once the in-flight transport settles. Exposes the ONE held
+     * `_playingPromise` `play()` constructs (the re-entrant guard returns it;
+     * the `finally`-clear nulls it on settle) — NOT a second completion
+     * lifecycle. A settled (or never-played, or reduced-motion-snapped)
+     * sequence resolves immediately.
+     */
+    get finished(): Promise<void> {
+        return this._playingPromise ?? Promise.resolve();
+    }
+
     play(): Promise<void> {
         if (this._playingPromise) return this._playingPromise;
 

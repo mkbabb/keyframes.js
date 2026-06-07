@@ -156,6 +156,35 @@ with a queryable `waapiIneligibleReason`. `toWAAPIOptions` emits
 `Easing.css` when the uniform easing carries one (a spring's `linear()` from
 `springTimingFunction`), otherwise bare `linear`.
 
+## Computed-unit container contract (the one contract, stated once)
+
+value.js resolves a computed/container unit (`vh` / `calc` / `var` / `cqw` /
+`cqh` / `cqi` / `cqb` / `cqmin` / `cqmax`) against the DOM and CACHES the
+resolved endpoint `(startN, stopN, unit)` on the iv, keyed by a monotonic
+`layoutEpoch`. value.js auto-installs a `window.resize` listener that bumps the
+epoch, so the cache busts on every VIEWPORT resize. It exports `bumpLayoutEpoch()`
+for the one resize it structurally CANNOT observe: a **container resize that does
+not coincide with a window resize** — a dock toggle, a sidebar collapse, a
+split-pane drag, a flex re-layout that changes a `container-type` box width while
+the viewport is unchanged.
+
+**The contract.** A consumer animating a `cq*`/computed unit whose
+resolution-container resizes independently of the viewport MUST call
+`bumpLayoutEpoch()` (from `@mkbabb/value.js`) on that container's
+`ResizeObserver` — e.g. `useResizeObserver(container, () => bumpLayoutEpoch())`.
+Without it, the C1 endpoint cache serves the STALE pre-resize pixels until the
+next window resize busts the epoch. The demo wires exactly this on
+`AnimationVisualizer`'s `container-inline-size` box (its `calc(100cqw - 100%)`
+ball). The eviction/epoch policy lives ONCE in value.js; the consumer feeds only
+the signal value.js's auto-`window.resize` listener cannot see (DRY).
+
+**RECORDED non-action (BOOK, not SHIP).** The library does NOT install a generic
+per-target `ResizeObserver` on `setTargets` when an iv carries a `cq*`/computed
+unit. A per-target observer + a layout-coupled side effect for a niche unit class
+is a boundary breach pending a bench that a container-unit animation under
+panel-resize is a real LIBRARY workload (not just the demo's). The consumer owns
+its container topology; the library cannot know it. Carried, not manufactured.
+
 ## Key Types (`constants.ts`)
 
 - `Vars<T>` — `{[key: string]: number | string | T}`

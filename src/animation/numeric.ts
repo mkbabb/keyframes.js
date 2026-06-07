@@ -37,7 +37,7 @@ export interface NumericAnimationOptions {
      * When true, honor `prefers-reduced-motion: reduce` by snapping to the
      * final keyframe values immediately rather than interpolating over
      * `duration`. The play promise resolves on the next microtask. Default
-     * false (back-compat — consumers opt in).
+     * false (conservative default — opt in to the reduced-motion snap).
      *
      * The check uses `matchMedia` if available; on SSR / Node the option
      * is a no-op (animations proceed normally).
