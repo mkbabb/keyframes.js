@@ -1,0 +1,1 @@
+@keyframes p { from { filter: blur(0px) brightness(1); } to { filter: blur(10px) brightness(2); } }

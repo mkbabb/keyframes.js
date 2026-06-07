@@ -1,0 +1,77 @@
+{
+  "_README": "G.W16 TR-4 — the @keyframes parse corpus manifest. Each row pairs a .css input with its EXPECTED normalized frame structure (the authoritative AST lock: template-frame count + the sorted flattened sub-property keys at the midpoint) and the value-fidelity round-trip mode. `byte` rows must round-trip parse→format→reparse→interpFrames(0.5) BYTE-SAME; the single `epsilon` row (chromatic color) round-trips to within a value.js oklab string float-precision tolerance — a value.js HANDOFF (the oklab parse↔serialize float drift), NOT a kf serializer channel-drop. Delete a row's `frames`/`keys` and the corpus is no longer authoritative → the gate reds (clause 4).",
+  "fixtures": [
+    {
+      "file": "transform-multiarg.css",
+      "frames": 2,
+      "keys": ["transform.scaleX", "transform.scaleY", "transform.scaleZ", "transform.translate3d"],
+      "roundtrip": "byte"
+    },
+    {
+      "file": "filter-multi.css",
+      "frames": 2,
+      "keys": ["filter.blur", "filter.brightness"],
+      "roundtrip": "byte"
+    },
+    {
+      "file": "opacity-3stop.css",
+      "frames": 3,
+      "keys": ["opacity"],
+      "roundtrip": "byte"
+    },
+    {
+      "file": "per-kf-easing.css",
+      "frames": 2,
+      "keys": ["opacity"],
+      "roundtrip": "byte"
+    },
+    {
+      "file": "linear-easing.css",
+      "frames": 2,
+      "keys": ["opacity"],
+      "roundtrip": "byte"
+    },
+    {
+      "file": "steps-easing.css",
+      "frames": 2,
+      "keys": ["opacity"],
+      "roundtrip": "byte"
+    },
+    {
+      "file": "multi-prop.css",
+      "frames": 2,
+      "keys": ["opacity", "transform.translateX", "width"],
+      "roundtrip": "byte"
+    },
+    {
+      "file": "color-achromatic.css",
+      "frames": 2,
+      "keys": ["background-color"],
+      "roundtrip": "byte"
+    },
+    {
+      "file": "color-chromatic.css",
+      "frames": 2,
+      "keys": ["color"],
+      "roundtrip": "epsilon"
+    },
+    {
+      "file": "box-shadow.css",
+      "frames": 2,
+      "keys": ["box-shadow"],
+      "roundtrip": "byte"
+    },
+    {
+      "file": "drop-shadow.css",
+      "frames": 2,
+      "keys": ["filter.drop-shadow"],
+      "roundtrip": "byte"
+    },
+    {
+      "file": "property-block.css",
+      "frames": 2,
+      "keys": ["--w"],
+      "roundtrip": "byte"
+    }
+  ]
+}

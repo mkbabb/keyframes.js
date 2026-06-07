@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>keyframes.js — computed-unit real-DOM corpus</title>
+        <style>
+            html,
+            body {
+                margin: 0;
+                padding: 0;
+                background: #0b0b0f;
+            }
+            /*
+                The known-geometry container: the flagship AnimationVisualizer
+                pattern (a `container-type: inline-size` ancestor, so `cqw`
+                resolves against THIS box, not the viewport). Its width is fixed
+                at 400px so `100cqw` resolves to 400px and `calc(50% + 10px)`
+                resolves to 210px (50% of the 400px containing block + 10px).
+            */
+            #container {
+                container-type: inline-size;
+                width: 400px;
+                height: 600px;
+                position: relative;
+            }
+            .probe {
+                position: absolute;
+                left: 0;
+                height: 8px;
+                background: hsl(210 90% 60%);
+            }
+        </style>
+
+        <!--
+            The bench page resolves the externalised peers the registry way (a
+            bare specifier per peer). The gate (`computed-real-dom.bench.ts` /
+            `proof-computed-real-dom.mjs`) rewrites these to the HTTP roots it
+            serves the three dist trees from, so the page loads the BUILT
+            `dist/keyframes.js` engine on the real layout path.
+        -->
+        <script type="importmap">
+            {
+                "imports": {
+                    "@mkbabb/keyframes.js": "/kf/keyframes.js",
+                    "@mkbabb/value.js": "/value/value.js",
+                    "@mkbabb/parse-that": "/parse-that/parse.js"
+                }
+            }
+        </script>
+    </head>
+    <body>
+        <div id="container">
+            <div class="probe" id="p-dvh" style="top: 0"></div>
+            <div class="probe" id="p-calc" style="top: 20px"></div>
+            <div class="probe" id="p-cqw" style="top: 40px"></div>
+            <div class="probe" id="p-var" style="top: 60px"></div>
+        </div>
+
+        <script type="module">
+            import { loadAnimationEngine } from "@mkbabb/keyframes.js";
+
+            // Each row: a keyframe over a computed unit, sampled at t=0.5, then
+            // the resolved px read off the REAL layout engine. jsdom resolves
+            // NONE of these (no layout) — this is the only genuine-path C5 proof.
+            //
+            // The animation EMITS a computed-unit string (the engine forwards
+            // `dvh`/`cqw`/`calc`/`var` for the browser to resolve per frame);
+            // we set that string on the probe element and read back the resolved
+            // `getComputedStyle().width`. The expected px is computed from the
+            // page's known geometry (viewport height, the 400px container).
+            async function main() {
+                const { CSSKeyframesAnimation } = await loadAnimationEngine();
+
+                const container = document.getElementById("container");
+                const vh = window.innerHeight; // the gate sets a known viewport
+
+                // Build one two-stop animation per computed-unit row, sampled at
+                // the midpoint. The `from` is 0 and the `to` is the computed
+                // endpoint, so the midpoint is half the endpoint — the resolved
+                // px we read is half the endpoint's resolution.
+                // `mode: "c5"` rows are the C5-fix surface (the 24 viewport/
+                // container units now resolving) — each MUST resolve to its
+                // expected px on the genuine layout path. The `mode: "witness"`
+                // row documents a SEPARATE computed-value gap (the engine's
+                // `getComputedValue` resolves a `calc()` leaf to NaN even on a
+                // real browser — a value.js/engine FINDING, NOT the C5 surface)
+                // and bites the moment calc starts resolving (the consume signal).
+                const rows = [
+                    {
+                        id: "p-dvh",
+                        to: "50dvh",
+                        mode: "c5",
+                        expected: (50 / 100) * vh * 0.5,
+                    },
+                    {
+                        id: "p-cqw",
+                        to: "100cqw",
+                        mode: "c5",
+                        // 100cqw against the 400px container = 400px; midpoint 200px.
+                        expected: 400 * 0.5,
+                    },
+                    {
+                        id: "p-var",
+                        to: "var(--x)",
+                        mode: "c5",
+                        // --x is set to 300px on the container; midpoint 150px.
+                        expected: 300 * 0.5,
+                    },
+                    {
+                        id: "p-calc",
+                        to: "calc(50% + 10px)",
+                        mode: "witness",
+                        // 50% of the 400px container + 10px = 210px; midpoint 105px
+                        // — the value IF the calc gap were closed. Today it
+                        // resolves to NaN→0 through the engine path (witnessed).
+                        expected: (400 * 0.5 + 10) * 0.5,
+                    },
+                ];
+
+                container.style.setProperty("--x", "300px");
+
+                const results = [];
+                for (const row of rows) {
+                    const el = document.getElementById(row.id);
+                    const a = new CSSKeyframesAnimation(
+                        { duration: 1000 },
+                        el,
+                    ).fromString(
+                        `@keyframes p { from { width: 0px; } to { width: ${row.to}; } }`,
+                    );
+                    // Sample the midpoint and APPLY to the element (apply=true).
+                    a.at(0.5, true);
+                    // Force layout, then read the resolved px off real layout.
+                    const resolved = parseFloat(
+                        getComputedStyle(el).width,
+                    );
+                    results.push({
+                        id: row.id,
+                        to: row.to,
+                        mode: row.mode,
+                        expected: row.expected,
+                        resolved,
+                    });
+                }
+
+                window.__kfComputed = results;
+                window.__kfComputedDone = true;
+            }
+
+            main().catch((err) => {
+                window.__kfComputedError = String(
+                    err && err.stack ? err.stack : err,
+                );
+                window.__kfComputedDone = true;
+            });
+        </script>
+    </body>
+</html>

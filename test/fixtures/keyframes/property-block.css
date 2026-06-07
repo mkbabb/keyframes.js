@@ -1,0 +1,1 @@
+@property --w { syntax: "<length>"; inherits: false; initial-value: 0px; } @keyframes p { from { --w: 0px; } to { --w: 100px; } }

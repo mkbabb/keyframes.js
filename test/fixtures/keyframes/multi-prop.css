@@ -1,0 +1,1 @@
+@keyframes p { from { opacity: 0; transform: translateX(0px); width: 10px; } to { opacity: 1; transform: translateX(100px); width: 50px; } }
