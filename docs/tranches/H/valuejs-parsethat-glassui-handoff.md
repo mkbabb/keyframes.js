@@ -45,14 +45,21 @@ ledger ONLY with (a) a passing SYSTEM-property gate, or (b) a **HANDOFF tag PAIR
 born-RED kf-side gate** that fails until the upstream fix lands and is consumed. **A bare
 HANDOFF tag is no longer a terminal.** The P-invariant policed the COLUMN, not the PRODUCT
 — H repairs it. Every HANDOFF row below therefore names its paired **born-RED kf gate**;
-that pairing IS the terminal. (The dock — CH-4 — is the canonical case: `proof:dock-live` /
-`proof:dock-morph-settled` born-RED today, GREEN only when the consumed glass-ui ships the
-fix.)
+that pairing IS the terminal. (The dock — CH-4 — is the canonical case, and its TWO
+concerns carry TWO distinct gates with ONE canonical name each — never the conflated
+`proof:dock-live`: (i) the SPRING/settle half (D5) is **`proof:dock-morph-settled`**,
+born-RED today on the +16.3% token, GREEN when kf bumps to the published glass-ui `^3.5.1`;
+(ii) the @mbabb POPOVER half (D9) is **`proof:dock-popover-opens`**, a kf SHIP gate owned by
+**H.W1** that greens when the App.vue double-wrap is undone — D9 is kf-patched, NOT a
+glass-ui handoff. The legacy `proof:dock-live` name is RETIRED — it dangled against the
+committed substrate and conflated the two halves.)
 
 **The §ALREADY-SOTA record is BINDING.** Manufacture NO work where the engine / parse /
 color / re-pin kernels lead (`_SYNTHESIS-gap-scorecard §5`). The single-dispatch
-`lerpValue → iv._lerp` seam (`engine.ts:516,576` — the H live anchors; the re-pin's
-zero-kf-edit guarantee), the value.js color science + parse breadth, the parse-that leaf
+`lerpValue` seam (`engine.ts:18` import, `:779` the per-frame `lerpValue(eased, iv)` call
+in `processFrame`, off `:657 interpFrames` — re-anchored this pass; the published
+CLAUDE.md `engine.ts:516,576` dev-bundle lines and the `iv._lerp` form are stale), the
+value.js color science + parse breadth, the parse-that leaf
 tier + the four landed F waves, and glass-ui's spring-token cascade + motion-core SCC
 boundary + the specular `::before` BUILD (its defect is tuning/seam, NOT perf) are at or
 ahead of SOTA and are left alone. The §ALREADY-SOTA tail of each section is the refusal —
@@ -106,14 +113,27 @@ the dock is being reworked in glass-ui this very cycle (`a-historical-dock` HEAD
 NOT patched in kf. The four glass-ui HANDOFFs: the dock LAG (the chronic), the Card
 specular SEAM (the D2/D14 root), the mobile drawer spring, and the `{types}` VT helper.
 
-### GH-1 (= §4 row 1 / D5-b / CH-4 / H-dock-2) — the dock LAG: the pre-AW.W2 `--spring-dock` (the CHRONIC, glass-ui-HANDOFF PAIRED with born-RED `proof:dock-morph-settled`)
+### GH-1 (= §4 row 1 / D5-b / CH-4 / H-dock-2) — the dock LAG: the pre-AW.W2 `--spring-dock` (the CHRONIC; now a **kf SHIP-in-H consume-leg BUMP** PAIRED with born-RED `proof:dock-morph-settled`)
+
+> **HARDEN-RESOLVED (BLK-5, this DEEP pass).** The original framing of GH-1 as a
+> *glass-ui-HANDOFF awaiting release of `53c1b07`* is **STALE**. Registry + repo re-check
+> this pass: `npm view @mkbabb/glass-ui versions` = `… 3.5.0, 3.5.1, 3.6.0` (ALL
+> PUBLISHED); `git merge-base --is-ancestor 53c1b07 v3.5.0` → **YES** (the AW.W2 dock
+> retune commit IS shipped). The work is NOT release-blocked. kf still pins
+> `@mkbabb/glass-ui ^3.4.0` (`package.json:103`) and the installed token is still the OLD
+> bouncy register, so the gate is HONESTLY born-RED — but the FIX is a **one-line
+> `package.json` bump `^3.4.0 → ^3.5.1` (or `^3.6.0`)**, a kf consume-leg that SHIPs in H,
+> NOT a wait. Treating it as a wait would PUNT a shippable fix = the exact M3
+> silent-forever-punt the chronic-closure discipline exists to prevent. The rest of GH-1
+> below is corrected accordingly; "NO kf fork of the spring" still holds (a bump consumes a
+> published token, it does not fork it).
 
 - **The chronic, named once.** The dock is CH-4 — the chronic that escaped B→C→D→G by
   **column-migration to HANDOFF** (M3): the kf-side rename/barrel chore CLOSED (D.W5/G.W12),
   but the BEHAVIOURAL lag was perpetually routed glass-ui-HANDOFF and **never gated**, so a
   correct handoff became a silent forever-punt (`_SYNTHESIS-deferred-ledger §1 CH-4`). H's
   repair is this PAIRED row.
-- **glass-ui side — the work is ALREADY DONE, unpublished.** glass-ui replaced its
+- **glass-ui side — the work is DONE and PUBLISHED.** glass-ui replaced its
   CSS-transition dock morph with a `SpringProgress`-driven engine that dogfoods keyframes.js
   (`useLayerTransition.ts`, 397L: a native `startViewTransition` path + a FLIP fallback off
   ONE `SpringProgress` clock, velocity-continuity on retarget — the iOS interruptible-spring
@@ -121,43 +141,77 @@ specular SEAM (the D2/D14 root), the mobile drawer spring, and the `{types}` VT 
   token `--spring-dock` so the JS-driven and CSS curves cannot drift
   (`proof:spring-tokens-synced`). The **AW.W2 retune** (glass-ui `53c1b07`, dated Jun 7
   13:48 — response `0.32`, ζ `0.7`, ~+4.6% overshoot, settling ~167ms / 11 rising frames)
-  landed **AFTER the 3.4.0 cut** (`7306fa2`, Jun 7 04:07). **It is not in the published
-  package kf installs.**
+  landed **AFTER the 3.4.0 cut** (`7306fa2`, Jun 7 04:07) but IS now **published in glass-ui
+  `3.5.0` / `3.5.1` / `3.6.0`** (verified: `53c1b07` is an ancestor of `v3.5.0`). kf has
+  simply **not yet bumped** off the `^3.4.0` pin — the consume-leg is the whole remaining
+  motion.
 - **LIVE, re-verified this pass (the BITE).** kf consumes glass-ui 3.4.0
   (`node_modules/@mkbabb/glass-ui/package.json` → `3.4.0`). The installed token is the OLD
   bouncy register: `node_modules/@mkbabb/glass-ui/dist/styles/tokens.css:163` —
-  `--spring-dock: linear(0, 0.10932 2.041%, 0.35412 4.082%, …)` = the **(0.5, 0.5),
-  ~+18.5% overshoot "too playful for a system dock"** register, confirmed by the AU.W8
-  authoring note at `tokens.css:1297` (*"`--spring-dock` ((0.5, 0.5), ~+18.5%) sits in the
-  springy 15-30% band — the user-felt iOS bounce"*) and `--dock-resize-spring: var(--spring-dock)`
+  `--spring-dock: linear(0, 0.10932 2.041%, 0.35412 4.082%, … 1.16292 14.286%, …)` = the
+  **(0.5, 0.5)** register, **ramp peak `1.16292` = +16.3%** (the sampled `linear()` stop
+  maximum, the value a token-peak gate parses; the analytic spring overshoot for (0.5,0.5)
+  is ~+18.5%, the value the AW.W8 note cites). Confirmed by the AU.W8 authoring note at
+  `tokens.css:1297` (*"`--spring-dock` ((0.5, 0.5), ~+18.5%) sits in the springy 15-30%
+  band — the user-felt iOS bounce"*) and `--dock-resize-spring: var(--spring-dock)`
   (`tokens.css:1301`). The 3.3.0 `container-type: inline-size` sliver regression
   (`5c0f529`) is **already healed** by 3.4.0 (`a-historical-dock §2`: live
   `.glass-dock containerType: "normal", contain: "none"`, collapsed rect 106×55px,
   content-sized) — so D5-as-layout-collapse is DONE; only the spring FEEL remains.
-- **Disposition: glass-ui-HANDOFF — release `53c1b07` (≥ `3.4.1` / `3.5.0`), THEN kf bumps
-  `@mkbabb/glass-ui`. NO kf-side patching of the spring** (the token + the JS `DOCK_SPRING`
-  const are paired + gate-locked `proof:spring-tokens-synced`; kf must not fork them —
-  `a-historical-dock §4`, `a-glass-ui-consumption D5`). The memory rule is CORRECT, not
-  relaxed.
-- **The PAIRED born-RED kf gate — `proof:dock-morph-settled` (THE TERMINAL):** sample the
-  dock morph (the VT pseudo-elements OR the `SpringProgress` clock — NOT live
-  `getBoundingClientRect` per the §H-dock-4 measurement caveat below); assert peak overshoot
-  ≤ ~6% AND settle ≤ ~200ms. **Born-RED today on the +18.5% token; GREEN only when the
-  consumed glass-ui ships `53c1b07` and kf re-asserts post-bump.** This pairing is the
+- **Disposition: kf SHIP-in-H consume-leg BUMP — `@mkbabb/glass-ui ^3.4.0 → ^3.5.1` (or
+  `^3.6.0`).** The retune is published (3.5.0+); the consume is a one-line `package.json`
+  bump + `npm install`. **NO kf-side patching/fork of the spring** (the token + the JS
+  `DOCK_SPRING` const are paired + gate-locked `proof:spring-tokens-synced`; a bump consumes
+  the published token, it does not fork it — `a-historical-dock §4`,
+  `a-glass-ui-consumption D5`). The memory rule (dock changes live in glass-ui, never
+  patched in kf) is CORRECT, not relaxed — and a version bump is the idiomatic CONSUME, not
+  a kf-side patch. **MEASURE-FIRST blast-radius:** the 3.4.0→3.5.x bump crosses dock-layering
+  polish — re-run `proof:dock-dropdown-opens` + a dock slot-shape check post-bump; the bump
+  is not free of other glass-ui deltas. **Demo self-alias scope:** confirm whether the live
+  demo reads `node_modules/@mkbabb/glass-ui` or the `vite.config.ts:142-146` dedup alias to a
+  checked-out glass-ui — live evidence is that the demo reads the OLD `+16.3%` register, so
+  the installed package path IS effective and the bump WILL land in the demo.
+- **The PAIRED born-RED kf gate — `proof:dock-morph-settled` (THE TERMINAL):** **adopt the
+  TOKEN-PEAK form** — parse the installed `--spring-dock` `linear()` stops and assert ramp
+  peak ≤ **~+6%**. **Born-RED today (peak `1.16292` = +16.3%); GREEN the instant kf bumps to
+  `^3.5.1`** (the retuned token's peak is ~+4.6%). This is the trivially-measurable,
+  flake-free born-RED form. The morph-geometry form (sample the VT pseudo-elements OR the
+  `SpringProgress` clock — NOT live `getBoundingClientRect`, per the §H-dock-4 caveat below;
+  peak overshoot ≤ ~6% AND settle ≤ ~200ms) is **secondary/RECORD-WITHHELD**: the live morph
+  is NOT reliably driveable (a deep harden lane captured 181 samples with no morph captured),
+  so the token-peak parse is the gate that actually bites. This pairing is the
   chronic-closure terminal — it converts the silent HANDOFF into a *watched* one that
   cannot become another forever-punt (`a-historical-dock H-dock-2`,
   `_SYNTHESIS-deferred-ledger §1 CH-4`).
-- **The H.W8 ledger meta-gate enforces the pairing:** a bare HANDOFF tag with no born-RED
-  gate REDS the ledger (`_SYNTHESIS-gap-scorecard §3 H.W8`).
-- **Sequencing:** glass-ui releases `53c1b07` (its AW cadence) → kf bumps `@mkbabb/glass-ui`
-  → `proof:dock-morph-settled` flips GREEN. Independent of every other H wave.
+- **The H.W8 ledger meta-gate enforces the pairing:** a bare HANDOFF/consume-leg row with no
+  born-RED gate REDS the ledger (`_SYNTHESIS-gap-scorecard §3 H.W8`).
+- **Sequencing:** kf bumps `@mkbabb/glass-ui ^3.4.0 → ^3.5.1` (the published retune) → the
+  `--spring-dock` ramp peak drops to ~+4.6% → `proof:dock-morph-settled` (token-peak form)
+  flips GREEN. Independent of every other H wave; no upstream wait remains.
 - **MEASURE-FIRST honesty (the §H-dock-4 caveat, carried so H does not false-GREEN):** a
-  rAF `getBoundingClientRect` loop on `.glass-dock` UNDER-reads the morph — on the native
-  View-Transitions path the morph runs on browser VT *snapshots*, invisible to live-element
-  geometry reads (`a-historical-dock §2`). The lag instrument MUST sample the VT
-  pseudo-elements or the `SpringProgress` clock. (The demo-side `collapse-delay`
+  rAF `getBoundingClientRect` loop on `.glass-dock` UNDER-reads the morph. **The dock has TWO
+  distinct morph arms and the instrument must name which it samples** (the demo forks on
+  `'startViewTransition' in document`, `useLayerTransition.ts`): (a) the **native VT arm** —
+  the morph runs on browser View-Transition *snapshots* (`::view-transition-group/old/new`),
+  invisible to live-element geometry reads, so this arm is sampled via the
+  `::view-transition-*` pseudo-elements (or not at all on this path); (b) the **FLIP
+  fallback arm** — the morph runs in pixel space off the `SpringProgress` clock, sampled via
+  that clock directly. The token-peak gate (above) sidesteps BOTH arms (it parses the static
+  `--spring-dock` token, not a live morph) — which is precisely why it is the gate that
+  bites (`a-historical-dock §2`). (The demo-side `collapse-delay`
   2500→~1000ms tune is a kf-demo SHIP, H.W2-adjacent, MEASURE-FIRST — NOT this charter;
-  `a-glass-ui-consumption D5`, `ChromeDock.vue` `:collapse-delay="2500"`.)
+  `a-glass-ui-consumption D5`, `ChromeDock.vue` `:collapse-delay="2500"` — re-anchored live
+  to `ChromeDock.vue:116`.)
+- **The demo-side D5 contributors are NOT this charter's to gate, but they MUST be homed in a
+  kf-demo wave (latent M3 if left charter-only).** Two demo-owned lag contributors travel
+  with the dock chronic and are currently named ONLY in `H.md` with no wave anchor: (i) the
+  `collapse-delay` 2500→~1000ms tune (`ChromeDock.vue:116`) — gate it with
+  `proof:dock-actions-reachable` (a re-armed dock stays reachable within the shortened
+  window); (ii) the ~1M px² backdrop-over-moving-scene cost (`a-perf-dock-lag` F1) — gate it
+  with `proof:demo-backdrop-budget` (MEASURE-FIRST @dpr=2). Both belong in the kf-demo
+  dock-adjacent wave (H.W2-adjacent / H.W7 mobile-dock), NOT this cross-repo charter. Recorded
+  here so the kf-demo wave authoring picks them up and they do not silently fall through
+  (`a-historical-dock` / `a-perf-dock-lag` F1).
 - **Secondary lag suspect to hand off for verification (glass-ui MEASURE-FIRST):** is the
   native VT morph path actually faster than the spring-FLIP on this dock? VT snapshots the
   whole container; a heavy backdrop-filter or sibling capture can jank first expand. glass-ui
@@ -265,19 +319,34 @@ specular SEAM (the D2/D14 root), the mobile drawer spring, and the `{types}` VT 
   motion-core stub already `satisfies`-tracks the real types (GG-2, done in G.W12), so the
   signature drift is auto-caught.
 
-### GH-5 (= GG-6, carried, low) — the one direct `reka-ui` `SelectIcon` reach (glass-ui-HANDOFF low OR demo-local KILL)
+### GH-5 (= GG-6, carried) — the one direct `reka-ui` `SelectIcon` reach — **HARDEN-RESOLVED: ALREADY-RETIRED (RECORD)**
+
+> **HARDEN-RESOLVED (HS-HIGH-2, this DEEP pass).** Re-verified live:
+> `grep -rn 'from "reka-ui"' demo/` returns **0 matches in demo source** (the only hits are
+> in built `demo/app/dist/*.js` artifacts, not authored code). The named `SelectIcon`
+> direct-reka reach is **already retired** — the demo consumes glass-ui's `Select`/`Dock*`
+> trigger families which own the chevron slot. So the original GH-5 gate as authored
+> (`grep ZERO from "reka-ui"`, born-RED on a live reach) does **not bite** — there is
+> nothing to red against in source. The gate as written would also red on legitimate
+> vendored shadcn `ui/` imports if scoped repo-wide. GH-5 is therefore downgraded to RECORD,
+> with the gate reframed to a NO-NEW-reach invariant.
 
 - **glass-ui side.** glass-ui consumes `SelectIcon` internally but does not re-export the raw
-  reka primitive from its `./select` subpath, so the demo historically reached PAST glass-ui
-  to reka-ui for one chevron-slot primitive. glass-ui could re-export the reka primitives its
-  `Select` family composes (`a-deferred-ledger §6 GG-6`, `G/handoff GG-6`).
-- **Disposition: glass-ui-HANDOFF (re-export, LOW urgency) OR demo-local KILL (use
-  `DockSelectTrigger`/`SelectTrigger` which already own the icon slot).** Lean demo-local —
-  the demo consumes glass-ui's surface, not the basis.
-- **The PAIRED kf gate:** a `grep` clause in `proof:boundary`/`proof:decomposition` asserting
-  ZERO direct `from "reka-ui"` in `demo/`. Bites on a new raw-reka reach.
-- **Sequencing:** if demo-local KILL — independent, ships in the kf-demo idiom wave (H.W5
-  icon family is adjacent). If re-export — glass-ui lands it, demo imports from glass-ui.
+  reka primitive from its `./select` subpath. The demo HISTORICALLY reached PAST glass-ui to
+  reka-ui for one chevron-slot primitive; that reach is **gone** (the demo now consumes
+  glass-ui's `Select`/`Dock*` trigger families). The optional glass-ui re-export of the reka
+  primitives its `Select` family composes remains a LOW-urgency nicety, not a kf need
+  (`a-deferred-ledger §6 GG-6`, `G/handoff GG-6`).
+- **Disposition: RECORD / ALREADY-RESOLVED.** No kf action owed (the reach is retired); the
+  glass-ui re-export is an optional convenience HANDOFF only.
+- **The PAIRED kf gate (reframed to bite something real):** a `grep` clause in
+  `proof:boundary`/`proof:decomposition` asserting **no NEW raw-reka reach** — `from
+  "reka-ui"` is forbidden OUTSIDE `demo/@/components/ui/` (vendored shadcn) AND outside any
+  glass-ui-owned family. The bare repo-wide `grep ZERO from "reka-ui"` is INFEASIBLE (it
+  reds on legitimate vendored `ui/menubar/` shadcn) — scope it to the new-reach guard. Green
+  today; bites only on a regression.
+- **Sequencing:** none required — the reach is already retired. If glass-ui ever re-exports
+  the reka primitives, the demo would import from glass-ui; not a precondition for anything.
 
 ### glass-ui §ALREADY-SOTA (BINDING — manufacture NO work)
 
@@ -313,8 +382,8 @@ dirty+active, a slice ships every tranche, and the test for legitimate chronic v
 punt is *"did the PRODUCT move?"* — for C-1, YES (the re-pin lit the F wins this very
 cycle, `_SYNTHESIS-deferred-ledger §3.9`). The rows below are the value.js NEXT-wave slice,
 each re-verified OPEN in `0.11.1` this pass, each **value.js-HANDOFF (OPEN)** with the kf
-consumer-half riding the next re-pin through the unchanged `lerpValue → iv._lerp` seam with
-ZERO kf edit.
+consumer-half riding the next re-pin through the unchanged `lerpValue` seam
+(`engine.ts:779`) with ZERO kf edit.
 
 ### VJ-1 (E1/E2) — the `linear()` / `steps()` PARSER → `LinearStop[]` (kf's `parseLinearStops` shim RETIRES on land) — value.js-HANDOFF (= C-4)
 
@@ -463,8 +532,8 @@ ZERO kf edit.
 
 ### value.js §ALREADY-SOTA (BINDING — manufacture NO work)
 
-- **The single-dispatch interp seam** (`lerpValue → iv._lerp`, the H live anchors
-  `engine.ts:516,576`) — the structural reason every value.js row above is zero-kf-edit. No
+- **The single-dispatch interp seam** (`lerpValue`, the H live anchors `engine.ts:18`
+  import / `:779` the `processFrame` call site) — the structural reason every value.js row above is zero-kf-edit. No
   refactor. **All kf-consumed value.js names survive `0.11.1`** — the re-pin was non-breaking
   (`a-deferred-ledger §9`, `_SYNTHESIS-gap-scorecard §5.1`).
 - **The light/heavy boundary** — light modules (`NumericAnimation`/`SmoothProgress`/
@@ -566,12 +635,12 @@ born-RED kf gate that flips GREEN on consume. A bare tag REDS the H.W8 ledger me
 
 glass-ui (AW tranche, ACTIVE — LEADS)
 ────────────────────────────────────
- GH-1 dock LAG: release 53c1b07 (≥3.4.1) ─→ kf bumps glass-ui ─→ proof:dock-morph-settled  [BORN-RED on +18.5% token]
+ GH-1 dock LAG: 53c1b07 PUBLISHED in 3.5.0+ ─→ kf BUMPS ^3.4.0→^3.5.1 (SHIP-in-H) ─→ proof:dock-morph-settled (token-peak ≤+6%)  [BORN-RED on +16.3% token]
  GH-2 Card specular SEAM: wire-or-omit + calmer default ─┐
    kf-demo surface="cartoon" (H.W2, SHIPs NOW) ──────────┴─→ proof:no-orphan-specular        [BORN-RED: 13 hosts, 0 wired]
  GH-3 DrawerContent spring prop (BOOK) ─ // ─ kf-demo bespoke SpringProgress sheet (H.W7) ─→ proof:drawer-spring  [BORN-RED: 550ms CSS ease]
  GH-4 startViewTransition({types}) + directional CSS ─→ kf demo {types} consumer (FB-4) ─→ demo-smoke VT-types  [BORN-RED]
- GH-5 SelectIcon re-export OR demo-local KILL ─→ proof:boundary (zero from "reka-ui")
+ GH-5 reka SelectIcon reach ALREADY RETIRED (0 `from "reka-ui"` in demo/ src) ─→ RECORD/ALREADY-RESOLVED + proof:boundary no-NEW-raw-reka clause
 
 value.js (CHRONIC-by-design C-1 — next slice, ALL ride the next re-pin, ZERO kf edit)
 ─────────────────────────────────────────────────────────────────────────────────
@@ -594,12 +663,15 @@ parse-that (transitive)                          deploy (fourier)
 ```
 
 **The binding orderings.**
-1. **glass-ui LEADS** — the dock (GH-1) is the live AW-ACTIVE chronic; its release-then-bump
-   is the single largest cross-repo motion. The Card-specular kf-demo half (GH-2, H.W2) SHIPs
+1. **glass-ui LEADS** — the dock (GH-1) is the live AW-ACTIVE chronic, but its glass-ui
+   half is **already published** (the retune `53c1b07` is in `3.5.0`+), so GH-1 is now a kf
+   **consume-leg BUMP** `^3.4.0 → ^3.5.1` that SHIPs in H independent of any upstream wait —
+   the single largest cross-repo motion collapses to a one-line `package.json` bump +
+   MEASURE-FIRST post-bump re-check. The Card-specular kf-demo half (GH-2, H.W2) SHIPs
    NOW and greens its gate independent of glass-ui; the glass-ui default-softening rides
    behind.
-2. **Every value.js row rides the NEXT re-pin** through the unchanged `lerpValue → iv._lerp`
-   seam with ZERO kf edit; the consume-legs are paired gates (VJ-1 grep=0, VJ-4 `it.fails`
+2. **Every value.js row rides the NEXT re-pin** through the unchanged `lerpValue` seam
+   (`engine.ts:779`) with ZERO kf edit; the consume-legs are paired gates (VJ-1 grep=0, VJ-4 `it.fails`
    flip, VJ-5 malformed-keyframes test, VJ-6 zero-alloc write fold).
 3. **VJ-4 MCI-5 is the MODEL paired gate** — the `it.fails` witness
    (`test/interpolate-anything.test.ts:256-262`) is already born-RED-on-land in the tree; no
@@ -628,16 +700,20 @@ the pins (`package.json:99` `@mkbabb/value.js ^0.11.1` / `@mkbabb/parse-that ^0.
 `:103` `@mkbabb/glass-ui ^3.4.0` in `optionalDependencies`; the dedup self-alias
 `vite.config.ts:142-146`; installed `0.11.1`/`0.9.0`/`3.4.0`); the dock spring
 (`node_modules/@mkbabb/glass-ui/dist/styles/tokens.css:163` `--spring-dock: linear(0,
-0.10932 …)` = the (0.5,0.5) +18.5% register, confirmed by the AU.W8 note `:1297` and
-`--dock-resize-spring: var(--spring-dock)` `:1301`); the unpublished AW.W2 retune (glass-ui
-`53c1b07`, response 0.32 / ζ 0.7); the @mbabb double-trigger (`demo/app/App.vue:18-21`
+0.10932 … 1.16292 14.286% …)` = the (0.5,0.5) register, ramp peak **+16.3%** / analytic
+~+18.5%, confirmed by the AU.W8 note `:1297` and `--dock-resize-spring: var(--spring-dock)`
+`:1301`); the AW.W2 retune now **PUBLISHED** (glass-ui `53c1b07`, response 0.32 / ζ 0.7;
+`npm view @mkbabb/glass-ui versions` = `3.5.0/3.5.1/3.6.0`, `53c1b07` an ancestor of
+`v3.5.0` — so GH-1 is a kf consume-leg BUMP `^3.4.0→^3.5.1`, not a wait); the @mbabb
+double-trigger (`demo/app/App.vue:18-21`
 `<DropdownMenuTrigger as-child>` over `<DockDropdownTrigger>` — the D9 root, fixed
 SHIP-in-H not HANDOFF); the Card specular SEAM (`glass-specular-track.css`, 13 hosts 0
 pointer-wired); the value.js OPEN slice (`parseLinearStops`/`getPointAtLength`/a parsing
 `light-dark` all `undefined`/THROW; `unflattenObjectToString` allocating-only); the MCI-5
 born-RED witness (`test/interpolate-anything.test.ts:256-262`, GREEN today); the parse-that
 `id`-only packrat key (`packrat.ts:61,82` + the documented limitation `:16-26`); the
-single-dispatch seam (`engine.ts:516,576`).
+single-dispatch seam (`engine.ts:18` import / `:779` `lerpValue(eased, iv)` in
+`processFrame`).
 
 **The §ALREADY-SOTA record is BINDING: this charter manufactures NO work where the engine /
 parse / color / re-pin kernels lead.** The whole charter is the chronic-closure discipline

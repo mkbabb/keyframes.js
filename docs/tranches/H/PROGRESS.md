@@ -51,7 +51,7 @@ items). The full binding record is `audit/_SYNTHESIS-gap-scorecard.md §6`.
 
 **TRANCHE DEVELOPMENT** on branch `tranche-h-dev` (D+E+F+G IMPLEMENTED + RELEASED — kf
 `4.1.0`; value.js `0.11.1`, parse-that `0.9.0`, glass-ui `3.4.0` consumed on the G re-pin,
-the demo live at `:5174` carrying all of Tranche G). The deep audit is RUN — the evidence
+the demo live at `:5173` carrying all of Tranche G — the dev port is Vite-assigned, gates use `serveDist`'s reported port; CP-LOW-2). The deep audit is RUN — the evidence
 is on disk under `docs/tranches/H/audit/` (35 phase-1 lanes + 6 `_SYNTHESIS-` docs, each
 `file:line`-grounded or live-anchored with a disposition + a re-runnable instrument). This
 board, `H.md` (the charter), the gap-scorecard, and the five sibling synthesis docs are
@@ -106,16 +106,16 @@ HANDOFFs (`§4`), each paired with a born-RED kf gate per the chronic-closure di
 | Wave | Title | Phase | Status | Hard gate (falsifiable instrument) |
 |---|---|---|---|---|
 | **H.W0** | Deep audit confirmation (this board + the synthesis) | DEV | **DONE** | The 35-lane + 6-synthesis assay is on disk under `audit/` + re-runnable (each lane cites a grep/`wc`/live-Playwright instrument that re-executes from the repo); `_SYNTHESIS-gap-scorecard.md` (load-bearing), this board, and the five sibling synthesis docs are present; every H.W1..H.W8 finding carries its own falsifiable hard gate; the §5 ALREADY-SOTA record fixes the no-touch surface. |
-| **H.W0** | KILL THE LIVE CRASHES (prerequisite) | IMPL (Band 0) | **authored — awaits auth** | `proof:demo-console-clean` — fresh `#/cube` load = **0 console errors** (RED: 4× `serializeEasing` today, `format.ts:24`); home→scene transition = 0 errors (RED: H-A2 `"......"` lerp, `engine.ts:516,576`). Plus unit `CSSKeyframesToString(cubeRotationsAnimation)` resolves without throw, and a `proof:interpolate-anything` row `{label:"a"}→{label:"b"}` snaps discretely, no throw. Folds `a-engine-regressions` H-A1/H-A2, `a-scene-state-machine §3`. |
-| **H.W1** | THE SCENE + PLAYBACK STATE MACHINE (CRITICAL, the keystone) | IMPL (Band 1) | **authored — awaits auth (DEPENDS on H.W0)** | `proof:scene-machine-irrefragable` — the (scenes² × {playing,paused}) matrix: every A→B→A round-trip preserves route/superKey/component/group consistency AND byte-identical playback (suspend→restore is an identity); plus `proof:no-route-storm` (load `#/easing`, idle 2s, ≤1 nav entry, resting hash unchanged — RED: live autonomous storm easing→motion-path→starting-style→spring→amiga), `proof:scene-isolation`, `proof:deep-link-wins`, `proof:suspend-no-orphan-raf`. ONE `useSceneMachine()` (`createGlobalState`+pure reducer, §2.1) collapses 5 authorities + 3 playback authorities + `isStableFire`. Folds `a-scene-state-machine`, `a-store-architecture`, `a-demo-architecture` F3/F6/F8. |
-| **H.W2** | RESTORE THE DESIGN LANGUAGE (cartoon depth + refined specular) | IMPL (Band 2) | **authored — awaits auth (DEPENDS on H.W0+H.W1)** | `proof:cartoon-is-panel-depth` + `proof:no-orphan-specular` — ≥4 panel Cards resolve `box-shadow: var(--shadow-cartoon-md)` at rest; ZERO `.glass-specular-track` on panels OR (if retained) a `--mouse-x` writer present (RED: live 13 hosts, **0 pointer-wired**); hover-screenshot lock = offset cartoon stamp, no centered radial bloom. Panels flip to `surface="cartoon"` (§2.2 adjudicated — radial dies at source, manual `.glass-card` plate deleted). **glass-ui-HANDOFF:** Card wire-or-omit the seam. Folds `a-cartoon-shadow`, `a-design-language` A1/A2/A7, `a-glow-artifact`, `a-glass-ui-consumption` D2/D14, `a-glassmorphism-perf` G2. |
+| **H.W0** | KILL THE LIVE CRASHES (prerequisite) | IMPL (Band 0) | **authored — awaits auth** | `proof:demo-console-clean` — a load RESTING on a route whose mounted Keyframes-string editor targets a `cubic-bezier`-closure animation (amiga / the easing `contractAnim`) = **0 console errors** (RED: 0–3 today, state-dependent — NOT "4× on every Cube load"; the throw is at `serializeEasing` `src/animation/format.ts:30`/`:36` ← the readout `KeyframesStringControls.vue:~95`, re-targeted off the Cube presets per BLK-1; CP-HIGH-2); home→scene transition = 0 errors (RED: H-A2 `"......"` lerp, `engine.ts:769`/`:779`). Plus unit `serializeEasing` over an amiga/`contractAnim` `cubic-bezier` preset resolves without throw (`CSSKeyframesToString(cubeRotationsAnimation)` is born-GREEN — re-pointed), and a `proof:interpolate-anything` row biting the ACTUAL `"......"` reproduction (NOT `{label:"a"}→{label:"b"}`, which proved no-throw). Folds `a-engine-regressions` H-A1/H-A2, `a-scene-state-machine §3`. |
+| **H.W1** | THE SCENE + PLAYBACK STATE MACHINE (CRITICAL, the keystone) | IMPL (Band 1) | **authored — awaits auth (DEPENDS on H.W0)** | `proof:scene-machine-irrefragable` — the (scenes² × {playing,paused}) matrix: every A→B→A round-trip preserves route/superKey/component/group consistency AND byte-identical playback (suspend→restore is an identity); plus `proof:no-route-storm` (load `#/easing`, idle 2s, ≤1 nav entry, resting hash unchanged — RED: live autonomous storm easing→motion-path→starting-style→spring→amiga), `proof:scene-isolation`, `proof:deep-link-wins`, `proof:suspend-no-orphan-raf`, and (S8, the D9 owner per BLK-8) `proof:dock-popover-opens` (`finalOpen:true` after a trusted click — RED `false` today) + `proof:single-toggle` (`handlerCount===1` — RED `handlerCount:2` live; the App.vue un-double-wrap, imperative `keepOpen`/`release` NOT a `v-model` binding). ONE `useSceneMachine()` (`createGlobalState`+pure reducer, §2.1) collapses 5 authorities + 3 playback authorities + `isStableFire`. **NB: two orthogonal axes — scene ∈ 9, playback-status ∈ 5 — not a flat enum (CP-LOW-4).** Folds `a-scene-state-machine`, `a-store-architecture`, `a-demo-architecture` F3/F6/F8, `a-mbabb-popover` (D9). |
+| **H.W2** | RESTORE THE DESIGN LANGUAGE (cartoon depth + refined specular) | IMPL (Band 2) | **authored — awaits auth (DEPENDS on H.W0+H.W1)** | `proof:cartoon-is-panel-depth` + `proof:no-orphan-specular` — ≥4 panel Cards resolve `box-shadow: var(--shadow-cartoon-md)` at rest; ZERO `.glass-specular-track` on panels OR (if retained) a `--mouse-x` writer present (RED: live ~5–13 hosts route/state-dependent, **0 pointer-wired** — the gate asserts the `anyPointerWrite:false` INVARIANT, not the count; CP-MED-2); hover-screenshot lock = offset cartoon stamp, no centered radial bloom. Panels flip to `surface="cartoon"` (§2.2 adjudicated — radial dies at source, manual `.glass-card` plate deleted). **glass-ui-HANDOFF:** Card wire-or-omit the seam. Folds `a-cartoon-shadow`, `a-design-language` A1/A2/A7, `a-glow-artifact`, `a-glass-ui-consumption` D2/D14, `a-glassmorphism-perf` G2. |
 | **H.W3** | THE CONTROLS-COLUMN LAYOUT (one-column · ribbon-width · `rail·stage·rail`) | IMPL (Band 2) | **authored — awaits auth (DEPENDS on H.W1)** | `proof:single-column-pack` + `proof:timeline-rail-width` + `proof:demo-shell-grid` — all field rows share one left-edge `x` (RED: today `{76,300}`); ribbon width === sidebar width === `--rail-width` (±2px; RED: live 1272px ribbon vs 400px token vs 768px cap); grep-gate: zero `grid-cols-[auto_1fr]`/`grid-cols-[subgrid]`/`col-span-2`/`col-end-4`/`--controls-pane-width` survive. One named `[rail] var(--rail-width) [stage] 1fr` grid; `--rail-width` single-sources sidebar + timeline + mobile sheet. Folds `a-controls-sidebar` D1, `a-timeline-width` D4, `a-demo-architecture` F1/F2/F4. |
-| **H.W4** | THE EASING EDITOR + HERO φ-TYPOGRAPHY (the visual-fidelity rungs) | IMPL (Band 3) | **authored — awaits auth (DEPENDS on H.W0)** | `proof:easing-canvas-bounded` + `proof:hero-rung` + `proof:phi-leaf-zero` + `proof:icon-idiom` — canvas `block-size ≤ 280` AND square (RED: live 680×680px, 77% of an 883px panel, `EasingCurveCanvas.vue:269-273`); hero `font-size ≥ --type-display-mega` AND a φ `text-display-*` class (RED: live `text-display-4` = 86.1px); `proof:phi-leaf-zero` (the φ-hero chronic CH-2/M1 SYSTEM-property gate the H.W8 meta-gate cites) — BOTH the hero rung AND 0 raw `text-*` rungs across the demo (RED: 86px hero + 37 raw rungs today); every `icon-(xs|sm|md|lg)` reference resolves to a real definition (RED: **61 silent no-op** classes today, `anyIconRuleInStylesheets:false`). `block-size: clamp(160px,38cqi,280px)` + container context; hero `text-display-4`→`text-display-mega`; own ONE `@utility icon-*`. Folds `a-easing-editor` D3, `a-hero-typography` D7, `a-design-language` §2/§3, `a-styling-idioms` §1/§5/§6. |
+| **H.W4** | THE EASING EDITOR + HERO φ-TYPOGRAPHY (the visual-fidelity rungs) | IMPL (Band 3) | **authored — awaits auth (DEPENDS on H.W0)** | `proof:easing-canvas-bounded` + `proof:hero-rung` + `proof:phi-leaf-zero` + `proof:icon-idiom` — canvas `block-size ≤ 280` AND square (RED: live 680×680px, 77% of an 883px panel, `EasingCurveCanvas.vue:269-273`); hero resolves the `text-display-mega` CLASS AND a px floor at a fixed named viewport (`font-size ≥ 140px` at 1440×900, NOT a `≥ --type-display-mega` clamp-vs-clamp comparison across an unpinned viewport; CP-HIGH-3) (RED: live `text-display-4` = 86.1px); `proof:phi-leaf-zero` (the φ-hero chronic CH-2/M1 SYSTEM-property gate the H.W8 meta-gate cites) — BOTH the hero rung AND 0 raw `text-*` rungs across the demo, residual **2 (L1+L2)** under the `ui/` exclusion (NOT 37 — 37 only by counting vendored `ui/` shadcn; WV-W4-HIGH-1/HS-HIGH-3) (RED: 86px hero + 2 raw rungs today); every `icon-(xs|sm|md|lg)` reference resolves to a real definition (RED: **61 silent no-op** classes today, `anyIconRuleInStylesheets:false`). `block-size: clamp(160px,38cqi,280px)` + container context; hero `text-display-4`→`text-display-mega`; own ONE `@utility icon-*`. Folds `a-easing-editor` D3, `a-hero-typography` D7, `a-design-language` §2/§3, `a-styling-idioms` §1/§5/§6. |
 | **H.W5** | SCENE ICONS + MODE PERTINENCE + CUBE/AMIGA SCENE-QUALITY (the new AND original modes finished) | IMPL (Band 3) | **authored — awaits auth (DEPENDS on H.W1)** | `proof:scene-icons` + `proof:scene-parity` + `proof:scene-perf-budget` — every non-home `SceneDescriptor` has an `icon` (RED: `ChromeDock.vue:25-30` maps only cube/amiga/square/easing); every `.svg` is `fill=none`+`currentColor`+`viewBox="0 0 32 32"` with stroke == host `currentColor` in dark AND light (an `<img>` icon FAILS by construction — theme-blind); each surviving mode exposes ≥1 pointer-interactive affordance (RED: square is a DEAD `<div>heyyyy`); AND `proof:amiga-tessellate-tilecount` (≤256 `fillRect` — RED: ~500k off-canvas today, `amiga/utils.ts:9,17-24`) + `proof:amiga-pixel-cap` + `proof:scene-host-contained` (G1) + `proof:offscreen-cv` (G5). One inline-`<svg>` `currentColor` family via `<component :is>`; KILL the orphan PNGs; MERGE Discrete → Spring sub-view (4 nav → 3); de-dup `springLinearStops`; S6 the cube/amiga scene-quality/perf budget. Folds `a-scene-icons`, `a-icon-pipeline`, `a-modes-pertinence`, `a-scene-spring-sequence`, `a-scene-path-discrete`, `a-scene-square-easing`, `a-scene-cube-amiga` A2/A3/A5 (A7/A9 BOOK), `a-glassmorphism-perf` G1-demo/G5. |
 | **H.W6** | TYPING-DOTS + CHROME DOGFOOD (inv ζ) | IMPL (Band 3) | **authored — awaits auth (pairs H.W0 H-A2)** | `proof:typing-dots` + `proof:dogfood-hero` — ≥3 dot spans with monotonically increasing `animation-delay` (RED: `AnimatedText.vue:62` `split(/\s+/)` → `"..."` is ONE span, fades as a unit); min opacity over cycle ≥0.15 (RED: 43% of cycle <0.3 opacity); total cycle ≤1.6s; the dots component imports a kf engine symbol; no element carries two `animation` shorthands (RED: `.lift-down`+`.dot-fade` collision). Own `.typing-dots` 3-span staggered primitive dogfooding `steppedEase`/`NumericAnimation` per `CopyButton.vue:52`; decouple from `lift-down`. Folds `a-typing-dots` D6, `a-animations-quality` F1, `a-styling-idioms` §4. |
 | **H.W7** | MOBILE OVERLAY + SPRINGY DRAWER (D10/D13) | IMPL (Band 4) | **authored — awaits auth (DEPENDS on H.W3 + H.W1)** | `proof:mobile-single-page` + `proof:drawer-spring` — at 390×844 the scene host ≈ viewport (full-bleed; RED: mobile STACKS, controls displace stage to **30px** behind a 710px drawer); opening controls OVERLAYS (shifts ±0px) the stage; both docks affixed; the sheet motion is a `SpringProgress` subscription (no `transition: grid-template-rows`; RED: live 550ms CSS `grid-template-rows` ease), settle <350ms, spring-shaped trace, single-frame PRM snap. The `rail·stage·rail` grid (H.W3) re-parameterized: stage full-bleed `[stage]` background + controls bottom-SHEET. Folds `a-mobile-architecture` F1/F2, `a-demo-architecture` F5. |
-| **H.W8** | THE GATE-REGIME UPGRADE (close the blind spots — the LAST re-paper) | IMPL (Band 5) | **authored — awaits auth (DEPENDS on the visual waves)** | `proof:manifest-sourced` + `proof:visual-lock` + the chronic meta-gate — adding a scene to `scenes.ts` without a manifest entry reds (RED: `demo-driver.mjs:40-59` knows 6, the demo ships 9 — sequence/motion-path/starting-style NEVER gate-visited); reverting any D1/D3/D4/D6/D7 trips the named-region pixel diff; a bare HANDOFF tag with no born-RED gate reds the ledger (`proof:dock-live` born-RED for the glass-ui handoff). Three structural additions (I-1 re-source SCENES, I-2 the pixel baseline, I-3 the chronic-closure meta-gate) + the φ-hero floor, motion-liveness, scene-parity, mobile extensions. Folds `a-gate-blindspots`, `a-deferred-chronic` §3, `a-changes-vs-plan`, `a-precept-sweep`. |
-| **H.WZ** | The H FINAL + the changeset + provenance | IMPL (LAST) | **authored — awaits auth** | `H/FINAL.md` reconciles the consolidated ledger (every SHIP regression-checked; every chronic closed with a SYSTEM-property gate OR a HANDOFF-with-born-RED gate per §6; every glass-ui/value.js/parse-that HANDOFF tagged + paired); the prompt-recap confirms every A→H ask ADDRESSED / PENDING (sibling-owned) / H-SCOPE; the changeset cut (version owner **Mike Babb**); **absorbs the H.W0–H.W8 gates**; the full `proof:*` suite green; no unintended regression. |
+| **H.W8** | THE GATE-REGIME UPGRADE (close the blind spots — the LAST re-paper) | IMPL (Band 5) | **authored — awaits auth (DEPENDS on the visual waves)** | `proof:manifest-sourced` + `proof:visual-lock` + the chronic meta-gate — adding a scene to `scenes.ts` without a manifest entry reds (RED: `demo-driver.mjs:40-59` knows 6, the demo ships 9 — sequence/motion-path/starting-style NEVER gate-visited); reverting any D1/D3/D4/D6/D7 trips the named-region pixel diff (needs `pixelmatch`+`pngjs` CI-only devDeps, BLK-4); a bare HANDOFF tag with no born-RED gate reds the ledger (`proof:dock-morph-settled` token-peak born-RED for the dock consume-leg — the canonical SPRING-gate name, NOT `proof:dock-live`; BLK-3; the meta-gate parses `PROGRESS.md`, not the un-authored `FINAL.md`, BLK-2). Three structural additions (I-1 re-source SCENES, I-2 the pixel baseline, I-3 the chronic-closure meta-gate) + the φ-hero floor, motion-liveness, scene-parity, mobile extensions. Folds `a-gate-blindspots`, `a-deferred-chronic` §3, `a-changes-vs-plan`, `a-precept-sweep`. |
+| **H.WZ** | The H FINAL + the changeset + provenance | IMPL (LAST) | **authored — awaits auth** | `H/FINAL.md` reconciles the consolidated ledger (every SHIP regression-checked; every chronic closed with a SYSTEM-property gate OR a HANDOFF-with-born-RED gate per §6; every glass-ui/value.js/parse-that HANDOFF tagged + paired); the prompt-recap confirms every A→H ask ADDRESSED / PENDING (sibling-owned) / H-SCOPE; the changeset cut (version owner **Mike Babb**); **absorbs the H.W0–H.W8 gates**; the full `proof:*` suite green; no unintended regression. **NB (BLK-2): the chronic-closure meta-gate's CANONICAL parse substrate is this `PROGRESS.md §"Open deferrals"` chronic table (the single parseable substrate, present today); `H/FINAL.md` does NOT exist until H.WZ and is parsed ADDITIONALLY only behind an `fs.existsSync` guard.** |
 
 ## W0 audit evidence (on disk)
 
@@ -151,7 +151,11 @@ six synthesis docs are the load-bearing reconciliation:
   P-invariant-policed-the-column failure (folds into the H.W8 meta-gate).
 - **`_SYNTHESIS-prompt-recap.md`** — the full A→B→C→constellation→D→E→F→G→H recap; confirms
   the recurring precepts (no-legacy, no-workaround, idiomatic+gestalt, isomorphic,
-  measure-first, KISS, inv ε/ζ/16) and the demo-quality asks the gate regime missed.
+  measure-first, KISS, inv ε/ζ/16) and the demo-quality asks the gate regime missed. **The
+  four recap-extra asks are homed (their §P10 user-phrasing aliases, CP-MED-4):
+  "easing modern-web sizing"→D3 (H.W4), "refine the specular"→D14 (H.W2), "scene corruption /
+  route storm"→D12 (H.W1), "springy drawer"→D13 (H.W7)** — discoverable by the user's literal
+  phrasing, not only the D-number.
 
 The 35 phase-1 lanes under `audit/` — `a-animations-quality`, `a-cartoon-shadow`,
 `a-changes-vs-plan`, `a-controls-sidebar`, `a-deferred-chronic`, `a-deferred-ledger`,
@@ -168,35 +172,51 @@ per-wave, and the gap-scorecard `§1`/`§3` dedups + adjudicates + dispositions 
 ## Verified facts at H-open
 
 Every figure below is a re-runnable `wc`/`grep`/`cat` measurement or a live Playwright
-observation against the demo on `tranche-h-dev` (kf 4.1.0 + all of Tranche G, `:5174`),
+observation against the demo on `tranche-h-dev` (kf 4.1.0 + all of Tranche G, `:5173`),
 not the plan's prose — **verified, not asserted** (each cites its owning lane, inv ε).
 
-- **The 2 live console crashes ship in 4.1.0.** **H-A1:** `serializeEasing` THROWS **4×**
-  on EVERY Cube load (`format.ts:24` ← `KeyframesStringControls.vue:46`, no try/catch; the
-  G.W4 commit `3d352a3` made it throw, cube presets carry closure easings with no `.css`
-  twin). **H-A2:** the `"......"` lerp parse-error (`engine.ts:516,576` ← the hero ellipsis
-  reaching a CSS-value lerp path). (`a-engine-regressions` H-A1/H-A2 — live console
-  observation)
+- **The 2 live console crash FAMILIES ship in 4.1.0 (re-root-caused by the DEEP harden,
+  BLK-1).** **H-A1:** `serializeEasing` THROWS **0–3× on a clean cold `#/cube`** (NOT "4× on
+  every load" — the "4×" was a polluted multi-session capture + the route storm navigating
+  away before the throw; CP-HIGH-2). The throw is at `serializeEasing` (`src/animation/
+  format.ts:30`, throw `:36`) ← the readout call (`KeyframesStringControls.vue:~95`, from
+  `onMounted :222`), no try/catch. It is NOT the Cube presets (`Rotations`/`Matrix` resolve
+  `ease-in-out` and serialize CLEAN); the REAL seams are the easing `contractAnim`
+  (`useEasingDemo.ts:268`, a bare `cubic-bezier`/`steps` closure) + amiga
+  (`useAmigaAnimations.ts:31,74` pass `CSSCubicBezier(...)` as `timingFunction`) + ~12
+  `animations.ts` presets. The G.W4 commit `3d352a3` made `serializeEasing` throw on a bare
+  closure with no `.css` twin. **H-A2:** the `"......"` lerp parse-error (`engine.ts:769`
+  processFrame / `:779` lerpValue via `:657 interpFrames`) — its TRIGGER is a value.js path
+  on route-storm-restored cross-scene state, NOT the hero ellipsis reaching a
+  `CSSKeyframesAnimation` lerp (`AnimatedText.vue` is pure CSS, 0 engine symbols).
+  (`a-engine-regressions` H-A1/H-A2 — live console observation; CP-MED-1: `src/` =
+  `animation/` + `env.d.ts` only on `tranche-h-dev`, the published `src/parsing/format.ts`
+  tree predates the consolidation)
 - **The 5-authority route storm is LIVE.** NO single source of truth for "active scene" —
   5 competing authorities (route, localStorage, lagging `currentSuperKey`, dock Select,
   debounced `?anim=`) oscillate into an **autonomous route storm**
   (easing→motion-path→starting-style→spring→amiga); 3 competing playback authorities;
   restore = the `isStableFire` double-fire heuristic (`useSceneGroupSync.ts:54`); NO
   genuine SUSPEND; a home↔cube alias. (`a-scene-state-machine §1`, `a-store-architecture`)
-- **The specular radial is on 13 panel hosts, 0 pointer-wired.** glass-ui
-  `glass-specular-track::before` (mouse-tracked radial, .55 white core, `screen` blend,
-  .35→.6 hover) on every `<Card surface="glass">` default; live **13 hosts,
+- **The specular radial is on ~5–13 panel hosts (route/state-dependent), 0 pointer-wired.**
+  glass-ui `glass-specular-track::before` (mouse-tracked radial, .55 white core, `screen`
+  blend, .35→.6 hover) on every `<Card surface="glass">` default; live **~5–13 hosts (the
+  count moves with route + dock-expansion + mounted panels; CP-MED-2),
   `anyPointerWrite:false`** → a static centered bloom (the radial has no `--mouse-*`
-  writer). Cartoon-surface is on EXACTLY 1 site (`CSSCodeEditor.vue:6`).
-  (`a-cartoon-shadow` CS-1 — live Playwright)
+  writer). The INVARIANT (`anyPointerWrite:false` on every track) is stable — the gate
+  asserts the invariant, not a count. Cartoon-surface is on EXACTLY 1 site
+  (`CSSCodeEditor.vue:6`). (`a-cartoon-shadow` CS-1 — live Playwright)
 - **The easing canvas is a 680×680px square** (77% of an 883px panel) — `EasingCurveCanvas
   .vue:269-273` `aspect-ratio:1` off an uncapped `width:100%` with no container context;
   `TimingFunctionPanel.vue:17-19` `text-heading` header + `gap-0` flush double-chrome.
   (`a-easing-editor` — live measurement)
-- **The dock runs the pre-AW.W2 bouncy spring.** Installed glass-ui ships
-  `--spring-dock: …0.10932…` = the OLD (0.5, 0.5) **~+18.5% overshoot** register; the AW.W2
-  retune (response 0.32, ζ 0.7, ~167ms settle) is in glass-ui `53c1b07` **unpublished**.
-  (`a-historical-dock` H-dock-2 — measured token — glass-ui-HANDOFF)
+- **The dock runs the pre-AW.W2 bouncy spring.** Installed (pinned `^3.4.0`) glass-ui ships
+  `--spring-dock: …0.10932…` = the OLD (0.5, 0.5) register, **sampled ramp peak +16.3%**
+  (the analytic spring overshoot is ~+18.5%; the gate parses the sampled +16.3%; CP-MED-3);
+  the AW.W2 retune (response 0.32, ζ 0.7, ~167ms settle) is in glass-ui `53c1b07` —
+  **PUBLISHED** (glass-ui 3.5.0/3.5.1/3.6.0 on npm, VERIFIED; BLK-5), so the fix is a kf
+  consume-leg BUMP `^3.4.0 → ^3.5.1`, NOT a wait.
+  (`a-historical-dock` H-dock-2 — measured token — kf CONSUME-LEG, not an await-release handoff)
 - **The 61 icon-size classes are silent no-ops.** `icon-sm`×34 / `icon-md`×13 /
   `icon-lg`×11 / `icon-xs`×3 = **61 callsites**; live `anyIconRuleInStylesheets:false`, all
   compute the identical 24px (Lucide default); defined NOWHERE (demo, glass-ui, or git
@@ -237,9 +257,14 @@ sibling owner sequences them. Per the chronic-closure discipline (`§6`), **each
 PAIRED with a born-RED kf gate** so a bare column-migration cannot masquerade as closure
 (`audit/_SYNTHESIS-gap-scorecard.md §4`):
 
-1. **glass-ui-HANDOFF — the dock LAG (D5-b).** Release the unpublished `53c1b07` (≥3.4.1)
-   then kf bumps; the kf-side pairing is `proof:dock-morph-settled` (≤6% overshoot,
-   ≤200ms) **born-RED** against the live `--spring-dock: 0.10932…`. NO kf fork.
+1. **kf CONSUME-LEG — the dock LAG (D5-b) (BLK-5 — `53c1b07` IS PUBLISHED, no longer an
+   await-release HANDOFF).** The retune `53c1b07` is PUBLISHED in glass-ui 3.5.0/3.5.1/3.6.0
+   (npm, VERIFIED), so kf bumps `@mkbabb/glass-ui ^3.4.0 → ^3.5.1` to consume it (NO kf
+   fork); the kf-side pairing is `proof:dock-morph-settled` in its **token-peak form**
+   (`--spring-dock` ramp peak ≤ +6%) **born-RED** against the installed +16.3% register
+   (CP-MED-3) — trivially measurable, greens on the bump (the morph is not reliably driveable
+   live). MEASURE-FIRST: the 3.5.0+ bump crosses dock-layering polish — re-run
+   `proof:dock-dropdown-opens` + a slot-shape check post-bump.
 2. **glass-ui-HANDOFF — the Card specular SEAM (D2/D14 root).** `CardFooter:37` emits
    `glass-specular-track` on `surface="glass"` with no `--mouse-*` wire; the Card should
    wire-or-omit the seam + ship a calmer default (rest ≤0.25, radius ≤40%). H.W2 ships the
@@ -267,9 +292,9 @@ each lands against this discipline:
 | Chronic | Prior false-close mode | H closure (the SYSTEM-property gate or paired born-RED HANDOFF) |
 |---|---|---|
 | **cartoon-shadow depth (D2)** | M1 — issue-level close masquerading as system close | **SYSTEM gate** — `proof:cartoon-is-panel-depth` + `proof:no-orphan-specular` (H.W2); the glass-ui Card-seam HANDOFF is PAIRED |
-| **φ-hero typography (D7)** | M1 — issue-level close masquerading as system close (C.W2 closed the CSSCodeEditor/display-tier site; the hero never reached a hero rung; 128→37 body rungs lingered) | **SYSTEM gate** — `proof:phi-leaf-zero` (BOTH halves: hero `font-size ≥ --type-display-mega` AND a φ class AND 0 raw `text-*` rungs across the demo, H.W4); `proof:hero-rung` alone is the rung half — insufficient for M1 (it leaves the lingering raw rungs un-policed) |
+| **φ-hero typography (D7)** | M1 — issue-level close masquerading as system close (C.W2 closed the CSSCodeEditor/display-tier site; the hero never reached a hero rung; raw body rungs lingered) | **SYSTEM gate** — `proof:phi-leaf-zero` (BOTH halves: the hero resolves the `text-display-mega` CLASS AND a px floor at a fixed named viewport — `font-size ≥ 140px` at 1440×900, NOT a `≥ --type-display-mega` clamp-vs-clamp comparison; CP-HIGH-3 — AND **0 raw `text-*` rungs** across the demo, where the residual is **2 (L1 `AnimationMenuBar.vue:102` + L2 `MotionPathTarget.vue:119`)** under the gate's `ui/` exclusion, NOT 37 — 37 materializes only by counting vendored `ui/` shadcn; WV-W4-HIGH-1/HS-HIGH-3) (H.W4); `proof:hero-rung` alone is the rung half — insufficient for M1 (it leaves the lingering raw rungs un-policed) |
 | **mobile architecture (D10)** | M2 — scope-narrowing (stack "fits", not overlay) | **SYSTEM gate** — `proof:mobile-single-page` + `proof:drawer-spring` (H.W7) |
-| **dock LAG (D5)** | M3 — column-migration to HANDOFF with NO paired kf gate | **HANDOFF + born-RED gate** — release `53c1b07`; `proof:dock-morph-settled` born-RED (H.W8/§4) |
+| **dock LAG (D5)** + **@mbabb popover (D9)** | D5: M3 — column-migration to HANDOFF with NO paired kf gate; D9: dropped from the chronic table entirely (CP-MED-5) | **D5 — kf CONSUME-LEG + born-RED gate** — bump `^3.4.0 → ^3.5.1` (`53c1b07` IS PUBLISHED, BLK-5); `proof:dock-morph-settled` (token-peak ≤+6%) born-RED (H.W8/§4). **D9 — SYSTEM gate (kf SHIP)** — `proof:dock-popover-opens` + `proof:single-toggle` (the App.vue un-double-wrap; H.W1 S8, BLK-8/CP-MED-5) — D9 IS kf-patched, distinct from the D5 dock-CHROME consume-leg |
 
 The full whole-history A→H ledger + the chronic-closure audit is in
 `audit/_SYNTHESIS-deferred-ledger.md`. The cross-repo items are HANDOFFs (each its own
@@ -277,7 +302,10 @@ surface, each PAIRED with a born-RED kf gate, `§4`) — **not kf-owned debt, an
 perpetual punts.** No item is named-forward to a ninth tranche; the H.W8 gate-regime
 upgrade (the appearance axis, the interaction axis, the re-sourced manifest, the
 chronic-closure meta-gate) is the structural close that makes H the LAST tranche these
-four chronics can be re-papered.
+four chronics can be re-papered. **Two formerly-unhomed "DECIDE" items are now owned
+(CP-MED-6): DC-8 (scene-swap dead CSS) → H.W5 (it touches `useSceneSwap`) with a `grep=0`
+gate; FB-6 (the `Mod+K` palette) → an owner-decision at H.WZ's BOOK ledger — neither is a
+latent perpetual punt.**
 
 ## Release tier (reconciled)
 
