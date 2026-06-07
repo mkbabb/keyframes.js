@@ -112,9 +112,13 @@ byte-stable for the uniform case; the demo SHIPs additive). The combined **B + C
 F** publish tier is **major**, driven by C/D — one provenance-signed publish ships the whole
 stack. The **version owner is Mike Babb** (`mike@babb.dev`).
 
-The outward legs stay USER-DOMAIN, confirm-first: (1) push `tranche-f-impl` + the
-merge-to-master strategy; (2) the **gh-pages deploy** → keyframes.babb.dev (the `deploy.yml`
-workflow authored this tranche, or the established peaceiris push); (3) the **npm publish**
-(`changeset version` → tag → `release.yml`), in dependency order
-(value.js → parse-that → keyframes), each re-pinning the consumer. Everything up to
-"ready-to-publish, CI green, demo built + validated" is autonomous.
+The outward legs (executed on the user's "full release sequence" go-ahead): (1) master
+fast-forwarded to the B+C+D+E+F stack; (2) **published** — `@mkbabb/keyframes.js@4.0.0`
+(provenance, via `release.yml` on the v4.0.0 tag), `@mkbabb/value.js@0.11.0`,
+`@mkbabb/parse-that@0.9.0`; (3) **deployed to keyframes.babb.dev** — which is a **Cloudflare
+Pages** project (`keyframes` → keyframes-8uq.pages.dev), NOT GitHub Pages. The deploy-of-record
+is the constellation CF-Pages spine, adopted as `scripts/pages-deploy.sh` +
+`.github/workflows/deploy-pages.yml` (green-CI-gated, inv-28); the legacy GitHub Pages
+`deploy.yml` + the gh-pages-branch path are **RETIRED** and the GitHub Pages site disabled
+(it served a parallel site the DNS never pointed at). keyframes.babb.dev serves the F build
+(MotionPath + Sequence scenes), live-validated.
