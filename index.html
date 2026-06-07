@@ -4,20 +4,45 @@
         <meta charset="UTF-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>keyframes.js</title>
+        <title>keyframes.js — CSS keyframe animations for anything in JavaScript</title>
+        <meta
+            name="description"
+            content="keyframes.js parses CSS @keyframes and animates any object or DOM element in JavaScript — springs, scroll timelines, element morphs, and a live editor demo."
+        />
+        <meta name="robots" content="index, follow" />
+        <link rel="canonical" href="https://mkbabb.github.io/keyframes.js/" />
         <link rel="icon" href="./assets/cube-icon-sm-CqZgfax4.png" />
 
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
-        <!-- Fonts loaded non-blocking: media="print" prevents render-block,
-             onload swaps to "all" once fetched. Eliminates ~200-400ms on cold load. -->
+        <!-- C4 font preload (E.W4 S4): the hero <h1 class="text-display-4">
+             (EditorStartScreen.vue) is the LCP element, set in Instrument Serif
+             REGULAR (--font-display). The non-blocking stylesheet below discovers
+             the woff2 only after the print-media CSS loads + the onload swap, so
+             the LCP face arrives late and swaps from the metric-matched fallback
+             mid-paint. Preloading the EXACT above-the-fold face — Instrument
+             Serif upright, latin subset (the heading "Select an animation…" is
+             upright latin) — starts that fetch in the head, in parallel with the
+             stylesheet, so the web font is on-disk by the time the swap fires.
+             ONE face only (the guide forbids over-preloading: italic + latin-ext
+             are not above the fold). `crossorigin` is mandatory — a font fetch is
+             always CORS-anonymous, and a preload without it double-fetches. The
+             URL is the gstatic v5 latin woff2 the css2 endpoint serves modern
+             Chromium; if Google bumps the family version it serves the old file
+             indefinitely (the stylesheet remains the source of truth — a stale
+             preload simply misses the cache, never 404s the render). -->
         <link
-            rel="stylesheet"
-            href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;700&display=swap"
-            media="print"
-            onload="this.media='all'"
+            rel="preload"
+            as="font"
+            type="font/woff2"
+            href="https://fonts.gstatic.com/s/instrumentserif/v5/jizHRFtNs2ka5fXjeivQ4LroWlx-6zAjjH7Motmp5g.woff2"
+            crossorigin
         />
+
+        <!-- Fira Code arrives self-hosted via @mkbabb/glass-ui/styles cascade.
+             Instrument Serif remains Google-Fonts-loaded (not in glass-ui font subsystem).
+             Non-blocking pattern: media="print" prevents render-block, onload swaps to "all". -->
         <link
             rel="stylesheet"
             href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap"
@@ -25,7 +50,6 @@
             onload="this.media='all'"
         />
         <noscript>
-            <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;700&display=swap" />
             <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" />
         </noscript>
 
@@ -41,45 +65,60 @@
                 }
             })();
         </script>
-      <script type="module" crossorigin src="./assets/index-BH-96uF2.js"></script>
-      <link rel="modulepreload" crossorigin href="./assets/vendor-lucide-Ia4asZnp.js">
-      <link rel="modulepreload" crossorigin href="./assets/vendor-reka-ui-DkvdM59e.js">
-      <link rel="stylesheet" crossorigin href="./assets/vendor-monaco-bo9aZu7E.css" media="print" onload="this.media='all'">
-      <link rel="stylesheet" crossorigin href="./assets/index-0V0C9fPI.css">
+        <!-- The app bootstrap is a real module file (a graph ROOT rolldown
+             must keep), never an inline module (a graph LEAF it may — and
+             once did — tree-shake into a blank production build). -->
+      <script type="module" crossorigin src="./assets/index-DMJjySSD.js"></script>
+      <link rel="modulepreload" crossorigin href="./assets/rolldown-runtime-QTnfLwEv.js">
+      <link rel="modulepreload" crossorigin href="./assets/preload-helper-kNaey6uv.js">
+      <link rel="modulepreload" crossorigin href="./assets/vendor-reka-ui-CVUb_gFh.js">
+      <link rel="modulepreload" crossorigin href="./assets/vendor-lucide-D0U-XFLU.js">
+      <link rel="modulepreload" crossorigin href="./assets/engine-D-howIOp.js">
+      <style data-critical>
+:root {
+    color-scheme: light;
+    --background: hsl(0 0% 100%);
+    --foreground: hsl(222.2 84% 4.9%);
+    --card: hsl(0 0% 100%);
+    --border: hsl(214.3 31.8% 91.4%);
+    --muted-foreground: hsl(215.4 16.3% 46.9%);
+    --shadow-color: hsl(0 0% 0%);
+    --radius-pill: 9999px;
+    --radius-card: 1rem;
+    --glass-bg-medium: color-mix(in srgb, var(--card) 65%, transparent);
+    --glass-border-subtle: color-mix(in srgb, var(--foreground) 8%, transparent);
+    --glass-blur-subtle: blur(4px) saturate(1.05);
+    --glass-highlight: inset 0 0.5px 0 0 hsl(0 0% 100% / 0.25);
+}
+.dark {
+    color-scheme: dark;
+    --background: hsl(224 71% 4%);
+    --foreground: hsl(210 40% 98%);
+    --card: hsl(224 50% 10%);
+    --border: hsl(216 34% 17%);
+    --muted-foreground: hsl(215 20.2% 65.1%);
+    --glass-highlight: inset 0 0.5px 0 0 hsl(0 0% 100% / 0.08);
+}
+*, *::before, *::after { box-sizing: border-box; border-color: var(--border); }
+html, body {
+    background-color: var(--background);
+    color: var(--foreground);
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+    min-height: 100dvh;
+    width: 100%;
+}
+</style>
+      <link rel="stylesheet" crossorigin href="./assets/index-XEwq2tnX.css" media="print" onload="this.media='all'">
+      <noscript><link rel="stylesheet" crossorigin href="./assets/index-XEwq2tnX.css"></noscript>
     </head>
 
     <body>
-        <!-- Loading skeleton: renders instantly before JS/CSS loads.
-             Vue's mount replaces this content. Matches the home screen layout. -->
-        <div style="display: contents" id="app">
-            <style>
-                .loading-skeleton {
-                    display: grid;
-                    height: 100dvh;
-                    width: 100dvw;
-                    place-items: center;
-                    font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif;
-                    color: #1a1a1a;
-                    background: #fff;
-                    overflow: hidden;
-                }
-                .dark .loading-skeleton {
-                    color: #e5e5e5;
-                    background: #0a0a0a;
-                }
-                .loading-title {
-                    font-size: clamp(2.5rem, 6vw, 5rem);
-                    font-weight: bold;
-                    opacity: 0;
-                    animation: skeleton-fade 0.4s ease-out 0.05s forwards;
-                }
-                @keyframes skeleton-fade {
-                    to { opacity: 1; }
-                }
-            </style>
-            <div class="loading-skeleton">
-                <div class="loading-title">keyframes.js</div>
-            </div>
-        </div>
+        <!-- No splash: criticalCSSPlugin inlines the themed background +
+             body geometry for an instant, layout-stable first paint, and
+             the app's true first frame (the hero) mounts directly onto it —
+             nothing to content-swap. -->
+        <div id="app"></div>
     </body>
 </html>
