@@ -345,7 +345,7 @@ function walkCount(dir) {
 {
     const id = "proof:hover-warmup";
     const scenesRel = "demo/app/scenes.ts";
-    const dockRel = "demo/@/components/custom/dock/TopDock.vue";
+    const dockRel = "demo/@/components/custom/dock/ChromeDock.vue";
     const appRel = "demo/app/App.vue";
     const scenesSrc = read(scenesRel);
     const dockSrc = read(dockRel);
@@ -547,6 +547,46 @@ function walkCount(dir) {
             reason:
                 "Vue <script setup> templates auto-escape; the CSS-paste flow routes through the engine " +
                 "parser, not a DOM sink. No v-html/innerHTML untrusted path (modern-web D-15).",
+        },
+        // G.W14 — three post-F catalog levers (the corpus grew since F authored
+        // the checklist). Each re-scores N-A/OUT — none is a SHIP, ZERO demo
+        // pixels move. The live Baseline strings (modern-web-guidance retrieve)
+        // are quoted in each reason so a reviewer can re-confirm (r-modern-web
+        // MW-NEW-1/2/3).
+        {
+            code: "NEW1/sibling-index",
+            axis: "sibling-index()/sibling-count() (pure-CSS stagger)",
+            disposition: "N-A-with-reason",
+            reason:
+                "NOT Baseline — 'sibling-count() and sibling-index() has limited availability. " +
+                "Unsupported in: Firefox.' The demo's per-word animationDelay (AnimatedText.vue) is a " +
+                "Vue v-for-index binding that works on ALL engines; swapping to sibling-index() would " +
+                "BREAK the stagger on Firefox (instant fallback = all-words-at-once) for a " +
+                "declarativeness gain only — a not-Baseline regression of a working surface the mandate " +
+                "forbids. The engine's stagger is the strictly-more-general JS primitive over arbitrary " +
+                "targets (no engine threat). Revisit when Firefox ships it (r-modern-web MW-NEW-1).",
+        },
+        {
+            code: "NEW2/custom-highlight",
+            axis: "Custom Highlight API (::highlight() arbitrary text ranges)",
+            disposition: "N-A-with-reason",
+            reason:
+                "Baseline — 'Custom highlights: Newly available. Baseline since 2026-03-24' — BUT no " +
+                "clean keyframes-demo fit. The one plausible surface (highlighting matched ranges in the " +
+                "CSS-paste / Monaco editor) is OWNED by Monaco's own decorations API; there is no honest " +
+                "demo seam where the API removes hand-rolled work, so adopting it would be gold-plating a " +
+                "lever with no home (r-modern-web MW-NEW-2).",
+        },
+        {
+            code: "NEW3/dialog-closedby",
+            axis: "<dialog closedby> (declarative light-dismiss)",
+            disposition: "OUT",
+            reason:
+                "NOT Baseline — '<dialog closedby> has limited availability. Unsupported in: Safari.' AND " +
+                "double-disqualified: the demo's only modal (KeyboardShortcutsModal.vue) is a reka-ui " +
+                "<Dialog> (a role-div + JS FocusScope, NOT a native <dialog>), so the closedby attribute " +
+                "has no surface on the role-div; migrating reka-ui→native is a glass-ui/reka-ui seam (the " +
+                "existing H1/H2 OUT logic, inv-16). OUT (r-modern-web MW-NEW-3).",
         },
     ];
 

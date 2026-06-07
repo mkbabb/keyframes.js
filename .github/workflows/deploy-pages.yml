@@ -80,16 +80,11 @@ jobs:
               with:
                   node-version: 24
                   cache: "npm"
-            # The demo legitimately needs glass-ui (the library does not). Mirror
-            # ci.yml's demo-smoke: check out + build the PINNED glass-ui sibling
-            # the file:../glass-ui optional dep points at, so the demo build
-            # resolves it exactly as a dev machine does.
-            - name: check out + build the glass-ui sibling (file:../glass-ui, pinned)
-              run: |
-                  git clone --depth 1 --branch v3.2.0 https://github.com/mkbabb/glass-ui.git "$GITHUB_WORKSPACE/../glass-ui"
-                  cd "$GITHUB_WORKSPACE/../glass-ui"
-                  npm ci
-                  npm run build
+            # The demo legitimately needs glass-ui (the library does not). The
+            # clone+build recipe + the reproducibility pin are single-sourced in
+            # the setup-glass-ui composite action — the same action ci.yml's
+            # demo-smoke job `uses:`, so the recipe + pin live in EXACTLY one place.
+            - uses: ./.github/actions/setup-glass-ui
             - name: npm ci (picks up the built file:../glass-ui)
               run: npm ci
             # scripts/pages-deploy.sh builds the demo (BUILD_CMD=npm run gh-pages →

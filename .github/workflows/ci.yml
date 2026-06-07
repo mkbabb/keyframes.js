@@ -30,9 +30,11 @@
 #   A blank/tree-shaken build or an occluded page fails CI here.
 #
 # Cross-repo dependency-order note: keyframes.js resolves @mkbabb/value.js
-# via the npm registry (^0.10.0). A breaking value.js publish surfaces here
-# at the `npm ci` + build:lib step — the standard chore(deps) bump routes
-# the breakage through a PR.
+# via the npm registry (range declared in `package.json`). A breaking value.js
+# publish surfaces here at the `npm ci` + build:lib step — the standard
+# chore(deps) bump routes the breakage through a PR. The floor is single-sourced
+# in `package.json`'s declared range, not hardcoded here (proof:ci-coverage's
+# version-literal clause forbids a bare workflow literal that disagrees with it).
 name: ci
 
 on:
@@ -41,6 +43,13 @@ on:
     push:
         branches: [master]
 
+# Cancel superseded runs on the same ref to save minutes (the constellation
+# guard — `deploy/templates/ci.yml`). The gates job is ~17 proof gates + tsc +
+# build + test; demo-smoke is a Playwright + lighthouse + LoAF matrix.
+concurrency:
+    group: ci-${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
 jobs:
     gates:
         name: library gate (glass-ui-free)
@@ -48,6 +57,9 @@ jobs:
         timeout-minutes: 10
         steps:
             - uses: actions/checkout@v5
+            # kf runs Node 24 — the newest runtime the published lib will face;
+            # constellation default is 22; engines floor is >=22 (a NAMED delta,
+            # not silent drift — a library should test the newest runtime).
             - uses: actions/setup-node@v5
               with:
                   node-version: 24
@@ -121,6 +133,26 @@ jobs:
               run: npm run proof:adapter-capture
             - name: proof:motion-path (F.W12 — CSS-native MotionPath eligibility + compositor)
               run: npm run proof:motion-path
+            - name: proof:blend (G.W17 — the dead add/weighted blend leaf, element-wise)
+              run: npm run proof:blend
+            - name: proof:drawsvg (G.W13 — CSS-native DrawSVG, WAAPI-eligible)
+              run: npm run proof:drawsvg
+            - name: proof:finished (G.W13 — the .finished completion front-door)
+              run: npm run proof:finished
+            - name: proof:adopt-compiled (G.W19 — the adoptCompiled() engine seam)
+              run: npm run proof:adopt-compiled
+            - name: proof:interpolate-anything (G.W15 — value-type breadth + color fidelity)
+              run: npm run proof:interpolate-anything
+            - name: proof:roundtrip-fidelity (G.W16 — parse→format→reparse byte-same midpoint)
+              run: npm run proof:roundtrip-fidelity
+            - name: proof:orbital-rotate3d (G.W18 — the orbital rotate3d output collapse)
+              run: npm run proof:orbital-rotate3d
+            - name: proof:asset-store-singleton (G.W8 — useAssetManager createGlobalState identity)
+              run: npm run proof:asset-store-singleton
+            - name: proof:scene-raf-leak (G.W9 — the scene rAF-leak lifecycle correction)
+              run: npm run proof:scene-raf-leak
+            - name: proof:resize-tracks (G.W3 — cqw tracks a non-window container resize)
+              run: npm run proof:resize-tracks
             - name: proof:cohesion (F.W11 — clamp convergence · inverted-tier · preset reachability)
               run: npm run proof:cohesion
             - name: proof:repin-witness (G.W2 — the C1 computed-endpoint memo resolves O(frames)→O(1) on kf's path)
@@ -140,27 +172,12 @@ jobs:
               with:
                   node-version: 24
                   cache: "npm"
-            # The demo arm needs glass-ui (the library gate does not). The
-            # PUBLISHED tarball ships only `dist/styles/` while tailwind's CSS
-            # `@import "@mkbabb/glass-ui/styles"` resolves the SOURCE's root
-            # `styles/` (it does not honor the package `exports` map) — so the
-            # demo build resolves glass-ui ONLY against the sibling source the
-            # `file:../glass-ui` optional dep points at. Check out + build that
-            # sibling (it consumes keyframes/value.js from the REGISTRY — no
-            # circular sibling dep), so the demo build resolves it exactly as a
-            # dev machine does.
-            # PINNED to a known-good glass-ui tag (NOT the default branch): a
-            # foreign repo's moving HEAD is a reproducibility hole — a glass-ui
-            # main break (its own build, a peer/dep bump, a renamed build
-            # script) would red keyframes CI for a change with zero keyframes
-            # diff. The pin advances via an explicit chore(ci) bump — the same
-            # routed-through-a-PR discipline the value.js dep-order note keeps.
-            - name: check out + build the glass-ui sibling (file:../glass-ui, pinned)
-              run: |
-                  git clone --depth 1 --branch v3.2.0 https://github.com/mkbabb/glass-ui.git "$GITHUB_WORKSPACE/../glass-ui"
-                  cd "$GITHUB_WORKSPACE/../glass-ui"
-                  npm ci
-                  npm run build
+            # The demo arm needs glass-ui (the library gate does not). The clone
+            # +build recipe + the reproducibility pin are single-sourced in the
+            # setup-glass-ui composite action (the canonical GitHub-Actions DRY
+            # primitive) — deploy-pages.yml's deploy job `uses:` the same action,
+            # so the recipe + pin live in EXACTLY one place.
+            - uses: ./.github/actions/setup-glass-ui
             - name: npm ci (picks up the built file:../glass-ui)
               run: npm ci
             - name: install playwright + lighthouse (demo-gate only; --no-save keeps the lib posture)
@@ -173,6 +190,14 @@ jobs:
               run: node scripts/demo-smoke.mjs
             - name: inv δ — no page occludes on any viewport
               run: node scripts/occlusion-gate.mjs
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            - name: proof:demo-usability (G.W11 — Discrete route reachable · hero word-gap · unique Play aria)
+              run: npm run proof:demo-usability
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            - name: proof:computed-real-dom (G.W16 S2 — the C5 50dvh fix on the genuine layout path)
+              run: npm run proof:computed-real-dom
               env:
                   KF_REQUIRE_BROWSER: "1"
             # C.W1 S6 — the lighthouse A11y=100 (demo-owned) + SEO≥90 hard gate

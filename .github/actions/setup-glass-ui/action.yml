@@ -1,0 +1,35 @@
+# setup-glass-ui — single-source the glass-ui sibling clone+build recipe.
+#
+# The demo legitimately needs glass-ui (the library gate does not). The PUBLISHED
+# tarball ships only `dist/styles/` while tailwind's CSS
+# `@import "@mkbabb/glass-ui/styles"` resolves the SOURCE's root `styles/` (it does
+# not honor the package `exports` map) — so the demo build resolves glass-ui ONLY
+# against the sibling source the `file:../glass-ui` optional dep points at. Check
+# out + build that sibling (it consumes keyframes/value.js from the REGISTRY — no
+# circular sibling dep), so the demo build resolves it exactly as a dev machine does.
+#
+# PINNED to a known-good glass-ui tag (NOT the default branch): a foreign repo's
+# moving HEAD is a reproducibility hole — a glass-ui main break (its own build, a
+# peer/dep bump, a renamed build script) would red keyframes CI for a change with
+# zero keyframes diff. The pin advances via an explicit chore(ci) bump — the same
+# routed-through-a-PR discipline the value.js dep-order note keeps. Single-sourced
+# HERE: the pin lives in exactly one place, so a bump is one line, never two-in-sync.
+name: setup-glass-ui
+description: >-
+    Check out + build the pinned glass-ui sibling (file:../glass-ui) so the demo
+    build resolves it exactly as a dev machine does.
+inputs:
+    pin:
+        description: The glass-ui git tag to clone (the reproducibility pin).
+        required: false
+        default: v3.3.0
+runs:
+    using: composite
+    steps:
+        - name: check out + build the glass-ui sibling (file:../glass-ui, pinned)
+          shell: bash
+          run: |
+              git clone --depth 1 --branch ${{ inputs.pin }} https://github.com/mkbabb/glass-ui.git "$GITHUB_WORKSPACE/../glass-ui"
+              cd "$GITHUB_WORKSPACE/../glass-ui"
+              npm ci
+              npm run build

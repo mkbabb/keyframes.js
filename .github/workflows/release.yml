@@ -21,6 +21,14 @@ on:
         tags:
             - "v*.*.*"
 
+# A publish in flight must NOT be cancelled mid-`npm publish` (a half-published
+# version is the exact corruption the guard prevents) — so cancel-in-progress is
+# FALSE: a second concurrent run on the same tag is BLOCKED, the first runs to
+# completion. The deliberate asymmetry vs ci.yml's cancel-in-progress: true.
+concurrency:
+    group: release-${{ github.ref }}
+    cancel-in-progress: false
+
 permissions:
     contents: read
     id-token: write
