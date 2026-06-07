@@ -74,6 +74,7 @@
         "proof:resize-tracks": "vitest run test/resize-tracks.test.ts",
         "proof:computed-real-dom": "node scripts/proof-computed-real-dom.mjs",
         "proof:demo-usability": "node scripts/proof-demo-usability.mjs",
+        "proof:demo-console-clean": "node scripts/proof-demo-console-clean.mjs",
         "proof:cohesion": "vitest run test/boundary-cohesion.test.ts",
         "proof:ci-coverage": "node scripts/proof-ci-coverage.mjs",
         "proof:all": "npm run proof:deps-current && npm run proof:repin-witness && npm run proof:boundary && npm run proof:dogfood && npm run proof:engine && npm run proof:decomposition && npm run proof:idioms && npm run proof:brittleness && npm run proof:demo-elevate && npm run proof:modern-web && npm run proof:zero-alloc && npm run proof:engine-correctness && npm run proof:standalone-zero-alloc && npm run proof:compile-deterministic && npm run proof:platform-adopt && npm run proof:orchestration && npm run proof:interp-fastprops && npm run proof:sync-step && npm run proof:roundtrip-easing && npm run proof:adapter-capture && npm run proof:motion-path && npm run proof:blend && npm run proof:drawsvg && npm run proof:finished && npm run proof:adopt-compiled && npm run proof:interpolate-anything && npm run proof:roundtrip-fidelity && npm run proof:orbital-rotate3d && npm run proof:asset-store-singleton && npm run proof:scene-raf-leak && npm run proof:resize-tracks && npm run proof:cohesion && npm run proof:bench-runs && npm run proof:ci-coverage && vitest run",

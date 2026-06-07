@@ -1,4 +1,3 @@
-import { CSSCubicBezier } from "@mkbabb/value.js";
 import * as THREE from "three";
 
 import { CSSKeyframesAnimation } from "@src/animation/engine";
@@ -28,7 +27,7 @@ export function useAmigaAnimations(getSphere: () => THREE.Mesh<THREE.SphereGeome
     const rotations = new CSSKeyframesAnimation({
         duration: 20000,
         iterationCount: Infinity,
-        timingFunction: CSSCubicBezier(0.2, 0.65, 0.6, 1),
+        timingFunction: "cubic-bezier(0.2, 0.65, 0.6, 1)",
     }).fromVars(
         [
             {
@@ -71,7 +70,7 @@ export function useAmigaAnimations(getSphere: () => THREE.Mesh<THREE.SphereGeome
         duration: 700,
         iterationCount: Infinity,
         direction: "alternate",
-        timingFunction: CSSCubicBezier(0.2, 0.65, 0.6, 1),
+        timingFunction: "cubic-bezier(0.2, 0.65, 0.6, 1)",
     }).fromVars(
         [
             {

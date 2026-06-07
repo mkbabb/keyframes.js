@@ -92,10 +92,22 @@ const getTmpAnimationName = () => {
 };
 
 const updateCSSAnimationKeyframesStringFromAnimation = async () => {
-    cssKeyframesString.value = await CSSKeyframesToString(
-        animation,
-        getTmpAnimationName(),
-    );
+    try {
+        cssKeyframesString.value = await CSSKeyframesToString(
+            animation,
+            getTmpAnimationName(),
+        );
+    } catch (e: unknown) {
+        // The readout floor (H.W0 S2): a custom `timingFunction` with no CSS
+        // twin makes `serializeEasing` throw. NEVER silently degrade to
+        // `linear` — render an honest placeholder so the curve is NAMED, not
+        // lost, and the mount does not throw an uncaught console error.
+        console.warn(
+            "[KeyframesString] could not serialize the animation to CSS:",
+            (e as Error).message,
+        );
+        cssKeyframesString.value = `/* timing-function: custom — no CSS twin (see console) */`;
+    }
 
     return cssKeyframesString.value;
 };

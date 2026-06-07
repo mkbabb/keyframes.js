@@ -188,6 +188,10 @@ jobs:
               run: npm run proof:demo-usability
               env:
                   KF_REQUIRE_BROWSER: "1"
+            - name: proof:demo-console-clean (H.W0 — the H-A1 serializeEasing crash is dead)
+              run: npm run proof:demo-console-clean
+              env:
+                  KF_REQUIRE_BROWSER: "1"
             - name: proof:computed-real-dom (G.W16 S2 — the C5 50dvh fix on the genuine layout path)
               run: npm run proof:computed-real-dom
               env:

@@ -152,6 +152,22 @@ export class FrameCompiler<V extends Vars = any> {
             start = String(start);
         }
 
+        // Fail-explicit belt (H.W0 H-A2): a blank/whitespace keyframe selector
+        // reaches value.js `parseCSSValueUnit("")`, which throws the cryptic,
+        // un-typed `Parse error at offset 0: "......"` — the live "......"
+        // console crash, surfaced by route-storm-restored blank state (the
+        // ROUTE-STORM trigger itself dies in H.W1). Here at the compile seam we
+        // turn that into a clear, typed `AnimationOptionError` so a malformed
+        // selector is named, not cryptic. (value.js returning a typed empty-
+        // input result is the paired HANDOFF.)
+        if (typeof start === "string" && start.trim() === "") {
+            throw new AnimationOptionError(
+                "start",
+                start,
+                "a keyframe selector must be a percentage or keyword (e.g. \"0%\", \"from\", \"50%\") — got an empty/blank string",
+            );
+        }
+
         const parsedStart = parseCSSValueUnit(start);
 
         let templateFrame = {

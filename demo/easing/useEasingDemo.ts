@@ -270,7 +270,13 @@ export function useEasingDemo() {
             duration: duration.value,
             iterationCount: "infinite",
             direction: "alternate",
-            timingFunction: currentEasingFn.value,
+            // Pass the CSS-string twin (not the bare `currentEasingFn` closure):
+            // a custom `TimingFunction` has no `animation-timing-function`
+            // representation, so the bottom-bar Keyframes-string readout
+            // (`serializeEasing`) THROWS on a bare closure (H.W0 H-A1). The
+            // string form resolves to a twinned `Easing {fn, css}` via the
+            // engine, so the readout round-trips and the curve is preserved.
+            timingFunction: cssValue.value,
         }).fromVars([{ opacity: 0 }, { opacity: 1 }]),
     );
     contractAnim.name = "Easing Preview";
