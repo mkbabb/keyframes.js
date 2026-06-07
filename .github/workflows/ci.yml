@@ -11,23 +11,17 @@
 #     proof:boundary — bundle EVERY light barrel entry and assert 0 value.js +
 #                0 static engine edge per entry, the heavy engine dynamic-only,
 #                no dormant static specifier (A inv α, widened in B.W2)
-#   `@mkbabb/glass-ui` is an OPTIONAL `file:../glass-ui` dependency. On a clean
-#   runner the sibling is absent, so `npm ci` links `node_modules/@mkbabb/glass-ui
-#   -> ../../../glass-ui` whose target is MISSING: npm tolerates the dangling
-#   optional link non-fatally (exit 0), and the library graph never dereferences
-#   it (check:lib / build:lib / proof:boundary / test all green with the link
-#   dangling — verified by the /tmp clean-runner archive run). The library gate
-#   therefore runs glass-ui-free. NB: this is disposition (b) — the lockfile
-#   carries the optional `../glass-ui` node (`grep -c '"../glass-ui"\|@mkbabb/
-#   glass-ui' package-lock.json` = 5). A genuinely glass-ui-absent lockfile
-#   (disposition a) is unreachable without deleting the `optionalDependencies`
-#   declaration, which removes the `file:../glass-ui` link the demo dev install
-#   needs; (b) is the spec's reserved contingency, stated honestly here (C.W1 S5).
+#   `@mkbabb/glass-ui` is a PUBLISHED registry optionalDependency the LIBRARY
+#   graph never dereferences — check:lib / build:lib / proof:boundary / test stay
+#   glass-ui-free (the library externalizes it; the demo graph is untouched). The
+#   G re-pin retired the former local-sibling dev link: the demo now consumes the
+#   published registry package like any other dep (proof:ci-coverage forbids a
+#   local-link or sibling-clone glass-ui reference in any workflow).
 #
 #   demo-smoke (DEMO) — the demo legitimately needs glass-ui, so this is a
-#   SEPARATE job that installs the published package + a browser and asserts
-#   the BUILT gh-pages demo paints (B inv γ) and occludes nothing (B inv δ).
-#   A blank/tree-shaken build or an occluded page fails CI here.
+#   SEPARATE job that `npm ci`-installs the published registry package + a browser
+#   and asserts the BUILT gh-pages demo paints (B inv γ) and occludes nothing
+#   (B inv δ). A blank/tree-shaken build or an occluded page fails CI here.
 #
 # Cross-repo dependency-order note: keyframes.js resolves @mkbabb/value.js
 # via the npm registry (range declared in `package.json`). A breaking value.js
@@ -172,13 +166,11 @@ jobs:
               with:
                   node-version: 24
                   cache: "npm"
-            # The demo arm needs glass-ui (the library gate does not). The clone
-            # +build recipe + the reproducibility pin are single-sourced in the
-            # setup-glass-ui composite action (the canonical GitHub-Actions DRY
-            # primitive) — deploy-pages.yml's deploy job `uses:` the same action,
-            # so the recipe + pin live in EXACTLY one place.
-            - uses: ./.github/actions/setup-glass-ui
-            - name: npm ci (picks up the built file:../glass-ui)
+            # The demo arm needs glass-ui (the library gate does not). It is the
+            # PUBLISHED registry package (`@mkbabb/glass-ui ^3.4.0`, the G re-pin) —
+            # `npm ci` installs it from the registry like any dep. No sibling clone,
+            # no `file:` link (the pre-re-pin model the spine retired).
+            - name: npm ci (installs the registry @mkbabb/glass-ui)
               run: npm ci
             - name: install playwright + lighthouse (demo-gate only; --no-save keeps the lib posture)
               run: npm i --no-save @playwright/test lighthouse

@@ -12,7 +12,7 @@
 //
 //   (1) FLOOR — every `@mkbabb/*` dependency (across `dependencies` +
 //       `optionalDependencies`) is INSTALLED at ≥ the published floor:
-//       `value.js≥0.11.1`, `parse-that≥0.9.0`, `glass-ui≥3.3.0`. Read from the
+//       `value.js≥0.11.1`, `parse-that≥0.9.0`, `glass-ui≥3.4.0`. Read from the
 //       installed `node_modules/<pkg>/package.json` `version` — the artifact
 //       npm actually resolved, not the manifest range. BITES: revert a pin to
 //       `^0.10.0` + re-lock → the installed version drops below the floor →
@@ -58,7 +58,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const FLOORS = {
     "@mkbabb/value.js": "0.11.1",
     "@mkbabb/parse-that": "0.9.0",
-    "@mkbabb/glass-ui": "3.3.0",
+    "@mkbabb/glass-ui": "3.4.0",
 };
 
 const FORBIDDEN_PROTOCOLS = ["file:", "link:", "git:", "git+"];

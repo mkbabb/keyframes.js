@@ -1,9 +1,9 @@
 # release — publish @mkbabb/keyframes.js to npm on a v*.*.* tag.
 #
 # Re-runs the LIBRARY-SCOPED release gate (check:lib → build:lib → test →
-# proof:boundary) before `npm publish`. Every step is glass-ui-free (A inv β):
-# `@mkbabb/glass-ui` is an OPTIONAL `file:../glass-ui` dependency a clean
-# runner skips, so the publish leg builds the library without the demo seam.
+# proof:boundary) before `npm publish`. The library build is glass-ui-free
+# (A inv β): `@mkbabb/glass-ui` is a PUBLISHED registry optionalDependency used
+# only by the demo, so the library publish leg never reaches the demo seam.
 #
 # keyframes.js sits between value.js and glass-ui in the publish chain — it
 # resolves @mkbabb/value.js via the registry, so value.js's tag-publish must

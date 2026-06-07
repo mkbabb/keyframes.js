@@ -120,33 +120,36 @@ if (driftedLiterals.length > 0) {
     );
 }
 
-// ── clause 2 (G.W6 S2): clone-DRY ─────────────────────────────────────────────
-// The glass-ui clone literal must live ONLY in the setup-glass-ui composite
-// action — ZERO workflow .yml may inline it, and both demo-build jobs must
-// `uses:` the action.
+// ── clause 2 (G.W6 S2, re-grounded): glass-ui consumed from the registry ──────
+// The G re-pin moved glass-ui to the PUBLISHED registry package; the demo builds
+// against it with NO sibling clone (proven: a registry-only install with no
+// `../glass-ui` on disk builds the demo). So the demo jobs must NOT clone the
+// sibling, NOT `uses:` the retired setup-glass-ui action, and NO workflow may
+// carry a `file:`/clone glass-ui reference. The inverse of the old clone-DRY:
+// the file: model is GONE, not single-sourced.
 const CLONE_LITERAL = "git clone --depth 1 --branch";
 const COMPOSITE_USE = "uses: ./.github/actions/setup-glass-ui";
-const inlinedIn = WORKFLOWS.filter((name) => wf(name).includes(CLONE_LITERAL));
-const usesIn = WORKFLOWS.filter((name) => wf(name).includes(COMPOSITE_USE));
-if (inlinedIn.length > 0) {
+const fileGlassUi = /file:.*glass-ui|\.\.\/glass-ui/;
+const offenders = WORKFLOWS.filter(
+    (name) =>
+        wf(name).includes(CLONE_LITERAL) ||
+        wf(name).includes(COMPOSITE_USE) ||
+        fileGlassUi.test(wf(name)),
+);
+if (offenders.length > 0) {
     failures.push(
-        "clone-DRY (G.W6 S2) — the glass-ui clone literal is inlined in " +
-            inlinedIn.join(", ") +
-            ". The recipe + pin must live ONLY in " +
-            ".github/actions/setup-glass-ui/action.yml; both demo-build jobs " +
-            "`uses: ./.github/actions/setup-glass-ui`.",
-    );
-} else if (!usesIn.includes("ci.yml") || !usesIn.includes("deploy-pages.yml")) {
-    failures.push(
-        "clone-DRY (G.W6 S2) — both demo-build jobs must reference " +
-            `\`${COMPOSITE_USE}\`; found in [${usesIn.join(", ") || "none"}]. ` +
-            "ci.yml (demo-smoke) and deploy-pages.yml (deploy) both need it.",
+        "registry-glass-ui (G.W6 S2 re-grounded) — a workflow still clones the " +
+            "glass-ui sibling / `uses:` the retired setup-glass-ui action / carries " +
+            "a file: glass-ui reference: " +
+            offenders.join(", ") +
+            ". The demo consumes the PUBLISHED registry @mkbabb/glass-ui via " +
+            "`npm ci`; the file:/clone model was retired with the re-pin.",
     );
 } else {
     passes.push(
-        "clone-DRY (G.W6 S2) — the glass-ui clone literal appears in ZERO " +
-            "workflows; ci.yml + deploy-pages.yml both `uses:` the setup-glass-ui " +
-            "composite action (recipe + pin single-sourced).",
+        "registry-glass-ui (G.W6 S2 re-grounded) — ZERO workflow clones the " +
+            "glass-ui sibling or carries a file: glass-ui reference; the demo jobs " +
+            "consume the published registry package via `npm ci`.",
     );
 }
 

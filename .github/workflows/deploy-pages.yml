@@ -80,12 +80,10 @@ jobs:
               with:
                   node-version: 24
                   cache: "npm"
-            # The demo legitimately needs glass-ui (the library does not). The
-            # clone+build recipe + the reproducibility pin are single-sourced in
-            # the setup-glass-ui composite action — the same action ci.yml's
-            # demo-smoke job `uses:`, so the recipe + pin live in EXACTLY one place.
-            - uses: ./.github/actions/setup-glass-ui
-            - name: npm ci (picks up the built file:../glass-ui)
+            # The demo needs glass-ui (the library does not). It is the PUBLISHED
+            # registry package (`@mkbabb/glass-ui ^3.4.0`); `npm ci` installs it
+            # from the registry. No sibling clone, no `file:` link.
+            - name: npm ci (installs the registry @mkbabb/glass-ui)
               run: npm ci
             # scripts/pages-deploy.sh builds the demo (BUILD_CMD=npm run gh-pages →
             # dist/gh-pages) and ships it to the `keyframes` CF Pages project.
