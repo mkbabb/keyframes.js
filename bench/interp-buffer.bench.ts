@@ -77,3 +77,52 @@ describe("interpFrames — threaded out-buffer (realistic playback)", () => {
         });
     }
 });
+
+/**
+ * The C1 computed-unit variant (G.W2 S4a · the −94% endpoint-memo witness).
+ *
+ * The FLAT_KEYS animations above are NUMERIC — a bare `lerp(startN, stopN, t)`
+ * with no endpoint resolution. This variant animates a COMPUTED endpoint
+ * (`calc(100% - …px)` bound to a DOM target), so each steady frame's
+ * `lerpValue → iv._lerp` routes through value.js's `lerpComputedValue`
+ * (`interpolate.ts` `Wo`), which on `0.10.0` re-resolved both endpoints via
+ * `getComputedValue` (a DOM reflow) EVERY frame — O(frames) — and on `0.11.0`
+ * memoizes the resolved `(startN, stopN)` keyed on `(target, layoutEpoch)` in
+ * `iv._computedCache`, so the steady window pays the resolve ONCE — O(1) — then
+ * collapses to a bare `lerp` (`F/FINAL.md:39-44`).
+ *
+ * This bench is the WALL-TIME face of that drop (the call-count assertion lives
+ * in `proof:repin-witness`, which counts `iv._computedCache` fresh-writes — 1
+ * over 600 frames, the bite). The re-pin makes the computed window track the
+ * numeric window's per-frame cost; on `0.10.0` it would scale with `getComputed
+ * Value` reflow cost per frame.
+ *
+ * Imports `CSSKeyframesAnimation` from the VALUE module `engine`, never the
+ * type-only barrel (F.W1 S1). The DOM target is the jsdom `document` the
+ * vitest library gate already provides.
+ */
+const makeComputedAnim = () => {
+    // A `container`-typed ancestor so `cqw` could resolve in a real DOM; the
+    // calc leaf is the C1 subject either way (it carries `computed: true`).
+    const host = document.createElement("div");
+    host.style.cssText = "container-type: inline-size; width: 1000px;";
+    const box = document.createElement("div");
+    host.appendChild(box);
+    document.body.appendChild(host);
+    const anim = new CSSKeyframesAnimation({ duration: 1000 }).fromString(
+        "0% { width: calc(100% - 10px); } 100% { width: calc(100% - 200px); }",
+    );
+    anim.setTargets(box);
+    return anim;
+};
+
+describe("interpFrames — computed endpoint (C1 memo, G.W2)", () => {
+    const anim = makeComputedAnim();
+    const out: Record<string, ValueUnit[]> = {};
+
+    bench("calc() leaf · 600-frame steady window (C1 endpoint memo)", () => {
+        for (let f = 0; f < 600; f++) {
+            anim.interpFrames((f / 600) * 1000, false, out);
+        }
+    });
+});

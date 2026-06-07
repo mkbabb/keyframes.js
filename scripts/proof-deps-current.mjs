@@ -1,0 +1,285 @@
+// proof:deps-current — G.W2 S3 (the standing dep-currency lock the re-pin
+// ships WITH). The falsifiable form of "the `@mkbabb/*` pins are current,
+// protocol-clean, and realm-convergent" — the gate that the F→G pin-lag
+// (`a-constellation-gaps G-CONST-1`: kf 4.0.0 shipped on STALE `value.js
+// ^0.10.0` / `parse-that ^0.8.2` while `0.11.0`/`0.9.0` were PUBLISHED) can
+// never recur silently. It is chained into `proof:all` (S3) so the invariant
+// rides every CI run.
+//
+// RUN: node scripts/proof-deps-current.mjs
+//
+// CLAUSES (each BITES — a real check, not narration):
+//
+//   (1) FLOOR — every `@mkbabb/*` dependency (across `dependencies` +
+//       `optionalDependencies`) is INSTALLED at ≥ the published floor:
+//       `value.js≥0.11.1`, `parse-that≥0.9.0`, `glass-ui≥3.3.0`. Read from the
+//       installed `node_modules/<pkg>/package.json` `version` — the artifact
+//       npm actually resolved, not the manifest range. BITES: revert a pin to
+//       `^0.10.0` + re-lock → the installed version drops below the floor →
+//       reds.
+//
+//   (2) PROTOCOL — every `@mkbabb/*` declaration (in `package.json`) AND every
+//       resolved `@mkbabb/*` node (in the lockfile) uses a REGISTRY range — NO
+//       `file:` / `link:` / `git:` / `git+` protocol anywhere. The glass-ui
+//       `file:../glass-ui` LINK was a dirty dev artifact that cannot publish
+//       (`a-glass-ui GG-1`); this clause is the lock that it can never re-creep
+//       into a publishable manifest. BITES: re-introduce `"@mkbabb/glass-ui":
+//       "file:../glass-ui"` (or a `link:`/`git:` spec) in the manifest, OR a
+//       `link: true` resolved node in the lockfile → reds.
+//
+//   (3) REALM-CONVERGENCE (fail-EXPLICIT advisory, value.js-handoff) — kf's
+//       declared `parse-that` MINOR vs value.js's OWN declared `parse-that`
+//       minor. kf consumes value.js through the single `lerpValue → iv._lerp`
+//       seam; if kf pins `parse-that ^0.9.x` while the installed value.js still
+//       declares `^0.8.x`, the npm tree carries TWO parse-that realms (kf's
+//       top-level + value.js's nested) — the dual-realm split `utils.ts:248`
+//       casts across with `parseAny as any`. G.md §Design-decision 1 makes the
+//       convergence CONDITIONAL: value.js re-pins its OWN parse-that to match
+//       "IF the cross-realm round-trip bites; NOT a kf-side shim." The wave's
+//       §Hard-gate clause 1 gates ONLY on the FLOOR + PROTOCOL (clauses 1, 2) —
+//       realm-convergence is NOT a §Hard-gate clause. So this clause is
+//       fail-EXPLICIT but NON-GATING: it SURFACES a minor split LOUDLY (never
+//       silent) as a recorded value.js-HANDOFF (G-HANDOFF-1), and ESCALATES to
+//       a hard red ONLY if the cross-realm round-trip is shown to bite (the
+//       `KF_REALM_STRICT=1` escalation, for the wave that proves the bite). A
+//       convergent realm passes cleanly; a divergent-but-non-biting realm
+//       (today: value.js@0.11.0 still declares `^0.8.2`) prints the handoff and
+//       stays green per the authoritative spec.
+
+import { readFileSync, existsSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
+
+const root = join(dirname(fileURLToPath(import.meta.url)), "..");
+
+// The published floors this gate enforces (the G.W2 targets). A future sibling
+// release advances these explicitly — the floor is the standing minimum, the
+// re-pin moves it.
+const FLOORS = {
+    "@mkbabb/value.js": "0.11.1",
+    "@mkbabb/parse-that": "0.9.0",
+    "@mkbabb/glass-ui": "3.3.0",
+};
+
+const FORBIDDEN_PROTOCOLS = ["file:", "link:", "git:", "git+"];
+
+// ── helpers ──────────────────────────────────────────────────────────────────
+
+/** Parse "MAJOR.MINOR.PATCH" → [major, minor, patch] integers. */
+function semverParts(v) {
+    const m = /^[~^]?(\d+)\.(\d+)\.(\d+)/.exec(String(v).trim());
+    if (!m) return null;
+    return [Number(m[1]), Number(m[2]), Number(m[3])];
+}
+
+/** a >= b on [major, minor, patch] tuples. */
+function gte(a, b) {
+    for (let i = 0; i < 3; i++) {
+        if (a[i] > b[i]) return true;
+        if (a[i] < b[i]) return false;
+    }
+    return true;
+}
+
+const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
+
+// The full set of `@mkbabb/*` declarations across the dependency buckets that
+// ship in the manifest (dependencies + optionalDependencies). devDependencies
+// are not part of the published surface, so they are out of scope.
+const declared = {};
+for (const bucket of ["dependencies", "optionalDependencies"]) {
+    for (const [name, range] of Object.entries(pkg[bucket] ?? {})) {
+        if (name.startsWith("@mkbabb/")) declared[name] = range;
+    }
+}
+
+const fail = [];
+const pass = [];
+const handoff = []; // fail-EXPLICIT, non-gating surfacing (the value.js-handoff)
+
+// ── Clause 1 — FLOOR (installed ≥ published floor) ───────────────────────────
+{
+    const offenders = [];
+    for (const [name, floor] of Object.entries(FLOORS)) {
+        const installedPkg = join(root, "node_modules", name, "package.json");
+        if (!existsSync(installedPkg)) {
+            // glass-ui is optional; an absent optional sibling on a clean
+            // runner is not a floor violation (the library gate is glass-ui
+            // -free). A REQUIRED dep absent IS a violation.
+            const optional = Boolean(pkg.optionalDependencies?.[name]);
+            if (optional) continue;
+            offenders.push(`${name} — NOT INSTALLED (required dependency)`);
+            continue;
+        }
+        const installed = JSON.parse(readFileSync(installedPkg, "utf8")).version;
+        const ip = semverParts(installed);
+        const fp = semverParts(floor);
+        if (!ip || !gte(ip, fp)) {
+            offenders.push(`${name} — installed ${installed} < floor ${floor}`);
+        }
+    }
+    if (offenders.length > 0) {
+        fail.push(
+            `(1) FLOOR: ${offenders.length} @mkbabb/* dep(s) below the published ` +
+                `floor — the re-pin re-drifted:\n      ` +
+                offenders.join("\n      "),
+        );
+    } else {
+        pass.push(
+            `(1) FLOOR: every @mkbabb/* dep installed ≥ its published floor ` +
+                `(${Object.entries(FLOORS)
+                    .map(([n, f]) => `${n.replace("@mkbabb/", "")}≥${f}`)
+                    .join(", ")}).`,
+        );
+    }
+}
+
+// ── Clause 2 — PROTOCOL (no file:/link:/git: in manifest OR lockfile) ─────────
+{
+    const offenders = [];
+
+    // 2a — the manifest declarations.
+    for (const [name, range] of Object.entries(declared)) {
+        const bad = FORBIDDEN_PROTOCOLS.find((p) => String(range).startsWith(p));
+        if (bad) {
+            offenders.push(
+                `package.json: "${name}": "${range}" — ${bad} protocol (must be ` +
+                    `a registry range)`,
+            );
+        }
+    }
+
+    // 2b — the resolved lockfile nodes. A `link: true` node (a `file:`/`link:`
+    // sibling) is the exact dirty artifact GG-1 names — caught even when the
+    // manifest range is clean but the tree still resolves a local link.
+    const lockPath = join(root, "package-lock.json");
+    if (existsSync(lockPath)) {
+        const lock = JSON.parse(readFileSync(lockPath, "utf8"));
+        for (const [path, node] of Object.entries(lock.packages ?? {})) {
+            if (!path.includes("@mkbabb/")) continue;
+            const resolved = String(node.resolved ?? "");
+            if (node.link === true) {
+                offenders.push(
+                    `package-lock.json: ${path} — resolved as a LINK ` +
+                        `(${resolved || "local sibling"}); the registry pin must ` +
+                        `REPLACE the file: link, not resolve beside it`,
+                );
+            } else if (
+                FORBIDDEN_PROTOCOLS.some((p) => resolved.startsWith(p))
+            ) {
+                offenders.push(
+                    `package-lock.json: ${path} — resolved "${resolved}" uses a ` +
+                        `forbidden protocol`,
+                );
+            }
+        }
+    } else {
+        offenders.push("package-lock.json: ABSENT — the lock cannot be checked");
+    }
+
+    if (offenders.length > 0) {
+        fail.push(
+            `(2) PROTOCOL: ${offenders.length} @mkbabb/* declaration(s)/node(s) ` +
+                `use a forbidden file:/link:/git: protocol:\n      ` +
+                offenders.join("\n      "),
+        );
+    } else {
+        pass.push(
+            `(2) PROTOCOL: every @mkbabb/* declaration + resolved node uses a ` +
+                `registry range (no file:/link:/git: anywhere).`,
+        );
+    }
+}
+
+// ── Clause 3 — REALM-CONVERGENCE (kf parse-that minor === value.js's) ─────────
+{
+    const kfRange = declared["@mkbabb/parse-that"];
+    const valuejsPkgPath = join(
+        root,
+        "node_modules",
+        "@mkbabb",
+        "value.js",
+        "package.json",
+    );
+
+    if (!kfRange) {
+        fail.push(
+            "(3) REALM: kf declares no @mkbabb/parse-that dependency — the gate " +
+                "lost its subject; re-ground it.",
+        );
+    } else if (!existsSync(valuejsPkgPath)) {
+        fail.push(
+            "(3) REALM: @mkbabb/value.js is not installed — cannot read its own " +
+                "parse-that declaration.",
+        );
+    } else {
+        const valuejs = JSON.parse(readFileSync(valuejsPkgPath, "utf8"));
+        const vjRange = valuejs.dependencies?.["@mkbabb/parse-that"];
+        const kfParts = semverParts(kfRange);
+        const vjParts = vjRange ? semverParts(vjRange) : null;
+        if (!vjParts) {
+            fail.push(
+                `(3) REALM: installed @mkbabb/value.js@${valuejs.version} declares ` +
+                    `no parse-that dependency (got ${JSON.stringify(vjRange)}) — ` +
+                    `cannot verify realm convergence.`,
+            );
+        } else if (kfParts[1] !== vjParts[1] || kfParts[0] !== vjParts[0]) {
+            const msg =
+                `(3) REALM: parse-that realm SPLIT — kf declares "${kfRange}" ` +
+                `(${kfParts[0]}.${kfParts[1]}.x) but installed ` +
+                `value.js@${valuejs.version} declares "${vjRange}" ` +
+                `(${vjParts[0]}.${vjParts[1]}.x). The npm tree carries TWO ` +
+                `parse-that realms; the cross-realm cast is utils.ts:248 ` +
+                `(parseAny as any). value.js must re-pin its OWN parse-that to ` +
+                `match (G-HANDOFF-1 / G.md §Design-decision 1: NOT a kf-side ` +
+                `shim).`;
+            // The wave's §Hard-gate gates on FLOOR + PROTOCOL only; convergence
+            // is conditional on the round-trip biting. Surface it explicitly;
+            // escalate to a hard red only under KF_REALM_STRICT (the wave that
+            // proves the bite).
+            if (process.env.KF_REALM_STRICT === "1") fail.push(msg);
+            else handoff.push(msg + " [non-gating: KF_REALM_STRICT unset]");
+        } else {
+            pass.push(
+                `(3) REALM: parse-that realm CONVERGED — kf "${kfRange}" and ` +
+                    `value.js@${valuejs.version} "${vjRange}" share minor ` +
+                    `${kfParts[0]}.${kfParts[1]}.`,
+            );
+        }
+    }
+}
+
+// ── verdict ────────────────────────────────────────────────────────────────────
+if (fail.length > 0) {
+    console.error(
+        "\nproof:deps-current — FAIL: the @mkbabb/* pins are NOT current / " +
+            "protocol-clean / realm-convergent.\n",
+    );
+    for (const f of fail) console.error("  ✗ " + f);
+    for (const p of pass) console.error("  ✓ " + p);
+    for (const h of handoff) console.error("  ⚠ " + h);
+    console.error(
+        "\n  The dep-currency invariant is the standing lock against the F→G " +
+            "pin-lag (a-constellation-gaps G-CONST-1). Resolve every clause.",
+    );
+    process.exit(1);
+}
+
+console.log(
+    "proof:deps-current — PASS: every @mkbabb/* pin is installed ≥ its published " +
+        "floor and declared with a registry range (no file:/link:/git:). The " +
+        "re-pin stays pinned.",
+);
+for (const p of pass) console.log("  ✓ " + p);
+// Fail-EXPLICIT, non-gating: a divergent-but-non-biting realm is surfaced as a
+// value.js-HANDOFF, never silently swallowed (the §Mandate's no-silent-degrade).
+for (const h of handoff) console.log("  ⚠ " + h);
+if (handoff.length > 0) {
+    console.log(
+        "\n  ⚠ value.js-HANDOFF (G-HANDOFF-1): the parse-that realm is not " +
+            "converged. The cross-realm round-trip is currently NON-biting " +
+            "(production parse→interp verified), so this is a recorded handoff, " +
+            "not a gate red. Set KF_REALM_STRICT=1 to escalate it to a hard gate " +
+            "once a wave proves the bite.",
+    );
+}

@@ -136,14 +136,23 @@ const defaultOptions = {
     },
 
     resolve: {
-        // No hard `dist/` alias and no self-alias for any `@mkbabb/*` package.
-        // `@mkbabb/keyframes.js` (this package) reaches its own source via the
-        // `@src` alias / relative paths; `@mkbabb/glass-ui` + `@mkbabb/value.js`
-        // (workspace siblings) resolve through their own `exports` maps via the
-        // `file:` symlink in `node_modules`. See the cross-repo dev-resolution
-        // contract — glass-ui/docs/precepts/cross-repo-dev-resolution.md §2.3.
+        // `@mkbabb/value.js` resolves through its own `exports` map from the
+        // registry tarball (G.W2 re-pin — no longer a `file:` symlink). The demo
+        // self-aliases `@mkbabb/keyframes.js` to its own library source: with
+        // glass-ui consumed from the registry (not a workspace link), glass-ui's
+        // bare `import … from "@mkbabb/keyframes.js"` (e.g. `SpringProgress` in
+        // its dock/spring-mount) has no installed package to resolve against —
+        // rolldown would stub it as an empty optional-peer-dep and drop the
+        // export. The self-alias dedupes glass-ui onto the SAME keyframes
+        // instance the demo uses via `@src`, so the consumer and its UI lib
+        // share one engine. (Supersedes contract-v2's no-self-alias rule, which
+        // presupposed the `file:` symlink walk that the registry pin removed.)
         alias: {
             "@src": path.resolve(import.meta.dirname, "src"),
+            "@mkbabb/keyframes.js": path.resolve(
+                import.meta.dirname,
+                "src/animation/index.ts",
+            ),
             "@styles": path.resolve(import.meta.dirname, "demo/@/styles"),
             "@components": path.resolve(import.meta.dirname, "demo/@/components"),
             "@utils": path.resolve(import.meta.dirname, "demo/@/utils"),

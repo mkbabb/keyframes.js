@@ -15,6 +15,7 @@
  * `engine`, never the type-only barrel (F.W1 S1).
  */
 import { bench, describe } from "vitest";
+import { parseCSSStylesheet } from "@mkbabb/value.js";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
 
 /**
@@ -38,6 +39,40 @@ describe("FrameCompiler compile-throughput (cold fromString)", () => {
     for (const stops of profile) {
         const css = makeKeyframes(stops);
         bench(`${stops}-stop cold compile`, () => {
+            new CSSKeyframesAnimation({ duration: 1000 }).fromString(css);
+        });
+    }
+});
+
+/**
+ * The CF-1 compile-latency-map witness (G.W2 S4b · the supplemental fold).
+ *
+ * Pairs the value.js `parse()` leaf against the full `fromString` at N≥50, the
+ * two cases the `a-perf-compile-flatten-bitpack CF-1` finding maps: the compile
+ * step's cost lives in value.js's `tryParseCache`-backed parse, NOT kf's own
+ * O(N)-SOTA frame layout (CF-2 killed the O(N²) reconcile; SoA is a runtime,
+ * not a compile, lever — CF-4). The two bench cases let a gate read the ratio
+ * (`parse-hz` vs `fromString-hz`) and surface a kf-side compile hot-spot the
+ * moment one appears — i.e. if `fromString` grows materially slower than the
+ * value.js parse it wraps, the parse fraction drops and the map is stale.
+ *
+ * The `parse()` case uses value.js's `parseCSSStylesheet` (the grammar parse the
+ * FrameCompiler invokes) over the SAME `@keyframes` body — the production-path
+ * parse leaf, no kf compile on top. Imports `CSSKeyframesAnimation` from the
+ * VALUE module `engine` (F.W1 S1).
+ */
+describe("compile latency map — value.js parse() vs fromString (CF-1, G.W2)", () => {
+    const profile = [50, 200] as const;
+
+    for (const stops of profile) {
+        const css = makeKeyframes(stops);
+        const sheet = `@keyframes k {\n${css}\n}`;
+
+        bench(`N=${stops} · value.js parse() (grammar leaf)`, () => {
+            parseCSSStylesheet(sheet);
+        });
+
+        bench(`N=${stops} · fromString (parse + compile + sample)`, () => {
             new CSSKeyframesAnimation({ duration: 1000 }).fromString(css);
         });
     }

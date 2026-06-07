@@ -16,6 +16,16 @@
 //  - proof:lighthouse-mobile — RECORDED browser-gated/runner-calibrated (F.W1
 //                         §Folds, E/FINAL.md): it has a legitimate CI-calibration
 //                         excuse the grep gates do not, and runs local/dedicated.
+//  - proof:repin-safe   — G.W1's PRE-STAGE re-pin safety lock. It reads the
+//                         PUBLISHED next-version typings (`npm pack
+//                         value.js@0.11.0`) against the LIVE import list BEFORE
+//                         the bump moves the lockfile — a pre-bump certification,
+//                         not a standing CI invariant (it is NOT chained into
+//                         proof:all either, per G.W1 §Design-decision 1). Once
+//                         G.W2 lands the bump, the standing CI invariant is
+//                         proof:deps-current (the floor + protocol + realm gate),
+//                         which IS wired. proof:repin-safe runs local/on-demand
+//                         ahead of the NEXT re-pin.
 
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -29,6 +39,7 @@ const EXCLUDED = new Set([
     "proof:all",
     "proof:ci-coverage",
     "proof:lighthouse-mobile",
+    "proof:repin-safe",
 ]);
 
 const gates = Object.keys(pkg.scripts)

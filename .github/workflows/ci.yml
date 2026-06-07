@@ -53,6 +53,8 @@ jobs:
                   node-version: 24
                   cache: "npm"
             - run: npm ci
+            - name: proof:deps-current (G.W2 — @mkbabb/* pins current · protocol-clean · realm-convergent)
+              run: npm run proof:deps-current
             - name: check (tsc --noEmit, library-scoped)
               run: npm run check:lib
             - name: build (library)
@@ -121,6 +123,8 @@ jobs:
               run: npm run proof:motion-path
             - name: proof:cohesion (F.W11 — clamp convergence · inverted-tier · preset reachability)
               run: npm run proof:cohesion
+            - name: proof:repin-witness (G.W2 — the C1 computed-endpoint memo resolves O(frames)→O(1) on kf's path)
+              run: npm run proof:repin-witness
             - name: proof:bench-runs (F.W1 — the compile/interp/parser benches run, non-empty)
               run: npm run proof:bench-runs
             - name: proof:ci-coverage (F.W2 — every proof:* gate is invoked in CI)
