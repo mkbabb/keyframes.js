@@ -61,6 +61,15 @@ const ROW_DURATION = 900;
 /** The stagger increment between adjacent rows (ms) — the `at:` spacing. */
 const STAGGER_EACH = 260;
 
+/**
+ * The draggable `at:` domain (ms). A row's start-handle scrubs its child's
+ * master-clock offset across `[0, STAGGER_MAX]` — wide enough that the rows can
+ * be re-authored from fully-overlapped (all at 0) to spread well past the
+ * default 1040ms tail, but bounded so the timeline track stays legible. The
+ * storyboard timeline track maps `at / STAGGER_MAX → [0,1]` horizontal.
+ */
+export const STAGGER_MAX = 1600;
+
 /** One storyboard row: index + its resolved start offset on the master clock. */
 export interface SequenceRow {
     /** 0-based row index (top → bottom). */
@@ -82,7 +91,13 @@ export function useSequenceDemo() {
         each: STAGGER_EACH,
         from: "first",
     });
-    const delays = staggerFn.delays(ROW_COUNT);
+    // The default stagger staircase (0, 260, 520, 780, 1040ms) — captured so the
+    // transport Reset can restore the pristine distribution after the rows have
+    // been re-authored (H.W12.S6 / I3).
+    const DEFAULT_DELAYS = staggerFn.delays(ROW_COUNT);
+    // Reactive so the storyboard rows + labels recompute when a row is dragged to
+    // re-author its `at:` (H.W12.S6 / I3 — the draggable rows).
+    const delays = ref<number[]>([...DEFAULT_DELAYS]);
 
     // ── The child animations (one glide per row) ─────────────────────────────
     // Each row is a CSSKeyframesAnimation sweeping a CSS custom property
@@ -90,15 +105,19 @@ export function useSequenceDemo() {
     // fade-in and a settle scale-pop. The default DOM renderer paints them; the
     // target's CSS reads `--ball-p` to position the ball (allocation-free, one
     // custom-property value per frame — the .progress-ball idiom's own posture).
+    // The per-row glide easing — a spring twin, named so the reel egg can RESTORE
+    // it after its overshoot run (the children are shared between the master
+    // transport and the egg).
+    const rowGlideEase = springTimingFunction({
+        response: 0.45,
+        dampingFraction: 0.62,
+    });
     const childAnims: CSSKeyframesAnimation<any>[] = [];
     for (let i = 0; i < ROW_COUNT; i++) {
         const anim = new CSSKeyframesAnimation({
             duration: ROW_DURATION,
             fillMode: "forwards",
-            timingFunction: springTimingFunction({
-                response: 0.45,
-                dampingFraction: 0.62,
-            }),
+            timingFunction: rowGlideEase,
         });
         anim.fromKeyframes({
             "0%": { "--ball-p": 0, opacity: 0.25, scale: 0.7 },
@@ -116,7 +135,7 @@ export function useSequenceDemo() {
     // `RAFPlayback` loop.
     const sequence = markRaw(new Sequence());
     for (let i = 0; i < ROW_COUNT; i++) {
-        sequence.add(childAnims[i]!, delays[i]!);
+        sequence.add(childAnims[i]!, delays.value[i]!);
     }
 
     // ── A minimal contract AnimationGroup for the bottom-bar transport ───────
@@ -291,9 +310,104 @@ export function useSequenceDemo() {
         timeScale.value = 1;
         stopMirror();
         sequence.timeScale(1);
+        // Restore the pristine stagger distribution (H.W12.S6 / I3) — Reset
+        // returns the storyboard to its default state, undoing any row re-author.
+        delays.value = [...DEFAULT_DELAYS];
+        for (const e of sequence.entries) {
+            const i = childAnims.indexOf(e.animation as CSSKeyframesAnimation<any>);
+            if (i >= 0) e.at = DEFAULT_DELAYS[i]!;
+        }
+        sequence.entries.sort((a, b) => a.at - b.at);
         sequence.seek(0);
         syncFromSequence();
         machine.dispatch({ type: "RESET" });
+    };
+
+    // ── The storyboard rows — the reactive view of the editable `at:` net ─────
+    const rows = computed<SequenceRow[]>(() =>
+        Array.from({ length: ROW_COUNT }, (_, i) => ({
+            index: i,
+            at: delays.value[i]!,
+        })),
+    );
+
+    // ── Draggable rows: re-author a child's `at:` live (H.W12.S6 / I3) ────────
+    // The headline Sequence refinement — the GSAP-timeline gesture. A row's
+    // start-handle drag re-emits its child's master-clock offset; we update the
+    // reactive `delays` (the storyboard re-labels) AND re-author the engine's own
+    // position-insertion: the matching `Sequence` entry's `at` field is set and
+    // the entries re-sort by `at` (the SAME re-sort `Sequence.add` runs
+    // internally — dogfooding the engine's position model, inv ζ), then a re-seek
+    // repaints the storyboard at the current playhead on the new timing. Pausing
+    // first keeps a live run from fighting the re-author; the scrubbed snapshot
+    // round-trips through the machine so the re-timing survives a scene switch.
+    const reseatRow = (index: number, at: number) => {
+        if (index < 0 || index >= ROW_COUNT) return;
+        if (isPlaying.value) pause();
+        const clamped = Math.max(0, Math.min(STAGGER_MAX, Math.round(at)));
+        const next = [...delays.value];
+        next[index] = clamped;
+        delays.value = next;
+
+        // Re-author the engine's position-insertion: find this child's entry and
+        // set its `at`, then re-sort the entries by `at` (the position-insertion
+        // model `Sequence.add` uses — a later `at` is legal). The child anim is
+        // the stable identity across re-sorts.
+        const entry = sequence.entries.find(
+            (e) => e.animation === childAnims[index],
+        );
+        if (entry) {
+            entry.at = clamped;
+            sequence.entries.sort((a, b) => a.at - b.at);
+        }
+        // Repaint at the live playhead on the new timing (seek drives the ONE
+        // master→child map; the balls re-place against the re-authored `at:`).
+        sequence.seek(sequence.progress * sequence.duration);
+        syncFromSequence();
+        machine.dispatch({ type: "SCRUB", t: progress.value });
+    };
+
+    // ── EE-SEQ-1 "the reel" (H.W12.S6 / I3 egg) ──────────────────────────────
+    // A hidden trigger replays the five balls as a cascading Mexican-wave
+    // overshoot, IGNORING the master clock once — pure delight, dogfooding the
+    // engine: each child is re-driven with an exaggerated overshoot spring on its
+    // OWN RAFPlayback, fired in a tight stagger (the wave), then the storyboard
+    // re-settles to the live playhead. Reuses the existing child animations (no
+    // new engine code, inv ζ). Guarded so a re-trigger mid-reel is a no-op.
+    const isReeling = ref(false);
+    const REEL_STAGGER = 90; // ms between each ball's wake (the wave spacing)
+    const reelOvershoot = springTimingFunction({
+        response: 0.42,
+        dampingFraction: 0.34, // under-damped → a pronounced overshoot bounce
+    });
+    const playReel = () => {
+        if (isReeling.value) return;
+        // Pause the master transport so the reel owns the balls for its run.
+        if (isPlaying.value) pause();
+        sequence.pause();
+        isReeling.value = true;
+
+        let settled = 0;
+        for (let i = 0; i < ROW_COUNT; i++) {
+            const child = childAnims[i]!;
+            window.setTimeout(() => {
+                // Drive this child standalone with the overshoot curve for one
+                // glide, then count it settled; the last one re-settles the board.
+                child.managed = false;
+                child.setTimingFunction(reelOvershoot);
+                void child.play().finally(() => {
+                    // Restore the child's spring + managed posture for the master.
+                    child.setTimingFunction(rowGlideEase);
+                    child.managed = true;
+                    if (++settled >= ROW_COUNT) {
+                        isReeling.value = false;
+                        // Re-place every ball against the live master playhead.
+                        sequence.seek(sequence.progress * sequence.duration);
+                        syncFromSequence();
+                    }
+                });
+            }, i * REEL_STAGGER);
+        }
     };
 
     // ── The raw-rAF ScenePlayback adapter (WV-W1-HIGH-3) ──────────────────────
@@ -341,13 +455,12 @@ export function useSequenceDemo() {
     });
 
     return {
-        rows: computed<SequenceRow[]>(() =>
-            Array.from({ length: ROW_COUNT }, (_, i) => ({
-                index: i,
-                at: delays[i]!,
-            })),
-        ),
+        rows,
         delays,
+        STAGGER_MAX,
+        reseatRow,
+        playReel,
+        isReeling,
         sequence,
         childAnims,
         animationGroup,

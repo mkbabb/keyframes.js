@@ -1,7 +1,13 @@
-import { markRaw, ref, shallowRef } from "vue";
+import { computed, markRaw, ref, shallowRef } from "vue";
 
 import { AnimationGroup } from "@src/animation/group";
 import type { CSSKeyframesAnimation } from "@src/animation/engine";
+
+import {
+    buildPathD,
+    DEFAULT_POINTS,
+    type PathPoint,
+} from "./motionPathGeometry";
 
 /**
  * useMotionPathDemo — the dogfood of the CSS-native MotionPath primitive
@@ -18,12 +24,20 @@ import type { CSSKeyframesAnimation } from "@src/animation/engine";
  * its ScenePlayback adapter (H.W1).
  *
  * INTERACTIVITY (H.W5.S4a): the traveller is draggable ALONG its own path. The
- * Target projects the pointer onto the SVG `<path>` and re-seats the engine
- * playhead via `group.setChildTime(...).render()` — the SAME scrub seam the
- * bottom-bar slider uses (`useAnimationGroupPlayback.sliderUpdate`), so the drag
- * and the scrub share ONE progress source (DRY). The drag pauses/resumes the
- * group around the gesture exactly as `onScrubStart`/`onScrubEnd` do; `isPlaying`
- * stays the App-writable group-state mirror (the group scenes' contract, H.W1).
+ * gesture composable (`useMotionPathGesture`, H.W12.S2 / I9) projects the
+ * pointer onto the SVG `<path>` and re-seats the engine playhead via
+ * `group.setChildTime(...).render()` — the SAME scrub seam the bottom-bar slider
+ * uses, so the drag and the scrub share ONE progress source (DRY).
+ *
+ * EDITABLE PATH (H.W12.S6 / I3 — the F4 elevation): the author path is no longer
+ * fixed. This composable owns the reactive editable control net ({@link points})
+ * + its compiled `d` ({@link pathD}) — the SINGLE source both the SVG guide
+ * `<path>` and the traveller's `offset-path` re-read in lockstep. A control
+ * handle drag (in `useMotionPathGesture`) mutates a point through {@link movePoint};
+ * the guide binds `pathD` and the gesture re-writes the traveller's
+ * `offset-path` to the same `pathD`, so the two can never drift
+ * (proof:motion-path-editable). {@link copyablePath} is the copy-paste artifact
+ * (proof:motion-path-copy).
  */
 export function useMotionPathDemo() {
     // Starts empty; the traveller's MotionPath animation is registered on mount.
@@ -32,6 +46,40 @@ export function useMotionPathDemo() {
     );
     const isStarted = ref(true);
     const isPlaying = ref(false);
+
+    // ── The editable control net (the single source, H.W12.S6 / I3) ──────────
+    // A mutable copy of the default figure-loop points (DEFAULT_POINTS is a
+    // readonly const witness). Dragging a handle mutates one point's x/y; the
+    // compiled `pathD` re-emits, and BOTH consumers re-read it.
+    const points = ref<PathPoint[]>(DEFAULT_POINTS.map((p) => ({ ...p })));
+
+    /** The ONE `d` string — the guide `<path>` d AND the traveller offset-path. */
+    const pathD = computed(() => buildPathD(points.value));
+
+    /** Move one editable point (by id) to new user-unit coords. The compiled
+     *  `pathD` recomputes, re-emitting the single source. */
+    const movePoint = (id: string, x: number, y: number): void => {
+        const pt = points.value.find((p) => p.id === id);
+        if (!pt) return;
+        pt.x = x;
+        pt.y = y;
+        // Reassign to trigger the computed (the array identity is stable, but the
+        // ref's deep reactivity tracks the mutation; nudge it explicitly so a
+        // shallowRef-style consumer also re-reads).
+        points.value = [...points.value];
+    };
+
+    /** Reset the path to the default figure-loop (the egg/“revert” affordance). */
+    const resetPath = (): void => {
+        points.value = DEFAULT_POINTS.map((p) => ({ ...p }));
+    };
+
+    /** The copy-paste artifact: the full `offset-path` declaration, ready to
+     *  paste into a stylesheet (the second copy artifact beside Discrete's
+     *  linear(), proof:motion-path-copy). */
+    const copyablePath = computed(
+        () => `offset-path: path('${pathD.value}');`,
+    );
 
     /**
      * Register the traveller's MotionPath animation (built on mount, once the
@@ -43,7 +91,18 @@ export function useMotionPathDemo() {
         animationGroup.value = markRaw(new AnimationGroup(anim));
     };
 
-    return { animationGroup, isStarted, isPlaying, registerAnimation };
+    return {
+        animationGroup,
+        isStarted,
+        isPlaying,
+        registerAnimation,
+        // The editable geometry (H.W12.S6 / I3) — the single source.
+        points,
+        pathD,
+        movePoint,
+        resetPath,
+        copyablePath,
+    };
 }
 
 export type MotionPathDemo = ReturnType<typeof useMotionPathDemo>;

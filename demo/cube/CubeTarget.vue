@@ -22,6 +22,8 @@
                     <div
                         ref="cubeEl"
                         class="cube preserve-3d animation relative flex items-center justify-center justify-items-center"
+                        :class="{ 'cube--rolling': rolling }"
+                        @dblclick="onRoll"
                     >
                         <span
                             class="contents"
@@ -101,8 +103,9 @@
 </template>
 
 <script setup lang="ts">
-import { useTemplateRef } from "vue";
+import { onScopeDispose, ref, useTemplateRef } from "vue";
 import { Loader2 } from "@lucide/vue";
+import { CSSKeyframesAnimation } from "@src/animation/engine";
 import OrbitalDrag from "@components/custom/orbital-drag/OrbitalDrag.vue";
 import type { TransformState } from "@components/custom/orbital-drag";
 
@@ -128,11 +131,74 @@ const cubeSides = [
     { class: "top", content: "5", color: "rgba(255, 0, 255, 0.8)" },
     { class: "bottom", content: "6", color: "rgba(0, 255, 255, 0.8)" },
 ];
+
+// ── EASTER EGG — "the Roll" (H.W12.S6) ───────────────────────────────────────
+// Double-click M. Cubert → roll the die. The cube IS a six-faced die (1–6); the
+// egg DOGFOODS the engine `CSSKeyframesAnimation` (inv ζ) to spin the `.cube`
+// element itself a couple of full turns on TWO axes into a RANDOM face, on a
+// bouncy `easeOutBack` so the die overshoots and settles. It targets the `.cube`
+// (NOT the OrbitalDrag quaternion container), so the spin COMPOSES with whatever
+// orbit the user set — the faces tumble within the current viewing frame. A
+// transitionend-free, engine-owned tumble; the rolling flag suppresses re-rolls
+// mid-spin and stands the pointer down for the ~1s arc.
+const rolling = ref(false);
+let rollAnim: CSSKeyframesAnimation | undefined;
+
+// The six face-up orientations of the `.cube` (degrees). Spinning the cube to
+// these shows faces 1–6 toward the viewer (the faces sit at ±translateZ off the
+// cube center, so a whole-cube rotate re-presents them).
+const ROLL_FACES: ReadonlyArray<{ x: number; y: number }> = [
+    { x: 0, y: 0 },     // 1 — front
+    { x: 0, y: -90 },   // 2 — right
+    { x: 0, y: 180 },   // 3 — back
+    { x: 0, y: 90 },    // 4 — left
+    { x: -90, y: 0 },   // 5 — top
+    { x: 90, y: 0 },    // 6 — bottom
+];
+
+const onRoll = () => {
+    if (rolling.value || !cubeEl.value) return;
+    rolling.value = true;
+
+    const face = ROLL_FACES[Math.floor(Math.random() * ROLL_FACES.length)]!;
+    // 1–2 extra whole turns per axis for the tumble drama, landing on the face.
+    const endX = face.x + (1 + Math.floor(Math.random() * 2)) * 360;
+    const endY = face.y + (1 + Math.floor(Math.random() * 2)) * 360;
+
+    rollAnim?.stop();
+    rollAnim = new CSSKeyframesAnimation({
+        duration: 1100,
+        iterationCount: 1,
+        fillMode: "forwards",
+        // The bounce-overshoot is the die settling onto its face.
+        timingFunction: "ease-out-back",
+    }).fromKeyframes(
+        {
+            from: { transform: { rotateX: "0deg", rotateY: "0deg" } },
+            to: { transform: { rotateX: `${endX}deg`, rotateY: `${endY}deg` } },
+        },
+    );
+    rollAnim.setTargets(cubeEl.value);
+    rollAnim.play();
+    // Release the gesture lock after the arc; the fillMode:forwards leaves the
+    // die resting on its rolled face (the next drag/animation re-bases as usual).
+    setTimeout(() => { rolling.value = false; }, 1200);
+};
+
+onScopeDispose(() => rollAnim?.stop());
 </script>
 
 <style scoped>
 .graph {
     perspective: 1200px;
+}
+
+/* EASTER EGG — "the Roll" (H.W12.S6): while the die tumbles, the cube ignores
+   pointer input so a stray drag mid-roll cannot fight the spring; the engine
+   owns the rotation for the ~1s tumble, then hands control back. Isomorphic —
+   no visual change, just the gesture hand-off. */
+.cube--rolling {
+    pointer-events: none;
 }
 
 /* CSS twin of the engine's reduced-motion gate: the always-on idle bob runs

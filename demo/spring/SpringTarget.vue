@@ -40,6 +40,7 @@
                 tabindex="0"
                 @pointerdown="onPointerDown"
                 @keydown="onKeydown"
+                @dblclick="demo.derby"
             >
                 <div class="progress-rail"></div>
                 <!-- Ghost target marker (where the spring is chasing) -->
@@ -79,8 +80,8 @@
 
 <script setup lang="ts">
 import { inject, useTemplateRef } from "vue";
-import { useEventListener } from "@vueuse/core";
 import { Card } from "@mkbabb/glass-ui";
+import { useDragScrub } from "@composables/useDragScrub";
 import { SPRING_DEMO_KEY } from "./springKeys";
 
 const demo = inject(SPRING_DEMO_KEY)!;
@@ -91,30 +92,18 @@ const railEl = useTemplateRef<HTMLElement>("railEl");
 // so the ball stays inside the track even though the read-out shows >1.
 const clampSweep = (v: number) => Math.max(0, Math.min(1, v));
 
-const positionFromEvent = (e: PointerEvent): number => {
-    const el = railEl.value;
-    if (!el) return demo.target.value;
-    const rect = el.getBoundingClientRect();
-    return (e.clientX - rect.left) / rect.width;
-};
-
-let dragging = false;
-
-const onPointerDown = (e: PointerEvent) => {
-    dragging = true;
-    railEl.value?.setPointerCapture(e.pointerId);
-    demo.reseat(positionFromEvent(e));
-};
-
-// vueuse owns the lifecycle (auto-cleanup on scope dispose); the handlers stay
-// registered and early-return unless a drag is in flight — the idiomatic form.
-useEventListener(window, "pointermove", (e: PointerEvent) => {
-    if (!dragging) return;
-    demo.reseat(positionFromEvent(e));
-});
-
-useEventListener(window, "pointerup", () => {
-    dragging = false;
+// The shared drag-scrub seam (H.W12.S1 / I8). Spring's `project` is the bare
+// rect-ratio (`demo.reseat` owns the clamp); no pause/resume hooks — the spring
+// chases the live target continuously.
+const { onPointerDown } = useDragScrub({
+    el: railEl,
+    project: (e) => {
+        const el = railEl.value;
+        if (!el) return demo.target.value;
+        const rect = el.getBoundingClientRect();
+        return (e.clientX - rect.left) / rect.width;
+    },
+    onScrub: (ratio) => demo.reseat(ratio),
 });
 
 const onKeydown = (e: KeyboardEvent) => {

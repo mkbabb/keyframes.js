@@ -10,6 +10,7 @@
             tabindex="0"
             @pointerdown="onPointerDown"
             @keydown="onKeydown"
+            @dblclick="tumble"
         >
             drag me
         </div>
@@ -25,7 +26,7 @@ import { useSquareAnimations } from "../../square/useSquareAnimations";
 const superKey = "Square";
 
 const box = useTemplateRef<HTMLElement>("box");
-const { anim, springX, springY, reseat, travel, paintRest, dispose } =
+const { anim, springX, springY, reseat, travel, paintRest, tumble, dispose } =
     useSquareAnimations(box);
 anim.name = "Transform";
 anim.superKey = superKey;

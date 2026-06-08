@@ -57,8 +57,38 @@ export function useSquareAnimations(
         const tx = transform?.x ?? 0;
         const ty = transform?.y ?? 0;
         const scale = transform?.a?.b?.c?.d ?? 1;
-        el.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+        // `rotate` is OPTIONAL — the live spring loop omits it (defaults to 0, a
+        // no-op), the "tumble" egg sweeps it for a barrel-roll. Composing it into
+        // the same custom transform keeps ONE paint authority (no second writer).
+        const rotate = transform?.rotate ?? 0;
+        el.style.transform = `translate(${tx}px, ${ty}px) rotate(${rotate}deg) scale(${scale})`;
         if (backgroundColor) el.style.backgroundColor = backgroundColor;
+    };
+
+    // ── EASTER EGG — "the Tumble" (H.W12.S6) ─────────────────────────────────
+    // Double-click the box → a delighted barrel-roll. A THIRD `SpringProgress`
+    // chases a +360° target (a snappy underdamped spin with overshoot), folded
+    // into the SAME paint loop + the SAME nested-object `transformFunc` (ONE
+    // paint authority — the spin rides `transform.rotate`, no second writer).
+    // While it spins the box sweeps through the contract-keyframe palette
+    // (#C462D8 → #52E898) so the tumble also EXHIBITS the engine's color twin.
+    // Re-seats to 0 after settling so a re-tumble starts fresh. inv ζ — the
+    // light-surface SpringProgress drives the spin, no hand-rolled rAF.
+    const springSpin = new SpringProgress({ response: 0.55, dampingFraction: 0.58, initial: 0 });
+    const EGG_HUES = ["#C462D8", "#7E6BE8", "#52E898"] as const;
+    const lerpHue = (t: number): string => {
+        const span = EGG_HUES.length - 1;
+        const i = Math.min(span - 1, Math.floor(t * span));
+        const f = t * span - i;
+        const mix = (a: number, b: number) => Math.round(a + (b - a) * f);
+        const hex = (h: string) => [
+            parseInt(h.slice(1, 3), 16),
+            parseInt(h.slice(3, 5), 16),
+            parseInt(h.slice(5, 7), 16),
+        ];
+        const [r1, g1, b1] = hex(EGG_HUES[i]!);
+        const [r2, g2, b2] = hex(EGG_HUES[i + 1]!);
+        return `rgb(${mix(r1!, r2!)}, ${mix(g1!, g2!)}, ${mix(b1!, b2!)})`;
     };
 
     // ── The live paint loop (ticks both springs, paints via transformFunc) ──
@@ -70,21 +100,50 @@ export function useSquareAnimations(
         lastNow = now;
         springX.tickDt(dt);
         springY.tickDt(dt);
+        springSpin.tickDt(dt);
 
         // Build the NESTED-OBJECT vars from the live spring state and paint. The
         // scale travels through `a.b.c.d` (a deflection-driven 1 → 1.12 swell),
         // so the nested-object structure is genuinely read every frame.
         const defl = Math.min(1, Math.hypot(springX.value, springY.value));
+        const spinning = !springSpin.settled;
         transformFunc({
             transform: {
                 x: springX.value * TRAVEL,
                 y: springY.value * TRAVEL,
+                rotate: springSpin.value,
                 a: { b: { c: { d: 1 + defl * 0.12 } } },
             },
+            // Sweep the palette WHILE the egg spin is live (keyed off the angle
+            // WITHIN the current turn, so it cycles each tumble); when the spin
+            // settles, clear the inline background so the box's CSS aquamarine
+            // home colour returns.
+            ...(spinning
+                ? { backgroundColor: lerpHue(((((springSpin.value % 360) + 360) % 360) / 360)) }
+                : {}),
         });
+        // The spin just settled this frame → restore the home colour (the CSS
+        // `aquamarine` wins once the inline override is removed).
+        if (springSpin.settled && box.value && box.value.style.backgroundColor) {
+            box.value.style.backgroundColor = "";
+        }
 
-        // Self-terminate once both springs settle — re-armed by reseat().
-        return !(springX.settled && springY.settled);
+        // Self-terminate once every spring settles — re-armed by reseat()/tumble().
+        return !(springX.settled && springY.settled && springSpin.settled);
+    };
+
+    // The accumulating spin target — each tumble adds a full turn (720°, 1080°…
+    // are visually identical to 360°/0°, and the spring chases the new target
+    // from wherever it is, so a re-tumble mid-spin keeps rolling smoothly). The
+    // colour sweep keys off `value mod 360`, so it cycles every turn.
+    let spinTarget = 0;
+
+    /** Roll the box one full turn (the "Tumble" egg). The box paint loop is the
+     *  SOLE driver (no second rAF) — this only re-seats the spin target. */
+    const tumble = (): void => {
+        spinTarget += 360;
+        springSpin.target = spinTarget;
+        startLoop();
     };
 
     /** Arm the loop (idempotent — a no-op while already running). */
@@ -144,7 +203,8 @@ export function useSquareAnimations(
         playback.stop();
         springX.dispose();
         springY.dispose();
+        springSpin.dispose();
     };
 
-    return { anim, springX, springY, reseat, travel, startLoop, paintRest, dispose };
+    return { anim, springX, springY, reseat, travel, startLoop, paintRest, tumble, dispose };
 }

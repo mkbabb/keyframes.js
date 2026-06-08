@@ -6,12 +6,14 @@
         <canvas
             ref="canvas"
             class="amiga-canvas h-full w-full rounded-lg"
+            :class="{ 'amiga-canvas--boing': boinging }"
+            @dblclick="onBoing"
         ></canvas>
     </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, useTemplateRef } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef } from "vue";
 import { useResizeObserver } from "@vueuse/core";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
@@ -48,6 +50,36 @@ const sphereSpin = useSphereSpin({
         if (controls) controls.enabled = enabled;
     },
 });
+
+// ── EASTER EGG — "the Boing" (H.W12.S6) ──────────────────────────────────────
+// Double-click the stage → the 1984 Amiga Boing Ball wakes up. The boing
+// animationGroup (the X/Y/Z bounce + spin + hue cycle) is BUILT by
+// useAmigaAnimations but otherwise DORMANT — the scene's live subject is the
+// spin-on-drag sphere. The egg DOGFOODS that already-built engine group (inv ζ:
+// the engine drives the non-DOM Three.js mesh through one satisfying boing arc),
+// then stops it and re-seats the sphere home so the scene returns to rest. A
+// hidden, on-aesthetic trigger that resurrects the demo's own namesake.
+const boinging = ref(false);
+let boingTimer: ReturnType<typeof setTimeout> | undefined;
+const SPHERE_HOME = -BOX_SIZE / 2 + 1;
+
+const onBoing = () => {
+    if (boinging.value || !sphereMesh) return;
+    boinging.value = true;
+    // Cancel any in-flight spin glide so the boing owns the mesh cleanly.
+    void animationGroup.play();
+    // One boing arc (≈ the 2.1s bounce period × ~3) then settle back home — the
+    // group is infinite, so we stop it on a timer and restore the rest pose.
+    boingTimer = setTimeout(() => {
+        animationGroup.stop();
+        if (sphereMesh) {
+            sphereMesh.position.set(SPHERE_HOME, SPHERE_HOME, SPHERE_HOME);
+            sphereMesh.rotation.set(0, 0, 0);
+            sphereMesh.material.color = new THREE.Color("white");
+        }
+        boinging.value = false;
+    }, 4200);
+};
 
 onMounted(() => {
     const canvas = canvasEl.value!;
@@ -176,6 +208,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+    if (boingTimer != null) clearTimeout(boingTimer);
     animationGroup.stop();
     stopRenderLoop();
     sphereSpin.detach();
@@ -223,8 +256,23 @@ defineExpose({
 
 /* The drag/spin surface. `touch-action: none` lets the sphere-spin pointer
    gesture own touch input on the canvas (no scroll/zoom hijack) — the disjoint
-   gesture model: a sphere-hit drag spins the mesh, a miss orbits the camera. */
+   gesture model: a sphere-hit drag spins the mesh, a miss orbits the camera.
+
+   AFFORDANCE (H.W12 frontend-design pass): the sphere is the interactive
+   subject (drag to spin, release to glide) but the static checkered ball gave
+   NO grab signal. `cursor: grab` advertises the manipulable surface — a
+   befitting, isomorphic affordance cue (no layout/visual change, just the
+   pointer hint the square scene's box already carries). */
 .amiga-canvas {
     touch-action: none;
+    cursor: grab;
+}
+.amiga-canvas:active {
+    cursor: grabbing;
+}
+/* While the Boing egg arc plays, the grab cursor stands down (nothing to grab
+   mid-boing — the engine owns the mesh). */
+.amiga-canvas--boing {
+    cursor: default;
 }
 </style>

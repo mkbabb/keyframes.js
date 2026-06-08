@@ -215,7 +215,10 @@ export function useEasingDemo() {
     // Stop the raw RAFPlayback on scope dispose (the genuine unmount seam,
     // mirroring useRafLoop.ts onUnmounted(stop)) — the scene host has NO
     // <KeepAlive>, so onDeactivated never fires and would leak this loop on swap.
-    onScopeDispose(() => playback.stop());
+    onScopeDispose(() => {
+        playback.stop();
+        disposeGallery();
+    });
 
     // B-3: idle the preview rAF while the tab is hidden, without disturbing the
     // machine's play/pause intent (PRESERVED autoPaused contract — "only resume
@@ -239,6 +242,52 @@ export function useEasingDemo() {
             bezierControlPoints.value = [0, 0, 1, 1];
         }
     };
+
+    // ── EASTER EGG — "the Gallery" (H.W12.S6) ────────────────────────────────
+    // Double-click the curve canvas → a self-playing tour of the easing library.
+    // The selected curve cascades through a curated gallery of the most
+    // EXPRESSIVE named easings (the back/bounce/elastic family) ~520ms apart,
+    // so the hero canvas MORPHS through the catalogue and the traveling dot
+    // traces each in turn — a hands-free showcase of the engine's curve set
+    // (`selectEasing` re-derives `currentEasingFn` + `svgPath` per step, inv ζ).
+    // Restores the curve the user was on when the tour ends.
+    // The tour names are the HYPHENATED registry keys `timingFunctionsAnd` holds
+    // (getTimingFunctionsAnd re-keys every easing through camelCaseToHyphen, so
+    // `selectEasing` + the curve lookup both want the hyphen form). Verified
+    // against the live value.js set — every entry resolves to a real function.
+    const GALLERY_TOUR = [
+        "ease-in-out-back",
+        "bounce-out-ease",
+        "ease-out-expo",
+        "ease-in-out-circ",
+        "bounce-in-out-ease",
+        "ease-out-back",
+    ] as const;
+    let galleryRunning = false;
+    const galleryTimers: ReturnType<typeof setTimeout>[] = [];
+    const STEP_MS = 520;
+
+    const gallery = () => {
+        if (galleryRunning) return;
+        galleryRunning = true;
+        galleryTimers.length = 0;
+        const restore = currentEasingName.value;
+
+        GALLERY_TOUR.forEach((name, i) => {
+            // Only tour curves the registry actually carries (defensive — the
+            // tour list is curated against the value.js easing set).
+            if (!(name in timingFunctionsAnd)) return;
+            galleryTimers.push(setTimeout(() => selectEasing(name), i * STEP_MS));
+        });
+        galleryTimers.push(
+            setTimeout(() => {
+                selectEasing(restore);
+                galleryRunning = false;
+            }, GALLERY_TOUR.length * STEP_MS),
+        );
+    };
+
+    const disposeGallery = () => galleryTimers.forEach(clearTimeout);
 
     const updateBezierPoints = (points: [number, number, number, number]) => {
         bezierControlPoints.value = points;
@@ -371,6 +420,7 @@ export function useEasingDemo() {
         selectEasing,
         updateBezierPoints,
         parseCSSValue,
+        gallery,
         play,
         pause,
         togglePlay,

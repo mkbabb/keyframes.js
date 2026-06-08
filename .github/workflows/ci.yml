@@ -377,6 +377,45 @@ jobs:
               run: npm run proof:no-deprecated-guard
             - name: proof:single-writer (H.W1 S9.c — the FSM mutation boundary; no consumer writes activeScene/status)
               run: npm run proof:single-writer
+            # H.W12 S1/I8 — the ONE pointer-drag scrub seam. The hand-rolled drag
+            # DANCE (setPointerCapture + a window pointermove/pointerup listener)
+            # lives in EXACTLY ONE shared home (useDragScrub.ts), and spring/
+            # sequence/motion-path carry ZERO of it (their scrub rides the seam;
+            # the rect reads that remain are pure project closures). The square
+            # scene's 2-D positional box drag is a recorded DANCE_ALLOWLIST
+            # carve-out (it earns its difference). Born-RED on the pre-W12 3-4
+            # hand-rolled copies. A static grep — no browser, no build.
+            - name: proof:dragscrub-single (H.W12 S1/I8 — the pointer-drag scrub dance has ONE home · spring/sequence/motion-path consume useDragScrub)
+              run: npm run proof:dragscrub-single
+            # H.W12 S2/I9 — the gesture engine lives in the composable. The
+            # projection-math signature (getBoundingClientRect/getTotalLength/
+            # getPointAtLength/ManualTimeline/fromMotionPath/setChildTime) lives in
+            # useMotionPathGesture.ts; MotionPathTarget.vue's <script> holds NONE
+            # of it (refs + markup only — the W-MP-5 lift). Plus the pure-getter
+            # belt: every reactive store write lives inside the store-module dir
+            # (the lazy-init getStored* seed-on-read is the recorded carve-out), and
+            # no writable computed writes in its GET half. Born-RED on the pre-W12
+            # gesture engine inline in the Target. Structural + grep, no browser.
+            - name: proof:composable-encapsulation (H.W12 S2/I9 — the motion-path gesture engine is in the composable · the Target is projection-math-free · pure store getters)
+              run: npm run proof:composable-encapsulation
+            # H.W12 S3/I10 — the demo stays decomposed + colocated (born-GREEN
+            # regression guard). Every demo .vue/.ts (under demo/, dist/ excluded)
+            # is ≤500L; each stage-scene dir colocates *Target.vue + use*Demo.ts +
+            # *Keys.ts; no use*Demo composable is orphaned away from its Target. The
+            # engine (src/animation) is FENCED + out of the sweep (inv ζ). The bite
+            # is a FUTURE over-split or orphan. Static — no browser, no build.
+            - name: proof:demo-no-oversize (H.W12 S3/I10 — every demo file ≤500L · scene Target/composable/key colocation coherent · the engine is FENCED)
+              run: npm run proof:demo-no-oversize
+            # H.W12 S4/I11 — the scene targets are de-brittled. ZERO class-string
+            # DOM walks (.closest(".class")/querySelector(".class")) in spring/
+            # sequence/motion-path (owned useTemplateRefs instead); the motion-path
+            # nearest-point search uses a NAMED SAMPLE_STEP constant; and the
+            # square-viewBox client→user-unit scale is CENTRALIZED + documented in
+            # ONE clientToUserUnits helper (so a future non-square stage breaks
+            # there, visibly, not in two drifting copies). Born-RED on the pre-W12
+            # bare SAMPLE_STEP=5 magic + the implicit square coupling. Static grep.
+            - name: proof:no-brittle-selector (H.W12 S4/I11 — zero class-string DOM walks · named SAMPLE_STEP · ONE documented square-viewBox scale helper)
+              run: npm run proof:no-brittle-selector
             - name: proof:no-dup-utility (H.W2 S4/S1/S6 — 0 demo .scale-on-hover rule · 0 <Card> glass-card · glass-card resolves only to the enumerated static set)
               run: npm run proof:no-dup-utility
             - name: proof:specular-handoff (H.W2 S5 — born-RED glass-ui Card-default + dock-icon specular HANDOFF witness; flips RED when glass-ui ships the calm default)
@@ -456,6 +495,21 @@ jobs:
               run: npm run proof:phi-leaf-zero
             - name: proof:icon-idiom (H.W4 S4 — the 61-no-op icon-sizing lock · every icon-* resolves to a design-idioms.css def · xs<sm<md<lg differentiated · SVG cascade)
               run: npm run proof:icon-idiom
+            # H.W12 S5/I12 — the OWNED-IDIOMS contract-MEMBERSHIP extension. EXTENDS
+            # proof:icon-idiom's resolve-or-red plumbing from the four W4 icon-* to the
+            # FULL referenced-idiom set: every idiom-shaped class the demo references
+            # resolves to a definition in {design-idioms.css ∪ glass-ui dist ∪
+            # tw-animate-css ∪ the file's own scoped <style>}. The FORK-I12 MEASURE-FIRST
+            # verdict is the REDUCTION branch (zero referenced-but-undefined demo-authored
+            # idiom beyond icon-* — depth-text/text-mono-caption are glass-ui-grace rents
+            # that RESOLVE, KEEP per inv-16), so the membership clause is born-GREEN — a
+            # REGRESSION GUARD that bites a FUTURE un-owned idiom (a new class="something-
+            # fancy" with no home), recorded honestly NOT papered as a non-biting born-RED.
+            # Static (grep, no browser): a referenced standalone/shared idiom-shaped class
+            # with no definition reds; a removed W4 icon-* def reds (clause b); a removed
+            # multi-file shared recipe (status-badge/code-token) reds.
+            - name: proof:styling-idioms (H.W12 I12 — the OWNED-IDIOMS contract membership extends to the FULL referenced-idiom set · resolve-or-red · FORK-I12 reduction guard)
+              run: npm run proof:styling-idioms
             - name: proof:dogfood-hero (H.W6 inv ζ — the hero dots loop on a kf engine class from @src; steppedEase is the value.js curve, NOT the dogfood symbol)
               run: npm run proof:dogfood-hero
             # H.W6 (WV-W6-HIGH-1) — the per-dot dogfooded blink lock. Mounts the
@@ -519,6 +573,27 @@ jobs:
             # CI fail (the computed rung + the rendered nesting cannot pass vacuously).
             - name: proof:easing-sidebar-normalized (H.W10 G5+G6 — the easing/spring sidebars on the standard rung · ×3 inner Cards gone · Labeled* rows)
               run: npm run proof:easing-sidebar-normalized
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            # H.W12 S7/J — the MINIMAL controls-like easing sidebar (round-4 feedback,
+            # j-easing-minimalism.md). Composes with proof:easing-sidebar-normalized (J
+            # removes a row the subgrid no longer needs) + proof:bezier-grown (J6 pushes
+            # the IN-SIDEBAR canvas further). STATIC half (the J1/J2/J5/J4 source
+            # deletions — no <LabeledInput label="value">, no `label="value"`, no <h2>, no
+            # css-value-input/value-field dead anchor) runs without a browser + bites the
+            # source born-RED. BROWSER half (settle-gated on the H.W1 FSM resting; #/easing
+            # pinned in-page, pane + easing tab opened so the FULL-RAIL sidebar mounts):
+            # B1 the strip is RENDERED (0 <h2> + 0 CSS-value text input + 0 "value" row),
+            # B2 the <EasingSelect> dropdown IS the sole selector (non-vacuity), B3 the
+            # duration track is FULL-WIDTH (≈ CardContent inner ±8px — NOT the short 2-track
+            # row), B4 ONE container (1 Card-root), B5 the bezier canvas GREW above the W11
+            # in-sidebar ~160px baseline (>200px; landed 260px), B6 the grown canvas STILL
+            # FITS (no scroll). Born-RED on the W11 form: B1 (<h2>:1, "value" row:1), B3
+            # (track 215 < inner 296), B5 (160px un-grown) — VERIFIED by building a W11-dist.
+            # KF_REQUIRE_BROWSER turns a playwright-absent skip into a hard CI fail (the
+            # full-width + grown-canvas + fits clauses cannot pass vacuously).
+            - name: proof:easing-sidebar-minimal (H.W12 J — the easing sidebar MINIMAL · no value input/label · no <h2> · full-width duration · grown bezier · single container)
+              run: npm run proof:easing-sidebar-minimal
               env:
                   KF_REQUIRE_BROWSER: "1"
             # H.W10 S3 (G4) — the singular-stage = ONE engine-driven ball (reverses
@@ -725,6 +800,75 @@ jobs:
             # (the per-mode interactivity floor cannot pass vacuously).
             - name: proof:scene-parity (H.W5 S3/S4/S5 — Discrete merged away · {spring,sequence,motion-path} survivors · springLinearStops fold to ONE · motionpath/square/easing pointer affordances)
               run: npm run proof:scene-parity
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            # H.W12 I3 (S6 · R-SEQ-D / H-MI-4) — the draggable storyboard rows. A
+            # STATIC source half (the .seq-handle role="slider" + @pointerdown drag
+            # seam + the reseatRow() that sets the Sequence entry's at + re-sorts) + a
+            # BROWSER half: settle on #/sequence, drag a row's .seq-handle to the track
+            # far end → its aria-valuenow (the at: ms) CHANGES AND the stagger
+            # distribution RE-SORTS (the sorted at: multiset re-orders — the engine
+            # re-ordered, not just relabelled). Born-RED on the read-only rows (no
+            # handle drag). Settle-gated on the H.W1 FSM resting; the drag dogfoods
+            # useDragScrub (S1) + the Sequence position model (inv ζ). KF_REQUIRE_BROWSER
+            # turns a playwright-absent skip into a hard CI fail (the re-author cannot
+            # pass vacuously).
+            - name: proof:sequence-rows-draggable (H.W12 I3 — drag a row handle → its at: changes AND the Sequence re-sorts the stagger distribution)
+              run: npm run proof:sequence-rows-draggable
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            # H.W12 I3 (S6 · R-MP-B, the F4 elevation) — the editable motion-path. A
+            # STATIC half (motionPathGeometry is a control net + buildPathD compiler,
+            # PATH_D = buildPathD(net); the guide :d="demo.pathD" + the watch(pathD)
+            # that re-writes the traveller offset-path) + a BROWSER half: settle on
+            # #/motion-path, drag a .mp-handle control point → the guide .mp-guide-path
+            # d AND the traveller's computed offset-path BOTH change to the SAME new d
+            # (the single-source PATH_D invariant — no drift; SVG-path commas
+            # canonicalized as whitespace for the geometric equality). Born-RED on the
+            # frozen PATH_D (handles inert) / a missing lockstep re-write (the traveller
+            # drifts on stale geometry). Settle-gated on the H.W1 FSM resting; the drag
+            # dogfoods useDragScrub (S1) with an {x,y} project. KF_REQUIRE_BROWSER turns
+            # a playwright-absent skip into a hard CI fail (the lockstep re-shape cannot
+            # pass vacuously).
+            - name: proof:motion-path-editable (H.W12 I3 — drag a control handle → the guide d AND the traveller offset-path BOTH change to the SAME d · single-source PATH_D, no drift)
+              run: npm run proof:motion-path-editable
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            # H.W12 I3 (S6 · R-MP-C) — the copy-offset-path artifact (the SECOND
+            # copy-paste output beside Discrete's linear()). A STATIC half (copyablePath
+            # = "offset-path: path('${pathD}')" + the <CopyButton :text> + the .artifact
+            # block) + a BROWSER half: settle on #/motion-path, the .artifact reads
+            # `offset-path: path('…')`, a real CopyButton click writes that EXACT string
+            # to the clipboard (clipboard read-back, granted permission), AND after a
+            # control-handle edit the artifact UPDATES (it re-reads the single source —
+            # what you copy IS what you shaped). Born-RED on the absent copy affordance.
+            # Settle-gated on the H.W1 FSM resting. KF_REQUIRE_BROWSER turns a
+            # playwright-absent skip into a hard CI fail (the copy artifact cannot pass
+            # vacuously).
+            - name: proof:motion-path-copy (H.W12 I3 — a copy affordance emits offset-path: path(…) · re-reads the single source · the real clipboard write)
+              run: npm run proof:motion-path-copy
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            # H.W12 I3 (S6 · ONE on-aesthetic egg per scene) — every scene has its
+            # hidden, tasteful egg that DOGFOODS the engine (inv ζ) to an observable
+            # off-the-normal-path effect. A STATIC half (each egg's hidden trigger +
+            # its engine-dogfooding effect token) + a BROWSER half: for EACH scene
+            # settle on it, fire the hidden gesture, assert the observable flips —
+            # sequence "reel" (type "reel" → .reel-active + the cascade), motion-path
+            # "wink" (a full-lap traveller drag → .mp-traveller--winking, 😎), cube
+            # "Roll" (dblclick → .cube--rolling + the engine spin), amiga "Boing"
+            # (dblclick → .amiga-canvas--boing), square "Tumble" (dblclick → the box
+            # transform leaves rest), spring "Derby" (dblclick the rail → the live ball
+            # sweeps off rest), easing "Gallery" (dblclick the curve → the .bezier-path
+            # d cycles). Born-RED on the no-eggs state. Settle-gated on the H.W1 FSM
+            # resting; scene switches driven IN-PAGE via the hash reconcile. The egg
+            # dblclicks are DISPATCHED events (the egg handlers are plain @dblclick, not
+            # permission-gated) so the cube's OrbitalDrag pointer-capture is never
+            # tripped; the easing egg runs in its own isolated browser context (the
+            # reka tab-init race). KF_REQUIRE_BROWSER turns a playwright-absent skip into
+            # a hard CI fail (the seven eggs cannot pass vacuously).
+            - name: proof:easter-egg (H.W12 I3 — EACH scene's hidden egg fires its observable off-the-normal-path effect · reel · wink · roll · boing · tumble · derby · gallery)
+              run: npm run proof:easter-egg
               env:
                   KF_REQUIRE_BROWSER: "1"
             # H.W4 S3 — the hero on the audacious φ rung. SOURCE-shape (the <h1>

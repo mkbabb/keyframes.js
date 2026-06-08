@@ -228,6 +228,50 @@ export function useSpringDemo() {
         reseat(target.value > 0.5 ? 0 : 1);
     };
 
+    // ── EASTER EGG — "the Derby" (H.W12.S6) ──────────────────────────────────
+    // Double-click the rail → a spring DERBY. The canonical trackers
+    // (smooth/snappy/bouncy/gentle) are normally re-seated TOGETHER; the egg
+    // launches them in a STAGGERED wave (a 110ms cascade) so their different
+    // damping fractions are SEEN racing — the bouncy track overshoots and rings
+    // while the gentle one glides in late. DOGFOODS each track's own
+    // SpringProgress (inv ζ); the shared loop is the sole driver, so the egg only
+    // re-seats targets on a timer. Bounces back to 0 after the launch so the
+    // showcase returns to rest.
+    let derbyRunning = false;
+    const derbyTimers: ReturnType<typeof setTimeout>[] = [];
+    const STAGGER_MS = 110;
+
+    const derby = () => {
+        if (derbyRunning) return;
+        derbyRunning = true;
+        derbyTimers.length = 0;
+
+        // Launch each canonical track to 1 in a staggered wave.
+        tracks.forEach((t, i) => {
+            derbyTimers.push(
+                setTimeout(() => {
+                    t.spring.target = 1;
+                    startLoop();
+                }, i * STAGGER_MS),
+            );
+        });
+        // The live ball joins the wave last, then the whole field bounces home.
+        const launchSpan = tracks.length * STAGGER_MS;
+        derbyTimers.push(
+            setTimeout(() => {
+                liveSpring.target = 1;
+                target.value = 1;
+                startLoop();
+            }, launchSpan),
+        );
+        derbyTimers.push(
+            setTimeout(() => {
+                reseat(0);
+                derbyRunning = false;
+            }, launchSpan + 900),
+        );
+    };
+
     /** Rebuild the interactive spring when params change, preserving state. */
     const rebuildLiveSpring = () => {
         const carriedValue = liveSpring.value;
@@ -308,7 +352,10 @@ export function useSpringDemo() {
     // Stop the raw RAFPlayback on scope dispose (the genuine unmount seam,
     // mirroring useRafLoop.ts onUnmounted(stop)). The host has NO <KeepAlive>,
     // so onDeactivated never fires and would leak this loop on a play-then-swap.
-    onScopeDispose(() => playback.stop());
+    onScopeDispose(() => {
+        playback.stop();
+        derbyTimers.forEach(clearTimeout);
+    });
 
     // B-3: idle the shared spring rAF while the tab is hidden without touching
     // the machine's play/pause intent (PRESERVED autoPaused contract — "only
@@ -400,6 +447,7 @@ export function useSpringDemo() {
         // Methods
         reseat,
         toggleTarget,
+        derby,
         reset,
         play,
         pause,
