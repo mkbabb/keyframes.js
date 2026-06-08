@@ -30,6 +30,10 @@ import {
     type SceneId,
     type ScenePlayback,
 } from "./sceneMachine";
+import {
+    controlSurfacesFor,
+    type ControlSurface,
+} from "./controlSurfaceDFA";
 
 /** The localStorage key the machine context persists under (ST-6). Exported so
  *  `resetAllStores()` (storeUtils STORE_KEYS) wipes it in the same motion — the
@@ -216,6 +220,23 @@ export const useSceneMachine = createGlobalState(() => {
         activeScene: readonly(computed(() => machine.value.context.activeScene)),
         perScene: readonly(computed(() => machine.value.context.perScene)),
         machine: readonly(machine) as DeepReadonly<Ref<MachineState>>,
+
+        // ── THE CONTROL-SURFACE PROJECTION (H.W11.S4 / I2 — the third axis) ───
+        // A PURE, reactive projection of the active scene onto its valid
+        // control-surface set (the DFA table in controlSurfaceDFA.ts). NOT a
+        // reducer mutation — it derives from `activeScene` ONLY, so the W1
+        // machine's identity is untouched (proof:scene-machine-irrefragable
+        // stays green). The tab hosts read `controlSurfaces` to gate what
+        // renders per scene (the easing scene → ['easing'], so NO keyframes/
+        // timeline tab node exists for it).
+        controlSurfaces: readonly(
+            computed<ControlSurface[]>(() =>
+                controlSurfacesFor(machine.value.context.activeScene),
+            ),
+        ),
+        /** The DFA selector for an ARBITRARY scene (the navigation-matrix
+         *  totality the gate asserts: every scene resolves a DEFINED set). */
+        controlSurfacesFor,
 
         // The single WRITE surface.
         dispatch,

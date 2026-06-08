@@ -1,11 +1,16 @@
 <template>
-    <!-- G8 (H.W10.S5) — FULL-BLEED stage. The former bare-class
-         `glass-resting cartoon-surface` card is DROPPED (no card to round —
-         dissolves G2); the rail + sweep float full-bleed like the cube subject.
-         Dock-band containment is the [stage]-track PRIMITIVE — the per-scene
-         `dock-inset` is GONE. `max-w-3xl` rides the content column as an optical
-         reading measure (the rails are wide). -->
-    <div class="flex flex-col items-center justify-center gap-8 h-full w-full px-6 lg:px-8 overflow-hidden">
+    <!-- I5 (H.W11.S1) — the STAGE-CARD register (REVERSES W10 G8 full-bleed).
+         A standard, NON-cartoon glass `<Card>` (the protagonist plate;
+         `tier="resting" surface="glass"`, rounded-card by construction → I4 for
+         free). The control PANELS stay cartoon+quiet (W2/W9). Dock-band
+         containment is the surviving [stage]-track `.stage-cell` PRIMITIVE (the
+         G8 LAYOUT half survives; the surface half reverses). `shadow={false}`:
+         the plate reads cleaner without a nested shadow (FORK I5-shadow). The
+         `max-w-3xl` rides the content column as an optical reading measure. -->
+    <Card
+        :shadow="false"
+        class="flex flex-col items-center justify-center gap-8 h-full w-full px-6 lg:px-8 overflow-hidden"
+    >
         <!-- Header readout -->
         <div class="flex w-full max-w-3xl items-center justify-between gap-3 shrink-0">
             <div class="flex items-baseline gap-3 min-w-0">
@@ -69,12 +74,13 @@
                 ></div>
             </div>
         </div>
-    </div>
+    </Card>
 </template>
 
 <script setup lang="ts">
 import { inject, useTemplateRef } from "vue";
 import { useEventListener } from "@vueuse/core";
+import { Card } from "@mkbabb/glass-ui";
 import { SPRING_DEMO_KEY } from "./springKeys";
 
 const demo = inject(SPRING_DEMO_KEY)!;

@@ -39,7 +39,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, h, nextTick, onMounted, provide, ref } from "vue";
+import { computed, h, provide, ref } from "vue";
 import { TabsContent, TabsTrigger, Button } from "@mkbabb/glass-ui";
 import { Eye, EyeOff, Shuffle } from "@lucide/vue";
 
@@ -57,23 +57,16 @@ const SUPER_KEY = "Spring";
 const demo = useSpringDemo();
 provide(SPRING_DEMO_KEY, demo);
 
-// Always default to the Spring tab when entering this scene
+// The spring scene's ONLY valid control surface is `spring` (the control-surface
+// DFA, H.W11.S4 / I2 — `CONTROL_SURFACES.spring = ['spring']`). The dock + the
+// in-panel tab host render the triad FROM that table, so the built-in
+// controls/keyframes/timeline triggers no longer exist for this scene — reka
+// CANNOT fall back to a non-existent `controls` tab. The former onMounted+
+// nextTick re-assert hack is SUPERSEDED by the explicit table; only the
+// deterministic default remains.
 const storedControls = getStoredAnimationGroupControlOptions(SUPER_KEY);
 storedControls.selectedControl = "spring";
 storedControls.isControlsPanelOpen = true;
-
-// The Spring controls tab is provided via the `tabs-content` SLOT, so reka's
-// <Tabs> registers it AFTER its built-in controls/keyframes/timeline children;
-// when the slotted `spring` TabsContent registers a tick later than reka's init
-// read of `selectedControl`, reka falls back to its first built-in tab and does
-// not re-evaluate. Re-assert the default AFTER mount + a tick so the `spring`
-// tab is selected deterministically once its content is registered (the "always
-// default to the Spring tab" intent, made order-independent).
-onMounted(() => {
-    nextTick(() => {
-        storedControls.selectedControl = "spring";
-    });
-});
 
 // `demo.isPlaying` is a read-only projection of the machine status (the shadow
 // `isPlaying` ref is DELETED, H.W1). The bottom-bar play button routes through

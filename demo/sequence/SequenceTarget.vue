@@ -1,6 +1,13 @@
 <template>
     <div class="flex flex-col items-center justify-center gap-4 h-full w-full px-6 lg:px-8 max-w-3xl mx-auto overflow-hidden">
-        <div class="glass-resting cartoon-surface w-full flex-1 min-h-0 flex flex-col overflow-hidden">
+        <!-- I5 (H.W11.S1) — the STAGE-CARD register. The former bare-class
+             `glass-resting cartoon-surface` div (border-radius 0 — the I4 square
+             defect; the radius lived on the `<Card>` root, not the
+             `cartoon-surface` utility) SWAPS to a standard, NON-cartoon glass
+             `<Card>` — the protagonist plate, rounded-card by construction (I4
+             closes FOR FREE). `shadow={false}` (FORK I5-shadow). All four stage
+             scenes converge to ONE register. -->
+        <Card :shadow="false" class="w-full flex-1 min-h-0 flex flex-col overflow-hidden">
             <!-- Header: title + live master progress read-out -->
             <div class="flex items-center justify-between px-4 py-2.5 border-b border-border/40 shrink-0">
                 <div class="flex items-baseline gap-3 min-w-0">
@@ -105,14 +112,14 @@
                     </Button>
                 </div>
             </div>
-        </div>
+        </Card>
     </div>
 </template>
 
 <script setup lang="ts">
 import { inject, onMounted, useTemplateRef } from "vue";
 import { useEventListener } from "@vueuse/core";
-import { Button } from "@mkbabb/glass-ui";
+import { Button, Card } from "@mkbabb/glass-ui";
 import { Pause, Play, Rewind, Gauge, RotateCcw } from "@lucide/vue";
 
 import { SEQUENCE_DEMO_KEY } from "./sequenceKeys";

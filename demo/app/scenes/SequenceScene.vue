@@ -23,7 +23,10 @@ provide(SEQUENCE_DEMO_KEY, demo);
 // contract AnimationGroup satisfies the editor's bottom-bar handle; it drives no
 // scene motion (the Sequence's own loop does). The PLAYBACK authority is the
 // machine + the raw-rAF ScenePlayback adapter (H.W1) — `demo.isPlaying` is now a
-// read-only projection of the machine status.
+// read-only projection of the machine status. The control-surface DFA (H.W11.S4
+// / I2 — `CONTROL_SURFACES.sequence = []`) is the AUTHORITY on this being a
+// self-contained, panel-less stage: the dock shows NO control affordance for an
+// empty DFA set. The local closed-default keeps the panel container collapsed.
 const storedControls = getStoredAnimationGroupControlOptions(SUPER_KEY);
 storedControls.isControlsPanelOpen = false;
 

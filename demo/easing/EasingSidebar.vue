@@ -11,7 +11,14 @@
          editable bezier curve stays as the lone HERO element (the H.W9 F2
          bezier-panel precedent: title + tight canvas). -->
     <Card surface="cartoon" tier="quiet" class="easing-editor w-full overflow-visible">
-        <CardContent class="panel-content flex flex-col gap-2 px-4 py-3">
+        <!-- H.W11.I1 — the CardContent is the `.labeled-field-grid` (design-idioms
+             .css §LABEL-subgrid): all `.labeled-field` rows (value / steps / jump /
+             duration) share ONE uniform label-column track via CSS subgrid (the
+             widest label sets the width, every row's label cell matches). The
+             hero title + canvas + EasingSelect are non-field children → full-width
+             (`:not(.labeled-field)`). REPLACES the W9-era per-row
+             `:deep(.labeled-field){auto 1fr}`; the label-left direction holds. -->
+        <CardContent class="panel-content labeled-field-grid px-4 py-3">
             <!-- Title — the editor's parity header (gestalt parity with the
                  TimingFunctionPanel's titled detail Card). -->
             <h2 class="text-title leading-none">{{ demo.currentEasingName.value }}</h2>
@@ -26,19 +33,21 @@
                 @update:bezier-points="demo.updateBezierPoints"
             />
 
-            <!-- CSS value row (label-left) + copy affordance -->
-            <div class="flex items-end gap-2">
-                <LabeledInput
-                    class="flex-1 min-w-0"
-                    :model-value="demo.cssValue.value"
-                    label="value"
-                    label-class="text-mono-small text-muted-foreground"
-                    tooltip="cubic-bezier(...), steps(...), or a named easing"
-                    input-class="css-value-input"
-                    @update:model-value="onCSSInputValue"
-                />
-                <CopyButton class="shrink-0 w-4 h-4 mb-2.5" :text="demo.cssValue.value" />
-            </div>
+            <!-- CSS value row (label-left) + inline copy affordance. The
+                 LabeledInput is a DIRECT subgrid participant (its "value" label
+                 joins the uniform track); the CopyButton trails in the value
+                 column, seated on the input via the `.copy-affordance` rule below.
+                 A NAMED delta — the only labeled row carrying an inline copy. -->
+            <LabeledInput
+                class="min-w-0 value-field"
+                :model-value="demo.cssValue.value"
+                label="value"
+                label-class="text-mono-small text-muted-foreground"
+                tooltip="cubic-bezier(...), steps(...), or a named easing"
+                input-class="css-value-input"
+                @update:model-value="onCSSInputValue"
+            />
+            <CopyButton class="copy-affordance shrink-0 w-4 h-4" :text="demo.cssValue.value" />
 
             <!-- Grouped curve selector (the easing domain control) -->
             <EasingSelect
@@ -133,23 +142,29 @@ const onStepsChangeValue = (value: string) => {
     container-name: easing-editor;
 }
 
-/* ── F1 (H.W9.S3 idiom) — label-LEFT / value-RIGHT per row ──
-   G6 normalizes the easing sidebar onto the standard component, so it INHERITS
-   the F1 row shape: every glass-ui `.labeled-field` (LabeledInput/LabeledSelect/
-   LabeledSlider) becomes a two-cell grid (label auto, control 1fr) so the label
-   sits LEFT of the value — matching the standard AnimationControlsControls rows
-   (whose identical rule lives there). The error region spans both columns. The
-   durable home is glass-ui's BOOKED `LabeledField orientation="horizontal"`
-   (inv-16 HANDOFF — NOT patched here). */
-.panel-content :deep(.labeled-field) {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    align-items: center;
-    column-gap: 0.75rem;
-    row-gap: 0.25rem;
-}
-.panel-content :deep(.labeled-field .labeled-field-error) {
-    grid-column: 1 / -1;
+/* H.W11.I1 — the per-row `:deep(.labeled-field){auto 1fr}` rule (W9 F1, each row
+   its OWN `auto` label width) is GONE — REPLACED by the `.labeled-field-grid`
+   subgrid idiom on the CardContent (design-idioms.css §LABEL-subgrid): value /
+   steps / jump / duration now share ONE uniform label-column track. No legacy
+   beside the replacement; the label-left direction holds, strengthened to uniform.
+
+   The value row's inline-copy NAMED delta: the value LabeledInput is a DIRECT
+   grid child (its "value" label joins the uniform track via the idiom's subgrid
+   rule). The CopyButton is the NEXT direct child; grid auto-flow would drop it on
+   its own row, so it is RE-SEATED onto the value row's control cell — pinned to
+   the `value` track at its right edge (`justify-self: end`) and pulled up onto the
+   input by a one-row negative offset. This is the only labeled row carrying an
+   inline affordance (a befitting NAMED delta), yet its label STILL shares the
+   uniform width. */
+.copy-affordance {
+    grid-column: value;
+    justify-self: end;
+    align-self: start;
+    /* Pull up onto the value input's row (one input-height + the row-gap). The
+       value <Input> is the standard h-9 (2.25rem); offset by ~1.9rem to seat the
+       copy glyph centered on the input's right edge. */
+    margin-block-start: -1.9rem;
+    margin-inline-end: 0.25rem;
 }
 
 /* The free-text easing input keeps user-typed content case-as-typed (the

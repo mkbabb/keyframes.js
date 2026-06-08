@@ -20,7 +20,10 @@ provide(MOTION_PATH_DEMO_KEY, demo);
 
 // The MotionPath animation IS a CSSKeyframesAnimation in the contract group, so
 // the editor's existing bottom-bar transport drives play/pause/scrub directly —
-// no custom transport. Open the controls panel on desktop like the other scenes.
+// no custom transport. The control-surface DFA (H.W11.S4 / I2 —
+// `CONTROL_SURFACES["motion-path"] = []`) is the AUTHORITY on this being a
+// self-contained, panel-less stage: the dock shows NO control affordance for an
+// empty DFA set. The local closed-default keeps the panel container collapsed.
 const storedControls = getStoredAnimationGroupControlOptions(SUPER_KEY);
 storedControls.isControlsPanelOpen = false;
 

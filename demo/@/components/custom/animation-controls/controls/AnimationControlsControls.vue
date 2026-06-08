@@ -7,62 +7,71 @@
                     <!-- Main controls panel -->
                     <div :class="['panel-row', !(showDetailPanel || advancedOpen) ? 'panel-row--active' : 'panel-row--inactive']">
                         <div class="panel-content flex flex-col gap-2 w-full">
-                            <LabeledInput
-                                :model-value="storedAnimationOptions.animationOptions.duration ?? '5s'"
-                                label="duration"
-                                label-class="text-mono-small text-muted-foreground"
-                                tooltip="Animation length (e.g. 5s, 200ms)"
-                                @update:model-value="(v) => { trySetOption(() => animation.setDuration(v)); storedAnimationOptions.animationOptions.duration = v; }"
-                            />
+                            <!-- H.W11.I1 — the label rows share ONE uniform label
+                                 column via the `.labeled-field-grid` subgrid idiom
+                                 (design-idioms.css §LABEL-subgrid): the WIDEST label
+                                 (here "fill mode" / "iterations") sets the track, every
+                                 row's label cell resolves the SAME width — REPLACES the
+                                 W9-era per-row `:deep(.labeled-field){auto 1fr}` (each
+                                 row its own width). -->
+                            <div class="labeled-field-grid">
+                                <LabeledInput
+                                    :model-value="storedAnimationOptions.animationOptions.duration ?? '5s'"
+                                    label="duration"
+                                    label-class="text-mono-small text-muted-foreground"
+                                    tooltip="Animation length (e.g. 5s, 200ms)"
+                                    @update:model-value="(v) => { trySetOption(() => animation.setDuration(v)); storedAnimationOptions.animationOptions.duration = v; }"
+                                />
 
-                            <LabeledInput
-                                :model-value="storedAnimationOptions.animationOptions.delay ?? '0ms'"
-                                label="delay"
-                                label-class="text-mono-small text-muted-foreground"
-                                tooltip="Delay before start (e.g. 0s, 500ms)"
-                                @update:model-value="(v) => { trySetOption(() => animation.setDelay(v)); storedAnimationOptions.animationOptions.delay = v; }"
-                            />
+                                <LabeledInput
+                                    :model-value="storedAnimationOptions.animationOptions.delay ?? '0ms'"
+                                    label="delay"
+                                    label-class="text-mono-small text-muted-foreground"
+                                    tooltip="Delay before start (e.g. 0s, 500ms)"
+                                    @update:model-value="(v) => { trySetOption(() => animation.setDelay(v)); storedAnimationOptions.animationOptions.delay = v; }"
+                                />
 
-                            <LabeledInput
-                                :model-value="
-                                    storedAnimationOptions.animationOptions.iterationCount === 'infinite' || storedAnimationOptions.animationOptions.iterationCount === Infinity
-                                        ? '∞'
-                                        : String(storedAnimationOptions.animationOptions.iterationCount ?? 'infinite')
-                                "
-                                label="iterations"
-                                label-class="text-mono-small text-muted-foreground"
-                                tooltip="Repeat count (number or 'infinite')"
-                                @update:model-value="
-                                    (v: string) => {
-                                        trySetOption(() => animation.setIterationCount(v));
-                                        storedAnimationOptions.animationOptions.iterationCount = v;
-                                    }
-                                "
-                            />
+                                <LabeledInput
+                                    :model-value="
+                                        storedAnimationOptions.animationOptions.iterationCount === 'infinite' || storedAnimationOptions.animationOptions.iterationCount === Infinity
+                                            ? '∞'
+                                            : String(storedAnimationOptions.animationOptions.iterationCount ?? 'infinite')
+                                    "
+                                    label="iterations"
+                                    label-class="text-mono-small text-muted-foreground"
+                                    tooltip="Repeat count (number or 'infinite')"
+                                    @update:model-value="
+                                        (v: string) => {
+                                            trySetOption(() => animation.setIterationCount(v));
+                                            storedAnimationOptions.animationOptions.iterationCount = v;
+                                        }
+                                    "
+                                />
 
-                            <LabeledSelect
-                                :model-value="storedAnimationOptions.animationOptions.direction ?? 'normal'"
-                                :is-open="isOpen('direction')"
-                                :items="DIRECTIONS"
-                                :descriptions="DIRECTION_DESCRIPTIONS"
-                                label="direction"
-                                label-class="text-mono-small text-muted-foreground"
-                                tooltip="Playback direction"
-                                @update:model-value="(v) => { animation.setDirection(v as any); storedAnimationOptions.animationOptions.direction = v as any; }"
-                                @update:open="(v: boolean | undefined) => setOpen('direction', v ?? false)"
-                            />
+                                <LabeledSelect
+                                    :model-value="storedAnimationOptions.animationOptions.direction ?? 'normal'"
+                                    :is-open="isOpen('direction')"
+                                    :items="DIRECTIONS"
+                                    :descriptions="DIRECTION_DESCRIPTIONS"
+                                    label="direction"
+                                    label-class="text-mono-small text-muted-foreground"
+                                    tooltip="Playback direction"
+                                    @update:model-value="(v) => { animation.setDirection(v as any); storedAnimationOptions.animationOptions.direction = v as any; }"
+                                    @update:open="(v: boolean | undefined) => setOpen('direction', v ?? false)"
+                                />
 
-                            <LabeledSelect
-                                :model-value="storedAnimationOptions.animationOptions.fillMode ?? 'forwards'"
-                                :is-open="isOpen('fillMode')"
-                                :items="FILL_MODES"
-                                :descriptions="FILL_MODE_DESCRIPTIONS"
-                                label="fill mode"
-                                label-class="text-mono-small text-muted-foreground"
-                                tooltip="Style applied when not playing"
-                                @update:model-value="(v) => { animation.setFillMode(v as any); storedAnimationOptions.animationOptions.fillMode = v as any; }"
-                                @update:open="(v: boolean | undefined) => setOpen('fillMode', v ?? false)"
-                            />
+                                <LabeledSelect
+                                    :model-value="storedAnimationOptions.animationOptions.fillMode ?? 'forwards'"
+                                    :is-open="isOpen('fillMode')"
+                                    :items="FILL_MODES"
+                                    :descriptions="FILL_MODE_DESCRIPTIONS"
+                                    label="fill mode"
+                                    label-class="text-mono-small text-muted-foreground"
+                                    tooltip="Style applied when not playing"
+                                    @update:model-value="(v) => { animation.setFillMode(v as any); storedAnimationOptions.animationOptions.fillMode = v as any; }"
+                                    @update:open="(v: boolean | undefined) => setOpen('fillMode', v ?? false)"
+                                />
+                            </div>
 
                             <!-- Easing field: ONE full-width unit (the label-row + edit
                                  pencil stacked OVER the EasingSelect), matching the
@@ -121,7 +130,6 @@
                                 :stored-animation-options="storedAnimationOptions"
                                 :timing-functions-and="timingFunctionsAnd"
                                 :progress="normalizedProgress"
-                                v-bind="convertedFromName != null ? { editingCurveName: convertedFromName } : {}"
                                 @exit-detail-panel="exitDetailPanel"
                                 @update-timing-function="updateTimingFunctionFromName"
                             />
@@ -143,14 +151,20 @@
                                 <span class="text-mono-small text-muted-foreground">advanced</span>
                             </div>
 
-                            <!-- Layer Settings (only when the animation has a layer) -->
-                            <LayerConfigPanel
-                                v-if="layerConfig"
-                                :layer-config="layerConfig"
-                                :is-open="isOpen"
-                                :set-open="setOpen"
-                                @update="(v) => emit('layerConfigUpdate', v)"
-                            />
+                            <!-- Layer Settings (only when the animation has a layer).
+                                 H.W11.I1 — LayerConfigPanel's blend / z-index / weight /
+                                 enabled `.labeled-field` rows join the SAME uniform
+                                 label-column subgrid (the `.labeled-field-grid` wrapper);
+                                 LayerConfigPanel does NOT re-author the rule (one DRY
+                                 source, design-idioms.css §LABEL-subgrid). -->
+                            <div v-if="layerConfig" class="labeled-field-grid">
+                                <LayerConfigPanel
+                                    :layer-config="layerConfig"
+                                    :is-open="isOpen"
+                                    :set-open="setOpen"
+                                    @update="(v) => emit('layerConfigUpdate', v)"
+                                />
+                            </div>
 
                         </div>
                     </div>
@@ -333,37 +347,16 @@ onMounted(() => {
     overflow-y: auto;
 }
 
-/* ── F1 (H.W9.S3) — label-LEFT / value-RIGHT per row, ONE column of rows ──
-   W3.S1 collapsed the per-row [auto_1fr] split → each LabeledField stacked
-   label-OVER-value. This restores the intra-row split at the ROW level: every
-   glass-ui `.labeled-field` (LabeledInput/LabeledSelect — `<div class="labeled-field">`
-   wrapping its tooltip-label + the control) becomes a two-cell grid (label auto,
-   control 1fr), so the label sits LEFT of the value. The error region spans both
-   columns. This is the demo-side born-GREEN path (path B) mirroring the in-tree
-   AssetPropertiesPanel precedent; the durable home is glass-ui's BOOKED
-   `LabeledField orientation="horizontal"` (inv-16 HANDOFF — NOT patched here).
-
-   The single-column-pack invariant STAYS TRUE: the split is INTRA-row (one left
-   edge per row); the panel rows still stack one column. The hand-rolled easing
-   field + the advanced nav row are NOT `.labeled-field`, so they keep their
-   full-width custom shape. gap-y > gap-x preserves Gestalt proximity.
-
-   DRY home: this :deep rule reaches EVERY `.labeled-field` rendered into
-   `.panel-content` — including LayerConfigPanel's blend / z-index / enabled rows
-   (rendered into the advanced sub-pane's `.panel-content`). One source for the
-   panel-row shape; LayerConfigPanel does NOT re-author it. */
-.panel-content :deep(.labeled-field) {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    align-items: center;
-    column-gap: 0.75rem;
-    row-gap: 0.25rem;
-}
-/* The error region (revealed on :user-invalid) spans both columns so it sits
-   under the control, not in the label gutter. */
-.panel-content :deep(.labeled-field .labeled-field-error) {
-    grid-column: 1 / -1;
-}
+/* H.W11.I1 — the per-row `:deep(.labeled-field){auto 1fr}` rule (W9 F1, each row
+   its OWN `auto` label width) is GONE — REPLACED by the `.labeled-field-grid`
+   subgrid idiom (design-idioms.css §LABEL-subgrid), applied to the field-row
+   wrappers in the template above so the label column is UNIFORM across rows (one
+   derived width from the widest label). No legacy beside the replacement: the
+   demo CONSUMES the shared idiom, it does not re-author the per-row rule. The
+   single-column-pack invariant holds (the subgrid keeps ONE left edge per row).
+   The `:deep` was needed because the rule reached glass-ui's `.labeled-field`
+   across the shadow boundary; the idiom is GLOBAL (design-idioms.css, unscoped),
+   so it reaches `.labeled-field` directly with no `:deep`. */
 
 .easing-edit-btn {
     color: var(--color-gold);

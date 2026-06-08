@@ -5,21 +5,21 @@
             <template
                 v-if="(storedAnimationOptions.animationOptions.timingFunction as any) === 'cubic-bezier'"
             >
-                <!-- H.W9.F8/F3/F6 — the calm glass+cartoon register. `surface="cartoon"`
-                     mints the offset-stamp depth over a `tier="quiet"` glass plate
-                     (0.50α/10px — the pre-cartoon glass the user remembers). The
-                     tracked specular catch-light is REMOVED (F3 too-dramatic + F6
-                     consistency): this panel is now a plain quiet-glass cartoon Card
-                     like its siblings, distinguished only by being a
-                     direct-manipulation surface. -->
-                <Card surface="cartoon" tier="quiet" class="easing-editor grid gap-0 w-full p-0">
+                <!-- H.W11.I6 — the inner Card is GONE (de-nested). The detail editor
+                     is a VIEW within the parent controls Card (AnimationControlsControls
+                     is itself the `surface="cartoon"` framed surface), so a second Card
+                     here was pure card-in-card duplication. The bezier editor now flows
+                     into the parent content directly — the `easing-editor` container
+                     (the `38cqi` canvas-sizing context, H.W4.S1) moves onto this plain
+                     wrapper; the H.W9.F2 title-LEFT / dismiss-RIGHT header pattern is
+                     PRESERVED, re-homed onto the flow (no inner Card, no legacy beside
+                     the replacement). -->
+                <div class="easing-editor grid gap-1 w-full">
                     <!-- H.W9.F2 — title LEFT, dismiss RIGHT: the idiomatic detail-panel
-                         header. The back affordance is baked into the CardHeader row;
-                         the former standalone top-LEFT button is gone (no legacy beside
-                         its replacement). -->
-                    <CardHeader class="grid gap-0 p-0 pb-1">
+                         header, re-homed onto the de-nested flow. -->
+                    <div class="grid gap-0">
                         <div class="flex items-center justify-between gap-2">
-                            <CardTitle class="text-title">cubic-bézier</CardTitle>
+                            <h3 class="text-title">cubic-bézier</h3>
                             <Button
                                 variant="ghost"
                                 size="icon"
@@ -30,7 +30,9 @@
                                 <ArrowLeft class="icon-sm" />
                             </Button>
                         </div>
-                        <p v-if="editingCurveName" class="text-mono-caption normal-case text-muted-foreground ml-1 mb-0.5">editing: {{ editingCurveName }}</p>
+                        <!-- H.W11.I7 — the "editing: …" subtitle is DELETED (redundant
+                             clutter: the curve + the live cubic-bezier(...) readout below
+                             already say what is being edited). -->
                         <div
                             class="w-full whitespace-pre h-6 m-0 p-0 ml-1 text-mono-caption normal-case flex items-center italic justify-items-center gap-2"
                         >
@@ -46,8 +48,8 @@
                                 </Tooltip>
                             </TooltipProvider>
                         </div>
-                    </CardHeader>
-                    <CardContent class="p-0 m-0 grid gap-2">
+                    </div>
+                    <div class="grid gap-2">
                         <EasingCurveCanvas
                             :easing-fn="currentBezierFn"
                             :svg-path="currentBezierSvgPath"
@@ -77,21 +79,22 @@
                                 </SelectContent>
                             </Select>
                         </div>
-                    </CardContent>
-                </Card>
+                    </div>
+                </div>
             </template>
 
             <template
                 v-else-if="storedAnimationOptions.animationOptions.timingFunction === 'steps'"
             >
-                <Card surface="cartoon" tier="quiet">
-                    <CardHeader class="p-0 pb-2">
-                        <CardTitle class="text-title">steps</CardTitle>
-                    </CardHeader>
+                <!-- H.W11.I6 — the inner Card is GONE here too (the steps variant was
+                     the same card-in-card shape). The steps editor flows into the parent
+                     controls Card directly. -->
+                <div class="grid gap-2 w-full">
+                    <h3 class="text-title">steps</h3>
                     <!-- Single-column stacked fields (label OVER control), the same
                          shape as the sidebar's LabeledField rows — H.W3.S3b collapsed
                          this panel's own label|control two-track grid. -->
-                    <CardContent class="p-0 flex flex-col gap-2">
+                    <div class="flex flex-col gap-2">
                         <div class="flex flex-col gap-1">
                             <label class="text-mono-caption normal-case text-muted-foreground">count</label>
                             <Input
@@ -130,8 +133,8 @@
                                 </SelectContent>
                             </Select>
                         </div>
-                    </CardContent>
-                </Card>
+                    </div>
+                </div>
             </template>
         </div>
 </template>
@@ -151,10 +154,6 @@ import { generateCurveSVGPath } from "./timingCurveUtils";
 
 import {
     Button,
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
     Select,
     SelectContent,
     SelectGroup,
@@ -177,7 +176,6 @@ const props = defineProps<{
     animation: Animation<any>;
     storedAnimationOptions: StoredAnimationOptions;
     timingFunctionsAnd: Record<string, any>;
-    editingCurveName?: string;
     progress?: number;
 }>();
 
@@ -238,17 +236,38 @@ const updatePreset = (key: string) => {
     container-name: easing-editor;
 }
 
-/* H.W9.F2 — the in-panel bezier canvas ceiling is a NAMED panel-context clamp
-   TIGHTER than the full-rail 280px (the EasingSidebar full-rail render keeps
-   280; this detail-panel render takes a smaller cap so the whole panel FITS
-   without scrolling under the detail-cap). NOT a contradiction of H.W4's
-   full-rail 280 ceiling — W4's `proof:easing-canvas-bounded` is the full-rail
-   ceiling; this is a tighter context-specific clamp. The square LAW is
-   PRESERVED (the canvas keeps `aspect-ratio:1` from EasingCurveCanvas; only the
-   `block-size` ceiling drops). `:deep()` reaches the child component's scoped
-   canvas. The lower `max-block-size` wins over the canvas's own 280 cap. */
+/* H.W11.I7 — the in-panel bezier canvas GROWS to fill the container (the user:
+   "make the bezier controls as BIG/TALL as possible"). I6's inner-Card removal
+   freed the vertical space the W9 220px cap was hoarding against (the two
+   compose: de-nest → more room → grow the canvas to fill it).
+
+   MEASURE-FIRST against the LIVE detail render (cube scene, the bezier detail
+   panel open). The detail-panel host caps at `min(50vh, 480px)` — VIEWPORT-HEIGHT
+   bound, so it is 360px at a 720-tall viewport and 450px at 900. The de-nested
+   chrome around the canvas (title/readout header + the preset Select + grid gaps)
+   + the `.easing-curve-canvas-wrapper` 0.5rem padding measured 136px total
+   (`scrollHeight − canvasBlockSize`, live, both viewports). So the canvas BUDGET
+   before scroll = `min(50vh, 480px) − 136px` — 224px at 720, 314px at 900.
+
+   THE GROW — `block-size: clamp(232px, 78cqi, 300px)` lands a 232px FLOOR (a REAL
+   grow over W9's 220 → `proof:bezier-grown` bites: 232 > 220), growing toward the
+   300/46vh ceiling on a wider rail. But the W9 fit-without-scroll invariant
+   (`proof:bezier-no-scroll`) is VIEWPORT-HEIGHT bound, NOT rail-inline bound — at a
+   720-tall viewport the 360px host could not hold a 232px canvas (232 + 136 = 368 >
+   360 → 8px overflow). The 78cqi term ties height to the RAIL inline width (296px →
+   231px), which is identical at 720 and 900, so it cannot self-correct for the
+   shorter cap. The `max-block-size` therefore TRACKS the viewport-height budget:
+   `calc(min(50vh, 480px) − 9rem)` = 360 − 144 = 216px would clamp BELOW 220 at 720
+   (too tight), so the trim is `8.5rem` (136px) — exactly the measured chrome — minus
+   a 1px sub-pixel guard: `calc(min(50vh, 480px) − 137px)` resolves 223px at 720
+   (> 220 → grown; 223 + 136 = 359 ≤ 360 → FITS) and 313px at 900 (the rail-inline
+   78cqi floor of 232 wins there — generous height). So both gates hold at BOTH
+   anchors: grown above 220 AND fits without scroll. The square LAW is PRESERVED
+   (`aspect-ratio:1` from EasingCurveCanvas — the 280px-wide canvas is never shorter
+   than width-driven; the height clamp only bounds the block axis). `:deep()` reaches
+   the child's scoped canvas; the bounded ceiling wins over the canvas's own 280 cap. */
 :deep(.easing-curve-canvas) {
-    block-size: clamp(160px, 38cqi, 220px);
-    max-block-size: 220px;
+    block-size: clamp(232px, 78cqi, 300px);
+    max-block-size: calc(min(50vh, 480px) - 137px);
 }
 </style>

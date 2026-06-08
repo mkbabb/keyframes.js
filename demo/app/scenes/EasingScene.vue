@@ -5,7 +5,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, h, nextTick, onMounted, provide, ref } from "vue";
+import { computed, h, provide, ref } from "vue";
 import { TabsContent, TabsTrigger } from "@mkbabb/glass-ui";
 
 import { getStoredAnimationGroupControlOptions } from "@components/custom/animation-controls/stores";
@@ -21,23 +21,16 @@ const SUPER_KEY = "Easing";
 const demo = useEasingDemo();
 provide(EASING_DEMO_KEY, demo);
 
-// Always default to the Easing tab when entering this scene
+// The easing scene's ONLY valid control surface is `easing` (the control-surface
+// DFA, H.W11.S4 / I2 — `CONTROL_SURFACES.easing = ['easing']`). The dock + the
+// in-panel tab host render the triad FROM that table, so the built-in
+// controls/keyframes/timeline triggers no longer exist for this scene — reka
+// CANNOT fall back to a non-existent `controls` tab. The former onMounted+
+// nextTick re-assert hack (which stood in for the missing visibility owner) is
+// SUPERSEDED by the explicit table; only the deterministic default remains.
 const storedControls = getStoredAnimationGroupControlOptions(SUPER_KEY);
 storedControls.selectedControl = "easing";
 storedControls.isControlsPanelOpen = true;
-
-// The Easing controls tab is provided via the `tabs-content` SLOT, so reka's
-// <Tabs> registers it AFTER its own controls/keyframes/timeline children. When
-// the slotted `easing` TabsContent registers a tick later than reka's init read
-// of `selectedControl`, reka falls back to its first built-in tab (`controls`)
-// and does not re-evaluate. Re-assert the default AFTER mount + a tick so the
-// `easing` tab is selected deterministically once its content is registered —
-// the "always default to the Easing tab" intent, made order-independent.
-onMounted(() => {
-    nextTick(() => {
-        storedControls.selectedControl = "easing";
-    });
-});
 
 // `demo.isPlaying` is now a read-only projection of the machine status (the
 // shadow `isPlaying` ref is DELETED, H.W1). The bottom-bar play button routes

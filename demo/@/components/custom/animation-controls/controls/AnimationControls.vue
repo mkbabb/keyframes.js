@@ -17,15 +17,30 @@
                         overflowClass,
                     ]"
                 >
-                    <TabsTrigger :ref="(el: any) => setTabTriggerRef('controls', el)" value="controls" :class="tabClasses">Controls</TabsTrigger>
-                    <TabsTrigger :ref="(el: any) => setTabTriggerRef('keyframes', el)" value="keyframes" :class="tabClasses">Keyframes</TabsTrigger>
-                    <TabsTrigger :ref="(el: any) => setTabTriggerRef('timeline', el)" value="timeline" :class="tabClasses">Timeline</TabsTrigger>
+                    <!-- The BUILT-IN editor triad is rendered FROM the DFA
+                         (H.W11.S4 / I2) — `builtInTabs` is the active scene's
+                         valid {controls,keyframes,timeline} subset, so an INVALID
+                         built-in surface CANNOT render per scene (the easing
+                         scene → none of the triad; only its slotted easing tab). -->
+                    <TabsTrigger
+                        v-for="tab in builtInTabs"
+                        :key="tab.value"
+                        :ref="(el: any) => setTabTriggerRef(tab.value, el)"
+                        :value="tab.value"
+                        :class="tabClasses"
+                        >{{ tab.label }}</TabsTrigger
+                    >
                     <slot name="tabs-trigger"></slot>
                 </TabsList>
             </div>
 
             <div ref="tabsContentEl" class="flex-1 min-h-0 overflow-y-auto flex flex-col pb-1">
-                <TabsContent value="controls">
+                <!-- Each BUILT-IN pane is gated on the DFA (H.W11.S4 / I2): a
+                     scene whose valid set omits a surface mounts NO pane for it
+                     (so the easing scene never spins up the Monaco keyframes
+                     pane). The scene-specific surfaces flow through the
+                     `tabs-content` slot below. -->
+                <TabsContent v-if="hasSurface('controls')" value="controls">
                     <AnimationControlsControls
                         :animation="animation"
                         :is-playing="isPlayingProp"
@@ -49,6 +64,7 @@
                      the focus-move on reveal restores it. Scoped to THIS Monaco
                      pane only — the lightweight controls pane stays unmounted. -->
                 <TabsContent
+                    v-if="hasSurface('keyframes')"
                     value="keyframes"
                     force-mount
                     ref="keyframesPaneEl"
@@ -66,7 +82,7 @@
                     ></KeyframesStringControls>
                 </TabsContent>
 
-                <TabsContent value="timeline">
+                <TabsContent v-if="hasSurface('timeline')" value="timeline">
                     <!-- Placeholder shown in the tab when timeline is expanded to bottom bar -->
                     <div
                         v-if="storedControls.isTimelineExpanded"
@@ -137,6 +153,11 @@ import {
 import { TABS_EXTERNALLY_MANAGED_KEY } from "../injectionKeys";
 import { ChevronDown, Minimize2 } from "@lucide/vue";
 import { useScrollFade } from "../composables/useScrollFade";
+import {
+    useSceneMachine,
+    BUILT_IN_SURFACES,
+    type ControlSurface,
+} from "../stores";
 
 const KeyframesStringControls = defineAsyncComponent(() => import("../keyframes/KeyframesStringControls.vue"));
 const KeyframeTimeline = defineAsyncComponent(() => import("../timeline/KeyframeTimeline.vue"));
@@ -154,6 +175,34 @@ const storedControls = getStoredAnimationGroupControlOptions(animation);
 
 // When true, the tab header is hidden (tabs are managed externally, e.g. via ChromeDock)
 const tabsExternallyManaged = inject(TABS_EXTERNALLY_MANAGED_KEY, false);
+
+// ── THE CONTROL-SURFACE DFA (H.W11.S4 / I2) ─────────────────────────────────
+// The active scene's valid control-surface set, projected from the W1 machine
+// (the third orthogonal axis). The built-in {controls,keyframes,timeline} triad
+// is rendered FROM `builtInTabs` (the DFA-valid subset) + each pane is gated by
+// `hasSurface`, so an INVALID surface CANNOT render per scene (the easing scene
+// shows ONLY its slotted easing tab — no keyframes/timeline node). Reading the
+// SAME projection the dock reads keeps the two tab hosts in lockstep — one
+// authority, no drift.
+//
+// The DFA gates ONLY when the host is the scene-machine-driven shell
+// (`tabsExternallyManaged`). A STANDALONE host (the playground EditorShell, which
+// does NOT route through the scene machine — its activeScene stays the `home`
+// default) shows the FULL built-in triad: it is the standalone editor, not a
+// per-scene DFA-gated surface.
+const machine = useSceneMachine();
+const BUILT_IN_TAB_META: Record<string, { value: string; label: string }> = {
+    controls: { value: "controls", label: "Controls" },
+    keyframes: { value: "keyframes", label: "Keyframes" },
+    timeline: { value: "timeline", label: "Timeline" },
+};
+const hasSurface = (surface: ControlSurface): boolean =>
+    !tabsExternallyManaged || machine.controlSurfaces.value.includes(surface);
+const builtInTabs = computed(() =>
+    BUILT_IN_SURFACES.filter(
+        (s) => !tabsExternallyManaged || machine.controlSurfaces.value.includes(s),
+    ).map((s) => BUILT_IN_TAB_META[s]!),
+);
 
 const emit = defineEmits<{
     (

@@ -24,7 +24,13 @@ import { StatusDot } from "@mkbabb/glass-ui/status-dot";
 // every survivor themes via currentColor. <Home> remains the icon for the
 // explicit home descriptor ALONE (the single fallback).
 
-const CONTROL_TABS: { value: string; label: string; icon?: string }[] = [
+// The BUILT-IN editor tab descriptors (label + icon for the {controls,keyframes,
+// timeline} triad). The DFA (controlSurfaceDFA.ts) is the AUTHORITY on WHICH of
+// these render per scene — `allControlTabs` filters this list against the
+// `controlSurfaces` prop (the active scene's valid set). The easing scene's set
+// is ['easing'] (a scene-specific surface carried by `extraControlTabs`), so NONE
+// of this triad renders for it — NO keyframes/timeline tab node exists there.
+const BUILT_IN_CONTROL_TABS: { value: string; label: string; icon?: string }[] = [
     { value: "controls", label: "Controls", icon: "SlidersHorizontal" },
     { value: "keyframes", label: "Keyframes", icon: "Braces" },
     { value: "timeline", label: "Timeline", icon: "Clock" },
@@ -46,6 +52,11 @@ const props = defineProps<{
     hasSelectedAnimation: boolean;
     isControlsPanelOpen: boolean;
     selectedControl?: string;
+    /** The active scene's valid BUILT-IN editor surfaces (the DFA projection,
+     *  H.W11.S4 / I2). The dock renders the {controls,keyframes,timeline} triad
+     *  FROM this set — an invalid built-in surface CANNOT render. Defaults to the
+     *  full triad when absent (non-App hosts that don't drive the DFA). */
+    controlSurfaces?: string[];
     extraControlTabs?: { value: string; label: string; icon?: string }[];
 }>();
 
@@ -55,11 +66,30 @@ const currentIcon = computed<Component | undefined>(
     () => props.scenes.find((s) => s.id === props.currentSceneId)?.icon,
 );
 
+// The effective control-tab set the dock renders = the DFA-VALID built-in triad
+// for the active scene + the scene's `extraControlTabs` (its scene-specific
+// surfaces' tab metadata: easing→Easing, spring→Spring, cube→Matrix Controls).
+// When `controlSurfaces` is absent (a non-App host that doesn't drive the DFA)
+// the full built-in triad is the conservative default — total, never undefined.
 const allControlTabs = computed(() => {
-    const tabs = [...CONTROL_TABS];
-    if (props.extraControlTabs) tabs.push(...props.extraControlTabs);
-    return tabs;
+    const valid = props.controlSurfaces;
+    const builtIn = valid
+        ? BUILT_IN_CONTROL_TABS.filter((t) => valid.includes(t.value))
+        : [...BUILT_IN_CONTROL_TABS];
+    return props.extraControlTabs ? [...builtIn, ...props.extraControlTabs] : builtIn;
 });
+
+// The control-panel affordances (the collapse toggle + the tab selector) appear
+// ONLY when the scene has at least one control surface to show (the DFA set is
+// non-empty) AND an animation is selected. For sequence/motion-path the DFA set
+// is [] — so NO control affordance renders, which is the DFA-driven supersession
+// of those scenes' former `isControlsPanelOpen = false` poke-sets (one authority
+// for "this scene has no panel", not a per-scene imperative write).
+const hasControlPanel = computed(
+    () =>
+        props.hasSelectedAnimation &&
+        allControlTabs.value.length > 0,
+);
 
 const isMobile = useMediaQuery("(max-width: 1023px)");
 
@@ -118,7 +148,7 @@ watch(isAnyOpen, (open) => {
                 <div class="flex items-center gap-2">
                         <!-- Controls collapse -->
                         <DockIconButton
-                            v-if="hasSelectedAnimation"
+                            v-if="hasControlPanel"
                             :title="isControlsPanelOpen ? 'Close controls' : 'Open controls'"
                             @click="emit('toggleControlsPanel')"
                         >
@@ -132,11 +162,11 @@ watch(isAnyOpen, (open) => {
                             </template>
                         </DockIconButton>
 
-                        <div v-if="hasSelectedAnimation" class="dock-separator"></div>
+                        <div v-if="hasControlPanel" class="dock-separator"></div>
 
                         <!-- Controls tab selector -->
                         <Select
-                            v-if="hasSelectedAnimation"
+                            v-if="hasControlPanel"
                             :model-value="selectedControl ?? 'controls'"
                             :open="controlsSelectOpen"
                             @update:open="controlsSelectOpen = $event"
@@ -159,7 +189,7 @@ watch(isAnyOpen, (open) => {
                             </SelectContent>
                         </Select>
 
-                        <div v-if="hasSelectedAnimation" class="dock-separator"></div>
+                        <div v-if="hasControlPanel" class="dock-separator"></div>
 
                         <!-- Scene selector -->
                         <Select

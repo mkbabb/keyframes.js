@@ -207,6 +207,38 @@ jobs:
               run: npm run proof:scene-machine-irrefragable
               env:
                   KF_REQUIRE_BROWSER: "1"
+            # H.W11 S4 / I2 — the per-scene control-surface DFA (the third orthogonal
+            # axis on the W1 keystone, EXTENDS the FSM — proof:scene-machine-irrefragable
+            # stays GREEN above). For EVERY scene the rendered control-surface set EXACTLY
+            # equals the DFA table entry (easing → ONLY easing, NO keyframes/timeline node;
+            # sequence/motion-path → NO control panel; cube → the full triad), and the
+            # (scene → scene) navigation matrix is TOTAL (no undefined cell, no stale
+            # surface bleed). STATIC half (the table-driven render + the reka-hacks-die
+            # source anchors) + the unit-locked DFA core (test/control-surface-dfa.test.ts).
+            # Born-RED on the W10 baseline (the hard-coded controls/keyframes/timeline triad
+            # at AnimationControls.vue:20-22 + the reka-fallback hacks). Settle-gated on the
+            # H.W1 FSM resting; KF_REQUIRE_BROWSER turns a playwright-absent skip into a hard
+            # CI fail (the per-scene + navigation-matrix clauses cannot pass vacuously).
+            - name: proof:scene-control-dfa (H.W11 S4/I2 — each scene renders ONLY its valid control-surface set · the navigation matrix is total · the DFA EXTENDS W1)
+              run: npm run proof:scene-control-dfa
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            # H.W11 S4 / I2 — the DFA's MEASURE-FIRST transition-performance budget
+            # (bench:scene-transition). The cross-scene navigate + control-surface re-render
+            # settles within the measured budget (BUDGET_MS=120, named from the W11 baseline
+            # p95≈46ms — ~2.6× headroom, under the ~200ms feels-instant INP threshold, still
+            # biting a real regression), AND the control-surface state suspends-on-leave +
+            # fully-resumes on SCENE_READY (the easing↔cube round-trip identity, EXTENDING
+            # the W1 proof:scene-machine-irrefragable field set with the {selectedControl,
+            # control-surfaces} projection). STATIC half (the DFA source + the
+            # reducer-untouched anchor) always runs. Born-RED on the W10 baseline (the DFA
+            # source is ABSENT). Settle-gated on the H.W1 FSM resting; KF_REQUIRE_BROWSER
+            # turns a playwright-absent skip into a hard CI fail (the budget + round-trip
+            # cannot pass vacuously).
+            - name: proof:scene-transition-perf (H.W11 S4/I2 — the MEASURE-FIRST transition budget settles ≤120ms · the control-surface round-trip identity EXTENDS W1)
+              run: npm run proof:scene-transition-perf
+              env:
+                  KF_REQUIRE_BROWSER: "1"
             - name: proof:dock-popover-opens (H.W1 S8/BLK-8 — the @mbabb dock popover opens on a trusted click)
               run: npm run proof:dock-popover-opens
               env:
@@ -250,6 +282,22 @@ jobs:
             # playwright-absent skip into a hard CI fail (neither clause can pass vacuously).
             - name: proof:single-column-pack (H.W3 leaf-row single-column + mis-size lock · H.W9 F1 label-left/value-right)
               run: npm run proof:single-column-pack
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            # H.W11 I1 (S3) — the UNIFORM label-column subgrid lock (REFINES W9 F1):
+            # within each `.labeled-field-grid` panel every leaf-row label cell
+            # resolves the SAME computed width (±1px) AND right-aligns to ONE shared
+            # track AND the parent uses CSS subgrid (the rows participate in one track,
+            # not independent per-row `auto`). Non-vacuity: ≥3 differing-text rows
+            # (the canonical #/cube main grid carries 5: duration/delay/iterations/
+            # direction/fill mode). Born-RED on the W9 per-row `auto` widths (no
+            # `.labeled-field-grid` container exists at all under W9 → reds); greens on
+            # the design-idioms.css §LABEL-subgrid idiom. Settle-gated on the H.W1 FSM
+            # resting (the #/cube pin + pane-open + grid-resolve plumbing it shares with
+            # proof:single-column-pack, whose one-column invariant STAYS green);
+            # KF_REQUIRE_BROWSER turns a playwright-absent skip into a hard CI fail.
+            - name: proof:label-subgrid (H.W11 I1 — uniform label column via subgrid · REFINES W9 F1)
+              run: npm run proof:label-subgrid
               env:
                   KF_REQUIRE_BROWSER: "1"
             # H.W3 — the rail-width binding lock: at 1440×900 / #/cube / pane open,
@@ -508,6 +556,48 @@ jobs:
               run: npm run proof:scene-card-rounded
               env:
                   KF_REQUIRE_BROWSER: "1"
+            # H.W11 I5 — the four STAGE scenes converge to ONE standard NON-cartoon
+            # glass <Card> (the headline that REVERSES W10 G8's full-bleed). Settle-
+            # gated on the H.W1 FSM resting (#/easing + #/spring + #/sequence +
+            # #/motion-path pinned in-page; the stage Card is the DEFAULT view — no
+            # pane/tab toggle). The protagonist plate is uniquely the
+            # [data-surface="glass"] Card inside .stage-cell (this selector EXCLUDES
+            # spring's spring-view-switch cartoon rounded-full PILL — chrome, not the
+            # subject). For EACH scene the stage SUBJECT resolves: data-surface=glass +
+            # data-tier=resting (NOT cartoon), a NON-zero computed border-radius (the
+            # rounded-card token — I4 for free), backdrop-filter ≠ none (the glass
+            # plate), and NO square bare-cartoon div survives beside it; a non-vacuity
+            # guard requires EXACTLY-ONE glass Card per .stage-cell, and all four MUST
+            # converge (the I5/I8/I12 isomorphism). Born-RED on the W10 baseline
+            # (easing/spring full-bleed → no card; sequence/path bare-cartoon → no
+            # data-surface/no radius). This is the I5 supersession of proof:scene-card-
+            # rounded's full-bleed branch. KF_REQUIRE_BROWSER turns a playwright-absent
+            # skip into a hard CI fail (the converged register cannot pass vacuously).
+            - name: proof:stage-glass-card (H.W11 I5 — the four stage scenes converge to ONE standard non-cartoon glass Card · data-surface=glass · rounded · glass backdrop · reverses W10 G8 full-bleed)
+              run: npm run proof:stage-glass-card
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            # H.W11 I4 — NO kf-owned card resolves border-radius:0 anywhere (motion-path
+            # included); the deeper "impossible to leave square" primitive default is a
+            # glass-ui born-RED-paired HANDOFF. THREE clauses: (1) DEMO STATIC (HARD) —
+            # the five stage *Target.vue roots carry NO bare-class cartoon-surface in
+            # live markup (comments stripped; the cartoon div is DROPPED → <Card>); (2)
+            # DEMO COMPUTED (HARD, browser, settle-gated on the H.W1 FSM resting) — every
+            # stage glass Card resolves a non-zero computed border-radius (rounded-card
+            # consumed — motion-path's named defect closed); (3) GLASS-UI HANDOFF (born-
+            # RED WITNESS, EXPECTED-RED while PENDING) — the published @utility
+            # cartoon-surface still carries NO border-radius, so a cartoon-only element
+            # is square FROM THE PRIMITIVE; the witness HOLDS today (the demo halves carry
+            # the guarantee) and FLIPS RED the instant glass-ui ships the radius default
+            # (the consume-leg: bump @mkbabb/glass-ui + retire the witness). Born-RED on
+            # the W10 sequence/path bare-cartoon-square stage roots. KF_REQUIRE_BROWSER
+            # turns a playwright-absent skip on the COMPUTED half into a hard CI fail (the
+            # demo-side radius guarantee cannot pass vacuously); the static + witness
+            # halves run regardless.
+            - name: proof:card-rounded-primitive (H.W11 I4 — no kf-owned card renders square · motion-path rounded · the glass-ui radius-primitive is a born-RED-paired HANDOFF witness)
+              run: npm run proof:card-rounded-primitive
+              env:
+                  KF_REQUIRE_BROWSER: "1"
             # H.W10 G8 — the [stage]-track dock-safe containment PRIMITIVE (NEW/AMEND of
             # proof:stage-not-clipped: bite the SCENE SUBJECT against the affixed dock
             # bands, not just the .stage-cell grid cell). Settle-gated on the H.W1 FSM
@@ -541,6 +631,34 @@ jobs:
             # playwright-absent skip into a hard CI fail (the panel-fit cannot pass vacuously).
             - name: proof:bezier-no-scroll (H.W9 F2 — the cubic-bézier detail panel fits · back baked into the CardHeader right · 1280/1440)
               run: npm run proof:bezier-no-scroll
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            # H.W11 I6 (S5) — the cubic-bézier de-nest lock (no card-in-card). The
+            # detail panel is opened via the same REAL .easing-edit pencil click; the
+            # gate counts glass-ui Card ancestors (data-surface — the Card root always
+            # emits it; a decorative rounded-card wrapper does NOT) between the bezier
+            # canvas and the .controls-layout root: EXACTLY 1 (the controls-pane Card).
+            # Born-RED today (the inner TimingFunctionPanel Card nested inside the
+            # controls Card → 2); greens on the I6 inner-card removal. Settle-gated on
+            # the H.W1 FSM resting; KF_REQUIRE_BROWSER turns a playwright-absent skip
+            # into a hard CI fail (the card depth cannot be measured vacuously).
+            - name: proof:bezier-single-card (H.W11 I6 — exactly ONE Card depth · the inner bezier Card de-nested · no card-in-card)
+              run: npm run proof:bezier-single-card
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            # H.W11 I7 (S6) — the bezier-canvas GROW + "editing:" subtitle removal
+            # (REFINES W9 F2). Three clauses at 1280×720 + 1440×900: (1) the in-panel
+            # .easing-curve-canvas resolved block-size > the W9 220px ceiling (a REAL
+            # grow — composes with I6's freed vertical space); (2) no "editing:" text
+            # node in the open panel (the redundant subtitle DELETED, subtree gone — a
+            # source grep belt-and-braces too); (3) the grown canvas STILL fits without
+            # scroll (the W9 fit-without-scroll invariant holds — reuses the
+            # proof:bezier-no-scroll plumbing; the I7 max-block-size tracks the
+            # viewport-height host cap so 720 fits too). Born-RED on the W9 220px cap +
+            # the `:33` "editing:" subtitle. Settle-gated on the H.W1 FSM resting;
+            # KF_REQUIRE_BROWSER turns a playwright-absent skip into a hard CI fail.
+            - name: proof:bezier-grown (H.W11 I7 — the bezier canvas grows above the W9 220px cap · no "editing:" subtitle · still fits · 1280/1440)
+              run: npm run proof:bezier-grown
               env:
                   KF_REQUIRE_BROWSER: "1"
             # H.W5 S6 — the cube/amiga scene-quality + demo-perf budget lock. Five

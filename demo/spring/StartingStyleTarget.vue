@@ -1,11 +1,13 @@
 <template>
-    <!-- G8 (H.W10.S5) — FULL-BLEED stage. The former bare-class
-         `stage glass-resting cartoon-surface` card is DROPPED (no card to round —
-         dissolves G2); the discrete card floats full-bleed like the cube subject.
-         Dock-band containment is the [stage]-track PRIMITIVE — the per-scene
-         `dock-inset` is GONE. `max-w-3xl` rides the content column as an optical
-         reading measure. -->
-    <div
+    <!-- I5 (H.W11.S1) — the STAGE-CARD register (REVERSES W10 G8 full-bleed).
+         A standard, NON-cartoon glass `<Card>` (the protagonist plate;
+         `tier="resting" surface="glass"`, rounded-card by construction → I4 for
+         free). The control PANELS stay cartoon+quiet (W2/W9). Dock-band
+         containment is the surviving [stage]-track `.stage-cell` PRIMITIVE.
+         `shadow={false}` (FORK I5-shadow). `max-w-3xl` rides the content column
+         as an optical reading measure. -->
+    <Card
+        :shadow="false"
         class="flex flex-col items-center justify-center gap-6 h-full w-full px-6 lg:px-8 overflow-hidden"
         :style="{ '--spring-ease': springCss }"
     >
@@ -70,12 +72,12 @@
                 <span class="text-admin-label text-muted-foreground tabular-nums">{{ p.response }} / {{ p.dampingFraction }}</span>
             </Button>
         </div>
-    </div>
+    </Card>
 </template>
 
 <script setup lang="ts">
 import { computed, inject } from "vue";
-import { Button } from "@mkbabb/glass-ui";
+import { Button, Card } from "@mkbabb/glass-ui";
 import { Eye, EyeOff } from "@lucide/vue";
 
 import { useSpringLinearStops } from "./useSpringLinearStops";

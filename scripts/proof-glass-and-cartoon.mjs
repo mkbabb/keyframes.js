@@ -28,7 +28,8 @@
  * Two falsifiable halves, each BITING on the exact F8 regression:
  *
  *   1. SOURCE-SHAPE (STATIC — always runs). Every kf-owned `<Card surface="cartoon">`
- *      panel site carries `tier="quiet"` (the ~14-site inventory — H.W9.md §S1). A
+ *      panel site carries `tier="quiet"` (the 9-site inventory post-H.W11-I6, which
+ *      de-nested the two inner TimingFunctionPanel cartoon Cards; ~14 pre-W11). A
  *      flake-free source anchor that a NEW cartoon panel cannot ship without the
  *      quiet tier, and that the landed sites did not drift. BITE: drop `tier="quiet"`
  *      from any `surface="cartoon"` panel Card → it falls back to the resting 0.65
@@ -42,9 +43,12 @@
  *      gate would mis-bite), assert each VISIBLE cartoon Card resolves:
  *        (a) background-color α ≤ 0.55 (NOT the opaque resting 0.65) AND
  *        (b) backdrop-filter !== 'none' (the glass blur is live).
- *      NON-VACUITY: ≥5 distinct cartoon Cards must be WITNESSED translucent
- *      (α < 1 AND backdrop ≠ none) across the swept routes (the same ≥5 panel
- *      floor proof:cartoon-is-panel-depth uses) — a missing-Card scene cannot
+ *      NON-VACUITY: ≥4 distinct cartoon Cards must be WITNESSED translucent
+ *      (α < 1 AND backdrop ≠ none) across the swept routes (post-H.W11 the easing
+ *      scene is DFA-gated to its own surface + I6 de-nested the inner bezier card,
+ *      so the cube/easing/spring sweep witnesses 4, not the pre-W11 5; the sibling
+ *      proof:cartoon-is-panel-depth keeps ≥5 via its named-contract box-shadow sweep)
+ *      — a missing-Card scene cannot
  *      green a 0-count. A deliberately-borderless Card (e.g. the EXPANDED
  *      KeyframeTimeline → `bg-transparent` with no backdrop) is α≈0 / backdrop
  *      none — it is NOT an opaque regression (α ≤ 0.55 holds) and simply does not
@@ -127,12 +131,19 @@ console.log("proof:glass-and-cartoon — H.W9 F8 (the calm glass+cartoon registe
         }
     }
 
-    if (total < 10) {
-        // The §S1 inventory is ~14 sites; a count far below it means the sweep
-        // missed the panels (a vacuous green guard).
+    if (total < 8) {
+        // The §S1 inventory was ~14 sites pre-H.W11; H.W11 I6 de-nested the two
+        // inner TimingFunctionPanel cartoon Cards (the bezier + steps card-in-card),
+        // so the kf-owned cartoon-panel inventory is now 9 (RibbonBar ·
+        // AnimationControlsControls · KeyframesEditor · KeyframeTimeline ·
+        // AssetLayerPanel · AssetViewport · MatrixEditor · EasingSidebar ·
+        // SpringSidebar). The non-vacuity floor is 8 (a 1-site margin under the
+        // landed 9) — a count far below it means the sweep missed the panels (a
+        // vacuous green guard); a single accidental removal still passes, losing 2+
+        // reds.
         fail(
             `source-shape non-vacuity — only ${total} <Card surface="cartoon"> panel site(s) found ` +
-                `(the §S1 inventory is ~14; the sweep may be mis-rooted). A vacuous pass is forbidden.`,
+                `(the post-H.W11-I6 inventory is 9; the sweep may be mis-rooted). A vacuous pass is forbidden.`,
         );
     } else if (withoutQuiet === 0) {
         ok(
@@ -359,19 +370,26 @@ async function browserHalf() {
                 );
             }
 
-            // (b) NON-VACUITY + the ≥5 floor: ≥5 distinct cartoon Cards are
+            // (b) NON-VACUITY + the ≥4 floor: ≥4 distinct cartoon Cards are
             // WITNESSED translucent (α<1 AND backdrop≠none). A scene that renders no
             // glassy panel (or strips the backdrop) cannot green a 0-count.
-            if (translucentWitnesses >= 5) {
+            // H.W11 lowered the floor 5→4: I2's per-scene control-surface DFA gates
+            // the easing scene to ONLY the easing surface (it no longer renders the
+            // extra cartoon control card it did pre-DFA), and I6 de-nested the inner
+            // bezier card — so the cube/easing/spring sweep now witnesses 4 translucent
+            // cartoon Cards (cube ×2 + easing ×1 + spring ×1), not the pre-W11 5. The
+            // sibling proof:cartoon-is-panel-depth keeps the ≥5 box-shadow floor (it
+            // counts via the named-contract sweep, not the translucency filter).
+            if (translucentWitnesses >= 4) {
                 ok(
                     `computed-translucency: ${translucentWitnesses} cartoon Cards resolve a TRANSLUCENT ` +
-                        `(α < 1) AND backdrop-filtered background (≥5 floor met — the glass blur is live ` +
+                        `(α < 1) AND backdrop-filtered background (≥4 floor met — the glass blur is live ` +
                         `over the cartoon depth)`,
                 );
             } else {
                 fail(
                     `computed-translucency — only ${translucentWitnesses} cartoon Card(s) (of ${cartoonSeen} ` +
-                        `seen) resolve a translucent + backdrop-filtered background; the ≥5 glass floor is ` +
+                        `seen) resolve a translucent + backdrop-filtered background; the ≥4 glass floor is ` +
                         `NOT met. Either the panels lost the glass (opaque / no backdrop-filter) or the ` +
                         `panel-bearing scenes did not render — a vacuous pass is forbidden.`,
                 );

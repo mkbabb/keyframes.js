@@ -1,13 +1,20 @@
 <template>
-    <!-- G8 (H.W10.S5) — FULL-BLEED stage. The former bare-class
-         `glass-resting cartoon-surface` card is DROPPED (no card to round —
-         dissolves G2) so the ball floats full-bleed like the cube/amiga subject.
-         The dock-band containment is the [stage]-track PRIMITIVE
-         (AnimationControlsGroup `.stage-cell` reserves the band) — the per-scene
-         `dock-inset` is GONE. The `max-w-3xl` measure rides ONLY the comparison
-         list (an optical reading width for many rows); the singular hero ball
-         uses the full stage width. -->
-    <div ref="easingTargetEl" class="easing-target flex flex-col items-center justify-center gap-6 h-full w-full px-6 lg:px-8 overflow-hidden">
+    <!-- I5 (H.W11.S1) — the STAGE-CARD register (REVERSES W10 G8 full-bleed).
+         The four stage scenes converge to ONE standard, NON-cartoon glass
+         `<Card>` (the protagonist plate; `tier="resting" surface="glass"`,
+         rounded-card by construction → I4 closes FOR FREE). The control PANELS
+         stay cartoon+quiet (W2/W9) — two altitudes. The card sits in the
+         [stage] track, dock-contained by the surviving `.stage-cell` PRIMITIVE
+         (the G8 LAYOUT half survives; the surface half reverses). `shadow={false}`:
+         the protagonist plate reads cleaner without a nested drop-shadow inside
+         the dock-band-reserved cell (FORK I5-shadow, MEASURE-FIRST default).
+         The `max-w-3xl` measure rides ONLY the comparison list (an optical
+         reading width for many rows); the singular hero ball uses the full
+         stage width. -->
+    <Card
+        :shadow="false"
+        class="easing-target flex flex-col items-center justify-center gap-6 h-full w-full px-6 lg:px-8 overflow-hidden"
+    >
         <!-- Header: easing name + readout + view mode dropdown -->
         <div class="flex w-full max-w-3xl items-center justify-between gap-3 shrink-0">
             <div class="flex items-baseline gap-3 min-w-0">
@@ -102,7 +109,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </Card>
 </template>
 
 <script setup lang="ts">
@@ -110,6 +117,7 @@ import { computed, inject, ref, useTemplateRef, onMounted, watch } from "vue";
 import { useResizeObserver } from "@vueuse/core";
 import { DockSelectTrigger } from "@mkbabb/glass-ui/dock";
 import {
+    Card,
     Select,
     SelectContent,
     SelectItem,
@@ -147,7 +155,14 @@ const BALL_SIZE_ACTIVE = computed(() => ballSizes.value.active);
 const BALL_SIZE_MUTED = computed(() => ballSizes.value.muted);
 
 const readBallSizes = () => {
-    const root = easingTargetEl.value ?? trackContainerEl.value;
+    // The `--track-ball-size-*` tokens live on the `.easing-target` <Card> root
+    // (I5, H.W11.S1) and CASCADE to every descendant. Read them off a real DOM
+    // descendant ref — the stage root is now a glass-ui `<Card>` whose template
+    // ref resolves to the component proxy, not an HTMLElement — so we read the
+    // cascaded value from the hero track (singular) or a comparison track (multi),
+    // whichever is mounted. Both inherit the same custom properties.
+    const root: HTMLElement | null =
+        heroTrackEl.value ?? trackEls.value?.[0] ?? trackContainerEl.value;
     if (!root) return;
     const styles = getComputedStyle(root);
     const toPx = (v: string): number => {
@@ -213,7 +228,10 @@ const trackContainerEl = useTemplateRef<HTMLElement>("trackContainerEl");
 // `.querySelector(".track-container")` string-class DOM walks (W3.S1): the
 // component owns these elements, so it reads their computed vars / width off
 // refs that survive a class rename rather than a brittle selector match.
-const easingTargetEl = useTemplateRef<HTMLElement>("easingTargetEl");
+// (The former `easingTargetEl` root ref retired with I5/H.W11.S1 — the stage
+// root is now a glass-ui `<Card>` whose ref is a component proxy, not an
+// HTMLElement; the cascaded `--track-ball-size-*` tokens are read off the
+// real DOM descendant refs below.)
 const heroTrackEl = useTemplateRef<HTMLElement>("heroTrackEl");
 const trackEls = useTemplateRef<HTMLElement[]>("trackEls");
 const trackWidth = ref(0);
@@ -268,8 +286,9 @@ useResizeObserver(heroTrackEl, () => measureHeroTrackWidth());
 /* Comparison-track ball sizing tokens — read by JS via getComputedStyle so
    CSS is the single source of truth. Values are intentionally in px (not rem)
    because JS reads computed lengths. Scoped to the component's own
-   `.easing-target` root (the FULL-BLEED stage — H.W10.S5 dropped the bare-class
-   `glass-resting cartoon-surface` card; the ball floats like the cube floats). */
+   `.easing-target` root (the I5/H.W11.S1 STANDARD GLASS `<Card>` stage — the
+   protagonist plate, rounded-card by construction; the tokens cascade to the
+   hero/comparison tracks the JS reads). */
 .easing-target {
     --track-ball-size-active: 36px;
     --track-ball-size-muted: 24px;

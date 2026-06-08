@@ -7,6 +7,7 @@
         :has-selected-animation="!!storedControls.selectedAnimation && !isHome"
         :is-controls-panel-open="storedControls.isControlsPanelOpen"
         :selected-control="storedControls.selectedControl"
+        :control-surfaces="controlSurfaces"
         :extra-control-tabs="sceneRef?.extraControlTabs ?? []"
         @switch-scene="runSceneSwitch"
         @warm-scene="warmScene"
@@ -199,6 +200,14 @@ const isHome = computed(() => currentSceneId.value === HOME_SCENE_ID);
 const currentScene = computed(() => sceneMap.get(currentSceneId.value) ?? sceneMap.get(HOME_SCENE_ID)!);
 const currentSuperKey = computed(() => currentScene.value.superKey);
 const currentLabel = computed(() => currentScene.value.label ?? "Home");
+
+// The control-surface DFA projection (H.W11.S4 / I2) — the active scene's valid
+// BUILT-IN editor triad ({controls,keyframes,timeline} subset). The dock renders
+// the triad FROM this set (the easing scene → [], so NO keyframes/timeline tab
+// node exists for it), then unions the scene's `extraControlTabs` (the
+// scene-specific surfaces' tab metadata). The DFA gates what CAN render per
+// scene — the reka-tab-fallback hacks the scenes carried are SUPERSEDED.
+const controlSurfaces = computed(() => machine.controlSurfaces.value);
 
 const sceneRef = shallowRef<any>(null);
 

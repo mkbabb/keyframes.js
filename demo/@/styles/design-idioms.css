@@ -477,6 +477,118 @@
    patched per scene). No legacy beside the replacement — the class + its three
    scene callsites are removed in one motion. */
 
+/* ── §STAGE-CARD register + card-rounding (I5 + I4, H.W11.S1/S2) ──────────────
+   THE STAGE REGISTER (I5, REVERSES W10 G8 full-bleed). The four STAGE-scene
+   protagonists (easing / spring / @starting-style / sequence / motion-path)
+   converge from THREE states — W10's full-bleed (easing/spring), the bare
+   `glass-resting cartoon-surface` square card (sequence/path), and the target —
+   to ONE standard, NON-cartoon glass `<Card surface="glass" tier="resting">`:
+   the PROTAGONIST PLATE. There is NO rule to author here: the register IS the
+   consumed glass-ui `<Card>` primitive (`rounded-card glass-resting
+   glass-specular-track` by construction). The full-bleed div / the bare cartoon
+   div are GONE (the swap lands at the five `*Target.vue` roots; no legacy beside
+   the replacement). The control PANELS keep cartoon+quiet (W2/W9) — TWO
+   altitudes, cleanly separated: cartoon = the control chrome; glass-resting =
+   the stage subject. The card sits in the [stage] track, dock-contained by the
+   surviving `.stage-cell` PRIMITIVE (the G8 LAYOUT half survives untouched; only
+   the SURFACE half reverses — `.dock-inset` stays deleted, see the note above).
+
+   FORK I5-shadow (lead default): every stage `<Card>` is `:shadow="false"`.
+   MEASURED against the live render — the protagonist plate sits INSIDE the
+   dock-band-reserved `.stage-cell`, not nested chrome; a drop-shadow on a plate
+   that already fills its reserved cell reads as visual noise (the cleaner
+   protagonist-plate read). `shadow-card` only applies for `surface="glass"` +
+   `shadow`, so the off is one prop; the on-state (the default) is the discarded
+   measured alternative — recorded so a later wave knows this was a measured call,
+   not an accident.
+
+   THE ROUNDING (I4, closes FOR FREE alongside I5). The user caught it on
+   motion-path: "the card is NOT rounded — it should be impossible." It WAS
+   square because the radius lives on the `<Card>` root's `rounded-card`, NOT the
+   `cartoon-surface` @utility (glass-ui cards.css:33-48 — the utility is
+   decoration-only: 2px border + offset-stamp shadow + hover-lift, ZERO radius).
+   The I5 swap to `<Card>` rounds sequence/path with ZERO ad-hoc `rounded-*`
+   literal (consume the primitive, do NOT patch the demo). The demo-side
+   born-GREEN guarantee lands HERE-AND-NOW (the swap); a stage card can no longer
+   render square because it is no longer a bare `cartoon-surface` div.
+
+   inv-16 HANDOFF (born-RED-paired, glass-ui-owned, NOT patched in kf). The
+   DEEPER ask — make a `cartoon-surface`-ONLY element impossible to leave square
+   from the PRIMITIVE itself — is glass-ui's: `@utility cartoon-surface`
+   (cards.css:33-48) should gain `border-radius: var(--radius-card)` by default,
+   OR ship a `rounded-card`-carrying `cartoon-card` primitive. That is a
+   cross-repo durable fix (consumed published; sibling = HANDOFF). The kf gate
+   half (`proof:card-rounded-primitive`) greens now on the swap; the glass-ui
+   HANDOFF half stays born-RED until the published bump. See
+   docs/tranches/H/audit/harden/impl-w11-stage.md for the HANDOFF ledger. */
+
+/* ── §LABEL-subgrid — the UNIFORM label-column idiom (I1, H.W11.S3) ───────────
+   THE DEFECT (REFINES W9 F1). W9 F1 restored label-LEFT / value-RIGHT rows by
+   giving EACH `.labeled-field` its OWN per-row `grid-template-columns: auto 1fr`
+   — so every row derived its OWN `auto` label width. MEASURED live on the easing
+   sidebar before this change: `value` label = 43.1px, `duration` label = 68.9px
+   — a ~26px misalignment, labels NOT uniform across rows. The user wants ONE
+   uniform label column (one derived width, not per-row auto). The W9 F1
+   direction — label-left/value-right, ONE column of rows — is PRESERVED and
+   STRENGTHENED; only the per-row-`auto`-width is replaced.
+
+   THE MECHANISM (CSS subgrid). A consuming panel applies `.labeled-field-grid`
+   to its ROW CONTAINER → the container is a 2-track grid `[label] auto [value]
+   1fr`. Each `.labeled-field` row then participates in that ONE shared track via
+   `grid-template-columns: subgrid; grid-column: 1 / -1` — so the `auto` label
+   column is sized ONCE, from the WIDEST label across ALL rows, and every row's
+   label cell resolves the SAME width by construction. The `.labeled-field` DOM
+   is `<div class="labeled-field"> <label class="labeled-field-label"/> {control}
+   {.labeled-field-error?} </div>` (glass-ui labeled-field.js — the tooltip
+   wrapper is reka render-less `as-child`, so the `<label>` is the first grid
+   item even with a tooltip). The label is column 1, the control column 2; the
+   error region spans both (`grid-column: 1 / -1`). subgrid is Baseline-2023
+   (Widely available 2023-09) — no fallback owed.
+
+   THE DRY HOME. This idiom is the SINGLE source for the panel-row label-column
+   shape — it REPLACES the two former per-component `:deep(.labeled-field){
+   grid-template-columns: auto 1fr }` copies (AnimationControlsControls.vue +
+   EasingSidebar.vue, each now CONSUMING `.labeled-field-grid` on its row
+   container, NOT re-authoring the rule). Non-`.labeled-field` direct children of
+   a `.labeled-field-grid` (a Separator, a hand-rolled easing field, the advanced
+   nav row) span the full width via `:not(.labeled-field) { grid-column: 1 / -1 }`
+   — so a mixed-content container keeps its non-field rows full-width while the
+   field rows share the uniform label track. The single-column-pack invariant
+   STAYS TRUE (`proof:single-column-pack` green): every row still has ONE left
+   edge; the rows still stack in one column. The free-text-mono guard +
+   per-site input tweaks stay scoped to the consuming component.
+
+   THE DURABLE HOME is a glass-ui HANDOFF (inv-16): the W9-BOOKed `LabeledField
+   orientation="horizontal"` extended to subgrid-participation, so a field is
+   born subgrid-ready. Until then the demo-side parent-subgrid wrapper lands
+   TODAY (born-GREEN path B, mirroring AssetPropertiesPanel.vue's
+   `grid grid-cols-[auto_1fr]` precedent — promoted from per-row `auto` to a
+   shared subgrid track). gap-y > gap-x preserves Gestalt proximity. */
+.labeled-field-grid {
+    display: grid;
+    grid-template-columns: [label] auto [value] 1fr;
+    align-items: center;
+    column-gap: 0.75rem;
+    row-gap: 0.25rem;
+}
+.labeled-field-grid > .labeled-field {
+    display: grid;
+    grid-template-columns: subgrid;
+    grid-column: 1 / -1;
+    align-items: center;
+}
+/* The error region (revealed on :user-invalid) spans both columns so it sits
+   under the control, not in the label gutter. */
+.labeled-field-grid > .labeled-field > .labeled-field-error {
+    grid-column: 1 / -1;
+}
+/* A non-field direct child (Separator, the hand-rolled easing field, the
+   advanced nav row) spans the full width — the uniform label track governs ONLY
+   the `.labeled-field` rows; mixed content keeps its full-width members. */
+.labeled-field-grid > :not(.labeled-field) {
+    grid-column: 1 / -1;
+}
+
 /* ── @keyframes enter ──
    The tab-panel slide-in keyframe. Until now this resolved ONLY through
    `tw-animate-css`'s internal `enter` name (driven by its private --tw-enter-*

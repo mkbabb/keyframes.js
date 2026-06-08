@@ -51,6 +51,19 @@ export {
 // The reactive store (the effect layer) — co-located with the pure core.
 export { useSceneMachine, SCENE_MACHINE_PERSIST_KEY } from "./useSceneMachine";
 
+// The control-surface DFA (H.W11.S4 / I2 — the third orthogonal axis). The pure
+// table + selectors; the reactive `controlSurfaces` projection is on
+// useSceneMachine (the effect layer above).
+export {
+    type ControlSurface,
+    BUILT_IN_SURFACES,
+    CONTROL_SURFACES,
+    CONDITIONAL_SURFACES,
+    controlSurfacesFor,
+    isSurfaceValidForScene,
+    builtInSurfacesFor,
+} from "./controlSurfaceDFA";
+
 export {
     type RafSceneHandle,
     createGroupAdapter,
