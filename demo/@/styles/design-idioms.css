@@ -133,6 +133,16 @@
        (Recorded here for D.W3.S2; the orphan's component reconciliation is
        the brittleness lane's task.) */
     --z-behind: -10;
+
+    /* ── The controls idle-fade opacity (F9, H.W9.S6) ──
+       The rest-dim magnitude the OPEN controls pane fades to after ~10s of
+       global window inactivity (the idle-fade restoration — see the §idle-fade
+       section at the foot of this file + ControlsPaneWrapper's desktop rules).
+       The user's "much more transparent" is louder than the historical 0.85;
+       floor at ~0.25 so the controls stay legible while they still capture
+       pointer/focus. Demo-owned (one decision) so the magnitude tunes HERE,
+       not at the consuming rule. */
+    --controls-idle-opacity: 0.35;
 }
 
 /* Dark-mode gold parity — class-based, matching the demo's `.dark` idiom.
@@ -242,44 +252,17 @@
    token (the `var(--scale-hover, 1.08)` fallback in glass-ui's `@utility`
    resolves through it). */
 
-/* ── .cartoon-specular — the S2-COMPOSITE recipe (H.W2.S2-COMPOSITE, D14) ──
-   The ONE legitimate demo class-composition: the deliberately-glassy interactive
-   panel (the cubic-bézier editor) wants cartoon DEPTH and a refined, tracked
-   catch-light TOGETHER. The Card `surface=` prop emits cartoon XOR specular
-   (`CardFooter:37`), so the prop alone cannot express the composite — the host
-   co-applies BOTH glass-ui classes: `surface="cartoon"` mints `cartoon-surface`
-   (the offset-stamp depth + spring hover-lift, and NO `shadow-card`); the
-   template adds glass-ui's `glass-specular-track` directly so the `::before`
-   catch-light composes over the glass tier; and this `.cartoon-specular` class
-   names the composite + owns the refined intensity tune (below). The class apply
-   echoes `cartoon-surface` so the recipe also stands alone on a non-Card host.
-   `glass-specular-track` is a glass-ui `@layer components` class (NOT a Tailwind
-   `@utility`), so it cannot be `@apply`-ed — it is applied as a literal class in
-   the template (the CSS ships in the glass-ui `@import`). Both classes are
-   glass-ui's; nothing new is authored here but the projection of the
-   consumer-writable intensity tune. (inv-16, zero new backdrop CSS.)
-   `useSpecularPointer` wires the cursor + writes the magnitude. */
-.cartoon-specular {
-    @apply cartoon-surface;
-}
-
-/* The refined intensity (D14, "refined for hovers"). glass-ui's `::before` rests
-   at `--specular-intensity: 0.35` and hits 0.6 on hover — too hot for a resting
-   panel. `--specular-intensity` is a registered, consumer-writable `@property`
-   (`tokens.css §11b`) but `inherits: false`, so a value set on the HOST does NOT
-   reach the pseudo — the pseudo must own its own value. These two rules project
-   the composable's host-written magnitude (`--specular-rest` / `--specular-hover`,
-   single-sourced in useSpecularPointer.ts) onto the pseudo's
-   `--specular-intensity`, overriding glass-ui's pseudo defaults by source order
-   (this file imports after glass-ui; equal-specificity later rule wins). The
-   `var()` fallbacks (0.22 / 0.4) are the calmed rest/hover floor when a surface
-   carries the recipe without the composable wired. */
-.cartoon-specular::before {
-    --specular-intensity: var(--specular-rest, 0.22);
-}
-.cartoon-specular:hover::before {
-    --specular-intensity: var(--specular-hover, 0.4);
-}
+/* ── the tracked-specular subsystem is REMOVED (H.W9.F3+F6) ──
+   The W2 S2-COMPOSITE bezier card carried a tracked, cursor-following catch-light
+   (the `.cartoon-specular` recipe projecting onto glass-ui's `.glass-specular-track`
+   `::before`, wired by `useSpecularPointer`). The user read it as too-dramatic (F3)
+   and inconsistent — present on ONE card only (F6) — and the lead adopted REMOVE.
+   The whole subsystem is deleted: this recipe block, the manual `glass-specular-track`
+   class on the bezier Card, the `useSpecularPointer` wire + the composable file. The
+   calm register is now glass + cartoon, broad, with NO tracked catch-light: every
+   panel is `surface="cartoon" tier="quiet"` (the offset-stamp depth over a 0.50α glass
+   plate). Net deletion — one register, less code. (inv-16; chronic D2 stays closed via
+   the inverted `proof:no-orphan-specular`, exception set → ∅.) */
 
 /* ── cartoon Card focus-elevation (H.W2.S1, WV-W2-LOW-1, named delta) ──
    Flipping the panel Cards to `surface="cartoon"` deletes the manual `.glass-card`
@@ -519,3 +502,24 @@
         );
     }
 }
+
+/* ── §idle-fade — the controls rest-dim idiom (F9, H.W9.S6) ──────────────────
+   The OPEN controls pane fades to --controls-idle-opacity (token above) after
+   ~10s of GLOBAL window inactivity, restoring the rest-dim a D-era refactor
+   dropped (it kept the usePaneHover plumbing but deleted the consuming opacity
+   rule, leaving `.controls-pane--hovered` vestigial). The WHEN is dogfooded via
+   `@vueuse/core useIdle(10_000)` in usePaneHover.ts (inv ζ — no hand-rolled
+   setTimeout); `useControlsLayout` forwards `isPaneIdle = idle && !isPaneHovered`
+   and ControlsPaneWrapper applies `.controls-pane--idle`.
+
+   The CONSUMING RULES live in ControlsPaneWrapper.vue's scoped <style> (desktop
+   block) rather than here, because the rest-dim opacity transition must COMPOSE
+   with that component's existing `.controls-pane--open` grid-template-rows
+   open/close transition — co-locating them keeps the cascade specificity honest
+   (a global rule here would lose to the scoped two-class --open selector and the
+   fade would snap). This file owns the TOKEN (the one tunable decision) + this
+   documenting anchor; the rule shape — `.controls-pane--idle:not(.--hovered)`
+   dim + `:hover`/`:focus-within` instant lift (a NAMED a11y improvement: a
+   keyboard user tabbing in is never left ghosted) + the MANDATORY PRM snap-guard
+   — is in the wrapper. opacity is compositor-thread (cheap fade, modern-web
+   css §9). NO new rule is authored HERE; the token is the demo-owned magnitude. */

@@ -17,6 +17,7 @@
             :active-timeline-ref="activeTimelineRef"
             :is-panel-transition-done="isPanelTransitionDone"
             :is-pane-hovered="isPaneHovered"
+            :is-pane-idle="isPaneIdle"
             :scroll-fade-class="scrollFadeClass"
             :on-panel-transition-end="onPanelTransitionEnd"
             :on-pane-mouse-enter="onPaneMouseEnter"
@@ -228,6 +229,7 @@ const {
     isPanelTransitionDone,
     onPanelTransitionEnd,
     isPaneHovered,
+    isPaneIdle,
     onPaneMouseEnter,
     onPaneMouseLeave,
     scrollFadeClass,

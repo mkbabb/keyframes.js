@@ -1,0 +1,402 @@
+#!/usr/bin/env node
+/**
+ * proof:glass-and-cartoon — H.W9 F8 (the "glass is back" lock; the calm
+ * glass+cartoon register).
+ *
+ * THE HEADLINE (H.W9.md §S1 / _PLAN.md §1): `cartoon-surface` is a DECORATION-ONLY
+ * utility composed ON TOP of the `glass-${tier}` plate the Card already emits. The
+ * W2 surface flip silently took the Card default `tier="resting"` (0.65 α / 12px
+ * blur), reading more OPAQUE than the pre-cartoon `.glass-card` plate (`tier="quiet"`,
+ * 0.50 α / 10px) — the user's "lost the glass" (F8). H.W9 adds `tier="quiet"` to
+ * every kf-owned `surface="cartoon"` panel Card, recovering the EXACT 0.50 α the
+ * user remembers. This gate is the computed-style lock that the glass returned:
+ * each kf-owned cartoon panel Card resolves BOTH the cartoon offset-stamp DEPTH
+ * (`--shadow-cartoon-md`, covered tier-agnostically by proof:cartoon-is-panel-depth,
+ * which STAYS GREEN) AND a TRANSLUCENT, backdrop-filtered background.
+ *
+ * MEASURE-FIRST (the α threshold, bound from the LIVE landed tree). The two tiers
+ * resolve to:
+ *   tier="resting" → background-color α = 0.65   (the W2 opaque regression)
+ *   tier="quiet"   → background-color α = 0.50   (the F8 recovery; measured live:
+ *                    color(srgb … / 0.5), backdrop-filter: blur(10px) saturate(1.05)
+ *                    brightness(1.02) on every visible cartoon panel Card).
+ * The gate's OPACITY CEILING is α ≤ 0.55 — it BITES the 0.65 resting tier (the
+ * "panels went opaque" regression) and PASSES the 0.50 quiet tier with margin,
+ * without depending on the exact 0.50 (a glass-ui tier re-tune within (0, 0.55]
+ * stays green; a regression to resting reds).
+ *
+ * Two falsifiable halves, each BITING on the exact F8 regression:
+ *
+ *   1. SOURCE-SHAPE (STATIC — always runs). Every kf-owned `<Card surface="cartoon">`
+ *      panel site carries `tier="quiet"` (the ~14-site inventory — H.W9.md §S1). A
+ *      flake-free source anchor that a NEW cartoon panel cannot ship without the
+ *      quiet tier, and that the landed sites did not drift. BITE: drop `tier="quiet"`
+ *      from any `surface="cartoon"` panel Card → it falls back to the resting 0.65
+ *      tier → reds.
+ *
+ *   2. COMPUTED-TRANSLUCENCY (BROWSER — runs when playwright resolves + dist is
+ *      built). Sweep the panel-bearing routes (cube/easing/spring); collect every
+ *      `[data-surface="cartoon"]` Card. In the NON-reduced-transparency case
+ *      (asserted live via matchMedia — under reduced-transparency glass-ui maps
+ *      α→1 + blur→none, glass.css:367-383, so the panels SHOULD be opaque and the
+ *      gate would mis-bite), assert each VISIBLE cartoon Card resolves:
+ *        (a) background-color α ≤ 0.55 (NOT the opaque resting 0.65) AND
+ *        (b) backdrop-filter !== 'none' (the glass blur is live).
+ *      NON-VACUITY: ≥5 distinct cartoon Cards must be WITNESSED translucent
+ *      (α < 1 AND backdrop ≠ none) across the swept routes (the same ≥5 panel
+ *      floor proof:cartoon-is-panel-depth uses) — a missing-Card scene cannot
+ *      green a 0-count. A deliberately-borderless Card (e.g. the EXPANDED
+ *      KeyframeTimeline → `bg-transparent` with no backdrop) is α≈0 / backdrop
+ *      none — it is NOT an opaque regression (α ≤ 0.55 holds) and simply does not
+ *      COUNT toward the ≥5 translucent witnesses; an OPAQUE Card (α > 0.55) is the
+ *      violation. BITE: revert any panel to the resting tier → its α resolves 0.65
+ *      > 0.55 → reds; strip the glass blur (backdrop-filter:none on a non-transparent
+ *      panel) → its translucent-witness drops below the ≥5 floor → reds.
+ *
+ * Mirrors scripts/proof-cartoon-is-panel-depth.mjs (the serveDist + Playwright +
+ * FSM-settle plumbing + the token/Card sweep; the STATIC half always runs, the
+ * BROWSER half gates on playwright resolution — under KF_REQUIRE_BROWSER a
+ * playwright-absent skip becomes a hard fail so a SHIP is never green-reported
+ * un-exercised). Scene switches are driven by an IN-PAGE hash assignment (NOT
+ * page.goto — goto clears storage + kills the H.W1 reconcile trap), settle-gated
+ * on the H.W1 FSM resting. proof:cartoon-is-panel-depth (the DEPTH half) STAYS
+ * GREEN, tier-agnostic; this gate is the orthogonal TRANSLUCENCY half. Re-runnable:
+ * `node scripts/proof-glass-and-cartoon.mjs`. The browser half serves the BUILT
+ * dist/gh-pages/ (run `npm run gh-pages` first).
+ */
+import fs from "node:fs";
+import http from "node:http";
+import path from "node:path";
+import { createRequire } from "node:module";
+import { fileURLToPath } from "node:url";
+
+const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const DEMO = path.join(REPO, "demo");
+const DIST = path.join(REPO, "dist/gh-pages");
+
+// MEASURE-FIRST: tier="quiet"=0.50 α, tier="resting"=0.65 α. The ceiling bites
+// the resting regression (0.65 > 0.55) and passes quiet (0.50 ≤ 0.55) with margin.
+const ALPHA_CEILING = 0.55;
+
+const failures = [];
+const ok = (label) => console.log(`  ✓ ${label}`);
+const fail = (label) => {
+    failures.push(label);
+    console.error(`  ✗ ${label}`);
+};
+const read = (p) => fs.readFileSync(p, "utf8");
+const rel = (p) => path.relative(REPO, p).split(path.sep).join("/");
+
+console.log("proof:glass-and-cartoon — H.W9 F8 (the calm glass+cartoon register · the 'glass is back' lock)");
+
+// ── 1. SOURCE-SHAPE (static, always runs) ─────────────────────────────────────
+{
+    // Every kf-owned `<Card surface="cartoon">` panel site (the H.W9.md §S1 ~14-site
+    // inventory) MUST carry `tier="quiet"`. Sweep the demo tree for the opening
+    // `<Card surface="cartoon" …>` tags and assert each names tier="quiet".
+    const VUE_FILES = [];
+    const walk = (dir) => {
+        for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
+            const abs = path.join(dir, ent.name);
+            if (ent.isDirectory()) {
+                if (ent.name === "node_modules" || ent.name === "dist") continue;
+                walk(abs);
+            } else if (ent.name.endsWith(".vue")) {
+                VUE_FILES.push(abs);
+            }
+        }
+    };
+    walk(DEMO);
+
+    // Match a `<Card …>` opening tag carrying surface="cartoon" (children
+    // CardContent/CardHeader/etc. are excluded by the `(?![A-Za-z])` boundary).
+    const cartoonCardTag = /<Card(?![A-Za-z])\b[^>]*\bsurface\s*=\s*"cartoon"[^>]*>/g;
+    let total = 0;
+    let withoutQuiet = 0;
+    const offenders = [];
+    for (const abs of VUE_FILES) {
+        const src = read(abs);
+        let m;
+        cartoonCardTag.lastIndex = 0;
+        while ((m = cartoonCardTag.exec(src)) !== null) {
+            total += 1;
+            if (!/\btier\s*=\s*"quiet"/.test(m[0])) {
+                withoutQuiet += 1;
+                offenders.push(`${rel(abs)}: ${m[0].replace(/\s+/g, " ").slice(0, 90)}`);
+            }
+        }
+    }
+
+    if (total < 10) {
+        // The §S1 inventory is ~14 sites; a count far below it means the sweep
+        // missed the panels (a vacuous green guard).
+        fail(
+            `source-shape non-vacuity — only ${total} <Card surface="cartoon"> panel site(s) found ` +
+                `(the §S1 inventory is ~14; the sweep may be mis-rooted). A vacuous pass is forbidden.`,
+        );
+    } else if (withoutQuiet === 0) {
+        ok(
+            `source-shape: all ${total} kf-owned <Card surface="cartoon"> panel sites carry ` +
+                `tier="quiet" (the F8 glass recovery — 0.50 α over the offset-stamp depth)`,
+        );
+    } else {
+        fail(
+            `source-shape — ${withoutQuiet} of ${total} <Card surface="cartoon"> panel sites do NOT ` +
+                `carry tier="quiet" (they fall back to the resting 0.65 α — the F8 opaque regression):\n      ` +
+                offenders.slice(0, 6).join("\n      "),
+        );
+    }
+}
+
+// ── 2. COMPUTED-TRANSLUCENCY (browser, gated) ─────────────────────────────────
+const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
+const skipOrFail = (reason) => {
+    if (REQUIRE_BROWSER) {
+        fail(
+            `browser half REQUIRED (KF_REQUIRE_BROWSER=1) but ${reason} — ` +
+                "the computed glass-translucency assertion cannot pass vacuously",
+        );
+    } else {
+        console.log(`  ○ browser half skipped — ${reason}`);
+    }
+};
+
+const MIME = {
+    ".html": "text/html",
+    ".js": "text/javascript",
+    ".css": "text/css",
+    ".json": "application/json",
+    ".png": "image/png",
+    ".ttf": "font/ttf",
+    ".woff2": "font/woff2",
+    ".svg": "image/svg+xml",
+};
+const MACHINE_KEY = "keyframes-js-scene-machine"; // SCENE_MACHINE_PERSIST_KEY
+const CTRL_KEY = "animation-groups-control-options-store";
+
+/** Serve the BUILT dist/gh-pages on an ephemeral port. */
+function serveDist() {
+    const server = http.createServer((req, res) => {
+        const urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
+        const p = path.join(DIST, urlPath === "/" ? "index.html" : urlPath);
+        if (!p.startsWith(DIST) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) {
+            res.writeHead(404).end();
+            return;
+        }
+        res.writeHead(200, {
+            "content-type": MIME[path.extname(p)] ?? "application/octet-stream",
+        });
+        fs.createReadStream(p).pipe(res);
+    });
+    return server;
+}
+
+/** Settle on a scene via an IN-PAGE hash assignment (storage + the H.W1 trap
+ *  survive; goto would clear both). Re-assert the viewport AFTER navigation
+ *  (Playwright resets on navigate) + force the controls pane OPEN + rest ≥500ms,
+ *  the same FSM-resting settle the H.W2/W3 gates use. */
+async function settleOnScene(page, scene, viewportWidth) {
+    await page.evaluate((s) => {
+        location.hash = "#/" + s;
+    }, scene);
+    await page
+        .waitForFunction(
+            ([mk, s]) => {
+                try {
+                    return JSON.parse(localStorage.getItem(mk) || "{}").activeScene === s;
+                } catch {
+                    return false;
+                }
+            },
+            [MACHINE_KEY, scene],
+            { timeout: 8000 },
+        )
+        .catch(() => {});
+    await page.setViewportSize({ width: viewportWidth, height: 900 });
+    await page.evaluate((ck) => {
+        try {
+            const s = JSON.parse(localStorage.getItem(ck) || "{}");
+            s.isControlsPanelOpen = true;
+            localStorage.setItem(ck, JSON.stringify(s));
+        } catch {
+            /* ignore */
+        }
+    }, CTRL_KEY);
+    await page.waitForTimeout(700); // route rested ≥500ms + panel mount
+}
+
+/** Parse a numeric background-color alpha (0..1) from a computed color string.
+ *  Handles rgb()/rgba()/color(srgb … / α). A fully-transparent / unset background
+ *  → 0 (a deliberately-borderless Card, not an opaque regression). */
+function bgAlphaProbeSource() {
+    return `(bg) => {
+        if (!bg || bg === "transparent" || bg === "rgba(0, 0, 0, 0)") return 0;
+        let m = bg.match(/rgba?\\(([^)]+)\\)/);
+        if (m) { const parts = m[1].split(/[,\\/]/).map((s) => s.trim()); return parts.length >= 4 ? parseFloat(parts[3]) : 1; }
+        m = bg.match(/color\\([^)]*\\/\\s*([0-9.]+%?)\\s*\\)/);
+        if (m) { const v = m[1]; return v.endsWith("%") ? parseFloat(v) / 100 : parseFloat(v); }
+        if (/color\\(/.test(bg) || /^#|^rgb|^hsl/.test(bg)) return 1; /* opaque */
+        return 1;
+    }`;
+}
+
+async function browserHalf() {
+    if (!fs.existsSync(path.join(DIST, "index.html"))) {
+        skipOrFail("dist/gh-pages not built (run `npm run gh-pages` first)");
+        return;
+    }
+    let chromium;
+    try {
+        const requireFrom = createRequire(
+            path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
+        );
+        ({ chromium } = requireFrom("playwright-core"));
+    } catch {
+        try {
+            const requireFrom = createRequire(
+                path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
+            );
+            ({ chromium } = requireFrom("@playwright/test"));
+        } catch {
+            skipOrFail("playwright not resolvable (set KF_PLAYWRIGHT_DIR or install @playwright/test)");
+            return;
+        }
+    }
+
+    const server = serveDist();
+    await new Promise((r) => server.listen(0, r));
+    const base = `http://127.0.0.1:${server.address().port}`;
+
+    const VW = 1440;
+    const browser = await chromium.launch();
+    try {
+        const page = await browser.newPage({ viewport: { width: VW, height: 900 } });
+        // Pin the non-reduced-motion case explicitly; reduced-transparency stays at
+        // the default no-preference (Playwright has no emulator — the default IS the
+        // non-reduced case the F8 lock measures, asserted live below).
+        await page.emulateMedia({ reducedMotion: "no-preference" });
+        await page.goto(`${base}/#/cube`, { waitUntil: "load" });
+
+        await settleOnScene(page, "cube", VW);
+
+        // PRECONDITION: this gate measures the NON-reduced-transparency case (under
+        // reduced-transparency glass-ui maps α→1 + blur→none — the panels SHOULD be
+        // opaque, glass.css:367-383). Assert the live media is non-reduced or skip
+        // honestly (the assertion would mis-bite otherwise).
+        const reducedTransparency = await page.evaluate(
+            () => matchMedia("(prefers-reduced-transparency: reduce)").matches,
+        );
+        if (reducedTransparency) {
+            skipOrFail(
+                "the live environment reports prefers-reduced-transparency: reduce — the F8 " +
+                    "translucency lock measures only the NON-reduced case (glass maps α→1 under reduce)",
+            );
+        } else {
+            const SCENES = ["cube", "easing", "spring"];
+            let cartoonSeen = 0;
+            let translucentWitnesses = 0; // α<1 AND backdrop≠none
+            let opaqueViolators = 0; // α>0.55 (the resting regression)
+            const violators = [];
+
+            for (const scene of SCENES) {
+                await settleOnScene(page, scene, VW);
+                const probe = await page.evaluate(
+                    ([alphaCeiling, parseSrc]) => {
+                        const parseAlpha = eval(parseSrc);
+                        const cards = [...document.querySelectorAll('[data-surface="cartoon"]')];
+                        const results = [];
+                        for (let i = 0; i < cards.length; i++) {
+                            const c = cards[i];
+                            const r = c.getBoundingClientRect();
+                            if (r.width <= 0 || r.height <= 0) continue; // collapsed/hidden
+                            const cs = getComputedStyle(c);
+                            const bg = cs.backgroundColor;
+                            const alpha = parseAlpha(bg);
+                            const backdrop = cs.backdropFilter || cs.webkitBackdropFilter || "none";
+                            results.push({
+                                idx: i,
+                                cls: (c.className || "").toString().slice(0, 48),
+                                tier: c.getAttribute("data-tier") || null,
+                                alpha,
+                                hasBackdrop: !!backdrop && backdrop !== "none",
+                                bg: bg.slice(0, 50),
+                                backdrop: backdrop.slice(0, 40),
+                                opaque: alpha > alphaCeiling,
+                                translucent: alpha < 1 && !!backdrop && backdrop !== "none",
+                            });
+                        }
+                        return results;
+                    },
+                    [ALPHA_CEILING, bgAlphaProbeSource()],
+                );
+
+                for (const r of probe) {
+                    cartoonSeen += 1;
+                    if (r.translucent) translucentWitnesses += 1;
+                    if (r.opaque) {
+                        opaqueViolators += 1;
+                        violators.push(
+                            `${scene}#${r.idx} (tier=${r.tier}) α=${r.alpha} > ${ALPHA_CEILING} ` +
+                                `[bg=${r.bg}…]`,
+                        );
+                    }
+                }
+            }
+
+            // (a) NO opaque panel: every visible cartoon Card's α ≤ 0.55 (NOT the
+            // resting 0.65 regression). A single opaque panel reds.
+            if (opaqueViolators === 0) {
+                ok(
+                    `computed-translucency: 0 of ${cartoonSeen} visible cartoon Cards (across ` +
+                        `cube/easing/spring) resolve an OPAQUE background (α > ${ALPHA_CEILING}) — ` +
+                        `the panels are NOT the resting 0.65 tier (F8 "glass is back")`,
+                );
+            } else {
+                fail(
+                    `computed-translucency — ${opaqueViolators} of ${cartoonSeen} visible cartoon Cards ` +
+                        `resolve an OPAQUE background (α > ${ALPHA_CEILING} — the resting-tier regression):\n      ` +
+                        violators.slice(0, 6).join("\n      "),
+                );
+            }
+
+            // (b) NON-VACUITY + the ≥5 floor: ≥5 distinct cartoon Cards are
+            // WITNESSED translucent (α<1 AND backdrop≠none). A scene that renders no
+            // glassy panel (or strips the backdrop) cannot green a 0-count.
+            if (translucentWitnesses >= 5) {
+                ok(
+                    `computed-translucency: ${translucentWitnesses} cartoon Cards resolve a TRANSLUCENT ` +
+                        `(α < 1) AND backdrop-filtered background (≥5 floor met — the glass blur is live ` +
+                        `over the cartoon depth)`,
+                );
+            } else {
+                fail(
+                    `computed-translucency — only ${translucentWitnesses} cartoon Card(s) (of ${cartoonSeen} ` +
+                        `seen) resolve a translucent + backdrop-filtered background; the ≥5 glass floor is ` +
+                        `NOT met. Either the panels lost the glass (opaque / no backdrop-filter) or the ` +
+                        `panel-bearing scenes did not render — a vacuous pass is forbidden.`,
+                );
+            }
+        }
+
+        await page.close();
+    } finally {
+        await browser.close();
+        server.close();
+    }
+}
+
+await browserHalf();
+
+if (failures.length > 0) {
+    console.error(
+        `\nproof:glass-and-cartoon — FAIL (${failures.length}): the demo's panel Cards do not ` +
+            `resolve the calm glass+cartoon register — a translucent (α ≤ ${ALPHA_CEILING}), ` +
+            `backdrop-filtered glass plate UNDER the cartoon offset-stamp depth (the H.W9 F8 recovery).`,
+    );
+    process.exit(1);
+}
+console.log(
+    `\nproof:glass-and-cartoon — PASS: every kf-owned cartoon panel Card carries tier="quiet" and ` +
+        `resolves a translucent (α ≤ ${ALPHA_CEILING}), backdrop-filtered glass background under the ` +
+        `cartoon depth — the glass is back (H.W9 F8). proof:cartoon-is-panel-depth covers the depth half.`,
+);

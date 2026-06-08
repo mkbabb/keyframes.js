@@ -16,7 +16,7 @@
         />
 
         <!-- CSS value bar -->
-        <Card surface="cartoon" class="p-0">
+        <Card surface="cartoon" tier="quiet" class="p-0">
             <CardContent class="flex items-center gap-2 p-2">
                 <Input
                     :model-value="demo.cssValue.value"
@@ -37,7 +37,7 @@
         />
 
         <!-- Step options (shown only for steps) -->
-        <Card v-if="demo.isSteps.value" surface="cartoon" class="p-0">
+        <Card v-if="demo.isSteps.value" surface="cartoon" tier="quiet" class="p-0">
             <CardContent class="grid grid-cols-2 gap-2 p-2">
                 <div class="grid gap-1">
                     <label class="text-admin-label text-muted-foreground">steps</label>

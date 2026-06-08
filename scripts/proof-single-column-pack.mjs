@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * proof:single-column-pack — H.W3 §Hard gate (WV-W3-MED-2) the column-count +
- * mis-size lock.
+ * mis-size lock + H.W9 F1 AMEND (the intra-row label-left/value-right clause).
  *
  * The D1 defect (`a-controls-sidebar`): the sidebar was a `grid-cols-[auto_1fr]`
  * two-track grid threaded through a nested `grid-cols-[subgrid]` panel chain, so
@@ -11,9 +11,10 @@
  * markers to a single-column stacked-field flow (`flex flex-col gap-2`); every
  * `LabeledField` then shares ONE left edge and ONE width.
  *
- * One falsifiable BROWSER clause, BITING on the exact mis-pack (WV-W3-MED-2):
+ * Three falsifiable BROWSER clauses, BITING on the exact mis-pack (WV-W3-MED-2)
+ * AND the H.W9 F1 label-ABOVE stack:
  *
- *   LEAF-ROW SINGLE COLUMN. Measure the LEAF rows `.controls-content
+ *   LEAF-ROW SINGLE COLUMN (a)/(b). Measure the LEAF rows `.controls-content
  *   .labeled-field` (NOT `CardContent.children` — that has ONE `panel-stack`
  *   child → set-size 1 = born-GREEN vacuous; the two columns lived at the LEAF
  *   `.labeled-field` level through the subgrid chain). PIN `#/cube` (easing has 0
@@ -30,6 +31,17 @@
  *   (size 2) and the width set is `{212, 466}` (Δ=254). Greens ONLY after the
  *   two-track grid collapses to a single-column stacked flow. Catches any
  *   regression to `auto`/`1fr` or a re-split row (S2's easing/z-index folds).
+ *
+ *   LABEL-LEFT/VALUE-RIGHT (c) — H.W9 F1 AMEND (born-RED on the W3 label-ABOVE
+ *   stack). For EACH visible leaf row, `labelRect.right ≤ controlRect.left` —
+ *   the label sits LEFT of the value (the intra-row `[auto_1fr]` split F1
+ *   restores via the `AssetPropertiesPanel.vue:6` row idiom). This is ORTHOGONAL
+ *   to (a)/(b): the split lives INSIDE each row, so the ROW box keeps ONE left
+ *   edge + ONE width (the one-column-pack invariant STAYS true). BITE: reds on
+ *   the W3 `flex flex-col` label-over-value stack (the full-width label's right
+ *   edge overruns the control's left); greens on the intra-row grid. Re-uses the
+ *   `fieldCount >= 6` non-vacuity bar over the rows that expose BOTH a label and
+ *   a control — a field-less / missing-child render cannot pass GREEN.
  *
  * Settle-gated on the H.W1 FSM resting (WV-W3-MED-3): viewport ≥1024 RE-ASSERTED
  * after navigation (Playwright resets on navigate), pane OPEN, scene PINNED to
@@ -62,7 +74,9 @@ const fail = (label) => {
     console.error(`  ✗ ${label}`);
 };
 
-console.log("proof:single-column-pack — H.W3 (the leaf-row single-column + mis-size lock)");
+console.log(
+    "proof:single-column-pack — H.W3 (leaf-row single-column + mis-size lock) + H.W9 F1 (label-left/value-right)",
+);
 
 const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
 const skipOrFail = (reason) => {
@@ -206,17 +220,47 @@ async function browserHalf() {
         // width 0; the active column is the subject — WV-W3-MED-2 / impl-w3-impl).
         const probe = await page.evaluate(() => {
             const all = [...document.querySelectorAll(".controls-content .labeled-field")];
-            const visible = all
-                .map((el) => el.getBoundingClientRect())
-                .filter((r) => r.width > 0 && r.height > 0);
+            const visibleEls = all.filter((el) => {
+                const r = el.getBoundingClientRect();
+                return r.width > 0 && r.height > 0;
+            });
+            const visible = visibleEls.map((el) => el.getBoundingClientRect());
             const xs = visible.map((r) => Math.round(r.x));
             const ws = visible.map((r) => +r.width.toFixed(2));
+
+            // F1 (H.W9 AMEND): per visible leaf row, measure label-RIGHT vs
+            // control-LEFT. The `.labeled-field` is the ROW; its children are
+            // label → control → (.labeled-field-error). The label-left/value-right
+            // intra-row split (the AssetPropertiesPanel idiom F1 restores) makes
+            // labelRect.right ≤ controlRect.left; the pre-F1 label-ABOVE stack
+            // makes the full-width label.right > the control.left.
+            const rowGeom = visibleEls.map((row) => {
+                const label = row.querySelector("label");
+                const control = [...row.children].find(
+                    (k) =>
+                        k.tagName !== "LABEL" &&
+                        !k.classList.contains("labeled-field-error") &&
+                        k.getBoundingClientRect().width > 0,
+                );
+                if (!label || !control) return { measurable: false };
+                const lr = label.getBoundingClientRect();
+                const cr = control.getBoundingClientRect();
+                return {
+                    measurable: true,
+                    labelText: (label.textContent || "").trim().slice(0, 16),
+                    labelRight: +lr.right.toFixed(1),
+                    controlLeft: +cr.left.toFixed(1),
+                    leftOf: lr.right <= cr.left,
+                };
+            });
+
             return {
                 totalCount: all.length,
                 visibleCount: visible.length,
                 leftEdges: [...new Set(xs)].sort((a, b) => a - b),
                 minW: ws.length ? Math.min(...ws) : null,
                 maxW: ws.length ? Math.max(...ws) : null,
+                rowGeom,
             };
         });
 
@@ -258,6 +302,48 @@ async function browserHalf() {
                         `lands in the narrow auto column or a wide 1fr column (S1/S2).`,
                 );
             }
+
+            // (c) LABEL-LEFT / VALUE-RIGHT (H.W9 F1 AMEND, born-RED on the W3
+            // label-ABOVE stack). For EACH visible leaf row, the label's right
+            // edge is ≤ the control's left edge — the intra-row [auto_1fr] split
+            // F1 restores (the AssetPropertiesPanel.vue:6 row idiom). This does
+            // NOT relax (a)/(b): the ROW box still has ONE left edge and ONE
+            // width — the split lives INSIDE each row. Re-uses the same
+            // `fieldCount >= 6` non-vacuity bar over the MEASURABLE rows so a
+            // field-less / label-or-control-missing render cannot pass GREEN.
+            const measurable = probe.rowGeom.filter((g) => g.measurable);
+            if (measurable.length < 6) {
+                fail(
+                    `label-left non-vacuity — only ${measurable.length} visible leaf rows expose BOTH ` +
+                        `a <label> and a control (need ≥6; ${probe.visibleCount} visible rows). A row ` +
+                        `whose label/control cannot be measured cannot witness the intra-row split — ` +
+                        `a vacuous pass is forbidden (re-uses the H.W3 fieldCount≥6 bar).`,
+                );
+            } else {
+                const violators = measurable.filter((g) => !g.leftOf);
+                if (violators.length === 0) {
+                    ok(
+                        `label-left/value-right: all ${measurable.length} visible leaf rows place the ` +
+                            `label LEFT of the control (labelRect.right ≤ controlRect.left) — the ` +
+                            `intra-row [auto_1fr] split (F1); born-RED on the W3 label-ABOVE stack ` +
+                            `(label.right > control.left)`,
+                    );
+                } else {
+                    fail(
+                        `label-left/value-right — ${violators.length} of ${measurable.length} visible leaf ` +
+                            `rows STACK the label above the control (labelRect.right > controlRect.left): ` +
+                            violators
+                                .slice(0, 4)
+                                .map(
+                                    (g) =>
+                                        `"${g.labelText}" (label.right=${g.labelRight} > control.left=${g.controlLeft})`,
+                                )
+                                .join(", ") +
+                            `. Born-RED on the W3 label-ABOVE flex-col stack; greens on the intra-row ` +
+                            `[auto_1fr] split (F1 — the AssetPropertiesPanel row idiom).`,
+                    );
+                }
+            }
         }
         await page.close();
     } finally {
@@ -277,5 +363,6 @@ if (failures.length > 0) {
 }
 console.log(
     "\nproof:single-column-pack — PASS: every leaf field row shares one left edge and one width " +
-        "— the two-track grid + subgrid chain collapsed to a single-column stacked flow (H.W3).",
+        "(the two-track grid + subgrid chain collapsed to a single-column stacked flow — H.W3) " +
+        "AND places the label LEFT of the value via the intra-row [auto_1fr] split (H.W9 F1).",
 );

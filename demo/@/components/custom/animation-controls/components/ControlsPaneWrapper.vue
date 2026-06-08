@@ -9,6 +9,7 @@
                 ? 'controls-pane--open'
                 : 'controls-pane--closed',
             isPaneHovered ? 'controls-pane--hovered' : '',
+            isPaneIdle ? 'controls-pane--idle' : '',
         ]"
     >
         <div
@@ -107,6 +108,7 @@ defineProps<{
     // stays a thin layout host and the parent owns the composable lifecycle.
     isPanelTransitionDone: boolean;
     isPaneHovered: boolean;
+    isPaneIdle: boolean;
     scrollFadeClass: string;
     onPanelTransitionEnd: (e: TransitionEvent) => void;
     onPaneMouseEnter: () => void;
@@ -183,6 +185,14 @@ const emit = defineEmits<{
     }
     .controls-pane-wrapper.controls-pane--open {
         pointer-events: auto;
+        /* Compose the idle-fade opacity transition WITH the open/close
+           grid-template-rows transition (F9 — the rest-dim animates; the rows
+           are stable at 1fr while open so this is additive, not a re-time). The
+           transition lives on the --open selector so it out-specifies the base
+           rule and is never clobbered by the open/close state's own transition. */
+        transition:
+            grid-template-rows var(--duration-panel) var(--ease-out),
+            opacity var(--duration-normal) var(--ease-standard);
     }
     .controls-pane-wrapper.controls-pane--closed {
         pointer-events: none;
@@ -196,6 +206,26 @@ const emit = defineEmits<{
         transition: opacity var(--duration-fast) var(--ease-in);
     }
 
+    /* ── F9 (H.W9.S6) — the controls idle-fade (restoration) ──
+       After IDLE_MS (10s) of GLOBAL window inactivity the OPEN pane rest-dims
+       to --controls-idle-opacity, restoring the historical rest-dim the D-era
+       refactor dropped (the .controls-pane--hovered class was left vestigial).
+       `useIdle` (usePaneHover.ts) owns the WHEN; CSS owns the magnitude +
+       transition (above) + the instant lift. The `:not(.controls-pane--hovered)`
+       guard keeps the 2s hover-linger lit past the threshold while the cursor
+       rests on the pane; :hover / :focus-within lift it to full opacity at once
+       — :focus-within is a NAMED a11y improvement over the historical form (a
+       keyboard user tabbing in is never left on a ghosted surface). Desktop only
+       (the dim is a rail-pane affordance; the mobile drawer is dismissed, not
+       dimmed). opacity is compositor-thread (cheap fade). */
+    .controls-pane-wrapper.controls-pane--idle:not(.controls-pane--hovered) {
+        opacity: var(--controls-idle-opacity, 0.35);
+    }
+    .controls-pane-wrapper:hover,
+    .controls-pane-wrapper:focus-within {
+        opacity: 1;
+    }
+
     .controls-content {
         /* Couples to the grid's [rail] track (AnimationControlsGroup) via the
            --rail-width token — the pane IS exactly the rail width (the single
@@ -203,9 +233,37 @@ const emit = defineEmits<{
            border-box keeps the shadow-clearance padding inside the budget. */
         width: var(--rail-width);
         box-sizing: border-box;
-        /* Extra padding to prevent card box-shadow clipping */
+        /* ── F7 (H.W9.S2) — symmetric shadow-clearance so the cartoon stamp
+           clears the wrapper's load-bearing overflow:hidden ──
+           The cartoon offset shadow casts bottom-LEFT (--shadow-cartoon-md
+           -4px 3px; --shadow-cartoon-lg -6px 4px on hover/focus; +--lift-sm
+           -1px hover translate → ~8px left extent worst case). The wrapper's
+           overflow:hidden (load-bearing for the [rail]-track collapse — KEEP it)
+           clips anything outside this content box. The demo already budgeted
+           clearance RIGHT + BOTTOM but the shadow throws LEFT → the bottom-LEFT
+           lobe was sliced. Adding padding-LEFT renders the shadow INSIDE the
+           padded box so the clip never reaches it. Reconcile, don't fork — keep
+           the clip, give the shadow room (the crisp Memphis stamp is intended;
+           the slice was the defect). */
+        padding-left: 12px;
         padding-right: 12px;
         padding-bottom: 12px;
+    }
+}
+
+/* ── F9 PRM guard — snap, don't animate the idle-fade ──
+   MANDATORY reduced-motion guard (modern-web css §9 — case-by-case, not a
+   global 0.01ms). Under PRM the idle dim still APPLIES (it is an opacity rest
+   state, legibility-preserving) but the WRAPPER's opacity transition snaps — so
+   a motion-sensitive user gets the dim instantly, no fade. Scoped to the desktop
+   idle context; the grid-template-rows open/close transition is already
+   PRM-neutralized by glass-ui's global bracket (it restricts transition-property
+   to opacity/color/bg/border/shadow under PRM), so we restore the --open
+   transition to grid-only (dropping the opacity term) rather than killing all
+   transitions (which would re-enable the otherwise-neutralized rows animation). */
+@media (min-width: 1024px) and (prefers-reduced-motion: reduce) {
+    .controls-pane-wrapper.controls-pane--open {
+        transition: grid-template-rows var(--duration-panel) var(--ease-out);
     }
 }
 

@@ -215,14 +215,40 @@ jobs:
               run: npm run proof:single-toggle
               env:
                   KF_REQUIRE_BROWSER: "1"
+            # H.W9 F5 — the whole dark-mode row is the toggle target: open the @mbabb
+            # dock menu (the proof:dock-popover-opens plumbing), click the dark-mode row
+            # at its LABEL gutter (NOT the icon) → <html>.dark flips; click again → flips
+            # back, exactly ONCE per click (no double-toggle from the passive icon). Plus
+            # a static source-shape clause (the row @click="toggleDark" + the passive
+            # prop). Born-RED today (the label click is inert — only the icon flips).
+            # KF_REQUIRE_BROWSER turns a playwright-absent skip into a hard CI fail.
+            - name: proof:darkmode-row-toggle (H.W9 F5 — the dark-mode row label flips the theme once per click · passive indicator icon)
+              run: npm run proof:darkmode-row-toggle
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            # H.W9 F9 — the controls idle-fade restoration: at 1440×900 / #/cube / pane
+            # OPEN, after >10s of GLOBAL window inactivity (a real wait — useIdle resets
+            # on any synthetic event) the wrapper carries .controls-pane--idle and its
+            # opacity drops to --controls-idle-opacity (≈0.35 < the resting 1); hover →
+            # returns to 1. Non-vacuity: the resting opacity must be 1 so the dim is a
+            # real delta. Born-RED today (the idle class was dead, opacity rests at 1).
+            # KF_REQUIRE_BROWSER turns a playwright-absent skip into a hard CI fail.
+            - name: proof:idle-fade (H.W9 F9 — the OPEN controls pane rest-dims to --controls-idle-opacity after >10s idle · lifts on hover)
+              run: npm run proof:idle-fade
+              env:
+                  KF_REQUIRE_BROWSER: "1"
             # H.W3 (WV-W3-MED-2) — the single-column pack + mis-size lock: at
             # 1440×900 / #/cube / pane open, every LEAF row (.controls-content
             # .labeled-field, visible) shares ONE left edge AND ONE width (±2px),
             # with a ≥6 non-vacuity guard. Born-RED on the pre-W3 two-track grid
-            # (left edges {76,300}, width Δ=254). Settle-gated on the H.W1 FSM
-            # resting; KF_REQUIRE_BROWSER turns a playwright-absent skip into a
-            # hard CI fail (the column pack cannot pass vacuously).
-            - name: proof:single-column-pack (H.W3 — the leaf-row single-column + mis-size lock)
+            # (left edges {76,300}, width Δ=254). H.W9 F1 AMEND — clause (c): each
+            # visible leaf row also places the label LEFT of the value
+            # (labelRect.right ≤ controlRect.left, the intra-row [auto_1fr] split);
+            # born-RED on the W3 label-ABOVE flex-col stack; the one-column ROW-box
+            # invariant (a)/(b) STAYS green (the split lives inside the row).
+            # Settle-gated on the H.W1 FSM resting; KF_REQUIRE_BROWSER turns a
+            # playwright-absent skip into a hard CI fail (neither clause can pass vacuously).
+            - name: proof:single-column-pack (H.W3 leaf-row single-column + mis-size lock · H.W9 F1 label-left/value-right)
               run: npm run proof:single-column-pack
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -261,6 +287,20 @@ jobs:
               run: npm run proof:stage-not-clipped
               env:
                   KF_REQUIRE_BROWSER: "1"
+            # H.W9 F7 (S2) — the cartoon-stamp clearance lock: at 1280 & 1440 / #/cube /
+            # pane open, the active panel Card's cartoon shadow bottom-LEFT lobe (hovered
+            # so the worst-case --shadow-cartoon-lg + --lift-sm ~8px left throw is in
+            # effect) lands INSIDE the padded .controls-pane content box (shadow leftmost
+            # ≥ content-box left = .controls-content left + padding-left). Born-RED on the
+            # 0-left-padding tree (the wrapper's load-bearing overflow:hidden slices the
+            # lobe); GREEN once .controls-content clears the left (F7). Mirrors
+            # proof:stage-not-clipped's viewport-containment plumbing — a STRUCTURAL pixel
+            # artifact, not a source grep. KF_REQUIRE_BROWSER turns a playwright-absent
+            # skip into a hard CI fail (the clearance cannot pass vacuously).
+            - name: proof:cartoon-shadow-unclipped (H.W9 F7 — the active panel Card's cartoon shadow left lobe lands inside the padded pane · 1280/1440)
+              run: npm run proof:cartoon-shadow-unclipped
+              env:
+                  KF_REQUIRE_BROWSER: "1"
             - name: proof:computed-real-dom (G.W16 S2 — the C5 50dvh fix on the genuine layout path)
               run: npm run proof:computed-real-dom
               env:
@@ -293,26 +333,24 @@ jobs:
               run: npm run proof:no-dup-utility
             - name: proof:specular-handoff (H.W2 S5 — born-RED glass-ui Card-default + dock-icon specular HANDOFF witness; flips RED when glass-ui ships the calm default)
               run: npm run proof:specular-handoff
-            # H.W2 S2-COMPOSITE (WV-W2-HIGH-3, the D14 ask) — the kept-glass bezier
-            # panel composes cartoon DEPTH (--shadow-cartoon-md) AND a TRACKED catch-
-            # light (--specular-x ≠ 50%, `circle at <x≠50%>`) after a synthesized
-            # pointermove. A static source anchor (a REAL panel consumes the recipe,
-            # non-vacuity) + a storm-robust COMPUTED ::before browser bite on a
-            # deterministic probe. KF_REQUIRE_BROWSER turns a playwright-absent skip
-            # into a hard CI fail so the composite cannot be reported green un-exercised.
-            - name: proof:cartoon-specular-coexist (H.W2 S2-COMPOSITE — cartoon depth AND a tracked catch-light TOGETHER on the kept-glass bezier panel)
-              run: npm run proof:cartoon-specular-coexist
-              env:
-                  KF_REQUIRE_BROWSER: "1"
-            # H.W2 S3 (WV-W2-MED-1, the "refined" half of D14, kf-side) — every
-            # retained/composite specular ::before resolves CALM intensity (rest ≤ 0.25,
-            # hover ≤ 0.4, the demo's 0.22/0.4 tune), while the bare glass-ui default
-            # (0.35/0.6) overshoots — the born-RED witness proving the gate bites the
-            # real defect. Paired kf-side so the user's literal ask is NOT BOOK-able.
-            - name: proof:specular-calm (H.W2 S3 — retained/composite specular rests ≤ 0.25 / hovers ≤ 0.4; the refined half of D14)
-              run: npm run proof:specular-calm
-              env:
-                  KF_REQUIRE_BROWSER: "1"
+            # H.W9 F4 — the ppmycota menu leads with the SVG brand mark, no emoji. A
+            # cheap STATIC parse (no browser): the ppmycota <DropdownMenuItem> mounts a
+            # .ppmycota-logo-sm SVG mark, carries ZERO emoji codepoints in its text (the
+            # 🙂↔️🌱🍄 line is gone — born-RED if re-added), and the mark resolves to a
+            # real assets/ppmycota-logo-*.svg on disk (resolve-or-red, mirrors
+            # proof:idioms clause-1). Scoped to the ppmycota row (the @mbabb row's 🎉 is
+            # legitimate). Grep + asset-resolve — slots in beside the demo static gates.
+            - name: proof:pp-logo-svg (H.W9 F4 — the ppmycota menu leads with the .ppmycota-logo-sm SVG mark · zero emoji · asset resolves)
+              run: npm run proof:pp-logo-svg
+            # H.W9 F3+F6 RETIRE — proof:cartoon-specular-coexist + proof:specular-calm
+            # are GONE: their subject (the W2 S2-COMPOSITE bezier card with the tracked,
+            # cursor-following catch-light) was DELETED when the user-feedback fold
+            # removed the tracked-specular subsystem entirely. The calm is now by
+            # ABSENCE, not a lower ceiling — so there is no composite to prove cartoon+
+            # specular coexist on, and no retained ::before to cap. The chronic stays
+            # closed via the STRONGER inverted proof:no-orphan-specular (exception → ∅)
+            # below. (The two scripts are removed from scripts/, package.json, and
+            # proof:all; proof:ci-coverage no longer expects them invoked here.)
             # H.W2 S1 (CS-2, the cartoon-depth restoration) — the source-shape lock
             # (the 5 contract-named panel Cards carry surface="cartoon", dropped the
             # manual .glass-card + transition-shadow G2 plate) + the computed-style
@@ -326,17 +364,41 @@ jobs:
               run: npm run proof:cartoon-is-panel-depth
               env:
                   KF_REQUIRE_BROWSER: "1"
-            # H.W2 S1+S3 (CS-1/F1, the radial-bloom death lock) — the source-invariant
-            # (every kf-owned <Card> resolves surface=cartoon OR the pointer-wired
-            # .cartoon-specular composite; 0 manual .glass-card) + the FRESH-CONTEXT
-            # per-scene computed sweep (the orphan footprint is route/state-dependent,
-            # CP-MED-2 — first-load mounts reproduce the orphan a transition misses):
-            # 0 kf-owned Cards carry an unwired glass-specular-track (the anyPointerWrite
-            # invariant; the remaining <Button>/dock tracks are RECORDED S5 HANDOFF
-            # residue, inv-16) + the storm-robust hover ::before check (no hovered panel
-            # paints the warm-white centred-bloom radial). Born-RED on the default-glass
-            # tree. KF_REQUIRE_BROWSER turns a playwright-absent skip into a hard CI fail.
-            - name: proof:no-orphan-specular (H.W2 S1+S3 — 0 kf-owned Card emits an unwired specular track · no hover centred-bloom radial)
+            # H.W9 F8 (the calm glass+cartoon register, the "glass is back" lock) — the
+            # ORTHOGONAL translucency half of proof:cartoon-is-panel-depth's depth half:
+            # a SOURCE-shape lock (all ~14 kf-owned <Card surface="cartoon"> panel sites
+            # carry tier="quiet") + a COMPUTED-style lock — every VISIBLE cartoon Card
+            # resolves a TRANSLUCENT (background-color α ≤ 0.55, NOT the W2 resting 0.65)
+            # AND backdrop-filtered background, with ≥5 translucent witnesses, in the
+            # NON-reduced-transparency case (asserted live via matchMedia; glass maps
+            # α→1 under reduce). The α ceiling is bound MEASURE-FIRST (resting 0.65 vs
+            # quiet 0.50). Born-RED on the W2 surface flip's silent resting tier; greens
+            # on the F8 tier="quiet" recovery. Settle-gated on the H.W1 FSM resting;
+            # scene switches driven IN-PAGE via the hash reconcile; KF_REQUIRE_BROWSER
+            # turns a playwright-absent skip into a hard CI fail (the F8 glass recovery
+            # cannot be reported green un-exercised).
+            - name: proof:glass-and-cartoon (H.W9 F8 — every cartoon panel Card carries tier="quiet" · translucent α ≤ 0.55 + backdrop-filtered glass)
+              run: npm run proof:glass-and-cartoon
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            # H.W2 S1+S3, INVERTED at H.W9 F3+F6 (the tracked-specular death lock ·
+            # exception set → ∅). The user-feedback fold REMOVED the tracked-specular
+            # subsystem entirely, so the W2 enumerated composite exception
+            # {TimingFunctionPanel bezier} COLLAPSES to the EMPTY set. The source-
+            # invariant (every kf-owned <Card> resolves surface=cartoon with NO
+            # glass-specular-track AND NO cartoon-specular AND NO manual .glass-card —
+            # no exception) + the FRESH-CONTEXT per-scene computed sweep (the orphan
+            # footprint is route/state-dependent, CP-MED-2 — first-load mounts reproduce
+            # the orphan a transition misses): 0 kf-owned Cards carry ANY glass-specular-
+            # track (no composite allowance; the remaining <Button>/dock tracks are
+            # RECORDED S5 HANDOFF residue, inv-16) + the storm-robust hover ::before check
+            # (NO hovered panel — none excluded — paints the warm-white catch-light
+            # radial). STRONGER than the W2 form: born-RED on the bezier composite that
+            # existed pre-H.W9, green on its removal, still bites a re-introduced
+            # surface=glass / re-added composite. The D2 cartoon chronic stays closed via
+            # this stronger system property. Settle-gated on the H.W1 FSM resting.
+            # KF_REQUIRE_BROWSER turns a playwright-absent skip into a hard CI fail.
+            - name: proof:no-orphan-specular (H.W2 S1+S3 INVERTED at H.W9 F3+F6 — 0 kf-owned Card carries a tracked specular · exception set → ∅ · no hover catch-light radial)
               run: npm run proof:no-orphan-specular
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -373,6 +435,21 @@ jobs:
             # playwright-absent skip into a hard CI fail (the ceiling cannot pass vacuously).
             - name: proof:easing-canvas-bounded (H.W4 S1/S2 — inline-size container · canvas ≤0.55 of panel · ≤280px · square law · header clears the frame)
               run: npm run proof:easing-canvas-bounded
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            # H.W9 F2 (S4) — the bezier-panel fit + header-bake lock. Settle-gated on the
+            # H.W1 FSM resting (#/cube pinned in-page, pane forced open); the cubic-bézier
+            # detail panel is opened via a REAL click on the live .easing-edit pencil (the
+            # detailPanelDismissed ref has no localStorage backing — a trusted click is the
+            # driver, the proof:dock-popover-opens idiom). Two clauses at 1280×720 + 1440×900:
+            # (1) the detail host fits (scrollHeight ≤ clientHeight + overflow-y ≠ 'scroll'
+            # — no scrollbar) and (2) the back control is baked into the CardHeader RIGHT of
+            # the cubic-bézier title (a header sibling, not the external top-LEFT button).
+            # Born-RED on the pre-W9 tree (the bezier stack overflows the min(50vh,480px)
+            # cap; the back button is external top-LEFT). KF_REQUIRE_BROWSER turns a
+            # playwright-absent skip into a hard CI fail (the panel-fit cannot pass vacuously).
+            - name: proof:bezier-no-scroll (H.W9 F2 — the cubic-bézier detail panel fits · back baked into the CardHeader right · 1280/1440)
+              run: npm run proof:bezier-no-scroll
               env:
                   KF_REQUIRE_BROWSER: "1"
             # H.W5 S6 — the cube/amiga scene-quality + demo-perf budget lock. Five

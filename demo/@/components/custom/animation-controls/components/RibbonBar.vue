@@ -1,6 +1,6 @@
 <template>
     <div class="flex-shrink-0 pl-4 pr-7 pb-2">
-        <Card surface="cartoon" class="overflow-visible">
+        <Card surface="cartoon" tier="quiet" class="overflow-visible">
             <CardContent class="p-3">
                 <!-- Controls tab: filled via Teleport from AnimationControlsControls -->
                 <div

@@ -2,34 +2,34 @@
         <div
             class="w-full grid justify-items-center"
         >
-            <Button
-                variant="ghost"
-                class="flex items-center gap-1.5 text-small text-muted-foreground hover:text-foreground transition-colors mb-2 justify-self-start px-0 h-auto"
-                @click="emit('exitDetailPanel')"
-            >
-                <ArrowLeft class="icon-sm" />
-                back to controls
-            </Button>
-
             <template
                 v-if="(storedAnimationOptions.animationOptions.timingFunction as any) === 'cubic-bezier'"
             >
-                <!-- S2-COMPOSITE (D14): the deliberately-glassy interactive panel.
-                     The cubic-bézier editor is the one direct-manipulation surface
-                     the user wants glassy — so it keeps the iOS catch-light AND
-                     gains cartoon depth. `surface="cartoon"` mints the offset-stamp
-                     depth (and drops `shadow-card`); `glass-specular-track` (glass-
-                     ui's `@layer` class, applied directly) brings the `::before`
-                     catch-light back so it composes over the glass tier; and
-                     `.cartoon-specular` names the composite + carries the refined
-                     intensity tune. The Card prop API emits cartoon XOR specular —
-                     it structurally cannot express the composite, so this single
-                     demo class-composition of glass-ui classes is the correct seam.
-                     `useSpecularPointer` wires the cursor + calms the intensity
-                     (0.22 rest / 0.4 hover). -->
-                <Card ref="bezierCardRef" surface="cartoon" class="easing-editor cartoon-specular glass-specular-track grid gap-0 w-full p-0">
+                <!-- H.W9.F8/F3/F6 — the calm glass+cartoon register. `surface="cartoon"`
+                     mints the offset-stamp depth over a `tier="quiet"` glass plate
+                     (0.50α/10px — the pre-cartoon glass the user remembers). The
+                     tracked specular catch-light is REMOVED (F3 too-dramatic + F6
+                     consistency): this panel is now a plain quiet-glass cartoon Card
+                     like its siblings, distinguished only by being a
+                     direct-manipulation surface. -->
+                <Card surface="cartoon" tier="quiet" class="easing-editor grid gap-0 w-full p-0">
+                    <!-- H.W9.F2 — title LEFT, dismiss RIGHT: the idiomatic detail-panel
+                         header. The back affordance is baked into the CardHeader row;
+                         the former standalone top-LEFT button is gone (no legacy beside
+                         its replacement). -->
                     <CardHeader class="grid gap-0 p-0 pb-1">
-                        <CardTitle class="text-title">cubic-bézier</CardTitle>
+                        <div class="flex items-center justify-between gap-2">
+                            <CardTitle class="text-title">cubic-bézier</CardTitle>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                class="h-auto p-1 text-muted-foreground hover:text-foreground transition-colors"
+                                aria-label="back to controls"
+                                @click="emit('exitDetailPanel')"
+                            >
+                                <ArrowLeft class="icon-sm" />
+                            </Button>
+                        </div>
                         <p v-if="editingCurveName" class="text-mono-caption normal-case text-muted-foreground ml-1 mb-0.5">editing: {{ editingCurveName }}</p>
                         <div
                             class="w-full whitespace-pre h-6 m-0 p-0 ml-1 text-mono-caption normal-case flex items-center italic justify-items-center gap-2"
@@ -84,7 +84,7 @@
             <template
                 v-else-if="storedAnimationOptions.animationOptions.timingFunction === 'steps'"
             >
-                <Card surface="cartoon">
+                <Card surface="cartoon" tier="quiet">
                     <CardHeader class="p-0 pb-2">
                         <CardTitle class="text-title">steps</CardTitle>
                     </CardHeader>
@@ -172,7 +172,6 @@ import { computed, ref } from "vue";
 import { ArrowLeft } from "@lucide/vue";
 import CopyButton from "@components/custom/CopyButton.vue";
 import EasingCurveCanvas from "@components/custom/EasingCurveCanvas.vue";
-import { useSpecularPointer } from "@composables/useSpecularPointer";
 
 const props = defineProps<{
     animation: Animation<any>;
@@ -188,14 +187,6 @@ const emit = defineEmits<{
 }>();
 
 // ── Cubic bezier state ──────────────────────────────────────────
-
-// S2-COMPOSITE / S3 — wire the cursor-tracked, calmed catch-light onto the
-// composite bezier Card. The Card root is a reka-ui Primitive (a div); its
-// instance `$el` is that DOM node. The composable no-ops under reduced motion
-// and single-sources the intensity tune (0.22 rest → 0.4 hover) the
-// `.cartoon-specular` recipe projects onto the `::before`.
-const bezierCardRef = ref<{ $el: HTMLElement } | null>(null);
-useSpecularPointer(() => bezierCardRef.value?.$el ?? null);
 
 const selectedPreset = ref("ease");
 
@@ -245,5 +236,19 @@ const updatePreset = (key: string) => {
 .easing-editor {
     container-type: inline-size;
     container-name: easing-editor;
+}
+
+/* H.W9.F2 — the in-panel bezier canvas ceiling is a NAMED panel-context clamp
+   TIGHTER than the full-rail 280px (the EasingSidebar full-rail render keeps
+   280; this detail-panel render takes a smaller cap so the whole panel FITS
+   without scrolling under the detail-cap). NOT a contradiction of H.W4's
+   full-rail 280 ceiling — W4's `proof:easing-canvas-bounded` is the full-rail
+   ceiling; this is a tighter context-specific clamp. The square LAW is
+   PRESERVED (the canvas keeps `aspect-ratio:1` from EasingCurveCanvas; only the
+   `block-size` ceiling drops). `:deep()` reaches the child component's scoped
+   canvas. The lower `max-block-size` wins over the canvas's own 280 cap. */
+:deep(.easing-curve-canvas) {
+    block-size: clamp(160px, 38cqi, 220px);
+    max-block-size: 220px;
 }
 </style>

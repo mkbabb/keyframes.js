@@ -1,25 +1,42 @@
 #!/usr/bin/env node
 /**
- * proof:no-orphan-specular — H.W2 S1+S3 (CS-1/F1, the radial-bloom death lock).
+ * proof:no-orphan-specular — H.W2 S1+S3, INVERTED at H.W9 F3+F6 (exception set → ∅).
  *
- * THE DEFECT (D2/D14, the "strange circular/radial blur on hover everywhere").
- * glass-ui's `<Card surface="glass">` (the DEFAULT) bolts on `glass-specular-track`
- * (`CardFooter:37`), an iOS catch-light `::before` radial that is MEANT to ride the
- * cursor — but the Card never wires the pointer seam (`--mouse-x`/`--mouse-y`), so
- * it falls to its `var(--mouse-x, 50%)` centred floor and merely BRIGHTENS on hover
- * (a static, dead-centred warm-white bloom — a half-implemented effect). Every
- * panel inherited it via the default surface. The orphan-specular INVARIANT today:
- * `anyPointerWrite:false` on every track (CP-MED-2 — the count moves with route +
- * dock + mounted panels, ~5–13; the invariant is the stable anchor, NOT a count).
+ * THE DEFECT, ORIGINALLY (D2/D14, the "strange circular/radial blur on hover
+ * everywhere"). glass-ui's `<Card surface="glass">` (the DEFAULT) bolts on
+ * `glass-specular-track` (`CardFooter:37`), an iOS catch-light `::before` radial
+ * that is MEANT to ride the cursor — but the Card never wires the pointer seam
+ * (`--mouse-x`/`--mouse-y`), so it falls to its `var(--mouse-x, 50%)` centred floor
+ * and merely BRIGHTENS on hover (a static, dead-centred warm-white bloom). Every
+ * panel inherited it via the default surface. H.W2's gestalt move flipped every
+ * kf-owned panel/sidebar `<Card>` to `surface="cartoon"` (the surface map then
+ * STOPS EMITTING `glass-specular-track` at SOURCE) and kept ONE deliberately-glassy
+ * exception — the cubic-bézier composite (`.cartoon-specular glass-specular-track` +
+ * `useSpecularPointer`).
  *
- * THE FIX (the §2.2 gestalt move). Flip every kf-owned panel/sidebar `<Card>` to
- * `surface="cartoon"` — the surface map then STOPS EMITTING `glass-specular-track`
- * at SOURCE (no `!important`, no `display:none`); the radial dies because the class
- * is no longer applied. The ONE deliberately-glassy panel (the cubic-bézier editor,
- * the demo's sole direct-manipulation surface) keeps the catch-light AND gains
- * cartoon depth via the S2-COMPOSITE `.cartoon-specular` recipe + `useSpecularPointer`
- * (the pointer seam wired, the intensity calmed). So the catch-light becomes the
- * TRAVELLING light it was designed to be — never the broken centred bloom.
+ * THE INVERSION (H.W9 F3+F6 — the user-feedback fold). The user read the lone
+ * composite's tracked catch-light as too-dramatic (F3) AND inconsistent — present on
+ * ONE card only (F6) — and the lead adopted REMOVE: the tracked-specular subsystem
+ * is DELETED entirely (the `.cartoon-specular` recipe, the manual
+ * `glass-specular-track` class on the bezier Card, the `useSpecularPointer` wire +
+ * composable file). The calm register is now glass + cartoon, broad, with NO tracked
+ * catch-light: every panel is `surface="cartoon" tier="quiet"`. So the W2 ENUMERATED
+ * EXCEPTION SET `{TimingFunctionPanel bezier}` COLLAPSES TO ∅:
+ *
+ *     NEW INVARIANT — ZERO `.glass-specular-track` (and ZERO `.cartoon-specular`)
+ *     on ANY kf-owned `<Card>`. No exception. No tracked catch-light on any panel.
+ *
+ * This is STRONGER than the W2 form (which still tolerated the bezier composite): it
+ * now reds on the bezier composite that existed TODAY (born-RED on the pre-H.W9
+ * tree), greens on its removal, AND still bites a re-introduced `surface="glass"`
+ * (the orphan default) or any re-added `glass-specular-track`/`cartoon-specular` on a
+ * Card. It is the chronic-closure-discipline SYSTEM-property gate that REPLACES the
+ * retired ones (`proof:cartoon-specular-coexist` + `proof:specular-calm`, whose
+ * subject — the composite — no longer exists): "NO panel paints a tracked
+ * catch-light." The D2 cartoon-shadow chronic STAYS CLOSED via this stronger
+ * property (the H.W8 meta-gate's D2 load-bearing set is `proof:cartoon-is-panel-depth`
+ * + this inverted `proof:no-orphan-specular` + `proof:glass-and-cartoon` + the paired
+ * `proof:specular-handoff`).
  *
  * This gate polices the kf-OWNED surfaces (inv-16 — the remaining glass-ui
  * `<Button glass>` + dock-icon tracks are S5 HANDOFF territory, RECORDED here,
@@ -28,34 +45,31 @@
  * Three falsifiable halves, each BITING on the exact regression:
  *
  *   1. SOURCE-INVARIANT (STATIC — always runs). Over every demo `*.vue`: EVERY
- *      `<Card …>` opening tag resolves `surface="cartoon"` OR is the enumerated
- *      composite exception (it co-carries `cartoon-specular` + `glass-specular-track`
- *      AND its file imports/uses `useSpecularPointer` — the `--mouse-x` writer is
- *      present in source). NO `<Card>` carries the manual `.glass-card` plate
- *      (CS-3). The enumerated exception set is EXACTLY {TimingFunctionPanel bezier}
- *      — any OTHER Card that carries `glass-specular-track` without the composable,
- *      or any Card that defaults to glass / retains glass without a pointer writer,
- *      reds. BITE: a new `<Card>` (no surface= → defaults glass → emits the orphan
- *      track) reds; a Card retaining glass with no useSpecularPointer reds; a
- *      manual `.glass-card` on a Card reds.
+ *      `<Card …>` opening tag resolves `surface="cartoon"`, carries NO
+ *      `glass-specular-track` AND NO `cartoon-specular` AND NO manual `.glass-card`
+ *      plate (CS-3). The exception set is ∅ — there is no enumerated composite. NO
+ *      `<Card>` is permitted a tracked catch-light. BITE: a new `<Card>` (no
+ *      surface= → defaults glass → emits the orphan track) reds; a Card retaining
+ *      glass reds; a Card carrying `glass-specular-track`/`cartoon-specular` (the
+ *      re-introduced composite) reds; a manual `.glass-card` on a Card reds.
  *
  *   2. NO-ORPHAN-CARD COMPUTED (BROWSER — gated). Sweep the panel-bearing routes
  *      (cube/easing/spring); collect every `.glass-specular-track` element. The
- *      INVARIANT: ZERO of them is a kf-owned `<Card>` (`[data-surface]`) UNLESS it
- *      is the enumerated composite (carries `.cartoon-specular`). The remaining
- *      tracks (all `<BUTTON>` / dock icons — glass-ui-owned) are RECORDED with
- *      their `anyPointerWrite:false` status as the S5 HANDOFF residue, NOT failed.
- *      BITE: revert a panel to `surface="glass"` → it re-emits an orphan
- *      `glass-specular-track` on a `[data-surface=glass]` Card → reds.
+ *      INVARIANT: ZERO of them is a kf-owned `<Card>` (`[data-surface]`) — no
+ *      exception. The remaining tracks (all `<BUTTON>` / dock icons — glass-ui-owned)
+ *      are RECORDED with their `anyPointerWrite:false` status as the S5 HANDOFF
+ *      residue, NOT failed. BITE: revert a panel to `surface="glass"` → it re-emits
+ *      an orphan `glass-specular-track` on a `[data-surface=glass]` Card → reds;
+ *      re-add the bezier composite → its Card carries the track → reds.
  *
- *   3. HOVER ::before — NO CENTRED RADIAL (BROWSER — gated, the WV-W2-LOW-3
- *      storm-robust COMPUTED check as PRIMARY). Hover a cartoon panel Card; its
- *      `::before` must NOT paint the specular warm-white catch-light radial — the
- *      radial is GONE on the cartoon surface (the surface map stopped emitting the
- *      track), so a hovered panel shows the cartoon offset-stamp depth, no centred
- *      bloom. NON-VACUITY: ≥1 cartoon Card is actually hovered. BITE: a panel that
- *      still emits the specular `::before` (the `rgba(255,255,255,0.55)` warm-white
- *      radial core) on hover → reds (the centred-bloom defect survives).
+ *   3. HOVER ::before — NO CATCH-LIGHT RADIAL ON ANY CARD (BROWSER — gated, the
+ *      WV-W2-LOW-3 storm-robust COMPUTED check as PRIMARY). Hover EVERY cartoon panel
+ *      Card (no composite exclusion — the composite is gone); its `::before` must NOT
+ *      paint the specular warm-white catch-light radial. A hovered panel shows the
+ *      cartoon offset-stamp depth, no centred (or tracked) bloom. NON-VACUITY: ≥1
+ *      cartoon Card is actually hovered. BITE: a panel that still emits the specular
+ *      `::before` (the `rgba(255,255,255,0.55)` warm-white radial core) on hover →
+ *      reds (a tracked or centred catch-light survives).
  *
  * Mirrors scripts/proof-demo-shell-grid.mjs / proof-stage-not-clipped.mjs (the
  * serveDist + Playwright + FSM-settle plumbing). Scene switches are driven IN-PAGE
@@ -83,13 +97,16 @@ const fail = (label) => {
 const read = (p) => fs.readFileSync(p, "utf8");
 const rel = (p) => path.relative(REPO, p).split(path.sep).join("/");
 
-console.log("proof:no-orphan-specular — H.W2 S1+S3 (the radial-bloom death lock)");
+console.log(
+    "proof:no-orphan-specular — H.W2 S1+S3 INVERTED at H.W9 F3+F6 " +
+        "(the tracked-specular death lock · exception set → ∅)",
+);
 
-// The enumerated S2-COMPOSITE exception: the ONE deliberately-glassy panel that
-// keeps the catch-light (the cubic-bézier editor, the demo's direct-manipulation
-// surface) — it co-carries `cartoon-specular glass-specular-track` AND wires the
-// pointer seam via useSpecularPointer. Identified by the recipe class.
-const COMPOSITE_CLASS = "cartoon-specular";
+// H.W9 F3+F6: the W2 enumerated composite exception is DELETED. The recipe class
+// `.cartoon-specular` and the `glass-specular-track` class must appear on ZERO
+// kf-owned <Card> — there is no permitted composite. (Named here only so a re-added
+// recipe is caught by the source-invariant clause.)
+const TRACKED_SPECULAR_CLASSES = ["glass-specular-track", "cartoon-specular"];
 
 // ── 1. SOURCE-INVARIANT (static, always runs) ─────────────────────────────────
 {
@@ -126,19 +143,18 @@ const COMPOSITE_CLASS = "cartoon-specular";
     const offenders = [];
     let cardTotal = 0;
     let cartoonCount = 0;
-    let compositeCount = 0;
 
     for (const abs of files) {
         const raw = read(abs);
         const src = blankComments(raw);
         const tags = cardOpenTags(src);
-        const usesPointer = /useSpecularPointer\s*\(/.test(src);
         for (const tag of tags) {
             cardTotal += 1;
             const flat = tag.replace(/\s+/g, " ").slice(0, 110);
             const hasGlassCard = /\bglass-card\b/.test(tag);
-            const hasSpecularTrack = /\bglass-specular-track\b/.test(tag);
-            const hasComposite = new RegExp(`\\b${COMPOSITE_CLASS}\\b`).test(tag);
+            const trackedClass = TRACKED_SPECULAR_CLASSES.find((c) =>
+                new RegExp(`\\b${c}\\b`).test(tag),
+            );
             const surfaceM = tag.match(/surface\s*=\s*"([^"]+)"/);
             const surface = surfaceM ? surfaceM[1] : "(default→glass)";
 
@@ -148,50 +164,38 @@ const COMPOSITE_CLASS = "cartoon-specular";
                 continue;
             }
 
-            if (hasComposite) {
-                // The enumerated composite exception: must be surface="cartoon",
-                // carry the specular track, AND its file must wire the pointer seam.
-                compositeCount += 1;
-                if (surface !== "cartoon")
-                    offenders.push(`${rel(abs)} — the .cartoon-specular composite Card must be surface="cartoon" (got ${surface}): \`${flat}\``);
-                if (!hasSpecularTrack)
-                    offenders.push(`${rel(abs)} — the .cartoon-specular composite Card must co-carry glass-specular-track: \`${flat}\``);
-                if (!usesPointer)
-                    offenders.push(`${rel(abs)} — the .cartoon-specular composite Card's file does NOT wire useSpecularPointer (the --mouse-x writer is absent — an unwired composite is the broken centred bloom): \`${flat}\``);
+            // H.W9 F3+F6 — the exception set is ∅: NO Card may carry a tracked
+            // catch-light class. The W2 composite (cartoon-specular + glass-specular-
+            // track on the bezier Card) is REMOVED — a re-introduction reds here.
+            if (trackedClass) {
+                offenders.push(`${rel(abs)} — <Card> carries \`${trackedClass}\` (the tracked-specular subsystem is REMOVED at H.W9 F3+F6 — exception set → ∅; no Card may paint a tracked catch-light): \`${flat}\``);
                 continue;
             }
 
-            // Any NON-composite Card that carries glass-specular-track is an orphan
-            // (the surface map should have stopped emitting it).
-            if (hasSpecularTrack) {
-                offenders.push(`${rel(abs)} — a non-composite <Card> carries glass-specular-track (orphan radial — flip to surface="cartoon" or make it the enumerated composite): \`${flat}\``);
-                continue;
-            }
-
-            // Every other Card MUST be surface="cartoon" (the gestalt move). A
-            // default-glass Card (no surface=) re-inherits the orphan track; a
-            // retained surface="glass" without the composite/pointer wire is the
-            // broken bloom. The footprint invariant: cartoon, or the named exception.
+            // Every Card MUST be surface="cartoon" (the gestalt move). A default-glass
+            // Card (no surface=) re-inherits the orphan track; a retained surface="glass"
+            // re-emits it. The footprint invariant: cartoon, with no specular, full stop.
             if (surface === "cartoon") {
                 cartoonCount += 1;
             } else {
-                offenders.push(`${rel(abs)} — <Card> resolves surface=${surface}, NOT cartoon and NOT the enumerated composite (every kf-owned Card is cartoon or the named exception): \`${flat}\``);
+                offenders.push(`${rel(abs)} — <Card> resolves surface=${surface}, NOT cartoon (every kf-owned Card is surface="cartoon"; the exception set is ∅): \`${flat}\``);
             }
         }
     }
 
     if (offenders.length === 0) {
         ok(
-            `source-invariant: all ${cardTotal} kf-owned <Card>s resolve surface="cartoon" ` +
-                `(${cartoonCount}) or the enumerated .cartoon-specular composite (${compositeCount}, ` +
-                `pointer-wired); ZERO carry the manual .glass-card plate (CS-3) or an orphan ` +
-                `glass-specular-track (${files.length} demo *.vue, comment-blanked)`,
+            `source-invariant: all ${cartoonCount}/${cardTotal} kf-owned <Card>s resolve ` +
+                `surface="cartoon" with NO tracked-specular class (glass-specular-track / ` +
+                `cartoon-specular) and NO manual .glass-card plate (CS-3). The exception set is ∅ ` +
+                `— no panel carries a tracked catch-light (H.W9 F3+F6). (${files.length} demo *.vue, ` +
+                `comment-blanked)`,
         );
     } else {
         fail(
             `source-invariant — ${offenders.length} kf-owned <Card> orphan/violation(s) ` +
-                `(every Card must be surface="cartoon" or the pointer-wired composite; no manual ` +
-                `.glass-card):\n      ` +
+                `(every Card must be surface="cartoon" with NO glass-specular-track / cartoon-specular ` +
+                `/ .glass-card — the exception set is ∅):\n      ` +
                 offenders.join("\n      "),
         );
     }
@@ -322,7 +326,6 @@ async function browserHalves() {
         // ── 2. NO-ORPHAN-CARD COMPUTED + 3. HOVER ::before (one fresh ctx/scene) ──
         let orphanCards = [];
         let buttonTracks = 0;
-        let compositeCardTracks = 0;
         let anyPointerWriteOnButtons = false;
         let hoveredPanels = 0;
         let bloomViolations = [];
@@ -330,41 +333,32 @@ async function browserHalves() {
         for (const scene of SCENES) {
             const { ctx, page } = await openSceneFresh(browser, base, scene, VW);
             try {
-                // (2) the orphan-card invariant — every .glass-specular-track that is
-                // a kf-owned <Card> ([data-surface]) must be the enumerated composite.
-                const probe = await page.evaluate((compositeClass) => {
+                // (2) the orphan-card invariant — NO .glass-specular-track that is a
+                // kf-owned <Card> ([data-surface]) is permitted. Exception set ∅.
+                const probe = await page.evaluate(() => {
                     const tracks = [...document.querySelectorAll(".glass-specular-track")];
                     return tracks.map((t) => ({
                         tag: t.tagName,
                         isCard: t.hasAttribute("data-surface"),
                         surface: t.getAttribute("data-surface") || "(none)",
-                        isComposite: t.classList.contains(compositeClass),
                         // anyPointerWrite — the stable invariant anchor (CP-MED-2):
                         // an unwired track has no --mouse-x inline write.
                         hasMouseWrite: t.style.getPropertyValue("--mouse-x").trim() !== "",
                     }));
-                }, COMPOSITE_CLASS);
+                });
 
                 for (const t of probe) {
                     if (t.isCard) {
-                        if (t.isComposite) {
-                            // The enumerated composite — allowed (pointer-wired by
-                            // useSpecularPointer; the source-invariant clause proved
-                            // the writer is present). RECORDED, not an orphan.
-                            compositeCardTracks += 1;
-                        } else {
-                            orphanCards.push(`${scene}: a [data-surface=${t.surface}] <Card> carries glass-specular-track WITHOUT the composite recipe (orphan radial)`);
-                        }
+                        orphanCards.push(`${scene}: a [data-surface=${t.surface}] <Card> carries glass-specular-track (the tracked-specular subsystem is REMOVED — exception set → ∅)`);
                     } else {
                         buttonTracks += 1;
                         if (t.hasMouseWrite) anyPointerWriteOnButtons = true;
                     }
                 }
 
-                // (3) the hover ::before — NO CENTRED RADIAL on the panel/sidebar
-                // cartoon Cards (the composite is excluded — it legitimately keeps a
-                // calmed, tracked catch-light).
-                const handles = await page.$$(`[data-surface="cartoon"]:not(.${COMPOSITE_CLASS})`);
+                // (3) the hover ::before — NO CATCH-LIGHT RADIAL on ANY panel/sidebar
+                // cartoon Card (no composite exclusion — the composite is gone).
+                const handles = await page.$$(`[data-surface="cartoon"]`);
                 for (let i = 0; i < handles.length; i++) {
                     try {
                         await handles[i].hover({ timeout: 1500, force: true });
@@ -390,9 +384,9 @@ async function browserHalves() {
 
         if (orphanCards.length === 0) {
             ok(
-                `no-orphan-card: ZERO kf-owned <Card>s carry an unwired glass-specular-track ` +
-                    `across ${SCENES.join("/")} first-load mounts (${compositeCardTracks} enumerated ` +
-                    `composite track(s), pointer-wired). The orphan radial is dead on every panel/sidebar Card.`,
+                `no-orphan-card: ZERO kf-owned <Card>s carry a glass-specular-track across ` +
+                    `${SCENES.join("/")} first-load mounts — the exception set is ∅ (H.W9 F3+F6; the W2 ` +
+                    `composite is removed). The tracked-specular radial is dead on EVERY panel/sidebar Card.`,
             );
             // RECORD the glass-ui-owned residue (S5 HANDOFF, inv-16 — NOT failed).
             note(
@@ -404,9 +398,9 @@ async function browserHalves() {
             );
         } else {
             fail(
-                `no-orphan-card — ${orphanCards.length} kf-owned <Card>(s) carry an unwired ` +
-                    `glass-specular-track (the orphan centred-bloom radial survives — flip to ` +
-                    `surface="cartoon" or the enumerated composite):\n      ` +
+                `no-orphan-card — ${orphanCards.length} kf-owned <Card>(s) carry a ` +
+                    `glass-specular-track (the tracked-specular subsystem must be removed on EVERY ` +
+                    `panel — flip to surface="cartoon" with no specular class):\n      ` +
                     orphanCards.slice(0, 8).join("\n      "),
             );
         }
@@ -418,14 +412,15 @@ async function browserHalves() {
         } else if (bloomViolations.length === 0) {
             ok(
                 `hover ::before: ${hoveredPanels} cartoon panel(s) hovered across ${SCENES.join("/")} — ` +
-                    `NONE paints the specular warm-white catch-light radial (the centred-bloom defect is ` +
-                    `dead; the radial died at SOURCE on the cartoon surface, no display:none/!important)`,
+                    `NONE paints the specular warm-white catch-light radial (the tracked catch-light is ` +
+                    `dead on every Card; the radial died at SOURCE on the cartoon surface, no ` +
+                    `display:none/!important)`,
             );
         } else {
             fail(
                 `hover ::before — ${bloomViolations.length} hovered cartoon panel(s) STILL paint the ` +
-                    `specular centred-bloom radial on hover (the D2/D14 defect survives — the surface ` +
-                    `map is still emitting the track):\n      ` +
+                    `specular catch-light radial on hover (the tracked-specular subsystem survives — ` +
+                    `it must be REMOVED, exception set → ∅):\n      ` +
                     bloomViolations.slice(0, 6).join("\n      "),
             );
         }
@@ -440,15 +435,16 @@ await browserHalves();
 if (failures.length > 0) {
     console.error(
         `\nproof:no-orphan-specular — FAIL (${failures.length}): a kf-owned <Card> still carries ` +
-            `the unwired glass-specular-track (the centred-bloom radial), retains glass without the ` +
-            `pointer seam, or carries the manual .glass-card plate — the H.W2 S1 gestalt move is ` +
-            `incomplete (the radial must die at SOURCE via the surface map, not a CSS suppression).`,
+            `a glass-specular-track / cartoon-specular tracked catch-light (or retains glass, or carries ` +
+            `the manual .glass-card plate) — the H.W9 F3+F6 removal is incomplete (the tracked specular ` +
+            `must die at SOURCE on EVERY panel, exception set → ∅; no CSS suppression).`,
     );
     process.exit(1);
 }
 console.log(
-    "\nproof:no-orphan-specular — PASS: every kf-owned <Card> resolves surface=cartoon (or the " +
-        "pointer-wired .cartoon-specular composite); ZERO carry the manual .glass-card or an orphan " +
-        "specular track; no hovered panel blooms a centred radial (H.W2 S1+S3). The glass-ui " +
-        "<Button>/dock residue is RECORDED S5 HANDOFF (inv-16).",
+    "\nproof:no-orphan-specular — PASS: every kf-owned <Card> resolves surface=cartoon with NO " +
+        "glass-specular-track / cartoon-specular and NO manual .glass-card; ZERO panels carry a tracked " +
+        "catch-light (exception set → ∅, H.W9 F3+F6 — STRONGER than the W2 form); no hovered panel " +
+        "blooms a radial. The glass-ui <Button>/dock residue is RECORDED S5 HANDOFF (inv-16). The D2 " +
+        "cartoon chronic stays closed via this stronger system property.",
 );

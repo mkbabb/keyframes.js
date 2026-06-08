@@ -1,6 +1,6 @@
 <template>
     <div class="contents">
-        <Card surface="cartoon" class="p-0 m-0">
+        <Card surface="cartoon" tier="quiet" class="p-0 m-0">
             <CardContent class="p-2 m-0 mt-0 grid gap-4 relative">
                 <KeyframeCardList
                     ref="cardList"

@@ -34,9 +34,15 @@
                         </div>
                     </DropdownMenuItem>
 
-                    <!-- Dark mode -->
-                    <DropdownMenuItem @select.prevent class="flex items-center gap-2.5 px-1.5 py-1 rounded-lg">
+                    <!-- Dark mode — the whole row is the toggle target (F5,
+                         mirroring the ppmycota row below): a row-level @click
+                         flips the theme, and <DarkModeToggle passive> makes the
+                         inner icon a pure INDICATOR (`@click="!passive &&
+                         toggleDark()"` short-circuits) so the row fires exactly
+                         once — no double-toggle. -->
+                    <DropdownMenuItem @select.prevent class="flex items-center gap-2.5 px-1.5 py-1 rounded-lg cursor-pointer" @click="toggleDark()">
                         <DarkModeToggle
+                            passive
                             title="Toggle dark mode"
                             class="aspect-square w-5"
                         />
@@ -55,7 +61,6 @@
                                  inline style is the portal-safe home for the token
                                  ref while it co-locates with the brand mark (S2). -->
                             <span class="text-small" :style="{ color: 'var(--ppmycota-primary)' }">ppmycota</span>
-                            <p class="text-admin-label text-muted-foreground leading-tight">&#x1F642;&#x200D;&#x2194;&#xFE0F; &#x1F331; &#x1F344;&#x200D;&#x1F7EB;</p>
                             <a href="https://ppmycota.com" target="_blank" rel="noopener noreferrer" class="text-admin-label text-muted-foreground hover:text-foreground hover:underline transition-colors" @click.stop>ppmycota.com</a>
                         </div>
                     </DropdownMenuItem>
@@ -156,6 +161,7 @@ import { CONTROLS_PANE_HOVER_KEY, TABS_EXTERNALLY_MANAGED_KEY } from "@component
 import { EditorShell, EditorStartScreen, SharePopover } from "@components/custom/editor-shell";
 import { Avatar, AvatarImage, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@mkbabb/glass-ui";
 import { DarkModeToggle } from "@mkbabb/glass-ui/controls";
+import { useGlobalDark } from "@mkbabb/glass-ui/dark";
 import { DockDropdownTrigger, useOptionalDockContext } from "@mkbabb/glass-ui/dock";
 import ChromeDock from "@components/custom/dock/ChromeDock.vue";
 
@@ -235,6 +241,12 @@ const { sceneSwapStyle } = useSceneSwap(activeSceneKey);
 function togglePpMode() {
     storedControls.value.ppMode = !(storedControls.value.ppMode ?? false);
 }
+
+// F5 — the dark-mode dropdown row's click target. The same singleton glass-ui
+// `useGlobalDark` the CSS editor consumes (CSSCodeEditor.vue); the row fires
+// `toggleDark()` while `<DarkModeToggle passive>` becomes a pure indicator, so
+// the theme flips exactly once per row click (no double-toggle).
+const { toggleDark } = useGlobalDark();
 
 // ── The scene-machine ↔ App-shell reconcile (S2/S4/S5) ───────────────────────
 // Adapter registration, the targets-attached SCENE_READY emit, the bottom-bar

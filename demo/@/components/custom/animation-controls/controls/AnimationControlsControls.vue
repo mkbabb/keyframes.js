@@ -1,6 +1,6 @@
 <template>
     <div class="grid items-center gap-4">
-        <Card surface="cartoon" class="w-full overflow-visible">
+        <Card surface="cartoon" tier="quiet" class="w-full overflow-visible">
             <CardContent class="relative flex flex-col gap-2 px-4 py-3">
                 <!-- Sliding panel container — each panel in its own collapsible row -->
                 <div class="panel-stack relative">
@@ -331,6 +331,38 @@ onMounted(() => {
 .panel-row--detail.panel-row--active > .panel-content {
     max-height: min(50vh, 480px);
     overflow-y: auto;
+}
+
+/* ── F1 (H.W9.S3) — label-LEFT / value-RIGHT per row, ONE column of rows ──
+   W3.S1 collapsed the per-row [auto_1fr] split → each LabeledField stacked
+   label-OVER-value. This restores the intra-row split at the ROW level: every
+   glass-ui `.labeled-field` (LabeledInput/LabeledSelect — `<div class="labeled-field">`
+   wrapping its tooltip-label + the control) becomes a two-cell grid (label auto,
+   control 1fr), so the label sits LEFT of the value. The error region spans both
+   columns. This is the demo-side born-GREEN path (path B) mirroring the in-tree
+   AssetPropertiesPanel precedent; the durable home is glass-ui's BOOKED
+   `LabeledField orientation="horizontal"` (inv-16 HANDOFF — NOT patched here).
+
+   The single-column-pack invariant STAYS TRUE: the split is INTRA-row (one left
+   edge per row); the panel rows still stack one column. The hand-rolled easing
+   field + the advanced nav row are NOT `.labeled-field`, so they keep their
+   full-width custom shape. gap-y > gap-x preserves Gestalt proximity.
+
+   DRY home: this :deep rule reaches EVERY `.labeled-field` rendered into
+   `.panel-content` — including LayerConfigPanel's blend / z-index / enabled rows
+   (rendered into the advanced sub-pane's `.panel-content`). One source for the
+   panel-row shape; LayerConfigPanel does NOT re-author it. */
+.panel-content :deep(.labeled-field) {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    column-gap: 0.75rem;
+    row-gap: 0.25rem;
+}
+/* The error region (revealed on :user-invalid) spans both columns so it sits
+   under the control, not in the label gutter. */
+.panel-content :deep(.labeled-field .labeled-field-error) {
+    grid-column: 1 / -1;
 }
 
 .easing-edit-btn {

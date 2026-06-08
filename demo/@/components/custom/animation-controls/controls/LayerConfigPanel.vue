@@ -1,4 +1,9 @@
 <template>
+    <!-- F1 (H.W9.S3) — blend / z-index / enabled render as glass-ui `.labeled-field`
+         rows into AnimationControlsControls's advanced-sub-pane `.panel-content`,
+         where the host's `.panel-content :deep(.labeled-field)` rule gives them the
+         label-LEFT / value-RIGHT intra-row [auto_1fr] shape (one DRY source for the
+         panel-row split; this component does NOT re-author it). -->
     <template v-if="layerConfig">
         <LabeledSelect
             :model-value="layerConfig.blendMode"
