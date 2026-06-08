@@ -14,7 +14,20 @@
             <template
                 v-if="(storedAnimationOptions.animationOptions.timingFunction as any) === 'cubic-bezier'"
             >
-                <Card plain class="grid gap-0 w-full p-0">
+                <!-- S2-COMPOSITE (D14): the deliberately-glassy interactive panel.
+                     The cubic-bézier editor is the one direct-manipulation surface
+                     the user wants glassy — so it keeps the iOS catch-light AND
+                     gains cartoon depth. `surface="cartoon"` mints the offset-stamp
+                     depth (and drops `shadow-card`); `glass-specular-track` (glass-
+                     ui's `@layer` class, applied directly) brings the `::before`
+                     catch-light back so it composes over the glass tier; and
+                     `.cartoon-specular` names the composite + carries the refined
+                     intensity tune. The Card prop API emits cartoon XOR specular —
+                     it structurally cannot express the composite, so this single
+                     demo class-composition of glass-ui classes is the correct seam.
+                     `useSpecularPointer` wires the cursor + calms the intensity
+                     (0.22 rest / 0.4 hover). -->
+                <Card ref="bezierCardRef" surface="cartoon" class="cartoon-specular glass-specular-track grid gap-0 w-full p-0">
                     <CardHeader class="grid gap-0 p-0 pb-1">
                         <CardTitle class="text-heading">cubic-bézier</CardTitle>
                         <p v-if="editingCurveName" class="text-mono-caption normal-case text-muted-foreground ml-1 mb-0.5">editing: {{ editingCurveName }}</p>
@@ -71,7 +84,7 @@
             <template
                 v-else-if="storedAnimationOptions.animationOptions.timingFunction === 'steps'"
             >
-                <Card plain>
+                <Card surface="cartoon">
                     <CardHeader class="p-0 pb-2">
                         <CardTitle class="text-heading">steps</CardTitle>
                     </CardHeader>
@@ -159,6 +172,7 @@ import { computed, ref } from "vue";
 import { ArrowLeft } from "@lucide/vue";
 import CopyButton from "@components/custom/CopyButton.vue";
 import EasingCurveCanvas from "@components/custom/EasingCurveCanvas.vue";
+import { useSpecularPointer } from "@composables/useSpecularPointer";
 
 const props = defineProps<{
     animation: Animation<any>;
@@ -174,6 +188,14 @@ const emit = defineEmits<{
 }>();
 
 // ── Cubic bezier state ──────────────────────────────────────────
+
+// S2-COMPOSITE / S3 — wire the cursor-tracked, calmed catch-light onto the
+// composite bezier Card. The Card root is a reka-ui Primitive (a div); its
+// instance `$el` is that DOM node. The composable no-ops under reduced motion
+// and single-sources the intensity tune (0.22 rest → 0.4 hover) the
+// `.cartoon-specular` recipe projects onto the `::before`.
+const bezierCardRef = ref<{ $el: HTMLElement } | null>(null);
+useSpecularPointer(() => bezierCardRef.value?.$el ?? null);
 
 const selectedPreset = ref("ease");
 

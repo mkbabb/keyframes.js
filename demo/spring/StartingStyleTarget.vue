@@ -6,7 +6,7 @@
         <!-- The discrete-transition stage. The card enters from nothing
              (@starting-style) and exits to display:none (allow-discrete),
              eased by the keyframes.js spring linear() in --spring-ease. -->
-        <div class="stage glass-card w-full flex-1 min-h-0 flex flex-col">
+        <div class="stage glass-resting cartoon-surface w-full flex-1 min-h-0 flex flex-col">
             <div class="flex items-center justify-between px-4 py-2.5 border-b border-border/40 shrink-0">
                 <span class="text-heading text-foreground truncate">@starting-style</span>
                 <span class="text-mono-caption text-muted-foreground tabular-nums whitespace-nowrap">

@@ -1,5 +1,5 @@
 <template>
-    <Card class="w-full overflow-hidden">
+    <Card surface="cartoon" class="w-full overflow-hidden">
         <CardContent class="p-0">
             <!-- Header: title + add dropdown -->
             <div class="flex items-center justify-between px-4 pt-3 pb-2">

@@ -1,7 +1,7 @@
 <template>
     <div class="flex flex-col items-center justify-center gap-4 h-full w-full px-6 lg:px-8 max-w-3xl mx-auto overflow-hidden dock-inset">
         <!-- Live interactive spring tracker -->
-        <div class="glass-card w-full flex-1 min-h-0 flex flex-col overflow-hidden">
+        <div class="glass-resting cartoon-surface w-full flex-1 min-h-0 flex flex-col overflow-hidden">
             <div class="flex items-center justify-between px-4 py-2.5 border-b border-border/40 shrink-0">
                 <div class="flex items-baseline gap-3 min-w-0">
                     <span class="text-heading text-foreground truncate">

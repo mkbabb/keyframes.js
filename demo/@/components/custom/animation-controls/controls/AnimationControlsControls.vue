@@ -1,6 +1,6 @@
 <template>
     <div class="grid items-center gap-4">
-        <Card class="w-full overflow-visible transition-shadow duration-normal glass-card">
+        <Card surface="cartoon" class="w-full overflow-visible">
             <CardContent class="relative flex flex-col gap-2 px-4 py-3">
                 <!-- Sliding panel container — each panel in its own collapsible row -->
                 <div class="panel-stack relative">

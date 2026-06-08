@@ -1,5 +1,5 @@
 <template>
-    <div class="glass-card p-3 grid gap-3">
+    <div class="glass-resting cartoon-surface p-3 grid gap-3">
         <!-- Hero curve canvas -->
         <EasingCurveCanvas
             :easing-fn="demo.currentEasingFn.value"
@@ -11,7 +11,7 @@
         />
 
         <!-- CSS value bar -->
-        <Card plain class="p-0">
+        <Card surface="cartoon" class="p-0">
             <CardContent class="flex items-center gap-2 p-2">
                 <Input
                     :model-value="demo.cssValue.value"
@@ -32,7 +32,7 @@
         />
 
         <!-- Step options (shown only for steps) -->
-        <Card v-if="demo.isSteps.value" plain class="p-0">
+        <Card v-if="demo.isSteps.value" surface="cartoon" class="p-0">
             <CardContent class="grid grid-cols-2 gap-2 p-2">
                 <div class="grid gap-1">
                     <label class="text-admin-label text-muted-foreground">steps</label>

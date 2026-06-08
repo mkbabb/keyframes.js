@@ -1,7 +1,7 @@
 <template>
     <div class="flex flex-col items-center justify-center gap-4 h-full w-full px-6 lg:px-8 max-w-3xl mx-auto overflow-hidden dock-inset">
 
-        <div ref="easingTargetEl" class="glass-card easing-target w-full flex-1 min-h-0 flex flex-col overflow-hidden">
+        <div ref="easingTargetEl" class="glass-resting cartoon-surface easing-target w-full flex-1 min-h-0 flex flex-col overflow-hidden">
             <!-- Header: easing name + view mode dropdown -->
             <div class="flex items-center justify-between px-4 py-2.5 border-b border-border/40 shrink-0">
                 <div class="flex items-baseline gap-3 min-w-0">
@@ -266,8 +266,10 @@ const onScrubEnd = () => {
 /* Comparison-track ball sizing tokens — read by JS via getComputedStyle so
    CSS is the single source of truth. Values are intentionally in px (not rem)
    because JS reads computed lengths. Scoped to the component's own
-   `.easing-target` root so they never leak onto the shared `.glass-card`
-   primitive (the JS reads them off the owned `easingTargetEl` ref). */
+   `.easing-target` root so they never leak onto the shared
+   `glass-resting cartoon-surface` stage primitive (H.W2.S6 — the stage now
+   wears the one cartoon depth idiom; the JS reads them off the owned
+   `easingTargetEl` ref). */
 .easing-target {
     --track-ball-size-active: 36px;
     --track-ball-size-muted: 24px;

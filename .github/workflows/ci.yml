@@ -289,6 +289,57 @@ jobs:
               run: npm run proof:no-deprecated-guard
             - name: proof:single-writer (H.W1 S9.c — the FSM mutation boundary; no consumer writes activeScene/status)
               run: npm run proof:single-writer
+            - name: proof:no-dup-utility (H.W2 S4/S1/S6 — 0 demo .scale-on-hover rule · 0 <Card> glass-card · glass-card resolves only to the enumerated static set)
+              run: npm run proof:no-dup-utility
+            - name: proof:specular-handoff (H.W2 S5 — born-RED glass-ui Card-default + dock-icon specular HANDOFF witness; flips RED when glass-ui ships the calm default)
+              run: npm run proof:specular-handoff
+            # H.W2 S2-COMPOSITE (WV-W2-HIGH-3, the D14 ask) — the kept-glass bezier
+            # panel composes cartoon DEPTH (--shadow-cartoon-md) AND a TRACKED catch-
+            # light (--specular-x ≠ 50%, `circle at <x≠50%>`) after a synthesized
+            # pointermove. A static source anchor (a REAL panel consumes the recipe,
+            # non-vacuity) + a storm-robust COMPUTED ::before browser bite on a
+            # deterministic probe. KF_REQUIRE_BROWSER turns a playwright-absent skip
+            # into a hard CI fail so the composite cannot be reported green un-exercised.
+            - name: proof:cartoon-specular-coexist (H.W2 S2-COMPOSITE — cartoon depth AND a tracked catch-light TOGETHER on the kept-glass bezier panel)
+              run: npm run proof:cartoon-specular-coexist
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            # H.W2 S3 (WV-W2-MED-1, the "refined" half of D14, kf-side) — every
+            # retained/composite specular ::before resolves CALM intensity (rest ≤ 0.25,
+            # hover ≤ 0.4, the demo's 0.22/0.4 tune), while the bare glass-ui default
+            # (0.35/0.6) overshoots — the born-RED witness proving the gate bites the
+            # real defect. Paired kf-side so the user's literal ask is NOT BOOK-able.
+            - name: proof:specular-calm (H.W2 S3 — retained/composite specular rests ≤ 0.25 / hovers ≤ 0.4; the refined half of D14)
+              run: npm run proof:specular-calm
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            # H.W2 S1 (CS-2, the cartoon-depth restoration) — the source-shape lock
+            # (the 5 contract-named panel Cards carry surface="cartoon", dropped the
+            # manual .glass-card + transition-shadow G2 plate) + the computed-style
+            # lock: ≥5 cartoon Cards resolve resting box-shadow === --shadow-cartoon-md
+            # (token-resolved by the same engine, so a glass-ui rename is caught) and
+            # GROW to --shadow-cartoon-lg on a real :hover. Born-RED on the pre-W2 tree
+            # (one cartoon site). Settle-gated on the H.W1 FSM resting; #/cube pinned
+            # in-page; KF_REQUIRE_BROWSER turns a playwright-absent skip into a hard CI
+            # fail (the cartoon-depth restoration cannot be reported green un-exercised).
+            - name: proof:cartoon-is-panel-depth (H.W2 S1 — ≥5 panel Cards resolve --shadow-cartoon-md at rest → --shadow-cartoon-lg on hover)
+              run: npm run proof:cartoon-is-panel-depth
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            # H.W2 S1+S3 (CS-1/F1, the radial-bloom death lock) — the source-invariant
+            # (every kf-owned <Card> resolves surface=cartoon OR the pointer-wired
+            # .cartoon-specular composite; 0 manual .glass-card) + the FRESH-CONTEXT
+            # per-scene computed sweep (the orphan footprint is route/state-dependent,
+            # CP-MED-2 — first-load mounts reproduce the orphan a transition misses):
+            # 0 kf-owned Cards carry an unwired glass-specular-track (the anyPointerWrite
+            # invariant; the remaining <Button>/dock tracks are RECORDED S5 HANDOFF
+            # residue, inv-16) + the storm-robust hover ::before check (no hovered panel
+            # paints the warm-white centred-bloom radial). Born-RED on the default-glass
+            # tree. KF_REQUIRE_BROWSER turns a playwright-absent skip into a hard CI fail.
+            - name: proof:no-orphan-specular (H.W2 S1+S3 — 0 kf-owned Card emits an unwired specular track · no hover centred-bloom radial)
+              run: npm run proof:no-orphan-specular
+              env:
+                  KF_REQUIRE_BROWSER: "1"
             - name: proof:idioms (D.W2 — owned design-idioms.css · leaf-tail swept · utils.css monolith uncaged)
               run: npm run proof:idioms
             - name: proof:brittleness (D.W3 — no global DOM reach · z-scale single-sourced · @supports guards)

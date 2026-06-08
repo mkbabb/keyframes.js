@@ -2,13 +2,19 @@
    demo/@/styles/design-idioms.css — the demo's OWNED design vocabulary
    ────────────────────────────────────────────────────────────────────────
    D.W2.S1 (styling-findings §1). The demo REFERENCES these idioms everywhere
-   (the rainbow gradients, the gold sparkle accent, the 13 hover-lift sites,
-   the tab-panel slide) but, before this file, DEFINED them nowhere in its own
-   tree — they resolved only by accident of the transitive `@mkbabb/glass-ui`
-   + `tw-animate-css` import. That is an ungated, undocumented cross-repo RENT:
-   glass-ui OWNS the `--rainbow-*` / `--color-gold` / `scale-on-hover`
-   vocabulary and is free to rename or drop it; the day it does, the demo's
-   affordances silently flatten with no error and no gate.
+   (the rainbow gradients, the gold sparkle accent, the tab-panel slide) but,
+   before this file, DEFINED them nowhere in its own tree — they resolved only by
+   accident of the transitive `@mkbabb/glass-ui` + `tw-animate-css` import. That
+   is an ungated, undocumented cross-repo RENT: glass-ui OWNS the `--rainbow-*` /
+   `--color-gold` vocabulary and is free to rename or drop it; the day it does,
+   the demo's affordances silently flatten with no error and no gate.
+
+   H.W2.S4 correction: the `.scale-on-hover` lift is NOT re-authored here — the
+   former demo copy was a re-author of glass-ui's first-class `@utility
+   scale-on-hover` (which glass-ui in fact extracted FROM the demo's 13 sites),
+   a no-legacy violation. The demo now CONSUMES that `@utility` directly (the
+   class name is identical, zero call-site churn); only the `--scale-hover` token
+   (the magnitude) stays demo-owned. See the deletion note below.
 
    This layer makes the demo OWN what it depends on. It is imported by
    `style.css` IMMEDIATELY AFTER `@import "@mkbabb/glass-ui/styles"`, so these
@@ -168,25 +174,78 @@
     color: var(--color-gold);
 }
 
-/* ── .scale-on-hover ──
-   The demo's most-used interaction idiom — 13 sites across 10 files, the
-   headline of the rent (defined demo-NOWHERE until now). Transitions the
-   `scale` longhand (NOT `transform`) so it composes with sibling transforms,
-   and binds to the demo's duration/easing tokens (glass-ui defaults, owned
-   here). Honors prefers-reduced-motion: users who ask for reduced motion get
-   the lift INSTANTLY (no transition) rather than no affordance — the hover
-   state still reads, only the animation is removed. */
-.scale-on-hover {
-    scale: 1;
-    transition: scale var(--duration-fast, 0.2s) var(--ease-standard, ease);
+/* ── .scale-on-hover — DELETED (H.W2.S4, no-legacy) ──
+   The demo's `.scale-on-hover` block lived here as a re-author of glass-ui's
+   first-class `@utility scale-on-hover` (`utilities.css:680-690`) — the IDENTICAL
+   `scale: 1 → var(--scale-hover)` recipe glass-ui extracted FROM the 13 demo
+   sites (its own comment names that lineage). A replaced surface living beside
+   its replacement is the no-legacy violation; the class name is identical so the
+   13 call-sites resolve to glass-ui's `@utility` with zero churn.
+
+   PRM: the deleted block carried a `@media (prefers-reduced-motion: reduce) {
+   transition: none }` guard. glass-ui's `@utility` ships NO inline PRM guard —
+   BUT glass-ui's GLOBAL PRM bracket (`utilities.css:1025-1036`) covers it: under
+   `prefers-reduced-motion: reduce` it restricts `transition-property` to
+   `opacity, color, background-color, border-color, box-shadow` (dropping `scale`)
+   on every `*:not([data-allow-motion])`, so the scale lift applies instantly with
+   no transition — the EXACT behaviour the demo's own guard produced. The guard is
+   therefore redundant, not load-bearing, and is deleted with the base rule (the
+   global bracket is the single source). The `--scale-hover` token (above, :80)
+   stays demo-owned so the demo owns the magnitude even if glass-ui drops its
+   token (the `var(--scale-hover, 1.08)` fallback in glass-ui's `@utility`
+   resolves through it). */
+
+/* ── .cartoon-specular — the S2-COMPOSITE recipe (H.W2.S2-COMPOSITE, D14) ──
+   The ONE legitimate demo class-composition: the deliberately-glassy interactive
+   panel (the cubic-bézier editor) wants cartoon DEPTH and a refined, tracked
+   catch-light TOGETHER. The Card `surface=` prop emits cartoon XOR specular
+   (`CardFooter:37`), so the prop alone cannot express the composite — the host
+   co-applies BOTH glass-ui classes: `surface="cartoon"` mints `cartoon-surface`
+   (the offset-stamp depth + spring hover-lift, and NO `shadow-card`); the
+   template adds glass-ui's `glass-specular-track` directly so the `::before`
+   catch-light composes over the glass tier; and this `.cartoon-specular` class
+   names the composite + owns the refined intensity tune (below). The class apply
+   echoes `cartoon-surface` so the recipe also stands alone on a non-Card host.
+   `glass-specular-track` is a glass-ui `@layer components` class (NOT a Tailwind
+   `@utility`), so it cannot be `@apply`-ed — it is applied as a literal class in
+   the template (the CSS ships in the glass-ui `@import`). Both classes are
+   glass-ui's; nothing new is authored here but the projection of the
+   consumer-writable intensity tune. (inv-16, zero new backdrop CSS.)
+   `useSpecularPointer` wires the cursor + writes the magnitude. */
+.cartoon-specular {
+    @apply cartoon-surface;
 }
-.scale-on-hover:hover {
-    scale: var(--scale-hover, 1.08);
+
+/* The refined intensity (D14, "refined for hovers"). glass-ui's `::before` rests
+   at `--specular-intensity: 0.35` and hits 0.6 on hover — too hot for a resting
+   panel. `--specular-intensity` is a registered, consumer-writable `@property`
+   (`tokens.css §11b`) but `inherits: false`, so a value set on the HOST does NOT
+   reach the pseudo — the pseudo must own its own value. These two rules project
+   the composable's host-written magnitude (`--specular-rest` / `--specular-hover`,
+   single-sourced in useSpecularPointer.ts) onto the pseudo's
+   `--specular-intensity`, overriding glass-ui's pseudo defaults by source order
+   (this file imports after glass-ui; equal-specificity later rule wins). The
+   `var()` fallbacks (0.22 / 0.4) are the calmed rest/hover floor when a surface
+   carries the recipe without the composable wired. */
+.cartoon-specular::before {
+    --specular-intensity: var(--specular-rest, 0.22);
 }
-@media (prefers-reduced-motion: reduce) {
-    .scale-on-hover {
-        transition: none;
-    }
+.cartoon-specular:hover::before {
+    --specular-intensity: var(--specular-hover, 0.4);
+}
+
+/* ── cartoon Card focus-elevation (H.W2.S1, WV-W2-LOW-1, named delta) ──
+   Flipping the panel Cards to `surface="cartoon"` deletes the manual `.glass-card`
+   plate — and with it `.glass-card:has(:focus-visible)`'s focus-elevation rung
+   (`glass.css:197`, which lifts the card a rung on descendant KEYBOARD focus).
+   `cartoon-surface` does NOT replicate that affordance (its lift is `:hover`-only),
+   so re-apply it here on the cartoon surface: descendant `:focus-visible` lifts the
+   offset stamp to the `lg` rung — the same elevation the hover-lift gives, but for
+   keyboard users — so the focus affordance is not silently lost. `:has()` is
+   Baseline Widely available. The lift is shadow-only (no `translate`) so it does
+   not displace portaled child content on focus. */
+.cartoon-surface:has(:focus-visible) {
+    box-shadow: var(--shadow-cartoon-lg);
 }
 
 /* ── .gold-shimmer ──

@@ -1,7 +1,7 @@
 <template>
-    <div class="glass-card p-3 grid gap-3">
+    <div class="glass-resting cartoon-surface p-3 grid gap-3">
         <!-- Live params -->
-        <Card plain class="p-0">
+        <Card surface="cartoon" class="p-0">
             <CardContent class="grid gap-3 p-3">
                 <div class="grid gap-1.5">
                     <div class="flex items-center justify-between">
@@ -57,7 +57,7 @@
         </div>
 
         <!-- Side-by-side canonical comparison -->
-        <Card plain class="p-0">
+        <Card surface="cartoon" class="p-0">
             <CardContent class="grid gap-2.5 p-3">
                 <span class="text-small text-muted-foreground">canonical springs &mdash; re-seat all together</span>
                 <div
@@ -78,7 +78,7 @@
         </Card>
 
         <!-- springLinearStops CSS — Monaco editor (follows dark mode) -->
-        <Card plain class="p-0 overflow-hidden">
+        <Card surface="cartoon" class="p-0 overflow-hidden">
             <CardContent class="grid gap-2 p-2">
                 <div class="flex items-center justify-between px-1">
                     <span class="text-small text-muted-foreground">springLinearStops() &rarr; CSS</span>
