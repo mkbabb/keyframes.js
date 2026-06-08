@@ -14,7 +14,8 @@ import type { CSSKeyframesAnimation } from "@src/animation/engine";
  * transport (play/pause/scrub) — no custom loop. The traveller element only
  * exists after mount (the factory sets `offset-path` on a live element), so the
  * scene registers its animation on mount and swaps the reactive group; the
- * App's `useSceneGroupSync` reconciles the new group instance.
+ * App's scene-machine group watcher binds the new group instance and registers
+ * its ScenePlayback adapter (H.W1).
  */
 export function useMotionPathDemo() {
     // Starts empty; the traveller's MotionPath animation is registered on mount.

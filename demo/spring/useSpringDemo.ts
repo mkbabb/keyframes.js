@@ -15,6 +15,11 @@ import { NumericAnimation } from "@src/animation/numeric";
 import { RAFPlayback } from "@src/animation/playback";
 
 import { useSceneVisibilityPause } from "../app/useSceneVisibilityPause";
+import {
+    useSceneMachine,
+    createRafAdapter,
+    type ScenePlayback,
+} from "@components/custom/animation-controls/stores";
 import { SPRING_PRESETS, type SpringPreset } from "./springPresets";
 
 /** One live tracker plus its reactive read-out, for the comparison row. */
@@ -46,6 +51,14 @@ const SAMPLER_DURATION = 1400;
  * shared clock — the SpringProgress solver is analytic, so a global clock
  * keeps every row phase-aligned (and the `loop` driver carries the engine's
  * `_gen` generation-guard, so a rapid pause/resume can never double-schedule).
+ *
+ * PLAYBACK AUTHORITY (H.W1): the loop GATES on the scene machine (the single
+ * authority) — NOT a private `isPlaying` shadow. The former private
+ * `isPlaying = ref(true)` + the dummy-group paused-mirror were the D12
+ * shadow-authority smell; DELETED. `isPlaying` is now a read-only projection of
+ * `machine.status === 'playing'`; play/pause dispatch to the machine; the scene
+ * round-trips its sweep phase + play intent through the raw-rAF ScenePlayback
+ * contract (WV-W1-HIGH-3).
  */
 export function useSpringDemo() {
     // ── Interactive params ───────────────────────────────────────────
@@ -115,17 +128,31 @@ export function useSpringDemo() {
         );
     }
 
-    // The sampler runs on its own normalized clock so its 0→1→0 sweep loops
-    // independently of the live target re-seats.
-    let samplerStart = 0;
+    // ── Playback intent: DERIVED from the machine, NOT a private shadow ──
+    // The former private `isPlaying = ref(true)` + the dummy-group paused-mirror
+    // watch were the SHADOW playback authority (the D12 smell). DELETED: the
+    // play-intent is a read-only projection of `machine.status === 'playing'`,
+    // and play/pause dispatch to the machine (the single authority).
+    const machine = useSceneMachine();
+    const isPlaying = computed(() => machine.status.value === "playing");
+
+    // The normalized [0,1] sweep phase the comparison row runs on. It is the one
+    // round-trippable scalar the raw-rAF ScenePlayback contract preserves across
+    // a scene switch (the live markRaw springs are re-created on remount, so the
+    // phase IS the scene's restorable position). The scrubber-equivalent.
+    const progress = ref(0);
 
     // ── Shared rAF loop ──────────────────────────────────────────────
-    const isPlaying = ref(true);
     const playback = markRaw(new RAFPlayback());
+    // The loop's start timestamp, rebased from `progress` on (re)arm so the
+    // sweep resumes in phase. Mirrors easing's `startTime` discipline.
+    let startTime = 0;
     let lastNow = 0;
 
     const frame = (now: DOMHighResTimeStamp): boolean => {
-        if (!isPlaying.value) return false;
+        // The loop GATES on the machine (the single authority) — not a private
+        // isPlaying. When the machine leaves `playing` the loop self-terminates.
+        if (machine.status.value !== "playing") return false;
 
         // dt from the single shared clock. First frame seeds the clock and
         // steps by zero (tickDt(0) is a no-op) — no magic-number dt seed.
@@ -146,20 +173,25 @@ export function useSpringDemo() {
             t.settled.value = t.spring.settled;
         }
 
-        // springTimingFunction sweep — `direction: alternate` as keyframes.
-        if (!samplerStart) samplerStart = now;
-        const phase = ((now - samplerStart) / SAMPLER_DURATION) % 1;
+        // springTimingFunction sweep — `direction: alternate` as keyframes. The
+        // normalized phase IS `progress`, so a restore re-seeds it directly.
+        const phase = ((now - startTime) / SAMPLER_DURATION) % 1;
+        progress.value = phase;
         sampled.value = samplerAnim.at(phase).x;
 
         return true;
     };
 
-    const ensureLoop = () => {
-        if (isPlaying.value && !playback.running) {
+    /** Re-arm the rAF loop (re-seeds startTime from the current sweep phase so
+     *  the sampler resumes in phase). Idempotent — a no-op while running. */
+    const startLoop = () => {
+        if (!playback.running) {
             lastNow = 0;
+            startTime = performance.now() - progress.value * SAMPLER_DURATION;
             playback.loop(frame);
         }
     };
+    const stopLoop = () => playback.stop();
 
     // ── Methods ──────────────────────────────────────────────────────
 
@@ -169,7 +201,7 @@ export function useSpringDemo() {
         target.value = v;
         liveSpring.target = v;
         for (const t of tracks) t.spring.target = v;
-        ensureLoop();
+        startLoop();
     };
 
     /** Flip the target between the two rails — the showcase "go" gesture. */
@@ -195,10 +227,26 @@ export function useSpringDemo() {
         liveSpring.target = target.value;
         // Re-sample the timing function on the new params.
         samplerAnim = markRaw(buildSamplerAnimation());
-        ensureLoop();
+        startLoop();
     };
 
     watch([response, dampingFraction], rebuildLiveSpring);
+
+    // The transport methods dispatch to the machine (the authority); the
+    // adapter's resume/suspend re-arms/stops the loop, so play/pause never poke
+    // a private flag.
+    const play = () => {
+        if (isPlaying.value) return;
+        machine.dispatch({ type: "PLAY" });
+    };
+    const pause = () => {
+        if (!isPlaying.value) return;
+        machine.dispatch({ type: "PAUSE" });
+    };
+    const togglePlay = () => {
+        if (isPlaying.value) pause();
+        else play();
+    };
 
     const reset = () => {
         liveSpring.reset(0);
@@ -208,47 +256,57 @@ export function useSpringDemo() {
             t.spring.reset(0);
             t.spring.target = 1;
         }
-        samplerStart = 0;
-        ensureLoop();
+        progress.value = 0;
+        startTime = performance.now();
+        machine.dispatch({ type: "RESET" });
     };
 
-    const play = () => {
-        if (isPlaying.value) return;
-        isPlaying.value = true;
-        ensureLoop();
-    };
-    const pause = () => {
-        isPlaying.value = false;
-        playback.stop();
-    };
-    const togglePlay = () => (isPlaying.value ? pause() : play());
-
-    watch(
-        isPlaying,
-        (playing) => {
-            if (playing) ensureLoop();
+    // ── The raw-rAF ScenePlayback adapter (WV-W1-HIGH-3) ──
+    // Round-trips the sweep phase + play intent through the contract — the same
+    // dual contract the easing scene implements. The App registers this on
+    // SCENE_READY so suspend/restore route through the CONTRACT, not the dummy
+    // transport group (which has no position to snapshot).
+    const scenePlayback: ScenePlayback = createRafAdapter({
+        getProgress: () => progress.value,
+        setProgress: (t) => {
+            progress.value = t;
         },
-        { immediate: true },
-    );
+        getPlaying: () => machine.status.value === "playing",
+        // setPlaying is a no-op marker: the machine status IS the intent; the
+        // loop is driven by start/stopLoop. Kept for contract symmetry.
+        setPlaying: () => {},
+        isLoopRunning: () => playback.running,
+        stopLoop,
+        startLoop,
+    });
+
+    // Mount-time start: the scene is created fresh on each swap-in under the bare
+    // keyed <Suspense>. Arm the loop now; the machine's SCENE_READY restore (via
+    // the adapter) then re-seats progress + the playing/paused status.
+    startLoop();
 
     // ── Dispose seam ─────────────────────────────────────────────────
     // Stop the raw RAFPlayback on scope dispose (the genuine unmount seam,
-    // mirroring useRafLoop.ts onUnmounted(stop)). The immediate watcher above is
-    // the single start authority; the host has NO <KeepAlive>, so onDeactivated
-    // never fires and would leak this loop on a play-then-swap.
+    // mirroring useRafLoop.ts onUnmounted(stop)). The host has NO <KeepAlive>,
+    // so onDeactivated never fires and would leak this loop on a play-then-swap.
     onScopeDispose(() => playback.stop());
 
     // B-3: idle the shared spring rAF while the tab is hidden without touching
-    // the user's play/pause intent. The SpringProgress solver is analytic and
-    // `ensureLoop` reseeds the shared clock (`lastNow = 0`), so the first frame
-    // after resume steps by dt=0 — the comparison row resumes in phase, no jump.
-    useSceneVisibilityPause(() => playback.running, playback.stop, ensureLoop);
+    // the machine's play/pause intent (PRESERVED autoPaused contract — "only
+    // resume what IT paused"). `startLoop` reseeds the shared clock (`lastNow =
+    // 0`) + rebases from `progress`, so the first frame after resume steps by
+    // dt=0 — the comparison row resumes in phase, no jump.
+    useSceneVisibilityPause(() => playback.running, playback.stop, startLoop);
 
-    // ── Scene-contract group ─────────────────────────────────────────
+    // ── Scene-contract group (the bottom-bar transport host) ──────────
     // The bottom bar's transport (`AnimationControlsGroup`) requires an
     // `AnimationGroup`; this scene's motion is the light SpringProgress /
     // NumericAnimation trackers above, so the group is a minimal placeholder
-    // whose `paused` flag mirrors the preview loop — it drives no motion.
+    // whose `paused` flag is a ONE-WAY projection of the machine status — it
+    // drives no motion and is NOT a playback authority anymore.
+    // [DOCUMENTED EXPECTATION, WV-W1 lane escape hatch: the group is retained
+    // ONLY as the transport host; deleting it outright would strand the bottom-
+    // bar contract. The playback authority is the machine + the raw-rAF adapter.]
     const contractAnim = markRaw(
         new CSSKeyframesAnimation({
             duration: SAMPLER_DURATION,
@@ -267,9 +325,17 @@ export function useSpringDemo() {
     animationGroup.started = true;
     animationGroup.paused = false;
 
-    watch(isPlaying, (playing) => {
-        animationGroup.paused = !playing;
-    });
+    // ONE-WAY projection: the transport host's `paused` mirrors the machine
+    // status so the bottom-bar play button reflects the true playback state.
+    // This is a read-only projection (the machine is the authority) — NOT the
+    // former bidirectional hand-sync that made the group a shadow authority.
+    watch(
+        isPlaying,
+        (playing) => {
+            animationGroup.paused = !playing;
+        },
+        { immediate: true },
+    );
 
     return {
         // Params
@@ -291,6 +357,7 @@ export function useSpringDemo() {
 
         // Playback
         isPlaying,
+        progress,
 
         // Methods
         reseat,
@@ -302,5 +369,9 @@ export function useSpringDemo() {
 
         // Scene contract
         animationGroup,
+        // The raw-rAF ScenePlayback adapter — the App registers this on
+        // SCENE_READY so suspend/restore route through the contract (the
+        // spring↔cube cross-pair the group gate misses).
+        scenePlayback,
     };
 }

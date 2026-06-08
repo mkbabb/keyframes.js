@@ -145,6 +145,10 @@ jobs:
               run: npm run proof:asset-store-singleton
             - name: proof:scene-raf-leak (G.W9 — the scene rAF-leak lifecycle correction)
               run: npm run proof:scene-raf-leak
+            - name: proof:scene-contract-identity (H.W1 — the raw-rAF ScenePlayback round-trip + easing↔cube cross-pairs)
+              run: npm run proof:scene-contract-identity
+            - name: proof:group-snapshot-identity (H.W1 — the born-RED engine serialize()/hydrate() HANDOFF witness)
+              run: npm run proof:group-snapshot-identity
             - name: proof:resize-tracks (G.W3 — cqw tracks a non-window container resize)
               run: npm run proof:resize-tracks
             - name: proof:cohesion (F.W11 — clamp convergence · inverted-tier · preset reachability)
@@ -192,6 +196,25 @@ jobs:
               run: npm run proof:demo-console-clean
               env:
                   KF_REQUIRE_BROWSER: "1"
+            # H.W1 KEYSTONE — the live scene+playback FSM gate: the (scenes²×
+            # {playing,paused}) identity matrix + the raw-rAF contract round-trip +
+            # no-route-storm (DRIVEN, not idle) + scene-isolation + deep-link-wins +
+            # suspend-no-orphan-raf + no-timing-heuristic, all driven IN-PAGE via
+            # the hash reconcile (goto clears storage). Each clause BITES on its
+            # exact D12 defect; KF_REQUIRE_BROWSER turns a playwright-absent skip
+            # into a hard CI fail (the keystone cannot pass vacuously).
+            - name: proof:scene-machine-irrefragable (H.W1 — the live scene+playback FSM identity matrix + the six focused clauses)
+              run: npm run proof:scene-machine-irrefragable
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            - name: proof:dock-popover-opens (H.W1 S8/BLK-8 — the @mbabb dock popover opens on a trusted click)
+              run: npm run proof:dock-popover-opens
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            - name: proof:single-toggle (H.W1 S8/BLK-8 — the @mbabb trigger carries exactly one toggle)
+              run: npm run proof:single-toggle
+              env:
+                  KF_REQUIRE_BROWSER: "1"
             - name: proof:computed-real-dom (G.W16 S2 — the C5 50dvh fix on the genuine layout path)
               run: npm run proof:computed-real-dom
               env:
@@ -216,6 +239,10 @@ jobs:
             # scan) — they slot in beside the existing demo gates.
             - name: proof:decomposition (D.W1 — ceilings · ONE parse adapter · pure utils re-homed · no rAF/timeout blobs)
               run: npm run proof:decomposition
+            - name: proof:no-deprecated-guard (H.W1 S5 — the deprecated next() nav-guard is gone from router.ts)
+              run: npm run proof:no-deprecated-guard
+            - name: proof:single-writer (H.W1 S9.c — the FSM mutation boundary; no consumer writes activeScene/status)
+              run: npm run proof:single-writer
             - name: proof:idioms (D.W2 — owned design-idioms.css · leaf-tail swept · utils.css monolith uncaged)
               run: npm run proof:idioms
             - name: proof:brittleness (D.W3 — no global DOM reach · z-scale single-sourced · @supports guards)

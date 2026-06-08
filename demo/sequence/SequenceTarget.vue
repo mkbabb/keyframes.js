@@ -141,8 +141,12 @@ onMounted(() => {
         const el = rowEls[i];
         if (el) demo.childAnims[i]!.setTargets(el);
     }
-    // Paint the initial (t=0) frame so balls rest at their rail origin.
-    demo.sequence.seek(0);
+    // Paint the CURRENT playhead (not a hard t=0): on a fresh entry `progress` is
+    // 0 (balls rest at their rail origin); on a return entry the machine's
+    // SCENE_READY restore may have already re-seated `progress` through the
+    // ScenePlayback adapter, so seeking the live value avoids clobbering it
+    // regardless of mount/restore ordering (H.W1).
+    demo.sequence.progress = demo.progress.value;
 });
 
 // ── Master scrubber: drag/keyboard scrubs the Sequence progress ──────────────

@@ -14,11 +14,16 @@
         @update-selected-control="(v: string) => { storedControls.selectedControl = v; }"
     >
         <template #items>
-            <!-- @mbabb dropdown -->
-            <DropdownMenu>
-                <DropdownMenuTrigger as-child>
-                    <DockDropdownTrigger aria-label="@mbabb menu" class="text-mono-caption normal-case lg:text-mono-small">@mbabb</DockDropdownTrigger>
-                </DropdownMenuTrigger>
+            <!-- @mbabb dropdown — S8 (BLK-8): DockDropdownTrigger is itself a
+                 reka trigger (mirroring DockSelectTrigger), so it mounts DIRECTLY
+                 inside <DropdownMenu>. The former outer <DropdownMenuTrigger
+                 as-child> double-wrapped it — two triggers, two click handlers,
+                 the inner click swallowed (handlerCount:2, finalOpen:false).
+                 Keep-open is acquired IMPERATIVELY via useOptionalDockContext()
+                 on @update:open (NOT a v-model:open binding — keepOpen/release
+                 are a DI function pair, not a v-model surface). -->
+            <DropdownMenu @update:open="onMbabbMenuOpen">
+                <DockDropdownTrigger aria-label="@mbabb menu" class="text-mono-caption normal-case lg:text-mono-small">@mbabb</DockDropdownTrigger>
                 <DropdownMenuContent align="end" :side-offset="8" class="z-modal min-w-[var(--dock-panel-width)] text-body p-1.5">
                     <!-- Share -->
                     <DropdownMenuItem @select.prevent class="flex items-center gap-2.5 px-1.5 py-1 rounded-lg">
@@ -122,7 +127,7 @@
                 tabindex="-1"
                 :style="sceneSwapStyle"
             >
-                <Suspense :key="activeSceneKey">
+                <Suspense :key="activeSceneKey" @resolve="onSceneResolved">
                     <component
                         :is="activeSceneComponent"
                         ref="sceneRef"
@@ -145,17 +150,27 @@
 // App.vue mounts (header logo, CubeScene hover-card logo, CubeTarget cube face).
 import "@styles/brand.css";
 
-import { computed, markRaw, nextTick, provide, ref, shallowRef, useTemplateRef } from "vue";
+import { computed, markRaw, provide, ref, shallowRef, useTemplateRef } from "vue";
 import { CONTROLS_PANE_HOVER_KEY, TABS_EXTERNALLY_MANAGED_KEY } from "@components/custom/animation-controls/injectionKeys";
 
 import { EditorShell, EditorStartScreen, SharePopover } from "@components/custom/editor-shell";
-import { Avatar, AvatarImage, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@mkbabb/glass-ui";
+import { Avatar, AvatarImage, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@mkbabb/glass-ui";
 import { DarkModeToggle } from "@mkbabb/glass-ui/controls";
-import { DockDropdownTrigger } from "@mkbabb/glass-ui/dock";
+import { DockDropdownTrigger, useOptionalDockContext } from "@mkbabb/glass-ui/dock";
 import ChromeDock from "@components/custom/dock/ChromeDock.vue";
 
 import { AnimationGroup } from "@src/animation/group";
-import { getStoredAnimationGroupControlOptions } from "@components/custom/animation-controls/stores";
+import {
+    getStoredAnimationGroupControlOptions,
+    useSceneMachine,
+} from "@components/custom/animation-controls/stores";
+
+import CubeScene from "./scenes/CubeScene.vue";
+import { useSceneMachineRouter } from "./useSceneMachineRouter";
+import { useSceneMachineApp } from "./useSceneMachineApp";
+import { useSceneSwap } from "./useSceneSwap";
+import { useSceneTransition } from "./useSceneTransition";
+import { scenes, sceneMap, warmScene, HOME_SCENE_ID } from "./scenes";
 
 // Tabs in the controls pane are managed via the ChromeDock controls tab dropdown
 provide(TABS_EXTERNALLY_MANAGED_KEY, true);
@@ -165,16 +180,19 @@ provide(TABS_EXTERNALLY_MANAGED_KEY, true);
 const dockHoveredRef = ref(false);
 provide(CONTROLS_PANE_HOVER_KEY, dockHoveredRef);
 
-import CubeScene from "./scenes/CubeScene.vue";
-import { useSceneRouter } from "./useSceneRouter";
-import { useSceneUrl } from "./useSceneUrl";
-import { usePlaybackSnapshot } from "./usePlaybackSnapshot";
-import { useSceneSwap } from "./useSceneSwap";
-import { useSceneTransition } from "./useSceneTransition";
-import { useSceneGroupSync } from "./useSceneGroupSync";
-import { sceneMap, warmScene, HOME_SCENE_ID } from "./scenes";
+// ── The ONE authority: the scene+playback state machine ──────────────────────
+// The machine OWNS the active-scene fact + the per-scene playback snapshot.
+// Route reconcile (ONE reader + ONE writer + echo guard) + the first-load seed
+// + the ?anim= projection + boot GC all live in useSceneMachineRouter (it owns
+// the router binding). App reads the machine's readonly refs only.
+const machine = useSceneMachine();
+useSceneMachineRouter();
 
-const { currentSceneId, currentScene, isHome, ready, scenes, switchScene: rawSwitchScene } = useSceneRouter();
+const currentSceneId = computed(() => machine.activeScene.value);
+const isHome = computed(() => currentSceneId.value === HOME_SCENE_ID);
+const currentScene = computed(() => sceneMap.get(currentSceneId.value) ?? sceneMap.get(HOME_SCENE_ID)!);
+const currentSuperKey = computed(() => currentScene.value.superKey);
+const currentLabel = computed(() => currentScene.value.label ?? "Home");
 
 const sceneRef = shallowRef<any>(null);
 
@@ -182,143 +200,75 @@ const sceneRef = shallowRef<any>(null);
 // target routed to on `transition.finished` (the a11y MANDATORY).
 const sceneHostEl = useTemplateRef<HTMLElement>("sceneHostEl");
 
-// Start with an empty AnimationGroup. Use the scene's actual superKey from the
-// start so ACG mounts with the correct key — avoids an unnecessary remount cycle
-// (double-mount) on initial page load that causes visual clipping.
+// Start with an empty AnimationGroup. The active scene's real group is bound
+// once the scene exposes it (after mount). markRaw groups are NEVER held in the
+// machine context (MED-6) — only their serializable snapshots are.
 const currentAnimationGroup = shallowRef<AnimationGroup<any>>(markRaw(new AnimationGroup()));
-const currentSuperKey = shallowRef<string>(currentScene.value.superKey);
 const autoPlayNext = ref(false);
 
-// Bidirectional ?anim= query param sync
-useSceneUrl(currentSuperKey);
+const storedControls = computed(() => getStoredAnimationGroupControlOptions(currentSuperKey.value));
 
-const currentLabel = computed(() => sceneMap.get(currentSceneId.value)?.label ?? "Home");
-
-// Unified scene component/key/props for the keyed <Suspense> (single child).
+// ── Home ↔ cube SPLIT (the alias is DEAD — two distinct machine states) ──────
+// home and cube are DISTINCT states: home = the cube backdrop with NO group +
+// the start screen; cube = the same component WITH its group registered. The
+// component/key are shared (CubeScene), but `home` registers no adapter and
+// shows no controls — the impossible-routed-state source is gone.
 const activeSceneComponent = computed(() => {
-    if (isHome.value || currentSceneId.value === 'cube') return CubeScene;
+    if (isHome.value || currentSceneId.value === "cube") return CubeScene;
     return currentScene.value.component;
 });
 const activeSceneKey = computed(() => {
-    if (isHome.value || currentSceneId.value === 'cube') return 'cube';
+    if (isHome.value || currentSceneId.value === "cube") return "cube";
     return currentSceneId.value;
 });
 const activeSceneProps = computed(() => {
-    if (isHome.value || currentSceneId.value === 'cube') {
+    if (isHome.value || currentSceneId.value === "cube") {
         return { hideLoader: isHome.value };
     }
     return {};
 });
 
-// Scene-swap cross-dissolve (SpringProgress) + per-scene playback codec — the
-// engine choreography + rationale live in the colocated composables.
+// Scene-swap cross-dissolve (SpringProgress) — PRESERVED driver (S7). The
+// per-scene playback codec is now the machine + its ScenePlayback adapters.
 const { sceneSwapStyle } = useSceneSwap(activeSceneKey);
-const { saveCurrentPlaybackState, restoreGroupPlaybackState } = usePlaybackSnapshot(currentSuperKey, currentAnimationGroup);
-
-const storedControls = computed(() => getStoredAnimationGroupControlOptions(currentSuperKey.value));
 
 function togglePpMode() {
     storedControls.value.ppMode = !(storedControls.value.ppMode ?? false);
 }
 
-function onPlayStateChange(playing: boolean) {
-    // Home "play" is a user gesture — it navigates to cube and auto-plays.
-    // Gate on the empty home group (no animations) so re-activating a cached
-    // scene whose group was already started can't spuriously warp us away.
-    const group = currentAnimationGroup.value;
-    const isHomeEmptyGroup = Object.keys(group.animations).length === 0;
-    if (isHome.value && playing && isHomeEmptyGroup) {
-        autoPlayNext.value = true;
-        // The home Play gesture navigates home→cube — route it through the same
-        // View-Transition entry as the dock nav (runSceneSwitch is referenced at
-        // event time, after setup, so the later `const` binding is resolved).
-        runSceneSwitch("cube");
-        return;
-    }
-    if (sceneRef.value && 'isPlaying' in sceneRef.value) {
-        sceneRef.value.isPlaying = playing;
-    }
-}
+// ── The scene-machine ↔ App-shell reconcile (S2/S4/S5) ───────────────────────
+// Adapter registration, the targets-attached SCENE_READY emit, the bottom-bar
+// play/pause routing, the scene switch, and the tab-visibility fold all live in
+// the colocated composable (proof:app-shell-thinness). `runSceneSwitch` is read
+// lazily (defined just below — the VT wrap), resolving the cyclic reference.
+const {
+    onSceneResolved,
+    onPlayStateChange,
+    onStartStateChange,
+    switchScene,
+} = useSceneMachineApp({
+    sceneRef,
+    currentSceneId,
+    currentSuperKey,
+    isHome,
+    currentAnimationGroup,
+    autoPlayNext,
+    getRunSceneSwitch: () => runSceneSwitch,
+});
 
-function onStartStateChange(started: boolean) {
-    // Writing via script handler (not inline template) so the assignment
-    // is scheduled against `sceneRef.value` at call time, not captured
-    // from a stale template-closure reference. Without this, the sibling
-    // CubeScene's `isStarted` ref would remain at its `ref(false)`
-    // default, which defeats the drag-during-playback gate in
-    // `useTransformState` and produces compositing jitter.
-    if (sceneRef.value && 'isStarted' in sceneRef.value) {
-        sceneRef.value.isStarted = started;
-    }
-}
-
-// Sync controls-panel-open state across scene switches
-function switchScene(id: string) {
-    const prevControls = getStoredAnimationGroupControlOptions(currentSuperKey.value);
-    const wasOpen = prevControls.isControlsPanelOpen;
-    const wasHome = isHome.value;
-
-    // Save playback state before switching
-    saveCurrentPlaybackState();
-
-    rawSwitchScene(id);
-
-    // Home uses the cube component/key unconditionally (activeSceneKey is
-    // always 'cube' when isHome), so regardless of the previous scene the
-    // keyed <Suspense> re-mounts CubeScene (the host has no KeepAlive — every
-    // swap is a full unmount/remount). Hide the cube's controls so only the
-    // start screen is visible.
-    if (id === HOME_SCENE_ID) {
-        const cubeControls = getStoredAnimationGroupControlOptions("Cube");
-        cubeControls.isControlsPanelOpen = false;
-        return;
-    }
-
-    // Home→Cube: CubeScene already mounted, just select first animation
-    if (id === "cube" && wasHome) {
-        const controls = getStoredAnimationGroupControlOptions("Cube");
-        if (!controls.selectedAnimation) {
-            const group = sceneRef.value?.animationGroup;
-            if (group) {
-                const names = Object.keys(group.animations);
-                if (names.length > 0) {
-                    controls.selectedAnimation = names[0]!;
-                }
-            }
-        }
-        controls.isControlsPanelOpen = window.innerWidth >= 1024;
-        // Reset autoPlayNext after the watcher in AnimationControlsGroup
-        // has had a chance to consume it during this reactive flush.
-        nextTick(() => { autoPlayNext.value = false; });
-        return;
-    }
-
-    const newScene = currentScene.value;
-    const newControls = getStoredAnimationGroupControlOptions(newScene.superKey);
-    newControls.isControlsPanelOpen = wasOpen;
-
-    // If coming from home, auto-open the controls panel (desktop only)
-    if (wasHome && window.innerWidth >= 1024) {
-        newControls.isControlsPanelOpen = true;
-    }
-}
-
-// Native View Transitions wrap the (synchronous) scene-id mutation above; the
-// no-VT path falls through to the SpringProgress cross-dissolve unchanged, and
-// focus routes to the scene host on `finished` (a11y). Every scene-nav entry
-// (the dock @switch-scene, the SharePopover restore) goes through this.
+// Native View Transitions wrap the (synchronous) scene-id mutation; the no-VT
+// path falls through to the SpringProgress cross-dissolve unchanged, and focus
+// routes to the scene host on `finished` (a11y). Every scene-nav entry (the dock
+// @switch-scene, the SharePopover restore) goes through this.
 const { runSceneSwitch } = useSceneTransition(switchScene, sceneHostEl);
 
-// The scene-group ↔ controls/playback-store reconcile across ACG's remount
-// cycle (the double-fire codec) — extracted to keep the scene shell legible.
-useSceneGroupSync({
-    sceneRef,
-    currentSuperKey,
-    currentAnimationGroup,
-    isHome,
-    autoPlayNext,
-    restoreGroupPlaybackState,
-});
+// ── S8 (BLK-8): keep the dock expanded while the @mbabb menu is open ──────────
+// Imperative DI function pair on DockContext (HD-2) — NOT a v-model surface.
+const dockContext = useOptionalDockContext();
+function onMbabbMenuOpen(open: boolean) {
+    if (open) dockContext?.keepOpen();
+    else dockContext?.release();
+}
 </script>
 
 <style scoped>

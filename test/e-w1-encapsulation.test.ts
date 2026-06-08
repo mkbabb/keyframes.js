@@ -1,27 +1,23 @@
-// E.W1 render-smoke + snapshot round-trip.
+// E.W1 render-smoke + snapshot round-trip — RE-HOMED for H.W1.
 //
-// The falsifiable close of the encapsulation wave (E.W1 §S5 / gate clause 4):
-//   1. the two extracted app-entry composables (`useSceneSwap`,
-//      `usePlaybackSnapshot`) mount inside a real Vue setup with no throw, and
-//   2. the playback codec ROUND-TRIPS — `saveCurrentPlaybackState` →
-//      `restoreGroupPlaybackState` re-seats a fixture `AnimationGroup` at the
-//      saved `t`/`reversed`/`iteration`.
-// Re-inlining the codec into App.vue or breaking the composables reds this.
-// (The thinned OrbitalDrag's disposition — all four appliers on the component,
-// none in the pointer composable — is the grep clause of proof:decomposition;
-// vitest carries no SFC transform here, so the .vue surface is gated there.)
+// The playback codec folded out of `usePlaybackSnapshot` (DELETED) into the
+// H.W1 scene-machine seam: the AnimationGroup `ScenePlayback` adapter
+// (`createGroupAdapter`) + the imperative `restoreGroupPlaybackState`, now in
+// `stores/scenePlaybackAdapters.ts`. This wave's falsifiable close becomes:
+//   1. the preserved `useSceneSwap` driver mounts in a real Vue setup, and
+//   2. the group adapter's `snapshot()` → `restore()` ROUND-TRIPS a fixture
+//      `AnimationGroup` at the saved `t`/`reversed`/`iteration`.
+// Re-inlining the codec into App.vue or breaking the adapter reds this.
 
-import { describe, it, expect, beforeEach } from "vitest";
-import { computed, createApp, defineComponent, h, ref, shallowRef } from "vue";
+import { describe, it, expect } from "vitest";
+import { computed, createApp, defineComponent, h } from "vue";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
 import { AnimationGroup } from "../src/animation/group";
 import { useSceneSwap } from "../demo/app/useSceneSwap";
-import { usePlaybackSnapshot } from "../demo/app/usePlaybackSnapshot";
 import {
-    saveScenePlaybackState,
-    getScenePlaybackState,
-    clearScenePlaybackState,
-} from "../demo/@/components/custom/animation-controls/stores/scenePlayback";
+    createGroupAdapter,
+    restoreGroupPlaybackState,
+} from "../demo/@/components/custom/animation-controls/stores/scenePlaybackAdapters";
 
 function makeGroup(): AnimationGroup<any> {
     const a = new CSSKeyframesAnimation({ duration: 1000 }).fromString(`
@@ -54,7 +50,7 @@ function mountWith(setup: () => unknown) {
     el.remove();
 }
 
-describe("E.W1 — render smoke (composables + thinned OrbitalDrag mount)", () => {
+describe("E.W1 — render smoke (the preserved useSceneSwap driver)", () => {
     it("useSceneSwap mounts and exposes sceneSwapStyle without throwing", () => {
         expect(() =>
             mountWith(() => {
@@ -66,28 +62,10 @@ describe("E.W1 — render smoke (composables + thinned OrbitalDrag mount)", () =
             }),
         ).not.toThrow();
     });
-
-    it("usePlaybackSnapshot mounts and exposes the codec without throwing", () => {
-        expect(() =>
-            mountWith(() => {
-                const superKey = shallowRef("Cube");
-                const group = shallowRef(makeGroup());
-                const codec = usePlaybackSnapshot(superKey, group);
-                expect(typeof codec.saveCurrentPlaybackState).toBe("function");
-                expect(typeof codec.restoreGroupPlaybackState).toBe("function");
-            }),
-        ).not.toThrow();
-    });
 });
 
-describe("E.W1 — usePlaybackSnapshot round-trips a fixture group", () => {
-    const KEY = "Cube";
-
-    beforeEach(() => clearScenePlaybackState(KEY));
-
-    it("save → restore re-seats t / reversed / iteration", () => {
-        const superKey = shallowRef(KEY);
-
+describe("H.W1 — the group ScenePlayback adapter round-trips a fixture group", () => {
+    it("snapshot() captures t / reversed / iteration; restore() re-seats a fresh group", () => {
         // Source group: started, with a known per-animation playback state.
         const source = makeGroup();
         source.started = true;
@@ -100,20 +78,16 @@ describe("E.W1 — usePlaybackSnapshot round-trips a fixture group", () => {
         source.animations["slide"]!.animation.reversed = false;
         source.animations["slide"]!.animation.iteration = 0;
 
-        const sourceRef = shallowRef(source);
-        const { saveCurrentPlaybackState } = usePlaybackSnapshot(superKey, sourceRef);
-        saveCurrentPlaybackState();
+        const adapter = createGroupAdapter(() => source);
+        const snap = adapter.snapshot();
 
-        const saved = getScenePlaybackState(KEY);
-        expect(saved).toBeDefined();
-        expect(saved!.animations["fade"]).toEqual({ t: fadeT, reversed: true, iteration: 2 });
-        expect(saved!.animations["slide"]).toEqual({ t: slideT, reversed: false, iteration: 0 });
+        expect(snap.started).toBe(true);
+        expect(snap.animations["fade"]).toEqual({ t: fadeT, reversed: true, iteration: 2 });
+        expect(snap.animations["slide"]).toEqual({ t: slideT, reversed: false, iteration: 0 });
 
         // Restore onto a FRESH group (the scene-remount case).
         const fresh = makeGroup();
-        const freshRef = shallowRef(fresh);
-        const { restoreGroupPlaybackState } = usePlaybackSnapshot(superKey, freshRef);
-        restoreGroupPlaybackState(fresh, saved!);
+        restoreGroupPlaybackState(fresh, snap);
 
         const fadeAnim = fresh.animations["fade"]!.animation;
         const slideAnim = fresh.animations["slide"]!.animation;
@@ -126,23 +100,15 @@ describe("E.W1 — usePlaybackSnapshot round-trips a fixture group", () => {
         expect(fresh.started).toBe(true);
     });
 
-    it("save no-ops on a __-prefixed (transient) super-key", () => {
-        const superKey = shallowRef("__transient");
-        const group = makeGroup();
-        group.started = true;
-        saveCurrentPlaybackStateHelper(superKey, group);
-        expect(getScenePlaybackState("__transient")).toBeUndefined();
+    it("snapshot() on a never-started group still saves (ST-5: no paused-at-t=0 drop)", () => {
+        // A scene paused before its first tick must snapshot, not save nothing.
+        const fresh = makeGroup();
+        expect(fresh.started).toBe(false);
+        const snap = createGroupAdapter(() => fresh).snapshot();
+        expect(snap.started).toBe(false);
+        expect(snap.playing).toBe(false);
+        // The per-animation entries are present (t=0), so a cold restore is
+        // faithful instead of starting blank.
+        expect(Object.keys(snap.animations).sort()).toEqual(["fade", "slide"]);
     });
 });
-
-// Local helper that exercises the save guard via the real composable.
-function saveCurrentPlaybackStateHelper(
-    superKey: ReturnType<typeof ref<string>>,
-    group: AnimationGroup<any>,
-) {
-    const { saveCurrentPlaybackState } = usePlaybackSnapshot(
-        superKey as any,
-        shallowRef(group),
-    );
-    saveCurrentPlaybackState();
-}

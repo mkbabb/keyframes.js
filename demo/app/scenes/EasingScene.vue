@@ -26,8 +26,9 @@ const storedControls = getStoredAnimationGroupControlOptions(SUPER_KEY);
 storedControls.selectedControl = "easing";
 storedControls.isControlsPanelOpen = true;
 
-// Expose demo.isPlaying directly so the bottom bar's play button writes to it.
-// The composable keeps the dummy AnimationGroup's paused flag in sync.
+// `demo.isPlaying` is now a read-only projection of the machine status (the
+// shadow `isPlaying` ref is DELETED, H.W1). The bottom-bar play button routes
+// through the App's onPlayStateChange → the machine; the ribbon reads this.
 const isPlaying = demo.isPlaying;
 const isStarted = ref(true);
 
@@ -93,6 +94,15 @@ defineExpose({
     superKey: SUPER_KEY,
     isPlaying,
     isStarted,
+    // The easing preview auto-plays on first visit (the former isPlaying =
+    // ref(true)). The App reads this on SCENE_READY to dispatch PLAY for a fresh
+    // scene, so the machine reaches `playing` and the raw-rAF loop (gated on the
+    // machine) actually sweeps.
+    autoPlays: true,
+    // The raw-rAF ScenePlayback adapter — the App registers it with the machine
+    // on SCENE_READY so easing's progress/isPlaying round-trip through the
+    // CONTRACT (the literal D12 repro; proof:scene-contract-identity).
+    scenePlayback: demo.scenePlayback,
     tabsTrigger,
     tabsContent,
     ribbonContent,

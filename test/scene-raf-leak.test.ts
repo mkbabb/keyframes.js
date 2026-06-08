@@ -18,6 +18,20 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { effectScope } from "vue";
 import { useEasingDemo } from "../demo/easing/useEasingDemo";
 import { useSpringDemo } from "../demo/spring/useSpringDemo";
+import { useSceneMachine } from "../demo/@/components/custom/animation-controls/stores/useSceneMachine";
+
+/**
+ * Drive the (H.W1) scene machine into `playing` for `scene` so the easing
+ * raw-rAF loop — which now GATES on `machine.status === 'playing'` (the private
+ * `isPlaying` shadow ref is DELETED) — actually arms. NAVIGATE → SCENE_READY
+ * (the targets-attached restore) → PLAY mirrors the real App lifecycle.
+ */
+function seedPlaying(scene: string) {
+    const machine = useSceneMachine();
+    machine.dispatch({ type: "NAVIGATE", to: scene });
+    machine.dispatch({ type: "SCENE_READY" });
+    machine.dispatch({ type: "PLAY" });
+}
 
 // A controllable rAF queue: each `requestAnimationFrame` enqueues a callback;
 // `flush()` drains the CURRENT queue (one frame), letting a loop reschedule into
@@ -70,6 +84,9 @@ describe("proof:scene-raf-leak — the preview loop stops on scope dispose", () 
         const scope = effectScope();
         const demo = scope.run(() => useEasingDemo())!;
 
+        // The easing loop now gates on the machine (the private isPlaying shadow
+        // is DELETED, H.W1) — drive it into `playing` so the loop arms.
+        seedPlaying("easing");
         demo.play();
         // The loop is armed: a frame is pending.
         raf.flush();

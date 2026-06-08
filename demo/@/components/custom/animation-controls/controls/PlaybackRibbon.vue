@@ -75,12 +75,11 @@ import { IconTooltip } from "@mkbabb/glass-ui/icon-tooltip";
 import { ArrowLeftRight, Pause, Play } from "@lucide/vue";
 import AnimationVisualizer from "./AnimationVisualizer.vue";
 
-const { animation, isGrouped } = defineProps<{
+const { animation } = defineProps<{
     animation: Animation<any>;
     currentT: number;
     isAnimPlaying: boolean;
     isAnimStarted: boolean;
-    isGrouped?: boolean;
     userReversed: boolean;
 }>();
 
@@ -88,8 +87,7 @@ const emit = defineEmits<{
     (e: "scrubStart"): void;
     (e: "scrubEnd"): void;
     // Wake-only: fires on EVERY scrub (pointer, keyboard, or visualizer) so a
-    // settled sync loop re-arms even on a keyboard-arrow nudge of a non-grouped
-    // animation (which mutates `animation.t` directly without a `sliderUpdate`).
+    // settled sync loop re-arms even on a keyboard-arrow nudge.
     (e: "scrubbed"): void;
     (e: "sliderUpdate", val: { t: number; animation: Animation<any> }): void;
     (e: "togglePlay"): void;
@@ -141,22 +139,16 @@ const scrubTo = (effectiveT: number) => {
         ? animation.options.duration - effectiveT
         : effectiveT;
 
-    if (!isGrouped) {
-        const paused = animation.paused;
-        animation.paused = false;
-        animation.t = rawT;
-        animation.interpFrames(effectiveT, true);
-        animation.paused = paused;
-    } else {
-        emit("sliderUpdate", {
-            t: rawT,
-            animation,
-        });
-    }
+    // Playback is always group-owned now (H.W1): the scrub routes a
+    // `sliderUpdate` through the group, which `setChildTime`s just this
+    // animation. The old SOLO branch (poke `animation.t`/`interpFrames`
+    // directly) is DELETED with the SOLO authority.
+    emit("sliderUpdate", {
+        t: rawT,
+        animation,
+    });
 
-    // Re-arm any idled sync loop regardless of branch (covers the keyboard-arrow
-    // scrub of a non-grouped animation, which the branch above handles inline
-    // without a `sliderUpdate`).
+    // Re-arm any idled sync loop.
     emit("scrubbed");
 };
 </script>

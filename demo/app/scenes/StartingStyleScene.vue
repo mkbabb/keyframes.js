@@ -5,50 +5,44 @@
 </template>
 
 <script setup lang="ts">
-import { computed, markRaw, ref } from "vue";
+import { computed, provide, ref } from "vue";
 
-import { AnimationGroup } from "@src/animation/group";
-import { CSSKeyframesAnimation } from "@src/animation/engine";
-import { springTimingFunction } from "@src/animation/springTimingFunction";
 import { getStoredAnimationGroupControlOptions } from "@components/custom/animation-controls/stores";
 
 import StartingStyleTarget from "../../spring/StartingStyleTarget.vue";
+import { useStartingStyleDemo } from "../../spring/useStartingStyleDemo";
+import { STARTING_STYLE_DEMO_KEY } from "../../spring/startingStyleKeys";
 
 const SUPER_KEY = "StartingStyle";
 
-// This scene's motion is the CSS @starting-style / allow-discrete transition in
-// StartingStyleTarget (eased by a spring linear()), not an engine-driven rAF
-// loop. The bottom-bar transport still requires an AnimationGroup, so this is a
-// minimal contract group whose single preview animation dogfoods the same
-// springTimingFunction the artifact emits — it drives no scene motion.
-const contractAnim = markRaw(
-    new CSSKeyframesAnimation({
-        duration: 600,
-        iterationCount: "infinite",
-        direction: "alternate",
-        timingFunction: springTimingFunction({
-            response: 0.5,
-            dampingFraction: 0.45,
-        }),
-    }).fromVars([{ opacity: 0 }, { opacity: 1 }]),
-);
-contractAnim.name = "Discrete Preview";
-contractAnim.superKey = SUPER_KEY;
-
-const animationGroup = markRaw(new AnimationGroup(contractAnim));
-animationGroup.started = true;
-animationGroup.paused = true;
+// This scene's motion is the declarative CSS @starting-style / allow-discrete
+// transition in StartingStyleTarget (eased by a spring linear()), not an
+// engine-driven rAF loop. The demo composable owns the `visible` toggle (so the
+// ScenePlayback contract can round-trip it) + the dummy bottom-bar transport
+// group whose `paused` projects the machine status.
+const demo = useStartingStyleDemo();
+provide(STARTING_STYLE_DEMO_KEY, demo);
 
 const storedControls = getStoredAnimationGroupControlOptions(SUPER_KEY);
 storedControls.isControlsPanelOpen = false;
 
-const isPlaying = ref(false);
+// `demo.isPlaying` is a read-only projection of the machine status (no private
+// shadow). The bottom-bar play button routes through the App's onPlayStateChange
+// → the machine; this is the readonly read.
+const isPlaying = demo.isPlaying;
 const isStarted = ref(true);
 
 defineExpose({
-    animationGroup: computed(() => animationGroup),
+    animationGroup: computed(() => demo.animationGroup),
     superKey: SUPER_KEY,
     isPlaying,
     isStarted,
+    // NO autoPlays: this scene's motion is a user-driven discrete CSS transition,
+    // not an auto-running preview sweep. The SCENE_READY restore re-seats the
+    // `visible` state from the snapshot; the status rests on the snapshot's
+    // `playing` (paused on a fresh entry).
+    // The raw-rAF ScenePlayback adapter — the App registers it with the machine
+    // on SCENE_READY so the `visible` state round-trips through the CONTRACT.
+    scenePlayback: demo.scenePlayback,
 });
 </script>

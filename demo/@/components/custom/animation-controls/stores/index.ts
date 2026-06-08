@@ -29,13 +29,34 @@ export {
     restoreStateFromParam,
 } from "./hashSharing";
 
+// The scene+playback state machine (H.W1 keystone). Replaces the bare
+// scenePlayback.ts Map: the per-scene snapshot now lives in the reactive
+// machine context, keyed by scene. The type exports re-home here in the same
+// motion (MED-2). The mutation boundary (MED-4): only `dispatch()` + readonly
+// refs are exported — no writable activeScene/.status surface.
 export {
+    type SceneId,
+    type PlaybackStatus,
     type AnimationPlaybackSnapshot,
+    type PlaybackSnapshot,
     type ScenePlaybackState,
-    saveScenePlaybackState,
-    getScenePlaybackState,
-    clearScenePlaybackState,
-} from "./scenePlayback";
+    type SceneContext,
+    type SceneEvent,
+    type MachineState,
+    type ScenePlayback,
+    transition,
+    HOME_SCENE_ID,
+} from "./sceneMachine";
+
+// The reactive store (the effect layer) — co-located with the pure core.
+export { useSceneMachine, SCENE_MACHINE_PERSIST_KEY } from "./useSceneMachine";
+
+export {
+    type RafSceneHandle,
+    createGroupAdapter,
+    createRafAdapter,
+    restoreGroupPlaybackState,
+} from "./scenePlaybackAdapters";
 
 export { getAnimationSuperKey, STORE_KEYS } from "./storeUtils";
 
@@ -43,13 +64,18 @@ import { _resetAnimationGroupsOptionsStore } from "./animationOptionsStore";
 import { _resetAnimationGroupsControlOptionsStore } from "./controlOptionsStore";
 import { _resetAssetManagerStore } from "@components/custom/asset-manager/useAssetManager";
 import { STORE_KEYS } from "./storeUtils";
+import { SCENE_MACHINE_PERSIST_KEY } from "./useSceneMachine";
 
 export const resetAllStores = () => {
     _resetAnimationGroupsOptionsStore();
     _resetAnimationGroupsControlOptionsStore();
     _resetAssetManagerStore();
 
-    for (const key of STORE_KEYS) {
+    // The scene+playback machine persists the active-scene fact + per-scene
+    // snapshots (H.W1 — replacing the deleted raw `keyframes-js-active-scene`
+    // localStorage write). Wiping it here means a reset reload boots the machine
+    // to its HOME_SCENE_ID default — the "clear → home" intent, single-pathed.
+    for (const key of [...STORE_KEYS, SCENE_MACHINE_PERSIST_KEY]) {
         localStorage.removeItem(key);
     }
 };

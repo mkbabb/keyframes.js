@@ -1,4 +1,4 @@
-import { computed, markRaw, onScopeDispose, ref } from "vue";
+import { computed, markRaw, onScopeDispose, ref, watch } from "vue";
 
 import { AnimationGroup } from "@src/animation/group";
 import { CSSKeyframesAnimation } from "@src/animation/engine";
@@ -8,6 +8,11 @@ import { springTimingFunction } from "@src/animation/springTimingFunction";
 import { RAFPlayback } from "@src/animation/playback";
 
 import { useSceneVisibilityPause } from "../app/useSceneVisibilityPause";
+import {
+    useSceneMachine,
+    createRafAdapter,
+    type ScenePlayback,
+} from "@components/custom/animation-controls/stores";
 
 /**
  * useSequenceDemo — the dogfood of the engine's TEMPORAL orchestrator
@@ -35,6 +40,16 @@ import { useSceneVisibilityPause } from "../app/useSceneVisibilityPause";
  * reactivity mirror (the master progress read-out) rides the engine's OWN
  * `RAFPlayback.loop` driver — the same light driver `proof:dogfood` blesses —
  * not a parallel hand-rolled raw scheduler.
+ *
+ * H.W1 (raw-rAF ScenePlayback contract): the Sequence is ALREADY-SOTA as a
+ * transport — only its MACHINE-INTEGRATION SEAM changes here. The former private
+ * `isPlaying = ref(false)` (a shadow playback authority nothing could suspend —
+ * the D12 smell) is DELETED: the play-intent is now a read-only projection of
+ * `machine.status === 'playing'`, play/pause/reset DISPATCH to the machine (the
+ * single authority), and the mirror loop + the Sequence's own play loop GATE on
+ * the machine. The scene exposes a raw-rAF `ScenePlayback` adapter round-tripping
+ * `progress`/`isPlaying` so suspend/restore route through the CONTRACT (no
+ * AnimationGroup position — the dummy transport host has none).
  */
 
 /** How many staggered storyboard rows the sequence orchestrates. */
@@ -109,6 +124,11 @@ export function useSequenceDemo() {
     // still expects an AnimationGroup handle (the StartingStyleScene posture).
     // This single preview animation dogfoods the same spring twin the rows ride;
     // it drives no scene motion.
+    // [DOCUMENTED EXPECTATION, WV-W1 lane escape hatch: the group is retained
+    // ONLY as the transport host; deleting it strands the bottom-bar contract
+    // (ControlsPaneWrapper/AnimationMenuBar/readout). The PLAYBACK authority is
+    // the machine + the raw-rAF ScenePlayback adapter; the group's `paused` is a
+    // ONE-WAY projection of the machine status (below).]
     const contractAnim = markRaw(
         new CSSKeyframesAnimation({
             duration: sequence.duration || ROW_DURATION,
@@ -120,12 +140,32 @@ export function useSequenceDemo() {
         }).fromVars([{ opacity: 0 }, { opacity: 1 }]),
     );
     contractAnim.name = "Sequence Preview";
+    contractAnim.superKey = "Sequence";
     const animationGroup = markRaw(new AnimationGroup(contractAnim));
     animationGroup.started = true;
     animationGroup.paused = true;
 
-    // ── Reactive transport state (mirrors the Sequence) ──────────────────────
-    const isPlaying = ref(false);
+    // ── Playback intent: DERIVED from the machine, NOT a private shadow ───────
+    // The former private `isPlaying = ref(false)` was the SHADOW playback
+    // authority (the D12 smell — a second source of truth nothing could
+    // suspend). DELETED: the play-intent is now a read-only projection of
+    // `machine.status === 'playing'`. play/pause/reset dispatch to the machine;
+    // the transport UI reads THIS computed.
+    const machine = useSceneMachine();
+    const isPlaying = computed(() => machine.status.value === "playing");
+
+    // ONE-WAY projection: the transport host's `paused` mirrors the machine
+    // status so the bottom-bar play button reflects the true playback state.
+    // Read-only (the machine is the authority) — NOT a bidirectional hand-sync
+    // that would make the group a shadow authority.
+    watch(
+        isPlaying,
+        (playing) => {
+            animationGroup.paused = !playing;
+        },
+        { immediate: true },
+    );
+
     const isReversed = ref(false);
     const timeScale = ref(1);
     const progress = ref(0);
@@ -136,68 +176,99 @@ export function useSequenceDemo() {
     };
 
     // The reactivity mirror — the master progress read-out — rides the engine's
-    // OWN `RAFPlayback.loop` driver (NOT a parallel raw rAF). It is gated by the
-    // sequence's playing flag and stops itself when motion ends; the Sequence's
-    // own play loop drives the actual ball motion in parallel.
+    // OWN `RAFPlayback.loop` driver (NOT a parallel raw rAF). It GATES on the
+    // machine (the single authority): when the machine leaves `playing` the loop
+    // self-terminates. The Sequence's own play loop drives the actual ball motion
+    // in parallel; this loop only mirrors the playhead into the reactive readout.
     const mirror = markRaw(new RAFPlayback());
     const startMirror = () => {
+        if (mirror.running) return;
         mirror.loop(() => {
             syncFromSequence();
-            return isPlaying.value;
+            return machine.status.value === "playing";
         });
     };
     const stopMirror = () => mirror.stop();
 
-    // ── Transport ────────────────────────────────────────────────────────────
+    // ── The engine-loop drivers (driven by the adapter / the machine) ─────────
+    // The adapter's resume/suspend route the engine loop through ONE seam
+    // (startLoop/stopLoop). They are engine-transport ACTIONS, NOT intent — the
+    // machine owns the intent. The Sequence transport internals (play vs resume,
+    // reverse, timeScale, seek) are PRESERVED byte-for-byte: only the play/pause
+    // intent + the mirror gating route through the machine now (the lane mandate:
+    // touch only the machine-integration seam, not the SOTA transport).
+
+    /** True iff the playhead is mid-run (between the rail ends) — the original
+     *  resume-vs-fresh-play discriminator the transport used. */
+    const isMidPlay = () => sequence.time > 0 && sequence.time < sequence.duration;
+
+    /** Drive the Sequence engine loop + mirror to RUN. A mid-play playhead
+     *  RESUMEs from where it stands (no forward jump — the managed-pause
+     *  contract); a settled playhead starts a FRESH play from the origin. This is
+     *  the SAME play-vs-resume split the original transport made; the only change
+     *  is the natural-end `finally` now reflects the stop onto the machine. */
+    const startLoop = () => {
+        startMirror();
+        if (isMidPlay()) {
+            // Continue from the current playhead (the engine no-jump re-anchor).
+            sequence.resume();
+        } else {
+            // Settled (at the origin or the end) → a fresh play; resolves at the
+            // end and parks the machine back to `paused`.
+            void sequence.play().finally(() => {
+                stopMirror();
+                syncFromSequence();
+                // The natural end is a genuine stop — reflect it on the machine
+                // (the single authority) so `isPlaying` reads false.
+                if (machine.status.value === "playing") {
+                    machine.dispatch({ type: "PAUSE" });
+                }
+            });
+        }
+    };
+
+    /** Stop the Sequence engine loop + mirror WITHOUT rewinding (genuine suspend
+     *  — the snapshot already captured the playhead). */
+    const stopLoop = () => {
+        sequence.pause();
+        stopMirror();
+        syncFromSequence();
+    };
+
+    // ── Transport (intent → the machine; the adapter drives the loop) ─────────
     const play = () => {
         if (isPlaying.value) return;
-        isPlaying.value = true;
-        startMirror();
-        // Sequence.play() owns its RAFPlayback loop; resolves at the end.
-        void sequence.play().finally(() => {
-            isPlaying.value = false;
-            stopMirror();
-            syncFromSequence();
-        });
+        machine.dispatch({ type: "PLAY" });
     };
 
     const pause = () => {
         if (!isPlaying.value) return;
-        sequence.pause();
-        isPlaying.value = false;
-        stopMirror();
+        machine.dispatch({ type: "PAUSE" });
     };
 
-    const resume = () => {
-        if (isPlaying.value) return;
-        isPlaying.value = true;
-        startMirror();
-        sequence.resume();
-    };
+    const resume = () => play();
 
     const togglePlay = () => {
-        const mid =
-            sequence.time > 0 &&
-            sequence.time < sequence.duration &&
-            !isPlaying.value;
-        if (mid) {
-            resume();
-        } else if (isPlaying.value) {
-            pause();
-        } else {
-            play();
-        }
+        if (isPlaying.value) pause();
+        else play();
     };
 
+    // reverse / timeScale / scrub are SEQUENCE-internal transport (the F.W9
+    // contract) — they reshape the engine loop but do not flip the play/pause
+    // axis the machine owns. scrub records `t` onto the machine snapshot so the
+    // scrubbed playhead round-trips on suspend/restore.
+
     const reverse = () => {
+        // Flip the engine rate FIRST (the SOTA transport call — preserved
+        // exactly). If a live loop is running it picks up the new rate next
+        // frame; the badge reads the engine's sign.
         sequence.reverse();
         isReversed.value = sequence.rate < 0;
-        // A reverse on a settled sequence needs the loop running to walk back.
-        if (!isPlaying.value) {
-            isPlaying.value = true;
-            startMirror();
-            sequence.resume();
-        }
+        // A reverse while paused needs the loop running to walk back — dispatch
+        // PLAY (the machine's resume re-arms the engine loop via the adapter's
+        // startLoop → sequence.resume(), continuing from the current playhead in
+        // the new direction, exactly as the original `sequence.resume()` did).
+        if (!isPlaying.value && isMidPlay()) play();
     };
 
     const setTimeScale = (n: number) => {
@@ -209,24 +280,56 @@ export function useSequenceDemo() {
         if (isPlaying.value) pause();
         sequence.progress = Math.max(0, Math.min(1, p));
         syncFromSequence();
+        // Record the scrubbed playhead onto the machine snapshot so it survives a
+        // scene switch (the raw-rAF round-trip).
+        machine.dispatch({ type: "SCRUB", t: progress.value });
     };
 
     const reset = () => {
         sequence.stop();
-        isPlaying.value = false;
         isReversed.value = false;
         timeScale.value = 1;
         stopMirror();
         sequence.timeScale(1);
         sequence.seek(0);
         syncFromSequence();
+        machine.dispatch({ type: "RESET" });
     };
 
-    // Pause the engine loop while the tab is backgrounded (CWV / battery).
+    // ── The raw-rAF ScenePlayback adapter (WV-W1-HIGH-3) ──────────────────────
+    // Round-trips progress/isPlaying through the contract — these temporal scenes
+    // have NO AnimationGroup position (the contractAnim dummy group drives no
+    // motion). The App registers this on SCENE_READY; the machine's effect layer
+    // calls suspend()/resume()/restore() through it (the single suspend path —
+    // no orphan rAF).
+    const scenePlayback: ScenePlayback = createRafAdapter({
+        getProgress: () => progress.value,
+        setProgress: (t) => {
+            sequence.progress = Math.max(0, Math.min(1, t));
+            syncFromSequence();
+        },
+        getPlaying: () => machine.status.value === "playing",
+        // setPlaying is a no-op marker: the machine status IS the intent; the
+        // loop is driven by start/stopLoop. Kept for contract symmetry.
+        setPlaying: () => {},
+        isLoopRunning: () => mirror.running,
+        stopLoop,
+        startLoop,
+    });
+
+    // Paint the initial (t=0) frame so the balls rest at their rail origin and
+    // the readout shows 0 before the first restore (the SequenceTarget seeks 0 on
+    // mount too — this is the composable-side belt-and-braces).
+    syncFromSequence();
+
+    // Pause the engine loop while the tab is backgrounded (CWV / battery),
+    // without disturbing the machine's play/pause intent (PRESERVED autoPaused
+    // contract — "only resume what IT paused"). `startLoop` resumes from the
+    // retained playhead with no jump.
     useSceneVisibilityPause(
-        () => isPlaying.value,
-        () => pause(),
-        () => resume(),
+        () => mirror.running,
+        stopLoop,
+        startLoop,
     );
 
     // Stop the mirror + sequence on scope dispose (the genuine unmount seam) —
@@ -260,6 +363,9 @@ export function useSequenceDemo() {
         setTimeScale,
         scrub,
         reset,
+        // The raw-rAF ScenePlayback adapter — the App registers it on SCENE_READY
+        // so the Sequence's progress/isPlaying round-trip through the CONTRACT.
+        scenePlayback,
     };
 }
 

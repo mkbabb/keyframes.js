@@ -69,17 +69,22 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, inject, ref } from "vue";
 import { Button } from "@mkbabb/glass-ui";
 import { Eye, EyeOff } from "@lucide/vue";
 
 import { springLinearStops } from "@src/animation/springLinearStops";
 import CopyButton from "@components/custom/CopyButton.vue";
 
+import { STARTING_STYLE_DEMO_KEY } from "./startingStyleKeys";
 import { SPRING_PRESETS, type SpringPreset } from "./springPresets";
 
-const visible = ref(true);
-const toggle = () => { visible.value = !visible.value; };
+// `visible` / `toggle` are owned by the scene's demo composable (H.W1) so the
+// ScenePlayback contract can round-trip the discrete-transition state across a
+// scene switch — this Target only reads + drives them.
+const demo = inject(STARTING_STYLE_DEMO_KEY)!;
+const visible = demo.visible;
+const toggle = demo.toggle;
 
 // The "bouncy" preset makes the overshoot legible — the whole point of a spring
 // linear(). The four canonical presets are switchable so the artifact + the

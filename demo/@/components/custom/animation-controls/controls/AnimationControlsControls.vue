@@ -134,9 +134,9 @@
                                 <span class="text-mono-small text-muted-foreground">advanced</span>
                             </div>
 
-                            <!-- Layer Settings (only when in a group) -->
+                            <!-- Layer Settings (only when the animation has a layer) -->
                             <LayerConfigPanel
-                                v-if="isGrouped && layerConfig"
+                                v-if="layerConfig"
                                 :layer-config="layerConfig"
                                 :is-open="isOpen"
                                 :set-open="setOpen"
@@ -157,7 +157,6 @@
                 :current-t="currentT"
                 :is-anim-playing="isAnimPlaying"
                 :is-anim-started="isAnimStarted"
-                :is-grouped="isGrouped"
                 :user-reversed="userReversed"
                 @scrub-start="() => { wake(); emit('scrubStart'); }"
                 @scrub-end="emit('scrubEnd')"
@@ -206,7 +205,6 @@ import {
 
 const props = defineProps<{
     animation: Animation<any>;
-    isGrouped?: boolean;
     isPlaying?: boolean;
     layerConfig?: AnimationLayerConfig;
     active?: boolean;
@@ -275,7 +273,6 @@ const emit = defineEmits<{
 
 const { userReversed, toggleAnimation, toggleReverse } = usePlaybackToggle(
     () => props.animation,
-    () => props.isGrouped ?? false,
     () => emit("togglePlay"),
 );
 

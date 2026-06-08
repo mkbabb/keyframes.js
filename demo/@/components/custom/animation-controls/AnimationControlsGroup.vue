@@ -251,10 +251,12 @@ const clear = () => {
     animationGroup.stop();
     syncPlayState();
     storedControls.selectedAnimation = null as any;
+    // resetAllStores() now also wipes the scene-machine persist key, so the
+    // active-scene fact resets to HOME_SCENE_ID on reload. The old raw
+    // `localStorage.setItem("keyframes-js-active-scene", "home")` write is
+    // DELETED — the machine owns that fact (H.W1); the legacy key is read by
+    // nobody.
     resetAllStores();
-    try {
-        localStorage.setItem("keyframes-js-active-scene", "home");
-    } catch {}
     window.location.reload();
 };
 

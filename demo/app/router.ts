@@ -35,20 +35,25 @@ export const router = createRouter({
     routes,
 });
 
-// Intercept ?state= on initial navigation to restore shared state
-// before the first render, matching the timing of the old initFromHash().
+// Intercept ?state= on initial navigation to restore shared state before the
+// first render, matching the timing of the old initFromHash(). The deprecated
+// `next(value)` guard is gone (S5): a guard RETURNS its value (a redirect
+// location object or `true`/undefined), per vue-router 5 — the 14× live
+// `next() is deprecated` flood (CP-LOW-3) dies with it.
 let initialNavDone = false;
 
-router.beforeEach((to, _from, next) => {
+router.beforeEach((to) => {
     if (!initialNavDone && to.query.state) {
         initialNavDone = true;
         const stateParam = to.query.state as string;
         const result = restoreStateFromParam(stateParam);
         const { state: _, ...cleanQuery } = to.query;
+        // The ?state= guard RETURNS a redirect LOCATION (not `true`): the
+        // deep-linked state's activeScene WINS (WV-W1-LOW-1). The machine's
+        // first-load seed (useSceneMachineRouter) then reconciles off this URL.
         const targetName = result.activeScene ?? (to.name as string);
-        next({ name: targetName, query: cleanQuery });
-        return;
+        return { name: targetName, query: cleanQuery };
     }
     initialNavDone = true;
-    next();
+    return true;
 });

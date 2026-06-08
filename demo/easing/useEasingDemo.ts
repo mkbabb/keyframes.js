@@ -21,6 +21,11 @@ import {
 } from "@components/custom/animation-controls/controls/timingCurveUtils";
 import { NAMED_EASING_BEZIER } from "@components/custom/animation-controls/animationDescriptions";
 import { useSceneVisibilityPause } from "../app/useSceneVisibilityPause";
+import {
+    useSceneMachine,
+    createRafAdapter,
+    type ScenePlayback,
+} from "@components/custom/animation-controls/stores";
 import { getFamilyForCurve, getFamilyCurves, type CurveGroupItem } from "./easingGroups";
 
 // ── Static data ────────────────────────────────────────────────────
@@ -50,7 +55,17 @@ export function useEasingDemo() {
     const bezierControlPoints = ref<[number, number, number, number]>([0.25, 0.1, 0.25, 1.0]);
     const stepOptions = ref({ steps: 4, jumpTerm: "jump-end" as string });
     const duration = ref(1500);
-    const isPlaying = ref(true);
+
+    // ── Playback intent: DERIVED from the machine, NOT a private shadow ──
+    // The former private `isPlaying = ref(true)` + the dummy-group paused-mirror
+    // watch were the SHADOW playback authority (the D12 smell — a second source
+    // of truth nothing could suspend). DELETED: the play-intent is now a
+    // read-only projection of `machine.status === 'playing'`, and play/pause
+    // dispatch to the machine (the single authority). The bottom bar + ribbon
+    // read THIS computed and write via play/pause/togglePlay below.
+    const machine = useSceneMachine();
+    const isPlaying = computed(() => machine.status.value === "playing");
+
     // The raw [0,1] time parameter the preview sweeps. Each curve (the selected
     // one and every comparison track) eases THIS in the view layer, so it stays
     // the linear time axis — the scrubber writes it directly while paused.
@@ -136,32 +151,36 @@ export function useEasingDemo() {
     let startTime = 0;
 
     const frame = (now: DOMHighResTimeStamp): boolean => {
-        if (!isPlaying.value) return false;
+        // The loop GATES on the machine (the single authority) — not a private
+        // isPlaying. When the machine leaves `playing` the loop self-terminates.
+        if (machine.status.value !== "playing") return false;
         // One full alternate cycle (0→1→0) per `2 * duration`.
         const phase = ((now - startTime) / (duration.value * 2)) % 1;
         progress.value = sweep.at(phase).p;
         return true;
     };
 
-    const ensureLoop = () => {
-        if (isPlaying.value && !playback.running) {
+    /** Re-arm the rAF loop (re-seeds startTime from the current progress so the
+     *  sweep resumes in phase). Idempotent — a no-op while already running. */
+    const startLoop = () => {
+        if (!playback.running) {
             startTime = performance.now() - progress.value * duration.value * 2;
             playback.loop(frame);
         }
     };
+    const stopLoop = () => playback.stop();
 
+    // The transport methods dispatch to the machine (the authority); the
+    // adapter's resume/suspend re-arms/stops the loop, so play/pause never poke
+    // a private flag.
     const play = () => {
         if (isPlaying.value) return;
-        isPlaying.value = true;
-        ensureLoop();
+        machine.dispatch({ type: "PLAY" });
     };
-
     const pause = () => {
         if (!isPlaying.value) return;
-        isPlaying.value = false;
-        playback.stop();
+        machine.dispatch({ type: "PAUSE" });
     };
-
     const togglePlay = () => {
         if (isPlaying.value) pause();
         else play();
@@ -170,14 +189,28 @@ export function useEasingDemo() {
     const reset = () => {
         progress.value = 0;
         startTime = performance.now();
+        machine.dispatch({ type: "RESET" });
     };
 
-    // Auto-start: the immediate watcher starts the loop on mount (each swap-in
-    // re-mounts the scene under the bare keyed <Suspense>, so mount-time start is
-    // the single, complete start authority).
-    watch(isPlaying, (playing) => {
-        if (playing) ensureLoop();
-    }, { immediate: true });
+    // ── The raw-rAF ScenePlayback adapter (WV-W1-HIGH-3) ──
+    // Round-trips progress/isPlaying through the contract — the easing↔cube
+    // cross-pair the group gate misses. The App registers this on SCENE_READY.
+    const scenePlayback: ScenePlayback = createRafAdapter({
+        getProgress: () => progress.value,
+        setProgress: (t) => { progress.value = t; },
+        getPlaying: () => machine.status.value === "playing",
+        // setPlaying is a no-op marker: the machine status IS the intent; the
+        // loop is driven by start/stopLoop below. Kept for contract symmetry.
+        setPlaying: () => {},
+        isLoopRunning: () => playback.running,
+        stopLoop,
+        startLoop,
+    });
+
+    // Mount-time start: the scene is created fresh on each swap-in under the bare
+    // keyed <Suspense>. Arm the loop now; the machine's SCENE_READY restore (via
+    // the adapter) then re-seats progress + the playing/paused status.
+    startLoop();
 
     // Stop the raw RAFPlayback on scope dispose (the genuine unmount seam,
     // mirroring useRafLoop.ts onUnmounted(stop)) — the scene host has NO
@@ -185,11 +218,10 @@ export function useEasingDemo() {
     onScopeDispose(() => playback.stop());
 
     // B-3: idle the preview rAF while the tab is hidden, without disturbing the
-    // user's play/pause intent. `isPlaying` is left untouched (the play button
-    // stays as-is); on return `ensureLoop` only re-arms if the user had it
-    // playing. `ensureLoop` re-seeds `startTime` from the current `progress`, so
-    // the sweep resumes in phase with no jump.
-    useSceneVisibilityPause(() => playback.running, playback.stop, ensureLoop);
+    // machine's play/pause intent (PRESERVED autoPaused contract — "only resume
+    // what IT paused"). `startLoop` re-seeds startTime from the current
+    // progress, so the sweep resumes in phase with no jump.
+    useSceneVisibilityPause(() => playback.running, playback.stop, startLoop);
 
     // ── Methods ────────────────────────────────────────────────────
 
@@ -259,12 +291,17 @@ export function useEasingDemo() {
         return false;
     };
 
-    // ── Scene-contract group ───────────────────────────────────────
-    // The bottom bar's transport (`AnimationControlsGroup`) requires an
-    // `AnimationGroup`; this scene's motion is the light `NumericAnimation`
-    // above, so the group is a minimal placeholder whose `paused` flag mirrors
-    // the preview loop — it drives no motion (no per-frame re-seat). Its easing
-    // mirrors the selected curve only so the bottom-bar readout matches.
+    // ── Scene-contract group (the bottom-bar transport host) ──────────
+    // AnimationControlsGroup binds an `AnimationGroup` for its transport readout
+    // (play button, Keyframes-string serialization). This scene's MOTION is the
+    // light `NumericAnimation` sweep above; the group drives NO motion. It is NOT
+    // a playback authority anymore — the former hand-synced `paused` mirror (the
+    // D12 shadow-authority smell) is replaced by a ONE-WAY projection of the
+    // machine status below. Its serializer is safe (the cssValue twin, H.W0).
+    // [DOCUMENTED EXPECTATION, WV-W1 lane-4 escape hatch: the group is retained
+    // ONLY as the transport host; deleting it outright would strand the entire
+    // bottom-bar contract (ControlsPaneWrapper/AnimationMenuBar/readout). The
+    // playback authority is the machine + the raw-rAF ScenePlayback adapter.]
     const contractAnim = markRaw(
         new CSSKeyframesAnimation({
             duration: duration.value,
@@ -289,11 +326,13 @@ export function useEasingDemo() {
     animationGroup.started = true;
     animationGroup.paused = false;
 
-    // Keep the group's paused flag in sync with the preview loop so the bottom
-    // bar's play button reflects (and toggles) the actual preview state.
+    // ONE-WAY projection: the transport host's `paused` mirrors the machine
+    // status so the bottom-bar play button reflects the true playback state.
+    // This is a read-only projection (the machine is the authority) — NOT the
+    // former bidirectional hand-sync that made the group a shadow authority.
     watch(isPlaying, (playing) => {
         animationGroup.paused = !playing;
-    });
+    }, { immediate: true });
 
     return {
         // Static
@@ -327,5 +366,9 @@ export function useEasingDemo() {
 
         // Scene contract
         animationGroup,
+        // The raw-rAF ScenePlayback adapter — the App registers this on
+        // SCENE_READY so suspend/restore route through the contract (the easing↔
+        // cube cross-pair the group gate misses).
+        scenePlayback,
     };
 }

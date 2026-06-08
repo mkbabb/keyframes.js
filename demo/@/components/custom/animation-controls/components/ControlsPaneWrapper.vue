@@ -41,7 +41,6 @@
                             @scrub-start="emit('scrubStart')"
                             @scrub-end="emit('scrubEnd')"
                             :animation="groupObject.animation"
-                            :is-grouped="true"
                             :is-playing="isPlaying"
                             :layer-config="groupObject.layer"
                             :active="storedControls.selectedAnimation == name"
