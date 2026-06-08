@@ -1,0 +1,26 @@
+{
+    "_doc": "proof:amiga-tessellate-tilecount baseline (H.W5 S6/A3). The deterministic checkerboard signature tesselateSphere (demo/amiga/utils.ts) renders. The CLAUSE is fillRectCount <= 256 (it lands ~130 = the tile-loop's 1 base fill + 128 dark tiles plus one benign base draw during the live amiga mount); `fillRectCount` here records the last live capture and is INFORMATIONAL — the gate asserts <= 256, not equality. `grid` is the 16x16 tile-color map (1 = color2/red dark tile, 0 = color1/white base) sampled at each 64x64 tile center — the pixel-identity check. A revert to the 1024x1024 PIXEL-grid loop issues ~524k off-canvas fillRect AND paints only a 16x16-px corner — both the count clause and the pixel-identity clause go RED. Regenerate ONLY when the tessellation is intentionally re-authored: `node scripts/proof-scene-perf-budget.mjs --update-baseline`.",
+    "boardSize": 1024,
+    "tileSize": 64,
+    "tiles": 16,
+    "fillRectCount": 130,
+    "darkTileCount": 128,
+    "grid": [
+        "1010101010101010",
+        "0101010101010101",
+        "1010101010101010",
+        "0101010101010101",
+        "1010101010101010",
+        "0101010101010101",
+        "1010101010101010",
+        "0101010101010101",
+        "1010101010101010",
+        "0101010101010101",
+        "1010101010101010",
+        "0101010101010101",
+        "1010101010101010",
+        "0101010101010101",
+        "1010101010101010",
+        "0101010101010101"
+    ]
+}

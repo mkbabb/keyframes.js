@@ -375,6 +375,65 @@ jobs:
               run: npm run proof:easing-canvas-bounded
               env:
                   KF_REQUIRE_BROWSER: "1"
+            # H.W5 S6 — the cube/amiga scene-quality + demo-perf budget lock. Five
+            # clauses, each BITING on its A2/A3/A5/G1/G5 defect: amiga-tessellate-
+            # tilecount (spy CanvasRenderingContext2D.fillRect during a real amiga
+            # mount ≤256 AND the checkerboard pixel-identical to the committed
+            # baseline — born-RED ~524k off-canvas fillRect on the pixel-grid loop),
+            # amiga-pixel-cap (renderer effective dpr ≤2 at deviceScaleFactor=2 —
+            # born-RED 4 on `setPixelRatio(dpr*2)`), scene-host-contained
+            # (.scene-host resolves contain:paint — G1), offscreen-cv (the inactive
+            # amiga .scene-root resolves content-visibility:auto + no resident
+            # will-change on a settled .cube/.cube-side — G5), and engine-drives-mesh
+            # (the deterministic isolation test test/amiga-sphere-spin.test.ts, run
+            # by the npm chain, locks the post-release decay() glide — WV-W5-MED-3).
+            # Settle-gated on the H.W1 FSM resting (scene switches driven IN-PAGE via
+            # the hash reconcile = the in-app Scene combobox's fixed point); a STATIC
+            # source half + a BROWSER half. KF_REQUIRE_BROWSER turns a playwright-
+            # absent skip into a hard CI fail (the live perf facts cannot pass vacuously).
+            - name: proof:scene-perf-budget (H.W5 S6 — amiga tile-count/pixel-identity · dpr cap ≤2 · scene-host contain:paint · inactive-root content-visibility · engine-drives-mesh)
+              run: npm run proof:scene-perf-budget
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            # H.W5 S1/S2 + BLK-7 — the themable-coverage + shape + no-raster lock.
+            # A STATIC source half (every non-home SceneDescriptor has a defined
+            # icon · every assets/icons/*.svg is fill=none + ≥1 stroke=currentColor
+            # + viewBox="0 0 32 32" with ZERO baked hsl/rgb/#hex · assets/icons holds
+            # zero non-favicon .png · index.html rel=icon resolves to an existing
+            # file — the 404 guard) + a BROWSER half: the load-bearing G4 THEMING
+            # clause (a mounted scene icon's computed stroke == host currentColor in
+            # BOTH .dark and light — an <img :src> reference FAILS by construction,
+            # G4 the authority over the G1 file-shape). Scene switches driven IN-PAGE
+            # via the hash reconcile (the in-app Scene combobox's fixed point);
+            # settle-gated on the H.W1 FSM resting. KF_REQUIRE_BROWSER turns a
+            # playwright-absent skip into a hard CI fail (the theming clause cannot
+            # pass vacuously).
+            - name: proof:scene-icons (H.W5 S1/S2 + BLK-7 — every non-home scene icon'd · fill=none currentColor 32×32 family · zero non-favicon raster · rel=icon resolves · mounted-icon stroke tracks the theme)
+              run: npm run proof:scene-icons
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            # H.W5 S3/S4/S5 §Hard gate — the pertinence MERGE + the per-mode
+            # interactivity floor. A STATIC source half (router.ts has NO
+            # starting-style route · scenes.ts has NO starting-style descriptor ·
+            # the surviving new-mode set = {spring,sequence,motion-path} (structural
+            # membership, NOT a magic int, WV-W5-LOW-2) · springLinearStops()
+            # computed in EXACTLY ONE composable — the spring-local 2→1 fold,
+            # springTimingFunction NOT gated per WV-W5-HIGH-1) + a BROWSER half:
+            # each surviving mode exposes ≥1 pointer-interactive affordance —
+            # proof:motionpath-drag (drag the traveller to ~50% → computed
+            # offset-distance ≈50%) · proof:square-drag (pointerdown+move on the box
+            # mutates a target ref + the spring converges) · proof:easing-curve-
+            # onstage (a bezier curve renders EasingCurveCanvas[editable] on the
+            # STAGE AND a handle drag fires update:bezierPoints AND the bound
+            # bezierControlPoints ref changes — the three-name wiring, WV-W5-HIGH-2).
+            # Scene switches driven IN-PAGE via the hash reconcile (the in-app Scene
+            # combobox's fixed point); settle-gated on the H.W1 FSM resting.
+            # KF_REQUIRE_BROWSER turns a playwright-absent skip into a hard CI fail
+            # (the per-mode interactivity floor cannot pass vacuously).
+            - name: proof:scene-parity (H.W5 S3/S4/S5 — Discrete merged away · {spring,sequence,motion-path} survivors · springLinearStops fold to ONE · motionpath/square/easing pointer affordances)
+              run: npm run proof:scene-parity
+              env:
+                  KF_REQUIRE_BROWSER: "1"
             # H.W4 S3 — the hero on the audacious φ rung. SOURCE-shape (the <h1>
             # carries text-display-mega, not text-display-4, no raw leaf-tail rung) +
             # a PX FLOOR (computed font-size ≥140px at 1440×900 — NOT a fluid

@@ -16,6 +16,14 @@ import type { CSSKeyframesAnimation } from "@src/animation/engine";
  * scene registers its animation on mount and swaps the reactive group; the
  * App's scene-machine group watcher binds the new group instance and registers
  * its ScenePlayback adapter (H.W1).
+ *
+ * INTERACTIVITY (H.W5.S4a): the traveller is draggable ALONG its own path. The
+ * Target projects the pointer onto the SVG `<path>` and re-seats the engine
+ * playhead via `group.setChildTime(...).render()` — the SAME scrub seam the
+ * bottom-bar slider uses (`useAnimationGroupPlayback.sliderUpdate`), so the drag
+ * and the scrub share ONE progress source (DRY). The drag pauses/resumes the
+ * group around the gesture exactly as `onScrubStart`/`onScrubEnd` do; `isPlaying`
+ * stays the App-writable group-state mirror (the group scenes' contract, H.W1).
  */
 export function useMotionPathDemo() {
     // Starts empty; the traveller's MotionPath animation is registered on mount.

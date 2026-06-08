@@ -160,8 +160,18 @@ const cubeSides = [
     --rotationX: 360deg;
 
     height: calc(var(--side-size) * 2);
-    will-change: transform;
     contain: style;
+}
+
+/* G5 (transient will-change): the cube is the element that actually transforms
+   (the matrix/rotation animations + the OrbitalDrag container). Promote it to
+   its own compositor layer ONLY while it is moving — playing or hovered — and
+   drop the hint at rest, so an idle/off-screen cube holds no resident layer (a
+   resident `will-change` keeps the layer alive forever, the G5 anti-pattern).
+   The idle-bob is a 5px translate the compositor handles without the hint. */
+.idle-hover.playing .cube,
+.graph:hover .cube {
+    will-change: transform;
 }
 
 @media (max-width: 1023px) {
@@ -174,7 +184,11 @@ const cubeSides = [
     width: var(--side-size);
     height: var(--side-size);
     backface-visibility: hidden;
-    will-change: transform;
+    /* G5: the faces carry a STATIC per-face transform (they never re-transform —
+       only the parent .cube/.idle-hover/OrbitalDrag container animates), so the
+       former resident `will-change: transform` here pinned six permanent
+       compositor layers for nothing. Dropped — the parent's transient hint
+       promotes the whole 3D subtree while it moves. */
 
     &.front {
         transform: rotateY(0deg) translateZ(var(--side-offset));

@@ -35,9 +35,33 @@
                 </Select>
             </div>
 
-            <!-- Singular mode: the glass-ui scrubber Slider -->
+            <!-- Singular mode, bezier-editable curve: the EasingCurveCanvas is
+                 PROMOTED to the PRIMARY stage element (S4b). Dragging a handle
+                 re-shapes the live curve AND the sweep ball riding it (the
+                 `progress` axis is shared). The two-way wiring is the pinned
+                 symbol contract (WV-W5-HIGH-2): the camelCase emit
+                 `update:bezierPoints` flows into the `bezierControlPoints` ref via
+                 `demo.updateBezierPoints` (which also switches a named curve to
+                 cubic-bezier on edit). -->
             <div
-                v-if="viewMode === 'singular'"
+                v-if="viewMode === 'singular' && demo.isBezierEditable.value"
+                class="flex-1 min-h-0 flex items-center justify-center px-8 py-6"
+            >
+                <EasingCurveCanvas
+                    class="easing-stage-curve w-full"
+                    :easing-fn="demo.currentEasingFn.value"
+                    :svg-path="demo.svgPath.value"
+                    :progress="demo.progress.value"
+                    :bezier-points="demo.bezierControlPoints.value"
+                    :editable="true"
+                    @update:bezier-points="demo.updateBezierPoints"
+                />
+            </div>
+
+            <!-- Singular mode, named/steps curve: the glass-ui scrubber Slider
+                 (steps' discrete inputs live in the sidebar; the stage scrubs). -->
+            <div
+                v-else-if="viewMode === 'singular'"
                 class="flex-1 min-h-0 flex items-center justify-center px-8 py-6"
             >
                 <Slider
@@ -110,6 +134,7 @@ import {
     Slider,
 } from "@mkbabb/glass-ui";
 
+import EasingCurveCanvas from "@components/custom/EasingCurveCanvas.vue";
 import { EASING_DEMO_KEY } from "./easingKeys";
 import { EASING_GROUPS, getFamilyForCurve } from "./easingGroups";
 import { camelCaseToHyphen, timingFunctions } from "@mkbabb/value.js";
@@ -273,6 +298,19 @@ const onScrubEnd = () => {
 .easing-target {
     --track-ball-size-active: 36px;
     --track-ball-size-muted: 24px;
+}
+
+/* S4b — the EasingCurveCanvas promoted to the PRIMARY stage element. The canvas
+   sizes its block off `38cqi` of a `container-type: inline-size` ancestor (its
+   own scoped rule), so this wrapper IS that container; capping its inline size
+   holds the curve at a bounded square (the canvas's aspect-ratio:1 ties height to
+   width). At ~420px the canvas lands near its 280px block ceiling — the hero
+   reading, larger than the sidebar instance. */
+.easing-stage-curve {
+    container-type: inline-size;
+    container-name: easing-editor;
+    max-inline-size: 420px;
+    margin-inline: auto;
 }
 
 /* The singular t-scrubber adopts the glass-ui glass-scrubber Slider variant.

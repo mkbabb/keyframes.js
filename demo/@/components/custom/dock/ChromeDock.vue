@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, inject, ref, watch, useTemplateRef } from "vue";
+import { computed, inject, ref, watch, useTemplateRef, type Component } from "vue";
 import { CONTROLS_PANE_HOVER_KEY } from "../animation-controls/injectionKeys";
 import { Activity, ChevronDown, ChevronUp, Home, PanelLeftClose, PanelLeftOpen, SlidersHorizontal, Braces, Clock, Grid3X3 } from "@lucide/vue";
 import { useMediaQuery } from "@vueuse/core";
@@ -17,17 +17,12 @@ import {
 } from "@mkbabb/glass-ui";
 import { StatusDot } from "@mkbabb/glass-ui/status-dot";
 
-import cubeIcon from "@assets/icons/cube-icon-sm.png";
-import amigaIcon from "@assets/icons/amiga-icon-sm.png";
-import squareIcon from "@assets/icons/square-icon-sm.png";
-import easingIcon from "@assets/icons/easing-icon-sm.svg";
-
-const sceneIcons: Record<string, string> = {
-    cube: cubeIcon,
-    amiga: amigaIcon,
-    square: squareIcon,
-    easing: easingIcon,
-};
+// H.W5.S1/S2: the dock no longer holds a parallel string-keyed `sceneIcons`
+// Record of imported image URLs (the D8 drift root cause). Each scene carries
+// its own inline-SVG `icon` component on the descriptor (scenes.ts); the dock
+// renders `<component :is="scene.icon">` so the binding is single-sourced and
+// every survivor themes via currentColor. <Home> remains the icon for the
+// explicit home descriptor ALONE (the single fallback).
 
 const CONTROL_TABS: { value: string; label: string; icon?: string }[] = [
     { value: "controls", label: "Controls", icon: "SlidersHorizontal" },
@@ -45,7 +40,7 @@ const TAB_ICONS: Record<string, any> = {
 
 const props = defineProps<{
     currentSceneId: string;
-    scenes: { id: string; label: string }[];
+    scenes: { id: string; label: string; icon?: Component }[];
     homeSceneId: string;
     currentLabel: string;
     hasSelectedAnimation: boolean;
@@ -53,6 +48,12 @@ const props = defineProps<{
     selectedControl?: string;
     extraControlTabs?: { value: string; label: string; icon?: string }[];
 }>();
+
+// The active scene's inline-SVG glyph for the trigger + collapsed pill; the
+// home descriptor (and any not-yet-resolved id) has no icon → <Home> fallback.
+const currentIcon = computed<Component | undefined>(
+    () => props.scenes.find((s) => s.id === props.currentSceneId)?.icon,
+);
 
 const allControlTabs = computed(() => {
     const tabs = [...CONTROL_TABS];
@@ -168,7 +169,7 @@ watch(isAnyOpen, (open) => {
                             @update:model-value="(id) => emit('switchScene', String(id))"
                         >
                             <DockSelectTrigger aria-label="Scene" class="dock-label [&>span]:line-clamp-none">
-                                <img v-if="sceneIcons[currentSceneId]" :src="sceneIcons[currentSceneId]" :alt="`${currentSceneId} scene`" class="w-5 h-5 shrink-0 object-contain" />
+                                <component v-if="currentIcon" :is="currentIcon" class="icon-sm shrink-0 text-muted-foreground" />
                                 <Home v-else class="icon-sm text-muted-foreground" />
                                 <SelectValue />
                             </DockSelectTrigger>
@@ -191,7 +192,7 @@ watch(isAnyOpen, (open) => {
                                     >
                                         <span class="flex items-center gap-2">
                                             <StatusDot :variant="currentSceneId === scene.id ? 'active' : 'idle'" />
-                                            <img v-if="sceneIcons[scene.id]" :src="sceneIcons[scene.id]" :alt="`${scene.label} scene`" class="w-5 h-5 shrink-0 object-contain" />
+                                            <component v-if="scene.icon" :is="scene.icon" class="icon-sm shrink-0 text-muted-foreground" />
                                             <span :class="currentSceneId === scene.id ? 'font-bold' : ''">{{ scene.label }}</span>
                                         </span>
                                     </SelectItem>
@@ -207,7 +208,7 @@ watch(isAnyOpen, (open) => {
 
                 <!-- Collapsed state -->
                 <template #collapsed>
-                    <img v-if="sceneIcons[currentSceneId]" :src="sceneIcons[currentSceneId]" :alt="`${currentSceneId} scene`" class="w-5 h-5 shrink-0 object-contain" />
+                    <component v-if="currentIcon" :is="currentIcon" class="icon-sm shrink-0 text-muted-foreground" />
                     <Home v-else class="icon-sm text-muted-foreground" />
                     <span class="dock-label font-semibold text-foreground whitespace-nowrap">
                         {{ currentLabel }}

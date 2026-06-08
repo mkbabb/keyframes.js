@@ -22,11 +22,12 @@ const routes: RouteRecordRaw[] = [
     { path: "/spring", name: "spring", component: Stub },
     { path: "/sequence", name: "sequence", component: Stub },
     { path: "/motion-path", name: "motion-path", component: Stub },
-    // The Discrete (@starting-style) scene is registered in scenes.ts and offered
-    // by the switcher; without its route, switchScene("starting-style") fell to
-    // the catch-all redirect home — a whole registered scene was DEAD (X-6). The
-    // keyed <Suspense> resolves the lazy chunk by name, as for every other scene.
-    { path: "/starting-style", name: "starting-style", component: Stub },
+    // The standalone /starting-style route was REMOVED in one motion with its
+    // scene + descriptor (H.W5.S3): the Discrete (@starting-style) mode is now a
+    // sub-view of the Spring scene (Spring → "Discrete transition"), not its own
+    // route. No legacy alias — a /starting-style deep-link falls to the catch-all
+    // redirect home (the scene id no longer exists). Survivor route set:
+    // home/cube/amiga/square/easing/spring/sequence/motion-path.
     { path: "/:pathMatch(.*)*", redirect: "/" },
 ];
 

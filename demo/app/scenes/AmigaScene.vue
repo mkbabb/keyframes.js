@@ -1,8 +1,11 @@
 <template>
-    <div class="relative h-full w-full">
+    <div
+        ref="sceneRoot"
+        class="scene-root relative h-full w-full"
+    >
         <canvas
             ref="canvas"
-            class="h-full w-full rounded-lg"
+            class="amiga-canvas h-full w-full rounded-lg"
         ></canvas>
     </div>
 </template>
@@ -15,11 +18,13 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 import { tesselateSphere } from "../../amiga/utils";
 import { useAmigaAnimations, BOX_SIZE } from "../../amiga/useAmigaAnimations";
+import { useSphereSpin } from "../../amiga/useSphereSpin";
 import { useSceneVisibilityPause } from "../useSceneVisibilityPause";
 
 const superKey = "Amiga";
 
 const canvasEl = useTemplateRef<HTMLCanvasElement>("canvas");
+const sceneRootEl = useTemplateRef<HTMLElement>("sceneRoot");
 
 let sphereMesh: ReturnType<typeof tesselateSphere>;
 let renderer: THREE.WebGLRenderer | undefined;
@@ -29,6 +34,20 @@ let scene: THREE.Scene | undefined;
 let camera: THREE.PerspectiveCamera | undefined;
 
 const { animationGroup } = useAmigaAnimations(() => sphereMesh);
+
+// A5 (REBUILD): the SPHERE is the interactive subject. A pointer-drag on the
+// mesh spins it; on release the engine `decay()` glide coasts the spin to rest
+// — the engine driving a non-DOM Three.js target, independent of camera orbit.
+// The raycast hit-test routes a sphere-grab to the spin gesture (orbit stands
+// down for its duration) and a background-grab to OrbitControls (disjoint
+// landlords, never racing).
+const sphereSpin = useSphereSpin({
+    getMesh: () => sphereMesh,
+    getCamera: () => camera,
+    setOrbitEnabled: (enabled) => {
+        if (controls) controls.enabled = enabled;
+    },
+});
 
 onMounted(() => {
     const canvas = canvasEl.value!;
@@ -44,7 +63,13 @@ onMounted(() => {
     camera.position.z = BOX_SIZE;
     camera.position.y = BOX_SIZE / 3;
     renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
-    renderer.setPixelRatio(window.devicePixelRatio * 2);
+    // A2 (MEASURE-FIRST): cap the device-pixel-ratio at 2 — the former
+    // `devicePixelRatio * 2` rendered a 4× CSS-pixel buffer (a 16× fragment
+    // count vs. CSS pixels on a dpr=2 retina surface; 4× vs. the cap). MSAA
+    // (`antialias: true`) already carries the edge quality, so the extra
+    // super-sampling was pure fill-rate waste — capping to min(dpr, 2) cuts the
+    // shaded fragments 4× at dpr=2 (proof:amiga-pixel-cap, getPixelRatio() ≤ 2).
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setClearColor("white", 1);
 
     // Hemisphere light for natural sky/ground gradient fill
@@ -81,6 +106,10 @@ onMounted(() => {
     controls.dampingFactor = 0.05;
     controls.screenSpacePanning = false;
 
+    // Wire the sphere-spin gesture onto the canvas (capture-phase hit-test runs
+    // before OrbitControls' own pointerdown).
+    sphereSpin.attach(canvas);
+
     startRenderLoop();
 });
 
@@ -103,6 +132,9 @@ function startRenderLoop() {
     function animate() {
         rafId = requestAnimationFrame(animate);
         controls?.update();
+        // Advance the engine `decay()` release glide — drives the sphere mesh
+        // rotation for ≥N frames after a flick (the A5 engine-drives-mesh story).
+        sphereSpin.tickGlide();
         if (renderer && scene && camera) renderer.render(scene, camera);
     }
     animate();
@@ -125,9 +157,32 @@ useSceneVisibilityPause(
     startRenderLoop,
 );
 
+// G5 (just-in-time): the scene root carries `content-visibility: auto`. When the
+// browser SKIPS its render (occluded — e.g. a mobile sheet expanded over the
+// stage, or scrolled off-screen) it fires `contentvisibilityautostatechange`;
+// stand the WebGL present loop down then, and re-arm just before the browser
+// paints it again. Composes with the tab-visibility pause above (the same
+// stop/start handles) so an off-screen WebGL surface stops re-blurring. The
+// event does not bubble in every engine — bound DIRECTLY on the owning element.
+function onContentVisibilityChange(e: Event) {
+    if ((e as Event & { skipped: boolean }).skipped) stopRenderLoop();
+    else startRenderLoop();
+}
+onMounted(() => {
+    sceneRootEl.value?.addEventListener(
+        "contentvisibilityautostatechange",
+        onContentVisibilityChange,
+    );
+});
+
 onBeforeUnmount(() => {
     animationGroup.stop();
     stopRenderLoop();
+    sphereSpin.detach();
+    sceneRootEl.value?.removeEventListener(
+        "contentvisibilityautostatechange",
+        onContentVisibilityChange,
+    );
     controls?.dispose();
 
     // Dispose all Three.js geometries and materials to free GPU memory
@@ -150,3 +205,26 @@ defineExpose({
     superKey,
 });
 </script>
+
+<style scoped>
+/* G5: content-visibility on the scene root. When this scene is occluded (a
+   mobile sheet expanded over the stage, or scrolled off-screen) the browser
+   skips its render work — the WebGL present loop also stands down via the
+   `contentvisibilityautostatechange` listener (composing with the tab-pause).
+   contain-intrinsic-size is MANDATORY here: without it the skipped root
+   collapses to 0px (layout-shift); `auto … auto …` lets the browser remember
+   the painted size and re-use it as the placeholder. The full-bleed stage fills
+   its grid cell, so the placeholder is nominal — the auto-remembered size wins
+   once painted. */
+.scene-root {
+    content-visibility: auto;
+    contain-intrinsic-size: auto none auto 600px;
+}
+
+/* The drag/spin surface. `touch-action: none` lets the sphere-spin pointer
+   gesture own touch input on the canvas (no scroll/zoom hijack) — the disjoint
+   gesture model: a sphere-hit drag spins the mesh, a miss orbits the camera. */
+.amiga-canvas {
+    touch-action: none;
+}
+</style>

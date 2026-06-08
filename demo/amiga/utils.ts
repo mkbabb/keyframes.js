@@ -6,7 +6,8 @@ export const tesselateSphere = (
     radius: number,
 ) => {
     const tileSize = 64;
-    const boardSize = tileSize * 16;
+    const tiles = 16;
+    const boardSize = tileSize * tiles;
 
     const canvas = document.createElement("canvas");
     canvas.width = canvas.height = boardSize;
@@ -14,11 +15,17 @@ export const tesselateSphere = (
     ctx.fillStyle = color1;
     ctx.fillRect(0, 0, boardSize, boardSize);
 
+    // Iterate the 16×16 TILE grid — one fillRect per dark square (≤128 on-canvas
+    // calls). The former loop iterated the 1024×1024 PIXEL grid issuing ~524k
+    // fillRect of which all but the first 16×16 landed wholly OFF the canvas
+    // (`fillRect(x*64, …)` with x up to 1023) — a genuine perf bug, not just
+    // waste. This tile-loop is checkerboard-isomorphic: the visible board is
+    // pixel-identical (A3, proof:amiga-tessellate-tilecount ≤256).
     ctx.fillStyle = color2;
-    for (let y = 0; y < boardSize; y++) {
-        for (let x = 0; x < boardSize; x++) {
-            if ((x + y) % 2 === 0) {
-                ctx.fillRect(x * 64, y * 64, 64, 64);
+    for (let ty = 0; ty < tiles; ty++) {
+        for (let tx = 0; tx < tiles; tx++) {
+            if ((tx + ty) % 2 === 0) {
+                ctx.fillRect(tx * tileSize, ty * tileSize, tileSize, tileSize);
             }
         }
     }

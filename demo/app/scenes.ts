@@ -1,5 +1,18 @@
 import { defineAsyncComponent, type Component } from "vue";
 
+// The inline-SVG icon family (H.W5.S1/S2) — one hand-authored 32×32
+// `fill="none" stroke="currentColor"` glyph per non-home survivor, resolved
+// through the `?component` seam (vite.config.ts svgLoader) to an inline-`<svg>`
+// SFC that inherits the host theme color. NOT an `<img :src>` URL (theme-blind
+// by construction). The icon is data and lives WITH the scene's other data.
+import CubeIcon from "@assets/icons/cube.svg?component";
+import AmigaIcon from "@assets/icons/amiga.svg?component";
+import SquareIcon from "@assets/icons/square.svg?component";
+import EasingIcon from "@assets/icons/easing.svg?component";
+import SpringIcon from "@assets/icons/spring.svg?component";
+import SequenceIcon from "@assets/icons/sequence.svg?component";
+import MotionPathIcon from "@assets/icons/motion-path.svg?component";
+
 /** A scene's dynamic-import loader — the exact thunk `defineAsyncComponent`
  *  wraps, retained so `warmScene` can warm the chunk on hover (S5). */
 type SceneLoader = () => Promise<unknown>;
@@ -9,6 +22,22 @@ export interface SceneDescriptor {
     label: string;
     superKey: string;
     component?: Component;
+    /**
+     * The scene's nav glyph (H.W5.S1) — an inline-`<svg>` SFC imported via the
+     * `?component` seam (`import CubeIcon from "@assets/icons/cube.svg?component"`),
+     * NOT an `<img :src>` URL. Inline-SVG is the ONLY reference mechanism that
+     * inherits the host theme color (`stroke="currentColor"`), so the dock renders
+     * it with `<component :is="scene.icon" class="size-5 text-muted-foreground" />`.
+     * The icon is data and lives WITH the scene (single-source: the dock iterates
+     * `scene.icon`, never a parallel string-keyed map that drifts on a rename).
+     *
+     * Populated per-survivor by the Build/icons lane (it authors the SVGs first);
+     * the home descriptor carries no `icon` and the dock falls back to `<Home>`
+     * for it alone. Every other (non-home) descriptor MUST define `icon`
+     * (proof:scene-icons coverage), so an icon-less scene is structurally
+     * unshippable — the permanent cure for the D8 regression class.
+     */
+    icon?: Component;
     showStartScreen?: boolean;
     gridBackground?: boolean;
 }
@@ -56,30 +85,35 @@ export const scenes: SceneDescriptor[] = [
         id: "cube",
         label: "Cube",
         superKey: "Cube",
+        icon: CubeIcon,
         component: lazyScene("cube", () => import("./scenes/CubeScene.vue")),
     },
     {
         id: "amiga",
         label: "Amiga",
         superKey: "Amiga",
+        icon: AmigaIcon,
         component: lazyScene("amiga", () => import("./scenes/AmigaScene.vue")),
     },
     {
         id: "square",
         label: "Square",
         superKey: "Square",
+        icon: SquareIcon,
         component: lazyScene("square", () => import("./scenes/SquareScene.vue")),
     },
     {
         id: "easing",
         label: "Easing",
         superKey: "Easing",
+        icon: EasingIcon,
         component: lazyScene("easing", () => import("./scenes/EasingScene.vue")),
     },
     {
         id: "spring",
         label: "Spring",
         superKey: "Spring",
+        icon: SpringIcon,
         component: lazyScene("spring", () => import("./scenes/SpringScene.vue")),
     },
     {
@@ -90,6 +124,7 @@ export const scenes: SceneDescriptor[] = [
         id: "sequence",
         label: "Sequence",
         superKey: "Sequence",
+        icon: SequenceIcon,
         component: lazyScene(
             "sequence",
             () => import("./scenes/SequenceScene.vue"),
@@ -103,23 +138,19 @@ export const scenes: SceneDescriptor[] = [
         id: "motion-path",
         label: "Path",
         superKey: "MotionPath",
+        icon: MotionPathIcon,
         component: lazyScene(
             "motion-path",
             () => import("./scenes/MotionPathScene.vue"),
         ),
     },
-    {
-        // The @starting-style + spring-linear() copy-paste artifact scene: a
-        // discrete entry/exit transition eased by a keyframes.js spring, with
-        // the emitted linear(...) surfaced behind a copy button.
-        id: "starting-style",
-        label: "Discrete",
-        superKey: "StartingStyle",
-        component: lazyScene(
-            "starting-style",
-            () => import("./scenes/StartingStyleScene.vue"),
-        ),
-    },
+    // The standalone @starting-style "Discrete" scene was MERGED into the Spring
+    // scene as a sub-view in one motion (H.W5.S3): Discrete is Spring's twin (the
+    // same spring solver + linear() artifact on a different primitive). The fold
+    // removed this descriptor, its /starting-style route, and StartingStyleScene
+    // .vue together — no legacy alias. The discrete-transition view now lives at
+    // Spring → "Discrete transition" (SpringScene.vue + spring/StartingStyleTarget
+    // .vue). Survivor new-mode set = { spring, sequence, motion-path }.
 ];
 
 export const allScenes = [homeScene, ...scenes];

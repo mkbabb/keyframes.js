@@ -101,7 +101,7 @@
 import { computed, ref, watch } from "vue";
 import { Button, Card, CardContent, Slider } from "@mkbabb/glass-ui";
 
-import { springLinearStops } from "@src/animation/springLinearStops";
+import { useSpringLinearStops } from "./useSpringLinearStops";
 import CopyButton from "@components/custom/CopyButton.vue";
 import CSSCodeEditor from "@components/custom/animation-controls/keyframes/CSSCodeEditor.vue";
 
@@ -122,16 +122,16 @@ const applyPreset = (preset: SpringPreset) => {
     demo.dampingFraction.value = preset.dampingFraction;
 };
 
-// CSS `linear()` token sampled from the live params. Two-way bound to the
-// Monaco editor: editing the params regenerates it; the editor is read-mostly
-// here (the model just mirrors the generated stops).
-const linearStopsCss = ref("");
-const generated = computed(() =>
-    `--spring-easing: ${springLinearStops({
-        response: demo.response.value,
-        dampingFraction: demo.dampingFraction.value,
-    })};`,
+// CSS `linear()` token sampled from the live params — the ONE springLinearStops
+// surface (useSpringLinearStops, H.W5.S3). Two-way bound to the Monaco editor:
+// editing the params regenerates it; the editor is read-mostly here (the model
+// just mirrors the generated stops).
+const springLinear = useSpringLinearStops(
+    () => demo.response.value,
+    () => demo.dampingFraction.value,
 );
+const linearStopsCss = ref("");
+const generated = computed(() => `--spring-easing: ${springLinear.value};`);
 watch(generated, (css) => { linearStopsCss.value = css; }, { immediate: true });
 </script>
 

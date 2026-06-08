@@ -1,71 +1,150 @@
 import { CSSKeyframesAnimation } from "@src/animation/engine";
+import { RAFPlayback } from "@src/animation/playback";
+import { SpringProgress } from "@src/animation/spring";
 import type { Ref } from "vue";
 
-export const SUPER_KEY = "Square";
+/**
+ * useSquareAnimations — the dogfood of the custom-transform-function over
+ * NESTED-OBJECT values primitive (the distinct library feature this scene
+ * exists to prove: a `transformFunc` composes `transform` from deeply-nested
+ * vars like `a.b.c.d` that map to no CSS property). H.W5.S5 makes it LIVE: the
+ * box is directly manipulable.
+ *
+ * THE LIVE PATH (the always-on interactivity, no bottom-bar Play required):
+ * TWO `SpringProgress` trackers (one per axis) own the box position. A pointer-
+ * drag re-seats each spring's `target` (the SAME live re-seat idiom the Spring
+ * scene ships — `spring.target = v`); the spring chases mid-flight from its
+ * current `(x, v)` so the trajectory never jumps. A single owned `RAFPlayback`
+ * loop (the spring scene's exact pattern) ticks both springs by the real
+ * inter-frame dt and, each frame, builds a NESTED-OBJECT `vars` from the live
+ * spring state and calls the custom `transformFunc` — so the nested-object
+ * primitive is exercised by the live drag, frame by frame. The loop self-
+ * terminates when both springs settle (nothing to repaint) and `reseat` re-arms
+ * it; the spring scene's `useSceneVisibilityPause` discipline is unneeded here
+ * because the loop is already idle whenever the springs are at rest.
+ *
+ * THE TRANSPORT CONTRACT: the `CSSKeyframesAnimation` carries the same nested-
+ * object keyframes so the bottom-bar Keyframes-string readout serializes the
+ * nested structure (the primitive's authored shape). It is a minimal transport
+ * host — like the Spring/Easing scenes' contract anim — and owns NO box paint
+ * (the spring loop is the sole paint authority, so there is no double-writer).
+ */
+export function useSquareAnimations(
+    // Accept the `useTemplateRef` shape (a readonly shallow ref that yields
+    // `null` before mount) as well as a plain ref — the box only exists after
+    // mount, so the transformFunc null-guards every read.
+    box: Readonly<Ref<HTMLElement | null | undefined>>,
+) {
+    // One spring per axis. Value/target are normalized [-1, 1] of the box's free
+    // travel (mapped to a px translate). The (response 0.32, ζ 0.62) feel reads
+    // as a lively, slightly springy chase under a drag.
+    const springX = new SpringProgress({ response: 0.32, dampingFraction: 0.62, initial: 0 });
+    const springY = new SpringProgress({ response: 0.32, dampingFraction: 0.62, initial: 0 });
 
-export function useSquareAnimations(box: Ref<HTMLElement | undefined>) {
+    // How far (px) a full [-1, 1] spring deflection translates the box.
+    const TRAVEL = 110;
+
+    /**
+     * The CUSTOM TRANSFORM FUNCTION — the primitive. It composes `transform`
+     * from a NESTED-OBJECT `vars` (`transform.a.b.c.d` is a real nested read that
+     * maps to no CSS property) plus the live translate. Identical shape to the
+     * engine's `transformFunc` contract; the spring loop feeds it live vars.
+     */
+    const transformFunc = (vars: Record<string, any>) => {
+        const el = box.value;
+        if (!el) return;
+        const { transform, backgroundColor } = vars;
+        const tx = transform?.x ?? 0;
+        const ty = transform?.y ?? 0;
+        const scale = transform?.a?.b?.c?.d ?? 1;
+        el.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+        if (backgroundColor) el.style.backgroundColor = backgroundColor;
+    };
+
+    // ── The live paint loop (ticks both springs, paints via transformFunc) ──
+    const playback = new RAFPlayback();
+    let lastNow = 0;
+
+    const frame = (now: DOMHighResTimeStamp): boolean => {
+        const dt = lastNow ? now - lastNow : 0;
+        lastNow = now;
+        springX.tickDt(dt);
+        springY.tickDt(dt);
+
+        // Build the NESTED-OBJECT vars from the live spring state and paint. The
+        // scale travels through `a.b.c.d` (a deflection-driven 1 → 1.12 swell),
+        // so the nested-object structure is genuinely read every frame.
+        const defl = Math.min(1, Math.hypot(springX.value, springY.value));
+        transformFunc({
+            transform: {
+                x: springX.value * TRAVEL,
+                y: springY.value * TRAVEL,
+                a: { b: { c: { d: 1 + defl * 0.12 } } },
+            },
+        });
+
+        // Self-terminate once both springs settle — re-armed by reseat().
+        return !(springX.settled && springY.settled);
+    };
+
+    /** Arm the loop (idempotent — a no-op while already running). */
+    const startLoop = (): void => {
+        if (!playback.running) {
+            lastNow = 0;
+            playback.loop(frame);
+        }
+    };
+
+    /**
+     * Re-seat both axis targets from a normalized pointer offset. `nx`/`ny` ∈
+     * [-1, 1]; the springs chase from their current state (continuous), and the
+     * loop re-arms so the chase paints even if it had settled.
+     */
+    const reseat = (nx: number, ny: number): void => {
+        springX.target = Math.max(-1, Math.min(1, nx));
+        springY.target = Math.max(-1, Math.min(1, ny));
+        startLoop();
+    };
+
+    /** How far (px) a full [-1,1] deflection travels — for the drag math. */
+    const travel = TRAVEL;
+
+    // ── The bottom-bar transport-contract host (the nested-object keyframes) ──
+    // Minimal CSSKeyframesAnimation carrying the SAME nested-object keyframes so
+    // the Keyframes-string readout serializes the authored nested shape. Like the
+    // Spring/Easing contract anim, it drives no box paint.
     const anim = new CSSKeyframesAnimation({
         duration: 2000,
         iterationCount: Infinity,
         direction: "alternate",
         fillMode: "forwards",
-    });
-
-    const transformFunc = (vars: Record<string, any>) => {
-        const el = box.value;
-        if (!el) return;
-
-        const { transform, backgroundColor, fontSize, rotate } = vars;
-
-        if (transform) {
-            el.style.transform = `translate(${transform.x}, ${transform.y}) scale(${transform.a.b.c.d})`;
-        }
-        if (backgroundColor) {
-            el.style.backgroundColor = backgroundColor;
-        }
-        if (fontSize) {
-            el.style.fontSize = fontSize;
-        }
-        if (rotate) {
-            el.style.transform += ` rotate(${rotate})`;
-        }
-    };
-
-    const transformStart = {
-        x: "-100%",
-        y: "-100%",
-        a: { b: { c: { d: "75%" } } },
-    };
-
-    const transformEnd = {
-        x: "50%",
-        y: "75%",
-        a: { b: { c: { d: "200%" } } },
-    };
-
-    anim.fromKeyframes(
+    }).fromKeyframes(
         {
             "0%": {
-                rotate: "0turn",
-                transform: transformStart,
+                transform: { x: "0px", y: "0px", a: { b: { c: { d: "100%" } } } },
                 backgroundColor: "#C462D8",
             },
-            "50%": {
-                backgroundColor: "#6280D8",
-            },
-            "75%": {
-                backgroundColor: "#52E898",
-                fontSize: "1rem",
-            },
             "100%": {
-                rotate: "1turn",
-                transform: transformEnd,
-                backgroundColor: "#E85252",
-                fontSize: "3rem",
+                transform: { x: "0px", y: "0px", a: { b: { c: { d: "112%" } } } },
+                backgroundColor: "#52E898",
             },
         },
         transformFunc,
     );
 
-    return { anim };
+    // Paint the rest pose once on mount (the springs start at 0 → the box sits
+    // home, un-deflected, before any drag).
+    const paintRest = (): void => {
+        transformFunc({
+            transform: { x: 0, y: 0, a: { b: { c: { d: 1 } } } },
+        });
+    };
+
+    const dispose = (): void => {
+        playback.stop();
+        springX.dispose();
+        springY.dispose();
+    };
+
+    return { anim, springX, springY, reseat, travel, startLoop, paintRest, dispose };
 }

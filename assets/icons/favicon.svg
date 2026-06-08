@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <!-- The favicon (H.W5 BLK-7) — the cube glyph, re-pointed here from the
+       KILLed cube-icon-sm.png in the SAME motion. A favicon renders as a
+       STANDALONE document (no host page currentColor), so it carries an explicit
+       color that follows the browser-chrome theme via prefers-color-scheme —
+       the one place in this family where currentColor would not resolve. -->
+  <style>
+    :root { color: #4c3ee8; }
+    @media (prefers-color-scheme: dark) { :root { color: #a99cff; } }
+  </style>
+  <g stroke="currentColor" stroke-width="2.75">
+    <path d="M16 3 28 9.5 28 22.5 16 29 4 22.5 4 9.5 16 3Z"/>
+    <path d="M16 3 16 16 4 9.5"/>
+    <path d="M16 16 28 9.5"/>
+    <path d="M16 16 16 29"/>
+  </g>
+</svg>

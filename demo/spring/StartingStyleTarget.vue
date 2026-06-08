@@ -58,8 +58,8 @@
                 variant="outline"
                 size="sm"
                 class="h-auto py-1.5 flex flex-col items-center gap-0.5 btn-interactive"
-                :class="{ 'preset-active': p.name === preset.name }"
-                @click="preset = p"
+                :class="{ 'preset-active': isActivePreset(p) }"
+                @click="applyPreset(p)"
             >
                 <span class="text-small text-foreground capitalize">{{ p.name }}</span>
                 <span class="text-admin-label text-muted-foreground tabular-nums">{{ p.response }} / {{ p.dampingFraction }}</span>
@@ -69,38 +69,42 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, ref } from "vue";
+import { computed, inject } from "vue";
 import { Button } from "@mkbabb/glass-ui";
 import { Eye, EyeOff } from "@lucide/vue";
 
-import { springLinearStops } from "@src/animation/springLinearStops";
+import { useSpringLinearStops } from "./useSpringLinearStops";
 import CopyButton from "@components/custom/CopyButton.vue";
 
-import { STARTING_STYLE_DEMO_KEY } from "./startingStyleKeys";
+import { SPRING_DEMO_KEY } from "./springKeys";
 import { SPRING_PRESETS, type SpringPreset } from "./springPresets";
 
-// `visible` / `toggle` are owned by the scene's demo composable (H.W1) so the
-// ScenePlayback contract can round-trip the discrete-transition state across a
-// scene switch — this Target only reads + drives them.
-const demo = inject(STARTING_STYLE_DEMO_KEY)!;
+// The discrete view of the Spring scene (H.W5.S3 — merged from the former
+// standalone Discrete scene). `visible` / `toggle` are owned by the SPRING demo
+// composable so the merged sub-view lives within the spring scene's SINGLE
+// ScenePlayback registration — this Target only reads + drives them.
+const demo = inject(SPRING_DEMO_KEY)!;
 const visible = demo.visible;
-const toggle = demo.toggle;
+const toggle = demo.toggleDiscrete;
 
-// The "bouncy" preset makes the overshoot legible — the whole point of a spring
-// linear(). The four canonical presets are switchable so the artifact + the
-// live transition re-sample together (one solver, one curve).
-const preset = ref<SpringPreset>(
-    SPRING_PRESETS.find((p) => p.name === "bouncy") ?? SPRING_PRESETS[0]!,
-);
+// The preset switch drives the SHARED demo params (response / dampingFraction) —
+// ONE solver, two views: switching a preset here also moves the live-solver
+// sliders, so the discrete transition + the rail read one source of truth.
+const applyPreset = (p: SpringPreset) => {
+    demo.response.value = p.response;
+    demo.dampingFraction.value = p.dampingFraction;
+};
+const isActivePreset = (p: SpringPreset) =>
+    Math.abs(demo.response.value - p.response) < 1e-6 &&
+    Math.abs(demo.dampingFraction.value - p.dampingFraction) < 1e-6;
 
-// The emitted CSS linear() — the same springLinearStops() path the Spring scene
-// surfaces, here driving a real @starting-style transition AND offered as the
-// copy-pasteable artifact a designer pastes into their own stylesheet.
-const springCss = computed(() =>
-    springLinearStops({
-        response: preset.value.response,
-        dampingFraction: preset.value.dampingFraction,
-    }),
+// The emitted CSS linear() — the ONE springLinearStops surface
+// (useSpringLinearStops, H.W5.S3), sampled off the SAME shared params the
+// live-solver rail reads; here it drives a real @starting-style transition AND
+// is offered as the copy-pasteable artifact a designer pastes into a stylesheet.
+const springCss = useSpringLinearStops(
+    () => demo.response.value,
+    () => demo.dampingFraction.value,
 );
 
 // The clipboard payload: the full declaration, ready to paste.

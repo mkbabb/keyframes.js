@@ -281,6 +281,14 @@ function onMbabbMenuOpen(open: boolean) {
    "@mkbabb/glass-ui/styles"` — no demo-side VT CSS duplicates it. */
 .scene-host {
     view-transition-name: scene-subject;
+
+    /* G1 (demo-side, MEASURE-FIRST): paint containment on the perpetually-moving
+       scene host. The rail·stage·rail column separation (H.W3) already moved the
+       glass panels off this host's stacking context; `contain: paint` then walls
+       the host's transforms off so a moving subject (the cube/amiga spin) cannot
+       force the sibling panels' backdrop-filter to re-sample — the panel blur is
+       no longer invalidated per scene frame (proof:scene-host-contained). */
+    contain: paint;
 }
 
 /* The host is `tabindex="-1"` solely to receive PROGRAMMATIC focus after the

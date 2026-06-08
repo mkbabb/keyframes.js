@@ -61,6 +61,25 @@ const SAMPLER_DURATION = 1400;
  * contract (WV-W1-HIGH-3).
  */
 export function useSpringDemo() {
+    // ── Sub-view selection (H.W5.S3 — the Discrete→Spring merge) ──────
+    // The Spring scene now hosts TWO views of one spring curve:
+    //   • "solver"   — the live SpringProgress rail + springTimingFunction sweep;
+    //   • "discrete" — that same spring linear() easing a real @starting-style /
+    //                  allow-discrete CSS transition (the former standalone
+    //                  Discrete scene, merged here in one motion).
+    // Both surface the artifact through the ONE useSpringLinearStops composable
+    // (the 2→1 fold). The active view + the discrete card's visibility are owned
+    // HERE so they live within the spring scene's SINGLE ScenePlayback
+    // registration — NO second scene, NO second adapter.
+    const view = ref<"solver" | "discrete">("solver");
+
+    // The discrete-transition card's visibility (folded from the former
+    // useStartingStyleDemo). The user drives it; the spring scene owns it.
+    const visible = ref(true);
+    const toggleDiscrete = () => {
+        visible.value = !visible.value;
+    };
+
     // ── Interactive params ───────────────────────────────────────────
     const response = ref(0.5);
     const dampingFraction = ref(0.86);
@@ -338,6 +357,11 @@ export function useSpringDemo() {
     );
 
     return {
+        // Sub-view (H.W5.S3 — the merged Discrete view)
+        view,
+        visible,
+        toggleDiscrete,
+
         // Params
         response,
         dampingFraction,
