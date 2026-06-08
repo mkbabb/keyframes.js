@@ -1,12 +1,12 @@
 <template>
     <div class="grid items-center gap-4">
         <Card class="w-full overflow-visible transition-shadow duration-normal glass-card">
-            <CardContent class="relative grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 px-4 py-3">
+            <CardContent class="relative flex flex-col gap-2 px-4 py-3">
                 <!-- Sliding panel container — each panel in its own collapsible row -->
-                <div class="panel-stack col-span-2 grid grid-cols-[subgrid]">
+                <div class="panel-stack relative">
                     <!-- Main controls panel -->
                     <div :class="['panel-row', !(showDetailPanel || advancedOpen) ? 'panel-row--active' : 'panel-row--inactive']">
-                        <div class="panel-content grid grid-cols-[subgrid] items-center gap-x-3 gap-y-2 w-full">
+                        <div class="panel-content flex flex-col gap-2 w-full">
                             <LabeledInput
                                 :model-value="storedAnimationOptions.animationOptions.duration ?? '5s'"
                                 label="duration"
@@ -64,28 +64,37 @@
                                 @update:open="(v: boolean | undefined) => setOpen('fillMode', v ?? false)"
                             />
 
-                            <div class="flex items-center gap-1.5">
-                                <IconTooltip text="Timing function curve">
-                                    <label :class="['text-mono-small text-muted-foreground cursor-help', isDetailEasing ? 'gold-shimmer' : '']">easing</label>
-                                </IconTooltip>
-                                <IconTooltip text="Edit easing curve">
-                                    <DockIconButton compact title="Edit easing curve" class="easing-edit-btn" @click.stop="onEditIconClick(storedAnimationOptions.animationOptions.timingFunction as string)">
-                                        <Pencil class="icon-sm" />
-                                    </DockIconButton>
-                                </IconTooltip>
+                            <!-- Easing field: ONE full-width unit (the label-row + edit
+                                 pencil stacked OVER the EasingSelect), matching the
+                                 LabeledField single-cell shape. glass-ui 3.4.0
+                                 <LabeledField> exposes only default+error slots (no
+                                 label-action slot, VERIFIED LabeledField.vue.d.ts) — so
+                                 this is the wrapper fallback (WV-W3-LOW-1); a glass-ui
+                                 label-action slot is BOOKED as an OPTIONAL handoff. -->
+                            <div class="flex flex-col gap-1">
+                                <div class="flex items-center gap-1.5">
+                                    <IconTooltip text="Timing function curve">
+                                        <label :class="['text-mono-small text-muted-foreground cursor-help', isDetailEasing ? 'gold-shimmer' : '']">easing</label>
+                                    </IconTooltip>
+                                    <IconTooltip text="Edit easing curve">
+                                        <DockIconButton compact title="Edit easing curve" class="easing-edit-btn" @click.stop="onEditIconClick(storedAnimationOptions.animationOptions.timingFunction as string)">
+                                            <Pencil class="icon-sm" />
+                                        </DockIconButton>
+                                    </IconTooltip>
+                                </div>
+                                <EasingSelect
+                                    :model-value="storedAnimationOptions.animationOptions.timingFunction as string"
+                                    :timing-functions-and="timingFunctionsAnd"
+                                    @update:model-value="
+                                        (key: string) => {
+                                            updateTimingFunctionFromName(key);
+                                            storedAnimationOptions.animationOptions.timingFunction = key;
+                                        }
+                                    "
+                                />
                             </div>
-                            <EasingSelect
-                                :model-value="storedAnimationOptions.animationOptions.timingFunction as string"
-                                :timing-functions-and="timingFunctionsAnd"
-                                @update:model-value="
-                                    (key: string) => {
-                                        updateTimingFunctionFromName(key);
-                                        storedAnimationOptions.animationOptions.timingFunction = key;
-                                    }
-                                "
-                            />
 
-                            <Separator class="my-1 col-span-2" />
+                            <Separator class="my-1" />
 
                             <!-- Advanced — navigate to sub-pane -->
                             <div
@@ -94,7 +103,7 @@
                                 tabindex="0"
                                 @keydown.enter="advancedOpen = true"
                                 @keydown.space.prevent="advancedOpen = true"
-                                class="col-span-2 grid grid-cols-[subgrid] gap-x-3 items-center w-full py-1.5 cursor-pointer hover:text-foreground text-muted-foreground transition-colors"
+                                class="flex items-center justify-between gap-x-3 w-full py-1.5 cursor-pointer hover:text-foreground text-muted-foreground transition-colors"
                             >
                                 <span class="text-mono-small">advanced</span>
                                 <div class="flex items-center justify-end px-3">
@@ -121,8 +130,8 @@
 
                     <!-- Advanced sub-pane -->
                     <div :class="['panel-row', advancedOpen && !showDetailPanel ? 'panel-row--active' : 'panel-row--inactive']">
-                        <div class="panel-content grid grid-cols-[subgrid] items-start gap-x-3 gap-y-2 w-full">
-                            <div class="col-span-2 flex items-center gap-1 mb-1">
+                        <div class="panel-content flex flex-col gap-2 w-full">
+                            <div class="flex items-center gap-1 mb-1">
                                 <DockIconButton
                                     compact
                                     title="Back"
@@ -286,9 +295,12 @@ onMounted(() => {
 <style scoped>
 /* Collapsible panel rows: each panel in its own row that animates height via grid-template-rows */
 .panel-row {
+    /* The crossfade: display:grid + grid-template-rows 0fr↔1fr is the
+       collapse animation (ALREADY-SOTA — KEEP display:grid). The former
+       subgrid column-template + the 1/-1 column-span were the two-track
+       subgrid-propagation chain (H.W3.S1 collapsed the parent to a single
+       column) — DELETED; the row is now a single implicit-column grid. */
     display: grid;
-    grid-column: 1 / -1;
-    grid-template-columns: subgrid;
     transition: grid-template-rows var(--duration-normal) var(--ease-standard);
 }
 .panel-row--active {
@@ -300,7 +312,6 @@ onMounted(() => {
 .panel-content {
     overflow: hidden;
     min-height: 0;
-    grid-column: 1 / -1;
     /* Inset padding so focus rings (ring-2 + ring-offset-2 = 4px) aren't clipped
        by the overflow:hidden required for grid-template-rows collapse animation. */
     padding: 2px;

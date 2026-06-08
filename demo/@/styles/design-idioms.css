@@ -103,12 +103,14 @@
     --easing-dropdown-max-h: min(24rem, 60dvh); /* max-h-[var(--easing-dropdown-max-h)] easing
                                                    SelectContent cap — its 60dvh half is the S3
                                                    reconciled unit. */
-    --controls-pane-width: 400px; /* the controls grid's left track width — a COUPLED
-                                     layout invariant (G.W10.S4): the lg grid track
-                                     (AnimationControlsGroup, lg:grid-cols-[var(--controls-pane-width)_1fr_1fr])
-                                     and the pane min-width (ControlsPaneWrapper) MUST match,
-                                     or the open pane overflows/under-fills its column. Two
-                                     files, one token: change the track and the pane tracks it. */
+    --rail-width: 400px; /* the rail·stage·rail grid's [rail] track width — the SINGLE
+                                     width authority (H.W3.S3): the lg grid track
+                                     (AnimationControlsGroup, grid-template-columns: [rail] var(--rail-width) [stage] 1fr),
+                                     the pane width (ControlsPaneWrapper .controls-content), and the
+                                     expanded timeline ([rail] track) ALL resolve to this one token,
+                                     so the sidebar, ribbon, and timeline match by construction.
+                                     Replaces the former pane-width token + the 768px sidebar
+                                     cap + col-span-full — N files, one token, actually honored. */
     --mask-fade: 2.5rem; /* the edge-fade magnitude — ONE design decision ("how wide is an
                             edge fade") consumed by BOTH the tab-overflow horizontal fade
                             (AnimationControls) and the controls-pane vertical scroll fade

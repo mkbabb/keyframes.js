@@ -456,15 +456,17 @@ function main() {
     //   • a two-named mask-fade token shadow (--tabs-mask-fade / --mask-fade-width),
     //   • an h-[fit-content] arbitrary where h-fit exists.
     // This clause extends clause 1's OWNED-IDIOMS shape to the promotions:
-    //   (8a) OWNED — .status-badge, .code-token, --controls-pane-width, --mask-fade
+    //   (8a) OWNED — .status-badge, .code-token, --rail-width, --mask-fade
     //        are defined in design-idioms.css (BITE shares clause 1's empty-file).
+    //        (H.W3.S3 renamed the former pane-width token → --rail-width — the
+    //        SINGLE width authority; the old token is dead tree-wide.)
     //   (8b) ZERO SCENE RE-FORK — no scene <style scoped> re-authors a promoted
     //        idiom: no .settled-badge/.tracking-badge/.code-token definition outside
     //        design-idioms.css, and no scene re-declares a `box-shadow: 0 2px …
     //        color-mix(… --color-progress …)` on a ball-shaped element.
     //   (8c) TOKENIZED — the coupled magic numbers reference the token, not the
-    //        literal: the controls grid track + the pane min-width read
-    //        var(--controls-pane-width) (no raw 400px), both fade-mask sites read
+    //        literal: the controls grid [rail] track + the pane width read
+    //        var(--rail-width) (no raw 400px), both fade-mask sites read
     //        var(--mask-fade) (no divergent --tabs-mask-fade/--mask-fade-width), and
     //        no h-[fit-content] bracket-arbitrary survives.
     // BITE: reds TODAY on SpringTarget/SequenceTarget/MotionPathTarget scoped
@@ -480,8 +482,8 @@ function main() {
             [".status-badge (status-tint idiom)", /\.status-badge\s*\{/],
             [".code-token (inline-code idiom)", /\.code-token\s*\{/],
             [
-                "--controls-pane-width (layout token)",
-                /--controls-pane-width\s*:/,
+                "--rail-width (layout token)",
+                /--rail-width\s*:/,
             ],
             ["--mask-fade (edge-fade token)", /--mask-fade\s*:/],
         ];
@@ -556,12 +558,18 @@ function main() {
         // Comment-blank each file so a doc-comment NAMING the retired literal/token
         // (e.g. "the former --tabs-mask-fade shadow is collapsed") does not
         // false-positive — only LIVE declarations/references count.
+        // H.W3.S4: the lg grid track moved from a `lg:grid-cols-[…]` Tailwind class
+        // to scoped CSS `grid-template-columns: [rail] var(--rail-width) [stage] 1fr`
+        // (via the --rail-track collapse var). The token coupling is unchanged in
+        // spirit — the [rail] track reads var(--rail-width), never a raw 400px.
         const groupSrc = blankComments(fileSrc(GROUP));
-        if (/lg:grid-cols-\[400px/.test(groupSrc) || !/var\(--controls-pane-width\)/.test(groupSrc))
-            tokenizedFails.push(`${GROUP}: the lg grid track must read var(--controls-pane-width), not the raw 400px`);
+        if (/grid-template-columns:[^;]*\b400px\b/.test(groupSrc) || !/var\(--rail-width\)/.test(groupSrc))
+            tokenizedFails.push(`${GROUP}: the lg [rail] grid track must read var(--rail-width), not the raw 400px`);
+        // H.W3.S3: the pane went from a `min-width` floor to an exact `width` — the
+        // pane IS the rail width (the single width authority), reading var(--rail-width).
         const paneSrc = blankComments(fileSrc(PANE));
-        if (/min-width:\s*400px/.test(paneSrc) || !/min-width:\s*var\(--controls-pane-width\)/.test(paneSrc))
-            tokenizedFails.push(`${PANE}: the pane min-width must read var(--controls-pane-width), not the raw 400px`);
+        if (/width:\s*400px/.test(paneSrc) || !/width:\s*var\(--rail-width\)/.test(paneSrc))
+            tokenizedFails.push(`${PANE}: the pane width must read var(--rail-width), not the raw 400px`);
         // Both fade-mask sites read var(--mask-fade); neither divergent local name survives.
         const tabsSrc = blankComments(fileSrc(TABS));
         if (/--tabs-mask-fade\b/.test(tabsSrc) || !/var\(--mask-fade\)/.test(tabsSrc))
@@ -582,7 +590,7 @@ function main() {
         if (missingOwned.length === 0 && reforks.length === 0 && tokenizedFails.length === 0) {
             console.log(
                 `  ✓ [scene-refork] the post-F scenes consume the promoted idioms ` +
-                    `(.status-badge / .code-token / --controls-pane-width / --mask-fade): ` +
+                    `(.status-badge / .code-token / --rail-width / --mask-fade): ` +
                     `zero scene re-fork, the coupled 400px + the two-named fade tokenized, ` +
                     `h-fit (G.W10)`,
             );

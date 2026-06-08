@@ -2,7 +2,8 @@
     <TooltipProvider :delay-duration="100" :skip-delay-duration="0">
     <div
         :class="[
-            'controls-layout grid grid-cols-1 grid-rows-[auto_1fr_auto] lg:grid-rows-[1fr_auto] lg:grid-cols-[var(--controls-pane-width)_1fr_1fr] justify-items-stretch items-start relative',
+            'controls-layout grid grid-cols-1 grid-rows-[auto_1fr_auto] justify-items-stretch items-start relative',
+            storedControls.isControlsPanelOpen ? 'controls-layout--open' : 'controls-layout--closed',
         ]"
         v-bind="$attrs"
     >
@@ -41,29 +42,32 @@
 
         <!-- Animation stage. Mobile: a dedicated 1fr row track (row 2) below the
              `auto` controls-pane row — the pane no longer overlays/clips the
-             stage at narrow widths (Qσ V1). Desktop: the stage spans the FULL
-             3-col grid (col 1-4) so the subject centers in the viewport, NOT
-             in cols 2-3 — which, when the controls pane is closed/hidden,
-             collapsed the `1fr 1fr` tracks to zero width and jammed the cube
-             off the right edge (B.W3 BLOCKER: the cube was ~half-clipped at
-             1280/1440). The controls-pane (col-1, z-controls, position:
-             relative) overlays the stage's left edge when open — its own
-             --controls-pane-width backdrop sits above the centered stage (the
-             grid track + the pane min-width single-source that width via the
-             token), so an open pane frames the subject without shifting it. -->
+             stage at narrow widths (Qσ V1). Desktop: the stage gets its OWN
+             named [stage] track (column 2, the 1fr remainder beside the [rail]
+             track) — H.W3.S4 (WV-W3-HIGH-3) replaced the former full-grid stage
+             span. The rail and stage are now DISJOINT columns: the controls pane
+             occupies [rail] and the subject centers in [stage], so an open pane no
+             longer overlays the subject — closing the pane collapses the [rail]
+             track to 0 and the stage reflows to fill the freed width. The B.W3
+             "cube half-clipped" invariant is the proof:stage-not-clipped gate's
+             subject; if the [stage]-track form clips at 1280/1440 the conservative
+             span-to-the-grid-end form (col-start: rail / col-end: -1) is the
+             documented fallback. -->
         <div
-            :class="[
-                'justify-self-stretch self-center min-h-0 h-full overflow-visible overscroll-contain col-span-full row-start-2 lg:row-start-1 lg:row-end-auto lg:col-start-1 lg:col-end-4',
-            ]"
+            class="stage-cell justify-self-stretch self-center min-h-0 h-full overflow-visible overscroll-contain row-start-2"
         >
             <slot name="animation-content"></slot>
         </div>
 
-        <!-- Teleport target for expanded timeline (content arrives via Teleport from AnimationControls) -->
+        <!-- Teleport target for expanded timeline (content arrives via Teleport
+             from AnimationControls). Desktop: aligned to the [rail] track (grid-column:
+             rail) + [bottom] row — the expanded timeline is a vertical extension of
+             the controls rail, inheriting --rail-width, NOT a full-grid-span
+             surface (H.W3.S4 / a-demo-architecture F2). Mobile: the lone column at row 3. -->
         <div
             id="timeline-expanded-target"
             :class="[
-                'col-span-full row-start-3 lg:row-start-2 z-dock overflow-hidden',
+                'timeline-expanded-cell row-start-3 z-dock overflow-hidden',
                 'transition-[max-height,opacity] duration-slow ease-standard',
                 storedControls.isTimelineExpanded
                     ? 'max-h-[var(--panel-max-h)] border-t border-border/50 glass-wash px-4 py-3'
@@ -339,6 +343,49 @@ function cycleAnimation(direction: number) {
 @media (max-width: 1023px) {
     .controls-layout {
         align-content: center;
+    }
+}
+
+/* ── Desktop: the named rail·stage·rail frame (H.W3.S4) ──
+   ONE grid, one --rail-width token. The former 3-track
+   [rail 1fr 1fr] grid (whose `1fr 1fr` siblings collapsed to 0px and forced
+   the stage to span the whole grid) collapses to two named columns: [rail] is
+   the controls rail + the expanded timeline; [stage] is the centered subject.
+   The open/close axis IS the [rail] track width (var(--rail-width) ↔ 0) —
+   this REPLACES the deleted translateX(-110%) overlay slide (no legacy beside
+   replacement, WV-W3-HIGH-2). Closing the pane collapses [rail] to 0 and the
+   stage reflows to fill the freed width. Rows: [top] auto (reserved for the
+   H.W4 hero / dock, F7) · [stage] 1fr (the main content) · [bottom] auto (the
+   expanded timeline + the fixed menubar's reserve). */
+@media (min-width: 1024px) {
+    .controls-layout {
+        --rail-track: var(--rail-width);
+        grid-template-columns: [rail] var(--rail-track) [stage] 1fr;
+        grid-template-rows: [top] auto [stage] 1fr [bottom] auto;
+        transition: grid-template-columns var(--duration-slow) var(--spring-snappy);
+    }
+    .controls-layout--closed {
+        --rail-track: 0px;
+    }
+
+    /* The controls pane occupies the [rail] track, the [stage] content row. */
+    .controls-layout > :deep(.controls-pane-wrapper) {
+        grid-column: rail;
+        grid-row: stage;
+    }
+
+    /* The subject gets its OWN [stage] track (the former full-grid stage span
+       is deleted). */
+    .stage-cell {
+        grid-column: stage;
+        grid-row: stage;
+    }
+
+    /* The expanded timeline is a vertical extension of the rail: [rail] track,
+       [bottom] row (not a full-grid span). */
+    .timeline-expanded-cell {
+        grid-column: rail;
+        grid-row: bottom;
     }
 }
 </style>

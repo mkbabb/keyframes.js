@@ -11,15 +11,25 @@
             @update:open="(v) => setOpen('blend', v)"
         />
 
-        <IconTooltip text="Stacking order in animation group">
-            <label class="text-body text-muted-foreground cursor-help">z-index</label>
-        </IconTooltip>
-        <Input
-            type="number"
-            class="font-mono"
-            :model-value="layerConfig.zIndex"
-            @change="(e: Event) => emit('update', { zIndex: parseInt((e.target as HTMLInputElement).value) || 0 })"
-        />
+        <!-- z-index: a raw <LabeledField> + slotted <Input> so blend/z-index/
+             enabled are all one-cell rows (one paradigm, H.W3.S2). LabeledField
+             owns the IconTooltip + label layer; the slot binds controlId/errorId
+             manually (the four wrappers auto-wire these — a raw slot does it by
+             hand, LabeledField.vue.d.ts:19-26 / WV-W3-LOW-2). -->
+        <LabeledField
+            label="z-index"
+            tooltip="Stacking order in animation group"
+            v-slot="{ controlId, errorId }"
+        >
+            <Input
+                :id="controlId"
+                :aria-errormessage="errorId"
+                type="number"
+                class="font-mono"
+                :model-value="layerConfig.zIndex"
+                @change="(e: Event) => emit('update', { zIndex: parseInt((e.target as HTMLInputElement).value) || 0 })"
+            />
+        </LabeledField>
 
         <template v-if="layerConfig.blendMode === 'weighted'">
             <LabeledSlider
@@ -40,14 +50,13 @@
             @update:checked="(v: boolean) => emit('update', { enabled: v })"
         />
 
-        <Separator class="col-span-2 my-1" />
+        <Separator class="my-1" />
     </template>
 </template>
 
 <script setup lang="ts">
 import type { AnimationLayerConfig } from "@src/animation/constants";
-import { LabeledSelect, LabeledSlider, LabeledSwitch } from "@mkbabb/glass-ui/labeled-field";
-import { IconTooltip } from "@mkbabb/glass-ui/icon-tooltip";
+import { LabeledField, LabeledSelect, LabeledSlider, LabeledSwitch } from "@mkbabb/glass-ui/labeled-field";
 import { Input } from "@mkbabb/glass-ui/forms";
 import { Separator } from "@mkbabb/glass-ui";
 import { BLEND_MODE_DESCRIPTIONS } from "../animationDescriptions";

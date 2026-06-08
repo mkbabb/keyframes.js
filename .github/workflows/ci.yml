@@ -215,6 +215,52 @@ jobs:
               run: npm run proof:single-toggle
               env:
                   KF_REQUIRE_BROWSER: "1"
+            # H.W3 (WV-W3-MED-2) — the single-column pack + mis-size lock: at
+            # 1440×900 / #/cube / pane open, every LEAF row (.controls-content
+            # .labeled-field, visible) shares ONE left edge AND ONE width (±2px),
+            # with a ≥6 non-vacuity guard. Born-RED on the pre-W3 two-track grid
+            # (left edges {76,300}, width Δ=254). Settle-gated on the H.W1 FSM
+            # resting; KF_REQUIRE_BROWSER turns a playwright-absent skip into a
+            # hard CI fail (the column pack cannot pass vacuously).
+            - name: proof:single-column-pack (H.W3 — the leaf-row single-column + mis-size lock)
+              run: npm run proof:single-column-pack
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            # H.W3 — the rail-width binding lock: at 1440×900 / #/cube / pane open,
+            # the timeline + pane (border-box) + AnimationControls root (content-box)
+            # all resolve to the SINGLE --rail-width authority (the D4 1272/768/400
+            # three-regime spread is dead) + the mobile companion (no desktop-cap
+            # leak at 390). Settle-gated on the H.W1 FSM resting (the named [rail]
+            # var(--rail-width) [stage] grid resolving); KF_REQUIRE_BROWSER turns a
+            # playwright-absent skip into a hard CI fail (the binding cannot pass
+            # vacuously).
+            - name: proof:timeline-rail-width (H.W3 — the four-way --rail-width binding + mobile full-bleed)
+              run: npm run proof:timeline-rail-width
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            # H.W3 (WV-W3-HIGH-1) — the rail·stage·rail architecture lock: the
+            # static no-legacy grep over the S1–S4 + TimingFunctionPanel scope
+            # (zero grid-cols-[auto_1fr]/[subgrid]/col-span-2/col-end-4/col-span-full/
+            # grid-template-columns:subgrid, comment-blanked) + the tree-wide
+            # --controls-pane-width dead-token deletion + the computed named
+            # [rail] var(--rail-width) [stage] 1fr × [top]auto [stage]1fr [bottom]auto
+            # template. Settle-gated on the H.W1 FSM resting (#/cube pinned in-page,
+            # viewport re-asserted, pane open, grid resolved to --rail-width);
+            # KF_REQUIRE_BROWSER turns a playwright-absent skip into a hard CI fail.
+            - name: proof:demo-shell-grid (H.W3 — ONE named rail·stage·rail grid · no legacy two-track apparatus · dead token gone)
+              run: npm run proof:demo-shell-grid
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            # H.W3 S4 (WV-W3-HIGH-3) — the MEASURE-FIRST stage guard: at 1280 & 1440,
+            # pane OPEN & CLOSED, the [stage]-cell subject bbox is fully within the
+            # viewport (the B.W3 cube-half-clipped invariant). The gate that lets S4
+            # ship the stronger [stage]-track form; the col-end-4 conservative span
+            # is the documented fallback if it ever clips. KF_REQUIRE_BROWSER turns a
+            # playwright-absent skip into a hard CI fail (a clip cannot pass vacuously).
+            - name: proof:stage-not-clipped (H.W3 S4 — the stage subject is un-clipped at 1280/1440 · open/closed)
+              run: npm run proof:stage-not-clipped
+              env:
+                  KF_REQUIRE_BROWSER: "1"
             - name: proof:computed-real-dom (G.W16 S2 — the C5 50dvh fix on the genuine layout path)
               run: npm run proof:computed-real-dom
               env:

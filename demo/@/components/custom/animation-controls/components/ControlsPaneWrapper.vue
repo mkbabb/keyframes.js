@@ -3,7 +3,7 @@
         v-show="storedControls.selectedAnimation && !hideControls"
         @transitionend="onPanelTransitionEnd"
         :class="[
-            'controls-pane-wrapper col-start-1 row-start-1 lg:row-start-1 min-w-0 relative z-controls',
+            'controls-pane-wrapper col-start-1 row-start-1 min-w-0 relative z-controls',
             'controls-pane--mobile',
             storedControls.isControlsPanelOpen
                 ? 'controls-pane--open'
@@ -163,7 +163,14 @@ const emit = defineEmits<{
     opacity: 0;
 }
 
-/* ── Desktop: springy pane-left slide ── */
+/* ── Desktop: the [rail]-track collapse IS the open/close axis ──
+   H.W3.S4 (WV-W3-HIGH-2): the former translateX(-110%) overlay slide is
+   DELETED — the pane no longer slides over a centered stage. The grid's
+   [rail] track (AnimationControlsGroup) collapses var(--rail-width) ↔ 0 and
+   the stage reflows into the freed width; the pane is a real grid column, not
+   an overlay. The wrapper clips its fixed-width content as the track shrinks
+   (overflow:hidden), the content fades (opacity), and pointer-events drop when
+   closed so the collapsed rail captures nothing. No legacy beside replacement. */
 @media (min-width: 1024px) {
     .controls-pane-wrapper {
         max-height: none;
@@ -171,38 +178,31 @@ const emit = defineEmits<{
         margin-top: 0;
         padding-inline: 0;
         display: block;
-        overflow: visible;
+        /* Clip the fixed-width .controls-content as the [rail] track collapses. */
+        overflow: hidden;
     }
     .controls-pane-wrapper.controls-pane--open {
-        visibility: visible;
         pointer-events: auto;
-        transition: visibility 0s 0s;
     }
     .controls-pane-wrapper.controls-pane--closed {
-        visibility: hidden;
         pointer-events: none;
-        transition: visibility 0s var(--duration-slow);
     }
-    /* Spring in from left, ease out to left */
     .controls-pane--open .controls-pane {
         opacity: 1;
-        transform: translateX(0);
-        transition:
-            opacity var(--duration-normal) var(--ease-out),
-            transform var(--duration-slow) var(--spring-snappy);
+        transition: opacity var(--duration-normal) var(--ease-out);
     }
     .controls-pane--closed .controls-pane {
         opacity: 0;
-        transform: translateX(-110%) rotate(-2deg);
-        transition:
-            opacity var(--duration-fast) var(--ease-in),
-            transform var(--duration-normal) var(--ease-out);
+        transition: opacity var(--duration-fast) var(--ease-in);
     }
 
     .controls-content {
-        /* Couples to the grid's left track (AnimationControlsGroup) via the
-           --controls-pane-width token — change the track, the pane tracks it. */
-        min-width: var(--controls-pane-width);
+        /* Couples to the grid's [rail] track (AnimationControlsGroup) via the
+           --rail-width token — the pane IS exactly the rail width (the single
+           width authority, H.W3.S3), not a floor that can stretch. box-sizing:
+           border-box keeps the shadow-clearance padding inside the budget. */
+        width: var(--rail-width);
+        box-sizing: border-box;
         /* Extra padding to prevent card box-shadow clipping */
         padding-right: 12px;
         padding-bottom: 12px;

@@ -1,6 +1,6 @@
 <template>
         <div
-            class="col-span-2 w-full grid justify-items-center"
+            class="w-full grid justify-items-center"
         >
             <Button
                 variant="ghost"
@@ -75,41 +75,48 @@
                     <CardHeader class="p-0 pb-2">
                         <CardTitle class="text-heading">steps</CardTitle>
                     </CardHeader>
-                    <CardContent class="p-0 grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-2">
-                        <label class="text-mono-caption normal-case text-muted-foreground">count</label>
-                        <Input
-                            type="number"
-                            class="font-mono"
-                            :model-value="storedAnimationOptions.stepOptions.steps"
-                            @update:model-value="
-                                (key: any) => {
-                                    storedAnimationOptions.stepOptions.steps = key;
-                                    emit('updateTimingFunction', 'steps' as any);
-                                }
-                            "
-                        />
+                    <!-- Single-column stacked fields (label OVER control), the same
+                         shape as the sidebar's LabeledField rows — H.W3.S3b collapsed
+                         this panel's own label|control two-track grid. -->
+                    <CardContent class="p-0 flex flex-col gap-2">
+                        <div class="flex flex-col gap-1">
+                            <label class="text-mono-caption normal-case text-muted-foreground">count</label>
+                            <Input
+                                type="number"
+                                class="font-mono"
+                                :model-value="storedAnimationOptions.stepOptions.steps"
+                                @update:model-value="
+                                    (key: any) => {
+                                        storedAnimationOptions.stepOptions.steps = key;
+                                        emit('updateTimingFunction', 'steps' as any);
+                                    }
+                                "
+                            />
+                        </div>
 
-                        <label class="text-mono-caption normal-case text-muted-foreground">jump term</label>
-                        <Select
-                            :model-value="storedAnimationOptions.stepOptions.jumpTerm"
-                            @update:model-value="
-                                (key: any) => {
-                                    storedAnimationOptions.stepOptions.jumpTerm = key;
-                                    emit('updateTimingFunction', 'steps' as any);
-                                }
-                            "
-                        >
-                            <SelectTrigger class="font-mono">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectGroup class="font-mono">
-                                    <SelectItem v-for="j in jumpTerms" :value="j">
-                                        {{ j }}
-                                    </SelectItem>
-                                </SelectGroup>
-                            </SelectContent>
-                        </Select>
+                        <div class="flex flex-col gap-1">
+                            <label class="text-mono-caption normal-case text-muted-foreground">jump term</label>
+                            <Select
+                                :model-value="storedAnimationOptions.stepOptions.jumpTerm"
+                                @update:model-value="
+                                    (key: any) => {
+                                        storedAnimationOptions.stepOptions.jumpTerm = key;
+                                        emit('updateTimingFunction', 'steps' as any);
+                                    }
+                                "
+                            >
+                                <SelectTrigger class="font-mono">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectGroup class="font-mono">
+                                        <SelectItem v-for="j in jumpTerms" :value="j">
+                                            {{ j }}
+                                        </SelectItem>
+                                    </SelectGroup>
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </CardContent>
                 </Card>
             </template>
