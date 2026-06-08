@@ -1,68 +1,72 @@
 <template>
-    <div class="flex flex-col items-center justify-center gap-4 h-full w-full px-6 lg:px-8 max-w-3xl mx-auto overflow-hidden dock-inset">
-        <!-- Live interactive spring tracker -->
-        <div class="glass-resting cartoon-surface w-full flex-1 min-h-0 flex flex-col overflow-hidden">
-            <div class="flex items-center justify-between px-4 py-2.5 border-b border-border/40 shrink-0">
-                <div class="flex items-baseline gap-3 min-w-0">
-                    <span class="text-heading text-foreground truncate">
-                        SpringProgress
-                    </span>
-                    <span class="text-mono-caption text-muted-foreground tabular-nums whitespace-nowrap">
-                        x = {{ demo.liveValue.value.toFixed(3) }} &middot; v = {{ demo.liveVelocity.value.toFixed(2) }}
-                    </span>
-                </div>
-                <span
-                    class="status-badge text-admin-label px-2 py-0.5 rounded-full"
-                    :class="demo.liveSettled.value ? 'settled-badge' : 'tracking-badge'"
-                >{{ demo.liveSettled.value ? "settled" : "tracking" }}</span>
+    <!-- G8 (H.W10.S5) — FULL-BLEED stage. The former bare-class
+         `glass-resting cartoon-surface` card is DROPPED (no card to round —
+         dissolves G2); the rail + sweep float full-bleed like the cube subject.
+         Dock-band containment is the [stage]-track PRIMITIVE — the per-scene
+         `dock-inset` is GONE. `max-w-3xl` rides the content column as an optical
+         reading measure (the rails are wide). -->
+    <div class="flex flex-col items-center justify-center gap-8 h-full w-full px-6 lg:px-8 overflow-hidden">
+        <!-- Header readout -->
+        <div class="flex w-full max-w-3xl items-center justify-between gap-3 shrink-0">
+            <div class="flex items-baseline gap-3 min-w-0">
+                <span class="text-heading text-foreground truncate">
+                    SpringProgress
+                </span>
+                <span class="text-mono-caption text-muted-foreground tabular-nums whitespace-nowrap">
+                    x = {{ demo.liveValue.value.toFixed(3) }} &middot; v = {{ demo.liveVelocity.value.toFixed(2) }}
+                </span>
             </div>
+            <span
+                class="status-badge text-admin-label px-2 py-0.5 rounded-full"
+                :class="demo.liveSettled.value ? 'settled-badge' : 'tracking-badge'"
+            >{{ demo.liveSettled.value ? "settled" : "tracking" }}</span>
+        </div>
 
-            <!-- The rail: tap/drag to re-seat the live target -->
-            <div class="flex-1 min-h-0 flex flex-col items-center justify-center px-8 py-6 gap-6">
+        <!-- The rail: tap/drag to re-seat the live target -->
+        <div class="flex w-full max-w-3xl flex-col items-center justify-center gap-6">
+            <div
+                ref="railEl"
+                class="spring-rail relative w-full h-12 cursor-pointer select-none"
+                role="slider"
+                aria-label="Drag to re-seat the spring target"
+                :aria-valuenow="Math.round(demo.target.value * 100)"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                tabindex="0"
+                @pointerdown="onPointerDown"
+                @keydown="onKeydown"
+            >
+                <div class="progress-rail"></div>
+                <!-- Ghost target marker (where the spring is chasing) -->
                 <div
-                    ref="railEl"
-                    class="spring-rail relative w-full h-12 cursor-pointer select-none"
-                    role="slider"
-                    aria-label="Drag to re-seat the spring target"
-                    :aria-valuenow="Math.round(demo.target.value * 100)"
-                    aria-valuemin="0"
-                    aria-valuemax="100"
-                    tabindex="0"
-                    @pointerdown="onPointerDown"
-                    @keydown="onKeydown"
-                >
-                    <div class="progress-rail"></div>
-                    <!-- Ghost target marker (where the spring is chasing) -->
-                    <div
-                        class="spring-target-marker"
-                        :style="{ left: `calc(${demo.target.value * 100}% )` }"
-                    ></div>
-                    <!-- The live spring ball -->
-                    <div
-                        class="progress-ball spring-ball"
-                        :style="{ left: `calc(${demo.liveValue.value * 100}%)` }"
-                    ></div>
-                </div>
-                <p class="text-small text-muted-foreground text-center">
-                    Tap or drag the rail &mdash; the ball springs to the new target. Adjust
-                    <span class="code-token">response</span> /
-                    <span class="code-token">dampingFraction</span> in the panel.
-                </p>
+                    class="spring-target-marker"
+                    :style="{ left: `calc(${demo.target.value * 100}% )` }"
+                ></div>
+                <!-- The live spring ball -->
+                <div
+                    class="progress-ball spring-ball"
+                    :style="{ left: `calc(${demo.liveValue.value * 100}%)` }"
+                ></div>
             </div>
+            <p class="text-small text-muted-foreground text-center">
+                Tap or drag the rail &mdash; the ball springs to the new target. Adjust
+                <span class="code-token">response</span> /
+                <span class="code-token">dampingFraction</span> in the panel.
+            </p>
+        </div>
 
-            <!-- springTimingFunction sweep -->
-            <div class="px-4 py-3 border-t border-border/40 shrink-0">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-small text-foreground">springTimingFunction sweep</span>
-                    <span class="text-mono-caption text-muted-foreground tabular-nums">{{ demo.sampled.value.toFixed(3) }}</span>
-                </div>
-                <div class="sampler-track relative h-9">
-                    <div class="progress-rail"></div>
-                    <div
-                        class="progress-ball sampler-ball"
-                        :style="{ left: `calc(${clampSweep(demo.sampled.value) * 100}%)` }"
-                    ></div>
-                </div>
+        <!-- springTimingFunction sweep -->
+        <div class="w-full max-w-3xl shrink-0">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-small text-foreground">springTimingFunction sweep</span>
+                <span class="text-mono-caption text-muted-foreground tabular-nums">{{ demo.sampled.value.toFixed(3) }}</span>
+            </div>
+            <div class="sampler-track relative h-9">
+                <div class="progress-rail"></div>
+                <div
+                    class="progress-ball sampler-ball"
+                    :style="{ left: `calc(${clampSweep(demo.sampled.value) * 100}%)` }"
+                ></div>
             </div>
         </div>
     </div>

@@ -342,6 +342,30 @@ function cycleAnimation(direction: number) {
     margin: auto;
 }
 
+/* ── G8 (H.W10.S5) — the [stage]-track dock-safe containment PRIMITIVE ──
+   The SINGLE dock-safe envelope for EVERY scene subject. The TOP ChromeDock
+   (`fixed`) and the BOTTOM AnimationMenuBar (`fixed`) each occupy a
+   --dock-band-reserve band that overlays the work-area's top/bottom edges (the
+   work-area centers with `margin:auto`, so its edges sit at the optical
+   top/bottom offset — INSIDE the fixed dock bands). The [stage]/[top]/[bottom]
+   grid rows did NOT reserve those bands: [top] auto collapsed to 0 (the dock is
+   out of flow) and [stage] 1fr spanned UNDER both docks. cube/amiga don't clip
+   because their subjects CENTER in the cell (no edge to clip); the easing/spring
+   stages STRETCH (`h-full`/`flex-1`) so their top edge ran under the top dock
+   (the G8 clip). This reserves the dock band on the stage cell ITSELF —
+   box-sizing:border-box + symmetric padding-block === --dock-band-reserve — so
+   the stage SUBJECT is inset clear of BOTH dock bands, once, for every scene
+   (DRY; no per-scene `dock-inset`). ZERO hardcoded numbers: the inset IS the
+   existing cycle-free --dock-band-reserve token (dock-icon-height + dock-margin
+   + safe-area-inset-bottom). The former per-scene `dock-inset` (bottom-only,
+   so the top clipped) is DELETED with this — no legacy beside the replacement.
+   This sits on .stage-cell (not the [top]/[bottom] grid rows) so the expanded
+   timeline in the [bottom] row keeps its own `auto`-sized growth track. */
+.stage-cell {
+    box-sizing: border-box;
+    padding-block: var(--dock-band-reserve);
+}
+
 @media (max-width: 1023px) {
     .controls-layout {
         align-content: center;

@@ -467,20 +467,15 @@
     font-size: var(--type-caption);
 }
 
-/* ── .dock-inset ──
-   The dock-band inset (E.W11.S4 — define-or-delete; DEFINED, two scenes expect
-   it). Referenced as a layout class on the easing + spring scene targets
-   (EasingTarget.vue, SpringTarget.vue) but DEFINED demo-nowhere until now — it
-   resolved to a no-op, silently dropping the intended inset on both scenes (a
-   latent layout bug). The intent: keep the scene subject clear of the bottom
-   dock BAND (the menubar pill exclusion zone), the same reserve the work-area
-   sizing already names. Reserving padding-bottom equal to --dock-band-reserve
-   (the cycle-free dock + safe-area band defined in style.css) lifts the scene
-   content above the dock on those two scenes. NAMED layout-correctness delta:
-   the intended dock-band inset now appears on the two scenes that expect it. */
-.dock-inset {
-    padding-bottom: var(--dock-band-reserve);
-}
+/* ── .dock-inset — DELETED (H.W10.S5/G8) ──
+   The per-scene bottom-only dock-band inset is SUPERSEDED by the [stage]-track
+   containment PRIMITIVE (AnimationControlsGroup.vue `.stage-cell` reserves the
+   dock band symmetrically top + bottom, for EVERY scene). The old `.dock-inset`
+   padded `padding-bottom` ONLY — so the easing/spring stage card's TOP edge ran
+   under the top ChromeDock (the G8 clip). The reserve now lives ONCE on the
+   grid's stage cell (no per-scene class; the band is reserved by the layout, not
+   patched per scene). No legacy beside the replacement — the class + its three
+   scene callsites are removed in one motion. */
 
 /* ── @keyframes enter ──
    The tab-panel slide-in keyframe. Until now this resolved ONLY through

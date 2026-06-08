@@ -31,9 +31,17 @@
                 <Pause v-if="isAnimPlaying" class="icon-md" />
                 <Play v-else class="icon-md pl-px" />
             </Button>
+            <!-- G7 (H.W10.S2) — the Reverse cell matches the Play cell's HEIGHT.
+                 The reka <Button> default applies `h-10` (40px) to the Play cell
+                 (it out-specifies the unlayered `.btn-playback { height:2rem }`),
+                 so the Reverse cell adopts the SAME `h-10` (was `h-8` = 32px) to
+                 read equal-height beside Play — the user's "same width AND height"
+                 ask, closed by the layout idiom (grid-cols-2 = equal width;
+                 matched h-10 = equal height) for EVERY scene that mounts this
+                 ribbon (cube/amiga/easing/spring), not a per-button magic number. -->
             <Button
                 :class="[
-                    'h-8 w-full rounded-full gap-2 text-body btn-interactive',
+                    'h-10 w-full rounded-full gap-2 text-body btn-interactive',
                     'aria-pressed:bg-primary/10 aria-pressed:border-primary/40',
                 ]"
                 :aria-pressed="userReversed"

@@ -356,6 +356,20 @@ export function useSpringDemo() {
         { immediate: true },
     );
 
+    // G3 (H.W10.S2) — mirror the sweep phase onto the contract animation's clock
+    // so the STANDARD PlaybackRibbon (scrubber Slider + AnimationVisualizer ball,
+    // mounted in the spring scene's ribbonContent slot) tracks the live sweep: the
+    // visualizer reads `effectiveT/duration`, the scrubber reads `currentT`. The
+    // contract anim drives NO motion (no DOM target) — a pure time-twin. A watch
+    // (not the rAF frame) avoids the contractAnim TDZ (the loop arms at mount).
+    watch(
+        progress,
+        (p) => {
+            contractAnim.t = p * contractAnim.options.duration;
+        },
+        { immediate: true },
+    );
+
     return {
         // Sub-view (H.W5.S3 — the merged Discrete view)
         view,
@@ -393,6 +407,9 @@ export function useSpringDemo() {
 
         // Scene contract
         animationGroup,
+        // The contract animation (the time-twin the standard PlaybackRibbon binds
+        // its scrubber + visualizer to — G3/H.W10.S2).
+        contractAnim,
         // The raw-rAF ScenePlayback adapter — the App registers this on
         // SCENE_READY so suspend/restore route through the contract (the
         // spring↔cube cross-pair the group gate misses).

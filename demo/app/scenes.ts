@@ -1,10 +1,17 @@
 import { defineAsyncComponent, type Component } from "vue";
 
-// The inline-SVG icon family (H.W5.S1/S2) — one hand-authored 32×32
-// `fill="none" stroke="currentColor"` glyph per non-home survivor, resolved
-// through the `?component` seam (vite.config.ts svgLoader) to an inline-`<svg>`
-// SFC that inherits the host theme color. NOT an `<img :src>` URL (theme-blind
-// by construction). The icon is data and lives WITH the scene's other data.
+// The EXPRESSIVE, COLORFUL inline-SVG icon family (H.W10.S1/G1 — reverses W5's
+// monochrome `stroke="currentColor"` flip). The 4 ORIGINALS are RE-INSTANTIATED
+// 1:1 from 084feb9: cube/amiga/square are the colorful 32×32 rasters embedded
+// pixel-faithfully as `<svg><image href="data:image/png;base64,…"/></svg>`,
+// easing is the original violet `hsl(248,88%,71%)` vector restored verbatim. The
+// 3 NEW colorful glyphs (spring/sequence/motion-path — the primitives that
+// LACKED an icon) paint from the demo's `--rainbow-*`/`--color-progress` tokens
+// (currentColor fallback). ALL resolve through the unchanged W5 `?component`
+// seam (vite.config.ts svgLoader, `convertColors:false`) to an inline-`<svg>`
+// SFC — NOT an `<img :src>` URL (theme-blind by construction; the D8 defense
+// holds: even the raster-embeds render as inline `<svg><image>`, never `<img>`).
+// The icon is data and lives WITH the scene's other data.
 import CubeIcon from "@assets/icons/cube.svg?component";
 import AmigaIcon from "@assets/icons/amiga.svg?component";
 import SquareIcon from "@assets/icons/square.svg?component";
@@ -23,13 +30,15 @@ export interface SceneDescriptor {
     superKey: string;
     component?: Component;
     /**
-     * The scene's nav glyph (H.W5.S1) — an inline-`<svg>` SFC imported via the
-     * `?component` seam (`import CubeIcon from "@assets/icons/cube.svg?component"`),
-     * NOT an `<img :src>` URL. Inline-SVG is the ONLY reference mechanism that
-     * inherits the host theme color (`stroke="currentColor"`), so the dock renders
-     * it with `<component :is="scene.icon" class="size-5 text-muted-foreground" />`.
-     * The icon is data and lives WITH the scene (single-source: the dock iterates
-     * `scene.icon`, never a parallel string-keyed map that drifts on a rename).
+     * The scene's nav glyph — an EXPRESSIVE, COLORFUL inline-`<svg>` SFC imported
+     * via the `?component` seam (`import CubeIcon from "@assets/icons/cube.svg
+     * ?component"`), NOT an `<img :src>` URL. Inline-SVG is the reference mechanism
+     * that keeps the glyph a real DOM `<svg>` (a colorful raster is embedded as
+     * `<svg><image href="data:…"/></svg>`, never a theme-blind `<img>` — the D8
+     * defense), so the dock renders it with `<component :is="scene.icon"
+     * class="icon-sm text-muted-foreground" />`. The icon is data and lives WITH
+     * the scene (single-source: the dock iterates `scene.icon`, never a parallel
+     * string-keyed map that drifts on a rename).
      *
      * Populated per-survivor by the Build/icons lane (it authors the SVGs first);
      * the home descriptor carries no `icon` and the dock falls back to `<Home>`

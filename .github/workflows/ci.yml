@@ -437,6 +437,97 @@ jobs:
               run: npm run proof:easing-canvas-bounded
               env:
                   KF_REQUIRE_BROWSER: "1"
+            # H.W10 S2 (G3 + G7) — the standard-transport lock. Settle-gated on the H.W1
+            # FSM resting (#/easing + #/spring pinned in-page, pane + scene tab opened so
+            # the ribbon's primary transport mounts). Three clauses per scene (easing +
+            # spring·solver): (1) the standard PlaybackRibbon signature IS present (the
+            # scrubber .timeline-green Slider + the grid-cols-2 transport row of 2 cells
+            # with a Play .btn-playback + the AnimationVisualizer .bg-accent-red ball — the
+            # SAME component cube/amiga mount), (2) the transport is Play/REVERSE not
+            # Play/RESET (the dock owns Reset — de-dup), (3) the two transport cells are
+            # EQUAL width AND height within 2px (G7 — the grid-cols-2 idiom, not a magic
+            # number). Born-RED on the pre-W10 bespoke ribbonContent fork (no scrubber/
+            # visualizer; a Pause 148×40 vs Reset 148×32 unequal pair; spring's grid-cols-1).
+            # Spring's domain verbs (Re-seat / Reveal-Dismiss) are PERMITTED ribbon extras
+            # (the cube model — the harden caveat). KF_REQUIRE_BROWSER turns a playwright-
+            # absent skip into a hard CI fail (the mounted-component fact cannot pass vacuously).
+            - name: proof:scene-uses-standard-ribbon (H.W10 G3+G7 — the easing/spring PRIMARY transport IS the standard PlaybackRibbon · Play/Reverse · equal-dim cells)
+              run: npm run proof:scene-uses-standard-ribbon
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            # H.W10 S4 (G5 + G6) — the normalized-sidebar lock. Settle-gated on the H.W1
+            # FSM resting (#/easing + #/spring pinned in-page, pane + scene tab opened so
+            # the full-rail sidebar mounts). Three clauses per sidebar (easing + spring):
+            # (a) STANDARD RUNG — 0 .text-admin-label labels + the param-slider track ≥5px
+            # (the default md rung, NOT the size="sm" 4px track — G5), (b) BOUNDED NESTING —
+            # exactly 1 glass-ui Card (the Card-root signature .rounded-card.text-card-foreground,
+            # which excludes the curve-canvas rounded-card UTILITY wrapper), NOT the ×2/×3
+            # inner-sub-Card chain (G6), (c) Labeled* ROWS — every param field is a glass-ui
+            # .labeled-field label-left row (the H.W9 F1 idiom), not a hand-classed grid div.
+            # Born-RED on the pre-W10 bespoke bare-class fork (easing text-admin-label:1 +
+            # labeled-field:0; spring text-admin-label:10 + 3 Cards + labeled-field:0). The
+            # spring preset CHIPS keep size="sm" (a button cluster, not the control rung —
+            # not asserted). KF_REQUIRE_BROWSER turns a playwright-absent skip into a hard
+            # CI fail (the computed rung + the rendered nesting cannot pass vacuously).
+            - name: proof:easing-sidebar-normalized (H.W10 G5+G6 — the easing/spring sidebars on the standard rung · ×3 inner Cards gone · Labeled* rows)
+              run: npm run proof:easing-sidebar-normalized
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            # H.W10 S3 (G4) — the singular-stage = ONE engine-driven ball (reverses
+            # W5.S4 stage-curve-promote). Settle-gated on the H.W1 FSM resting
+            # (#/easing pinned in-page, pane + easing tab opened so the SIDEBAR editor
+            # mounts). Three clauses: (1) the stage subject is a .hero-ball/.progress-ball
+            # AND ZERO canvas/EasingCurveCanvas live in the .stage-cell subtree (the W5
+            # duplicate curve is DELETED, not display:none-hidden — the subtree is gone),
+            # (2) the ball's getBoundingClientRect().left CHANGES across two engine frames
+            # (the curve in MOTION — a frozen decorative ball reds; the inv ζ dogfood),
+            # (3) the editable .easing-curve-canvas exists in the SIDEBAR (outside
+            # .stage-cell) — the de-dup is a MOVE to one home, not a loss. Complements
+            # proof:scene-parity clause 7 (which owns the editable curve's three-name
+            # bezier wiring in the sidebar); this gate owns the ball + the single-canvas
+            # invariant. Born-RED on the pre-W10 second EasingCurveCanvas at
+            # EasingTarget.vue:47-59. KF_REQUIRE_BROWSER turns a playwright-absent skip
+            # into a hard CI fail (the stage-is-a-ball fact cannot pass vacuously).
+            - name: proof:easing-stage-is-ball (H.W10 G4 — the easing singular stage IS one engine-driven ball · zero duplicate curve on stage · editable curve in the sidebar)
+              run: npm run proof:easing-stage-is-ball
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            # H.W10 G2 — no kf-owned scene surface renders square corners. Settle-gated
+            # on the H.W1 FSM resting (#/easing + #/spring pinned in-page, pane + scene
+            # tab opened so the sidebar Card mounts). One COMPUTED clause + one STATIC
+            # clause: (1) every cartoon-surface in the easing/spring .controls-layout
+            # subtree resolves a NON-ZERO computed border-radius (the rounded-card Card
+            # sidebar 16px, the rounded-full view-switch pill, the rounded curve wrapper
+            # — a non-vacuity guard requires ≥1 cartoon surface per scene), (2) the
+            # contract-named stage roots carry NO bare-class cartoon-surface (the stage
+            # card is DROPPED → full-bleed, no card to round). Born-RED on the pre-W10
+            # bare glass-resting cartoon-surface stage card (computed border-radius 0).
+            # KF_REQUIRE_BROWSER turns a playwright-absent skip into a hard CI fail (the
+            # computed-radius clause cannot pass vacuously).
+            - name: proof:scene-card-rounded (H.W10 G2 — every kf-owned cartoon surface rounds · the easing/spring stage is full-bleed, no square-corner card)
+              run: npm run proof:scene-card-rounded
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            # H.W10 G8 — the [stage]-track dock-safe containment PRIMITIVE (NEW/AMEND of
+            # proof:stage-not-clipped: bite the SCENE SUBJECT against the affixed dock
+            # bands, not just the .stage-cell grid cell). Settle-gated on the H.W1 FSM
+            # resting (#/easing + #/spring pinned in-page, pane opened on desktop). Two
+            # BROWSER clauses + one STATIC clause: (1) at 1280 & 1440 the easing
+            # .hero-ball / spring .spring-rail subject.top is BELOW the top dock's bottom
+            # AND subject.bottom is ABOVE the bottom dock's top (contained between BOTH
+            # bands) — at mobile 390 the subject clears the TOP dock (the exact clip the
+            # user reported; the bottom-menubar mobile containment lands fully with H.W7),
+            # (2) ZERO live .dock-inset elements in the easing/spring DOM (the per-scene
+            # patch is gone — the reserve is on the layout primitive), (3) STATIC: the
+            # .dock-inset CSS rule is gone from design-idioms.css AND no scene template
+            # references the dock-inset token in a class attribute. Born-RED on the
+            # pre-W10 bottom-only dock-inset (the stretched stage top ran under the top
+            # dock). KF_REQUIRE_BROWSER turns a playwright-absent skip into a hard CI fail
+            # (the live containment cannot pass vacuously).
+            - name: proof:stage-within-docks (H.W10 G8 — the scene subject is contained between BOTH affixed dock bands · zero per-scene dock-inset · the [stage]-track primitive)
+              run: npm run proof:stage-within-docks
+              env:
+                  KF_REQUIRE_BROWSER: "1"
             # H.W9 F2 (S4) — the bezier-panel fit + header-bake lock. Settle-gated on the
             # H.W1 FSM resting (#/cube pinned in-page, pane forced open); the cubic-bézier
             # detail panel is opened via a REAL click on the live .easing-edit pencil (the
@@ -473,19 +564,23 @@ jobs:
               env:
                   KF_REQUIRE_BROWSER: "1"
             # H.W5 S1/S2 + BLK-7 — the themable-coverage + shape + no-raster lock.
-            # A STATIC source half (every non-home SceneDescriptor has a defined
-            # icon · every assets/icons/*.svg is fill=none + ≥1 stroke=currentColor
-            # + viewBox="0 0 32 32" with ZERO baked hsl/rgb/#hex · assets/icons holds
-            # zero non-favicon .png · index.html rel=icon resolves to an existing
-            # file — the 404 guard) + a BROWSER half: the load-bearing G4 THEMING
-            # clause (a mounted scene icon's computed stroke == host currentColor in
-            # BOTH .dark and light — an <img :src> reference FAILS by construction,
-            # G4 the authority over the G1 file-shape). Scene switches driven IN-PAGE
-            # via the hash reconcile (the in-app Scene combobox's fixed point);
-            # settle-gated on the H.W1 FSM resting. KF_REQUIRE_BROWSER turns a
-            # playwright-absent skip into a hard CI fail (the theming clause cannot
-            # pass vacuously).
-            - name: proof:scene-icons (H.W5 S1/S2 + BLK-7 — every non-home scene icon'd · fill=none currentColor 32×32 family · zero non-favicon raster · rel=icon resolves · mounted-icon stroke tracks the theme)
+            # H.W10 REVISE (reverses W5.S2's monochrome enforcement — G1). A STATIC
+            # source half (every non-home SceneDescriptor has a defined icon · every
+            # assets/icons/*.svg is a 32×32 inline-<svg> carrying EXPRESSIVE color —
+            # a var(--rainbow*/accent*/color*) token, a baked vivid hue, or a 1:1
+            # raster→SVG <image> embed; a currentColor-only monochrome icon FAILS ·
+            # the 4 originals cube/amiga/square/easing byte/pixel-match 084feb9 1:1 —
+            # re-instantiated, not redrawn · assets/icons holds zero .png modulo the
+            # favicon + the enumerated re-instantiated originals · rel=icon resolves —
+            # the 404 guard) + a BROWSER half: the load-bearing G4 THEMING clause
+            # (a mounted scene icon is a real inline <svg> NOT an <img :src>, and
+            # carries its OWN expressive color — the resolved paint DIFFERS from the
+            # host currentColor, the INVERSE of the W5 monochrome equality; G4 the
+            # authority over the G1 file-shape). Scene switches driven IN-PAGE via the
+            # hash reconcile (the in-app Scene combobox's fixed point); settle-gated
+            # on the H.W1 FSM resting. KF_REQUIRE_BROWSER turns a playwright-absent
+            # skip into a hard CI fail (the theming clause cannot pass vacuously).
+            - name: proof:scene-icons (H.W10 G1 + BLK-7 — every non-home scene icon'd · expressive-color 32×32 family (monochrome currentColor-only FAILS) · the 4 originals 084feb9 1:1 · zero non-allow-listed raster · rel=icon resolves · mounted-icon carries its own color)
               run: npm run proof:scene-icons
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -500,9 +595,12 @@ jobs:
             # proof:motionpath-drag (drag the traveller to ~50% → computed
             # offset-distance ≈50%) · proof:square-drag (pointerdown+move on the box
             # mutates a target ref + the spring converges) · proof:easing-curve-
-            # onstage (a bezier curve renders EasingCurveCanvas[editable] on the
-            # STAGE AND a handle drag fires update:bezierPoints AND the bound
-            # bezierControlPoints ref changes — the three-name wiring, WV-W5-HIGH-2).
+            # editable (W10.G4 RECONCILE: the curve editor moved stage→SIDEBAR — the
+            # stage is now the ball, owned by proof:easing-stage-is-ball; a bezier
+            # curve renders EasingCurveCanvas[editable] in the SIDEBAR AND a handle
+            # drag fires update:bezierPoints AND the bound bezierControlPoints ref
+            # changes — the three-name wiring, WV-W5-HIGH-2; complementary, not
+            # contradictory, with proof:easing-stage-is-ball).
             # Scene switches driven IN-PAGE via the hash reconcile (the in-app Scene
             # combobox's fixed point); settle-gated on the H.W1 FSM resting.
             # KF_REQUIRE_BROWSER turns a playwright-absent skip into a hard CI fail

@@ -334,6 +334,18 @@ export function useEasingDemo() {
         animationGroup.paused = !playing;
     }, { immediate: true });
 
+    // G3 (H.W10.S2) — mirror the linear sweep onto the contract animation's clock
+    // so the STANDARD PlaybackRibbon (the scrubber Slider + the AnimationVisualizer
+    // ball, mounted in the scene's ribbonContent slot) tracks the real progress:
+    // the visualizer reads `effectiveT/duration`, the scrubber reads `currentT`.
+    // The contract anim still drives NO motion (it has no DOM target) — this is a
+    // pure time-twin so the standard transport reflects the live sweep. A watch
+    // (not the rAF frame) avoids the contractAnim TDZ — the loop arms at mount
+    // before this `const` is declared.
+    watch(progress, (p) => {
+        contractAnim.t = p * contractAnim.options.duration;
+    }, { immediate: true });
+
     return {
         // Static
         timingFunctionsAnd,
@@ -366,6 +378,9 @@ export function useEasingDemo() {
 
         // Scene contract
         animationGroup,
+        // The contract animation (the time-twin the standard PlaybackRibbon binds
+        // its scrubber + visualizer to — G3/H.W10.S2).
+        contractAnim,
         // The raw-rAF ScenePlayback adapter — the App registers this on
         // SCENE_READY so suspend/restore route through the contract (the easing↔
         // cube cross-pair the group gate misses).

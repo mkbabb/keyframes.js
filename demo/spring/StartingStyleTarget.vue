@@ -1,57 +1,62 @@
 <template>
+    <!-- G8 (H.W10.S5) — FULL-BLEED stage. The former bare-class
+         `stage glass-resting cartoon-surface` card is DROPPED (no card to round —
+         dissolves G2); the discrete card floats full-bleed like the cube subject.
+         Dock-band containment is the [stage]-track PRIMITIVE — the per-scene
+         `dock-inset` is GONE. `max-w-3xl` rides the content column as an optical
+         reading measure. -->
     <div
-        class="flex flex-col items-center justify-center gap-5 h-full w-full px-6 lg:px-8 max-w-3xl mx-auto overflow-hidden dock-inset"
+        class="flex flex-col items-center justify-center gap-6 h-full w-full px-6 lg:px-8 overflow-hidden"
         :style="{ '--spring-ease': springCss }"
     >
+        <!-- Header readout -->
+        <div class="flex w-full max-w-3xl items-center justify-between gap-3 shrink-0">
+            <span class="text-heading text-foreground truncate">@starting-style</span>
+            <span class="text-mono-caption text-muted-foreground tabular-nums whitespace-nowrap">
+                eased by springLinearStops()
+            </span>
+        </div>
+
         <!-- The discrete-transition stage. The card enters from nothing
              (@starting-style) and exits to display:none (allow-discrete),
              eased by the keyframes.js spring linear() in --spring-ease. -->
-        <div class="stage glass-resting cartoon-surface w-full flex-1 min-h-0 flex flex-col">
-            <div class="flex items-center justify-between px-4 py-2.5 border-b border-border/40 shrink-0">
-                <span class="text-heading text-foreground truncate">@starting-style</span>
-                <span class="text-mono-caption text-muted-foreground tabular-nums whitespace-nowrap">
-                    eased by springLinearStops()
-                </span>
-            </div>
-
-            <div class="flex-1 min-h-0 flex flex-col items-center justify-center gap-5 px-8 py-6">
-                <div class="stage-viewport relative w-full flex-1 min-h-0 flex items-center justify-center">
-                    <!-- The card stays in the DOM; toggling `.is-hidden`
-                         transitions display:none via allow-discrete, so the
-                         spring eases BOTH the entry (@starting-style) and the
-                         exit (transition TO the hidden state) — the declarative
-                         discrete-transition primitive, no JS removal timing. -->
-                    <div class="discrete-card" :class="{ 'is-hidden': !visible }">
-                        <span class="text-title text-foreground">Hello, spring.</span>
-                        <span class="text-small text-muted-foreground">
-                            enters + exits on a physics curve
-                        </span>
-                    </div>
+        <div class="flex w-full max-w-3xl flex-1 min-h-0 flex-col items-center justify-center gap-5">
+            <div class="stage-viewport relative w-full flex-1 min-h-0 flex items-center justify-center">
+                <!-- The card stays in the DOM; toggling `.is-hidden`
+                     transitions display:none via allow-discrete, so the
+                     spring eases BOTH the entry (@starting-style) and the
+                     exit (transition TO the hidden state) — the declarative
+                     discrete-transition primitive, no JS removal timing. -->
+                <div class="discrete-card" :class="{ 'is-hidden': !visible }">
+                    <span class="text-title text-foreground">Hello, spring.</span>
+                    <span class="text-small text-muted-foreground">
+                        enters + exits on a physics curve
+                    </span>
                 </div>
-
-                <Button
-                    variant="outline"
-                    class="btn-playback btn-playback-accent shrink-0"
-                    @click="toggle"
-                >
-                    <span>{{ visible ? "Dismiss" : "Reveal" }}</span>
-                    <component :is="visible ? EyeOff : Eye" class="w-4 h-4" />
-                </Button>
             </div>
 
-            <!-- The copy-pasteable artifact: the emitted linear() string. -->
-            <div class="px-4 py-3 border-t border-border/40 shrink-0">
-                <div class="flex items-center justify-between mb-1.5">
-                    <span class="text-small text-foreground">transition-timing-function</span>
-                    <CopyButton class="shrink-0 w-4 h-4" :text="copyableCss" />
-                </div>
-                <code class="artifact text-mono-caption tabular-nums text-muted-foreground block w-full overflow-x-auto whitespace-nowrap">{{ springCss }}</code>
+            <Button
+                variant="outline"
+                class="btn-playback btn-playback-accent shrink-0"
+                @click="toggle"
+            >
+                <span>{{ visible ? "Dismiss" : "Reveal" }}</span>
+                <component :is="visible ? EyeOff : Eye" class="w-4 h-4" />
+            </Button>
+        </div>
+
+        <!-- The copy-pasteable artifact: the emitted linear() string. -->
+        <div class="w-full max-w-3xl shrink-0">
+            <div class="flex items-center justify-between mb-1.5">
+                <span class="text-small text-foreground">transition-timing-function</span>
+                <CopyButton class="shrink-0 w-4 h-4" :text="copyableCss" />
             </div>
+            <code class="artifact text-mono-caption tabular-nums text-muted-foreground block w-full overflow-x-auto whitespace-nowrap">{{ springCss }}</code>
         </div>
 
         <!-- Preset switch — re-samples the spring, so the artifact + the live
              transition update in lockstep (same solver, same preset). -->
-        <div class="grid grid-cols-4 gap-2 w-full">
+        <div class="grid grid-cols-4 gap-2 w-full max-w-3xl">
             <Button
                 v-for="p in SPRING_PRESETS"
                 :key="p.name"

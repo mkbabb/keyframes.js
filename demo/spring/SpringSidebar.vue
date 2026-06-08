@@ -1,71 +1,61 @@
 <template>
-    <div class="glass-resting cartoon-surface p-3 grid gap-3">
-        <!-- Live params -->
-        <Card surface="cartoon" tier="quiet" class="p-0">
-            <CardContent class="grid gap-3 p-3">
-                <div class="grid gap-1.5">
-                    <div class="flex items-center justify-between">
-                        <label class="text-admin-label text-muted-foreground">response</label>
-                        <span class="text-mono-caption text-foreground tabular-nums">{{ demo.response.value.toFixed(2) }}s</span>
-                    </div>
-                    <div class="spring-slider">
-                        <Slider
-                            size="sm"
-                            :model-value="[demo.response.value]"
-                            :min="0.1"
-                            :max="1.2"
-                            :step="0.01"
-                            aria-label="response"
-                            @update:model-value="(v: any) => { demo.response.value = v[0]; }"
-                        />
-                    </div>
-                </div>
-                <div class="grid gap-1.5">
-                    <div class="flex items-center justify-between">
-                        <label class="text-admin-label text-muted-foreground">dampingFraction (&zeta;)</label>
-                        <span class="text-mono-caption text-foreground tabular-nums">{{ demo.dampingFraction.value.toFixed(2) }}</span>
-                    </div>
-                    <div class="spring-slider">
-                        <Slider
-                            size="sm"
-                            :model-value="[demo.dampingFraction.value]"
-                            :min="0.2"
-                            :max="1.5"
-                            :step="0.01"
-                            aria-label="dampingFraction"
-                            @update:model-value="(v: any) => { demo.dampingFraction.value = v[0]; }"
-                        />
-                    </div>
-                </div>
-            </CardContent>
-        </Card>
+    <!-- G6 + G5 (H.W10.S4) — the spring sidebar NORMALIZED onto the standard
+         controls component: ONE `Card surface="cartoon" tier="quiet"` (the H.W9
+         quiet register; the Card primitive carries `rounded-card` by construction
+         — dissolves G2) wrapping `Labeled*` label-left rows + the spring domain
+         content in ONE `panel-content` flow. The former ×3 inner sub-Cards + the
+         hand-rolled `text-admin-label`/`size="sm"` param rows are DELETED (no
+         legacy beside the replacement) — the control sizing lifts to the standard
+         scale automatically (G5: same components → same sizes). -->
+    <Card surface="cartoon" tier="quiet" class="w-full overflow-visible">
+        <CardContent class="panel-content flex flex-col gap-3 px-4 py-3">
+            <!-- Live params — label-left rows (the H.W9 F1 idiom) -->
+            <LabeledSlider
+                :model-value="demo.response.value"
+                label="response"
+                label-class="text-mono-small text-muted-foreground"
+                tooltip="Spring response time (s) — higher = slower"
+                :min="0.1"
+                :max="1.2"
+                :step="0.01"
+                @update:model-value="(v) => { demo.response.value = v; }"
+            />
+            <LabeledSlider
+                :model-value="demo.dampingFraction.value"
+                label="damping (ζ)"
+                label-class="text-mono-small text-muted-foreground"
+                tooltip="Damping fraction (ζ) — <1 overshoots, ≥1 settles"
+                :min="0.2"
+                :max="1.5"
+                :step="0.01"
+                @update:model-value="(v) => { demo.dampingFraction.value = v; }"
+            />
 
-        <!-- Canonical preset buttons -->
-        <div class="grid grid-cols-2 gap-2">
-            <Button
-                v-for="t in demo.tracks"
-                :key="t.preset.name"
-                variant="outline"
-                size="sm"
-                class="h-auto py-1.5 flex flex-col items-start gap-0.5 btn-interactive"
-                :class="{ 'preset-active': isActivePreset(t) }"
-                @click="applyPreset(t.preset)"
-            >
-                <span class="text-small text-foreground capitalize">{{ t.preset.name }}</span>
-                <span class="text-admin-label text-muted-foreground">{{ t.preset.response }} / {{ t.preset.dampingFraction }}</span>
-            </Button>
-        </div>
+            <!-- Canonical preset buttons -->
+            <div class="grid grid-cols-2 gap-2">
+                <Button
+                    v-for="t in demo.tracks"
+                    :key="t.preset.name"
+                    variant="outline"
+                    size="sm"
+                    class="h-auto py-1.5 flex flex-col items-start gap-0.5 btn-interactive"
+                    :class="{ 'preset-active': isActivePreset(t) }"
+                    @click="applyPreset(t.preset)"
+                >
+                    <span class="text-small text-foreground capitalize">{{ t.preset.name }}</span>
+                    <span class="text-mono-caption text-muted-foreground">{{ t.preset.response }} / {{ t.preset.dampingFraction }}</span>
+                </Button>
+            </div>
 
-        <!-- Side-by-side canonical comparison -->
-        <Card surface="cartoon" tier="quiet" class="p-0">
-            <CardContent class="grid gap-2.5 p-3">
-                <span class="text-small text-muted-foreground">canonical springs &mdash; re-seat all together</span>
+            <!-- Side-by-side canonical comparison (folded into the parent Card) -->
+            <div class="grid gap-2.5">
+                <span class="text-mono-small text-muted-foreground">canonical springs &mdash; re-seat all together</span>
                 <div
                     v-for="t in demo.tracks"
                     :key="t.preset.name"
                     class="preset-row"
                 >
-                    <span class="preset-label text-admin-label shrink-0 w-14 truncate" :title="t.preset.blurb">{{ t.preset.name }}</span>
+                    <span class="preset-label text-mono-caption shrink-0 w-14 truncate" :title="t.preset.blurb">{{ t.preset.name }}</span>
                     <div class="preset-track relative flex-1 h-7">
                         <div class="progress-rail"></div>
                         <div
@@ -74,14 +64,12 @@
                         ></div>
                     </div>
                 </div>
-            </CardContent>
-        </Card>
+            </div>
 
-        <!-- springLinearStops CSS — Monaco editor (follows dark mode) -->
-        <Card surface="cartoon" tier="quiet" class="p-0 overflow-hidden">
-            <CardContent class="grid gap-2 p-2">
-                <div class="flex items-center justify-between px-1">
-                    <span class="text-small text-muted-foreground">springLinearStops() &rarr; CSS</span>
+            <!-- springLinearStops CSS — Monaco editor (follows dark mode) -->
+            <div class="grid gap-2">
+                <div class="flex items-center justify-between">
+                    <span class="text-mono-small text-muted-foreground">springLinearStops() &rarr; CSS</span>
                     <CopyButton class="shrink-0 w-4 h-4" :text="linearStopsCss" />
                 </div>
                 <CSSCodeEditor
@@ -92,14 +80,15 @@
                     :padding="8"
                     :border="false"
                 />
-            </CardContent>
-        </Card>
-    </div>
+            </div>
+        </CardContent>
+    </Card>
 </template>
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import { Button, Card, CardContent, Slider } from "@mkbabb/glass-ui";
+import { Button, Card, CardContent } from "@mkbabb/glass-ui";
+import { LabeledSlider } from "@mkbabb/glass-ui/labeled-field";
 
 import { useSpringLinearStops } from "./useSpringLinearStops";
 import CopyButton from "@components/custom/CopyButton.vue";
@@ -136,13 +125,21 @@ watch(generated, (css) => { linearStopsCss.value = css; }, { immediate: true });
 </script>
 
 <style scoped>
-.spring-slider {
-    --slider-track-bg: color-mix(in srgb, var(--color-slider-track) 15%, transparent);
-    --slider-range-bg: color-mix(in srgb, var(--color-slider-track) 40%, transparent);
-    --slider-thumb-bg: var(--color-progress);
+/* ── F1 (H.W9.S3 idiom) — label-LEFT / value-RIGHT per row ──
+   G6 normalizes the spring sidebar onto the standard component, so it INHERITS
+   the F1 row shape (matching the standard AnimationControlsControls rows). Every
+   glass-ui `.labeled-field` (LabeledSlider here) becomes a two-cell grid (label
+   auto, control 1fr). The durable home is glass-ui's BOOKED `LabeledField
+   orientation="horizontal"` (inv-16 HANDOFF — NOT patched here). */
+.panel-content :deep(.labeled-field) {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    column-gap: 0.75rem;
+    row-gap: 0.25rem;
 }
-.spring-slider:hover {
-    --slider-thumb-bg: color-mix(in srgb, var(--color-progress) 80%, transparent);
+.panel-content :deep(.labeled-field .labeled-field-error) {
+    grid-column: 1 / -1;
 }
 
 .preset-active {

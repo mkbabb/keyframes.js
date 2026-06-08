@@ -1,10 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
   <!-- The SAME PATH_D the MotionPath scene authors (motionPathGeometry.ts:17),
        scaled from its 0 0 400 400 author space into this 32 glyph: the most DRY
        icon possible — one geometry source reads as the traversal track. The
        non-scaling-stroke keeps the stroke at glyph width despite the scale. -->
   <g transform="translate(16 16) scale(0.083) translate(-200 -190)">
-    <path d="M 60 200 C 60 80, 200 80, 200 200 S 340 320, 340 200 S 200 60, 60 200 Z" opacity="0.5" stroke-dasharray="3 4" vector-effect="non-scaling-stroke"/>
-    <circle cx="200" cy="80" r="30" fill="currentColor" stroke="none"/>
+    <path d="M 60 200 C 60 80, 200 80, 200 200 S 340 320, 340 200 S 200 60, 60 200 Z" stroke="var(--rainbow-cyan, currentColor)" opacity="0.5" stroke-dasharray="3 4" vector-effect="non-scaling-stroke"/>
+    <circle cx="200" cy="80" r="32" fill="var(--rainbow-cyan, currentColor)" stroke="none"/>
   </g>
 </svg>

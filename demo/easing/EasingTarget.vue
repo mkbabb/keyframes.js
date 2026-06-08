@@ -1,119 +1,103 @@
 <template>
-    <div class="flex flex-col items-center justify-center gap-4 h-full w-full px-6 lg:px-8 max-w-3xl mx-auto overflow-hidden dock-inset">
-
-        <div ref="easingTargetEl" class="glass-resting cartoon-surface easing-target w-full flex-1 min-h-0 flex flex-col overflow-hidden">
-            <!-- Header: easing name + view mode dropdown -->
-            <div class="flex items-center justify-between px-4 py-2.5 border-b border-border/40 shrink-0">
-                <div class="flex items-baseline gap-3 min-w-0">
-                    <span class="text-heading text-foreground truncate">
-                        {{ demo.currentEasingName.value }}
-                    </span>
-                    <span class="text-mono-caption text-muted-foreground tabular-nums whitespace-nowrap">
-                        f({{ demo.progress.value.toFixed(2) }}) = {{ easedValue.toFixed(3) }}
-                    </span>
-                </div>
-                <Select
-                    :model-value="viewMode"
-                    @update:model-value="onViewModeChange"
-                >
-                    <DockSelectTrigger aria-label="View mode" class="dock-label ml-3">
-                        <SelectValue placeholder="Singular" />
-                    </DockSelectTrigger>
-                    <SelectContent class="min-w-40 text-small">
-                        <SelectItem value="singular">Singular</SelectItem>
-                        <SelectSeparator />
-                        <SelectItem
-                            v-for="group in EASING_GROUPS"
-                            :key="group.family"
-                            :value="group.family"
-                        >
-                            {{ group.family }}
-                        </SelectItem>
-                        <SelectSeparator />
-                        <SelectItem value="all">All</SelectItem>
-                    </SelectContent>
-                </Select>
+    <!-- G8 (H.W10.S5) — FULL-BLEED stage. The former bare-class
+         `glass-resting cartoon-surface` card is DROPPED (no card to round —
+         dissolves G2) so the ball floats full-bleed like the cube/amiga subject.
+         The dock-band containment is the [stage]-track PRIMITIVE
+         (AnimationControlsGroup `.stage-cell` reserves the band) — the per-scene
+         `dock-inset` is GONE. The `max-w-3xl` measure rides ONLY the comparison
+         list (an optical reading width for many rows); the singular hero ball
+         uses the full stage width. -->
+    <div ref="easingTargetEl" class="easing-target flex flex-col items-center justify-center gap-6 h-full w-full px-6 lg:px-8 overflow-hidden">
+        <!-- Header: easing name + readout + view mode dropdown -->
+        <div class="flex w-full max-w-3xl items-center justify-between gap-3 shrink-0">
+            <div class="flex items-baseline gap-3 min-w-0">
+                <span class="text-heading text-foreground truncate">
+                    {{ demo.currentEasingName.value }}
+                </span>
+                <span class="text-mono-caption text-muted-foreground tabular-nums whitespace-nowrap">
+                    f({{ demo.progress.value.toFixed(2) }}) = {{ easedValue.toFixed(3) }}
+                </span>
             </div>
-
-            <!-- Singular mode, bezier-editable curve: the EasingCurveCanvas is
-                 PROMOTED to the PRIMARY stage element (S4b). Dragging a handle
-                 re-shapes the live curve AND the sweep ball riding it (the
-                 `progress` axis is shared). The two-way wiring is the pinned
-                 symbol contract (WV-W5-HIGH-2): the camelCase emit
-                 `update:bezierPoints` flows into the `bezierControlPoints` ref via
-                 `demo.updateBezierPoints` (which also switches a named curve to
-                 cubic-bezier on edit). -->
-            <div
-                v-if="viewMode === 'singular' && demo.isBezierEditable.value"
-                class="flex-1 min-h-0 flex items-center justify-center px-8 py-6"
+            <Select
+                :model-value="viewMode"
+                @update:model-value="onViewModeChange"
             >
-                <EasingCurveCanvas
-                    class="easing-stage-curve w-full"
-                    :easing-fn="demo.currentEasingFn.value"
-                    :svg-path="demo.svgPath.value"
-                    :progress="demo.progress.value"
-                    :bezier-points="demo.bezierControlPoints.value"
-                    :editable="true"
-                    @update:bezier-points="demo.updateBezierPoints"
-                />
-            </div>
-
-            <!-- Singular mode, named/steps curve: the glass-ui scrubber Slider
-                 (steps' discrete inputs live in the sidebar; the stage scrubs). -->
-            <div
-                v-else-if="viewMode === 'singular'"
-                class="flex-1 min-h-0 flex items-center justify-center px-8 py-6"
-            >
-                <Slider
-                    class="t-scrubber w-full"
-                    variant="glass-scrubber"
-                    size="lg"
-                    :model-value="[demo.progress.value]"
-                    :min="0"
-                    :max="1"
-                    :step="0.001"
-                    aria-label="Scrub progress"
-                    @update:model-value="onScrub"
-                    @pointerdown="onScrubStart"
-                    @value-commit="onScrubEnd"
-                />
-            </div>
-
-            <!-- Multi-track mode: scrollable list -->
-            <div
-                v-else
-                ref="trackContainerEl"
-                class="flex-1 min-h-0 overflow-y-auto px-4 py-3"
-            >
-                <div class="grid gap-3">
-                    <div
-                        v-for="curve in visibleCurves"
-                        :key="curve.name"
-                        class="track-row"
+                <DockSelectTrigger aria-label="View mode" class="dock-label ml-3">
+                    <SelectValue placeholder="Singular" />
+                </DockSelectTrigger>
+                <SelectContent class="min-w-40 text-small">
+                    <SelectItem value="singular">Singular</SelectItem>
+                    <SelectSeparator />
+                    <SelectItem
+                        v-for="group in EASING_GROUPS"
+                        :key="group.family"
+                        :value="group.family"
                     >
-                        <span
+                        {{ group.family }}
+                    </SelectItem>
+                    <SelectSeparator />
+                    <SelectItem value="all">All</SelectItem>
+                </SelectContent>
+            </Select>
+        </div>
+
+        <!-- G4 (H.W10.S3) — the `singular` stage is ONE large engine-driven ball,
+             NOT a second copy of the curve editor (the duplicate
+             EasingCurveCanvas is DELETED; the editable curve lives in the sidebar
+             ONLY). The ball traverses under the SELECTED easing: its x-position
+             is `fn(progress) * maxX` over the shared `.progress-rail`/
+             `.progress-ball` idiom (the same `getBallX` math the comparison rows
+             use, at hero size) — the curve in MOTION (the inv ζ dogfood: the
+             ball's position IS the timing function applied to the engine's
+             progress sweep). One transport, one ball, all engine. -->
+        <div
+            v-if="viewMode === 'singular'"
+            class="flex w-full flex-1 min-h-0 items-center justify-center"
+        >
+            <div ref="heroTrackEl" class="hero-track relative w-full max-w-3xl h-16">
+                <div class="progress-rail"></div>
+                <div
+                    class="progress-ball hero-ball"
+                    :style="{ transform: `translateX(${heroBallX}px)` }"
+                ></div>
+            </div>
+        </div>
+
+        <!-- Multi-track mode: scrollable comparison list (genuinely additive —
+             many curves at once; the optical max-measure rides this list). -->
+        <div
+            v-else
+            ref="trackContainerEl"
+            class="w-full max-w-3xl flex-1 min-h-0 overflow-y-auto"
+        >
+            <div class="grid gap-3">
+                <div
+                    v-for="curve in visibleCurves"
+                    :key="curve.name"
+                    class="track-row"
+                >
+                    <span
+                        :class="[
+                            'track-label text-mono-caption shrink-0 w-36 text-right pr-3 truncate',
+                            curve.name === demo.currentEasingName.value
+                                ? 'track-label--active'
+                                : 'text-muted-foreground',
+                        ]"
+                        :title="curve.name"
+                    >{{ curve.name }}</span>
+                    <div ref="trackEls" class="track-container relative flex-1 h-10">
+                        <div class="progress-rail"></div>
+                        <div
                             :class="[
-                                'track-label text-mono-caption shrink-0 w-36 text-right pr-3 truncate',
+                                'progress-ball track-ball',
                                 curve.name === demo.currentEasingName.value
-                                    ? 'track-label--active'
-                                    : 'text-muted-foreground',
+                                    ? 'track-ball--active'
+                                    : 'track-ball--muted',
                             ]"
-                            :title="curve.name"
-                        >{{ curve.name }}</span>
-                        <div ref="trackEls" class="track-container relative flex-1 h-10">
-                            <div class="progress-rail"></div>
-                            <div
-                                :class="[
-                                    'progress-ball track-ball',
-                                    curve.name === demo.currentEasingName.value
-                                        ? 'track-ball--active'
-                                        : 'track-ball--muted',
-                                ]"
-                                :style="{
-                                    transform: `translateX(${getBallX(curve.fn, curve.name === demo.currentEasingName.value, false)}px)`,
-                                }"
-                            ></div>
-                        </div>
+                            :style="{
+                                transform: `translateX(${getBallX(curve.fn, curve.name === demo.currentEasingName.value, false)}px)`,
+                            }"
+                        ></div>
                     </div>
                 </div>
             </div>
@@ -131,10 +115,8 @@ import {
     SelectItem,
     SelectSeparator,
     SelectValue,
-    Slider,
 } from "@mkbabb/glass-ui";
 
-import EasingCurveCanvas from "@components/custom/EasingCurveCanvas.vue";
 import { EASING_DEMO_KEY } from "./easingKeys";
 import { EASING_GROUPS, getFamilyForCurve } from "./easingGroups";
 import { camelCaseToHyphen, timingFunctions } from "@mkbabb/value.js";
@@ -142,7 +124,9 @@ import type { TimingFunction } from "@src/animation/constants";
 
 const demo = inject(EASING_DEMO_KEY)!;
 
-// "singular" = just the selected curve (scrubber), family names = comparison, "all" = everything
+// "singular" = ONE large engine-driven hero ball (G4); family names = comparison,
+// "all" = everything. The editable curve lives in the sidebar ONLY — the stage
+// shows the curve in MOTION, not a second copy of the editor.
 const viewMode = ref("singular");
 
 // Auto-follow: when singular, stay singular. Otherwise track family.
@@ -222,7 +206,7 @@ const visibleCurves = computed<VisibleCurve[]>(() => {
         }));
 });
 
-// ── Comparison-track measurement ───────────────────────────────
+// ── Track measurement (hero ball + comparison tracks) ──────────
 
 const trackContainerEl = useTemplateRef<HTMLElement>("trackContainerEl");
 // Owned refs replace the former `.closest(".easing-target")` /
@@ -230,8 +214,10 @@ const trackContainerEl = useTemplateRef<HTMLElement>("trackContainerEl");
 // component owns these elements, so it reads their computed vars / width off
 // refs that survive a class rename rather than a brittle selector match.
 const easingTargetEl = useTemplateRef<HTMLElement>("easingTargetEl");
+const heroTrackEl = useTemplateRef<HTMLElement>("heroTrackEl");
 const trackEls = useTemplateRef<HTMLElement[]>("trackEls");
 const trackWidth = ref(0);
+const heroTrackWidth = ref(0);
 
 const getBallX = (fn: TimingFunction, isActive: boolean, _isSingular: boolean): number => {
     const size = isActive ? BALL_SIZE_ACTIVE.value : BALL_SIZE_MUTED.value;
@@ -239,6 +225,17 @@ const getBallX = (fn: TimingFunction, isActive: boolean, _isSingular: boolean): 
     if (maxX <= 0) return 0;
     return fn(demo.progress.value) * maxX;
 };
+
+// ── G4 — the singular hero ball's x = `fn(progress) * maxX` ─────
+// The selected easing function applied to the engine's linear `progress` sweep:
+// the curve in MOTION (the inv ζ dogfood). The ball traverses the full hero
+// track; the ball SIZE is read off the shared idiom's --ball-size below.
+const HERO_BALL_SIZE = 56;
+const heroBallX = computed(() => {
+    const maxX = heroTrackWidth.value - HERO_BALL_SIZE;
+    if (maxX <= 0) return 0;
+    return demo.currentEasingFn.value(demo.progress.value) * maxX;
+});
 
 const measureTrackWidth = () => {
     // The comparison tracks are uniform width (each is `flex-1`); read the
@@ -249,76 +246,49 @@ const measureTrackWidth = () => {
     }
 };
 
-onMounted(() => {
-    readBallSizes();
-    measureTrackWidth();
-});
-
-// vueuse owns the observer lifecycle (tryOnScopeDispose cleanup) — re-measure
-// the comparison-track width off the owned `trackContainerEl` ref on resize.
-useResizeObserver(trackContainerEl, () => measureTrackWidth());
-
-// ── Singular scrubber (glass-ui Slider) ────────────────────────
-// Feature parity with the hand-rolled track-ball: drag scrubs progress,
-// playback pauses for the gesture and resumes after. The Slider also adds
-// keyboard scrubbing for free (arrow keys / Home / End).
-
-let wasPlayingBeforeScrub = false;
-let scrubbing = false;
-
-const onScrub = (v: unknown) => {
-    const arr = v as number[];
-    if (Array.isArray(arr) && arr.length) {
-        demo.progress.value = Math.max(0, Math.min(1, arr[0]!));
+const measureHeroTrackWidth = () => {
+    if (heroTrackEl.value) {
+        heroTrackWidth.value = heroTrackEl.value.clientWidth;
     }
 };
 
-const onScrubStart = () => {
-    if (scrubbing) return;
-    scrubbing = true;
-    wasPlayingBeforeScrub = demo.isPlaying.value;
-    if (wasPlayingBeforeScrub) demo.pause();
-};
+onMounted(() => {
+    readBallSizes();
+    measureTrackWidth();
+    measureHeroTrackWidth();
+});
 
-const onScrubEnd = () => {
-    if (!scrubbing) return;
-    scrubbing = false;
-    if (wasPlayingBeforeScrub) demo.play();
-};
+// vueuse owns the observer lifecycle (tryOnScopeDispose cleanup) — re-measure
+// on resize off the owned refs.
+useResizeObserver(trackContainerEl, () => measureTrackWidth());
+useResizeObserver(heroTrackEl, () => measureHeroTrackWidth());
 </script>
 
 <style scoped>
 /* Comparison-track ball sizing tokens — read by JS via getComputedStyle so
    CSS is the single source of truth. Values are intentionally in px (not rem)
    because JS reads computed lengths. Scoped to the component's own
-   `.easing-target` root so they never leak onto the shared
-   `glass-resting cartoon-surface` stage primitive (H.W2.S6 — the stage now
-   wears the one cartoon depth idiom; the JS reads them off the owned
-   `easingTargetEl` ref). */
+   `.easing-target` root (the FULL-BLEED stage — H.W10.S5 dropped the bare-class
+   `glass-resting cartoon-surface` card; the ball floats like the cube floats). */
 .easing-target {
     --track-ball-size-active: 36px;
     --track-ball-size-muted: 24px;
 }
 
-/* S4b — the EasingCurveCanvas promoted to the PRIMARY stage element. The canvas
-   sizes its block off `38cqi` of a `container-type: inline-size` ancestor (its
-   own scoped rule), so this wrapper IS that container; capping its inline size
-   holds the curve at a bounded square (the canvas's aspect-ratio:1 ties height to
-   width). At ~420px the canvas lands near its 280px block ceiling — the hero
-   reading, larger than the sidebar instance. */
-.easing-stage-curve {
-    container-type: inline-size;
-    container-name: easing-editor;
-    max-inline-size: 420px;
-    margin-inline: auto;
+/* ── G4 (H.W10.S3) — the singular hero ball ──
+   ONE large engine-driven ball, the curve in MOTION. Rides the shared
+   `.progress-rail`/`.progress-ball` idiom (EasingTarget is the canonical
+   rail-tint 8% / ball-glow 35% lineage). The per-site delta is only the hero
+   SIZE (matched to the JS HERO_BALL_SIZE constant the x-math reads) and the
+   transform-positioning perf hint. */
+.hero-track {
+    display: flex;
+    align-items: center;
 }
-
-/* The singular t-scrubber adopts the glass-ui glass-scrubber Slider variant.
-   Its track + range + thumb paint from the consumer's progress-tone tokens. */
-.t-scrubber {
-    --slider-track-bg: color-mix(in srgb, var(--color-progress) 10%, transparent);
-    --slider-range-bg: color-mix(in srgb, var(--color-progress) 45%, transparent);
-    --slider-thumb-bg: var(--color-progress);
+.hero-ball {
+    --ball-size: 56px;
+    left: 0;
+    will-change: transform;
 }
 
 .track-row {

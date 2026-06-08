@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col items-center justify-center gap-4 h-full w-full px-6 lg:px-8 max-w-3xl mx-auto overflow-hidden dock-inset">
+    <div class="flex flex-col items-center justify-center gap-4 h-full w-full px-6 lg:px-8 max-w-3xl mx-auto overflow-hidden">
         <div class="glass-resting cartoon-surface w-full flex-1 min-h-0 flex flex-col overflow-hidden">
             <!-- Header: title + live master progress read-out -->
             <div class="flex items-center justify-between px-4 py-2.5 border-b border-border/40 shrink-0">
