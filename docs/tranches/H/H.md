@@ -36,19 +36,22 @@ consumed PUBLISHED, demo live at `:5173` — the dev port is Vite-assigned; gate
 under `docs/tranches/H/audit/` (35 phase-1 `a-*` lanes + 6 `_SYNTHESIS-*` synthesis lanes,
 each `file:line`-grounded or live-anchored with a SHIP/MEASURE-FIRST/BOOK/RECORD/HANDOFF/
 KILL disposition and a re-runnable instrument). This charter (`H.md`), the gap-scorecard,
-the prompt-recap, and the deferred-ledger are the DEVELOPMENT artifacts. **H.W0–H.W8 are
+the prompt-recap, and the deferred-ledger are the DEVELOPMENT artifacts. **H.W0–H.W9 are
 authored-now-run-later wave specs; the implementation phase opens only on explicit user
 authorization, gated on keyframes' own green CI — exactly D.W0's, E.W0's, F.W0's, and
 G.W1's dev/impl boundary.** No engine, demo, library, parser, test, or bench source is
 written in development. **This is TRANCHE DEVELOPMENT — docs ONLY, ZERO source/test/CI/demo
-edits.**
+edits.** (H.W9 is the CORRECTIVE design-language refinement round added after the user
+audited the running `tranche-h-impl` demo — F1–F9; it SUPERSEDES specific landed W2/W3/W4
+decisions and lands BEFORE H.W8's golden baseline. Its authoritative plan is
+`audit/feedback/_PLAN.md`.)
 
 ## § Mandate (binding — every wave, every fold, every hand-off · the spine)
 
 The standing precepts, carried verbatim-in-substance from `G/G.md:46-91` (themselves from
 `F/F.md:35-63`), re-confirmed HONORED A→G with the drift clustered on ONE seam — the
 scene+playback state machine D12 (`_SYNTHESIS-prompt-recap §3`) — and BINDING on every H
-wave (H.W0–H.W8), every gate, and every cross-repo hand-off this tranche emits
+wave (H.W0–H.W9), every gate, and every cross-repo hand-off this tranche emits
 (`_SYNTHESIS-gap-scorecard §6`, the spine, verbatim-in-substance):
 
 - **NO quick solutions, NO workarounds** — idiomatic, gestalt approaches only. A wave may
@@ -148,11 +151,13 @@ D+E+F+G lead — this is binding. Re-touching exemplary work is the inverse fail
 
 ## § The band → wave map (the canonical structure)
 
-(The canonical H structure from `_SYNTHESIS-gap-scorecard §3`. Nine waves. Each: a band/
-theme · the headline disposition · the folded lane(s) · the falsifiable `proof:*` gate
+(The canonical H structure from `_SYNTHESIS-gap-scorecard §3` — nine original waves H.W0–H.W8,
+plus the CORRECTIVE H.W9 added after the user audited the running `tranche-h-impl` demo: TEN waves.
+Each: a band/theme · the headline disposition · the folded lane(s) · the falsifiable `proof:*` gate
 that BITES — born-RED today, GREEN at close. **Waves are ordered by dependency: H.W0
 (crashes) and H.W1 (state machine) are PREREQUISITES** — five lanes name D12 as a blocker;
-the live crashes poison every other measurement.)
+the live crashes poison every other measurement. H.W9 sits AFTER W2/W3/W4/W6 and BEFORE H.W8's
+golden baseline — the row order in the table below reflects that dependency placement.)
 
 | Band | Theme | Wave | Net-new vs folded |
 |---|---|---|---|
@@ -164,7 +169,8 @@ the live crashes poison every other measurement.)
 | **H.W5 — Scene icons + mode pertinence + cube/amiga scene-quality** | one themable SVG family + the Discrete merge + interactivity + the cube/amiga scene-quality/perf budget | H.W5 | net-new (the new AND original modes finished; 8 scene/perf lanes fold) |
 | **H.W6 — Typing-dots + chrome dogfood** | the staggered `.typing-dots` primitive (inv ζ) | H.W6 | net-new (root-caused; the chrome dogfood) |
 | **H.W7 — Mobile overlay + springy drawer** | overlay model + the `SpringProgress` sheet | H.W7 | net-new (architectural transposition) |
-| **H.W8 — Gate-regime upgrade** | the appearance axis + interaction axis + manifest + chronic meta-gate | H.W8 | net-new (closes the blind spots; the LAST re-paper) |
+| **H.W9 — Design-language refinement round 2** | the calm glass+cartoon register (F3+F6+F8 collapse: keep `surface="cartoon"`, add `tier="quiet"`, REMOVE the tracked specular) + the F1–F9 user-feedback fold | H.W9 | CORRECTIVE (the user-feedback refinement round; SUPERSEDES specific landed W2/W3/W4 decisions; net-deletion-leaning; AFTER W2/W3/W4/W6, BEFORE H.W8's golden baseline) |
+| **H.W8 — Gate-regime upgrade** | the appearance axis + interaction axis + manifest + chronic meta-gate | H.W8 | net-new (closes the blind spots; the LAST re-paper; the H.W9 calm register is what its golden baseline locks) |
 
 The finding → wave map (each D1–D14 + each `a-*` lane → its owning wave; each row → its
 disposition headline; from `_SYNTHESIS-gap-scorecard §1/§3` and `_SYNTHESIS-prompt-recap
@@ -180,6 +186,7 @@ disposition headline; from `_SYNTHESIS-gap-scorecard §1/§3` and `_SYNTHESIS-pr
 | **D8/D11** · `a-scene-icons` · `a-icon-pipeline` · `a-modes-pertinence` · `a-scene-spring-sequence` · `a-scene-path-discrete` · `a-scene-square-easing` · `a-mode-interactivity` · `a-scene-cube-amiga` (A2/A3/A5; A7/A9 BOOK) · `a-glassmorphism-perf` G1-demo/G5 | **H.W5** | scene icons + mode pertinence + cube/amiga scene-quality | SHIP-in-H (SVG family + Discrete→Spring merge + interactivity + S6 cube/amiga scene-quality/perf budget) |
 | **D6** · `a-typing-dots` · `a-animations-quality` F1 · `a-styling-idioms §4` | **H.W6** | typing-dots + chrome dogfood | SHIP-in-H (the dogfooded staggered primitive; inv ζ) |
 | **D10/D13** · `a-mobile-architecture` F1/F2 · `a-demo-architecture` F5 | **H.W7** | mobile overlay + springy drawer | SHIP-in-H (overlay model + `SpringProgress` sheet) |
+| **F1–F9** (the user-feedback refinement round, live-observed on `tranche-h-impl`) · `audit/feedback/r1-source-rootcause` · `r2-git-archaeology` · `r3-design-reconcile` · `audit/feedback/_PLAN` (BINDING) | **H.W9** | design-language refinement round 2 (the consolidated feedback fold) | CORRECTIVE SHIP-in-H — the F3+F6+F8 register collapse (keep `surface="cartoon"`, add `tier="quiet"`, REMOVE the tracked specular) + F1 row-split / F2 bezier-fit / F7 shadow-unclip / F4 pp-logo / F5 darkmode-row / F9 idle-fade; SUPERSEDES specific landed W2/W3/W4 decisions (the §supersede-map); 2 glass-ui HANDOFFs; the F6 USER-DECISION fork (default REMOVE) |
 | **D9** · `a-mbabb-popover` · `a-glass-ui-consumption` D9 · `a-historical-dock` H-dock-1 | **H.W1 S8** (popover; FSM-coupled; OWNED, BLK-8) | the @mbabb popover re-open | SHIP-in-H (drop the double-wrapped trigger; born-RED `proof:dock-popover-opens` + `proof:single-toggle`) — **D9 IS kf-patched** (the App.vue un-double-wrap; the dock memory-rule "consumed glass-ui fixes it / do NOT patch in kf" applies to dock CHROME, NOT the @mbabb App.vue markup; CP-HIGH-4) |
 | **D5** (dock LAG, cross-repo) · `a-historical-dock` · `a-perf-dock-lag` · `a-glassmorphism-perf` G4 · `a-glass-ui-consumption` D5 | **H.W8** (kf consume-leg + born-RED gate, BLK-5) | the dock lag | **kf SHIP-in-H consume-leg: bump `@mkbabb/glass-ui ^3.4.0 → ^3.5.1`** (`53c1b07` IS PUBLISHED — glass-ui 3.5.0/3.5.1/3.6.0 on npm, VERIFIED; NO wait, NO kf fork) PAIRED with born-RED `proof:dock-morph-settled` (token-peak form: `--spring-dock` ramp peak ≤ +6%; RED at the installed +16.3% today) + SHIP-in-H (`collapse-delay`, MEASURE-FIRST) |
 | `a-gate-blindspots` · `a-deferred-chronic §3` · `a-changes-vs-plan` · `a-precept-sweep` | **H.W8** | the gate-regime upgrade | SHIP-in-H (appearance + interaction axes + manifest + chronic meta-gate) |
@@ -332,6 +339,30 @@ The per-band one-paragraph characterizations:
   (`_SYNTHESIS-frontend-mobile`, `_SYNTHESIS-gap-scorecard §1.1/§3 H.W7`,
   `a-mobile-architecture` F1/F2, `a-demo-architecture` F5).
 
+- **H.W9 (design-language refinement round 2) — the user-feedback fold, the chronic-closure
+  discipline in ACTION.** After W2/W3/W4 landed, the user AUDITED the running demo and named
+  nine refinements (F1–F9) — exactly the appearance/interaction audit H.W8 institutionalizes,
+  arriving by hand BEFORE the golden baseline locked it. The headline collapses F3+F6+F8 into
+  ONE register move: glass and cartoon ALREADY coexist (`cartoon-surface` decorates a
+  `glass-${tier}`, `cards.css:22-48`), so keep `surface="cartoon"`, add `tier="quiet"`
+  broadly (the glass returns at the exact 0.50 α/10px of the pre-cartoon plate — F8), and
+  REMOVE the tracked specular entirely (F3 too-dramatic + F6 inconsistency → the user's own
+  "perhaps we just remove it"; the lead adopts REMOVE as the default per R3, the CONSISTENT
+  alternative documented as the §USER-DECISION fork). Around it: F1 restores label-LEFT/
+  value-RIGHT rows while keeping ONE column (revises W3.S1's accidental collapse); F2 fits the
+  bezier panel + bakes the back into the header right (revises W4.S2); F7 gives the cartoon
+  shadow symmetric clearance inside W3's load-bearing `overflow:hidden` (a structural tension
+  neither wave owned); F4 leads the ppmycota menu with the existing SVG mark + drops the emoji;
+  F5 makes the whole dark-mode row the click target; F9 re-authors the idle-fade dogfooding
+  `@vueuse/core useIdle`. H.W9 is a CORRECTIVE wave that SUPERSEDES specific landed W2/W3/W4
+  decisions (the §supersede-map is the honest ledger), sits AFTER W2/W3/W4/W6 and BEFORE
+  H.W8's golden baseline, carries 10 gates that each BITE born-RED, two glass-ui HANDOFFs, and
+  the one F6 USER-DECISION fork; F6's invert keeps the D2 cartoon chronic CLOSED via a STRONGER
+  system property (`proof:no-orphan-specular` exception=∅). Pure demo CSS/markup + one
+  composable deletion + one `useIdle` wire — NO engine source, NO glass-ui patch in kf (inv-16),
+  NO dist build (`audit/feedback/_PLAN`, `r1-source-rootcause`, `r2-git-archaeology`,
+  `r3-design-reconcile`; `waves/H.W9.md`).
+
 - **H.W8 (gate-regime upgrade) — so this is the LAST re-paper.** The A→G gate lattice locks
   SOURCE-SHAPE + NOT-BLANK; it has NO appearance axis, NO interaction axis, and a drifted
   SCENES manifest (`demo-driver.mjs:40-59` knows 6, the demo ships 9 — sequence/
@@ -451,6 +482,19 @@ The per-band one-paragraph characterizations:
 
 ---
 
+## H.W9 — DESIGN-LANGUAGE REFINEMENT ROUND 2 (the consolidated user-feedback fold · F1–F9; SUPERSEDES specific landed W2/W3/W4 decisions)
+
+- **Phase:** IMPL — spec authored in DEV, awaits auth · **Class:** CORRECTIVE SHIP-in-H (the user-feedback refinement round; net-deletion-leaning — F3/F6 remove the specular subsystem; pure demo CSS/markup + one composable deletion + one `useIdle` wire + two glass-ui HANDOFFs; NO engine source, NO glass-ui patch in kf — inv-16, NO dist build) · **Scope:** the ~14 `surface="cartoon"` panel Card sites (→ add `tier="quiet"`) + the tracked-specular subsystem DELETED (`TimingFunctionPanel.vue:17-30,175,198`, `useSpecularPointer.ts`, `design-idioms.css:245-282`) + the controls rows (`AnimationControlsControls.vue:4,9,133`, `LayerConfigPanel.vue:3,19,46`) + the bezier panel fit + header bake (`AnimationControlsControls.vue:331-334`, `TimingFunctionPanel.vue:5-12,30-32,51-58`) + the controls-content shadow clearance (`ControlsPaneWrapper.vue:182,207-208`) + the dock menu (`App.vue:38-44,48-61`) + the idle-fade restoration (`usePaneHover.ts`, `useControlsLayout.ts:50`, `ControlsPaneWrapper.vue:11,16-17,159-161,190-193`) + the gate set · **DAG-deps:** AFTER **W2** (the surface flip it refines), **W3** (the row shape + the load-bearing clip it reconciles), **W4** (the bezier panel it re-fits), **W6** (no collision — the `EditorStartScreen` hero lane is untouched); every browser gate settle-gates on **H.W1**'s FSM resting. Sequenced **BEFORE H.W8's GOLDEN `proof:visual-lock` baseline** (the H.W9 calm register / one-column row / un-clipped shadow MUST be what H.W8 locks). The FULL spec is `waves/H.W9.md`.
+- **§Provenance (the folded lanes):** `audit/feedback/r1-source-rootcause` (the per-item `file:line` root-cause), `r2-git-archaeology` (the "previous correct" forms — F1's `cfea657`, F9's `11550cd`/`3b8b468`, F4's `ppmycota-logo-3.svg`), `r3-design-reconcile` (the design + modern-web reconcile — the F3+F6+F8 collapse, REMOVE decisively). Synthesis home: `audit/feedback/_PLAN.md` (the COMPLETE, authoritative H.W9 plan — BINDING).
+- **§The state, verified (file:line / live anchors):** glass and cartoon ALREADY coexist — `cartoon-surface` decorates the `glass-${tier}` the Card emits (`cards.css:22-48`), so the W2 panels ARE glassy on the more-opaque `resting` default (0.65 α) vs the old `.glass-card` plate's `quiet` (0.50 α) — F8 is a tier flip, not lost glass; the catch-light survives only on the W2 composite bezier card (`TimingFunctionPanel.vue:30,175,198`; magnitude `useSpecularPointer.ts:42`; projection `design-idioms.css:266-282`). W3.S1 (`ece4743`) collapsed the per-row `[auto_1fr]` by accident (the surviving precedent `AssetPropertiesPanel.vue:6`). The bezier panel overflows the `min(50vh,480px)` cap (`AnimationControlsControls.vue:331-334`) + the back is an external top-LEFT `<Button>` (`TimingFunctionPanel.vue:5-12`). The cartoon shadow casts bottom-LEFT (`--shadow-cartoon-md: -4px 3px`, `tokens.css:543-551`) into W3's load-bearing `overflow:hidden` (`ControlsPaneWrapper.vue:182`) with clearance only right/bottom (`:207-208`) → a sliced lobe. The pp logo SVG already renders (`App.vue:50`→`assets/ppmycota-logo-3.svg`); the defect is the emoji `<p>` at `:58`. The dark-mode row (`App.vue:38-44`) has no row `@click` (only the icon toggles). The idle-fade CSS is gone (the `.controls-pane--hovered` class dead; `git show 11550cd` proves it was extant); `@vueuse/core useIdle` installed.
+- **§Goal:** land the calm glass+cartoon register the user's nine feedback items ask for. The headline is ONE register move (F3+F6+F8): keep `surface="cartoon"`, add `tier="quiet"` broadly (the glass returns at 0.50 α/10px), REMOVE the tracked specular entirely (default per the user's lean + R3). Around it: restore label-LEFT/value-RIGHT rows while keeping ONE column (F1); fit the bezier panel + bake the back into the header right (F2); give the cartoon shadow symmetric clearance inside the load-bearing clip (F7); lead the ppmycota menu with the SVG mark + drop the emoji (F4); make the whole dark-mode row the click target (F5); re-author the idle-fade dogfooding `useIdle` (F9). Net-deletion-leaning, one register, every fix idiomatic + gestalt — the chronic-closure discipline in ACTION (the user caught a re-paper before H.W8's golden baseline locked it).
+- **§Scope:** **S1 (F8+F3+F6 — the register)** — add `tier="quiet"` to every kf-owned `surface="cartoon"` panel Card (0.50 α — F8) + DELETE the tracked-specular subsystem (the manual `glass-specular-track`, the `.cartoon-specular ::before` projection, the `useSpecularPointer` wire + file — F3/F6); MUST land together. **S2 (F7)** — symmetric `.controls-content` left clearance so the cartoon stamp clears the load-bearing clip (keep `overflow:hidden`). **S3 (F1)** — intra-row `[auto_1fr]` (label-left/value-right) at the ROW level, one-column STACK preserved (revises W3.S1); demo-side wrapper born-GREEN today, the glass-ui `LabeledField orientation` HANDOFF is the durable home. **S4 (F2)** — fit the bezier panel (no scroll) + bake the back into the CardHeader right (revises W4.S2); the in-panel canvas ceiling is a NAMED panel-context clamp tighter than W4's full-rail 280 (square law preserved). **S5 (F4+F5)** — drop the emoji `<p>`, lead with the existing pp SVG mark (F4); row-level `@click="toggleDark()"` + `<DarkModeToggle passive>` (F5). **S6 (F9)** — `useIdle(10_000)` driving one class off `idle && !isPaneHovered`; CSS owns opacity + transition (token `--controls-idle-opacity` ~0.35) + a `:focus-within` a11y improvement + a MANDATORY PRM guard.
+- **§Hard gate — the 10 gates, each BITES born-RED today:** **AMEND** `proof:single-column-pack` (add `labelRect.right ≤ controlRect.left`; reds on the label-ABOVE stack); **NEW** `proof:bezier-no-scroll` (reds: content overflows the cap + external top-LEFT back); **INVERT** `proof:no-orphan-specular` (exception set `{bezier}` → ∅; ZERO `.glass-specular-track` on any kf-owned `<Card>`; reds on the composite today — STRONGER than the W2 form); **RETIRE** `proof:cartoon-specular-coexist` + `proof:specular-calm` (subject deleted — drop from `proof:all`); **NEW** `proof:glass-and-cartoon` (reds if a panel resolves an OPAQUE background in the non-PRM case; greens on `tier="quiet"`; `proof:cartoon-is-panel-depth` stays GREEN, tier-agnostic); **NEW** `proof:pp-logo-svg` (static — reds: the emoji `<p>` present); **NEW** `proof:darkmode-row-toggle` (reds: clicking the label/gutter does nothing); **NEW** `proof:cartoon-shadow-unclipped` (reds: the bottom-LEFT lobe outside the padded box); **NEW** `proof:idle-fade` (reds: the dead class rests at opacity 1). Gate-shape authored where H.W8 owns it; H.W9 wires the born-RED clauses into `proof:*`. **BITE:** revert any fix → its gate reds; the specular dies because the subsystem is DELETED (not `display:none`); the glass returns because the tier is `quiet`.
+- **§Folds (the supersede-map — the honest ledger):** F1 supersedes W3.S1; F2 supersedes W4.S2; F3 supersedes W2.S3; F6 supersedes W2.S2-COMPOSITE; F8 supersedes W2.S1; F7 is a STRUCTURAL TENSION (W3 clip × W2 shadow, no wrong decision); F4/F5 are new; F9 is a restoration. Full table + per-item precept-consistency in `waves/H.W9.md §supersede-map`.
+- **§Design decisions RESOLVED:** F3+F6+F8 collapse into ONE register move (the headline); REMOVE the tracked specular (default; the CONSISTENT alternative is the §USER-DECISION fork — only if the user rejects REMOVE); F1 reverts ONLY the inner row split (the one-column-pack invariant preserved); F2's in-panel ceiling is a NAMED clamp, not a W4 contradiction; F7 keeps the load-bearing clip; F9 dogfoods `useIdle` + a `:focus-within` a11y improvement. **H.W9 SUPERSEDES, it does not REWRITE** — the supersede-map is the honest ledger; F6's invert keeps the D2 cartoon chronic CLOSED via a STRONGER system property (`proof:no-orphan-specular` exception=∅ — a chronic exits via a SYSTEM-property gate, the chronic-closure discipline). TWO glass-ui HANDOFFs (F1 `LabeledField orientation`; F8 OPTIONAL `cartoon`+`quiet` preset), each paired with a born-RED kf gate.
+
+---
+
 ## H.W8 — THE GATE-REGIME UPGRADE (close the blind spots; the LAST re-paper; CLOSES the DAG)
 
 - **Phase:** IMPL — spec authored in DEV, awaits auth · **Class:** SHIP-in-H (the appearance + interaction axes + the manifest + the chronic meta-gate) · **Scope:** `demo-driver.mjs:40-59` (the drifted SCENES manifest), a new `proof:visual-lock` pixel baseline (needs `pixelmatch`+`pngjs` as CI-only devDeps — see H.W8.md S2), the chronic-closure meta-gate (parse substrate = `PROGRESS.md`, NOT the not-yet-authored `FINAL.md` — BLK-2), the dock-lag kf consume-leg (bump `^3.4.0 → ^3.5.1`, BLK-5) + its born-RED `proof:dock-morph-settled` (BLK-3) · **DAG-deps:** ALL of H.W0-H.W7 (the gate locks the LANDED appearance/interaction; the chronic meta-gate audits the closures).
@@ -496,16 +540,27 @@ The per-band one-paragraph characterizations:
                  │  re-parameterize the SAME grid; stage    │
                  │  full-bleed; SpringProgress sheet        │
                  └────────────────────┬─────────────────────┘
-                                      │ (all visual/mobile landed)
+                                      │ (W2/W3/W4/W6 landed — the user audits
+                                      │  the running demo; F1–F9 refinement)
+                 ┌────────────────────▼─────────────────────────────────────┐
+                 │  H.W9 — DESIGN-LANGUAGE REFINEMENT ROUND 2 (CORRECTIVE)   │
+                 │  F3+F6+F8 collapse: surface="cartoon" + tier="quiet" +    │
+                 │  REMOVE the tracked specular; F1 rows; F2 bezier-fit;     │
+                 │  F7 shadow-unclip; F4 pp-logo; F5 darkmode-row; F9 idle.  │
+                 │  SUPERSEDES specific landed W2/W3/W4 decisions.           │
+                 └────────────────────┬─────────────────────────────────────┘
+                                      │ (the calm register / one-column row /
+                                      │  un-clipped shadow — the state to lock)
        ┌───────────────────────────────▼──────────────────────────────────────┐
-       │  H.W8 — THE GATE-REGIME UPGRADE (CLOSES; depends on ALL W0-W7)        │
-       │  proof:visual-lock (appearance) + interaction axis + manifest re-     │
-       │  source + the chronic-closure meta-gate + the dock-lag HANDOFF        │
-       │  paired with born-RED proof:dock-morph-settled                        │
+       │  H.W8 — THE GATE-REGIME UPGRADE (CLOSES; depends on ALL W0-W7+W9)     │
+       │  proof:visual-lock (appearance — locks the H.W9 GOLDEN render) +      │
+       │  interaction axis + manifest re-source + the chronic-closure          │
+       │  meta-gate + the dock-lag HANDOFF paired with born-RED                 │
+       │  proof:dock-morph-settled                                              │
        └───────────────────────────────────────────────────────────────────────┘
 ```
 
-**Critical path:** `H.W0 → H.W1 → {visual/mobile waves} → H.W8`. H.W0 (crashes) and H.W1
+**Critical path:** `H.W0 → H.W1 → {visual/mobile waves} → H.W9 → H.W8`. H.W0 (crashes) and H.W1
 (state machine) are the two PREREQUISITES — five lanes name D12 as a blocker and the live
 crashes poison every clean measurement (`_SYNTHESIS-gap-scorecard §3`). **Parallelizable
 (with a FILE-OWNERSHIP discipline — CP-HIGH-1):** H.W2 (design language), H.W3 (layout),
@@ -523,10 +578,19 @@ W2/W3 rebase-sequence on `AnimationControlsControls.vue` (W2:3 ∥ W3:4,6,9); a 
 append to `design-idioms.css`. The other shared file is `AssetPropertiesPanel.vue` (separate
 tree). **Cross-wave coupling:** H.W7 (mobile) re-parameterizes the SAME `--rail-width`
 `rail·stage·rail` grid H.W3 authors (the layout is written ONCE), so H.W7 depends on H.W3.
-**H.W8 closes** — it locks the LANDED appearance (the `proof:visual-lock` baseline) +
-interaction + manifest of all of H.W0-H.W7 and installs the chronic-closure meta-gate, so
-it depends on every prior wave. **inv δ** (no dock occlusion) is a standing constraint on
-H.W2 and H.W7 (the mobile overlay + the surface swap must not re-introduce an occlusion).
+**H.W9 — the CORRECTIVE refinement round — sits AFTER the visual waves, BEFORE H.W8.** It
+is NOT dependency-parallel with W2/W3/W4: it SUPERSEDES specific landed W2/W3/W4 decisions
+(the user audited the running demo after they landed), so it depends on W2 (the surface flip
+it refines), W3 (the row shape + the load-bearing clip it reconciles), W4 (the bezier panel
+it re-fits), and W6 (no collision — the `EditorStartScreen` hero lane is untouched); its
+browser gates settle-gate on H.W1. **H.W9 MUST land before H.W8** so the calm glass+cartoon
+register / the one-column label-left row / the un-clipped cartoon shadow are the render
+H.W8's `proof:visual-lock` golden baseline locks — a re-paper caught BEFORE the baseline
+fixed it. **H.W8 closes** — it locks the LANDED appearance (the `proof:visual-lock`
+baseline) + interaction + manifest of all of H.W0-H.W7 **AND H.W9** and installs the
+chronic-closure meta-gate, so it depends on every prior wave. **inv δ** (no dock occlusion)
+is a standing constraint on H.W2, H.W7, and H.W9 (the mobile overlay + the surface swap +
+the refinement must not re-introduce an occlusion).
 
 ---
 
@@ -600,10 +664,25 @@ inverse failure:**
 — the two live-crash kills (H.W0), the FSM keystone (H.W1, 5 lanes name it a blocker), the
 5-lane design-language restoration (H.W2), the `rail·stage·rail` layout transposition
 (H.W3), the visual-fidelity rungs + the icon idiom (H.W4), the new modes finished (H.W5),
-the typing-dots dogfood primitive (H.W6), the mobile overlay + springy drawer (H.W7), and
-the gate-regime upgrade (H.W8). The GAP column is exactly: TWO crashes, ONE FSM, the
-design-language restoration, the layout transposition, the easing/hero rungs, the
-icons/modes finish, the typing-dots, the mobile overlay, and the gate-regime upgrade.
+the typing-dots dogfood primitive (H.W6), the mobile overlay + springy drawer (H.W7), the
+design-language refinement round 2 (H.W9), and the gate-regime upgrade (H.W8). The GAP
+column is exactly: TWO crashes, ONE FSM, the design-language restoration, the layout
+transposition, the easing/hero rungs, the icons/modes finish, the typing-dots, the mobile
+overlay, the F1–F9 refinement, and the gate-regime upgrade.
+
+**The user-feedback refinement round (H.W9) — the gate-blindspot lesson in ACTION.** H.W9
+is NOT a phase-1 assay finding; it is the user's authoritative direction after AUDITING the
+running demo — nine refinements (F1–F9) that course-correct specific landed W2/W3/W4
+decisions (the headline: F3+F6+F8 collapse to keep `surface="cartoon"`, add `tier="quiet"`,
+REMOVE the tracked specular). This is precisely the appearance/interaction audit the
+gate-blindspot lesson names and H.W8 institutionalizes — arriving by HAND before the golden
+baseline locked it. It is the chronic-closure discipline catching a re-paper BEFORE the
+`proof:visual-lock` baseline fixed it: the W2 composite is RETIRED and the cartoon chronic
+(D2) stays closed via a STRONGER inverted system property (`proof:no-orphan-specular`
+exception=∅), not a re-opening. H.W9 SUPERSEDES the specific landed decisions it corrects
+(the §supersede-map is the honest ledger — never a rewrite of the landed §Goal), and it
+carries TWO glass-ui HANDOFFs + the one F6 USER-DECISION fork (default REMOVE). Net-deletion-
+leaning, pure demo + the gate deltas, NO engine source, NO glass-ui patch in kf (inv-16).
 
 **Folded chronic debt: FOUR, and CLOSED for the first time honestly.** Unlike G's vacuous
 ledger, H carries four user-visible chronics (cartoon-shadow D2 → H.W2, φ-hero D7 → H.W4,
@@ -634,7 +713,14 @@ the mobile overlay (D10) cohesive (H.W3, H.W7). The hero bumps one φ rung into 
 audacious tier and the easing canvas gets a container ceiling (H.W4); the scene icons
 become one themable inline-SVG family on the descriptor, Discrete merges into Spring, and
 the survivors get interactivity (H.W5); the typing dots become a dogfooded staggered
-primitive (H.W6). The cross-repo dock lag, Card-specular seam, and value.js/parse-that
+primitive (H.W6). Then the user audits the running demo and names nine refinements (F1–F9):
+the CORRECTIVE round H.W9 collapses F3+F6+F8 into ONE register move — keep `surface="cartoon"`,
+add `tier="quiet"` (the glass returns), REMOVE the tracked specular entirely — and lands the
+label-left rows, the bezier fit, the un-clipped shadow, the pp-logo mark, the dark-mode row,
+and the `useIdle` idle-fade; it SUPERSEDES specific landed W2/W3/W4 decisions (the honest
+supersede-map) and lands BEFORE H.W8's golden baseline so the calm register is what gets
+locked — the chronic-closure discipline catching a re-paper before the baseline fixed it.
+The cross-repo dock lag, Card-specular seam, and value.js/parse-that
 slices are HANDOFFs, each paired with a born-RED kf gate. And the gate regime gains an
 appearance axis (a pixel visual-lock), an interaction axis, a re-sourced SCENES manifest,
 and the chronic-closure meta-gate (H.W8) — so this is the LAST tranche these four chronics
@@ -666,11 +752,20 @@ single `cartoon-surface` site (`CSSCodeEditor.vue:6`), the lopsided two-column c
 86.1px hero rung + the 61 no-op `icon-*` classes, the 4 modes wearing `<Home>`
 (`ChromeDock.vue:25-30`), the single-span `split(/\s+/)` (`AnimatedText.vue:62`), the
 30px-crushed mobile stage, and the drifted SCENES manifest (`demo-driver.mjs:40-59` knows
-6, the demo ships 9). The band→wave map proposes 9 waves (`H.W0..H.W8`) ordered by the
-crash+FSM-prerequisite DAG; each carries a falsifiable `proof:*` gate that BITES (born-RED
-today, GREEN on fix), and the four chronics each exit via a SYSTEM-property gate or a
-HANDOFF-paired born-RED gate (the chronic-closure meta-invariant). inv-16 HOLDS for H (kf
-consumes glass-ui/value.js/parse-that PUBLISHED; the dock/specular/value.js/parse-that
-items are AUDITED + HANDOFF-tagged, never authored or patched in kf). **H.W0..H.W8
-IMPLEMENTATION awaits explicit authorization — this is the canonical charter, authored in
-TRANCHE DEVELOPMENT.**
+6, the demo ships 9); plus the user-feedback refinement round (F1–F9 on `tranche-h-impl`):
+the ~14 `surface="cartoon"` panels reading opaque on the `resting` tier (the F8 quiet-glass
+recovery), the lone tracked-specular composite (`TimingFunctionPanel.vue:30,175,198` — F3/F6
+REMOVE), the accidentally-collapsed per-row split (`ece4743`/W3.S1 — F1), the scrolling bezier
+panel + external back button (W4.S2 — F2), the sliced bottom-LEFT cartoon shadow
+(`ControlsPaneWrapper.vue:182,207-208` — F7), the emoji-garnished pp logo (`App.vue:58` — F4),
+the icon-only dark-mode toggle (`App.vue:38-44` — F5), and the dead idle-fade class
+(`11550cd` extant — F9). The band→wave map proposes 10 waves (`H.W0..H.W9`) ordered by the
+crash+FSM-prerequisite DAG, with H.W9 the CORRECTIVE refinement round AFTER W2/W3/W4/W6 and
+BEFORE H.W8's golden baseline; each carries a falsifiable `proof:*` gate that BITES (born-RED
+today, GREEN on fix), the four chronics each exit via a SYSTEM-property gate or a
+HANDOFF-paired born-RED gate (the chronic-closure meta-invariant), and H.W9's F6-invert keeps
+the D2 cartoon chronic closed via a STRONGER inverted `proof:no-orphan-specular` (exception=∅).
+inv-16 HOLDS for H (kf consumes glass-ui/value.js/parse-that PUBLISHED; the dock/specular/
+value.js/parse-that items are AUDITED + HANDOFF-tagged, never authored or patched in kf;
+H.W9 emits TWO glass-ui HANDOFFs, never a kf patch). **H.W0..H.W9 IMPLEMENTATION awaits
+explicit authorization — this is the canonical charter, authored in TRANCHE DEVELOPMENT.**
