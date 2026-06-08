@@ -1,0 +1,206 @@
+{
+  "log": [
+    {
+      "kind": "console.debug",
+      "text": "[vite] connecting..."
+    },
+    {
+      "kind": "console.debug",
+      "text": "[vite] connected."
+    },
+    {
+      "kind": "console.info",
+      "text": "<Suspense> is an experimental feature and its API will likely change."
+    },
+    {
+      "kind": "console.debug",
+      "text": "[kf:loaf] 71.1ms frame (blocking 0.0ms) — unattributed"
+    },
+    {
+      "kind": "console.debug",
+      "text": "[kf:loaf] 181.9ms frame (blocking 131.6ms) — http://localhost:5174/main.ts?t=1780945488811"
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.error",
+      "text": " Err x     0\n 1 | \n     ^^^"
+    },
+    {
+      "kind": "console.warning",
+      "text": "[KeyframesString] could not serialize the animation to CSS: Parse error at offset 0: \"......\""
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.debug",
+      "text": "[kf:loaf] 143.9ms frame (blocking 87.6ms) — http://localhost:5174/@fs/Users/mkbabb/Programming/keyframes.js/node_modules/.vite/deps/monaco-editor.js?v=2f0afe0e"
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "result",
+      "text": "{\n  \"steps\": [\n    {\n      \"name\": \"rotations.templateFrames\",\n      \"count\": 2\n    },\n    {\n      \"name\": \"rotations.at(0) THREW\",\n      \"err\": \"Cannot interpolate computed values without a target element.\"\n    },\n    {\n      \"name\": \"rotations.at(1) THREW\",\n      \"err\": \"Cannot interpolate computed values without a target element.\"\n    },\n    {\n      \"name\": \"matrix.at(0)\",\n      \"vars\": \"{\\\"transform\\\":\\\"matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)\\\"}\"\n    },\n    {\n      \"name\": \"matrix.at(1)\",\n      \"vars\": \"{\\\"transform\\\":\\\"matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 40, 0, 0, 1)\\\"}\"\n    }\n  ],\n  \"rotationsErr\": \"Cannot interpolate computed values without a target element.\",\n  \"matrixCSS\": \".mat {\\n  animation-name: mat;\\n  animation-duration: 1000ms;\\n  animation-timing-function: ease-in-out-cubic;\\n  animation-iteration-count: 1;\\n  animation-direction: normal;\\n  animation-fill-mode: forwards;\\n}\\n\\n@keyframes mat {\\n  0% {\\n    transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);\\n  }\\n  100% {\\n    transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 40, 0, 0, 1);\\n  }\\n}\\n\"\n}"
+    }
+  ],
+  "result": {
+    "steps": [
+      {
+        "name": "rotations.templateFrames",
+        "count": 2
+      },
+      {
+        "name": "rotations.at(0) THREW",
+        "err": "Cannot interpolate computed values without a target element."
+      },
+      {
+        "name": "rotations.at(1) THREW",
+        "err": "Cannot interpolate computed values without a target element."
+      },
+      {
+        "name": "matrix.at(0)",
+        "vars": "{\"transform\":\"matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)\"}"
+      },
+      {
+        "name": "matrix.at(1)",
+        "vars": "{\"transform\":\"matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 40, 0, 0, 1)\"}"
+      }
+    ],
+    "rotationsErr": "Cannot interpolate computed values without a target element.",
+    "matrixCSS": ".mat {\n  animation-name: mat;\n  animation-duration: 1000ms;\n  animation-timing-function: ease-in-out-cubic;\n  animation-iteration-count: 1;\n  animation-direction: normal;\n  animation-fill-mode: forwards;\n}\n\n@keyframes mat {\n  0% {\n    transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);\n  }\n  100% {\n    transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 40, 0, 0, 1);\n  }\n}\n"
+  }
+}

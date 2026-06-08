@@ -1,0 +1,48 @@
+{
+  "vt": {
+    "forcedSpringPath": false,
+    "viewTransitionPresent": true,
+    "widthWriteCount": 0,
+    "widthWriteSample": [],
+    "morphStart": 1389,
+    "morphEnd": 1756,
+    "morphDurationMs": 367,
+    "writeError": null,
+    "frameStats": {
+      "n": 575,
+      "meanMs": 8.71,
+      "maxMs": 34.1,
+      "p95Ms": 9.2,
+      "droppedGt33": 3,
+      "droppedGt50": 0
+    },
+    "consoleErr": [
+      "[error]  Err x     0\n 1 | \n     ^^^",
+      "[warning] [KeyframesString] could not serialize the animation to CSS: Parse error at offset 0: \"......\""
+    ],
+    "screenshot": "docs/tranches/I/audit/investigate/shots/b8-morph-real-vt.png"
+  },
+  "spring": {
+    "forcedSpringPath": true,
+    "viewTransitionPresent": false,
+    "widthWriteCount": 0,
+    "widthWriteSample": [],
+    "morphStart": 1365,
+    "morphEnd": 1365,
+    "morphDurationMs": 0,
+    "writeError": null,
+    "frameStats": {
+      "n": 604,
+      "meanMs": 8.29,
+      "maxMs": 17.3,
+      "p95Ms": 9.1,
+      "droppedGt33": 0,
+      "droppedGt50": 0
+    },
+    "consoleErr": [
+      "[error]  Err x     0\n 1 | \n     ^^^",
+      "[warning] [KeyframesString] could not serialize the animation to CSS: Parse error at offset 0: \"......\""
+    ],
+    "screenshot": "docs/tranches/I/audit/investigate/shots/b8-morph-real-spring.png"
+  }
+}

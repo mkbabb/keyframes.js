@@ -1,0 +1,40 @@
+{
+  "engine": "webkit",
+  "env": {
+    "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) V",
+    "hasViewTransition": true,
+    "backdropFilterCount": 30
+  },
+  "dockMorph": {
+    "widthWriteCount": 0,
+    "widthWriteSample": [],
+    "morphStart": 4662,
+    "morphEnd": 5020,
+    "morphDurationMs": 358,
+    "frameStats": {
+      "n": 183,
+      "meanMs": 16.41,
+      "maxMs": 21,
+      "p95Ms": 18,
+      "droppedGt33": 0,
+      "droppedGt50": 0,
+      "approxFps": 60.9
+    }
+  },
+  "glassBackdropCost": {
+    "frameStats": {
+      "n": 152,
+      "meanMs": 16.51,
+      "maxMs": 26,
+      "p95Ms": 18,
+      "droppedGt33": 0,
+      "droppedGt50": 0,
+      "approxFps": 60.6
+    }
+  },
+  "consoleErr": [
+    "[error]  Err x     0\n 1 | \n     ^^^",
+    "[warning] [KeyframesString] could not serialize the animation to CSS: Parse error at offset 0: \"......\""
+  ],
+  "screenshot": "docs/tranches/I/audit/investigate/shots/b8-webkit-dock.png"
+}

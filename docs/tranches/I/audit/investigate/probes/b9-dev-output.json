@@ -1,0 +1,92 @@
+{
+  "cube": {
+    "consoleErrors": [
+      {
+        "type": "error",
+        "text": " Err x     0\n 1 | \n     ^^^"
+      }
+    ],
+    "consoleWarnings": [
+      {
+        "type": "warning",
+        "text": "[KeyframesString] could not serialize the animation to CSS: Parse error at offset 0: \"......\""
+      }
+    ],
+    "pageErrors": [],
+    "net404": [],
+    "sourcemapNon200": [],
+    "sourcemapTotal": 0,
+    "shot": "docs/tranches/I/audit/investigate/shots/b9-dev-cube.png"
+  },
+  "amiga": {
+    "consoleErrors": [],
+    "consoleWarnings": [
+      {
+        "type": "warning",
+        "text": "[.WebGL-0x12c004d7400]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+      },
+      {
+        "type": "warning",
+        "text": "[.WebGL-0x12c004d7400]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+      },
+      {
+        "type": "warning",
+        "text": "[.WebGL-0x12c004d7400]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+      },
+      {
+        "type": "warning",
+        "text": "[.WebGL-0x12c004d7400]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)"
+      }
+    ],
+    "pageErrors": [],
+    "net404": [],
+    "sourcemapNon200": [],
+    "sourcemapTotal": 0,
+    "shot": "docs/tranches/I/audit/investigate/shots/b9-dev-amiga.png"
+  },
+  "square": {
+    "consoleErrors": [],
+    "consoleWarnings": [],
+    "pageErrors": [],
+    "net404": [],
+    "sourcemapNon200": [],
+    "sourcemapTotal": 0,
+    "shot": "docs/tranches/I/audit/investigate/shots/b9-dev-square.png"
+  },
+  "easing": {
+    "consoleErrors": [],
+    "consoleWarnings": [],
+    "pageErrors": [],
+    "net404": [],
+    "sourcemapNon200": [],
+    "sourcemapTotal": 0,
+    "shot": "docs/tranches/I/audit/investigate/shots/b9-dev-easing.png"
+  },
+  "spring": {
+    "consoleErrors": [],
+    "consoleWarnings": [],
+    "pageErrors": [],
+    "net404": [],
+    "sourcemapNon200": [],
+    "sourcemapTotal": 0,
+    "shot": "docs/tranches/I/audit/investigate/shots/b9-dev-spring.png"
+  },
+  "sequence": {
+    "consoleErrors": [],
+    "consoleWarnings": [],
+    "pageErrors": [],
+    "net404": [],
+    "sourcemapNon200": [],
+    "sourcemapTotal": 0,
+    "shot": "docs/tranches/I/audit/investigate/shots/b9-dev-sequence.png"
+  },
+  "motion-path": {
+    "consoleErrors": [],
+    "consoleWarnings": [],
+    "pageErrors": [],
+    "net404": [],
+    "sourcemapNon200": [],
+    "sourcemapTotal": 0,
+    "shot": "docs/tranches/I/audit/investigate/shots/b9-dev-motion-path.png"
+  }
+}

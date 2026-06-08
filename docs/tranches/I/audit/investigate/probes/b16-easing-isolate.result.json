@@ -1,0 +1,37 @@
+{
+  "ts": "2026-06-08T19:05:30.373Z",
+  "atLoad": {
+    "svgPaths": 31,
+    "svgEls": 22,
+    "totalNodes": 243
+  },
+  "playingRaf": {
+    "n": 70,
+    "mean": 21.55,
+    "p95": 34.1,
+    "max": 41.7,
+    "dropped": 36
+  },
+  "pauseToggleHit": "Pause animation",
+  "afterPauseRaf": {
+    "n": 181,
+    "mean": 8.34,
+    "p95": 8.7,
+    "max": 9.2,
+    "dropped": 0
+  },
+  "throttled4xEasingRaf": {
+    "n": 76,
+    "mean": 23.79,
+    "p95": 25.8,
+    "max": 33.6,
+    "dropped": 62
+  },
+  "throttled4xCubeRaf": {
+    "n": 216,
+    "mean": 8.34,
+    "p95": 9.1,
+    "max": 9.3,
+    "dropped": 0
+  }
+}

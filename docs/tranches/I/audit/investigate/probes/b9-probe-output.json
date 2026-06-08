@@ -1,0 +1,133 @@
+{
+  "repo": "/Users/mkbabb/Programming/keyframes.js",
+  "dist": "/Users/mkbabb/Programming/keyframes.js/dist/gh-pages",
+  "server404Paths": [],
+  "servedPathCount": 35,
+  "scenes": {
+    "cube": {
+      "consoleErrors": [
+        {
+          "type": "error",
+          "text": " Err x     0\n 1 | \n     ^^^"
+        }
+      ],
+      "consoleWarnings": [
+        {
+          "type": "warning",
+          "text": "[KeyframesString] could not serialize the animation to CSS: Parse error at offset 0: \"......\""
+        }
+      ],
+      "pageErrors": [],
+      "netFailures": [],
+      "sourcemaps": [],
+      "iconInventory": {
+        "inlineSvg": 45,
+        "imgSrcs": [],
+        "cssBgUrls": [],
+        "brokenImgs": []
+      },
+      "shot": "docs/tranches/I/audit/investigate/shots/b9-cube.png"
+    },
+    "amiga": {
+      "consoleErrors": [],
+      "consoleWarnings": [
+        {
+          "type": "warning",
+          "text": "[.WebGL-0x13c0058de00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+        },
+        {
+          "type": "warning",
+          "text": "[.WebGL-0x13c0058de00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+        },
+        {
+          "type": "warning",
+          "text": "[.WebGL-0x13c0058de00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+        },
+        {
+          "type": "warning",
+          "text": "[.WebGL-0x13c0058de00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)"
+        }
+      ],
+      "pageErrors": [],
+      "netFailures": [],
+      "sourcemaps": [],
+      "iconInventory": {
+        "inlineSvg": 54,
+        "imgSrcs": [],
+        "cssBgUrls": [],
+        "brokenImgs": []
+      },
+      "shot": "docs/tranches/I/audit/investigate/shots/b9-amiga.png"
+    },
+    "square": {
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "pageErrors": [],
+      "netFailures": [],
+      "sourcemaps": [],
+      "iconInventory": {
+        "inlineSvg": 27,
+        "imgSrcs": [],
+        "cssBgUrls": [],
+        "brokenImgs": []
+      },
+      "shot": "docs/tranches/I/audit/investigate/shots/b9-square.png"
+    },
+    "easing": {
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "pageErrors": [],
+      "netFailures": [],
+      "sourcemaps": [],
+      "iconInventory": {
+        "inlineSvg": 22,
+        "imgSrcs": [],
+        "cssBgUrls": [],
+        "brokenImgs": []
+      },
+      "shot": "docs/tranches/I/audit/investigate/shots/b9-easing.png"
+    },
+    "spring": {
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "pageErrors": [],
+      "netFailures": [],
+      "sourcemaps": [],
+      "iconInventory": {
+        "inlineSvg": 21,
+        "imgSrcs": [],
+        "cssBgUrls": [],
+        "brokenImgs": []
+      },
+      "shot": "docs/tranches/I/audit/investigate/shots/b9-spring.png"
+    },
+    "sequence": {
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "pageErrors": [],
+      "netFailures": [],
+      "sourcemaps": [],
+      "iconInventory": {
+        "inlineSvg": 18,
+        "imgSrcs": [],
+        "cssBgUrls": [],
+        "brokenImgs": []
+      },
+      "shot": "docs/tranches/I/audit/investigate/shots/b9-sequence.png"
+    },
+    "motion-path": {
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "pageErrors": [],
+      "netFailures": [],
+      "sourcemaps": [],
+      "iconInventory": {
+        "inlineSvg": 17,
+        "imgSrcs": [],
+        "cssBgUrls": [],
+        "brokenImgs": []
+      },
+      "shot": "docs/tranches/I/audit/investigate/shots/b9-motion-path.png"
+    }
+  }
+}

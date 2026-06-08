@@ -1,0 +1,117 @@
+{
+  "ts": "2026-06-08T19:03:50.884Z",
+  "steady": [
+    {
+      "scene": "cube",
+      "steadyRaf": {
+        "n": 216,
+        "mean": 8.33,
+        "p50": 8.3,
+        "p95": 9.1,
+        "max": 9.3,
+        "dropped": 0
+      },
+      "concurrentRafLoops": {
+        "framesObserved": 217,
+        "callbacksPerFrameMean": 2,
+        "callbacksPerFrameMax": 2
+      }
+    },
+    {
+      "scene": "easing",
+      "steadyRaf": {
+        "n": 97,
+        "mean": 18.56,
+        "p50": 16.7,
+        "p95": 25.7,
+        "max": 33.4,
+        "dropped": 25
+      },
+      "concurrentRafLoops": {
+        "framesObserved": 98,
+        "callbacksPerFrameMean": 3.99,
+        "callbacksPerFrameMax": 4
+      }
+    },
+    {
+      "scene": "spring",
+      "steadyRaf": {
+        "n": 182,
+        "mean": 9.87,
+        "p50": 8.4,
+        "p95": 16.7,
+        "max": 25.1,
+        "dropped": 5
+      },
+      "concurrentRafLoops": {
+        "framesObserved": 183,
+        "callbacksPerFrameMean": 3.99,
+        "callbacksPerFrameMax": 4
+      }
+    },
+    {
+      "scene": "amiga",
+      "steadyRaf": {
+        "n": 215,
+        "mean": 8.43,
+        "p50": 8.3,
+        "p95": 9.2,
+        "max": 16.8,
+        "dropped": 0
+      },
+      "concurrentRafLoops": {
+        "framesObserved": 217,
+        "callbacksPerFrameMean": 5.99,
+        "callbacksPerFrameMax": 6
+      }
+    },
+    {
+      "scene": "square",
+      "steadyRaf": {
+        "n": 216,
+        "mean": 8.33,
+        "p50": 8.3,
+        "p95": 9.2,
+        "max": 9.4,
+        "dropped": 0
+      },
+      "concurrentRafLoops": {
+        "framesObserved": 217,
+        "callbacksPerFrameMean": 2,
+        "callbacksPerFrameMax": 2
+      }
+    },
+    {
+      "scene": "sequence",
+      "steadyRaf": {
+        "n": 216,
+        "mean": 8.37,
+        "p50": 8.3,
+        "p95": 9.1,
+        "max": 16.1,
+        "dropped": 0
+      },
+      "concurrentRafLoops": {
+        "framesObserved": 217,
+        "callbacksPerFrameMean": 1,
+        "callbacksPerFrameMax": 1
+      }
+    },
+    {
+      "scene": "motion-path",
+      "steadyRaf": {
+        "n": 216,
+        "mean": 8.37,
+        "p50": 8.3,
+        "p95": 9,
+        "max": 16.8,
+        "dropped": 0
+      },
+      "concurrentRafLoops": {
+        "framesObserved": 217,
+        "callbacksPerFrameMean": 1,
+        "callbacksPerFrameMax": 1
+      }
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "case1_easing_to_amiga": {
+    "arrived": true,
+    "switchErrs": [],
+    "easingSnapAfter": {
+      "playing": true,
+      "started": true,
+      "animations": {},
+      "progress": 0.8640666666706402
+    },
+    "amigaControls": {
+      "len": 15,
+      "panel": false,
+      "surfaces": 4,
+      "sample": "Amiga Rotations"
+    },
+    "amigaBlank": false,
+    "genError": false
+  },
+  "case2_cube_play_roundtrip": {
+    "cubeSnapPlaying": true,
+    "resumedAsExpected": true,
+    "backErrs": []
+  },
+  "case3_cube_paused_roundtrip": {
+    "cubeSnapPlaying": false,
+    "stayedPausedAsExpected": true
+  },
+  "case4_suspend_save_per_scene": {
+    "cube": {
+      "played": true,
+      "snapshotCaptured": true,
+      "snapPlaying": true,
+      "leaveErrs": [
+        "[error]  Err x 0 1 | ^^^"
+      ],
+      "genError": false
+    },
+    "amiga": {
+      "played": true,
+      "snapshotCaptured": true,
+      "snapPlaying": true,
+      "leaveErrs": [],
+      "genError": false
+    },
+    "square": {
+      "played": true,
+      "snapshotCaptured": true,
+      "snapPlaying": true,
+      "leaveErrs": [],
+      "genError": false
+    },
+    "easing": {
+      "played": false,
+      "snapshotCaptured": true,
+      "snapPlaying": true,
+      "leaveErrs": [],
+      "genError": false
+    },
+    "spring": {
+      "played": false,
+      "snapshotCaptured": true,
+      "snapPlaying": true,
+      "leaveErrs": [],
+      "genError": false
+    },
+    "sequence": {
+      "played": true,
+      "snapshotCaptured": true,
+      "snapPlaying": true,
+      "leaveErrs": [],
+      "genError": false
+    },
+    "motion-path": {
+      "played": true,
+      "snapshotCaptured": true,
+      "snapPlaying": true,
+      "leaveErrs": [],
+      "genError": false
+    }
+  }
+}

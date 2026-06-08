@@ -1,0 +1,351 @@
+{
+  "ts": "2026-06-08T19:03:01.531Z",
+  "measurements": {
+    "initialLoad": {
+      "wallClockToLoadMs": 176,
+      "ttfbMs": 4,
+      "fcpMs": 204,
+      "lcpMs": 204,
+      "domInteractiveMs": 9,
+      "domContentLoadedMs": 172,
+      "loadEventMs": 174,
+      "resourceCount": 20,
+      "jsCssTransferKB": 7739,
+      "jsCssDecodedKB": 7739,
+      "bootLongTaskCount": 3,
+      "bootLongestTaskMs": 155,
+      "bootTotalBlockingTimeMs": 137,
+      "heaviestResources": [
+        {
+          "name": "vendor-monaco-COAzEUjw.js",
+          "enc": 4086,
+          "dec": 4086,
+          "dur": 12
+        },
+        {
+          "name": "css.worker-CvXBzhp8.js",
+          "enc": 1030,
+          "dec": 1030,
+          "dur": -14
+        },
+        {
+          "name": "vendor-highlight-DIw3vDFC.js",
+          "enc": 905,
+          "dec": 905,
+          "dur": 5
+        },
+        {
+          "name": "vendor-reka-ui-sJdXiqsy.js",
+          "enc": 338,
+          "dec": 338,
+          "dur": 4
+        },
+        {
+          "name": "index-BnTTUoN8.css",
+          "enc": 299,
+          "dec": 299,
+          "dur": 3
+        },
+        {
+          "name": "editor.worker-Cn2oRESe.js",
+          "enc": 273,
+          "dec": 273,
+          "dur": -2
+        },
+        {
+          "name": "index-TG-qwxf6.js",
+          "enc": 244,
+          "dec": 244,
+          "dur": 3
+        },
+        {
+          "name": "engine-Do5bTwuK.js",
+          "enc": 157,
+          "dec": 157,
+          "dur": 5
+        },
+        {
+          "name": "postcss-CWmVrHvs-BDGCWgzN.js",
+          "enc": 146,
+          "dec": 146,
+          "dur": 1
+        },
+        {
+          "name": "vendor-monaco-CGi5ri4_.css",
+          "enc": 143,
+          "dec": 143,
+          "dur": 1
+        },
+        {
+          "name": "standalone-DlyrSOeX-BvaX2kS-.js",
+          "enc": 88,
+          "dec": 88,
+          "dur": 1
+        },
+        {
+          "name": "jizHRFtNs2ka5fXjeivQ4LroWlx-6zAjjH7Motmp5g.woff2",
+          "enc": 15,
+          "dec": 15,
+          "dur": 66
+        }
+      ]
+    },
+    "backdropFilter": {
+      "backdropLayerCount": 30,
+      "repaint30ms": 0.7,
+      "samples": [
+        {
+          "cls": "glass-dock horizontal variant-dock shape-pill coll",
+          "filter": "blur(11px)",
+          "area": 4915
+        },
+        {
+          "cls": "rounded-card text-card-foreground scrollbar-hidden",
+          "filter": "blur(10px) saturate(1.05) brightness(1.0",
+          "area": 125164
+        },
+        {
+          "cls": "input-pill text-sm file:border-0 file:bg-transpare",
+          "filter": "blur(1px) saturate(1.05)",
+          "area": 7754
+        },
+        {
+          "cls": "input-pill text-sm file:border-0 file:bg-transpare",
+          "filter": "blur(1px) saturate(1.05)",
+          "area": 7754
+        },
+        {
+          "cls": "input-pill text-sm file:border-0 file:bg-transpare",
+          "filter": "blur(1px) saturate(1.05)",
+          "area": 7754
+        },
+        {
+          "cls": "glass-wash h-10 focus-ring flex w-full items-cente",
+          "filter": "blur(1px) saturate(1.05)",
+          "area": 7754
+        },
+        {
+          "cls": "glass-wash h-10 focus-ring flex w-full items-cente",
+          "filter": "blur(1px) saturate(1.05)",
+          "area": 7754
+        },
+        {
+          "cls": "glass-wash h-10 focus-ring flex w-full items-cente",
+          "filter": "blur(1px) saturate(1.05)",
+          "area": 11680
+        }
+      ]
+    },
+    "rafIdleCube": {
+      "n": 180,
+      "mean": 8.33,
+      "p50": 8.3,
+      "p95": 9,
+      "max": 9.3,
+      "dropped": 0
+    },
+    "dockSpringFrames": {
+      "n": 114,
+      "mean": 10.53,
+      "p50": 8.3,
+      "p95": 25.1,
+      "max": 49,
+      "dropped": 12
+    },
+    "sceneSwitch": [
+      {
+        "scene": "easing",
+        "machineSettledMs": 37,
+        "machineRegistered": true,
+        "postSwitchRaf": {
+          "n": 37,
+          "mean": 16.34,
+          "p50": 16.6,
+          "p95": 25.3,
+          "max": 25.7,
+          "dropped": 9
+        }
+      },
+      {
+        "scene": "amiga",
+        "machineSettledMs": 11,
+        "machineRegistered": true,
+        "postSwitchRaf": {
+          "n": 39,
+          "mean": 15.8,
+          "p50": 8.3,
+          "p95": 9.2,
+          "max": 299.4,
+          "dropped": 1
+        }
+      },
+      {
+        "scene": "spring",
+        "machineSettledMs": 30,
+        "machineRegistered": true,
+        "postSwitchRaf": {
+          "n": 36,
+          "mean": 16.66,
+          "p50": 16.7,
+          "p95": 25,
+          "max": 25,
+          "dropped": 7
+        }
+      },
+      {
+        "scene": "square",
+        "machineSettledMs": 15,
+        "machineRegistered": true,
+        "postSwitchRaf": {
+          "n": 72,
+          "mean": 8.34,
+          "p50": 8.3,
+          "p95": 9.3,
+          "max": 9.4,
+          "dropped": 0
+        }
+      },
+      {
+        "scene": "sequence",
+        "machineSettledMs": 16,
+        "machineRegistered": true,
+        "postSwitchRaf": {
+          "n": 72,
+          "mean": 8.27,
+          "p50": 8.3,
+          "p95": 8.9,
+          "max": 9.3,
+          "dropped": 0
+        }
+      },
+      {
+        "scene": "motion-path",
+        "machineSettledMs": 18,
+        "machineRegistered": true,
+        "postSwitchRaf": {
+          "n": 72,
+          "mean": 8.33,
+          "p50": 8.3,
+          "p95": 8.9,
+          "max": 9.3,
+          "dropped": 0
+        }
+      },
+      {
+        "scene": "cube",
+        "machineSettledMs": 68,
+        "machineRegistered": true,
+        "postSwitchRaf": {
+          "n": 71,
+          "mean": 8.45,
+          "p50": 8.3,
+          "p95": 9.2,
+          "max": 16.6,
+          "dropped": 0
+        }
+      }
+    ],
+    "longTasksDuringSwitches": {
+      "count": 5,
+      "longestMs": 221,
+      "totalBlockingMs": 292,
+      "tasks": [
+        {
+          "start": 13,
+          "dur": 125
+        },
+        {
+          "start": 241,
+          "dur": 67
+        },
+        {
+          "start": 2709,
+          "dur": 68
+        },
+        {
+          "start": 2778,
+          "dur": 221
+        },
+        {
+          "start": 7819,
+          "dur": 61
+        }
+      ]
+    },
+    "serverTransfer": {
+      "totalRequests": 54,
+      "totalKB": 16354,
+      "top": [
+        {
+          "url": "vendor-monaco-COAzEUjw.js",
+          "kb": 8171
+        },
+        {
+          "url": "css.worker-CvXBzhp8.js",
+          "kb": 2060
+        },
+        {
+          "url": "vendor-highlight-DIw3vDFC.js",
+          "kb": 1809
+        },
+        {
+          "url": "editor.worker-Cn2oRESe.js",
+          "kb": 820
+        },
+        {
+          "url": "vendor-reka-ui-sJdXiqsy.js",
+          "kb": 677
+        },
+        {
+          "url": "index-BnTTUoN8.css",
+          "kb": 599
+        },
+        {
+          "url": "vendor-three-B9C4oDST.js",
+          "kb": 522
+        },
+        {
+          "url": "index-TG-qwxf6.js",
+          "kb": 489
+        },
+        {
+          "url": "engine-Do5bTwuK.js",
+          "kb": 313
+        },
+        {
+          "url": "postcss-CWmVrHvs-BDGCWgzN.js",
+          "kb": 292
+        },
+        {
+          "url": "vendor-monaco-CGi5ri4_.css",
+          "kb": 285
+        },
+        {
+          "url": "standalone-DlyrSOeX-BvaX2kS-.js",
+          "kb": 177
+        },
+        {
+          "url": "vendor-lucide-BT1ZA1tb.js",
+          "kb": 21
+        },
+        {
+          "url": "CSSCodeEditor-CQCHsfed.js",
+          "kb": 18
+        },
+        {
+          "url": "SpringScene-BWoFfuSD.js",
+          "kb": 15
+        },
+        {
+          "url": "SequenceScene-DlSlHqMx.js",
+          "kb": 14
+        }
+      ]
+    }
+  },
+  "consoleErrors": [
+    " Err x     0\n 1 | \n     ^^^",
+    "[switch]  Err x     0\n 1 | \n     ^^^"
+  ],
+  "pageErrors": []
+}

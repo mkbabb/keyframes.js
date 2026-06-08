@@ -1,0 +1,18 @@
+{
+  "probe": "b2-dist-visibility-suspend.mjs",
+  "target": "BUILT dist/gh-pages (engine-Do5bTwuK.js + lazy EasingScene-DpL60cpI.js)",
+  "purpose": "RED-3 re-verify: does the B2 _gen suspend throw reproduce on the BUILT dist via a synthetic visibilitychange (NO dock gesture, NO hash-nav)? Resolve the dist-vs-dev oracle honestly.",
+  "STATIC FINDINGS (decisive, grep-verified against the built bundle)": {
+    "unboundSiteSurvivesMinification": "EasingScene-DpL60cpI.js:  ie(()=>v.running, v.stop, w)   and   SpringScene-BWoFfuSD.js:  ae(()=>C.running, C.stop, D)  — the bare unbound playback.stop (v.stop / C.stop) survives minification into the lazy scene chunks. The ONLY hp()/useSceneVisibilityPause site in index-*.js is the cube's, which is fully bound: hp(()=>a.value.playing(), ()=>a.value.pause(), ()=>a.value.resume()).",
+    "genFieldSurvivesMinification": "engine-Do5bTwuK.js:  _gen=0; ... run(e){let t=++this._gen,...} ... stop(){this._gen++,...}  — the field name `_gen` is NOT renamed by the minifier. So the BUILT-dist throw message ALSO reads `Cannot read properties of undefined (reading '_gen')`.",
+    "correction_to_b10": "b10 §B2 wrote `this._gen is dev-only`. That is about the SOURCE-MAPPED dev STACK FRAME names (stop / playback.ts:156), NOT the field or the throw. The field name and the unbound site BOTH survive into the dist; the throw is NOT dev-only."
+  },
+  "DYNAMIC FINDING (the throw reproduced firsthand on the BUILT dist, ONCE, verbatim)": {
+    "message": "TypeError: Cannot read properties of undefined (reading '_gen')",
+    "topFrame": "at stop (engine-Do5bTwuK.js:1:2437)",
+    "calledFrom": "the useSceneVisibilityPause watcher (the unbound v.stop invoked free-standing on the synthetic hidden tick, while the easing raw-rAF loop was live)",
+    "note": "Captured in an instrumented run that kept the page rAF hot at the dispatch moment. The easing demo's playback.loop(frame) runs continuously (useEasingDemo.ts:168/213) so playback.running stays true; the scene rAF was measured live (~25fps). The throw IS on the dist."
+  },
+  "INTERMITTENCY (the honest caveat)": "Across repeated harness runs the synthetic visibilitychange does NOT reliably re-throw on the dist: @vueuse useDocumentVisibility's reactive ref in the built bundle does not consistently flip on a harness-dispatched synthetic `visibilitychange` (the listener appears to read a captured/cached visibility value), so the watcher's `r==='hidden'` branch is not always taken. On the SOURCE-MAPPED dev server :5174 the SAME mechanism is DETERMINISTIC (b2-dfa-gen-crash.md: `deterministic on every tab-hide while a raw-rAF scene plays`, captured live with the verbatim source-mapped stack `at stop (playback.ts:156)`).",
+  "RED-3 RESOLUTION (hybrid, honest)": "_gen is NOT dev-only — the unbound site and the _gen field both survive minification and the throw reproduces on the BUILT dist (verbatim stack above). BUT the DETERMINISTIC born-RED-of-record for the B2 suspend leg runs against the SOURCE-MAPPED dev server :5174 as a NAMED, JUSTIFIED exception to the built-dist harness rule, because on the dist the synthetic-tick witness is flaky (the @vueuse ref does not reliably flip on a harness-synthesised event). The bind-proof fix (I.W1 S1) greens BOTH the deterministic dev-server witness AND the dist run. The born-RED witness needs NO dock gesture (de-coupled from B8): the real-dock-Select co-fire is the additional aspirational-post-B8 assertion (clause b2)."
+}

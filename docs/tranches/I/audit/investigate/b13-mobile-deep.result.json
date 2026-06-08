@@ -1,0 +1,98 @@
+{
+  "sceneSwitch": {
+    "pageErrors": [
+      {
+        "msg": "Parse error at offset 0: \"......\"",
+        "stack": "Error: Parse error at offset 0: \"......\" |     at bo (http://127.0.0.1:58611/assets/engine-Do5bTwuK.js:19:62788) |     at cn.keyFn (http://127.0.0.1:58611/assets/engine-Do5bTwuK.js:19:63848) |     at c (http://127.0.0.1:58611/assets/engine-Do5bTwuK.js:19:19351) |     at http://127.0.0.1:58611/assets/engine-Do5bTwuK.js:20:1279 |     at http://127.0.0.1:58611/assets/engine-Do5bTwuK.js:20:1742 |     at c (http://127.0.0.1:58611/assets/engine-Do5bTwuK.js:19:19351)"
+      }
+    ],
+    "consoleErrors": [
+      " Err x     0\n 1 | \n     ^^^",
+      " Err x     0\n 1 | \n     ^^^",
+      " Err x     0\n 1 | \n     ^^^",
+      " Err x     0\n 1 | \n     ^^^"
+    ],
+    "errsBeforeSwitch": 1,
+    "note": "errors appearing after errsBeforeSwitch index were triggered by the route switch (B2 suspend/resume)"
+  },
+  "dock": {
+    "docks": [
+      {
+        "cls": "fixed left-1/2 -translate-x-1/2 z-dock flex items-center justify-cente",
+        "top": 24,
+        "bottom": 78,
+        "w": 91,
+        "h": 54,
+        "pos": "fixed",
+        "z": "40",
+        "transition": "all",
+        "willChange": "auto",
+        "userSelect": "auto"
+      },
+      {
+        "cls": "fixed z-dock pointer-events-none w-fit flex items-center px-4 pt-4 pb-",
+        "top": 0,
+        "bottom": 48,
+        "w": 32,
+        "h": 48,
+        "pos": "fixed",
+        "z": "40",
+        "transition": "all",
+        "willChange": "auto",
+        "userSelect": "auto"
+      },
+      {
+        "cls": "timeline-expanded-cell z-dock overflow-hidden transition-[max-height,o",
+        "top": 762,
+        "bottom": 762,
+        "w": 390,
+        "h": 0,
+        "pos": "fixed",
+        "z": "40",
+        "transition": "max-height 0.45s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.45s cubic-bezier(0.4, 0",
+        "willChange": "auto",
+        "userSelect": "auto"
+      },
+      {
+        "cls": "menubar-safe-pb px-2 py-1.5 m-0 flex items-center justify-center justi",
+        "top": 750,
+        "bottom": 814,
+        "w": 390,
+        "h": 64,
+        "pos": "fixed",
+        "z": "40",
+        "transition": "all",
+        "willChange": "auto",
+        "userSelect": "auto"
+      }
+    ],
+    "menubarFound": true,
+    "pickerProbe": {
+      "clickedMs": 402,
+      "popoverOpen": false
+    }
+  },
+  "sheetBody": {
+    "sheetT": "1",
+    "wrapRect": {
+      "top": 457,
+      "bottom": 762,
+      "h": 305
+    },
+    "paneRect": {
+      "top": 485,
+      "bottom": 762,
+      "h": 277
+    },
+    "contentRect": {
+      "top": 485,
+      "bottom": 762,
+      "h": 277
+    },
+    "paneOpacity": "1",
+    "panePointerEvents": "auto",
+    "totalControlEls": 36,
+    "visibleControlsInViewport": 7,
+    "vh": 844
+  }
+}
