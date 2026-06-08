@@ -38,7 +38,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-// $attrs (e.g. the `dot-fade depth-text` classes the hero passes) bind to the
+// $attrs (e.g. the `depth-text` class the hero passes to the title) bind to the
 // per-word visual spans, not the host — so the decorative classes still apply to
 // the animated layer while the host stays a clean inline.
 defineOptions({ inheritAttrs: false });
@@ -90,33 +90,15 @@ const duration = computed(
     }
 }
 
-.dot-fade {
-    display: inline-block;
-    animation: dotFade v-bind("duration") var(--ease-standard) infinite;
-    animation-fill-mode: forwards;
-}
-
-@keyframes dotFade {
-    0%,
-    100% {
-        opacity: 0;
-    }
-    50% {
-        opacity: 1;
-    }
-}
-
 /* PRM guard: the hero is the LCP node and runs perpetual infinite decorative
    motion. Under prefers-reduced-motion the words settle to their resting frame
-   (no lift, fully opaque) — the engine's withReducedMotion authority mirrored at
-   the CSS layer for this template-only hero. */
+   (no lift) — the engine's withReducedMotion authority mirrored at the CSS layer
+   for this template-only hero. (The ellipsis blink is no longer here: H.W6 moved
+   it to the dogfooded TypingDots primitive, deleting `.dot-fade`/`@keyframes
+   dotFade` with the swap — no legacy beside the replacement.) */
 @media (prefers-reduced-motion: reduce) {
-    .lift-down,
-    .dot-fade {
+    .lift-down {
         animation: none;
-    }
-    .dot-fade {
-        opacity: 1;
     }
 }
 </style>

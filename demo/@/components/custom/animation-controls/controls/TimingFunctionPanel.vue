@@ -27,9 +27,9 @@
                      demo class-composition of glass-ui classes is the correct seam.
                      `useSpecularPointer` wires the cursor + calms the intensity
                      (0.22 rest / 0.4 hover). -->
-                <Card ref="bezierCardRef" surface="cartoon" class="cartoon-specular glass-specular-track grid gap-0 w-full p-0">
+                <Card ref="bezierCardRef" surface="cartoon" class="easing-editor cartoon-specular glass-specular-track grid gap-0 w-full p-0">
                     <CardHeader class="grid gap-0 p-0 pb-1">
-                        <CardTitle class="text-heading">cubic-bézier</CardTitle>
+                        <CardTitle class="text-title">cubic-bézier</CardTitle>
                         <p v-if="editingCurveName" class="text-mono-caption normal-case text-muted-foreground ml-1 mb-0.5">editing: {{ editingCurveName }}</p>
                         <div
                             class="w-full whitespace-pre h-6 m-0 p-0 ml-1 text-mono-caption normal-case flex items-center italic justify-items-center gap-2"
@@ -86,7 +86,7 @@
             >
                 <Card surface="cartoon">
                     <CardHeader class="p-0 pb-2">
-                        <CardTitle class="text-heading">steps</CardTitle>
+                        <CardTitle class="text-title">steps</CardTitle>
                     </CardHeader>
                     <!-- Single-column stacked fields (label OVER control), the same
                          shape as the sidebar's LabeledField rows — H.W3.S3b collapsed
@@ -235,3 +235,15 @@ const updatePreset = (key: string) => {
     }
 };
 </script>
+
+<style scoped>
+/* H.W4.S1 — the cubic-bézier detail Card is an `easing-editor` container so
+   the nested EasingCurveCanvas sizes its block off THIS Card's inline size
+   (`38cqi`), bounded in [160px, 280px] — the same container the EasingSidebar
+   declares, so the canvas is capped in BOTH render hosts. Baseline-2023
+   (container queries Widely available since 2023-02-14) — no fallback owed. */
+.easing-editor {
+    container-type: inline-size;
+    container-name: easing-editor;
+}
+</style>

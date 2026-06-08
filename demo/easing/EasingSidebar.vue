@@ -1,5 +1,10 @@
 <template>
-    <div class="glass-resting cartoon-surface p-3 grid gap-3">
+    <div class="easing-editor glass-resting cartoon-surface p-3 grid gap-3">
+        <!-- H.W4.S2 — the editor's parity header (gestalt parity with the
+             TimingFunctionPanel's titled detail Card). `text-title` is the
+             φ^(3/2) rung; the name reads off the live selection. -->
+        <h2 class="text-title leading-none">{{ demo.currentEasingName.value }}</h2>
+
         <!-- Hero curve canvas -->
         <EasingCurveCanvas
             :easing-fn="demo.currentEasingFn.value"
@@ -150,6 +155,16 @@ const onStepsChange = (e: Event) => {
 </script>
 
 <style scoped>
+/* H.W4.S1 — the editor root is a container so the EasingCurveCanvas can size
+   its block off the CONTAINER inline size (`38cqi`), not the viewport. Pairs
+   with the TimingFunctionPanel's own `easing-editor` container so the canvas
+   is bounded in BOTH render hosts (the full-rail sidebar AND the in-panel
+   detail Card). Baseline-2023 — no fallback owed. */
+.easing-editor {
+    container-type: inline-size;
+    container-name: easing-editor;
+}
+
 /* The free-text easing input adopts the mono-caption rung for size/family,
    but keeps user-typed content case-as-typed (the mono-caption register
    uppercases; a `cubic-bezier(...)` or camelCase easing name must read as

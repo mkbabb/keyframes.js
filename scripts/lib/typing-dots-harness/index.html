@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>proof:typing-dots — TypingDots in isolation</title>
+        <style>
+            /* A bare host: no router, no FSM, no design language — the ONLY
+               thing on the page is the REAL <TypingDots/> component, mounted
+               in isolation (WV-W6-HIGH-1: the home route cannot mount it
+               pre-render — so the gate mounts the component DIRECTLY, route-
+               free). Large type so the dots lay out with real boxes. */
+            html,
+            body {
+                margin: 0;
+                padding: 0;
+                background: #fff;
+                color: #111;
+            }
+            #app {
+                font-size: 120px;
+                line-height: 1;
+                padding: 40px;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="app"></div>
+        <script type="module" src="./main.ts"></script>
+    </body>
+</html>

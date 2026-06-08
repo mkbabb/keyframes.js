@@ -263,13 +263,37 @@ const onDrag = (event: PointerEvent) => {
 </script>
 
 <style scoped>
-/* The canvas fills the available pane width and holds a square aspect so
-   the curve scales with its container (container-query-friendly) rather
-   than being locked into a fixed sidebar-column height (Qρ §5.2). */
+/* H.W4.S2 — DRY the double chrome. The canvas wrapper's `GlassPanel
+   variant="wash"` carries its OWN 1px border (`--glass-border-wash`), but the
+   canvas always lives INSIDE a framed surface — the TimingFunctionPanel's
+   `<Card>` or the EasingSidebar's `glass-resting cartoon-surface` div — so a
+   second border on the wash panel is redundant double-framing. Drop the
+   wrapper's border (one surface owns the frame); keep the wash background +
+   blur (the canvas's own depth tier). The Card/div's border is the single
+   frame; the wash IS the inner surface, not a second plate. */
+.easing-curve-canvas-wrapper {
+    border: none;
+}
+
+/* H.W4.S1 — the canvas is now CONTAINER-BOUNDED, not viewport-unbounded.
+   The former `aspect-ratio:1` off a `width:100%` SVG in a `max-width:none`
+   card grew to a 680×680px square (77% of the panel) with NO block ceiling.
+   The editor root (EasingSidebar / the TimingFunctionPanel Card) is now a
+   `container-type: inline-size; container-name: easing-editor` context, so
+   `38cqi` ties the canvas's block-size to the CONTAINER'S inline size (not
+   the viewport); `clamp` holds it in [160px, 280px] — a deliberate bounded
+   square regardless of sidebar width. `aspect-ratio:1` keeps the square LAW,
+   `margin-inline:auto` centers it. `38cqi` is the ONE φ-derived magic number
+   (it lands the canvas at the cube/square scene-target proportion);
+   everything else is a token. Baseline-2023 (container queries Widely
+   available since 2023-02-14) — no fallback owed. */
 .easing-curve-canvas {
-    min-height: 140px;
-    aspect-ratio: 1;
     display: block;
+    inline-size: 100%;
+    aspect-ratio: 1;
+    block-size: clamp(160px, 38cqi, 280px);
+    max-block-size: 280px;
+    margin-inline: auto;
 }
 
 .bounding-box {

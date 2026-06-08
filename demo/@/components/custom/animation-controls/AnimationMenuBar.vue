@@ -99,7 +99,7 @@
                         variant="ghost"
                         :aria-label="isPlaying ? 'Pause animation' : 'Play animation'"
                         :class="[
-                            'scale-on-hover text-xl text-white rounded-full p-0',
+                            'scale-on-hover icon-lg text-white rounded-full p-0',
                             'w-10 h-10 shrink-0',
                             isPlaying ? 'rainbow-vivid' : 'rainbow-pastel',
                         ]"

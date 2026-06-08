@@ -342,6 +342,67 @@ jobs:
                   KF_REQUIRE_BROWSER: "1"
             - name: proof:idioms (D.W2 — owned design-idioms.css · leaf-tail swept · utils.css monolith uncaged)
               run: npm run proof:idioms
+            - name: proof:phi-leaf-zero (H.W4 — the φ-hero chronic SYSTEM-property gate CH-2/M1 · zero raw rungs (residual L1+L2→0) AND the hero on the audacious top φ rung text-display-mega)
+              run: npm run proof:phi-leaf-zero
+            - name: proof:icon-idiom (H.W4 S4 — the 61-no-op icon-sizing lock · every icon-* resolves to a design-idioms.css def · xs<sm<md<lg differentiated · SVG cascade)
+              run: npm run proof:icon-idiom
+            - name: proof:dogfood-hero (H.W6 inv ζ — the hero dots loop on a kf engine class from @src; steppedEase is the value.js curve, NOT the dogfood symbol)
+              run: npm run proof:dogfood-hero
+            # H.W6 (WV-W6-HIGH-1) — the per-dot dogfooded blink lock. Mounts the
+            # REAL <TypingDots/> in ISOLATION (a tiny on-the-fly Vite harness — the
+            # home route cannot mount the dots pre-render, the D12 storm unmounts
+            # home in <1 rAF; the SOURCE fix is FSM-orthogonal) and rAF-samples each
+            # span: (a) 3 distinct dot spans (b) a left-to-right cadence (rise-onsets
+            # strictly increasing) (c) min opacity ≥0.15 over the cycle (the 43%
+            # ghost window is dead) (d) a fixed ≤1.6s cycle, plus the cascade lint
+            # (no node carries two `animation` shorthands; .dot-fade/@keyframes
+            # dotFade deleted). Born-RED on the pre-H one-span 2.6s opacity:0 vanish.
+            # KF_REQUIRE_BROWSER turns a playwright-absent skip into a hard CI fail
+            # so the perceptual fix cannot be reported green un-sampled.
+            - name: proof:typing-dots (H.W6 — 3 staggered dots · left-to-right cadence · never-vanish (≥0.15) · fixed ≤1.6s cycle · no cascade collision)
+              run: npm run proof:typing-dots
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            # H.W4 S1/S2 (WV-W4-MED-2) — the easing-canvas ceiling lock. Settle-gated
+            # on the H.W1 FSM resting (#/easing pinned in-page, pane + easing tab
+            # opened so the FULL-RAIL EasingSidebar render mounts — the 680px born-RED
+            # was on THIS render). Born-RED anchors: containerType==='inline-size'
+            # (RED 'normal' pre-W4) + panel-height ratio ≤0.55 (RED 0.77); plus the
+            # square law (computed aspect-ratio:1/1), the header clearance ≥8px, and
+            # the DEMOTED block-size ≤280 ceiling. KF_REQUIRE_BROWSER turns a
+            # playwright-absent skip into a hard CI fail (the ceiling cannot pass vacuously).
+            - name: proof:easing-canvas-bounded (H.W4 S1/S2 — inline-size container · canvas ≤0.55 of panel · ≤280px · square law · header clears the frame)
+              run: npm run proof:easing-canvas-bounded
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            # H.W4 S3 — the hero on the audacious φ rung. SOURCE-shape (the <h1>
+            # carries text-display-mega, not text-display-4, no raw leaf-tail rung) +
+            # a PX FLOOR (computed font-size ≥140px at 1440×900 — NOT a fluid
+            # ≥--type-display-mega clamp compare). Settle-gated on the home FSM
+            # resting (the #start-screen slot, isHome). Born-RED 86px on text-display-4.
+            - name: proof:hero-rung (H.W4 S3 — the hero is text-display-mega · ≥140px @1440 · no leaf-tail rung)
+              run: npm run proof:hero-rung
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            # H.W4 S3 — the orphaned-`...` fold. The hero <h1> is a plain block (no
+            # grid-row stacking — the CP-HIGH-6 orphan mechanism), the title balances
+            # to ≤2 lines, and the TypingDots `...` reads inline on the same optical
+            # block as the last title word at 1440 (measured at 1440 + 390). Asserts
+            # the LAYOUT fold only (the dot cadence is proof:typing-dots, WV-W4-MED-3).
+            - name: proof:hero-balance (H.W4 S3 — one optical block · no orphaned-`...` grid row · title ≤2 lines · dots inline)
+              run: npm run proof:hero-balance
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            # H.W4 S3 (MEASURE-FIRST) — the mega rung keeps CLS ≈0. The Capsize
+            # metric-matched fallback scales with the rung AND the hero lives in a
+            # zero-height absolute pointer-events-none overlay, so any font-swap
+            # reflow shifts nothing in flow. Asserts the accumulated layout-shift CLS
+            # ≤0.02 over a fresh load + the swap AND the overlay non-displacement
+            # (the structural reason). The observer is installed at document-start.
+            - name: proof:hero-cls (H.W4 S3 — the mega-rung hero contributes CLS ≤0.02 · the zero-height overlay keeps the <h1> out of flow)
+              run: npm run proof:hero-cls
+              env:
+                  KF_REQUIRE_BROWSER: "1"
             - name: proof:brittleness (D.W3 — no global DOM reach · z-scale single-sourced · @supports guards)
               run: npm run proof:brittleness
             # F.W2 — the THREE inv-tagged demo gates the workflow never ran:

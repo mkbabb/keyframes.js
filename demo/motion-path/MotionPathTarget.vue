@@ -116,7 +116,10 @@ onMounted(() => {
 }
 
 .mp-traveller-glyph {
-    font-size: 1.25rem;
+    /* H.W4.S4 (L2 leaf-tail sweep) — the raw 1.25rem was eyeballing the √φ
+       rung; route it to the named `--type-subheading` (1.272rem) so the
+       traveller glyph sits on the φ ladder, not a stray literal. */
+    font-size: var(--type-subheading);
     line-height: 1;
 }
 </style>
