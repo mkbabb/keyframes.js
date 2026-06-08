@@ -2,7 +2,8 @@
     <TooltipProvider :delay-duration="100" :skip-delay-duration="0">
     <div
         :class="[
-            'controls-layout grid grid-cols-1 grid-rows-[auto_1fr_auto] justify-items-stretch items-start relative',
+            'controls-layout justify-items-stretch items-start relative',
+            `controls-layout--stage-${stageMode}`,
             storedControls.isControlsPanelOpen ? 'controls-layout--open' : 'controls-layout--closed',
         ]"
         v-bind="$attrs"
@@ -11,6 +12,7 @@
             :animation-group="animationGroup"
             :stored-controls="storedControls"
             :hide-controls="hideControls"
+            :stage-mode="stageMode"
             :is-playing="isPlaying"
             :anim-control-refs="animControlRefs"
             :active-keyframes-ref="activeKeyframesRef"
@@ -41,34 +43,40 @@
             </template>
         </ControlsPaneWrapper>
 
-        <!-- Animation stage. Mobile: a dedicated 1fr row track (row 2) below the
-             `auto` controls-pane row — the pane no longer overlays/clips the
-             stage at narrow widths (Qσ V1). Desktop: the stage gets its OWN
-             named [stage] track (column 2, the 1fr remainder beside the [rail]
-             track) — H.W3.S4 (WV-W3-HIGH-3) replaced the former full-grid stage
-             span. The rail and stage are now DISJOINT columns: the controls pane
-             occupies [rail] and the subject centers in [stage], so an open pane no
-             longer overlays the subject — closing the pane collapses the [rail]
-             track to 0 and the stage reflows to fill the freed width. The B.W3
-             "cube half-clipped" invariant is the proof:stage-not-clipped gate's
-             subject; if the [stage]-track form clips at 1280/1440 the conservative
-             span-to-the-grid-end form (col-start: rail / col-end: -1) is the
-             documented fallback. -->
+        <!-- Animation stage.
+             MOBILE (H.W7.S1): the stage LEAVES the grid — `position: fixed;
+             inset: 0`, z BELOW z-controls, honoring --work-area-top-offset /
+             --dock-band-reserve so the subject parks in the dock-free band and
+             is the full-bleed BACKGROUND the controls sheet overlays (no longer
+             a 1fr row the open pane starves to ~30px). The former mobile
+             `row-start-2` grid placement is DELETED — the stage is no longer a
+             grid item on mobile (WV-W7-MED-2: the SHEET rides the --rail-width
+             token; the stage takes the fixed full-bleed layer).
+             DESKTOP (H.W3.S4): the stage gets its OWN named [stage] track
+             (column 2, the 1fr remainder beside the [rail] track). The rail and
+             stage are DISJOINT columns: the controls pane occupies [rail] and the
+             subject centers in [stage]; closing the pane collapses [rail] to 0 and
+             the stage reflows to fill the freed width. The proof:stage-not-clipped
+             gate's "cube half-clipped" invariant is the subject. -->
         <div
-            class="stage-cell justify-self-stretch self-center min-h-0 h-full overflow-visible overscroll-contain row-start-2"
+            class="stage-cell justify-self-stretch self-center min-h-0 h-full overflow-visible overscroll-contain"
         >
             <slot name="animation-content"></slot>
         </div>
 
         <!-- Teleport target for expanded timeline (content arrives via Teleport
-             from AnimationControls). Desktop: aligned to the [rail] track (grid-column:
-             rail) + [bottom] row — the expanded timeline is a vertical extension of
-             the controls rail, inheriting --rail-width, NOT a full-grid-span
-             surface (H.W3.S4 / a-demo-architecture F2). Mobile: the lone column at row 3. -->
+             from AnimationControls). Desktop: aligned to the [rail] track
+             (grid-column: rail) + [bottom] row — a vertical extension of the
+             controls rail, inheriting --rail-width, NOT a full-grid-span surface
+             (H.W3.S4 / a-demo-architecture F2). Mobile (H.W7.S1): the expanded
+             timeline is `position: fixed`, anchored ABOVE the bottom menubar band
+             — it folds OUT of grid flow so it NEVER re-introduces a third
+             consuming row that re-starves the fixed full-bleed stage (the
+             single-stage-model invariant). -->
         <div
             id="timeline-expanded-target"
             :class="[
-                'timeline-expanded-cell row-start-3 z-dock overflow-hidden',
+                'timeline-expanded-cell z-dock overflow-hidden',
                 'transition-[max-height,opacity] duration-slow ease-standard',
                 storedControls.isTimelineExpanded
                     ? 'max-h-[var(--panel-max-h)] border-t border-border/50 glass-wash px-4 py-3'
@@ -150,11 +158,16 @@ import { useAnimationGroupPlayback } from "./composables/useAnimationGroupPlayba
 import { useAnimationProgress } from "./composables/useAnimationProgress";
 import { useControlsLayout } from "./composables/useControlsLayout";
 
-const { superKey, animationGroup, autoPlay, hideControls } = defineProps<{
+const { superKey, animationGroup, autoPlay, hideControls, stageMode } = defineProps<{
     animationGroup: AnimationGroup<any>;
     superKey?: string;
     autoPlay?: boolean;
     hideControls?: boolean;
+    // The mobile STAGE mode-class (H.W7.S1c) — drives the per-mode overlay
+    // register: `subject` full-bleeds the fixed stage (cube/amiga/square),
+    // `editor`/`storyboard` keep a content card. Forwarded down to the sheet
+    // wrapper so the visible-fraction floor applies to `subject` alone.
+    stageMode?: "subject" | "editor" | "storyboard";
 }>();
 
 const storedControls = getStoredAnimationGroupControlOptions(superKey);
@@ -366,9 +379,61 @@ function cycleAnimation(direction: number) {
     padding-block: var(--dock-band-reserve);
 }
 
+/* ── MOBILE (H.W7.S1) — the stack→overlay transposition ──
+   The mobile `grid-rows-[auto_1fr_auto]` stack is DELETED (no legacy beside the
+   replacement). The stage LEAVES the layout flow and becomes the full-bleed
+   FIXED background; the controls pane becomes a bottom SHEET overlaying it
+   (ControlsPaneWrapper.vue). The `.controls-layout` root is no longer a 3-row
+   grid on mobile — it is a passive positioning context whose only mobile job is
+   to host the fixed children. */
 @media (max-width: 1023px) {
+    /* The layout root's children (stage + sheet + expanded-timeline) are all
+       `fixed` on mobile, so it carries no in-flow content; centering is a no-op. */
     .controls-layout {
         align-content: center;
+    }
+
+    /* The stage is the FULL-BLEED FIXED BACKGROUND. `inset: 0` fills the
+       viewport; the G8 dock-safe primitive (the SHARED `.stage-cell`
+       `padding-block: var(--dock-band-reserve)` rule above — KEPT, not forked)
+       insets the SUBJECT clear of BOTH affixed dock bands, so it parks in the
+       dock-free band and is ALWAYS visible behind the partial sheet. Reusing the
+       G8 padding-block (not a fixed top/bottom inset) keeps the ONE dock-safe
+       containment primitive (proof:stage-within-docks) — the mobile fixed layer
+       and the desktop grid cell share the SAME reserve mechanism (DRY). The box
+       is `box-sizing:border-box` (the G8 rule) so the padding sits INSIDE the
+       full-viewport frame. z-content (below z-controls, the sheet). NO
+       transform/contain/perspective on this element or its ancestors (verified)
+       so `fixed` resolves against the viewport (proof:dock-zorder LOW-1). */
+    .stage-cell {
+        position: fixed;
+        inset: 0;
+        /* `inset:0` DEFINES the box (full viewport); override the utility
+           `h-full` (height:100% would re-assert a viewport box but `inset` is the
+           authority) and `self-center`/`justify-self-stretch` (grid-item
+           alignment makes a fixed box content-sized + centered → `stretch` to
+           fill, so the subject centers WITHIN the padded full-bleed frame). */
+        height: auto;
+        align-self: stretch;
+        justify-self: stretch;
+        z-index: var(--z-content, 10);
+        /* The orbit surface keeps `touch-action: none` (OrbitalDrag/AmigaScene
+           own it on their own roots); this cell is a passive frame, so the swipe
+           is owned by the sheet GRAB HANDLE — spatially disjoint (BLK-6). */
+    }
+
+    /* The expanded-timeline teleport target FOLDS OUT of grid flow on mobile —
+       `position: fixed`, anchored ABOVE the bottom menubar band, full-bleed
+       width. It NEVER re-introduces a third consuming row (the single-stage-model
+       invariant): collapsed it is `max-h-0` (invisible), expanded it grows
+       upward from the menubar anchor. z-dock so it sits above the fixed stage
+       but it does NOT overlap the menubar's own controls (anchored just above
+       the reserve). */
+    .timeline-expanded-cell {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: var(--dock-menubar-reserve);
     }
 }
 
@@ -385,6 +450,12 @@ function cycleAnimation(direction: number) {
    expanded timeline + the fixed menubar's reserve). */
 @media (min-width: 1024px) {
     .controls-layout {
+        /* `display: grid` is set HERE (desktop only) — the former unconditional
+           `grid` utility class on the root was DELETED with the mobile-stack
+           transposition (H.W7.S1), since mobile no longer uses a grid (the stage
+           is fixed, the sheet is fixed). Desktop keeps the named rail·stage·rail
+           grid. */
+        display: grid;
         --rail-track: var(--rail-width);
         grid-template-columns: [rail] var(--rail-track) [stage] 1fr;
         grid-template-rows: [top] auto [stage] 1fr [bottom] auto;

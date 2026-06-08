@@ -5,13 +5,43 @@
         :class="[
             'controls-pane-wrapper col-start-1 row-start-1 min-w-0 relative z-controls',
             'controls-pane--mobile',
+            `controls-pane--stage-${stageMode}`,
             storedControls.isControlsPanelOpen
                 ? 'controls-pane--open'
                 : 'controls-pane--closed',
             isPaneHovered ? 'controls-pane--hovered' : '',
             isPaneIdle ? 'controls-pane--idle' : '',
         ]"
+        :style="sheetStyle"
     >
+        <!-- ── MOBILE GRAB HANDLE (H.W7.S1a / BLK-6) ──
+             The DEDICATED, spatially-DISJOINT gesture surface that owns the
+             sheet open/close swipe. The stage region below keeps
+             `touch-action: none` (the orbit surface — OrbitalDrag/AmigaScene own
+             it via setPointerCapture, which SWALLOWS any swipe on the cube). This
+             handle's OWN pointerdown/setPointerCapture owns the sheet swipe, so
+             the two gesture landlords never compete: stage-drag mutates the
+             quaternion, handle-drag moves the sheet. A real ≥24px touch target
+             (the rail spans the sheet width; the visible pill is the affordance).
+             Desktop hides it (the rail collapse IS the open/close axis there). -->
+        <div
+            v-show="!!storedControls.selectedAnimation && !hideControls"
+            class="sheet-grab-handle"
+            role="button"
+            tabindex="0"
+            :aria-label="storedControls.isControlsPanelOpen ? 'Collapse controls' : 'Expand controls'"
+            :aria-expanded="storedControls.isControlsPanelOpen"
+            @pointerdown="handle.onPointerDown"
+            @pointermove="handle.onPointerMove"
+            @pointerup="handle.onPointerUp"
+            @pointercancel="handle.onPointerUp"
+            @keydown.enter.prevent="handle.toggle"
+            @keydown.space.prevent="handle.toggle"
+            @click="handle.onClick"
+        >
+            <span class="sheet-grab-pill" aria-hidden="true"></span>
+        </div>
+
         <div
             :ref="(el: any) => setPaneEl(el)"
             @mouseenter="onPaneMouseEnter"
@@ -89,17 +119,24 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
 import type { AnimationGroup } from "@src/animation/group";
 import type { AnimationLayerConfig } from "@src/animation/constants";
 import type { Animation } from "@src/animation/engine";
 import type { StoredAnimationGroupControlOptions } from "../stores";
 import AnimationControls from "../controls/AnimationControls.vue";
 import RibbonBar from "./RibbonBar.vue";
+import { useSheetSpring } from "../composables/useSheetSpring";
+import { useSheetGesture } from "../composables/useSheetGesture";
 
-defineProps<{
+const props = defineProps<{
     animationGroup: AnimationGroup<any>;
     storedControls: StoredAnimationGroupControlOptions;
     hideControls?: boolean;
+    // The mobile STAGE mode-class (H.W7.S1c) — `subject` full-bleeds the stage
+    // behind the sheet; `editor`/`storyboard` keep a content card. The sheet
+    // itself is always a content card; the mode tunes the register only.
+    stageMode?: "subject" | "editor" | "storyboard";
     isPlaying: boolean;
     animControlRefs: Record<string, any>;
     activeKeyframesRef: any;
@@ -119,6 +156,35 @@ defineProps<{
     setPaneEl: (el: HTMLElement | null) => void;
 }>();
 
+const stageMode = computed(() => props.stageMode ?? "subject");
+
+// The sheet's open intent — ONE writable model over the store fact, read by the
+// spring (motion) and read+written by the gesture (the handle's swipe/tap).
+const sheetOpen = computed({
+    get: () => props.storedControls.isControlsPanelOpen,
+    set: (v: boolean) => {
+        props.storedControls.isControlsPanelOpen = v;
+    },
+});
+
+// ── The SpringProgress drawer (H.W7.S2 / inv ζ) ──────────────────────────────
+// The sheet's open/close motion is its OWN SpringProgress (useSheetSpring),
+// NOT a CSS `grid-template-rows` ease. `sheetT` ∈ [0,1] springs between the peek
+// detent (0) and the expanded detent (1); the sheet height reads it.
+const { sheetT } = useSheetSpring(sheetOpen);
+
+// The sheet's reactive style — a single custom-property the CSS detents read.
+// Mobile-only (the desktop rail-collapse axis ignores it). `--sheet-t` drives
+// `height` between the peek and expanded detents (both ≤70dvh — NEVER
+// full-height; WV-W7-HIGH-5).
+const sheetStyle = computed(() => ({ "--sheet-t": sheetT.value }));
+
+// ── The grab-handle gesture engine + keep-open mutex (S1a/S2b) ───────────────
+// Colocated composable (mirrors useDragScrub's SHAPE) — the gesture arbitration
+// (BLK-6: the handle's own setPointerCapture, disjoint from the stage's orbit
+// surface) + the sheet-over-menubar keep-open mutex (WV-W7-MED-4).
+const handle = useSheetGesture(sheetOpen);
+
 const emit = defineEmits<{
     (e: "sliderUpdate", val: { t: number; animation: Animation<any> }): void;
     (e: "keyframesUpdate", val: { animation: Animation<any> }): void;
@@ -134,36 +200,157 @@ const emit = defineEmits<{
 </script>
 
 <style scoped>
-/* ── Mobile: grid-template-rows drives height, opacity fades ── */
+/* ── MOBILE BOTTOM SHEET (H.W7.S1/S2) — the SpringProgress drawer ──
+   The 550ms CSS `grid-template-rows` ease is DELETED (no legacy beside the
+   replacement). The sheet is a `position: fixed` bottom card whose HEIGHT
+   springs between two DETENTS, both ≤70dvh (NEVER full-height — WV-W7-HIGH-5),
+   driven by `--sheet-t` ∈ [0,1] (the engine's own SpringProgress via
+   useSheetSpring). The near-full-viewport max-height + the stale
+   `max-width:440px` cap are DELETED (folded into the full-bleed sheet width;
+   WV-W7-F6).
+
+   DETENTS (the visible UNOCCLUDED stage fraction is measured against the SHEET
+   TOP, not the sheet's layout box):
+     • peek      (--sheet-t = 0): the grab handle + a transport sliver — the
+                  stage is maximally visible behind it.
+     • expanded  (--sheet-t = 1): --sheet-detent-expanded (≤70dvh) of controls.
+   height = lerp(peek, expanded, --sheet-t). The OPEN axis is the spring's
+   `--sheet-t`, NOT a CSS height transition (the gate greps that no
+   `transition: …height/grid-template-rows` survives on this sheet). */
 .controls-pane-wrapper {
-    display: grid;
-    /* Half dock-margin above dock + dock height + half dock-margin gap */
-    margin-top: calc(var(--dock-margin) + var(--dock-icon-height));
-    /* Fill viewport minus top dock area and bottom menubar */
-    max-height: calc(
-        100dvh - var(--dock-margin) - var(--dock-icon-height) -
-            var(--dock-menubar-reserve)
+    --sheet-detent-peek: calc(var(--dock-icon-height) + 1.25rem);
+    /* The 0.45 visible-stage-fraction FLOOR (subject class, WV-W7-HIGH-3) caps
+       the expanded sheet. The unoccluded visible stage =
+         sheet.top − stage.top = (100dvh − reserve − height) − stageTop,
+       where reserve = --dock-menubar-reserve (the sheet's bottom anchor) and
+       stageTop = the stage's top inset (--dock-band-reserve when slack is tiny).
+       Requiring visible ≥ 0.48·100dvh (a comfortable margin over the 0.45 floor)
+       gives:
+         height ≤ 0.52·100dvh − reserve − stageTop.
+       This is the DEFAULT expanded detent — the subject scenes (cube/amiga/
+       square) keep the stage as the protagonist BACKGROUND, so the sheet stays
+       clear of the floor. It is ALSO ≤70dvh (NEVER full-height — WV-W7-HIGH-5)
+       by construction. */
+    --sheet-detent-expanded: max(
+        var(--sheet-detent-peek),
+        calc(
+            0.52 * 100dvh - var(--dock-menubar-reserve) -
+                var(--dock-band-reserve)
+        )
     );
 }
-.controls-pane-wrapper.controls-pane--open {
-    grid-template-rows: 1fr;
-    transition: grid-template-rows var(--duration-panel) var(--ease-out);
+
+@media (max-width: 1023px) {
+    .controls-pane-wrapper {
+        position: fixed;
+        left: 0;
+        right: 0;
+        /* Anchored ABOVE the bottom menubar band so the sheet rides over the
+           fixed stage but never occludes the menubar (inv δ). Full-bleed width
+           (no 440px cap); internal padding owns the breathing room. */
+        bottom: var(--dock-menubar-reserve);
+        /* lerp(peek, expanded, --sheet-t) — the spring drives the height; there
+           is NO CSS height transition (the spring IS the motion). */
+        height: calc(
+            var(--sheet-detent-peek) +
+                (
+                    var(--sheet-detent-expanded) - var(--sheet-detent-peek)
+                ) * var(--sheet-t, 0)
+        );
+        max-height: var(--sheet-detent-expanded);
+        margin: 0;
+        padding-inline: 0;
+        display: flex;
+        flex-direction: column;
+        /* The sheet card register — a glass surface lifting off the full-bleed
+           stage. Rounded top corners, a top hairline, an upward shadow. */
+        background: var(--popover, var(--card));
+        border-top-left-radius: var(--radius-card, 1rem);
+        border-top-right-radius: var(--radius-card, 1rem);
+        box-shadow: 0 -0.5rem 1.5rem -0.5rem hsl(0 0% 0% / 0.18);
+        overflow: hidden;
+        /* The sheet body owns the swipe-free zone; the handle owns the gesture
+           (BLK-6). Scoped to pan-y so a vertical content scroll still works. */
+        touch-action: pan-y;
+    }
+    /* Closed (peek) → only the handle + sliver intercepts pointer; the rest of
+       the (collapsed) sheet area is out of the way of the stage below. The
+       handle ALWAYS stays interactive (it is the re-open affordance). */
+    .controls-pane-wrapper.controls-pane--closed .controls-pane {
+        pointer-events: none;
+    }
+
+    /* The inner scroll body fills the remaining sheet height under the handle
+       and fades its content with the detent (peek → near-hidden). */
+    .controls-pane {
+        min-height: 0;
+        flex: 1 1 auto;
+        opacity: calc(0.15 + 0.85 * var(--sheet-t, 0));
+    }
+
+    /* ── The grab handle — the DISJOINT gesture surface (S1a/BLK-6) ── */
+    .sheet-grab-handle {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        /* ≥24px touch target (WCAG 2.5.8); the rail spans the sheet width so the
+           whole top edge is grabbable. Its OWN setPointerCapture owns the swipe
+           — `touch-action: none` so the gesture is never hijacked by scroll. */
+        min-block-size: 1.75rem;
+        padding-block: 0.5rem;
+        cursor: grab;
+        touch-action: none;
+        user-select: none;
+        -webkit-user-select: none;
+    }
+    .sheet-grab-handle:active {
+        cursor: grabbing;
+    }
+    .sheet-grab-pill {
+        inline-size: 2.25rem;
+        block-size: 0.3125rem;
+        border-radius: 9999px;
+        background: var(--muted-foreground, hsl(0 0% 60%));
+        opacity: 0.5;
+    }
+    .sheet-grab-handle:hover .sheet-grab-pill,
+    .sheet-grab-handle:focus-visible .sheet-grab-pill {
+        opacity: 0.85;
+    }
+    .sheet-grab-handle:focus-visible {
+        outline: 2px solid var(--ring, currentColor);
+        outline-offset: -2px;
+        border-radius: var(--radius-card, 1rem) var(--radius-card, 1rem) 0 0;
+    }
+
+    /* ── Mode-class register (S1c) ──
+       The sheet is ALWAYS a content card; what differs is the STAGE behind it
+       and the expanded CEILING. The 0.45 visible-fraction FLOOR applies ONLY to
+       the `subject` class (cube/amiga/square — the stage IS the background, so
+       the default detent above keeps it ≥0.45 visible). For `editor` (easing —
+       the curve/ball ARE the content) and `storyboard` (sequence/path/spring —
+       the rows/path ARE the content) the stage is a CONTAINED card whose own
+       on-stage content is the protagonist, NOT a background to preserve — so the
+       sheet may rise to the full 70dvh ceiling (still NEVER full-height —
+       WV-W7-HIGH-5) without violating any floor (none applies to these modes). */
+    .controls-pane-wrapper.controls-pane--stage-editor,
+    .controls-pane-wrapper.controls-pane--stage-storyboard {
+        --sheet-detent-expanded: min(
+            70dvh,
+            calc(
+                100dvh - var(--dock-band-reserve) - var(--dock-menubar-reserve) -
+                    0.5rem
+            )
+        );
+    }
 }
-.controls-pane-wrapper.controls-pane--closed {
-    grid-template-rows: 0fr;
-    pointer-events: none;
-    transition: grid-template-rows var(--duration-panel) var(--ease-standard);
-}
-.controls-pane {
-    min-height: 0;
-    transition: opacity var(--duration-panel) var(--ease-standard);
-}
-.controls-pane--open .controls-pane {
-    opacity: 1;
-}
-.controls-pane--closed .controls-pane {
-    opacity: 0;
-}
+
+/* ── PRM: the spring's own respectReducedMotion snaps --sheet-t in one emit
+   (useSheetSpring), so the sheet jumps detents with no fade. No CSS transition
+   exists on the height/transform axis to neutralize — the engine owns it. The
+   content opacity is a static function of --sheet-t (no transition), so it too
+   lands instantly under PRM. Nothing further to guard here. */
 
 /* ── Desktop: the [rail]-track collapse IS the open/close axis ──
    H.W3.S4 (WV-W3-HIGH-2): the former translateX(-110%) overlay slide is
@@ -185,14 +372,13 @@ const emit = defineEmits<{
     }
     .controls-pane-wrapper.controls-pane--open {
         pointer-events: auto;
-        /* Compose the idle-fade opacity transition WITH the open/close
-           grid-template-rows transition (F9 — the rest-dim animates; the rows
-           are stable at 1fr while open so this is additive, not a re-time). The
-           transition lives on the --open selector so it out-specifies the base
-           rule and is never clobbered by the open/close state's own transition. */
-        transition:
-            grid-template-rows var(--duration-panel) var(--ease-out),
-            opacity var(--duration-normal) var(--ease-standard);
+        /* The desktop open/close axis is the [rail]-track collapse on the
+           AnimationControlsGroup grid (var(--rail-width) ↔ 0), NOT this wrapper's
+           own rows — so the former vestigial `grid-template-rows` transition is
+           DELETED (H.W7.S2: no `grid-template-rows` ease survives in this sheet
+           file; the mobile sheet is sprung, the desktop axis is the track). Only
+           the F9 idle-fade OPACITY transition remains (the rest-dim animates). */
+        transition: opacity var(--duration-normal) var(--ease-standard);
     }
     .controls-pane-wrapper.controls-pane--closed {
         pointer-events: none;
@@ -253,26 +439,26 @@ const emit = defineEmits<{
 
 /* ── F9 PRM guard — snap, don't animate the idle-fade ──
    MANDATORY reduced-motion guard (modern-web css §9 — case-by-case, not a
-   global 0.01ms). Under PRM the idle dim still APPLIES (it is an opacity rest
-   state, legibility-preserving) but the WRAPPER's opacity transition snaps — so
-   a motion-sensitive user gets the dim instantly, no fade. Scoped to the desktop
-   idle context; the grid-template-rows open/close transition is already
-   PRM-neutralized by glass-ui's global bracket (it restricts transition-property
-   to opacity/color/bg/border/shadow under PRM), so we restore the --open
-   transition to grid-only (dropping the opacity term) rather than killing all
-   transitions (which would re-enable the otherwise-neutralized rows animation). */
+   global 0.01ms). Under PRM the desktop idle dim still APPLIES (it is an opacity
+   rest state, legibility-preserving) but its transition SNAPS — a motion-
+   sensitive user gets the dim instantly, no fade. With the former vestigial
+   grid-template-rows transition now DELETED (H.W7.S2), the only remaining
+   desktop transition is the opacity idle-fade; dropping it here neutralizes the
+   fade under PRM. (The mobile sheet's PRM snap is owned by the SpringProgress's
+   own respectReducedMotion — no CSS here.) */
 @media (min-width: 1024px) and (prefers-reduced-motion: reduce) {
     .controls-pane-wrapper.controls-pane--open {
-        transition: grid-template-rows var(--duration-panel) var(--ease-out);
+        transition: none;
     }
 }
 
 /* ── Mobile vertical scroll fade ── */
 @media (max-width: 1023px) {
-    /* Fill available width with side margins on mobile */
-    .controls-pane-wrapper {
-        max-width: min(440px, 100dvw);
-        margin-inline: auto;
+    /* WV-W7-F6: the stale `max-width: min(440px, 100dvw)` + `margin-inline:auto`
+       cap is DELETED — the sheet is FULL-BLEED width (left/right:0 above); the
+       internal padding owns the breathing room. The sheet body padding gives the
+       controls their inset. */
+    .controls-content {
         padding-inline: 0.75rem;
     }
 

@@ -65,6 +65,7 @@
             :super-key="superKey"
             :auto-play="autoPlay"
             :hide-controls="showStartScreen"
+            :stage-mode="stageMode"
             @play-state-change="onPlayStateChange"
             @start-state-change="(s: boolean) => emit('startStateChange', s)"
         >
@@ -120,12 +121,18 @@ const props = withDefaults(
         showStartScreen?: boolean;
         gridBackground?: boolean;
         autoPlay?: boolean;
+        // The mobile STAGE mode-class (H.W7.S1c) — `subject` full-bleeds the
+        // stage behind the sheet; `editor`/`storyboard` keep a content card.
+        // Typed as the union inline (the shared `@` subtree owns its own
+        // contract; the app passes the value from scenes.ts's `stageModeFor`).
+        stageMode?: "subject" | "editor" | "storyboard";
     }>(),
     {
         superKey: undefined,
         showStartScreen: true,
         gridBackground: true,
         autoPlay: false,
+        stageMode: "subject",
     },
 );
 

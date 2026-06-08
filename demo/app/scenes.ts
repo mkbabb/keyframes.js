@@ -165,6 +165,47 @@ export const scenes: SceneDescriptor[] = [
 export const allScenes = [homeScene, ...scenes];
 export const sceneMap = new Map(allScenes.map((s) => [s.id, s]));
 
+/**
+ * The mobile STAGE mode-class (H.W7.S1c) — the three registers the mobile
+ * overlay composes the controls sheet against, keyed by the scene's CONTENT
+ * shape (the mode IS scene data, so it lives WITH the scene):
+ *
+ *   • `subject`    — the subject IS the background (cube/amiga/square): a 3D
+ *                    object/canvas that fills the viewport behind the sheet. The
+ *                    full-bleed fixed stage is RIGHT here, so the
+ *                    `proof:mobile-single-page (a)` 0.45 visible-fraction floor
+ *                    applies ONLY to this class.
+ *   • `editor`     — the curve/controls ARE the content (easing): the editable
+ *                    bezier + the engine ball are the protagonist, not a
+ *                    background. The stage keeps its glass-card register (W11
+ *                    I5) — full-bleed would be WRONG (the curve is the content).
+ *   • `storyboard` — the draggable rows / editable path ARE the content
+ *                    (sequence/motion-path/spring): an authored timeline the user
+ *                    manipulates. Also a contained card, not a background.
+ *
+ * Only `subject` expands toward a full-bleed background on mobile; `editor` and
+ * `storyboard` keep their content card. UNKNOWN/home falls back to `subject`
+ * (the conservative full-bleed default for the cube backdrop landing).
+ */
+export type StageMode = "subject" | "editor" | "storyboard";
+
+const STAGE_MODES: Record<string, StageMode> = {
+    home: "subject",
+    cube: "subject",
+    amiga: "subject",
+    square: "subject",
+    easing: "editor",
+    spring: "storyboard",
+    sequence: "storyboard",
+    "motion-path": "storyboard",
+};
+
+/** The TOTAL mode selector — every scene id resolves to a defined mode-class
+ *  (UNKNOWN → `subject`, the full-bleed cube-backdrop default). */
+export function stageModeFor(sceneId: string): StageMode {
+    return STAGE_MODES[sceneId] ?? "subject";
+}
+
 // All scenes load on demand via defineAsyncComponent for code-splitting.
 // App.vue mounts each under <Suspense> so the async chunk resolves before
 // the scene <Transition> sees its vnode — the loading surface is the

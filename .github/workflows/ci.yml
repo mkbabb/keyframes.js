@@ -693,6 +693,70 @@ jobs:
               run: npm run proof:stage-within-docks
               env:
                   KF_REQUIRE_BROWSER: "1"
+            # H.W7 S1 — the mobile stack→overlay transposition lock. At 390×844 with the
+            # controls sheet FORCED OPEN (seeded store + expanded detent): (a) the SUBJECT
+            # class (cube/amiga/square) UNOCCLUDED visible stage fraction ≥ 0.45 — measured
+            # clamp(sheet.top) − clamp(sceneHost.top), NOT the layout box (a fixed;inset:0
+            # stage has full-height LAYOUT regardless of a covering sheet, so a layout-box
+            # gate would pass vacuously); (b) opening the controls (a real grab-handle click)
+            # OVERLAYS the stage — the scene-host rect shifts ±0px (not a displacing stack);
+            # (c) both docks affixed (inv δ ALREADY-SOTA, not regressed); (d) the detents are
+            # ≤70dvh, NEVER full-height. The mode-class is read PER SCENE (scenes.ts
+            # stageModeFor); the 0.45 floor is SUBJECT-only (editor/storyboard are content
+            # cards, EXEMPT). Plus a static clause: the grid-rows-[auto_1fr_auto] mobile
+            # stack is DELETED + the mobile .stage-cell is position:fixed;inset:0. Born-RED
+            # on the live STACK (open pane → stage evicted to ~30px, frac≈0.03) + the
+            # full-height drawer; GREEN on the fixed full-bleed stage + the SpringProgress
+            # sheet (S1). Settle-gated on the H.W1 FSM resting; KF_REQUIRE_BROWSER turns a
+            # playwright-absent skip into a hard CI fail (the overlay geometry cannot pass vacuously).
+            - name: proof:mobile-single-page (H.W7 S1 — the mobile stage is the full-bleed background · the controls OVERLAY it · ≤70dvh detents · subject-class 0.45 floor)
+              run: npm run proof:mobile-single-page
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            # H.W7 S3/F3 — the dock z-order + hit-test + keep-open mutex over the NEW
+            # fixed full-bleed stage (a verification clause on S1, not a separate edit;
+            # the docks are consumed glass-ui, untouched). At 390×844 / #/cube / sheet
+            # FORCED OPEN, FIVE rendered facts: (1) the fixed stage (z-content=10) sits
+            # STRICTLY BELOW the open sheet (z-controls=20) sits STRICTLY BELOW both docks
+            # (z-dock=40); (2) elementFromPoint at each IN-VIEWPORT, painted, interactive
+            # dock-button center returns the dock (a collapsed fit-content dock's
+            # overflow-clipped buttons are excluded — only the painted band is hit-tested);
+            # (3) the OPEN sheet does NOT steal the bottom menubar's pointer events (every
+            # menubar button center hits the dock, not the sheet); (4) LOW-1 — the fixed
+            # stage rect == the viewport ±2px AND no ancestor establishes a fixed-
+            # containing-block (zero transform/contain/perspective/filter/will-change
+            # offenders), so `fixed` resolves against the viewport; (5) the keep-open mutex
+            # invariant — across a 3.5s collapse-delay window with the sheet OPEN + no dock
+            # interaction, the menubar + sheet anchors are UNSHIFTED (±2px), so the collapse
+            # timer cannot move the sheet's anchor. Born-RED on a z-inversion / a pointer-
+            # steal / a transform-bearing ancestor / a collapse-timer anchor shift (each
+            # witnessed via runtime defect-injection). Settle-gated on the H.W1 FSM resting;
+            # KF_REQUIRE_BROWSER turns a playwright-absent skip into a hard CI fail (a
+            # z-order/hit-test/anchor fact cannot pass vacuously).
+            - name: proof:dock-zorder (H.W7 S3/F3 — fixed stage z-below both docks · elementFromPoint at each dock button returns the dock · the open sheet does not steal the menubar pointer · LOW-1 fixed-CB · keep-open mutex anchor-stable)
+              run: npm run proof:dock-zorder
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            # H.W7 S2 / inv ζ — the mobile bottom-SHEET drawer is the engine's OWN
+            # SpringProgress (useSheetSpring: response 0.3, ζ 0.8, respectReducedMotion),
+            # NOT the deleted 550ms CSS `grid-template-rows`/height ease. Three clauses,
+            # each BITING the pre-overlay defect: (a) STATIC grep SCOPED to the sheet file
+            # ControlsPaneWrapper.vue (comment-stripped, excl AnimationControlsControls's
+            # ALREADY-SOTA .panel-row crossfade + dist/) — NO `transition` on the
+            # height/grid-template-rows/transform axis survives + the spring IS wired
+            # (--sheet-t); (b) BROWSER runtime probe of the live --sheet-t at 390×844 —
+            # settle <350ms (≈176ms) AND an underdamped OVERSHOOT ring (a monotone CSS
+            # cubic-bezier never exceeds its terminal); (c) BROWSER under
+            # prefers-reduced-motion — a SINGLE-frame snap (0 intermediate frames; the
+            # engine's _snapSettled). Born-RED on the 550ms eased ramp (settle ≈438ms,
+            # overshoot 0, 56 PRM frames — witnessed), GREEN on the SpringProgress sheet.
+            # The STATIC clause (a) always runs; KF_REQUIRE_BROWSER turns a playwright-
+            # absent skip into a hard CI fail (the spring-shape/PRM facts cannot pass
+            # vacuously). Co-lands with proof:mobile-single-page (F1+F2 are one rebuild).
+            - name: proof:drawer-spring (H.W7 S2/inv ζ — the mobile sheet is the engine's own SpringProgress · no CSS ease · <350ms settle · overshoot ring · single-frame PRM snap)
+              run: npm run proof:drawer-spring
+              env:
+                  KF_REQUIRE_BROWSER: "1"
             # H.W9 F2 (S4) — the bezier-panel fit + header-bake lock. Settle-gated on the
             # H.W1 FSM resting (#/cube pinned in-page, pane forced open); the cubic-bézier
             # detail panel is opened via a REAL click on the live .easing-edit pencil (the

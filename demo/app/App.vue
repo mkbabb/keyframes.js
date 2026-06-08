@@ -89,6 +89,7 @@
         :super-key="currentSuperKey"
         :show-start-screen="isHome"
         :auto-play="autoPlayNext"
+        :stage-mode="stageMode"
         @play-state-change="onPlayStateChange"
         @start-state-change="onStartStateChange"
     >
@@ -177,7 +178,7 @@ import { useSceneMachineRouter } from "./useSceneMachineRouter";
 import { useSceneMachineApp } from "./useSceneMachineApp";
 import { useSceneSwap } from "./useSceneSwap";
 import { useSceneTransition } from "./useSceneTransition";
-import { scenes, sceneMap, warmScene, HOME_SCENE_ID } from "./scenes";
+import { scenes, sceneMap, warmScene, stageModeFor, HOME_SCENE_ID } from "./scenes";
 
 // Tabs in the controls pane are managed via the ChromeDock controls tab dropdown
 provide(TABS_EXTERNALLY_MANAGED_KEY, true);
@@ -200,6 +201,12 @@ const isHome = computed(() => currentSceneId.value === HOME_SCENE_ID);
 const currentScene = computed(() => sceneMap.get(currentSceneId.value) ?? sceneMap.get(HOME_SCENE_ID)!);
 const currentSuperKey = computed(() => currentScene.value.superKey);
 const currentLabel = computed(() => currentScene.value.label ?? "Home");
+
+// The mobile STAGE mode-class (H.W7.S1c) — drives whether the mobile overlay
+// full-bleeds the stage (subject: cube/amiga/square) or keeps a content card
+// (editor: easing; storyboard: spring/sequence/path). Derived from the active
+// scene id (the mode IS scene data, single-sourced in scenes.ts).
+const stageMode = computed(() => stageModeFor(currentSceneId.value));
 
 // The control-surface DFA projection (H.W11.S4 / I2) — the active scene's valid
 // BUILT-IN editor triad ({controls,keyframes,timeline} subset). The dock renders

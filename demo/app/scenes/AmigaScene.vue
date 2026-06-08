@@ -94,7 +94,12 @@ onMounted(() => {
 
     camera.position.z = BOX_SIZE;
     camera.position.y = BOX_SIZE / 3;
-    renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
+    // S1d (H.W7) — `alpha: true` so the canvas composites over the demo's
+    // themed backdrop instead of an opaque white fill. Once the mobile stage
+    // goes full-bleed (fixed; inset:0), an opaque-white clear would OBLITERATE
+    // the grid-bg + dark mode. The clear is now TRANSPARENT (below) and a themed
+    // CSS backdrop (`.amiga-canvas` background) supplies the surround.
+    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, canvas });
     // A2 (MEASURE-FIRST): cap the device-pixel-ratio at 2 — the former
     // `devicePixelRatio * 2` rendered a 4× CSS-pixel buffer (a 16× fragment
     // count vs. CSS pixels on a dpr=2 retina surface; 4× vs. the cap). MSAA
@@ -102,7 +107,13 @@ onMounted(() => {
     // super-sampling was pure fill-rate waste — capping to min(dpr, 2) cuts the
     // shaded fragments 4× at dpr=2 (proof:amiga-pixel-cap, getPixelRatio() ≤ 2).
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setClearColor("white", 1);
+    // S1d (H.W7) — THEME the clear-color before full-bleed: clear to TRANSPARENT
+    // (alpha 0) so the canvas composites over the themed CSS backdrop
+    // (`.amiga-canvas` background, light/dark-aware) instead of obliterating the
+    // grid-bg + dark mode with an opaque white sheet. The boing-ball surround
+    // (the `<box>` BackSide mesh) still renders the classic Amiga checker room;
+    // only the OUTSIDE-the-room clear is themed.
+    renderer.setClearColor(0xffffff, 0);
 
     // Hemisphere light for natural sky/ground gradient fill
     const hemi = new THREE.HemisphereLight("white", "#b0b0b0", 1.8);
@@ -266,6 +277,16 @@ defineExpose({
 .amiga-canvas {
     touch-action: none;
     cursor: grab;
+    /* S1d (H.W7) — the THEMED backdrop the transparent clear composites over.
+       Replaces the renderer's former opaque-white clear so the full-bleed mobile
+       stage no longer obliterates the grid-bg + dark mode. A soft vertical wash
+       evoking the Amiga sky/ground gradient (the HemisphereLight's CSS twin),
+       light/dark-aware via the theme tokens. */
+    background: linear-gradient(
+        to bottom,
+        var(--muted, hsl(0 0% 96%)),
+        var(--background, hsl(0 0% 100%))
+    );
 }
 .amiga-canvas:active {
     cursor: grabbing;
