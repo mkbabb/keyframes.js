@@ -327,18 +327,29 @@ sibling owner sequences them. Per the chronic-closure discipline (`§6`), **each
 PAIRED with a born-RED kf gate** so a bare column-migration cannot masquerade as closure
 (`audit/_SYNTHESIS-gap-scorecard.md §4`):
 
-1. **kf CONSUME-LEG — the dock LAG (D5-b) (BLK-5 — `53c1b07` IS PUBLISHED, no longer an
-   await-release HANDOFF).** The retune `53c1b07` is PUBLISHED in glass-ui 3.5.0/3.5.1/3.6.0
-   (npm, VERIFIED), so kf bumps `@mkbabb/glass-ui ^3.4.0 → ^3.5.1` to consume it (NO kf
-   fork); the kf-side pairing is `proof:dock-morph-settled` in its **token-peak form**
-   (`--spring-dock` ramp peak ≤ +6%) **born-RED** against the installed +16.3% register
-   (CP-MED-3) — trivially measurable, greens on the bump (the morph is not reliably driveable
-   live). MEASURE-FIRST: the 3.5.0+ bump crosses dock-layering polish — re-run
-   `proof:dock-dropdown-opens` + a slot-shape check post-bump.
-2. **glass-ui-HANDOFF — the Card specular SEAM (D2/D14 root).** `CardFooter:37` emits
-   `glass-specular-track` on `surface="glass"` with no `--mouse-*` wire; the Card should
-   wire-or-omit the seam + ship a calmer default (rest ≤0.25, radius ≤40%). H.W2 ships the
-   kf-demo half (`surface="cartoon"` flip + `useSpecularPointer` on kept-glass).
+1. **kf CONSUME-LEG — the dock LAG (D5-b) — CONSUMED + GREEN (no longer pending).** The
+   retune `53c1b07` is PUBLISHED in glass-ui 3.5.0/3.5.1/3.6.0 (npm, VERIFIED), so kf bumped
+   `@mkbabb/glass-ui ^3.4.0 → ~3.5.1` to consume it (installed 3.5.1; NO kf fork). The
+   `~`-cap is DELIBERATE: 3.6/3.7 re-regress (the cartoon-surface `::before` re-emits the
+   specular catch-light on hover → `proof:no-orphan-specular` FAIL went 2→3 at 3.7.0), so
+   ~3.5.1 is the MINIMUM published 3.x carrying the dock retune WITHOUT the 3.6/3.7 surface
+   regression. The kf-side pairing `proof:dock-morph-settled` (token-peak form, `--spring-dock`
+   ramp peak ≤ +6%) is **GREEN** — installed peak +4.5% ≤ +6% (down from the 3.4.0 +16.3%
+   born-RED witness; the gate reads `node_modules`, inv-16). So D5 closes via this passing
+   SYSTEM gate, NOT a born-RED HANDOFF still pending a release. Reconciling the demo to 3.6/3.7
+   is a FOLLOW-ON glass-ui-reconciliation HANDOFF, not this close.
+2. **glass-ui consume-edge — the Card specular SEAM (D2/D14 root) — VISIBLE BLOOM DEAD at
+   ~3.5.1; the residual inert track is a COSMETIC opt-out, NOT a blocker.** The 3.4.0 Card
+   painted a VISIBLE dead-centered white specular bloom on glass surfaces; **glass-ui 3.5.0
+   KILLED that visible bloom** (the hover-radial is dead), so at the consumed ~3.5.1 the glass
+   stages are VISUALLY CLEAN (no bloom). The W11 I5 SANCTIONED glass STAGES (easing/spring/
+   starting-style/sequence/motion-path `<Card>`, `surface=glass`) still carry glass-ui's
+   `.glass-specular-track` class, but it is **INERT** (no visible bloom at 3.5.1) — glass-ui-
+   owned, not a kf defect (inv-16: kf does NOT own the Card surface map). The glass-ui **3.8.0
+   opt-out** (`specular="off"` default — removes the inert class) is a COSMETIC consume-edge: a
+   forward nicety to take on a future reconciliation, **NOT a blocker, NOT a born-RED gate**.
+   H.W2 shipped the kf-demo half (`surface="cartoon"` flip on PANELS); the cartoon panels are
+   bloom-free at source on ~3.5.1.
 3. **glass-ui-HANDOFF — the `{types}` directional VT helper + the mobile drawer `spring`
    prop BOOK.** `a-mobile-architecture` proves the demo drawer is BESPOKE (not vaul/Sheet) →
    the drawer SHIPs in H.W7; the glass-ui `DrawerContent` `spring` prop ask is a BOOK.
@@ -364,7 +375,7 @@ each lands against this discipline:
 | **cartoon-shadow depth (D2) / specular (D14)** | M1 — issue-level close masquerading as system close | **SYSTEM gate** — `proof:cartoon-is-panel-depth` + `proof:no-orphan-specular` (H.W2); the glass-ui Card-seam HANDOFF is PAIRED. **H.W9 REFINEMENT (user-feedback F3/F6/F8):** the W2 S2-COMPOSITE (the lone tracked-specular bezier card) is **RETIRED** — `proof:cartoon-specular-coexist` + `proof:specular-calm` retire (their subject deleted) — and the cartoon chronic STAYS CLOSED via a **STRONGER** inverted `proof:no-orphan-specular` (exception set `{bezier}` → ∅: ZERO `.glass-specular-track` on ANY kf-owned `<Card>`); the glass returns via `tier="quiet"` (the NEW `proof:glass-and-cartoon` locks it). The chronic exit STILL satisfies the discipline (a SYSTEM-property gate) — a re-paper caught BEFORE H.W8's golden baseline locked it, NOT a re-open. Nothing falsely closed: `proof:cartoon-is-panel-depth` stays GREEN (tier-agnostic); the glass-ui Card-seam HANDOFF stays PAIRED (`proof:specular-handoff` unchanged). **Meta-gate (H.W8 S3) parse contract:** this row's LOAD-BEARING gate set is `proof:cartoon-is-panel-depth` + `proof:no-orphan-specular` (inverted to exception=∅) + `proof:glass-and-cartoon` + the paired `proof:specular-handoff` — all RESOLVE + green; the RETIRED `proof:cartoon-specular-coexist`/`proof:specular-calm` are NARRATIVE references to deleted gates (required ABSENT from `proof:all`, NOT required to resolve), so H.W9's retire does not red the row. |
 | **φ-hero typography (D7)** | M1 — issue-level close masquerading as system close (C.W2 closed the CSSCodeEditor/display-tier site; the hero never reached a hero rung; raw body rungs lingered) | **SYSTEM gate** — `proof:phi-leaf-zero` (BOTH halves: the hero resolves the `text-display-mega` CLASS AND a px floor at a fixed named viewport — `font-size ≥ 140px` at 1440×900, NOT a `≥ --type-display-mega` clamp-vs-clamp comparison; CP-HIGH-3 — AND **0 raw `text-*` rungs** across the demo, where the residual is **2 (L1 `AnimationMenuBar.vue:102` + L2 `MotionPathTarget.vue:119`)** under the gate's `ui/` exclusion, NOT 37 — 37 materializes only by counting vendored `ui/` shadcn; WV-W4-HIGH-1/HS-HIGH-3) (H.W4); `proof:hero-rung` alone is the rung half — insufficient for M1 (it leaves the lingering raw rungs un-policed) |
 | **mobile architecture (D10)** | M2 — scope-narrowing (stack "fits", not overlay) | **SYSTEM gate** — `proof:mobile-single-page` + `proof:drawer-spring` (H.W7) |
-| **dock LAG (D5)** + **@mbabb popover (D9)** | D5: M3 — column-migration to HANDOFF with NO paired kf gate; D9: dropped from the chronic table entirely (CP-MED-5) | **D5 — kf CONSUME-LEG + born-RED gate** — bump `^3.4.0 → ^3.5.1` (`53c1b07` IS PUBLISHED, BLK-5); `proof:dock-morph-settled` (token-peak ≤+6%) born-RED (H.W8/§4). **D9 — SYSTEM gate (kf SHIP)** — `proof:dock-popover-opens` + `proof:single-toggle` (the App.vue un-double-wrap; H.W1 S8, BLK-8/CP-MED-5) — D9 IS kf-patched, distinct from the D5 dock-CHROME consume-leg |
+| **dock LAG (D5)** + **@mbabb popover (D9)** | D5: M3 — column-migration to HANDOFF with NO paired kf gate; D9: dropped from the chronic table entirely (CP-MED-5) | **D5 — CLOSED via a passing SYSTEM gate (NOT a born-RED HANDOFF).** The dock retune (`53c1b07`) is CONSUMED: kf pins `@mkbabb/glass-ui ~3.5.1` (installed 3.5.1; BLK-5; `~`-capped below 3.6/3.7 which re-regress) and `proof:dock-morph-settled` (token-peak ≤+6%) is **GREEN** — the installed `--spring-dock` ramp peak is **+4.5% ≤ +6%** (down from the 3.4.0 +16.3% born-RED witness). The gate reads `node_modules/@mkbabb/glass-ui` (inv-16 — kf CANNOT fork the token to green it; only the consumed bump does), so D5's closure IS a passing SYSTEM gate, NOT a column-migration-to-HANDOFF. **D9 — SYSTEM gate (kf SHIP)** — `proof:dock-popover-opens` + `proof:single-toggle` (the App.vue un-double-wrap; H.W1 S8, BLK-8/CP-MED-5) — D9 IS kf-patched, distinct from the D5 dock-CHROME consume-leg |
 
 The full whole-history A→H ledger + the chronic-closure audit is in
 `audit/_SYNTHESIS-deferred-ledger.md`. The cross-repo items are HANDOFFs (each its own

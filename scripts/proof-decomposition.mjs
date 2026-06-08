@@ -18,13 +18,35 @@
  *
  * CLAUSES (each BITES):
  *
- *   1. CEILINGS — every demo component/composable under the EXTENDED sweep
- *      (`animation-controls/**` + `demo/app/**` + `orbital-drag/**` + the named
- *      `EasingCurveCanvas.vue`) is ≤ its ceiling (350L `.vue`, 250L `.ts`),
- *      modulo a rationale-bearing per-file `CEILING_OVERRIDE` (E.W1 §S4, with a
- *      stale-entry guard). Re-adding a 400L component reddens it. The five
- *      D-flagged units (552/487/441/383/251) AND the two E.W1 seams
- *      (App.vue@452, useOrbitalPointer@376) must each drop under.
+ *   1. LIBRARY CEILING — every `src/animation/**` module is ≤ its ceiling
+ *      (350L `.vue`, 550L `.ts`), modulo a rationale-bearing per-file
+ *      `LIBRARY_CEILING_OVERRIDE` (G.W5, with a stale-entry guard). A NEW
+ *      un-exempted 600L library file reds it; the four genuinely-cohesive
+ *      god-modules (engine/animations/group/sequence) carry recorded exceptions.
+ *
+ *      H.W8 RECONCILIATION (drift-red a): the DEMO file-size half of this clause
+ *      is RETIRED here — it duplicated, and CONTRADICTED, the H.W12-authored
+ *      `proof:demo-no-oversize`, which is the SINGLE demo file-size authority
+ *      (≤500L, the H.W12-MEASURED reality). The D-era 350L `.vue` ceiling this
+ *      clause once swept across the demo was a stale lower number: the H tranche
+ *      legitimately grew the controls SFCs via real enrichment —
+ *      ControlsPaneWrapper.vue 249→491L (H.W7 mobile bottom-sheet drawer + F9
+ *      idle-fade), AnimationControlsGroup.vue 335→488L (H.W7 mobile overlay +
+ *      H.W9/W10 scene normalization + icons), EasingCurveCanvas.vue 351→373L
+ *      (H.W4 canvas-ceiling clamp + container context), AnimationControls.vue
+ *      254→367L and AnimationControlsControls.vue 330→364L (H.W11 control-surface
+ *      DFA + stage glass-card + uniform labels). Each is ONE cohesive SFC (a
+ *      single template/script/style triple; the two largest are dominated by
+ *      scoped-CSS that cannot be externalized without breaking the `scoped`
+ *      contract) — splitting to shed lines fragments the concern (the legacy
+ *      shape the §Mandate forbids). Two demo gates asserting two different
+ *      ceilings (350 vs 500) on the SAME files is the DRY contradiction; the
+ *      reconciliation collapses demo file-size onto the H.W12 measured 500L in
+ *      proof:demo-no-oversize, and this gate KEEPS only the library ceiling
+ *      (the unique G.W5 value proof:demo-no-oversize does NOT cover — its sweep
+ *      root is `demo/`, never `src/`). The demo STRUCTURAL concerns below
+ *      (clauses 2–10) still sweep the demo and BITE — only the raw line-count
+ *      ceiling moved authority.
  *
  *   2. PARSE ADAPTER — exactly ONE definition of `parseAnimationCSS`: a single
  *      `export` in `keyframes/utils/`, and ZERO inline copies (the two W0
@@ -57,21 +79,16 @@ const CONTROLS = path.join(
     "demo/@/components/custom/animation-controls",
 );
 
-// E.W1 extended the ceiling sweep OUTSIDE the controls tree to the two seams the
-// post-D assay found: the app entry shell (`demo/app/**`) and the orbital-drag
-// input/transform seam (`orbital-drag/**`). Same ceilings, so the gate BITES
-// there too — App.vue@452 + useOrbitalPointer@376 were red before E.W1's thin.
-const APP = path.join(REPO, "demo/app");
-const ORBITAL = path.join(
-    REPO,
-    "demo/@/components/custom/orbital-drag",
-);
-// EasingCurveCanvas is the named cohesive curve-editor (E.W1 §S4): swept as a
-// single named file so its disposition (trimmed to ≤350, NOT split) BITES.
-const EASING_CURVE_CANVAS = path.join(
-    REPO,
-    "demo/@/components/custom/EasingCurveCanvas.vue",
-);
+// H.W8 RECONCILIATION (drift-red a) — the DEMO ceiling sweep is RETIRED. The
+// D.W1/E.W1 demo line-count ceiling (350L `.vue` across `animation-controls/**`
+// + `demo/app/**` + `orbital-drag/**` + the named EasingCurveCanvas.vue) was a
+// duplicate, contradictory authority: H.W12's proof:demo-no-oversize is the
+// SINGLE demo file-size gate (≤500L, the H.W12-MEASURED reality), and the H
+// tranche legitimately grew the controls SFCs past the stale 350 (see the
+// header docstring clause 1 for the 5 files + their growth drivers). Two demo
+// gates at two ceilings (350 vs 500) on the SAME files is the DRY contradiction;
+// demo file-size now lives ONLY in proof:demo-no-oversize. The demo STRUCTURAL
+// clauses below (2–10) still sweep the demo — only the raw line ceiling moved.
 
 // G.W5 — the LIBRARY surface (`src/animation/**`). The chronic the F.md ceiling
 // DECISION named (re-deferred to G as the one purely-kf gated call,
@@ -89,19 +106,8 @@ const toPosix = (p) => p.split(path.sep).join("/");
 const relPosix = (abs) => toPosix(path.relative(REPO, abs));
 const read = (p) => fs.readFileSync(p, "utf8");
 
-// Line ceilings, by extension (D.W1's forcing function).
-const CEILING = { ".vue": 350, ".ts": 250 };
-
-// Per-file ceiling exceptions (E.W1 §S4 / §DD4). A unit appears here ONLY when
-// it is ONE cohesive concern that the natural-seam rule (D.W1 §DD1) forbids
-// splitting to shed a handful of lines — never to launder a real conflation.
-// Each entry carries its line cap + the cohesion rationale, and the stale-entry
-// guard below prunes any override whose file no longer exceeds the base ceiling
-// (mirrors the ASYNC_ALLOWLIST stale guard). EMPTY today: EasingCurveCanvas was
-// trimmed to ≤350 (the smaller honest move), so no override is owed.
-const CEILING_OVERRIDE = new Map([
-    // e.g. ["demo/.../Foo.vue", { cap: 360, why: "one cohesive X — splitting fragments the concern (D.W1 §DD1)" }]
-]);
+// (H.W8: the D.W1 demo CEILING / CEILING_OVERRIDE constants were removed with
+// the demo ceiling sweep — demo file-size is now solely proof:demo-no-oversize.)
 
 // G.W5 — the LIBRARY `.ts` ceiling (path A, Design decision 2). Set ABOVE the
 // demo's 250L because the interpolation/compile engines are intrinsically larger
@@ -233,72 +239,55 @@ function main() {
     const sources = collectSources(CONTROLS);
     sources.sort();
 
-    // Clause 1 (ceilings) sweeps the EXTENDED set: controls + app + orbital +
-    // the one named EasingCurveCanvas file (E.W1 §S5) + the LIBRARY surface
-    // (`src/animation/**`, G.W5). Deduped + sorted. Library files are swept at
-    // LIBRARY_CEILING / LIBRARY_CEILING_OVERRIDE; demo files at CEILING /
-    // CEILING_OVERRIDE (resolved per-file by tree below).
+    // Clause 1 (ceilings) sweeps the LIBRARY surface ONLY (`src/animation/**`,
+    // G.W5), swept at LIBRARY_CEILING / LIBRARY_CEILING_OVERRIDE. H.W8 RETIRED
+    // the demo half of this clause (the controls + app + orbital + named
+    // EasingCurveCanvas sweep): demo file-size is now solely proof:demo-no-oversize
+    // (H.W12, ≤500L MEASURED) — two demo gates at 350 vs 500 was the DRY
+    // contradiction. The demo STRUCTURAL clauses (2–10) still sweep `sources`.
     const librarySources = collectSources(LIBRARY);
-    const librarySet = new Set(librarySources.map(relPosix));
-    const ceilingSources = [
-        ...new Set([
-            ...sources,
-            ...collectSources(APP),
-            ...collectSources(ORBITAL),
-            ...(fs.existsSync(EASING_CURVE_CANVAS) ? [EASING_CURVE_CANVAS] : []),
-            ...librarySources,
-        ]),
-    ].sort();
-    const isLibrary = (rel) => librarySet.has(rel);
+    const ceilingSources = librarySources.slice().sort();
 
-    console.log("proof:decomposition — D.W1 + E.W1 + G.W5 (demo + library)");
+    console.log("proof:decomposition — D.W1 + E.W1 + G.W5 (library ceiling + demo structure)");
     console.log(
-        `  source files scanned: ${ceilingSources.length} across ` +
-            `animation-controls/** + demo/app/** + orbital-drag/** + ` +
-            `src/animation/** (dist/ excluded)`,
+        `  source files scanned: ${ceilingSources.length} library file(s) for ` +
+            `the ceiling (src/animation/**); the demo structural clauses sweep ` +
+            `animation-controls/** + demo/** (demo file-size → proof:demo-no-oversize)`,
     );
 
-    // ── 1. CEILINGS ────────────────────────────────────────────────────
-    // A per-file CEILING_OVERRIDE raises the cap for a NAMED cohesive unit; the
-    // stale guard below reds any override whose file is now under the base
-    // ceiling (a dead exception). Track which overrides actually bit.
+    // ── 1. LIBRARY CEILING ─────────────────────────────────────────────
+    // A per-file LIBRARY_CEILING_OVERRIDE raises the cap for a NAMED cohesive
+    // unit (a god-module); the stale guard below reds any override whose file is
+    // now under the base ceiling (a dead exception). Track which overrides bit.
     const overCeiling = [];
     const usedOverrides = new Set();
     for (const abs of ceilingSources) {
         const ext = path.extname(abs);
         const rel = relPosix(abs);
-        // Resolve the cap + override map by tree: library files ride
-        // LIBRARY_CEILING / LIBRARY_CEILING_OVERRIDE, demo files the demo's.
-        const lib = isLibrary(rel);
-        const base = (lib ? LIBRARY_CEILING : CEILING)[ext];
+        const base = LIBRARY_CEILING[ext];
         if (base == null) continue;
-        const overrideMap = lib ? LIBRARY_CEILING_OVERRIDE : CEILING_OVERRIDE;
-        const override = overrideMap.get(rel);
+        const override = LIBRARY_CEILING_OVERRIDE.get(rel);
         const ceiling = override ? override.cap : base;
         const lines = fs.readFileSync(abs, "utf8").split("\n").length;
         if (override && lines > base) usedOverrides.add(rel);
         if (lines > ceiling) {
-            overCeiling.push({ rel, lines, ceiling, override, lib });
+            overCeiling.push({ rel, lines, ceiling, override });
         }
     }
     if (overCeiling.length > 0) {
         for (const o of overCeiling) {
             failures.push(
                 `[ceiling] ${o.rel}: ${o.lines}L exceeds the ${o.ceiling}L ` +
-                    `ceiling for ${path.extname(o.rel)} — split at its natural ` +
-                    `concern seam into colocated sub-units (D.W1 §S1–S3 / E.W1 ` +
-                    `§S1–S3), or (only for a genuinely cohesive unit) add a ` +
-                    `rationale-bearing ${
-                        o.lib ? "LIBRARY_CEILING_OVERRIDE (G.W5)" : "CEILING_OVERRIDE (E.W1 §S4)"
-                    } entry.`,
+                    `library ceiling for ${path.extname(o.rel)} — split at its ` +
+                    `natural concern seam, or (only for a genuinely cohesive ` +
+                    `god-module) add a rationale-bearing LIBRARY_CEILING_OVERRIDE ` +
+                    `(G.W5) entry.`,
             );
         }
     } else {
-        const totalOverrides =
-            CEILING_OVERRIDE.size + LIBRARY_CEILING_OVERRIDE.size;
+        const totalOverrides = LIBRARY_CEILING_OVERRIDE.size;
         console.log(
-            `  ✓ [ceiling] all files ≤ ceiling (demo 350L .vue / 250L .ts; ` +
-                `library 350L .vue / 550L .ts)` +
+            `  ✓ [ceiling] all library files ≤ ceiling (350L .vue / 550L .ts)` +
                 (totalOverrides > 0
                     ? `; ${totalOverrides} named override(s)`
                     : ""),
@@ -307,16 +296,13 @@ function main() {
 
     // Stale override guard — an override whose file is now under its base
     // ceiling is dead and must be pruned (mirrors the ASYNC_ALLOWLIST stale
-    // guard). Keeps both exception maps from silently accruing slack — so an
+    // guard). Keeps the exception map from silently accruing slack — so an
     // engine.ts ever refactored back under the base cap reds the guard,
     // forcing the entry's removal (the self-pruning §Mandate discipline).
-    for (const [rel, meta] of [
-        ...CEILING_OVERRIDE,
-        ...LIBRARY_CEILING_OVERRIDE,
-    ]) {
+    for (const [rel, meta] of LIBRARY_CEILING_OVERRIDE) {
         if (!usedOverrides.has(rel)) {
             failures.push(
-                `[ceiling] CEILING_OVERRIDE entry "${rel}" (cap ${meta.cap}, ` +
+                `[ceiling] LIBRARY_CEILING_OVERRIDE entry "${rel}" (cap ${meta.cap}, ` +
                     `"${meta.why}") matches no file over its base ceiling — it ` +
                     `is STALE; remove it.`,
             );
@@ -908,9 +894,9 @@ function main() {
     }
 
     console.log(
-        "\nproof:decomposition — PASS: every unit is under its ceiling, the parse\n" +
-            "adapter has ONE definition, the pure utils are re-homed, and no raw\n" +
-            "async blob survives. D.W1 holds.",
+        "\nproof:decomposition — PASS: every library module is under its ceiling, the\n" +
+            "parse adapter has ONE definition, the pure utils are re-homed, and no raw\n" +
+            "async blob survives. D.W1 holds (demo file-size → proof:demo-no-oversize).",
     );
 }
 

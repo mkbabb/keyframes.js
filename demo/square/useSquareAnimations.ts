@@ -1,7 +1,7 @@
 import { CSSKeyframesAnimation } from "@src/animation/engine";
 import { RAFPlayback } from "@src/animation/playback";
 import { SpringProgress } from "@src/animation/spring";
-import type { Ref } from "vue";
+import { onScopeDispose, type Ref } from "vue";
 
 /**
  * useSquareAnimations — the dogfood of the custom-transform-function over
@@ -205,6 +205,16 @@ export function useSquareAnimations(
         springY.dispose();
         springSpin.dispose();
     };
+
+    // Self-clean on the host's setup scope tear-down (the SAME idiom the sibling
+    // scene composables ship — useSpringDemo/useEasingDemo/useSequenceDemo each
+    // `onScopeDispose(() => playback.stop())`, mirroring useRafLoop.ts's
+    // onUnmounted(stop)). The raw RAFPlayback loop owner MUST stop on dispose
+    // itself, not lean on a host remembering to call dispose() — so the loop
+    // cannot leak past unmount if a future host forgets the wiring (G.W9 §S3).
+    // The host (SquareScene) still calls dispose() to stop its own AnimationGroup
+    // beside this, which is idempotent (playback.stop() twice is a no-op).
+    onScopeDispose(dispose);
 
     return { anim, springX, springY, reseat, travel, startLoop, paintRest, tumble, dispose };
 }

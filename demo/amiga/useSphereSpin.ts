@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { useEventListener } from "@vueuse/core";
 // inv ζ — the amiga sphere dogfoods the engine's SHIPPED analytic `decay()`
 // closed form (the SAME idiom the cube's orbital inertia rides,
 // useOrbitalInertia.ts). A pointer-drag on the mesh accumulates an angular
@@ -180,25 +181,31 @@ export function useSphereSpin(options: SphereSpinOptions) {
         return live;
     };
 
-    /** Wire the pointer listeners onto the canvas. */
+    // The canvas-pointer listeners ride @vueuse/core's useEventListener (the
+    // inv-ζ dogfood discipline the demo's other drag seams keep — useDragCapture /
+    // useOrbitalPointer): each returns a stop() handle, and the whole set is also
+    // auto-released on the host's scope dispose, so a missed detach() cannot leak.
+    let stopHandles: Array<() => void> = [];
+
+    /** Wire the pointer listeners onto the canvas (imperative — the canvas exists
+     *  only after the Three.js renderer mounts). */
     const attach = (canvas: HTMLCanvasElement) => {
         canvasEl = canvas;
         // Capture-phase pointerdown so the hit-test runs BEFORE OrbitControls'
         // own (bubbling) listener claims a sphere-hit drag.
-        canvas.addEventListener("pointerdown", onPointerDown, { capture: true });
-        canvas.addEventListener("pointermove", onPointerMove);
-        canvas.addEventListener("pointerup", endDrag);
-        canvas.addEventListener("pointercancel", endDrag);
+        stopHandles = [
+            useEventListener(canvas, "pointerdown", onPointerDown, {
+                capture: true,
+            }),
+            useEventListener(canvas, "pointermove", onPointerMove),
+            useEventListener(canvas, "pointerup", endDrag),
+            useEventListener(canvas, "pointercancel", endDrag),
+        ];
     };
 
     const detach = () => {
-        if (!canvasEl) return;
-        canvasEl.removeEventListener("pointerdown", onPointerDown, {
-            capture: true,
-        } as EventListenerOptions);
-        canvasEl.removeEventListener("pointermove", onPointerMove);
-        canvasEl.removeEventListener("pointerup", endDrag);
-        canvasEl.removeEventListener("pointercancel", endDrag);
+        for (const stop of stopHandles) stop();
+        stopHandles = [];
         canvasEl = undefined;
     };
 

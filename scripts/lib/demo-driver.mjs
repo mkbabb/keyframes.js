@@ -12,10 +12,15 @@
  *
  * Exports (the lane contract — keep stable; both gates depend on it):
  *   SCENES         — Array<{ key, route, subjectSelector, dockFloatAllowed }>
- *                    `dockFloatAllowed: true` ONLY for the full-bleed amiga
- *                    canvas (an edge-floating dock is intended design there);
- *                    cube/home/square/easing/spring = false (a dock covering
- *                    their content rect is the real occlusion inv δ bites on).
+ *                    RE-SOURCED from `demo/app/scenes.ts` at H.W8 S1 (was a
+ *                    hand-maintained 6-entry array that drifted to the demo's 8
+ *                    scenes). `key` === the scenes.ts id; `route` === the hash
+ *                    route. `dockFloatAllowed: true` ONLY for the full-bleed
+ *                    amiga canvas (an edge-floating dock is intended design
+ *                    there); every other scene = false (a dock covering their
+ *                    content rect is the real occlusion inv δ bites on). A
+ *                    stale-key guard binds the manifest set EXACTLY to the
+ *                    scenes.ts ids (see SCENE_GATE_META below).
  *   resolveChromium()              — KF_PLAYWRIGHT_DIR createRequire resolver.
  *   serveDist(distDir)             — static http server over the built demo
  *                                    (dist/gh-pages); returns { url, close }.
@@ -31,44 +36,209 @@ import path from "node:path";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 
-// The per-scene manifest. `key` is the stable scene id, `route` the hash
-// route, `subjectSelector` the element the occlusion gate fits in-bounds and
-// the π gate paints, `dockFloatAllowed` the honest resolution of the genuine
-// dock-over-content tension (C.W1 § Design decisions): a full-bleed canvas
-// legitimately permits an edge-floating dock; every other scene FAILS inv δ
-// when a dock covers its content rect.
-export const SCENES = [
-    { key: "home", route: "", subjectSelector: ".graph, .cube, h1", dockFloatAllowed: false },
-    { key: "cube", route: "cube", subjectSelector: ".graph, .cube", dockFloatAllowed: false },
+// ─────────────────────────────────────────────────────────────────────────────
+// H.W8 S1 (I-1) — RE-SOURCE THE SCENES MANIFEST FROM `demo/app/scenes.ts`.
+//
+// Before H.W8 this manifest was a HAND-MAINTAINED 6-entry array. It DRIFTED: the
+// demo ships 8 scenes (the cube/amiga/square/easing/spring originals + the
+// sequence/motion-path primitives; `starting-style` was merged INTO spring at
+// H.W5), but the array still knew only 6 — so `sequence`/`motion-path` were
+// NEVER occlusion-checked, lighthouse-scored, or captured by any runtime gate.
+//
+// The fix (the load-bearing prerequisite): the manifest's SCENE SET is now
+// DERIVED from `scenes.ts` — the single source the router (`demo/app/router.ts`)
+// already trusts. The id UNION is `[homeScene.id, ...scenes.map(s => s.id)]`
+// (home is SEPARATE from the `scenes[]` array). `route` and `superKey` are read
+// FROM each descriptor (route = `id` for non-home, `""` for home — verified 1:1
+// against router.ts). The only HAND-DATA left is the per-scene gate metadata
+// (`subjectSelector` + `dockFloatAllowed`), keyed by the `scenes.ts` id.
+//
+// A STALE-KEY GUARD (mirrors the proof:brittleness LISTENER_ALLOWLIST stale
+// guard) binds the two sets EXACTLY: a metadata key with no `scenes.ts` id THROWS
+// at module load, and a `scenes.ts` id with no metadata entry THROWS — so adding
+// a scene to `scenes.ts` AUTO-enrolls it in every runtime gate (and fails loud
+// until its gate metadata is added). The standing invariant is key-EQUALITY, not
+// a hard-coded count (`proof:manifest-sourced` asserts it as a re-runnable gate;
+// it AUTO-TRACKS any future scene add/remove). The exported SCENES shape is
+// UNCHANGED — `{ key, route, subjectSelector, dockFloatAllowed }` — so the
+// occlusion/capture/lighthouse/typing-dots/etc. consumers need no edit.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const SCENES_TS = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "../../demo/app/scenes.ts",
+);
+
+// The per-id GATE metadata — the only hand-maintained scene data that remains.
+// `subjectSelector` is the element the occlusion gate fits in-bounds and the π
+// gate paints; `dockFloatAllowed` is the honest resolution of the genuine
+// dock-over-content tension (C.W1 § Design decisions): a full-bleed canvas (amiga)
+// legitimately permits an edge-floating dock; every other scene FAILS inv δ when
+// a dock covers its content rect. KEYED BY the `scenes.ts` id (the stale-key
+// guard below binds this map's keys EXACTLY to the parsed scene set).
+const SCENE_GATE_META = {
+    home: { subjectSelector: ".graph, .cube, h1", dockFloatAllowed: false },
+    cube: { subjectSelector: ".graph, .cube", dockFloatAllowed: false },
     // amiga renders a full-bleed Three.js <canvas> — an edge-floating dock over
     // its bleed is the intended design, NOT occlusion (C.W1 § Design decisions).
-    { key: "amiga", route: "amiga", subjectSelector: "canvas", dockFloatAllowed: true },
-    { key: "square", route: "square", subjectSelector: ".demo-box", dockFloatAllowed: false },
-    {
-        key: "easing",
-        route: "easing",
+    amiga: { subjectSelector: "canvas", dockFloatAllowed: true },
+    square: { subjectSelector: ".demo-box", dockFloatAllowed: false },
+    easing: {
         subjectSelector: "[class*=glass-card], [class*=Target], [class*=rail]",
         dockFloatAllowed: false,
     },
-    {
-        key: "spring",
-        route: "spring",
+    spring: {
         subjectSelector: "[class*=glass-card], [class*=Target], [class*=rail]",
         dockFloatAllowed: false,
     },
-];
+    // The H.W11 stage scenes — the subject is the glass `<Card>` inside the
+    // `.stage-cell` PRIMITIVE (the storyboard/path plate); the broad selector
+    // also catches the Target root and any glass-card.
+    sequence: {
+        subjectSelector: ".stage-cell [data-surface], [class*=Target], [class*=glass-card]",
+        dockFloatAllowed: false,
+    },
+    "motion-path": {
+        subjectSelector: ".stage-cell [data-surface], [class*=Target], [class*=glass-card]",
+        dockFloatAllowed: false,
+    },
+};
+
+/**
+ * parseScenesManifest — read `scenes.ts` and return the ordered scene records
+ * the gates consume: `{ id, superKey }` for `homeScene` then each `scenes[]`
+ * descriptor, in declaration order. A pure SOURCE parse (no Vue/TS runtime):
+ * comment-blanking + brace-matching over the descriptor object literals, the
+ * SAME shape `proof:scene-icons` uses to read the descriptor set — so the
+ * manifest and that gate can never drift onto different scene sets.
+ *
+ * Returns `{ home: {id,superKey}, scenes: [{id,superKey}, …] }`.
+ */
+function parseScenesManifest() {
+    const src = fs.readFileSync(SCENES_TS, "utf8");
+    // Blank /* … */ and // … so commented-out / doc-prose descriptors (e.g. the
+    // merged starting-style note) never count as a real descriptor.
+    const blanked = src
+        .replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, " "))
+        .replace(/(^|[^:])\/\/[^\n]*/g, (m, p1) => p1 + " ".repeat(m.length - p1.length));
+
+    // homeScene — its own `const homeScene: SceneDescriptor = { … }`.
+    const homeM = blanked.match(/export const homeScene:\s*SceneDescriptor\s*=\s*\{/);
+    if (!homeM) {
+        throw new Error("demo-driver: could not locate `homeScene` in scenes.ts");
+    }
+    const home = readObjectAt(blanked, homeM.index + homeM[0].length - 1);
+
+    // The `scenes: SceneDescriptor[] = [ … ]` array.
+    const arrM = blanked.match(/export const scenes:\s*SceneDescriptor\[\]\s*=\s*\[/);
+    if (!arrM) {
+        throw new Error("demo-driver: could not locate the `scenes[]` array in scenes.ts");
+    }
+    const arrBody = sliceBracketed(blanked, arrM.index + arrM[0].length - 1, "[", "]");
+    const scenes = [];
+    let d = 0;
+    let objStart = -1;
+    for (let k = 0; k < arrBody.length; k++) {
+        const ch = arrBody[k];
+        if (ch === "{") {
+            if (d === 0) objStart = k;
+            d++;
+        } else if (ch === "}") {
+            d--;
+            if (d === 0 && objStart >= 0) {
+                scenes.push(parseDescriptor(arrBody.slice(objStart, k + 1)));
+                objStart = -1;
+            }
+        }
+    }
+    return { home: parseDescriptor(home), scenes };
+}
+
+/** Slice the text BETWEEN the open bracket at `openIdx` and its match. */
+function sliceBracketed(text, openIdx, open, close) {
+    let depth = 0;
+    const start = openIdx + 1;
+    for (let i = openIdx; i < text.length; i++) {
+        if (text[i] === open) depth++;
+        else if (text[i] === close) {
+            depth--;
+            if (depth === 0) return text.slice(start, i);
+        }
+    }
+    throw new Error("demo-driver: unbalanced bracket in scenes.ts");
+}
+
+/** The `{ … }` object literal starting at the `{` at `braceIdx`. */
+function readObjectAt(text, braceIdx) {
+    return "{" + sliceBracketed(text, braceIdx, "{", "}") + "}";
+}
+
+/** Extract `id` + `superKey` (string literals) from one descriptor literal. */
+function parseDescriptor(objText) {
+    const idM = objText.match(/\bid:\s*(?:HOME_SCENE_ID|["'`]([^"'`]+)["'`])/);
+    const skM = objText.match(/\bsuperKey:\s*["'`]([^"'`]+)["'`]/);
+    // `id: HOME_SCENE_ID` resolves to "home" (the only symbol-valued id).
+    const id = idM ? (idM[1] ?? "home") : null;
+    if (!id) throw new Error(`demo-driver: descriptor without an id in scenes.ts: ${objText.slice(0, 60)}`);
+    if (!skM) throw new Error(`demo-driver: descriptor "${id}" without a superKey in scenes.ts`);
+    return { id, superKey: skM[1] };
+}
+
+const manifest = parseScenesManifest();
+const sceneRecords = [manifest.home, ...manifest.scenes];
+const sceneIds = sceneRecords.map((r) => r.id);
+
+// ── STALE-KEY GUARD (bidirectional key-equality) ──────────────────────────────
+// Bind the gate-metadata key set EXACTLY to the parsed scene id set. A drift in
+// EITHER direction throws at module load (so every consumer reds loud, not
+// silently skips a scene). This is the load-bearing invariant `proof:manifest-
+// sourced` re-asserts as a re-runnable gate.
+{
+    const idSet = new Set(sceneIds);
+    const metaKeys = Object.keys(SCENE_GATE_META);
+    const staleMeta = metaKeys.filter((k) => !idSet.has(k));
+    const unmanifested = sceneIds.filter((id) => !(id in SCENE_GATE_META));
+    if (staleMeta.length || unmanifested.length) {
+        const parts = [];
+        if (unmanifested.length) {
+            parts.push(
+                `scenes.ts id(s) with NO SCENE_GATE_META entry: ${unmanifested.join(", ")} ` +
+                    `(add a { subjectSelector, dockFloatAllowed } entry so the scene is gate-visited)`,
+            );
+        }
+        if (staleMeta.length) {
+            parts.push(
+                `SCENE_GATE_META key(s) with NO scenes.ts id: ${staleMeta.join(", ")} ` +
+                    `(STALE — the scene was removed/renamed in scenes.ts; prune the metadata)`,
+            );
+        }
+        throw new Error(
+            "demo-driver: SCENES manifest ≠ scenes.ts ids — " + parts.join(" · "),
+        );
+    }
+}
+
+/**
+ * SCENES — the re-sourced manifest the occlusion/capture/lighthouse gates consume.
+ * Shape UNCHANGED from the pre-H.W8 hand-maintained array
+ * (`{ key, route, subjectSelector, dockFloatAllowed }`); `key` === the scenes.ts
+ * id, `route` === the hash route (`""` for home, `id` for the rest — 1:1 with
+ * `demo/app/router.ts`). DERIVED from `scenes.ts` so a new scene auto-enrolls.
+ */
+export const SCENES = sceneRecords.map((r) => ({
+    key: r.id,
+    route: r.id === "home" ? "" : r.id,
+    subjectSelector: SCENE_GATE_META[r.id].subjectSelector,
+    dockFloatAllowed: SCENE_GATE_META[r.id].dockFloatAllowed,
+}));
 
 // The route → superKey map the demo's control-options store is keyed by
 // (demo/app/scenes.ts). openControlsPanel seeds the store under this key so
-// App.vue reads the OPEN state on the next mount.
-const SUPER_KEY_BY_ROUTE = {
-    "": "__home__",
-    cube: "Cube",
-    amiga: "Amiga",
-    square: "Square",
-    easing: "Easing",
-    spring: "Spring",
-};
+// App.vue reads the OPEN state on the next mount. DERIVED from scenes.ts (the
+// superKey lives ON each descriptor) so it can never drift from the manifest.
+const SUPER_KEY_BY_ROUTE = Object.fromEntries(
+    sceneRecords.map((r) => [r.id === "home" ? "" : r.id, r.superKey]),
+);
 const CONTROL_OPTIONS_STORE_KEY = "animation-groups-control-options-store";
 
 export function resolveChromium() {

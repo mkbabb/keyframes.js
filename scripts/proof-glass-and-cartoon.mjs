@@ -237,16 +237,25 @@ async function settleOnScene(page, scene, viewportWidth) {
 }
 
 /** Parse a numeric background-color alpha (0..1) from a computed color string.
- *  Handles rgb()/rgba()/color(srgb … / α). A fully-transparent / unset background
- *  → 0 (a deliberately-borderless Card, not an opaque regression). */
+ *  Handles rgb()/rgba(), color(srgb … / α), AND the CSS Color 4 slash-alpha
+ *  functions oklab()/oklch()/lab()/lch()/hwb()/color() — the modern syntax
+ *  glass-ui ≥3.5 resolves the glass plate to (`oklab(L a b / α)`), where 3.4
+ *  emitted `color(srgb … / α)`. A fully-transparent / unset background → 0 (a
+ *  deliberately-borderless Card, not an opaque regression). The generic
+ *  slash-alpha extractor reads the trailing `/ α` of ANY color function, so a
+ *  glass-ui color-syntax re-tune within the same translucency does not red the
+ *  consume-leg (the gate measures α, not the color space). */
 function bgAlphaProbeSource() {
     return `(bg) => {
         if (!bg || bg === "transparent" || bg === "rgba(0, 0, 0, 0)") return 0;
         let m = bg.match(/rgba?\\(([^)]+)\\)/);
         if (m) { const parts = m[1].split(/[,\\/]/).map((s) => s.trim()); return parts.length >= 4 ? parseFloat(parts[3]) : 1; }
-        m = bg.match(/color\\([^)]*\\/\\s*([0-9.]+%?)\\s*\\)/);
+        // Any CSS color function with a trailing slash-alpha: color()/oklab()/
+        // oklch()/lab()/lch()/hwb()/hsl()/srgb()/... — read the alpha after the / .
+        m = bg.match(/\\b[a-z]+\\([^)]*\\/\\s*([0-9.]+%?)\\s*\\)/);
         if (m) { const v = m[1]; return v.endsWith("%") ? parseFloat(v) / 100 : parseFloat(v); }
-        if (/color\\(/.test(bg) || /^#|^rgb|^hsl/.test(bg)) return 1; /* opaque */
+        // A color function with NO slash-alpha is fully opaque (α = 1).
+        if (/\\b[a-z]+\\(/.test(bg) || /^#|^rgb|^hsl/.test(bg)) return 1; /* opaque */
         return 1;
     }`;
 }

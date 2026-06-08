@@ -333,6 +333,14 @@ useEventListener(window, "keydown", (e: KeyboardEvent) => {
     --label-col: 5rem;
     --row-gap: 0.75rem;
     --track-inset: calc(var(--label-col) + var(--row-gap));
+    /* LOCAL micro-stack tokens (D.W3 §S2 — single-sourced, named). These order
+       the storyboard's own absolutely-positioned siblings WITHIN this card's
+       local stacking context; they are NOT the global --z-* app-layer scale
+       (content/controls/dock/overlay…), which orders chrome across the whole
+       page. Naming them keeps even the local stack drift-free: the playhead line
+       sits below the draggable row handles. */
+    --z-seq-playhead: 1;
+    --z-seq-handle: 2;
 }
 
 /* ── The swept master-playhead line (R-SEQ-E, H.W12.S6 / I3) ──────────────────
@@ -348,7 +356,7 @@ useEventListener(window, "keydown", (e: KeyboardEvent) => {
     left: calc(1.5rem + var(--track-inset));
     right: 1.5rem;
     pointer-events: none;
-    z-index: 1;
+    z-index: var(--z-seq-playhead);
 }
 
 /* A single vertical line crossing all five row tracks at the live progress, so
@@ -384,7 +392,7 @@ useEventListener(window, "keydown", (e: KeyboardEvent) => {
     border: 1.5px solid var(--color-progress);
     cursor: grab;
     touch-action: none;
-    z-index: 2;
+    z-index: var(--z-seq-handle);
     transition:
         background 120ms ease,
         transform 120ms ease;

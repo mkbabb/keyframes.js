@@ -157,6 +157,24 @@ jobs:
               run: npm run proof:repin-witness
             - name: proof:bench-runs (F.W1 — the compile/interp/parser benches run, non-empty)
               run: npm run proof:bench-runs
+            # H.W8 S1 (I-1) — the SCENES manifest is RE-SOURCED from demo/app/scenes.ts:
+            # the runtime SCENES keys ≡ scenes.ts ids (bidirectional set-equality, NOT a
+            # hard count — auto-tracks every scene add/remove). A new scene with no manifest
+            # entry, or a stale manifest key, reds — so the 3 previously-unmanifested scenes
+            # (sequence/motion-path were never gate-visited) are enrolled in every runtime gate.
+            - name: proof:manifest-sourced (H.W8 S1/I-1 — SCENES keys ≡ scenes.ts ids · auto-enrolls every scene)
+              run: npm run proof:manifest-sourced
+            # H.W8 S3 (I-3) — the chronic-closure META-GATE: parse the COMMITTED chronic
+            # table at docs/tranches/H/PROGRESS.md §"Open deferrals" and assert each row
+            # exits ONLY via (a) a passing SYSTEM-property proof:* gate, OR (b) a HANDOFF
+            # PAIRED with a born-RED proof:* gate — both RESOLVING to an authored
+            # package.json key + a proof:all member (no dangling name; M1 paper-close + M3
+            # bare-HANDOFF caught structurally). RETIRED-tagged gate names (the W2-composite
+            # proof:cartoon-specular-coexist + proof:specular-calm) are EXCLUDED from
+            # resolve-or-red and required ABSENT (the dual). Born-RED until Lane C's
+            # proof:dock-morph-settled (the D5 dock consume-leg born-RED gate) resolves.
+            - name: proof:chronic-closure (H.W8 S3/I-3 — every chronic exits via a SYSTEM gate or a born-RED-paired HANDOFF · a bare HANDOFF reds)
+              run: npm run proof:chronic-closure
             - name: proof:ci-coverage (F.W2 — every proof:* gate is invoked in CI)
               run: npm run proof:ci-coverage
 
@@ -171,9 +189,14 @@ jobs:
                   node-version: 24
                   cache: "npm"
             # The demo arm needs glass-ui (the library gate does not). It is the
-            # PUBLISHED registry package (`@mkbabb/glass-ui ^3.4.0`, the G re-pin) —
-            # `npm ci` installs it from the registry like any dep. No sibling clone,
-            # no `file:` link (the pre-re-pin model the spine retired).
+            # PUBLISHED registry package (`@mkbabb/glass-ui ~3.5.1`, the H.W8 BLK-5
+            # consume-leg + re-pin — TILDE (>=3.5.1 <3.6.0), NOT caret: it consumes
+            # the dock-spring retune 53c1b07 (in 3.5.0) while CAPPING below 3.6, whose
+            # Card-surface changes the demo's W2/W9 design-language does not yet consume
+            # (a glass-ui-3.6/3.7-reconciliation HANDOFF, recorded in impl-w8-repin.md).
+            # Gated by proof:dock-morph-settled — `npm ci` installs
+            # it from the registry like any dep. No sibling clone, no `file:` link
+            # (the pre-re-pin model the spine retired).
             - name: npm ci (installs the registry @mkbabb/glass-ui)
               run: npm ci
             - name: install playwright + lighthouse (demo-gate only; --no-save keeps the lib posture)
@@ -194,6 +217,10 @@ jobs:
                   KF_REQUIRE_BROWSER: "1"
             - name: proof:demo-console-clean (H.W0 — the H-A1 serializeEasing crash is dead)
               run: npm run proof:demo-console-clean
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            - name: proof:visual-lock (H.W8 — the appearance axis · named-region pixel baseline over the final demo)
+              run: npm run proof:visual-lock
               env:
                   KF_REQUIRE_BROWSER: "1"
             # H.W1 KEYSTONE — the live scene+playback FSM gate: the (scenes²×
@@ -243,6 +270,14 @@ jobs:
               run: npm run proof:dock-popover-opens
               env:
                   KF_REQUIRE_BROWSER: "1"
+            # H.W8 S3/S4 (BLK-5 consume-leg) — the dock-spring SETTLE half (D5 LAG):
+            # the consumed `--spring-dock` ramp peak ≤ +6% overshoot. Born-RED on
+            # glass-ui 3.4.0 (+16.3%); green on the ~3.5.1 retune (53c1b07, +4.5%).
+            # Static (reads the installed glass-ui token) — runs in the demo arm
+            # because `npm ci` here installs the registry @mkbabb/glass-ui. The kf
+            # consume-leg WATCH on the cross-repo dock HANDOFF (inv-16: NOT a fork).
+            - name: proof:dock-morph-settled (H.W8 — the consumed --spring-dock ramp peak ≤ +6% · D5 dock-lag consume-leg · born-RED on 3.4.0)
+              run: npm run proof:dock-morph-settled
             - name: proof:single-toggle (H.W1 S8/BLK-8 — the @mbabb trigger carries exactly one toggle)
               run: npm run proof:single-toggle
               env:

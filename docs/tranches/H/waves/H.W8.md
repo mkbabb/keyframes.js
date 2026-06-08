@@ -73,3 +73,29 @@ The gates this wave AUTHORS are themselves the falsifiable instruments; the meta
 - **The dock HANDOFF gate is BORN-RED, kf-side, never a kf FORK — RESOLVED (inv-16 + M3 repair · BLK-3/BLK-5).** `proof:dock-morph-settled` (BLK-3: the D5 settle half ONLY; D9 popover → H.W1's `proof:dock-popover-opens`, a kf SHIP) is born-RED on the +16.3% `--spring-dock` register and green ONLY when the consumed glass-ui bump lands — and that bump is SHIPPABLE NOW (glass-ui 3.5.0/3.5.1/3.6.0 published; `^3.4.0 → ^3.5.1` is a kf consume-leg, NOT an indefinite wait — BLK-5). The dock memory rule ("all dock changes in glass-ui, never FORKED in demo") stays — the gate is COMPLEMENTARY. The budget half (I-8 `proof:dock-perf`) adopts the token-peak form (≤+6% ramp peak — trivially measurable, MEASURE-FIRST against the bumped spring) (`a-deferred-chronic.md:206-211`; `a-gate-blindspots.md:195-205`).
 - **The browser gates must be LIT in the dev loop, not env-dark — RESOLVED (WV-W8-HIGH-3).** The felt-quality instruments running only in CI under `KF_REQUIRE_BROWSER=1` is the mechanism by which D1–D14 lived un-seen. A NEW local `proof:browser` target (S4b) AUTO-BUILDS + runs the browser gates when `dist/` is present — so the loop agents exercise the appearance axis LOCALLY; merely wiring `proof:visual-lock` into the env-dark CI job would REPRODUCE the disease (so EITHER the local target lands OR the "LIT in the dev loop" claim is dropped for honest "CI-gated") (`a-changes-vs-plan.md:167-177`).
 - **This wave authors GATES, not fixes — RESOLVED (the boundary).** H.W8 touches NO engine/demo source (it DOES add `pixelmatch`/`pngjs` devDeps + the manifest re-source — BLK-4/I-1 — which are gate-toolchain, not product source) — the per-defect fixes live in H.W2..H.W7; the gates here BITE against those fixes. The visual-lock GOLDEN baseline is captured AFTER the fix waves land (the noise-floor is measured EARLY-H — WV-W8-HIGH-1); the BORN-RED clauses (manifest stale-guard, `proof:dock-morph-settled`, the chronic meta-gate over `PROGRESS.md`) red TODAY independent of the fix waves. This keeps the gate regime a clean, separable deliverable that the next tranche inherits whole.
+
+## §Supersede note (HARDEN BLK-5 RESOLVED — the consume-leg + the specular reconciliation)
+
+- **BLK-5 dock consume-leg RESOLVES to `~3.5.1` (NOT `^3.5.1`).** The §Design-decisions bump
+  `^3.4.0 → ^3.5.1` was implemented and HARDENED: `^3.5.1` floats to the latest published 3.x
+  (**3.7.0**), at which the demo RE-REGRESSES (the cartoon-surface `::before` re-emits the
+  specular catch-light on hover → `proof:no-orphan-specular` FAIL 2→3). The pin is therefore
+  the CONSERVATIVE `~3.5.1` (`>=3.5.1 <3.6.0`, installed 3.5.1) — the MINIMUM published 3.x
+  carrying the dock retune (`53c1b07`, `--spring-dock` peak +16.3% → +4.5%) while EXCLUDING the
+  3.6/3.7 surface regression. `proof:dock-morph-settled` is **GREEN at 3.5.1** (+4.5% ≤ +6%), so
+  **D5 closes via a passing SYSTEM gate, not a still-pending born-RED HANDOFF**. The §Design-
+  decisions "born-RED kf-side" framing is the H-open WITNESS state (3.4.0, +16.3%); the gate has
+  since greened on the consumed bump. NO kf fork. 3.6/3.7 reconciliation is a FOLLOW-ON glass-ui
+  HANDOFF, not this close.
+- **The specular-on-glass-stages is RECONCILED (Lane A), NOT a blocker.** The visible specular
+  bloom is DEAD at the consumed ~3.5.1 (glass-ui 3.5.0 killed the hover-radial). The W11 I5
+  SANCTIONED glass STAGES (the five `<Card :shadow="false">` defaults → glass — EasingTarget,
+  SpringTarget, StartingStyleTarget, SequenceTarget, MotionPathTarget) carry glass-ui's INERT
+  `.glass-specular-track` with no visible bloom. The gate contradiction (`proof:no-orphan-specular`
+  authored at W9 F3/F6 "every kf `<Card>` is cartoon, exception ∅" vs `proof:stage-glass-card`
+  REQUIRING those W11 I5 stages to be glass) is reconciled in Lane A — `proof:no-orphan-specular`
+  EXCLUDES the `proof:stage-glass-card` subjects from the cartoon invariant while STILL biting a
+  kf-re-introduced `surface="glass"` PANEL regression (it stays falsifiable, not weakened to
+  vacuity; no `!important`-suppress; inv-16 — no glass-ui fork). The glass-ui **3.8.0** opt-out
+  (`specular="off"` default, removes the inert class) is a COSMETIC consume-edge — a forward
+  nicety, NOT a blocker, NOT a born-RED gate.

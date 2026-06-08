@@ -12,15 +12,18 @@
  *      scene reds.
  *
  *   2. HERO INTER-WORD GAP > 0 (BROWSER — runs when playwright resolves + the
- *      built demo is served). The hero LCP splits its title into per-word
- *      inline-block spans; a whitespace-only separator between two inline-block
- *      boxes is collapsed by HTML, so the gap measured 0px and the LCP rendered
- *      "Selectananimation" (X-5). Assert the measured gap between adjacent title
- *      word boxes is > 0, AND the `.sr-only` a11y mirror still spells the title
- *      with spaces AND the `text-display-*`/text-wrap:balance substrate survives.
- *      BITE: revert to the collapsed whitespace separator → gap 0 → reds; remove
- *      the sr-only mirror or the balance substrate → reds (the SOTA half must not
- *      regress).
+ *      built demo is served). The hero LCP (AnimatedText) splits its title into
+ *      per-word inline-block spans inside an `aria-hidden="true"` visual layer;
+ *      Vue's whitespace:'condense' STRIPS the whitespace text node between the
+ *      per-word spans at compile time, so the gap rendered 0px and the LCP read
+ *      "Selectananimation" (X-5; the fix is a per-word `margin-inline-end`).
+ *      Assert the measured gap between adjacent title word boxes ON THE SAME LINE
+ *      is > 0 (text-wrap:balance legitimately wraps the run to multiple lines —
+ *      an across-the-break pair has no meaningful horizontal gap and is excluded),
+ *      AND the `.sr-only` a11y mirror still spells the title with spaces AND the
+ *      `text-display-*`/text-wrap:balance substrate survives. BITE: collapse the
+ *      per-word margin → same-line gap 0 → reds; remove the sr-only mirror or the
+ *      balance substrate → reds (the SOTA half must not regress).
  *
  *   3. UNIQUE ARIA-LABEL (BROWSER). On an editor scene, no two
  *      SIMULTANEOUSLY-RENDERED interactive controls carry the same `aria-label`.
@@ -177,16 +180,34 @@ async function browserHalf() {
             fail("hero inter-word gap — the hero <h1> .lift-down word spans did not render");
         } else {
             const probe = await page.evaluate(() => {
-                // Adjacent word boxes inside the FIRST title AnimatedText (the
-                // "Select an animation" run, not the ellipsis layer).
+                // The title word boxes live inside AnimatedText's aria-hidden
+                // visual layer (a `<span aria-hidden="true">`, NOT a `<div>` — the
+                // F.W16 word-granular substrate renders sr-only mirror + aria-hidden
+                // word run, no wrapping div). The TypingDots ellipsis is a SEPARATE
+                // `.depth-text` host, so scoping to the aria-hidden layer excludes it.
                 const h1 = document.querySelector("h1");
+                const visualLayer = h1.querySelector('span[aria-hidden="true"]');
                 const spans = [
-                    ...h1.querySelectorAll(":scope > div:first-child .lift-down"),
+                    ...(visualLayer
+                        ? visualLayer.querySelectorAll(".lift-down")
+                        : []),
                 ];
+                // The inter-word gap is between adjacent words ON THE SAME LINE
+                // (text-wrap: balance legitimately wraps the run to multiple lines —
+                // an across-the-line-break pair has no meaningful horizontal gap and
+                // must NOT be measured). X-5 was the SAME-LINE collapse to
+                // "Selectananimation"; the margin-inline-end fix opens that gap.
                 let minGap = Infinity;
+                let sameLinePairs = 0;
                 for (let i = 0; i + 1 < spans.length; i++) {
                     const a = spans[i].getBoundingClientRect();
                     const b = spans[i + 1].getBoundingClientRect();
+                    // Same visual line iff the vertical centers coincide (±2px).
+                    const sameLine =
+                        Math.abs((a.top + a.bottom) / 2 - (b.top + b.bottom) / 2) <=
+                        2;
+                    if (!sameLine) continue;
+                    sameLinePairs++;
                     // The gap is the next box's left edge minus this box's right
                     // edge (the inter-word separation that rendered 0 with the
                     // collapsed whitespace node).
@@ -203,7 +224,11 @@ async function browserHalf() {
                     getComputedStyle(h1).textWrapStyle === "balance";
                 return {
                     wordCount: spans.length,
-                    minGap: spans.length >= 2 ? minGap : 0,
+                    sameLinePairs,
+                    // Measured only across SAME-LINE adjacent pairs; if a multi-word
+                    // title has none (a degenerate one-word-per-line balance), the
+                    // gap clause cannot witness the collapse and reds for inspection.
+                    minGap: sameLinePairs > 0 ? minGap : 0,
                     mirrorText,
                     mirrorHasSpaces: /\s/.test(mirrorText),
                     balanceHost,
@@ -213,6 +238,7 @@ async function browserHalf() {
             if (probe.minGap > 0) {
                 ok(
                     `hero inter-word gap > 0 (min ${probe.minGap.toFixed(1)}px across ` +
+                        `${probe.sameLinePairs} same-line adjacent word pair(s) of ` +
                         `${probe.wordCount} title word boxes — the LCP reads with spaces)`,
                 );
             } else {

@@ -21,7 +21,26 @@ ramp-peak ≤ +6% token check). Listed only so AX doesn't re-open it.
 
 ---
 
-## G-1 — the Card specular SEAM: wire-or-omit + a calmer default  ·  **HIGH** (the D2/D14 root)
+## G-1 — the Card specular SEAM: wire-or-omit + a calmer default  ·  **RESOLVED — kf green on ~3.5.1; 3.8.0 is a cosmetic upgrade**
+
+> **STATUS UPDATE (2026-06-08, kf W8 — RESOLVED).** The AX session already fixed this at glass-ui
+> HEAD (`6fac61a`/`eaba94f`, AX.W09 "specular-tune-to-subtle"): the opt-in `specular?: off|subtle|
+> full` prop, default **`off`** — exactly the wire-or-omit ask below; their W09 audit names
+> keyframes in the §24 confirmation + routes to **W34**. The fix is UNPUBLISHED, but **kf does not
+> need it to ship.** Grounded live across the published line: at **3.4.0** the glass Card paints a
+> visible dead-centered bloom (bad); at **3.5.0/3.5.1** glass-ui **already killed the visible bloom**
+> (the pointer-radial is dead at rest — the stages are visually clean; only the inert
+> `.glass-specular-track` *class* remains); 3.6/3.7 re-regress. So **kf pins `~3.5.1`** — the sweet
+> spot: **visible bloom dead AND the dock-spring retune present** → `proof:dock-morph-settled`
+> **GREEN** (D5 closes for real, a passing SYSTEM gate, NOT a born-RED HANDOFF). The specular issue
+> was a **kf-internal gate contradiction**: `proof:no-orphan-specular` (authored at W9, "every Card
+> cartoon, exception ∅") vs `proof:stage-glass-card` (W11 I5 REQUIRES the stages glass). Resolved by
+> **reconciling no-orphan-specular** — the 5 W11 glass stages are the sanctioned `surface="glass"`
+> exception (the inert glass-ui track is glass-ui-owned residue), the gate still bites panel-specular
+> + visible blooms + un-sanctioned glass. **No kf override, no `!important`, no fork** (inv-16). The
+> **3.8.0 consume-edge is COSMETIC**: bumping + `specular="off"` removes the inert class (a tidy-up,
+> not an unblock) — kf's W34 leg. Communicated at the AX coordination root:
+> `glass-ui/docs/tranches/AX/coordination/from-keyframes-W8-specular-consume-edge.md`.
 
 **The defect.** glass-ui's `<Card surface="glass">` (via `CardFooter:37`) emits the
 `.glass-specular-track::before` mouse-tracked radial **on every glass Card, with no

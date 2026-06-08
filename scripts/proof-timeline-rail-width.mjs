@@ -247,8 +247,20 @@ async function browserHalf() {
             }
 
             // (b) the AnimationControls root === the pane CONTENT-box (it w-fulls
-            //     into the pane minus the 12px shadow-clearance pad) AND is within
-            //     the rail budget (the 768 cap is dead): rail − 14 ≤ acW ≤ rail.
+            //     into the pane minus the SYMMETRIC shadow-clearance pad) AND is
+            //     within the rail budget (the 768 cap is dead). H.W8 reconcile:
+            //     H.W9.S2/F7 made the shadow-clearance pad SYMMETRIC — padding-left
+            //     12px + padding-right 12px = 24px total (the cartoon stamp throws
+            //     bottom-LEFT, so the pad had to be added on BOTH inline edges to
+            //     keep the stamp inside the [rail]-track overflow:hidden). The
+            //     border-box width:var(--rail-width) keeps BOTH pads inside the
+            //     budget → content-box = rail − 24. The gate's floor was a stale
+            //     rail−14 (one-side pad, the H.W3 assumption before F7); the
+            //     binding is PERFECT (400/400/400 border-box, 376 content-box =
+            //     400 − 24) — the floor is corrected to rail − 24. The EQUALITY to
+            //     the live content-box (contentBoxOk) is the load-bearing assert; a
+            //     re-introduced cap (768) breaks both it AND the upper bound.
+            const PAD = 24; // H.W9.S2/F7 symmetric shadow-clearance (12px ×2)
             if (!probe.acFound) {
                 fail(
                     "rail-width root binding — the AnimationControls root " +
@@ -259,19 +271,19 @@ async function browserHalf() {
                 const inBudget =
                     probe.acW != null &&
                     probe.acW <= probe.rail + TOL &&
-                    probe.acW >= probe.rail - 14 - TOL; // 12px pad + tolerance
+                    probe.acW >= probe.rail - PAD - TOL;
                 if (contentBoxOk && inBudget) {
                     ok(
                         `rail-width root binding: AnimationControls root (${probe.acW}px) === ` +
                             `.controls-content content-box (${probe.contentContentBox}px), within the ` +
-                            `--rail-width budget (${probe.rail}px − 12px shadow-clearance) — the 768 cap is dead`,
+                            `--rail-width budget (${probe.rail}px − ${PAD}px symmetric shadow-clearance) — the 768 cap is dead`,
                     );
                 } else {
                     fail(
                         `rail-width root binding — AnimationControls root=${probe.acW}px must equal the ` +
                             `.controls-content content-box (${probe.contentContentBox}px, ±${TOL}px) AND sit ` +
-                            `within the --rail-width budget (${probe.rail}px − 12px pad). Born-RED today: the ` +
-                            `root was capped 768px by lg:max-w-screen-md, far above the 400px rail budget.`,
+                            `within the --rail-width budget (${probe.rail}px − ${PAD}px symmetric pad). Born-RED ` +
+                            `pre-H.W3: the root was capped 768px by lg:max-w-screen-md, far above the rail budget.`,
                     );
                 }
             }
@@ -311,50 +323,92 @@ async function browserHalf() {
                 const layout = document.querySelector(".controls-layout");
                 const content = document.querySelector(".controls-content");
                 const ribbon = document.querySelector("#controls-ribbon-target");
-                const ribbonCard = ribbon ? ribbon.closest(".glass-card") : null;
+                // The ribbon sits inside glass-ui's <Card surface="cartoon">, which
+                // renders the `.rounded-card` class (the glass-ui ~3.5.x Card host;
+                // the legacy `.glass-card` name is matched too for resilience across
+                // glass-ui versions). H.W8 reconcile: the old `.glass-card`-only
+                // selector found no ancestor (ribbonCard null) — the card class is
+                // `.rounded-card` now.
+                const ribbonCard = ribbon
+                    ? ribbon.closest(".rounded-card, .glass-card")
+                    : null;
                 const bw = (el) => (el ? +el.getBoundingClientRect().width.toFixed(2) : null);
+                // The pane's CONTENT-box (border-box minus the symmetric H.W9.S2/F7
+                // shadow-clearance pad) — the box the ribbon wrapper actually fills.
+                let contentContentBox = null;
+                if (content) {
+                    const ccs = getComputedStyle(content);
+                    contentContentBox = +(
+                        content.clientWidth -
+                        parseFloat(ccs.paddingLeft) -
+                        parseFloat(ccs.paddingRight)
+                    ).toFixed(2);
+                }
                 return {
                     rail: parseFloat(
                         getComputedStyle(layout).getPropertyValue("--rail-width"),
                     ),
                     viewport: window.innerWidth,
                     contentW: bw(content),
+                    contentContentBox,
                     ribbonCardW: bw(ribbonCard),
                 };
             });
 
-            // (a) NO desktop-cap leak: the content is well below the desktop
-            //     rail-width (400px) — the fixed `width: var(--rail-width)` is a
-            //     desktop @media rule that must not apply at 390. Below the rail
-            //     AND below the viewport (full-bleed, margin-inset).
+            // (a) NO desktop-cap leak: the fixed desktop `width: var(--rail-width)`
+            //     (400px) is a desktop @media rule that must NOT apply at 390 — if
+            //     it leaked, content would pin to 400 > the 390 viewport (overflow).
+            //     H.W8 reconcile: the H.W7 bottom-sheet is TRUE full-bleed — content
+            //     fills the viewport edge-to-edge (390 === viewport), NOT inset below
+            //     it. The old `contentW < rail - 20` floor falsely assumed a margin-
+            //     inset; the cap-leak witness is `content ≤ viewport AND content <
+            //     rail` (a 400px leak at a 390 viewport breaks BOTH). Full-bleed
+            //     (content === viewport) is the H.W7 design, not a regression.
             const noLeak =
-                m.contentW != null && m.contentW < m.rail - 20 && m.contentW <= m.viewport;
+                m.contentW != null &&
+                m.contentW <= m.viewport + 1 &&
+                m.contentW < m.rail;
             if (noLeak) {
                 ok(
-                    `mobile no-cap-leak: .controls-content (${m.contentW}px) scales to the 390px ` +
-                        `viewport — well below the desktop --rail-width (${m.rail}px); the desktop ` +
+                    `mobile no-cap-leak: .controls-content (${m.contentW}px) full-bleeds the ` +
+                        `${m.viewport}px viewport — below the desktop --rail-width (${m.rail}px); the desktop ` +
                         `fixed width does not leak to mobile`,
                 );
             } else {
                 fail(
-                    `mobile no-cap-leak — .controls-content=${m.contentW}px at a 390px viewport must ` +
-                        `scale below the desktop --rail-width (${m.rail}px). If it pins to ${m.rail}px the ` +
-                        `desktop fix leaked into mobile (breaks the H.W7 full-bleed bottom-sheet).`,
+                    `mobile no-cap-leak — .controls-content=${m.contentW}px at a ${m.viewport}px viewport must ` +
+                        `stay ≤ the viewport AND below the desktop --rail-width (${m.rail}px). If it pins to ` +
+                        `${m.rail}px the desktop fix leaked into mobile (breaks the H.W7 full-bleed bottom-sheet).`,
                 );
             }
 
-            // (b) the ribbon tracks the controls-pane width (≈, within the
-            //     RibbonBar pl-4/pr-7 inset ≈ 16+28 = 44px slack).
-            if (m.ribbonCardW != null && m.contentW != null && m.contentW - m.ribbonCardW <= 48) {
+            // (b) the ribbon tracks the controls-pane CONTENT-box (≈, within the
+            //     RibbonBar pl-4/pr-7 inset = 16+28 = 44px + tolerance). H.W8
+            //     reconcile: the ribbon wrapper fills the pane CONTENT-box (border-
+            //     box minus the H.W9.S2/F7 symmetric 24px shadow-clearance pad), so
+            //     the card = content-box − 44 (the wrapper inset). The old clause
+            //     measured against the BORDER-box (390) and gave a 48px slack that
+            //     omitted the 24px content pad → a false 68px divergence. Measuring
+            //     against the content-box (366) isolates the true ribbon-vs-pane
+            //     relationship: 366 − 322 = 44 (the documented pl-4/pr-7 inset).
+            const RIBBON_INSET = 44; // pl-4 (16) + pr-7 (28)
+            const SLACK = RIBBON_INSET + 6; // + tolerance
+            if (
+                m.ribbonCardW != null &&
+                m.contentContentBox != null &&
+                m.contentContentBox - m.ribbonCardW <= SLACK
+            ) {
                 ok(
                     `mobile ribbon ≈ pane: the ribbon card (${m.ribbonCardW}px) tracks the ` +
-                        `.controls-content (${m.contentW}px) at 390px (full-bleed retained)`,
+                        `.controls-content content-box (${m.contentContentBox}px) at ${m.viewport}px ` +
+                        `(within the RibbonBar pl-4/pr-7 inset — full-bleed retained)`,
                 );
             } else {
                 fail(
                     `mobile ribbon ≈ pane — the ribbon card (${m.ribbonCardW}px) should track the ` +
-                        `.controls-content width (${m.contentW}px) at 390px (within the RibbonBar inset); ` +
-                        `a large divergence means the ribbon no longer full-bleeds with the pane.`,
+                        `.controls-content content-box (${m.contentContentBox}px) at ${m.viewport}px ` +
+                        `(within the RibbonBar pl-4/pr-7 inset ≈ ${RIBBON_INSET}px); a larger divergence ` +
+                        `means the ribbon no longer full-bleeds with the pane.`,
                 );
             }
         }

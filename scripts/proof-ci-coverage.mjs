@@ -61,6 +61,10 @@ const EXCLUDED = new Set([
     "proof:ci-coverage",
     "proof:lighthouse-mobile",
     "proof:repin-safe",
+    // proof:browser is a LOCAL dev meta-target (H.W8 WV-W8-HIGH-3) — it invokes the
+    // browser gates that are ALREADY individually CI-wired in the demo-smoke job, so
+    // it is not a distinct CI gate (running it in CI would duplicate them).
+    "proof:browser",
 ]);
 
 const gates = Object.keys(pkg.scripts)

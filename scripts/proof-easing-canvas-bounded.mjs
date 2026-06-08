@@ -26,16 +26,26 @@
  *      ancestor is `normal`); GREEN only once the `.easing-editor` container is
  *      declared. Layout-invariant (no rail-width dependence).
  *
- *   2. PANEL-HEIGHT RATIO ≤ 0.55 (born-RED anchor). On the full-rail render the
- *      canvas height ÷ editor-root height is ≤ 0.55. BITE: RED at 0.77 on the
- *      pre-W4 tree (the 680px canvas in the 883px panel); GREEN once the canvas
- *      is clamped. Layout-invariant relative to the panel (the canvas can no
- *      longer dominate the panel regardless of rail width).
+ *   2. PANEL-HEIGHT RATIO ≤ 0.70 (born-RED anchor; H.W8-reconciled to the J6
+ *      grown-bezier reality). On the full-rail render the canvas height ÷
+ *      editor-root height is ≤ 0.70. BITE: RED at 0.77 on the pre-W4 tree (the
+ *      680px canvas in the 883px panel); GREEN once the canvas is bounded. H.W8
+ *      RECONCILE (drift-red c): the original 0.55 anchor was calibrated on the
+ *      pre-W4 883px panel. The H.W12 J easing-minimalism (S7/J1/J2/J5) STRIPPED
+ *      the sidebar's redundant chrome (value input + label + CopyButton + the
+ *      `<h2>` title) — the panel shrank to ~398px — AND J6 DELIBERATELY GREW the
+ *      canvas (clamp floor 160→260px, the user's explicit "make the bezier
+ *      bigger"). Both are SANCTIONED, so the ratio rose mechanically to 0.654
+ *      WITHOUT the canvas ballooning: it is hard-bounded at the J6 cap (clause 5),
+ *      not unclamped. The threshold reconciles to 0.70 (MEASURED 0.654 + headroom
+ *      to the J6 360px cap in the ~398px panel ≈ 0.69) — the invariant stays "the
+ *      canvas can no longer DOMINATE the panel like the pre-W4 0.77/680px"; a
+ *      canvas regrown to the old 680px in this 398px panel is 1.7 ≫ 0.70 → reds.
  *
  *   3. SQUARE LAW — computed `aspect-ratio: 1 / 1` (structural invariant, NOT the
  *      rendered box w===h). MEASURE-FIRST note: at the clamp FLOOR the rendered
  *      box is NOT w===h (inline-size 100% of the fixed --rail-width while
- *      block-size clamps to the 160px floor — the explicit block-size legitimately
+ *      block-size clamps to the floor — the explicit block-size legitimately
  *      overrides aspect-ratio), so a rendered-box `width===height` assert would
  *      RED on the correct fix (a false failure). The square LAW the canvas keeps
  *      is the DECLARED `aspect-ratio: 1 / 1` — it renders square whenever the
@@ -43,19 +53,29 @@
  *      when it is. BITE: drop `aspect-ratio: 1` (let the SVG go rectangular) →
  *      computed aspect-ratio ≠ `1 / 1` → reds.
  *
- *   4. HEADER CLEARANCE ≥ 8px. The full-rail editor's parity header
- *      (`.easing-editor > h2`) bottom → `.easing-curve-canvas-wrapper` top gap is
- *      ≥ 8px (the title does not sit hard against the canvas frame — the
- *      double-chrome/touching-header defect). BITE: collapse the header gap (e.g.
- *      re-stack a bordered wash panel hard under a `pb-1` header) → gap < 8px →
- *      reds.
+ *   4. CANVAS WRAPPER PRESENT (H.W8-reconciled — the touching-HEADER half RETIRED).
+ *      The `.easing-curve-canvas-wrapper` renders (the canvas has its framed
+ *      wrapper). H.W8 RECONCILE (drift-red c): the original clause asserted a
+ *      header-clearance gap from `.easing-editor > h2` to the wrapper — but the
+ *      H.W12 J5 minimalism DELETED that `<h2>` scene title, and
+ *      proof:easing-sidebar-minimal (S7/B1) ACTIVELY ASSERTS the `<h2>` is GONE.
+ *      The two gates DIRECTLY CONTRADICTED (one required the header, the other
+ *      forbade it). The touching-header defect cannot occur with no header, so
+ *      the clearance half is retired in favor of proof:easing-sidebar-minimal's
+ *      no-`<h2>` authority; the structural wrapper-presence half (the canvas has
+ *      its frame) is kept + still BITES (remove the wrapper → reds).
  *
- *   5. BLOCK-SIZE CEILING ≤ 280px (DEMOTED post-fix ceiling, NOT a born-RED
- *      anchor — WV-W4-MED-2). The computed `block-size` ≤ 280px on the full-rail
- *      render. Kept as the explicit ceiling lock (it was 680px pre-fix on this
- *      exact full-rail render); it is the ceiling the clamp guarantees, asserted
- *      after the two layout-invariant anchors so a narrow-rail vacuous pass cannot
- *      stand in for the born-RED proof.
+ *   5. BLOCK-SIZE CEILING ≤ 360px (H.W8-reconciled to the J6 grown ceiling). The
+ *      computed `block-size` ≤ 360px on the full-rail sidebar render. H.W8
+ *      RECONCILE (drift-red c): the original ≤280px was the EasingCurveCanvas's
+ *      OWN default cap (clamp(160px,38cqi,280px)); but the H.W12 J6 sidebar grow
+ *      OVERRIDES it in `.panel-content :deep(.easing-curve-canvas)` to
+ *      `clamp(260px,64cqi,360px); max-block-size:min(56vh,420px)` — the sanctioned
+ *      "make the bezier bigger". The ceiling reconciles to the J6 clamp upper
+ *      (360px): it was 680px pre-fix on this exact render, renders 260px today
+ *      (the floor at this rail), and a future un-clamped regrowth past 360px reds.
+ *      Asserted after the layout-invariant anchors so a narrow-rail vacuous pass
+ *      cannot stand in for the born-RED proof.
  *
  * Settle-gated on the H.W1 FSM resting (WV-W4-LOW-1 / HD-W4-6): the D12 route
  * storm makes the EasingSidebar measurement non-deterministic, so #/easing is
@@ -251,13 +271,10 @@ async function browserHalf() {
                 const root = document.querySelector(".easing-editor");
                 const canvas = document.querySelector(".easing-curve-canvas");
                 const wrapper = document.querySelector(".easing-curve-canvas-wrapper");
-                const header = root.querySelector(":scope > h2");
                 const rootCS = getComputedStyle(root);
                 const canvasCS = getComputedStyle(canvas);
                 const rR = root.getBoundingClientRect();
                 const cR = canvas.getBoundingClientRect();
-                const wrapR = wrapper ? wrapper.getBoundingClientRect() : null;
-                const hdrR = header ? header.getBoundingClientRect() : null;
                 return {
                     containerType: rootCS.containerType,
                     panelH: rR.height,
@@ -266,8 +283,8 @@ async function browserHalf() {
                     ratio: cR.height / rR.height,
                     aspectRatio: canvasCS.aspectRatio,
                     blockSizePx: parseFloat(canvasCS.blockSize),
-                    headerClearance: hdrR && wrapR ? wrapR.top - hdrR.bottom : null,
-                    hasHeader: !!header,
+                    // (H.W8: the <h2> header-clearance probe is RETIRED — J5 deleted
+                    // the title; proof:easing-sidebar-minimal owns the no-<h2> rule.)
                     hasWrapper: !!wrapper,
                 };
             });
@@ -288,18 +305,21 @@ async function browserHalf() {
                 );
             }
 
-            // ── 2. PANEL-HEIGHT RATIO ≤ 0.55 (born-RED anchor) ──────────────────
-            if (probe.ratio <= 0.55) {
+            // ── 2. PANEL-HEIGHT RATIO ≤ 0.70 (born-RED anchor; H.W8-reconciled
+            //       to the J6 grown-bezier + J-minimized panel reality) ──────────
+            const RATIO_CAP = 0.7;
+            if (probe.ratio <= RATIO_CAP) {
                 ok(
-                    `panel-height ratio: canvas ÷ panel = ${probe.ratio.toFixed(3)} ≤ 0.55 ` +
+                    `panel-height ratio: canvas ÷ panel = ${probe.ratio.toFixed(3)} ≤ ${RATIO_CAP} ` +
                         `(canvas ${Math.round(probe.canvasH)}px in a ${Math.round(probe.panelH)}px ` +
-                        `panel — was 0.77 / 680px-in-883px pre-W4)`,
+                        `panel — was 0.77 / 680px-in-883px pre-W4; the J-minimized panel + J6 grow ` +
+                        `legitimately raised it from the old 0.55 anchor)`,
                 );
             } else {
                 fail(
-                    `panel-height ratio — canvas ÷ panel = ${probe.ratio.toFixed(3)} > 0.55 ` +
+                    `panel-height ratio — canvas ÷ panel = ${probe.ratio.toFixed(3)} > ${RATIO_CAP} ` +
                         `(canvas ${Math.round(probe.canvasH)}px dominates the ${Math.round(probe.panelH)}px ` +
-                        `panel; born-RED 0.77 — the canvas still has no block ceiling)`,
+                        `panel; born-RED 0.77 — the canvas is growing past the J6 block ceiling)`,
                 );
             }
 
@@ -311,7 +331,7 @@ async function browserHalf() {
                 ok(
                     `square law: the canvas computes aspect-ratio: 1 / 1 (the curve stays ` +
                         `undistorted; renders a true square whenever the clamp is not clipping ` +
-                        `the block-size to the 160px floor / 280px ceiling)`,
+                        `the block-size to the 260px floor / 360px ceiling)`,
                 );
             } else {
                 fail(
@@ -321,39 +341,35 @@ async function browserHalf() {
                 );
             }
 
-            // ── 4. HEADER CLEARANCE ≥ 8px ───────────────────────────────────────
-            if (!probe.hasHeader || !probe.hasWrapper) {
-                fail(
-                    `header clearance — the full-rail editor parity header ` +
-                        `(.easing-editor > h2: ${probe.hasHeader}) or the canvas wrapper ` +
-                        `(.easing-curve-canvas-wrapper: ${probe.hasWrapper}) is absent ` +
-                        `(the S2 parity header / the wrapper must both render)`,
-                );
-            } else if (probe.headerClearance >= 8) {
+            // ── 4. CANVAS WRAPPER PRESENT (H.W8-reconciled — touching-HEADER half
+            //       RETIRED: the J5 minimalism deleted the <h2>, which
+            //       proof:easing-sidebar-minimal now OWNS/forbids) ────────────────
+            if (probe.hasWrapper) {
                 ok(
-                    `header clearance: the parity header bottom → canvas wrapper top gap is ` +
-                        `${probe.headerClearance.toFixed(1)}px ≥ 8px (the title does not sit ` +
-                        `hard against the canvas frame)`,
+                    `canvas wrapper present: the .easing-curve-canvas-wrapper renders (the canvas ` +
+                        `has its framed wrapper; the touching-header clearance is RETIRED — J5 deleted ` +
+                        `the <h2> scene title, owned now by proof:easing-sidebar-minimal)`,
                 );
             } else {
                 fail(
-                    `header clearance — the header → canvas gap is ` +
-                        `${probe.headerClearance.toFixed(1)}px < 8px (the title sits hard ` +
-                        `against the canvas frame — the touching-header / double-chrome defect)`,
+                    `canvas wrapper present — the .easing-curve-canvas-wrapper is absent ` +
+                        `(the canvas must render inside its framed wrapper)`,
                 );
             }
 
-            // ── 5. BLOCK-SIZE CEILING ≤ 280px (DEMOTED post-fix ceiling) ────────
-            if (probe.blockSizePx <= 280) {
+            // ── 5. BLOCK-SIZE CEILING ≤ 360px (H.W8-reconciled to the J6 grown
+            //       sidebar ceiling — was the canvas's own 280px default cap) ─────
+            const BLOCK_CAP = 360;
+            if (probe.blockSizePx <= BLOCK_CAP) {
                 ok(
-                    `block-size ceiling: the canvas block-size resolves ${Math.round(probe.blockSizePx)}px ≤ 280px ` +
-                        `(the clamp(160px,38cqi,280px) ceiling — was 680px pre-W4 on this full-rail render; ` +
-                        `DEMOTED to a post-fix ceiling per WV-W4-MED-2, not the born-RED anchor)`,
+                    `block-size ceiling: the canvas block-size resolves ${Math.round(probe.blockSizePx)}px ≤ ${BLOCK_CAP}px ` +
+                        `(the J6 sidebar clamp(260px,64cqi,360px) ceiling — was 680px pre-W4 on this full-rail render; ` +
+                        `renders 260px today at this rail, a post-fix ceiling per WV-W4-MED-2)`,
                 );
             } else {
                 fail(
-                    `block-size ceiling — the canvas block-size resolves ${Math.round(probe.blockSizePx)}px > 280px ` +
-                        `(the clamp ceiling is not in effect — born-RED 680px on the full-rail render)`,
+                    `block-size ceiling — the canvas block-size resolves ${Math.round(probe.blockSizePx)}px > ${BLOCK_CAP}px ` +
+                        `(the J6 clamp ceiling is not in effect — born-RED 680px on the full-rail render)`,
                 );
             }
         }
@@ -370,12 +386,13 @@ if (failures.length > 0) {
     console.error(
         `\nproof:easing-canvas-bounded — FAIL (${failures.length}): the easing canvas ` +
             `lacks its container ceiling (container context / panel ratio / square law / ` +
-            `header clearance / block-size ceiling) — H.W4 S1/S2.`,
+            `wrapper present / block-size ceiling) — H.W4 S1/S2 (H.W8-reconciled to J6).`,
     );
     process.exit(1);
 }
 console.log(
     "\nproof:easing-canvas-bounded — PASS: the .easing-editor is an inline-size container, " +
-        "the canvas is ≤0.55 of the panel + ≤280px block-size, the square law (aspect-ratio:1/1) " +
-        "holds, and the parity header clears the canvas frame (H.W4 S1/S2).",
+        "the canvas is ≤0.70 of the panel + ≤360px block-size (the J6 grown ceiling), the square " +
+        "law (aspect-ratio:1/1) holds, and the canvas renders its framed wrapper (H.W4 S1/S2, " +
+        "H.W8-reconciled to the J easing-minimalism reality).",
 );

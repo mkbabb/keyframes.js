@@ -14,7 +14,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef } from "vue";
-import { useResizeObserver } from "@vueuse/core";
+import { useEventListener, useResizeObserver } from "@vueuse/core";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
@@ -211,22 +211,22 @@ function onContentVisibilityChange(e: Event) {
     if ((e as Event & { skipped: boolean }).skipped) stopRenderLoop();
     else startRenderLoop();
 }
-onMounted(() => {
-    sceneRootEl.value?.addEventListener(
-        "contentvisibilityautostatechange",
-        onContentVisibilityChange,
-    );
-});
+// Bound via @vueuse/core's useEventListener (the inv-ζ dogfood discipline —
+// auto-release on scope dispose, binds when the template ref resolves), DIRECTLY
+// on the owning element because `contentvisibilityautostatechange` does not
+// bubble in every engine.
+useEventListener(
+    sceneRootEl,
+    "contentvisibilityautostatechange",
+    onContentVisibilityChange,
+);
 
 onBeforeUnmount(() => {
     if (boingTimer != null) clearTimeout(boingTimer);
     animationGroup.stop();
     stopRenderLoop();
     sphereSpin.detach();
-    sceneRootEl.value?.removeEventListener(
-        "contentvisibilityautostatechange",
-        onContentVisibilityChange,
-    );
+    // (the contentvisibility listener auto-releases via useEventListener)
     controls?.dispose();
 
     // Dispose all Three.js geometries and materials to free GPU memory
