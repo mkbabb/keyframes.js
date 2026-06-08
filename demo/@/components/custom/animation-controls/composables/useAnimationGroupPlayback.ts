@@ -46,6 +46,17 @@ export function useAnimationGroupPlayback(
 
     const toggleAnimationGroup = () => {
         const animationGroup = getAnimationGroup();
+        // I.W0 S3 — a childless group (the empty HOME backdrop) has nothing to
+        // play; invert the order so the rainbow-play click reaches the home
+        // navigate-intercept (`onPlayStateChange`) via the emit, INSTEAD of
+        // running the group draw loop's composite transform on an empty group
+        // first. (The library is also robust to this now — `AnimationGroup`'s
+        // no-op `transform` default, I.W0 S3 — but the gesture should navigate,
+        // not no-op-play.)
+        if (Object.keys(animationGroup.animations).length === 0) {
+            syncPlayState(true);
+            return;
+        }
         if (!animationGroup.started) {
             if (!storedControls.selectedAnimation) {
                 const allNames = Object.keys(animationGroup.animations);

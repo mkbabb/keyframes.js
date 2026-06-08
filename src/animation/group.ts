@@ -18,6 +18,15 @@ import { defaultLayerConfig } from "./constants";
 const isNumericUnit = (value: unknown): value is ValueUnit<number> =>
     value instanceof ValueUnit && typeof value.value === "number";
 
+/**
+ * The total no-op transform default (I.W0 S3). A single shared reference so a
+ * group can ask "did a child override the default yet?" by identity (`this.
+ * transform === NOOP_TRANSFORM`) instead of a lying `transform == null` on a
+ * field a definite-assignment assertion claimed was always set. A childless
+ * group keeps this and composites a harmless empty frame.
+ */
+const NOOP_TRANSFORM: TransformFunction<any> = () => {};
+
 export interface AnimationGroupEntry<V extends Vars> {
     animation: Animation<V>;
     values: Record<string, unknown>;
@@ -35,7 +44,15 @@ export type AnimationGroupInput<V extends Vars> =
 
 export class AnimationGroup<V extends Vars> {
     animations: AnimationGroupObject<V> = {};
-    transform!: TransformFunction<V>;
+    /**
+     * The group's composite transform. Defaults to a real no-op at the FIELD
+     * (I.W0 S3) — NOT a lying definite-assignment assertion. A childless or
+     * pre-`parse()` group (e.g. the empty HOME backdrop) composites nothing,
+     * so `transformFramesGrouped` calls a harmless no-op instead of throwing
+     * `this.transform is not a function` (B1/E1). The constructor overrides
+     * this with the first child's transform when one exists.
+     */
+    transform: TransformFunction<V> = NOOP_TRANSFORM;
 
     superKey: string | undefined;
 
@@ -115,12 +132,14 @@ export class AnimationGroup<V extends Vars> {
                 layerConfig = input.layer;
             }
 
-            // Inherit the transform from the first child that has one.
-            // When children are constructed without `parse()` having been
-            // called yet (so `frames` is empty), `transform` stays
-            // undefined here and is resolved lazily on the first
-            // `transformFramesGrouped` call.
-            if (this.transform == null && animation.frames[0] != null) {
+            // Inherit the transform from the first child that has one,
+            // overriding the no-op field default. When children are
+            // constructed before `parse()` (so `frames` is empty), the field's
+            // no-op default stands — `transformFramesGrouped` composites a
+            // harmless empty frame instead of throwing (I.W0 S3 — the former
+            // "resolved lazily" comment promised a lazy fallback that never
+            // existed; the field default IS the total fallback, no-legacy).
+            if (this.transform === NOOP_TRANSFORM && animation.frames[0] != null) {
                 this.transform = animation.frames[0].transform;
             }
 
@@ -368,6 +387,25 @@ export class AnimationGroup<V extends Vars> {
         for (let i = 0; i < groupedKeys.length; i++) {
             const key = groupedKeys[i]!;
             if (groupedValues[key] === undefined) delete groupedValues[key];
+        }
+
+        // I.W0 S3 — the lazy composite-transform resolution, now REAL (the
+        // constructor comment once only promised it). When a child is
+        // constructed before `parse()` populates its `frames`, the constructor
+        // inheritance does not fire and `transform` keeps its no-op field
+        // default — which would composite NOTHING (a frozen subject, the cube's
+        // static-matrix symptom). Resolve it from the first now-parsed child the
+        // FIRST time we draw with a real frame; a genuinely childless group
+        // keeps the no-op (harmless, never throws). Idempotent: once resolved,
+        // the identity guard skips this.
+        if (this.transform === NOOP_TRANSFORM) {
+            for (const entry of this.getEntries()) {
+                const frame = entry.animation.frames[0];
+                if (frame != null && frame.transform != null) {
+                    this.transform = frame.transform;
+                    break;
+                }
+            }
         }
 
         this.transform(groupedValues as V, t);

@@ -142,12 +142,22 @@ export async function CSSKeyframesToString<V extends Vars>(
     // the `.class` block).
     const defaultEasing = serializeEasing(options.timingFunction);
 
-    for (const templateFrame of animation.templateFrames) {
+    animation.templateFrames.forEach((templateFrame, i) => {
         const percent = templateFrame.start;
-        const progress = percent.value / 100;
-        const vars = animation.at(progress, false);
+        // I.W0 S2 — serialize from the DECLARED template values, NOT a
+        // DOM-resolving `at(progress)` interpolation sample. `parsedVars[i]` is
+        // the parsed-but-unresolved var map for this stop (built 1:1 with
+        // `templateFrames` in `parse()`); a `var()`/`matrix3d()` is already
+        // valid CSS and round-trips VERBATIM through `unflattenObjectToString`,
+        // never DOM-resolved to a number — so the serializer never reaches the
+        // empty-var read-back parse throw (B1/B5). The editor shows the AUTHORED
+        // CSS, which is exactly what re-parses cleanly.
+        const declared = (animation.parsedVars[i] ?? {}) as Record<
+            string,
+            ValueUnit[]
+        >;
 
-        const decls = Object.entries(unflattenObjectToString(vars)).map(
+        const decls = Object.entries(unflattenObjectToString(declared)).map(
             ([propName, v]) => `  ${camelCaseToHyphen(propName)}: ${v};`,
         );
 
@@ -167,7 +177,7 @@ export async function CSSKeyframesToString<V extends Vars>(
         } else {
             keyframesMap.get(body)!.push(percent);
         }
-    }
+    });
 
     let keyframesString = "";
     for (const [css, percents] of keyframesMap) {

@@ -77,6 +77,7 @@
         "proof:computed-real-dom": "node scripts/proof-computed-real-dom.mjs",
         "proof:demo-usability": "node scripts/proof-demo-usability.mjs",
         "proof:demo-console-clean": "node scripts/proof-demo-console-clean.mjs",
+        "proof:engine-no-throw-on-play": "node scripts/proof-engine-no-throw-on-play.mjs",
         "proof:visual-lock": "node scripts/proof-visual-lock.mjs",
         "proof:browser": "node scripts/proof-browser.mjs",
         "proof:scene-machine-irrefragable": "node scripts/proof-scene-machine-irrefragable.mjs",
