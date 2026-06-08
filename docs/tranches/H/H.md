@@ -36,22 +36,24 @@ consumed PUBLISHED, demo live at `:5173` — the dev port is Vite-assigned; gate
 under `docs/tranches/H/audit/` (35 phase-1 `a-*` lanes + 6 `_SYNTHESIS-*` synthesis lanes,
 each `file:line`-grounded or live-anchored with a SHIP/MEASURE-FIRST/BOOK/RECORD/HANDOFF/
 KILL disposition and a re-runnable instrument). This charter (`H.md`), the gap-scorecard,
-the prompt-recap, and the deferred-ledger are the DEVELOPMENT artifacts. **H.W0–H.W9 are
+the prompt-recap, and the deferred-ledger are the DEVELOPMENT artifacts. **H.W0–H.W10 are
 authored-now-run-later wave specs; the implementation phase opens only on explicit user
 authorization, gated on keyframes' own green CI — exactly D.W0's, E.W0's, F.W0's, and
 G.W1's dev/impl boundary.** No engine, demo, library, parser, test, or bench source is
 written in development. **This is TRANCHE DEVELOPMENT — docs ONLY, ZERO source/test/CI/demo
-edits.** (H.W9 is the CORRECTIVE design-language refinement round added after the user
-audited the running `tranche-h-impl` demo — F1–F9; it SUPERSEDES specific landed W2/W3/W4
-decisions and lands BEFORE H.W8's golden baseline. Its authoritative plan is
-`audit/feedback/_PLAN.md`.)
+edits.** (H.W9 + H.W10 are the TWO CORRECTIVE refinement rounds added after the user
+audited the running `tranche-h-impl` demo — H.W9 = the F1–F9 design-language fold; H.W10 =
+the G1–G8 scene-normalization + expressive-icon + stage-layout-primitive fold (the SECOND
+feedback round, observed after W5 landed). Both SUPERSEDE specific landed W2/W3/W4/W5
+decisions and land BEFORE H.W8's golden baseline (H.W9 → H.W10 → H.W8). Their authoritative
+plans are `audit/feedback/_PLAN.md` (H.W9) + `audit/feedback/g-_PLAN.md` (H.W10).)
 
 ## § Mandate (binding — every wave, every fold, every hand-off · the spine)
 
 The standing precepts, carried verbatim-in-substance from `G/G.md:46-91` (themselves from
 `F/F.md:35-63`), re-confirmed HONORED A→G with the drift clustered on ONE seam — the
 scene+playback state machine D12 (`_SYNTHESIS-prompt-recap §3`) — and BINDING on every H
-wave (H.W0–H.W9), every gate, and every cross-repo hand-off this tranche emits
+wave (H.W0–H.W10), every gate, and every cross-repo hand-off this tranche emits
 (`_SYNTHESIS-gap-scorecard §6`, the spine, verbatim-in-substance):
 
 - **NO quick solutions, NO workarounds** — idiomatic, gestalt approaches only. A wave may
@@ -152,12 +154,17 @@ D+E+F+G lead — this is binding. Re-touching exemplary work is the inverse fail
 ## § The band → wave map (the canonical structure)
 
 (The canonical H structure from `_SYNTHESIS-gap-scorecard §3` — nine original waves H.W0–H.W8,
-plus the CORRECTIVE H.W9 added after the user audited the running `tranche-h-impl` demo: TEN waves.
+plus the TWO CORRECTIVE feedback waves H.W9 + H.W10 added after the user audited the running
+`tranche-h-impl` demo: ELEVEN waves (W0–W10).
 Each: a band/theme · the headline disposition · the folded lane(s) · the falsifiable `proof:*` gate
 that BITES — born-RED today, GREEN at close. **Waves are ordered by dependency: H.W0
 (crashes) and H.W1 (state machine) are PREREQUISITES** — five lanes name D12 as a blocker;
-the live crashes poison every other measurement. H.W9 sits AFTER W2/W3/W4/W6 and BEFORE H.W8's
-golden baseline — the row order in the table below reflects that dependency placement.)
+the live crashes poison every other measurement. H.W9 then H.W10 sit AFTER the visual waves and
+BEFORE H.W8's golden baseline (H.W9 → H.W10 → H.W8 golden capture) — the row order in the table
+below reflects that dependency placement. H.W9 is the FIRST feedback round (the F1–F9 design-
+language fold); H.W10 is the SECOND feedback round (the G1–G8 scene-normalization + expressive-
+icon + stage-layout-primitive fold, observed live AFTER W5 landed — it COMPOSES with H.W9, not
+contradicts it).)
 
 | Band | Theme | Wave | Net-new vs folded |
 |---|---|---|---|
@@ -169,8 +176,9 @@ golden baseline — the row order in the table below reflects that dependency pl
 | **H.W5 — Scene icons + mode pertinence + cube/amiga scene-quality** | one themable SVG family + the Discrete merge + interactivity + the cube/amiga scene-quality/perf budget | H.W5 | net-new (the new AND original modes finished; 8 scene/perf lanes fold) |
 | **H.W6 — Typing-dots + chrome dogfood** | the staggered `.typing-dots` primitive (inv ζ) | H.W6 | net-new (root-caused; the chrome dogfood) |
 | **H.W7 — Mobile overlay + springy drawer** | overlay model + the `SpringProgress` sheet | H.W7 | net-new (architectural transposition) |
-| **H.W9 — Design-language refinement round 2** | the calm glass+cartoon register (F3+F6+F8 collapse: keep `surface="cartoon"`, add `tier="quiet"`, REMOVE the tracked specular) + the F1–F9 user-feedback fold | H.W9 | CORRECTIVE (the user-feedback refinement round; SUPERSEDES specific landed W2/W3/W4 decisions; net-deletion-leaning; AFTER W2/W3/W4/W6, BEFORE H.W8's golden baseline) |
-| **H.W8 — Gate-regime upgrade** | the appearance axis + interaction axis + manifest + chronic meta-gate | H.W8 | net-new (closes the blind spots; the LAST re-paper; the H.W9 calm register is what its golden baseline locks) |
+| **H.W9 — Design-language refinement round 2** | the calm glass+cartoon register (F3+F6+F8 collapse: keep `surface="cartoon"`, add `tier="quiet"`, REMOVE the tracked specular) + the F1–F9 user-feedback fold | H.W9 | CORRECTIVE (the FIRST user-feedback refinement round; SUPERSEDES specific landed W2/W3/W4 decisions; net-deletion-leaning; AFTER W2/W3/W4/W6, BEFORE H.W8's golden baseline) |
+| **H.W10 — Scene normalization + expressive icons + the stage layout-primitive** | the easing/spring scenes ADOPT the standard controls component (`PlaybackRibbon` + `AnimationControlsControls`/`Labeled*` sidebar) + the easing stage = ONE engine ball + the `[stage]`-track dock-safe containment PRIMITIVE + full-bleed stage + the COLORFUL icon reversal + the G1–G8 user-feedback fold | H.W10 | CORRECTIVE (the SECOND user-feedback refinement round, observed live AFTER W5 landed; SUPERSEDES specific landed W5/W3/W2 decisions + a NAMED H.W9 S1 amendment; net-deletion-leaning on the scene side; AFTER H.W9, BEFORE H.W8's golden baseline; COMPOSES with H.W9) |
+| **H.W8 — Gate-regime upgrade** | the appearance axis + interaction axis + manifest + chronic meta-gate | H.W8 | net-new (closes the blind spots; the LAST re-paper; the H.W9 calm register + the H.W10 colorful-icon / normalized-easing / full-bleed-stage state are what its golden baseline locks) |
 
 The finding → wave map (each D1–D14 + each `a-*` lane → its owning wave; each row → its
 disposition headline; from `_SYNTHESIS-gap-scorecard §1/§3` and `_SYNTHESIS-prompt-recap
@@ -187,6 +195,7 @@ disposition headline; from `_SYNTHESIS-gap-scorecard §1/§3` and `_SYNTHESIS-pr
 | **D6** · `a-typing-dots` · `a-animations-quality` F1 · `a-styling-idioms §4` | **H.W6** | typing-dots + chrome dogfood | SHIP-in-H (the dogfooded staggered primitive; inv ζ) |
 | **D10/D13** · `a-mobile-architecture` F1/F2 · `a-demo-architecture` F5 | **H.W7** | mobile overlay + springy drawer | SHIP-in-H (overlay model + `SpringProgress` sheet) |
 | **F1–F9** (the user-feedback refinement round, live-observed on `tranche-h-impl`) · `audit/feedback/r1-source-rootcause` · `r2-git-archaeology` · `r3-design-reconcile` · `audit/feedback/_PLAN` (BINDING) | **H.W9** | design-language refinement round 2 (the consolidated feedback fold) | CORRECTIVE SHIP-in-H — the F3+F6+F8 register collapse (keep `surface="cartoon"`, add `tier="quiet"`, REMOVE the tracked specular) + F1 row-split / F2 bezier-fit / F7 shadow-unclip / F4 pp-logo / F5 darkmode-row / F9 idle-fade; SUPERSEDES specific landed W2/W3/W4 decisions (the §supersede-map); 2 glass-ui HANDOFFs; the F6 USER-DECISION fork (default REMOVE) |
+| **G1–G8** (the SECOND user-feedback round, live-observed on `tranche-h-impl` AFTER W5 landed) · `audit/feedback/g-r1-source-rootcause` · `g-r2-git-archaeology` · `g-r3-reconcile` · `audit/feedback/g-_PLAN` (BINDING) | **H.W10** | scene normalization + expressive icons + the stage layout-primitive (the consolidated G1–G8 fold) | CORRECTIVE SHIP-in-H — the through-line: the easing/spring scenes DIVERGED from the standard component + the rail·stage·rail layout, normalization is the gestalt fix. G3+G6+G7+G5 → ONE normalization decision (the easing/spring scenes REUSE the standard `PlaybackRibbon` + `AnimationControlsControls`/`Labeled*` sidebar — buttons match cube/amiga EXACTLY + equal-size + flattened nesting + lifted sizing, all by construction) + G4 the easing stage = ONE engine ball (revises W5.S4) + G8+G2 the `[stage]`-track dock-safe containment PRIMITIVE + full-bleed stage (revises W3 stage track; no card to round) + G1 the COLORFUL icon reversal (revises W5.S2 + `proof:scene-icons`). SUPERSEDES specific landed W5/W3/W2 decisions (the §supersede-map) + a NAMED H.W9 S1 amendment; 5 NEW + 1 REVISE gate; the G8 (full-bleed) + G1 (palette) USER-DECISION forks (defaults: BOTH-altitudes + the `--rainbow-*` token map) |
 | **D9** · `a-mbabb-popover` · `a-glass-ui-consumption` D9 · `a-historical-dock` H-dock-1 | **H.W1 S8** (popover; FSM-coupled; OWNED, BLK-8) | the @mbabb popover re-open | SHIP-in-H (drop the double-wrapped trigger; born-RED `proof:dock-popover-opens` + `proof:single-toggle`) — **D9 IS kf-patched** (the App.vue un-double-wrap; the dock memory-rule "consumed glass-ui fixes it / do NOT patch in kf" applies to dock CHROME, NOT the @mbabb App.vue markup; CP-HIGH-4) |
 | **D5** (dock LAG, cross-repo) · `a-historical-dock` · `a-perf-dock-lag` · `a-glassmorphism-perf` G4 · `a-glass-ui-consumption` D5 | **H.W8** (kf consume-leg + born-RED gate, BLK-5) | the dock lag | **kf SHIP-in-H consume-leg: bump `@mkbabb/glass-ui ^3.4.0 → ^3.5.1`** (`53c1b07` IS PUBLISHED — glass-ui 3.5.0/3.5.1/3.6.0 on npm, VERIFIED; NO wait, NO kf fork) PAIRED with born-RED `proof:dock-morph-settled` (token-peak form: `--spring-dock` ramp peak ≤ +6%; RED at the installed +16.3% today) + SHIP-in-H (`collapse-delay`, MEASURE-FIRST) |
 | `a-gate-blindspots` · `a-deferred-chronic §3` · `a-changes-vs-plan` · `a-precept-sweep` | **H.W8** | the gate-regime upgrade | SHIP-in-H (appearance + interaction axes + manifest + chronic meta-gate) |
@@ -363,6 +372,45 @@ The per-band one-paragraph characterizations:
   NO dist build (`audit/feedback/_PLAN`, `r1-source-rootcause`, `r2-git-archaeology`,
   `r3-design-reconcile`; `waves/H.W9.md`).
 
+- **H.W10 (scene normalization + expressive icons + the stage layout-primitive) — the SECOND
+  feedback round, the gate-blindspot lesson AGAIN.** After W5 landed (the monochrome scene
+  icons, the easing scene with its bespoke sidebar + a duplicative center stage), the user
+  audited the running demo and named EIGHT refinements (G1–G8). The THROUGH-LINE: the easing
+  scene (and the stage-card scene family — spring, starting-style) DIVERGED from the standard
+  cube/amiga controls component + the rail·stage·rail layout — born bespoke at `f1d4fe6`, it
+  forks the entire standard sidebar chain, hand-rolls a bespoke `ribbonContent` (Play+Reset, not
+  the standard Play/Reverse ribbon), wraps its stage in a bare-class `glass-resting
+  cartoon-surface` `<div>` (no `rounded-card` — the G2/G4 square-corner defect), and offsets it
+  with a `dock-inset` that pads only the BOTTOM band (the G8 top-clip). **NORMALIZATION onto the
+  standard component is the gestalt fix — and the original W5 gates were structurally blind to it
+  (they checked icon coverage/shape + per-mode interactivity, NEVER that the new scenes REUSE the
+  standard controls component).** The deepest collapse is G3+G6+G7+G5 → ONE normalization
+  decision: reusing the standard `PlaybackRibbon` makes the buttons match cube/amiga EXACTLY (G3)
+  + equal-size by `grid-cols-2` + shared `.btn-playback` (G7) automatically; reusing the standard
+  sidebar component flattens the nesting (G6) + lifts the control sizing (G5) automatically.
+  Around it: G4 the easing `singular` stage = ONE large engine-driven ball under the selected
+  easing (the curve in MOTION, the inv ζ dogfood — revises W5.S4's curve-promote, the duplicate
+  the user calls useless); G8+G2 the `[stage]`-track becomes the SINGLE dock-safe containment
+  PRIMITIVE (reserve the dock bands via the EXISTING `--dock-band-reserve`/`--work-area-*-offset`
+  tokens, delete the per-scene `dock-inset` — no hardcoded magic numbers) + the easing/spring
+  stage drops its card bg to full-bleed like cube/amiga (no card to round — dissolves G2);
+  G1 recovers the killed EXPRESSIVE COLORFUL icons as scalable inline SVG painting from the
+  demo's `--rainbow-*`/`--accent-*`/`--color-progress` palette (reverses the W5 monochrome
+  decision + the `proof:scene-icons` theming clause; W5 ITSELF pre-authorized this supersede; the
+  `SceneDescriptor.icon` + vite-svg-loader substrate is KEPT, the asset COLOR swapped). H.W10 is
+  a CORRECTIVE wave that SUPERSEDES specific landed W5/W3/W2 decisions (the §supersede-map) +
+  carries a NAMED amendment to the pending H.W9 S1 (the FIVE inner Cards it set
+  `tier="quiet"` on — `EasingSidebar.vue:19,40` + `SpringSidebar.vue:4,60,81` — are deleted → the H.W9 EasingSidebar+SpringSidebar site-lists shrink to one parent
+  Card each; the decision survives, the count drops); it COMPOSES with H.W9 (G6 INHERITS H.W9 F1's row
+  idiom + the quiet register), sits AFTER H.W9 and BEFORE H.W8's golden baseline (H.W9 → H.W10 →
+  H.W8 golden capture), carries 6 gates (5 NEW + 1 REVISE) that each BITE born-RED, and two
+  USER-DECISION forks (G8 full-bleed-vs-contained, default BOTH-altitudes; G1 the exact palette,
+  default the `--rainbow-*` token map). Net-deletion-leaning on the scene side, additive on the
+  icon side; pure demo CSS/markup/Vue (CONSUMES public `NumericAnimation`/`SmoothProgress`/
+  `AnimationVisualizer`, inv ζ) — NO engine source, NO glass-ui patch in kf (inv-16), NO dist
+  build (`audit/feedback/g-_PLAN`, `g-r1-source-rootcause`, `g-r2-git-archaeology`,
+  `g-r3-reconcile`; `waves/H.W10.md`).
+
 - **H.W8 (gate-regime upgrade) — so this is the LAST re-paper.** The A→G gate lattice locks
   SOURCE-SHAPE + NOT-BLANK; it has NO appearance axis, NO interaction axis, and a drifted
   SCENES manifest (`demo-driver.mjs:40-59` knows 6, the demo ships 9 — sequence/
@@ -495,9 +543,22 @@ The per-band one-paragraph characterizations:
 
 ---
 
+## H.W10 — SCENE NORMALIZATION + EXPRESSIVE ICONS + the STAGE LAYOUT-PRIMITIVE (the consolidated user-feedback fold · G1–G8; SUPERSEDES specific landed W5/W3/W2 decisions + a NAMED H.W9 S1 amendment)
+
+- **Phase:** IMPL — spec authored in DEV, awaits auth · **Class:** CORRECTIVE SHIP-in-H (the SECOND user-feedback refinement round, observed live AFTER W5 landed; net-deletion-leaning on the scene side — delete the bespoke `ribbonContent`, the duplicate stage `EasingCurveCanvas`, the per-scene `dock-inset`, ~2 container levels per sidebar field; additive on the icon side — re-color 7 SVG assets; pure demo CSS/markup/Vue — CONSUMES public `NumericAnimation`/`SmoothProgress`/`AnimationVisualizer` (inv ζ), NO engine source, NO glass-ui patch in kf — inv-16, NO dist build) · **Scope:** the 7 monochrome scene-icon assets re-colored (`assets/icons/{cube,amiga,square,easing,spring,sequence,motion-path}.svg`; the W5 `SceneDescriptor.icon` + `vite-svg-loader` `?component` substrate KEPT — `scenes.ts:8-14,40,88-141`, `ChromeDock.vue:172,195,211`, `vite.config.ts:190-205`) + the easing/spring scenes NORMALIZED onto the standard controls component (delete the bespoke `ribbonContent` — `EasingScene.vue:56-90,108` / `SpringScene.vue:95-…`; surface the easing animation into the group so `AnimationControlsControls.vue:163-177` mounts the standard `PlaybackRibbon.vue:10-60`) + the easing `singular` stage = ONE large engine-driven ball (delete the duplicate `EasingCurveCanvas` at `EasingTarget.vue:47-59`) + the easing/spring sidebars FLATTENED onto the standard `Card surface="cartoon" tier="quiet"` + `Labeled*` rows (`EasingSidebar.vue:2-97`, `SpringSidebar.vue`) + the `[stage]`-track dock-safe containment PRIMITIVE (reserve the dock bands on the grid rows via the EXISTING `--work-area-*-offset`/`--dock-band-reserve` tokens — `AnimationControlsGroup.vue:336-341,360-390`; delete the per-scene `dock-inset` — `design-idioms.css:498-500`, `EasingTarget.vue:2`/`SpringScene.vue:2`/`SpringTarget.vue:2`/`StartingStyleTarget.vue:3`) + the easing/spring stage drops its bare-class `glass-resting cartoon-surface` card → full-bleed (`EasingTarget.vue:4`, `SpringTarget.vue:4`, `StartingStyleTarget.vue:9`, `SpringScene.vue:8`) + the gate set · **DAG-deps:** AFTER **H.W9** (the normalized rows G6 consumes + the `tier="quiet"` register G6/G2 inherit + the bezier-panel-fit F2 G4 reconciles with), **W5** (the `SceneDescriptor.icon`/`vite-svg-loader` substrate G1 reuses; the stage-curve-promote G4 reverses; the monochrome icon family G1 re-colors), **W3** (the rail·stage·rail grid + the `[stage]` track G8 reconciles + the row shape G6 inherits); every browser gate settle-gates on **H.W1**'s FSM resting. Sequenced **AFTER H.W9, BEFORE H.W8's GOLDEN `proof:visual-lock` baseline** (H.W9 → H.W10 → H.W8 golden capture — the colorful icons / normalized easing+spring / full-bleed contained stage MUST be what H.W8 locks). The FULL spec is `waves/H.W10.md`.
+- **§Provenance (the folded lanes):** `audit/feedback/g-r1-source-rootcause` (the per-item `file:line` root-cause on HEAD `db90cbb` + the through-line verdict + the standard-component spine), `g-r2-git-archaeology` (the "previous correct" COLORFUL forms — the `74abd2b` PNGs + the `db90cbb^` violet easing SVG; the born-bespoke `f1d4fe6` easing lineage; NO prior full-bleed form), `g-r3-reconcile` (the `PlaybackRibbon` reuse + the `--rainbow-*` icon palette + the engine-ball stage + the `[stage]`-track primitive + the H.W9 composition). Synthesis home: `audit/feedback/g-_PLAN.md` (the COMPLETE, authoritative H.W10 plan — BINDING). The W5 `db90cbb` commit body PRE-AUTHORIZED the G1 supersede (it names H.W10 / the user's G1 feedback as the superseder of the monochrome icon STYLE).
+- **§The state, verified (file:line / live anchors):** THE THROUGH-LINE — the easing scene (and the stage-card scene family — spring, starting-style) DIVERGED from the standard cube/amiga controls component + the rail·stage·rail layout (born bespoke at `f1d4fe6`). The icon family is MONOCHROME `fill="none" stroke="currentColor"` today (verified live — `easing.svg`, `spring.svg` et al. carry NO color token); `cartoon-surface` is a glass-ui DECORATION-ONLY `@utility` carrying NO `border-radius` (`cards.css:30-48`), so the bare-class stages (`EasingTarget.vue:4`, `EasingSidebar.vue:2`, `SpringTarget.vue:4`, `StartingStyleTarget.vue:9`, `SpringScene.vue:8`) compute `border-radius: 0`; `EasingScene.vue:56-90` hand-rolls a `ribbonContent` (Pause/Play `.btn-playback btn-playback-accent` + a Reset on a DIFFERENT class string `:84` → unequal box metrics — G7), NO scrubber/Reverse/visualizer (vs the standard `PlaybackRibbon.vue` — a `Slider` `:10` + `grid-cols-2` `:24` of `.btn-playback` Play/Reverse + the `AnimationVisualizer` ball, teleport-mounted from `AnimationControlsControls.vue:163-177`); `EasingTarget.vue:146` `viewMode=ref("singular")` renders a SECOND `EasingCurveCanvas` `:47-59` (the EXACT component the sidebar shows `:9-16`); `EasingSidebar.vue:2` is a bare-class root + ×3 inner `<Card>`/ad-hoc grids on the TIGHTEST rung (`text-admin-label`/`text-mono-caption`/`size="sm"`/`p-2`) vs the standard FLAT `Card>CardContent>panel-stack` of `Labeled*` rows (`AnimationControlsControls.vue:3-9`); the `[stage]` track (`AnimationControlsGroup.vue:364`, `grid-template-rows: [top] auto [stage] 1fr [bottom] auto`) does NOT reserve the dock bands (the `[top]` auto row collapses to 0 when the dock is `fixed`) + `dock-inset` (`design-idioms.css:498-500`) pads BOTTOM ONLY → the easing card top runs under the top dock (cube/amiga don't clip — bare `canvas h-full w-full`, no card). **Gate blind-spot:** `proof:stage-not-clipped` measures `.stage-cell` (the GRID CELL), NOT the card inside it (`:198-242`) — the clip slips past today's gate.
+- **§Goal:** normalize the new stage-card scenes (easing, spring, starting-style) onto the SAME standard controls component + rail·stage·rail layout the original cube/amiga scenes use, and recover the killed expressive/colorful icons — the gestalt the original W5 gates never checked for (REUSE). The deepest collapse is G3+G6+G7+G5 → ONE normalization decision (the easing/spring scenes REUSE the standard `PlaybackRibbon` + the standard `AnimationControlsControls`/`Labeled*` sidebar): buttons match cube/amiga EXACTLY (G3) + equal-size by `grid-cols-2` + `.btn-playback` (G7) + flattened nesting (G6) + lifted control sizing (G5), all by construction. Around it: the easing `singular` stage hosts ONE large engine-driven ball under the selected easing (G4, the curve in MOTION, inv ζ); the `[stage]`-track becomes the SINGLE dock-safe containment PRIMITIVE + the easing/spring stage drops its card bg to full-bleed (G8 — dissolves G2's un-rounded card); the 7 monochrome icons recover expressive COLOR as scalable inline SVG painting from the demo's `--rainbow-*`/`--accent-*`/`--color-progress` palette (G1, reversing the W5 monochrome decision + the `proof:scene-icons` theming clause). Net-deletion-leaning on the scene side, additive on the icon side; the gate-blindspot lesson AGAIN — the running demo is the truth, caught before the H.W8 golden baseline locked the bespoke divergence.
+- **§Scope:** **S1 (G1 — expressive icons; reverses W5.S2)** — re-color the 7 SVG assets (KEEP the W5 stroke geometry + `?component` substrate; Form A = `var(--rainbow-*)`/`--accent-*`/`--color-progress` token fills, RECOMMENDED — colorful AND dual-theme for free, `convertColors:false` preserves the `var()`; Form B = baked vivid hues, fallback). **S2 (G3+G7 — the standard ribbon)** — surface the easing/spring animation into the group → mount the standard `PlaybackRibbon` (Play/Reverse + scrub + visualizer); DELETE the bespoke `ribbonContent`; Reset owned by the dock (de-duplicated); the standard `grid-cols-2` + `.btn-playback` makes the buttons equal-size (G7) by the layout idiom, not a magic number. **S3 (G4 — the stage ball; reverses W5.S4)** — the `singular` stage = ONE large engine-driven ball whose translateX is the engine's `effectiveT` mapped through the selected timing function (path 1, true inv-ζ dogfood; FLOOR = `getBallX` at hero size); DELETE the duplicate stage `EasingCurveCanvas`; the editable curve lives in the sidebar only. **S4 (G5+G6 — the normalized sidebar; NAMED H.W9 S1 amendment)** — flatten `EasingSidebar`/`SpringSidebar` onto ONE `Card surface="cartoon" tier="quiet"` + `Labeled*` label-left rows (inheriting H.W9 F1's row idiom + the quiet register); DELETE the ×3 inner sub-Cards; the control sizing lifts (G5) + the radius is inherited (G2 sidebar) by construction. **S5 (G8+G2 — the stage layout-primitive; revises W3 stage track; default = BOTH per FORK A)** — the `[stage]`-track dock-band reserve derived from the EXISTING `--dock-band-reserve`/`--work-area-*-offset` tokens (no magic numbers), DELETE `dock-inset`; + the easing/spring stage drops its card bg → full-bleed like cube/amiga (no card to round — G2).
+- **§Hard gate — the 6 gates (5 NEW + 1 REVISE), each BITES born-RED today:** **REVISE** `proof:scene-icons` (G1-SHAPE invert: drop the no-baked-hue clause → assert expressive color; G4-THEMING replace: drop "stroke==host color"/dark≠light → assert SVG+inline+expressive+legible-on-both; KEEP coverage/no-raster/favicon-404; reds the monochrome `currentColor`-only family TODAY, greens on the colorful re-author); **NEW** `proof:scene-card-rounded` (reds: bare `cartoon-surface` stages compute `border-radius: 0`; greens on the full-bleed stage (no card) + the Card-component sidebar (radius token resolves)); **NEW** `proof:scene-uses-standard-ribbon` (G3+G7 — reds: no `PlaybackRibbon`/scrubber/visualizer, Play/Reset not Play/Reverse, divergent class strings → unequal box metrics; greens on the standard ribbon: scrubber + EQUAL `grid-cols-2 .btn-playback` cells (equal w/h within tolerance) + visualizer, same component identity as cube); **NEW** `proof:easing-stage-is-ball` (G4 — reds: a second `EasingCurveCanvas` in the stage subtree; greens when the stage's primary element is a `.progress-ball`/`AnimationVisualizer` whose x tracks `fn(progress)` over time AND no `EasingCurveCanvas` is in the stage subtree); **NEW** `proof:easing-sidebar-normalized` (G5+G6 — reds: `text-admin-label`/`text-mono-caption`/`size="sm"`/`p-2`/×3 `<Card>` + ad-hoc grids; greens on the standard rung `text-mono-small`/`px-4 py-3`/default controls/bounded depth/`Labeled*` rows); **NEW/AMEND** `proof:stage-within-docks` (G8 — amends `proof:stage-not-clipped` to bite the CARD, not just `.stage-cell`; reds: the `flex-1` card top runs under the top dock + `dock-inset` present bottom-only; greens when the stage SUBJECT is bounded between the dock bands at 1280/1440 + mobile AND ZERO `dock-inset` class remains). Gate-shape authored where H.W8 owns it; H.W10 wires the born-RED clauses into `proof:*`. **BITE:** revert any fix → its gate reds; the duplicate curve dies because the subtree is DELETED (not `display:none`); the buttons match because they ARE the standard component; the stage is contained because the layout primitive reserves the bands.
+- **§Folds (the supersede-map — the honest ledger):** G1 supersedes W5.S2 (the monochrome `currentColor` flip + the WV-W5-MED-2 "baked hue FAILS" clause); G4 supersedes W5.S4 (the easing curve promoted to the stage); G3/G7 supersede the born-bespoke `ribbonContent` fork (`f1d4fe6` lineage); G5/G6 supersede the born-bespoke `EasingSidebar`+`SpringSidebar` nested assemblies (`f1d4fe6`) — G6 carries a NAMED amendment to the pending H.W9 S1 (the FIVE inner Cards it set `tier="quiet"` on — `EasingSidebar.vue:19,40` + `SpringSidebar.vue:4,60,81` — are deleted → the H.W9 EasingSidebar+SpringSidebar site-lists shrink to one parent Card each; the decision survives, the count drops); G8 supersedes the W3 `[stage]`-track form (dock bands not reserved + the per-scene `dock-inset` patch); G2 rides G6/G8 (no landed decision — the bare-class surfaces miss `rounded-card`). Full table + per-item precept-consistency + the §H.W9-reconciliation in `waves/H.W10.md §supersede-map` + `§H.W9-reconciliation`.
+- **§Design decisions RESOLVED:** ONE new corrective wave, COMPOSE with (not merge into) H.W9 (distinct altitudes — H.W9 = the material register, H.W10 = component + stage normalization + the expressive icon reversal); G3+G6+G7+G5 collapse into ONE normalization decision (the spine — REUSE makes the buttons match + equal-size + flatten + lift sizing all by construction); the easing stage = a ball, the editor stays in the sidebar (G4 — de-dup + the inv ζ dogfood); G8 is a LAYOUT PRIMITIVE, not a per-scene patch (the dock-band reserve derives from existing tokens, ZERO magic numbers); G1 reverses the W5 monochrome decision while KEEPING the substrate (W5 ITSELF pre-authorized this). **H.W10 SUPERSEDES, it does not REWRITE** — the supersede-map is the honest ledger; the gate-blindspot lesson in ACTION AGAIN (the original W5 gates checked icon coverage/shape + per-mode interactivity, NEVER that the new scenes REUSE the standard controls component — W10 normalizes them onto it before the H.W8 golden baseline locks). TWO USER-DECISION forks (G8 full-bleed-vs-contained, default BOTH-altitudes; G1 the exact palette, default the `--rainbow-*` token map) — only the G8 fork needs the user's call if they reject full-bleed.
+
+---
+
 ## H.W8 — THE GATE-REGIME UPGRADE (close the blind spots; the LAST re-paper; CLOSES the DAG)
 
-- **Phase:** IMPL — spec authored in DEV, awaits auth · **Class:** SHIP-in-H (the appearance + interaction axes + the manifest + the chronic meta-gate) · **Scope:** `demo-driver.mjs:40-59` (the drifted SCENES manifest), a new `proof:visual-lock` pixel baseline (needs `pixelmatch`+`pngjs` as CI-only devDeps — see H.W8.md S2), the chronic-closure meta-gate (parse substrate = `PROGRESS.md`, NOT the not-yet-authored `FINAL.md` — BLK-2), the dock-lag kf consume-leg (bump `^3.4.0 → ^3.5.1`, BLK-5) + its born-RED `proof:dock-morph-settled` (BLK-3) · **DAG-deps:** ALL of H.W0-H.W7 (the gate locks the LANDED appearance/interaction; the chronic meta-gate audits the closures).
+- **Phase:** IMPL — spec authored in DEV, awaits auth · **Class:** SHIP-in-H (the appearance + interaction axes + the manifest + the chronic meta-gate) · **Scope:** `demo-driver.mjs:40-59` (the drifted SCENES manifest), a new `proof:visual-lock` pixel baseline (needs `pixelmatch`+`pngjs` as CI-only devDeps — see H.W8.md S2), the chronic-closure meta-gate (parse substrate = `PROGRESS.md`, NOT the not-yet-authored `FINAL.md` — BLK-2), the dock-lag kf consume-leg (bump `^3.4.0 → ^3.5.1`, BLK-5) + its born-RED `proof:dock-morph-settled` (BLK-3) · **DAG-deps:** ALL of H.W0-H.W7 **AND H.W9 AND H.W10** (the gate locks the LANDED appearance/interaction — incl. the H.W9 calm register + the H.W10 colorful-icon / normalized-easing / full-bleed-stage GOLDEN render; the chronic meta-gate audits the closures).
 - **§Provenance (the folded lanes):** `a-gate-blindspots` (the master deficit map), `a-deferred-chronic §3` (the chronic-closure discipline), `a-changes-vs-plan`, `a-precept-sweep`, plus the dock-lag handoff (`a-historical-dock`, `a-perf-dock-lag`, `a-glassmorphism-perf` G4). Synthesis home: `_SYNTHESIS-dock-perf-modes`, `_SYNTHESIS-deferred-ledger`, `_SYNTHESIS-gap-scorecard §0/§3 H.W8/§4` (`:162-165`).
 - **§The state, verified (file:line / live anchors):** the A→G gate lattice locks SOURCE-SHAPE + NOT-BLANK; it has NO appearance axis, NO interaction axis, and a drifted SCENES manifest (`demo-driver.mjs:40-59` knows 6, the demo ships 9 — sequence/motion-path/starting-style NEVER gate-visited). Four user-visible chronics (D2/D7/D10/D5) "exited" the A→G ledger by RE-CLASSIFICATION (M1/M2/M3), not by being SOLVED — the P-invariant policed the COLUMN, not the PRODUCT (`a-deferred-chronic §2-3`). The dock LAG: installed (pinned `^3.4.0`) glass-ui ships the pre-AW.W2 `--spring-dock` (live `0.10932…`, ramp peak +16.3% — the analytic spring overshoot for (0.5,0.5) is ~+18.5%; the GATE parses the sampled +16.3%, CP-MED-3); the AW.W2 retune in glass-ui `53c1b07` is **PUBLISHED** (glass-ui 3.5.0/3.5.1/3.6.0 on npm, VERIFIED — `git merge-base --is-ancestor 53c1b07 v3.5.0` → YES; BLK-5), so the fix is a kf consume-leg BUMP `^3.4.0 → ^3.5.1`, NOT a wait (`_SYNTHESIS-gap-scorecard §1.1 dock LAG / §4`).
 - **§Goal:** the gate regime gains an appearance axis, an interaction axis, a re-sourced manifest, and the chronic-closure meta-gate — so this is the LAST tranche the four chronics can be re-papered; the dock lag is a HANDOFF paired with a born-RED gate.
@@ -549,18 +610,33 @@ The per-band one-paragraph characterizations:
                  │  F7 shadow-unclip; F4 pp-logo; F5 darkmode-row; F9 idle.  │
                  │  SUPERSEDES specific landed W2/W3/W4 decisions.           │
                  └────────────────────┬─────────────────────────────────────┘
-                                      │ (the calm register / one-column row /
-                                      │  un-clipped shadow — the state to lock)
+                                      │ (the SECOND feedback round — the user
+                                      │  audits the demo AFTER W5; G1–G8;
+                                      │  H.W10 COMPOSES with H.W9)
+                 ┌────────────────────▼─────────────────────────────────────┐
+                 │  H.W10 — SCENE NORMALIZATION + EXPRESSIVE ICONS +         │
+                 │  the STAGE LAYOUT-PRIMITIVE (CORRECTIVE)                  │
+                 │  G3+G6+G7+G5 → ONE normalization: easing/spring REUSE     │
+                 │  the standard PlaybackRibbon + AnimationControls sidebar; │
+                 │  G4 the easing stage = ONE engine ball; G8+G2 the         │
+                 │  [stage]-track dock-safe containment PRIMITIVE +          │
+                 │  full-bleed stage; G1 the COLORFUL icon reversal.         │
+                 │  SUPERSEDES specific landed W5/W3/W2 decisions +          │
+                 │  a NAMED H.W9 S1 amendment.                               │
+                 └────────────────────┬─────────────────────────────────────┘
+                                      │ (the colorful icons / normalized
+                                      │  easing+spring / full-bleed contained
+                                      │  stage — the FINAL state to lock)
        ┌───────────────────────────────▼──────────────────────────────────────┐
-       │  H.W8 — THE GATE-REGIME UPGRADE (CLOSES; depends on ALL W0-W7+W9)     │
-       │  proof:visual-lock (appearance — locks the H.W9 GOLDEN render) +      │
+       │  H.W8 — THE GATE-REGIME UPGRADE (CLOSES; depends on ALL W0-W7+W9+W10) │
+       │  proof:visual-lock (appearance — locks the H.W9+H.W10 GOLDEN render) +│
        │  interaction axis + manifest re-source + the chronic-closure          │
        │  meta-gate + the dock-lag HANDOFF paired with born-RED                 │
        │  proof:dock-morph-settled                                              │
        └───────────────────────────────────────────────────────────────────────┘
 ```
 
-**Critical path:** `H.W0 → H.W1 → {visual/mobile waves} → H.W9 → H.W8`. H.W0 (crashes) and H.W1
+**Critical path:** `H.W0 → H.W1 → {visual/mobile waves} → H.W9 → H.W10 → H.W8`. H.W0 (crashes) and H.W1
 (state machine) are the two PREREQUISITES — five lanes name D12 as a blocker and the live
 crashes poison every clean measurement (`_SYNTHESIS-gap-scorecard §3`). **Parallelizable
 (with a FILE-OWNERSHIP discipline — CP-HIGH-1):** H.W2 (design language), H.W3 (layout),
@@ -583,14 +659,28 @@ is NOT dependency-parallel with W2/W3/W4: it SUPERSEDES specific landed W2/W3/W4
 (the user audited the running demo after they landed), so it depends on W2 (the surface flip
 it refines), W3 (the row shape + the load-bearing clip it reconciles), W4 (the bezier panel
 it re-fits), and W6 (no collision — the `EditorStartScreen` hero lane is untouched); its
-browser gates settle-gate on H.W1. **H.W9 MUST land before H.W8** so the calm glass+cartoon
-register / the one-column label-left row / the un-clipped cartoon shadow are the render
-H.W8's `proof:visual-lock` golden baseline locks — a re-paper caught BEFORE the baseline
-fixed it. **H.W8 closes** — it locks the LANDED appearance (the `proof:visual-lock`
-baseline) + interaction + manifest of all of H.W0-H.W7 **AND H.W9** and installs the
-chronic-closure meta-gate, so it depends on every prior wave. **inv δ** (no dock occlusion)
-is a standing constraint on H.W2, H.W7, and H.W9 (the mobile overlay + the surface swap +
-the refinement must not re-introduce an occlusion).
+browser gates settle-gate on H.W1. **H.W9 MUST land before H.W10 and H.W8** so the calm
+glass+cartoon register / the one-column label-left row / the un-clipped cartoon shadow are
+carried by H.W10's normalization and locked by H.W8's golden baseline. **H.W10 — the SECOND
+CORRECTIVE refinement round — sits AFTER H.W9, BEFORE H.W8.** It is NOT dependency-parallel:
+it SUPERSEDES specific landed W5/W3/W2 decisions (the user audited the running demo AFTER W5
+landed, observing the bespoke easing scene + the duplicative center stage + the monochrome
+icons), so it depends on W5 (the `SceneDescriptor.icon`/`vite-svg-loader` substrate G1
+reuses; the stage-curve-promote G4 reverses), W3 (the rail·stage·rail grid + the `[stage]`
+track G8 reconciles + the row shape G6 inherits), and H.W9 (the normalized rows G6 consumes
++ the `tier="quiet"` register G6/G2 inherit + the bezier-panel-fit F2 G4 reconciles with —
+H.W10 COMPOSES with H.W9, carrying a NAMED amendment to its S1 EasingSidebar+SpringSidebar site-lists, not
+a contradiction); its browser gates settle-gate on H.W1. **H.W10 MUST land before H.W8** so
+the colorful icons / the normalized easing+spring scenes / the full-bleed contained stage
+are the FINAL render H.W8's `proof:visual-lock` golden baseline locks — the gate-blindspot
+lesson in ACTION AGAIN (the original W5 gates never asserted the new scenes REUSE the
+standard component; W10 normalizes them onto it before the baseline locks). **H.W8 closes**
+— it locks the LANDED appearance (the `proof:visual-lock` baseline) + interaction + manifest
+of all of H.W0-H.W7 **AND H.W9 AND H.W10** and installs the chronic-closure meta-gate, so it
+depends on every prior wave. **inv δ** (no dock occlusion) is a standing constraint on H.W2,
+H.W7, H.W9, and H.W10 (the mobile overlay + the surface swap + the refinement + the
+stage-layout-primitive must not re-introduce an occlusion — H.W10 G8 explicitly RECONCILES
+the easing/spring clip into a dock-safe `[stage]`-track primitive).
 
 ---
 
@@ -665,10 +755,11 @@ inverse failure:**
 5-lane design-language restoration (H.W2), the `rail·stage·rail` layout transposition
 (H.W3), the visual-fidelity rungs + the icon idiom (H.W4), the new modes finished (H.W5),
 the typing-dots dogfood primitive (H.W6), the mobile overlay + springy drawer (H.W7), the
-design-language refinement round 2 (H.W9), and the gate-regime upgrade (H.W8). The GAP
+design-language refinement round 2 (H.W9), the scene-normalization + expressive-icon +
+stage-layout-primitive round (H.W10), and the gate-regime upgrade (H.W8). The GAP
 column is exactly: TWO crashes, ONE FSM, the design-language restoration, the layout
 transposition, the easing/hero rungs, the icons/modes finish, the typing-dots, the mobile
-overlay, the F1–F9 refinement, and the gate-regime upgrade.
+overlay, the F1–F9 refinement, the G1–G8 scene-normalization round, and the gate-regime upgrade.
 
 **The user-feedback refinement round (H.W9) — the gate-blindspot lesson in ACTION.** H.W9
 is NOT a phase-1 assay finding; it is the user's authoritative direction after AUDITING the
@@ -683,6 +774,32 @@ exception=∅), not a re-opening. H.W9 SUPERSEDES the specific landed decisions 
 (the §supersede-map is the honest ledger — never a rewrite of the landed §Goal), and it
 carries TWO glass-ui HANDOFFs + the one F6 USER-DECISION fork (default REMOVE). Net-deletion-
 leaning, pure demo + the gate deltas, NO engine source, NO glass-ui patch in kf (inv-16).
+
+**The SECOND user-feedback round (H.W10) — the gate-blindspot lesson, twice.** H.W10 is also
+NOT a phase-1 assay finding; it is the user's authoritative direction after AUDITING the
+running demo AFTER W5 landed — eight items (G1–G8) that course-correct specific landed
+W5/W3/W2 decisions. The THROUGH-LINE: the easing scene (and the stage-card scene family —
+spring, starting-style) DIVERGED from the standard cube/amiga controls component + the
+rail·stage·rail layout (born bespoke at `f1d4fe6`), and the original W5 gates were
+STRUCTURALLY BLIND to it — they checked icon coverage/shape + per-mode interactivity, NEVER
+that the new scenes REUSE the standard controls component. H.W10 normalizes them onto the
+standard `PlaybackRibbon` + `AnimationControlsControls`/`Labeled*` sidebar (G3+G6+G7+G5 → ONE
+normalization decision — buttons match cube/amiga + equal-size + flattened + lifted sizing all
+by construction), makes the easing stage ONE engine-driven ball (G4, the inv ζ dogfood,
+reversing W5.S4's duplicative curve-promote), turns the `[stage]` track into the SINGLE
+dock-safe containment PRIMITIVE + full-bleed stage (G8+G2, no card to round; no hardcoded magic
+numbers — every term resolves to an existing token), and recovers the killed EXPRESSIVE
+COLORFUL icons (G1, reversing the W5 monochrome decision the W5 commit body ITSELF
+pre-authorized as superseded). It COMPOSES with H.W9 (G6 INHERITS F1's row idiom + the quiet
+register), carries a NAMED amendment to H.W9 S1 (the five inner easing+spring Cards collapse to
+one parent Card per sidebar), and lands AFTER H.W9 / BEFORE H.W8's golden baseline so the colorful icons /
+normalized easing+spring / full-bleed contained stage are the FINAL state locked. H.W10
+SUPERSEDES the specific landed decisions it corrects (the §supersede-map — never a rewrite of
+the landed §Goal), and carries TWO USER-DECISION forks (G8 full-bleed-vs-contained, default
+BOTH-altitudes; G1 the palette, default the `--rainbow-*` token map). Net-deletion-leaning on
+the scene side, additive on the icon side, pure demo + the gate deltas, NO engine source (it
+CONSUMES public `NumericAnimation`/`SmoothProgress`/`AnimationVisualizer`, inv ζ), NO glass-ui
+patch in kf (inv-16).
 
 **Folded chronic debt: FOUR, and CLOSED for the first time honestly.** Unlike G's vacuous
 ledger, H carries four user-visible chronics (cartoon-shadow D2 → H.W2, φ-hero D7 → H.W4,
@@ -718,9 +835,17 @@ the CORRECTIVE round H.W9 collapses F3+F6+F8 into ONE register move — keep `su
 add `tier="quiet"` (the glass returns), REMOVE the tracked specular entirely — and lands the
 label-left rows, the bezier fit, the un-clipped shadow, the pp-logo mark, the dark-mode row,
 and the `useIdle` idle-fade; it SUPERSEDES specific landed W2/W3/W4 decisions (the honest
-supersede-map) and lands BEFORE H.W8's golden baseline so the calm register is what gets
-locked — the chronic-closure discipline catching a re-paper before the baseline fixed it.
-The cross-repo dock lag, Card-specular seam, and value.js/parse-that
+supersede-map). Then, audited AGAIN after W5, the user names eight more (G1–G8): the SECOND
+CORRECTIVE round H.W10 normalizes the bespoke easing/spring scenes onto the standard controls
+component (G3+G6+G7+G5 → ONE normalization — the standard `PlaybackRibbon` + `Labeled*`
+sidebar, REUSE not fork), makes the easing stage ONE engine-driven ball (G4, inv ζ), turns the
+`[stage]` track into a dock-safe containment PRIMITIVE + full-bleed stage (G8+G2, no magic
+numbers), and recovers the killed expressive COLORFUL icons (G1, reversing the W5 monochrome
+decision); it COMPOSES with H.W9, SUPERSEDES specific landed W5/W3/W2 decisions, and lands
+H.W9 → H.W10 → H.W8's golden baseline so the colorful icons / normalized easing+spring /
+full-bleed contained stage are what gets locked — the chronic-closure / gate-blindspot
+discipline catching the bespoke divergence (the original W5 gates never asserted REUSE) before
+the baseline fixed it. The cross-repo dock lag, Card-specular seam, and value.js/parse-that
 slices are HANDOFFs, each paired with a born-RED kf gate. And the gate regime gains an
 appearance axis (a pixel visual-lock), an interaction axis, a re-sourced SCENES manifest,
 and the chronic-closure meta-gate (H.W8) — so this is the LAST tranche these four chronics
@@ -759,13 +884,24 @@ REMOVE), the accidentally-collapsed per-row split (`ece4743`/W3.S1 — F1), the 
 panel + external back button (W4.S2 — F2), the sliced bottom-LEFT cartoon shadow
 (`ControlsPaneWrapper.vue:182,207-208` — F7), the emoji-garnished pp logo (`App.vue:58` — F4),
 the icon-only dark-mode toggle (`App.vue:38-44` — F5), and the dead idle-fade class
-(`11550cd` extant — F9). The band→wave map proposes 10 waves (`H.W0..H.W9`) ordered by the
-crash+FSM-prerequisite DAG, with H.W9 the CORRECTIVE refinement round AFTER W2/W3/W4/W6 and
-BEFORE H.W8's golden baseline; each carries a falsifiable `proof:*` gate that BITES (born-RED
-today, GREEN on fix), the four chronics each exit via a SYSTEM-property gate or a
-HANDOFF-paired born-RED gate (the chronic-closure meta-invariant), and H.W9's F6-invert keeps
-the D2 cartoon chronic closed via a STRONGER inverted `proof:no-orphan-specular` (exception=∅).
-inv-16 HOLDS for H (kf consumes glass-ui/value.js/parse-that PUBLISHED; the dock/specular/
-value.js/parse-that items are AUDITED + HANDOFF-tagged, never authored or patched in kf;
-H.W9 emits TWO glass-ui HANDOFFs, never a kf patch). **H.W0..H.W9 IMPLEMENTATION awaits
-explicit authorization — this is the canonical charter, authored in TRANCHE DEVELOPMENT.**
+(`11550cd` extant — F9); plus the SECOND user-feedback round (G1–G8 on `tranche-h-impl` after
+W5 landed): the monochrome `fill="none" stroke="currentColor"` icon family (`assets/icons/
+easing.svg` et al. — G1 the COLORFUL reversal), the bare-class `glass-resting cartoon-surface`
+stages computing `border-radius: 0` (no `rounded-card` — G2), the bespoke `ribbonContent`
+Play/Reset fork (`EasingScene.vue:56-90` — no `PlaybackRibbon`/scrubber/visualizer, divergent
+class strings — G3/G7), the duplicate stage `EasingCurveCanvas` (`EasingTarget.vue:47-59` — G4),
+the tightest-rung ×3-inner-Card sidebar (`EasingSidebar.vue:2-97` — G5/G6), and the
+`[stage]`-track that doesn't reserve the dock bands + the bottom-only `dock-inset`
+(`AnimationControlsGroup.vue:364` + `design-idioms.css:498-500` — G8). The band→wave map
+proposes 11 waves (`H.W0..H.W10`) ordered by the crash+FSM-prerequisite DAG, with H.W9 the
+FIRST CORRECTIVE refinement round AFTER W2/W3/W4/W6 and H.W10 the SECOND CORRECTIVE round AFTER
+H.W9 (H.W9 → H.W10 → H.W8 golden capture), both BEFORE H.W8's golden baseline; each carries a
+falsifiable `proof:*` gate that BITES (born-RED today, GREEN on fix), the four chronics each
+exit via a SYSTEM-property gate or a HANDOFF-paired born-RED gate (the chronic-closure
+meta-invariant), and H.W9's F6-invert keeps the D2 cartoon chronic closed via a STRONGER
+inverted `proof:no-orphan-specular` (exception=∅). inv-16 HOLDS for H (kf consumes glass-ui/
+value.js/parse-that PUBLISHED; the dock/specular/value.js/parse-that items are AUDITED +
+HANDOFF-tagged, never authored or patched in kf; H.W9 emits TWO glass-ui HANDOFFs, H.W10 emits
+NONE — it CONSUMES public engine primitives + the glass-ui `<Card>`/`PlaybackRibbon` already
+in-tree, never a kf patch). **H.W0..H.W10 IMPLEMENTATION awaits explicit authorization — this
+is the canonical charter, authored in TRANCHE DEVELOPMENT.**
