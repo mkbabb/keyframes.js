@@ -2,6 +2,7 @@ import { defineConfig, type Plugin } from "vite";
 import path from "path";
 
 import Vue from "@vitejs/plugin-vue";
+import svgLoader from "vite-svg-loader";
 
 import dts from "vite-plugin-dts";
 
@@ -174,7 +175,36 @@ const defaultOptions = {
  */
 const devConditions = ["module", "browser", "default"];
 
-const defaultPlugins = [Vue()];
+// The inline-SVG reference seam (H.W5.S1): `import Icon from "…icon.svg?component"`
+// resolves to an inline-`<svg>` SFC whose `stroke="currentColor"` inherits the
+// host theme color — the ONLY reference mechanism that themes (an `<img :src>`
+// paints SVG as a replaced element that cannot read the host `currentColor`).
+// kf-OWNED demo build tooling (inv-16), NOT a glass-ui handoff.
+//
+// SVGO is configured so it does NOT defeat the theming the whole wave is for:
+//   • convertColors: false — never rewrite `currentColor`/`fill="none"`.
+//   • removeViewBox:  false — keep the `viewBox` so the glyph scales.
+// (WV-W5-MED-2: where the file-shape check and the computed-stroke check
+// disagree, the computed stroke is the authority — these two SVGO flags keep
+// the file faithful to what the browser computes.)
+const svgLoaderPlugin = svgLoader({
+    defaultImport: "component",
+    svgoConfig: {
+        plugins: [
+            {
+                name: "preset-default",
+                params: {
+                    overrides: {
+                        convertColors: false,
+                        removeViewBox: false,
+                    },
+                },
+            },
+        ],
+    },
+});
+
+const defaultPlugins = [Vue(), svgLoaderPlugin];
 
 export default defineConfig((mode) => {
     if (mode.mode === "production") {
