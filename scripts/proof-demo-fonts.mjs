@@ -92,10 +92,19 @@ async function browserHalf() {
         } else {
             fail(`(b) the display register is NOT Instrument Serif (got: ${probe.display.slice(0, 42)}) — the demo's display identity regressed`);
         }
-        // (c) no demo face stuck in error.
-        const ours = probe.errored.filter((f) => /Instrument|Fira/i.test(f));
-        if (ours.length === 0) ok(`(c) no demo-owned font face in error state (Instrument Serif / Fira Code load clean)`);
-        else fail(`(c) demo font face(s) in error: ${ours.join(", ")}`);
+        // (c) no PRIMARY demo face stuck in error. The metric-override "… Fallback"
+        // faces (the CLS-reduction fallbacks whose `src: local(<system font>)` aliases
+        // a host font for matched metrics) are EXCLUDED: on a font-less Linux CI runner
+        // their `local()` system-font source does not resolve → the face reports
+        // `error`, but that is a HOST artifact (the CI VM lacks the system font), NOT a
+        // demo-font defect — the PRIMARY webfonts (Instrument Serif / Fira Code) load
+        // fine (clauses a/b green). On a real device the fallback faces resolve. So we
+        // gate the PRIMARY faces only; a primary face in error is a real broken load.
+        const ours = probe.errored.filter(
+            (f) => /Instrument|Fira/i.test(f) && !/Fallback/i.test(f),
+        );
+        if (ours.length === 0) ok(`(c) no PRIMARY demo-owned font face in error state (Instrument Serif / Fira Code webfonts load clean; the metric-override "… Fallback" faces are excluded — their local() system-font source is a host concern, not a demo defect)`);
+        else fail(`(c) PRIMARY demo font face(s) in error: ${ours.join(", ")}`);
 
         await ctx.close();
     } finally {
