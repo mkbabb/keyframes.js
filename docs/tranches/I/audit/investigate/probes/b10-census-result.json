@@ -1,0 +1,239 @@
+[
+  {
+    "route": "#/",
+    "label": "home(#/)",
+    "behaviors": [
+      "clicked play via button[aria-label*=\"Play animation\"]",
+      "clicked control button[aria-label=\"Select animation\"]#0",
+      "away→Easing: no-option-Easing→hash",
+      "back→home(#/): combobox→Home"
+    ],
+    "console": [
+      {
+        "phase": "play",
+        "kind": "pageerror",
+        "text": "this.transform is not a function",
+        "stack": "TypeError: this.transform is not a function\n    at e.transformFramesGrouped (http://127.0.0.1:60238/assets/engine-Do5bTwuK.js:20:21227)\n    at e._frame (http://127.0.0.1:60238/assets/engine-Do5bTwuK.js:20:22265)"
+      },
+      {
+        "phase": "play",
+        "kind": "error",
+        "text": " Err x     0\n 1 | \n     ^^^",
+        "location": "http://127.0.0.1:60238/assets/engine-Do5bTwuK.js:18:2597"
+      },
+      {
+        "phase": "play",
+        "kind": "warning",
+        "text": "[KeyframesString] could not serialize the animation to CSS: Parse error at offset 0: \"......\"",
+        "location": "http://127.0.0.1:60238/assets/KeyframesStringControls-Fe9q5l49.js:0:2095"
+      }
+    ],
+    "counts": {
+      "error": 1,
+      "warning": 1,
+      "pageerror": 1,
+      "requestfailed": 0
+    },
+    "screenshot": "shots/b10-home.png"
+  },
+  {
+    "route": "#/easing",
+    "label": "easing",
+    "behaviors": [
+      "no visible play button found",
+      "clicked control button[aria-label=\"Select animation\"]#0",
+      "away→Spring: no-option-Spring→hash",
+      "back→easing: combobox→Easing"
+    ],
+    "console": [],
+    "counts": {
+      "error": 0,
+      "warning": 0,
+      "pageerror": 0,
+      "requestfailed": 0
+    },
+    "screenshot": "shots/b10-easing.png"
+  },
+  {
+    "route": "#/spring",
+    "label": "spring",
+    "behaviors": [
+      "no visible play button found",
+      "clicked control [role=\"tab\"]#0",
+      "clicked control [role=\"tab\"]#1",
+      "clicked control button[aria-label=\"Select animation\"]#0",
+      "away→Sequence: no-option-Sequence→hash",
+      "back→spring: combobox→Spring"
+    ],
+    "console": [],
+    "counts": {
+      "error": 0,
+      "warning": 0,
+      "pageerror": 0,
+      "requestfailed": 0
+    },
+    "screenshot": "shots/b10-spring.png"
+  },
+  {
+    "route": "#/sequence",
+    "label": "sequence",
+    "behaviors": [
+      "clicked play via button[aria-label*=\"Play animation\"]",
+      "clicked control button[aria-label=\"Select animation\"]#0",
+      "away→Path: no-option-Path→hash",
+      "back→sequence: combobox→Sequence",
+      "replay via button[aria-label*=\"Play animation\"]"
+    ],
+    "console": [],
+    "counts": {
+      "error": 0,
+      "warning": 0,
+      "pageerror": 0,
+      "requestfailed": 0
+    },
+    "screenshot": "shots/b10-sequence.png"
+  },
+  {
+    "route": "#/motion-path",
+    "label": "motion-path",
+    "behaviors": [
+      "clicked play via button[aria-label*=\"Play animation\"]",
+      "clicked control button[aria-label=\"Select animation\"]#0",
+      "away→Cube: no-option-Cube→hash",
+      "back→motion-path: combobox→Path",
+      "replay via button[aria-label*=\"Play animation\"]"
+    ],
+    "console": [],
+    "counts": {
+      "error": 0,
+      "warning": 0,
+      "pageerror": 0,
+      "requestfailed": 0
+    },
+    "screenshot": "shots/b10-motion-path.png"
+  },
+  {
+    "route": "#/cube",
+    "label": "cube",
+    "behaviors": [
+      "clicked play via button[aria-label*=\"Play animation\"]",
+      "clicked control button[aria-label=\"Select animation\"]#0",
+      "away→Amiga: no-option-Amiga→hash",
+      "back→cube: combobox→Cube"
+    ],
+    "console": [
+      {
+        "phase": "load",
+        "kind": "error",
+        "text": " Err x     0\n 1 | \n     ^^^",
+        "location": "http://127.0.0.1:60238/assets/engine-Do5bTwuK.js:18:2597"
+      },
+      {
+        "phase": "load",
+        "kind": "warning",
+        "text": "[KeyframesString] could not serialize the animation to CSS: Parse error at offset 0: \"......\"",
+        "location": "http://127.0.0.1:60238/assets/KeyframesStringControls-Fe9q5l49.js:0:2095"
+      },
+      {
+        "phase": "play",
+        "kind": "error",
+        "text": " Err x     0\n 1 | \n     ^^^",
+        "location": "http://127.0.0.1:60238/assets/engine-Do5bTwuK.js:18:2597"
+      },
+      {
+        "phase": "play",
+        "kind": "pageerror",
+        "text": "Parse error at offset 0: \"......\"",
+        "stack": "Error: Parse error at offset 0: \"......\"\n    at bo (http://127.0.0.1:60238/assets/engine-Do5bTwuK.js:19:62788)\n    at cn.keyFn (http://127.0.0.1:60238/assets/engine-Do5bTwuK.js:19:63848)\n    at c (http://127.0.0.1:60238/assets/engine-Do5bTwuK.js:19:19351)\n    at http://127.0.0.1:60238/assets/engine-Do5bTwuK.js:20:1279\n    at http://127.0.0.1:60238/assets/engine-Do5bTwuK.js:20:1742\n    at c (http://127.0.0.1:60238/assets/engine-Do5bTwuK.js:19:19351)\n    at Object.zc [as _lerp] (http://127.0.0.1:60238/assets/engine-Do5bTwuK.js:20:3491)\n    at Hc (http://127.0.0.1:60238/assets/engine-Do5bTwuK.js:20:4308)\n    at pp.processFrame (http://127.0.0.1:60238/assets/engine-Do5bTwuK.js:38:34007)\n    at pp.interpFrames (http://127.0.0.1:60238/assets/engine-Do5bTwuK.js:38:33582)"
+      },
+      {
+        "phase": "switch-away",
+        "kind": "error",
+        "text": " Err x     0\n 1 | \n     ^^^",
+        "location": "http://127.0.0.1:60238/assets/engine-Do5bTwuK.js:18:2597"
+      },
+      {
+        "phase": "switch-away",
+        "kind": "pageerror",
+        "text": "Parse error at offset 0: \"......\"",
+        "stack": "Error: Parse error at offset 0: \"......\"\n    at bo (http://127.0.0.1:60238/assets/engine-Do5bTwuK.js:19:62788)\n    at cn.keyFn (http://127.0.0.1:60238/assets/engine-Do5bTwuK.js:19:63848)\n    at c (http://127.0.0.1:60238/assets/engine-Do5bTwuK.js:19:19351)\n    at http://127.0.0.1:60238/assets/engine-Do5bTwuK.js:20:1279\n    at http://127.0.0.1:60238/assets/engine-Do5bTwuK.js:20:1742\n    at c (http://127.0.0.1:60238/assets/engine-Do5bTwuK.js:19:19351)\n    at Object.zc [as _lerp] (http://127.0.0.1:60238/assets/engine-Do5bTwuK.js:20:3491)\n    at Hc (http://127.0.0.1:60238/assets/engine-Do5bTwuK.js:20:4308)\n    at pp.processFrame (http://127.0.0.1:60238/assets/engine-Do5bTwuK.js:38:34007)\n    at pp.interpFrames (http://127.0.0.1:60238/assets/engine-Do5bTwuK.js:38:33582)"
+      },
+      {
+        "phase": "switch-away",
+        "kind": "error",
+        "text": " Err x     0\n 1 | \n     ^^^",
+        "location": "http://127.0.0.1:60238/assets/engine-Do5bTwuK.js:18:2597"
+      }
+    ],
+    "counts": {
+      "error": 4,
+      "warning": 1,
+      "pageerror": 2,
+      "requestfailed": 0
+    },
+    "screenshot": "shots/b10-cube.png"
+  },
+  {
+    "route": "#/amiga",
+    "label": "amiga",
+    "behaviors": [
+      "clicked play via button[aria-label*=\"Play animation\"]",
+      "clicked control button[aria-label=\"Select animation\"]#0",
+      "away→Square: no-option-Square→hash",
+      "back→amiga: combobox→Amiga",
+      "replay via button[aria-label*=\"Play animation\"]"
+    ],
+    "console": [
+      {
+        "phase": "load",
+        "kind": "warning",
+        "text": "[.WebGL-0x1240058c600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+        "location": "http://127.0.0.1:60238/#/amiga:0:0"
+      },
+      {
+        "phase": "load",
+        "kind": "warning",
+        "text": "[.WebGL-0x1240058c600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+        "location": "http://127.0.0.1:60238/#/amiga:0:0"
+      },
+      {
+        "phase": "load",
+        "kind": "warning",
+        "text": "[.WebGL-0x1240058c600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+        "location": "http://127.0.0.1:60238/#/amiga:0:0"
+      },
+      {
+        "phase": "load",
+        "kind": "warning",
+        "text": "[.WebGL-0x1240058c600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)",
+        "location": "http://127.0.0.1:60238/#/amiga:0:0"
+      }
+    ],
+    "counts": {
+      "error": 0,
+      "warning": 4,
+      "pageerror": 0,
+      "requestfailed": 0
+    },
+    "screenshot": "shots/b10-amiga.png"
+  },
+  {
+    "route": "#/square",
+    "label": "square",
+    "behaviors": [
+      "clicked play via button[aria-label*=\"Play animation\"]",
+      "clicked control button[aria-label=\"Select animation\"]#0",
+      "away→Home: no-option-Home→hash",
+      "back→square: combobox→Square",
+      "replay via button[aria-label*=\"Play animation\"]"
+    ],
+    "console": [],
+    "counts": {
+      "error": 0,
+      "warning": 0,
+      "pageerror": 0,
+      "requestfailed": 0
+    },
+    "screenshot": "shots/b10-square.png"
+  }
+]

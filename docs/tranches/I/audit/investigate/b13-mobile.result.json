@@ -1,0 +1,650 @@
+{
+  "viewports": {
+    "390x844": {
+      "scenes": {
+        "cube": {
+          "console": [
+            {
+              "type": "error",
+              "text": " Err x     0\n 1 | \n     ^^^"
+            },
+            {
+              "type": "warning",
+              "text": "[KeyframesString] could not serialize the animation to CSS: Parse error at offset 0: \"......\""
+            },
+            {
+              "type": "requestfailed",
+              "text": "http://127.0.0.1:57434/assets/vendor-monaco-COAzEUjw.js :: net::ERR_ABORTED"
+            }
+          ],
+          "pageErrors": [],
+          "overlay": {
+            "vw": 390,
+            "vh": 844,
+            "modeClass": "subject",
+            "sheetT": "1",
+            "sheet": {
+              "top": 457,
+              "bottom": 762,
+              "h": 305,
+              "w": 390,
+              "pos": "fixed",
+              "z": "20"
+            },
+            "host": {
+              "top": 52,
+              "bottom": 792,
+              "h": 740,
+              "w": 390
+            },
+            "cell": {
+              "pos": "fixed",
+              "top": 0,
+              "bottom": 844,
+              "h": 844
+            },
+            "visibleUnoccluded": 405,
+            "visibleFrac": 0.48,
+            "hasGrabHandle": true,
+            "bodyUserSelect": "auto"
+          },
+          "sheetTrace": {
+            "start": 1,
+            "terminal": 0,
+            "max": 1,
+            "min": -0.0152,
+            "settleMs": 173,
+            "overshoot": 0.0152,
+            "moved": true,
+            "frames": 109
+          },
+          "shot": "docs/tranches/I/audit/investigate/shots/b13-390x844-cube.png"
+        },
+        "easing": {
+          "console": [
+            {
+              "type": "error",
+              "text": "TypeError: Cannot read properties of undefined (reading '_gen')\n    at stop (http://127.0.0.1:57434/assets/engine-Do5bTwuK.js:1:2437)\n    at http://127.0.0.1:57434/assets/index-TG-qwxf6.js:76:208\n    at In (http://127.0.0.1:57434/assets/vendor-reka-ui-sJdXiqsy.js:1:22667)\n    at Ln (http://127.0.0.1:57434/assets/vendor-reka-ui-sJdXiqsy.js:1:22735)\n    at u.call (http://127.0.0.1:57434/assets/vendor-reka-ui-sJdXiqsy.js:1:26480)\n    at w (http://127.0.0.1:57434/assets/vendor-reka-ui-sJdXiqsy.js:1:"
+            },
+            {
+              "type": "requestfailed",
+              "text": "s.gstatic.com/s/instrumentserif/v5/jizBRFtNs2ka5fXjeivQ4LroWlx-6zUTjnTLgNs.woff2 :: net::ERR_ABORTED"
+            }
+          ],
+          "pageErrors": [],
+          "overlay": {
+            "vw": 390,
+            "vh": 844,
+            "modeClass": "editor",
+            "sheetT": "1",
+            "sheet": {
+              "top": 171,
+              "bottom": 762,
+              "h": 591,
+              "w": 390,
+              "pos": "fixed",
+              "z": "20"
+            },
+            "host": {
+              "top": 52,
+              "bottom": 792,
+              "h": 740,
+              "w": 390
+            },
+            "cell": {
+              "pos": "fixed",
+              "top": 0,
+              "bottom": 844,
+              "h": 844
+            },
+            "visibleUnoccluded": 119,
+            "visibleFrac": 0.141,
+            "hasGrabHandle": true,
+            "bodyUserSelect": "auto"
+          },
+          "sheetTrace": {
+            "start": 1,
+            "terminal": 0,
+            "max": 1,
+            "min": -0.0151,
+            "settleMs": 173,
+            "overshoot": 0.0151,
+            "moved": true,
+            "frames": 105
+          },
+          "shot": "docs/tranches/I/audit/investigate/shots/b13-390x844-easing.png"
+        },
+        "amiga": {
+          "console": [
+            {
+              "type": "warning",
+              "text": "[.WebGL-0x10c0056fc00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+            },
+            {
+              "type": "warning",
+              "text": "[.WebGL-0x10c0056fc00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+            },
+            {
+              "type": "warning",
+              "text": "[.WebGL-0x10c0056fc00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+            },
+            {
+              "type": "warning",
+              "text": "[.WebGL-0x10c0056fc00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)"
+            },
+            {
+              "type": "requestfailed",
+              "text": "http://127.0.0.1:57434/assets/vendor-monaco-COAzEUjw.js :: net::ERR_ABORTED"
+            }
+          ],
+          "pageErrors": [],
+          "overlay": {
+            "vw": 390,
+            "vh": 844,
+            "modeClass": "subject",
+            "sheetT": "1",
+            "sheet": {
+              "top": 457,
+              "bottom": 762,
+              "h": 305,
+              "w": 390,
+              "pos": "fixed",
+              "z": "20"
+            },
+            "host": {
+              "top": 52,
+              "bottom": 792,
+              "h": 740,
+              "w": 390
+            },
+            "cell": {
+              "pos": "fixed",
+              "top": 0,
+              "bottom": 844,
+              "h": 844
+            },
+            "visibleUnoccluded": 405,
+            "visibleFrac": 0.48,
+            "hasGrabHandle": true,
+            "bodyUserSelect": "auto"
+          },
+          "shot": "docs/tranches/I/audit/investigate/shots/b13-390x844-amiga.png"
+        },
+        "square": {
+          "console": [
+            {
+              "type": "requestfailed",
+              "text": "http://127.0.0.1:57434/assets/vendor-highlight-DIw3vDFC.js :: net::ERR_ABORTED"
+            }
+          ],
+          "pageErrors": [],
+          "overlay": {
+            "vw": 390,
+            "vh": 844,
+            "modeClass": "subject",
+            "sheetT": "1",
+            "sheet": {
+              "top": 457,
+              "bottom": 762,
+              "h": 305,
+              "w": 390,
+              "pos": "fixed",
+              "z": "20"
+            },
+            "host": {
+              "top": 52,
+              "bottom": 792,
+              "h": 740,
+              "w": 390
+            },
+            "cell": {
+              "pos": "fixed",
+              "top": 0,
+              "bottom": 844,
+              "h": 844
+            },
+            "visibleUnoccluded": 405,
+            "visibleFrac": 0.48,
+            "hasGrabHandle": true,
+            "bodyUserSelect": "auto"
+          },
+          "shot": "docs/tranches/I/audit/investigate/shots/b13-390x844-square.png"
+        },
+        "spring": {
+          "console": [
+            {
+              "type": "error",
+              "text": "TypeError: Cannot read properties of undefined (reading '_gen')\n    at stop (http://127.0.0.1:57434/assets/engine-Do5bTwuK.js:1:2437)\n    at http://127.0.0.1:57434/assets/index-TG-qwxf6.js:76:208\n    at In (http://127.0.0.1:57434/assets/vendor-reka-ui-sJdXiqsy.js:1:22667)\n    at Ln (http://127.0.0.1:57434/assets/vendor-reka-ui-sJdXiqsy.js:1:22735)\n    at u.call (http://127.0.0.1:57434/assets/vendor-reka-ui-sJdXiqsy.js:1:26480)\n    at w (http://127.0.0.1:57434/assets/vendor-reka-ui-sJdXiqsy.js:1:"
+            },
+            {
+              "type": "requestfailed",
+              "text": "http://127.0.0.1:57434/assets/vendor-monaco-COAzEUjw.js :: net::ERR_ABORTED"
+            }
+          ],
+          "pageErrors": [],
+          "overlay": {
+            "vw": 390,
+            "vh": 844,
+            "modeClass": "storyboard",
+            "sheetT": "1",
+            "sheet": {
+              "top": 171,
+              "bottom": 762,
+              "h": 591,
+              "w": 390,
+              "pos": "fixed",
+              "z": "20"
+            },
+            "host": {
+              "top": 52,
+              "bottom": 792,
+              "h": 740,
+              "w": 390
+            },
+            "cell": {
+              "pos": "fixed",
+              "top": 0,
+              "bottom": 844,
+              "h": 844
+            },
+            "visibleUnoccluded": 119,
+            "visibleFrac": 0.141,
+            "hasGrabHandle": true,
+            "bodyUserSelect": "auto"
+          },
+          "shot": "docs/tranches/I/audit/investigate/shots/b13-390x844-spring.png"
+        },
+        "sequence": {
+          "console": [
+            {
+              "type": "requestfailed",
+              "text": "s.gstatic.com/s/instrumentserif/v5/jizBRFtNs2ka5fXjeivQ4LroWlx-6zUTjnTLgNs.woff2 :: net::ERR_ABORTED"
+            }
+          ],
+          "pageErrors": [],
+          "overlay": {
+            "vw": 390,
+            "vh": 844,
+            "modeClass": "storyboard",
+            "sheetT": "0",
+            "sheet": {
+              "top": 698,
+              "bottom": 762,
+              "h": 64,
+              "w": 390,
+              "pos": "fixed",
+              "z": "20"
+            },
+            "host": {
+              "top": 52,
+              "bottom": 792,
+              "h": 740,
+              "w": 390
+            },
+            "cell": {
+              "pos": "fixed",
+              "top": 0,
+              "bottom": 844,
+              "h": 844
+            },
+            "visibleUnoccluded": 646,
+            "visibleFrac": 0.765,
+            "hasGrabHandle": true,
+            "bodyUserSelect": "auto"
+          },
+          "shot": "docs/tranches/I/audit/investigate/shots/b13-390x844-sequence.png"
+        },
+        "motion-path": {
+          "console": [
+            {
+              "type": "requestfailed",
+              "text": "s.gstatic.com/s/instrumentserif/v5/jizBRFtNs2ka5fXjeivQ4LroWlx-6zUTjnTLgNs.woff2 :: net::ERR_ABORTED"
+            }
+          ],
+          "pageErrors": [],
+          "overlay": {
+            "vw": 390,
+            "vh": 844,
+            "modeClass": "storyboard",
+            "sheetT": "0",
+            "sheet": {
+              "top": 698,
+              "bottom": 762,
+              "h": 64,
+              "w": 390,
+              "pos": "fixed",
+              "z": "20"
+            },
+            "host": {
+              "top": 52,
+              "bottom": 792,
+              "h": 740,
+              "w": 390
+            },
+            "cell": {
+              "pos": "fixed",
+              "top": 0,
+              "bottom": 844,
+              "h": 844
+            },
+            "visibleUnoccluded": 646,
+            "visibleFrac": 0.765,
+            "hasGrabHandle": true,
+            "bodyUserSelect": "auto"
+          },
+          "shot": "docs/tranches/I/audit/investigate/shots/b13-390x844-motion-path.png"
+        }
+      }
+    },
+    "375x667": {
+      "scenes": {
+        "cube": {
+          "console": [
+            {
+              "type": "error",
+              "text": " Err x     0\n 1 | \n     ^^^"
+            },
+            {
+              "type": "warning",
+              "text": "[KeyframesString] could not serialize the animation to CSS: Parse error at offset 0: \"......\""
+            },
+            {
+              "type": "requestfailed",
+              "text": "http://127.0.0.1:57434/assets/vendor-monaco-COAzEUjw.js :: net::ERR_ABORTED"
+            }
+          ],
+          "pageErrors": [],
+          "overlay": {
+            "vw": 375,
+            "vh": 667,
+            "modeClass": "subject",
+            "sheetT": "1",
+            "sheet": {
+              "top": 372,
+              "bottom": 585,
+              "h": 213,
+              "w": 375,
+              "pos": "fixed",
+              "z": "20"
+            },
+            "host": {
+              "top": 52,
+              "bottom": 615,
+              "h": 563,
+              "w": 375
+            },
+            "cell": {
+              "pos": "fixed",
+              "top": 0,
+              "bottom": 667,
+              "h": 667
+            },
+            "visibleUnoccluded": 320,
+            "visibleFrac": 0.48,
+            "hasGrabHandle": true,
+            "bodyUserSelect": "auto"
+          },
+          "sheetTrace": {
+            "start": 1,
+            "terminal": 0,
+            "max": 1,
+            "min": -0.0152,
+            "settleMs": 175,
+            "overshoot": 0.0152,
+            "moved": true,
+            "frames": 108
+          },
+          "shot": "docs/tranches/I/audit/investigate/shots/b13-375x667-cube.png"
+        },
+        "easing": {
+          "console": [
+            {
+              "type": "error",
+              "text": "TypeError: Cannot read properties of undefined (reading '_gen')\n    at stop (http://127.0.0.1:57434/assets/engine-Do5bTwuK.js:1:2437)\n    at http://127.0.0.1:57434/assets/index-TG-qwxf6.js:76:208\n    at In (http://127.0.0.1:57434/assets/vendor-reka-ui-sJdXiqsy.js:1:22667)\n    at Ln (http://127.0.0.1:57434/assets/vendor-reka-ui-sJdXiqsy.js:1:22735)\n    at u.call (http://127.0.0.1:57434/assets/vendor-reka-ui-sJdXiqsy.js:1:26480)\n    at w (http://127.0.0.1:57434/assets/vendor-reka-ui-sJdXiqsy.js:1:"
+            },
+            {
+              "type": "requestfailed",
+              "text": "s.gstatic.com/s/instrumentserif/v5/jizBRFtNs2ka5fXjeivQ4LroWlx-6zUTjnTLgNs.woff2 :: net::ERR_ABORTED"
+            }
+          ],
+          "pageErrors": [],
+          "overlay": {
+            "vw": 375,
+            "vh": 667,
+            "modeClass": "editor",
+            "sheetT": "1",
+            "sheet": {
+              "top": 118,
+              "bottom": 585,
+              "h": 467,
+              "w": 375,
+              "pos": "fixed",
+              "z": "20"
+            },
+            "host": {
+              "top": 52,
+              "bottom": 615,
+              "h": 563,
+              "w": 375
+            },
+            "cell": {
+              "pos": "fixed",
+              "top": 0,
+              "bottom": 667,
+              "h": 667
+            },
+            "visibleUnoccluded": 66,
+            "visibleFrac": 0.099,
+            "hasGrabHandle": true,
+            "bodyUserSelect": "auto"
+          },
+          "sheetTrace": {
+            "start": 1,
+            "terminal": 0,
+            "max": 1,
+            "min": -0.0152,
+            "settleMs": 169,
+            "overshoot": 0.0152,
+            "moved": true,
+            "frames": 109
+          },
+          "shot": "docs/tranches/I/audit/investigate/shots/b13-375x667-easing.png"
+        },
+        "amiga": {
+          "console": [
+            {
+              "type": "requestfailed",
+              "text": "http://127.0.0.1:57434/assets/vendor-highlight-DIw3vDFC.js :: net::ERR_ABORTED"
+            }
+          ],
+          "pageErrors": [],
+          "overlay": {
+            "vw": 375,
+            "vh": 667,
+            "modeClass": "subject",
+            "sheetT": "1",
+            "sheet": {
+              "top": 372,
+              "bottom": 585,
+              "h": 213,
+              "w": 375,
+              "pos": "fixed",
+              "z": "20"
+            },
+            "host": {
+              "top": 52,
+              "bottom": 615,
+              "h": 563,
+              "w": 375
+            },
+            "cell": {
+              "pos": "fixed",
+              "top": 0,
+              "bottom": 667,
+              "h": 667
+            },
+            "visibleUnoccluded": 320,
+            "visibleFrac": 0.48,
+            "hasGrabHandle": true,
+            "bodyUserSelect": "auto"
+          },
+          "shot": "docs/tranches/I/audit/investigate/shots/b13-375x667-amiga.png"
+        },
+        "square": {
+          "console": [
+            {
+              "type": "requestfailed",
+              "text": "http://127.0.0.1:57434/assets/vendor-highlight-DIw3vDFC.js :: net::ERR_ABORTED"
+            }
+          ],
+          "pageErrors": [],
+          "overlay": {
+            "vw": 375,
+            "vh": 667,
+            "modeClass": "subject",
+            "sheetT": "1",
+            "sheet": {
+              "top": 372,
+              "bottom": 585,
+              "h": 213,
+              "w": 375,
+              "pos": "fixed",
+              "z": "20"
+            },
+            "host": {
+              "top": 52,
+              "bottom": 615,
+              "h": 563,
+              "w": 375
+            },
+            "cell": {
+              "pos": "fixed",
+              "top": 0,
+              "bottom": 667,
+              "h": 667
+            },
+            "visibleUnoccluded": 320,
+            "visibleFrac": 0.48,
+            "hasGrabHandle": true,
+            "bodyUserSelect": "auto"
+          },
+          "shot": "docs/tranches/I/audit/investigate/shots/b13-375x667-square.png"
+        },
+        "spring": {
+          "console": [
+            {
+              "type": "error",
+              "text": "TypeError: Cannot read properties of undefined (reading '_gen')\n    at stop (http://127.0.0.1:57434/assets/engine-Do5bTwuK.js:1:2437)\n    at http://127.0.0.1:57434/assets/index-TG-qwxf6.js:76:208\n    at In (http://127.0.0.1:57434/assets/vendor-reka-ui-sJdXiqsy.js:1:22667)\n    at Ln (http://127.0.0.1:57434/assets/vendor-reka-ui-sJdXiqsy.js:1:22735)\n    at u.call (http://127.0.0.1:57434/assets/vendor-reka-ui-sJdXiqsy.js:1:26480)\n    at w (http://127.0.0.1:57434/assets/vendor-reka-ui-sJdXiqsy.js:1:"
+            },
+            {
+              "type": "requestfailed",
+              "text": "http://127.0.0.1:57434/assets/vendor-monaco-COAzEUjw.js :: net::ERR_ABORTED"
+            }
+          ],
+          "pageErrors": [],
+          "overlay": {
+            "vw": 375,
+            "vh": 667,
+            "modeClass": "storyboard",
+            "sheetT": "1",
+            "sheet": {
+              "top": 118,
+              "bottom": 585,
+              "h": 467,
+              "w": 375,
+              "pos": "fixed",
+              "z": "20"
+            },
+            "host": {
+              "top": 52,
+              "bottom": 615,
+              "h": 563,
+              "w": 375
+            },
+            "cell": {
+              "pos": "fixed",
+              "top": 0,
+              "bottom": 667,
+              "h": 667
+            },
+            "visibleUnoccluded": 66,
+            "visibleFrac": 0.099,
+            "hasGrabHandle": true,
+            "bodyUserSelect": "auto"
+          },
+          "shot": "docs/tranches/I/audit/investigate/shots/b13-375x667-spring.png"
+        },
+        "sequence": {
+          "console": [],
+          "pageErrors": [],
+          "overlay": {
+            "vw": 375,
+            "vh": 667,
+            "modeClass": "storyboard",
+            "sheetT": "0",
+            "sheet": {
+              "top": 521,
+              "bottom": 585,
+              "h": 64,
+              "w": 375,
+              "pos": "fixed",
+              "z": "20"
+            },
+            "host": {
+              "top": 52,
+              "bottom": 615,
+              "h": 563,
+              "w": 375
+            },
+            "cell": {
+              "pos": "fixed",
+              "top": 0,
+              "bottom": 667,
+              "h": 667
+            },
+            "visibleUnoccluded": 469,
+            "visibleFrac": 0.703,
+            "hasGrabHandle": true,
+            "bodyUserSelect": "auto"
+          },
+          "shot": "docs/tranches/I/audit/investigate/shots/b13-375x667-sequence.png"
+        },
+        "motion-path": {
+          "console": [],
+          "pageErrors": [],
+          "overlay": {
+            "vw": 375,
+            "vh": 667,
+            "modeClass": "storyboard",
+            "sheetT": "0",
+            "sheet": {
+              "top": 521,
+              "bottom": 585,
+              "h": 64,
+              "w": 375,
+              "pos": "fixed",
+              "z": "20"
+            },
+            "host": {
+              "top": 52,
+              "bottom": 615,
+              "h": 563,
+              "w": 375
+            },
+            "cell": {
+              "pos": "fixed",
+              "top": 0,
+              "bottom": 667,
+              "h": 667
+            },
+            "visibleUnoccluded": 469,
+            "visibleFrac": 0.703,
+            "hasGrabHandle": true,
+            "bodyUserSelect": "auto"
+          },
+          "shot": "docs/tranches/I/audit/investigate/shots/b13-375x667-motion-path.png"
+        }
+      }
+    }
+  }
+}

@@ -87,7 +87,7 @@ import {
     EASING_GROUPS,
     type CurveGroupItem,
 } from "../../../easing/easingGroups";
-import { DETAIL_TIMING_FUNCTIONS } from "@components/custom/animation-controls/animationDescriptions";
+import { isDetailTimingFunction } from "@components/custom/animation-controls/animationDescriptions";
 import { computed } from "vue";
 
 const props = defineProps<{
@@ -100,7 +100,7 @@ const emit = defineEmits<{
 }>();
 
 const isDetailCurve = computed(() =>
-    DETAIL_TIMING_FUNCTIONS.has(props.modelValue),
+    isDetailTimingFunction(props.modelValue),
 );
 
 const activeCurvePath = computed(() =>

@@ -12,7 +12,6 @@ import { computed, markRaw, onScopeDispose, ref, watch } from "vue";
 import { CSSKeyframesAnimation } from "@src/animation/engine";
 import { AnimationGroup } from "@src/animation/group";
 import { NumericAnimation } from "@src/animation/numeric";
-import { RAFPlayback } from "@src/animation/playback";
 import type { TimingFunction } from "@src/animation/constants";
 
 import {
@@ -20,13 +19,10 @@ import {
     generateStepSVGPath,
 } from "@components/custom/animation-controls/controls/timingCurveUtils";
 import { NAMED_EASING_BEZIER } from "@components/custom/animation-controls/animationDescriptions";
-import { useSceneVisibilityPause } from "../app/useSceneVisibilityPause";
-import {
-    useSceneMachine,
-    createRafAdapter,
-    type ScenePlayback,
-} from "@components/custom/animation-controls/stores";
+import { useRafScene } from "../app/useRafScene";
+import { useSceneMachine } from "@components/custom/animation-controls/stores";
 import { getFamilyForCurve, getFamilyCurves, type CurveGroupItem } from "./easingGroups";
+import { useEasingGallery } from "./useEasingGallery";
 
 // ── Static data ────────────────────────────────────────────────────
 
@@ -147,28 +143,109 @@ export function useEasingDemo() {
         new NumericAnimation<{ p: number }>([{ p: 0 }, { p: 1 }, { p: 0 }]),
     );
 
-    const playback = markRaw(new RAFPlayback());
     let startTime = 0;
+
+    // ── I.W4 D4 — THE HOT POSITIONAL UPDATE OFF THE VUE RENDER GRAPH ──────────
+    // The former `frame()` wrote `progress.value = sweep.at(phase).p` EVERY frame.
+    // `progress` is a Vue `ref` with many reactive consumers (the hero ball, every
+    // comparison-track ball, the curve-canvas dot, the `f(p)=` readout, the
+    // contract time-twin watch) → a full re-render of the 243-node SVG gallery per
+    // frame (21.6 ms / 36 dropped, ~46 fps — b16 §1). Reactivity is the WRONG tool
+    // for a 60 Hz positional update.
+    //
+    // The cure (square's exact discipline): the loop drives the dot positions via
+    // DIRECT, non-reactive `style.transform` writes — registered "dot painters"
+    // the view layer hands us (each owns the geometry for ONE moving dot and
+    // imperatively positions it). The reactive `progress` ref is written at most a
+    // few Hz (`PROGRESS_READOUT_HZ`) for the human-readable readouts + the contract
+    // time-twin — NOT once per frame. The result is the cube-parity 60 fps.
+    //
+    // `liveProgress()` is the always-current sweep value the painters + the scrub
+    // path read (the reactive `progress` lags it by ≤ 1 readout tick, by design).
+    let livePhaseValue = 0; // the raw eased sweep value [0,1], updated every frame
+    const PROGRESS_READOUT_HZ = 6; // reactive readout cadence (a few Hz, not 60)
+    let lastReadoutAt = 0;
+
+    /** A dot painter: position one moving dot for the given raw sweep value. The
+     *  view layer registers these; the loop calls them imperatively each frame. */
+    type DotPainter = (phase: number) => void;
+    const dotPainters = new Set<DotPainter>();
+
+    /** Register a non-reactive dot painter (returns an unregister fn). The view
+     *  layer hands us a closure that writes `el.style.transform` directly — the
+     *  loop drives it off the render graph. Paints once immediately so the dot is
+     *  correct at registration time (e.g. on a paused scene). */
+    const registerDotPainter = (paint: DotPainter): (() => void) => {
+        dotPainters.add(paint);
+        paint(livePhaseValue);
+        return () => dotPainters.delete(paint);
+    };
+
+    /** Repaint every registered dot at the current live phase (used after a scrub
+     *  / curve change so the dots track even while the loop is paused). */
+    const repaintDots = (): void => {
+        for (const paint of dotPainters) paint(livePhaseValue);
+    };
+
+    /** The always-current raw sweep value [0,1] (the painters + scrub read this;
+     *  the reactive `progress` lags it by ≤ one readout tick, by design). */
+    const liveProgress = (): number => livePhaseValue;
 
     const frame = (now: DOMHighResTimeStamp): boolean => {
         // The loop GATES on the machine (the single authority) — not a private
         // isPlaying. When the machine leaves `playing` the loop self-terminates.
-        if (machine.status.value !== "playing") return false;
+        if (machine.status.value !== "playing") {
+            // On stop, reconcile the reactive readout to the LIVE value so the
+            // contract authority (`progress`, what the ScenePlayback adapter
+            // snapshots/restores) matches the painted position whenever the loop
+            // is idle — no ≤1-tick lag survives a pause.
+            progress.value = livePhaseValue;
+            return false;
+        }
         // One full alternate cycle (0→1→0) per `2 * duration`.
         const phase = ((now - startTime) / (duration.value * 2)) % 1;
-        progress.value = sweep.at(phase).p;
+        livePhaseValue = sweep.at(phase).p;
+        // Hot path — direct DOM writes, NO Vue reactivity (D4).
+        for (const paint of dotPainters) paint(livePhaseValue);
+        // Cold path — write the reactive readout at a few Hz only (the `f(p)=`
+        // text + the contract time-twin), NOT per frame.
+        if (now - lastReadoutAt >= 1000 / PROGRESS_READOUT_HZ) {
+            lastReadoutAt = now;
+            progress.value = livePhaseValue;
+        }
         return true;
     };
 
-    /** Re-arm the rAF loop (re-seeds startTime from the current progress so the
-     *  sweep resumes in phase). Idempotent — a no-op while already running. */
-    const startLoop = () => {
-        if (!playback.running) {
-            startTime = performance.now() - progress.value * duration.value * 2;
-            playback.loop(frame);
-        }
-    };
-    const stopLoop = () => playback.stop();
+    // ── The raw-rAF scene recipe (I.W1 S2 — consolidated in useRafScene) ──
+    // useRafScene OWNS the RAFPlayback, the BOUND startLoop/stopLoop, the
+    // createRafAdapter wiring, the onScopeDispose(stopLoop) seam, AND the
+    // useSceneVisibilityPause registration with BOUND callbacks (no scene can
+    // re-introduce the unbound `playback.stop` that threw `this._gen`). The
+    // scene supplies only the per-frame work + the per-arm clock rebase.
+    const { playback, startLoop, scenePlayback } = useRafScene({
+        frame,
+        // Re-seed startTime from the LIVE phase so the sweep resumes in phase. The
+        // loop reconciles `progress` to `livePhaseValue` on stop, so the two agree
+        // whenever the loop is idle (the resume anchor is exact).
+        onArm: () => {
+            startTime = performance.now() - livePhaseValue * duration.value * 2;
+        },
+        // `progress` is the CONTRACT authority the ScenePlayback adapter snapshots/
+        // restores (a discrete scrub position, reconciled to the live value on
+        // every loop stop). The painters read `livePhaseValue` directly — the hot
+        // path never routes through this reactive ref.
+        getProgress: () => progress.value,
+        setProgress: (t) => {
+            // A scrub / restore writes the sweep position: keep the reactive
+            // readout, the live value, AND the painted dots all in lock-step (a
+            // discrete event, not the 60 Hz hot path — the reactive write here is
+            // correct: it drives the readouts + dots to the scrubbed value at once).
+            progress.value = t;
+            livePhaseValue = t;
+            repaintDots();
+        },
+        getPlaying: () => machine.status.value === "playing",
+    });
 
     // The transport methods dispatch to the machine (the authority); the
     // adapter's resume/suspend re-arms/stops the loop, so play/pause never poke
@@ -187,44 +264,23 @@ export function useEasingDemo() {
     };
 
     const reset = () => {
+        livePhaseValue = 0;
         progress.value = 0;
         startTime = performance.now();
+        repaintDots();
         machine.dispatch({ type: "RESET" });
     };
-
-    // ── The raw-rAF ScenePlayback adapter (WV-W1-HIGH-3) ──
-    // Round-trips progress/isPlaying through the contract — the easing↔cube
-    // cross-pair the group gate misses. The App registers this on SCENE_READY.
-    const scenePlayback: ScenePlayback = createRafAdapter({
-        getProgress: () => progress.value,
-        setProgress: (t) => { progress.value = t; },
-        getPlaying: () => machine.status.value === "playing",
-        // setPlaying is a no-op marker: the machine status IS the intent; the
-        // loop is driven by start/stopLoop below. Kept for contract symmetry.
-        setPlaying: () => {},
-        isLoopRunning: () => playback.running,
-        stopLoop,
-        startLoop,
-    });
 
     // Mount-time start: the scene is created fresh on each swap-in under the bare
     // keyed <Suspense>. Arm the loop now; the machine's SCENE_READY restore (via
     // the adapter) then re-seats progress + the playing/paused status.
     startLoop();
 
-    // Stop the raw RAFPlayback on scope dispose (the genuine unmount seam,
-    // mirroring useRafLoop.ts onUnmounted(stop)) — the scene host has NO
-    // <KeepAlive>, so onDeactivated never fires and would leak this loop on swap.
+    // Stop the gallery's pending timers on scope dispose (the raw RAFPlayback's
+    // own teardown is owned by useRafScene's onScopeDispose(stopLoop)).
     onScopeDispose(() => {
-        playback.stop();
         disposeGallery();
     });
-
-    // B-3: idle the preview rAF while the tab is hidden, without disturbing the
-    // machine's play/pause intent (PRESERVED autoPaused contract — "only resume
-    // what IT paused"). `startLoop` re-seeds startTime from the current
-    // progress, so the sweep resumes in phase with no jump.
-    useSceneVisibilityPause(() => playback.running, playback.stop, startLoop);
 
     // ── Methods ────────────────────────────────────────────────────
 
@@ -243,51 +299,13 @@ export function useEasingDemo() {
         }
     };
 
-    // ── EASTER EGG — "the Gallery" (H.W12.S6) ────────────────────────────────
-    // Double-click the curve canvas → a self-playing tour of the easing library.
-    // The selected curve cascades through a curated gallery of the most
-    // EXPRESSIVE named easings (the back/bounce/elastic family) ~520ms apart,
-    // so the hero canvas MORPHS through the catalogue and the traveling dot
-    // traces each in turn — a hands-free showcase of the engine's curve set
-    // (`selectEasing` re-derives `currentEasingFn` + `svgPath` per step, inv ζ).
-    // Restores the curve the user was on when the tour ends.
-    // The tour names are the HYPHENATED registry keys `timingFunctionsAnd` holds
-    // (getTimingFunctionsAnd re-keys every easing through camelCaseToHyphen, so
-    // `selectEasing` + the curve lookup both want the hyphen form). Verified
-    // against the live value.js set — every entry resolves to a real function.
-    const GALLERY_TOUR = [
-        "ease-in-out-back",
-        "bounce-out-ease",
-        "ease-out-expo",
-        "ease-in-out-circ",
-        "bounce-in-out-ease",
-        "ease-out-back",
-    ] as const;
-    let galleryRunning = false;
-    const galleryTimers: ReturnType<typeof setTimeout>[] = [];
-    const STEP_MS = 520;
-
-    const gallery = () => {
-        if (galleryRunning) return;
-        galleryRunning = true;
-        galleryTimers.length = 0;
-        const restore = currentEasingName.value;
-
-        GALLERY_TOUR.forEach((name, i) => {
-            // Only tour curves the registry actually carries (defensive — the
-            // tour list is curated against the value.js easing set).
-            if (!(name in timingFunctionsAnd)) return;
-            galleryTimers.push(setTimeout(() => selectEasing(name), i * STEP_MS));
-        });
-        galleryTimers.push(
-            setTimeout(() => {
-                selectEasing(restore);
-                galleryRunning = false;
-            }, GALLERY_TOUR.length * STEP_MS),
-        );
-    };
-
-    const disposeGallery = () => galleryTimers.forEach(clearTimeout);
+    // EASTER EGG — "the Gallery" (H.W12.S6): the self-playing curve tour, a
+    // colocated sub-unit (useEasingGallery — the natural easter-egg concern seam).
+    const { gallery, disposeGallery } = useEasingGallery(
+        selectEasing,
+        currentEasingName,
+        timingFunctionsAnd,
+    );
 
     const updateBezierPoints = (points: [number, number, number, number]) => {
         bezierControlPoints.value = points;
@@ -393,6 +411,16 @@ export function useEasingDemo() {
     // before this `const` is declared.
     watch(progress, (p) => {
         contractAnim.t = p * contractAnim.options.duration;
+        // I.W4 D4 — keep the imperatively-painted dots in lock-step with a PAUSED
+        // scrub. The scene's scrubber writes `demo.progress.value` directly (a
+        // discrete paused-scrub event), so when the loop is idle a `progress`
+        // change must reconcile the live value + repaint the dots. While the loop
+        // RUNS it owns `livePhaseValue` (the 12 Hz reactive write must NOT bounce
+        // back through here), so we gate on the loop being idle.
+        if (!playback.running) {
+            livePhaseValue = p;
+            repaintDots();
+        }
     }, { immediate: true });
 
     return {
@@ -406,6 +434,13 @@ export function useEasingDemo() {
         duration,
         isPlaying,
         progress,
+
+        // I.W4 D4 — the non-reactive hot-path seam: the always-current raw sweep
+        // value + the dot-painter registry the view layer wires its moving dots
+        // through (direct `style.transform` writes, off the Vue render graph).
+        liveProgress,
+        registerDotPainter,
+        repaintDots,
 
         // Derived
         currentEasingFn,

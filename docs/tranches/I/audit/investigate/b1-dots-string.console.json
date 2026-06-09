@@ -1,0 +1,193 @@
+{
+  "log": [
+    {
+      "k": "c.debug",
+      "t": "[vite] connecting..."
+    },
+    {
+      "k": "c.debug",
+      "t": "[vite] connected."
+    },
+    {
+      "k": "c.info",
+      "t": "<Suspense> is an experimental feature and its API will likely change."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.error",
+      "t": " Err x     0\n 1 | \n     ^^^"
+    },
+    {
+      "k": "c.warning",
+      "t": "[KeyframesString] could not serialize the animation to CSS: Parse error at offset 0: \"......\""
+    },
+    {
+      "k": "c.debug",
+      "t": "[kf:loaf] 233.4ms frame (blocking 117.3ms) — http://localhost:5174/main.ts"
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.debug",
+      "t": "[kf:loaf] 128.4ms frame (blocking 71.3ms) — http://localhost:5174/@fs/Users/mkbabb/Programming/keyframes.js/node_modules/.vite/deps/monaco-editor.js?v=2f0afe0e"
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.error",
+      "t": " Err x     0\n 1 | \n     ^^^"
+    },
+    {
+      "k": "c.error",
+      "t": " Err x     0\n 1 | \n     ^^^"
+    },
+    {
+      "k": "RESULT",
+      "t": "{\n  \"computedVarEmpty\": \"\\\"\\\"\",\n  \"at_0_err\": \"Parse error at offset 0: \\\"......\\\"\",\n  \"at_1_err\": \"Parse error at offset 0: \\\"......\\\"\"\n}"
+    }
+  ],
+  "result": {
+    "computedVarEmpty": "\"\"",
+    "at_0_err": "Parse error at offset 0: \"......\"",
+    "at_1_err": "Parse error at offset 0: \"......\""
+  }
+}

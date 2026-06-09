@@ -85,6 +85,30 @@ export const NAMED_EASING_BEZIER: Record<string, [number, number, number, number
 
 export const DETAIL_TIMING_FUNCTIONS = new Set(["cubic-bezier", "steps"]);
 
+/**
+ * I.W2.S3 — normalize a timing-function VALUE to its KIND. The store now persists
+ * a COMPLETE re-parseable literal (`cubic-bezier(x1, y1, x2, y2)` / `steps(n,
+ * term)`) so `new CSSKeyframesAnimation` round-trips it on re-mount without an
+ * `AnimationOptionError` (the B5 readout seam). But the UI keys its
+ * detail-panel / dropdown-highlight / curve-render off the bare KIND — so a
+ * persisted literal must still read as `"cubic-bezier"`/`"steps"` for those
+ * gates. This is the ONE normalizer: a literal maps to its kind, a bare keyword
+ * to itself, a named curve/keyword to itself. KISS — a prefix test on the two
+ * parametric forms (the literal always opens `cubic-bezier(` / `steps(`).
+ */
+export const timingFunctionKind = (value: unknown): string => {
+    if (typeof value !== "string") return String(value ?? "");
+    if (value === "cubic-bezier" || value.startsWith("cubic-bezier("))
+        return "cubic-bezier";
+    if (value === "steps" || value.startsWith("steps(")) return "steps";
+    return value;
+};
+
+/** True when a timing-function VALUE (bare keyword OR literal) is a detail curve
+ *  (cubic-bezier / steps) — the literal-aware membership the UI gates on. */
+export const isDetailTimingFunction = (value: unknown): boolean =>
+    DETAIL_TIMING_FUNCTIONS.has(timingFunctionKind(value));
+
 export const COLOR_SPACE_DESCRIPTIONS: Record<string, string> = {
     "oklab": "perceptually uniform (default)",
     "srgb": "standard RGB gamut",

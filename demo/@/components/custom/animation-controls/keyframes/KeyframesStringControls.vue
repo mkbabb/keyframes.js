@@ -98,15 +98,21 @@ const updateCSSAnimationKeyframesStringFromAnimation = async () => {
             getTmpAnimationName(),
         );
     } catch (e: unknown) {
-        // The readout floor (H.W0 S2): a custom `timingFunction` with no CSS
-        // twin makes `serializeEasing` throw. NEVER silently degrade to
-        // `linear` — render an honest placeholder so the curve is NAMED, not
-        // lost, and the mount does not throw an uncaught console error.
+        // I.W0 S4 — kill the mis-attributing placeholder. With the value-seam
+        // (S1) + serialize-from-template (S2) fixes, the empty-`var()` parse
+        // throw no longer reaches here, so this catch fires ONLY for a genuine
+        // structural limit (a custom `timingFunction` with no CSS twin —
+        // `serializeEasing` throwing). NAME THE ACTUAL condition rather than
+        // hard-coding "custom — no CSS twin" for EVERY throw (the old floor
+        // mis-attributed the empty-value parse failure to easing and sent
+        // triage down the B5→B4 false trail). Never silently degrade to
+        // `linear`; the placeholder reports the real reason.
+        const reason = (e as Error).message;
         console.warn(
             "[KeyframesString] could not serialize the animation to CSS:",
-            (e as Error).message,
+            reason,
         );
-        cssKeyframesString.value = `/* timing-function: custom — no CSS twin (see console) */`;
+        cssKeyframesString.value = `/* could not serialize: ${reason} */`;
     }
 
     return cssKeyframesString.value;

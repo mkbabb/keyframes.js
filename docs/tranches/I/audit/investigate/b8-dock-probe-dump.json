@@ -1,0 +1,106 @@
+{
+  "base": "http://127.0.0.1:57566",
+  "scenes": {
+    "cube": {
+      "scene": "cube",
+      "dockTiming": {
+        "classes": "glass-dock horizontal variant-dock shape-pill collapsed fit-content dock-inline",
+        "transitionProperty": "padding, box-shadow, transform, background, border-color",
+        "transitionDuration": "0.3s, 0.3s, 0.3s, 0.3s, 0.3s",
+        "transitionTimingFunction": "linear(0 0%, 0.10282 2.041%, 0.31773 4.082%, 0.54783 6.122%, 0.74309 8.163%, 0.8855 10.204%, 0.97598 12.245%, 1.02452 14",
+        "backdropFilter": "blur(11px)",
+        "springDock": "linear(0, .10282 2.041%, .31773 4.082%, .54783 6.122%, .74309 8.163%, .8855 10.2…",
+        "dockResizeSpring": "linear(0, .10282 2.041%, .31773 4.082%, .54783 6.122%, .74309 8.163%, .8855 10.204%, .97598 12.245%, 1.02452 14.286%, 1.04368 16.327%, 1.04501 18.367%, 1.03739 20.408%, 1.02681 22.449%, 1.01672 24.49%, 1.00873 26.531%, 1.00323 28.571%, .99996 30.612%, .99837 32.653%, .99789 34.694%, .99805 36.735%, .99848 38.776%, .99897 40.816%, .9994 42.857%, .99972 44.898%, .99993 46.939%, 1.00004 48.98%, 1 51.02%, 1 53.061%, 1 55.102%, 1 57.143%, 1 59.184%, 1 61.224%, 1 63.265%, 1 65.306%, 1 67.347%, 1 69.388%, 1 71.429%, 1 73.469%, 1 75.51%, 1 77.551%, 1 79.592%, 1 81.633%, 1 83.673%, 1 85.714%, 1 87.755%, 1 89.796%, 1 91.837%, 1 93.878%, 1 95.918%, 1 97.959%, 1)",
+        "hasViewTransition": true,
+        "backdropFilterCount": 30
+      },
+      "morph": {
+        "collapsedBox": {
+          "w": 91,
+          "h": 54,
+          "collapsed": true,
+          "expanded": false
+        },
+        "expandFrameStats": {
+          "n": 115,
+          "meanMs": 10.46,
+          "maxMs": 50.1,
+          "p95Ms": 25.3,
+          "droppedGt33": 4,
+          "droppedGt50": 1,
+          "approxFps": 95.6
+        },
+        "morphAttrSeen": {
+          "dataMorphing": false,
+          "expanded": true,
+          "collapsed": false
+        },
+        "expandedBox": {
+          "w": 418.4,
+          "h": 54
+        }
+      },
+      "idleFrameStats": {
+        "n": 97,
+        "meanMs": 8.28,
+        "maxMs": 9.3,
+        "p95Ms": 9.2,
+        "droppedGt33": 0,
+        "droppedGt50": 0,
+        "approxFps": 120.8
+      },
+      "popover": {
+        "sceneOpened": true,
+        "openFrameStats": {
+          "n": 109,
+          "meanMs": 8.31,
+          "maxMs": 9.4,
+          "p95Ms": 9.3,
+          "droppedGt33": 0,
+          "droppedGt50": 0,
+          "approxFps": 120.3
+        }
+      },
+      "glassCost": {
+        "backdropFilterElementCount": 30,
+        "reflowLoopMs": 4.5,
+        "sample": [
+          {
+            "cls": "glass-dock horizontal variant-dock shape-pill expa",
+            "filter": "blur(11px)"
+          },
+          {
+            "cls": "rounded-card text-card-foreground scrollbar-hidden",
+            "filter": "blur(10px) saturate(1.05) brightness(1.0"
+          },
+          {
+            "cls": "input-pill text-sm file:border-0 file:bg-transpare",
+            "filter": "blur(1px) saturate(1.05)"
+          },
+          {
+            "cls": "input-pill text-sm file:border-0 file:bg-transpare",
+            "filter": "blur(1px) saturate(1.05)"
+          },
+          {
+            "cls": "input-pill text-sm file:border-0 file:bg-transpare",
+            "filter": "blur(1px) saturate(1.05)"
+          }
+        ]
+      },
+      "longtasks": [
+        {
+          "start": 20,
+          "dur": 111
+        },
+        {
+          "start": 224,
+          "dur": 61
+        }
+      ],
+      "windowErrors": [],
+      "screenshot": "docs/tranches/I/audit/investigate/shots/b8-dock-cube-expanded.png",
+      "console": [],
+      "pageErrors": []
+    }
+  }
+}

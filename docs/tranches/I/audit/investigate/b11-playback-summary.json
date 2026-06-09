@@ -1,0 +1,284 @@
+{
+  "cube": {
+    "loadConsole": [
+      "[error]  Err x     0\n 1 | \n     ^^^",
+      "[warning] [KeyframesString] could not serialize the animation to CSS: Parse error at offset 0: \"......\""
+    ],
+    "loadErrors": [],
+    "group": {
+      "clicked": true,
+      "label": "Play animation",
+      "changed": 23,
+      "sampled": 50,
+      "details": [
+        "div.preserve-3d relative flex items-cent: T[none→matrix(1, 0, 0, 1, 0] ",
+        "div.idle-hover preserve-3d: T[matrix(1, 0, 0, 1, 0→none] P[905,243→905,240]",
+        "div.cube preserve-3d animation relative : P[905,243→905,240]",
+        "div.cube-side front rounded-lg transitio: P[840,373→840,370]",
+        "span.rainbow-wrapper opacity-100: O[1→0.25] P[848,505→848,502]",
+        "div.h-full w-full font-bold flex items-c: P[840,373→840,370]"
+      ],
+      "console": [
+        "[error]  Err x     0\n 1 | \n     ^^^"
+      ],
+      "errors": [
+        "Error: Parse error at offset 0: \"......\"\nError: Parse error at offset 0: \"......\"\n    at bo (http://127.0.0.1:59018/assets/engine-Do5bTwuK.js:19:62788)\n    at cn.keyFn (http://127.0.0.1:59018/assets/engine-Do5bTwuK.js:19:63848)\n    at c (http://127.0.0.1:59018/assets/engine-Do5bTwuK.js:19:19351)\n    at http://127.0.0.1:59018/assets/engine-Do5bTwuK.js:20:1279\n    at http://127.0.0.1:59018/assets/engine-Do5bTwuK.js:20:1742\n    at c (http://127.0.0.1:59018/assets/engine-Do5bTwuK.js:19:19351)\n    at Object.zc [as _lerp] (http://127.0.0.1:59018/assets/engine-Do5bTwuK.js:20:3491)\n    at Hc (http://127.0.0.1:59018/assets/engine-Do5bTwuK.js:20:4308)\n    at pp.processFrame (http://127.0.0.1:59018/assets/engine-Do5bTwuK.js:38:34007)\n    at pp.interpFrames (http://127.0.0.1:59018/assets/engine-Do5bTwuK.js:38:33582)"
+      ]
+    },
+    "reset": {
+      "clicked": false,
+      "errors": [],
+      "console": []
+    },
+    "scrub": {
+      "found": true,
+      "changed": 5,
+      "sampled": 50,
+      "details": [
+        "div.touch-gate-target timeline-green: P[85,481→84,480]",
+        "svg.[object SVGAnimatedString]: P[328,519→327,518]",
+        "div.absolute z-bar rounded-full h-12 w-1: T[matrix(1, 0, 0, 1, 0→matrix(1, 0, 0, 1, 9] P[93,567→101,566]",
+        "div.absolute top-0 left-0 rounded-full z: P[93,567→92,566]",
+        "div.absolute top-0 translate-x-[calc(100: P[333,567→332,566]"
+      ],
+      "errors": [
+        "Error: Parse error at offset 0: \"......\"\nError: Parse error at offset 0: \"......\"\n    at bo (http://127.0.0.1:59018/assets/engine-Do5bTwuK.js:19:62788)\n    at cn.keyFn (http://127.0.0.1:59018/assets/engine-Do5bTwuK.js:19:63848)\n    at c (http://127.0.0.1:59018/assets/engine-Do5bTwuK.js:19:19351)\n    at http://127.0.0.1:59018/assets/engine-Do5bTwuK.js:20:1279\n    at http://127.0.0.1:59018/assets/engine-Do5bTwuK.js:20:1742\n    at c (http://127.0.0.1:59018/assets/engine-Do5bTwuK.js:19:19351)\n    at Object.zc [as _lerp] (http://127.0.0.1:59018/assets/engine-Do5bTwuK.js:20:3491)\n    at Hc (http://127.0.0.1:59018/assets/engine-Do5bTwuK.js:20:4308)\n    at pp.processFrame (http://127.0.0.1:59018/assets/engine-Do5bTwuK.js:38:34007)\n    at pp.interpFrames (http://127.0.0.1:59018/assets/engine-Do5bTwuK.js:38:33582)"
+      ]
+    },
+    "keyframesTab": {
+      "found": false,
+      "errors": [],
+      "console": []
+    }
+  },
+  "amiga": {
+    "loadConsole": [
+      "[warning] [.WebGL-0x11c0058d200]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+      "[warning] [.WebGL-0x11c0058d200]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+      "[warning] [.WebGL-0x11c0058d200]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+      "[warning] [.WebGL-0x11c0058d200]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)"
+    ],
+    "loadErrors": [],
+    "group": {
+      "clicked": true,
+      "label": "Play animation",
+      "changed": 1,
+      "sampled": 30,
+      "details": [
+        "div.absolute z-bar rounded-full h-12 w-1: T[matrix(1, 0, 0, 1, 0→matrix(1, 0, 0, 1, 1] P[93,567→112,567]"
+      ],
+      "console": [],
+      "errors": []
+    },
+    "reset": {
+      "clicked": false,
+      "errors": [],
+      "console": []
+    },
+    "scrub": {
+      "found": true,
+      "changed": 5,
+      "sampled": 30,
+      "details": [
+        "div.touch-gate-target timeline-green: P[85,481→84,480]",
+        "svg.[object SVGAnimatedString]: P[328,519→327,518]",
+        "div.absolute z-bar rounded-full h-12 w-1: T[matrix(1, 0, 0, 1, 2→matrix(1, 0, 0, 1, 3] P[113,567→127,566]",
+        "div.absolute top-0 left-0 rounded-full z: P[93,567→92,566]",
+        "div.absolute top-0 translate-x-[calc(100: P[333,567→332,566]"
+      ],
+      "errors": []
+    },
+    "keyframesTab": {
+      "found": false,
+      "errors": [],
+      "console": []
+    }
+  },
+  "square": {
+    "loadConsole": [],
+    "loadErrors": [],
+    "group": {
+      "clicked": true,
+      "label": "Play animation",
+      "changed": 1,
+      "sampled": 18,
+      "details": [
+        "div.absolute z-bar rounded-full h-12 w-1: T[matrix(1, 0, 0, 1, 0→matrix(1, 0, 0, 1, 1] P[93,567→284,567]"
+      ],
+      "console": [],
+      "errors": []
+    },
+    "reset": {
+      "clicked": false,
+      "errors": [],
+      "console": []
+    },
+    "scrub": {
+      "found": true,
+      "changed": 5,
+      "sampled": 18,
+      "details": [
+        "div.touch-gate-target timeline-green: P[85,481→84,480]",
+        "svg.[object SVGAnimatedString]: P[328,519→327,518]",
+        "div.absolute z-bar rounded-full h-12 w-1: T[matrix(1, 0, 0, 1, 1→matrix(1, 0, 0, 1, 2] P[290,567→319,566]",
+        "div.absolute top-0 left-0 rounded-full z: P[93,567→92,566]",
+        "div.absolute top-0 translate-x-[calc(100: P[333,567→332,566]"
+      ],
+      "errors": []
+    },
+    "keyframesTab": {
+      "found": false,
+      "errors": [],
+      "console": []
+    }
+  },
+  "easing": {
+    "loadConsole": [],
+    "loadErrors": [],
+    "group": {
+      "clicked": true,
+      "label": "Pause animation",
+      "changed": 0,
+      "sampled": 23,
+      "details": [],
+      "console": [],
+      "errors": []
+    },
+    "reset": {
+      "clicked": false,
+      "errors": [],
+      "console": []
+    },
+    "scrub": {
+      "found": true,
+      "changed": 0,
+      "sampled": 23,
+      "details": [],
+      "errors": []
+    },
+    "keyframesTab": {
+      "found": false,
+      "errors": [],
+      "console": []
+    }
+  },
+  "spring": {
+    "loadConsole": [],
+    "loadErrors": [],
+    "group": {
+      "clicked": true,
+      "label": "Pause animation",
+      "changed": 1,
+      "sampled": 46,
+      "details": [
+        "div.absolute z-bar rounded-full h-12 w-1: T[matrix(1, 0, 0, 1, 2→matrix(1, 0, 0, 1, 2] P[304,740→305,740]"
+      ],
+      "console": [],
+      "errors": []
+    },
+    "reset": {
+      "clicked": false,
+      "errors": [],
+      "console": []
+    },
+    "scrub": {
+      "found": true,
+      "changed": 11,
+      "sampled": 46,
+      "details": [
+        "div.preset-row: P[89,323→88,322]",
+        "div.progress-ball preset-ball: P[376,328→375,327]",
+        "div.preset-row: P[89,361→88,360]",
+        "div.progress-ball preset-ball: P[376,366→375,365]",
+        "div.preset-row: P[89,399→88,398]",
+        "div.progress-ball preset-ball: P[376,404→375,403]"
+      ],
+      "errors": []
+    },
+    "keyframesTab": {
+      "found": false,
+      "errors": [],
+      "console": []
+    }
+  },
+  "sequence": {
+    "loadConsole": [],
+    "loadErrors": [],
+    "group": {
+      "clicked": true,
+      "label": "Play animation",
+      "changed": 27,
+      "sampled": 50,
+      "details": [
+        "div.flex items-center gap-2 shrink-0: P[1163,119→1149,119]",
+        "button.btn-pill focus-ring whitespace-nowra: P[1163,119→1149,119]",
+        "svg.[object SVGAnimatedString]: P[1172,126→1158,126]",
+        "path.[object SVGAnimatedString]: P[1179,128→1165,128]",
+        "path.[object SVGAnimatedString]: P[1173,127→1159,127]",
+        "path.[object SVGAnimatedString]: P[1174,132→1160,132]"
+      ],
+      "console": [],
+      "errors": []
+    },
+    "reset": {
+      "clicked": false,
+      "errors": [],
+      "console": []
+    },
+    "scrub": {
+      "found": true,
+      "changed": 11,
+      "sampled": 50,
+      "details": [
+        "div.flex items-center gap-2 shrink-0: P[1149,119→1163,119]",
+        "button.btn-pill focus-ring whitespace-nowra: P[1149,119→1163,119]",
+        "svg.[object SVGAnimatedString]: P[1158,126→1172,126]",
+        "path.[object SVGAnimatedString]: P[1165,128→1179,128]",
+        "path.[object SVGAnimatedString]: P[1159,127→1173,127]",
+        "path.[object SVGAnimatedString]: P[1160,132→1174,132]"
+      ],
+      "errors": []
+    },
+    "keyframesTab": {
+      "found": false,
+      "errors": [],
+      "console": []
+    }
+  },
+  "motion-path": {
+    "loadConsole": [],
+    "loadErrors": [],
+    "group": {
+      "clicked": true,
+      "label": "Play animation",
+      "changed": 2,
+      "sampled": 50,
+      "details": [
+        "div.progress-ball mp-traveller: P[750,380→880,340]",
+        "span.mp-traveller-glyph: P[762,391→895,354]"
+      ],
+      "console": [],
+      "errors": []
+    },
+    "reset": {
+      "clicked": false,
+      "errors": [],
+      "console": []
+    },
+    "scrub": {
+      "found": true,
+      "changed": 2,
+      "sampled": 50,
+      "details": [
+        "div.progress-ball mp-traveller: P[889,373→978,286]",
+        "span.mp-traveller-glyph: P[901,385→994,302]"
+      ],
+      "errors": []
+    },
+    "keyframesTab": {
+      "found": false,
+      "errors": [],
+      "console": []
+    }
+  }
+}

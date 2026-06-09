@@ -206,6 +206,77 @@ const svgLoaderPlugin = svgLoader({
 
 const defaultPlugins = [Vue(), svgLoaderPlugin];
 
+// I.W5.S1 — the ONE canonical demo `outDir`. The default demo build (the
+// non-`gh-pages`/`production`/`playground` branch below) used to set
+// `root: "./demo/app/"` with NO explicit `outDir`, so any non-enumerated-mode
+// `vite build` wrote to `demo/app/dist/` — the Mar-25 orphan that contaminated
+// dev module resolution and greps (B9-b). Routing the default demo build to the
+// SAME single canonical path under the gitignored `dist/` root makes a second
+// build output IMPOSSIBLE BY CONSTRUCTION (not merely cleaned): no Vite
+// invocation can ever spawn `demo/app/dist/` again. (gh-pages keeps its own
+// explicit `dist/gh-pages/` — both demo outputs live under `dist/`, never beside
+// the source.)
+const DEMO_DEFAULT_OUTDIR = path.resolve(import.meta.dirname, "./dist/demo-app/");
+
+/**
+ * I.W5.S2 — the dev SPA history-fallback must 404 asset-extension MISSES
+ * HONESTLY. Vite's `spaFallbackMiddleware` rewrites ANY extensionless-or-
+ * `.html`-accepting request to `index.html`; but an `Accept: * / *` request for
+ * a file-extension'd asset (`*.svg`, `*.png`, …) that misses on disk ALSO falls
+ * through to `index.html` (HTTP 200, text/html) when nothing else serves it —
+ * which is how a stale importer of a renamed-away glyph (`easing-icon-sm.svg`)
+ * silently received HTML where an `<svg>` was expected (B9-a), invisible to the
+ * network tab and the gate.
+ *
+ * Asset paths and route paths are DIFFERENT NAMESPACES: the SPA fallback belongs
+ * to ROUTES, never to file-extension'd asset requests. This middleware registers
+ * DIRECTLY in `configureServer` (so it sits AHEAD of Vite's internal
+ * `htmlFallbackMiddleware` in the stack) and, for any request whose pathname has
+ * an asset-file extension, neutralizes the index.html rewrite — so a MISS surfaces
+ * as an honest 404 in the network tab and the runtime gate instead of masquerading
+ * as a route. We do NOT 404 paths that a real resource will serve: a real asset is
+ * served by Vite's static/transform layer regardless of `Accept`; only the
+ * `index.html` fallback for an asset-extension MISS is suppressed.
+ *
+ * Scope: DEV server only (`apply: "serve"`). The built `dist/` is served by a
+ * plain static server (the gate's `serveDist`) that already 404s a miss.
+ */
+const ASSET_EXTENSION_RE =
+    /\.(svg|png|jpe?g|gif|webp|avif|ico|woff2?|ttf|otf|eot|mp4|webm|json|map|wasm)(\?.*)?$/i;
+
+function assetExtension404Plugin(): Plugin {
+    return {
+        name: "kf-asset-extension-404",
+        apply: "serve",
+        configureServer(server) {
+            // Register DIRECTLY in `configureServer` (NOT the returned post-hook):
+            // a direct `server.middlewares.use()` runs at config time, BEFORE Vite
+            // installs its internal `htmlFallbackMiddleware`, so we sit ahead of it
+            // in the stack.
+            //
+            // Vite 8's `htmlFallbackMiddleware` rewrites a request to `/index.html`
+            // ONLY when `req.headers.accept` is undefined / "" / includes
+            // "text/html" / includes "*/*". For an asset-extension URL whose file
+            // MISSES on disk, that rewrite is exactly the silent-mis-paint bug
+            // (B9-a: `*.svg` → 200-HTML). We neutralize it for asset-extension
+            // requests ONLY by setting a non-HTML `Accept`, so htmlFallback
+            // declines to hijack the miss and the request falls through to Vite's
+            // static/transform pipeline — which 404s a missing asset HONESTLY.
+            //
+            // An asset that EXISTS is unaffected: the static/transform layer serves
+            // by URL resolution, not by `Accept`, so a real `*.svg` still 200s.
+            server.middlewares.use((req, _res, next) => {
+                const pathname = (req.url ?? "").split("?")[0];
+                if (ASSET_EXTENSION_RE.test(pathname)) {
+                    (req as { headers: Record<string, string> }).headers.accept =
+                        "application/octet-stream";
+                }
+                next();
+            });
+        },
+    };
+}
+
 export default defineConfig((mode) => {
     if (mode.mode === "production") {
         return {
@@ -286,6 +357,18 @@ export default defineConfig((mode) => {
                 outDir: path.resolve(import.meta.dirname, "./dist/gh-pages/"),
                 emptyOutDir: true,
                 minify: true,
+                // I.W5.S6 (B9-c) — the BUILT product emits NO source maps, so it
+                // is structurally free of the dev-only "Source Map loading errors
+                // ×47" DevTools noise. That x47 is benign dev-only diagnostics
+                // from Vite's dep-optimizer serving pre-bundled vendor maps
+                // (Monaco per-language chunks + html2canvas, whose
+                // `sourceMappingURL` points at a `.map` it does not co-emit) — it
+                // is ACCEPTED + documented, NOT suppressed: adding machinery at
+                // the dep-optimize layer to silence it would risk masking REAL
+                // future map errors (anti-KISS). The icon-paint gate asserts
+                // `sourcemapNon200 === 0` on THIS built product — where it
+                // matters — so the disposition is guarded at the product, not the
+                // dev noise.
                 sourcemap: false,
                 modulePreload: {
                     resolveDependencies(filename, deps) {
@@ -405,13 +488,24 @@ export default defineConfig((mode) => {
             plugins: [...defaultPlugins],
         };
     } else {
-        // Dev mode: serve the demo app with HMR
+        // Dev mode: serve the demo app with HMR.
+        //
+        // I.W5.S1 — `root: "./demo/app/"` with NO explicit `outDir` was the
+        // default-outDir LANDMINE: a build in any non-enumerated mode wrote to
+        // `demo/app/dist/` (the orphan). Pinning the SAME single canonical
+        // `outDir` (under the gitignored `dist/`) makes that second build output
+        // UNREACHABLE BY CONSTRUCTION — no Vite invocation can spawn
+        // `demo/app/dist/` again. `emptyOutDir: true` keeps it self-cleaning.
         return {
             ...defaultOptions,
             root: "./demo/app/",
             resolve: {
                 ...defaultOptions.resolve,
                 conditions: devConditions,
+            },
+            build: {
+                outDir: DEMO_DEFAULT_OUTDIR,
+                emptyOutDir: true,
             },
             optimizeDeps: {
                 include: [
@@ -422,7 +516,10 @@ export default defineConfig((mode) => {
                     "vue-sonner",
                 ],
             },
-            plugins: [...defaultPlugins],
+            // assetExtension404Plugin (S2): the dev SPA-fallback 404s
+            // asset-extension misses honestly (an orphaned `*.svg` surfaces as a
+            // real 404, never masked as 200-HTML).
+            plugins: [...defaultPlugins, assetExtension404Plugin()],
         };
     }
 });

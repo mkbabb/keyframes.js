@@ -1,0 +1,213 @@
+{
+  "log": [
+    {
+      "kind": "console.debug",
+      "text": "[vite] connecting..."
+    },
+    {
+      "kind": "console.debug",
+      "text": "[vite] connected."
+    },
+    {
+      "kind": "console.info",
+      "text": "<Suspense> is an experimental feature and its API will likely change."
+    },
+    {
+      "kind": "console.debug",
+      "text": "[kf:loaf] 67.0ms frame (blocking 0.0ms) — unattributed"
+    },
+    {
+      "kind": "console.debug",
+      "text": "[kf:loaf] 173.4ms frame (blocking 123.1ms) — http://localhost:5174/main.ts?t=1780945517097"
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.error",
+      "text": " Err x     0\n 1 | \n     ^^^"
+    },
+    {
+      "kind": "console.warning",
+      "text": "[KeyframesString] could not serialize the animation to CSS: Parse error at offset 0: \"......\""
+    },
+    {
+      "kind": "console.debug",
+      "text": "[vite] hot updated: /@fs/Users/mkbabb/Programming/keyframes.js/demo/@/styles/style.css"
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.debug",
+      "text": "[kf:loaf] 129.1ms frame (blocking 72.5ms) — http://localhost:5174/@fs/Users/mkbabb/Programming/keyframes.js/node_modules/.vite/deps/monaco-editor.js?v=2f0afe0e"
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "result",
+      "text": "{\n  \"steps\": [\n    {\n      \"name\": \"rot.at(0)\",\n      \"ufs\": \"{\\\"transform\\\":\\\"rotateX(0deg) rotateY(0turn) rotateZ(0deg)\\\"}\"\n    },\n    {\n      \"name\": \"rot.at(1)\",\n      \"ufs\": \"{\\\"transform\\\":\\\"rotateX(45deg) rotateY(1turn) rotateZ(360deg)\\\"}\"\n    }\n  ],\n  \"rotCSS\": \".rot {\\n  animation-name: rot;\\n  animation-duration: 1000ms;\\n  animation-timing-function: ease-in-out-cubic;\\n  animation-iteration-count: 1;\\n  animation-direction: normal;\\n  animation-fill-mode: forwards;\\n}\\n\\n@keyframes rot {\\n  0% {\\n    transform: rotateX(0deg) rotateY(0turn) rotateZ(0deg);\\n  }\\n  100% {\\n    transform: rotateX(45deg) rotateY(1turn) rotateZ(360deg);\\n  }\\n}\\n\"\n}"
+    },
+    {
+      "kind": "console.verbose",
+      "text": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "kind": "editorDOM",
+      "text": "{\"editorText\":null,\"placeholder\":null}"
+    }
+  ],
+  "result": {
+    "steps": [
+      {
+        "name": "rot.at(0)",
+        "ufs": "{\"transform\":\"rotateX(0deg) rotateY(0turn) rotateZ(0deg)\"}"
+      },
+      {
+        "name": "rot.at(1)",
+        "ufs": "{\"transform\":\"rotateX(45deg) rotateY(1turn) rotateZ(360deg)\"}"
+      }
+    ],
+    "rotCSS": ".rot {\n  animation-name: rot;\n  animation-duration: 1000ms;\n  animation-timing-function: ease-in-out-cubic;\n  animation-iteration-count: 1;\n  animation-direction: normal;\n  animation-fill-mode: forwards;\n}\n\n@keyframes rot {\n  0% {\n    transform: rotateX(0deg) rotateY(0turn) rotateZ(0deg);\n  }\n  100% {\n    transform: rotateX(45deg) rotateY(1turn) rotateZ(360deg);\n  }\n}\n"
+  },
+  "editorText": {
+    "editorText": null,
+    "placeholder": null
+  }
+}

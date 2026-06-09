@@ -16,37 +16,39 @@
          (J6) and the duration control runs FULL-WIDTH (J3). One flat CardContent
          (J4 — no nested wrapper). -->
     <Card surface="cartoon" tier="quiet" class="easing-editor w-full overflow-visible">
-        <!-- J4 — ONE flat CardContent (no double container). The hero canvas +
-             the EasingSelect + the full-width duration are its only children;
-             the optional steps rows join the uniform label-column subgrid. -->
+        <!-- J4 — ONE flat CardContent (no double container). The hero
+             EasingEditor + the full-width duration are its only children; the
+             optional steps rows join the uniform label-column subgrid. -->
         <CardContent class="panel-content labeled-field-grid px-4 py-3">
-            <!-- Hero curve canvas — the subject (J6: grown into the space the
-                 value input + title freed; see the in-sidebar grow below).
+            <!-- I.W2.S4 — the ONE shared EasingEditor (the curve dropdown +
+                 editable canvas + read-only readout/copy). The rail adapts
+                 `demo.*` onto the normalized contract; the SAME editor mounts in
+                 the in-panel TimingFunctionPanel, so the curve-change capability +
+                 J's minimal chrome are identical everywhere. I.W2.S3 folds back
+                 the readout J stripped from this rail (the parity gap) as the
+                 complete, re-parseable literal (`readoutLiteral`).
+
                  EASTER EGG "the Gallery" (H.W12.S6): double-click the canvas to
                  tour the expressive easing catalogue (back/bounce/elastic). The
                  dblclick rides a thin wrapper (the EasingCurveCanvas root is a
                  GlassPanel that does not forward native listeners reliably), and
                  is distinct from the bezier handle drag (pointerdown) so it never
                  fights the editor. `display: contents` keeps the wrapper out of
-                 the subgrid flow — the canvas stays the full-width hero child. -->
+                 the subgrid flow — the editor stays the full-width hero child. -->
             <div class="canvas-egg-host" @dblclick="demo.gallery">
-                <EasingCurveCanvas
+                <EasingEditor
                     :easing-fn="demo.currentEasingFn.value"
                     :svg-path="demo.svgPath.value"
                     :progress="demo.progress.value"
+                    :current-name="demo.currentEasingName.value"
+                    :timing-functions-and="demo.timingFunctionsAnd"
                     :bezier-points="demo.isBezierEditable.value ? demo.bezierControlPoints.value : undefined"
                     :editable="demo.isBezierEditable.value"
+                    :readout-value="readoutLiteral"
                     @update:bezier-points="demo.updateBezierPoints"
+                    @update:name="demo.selectEasing"
                 />
             </div>
-
-            <!-- Grouped curve selector — the SOLE easing selector (J1). The
-                 dropdown names the curve; the canvas shows it. No text field. -->
-            <EasingSelect
-                :model-value="demo.currentEasingName.value"
-                :timing-functions-and="demo.timingFunctionsAnd"
-                @update:model-value="demo.selectEasing"
-            />
 
             <!-- Step options (shown only for steps) — label-left rows -->
             <template v-if="demo.isSteps.value">
@@ -92,7 +94,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
+import { cubicBezierToString } from "@mkbabb/value.js";
 import { Card, CardContent } from "@mkbabb/glass-ui";
 import {
     LabeledInput,
@@ -100,8 +103,7 @@ import {
     LabeledSlider,
 } from "@mkbabb/glass-ui/labeled-field";
 
-import EasingSelect from "@components/custom/EasingSelect.vue";
-import EasingCurveCanvas from "@components/custom/EasingCurveCanvas.vue";
+import EasingEditor from "@components/custom/EasingEditor.vue";
 import type { EasingDemoContext } from "./easingKeys";
 
 const JUMP_TERMS = ["jump-start", "jump-end", "jump-none", "jump-both"] as const;
@@ -111,6 +113,22 @@ const demo = props.demo;
 
 // LabeledSelect open-state (the sidebar has a single select that owns its flag).
 const jumpOpen = ref(false);
+
+// I.W2.S3 — the read-only readout's COMPLETE, re-parseable literal. For an
+// editable bezier (custom or a named curve with a bezier approximation) it is
+// the `cubic-bezier(x1, y1, x2, y2)` literal built from the live control points;
+// for steps it is `steps(n, term)`. A bare named curve (`ease-out`) has no
+// parametric literal to copy → `undefined` (the dropdown already names it, and
+// the editor omits the readout). NEVER the bare `cubic-bezier` keyword.
+const readoutLiteral = computed<string | undefined>(() => {
+    if (demo.isBezierEditable.value) {
+        return cubicBezierToString(...demo.bezierControlPoints.value);
+    }
+    if (demo.isSteps.value) {
+        return `steps(${demo.stepOptions.value.steps}, ${demo.stepOptions.value.jumpTerm})`;
+    }
+    return undefined;
+});
 
 const onStepsChangeValue = (value: string) => {
     const v = parseInt(value, 10);

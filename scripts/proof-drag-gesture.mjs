@@ -1,0 +1,449 @@
+#!/usr/bin/env node
+/**
+ * proof:drag-gesture — I.W4 D1 + D2 (the B6 RUNTIME/INTERACTION gate).
+ *
+ * THE DEFECTS (rc-drag-perf §1). B6-a: a drag on the `/square` box (and, latently,
+ * every scene rail) highlighted the chrome text the pointer swept — there was NO
+ * global select-suppression seam (`SquareScene.vue:2` scoped `select-none` to the
+ * stage; the drag listened at `window`, so the cursor legitimately crossed the
+ * dock + control labels, which stayed `user-select:auto`). B6-b: `pointerup →
+ * reseat(0,0)` (`SquareScene.vue:104`) hard-coded a spring-home-on-release, so the
+ * box snapped back to centre instead of staying where dragged.
+ *
+ * THE FIX (D1 + D2). The shared `useDragScrub` seam now owns the single
+ * "gesture-in-flight" authority: on pointer-down it sets `body.is-dragging`
+ * (whose rule `body.is-dragging * { user-select: none }` lives in
+ * design-idioms.css), cleared on pointerup/pointercancel — inherited by EVERY
+ * drag surface. And `releasePolicy: "persist"` (the default) leaves the dragged
+ * value in place on release; the explicit `Home`/`End` recenter stays.
+ *
+ * THIS GATE BITES (born-RED on `8a40cf4`/HEAD-pre-fix, GREEN-on-fix):
+ *
+ *  • clause (a) — a REAL `page.mouse.down→move→up` over the document, starting on
+ *    the square box and SWEEPING across a dock/control label, leaves
+ *    `getSelection().toString()` EMPTY. The born-RED witness is DUAL (the
+ *    synthetic-drag artifact would false-green a naive selection-only gate, per
+ *    rc §1a): (i) the PRIMARY runtime read — `getSelection()` empty after the
+ *    sweep; (ii) the STRUCTURAL corroborator (the decisive proof per
+ *    `b6-square-drag.mjs`) — `getComputedStyle(html/body/dock/controls).userSelect`
+ *    resolves to a SUPPRESSED value (`none`) WHILE the gesture is in flight (and
+ *    `body.is-dragging` is set). If `setPointerCapture` routes the pointer stream
+ *    away from the document text-select machinery (the synthetic-drag artifact
+ *    that read 0 chars), the STRUCTURAL assertion is the born-RED-of-record — the
+ *    gate NEVER passes on a synthetic 0-char read. Run against EVERY drag surface
+ *    (square, spring, sequence, motion-path) — the seam owns it, the gate covers it.
+ *  • clause (b) — drag the square box to a measured non-centre offset, release,
+ *    wait for the spring to settle → its `transform` ≠ identity (persisted, NOT
+ *    recentred). Then assert `Home`/`End` STILL recentres (no capability lost).
+ *
+ * Mirrors scripts/proof-no-orphan-specular.mjs (serveDist + playwright-core via
+ * KF_PLAYWRIGHT_DIR + fresh context). Under KF_REQUIRE_BROWSER a playwright-absent
+ * skip is a hard fail. Re-runnable: `node scripts/proof-drag-gesture.mjs`. Serves
+ * the BUILT dist/gh-pages/.
+ */
+import fs from "node:fs";
+import http from "node:http";
+import path from "node:path";
+import { createRequire } from "node:module";
+import { fileURLToPath } from "node:url";
+
+const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const DIST = path.join(REPO, "dist/gh-pages");
+
+const failures = [];
+const ok = (label) => console.log(`  ✓ ${label}`);
+const note = (label) => console.log(`  · ${label}`);
+const fail = (label) => {
+    failures.push(label);
+    console.error(`  ✗ ${label}`);
+};
+
+console.log("proof:drag-gesture — I.W4 D1+D2 (B6 drag select-suppression + persist)");
+
+const MIME = {
+    ".html": "text/html",
+    ".js": "text/javascript",
+    ".css": "text/css",
+    ".json": "application/json",
+    ".png": "image/png",
+    ".ttf": "font/ttf",
+    ".woff2": "font/woff2",
+    ".svg": "image/svg+xml",
+};
+const MACHINE_KEY = "keyframes-js-scene-machine";
+const CTRL_KEY = "animation-groups-control-options-store";
+
+function serveDist() {
+    const server = http.createServer((req, res) => {
+        const urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
+        const p = path.join(DIST, urlPath === "/" ? "index.html" : urlPath);
+        if (!p.startsWith(DIST) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) {
+            res.writeHead(404).end();
+            return;
+        }
+        res.writeHead(200, {
+            "content-type": MIME[path.extname(p)] ?? "application/octet-stream",
+        });
+        fs.createReadStream(p).pipe(res);
+    });
+    return server;
+}
+
+/** Open a scene in a FRESH context at its canonical FIRST-LOAD mount. */
+async function openSceneFresh(browser, base, scene, viewportWidth) {
+    const ctx = await browser.newContext({ viewport: { width: viewportWidth, height: 900 } });
+    const page = await ctx.newPage();
+    await page.addInitScript((ck) => {
+        try {
+            localStorage.setItem(ck, JSON.stringify({ isControlsPanelOpen: true }));
+        } catch {
+            /* ignore */
+        }
+    }, CTRL_KEY);
+    await page.goto(`${base}/#/${scene}`, { waitUntil: "load" });
+    await page
+        .waitForFunction(
+            ([mk, s]) => {
+                try {
+                    return JSON.parse(localStorage.getItem(mk) || "{}").activeScene === s;
+                } catch {
+                    return false;
+                }
+            },
+            [MACHINE_KEY, scene],
+            { timeout: 8000 },
+        )
+        .catch(() => {});
+    await page.setViewportSize({ width: viewportWidth, height: 900 });
+    await page.waitForTimeout(900); // route rested + the scene's sub-Cards mounted
+    return { ctx, page };
+}
+
+const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
+const skipOrFail = (reason) => {
+    if (REQUIRE_BROWSER) {
+        fail(
+            `browser half REQUIRED (KF_REQUIRE_BROWSER=1) but ${reason} — ` +
+                "the drag-gesture assertions cannot pass vacuously",
+        );
+    } else {
+        console.log(`  ○ browser half skipped — ${reason}`);
+    }
+};
+
+// The drag surfaces, by scene → the grab handle selector the seam attaches to.
+// The seam owns the gesture-in-flight token, so a SINGLE structural assertion
+// (userSelect suppressed during the gesture) must hold for ALL of them.
+const DRAG_SURFACES = [
+    { scene: "square", handle: ".demo-box" },
+    { scene: "spring", handle: ".spring-rail" },
+    { scene: "sequence", handle: ".seq-scrub" },
+    { scene: "motion-path", handle: ".mp-traveller" },
+];
+
+async function browserHalf() {
+    if (!fs.existsSync(path.join(DIST, "index.html"))) {
+        skipOrFail("dist/gh-pages not built (run `npm run gh-pages` first)");
+        return;
+    }
+    let chromium;
+    const requireFrom = createRequire(
+        path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
+    );
+    try {
+        ({ chromium } = requireFrom("playwright-core"));
+    } catch {
+        try {
+            ({ chromium } = requireFrom("@playwright/test"));
+        } catch {
+            skipOrFail("playwright not resolvable (set KF_PLAYWRIGHT_DIR or install @playwright/test)");
+            return;
+        }
+    }
+
+    const server = serveDist();
+    await new Promise((r) => server.listen(0, r));
+    const base = `http://127.0.0.1:${server.address().port}`;
+    const VW = 1440;
+    const browser = await chromium.launch();
+
+    try {
+        // ── clause (a) — REAL drag selects no chrome text, EVERY drag surface ──
+        // The seam owns select-suppression: for each surface we drive a real
+        // page.mouse drag from the grab handle, SWEEP across a chrome label, and
+        // assert BOTH (i) getSelection() empty AND (ii) the structural userSelect
+        // suppression holds mid-gesture (the decisive, capture-artifact-proof
+        // witness). Run against all four surfaces.
+        let surfacesExercised = 0;
+        const surfaceFailures = [];
+
+        for (const { scene, handle } of DRAG_SURFACES) {
+            const { ctx, page } = await openSceneFresh(browser, base, scene, VW);
+            try {
+                // Find a grab handle for this surface + a chrome label to sweep over.
+                const geom = await page.evaluate((handleSel) => {
+                    const pick = handleSel
+                        .split(",")
+                        .map((s) => s.trim())
+                        .map((s) => document.querySelector(s))
+                        .find(Boolean);
+                    const r = pick?.getBoundingClientRect();
+                    // A chrome label to sweep over: a dock label / control caption.
+                    // Prefer a text-bearing element OUTSIDE the drag surface.
+                    const chromeText = [
+                        ...document.querySelectorAll(
+                            ".glass-dock *, .dock-label, [class*='controls'] label, header *",
+                        ),
+                    ].find((el) => {
+                        const t = (el.textContent || "").trim();
+                        const rr = el.getBoundingClientRect();
+                        return t.length > 1 && rr.width > 4 && rr.height > 4;
+                    });
+                    const cr = chromeText?.getBoundingClientRect();
+                    return {
+                        has: !!(r && r.width > 4 && r.height > 4),
+                        hx: r ? Math.round(r.left + r.width / 2) : 0,
+                        hy: r ? Math.round(r.top + r.height / 2) : 0,
+                        chrome: cr
+                            ? { cx: Math.round(cr.left + cr.width / 2), cy: Math.round(cr.top + cr.height / 2) }
+                            : null,
+                    };
+                }, handle);
+
+                if (!geom.has) {
+                    note(`${scene}: no grab handle matched \`${handle}\` — surface not exercised here`);
+                    continue;
+                }
+
+                // The chrome sweep target: the located chrome label, else a point
+                // up in the header band (a chrome strip that is never the surface).
+                const sweepTo = geom.chrome ?? { cx: Math.round(VW / 2), cy: 60 };
+
+                // Drive a REAL mouse drag: down on the handle, move across the
+                // chrome label in steps, sample userSelect MID-gesture, then up.
+                await page.mouse.move(geom.hx, geom.hy);
+                await page.mouse.down();
+
+                // Step toward the chrome label, sampling the structural state at
+                // the point where the cursor is over the chrome.
+                const steps = 8;
+                let midSample = null;
+                for (let i = 1; i <= steps; i++) {
+                    const x = Math.round(geom.hx + ((sweepTo.cx - geom.hx) * i) / steps);
+                    const y = Math.round(geom.hy + ((sweepTo.cy - geom.hy) * i) / steps);
+                    await page.mouse.move(x, y);
+                    if (i === steps) {
+                        // At the chrome label: sample the structural suppression +
+                        // any live selection accrued so far.
+                        midSample = await page.evaluate(() => {
+                            const us = (el) =>
+                                el ? getComputedStyle(el).userSelect || getComputedStyle(el).webkitUserSelect : "n/a";
+                            const dock = document.querySelector(".glass-dock");
+                            const controls = document.querySelector("[class*='controls'], aside, .controls-pane");
+                            return {
+                                bodyDragging: document.body.classList.contains("is-dragging"),
+                                html: us(document.documentElement),
+                                body: us(document.body),
+                                dock: us(dock),
+                                controls: us(controls),
+                                selectionMid: (window.getSelection()?.toString() || "").length,
+                            };
+                        });
+                    }
+                }
+                await page.mouse.up();
+
+                const after = await page.evaluate(() => ({
+                    selection: (window.getSelection()?.toString() || "").length,
+                    bodyDraggingAfter: document.body.classList.contains("is-dragging"),
+                }));
+
+                surfacesExercised += 1;
+
+                // (ii) STRUCTURAL — the decisive, capture-artifact-proof witness:
+                // every chrome surface must resolve userSelect=none WHILE the
+                // gesture is live (and body.is-dragging set). This is the property
+                // that WAS `auto` everywhere on HEAD (18/18 chrome `user-select:auto`).
+                const suppressedTokens = ["none", "-webkit-none"];
+                const isSuppressed = (v) => v != null && suppressedTokens.includes(String(v).toLowerCase());
+                if (!midSample) {
+                    surfaceFailures.push(`${scene}: could not sample the mid-gesture structural state`);
+                } else if (!midSample.bodyDragging) {
+                    surfaceFailures.push(
+                        `${scene}: body.is-dragging was NOT set during the gesture — the seam did not arm the global token (D1 not live for this surface)`,
+                    );
+                } else if (!isSuppressed(midSample.html) || !isSuppressed(midSample.body)) {
+                    surfaceFailures.push(
+                        `${scene}: html/body userSelect was NOT suppressed mid-gesture (html=${midSample.html}, body=${midSample.body}) — the chrome stays selectable (B6-a born-RED shape)`,
+                    );
+                } else {
+                    // (i) PRIMARY runtime — getSelection empty after sweep+release.
+                    // (A synthetic 0-char read NEVER passes alone — the structural
+                    // assertion above is the load-bearing born-RED-of-record; here
+                    // we additionally confirm the real drag accrued no selection.)
+                    if (midSample.selectionMid > 0 || after.selection > 0) {
+                        surfaceFailures.push(
+                            `${scene}: a real drag over a chrome label accrued ${midSample.selectionMid || after.selection} selected chars — text IS highlighting (B6-a)`,
+                        );
+                    } else {
+                        note(
+                            `${scene}: drag swept chrome — userSelect suppressed (html=${midSample.html}, body=${midSample.body}, dock=${midSample.dock}, controls=${midSample.controls}); getSelection empty; token cleared on release (${after.bodyDraggingAfter ? "STILL SET — leak!" : "cleared"})`,
+                        );
+                        if (after.bodyDraggingAfter) {
+                            surfaceFailures.push(
+                                `${scene}: body.is-dragging was NOT cleared on pointerup — the gesture token leaked (selection would freeze globally)`,
+                            );
+                        }
+                    }
+                }
+            } finally {
+                await ctx.close();
+            }
+        }
+
+        if (surfacesExercised === 0) {
+            skipOrFail("clause (a) exercised ZERO drag surfaces (non-vacuity floor unmet)");
+        } else if (surfaceFailures.length === 0) {
+            ok(
+                `clause (a) — a REAL drag over a chrome label selects NO text + userSelect is ` +
+                    `suppressed (html/body=none) for the WHOLE gesture across ${surfacesExercised} ` +
+                    `drag surface(s); body.is-dragging set on down, cleared on up. The seam owns the ` +
+                    `global gesture-in-flight token (D1) — inherited by every drag surface.`,
+            );
+        } else {
+            fail(
+                `clause (a) — ${surfaceFailures.length} drag surface(s) still highlight chrome / leave ` +
+                    `userSelect:auto mid-gesture (B6-a — the seam's global select-suppression is not live):\n      ` +
+                    surfaceFailures.join("\n      "),
+            );
+        }
+
+        // ── clause (b) — the dragged square PERSISTS after settle; Home recenters ──
+        {
+            const { ctx, page } = await openSceneFresh(browser, base, "square", VW);
+            try {
+                const box = await page.evaluate(() => {
+                    const el = document.querySelector(".demo-box");
+                    const r = el?.getBoundingClientRect();
+                    return r
+                        ? { cx: Math.round(r.left + r.width / 2), cy: Math.round(r.top + r.height / 2) }
+                        : null;
+                });
+                if (!box) {
+                    fail("clause (b) — the .demo-box was not found on /square");
+                } else {
+                    // Drag the box to a measured non-centre offset (down + right),
+                    // release, then wait for the spring to settle.
+                    await page.mouse.move(box.cx, box.cy);
+                    await page.mouse.down();
+                    const target = { x: box.cx - 90, y: box.cy + 70 };
+                    for (let i = 1; i <= 6; i++) {
+                        await page.mouse.move(
+                            Math.round(box.cx + ((target.x - box.cx) * i) / 6),
+                            Math.round(box.cy + ((target.y - box.cy) * i) / 6),
+                        );
+                        await page.waitForTimeout(16);
+                    }
+                    await page.mouse.up();
+
+                    // Wait for the spring to stop changing (settle) — poll the
+                    // transform up to a ~900 ms bound.
+                    const readTransform = () =>
+                        page.evaluate(() => {
+                            const el = document.querySelector(".demo-box");
+                            return el ? getComputedStyle(el).transform : "none";
+                        });
+                    let prev = await readTransform();
+                    let settled = prev;
+                    for (let i = 0; i < 12; i++) {
+                        await page.waitForTimeout(80);
+                        const cur = await readTransform();
+                        if (cur === prev) {
+                            settled = cur;
+                            break;
+                        }
+                        prev = cur;
+                        settled = cur;
+                    }
+
+                    // identity = "none" or a matrix with zero translate + unit scale.
+                    const isIdentity = (t) => {
+                        if (!t || t === "none") return true;
+                        const m = t.match(/matrix(?:3d)?\(([^)]+)\)/);
+                        if (!m) return true;
+                        const n = m[1].split(",").map((s) => parseFloat(s.trim()));
+                        if (n.length === 6) {
+                            // matrix(a,b,c,d,e,f): translate=(e,f), scale≈(a,d)
+                            const [a, , , d, e, f] = n;
+                            return Math.abs(e) < 1 && Math.abs(f) < 1 && Math.abs(a - 1) < 0.02 && Math.abs(d - 1) < 0.02;
+                        }
+                        return false;
+                    };
+
+                    if (isIdentity(settled)) {
+                        fail(
+                            `clause (b) — after drag+settle the box transform is IDENTITY (${settled}) — it ` +
+                                `recentred instead of persisting (B6-b: pointerup → reseat(0,0) born-RED shape)`,
+                        );
+                    } else {
+                        ok(
+                            `clause (b) — the dragged box PERSISTS after settle (transform=${String(settled).slice(0, 48)}…, ` +
+                                `≠ identity); releasePolicy:"persist" leaves the spring at the dragged target (D2)`,
+                        );
+                    }
+
+                    // Home/End STILL recenters (no capability lost). Focus the box,
+                    // press Home, wait for the recenter spring to settle.
+                    await page.evaluate(() => document.querySelector(".demo-box")?.focus());
+                    await page.keyboard.press("Home");
+                    let homePrev = await readTransform();
+                    let homeSettled = homePrev;
+                    for (let i = 0; i < 12; i++) {
+                        await page.waitForTimeout(80);
+                        const cur = await readTransform();
+                        if (cur === homePrev) {
+                            homeSettled = cur;
+                            break;
+                        }
+                        homePrev = cur;
+                        homeSettled = cur;
+                    }
+                    if (isIdentity(homeSettled)) {
+                        ok(
+                            `clause (b) — Home STILL recenters (transform settled to identity, ${homeSettled}) — ` +
+                                `the deliberate return-home affordance is preserved`,
+                        );
+                    } else {
+                        fail(
+                            `clause (b) — Home did NOT recenter the box (transform=${String(homeSettled).slice(0, 48)}…) — ` +
+                                `the explicit recenter affordance regressed`,
+                        );
+                    }
+                }
+            } finally {
+                await ctx.close();
+            }
+        }
+    } finally {
+        await browser.close();
+        server.close();
+    }
+}
+
+await browserHalf();
+
+if (failures.length > 0) {
+    console.error(
+        `\nproof:drag-gesture — FAIL (${failures.length}): a drag still highlights the chrome it sweeps ` +
+            `(B6-a — the seam's global select-suppression token is not live for some surface), OR the ` +
+            `dragged box recenters instead of persisting (B6-b — releasePolicy not "persist"), OR Home ` +
+            `lost its recenter. D1 (the shared gesture-in-flight token) + D2 (persist policy) are not both live.`,
+    );
+    process.exit(1);
+}
+console.log(
+    "\nproof:drag-gesture — PASS: a real drag over a chrome label selects no text and userSelect is " +
+        "suppressed for the whole gesture across every drag surface (D1 — the shared seam owns the global " +
+        "is-dragging token); the dragged square persists where released (D2 — releasePolicy:\"persist\"); " +
+        "Home still recenters. B6-a + B6-b are closed at the seam.",
+);

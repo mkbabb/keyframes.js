@@ -1,0 +1,202 @@
+{
+  "log": [
+    {
+      "k": "c.debug",
+      "t": "[vite] connecting..."
+    },
+    {
+      "k": "c.debug",
+      "t": "[vite] connected."
+    },
+    {
+      "k": "c.info",
+      "t": "<Suspense> is an experimental feature and its API will likely change."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.error",
+      "t": " Err x     0\n 1 | \n     ^^^"
+    },
+    {
+      "k": "c.warning",
+      "t": "[KeyframesString] could not serialize the animation to CSS: Parse error at offset 0: \"......\""
+    },
+    {
+      "k": "c.debug",
+      "t": "[kf:loaf] 235.8ms frame (blocking 114.4ms) — http://localhost:5174/main.ts"
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.debug",
+      "t": "[kf:loaf] 129.7ms frame (blocking 72.5ms) — http://localhost:5174/@fs/Users/mkbabb/Programming/keyframes.js/node_modules/.vite/deps/monaco-editor.js?v=2f0afe0e"
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.verbose",
+      "t": "Rendering was performed in a subtree hidden by content-visibility."
+    },
+    {
+      "k": "c.error",
+      "t": " Err x     0\n 1 | \n     ^^^"
+    },
+    {
+      "k": "RESULT",
+      "t": "{\n  \"rot_no_target\": {\n    \"ok\": false,\n    \"err\": \"Cannot interpolate computed values without a target element.\"\n  },\n  \"rot_target_no_var\": {\n    \"ok\": false,\n    \"err\": \"Parse error at offset 0: \\\"......\\\"\"\n  },\n  \"hover_preset\": {\n    \"ok\": true,\n    \"body\": \"@keyframes x {\\n  0%,\\n  100% {\\n    transform: translateY(0px);\\n  }\\n  50% {\\n    transform: translateY(5px);\\n  }\\n}\\n\"\n  },\n  \"matrix_no_target\": {\n    \"ok\": true,\n    \"body\": \"@keyframes x {\\n  0% {\\n    transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);\\n  }\\n  100% {\\n    transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 40, 0, 0, 1);\\n  }\\n}\\n\"\n  }\n}"
+    }
+  ],
+  "result": {
+    "rot_no_target": {
+      "ok": false,
+      "err": "Cannot interpolate computed values without a target element."
+    },
+    "rot_target_no_var": {
+      "ok": false,
+      "err": "Parse error at offset 0: \"......\""
+    },
+    "hover_preset": {
+      "ok": true,
+      "body": "@keyframes x {\n  0%,\n  100% {\n    transform: translateY(0px);\n  }\n  50% {\n    transform: translateY(5px);\n  }\n}\n"
+    },
+    "matrix_no_target": {
+      "ok": true,
+      "body": "@keyframes x {\n  0% {\n    transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);\n  }\n  100% {\n    transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 40, 0, 0, 1);\n  }\n}\n"
+    }
+  }
+}

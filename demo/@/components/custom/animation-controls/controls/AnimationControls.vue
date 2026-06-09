@@ -5,7 +5,7 @@
     >
         <Tabs
             class="pl-4 pr-7 pt-2 pb-2 w-full flex-1 min-h-0 flex flex-col justify-start"
-            :model-value="storedControls.selectedControl"
+            :model-value="selectedControlSurface"
             @update:model-value="selectControl"
         >
             <!-- Tabs header (hidden when managed externally via ChromeDock) -->
@@ -202,6 +202,50 @@ const builtInTabs = computed(() =>
     BUILT_IN_SURFACES.filter(
         (s) => !tabsExternallyManaged || machine.controlSurfaces.value.includes(s),
     ).map((s) => BUILT_IN_TAB_META[s]!),
+);
+
+// ── THE SELECTED-SURFACE SINGLE AUTHORITY (I.W2.S1 · OWNS the I.W1-shared mount)
+// The `<Tabs> :model-value` is a MACHINE-PROJECTED, synchronously-correct value:
+// the active scene's selected surface resolved as a PURE FUNCTION of (the DFA
+// set × the group's stored pick) via `selectedControlSurfaceFor`. On a scene
+// SWITCH this is born `"easing"` on the very tick the reka `<Tabs>` root mounts,
+// so its `useVModel` `passive`-latch is taken CORRECT (not `undefined`/stale) —
+// the B4 desync (the panel selected-but-`data-state="inactive"` on switch-in) is
+// fixed at its source, no `nextTick` re-assert. The mount is order-independent:
+// it depends only on (DFA surfaces × the active group's pick), never on flush-
+// completion order — this is the single-authority I.W1's S3 consumes for B2's
+// resumed scene. The STANDALONE host (playground EditorShell, not scene-machine-
+// routed) keeps the raw stored pick (its activeScene stays the `home` default,
+// so the projection would be `undefined`); the DFA projection gates ONLY when
+// `tabsExternallyManaged`, mirroring `hasSurface`/`builtInTabs`.
+const selectedControlSurface = computed<string>(() =>
+    tabsExternallyManaged
+        ? machine.selectedControlSurface(storedControls.selectedControl) ??
+          storedControls.selectedControl
+        : storedControls.selectedControl,
+);
+
+// Reconcile the store to the single authority. Downstream store-reading
+// computeds (the timeline-visible / keyframes-active gates below, the ribbon's
+// `selectedControl`) read `storedControls.selectedControl`; when the machine
+// projection corrects a stale pick (a single-surface scene entered with another
+// scene's stored selection), write it BACK so the store mirrors the authority.
+// This is a derivation-sync, NOT a latch re-assert — idempotent, fires only on
+// genuine divergence, and the projection (not this write) is what the `<Tabs>`
+// binds, so it can never race the mount. Replaces the per-scene `setup` pokes
+// (EasingScene/SpringScene `storedControls.selectedControl = …`), now DELETED.
+watch(
+    selectedControlSurface,
+    (surface) => {
+        if (
+            tabsExternallyManaged &&
+            surface &&
+            storedControls.selectedControl !== surface
+        ) {
+            storedControls.selectedControl = surface;
+        }
+    },
+    { immediate: true },
 );
 
 const emit = defineEmits<{

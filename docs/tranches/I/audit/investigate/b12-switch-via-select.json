@@ -1,0 +1,378 @@
+[
+  {
+    "from": "cube",
+    "to": "amiga",
+    "playedA": true,
+    "switchOk": false,
+    "switchWhy": "no item Amiga",
+    "arrived": false,
+    "activeNow": "cube",
+    "aSnapPlaying": true,
+    "switchErrs": []
+  },
+  {
+    "from": "cube",
+    "to": "square",
+    "playedA": true,
+    "switchOk": false,
+    "switchWhy": "no item Square",
+    "arrived": false,
+    "activeNow": "cube",
+    "aSnapPlaying": true,
+    "switchErrs": []
+  },
+  {
+    "from": "cube",
+    "to": "easing",
+    "playedA": true,
+    "switchOk": false,
+    "switchWhy": "no item Easing",
+    "arrived": false,
+    "activeNow": "cube",
+    "aSnapPlaying": true,
+    "switchErrs": []
+  },
+  {
+    "from": "cube",
+    "to": "spring",
+    "playedA": true,
+    "switchOk": false,
+    "switchWhy": "no item Spring",
+    "arrived": false,
+    "activeNow": "cube",
+    "aSnapPlaying": true,
+    "switchErrs": []
+  },
+  {
+    "from": "cube",
+    "to": "sequence",
+    "playedA": true,
+    "switchOk": false,
+    "switchWhy": "no item Sequence",
+    "arrived": false,
+    "activeNow": "cube",
+    "aSnapPlaying": true,
+    "switchErrs": []
+  },
+  {
+    "from": "cube",
+    "to": "motion-path",
+    "playedA": true,
+    "switchOk": false,
+    "switchWhy": "no item Motion Path",
+    "arrived": false,
+    "activeNow": "cube",
+    "aSnapPlaying": true,
+    "switchErrs": []
+  },
+  {
+    "from": "cube",
+    "phase": "load+play",
+    "playedA": true,
+    "loadErrs": [
+      "[error]  Err x     0\n 1 | \n     ^^^",
+      "[warning] [KeyframesString] could not serialize the animation to CSS: Parse error at offset 0: \"......\""
+    ],
+    "playErrs": [
+      "[error]  Err x     0\n 1 | \n     ^^^",
+      "[PAGEERROR] Error: Parse error at offset 0: \"......\" :: at bo (http://127.0.0.1:60211/assets/engine-Do5bTwuK.js:19:62788)"
+    ]
+  },
+  {
+    "from": "amiga",
+    "to": "cube",
+    "playedA": true,
+    "switchOk": false,
+    "switchWhy": "no item Cube",
+    "arrived": false,
+    "activeNow": "amiga",
+    "aSnapPlaying": true,
+    "switchErrs": []
+  },
+  {
+    "from": "amiga",
+    "to": "square",
+    "playedA": true,
+    "switchOk": false,
+    "switchWhy": "no item Square",
+    "arrived": false,
+    "activeNow": "amiga",
+    "aSnapPlaying": true,
+    "switchErrs": []
+  },
+  {
+    "from": "amiga",
+    "to": "easing",
+    "playedA": true,
+    "switchOk": false,
+    "switchWhy": "no item Easing",
+    "arrived": false,
+    "activeNow": "amiga",
+    "aSnapPlaying": true,
+    "switchErrs": []
+  },
+  {
+    "from": "amiga",
+    "to": "spring",
+    "playedA": true,
+    "switchOk": false,
+    "switchWhy": "no item Spring",
+    "arrived": false,
+    "activeNow": "amiga",
+    "aSnapPlaying": true,
+    "switchErrs": []
+  },
+  {
+    "from": "amiga",
+    "to": "sequence",
+    "playedA": true,
+    "switchOk": false,
+    "switchWhy": "no item Sequence",
+    "arrived": false,
+    "activeNow": "amiga",
+    "aSnapPlaying": true,
+    "switchErrs": []
+  },
+  {
+    "from": "amiga",
+    "to": "motion-path",
+    "playedA": true,
+    "switchOk": false,
+    "switchWhy": "no item Motion Path",
+    "arrived": false,
+    "activeNow": "amiga",
+    "aSnapPlaying": true,
+    "switchErrs": []
+  },
+  {
+    "from": "amiga",
+    "phase": "load+play",
+    "playedA": true,
+    "loadErrs": [
+      "[warning] [.WebGL-0x1240058f600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+      "[warning] [.WebGL-0x1240058f600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+      "[warning] [.WebGL-0x1240058f600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+      "[warning] [.WebGL-0x1240058f600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)"
+    ],
+    "playErrs": []
+  },
+  {
+    "from": "square",
+    "to": "cube",
+    "playedA": true,
+    "switchOk": false,
+    "switchWhy": "no item Cube",
+    "arrived": false,
+    "activeNow": "square",
+    "aSnapPlaying": true,
+    "switchErrs": []
+  },
+  {
+    "from": "square",
+    "to": "amiga",
+    "playedA": true,
+    "switchOk": false,
+    "switchWhy": "no item Amiga",
+    "arrived": false,
+    "activeNow": "square",
+    "aSnapPlaying": true,
+    "switchErrs": []
+  },
+  {
+    "from": "square",
+    "to": "easing",
+    "playedA": true,
+    "switchOk": false,
+    "switchWhy": "no item Easing",
+    "arrived": false,
+    "activeNow": "square",
+    "aSnapPlaying": true,
+    "switchErrs": []
+  },
+  {
+    "from": "square",
+    "to": "spring",
+    "playedA": true,
+    "switchOk": false,
+    "switchWhy": "no item Spring",
+    "arrived": false,
+    "activeNow": "square",
+    "aSnapPlaying": true,
+    "switchErrs": []
+  },
+  {
+    "from": "square",
+    "to": "sequence",
+    "playedA": true,
+    "switchOk": false,
+    "switchWhy": "no item Sequence",
+    "arrived": false,
+    "activeNow": "square",
+    "aSnapPlaying": true,
+    "switchErrs": []
+  },
+  {
+    "from": "square",
+    "to": "motion-path",
+    "playedA": true,
+    "switchOk": false,
+    "switchWhy": "no item Motion Path",
+    "arrived": false,
+    "activeNow": "square",
+    "aSnapPlaying": true,
+    "switchErrs": []
+  },
+  {
+    "from": "square",
+    "phase": "load+play",
+    "playedA": true,
+    "loadErrs": [],
+    "playErrs": []
+  },
+  {
+    "from": "easing",
+    "to": "cube",
+    "playedA": false,
+    "switchOk": false,
+    "switchWhy": "no item Cube",
+    "arrived": false,
+    "activeNow": "easing",
+    "aSnapPlaying": true,
+    "switchErrs": []
+  },
+  {
+    "from": "easing",
+    "to": "amiga",
+    "playedA": false,
+    "switchOk": false,
+    "switchWhy": "no item Amiga",
+    "arrived": false,
+    "activeNow": "easing",
+    "aSnapPlaying": true,
+    "switchErrs": []
+  },
+  {
+    "from": "easing",
+    "to": "square",
+    "playedA": false,
+    "switchOk": false,
+    "switchWhy": "no item Square",
+    "arrived": false,
+    "activeNow": "easing",
+    "aSnapPlaying": true,
+    "switchErrs": []
+  },
+  {
+    "from": "easing",
+    "to": "spring",
+    "playedA": false,
+    "switchOk": false,
+    "switchWhy": "no item Spring",
+    "arrived": false,
+    "activeNow": "easing",
+    "aSnapPlaying": true,
+    "switchErrs": []
+  },
+  {
+    "from": "easing",
+    "to": "sequence",
+    "playedA": false,
+    "switchOk": false,
+    "switchWhy": "no item Sequence",
+    "arrived": false,
+    "activeNow": "easing",
+    "aSnapPlaying": true,
+    "switchErrs": []
+  },
+  {
+    "from": "easing",
+    "to": "motion-path",
+    "playedA": false,
+    "switchOk": false,
+    "switchWhy": "no item Motion Path",
+    "arrived": false,
+    "activeNow": "easing",
+    "aSnapPlaying": true,
+    "switchErrs": []
+  },
+  {
+    "from": "easing",
+    "phase": "load+play",
+    "playedA": false,
+    "loadErrs": [],
+    "playErrs": []
+  },
+  {
+    "from": "spring",
+    "to": "cube",
+    "playedA": false,
+    "switchOk": false,
+    "switchWhy": "no item Cube",
+    "arrived": false,
+    "activeNow": "spring",
+    "aSnapPlaying": true,
+    "switchErrs": []
+  },
+  {
+    "from": "spring",
+    "to": "amiga",
+    "playedA": false,
+    "switchOk": false,
+    "switchWhy": "no item Amiga",
+    "arrived": false,
+    "activeNow": "spring",
+    "aSnapPlaying": true,
+    "switchErrs": []
+  },
+  {
+    "from": "spring",
+    "to": "square",
+    "playedA": false,
+    "switchOk": false,
+    "switchWhy": "no item Square",
+    "arrived": false,
+    "activeNow": "spring",
+    "aSnapPlaying": true,
+    "switchErrs": []
+  },
+  {
+    "from": "spring",
+    "to": "easing",
+    "playedA": false,
+    "switchOk": false,
+    "switchWhy": "no item Easing",
+    "arrived": false,
+    "activeNow": "spring",
+    "aSnapPlaying": true,
+    "switchErrs": []
+  },
+  {
+    "from": "spring",
+    "to": "sequence",
+    "playedA": false,
+    "switchOk": false,
+    "switchWhy": "no item Sequence",
+    "arrived": false,
+    "activeNow": "spring",
+    "aSnapPlaying": true,
+    "switchErrs": []
+  },
+  {
+    "from": "spring",
+    "to": "motion-path",
+    "playedA": false,
+    "switchOk": false,
+    "switchWhy": "no item Motion Path",
+    "arrived": false,
+    "activeNow": "spring",
+    "aSnapPlaying": true,
+    "switchErrs": []
+  },
+  {
+    "from": "spring",
+    "phase": "load+play",
+    "playedA": false,
+    "loadErrs": [],
+    "playErrs": []
+  }
+]

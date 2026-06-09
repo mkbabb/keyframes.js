@@ -32,6 +32,7 @@ import {
 } from "./sceneMachine";
 import {
     controlSurfacesFor,
+    selectedControlSurfaceFor,
     type ControlSurface,
 } from "./controlSurfaceDFA";
 
@@ -237,6 +238,25 @@ export const useSceneMachine = createGlobalState(() => {
         /** The DFA selector for an ARBITRARY scene (the navigation-matrix
          *  totality the gate asserts: every scene resolves a DEFINED set). */
         controlSurfacesFor,
+
+        // ── THE SELECTED-SURFACE SINGLE AUTHORITY (I.W2.S1) ───────────────────
+        // The order-independent control-panel mount projection I.W1's S3
+        // consumes: the SELECTED control surface for the active scene, resolved
+        // as a PURE FUNCTION of (the DFA-valid set × a preferred pick). The tab
+        // host binds `<Tabs> :model-value` to THIS (not a free
+        // `storedControls.selectedControl`), so on a switch the model-value is
+        // born correct on the mounting tick — the reka `passive`-latch is taken
+        // `"easing"`, not `undefined`/stale (the B4 desync cure). The pure
+        // selector is exposed for a host that carries its OWN preference ref.
+        selectedControlSurfaceFor,
+        /** The active scene's selected surface, given a preferred pick. A reactive
+         *  PROJECTION of `activeScene` × the caller's preference — the value
+         *  `<Tabs> :model-value` reads, synchronously correct per tick. */
+        selectedControlSurface: (preferred?: string): ControlSurface | undefined =>
+            selectedControlSurfaceFor(
+                machine.value.context.activeScene,
+                preferred,
+            ),
 
         // The single WRITE surface.
         dispatch,

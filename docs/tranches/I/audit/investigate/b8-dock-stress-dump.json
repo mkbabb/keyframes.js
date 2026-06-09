@@ -1,0 +1,138 @@
+{
+  "vtPath": {
+    "forcedSpringPath": false,
+    "viewTransitionPresent": true,
+    "stressFrameStats": {
+      "n": 453,
+      "meanMs": 8.83,
+      "maxMs": 42.6,
+      "p95Ms": 9.2,
+      "droppedGt33": 1,
+      "droppedGt50": 0,
+      "approxFps": 113.2
+    },
+    "morphToggles": 2,
+    "widthWrites": 0,
+    "longtasks": [
+      {
+        "start": 17,
+        "dur": 132
+      },
+      {
+        "start": 252,
+        "dur": 69
+      }
+    ],
+    "finalState": {
+      "classes": "glass-dock horizontal variant-dock shape-pill expanded fit-content dock-inline",
+      "dataMorphing": false
+    },
+    "console": [
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[error]  Err x     0\n 1 | \n     ^^^",
+      "[warning] [KeyframesString] could not serialize the animation to CSS: Parse error at offset 0: \"......\"",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility."
+    ],
+    "pageErrors": [],
+    "screenshot": "docs/tranches/I/audit/investigate/shots/b8-dock-stress-vt.png"
+  },
+  "springPath": {
+    "forcedSpringPath": true,
+    "viewTransitionPresent": false,
+    "stressFrameStats": {
+      "n": 481,
+      "meanMs": 8.32,
+      "maxMs": 16.9,
+      "p95Ms": 9.1,
+      "droppedGt33": 0,
+      "droppedGt50": 0,
+      "approxFps": 120.2
+    },
+    "morphToggles": 2,
+    "widthWrites": 0,
+    "longtasks": [
+      {
+        "start": 17,
+        "dur": 138
+      },
+      {
+        "start": 275,
+        "dur": 67
+      }
+    ],
+    "finalState": {
+      "classes": "glass-dock horizontal variant-dock shape-pill expanded fit-content dock-inline",
+      "dataMorphing": false
+    },
+    "console": [
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[error]  Err x     0\n 1 | \n     ^^^",
+      "[warning] [KeyframesString] could not serialize the animation to CSS: Parse error at offset 0: \"......\"",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility.",
+      "[verbose] Rendering was performed in a subtree hidden by content-visibility."
+    ],
+    "pageErrors": [],
+    "screenshot": "docs/tranches/I/audit/investigate/shots/b8-dock-stress-spring.png"
+  }
+}

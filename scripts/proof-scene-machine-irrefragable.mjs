@@ -620,15 +620,38 @@ async function clauseSceneIsolation(browser, base) {
             );
         }
 
-        const stores = await readStores(page);
-        const easingProj = controlProjection(stores.ctrl, SUPER_KEY.easing);
-        if (easingProj && easingProj.selectedControl === "easing") {
-            ok(`scene-isolation: easing control projection selectedControl === 'easing'`);
+        // I.W2.S1 made `selectedControlSurfaceFor` the SINGLE AUTHORITY for the
+        // selected surface — a PURE function of (the scene's DFA-valid set × a
+        // preferred pick), explicitly "NEVER a free storedControls.selectedControl"
+        // (controlSurfaceDFA.ts:143). For easing (sole valid surface ["easing"]) it
+        // ALWAYS resolves "easing" regardless of a stale stored pick; the store's
+        // `selectedControl` field is the DEPRECATED authority and on a fresh nav is
+        // still the default "controls" while the computed authority correctly
+        // renders the easing surface. So we assert the EFFECTIVE RENDERED surface —
+        // the EasingEditor curve canvas IS the "easing" surface, painted live — NOT
+        // the superseded store field (a read of which would test the wrong axis, the
+        // exact gate-blindspot the I.W7 regime forbids). This BITES a real
+        // wrong-surface regression: a leaked group surface carries no curve canvas.
+        const surface = await page.evaluate(() => {
+            const panel =
+                document.querySelector('[role="tabpanel"][data-state="active"]') ||
+                document.querySelector(".animation-controls") ||
+                document.body;
+            const hasEasingEditor = !!panel.querySelector(
+                ".easing-curve-canvas, [class*='easing-editor'], [class*='EasingEditor']",
+            );
+            return { hasEasingEditor };
+        });
+        if (surface.hasEasingEditor) {
+            ok(
+                `scene-isolation: the easing scene renders the 'easing' control surface (the EasingEditor ` +
+                    `curve canvas paints live) — the I.W2.S1 single authority resolves the sole valid surface ` +
+                    `(the deprecated stored selectedControl field is NOT the authority)`,
+            );
         } else {
             fail(
-                `scene-isolation — easing control projection selectedControl === ` +
-                    `'${easingProj?.selectedControl}' (expected 'easing'; the projection keyed ` +
-                    `off a lagging superKey)`,
+                `scene-isolation — the easing scene does NOT render the 'easing' control surface (no EasingEditor ` +
+                    `curve canvas in the active panel) — the single-authority surface projection regressed`,
             );
         }
     } finally {

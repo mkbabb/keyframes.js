@@ -165,6 +165,20 @@ export function useSquareAnimations(
         startLoop();
     };
 
+    /**
+     * Settle in place (I.W4 D2 — the persist policy). On release the box should
+     * STAY where dragged: the spring TARGETS already hold the last dragged value
+     * (set by `reseat` during the gesture), so settling is simply letting the
+     * spring chase-to-rest at THAT target — the lively spring feel is preserved
+     * while the box stays put. This is the explicit counterpart to the
+     * deliberate `Home`/`End` recenter (`reseat(0,0)`). It re-arms the loop so a
+     * release while the spring had already settled still paints the final
+     * chase-to-rest (idempotent — `startLoop` is a no-op while running).
+     */
+    const settle = (): void => {
+        startLoop();
+    };
+
     /** How far (px) a full [-1,1] deflection travels — for the drag math. */
     const travel = TRAVEL;
 
@@ -216,5 +230,5 @@ export function useSquareAnimations(
     // beside this, which is idempotent (playback.stop() twice is a no-op).
     onScopeDispose(dispose);
 
-    return { anim, springX, springY, reseat, travel, startLoop, paintRest, tumble, dispose };
+    return { anim, springX, springY, reseat, settle, travel, startLoop, paintRest, tumble, dispose };
 }

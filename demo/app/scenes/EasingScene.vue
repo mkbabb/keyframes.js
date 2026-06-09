@@ -25,11 +25,15 @@ provide(EASING_DEMO_KEY, demo);
 // DFA, H.W11.S4 / I2 — `CONTROL_SURFACES.easing = ['easing']`). The dock + the
 // in-panel tab host render the triad FROM that table, so the built-in
 // controls/keyframes/timeline triggers no longer exist for this scene — reka
-// CANNOT fall back to a non-existent `controls` tab. The former onMounted+
-// nextTick re-assert hack (which stood in for the missing visibility owner) is
-// SUPERSEDED by the explicit table; only the deterministic default remains.
+// CANNOT fall back to a non-existent `controls` tab.
+//
+// I.W2.S1 — the former `storedControls.selectedControl = "easing"` setup POKE is
+// DELETED (no legacy beside the replacement). The selected surface is now a
+// machine-projected single authority (`selectedControlSurfaceFor`, bound to the
+// `<Tabs> :model-value` in AnimationControls): on a switch-in the model-value is
+// born `"easing"` on the mounting tick, so the reka `passive`-latch is taken
+// correct (the B4 desync cure) without a poke that loses the race.
 const storedControls = getStoredAnimationGroupControlOptions(SUPER_KEY);
-storedControls.selectedControl = "easing";
 storedControls.isControlsPanelOpen = true;
 
 // `demo.isPlaying` is now a read-only projection of the machine status (the
@@ -52,10 +56,18 @@ const tabsTrigger = (_slotProps: { selectedAnimation: string }) =>
         { default: () => "Easing" },
     );
 
+// I.W2.S2 — `force-mount` the sole `TabsContent` (the construction-time floor).
+// The easing scene has a SINGLE valid surface (`['easing']`), so there is no
+// other panel to switch to — `present` must NOT be gated on reka's `isSelected`
+// race at all. `force-mount` (the same escape AnimationControls uses for the
+// Monaco keyframes pane) makes this single-surface panel immune to the latch BY
+// CONSTRUCTION: the EasingSidebar's curve canvas + dropdown are ALWAYS mounted
+// regardless of the `<Tabs>` model-value latch. S1 makes the model-value born
+// correct; S2 is the belt that can't go wrong for the single-surface case.
 const tabsContent = () =>
     h(
         TabsContent,
-        { value: "easing", class: "h-full" },
+        { value: "easing", class: "h-full", forceMount: true },
         { default: () => h(EasingSidebar, { demo }) },
     );
 

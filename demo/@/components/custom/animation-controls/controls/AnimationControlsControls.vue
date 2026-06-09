@@ -91,15 +91,18 @@
                                         </DockIconButton>
                                     </IconTooltip>
                                 </div>
+                                <!-- I.W2.S3 — the dropdown's model-value is the
+                                     KIND (literal-aware), and the persist is the
+                                     ONE seam (`updateTimingFunctionFromName`, which
+                                     writes the COMPLETE re-parseable literal). The
+                                     former trailing `= key` poke (which re-wrote
+                                     the bare `cubic-bezier`/`steps` token over the
+                                     literal → the re-mount `AnimationOptionError`)
+                                     is DELETED. -->
                                 <EasingSelect
-                                    :model-value="storedAnimationOptions.animationOptions.timingFunction as string"
+                                    :model-value="timingFunctionKind(storedAnimationOptions.animationOptions.timingFunction)"
                                     :timing-functions-and="timingFunctionsAnd"
-                                    @update:model-value="
-                                        (key: string) => {
-                                            updateTimingFunctionFromName(key);
-                                            storedAnimationOptions.animationOptions.timingFunction = key;
-                                        }
-                                    "
+                                    @update:model-value="(key: string) => updateTimingFunctionFromName(key)"
                                 />
                             </div>
 
@@ -224,6 +227,7 @@ import type {
 import {
     DIRECTION_DESCRIPTIONS,
     FILL_MODE_DESCRIPTIONS,
+    timingFunctionKind,
 } from "../animationDescriptions";
 
 const props = defineProps<{

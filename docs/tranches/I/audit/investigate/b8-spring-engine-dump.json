@@ -1,0 +1,29 @@
+{
+  "vtNeutered": true,
+  "springEngineEngaged": false,
+  "widthWriteCount": 0,
+  "widthWriteFirst20": [],
+  "morphSpans": [
+    {
+      "t": 4065,
+      "on": true
+    },
+    {
+      "t": 4065,
+      "on": false
+    }
+  ],
+  "frameStats": {
+    "n": 678,
+    "meanMs": 8.86,
+    "maxMs": 25.1,
+    "p95Ms": 16.6,
+    "droppedGt33": 0,
+    "droppedGt50": 0
+  },
+  "consoleErr": [
+    "[error]  Err x     0\n 1 | \n     ^^^",
+    "[warning] [KeyframesString] could not serialize the animation to CSS: Parse error at offset 0: \"......\""
+  ],
+  "screenshot": "docs/tranches/I/audit/investigate/shots/b8-spring-engine.png"
+}

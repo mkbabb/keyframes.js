@@ -31,15 +31,17 @@
  *      `contain: paint` (App.vue) → the moving scene-host re-samples the panel
  *      backdrop every frame → reds.
  *
- *   4. proof:offscreen-cv (G5 — SHIP). An INACTIVE scene root resolves
- *      `content-visibility: auto` (the amiga `.scene-root` is the cv carrier — a
- *      flat WebGL canvas, paint-containable; the cube is the home backdrop +
- *      uncontainable 3D overflow, so it carries the no-resident-will-change half
- *      instead) AND no resident `will-change` survives a SETTLED frame (the cube
- *      `.cube` + all six `.cube-side` faces compute `will-change: auto` at rest).
- *      BITE: a resident `will-change: transform` on `.cube`/`.cube-side` (the G5
- *      anti-pattern pinning compositor layers forever) reds; dropping
- *      content-visibility from the amiga root reds.
+ *   4. proof:offscreen-cv (G5 — RECONCILED at I.W3/I.WZ). The amiga `.scene-root`
+ *      SHEDS `content-visibility: auto`: cv-over-the-live-WebGL-present-loop made
+ *      Chromium render the canvas into a cached/hidden subtree and read it back
+ *      (the RC-2 ReadPixels GPU stall). I.W3 replaced it with an IntersectionObserver
+ *      present-loop pause — the same offscreen-perf goal, no stall. So the cv half
+ *      now asserts the INVERSE (NO live content-visibility on the amiga root, double-
+ *      covering proof:amiga-subject-is-pivot clause (c)). The cube keeps the
+ *      no-resident-will-change half: `.cube` + all six `.cube-side` faces compute
+ *      `will-change: auto` at rest. BITE: a resident `will-change: transform` on
+ *      `.cube`/`.cube-side` (pinning compositor layers forever) reds; RE-ADDING
+ *      content-visibility to the amiga WebGL root (re-opening RC-2) reds.
  *
  *   5. proof:amiga-engine-drives-mesh (A5 — REBUILD). After a pointer-drag-RELEASE
  *      the mesh keeps changing for ≥N frames under the engine `decay()` glide (NOT
@@ -147,17 +149,33 @@ console.log("proof:scene-perf-budget — H.W5 S6 (the cube/amiga scene-quality +
         );
     }
 
-    // G5 anchor (cv) — the amiga scene root carries content-visibility: auto +
-    // the mandatory contain-intrinsic-size (else 0px collapse).
-    if (
-        /content-visibility:\s*auto/.test(amigaSrc) &&
-        /contain-intrinsic-size:/.test(amigaSrc)
-    ) {
-        ok("G5 source: AmigaScene .scene-root carries content-visibility:auto + contain-intrinsic-size");
+    // G5 anchor (cv) — RECONCILED at I.W3/I.WZ. The amiga .scene-root once carried
+    // `content-visibility: auto` for the offscreen-render skip (H.W5 G5), but I.W3
+    // (B3 / RC-2 SHIP) SHED it: content-visibility:auto OVER THE LIVE WEBGL PRESENT
+    // LOOP makes Chromium render the canvas into a cached/hidden subtree and read it
+    // back — the ReadPixels GPU stall. I.W3 replaced it with an IntersectionObserver
+    // that stands the present loop down when offscreen — the SAME offscreen-perf goal
+    // via a NON-STALLING mechanism. So G5 for amiga now asserts the INVERSE: NO live
+    // content-visibility declaration over the WebGL root. This DOUBLE-COVERS the RC-2
+    // defect with proof:amiga-subject-is-pivot clause (c) (the runtime DOM invariant:
+    // no content-visibility ancestor over the WebGL canvas). Strip comments first —
+    // AmigaScene's I.W3 design PROSE mentions "content-visibility: auto" (explaining
+    // its REMOVAL) and must not read as a live declaration.
+    const amigaCss = amigaSrc
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/\/\/[^\n]*/g, "");
+    if (!/content-visibility:\s*(auto|hidden)/.test(amigaCss)) {
+        ok(
+            "G5 source: AmigaScene .scene-root SHEDS content-visibility (I.W3 B3 RC-2 fix — " +
+                "cv-over-WebGL caused the ReadPixels GPU stall; the offscreen skip is an " +
+                "IntersectionObserver present-loop pause). proof:amiga-subject-is-pivot clause (c) " +
+                "corroborates the invariant at runtime.",
+        );
     } else {
         fail(
-            "G5 source — the amiga .scene-root must carry `content-visibility: auto` AND " +
-                "`contain-intrinsic-size` (the cv carrier; the intrinsic-size guards the 0px collapse)",
+            "G5 source — the amiga .scene-root carries a live `content-visibility` declaration, " +
+                "re-opening the RC-2 ReadPixels GPU stall over the live WebGL present loop (I.W3 shed " +
+                "it; proof:amiga-subject-is-pivot clause (c) forbids a cv ancestor over the WebGL canvas)",
         );
     }
 
@@ -469,10 +487,14 @@ async function browserHalf() {
             );
         }
 
-        // ── 4. proof:offscreen-cv ───────────────────────────────────────────
-        // The amiga scene root is the content-visibility carrier (measured while
-        // amiga is the active/mounted scene — the single-mount scene-host means
-        // "inactive scene root" is an existential clause the amiga root satisfies).
+        // ── 4. proof:offscreen-cv (RECONCILED I.W3/I.WZ) ────────────────────
+        // The amiga .scene-root SHEDS content-visibility (the RC-2 fix): cv-over-the-
+        // live-WebGL-present-loop caused the ReadPixels GPU stall. The offscreen-skip
+        // is achieved instead by the keyed-<Suspense> single-mount (an inactive scene
+        // is UNMOUNTED, not an offscreen re-blurring backdrop) + the IntersectionObserver
+        // present-loop pause. So the runtime clause asserts the INVERSE: the amiga root
+        // resolves NO content-visibility auto|hidden (the runtime mirror of the source
+        // check; double-covers proof:amiga-subject-is-pivot clause (c)).
         const cv = await page.evaluate(() => {
             const root = document.querySelector(".scene-root");
             if (!root) return null;
@@ -484,12 +506,17 @@ async function browserHalf() {
         });
         if (cv == null) {
             fail("offscreen-cv — the amiga .scene-root is absent (the amiga scene did not mount)");
-        } else if (cv.contentVisibility === "auto") {
-            ok(`offscreen-cv: the amiga .scene-root resolves content-visibility: auto (intrinsic-size '${cv.intrinsic}' — G5)`);
+        } else if (cv.contentVisibility !== "auto" && cv.contentVisibility !== "hidden") {
+            ok(
+                `offscreen-cv: the amiga .scene-root SHEDS content-visibility (resolves '${cv.contentVisibility}', ` +
+                    `not auto|hidden — I.W3 B3 RC-2 fix; the offscreen skip is the keyed-Suspense single-mount + the ` +
+                    `IntersectionObserver present-loop pause, not cv-over-WebGL). proof:amiga-subject-is-pivot clause (c) corroborates.`,
+            );
         } else {
             fail(
-                `offscreen-cv — the amiga .scene-root resolves content-visibility: '${cv.contentVisibility}' ` +
-                    `(expected 'auto'); off-screen backdrops keep re-blurring (G5)`,
+                `offscreen-cv — the amiga .scene-root resolves content-visibility: '${cv.contentVisibility}' — ` +
+                    `RE-OPENING the RC-2 ReadPixels GPU stall over the live WebGL present loop (I.W3 shed it; the ` +
+                    `offscreen skip is the IntersectionObserver pause, not cv)`,
             );
         }
 
@@ -636,6 +663,7 @@ if (failures.length > 0) {
 }
 console.log(
     "\nproof:scene-perf-budget — PASS: the amiga tessellation is ≤256 fillRect + pixel-identical, " +
-        "the renderer caps dpr ≤ 2, the scene-host is paint-contained, the inactive amiga root is " +
-        "content-visibility:auto with no resident cube will-change, and the engine drives the mesh (H.W5 S6).",
+        "the renderer caps dpr ≤ 2, the scene-host is paint-contained, the amiga root SHEDS " +
+        "content-visibility (the I.W3 RC-2 fix; the offscreen skip is the keyed-Suspense single-mount + " +
+        "an IntersectionObserver pause) with no resident cube will-change, and the engine drives the mesh (H.W5 S6 · I.W3 reconciled).",
 );

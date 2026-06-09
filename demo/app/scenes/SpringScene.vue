@@ -61,11 +61,14 @@ provide(SPRING_DEMO_KEY, demo);
 // DFA, H.W11.S4 / I2 — `CONTROL_SURFACES.spring = ['spring']`). The dock + the
 // in-panel tab host render the triad FROM that table, so the built-in
 // controls/keyframes/timeline triggers no longer exist for this scene — reka
-// CANNOT fall back to a non-existent `controls` tab. The former onMounted+
-// nextTick re-assert hack is SUPERSEDED by the explicit table; only the
-// deterministic default remains.
+// CANNOT fall back to a non-existent `controls` tab.
+//
+// I.W2.S1 — the former `storedControls.selectedControl = "spring"` setup POKE is
+// DELETED (no legacy beside the replacement). The selected surface is now a
+// machine-projected single authority (bound to the `<Tabs> :model-value` in
+// AnimationControls) so the panel is born-selected on switch-in (the B4 cure
+// generalizes to every single-surface scene).
 const storedControls = getStoredAnimationGroupControlOptions(SUPER_KEY);
-storedControls.selectedControl = "spring";
 storedControls.isControlsPanelOpen = true;
 
 // `demo.isPlaying` is a read-only projection of the machine status (the shadow
@@ -88,10 +91,14 @@ const tabsTrigger = (_slotProps: { selectedAnimation: string }) =>
         { default: () => "Spring" },
     );
 
+// I.W2.S2 — `force-mount` the sole `TabsContent` (the construction-time floor).
+// The spring scene has a SINGLE valid surface (`['spring']`), so `present` must
+// not be gated on reka's `isSelected` race — `force-mount` makes the single
+// surface immune to the latch BY CONSTRUCTION (the same belt easing carries).
 const tabsContent = () =>
     h(
         TabsContent,
-        { value: "spring", class: "h-full" },
+        { value: "spring", class: "h-full", forceMount: true },
         { default: () => h(SpringSidebar, { demo }) },
     );
 

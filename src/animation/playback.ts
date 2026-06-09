@@ -57,6 +57,21 @@ export interface Tickable {
  * `SpringProgress` `_startLoop`/`_stopLoop` byte-siblings, the
  * `AnimationGroup` draw loop, `Animation._playRAF`, and the WAAPI shadow
  * loop — all delegate here. No other module owns a rAF handle.
+ *
+ * BIND-PROOF BY CONSTRUCTION (I.W1 S1). The public control surface —
+ * `play`/`drive`/`loop`/`stop` — is declared as ARROW CLASS-FIELDS, not
+ * prototype methods, so each captures `this` at construction. A consumer can
+ * `const { stop } = playback`, pass `playback.stop` straight as a callback, or
+ * call `playback.stop()` as a member — ALL THREE are safe, forever, because the
+ * receiver can never be dropped. This closes the entire unbound-method crash
+ * class at the engine seam (the `this._gen++` throw a free-standing `stop()`
+ * used to raise inside a Vue reactive flush — `rootcause-rc-dfa-gen.md`):
+ * binding correctness lives ONCE here, never re-asserted per call site. The
+ * arrow fields move these four methods onto the INSTANCE rather than the
+ * prototype — a per-instance allocation accepted because `RAFPlayback`
+ * instances are FEW and long-lived (one per scene/animation). The private
+ * `_run`/`_cleanup` stay prototype methods: they are only ever reached as
+ * `this._run(…)` internally, never extracted as values, so they need no bind.
  */
 export class RAFPlayback {
     // `requestAnimationFrame` returns `number` in browsers but the
@@ -142,11 +157,11 @@ export class RAFPlayback {
      * `onTick(1)` fires once, no rAF loop is spawned, and the promise
      * resolves on the next microtask.
      */
-    play(
+    play = (
         duration: number,
         onTick: (progress: number) => void,
         options?: RAFPlaybackOptions,
-    ): Promise<void> {
+    ): Promise<void> => {
         if (duration <= 0) {
             throw new Error("RAFPlayback.play() requires a duration > 0.");
         }
@@ -178,7 +193,7 @@ export class RAFPlayback {
                     });
                 }),
         );
-    }
+    };
 
     /**
      * Drive a {@link Tickable}'s dt-stepper once per frame until it
@@ -186,7 +201,7 @@ export class RAFPlayback {
      * while the loop is already running is a no-op, so consumers re-arm
      * freely on every target re-seat. The loop auto-stops on settle.
      */
-    drive(tickable: Tickable, onFrame?: () => void): void {
+    drive = (tickable: Tickable, onFrame?: () => void): void => {
         if (this._rafId !== null) return;
         this._lastFrameT = 0;
 
@@ -197,7 +212,7 @@ export class RAFPlayback {
             onFrame?.();
             return !tickable.settled;
         });
-    }
+    };
 
     /**
      * Self-rescheduling frame loop over an async callback. `cb(now)`
@@ -206,19 +221,19 @@ export class RAFPlayback {
      * between frames halts the loop — the in-flight callback finishes,
      * no further frame is scheduled.
      */
-    loop(cb: (now: number) => boolean | Promise<boolean>): void {
+    loop = (cb: (now: number) => boolean | Promise<boolean>): void => {
         this.stop();
         this._run(cb);
-    }
+    };
 
     /** Cancel a running playback. A pending play promise resolves immediately. */
-    stop(): void {
+    stop = (): void => {
         this._gen++;
         if (this._rafId !== null) {
             cancelAnimationFrame(this._rafId);
         }
         this._cleanup();
-    }
+    };
 
     private _cleanup(): void {
         this._rafId = null;
