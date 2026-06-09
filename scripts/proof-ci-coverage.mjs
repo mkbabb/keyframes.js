@@ -55,6 +55,47 @@ const ci = wf("ci.yml");
 const failures = [];
 const passes = [];
 
+// ── clause -1 (I.WZ): every workflow file is VALID YAML ───────────────────────
+// GitHub Actions REJECTS a malformed workflow at PARSE time — a 0s "workflow file
+// issue" failure BEFORE any job runs, so deploy-pages.yml (gated on the `ci`
+// workflow's SUCCESS via `workflow_run`) never fires and the live site freezes.
+// Every OTHER clause here REGEX-parses the YAML, so none can see a parse error —
+// the exact gate-blindspot Tranche I closes (a gate that "verifies CI" but never
+// checks CI would PARSE). Born-RED on the H.W12 unquoted step names whose
+// colon-space (`→ its at: changes`) GHA read as a nested mapping ("mapping values
+// are not allowed here") — which silently 0s-failed every master CI run, and every
+// deploy, from H's merge until this fix. Uses the real `yaml` parser when present;
+// falls back to the dependency-free detector for the exact unquoted-colon-space class.
+let yamlParse = null;
+try {
+    ({ parse: yamlParse } = await import("yaml"));
+} catch {
+    /* fall back to the regex detector below */
+}
+for (const name of WORKFLOWS) {
+    const src = wf(name);
+    let yamlErr = null;
+    if (yamlParse) {
+        try {
+            yamlParse(src);
+        } catch (e) {
+            yamlErr = (e?.message ?? String(e)).split("\n")[0];
+        }
+    } else {
+        const i = src.split("\n").findIndex((l) => /^\s*- name: [^"'].*: /.test(l));
+        if (i >= 0) yamlErr = `unquoted step name with a colon-space at line ${i + 1} (GHA reads it as a nested mapping)`;
+    }
+    if (yamlErr) {
+        failures.push(
+            `yaml-valid — ${name} is NOT valid YAML (${yamlErr}). GitHub Actions rejects the ` +
+                `WHOLE workflow at parse time (a 0s failure), so no job runs and deploy-pages never ` +
+                `fires. Quote any step name/value that carries a colon-space.`,
+        );
+    } else {
+        passes.push(`yaml-valid — ${name} parses as valid YAML (GHA will not 0s-reject it at parse time).`);
+    }
+}
+
 // ── clause 0 (F.W2): every proof:* gate is invoked in CI ──────────────────────
 const EXCLUDED = new Set([
     "proof:all",
