@@ -118,7 +118,10 @@ const STATIC_EGGS = [
     },
     {
         scene: "easing",
-        file: "easing/useEasingDemo.ts",
+        // The Gallery effect spans the colocated pair: useEasingDemo wires it
+        // (`gallery`/`selectEasing`), useEasingGallery owns the tour state
+        // (`galleryRunning`) — the I.WZ concern-seam split.
+        file: ["easing/useEasingDemo.ts", "easing/useEasingGallery.ts"],
         tokens: [/\bgallery\b/, /galleryRunning/, /selectEasing/],
         triggerFile: "easing/EasingSidebar.vue",
         triggerTokens: [/@dblclick="demo\.gallery"/, /canvas-egg-host/],
@@ -127,7 +130,10 @@ const STATIC_EGGS = [
 ];
 
 for (const egg of STATIC_EGGS) {
-    const src = read(path.join(DEMO, egg.file));
+    // `file` may be a single path or a colocated set (a concern-seam split) — read
+    // + concatenate so the effect tokens resolve across the sub-units.
+    const files = Array.isArray(egg.file) ? egg.file : [egg.file];
+    const src = files.map((f) => read(path.join(DEMO, f))).join("\n");
     const triggerSrc = read(path.join(DEMO, egg.triggerFile));
     const haveEffect = egg.tokens.every((re) => re.test(src));
     const haveTrigger = egg.triggerTokens.every((re) => re.test(triggerSrc));
