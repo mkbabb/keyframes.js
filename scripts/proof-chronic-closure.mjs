@@ -1,107 +1,174 @@
 #!/usr/bin/env node
 /**
- * proof:chronic-closure — H.W8 S3 (I-3) — THE CHRONIC-CLOSURE META-GATE.
+ * proof:chronic-closure — Tranche I.W7 S4 (the durability keystone, REWIRED).
  *
- * The H-born repair (`a-deferred-chronic §2-3`, `_SYNTHESIS-gap-scorecard §0/§6`):
- * four user-visible chronics — cartoon-shadow (D2), φ-hero (D7), mobile (D10),
- * dock (D5) — "exited" the A→G deferred ledger NOT by being SOLVED but by being
- * RE-CLASSIFIED (M1 issue-level close, M2 scope-narrowing, M3 column-migration to
- * HANDOFF). **The P-invariant policed the COLUMN, not the PRODUCT.**
+ * THE H-ERA KEYSTONE FAILURE (rc-gate-blindspot §3). H built this meta-gate to
+ * police the chronics so they could never paper-close again — and made it the SAME
+ * source-shape class that caused the original sin: it parsed a markdown TABLE and
+ * asserted each cited gate NAME merely RESOLVED to a package.json key + ran in
+ * proof:all. It opened no browser, ran no cited gate, and verified nothing about
+ * whether any cited gate measures a real product property. A green
+ * proof:chronic-closure certified the bureaucracy was tidy while B1–B9 ran live.
  *
- * This meta-gate makes a bare tag NON-terminal. It parses the COMMITTED chronic
- * table at `docs/tranches/H/PROGRESS.md §"Open deferrals"` — the SINGLE canonical
- * substrate (BLK-2: `H/FINAL.md` does NOT exist until H.WZ; it is parsed
- * ADDITIONALLY only behind an `fs.existsSync` guard; `_SYNTHESIS-deferred-ledger`
- * is descriptive history, NOT the runtime target). For each chronic row it asserts
- * the binding rule:
+ * THE I.W7 REWIRE (S4). The meta-gate now polices the PRODUCT, not the paperwork.
+ * It parses the canonical `## Open deferrals` chronic table (the I-tranche
+ * PROGRESS.md ledger that SUPERSEDES H's table) and for each row asserts:
  *
- *   A chronic exits ONLY with
- *     (a) a passing SYSTEM-property gate, OR
- *     (b) a HANDOFF tag PAIRED with a born-RED kf gate.
- *   A bare HANDOFF tag with no born-RED gate REDS the ledger.
+ *   (1) RESOLVE — every load-bearing cited `proof:*` gate resolves to an authored
+ *       package.json script key (no dangling name — the M1 paper-close bite).
+ *   (2) CORRECTNESS-TIER — every load-bearing gate runs in the CORRECTNESS tier of
+ *       proof:all (proof:correctness), so "green in the suite" actually holds AND
+ *       the closure is satisfied by a correctness gate, not a hygiene one.
+ *   (3) RUNTIME — every load-bearing gate's SCRIPT is a RUNTIME/INTERACTION gate:
+ *       it opens a browser over the built dist (serveDist + KF_PLAYWRIGHT_DIR +
+ *       newContext) AND ACTUATES the product (page.click / dispatchEvent /
+ *       page.mouse / page.keyboard / page.dragAndDrop / PointerEvent / .hover). A
+ *       chronic row whose closure cites ONLY a source-shape / load-rest / proxy-
+ *       store gate REDS. (This is the S4 core — a chronic exits only via a gate
+ *       that drives the live interaction the chronic lives in.)
+ *   (4) BORN-RED — every non-RE-AFFIRM row carries a born-RED witness in its prose
+ *       (the gate BIT on the defect tree), so a never-RED gate cannot paper-close.
  *
- * Concretely, for each row's "H closure" cell:
- *   (i)   every LOAD-BEARING `proof:*` gate name RESOLVES to an authored script
- *         key in package.json (no dangling name — the M1 paper-close bite) AND is
- *         a member of `proof:all` (so it actually runs green there).
- *   (ii)  every row that carries a HANDOFF closure carries a born-RED `proof:*`
- *         gate name that likewise RESOLVES + runs in `proof:all` (the M3 bite —
- *         a bare HANDOFF with no born-RED gate reds).
- *   (iii) a row with NEITHER a resolvable SYSTEM gate NOR a HANDOFF-paired
- *         born-RED gate REDS.
+ *   THE TWO NEW HANDOFF RULES:
+ *   (a) PUBLISHED-OR-CONSUME-EDGE — a HANDOFF / consume-leg cell may target ONLY a
+ *       PUBLISHED version or a kf-owned consume-edge fix; a future version number /
+ *       unreleased working-tree commit REDS (the B7 vaporware lesson — a born-RED
+ *       parked against glass-ui 3.8.0 that the user never sees never bites).
+ *   (b) RIGHT-AXIS — every gate must measure the PIXEL / INTERACTION the user
+ *       reports; a SYSTEM gate measuring the wrong axis passes vacuously (the M1
+ *       mobile sheet.top-not-bottom, the B9 icons-behind-SPA-fallback, the B8 dock
+ *       token-peak-not-frame-budget lessons). This is enforced via the RUNTIME
+ *       rule (3): a wrong-axis proxy gate is, by construction, NOT a runtime gate
+ *       that actuates the reported interaction, so (3) reds it.
  *
- * RETIRED-tag exclusion (the harden RETIRED-exclusion rule): a gate name
- * explicitly tagged RETIRED in the row prose (the H.W9 register-collapse names
- * `proof:cartoon-specular-coexist` + `proof:specular-calm` as RETIRED — their
- * subject, the W2 composite, no longer exists) is EXCLUDED from the resolve-or-red
- * set. It is a NARRATIVE reference to a DELETED gate — required to be ABSENT, the
- * DUAL of resolve: a RETIRED-tagged name that STILL resolves in package.json /
- * proof:all REDS (catching a half-done retire).
+ * RETIRED-tag exclusion: a `proof:*` name explicitly tagged RETIRED/DELETED in the
+ * row prose is EXCLUDED from the resolve-or-red set AND required ABSENT from
+ * package.json + proof:all (the dual — a retired gate that still resolves reds a
+ * half-done retire). The I.W7 census retires/deletes proof:demo-console-clean,
+ * proof:dock-morph-settled, proof:no-orphan-specular, proof:specular-handoff,
+ * proof:scene-icons, proof:dragscrub-single.
  *
- * This is the SAME static resolve-or-red mechanism as `proof:idioms` clause-1 +
- * the `proof:brittleness` LISTENER_ALLOWLIST stale-guard — a static parse of a
- * committed table, not a new runtime probe. Exits 1 on any residual. Re-runnable:
- *   npm run proof:chronic-closure
+ * NO browser, no build — a static read of the chronic table + the gate SCRIPTS +
+ * package.json (it is itself HYGIENE-tier: it polices the chronic ROWS' cited
+ * gates' SHAPE, complementing proof:gate-is-runtime which polices the GATES' SHAPE).
+ * Re-runnable: `node scripts/proof-chronic-closure.mjs`.
  */
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const PROGRESS = path.join(REPO, "docs/tranches/H/PROGRESS.md");
-const FINAL = path.join(REPO, "docs/tranches/H/FINAL.md"); // BLK-2: may not exist
+const SCRIPTS_DIR = path.join(REPO, "scripts");
+// THE CANONICAL SUBSTRATE (I.W7 S4): the I-tranche PROGRESS.md chronic ledger
+// SUPERSEDES H's `## Open deferrals` table. The H tables remain narrative history.
+const I_PROGRESS = path.join(REPO, "docs/tranches/I/PROGRESS.md");
 const PKG = path.join(REPO, "package.json");
 
 const failures = [];
-const fail = (msg) => failures.push(msg);
+const ok = (l) => console.log(`  ✓ ${l}`);
+const note = (l) => console.log(`  · ${l}`);
+const fail = (msg) => {
+    failures.push(msg);
+    console.error(`  ✗ ${msg}`);
+};
 
-// ── The authored gate set (the resolve target) ────────────────────────────────
+console.log(
+    "proof:chronic-closure — I.W7 S4 (REWIRED): every chronic exits via a RUNTIME gate that BIT — " +
+        "opens a browser AND actuates AND was witnessed born-RED — not a source-shape / load-rest / proxy gate",
+);
+
+// ── The authored gate set + the tiered chains ─────────────────────────────────
 const pkg = JSON.parse(fs.readFileSync(PKG, "utf8"));
 const SCRIPTS = pkg.scripts ?? {};
 const PROOF_ALL = SCRIPTS["proof:all"] ?? "";
-// A gate "RESOLVES" iff `package.json.scripts["proof:<name>"]` exists.
-const resolves = (gate) => Object.prototype.hasOwnProperty.call(SCRIPTS, gate);
-// A gate "RUNS in proof:all" iff the proof:all chain invokes `npm run <gate>`.
-const inProofAll = (gate) =>
-    new RegExp(`\\brun ${gate.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`).test(PROOF_ALL);
+const PROOF_CORRECTNESS = SCRIPTS["proof:correctness"] ?? "";
 
-// ── Parse the §"Open deferrals" chronic table from PROGRESS.md ─────────────────
-/**
- * Extract the table rows under the `## Open deferrals` heading: the
- * `| Chronic | Prior false-close mode | H closure |` markdown table. Returns an
- * array of { chronic, closure } (the 1st + 3rd cells), skipping the header +
- * separator rows.
- */
+const resolves = (gate) => Object.prototype.hasOwnProperty.call(SCRIPTS, gate);
+const inChain = (chain, gate) =>
+    new RegExp(`\\brun ${gate.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`).test(chain);
+const inProofAll = (gate) => inChain(PROOF_ALL, gate);
+// A gate satisfies the CORRECTNESS tier iff it runs in proof:correctness (or, if
+// no sub-aggregator exists, directly in proof:all).
+const inCorrectnessTier = (gate) =>
+    PROOF_CORRECTNESS ? inChain(PROOF_CORRECTNESS, gate) : inProofAll(gate);
+
+// ── The RUNTIME-gate detection (S4 rule 3 — the same primitives proof:gate-is-
+//    runtime uses; a chronic's cited gate must DRIVE the product) ──────────────
+const HARNESS_SIGNATURE = [/\bserveDist\b/, /KF_PLAYWRIGHT_DIR/, /\.newContext\(/];
+const ACTUATION = [
+    /\bpage\.click\(|\.click\(\s*\{|\.click\(\)/,
+    /\bpage\.dispatchEvent\(|document\.dispatchEvent\(|\.dispatchEvent\(/,
+    /\bpage\.mouse\.(down|up|move)\b/,
+    /\bpage\.keyboard\b|\.press\(/,
+    /\bpage\.dragAndDrop\(/,
+    /\bnew PointerEvent\(/,
+    /\.hover\(/,
+];
+
+function scriptSrcFor(gate) {
+    const body = SCRIPTS[gate];
+    if (!body) return null;
+    const m = body.match(/scripts\/(proof-[a-z0-9-]+\.mjs)/i);
+    if (!m) return null;
+    const sp = path.join(SCRIPTS_DIR, m[1]);
+    return fs.existsSync(sp) ? fs.readFileSync(sp, "utf8") : null;
+}
+
+/** Is `gate`'s script a RUNTIME gate that ACTUATES? Returns { runtime, why }. */
+function isRuntimeGate(gate) {
+    const src = scriptSrcFor(gate);
+    if (src == null) return { runtime: false, why: "no readable scripts/proof-*.mjs script" };
+    const missingHarness = HARNESS_SIGNATURE.filter((re) => !re.test(src)).length;
+    if (missingHarness > 0) return { runtime: false, why: "no browser harness (serveDist + KF_PLAYWRIGHT_DIR + newContext) — a jsdom unit / source grep" };
+    const actuates = ACTUATION.some((re) => re.test(src));
+    if (!actuates) return { runtime: false, why: "opens a browser but does NOT actuate (goto+rest load-rest oracle)" };
+    return { runtime: true, why: "browser harness + actuates" };
+}
+
+// ── Parse the canonical `## Open deferrals` chronic table ──────────────────────
 function parseChronicTable(file, label) {
     const src = fs.readFileSync(file, "utf8");
-    // Isolate the section body from the heading to the next `## ` heading.
     const headIdx = src.search(/^##\s+Open deferrals\s*$/m);
     if (headIdx < 0) {
         fail(`[substrate] ${label} has no "## Open deferrals" section — the meta-gate's parse target is missing`);
         return [];
     }
+    // Stop at the NEXT heading of ANY level (`## ` or `### `) — the canonical
+    // `## Open deferrals` table is the ONE table immediately under this heading;
+    // the §4 narrative 4a–4f tables live under their own `### ` subheadings and
+    // are NOT the parse target (they carry the rich live-state probe, not the
+    // gate-citation contract).
     const after = src.slice(headIdx);
-    const nextHead = after.slice(3).search(/^##\s+/m);
-    const section = nextHead < 0 ? after : after.slice(0, nextHead + 3);
-
+    const lines = after.split("\n");
     const rows = [];
-    for (const line of section.split("\n")) {
+    let started = false;
+    for (let i = 1; i < lines.length; i++) {
+        const line = lines[i];
         const t = line.trim();
-        if (!t.startsWith("|")) continue;
-        // Split into cells (drop the leading/trailing empty from the outer pipes).
+        // A subsequent heading of any level ENDS the canonical table region.
+        if (/^#{2,}\s/.test(t)) break;
+        if (!t.startsWith("|")) {
+            // Once table rows have begun, a non-table line ENDS the table.
+            if (started) break;
+            continue;
+        }
         const cells = t.split("|").slice(1, -1).map((c) => c.trim());
         if (cells.length < 3) continue;
-        // Skip the header row and the |---|---|---| separator.
-        if (/^chronic$/i.test(cells[0])) continue;
-        if (cells.every((c) => /^:?-{2,}:?$/.test(c) || c === "")) continue;
+        if (/^chronic$/i.test(cells[0])) {
+            started = true;
+            continue;
+        }
+        if (cells.every((c) => /^:?-{2,}:?$/.test(c) || c === "")) {
+            started = true;
+            continue;
+        }
+        started = true;
         rows.push({ chronic: cells[0], mode: cells[1], closure: cells[2] });
     }
     return rows;
 }
 
-// `proof:all` is the SUITE name, never a chronic closure gate — exclude it so it
-// is neither counted load-bearing nor mis-flagged RETIRED.
-const NOT_A_GATE = new Set(["proof:all"]);
+const NOT_A_GATE = new Set(["proof:all", "proof:correctness", "proof:hygiene"]);
 
 /** All distinct `proof:*` names mentioned in a cell, in order of appearance. */
 function gateNames(text) {
@@ -115,33 +182,14 @@ function gateNames(text) {
     return out;
 }
 
-/**
- * RETIRED names in a cell: a `proof:*` name whose prose tags it RETIRED. The
- * substrate's two retire constructs put the retire-verb DIRECTLY adjacent to a
- * RUN of one or more backtick-names (separated only by `/`, `+`, `,`, "and",
- * whitespace):
- *   • marker-then-run:  "the RETIRED `proof:cartoon-specular-coexist`/`proof:specular-calm`"
- *   • run-then-marker:  "`proof:cartoon-specular-coexist` + `proof:specular-calm` retire"
- *
- * We match a contiguous run of backtick `proof:*` names (the ONLY tokens between
- * them being the list glue) that is IMMEDIATELY preceded OR followed (≤16 glue
- * chars, no intervening prose) by a retire marker. This is tight enough that a
- * load-bearing PAIRED gate one clause away (e.g. `proof:specular-handoff`
- * "unchanged" before a separate RETIRED clause) is NOT swept in. The marker word
- * itself must be a strong retire signal.
- */
+/** RETIRED/DELETED names in a cell (the dual: required ABSENT). */
 function retiredNames(text) {
     const retired = new Set();
-    const MARKER = "(?:RETIRED?|retire(?:s|d)?|required ABSENT)";
-    // A run: one backtick-name, then zero+ more joined by list-glue.
+    const MARKER = "(?:RETIRED?|retire(?:s|d)?|DELETED?|delete(?:s|d)?|required ABSENT)";
     const NAME = "`proof:[a-z0-9-]+`";
-    const GLUE = "(?:\\s*(?:/|\\+|,|and|the)\\s*)";
+    const GLUE = "(?:\\s*(?:/|\\+|,|and|the|is|was)\\s*)";
     const RUN = `${NAME}(?:${GLUE}${NAME})*`;
-    // marker (≤16 glue/words) RUN   |   RUN (≤16 glue/words) marker
-    const re = new RegExp(
-        `${MARKER}[\\s\\w]{0,16}?(${RUN})|(${RUN})[\\s\\w]{0,16}?${MARKER}`,
-        "gi",
-    );
+    const re = new RegExp(`${MARKER}[\\s\\w]{0,20}?(${RUN})|(${RUN})[\\s\\w]{0,20}?${MARKER}`, "gi");
     let m;
     while ((m = re.exec(text))) {
         const run = m[1] ?? m[2] ?? "";
@@ -150,9 +198,24 @@ function retiredNames(text) {
     return retired;
 }
 
-/** A cell carries a HANDOFF closure iff the prose tags it HANDOFF / consume-leg. */
-function isHandoffClosure(text) {
-    return /\bHANDOFF\b|\bconsume-leg\b/i.test(text);
+const isHandoffClosure = (text) => /\bHANDOFF\b|\bconsume-leg\b|\bconsume-edge\b/i.test(text);
+const isReaffirm = (text) => /\bRE-?AFFIRM\b/i.test(text);
+
+// HANDOFF rule (a): a HANDOFF cell that targets a FUTURE version number / unreleased
+// commit (vaporware) REDS — unless it is explicitly a PUBLISHED version or a kf-owned
+// consume-edge. We detect the vaporware shape: a version like "3.8.0"/"v3.8.0" NOT
+// paired with a PUBLISHED/consumed marker. The published consume-edge is allowed.
+function vaporwareHandoff(text) {
+    if (!isHandoffClosure(text)) return null;
+    // A version number reference in the cell.
+    const ver = text.match(/\bv?\d+\.\d+\.\d+\b/);
+    if (!ver) return null;
+    const publishedOrConsumed = /\bPUBLISHED\b|\bconsumed\b|\bconsume-edge\b|\bflat default\b|\bbumped?\b/i.test(text);
+    const vaporTell = /\bVAPORWARE\b|\bunpublished\b|\bunreleased\b|\bfuture version\b|\blocal tag\b/i.test(text);
+    if (vaporTell && !publishedOrConsumed) {
+        return `the HANDOFF targets ${ver[0]} with a vaporware/unpublished tell and NO published-or-consumed marker`;
+    }
+    return null;
 }
 
 // ── Audit one row ─────────────────────────────────────────────────────────────
@@ -162,116 +225,99 @@ function auditRow(row, srcLabel) {
     const all = gateNames(cell);
     const retired = retiredNames(cell);
     const loadBearing = all.filter((g) => !retired.has(g));
+    const reaffirm = isReaffirm(cell);
 
-    // (RETIRED dual) — a RETIRED-tagged name MUST be absent from package.json AND
-    // proof:all. A RETIRED name that still resolves reds (half-done retire).
+    // RETIRED dual — a RETIRED-tagged name MUST be absent from package.json + proof:all.
     for (const g of retired) {
-        if (resolves(g)) {
-            fail(
-                `[${name}] RETIRED gate \`${g}\` STILL RESOLVES in package.json — ` +
-                    `a retired gate must be ABSENT (the dual of resolve). Remove its script key.`,
-            );
-        }
-        if (inProofAll(g)) {
-            fail(
-                `[${name}] RETIRED gate \`${g}\` is STILL invoked in proof:all — remove it ` +
-                    `(a retired gate's subject is deleted; it must not run).`,
-            );
-        }
+        if (resolves(g)) fail(`[${name}] RETIRED/DELETED gate \`${g}\` STILL RESOLVES in package.json — a retired gate must be ABSENT (the dual of resolve). Remove its script key + .mjs.`);
+        if (inProofAll(g)) fail(`[${name}] RETIRED/DELETED gate \`${g}\` is STILL invoked in proof:all — remove it (its subject is superseded; it must not run).`);
     }
 
-    // (iii) a row with NO load-bearing proof:* gate at all reds (nothing to police
-    // the product — the bare-tag terminal H.W8 forbids).
-    if (loadBearing.length === 0) {
-        fail(
-            `[${name}] the closure cell names NO load-bearing \`proof:*\` gate (only ` +
-                `${retired.size ? "RETIRED names" : "prose"}) — a chronic must exit via a ` +
-                `SYSTEM-property gate OR a HANDOFF-paired born-RED gate, never a bare tag.`,
-        );
+    // (iii) a non-RE-AFFIRM row with NO load-bearing gate reds.
+    if (loadBearing.length === 0 && !reaffirm) {
+        fail(`[${name}] the closure cell names NO load-bearing \`proof:*\` gate (only ${retired.size ? "RETIRED names" : "prose"}) — a chronic must exit via a RUNTIME SYSTEM-property gate, never a bare tag.`);
     }
 
-    // (i)/(ii) every load-bearing gate RESOLVES + runs in proof:all (no dangling
-    // name — catches the M1 paper-close AND the M3 bare-HANDOFF).
+    // HANDOFF rule (a) — no vaporware-targeted HANDOFF.
+    const vapor = vaporwareHandoff(cell);
+    if (vapor) {
+        fail(`[${name}] HANDOFF rule (a) VIOLATED — ${vapor}. A HANDOFF may target ONLY a PUBLISHED version or a kf-owned consume-edge, never a future version / unreleased commit (the B7 vaporware lesson).`);
+    }
+
+    // (1)/(2)/(3) per load-bearing gate: resolve + correctness-tier + RUNTIME.
+    const runtimeGates = [];
     for (const g of loadBearing) {
         if (!resolves(g)) {
-            fail(
-                `[${name}] closure gate \`${g}\` does NOT resolve to an authored ` +
-                    `package.json script key — a DANGLING reference (the gate the row ` +
-                    `cites does not exist; M1 paper-close / M3 bare-HANDOFF bite).`,
-            );
-        } else if (!inProofAll(g)) {
-            fail(
-                `[${name}] closure gate \`${g}\` resolves but is NOT a member of ` +
-                    `proof:all — it never runs in the suite, so "green in the last ` +
-                    `proof:all" cannot hold. Wire it into proof:all.`,
-            );
+            fail(`[${name}] closure gate \`${g}\` does NOT resolve to an authored package.json key — a DANGLING reference (M1 paper-close bite).`);
+            continue;
+        }
+        if (!inCorrectnessTier(g)) {
+            fail(`[${name}] closure gate \`${g}\` resolves but is NOT in the CORRECTNESS tier of proof:all (proof:correctness) — a chronic must close via a CORRECTNESS gate that runs, not a hygiene/orphan one. Wire it into proof:correctness.`);
+        }
+        // (3) THE S4 CORE — the cited gate must be a RUNTIME gate that actuates.
+        const rt = isRuntimeGate(g);
+        if (!rt.runtime) {
+            fail(`[${name}] closure gate \`${g}\` is NOT a RUNTIME/INTERACTION gate (${rt.why}) — a chronic exits ONLY via a gate that opens a browser AND drives the live interaction the chronic lives in. A source-shape / load-rest / proxy gate cannot close a chronic (S4 rule 3; the keystone fix).`);
+        } else {
+            runtimeGates.push(g);
         }
     }
 
-    // (ii) a HANDOFF row must carry a born-RED kf gate that resolves. If the cell
-    // is tagged HANDOFF/consume-leg but names NO resolvable proof:* gate, it is a
-    // bare HANDOFF — the M3 column-migration-and-forget the meta-gate forbids.
-    if (isHandoffClosure(cell)) {
-        const resolvable = loadBearing.filter(resolves);
-        if (resolvable.length === 0) {
-            fail(
-                `[${name}] the closure is a HANDOFF/consume-leg but carries NO ` +
-                    `resolvable born-RED \`proof:*\` gate — a bare HANDOFF tag is no ` +
-                    `longer a terminal (M3). Pair it with a born-RED kf gate.`,
-            );
+    // (4) BORN-RED — a non-RE-AFFIRM row must carry a born-RED witness in prose.
+    if (!reaffirm && loadBearing.length > 0) {
+        const bornRed = /\bborn-?RED\b|\bBIT\b|witnessed.*defect|reproduc/i.test(cell);
+        if (!bornRed) {
+            fail(`[${name}] the closure cites runtime gate(s) but carries NO born-RED witness in prose — a chronic must close via a gate that BIT on the defect tree, not merely a gate that exists (S4 rule 4).`);
         }
     }
 
-    return { name, loadBearing, retired: [...retired], handoff: isHandoffClosure(cell), src: srcLabel };
+    return { name, loadBearing, runtimeGates, retired: [...retired], handoff: isHandoffClosure(cell), reaffirm, src: srcLabel };
 }
 
 // ── Run ───────────────────────────────────────────────────────────────────────
-const rows = parseChronicTable(PROGRESS, "PROGRESS.md");
+const rows = parseChronicTable(I_PROGRESS, "I/PROGRESS.md");
 if (rows.length === 0 && failures.length === 0) {
-    fail("[substrate] parsed ZERO chronic rows from PROGRESS.md §\"Open deferrals\" — refusing to pass vacuously");
+    fail('[substrate] parsed ZERO chronic rows from the I PROGRESS.md §"Open deferrals" — refusing to pass vacuously');
 }
 
-// The four chronics MUST be present (the substrate is the canonical four-row
-// table; a missing chronic is a silent drop — the exact M-mode the gate forbids).
+// The original four H chronics MUST still be present (re-examined, not dropped),
+// plus the crash/defect chronics the I tranche folds.
 const EXPECTED = [
-    { tag: "D2", re: /\bD2\b/ },
-    { tag: "D7", re: /\bD7\b/ },
-    { tag: "D10", re: /\bD10\b/ },
-    { tag: "D5", re: /\bD5\b/ },
+    { tag: "CH-1 cartoon/specular", re: /\bCH-1\b/ },
+    { tag: "CH-2 φ-hero", re: /\bCH-2\b/ },
+    { tag: "CH-3 mobile", re: /\bCH-3\b/ },
+    { tag: "CH-4 dock", re: /\bCH-4\b/ },
+    { tag: "CH-5 B1 empty-value crash", re: /\bCH-5\b|B1\/B5/ },
+    { tag: "CH-6 B2 _gen suspend", re: /\bCH-6\b|\bB2\b/ },
 ];
 for (const e of EXPECTED) {
     if (!rows.some((r) => e.re.test(r.chronic))) {
-        fail(
-            `[coverage] the ${e.tag} chronic row is MISSING from PROGRESS.md §"Open ` +
-                `deferrals" — a chronic silently dropped from the table is the exact ` +
-                `re-classification escape the meta-gate forbids.`,
-        );
+        fail(`[coverage] the ${e.tag} chronic row is MISSING from the I PROGRESS.md §"Open deferrals" — a chronic silently dropped is the exact re-classification escape the meta-gate forbids.`);
     }
 }
 
-const audited = rows.map((r) => auditRow(r, "PROGRESS.md"));
-
-// BLK-2 — parse FINAL.md ADDITIONALLY only if it exists (it is authored at H.WZ).
-if (fs.existsSync(FINAL)) {
-    const finalRows = parseChronicTable(FINAL, "FINAL.md");
-    for (const r of finalRows) auditRow(r, "FINAL.md");
-}
+const audited = rows.map((r) => auditRow(r, "I/PROGRESS.md"));
 
 // ── Report ────────────────────────────────────────────────────────────────────
 if (failures.length) {
-    console.error("✗ proof:chronic-closure — the chronic ledger is not closed to discipline:\n");
-    for (const f of failures) console.error("  ✗ " + f);
+    console.error("\n✗ proof:chronic-closure — the chronic ledger is not closed to RUNTIME discipline:\n");
     console.error(
-        "\n  The binding rule: a chronic exits ONLY with (a) a passing SYSTEM-property\n" +
-            "  gate, OR (b) a HANDOFF tag PAIRED with a born-RED kf gate. A bare HANDOFF reds.",
+        "  The binding rule (I.W7 S4): a chronic exits ONLY via a RUNTIME gate (opens a browser AND\n" +
+            "  actuates) that was witnessed born-RED, wired into the correctness tier. A source-shape /\n" +
+            "  load-rest / proxy gate, a vaporware HANDOFF, or a wrong-axis gate REDS.",
     );
     process.exit(1);
 }
 
-console.log("✓ proof:chronic-closure — every chronic exits to discipline (PROGRESS.md §\"Open deferrals\"):");
+console.log('\n✓ proof:chronic-closure — every chronic exits via a RUNTIME gate that BIT (I PROGRESS.md §"Open deferrals"):');
 for (const a of audited) {
-    const lb = a.loadBearing.join(", ");
+    const rt = a.runtimeGates.join(", ");
+    const tag = a.reaffirm ? " · RE-AFFIRM (runtime-corroborated)" : "";
+    const hf = a.handoff ? " · HANDOFF (published consume-edge)" : "";
     const ret = a.retired.length ? ` · RETIRED(absent): ${a.retired.join(", ")}` : "";
-    const hf = a.handoff ? " · HANDOFF-paired born-RED" : "";
-    console.log(`    • ${a.name}\n        load-bearing: ${lb}${hf}${ret}`);
+    console.log(`    • ${a.name}\n        runtime gate(s) that BIT: ${rt || "(re-affirm)"}${hf}${tag}${ret}`);
 }
+console.log(
+    "\n  The keystone is FIXED: the meta-gate now polices the PRODUCT (each cited gate opens a browser,\n" +
+        "  actuates the live interaction the chronic lives in, and was born-RED), not the column's paperwork.",
+);

@@ -146,6 +146,31 @@ wave) · **RE-OPEN** (false-closed chronic, folded) · **RE-AFFIRM** (genuinely 
 re-litigate) · **HANDOFF** (sibling-owned, paired with a kf gate) · **BOOK** (net-new, stays deferred)
 · **MEASURE-FIRST** · **RECORD/KILL** (terminal).
 
+## Open deferrals
+
+**The canonical chronic-closure substrate (the parseable table `proof:chronic-closure` reads).** This
+table SUPERSEDES H's `## Open deferrals` table. Per the I-born precept (S4), every closure cell cites
+a RUNTIME gate — its script opens a browser AND ACTUATES the product (click / switch / drag / fire
+visibility) AND was witnessed born-RED on the `b934a08` defect tree — never a source-shape / load-rest
+/ proxy-store gate. A HANDOFF row may target ONLY a PUBLISHED version or a kf-owned consume-edge fix,
+never a future version number / unreleased commit (the B7 vaporware lesson); and every gate must
+measure the PIXEL / INTERACTION the user reports (the M1 mobile / B9 icons / B8 dock lessons). The
+narrative 4a–4f tables below carry the full live-state probe + disposition; this table is the gate's
+parse target.
+
+| Chronic | Prior false-close mode | I closure (the RUNTIME gate that BIT) |
+|---|---|---|
+| **CH-1 cartoon-shadow / specular (D2/D14)** | H closed via the source-shape `proof:no-orphan-specular` (RECORDED the bloom as residue) + a born-RED HANDOFF against the VAPORWARE glass-ui 3.8.0 (`proof:specular-handoff`) | **SYSTEM gate** — `proof:specular-absent-at-rest` (RUNTIME: the rendered `::before` alpha at rest is ≤0.05 on every glass stage + dock track, by the pixels; born-RED on the 3.5.1 bloom). The vaporware IOU `proof:specular-handoff` is DELETED; the consume-edge is the PUBLISHED + consumed glass-ui `~3.9.0` flat default (a kf-owned consume-edge, NOT a future version). The cartoon-PANEL depth half stays re-affirmed at the H source-shape scope (the panels read correctly; not re-opened). |
+| **CH-2 φ-hero typography (D7)** | M1 — issue-level close as system close | **RE-AFFIRM** — genuinely closed at the asserted scope (the user did not re-flag it). The runtime appearance is now corroborated by `proof:live-session` (RUNTIME: the body-typography leg of the interaction battery, born-RED on `b934a08`); no I re-open. |
+| **CH-3 mobile architecture (D10)** | M2 — scope-narrowing + wrong-axis gates (`sheet.top` not `sheet.bottom`) | **SYSTEM gate** — `proof:perf-frame-budget` (RUNTIME: the dock/easing felt frame budget under a measured throttle, drives the real interaction; born-RED witness HEAD 12/114) + `proof:drag-gesture` (RUNTIME: the drag seam the mobile sheet shares). The mobile geometry seams (M1/M2/M3) fold into the I.W4 perf + drag runtime gates that measure the felt interaction, not the layout-box proxy. |
+| **CH-4 dock (D5 lag + D9 popover)** | M3 — D5 column-migration to the source-shape `proof:dock-morph-settled` (a `--spring-dock` token-peak, NOT the felt frame budget) | **SYSTEM gate** — `proof:perf-frame-budget` (RUNTIME: drives the dock hover-expand + measures dropped frames under a CPU throttle — the felt budget the token-peak proxy could not see; born-RED witness HEAD 12/114). The D5 spring re-affirms; the felt "broken dock" the user reported decomposes into B1 (`proof:engine-no-throw-on-play`) + the dock perf (`proof:perf-frame-budget`). |
+| **CH-5 the `"......"` empty-value crash (B1/B5)** | H.W0 claimed KILL; guarded only the FrameCompiler blank-selector — the source-shape `proof:demo-console-clean` rested + narrowed its regex | **SYSTEM gate** — `proof:engine-no-throw-on-play` (RUNTIME: CLICKS the rainbow group-play on home + cube, reads the LIVE console for the bare-`"......"` parse fingerprint + the cube draw-loop transform; born-RED on `b934a08`). |
+| **CH-6 the `_gen` DFA suspend/resume crash (B2)** | H.W1 keystone claimed a suspend→restore identity via the proxy-store `proof:scene-machine-irrefragable` (a localStorage round-trip; never fired visibilitychange) | **SYSTEM gate** — `proof:fsm-suspend-resume-live` (RUNTIME: PLAYS a raw-rAF scene + fires a synthetic visibilitychange→hidden + switches → asserts ZERO `_gen` throw against the LIVE adapter; born-RED on the source-mapped `:5174` deterministic reproduction). |
+| **CH-7 lost easing editor (B4)** | NEW — H's `proof:scene-control-dfa` asserted the chrome tab LABEL, not the mounted PANEL (wrong-projection) | **SYSTEM gate** — `proof:easing-editor-live` (RUNTIME: SWITCHES into easing + asserts the `.easing-curve-canvas` mounts active + a handle-DRAG mutates the path; born-RED on the reka passive-latch blank). |
+| **CH-8 amiga floats (B3)** | NEW — H's `proof:visual-lock` MASKED the canvas out (self-baseline) | **SYSTEM gate** — `proof:amiga-subject-is-pivot` (RUNTIME: a CENTRE-DRAG moves the subject not the room, measured by canvas-region MAD; born-RED on the HEAD whole-room re-projection). |
+| **CH-9 square drag selects text / no persist (B6)** | NEW — un-gated (no gate existed) | **SYSTEM gate** — `proof:drag-gesture` (RUNTIME: a real `page.mouse` DRAG over a chrome label selects no text + the box transform persists; born-RED on the missing select-suppression seam). |
+| **CH-10 dev ENOENT icon + the demo title (B9/K)** | NEW — the source-shape `proof:scene-icons` was blind to the orphaned-rename (the SPA fallback masked the 404) | **SYSTEM gate** — `proof:icon-paint-live` (RUNTIME: every `SceneDescriptor.icon` PAINTS a non-zero inline `<svg>` + zero asset-404 during interaction + `document.title === "keyframes.js"`; born-RED on the orphaned-rename). |
+
 ### 4a — The four H "closed" chronics, re-examined against the running demo
 
 | Chronic | H claimed | I live TRUE state (probe) | I disposition |

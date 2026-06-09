@@ -65,6 +65,12 @@ const EXCLUDED = new Set([
     // browser gates that are ALREADY individually CI-wired in the demo-smoke job, so
     // it is not a distinct CI gate (running it in CI would duplicate them).
     "proof:browser",
+    // I.W7 S5 — the two-tier SUB-AGGREGATORS. proof:correctness + proof:hygiene are
+    // the partition proof:all chains (proof:all = proof:correctness && proof:hygiene);
+    // each is a chain of already-individually-CI-wired gates, not a distinct gate
+    // (running them in CI would duplicate every member), exactly like proof:all.
+    "proof:correctness",
+    "proof:hygiene",
 ]);
 
 const gates = Object.keys(pkg.scripts)

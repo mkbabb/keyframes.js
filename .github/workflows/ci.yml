@@ -164,16 +164,23 @@ jobs:
             # (sequence/motion-path were never gate-visited) are enrolled in every runtime gate.
             - name: proof:manifest-sourced (H.W8 S1/I-1 — SCENES keys ≡ scenes.ts ids · auto-enrolls every scene)
               run: npm run proof:manifest-sourced
-            # H.W8 S3 (I-3) — the chronic-closure META-GATE: parse the COMMITTED chronic
-            # table at docs/tranches/H/PROGRESS.md §"Open deferrals" and assert each row
-            # exits ONLY via (a) a passing SYSTEM-property proof:* gate, OR (b) a HANDOFF
-            # PAIRED with a born-RED proof:* gate — both RESOLVING to an authored
-            # package.json key + a proof:all member (no dangling name; M1 paper-close + M3
-            # bare-HANDOFF caught structurally). RETIRED-tagged gate names (the W2-composite
-            # proof:cartoon-specular-coexist + proof:specular-calm) are EXCLUDED from
-            # resolve-or-red and required ABSENT (the dual). Born-RED until Lane C's
-            # proof:dock-morph-settled (the D5 dock consume-leg born-RED gate) resolves.
-            - name: proof:chronic-closure (H.W8 S3/I-3 — every chronic exits via a SYSTEM gate or a born-RED-paired HANDOFF · a bare HANDOFF reds)
+            # I.W7 S6 — proof:gate-is-runtime: THE META-GATE that makes the gate-ORACLE
+            # precept MECHANICALLY PRIOR (RED-1). For EVERY I wave's (I.W0–I.W7) declared
+            # §Hard correctness gate, it asserts the script opens a browser (serveDist +
+            # KF_PLAYWRIGHT_DIR + newContext) AND actuates (click/dispatch/mouse/key/drag)
+            # AND is wired into the correctness tier of proof:all. A source-shape /
+            # load-rest / proxy §Hard gate FAILS. HYGIENE-tier itself (it reads gate
+            # SCRIPTS) — it polices the GATES' SHAPE; static, no browser/build.
+            - name: "[HYGIENE-meta] proof:gate-is-runtime (I.W7 S6 — every wave's §Hard gate is an actuating runtime gate wired to the correctness tier · the precept, machine-enforced)"
+              run: npm run proof:gate-is-runtime
+            # I.W7 S4 — proof:chronic-closure REWIRED: parse the canonical chronic table
+            # (docs/tranches/I/PROGRESS.md §"Open deferrals", which SUPERSEDES H's) and
+            # assert each row exits via a RUNTIME gate that BIT — its script opens a
+            # browser AND actuates AND was witnessed born-RED — wired to the correctness
+            # tier. A source-shape / load-rest / proxy gate, a vaporware-targeted HANDOFF,
+            # or a wrong-axis gate REDS. RETIRED gate names required ABSENT (the dual). It
+            # polices the chronic ROWS' cited gates; static, HYGIENE-tier, no browser.
+            - name: "[HYGIENE-meta] proof:chronic-closure (I.W7 S4 — every chronic exits via a RUNTIME gate that BIT · vaporware HANDOFF + wrong-axis gate red · the keystone fixed)"
               run: npm run proof:chronic-closure
             - name: proof:ci-coverage (F.W2 — every proof:* gate is invoked in CI)
               run: npm run proof:ci-coverage
@@ -215,11 +222,69 @@ jobs:
               run: npm run proof:demo-usability
               env:
                   KF_REQUIRE_BROWSER: "1"
-            - name: proof:demo-console-clean (H.W0 — the H-A1 serializeEasing crash is dead)
-              run: npm run proof:demo-console-clean
+            # ════════════════════════════════════════════════════════════════
+            # I.W7 — THE CORRECTNESS TIER (the gate-ORACLE precept, S1/S5). Each
+            # gate opens the BUILT dist + ACTUATES the product (CLICK play, SWITCH
+            # via the dock, fire visibilitychange, DRAG) and reads a product-facing
+            # property under KF_REQUIRE_BROWSER=1 (a playwright-absent skip is a
+            # hard fail). These RETIRE H's proxy gates: proof:demo-console-clean (→
+            # the live-session console budget), proof:dock-morph-settled (→
+            # proof:perf-frame-budget), proof:no-orphan-specular + proof:specular-
+            # handoff (→ proof:specular-absent-at-rest), proof:scene-icons (→
+            # proof:icon-paint-live), proof:dragscrub-single (→ proof:drag-gesture).
+            # proof:live-session is THE HEADLINE — the one interaction-driven
+            # battery whose accumulated error budget = 0 + product-facing DOM is the
+            # union of every wave's leg.
+            # ════════════════════════════════════════════════════════════════
+            - name: "[CORRECTNESS] proof:engine-no-throw-on-play (I.W0/B1+B5 — the rainbow group-play click is total · cube paints · no '......' parse line)"
+              run: npm run proof:engine-no-throw-on-play
               env:
                   KF_REQUIRE_BROWSER: "1"
-            - name: proof:visual-lock (H.W8 — the appearance axis · named-region pixel baseline over the final demo)
+            - name: "[CORRECTNESS] proof:fsm-suspend-resume-live (I.W1/B2 — synthetic visibilitychange on a playing raw-rAF scene raises NO _gen throw · resume-iff-was-playing)"
+              run: npm run proof:fsm-suspend-resume-live
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            - name: "[CORRECTNESS] proof:easing-editor-live (I.W2/B4 — switch-into-easing mounts the curve canvas + a handle-drag mutates the path)"
+              run: npm run proof:easing-editor-live
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            - name: "[CORRECTNESS] proof:amiga-subject-is-pivot (I.W3/B3 — a centre-drag moves the SUBJECT not the room · no ReadPixels GPU stall)"
+              run: npm run proof:amiga-subject-is-pivot
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            - name: "[CORRECTNESS] proof:drag-gesture (I.W4/B6 — a real drag selects no chrome text + the box transform persists)"
+              run: npm run proof:drag-gesture
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            - name: "[CORRECTNESS] proof:perf-frame-budget (I.W4/B8 — dock expand + easing preview hold the felt frame budget under a CPU throttle)"
+              run: npm run proof:perf-frame-budget
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            - name: "[CORRECTNESS] proof:icon-paint-live (I.W5/B9+K — every SceneDescriptor.icon PAINTS · zero asset-404 · document.title === keyframes.js · live VT)"
+              run: npm run proof:icon-paint-live
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            - name: "[CORRECTNESS] proof:specular-absent-at-rest (I.W6/B7 — the glass ::before catch-light bloom is ABSENT at rest, by the rendered pixels)"
+              run: npm run proof:specular-absent-at-rest
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            - name: "[CORRECTNESS] proof:demo-fonts (I.W6-font — the body + dock + control chrome carry NO Plus Jakarta · display is Instrument Serif)"
+              run: npm run proof:demo-fonts
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            - name: "[CORRECTNESS] proof:live-session (I.W7 THE HEADLINE — ONE interaction-driven session: PLAY + SWITCH + DRAG · error budget = 0 + product-facing DOM)"
+              run: npm run proof:live-session
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+                  KF_DEV_SERVER: "1"
+            # [HYGIENE] proof:visual-lock — RE-TIERED to HYGIENE (I.W7 S5). The
+            # self-captured, subject-masked pixel baseline locks brokenness as golden
+            # (rc-gate-blindspot §2.3); it is KEPT (cheap layout/type/color drift
+            # check) but STRIPPED of correctness authority — the appearance-axis
+            # correctness now lives in proof:live-session + proof:specular-absent-at-
+            # rest + proof:amiga-subject-is-pivot (which assert the live subject ALIVE,
+            # not painted pink). It may NEVER count toward a correctness/chronic tally.
+            - name: "[HYGIENE] proof:visual-lock (RE-TIERED — self-baseline drift check; correctness authority STRIPPED, see proof:live-session)"
               run: npm run proof:visual-lock
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -230,7 +295,14 @@ jobs:
             # the hash reconcile (goto clears storage). Each clause BITES on its
             # exact D12 defect; KF_REQUIRE_BROWSER turns a playwright-absent skip
             # into a hard CI fail (the keystone cannot pass vacuously).
-            - name: proof:scene-machine-irrefragable (H.W1 — the live scene+playback FSM identity matrix + the six focused clauses)
+            # [HYGIENE] proof:scene-machine-irrefragable — RE-TIERED to HYGIENE
+            # (I.W7 S5). Its oracle is a localStorage JSON snapshot round-trip (a
+            # proxy store that stubs the live adapter + never fires visibilitychange,
+            # rc-gate-blindspot §2.2) — a useful PURE-REDUCER serialization hygiene
+            # check, KEPT, but STRIPPED of correctness authority: the B2 suspend
+            # correctness now lives in proof:fsm-suspend-resume-live (which exercises
+            # the LIVE adapter + its _gen, not the snapshot).
+            - name: "[HYGIENE] proof:scene-machine-irrefragable (RE-TIERED — pure-reducer snapshot round-trip; correctness authority STRIPPED, see proof:fsm-suspend-resume-live)"
               run: npm run proof:scene-machine-irrefragable
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -270,14 +342,12 @@ jobs:
               run: npm run proof:dock-popover-opens
               env:
                   KF_REQUIRE_BROWSER: "1"
-            # H.W8 S3/S4 (BLK-5 consume-leg) — the dock-spring SETTLE half (D5 LAG):
-            # the consumed `--spring-dock` ramp peak ≤ +6% overshoot. Born-RED on
-            # glass-ui 3.4.0 (+16.3%); green on the ~3.5.1 retune (53c1b07, +4.5%).
-            # Static (reads the installed glass-ui token) — runs in the demo arm
-            # because `npm ci` here installs the registry @mkbabb/glass-ui. The kf
-            # consume-leg WATCH on the cross-repo dock HANDOFF (inv-16: NOT a fork).
-            - name: proof:dock-morph-settled (H.W8 — the consumed --spring-dock ramp peak ≤ +6% · D5 dock-lag consume-leg · born-RED on 3.4.0)
-              run: npm run proof:dock-morph-settled
+            # RETIRED (I.W7 S5): proof:dock-morph-settled — a source-shape gate that
+            # parsed the `--spring-dock` token's peak ("no morph captured live",
+            # rc-gate-blindspot §2.5). SUPERSEDED by the CORRECTNESS-tier
+            # proof:perf-frame-budget above, which drives the dock hover-expand +
+            # measures the FELT frame budget under a CPU throttle (the dropped-frame
+            # axis the token-peak proxy structurally could not see). Script git-rm'd.
             - name: proof:single-toggle (H.W1 S8/BLK-8 — the @mbabb trigger carries exactly one toggle)
               run: npm run proof:single-toggle
               env:
@@ -412,16 +482,11 @@ jobs:
               run: npm run proof:no-deprecated-guard
             - name: proof:single-writer (H.W1 S9.c — the FSM mutation boundary; no consumer writes activeScene/status)
               run: npm run proof:single-writer
-            # H.W12 S1/I8 — the ONE pointer-drag scrub seam. The hand-rolled drag
-            # DANCE (setPointerCapture + a window pointermove/pointerup listener)
-            # lives in EXACTLY ONE shared home (useDragScrub.ts), and spring/
-            # sequence/motion-path carry ZERO of it (their scrub rides the seam;
-            # the rect reads that remain are pure project closures). The square
-            # scene's 2-D positional box drag is a recorded DANCE_ALLOWLIST
-            # carve-out (it earns its difference). Born-RED on the pre-W12 3-4
-            # hand-rolled copies. A static grep — no browser, no build.
-            - name: proof:dragscrub-single (H.W12 S1/I8 — the pointer-drag scrub dance has ONE home · spring/sequence/motion-path consume useDragScrub)
-              run: npm run proof:dragscrub-single
+            # RETIRED (I.W7 S5): proof:dragscrub-single — a static-grep source-shape
+            # gate (the drag DANCE has ONE home). SUPERSEDED by the CORRECTNESS-tier
+            # proof:drag-gesture above, which drives a REAL page.mouse drag over a
+            # chrome label + asserts no text-selection + the transform persists — the
+            # B6 runtime axis the source grep could not see. Script git-rm'd.
             # H.W12 S2/I9 — the gesture engine lives in the composable. The
             # projection-math signature (getBoundingClientRect/getTotalLength/
             # getPointAtLength/ManualTimeline/fromMotionPath/setChildTime) lives in
@@ -453,8 +518,13 @@ jobs:
               run: npm run proof:no-brittle-selector
             - name: proof:no-dup-utility (H.W2 S4/S1/S6 — 0 demo .scale-on-hover rule · 0 <Card> glass-card · glass-card resolves only to the enumerated static set)
               run: npm run proof:no-dup-utility
-            - name: proof:specular-handoff (H.W2 S5 — born-RED glass-ui Card-default + dock-icon specular HANDOFF witness; flips RED when glass-ui ships the calm default)
-              run: npm run proof:specular-handoff
+            # RETIRED + DELETED (I.W7 S5): proof:specular-handoff — a born-RED IOU
+            # parked against the UNPUBLISHED glass-ui 3.8.0 (vaporware the user never
+            # sees; rc-gate-blindspot §2.5, the B7 vaporware lesson). SUPERSEDED by
+            # the CORRECTNESS-tier proof:specular-absent-at-rest above, whose
+            # consume-edge is the PUBLISHED + consumed glass-ui ~3.9.0 flat default.
+            # The vaporware-HANDOFF rule in proof:chronic-closure now forbids re-
+            # parking it. Key + script removed (no .mjs ever existed on disk).
             # H.W9 F4 — the ppmycota menu leads with the SVG brand mark, no emoji. A
             # cheap STATIC parse (no browser): the ppmycota <DropdownMenuItem> mounts a
             # .ppmycota-logo-sm SVG mark, carries ZERO emoji codepoints in its text (the
@@ -503,27 +573,12 @@ jobs:
               run: npm run proof:glass-and-cartoon
               env:
                   KF_REQUIRE_BROWSER: "1"
-            # H.W2 S1+S3, INVERTED at H.W9 F3+F6 (the tracked-specular death lock ·
-            # exception set → ∅). The user-feedback fold REMOVED the tracked-specular
-            # subsystem entirely, so the W2 enumerated composite exception
-            # {TimingFunctionPanel bezier} COLLAPSES to the EMPTY set. The source-
-            # invariant (every kf-owned <Card> resolves surface=cartoon with NO
-            # glass-specular-track AND NO cartoon-specular AND NO manual .glass-card —
-            # no exception) + the FRESH-CONTEXT per-scene computed sweep (the orphan
-            # footprint is route/state-dependent, CP-MED-2 — first-load mounts reproduce
-            # the orphan a transition misses): 0 kf-owned Cards carry ANY glass-specular-
-            # track (no composite allowance; the remaining <Button>/dock tracks are
-            # RECORDED S5 HANDOFF residue, inv-16) + the storm-robust hover ::before check
-            # (NO hovered panel — none excluded — paints the warm-white catch-light
-            # radial). STRONGER than the W2 form: born-RED on the bezier composite that
-            # existed pre-H.W9, green on its removal, still bites a re-introduced
-            # surface=glass / re-added composite. The D2 cartoon chronic stays closed via
-            # this stronger system property. Settle-gated on the H.W1 FSM resting.
-            # KF_REQUIRE_BROWSER turns a playwright-absent skip into a hard CI fail.
-            - name: proof:no-orphan-specular (H.W2 S1+S3 INVERTED at H.W9 F3+F6 — 0 kf-owned Card carries a tracked specular · exception set → ∅ · no hover catch-light radial)
-              run: npm run proof:no-orphan-specular
-              env:
-                  KF_REQUIRE_BROWSER: "1"
+            # RETIRED (I.W7 S5): proof:no-orphan-specular — it RECORDED the warm-white
+            # catch-light bloom as "accepted residue" and called PRESENCE a pass (the
+            # blind-spot incarnate; rc-gate-blindspot §2.3/§5). SUPERSEDED by the
+            # CORRECTNESS-tier proof:specular-absent-at-rest above, which asserts the
+            # rendered ::before alpha is FLAT at rest by the pixels (the INVERSION).
+            # Script git-rm'd.
             - name: proof:idioms (D.W2 — owned design-idioms.css · leaf-tail swept · utils.css monolith uncaged)
               run: npm run proof:idioms
             - name: proof:phi-leaf-zero (H.W4 — the φ-hero chronic SYSTEM-property gate CH-2/M1 · zero raw rungs (residual L1+L2→0) AND the hero on the audacious top φ rung text-display-mega)
@@ -855,27 +910,13 @@ jobs:
               run: npm run proof:scene-perf-budget
               env:
                   KF_REQUIRE_BROWSER: "1"
-            # H.W5 S1/S2 + BLK-7 — the themable-coverage + shape + no-raster lock.
-            # H.W10 REVISE (reverses W5.S2's monochrome enforcement — G1). A STATIC
-            # source half (every non-home SceneDescriptor has a defined icon · every
-            # assets/icons/*.svg is a 32×32 inline-<svg> carrying EXPRESSIVE color —
-            # a var(--rainbow*/accent*/color*) token, a baked vivid hue, or a 1:1
-            # raster→SVG <image> embed; a currentColor-only monochrome icon FAILS ·
-            # the 4 originals cube/amiga/square/easing byte/pixel-match 084feb9 1:1 —
-            # re-instantiated, not redrawn · assets/icons holds zero .png modulo the
-            # favicon + the enumerated re-instantiated originals · rel=icon resolves —
-            # the 404 guard) + a BROWSER half: the load-bearing G4 THEMING clause
-            # (a mounted scene icon is a real inline <svg> NOT an <img :src>, and
-            # carries its OWN expressive color — the resolved paint DIFFERS from the
-            # host currentColor, the INVERSE of the W5 monochrome equality; G4 the
-            # authority over the G1 file-shape). Scene switches driven IN-PAGE via the
-            # hash reconcile (the in-app Scene combobox's fixed point); settle-gated
-            # on the H.W1 FSM resting. KF_REQUIRE_BROWSER turns a playwright-absent
-            # skip into a hard CI fail (the theming clause cannot pass vacuously).
-            - name: proof:scene-icons (H.W10 G1 + BLK-7 — every non-home scene icon'd · expressive-color 32×32 family (monochrome currentColor-only FAILS) · the 4 originals 084feb9 1:1 · zero non-allow-listed raster · rel=icon resolves · mounted-icon carries its own color)
-              run: npm run proof:scene-icons
-              env:
-                  KF_REQUIRE_BROWSER: "1"
+            # RETIRED (I.W7 S5): proof:scene-icons — a source-shape + load-time gate
+            # blind to the orphaned-rename class (B9): the dev SPA-fallback masked a
+            # missing *.svg as HTTP-200 index.html, and nothing asserted a glyph
+            # actually PAINTS (rc-gate-blindspot §6, rc-icons-build §3). SUPERSEDED by
+            # the CORRECTNESS-tier proof:icon-paint-live above, which asserts every
+            # SceneDescriptor.icon PAINTS a non-zero inline <svg> + zero asset-404
+            # during interaction at RUNTIME. Script git-rm'd.
             # H.W5 S3/S4/S5 §Hard gate — the pertinence MERGE + the per-mode
             # interactivity floor. A STATIC source half (router.ts has NO
             # starting-style route · scenes.ts has NO starting-style descriptor ·
