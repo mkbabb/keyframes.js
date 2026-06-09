@@ -158,14 +158,20 @@ const LIBRARY_CEILING_OVERRIDE = new Map([
     [
         "src/animation/group.ts",
         {
-            cap: 800,
+            cap: 820,
             why:
                 "the AnimationGroup compositor 4-concern gestalt (a-backend-" +
                 "godmodules G-GM-3) — the zero-alloc `_grouped` buffer machinery, " +
                 "the element-wise blend leaf (G.W17), the managed-child lifecycle, " +
                 "and the scheduler-yield batching share one per-frame composite " +
                 "seam; the buffer discipline (null-fill clear, whitelist key-skip, " +
-                "post-blend compaction) is GL-7/GL-8 ALREADY-SOTA. Do NOT carve.",
+                "post-blend compaction) is GL-7/GL-8 ALREADY-SOTA. Do NOT carve. " +
+                "I.W0 B5 raised 800→820: the NOOP_TRANSFORM total-fallback added the " +
+                "two-timing-point composite-transform resolution (constructor " +
+                "inheritance for already-parsed children + the lazy first-draw " +
+                "resolution for children built before parse() — the cube " +
+                "static-matrix cure). Both timing points are load-bearing on the " +
+                "SAME composite seam; neither is a separable concern.",
         },
     ],
     [
