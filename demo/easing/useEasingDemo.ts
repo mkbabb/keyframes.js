@@ -12,7 +12,6 @@ import { computed, markRaw, onScopeDispose, ref, watch } from "vue";
 import { CSSKeyframesAnimation } from "@src/animation/engine";
 import { AnimationGroup } from "@src/animation/group";
 import { NumericAnimation } from "@src/animation/numeric";
-import { RAFPlayback } from "@src/animation/playback";
 import type { TimingFunction } from "@src/animation/constants";
 
 import {
@@ -20,12 +19,8 @@ import {
     generateStepSVGPath,
 } from "@components/custom/animation-controls/controls/timingCurveUtils";
 import { NAMED_EASING_BEZIER } from "@components/custom/animation-controls/animationDescriptions";
-import { useSceneVisibilityPause } from "../app/useSceneVisibilityPause";
-import {
-    useSceneMachine,
-    createRafAdapter,
-    type ScenePlayback,
-} from "@components/custom/animation-controls/stores";
+import { useRafScene } from "../app/useRafScene";
+import { useSceneMachine } from "@components/custom/animation-controls/stores";
 import { getFamilyForCurve, getFamilyCurves, type CurveGroupItem } from "./easingGroups";
 
 // ── Static data ────────────────────────────────────────────────────
@@ -147,7 +142,6 @@ export function useEasingDemo() {
         new NumericAnimation<{ p: number }>([{ p: 0 }, { p: 1 }, { p: 0 }]),
     );
 
-    const playback = markRaw(new RAFPlayback());
     let startTime = 0;
 
     const frame = (now: DOMHighResTimeStamp): boolean => {
@@ -160,15 +154,25 @@ export function useEasingDemo() {
         return true;
     };
 
-    /** Re-arm the rAF loop (re-seeds startTime from the current progress so the
-     *  sweep resumes in phase). Idempotent — a no-op while already running. */
-    const startLoop = () => {
-        if (!playback.running) {
+    // ── The raw-rAF scene recipe (I.W1 S2 — consolidated in useRafScene) ──
+    // useRafScene OWNS the RAFPlayback, the BOUND startLoop/stopLoop, the
+    // createRafAdapter wiring, the onScopeDispose(stopLoop) seam, AND the
+    // useSceneVisibilityPause registration with BOUND callbacks (no scene can
+    // re-introduce the unbound `playback.stop` that threw `this._gen`). The
+    // scene supplies only the per-frame work + the per-arm clock rebase.
+    const { startLoop, scenePlayback } = useRafScene({
+        frame,
+        // Re-seed startTime from the current progress so the sweep resumes in
+        // phase (the former inline startLoop body).
+        onArm: () => {
             startTime = performance.now() - progress.value * duration.value * 2;
-            playback.loop(frame);
-        }
-    };
-    const stopLoop = () => playback.stop();
+        },
+        getProgress: () => progress.value,
+        setProgress: (t) => {
+            progress.value = t;
+        },
+        getPlaying: () => machine.status.value === "playing",
+    });
 
     // The transport methods dispatch to the machine (the authority); the
     // adapter's resume/suspend re-arms/stops the loop, so play/pause never poke
@@ -192,39 +196,16 @@ export function useEasingDemo() {
         machine.dispatch({ type: "RESET" });
     };
 
-    // ── The raw-rAF ScenePlayback adapter (WV-W1-HIGH-3) ──
-    // Round-trips progress/isPlaying through the contract — the easing↔cube
-    // cross-pair the group gate misses. The App registers this on SCENE_READY.
-    const scenePlayback: ScenePlayback = createRafAdapter({
-        getProgress: () => progress.value,
-        setProgress: (t) => { progress.value = t; },
-        getPlaying: () => machine.status.value === "playing",
-        // setPlaying is a no-op marker: the machine status IS the intent; the
-        // loop is driven by start/stopLoop below. Kept for contract symmetry.
-        setPlaying: () => {},
-        isLoopRunning: () => playback.running,
-        stopLoop,
-        startLoop,
-    });
-
     // Mount-time start: the scene is created fresh on each swap-in under the bare
     // keyed <Suspense>. Arm the loop now; the machine's SCENE_READY restore (via
     // the adapter) then re-seats progress + the playing/paused status.
     startLoop();
 
-    // Stop the raw RAFPlayback on scope dispose (the genuine unmount seam,
-    // mirroring useRafLoop.ts onUnmounted(stop)) — the scene host has NO
-    // <KeepAlive>, so onDeactivated never fires and would leak this loop on swap.
+    // Stop the gallery's pending timers on scope dispose (the raw RAFPlayback's
+    // own teardown is owned by useRafScene's onScopeDispose(stopLoop)).
     onScopeDispose(() => {
-        playback.stop();
         disposeGallery();
     });
-
-    // B-3: idle the preview rAF while the tab is hidden, without disturbing the
-    // machine's play/pause intent (PRESERVED autoPaused contract — "only resume
-    // what IT paused"). `startLoop` re-seeds startTime from the current
-    // progress, so the sweep resumes in phase with no jump.
-    useSceneVisibilityPause(() => playback.running, playback.stop, startLoop);
 
     // ── Methods ────────────────────────────────────────────────────
 
