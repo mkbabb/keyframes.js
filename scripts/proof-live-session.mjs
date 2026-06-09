@@ -326,26 +326,34 @@ async function dockSwitch(page) {
     await expandDock(page);
     await page.click('[aria-label="Scene"]', { timeout: 4000 }).catch(() => {});
     await page.waitForTimeout(350);
-    const res = await page.evaluate(() => {
+    // Find the first non-Home, non-active option in-page, then COMMIT it with a
+    // TRUSTED Playwright click — reka-ui's SelectItem commits on REAL pointer
+    // events, NOT a synthetic in-page el.click() (which leaves the FSM on the
+    // source scene). The trusted click reliably drives the switch.
+    const target = await page.evaluate(() => {
         const opts = [...document.querySelectorAll('[role="option"]')];
         const active = (document.querySelector('[role="option"][data-state="checked"]')?.textContent || "").trim().toLowerCase();
         const opt = opts.find((o) => {
             const t = (o.textContent || "").trim().toLowerCase();
             return t && t !== "home" && t !== active;
         });
-        if (opt) {
-            opt.scrollIntoView();
-            opt.click();
-            return { clicked: true, label: (opt.textContent || "").trim(), optCount: opts.length };
-        }
-        return { clicked: false, optCount: opts.length };
+        return { label: opt ? (opt.textContent || "").trim() : null, optCount: opts.length };
     });
-    if (!res.clicked) {
+    let committed = false;
+    if (target.label) {
+        try {
+            await page.getByRole("option", { name: target.label, exact: true }).click({ timeout: 3000 });
+            committed = true;
+        } catch {
+            /* fall through to the keyboard commit */
+        }
+    }
+    if (!committed) {
         await page.keyboard.press("ArrowDown").catch(() => {});
         await page.keyboard.press("Enter").catch(() => {});
     }
     await page.waitForTimeout(900);
-    return res.clicked ? `dock-Select clicked "${res.label}" (of ${res.optCount} options)` : `dock-Select keyboard-committed (optCount ${res.optCount})`;
+    return committed ? `dock-Select clicked "${target.label}" (of ${target.optCount} options, trusted)` : `dock-Select keyboard-committed (optCount ${target.optCount})`;
 }
 
 /** CLICK the rainbow group-play pill (the user's first gesture; B1 trigger). */

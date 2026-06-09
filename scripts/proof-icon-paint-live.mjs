@@ -559,10 +559,15 @@ async function browserHalves(iconScenes) {
                 await page.click('[aria-label="Scene"]', { timeout: 4000 }).catch(() => {});
                 await page.waitForTimeout(400);
                 // The Select options carry NO value attribute and render the scene
-                // LABEL (e.g. "motion-path" → "Path"), so we click the first
-                // [role=option] whose label differs from the active "Cube" — any
-                // such click is a genuine dock-Select scene switch.
-                const clickRes = await page.evaluate(() => {
+                // LABEL (e.g. "motion-path" → "Path"). We find the first
+                // [role=option] whose label differs from the active "Cube" in-page,
+                // then COMMIT it with a TRUSTED Playwright click — reka-ui's
+                // SelectItem commits on REAL pointer events (pointerdown/up), NOT a
+                // synthetic in-page `el.click()` (which leaves the machine on the
+                // source scene, so the VT never fires: it was the GATE's ACTUATION,
+                // not the product, that was the defect — a trusted click switches the
+                // scene AND fires startViewTransition, verified live).
+                const target = await page.evaluate(() => {
                     const opts = [...document.querySelectorAll('[role="option"]')];
                     const active = (
                         document.querySelector('[role="option"][data-state="checked"]')?.textContent ||
@@ -572,21 +577,24 @@ async function browserHalves(iconScenes) {
                         const t = (o.textContent || "").trim().toLowerCase();
                         return t && t !== "home" && t !== active;
                     });
-                    if (opt) {
-                        opt.scrollIntoView();
-                        opt.click();
-                        return { clicked: true, label: (opt.textContent || "").trim() };
-                    }
-                    return { clicked: false, optCount: opts.length };
+                    return { label: opt ? (opt.textContent || "").trim() : null, optCount: opts.length };
                 });
-                if (!clickRes.clicked) {
-                    // Fallback: a keyboard-driven Select commit still routes through
-                    // the dock @switch-scene emit (the VT path) — note it.
+                let committed = false;
+                if (target.label) {
+                    try {
+                        await page.getByRole("option", { name: target.label, exact: true }).click({ timeout: 3000 });
+                        committed = true;
+                        vtDriveNote = `dock-Select clicked option "${target.label}" (trusted)`;
+                    } catch {
+                        /* fall through to the keyboard commit */
+                    }
+                }
+                if (!committed) {
+                    // Fallback: a keyboard-driven Select commit (also TRUSTED) still
+                    // routes through the dock @switch-scene emit (the VT path).
                     await page.keyboard.press("ArrowDown").catch(() => {});
                     await page.keyboard.press("Enter").catch(() => {});
-                    vtDriveNote = `dock-Select committed via keyboard (option click missed; optCount=${clickRes.optCount})`;
-                } else {
-                    vtDriveNote = `dock-Select clicked option "${clickRes.label}"`;
+                    vtDriveNote = `dock-Select committed via keyboard (${target.label ? `trusted option click missed "${target.label}"` : "no switchable option"}; optCount=${target.optCount})`;
                 }
                 // Allow the VT to start + the spy to record.
                 await page.waitForTimeout(700);
