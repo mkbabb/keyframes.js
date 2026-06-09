@@ -265,8 +265,40 @@ type-checks clean under `strict` + `verbatimModuleSyntax` + `exactOptionalProper
   the value.js floor moved to `^0.11.2`; the deltas are strictly-more-correct BUGFIXES
   (empty-input no longer crashes). The changeset tier + npm publish are USER-DOMAIN (version owner
   Mike Babb, confirm-first).
-- **Deploy disposition:** `master` is 10 commits behind `tranche-i-dev`, so the LIVE demo
+- **Deploy disposition:** `master` is behind `tranche-i-dev`, so the LIVE demo
   (keyframes.babb.dev, Cloudflare Pages via `.github/workflows/deploy-pages.yml` on green-CI
   `workflow_run`) is still the BROKEN H tip. The honest close = merge `tranche-i-dev → master` →
   green CI → CF auto-deploys the FIX. This SUPERSEDES the `d469e69` damage-control revert
   (disposition: **SUPERSEDED-BY-FIX-SHIP** — recorded, not executed).
+
+---
+
+## Close-verification addendum — the FULL `proof:all` convergence + the process-gap it exposed
+
+The pre-deploy `proof:all` (correctness + hygiene, the CI-faithful suite) is **GREEN end-to-end**
+(`PROOF-ALL-FINAL-EXIT:0` — ~140 gate passes · 683 tests + 2 expected born-RED · 69 test files).
+Running the FULL suite before the deploy (not just each wave's §Hard gate) surfaced **8 latent
+issues** the per-wave verification had missed — a recorded **process gap**: each I wave verified
+its own correctness gate but never re-ran the full hygiene tier, so several H-era gate clauses
+carried assumptions the deliberate I-wave changes invalidated. Every one was reconciled honestly
+(the PRODUCT is correct — gate-verified — and the gate or baseline was brought current), which
+both VINDICATES the I.W7 precept (a gate must track the running product) and NAMES the gap (run
+the whole suite each wave). The 8, with their fixes:
+
+| # | Gate | Root cause (an intentional I-wave change) | Fix (product correct throughout) |
+|---|---|---|---|
+| 1 | `proof:icon-paint-live` (e) | glass-ui 3.9.0's reka-ui Select commits on a TRUSTED pointer event; the gate's in-page synthetic `opt.click()` left the FSM on the source scene → the VT never fired | drive the dock Select with a TRUSTED `page.getByRole("option").click()` (live: switch + `startViewTransition` fires). Same fix to `proof:live-session`'s `dockSwitch`. |
+| 2 | `proof:decomposition` | I.W0 B5 (NOOP_TRANSFORM total-fallback) pushed `group.ts` 811L over its 800 `LIBRARY_CEILING_OVERRIDE` | raised the cohesive-compositor override to 820 with the B5 rationale (the two-timing transform resolution is one composite seam) |
+| 3 | `proof:demo-no-oversize` | I.W4 D4 (the non-reactive sweep painters) pushed `useEasingDemo.ts` 511L over the 500 demo ceiling | split the Gallery easter egg → colocated `useEasingGallery.ts` (474L; a real concern seam) |
+| 4 | `proof:perf-frame-budget` (d) | the easing glass-card backdrop-filter re-composite jitters the single-window /easing drop count ±2 under headless / back-to-back load (clause (e)'s documented concern) | best-of-3 windows (the storm regression — born-RED 36 — fails all 3, so the bite holds; only the contention spike is absorbed) |
+| 5 | `proof:scene-machine-irrefragable` | I.W2.S1 made `selectedControlSurfaceFor` the SINGLE AUTHORITY ("never a free `storedControls.selectedControl`"); the gate read the deprecated store field (default 'controls' on a fresh nav) | assert the EFFECTIVE RENDERED surface (the EasingEditor curve canvas paints) — the user-facing truth |
+| 6 | `proof:easter-egg` [easing] | the Gallery split moved `galleryRunning` out of `useEasingDemo.ts`; the static grep looked only there (the runtime "fires" check already passed) | `egg.file` spans the colocated pair |
+| 7 | `proof:scene-perf-budget` G5 (×2: source + runtime) | I.W3 B3 SHED amiga `content-visibility` (cv-over-WebGL = the RC-2 ReadPixels stall); the gate REQUIRED it | assert the INVERSE (NO cv on the WebGL root) — double-covers `proof:amiga-subject-is-pivot` clause (c); the offscreen skip rides the keyed-Suspense single-mount + an IntersectionObserver |
+| 8 | `proof:bezier-no-scroll` + `proof:bezier-grown` (a REAL regression) + `proof:visual-lock` | the I.W6 font reclaim (native sans) re-rendered text ~4px taller → a 3px bezier-panel scrollbar at 720, AND a wholesale stale visual baseline | trimmed the bezier canvas-wrapper block padding (detail-panel scope; canvas stays grown > 220) + re-captured 49 golden PNGs (diffs verified as text-glyph/specular, structure intact — the intended I appearance) |
+
+(`proof:computed-real-dom` passed standalone — the sweep's per-gate 200s timeout killed it under
+load; CI's `proof:all` has no per-gate timeout, so it does not recur.)
+
+**Net:** the I FINAL is held to the FULL `proof:all` GREEN (correctness + hygiene), on the published
+`@mkbabb/value.js@0.11.2`, with the visual baseline current to the intended I appearance. The deploy
+gate is green.
