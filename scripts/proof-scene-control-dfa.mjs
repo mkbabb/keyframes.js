@@ -208,6 +208,13 @@ function serveDist() {
     });
 }
 
+// A shared, headless CI runner (GitHub's 2-core VM) hydrates Vue + mounts the heavy
+// control-surface editor markedly SLOWER than a dev machine, so a fixed settle that is
+// ample locally can read the control-tab trigger BEFORE it renders (trigger=null). On CI
+// we (a) scale the settle and (b) WAIT for the control-tab trigger to actually render
+// before sampling — a robustness fix for the slow-runner timing class, not a relaxed oracle.
+const IN_CI = !!(process.env.CI || process.env.GITHUB_ACTIONS);
+
 async function navByHash(page, sceneId, settleMs = 1600) {
     await page.evaluate((s) => {
         location.hash = "#/" + s;
@@ -225,7 +232,19 @@ async function navByHash(page, sceneId, settleMs = 1600) {
             { timeout: 8000 },
         )
         .catch(() => {});
-    await page.waitForTimeout(settleMs);
+    await page.waitForTimeout(IN_CI ? Math.max(settleMs, 3500) : settleMs);
+    // Settle the control panel: wait until either a control-tab trigger has rendered OR
+    // the scene legitimately has no panel (home/sequence/motion-path). Best-effort — the
+    // probe reads honestly whatever is there after this (a real missing trigger still reds).
+    await page
+        .waitForFunction(
+            () =>
+                !!document.querySelector("[aria-label='Controls tab']") ||
+                !document.querySelector(".animation-controls, .controls-pane-wrapper"),
+            null,
+            { timeout: IN_CI ? 9000 : 4000 },
+        )
+        .catch(() => {});
 }
 
 /** Read the dock's control-tab state: the collapsed trigger label (or null if
