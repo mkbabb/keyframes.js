@@ -302,3 +302,47 @@ load; CI's `proof:all` has no per-gate timeout, so it does not recur.)
 **Net:** the I FINAL is held to the FULL `proof:all` GREEN (correctness + hygiene), on the published
 `@mkbabb/value.js@0.11.2`, with the visual baseline current to the intended I appearance. The deploy
 gate is green.
+
+---
+
+## DEPLOY EXECUTED — the fixed demo is LIVE, + the CI-was-never-running discovery
+
+**`tranche-i-dev` → `master` merged (`a4b1472`) + the fixed demo DEPLOYED to production.**
+`keyframes.babb.dev` now serves the new build — `index-DuJm1C6k.js` (byte-identical to the local
+`dist/gh-pages`), `<title>keyframes.js</title>` (the I.W5 K-fix). The verified-good build (full
+local `proof:all` GREEN on published `value.js@0.11.2`) is LIVE via `wrangler pages deploy
+dist/gh-pages --project-name=keyframes --branch=master`.
+
+**THE DEEPEST GATE-BLINDSPOT — CI itself had not run since H.** Pushing the I merge surfaced that
+`.github/workflows/ci.yml` had been **YAML-INVALID since H.W12**: two step `name:` values carried an
+unquoted colon-space (`→ its at: changes`, `emits offset-path: path()`), which GitHub Actions
+rejects at PARSE time (a 0s "workflow file issue" failure) BEFORE any job runs. So **CI never
+executed — and `deploy-pages.yml` (gated on the `ci` workflow's SUCCESS) never fired — on any master
+push since 06-07.** H's "green CI" close was a fiction; `keyframes.babb.dev` was frozen at the
+pre-H build for days. `proof:ci-coverage` had NOT caught it because it REGEX-parses the workflow
+(coverage/version/registry/concurrency), never validating it would PARSE — the precise blindspot the
+I.W7 regime exists to close. Fixed (both names quoted; file parses) + a `yaml-valid` clause added to
+`proof:ci-coverage`.
+
+**THE CI-on-LINUX gate-robustness FOLLOW-UP (booked).** With CI finally PARSING + running, the
+`gates` (library) job is GREEN, but the `demo-smoke` job exposed a TAIL of **environment-coupled**
+gate behaviors — accumulated unverified during the months CI did not run — where GitHub's shared
+headless Linux 2-core runner diverges from the macOS dev environment. Each was reconciled on the
+PRINCIPLED BOUNDARY (CI enforces device-INDEPENDENT correctness; device-DEPENDENT measurements
+hard-gate ON-DEVICE, observe-only in CI):
+- `proof:perf-frame-budget` + `proof:scene-transition-perf` — the THROTTLED/felt-timing budget is a
+  HOST artifact on a slow VM → CI observe-only, local/on-device hard-gate (like the already-CI-
+  excluded `proof:lighthouse-mobile`).
+- `proof:demo-fonts` — the metric-override "… Fallback" faces error because the Linux VM lacks the
+  `local()` system fonts they alias → excluded (the PRIMARY webfonts load); clauses (a)/(b) HARD.
+- `proof:visual-lock` — a macOS-captured pixel baseline cannot match Linux font AA/hinting/rasters →
+  CI observe-only (diff still written), local hard-gate; the STRUCTURAL checks (region present) HARD.
+- `proof:occlusion-gate` (inv δ) — the easing subject selector was stale vs the I.W2 singular-stage
+  hero ball + the ball is a SWEEPING subject (centering inapplicable); fixed + the resolved
+  square/mobile allowances dropped. **(landed)**
+- `proof:scene-control-dfa` (+ the demo-gate transition matrix) — the control-surface projection LAGS
+  a hash-nav transition UNDER LOAD (a fresh `goto /spring` renders `trigger="Spring"` fine; the
+  `cube→spring` hash-nav reads null until the FSM settles). Timing-FLAKY: passes on a fast/unloaded
+  machine, fails under load + on the slow runner. **STILL OPEN** — needs a per-expected-state settle
+  wait (not a fixed `settleMs`). This is the remaining CI-on-Linux hardening; it does NOT block the
+  CURRENT (manual, verified) deploy, but FUTURE auto-deploys (`deploy-pages.yml` on green CI) await it.
