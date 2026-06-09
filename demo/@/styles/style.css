@@ -52,6 +52,13 @@
        from first paint and does not reflow on Instrument-Serif arrival. */
     --font-display: "Instrument Serif", "Instrument Serif Fallback", Georgia, serif;
     --font-mono: "Fira Code", monospace;
+    /* The Tailwind `font-sans` utility token — the demo's clean native UI sans,
+       NOT glass-ui's brand "Plus Jakarta Sans". The body/text register itself is
+       reclaimed at :root via --font-stack-text below (the underlying token glass-
+       ui's `--font-text`/`--font-sans` bridges derive from — overriding the
+       bridge alone loses to glass-ui's `@theme inline`). I.W6-font. */
+    --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+        Helvetica, Arial, sans-serif;
 
     --color-accent-red: var(--accent-red);
     --color-accent-red-foreground: var(--accent-red-foreground);
@@ -89,6 +96,25 @@
 /* Project-specific tokens — OUTSIDE @layer so they override glass-ui defaults */
 :root {
     color-scheme: light;
+
+    /* ── Font register (I.W6-font) — reclaim the body register from glass-ui ──
+       glass-ui's brand body font is "Plus Jakarta Sans": tokens.css:51 declares
+       `--font-stack-text: "Plus Jakarta Sans"…` at :root, and theme.css bridges
+       `--font-text`/`--font-sans`/`--font-display` to the `--font-stack-*` tokens
+       via `@theme inline` (so a plain `@theme` override of the BRIDGE loses).
+       glass-ui's documented consumer lever (tokens.css:6) is a RUNTIME `:root`
+       override of the underlying `--font-stack-*` token. keyframes.js does NOT
+       use Plus Jakarta — its identity is Instrument Serif (display, reclaimed via
+       --font-display in @theme) + Fira Code (mono) over a clean native UI sans
+       for the body/dock/controls. Override the underlying stack token here so the
+       brand font never lands on our surfaces (and never half-loads a webfont the
+       demo build does not serve). --font-stack-display is left alone — the
+       @theme --font-display already wins for the display register. */
+    --font-stack-text: ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+        Roboto, Helvetica, Arial, sans-serif;
+    --font-stack-sans: var(--font-stack-text);
+    --font-text: var(--font-stack-text);
+    --font-sans: var(--font-stack-text);
 
     /* ── Layout ── */
     --dock-icon-height: 2.75rem;

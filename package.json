@@ -80,6 +80,8 @@
         "proof:engine-no-throw-on-play": "node scripts/proof-engine-no-throw-on-play.mjs",
         "proof:amiga-subject-is-pivot": "node scripts/proof-amiga-subject-is-pivot.mjs",
         "proof:icon-paint-live": "node scripts/proof-icon-paint-live.mjs",
+        "proof:specular-absent-at-rest": "node scripts/proof-specular-absent-at-rest.mjs",
+        "proof:demo-fonts": "node scripts/proof-demo-fonts.mjs",
         "proof:easing-editor-live": "node scripts/proof-easing-editor-live.mjs",
         "proof:fsm-suspend-resume-live": "node scripts/proof-fsm-suspend-resume-live.mjs",
         "proof:visual-lock": "node scripts/proof-visual-lock.mjs",
@@ -104,7 +106,6 @@
         "proof:demo-no-oversize": "node scripts/proof-demo-no-oversize.mjs",
         "proof:no-brittle-selector": "node scripts/proof-no-brittle-selector.mjs",
         "proof:no-dup-utility": "node scripts/proof-no-dup-utility.mjs",
-        "proof:specular-handoff": "node scripts/proof-specular-handoff.mjs",
         "proof:cartoon-is-panel-depth": "node scripts/proof-cartoon-is-panel-depth.mjs",
         "proof:glass-and-cartoon": "node scripts/proof-glass-and-cartoon.mjs",
         "proof:no-orphan-specular": "node scripts/proof-no-orphan-specular.mjs",
@@ -168,7 +169,7 @@
         "@mkbabb/value.js": "^0.11.1"
     },
     "optionalDependencies": {
-        "@mkbabb/glass-ui": "~3.5.1"
+        "@mkbabb/glass-ui": "~3.9.0"
     },
     "devDependencies": {
         "@iconify-json/radix-icons": "^1.2.6",
