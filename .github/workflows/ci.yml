@@ -953,7 +953,7 @@ jobs:
             # useDragScrub (S1) + the Sequence position model (inv ζ). KF_REQUIRE_BROWSER
             # turns a playwright-absent skip into a hard CI fail (the re-author cannot
             # pass vacuously).
-            - name: proof:sequence-rows-draggable (H.W12 I3 — drag a row handle → its at: changes AND the Sequence re-sorts the stagger distribution)
+            - name: "proof:sequence-rows-draggable (H.W12 I3 — drag a row handle changes its at: value AND the Sequence re-sorts the stagger distribution)"
               run: npm run proof:sequence-rows-draggable
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -985,7 +985,7 @@ jobs:
             # Settle-gated on the H.W1 FSM resting. KF_REQUIRE_BROWSER turns a
             # playwright-absent skip into a hard CI fail (the copy artifact cannot pass
             # vacuously).
-            - name: proof:motion-path-copy (H.W12 I3 — a copy affordance emits offset-path: path(…) · re-reads the single source · the real clipboard write)
+            - name: "proof:motion-path-copy (H.W12 I3 — a copy affordance emits an offset-path path() · re-reads the single source · the real clipboard write)"
               run: npm run proof:motion-path-copy
               env:
                   KF_REQUIRE_BROWSER: "1"
