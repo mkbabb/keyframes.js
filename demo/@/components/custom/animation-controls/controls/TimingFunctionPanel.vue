@@ -240,4 +240,17 @@ const onSelectName = (name: string) => {
     block-size: clamp(232px, 78cqi, 300px);
     max-block-size: calc(min(50vh, 480px) - 137px);
 }
+
+/* I.WZ — the I.W6 native-font reclaim (Plus Jakarta → native sans) re-rendered the
+   detail-panel chrome ~4px TALLER, pushing the bezier stack 3px past the
+   `min(50vh, 480px)` host cap at a 720-tall viewport → a scrollbar
+   (`proof:bezier-no-scroll` + the `proof:bezier-grown` "still fits" clause both red).
+   The grown canvas must stay above the W9 220px floor (`proof:bezier-grown` clause 1),
+   so the fix RECLAIMS the room from the canvas-wrapper's block padding — scoped to the
+   DETAIL panel only (the easing sidebar keeps its `p-2`, it has the pane room). 8px→4px
+   each side trims 8px of chrome (5px margin under the 360px cap), the canvas stays 223px
+   (> 220 grown). */
+:deep(.easing-curve-canvas-wrapper) {
+    padding-block: 0.25rem;
+}
 </style>
