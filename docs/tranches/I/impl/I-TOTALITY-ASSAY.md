@@ -1,5 +1,13 @@
 # Tranche I — TOTALITY ASSAY (the consolidated honest ledger)
 
+> **⚠ MID-DRIVE SNAPSHOT — SUPERSEDED BY [`../FINAL.md`](../FINAL.md).** This assay was
+> written while I.W6/I.W7/I.WZ were still in flight; its "PENDING" rows (I.W6 commit,
+> I.W7 the gate-regime keystone, I.WZ the close) and its `@mkbabb/value.js ^0.11.1` pin
+> are now stale. As of the close: **I.W6 LANDED** (`4103c22`), **I.W7 LANDED** (`1a708cf`
+> — `proof:live-session` GREEN), the value.js empty-input contract is **PUBLISHED 0.11.2
+> and re-pinned `^0.11.2`** (`e473447`), and the chronic ledger is terminated. Read
+> `FINAL.md` for the authoritative close; this file is retained as the dated drive snapshot.
+
 **Branch:** `tranche-i-dev` (forked off the broken master `b934a08` = Tranche H's tip).
 **Type:** IMPL-phase consolidated status. **Date:** 2026-06-09. **Version in tree:** `4.1.0`
 (I owns its own bump at I.WZ). **Pins (live `package.json`):** `@mkbabb/value.js ^0.11.1` ·
