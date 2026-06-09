@@ -60,6 +60,7 @@ export {
     CONTROL_SURFACES,
     CONDITIONAL_SURFACES,
     controlSurfacesFor,
+    selectedControlSurfaceFor,
     isSurfaceValidForScene,
     builtInSurfacesFor,
 } from "./controlSurfaceDFA";

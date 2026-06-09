@@ -136,3 +136,51 @@ export function builtInSurfacesFor(sceneId: SceneId): ControlSurface[] {
     const valid = controlSurfacesFor(sceneId);
     return BUILT_IN_SURFACES.filter((s) => valid.includes(s));
 }
+
+// ── THE SELECTED-SURFACE SINGLE AUTHORITY (I.W2.S1) ──────────────────────────
+// The order-independent control-panel mount projection I.W1's S3 consumes. The
+// SELECTED control surface is a PURE FUNCTION of (the scene's DFA-valid set ×
+// the group's preferred pick) — never a free `storedControls.selectedControl`
+// that a scene mutates in `setup` and hopes wins the reka `<Tabs>` latch race.
+//
+// THE CONTRACT: the selected surface is `preferred` IFF it is a VALID member of
+// the scene's surface set; otherwise it DEFAULTS to the scene's first valid
+// surface (the deterministic floor). So on a switch the model-value is born
+// correct on the very tick the `<Tabs>` root mounts — the reka `useVModel`
+// `passive`-latch is taken with `"easing"` (not `undefined`/stale), and the
+// fresh + switched paths CONVERGE. A multi-pane scene (cube/amiga) keeps its
+// user pick (a valid member); a single-surface scene (easing/spring) ALWAYS
+// resolves its sole surface regardless of a stale stored pick from another
+// scene. This is `controlSurfacesFor(activeScene)` projected onto a single
+// selected value — the same single-authority the DFA already owns for the SET,
+// extended to the SELECTED member.
+
+/**
+ * Resolve the SELECTED control surface for a scene as a pure function of the
+ * DFA set × a preferred pick. Returns the scene's first valid surface when the
+ * preference is absent / not a valid member (the deterministic default), so the
+ * value is synchronously correct on the mounting tick (no latch race).
+ *
+ * `undefined` only when the scene has NO valid surfaces (home/sequence/path) —
+ * those scenes mount no control pane, so there is no selected surface to
+ * project.
+ */
+export function selectedControlSurfaceFor(
+    sceneId: SceneId,
+    preferred?: string,
+): ControlSurface | undefined {
+    const valid = controlSurfacesFor(sceneId);
+    if (valid.length === 0) return undefined;
+    // Honor the preferred pick when it is valid for the scene — INCLUDING the
+    // CONDITIONAL surfaces (cube's `matrix-controls`, injected via
+    // `extraControlTabs` while the Matrix animation is selected). `isSurfaceVal…`
+    // unions the static set with the conditional set, so a multi-pane scene
+    // keeps its user pick (controls/keyframes/timeline/matrix-controls). An
+    // absent / invalid preference DEFAULTS to the scene's first STATIC surface
+    // (the deterministic floor — a single-surface scene always resolves its sole
+    // surface, immune to a stale pick from another scene).
+    if (preferred && isSurfaceValidForScene(sceneId, preferred as ControlSurface)) {
+        return preferred as ControlSurface;
+    }
+    return valid[0];
+}

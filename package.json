@@ -80,6 +80,7 @@
         "proof:engine-no-throw-on-play": "node scripts/proof-engine-no-throw-on-play.mjs",
         "proof:amiga-subject-is-pivot": "node scripts/proof-amiga-subject-is-pivot.mjs",
         "proof:icon-paint-live": "node scripts/proof-icon-paint-live.mjs",
+        "proof:easing-editor-live": "node scripts/proof-easing-editor-live.mjs",
         "proof:visual-lock": "node scripts/proof-visual-lock.mjs",
         "proof:browser": "node scripts/proof-browser.mjs",
         "proof:scene-machine-irrefragable": "node scripts/proof-scene-machine-irrefragable.mjs",
