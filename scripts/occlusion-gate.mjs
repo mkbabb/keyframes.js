@@ -88,10 +88,12 @@ const CONTROL_STATES = RUN_OPEN ? ["closed", "open"] : ["closed"];
 // trigger). The gate stays HARD on every OTHER scene × viewport × axis + any NEW
 // occlusion + the KF_OCCLUSION_INJECT bite test; a stale entry that PASSES is
 // failed loudly so it cannot linger and mask a future regression.
-const PENDING_OCCLUSION = new Set([
-    "square/mobile/closed",
-    "square/mobile/open",
-]);
+// RESOLVED at I.WZ — square/mobile/{closed,open} no longer occlude (the C.W3 mobile
+// work-area sizing fix + the I.W4 square drag/persist composition cleared the residual
+// ≥35%-content-overlap on the smallest subject). Both entries now PASS, so by inv ε they
+// are REMOVED (a stale allowance that no longer bites cannot linger and mask a future
+// regression). The set is empty: the gate is HARD on EVERY scene × viewport × axis.
+const PENDING_OCCLUSION = new Set([]);
 
 // In-page probe: horizontal overflow, the subject rect, and the dock bands.
 // The dock↔subject overlap is computed in Node (so the gate can apply the
@@ -272,9 +274,15 @@ async function main() {
                         // The subject must be roughly CENTERED — its center x
                         // within the central 70% of the viewport. This is what
                         // bites on the cube clip: a 3D subject's layout box can
-                        // be tiny but its CENTER betrays the jam.
+                        // be tiny but its CENTER betrays the jam. SKIPPED for a
+                        // SWEEPING subject (easing's hero ball) whose x IS the
+                        // animation value (currentEasingFn(progress) * maxX) — it
+                        // TRAVERSES the full stage by design, so a static centering
+                        // check is inappropriate + flaky (it would pass/fail by the
+                        // capture phase). The render + dock-occlusion checks below
+                        // still bite (the ball must exist + not be dock-covered).
                         const cx = subject.x + subject.w / 2;
-                        if (cx < 0.15 * env.vw || cx > 0.85 * env.vw)
+                        if (!scene.sweepingSubject && (cx < 0.15 * env.vw || cx > 0.85 * env.vw))
                             local.push(
                                 `subject is jammed against an edge (center x ${Math.round(cx)} = ${Math.round((100 * cx) / env.vw)}% of vw, want 15–85%)`,
                             );

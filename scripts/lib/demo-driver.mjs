@@ -83,9 +83,25 @@ const SCENE_GATE_META = {
     // its bleed is the intended design, NOT occlusion (C.W1 § Design decisions).
     amiga: { subjectSelector: "canvas", dockFloatAllowed: true },
     square: { subjectSelector: ".demo-box", dockFloatAllowed: false },
+    // The easing SINGULAR stage (H.W10 G4/S3) is ONE engine-driven hero ball
+    // (`.progress-ball.hero-ball`, an AnimationVisualizer ball whose x = the timing
+    // function applied to progress — the inv ζ dogfood), NOT a glass card. The old
+    // `[class*=rail]` selector matched only the PlaybackRibbon scrubber rail, which is
+    // INSIDE the controls pane — hidden when controls are closed (the occlusion gate's
+    // default axis) → "subject ABSENT". Target the visible stage subject (the I.W2
+    // EasingEditor unification + the G4 singular-stage redesign moved it off the
+    // glass-card/rail shape; proof:easing-stage-is-ball asserts the ball is the stage).
     easing: {
-        subjectSelector: "[class*=glass-card], [class*=Target], [class*=rail]",
+        subjectSelector: ".progress-ball, .hero-ball",
         dockFloatAllowed: false,
+        // The hero ball is a SWEEPING subject: its x = currentEasingFn(progress)
+        // * maxX (proof:easing-stage-is-ball — the inv ζ dogfood). It TRAVERSES the
+        // full stage width as the animation plays, so its center is animation-phase-
+        // dependent and is SUPPOSED to reach the edges — the static "centered 15–85%"
+        // check is both inappropriate AND flaky for it (it'd pass/fail by the capture
+        // moment). The render + dock-occlusion checks still apply (the ball must exist
+        // + not be dock-covered); only the centering check is skipped.
+        sweepingSubject: true,
     },
     spring: {
         subjectSelector: "[class*=glass-card], [class*=Target], [class*=rail]",
@@ -230,6 +246,7 @@ export const SCENES = sceneRecords.map((r) => ({
     route: r.id === "home" ? "" : r.id,
     subjectSelector: SCENE_GATE_META[r.id].subjectSelector,
     dockFloatAllowed: SCENE_GATE_META[r.id].dockFloatAllowed,
+    sweepingSubject: SCENE_GATE_META[r.id].sweepingSubject ?? false,
 }));
 
 // The route → superKey map the demo's control-options store is keyed by
