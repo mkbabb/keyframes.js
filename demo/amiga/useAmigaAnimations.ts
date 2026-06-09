@@ -7,6 +7,18 @@ const BOX_SIZE = 12;
 
 export { BOX_SIZE };
 
+// I.W3 S1 — the ONE centred home for the interactive subject. The sphere is the
+// dominant centred subject (the room origin = the box centre = the camera look-at
+// = `OrbitControls.target`); subject = orbit pivot = framing. The boing-bounce
+// extents below swing SYMMETRICALLY about this home, and AmigaScene imports the
+// same constant for the rest pose, so there is exactly ONE home used everywhere.
+export const SPHERE_HOME = 0;
+
+// The bounce amplitude — how far each axis swings from the centred home. Kept
+// inside the room walls (BOX_SIZE/2 = 6); the egg arcs about the centred subject
+// rather than re-cementing a far corner.
+const BOUNCE = BOX_SIZE / 2 - 1;
+
 export const SUPER_KEY = "Amiga";
 
 export function useAmigaAnimations(getSphere: () => THREE.Mesh<THREE.SphereGeometry, THREE.MeshLambertMaterial>) {
@@ -57,11 +69,11 @@ export function useAmigaAnimations(getSphere: () => THREE.Mesh<THREE.SphereGeome
         timingFunction: "linear",
     }).fromKeyframes(
         {
-            "0%": { position: { x: -BOX_SIZE / 2 + 1 } },
-            "25%": { position: { x: BOX_SIZE / 2 - 1 } },
-            "50%": { position: { x: -BOX_SIZE / 2 + 1 } },
-            "75%": { position: { x: BOX_SIZE / 2 - 1 } },
-            "100%": { position: { x: -BOX_SIZE / 2 + 1 } },
+            "0%": { position: { x: SPHERE_HOME - BOUNCE } },
+            "25%": { position: { x: SPHERE_HOME + BOUNCE } },
+            "50%": { position: { x: SPHERE_HOME - BOUNCE } },
+            "75%": { position: { x: SPHERE_HOME + BOUNCE } },
+            "100%": { position: { x: SPHERE_HOME - BOUNCE } },
         },
         transform,
     );
@@ -75,13 +87,13 @@ export function useAmigaAnimations(getSphere: () => THREE.Mesh<THREE.SphereGeome
         [
             {
                 position: {
-                    y: -BOX_SIZE / 2 + 1,
+                    y: SPHERE_HOME - BOUNCE,
                 },
             },
 
             {
                 position: {
-                    y: BOX_SIZE / 4 - 1,
+                    y: SPHERE_HOME + BOUNCE,
                 },
             },
         ],
@@ -95,11 +107,11 @@ export function useAmigaAnimations(getSphere: () => THREE.Mesh<THREE.SphereGeome
         timingFunction: "linear",
     }).fromKeyframes(
         {
-            "0%": { position: { z: -BOX_SIZE / 2 + 1 } },
-            "25%": { position: { z: BOX_SIZE / 2 - 1 } },
-            "50%": { position: { z: -BOX_SIZE / 2 + 1 } },
-            "75%": { position: { z: BOX_SIZE / 2 - 1 } },
-            "100%": { position: { z: -BOX_SIZE / 2 + 1 } },
+            "0%": { position: { z: SPHERE_HOME - BOUNCE } },
+            "25%": { position: { z: SPHERE_HOME + BOUNCE } },
+            "50%": { position: { z: SPHERE_HOME - BOUNCE } },
+            "75%": { position: { z: SPHERE_HOME + BOUNCE } },
+            "100%": { position: { z: SPHERE_HOME - BOUNCE } },
         },
         transform,
     );

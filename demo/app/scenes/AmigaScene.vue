@@ -14,12 +14,12 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef } from "vue";
-import { useEventListener, useResizeObserver } from "@vueuse/core";
+import { useIntersectionObserver, useResizeObserver } from "@vueuse/core";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 import { tesselateSphere } from "../../amiga/utils";
-import { useAmigaAnimations, BOX_SIZE } from "../../amiga/useAmigaAnimations";
+import { useAmigaAnimations, BOX_SIZE, SPHERE_HOME } from "../../amiga/useAmigaAnimations";
 import { useSphereSpin } from "../../amiga/useSphereSpin";
 import { useSceneVisibilityPause } from "../useSceneVisibilityPause";
 
@@ -61,7 +61,11 @@ const sphereSpin = useSphereSpin({
 // hidden, on-aesthetic trigger that resurrects the demo's own namesake.
 const boinging = ref(false);
 let boingTimer: ReturnType<typeof setTimeout> | undefined;
-const SPHERE_HOME = -BOX_SIZE / 2 + 1;
+// I.W3 S1 — the sphere's rest pose is the ONE centred home imported from
+// useAmigaAnimations (the room origin = box centre = camera look-at =
+// `OrbitControls.target`). The boing-bounce extents swing about this same home,
+// so the egg settles back to the centred subject. Subject = orbit pivot =
+// framing — there is exactly ONE home used everywhere.
 
 const onBoing = () => {
     if (boinging.value || !sphereMesh) return;
@@ -134,11 +138,11 @@ onMounted(() => {
     scene.add(boxMesh);
 
     sphereMesh = tesselateSphere("white", "red", 1);
-    sphereMesh.position.set(
-        -BOX_SIZE / 2 + 1,
-        -BOX_SIZE / 2 + 1,
-        -BOX_SIZE / 2 + 1,
-    );
+    // I.W3 S1 — seat the subject at the CENTRED home (the room origin), not the
+    // far corner. The cursor lands on the sphere at the canvas centre → a
+    // centre-drag HITS the mesh and fires the spin gesture (useSphereSpin),
+    // instead of missing through to OrbitControls and tumbling the whole room.
+    sphereMesh.position.set(SPHERE_HOME, SPHERE_HOME, SPHERE_HOME);
     scene.add(sphereMesh);
 
     // Set renderer size to match canvas layout dimensions
@@ -148,6 +152,12 @@ onMounted(() => {
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
     controls.screenSpacePanning = false;
+    // I.W3 S1 — the orbit pivot IS the subject: target the sphere's centred home
+    // (= the camera look-at) so an empty-space drag orbits ABOUT the subject (the
+    // sphere stays framed), not a disjoint origin that sweeps a corner ball across
+    // the frame. Subject = orbit pivot = framing — one point.
+    controls.target.copy(sphereMesh.position);
+    controls.update();
 
     // Wire the sphere-spin gesture onto the canvas (capture-phase hit-test runs
     // before OrbitControls' own pointerdown).
@@ -200,25 +210,22 @@ useSceneVisibilityPause(
     startRenderLoop,
 );
 
-// G5 (just-in-time): the scene root carries `content-visibility: auto`. When the
-// browser SKIPS its render (occluded — e.g. a mobile sheet expanded over the
-// stage, or scrolled off-screen) it fires `contentvisibilityautostatechange`;
-// stand the WebGL present loop down then, and re-arm just before the browser
-// paints it again. Composes with the tab-visibility pause above (the same
-// stop/start handles) so an off-screen WebGL surface stops re-blurring. The
-// event does not bubble in every engine — bound DIRECTLY on the owning element.
-function onContentVisibilityChange(e: Event) {
-    if ((e as Event & { skipped: boolean }).skipped) stopRenderLoop();
-    else startRenderLoop();
-}
-// Bound via @vueuse/core's useEventListener (the inv-ζ dogfood discipline —
-// auto-release on scope dispose, binds when the template ref resolves), DIRECTLY
-// on the owning element because `contentvisibilityautostatechange` does not
-// bubble in every engine.
-useEventListener(
+// I.W3 S2 (just-in-time occlusion-pause, the RIGHT primitive over a live WebGL
+// canvas): an IntersectionObserver — NOT `content-visibility: auto` — owns "is
+// this surface visible?". When the scene root scrolls off-screen / is occluded
+// by a mobile sheet, stand the WebGL present loop down; re-arm just before it
+// scrolls back. A `rootMargin` pre-roll re-starts the loop a viewport ahead of
+// re-entry so the first painted frame is fresh. This composes with the
+// tab-visibility pause (useSceneVisibilityPause, same stop/start handles) — one
+// event/observer-driven owner of the present loop, never a CSS token racing the
+// GPU. useIntersectionObserver auto-releases on scope dispose (inv-ζ dogfood).
+useIntersectionObserver(
     sceneRootEl,
-    "contentvisibilityautostatechange",
-    onContentVisibilityChange,
+    ([entry]) => {
+        if (entry?.isIntersecting) startRenderLoop();
+        else stopRenderLoop();
+    },
+    { rootMargin: "200px" },
 );
 
 onBeforeUnmount(() => {
@@ -226,7 +233,7 @@ onBeforeUnmount(() => {
     animationGroup.stop();
     stopRenderLoop();
     sphereSpin.detach();
-    // (the contentvisibility listener auto-releases via useEventListener)
+    // (the IntersectionObserver auto-releases via useIntersectionObserver)
     controls?.dispose();
 
     // Dispose all Three.js geometries and materials to free GPU memory
@@ -251,19 +258,15 @@ defineExpose({
 </script>
 
 <style scoped>
-/* G5: content-visibility on the scene root. When this scene is occluded (a
-   mobile sheet expanded over the stage, or scrolled off-screen) the browser
-   skips its render work — the WebGL present loop also stands down via the
-   `contentvisibilityautostatechange` listener (composing with the tab-pause).
-   contain-intrinsic-size is MANDATORY here: without it the skipped root
-   collapses to 0px (layout-shift); `auto … auto …` lets the browser remember
-   the painted size and re-use it as the placeholder. The full-bleed stage fills
-   its grid cell, so the placeholder is nominal — the auto-remembered size wins
-   once painted. */
-.scene-root {
-    content-visibility: auto;
-    contain-intrinsic-size: auto none auto 600px;
-}
+/* I.W3 S2 — the scene root carries NO `content-visibility: auto`. That CSS
+   primitive is wrong over a continuously-rAF-painted WebGL canvas: the present
+   loop keeps painting a subtree the compositor is told to skip, paying a
+   per-frame ReadPixels GPU stall + a "rendering in a subtree hidden by
+   content-visibility" warn. The occlusion-pause INTENT (stand the present loop
+   down when off-screen / backgrounded) is served entirely off the event/observer
+   path — an `IntersectionObserver` (useIntersectionObserver) drives start/stop of
+   the WebGL loop, composed with the tab-visibility pause (useSceneVisibilityPause).
+   One owner of "is this surface visible?", never a CSS token racing the GPU. */
 
 /* The drag/spin surface. `touch-action: none` lets the sphere-spin pointer
    gesture own touch input on the canvas (no scroll/zoom hijack) — the disjoint
