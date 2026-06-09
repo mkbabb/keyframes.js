@@ -630,3 +630,30 @@
    keyboard user tabbing in is never left ghosted) + the MANDATORY PRM snap-guard
    — is in the wrapper. opacity is compositor-thread (cheap fade, modern-web
    css §9). NO new rule is authored HERE; the token is the demo-owned magnitude. */
+
+/* ── §gesture-in-flight — the global drag select-suppression (I.W4 D1) ───────
+   The demo had NO seam that knew "a drag is live," so a window-scope drag (the
+   square box, the spring/sequence/motion-path rails) let the pointer sweep the
+   chrome (dock + control labels) and highlight every caption it crossed (B6-a).
+   The CURE is structural: `useDragScrub` — the single shared drag seam — now
+   sets `body.is-dragging` for the gesture duration (and clears it on
+   pointerup/pointercancel, reference-counted for nesting safety). THIS is the
+   one consuming rule. Suppressing `user-select` on the WHOLE document for the
+   gesture means no surface the pointer crosses can begin a text selection,
+   inherited by EVERY drag surface that routes through the seam — not a per-scene
+   `select-none` sprinkle. The token is the seam's authority; this rule is the
+   demo-owned magnitude (the `*` reach + the `html:has()` lift to the document
+   element itself + the `::selection` clear that drops any selection already in
+   flight when the gesture begins). The `html:has(body.is-dragging)` arm makes the
+   suppression truly document-wide: `body.is-dragging *` reaches every DESCENDANT
+   of body (all chrome), but the `<html>` root is body's ANCESTOR, so it needs the
+   `:has()` arm to be suppressed too (the whole-document structural witness). */
+html:has(body.is-dragging),
+body.is-dragging,
+body.is-dragging * {
+    user-select: none !important;
+    -webkit-user-select: none !important;
+}
+body.is-dragging ::selection {
+    background: transparent;
+}

@@ -18,15 +18,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed, markRaw, onBeforeUnmount, onMounted, reactive, ref, useTemplateRef } from "vue";
-import { useEventListener } from "@vueuse/core";
+import { computed, markRaw, onBeforeUnmount, onMounted, reactive, useTemplateRef } from "vue";
 import { AnimationGroup } from "@src/animation/group";
+import { useDragScrub } from "@composables/useDragScrub";
 import { useSquareAnimations } from "../../square/useSquareAnimations";
 
 const superKey = "Square";
 
 const box = useTemplateRef<HTMLElement>("box");
-const { anim, springX, springY, reseat, travel, paintRest, tumble, dispose } =
+const { anim, springX, springY, reseat, settle, travel, paintRest, tumble, dispose } =
     useSquareAnimations(box);
 anim.name = "Transform";
 anim.superKey = superKey;
@@ -53,17 +53,23 @@ onBeforeUnmount(() => {
 });
 
 // ── Drag the box → re-seat the per-axis spring targets (S5) ─────────────
-// The pointer offset (px) from the box's home center, divided by the spring's
-// px travel, becomes each axis target ∈ [-1, 1] (clamped in reseat) — so the box
-// follows the pointer ~1:1 up to the clamp; the spring chases (the live re-seat
-// idiom Spring ships). The transformFunc reads the live spring values.
+// I.W4 D1 — the hand-rolled `window`-drag is GONE; the box now routes through the
+// shared `useDragScrub` seam (the single authority over "a gesture is in flight"),
+// which owns the global select-suppression token so the pointer can sweep the
+// chrome without highlighting it. I.W4 D2 — `releasePolicy: "persist"` means
+// release leaves the box where dragged (the spring chases-to-rest at the dragged
+// target); the explicit `Home`/`End` recenter below is the deliberate return-home.
+//
+// The pointer offset (px) from the box's home center, divided by the spring's px
+// travel, becomes each axis target ∈ [-1, 1] (clamped in reseat) — so the box
+// follows the pointer ~1:1 up to the clamp; the spring chases.
 
-const dragging = ref(false);
 let homeX = 0;
 let homeY = 0;
 
-// Capture the box's home center once per gesture so the offset is stable across
-// the drag (re-grabbing mid-flight subtracts the live deflection to recover it).
+// Capture the box's home center once per gesture (the seam's `onStart` hook) so
+// the offset is stable across the drag (re-grabbing mid-flight subtracts the live
+// deflection to recover it).
 const captureFrame = () => {
     const el = box.value;
     if (!el) return;
@@ -74,36 +80,31 @@ const captureFrame = () => {
     homeY = br.top + br.height / 2 - springY.value * travel;
 };
 
-const reseatFromEvent = (e: PointerEvent) => {
-    const nx = (e.clientX - homeX) / travel;
-    const ny = (e.clientY - homeY) / travel;
-    reseat(nx, ny);
-    springReadout.x = springX.target.toFixed(2);
-    springReadout.y = springY.target.toFixed(2);
-};
-
-const onPointerDown = (e: PointerEvent) => {
-    dragging.value = true;
-    captureFrame();
-    try {
-        box.value?.setPointerCapture(e.pointerId);
-    } catch { /* iOS / synthetic pointers may throw — drag still works */ }
-    reseatFromEvent(e);
-};
-
-useEventListener(window, "pointermove", (e: PointerEvent) => {
-    if (!dragging.value) return;
-    reseatFromEvent(e);
-});
-
-useEventListener(window, "pointerup", () => {
-    if (!dragging.value) return;
-    dragging.value = false;
-    // Release → let the springs settle back toward home (the "re-seat to rest"
-    // gesture; the spring chases 0 from wherever it is).
-    reseat(0, 0);
-    springReadout.x = "0.00";
-    springReadout.y = "0.00";
+// The shared drag-scrub seam (I8). Square is 2-axis, so `T = {nx,ny}`; `project`
+// is the former `reseatFromEvent` math, `onScrub` re-seats the springs, `onStart`
+// carries the per-gesture home capture, and `onEnd` syncs the aria read-out to
+// the settled target (NO recenter — persist).
+const { dragging, onPointerDown } = useDragScrub<{ nx: number; ny: number }>({
+    el: box,
+    releasePolicy: "persist",
+    onStart: captureFrame,
+    project: (e) => ({
+        nx: (e.clientX - homeX) / travel,
+        ny: (e.clientY - homeY) / travel,
+    }),
+    onScrub: ({ nx, ny }) => {
+        reseat(nx, ny);
+        springReadout.x = springX.target.toFixed(2);
+        springReadout.y = springY.target.toFixed(2);
+    },
+    // Persist on release — leave the springs at their dragged target and let them
+    // chase-to-rest THERE (the box stays where released). `settle()` re-arms the
+    // paint loop so the final chase paints even if it had momentarily settled.
+    onEnd: () => {
+        settle();
+        springReadout.x = springX.target.toFixed(2);
+        springReadout.y = springY.target.toFixed(2);
+    },
 });
 
 // Keyboard nudge (slider posture parity with Spring/MotionPath).

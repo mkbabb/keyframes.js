@@ -82,6 +82,8 @@
         "proof:icon-paint-live": "node scripts/proof-icon-paint-live.mjs",
         "proof:specular-absent-at-rest": "node scripts/proof-specular-absent-at-rest.mjs",
         "proof:demo-fonts": "node scripts/proof-demo-fonts.mjs",
+        "proof:drag-gesture": "node scripts/proof-drag-gesture.mjs",
+        "proof:perf-frame-budget": "node scripts/proof-perf-frame-budget.mjs",
         "proof:easing-editor-live": "node scripts/proof-easing-editor-live.mjs",
         "proof:fsm-suspend-resume-live": "node scripts/proof-fsm-suspend-resume-live.mjs",
         "proof:visual-lock": "node scripts/proof-visual-lock.mjs",

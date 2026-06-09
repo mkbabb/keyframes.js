@@ -144,13 +144,74 @@ export function useEasingDemo() {
 
     let startTime = 0;
 
+    // ── I.W4 D4 — THE HOT POSITIONAL UPDATE OFF THE VUE RENDER GRAPH ──────────
+    // The former `frame()` wrote `progress.value = sweep.at(phase).p` EVERY frame.
+    // `progress` is a Vue `ref` with many reactive consumers (the hero ball, every
+    // comparison-track ball, the curve-canvas dot, the `f(p)=` readout, the
+    // contract time-twin watch) → a full re-render of the 243-node SVG gallery per
+    // frame (21.6 ms / 36 dropped, ~46 fps — b16 §1). Reactivity is the WRONG tool
+    // for a 60 Hz positional update.
+    //
+    // The cure (square's exact discipline): the loop drives the dot positions via
+    // DIRECT, non-reactive `style.transform` writes — registered "dot painters"
+    // the view layer hands us (each owns the geometry for ONE moving dot and
+    // imperatively positions it). The reactive `progress` ref is written at most a
+    // few Hz (`PROGRESS_READOUT_HZ`) for the human-readable readouts + the contract
+    // time-twin — NOT once per frame. The result is the cube-parity 60 fps.
+    //
+    // `liveProgress()` is the always-current sweep value the painters + the scrub
+    // path read (the reactive `progress` lags it by ≤ 1 readout tick, by design).
+    let livePhaseValue = 0; // the raw eased sweep value [0,1], updated every frame
+    const PROGRESS_READOUT_HZ = 6; // reactive readout cadence (a few Hz, not 60)
+    let lastReadoutAt = 0;
+
+    /** A dot painter: position one moving dot for the given raw sweep value. The
+     *  view layer registers these; the loop calls them imperatively each frame. */
+    type DotPainter = (phase: number) => void;
+    const dotPainters = new Set<DotPainter>();
+
+    /** Register a non-reactive dot painter (returns an unregister fn). The view
+     *  layer hands us a closure that writes `el.style.transform` directly — the
+     *  loop drives it off the render graph. Paints once immediately so the dot is
+     *  correct at registration time (e.g. on a paused scene). */
+    const registerDotPainter = (paint: DotPainter): (() => void) => {
+        dotPainters.add(paint);
+        paint(livePhaseValue);
+        return () => dotPainters.delete(paint);
+    };
+
+    /** Repaint every registered dot at the current live phase (used after a scrub
+     *  / curve change so the dots track even while the loop is paused). */
+    const repaintDots = (): void => {
+        for (const paint of dotPainters) paint(livePhaseValue);
+    };
+
+    /** The always-current raw sweep value [0,1] (the painters + scrub read this;
+     *  the reactive `progress` lags it by ≤ one readout tick, by design). */
+    const liveProgress = (): number => livePhaseValue;
+
     const frame = (now: DOMHighResTimeStamp): boolean => {
         // The loop GATES on the machine (the single authority) — not a private
         // isPlaying. When the machine leaves `playing` the loop self-terminates.
-        if (machine.status.value !== "playing") return false;
+        if (machine.status.value !== "playing") {
+            // On stop, reconcile the reactive readout to the LIVE value so the
+            // contract authority (`progress`, what the ScenePlayback adapter
+            // snapshots/restores) matches the painted position whenever the loop
+            // is idle — no ≤1-tick lag survives a pause.
+            progress.value = livePhaseValue;
+            return false;
+        }
         // One full alternate cycle (0→1→0) per `2 * duration`.
         const phase = ((now - startTime) / (duration.value * 2)) % 1;
-        progress.value = sweep.at(phase).p;
+        livePhaseValue = sweep.at(phase).p;
+        // Hot path — direct DOM writes, NO Vue reactivity (D4).
+        for (const paint of dotPainters) paint(livePhaseValue);
+        // Cold path — write the reactive readout at a few Hz only (the `f(p)=`
+        // text + the contract time-twin), NOT per frame.
+        if (now - lastReadoutAt >= 1000 / PROGRESS_READOUT_HZ) {
+            lastReadoutAt = now;
+            progress.value = livePhaseValue;
+        }
         return true;
     };
 
@@ -160,16 +221,27 @@ export function useEasingDemo() {
     // useSceneVisibilityPause registration with BOUND callbacks (no scene can
     // re-introduce the unbound `playback.stop` that threw `this._gen`). The
     // scene supplies only the per-frame work + the per-arm clock rebase.
-    const { startLoop, scenePlayback } = useRafScene({
+    const { playback, startLoop, scenePlayback } = useRafScene({
         frame,
-        // Re-seed startTime from the current progress so the sweep resumes in
-        // phase (the former inline startLoop body).
+        // Re-seed startTime from the LIVE phase so the sweep resumes in phase. The
+        // loop reconciles `progress` to `livePhaseValue` on stop, so the two agree
+        // whenever the loop is idle (the resume anchor is exact).
         onArm: () => {
-            startTime = performance.now() - progress.value * duration.value * 2;
+            startTime = performance.now() - livePhaseValue * duration.value * 2;
         },
+        // `progress` is the CONTRACT authority the ScenePlayback adapter snapshots/
+        // restores (a discrete scrub position, reconciled to the live value on
+        // every loop stop). The painters read `livePhaseValue` directly — the hot
+        // path never routes through this reactive ref.
         getProgress: () => progress.value,
         setProgress: (t) => {
+            // A scrub / restore writes the sweep position: keep the reactive
+            // readout, the live value, AND the painted dots all in lock-step (a
+            // discrete event, not the 60 Hz hot path — the reactive write here is
+            // correct: it drives the readouts + dots to the scrubbed value at once).
             progress.value = t;
+            livePhaseValue = t;
+            repaintDots();
         },
         getPlaying: () => machine.status.value === "playing",
     });
@@ -191,8 +263,10 @@ export function useEasingDemo() {
     };
 
     const reset = () => {
+        livePhaseValue = 0;
         progress.value = 0;
         startTime = performance.now();
+        repaintDots();
         machine.dispatch({ type: "RESET" });
     };
 
@@ -374,6 +448,16 @@ export function useEasingDemo() {
     // before this `const` is declared.
     watch(progress, (p) => {
         contractAnim.t = p * contractAnim.options.duration;
+        // I.W4 D4 — keep the imperatively-painted dots in lock-step with a PAUSED
+        // scrub. The scene's scrubber writes `demo.progress.value` directly (a
+        // discrete paused-scrub event), so when the loop is idle a `progress`
+        // change must reconcile the live value + repaint the dots. While the loop
+        // RUNS it owns `livePhaseValue` (the 12 Hz reactive write must NOT bounce
+        // back through here), so we gate on the loop being idle.
+        if (!playback.running) {
+            livePhaseValue = p;
+            repaintDots();
+        }
     }, { immediate: true });
 
     return {
@@ -387,6 +471,13 @@ export function useEasingDemo() {
         duration,
         isPlaying,
         progress,
+
+        // I.W4 D4 — the non-reactive hot-path seam: the always-current raw sweep
+        // value + the dot-painter registry the view layer wires its moving dots
+        // through (direct `style.transform` writes, off the Vue render graph).
+        liveProgress,
+        registerDotPainter,
+        repaintDots,
 
         // Derived
         currentEasingFn,

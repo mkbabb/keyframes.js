@@ -63,9 +63,13 @@
         >
             <div ref="heroTrackEl" class="hero-track relative w-full max-w-3xl h-16">
                 <div class="progress-rail"></div>
+                <!-- I.W4 D4 — the hero dot is positioned by a DIRECT non-reactive
+                     `style.transform` write inside the rAF loop (the registered
+                     dot painter below), NOT a per-frame reactive `:style` binding.
+                     This is the dot that drove the 243-node SVG re-render storm. -->
                 <div
+                    ref="heroBallEl"
                     class="progress-ball hero-ball"
-                    :style="{ transform: `translateX(${heroBallX}px)` }"
                 ></div>
             </div>
         </div>
@@ -94,16 +98,19 @@
                     >{{ curve.name }}</span>
                     <div ref="trackEls" class="track-container relative flex-1 h-10">
                         <div class="progress-rail"></div>
+                        <!-- I.W4 D4 — the comparison dots are ALSO positioned by a
+                             direct non-reactive write inside the rAF loop (the
+                             registered painter walks these refs). `data-curve`
+                             tags each ball so the painter resolves its easing fn. -->
                         <div
+                            ref="trackBallEls"
+                            :data-curve="curve.name"
                             :class="[
                                 'progress-ball track-ball',
                                 curve.name === demo.currentEasingName.value
                                     ? 'track-ball--active'
                                     : 'track-ball--muted',
                             ]"
-                            :style="{
-                                transform: `translateX(${getBallX(curve.fn, curve.name === demo.currentEasingName.value, false)}px)`,
-                            }"
                         ></div>
                     </div>
                 </div>
@@ -113,7 +120,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, ref, useTemplateRef, onMounted, watch } from "vue";
+import { computed, inject, ref, useTemplateRef, onMounted, onScopeDispose, watch, nextTick } from "vue";
 import { useResizeObserver } from "@vueuse/core";
 import { DockSelectTrigger } from "@mkbabb/glass-ui/dock";
 import {
@@ -234,26 +241,72 @@ const trackContainerEl = useTemplateRef<HTMLElement>("trackContainerEl");
 // real DOM descendant refs below.)
 const heroTrackEl = useTemplateRef<HTMLElement>("heroTrackEl");
 const trackEls = useTemplateRef<HTMLElement[]>("trackEls");
+// I.W4 D4 — the moving-dot elements the rAF loop positions imperatively (NO
+// per-frame reactive `:style`). The hero dot + every comparison dot.
+const heroBallEl = useTemplateRef<HTMLElement>("heroBallEl");
+const trackBallEls = useTemplateRef<HTMLElement[]>("trackBallEls");
 const trackWidth = ref(0);
 const heroTrackWidth = ref(0);
-
-const getBallX = (fn: TimingFunction, isActive: boolean, _isSingular: boolean): number => {
-    const size = isActive ? BALL_SIZE_ACTIVE.value : BALL_SIZE_MUTED.value;
-    const maxX = trackWidth.value - size;
-    if (maxX <= 0) return 0;
-    return fn(demo.progress.value) * maxX;
-};
 
 // ── G4 — the singular hero ball's x = `fn(progress) * maxX` ─────
 // The selected easing function applied to the engine's linear `progress` sweep:
 // the curve in MOTION (the inv ζ dogfood). The ball traverses the full hero
 // track; the ball SIZE is read off the shared idiom's --ball-size below.
 const HERO_BALL_SIZE = 56;
-const heroBallX = computed(() => {
+
+// Pure geometry: the hero/comparison ball x at a raw sweep value (NO reactive
+// read — the painters call these with the loop's live phase). `fn(phase)` is the
+// curve in motion.
+const heroBallXAt = (fn: TimingFunction, phase: number): number => {
     const maxX = heroTrackWidth.value - HERO_BALL_SIZE;
     if (maxX <= 0) return 0;
-    return demo.currentEasingFn.value(demo.progress.value) * maxX;
-});
+    return fn(phase) * maxX;
+};
+const trackBallXAt = (fn: TimingFunction, isActive: boolean, phase: number): number => {
+    const size = isActive ? BALL_SIZE_ACTIVE.value : BALL_SIZE_MUTED.value;
+    const maxX = trackWidth.value - size;
+    if (maxX <= 0) return 0;
+    return fn(phase) * maxX;
+};
+
+// The curve-fn lookup the comparison painter resolves each ball's `data-curve`
+// against (active = the selected curve, which uses the live `currentEasingFn`).
+const fnForCurve = (name: string): TimingFunction => {
+    if (name === demo.currentEasingName.value) return demo.currentEasingFn.value;
+    return resolvedFunctions[name] ?? ((t: number) => t);
+};
+
+// ── I.W4 D4 — the dot painters: DIRECT non-reactive `style.transform` writes ──
+// Registered with the demo's loop seam; called imperatively each frame with the
+// live raw sweep value. This is the hot path moved OFF the Vue render graph (the
+// 243-node SVG re-render storm is gone — the dots move, nothing re-renders).
+const paintHeroDot = (phase: number) => {
+    const el = heroBallEl.value;
+    if (!el) return;
+    el.style.transform = `translateX(${heroBallXAt(demo.currentEasingFn.value, phase)}px)`;
+};
+const paintTrackDots = (phase: number) => {
+    const balls = trackBallEls.value;
+    if (!balls) return;
+    const activeName = demo.currentEasingName.value;
+    for (const el of balls) {
+        const name = el.dataset.curve ?? "";
+        const isActive = name === activeName;
+        el.style.transform = `translateX(${trackBallXAt(fnForCurve(name), isActive, phase)}px)`;
+    }
+};
+
+// Register exactly ONE painter for whichever mode is mounted (singular → hero,
+// multi → comparison). Re-registered when the mode / visible-curve set / geometry
+// changes so the loop always drives the live DOM. The demo paints once on
+// register (so a paused scene shows the correct rest position).
+let unregisterPainter: (() => void) | null = null;
+const wirePainter = async () => {
+    await nextTick(); // the new mode's balls must be in the DOM first
+    unregisterPainter?.();
+    const paint = viewMode.value === "singular" ? paintHeroDot : paintTrackDots;
+    unregisterPainter = demo.registerDotPainter(paint);
+};
 
 const measureTrackWidth = () => {
     // The comparison tracks are uniform width (each is `flex-1`); read the
@@ -262,19 +315,37 @@ const measureTrackWidth = () => {
     if (trackEl) {
         trackWidth.value = trackEl.clientWidth;
     }
+    // A width change moves the dots' max-x → repaint at the live phase so the
+    // paused/steady position is correct without waiting for the next frame.
+    demo.repaintDots();
 };
 
 const measureHeroTrackWidth = () => {
     if (heroTrackEl.value) {
         heroTrackWidth.value = heroTrackEl.value.clientWidth;
     }
+    demo.repaintDots();
 };
 
 onMounted(() => {
     readBallSizes();
     measureTrackWidth();
     measureHeroTrackWidth();
+    wirePainter();
 });
+
+onScopeDispose(() => unregisterPainter?.());
+
+// Re-wire the painter when the mounted dot set changes (mode switch) or when the
+// visible comparison curves change (the v-for refs are recreated). The selected
+// curve changing does NOT need a re-wire — the painter resolves `currentEasingFn`
+// live — but the dots should repaint to the new curve at once while paused.
+watch(viewMode, () => wirePainter());
+watch(visibleCurves, () => wirePainter());
+watch(
+    () => demo.currentEasingName.value,
+    () => demo.repaintDots(),
+);
 
 // vueuse owns the observer lifecycle (tryOnScopeDispose cleanup) — re-measure
 // on resize off the owned refs.
