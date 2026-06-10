@@ -125,7 +125,9 @@
                      dialect (cross-hierarchy #2 — the control-placement
                      schism). The master scrubber above stays — it is the
                      storyboard's editable CONTENT (the playhead the user
-                     scrubs), not transport chrome. -->
+                     scrubs), not transport chrome. The triage's timeScale
+                     aria-label fix (S5, WCAG 2.5.3 Label in Name) landed on
+                     this row and is moot with it — the row no longer exists. -->
             </div>
         </Card>
     </div>

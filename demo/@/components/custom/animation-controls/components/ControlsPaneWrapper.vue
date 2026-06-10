@@ -16,31 +16,14 @@
     >
         <!-- ── MOBILE GRAB HANDLE (H.W7.S1a / BLK-6) ──
              The DEDICATED, spatially-DISJOINT gesture surface that owns the
-             sheet open/close swipe. The stage region below keeps
-             `touch-action: none` (the orbit surface — OrbitalDrag/AmigaScene own
-             it via setPointerCapture, which SWALLOWS any swipe on the cube). This
-             handle's OWN pointerdown/setPointerCapture owns the sheet swipe, so
-             the two gesture landlords never compete: stage-drag mutates the
-             quaternion, handle-drag moves the sheet. A real ≥24px touch target
-             (the rail spans the sheet width; the visible pill is the affordance).
-             Desktop hides it (the rail collapse IS the open/close axis there). -->
-        <div
+             sheet open/close swipe — extracted as the colocated SheetGrabHandle
+             sub-component (markup + gesture engine + pill CSS travel together;
+             the J.W0-S5 proof:demo-no-oversize seam). It v-models the same
+             `sheetOpen` intent the spring below reads. -->
+        <SheetGrabHandle
             v-show="!!storedControls.selectedAnimation && !hideControls"
-            class="sheet-grab-handle"
-            role="button"
-            tabindex="0"
-            :aria-label="storedControls.isControlsPanelOpen ? 'Collapse controls' : 'Expand controls'"
-            :aria-expanded="storedControls.isControlsPanelOpen"
-            @pointerdown="handle.onPointerDown"
-            @pointermove="handle.onPointerMove"
-            @pointerup="handle.onPointerUp"
-            @pointercancel="handle.onPointerUp"
-            @keydown.enter.prevent="handle.toggle"
-            @keydown.space.prevent="handle.toggle"
-            @click="handle.onClick"
-        >
-            <span class="sheet-grab-pill" aria-hidden="true"></span>
-        </div>
+            v-model:open="sheetOpen"
+        />
 
         <!-- J.W7a S1 (D5 / C16 + C2) — on a desktop SUBJECT stage (cube/amiga/
              square: the subject floats full-bleed behind the chrome) the pane
@@ -148,8 +131,8 @@ import type { Animation } from "@src/animation/engine";
 import type { StoredAnimationGroupControlOptions } from "../stores";
 import AnimationControls from "../controls/AnimationControls.vue";
 import RibbonBar from "./RibbonBar.vue";
+import SheetGrabHandle from "./SheetGrabHandle.vue";
 import { useSheetSpring } from "../composables/useSheetSpring";
-import { useSheetGesture } from "../composables/useSheetGesture";
 
 const props = defineProps<{
     animationGroup: AnimationGroup<any>;
@@ -218,12 +201,6 @@ watch([settled, sheetOpen], ([isSettled]) => {
 // `height` between the peek and expanded detents (both ≤70dvh — NEVER
 // full-height; WV-W7-HIGH-5).
 const sheetStyle = computed(() => ({ "--sheet-t": sheetT.value }));
-
-// ── The grab-handle gesture engine + keep-open mutex (S1a/S2b) ───────────────
-// Colocated composable (mirrors useDragScrub's SHAPE) — the gesture arbitration
-// (BLK-6: the handle's own setPointerCapture, disjoint from the stage's orbit
-// surface) + the sheet-over-menubar keep-open mutex (WV-W7-MED-4).
-const handle = useSheetGesture(sheetOpen);
 
 const emit = defineEmits<{
     (e: "sliderUpdate", val: { t: number; animation: Animation<any> }): void;
@@ -332,41 +309,8 @@ const emit = defineEmits<{
         opacity: calc(0.15 + 0.85 * var(--sheet-t, 0));
     }
 
-    /* ── The grab handle — the DISJOINT gesture surface (S1a/BLK-6) ── */
-    .sheet-grab-handle {
-        flex: 0 0 auto;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        /* ≥24px touch target (WCAG 2.5.8); the rail spans the sheet width so the
-           whole top edge is grabbable. Its OWN setPointerCapture owns the swipe
-           — `touch-action: none` so the gesture is never hijacked by scroll. */
-        min-block-size: 1.75rem;
-        padding-block: 0.5rem;
-        cursor: grab;
-        touch-action: none;
-        user-select: none;
-        -webkit-user-select: none;
-    }
-    .sheet-grab-handle:active {
-        cursor: grabbing;
-    }
-    .sheet-grab-pill {
-        inline-size: 2.25rem;
-        block-size: 0.3125rem;
-        border-radius: 9999px;
-        background: var(--muted-foreground, hsl(0 0% 60%));
-        opacity: 0.5;
-    }
-    .sheet-grab-handle:hover .sheet-grab-pill,
-    .sheet-grab-handle:focus-visible .sheet-grab-pill {
-        opacity: 0.85;
-    }
-    .sheet-grab-handle:focus-visible {
-        outline: 2px solid var(--ring, currentColor);
-        outline-offset: -2px;
-        border-radius: var(--radius-card, 1rem) var(--radius-card, 1rem) 0 0;
-    }
+    /* The grab handle's own CSS lives with its gesture surface —
+       SheetGrabHandle.vue (the colocated sub-component, S1a/BLK-6). */
 
     /* ── Mode-class register (S1c) ──
        The sheet is ALWAYS a content card; what differs is the STAGE behind it
