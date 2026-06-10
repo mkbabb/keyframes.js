@@ -402,6 +402,82 @@ and a gate that BITES on any divergence is the precondition.
     `git status` shows it untracked; it is the one orphan file at the repo root
     (`legacy-sweep §H`).
 
+- **S7 — the spurious `vue ^3.5.0` peerDependency removal + the peer-dep honesty clause (ED-5;
+  the framework-agnostic-library boundary lie · the frontier ecosystem fold).** Locus:
+  `package.json:161-162` (the `"peerDependencies": { "vue": "^3.5.0" }` block). DELETE the block —
+  the shipped library is Vue-FREE: `grep -rn "from 'vue'" src/` finds the ONLY `vue` reference in
+  `src/` is the dev-only `*.vue` SFC module-type shim in `src/env.d.ts` (a TypeScript declaration,
+  NOT a runtime import); the dist imports zero framework code. `vue` correctly STAYS in
+  `devDependencies` (`package.json:217`, the demo's runtime) — only the spurious PEER declaration
+  dies, so the demo build is untouched while a `npm i @mkbabb/keyframes.js` consumer stops being
+  forced to satisfy a Vue peer the library never touches. This is the
+  publish-boundary-lies-about-the-surface shape J.W5 exists to kill, one fold the existing BP band
+  ($S4$: `_redirects`/`author`/`robots.txt`) does NOT name (`audit/frontier/ecosystem-distribution.md`
+  ED-5 / §0.2 — "a latent distribution-boundary defect J.W5 does NOT name … exactly the
+  publish-boundary-lies-about-the-surface shape J.W5 exists to kill, one fold short"). **WHY:** a
+  framework-agnostic interpolation library that declares a framework peer FORCES every consumer's
+  resolver to reckon with a dependency the runtime never imports — a declared peer that is not a
+  real runtime peer is the dependency-graph analogue of a README teaching an API the dist cannot
+  run. **The proof:published-surface extension — the peer-dep honesty clause (clause (f), below):
+  every declared `peerDependencies` entry MUST be a real runtime peer** — imported (statically or
+  dynamically) by the SHIPPED `dist/`, not merely by the demo or the dev shim — so the gate that
+  proves the tarball/exports/README honest also proves the DEPENDENCY DECLARATION honest. **NO
+  workaround:** the peer is DELETED, not narrowed to an `optionalPeer` or papered with a
+  `peerDependenciesMeta` flag — the library has no Vue peer, optional or otherwise; the honest
+  declaration is its ABSENCE. *(Per `package.json:166-168` in the lane's transcription; the
+  authoritative line at impl is `package.json:161-162` — verified at authoring 2026-06-10:
+  `"peerDependencies": { "vue": "^3.5.0" }` is the only peer block, `src/env.d.ts` the only `src/`
+  vue reference, `vue ^3.5.35` present in `devDependencies:217`.)*
+
+- **S8 — the WAAPI-Level-2 positioning paragraph + correspondence table (WL2-A; the production
+  GroupEffect/SequenceEffect the platform never shipped · docs-only · API-mimicry FORBIDDEN).**
+  Locus: `README.md` §Beyond CSS — the `AnimationGroup`/`Sequence` subsections S2 authors. Add a
+  short positioning paragraph + a correspondence table, as PURE DOCUMENTATION (zero API change,
+  zero new surface): **`AnimationGroup` and `Sequence` ARE the production realization of Web
+  Animations Level 2's `GroupEffect`/`SequenceEffect` model — semantics the platform has never
+  shipped in ANY browser (polyfill-only, L2 Working Draft) — over real WAAPI children where
+  eligible, with weighted blend and a GSAP-class transport the spec lacks.** The correspondence
+  table maps L2 concept → kf surface so the naming rationale is legible without changing one API
+  line: `GroupEffect.parallel` → `AnimationGroup`; `SequenceEffect` / `align:sequence` → `Sequence`
+  auto-append; `EffectTiming.align:start` → `Sequence`'s `at:0`
+  (`audit/frontier/waapi-level-2.md` WL2-A / §3). **The KILL rider (BINDING — no workaround):
+  API-mimicry of the unshipped L2 spec is FORBIDDEN.** kf MUST NOT rename/restructure its public
+  API to mirror L2 class shapes, MUST NOT add an `L2`-named class tree
+  (`ParallelEffect`/`StaggerEffect`/`GroupEffect` types), MUST NOT polyfill the missing native API
+  — the spec is mid-redesign and `SequenceEffect` is PROPOSED FOR DELETION upstream (CSSWG
+  `csswg-drafts #9557` — fold sequential ordering into an `EffectTiming.align` option, removing the
+  `SequenceEffect` class; a competing declarative-CSS GroupEffect direction `#9554` may win
+  instead). Pinning kf's surface to a class name the CSSWG is actively removing would be
+  legacy-chasing — the opposite of frontier; `sequence.ts:5-30` already records the principled
+  naming, honor it. **WHY a docs fold, not a wave:** the capability is SHIPPED (the master-playhead
+  orchestrators are a strict superset of the unsettled `align` model); the "positioning" is a
+  naming-rationale move on the `Sequence`/`AnimationGroup` doc sections S2 already owns — one
+  paragraph + one table inside an already-scheduled wave, exactly the on-brand framing those
+  sections should carry.
+
+- **S9 — the "structural stagger, the CSS way" docs recipe (K-T4; zero new code · the honest a11y
+  framing · the SplitText answer).** Locus: `README.md` §Beyond CSS — a recipe entry adjacent to
+  the `stagger` subsection S2 authors. Author a teaching recipe (NOT a primitive — zero new code),
+  the CSS-keyframes engine's honest answer to GSAP's SplitText: (1) **don't split text into
+  letters** — cite the a11y matrix (letter-splitting produces non-functional accessibility markup
+  across SR/browser pairs, a 2026-documented hazard); if text must be revealed, reveal at the
+  **word or line** granularity with an `aria-label` on a true container + `aria-hidden` fragments
+  (or a visually-hidden duplicate) — the working mitigations; (2) drive the reveal with kf's
+  EXISTING `stagger` + `SpringProgress` over the consumer-OWNED fragments — the primitive kf
+  already ships (taught by S2), no DOM mutation kf performs; (3) where `sibling-index()` is
+  available, the stagger emits as native zero-runtime CSS via `animation-delay: calc(sibling-index()
+  * <each>)` (the CSS-only structural stagger — note `sibling-index()` is NOT yet Baseline,
+  expected mid-late 2026, and CANNOT enter `@keyframes` nor carry the easing curve, so the recipe
+  frames it as the progressive-enhancement path, not the default); (4) perceptual color across the
+  reveal is free — kf's default oklab already applies. The on-brand thesis the recipe teaches: **we
+  don't split your DOM; we stagger and spring over structure you own — visual-only reordering that
+  does NOT change reading/tab order, with an honest a11y framing as its distinguishing content**
+  (`audit/frontier/text-ranges-stagger.md` K-T4 / §3). **WHY J.W5:** it is the TEACHING of a
+  primitive that already ships (`stagger`, one of the untaught exports S2 completes) plus an honest
+  a11y framing — exactly S2's §Beyond CSS charter, no new surface; it folds whether or not the
+  `staggerCSS()` emitter (the K-T2 headline) ever ships. **Effort S, risk: none beyond keeping the
+  a11y citation current.**
+
 ## §Hard gate (the proof:* that BITES — born-RED on the CURRENT tree, GREEN-on-fix · PUBLISH/DOCS boundary)
 
 **`proof:published-surface`** — a Node-tier oracle over the BUILT `dist/` + the packed
@@ -458,6 +534,18 @@ proxy — boundary-ORACLE-compliant:
   path or a wrong count; greens on the rewritten tree-true doc. *(Labeled HYGIENE — a
   structural-claim corroborator. The DOCS correctness oracle proper is clause (c)'s executable
   README; (e) corroborates the prose rewrite and may NOT substitute for a red runtime clause.)*
+- **clause (f) — the peer-dep honesty clause (S7/ED-5 · CORRECTNESS).** Assert every entry in
+  `package.json "peerDependencies"` is a REAL runtime peer of the SHIPPED `dist/` — i.e. imported
+  (statically or dynamically) by the built library, NOT merely by the demo or the dev `*.vue`
+  shim. The check: parse the `dist/` import graph (the built `keyframes.js` + the
+  `loadAnimationEngine` chunks) and assert `peerDependencies ⊆ {modules dist actually imports}`. A
+  declared peer absent from the dist import graph REDs. **BITE (born-RED TODAY):** `vue ^3.5.0` is
+  declared (`package.json:161-162`) but the dist imports zero Vue (`grep -rn "from 'vue'" src/` →
+  only `src/env.d.ts`, a dev-only declaration); the clause reds today, greens on S7's deletion of
+  the block. **This is the dependency-declaration analogue of clause (b): the thing a `npm i` user
+  is forced to resolve must be a thing the library actually uses.** *(`audit/frontier/ecosystem-distribution.md`
+  ED-5 — "a declared peer that is not a real runtime peer is the publish-boundary-lies-about-the-surface
+  shape J.W5 exists to kill.")*
 
 **The §spine bar — MUST bite.** Clauses (a)/(b)/(c)/(d) actuate the SHIPPED ARTIFACT: the
 packed tarball (a), the declared public surface a `npm i` user reaches (b), the README the
@@ -470,16 +558,17 @@ the source declares and the README teaches.
 
 - **The TWO-TIER TAXONOMY, applied to THIS wave's gate.** The **RUNTIME / load-bearing
   CORRECTNESS oracle** is clauses **(a) tarball==declaration**, **(b) exports
-  taught-or-manifested**, **(c) README snippets EXECUTE**, **(d) interface≡runtime** — the
-  wave is GREEN iff ALL FOUR pass against the built artifact. Clause **(e)
-  doc-rot-tripwire** is the **HYGIENE / corroborating** tier (a structural-claim check over
-  prose): it strictly corroborates S3 and **may NOT substitute for a red runtime clause** —
-  if any of (a)/(b)/(c)/(d) is RED, the wave is RED no matter what (e) reports. The headline
-  correctness axis is **the shipped artifact == the declared, taught surface** (runtime over
-  the tarball + dist), with the prose-rewrite check strictly hygiene-corroborating. **NO
-  workaround:** the publish gap closes with the HONEST minor and the REAL documented surface
-  — NOT a rubber-stamp patch (`J.md §MANDATE`); no `continue-on-error`, no `IN_CI` escape on
-  (a)-(d), no bare snippet-skip on (c).
+  taught-or-manifested**, **(c) README snippets EXECUTE**, **(d) interface≡runtime**, **(f)
+  peer-deps are real runtime peers** — the wave is GREEN iff ALL FIVE pass against the built
+  artifact. Clause **(e) doc-rot-tripwire** is the **HYGIENE / corroborating** tier (a
+  structural-claim check over prose): it strictly corroborates S3 and **may NOT substitute for
+  a red runtime clause** — if any of (a)/(b)/(c)/(d)/(f) is RED, the wave is RED no matter what
+  (e) reports. The headline correctness axis is **the shipped artifact == the declared, taught
+  surface** (runtime over the tarball + dist), with the prose-rewrite check strictly
+  hygiene-corroborating. **NO workaround:** the publish gap closes with the HONEST minor, the REAL
+  documented surface, and the HONEST dependency declaration — NOT a rubber-stamp patch
+  (`J.md §MANDATE`); no `continue-on-error`, no `IN_CI` escape on (a)-(d)/(f), no bare
+  snippet-skip on (c), no `optionalPeer`/`peerDependenciesMeta` paper over (f).
 - **`proof:published-surface` enters the CORRECTNESS tier and the `proof:all` roster** — its
   membership is owned by the J.W3 `proof:ci-coverage` two-way equivalence (so the new
   correctness gate cannot escape `proof:all`/CI). Recorded here so the wave does not strand
@@ -505,6 +594,18 @@ the source declares and the README teaches.
   ungated) — S1c + clause (d) (the drift gate).
 - **FVT P2-1** (the I FINAL §8 / PROGRESS §0 supersession gap) — S6 (pointer-only annotation,
   frozen body untouched).
+- **ED-5** (the spurious `vue ^3.5.0` peerDependency on the Vue-free library) — S7 (DELETE
+  `package.json:161-162`; `vue` stays in `devDependencies`) + clause (f) (the peer-dep honesty
+  clause — every declared peer must be a real runtime peer of the shipped dist; reds today).
+  `audit/frontier/ecosystem-distribution.md` ED-5 (post-fleet J-fold, K-SEED §4).
+- **WL2-A** (the WAAPI-Level-2 positioning paragraph + correspondence table) — S8 (README
+  §Beyond CSS docs-only positioning: `AnimationGroup`/`Sequence` ARE the production
+  GroupEffect/SequenceEffect the platform never shipped; the API-mimicry KILL rider —
+  SequenceEffect proposed for deletion upstream `csswg-drafts #9557`).
+  `audit/frontier/waapi-level-2.md` WL2-A (post-fleet J-fold, K-SEED §4).
+- **K-T4** (the "structural stagger, the CSS way" docs recipe) — S9 (README §Beyond CSS recipe,
+  zero new code: `sibling-index()`/`nth-child` delays + the shipped kf `stagger`, with the honest
+  a11y framing). `audit/frontier/text-ranges-stagger.md` K-T4 (post-fleet J-fold, K-SEED §4).
 - **The exports map + the lazy-load chunks are CORRECT — RECORD, do NOT re-architect.** The
   ESM-only `"."` exports map, the hash-named `engine-*/animate-*/motion-path-*/draw-svg-*`
   chunks (the `loadAnimationEngine` splits), the d.ts roll-up — all correct

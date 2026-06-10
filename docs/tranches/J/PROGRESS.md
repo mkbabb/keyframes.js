@@ -389,6 +389,33 @@ their born-RED kf gates. **No prompt is dropped; every PARTIAL has a J home or a
 (`J.md §chronic + deferred fold`). The standing development mandate + the standing orchestration
 directive RE-ENTER J's charter VERBATIM (they are the project's durable spine, not I-specific).
 
+### 4h — The frontier amendments (post-fleet · folds applied NOW into existing J waves; dev-phase, docs-only)
+
+After the wave specs were authored, the frontier-research fleet (`audit/frontier/` — 10 research
+lanes + 2 adversarial judges; orchestrator synthesis in `audit/frontier/K-SEED.md`) divined the
+improvements that push kf past the 2026 frontier. The binding amendment table (`K-SEED.md §4`)
+identified **five S-effort folds that belong in EXISTING J waves** — each appended as a new scope
+item in its wave (no existing item renumbered), with a matching §Folds row. They are applied NOW
+because each is S-effort, in scope, and tightens an honesty/correctness floor a later wave inverts:
+
+| Fold | → Wave (new item) | What | Frontier lane citation |
+|---|---|---|---|
+| **ED-5** | **J.W5** (S7 + gate clause (f)) | remove the spurious `vue ^3.5.0` peerDependency from the Vue-free library (`package.json:161-162`; `src/` references vue only in the dev-only `env.d.ts` `*.vue` shim — vue stays in `devDependencies`) + extend `proof:published-surface` with a peer-dep honesty clause (declared peers must be REAL runtime peers of the shipped dist) | `audit/frontier/ecosystem-distribution.md` ED-5 |
+| **WL2-A** | **J.W5** (S8) | the WAAPI-Level-2 positioning paragraph + correspondence table in the README docs (`AnimationGroup`/`Sequence` ARE the production GroupEffect/SequenceEffect the platform never shipped — docs-only); **API-mimicry of the unshipped L2 spec is FORBIDDEN** (SequenceEffect proposed for deletion upstream, `csswg-drafts #9557`) | `audit/frontier/waapi-level-2.md` WL2-A |
+| **K-T4** | **J.W5** (S9) | the "structural stagger, the CSS way" docs recipe (zero new code: `sibling-index()`/`nth-child` delays + the shipped kf `stagger`, with the honest a11y framing) | `audit/frontier/text-ranges-stagger.md` K-T4 |
+| **CE-1.0** | **J.W6** (S9) | verify the Safari `linear()`-HW-accel hazard on the CURRENT spring-WAAPI path (`waapi.ts:316-318` emits `linear()` timing; Safari refuses HW-accel for `linear()`-eased animations — verify on-device, then GUARD-or-DOCUMENT). Rides J.W6's measurement/verification charter | `audit/frontier/compositor-eligibility.md` CE-1.0 |
+| **K3-internal** | **J.W1** (S8) | the two engine-internal diagnostics rows (`EMPTY_PARSE` / `UNKNOWN_TIMING_FN`) ride the same totality motion as the typed selector throw (S3) — a structured `code` ON the typed error, **NOT the full diagnostics channel** (which stays a K.W0 seed item) | `audit/frontier/live-stylesheet-ingestion.md` K3 |
+
+**The frontier annex seeds Tranche K, not J.** `audit/frontier/` (13 docs, incl. `K-SEED.md`) is the
+divination corpus for **Tranche K — a SEED, not a tranche: it develops only AFTER the J
+implementation closes, on its own authorization** (the dev/impl boundary; `K-SEED.md §0`). Nothing in
+the annex beyond these five folds is implemented or authored-as-waves in J. The judge OVERRODE two
+fleet J-FOLD tags as not-in-J-scope (SO-5 scroll-entry batching + PHYS-D snapDecay — both presuppose
+the K.W2 ScrollScene driver, so K.W2 sub-items); the 12 researched KILLs (`K-SEED.md §5`) are
+non-re-litigable negative results. The implied K shape (K.W0 fidelity-floor → K.W1 ingest ∥ K.W2
+scroll-as-CSS → K.W3 compile ∥ K.W4 physics → K.W5 externalize, gated on J.W5's publish landing) is a
+seed, not a spec.
+
 ---
 
 ## §5 — HONEST ALREADY-DONE (manufacture NO J work here — inv ε)

@@ -378,6 +378,33 @@ the unification motion; `J.md §MANDATE` no-legacy):
   dead-source companion, not because they touch `src/animation` (they do not). The LS-20 `as any`
   demo casts are J.W2's (`PROGRESS.md §"Open deferrals"` LS-20 row) — NOT this wave.
 
+- **S8 — the two engine-internal diagnostics rows on the typed error (K3-internal; the structured
+  reason that rides S3's totality motion · NOT the full diagnostics channel).** Locus: the SAME
+  totality seams S2/S3 already touch — `frame-compiler.ts:163-171` (the selector guard, S3) and the
+  timing-function path. The two engine-internal rows the ingestion lane folds into J.W1 are a
+  STRUCTURED REASON carried ON the typed error S3 already throws, NOT a new diagnostics CHANNEL:
+  - **`EMPTY_PARSE`:** the empty-input selector case (`""`/`"   "`, S3's already-caught blank) carries
+    a stable structured `code: "EMPTY_PARSE"` alongside the human message on the
+    `AnimationOptionError` — so a programmatic consumer can branch on the reason without string-matching
+    the message.
+  - **`UNKNOWN_TIMING_FN`:** when a keyframe/option timing function is unrecognized (the silent-fallback
+    site the totality pass makes explicit), the typed error carries `code: "UNKNOWN_TIMING_FN"` — the
+    same structured-reason discipline applied to the timing seam.
+  These are ~20 LoC, RIDE the same totality motion as the typed selector throw (S3): the guard is
+  already becoming total; attaching a stable `code` to the typed error it throws is the natural
+  companion, not a new surface. **THE BOUNDARY (BINDING — no scope creep):** this is a structured
+  `code` on the TYPED throw ONLY. The FULL `ResolvedKeyframes.diagnostics` channel — the
+  `Diagnostic[]` field with `severity`/`message`/`source`, the `CROSS_ORIGIN_SKIP` / WAAPI-reason
+  rows, the every-silent-fallback-site sweep — STAYS a K.W0 seed item (it needs K1 live-stylesheet
+  ingestion to have a producer). J.W1 folds ONLY the two engine-internal rows that the typed throw
+  already wants; it does NOT build the channel (`audit/frontier/live-stylesheet-ingestion.md` K3 / §"K3's
+  empty-parse + selector-guard diagnostic rows → J.W1" — "the two engine-internal rows are ~20 LoC and
+  ride the same totality motion; the full diagnostics channel stays K-scoped"). **WHY:** a typed error
+  a programmatic caller cannot branch on without parsing the message is half-total; a stable `code` on
+  the throw completes the totality S3 starts, at the seam S3 already owns. **Engine ceiling:**
+  `frame-compiler.ts` uncapped; `engine.ts` untouched (the rows attach to the already-thrown typed
+  error, no new `engine.ts` mass).
+
 ## §Hard gate (the proof:* that BITES — born-RED on the pre-fix tree, GREEN-on-fix · RUNTIME/INTERACTION + the unit pyramid)
 
 The wave's GREEN depends on the RUNTIME clauses (a)-(c); the unit-pyramid clauses (d)-(g) are
@@ -533,6 +560,11 @@ J.W4's critical path and nothing downstream waits on it.
   LS-10 (`stores/index.ts:1-3`), LS-11 (`demo/motion-path/motionPathGeometry.ts:76`),
   `PROGRESS.md §"Open deferrals"` LS-9/10/11 row (the dead-source REMOVAL in the engine-totality
   motion).
+- **K3-internal** (the two engine-internal diagnostics rows — `EMPTY_PARSE` / `UNKNOWN_TIMING_FN`) —
+  S8 (a structured `code` ON the typed error S3 throws, NOT the full diagnostics channel — that stays
+  a K.W0 seed item, needing K1 ingestion to have a producer). Rides the same totality motion as the
+  typed selector throw (S3); ~20 LoC. `audit/frontier/live-stylesheet-ingestion.md` K3 (post-fleet
+  J-fold, K-SEED §4).
 - **CH-5/B1+B5 `"......"` crash** (VERIFY-ONLY, TERMINATED) — J.W1 RE-RUNS `proof:engine-no-throw-on-play`
   on the built dist; `parseCSSValueUnit("") => {value:0}` no-throw confirmed (node probe, value.js
   0.11.2). J does NOT re-derive the I close; it re-runs + extends it (`PROGRESS.md §"Open

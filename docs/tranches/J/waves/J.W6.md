@@ -346,6 +346,48 @@ DEP-1 only)"* — and `J.md §J.W6 row`: *"GH-6/DEP-1: the CNAME drift confirmed
 that J CONFIRMS the status of. The artifact is the recorded owner confirmation. It stays OUT
 (sibling-HANDOFF) regardless of outcome; the kf deploy correctness is owned by J.W0, not here.
 
+### S9 — CE-1.0: the Safari `linear()`-HW-accel hazard on the CURRENT spring-WAAPI path — verify on-device, GUARD-or-DOCUMENT
+
+**The provenance.** `audit/frontier/compositor-eligibility.md` CE-1.0 / §3.0 (post-fleet J-fold,
+K-SEED §4). kf's EXISTING spring-WAAPI delegation emits a CSS `linear()` timing twin — the spring's
+`linear()` stops carried on the uniform timing function (`toWAAPIOptions`, `src/animation/waapi.ts:316-318`:
+`const uniformTiming = animation.frames[0]?.timingFunction ?? animation.options.timingFunction; const
+easing = uniformTiming.css ?? "linear";`, emitted into the `KeyframeEffectOptions.easing`). Safari
+(desktop + mobile) REFUSES hardware acceleration for any animation carrying a custom `linear()`
+easing — even for `transform`/`opacity` (a confirmed WebKit engine behaviour, NOT a `linear()`
+syntax-support gap; `linear()` is itself Baseline-WA 2026-06-11). So TODAY, on Safari, a delegated
+spring animation runs on UN-accelerated WAAPI — an extra effect object + the shadow tick loop
+wrapping a main-thread animation that is no faster than, and structurally heavier than, the rAF path
+it bypassed. This is a conservative-correctness LEAK: the delegation is supposed to only ever trade a
+perf OPPORTUNITY, never make things WORSE (`waapi.ts:24-28` — the delegation contract). It rides
+J.W6's measurement/verification charter precisely because it is a measure-first correctness-tightening
+of the EXISTING delegation, not a K capability — and it sits beside S7 (the `linear()`-Baseline /
+`parseLinearStops` re-verification), the same `linear()` band.
+
+**The EXACT verify protocol (measure-first — the born-RED witness comes first).**
+1. **PROBE on-device** (WebKit — Playwright `webkit` channel, or a real Safari): trace a delegated
+   spring-WAAPI animation (a transform-animating spring whose timing carries the `linear()` twin) and
+   observe whether it runs on the compositor or the MAIN thread. The born-RED witness is the trace
+   showing the spring-`linear()` transform main-thread on WebKit (HW-accel REFUSED).
+2. **THRESHOLD:** does this UA hardware-accelerate a `linear()`-eased transform? (A feature-probe of
+   "linear()-easing + HW-accel" rather than a bare UA string match, where feasible.)
+
+**The BINARY exit — GUARD-or-DOCUMENT (measurement-artifact-or-record, never a bare BOOK).**
+- **GUARD** (if the on-device trace confirms the exclusion bites): the spring-`linear()` WAAPI
+  delegation gains a WebKit guard — a `linear()`-HW-accel feature-probe (or a UA-gate) that HOLDS the
+  spring-`linear()` delegation on rAF for WebKit, so the conservative-correctness contract is restored
+  (the delegation never produces a heavier main-thread animation than the rAF path it replaced). The
+  guard slots into the existing eligibility gate (`waapi.ts:98-208`), one ineligibility reason added,
+  no second delegation path kept beside it (no-legacy).
+- **DOCUMENT** (if the probe shows the UA does accelerate, or the cure is deferred behind a tripwire):
+  RECORD the delegation decision with the trace as the artifact — "known no-HW-accel-on-Safari for
+  spring-`linear()`; the rAF path is the correct fallback" — so the conservative-correctness call is
+  EVIDENCED, not asserted. *(This is independent of the CE-1 per-property partition widening, which
+  is K-scoped: CE-1.0 is ONLY the hazard verification on the path that ships TODAY; the §3.0 finding
+  is explicitly "the current path," not the partition.)* **NO workaround:** GUARD is the real
+  eligibility-gate addition; DOCUMENT is the recorded on-device trace, not a "still works on Chrome"
+  hand-wave.
+
 ## §Hard gate (the proof:* / artifact rule that BITES — measurement-artifact-or-KILL-record · the close-ledger invariant)
 
 **The wave-level gate is the MEASUREMENT-ARTIFACT-OR-KILL-RECORD rule** (`J.md §J.W6 gate`): *"Every
@@ -462,6 +504,11 @@ measurement on a measure-first rider.
   Verified KEEP today (E1 unpublished, `parseLinearStops === undefined`).
 - **GH-6 / DEP-1 CNAME** (`J.md §J.W6` / `recap-GH.md §H-4 / G-6`) — S8: confirm-with-deploy-owner;
   VERIFY-ONLY, OUT (deploy-owned P0; kf-side deploy correctness is J.W0's oracle).
+- **CE-1.0 Safari `linear()`-HW-accel hazard** (`audit/frontier/compositor-eligibility.md` CE-1.0 / §3.0;
+  post-fleet J-fold, K-SEED §4) — S9: verify on-device that Safari refuses HW-accel for the spring-`linear()`
+  twin the CURRENT delegation emits (`waapi.ts:316-318`); GUARD-or-DOCUMENT with the on-device trace as the
+  artifact. Measure-first, beside S7's `linear()`-band re-verify. (NOT the CE-1 per-property partition — that
+  is K-scoped; this is the hazard verification on the path that ships TODAY.)
 
 ## §Design decisions (trade-offs RESOLVED)
 
