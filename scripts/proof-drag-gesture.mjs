@@ -134,11 +134,40 @@ const skipOrFail = (reason) => {
 // The drag surfaces, by scene → the grab handle selector the seam attaches to.
 // The seam owns the gesture-in-flight token, so a SINGLE structural assertion
 // (userSelect suppressed during the gesture) must hold for ALL of them.
+//
+// J.W2 S1 (W4-3/W4-4) — the roster is EXTENDED with the two RECOVERED
+// pointer-capture surfaces (`audit/wave-I.W4.md §3` coverage gap): the easing
+// bezier-handle drag (EasingCurveCanvas) and the playback-ribbon slider scrub
+// (PlaybackRibbon). Each carries a `land` probe (an attribute that must MUTATE
+// across the gesture) so the gate also asserts the gesture LANDS — the drag is
+// a real interaction, not a dead pointer sweep. BORN-RED on the pre-J.W2 tree:
+// both surfaces bypassed the shared seam (inline handlers / raw window
+// pointerup, NO `acquireSelectSuppression`), so `body.is-dragging` never arms.
 const DRAG_SURFACES = [
     { scene: "square", handle: ".demo-box" },
     { scene: "spring", handle: ".spring-rail" },
     { scene: "sequence", handle: ".seq-scrub" },
     { scene: "motion-path", handle: ".mp-traveller" },
+    {
+        scene: "easing",
+        name: "easing/bezier-handle",
+        handle: ".easing-curve-canvas circle.control-point.handle",
+        land: {
+            selector: ".easing-curve-canvas path.bezier-path",
+            attr: "d",
+            what: "the bezier `d` mutates",
+        },
+    },
+    {
+        scene: "easing",
+        name: "easing/ribbon-slider",
+        handle: ".timeline-green [data-slider-impl]",
+        land: {
+            selector: ".timeline-green [role=slider]",
+            attr: "aria-valuenow",
+            what: "the playhead scrubs",
+        },
+    },
 ];
 
 async function browserHalf() {
@@ -177,7 +206,8 @@ async function browserHalf() {
         let surfacesExercised = 0;
         const surfaceFailures = [];
 
-        for (const { scene, handle } of DRAG_SURFACES) {
+        for (const { scene, handle, name, land } of DRAG_SURFACES) {
+            const label = name ?? scene;
             const { ctx, page } = await openSceneFresh(browser, base, scene, VW);
             try {
                 // Find a grab handle for this surface + a chrome label to sweep over.
@@ -211,7 +241,16 @@ async function browserHalf() {
                 }, handle);
 
                 if (!geom.has) {
-                    note(`${scene}: no grab handle matched \`${handle}\` — surface not exercised here`);
+                    // The two J.W2-recovered surfaces are MANDATORY roster rows —
+                    // an unfound handle there is a red (the gate would otherwise
+                    // pass vacuously on the exact surfaces this wave recovers).
+                    if (land) {
+                        surfaceFailures.push(
+                            `${label}: no grab handle matched \`${handle}\` — the recovered surface was NOT exercised (non-vacuity)`,
+                        );
+                    } else {
+                        note(`${label}: no grab handle matched \`${handle}\` — surface not exercised here`);
+                    }
                     continue;
                 }
 
@@ -223,6 +262,17 @@ async function browserHalf() {
                 // chrome label in steps, sample userSelect MID-gesture, then up.
                 await page.mouse.move(geom.hx, geom.hy);
                 await page.mouse.down();
+
+                // J.W2 — the gesture-LANDS probe: sample the landing attribute
+                // right after pointer-down; it must have MUTATED by the gesture's
+                // final step (the drag drives the product, not a dead sweep).
+                const landBefore = land
+                    ? await page.evaluate(
+                          ([sel, attr]) =>
+                              document.querySelector(sel)?.getAttribute(attr) ?? null,
+                          [land.selector, land.attr],
+                      )
+                    : null;
 
                 // Step toward the chrome label, sampling the structural state at
                 // the point where the cursor is over the chrome.
@@ -251,6 +301,18 @@ async function browserHalf() {
                         });
                     }
                 }
+
+                // J.W2 — sample the landing attribute at the gesture's final step
+                // (BEFORE release, so a post-release playback resume cannot drift
+                // the probed value).
+                const landAfter = land
+                    ? await page.evaluate(
+                          ([sel, attr]) =>
+                              document.querySelector(sel)?.getAttribute(attr) ?? null,
+                          [land.selector, land.attr],
+                      )
+                    : null;
+
                 await page.mouse.up();
 
                 const after = await page.evaluate(() => ({
@@ -260,6 +322,17 @@ async function browserHalf() {
 
                 surfacesExercised += 1;
 
+                if (land) {
+                    if (landBefore !== null && landBefore !== landAfter) {
+                        note(`${label}: the gesture LANDS — ${land.what} (${String(landBefore).slice(0, 32)}… → ${String(landAfter).slice(0, 32)}…)`);
+                    } else {
+                        surfaceFailures.push(
+                            `${label}: the gesture did NOT land — ${land.what} expected, but ` +
+                                `\`${land.attr}\` stayed ${JSON.stringify(landBefore)} across the drag`,
+                        );
+                    }
+                }
+
                 // (ii) STRUCTURAL — the decisive, capture-artifact-proof witness:
                 // every chrome surface must resolve userSelect=none WHILE the
                 // gesture is live (and body.is-dragging set). This is the property
@@ -267,14 +340,14 @@ async function browserHalf() {
                 const suppressedTokens = ["none", "-webkit-none"];
                 const isSuppressed = (v) => v != null && suppressedTokens.includes(String(v).toLowerCase());
                 if (!midSample) {
-                    surfaceFailures.push(`${scene}: could not sample the mid-gesture structural state`);
+                    surfaceFailures.push(`${label}: could not sample the mid-gesture structural state`);
                 } else if (!midSample.bodyDragging) {
                     surfaceFailures.push(
-                        `${scene}: body.is-dragging was NOT set during the gesture — the seam did not arm the global token (D1 not live for this surface)`,
+                        `${label}: body.is-dragging was NOT set during the gesture — the seam did not arm the global token (D1 not live for this surface)`,
                     );
                 } else if (!isSuppressed(midSample.html) || !isSuppressed(midSample.body)) {
                     surfaceFailures.push(
-                        `${scene}: html/body userSelect was NOT suppressed mid-gesture (html=${midSample.html}, body=${midSample.body}) — the chrome stays selectable (B6-a born-RED shape)`,
+                        `${label}: html/body userSelect was NOT suppressed mid-gesture (html=${midSample.html}, body=${midSample.body}) — the chrome stays selectable (B6-a born-RED shape)`,
                     );
                 } else {
                     // (i) PRIMARY runtime — getSelection empty after sweep+release.
@@ -283,15 +356,15 @@ async function browserHalf() {
                     // we additionally confirm the real drag accrued no selection.)
                     if (midSample.selectionMid > 0 || after.selection > 0) {
                         surfaceFailures.push(
-                            `${scene}: a real drag over a chrome label accrued ${midSample.selectionMid || after.selection} selected chars — text IS highlighting (B6-a)`,
+                            `${label}: a real drag over a chrome label accrued ${midSample.selectionMid || after.selection} selected chars — text IS highlighting (B6-a)`,
                         );
                     } else {
                         note(
-                            `${scene}: drag swept chrome — userSelect suppressed (html=${midSample.html}, body=${midSample.body}, dock=${midSample.dock}, controls=${midSample.controls}); getSelection empty; token cleared on release (${after.bodyDraggingAfter ? "STILL SET — leak!" : "cleared"})`,
+                            `${label}: drag swept chrome — userSelect suppressed (html=${midSample.html}, body=${midSample.body}, dock=${midSample.dock}, controls=${midSample.controls}); getSelection empty; token cleared on release (${after.bodyDraggingAfter ? "STILL SET — leak!" : "cleared"})`,
                         );
                         if (after.bodyDraggingAfter) {
                             surfaceFailures.push(
-                                `${scene}: body.is-dragging was NOT cleared on pointerup — the gesture token leaked (selection would freeze globally)`,
+                                `${label}: body.is-dragging was NOT cleared on pointerup — the gesture token leaked (selection would freeze globally)`,
                             );
                         }
                     }

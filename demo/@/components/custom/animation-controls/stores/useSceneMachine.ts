@@ -272,13 +272,19 @@ export const useSceneMachine = createGlobalState(() => {
         // `"easing"`, not `undefined`/stale (the B4 desync cure). The pure
         // selector is exposed for a host that carries its OWN preference ref.
         selectedControlSurfaceFor,
-        /** The active scene's selected surface, given a preferred pick. A reactive
+        /** The active scene's selected surface, given a preferred pick (+ the
+         *  caller-supplied ACTIVE conditional surfaces, J.W2 S2 — cube's
+         *  `matrix-controls` while the Matrix animation is selected). A reactive
          *  PROJECTION of `activeScene` × the caller's preference — the value
          *  `<Tabs> :model-value` reads, synchronously correct per tick. */
-        selectedControlSurface: (preferred?: string): ControlSurface | undefined =>
+        selectedControlSurface: (
+            preferred?: string,
+            activeConditionals?: readonly ControlSurface[],
+        ): ControlSurface | undefined =>
             selectedControlSurfaceFor(
                 machine.value.context.activeScene,
                 preferred,
+                activeConditionals,
             ),
 
         // The single WRITE surface.

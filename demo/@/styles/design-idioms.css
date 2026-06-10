@@ -96,7 +96,7 @@
                              two stray 60dvh literals (E.W3.S3). */
     --dock-panel-width: 17rem; /* w-[17rem] dock / header panel width (recurs ×2) */
     --dropdown-min-width: 12rem; /* min-w-[var(--dropdown-min-width)] SelectContent
-                                    dropdown min (recurs ×3 — AnimationMenuBar +
+                                    dropdown min (recurs ×3 — TransportDock +
                                     TopDock ×2; distinct from the wider --dock-panel-width). */
     --target-viewport-h: 30vh; /* h-[var(--target-viewport-h)] cube-target viewport height */
     --target-viewport-w: 30vw; /* w-[var(--target-viewport-w)] cube-target viewport WIDTH
@@ -339,7 +339,7 @@
 
 /* ── .progress-dot ──
    The active-playing progress ring (E.W11.S4 — promoted from
-   AnimationMenuBar.vue's scoped block to the owned idiom layer, beside its
+   TransportDock.vue's scoped block to the owned idiom layer, beside its
    sibling .progress-bar; the same promotion E.W3 §S4 did for .progress-bar).
    A conic-gradient ring + glow driven by the --dot-p (0–1) custom property —
    the active-playing companion to glass-ui's discrete <StatusDot>. Driving the

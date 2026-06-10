@@ -40,7 +40,7 @@
 
 <script setup lang="ts">
 import { computed, h, provide, ref } from "vue";
-import { TabsContent, TabsTrigger, Button } from "@mkbabb/glass-ui";
+import { Button } from "@mkbabb/glass-ui";
 import { Eye, EyeOff, Shuffle } from "@lucide/vue";
 
 import { getStoredAnimationGroupControlOptions } from "@components/custom/animation-controls/stores";
@@ -77,26 +77,16 @@ storedControls.isControlsPanelOpen = true;
 const isPlaying = demo.isPlaying;
 const isStarted = ref(true);
 
-const tabsTrigger = (_slotProps: { selectedAnimation: string }) =>
-    h(
-        TabsTrigger,
-        {
-            value: "spring",
-            class: "tab-trigger-base tab-trigger-underline",
-        },
-        { default: () => "Spring" },
-    );
-
-// I.W2.S2 — `force-mount` the sole `TabsContent` (the construction-time floor).
-// The spring scene has a SINGLE valid surface (`['spring']`), so `present` must
-// not be gated on reka's `isSelected` race — `force-mount` makes the single
-// surface immune to the latch BY CONSTRUCTION (the same belt easing carries).
-const tabsContent = () =>
-    h(
-        TabsContent,
-        { value: "spring", class: "h-full", forceMount: true },
-        { default: () => h(SpringSidebar, { demo }) },
-    );
+// J.W2 S2 (S4-stretch) — the panel mounts FLAT. The spring scene has a SINGLE
+// valid surface (`['spring']`), so the `<Tabs>`/`TabsContent` machinery (the
+// former `force-mount` belt against reka's model-value latch, and the trigger
+// that never rendered under the dock-managed shell) is dead weight — the
+// structural source of the `selectedControl` double role
+// (`audit/wave-I.W2.md §6`). AnimationControls renders this slot directly for
+// single-surface scenes: no model-value to project, no latch to race — the
+// panel is mounted BY CONSTRUCTION. The TabsTrigger/TabsContent wrappers are
+// DELETED in the same motion (no legacy beside the replacement).
+const tabsContent = () => h(SpringSidebar, { demo });
 
 // G3 + G7 (H.W10.S2) — the spring scene's PRIMARY playback transport is the
 // STANDARD PlaybackRibbon (the SAME component cube/amiga mount): a scrubber +
@@ -209,7 +199,6 @@ defineExpose({
     // on SCENE_READY so the spring's sweep phase/isPlaying round-trip through the
     // CONTRACT (the spring↔cube cross-pair the group gate misses).
     scenePlayback: demo.scenePlayback,
-    tabsTrigger,
     tabsContent,
     ribbonContent,
 });

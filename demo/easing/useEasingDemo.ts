@@ -40,6 +40,10 @@ export function getTimingFunctionsAnd(): Record<string, any> {
     return _timingFunctionsAnd;
 }
 
+// J.W2 S6 (LS-20) — the jump-term union the `steppedEase` signature expects,
+// derived FROM that signature (one authority; no `as any` laundering the type).
+type JumpTerm = NonNullable<Parameters<typeof steppedEase>[1]>;
+
 // ── Composable ─────────────────────────────────────────────────────
 
 export function useEasingDemo() {
@@ -49,7 +53,10 @@ export function useEasingDemo() {
 
     const currentEasingName = ref("ease");
     const bezierControlPoints = ref<[number, number, number, number]>([0.25, 0.1, 0.25, 1.0]);
-    const stepOptions = ref({ steps: 4, jumpTerm: "jump-end" as string });
+    const stepOptions = ref<{ steps: number; jumpTerm: JumpTerm }>({
+        steps: 4,
+        jumpTerm: "jump-end",
+    });
     const duration = ref(1500);
 
     // ── Playback intent: DERIVED from the machine, NOT a private shadow ──
@@ -86,7 +93,7 @@ export function useEasingDemo() {
             return CSSCubicBezier(...bezierControlPoints.value);
         }
         if (name === "steps") {
-            return steppedEase(stepOptions.value.steps, stepOptions.value.jumpTerm as any);
+            return steppedEase(stepOptions.value.steps, stepOptions.value.jumpTerm);
         }
         if (name === "step-start") return stepStart();
         if (name === "step-end") return stepEnd();
@@ -343,7 +350,10 @@ export function useEasingDemo() {
         if (stepsMatch) {
             stepOptions.value = {
                 steps: parseInt(stepsMatch[1]!, 10),
-                jumpTerm: stepsMatch[2] ?? "jump-end",
+                // The regex alternation IS the jump-term validation — the match
+                // group can only hold a member of the union (a typed narrowing,
+                // not an `any` erasure; J.W2 S6 / LS-20).
+                jumpTerm: (stepsMatch[2] as JumpTerm | undefined) ?? "jump-end",
             };
             currentEasingName.value = "steps";
             return true;
@@ -367,7 +377,7 @@ export function useEasingDemo() {
     // machine status below. Its serializer is safe (the cssValue twin, H.W0).
     // [DOCUMENTED EXPECTATION, WV-W1 lane-4 escape hatch: the group is retained
     // ONLY as the transport host; deleting it outright would strand the entire
-    // bottom-bar contract (ControlsPaneWrapper/AnimationMenuBar/readout). The
+    // bottom-bar contract (ControlsPaneWrapper/TransportDock/readout). The
     // playback authority is the machine + the raw-rAF ScenePlayback adapter.]
     const contractAnim = markRaw(
         new CSSKeyframesAnimation({
@@ -386,7 +396,11 @@ export function useEasingDemo() {
     contractAnim.name = "Easing Preview";
     contractAnim.superKey = "Easing";
 
-    const animationGroup = markRaw(new AnimationGroup(contractAnim as any));
+    // J.W2 S6 (LS-20) — the vestigial `as any` is DELETED: `contractAnim` is a
+    // plain `CSSKeyframesAnimation` (an `Animation` subtype), exactly what the
+    // `AnimationGroup` constructor accepts (the spring twin already passes it
+    // uncast).
+    const animationGroup = markRaw(new AnimationGroup(contractAnim));
 
     // Pre-start the group so the bottom bar sees it as "playing" and
     // toggleAnimationGroup correctly toggles pause instead of first-start.

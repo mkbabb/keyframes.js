@@ -22,6 +22,7 @@
             :is-pane-idle="isPaneIdle"
             :scroll-fade-class="scrollFadeClass"
             :on-panel-transition-end="onPanelTransitionEnd"
+            :on-sheet-settled="onSheetSettled"
             :on-pane-mouse-enter="onPaneMouseEnter"
             :on-pane-mouse-leave="onPaneMouseLeave"
             :set-pane-el="(el) => { controlsPaneEl = el; }"
@@ -84,9 +85,12 @@
             ]"
         ></div>
 
-        <!-- Bottom menubar — hidden when no animation scene is active -->
-        <AnimationMenuBar
-            ref="menuBarRef"
+        <!-- Bottom transport dock — hidden when no animation scene is active.
+             (J.W2 S4 / CD-1: the menubar-era name is renamed to TransportDock —
+             the rename the D FINAL claimed; the component's ROLE was already
+             the transport dock, only the name lagged.) -->
+        <TransportDock
+            ref="transportDockRef"
             :stored-controls="storedControls"
             :is-playing="isPlaying"
             :is-started="isStarted"
@@ -146,7 +150,7 @@ import { TooltipProvider } from "@mkbabb/glass-ui";
 
 import { Animation } from "@src/animation/engine";
 import ControlsPaneWrapper from "./components/ControlsPaneWrapper.vue";
-import AnimationMenuBar from "./AnimationMenuBar.vue";
+import TransportDock from "./TransportDock.vue";
 
 import {
     getStoredAnimationGroupControlOptions,
@@ -195,7 +199,7 @@ watchEffect(() => {
         storedControls.selectedAnimation &&
         !animationGroup.animations[storedControls.selectedAnimation]
     ) {
-        storedControls.selectedAnimation = null as any;
+        storedControls.selectedAnimation = null;
     }
 });
 
@@ -214,7 +218,7 @@ const {
     onScrubStart,
     onScrubEnd,
     sliderUpdate,
-} = useAnimationGroupPlayback(() => animationGroup, storedControls, emit as any);
+} = useAnimationGroupPlayback(() => animationGroup, storedControls, emit);
 
 const { animationProgress } = useAnimationProgress(() => animationGroup, isPlaying);
 
@@ -241,6 +245,7 @@ const controlsPaneEl = ref<HTMLElement | null>(null);
 const {
     isPanelTransitionDone,
     onPanelTransitionEnd,
+    onSheetSettled,
     isPaneHovered,
     isPaneIdle,
     onPaneMouseEnter,
@@ -248,7 +253,7 @@ const {
     scrollFadeClass,
 } = useControlsLayout(storedControls, controlsPaneEl);
 
-const menuBarRef = useTemplateRef<InstanceType<typeof AnimationMenuBar>>("menuBarRef");
+const transportDockRef = useTemplateRef<InstanceType<typeof TransportDock>>("transportDockRef");
 
 const updateLayerConfig = (name: string, config: Partial<import("@src/animation/constants").AnimationLayerConfig>) => {
     animationGroup.setLayerConfig(name, config);
@@ -269,7 +274,7 @@ const reset = () => {
 const clear = () => {
     animationGroup.stop();
     syncPlayState();
-    storedControls.selectedAnimation = null as any;
+    storedControls.selectedAnimation = null;
     // resetAllStores() now also wipes the scene-machine persist key, so the
     // active-scene fact resets to HOME_SCENE_ID on reload. The old raw
     // `localStorage.setItem("keyframes-js-active-scene", "home")` write is
@@ -283,7 +288,7 @@ const clear = () => {
 
 registerShortcut("Space", () => toggleAnimationGroup(), { preventDefault: true, label: "Play / Pause", group: "Playback" });
 registerShortcut("Escape", () => reset(), { label: "Stop animation", group: "Playback" });
-registerShortcut("R", () => { menuBarRef.value?.resetIconSpin(); reset(); }, { label: "Reset animation", group: "Playback" });
+registerShortcut("R", () => { transportDockRef.value?.resetIconSpin(); reset(); }, { label: "Reset animation", group: "Playback" });
 registerShortcut("ArrowLeft", () => scrubActive(getActiveT() - 0.01), { preventDefault: true, label: "Scrub back", group: "Playback" });
 registerShortcut("ArrowRight", () => scrubActive(getActiveT() + 0.01), { preventDefault: true, label: "Scrub forward", group: "Playback" });
 registerShortcut("Shift+ArrowLeft", () => scrubActive(getActiveT() - 0.1), { preventDefault: true, label: "Scrub back (large)", group: "Playback" });
@@ -357,7 +362,7 @@ function cycleAnimation(direction: number) {
 
 /* ── G8 (H.W10.S5) — the [stage]-track dock-safe containment PRIMITIVE ──
    The SINGLE dock-safe envelope for EVERY scene subject. The TOP ChromeDock
-   (`fixed`) and the BOTTOM AnimationMenuBar (`fixed`) each occupy a
+   (`fixed`) and the BOTTOM TransportDock (`fixed`) each occupy a
    --dock-band-reserve band that overlays the work-area's top/bottom edges (the
    work-area centers with `margin:auto`, so its edges sit at the optical
    top/bottom offset — INSIDE the fixed dock bands). The [stage]/[top]/[bottom]

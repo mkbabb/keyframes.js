@@ -2,10 +2,19 @@ import { ref } from "vue";
 import type { Animation } from "@src/animation/engine";
 import type { AnimationGroup } from "@src/animation/group";
 
+/** The playback emit contract this composable drives — typed to the host
+ *  component's `defineEmits` signature so the call site needs no `emit as any`
+ *  (J.W2 S6 / LS-20; the DS-5 emit half. The `storedControls: any` half stays
+ *  a recorded BOOK — it does not change the writer count and is not the cure). */
+export interface AnimationGroupPlaybackEmit {
+    (e: "playStateChange", playing: boolean): void;
+    (e: "startStateChange", started: boolean): void;
+}
+
 export function useAnimationGroupPlayback(
     getAnimationGroup: () => AnimationGroup<any>,
     storedControls: any,
-    emit: (event: string, ...args: any[]) => void,
+    emit: AnimationGroupPlaybackEmit,
 ) {
     const isPlaying = ref(getAnimationGroup().playing());
     const isStarted = ref(getAnimationGroup().started);

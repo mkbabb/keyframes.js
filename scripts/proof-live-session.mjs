@@ -490,7 +490,10 @@ async function runBattery() {
                 if (canvas) {
                     display = getComputedStyle(canvas).display;
                     const host = canvas.closest('[role="tabpanel"]');
-                    tabpanelState = host ? host.getAttribute("data-state") || "(no-attr)" : "(no-tabpanel)";
+                    // J.W2 S2 (S4-stretch): the easing panel mounts FLAT (no reka
+                    // tabpanel/latch for single-surface scenes) — a visible flat
+                    // mount IS the mounted-active state.
+                    tabpanelState = host ? host.getAttribute("data-state") || "(no-attr)" : "(flat)";
                     handleCount = canvas.querySelectorAll(".control-point.handle").length;
                     const pathEl = canvas.querySelector(".bezier-path");
                     d0 = pathEl ? pathEl.getAttribute("d") : null;
@@ -528,10 +531,10 @@ async function runBattery() {
             }
             dom.B4 = {
                 present: easing.present,
-                mountedActive: easing.present && easing.display !== "none" && easing.tabpanelState === "active",
+                mountedActive: easing.present && easing.display !== "none" && (easing.tabpanelState === "active" || easing.tabpanelState === "(flat)"),
                 handleCount: easing.handleCount,
                 dMutated,
-                pass: easing.present && easing.display !== "none" && easing.tabpanelState === "active" && easing.handleCount >= 2 && dMutated,
+                pass: easing.present && easing.display !== "none" && (easing.tabpanelState === "active" || easing.tabpanelState === "(flat)") && easing.handleCount >= 2 && dMutated,
             };
             await ctx.close();
         }

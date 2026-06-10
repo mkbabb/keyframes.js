@@ -43,8 +43,19 @@ export function useSheetSpring(open: Ref<boolean>) {
         respectReducedMotion: true,
     });
 
+    // J.W2 S3 (M2) — the sheet's SETTLED signal: the spring's OWN settled state,
+    // mirrored reactively so layout readiness (`isPanelTransitionDone` on the
+    // mobile path, useControlsLayout) binds to the ACTUAL motion driver — the
+    // spring-driven sheet has NO CSS height transition, so a `transitionend`
+    // gate is structurally unreachable here. Written from the same emit path as
+    // `sheetT`: the per-frame emits carry `settled:false` while the spring is in
+    // flight and `true` on the settle emit; the PRM `_snapSettled` single emit
+    // lands `true` immediately — the reduced-motion leg works by construction.
+    const settled = ref(spring.settled);
+
     const write = (v: number) => {
         sheetT.value = v;
+        settled.value = spring.settled;
     };
 
     // The writer is wired on BOTH surfaces, each covering a path the other
@@ -60,10 +71,17 @@ export function useSheetSpring(open: Ref<boolean>) {
     spring.play(write);
 
     watch(open, (isOpen) => {
-        spring.target = isOpen ? 1 : 0;
+        const target = isOpen ? 1 : 0;
+        // Un-settle FIRST when a real motion is about to run, so a `settled`
+        // consumer never reads a stale `true` across the open/close flip. Under
+        // PRM the target-set snaps synchronously (one emit) and `write` lands
+        // `settled = true` again in the same tick — the consumer's combined
+        // (settled × open) watch still observes the open flip.
+        if (sheetT.value !== target) settled.value = false;
+        spring.target = target;
     });
 
     onScopeDispose(() => spring.dispose());
 
-    return { sheetT };
+    return { sheetT, settled };
 }

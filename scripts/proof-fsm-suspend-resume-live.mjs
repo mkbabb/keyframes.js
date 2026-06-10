@@ -391,8 +391,14 @@ async function controlPanelState(page, sceneId) {
             // The control pane host (AnimationControls Tabs root / the panel card).
             // A flush-aborted panel freezes mid-VT at low opacity — sample any
             // [role=tabpanel] / .controls panel for opacity.
+            // J.W2 S2 (S4-stretch): single-surface scenes (easing/spring) mount
+            // their panel FLAT — no [role=tabpanel] exists there. `.controls-pane`
+            // is the pane host whose opacity carries the flush-abort symptom in
+            // BOTH mount shapes, so it joins the sample set.
             const panes = [
-                ...document.querySelectorAll('[role="tabpanel"], [data-state="active"]'),
+                ...document.querySelectorAll(
+                    '[role="tabpanel"], [data-state="active"], .controls-pane',
+                ),
             ];
             let maxOpacity = 0;
             for (const p of panes) {
