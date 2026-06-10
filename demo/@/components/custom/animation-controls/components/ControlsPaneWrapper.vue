@@ -55,10 +55,20 @@
             ]"
         >
             <div class="controls-content h-full flex flex-col">
+                <!-- J.W2 S2 — the v-for is KEYED by the animation name so an
+                     AnimationControls instance is BORN with its animation (and
+                     dies with it). Un-keyed, the group swap at SCENE_READY
+                     patched the first instance IN PLACE with the new scene's
+                     animation prop: its setup-captured per-superKey store stayed
+                     the LEAVING scene's, and the (already-projected) watch source
+                     never re-fired — so the single writer never wrote the new
+                     scene's surface. Keyed, every scene entry gets a fresh host
+                     whose immediate derivation-sync projects into ITS OWN store. -->
                 <template
                     v-for="[name, groupObject] in Object.entries(
                         animationGroup.animations,
                     )"
+                    :key="groupObject.animation.id"
                 >
                     <div v-show="storedControls.selectedAnimation == name">
                         <AnimationControls
@@ -119,7 +129,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, watch } from "vue";
 import type { AnimationGroup } from "@src/animation/group";
 import type { AnimationLayerConfig } from "@src/animation/constants";
 import type { Animation } from "@src/animation/engine";
@@ -148,6 +158,9 @@ const props = defineProps<{
     isPaneIdle: boolean;
     scrollFadeClass: string;
     onPanelTransitionEnd: (e: TransitionEvent) => void;
+    // J.W2 S3 (M2) — the sheet spring's settled signal, forwarded UP to
+    // useControlsLayout (the readiness owner) the same way transitionend is.
+    onSheetSettled: (settled: boolean) => void;
     onPaneMouseEnter: () => void;
     onPaneMouseLeave: () => void;
     // Forwards the inner scrollable pane element up to the parent's
@@ -171,7 +184,17 @@ const sheetOpen = computed({
 // The sheet's open/close motion is its OWN SpringProgress (useSheetSpring),
 // NOT a CSS `grid-template-rows` ease. `sheetT` ∈ [0,1] springs between the peek
 // detent (0) and the expanded detent (1); the sheet height reads it.
-const { sheetT } = useSheetSpring(sheetOpen);
+const { sheetT, settled } = useSheetSpring(sheetOpen);
+
+// J.W2 S3 (M2) — forward the spring's settle to the layout owner. The combined
+// (settled × open) source matters: under PRM the spring snaps synchronously on
+// the open flip (settled never nets false across the tick), so watching
+// `settled` alone would miss the re-open — the `sheetOpen` leg carries it. The
+// consumer (useControlsLayout.onSheetSettled) gates on open + mobile, so a
+// close-settle is a no-op there.
+watch([settled, sheetOpen], ([isSettled]) => {
+    props.onSheetSettled(isSettled);
+});
 
 // The sheet's reactive style — a single custom-property the CSS detents read.
 // Mobile-only (the desktop rail-collapse axis ignores it). `--sheet-t` drives

@@ -4,7 +4,10 @@ import { checkAndResetExpiredStore, getAnimationSuperKey } from "./storeUtils";
 
 export type StoredAnimationGroupControlOptions = {
     selectedControl: string;
-    selectedAnimation: string;
+    // `null` is the honest "no animation selected" state (the clear/validate
+    // paths assign it) — typed so the assignment needs no `as any` (J.W2 S6 /
+    // LS-20).
+    selectedAnimation: string | null;
     selectedKeyframesControl: string;
     isTimelineExpanded: boolean;
     isControlsPanelOpen: boolean;

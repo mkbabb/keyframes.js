@@ -51,16 +51,19 @@
             <div class="grid gap-2.5">
                 <span class="text-mono-small text-muted-foreground">canonical springs &mdash; re-seat all together</span>
                 <div
-                    v-for="t in demo.tracks"
+                    v-for="(t, i) in demo.tracks"
                     :key="t.preset.name"
                     class="preset-row"
                 >
                     <span class="preset-label text-mono-caption shrink-0 w-14 truncate" :title="t.preset.blurb">{{ t.preset.name }}</span>
                     <div class="preset-track relative flex-1 h-7">
                         <div class="progress-rail"></div>
+                        <!-- Painter-positioned (J.W2 S5): the track balls are the
+                             60 Hz hot path — direct style writes, no reactive
+                             :style binding. -->
                         <div
+                            :ref="(el: any) => setTrackBallEl(i, el)"
                             class="progress-ball preset-ball"
-                            :style="{ left: `calc(${clamp01(t.value.value) * 100}%)` }"
                         ></div>
                     </div>
                 </div>
@@ -86,7 +89,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, onMounted, onScopeDispose, ref, watch } from "vue";
 import { Button, Card, CardContent } from "@mkbabb/glass-ui";
 import { LabeledSlider } from "@mkbabb/glass-ui/labeled-field";
 
@@ -101,6 +104,28 @@ const props = defineProps<{ demo: SpringDemoContext }>();
 const demo = props.demo;
 
 const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
+
+// ── J.W2 S5 (DS-3) — the preset-track ball painter ──────────────────────────
+// The 4 comparison balls are the 60 Hz hot path: positioned by a registered
+// painter reading the demo's non-reactive `springLive` snapshot (direct
+// `style.left` writes, off the Vue render graph) — the former per-frame
+// reactive `t.value` :style bindings are DELETED with the migration.
+const trackBallEls: (HTMLElement | null)[] = [];
+const setTrackBallEl = (i: number, el: any) => {
+    trackBallEls[i] = (el as HTMLElement) ?? null;
+};
+
+let unregisterPainter: (() => void) | null = null;
+onMounted(() => {
+    unregisterPainter = demo.registerSpringPainter(() => {
+        const values = demo.springLive.trackValues;
+        for (let i = 0; i < trackBallEls.length; i++) {
+            const el = trackBallEls[i];
+            if (el) el.style.left = `${clamp01(values[i] ?? 0) * 100}%`;
+        }
+    });
+});
+onScopeDispose(() => unregisterPainter?.());
 
 const isActivePreset = (t: SpringTrack) =>
     Math.abs(demo.response.value - t.preset.response) < 1e-6 &&

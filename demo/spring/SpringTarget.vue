@@ -43,16 +43,16 @@
                 @dblclick="demo.derby"
             >
                 <div class="progress-rail"></div>
-                <!-- Ghost target marker (where the spring is chasing) -->
+                <!-- Ghost target marker (where the spring is chasing) — a
+                     DISCRETE position (re-seat events), so it stays reactive. -->
                 <div
                     class="spring-target-marker"
                     :style="{ left: `calc(${demo.target.value * 100}% )` }"
                 ></div>
-                <!-- The live spring ball -->
-                <div
-                    class="progress-ball spring-ball"
-                    :style="{ left: `calc(${demo.liveValue.value * 100}%)` }"
-                ></div>
+                <!-- The live spring ball — positioned IMPERATIVELY by the
+                     registered spring painter (J.W2 S5: direct style writes off
+                     the Vue render graph; no reactive :style on the hot path). -->
+                <div ref="liveBallEl" class="progress-ball spring-ball"></div>
             </div>
             <p class="text-small text-muted-foreground text-center">
                 Tap or drag the rail &mdash; the ball springs to the new target. Adjust
@@ -69,17 +69,15 @@
             </div>
             <div class="sampler-track relative h-9">
                 <div class="progress-rail"></div>
-                <div
-                    class="progress-ball sampler-ball"
-                    :style="{ left: `calc(${clampSweep(demo.sampled.value) * 100}%)` }"
-                ></div>
+                <!-- The sampler ball — painter-positioned (J.W2 S5, as above). -->
+                <div ref="samplerBallEl" class="progress-ball sampler-ball"></div>
             </div>
         </div>
     </Card>
 </template>
 
 <script setup lang="ts">
-import { inject, useTemplateRef } from "vue";
+import { inject, onMounted, onScopeDispose, useTemplateRef } from "vue";
 import { Card } from "@mkbabb/glass-ui";
 import { useDragScrub } from "@composables/useDragScrub";
 import { SPRING_DEMO_KEY } from "./springKeys";
@@ -87,10 +85,31 @@ import { SPRING_DEMO_KEY } from "./springKeys";
 const demo = inject(SPRING_DEMO_KEY)!;
 
 const railEl = useTemplateRef<HTMLElement>("railEl");
+const liveBallEl = useTemplateRef<HTMLElement>("liveBallEl");
+const samplerBallEl = useTemplateRef<HTMLElement>("samplerBallEl");
 
 // The sweep can overshoot past 1 (underdamped) — clamp the *marker* position
 // so the ball stays inside the track even though the read-out shows >1.
 const clampSweep = (v: number) => Math.max(0, Math.min(1, v));
+
+// ── J.W2 S5 (DS-3) — the spring painters: DIRECT non-reactive `style` writes ──
+// Registered with the demo's loop seam; called imperatively each frame with the
+// live snapshot. The hot positional path leaves the Vue render graph (the
+// former 17-refs/frame reactive storm is gone — the balls move, nothing
+// re-renders); the readout numerals above stay reactive at the few-Hz cadence.
+let unregisterPainter: (() => void) | null = null;
+onMounted(() => {
+    unregisterPainter = demo.registerSpringPainter(() => {
+        const live = demo.springLive;
+        if (liveBallEl.value) {
+            liveBallEl.value.style.left = `${live.value * 100}%`;
+        }
+        if (samplerBallEl.value) {
+            samplerBallEl.value.style.left = `${clampSweep(live.sampled) * 100}%`;
+        }
+    });
+});
+onScopeDispose(() => unregisterPainter?.());
 
 // The shared drag-scrub seam (H.W12.S1 / I8). Spring's `project` is the bare
 // rect-ratio (`demo.reseat` owns the clamp); no pause/resume hooks — the spring

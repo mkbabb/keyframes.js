@@ -143,23 +143,38 @@ async function switchScene(page, scene) {
 }
 
 /** Resolve the easing/spring scene's control-pane state: the curve canvas (or the
- *  sidebar root for spring), its display, and the host tabpanel's data-state. */
+ *  sidebar root for spring), its display, and the host tabpanel's data-state.
+ *  J.W2 S2 (S4-stretch): single-surface scenes mount their panel FLAT — there is
+ *  NO reka tabpanel (and no model-value latch to race) by design. A flat-mounted,
+ *  VISIBLE panel reports `tabpanelState: "(flat)"` and counts as mounted-active
+ *  (visibility is the felt property; the latch the data-state probe detected is
+ *  structurally gone for these scenes). */
 async function paneState(page, surfaceClass) {
     return page.evaluate((cls) => {
         const canvas = document.querySelector(`.${cls}`);
         const present = !!canvas;
         let display = "(absent)";
         let tabpanelState = "(no-host)";
+        let visible = false;
         if (canvas) {
             display = getComputedStyle(canvas).display;
+            const r = canvas.getBoundingClientRect();
+            visible = display !== "none" && r.width > 2 && r.height > 2;
             const host = canvas.closest('[role="tabpanel"]');
             tabpanelState = host
                 ? host.getAttribute("data-state") || "(no-attr)"
-                : "(no-tabpanel)";
+                : "(flat)";
         }
-        return { present, display, tabpanelState };
+        return { present, display, tabpanelState, visible };
     }, surfaceClass);
 }
+
+/** Mounted-active under BOTH mount shapes: an ACTIVE tabpanel host (multi-surface
+ *  scenes) or the J.W2 flat mount (single-surface scenes — visible, no tabpanel). */
+const isMountedActive = (st) =>
+    st.present &&
+    st.display !== "none" &&
+    (st.tabpanelState === "active" || (st.tabpanelState === "(flat)" && st.visible));
 
 /** Read the easing readout text + the CopyButton's copy payload. The copy text is
  *  read from the CopyButton's `:text` — surfaced via the clipboard write, which we
@@ -186,8 +201,7 @@ async function exerciseEasing(page, label) {
 
     // ── clause (a) — the editor un-hides on switch-IN ──
     const st = await paneState(page, "easing-curve-canvas");
-    res.a =
-        st.present && st.display !== "none" && st.tabpanelState === "active";
+    res.a = isMountedActive(st);
     res.aDetail = st;
 
     if (!res.a) return res; // (b)/(c) need the mounted canvas
@@ -451,19 +465,21 @@ async function browserHalf() {
         await switchScene(page, "spring");
         const springSt = await paneState(page, "spring-sidebar");
         // SpringSidebar may not carry a `.spring-sidebar` class — fall back to the
-        // sidebar's known root marker. Resolve the spring pane via its tabpanel.
-        let springA = springSt.present && springSt.display !== "none" && springSt.tabpanelState === "active";
+        // sidebar's known content marker (`.preset-row`, the canonical comparison
+        // rows). J.W2 S2 (S4-stretch): the spring panel mounts FLAT (no tabpanel),
+        // so the fallback asserts the flat-mounted content is rendered + visible.
+        let springA = isMountedActive(springSt);
         if (!springSt.present) {
-            // Fallback — assert the spring scene's `TabsContent value="spring"`
-            // tabpanel is mounted + active (force-mount + machine-projected select).
             const springPanel = await page.evaluate(() => {
-                const panels = [...document.querySelectorAll('[role="tabpanel"]')];
-                // The spring panel is the one whose content is non-empty + active.
-                const active = panels.filter((p) => p.getAttribute("data-state") === "active");
-                const anyContent = active.some((p) => p.textContent.trim().length > 0 && p.offsetParent !== null);
-                return { activeCount: active.length, anyContent, panelCount: panels.length };
+                const row = document.querySelector(".controls-pane .preset-row");
+                if (!row) return { flatVisible: false, rows: 0 };
+                const r = row.getBoundingClientRect();
+                return {
+                    flatVisible: r.width > 2 && r.height > 2,
+                    rows: document.querySelectorAll(".controls-pane .preset-row").length,
+                };
             });
-            springA = springPanel.activeCount >= 1 && springPanel.anyContent;
+            springA = springPanel.flatVisible;
             springSt.fallback = springPanel;
         }
         if (springA) {

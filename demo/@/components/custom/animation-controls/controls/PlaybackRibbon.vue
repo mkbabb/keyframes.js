@@ -15,8 +15,6 @@
                     :max="animation.options.duration"
                     :model-value="[currentT]"
                     @update:model-value="(val: any) => scrubTo(val[0])"
-                    @pointerdown="onSliderDown"
-                    @value-commit="onSliderCommit"
                 />
             </div>
         </IconTooltip>
@@ -77,8 +75,8 @@ import "./playback-button.css";
 
 import type { Animation } from "@src/animation/engine";
 
-import { useEventListener } from "@vueuse/core";
 import { Button, Slider, useTouchGate } from "@mkbabb/glass-ui";
+import { useDragCapture } from "./composables/useDragCapture";
 import { IconTooltip } from "@mkbabb/glass-ui/icon-tooltip";
 import { ArrowLeftRight, Pause, Play } from "@lucide/vue";
 import AnimationVisualizer from "./AnimationVisualizer.vue";
@@ -104,42 +102,34 @@ const emit = defineEmits<{
 
 const gate = useTouchGate();
 
-let sliderScrubActive = false;
+// ── J.W2 S1 (W4-4) — the slider scrub rides the SHARED drag seam ─────────────
+// The playhead scrub is a control-surface drag, so `useDragCapture` is its seam:
+// it owns `setPointerCapture` + the global `body.is-dragging` select-suppression
+// token for the gesture's whole flight (the same gesture-in-flight authority
+// every other drag surface inherits — B6-a at TRUE zero). The former raw
+// `useEventListener(window, "pointerup", …)` + the `sliderScrubActive` flag are
+// DELETED with the migration: the composable owns the move/up/cancel lifecycle
+// (vueuse inside it auto-cleans on scope dispose). The slider's VALUE projection
+// stays where it lives — the reka `<Slider>`'s own `@update:model-value` →
+// `scrubTo` (re-authoring its pointer→value geometry in an `onMove` body would
+// duplicate the component's own math); the seam owns the GESTURE, the component
+// owns the VALUE.
+const { onPointerDown: onScrubPointerDown } = useDragCapture({
+    onStart: () => emit("scrubStart"),
+    onEnd: () => emit("scrubEnd"),
+});
 
-/** Capture-phase handler on the wrapper: gate touch interactions on mobile. */
+/** Capture-phase handler on the wrapper: gate touch interactions on mobile,
+ *  then route the admitted gesture through the shared drag seam. */
 const gatedSliderDown = (e: PointerEvent) => {
     const wrapper = (e.currentTarget as HTMLElement);
     if (!gate.handleTouchStart(wrapper, e.clientY)) {
         // Gate not active — prevent the slider from receiving the event
         e.stopPropagation();
         e.preventDefault();
+        return;
     }
-};
-
-const onSliderUp = () => {
-    if (sliderScrubActive) {
-        sliderScrubActive = false;
-        emit("scrubEnd");
-    }
-};
-
-// One honest cleanup path: vueuse owns the window pointerup lifecycle (auto-
-// cleanup on scope dispose). The listener stays registered and the
-// `sliderScrubActive` guard makes it a no-op unless a scrub is in flight — the
-// idiomatic vueuse form, with no once:true crutch and no manual
-// removeEventListener double-bookkeeping.
-useEventListener(window, "pointerup", onSliderUp);
-
-const onSliderDown = () => {
-    sliderScrubActive = true;
-    emit("scrubStart");
-};
-
-const onSliderCommit = () => {
-    if (sliderScrubActive) {
-        sliderScrubActive = false;
-        emit("scrubEnd");
-    }
+    onScrubPointerDown(e);
 };
 
 const scrubTo = (effectiveT: number) => {

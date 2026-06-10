@@ -1,3 +1,4 @@
+import { useMediaQuery } from "@vueuse/core";
 import { ref, watch, type Ref } from "vue";
 import type { StoredAnimationGroupControlOptions } from "../stores";
 import { usePaneHover } from "./usePaneHover";
@@ -36,6 +37,29 @@ export function useControlsLayout(
         }
     };
 
+    // ── J.W2 S3 (M2) — the MOBILE readiness signal is the sheet spring's OWN
+    // settle, not a CSS transitionend. On mobile the sheet height is
+    // spring-driven (useSheetSpring → --sheet-t; ControlsPaneWrapper) with NO
+    // CSS height transition, so the `max-height` transitionend above NEVER
+    // fires there — after a close + RE-OPEN the latch stayed false and the
+    // sheet body stayed `overflow-hidden` (the I.W2 M2 overclaim,
+    // `audit/wave-I.W2.md §4`). The wrapper forwards the spring's `settled`
+    // signal here (the same prop pattern as onPanelTransitionEnd); when the
+    // sheet is OPEN and the spring has settled on the mobile layout, the panel
+    // is ready and the body may scroll. The desktop path keeps the
+    // transitionend gate — the two paths dispatch on the layout mode (the same
+    // 1023px boundary the sheet CSS uses).
+    const isMobileLayout = useMediaQuery("(max-width: 1023px)");
+    const onSheetSettled = (settled: boolean) => {
+        if (
+            settled &&
+            isMobileLayout.value &&
+            storedControls.isControlsPanelOpen
+        ) {
+            isPanelTransitionDone.value = true;
+        }
+    };
+
     // Auto-show controls pane when switching tabs while pane is hidden.
     watch(
         () => storedControls.selectedControl,
@@ -61,6 +85,7 @@ export function useControlsLayout(
     return {
         isPanelTransitionDone,
         onPanelTransitionEnd,
+        onSheetSettled,
         isPaneHovered,
         isPaneIdle,
         onPaneMouseEnter,

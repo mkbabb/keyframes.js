@@ -3,6 +3,9 @@
         variant="wash"
         class="easing-curve-canvas-wrapper w-full overflow-hidden rounded-card p-2"
     >
+        <!-- J.W2 S1 (W4-3): ONLY pointer-down lives here — the move/up/cancel
+             lifecycle (and `setPointerCapture` + the global select-suppression
+             token) is owned by the shared `useDragCapture` seam. -->
         <svg
             ref="svgEl"
             class="easing-curve-canvas w-full touch-none select-none"
@@ -10,9 +13,6 @@
             preserveAspectRatio="xMidYMid meet"
             xmlns="http://www.w3.org/2000/svg"
             @pointerdown="startDragging"
-            @pointermove="onDrag"
-            @pointerup="stopDragging"
-            @pointercancel="stopDragging"
         >
             <!-- Background grid -->
             <rect x="0" y="0" width="1" height="1" class="bounding-box" />
@@ -105,6 +105,7 @@
 <script setup lang="ts">
 import { ref, computed, useTemplateRef } from "vue";
 import { GlassPanel } from "@mkbabb/glass-ui/glass-panel";
+import { useDragCapture } from "@components/custom/animation-controls/controls/composables/useDragCapture";
 
 const props = defineProps<{
     easingFn: (t: number) => number;
@@ -165,8 +166,16 @@ const viewBox = computed(() => {
 });
 
 // ── Drag interaction (bezier mode only) ─────────────────────────
+// J.W2 S1 (W4-3) — the handle drag rides the SHARED control-surface drag seam
+// (`useDragCapture`, the same family as the timeline diamonds): the composable
+// owns `setPointerCapture` on the SVG, the move/up/cancel listener lifecycle,
+// AND the global `body.is-dragging` select-suppression token — so a drag that
+// sweeps off the bezier handle onto the dock/control chrome can never highlight
+// it (B6-a inherited, not re-authored per surface). The former inline
+// `@pointermove`/`@pointerup` handlers + the local `setPointerCapture` call are
+// DELETED with the migration; `startDragging` keeps ONLY the hit-test (which
+// handle, if any) and then hands the gesture to the seam.
 
-const isDragging = ref(false);
 const currentHandleIndex = ref<number | null>(null);
 
 const pointerToSVG = (event: PointerEvent): { x: number; y: number } => {
@@ -223,28 +232,22 @@ const startDragging = (event: PointerEvent) => {
 
     if (closestIndex === null) return;
 
-    isDragging.value = true;
     currentHandleIndex.value = closestIndex;
     smoothedY = null;
 
-    try {
-        svgEl.value?.setPointerCapture(event.pointerId);
-    } catch { /* iOS may throw */ }
+    // Hand the gesture to the shared seam: it captures the pointer on the SVG
+    // (the event's currentTarget), arms the global select-suppression token, and
+    // drives onDrag/stopDragging for the gesture's lifetime.
+    onPointerDown(event);
 };
 
-const stopDragging = (event?: PointerEvent) => {
-    if (event && isDragging.value) {
-        try {
-            svgEl.value?.releasePointerCapture(event.pointerId);
-        } catch { /* iOS may throw */ }
-    }
-    isDragging.value = false;
+const stopDragging = () => {
     currentHandleIndex.value = null;
     smoothedY = null;
 };
 
 const onDrag = (event: PointerEvent) => {
-    if (!isDragging.value || currentHandleIndex.value === null || !props.bezierPoints) return;
+    if (currentHandleIndex.value === null || !props.bezierPoints) return;
 
     const { x, y } = pointerToSVG(event);
     const clampedX = Math.max(0, Math.min(1, x));
@@ -260,6 +263,13 @@ const onDrag = (event: PointerEvent) => {
 
     emit("update:bezierPoints", newPoints);
 };
+
+// The shared seam (gesture-in-flight authority): owns capture + the global
+// select-suppression token; `onDrag` is the move body, `stopDragging` the end.
+const { onPointerDown } = useDragCapture({
+    onMove: onDrag,
+    onEnd: stopDragging,
+});
 </script>
 
 <style scoped>
@@ -362,12 +372,14 @@ const onDrag = (event: PointerEvent) => {
     transition: none;
 }
 
+/* J.W2 S1 — the former local `user-select: none` here is DELETED: gesture-time
+   select-suppression is the global `body.is-dragging` token's job (inherited
+   via useDragCapture), never a per-surface re-author. */
 .axis-label {
     font-family: var(--font-mono);
     font-size: 0.055px;
     fill: var(--muted-foreground);
     opacity: 0.5;
-    user-select: none;
     pointer-events: none;
 }
 </style>

@@ -145,7 +145,7 @@ export function useSequenceDemo() {
     // it drives no scene motion.
     // [DOCUMENTED EXPECTATION, WV-W1 lane escape hatch: the group is retained
     // ONLY as the transport host; deleting it strands the bottom-bar contract
-    // (ControlsPaneWrapper/AnimationMenuBar/readout). The PLAYBACK authority is
+    // (ControlsPaneWrapper/TransportDock/readout). The PLAYBACK authority is
     // the machine + the raw-rAF ScenePlayback adapter; the group's `paused` is a
     // ONE-WAY projection of the machine status (below).]
     const contractAnim = markRaw(

@@ -214,9 +214,19 @@ export function extraControlTabsFor(
 
 /**
  * Resolve the SELECTED control surface for a scene as a pure function of the
- * DFA set × a preferred pick. Returns the scene's first valid surface when the
- * preference is absent / not a valid member (the deterministic default), so the
- * value is synchronously correct on the mounting tick (no latch race).
+ * DFA set × a preferred pick × the ACTIVE conditional surfaces. Returns the
+ * scene's first valid surface when the preference is absent / not a valid
+ * member (the deterministic default), so the value is synchronously correct on
+ * the mounting tick (no latch race).
+ *
+ * `activeConditionals` (J.W2 S2 / DS-1) carries the conditional surfaces
+ * CURRENTLY active (cube's `matrix-controls` while the Matrix animation is
+ * selected — the same caller-supplied predicate `extraControlTabsFor` consumes).
+ * A preferred CONDITIONAL surface is honored ONLY while its condition holds;
+ * when the condition lapses (the Matrix animation deselects) the projection
+ * itself falls back to the scene's first static surface (`"controls"` for
+ * cube) — the fallback is a function OF the DFA, computed at the single
+ * writer, NOT a scene-side imperative (the deleted `CubeScene` rogue watch).
  *
  * `undefined` only when the scene has NO valid surfaces (home/sequence/path) —
  * those scenes mount no control pane, so there is no selected surface to
@@ -225,19 +235,24 @@ export function extraControlTabsFor(
 export function selectedControlSurfaceFor(
     sceneId: SceneId,
     preferred?: string,
+    activeConditionals: readonly ControlSurface[] = [],
 ): ControlSurface | undefined {
     const valid = controlSurfacesFor(sceneId);
     if (valid.length === 0) return undefined;
-    // Honor the preferred pick when it is valid for the scene — INCLUDING the
-    // CONDITIONAL surfaces (cube's `matrix-controls`, injected via
-    // `extraControlTabs` while the Matrix animation is selected). `isSurfaceVal…`
-    // unions the static set with the conditional set, so a multi-pane scene
-    // keeps its user pick (controls/keyframes/timeline/matrix-controls). An
-    // absent / invalid preference DEFAULTS to the scene's first STATIC surface
+    if (!preferred) return valid[0];
+    // Honor the preferred pick when it is a STATIC member of the scene's set, or
+    // a CONDITIONAL member whose condition is CURRENTLY active (declared for the
+    // scene AND supplied by the caller). A stale conditional pick (the condition
+    // lapsed) or a cross-scene pick DEFAULTS to the scene's first static surface
     // (the deterministic floor — a single-surface scene always resolves its sole
     // surface, immune to a stale pick from another scene).
-    if (preferred && isSurfaceValidForScene(sceneId, preferred as ControlSurface)) {
-        return preferred as ControlSurface;
+    const pick = preferred as ControlSurface;
+    if (valid.includes(pick)) return pick;
+    if (
+        (CONDITIONAL_SURFACES[sceneId] ?? []).includes(pick) &&
+        activeConditionals.includes(pick)
+    ) {
+        return pick;
     }
     return valid[0];
 }

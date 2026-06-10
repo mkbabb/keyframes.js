@@ -6,7 +6,6 @@
 
 <script setup lang="ts">
 import { computed, h, provide, ref } from "vue";
-import { TabsContent, TabsTrigger } from "@mkbabb/glass-ui";
 
 import { getStoredAnimationGroupControlOptions } from "@components/custom/animation-controls/stores";
 import PlaybackRibbon from "@components/custom/animation-controls/controls/PlaybackRibbon.vue";
@@ -42,30 +41,16 @@ storedControls.isControlsPanelOpen = true;
 const isPlaying = demo.isPlaying;
 const isStarted = ref(true);
 
-const tabsTrigger = (_slotProps: { selectedAnimation: string }) =>
-    h(
-        TabsTrigger,
-        {
-            value: "easing",
-            class: "tab-trigger-base tab-trigger-underline",
-        },
-        { default: () => "Easing" },
-    );
-
-// I.W2.S2 — `force-mount` the sole `TabsContent` (the construction-time floor).
-// The easing scene has a SINGLE valid surface (`['easing']`), so there is no
-// other panel to switch to — `present` must NOT be gated on reka's `isSelected`
-// race at all. `force-mount` (the same escape AnimationControls uses for the
-// Monaco keyframes pane) makes this single-surface panel immune to the latch BY
-// CONSTRUCTION: the EasingSidebar's curve canvas + dropdown are ALWAYS mounted
-// regardless of the `<Tabs>` model-value latch. S1 makes the model-value born
-// correct; S2 is the belt that can't go wrong for the single-surface case.
-const tabsContent = () =>
-    h(
-        TabsContent,
-        { value: "easing", class: "h-full", forceMount: true },
-        { default: () => h(EasingSidebar, { demo }) },
-    );
+// J.W2 S2 (S4-stretch) — the panel mounts FLAT. The easing scene has a SINGLE
+// valid surface (`['easing']`), so the `<Tabs>`/`TabsContent` machinery (the
+// former `force-mount` belt against reka's model-value latch, and the trigger
+// that never rendered under the dock-managed shell) is dead weight — the
+// structural source of the `selectedControl` double role
+// (`audit/wave-I.W2.md §6`). AnimationControls renders this slot directly for
+// single-surface scenes: no model-value to project, no latch to race — the
+// panel is mounted BY CONSTRUCTION. The TabsTrigger/TabsContent wrappers are
+// DELETED in the same motion (no legacy beside the replacement).
+const tabsContent = () => h(EasingSidebar, { demo });
 
 // G3 + G7 (H.W10.S2) — the PRIMARY playback transport is the STANDARD
 // PlaybackRibbon (the SAME component cube/amiga mount): a scrubber Slider +
@@ -132,7 +117,6 @@ defineExpose({
     // on SCENE_READY so easing's progress/isPlaying round-trip through the
     // CONTRACT (the literal D12 repro; proof:scene-contract-identity).
     scenePlayback: demo.scenePlayback,
-    tabsTrigger,
     tabsContent,
     ribbonContent,
 });

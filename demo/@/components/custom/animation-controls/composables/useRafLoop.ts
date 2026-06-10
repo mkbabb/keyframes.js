@@ -1,4 +1,4 @@
-import { watch, onUnmounted, ref } from "vue";
+import { watch, onScopeDispose, ref } from "vue";
 import type { Ref } from "vue";
 import { RAFPlayback } from "@src/animation/playback";
 
@@ -53,7 +53,11 @@ export function useRafLoop(
         );
     }
 
-    onUnmounted(stop);
+    // J.W2 S5 (DS-3/§L) — `onScopeDispose`, not `onUnmounted`: fires on component
+    // unmount AND on `effectScope` disposal, so a non-component caller can never
+    // leak the rAF loop (the seam every sibling composable already uses, e.g.
+    // useSheetSpring).
+    onScopeDispose(stop);
 
     return { start, stop, isActive };
 }

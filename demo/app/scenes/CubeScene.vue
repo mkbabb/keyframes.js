@@ -70,17 +70,14 @@ const setPPMode = () => {
     storedControls.ppMode = !storedControls.ppMode;
 };
 
-watch(
-    () => storedControls.selectedAnimation,
-    (selectedAnimation) => {
-        if (
-            selectedAnimation !== CUBE_ANIMATION_NAMES.Matrix &&
-            storedControls.selectedControl === "matrix-controls"
-        ) {
-            storedControls.selectedControl = "controls";
-        }
-    },
-);
+// J.W2 S2 (DS-1) — the former scene-side watch that wrote
+// `storedControls.selectedControl = "controls"` when the Matrix animation
+// deselected is DELETED (the one remaining rogue writer outside the DFA
+// authority). The matrix-controls fallback is now a function OF the DFA:
+// `selectedControlSurfaceFor(scene, pick, activeConditionals)` stops honoring
+// the conditional surface the moment its condition lapses, and the ONE writer
+// (the AnimationControls derivation-sync) re-projects `"controls"` — the same
+// result, computed at the authority.
 
 // Ppmycota hover card state
 const ppmycotaOpen = ref(false);

@@ -11,7 +11,7 @@
         @switch-scene="runSceneSwitch"
         @warm-scene="warmScene"
         @toggle-controls-panel="storedControls.isControlsPanelOpen = !storedControls.isControlsPanelOpen"
-        @update-selected-control="(v: string) => { storedControls.selectedControl = v; }"
+        @update-selected-control="onDockSelectControl"
     >
         <template #items>
             <!-- @mbabb dropdown — S8 (BLK-8): DockDropdownTrigger is itself a
@@ -157,7 +157,13 @@
 import "@styles/brand.css";
 
 import { computed, markRaw, provide, ref, shallowRef, useTemplateRef } from "vue";
-import { CONTROLS_PANE_HOVER_KEY, TABS_EXTERNALLY_MANAGED_KEY } from "@components/custom/animation-controls/injectionKeys";
+import {
+    ACTIVE_CONTROL_CONDITIONALS_KEY,
+    ACTIVE_SUPER_KEY,
+    CONTROLS_PANE_HOVER_KEY,
+    TABS_EXTERNALLY_MANAGED_KEY,
+} from "@components/custom/animation-controls/injectionKeys";
+import type { ControlSurface } from "@components/custom/animation-controls/stores";
 
 import { EditorShell, EditorStartScreen, SharePopover } from "@components/custom/editor-shell";
 import { Avatar, AvatarImage, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@mkbabb/glass-ui";
@@ -184,7 +190,7 @@ import { scenes, sceneMap, warmScene, stageModeFor, HOME_SCENE_ID } from "./scen
 provide(TABS_EXTERNALLY_MANAGED_KEY, true);
 
 // Dock hover → controls pane opacity. Provided here so both ChromeDock (sibling)
-// and AnimationMenuBar (descendant of EditorShell) share the same ref.
+// and TransportDock (descendant of EditorShell) share the same ref.
 const dockHoveredRef = ref(false);
 provide(CONTROLS_PANE_HOVER_KEY, dockHoveredRef);
 
@@ -230,37 +236,46 @@ const autoPlayNext = ref(false);
 
 const storedControls = computed(() => getStoredAnimationGroupControlOptions(currentSuperKey.value));
 
+// ── The ACTIVE conditional surfaces (J.W2 S2) ────────────────────────────────
+// Cube's `matrix-controls` is the ONE conditional surface: active iff the
+// Matrix animation is selected — a stored fact, synchronous with the switch, no
+// mount dependency (`CONDITIONAL_SURFACES` keeps the projection total per
+// scene). Single-sourced here and PROVIDED (with the active superKey) to the
+// AnimationControls derivation-sync — the ONE `selectedControl` writer — so the
+// dock read, the panel projection, and the writer all consume the SAME
+// conditional fact.
+const activeControlConditionals = computed<readonly ControlSurface[]>(() =>
+    storedControls.value.selectedAnimation === CUBE_ANIMATION_NAMES.Matrix
+        ? ["matrix-controls"]
+        : [],
+);
+provide(ACTIVE_CONTROL_CONDITIONALS_KEY, activeControlConditionals);
+provide(ACTIVE_SUPER_KEY, currentSuperKey);
+
 // ── The dock's extra control tabs — machine-PROJECTED (J.W0.S3) ──────────────
 // The scene-specific tab metadata (easing→Easing, spring→Spring) derives from
 // the machine's `activeScene` through the DFA's tab table, so the dock trigger
 // label is BORN-CORRECT on the very tick the route rests on the destination —
 // never the SOURCE scene's stale label through a `sceneRef.extraControlTabs`
 // re-bind gated on the destination's <Suspense> mount (the scene-control-dfa
-// trigger-lag race; that per-scene injection is DELETED). Cube's
-// `matrix-controls` is the ONE conditional surface: active iff the Matrix
-// animation is selected — a stored fact, synchronous with the switch, no mount
-// dependency (`CONDITIONAL_SURFACES` keeps the projection total per scene).
+// trigger-lag race; that per-scene injection is DELETED).
 const extraControlTabs = computed(() =>
-    machine.extraControlTabs(
-        storedControls.value.selectedAnimation === CUBE_ANIMATION_NAMES.Matrix
-            ? ["matrix-controls"]
-            : [],
-    ),
+    machine.extraControlTabs(activeControlConditionals.value),
 );
 
 // The dock trigger's SELECTED surface — the SAME I.W2 machine projection the
 // in-panel tab host already binds (`AnimationControls` `<Tabs> :model-value`),
 // extended to the dock READ (J.W0.S3). The raw `storedControls.selectedControl`
 // is the per-superKey stored PICK; on a transition-arrival it can hold an
-// invalid surface for the destination until J.W2's reconcile-writer corrects
-// the store — binding the projection (`selectedControlSurfaceFor(activeScene,
-// pick)`) makes the trigger label born-correct on the rest tick instead.
-// READ-side derivation ONLY: the write path (the dock's @update-selected-control
-// → the store) is untouched (J.W2 owns the single-writer completion).
+// invalid surface for the destination until the J.W2 single writer corrects the
+// store — binding the projection (`selectedControlSurfaceFor(activeScene, pick,
+// activeConditionals)`) makes the trigger label born-correct on the rest tick.
 const dockSelectedControl = computed(
     () =>
-        machine.selectedControlSurface(storedControls.value.selectedControl) ??
-        storedControls.value.selectedControl,
+        machine.selectedControlSurface(
+            storedControls.value.selectedControl,
+            activeControlConditionals.value,
+        ) ?? storedControls.value.selectedControl,
 );
 
 // ── Home ↔ cube SPLIT (the alias is DEAD — two distinct machine states) ──────
@@ -289,6 +304,16 @@ const { sceneSwapStyle } = useSceneSwap(activeSceneKey);
 
 function togglePpMode() {
     storedControls.value.ppMode = !(storedControls.value.ppMode ?? false);
+}
+
+// J.W2 S2 — the dock's pick lands as a DFA PROJECTION of the pick, never the
+// raw value: the store (keyed by the ACTIVE superKey, atomic with the scene)
+// only ever holds projections of the single authority. The dock itself renders
+// only DFA-valid tabs, so this is normally an identity — the projection is the
+// belt against a mid-transition emit racing the store key.
+function onDockSelectControl(v: string) {
+    storedControls.value.selectedControl =
+        machine.selectedControlSurface(v, activeControlConditionals.value) ?? v;
 }
 
 // F5 — the dark-mode dropdown row's click target. The same singleton glass-ui
