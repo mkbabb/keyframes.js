@@ -115,3 +115,52 @@ narrative — revisit after K1∘CC-1 exists) · EPF-1 engine-level read/write p
 multi-animation computed-unit workload) · EPF-3 cross-element matrix batch (the SoA core is
 J.W6's PF-8; the increment is generic numerics, off-axis) · ED-2-React (after the Vue
 adapter proves the shape) · EPF-4 warmEngine() rides any K wave (S).
+
+## §7 The value.js HALF (the boundary fleet — `valuejs-{census,frontier-allocation,fold-in,fold-out,boundary-judge}.md`)
+
+**The boundary principle (charter law, from the judge):** *value.js owns VALUES — CSS
+value/unit/color parse + serialize, the keyframes and shorthand GRAMMARS, DOM-aware computed
+resolution, color science, easing/bezier math, the interpolation kernels. keyframes.js owns
+TIME — frames, playback, group/sequence/stagger orchestration, the WAAPI and CSS compile
+tiers, the CSSOM walk, and the physics that schedules motion. Every cross-repo edge is a
+PUBLISHED consume, born-RED-gated kf-side.* Spring/decay math stays in kf PERMANENTLY (the
+VJ-owns-spring-math hypothesis was researched-FALSE: value.js ships zero spring/decay code;
+glass-ui consumes spring FROM kf; physics rides the engine).
+
+**Two fictions corrected (the doc-rot biting the audit itself — J.W5's necessity proven):**
+kf has NO local @keyframes grammar (it lives in value.js `parsing/stylesheet.ts`; kf's
+adapter consumes it — the fold already HAPPENED) and NO local DOM-normalize (one normalize
+file, value.js's). The rotted root CLAUDE.md seeded both premises.
+
+**The decisive structural fact:** the frontier's value-half is **~90% already published** in
+0.11.2 — a complete typed stylesheet AST, serializer, animation-shorthand round-trip,
+`lerpArray` (SoA, bench 0.52× K=1 → 4.57× K=16), `deltaEOK`, `reverseAnimationShorthand` —
+**all kf-unconsumed (grep=0)**. Only TWO net-new VJ items + ONE fold gate the K frontier.
+
+**RIPE NOW (kf consume-edges gating on NOTHING — all shipped in 0.11.2):** KF-1 `lerpArray`
+→ `NumericAnimation.at()` (already SoA-shaped parallel arrays; the AoS-over-ValueUnit[]
+framing for the CSS path is OVERRIDDEN — that is the monomorphization ARCH-kill); KF-DELTAE
+`deltaEOK` (gates ED-4 + the CC-2 pixel proof); KF-CC1 `reverseAnimationShorthand`
+(product-gated on CC-1).
+
+**The value.js next-tranche SEED (develops in value.js's own tranche process):**
+- **VJ.W0 RIPEN** (S, ungated → publishes 0.11.3/0.12.0): VJ-1 fold kf's `parseLinearStops`
+  shim in as `cssLinearFromString` beside `cssLinear` (kf deletes ~30 LoC on consume — the
+  EF-3 retirement); VJ-4 bound the parse-cache memos (`{maxCacheSize}` config); VJ-6
+  parse-that pin `^0.8.2→^0.9.0`.
+- **VJ.W1 SCROLL GRAMMAR** (M–L, gates K.W2): the `CSSTimelineOptions` typed extractor +
+  inverse serializer (`animation-timeline`/`-range`/`timeline-scope`/`animation-trigger`,
+  `scroll()`/`view()`/range-phase) — the ONE genuine net-new grammar.
+- **VJ.W2 PERCEPTUAL RAMP** (M, gates K.W3, MEASURE-FIRST): `sampleColorRamp(from,to,n,
+  {space,hueMethod})` beside mix.ts, reusing `lerpColorValue`+`gamutMapOKLab`.
+- **VJ.W3 SUBSTRATE TOTALITY** (M, K1/K3 tripwires): VJ-9 the TOTAL partial-input contract
+  across every public parse entry (the B1 crash class generalized — precondition for
+  ingesting arbitrary live-web CSS) → VJ-3 the diagnostics PRODUCER.
+- **VJ.W4 THE BIG ROCK** (L, parity-gated): VJ-2 the arc-length path sampler (the real
+  competitor gap — MorphSVG/numeric-MotionPath parity) + the witness-gated riders (MCI-5
+  arity pad, VJ-5 out-buffer).
+
+**Census correction of record:** value.js's doc lineage (A→M, targeting 1.0.0) DIVERGED
+from the published lineage — Tranche M is planning-only, never dispatched; published 0.11.2
+= the F handoff + two patches. The VJ seed above supersedes M's stale spine-head; value.js's
+own next dev phase must reconcile M before or as part of VJ.W0.
