@@ -16,11 +16,14 @@
                         &middot; tangent {{ Math.round(tangentDeg) }}&deg;
                     </span>
                 </div>
-                <!-- Revert the edited control net to the default figure loop. -->
+                <!-- Revert the edited control net to the default figure loop.
+                     The accessible name STARTS WITH the visible "Reset path"
+                     (WCAG 2.5.3 Label in Name / axe label-content-name-mismatch:
+                     "Reset THE path…" broke the visible-text containment). -->
                 <Button
                     variant="outline"
                     class="h-7 gap-1.5 text-small btn-interactive shrink-0"
-                    aria-label="Reset the path to the default figure"
+                    aria-label="Reset path to the default figure"
                     @click="demo.resetPath()"
                 >
                     <RotateCcw class="w-3.5 h-3.5" />
@@ -61,7 +64,12 @@
                             aria-hidden="true"
                         />
                         <!-- The draggable control handles (H.W12.S6 / I3). Each is
-                             a slider-posture node; dragging re-authors the path. -->
+                             a slider-posture node; dragging re-authors the path.
+                             role="slider" REQUIRES aria-valuenow; a 2D thumb
+                             carries valuenow on the x axis over the [0, VIEW]
+                             user-unit space + aria-valuetext announcing BOTH
+                             coordinates (the 2D-thumb slider idiom, mirroring
+                             the traveller's valuenow/min/max posture below). -->
                         <circle
                             v-for="pt in demo.points.value"
                             :key="pt.id"
@@ -75,6 +83,10 @@
                             ]"
                             role="slider"
                             :aria-label="`Drag ${pt.kind} point ${pt.id} to reshape the path`"
+                            :aria-valuenow="Math.round(pt.x)"
+                            aria-valuemin="0"
+                            :aria-valuemax="VIEW"
+                            :aria-valuetext="`x ${Math.round(pt.x)}, y ${Math.round(pt.y)}`"
                             tabindex="0"
                             @pointerdown="onHandlePointerDown(pt.id, $event)"
                             @keydown="onHandleKeydown(pt.id, $event)"

@@ -1,11 +1,4 @@
-import {
-    computed,
-    markRaw,
-    onScopeDispose,
-    ref,
-    watch,
-    type Ref,
-} from "vue";
+import { computed, markRaw, onScopeDispose, ref, watch } from "vue";
 
 import { AnimationGroup } from "@src/animation/group";
 import { CSSKeyframesAnimation } from "@src/animation/engine";
@@ -15,18 +8,13 @@ import { NumericAnimation } from "@src/animation/numeric";
 
 import { useRafScene } from "../app/useRafScene";
 import { useSceneMachine } from "@components/custom/animation-controls/stores";
-import { SPRING_PRESETS, type SpringPreset } from "./springPresets";
+import { SPRING_PRESETS } from "./springPresets";
+import { useSpringHotPath, type SpringTrack } from "./useSpringHotPath";
 
-/** One live tracker plus its reactive read-out, for the comparison row. */
-export interface SpringTrack {
-    preset: SpringPreset;
-    spring: SpringProgress;
-    /** Reactive mirror of the spring's current value (0–1). */
-    value: Ref<number>;
-    /** Reactive mirror of the spring's current velocity. */
-    velocity: Ref<number>;
-    settled: Ref<boolean>;
-}
+// The comparison-row vocabulary stays importable from the demo composable (the
+// sidebar consumes it here); the interface itself lives with the hot-path seam.
+export type { SpringPreset } from "./springPresets";
+export type { SpringTrack } from "./useSpringHotPath";
 
 const SETTLE = 1e-4;
 const SAMPLER_DURATION = 1400;
@@ -82,15 +70,6 @@ export function useSpringDemo() {
     // Live target the interactive spring chases. 0 = left rail, 1 = right.
     const target = ref(1);
 
-    // Reactive mirrors of the interactive spring — READOUT-cadence only
-    // (J.W2 S5 / DS-3): written at PROGRESS_READOUT_HZ for the human-readable
-    // numerals/badge, NEVER per frame. The 60 Hz positional truth lives in the
-    // non-reactive `springLive` snapshot below; the balls are painted from it
-    // by direct `style` writes (the I.W4 D4 DotPainter idiom, transposed).
-    const liveValue = ref(0);
-    const liveVelocity = ref(0);
-    const liveSettled = ref(false);
-
     let liveSpring = markRaw(
         new SpringProgress({
             response: response.value,
@@ -123,12 +102,30 @@ export function useSpringDemo() {
         };
     });
 
+    // ── J.W2 S5 (DS-3) — the non-reactive hot path + few-Hz readout mirrors ──
+    // Extracted to the colocated useSpringHotPath (the W2-grown concern seam):
+    // it owns the NON-reactive `springLive` snapshot (`.phase` is the raw sweep
+    // phase) + the painter registry the hot path drives (direct `style` writes)
+    // + the reactive READOUT mirrors flushed at a few Hz — the 60 Hz loop below
+    // never touches the Vue render graph.
+    const {
+        liveValue,
+        liveVelocity,
+        liveSettled,
+        sampled,
+        progress,
+        springLive,
+        registerSpringPainter,
+        repaintSprings,
+        flushReadouts,
+        maybeFlushReadouts,
+    } = useSpringHotPath(tracks);
+
     // ── springTimingFunction sampler → NumericAnimation ──────────────
     // Sample the *same* (response, dampingFraction) the user is editing so the
     // sampled JS easing visibly mirrors the live physics tracker. The ping-pong
     // (0→1→0) is the keyframe sequence itself — a linear phase sweep through it
     // alternates for free, so the showcase owns no hand-synced phase math.
-    const sampled = ref(0);
     const samplerCss = computed(
         () =>
             `springTimingFunction({ response: ${response.value.toFixed(2)}, dampingFraction: ${dampingFraction.value.toFixed(2)} })`,
@@ -153,74 +150,6 @@ export function useSpringDemo() {
     // and play/pause dispatch to the machine (the single authority).
     const machine = useSceneMachine();
     const isPlaying = computed(() => machine.status.value === "playing");
-
-    // The normalized [0,1] sweep phase the comparison row runs on. It is the one
-    // round-trippable scalar the raw-rAF ScenePlayback contract preserves across
-    // a scene switch (the live markRaw springs are re-created on remount, so the
-    // phase IS the scene's restorable position). The scrubber-equivalent.
-    const progress = ref(0);
-
-    // ── J.W2 S5 (DS-3) — THE HOT POSITIONAL PATH OFF THE VUE RENDER GRAPH ────
-    // The former `frame()` wrote 17 reactive refs PER FRAME (3 live + 4 tracks
-    // × 3 + progress/sampled) — every consumer (the SpringTarget ball + readout,
-    // the 4 SpringSidebar track balls, the sampler row) re-rendered at 60 Hz.
-    // Reactivity is the wrong tool for a 60 Hz positional update (the I.W4 D4
-    // resolution, verbatim). The cure is easing's EXACT discipline: the loop
-    // writes a NON-reactive live snapshot + drives registered "spring painters"
-    // (closures the view layer hands us that write `el.style` DIRECTLY); the
-    // reactive refs become READOUT mirrors flushed at PROGRESS_READOUT_HZ for
-    // the human-readable numerals — the hot path never touches the render graph.
-    const PROGRESS_READOUT_HZ = 6; // reactive readout cadence (a few Hz, not 60)
-    let lastReadoutAt = 0;
-    let livePhaseValue = 0; // the raw sweep phase [0,1], updated every frame
-
-    /** The always-current NON-reactive spring state (the painters read this;
-     *  the reactive refs lag it by ≤ one readout tick, by design). */
-    const springLive = {
-        value: 0,
-        velocity: 0,
-        settled: false,
-        /** Canonical preset track values, indexed like `tracks`. */
-        trackValues: SPRING_PRESETS.map(() => 0),
-        sampled: 0,
-    };
-
-    /** A spring painter: position the moving ball(s) it owns from `springLive`.
-     *  The view layer registers these; the loop calls them imperatively each
-     *  frame (direct `style` writes — off the Vue render graph). */
-    type SpringPainter = () => void;
-    const springPainters = new Set<SpringPainter>();
-
-    /** Register a non-reactive spring painter (returns an unregister fn).
-     *  Paints once immediately so the balls are correct at registration time
-     *  (e.g. on a paused scene). */
-    const registerSpringPainter = (paint: SpringPainter): (() => void) => {
-        springPainters.add(paint);
-        paint();
-        return () => springPainters.delete(paint);
-    };
-
-    /** Repaint every registered painter at the current live state (used after a
-     *  scrub / reset so the balls track while the loop is paused). */
-    const repaintSprings = (): void => {
-        for (const paint of springPainters) paint();
-    };
-
-    /** Flush the live snapshot into the reactive READOUT mirrors (the few-Hz
-     *  cold path: the numerals, the settled badge, the contract time-twin). */
-    const flushReadouts = (): void => {
-        liveValue.value = springLive.value;
-        liveVelocity.value = springLive.velocity;
-        liveSettled.value = springLive.settled;
-        for (let i = 0; i < tracks.length; i++) {
-            const t = tracks[i]!;
-            t.value.value = springLive.trackValues[i]!;
-            t.velocity.value = t.spring.velocity;
-            t.settled.value = t.spring.settled;
-        }
-        sampled.value = springLive.sampled;
-        progress.value = livePhaseValue;
-    };
 
     // ── Shared rAF loop ──────────────────────────────────────────────
     // The loop's start timestamp, rebased from `progress` on (re)arm so the
@@ -259,17 +188,14 @@ export function useSpringDemo() {
 
         // springTimingFunction sweep — `direction: alternate` as keyframes. The
         // normalized phase IS `progress`, so a restore re-seeds it directly.
-        livePhaseValue = ((now - startTime) / SAMPLER_DURATION) % 1;
-        springLive.sampled = samplerAnim.at(livePhaseValue).x;
+        springLive.phase = ((now - startTime) / SAMPLER_DURATION) % 1;
+        springLive.sampled = samplerAnim.at(springLive.phase).x;
 
         // Hot path — direct DOM writes, NO Vue reactivity (D4 transposed).
-        for (const paint of springPainters) paint();
+        repaintSprings();
 
         // Cold path — the reactive readout mirrors at a few Hz only.
-        if (now - lastReadoutAt >= 1000 / PROGRESS_READOUT_HZ) {
-            lastReadoutAt = now;
-            flushReadouts();
-        }
+        maybeFlushReadouts(now);
 
         return true;
     };
@@ -284,11 +210,11 @@ export function useSpringDemo() {
         frame,
         // Re-seed the shared clock (lastNow = 0 so the first frame steps by dt=0)
         // + rebase startTime from the LIVE phase so the sweep resumes in phase
-        // (the loop reconciles `progress` to `livePhaseValue` on stop, so the
+        // (the loop reconciles `progress` to `springLive.phase` on stop, so the
         // two agree whenever the loop is idle — the resume anchor is exact).
         onArm: () => {
             lastNow = 0;
-            startTime = performance.now() - livePhaseValue * SAMPLER_DURATION;
+            startTime = performance.now() - springLive.phase * SAMPLER_DURATION;
         },
         // `progress` is the CONTRACT authority the ScenePlayback adapter
         // snapshots/restores (reconciled to the live value on every loop stop).
@@ -299,7 +225,7 @@ export function useSpringDemo() {
             // A scrub / restore writes the sweep position: keep the reactive
             // readouts, the live snapshot, AND the painted balls in lock-step
             // (a discrete event, not the 60 Hz hot path).
-            livePhaseValue = t;
+            springLive.phase = t;
             springLive.sampled = samplerAnim.at(t).x;
             flushReadouts();
             repaintSprings();
@@ -416,7 +342,7 @@ export function useSpringDemo() {
         }
         // Re-seed the live snapshot + phase, then drive the readouts and the
         // painted balls to the reset state at once (a discrete event).
-        livePhaseValue = 0;
+        springLive.phase = 0;
         springLive.value = liveSpring.value;
         springLive.velocity = liveSpring.velocity;
         springLive.settled = liveSpring.settled;
