@@ -323,38 +323,6 @@ export function serveDist(distDir) {
 }
 
 /**
- * SCENE_MACHINE_KEY — the scene machine's persisted localStorage key (the
- * `activeScene` EARLY fact navToScene waits on). Single-sourced here so no
- * transition-driving gate carries its own hand-rolled literal copy.
- */
-export const SCENE_MACHINE_KEY = "keyframes-js-scene-machine";
-
-// navToScene — drive a hash-nav transition + WAIT for the DESTINATION's control-surface
-// to PROJECT (per-EXPECTED-state settle, NOT a fixed settleMs / any-trigger-present). The
-// control-tab trigger TEXT lags the route via the mounted scene component's extraControlTabs
-// (App.vue:11). Load-INDEPENDENT: the timeout is a CEILING, returns the instant the surface
-// projects (fast box), spends the budget only on a slow runner.
-// @param expectedTrigger  the destination's control-tab label, or null when the scene has
-//                         no control panel (home/sequence/motion-path).
-export async function navToScene(page, sceneId, expectedTrigger, { timeout = 12000 } = {}) {
-    await page.evaluate((s) => { location.hash = "#/" + s; }, sceneId);
-    // 1. machine activeScene rests on target (the EARLY fact — necessary, not sufficient).
-    await page.waitForFunction(
-        ([mk, id]) => { try { return JSON.parse(localStorage.getItem(mk) || "{}").activeScene === id; } catch { return false; } },
-        [SCENE_MACHINE_KEY, sceneId], { timeout },
-    ).catch(() => {});
-    // 2. the DESTINATION control surface has PROJECTED (the LATE fact — the cure).
-    await page.waitForFunction(
-        (expected) => {
-            const trig = document.querySelector("[aria-label='Controls tab']");
-            const text = trig?.textContent?.trim() || null;
-            return expected === null ? !trig : text === expected;
-        },
-        expectedTrigger, { timeout },
-    ).catch(() => {});
-}
-
-/**
  * openControlsPanel — drive the CURRENT scene into its open-panel editing
  * state via the REAL UI transitions, the same ones a user (and App.vue on
  * mount) performs: select the first animation in the dock's Select, then open
