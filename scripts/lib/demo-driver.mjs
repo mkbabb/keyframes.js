@@ -24,6 +24,15 @@
  *   resolveChromium()              — KF_PLAYWRIGHT_DIR createRequire resolver.
  *   serveDist(distDir)             — static http server over the built demo
  *                                    (dist/gh-pages); returns { url, close }.
+ *   REQUIRE_BROWSER                — the KF_REQUIRE_BROWSER=1 flag, read ONCE.
+ *   withBrowser(fn, opts)          — resolveChromium → launch → fn(browser) →
+ *                                    finally close (the J.W3 S1a lifecycle).
+ *   withPage(opts, fn)             — withBrowser → serveDist(opts.distDir) on
+ *                                    port 0 → newContext(opts.context) → newPage
+ *                                    → fn(page, { url, server, browser, context })
+ *                                    → finally close context + server. The ONE
+ *                                    open-server/resolve-chromium/run/teardown
+ *                                    lifecycle (signal-safe; W7-1 rule below).
  *   SCENE_MACHINE_KEY              — the scene machine's localStorage key (the
  *                                    persisted `activeScene` EARLY fact).
  *   navToScene(page, sceneId, expectedTrigger, {timeout})
@@ -288,14 +297,25 @@ const MIME = {
     ".ttf": "font/ttf",
     ".svg": "image/svg+xml",
     ".woff2": "font/woff2",
+    ".map": "application/json",
+    ".txt": "text/plain",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
 };
 
 /**
  * serveDist — a tiny static http server over the built demo, SPA-fallback to
  * index.html so hash routes resolve. Returns { url, close } where url has no
  * trailing slash (`http://127.0.0.1:<port>`).
+ *
+ * @param opts  { onMiss } — when provided, a missing path is answered with an
+ *              HONEST 404 (never SPA-HTML — the built-product analogue of the
+ *              I.W5 S2 dev honesty fix) and `onMiss(urlPath)` records it; the
+ *              proof:icon-paint-live zero-asset-404 oracle consumes this. When
+ *              absent (the default), misses fall back to index.html so hash
+ *              routes resolve.
  */
-export function serveDist(distDir) {
+export function serveDist(distDir, { onMiss } = {}) {
     return new Promise((resolve) => {
         const server = http.createServer((req, res) => {
             const u = decodeURIComponent(new URL(req.url, "http://x").pathname);
@@ -305,6 +325,11 @@ export function serveDist(distDir) {
                 !fs.existsSync(p) ||
                 fs.statSync(p).isDirectory()
             ) {
+                if (onMiss) {
+                    onMiss(u);
+                    res.writeHead(404).end();
+                    return;
+                }
                 p = path.join(distDir, "index.html");
             }
             res.writeHead(200, {
@@ -320,6 +345,158 @@ export function serveDist(distDir) {
             });
         });
     });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// J.W3 S1a — THE LIFECYCLE (the ONE open-server → resolve-chromium → newContext
+// → run → finally-close shape the census found re-handrolled in ~50 gates;
+// gate-census.md GC-1 / §2a).
+//
+// THE W7-1 REGIME RULE (S6d — un-bypassable at the lib seam): under
+// KF_REQUIRE_BROWSER=1 a harness-start failure (chromium unresolvable, dist not
+// built) is a FAIL — the lib THROWS (and poisons process.exitCode first, so even
+// a swallowed throw cannot exit 0). It is NEVER a note()-skip. When the browser
+// half is NOT required, the lifecycle returns `{ skipped: true, reason }` so the
+// gate prints its honest skip note and its static half still verdicts.
+//
+// SIGNAL-SAFE TEARDOWN: every live browser/server is registered in a teardown
+// set; SIGINT/SIGTERM/SIGHUP run the teardowns (newest first) before exiting
+// with the conventional 128+signal code — no orphaned chromium or port.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** REQUIRE_BROWSER — the KF_REQUIRE_BROWSER=1 flag, read ONCE (the single
+ *  authority; no per-gate re-read drift). */
+export const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
+
+/** The error class the W7-1 rule throws — named so a wrapper can recognise a
+ *  harness-start failure (it must NOT be caught-and-noted; exitCode is already
+ *  poisoned by the time it is thrown). */
+export class HarnessRequiredError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = "HarnessRequiredError";
+    }
+}
+
+const SIGNAL_EXIT = { SIGINT: 130, SIGTERM: 143, SIGHUP: 129 };
+const teardowns = new Set();
+let signalsInstalled = false;
+
+/** Register a teardown to run on SIGINT/SIGTERM/SIGHUP; returns an unregister
+ *  fn the lifecycle calls on the normal close path. */
+function registerTeardown(fn) {
+    teardowns.add(fn);
+    if (!signalsInstalled) {
+        signalsInstalled = true;
+        for (const sig of Object.keys(SIGNAL_EXIT)) {
+            process.once(sig, async () => {
+                for (const t of [...teardowns].reverse()) {
+                    try {
+                        await t();
+                    } catch {
+                        /* teardown is best-effort on the signal path */
+                    }
+                }
+                process.exit(SIGNAL_EXIT[sig]);
+            });
+        }
+    }
+    return () => teardowns.delete(fn);
+}
+
+/** The W7-1 rule, applied at the seam: required ⇒ THROW (exitCode poisoned);
+ *  not required ⇒ a structured skip the gate notes honestly. */
+function harnessUnavailable(reason, label) {
+    if (REQUIRE_BROWSER) {
+        process.exitCode = 1;
+        throw new HarnessRequiredError(
+            `browser half REQUIRED (KF_REQUIRE_BROWSER=1) but ${reason} — ` +
+                `${label ?? "the browser-half assertion"} cannot pass vacuously ` +
+                `(a note()-skip under KF_REQUIRE_BROWSER=1 is a FAIL — J.W3 S6d / W7-1)`,
+        );
+    }
+    return { skipped: true, reason };
+}
+
+/**
+ * withBrowser — resolveChromium → launch → `fn(browser)` → finally close.
+ * Returns `{ skipped: false, value }` (fn's return) or `{ skipped: true,
+ * reason }` when chromium is unresolvable and the browser half is not required
+ * (under KF_REQUIRE_BROWSER=1 it THROWS instead — the W7-1 rule).
+ *
+ * @param fn      async (browser) => value
+ * @param opts    { launch = {}, label } — `launch` forwarded to chromium.launch;
+ *                `label` names the gate's browser-half assertion in the
+ *                required-but-unavailable failure message.
+ */
+export async function withBrowser(fn, { launch = {}, label } = {}) {
+    const chromium = resolveChromium();
+    if (!chromium) {
+        return harnessUnavailable(
+            "playwright not resolvable (set KF_PLAYWRIGHT_DIR or install @playwright/test)",
+            label,
+        );
+    }
+    const browser = await chromium.launch(launch);
+    const unregister = registerTeardown(() => browser.close());
+    try {
+        return { skipped: false, value: await fn(browser) };
+    } finally {
+        unregister();
+        await browser.close();
+    }
+}
+
+/**
+ * withPage — the single open-server → resolve-chromium → newContext → run →
+ * finally-close lifecycle (spec J.W3 S1a). Serves `opts.distDir` on port 0,
+ * launches chromium (via withBrowser), opens ONE context + page, runs
+ * `fn(page, { url, server, browser, context })`, and tears everything down in
+ * a finally — signal-safe. Returns `{ skipped: false, value }` or the W7-1
+ * structured skip / throw (see withBrowser).
+ *
+ * @param opts  { distDir = <repo>/dist/gh-pages, context = {}, launch = {},
+ *              serve = {}, label }
+ *              `context` is forwarded to browser.newContext (viewport etc.);
+ *              `serve` is forwarded to serveDist (e.g. { onMiss } for the
+ *              honest-404 recording oracle).
+ * @param fn    async (page, { url, server, browser, context }) => value
+ */
+export async function withPage(opts, fn) {
+    const {
+        distDir = path.resolve(
+            path.dirname(fileURLToPath(import.meta.url)),
+            "../../dist/gh-pages",
+        ),
+        context: contextOpts = {},
+        launch = {},
+        serve = {},
+        label,
+    } = opts ?? {};
+    if (!fs.existsSync(path.join(distDir, "index.html"))) {
+        return harnessUnavailable(
+            "dist/gh-pages not built (run `npm run gh-pages` first)",
+            label,
+        );
+    }
+    return withBrowser(
+        async (browser) => {
+            const server = await serveDist(distDir, serve);
+            const unregisterServer = registerTeardown(() => server.close());
+            const context = await browser.newContext(contextOpts);
+            const unregisterCtx = registerTeardown(() => context.close());
+            try {
+                const page = await context.newPage();
+                return await fn(page, { url: server.url, server, browser, context });
+            } finally {
+                unregisterCtx();
+                unregisterServer();
+                await context.close();
+                await server.close();
+            }
+        },
+        { launch, label },
+    );
 }
 
 /**

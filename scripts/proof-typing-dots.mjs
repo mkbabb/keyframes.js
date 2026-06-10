@@ -53,15 +53,17 @@
  * the demo uses, then serves + Playwright rAF-samples each span. No router, no
  * FSM, no design language — the REAL production component, in isolation.
  *
- * Mirrors scripts/proof-cartoon-specular-coexist.mjs (serveDist + Playwright +
- * the KF_REQUIRE_BROWSER skip-or-fail plumbing). The static clause (e) always
- * runs; the browser clauses (a)–(d) + the runtime half of (e) gate on
- * playwright resolution. Re-runnable: `node scripts/proof-typing-dots.mjs`.
+ * Harness: the scripts/lib/demo-driver.mjs lifecycle (withPage over the
+ * isolation-harness dist, J.W3 S1 — serveDist + resolveChromium +
+ * context/teardown; under KF_REQUIRE_BROWSER a playwright-absent skip becomes a
+ * hard fail AT THE LIB SEAM). The static clause (e) always runs; the browser
+ * clauses (a)–(d) + the runtime half of (e) gate on playwright resolution.
+ * Re-runnable: `node scripts/proof-typing-dots.mjs`.
  */
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { serveDist, resolveChromium } from "./lib/demo-driver.mjs";
+import { withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEMO = path.join(REPO, "demo");
@@ -196,18 +198,8 @@ console.log(
 
 // ── BROWSER half — clauses (a)/(b)/(c)/(d) + the runtime half of (e) ─────────
 // In CI the demo-smoke job sets KF_REQUIRE_BROWSER=1; there a skip becomes a
-// hard fail (the gate cannot green-report a perceptual fix it never sampled).
-const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
-const skipOrFail = (reason) => {
-    if (REQUIRE_BROWSER) {
-        fail(
-            `browser half REQUIRED (KF_REQUIRE_BROWSER=1) but ${reason} — ` +
-                "clauses (a)–(d) + the cascade runtime check cannot pass vacuously",
-        );
-    } else {
-        console.log(`  ○ browser half skipped — ${reason}`);
-    }
-};
+// hard fail AT THE LIB SEAM (the gate cannot green-report a perceptual fix it
+// never sampled — withPage throws under KF_REQUIRE_BROWSER=1, J.W3 S6d/W7-1).
 
 /**
  * buildHarness — Vite-build the isolated TypingDots harness once into
@@ -245,15 +237,12 @@ async function buildHarness() {
 }
 
 async function browserHalf() {
-    const chromium = resolveChromium();
-    if (!chromium) {
-        skipOrFail(
-            "playwright not resolvable (set KF_PLAYWRIGHT_DIR or install @playwright/test)",
-        );
-        return;
-    }
     if (!fs.existsSync(TYPING_DOTS)) {
-        skipOrFail("TypingDots.vue missing — cannot build the isolation harness");
+        // The static cascade-lint clause already FAILED on the missing substrate
+        // (the gate reds); the browser half cannot build the isolation harness.
+        console.log(
+            "  ○ browser half skipped — TypingDots.vue missing (the cascade-lint static clause reds)",
+        );
         return;
     }
 
@@ -268,13 +257,14 @@ async function browserHalf() {
         return;
     }
 
-    const { url, close } = await serveDist(HARNESS_DIST);
-    const browser = await chromium.launch();
-    try {
-        // A wide, large-type viewport so the dots lay out with real boxes.
-        const page = await browser.newPage({
-            viewport: { width: 900, height: 480 },
-        });
+    const result = await withPage(
+        {
+            distDir: HARNESS_DIST,
+            label: "clauses (a)–(d) + the cascade runtime check",
+            // A wide, large-type viewport so the dots lay out with real boxes.
+            context: { viewport: { width: 900, height: 480 } },
+        },
+        async (page, { url }) => {
         await page.goto(url, { waitUntil: "load" });
 
         // Wait for the REAL component to render its dot spans (the v-for over
@@ -496,9 +486,10 @@ async function browserHalf() {
                         .join(", ")}`,
             );
         }
-    } finally {
-        await browser.close();
-        await close();
+        },
+    );
+    if (result.skipped) {
+        console.log(`  ○ browser half skipped — ${result.reason}`);
     }
 }
 

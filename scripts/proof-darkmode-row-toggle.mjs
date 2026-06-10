@@ -29,19 +29,19 @@
  *      handler + the row handler cancel → net no-change). Greens only on the
  *      row-level wire + passive icon.
  *
- * Mirrors scripts/proof-dock-popover-opens.mjs (the serveDist + Playwright + dock
- * menu-open plumbing). Settle-gated on the H.W1 FSM resting (the @mbabb trigger is
- * dock CHROME — present on every route, no scene nav needed; cross-ref
- * proof:dock-popover-opens for the menu-open driver). Under KF_REQUIRE_BROWSER a
- * playwright-absent skip becomes a hard fail so the row-toggle is never green-reported
- * un-exercised. Re-runnable: `node scripts/proof-darkmode-row-toggle.mjs`. The browser
- * half serves the BUILT dist/gh-pages/ (run `npm run gh-pages` first).
+ * Harness: the scripts/lib/demo-driver.mjs lifecycle (withPage = serveDist +
+ * resolveChromium + context/teardown, J.W3 S1; mirrors proof:dock-popover-opens
+ * for the dock menu-open driver). Settle-gated on the H.W1 FSM resting (the @mbabb
+ * trigger is dock CHROME — present on every route, no scene nav needed). Under
+ * KF_REQUIRE_BROWSER a playwright-absent skip becomes a hard fail AT THE LIB SEAM
+ * so the row-toggle is never green-reported un-exercised. Re-runnable:
+ * `node scripts/proof-darkmode-row-toggle.mjs`. The browser half serves the BUILT
+ * dist/gh-pages/ (run `npm run gh-pages` first).
  */
 import fs from "node:fs";
-import http from "node:http";
 import path from "node:path";
-import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import { withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEMO = path.join(REPO, "demo");
@@ -108,71 +108,15 @@ console.log("proof:darkmode-row-toggle — H.W9 F5 (the whole dark-mode row flip
 }
 
 // ── 2. ROW-LABEL-TOGGLE (browser, gated) ─────────────────────────────────────
-const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
-const skipOrFail = (reason) => {
-    if (REQUIRE_BROWSER) {
-        fail(
-            `browser half REQUIRED (KF_REQUIRE_BROWSER=1) but ${reason} — ` +
-                "the row-label-toggle round-trip cannot pass vacuously",
-        );
-    } else {
-        console.log(`  ○ browser half skipped — ${reason}`);
-    }
-};
-
-const MIME = {
-    ".html": "text/html",
-    ".js": "text/javascript",
-    ".css": "text/css",
-    ".json": "application/json",
-    ".png": "image/png",
-    ".ttf": "font/ttf",
-    ".woff2": "font/woff2",
-    ".svg": "image/svg+xml",
-};
-
 async function browserHalf() {
-    if (!fs.existsSync(path.join(DIST, "index.html"))) {
-        skipOrFail("dist/gh-pages not built (run `npm run gh-pages` first)");
-        return;
-    }
-    let chromium;
-    try {
-        const requireFrom = createRequire(
-            path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-        );
-        ({ chromium } = requireFrom("playwright-core"));
-    } catch {
-        try {
-            const requireFrom = createRequire(
-                path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-            );
-            ({ chromium } = requireFrom("@playwright/test"));
-        } catch {
-            skipOrFail("playwright not resolvable (set KF_PLAYWRIGHT_DIR or install @playwright/test)");
-            return;
-        }
-    }
-
-    const server = http.createServer((req, res) => {
-        const urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
-        const p = path.join(DIST, urlPath === "/" ? "index.html" : urlPath);
-        if (!p.startsWith(DIST) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) {
-            res.writeHead(404).end();
-            return;
-        }
-        res.writeHead(200, {
-            "content-type": MIME[path.extname(p)] ?? "application/octet-stream",
-        });
-        fs.createReadStream(p).pipe(res);
-    });
-    await new Promise((r) => server.listen(0, r));
-    const base = `http://127.0.0.1:${server.address().port}`;
-
-    const browser = await chromium.launch();
-    try {
-        const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
-        await page.goto(`${base}/#/cube`, { waitUntil: "load" });
+    const result = await withPage(
+        {
+            distDir: DIST,
+            label: "the row-label-toggle round-trip",
+            context: { viewport: { width: 1280, height: 900 } },
+        },
+        async (page, { url }) => {
+        await page.goto(`${url}/#/cube`, { waitUntil: "load" });
 
         // The dark-class lives on <html> (glass-ui useGlobalDark → @vueuse useDark,
         // documentElement.classList 'dark'). Helper reads the live class.
@@ -200,7 +144,6 @@ async function browserHalf() {
                 "darkmode-row-toggle — the @mbabb trigger never became visible after expanding the dock " +
                     "(cannot open the menu to reach the dark-mode row)",
             );
-            await page.close();
             return;
         }
 
@@ -222,7 +165,6 @@ async function browserHalf() {
                 `darkmode-row-toggle — the "Dark mode" label is not visible in the open menu ` +
                     `(menu:${dbg.menu}, items:[${dbg.items.join(" | ")}]) — the dark-mode row did not render`,
             );
-            await page.close();
             return;
         }
 
@@ -240,7 +182,6 @@ async function browserHalf() {
                 `darkmode-row-toggle — the "Dark mode" text resolves INSIDE a <button> ` +
                     `(${targetIsLabel.tag}); the gate must click the LABEL gutter, not the icon button`,
             );
-            await page.close();
             return;
         }
         ok(`the click target is the row LABEL gutter (a <${targetIsLabel.tag}>, not the icon <button>)`);
@@ -287,10 +228,10 @@ async function browserHalf() {
                     "Make <DarkModeToggle passive> so the row fires exactly once (F5).",
             );
         }
-        await page.close();
-    } finally {
-        await browser.close();
-        server.close();
+        },
+    );
+    if (result.skipped) {
+        console.log(`  ○ browser half skipped — ${result.reason}`);
     }
 }
 

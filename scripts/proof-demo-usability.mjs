@@ -30,16 +30,17 @@
  *      BITE: reds on two "Play animation" buttons sharing one name (X-3); a
  *      re-duplicated control label reds.
  *
- * Mirrors `scripts/demo-smoke.mjs`: a STATIC half that always runs + a BROWSER
- * half gated on playwright resolution (CI installs it; override the resolution
- * root with KF_PLAYWRIGHT_DIR). Re-runnable: `node scripts/proof-demo-usability.mjs`.
- * The browser half serves the BUILT `dist/gh-pages/` (run `npm run gh-pages` first).
+ * Harness: the scripts/lib/demo-driver.mjs lifecycle (withPage = serveDist +
+ * resolveChromium + context/teardown, J.W3 S1): a STATIC half that always runs
+ * + a BROWSER half gated on playwright resolution (CI installs it; override the
+ * resolution root with KF_PLAYWRIGHT_DIR). Re-runnable:
+ * `node scripts/proof-demo-usability.mjs`. The browser half serves the BUILT
+ * `dist/gh-pages/` (run `npm run gh-pages` first).
  */
 import fs from "node:fs";
-import http from "node:http";
 import path from "node:path";
-import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import { navToScene, withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEMO = path.join(REPO, "demo");
@@ -91,77 +92,17 @@ console.log("proof:demo-usability — G.W11 (the live-Playwright SHIP set)");
 // ── BROWSER half (clauses 2 + 3) ─────────────────────────────────────────────
 // In CI the demo-smoke job sets KF_REQUIRE_BROWSER=1 (it installs playwright +
 // chromium + builds the demo first) — there the browser half MUST run, or X-5/X-3
-// would pass vacuously. Mirror proof:computed-real-dom + occlusion-gate: a skip
+// would pass vacuously. The lib lifecycle carries the rule AT THE SEAM: a skip
 // becomes a hard fail under KF_REQUIRE_BROWSER, so the gate cannot green-report
 // SHIPs it never exercised.
-const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
-const skipOrFail = (reason) => {
-    if (REQUIRE_BROWSER) {
-        fail(
-            `browser half REQUIRED (KF_REQUIRE_BROWSER=1) but ${reason} — ` +
-                "clauses 2+3 (hero word-gap · unique Play aria) cannot pass vacuously",
-        );
-    } else {
-        console.log(`  ○ browser half skipped — ${reason}`);
-    }
-};
-
 async function browserHalf() {
-    if (!fs.existsSync(path.join(DIST, "index.html"))) {
-        skipOrFail("dist/gh-pages not built (run `npm run gh-pages` first)");
-        return;
-    }
-
-    let chromium;
-    try {
-        const requireFrom = createRequire(
-            path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-        );
-        ({ chromium } = requireFrom("playwright-core"));
-    } catch {
-        try {
-            const requireFrom = createRequire(
-                path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-            );
-            ({ chromium } = requireFrom("@playwright/test"));
-        } catch {
-            skipOrFail(
-                "playwright not resolvable (set KF_PLAYWRIGHT_DIR or install @playwright/test)",
-            );
-            return;
-        }
-    }
-
-    const MIME = {
-        ".html": "text/html",
-        ".js": "text/javascript",
-        ".css": "text/css",
-        ".json": "application/json",
-        ".png": "image/png",
-        ".ttf": "font/ttf",
-        ".woff2": "font/woff2",
-        ".svg": "image/svg+xml",
-    };
-    const server = http.createServer((req, res) => {
-        const urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
-        const p = path.join(DIST, urlPath === "/" ? "index.html" : urlPath);
-        if (!p.startsWith(DIST) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) {
-            res.writeHead(404).end();
-            return;
-        }
-        res.writeHead(200, {
-            "content-type": MIME[path.extname(p)] ?? "application/octet-stream",
-        });
-        fs.createReadStream(p).pipe(res);
-    });
-    await new Promise((r) => server.listen(0, r));
-    const port = server.address().port;
-    const base = `http://127.0.0.1:${port}`;
-
-    const browser = await chromium.launch();
-    try {
-        const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
-
+    const result = await withPage(
+        {
+            distDir: DIST,
+            label: "clauses 2+3 (hero word-gap · unique Play aria)",
+            context: { viewport: { width: 1280, height: 900 } },
+        },
+        async (page, { url: base }) => {
         // ── 2. HERO INTER-WORD GAP ──────────────────────────────────────────
         await page.goto(`${base}/`, { waitUntil: "load" });
         // Wait for the hero <h1> word spans to lay out.
@@ -264,7 +205,7 @@ async function browserHalf() {
         }
 
         // ── 3. UNIQUE ARIA-LABEL (editor scene) ─────────────────────────────
-        await page.goto(`${base}/#/cube`, { waitUntil: "load" });
+        await navToScene(page, "cube", "Controls", { timeout: 8000 });
         // Let the editor scene mount its control suite.
         await page.waitForTimeout(1500);
         const dupes = await page.evaluate(() => {
@@ -300,9 +241,10 @@ async function browserHalf() {
                     ` (a screen reader cannot tell them apart, X-3)`,
             );
         }
-    } finally {
-        await browser.close();
-        server.close();
+        },
+    );
+    if (result.skipped) {
+        console.log(`  ○ browser half skipped — ${result.reason}`);
     }
 }
 

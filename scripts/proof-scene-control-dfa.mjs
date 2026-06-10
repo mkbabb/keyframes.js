@@ -39,16 +39,17 @@
  *      mounted (a superKey lagging the route) reds.
  *
  * Settle-gated on H.W1 (the FSM resting). Builds on the W1 proof:scene-isolation
- * plumbing (the visible-label scan). STATIC half always runs; BROWSER half gated
- * on playwright + KF_REQUIRE_BROWSER. Serves the BUILT dist/gh-pages/ (run
- * `npm run gh-pages` first). Re-runnable: `node scripts/proof-scene-control-dfa.mjs`.
+ * plumbing (the visible-label scan). Harness: the scripts/lib/demo-driver.mjs
+ * lifecycle (withPage = serveDist + resolveChromium + context/teardown, J.W3
+ * S1). STATIC half always runs; BROWSER half gated on playwright +
+ * KF_REQUIRE_BROWSER (a playwright-absent skip becomes a hard fail AT THE LIB
+ * SEAM). Serves the BUILT dist/gh-pages/ (run `npm run gh-pages` first).
+ * Re-runnable: `node scripts/proof-scene-control-dfa.mjs`.
  */
 import fs from "node:fs";
-import http from "node:http";
 import path from "node:path";
-import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
-import { navToScene } from "./lib/demo-driver.mjs";
+import { navToScene, withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEMO = path.join(REPO, "demo");
@@ -155,29 +156,6 @@ console.log("proof:scene-control-dfa — H.W11 S4 / I2 (the per-scene control-su
 }
 
 // ── D3 + D4 BROWSER half ─────────────────────────────────────────────────────
-const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
-const skipOrFail = (reason) => {
-    if (REQUIRE_BROWSER) {
-        fail(
-            `browser half REQUIRED (KF_REQUIRE_BROWSER=1) but ${reason} — the per-scene + ` +
-                "navigation-matrix DFA clauses cannot pass vacuously",
-        );
-    } else {
-        console.log(`  ○ browser half skipped — ${reason}`);
-    }
-};
-
-const MIME = {
-    ".html": "text/html",
-    ".js": "text/javascript",
-    ".css": "text/css",
-    ".json": "application/json",
-    ".png": "image/png",
-    ".ttf": "font/ttf",
-    ".woff2": "font/woff2",
-    ".svg": "image/svg+xml",
-};
-
 // The expected EFFECTIVE control-tab outcome per scene (the DFA table, observed
 // through the dock). `trigger` = the controls-tab trigger's collapsed label (the
 // selected surface), or null when NO control panel renders (empty DFA set).
@@ -191,22 +169,6 @@ const EXPECT = {
     sequence: { hasPanel: false },
     "motion-path": { hasPanel: false },
 };
-
-function serveDist() {
-    return http.createServer((req, res) => {
-        const urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
-        const p = path.join(DIST, urlPath === "/" ? "index.html" : urlPath);
-        if (!p.startsWith(DIST) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) {
-            res.writeHead(200, { "content-type": "text/html" });
-            fs.createReadStream(path.join(DIST, "index.html")).pipe(res);
-            return;
-        }
-        res.writeHead(200, {
-            "content-type": MIME[path.extname(p)] ?? "application/octet-stream",
-        });
-        fs.createReadStream(p).pipe(res);
-    });
-}
 
 /** Read the dock's control-tab state: the collapsed trigger label (or null if
  *  no controls-tab trigger renders) + whether any built-in triad tab text
@@ -236,35 +198,14 @@ const dockControlState = (page) =>
     });
 
 async function browserHalf() {
-    if (!fs.existsSync(path.join(DIST, "index.html"))) {
-        skipOrFail("dist/gh-pages not built (run `npm run gh-pages` first)");
-        return;
-    }
-    let chromium;
-    for (const pkg of ["playwright-core", "@playwright/test"]) {
-        try {
-            const requireFrom = createRequire(
-                path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-            );
-            ({ chromium } = requireFrom(pkg));
-            break;
-        } catch {
-            /* try next */
-        }
-    }
-    if (!chromium) {
-        skipOrFail("playwright not resolvable (set KF_PLAYWRIGHT_DIR or install @playwright/test)");
-        return;
-    }
-
-    const server = serveDist();
-    await new Promise((r) => server.listen(0, r));
-    const base = `http://127.0.0.1:${server.address().port}`;
-    const browser = await chromium.launch();
-    const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
-    try {
-        const page = await ctx.newPage();
-        await page.goto(`${base}/#/cube`, { waitUntil: "load" });
+    const result = await withPage(
+        {
+            distDir: DIST,
+            label: "the per-scene + navigation-matrix DFA clauses",
+            context: { viewport: { width: 1280, height: 900 } },
+        },
+        async (page, { url }) => {
+        await page.goto(`${url}/#/cube`, { waitUntil: "load" });
         await page.waitForTimeout(3000);
 
         // ── D3 PER-SCENE ─────────────────────────────────────────────────────
@@ -341,11 +282,10 @@ async function browserHalf() {
             );
         }
 
-        await page.close();
-    } finally {
-        await ctx.close();
-        await browser.close();
-        server.close();
+        },
+    );
+    if (result.skipped) {
+        console.log(`  ○ browser half skipped — ${result.reason}`);
     }
 }
 

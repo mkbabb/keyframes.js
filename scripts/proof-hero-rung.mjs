@@ -37,17 +37,16 @@
  * deterministic pre-H.W1. The gate polls the machine to rest on `home` + the hero
  * `<h1>.hero-display` to render before measuring.
  *
- * Mirrors scripts/proof-demo-shell-grid.mjs (the serveDist + Playwright + settle
- * plumbing) + scripts/proof-demo-usability.mjs (the hero-at-`/` poll). The STATIC
- * source clauses always run; the BROWSER half gates on playwright + a built dist,
- * a skip → hard fail under KF_REQUIRE_BROWSER. Re-runnable:
- * `node scripts/proof-hero-rung.mjs`. Serves the BUILT dist/gh-pages/.
+ * Harness: the scripts/lib/demo-driver.mjs lifecycle (withPage = serveDist +
+ * resolveChromium + context/teardown, J.W3 S1) + the hero-at-`/` poll. The
+ * STATIC source clauses always run; the BROWSER half gates on playwright + a
+ * built dist, a skip → hard fail under KF_REQUIRE_BROWSER AT THE LIB SEAM.
+ * Re-runnable: `node scripts/proof-hero-rung.mjs`. Serves the BUILT dist/gh-pages/.
  */
 import fs from "node:fs";
-import http from "node:http";
 import path from "node:path";
-import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import { SCENE_MACHINE_KEY, withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEMO = path.join(REPO, "demo");
@@ -121,46 +120,6 @@ let heroH1Class = null;
 }
 
 // ── BROWSER half (the resolved className + the px floor) ──────────────────────
-const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
-const skipOrFail = (reason) => {
-    if (REQUIRE_BROWSER) {
-        fail(
-            `browser half REQUIRED (KF_REQUIRE_BROWSER=1) but ${reason} — ` +
-                "the resolved-className + 140px-floor clauses cannot pass vacuously",
-        );
-    } else {
-        console.log(`  ○ browser half skipped — ${reason}`);
-    }
-};
-
-const MIME = {
-    ".html": "text/html",
-    ".js": "text/javascript",
-    ".css": "text/css",
-    ".json": "application/json",
-    ".png": "image/png",
-    ".ttf": "font/ttf",
-    ".woff2": "font/woff2",
-    ".svg": "image/svg+xml",
-};
-const MACHINE_KEY = "keyframes-js-scene-machine"; // SCENE_MACHINE_PERSIST_KEY
-
-function serveDist() {
-    const server = http.createServer((req, res) => {
-        const urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
-        const p = path.join(DIST, urlPath === "/" ? "index.html" : urlPath);
-        if (!p.startsWith(DIST) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) {
-            res.writeHead(404).end();
-            return;
-        }
-        res.writeHead(200, {
-            "content-type": MIME[path.extname(p)] ?? "application/octet-stream",
-        });
-        fs.createReadStream(p).pipe(res);
-    });
-    return server;
-}
-
 /** Settle on the home route (`/`) — the hero is the `#start-screen` slot gated on
  *  `isHome` (machine activeScene === 'home'). Poll the machine to rest on home +
  *  the hero <h1>.hero-display to render (the D12 storm made `/` non-deterministic
@@ -176,7 +135,7 @@ async function settleOnHome(page, viewportWidth, viewportHeight) {
                     return false;
                 }
             },
-            MACHINE_KEY,
+            SCENE_MACHINE_KEY,
             { timeout: 8000 },
         )
         .catch(() => {});
@@ -185,38 +144,16 @@ async function settleOnHome(page, viewportWidth, viewportHeight) {
 }
 
 async function browserHalf() {
-    if (!fs.existsSync(path.join(DIST, "index.html"))) {
-        skipOrFail("dist/gh-pages not built (run `npm run gh-pages` first)");
-        return;
-    }
-    let chromium;
-    try {
-        const requireFrom = createRequire(
-            path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-        );
-        ({ chromium } = requireFrom("playwright-core"));
-    } catch {
-        try {
-            const requireFrom = createRequire(
-                path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-            );
-            ({ chromium } = requireFrom("@playwright/test"));
-        } catch {
-            skipOrFail("playwright not resolvable (set KF_PLAYWRIGHT_DIR or install @playwright/test)");
-            return;
-        }
-    }
-
-    const server = serveDist();
-    await new Promise((r) => server.listen(0, r));
-    const base = `http://127.0.0.1:${server.address().port}`;
-
     const VW = 1440;
     const VH = 900;
     const PX_FLOOR = 140; // the mega rung resolves 177.4px @1440; text-display-4 was 86px.
-    const browser = await chromium.launch();
-    try {
-        const page = await browser.newPage({ viewport: { width: VW, height: VH } });
+    const result = await withPage(
+        {
+            distDir: DIST,
+            label: "the resolved-className + 140px-floor clauses",
+            context: { viewport: { width: VW, height: VH } },
+        },
+        async (page, { url: base }) => {
         await page.goto(`${base}/`, { waitUntil: "load" });
         await settleOnHome(page, VW, VH);
 
@@ -265,10 +202,10 @@ async function browserHalf() {
                 ok("resolved leaf-tail: the live hero <h1> carries NO raw leaf-tail rung");
             }
         }
-        await page.close();
-    } finally {
-        await browser.close();
-        server.close();
+        },
+    );
+    if (result.skipped) {
+        console.log(`  ○ browser half skipped — ${result.reason}`);
     }
 }
 

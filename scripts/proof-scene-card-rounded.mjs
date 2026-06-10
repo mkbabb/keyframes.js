@@ -45,25 +45,25 @@
  *      stage-root scan.)
  *
  * Settle-gated on the H.W1 FSM resting (mirrors proof:easing-canvas-bounded): each
- * scene is pinned via an IN-PAGE hash assignment (NOT page.goto — goto clears
- * storage + the H.W1 reconcile trap), the machine is polled to rest, the viewport
- * is RE-ASSERTED after navigation, the controls pane + the scene's tab are opened
- * so the sidebar Card mounts, the route rests ≥500ms, and the gate waits until ≥1
- * cartoon surface resolves before measuring.
+ * scene is pinned via the lib's navToScene (an IN-PAGE hash assignment — NOT
+ * page.goto, which clears storage + the H.W1 reconcile trap — settled on the
+ * destination's per-EXPECTED control surface), the viewport is RE-ASSERTED after
+ * navigation, the controls pane + the scene's tab are opened so the sidebar Card
+ * mounts, the route rests ≥500ms, and the gate waits until ≥1 cartoon surface
+ * resolves before measuring.
  *
- * Mirrors scripts/proof-easing-canvas-bounded.mjs (the serveDist + Playwright +
- * settle plumbing). The computed-radius clause is a rendered fact (browser); the
- * full-bleed clause is a source fact (static). Under KF_REQUIRE_BROWSER a
- * playwright-absent skip becomes a hard fail so the computed clause is never
- * green-reported un-exercised. Re-runnable:
+ * Harness: the scripts/lib/demo-driver.mjs lifecycle (withPage = serveDist +
+ * resolveChromium + context/teardown, J.W3 S1). The computed-radius clause is a
+ * rendered fact (browser); the full-bleed clause is a source fact (static). Under
+ * KF_REQUIRE_BROWSER a playwright-absent skip becomes a hard fail AT THE LIB SEAM
+ * so the computed clause is never green-reported un-exercised. Re-runnable:
  * `node scripts/proof-scene-card-rounded.mjs`. Serves the BUILT dist/gh-pages/
  * (run `npm run gh-pages` first).
  */
 import fs from "node:fs";
-import http from "node:http";
 import path from "node:path";
-import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import { navToScene, withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
@@ -77,67 +77,16 @@ const fail = (label) => {
 
 console.log("proof:scene-card-rounded — H.W10 G2 (no kf-owned scene surface renders square corners)");
 
-const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
-const skipOrFail = (reason) => {
-    if (REQUIRE_BROWSER) {
-        fail(
-            `browser half REQUIRED (KF_REQUIRE_BROWSER=1) but ${reason} — ` +
-                "the cartoon-surface rounding assertion cannot pass vacuously",
-        );
-    } else {
-        console.log(`  ○ browser half skipped — ${reason}`);
-    }
-};
-
-const MIME = {
-    ".html": "text/html",
-    ".js": "text/javascript",
-    ".css": "text/css",
-    ".json": "application/json",
-    ".png": "image/png",
-    ".ttf": "font/ttf",
-    ".woff2": "font/woff2",
-    ".svg": "image/svg+xml",
-};
-const MACHINE_KEY = "keyframes-js-scene-machine"; // SCENE_MACHINE_PERSIST_KEY
 const CTRL_KEY = "animation-groups-control-options-store";
 
-function serveDist() {
-    const server = http.createServer((req, res) => {
-        const urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
-        const p = path.join(DIST, urlPath === "/" ? "index.html" : urlPath);
-        if (!p.startsWith(DIST) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) {
-            res.writeHead(404).end();
-            return;
-        }
-        res.writeHead(200, {
-            "content-type": MIME[path.extname(p)] ?? "application/octet-stream",
-        });
-        fs.createReadStream(p).pipe(res);
-    });
-    return server;
-}
+// The destination control-tab labels navToScene settles on (per-EXPECTED-state).
+const TRIGGER = { easing: "Easing", spring: "Spring" };
 
-/** Settle on #/<scene> via an IN-PAGE hash assignment. Re-assert the viewport
+/** Settle on #/<scene> via the lib's in-page hash nav. Re-assert the viewport
  *  AFTER navigation. Open the controls pane + the scene tab so the sidebar Card
  *  (a cartoon surface) mounts. Rest ≥500ms. */
 async function settleOnScene(page, scene, control, viewportWidth, viewportHeight) {
-    await page.evaluate((s) => {
-        location.hash = "#/" + s;
-    }, scene);
-    await page
-        .waitForFunction(
-            ([mk, s]) => {
-                try {
-                    return JSON.parse(localStorage.getItem(mk) || "{}").activeScene === s;
-                } catch {
-                    return false;
-                }
-            },
-            [MACHINE_KEY, scene],
-            { timeout: 8000 },
-        )
-        .catch(() => {});
+    await navToScene(page, scene, TRIGGER[scene], { timeout: 8000 });
     await page.setViewportSize({ width: viewportWidth, height: viewportHeight });
     await page.evaluate(
         ([ck, ctrl]) => {
@@ -184,39 +133,17 @@ const SCENES = [
 ];
 
 async function browserHalf() {
-    if (!fs.existsSync(path.join(DIST, "index.html"))) {
-        skipOrFail("dist/gh-pages not built (run `npm run gh-pages` first)");
-        return;
-    }
-    let chromium;
-    try {
-        const requireFrom = createRequire(
-            path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-        );
-        ({ chromium } = requireFrom("playwright-core"));
-    } catch {
-        try {
-            const requireFrom = createRequire(
-                path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-            );
-            ({ chromium } = requireFrom("@playwright/test"));
-        } catch {
-            skipOrFail("playwright not resolvable (set KF_PLAYWRIGHT_DIR or install @playwright/test)");
-            return;
-        }
-    }
-
-    const server = serveDist();
-    await new Promise((r) => server.listen(0, r));
-    const base = `http://127.0.0.1:${server.address().port}`;
-
     const VW = 1440;
     const VH = 900;
-    const browser = await chromium.launch();
-    try {
+    const result = await withPage(
+        {
+            distDir: DIST,
+            label: "the cartoon-surface rounding assertion",
+            context: { viewport: { width: VW, height: VH } },
+        },
+        async (page, { url }) => {
+        await page.goto(`${url}/#/${SCENES[0].scene}`, { waitUntil: "load" });
         for (const { scene, control, label } of SCENES) {
-            const page = await browser.newPage({ viewport: { width: VW, height: VH } });
-            await page.goto(`${base}/#/${scene}`, { waitUntil: "load" });
             await settleOnScene(page, scene, control, VW, VH);
             const found = await waitCartoonSurface(page);
 
@@ -226,7 +153,6 @@ async function browserHalf() {
                         `render); the rounding assertion would be vacuous — the FSM may not have rested ` +
                         `on ${scene} or the pane/tab did not open`,
                 );
-                await page.close();
                 continue;
             }
 
@@ -263,7 +189,6 @@ async function browserHalf() {
             // ── 1. EVERY CARTOON SURFACE IS ROUNDED (computed, born-RED anchor) ──
             if (probe.length === 0) {
                 fail(`${label} — zero cartoon surfaces found post-mount (vacuity guard); cannot assert rounding`);
-                await page.close();
                 continue;
             }
             const square = probe.filter((s) => s.maxRadius <= 0 && s.w > 0 && s.h > 0);
@@ -285,11 +210,11 @@ async function browserHalf() {
                     );
                 }
             }
-            await page.close();
         }
-    } finally {
-        await browser.close();
-        server.close();
+        },
+    );
+    if (result.skipped) {
+        console.log(`  ○ browser half skipped — ${result.reason}`);
     }
 }
 

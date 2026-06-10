@@ -28,9 +28,11 @@
  * what is held and why, and the gate tightens by DELETION as the closes land.
  *
  * Resolves lighthouse from KF_LIGHTHOUSE_DIR (default: repo root, where CI
- * installs it via `npm i --no-save lighthouse`) and chromium from
- * KF_PLAYWRIGHT_DIR (the shared demo-driver resolver). Serves the BUILT
- * `dist/gh-pages/`. Exit 1 on any gate violation.
+ * installs it via `npm i --no-save lighthouse`); chromium launch/teardown ride
+ * the lib lifecycle (withBrowser({ launch: --remote-debugging-port }) so
+ * lighthouse can attach, J.W3 S1 — chromium-absent under KF_REQUIRE_BROWSER
+ * FAILS at the lib seam). Serves the BUILT `dist/gh-pages/`. Exit 1 on any
+ * gate violation.
  *
  * Usage:
  *   node scripts/lighthouse-gate.mjs
@@ -46,9 +48,9 @@ import { fileURLToPath } from "node:url";
 
 import {
     SCENES,
-    resolveChromium,
     serveDist,
     openControlsPanel,
+    withBrowser,
 } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -137,17 +139,12 @@ function seoScore(lhr) {
 }
 
 async function main() {
-    const chromium = resolveChromium();
     const lighthousePath = resolveLighthouse();
 
-    if (!chromium || !lighthousePath) {
-        const missing = [
-            !chromium && "playwright/chromium (KF_PLAYWRIGHT_DIR)",
-            !lighthousePath && "lighthouse (KF_LIGHTHOUSE_DIR / `npm i --no-save lighthouse`)",
-        ]
-            .filter(Boolean)
-            .join(" + ");
-        console.error(`lighthouse-gate — SKIP: unresolvable: ${missing}.`);
+    if (!lighthousePath) {
+        console.error(
+            "lighthouse-gate — SKIP: unresolvable: lighthouse (KF_LIGHTHOUSE_DIR / `npm i --no-save lighthouse`).",
+        );
         // Skipping is acceptable locally; in CI the browser + lighthouse are
         // install steps, so KF_REQUIRE_BROWSER=1 turns the skip into a failure.
         process.exit(process.env.KF_REQUIRE_BROWSER ? 2 : 0);
@@ -162,6 +159,21 @@ async function main() {
 
     const lighthouse = (await import(lighthousePath)).default;
 
+    // Launch chromium with a fixed debug port so lighthouse attaches to the
+    // SAME browser the open-panel driver seeded. localStorage seeded by
+    // openControlsPanel survives lighthouse's navigation because we run
+    // lighthouse with `disableStorageReset: true`. (withBrowser, not withPage:
+    // lighthouse needs the debug-port launch arg + its own per-scene contexts.)
+    const DEBUG_PORT = 9222 + Math.floor(Math.random() * 1000);
+
+    const failures = [];
+    const heldNote = [];
+    console.log(
+        "lighthouse-gate — A11y=100 (demo-owned) + SEO≥90 on the OPEN-panel editing state\n",
+    );
+
+    const result = await withBrowser(
+        async (browser) => {
     const { url, close: closeServer } = await serveDist(DIST);
 
     // A self-test hook (KF_LH_INJECT_SEO_FAIL): the gate PROVES it bites SEO<90
@@ -178,21 +190,6 @@ async function main() {
             "lighthouse-gate — SELF-TEST: meta description+robots stripped (expect SEO<90 to bite)",
         );
     }
-
-    // Launch chromium with a fixed debug port so lighthouse attaches to the
-    // SAME browser the open-panel driver seeded. localStorage seeded by
-    // openControlsPanel survives lighthouse's navigation because we run
-    // lighthouse with `disableStorageReset: true`.
-    const DEBUG_PORT = 9222 + Math.floor(Math.random() * 1000);
-    const browser = await chromium.launch({
-        args: [`--remote-debugging-port=${DEBUG_PORT}`],
-    });
-
-    const failures = [];
-    const heldNote = [];
-    console.log(
-        "lighthouse-gate — A11y=100 (demo-owned) + SEO≥90 on the OPEN-panel editing state\n",
-    );
 
     try {
         for (const scene of SCENES) {
@@ -271,10 +268,16 @@ async function main() {
             }
         }
     } finally {
-        await browser.close();
         await closeServer();
         if (process.env.KF_LH_INJECT_SEO_FAIL)
             fs.writeFileSync(indexPath, originalIndex);
+    }
+        },
+        { launch: { args: [`--remote-debugging-port=${DEBUG_PORT}`] }, label: "the open-panel a11y/SEO scoring matrix" },
+    );
+    if (result.skipped) {
+        console.error(`lighthouse-gate — SKIP: unresolvable: ${result.reason}.`);
+        process.exit(process.env.KF_REQUIRE_BROWSER ? 2 : 0);
     }
 
     // ── The allowance ledger (printed every run, so the held audits + their

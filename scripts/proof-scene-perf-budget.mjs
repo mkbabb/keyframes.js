@@ -62,22 +62,30 @@
  * `activeScene` is polled to rest before any computed-style probe, so the clauses
  * fail on scene-perf, not the route storm.
  *
- * Mirrors scripts/proof-easing-canvas-bounded.mjs (the serveDist + Playwright +
- * settle plumbing). STATIC half (source anchors) always runs; BROWSER half gated
- * on playwright resolution. Under KF_REQUIRE_BROWSER a playwright-absent skip
- * becomes a hard fail so the live perf facts are never green-reported
- * un-exercised. Re-runnable: `node scripts/proof-scene-perf-budget.mjs`. Serves
- * the BUILT dist/gh-pages/ (run `npm run gh-pages` first).
+ * Harness: the scripts/lib/demo-driver.mjs lifecycle (withPage = serveDist +
+ * resolveChromium + context/teardown, J.W3 S1) + navToScene (the per-EXPECTED-
+ * state scene settle). STATIC half (source anchors) always runs; BROWSER half
+ * gated on playwright resolution. Under KF_REQUIRE_BROWSER a playwright-absent
+ * skip becomes a hard fail AT THE LIB SEAM so the live perf facts are never
+ * green-reported un-exercised. Re-runnable:
+ * `node scripts/proof-scene-perf-budget.mjs`. Serves the BUILT dist/gh-pages/
+ * (run `npm run gh-pages` first).
+ *
+ * CI posture: HARD (J.W3 S2 / P6). Every clause is a device-INDEPENDENT fact —
+ * a fillRect CALL COUNT, a replayed-canvas pixel grid, a backing-store ratio at
+ * a driven deviceScaleFactor, and computed-style declarations — not a timing
+ * measurement; per the S2 no-workaround rule it may NEVER route through
+ * observeOnlyInCI. A Linux flake here is the ci-linux-open-item lane's
+ * gate-robustness work, not an observe-only demotion.
  *
  * Flags: `--update-baseline` rewrites scripts/baselines/amiga-checkerboard.json
  * from the live render (use ONLY when the tessellation is intentionally
  * re-authored).
  */
 import fs from "node:fs";
-import http from "node:http";
 import path from "node:path";
-import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import { navToScene, withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEMO = path.join(REPO, "demo");
@@ -220,107 +228,32 @@ console.log("proof:scene-perf-budget — H.W5 S6 (the cube/amiga scene-quality +
 }
 
 // ── BROWSER half (the live computed/measured facts) ──────────────────────────
-const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
-const skipOrFail = (reason) => {
-    if (REQUIRE_BROWSER) {
-        fail(
-            `browser half REQUIRED (KF_REQUIRE_BROWSER=1) but ${reason} — the live ` +
-                "scene-perf clauses (tile-count · pixel-cap · contain · content-visibility) " +
-                "cannot pass vacuously",
-        );
-    } else {
-        console.log(`  ○ browser half skipped — ${reason}`);
-    }
-};
-
-const MIME = {
-    ".html": "text/html",
-    ".js": "text/javascript",
-    ".css": "text/css",
-    ".json": "application/json",
-    ".png": "image/png",
-    ".ttf": "font/ttf",
-    ".woff2": "font/woff2",
-    ".svg": "image/svg+xml",
-};
-const MACHINE_KEY = "keyframes-js-scene-machine"; // SCENE_MACHINE_PERSIST_KEY
-
-function serveDist() {
-    const server = http.createServer((req, res) => {
-        const urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
-        const p = path.join(DIST, urlPath === "/" ? "index.html" : urlPath);
-        if (!p.startsWith(DIST) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) {
-            // SPA fallback so the hash routes resolve.
-            res.writeHead(200, { "content-type": "text/html" });
-            fs.createReadStream(path.join(DIST, "index.html")).pipe(res);
-            return;
-        }
-        res.writeHead(200, {
-            "content-type": MIME[path.extname(p)] ?? "application/octet-stream",
-        });
-        fs.createReadStream(p).pipe(res);
-    });
-    return server;
-}
-
-/** Drive the scene via the in-page hash reconcile (the same fixed point the
- *  in-app Scene combobox funnels through) and poll the FSM activeScene to rest.
- *  page.goto clears storage + the H.W1 trap, so we assign location.hash. */
-async function settleOnScene(page, sceneId) {
-    await page.evaluate((id) => {
-        location.hash = "#/" + id;
-    }, sceneId);
-    await page
-        .waitForFunction(
-            ([mk, id]) => {
-                try {
-                    return JSON.parse(localStorage.getItem(mk) || "{}").activeScene === id;
-                } catch {
-                    return false;
-                }
-            },
-            [MACHINE_KEY, sceneId],
-            { timeout: 8000 },
-        )
-        .catch(() => {});
+/** Drive the scene via the lib's navToScene (the same in-page hash reconcile
+ *  fixed point the in-app Scene combobox funnels through — page.goto clears
+ *  storage + the H.W1 trap — settled on the destination's per-EXPECTED control
+ *  surface), then rest the route. */
+async function settleOnScene(page, sceneId, expectedTrigger) {
+    await navToScene(page, sceneId, expectedTrigger, { timeout: 8000 });
     await page.waitForTimeout(600); // route rested ≥500ms
 }
 
 async function browserHalf() {
-    if (!fs.existsSync(path.join(DIST, "index.html"))) {
-        skipOrFail("dist/gh-pages not built (run `npm run gh-pages` first)");
-        return;
-    }
-    let chromium;
-    for (const pkg of ["playwright-core", "@playwright/test"]) {
-        try {
-            const requireFrom = createRequire(
-                path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-            );
-            ({ chromium } = requireFrom(pkg));
-            break;
-        } catch {
-            /* try next */
-        }
-    }
-    if (!chromium) {
-        skipOrFail("playwright not resolvable (set KF_PLAYWRIGHT_DIR or install @playwright/test)");
-        return;
-    }
-
-    const server = serveDist();
-    await new Promise((r) => server.listen(0, r));
-    const base = `http://127.0.0.1:${server.address().port}`;
-
-    // dpr=2 — the retina surface where the `dpr * 2` over-render was a 4× buffer.
-    // deviceScaleFactor exercises the cap so proof:amiga-pixel-cap is not vacuous.
-    const browser = await chromium.launch();
-    const context = await browser.newContext({
-        viewport: { width: 1280, height: 900 },
-        deviceScaleFactor: 2,
-    });
-    try {
-        const page = await context.newPage();
+    const result = await withPage(
+        {
+            distDir: DIST,
+            label:
+                "the live scene-perf clauses (tile-count · pixel-cap · " +
+                "contain · content-visibility)",
+            // dpr=2 — the retina surface where the `dpr * 2` over-render was a
+            // 4× buffer. deviceScaleFactor exercises the cap so
+            // proof:amiga-pixel-cap is not vacuous.
+            context: {
+                viewport: { width: 1280, height: 900 },
+                deviceScaleFactor: 2,
+            },
+        },
+        async (page, { url }) => {
+        const base = url;
 
         // ── Spy CanvasRenderingContext2D.fillRect BEFORE the amiga scene mounts ──
         // tesselateSphere runs in onMounted; install the spy at document-start so
@@ -346,7 +279,7 @@ async function browserHalf() {
             window.__fillRectCalls = [];
             window.__fillRectSpyOn = true;
         });
-        await settleOnScene(page, "amiga");
+        await settleOnScene(page, "amiga", "Controls");
         // Wait for the amiga canvas to be present + sized (the mount completed).
         await page
             .waitForFunction(
@@ -524,7 +457,7 @@ async function browserHalf() {
         // SETTLE (not playing, not hovered), and assert .cube + all .cube-side
         // faces compute `will-change: auto`. A resident hint pins compositor
         // layers forever (the G5 anti-pattern).
-        await settleOnScene(page, "cube");
+        await settleOnScene(page, "cube", "Controls");
         await page
             .waitForFunction(() => !!document.querySelector(".cube"), { timeout: 8000 })
             .catch(() => {});
@@ -558,7 +491,7 @@ async function browserHalf() {
         // live surface (the isolation test is the deterministic anchor), so this
         // clause is a soft liveness witness: it FAILS only if the canvas is
         // entirely static post-release (no engine glide at all).
-        await settleOnScene(page, "amiga");
+        await settleOnScene(page, "amiga", "Controls");
         await page
             .waitForFunction(() => {
                 const c = document.querySelector(".amiga-canvas");
@@ -643,11 +576,10 @@ async function browserHalf() {
             );
         }
 
-        await page.close();
-    } finally {
-        await context.close();
-        await browser.close();
-        server.close();
+        },
+    );
+    if (result.skipped) {
+        console.log(`  ○ browser half skipped — ${result.reason}`);
     }
 }
 

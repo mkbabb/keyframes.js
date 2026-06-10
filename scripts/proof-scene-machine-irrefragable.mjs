@@ -4,6 +4,18 @@
  * PLAYBACK state-machine gate). The browser-lane bite for the one finite
  * scene+playback FSM that REPLACED the five-authority lattice.
  *
+ * ── TIER / AUTHORITY (J.W3 S7 re-label — T3, BINDING) ─────────────────────────
+ * This gate is a **reducer-algebra unit oracle**, HYGIENE-tier, and is
+ * NON-AUTHORITATIVE for FSM runtime correctness: its localStorage round-trip
+ * matrix polices the PURE REDUCER's serialization (snapshot capture/restore
+ * identity, projection algebra, deep-link/timing determinism) — which IS its
+ * competence — through the persisted-store oracle, NOT through the felt running
+ * product. The B2 runtime correctness authority is
+ * `proof:fsm-suspend-resume-live` (the ACTUATING gate: synthetic visibility tick
+ * = no throw, non-blank destination, resume-iff-was-playing on the LIVE
+ * adapter). A close may cite this gate as reducer-serialization corroboration,
+ * NEVER as evidence the FSM runtime "works".
+ *
  * ONE script, the §Hard-gate clause set (H.W1.md §Hard gate). Each clause is
  * falsifiable and BITES on the EXACT D12 defect it forbids — every one RED on
  * the pre-FSM tree (the route storm, the corrupt panel, the orphan rAF, the
@@ -30,7 +42,7 @@
  *      position, so proof:group-snapshot-identity passes VACUOUSLY on the literal
  *      D12 repro (easing); THIS clause bites the actual raw-rAF loss.
  *
- *   C3 NO-ROUTE-STORM — start on a NON-HOME scene (#/easing — home self-damps),
+ *   C3 ROUTE-STABILITY — start on a NON-HOME scene (#/easing — home self-damps),
  *      arm a pushState/replaceState trap, then DRIVE ≥3 forced re-renders inside
  *      the window; assert 0 SCENE-CHANGING navs AND the resting hash unchanged
  *      AND performance.getEntriesByType('navigation').length === 1 (no reload
@@ -66,9 +78,10 @@
  *      double-fire heuristic. BITE: re-introduce the isStableFire/nextTick race →
  *      the restore races + the post-reload status diverges across perturbations.
  *
- * Mirrors scripts/proof-demo-usability.mjs + proof-demo-console-clean.mjs (the
- * serveDist + Playwright plumbing + the KF_REQUIRE_BROWSER skipOrFail). The
- * browser half serves the BUILT dist/gh-pages/ (run `npm run gh-pages` first).
+ * Harness: the scripts/lib/demo-driver.mjs lifecycle (withPage = serveDist +
+ * resolveChromium + context/teardown, J.W3 S1; under KF_REQUIRE_BROWSER a
+ * playwright-absent skip becomes a hard fail AT THE LIB SEAM). The browser half
+ * serves the BUILT dist/gh-pages/ (run `npm run gh-pages` first).
  * Re-runnable: `node scripts/proof-scene-machine-irrefragable.mjs`.
  *
  * ── S-HARNESS PREAMBLE (WV-W1-MED, BINDING) ──────────────────────────────────
@@ -96,11 +109,13 @@
  * the deterministic, round-trippable identity (a playing clock legitimately
  * free-runs and is NOT a defect).
  */
-import fs from "node:fs";
-import http from "node:http";
 import path from "node:path";
-import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import {
+    SCENE_MACHINE_KEY,
+    navToScene,
+    withPage,
+} from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
@@ -119,23 +134,12 @@ console.log(
 // ── BROWSER gate (every clause needs the running demo) ───────────────────────
 // In CI demo-smoke sets KF_REQUIRE_BROWSER=1 (it installs playwright + chromium
 // + builds gh-pages first) — there the browser half MUST run, or the keystone
-// would pass vacuously. Mirror proof:demo-usability / proof:demo-console-clean:
-// a skip becomes a hard fail under KF_REQUIRE_BROWSER, so the gate cannot
-// green-report an FSM it never exercised.
-const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
-const skipOrFail = (reason) => {
-    if (REQUIRE_BROWSER) {
-        fail(
-            `browser half REQUIRED (KF_REQUIRE_BROWSER=1) but ${reason} — the ` +
-                "scene+playback FSM clauses cannot pass vacuously",
-        );
-    } else {
-        console.log(`  ○ browser half skipped — ${reason}`);
-    }
-};
+// would pass vacuously. The lib lifecycle (withPage) carries the rule AT THE
+// SEAM: under KF_REQUIRE_BROWSER a harness-start failure THROWS (exit poisoned),
+// so the gate cannot green-report an FSM it never exercised (J.W3 S6d / W7-1).
 
 // ── localStorage keys (the identity oracle — single-sourced from the stores) ──
-const MACHINE_KEY = "keyframes-js-scene-machine"; // SCENE_MACHINE_PERSIST_KEY
+const MACHINE_KEY = SCENE_MACHINE_KEY; // SCENE_MACHINE_PERSIST_KEY (lib-sourced)
 const CTRL_KEY = "animation-groups-control-options-store";
 
 // The scene id → superKey map (mirrors scenes.ts; the control projection is
@@ -160,6 +164,16 @@ const SUPER_KEY = {
 // biting every architecture boundary, incl. the named easing↔cube cross-pair.)
 const MATRIX_SCENES = ["cube", "easing", "amiga"];
 
+// The destination control-tab labels navToScene settles on (the per-EXPECTED
+// predicate; the lib J.W0 primitive): easing/spring project their scene-specific
+// surfaces; cube/amiga keep the built-in "Controls" default.
+const TRIGGER = {
+    cube: "Controls",
+    amiga: "Controls",
+    easing: "Easing",
+    spring: "Spring",
+};
+
 // The scenes whose policy is AUTO-PLAY-ON-EVERY-ENTRY (the raw-rAF previews that
 // expose `autoPlays: true` — EasingScene/SpringScene/StartingStyleScene). For
 // these the FSM identity is "the play INTENT round-trips" (playing→playing) and
@@ -171,63 +185,17 @@ const MATRIX_SCENES = ["cube", "easing", "amiga"];
 const AUTOPLAY_SCENES = new Set(["easing", "spring", "starting-style"]);
 
 async function browserHalf() {
-    if (!fs.existsSync(path.join(DIST, "index.html"))) {
-        skipOrFail("dist/gh-pages not built (run `npm run gh-pages` first)");
-        return;
-    }
-
-    let chromium;
-    try {
-        const requireFrom = createRequire(
-            path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-        );
-        ({ chromium } = requireFrom("playwright-core"));
-    } catch {
-        try {
-            const requireFrom = createRequire(
-                path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-            );
-            ({ chromium } = requireFrom("@playwright/test"));
-        } catch {
-            skipOrFail(
-                "playwright not resolvable (set KF_PLAYWRIGHT_DIR or install @playwright/test)",
-            );
-            return;
-        }
-    }
-
-    const MIME = {
-        ".html": "text/html",
-        ".js": "text/javascript",
-        ".css": "text/css",
-        ".json": "application/json",
-        ".png": "image/png",
-        ".ttf": "font/ttf",
-        ".woff2": "font/woff2",
-        ".svg": "image/svg+xml",
-    };
-    const server = http.createServer((req, res) => {
-        const urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
-        const p = path.join(DIST, urlPath === "/" ? "index.html" : urlPath);
-        if (!p.startsWith(DIST) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) {
-            res.writeHead(404).end();
-            return;
-        }
-        res.writeHead(200, {
-            "content-type": MIME[path.extname(p)] ?? "application/octet-stream",
-        });
-        fs.createReadStream(p).pipe(res);
-    });
-    await new Promise((r) => server.listen(0, r));
-    const port = server.address().port;
-    const base = `http://127.0.0.1:${port}`;
-
-    const browser = await chromium.launch();
-    try {
-        await runClauses(browser, base);
-    } finally {
-        await browser.close();
-        server.close();
+    // The lib lifecycle owns the server/chromium/teardown; the clauses open their
+    // own pages/contexts off the provided `browser` (fresh-context rows are part
+    // of the oracle), so the lib's default page stays idle at about:blank.
+    const result = await withPage(
+        { distDir: DIST, label: "the scene+playback FSM clauses" },
+        async (_page, { url: base, browser }) => {
+            await runClauses(browser, base);
+        },
+    );
+    if (result.skipped) {
+        console.log(`  ○ browser half skipped — ${result.reason}`);
     }
 }
 
@@ -243,31 +211,11 @@ const readStores = (page) =>
         [MACHINE_KEY, CTRL_KEY],
     );
 
-/** In-page NAVIGATE driver: a hash assignment funnels through the afterEach
- *  reader → NAVIGATE → echo-guarded writer (the route is the external input).
- *  NOT a document navigation: storage + any armed trap survive. Waits for the
- *  machine's activeScene to settle on the target, then a settle window. */
-async function navByHash(page, sceneId, settleMs = 2000) {
-    await page.evaluate((s) => {
-        location.hash = "#/" + s;
-    }, sceneId);
-    await page
-        .waitForFunction(
-            ([mk, id]) => {
-                try {
-                    return (
-                        JSON.parse(localStorage.getItem(mk) || "{}").activeScene === id
-                    );
-                } catch {
-                    return false;
-                }
-            },
-            [MACHINE_KEY, sceneId],
-            { timeout: 8000 },
-        )
-        .catch(() => {});
-    await page.waitForTimeout(settleMs);
-}
+// In-page NAVIGATE driver: the lib's navToScene (a hash assignment that funnels
+// through the afterEach reader → NAVIGATE → echo-guarded writer; NOT a document
+// navigation — storage + any armed trap survive), settled on the destination's
+// per-EXPECTED control surface (TRIGGER above). Each call site keeps its own
+// post-nav settle window (the FSM-rest choreography the identity reads need).
 
 /** Click the ONE canonical bottom-bar transport button (the ribbon Play/Pause:
  *  aria-label "Play animation" / "Pause animation" — AnimationMenuBar.vue, one
@@ -359,9 +307,11 @@ async function settleActive(page) {
  *  perScene). So leave to a neutral scene, read perScene[id], return. The
  *  returned snapshot is the deterministic, round-trippable identity. */
 async function captureCanonical(page, sceneId, neutral) {
-    await navByHash(page, neutral);
+    await navToScene(page, neutral, TRIGGER[neutral]);
+    await page.waitForTimeout(2000);
     const snap = (await readStores(page)).machine?.perScene?.[sceneId];
-    await navByHash(page, sceneId);
+    await navToScene(page, sceneId, TRIGGER[sceneId]);
+    await page.waitForTimeout(2000);
     return normalizeSnapshot(snap);
 }
 
@@ -474,7 +424,7 @@ async function measureRafRate(page, ms = 480) {
 }
 
 async function runClauses(browser, base) {
-    await clauseNoRouteStorm(browser, base);
+    await clauseRouteStability(browser, base);
     await clauseSceneIsolation(browser, base);
     await clauseMatrixAndContract(browser, base);
     await clauseSuspendNoOrphan(browser, base);
@@ -483,9 +433,9 @@ async function runClauses(browser, base) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// C3 NO-ROUTE-STORM
+// C3 ROUTE-STABILITY (driven re-renders fire zero scene-changing navs)
 // ─────────────────────────────────────────────────────────────────────────────
-async function clauseNoRouteStorm(browser, base) {
+async function clauseRouteStability(browser, base) {
     const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
     try {
         // Deep-link to a NON-HOME scene (home self-damps + greens vacuously).
@@ -548,38 +498,38 @@ async function clauseNoRouteStorm(browser, base) {
 
         if (sceneChanging.length === 0) {
             ok(
-                `no-route-storm: 0 scene-changing navs across 4 driven re-render ` +
+                `C3 route-stability: 0 scene-changing navs across 4 driven re-render ` +
                     `frames (${storm.navs.length} same-scene echo write(s), ` +
                     `${storm.hashchanges} hashchange(s))`,
             );
         } else {
             fail(
-                `no-route-storm — ${sceneChanging.length} autonomous scene-changing ` +
+                `C3 route-stability — ${sceneChanging.length} autonomous scene-changing ` +
                     `nav(s) on driven re-render: ` +
                     sceneChanging.map((n) => n.url).join(" → ") +
                     ` (the route walked away from #/easing — the storm is live)`,
             );
         }
         if (storm.hash === startHash) {
-            ok(`no-route-storm: resting hash unchanged (${storm.hash})`);
+            ok(`C3 route-stability: resting hash unchanged (${storm.hash})`);
         } else {
             fail(
-                `no-route-storm — resting hash drifted ${startHash} → ${storm.hash}`,
+                `C3 route-stability — resting hash drifted ${startHash} → ${storm.hash}`,
             );
         }
         if (storm.navEntries === 1) {
-            ok(`no-route-storm: navigation entry count === 1 (no reload wiped the trap)`);
+            ok(`C3 route-stability: navigation entry count === 1 (no reload wiped the trap)`);
         } else {
             fail(
-                `no-route-storm — navigation entries === ${storm.navEntries} (expected 1; ` +
+                `C3 route-stability — navigation entries === ${storm.navEntries} (expected 1; ` +
                     `a full reload would wipe the trap and fake a green)`,
             );
         }
         if (storm.pathname === "/") {
-            ok(`no-route-storm: location.pathname === '/' (no /scene#/scene path-mix)`);
+            ok(`C3 route-stability: location.pathname === '/' (no /scene#/scene path-mix)`);
         } else {
             fail(
-                `no-route-storm — pathname === '${storm.pathname}' (expected '/'; the ` +
+                `C3 route-stability — pathname === '${storm.pathname}' (expected '/'; the ` +
                     `malformed cube#/easing path/hash mix)`,
             );
         }
@@ -696,7 +646,8 @@ async function clauseMatrixAndContract(browser, base) {
             // assertion exercises the richer bit-exact path; if the scene resists
             // pausing in this build, fall back to its deterministic resting
             // snapshot (still a real round-trip identity).
-            await navByHash(page, a);
+            await navToScene(page, a, TRIGGER[a]);
+            await page.waitForTimeout(2000);
             if (AUTOPLAY_SCENES.has(a)) {
                 await ensurePlaying(page);
             } else {
@@ -707,8 +658,10 @@ async function clauseMatrixAndContract(browser, base) {
             const beforeProj = await settledProjection(page, a);
 
             // Round-trip: A → B → A (we are on A after captureCanonical).
-            await navByHash(page, b);
-            await navByHash(page, a);
+            await navToScene(page, b, TRIGGER[b]);
+            await page.waitForTimeout(2000);
+            await navToScene(page, a, TRIGGER[a]);
+            await page.waitForTimeout(2000);
             if (AUTOPLAY_SCENES.has(a)) await ensurePlaying(page);
             else await settleActive(page);
 
@@ -800,13 +753,16 @@ async function clauseMatrixAndContract(browser, base) {
         // make — the snapshot carries a `progress` field at all (the dummy
         // contractAnim group has NO position; an architecture that snapshotted
         // ONLY the group would have NO progress here).
-        await navByHash(page, "easing");
+        await navToScene(page, "easing", TRIGGER.easing);
+        await page.waitForTimeout(2000);
         await ensurePlaying(page);
         const easingBefore = normalizeSnapshot(
             (await readStores(page)).machine?.perScene?.easing,
         );
-        await navByHash(page, "cube");
-        await navByHash(page, "easing");
+        await navToScene(page, "cube", TRIGGER.cube);
+        await page.waitForTimeout(2000);
+        await navToScene(page, "easing", TRIGGER.easing);
+        await page.waitForTimeout(2000);
         await ensurePlaying(page);
         const easingAfter = normalizeSnapshot(
             (await readStores(page)).machine?.perScene?.easing,
@@ -866,8 +822,10 @@ async function clauseSuspendNoOrphan(browser, base) {
         // would add a new self-rescheduling loop every cycle → an unbounded climb.
         const rates = [];
         for (let i = 0; i < 4; i++) {
-            await navByHash(page, "cube", 1800);
-            await navByHash(page, "easing", 1800);
+            await navToScene(page, "cube", TRIGGER.cube);
+            await page.waitForTimeout(1800);
+            await navToScene(page, "easing", TRIGGER.easing);
+            await page.waitForTimeout(1800);
             await ensurePlaying(page);
             rates.push(await measureRafRate(page));
         }

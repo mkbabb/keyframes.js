@@ -35,23 +35,23 @@
  * green-vacuous. AND the controls-pane Card (`data-surface`) MUST be found as an
  * ancestor (count ≥ 1) so a zero-card render (no host) cannot pass as "exactly 1".
  *
- * Settle-gated on the H.W1 FSM resting (the same in-page #/cube hash pin + pane-open
- * + viewport-re-assert + detail-row-settle plumbing proof:bezier-no-scroll uses;
- * page.goto clears storage + the H.W1 reconcile trap). Mirrors
- * scripts/proof-bezier-no-scroll.mjs (the panel-open + serveDist + Playwright +
- * settle plumbing). Browser-only (the rendered card depth is a DOM fact — the
- * static source half is that TimingFunctionPanel no longer imports/renders an inner
- * Card, which proof:bezier-no-scroll's header-bake already constrains; this gate
- * locks the COMPUTED depth). Under KF_REQUIRE_BROWSER a playwright-absent skip
- * becomes a hard fail so a SHIP is never green-reported un-exercised. Re-runnable:
+ * Settle-gated on the H.W1 FSM resting (the lib's navToScene #/cube hash pin +
+ * pane-open + viewport-re-assert + detail-row-settle plumbing
+ * proof:bezier-no-scroll uses; page.goto clears storage + the H.W1 reconcile
+ * trap). Harness: the scripts/lib/demo-driver.mjs lifecycle (withPage = serveDist
+ * + resolveChromium + context/teardown, J.W3 S1) + navToScene. Browser-only (the
+ * rendered card depth is a DOM fact — the static source half is that
+ * TimingFunctionPanel no longer imports/renders an inner Card, which
+ * proof:bezier-no-scroll's header-bake already constrains; this gate locks the
+ * COMPUTED depth). Under KF_REQUIRE_BROWSER a playwright-absent skip becomes a
+ * hard fail AT THE LIB SEAM so a SHIP is never green-reported un-exercised.
+ * Re-runnable:
  * `node scripts/proof-bezier-single-card.mjs`. Serves the BUILT dist/gh-pages/
  * (run `npm run gh-pages` first).
  */
-import fs from "node:fs";
-import http from "node:http";
 import path from "node:path";
-import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import { navToScene, withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
@@ -65,64 +65,10 @@ const fail = (label) => {
 
 console.log("proof:bezier-single-card — H.W11 I6 (the cubic-bézier de-nest lock; no card-in-card)");
 
-const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
-const skipOrFail = (reason) => {
-    if (REQUIRE_BROWSER) {
-        fail(
-            `browser half REQUIRED (KF_REQUIRE_BROWSER=1) but ${reason} — ` +
-                "the single-card-depth clause cannot pass vacuously",
-        );
-    } else {
-        console.log(`  ○ browser half skipped — ${reason}`);
-    }
-};
-
-const MIME = {
-    ".html": "text/html",
-    ".js": "text/javascript",
-    ".css": "text/css",
-    ".json": "application/json",
-    ".png": "image/png",
-    ".ttf": "font/ttf",
-    ".woff2": "font/woff2",
-    ".svg": "image/svg+xml",
-};
-const MACHINE_KEY = "keyframes-js-scene-machine"; // SCENE_MACHINE_PERSIST_KEY
 const CTRL_KEY = "animation-groups-control-options-store";
 
-function serveDist() {
-    const server = http.createServer((req, res) => {
-        const urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
-        const p = path.join(DIST, urlPath === "/" ? "index.html" : urlPath);
-        if (!p.startsWith(DIST) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) {
-            res.writeHead(404).end();
-            return;
-        }
-        res.writeHead(200, {
-            "content-type": MIME[path.extname(p)] ?? "application/octet-stream",
-        });
-        fs.createReadStream(p).pipe(res);
-    });
-    return server;
-}
-
 async function settleOnCube(page, viewportWidth, viewportHeight) {
-    await page.evaluate(() => {
-        location.hash = "#/cube";
-    });
-    await page
-        .waitForFunction(
-            (mk) => {
-                try {
-                    return JSON.parse(localStorage.getItem(mk) || "{}").activeScene === "cube";
-                } catch {
-                    return false;
-                }
-            },
-            MACHINE_KEY,
-            { timeout: 8000 },
-        )
-        .catch(() => {});
+    await navToScene(page, "cube", "Controls", { timeout: 8000 });
     await page.setViewportSize({ width: viewportWidth, height: viewportHeight });
     await page.evaluate((ck) => {
         try {
@@ -178,38 +124,16 @@ async function openBezierPanel(page) {
 }
 
 async function browserHalf() {
-    if (!fs.existsSync(path.join(DIST, "index.html"))) {
-        skipOrFail("dist/gh-pages not built (run `npm run gh-pages` first)");
-        return;
-    }
-    let chromium;
-    try {
-        const requireFrom = createRequire(
-            path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-        );
-        ({ chromium } = requireFrom("playwright-core"));
-    } catch {
-        try {
-            const requireFrom = createRequire(
-                path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-            );
-            ({ chromium } = requireFrom("@playwright/test"));
-        } catch {
-            skipOrFail("playwright not resolvable (set KF_PLAYWRIGHT_DIR or install @playwright/test)");
-            return;
-        }
-    }
-
-    const server = serveDist();
-    await new Promise((r) => server.listen(0, r));
-    const base = `http://127.0.0.1:${server.address().port}`;
-
     const VW = 1440;
     const VH = 900;
-    const browser = await chromium.launch();
-    try {
-        const page = await browser.newPage({ viewport: { width: VW, height: VH } });
-        await page.goto(`${base}/#/cube`, { waitUntil: "load" });
+    const result = await withPage(
+        {
+            distDir: DIST,
+            label: "the single-card-depth clause",
+            context: { viewport: { width: VW, height: VH } },
+        },
+        async (page, { url }) => {
+        await page.goto(`${url}/#/cube`, { waitUntil: "load" });
         await settleOnCube(page, VW, VH);
         const opened = await openBezierPanel(page);
 
@@ -289,10 +213,10 @@ async function browserHalf() {
                 );
             }
         }
-        await page.close();
-    } finally {
-        await browser.close();
-        server.close();
+        },
+    );
+    if (result.skipped) {
+        console.log(`  ○ browser half skipped — ${result.reason}`);
     }
 }
 

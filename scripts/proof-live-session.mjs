@@ -4,13 +4,14 @@
  *
  * ONE re-runnable INTERACTION-DRIVEN session over the BUILT dist/gh-pages/ — the
  * SEAM that collapses the lattice of ~34 proxy load-rest/wrong-projection browser
- * gates into a SINGLE human-battery probe (rc-gate-blindspot §5.2). It models on
- * scripts/proof-no-orphan-specular.mjs (serveDist on port 0 + chromium via
- * KF_PLAYWRIGHT_DIR's playwright-core + newContext) — the SAME harness every
- * investigate probe used — EXTENDED FROM PASSIVE TO ACTUATING. The session IS the
- * human battery: load → CLICK the rainbow group-play → hover-expand the morphing
- * dock + SWITCH scenes → fire a synthetic visibilitychange while a raw-rAF scene
- * plays → DRAG on /square + a centre-drag on /amiga → switch back → replay.
+ * gates into a SINGLE human-battery probe (rc-gate-blindspot §5.2). Harness: the
+ * scripts/lib/demo-driver.mjs lifecycle (withPage = serveDist + resolveChromium
+ * + context/teardown for the dist legs; withBrowser for the :5174 dev-server
+ * leg; navToScene as the per-EXPECTED-state nav primitive — J.W3 S1) — EXTENDED
+ * FROM PASSIVE TO ACTUATING. The session IS the human battery: load → CLICK the
+ * rainbow group-play → hover-expand the morphing dock + SWITCH scenes → fire a
+ * synthetic visibilitychange while a raw-rAF scene plays → DRAG on /square + a
+ * centre-drag on /amiga → switch back → replay.
  *
  * THE ORACLE — a single accumulated ERROR BUDGET = 0 (the S2a structured
  * allowlist below) captured via page.on("console")/("pageerror")/("requestfailed")
@@ -49,15 +50,20 @@
  * B2 throws on play→switch, B4's panel is blank, B6 selects text + recenters, B3
  * re-projects the room, B7 blooms at rest, B9's orphan). GREEN only when ALL of
  * I.W0–I.W6 land. Under KF_REQUIRE_BROWSER a playwright-absent skip is a hard
- * fail. Serves the BUILT dist/gh-pages/. Re-runnable:
+ * fail AT THE LIB SEAM. Serves the BUILT dist/gh-pages/. Re-runnable:
  *   KF_REQUIRE_BROWSER=1 KF_PLAYWRIGHT_DIR=… node scripts/proof-live-session.mjs
  */
-import fs from "node:fs";
-import http from "node:http";
 import path from "node:path";
 import { spawn } from "node:child_process";
-import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import { chargeBudget, isNamedBenign } from "./lib/console-budget.mjs";
+import {
+    REQUIRE_BROWSER,
+    SCENE_MACHINE_KEY,
+    navToScene,
+    withBrowser,
+    withPage,
+} from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
@@ -100,81 +106,16 @@ console.log(
 //  |           |                                                   |           |     product — the genuine RC-2 oracle rides the no-screenshot B3:amiga-present-loop leg
 // ═════════════════════════════════════════════════════════════════════════════
 
-// The HARD bare-"......" empty-input parse fingerprint (rc-parse-crash) — matched
-// EXPLICITLY. Also the serialize warn / route-storm / could-not-serialize tells.
-const PARSE_FINGERPRINT = /Parse error at offset 0: "\.+"|"\.{4,}"|could not serialize|no CSS twin|\bErr x\b/;
-// The _gen crash class (B2) + the Vue flush-abort tell (the downstream symptom).
-const GEN_CRASH = /_gen|Cannot read propert.*undefined|undefined is not an object|Unhandled error during execution of (?:scheduler|component)/;
-// The PROMOTED amiga WebGL GPU-stall signal (RC-2). The bare "hidden by content-
-// visibility" line is SHARED with the benign Monaco keyframes-pane cache, so the
-// promoted oracle is the ReadPixels/GPU-stall line; the content-visibility line is
-// counted ONLY when it is NOT the named-benign Monaco cache (see NAMED_BENIGN).
-const PROMOTED_GPU = /ReadPixels|GPU stall/i;
-const PROMOTED_CV = /content-visibility|hidden by content-visibility/i;
-
-// NAMED-BENIGN EXCLUSIONS (the only lines NOT counted) — by NAMED SIGNATURE, not
-// by widening a budget regex:
-//   1. the dev DevTools dep-optimizer / source-map noise (the :5174-only ×47).
-//   2. the Monaco keyframes-pane INTENTIONAL content-visibility:hidden B-2 cache
-//      warn (I.W3 impl note) — a benign render-in-hidden-subtree line that is NOT
-//      a WebGL GPU stall.
-const NAMED_BENIGN = [
-    /Download the (React|Vue) DevTools/i,
-    /\[vite\] (connecting|connected)/i,
-    /source ?map/i,
-    /dep-?optimiz/i,
-    /node_modules\/\.vite\/deps/i,
-    /Failed to load (?:resource).*\.map\b/i,
-    /\bhidden by content-visibility\b.*monaco/i, // the benign Monaco cache (named)
-];
-
-const isNamedBenign = (text) => NAMED_BENIGN.some((re) => re.test(text));
-
-// Classify a captured console/page event against the budget. Returns null if it
-// does NOT charge the budget, else a { tier, text } charge. `leg` scopes the
-// PROMOTED tier: per S2a the ReadPixels/GPU-stall + content-visibility warns are
-// promoted-zero ONLY in the amiga WebGL context (where they index the RC-2 GPU
-// stall over the live present loop). Elsewhere the generic Chrome verbose
-// "Rendering was performed in a subtree hidden by content-visibility" line is the
-// NAMED-BENIGN Monaco keyframes-pane B-2 cache (an intentional content-visibility:
-// hidden, I.W3 impl note) — NOT a WebGL stall, NOT counted.
-function chargeBudget(kind, type, text, leg = "") {
-    if (isNamedBenign(text)) return null;
-    // HARD: any pageerror / unhandledrejection / weberror / crash.
-    if (kind === "pageerror" || kind === "unhandledrejection" || kind === "weberror" || kind === "crash") {
-        return { tier: "HARD", text: `${kind}: ${text}` };
-    }
-    if (kind === "console") {
-        // HARD: console.error (any) + the explicit parse fingerprint on any level.
-        if (type === "error") return { tier: "HARD", text: `console.error: ${text}` };
-        if (PARSE_FINGERPRINT.test(text)) return { tier: "HARD", text: `parse-fingerprint(${type}): ${text}` };
-        if (GEN_CRASH.test(text)) return { tier: "HARD", text: `_gen-crash(${type}): ${text}` };
-        // PROMOTED — SCOPED to the amiga WebGL context (S2a). The ReadPixels/GPU-
-        // stall line is the unmistakable amiga signal anywhere; the bare content-
-        // visibility verbose line is promoted ONLY on the amiga leg (elsewhere it is
-        // the benign Monaco cache, named-benign by SCOPE not by widening a regex).
-        const isAmigaLeg = /amiga/i.test(leg);
-        // DECLARED-READBACK legs (the harness's OWN page.screenshot of a WebGL
-        // canvas, used to MEASURE the subject-vs-room MAD) synchronously read the
-        // framebuffer back — Chromium's GL driver emits the SAME "GPU stall due to
-        // ReadPixels" line for that INSTRUMENT readback as it would for a real
-        // product present-loop stall. That line is the measurement instrument, NOT
-        // the product (the amiga render loop never reads back; I.W3 removed it). A
-        // leg explicitly marked `:readback` therefore does NOT charge the PROMOTED
-        // GPU/CV tiers — the genuine RC-2 present-loop oracle rides the NO-screenshot
-        // `B3:amiga-present-loop` leg (which DOES charge), mirroring the canonical
-        // proof:amiga-subject-is-pivot clause (a)/(c) split. HARD tiers still charge
-        // on readback legs — a real throw during a screenshot is still a real throw.
-        const isDeclaredReadback = /readback/i.test(leg);
-        if (!isDeclaredReadback && (type === "warning" || type === "verbose" || type === "warn") && PROMOTED_GPU.test(text)) {
-            return { tier: "PROMOTED", text: `gpu-stall(${type}): ${text}` };
-        }
-        if (isAmigaLeg && !isDeclaredReadback && (type === "warning" || type === "verbose" || type === "warn") && PROMOTED_CV.test(text)) {
-            return { tier: "PROMOTED", text: `amiga content-visibility(${type}): ${text}` };
-        }
-    }
-    return null;
-}
+// THE CLASSIFIER IS LIB-SOURCED (J.W3 S1b / GC-7): `NAMED_BENIGN` + `isNamedBenign`
+// + `chargeBudget` (with the PARSE_FINGERPRINT / GEN_CRASH / PROMOTED_GPU /
+// PROMOTED_CV oracles) live in scripts/lib/console-budget.mjs — the SINGLE budget
+// authority any future console-budget gate consumes. The promotion carries the
+// W7-2 LEG-SCOPING fix: the dev DevTools/vite/dep-optimizer/source-map exclusions
+// apply ONLY on the dev-server leg (`B2:dev-server:5174`); on every dist leg they
+// are INERT BY CONSTRUCTION (`/source ?map/i` tightened to the DevTools
+// dep-optimizer fingerprint). The Monaco content-visibility exclusion stays
+// leg-independent (scoped by `monaco` in the regex itself). The `leg` label is
+// therefore THREADED through every chargeBudget/isNamedBenign call below.
 
 // A budget accumulator bound to a page (or many). All charges across the WHOLE
 // battery accrue here; the verdict reads `charges.length === 0`.
@@ -182,86 +123,44 @@ function makeBudget(label) {
     const charges = [];
     const attach = (page, legLabel) => {
         page.on("pageerror", (e) => {
-            const c = chargeBudget("pageerror", null, String(e?.message ?? e));
+            const c = chargeBudget("pageerror", null, String(e?.message ?? e), legLabel);
             if (c) charges.push({ ...c, leg: legLabel });
         });
         page.on("console", (m) => {
-            const c = chargeBudget("console", m.type(), m.text());
+            // Chrome's "hidden by content-visibility" verbose line carries NO
+            // element info in its text — the Monaco keyframes-pane named-benign
+            // signature lives in the message SOURCE (the monaco/CSSCodeEditor
+            // chunk). Append the source URL so the named-benign check matches BY
+            // NAMED SIGNATURE (S1b), never by widening the text regex.
+            const src = m.location()?.url ?? "";
+            const text = src ? `${m.text()} [source: ${src}]` : m.text();
+            const c = chargeBudget("console", m.type(), text, legLabel);
             if (c) charges.push({ ...c, leg: legLabel });
         });
         page.on("crash", () => charges.push({ tier: "HARD", text: "page crashed", leg: legLabel }));
         page.on("requestfailed", (req) => {
             // A failed asset request on the dist is a real miss (the B9 orphan
-            // class) — charge it unless named-benign (a dev source-map miss).
+            // class) — charge it unless named-benign (a dev source-map miss,
+            // leg-scoped: benign ONLY on the dev-server leg — W7-2).
             const u = req.url();
             const ef = req.failure?.()?.errorText ?? "";
             const txt = `requestfailed: ${u} (${ef})`;
-            if (!isNamedBenign(txt) && !isNamedBenign(u)) {
+            if (!isNamedBenign(txt, legLabel) && !isNamedBenign(u, legLabel)) {
                 charges.push({ tier: "HARD", text: txt, leg: legLabel });
             }
         });
         page.context().on?.("weberror", (e) => {
-            const c = chargeBudget("weberror", null, String(e?.error?.message ?? e));
+            const c = chargeBudget("weberror", null, String(e?.error?.message ?? e), legLabel);
             if (c) charges.push({ ...c, leg: legLabel });
         });
     };
     return { label, charges, attach };
 }
 
-// ── browser plumbing (the proof-no-orphan-specular pattern) ───────────────────
-const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
+// ── browser plumbing (the scripts/lib/demo-driver.mjs lifecycle, J.W3 S1) ─────
 const USE_DEV_SERVER = process.env.KF_DEV_SERVER === "1";
-const skipOrFail = (reason) => {
-    if (REQUIRE_BROWSER) {
-        fail(`browser half REQUIRED (KF_REQUIRE_BROWSER=1) but ${reason} — the live-session battery cannot pass vacuously`);
-    } else {
-        console.log(`  ○ browser half skipped — ${reason}`);
-    }
-};
-
-const MIME = {
-    ".html": "text/html",
-    ".js": "text/javascript",
-    ".css": "text/css",
-    ".json": "application/json",
-    ".png": "image/png",
-    ".jpg": "image/jpeg",
-    ".ttf": "font/ttf",
-    ".woff2": "font/woff2",
-    ".svg": "image/svg+xml",
-    ".map": "application/json",
-};
-const MACHINE_KEY = "keyframes-js-scene-machine";
+const MACHINE_KEY = SCENE_MACHINE_KEY; // SCENE_MACHINE_PERSIST_KEY (lib-sourced)
 const CTRL_KEY = "animation-groups-control-options-store";
-
-function serveDist() {
-    return http.createServer((req, res) => {
-        const urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
-        const p = path.join(DIST, urlPath === "/" ? "index.html" : urlPath);
-        if (!p.startsWith(DIST) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) {
-            res.writeHead(404).end();
-            return;
-        }
-        res.writeHead(200, { "content-type": MIME[path.extname(p)] ?? "application/octet-stream" });
-        fs.createReadStream(p).pipe(res);
-    });
-}
-
-function resolveChromium() {
-    const tryRequire = (mod) => {
-        const requireFrom = createRequire(path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"));
-        return requireFrom(mod).chromium;
-    };
-    try {
-        return tryRequire("playwright-core");
-    } catch {
-        try {
-            return tryRequire("@playwright/test");
-        } catch {
-            return null;
-        }
-    }
-}
 
 // ── shared page helpers (the actuating primitives) ────────────────────────────
 async function seedControlsOpen(page) {
@@ -290,15 +189,10 @@ async function waitActiveScene(page, sceneId, timeout = 8000) {
         .catch(() => {});
 }
 
-/** In-page hash NAVIGATE (storage + the live FSM survive — required for the
- *  MODE-PERSIST continuity). */
-async function navByHash(page, sceneId, settleMs = 1500) {
-    await page.evaluate((s) => {
-        location.hash = "#/" + s;
-    }, sceneId);
-    await waitActiveScene(page, sceneId);
-    await page.waitForTimeout(settleMs);
-}
+// In-page hash NAVIGATE: the lib's navToScene (storage + the live FSM survive —
+// required for the MODE-PERSIST continuity), settled on the destination's
+// per-EXPECTED control surface. Each call site keeps its own post-nav settle
+// window (the battery's choreography).
 
 /** Hover-expand the morphing dock so its Scene trigger is hit-testable (the real
  *  combobox path — b10 §0: a probe that does not hover-expand the dock NEVER
@@ -404,21 +298,7 @@ async function fireVisibilityVisible(page) {
 // THE BATTERY
 // ═════════════════════════════════════════════════════════════════════════════
 async function runBattery() {
-    if (!fs.existsSync(path.join(DIST, "index.html"))) {
-        skipOrFail("dist/gh-pages not built (run `npm run gh-pages` first)");
-        return;
-    }
-    const chromium = resolveChromium();
-    if (!chromium) {
-        skipOrFail("playwright not resolvable (set KF_PLAYWRIGHT_DIR or install @playwright/test)");
-        return;
-    }
-
-    const server = serveDist();
-    await new Promise((r) => server.listen(0, r));
-    const base = `http://127.0.0.1:${server.address().port}`;
     const VW = 1440;
-    const browser = await chromium.launch();
 
     // ONE accumulated budget across the WHOLE battery (both modes, every leg).
     const budget = makeBudget("whole-battery");
@@ -426,7 +306,14 @@ async function runBattery() {
     // Per-leg product-facing DOM verdicts (the union of the per-wave legs).
     const dom = {};
 
-    try {
+    // The lib lifecycle owns the server/chromium/teardown (the dist legs); every
+    // leg opens its own fresh/persistent context off the provided `browser` (the
+    // two harness modes ARE the oracle), so the lib's default page stays idle at
+    // about:blank. The :5174 dev-server leg launches its OWN browser through
+    // withBrowser (the second launch).
+    const result = await withPage(
+        { distDir: DIST, label: "the live-session battery" },
+        async (_page, { url: base, browser }) => {
         // ════════════════════════════════════════════════════════════════════
         // MODE-FRESH — the INDEPENDENT per-scene legs (a fresh context per scene).
         // ════════════════════════════════════════════════════════════════════
@@ -479,7 +366,8 @@ async function runBattery() {
             await page.waitForTimeout(700);
             // Switch into easing via the hash route (the accepted switch-in repro of
             // the reka passive-latch). Then open the easing controls tab if needed.
-            await navByHash(page, "easing");
+            await navToScene(page, "easing", "Easing");
+            await page.waitForTimeout(1500);
             const easing = await page.evaluate(async () => {
                 const canvas = document.querySelector(".easing-curve-canvas");
                 const present = !!canvas;
@@ -806,7 +694,8 @@ async function runBattery() {
             const genAfter = budget.charges.filter((c) => /_gen-crash|_gen|Cannot read propert/.test(c.text)).length;
 
             // resume-iff-was-playing — switch back to easing + replay (continuity).
-            await navByHash(page, "easing");
+            await navToScene(page, "easing", "Easing");
+            await page.waitForTimeout(1500);
             await page.waitForTimeout(500);
             await clickRainbowPlay(page);
             await page.waitForTimeout(800);
@@ -827,7 +716,7 @@ async function runBattery() {
         //    justified exception. KF_DEV_SERVER=1 runs clause B2 against :5174 and
         //    excludes ONLY the named dev source-map noise. ─────────────────────
         if (USE_DEV_SERVER) {
-            await runDevServerB2(chromium, budget);
+            await runDevServerB2(budget);
         } else {
             note(
                 "B2 dev-server leg SKIPPED (KF_DEV_SERVER unset). The DETERMINISTIC born-RED-of-record is the " +
@@ -835,9 +724,11 @@ async function runBattery() {
                     "zero _gen) is verified on the dist above. Set KF_DEV_SERVER=1 to run the corroborating dev leg.",
             );
         }
-    } finally {
-        await browser.close();
-        server.close();
+        },
+    );
+    if (result.skipped) {
+        console.log(`  ○ browser half skipped — ${result.reason}`);
+        return;
     }
 
     // ── REPORT — the accumulated budget + the product-facing DOM verdicts ─────
@@ -846,8 +737,12 @@ async function runBattery() {
 
 /** The NAMED dev-server exception (S2b): spin vite (:5174) and run the synthetic
  *  B2 leg against the source-mapped build where the _gen deref is DETERMINISTIC.
- *  EXCLUDES only the named dev source-map noise. Post-fix: GREEN. */
-async function runDevServerB2(chromium, budget) {
+ *  EXCLUDES only the named dev source-map noise (leg-scoped — W7-2/S1b). The
+ *  browser launch routes through the lib's withBrowser against the EXTERNAL
+ *  :5174 URL (the second launch — no dist server). W7-1 / J.W3 S6d (the named
+ *  vacuous-pass hole, closed): under KF_REQUIRE_BROWSER=1 a vite-did-not-come-up
+ *  skip is a FAIL, never a note()+return. Post-fix: GREEN. */
+async function runDevServerB2(budget) {
     const PORT = 5174;
     const child = spawn("npx", ["vite", "--port", String(PORT), "--strictPort"], { cwd: REPO, stdio: "ignore", env: { ...process.env } });
     const devBase = `http://localhost:${PORT}`;
@@ -862,12 +757,21 @@ async function runDevServerB2(chromium, budget) {
         return false;
     })();
     if (!up) {
-        note(`B2 dev-server leg: vite did not come up on :${PORT} within 60s — skipped.`);
+        if (REQUIRE_BROWSER) {
+            fail(
+                `B2 dev-server leg REQUIRED (KF_REQUIRE_BROWSER=1) but vite did not come up on :${PORT} ` +
+                    `within 60s — the deterministic B2 clause cannot pass vacuously (a note()-skip under ` +
+                    `KF_REQUIRE_BROWSER=1 is a FAIL — J.W3 S6d / W7-1)`,
+            );
+        } else {
+            note(`B2 dev-server leg: vite did not come up on :${PORT} within 60s — skipped.`);
+        }
         child.kill("SIGTERM");
         return;
     }
-    const browser = await chromium.launch();
     try {
+        const result = await withBrowser(
+            async (browser) => {
         const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
         const page = await ctx.newPage();
         budget.attach(page, "B2:dev-server:5174");
@@ -887,8 +791,13 @@ async function runDevServerB2(chromium, budget) {
             fail(`B2 DEV-SERVER (:5174) RED: the deterministic suspend STILL threw the _gen crash class (${after - before} new) — the bind-proof fix did not hold at the source.`);
         }
         await ctx.close();
+            },
+            { label: "the deterministic B2 dev-server leg" },
+        );
+        if (result.skipped) {
+            note(`B2 dev-server leg skipped — ${result.reason}`);
+        }
     } finally {
-        await browser.close();
         child.kill("SIGTERM");
     }
 }

@@ -43,16 +43,17 @@
  *      the lockstep re-write → the guide moves but the traveller's offset-path
  *      stays stale (they DIFFER) → reds (the no-drift invariant is the point).
  *
- * Mirrors scripts/proof-scene-parity.mjs (serveDist + Playwright + the FSM-settle
- * plumbing + the KF_REQUIRE_BROWSER skipOrFail). The browser half serves the
- * BUILT dist/gh-pages/ (run `npm run gh-pages` first). Re-runnable:
+ * Harness: the scripts/lib/demo-driver.mjs lifecycle (withPage = serveDist +
+ * resolveChromium + context/teardown, J.W3 S1) + navToScene (the per-EXPECTED-
+ * state scene settle). The browser half serves the BUILT dist/gh-pages/ (run
+ * `npm run gh-pages` first). Under KF_REQUIRE_BROWSER a playwright-absent skip
+ * becomes a hard fail AT THE LIB SEAM. Re-runnable:
  * `node scripts/proof-motion-path-editable.mjs`.
  */
 import fs from "node:fs";
-import http from "node:http";
 import path from "node:path";
-import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import { navToScene, withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEMO = path.join(REPO, "demo");
@@ -121,62 +122,11 @@ const gestureSrc = read(path.join(DEMO, "motion-path/useMotionPathGesture.ts"));
 }
 
 // ── BROWSER HALF ─────────────────────────────────────────────────────────────
-const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
-const skipOrFail = (reason) => {
-    if (REQUIRE_BROWSER) {
-        fail(
-            `browser half REQUIRED (KF_REQUIRE_BROWSER=1) but ${reason} — the ` +
-                "live handle-drag lockstep re-shape cannot pass vacuously",
-        );
-    } else {
-        console.log(`  ○ browser half skipped — ${reason}`);
-    }
-};
-
-const MIME = {
-    ".html": "text/html",
-    ".js": "text/javascript",
-    ".css": "text/css",
-    ".json": "application/json",
-    ".png": "image/png",
-    ".ttf": "font/ttf",
-    ".woff2": "font/woff2",
-    ".svg": "image/svg+xml",
-};
-const MACHINE_KEY = "keyframes-js-scene-machine";
-
-function serveDist() {
-    return http.createServer((req, res) => {
-        const urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
-        const p = path.join(DIST, urlPath === "/" ? "index.html" : urlPath);
-        if (!p.startsWith(DIST) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) {
-            res.writeHead(404).end();
-            return;
-        }
-        res.writeHead(200, {
-            "content-type": MIME[path.extname(p)] ?? "application/octet-stream",
-        });
-        fs.createReadStream(p).pipe(res);
-    });
-}
-
-async function settleOnScene(page, sceneId, vw, vh, settleMs = 1400) {
-    await page.evaluate((s) => {
-        location.hash = "#/" + s;
-    }, sceneId);
-    await page
-        .waitForFunction(
-            ([mk, id]) => {
-                try {
-                    return JSON.parse(localStorage.getItem(mk) || "{}").activeScene === id;
-                } catch {
-                    return false;
-                }
-            },
-            [MACHINE_KEY, sceneId],
-            { timeout: 8000 },
-        )
-        .catch(() => {});
+/** Drive a scene switch via the lib's navToScene (per-EXPECTED-state settle;
+ *  expectedTrigger null = the destination renders NO control panel), re-assert
+ *  the viewport, then a settle window. */
+async function settleOnScene(page, sceneId, expectedTrigger, vw, vh, settleMs = 1400) {
+    await navToScene(page, sceneId, expectedTrigger, { timeout: 8000 });
     await page.setViewportSize({ width: vw, height: vh });
     await page.waitForTimeout(settleMs);
 }
@@ -216,42 +166,21 @@ function extractPathData(v) {
 }
 
 async function browserHalf() {
-    if (!fs.existsSync(path.join(DIST, "index.html"))) {
-        skipOrFail("dist/gh-pages not built (run `npm run gh-pages` first)");
-        return;
-    }
-    let chromium;
-    try {
-        const requireFrom = createRequire(
-            path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-        );
-        ({ chromium } = requireFrom("playwright-core"));
-    } catch {
-        try {
-            const requireFrom = createRequire(
-                path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-            );
-            ({ chromium } = requireFrom("@playwright/test"));
-        } catch {
-            skipOrFail("playwright not resolvable (set KF_PLAYWRIGHT_DIR or install @playwright/test)");
-            return;
-        }
-    }
-
-    const server = serveDist();
-    await new Promise((r) => server.listen(0, r));
-    const base = `http://127.0.0.1:${server.address().port}`;
-
     const VW = 1440;
     const VH = 900;
-    const browser = await chromium.launch();
-    try {
-        const page = await browser.newPage({ viewport: { width: VW, height: VH } });
-        await page.goto(`${base}/#/cube`, { waitUntil: "load" });
+    const result = await withPage(
+        {
+            distDir: DIST,
+            label: "the live handle-drag lockstep re-shape",
+            context: { viewport: { width: VW, height: VH } },
+        },
+        async (page, { url }) => {
+        await page.goto(`${url}/#/cube`, { waitUntil: "load" });
         await page.waitForTimeout(800);
 
         // ── 3. the handle drag re-shapes BOTH the guide d AND offset-path ────
-        await settleOnScene(page, "motion-path", VW, VH);
+        // (motion-path renders NO control panel — EXPECT trigger null)
+        await settleOnScene(page, "motion-path", null, VW, VH);
         const guideReady = await waitVisible(page, ".mp-guide-path");
         const travellerReady = await waitVisible(page, ".mp-traveller");
         const handlesReady = await page
@@ -341,10 +270,10 @@ async function browserHalf() {
             }
         }
 
-        await page.close();
-    } finally {
-        await browser.close();
-        server.close();
+        },
+    );
+    if (result.skipped) {
+        console.log(`  ○ browser half skipped — ${result.reason}`);
     }
 }
 

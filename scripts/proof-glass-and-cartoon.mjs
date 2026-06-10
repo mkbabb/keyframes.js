@@ -57,22 +57,22 @@
  *      > 0.55 → reds; strip the glass blur (backdrop-filter:none on a non-transparent
  *      panel) → its translucent-witness drops below the ≥5 floor → reds.
  *
- * Mirrors scripts/proof-cartoon-is-panel-depth.mjs (the serveDist + Playwright +
- * FSM-settle plumbing + the token/Card sweep; the STATIC half always runs, the
+ * Harness: the scripts/lib/demo-driver.mjs lifecycle (withPage = serveDist +
+ * resolveChromium + context/teardown, J.W3 S1; the STATIC half always runs, the
  * BROWSER half gates on playwright resolution — under KF_REQUIRE_BROWSER a
- * playwright-absent skip becomes a hard fail so a SHIP is never green-reported
- * un-exercised). Scene switches are driven by an IN-PAGE hash assignment (NOT
- * page.goto — goto clears storage + kills the H.W1 reconcile trap), settle-gated
- * on the H.W1 FSM resting. proof:cartoon-is-panel-depth (the DEPTH half) STAYS
+ * playwright-absent skip becomes a hard fail AT THE LIB SEAM so a SHIP is never
+ * green-reported un-exercised). Scene switches are driven by the lib's navToScene
+ * (an IN-PAGE hash assignment — NOT page.goto, which clears storage + kills the
+ * H.W1 reconcile trap — settled on the destination's per-EXPECTED control
+ * surface). proof:cartoon-is-panel-depth (the DEPTH half) STAYS
  * GREEN, tier-agnostic; this gate is the orthogonal TRANSLUCENCY half. Re-runnable:
  * `node scripts/proof-glass-and-cartoon.mjs`. The browser half serves the BUILT
  * dist/gh-pages/ (run `npm run gh-pages` first).
  */
 import fs from "node:fs";
-import http from "node:http";
 import path from "node:path";
-import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import { navToScene, REQUIRE_BROWSER, withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEMO = path.join(REPO, "demo");
@@ -160,7 +160,9 @@ console.log("proof:glass-and-cartoon — H.W9 F8 (the calm glass+cartoon registe
 }
 
 // ── 2. COMPUTED-TRANSLUCENCY (browser, gated) ─────────────────────────────────
-const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
+// skipOrFail is KEPT for the reduced-transparency ORACLE precondition below (an
+// honest cannot-certify skip, NOT a harness-start skip — those are the lib's W7-1
+// seam now). REQUIRE_BROWSER is the lib's single authority.
 const skipOrFail = (reason) => {
     if (REQUIRE_BROWSER) {
         fail(
@@ -172,57 +174,17 @@ const skipOrFail = (reason) => {
     }
 };
 
-const MIME = {
-    ".html": "text/html",
-    ".js": "text/javascript",
-    ".css": "text/css",
-    ".json": "application/json",
-    ".png": "image/png",
-    ".ttf": "font/ttf",
-    ".woff2": "font/woff2",
-    ".svg": "image/svg+xml",
-};
-const MACHINE_KEY = "keyframes-js-scene-machine"; // SCENE_MACHINE_PERSIST_KEY
 const CTRL_KEY = "animation-groups-control-options-store";
 
-/** Serve the BUILT dist/gh-pages on an ephemeral port. */
-function serveDist() {
-    const server = http.createServer((req, res) => {
-        const urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
-        const p = path.join(DIST, urlPath === "/" ? "index.html" : urlPath);
-        if (!p.startsWith(DIST) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) {
-            res.writeHead(404).end();
-            return;
-        }
-        res.writeHead(200, {
-            "content-type": MIME[path.extname(p)] ?? "application/octet-stream",
-        });
-        fs.createReadStream(p).pipe(res);
-    });
-    return server;
-}
+// The destination control-tab labels navToScene settles on (per-EXPECTED-state).
+const TRIGGER = { cube: "Controls", easing: "Easing", spring: "Spring" };
 
-/** Settle on a scene via an IN-PAGE hash assignment (storage + the H.W1 trap
+/** Settle on a scene via the lib's in-page hash nav (storage + the H.W1 trap
  *  survive; goto would clear both). Re-assert the viewport AFTER navigation
  *  (Playwright resets on navigate) + force the controls pane OPEN + rest ≥500ms,
  *  the same FSM-resting settle the H.W2/W3 gates use. */
 async function settleOnScene(page, scene, viewportWidth) {
-    await page.evaluate((s) => {
-        location.hash = "#/" + s;
-    }, scene);
-    await page
-        .waitForFunction(
-            ([mk, s]) => {
-                try {
-                    return JSON.parse(localStorage.getItem(mk) || "{}").activeScene === s;
-                } catch {
-                    return false;
-                }
-            },
-            [MACHINE_KEY, scene],
-            { timeout: 8000 },
-        )
-        .catch(() => {});
+    await navToScene(page, scene, TRIGGER[scene], { timeout: 8000 });
     await page.setViewportSize({ width: viewportWidth, height: 900 });
     await page.evaluate((ck) => {
         try {
@@ -261,41 +223,19 @@ function bgAlphaProbeSource() {
 }
 
 async function browserHalf() {
-    if (!fs.existsSync(path.join(DIST, "index.html"))) {
-        skipOrFail("dist/gh-pages not built (run `npm run gh-pages` first)");
-        return;
-    }
-    let chromium;
-    try {
-        const requireFrom = createRequire(
-            path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-        );
-        ({ chromium } = requireFrom("playwright-core"));
-    } catch {
-        try {
-            const requireFrom = createRequire(
-                path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-            );
-            ({ chromium } = requireFrom("@playwright/test"));
-        } catch {
-            skipOrFail("playwright not resolvable (set KF_PLAYWRIGHT_DIR or install @playwright/test)");
-            return;
-        }
-    }
-
-    const server = serveDist();
-    await new Promise((r) => server.listen(0, r));
-    const base = `http://127.0.0.1:${server.address().port}`;
-
     const VW = 1440;
-    const browser = await chromium.launch();
-    try {
-        const page = await browser.newPage({ viewport: { width: VW, height: 900 } });
+    const result = await withPage(
+        {
+            distDir: DIST,
+            label: "the computed glass-translucency assertion",
+            context: { viewport: { width: VW, height: 900 } },
+        },
+        async (page, { url }) => {
         // Pin the non-reduced-motion case explicitly; reduced-transparency stays at
         // the default no-preference (Playwright has no emulator — the default IS the
         // non-reduced case the F8 lock measures, asserted live below).
         await page.emulateMedia({ reducedMotion: "no-preference" });
-        await page.goto(`${base}/#/cube`, { waitUntil: "load" });
+        await page.goto(`${url}/#/cube`, { waitUntil: "load" });
 
         await settleOnScene(page, "cube", VW);
 
@@ -405,10 +345,10 @@ async function browserHalf() {
             }
         }
 
-        await page.close();
-    } finally {
-        await browser.close();
-        server.close();
+        },
+    );
+    if (result.skipped) {
+        console.log(`  ○ browser half skipped — ${result.reason}`);
     }
 }
 

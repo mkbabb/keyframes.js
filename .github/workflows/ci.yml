@@ -165,12 +165,14 @@ jobs:
             - name: proof:manifest-sourced (H.W8 S1/I-1 — SCENES keys ≡ scenes.ts ids · auto-enrolls every scene)
               run: npm run proof:manifest-sourced
             # I.W7 S6 — proof:gate-is-runtime: THE META-GATE that makes the gate-ORACLE
-            # precept MECHANICALLY PRIOR (RED-1). For EVERY I wave's (I.W0–I.W7) declared
-            # §Hard correctness gate, it asserts the script opens a browser (serveDist +
-            # KF_PLAYWRIGHT_DIR + newContext) AND actuates (click/dispatch/mouse/key/drag)
-            # AND is wired into the correctness tier of proof:all. A source-shape /
-            # load-rest / proxy §Hard gate FAILS. HYGIENE-tier itself (it reads gate
-            # SCRIPTS) — it polices the GATES' SHAPE; static, no browser/build.
+            # precept MECHANICALLY PRIOR (RED-1). For EVERY proof:correctness member —
+            # the roster is DERIVED from the tier's membership (J.W3 S4/T4), never a
+            # hardcoded list — it asserts the script opens a browser (serveDist +
+            # KF_PLAYWRIGHT_DIR + newContext, inline or via the lib lifecycle) AND
+            # actuates (click/dispatch/mouse/key/drag/navToScene-SWITCH) AND is wired
+            # into the correctness tier of proof:all. A source-shape / load-rest /
+            # proxy §Hard gate FAILS. HYGIENE-tier itself (it reads gate SCRIPTS) — it
+            # polices the GATES' SHAPE; static, no browser/build.
             - name: "[HYGIENE-meta] proof:gate-is-runtime (I.W7 S6 — every wave's §Hard gate is an actuating runtime gate wired to the correctness tier · the precept, machine-enforced)"
               run: npm run proof:gate-is-runtime
             # I.W7 S4 — proof:chronic-closure REWIRED: parse the canonical chronic table
@@ -196,14 +198,12 @@ jobs:
                   node-version: 24
                   cache: "npm"
             # The demo arm needs glass-ui (the library gate does not). It is the
-            # PUBLISHED registry package (`@mkbabb/glass-ui ~3.5.1`, the H.W8 BLK-5
-            # consume-leg + re-pin — TILDE (>=3.5.1 <3.6.0), NOT caret: it consumes
-            # the dock-spring retune 53c1b07 (in 3.5.0) while CAPPING below 3.6, whose
-            # Card-surface changes the demo's W2/W9 design-language does not yet consume
-            # (a glass-ui-3.6/3.7-reconciliation HANDOFF, recorded in impl-w8-repin.md).
-            # Gated by proof:dock-morph-settled — `npm ci` installs
-            # it from the registry like any dep. No sibling clone, no `file:` link
-            # (the pre-re-pin model the spine retired).
+            # PUBLISHED registry package (`@mkbabb/glass-ui ~3.9.0`, the I.W6
+            # specular consume-edge — TILDE: 3.9.0 carries `specular="off"`, the
+            # B7 bloom-absent contract proof:specular-absent-at-rest gates; the
+            # floor lives in proof:deps-current, single-sourced from package.json).
+            # `npm ci` installs it from the registry like any dep. No sibling
+            # clone, no `file:` link (the pre-re-pin model the spine retired).
             - name: npm ci (installs the registry @mkbabb/glass-ui)
               run: npm ci
             - name: install playwright + lighthouse (demo-gate only; --no-save keeps the lib posture)
@@ -212,10 +212,12 @@ jobs:
               run: npx playwright install --with-deps chromium
             - name: build the demo (gh-pages)
               run: npm run gh-pages
-            - name: inv γ — the demo cannot ship blank
-              run: node scripts/demo-smoke.mjs
-            - name: inv δ — no page occludes on any viewport
-              run: node scripts/occlusion-gate.mjs
+            - name: proof:demo-smoke (inv γ — the demo cannot ship blank)
+              run: npm run proof:demo-smoke
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            - name: proof:occlusion (inv δ — no page occludes on any viewport)
+              run: npm run proof:occlusion
               env:
                   KF_REQUIRE_BROWSER: "1"
             - name: proof:demo-usability (G.W11 — Discrete route reachable · hero word-gap · unique Play aria)
@@ -227,11 +229,12 @@ jobs:
             # gate opens the BUILT dist + ACTUATES the product (CLICK play, SWITCH
             # via the dock, fire visibilitychange, DRAG) and reads a product-facing
             # property under KF_REQUIRE_BROWSER=1 (a playwright-absent skip is a
-            # hard fail). These RETIRE H's proxy gates: proof:demo-console-clean (→
-            # the live-session console budget), proof:dock-morph-settled (→
-            # proof:perf-frame-budget), proof:no-orphan-specular + proof:specular-
-            # handoff (→ proof:specular-absent-at-rest), proof:scene-icons (→
-            # proof:icon-paint-live), proof:dragscrub-single (→ proof:drag-gesture).
+            # hard fail). These RETIRED (I.W7 S5) the five H proxy gates — each
+            # superseded by the correctness-tier gate here that ACTUATES the
+            # property its proxy could only approximate (console budget →
+            # live-session; token-peak → perf-frame-budget; recorded specular
+            # residue → specular-absent-at-rest; load-time icons → icon-paint-live;
+            # static dragscrub → drag-gesture).
             # proof:live-session is THE HEADLINE — the one interaction-driven
             # battery whose accumulated error budget = 0 + product-facing DOM is the
             # union of every wave's leg.
@@ -290,7 +293,8 @@ jobs:
                   KF_REQUIRE_BROWSER: "1"
             # H.W1 KEYSTONE — the live scene+playback FSM gate: the (scenes²×
             # {playing,paused}) identity matrix + the raw-rAF contract round-trip +
-            # no-route-storm (DRIVEN, not idle) + scene-isolation + deep-link-wins +
+            # route-stability (DRIVEN re-renders fire zero scene-changing navs) +
+            # scene-isolation + deep-link-wins +
             # suspend-no-orphan-raf + no-timing-heuristic, all driven IN-PAGE via
             # the hash reconcile (goto clears storage). Each clause BITES on its
             # exact D12 defect; KF_REQUIRE_BROWSER turns a playwright-absent skip
@@ -342,9 +346,9 @@ jobs:
               run: npm run proof:dock-popover-opens
               env:
                   KF_REQUIRE_BROWSER: "1"
-            # RETIRED (I.W7 S5): proof:dock-morph-settled — a source-shape gate that
-            # parsed the `--spring-dock` token's peak ("no morph captured live",
-            # rc-gate-blindspot §2.5). SUPERSEDED by the CORRECTNESS-tier
+            # RETIRED (I.W7 S5): the dock-morph token-peak proxy — a source-shape
+            # gate that parsed the `--spring-dock` token's peak ("no morph captured
+            # live", rc-gate-blindspot §2.5). SUPERSEDED by the CORRECTNESS-tier
             # proof:perf-frame-budget above, which drives the dock hover-expand +
             # measures the FELT frame budget under a CPU throttle (the dropped-frame
             # axis the token-peak proxy structurally could not see). Script git-rm'd.
@@ -467,8 +471,8 @@ jobs:
             # are an explicit manifest in the script — not a silent exemption —
             # and the gate tightens by deletion as those closes land. lighthouse
             # resolves from the repo root (the `npm i --no-save lighthouse` above).
-            - name: A11y (demo-owned) = 100 + SEO ≥ 90 — open-panel lighthouse gate
-              run: node scripts/lighthouse-gate.mjs
+            - name: proof:lighthouse-a11y (C.W1 S6 — A11y (demo-owned) = 100 + SEO ≥ 90, open-panel lighthouse gate)
+              run: npm run proof:lighthouse-a11y
               env:
                   KF_REQUIRE_BROWSER: "1"
             # D.W1/W2/W3 demo refinement gates — source + built-CSS instruments,
@@ -482,11 +486,12 @@ jobs:
               run: npm run proof:no-deprecated-guard
             - name: proof:single-writer (H.W1 S9.c — the FSM mutation boundary; no consumer writes activeScene/status)
               run: npm run proof:single-writer
-            # RETIRED (I.W7 S5): proof:dragscrub-single — a static-grep source-shape
-            # gate (the drag DANCE has ONE home). SUPERSEDED by the CORRECTNESS-tier
-            # proof:drag-gesture above, which drives a REAL page.mouse drag over a
-            # chrome label + asserts no text-selection + the transform persists — the
-            # B6 runtime axis the source grep could not see. Script git-rm'd.
+            # RETIRED (I.W7 S5): the static dragscrub proxy — a static-grep
+            # source-shape gate (the drag DANCE has ONE home). SUPERSEDED by the
+            # CORRECTNESS-tier proof:drag-gesture above, which drives a REAL
+            # page.mouse drag over a chrome label + asserts no text-selection + the
+            # transform persists — the B6 runtime axis the source grep could not
+            # see. Script git-rm'd.
             # H.W12 S2/I9 — the gesture engine lives in the composable. The
             # projection-math signature (getBoundingClientRect/getTotalLength/
             # getPointAtLength/ManualTimeline/fromMotionPath/setChildTime) lives in
@@ -540,9 +545,11 @@ jobs:
             # removed the tracked-specular subsystem entirely. The calm is now by
             # ABSENCE, not a lower ceiling — so there is no composite to prove cartoon+
             # specular coexist on, and no retained ::before to cap. The chronic stays
-            # closed via the STRONGER inverted proof:no-orphan-specular (exception → ∅)
-            # below. (The two scripts are removed from scripts/, package.json, and
-            # proof:all; proof:ci-coverage no longer expects them invoked here.)
+            # closed via the STRONGER CORRECTNESS-tier proof:specular-absent-at-rest
+            # above (the rendered ::before alpha FLAT at rest — the inversion of the
+            # retired residue-recorder). (The two scripts are removed from scripts/,
+            # package.json, and proof:all; proof:ci-coverage no longer expects them
+            # invoked here.)
             # H.W2 S1 (CS-2, the cartoon-depth restoration) — the source-shape lock
             # (the 5 contract-named panel Cards carry surface="cartoon", dropped the
             # manual .glass-card + transition-shadow G2 plate) + the computed-style
@@ -573,11 +580,12 @@ jobs:
               run: npm run proof:glass-and-cartoon
               env:
                   KF_REQUIRE_BROWSER: "1"
-            # RETIRED (I.W7 S5): proof:no-orphan-specular — it RECORDED the warm-white
-            # catch-light bloom as "accepted residue" and called PRESENCE a pass (the
-            # blind-spot incarnate; rc-gate-blindspot §2.3/§5). SUPERSEDED by the
-            # CORRECTNESS-tier proof:specular-absent-at-rest above, which asserts the
-            # rendered ::before alpha is FLAT at rest by the pixels (the INVERSION).
+            # RETIRED (I.W7 S5): the orphan-specular residue-recorder proxy — it
+            # RECORDED the warm-white catch-light bloom as "accepted residue" and
+            # called PRESENCE a pass (the blind-spot incarnate; rc-gate-blindspot
+            # §2.3/§5). SUPERSEDED by the CORRECTNESS-tier
+            # proof:specular-absent-at-rest above, which asserts the rendered
+            # ::before alpha is FLAT at rest by the pixels (the INVERSION).
             # Script git-rm'd.
             - name: proof:idioms (D.W2 — owned design-idioms.css · leaf-tail swept · utils.css monolith uncaged)
               run: npm run proof:idioms
@@ -910,13 +918,13 @@ jobs:
               run: npm run proof:scene-perf-budget
               env:
                   KF_REQUIRE_BROWSER: "1"
-            # RETIRED (I.W7 S5): proof:scene-icons — a source-shape + load-time gate
-            # blind to the orphaned-rename class (B9): the dev SPA-fallback masked a
-            # missing *.svg as HTTP-200 index.html, and nothing asserted a glyph
-            # actually PAINTS (rc-gate-blindspot §6, rc-icons-build §3). SUPERSEDED by
-            # the CORRECTNESS-tier proof:icon-paint-live above, which asserts every
-            # SceneDescriptor.icon PAINTS a non-zero inline <svg> + zero asset-404
-            # during interaction at RUNTIME. Script git-rm'd.
+            # RETIRED (I.W7 S5): the load-time icon-manifest proxy — a source-shape +
+            # load-time gate blind to the orphaned-rename class (B9): the dev
+            # SPA-fallback masked a missing *.svg as HTTP-200 index.html, and nothing
+            # asserted a glyph actually PAINTS (rc-gate-blindspot §6, rc-icons-build
+            # §3). SUPERSEDED by the CORRECTNESS-tier proof:icon-paint-live above,
+            # which asserts every SceneDescriptor.icon PAINTS a non-zero inline <svg>
+            # + zero asset-404 during interaction at RUNTIME. Script git-rm'd.
             # H.W5 S3/S4/S5 §Hard gate — the pertinence MERGE + the per-mode
             # interactivity floor. A STATIC source half (router.ts has NO
             # starting-style route · scenes.ts has NO starting-style descriptor ·

@@ -24,10 +24,12 @@
  * two divergent bezier hosts onto ONE `EasingEditor`.
  *
  * THE GATE — a Playwright session over the BUILT `dist/gh-pages/` (the
- * proof-no-orphan-specular harness: serveDist + chromium via KF_PLAYWRIGHT_DIR +
- * KF_REQUIRE_BROWSER fresh-context). The switch-in is driven by a hash route
+ * scripts/lib/demo-driver.mjs lifecycle: withPage = serveDist + env-driven
+ * resolveChromium + context/teardown, J.W3 S1; navToScene = the J.W0
+ * per-EXPECTED-state settle). The switch-in is driven by a hash route
  * change `location.hash="#/easing"` FROM another scene (the accepted repro of the
- * switch-in latch). Clauses (I.W2.md §Hard gate):
+ * switch-in latch). P6 posture: hard — device-independent correctness oracle
+ * (red anywhere; J.W3 S2b). Clauses (I.W2.md §Hard gate):
  *   (a) load `#/cube` → switch INTO Easing → assert `.easing-curve-canvas`
  *       PRESENT + `display !== none` + its host `[role="tabpanel"]`
  *       `data-state="active"`.
@@ -45,13 +47,11 @@
  *
  * Re-runnable: `node scripts/proof-easing-editor-live.mjs`. Serves the BUILT
  * dist/gh-pages/. Under KF_REQUIRE_BROWSER=1 a playwright-absent skip is a hard
- * fail so a SHIP is never green-reported un-exercised.
+ * fail AT THE LIB SEAM (W7-1/S6d) so a SHIP is never green-reported un-exercised.
  */
-import fs from "node:fs";
-import http from "node:http";
 import path from "node:path";
-import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import { navToScene, withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
@@ -66,46 +66,7 @@ const fail = (label) => {
 
 console.log("proof:easing-editor-live — I.W2 §Hard gate (B4 desync + the B5 readout seam)");
 
-const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
-const skipOrFail = (reason) => {
-    if (REQUIRE_BROWSER) {
-        fail(
-            `browser half REQUIRED (KF_REQUIRE_BROWSER=1) but ${reason} — ` +
-                "the easing-editor-live runtime clauses cannot pass vacuously",
-        );
-    } else {
-        console.log(`  ○ browser half skipped — ${reason}`);
-    }
-};
-
-const MIME = {
-    ".html": "text/html",
-    ".js": "text/javascript",
-    ".css": "text/css",
-    ".json": "application/json",
-    ".png": "image/png",
-    ".ttf": "font/ttf",
-    ".woff2": "font/woff2",
-    ".svg": "image/svg+xml",
-};
-const MACHINE_KEY = "keyframes-js-scene-machine";
 const CTRL_KEY = "animation-groups-control-options-store";
-
-function serveDist() {
-    const server = http.createServer((req, res) => {
-        const urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
-        const p = path.join(DIST, urlPath === "/" ? "index.html" : urlPath);
-        if (!p.startsWith(DIST) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) {
-            res.writeHead(404).end();
-            return;
-        }
-        res.writeHead(200, {
-            "content-type": MIME[path.extname(p)] ?? "application/octet-stream",
-        });
-        fs.createReadStream(p).pipe(res);
-    });
-    return server;
-}
 
 // A complete, re-parseable cubic-bezier(x1, y1, x2, y2) / steps(n, term?) literal
 // — NOT the bare "cubic-bezier"/"steps" keyword. The four-number bezier form and
@@ -121,24 +82,11 @@ const BARE_DOTS_RE = /Parse error at offset 0: "\.{3,}"|"\.{6}"|"\.\.\.\.\.\."/;
 
 /** Switch the active scene via a hash route change (the accepted switch-in repro
  *  — it re-creates the controls host on the swap tick, exercising the reka
- *  passive-latch). Waits until the machine's persisted activeScene flips. */
-async function switchScene(page, scene) {
-    await page.evaluate((s) => {
-        location.hash = `#/${s}`;
-    }, scene);
-    await page
-        .waitForFunction(
-            ([mk, s]) => {
-                try {
-                    return JSON.parse(localStorage.getItem(mk) || "{}").activeScene === s;
-                } catch {
-                    return false;
-                }
-            },
-            [MACHINE_KEY, scene],
-            { timeout: 8000 },
-        )
-        .catch(() => {});
+ *  passive-latch). Settles via the lib's navToScene (the J.W0 per-EXPECTED-state
+ *  wait: machine activeScene rested + the destination control surface projected;
+ *  `expectedTrigger` = the destination's control-tab label, or null). */
+async function switchScene(page, scene, expectedTrigger) {
+    await navToScene(page, scene, expectedTrigger, { timeout: 8000 });
     await page.waitForTimeout(700); // route rested + the scene's controls mounted
 }
 
@@ -331,37 +279,14 @@ async function exerciseEasing(page, label) {
 }
 
 async function browserHalf() {
-    if (!fs.existsSync(path.join(DIST, "index.html"))) {
-        skipOrFail("dist/gh-pages not built (run `npm run gh-pages` first)");
-        return;
-    }
-    let chromium;
-    try {
-        const requireFrom = createRequire(
-            path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-        );
-        ({ chromium } = requireFrom("playwright-core"));
-    } catch {
-        try {
-            const requireFrom = createRequire(
-                path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-            );
-            ({ chromium } = requireFrom("@playwright/test"));
-        } catch {
-            skipOrFail("playwright not resolvable (set KF_PLAYWRIGHT_DIR or install @playwright/test)");
-            return;
-        }
-    }
-
-    const server = serveDist();
-    await new Promise((r) => server.listen(0, r));
-    const base = `http://127.0.0.1:${server.address().port}`;
-
-    const browser = await chromium.launch();
     const consoleErrors = [];
-    try {
-        const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
-        const page = await ctx.newPage();
+    const result = await withPage(
+        {
+            distDir: DIST,
+            label: "the easing-editor-live runtime clauses",
+            context: { viewport: { width: 1440, height: 900 } },
+        },
+        async (page, { url: base }) => {
 
         // A clipboard shim — capture the CopyButton's write so clause (c) can read
         // the COPIED payload (not just the visible readout). Installed before any
@@ -401,31 +326,19 @@ async function browserHalf() {
         // Fresh load on cube (the editor un-hides on a SWITCH-INTO easing; cube is
         // the starting scene the gate switches AWAY from).
         await page.goto(`${base}/#/cube`, { waitUntil: "load" });
-        await page
-            .waitForFunction(
-                (mk) => {
-                    try {
-                        return JSON.parse(localStorage.getItem(mk) || "{}").activeScene === "cube";
-                    } catch {
-                        return false;
-                    }
-                },
-                MACHINE_KEY,
-                { timeout: 8000 },
-            )
-            .catch(() => {});
+        await navToScene(page, "cube", "Controls", { timeout: 8000 });
         await page.waitForTimeout(700);
 
         // ── (a)-(c) on the SWITCH-INTO path: cube → easing ──
         const errBeforeEasing = consoleErrors.length;
-        await switchScene(page, "easing");
+        await switchScene(page, "easing", "Easing");
         const easingIn = await exerciseEasing(page, "cube→easing");
         reportEasing(easingIn);
 
         // ── (c) re-mount: Easing → Amiga → Easing, assert ZERO AnimationOptionError ──
         const errBeforeRemount = consoleErrors.length;
-        await switchScene(page, "amiga");
-        await switchScene(page, "easing");
+        await switchScene(page, "amiga", "Controls");
+        await switchScene(page, "easing", "Easing");
         const remountErrors = consoleErrors
             .slice(errBeforeRemount)
             .filter((e) => OPTION_ERROR_RE.test(e));
@@ -448,7 +361,7 @@ async function browserHalf() {
         reportEasing(easingReturn);
 
         // ── (d) SPRING single-surface panel: switch into spring, assert (a) ──
-        await switchScene(page, "spring");
+        await switchScene(page, "spring", "Spring");
         const springSt = await paneState(page, "spring-sidebar");
         // SpringSidebar may not carry a `.spring-sidebar` class — fall back to the
         // sidebar's known root marker. Resolve the spring pane via its tabpanel.
@@ -495,11 +408,9 @@ async function browserHalf() {
             );
         }
 
-        await ctx.close();
-    } finally {
-        await browser.close();
-        server.close();
-    }
+        },
+    );
+    if (result.skipped) console.log(`  ○ browser half skipped — ${result.reason}`);
 }
 
 function reportEasing(r) {

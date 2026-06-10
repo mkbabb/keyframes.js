@@ -49,20 +49,21 @@
  * the `.controls-pane--mobile` class is UNCONDITIONAL in the wrapper markup, so
  * desktop vs mobile is decided by the @media-applied grid, not a JS class). The
  * named-grid resolution IS the route-rested + desktop + open predicate. Cross-ref
- * H.W1's proof:no-route-storm as the flake-defeat (D12 churn cannot flap the
- * measurement once the grid has resolved).
+ * proof:scene-machine-irrefragable's C3 route-stability clause as the
+ * flake-defeat (D12 churn cannot flap the measurement once the grid has
+ * resolved).
  *
- * Mirrors scripts/proof-dock-popover-opens.mjs / proof-demo-usability.mjs (the
- * serveDist + Playwright plumbing). Pure-measurement gate — no static half (the
- * source-shape no-cap/width-not-min-width lock is proof:demo-shell-grid's grep).
- * Re-runnable: `node scripts/proof-timeline-rail-width.mjs`. The browser half
- * serves the BUILT dist/gh-pages/ (run `npm run gh-pages` first).
+ * Harness: the scripts/lib/demo-driver.mjs lifecycle (withPage = serveDist +
+ * resolveChromium + context/teardown, J.W3 S1). Pure-measurement gate — no
+ * static half (the source-shape no-cap/width-not-min-width lock is
+ * proof:demo-shell-grid's grep). Under KF_REQUIRE_BROWSER a playwright-absent
+ * skip becomes a hard fail AT THE LIB SEAM. Re-runnable:
+ * `node scripts/proof-timeline-rail-width.mjs`. The browser half serves the
+ * BUILT dist/gh-pages/ (run `npm run gh-pages` first).
  */
-import fs from "node:fs";
-import http from "node:http";
 import path from "node:path";
-import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import { withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
@@ -79,74 +80,16 @@ console.log(
 );
 
 // ── BROWSER half (the gate is pure measurement) ──────────────────────────────
-const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
-const skipOrFail = (reason) => {
-    if (REQUIRE_BROWSER) {
-        fail(
-            `browser half REQUIRED (KF_REQUIRE_BROWSER=1) but ${reason} — ` +
-                "the rail-width binding + mobile full-bleed measurements cannot pass vacuously",
-        );
-    } else {
-        console.log(`  ○ browser half skipped — ${reason}`);
-    }
-};
-
 async function browserHalf() {
-    if (!fs.existsSync(path.join(DIST, "index.html"))) {
-        skipOrFail("dist/gh-pages not built (run `npm run gh-pages` first)");
-        return;
-    }
-
-    let chromium;
-    try {
-        const requireFrom = createRequire(
-            path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-        );
-        ({ chromium } = requireFrom("playwright-core"));
-    } catch {
-        try {
-            const requireFrom = createRequire(
-                path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-            );
-            ({ chromium } = requireFrom("@playwright/test"));
-        } catch {
-            skipOrFail(
-                "playwright not resolvable (set KF_PLAYWRIGHT_DIR or install @playwright/test)",
-            );
-            return;
-        }
-    }
-
-    const MIME = {
-        ".html": "text/html",
-        ".js": "text/javascript",
-        ".css": "text/css",
-        ".json": "application/json",
-        ".png": "image/png",
-        ".ttf": "font/ttf",
-        ".woff2": "font/woff2",
-        ".svg": "image/svg+xml",
-    };
-    const server = http.createServer((req, res) => {
-        const urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
-        const p = path.join(DIST, urlPath === "/" ? "index.html" : urlPath);
-        if (!p.startsWith(DIST) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) {
-            res.writeHead(404).end();
-            return;
-        }
-        res.writeHead(200, {
-            "content-type": MIME[path.extname(p)] ?? "application/octet-stream",
-        });
-        fs.createReadStream(p).pipe(res);
-    });
-    await new Promise((r) => server.listen(0, r));
-    const port = server.address().port;
-    const base = `http://127.0.0.1:${port}`;
-
-    const browser = await chromium.launch();
-    try {
-        // ── 1. RAIL-WIDTH BINDING (desktop, 1440×900) ───────────────────────
-        const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+    const result = await withPage(
+        {
+            distDir: DIST,
+            label: "the rail-width binding + mobile full-bleed measurements",
+            // ── 1. RAIL-WIDTH BINDING (desktop, 1440×900) ────────────────────
+            context: { viewport: { width: 1440, height: 900 } },
+        },
+        async (page, { url, browser }) => {
+        const base = url;
         await page.goto(`${base}/#/cube`, { waitUntil: "load" });
         // Re-ASSERT the test viewport AFTER navigation (Playwright resets to 390
         // on navigate — WV-W3-MED-3); the named desktop grid only applies ≥1024.
@@ -288,10 +231,11 @@ async function browserHalf() {
                 }
             }
         }
-        await page.close();
 
         // ── 2. MOBILE RIBBON FULL-BLEED (390×740) ───────────────────────────
         // The desktop cap must NOT leak into mobile (D10 / H.W7 full-bleed guard).
+        // A fresh page in its own context (fresh storage — the original per-page
+        // context semantics), from the lifecycle's browser handle.
         const mpage = await browser.newPage({ viewport: { width: 390, height: 740 } });
         await mpage.goto(`${base}/#/cube`, { waitUntil: "load" });
         await mpage.setViewportSize({ width: 390, height: 740 });
@@ -413,9 +357,10 @@ async function browserHalf() {
             }
         }
         await mpage.close();
-    } finally {
-        await browser.close();
-        server.close();
+        },
+    );
+    if (result.skipped) {
+        console.log(`  ○ browser half skipped — ${result.reason}`);
     }
 }
 

@@ -4,19 +4,47 @@
 // hygiene": it now reads ALL THREE workflows (ci.yml + release.yml +
 // deploy-pages.yml) and folds four findings into ONE self-policing instrument.
 //
-// CLAUSE 0 (F.W2) — coverage: every `proof:*` gate declared in package.json MUST
-//   be invoked by the CI workflow. Three inv-tagged gates (proof:dogfood/inv ζ,
-//   proof:demo-elevate/inv ο, proof:modern-web) + proof:platform-adopt previously
-//   had ZERO matches in ci.yml — authored but never run, the exact gate-coverage
-//   hole the retro named. Drop any proof:* from ci.yml → it reds.
-// CLAUSE 1 (G.W6 S1) — version-literal consistency: no bare `^0.NN.0` version
-//   literal in ci.yml may disagree with package.json's declared @mkbabb/* range.
-//   The floor is single-sourced in package.json, not hardcoded in workflow prose.
+// CLAUSE 0 (F.W2) — coverage, FORWARD: every `proof:*` gate declared in
+//   package.json MUST be invoked by the CI workflow. Three inv-tagged gates
+//   (proof:dogfood/inv ζ, proof:demo-elevate/inv ο, proof:modern-web) +
+//   proof:platform-adopt previously had ZERO matches in ci.yml — authored but
+//   never run, the exact gate-coverage hole the retro named. Drop any proof:*
+//   from ci.yml → it reds.
+// CLAUSE 0b (J.W3 S3b) — coverage, CONVERSE: every `npm run proof:*` step that
+//   gates ci.yml MUST be reachable from `proof:all` (= the proof:correctness ∪
+//   proof:hygiene chains), modulo the named EXCLUDED set. Before J.W3 three
+//   CI-hard gates (dock-zorder, scene-control-dfa, scene-transition-perf) ran
+//   in CI but lived in NO aggregator — a dev's `proof:all` was a strictly
+//   WEAKER verdict than CI (GC-2/BP-4). With both directions asserted,
+//   `proof:all == the CI roster` is a machine fact.
+// CLAUSE 0c (J.W3 S3d / CICD-4) — no raw-node gate steps: ci.yml may invoke a
+//   gate ONLY as `npm run proof:*`. The former raw `node scripts/X.mjs` steps
+//   (demo-smoke / occlusion-gate / lighthouse-gate — the inv-γ/inv-δ HEADLINE
+//   demo invariants) were invisible to BOTH coverage directions; they are now
+//   wrapped as proof:demo-smoke / proof:occlusion / proof:lighthouse-a11y (one
+//   invocation shape), and any NEW raw-node gate step reds here.
+// CLAUSE 1 (G.W6 S1, WIDENED J.W3 S3d / CICD-5) — version-literal consistency:
+//   no `^X.Y.Z` OR `~X.Y.Z` version literal in ANY of the three workflows may
+//   disagree with package.json's declared @mkbabb/* ranges. The pre-J.W3 form
+//   scanned ci.yml only and was caret-only, so deploy-pages.yml `^3.4.0` was
+//   never scanned and ci.yml's tilde-form `~3.5.1` evaded — the clause passed
+//   VACUOUSLY. The floor is single-sourced in package.json, never in workflow
+//   prose.
 // CLAUSE 2 (G.W6 S2) — clone-DRY: the `git clone … glass-ui` literal must appear
 //   in ZERO workflow .yml files (it lives ONLY in the setup-glass-ui composite
 //   action), AND both demo-build jobs must `uses: ./.github/actions/setup-glass-ui`.
 // CLAUSE 3 (G.W6 S4) — concurrency-present: every workflow .yml must declare a
 //   top-level `concurrency:` block (ci + release + deploy-pages).
+// CLAUSE 4 (J.W3 S2c) — the declared-posture hygiene clause ("P6 made
+//   mechanical"): (a) the IN_CI single authority — NO script under scripts/
+//   reads `process.env.CI`/`GITHUB_ACTIONS` directly except the one authority
+//   (scripts/lib/ci-env.mjs); a reader imports the lib IN_CI/declarePosture,
+//   never re-implements the literal. (b) the observe-only manifest, TWO-WAY —
+//   every gate that declares `declarePosture("observe-only", …)` is a row in
+//   the taxonomy doc's posture table (docs/tranches/J/gate-taxonomy.md) with a
+//   non-empty reason, AND every observe-only table row is backed by a live
+//   declaration (no stale manifest rows). A NEW device-dependent gate cannot
+//   ship a re-implemented IN_CI or an unlisted observe-only posture unnoticed.
 //
 // RUN: node scripts/proof-ci-coverage.mjs
 //
@@ -25,20 +53,17 @@
 //                         DISTRIBUTED across the library `gates` job and the
 //                         `demo-smoke` job (each gate in the job that has its
 //                         context), not via one proof:all call.
-//  - proof:ci-coverage  — this gate itself.
+//  - proof:ci-coverage  — this gate itself. (It IS in proof:hygiene, so the
+//                         converse clause sees it as reachable.)
 //  - proof:lighthouse-mobile — RECORDED browser-gated/runner-calibrated (F.W1
 //                         §Folds, E/FINAL.md): it has a legitimate CI-calibration
 //                         excuse the grep gates do not, and runs local/dedicated.
-//  - proof:repin-safe   — G.W1's PRE-STAGE re-pin safety lock. It reads the
-//                         PUBLISHED next-version typings (`npm pack
-//                         value.js@0.11.0`) against the LIVE import list BEFORE
-//                         the bump moves the lockfile — a pre-bump certification,
-//                         not a standing CI invariant (it is NOT chained into
-//                         proof:all either, per G.W1 §Design-decision 1). Once
-//                         G.W2 lands the bump, the standing CI invariant is
-//                         proof:deps-current (the floor + protocol + realm gate),
-//                         which IS wired. proof:repin-safe runs local/on-demand
-//                         ahead of the NEXT re-pin.
+//                         Its TIER entry is J.W4-owned (J.md J.W4 row: "enters a
+//                         tier under its P6 posture") — the one orphan J.W4
+//                         tiers; it leaves this set in that motion.
+//  (proof:repin-safe — KILLED at J.W3 S6a, GC-5: a one-shot G.W1 pre-stage gate
+//   whose `^0.10.0→^0.11.0` re-pin is HISTORY; stale-by-construction. Script +
+//   package.json key + this exclusion entry deleted in ONE motion.)
 
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -64,8 +89,11 @@ const passes = [];
 // checks CI would PARSE). Born-RED on the H.W12 unquoted step names whose
 // colon-space (`→ its at: changes`) GHA read as a nested mapping ("mapping values
 // are not allowed here") — which silently 0s-failed every master CI run, and every
-// deploy, from H's merge until this fix. Uses the real `yaml` parser when present;
-// falls back to the dependency-free detector for the exact unquoted-colon-space class.
+// deploy, from H's merge until this fix. The `yaml` package is a DECLARED devDep
+// as of J.W3 (the W0-booked ELSPROBLEMS fragility, dispositioned: the real parser
+// previously resolved only TRANSITIVELY, so a dep-tree shuffle could silently
+// degrade this clause to the regex fallback). The regex fallback is KEPT as
+// defense-in-depth for a no-install context only.
 let yamlParse = null;
 try {
     ({ parse: yamlParse } = await import("yaml"));
@@ -100,8 +128,9 @@ for (const name of WORKFLOWS) {
 const EXCLUDED = new Set([
     "proof:all",
     "proof:ci-coverage",
+    // J.W4-owned tier decision (J.md J.W4 row) — the LAST true orphan; it leaves
+    // this set when J.W4 tiers it under its P6 runner-calibrated posture.
     "proof:lighthouse-mobile",
-    "proof:repin-safe",
     // proof:browser is a LOCAL dev meta-target (H.W8 WV-W8-HIGH-3) — it invokes the
     // browser gates that are ALREADY individually CI-wired in the demo-smoke job, so
     // it is not a distinct CI gate (running it in CI would duplicate them).
@@ -136,10 +165,93 @@ if (missing.length > 0) {
     );
 }
 
-// ── clause 1 (G.W6 S1): version-literal consistency ───────────────────────────
-// No bare `^0.NN.0` version literal in ci.yml may disagree with package.json's
-// declared @mkbabb/* range. The dep-order floor is single-sourced in
-// package.json; a workflow literal that lies about the contract reds the gate.
+// ── clause 0b (J.W3 S3b): the CONVERSE — every CI-gated proof:* step is
+// reachable from proof:all (proof:correctness ∪ proof:hygiene), modulo the
+// named EXCLUDED set. Before this clause, the local/CI asymmetry (3 CI-only
+// orphans, GC-2/BP-4/WZ §E) was structurally invisible: this gate enforced only
+// `proof:* ⟹ CI-invoked`, never `CI-hard-gated ⟹ in-an-aggregator`. ─────────
+{
+    const chainMembers = (chain) =>
+        new Set([...String(chain).matchAll(/proof:[a-z0-9-]+/g)].map((m) => m[0]));
+    const correctness = chainMembers(pkg.scripts["proof:correctness"] ?? "");
+    const hygiene = chainMembers(pkg.scripts["proof:hygiene"] ?? "");
+    const ciInvoked = [
+        ...new Set([...ci.matchAll(/npm run (proof:[a-z0-9-]+)/g)].map((m) => m[1])),
+    ].sort();
+
+    const undefinedKeys = ciInvoked.filter((g) => !(g in pkg.scripts));
+    const ciOnly = ciInvoked.filter(
+        (g) =>
+            (g in pkg.scripts) &&
+            !correctness.has(g) &&
+            !hygiene.has(g) &&
+            !EXCLUDED.has(g),
+    );
+
+    if (undefinedKeys.length > 0) {
+        failures.push(
+            "converse-coverage (J.W3 S3b) — ci.yml invokes proof:* key(s) that do NOT " +
+                "resolve to a package.json script: " +
+                undefinedKeys.join(", ") +
+                ". A CI step citing a dead gate is a stale-doc lie in the pipeline.",
+        );
+    }
+    if (ciOnly.length > 0) {
+        failures.push(
+            "converse-coverage (J.W3 S3b) — these gates are CI-invoked but reachable from " +
+                "NEITHER proof:correctness NOR proof:hygiene (so `npm run proof:all` is a " +
+                "WEAKER verdict than CI): " +
+                ciOnly.join(", ") +
+                ". Fold each into a tier (hygiene unless it is a wave's §Hard actuating " +
+                "oracle) — proof:all == the CI roster must hold BOTH ways.",
+        );
+    }
+    if (undefinedKeys.length === 0 && ciOnly.length === 0) {
+        passes.push(
+            `converse-coverage (J.W3 S3b) — all ${ciInvoked.length} CI-invoked proof:* gates ` +
+                `are reachable from proof:all (correctness ${correctness.size} ∪ hygiene ` +
+                `${hygiene.size}, modulo the ${EXCLUDED.size} recorded exclusions): ` +
+                `proof:all == the CI roster, both directions.`,
+        );
+    }
+}
+
+// ── clause 0c (J.W3 S3d / CICD-4): NO raw-node gate steps in ci.yml ───────────
+// A gate invoked as `run: node scripts/X.mjs` is invisible to BOTH coverage
+// directions (clause 0 + 0b enumerate proof:* keys). The three former raw-node
+// steps (demo-smoke / occlusion-gate / lighthouse-gate — the inv-γ/inv-δ
+// HEADLINE invariants) are wrapped as proof:demo-smoke / proof:occlusion /
+// proof:lighthouse-a11y; ONE invocation shape (`npm run proof:*`) is the
+// contract, so a future raw-node gate cannot re-open the blind spot.
+{
+    const rawNodeSteps = [...ci.matchAll(/run:\s*node scripts\/[^\s]+/g)].map(
+        (m) => m[0].replace(/\s+/g, " "),
+    );
+    if (rawNodeSteps.length > 0) {
+        failures.push(
+            "raw-node-step (J.W3 S3d / CICD-4) — ci.yml invokes gate script(s) as raw " +
+                "`node scripts/…` instead of an `npm run proof:*` key: " +
+                rawNodeSteps.join("; ") +
+                ". A raw-node gate is coverage-blind in both directions — wrap it as a " +
+                "proof:* package key and wire that key into a tier.",
+        );
+    } else {
+        passes.push(
+            "raw-node-step (J.W3 S3d / CICD-4) — ZERO raw `node scripts/…` gate steps in " +
+                "ci.yml; every CI gate rides an `npm run proof:*` key the two coverage " +
+                "clauses can see.",
+        );
+    }
+}
+
+// ── clause 1 (G.W6 S1, WIDENED J.W3 S3d / CICD-5): version-literal consistency ─
+// No `^X.Y.Z` OR `~X.Y.Z` version literal in ANY of the three workflows may
+// disagree with package.json's declared @mkbabb/* ranges. The dep-order floor is
+// single-sourced in package.json; a workflow literal that lies about the
+// contract reds the gate. (The pre-J.W3 clause scanned ci.yml only with a
+// caret-only regex — deploy-pages.yml's `^3.4.0` was never scanned and ci.yml's
+// tilde-form `~3.5.1` evaded it: a VACUOUS pass. Born-RED on exactly those two
+// stale comments until S6c refreshed them.)
 const declaredRanges = {
     ...(pkg.dependencies ?? {}),
     ...(pkg.devDependencies ?? {}),
@@ -149,14 +261,17 @@ const declaredRanges = {
 const mkbabbRanges = Object.entries(declaredRanges)
     .filter(([name]) => name.startsWith("@mkbabb/"))
     .map(([, range]) => range);
-// Any bare semver-range literal in ci.yml (e.g. `^0.10.0`, `^0.11.1`). The
-// dep-order comment is the only legitimate home for such a literal, and it must
-// agree with a declared @mkbabb/* range — otherwise it is stale-comment drift.
-const ciLiterals = [...ci.matchAll(/\^\d+\.\d+\.\d+/g)].map((m) => m[0]);
-const driftedLiterals = ciLiterals.filter((lit) => !mkbabbRanges.includes(lit));
+const driftedLiterals = [];
+for (const name of WORKFLOWS) {
+    const literals = [...wf(name).matchAll(/[\^~]\d+\.\d+\.\d+/g)].map((m) => m[0]);
+    for (const lit of literals) {
+        if (!mkbabbRanges.includes(lit)) driftedLiterals.push(`${name}: ${lit}`);
+    }
+}
 if (driftedLiterals.length > 0) {
     failures.push(
-        "version-literal (G.W6 S1) — ci.yml hardcodes version literal(s) " +
+        "version-literal (G.W6 S1 / J.W3 CICD-5) — workflow file(s) hardcode " +
+            "version literal(s) " +
             driftedLiterals.join(", ") +
             " that disagree with package.json's declared @mkbabb/* range(s) [" +
             mkbabbRanges.join(", ") +
@@ -165,9 +280,9 @@ if (driftedLiterals.length > 0) {
     );
 } else {
     passes.push(
-        "version-literal (G.W6 S1) — no ci.yml version literal disagrees with " +
-            "package.json's declared @mkbabb/* range (the dep-order floor is " +
-            "single-sourced).",
+        "version-literal (G.W6 S1 / J.W3 CICD-5) — no `^`/`~` version literal in " +
+            "any of the 3 workflows disagrees with package.json's declared " +
+            "@mkbabb/* ranges (the dep-order floor is single-sourced).",
     );
 }
 
@@ -224,6 +339,132 @@ if (noConcurrency.length > 0) {
             WORKFLOWS.length +
             " workflows declare a top-level `concurrency:` block.",
     );
+}
+
+// ── clause 4 (J.W3 S2c): the declared-posture hygiene clause ───────────────────
+// (a) IN_CI single authority: scripts/lib/ci-env.mjs is the ONE place that may
+// read process.env.CI / GITHUB_ACTIONS (CICD-3 killed the triplicated literal;
+// this clause keeps it dead). (b) observe-only manifest, two-way: declarations
+// in gate scripts ⇄ rows in the taxonomy doc's posture table, each with a
+// reason. The convention is now a charter invariant a gate polices (P6).
+{
+    const { readdirSync } = await import("node:fs");
+    const AUTHORITY = "scripts/lib/ci-env.mjs";
+    const TAXONOMY = "docs/tranches/J/gate-taxonomy.md";
+    // SELF-EXCLUSION: this enforcer's own source carries the detection strings
+    // (the regex + failure-message literals naming process.env.CI and the
+    // declarePosture("observe-only", …) shape) — prose/detection, not an
+    // implementation. The meta-gate does not audit its own detector text,
+    // exactly as proof:gate-is-runtime does not audit its own script.
+    const SELF = "scripts/proof-ci-coverage.mjs";
+
+    // (a) — no re-implemented IN_CI literal outside the authority.
+    const scriptFiles = [
+        ...readdirSync(join(root, "scripts"))
+            .filter((f) => f.endsWith(".mjs"))
+            .map((f) => `scripts/${f}`),
+        ...readdirSync(join(root, "scripts", "lib"))
+            .filter((f) => f.endsWith(".mjs"))
+            .map((f) => `scripts/lib/${f}`),
+    ];
+    const reimplementers = scriptFiles.filter(
+        (f) =>
+            f !== AUTHORITY &&
+            f !== SELF &&
+            /process\.env\.(?:CI|GITHUB_ACTIONS)\b/.test(
+                readFileSync(join(root, f), "utf8"),
+            ),
+    );
+    if (reimplementers.length > 0) {
+        failures.push(
+            "posture-authority (J.W3 S2c) — these scripts read process.env.CI/" +
+                "GITHUB_ACTIONS directly instead of importing the ONE authority " +
+                `(${AUTHORITY}): ` +
+                reimplementers.join(", ") +
+                ". A re-implemented IN_CI literal is a drift point (CICD-3) — import " +
+                "{ IN_CI, declarePosture } from the lib.",
+        );
+    } else {
+        passes.push(
+            `posture-authority (J.W3 S2c) — ${AUTHORITY} is the ONLY scripts/ file ` +
+                `that reads process.env.CI/GITHUB_ACTIONS (${scriptFiles.length} ` +
+                "scripts scanned); every consumer imports the lib helper.",
+        );
+    }
+
+    // (b) — the observe-only manifest, both directions.
+    let taxonomy = null;
+    try {
+        taxonomy = readFileSync(join(root, TAXONOMY), "utf8");
+    } catch {
+        /* absent → fails below */
+    }
+    const declared = [];
+    for (const [key, body] of Object.entries(pkg.scripts)) {
+        if (!key.startsWith("proof:")) continue;
+        const m = String(body).match(/scripts\/([a-z0-9.-]+\.mjs)/i);
+        if (!m || `scripts/${m[1]}` === SELF) continue;
+        let src = "";
+        try {
+            src = readFileSync(join(root, "scripts", m[1]), "utf8");
+        } catch {
+            continue;
+        }
+        if (/declarePosture\(\s*["']observe-only["']/.test(src)) declared.push(key);
+    }
+    declared.sort();
+    if (taxonomy == null) {
+        failures.push(
+            `posture-manifest (J.W3 S2c) — the taxonomy doc (${TAXONOMY}) is MISSING; ` +
+                "the posture table is the named manifest every observe-only gate must " +
+                "be listed in, with a reason (S2b).",
+        );
+    } else {
+        const tableRows = [
+            ...taxonomy.matchAll(
+                /^\|\s*`(proof:[a-z0-9-]+)`\s*\|\s*observe-only\s*\|\s*([^|]*?)\s*\|/gim,
+            ),
+        ].map((m) => ({ gate: m[1], reason: m[2].trim() }));
+        const rowFor = (g) => tableRows.find((r) => r.gate === g);
+        const unlisted = declared.filter((g) => !rowFor(g));
+        const reasonless = declared.filter((g) => rowFor(g) && !rowFor(g).reason);
+        const stale = tableRows
+            .filter((r) => !declared.includes(r.gate))
+            .map((r) => r.gate);
+        if (unlisted.length > 0) {
+            failures.push(
+                "posture-manifest (J.W3 S2c) — observe-only declaration(s) with NO row " +
+                    `in the taxonomy posture table (${TAXONOMY}): ` +
+                    unlisted.join(", ") +
+                    ". An undeclared-in-the-manifest device-dependence may not ship — " +
+                    "add the row with the declared reason.",
+            );
+        }
+        if (reasonless.length > 0) {
+            failures.push(
+                "posture-manifest (J.W3 S2c) — observe-only table row(s) with an EMPTY " +
+                    "reason: " +
+                    reasonless.join(", ") +
+                    ". The reason IS the manifest entry (the declared device-dependence).",
+            );
+        }
+        if (stale.length > 0) {
+            failures.push(
+                "posture-manifest (J.W3 S2c) — taxonomy table row(s) with NO live " +
+                    "observe-only declaration behind them (stale manifest): " +
+                    stale.join(", ") +
+                    ". The NO-stale-docs precept applies to the manifest itself.",
+            );
+        }
+        if (unlisted.length === 0 && reasonless.length === 0 && stale.length === 0) {
+            passes.push(
+                `posture-manifest (J.W3 S2c) — all ${declared.length} observe-only ` +
+                    `gate(s) [${declared.join(", ")}] are listed in the taxonomy ` +
+                    "posture table with a reason, and no table row is stale " +
+                    "(declarations ⇄ manifest, both directions).",
+            );
+        }
+    }
 }
 
 // ── report ────────────────────────────────────────────────────────────────────

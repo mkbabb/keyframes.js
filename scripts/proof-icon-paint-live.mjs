@@ -15,9 +15,12 @@
  * §3). A future rename that orphans a path then REDs HERE, at runtime, where it
  * lives, instead of passing a load-time shape check.
  *
- * Folds three §Hard-gate clauses into ONE self-contained harness over the BUILT
- * `dist/gh-pages/` (the `proof-no-orphan-specular.mjs` serveDist + Playwright +
- * fresh-context-per-scene plumbing; KF_PLAYWRIGHT_DIR / KF_REQUIRE_BROWSER):
+ * Folds three §Hard-gate clauses into ONE harness over the BUILT
+ * `dist/gh-pages/` (the scripts/lib/demo-driver.mjs lifecycle: withPage =
+ * serveDist + env-driven resolveChromium + context/teardown, J.W3 S1,
+ * with the honest-404-recording `serve.onMiss`; navToScene = the J.W0
+ * per-EXPECTED-state settle; fresh context per scene. P6 posture: hard —
+ * device-independent correctness oracle, red anywhere; J.W3 S2b):
  *
  *   (a) icon-paint — open EACH scene; for every `SceneDescriptor.icon` (parsed
  *       from scenes.ts) PLUS the favicon, assert a PAINTING inline `<svg>` with a
@@ -50,10 +53,9 @@
  * dist/gh-pages/ (run `npm run gh-pages` first).
  */
 import fs from "node:fs";
-import http from "node:http";
 import path from "node:path";
-import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import { navToScene, withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
@@ -233,53 +235,26 @@ function parseIconScenes() {
 }
 
 // ── browser halves (gated) ────────────────────────────────────────────────────
-const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
-const skipOrFail = (reason) => {
-    if (REQUIRE_BROWSER) {
-        fail(`browser half REQUIRED (KF_REQUIRE_BROWSER=1) but ${reason} — the icon-paint assertions cannot pass vacuously`);
-    } else {
-        console.log(`  ○ browser half skipped — ${reason}`);
-    }
-};
-
-const MIME = {
-    ".html": "text/html",
-    ".js": "text/javascript",
-    ".css": "text/css",
-    ".json": "application/json",
-    ".png": "image/png",
-    ".ttf": "font/ttf",
-    ".woff2": "font/woff2",
-    ".svg": "image/svg+xml",
-    ".map": "application/json",
-    ".txt": "text/plain",
-};
-const MACHINE_KEY = "keyframes-js-scene-machine";
 const CTRL_KEY = "animation-groups-control-options-store";
 
+// The destination control-tab label navToScene settles on per scene (null = no
+// control panel projects — home/sequence/motion-path).
+const TRIGGER = {
+    home: null,
+    cube: "Controls",
+    amiga: "Controls",
+    square: "Controls",
+    easing: "Easing",
+    spring: "Spring",
+    sequence: null,
+    "motion-path": null,
+};
+
 // Track every server-side 404 (a real miss) so clause (b) can assert the set is
-// empty. The static serveDist 404s a true miss honestly (NO SPA-HTML masking) —
-// which is the built-product analogue of the S2 dev-server honesty fix.
+// empty. The lib serveDist's `onMiss` 404s a true miss honestly (NO SPA-HTML
+// masking) — the built-product analogue of the S2 dev-server honesty fix.
 const server404Paths = new Set();
 const sourcemapNon200 = new Set();
-
-function serveDist() {
-    const server = http.createServer((req, res) => {
-        const urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
-        const p = path.join(DIST, urlPath === "/" ? "index.html" : urlPath);
-        if (!p.startsWith(DIST) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) {
-            // HONEST 404 — never SPA-HTML for an asset miss (the built-product
-            // analogue of the S2 dev honesty fix). Record it.
-            server404Paths.add(urlPath);
-            if (urlPath.endsWith(".map")) sourcemapNon200.add(urlPath);
-            res.writeHead(404).end();
-            return;
-        }
-        res.writeHead(200, { "content-type": MIME[path.extname(p)] ?? "application/octet-stream" });
-        fs.createReadStream(p).pipe(res);
-    });
-    return server;
-}
 
 /** Open a scene in a FRESH context, with the controls panel pre-opened so the
  *  CSS-editor (Monaco) lazy chunk is exercised on mount (clause (b)). */
@@ -322,19 +297,7 @@ async function openSceneFresh(browser, base, scene, viewportWidth) {
     });
 
     await page.goto(`${base}/#/${scene}`, { waitUntil: "load" });
-    await page
-        .waitForFunction(
-            ([mk, s]) => {
-                try {
-                    return JSON.parse(localStorage.getItem(mk) || "{}").activeScene === s;
-                } catch {
-                    return false;
-                }
-            },
-            [MACHINE_KEY, scene],
-            { timeout: 8000 },
-        )
-        .catch(() => {});
+    await navToScene(page, scene, TRIGGER[scene] ?? null, { timeout: 8000 });
     await page.waitForTimeout(900); // route rested + dock + sub-Cards mounted
     return { ctx, page };
 }
@@ -400,38 +363,21 @@ async function expandDock(page) {
 }
 
 async function browserHalves(iconScenes) {
-    if (!fs.existsSync(path.join(DIST, "index.html"))) {
-        skipOrFail("dist/gh-pages not built (run `npm run gh-pages` first)");
-        return;
-    }
-    let chromium;
-    const resolveChromium = () => {
-        const tries = ["playwright-core", "@playwright/test"];
-        for (const dir of [process.env.KF_PLAYWRIGHT_DIR, REPO]) {
-            if (!dir) continue;
-            for (const pkg of tries) {
-                try {
-                    const requireFrom = createRequire(path.join(dir, "package.json"));
-                    return requireFrom(pkg).chromium;
-                } catch {
-                    /* keep trying */
-                }
-            }
-        }
-        return null;
-    };
-    chromium = resolveChromium();
-    if (!chromium) {
-        skipOrFail("playwright not resolvable (set KF_PLAYWRIGHT_DIR or install playwright-core/@playwright/test)");
-        return;
-    }
-
-    const server = serveDist();
-    await new Promise((r) => server.listen(0, r));
-    const base = `http://127.0.0.1:${server.address().port}`;
-
     const VW = 1440;
-    const browser = await chromium.launch();
+    const result = await withPage(
+        {
+            distDir: DIST,
+            label: "the icon-paint assertions",
+            // HONEST 404 — never SPA-HTML for an asset miss (the built-product
+            // analogue of the S2 dev honesty fix). Record it for clause (b).
+            serve: {
+                onMiss: (urlPath) => {
+                    server404Paths.add(urlPath);
+                    if (urlPath.endsWith(".map")) sourcemapNon200.add(urlPath);
+                },
+            },
+        },
+        async (_page, { url: base, browser }) => {
 
     // Clause-accumulators.
     const paintFailures = []; // (a)
@@ -441,7 +387,6 @@ async function browserHalves(iconScenes) {
     let vtFired = false; // (e) runtime VT
     let vtDriveNote = ""; // (e) how the swap was driven
 
-    try {
         for (const scene of iconScenes) {
             const { ctx, page } = await openSceneFresh(browser, base, scene, VW);
             try {
@@ -659,10 +604,9 @@ async function browserHalves(iconScenes) {
                     [...asset404, ...[...sourcemapNon200].map((m) => `map: ${m}`)].slice(0, 12).join("\n      "),
             );
         }
-    } finally {
-        await browser.close();
-        server.close();
-    }
+        },
+    );
+    if (result.skipped) console.log(`  ○ browser half skipped — ${result.reason}`);
 }
 
 const parsed = parseIconScenes();

@@ -52,7 +52,7 @@ import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 
-import { SCENES, resolveChromium, serveDist } from "./lib/demo-driver.mjs";
+import { SCENES, resolveChromium, serveDist, withBrowser } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
@@ -182,12 +182,11 @@ async function main() {
     }
 
     const lighthouse = (await import(lighthousePath)).default;
-    const { url, close: closeServer } = await serveDist(DIST);
 
+    // Launch/teardown ride the lib lifecycle (withBrowser({ launch }), J.W3
+    // S1); the TIER/withheld regime above is UNTOUCHED (J.W4-owned) — its
+    // pre-checks run FIRST, so the lib seam is never this gate's verdict path.
     const DEBUG_PORT = 9222 + Math.floor(Math.random() * 1000);
-    const browser = await chromium.launch({
-        args: [`--remote-debugging-port=${DEBUG_PORT}`],
-    });
 
     const rows = [];
     const failures = [];
@@ -197,6 +196,10 @@ async function main() {
             PROBE_ONLY ? " (PROBE: measure + print, no assert)" : ""
         }\n`,
     );
+
+    await withBrowser(
+        async (browser) => {
+    const { url, close: closeServer } = await serveDist(DIST);
 
     try {
         for (const scene of SCENES) {
@@ -255,9 +258,11 @@ async function main() {
             );
         }
     } finally {
-        await browser.close();
         await closeServer();
     }
+        },
+        { launch: { args: [`--remote-debugging-port=${DEBUG_PORT}`] }, label: "the per-scene mobile Lighthouse matrix" },
+    );
 
     if (PROBE_ONLY) {
         console.log(

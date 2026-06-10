@@ -35,16 +35,16 @@
  *      single-toggle build round-trips cleanly. Greens only when exactly one toggle
  *      governs the menu.
  *
- * Mirrors scripts/proof-demo-console-clean.mjs (the serveDist + Playwright
- * plumbing). The @mbabb trigger is dock CHROME (no scene nav needed). Re-runnable:
- * `node scripts/proof-single-toggle.mjs`. The browser half serves the BUILT
- * dist/gh-pages/ (run `npm run gh-pages` first).
+ * Harness: the scripts/lib/demo-driver.mjs lifecycle (withPage = serveDist +
+ * resolveChromium + context/teardown, J.W3 S1). The @mbabb trigger is dock CHROME
+ * (no scene nav needed). Under KF_REQUIRE_BROWSER a playwright-absent skip becomes
+ * a hard fail AT THE LIB SEAM. Re-runnable: `node scripts/proof-single-toggle.mjs`.
+ * The browser half serves the BUILT dist/gh-pages/ (run `npm run gh-pages` first).
  */
 import fs from "node:fs";
-import http from "node:http";
 import path from "node:path";
-import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import { withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEMO = path.join(REPO, "demo");
@@ -87,71 +87,15 @@ console.log("proof:single-toggle — H.W1 S8/BLK-8 (the @mbabb trigger carries e
 }
 
 // ── 2. CLEAN-TOGGLE-LATCH (browser, gated) ───────────────────────────────────
-const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
-const skipOrFail = (reason) => {
-    if (REQUIRE_BROWSER) {
-        fail(
-            `browser half REQUIRED (KF_REQUIRE_BROWSER=1) but ${reason} — ` +
-                "the clean-toggle-latch round-trip cannot pass vacuously",
-        );
-    } else {
-        console.log(`  ○ browser half skipped — ${reason}`);
-    }
-};
-
 async function browserHalf() {
-    if (!fs.existsSync(path.join(DIST, "index.html"))) {
-        skipOrFail("dist/gh-pages not built (run `npm run gh-pages` first)");
-        return;
-    }
-    let chromium;
-    try {
-        const requireFrom = createRequire(
-            path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-        );
-        ({ chromium } = requireFrom("playwright-core"));
-    } catch {
-        try {
-            const requireFrom = createRequire(
-                path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-            );
-            ({ chromium } = requireFrom("@playwright/test"));
-        } catch {
-            skipOrFail("playwright not resolvable (set KF_PLAYWRIGHT_DIR or install @playwright/test)");
-            return;
-        }
-    }
-
-    const MIME = {
-        ".html": "text/html",
-        ".js": "text/javascript",
-        ".css": "text/css",
-        ".json": "application/json",
-        ".png": "image/png",
-        ".ttf": "font/ttf",
-        ".woff2": "font/woff2",
-        ".svg": "image/svg+xml",
-    };
-    const server = http.createServer((req, res) => {
-        const urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
-        const p = path.join(DIST, urlPath === "/" ? "index.html" : urlPath);
-        if (!p.startsWith(DIST) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) {
-            res.writeHead(404).end();
-            return;
-        }
-        res.writeHead(200, {
-            "content-type": MIME[path.extname(p)] ?? "application/octet-stream",
-        });
-        fs.createReadStream(p).pipe(res);
-    });
-    await new Promise((r) => server.listen(0, r));
-    const port = server.address().port;
-    const base = `http://127.0.0.1:${port}`;
-
-    const browser = await chromium.launch();
-    try {
-        const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
-        await page.goto(`${base}/#/cube`, { waitUntil: "load" });
+    const result = await withPage(
+        {
+            distDir: DIST,
+            label: "the clean-toggle-latch round-trip",
+            context: { viewport: { width: 1280, height: 900 } },
+        },
+        async (page, { url }) => {
+        await page.goto(`${url}/#/cube`, { waitUntil: "load" });
 
         const TRIGGER = '[aria-label="@mbabb menu"]';
         let expanded = false;
@@ -211,10 +155,10 @@ async function browserHalf() {
                 );
             }
         }
-        await page.close();
-    } finally {
-        await browser.close();
-        server.close();
+        },
+    );
+    if (result.skipped) {
+        console.log(`  ○ browser half skipped — ${result.reason}`);
     }
 }
 

@@ -29,7 +29,6 @@ const DIST = path.join(REPO, "dist/gh-pages/index.html");
 // is skipped (not a spurious "Missing script" failure).
 const CANDIDATE_GATES = [
     "proof:demo-usability",
-    "proof:demo-console-clean",
     "proof:scene-machine-irrefragable",
     "proof:scene-control-dfa",
     "proof:stage-glass-card",
@@ -41,7 +40,6 @@ const CANDIDATE_GATES = [
     "proof:stage-within-docks",
     "proof:glass-and-cartoon",
     "proof:cartoon-is-panel-depth",
-    "proof:no-orphan-specular",
     "proof:single-column-pack",
     "proof:label-subgrid",
     "proof:bezier-no-scroll",
@@ -52,7 +50,6 @@ const CANDIDATE_GATES = [
     "proof:darkmode-row-toggle",
     "proof:dock-popover-opens",
     "proof:single-toggle",
-    "proof:scene-icons",
     "proof:scene-parity",
     "proof:scene-perf-budget",
     "proof:sequence-rows-draggable",

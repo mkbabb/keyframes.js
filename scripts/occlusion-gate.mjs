@@ -37,7 +37,9 @@
  * scene's `overflow` and excluded from the subject/overflow checks; only the
  * named scene subjects are gated.
  *
- * Resolves playwright from KF_PLAYWRIGHT_DIR (CI installs it) or the repo.
+ * Harness: the lib lifecycle (withBrowser, J.W3 S1 — not withPage: the matrix
+ * needs a FRESH browser.newPage per combo so localStorage cannot leak). Under
+ * KF_REQUIRE_BROWSER a chromium-absent start FAILS at the lib seam (W7-1).
  * Exit 1 on any occlusion finding.
  */
 import fs from "node:fs";
@@ -45,9 +47,9 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
     SCENES,
-    resolveChromium,
     serveDist,
     openControlsPanel,
+    withBrowser,
 } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -204,17 +206,6 @@ function dockOverlapsContentRect(subjectRect, docks, inject = null) {
 }
 
 async function main() {
-    const chromium = resolveChromium();
-    if (!chromium) {
-        console.error(
-            "occlusion-gate — SKIP: playwright not resolvable " +
-                "(set KF_PLAYWRIGHT_DIR or install @playwright/test). " +
-                "In CI this is an install step, not a skip.",
-        );
-        // Skipping is acceptable locally but is a hard failure in CI where the
-        // browser is installed; CI sets KF_REQUIRE_BROWSER=1.
-        process.exit(process.env.KF_REQUIRE_BROWSER ? 2 : 0);
-    }
     if (!fs.existsSync(path.join(DIST, "index.html"))) {
         console.error("occlusion-gate — FAIL: dist/gh-pages not built (run `npm run gh-pages`).");
         process.exit(2);
@@ -223,9 +214,6 @@ async function main() {
     // A synthetic dock-over-subject rect can be injected for the bite test
     // (KF_OCCLUSION_INJECT=<sceneKey> reddens that scene in the open state).
     const injectScene = process.env.KF_OCCLUSION_INJECT ?? null;
-
-    const { url, close } = await serveDist(DIST);
-    const browser = await chromium.launch();
 
     const failures = [];
     const pending = [];
@@ -241,6 +229,10 @@ async function main() {
         );
     }
 
+    const result = await withBrowser(
+        async (browser) => {
+            const { url, close } = await serveDist(DIST);
+            try {
     for (const scene of SCENES) {
         for (const vp of VIEWPORTS) {
             for (const controls of CONTROL_STATES) {
@@ -343,8 +335,16 @@ async function main() {
         }
     }
 
-    await browser.close();
-    await close();
+            } finally {
+                await close();
+            }
+        },
+        { label: "the occlusion matrix (inv δ)" },
+    );
+    if (result.skipped) {
+        console.log(`occlusion-gate — SKIP: ${result.reason}. In CI this is an install step, not a skip.`);
+        return;
+    }
 
     if (pending.length > 0) {
         console.warn(

@@ -26,14 +26,16 @@
  *
  * Born-RED on the 3.5.1 tree (rest `::before` opacity 0.22 on dock tracks /
  * 0.35 on stage cards); GREEN the instant kf consumes the glass-ui ~3.9.0 build
- * (rest opacity 0). Mirrors `scripts/proof-no-orphan-specular.mjs` (serveDist +
- * KF_PLAYWRIGHT_DIR chromium + fresh context). Re-runnable. Serves dist/gh-pages/.
+ * (rest opacity 0). Harness: the scripts/lib/demo-driver.mjs lifecycle (withPage
+ * = serveDist + env-driven resolveChromium + context/teardown, J.W3 S1) +
+ * navToScene (the J.W0 per-EXPECTED-state settle) + fresh context per scene.
+ * P6 posture: hard — device-independent correctness oracle (red anywhere; J.W3
+ * S2b). Re-runnable. Serves dist/gh-pages/.
  */
 import fs from "node:fs";
-import http from "node:http";
 import path from "node:path";
-import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import { navToScene, withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
@@ -56,51 +58,27 @@ console.log("proof:specular-absent-at-rest — I.W6 (B7): the catch-light bloom 
 }
 
 const REST_OPACITY_MAX = 0.05; // a catch-light radial at rest must contribute ~no alpha
-const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
-const skipOrFail = (reason) => {
-    if (REQUIRE_BROWSER) fail(`browser half REQUIRED (KF_REQUIRE_BROWSER=1) but ${reason}`);
-    else console.log(`  ○ browser half skipped — ${reason}`);
-};
-
-const MIME = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".json": "application/json", ".png": "image/png", ".svg": "image/svg+xml", ".woff2": "font/woff2", ".ttf": "font/ttf" };
 const CTRL_KEY = "animation-groups-control-options-store";
-const MACHINE_KEY = "keyframes-js-scene-machine";
 
-function serveDist() {
-    return http.createServer((req, res) => {
-        const urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
-        const p = path.join(DIST, urlPath === "/" ? "index.html" : urlPath);
-        if (!p.startsWith(DIST) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) { res.writeHead(404).end(); return; }
-        res.writeHead(200, { "content-type": MIME[path.extname(p)] ?? "application/octet-stream" });
-        fs.createReadStream(p).pipe(res);
-    });
-}
+// The destination control-tab label navToScene settles on per scene (null = no
+// control panel projects — sequence/motion-path).
+const TRIGGER = { cube: "Controls", easing: "Easing", spring: "Spring", sequence: null, "motion-path": null };
 
 async function openScene(browser, base, scene) {
     const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
     const page = await ctx.newPage();
     await page.addInitScript((ck) => { try { localStorage.setItem(ck, JSON.stringify({ isControlsPanelOpen: true })); } catch {} }, CTRL_KEY);
     await page.goto(`${base}/#/${scene}`, { waitUntil: "load" });
-    await page.waitForFunction(([mk, s]) => { try { return JSON.parse(localStorage.getItem(mk) || "{}").activeScene === s; } catch { return false; } }, [MACHINE_KEY, scene], { timeout: 8000 }).catch(() => {});
+    await navToScene(page, scene, TRIGGER[scene] ?? null, { timeout: 8000 });
     await page.waitForTimeout(900);
     return { ctx, page };
 }
 
 async function browserHalf() {
-    if (!fs.existsSync(path.join(DIST, "index.html"))) { skipOrFail("dist/gh-pages not built"); return; }
-    let chromium;
-    try {
-        const requireFrom = createRequire(path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"));
-        ({ chromium } = requireFrom("playwright-core"));
-    } catch { skipOrFail("playwright not resolvable (set KF_PLAYWRIGHT_DIR)"); return; }
-
-    const server = serveDist();
-    await new Promise((r) => server.listen(0, r));
-    const base = `http://127.0.0.1:${server.address().port}`;
-    const browser = await chromium.launch();
     const SCENES = ["cube", "easing", "spring", "sequence", "motion-path"];
-
-    try {
+    const result = await withPage(
+        { distDir: DIST, label: "the specular-absent-at-rest pixel assertions" },
+        async (_page, { url: base, browser }) => {
         let totalGlass = 0, bloomers = [];
         let maxRest = 0;
         for (const scene of SCENES) {
@@ -143,10 +121,9 @@ async function browserHalf() {
         } else {
             fail(`[a] CORRECTNESS — ${bloomers.length} glass ::before catch-light(s) STILL paint a bloom at rest (alpha > ${REST_OPACITY_MAX}): ${bloomers.slice(0, 6).join(", ")} — the consume-edge (glass-ui rest-intensity-0 default) is not fully consumed.`);
         }
-    } finally {
-        await browser.close();
-        server.close();
-    }
+        },
+    );
+    if (result.skipped) console.log(`  ○ browser half skipped — ${result.reason}`);
 }
 
 await browserHalf();

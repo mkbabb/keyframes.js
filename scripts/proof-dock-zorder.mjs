@@ -72,26 +72,26 @@
  *      exercises — the rendered fact the mutex promises, MEASURE-FIRST.
  *
  * Settle-gated on the H.W1 FSM resting (mirrors proof:stage-within-docks): the
- * scene is pinned via an IN-PAGE hash assignment (NOT page.goto — goto clears
- * storage + the H.W1 reconcile trap), the machine is polled to rest on the scene,
- * the viewport is RE-ASSERTED after navigation, the controls pane is FORCED OPEN
- * deterministically (seed `isControlsPanelOpen` + a `selectedAnimation` — a fresh
- * #/cube load with no selection v-show-hides the sheet; impl-w7-overlay §OPEN
- * NOTES), the route rests, and the gate waits until the stage + the dock bands
- * resolve before measuring.
+ * scene is pinned via the lib's navToScene (an IN-PAGE hash assignment — NOT
+ * page.goto, which clears storage + the H.W1 reconcile trap — settled on the
+ * destination's per-EXPECTED control surface), the viewport is RE-ASSERTED after
+ * navigation, the controls pane is FORCED OPEN deterministically (seed
+ * `isControlsPanelOpen` + a `selectedAnimation` — a fresh #/cube load with no
+ * selection v-show-hides the sheet; impl-w7-overlay §OPEN NOTES), the route
+ * rests, and the gate waits until the stage + the dock bands resolve before
+ * measuring.
  *
  * Browser-led (a z-order/hit-test/anchor fact is a rendered fact — there is no
- * static half); under KF_REQUIRE_BROWSER a playwright-absent skip becomes a hard
- * fail so a SHIP is never green-reported un-exercised. Re-runnable:
+ * static half). Harness: the scripts/lib/demo-driver.mjs lifecycle (withPage =
+ * serveDist + resolveChromium + context/teardown, J.W3 S1); under
+ * KF_REQUIRE_BROWSER a playwright-absent skip becomes a hard fail AT THE LIB SEAM
+ * so a SHIP is never green-reported un-exercised. Re-runnable:
  * `node scripts/proof-dock-zorder.mjs`. Serves the BUILT dist/gh-pages/ (run
- * `npm run gh-pages` first). Mirrors scripts/proof-stage-within-docks.mjs (the
- * serveDist + Playwright + settle plumbing).
+ * `npm run gh-pages` first).
  */
-import fs from "node:fs";
-import http from "node:http";
 import path from "node:path";
-import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import { navToScene, withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
@@ -109,73 +109,20 @@ console.log(
         "does not steal the menubar's pointer · LOW-1 fixed-CB · keep-open mutex)",
 );
 
-const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
-const skipOrFail = (reason) => {
-    if (REQUIRE_BROWSER) {
-        fail(
-            `browser half REQUIRED (KF_REQUIRE_BROWSER=1) but ${reason} — ` +
-                "the dock z-order/hit-test/mutex assertions cannot pass vacuously",
-        );
-    } else {
-        console.log(`  ○ browser half skipped — ${reason}`);
-    }
-};
-
-const MIME = {
-    ".html": "text/html",
-    ".js": "text/javascript",
-    ".css": "text/css",
-    ".json": "application/json",
-    ".png": "image/png",
-    ".ttf": "font/ttf",
-    ".woff2": "font/woff2",
-    ".svg": "image/svg+xml",
-};
-const MACHINE_KEY = "keyframes-js-scene-machine"; // SCENE_MACHINE_PERSIST_KEY
 const CTRL_KEY = "animation-groups-control-options-store";
 const SCENE = "cube"; // the canonical SUBJECT-class scene (the full-bleed stage)
 const W = 390;
 const H = 844;
 const TOL = 2; // sub-pixel rounding tolerance
 
-function serveDist() {
-    return http.createServer((req, res) => {
-        const urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
-        const p = path.join(DIST, urlPath === "/" ? "index.html" : urlPath);
-        if (!p.startsWith(DIST) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) {
-            res.writeHead(404).end();
-            return;
-        }
-        res.writeHead(200, {
-            "content-type": MIME[path.extname(p)] ?? "application/octet-stream",
-        });
-        fs.createReadStream(p).pipe(res);
-    });
-}
-
-/** Settle on #/<scene> via an IN-PAGE hash assignment (storage + the H.W1 trap
- *  survive; page.goto clears both). Re-assert the viewport AFTER navigation
- *  (Playwright resets on navigate). FORCE the controls pane OPEN deterministically
- *  (seed isControlsPanelOpen + a selectedAnimation) — a fresh #/cube load with no
- *  selection v-show-hides the sheet (impl-w7-overlay §OPEN NOTES). Rest so the
- *  spring settles + the docks affix. */
+/** Settle on #/<scene> via the lib's navToScene IN-PAGE hash nav (storage + the
+ *  H.W1 trap survive; page.goto clears both). Re-assert the viewport AFTER
+ *  navigation (Playwright resets on navigate). FORCE the controls pane OPEN
+ *  deterministically (seed isControlsPanelOpen + a selectedAnimation) — a fresh
+ *  #/cube load with no selection v-show-hides the sheet (impl-w7-overlay §OPEN
+ *  NOTES). Rest so the spring settles + the docks affix. */
 async function settleOpen(page) {
-    await page.evaluate((s) => {
-        location.hash = "#/" + s;
-    }, SCENE);
-    await page
-        .waitForFunction(
-            ([mk, s]) => {
-                try {
-                    return JSON.parse(localStorage.getItem(mk) || "{}").activeScene === s;
-                } catch {
-                    return false;
-                }
-            },
-            [MACHINE_KEY, SCENE],
-            { timeout: 8000 },
-        )
-        .catch(() => {});
+    await navToScene(page, SCENE, "Controls", { timeout: 8000 });
     await page.setViewportSize({ width: W, height: H });
     await page.evaluate(
         ([ck]) => {
@@ -222,38 +169,14 @@ async function waitMounted(page) {
 }
 
 async function browserHalf() {
-    if (!fs.existsSync(path.join(DIST, "index.html"))) {
-        skipOrFail("dist/gh-pages not built (run `npm run gh-pages` first)");
-        return;
-    }
-    let chromium;
-    try {
-        const requireFrom = createRequire(
-            path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-        );
-        ({ chromium } = requireFrom("playwright-core"));
-    } catch {
-        try {
-            const requireFrom = createRequire(
-                path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-            );
-            ({ chromium } = requireFrom("@playwright/test"));
-        } catch {
-            skipOrFail(
-                "playwright not resolvable (set KF_PLAYWRIGHT_DIR or install @playwright/test)",
-            );
-            return;
-        }
-    }
-
-    const server = serveDist();
-    await new Promise((r) => server.listen(0, r));
-    const base = `http://127.0.0.1:${server.address().port}`;
-
-    const browser = await chromium.launch();
-    try {
-        const page = await browser.newPage({ viewport: { width: W, height: H } });
-        await page.goto(`${base}/#/${SCENE}`, { waitUntil: "load" });
+    const result = await withPage(
+        {
+            distDir: DIST,
+            label: "the dock z-order/hit-test/mutex assertions",
+            context: { viewport: { width: W, height: H } },
+        },
+        async (page, { url }) => {
+        await page.goto(`${url}/#/${SCENE}`, { waitUntil: "load" });
         await settleOpen(page);
         const mounted = await waitMounted(page);
         if (!mounted) {
@@ -274,7 +197,6 @@ async function browserHalf() {
                     `sheetOpen:${dbg.sheetOpen}, hash:${dbg.hash}) — the FSM may not have ` +
                     `rested on ${SCENE} or the sheet did not force open`,
             );
-            await page.close();
             return;
         }
 
@@ -641,11 +563,10 @@ async function browserHalf() {
                 );
             }
         }
-
-        await page.close();
-    } finally {
-        await browser.close();
-        server.close();
+        },
+    );
+    if (result.skipped) {
+        console.log(`  ○ browser half skipped — ${result.reason}`);
     }
 }
 

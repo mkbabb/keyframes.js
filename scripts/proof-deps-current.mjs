@@ -12,10 +12,12 @@
 //
 //   (1) FLOOR — every `@mkbabb/*` dependency (across `dependencies` +
 //       `optionalDependencies`) is INSTALLED at ≥ the published floor:
-//       `value.js≥0.11.1`, `parse-that≥0.9.0`, `glass-ui≥3.5.1`. Read from the
-//       installed `node_modules/<pkg>/package.json` `version` — the artifact
-//       npm actually resolved, not the manifest range. BITES: revert a pin to
-//       `^0.10.0` + re-lock → the installed version drops below the floor →
+//       `value.js≥0.11.2`, `parse-that≥0.9.0`, `glass-ui≥3.9.0`. The floor
+//       tracks the CORRECTNESS MINIMUM the I bugfixes require, not the re-pin
+//       history (J.W3 S6b / BP-5 / BP-6). Read from the installed
+//       `node_modules/<pkg>/package.json` `version` — the artifact npm actually
+//       resolved, not the manifest range. BITES: revert a pin to a pre-floor
+//       version + re-lock → the installed version drops below the floor →
 //       reds.
 //
 //   (2) PROTOCOL — every `@mkbabb/*` declaration (in `package.json`) AND every
@@ -52,16 +54,21 @@ import { dirname, join } from "node:path";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
-// The published floors this gate enforces (the G.W2 targets). A future sibling
-// release advances these explicitly — the floor is the standing minimum, the
-// re-pin moves it.
+// The published floors this gate enforces — the CORRECTNESS MINIMUMS, advanced
+// at J.W3 S6b (BP-5/BP-6): the floor tracks the contract the I bugfixes
+// require, not the re-pin history. A future sibling release advances these
+// explicitly — the floor is the standing minimum.
 const FLOORS = {
-    "@mkbabb/value.js": "0.11.1",
+    // BP-5: 0.11.2 is the floor that protects the B1/B5 empty-input regression —
+    // a dev pinning 0.11.1 (valid in the old range) re-introduces the
+    // `Parse error at offset 0: "......"` crash.
+    "@mkbabb/value.js": "0.11.2",
     "@mkbabb/parse-that": "0.9.0",
-    // H.W8 BLK-5 consume-leg: the floor advances to 3.5.1 to consume the
-    // dock-spring retune (53c1b07 — `--spring-dock` peak +16.3% → +4.5%, the D5
-    // dock-lag fix, gated by proof:dock-morph-settled).
-    "@mkbabb/glass-ui": "3.5.1",
+    // BP-6: 3.9.0 is the floor that protects the B7 specular regression —
+    // a resolver downgrading into 3.5.x–3.8.x (valid in the old range)
+    // re-introduces the at-rest bloom; 3.9.0 carries `specular="off"`
+    // (proof:specular-absent-at-rest is the runtime contract).
+    "@mkbabb/glass-ui": "3.9.0",
 };
 
 const FORBIDDEN_PROTOCOLS = ["file:", "link:", "git:", "git+"];

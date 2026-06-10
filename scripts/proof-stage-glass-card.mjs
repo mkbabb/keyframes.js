@@ -49,15 +49,18 @@
  * cannot pass vacuously).
  *
  * Settle-gated on the H.W1 FSM resting (mirrors proof:scene-card-rounded /
- * proof:easing-stage-is-ball): each scene is pinned via an IN-PAGE hash
- * assignment (NOT page.goto — goto clears storage + the H.W1 reconcile trap), the
- * machine is polled to rest on the scene, the viewport is RE-ASSERTED after
- * navigation, and the gate waits until the stage glass Card resolves before
- * measuring. Browser-only (the converged card register is a RENDERED fact — the
- * computed radius + backdrop are live values; there is no static half here, the
- * static "no bare cartoon stage root" fact is owned by proof:card-rounded-
- * primitive). Under KF_REQUIRE_BROWSER a playwright-absent skip becomes a hard
- * fail so the I5 convergence is never green-reported un-exercised.
+ * proof:easing-stage-is-ball): each scene is pinned via the lib's navToScene (an
+ * IN-PAGE hash assignment — NOT page.goto, which clears storage + the H.W1
+ * reconcile trap — settled on the destination's per-EXPECTED control surface),
+ * the viewport is RE-ASSERTED after navigation, and the gate waits until the
+ * stage glass Card resolves before measuring. Harness: the
+ * scripts/lib/demo-driver.mjs lifecycle (withPage = serveDist + resolveChromium +
+ * context/teardown, J.W3 S1). Browser-only (the converged card register is a
+ * RENDERED fact — the computed radius + backdrop are live values; there is no
+ * static half here, the static "no bare cartoon stage root" fact is owned by
+ * proof:card-rounded-primitive). Under KF_REQUIRE_BROWSER a playwright-absent
+ * skip becomes a hard fail AT THE LIB SEAM so the I5 convergence is never
+ * green-reported un-exercised.
  *
  * This is the I5 SUPERSESSION of W10 `proof:scene-card-rounded`'s full-bleed
  * branch: that gate's "OR the stage is full-bleed" disjunct no longer holds (the
@@ -67,11 +70,9 @@
  * Re-runnable: `node scripts/proof-stage-glass-card.mjs`. Serves the BUILT
  * dist/gh-pages/ (run `npm run gh-pages` first).
  */
-import fs from "node:fs";
-import http from "node:http";
 import path from "node:path";
-import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import { navToScene, REQUIRE_BROWSER, withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
@@ -85,67 +86,16 @@ const fail = (label) => {
 
 console.log("proof:stage-glass-card — H.W11 I5 (the four stage scenes converge to ONE standard glass Card; REVERSES W10 G8 full-bleed)");
 
-const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
-const skipOrFail = (reason) => {
-    if (REQUIRE_BROWSER) {
-        fail(
-            `browser half REQUIRED (KF_REQUIRE_BROWSER=1) but ${reason} — ` +
-                "the four-scene glass-card convergence cannot pass vacuously",
-        );
-    } else {
-        console.log(`  ○ browser half skipped — ${reason}`);
-    }
-};
+// The destination control-tab labels navToScene settles on (per-EXPECTED-state;
+// null = the scene mounts no control panel — sequence/motion-path).
+const TRIGGER = { easing: "Easing", spring: "Spring", sequence: null, "motion-path": null };
 
-const MIME = {
-    ".html": "text/html",
-    ".js": "text/javascript",
-    ".css": "text/css",
-    ".json": "application/json",
-    ".png": "image/png",
-    ".ttf": "font/ttf",
-    ".woff2": "font/woff2",
-    ".svg": "image/svg+xml",
-};
-const MACHINE_KEY = "keyframes-js-scene-machine"; // SCENE_MACHINE_PERSIST_KEY
-
-function serveDist() {
-    const server = http.createServer((req, res) => {
-        const urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
-        const p = path.join(DIST, urlPath === "/" ? "index.html" : urlPath);
-        if (!p.startsWith(DIST) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) {
-            res.writeHead(404).end();
-            return;
-        }
-        res.writeHead(200, {
-            "content-type": MIME[path.extname(p)] ?? "application/octet-stream",
-        });
-        fs.createReadStream(p).pipe(res);
-    });
-    return server;
-}
-
-/** Settle on #/<scene> via an IN-PAGE hash assignment (storage + the H.W1 trap
+/** Settle on #/<scene> via the lib's in-page hash nav (storage + the H.W1 trap
  *  survive; page.goto clears both). Re-assert the viewport AFTER navigation. The
  *  stage subject is the DEFAULT view (no pane/tab toggle needed — the stage Card
  *  is the protagonist, not a sidebar surface). Rest ≥500ms. */
 async function settleOnScene(page, scene, viewportWidth, viewportHeight) {
-    await page.evaluate((s) => {
-        location.hash = "#/" + s;
-    }, scene);
-    await page
-        .waitForFunction(
-            ([mk, s]) => {
-                try {
-                    return JSON.parse(localStorage.getItem(mk) || "{}").activeScene === s;
-                } catch {
-                    return false;
-                }
-            },
-            [MACHINE_KEY, scene],
-            { timeout: 8000 },
-        )
-        .catch(() => {});
+    await navToScene(page, scene, TRIGGER[scene], { timeout: 8000 });
     await page.setViewportSize({ width: viewportWidth, height: viewportHeight });
     await page.waitForTimeout(700); // route rested ≥500ms + the grid reflow
 }
@@ -187,40 +137,18 @@ const SCENES = [
 ];
 
 async function browserHalf() {
-    if (!fs.existsSync(path.join(DIST, "index.html"))) {
-        skipOrFail("dist/gh-pages not built (run `npm run gh-pages` first)");
-        return;
-    }
-    let chromium;
-    try {
-        const requireFrom = createRequire(
-            path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-        );
-        ({ chromium } = requireFrom("playwright-core"));
-    } catch {
-        try {
-            const requireFrom = createRequire(
-                path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-            );
-            ({ chromium } = requireFrom("@playwright/test"));
-        } catch {
-            skipOrFail("playwright not resolvable (set KF_PLAYWRIGHT_DIR or install @playwright/test)");
-            return;
-        }
-    }
-
-    const server = serveDist();
-    await new Promise((r) => server.listen(0, r));
-    const base = `http://127.0.0.1:${server.address().port}`;
-
     const VW = 1440;
     const VH = 900;
-    const browser = await chromium.launch();
     let converged = 0;
-    try {
+    const result = await withPage(
+        {
+            distDir: DIST,
+            label: "the four-scene glass-card convergence",
+            context: { viewport: { width: VW, height: VH } },
+        },
+        async (page, { url }) => {
+        await page.goto(`${url}/#/${SCENES[0].scene}`, { waitUntil: "load" });
         for (const { scene, label } of SCENES) {
-            const page = await browser.newPage({ viewport: { width: VW, height: VH } });
-            await page.goto(`${base}/#/${scene}`, { waitUntil: "load" });
             await settleOnScene(page, scene, VW, VH);
             const mounted = await waitStageCard(page, scene, VW, VH);
 
@@ -235,7 +163,6 @@ async function browserHalf() {
                         `glassCard:${dbg.hasGlassCard}, hash:${dbg.hash}); the stage may still be ` +
                         `FULL-BLEED (no card) or BARE-CARTOON — the FSM may not have rested on ${scene}`,
                 );
-                await page.close();
                 continue;
             }
 
@@ -294,7 +221,6 @@ async function browserHalf() {
                     `${label} — ZERO glass Card in .stage-cell (the stage is still full-bleed ` +
                         `or bare-cartoon); I5 demands the stage SUBJECT resolves a standard glass Card`,
                 );
-                await page.close();
                 continue;
             }
             if (probe.glassCount > 1) {
@@ -302,7 +228,6 @@ async function browserHalf() {
                     `${label} — ${probe.glassCount} glass Cards in .stage-cell (expected EXACTLY one ` +
                         `protagonist plate); the stage register must converge to ONE card, not nest cards`,
                 );
-                await page.close();
                 continue;
             }
 
@@ -339,11 +264,12 @@ async function browserHalf() {
             } else {
                 fail(`${label} — the stage card is not the converged glass register: ${problems.join("; ")}`);
             }
-            await page.close();
         }
-    } finally {
-        await browser.close();
-        server.close();
+        },
+    );
+    if (result.skipped) {
+        console.log(`  ○ browser half skipped — ${result.reason}`);
+        return;
     }
 
     // the four-scene convergence: all four must resolve the SAME register

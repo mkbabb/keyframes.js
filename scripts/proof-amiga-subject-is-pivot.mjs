@@ -23,12 +23,14 @@
  * (the occlusion-pause intent rides an IntersectionObserver + the tab-visibility
  * pause instead) — no GPU stall.
  *
- * THE GATE (born-RED on b934a08, GREEN-on-fix · RUNTIME/INTERACTION). Mirrors the
- * scripts/proof-no-orphan-specular.mjs harness (serveDist over dist/gh-pages,
- * chromium via createRequire(KF_PLAYWRIGHT_DIR ?? REPO) resolving playwright-core,
- * KF_REQUIRE_BROWSER gating, a FRESH context per scene navigating `${base}/#/amiga`).
- * This wave's confirmation probe rc-amiga-confirm.mjs is the working template — the
- * ASSERTIONS INVERT:
+ * THE GATE (born-RED on b934a08, GREEN-on-fix · RUNTIME/INTERACTION). Harness:
+ * the scripts/lib/demo-driver.mjs lifecycle (withPage = serveDist over
+ * dist/gh-pages + env-driven resolveChromium + context/teardown, J.W3 S1;
+ * KF_REQUIRE_BROWSER gating at the lib seam, W7-1/S6d) + navToScene (the J.W0
+ * per-EXPECTED-state settle), a FRESH context per scene navigating
+ * `${base}/#/amiga`. P6 posture: hard — device-independent correctness oracle
+ * (red anywhere; J.W3 S2b). This wave's confirmation probe rc-amiga-confirm.mjs
+ * is the working template — the ASSERTIONS INVERT:
  *
  *   (a) a CENTRE-canvas pointer drag moves the SUBJECT, not the camera. The
  *       canvas-region delta is LOCAL — the CENTRE (the sphere) changed while the
@@ -46,11 +48,9 @@
  * Serves the BUILT dist/gh-pages/. Under KF_REQUIRE_BROWSER=1 a playwright-absent
  * skip becomes a HARD FAIL so a SHIP is never green-reported un-exercised.
  */
-import fs from "node:fs";
-import http from "node:http";
 import path from "node:path";
-import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import { navToScene, withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
@@ -67,46 +67,6 @@ console.log(
     "proof:amiga-subject-is-pivot + proof:amiga-no-gpu-stall — I.W3 (B3): subject = " +
         "orbit pivot = framing · WebGL root sheds content-visibility",
 );
-
-// ── harness (mirrors proof-no-orphan-specular.mjs serveDist + chromium resolve) ─
-const MIME = {
-    ".html": "text/html",
-    ".js": "text/javascript",
-    ".css": "text/css",
-    ".json": "application/json",
-    ".png": "image/png",
-    ".svg": "image/svg+xml",
-    ".ttf": "font/ttf",
-    ".woff2": "font/woff2",
-    ".jpg": "image/jpeg",
-};
-
-function serveDist() {
-    return http.createServer((req, res) => {
-        const urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
-        const p = path.join(DIST, urlPath === "/" ? "index.html" : urlPath);
-        if (!p.startsWith(DIST) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) {
-            res.writeHead(404).end();
-            return;
-        }
-        res.writeHead(200, {
-            "content-type": MIME[path.extname(p)] ?? "application/octet-stream",
-        });
-        fs.createReadStream(p).pipe(res);
-    });
-}
-
-const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
-const skipOrFail = (reason) => {
-    if (REQUIRE_BROWSER) {
-        fail(
-            `browser half REQUIRED (KF_REQUIRE_BROWSER=1) but ${reason} — the amiga ` +
-                "subject-is-pivot assertions cannot pass vacuously",
-        );
-    } else {
-        console.log(`  ○ browser half skipped — ${reason}`);
-    }
-};
 
 /**
  * Capture a full-canvas screenshot, decode it IN-BROWSER, and return per-region
@@ -240,36 +200,12 @@ async function dragStroke(page, box, fromX, fromY, dxStep, dyStep, steps) {
 }
 
 async function browserHalf() {
-    if (!fs.existsSync(path.join(DIST, "index.html"))) {
-        skipOrFail("dist/gh-pages not built (run `npm run gh-pages` first)");
-        return;
-    }
-    let chromium;
-    try {
-        const requireFrom = createRequire(
-            path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-        );
-        ({ chromium } = requireFrom("playwright-core"));
-    } catch {
-        try {
-            const requireFrom = createRequire(
-                path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-            );
-            ({ chromium } = requireFrom("@playwright/test"));
-        } catch {
-            skipOrFail(
-                "playwright not resolvable (set KF_PLAYWRIGHT_DIR or install @playwright/test)",
-            );
-            return;
-        }
-    }
+    const result = await withPage(
+        { distDir: DIST, label: "the amiga subject-is-pivot assertions" },
+        async (_page, { url: base, browser }) => {
 
-    const server = serveDist();
-    await new Promise((r) => server.listen(0, r));
-    const base = `http://127.0.0.1:${server.address().port}`;
-    const browser = await chromium.launch();
-
-    // Tiny helper: a fresh /amiga page (console buffers wired) settled for `ms`.
+    // Tiny helper: a fresh /amiga page (console buffers wired) settled for `ms`,
+    // navToScene-settled on the amiga control surface first (per-EXPECTED-state).
     const freshAmiga = async (settleMs) => {
         const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
         const page = await ctx.newPage();
@@ -278,6 +214,7 @@ async function browserHalf() {
         page.on("console", (m) => consoleLog.push({ type: m.type(), text: m.text() }));
         page.on("pageerror", (e) => pageErrors.push({ name: e.name, message: e.message }));
         await page.goto(`${base}/#/amiga`, { waitUntil: "load" });
+        await navToScene(page, "amiga", "Controls", { timeout: 8000 });
         await page.waitForTimeout(settleMs);
         return { ctx, page, consoleLog, pageErrors };
     };
@@ -288,7 +225,6 @@ async function browserHalf() {
         return handle.boundingBox();
     };
 
-    try {
         // ── clause (a): centre drag moves the SUBJECT, not the camera ──────────
         {
             const { ctx, page } = await freshAmiga(1500);
@@ -502,10 +438,9 @@ async function browserHalf() {
                 await ctx.close();
             }
         }
-    } finally {
-        await browser.close();
-        server.close();
-    }
+        },
+    );
+    if (result.skipped) console.log(`  ○ browser half skipped — ${result.reason}`);
 }
 
 await browserHalf();

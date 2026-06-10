@@ -49,18 +49,17 @@
  *      computed template loses the [rail]/[stage] line names + the 1fr 1fr
  *      siblings → reds.
  *
- * Mirrors scripts/proof-demo-usability.mjs / proof-dock-popover-opens.mjs (the
- * serveDist + Playwright plumbing; the STATIC half always runs, the BROWSER half
- * gates on playwright resolution — a skip becomes a hard fail under
- * KF_REQUIRE_BROWSER so a SHIP is never green-reported un-exercised). Re-runnable:
- * `node scripts/proof-demo-shell-grid.mjs`. The browser half serves the BUILT
- * dist/gh-pages/ (run `npm run gh-pages` first).
+ * Harness: the scripts/lib/demo-driver.mjs lifecycle (withPage = serveDist +
+ * resolveChromium + context/teardown, J.W3 S1). The STATIC half always runs, the
+ * BROWSER half gates on playwright resolution — a skip becomes a hard fail
+ * under KF_REQUIRE_BROWSER AT THE LIB SEAM so a SHIP is never green-reported
+ * un-exercised. Re-runnable: `node scripts/proof-demo-shell-grid.mjs`. The
+ * browser half serves the BUILT dist/gh-pages/ (run `npm run gh-pages` first).
  */
 import fs from "node:fs";
-import http from "node:http";
 import path from "node:path";
-import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import { navToScene, withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEMO = path.join(REPO, "demo");
@@ -196,47 +195,7 @@ console.log("proof:demo-shell-grid — H.W3 (the rail·stage·rail architecture 
 }
 
 // ── 3. NAMED-TEMPLATE COMPUTED (browser, gated) ──────────────────────────────
-const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
-const skipOrFail = (reason) => {
-    if (REQUIRE_BROWSER) {
-        fail(
-            `browser half REQUIRED (KF_REQUIRE_BROWSER=1) but ${reason} — ` +
-                "the named-template computed assertion cannot pass vacuously",
-        );
-    } else {
-        console.log(`  ○ browser half skipped — ${reason}`);
-    }
-};
-
-const MIME = {
-    ".html": "text/html",
-    ".js": "text/javascript",
-    ".css": "text/css",
-    ".json": "application/json",
-    ".png": "image/png",
-    ".ttf": "font/ttf",
-    ".woff2": "font/woff2",
-    ".svg": "image/svg+xml",
-};
-const MACHINE_KEY = "keyframes-js-scene-machine"; // SCENE_MACHINE_PERSIST_KEY
 const CTRL_KEY = "animation-groups-control-options-store";
-
-/** Serve the BUILT dist/gh-pages on an ephemeral port. */
-function serveDist() {
-    const server = http.createServer((req, res) => {
-        const urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
-        const p = path.join(DIST, urlPath === "/" ? "index.html" : urlPath);
-        if (!p.startsWith(DIST) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) {
-            res.writeHead(404).end();
-            return;
-        }
-        res.writeHead(200, {
-            "content-type": MIME[path.extname(p)] ?? "application/octet-stream",
-        });
-        fs.createReadStream(p).pipe(res);
-    });
-    return server;
-}
 
 /** Force the controls pane OPEN: write the persisted control-options store +
  *  toggle the live layout state class (the SSOT for the [rail]-track collapse).
@@ -258,28 +217,13 @@ async function openPane(page) {
     }, CTRL_KEY);
 }
 
-/** Settle on #/cube via an IN-PAGE hash assignment (NOT page.goto — goto clears
- *  storage + kills the H.W1 reconcile trap; the hash funnels through the
- *  afterEach reader → NAVIGATE → echo-guarded writer, the same fixed point as the
- *  in-app combobox, WV-W1 harness note). Waits for the machine to rest on cube
- *  (the FSM-resting settle-gate, WV-W3-MED-3 / cross-ref proof:no-route-storm). */
+/** Settle on #/cube via the lib's navToScene (an IN-PAGE hash assignment — NOT
+ *  page.goto, which clears storage + kills the H.W1 reconcile trap; the hash
+ *  funnels through the afterEach reader → NAVIGATE → echo-guarded writer, the
+ *  same fixed point as the in-app combobox, WV-W1 harness note — settled on the
+ *  destination's per-EXPECTED control surface, WV-W3-MED-3). */
 async function settleOnCube(page, viewportWidth) {
-    await page.evaluate(() => {
-        location.hash = "#/cube";
-    });
-    await page
-        .waitForFunction(
-            (mk) => {
-                try {
-                    return JSON.parse(localStorage.getItem(mk) || "{}").activeScene === "cube";
-                } catch {
-                    return false;
-                }
-            },
-            MACHINE_KEY,
-            { timeout: 8000 },
-        )
-        .catch(() => {});
+    await navToScene(page, "cube", "Controls", { timeout: 8000 });
     // RE-ASSERT the test viewport AFTER navigation (Playwright can reset to 390
     // on a navigation — WV-W3-MED-3). ≥1024 is the desktop branch precondition.
     await page.setViewportSize({ width: viewportWidth, height: 900 });
@@ -287,38 +231,16 @@ async function settleOnCube(page, viewportWidth) {
 }
 
 async function browserHalf() {
-    if (!fs.existsSync(path.join(DIST, "index.html"))) {
-        skipOrFail("dist/gh-pages not built (run `npm run gh-pages` first)");
-        return;
-    }
-    let chromium;
-    try {
-        const requireFrom = createRequire(
-            path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-        );
-        ({ chromium } = requireFrom("playwright-core"));
-    } catch {
-        try {
-            const requireFrom = createRequire(
-                path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-            );
-            ({ chromium } = requireFrom("@playwright/test"));
-        } catch {
-            skipOrFail("playwright not resolvable (set KF_PLAYWRIGHT_DIR or install @playwright/test)");
-            return;
-        }
-    }
-
-    const server = serveDist();
-    await new Promise((r) => server.listen(0, r));
-    const base = `http://127.0.0.1:${server.address().port}`;
-
-    const browser = await chromium.launch();
-    try {
-        // 1440×900 — the canonical desktop measure (the changes-ledger anchor).
+    const result = await withPage(
+        {
+            distDir: DIST,
+            label: "the named-template computed assertion",
+            // 1440×900 — the canonical desktop measure (the changes-ledger anchor).
+            context: { viewport: { width: 1440, height: 900 } },
+        },
+        async (page, { url }) => {
         const VW = 1440;
-        const page = await browser.newPage({ viewport: { width: VW, height: 900 } });
-        await page.goto(`${base}/#/cube`, { waitUntil: "load" });
+        await page.goto(`${url}/#/cube`, { waitUntil: "load" });
         await settleOnCube(page, VW);
         await openPane(page);
 
@@ -410,10 +332,10 @@ async function browserHalf() {
                 );
             }
         }
-        await page.close();
-    } finally {
-        await browser.close();
-        server.close();
+        },
+    );
+    if (result.skipped) {
+        console.log(`  ○ browser half skipped — ${result.reason}`);
     }
 }
 
