@@ -7,16 +7,26 @@
  *    always-async form → the reschedule lands in a microtask → the loop cannot
  *    advance without an awaited drain → only one frame runs per synchronous pump.
  *
- *  clause 2 — the event-ordering LOCK (locks OUT the held `Animation`/group sync
- *    half): `animationstart` → `animationiteration`* → `animationend`, and the
- *    play promise resolves AFTER `animationend`. The held `_frame` sync
- *    transposition (F.W5 S2) may land ONLY when this stays green — a reorder reds
- *    it. Authored now as the standing isomorphism guard even though the half is
- *    HELD (recorded-withheld), so it cannot ship on assertion.
+ *  clause 2 — the event-ordering LOCK: `animationstart` →
+ *    `animationiteration`* → `animationend`, and the play promise resolves
+ *    AFTER `animationend`. Authored at F.W5 as the standing isomorphism guard
+ *    that locked OUT the then-held `Animation`/group sync half; that half
+ *    LANDED at J.W6 S1 behind it (and behind the wider
+ *    `proof:event-ordering` gate, `test/event-ordering.test.ts`) — the lock
+ *    stands so no later refactor can reorder a boundary dispatch.
+ *
+ *  clause 3 — the LANDED half's regression lock (J.W6 S1): the steady
+ *    `Animation`/`AnimationGroup` play loop also schedules ZERO microtasks —
+ *    `advanceTo` is sync past the first tick, `_frame` returns a plain
+ *    boolean, and the loop-core fast-path reschedules inline. BITES: revert
+ *    `advanceTo`/`_frame` to the async shape → only one frame runs per
+ *    synchronous pump (exactly the arm-(a) measurement that justified the
+ *    land — 1.998→0 turns/frame, `test/sync-step.measure.test.ts`).
  */
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { RAFPlayback, type Tickable } from "../src/animation/playback";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
+import { AnimationGroup } from "../src/animation/group";
 
 // Polyfill AnimationEvent for jsdom (it has no native AnimationEvent; the engine
 // skips dispatch when absent — clause 2 needs it present to observe ordering).
@@ -155,5 +165,77 @@ describe("F.W5 clause 2 — event-ordering lock (the held-half guard)", () => {
             order.indexOf("start"),
         );
         expect(order.indexOf("iteration")).toBeLessThan(order.indexOf("end"));
+    });
+});
+
+describe("J.W6 S1 clause 3 — steady Animation/group advance reschedules synchronously", () => {
+    let pending: Array<(now: number) => void>;
+    let realRAF: typeof globalThis.requestAnimationFrame;
+    let realCAF: typeof globalThis.cancelAnimationFrame;
+
+    beforeEach(() => {
+        pending = [];
+        realRAF = globalThis.requestAnimationFrame;
+        realCAF = globalThis.cancelAnimationFrame;
+        let id = 0;
+        globalThis.requestAnimationFrame = ((cb: (now: number) => void) => {
+            pending.push(cb);
+            return ++id;
+        }) as typeof globalThis.requestAnimationFrame;
+        globalThis.cancelAnimationFrame =
+            (() => {}) as typeof globalThis.cancelAnimationFrame;
+    });
+    afterEach(() => {
+        globalThis.requestAnimationFrame = realRAF;
+        globalThis.cancelAnimationFrame = realCAF;
+    });
+
+    const makeFade = () => {
+        const el = document.createElement("div");
+        const a = new CSSKeyframesAnimation({
+            duration: 10_000, // far past the pumped window — steady state
+            delay: 0,
+            useWAAPI: false,
+        }).fromString("from { opacity: 0; } to { opacity: 1; }");
+        a.setTargets(el);
+        return a;
+    };
+
+    /**
+     * Pump frames synchronously WITHOUT draining microtasks. With the sync
+     * advance each frame reschedules inline, so all N frames run in one
+     * synchronous pump; with the old async `advanceTo`/`_frame` the
+     * reschedule lands in a microtask we never await → only ONE frame runs.
+     */
+    const pumpSync = (max: number): number => {
+        let frames = 0;
+        let now = 0;
+        while (pending.length && frames < max) {
+            const cb = pending.shift()!;
+            now += 16.667;
+            cb(now);
+            frames += 1;
+        }
+        return frames;
+    };
+
+    it("advances an Animation play loop with zero awaited microtasks", () => {
+        const a = makeFade();
+        void a.play();
+        expect(pending.length).toBe(1); // first frame scheduled synchronously
+
+        expect(pumpSync(20)).toBe(20); // every frame rescheduled inline (not 1)
+        a.stop();
+    });
+
+    it("advances an AnimationGroup play loop with zero awaited microtasks", () => {
+        const group = new AnimationGroup(
+            ...Array.from({ length: 4 }, makeFade),
+        );
+        void group.play();
+        expect(pending.length).toBe(1);
+
+        expect(pumpSync(20)).toBe(20);
+        group.stop();
     });
 });

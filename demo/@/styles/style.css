@@ -26,7 +26,7 @@
      --z-bar      :  30  the editor bars (header / menubar chrome)
      --z-dock     :  40  the bottom dock band
      --z-overlay  :  50  scrim / backdrop overlays
-     --z-popover  : 130  popovers (share, command palette)
+     --z-popover  : 130  popovers (share)
      --z-modal    : 140  modal dialogs — above everything
 
    Contract: content < controls < bar < dock < overlay < popover < modal,
