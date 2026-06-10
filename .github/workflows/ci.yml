@@ -133,6 +133,8 @@ jobs:
               run: npm run proof:interp-fastprops
             - name: proof:sync-step (F.W5 — the drive sync fast-path + the event-ordering lock)
               run: npm run proof:sync-step
+            - name: proof:event-ordering (J.W6 S1/FB-2 — animationstart → iteration* → animationend · paint-before-event · awaited play resolves after end)
+              run: npm run proof:event-ordering
             - name: proof:roundtrip-easing (F.W7 — per-keyframe + spring linear() round-trip)
               run: npm run proof:roundtrip-easing
             - name: proof:adapter-capture (F.W8 — composition capture + shorthand-applied + AST-decide)
@@ -332,6 +334,17 @@ jobs:
             # CI fail (the per-scene + navigation-matrix clauses cannot pass vacuously).
             - name: proof:scene-control-dfa (H.W11 S4/I2 — each scene renders ONLY its valid control-surface set · the navigation matrix is total · the DFA EXTENDS W1)
               run: npm run proof:scene-control-dfa
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            # J.W2 S2 (DS-1/S4) — the selectedControl single-WRITER completion over the
+            # DFA: the live scene sweep renders the DFA projection per entry, the
+            # cross-store purity holds after the sweep (no leaving-scene store corrupted
+            # by a mid-transition cross-scene write — the recorded Easing-holds-'spring'
+            # witness), and the matrix fallback happens AT the authority (the CubeScene
+            # rogue write is gone). Born-RED on the pre-J.W2 tree; KF_REQUIRE_BROWSER
+            # turns a playwright-absent skip into a hard CI fail.
+            - name: proof:control-surface-single-writer (J.W2 S2/DS-1 — ONE writing authority for selectedControl · cross-store purity over the sweep · matrix fallback at the authority)
+              run: npm run proof:control-surface-single-writer
               env:
                   KF_REQUIRE_BROWSER: "1"
             # H.W11 S4 / I2 — the DFA's MEASURE-FIRST transition-performance budget
@@ -857,6 +870,18 @@ jobs:
             # vacuously). Co-lands with proof:mobile-single-page (F1+F2 are one rebuild).
             - name: proof:drawer-spring (H.W7 S2/inv ζ — the mobile sheet is the engine's own SpringProgress · no CSS ease · <350ms settle · overshoot ring · single-frame PRM snap)
               run: npm run proof:drawer-spring
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            # J.W2 S3 (M2) — the mobile sheet re-open scroll latch: on a 390×844
+            # hasTouch context, open → CLOSE → RE-OPEN via real grab-handle taps, wait
+            # for the re-open spring to SETTLE (the spring's own motion, no blind
+            # timeout), then assert .controls-pane overflow-y is auto AND a real wheel
+            # scroll MOVES the sheet body (scrollTop > 0). Bites the I.W2 overclaim
+            # (the transitionend latch the mobile spring never fires). Born-RED on the
+            # pre-J.W2 tree; KF_REQUIRE_BROWSER turns a playwright-absent skip into a
+            # hard CI fail.
+            - name: proof:sheet-reopen-scroll (J.W2 S3/M2 — close → re-open settles via the spring's own signal · the sheet body SCROLLS · no transitionend latch)
+              run: npm run proof:sheet-reopen-scroll
               env:
                   KF_REQUIRE_BROWSER: "1"
             # H.W9 F2 (S4) — the bezier-panel fit + header-bake lock. Settle-gated on the

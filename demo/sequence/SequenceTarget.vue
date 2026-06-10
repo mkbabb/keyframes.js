@@ -151,10 +151,14 @@
                         <Rewind class="w-4 h-4" />
                         <span>Reverse</span>
                     </Button>
+                    <!-- The accessible name CONTAINS the visible "{n}×" readout
+                         (WCAG 2.5.3 Label in Name / axe label-content-name-mismatch:
+                         a static label that omits the visible text breaks
+                         speech-input activation). -->
                     <Button
                         variant="outline"
                         class="h-8 w-full rounded-full gap-1.5 text-small btn-interactive"
-                        aria-label="Cycle the sequence time scale"
+                        :aria-label="`${demo.timeScale.value}× — cycle the sequence time scale`"
                         @click="cycleTimeScale()"
                     >
                         <Gauge class="w-4 h-4" />
