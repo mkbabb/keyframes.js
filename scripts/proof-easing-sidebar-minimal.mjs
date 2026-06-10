@@ -183,14 +183,37 @@ async function settleOnEasing(page, viewportWidth, viewportHeight) {
     await page.waitForTimeout(700);
 }
 
-/** Wait until the FULL-RAIL easing sidebar PAINTS (content in the active controls
- *  tabpanel) — NOT until it is minimal. Each clause then bites on the SPECIFIC fact;
- *  requiring "minimal" here would conflate "not mounted" with "born-RED". */
+/** In-page locator (serialized + eval'd in each page read) for the live sidebar
+ *  PANE under BOTH mount shapes — the J.W2 S4-stretch product grammar
+ *  (`docs/tranches/J/waves/J.W2-impl.md §S4-stretch`): a MULTI-surface scene
+ *  still renders a reka Tabs ACTIVE tabpanel; the SINGLE-surface easing scene
+ *  mounts its sole panel FLAT — the `TabsTrigger`/`TabsContent` wrappers are
+ *  DELETED, so there is NO `[role=tabpanel]` (the former mount predicate's
+ *  stale shape). The flat pane is located DIRECTLY: inside the open
+ *  `.controls-pane`, the scroll container that parents the sidebar's glass-ui
+ *  Card root (`.rounded-card.text-card-foreground` — the SAME Card-root
+ *  signature B4 counts), preferring the Card carrying the sidebar content
+ *  (`.labeled-field` rows / the curve canvas). Returns the element whose
+ *  SUBTREE the clauses probe (the sidebar Card included — B4's exactly-1 count
+ *  is unchanged), or null when nothing painted (the honest mount-fail). */
+const LOCATE_PANE_SRC = `(() => {
+    const tabpanel = document.querySelector('[role="tabpanel"][data-state="active"]');
+    if (tabpanel) return tabpanel;
+    const cards = [...document.querySelectorAll(".controls-pane .rounded-card.text-card-foreground")];
+    const sidebarCard =
+        cards.find((c) => c.querySelector(".labeled-field, .easing-curve-canvas")) ?? cards[0];
+    return sidebarCard ? sidebarCard.parentElement : null;
+})`;
+
+/** Wait until the FULL-RAIL easing sidebar PAINTS (content in the live sidebar
+ *  pane — tabpanel OR the J.W2 flat mount) — NOT until it is minimal. Each clause
+ *  then bites on the SPECIFIC fact; requiring "minimal" here would conflate
+ *  "not mounted" with "born-RED". */
 async function waitSidebarMounted(page) {
     return page
         .waitForFunction(
-            () => {
-                const panel = document.querySelector('[role="tabpanel"][data-state="active"]');
+            (locSrc) => {
+                const panel = eval(locSrc)();
                 if (!panel) return false;
                 const root = panel.firstElementChild;
                 if (!root) return false;
@@ -200,16 +223,17 @@ async function waitSidebarMounted(page) {
                 const cr = canvas ? canvas.getBoundingClientRect() : null;
                 return r.width > 0 && r.height > 0 && !!cr && cr.height > 0;
             },
+            LOCATE_PANE_SRC,
             { timeout: 8000 },
         )
         .then(() => true)
         .catch(() => false);
 }
 
-/** Probe the active easing-sidebar tabpanel for the J facts. */
+/** Probe the live easing-sidebar pane (tabpanel or flat) for the J facts. */
 async function probeSidebar(page) {
-    return page.evaluate(() => {
-        const panel = document.querySelector('[role="tabpanel"][data-state="active"]');
+    return page.evaluate((locSrc) => {
+        const panel = eval(locSrc)();
         if (!panel) return { found: false };
 
         // B1 — strip: no <h2>, no CSS-value text input, no "value"-labelled row.
@@ -288,7 +312,7 @@ async function probeSidebar(page) {
             paneClientH: pane ? pane.clientHeight : null,
             paneOverflowY: paneCS ? paneCS.overflowY : null,
         };
-    });
+    }, LOCATE_PANE_SRC);
 }
 
 async function browserHalf() {
@@ -308,17 +332,23 @@ async function browserHalf() {
         const mounted = await waitSidebarMounted(page);
 
         if (!mounted) {
-            const dbg = await page.evaluate(() => {
-                const panel = document.querySelector('[role="tabpanel"][data-state="active"]');
+            const dbg = await page.evaluate((locSrc) => {
+                const panel = eval(locSrc)();
                 return {
-                    hasPanel: !!panel,
-                    hasCard: !!panel?.querySelector(".rounded-card"),
-                    hasCanvas: !!panel?.querySelector(".easing-curve-canvas"),
+                    hasTabpanel: !!document.querySelector(
+                        '[role="tabpanel"][data-state="active"]',
+                    ),
+                    hasPane: !!panel,
+                    hasCard: !!document.querySelector(".controls-pane .rounded-card"),
+                    hasCanvas: !!document.querySelector(
+                        ".controls-pane .easing-curve-canvas",
+                    ),
                     hash: location.hash,
                 };
-            });
+            }, LOCATE_PANE_SRC);
             fail(
-                `browser — the easing sidebar never mounted (tabpanel:${dbg.hasPanel}, ` +
+                `browser — the easing sidebar never mounted (pane:${dbg.hasPane}, ` +
+                    `tabpanel:${dbg.hasTabpanel} (the flat-mount scene has none — J.W2 S4-stretch), ` +
                     `.rounded-card:${dbg.hasCard}, .easing-curve-canvas:${dbg.hasCanvas}, hash:${dbg.hash}) — ` +
                     "the FSM may not have rested on easing or the pane/tab did not open. The J clauses cannot " +
                     "measure a sidebar that never painted (a vacuous pass is forbidden).",

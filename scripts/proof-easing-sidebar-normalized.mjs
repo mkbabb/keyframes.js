@@ -24,7 +24,9 @@
  * override).
  *
  * Falsifiable BROWSER clauses per sidebar (easing + spring), each BITING on the
- * exact defect, scoped to the live sidebar (the active controls tabpanel's Card):
+ * exact defect, scoped to the live sidebar pane (J.W2 S4-stretch grammar: the
+ * easing/spring single-surface panel mounts FLAT — no Tabs wrapper, no tabpanel
+ * role — so the pane is located directly; see LOCATE_PANE_SRC):
  *
  *   (a) STANDARD RUNG (the G5 sizing clause). ZERO `.text-admin-label` labels in
  *       the sidebar (the tightest-rung label class is gone), AND the param-row
@@ -122,40 +124,61 @@ async function settleOnScene(page, scene, viewportWidth, viewportHeight) {
     await page.waitForTimeout(700);
 }
 
-/** Wait until the FULL-RAIL sidebar RENDERS (content present in the active
- *  controls tabpanel) — NOT until it is normalized. The guard waits only for the
- *  sidebar to PAINT (a non-trivial subtree) so the three clauses can each bite on
- *  the SPECIFIC born-RED fact (the bespoke bare-class fork DOES render — it just
- *  has no `.labeled-field` rows / carries `.text-admin-label` / nests sub-Cards).
- *  Requiring `.labeled-field` here would conflate "not mounted" with "born-RED",
- *  hiding the precise BITE behind a timeout. */
+/** In-page locator (serialized + eval'd in each page read) for the live sidebar
+ *  PANE under BOTH mount shapes — the J.W2 S4-stretch product grammar
+ *  (`docs/tranches/J/waves/J.W2-impl.md §S4-stretch`): a MULTI-surface scene
+ *  (cube …) still renders a reka Tabs ACTIVE tabpanel; a SINGLE-surface scene
+ *  (easing/spring) mounts its sole panel FLAT — the `TabsTrigger`/`TabsContent`
+ *  wrappers are DELETED, so there is NO `[role=tabpanel]` to find (the former
+ *  mount predicate's stale shape — the CI #4 red). The flat pane is located
+ *  DIRECTLY: inside the open `.controls-pane`, the scroll container that parents
+ *  the sidebar's glass-ui Card root (`.rounded-card.text-card-foreground` — the
+ *  SAME Card-root signature clause (b) counts), preferring the Card that carries
+ *  the sidebar content (`.labeled-field` rows / the curve canvas) so a stray
+ *  pane Card can never shadow it. Returns the element whose SUBTREE the clauses
+ *  probe (the sidebar Card included — clause (b)'s exactly-1 count is
+ *  unchanged), or null when nothing painted (the honest mount-fail). */
+const LOCATE_PANE_SRC = `(() => {
+    const tabpanel = document.querySelector('[role="tabpanel"][data-state="active"]');
+    if (tabpanel) return tabpanel;
+    const cards = [...document.querySelectorAll(".controls-pane .rounded-card.text-card-foreground")];
+    const sidebarCard =
+        cards.find((c) => c.querySelector(".labeled-field, .easing-curve-canvas")) ?? cards[0];
+    return sidebarCard ? sidebarCard.parentElement : null;
+})`;
+
+/** Wait until the FULL-RAIL sidebar RENDERS (content present in the live sidebar
+ *  pane — tabpanel OR the J.W2 flat mount) — NOT until it is normalized. The
+ *  guard waits only for the sidebar to PAINT (a non-trivial subtree) so the
+ *  three clauses can each bite on the SPECIFIC born-RED fact (the bespoke
+ *  bare-class fork DOES render — it just has no `.labeled-field` rows / carries
+ *  `.text-admin-label` / nests sub-Cards). Requiring `.labeled-field` here would
+ *  conflate "not mounted" with "born-RED", hiding the precise BITE behind a
+ *  timeout. */
 async function waitSidebarMounted(page) {
     return page
         .waitForFunction(
-            () => {
-                const panel = document.querySelector(
-                    '[role="tabpanel"][data-state="active"]',
-                );
+            (locSrc) => {
+                const panel = eval(locSrc)();
                 if (!panel) return false;
-                // The sidebar has painted: the panel has a real child with area
+                // The sidebar has painted: the pane has a real child with area
                 // (the normalized Card OR the bespoke bare-class root — both render).
                 const root = panel.firstElementChild;
                 if (!root) return false;
                 const r = root.getBoundingClientRect();
                 return r.width > 0 && r.height > 0;
             },
+            LOCATE_PANE_SRC,
             { timeout: 8000 },
         )
         .then(() => true)
         .catch(() => false);
 }
 
-/** Probe the active controls tabpanel sidebar for the G5/G6 normalization facts. */
+/** Probe the live sidebar pane (tabpanel or flat) for the G5/G6 normalization facts. */
 async function probeSidebar(page) {
-    return page.evaluate(() => {
-        const panel = document.querySelector(
-            '[role="tabpanel"][data-state="active"]',
-        );
+    return page.evaluate((locSrc) => {
+        const panel = eval(locSrc)();
         if (!panel) return { found: false };
 
         // (b) BOUNDED NESTING — count glass-ui Card COMPONENTS (the Card root
@@ -188,7 +211,7 @@ async function probeSidebar(page) {
             trackHeights,
             labeledRowCount: labeledRows.length,
         };
-    });
+    }, LOCATE_PANE_SRC);
 }
 
 async function browserHalf() {
@@ -205,20 +228,26 @@ async function browserHalf() {
             const mounted = await waitSidebarMounted(page);
 
             if (!mounted) {
-                const dbg = await page.evaluate(() => {
-                    const panel = document.querySelector(
-                        '[role="tabpanel"][data-state="active"]',
-                    );
+                const dbg = await page.evaluate((locSrc) => {
+                    const panel = eval(locSrc)();
                     return {
-                        hasPanel: !!panel,
-                        hasCard: !!panel?.querySelector(".rounded-card"),
-                        hasRow: !!panel?.querySelector(".labeled-field"),
+                        hasTabpanel: !!document.querySelector(
+                            '[role="tabpanel"][data-state="active"]',
+                        ),
+                        hasPane: !!panel,
+                        hasCard: !!document.querySelector(
+                            ".controls-pane .rounded-card",
+                        ),
+                        hasRow: !!document.querySelector(
+                            ".controls-pane .labeled-field",
+                        ),
                         hash: location.hash,
                     };
-                });
+                }, LOCATE_PANE_SRC);
                 fail(
                     `${scene}: the normalized sidebar never mounted (` +
-                        `tabpanel:${dbg.hasPanel}, .rounded-card:${dbg.hasCard}, ` +
+                        `pane:${dbg.hasPane}, tabpanel:${dbg.hasTabpanel} (flat-mount scenes have none — J.W2 S4-stretch), ` +
+                        `.rounded-card:${dbg.hasCard}, ` +
                         `.labeled-field:${dbg.hasRow}, hash:${dbg.hash}) — the FSM may not have ` +
                         `rested on ${scene} or the controls pane / scene tab did not open. ` +
                         `If the sidebar is STILL the bespoke bare-class fork (no .labeled-field), this is the born-RED.`,

@@ -583,9 +583,14 @@ async function clauseSceneIsolation(browser, base) {
         // exact gate-blindspot the I.W7 regime forbids). This BITES a real
         // wrong-surface regression: a leaked group surface carries no curve canvas.
         const surface = await page.evaluate(() => {
+            // J.W2 S4-stretch: the easing single-surface panel mounts FLAT (no
+            // Tabs wrapper, no tabpanel role), so the pane is the open
+            // `.controls-pane` container; the tabpanel branch stays for
+            // multi-surface scenes. (The former `.animation-controls` fallback
+            // was a dead selector — no such class renders.)
             const panel =
                 document.querySelector('[role="tabpanel"][data-state="active"]') ||
-                document.querySelector(".animation-controls") ||
+                document.querySelector(".controls-pane") ||
                 document.body;
             const hasEasingEditor = !!panel.querySelector(
                 ".easing-curve-canvas, [class*='easing-editor'], [class*='EasingEditor']",
