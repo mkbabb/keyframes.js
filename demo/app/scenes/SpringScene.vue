@@ -77,10 +77,6 @@ storedControls.isControlsPanelOpen = true;
 const isPlaying = demo.isPlaying;
 const isStarted = ref(true);
 
-const extraControlTabs = computed(() => [
-    { value: "spring", label: "Spring", icon: "Activity" },
-]);
-
 const tabsTrigger = (_slotProps: { selectedAnimation: string }) =>
     h(
         TabsTrigger,
@@ -216,7 +212,6 @@ defineExpose({
     tabsTrigger,
     tabsContent,
     ribbonContent,
-    extraControlTabs,
 });
 </script>
 

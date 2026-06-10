@@ -48,6 +48,7 @@ import http from "node:http";
 import path from "node:path";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import { navToScene } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEMO = path.join(REPO, "demo");
@@ -176,7 +177,6 @@ const MIME = {
     ".woff2": "font/woff2",
     ".svg": "image/svg+xml",
 };
-const MACHINE_KEY = "keyframes-js-scene-machine";
 
 // The expected EFFECTIVE control-tab outcome per scene (the DFA table, observed
 // through the dock). `trigger` = the controls-tab trigger's collapsed label (the
@@ -206,26 +206,6 @@ function serveDist() {
         });
         fs.createReadStream(p).pipe(res);
     });
-}
-
-async function navByHash(page, sceneId, settleMs = 1600) {
-    await page.evaluate((s) => {
-        location.hash = "#/" + s;
-    }, sceneId);
-    await page
-        .waitForFunction(
-            ([mk, id]) => {
-                try {
-                    return JSON.parse(localStorage.getItem(mk) || "{}").activeScene === id;
-                } catch {
-                    return false;
-                }
-            },
-            [MACHINE_KEY, sceneId],
-            { timeout: 8000 },
-        )
-        .catch(() => {});
-    await page.waitForTimeout(settleMs);
 }
 
 /** Read the dock's control-tab state: the collapsed trigger label (or null if
@@ -291,7 +271,7 @@ async function browserHalf() {
         let perSceneClean = 0;
         const sceneIds = Object.keys(EXPECT);
         for (const id of sceneIds) {
-            await navByHash(page, id);
+            await navToScene(page, id, EXPECT[id].hasPanel ? EXPECT[id].trigger : null);
             const st = await dockControlState(page);
             const exp = EXPECT[id];
             let pass = st.hasTrigger === exp.hasPanel;
@@ -337,8 +317,8 @@ async function browserHalf() {
         ];
         let matrixClean = 0;
         for (const [from, to] of matrix) {
-            await navByHash(page, from);
-            await navByHash(page, to);
+            await navToScene(page, from, EXPECT[from].hasPanel ? EXPECT[from].trigger : null);
+            await navToScene(page, to, EXPECT[to].hasPanel ? EXPECT[to].trigger : null);
             const st = await dockControlState(page);
             const exp = EXPECT[to];
             let pass = st.hasTrigger === exp.hasPanel;

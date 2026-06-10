@@ -199,12 +199,6 @@ onBeforeUnmount(() => {
     };
 });
 
-const extraControlTabs = computed(() =>
-    storedControls.selectedAnimation === CUBE_ANIMATION_NAMES.Matrix
-        ? [{ value: "matrix-controls", label: "Matrix Controls", icon: "Grid3X3" }]
-        : [],
-);
-
 defineExpose({
     animationGroup: computed(() => animationGroup.value),
     superKey,
@@ -215,6 +209,5 @@ defineExpose({
     tabsTrigger,
     tabsContent,
     ribbonContent,
-    extraControlTabs,
 });
 </script>

@@ -53,6 +53,7 @@ import http from "node:http";
 import path from "node:path";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import { navToScene, SCENE_MACHINE_KEY } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEMO = path.join(REPO, "demo");
@@ -174,7 +175,6 @@ const MIME = {
     ".woff2": "font/woff2",
     ".svg": "image/svg+xml",
 };
-const MACHINE_KEY = "keyframes-js-scene-machine";
 const CTRL_KEY = "animation-groups-control-options-store";
 const SUPER_KEY = {
     cube: "Cube",
@@ -200,32 +200,16 @@ function serveDist() {
     });
 }
 
-async function navByHash(page, sceneId, settleMs = 1500) {
-    await page.evaluate((s) => {
-        location.hash = "#/" + s;
-    }, sceneId);
-    await page
-        .waitForFunction(
-            ([mk, id]) => {
-                try {
-                    return JSON.parse(localStorage.getItem(mk) || "{}").activeScene === id;
-                } catch {
-                    return false;
-                }
-            },
-            [MACHINE_KEY, sceneId],
-            { timeout: 8000 },
-        )
-        .catch(() => {});
-    await page.waitForTimeout(settleMs);
-}
+// The destination control-tab labels navToScene settles on (the per-EXPECTED
+// predicate): easing projects its scene-specific "Easing" surface; cube keeps
+// the built-in "Controls" default.
+const TRIGGER = { cube: "Controls", easing: "Easing" };
 
 /** Drive ONE cross-scene transition and measure the settle: from the hash
  *  assignment to the control-surface re-render committed two rAFs after the
  *  machine's activeScene rests on the target. */
 const measureTransition = (page, target) =>
-    page.evaluate(async (t) => {
-        const mk = "keyframes-js-scene-machine";
+    page.evaluate(async ([t, mk]) => {
         const t0 = performance.now();
         location.hash = "#/" + t;
         await new Promise((resolve) => {
@@ -243,7 +227,7 @@ const measureTransition = (page, target) =>
         // two rAFs so the control-surface re-render has committed + painted.
         await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
         return performance.now() - t0;
-    }, target);
+    }, [target, SCENE_MACHINE_KEY]);
 
 const controlProjection = (page, superKey) =>
     page.evaluate(
@@ -325,10 +309,10 @@ async function browserHalf() {
         }
 
         // ── T2 CONTROL-SURFACE ROUND-TRIP IDENTITY (easing↔cube) ─────────────
-        await navByHash(page, "easing");
+        await navToScene(page, "easing", TRIGGER.easing);
         const easingBefore = await controlProjection(page, SUPER_KEY.easing);
-        await navByHash(page, "cube");
-        await navByHash(page, "easing");
+        await navToScene(page, "cube", TRIGGER.cube);
+        await navToScene(page, "easing", TRIGGER.easing);
         const easingAfter = await controlProjection(page, SUPER_KEY.easing);
 
         const roundTrips =

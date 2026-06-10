@@ -49,7 +49,6 @@ const props = defineProps<{
     scenes: { id: string; label: string; icon?: Component }[];
     homeSceneId: string;
     currentLabel: string;
-    hasSelectedAnimation: boolean;
     isControlsPanelOpen: boolean;
     selectedControl?: string;
     /** The active scene's valid BUILT-IN editor surfaces (the DFA projection,
@@ -67,8 +66,11 @@ const currentIcon = computed<Component | undefined>(
 );
 
 // The effective control-tab set the dock renders = the DFA-VALID built-in triad
-// for the active scene + the scene's `extraControlTabs` (its scene-specific
-// surfaces' tab metadata: easing→Easing, spring→Spring, cube→Matrix Controls).
+// for the active scene + the machine-PROJECTED `extraControlTabs` (the
+// scene-specific surfaces' tab metadata: easing→Easing, spring→Spring,
+// cube→Matrix Controls — derived from `activeScene` through the DFA's tab table
+// in the App, J.W0.S3, so the trigger label settles synchronously with the
+// route, never a tick late on the destination scene's mount).
 // When `controlSurfaces` is absent (a non-App host that doesn't drive the DFA)
 // the full built-in triad is the conservative default — total, never undefined.
 const allControlTabs = computed(() => {
@@ -81,15 +83,16 @@ const allControlTabs = computed(() => {
 
 // The control-panel affordances (the collapse toggle + the tab selector) appear
 // ONLY when the scene has at least one control surface to show (the DFA set is
-// non-empty) AND an animation is selected. For sequence/motion-path the DFA set
-// is [] — so NO control affordance renders, which is the DFA-driven supersession
-// of those scenes' former `isControlsPanelOpen = false` poke-sets (one authority
-// for "this scene has no panel", not a per-scene imperative write).
-const hasControlPanel = computed(
-    () =>
-        props.hasSelectedAnimation &&
-        allControlTabs.value.length > 0,
-);
+// non-empty). For home/sequence/motion-path the DFA set is [] — so NO control
+// affordance renders, which is the DFA-driven supersession of those scenes'
+// former `isControlsPanelOpen = false` poke-sets (one authority for "this scene
+// has no panel", not a per-scene imperative write). J.W0.S3: the former
+// `hasSelectedAnimation` AND-clause is DEAD — it keyed the affordance on a
+// per-superKey stored fact seeded only at SCENE_READY (post-mount), so on a
+// cross-scene nav the trigger VANISHED for the mount window (clause (b)'s
+// forbidden `null`). The DFA projection is born-correct on the rest tick; the
+// affordance presence now settles synchronously with the route.
+const hasControlPanel = computed(() => allControlTabs.value.length > 0);
 
 const isMobile = useMediaQuery("(max-width: 1023px)");
 

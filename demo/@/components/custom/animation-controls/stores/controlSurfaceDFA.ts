@@ -24,8 +24,8 @@ import type { SceneId } from "./sceneMachine";
 /**
  * The control-surface alphabet — every surface a scene MAY expose in the control
  * dock/panel. `controls`/`keyframes`/`timeline` are the BUILT-IN editor triad;
- * `easing`/`spring`/`matrix-controls` are the scene-specific surfaces a scene
- * injects via its `extraControlTabs` (the tab-metadata carrier). The DFA is the
+ * `easing`/`spring`/`matrix-controls` are the scene-specific surfaces whose tab
+ * metadata projects through `extraControlTabsFor` (J.W0.S3). The DFA is the
  * authority on WHICH of these are valid per scene; the tab host renders the
  * INTERSECTION of its known tab descriptors with this set.
  */
@@ -65,13 +65,13 @@ export const BUILT_IN_SURFACES: readonly ControlSurface[] = [
  *                                                        isControlsPanelOpen=false)
  *
  * CUBE'S matrix-controls is a CONDITIONAL surface (valid only while the Matrix
- * animation is selected). It is therefore NOT a static table member; it stays a
- * DYNAMIC surface the cube scene injects via `extraControlTabs` (the existing
- * mechanism). The static table enumerates the surface set that holds REGARDLESS
- * of the in-scene selection; the conditional extra composes on top (the host
- * unions the DFA set with `extraControlTabs`). The cube's CONDITIONAL ceiling is
- * recorded in `CONDITIONAL_SURFACES` so the navigation-matrix gate knows the cube
- * cell's full possible set is DEFINED.
+ * animation is selected). It is therefore NOT a static table member; it composes
+ * on top through `extraControlTabsFor`'s `activeConditionals` argument (the App
+ * supplies the selection predicate — a stored, synchronous fact). The static
+ * table enumerates the surface set that holds REGARDLESS of the in-scene
+ * selection; the cube's CONDITIONAL ceiling is recorded in `CONDITIONAL_SURFACES`
+ * so the navigation-matrix gate knows the cube cell's full possible set is
+ * DEFINED.
  */
 export const CONTROL_SURFACES: Record<SceneId, ControlSurface[]> = {
     home: [],
@@ -89,8 +89,9 @@ export const CONTROL_SURFACES: Record<SceneId, ControlSurface[]> = {
  * in-scene selection (cube's matrix-controls appears only when the Matrix
  * animation is selected). Enumerated so the navigation-matrix gate can assert the
  * cube cell's FULL possible surface set is DEFINED (no undefined behavior even
- * with the conditional extra). The scene injects these at runtime via
- * `extraControlTabs`; the DFA records that they are EXPECTED + valid.
+ * with the conditional extra). The App projects these through
+ * `extraControlTabsFor` (J.W0.S3 — the caller supplies WHICH conditionals are
+ * currently active); the DFA records that they are EXPECTED + valid.
  */
 export const CONDITIONAL_SURFACES: Record<SceneId, ControlSurface[]> = {
     cube: ["matrix-controls"],
@@ -128,13 +129,69 @@ export function isSurfaceValidForScene(
  * Project the BUILT-IN editor triad through the DFA for a scene: the subset of
  * {controls,keyframes,timeline} this scene is allowed to show. The tab hosts
  * render exactly these built-in triggers (the easing scene → [], so NO
- * keyframes/timeline node exists for it), then UNION the scene's
- * `extraControlTabs` (the scene-specific surfaces' tab metadata). KISS·DRY: one
- * authority for the triad's per-scene visibility.
+ * keyframes/timeline node exists for it), then UNION the machine-projected
+ * `extraControlTabs` (`extraControlTabsFor` — the scene-specific surfaces' tab
+ * metadata). KISS·DRY: one authority for the triad's per-scene visibility.
  */
 export function builtInSurfacesFor(sceneId: SceneId): ControlSurface[] {
     const valid = controlSurfacesFor(sceneId);
     return BUILT_IN_SURFACES.filter((s) => valid.includes(s));
+}
+
+// ── THE EXTRA-TAB PROJECTION (J.W0.S3 — the dock trigger born-correct) ───────
+// The scene-specific surfaces' TAB METADATA (value + label + icon), single-
+// sourced HERE beside the DFA table that declares WHERE each surface is valid.
+// Formerly each scene component carried its own `extraControlTabs` computed and
+// the App re-bound it through `sceneRef` — so the dock's trigger label arrived
+// a tick LATE, gated on the destination scene's <Suspense> mount (the
+// scene-control-dfa trigger-lag race, `ci-linux-open-item.md §2`). The metadata
+// is STATIC per surface; deriving it from `activeScene` through this table makes
+// the dock projection settle synchronously with the route transition.
+
+/** A dock/tab-host descriptor for a scene-specific control surface. The `icon`
+ *  is a key into the host's icon registry (ChromeDock `TAB_ICONS`). */
+export interface ControlSurfaceTab {
+    value: ControlSurface;
+    label: string;
+    icon?: string;
+}
+
+/** The tab metadata per scene-specific surface (the non-built-in alphabet). */
+const SCENE_SURFACE_TABS: Partial<Record<ControlSurface, ControlSurfaceTab>> = {
+    easing: { value: "easing", label: "Easing", icon: "Activity" },
+    spring: { value: "spring", label: "Spring", icon: "Activity" },
+    "matrix-controls": {
+        value: "matrix-controls",
+        label: "Matrix Controls",
+        icon: "Grid3X3",
+    },
+};
+
+/**
+ * The scene-specific control tabs for a scene — the dock's `extraControlTabs`,
+ * derived PURELY from the DFA table (the same `controlSurfacesFor(activeScene)`
+ * authority that already owns the SET), NOT from a mounted scene component.
+ *
+ * `activeConditionals` carries the conditional surfaces currently active (cube's
+ * `matrix-controls` while the Matrix animation is selected — the caller supplies
+ * the predicate result, a stored synchronous fact). The intersection with
+ * `CONDITIONAL_SURFACES[sceneId]` keeps the projection TOTAL: a conditional that
+ * is not declared for the scene can never render there.
+ */
+export function extraControlTabsFor(
+    sceneId: SceneId,
+    activeConditionals: readonly ControlSurface[] = [],
+): ControlSurfaceTab[] {
+    const statics = controlSurfacesFor(sceneId).filter(
+        (s) => !BUILT_IN_SURFACES.includes(s),
+    );
+    const conditionals = (CONDITIONAL_SURFACES[sceneId] ?? []).filter((s) =>
+        activeConditionals.includes(s),
+    );
+    return [...statics, ...conditionals].flatMap((s) => {
+        const tab = SCENE_SURFACE_TABS[s];
+        return tab ? [tab] : [];
+    });
 }
 
 // ── THE SELECTED-SURFACE SINGLE AUTHORITY (I.W2.S1) ──────────────────────────

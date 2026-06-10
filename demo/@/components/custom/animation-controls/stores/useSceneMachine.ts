@@ -32,8 +32,10 @@ import {
 } from "./sceneMachine";
 import {
     controlSurfacesFor,
+    extraControlTabsFor,
     selectedControlSurfaceFor,
     type ControlSurface,
+    type ControlSurfaceTab,
 } from "./controlSurfaceDFA";
 
 /** The localStorage key the machine context persists under (ST-6). Exported so
@@ -238,6 +240,27 @@ export const useSceneMachine = createGlobalState(() => {
         /** The DFA selector for an ARBITRARY scene (the navigation-matrix
          *  totality the gate asserts: every scene resolves a DEFINED set). */
         controlSurfacesFor,
+
+        // ── THE EXTRA-TAB PROJECTION (J.W0.S3 — the dock trigger born-correct) ─
+        // The scene-specific surfaces' TAB METADATA (easing→Easing,
+        // spring→Spring) as a projection of `activeScene` through the DFA's
+        // metadata table — NOT a value that arrives a tick LATE through the
+        // scene component's `extraControlTabs` re-bind on <Suspense> mount. The
+        // dock binds THIS, so the trigger label is correct on the very tick
+        // `activeScene` rests on the destination (the I.W2 single-authority
+        // extended from the SELECTED surface to the tab PROJECTION).
+        // `activeConditionals` carries the caller-supplied conditional surfaces
+        // (cube's matrix-controls while the Matrix animation is selected).
+        extraControlTabsFor,
+        /** The active scene's scene-specific control tabs — reactive on
+         *  `activeScene`, synchronously correct per tick. */
+        extraControlTabs: (
+            activeConditionals?: readonly ControlSurface[],
+        ): ControlSurfaceTab[] =>
+            extraControlTabsFor(
+                machine.value.context.activeScene,
+                activeConditionals,
+            ),
 
         // ── THE SELECTED-SURFACE SINGLE AUTHORITY (I.W2.S1) ───────────────────
         // The order-independent control-panel mount projection I.W1's S3

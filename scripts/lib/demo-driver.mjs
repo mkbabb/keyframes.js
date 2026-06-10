@@ -24,6 +24,11 @@
  *   resolveChromium()              — KF_PLAYWRIGHT_DIR createRequire resolver.
  *   serveDist(distDir)             — static http server over the built demo
  *                                    (dist/gh-pages); returns { url, close }.
+ *   SCENE_MACHINE_KEY              — the scene machine's localStorage key (the
+ *                                    persisted `activeScene` EARLY fact).
+ *   navToScene(page, sceneId, expectedTrigger, {timeout})
+ *                                  — hash-nav + per-EXPECTED-state settle (the
+ *                                    J.W0 S2 primitive; no fixed settleMs).
  *   openControlsPanel(page)        — drive a scene into its OPEN-panel editing
  *                                    state (select the first animation + open
  *                                    a controls tab) before probing.
@@ -315,6 +320,38 @@ export function serveDist(distDir) {
             });
         });
     });
+}
+
+/**
+ * SCENE_MACHINE_KEY — the scene machine's persisted localStorage key (the
+ * `activeScene` EARLY fact navToScene waits on). Single-sourced here so no
+ * transition-driving gate carries its own hand-rolled literal copy.
+ */
+export const SCENE_MACHINE_KEY = "keyframes-js-scene-machine";
+
+// navToScene — drive a hash-nav transition + WAIT for the DESTINATION's control-surface
+// to PROJECT (per-EXPECTED-state settle, NOT a fixed settleMs / any-trigger-present). The
+// control-tab trigger TEXT lags the route via the mounted scene component's extraControlTabs
+// (App.vue:11). Load-INDEPENDENT: the timeout is a CEILING, returns the instant the surface
+// projects (fast box), spends the budget only on a slow runner.
+// @param expectedTrigger  the destination's control-tab label, or null when the scene has
+//                         no control panel (home/sequence/motion-path).
+export async function navToScene(page, sceneId, expectedTrigger, { timeout = 12000 } = {}) {
+    await page.evaluate((s) => { location.hash = "#/" + s; }, sceneId);
+    // 1. machine activeScene rests on target (the EARLY fact — necessary, not sufficient).
+    await page.waitForFunction(
+        ([mk, id]) => { try { return JSON.parse(localStorage.getItem(mk) || "{}").activeScene === id; } catch { return false; } },
+        [SCENE_MACHINE_KEY, sceneId], { timeout },
+    ).catch(() => {});
+    // 2. the DESTINATION control surface has PROJECTED (the LATE fact — the cure).
+    await page.waitForFunction(
+        (expected) => {
+            const trig = document.querySelector("[aria-label='Controls tab']");
+            const text = trig?.textContent?.trim() || null;
+            return expected === null ? !trig : text === expected;
+        },
+        expectedTrigger, { timeout },
+    ).catch(() => {});
 }
 
 /**

@@ -4,11 +4,10 @@
         :scenes="scenes"
         :home-scene-id="HOME_SCENE_ID"
         :current-label="currentLabel"
-        :has-selected-animation="!!storedControls.selectedAnimation && !isHome"
         :is-controls-panel-open="storedControls.isControlsPanelOpen"
-        :selected-control="storedControls.selectedControl"
+        :selected-control="dockSelectedControl"
         :control-surfaces="controlSurfaces"
-        :extra-control-tabs="sceneRef?.extraControlTabs ?? []"
+        :extra-control-tabs="extraControlTabs"
         @switch-scene="runSceneSwitch"
         @warm-scene="warmScene"
         @toggle-controls-panel="storedControls.isControlsPanelOpen = !storedControls.isControlsPanelOpen"
@@ -173,6 +172,7 @@ import {
     useSceneMachine,
 } from "@components/custom/animation-controls/stores";
 
+import { CUBE_ANIMATION_NAMES } from "../cube/useCubeAnimations";
 import CubeScene from "./scenes/CubeScene.vue";
 import { useSceneMachineRouter } from "./useSceneMachineRouter";
 import { useSceneMachineApp } from "./useSceneMachineApp";
@@ -211,9 +211,9 @@ const stageMode = computed(() => stageModeFor(currentSceneId.value));
 // The control-surface DFA projection (H.W11.S4 / I2) — the active scene's valid
 // BUILT-IN editor triad ({controls,keyframes,timeline} subset). The dock renders
 // the triad FROM this set (the easing scene → [], so NO keyframes/timeline tab
-// node exists for it), then unions the scene's `extraControlTabs` (the
-// scene-specific surfaces' tab metadata). The DFA gates what CAN render per
-// scene — the reka-tab-fallback hacks the scenes carried are SUPERSEDED.
+// node exists for it), then unions the machine-projected `extraControlTabs`
+// (below). The DFA gates what CAN render per scene — the reka-tab-fallback
+// hacks the scenes carried are SUPERSEDED.
 const controlSurfaces = computed(() => machine.controlSurfaces.value);
 
 const sceneRef = shallowRef<any>(null);
@@ -229,6 +229,39 @@ const currentAnimationGroup = shallowRef<AnimationGroup<any>>(markRaw(new Animat
 const autoPlayNext = ref(false);
 
 const storedControls = computed(() => getStoredAnimationGroupControlOptions(currentSuperKey.value));
+
+// ── The dock's extra control tabs — machine-PROJECTED (J.W0.S3) ──────────────
+// The scene-specific tab metadata (easing→Easing, spring→Spring) derives from
+// the machine's `activeScene` through the DFA's tab table, so the dock trigger
+// label is BORN-CORRECT on the very tick the route rests on the destination —
+// never the SOURCE scene's stale label through a `sceneRef.extraControlTabs`
+// re-bind gated on the destination's <Suspense> mount (the scene-control-dfa
+// trigger-lag race; that per-scene injection is DELETED). Cube's
+// `matrix-controls` is the ONE conditional surface: active iff the Matrix
+// animation is selected — a stored fact, synchronous with the switch, no mount
+// dependency (`CONDITIONAL_SURFACES` keeps the projection total per scene).
+const extraControlTabs = computed(() =>
+    machine.extraControlTabs(
+        storedControls.value.selectedAnimation === CUBE_ANIMATION_NAMES.Matrix
+            ? ["matrix-controls"]
+            : [],
+    ),
+);
+
+// The dock trigger's SELECTED surface — the SAME I.W2 machine projection the
+// in-panel tab host already binds (`AnimationControls` `<Tabs> :model-value`),
+// extended to the dock READ (J.W0.S3). The raw `storedControls.selectedControl`
+// is the per-superKey stored PICK; on a transition-arrival it can hold an
+// invalid surface for the destination until J.W2's reconcile-writer corrects
+// the store — binding the projection (`selectedControlSurfaceFor(activeScene,
+// pick)`) makes the trigger label born-correct on the rest tick instead.
+// READ-side derivation ONLY: the write path (the dock's @update-selected-control
+// → the store) is untouched (J.W2 owns the single-writer completion).
+const dockSelectedControl = computed(
+    () =>
+        machine.selectedControlSurface(storedControls.value.selectedControl) ??
+        storedControls.value.selectedControl,
+);
 
 // ── Home ↔ cube SPLIT (the alias is DEAD — two distinct machine states) ──────
 // home and cube are DISTINCT states: home = the cube backdrop with NO group +
