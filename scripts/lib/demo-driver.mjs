@@ -412,6 +412,77 @@ export async function openControlsPanel(page) {
 }
 
 /**
+ * SCENE_MACHINE_KEY — the localStorage key the demo's scene machine persists
+ * under (`stores/useSceneMachine.ts`). Exported so every transition-driving
+ * gate waits on the SAME machine fact instead of hand-rolling the literal
+ * (J.W0 S2 — the per-gate `MACHINE_KEY` copies die with the consolidation).
+ */
+export const SCENE_MACHINE_KEY = "keyframes-js-scene-machine";
+
+/**
+ * navToScene — drive a hash-nav transition + WAIT for the DESTINATION's
+ * control-surface to PROJECT (per-EXPECTED-state settle, NOT a fixed
+ * `settleMs` / any-trigger-present). The control-tab trigger TEXT lags the
+ * route via the mounted scene component's `extraControlTabs` (App.vue), so a
+ * trigger-present wait is satisfied by the SOURCE scene's stale surface — the
+ * `66855c2` structural no-op. Load-INDEPENDENT by construction: the timeout
+ * is a CEILING, each `waitForFunction` returns the instant its predicate
+ * holds (fast box), and spends the budget only on a slow runner. The
+ * `.catch(() => {})` keeps the oracle HONEST — if the surface genuinely never
+ * projects within the ceiling, the wait expires and the CALLER's assertion
+ * reads the real (wrong) DOM and reds; only the timing race is removed
+ * (J.W0 S2, `ci-linux-open-item.md §4.2`).
+ *
+ * @param expectedTrigger  the destination's control-tab label (e.g.
+ *                         `"Controls"`, `"Easing"`, `"Spring"`), or `null`
+ *                         when the scene has no control panel
+ *                         (home/sequence/motion-path).
+ */
+export async function navToScene(
+    page,
+    sceneId,
+    expectedTrigger,
+    { timeout = 12000 } = {},
+) {
+    await page.evaluate((s) => {
+        location.hash = "#/" + s;
+    }, sceneId);
+    // 1. machine activeScene rests on target (the EARLY fact — necessary,
+    //    not sufficient).
+    await page
+        .waitForFunction(
+            ([mk, id]) => {
+                try {
+                    return (
+                        JSON.parse(localStorage.getItem(mk) || "{}")
+                            .activeScene === id
+                    );
+                } catch {
+                    return false;
+                }
+            },
+            [SCENE_MACHINE_KEY, sceneId],
+            { timeout },
+        )
+        .catch(() => {});
+    // 2. the DESTINATION control surface has PROJECTED (the LATE fact — the
+    //    cure for the stale-trigger race).
+    await page
+        .waitForFunction(
+            (expected) => {
+                const trig = document.querySelector(
+                    "[aria-label='Controls tab']",
+                );
+                const text = trig?.textContent?.trim() || null;
+                return expected === null ? !trig : text === expected;
+            },
+            expectedTrigger,
+            { timeout },
+        )
+        .catch(() => {});
+}
+
+/**
  * subjectRect — the largest visible, in-viewport rect matching `selector`, in
  * the same shape the gates consume ({ x, y, width, height } + right/bottom).
  * Returns null when no subject renders (blank ≠ occlusion-free).

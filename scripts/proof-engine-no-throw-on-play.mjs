@@ -19,17 +19,45 @@
  *   S3 `AnimationGroup.transform` no-op field default + empty-group play short-circuit
  *   S4 kill the mis-attributing placeholder
  *
+ * EXTENDED at J.W1 (the engine-totality pass) with the two RUNTIME clauses the
+ * I.W0 transposition missed — the ENG-1/SEAM-1 oracles (`J.W1.md §Hard gate`):
+ *   [J.W1 a] the RENDERED keyframes editor pane round-trips the cube Rotations
+ *            `var(--rotationX)` VERBATIM (declared template, never
+ *            DOM-resolved) and the pane text re-parses through the BUILT dist
+ *            without throw. Navigates via the J.W0 `navToScene`
+ *            per-EXPECTED-state primitive and drives the REAL dock selects.
+ *            RE-SCOPED from the spec's per-card pane: that surface is
+ *            unreachable in the product (`KeyframesEditor.vue` has no mount;
+ *            see the clause-body RE-SCOPE RECORD + `docs/tranches/J/impl/J.W1.md`);
+ *            the per-card ITERATION is pinned born-RED at the jsdom tier
+ *            (`test/serialize-from-template.test.ts`).
+ *   [J.W1 b] every non-conforming keyframe selector ("abc" / "5px" / "150%")
+ *            driven through the public `fromKeyframes` construction path of
+ *            the BUILT `dist/keyframes.js`, LIVE in the page, throws the
+ *            TYPED `AnimationOptionError` NAMING the selector grammar — never
+ *            the cryptic value.js `Parse error at offset …`, never a silent
+ *            compile (the no-silent-accept guard); the conforming control
+ *            (from / 50% / to) still compiles.
+ * Born-RED on the pre-J.W1 tree: any rendered serializer surface that
+ * DOM-resolves the declared `var()` reds [J.W1 a] (the B1 serialize face);
+ * the pre-S3 guard caught only blank, so "abc" cryptic-threw and
+ * "5px"/"150%" silently compiled ([J.W1 b] reds — witnessed via the
+ * frame-compiler.ts stash probe over a rebuilt dist).
+ *
  * A CLAUSE of the I.W7 `proof:live-session` battery (the group-play leg).
  * Mirrors `scripts/proof-no-orphan-specular.mjs` (serveDist + KF_PLAYWRIGHT_DIR
  * chromium + fresh context). Under KF_REQUIRE_BROWSER a playwright-absent skip
- * is a hard fail. Serves the BUILT `dist/gh-pages/`. Re-runnable:
- *   node scripts/proof-engine-no-throw-on-play.mjs
+ * is a hard fail. Serves the BUILT `dist/gh-pages/` (+ the BUILT library
+ * `dist/keyframes.js` and its import-mapped deps for the live library probe).
+ * Re-runnable:
+ *   npm run build && npm run gh-pages && node scripts/proof-engine-no-throw-on-play.mjs
  */
 import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import { navToScene } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
@@ -105,9 +133,51 @@ const MACHINE_KEY = "keyframes-js-scene-machine";
 // signatures, matched EXPLICITLY so a narrowed regex can never hide them.
 const PARSE_LINE = /Parse error at offset|"\.{4,}"|\bErr x\b|could not serialize|no CSS twin/;
 
+// ── The live LIBRARY probe surface (J.W1 clause b + the clause-a re-parse) ────
+// The demo bundle does not expose the engine globally, so the typed-error
+// probe imports the BUILT `dist/keyframes.js` (the published artifact) LIVE in
+// a real page. The library build externalizes `@mkbabb/value.js` /
+// `@mkbabb/parse-that` (bare specifiers), so the probe page carries an import
+// map onto the INSTALLED deps — the exact resolution a consumer's bundler
+// performs, pinned to what `node_modules` actually carries.
+const LIB_DIST = path.join(REPO, "dist");
+const VENDOR = {
+    "/__kf-vendor__/value.js": path.join(
+        REPO,
+        "node_modules/@mkbabb/value.js/dist/value.js",
+    ),
+    "/__kf-vendor__/parse-that.js": path.join(
+        REPO,
+        "node_modules/@mkbabb/parse-that/dist/parse.js",
+    ),
+};
+const LIB_PROBE_HTML = `<!doctype html>
+<html><head><meta charset="utf-8">
+<script type="importmap">{"imports":{"@mkbabb/value.js":"/__kf-vendor__/value.js","@mkbabb/parse-that":"/__kf-vendor__/parse-that.js"}}</script>
+</head><body>built-dist library probe (proof:engine-no-throw-on-play, J.W1)</body></html>`;
+
 function serveDist() {
     return http.createServer((req, res) => {
         const urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
+        if (urlPath === "/__lib-probe__.html") {
+            res.writeHead(200, { "content-type": "text/html" }).end(LIB_PROBE_HTML);
+            return;
+        }
+        if (VENDOR[urlPath]) {
+            res.writeHead(200, { "content-type": "text/javascript" });
+            fs.createReadStream(VENDOR[urlPath]).pipe(res);
+            return;
+        }
+        if (urlPath.startsWith("/__kf-lib__/")) {
+            const lp = path.join(LIB_DIST, urlPath.slice("/__kf-lib__/".length));
+            if (!lp.startsWith(LIB_DIST) || !fs.existsSync(lp) || fs.statSync(lp).isDirectory()) {
+                res.writeHead(404).end();
+                return;
+            }
+            res.writeHead(200, { "content-type": "text/javascript" });
+            fs.createReadStream(lp).pipe(res);
+            return;
+        }
         const p = path.join(DIST, urlPath === "/" ? "index.html" : urlPath);
         if (!p.startsWith(DIST) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) {
             res.writeHead(404).end();
@@ -300,6 +370,231 @@ async function browserHalf() {
                 await ctx.close();
             }
         }
+
+        // ── J.W1 clause (a) — the RENDERED keyframes editor pane round-trips
+        //    the cube Rotations `var(--rotationX)` VERBATIM (declared
+        //    template, NEVER DOM-resolved — the ENG-1 oracle is the RENDERED
+        //    pane, not the source).
+        //
+        //    RE-SCOPE RECORD (implement-or-rescope, P-invariant-28): the spec
+        //    names the PER-CARD pane (`useKeyframesParsing.ts` →
+        //    `CSSKeyframesToStrings` → `KeyframeCardList`) as the oracle, but
+        //    that surface is UNREACHABLE in the product — `KeyframesEditor.vue`
+        //    (the card list's only mount) has had NO importer since the
+        //    tranche-D decomposition, `"CSS for keyframe"` does not occur in
+        //    the built `dist/gh-pages/`, and `CSSKeyframesToStrings` is in NO
+        //    built artifact (demo tree-shakes it; the library does not export
+        //    it). The audit's "live-consumed by the editor" held on the import
+        //    graph only. So this clause actuates the ONE rendered serializer
+        //    surface the product has — the keyframes pane's Monaco editor
+        //    (`KeyframesStringControls` → `CSSKeyframesToString`), which since
+        //    J.W1 S1 projects from the SAME `declaredKeyframeBody` declared-
+        //    template authority as the per-card path — asserting the VERBATIM
+        //    `rotateX(var(--rotationX))` token (a check the I.W0 clause (d)
+        //    "@keyframes-shaped" read never made). The per-card ITERATION's
+        //    bite lives at the jsdom tier (`test/serialize-from-template.test.ts`,
+        //    witnessed born-RED under the format.ts stash-probe). The orphaned
+        //    card editor's mount-or-delete adjudication is a RECORDED handoff
+        //    (demo-behavior — J.W2/J.WZ), not a quiet drop. See
+        //    `docs/tranches/J/impl/J.W1.md`.
+        //
+        //    Navigates via the J.W0 `navToScene` per-EXPECTED-state primitive.
+        //    The pane state (Rotations selected + the Keyframes tab active) is
+        //    seeded through the SAME persisted store the dock selects write —
+        //    the battery's established mount-state pattern (the glass-ui dock
+        //    Select triggers do not accept Playwright's synthetic click; that
+        //    dock-interaction seam is glass-ui-owned). The pane TEXT is then
+        //    read via the REAL user gesture — click into the editor,
+        //    select-all, copy — so the oracle is the rendered editor's FULL
+        //    model (Monaco virtualizes + soft-wraps its view-lines, so a DOM
+        //    read sees only the viewport slice). ─────────────────────────────
+        let paneCSSText = null;
+        {
+            const ctx = await browser.newContext({
+                viewport: { width: 1440, height: 900 },
+                permissions: ["clipboard-read", "clipboard-write"],
+            });
+            const page = await ctx.newPage();
+            const errors = [];
+            const parseLines = [];
+            page.on("pageerror", (e) => errors.push(String(e?.message ?? e)));
+            page.on("console", (msg) => {
+                const t = msg.type();
+                if ((t === "error" || t === "warning") && PARSE_LINE.test(msg.text())) parseLines.push(msg.text());
+            });
+            await page.addInitScript((ck) => {
+                try {
+                    localStorage.setItem(
+                        ck,
+                        JSON.stringify({
+                            isControlsPanelOpen: true,
+                            Cube: {
+                                selectedControl: "keyframes",
+                                selectedAnimation: "Rotations",
+                                isControlsPanelOpen: true,
+                            },
+                        }),
+                    );
+                } catch {
+                    /* ignore */
+                }
+            }, CTRL_KEY);
+            try {
+                await page.goto(`${base}/#/`, { waitUntil: "load" });
+                // The seeded tab makes the destination's expected control-tab
+                // label "Keyframes" — navToScene waits for THAT projection.
+                await navToScene(page, "cube", "Keyframes");
+                await page
+                    .waitForFunction(
+                        () => document.querySelectorAll(".monaco-editor .view-line").length > 0,
+                        { timeout: 10000 },
+                    )
+                    .catch(() => {});
+                await page.waitForTimeout(600);
+                // The select-all + copy gesture reads the FULL editor model.
+                try {
+                    await page.click(".monaco-editor .view-lines", { timeout: 3000 });
+                    await page.keyboard.press("ControlOrMeta+a");
+                    await page.keyboard.press("ControlOrMeta+c");
+                    await page.waitForTimeout(300);
+                    paneCSSText = await page.evaluate(() => navigator.clipboard.readText());
+                } catch {
+                    note(`[J.W1 a] select-all/copy gesture failed — falling back to the view-lines viewport read`);
+                }
+                if (!paneCSSText || paneCSSText.trim().length === 0) {
+                    // Honest fallback: the sorted, NBSP-normalized view-lines —
+                    // reds if the var() line sits below the virtualized fold.
+                    paneCSSText = await page.evaluate(() => {
+                        const lines = [...document.querySelectorAll(".monaco-editor .view-line")]
+                            .sort((a, b) => a.offsetTop - b.offsetTop)
+                            .map((el) => (el.textContent ?? "").replace(/\u00a0/g, " "));
+                        return lines.join("\n");
+                    });
+                }
+                const flat = paneCSSText.replace(/\s+/g, " ");
+                if (!/@keyframes/.test(paneCSSText) || paneCSSText.trim().length === 0) {
+                    fail(`[J.W1 a] the RENDERED keyframes pane did not materialize (${paneCSSText.length} chars) — the rendered editor is the ENG-1 oracle`);
+                    paneCSSText = null;
+                } else if (/no CSS twin|could not serialize/.test(paneCSSText)) {
+                    fail(`[J.W1 a] the rendered pane shows the placeholder: "${flat.slice(0, 100)}"`);
+                    paneCSSText = null;
+                } else if (/rotateX\(\s*var\(--rotationX\)\s*\)/.test(paneCSSText)) {
+                    ok(`[J.W1 a] the RENDERED keyframes pane carries VERBATIM rotateX(var(--rotationX)) (declared template, NOT DOM-resolved; ${paneCSSText.length} chars)`);
+                } else {
+                    fail(`[J.W1 a] the rendered pane does NOT carry rotateX(var(--rotationX)) — the serializer DOM-resolved the declared var() (the B1 serialize face). Pane: "${flat.slice(0, 160)}"`);
+                    paneCSSText = null;
+                }
+                if (errors.length) fail(`[J.W1 a] the pane read threw: ${errors.slice(0, 2).join(" | ")}`);
+                if (parseLines.length) fail(`[J.W1 a] parse/serialize console line(s) during the pane read: ${parseLines.slice(0, 2).join(" | ")}`);
+            } finally {
+                await ctx.close();
+            }
+        }
+
+        // ── J.W1 clause (b) + the clause-(a) re-parse — the BUILT library,
+        //    LIVE in the page. Every non-conforming selector throws the TYPED
+        //    AnimationOptionError NAMING the selector grammar (never the
+        //    cryptic value.js parse throw, never a silent compile); the
+        //    conforming control compiles; the captured var() card re-parses. ──
+        if (!fs.existsSync(path.join(LIB_DIST, "keyframes.js"))) {
+            fail(`[J.W1 b] dist/keyframes.js not built (run \`npm run build\`) — the live library probe needs the BUILT artifact`);
+        } else {
+            const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+            const page = await ctx.newPage();
+            const errors = [];
+            const parseLines = [];
+            page.on("pageerror", (e) => errors.push(String(e?.message ?? e)));
+            page.on("console", (msg) => {
+                const t = msg.type();
+                if ((t === "error" || t === "warning") && PARSE_LINE.test(msg.text())) parseLines.push(msg.text());
+            });
+            try {
+                await page.goto(`${base}/__lib-probe__.html`, { waitUntil: "load" });
+                const result = await page.evaluate(async (paneCSS) => {
+                    const out = { reparse: null, rows: {}, control: null };
+                    const kf = await import("/__kf-lib__/keyframes.js");
+                    const engine = await kf.loadAnimationEngine();
+                    if (paneCSS) {
+                        try {
+                            new engine.CSSKeyframesAnimation({}).fromString(paneCSS);
+                            out.reparse = { ok: true };
+                        } catch (e) {
+                            out.reparse = {
+                                ok: false,
+                                name: e?.name ?? null,
+                                message: String(e?.message ?? e).slice(0, 160),
+                            };
+                        }
+                    }
+                    for (const sel of ["abc", "5px", "150%"]) {
+                        try {
+                            new engine.CSSKeyframesAnimation({}).fromKeyframes({
+                                [sel]: { opacity: 0 },
+                                "100%": { opacity: 1 },
+                            });
+                            out.rows[sel] = { outcome: "COMPILED" };
+                        } catch (e) {
+                            out.rows[sel] = {
+                                outcome: "THREW",
+                                name: e?.name ?? null,
+                                message: String(e?.message ?? e),
+                            };
+                        }
+                    }
+                    try {
+                        new engine.CSSKeyframesAnimation({}).fromKeyframes({
+                            from: { opacity: 0 },
+                            "50%": { opacity: 0.5 },
+                            to: { opacity: 1 },
+                        });
+                        out.control = { outcome: "COMPILED" };
+                    } catch (e) {
+                        out.control = {
+                            outcome: "THREW",
+                            name: e?.name ?? null,
+                            message: String(e?.message ?? e).slice(0, 160),
+                        };
+                    }
+                    return out;
+                }, paneCSSText).catch((e) => ({ probeError: String(e?.message ?? e) }));
+
+                if (result.probeError) {
+                    fail(`[J.W1 b] the live library probe could not run: ${result.probeError.slice(0, 200)}`);
+                } else {
+                    // The clause-(a) re-parse half: the rendered pane is real CSS.
+                    if (paneCSSText) {
+                        if (result.reparse?.ok) {
+                            ok(`[J.W1 a] the rendered var(--rotationX) pane RE-PARSES without throw through the BUILT dist (fromString)`);
+                        } else {
+                            fail(`[J.W1 a] the rendered pane does NOT re-parse: ${result.reparse?.name}: ${result.reparse?.message}`);
+                        }
+                    }
+                    for (const sel of ["abc", "5px", "150%"]) {
+                        const row = result.rows[sel];
+                        if (!row) {
+                            fail(`[J.W1 b] selector ${JSON.stringify(sel)} probe row missing`);
+                        } else if (row.outcome === "COMPILED") {
+                            fail(`[J.W1 b] selector ${JSON.stringify(sel)} SILENTLY COMPILED — the no-silent-accept guard (a length / out-of-range percent is not a keyframe selector)`);
+                        } else if (row.name !== "AnimationOptionError" || /Parse error at offset/.test(row.message)) {
+                            fail(`[J.W1 b] selector ${JSON.stringify(sel)} threw the WRONG shape — ${row.name}: ${row.message.slice(0, 140)} (want the typed AnimationOptionError, not the cryptic value.js throw)`);
+                        } else if (!/keyframe selector/.test(row.message)) {
+                            fail(`[J.W1 b] selector ${JSON.stringify(sel)} typed error does not NAME the selector condition: ${row.message.slice(0, 140)}`);
+                        } else {
+                            ok(`[J.W1 b] selector ${JSON.stringify(sel)} → typed AnimationOptionError naming the selector grammar (live, built dist)`);
+                        }
+                    }
+                    if (result.control?.outcome === "COMPILED") {
+                        ok(`[J.W1 b] the conforming control (from / 50% / to) compiles — the guard rejects ONLY the non-conforming set`);
+                    } else {
+                        fail(`[J.W1 b] the conforming control (from / 50% / to) did NOT compile: ${result.control?.name}: ${result.control?.message}`);
+                    }
+                }
+                if (errors.length) fail(`[J.W1 b] live library probe pageerror: ${errors.slice(0, 2).join(" | ")}`);
+                if (parseLines.length) fail(`[J.W1 b] a cryptic parse line hit the LIVE console during the probe: ${parseLines.slice(0, 2).join(" | ")}`);
+            } finally {
+                await ctx.close();
+            }
+        }
     } finally {
         await browser.close();
         server.close();
@@ -313,4 +608,4 @@ if (failures.length) {
     for (const f of failures) console.error(`  - ${f}`);
     process.exit(1);
 }
-console.log("\nproof:engine-no-throw-on-play — PASS: the rainbow play click is total on home+cube, the console carries no parse-error line, the cube transform paints live, and the keyframes pane shows real round-trippable CSS (I.W0 B1/B5 closed).");
+console.log("\nproof:engine-no-throw-on-play — PASS: the rainbow play click is total on home+cube, the console carries no parse-error line, the cube transform paints live, the keyframes pane shows real round-trippable CSS (I.W0 B1/B5 closed), the RENDERED editor pane round-trips the declared var() verbatim + re-parses through the built dist, and every non-conforming selector throws the typed AnimationOptionError live on the built dist (J.W1 ENG-1/SEAM-1 closed).");

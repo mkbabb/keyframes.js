@@ -8,7 +8,7 @@ import type {
     TransformFunction,
     Vars,
 } from "./constants";
-import { defaultLayerConfig } from "./constants";
+import { defaultLayerConfig, NOOP_TRANSFORM } from "./constants";
 
 /**
  * Typed blend-carrier guard — the group is heavy-side (it statically
@@ -17,15 +17,6 @@ import { defaultLayerConfig } from "./constants";
  */
 const isNumericUnit = (value: unknown): value is ValueUnit<number> =>
     value instanceof ValueUnit && typeof value.value === "number";
-
-/**
- * The total no-op transform default (I.W0 S3). A single shared reference so a
- * group can ask "did a child override the default yet?" by identity (`this.
- * transform === NOOP_TRANSFORM`) instead of a lying `transform == null` on a
- * field a definite-assignment assertion claimed was always set. A childless
- * group keeps this and composites a harmless empty frame.
- */
-const NOOP_TRANSFORM: TransformFunction<any> = () => {};
 
 export interface AnimationGroupEntry<V extends Vars> {
     animation: Animation<V>;

@@ -20,12 +20,37 @@ const repr = (value: unknown): string => {
     return String(value);
 };
 
+/**
+ * The stable, machine-branchable reasons a typed option error can carry
+ * (J.W1 S8, K3-internal). EXACTLY the two engine-internal rows the
+ * ingestion lane folds into J.W1 — a structured `code` ON the typed throw,
+ * NOT a diagnostics channel (the full `Diagnostic[]` surface stays a K.W0
+ * seed item):
+ *
+ * - `EMPTY_PARSE` — a blank/whitespace-only keyframe selector reached the
+ *   compile seam (the H-A2 "......" class, named).
+ * - `UNKNOWN_TIMING_FN` — a present-but-unresolvable timing function (not a
+ *   callable, a registry name, or a cubic-bezier()/steps() literal).
+ */
+export type AnimationOptionErrorCode = "EMPTY_PARSE" | "UNKNOWN_TIMING_FN";
+
 /** Thrown when an animation option receives malformed (non-undefined) input. */
 export class AnimationOptionError extends Error {
     readonly option: string;
     readonly value: unknown;
+    /**
+     * Stable structured reason for programmatic consumers — branch on this,
+     * never on the human message. Carried only by the two named rows
+     * ({@link AnimationOptionErrorCode}); undefined otherwise.
+     */
+    readonly code?: AnimationOptionErrorCode;
 
-    constructor(option: string, value: unknown, reason: string) {
+    constructor(
+        option: string,
+        value: unknown,
+        reason: string,
+        code?: AnimationOptionErrorCode,
+    ) {
         super(
             `Invalid value for animation option "${option}": ` +
                 `${repr(value)} — ${reason}`,
@@ -33,6 +58,7 @@ export class AnimationOptionError extends Error {
         this.name = "AnimationOptionError";
         this.option = option;
         this.value = value;
+        if (code !== undefined) this.code = code;
     }
 }
 

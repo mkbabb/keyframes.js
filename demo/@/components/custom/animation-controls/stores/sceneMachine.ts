@@ -59,10 +59,6 @@ export interface PlaybackSnapshot {
     startTime?: number;
 }
 
-/** Back-compat alias — the old `ScenePlaybackState` name maps onto the new
- *  snapshot shape so existing imports keep resolving through the barrel. */
-export type ScenePlaybackState = PlaybackSnapshot;
-
 // ── The reducer context (the SCENE axis + the keyed playback map) ─────────────
 
 export interface SceneContext {

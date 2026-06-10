@@ -7,8 +7,9 @@ import {
     ValueUnit,
 } from "@mkbabb/value.js";
 import type { Animation } from "./engine";
-import type { AnimationFrame, AnimationOptions, Easing, Vars } from "./constants";
+import type { AnimationOptions, Easing, Vars } from "./constants";
 import { AnimationOptionError } from "./internal/errors";
+import type { ParsedVarMap } from "./utils";
 
 /**
  * Serialize an `Easing` to its CSS `animation-timing-function` token (F.W7).
@@ -48,22 +49,82 @@ const DEFAULT_WIDTH = 80;
 const DEFAULT_KEYFRAME_HEADER = `@keyframes animation {\n`;
 const DEFAULT_KEYFRAME_FOOTER = `\n}`;
 
+/**
+ * THE one declared-template projection (J.W1 S1 — ENG-1). Renders stop `i`'s
+ * keyframe body (`{ … }`) from the DECLARED `animation.parsedVars[i]` — the
+ * parsed-but-unresolved var map built 1:1 with `templateFrames` in `parse()`
+ * (I.W0 S2). A `var()`/`calc()`/`matrix3d()` is already valid CSS and
+ * round-trips VERBATIM through `unflattenObjectToString`, never DOM-resolved
+ * to a number — a serializer must not need a live, fully-styled DOM to emit
+ * CSS text, and the AUTHORED CSS is exactly what re-parses cleanly (so the
+ * empty-var read-back parse throw — B1/B5 — is unreachable from here).
+ *
+ * BOTH serialize surfaces project from THIS function: the aggregate
+ * `CSSKeyframesToString` (the whole-block readout) and the per-card
+ * `CSSKeyframesToStrings` (the editor's per-stop pane). The pre-transposition
+ * sibling that read `frame.flatVars` — the LIVE interpolation buffers,
+ * DOM-resolved for computed units and mutated in place by every
+ * `interpFrames` pass — is DELETED: ONE serialization authority.
+ *
+ * F.W7 — a per-stop easing that differs from the animation default rides the
+ * body (CSS Animations L1: `animation-timing-function` at a stop applies to
+ * the interval STARTING there); a uniform easing stays on the `.class` block
+ * so the round-trip is byte-identical.
+ */
+function declaredKeyframeBody<V extends Vars>(
+    animation: Animation<V>,
+    i: number,
+    defaultEasing: string,
+): string {
+    const declared: ParsedVarMap = animation.parsedVars[i] ?? {};
+
+    const decls = Object.entries(unflattenObjectToString(declared)).map(
+        ([propName, v]) => `  ${camelCaseToHyphen(propName)}: ${v};`,
+    );
+
+    const templateFrame = animation.templateFrames[i]!;
+    const frameEasing = templateFrame.timingFunction
+        ? serializeEasing(templateFrame.timingFunction)
+        : defaultEasing;
+    if (frameEasing !== defaultEasing) {
+        decls.push(`  animation-timing-function: ${frameEasing};`);
+    }
+
+    const css = decls.join("\n").trim();
+
+    return `{\n${css}\n}`;
+}
+
+/**
+ * Per-stop card serializer for the editor pane — ONE formatted keyframe
+ * string per DECLARED template stop, index-aligned with
+ * `animation.templateFrames` (the pairing the card list renders by).
+ * Unified onto the declared-template authority (J.W1 S1): each card is
+ * {@link declaredKeyframeBody} — the AUTHORED values. The former path mapped
+ * `animation.frames` (the interp PAIRS — N−1 segments for N stops, so the
+ * last card simply did not exist) and read `frame.flatVars` (DOM-resolved,
+ * interp-mutated) — both defects die with the unification.
+ */
 export const CSSKeyframesToStrings = async <V extends Vars>(
     animation: Animation<V>,
 ) => {
-    const frameStrings = animation.frames.map(async (frame) => {
-        let css = CSSKeyframeToString(frame);
+    const defaultEasing = serializeEasing(animation.options.timingFunction);
 
-        css = `${frame.start}\n${css}\n`;
+    const frameStrings = animation.templateFrames.map(
+        async (templateFrame, i) => {
+            let css = declaredKeyframeBody(animation, i, defaultEasing);
 
-        css = DEFAULT_KEYFRAME_HEADER + css + DEFAULT_KEYFRAME_FOOTER;
+            css = `${templateFrame.start}\n${css}\n`;
 
-        css = await formatCSS(css, DEFAULT_WIDTH);
+            css = DEFAULT_KEYFRAME_HEADER + css + DEFAULT_KEYFRAME_FOOTER;
 
-        return css
-            .replace(DEFAULT_KEYFRAME_HEADER, "")
-            .replace(DEFAULT_KEYFRAME_FOOTER, "");
-    });
+            css = await formatCSS(css, DEFAULT_WIDTH);
+
+            return css
+                .replace(DEFAULT_KEYFRAME_HEADER, "")
+                .replace(DEFAULT_KEYFRAME_FOOTER, "");
+        },
+    );
 
     return Promise.all(frameStrings);
 };
@@ -109,18 +170,6 @@ export function animationOptionsToString(
     return css;
 }
 
-export function CSSKeyframeToString<V extends Vars>(frame: AnimationFrame<V>) {
-    const css = Object.entries(unflattenObjectToString(frame.flatVars))
-        .map(([name, v]) => {
-            name = camelCaseToHyphen(name);
-            return `  ${name}: ${v};`;
-        })
-        .join("\n")
-        .trim();
-
-    return `{\n${css}\n}`;
-}
-
 export async function CSSKeyframesToString<V extends Vars>(
     animation: Animation<V>,
     name: string = "animation",
@@ -144,33 +193,10 @@ export async function CSSKeyframesToString<V extends Vars>(
 
     animation.templateFrames.forEach((templateFrame, i) => {
         const percent = templateFrame.start;
-        // I.W0 S2 — serialize from the DECLARED template values, NOT a
-        // DOM-resolving `at(progress)` interpolation sample. `parsedVars[i]` is
-        // the parsed-but-unresolved var map for this stop (built 1:1 with
-        // `templateFrames` in `parse()`); a `var()`/`matrix3d()` is already
-        // valid CSS and round-trips VERBATIM through `unflattenObjectToString`,
-        // never DOM-resolved to a number — so the serializer never reaches the
-        // empty-var read-back parse throw (B1/B5). The editor shows the AUTHORED
-        // CSS, which is exactly what re-parses cleanly.
-        const declared = (animation.parsedVars[i] ?? {}) as Record<
-            string,
-            ValueUnit[]
-        >;
-
-        const decls = Object.entries(unflattenObjectToString(declared)).map(
-            ([propName, v]) => `  ${camelCaseToHyphen(propName)}: ${v};`,
-        );
-
-        const frameEasing = templateFrame.timingFunction
-            ? serializeEasing(templateFrame.timingFunction)
-            : defaultEasing;
-        if (frameEasing !== defaultEasing) {
-            decls.push(`  animation-timing-function: ${frameEasing};`);
-        }
-
-        const css = decls.join("\n").trim();
-
-        const body = `{\n${css}\n}`;
+        // I.W0 S2 / J.W1 S1 — serialize from the DECLARED template values,
+        // NOT a DOM-resolving interpolation sample: the ONE projection both
+        // serialize surfaces share (see `declaredKeyframeBody`).
+        const body = declaredKeyframeBody(animation, i, defaultEasing);
 
         if (!keyframesMap.has(body)) {
             keyframesMap.set(body, [percent]);

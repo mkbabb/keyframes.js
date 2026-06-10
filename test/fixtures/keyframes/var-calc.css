@@ -1,0 +1,1 @@
+@keyframes p { from { width: calc(100% - 20px); transform: translateX(var(--x)); } to { width: calc(50% + 10px); transform: translateX(var(--y)); } }
