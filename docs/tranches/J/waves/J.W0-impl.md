@@ -178,3 +178,37 @@ substrate:
    (device-independent → fix-deterministic-or-hard; device-dependent → observe-only/
    runner-calibrated via J.W3's single seam — NEVER `continue-on-error`); CICD-7's 20-minute
    wall-clock BOUND on the first complete run, measure-first.
+
+---
+
+## §CLAUSE (c) DISCHARGED — the OBSERVED auto-deploy round-trip (2026-06-10, the oracle of record)
+
+**The chain, observed end-to-end on the `workflow_run`-on-push arm (NO manual path):**
+
+| Link | Record |
+|---|---|
+| The real master push | `c6c3c37` ("the files negation"; the J.W0+W1+W2+W3+W5+W6 integrated tree + 4 triage rounds) |
+| Green CI | run **`27310054675`** — `gates` 2m54s + `demo-smoke` **19m13s END-TO-END GREEN on the Linux runner** (the FIRST fully-green CI run in the repo's history; `scene-control-dfa` included, ZERO escapes) |
+| Auto-fire | deploy run **`27310920981`**, `event == workflow_run` (the auto arm — NOT `workflow_dispatch`), checked out `HEAD == c6c3c37` |
+| Served bytes | the deploy build produced `index-DiVbdzH3.js` + `engine-DZcTI7Qc.js`; **`https://keyframes.babb.dev/` serves `assets/index-DiVbdzH3.js`** (curl-verified 2026-06-10T22:4xZ) — the live site serves the pushed sha's bytes |
+
+**The S5 tail-triage ladder (the second wavefront, run by protocol — each CI attempt penetrated one layer deeper into the never-run tail):**
+
+| Attempt | master sha | CI run | The layer that bit | Disposition (P6) |
+|---|---|---|---|---|
+| #1 | `09a56bf` | `27298506458` | `scene-control-dfa` **GREEN on Linux for the first time** (the W0 cure held); fail-stop at `scene-transition-perf`'s round-trip identity clause | device-INDEPENDENT product defect — owned + cured by J.W2 (no gate change) |
+| #2 | `e9f2f8a` | `27303418544` | `proof:ci-coverage` (3 new gates unwired) + the lighthouse a11y band (`label-content-name-mismatch` ×2 scenes, `aria-required-attr`) | the wiring honored; the ARIA defects fixed at the product seam (`af5b7e7`) |
+| #3 | `af5b7e7` | `27305120296` | `proof:demo-no-oversize` (W2 grew 2 units past 500L) | colocated re-decomposition at the natural seams: `SheetGrabHandle.vue`, `useSpringHotPath.ts` (`890e2b7`) |
+| #4 | `890e2b7` | `27306845701` | `proof:easing-sidebar-normalized` (the gate's `tabpanel` mount predicate stale vs the SPEC'D J.W2 flat-mount grammar) | the gate's oracle evolved + corpus-swept (`3727382`); W3 merged (`c6ba13b`) |
+| #5 | `c6c3c37` | `27310054675` | **NONE — GREEN end-to-end → the auto-deploy fired** | the round-trip OBSERVED |
+
+**CICD-7 — the wall-clock VALIDATED:** the complete `demo-smoke` tail runs **19m13s** against the
+`timeout-minutes: 20` budget on the post-W3 (shared-lib) corpus — VALID but with only ~47s headroom;
+the J.W3 `withPage`/`withBrowser` consolidation is the recorded mechanism should it regress past 20m
+(measure-first; the budget itself is unchanged).
+
+**INVE-1 is RECORD-CURED:** the I FINAL's "merge → green CI → CF auto-deploys" claim is now an
+OBSERVED fact with run ids, not an assertion. Zero escapes were added anywhere in the ladder: no
+`settleMs` bump, no `continue-on-error`, no `IN_CI` demote on a correctness gate, no
+`workflow_dispatch` substitute — every layer exited via a product fix, a wiring honor, a spec'd-grammar
+predicate evolution, or a colocated decomposition.
