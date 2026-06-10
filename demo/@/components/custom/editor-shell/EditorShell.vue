@@ -66,6 +66,7 @@
             :auto-play="autoPlay"
             :hide-controls="showStartScreen"
             :stage-mode="stageMode"
+            :has-control-surfaces="hasControlSurfaces"
             @play-state-change="onPlayStateChange"
             @start-state-change="(s: boolean) => emit('startStateChange', s)"
         >
@@ -126,6 +127,11 @@ const props = withDefaults(
         // Typed as the union inline (the shared `@` subtree owns its own
         // contract; the app passes the value from scenes.ts's `stageModeFor`).
         stageMode?: "subject" | "editor" | "storyboard";
+        // J.W7a S5 / XH-1 (D20) — the active scene's DFA control-surface set is
+        // non-empty. `false` collapses the [rail] track + hides the pane wrapper
+        // (the ghost-rail kill). The App passes the machine projection; a
+        // non-App host (the playground) takes the TRUE default — rail unchanged.
+        hasControlSurfaces?: boolean;
     }>(),
     {
         superKey: undefined,
@@ -133,6 +139,7 @@ const props = withDefaults(
         gridBackground: true,
         autoPlay: false,
         stageMode: "subject",
+        hasControlSurfaces: true,
     },
 );
 

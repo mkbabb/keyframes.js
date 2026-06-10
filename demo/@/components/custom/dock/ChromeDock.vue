@@ -139,7 +139,7 @@ watch(isAnyOpen, (open) => {
 <template>
     <div
         class="fixed left-1/2 -translate-x-1/2 z-dock flex items-center justify-center pointer-events-none"
-        style="top: calc(max(var(--work-area-top-offset, 0px), env(safe-area-inset-top, 0px)) + var(--dock-margin) / 4);"
+        style="top: var(--dock-top-anchor);"
     >
         <div class="pointer-events-auto">
             <!-- G.W12.S2: the :always-expanded="isMobile" occlusion-dodge mask is

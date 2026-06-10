@@ -42,6 +42,16 @@
             <span class="sheet-grab-pill" aria-hidden="true"></span>
         </div>
 
+        <!-- J.W7a S1 (D5 / C16 + C2) — on a desktop SUBJECT stage (cube/amiga/
+             square: the subject floats full-bleed behind the chrome) the pane
+             adopts the PUBLISHED `glass-wash` surface (the lightest tier of the
+             glass ladder, translucent backdrop-blur) so the stage bleeds
+             through and the subject wins hierarchy — "the fix is making the
+             chrome visually lighter (glass-wash), not smaller" (pane-cube
+             §design-hierarchy). The inner option cards keep their cartoon+quiet
+             register; only the pane CONTAINER washes. Desktop-only by the
+             reactive media query (the mobile sheet keeps its own card paint);
+             editor/storyboard stages (contained plates) keep today's pane. -->
         <div
             :ref="(el: any) => setPaneEl(el)"
             @mouseenter="onPaneMouseEnter"
@@ -51,6 +61,7 @@
                 isPanelTransitionDone && storedControls.isControlsPanelOpen
                     ? 'overflow-y-auto'
                     : 'overflow-hidden',
+                stageMode === 'subject' && isDesktop ? 'glass-wash rounded-card' : '',
                 scrollFadeClass,
             ]"
         >
@@ -130,6 +141,7 @@
 
 <script setup lang="ts">
 import { computed, watch } from "vue";
+import { useMediaQuery } from "@vueuse/core";
 import type { AnimationGroup } from "@src/animation/group";
 import type { AnimationLayerConfig } from "@src/animation/constants";
 import type { Animation } from "@src/animation/engine";
@@ -170,6 +182,11 @@ const props = defineProps<{
 }>();
 
 const stageMode = computed(() => props.stageMode ?? "subject");
+
+// J.W7a S1 (D5) — the glass-wash adoption is DESKTOP-only (the mobile sheet
+// keeps its own popover-card paint). The same 1024px line every layout
+// composable in this subtree draws (useControlsLayout / ResponsiveSelect).
+const isDesktop = useMediaQuery("(min-width: 1024px)");
 
 // The sheet's open intent — ONE writable model over the store fact, read by the
 // spring (motion) and read+written by the gesture (the handle's swipe/tap).
@@ -247,17 +264,21 @@ const emit = defineEmits<{
          sheet.top − stage.top = (100dvh − reserve − height) − stageTop,
        where reserve = --dock-menubar-reserve (the sheet's bottom anchor) and
        stageTop = the stage's top inset (--dock-band-reserve when slack is tiny).
-       Requiring visible ≥ 0.48·100dvh (a comfortable margin over the 0.45 floor)
-       gives:
-         height ≤ 0.52·100dvh − reserve − stageTop.
-       This is the DEFAULT expanded detent — the subject scenes (cube/amiga/
-       square) keep the stage as the protagonist BACKGROUND, so the sheet stays
-       clear of the floor. It is ALSO ≤70dvh (NEVER full-height — WV-W7-HIGH-5)
-       by construction. */
+       J.W7a S1 (D6 / A-01) — the subject-class expanded detent TIGHTENS from
+       0.52 to 0.48 (the 4% reduction the pane-amiga lane names): the amiga
+       sphere projects at the stage centre, and at the 0.52 detent the sheet
+       boundary cut it to a top hemisphere on mobile-open. Requiring visible
+       ≥ 0.52·100dvh (over the 0.45 floor) gives:
+         height ≤ 0.48·100dvh − reserve − stageTop,
+       so the centred sphere clears the sheet for all phone heights (paired
+       with the camera-space lift in AmigaScene). This is the DEFAULT expanded
+       detent — the subject scenes (cube/amiga/square) keep the stage as the
+       protagonist BACKGROUND, so the sheet stays clear of the floor. It is
+       ALSO ≤70dvh (NEVER full-height — WV-W7-HIGH-5) by construction. */
     --sheet-detent-expanded: max(
         var(--sheet-detent-peek),
         calc(
-            0.52 * 100dvh - var(--dock-menubar-reserve) -
+            0.48 * 100dvh - var(--dock-menubar-reserve) -
                 var(--dock-band-reserve)
         )
     );

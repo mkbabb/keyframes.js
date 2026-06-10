@@ -89,6 +89,7 @@
         :show-start-screen="isHome"
         :auto-play="autoPlayNext"
         :stage-mode="stageMode"
+        :has-control-surfaces="controlSurfaces.length > 0"
         @play-state-change="onPlayStateChange"
         @start-state-change="onStartStateChange"
     >

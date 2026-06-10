@@ -1,6 +1,14 @@
 <template>
+    <!-- J.W7a S1 (D6 / H3 + TYP-1) — the MOBILE hero parks in the TOP BAND: the
+         fixed `mt-28` (112px — a magic offset that landed the text in the
+         cube's reading plane at 375w, `home-mobile.png`) is replaced below lg
+         by `pt-[var(--dock-top-band-reserve)]` — the SAME token the
+         scene-switcher band + the mobile stage inset resolve, so the hero
+         starts exactly under the dock pill and the cube recedes below it
+         (CubeTarget's hero-backdrop band). Desktop keeps `lg:mt-24` —
+         byte-identical layout at ≥lg. -->
     <div
-        class="absolute left-0 top-0 z-controls mt-28 grid h-0 w-screen items-center gap-0 px-6 lg:mt-24 pointer-events-none"
+        class="absolute left-0 top-0 z-controls pt-[var(--dock-top-band-reserve)] grid h-0 w-screen items-center gap-0 px-6 lg:pt-0 lg:mt-24 pointer-events-none"
     >
         <!-- H.W4.S3 — the hero on the AUDACIOUS φ rung. `text-display-4` (86px,
              the middle rung) → `text-display-mega` (φ^(9/2), peak 177px — the
@@ -12,7 +20,15 @@
              balances "Select an / animation" to two lines; the scoped
              `line-height: 0.92` (below) tightens the two-line block at poster
              scale. NOT `.text-hero` (it is `white-space: nowrap` — a 3-word
-             hero overflows). -->
+             hero overflows).
+             J.W7a S1 (D6 / TYP-1) — BELOW lg the hero steps DOWN one φ tier to
+             the `--type-display-4` token (the scoped media rule below): the
+             mega rung's mobile FLOOR (86px) is "too large for the 375px stage
+             that also hosts the subject" (cross-typography TYP-1) — the two
+             focal elements fought for the same pixels. The poster mega rung
+             holds from lg up where the stage has room for both. The class
+             stays the ONE mega rung (the H.W4 no-legacy contract); the mobile
+             step consumes the published φ token, not a raw size. -->
         <h1 class="hero-display text-display-mega p-0">
             <AnimatedText
                 class="depth-text"
@@ -77,6 +93,19 @@ withDefaults(
    disturb the ~0 CLS swap. */
 .hero-display {
     line-height: 0.92;
+}
+
+/* J.W7a S1 (D6 / TYP-1) — the hero's MOBILE rung. Below lg the mega rung's
+   86px floor physically overlapped the cube at phone widths (`home-mobile.png`,
+   the H3 collision); the hero steps one φ tier down by consuming glass-ui's
+   published `--type-display-4` token (the same ladder, one rung lower — never
+   a raw px/rem leaf). The `text-display-mega` class remains the single rung
+   the markup carries; this is a viewport-scoped token consumption mirroring
+   the scoped `line-height` above. */
+@media (max-width: 1023px) {
+    .hero-display {
+        font-size: var(--type-display-4);
+    }
 }
 
 /* F.W13.S1 — `text-wrap: pretty` on the start-screen running prose (the

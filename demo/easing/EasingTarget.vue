@@ -57,9 +57,16 @@
              use, at hero size) — the curve in MOTION (the inv ζ dogfood: the
              ball's position IS the timing function applied to the engine's
              progress sweep). One transport, one ball, all engine. -->
+        <!-- J.W7a S1 (D4 / E2) — the hero rail anchors at the LOWER THIRD of
+             the stage (`items-end` + the pb rung), not dead-center: the ball
+             rides the stage FLOOR with open sky above — a deliberate
+             compositional choice (the ball rises as the curve accelerates),
+             replacing the accidental dead-centering in ~90% empty glass. The
+             freed upper field is where the projected ghost curve lives (E1,
+             the S4 math band). -->
         <div
             v-if="viewMode === 'singular'"
-            class="flex w-full flex-1 min-h-0 items-center justify-center"
+            class="flex w-full flex-1 min-h-0 items-end justify-center pb-12"
         >
             <div ref="heroTrackEl" class="hero-track relative w-full max-w-3xl h-16">
                 <div class="progress-rail"></div>

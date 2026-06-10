@@ -1,5 +1,16 @@
 <template>
-    <div class="square-stage flex h-full w-full items-center justify-center select-none">
+    <!-- J.W7a S1 (D1 / SQ-3 + SQ-1) — the square joins the I5 STAGE-CARD
+         register: the drag arena gains the standard glass protagonist plate
+         (`<Card surface="glass" tier="resting" :shadow="false">`, the SAME
+         plate easing/spring/sequence/motion-path stand on) instead of floating
+         bare on the page grid — the subject finally has a stage. The plate's
+         `rounded-card` resolves SQ-4 for free. `grid place-items-center` on the
+         stage cell resolves the off-center drift (SQ-1): the box is the
+         geometric center of the plate by construction. -->
+    <Card
+        :shadow="false"
+        class="square-stage grid h-full w-full place-items-center select-none"
+    >
         <div
             ref="box"
             class="demo-box font-mono"
@@ -14,11 +25,12 @@
         >
             drag me
         </div>
-    </div>
+    </Card>
 </template>
 
 <script setup lang="ts">
 import { computed, markRaw, onBeforeUnmount, onMounted, reactive, useTemplateRef } from "vue";
+import { Card } from "@mkbabb/glass-ui";
 import { AnimationGroup } from "@src/animation/group";
 import { useDragScrub } from "@composables/useDragScrub";
 import { useSquareAnimations } from "../../square/useSquareAnimations";
@@ -144,7 +156,8 @@ defineExpose({
      it once paired with is dead (zero consumers) and was deleted outright. -->
 <style scoped>
 .square-stage {
-    /* The stage is the drag arena; the box translates within it. */
+    /* The stage is the drag arena; the box translates within it. The plate
+       (the I5 glass Card, D1) clips the spring overshoot at its rounded edge. */
     overflow: hidden;
 }
 

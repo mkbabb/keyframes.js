@@ -156,6 +156,27 @@
         var(--work-area-bottom-offset, 0px) + var(--dock-band-reserve)
     );
 
+    /* ── The TOP dock band (J.W7a S5 / XH-4 — the top-center band contract) ──
+       The scene-switcher pill is `fixed` at an ANCHOR offset from the viewport
+       top (ChromeDock.vue consumes --dock-top-anchor as its `top:`), so the
+       band it occupies = anchor + the dock band depth. The former mobile stage
+       inset reserved only --dock-band-reserve FROM y=0 and omitted the anchor
+       term — stage-level chrome (the easing metric header, the spring view
+       toggle) rose into the pill's band and collided with it (cross-hierarchy
+       #4, `easing-mobile.png`/`spring-mobile.png`). These two tokens make the
+       REAL band the single source: the anchor is consumed by the dock itself
+       AND by the mobile stage-cell top inset (AnimationControlsGroup), so the
+       top-center band has ONE occupant — the scene-switcher — by construction.
+       (The durable glass-ui `GlassDock` reserved-band QUERY is the W7b handoff
+       edge; this is the kf-side relocation, cross-hierarchy §handoff.) */
+    --dock-top-anchor: calc(
+        max(var(--work-area-top-offset, 0px), env(safe-area-inset-top, 0px)) +
+            var(--dock-margin) / 4
+    );
+    --dock-top-band-reserve: calc(
+        var(--dock-top-anchor) + var(--dock-band-reserve)
+    );
+
     /* Pane-slide spring timing-function — RECONCILED to glass-ui's canonical
        spring vocabulary (E.W11.S4 / inv λ). The demo previously baked its OWN
        `--spring-snappy: linear(…)` here, emitted from

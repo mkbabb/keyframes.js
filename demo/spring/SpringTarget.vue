@@ -173,9 +173,14 @@ const onKeydown = (e: KeyboardEvent) => {
     transition: border-color var(--duration-fast) ease;
 }
 
+/* J.W7a S1 (D4 / SP-1) — the live ball IS the scene's protagonist and takes
+   the idiom-default --ball-size (36px) + full canonical glow: at the former
+   1.75rem it "read as a footnote" against the vast glass plate. The h-12 rail
+   row seats the 36px ball with breathing room; the quiet sampler below keeps
+   its small translucent rung so the hierarchy (protagonist > sampler) is
+   legible at a glance. */
 .spring-ball {
-    --ball-size: 1.75rem;
-    margin-left: calc(var(--ball-size) / -2);
+    margin-left: calc(var(--ball-size, 36px) / -2);
     will-change: left;
 }
 

@@ -5,6 +5,7 @@
             'controls-layout justify-items-stretch items-start relative',
             `controls-layout--stage-${stageMode}`,
             storedControls.isControlsPanelOpen ? 'controls-layout--open' : 'controls-layout--closed',
+            hasControlSurfaces ? '' : 'controls-layout--railless',
         ]"
         v-bind="$attrs"
     >
@@ -162,7 +163,7 @@ import { useAnimationGroupPlayback } from "./composables/useAnimationGroupPlayba
 import { useAnimationProgress } from "./composables/useAnimationProgress";
 import { useControlsLayout } from "./composables/useControlsLayout";
 
-const { superKey, animationGroup, autoPlay, hideControls, stageMode } = defineProps<{
+const { superKey, animationGroup, autoPlay, hideControls, stageMode, hasControlSurfaces = true } = defineProps<{
     animationGroup: AnimationGroup<any>;
     superKey?: string;
     autoPlay?: boolean;
@@ -172,6 +173,15 @@ const { superKey, animationGroup, autoPlay, hideControls, stageMode } = definePr
     // `editor`/`storyboard` keep a content card. Forwarded down to the sheet
     // wrapper so the visible-fraction floor applies to `subject` alone.
     stageMode?: "subject" | "editor" | "storyboard";
+    // J.W7a S5 / XH-1 (D20) — does the active scene's control-surface DFA set
+    // contain ANY surface? `false` (the empty-DFA scenes: sequence/motion-path)
+    // COLLAPSES the desktop [rail] track to 0 regardless of the stored open
+    // flag, so the hollow 400px ghost rail (the vacant grab-pill card over a
+    // void) cannot render — the stage reflows to fill. The MOBILE sheet axis is
+    // untouched (the H.W7 single-page model keeps its peek shell). Threaded
+    // from the App's machine projection (`controlSurfacesFor(activeScene)`);
+    // defaults TRUE so a non-App host (the playground) keeps its rail.
+    hasControlSurfaces?: boolean;
 }>();
 
 const storedControls = getStoredAnimationGroupControlOptions(superKey);
@@ -422,6 +432,18 @@ function cycleAnimation(direction: number) {
         align-self: stretch;
         justify-self: stretch;
         z-index: var(--z-content, 10);
+        /* J.W7a S5 / XH-4 (D22) — the mobile inset reserves the REAL
+           scene-switcher band, not just the band depth: the pill is anchored at
+           --dock-top-anchor below the viewport top (ChromeDock consumes the SAME
+           token), so the band it occupies = anchor + --dock-band-reserve. The
+           former reserve counted only the depth term and let stage-level chrome
+           (the easing metric header strip, the spring view toggle) rise INTO
+           the pill's band (cross-hierarchy #4). The top-center band now has ONE
+           occupant — the scene-switcher — by construction. The reserve stays
+           SYMMETRIC (the G8 one-envelope contract, proof:stage-within-docks):
+           the bottom edge takes the same enlarged band, which also lifts the
+           centred subjects clear of the bottom transport pill. */
+        padding-block: var(--dock-top-band-reserve);
         /* The orbit surface keeps `touch-action: none` (OrbitalDrag/AmigaScene
            own it on their own roots); this cell is a passive frame, so the swipe
            is owned by the sheet GRAB HANDLE — spatially disjoint (BLK-6). */
@@ -467,6 +489,18 @@ function cycleAnimation(direction: number) {
         transition: grid-template-columns var(--duration-slow) var(--spring-snappy);
     }
     .controls-layout--closed {
+        --rail-track: 0px;
+    }
+
+    /* J.W7a S5 / XH-1 (D20) — the ghost rail DIES. An empty-DFA scene
+       (sequence/motion-path — CONTROL_SURFACES = []) has NOTHING to put in the
+       rail, so its [rail] track is 0 REGARDLESS of the stored open flag: the
+       hollow 400px shell (a vacant grab-pill card top-left of a void column,
+       cross-hierarchy #1) cannot hold the track open, and the stage reflows to
+       fill the freed width (the COLLAPSE arm of the collapse-or-fill fork).
+       Declared after --open/--closed so the railless fact wins the custom-
+       property cascade at equal specificity. */
+    .controls-layout--railless {
         --rail-track: 0px;
     }
 

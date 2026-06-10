@@ -114,62 +114,18 @@
                     ></div>
                 </div>
 
-                <!-- The F.W9 transport — play/pause, reverse, timeScale, reset.
-                     Exercises the COMPLETE Sequence transport (not just play/
-                     stop), the F.W10.S3 gate clause.
-
-                     H.W12.S1 / I8 — Play/Pause + Reverse wear the SHARED
-                     `.btn-playback` skin (playback-button.css, the same partial
-                     the standard ribbon + EasingScene/SpringScene import) so they
-                     read IDENTICALLY to cube/amiga/easing's transport; Play takes
-                     the accent posture, Reverse the `aria-pressed` active tint
-                     (the ribbon's Reverse posture). timeScale + Reset stay the
-                     DOMAIN extras on `.btn-interactive` (the cube model — domain
-                     verbs beside the standard transport; Sequence is NOT forced
-                     onto PlaybackRibbon, which lacks timeScale). `text-small`
-                     stays a NAMED per-site retention so the four cells fit the
-                     `grid-cols-4` track (the skin's `--type-body` would overflow
-                     the dense row). -->
-                <div class="grid grid-cols-4 gap-2 mt-3">
-                    <Button
-                        variant="outline"
-                        class="btn-playback btn-playback-accent text-small"
-                        aria-label="Play or pause the sequence"
-                        :aria-pressed="demo.isPlaying.value"
-                        @click="demo.togglePlay()"
-                    >
-                        <component :is="demo.isPlaying.value ? Pause : Play" class="w-4 h-4" />
-                        <span>{{ demo.isPlaying.value ? "Pause" : "Play" }}</span>
-                    </Button>
-                    <Button
-                        variant="outline"
-                        class="btn-playback text-small"
-                        :aria-pressed="demo.isReversed.value"
-                        aria-label="Reverse the sequence direction"
-                        @click="demo.reverse()"
-                    >
-                        <Rewind class="w-4 h-4" />
-                        <span>Reverse</span>
-                    </Button>
-                    <Button
-                        variant="outline"
-                        class="h-8 w-full rounded-full gap-1.5 text-small btn-interactive"
-                        aria-label="Cycle the sequence time scale"
-                        @click="cycleTimeScale()"
-                    >
-                        <Gauge class="w-4 h-4" />
-                        <span class="tabular-nums">{{ demo.timeScale.value }}&times;</span>
-                    </Button>
-                    <Button
-                        variant="outline"
-                        class="h-8 w-full rounded-full gap-1.5 text-small btn-interactive"
-                        aria-label="Reset the sequence to the start"
-                        @click="demo.reset()"
-                    >
-                        <RotateCcw class="w-4 h-4" />
-                        <span>Reset</span>
-                    </Button>
-                </div>
+                <!-- J.W7a S5 / XH-2 + §c (D21/D23) — the in-stage flat transport
+                     row (Play/Reverse/1×/Reset) is RETIRED into the convergent
+                     playback register: the bottom TransportDock's rainbow
+                     group-play + reset ARE the sequence's transport (already
+                     wired through the machine's ScenePlayback adapter — the
+                     same canonical pair every scene rhymes against,
+                     cross-color-pops §0). The storyboard register now agrees:
+                     no storyboard scene mounts a third in-stage playback
+                     dialect (cross-hierarchy #2 — the control-placement
+                     schism). The master scrubber above stays — it is the
+                     storyboard's editable CONTENT (the playhead the user
+                     scrubs), not transport chrome. -->
             </div>
         </Card>
     </div>
@@ -179,13 +135,11 @@
 import { inject, onMounted, ref, useTemplateRef } from "vue";
 import { useEventListener } from "@vueuse/core";
 import { Button, Card } from "@mkbabb/glass-ui";
-import { Pause, Play, Rewind, Gauge, RotateCcw, Clapperboard } from "@lucide/vue";
+import { Clapperboard } from "@lucide/vue";
 
-// The shared playback-button skin (D.W2.S2 partial). Non-scoped global rules —
-// the `.btn-playback*` classes land on reka-ui's <Button> DOM, shared with the
-// standard ribbon + EasingScene/SpringScene. H.W12.S1 / I8 brings Sequence's
-// Play/Reverse onto the SAME skin (the share-win, keeping its domain verbs).
-import "@components/custom/animation-controls/controls/playback-button.css";
+// J.W7a S5 (D21/D23) — the playback-button.css import retired WITH the in-stage
+// transport row (no `.btn-playback*` consumer remains in this file); the reel
+// button rides glass-ui's `btn-interactive` utility.
 
 import { useDragScrub } from "@composables/useDragScrub";
 import { SEQUENCE_DEMO_KEY } from "./sequenceKeys";
@@ -194,13 +148,6 @@ import { ROW_COUNT } from "./useSequenceDemo";
 const demo = inject(SEQUENCE_DEMO_KEY)!;
 
 const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
-
-// timeScale cycle: slow-mo → real-time → fast-forward (the F.W9 transport).
-const TIME_SCALES = [0.5, 1, 2];
-const cycleTimeScale = () => {
-    const i = TIME_SCALES.indexOf(demo.timeScale.value);
-    demo.setTimeScale(TIME_SCALES[(i + 1) % TIME_SCALES.length]!);
-};
 
 // Per-row track elements — each becomes its child animation's target so the
 // engine paints `--ball-p` directly onto it (no per-frame Vue work).
@@ -416,21 +363,27 @@ useEventListener(window, "keydown", (e: KeyboardEvent) => {
 /* The per-row ball rides the engine-painted --ball-p (0→1), so it travels the
    rail with NO per-frame Vue work. It consumes the shared .progress-ball idiom
    (design-idioms.css): only the per-site variation lives here — the rail-relative
-   horizontal position (the idiom centers vertically via margin-top) and a small
-   live-ball size. The --ball-p default keeps the ball at the origin before the
-   engine first paints it. */
+   horizontal position (the idiom centers vertically via margin-top) and the
+   chorus-ball size. The --ball-p default keeps the ball at the origin before the
+   engine first paints it.
+   J.W7a S1 (D4 / SEQ-02): the five travellers step up from the recessive 1.4rem
+   to the 1.75rem chorus rung (the spring live-ball lineage — the shared framing
+   baseline), so the staggered subjects read against the storyboard void. */
 .seq-ball {
     --ball-p: 0;
-    --ball-size: 1.4rem;
+    --ball-size: 1.75rem;
     left: calc(var(--ball-p) * (100% - var(--ball-size)));
     will-change: left;
 }
 
 /* The master scrub-ball is positioned by Vue (`left:` from demo.progress) — the
-   one ball the engine does not paint, since it tracks the master playhead. */
+   one ball the engine does not paint, since it tracks the master playhead.
+   J.W7a S1 (D4 / SEQ-12): the master playhead is the DOMINANT ball — the ONE
+   element that drives the whole storyboard — so it takes the idiom-default
+   --ball-size (36px) + the full canonical glow (no per-site shrink): the former
+   1.25rem override made the master read SMALLER than the row balls it governs. */
 .scrub-ball {
-    --ball-size: 1.25rem;
-    margin-left: calc(var(--ball-size) / -2);
+    margin-left: calc(var(--ball-size, 36px) / -2);
     will-change: left;
 }
 

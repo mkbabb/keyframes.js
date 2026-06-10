@@ -134,6 +134,21 @@
        the brittleness lane's task.) */
     --z-behind: -10;
 
+    /* ── The start-screen hero/subject band split (J.W7a S1 / D6 / H3) ──
+       At phone widths the home landing hosts TWO focal elements in one
+       viewport: the mega hero text (top) and M. Cubert (the subject). The
+       former layout centered the cube in the FULL stage while the hero floated
+       at a fixed offset — they physically overlapped at 375–390w (pane-home H3,
+       cross-typography TYP-1). This token names the SPLIT: the hero owns the
+       band ABOVE it (anchored under the scene-switcher band), the cube's
+       centering region starts BELOW it (CubeScene `cube-stage--hero-recede`).
+       The band is measured INSIDE the stage cell (whose content box already
+       starts at --dock-top-band-reserve): 34dvh clears the display-4 mobile
+       hero block (h1 ≈102px + subtitle + hint ≈ 210–220px) on both the 667 and
+       844 phone heights while leaving the lower region to the subject.
+       Mobile-only consumption; one decision, tuned HERE. */
+    --start-hero-band: 34dvh;
+
     /* ── The controls idle-fade opacity (F9, H.W9.S6) ──
        The rest-dim magnitude the OPEN controls pane fades to after ~10s of
        global window inactivity (the idle-fade restoration — see the §idle-fade
