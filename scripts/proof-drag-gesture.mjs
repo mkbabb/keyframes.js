@@ -36,16 +36,17 @@
  *    wait for the spring to settle → its `transform` ≠ identity (persisted, NOT
  *    recentred). Then assert `Home`/`End` STILL recentres (no capability lost).
  *
- * Mirrors scripts/proof-no-orphan-specular.mjs (serveDist + playwright-core via
- * KF_PLAYWRIGHT_DIR + fresh context). Under KF_REQUIRE_BROWSER a playwright-absent
- * skip is a hard fail. Re-runnable: `node scripts/proof-drag-gesture.mjs`. Serves
+ * Harness: the scripts/lib/demo-driver.mjs lifecycle (withPage = serveDist +
+ * env-driven resolveChromium + context/teardown, J.W3 S1) + navToScene
+ * (the J.W0 per-EXPECTED-state settle). Under KF_REQUIRE_BROWSER a
+ * playwright-absent skip is a hard fail AT THE LIB SEAM (W7-1/S6d).
+ * P6 posture: hard — device-independent correctness oracle (red anywhere; J.W3
+ * S2b). Re-runnable: `node scripts/proof-drag-gesture.mjs`. Serves
  * the BUILT dist/gh-pages/.
  */
-import fs from "node:fs";
-import http from "node:http";
 import path from "node:path";
-import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import { REQUIRE_BROWSER, navToScene, withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
@@ -60,34 +61,11 @@ const fail = (label) => {
 
 console.log("proof:drag-gesture — I.W4 D1+D2 (B6 drag select-suppression + persist)");
 
-const MIME = {
-    ".html": "text/html",
-    ".js": "text/javascript",
-    ".css": "text/css",
-    ".json": "application/json",
-    ".png": "image/png",
-    ".ttf": "font/ttf",
-    ".woff2": "font/woff2",
-    ".svg": "image/svg+xml",
-};
-const MACHINE_KEY = "keyframes-js-scene-machine";
 const CTRL_KEY = "animation-groups-control-options-store";
 
-function serveDist() {
-    const server = http.createServer((req, res) => {
-        const urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
-        const p = path.join(DIST, urlPath === "/" ? "index.html" : urlPath);
-        if (!p.startsWith(DIST) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) {
-            res.writeHead(404).end();
-            return;
-        }
-        res.writeHead(200, {
-            "content-type": MIME[path.extname(p)] ?? "application/octet-stream",
-        });
-        fs.createReadStream(p).pipe(res);
-    });
-    return server;
-}
+// The destination control-tab label navToScene settles on per scene (null = no
+// control panel projects — sequence/motion-path).
+const TRIGGER = { square: "Controls", spring: "Spring", sequence: null, "motion-path": null };
 
 /** Open a scene in a FRESH context at its canonical FIRST-LOAD mount. */
 async function openSceneFresh(browser, base, scene, viewportWidth) {
@@ -101,25 +79,12 @@ async function openSceneFresh(browser, base, scene, viewportWidth) {
         }
     }, CTRL_KEY);
     await page.goto(`${base}/#/${scene}`, { waitUntil: "load" });
-    await page
-        .waitForFunction(
-            ([mk, s]) => {
-                try {
-                    return JSON.parse(localStorage.getItem(mk) || "{}").activeScene === s;
-                } catch {
-                    return false;
-                }
-            },
-            [MACHINE_KEY, scene],
-            { timeout: 8000 },
-        )
-        .catch(() => {});
+    await navToScene(page, scene, TRIGGER[scene], { timeout: 8000 });
     await page.setViewportSize({ width: viewportWidth, height: 900 });
     await page.waitForTimeout(900); // route rested + the scene's sub-Cards mounted
     return { ctx, page };
 }
 
-const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
 const skipOrFail = (reason) => {
     if (REQUIRE_BROWSER) {
         fail(
@@ -171,32 +136,10 @@ const DRAG_SURFACES = [
 ];
 
 async function browserHalf() {
-    if (!fs.existsSync(path.join(DIST, "index.html"))) {
-        skipOrFail("dist/gh-pages not built (run `npm run gh-pages` first)");
-        return;
-    }
-    let chromium;
-    const requireFrom = createRequire(
-        path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-    );
-    try {
-        ({ chromium } = requireFrom("playwright-core"));
-    } catch {
-        try {
-            ({ chromium } = requireFrom("@playwright/test"));
-        } catch {
-            skipOrFail("playwright not resolvable (set KF_PLAYWRIGHT_DIR or install @playwright/test)");
-            return;
-        }
-    }
-
-    const server = serveDist();
-    await new Promise((r) => server.listen(0, r));
-    const base = `http://127.0.0.1:${server.address().port}`;
     const VW = 1440;
-    const browser = await chromium.launch();
-
-    try {
+    const result = await withPage(
+        { distDir: DIST, label: "the drag-gesture assertions" },
+        async (_page, { url: base, browser }) => {
         // ── clause (a) — REAL drag selects no chrome text, EVERY drag surface ──
         // The seam owns select-suppression: for each surface we drive a real
         // page.mouse drag from the grab handle, SWEEP across a chrome label, and
@@ -497,10 +440,9 @@ async function browserHalf() {
                 await ctx.close();
             }
         }
-    } finally {
-        await browser.close();
-        server.close();
-    }
+        },
+    );
+    if (result.skipped) console.log(`  ○ browser half skipped — ${result.reason}`);
 }
 
 await browserHalf();

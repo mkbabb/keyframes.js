@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 /**
  * proof:fsm-suspend-resume-live — I.W1 §Hard gate (B2 · the FSM suspend/resume
- * bind-proof transposition). Modelled on proof-no-orphan-specular.mjs (the
- * serveDist + Playwright plumbing) and proof-scene-machine-irrefragable.mjs (the
- * navByHash / clickTransport / persisted-snapshot oracle), extended with the TWO
- * harness modes the resume-iff-was-playing continuity demands.
+ * bind-proof transposition). Harness: the scripts/lib/demo-driver.mjs lifecycle
+ * (withPage = serveDist + resolveChromium + context/teardown for the dist leg;
+ * withBrowser for the :5174 dev-server leg; navToScene as the per-EXPECTED-state
+ * nav primitive — J.W3 S1), with the persisted-snapshot oracle of
+ * proof-scene-machine-irrefragable.mjs, extended with the TWO harness modes the
+ * resume-iff-was-playing continuity demands.
  *
  * THE DEFECT (now fixed by S1+S2 — the GREEN witness here). The easing/spring
  * scenes used to pass the UNBOUND `playback.stop` (a bare RAFPlayback.prototype
@@ -40,16 +42,21 @@
  *   deterministic dev target as the NAMED, JUSTIFIED exception; otherwise the gate
  *   runs the GREEN property on the dist and documents the born-RED-of-record.
  *
- * Under KF_REQUIRE_BROWSER a playwright-absent skip becomes a hard fail. Serves
- * the BUILT dist/gh-pages/. Re-runnable: `node scripts/proof-fsm-suspend-resume-
- * live.mjs`.
+ * Under KF_REQUIRE_BROWSER a playwright-absent skip becomes a hard fail AT THE
+ * LIB SEAM. Serves the BUILT dist/gh-pages/. Re-runnable:
+ * `node scripts/proof-fsm-suspend-resume-live.mjs`.
  */
 import fs from "node:fs";
-import http from "node:http";
 import path from "node:path";
 import { spawn } from "node:child_process";
-import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import {
+    REQUIRE_BROWSER,
+    SCENE_MACHINE_KEY,
+    navToScene,
+    withBrowser,
+    withPage,
+} from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEMO = path.join(REPO, "demo");
@@ -65,7 +72,6 @@ const fail = (label) => {
 const read = (p) => fs.readFileSync(p, "utf8");
 const rel = (p) => path.relative(REPO, p).split(path.sep).join("/");
 
-const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
 const USE_DEV_SERVER = process.env.KF_DEV_SERVER === "1";
 
 console.log(
@@ -74,8 +80,13 @@ console.log(
 );
 
 // ── localStorage keys (single-sourced from the stores) ────────────────────────
-const MACHINE_KEY = "keyframes-js-scene-machine"; // SCENE_MACHINE_PERSIST_KEY
+const MACHINE_KEY = SCENE_MACHINE_KEY; // SCENE_MACHINE_PERSIST_KEY (lib-sourced)
 const CTRL_KEY = "animation-groups-control-options-store";
+
+// The destination control-tab labels navToScene settles on (the per-EXPECTED
+// predicate; the lib J.W0 primitive): easing/spring project their scene-specific
+// surfaces; amiga keeps the built-in "Controls" default.
+const TRIGGER = { easing: "Easing", spring: "Spring", amiga: "Controls" };
 
 // ─────────────────────────────────────────────────────────────────────────────
 // clause (d) — STATIC HYGIENE GUARD (the second altitude; does NOT carry
@@ -190,60 +201,6 @@ clauseD_staticGuard();
     }
 }
 
-// ── browser plumbing ──────────────────────────────────────────────────────────
-const skipOrFail = (reason) => {
-    if (REQUIRE_BROWSER) {
-        fail(`browser half REQUIRED (KF_REQUIRE_BROWSER=1) but ${reason} — the suspend/resume runtime clauses cannot pass vacuously`);
-    } else {
-        console.log(`  ○ browser half skipped — ${reason}`);
-    }
-};
-
-const MIME = {
-    ".html": "text/html",
-    ".js": "text/javascript",
-    ".css": "text/css",
-    ".json": "application/json",
-    ".png": "image/png",
-    ".ttf": "font/ttf",
-    ".woff2": "font/woff2",
-    ".svg": "image/svg+xml",
-};
-
-function serveDist() {
-    const server = http.createServer((req, res) => {
-        const urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
-        const p = path.join(DIST, urlPath === "/" ? "index.html" : urlPath);
-        if (!p.startsWith(DIST) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) {
-            res.writeHead(404).end();
-            return;
-        }
-        res.writeHead(200, {
-            "content-type": MIME[path.extname(p)] ?? "application/octet-stream",
-        });
-        fs.createReadStream(p).pipe(res);
-    });
-    return server;
-}
-
-function resolveChromium() {
-    const tryRequire = (mod) => {
-        const requireFrom = createRequire(
-            path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-        );
-        return requireFrom(mod).chromium;
-    };
-    try {
-        return tryRequire("playwright-core");
-    } catch {
-        try {
-            return tryRequire("@playwright/test");
-        } catch {
-            return null;
-        }
-    }
-}
-
 // ── error oracle: attach pageerror/unhandledrejection collectors to a page ────
 function attachErrorOracle(page) {
     const errors = [];
@@ -285,15 +242,11 @@ async function waitActiveScene(page, sceneId, timeout = 8000) {
         .catch(() => {});
 }
 
-/** In-page hash NAVIGATE (NOT a document navigation — storage + the live FSM
- *  survive, which is REQUIRED for MODE-PERSIST continuity). */
-async function navByHash(page, sceneId, settleMs = 1600) {
-    await page.evaluate((s) => {
-        location.hash = "#/" + s;
-    }, sceneId);
-    await waitActiveScene(page, sceneId);
-    await page.waitForTimeout(settleMs);
-}
+// In-page hash NAVIGATE: the lib's navToScene (NOT a document navigation —
+// storage + the live FSM survive, which is REQUIRED for MODE-PERSIST
+// continuity), settled on the destination's per-EXPECTED control surface
+// (TRIGGER above). Each call site keeps its own post-nav settle window (the
+// FSM-rest choreography the live reads need).
 
 /** Dispatch a SYNTHETIC visibilitychange → hidden (the born-RED-of-record
  *  trigger; NO dock gesture). Overrides document.visibilityState/hidden so the
@@ -437,23 +390,15 @@ async function seedControlsOpen(page) {
 // THE BROWSER HALVES
 // ─────────────────────────────────────────────────────────────────────────────
 async function browserHalves() {
-    if (!fs.existsSync(path.join(DIST, "index.html"))) {
-        skipOrFail("dist/gh-pages not built (run `npm run gh-pages` first)");
-        return;
-    }
-    const chromium = resolveChromium();
-    if (!chromium) {
-        skipOrFail("playwright not resolvable (set KF_PLAYWRIGHT_DIR or install @playwright/test)");
-        return;
-    }
-
-    const server = serveDist();
-    await new Promise((r) => server.listen(0, r));
-    const base = `http://127.0.0.1:${server.address().port}`;
     const VW = 1440;
-    const browser = await chromium.launch();
-
-    try {
+    // The lib lifecycle owns the server/chromium/teardown (the dist leg); the
+    // MODE-PERSIST and MODE-FRESH contexts are opened off the provided `browser`
+    // (the two harness modes ARE the oracle), so the lib's default page stays
+    // idle at about:blank. The :5174 dev-server leg launches its OWN browser
+    // through withBrowser (the second launch).
+    const result = await withPage(
+        { distDir: DIST, label: "the suspend/resume runtime clauses" },
+        async (_page, { url: base, browser }) => {
         // ── clause (a) — BORN-RED-OF-RECORD: PLAYING + SYNTHETIC visibility tick
         //    = NO THROW. Load easing (auto-plays) in MODE-PERSIST, assert the loop
         //    is LIVE, dispatch visibilitychange→hidden, assert ZERO throw. ───────
@@ -513,13 +458,15 @@ async function browserHalves() {
         //    of the same defect), in MODE-PERSIST, source PLAYING. Driven by the
         //    SYNTHETIC visibility co-fire + hash-route (NOT the dock gesture). ────
         // Re-ensure easing is the playing source.
-        await navByHash(page, "easing");
+        await navToScene(page, "easing", TRIGGER.easing);
+        await page.waitForTimeout(1600);
         await page.waitForTimeout(600);
         const errBeforeB = errors.length;
         // co-fire the visibility tick AT the switch (the VT/dock co-fire the
         // root cause names), then hash-route to amiga (the easing→amiga blank pair).
         await fireVisibilityHidden(page);
-        await navByHash(page, "amiga", 2200);
+        await navToScene(page, "amiga", TRIGGER.amiga);
+        await page.waitForTimeout(2200);
         await fireVisibilityVisible(page);
         await page.waitForTimeout(800);
 
@@ -559,12 +506,14 @@ async function browserHalves() {
         //    reload), NOT a cross-reload localStorage round-trip. ────────────────
         // Leg 1: PLAY easing (auto-plays), switch to spring (auto-plays) — spring
         // resumes PLAYING (it was playing/auto-plays). Both raw-rAF.
-        await navByHash(page, "easing");
+        await navToScene(page, "easing", TRIGGER.easing);
+        await page.waitForTimeout(1600);
         await page.waitForTimeout(500);
         const easingPlaying1 = await activeIntentPlaying(page);
         const easingLive1 = (await liveLoopMoving(page)).moving;
 
-        await navByHash(page, "spring", 1800);
+        await navToScene(page, "spring", TRIGGER.spring);
+        await page.waitForTimeout(1800);
         const springPlaying = await activeIntentPlaying(page);
         const springLive = (await liveLoopMoving(page)).moving;
 
@@ -585,8 +534,10 @@ async function browserHalves() {
         await page.waitForTimeout(700);
         const springPausedAfterClick = !(await activeIntentPlaying(page));
 
-        await navByHash(page, "easing", 1400);
-        await navByHash(page, "spring", 1800);
+        await navToScene(page, "easing", TRIGGER.easing);
+        await page.waitForTimeout(1400);
+        await navToScene(page, "spring", TRIGGER.spring);
+        await page.waitForTimeout(1800);
         const springResumedPaused = !(await activeIntentPlaying(page));
         const springLiveAfterReturn = (await liveLoopMoving(page)).moving;
 
@@ -644,7 +595,7 @@ async function browserHalves() {
         //    a POST-FIX tree this greens; on a pre-fix tree it throws _gen
         //    DETERMINISTICALLY. Here it is a corroborating GREEN run. ────────────
         if (USE_DEV_SERVER) {
-            await runDevServerClauseA(chromium);
+            await runDevServerClauseA();
         } else {
             note(
                 `clause (a) dev-server leg SKIPPED (KF_DEV_SERVER unset). The DETERMINISTIC born-RED-` +
@@ -653,15 +604,19 @@ async function browserHalves() {
                     `on the dist above. Set KF_DEV_SERVER=1 to run the corroborating dev-server leg.`,
             );
         }
-    } finally {
-        await browser.close();
-        server.close();
+        },
+    );
+    if (result.skipped) {
+        console.log(`  ○ browser half skipped — ${result.reason}`);
     }
 }
 
 /** The NAMED exception: spin `vite` (the source-mapped dev server) and run clause
- *  (a) against it — the DETERMINISTIC suspend trigger. Post-fix: GREEN. */
-async function runDevServerClauseA(chromium) {
+ *  (a) against it — the DETERMINISTIC suspend trigger. Post-fix: GREEN. The
+ *  browser launch routes through the lib's withBrowser against the EXTERNAL
+ *  :5174 URL (the second launch — no dist server). W7-1 / J.W3 S6d: under
+ *  KF_REQUIRE_BROWSER=1 a vite-did-not-come-up skip is a FAIL, never a note(). */
+async function runDevServerClauseA() {
     const PORT = 5174;
     const child = spawn(
         "npx",
@@ -686,12 +641,21 @@ async function runDevServerClauseA(chromium) {
         return false;
     })();
     if (!up) {
-        note(`clause (a) dev-server leg: vite did not come up on localhost:${PORT} within 60s — skipped.`);
+        if (REQUIRE_BROWSER) {
+            fail(
+                `clause (a) dev-server leg REQUIRED (KF_REQUIRE_BROWSER=1) but vite did not come up ` +
+                    `on localhost:${PORT} within 60s — the deterministic suspend clause cannot pass ` +
+                    `vacuously (a note()-skip under KF_REQUIRE_BROWSER=1 is a FAIL — J.W3 S6d / W7-1)`,
+            );
+        } else {
+            note(`clause (a) dev-server leg: vite did not come up on localhost:${PORT} within 60s — skipped.`);
+        }
         child.kill("SIGTERM");
         return;
     }
-    const browser = await chromium.launch();
     try {
+        const result = await withBrowser(
+            async (browser) => {
         const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
         const page = await ctx.newPage();
         await seedControlsOpen(page);
@@ -719,8 +683,13 @@ async function runDevServerClauseA(chromium) {
             );
         }
         await ctx.close();
+            },
+            { label: "the deterministic dev-server clause (a)" },
+        );
+        if (result.skipped) {
+            note(`clause (a) dev-server leg skipped — ${result.reason}`);
+        }
     } finally {
-        await browser.close();
         child.kill("SIGTERM");
     }
 }

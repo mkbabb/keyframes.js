@@ -54,13 +54,13 @@
  *       duration that ignores PRM → intermediate frames appear → reds; locks
  *       `respectReducedMotion: true` on the sheet's own spring.
  *
- * Mirrors scripts/proof-stage-within-docks.mjs + proof-scene-machine-irrefragable.mjs
- * (the serveDist + Playwright + the KF_REQUIRE_BROWSER skipOrFail; the IN-PAGE hash
- * settle so storage + the H.W1 reconcile trap survive). The STATIC clause (a) always
- * runs; the BROWSER clauses (b)/(c) gate on playwright resolution + the BUILT
- * dist/gh-pages/ (run `npm run gh-pages` first). Under KF_REQUIRE_BROWSER a
- * playwright-absent skip becomes a hard fail, so the spring-shape/PRM facts are
- * never green-reported un-exercised. Re-runnable:
+ * Harness: the scripts/lib/demo-driver.mjs lifecycle (withPage = serveDist +
+ * resolveChromium + context/teardown, J.W3 S1; the lib's navToScene IN-PAGE hash
+ * settle so storage + the H.W1 reconcile trap survive). The STATIC clause (a)
+ * always runs; the BROWSER clauses (b)/(c) gate on playwright resolution + the
+ * BUILT dist/gh-pages/ (run `npm run gh-pages` first). Under KF_REQUIRE_BROWSER a
+ * playwright-absent skip becomes a hard fail AT THE LIB SEAM, so the
+ * spring-shape/PRM facts are never green-reported un-exercised. Re-runnable:
  * `node scripts/proof-drawer-spring.mjs`.
  *
  * ── HARNESS NOTE (the open-state seed, from impl-w7-overlay.md §OPEN NOTES) ──
@@ -73,10 +73,9 @@
  * the same path a user's swipe does.
  */
 import fs from "node:fs";
-import http from "node:http";
 import path from "node:path";
-import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import { navToScene, withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
@@ -93,7 +92,6 @@ console.log(
 );
 
 // ── localStorage keys (the deterministic open-state seed) ────────────────────
-const MACHINE_KEY = "keyframes-js-scene-machine"; // SCENE_MACHINE_PERSIST_KEY
 const CTRL_KEY = "animation-groups-control-options-store";
 
 // The scene the probe drives: cube — a `subject` mode-class scene whose sheet is
@@ -182,70 +180,13 @@ function staticHalf() {
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// BROWSER plumbing (serveDist + Playwright + skipOrFail — the shared idiom)
-// ─────────────────────────────────────────────────────────────────────────────
-const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
-const skipOrFail = (reason) => {
-    if (REQUIRE_BROWSER) {
-        fail(
-            `browser half REQUIRED (KF_REQUIRE_BROWSER=1) but ${reason} — the ` +
-                "spring-shape + PRM-snap clauses cannot pass vacuously",
-        );
-    } else {
-        console.log(`  ○ browser half skipped — ${reason}`);
-    }
-};
-
-const MIME = {
-    ".html": "text/html",
-    ".js": "text/javascript",
-    ".css": "text/css",
-    ".json": "application/json",
-    ".png": "image/png",
-    ".ttf": "font/ttf",
-    ".woff2": "font/woff2",
-    ".svg": "image/svg+xml",
-};
-
-function serveDist() {
-    const server = http.createServer((req, res) => {
-        const urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
-        const p = path.join(DIST, urlPath === "/" ? "index.html" : urlPath);
-        if (!p.startsWith(DIST) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) {
-            res.writeHead(404).end();
-            return;
-        }
-        res.writeHead(200, {
-            "content-type": MIME[path.extname(p)] ?? "application/octet-stream",
-        });
-        fs.createReadStream(p).pipe(res);
-    });
-    return server;
-}
-
-/** Settle on #/<scene> at 390×844 via an IN-PAGE hash assignment (storage + the
- *  H.W1 trap survive; page.goto clears both). Re-assert the mobile viewport AFTER
- *  navigation. Seed the superKey's `selectedAnimation` + OPEN the pane so the
- *  `v-show`-gated sheet renders, then start CLOSED so the OPEN drive (0→1)
- *  overshoots ABOVE terminal (the clean spring-shape direction). */
+/** Settle on #/<scene> at 390×844 via the lib's navToScene IN-PAGE hash nav
+ *  (storage + the H.W1 trap survive; page.goto clears both). Re-assert the mobile
+ *  viewport AFTER navigation. Seed the superKey's `selectedAnimation` + OPEN the
+ *  pane so the `v-show`-gated sheet renders, then start CLOSED so the OPEN drive
+ *  (0→1) overshoots ABOVE terminal (the clean spring-shape direction). */
 async function seedSheet(page, startOpen) {
-    await page.evaluate((s) => {
-        location.hash = "#/" + s;
-    }, PROBE_SCENE);
-    await page
-        .waitForFunction(
-            ([mk, s]) => {
-                try {
-                    return JSON.parse(localStorage.getItem(mk) || "{}").activeScene === s;
-                } catch {
-                    return false;
-                }
-            },
-            [MACHINE_KEY, PROBE_SCENE],
-            { timeout: 8000 },
-        )
-        .catch(() => {});
+    await navToScene(page, PROBE_SCENE, "Controls", { timeout: 8000 });
     await page.setViewportSize({ width: 390, height: 844 });
     await page.evaluate(
         ([ck, sk, open]) => {
@@ -344,38 +285,16 @@ function analyzeTrace(trace) {
 }
 
 async function browserHalf() {
-    if (!fs.existsSync(path.join(DIST, "index.html"))) {
-        skipOrFail("dist/gh-pages not built (run `npm run gh-pages` first)");
-        return;
-    }
-    let chromium;
-    try {
-        const requireFrom = createRequire(
-            path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-        );
-        ({ chromium } = requireFrom("playwright-core"));
-    } catch {
-        try {
-            const requireFrom = createRequire(
-                path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-            );
-            ({ chromium } = requireFrom("@playwright/test"));
-        } catch {
-            skipOrFail("playwright not resolvable (set KF_PLAYWRIGHT_DIR or install @playwright/test)");
-            return;
-        }
-    }
-
-    const server = serveDist();
-    await new Promise((r) => server.listen(0, r));
-    const base = `http://127.0.0.1:${server.address().port}`;
-
-    const browser = await chromium.launch();
-    try {
+    const result = await withPage(
+        {
+            distDir: DIST,
+            label: "the spring-shape + PRM-snap clauses",
+            context: { viewport: { width: 390, height: 844 } },
+        },
+        async (page, { url, browser }) => {
         // ── (b) SPRING SHAPE + FAST SETTLE ──────────────────────────────────
         {
-            const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
-            await page.goto(`${base}/#/${PROBE_SCENE}`, { waitUntil: "load" });
+            await page.goto(`${url}/#/${PROBE_SCENE}`, { waitUntil: "load" });
             // start CLOSED so the trusted handle-click drives the sheet OPEN (0→1),
             // overshooting ABOVE terminal — the clean spring-shape direction.
             await seedSheet(page, false);
@@ -394,7 +313,6 @@ async function browserHalf() {
                     `(b) spring-shape — the sheet never mounted ` +
                         `(wrapper:${dbg.wrapper}, handle:${dbg.handle}, --sheet-t:${dbg.sheetT}, hash:${dbg.hash})`,
                 );
-                await page.close();
             } else {
                 const trace = await driveAndTrace(page, 900);
                 if (trace.error) {
@@ -439,28 +357,31 @@ async function browserHalf() {
                         }
                     }
                 }
-                await page.close();
             }
         }
 
         // ── (c) PRM SINGLE-FRAME SNAP ───────────────────────────────────────
+        // A FRESH context (isolated storage, mirrors the pre-lib browser.newPage)
+        // so the PRM emulation + seed do not inherit clause (b)'s state.
         {
-            const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+            const prmContext = await browser.newContext({
+                viewport: { width: 390, height: 844 },
+            });
+            try {
+            const page = await prmContext.newPage();
             await page.emulateMedia({ reducedMotion: "reduce" });
-            await page.goto(`${base}/#/${PROBE_SCENE}`, { waitUntil: "load" });
+            await page.goto(`${url}/#/${PROBE_SCENE}`, { waitUntil: "load" });
             // start OPEN so the handle-click drives CLOSE (1→0) — under PRM it must snap.
             await seedSheet(page, true);
             const mounted = await waitSheetMounted(page);
             if (!mounted) {
                 fail("(c) PRM-snap — the sheet never mounted under prefers-reduced-motion");
-                await page.close();
             } else {
                 const prm = await page.evaluate(() =>
                     matchMedia("(prefers-reduced-motion: reduce)").matches,
                 );
                 if (!prm) {
                     fail("(c) PRM-snap — emulateMedia did not engage prefers-reduced-motion: reduce");
-                    await page.close();
                 } else {
                     const trace = await driveAndTrace(page, 400);
                     if (trace.error) {
@@ -487,13 +408,16 @@ async function browserHalf() {
                             );
                         }
                     }
-                    await page.close();
                 }
             }
+            } finally {
+                await prmContext.close();
+            }
         }
-    } finally {
-        await browser.close();
-        server.close();
+        },
+    );
+    if (result.skipped) {
+        console.log(`  ○ browser half skipped — ${result.reason}`);
     }
 }
 

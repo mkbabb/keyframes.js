@@ -40,20 +40,20 @@
  *      that lost the per-scene selectedControl (the reka-fallback-hack era) would
  *      return easing to a built-in 'controls' tab that no longer exists for it.
  *
- * Settle-gated on H.W1 (the FSM resting). Mirrors the serveDist + Playwright +
- * settle plumbing of scripts/proof-scene-machine-irrefragable.mjs +
- * scripts/proof-scene-perf-budget.mjs. STATIC half (the DFA source anchors)
+ * Settle-gated on H.W1 (the FSM resting). Harness: the scripts/lib/
+ * demo-driver.mjs lifecycle (withPage = serveDist + resolveChromium +
+ * context/teardown, J.W3 S1). STATIC half (the DFA source anchors)
  * always runs so a refactor that drops the DFA is caught even when playwright is
- * absent. Under KF_REQUIRE_BROWSER a playwright-absent skip becomes a hard fail.
+ * absent. Under KF_REQUIRE_BROWSER a playwright-absent skip becomes a hard fail
+ * AT THE LIB SEAM.
  * Re-runnable: `node scripts/proof-scene-transition-perf.mjs`. Serves the BUILT
  * dist/gh-pages/ (run `npm run gh-pages` first).
  */
 import fs from "node:fs";
-import http from "node:http";
 import path from "node:path";
-import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
-import { navToScene, SCENE_MACHINE_KEY } from "./lib/demo-driver.mjs";
+import { declarePosture } from "./lib/ci-env.mjs";
+import { navToScene, SCENE_MACHINE_KEY, withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEMO = path.join(REPO, "demo");
@@ -76,12 +76,13 @@ const fail = (label) => {
 // baseline, so a p95 > 120ms there is a HOST artifact, not a product regression. Under CI
 // the timing overrun is RECORDED (re-measure on-device), NOT a hard fail; the STATIC DFA
 // anchors + the surface round-trip stay HARD. Locally it hard-gates. (Same posture as
-// proof:perf-frame-budget; proof:lighthouse-mobile — the same class — is CI-excluded.)
-const IN_CI = !!(process.env.CI || process.env.GITHUB_ACTIONS);
-const budgetMiss = (label) => {
-    if (IN_CI) note(`[CI observe-only — re-measure on-device] ${label}`);
-    else fail(label);
-};
+// proof:perf-frame-budget.) The posture is DECLARED through the ONE lib helper
+// (scripts/lib/ci-env.mjs, J.W3 S2) — no per-script IN_CI re-implementation.
+const { miss: budgetMiss } = declarePosture("observe-only", {
+    reason: "re-measure on-device",
+    fail,
+    note,
+});
 const read = (p) => fs.readFileSync(p, "utf8");
 
 console.log(
@@ -153,28 +154,6 @@ console.log(
 }
 
 // ── BROWSER half (the live measured budget + the round-trip identity) ─────────
-const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
-const skipOrFail = (reason) => {
-    if (REQUIRE_BROWSER) {
-        fail(
-            `browser half REQUIRED (KF_REQUIRE_BROWSER=1) but ${reason} — the ` +
-                "transition-budget + control-surface round-trip cannot pass vacuously",
-        );
-    } else {
-        console.log(`  ○ browser half skipped — ${reason}`);
-    }
-};
-
-const MIME = {
-    ".html": "text/html",
-    ".js": "text/javascript",
-    ".css": "text/css",
-    ".json": "application/json",
-    ".png": "image/png",
-    ".ttf": "font/ttf",
-    ".woff2": "font/woff2",
-    ".svg": "image/svg+xml",
-};
 const CTRL_KEY = "animation-groups-control-options-store";
 const SUPER_KEY = {
     cube: "Cube",
@@ -183,22 +162,6 @@ const SUPER_KEY = {
     sequence: "Sequence",
     "motion-path": "MotionPath",
 };
-
-function serveDist() {
-    return http.createServer((req, res) => {
-        const urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
-        const p = path.join(DIST, urlPath === "/" ? "index.html" : urlPath);
-        if (!p.startsWith(DIST) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) {
-            res.writeHead(200, { "content-type": "text/html" });
-            fs.createReadStream(path.join(DIST, "index.html")).pipe(res);
-            return;
-        }
-        res.writeHead(200, {
-            "content-type": MIME[path.extname(p)] ?? "application/octet-stream",
-        });
-        fs.createReadStream(p).pipe(res);
-    });
-}
 
 // The destination control-tab labels navToScene settles on (the per-EXPECTED
 // predicate): easing projects its scene-specific "Easing" surface; cube keeps
@@ -247,35 +210,14 @@ const controlProjection = (page, superKey) =>
     );
 
 async function browserHalf() {
-    if (!fs.existsSync(path.join(DIST, "index.html"))) {
-        skipOrFail("dist/gh-pages not built (run `npm run gh-pages` first)");
-        return;
-    }
-    let chromium;
-    for (const pkg of ["playwright-core", "@playwright/test"]) {
-        try {
-            const requireFrom = createRequire(
-                path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-            );
-            ({ chromium } = requireFrom(pkg));
-            break;
-        } catch {
-            /* try next */
-        }
-    }
-    if (!chromium) {
-        skipOrFail("playwright not resolvable (set KF_PLAYWRIGHT_DIR or install @playwright/test)");
-        return;
-    }
-
-    const server = serveDist();
-    await new Promise((r) => server.listen(0, r));
-    const base = `http://127.0.0.1:${server.address().port}`;
-    const browser = await chromium.launch();
-    const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
-    try {
-        const page = await ctx.newPage();
-        await page.goto(`${base}/#/cube`, { waitUntil: "load" });
+    const result = await withPage(
+        {
+            distDir: DIST,
+            label: "the transition-budget + control-surface round-trip",
+            context: { viewport: { width: 1280, height: 900 } },
+        },
+        async (page, { url }) => {
+        await page.goto(`${url}/#/cube`, { waitUntil: "load" });
         await page.waitForTimeout(3000);
 
         // ── T1 TRANSITION-BUDGET ─────────────────────────────────────────────
@@ -336,11 +278,10 @@ async function browserHalf() {
             );
         }
 
-        await page.close();
-    } finally {
-        await ctx.close();
-        await browser.close();
-        server.close();
+        },
+    );
+    if (result.skipped) {
+        console.log(`  ○ browser half skipped — ${result.reason}`);
     }
 }
 

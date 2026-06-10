@@ -28,17 +28,17 @@
  *  • clause (e) HYGIENE NON-LOAD-BEARING: a backdrop-surface count + an on-device
  *    re-measure FLAG. It does NOT gate.
  *
- * Mirrors scripts/proof-no-orphan-specular.mjs (serveDist + playwright-core via
- * KF_PLAYWRIGHT_DIR + fresh context) + the CDP throttle:
+ * Harness: the scripts/lib/demo-driver.mjs lifecycle (withPage = serveDist +
+ * resolveChromium + context/teardown, J.W3 S1; under KF_REQUIRE_BROWSER a
+ * playwright-absent skip becomes a hard fail AT THE LIB SEAM) + the CDP throttle:
  *   const cdp = await context.newCDPSession(page);
  *   await cdp.send("Emulation.setCPUThrottlingRate", { rate: 4 });
  * Re-runnable: `node scripts/proof-perf-frame-budget.mjs`. Serves dist/gh-pages/.
  */
-import fs from "node:fs";
-import http from "node:http";
 import path from "node:path";
-import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import { IN_CI, declarePosture } from "./lib/ci-env.mjs";
+import { SCENE_MACHINE_KEY as MACHINE_KEY, withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
@@ -58,11 +58,14 @@ const fail = (label) => {
 // same environment-sensitive class, is CI-EXCLUDED entirely). So under CI the budget
 // OVERRUN is a RECORDED OBSERVATION (logged + re-measure on-device), NOT a hard fail; the
 // zero-error floor + the structural checks stay HARD. Locally (on-device) it hard-gates.
-const IN_CI = !!(process.env.CI || process.env.GITHUB_ACTIONS);
-const budgetMiss = (label) => {
-    if (IN_CI) note(`[CI observe-only — re-measure on-device] ${label}`);
-    else fail(label);
-};
+// The posture is DECLARED through the ONE lib helper (scripts/lib/ci-env.mjs, J.W3
+// S2) — no per-script IN_CI re-implementation. This is the canonical instance of
+// the NAMED third taxonomy state: correctness-class on-device, observe-only in CI.
+const { miss: budgetMiss } = declarePosture("observe-only", {
+    reason: "re-measure on-device",
+    fail,
+    note,
+});
 
 // The BOUND thresholds (H-5 — derived from the b16 baselines, not symbolic).
 const THROTTLE_RATE = 4; // the single named device-class proxy (b16 §0) — the DOCK clause
@@ -85,34 +88,7 @@ console.log(
         `${EASING_DROPPED_CEIL}, under a ${THROTTLE_RATE}× CPU throttle)`,
 );
 
-const MIME = {
-    ".html": "text/html",
-    ".js": "text/javascript",
-    ".css": "text/css",
-    ".json": "application/json",
-    ".png": "image/png",
-    ".ttf": "font/ttf",
-    ".woff2": "font/woff2",
-    ".svg": "image/svg+xml",
-};
-const MACHINE_KEY = "keyframes-js-scene-machine";
 const CTRL_KEY = "animation-groups-control-options-store";
-
-function serveDist() {
-    const server = http.createServer((req, res) => {
-        const urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
-        const p = path.join(DIST, urlPath === "/" ? "index.html" : urlPath);
-        if (!p.startsWith(DIST) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) {
-            res.writeHead(404).end();
-            return;
-        }
-        res.writeHead(200, {
-            "content-type": MIME[path.extname(p)] ?? "application/octet-stream",
-        });
-        fs.createReadStream(p).pipe(res);
-    });
-    return server;
-}
 
 // The structured error budget (the I.W7 H-2 allowlist floor, inherited here).
 function attachErrorWatch(page) {
@@ -213,45 +189,18 @@ async function sampleRafBest(page, frameBudget, runs = 3) {
     return best;
 }
 
-const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
-const skipOrFail = (reason) => {
-    if (REQUIRE_BROWSER) {
-        fail(
-            `browser half REQUIRED (KF_REQUIRE_BROWSER=1) but ${reason} — ` +
-                "the perf-frame-budget assertions cannot pass vacuously",
-        );
-    } else {
-        console.log(`  ○ browser half skipped — ${reason}`);
-    }
-};
-
 async function browserHalf() {
-    if (!fs.existsSync(path.join(DIST, "index.html"))) {
-        skipOrFail("dist/gh-pages not built (run `npm run gh-pages` first)");
-        return;
-    }
-    let chromium;
-    const requireFrom = createRequire(
-        path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-    );
-    try {
-        ({ chromium } = requireFrom("playwright-core"));
-    } catch {
-        try {
-            ({ chromium } = requireFrom("@playwright/test"));
-        } catch {
-            skipOrFail("playwright not resolvable (set KF_PLAYWRIGHT_DIR or install @playwright/test)");
-            return;
-        }
-    }
-
-    const server = serveDist();
-    await new Promise((r) => server.listen(0, r));
-    const base = `http://127.0.0.1:${server.address().port}`;
     const VW = 1440;
-    const browser = await chromium.launch();
-
-    try {
+    // The lib lifecycle owns the server/chromium/teardown; the per-clause fresh
+    // throttled contexts are opened off the provided `browser` (the gate's own
+    // matrix), so the lib's default page stays idle at about:blank.
+    const result = await withPage(
+        {
+            distDir: DIST,
+            label: "the perf-frame-budget assertions",
+            context: { viewport: { width: VW, height: 900 } },
+        },
+        async (_page, { url: base, browser }) => {
         // ── clause (c) — dock expand holds the frame budget under 4× throttle ──
         // Hover/move the pointer onto the collapsed dock pill to trigger the
         // glass-ui spring expand, sampling rAF over the expand window. On the idle
@@ -443,9 +392,10 @@ async function browserHalf() {
                 await ctx.close();
             }
         }
-    } finally {
-        await browser.close();
-        server.close();
+        },
+    );
+    if (result.skipped) {
+        console.log(`  ○ browser half skipped — ${result.reason}`);
     }
 }
 

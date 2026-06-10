@@ -17,14 +17,15 @@
  *       --font-display override survives);
  *   (c) no font is stuck in an `error`/half-loaded state on the demo's own faces.
  * Born-RED on a tree that inherits glass-ui's Plus Jakarta default; GREEN once the
- * demo reclaims --font-stack-text. Serves dist/gh-pages/. Mirrors the
- * proof-no-orphan-specular harness.
+ * demo reclaims --font-stack-text. Serves dist/gh-pages/. Harness: the
+ * scripts/lib/demo-driver.mjs lifecycle (withPage = serveDist + resolveChromium +
+ * context/teardown, J.W3 S1; under KF_REQUIRE_BROWSER a playwright-absent skip
+ * becomes a hard fail AT THE LIB SEAM). ACTUATES (J.W3 S5, the oracle-precept
+ * SWITCH leg): the resolved face must SURVIVE a navToScene scene switch.
  */
-import fs from "node:fs";
-import http from "node:http";
 import path from "node:path";
-import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import { SCENE_MACHINE_KEY as MACHINE_KEY, navToScene, withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
@@ -34,37 +35,14 @@ const fail = (l) => { failures.push(l); console.error(`  ✗ ${l}`); };
 
 console.log("proof:demo-fonts — I.W6-font: the demo's own font identity, NOT glass-ui's Plus Jakarta brand default");
 
-const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
-const skipOrFail = (reason) => {
-    if (REQUIRE_BROWSER) fail(`browser half REQUIRED but ${reason}`);
-    else console.log(`  ○ browser half skipped — ${reason}`);
-};
-const MIME = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".json": "application/json", ".png": "image/png", ".svg": "image/svg+xml", ".woff2": "font/woff2", ".ttf": "font/ttf" };
-const MACHINE_KEY = "keyframes-js-scene-machine";
-
-function serveDist() {
-    return http.createServer((req, res) => {
-        const u = decodeURIComponent(new URL(req.url, "http://x").pathname);
-        const p = path.join(DIST, u === "/" ? "index.html" : u);
-        if (!p.startsWith(DIST) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) { res.writeHead(404).end(); return; }
-        res.writeHead(200, { "content-type": MIME[path.extname(p)] ?? "application/octet-stream" });
-        fs.createReadStream(p).pipe(res);
-    });
-}
-
 async function browserHalf() {
-    if (!fs.existsSync(path.join(DIST, "index.html"))) { skipOrFail("dist/gh-pages not built"); return; }
-    let chromium;
-    try { chromium = createRequire(path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"))("playwright-core").chromium; }
-    catch { skipOrFail("playwright not resolvable (set KF_PLAYWRIGHT_DIR)"); return; }
-
-    const server = serveDist();
-    await new Promise((r) => server.listen(0, r));
-    const base = `http://127.0.0.1:${server.address().port}`;
-    const browser = await chromium.launch();
-    try {
-        const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
-        const page = await ctx.newPage();
+    const result = await withPage(
+        {
+            distDir: DIST,
+            label: "the demo-font identity assertions",
+            context: { viewport: { width: 1440, height: 900 } },
+        },
+        async (page, { url: base }) => {
         await page.goto(`${base}/#/cube`, { waitUntil: "load" });
         await page.waitForFunction((mk) => { try { return !!JSON.parse(localStorage.getItem(mk) || "{}").activeScene; } catch { return false; } }, MACHINE_KEY, { timeout: 8000 }).catch(() => {});
         await page.waitForTimeout(1200);
@@ -106,13 +84,30 @@ async function browserHalf() {
         if (ours.length === 0) ok(`(c) no PRIMARY demo-owned font face in error state (Instrument Serif / Fira Code webfonts load clean; the metric-override "… Fallback" faces are excluded — their local() system-font source is a host concern, not a demo defect)`);
         else fail(`(c) PRIMARY demo font face(s) in error: ${ours.join(", ")}`);
 
-        await ctx.close();
-    } finally {
-        await browser.close();
-        server.close();
+        // (d) ACTUATION leg (J.W3 S5 — the oracle-precept SWITCH; GC-4/W7-3): the
+        // resolved face must SURVIVE a real scene switch. Drive #/cube → #/spring
+        // through the lib's navToScene (the per-EXPECTED-state J.W0 primitive: the
+        // destination's "Spring" control surface projects), re-read the computed
+        // body font, and assert it is the SAME resolved family — and still not
+        // Plus Jakarta — after the route change. A switch that re-lands glass-ui's
+        // brand default (a scene-scoped override losing the :root reclaim) reds.
+        await navToScene(page, "spring", "Spring");
+        const afterSwitch = await page.evaluate(async () => {
+            await document.fonts.ready;
+            return getComputedStyle(document.body).fontFamily;
+        });
+        if (afterSwitch === probe.body && !/Jakarta/i.test(afterSwitch)) {
+            ok(`(d) the resolved body face SURVIVES the cube→spring scene SWITCH byte-identical (${afterSwitch.slice(0, 42)}) — the font reclaim holds across a route change (the actuation leg)`);
+        } else {
+            fail(`(d) the body font CHANGED across the cube→spring switch: '${probe.body.slice(0, 42)}' → '${afterSwitch.slice(0, 42)}' — the reclaim does not survive a scene switch (a scene-scoped surface re-lands the brand default)`);
+        }
+        },
+    );
+    if (result.skipped) {
+        console.log(`  ○ browser half skipped — ${result.reason}`);
     }
 }
 
 await browserHalf();
 if (failures.length) { console.error(`\nproof:demo-fonts — FAIL (${failures.length})`); process.exit(1); }
-console.log("\nproof:demo-fonts — PASS: the body + dock + control chrome resolve the demo's own native sans (NO Plus Jakarta); the display register is Instrument Serif; no demo face is half-loaded. The glass-ui brand-font default never lands on a kf surface.");
+console.log("\nproof:demo-fonts — PASS: the body + dock + control chrome resolve the demo's own native sans (NO Plus Jakarta); the display register is Instrument Serif; no demo face is half-loaded; AND the resolved face survives a cube→spring scene SWITCH byte-identical (the S5 actuation leg). The glass-ui brand-font default never lands on a kf surface.");

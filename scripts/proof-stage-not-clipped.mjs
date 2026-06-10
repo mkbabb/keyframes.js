@@ -28,24 +28,23 @@
  *   prescribed fix (WV-W3-HIGH-3).
  *
  * Settle-gated on the H.W1 FSM resting (WV-W3-MED-3): viewport RE-ASSERTED after
- * navigation (Playwright resets on navigate), pane OPEN/CLOSED set explicitly,
- * scene PINNED to #/cube via an IN-PAGE hash assignment (NOT page.goto — goto
- * clears storage + kills the H.W1 reconcile trap), route rested ≥500ms, the grid
- * settled to the --rail-width form before measuring. Cross-ref H.W1's
- * proof:no-route-storm as the flake-defeat.
+ * navigation, pane OPEN/CLOSED set explicitly, scene PINNED to #/cube via the
+ * lib's navToScene (an IN-PAGE hash assignment — NOT page.goto, which clears
+ * storage + kills the H.W1 reconcile trap — settled on the destination's
+ * per-EXPECTED control surface), the grid settled to the --rail-width form
+ * before measuring.
  *
- * Mirrors scripts/proof-demo-shell-grid.mjs (the serveDist + Playwright + settle
- * plumbing). Browser-only (a clip is a rendered fact — there is no static half);
- * under KF_REQUIRE_BROWSER a playwright-absent skip becomes a hard fail so a SHIP
- * is never green-reported un-exercised. Re-runnable:
+ * Harness: the scripts/lib/demo-driver.mjs lifecycle (withPage = serveDist +
+ * resolveChromium + context/teardown, J.W3 S1). Browser-only (a clip is a
+ * rendered fact — there is no static half); under KF_REQUIRE_BROWSER a
+ * playwright-absent skip becomes a hard fail AT THE LIB SEAM so a SHIP is never
+ * green-reported un-exercised. Re-runnable:
  * `node scripts/proof-stage-not-clipped.mjs`. Serves the BUILT dist/gh-pages/
  * (run `npm run gh-pages` first).
  */
-import fs from "node:fs";
-import http from "node:http";
 import path from "node:path";
-import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import { navToScene, withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
@@ -59,67 +58,13 @@ const fail = (label) => {
 
 console.log("proof:stage-not-clipped — H.W3 S4 (the cube-half-clipped invariant guard)");
 
-const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
-const skipOrFail = (reason) => {
-    if (REQUIRE_BROWSER) {
-        fail(
-            `browser half REQUIRED (KF_REQUIRE_BROWSER=1) but ${reason} — ` +
-                "the stage-within-viewport assertion cannot pass vacuously",
-        );
-    } else {
-        console.log(`  ○ browser half skipped — ${reason}`);
-    }
-};
-
-const MIME = {
-    ".html": "text/html",
-    ".js": "text/javascript",
-    ".css": "text/css",
-    ".json": "application/json",
-    ".png": "image/png",
-    ".ttf": "font/ttf",
-    ".woff2": "font/woff2",
-    ".svg": "image/svg+xml",
-};
-const MACHINE_KEY = "keyframes-js-scene-machine"; // SCENE_MACHINE_PERSIST_KEY
 const CTRL_KEY = "animation-groups-control-options-store";
 
-function serveDist() {
-    const server = http.createServer((req, res) => {
-        const urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
-        const p = path.join(DIST, urlPath === "/" ? "index.html" : urlPath);
-        if (!p.startsWith(DIST) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) {
-            res.writeHead(404).end();
-            return;
-        }
-        res.writeHead(200, {
-            "content-type": MIME[path.extname(p)] ?? "application/octet-stream",
-        });
-        fs.createReadStream(p).pipe(res);
-    });
-    return server;
-}
-
-/** Settle on #/cube via an in-page hash assignment (storage + the H.W1 trap
+/** Settle on #/cube via the lib's in-page hash nav (storage + the H.W1 trap
  *  survive; goto would clear both). Re-assert the test viewport AFTER navigation
- *  (Playwright resets on navigate) + rest ≥500ms (WV-W3-MED-3). */
+ *  + rest ≥500ms (WV-W3-MED-3). */
 async function settleOnCube(page, viewportWidth, viewportHeight) {
-    await page.evaluate(() => {
-        location.hash = "#/cube";
-    });
-    await page
-        .waitForFunction(
-            (mk) => {
-                try {
-                    return JSON.parse(localStorage.getItem(mk) || "{}").activeScene === "cube";
-                } catch {
-                    return false;
-                }
-            },
-            MACHINE_KEY,
-            { timeout: 8000 },
-        )
-        .catch(() => {});
+    await navToScene(page, "cube", "Controls", { timeout: 8000 });
     await page.setViewportSize({ width: viewportWidth, height: viewportHeight });
     await page.waitForTimeout(600);
 }
@@ -166,39 +111,17 @@ async function waitGridSettled(page) {
 }
 
 async function browserHalf() {
-    if (!fs.existsSync(path.join(DIST, "index.html"))) {
-        skipOrFail("dist/gh-pages not built (run `npm run gh-pages` first)");
-        return;
-    }
-    let chromium;
-    try {
-        const requireFrom = createRequire(
-            path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-        );
-        ({ chromium } = requireFrom("playwright-core"));
-    } catch {
-        try {
-            const requireFrom = createRequire(
-                path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-            );
-            ({ chromium } = requireFrom("@playwright/test"));
-        } catch {
-            skipOrFail("playwright not resolvable (set KF_PLAYWRIGHT_DIR or install @playwright/test)");
-            return;
-        }
-    }
-
-    const server = serveDist();
-    await new Promise((r) => server.listen(0, r));
-    const base = `http://127.0.0.1:${server.address().port}`;
-
     const TOL = 1; // sub-pixel rounding tolerance
-    const browser = await chromium.launch();
-    try {
+    const result = await withPage(
+        {
+            distDir: DIST,
+            label: "the stage-within-viewport assertion",
+            context: { viewport: { width: 1280, height: 900 } },
+        },
+        async (page, { url }) => {
+        await page.goto(`${url}/#/cube`, { waitUntil: "load" });
         for (const W of [1280, 1440]) {
             const H = 900;
-            const page = await browser.newPage({ viewport: { width: W, height: H } });
-            await page.goto(`${base}/#/cube`, { waitUntil: "load" });
             await settleOnCube(page, W, H);
             await waitGridSettled(page);
 
@@ -257,11 +180,11 @@ async function browserHalf() {
                     );
                 }
             }
-            await page.close();
         }
-    } finally {
-        await browser.close();
-        server.close();
+        },
+    );
+    if (result.skipped) {
+        console.log(`  ○ browser half skipped — ${result.reason}`);
     }
 }
 

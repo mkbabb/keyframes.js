@@ -59,21 +59,23 @@
  *      @mkbabb/glass-ui + retire this witness (the chronic actually closing).
  *
  * Settle-gated on the H.W1 FSM resting (mirrors proof:scene-card-rounded): each
- * scene is pinned via an IN-PAGE hash assignment (NOT page.goto — goto clears
- * storage + the H.W1 reconcile trap), the machine is polled to rest, the viewport
- * is RE-ASSERTED after navigation, and the gate waits until the stage glass Card
- * resolves before measuring. Under KF_REQUIRE_BROWSER a playwright-absent skip on
- * the COMPUTED half becomes a hard fail (the demo-side radius guarantee cannot
- * pass vacuously); the STATIC half + the HANDOFF witness run regardless.
+ * scene is pinned via the lib's navToScene (an IN-PAGE hash assignment — NOT
+ * page.goto, which clears storage + the H.W1 reconcile trap — settled on the
+ * destination's per-EXPECTED control surface), the viewport is RE-ASSERTED after
+ * navigation, and the gate waits until the stage glass Card resolves before
+ * measuring. Harness: the scripts/lib/demo-driver.mjs lifecycle (withPage =
+ * serveDist + resolveChromium + context/teardown, J.W3 S1). Under
+ * KF_REQUIRE_BROWSER a playwright-absent skip on the COMPUTED half becomes a
+ * hard fail AT THE LIB SEAM (the demo-side radius guarantee cannot pass
+ * vacuously); the STATIC half + the HANDOFF witness run regardless.
  *
  * Re-runnable: `node scripts/proof-card-rounded-primitive.mjs`. Serves the BUILT
  * dist/gh-pages/ (run `npm run gh-pages` first).
  */
 import fs from "node:fs";
-import http from "node:http";
 import path from "node:path";
-import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import { navToScene, withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
@@ -87,45 +89,9 @@ const fail = (label) => {
 
 console.log("proof:card-rounded-primitive — H.W11 I4 (no kf-owned card renders square; the glass-ui radius-primitive is a born-RED-paired HANDOFF)");
 
-const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
-const skipOrFail = (reason) => {
-    if (REQUIRE_BROWSER) {
-        fail(
-            `browser half REQUIRED (KF_REQUIRE_BROWSER=1) but ${reason} — ` +
-                "the demo-side stage-card rounding cannot pass vacuously",
-        );
-    } else {
-        console.log(`  ○ browser half skipped — ${reason}`);
-    }
-};
-
-const MIME = {
-    ".html": "text/html",
-    ".js": "text/javascript",
-    ".css": "text/css",
-    ".json": "application/json",
-    ".png": "image/png",
-    ".ttf": "font/ttf",
-    ".woff2": "font/woff2",
-    ".svg": "image/svg+xml",
-};
-const MACHINE_KEY = "keyframes-js-scene-machine"; // SCENE_MACHINE_PERSIST_KEY
-
-function serveDist() {
-    const server = http.createServer((req, res) => {
-        const urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
-        const p = path.join(DIST, urlPath === "/" ? "index.html" : urlPath);
-        if (!p.startsWith(DIST) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) {
-            res.writeHead(404).end();
-            return;
-        }
-        res.writeHead(200, {
-            "content-type": MIME[path.extname(p)] ?? "application/octet-stream",
-        });
-        fs.createReadStream(p).pipe(res);
-    });
-    return server;
-}
+// The destination control-tab labels navToScene settles on (per-EXPECTED-state;
+// null = the scene mounts no control panel — sequence/motion-path).
+const TRIGGER = { easing: "Easing", spring: "Spring", sequence: null, "motion-path": null };
 
 function stripComments(src) {
     // strip /* … */ + <!-- … --> so a doc-comment quoting the dropped class is not a usage
@@ -173,22 +139,7 @@ function staticHalf() {
 
 // ── 2. DEMO COMPUTED: every stage card resolves a non-zero border-radius ───────
 async function settleOnScene(page, scene, viewportWidth, viewportHeight) {
-    await page.evaluate((s) => {
-        location.hash = "#/" + s;
-    }, scene);
-    await page
-        .waitForFunction(
-            ([mk, s]) => {
-                try {
-                    return JSON.parse(localStorage.getItem(mk) || "{}").activeScene === s;
-                } catch {
-                    return false;
-                }
-            },
-            [MACHINE_KEY, scene],
-            { timeout: 8000 },
-        )
-        .catch(() => {});
+    await navToScene(page, scene, TRIGGER[scene], { timeout: 8000 });
     await page.setViewportSize({ width: viewportWidth, height: viewportHeight });
     await page.waitForTimeout(700);
 }
@@ -227,39 +178,17 @@ const SCENES = [
 ];
 
 async function computedHalf() {
-    if (!fs.existsSync(path.join(DIST, "index.html"))) {
-        skipOrFail("dist/gh-pages not built (run `npm run gh-pages` first)");
-        return;
-    }
-    let chromium;
-    try {
-        const requireFrom = createRequire(
-            path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-        );
-        ({ chromium } = requireFrom("playwright-core"));
-    } catch {
-        try {
-            const requireFrom = createRequire(
-                path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-            );
-            ({ chromium } = requireFrom("@playwright/test"));
-        } catch {
-            skipOrFail("playwright not resolvable (set KF_PLAYWRIGHT_DIR or install @playwright/test)");
-            return;
-        }
-    }
-
-    const server = serveDist();
-    await new Promise((r) => server.listen(0, r));
-    const base = `http://127.0.0.1:${server.address().port}`;
-
     const VW = 1440;
     const VH = 900;
-    const browser = await chromium.launch();
-    try {
+    const result = await withPage(
+        {
+            distDir: DIST,
+            label: "the demo-side stage-card rounding",
+            context: { viewport: { width: VW, height: VH } },
+        },
+        async (page, { url }) => {
+        await page.goto(`${url}/#/${SCENES[0].scene}`, { waitUntil: "load" });
         for (const { scene, label } of SCENES) {
-            const page = await browser.newPage({ viewport: { width: VW, height: VH } });
-            await page.goto(`${base}/#/${scene}`, { waitUntil: "load" });
             await settleOnScene(page, scene, VW, VH);
             const mounted = await waitStageCard(page, scene, VW, VH);
 
@@ -268,7 +197,6 @@ async function computedHalf() {
                     `${label} — the stage glass Card never mounted; cannot assert its computed radius ` +
                         `(the FSM may not have rested on ${scene}, or the stage is still bare/full-bleed)`,
                 );
-                await page.close();
                 continue;
             }
 
@@ -297,11 +225,11 @@ async function computedHalf() {
                         `the kf-owned stage card must be rounded (the I4 defect — "it should be impossible")`,
                 );
             }
-            await page.close();
         }
-    } finally {
-        await browser.close();
-        server.close();
+        },
+    );
+    if (result.skipped) {
+        console.log(`  ○ browser half skipped — ${result.reason}`);
     }
 }
 

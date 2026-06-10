@@ -70,24 +70,25 @@
  * sheet must materialise + occupy the viewport, just without the floor).
  *
  * Settle-gated on the H.W1 FSM resting (mirrors proof:stage-within-docks /
- * proof:demo-shell-grid): the scene is pinned via an IN-PAGE hash assignment
- * (NOT page.goto — goto clears storage + the H.W1 reconcile trap), the machine
- * is polled to rest, the viewport is RE-ASSERTED after navigation (Playwright
- * resets on navigate), the store is seeded OPEN with a real selectedAnimation,
- * and the sheet is driven to its expanded detent before measuring.
+ * proof:demo-shell-grid): the scene is pinned via the lib's navToScene (an
+ * IN-PAGE hash assignment — NOT page.goto, which clears storage + the H.W1
+ * reconcile trap — settled on the destination's per-EXPECTED control surface),
+ * the viewport is RE-ASSERTED after navigation (Playwright resets on navigate),
+ * the store is seeded OPEN with a real selectedAnimation, and the sheet is
+ * driven to its expanded detent before measuring.
  *
- * Mirrors scripts/proof-stage-within-docks.mjs (the serveDist + Playwright +
- * settle plumbing it REUSES). Browser-led (the overlay geometry is a rendered
- * fact) + the one static source clause; under KF_REQUIRE_BROWSER a
- * playwright-absent skip becomes a hard fail so a SHIP is never green-reported
- * un-exercised. Re-runnable: `node scripts/proof-mobile-single-page.mjs`. Serves
- * the BUILT dist/gh-pages/ (run `npm run gh-pages` first).
+ * Harness: the scripts/lib/demo-driver.mjs lifecycle (withPage = serveDist +
+ * resolveChromium + context/teardown, J.W3 S1). Browser-led (the overlay
+ * geometry is a rendered fact) + the one static source clause; under
+ * KF_REQUIRE_BROWSER a playwright-absent skip becomes a hard fail AT THE LIB
+ * SEAM so a SHIP is never green-reported un-exercised. Re-runnable:
+ * `node scripts/proof-mobile-single-page.mjs`. Serves the BUILT dist/gh-pages/
+ * (run `npm run gh-pages` first).
  */
 import fs from "node:fs";
-import http from "node:http";
 import path from "node:path";
-import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import { navToScene, withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
@@ -103,29 +104,6 @@ console.log(
     "proof:mobile-single-page — H.W7 S1 (the stage is the full-bleed background; the controls OVERLAY it; ≤70dvh detents)",
 );
 
-const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
-const skipOrFail = (reason) => {
-    if (REQUIRE_BROWSER) {
-        fail(
-            `browser half REQUIRED (KF_REQUIRE_BROWSER=1) but ${reason} — ` +
-                "the mobile-overlay geometry cannot pass vacuously",
-        );
-    } else {
-        console.log(`  ○ browser half skipped — ${reason}`);
-    }
-};
-
-const MIME = {
-    ".html": "text/html",
-    ".js": "text/javascript",
-    ".css": "text/css",
-    ".json": "application/json",
-    ".png": "image/png",
-    ".ttf": "font/ttf",
-    ".woff2": "font/woff2",
-    ".svg": "image/svg+xml",
-};
-const MACHINE_KEY = "keyframes-js-scene-machine"; // SCENE_MACHINE_PERSIST_KEY
 const CTRL_KEY = "animation-groups-control-options-store";
 
 // The mobile target the contract names. 390×844 = the iPhone 12/13/14 logical
@@ -156,58 +134,30 @@ const SUPER_KEY_BY_SCENE = {
 
 // The scenes by mode-class (scenes.ts `STAGE_MODES`). `subject` carries the
 // 0.45 floor; `editor`/`storyboard` are floor-EXEMPT but still asserted to open
-// + sit under the 70dvh ceiling.
+// + sit under the 70dvh ceiling. `trigger` = the destination's control-tab
+// label navToScene settles on (null = the scene renders NO control panel).
 const SCENES = [
-    { scene: "cube", mode: "subject" },
-    { scene: "amiga", mode: "subject" },
-    { scene: "square", mode: "subject" },
-    { scene: "easing", mode: "editor" },
-    { scene: "spring", mode: "storyboard" },
-    { scene: "sequence", mode: "storyboard" },
-    { scene: "motion-path", mode: "storyboard" },
+    { scene: "cube", mode: "subject", trigger: "Controls" },
+    { scene: "amiga", mode: "subject", trigger: "Controls" },
+    { scene: "square", mode: "subject", trigger: "Controls" },
+    { scene: "easing", mode: "editor", trigger: "Easing" },
+    { scene: "spring", mode: "storyboard", trigger: "Spring" },
+    { scene: "sequence", mode: "storyboard", trigger: null },
+    { scene: "motion-path", mode: "storyboard", trigger: null },
 ];
+const TRIGGER_BY_SCENE = Object.fromEntries(SCENES.map((s) => [s.scene, s.trigger]));
 
-function serveDist() {
-    const server = http.createServer((req, res) => {
-        const urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
-        let p = path.join(DIST, urlPath === "/" ? "index.html" : urlPath);
-        // SPA fallback so hash routes resolve.
-        if (!p.startsWith(DIST) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) {
-            p = path.join(DIST, "index.html");
-        }
-        res.writeHead(200, {
-            "content-type": MIME[path.extname(p)] ?? "application/octet-stream",
-        });
-        fs.createReadStream(p).pipe(res);
-    });
-    return server;
-}
-
-/** Settle on #/<scene> via an IN-PAGE hash assignment (storage + the H.W1 trap
- *  survive; page.goto clears both). Poll the machine to rest. Re-assert the
- *  viewport AFTER navigation (Playwright resets on navigate). Then FORCE the
- *  open state: seed the control-options store under the scene's superKey with a
- *  real selectedAnimation + isControlsPanelOpen=true (the sheet's v-show needs a
+/** Settle on #/<scene> via the lib's navToScene (an IN-PAGE hash assignment —
+ *  storage + the H.W1 trap survive; page.goto clears both — settled on the
+ *  destination's per-EXPECTED control surface). Re-assert the viewport AFTER
+ *  navigation (Playwright resets on navigate). Then FORCE the open state: seed
+ *  the control-options store under the scene's superKey with a real
+ *  selectedAnimation + isControlsPanelOpen=true (the sheet's v-show needs a
  *  selection; the OPEN-NOTES from impl-w7-overlay.md require a deterministic
  *  open), and DRIVE the sheet to its expanded detent via a real grab-handle
  *  click if it is not already open. */
 async function settleAndOpen(page, scene) {
-    await page.evaluate((s) => {
-        location.hash = "#/" + s;
-    }, scene);
-    await page
-        .waitForFunction(
-            ([mk, s]) => {
-                try {
-                    return JSON.parse(localStorage.getItem(mk) || "{}").activeScene === s;
-                } catch {
-                    return false;
-                }
-            },
-            [MACHINE_KEY, scene],
-            { timeout: 8000 },
-        )
-        .catch(() => {});
+    await navToScene(page, scene, TRIGGER_BY_SCENE[scene], { timeout: 8000 });
     await page.setViewportSize({ width: VW, height: VH });
 
     // Seed the OPEN state deterministically. The store is keyed by superKey; the
@@ -248,22 +198,7 @@ async function settleAndOpen(page, scene) {
     // the spring writes --sheet-t→1 (the open detent). Re-pin the hash + viewport
     // after reload (a reload restarts at the index route).
     await page.reload({ waitUntil: "load" });
-    await page.evaluate((s) => {
-        location.hash = "#/" + s;
-    }, scene);
-    await page
-        .waitForFunction(
-            ([mk, s]) => {
-                try {
-                    return JSON.parse(localStorage.getItem(mk) || "{}").activeScene === s;
-                } catch {
-                    return false;
-                }
-            },
-            [MACHINE_KEY, scene],
-            { timeout: 8000 },
-        )
-        .catch(() => {});
+    await navToScene(page, scene, TRIGGER_BY_SCENE[scene], { timeout: 8000 });
     await page.setViewportSize({ width: VW, height: VH });
     await page.waitForTimeout(900); // the spring settles (<350ms) + reflow
 }
@@ -369,36 +304,16 @@ async function probeGeometry(page) {
 }
 
 async function browserHalf() {
-    if (!fs.existsSync(path.join(DIST, "index.html"))) {
-        skipOrFail("dist/gh-pages not built (run `npm run gh-pages` first)");
-        return;
-    }
-    let chromium;
-    try {
-        const requireFrom = createRequire(
-            path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-        );
-        ({ chromium } = requireFrom("playwright-core"));
-    } catch {
-        try {
-            const requireFrom = createRequire(
-                path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-            );
-            ({ chromium } = requireFrom("@playwright/test"));
-        } catch {
-            skipOrFail(
-                "playwright not resolvable (set KF_PLAYWRIGHT_DIR or install @playwright/test)",
-            );
-            return;
-        }
-    }
-
-    const server = serveDist();
-    await new Promise((r) => server.listen(0, r));
-    const base = `http://127.0.0.1:${server.address().port}`;
-
-    const browser = await chromium.launch();
-    try {
+    const result = await withPage(
+        {
+            distDir: DIST,
+            label: "the mobile-overlay geometry",
+            context: { viewport: { width: VW, height: VH } },
+        },
+        async (_libPage, { url: base, browser }) => {
+        // Per-scene FRESH pages in their OWN contexts (fresh storage — the
+        // scene-machine restore must not bleed a prior scene's persisted state
+        // into the next scene's load), from the lifecycle's browser handle.
         for (const { scene, mode } of SCENES) {
             const page = await browser.newPage({
                 viewport: { width: VW, height: VH },
@@ -582,9 +497,10 @@ async function browserHalf() {
 
             await page.close();
         }
-    } finally {
-        await browser.close();
-        server.close();
+        },
+    );
+    if (result.skipped) {
+        console.log(`  ○ browser half skipped — ${result.reason}`);
     }
 }
 

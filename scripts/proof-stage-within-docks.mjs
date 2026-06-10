@@ -78,25 +78,26 @@
  * timeline cell is excluded by the real-area guard; the menubar is the band).
  *
  * Settle-gated on the H.W1 FSM resting (mirrors proof:stage-not-clipped /
- * proof:easing-canvas-bounded): the scene is pinned via an IN-PAGE hash assignment
- * (NOT page.goto — goto clears storage + the H.W1 reconcile trap), the machine is
- * polled to rest on the scene, the viewport is RE-ASSERTED after navigation, the
- * controls pane is opened on desktop, the route rests ≥500ms, and the gate waits
- * until the subject + the dock bands resolve before measuring.
+ * proof:easing-canvas-bounded): the scene is pinned via the lib's navToScene (an
+ * IN-PAGE hash assignment — NOT page.goto, which clears storage + the H.W1
+ * reconcile trap — settled on the destination's per-EXPECTED control surface),
+ * the viewport is RE-ASSERTED after navigation, the controls pane is opened on
+ * desktop, the route rests ≥500ms, and the gate waits until the subject + the
+ * dock bands resolve before measuring.
  *
- * Mirrors scripts/proof-stage-not-clipped.mjs (the serveDist + Playwright + settle
- * plumbing — the `.stage-cell` plumbing it REUSES). Browser-led (a dock clip is a
+ * Harness: the scripts/lib/demo-driver.mjs lifecycle (withPage = serveDist +
+ * resolveChromium + context/teardown, J.W3 S1 — the `.stage-cell` plumbing it
+ * REUSES). Browser-led (a dock clip is a
  * rendered fact — there is no static half for the containment) + the one static
  * source clause; under KF_REQUIRE_BROWSER a playwright-absent skip becomes a hard
- * fail so a SHIP is never green-reported un-exercised. Re-runnable:
+ * fail AT THE LIB SEAM so a SHIP is never green-reported un-exercised. Re-runnable:
  * `node scripts/proof-stage-within-docks.mjs`. Serves the BUILT dist/gh-pages/
  * (run `npm run gh-pages` first).
  */
 import fs from "node:fs";
-import http from "node:http";
 import path from "node:path";
-import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import { navToScene, withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
@@ -110,68 +111,17 @@ const fail = (label) => {
 
 console.log("proof:stage-within-docks — H.W10 G8 (the scene subject is contained within the affixed dock bands)");
 
-const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
-const skipOrFail = (reason) => {
-    if (REQUIRE_BROWSER) {
-        fail(
-            `browser half REQUIRED (KF_REQUIRE_BROWSER=1) but ${reason} — ` +
-                "the dock-containment assertion cannot pass vacuously",
-        );
-    } else {
-        console.log(`  ○ browser half skipped — ${reason}`);
-    }
-};
-
-const MIME = {
-    ".html": "text/html",
-    ".js": "text/javascript",
-    ".css": "text/css",
-    ".json": "application/json",
-    ".png": "image/png",
-    ".ttf": "font/ttf",
-    ".woff2": "font/woff2",
-    ".svg": "image/svg+xml",
-};
-const MACHINE_KEY = "keyframes-js-scene-machine"; // SCENE_MACHINE_PERSIST_KEY
 const CTRL_KEY = "animation-groups-control-options-store";
 
-function serveDist() {
-    const server = http.createServer((req, res) => {
-        const urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
-        const p = path.join(DIST, urlPath === "/" ? "index.html" : urlPath);
-        if (!p.startsWith(DIST) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) {
-            res.writeHead(404).end();
-            return;
-        }
-        res.writeHead(200, {
-            "content-type": MIME[path.extname(p)] ?? "application/octet-stream",
-        });
-        fs.createReadStream(p).pipe(res);
-    });
-    return server;
-}
+// The destination control-tab labels navToScene settles on (per-EXPECTED-state).
+const TRIGGER = { easing: "Easing", spring: "Spring" };
 
-/** Settle on #/<scene> via an IN-PAGE hash assignment (storage + the H.W1 trap
+/** Settle on #/<scene> via the lib's in-page hash nav (storage + the H.W1 trap
  *  survive; page.goto clears both). Re-assert the viewport AFTER navigation
  *  (Playwright resets on navigate). Open the controls pane on desktop so the
  *  layout is in its canonical rail·stage·rail form; rest ≥500ms. */
 async function settleOnScene(page, scene, viewportWidth, viewportHeight) {
-    await page.evaluate((s) => {
-        location.hash = "#/" + s;
-    }, scene);
-    await page
-        .waitForFunction(
-            ([mk, s]) => {
-                try {
-                    return JSON.parse(localStorage.getItem(mk) || "{}").activeScene === s;
-                } catch {
-                    return false;
-                }
-            },
-            [MACHINE_KEY, scene],
-            { timeout: 8000 },
-        )
-        .catch(() => {});
+    await navToScene(page, scene, TRIGGER[scene], { timeout: 8000 });
     await page.setViewportSize({ width: viewportWidth, height: viewportHeight });
     const openPane = viewportWidth >= 1024;
     await page.evaluate(
@@ -230,38 +180,16 @@ const WIDTHS = [
 const TOL = 1.5; // sub-pixel rounding tolerance
 
 async function browserHalf() {
-    if (!fs.existsSync(path.join(DIST, "index.html"))) {
-        skipOrFail("dist/gh-pages not built (run `npm run gh-pages` first)");
-        return;
-    }
-    let chromium;
-    try {
-        const requireFrom = createRequire(
-            path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-        );
-        ({ chromium } = requireFrom("playwright-core"));
-    } catch {
-        try {
-            const requireFrom = createRequire(
-                path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-            );
-            ({ chromium } = requireFrom("@playwright/test"));
-        } catch {
-            skipOrFail("playwright not resolvable (set KF_PLAYWRIGHT_DIR or install @playwright/test)");
-            return;
-        }
-    }
-
-    const server = serveDist();
-    await new Promise((r) => server.listen(0, r));
-    const base = `http://127.0.0.1:${server.address().port}`;
-
-    const browser = await chromium.launch();
-    try {
+    const result = await withPage(
+        {
+            distDir: DIST,
+            label: "the dock-containment assertion",
+            context: { viewport: { width: WIDTHS[0].w, height: WIDTHS[0].h } },
+        },
+        async (page, { url }) => {
+        await page.goto(`${url}/#/${SCENES[0].scene}`, { waitUntil: "load" });
         for (const { scene, subject, label } of SCENES) {
             for (const { w: W, h: H, kind } of WIDTHS) {
-                const page = await browser.newPage({ viewport: { width: W, height: H } });
-                await page.goto(`${base}/#/${scene}`, { waitUntil: "load" });
                 await settleOnScene(page, scene, W, H);
                 const mounted = await waitSubjectMounted(page, subject);
                 const tag = `${label} ${W}×${H} (${kind})`;
@@ -278,7 +206,6 @@ async function browserHalf() {
                             `subject(${subject}):${dbg.hasSubject}, z-docks:${dbg.docks}, ` +
                             `hash:${dbg.hash}) — the FSM may not have rested on ${scene}`,
                     );
-                    await page.close();
                     continue;
                 }
 
@@ -332,7 +259,6 @@ async function browserHalf() {
                         `${tag} — the subject has zero area ` +
                             `(w:${Math.round(probe.subj.w)} h:${Math.round(probe.subj.h)}); a vacuous pass is forbidden`,
                     );
-                    await page.close();
                     continue;
                 }
                 if (!probe.topFound || !probe.bottomFound) {
@@ -341,7 +267,6 @@ async function browserHalf() {
                             `(topDock:${probe.topFound}, bottomDock:${probe.bottomFound}); ` +
                             `the containment cannot be asserted without both affixed bands`,
                     );
-                    await page.close();
                     continue;
                 }
 
@@ -415,12 +340,12 @@ async function browserHalf() {
                     );
                 }
 
-                await page.close();
             }
         }
-    } finally {
-        await browser.close();
-        server.close();
+        },
+    );
+    if (result.skipped) {
+        console.log(`  ○ browser half skipped — ${result.reason}`);
     }
 }
 

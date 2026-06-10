@@ -30,10 +30,10 @@
  * harness on a real laid-out DOM.
  */
 import { execSync, spawnSync } from "node:child_process";
-import { createRequire } from "node:module";
 import { existsSync, readdirSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { resolveChromium } from "./lib/demo-driver.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const distPath = join(root, "dist", "keyframes.js");
@@ -49,24 +49,13 @@ function newestMtime(dir) {
     return newest;
 }
 
-/** Resolve Chromium the way bench/playwright.bench.ts does. */
-function chromiumResolvable() {
-    const base = process.env.KF_PLAYWRIGHT_DIR ?? root;
-    const requireFrom = createRequire(join(base, "package.json"));
-    for (const pkg of ["playwright-core", "@playwright/test", "playwright"]) {
-        try {
-            requireFrom.resolve(pkg);
-            return true;
-        } catch {
-            /* try next */
-        }
-    }
-    return false;
-}
-
 console.log("proof:computed-real-dom — G.W16 S2 (the genuine-path C5 proof)");
 
-if (!chromiumResolvable()) {
+// The chromium-resolve skip-guard is the lib's resolveChromium (the SAME
+// KF_PLAYWRIGHT_DIR createRequire convention bench/playwright.bench.ts uses;
+// J.W3 S1). No page lifecycle here — the genuine-path proof itself is
+// bench/computed-real-dom.bench.ts, delegated below via vitest.
+if (!resolveChromium()) {
     const msg =
         "proof:computed-real-dom — SKIP: Chromium/playwright not resolvable " +
         "(set KF_PLAYWRIGHT_DIR or install @playwright/test). Run the real " +

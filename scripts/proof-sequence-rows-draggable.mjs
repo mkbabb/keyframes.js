@@ -39,18 +39,18 @@
  *      `at:` never moves → reds; drop the entry re-sort → the sorted order never
  *      changes → reds.
  *
- * Mirrors scripts/proof-scene-parity.mjs (serveDist + Playwright + the FSM-settle
- * plumbing + the KF_REQUIRE_BROWSER skipOrFail). The browser half serves the
- * BUILT dist/gh-pages/ (run `npm run gh-pages` first). Under KF_REQUIRE_BROWSER a
- * playwright-absent skip becomes a hard fail so the affordance is never
+ * Harness: the scripts/lib/demo-driver.mjs lifecycle (withPage = serveDist +
+ * resolveChromium + context/teardown, J.W3 S1) + navToScene (the per-EXPECTED-
+ * state scene settle). The browser half serves the BUILT dist/gh-pages/ (run
+ * `npm run gh-pages` first). Under KF_REQUIRE_BROWSER a playwright-absent skip
+ * becomes a hard fail AT THE LIB SEAM so the affordance is never
  * green-reported un-exercised. Re-runnable:
  * `node scripts/proof-sequence-rows-draggable.mjs`.
  */
 import fs from "node:fs";
-import http from "node:http";
 import path from "node:path";
-import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import { navToScene, withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEMO = path.join(REPO, "demo");
@@ -123,66 +123,14 @@ const demoSrc = read(path.join(DEMO, "sequence/useSequenceDemo.ts"));
 }
 
 // ── BROWSER HALF ─────────────────────────────────────────────────────────────
-const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
-const skipOrFail = (reason) => {
-    if (REQUIRE_BROWSER) {
-        fail(
-            `browser half REQUIRED (KF_REQUIRE_BROWSER=1) but ${reason} — the ` +
-                "live row-drag re-author + Sequence re-sort cannot pass vacuously",
-        );
-    } else {
-        console.log(`  ○ browser half skipped — ${reason}`);
-    }
-};
-
-const MIME = {
-    ".html": "text/html",
-    ".js": "text/javascript",
-    ".css": "text/css",
-    ".json": "application/json",
-    ".png": "image/png",
-    ".ttf": "font/ttf",
-    ".woff2": "font/woff2",
-    ".svg": "image/svg+xml",
-};
-const MACHINE_KEY = "keyframes-js-scene-machine"; // SCENE_MACHINE_PERSIST_KEY
-
-function serveDist() {
-    return http.createServer((req, res) => {
-        const urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
-        const p = path.join(DIST, urlPath === "/" ? "index.html" : urlPath);
-        if (!p.startsWith(DIST) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) {
-            res.writeHead(404).end();
-            return;
-        }
-        res.writeHead(200, {
-            "content-type": MIME[path.extname(p)] ?? "application/octet-stream",
-        });
-        fs.createReadStream(p).pipe(res);
-    });
-}
-
 /** Drive a scene switch through the EXACT reconcile fixed point the in-app
- *  combobox funnels through (an IN-PAGE hash assignment — storage + the H.W1 trap
- *  survive). Wait for the machine's activeScene to REST on the target, then a
- *  settle window. Re-assert the viewport (Playwright resets on navigate). */
-async function settleOnScene(page, sceneId, vw, vh, settleMs = 1400) {
-    await page.evaluate((s) => {
-        location.hash = "#/" + s;
-    }, sceneId);
-    await page
-        .waitForFunction(
-            ([mk, id]) => {
-                try {
-                    return JSON.parse(localStorage.getItem(mk) || "{}").activeScene === id;
-                } catch {
-                    return false;
-                }
-            },
-            [MACHINE_KEY, sceneId],
-            { timeout: 8000 },
-        )
-        .catch(() => {});
+ *  combobox funnels through (the lib's navToScene: an IN-PAGE hash assignment —
+ *  storage + the H.W1 trap survive — settled on the destination's per-EXPECTED
+ *  control surface; expectedTrigger null = the destination renders NO control
+ *  panel). Re-assert the viewport (Playwright resets on navigate), then a
+ *  settle window. */
+async function settleOnScene(page, sceneId, expectedTrigger, vw, vh, settleMs = 1400) {
+    await navToScene(page, sceneId, expectedTrigger, { timeout: 8000 });
     await page.setViewportSize({ width: vw, height: vh });
     await page.waitForTimeout(settleMs);
 }
@@ -205,42 +153,21 @@ async function waitVisible(page, selector, timeout = 8000) {
 }
 
 async function browserHalf() {
-    if (!fs.existsSync(path.join(DIST, "index.html"))) {
-        skipOrFail("dist/gh-pages not built (run `npm run gh-pages` first)");
-        return;
-    }
-    let chromium;
-    try {
-        const requireFrom = createRequire(
-            path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-        );
-        ({ chromium } = requireFrom("playwright-core"));
-    } catch {
-        try {
-            const requireFrom = createRequire(
-                path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-            );
-            ({ chromium } = requireFrom("@playwright/test"));
-        } catch {
-            skipOrFail("playwright not resolvable (set KF_PLAYWRIGHT_DIR or install @playwright/test)");
-            return;
-        }
-    }
-
-    const server = serveDist();
-    await new Promise((r) => server.listen(0, r));
-    const base = `http://127.0.0.1:${server.address().port}`;
-
     const VW = 1440;
     const VH = 900;
-    const browser = await chromium.launch();
-    try {
-        const page = await browser.newPage({ viewport: { width: VW, height: VH } });
-        await page.goto(`${base}/#/cube`, { waitUntil: "load" });
+    const result = await withPage(
+        {
+            distDir: DIST,
+            label: "the live row-drag re-author + Sequence re-sort",
+            context: { viewport: { width: VW, height: VH } },
+        },
+        async (page, { url }) => {
+        await page.goto(`${url}/#/cube`, { waitUntil: "load" });
         await page.waitForTimeout(800);
 
         // ── 3. the row drag re-authors at: AND the Sequence re-sorts ─────────
-        await settleOnScene(page, "sequence", VW, VH);
+        // (sequence renders NO control panel — EXPECT trigger null)
+        await settleOnScene(page, "sequence", null, VW, VH);
         const handlesReady = await page
             .waitForFunction(
                 () => document.querySelectorAll(".seq-handle").length >= 3,
@@ -335,10 +262,10 @@ async function browserHalf() {
             }
         }
 
-        await page.close();
-    } finally {
-        await browser.close();
-        server.close();
+        },
+    );
+    if (result.skipped) {
+        console.log(`  ○ browser half skipped — ${result.reason}`);
     }
 }
 

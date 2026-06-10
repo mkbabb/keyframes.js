@@ -31,12 +31,18 @@
  *   6. No heavy chunk (`vendor-monaco`, `vendor-three`, `*.worker`) is
  *      requested before `load`.
  *   7. Zero console errors during mount.
+ *
+ * Harness: the scripts/lib/demo-driver.mjs lifecycle (withPage = serveDist +
+ * resolveChromium + context/teardown, J.W3 S1). Under KF_REQUIRE_BROWSER a
+ * playwright-absent skip becomes a hard fail AT THE LIB SEAM. The root-load +
+ * route-poll loop stays goto (the hash-router redirect to `#/` can destroy
+ * the execution context — see the poll note below); no per-scene settle
+ * predicate applies here, so navToScene is not adopted.
  */
 import fs from "node:fs";
-import http from "node:http";
 import path from "node:path";
-import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import { withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
@@ -112,55 +118,9 @@ if (/loading-skeleton|loading-title/.test(html)) {
 
 // ── BROWSER half ────────────────────────────────────────────────────────
 async function browserHalf() {
-    let chromium;
-    try {
-        const requireFrom = createRequire(
-            path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-        );
-        ({ chromium } = requireFrom("playwright-core"));
-    } catch {
-        try {
-            const requireFrom = createRequire(
-                path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-            );
-            ({ chromium } = requireFrom("@playwright/test"));
-        } catch {
-            console.log(
-                "  ○ browser half skipped — playwright not resolvable " +
-                    "(set KF_PLAYWRIGHT_DIR or install @playwright/test)",
-            );
-            return;
-        }
-    }
-
-    // Tiny static server over DIST.
-    const MIME = {
-        ".html": "text/html",
-        ".js": "text/javascript",
-        ".css": "text/css",
-        ".json": "application/json",
-        ".png": "image/png",
-        ".ttf": "font/ttf",
-        ".svg": "image/svg+xml",
-    };
-    const server = http.createServer((req, res) => {
-        const urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
-        let p = path.join(DIST, urlPath === "/" ? "index.html" : urlPath);
-        if (!p.startsWith(DIST) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) {
-            res.writeHead(404).end();
-            return;
-        }
-        res.writeHead(200, {
-            "content-type": MIME[path.extname(p)] ?? "application/octet-stream",
-        });
-        fs.createReadStream(p).pipe(res);
-    });
-    await new Promise((r) => server.listen(0, r));
-    const port = server.address().port;
-
-    const browser = await chromium.launch();
-    try {
-        const page = await browser.newPage();
+    const result = await withPage(
+        { distDir: DIST, label: "the mount/console/heavy-chunk assertions" },
+        async (page, { url }) => {
         const heavyRequests = [];
         const consoleErrors = [];
         page.on("request", (req) => {
@@ -172,7 +132,7 @@ async function browserHalf() {
             if (msg.type() === "error") consoleErrors.push(msg.text());
         });
 
-        await page.goto(`http://127.0.0.1:${port}/`, { waitUntil: "load" });
+        await page.goto(`${url}/`, { waitUntil: "load" });
 
         // 5. The app mounts and paints.
         try {
@@ -223,9 +183,10 @@ async function browserHalf() {
         } else {
             fail(`console errors during mount: ${consoleErrors.slice(0, 3).join(" | ")}`);
         }
-    } finally {
-        await browser.close();
-        server.close();
+        },
+    );
+    if (result.skipped) {
+        console.log(`  ○ browser half skipped — ${result.reason}`);
     }
 }
 

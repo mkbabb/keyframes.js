@@ -11,8 +11,10 @@
  *   > baseline, a design-token number, or a paperwork ledger is a HYGIENE gate,
  *   > not a CORRECTNESS gate, and MUST be LABELED as such.
  *
- * THIS GATE IS THE MACHINE THAT ENFORCES IT. For EVERY wave's declared §Hard
- * correctness `proof:*` gate (I.W0–I.W7), it asserts the gate's SCRIPT:
+ * THIS GATE IS THE MACHINE THAT ENFORCES IT. For EVERY member of the
+ * `proof:correctness` tier — the roster is DERIVED from the chain's membership
+ * (J.W3 S4 / T4 / GC-3), never a hardcoded list, so a new correctness gate can
+ * never escape the precept-enforcer — it asserts the gate's SCRIPT:
  *   (a) opens a browser over the proven serveDist + KF_PLAYWRIGHT_DIR chromium +
  *       newContext harness (it is NOT a jsdom unit, NOT a bare source grep), AND
  *   (b) ACTUATES the running product — it references the actuating harness
@@ -51,6 +53,11 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+    ACTUATION_PRIMITIVES,
+    STRONG_ACTUATION,
+    missingHarnessAnchors,
+} from "./lib/gate-shape.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const SCRIPTS_DIR = path.join(REPO, "scripts");
@@ -74,60 +81,52 @@ const SCRIPTS = pkg.scripts ?? {};
 const PROOF_ALL = SCRIPTS["proof:all"] ?? "";
 const PROOF_CORRECTNESS = SCRIPTS["proof:correctness"] ?? "";
 
-// ── The DECLARED §Hard correctness gate of every I wave (I.W0–I.W7) ───────────
-// Single-sourced here from each wave's spec. A wave authoring a NEW §Hard gate
-// must add it here AND the gate must satisfy the actuation + tier rules below —
-// the taxonomy is a CONSTRUCTION RULE for every I-authored gate, not just the
-// retired H ones (S1 / H-4). `proof:demo-fonts` is NOT in this set: the font
-// reclaim is a FOLD into the proof:live-session battery (the body-font leg), a
-// corroborating gate, not a wave's declared §Hard correctness oracle.
+// ── The audited roster is DERIVED from proof:correctness MEMBERSHIP (J.W3 S4,
+// T4 / GC-3). The pre-J.W3 form hardcoded a 9-gate literal — and the actual
+// correctness tier had 10: `proof:demo-fonts` escaped the precept-enforcer, the
+// exact "a correctness gate can be added without the meta-gate noticing" hole
+// that undermined the meta-gate's own "mechanically prior, not authorially
+// prior" thesis. The roster is now the PARSED proof:correctness chain: every
+// member is audited, NO hand-edited exemption exists, and a NEW correctness
+// gate can never escape the precept again (T4). WAVE_ANNOTATION is provenance
+// METADATA only (which wave declared the gate) — it does not and cannot gate
+// membership.
+const WAVE_ANNOTATION = {
+    "proof:engine-no-throw-on-play": "I.W0",
+    "proof:fsm-suspend-resume-live": "I.W1",
+    "proof:easing-editor-live": "I.W2",
+    "proof:amiga-subject-is-pivot": "I.W3",
+    "proof:drag-gesture": "I.W4",
+    "proof:perf-frame-budget": "I.W4",
+    "proof:icon-paint-live": "I.W5",
+    "proof:specular-absent-at-rest": "I.W6",
+    "proof:demo-fonts": "I.W6-font (tiered at J.W3 S5 — the SWITCH actuation leg)",
+    "proof:live-session": "I.W7",
+};
 const WAVE_HARD_GATES = [
-    { wave: "I.W0", gate: "proof:engine-no-throw-on-play" },
-    { wave: "I.W1", gate: "proof:fsm-suspend-resume-live" },
-    { wave: "I.W2", gate: "proof:easing-editor-live" },
-    { wave: "I.W3", gate: "proof:amiga-subject-is-pivot" },
-    { wave: "I.W4", gate: "proof:drag-gesture" },
-    { wave: "I.W4", gate: "proof:perf-frame-budget" },
-    { wave: "I.W5", gate: "proof:icon-paint-live" },
-    { wave: "I.W6", gate: "proof:specular-absent-at-rest" },
-    { wave: "I.W7", gate: "proof:live-session" },
-];
+    ...new Set(
+        [...(SCRIPTS["proof:correctness"] ?? "").matchAll(/proof:[a-z0-9-]+/g)].map(
+            (m) => m[0],
+        ),
+    ),
+]
+    .filter((g) => g !== "proof:correctness")
+    .map((gate) => ({ wave: WAVE_ANNOTATION[gate] ?? "correctness-tier", gate }));
 
 // ── The detection primitives (the same set the spec names — S6) ───────────────
-// (a) the BROWSER harness signature — serveDist + KF_PLAYWRIGHT_DIR chromium +
-//     newContext (the proof-no-orphan-specular pattern). A gate without these is
-//     a jsdom unit or a bare source grep — not a runtime gate.
-const HARNESS_SIGNATURE = [
-    { re: /\bserveDist\b/, name: "serveDist (serves the BUILT dist over http)" },
-    { re: /KF_PLAYWRIGHT_DIR/, name: "KF_PLAYWRIGHT_DIR chromium resolve" },
-    { re: /\.newContext\(/, name: "browser.newContext (a real browsing context)" },
-];
-
-// (b) the ACTUATION primitives — the gate must DRIVE the product, not rest on it.
-//     A `goto`+`waitForTimeout`+read is NOT actuation; these are. We additionally
-//     require a non-`page.mouse.move`-ONLY actuation for a STRICT interaction
-//     gate, but allow a `page.mouse.move`/`hover` for the at-rest appearance gate
-//     (B7 specular) whose product property IS measured at rest — its oracle is
-//     the rendered pixel of the running product, the precept's "product property
-//     a human would check", reached by moving the pointer to a neutral rest.
-const ACTUATION_PRIMITIVES = [
-    { re: /\bpage\.click\(|\.click\(\s*\{|\.click\(\)/, name: "page.click / locator.click" },
-    { re: /\bpage\.dispatchEvent\(|document\.dispatchEvent\(|\.dispatchEvent\(/, name: "dispatchEvent (synthetic event)" },
-    { re: /\bpage\.mouse\.(down|up)\b/, name: "page.mouse.down/up (a real drag)" },
-    { re: /\bpage\.mouse\.move\b/, name: "page.mouse.move (pointer drive)" },
-    { re: /\bpage\.keyboard\b|\.press\(/, name: "page.keyboard / .press (key drive)" },
-    { re: /\bpage\.dragAndDrop\(/, name: "page.dragAndDrop" },
-    { re: /\bnew PointerEvent\(/, name: "trusted PointerEvent dispatch (handle drag)" },
-    { re: /\.hover\(/, name: ".hover (pointer hover-drive)" },
-];
-
-// A STRONG (interaction-driving) actuation — clicks/drags/keys/dispatch — vs the
-// at-rest pointer move. A gate must have at least ONE actuation primitive; a gate
-// whose ONLY actuation is `page.mouse.move` is recorded as the rest-appearance
-// class (B7) and named, so the distinction is honest, not hidden.
-const STRONG_ACTUATION = ACTUATION_PRIMITIVES.filter(
-    (p) => !/mouse\.move|\.hover/.test(p.name),
-);
+// Routed through the ONE lib-aware authority (scripts/lib/gate-shape.mjs),
+// SHARED with proof:chronic-closure — the J.W3 fix-round consolidation. The
+// pre-fix form inlined its own copy here while chronic-closure inlined a stale
+// twin; the drift between the two detectors is exactly the duplication class
+// the wave existed to kill. The rule (unchanged): a gate satisfies the harness
+// signature by IMPORTING withPage/withBrowser from scripts/lib/demo-driver.mjs
+// (the lib IS the serveDist + KF_PLAYWRIGHT_DIR resolveChromium + newContext
+// trio, single-sourced per gate-census GC-1) OR by carrying all three inline
+// anchors (the not-yet-migrated form, kept valid). The actuation primitives —
+// navToScene SWITCH (J.W3 S5) / click / dispatch / drag / key / PointerEvent /
+// hover — and the STRONG-vs-rest-appearance split (B7) are the same table; a
+// gate whose ONLY actuation is a pointer move/hover is recorded as the
+// rest-appearance class and named, so the distinction is honest, not hidden.
 
 // A gate "RUNS in <chain>" iff that chain invokes `npm run <gate>`.
 const inChain = (chain, gate) =>
@@ -187,8 +186,10 @@ for (const { wave, gate } of WAVE_HARD_GATES) {
     }
     const src = fs.readFileSync(sp, "utf8");
 
-    // (a) the browser-harness signature — all three anchors must be present.
-    const missingHarness = HARNESS_SIGNATURE.filter((s) => !s.re.test(src)).map((s) => s.name);
+    // (a) the browser-harness signature — the lib lifecycle import (the J.W3
+    //     single-sourced trio) OR all three inline anchors must be present
+    //     (lib-aware via the shared gate-shape authority).
+    const missingHarness = missingHarnessAnchors(src);
     // (b) the actuation primitives present.
     const actsPresent = ACTUATION_PRIMITIVES.filter((p) => p.re.test(src)).map((p) => p.name);
     const strongPresent = STRONG_ACTUATION.filter((p) => p.re.test(src)).map((p) => p.name);
@@ -199,7 +200,8 @@ for (const { wave, gate } of WAVE_HARD_GATES) {
         fail(
             `[${wave}] \`${gate}\` (${rel}) is NOT a browser runtime gate — missing harness anchor(s): ` +
                 `${missingHarness.join(", ")}. A §Hard correctness gate must open a real browser over the ` +
-                `built dist (serveDist + KF_PLAYWRIGHT_DIR + newContext), not be a jsdom unit / source grep.`,
+                `built dist (serveDist + KF_PLAYWRIGHT_DIR + newContext, inline OR via the lib lifecycle ` +
+                `import { withPage } from "./lib/demo-driver.mjs"), not be a jsdom unit / source grep.`,
         );
         continue;
     }
@@ -236,9 +238,15 @@ for (const { wave, gate } of WAVE_HARD_GATES) {
 
 // ── Non-vacuity floor: the roster must be non-empty + cover every I wave ───────
 {
-    const wavesCovered = new Set(WAVE_HARD_GATES.map((g) => g.wave));
+    if (WAVE_HARD_GATES.length === 0) {
+        fail(
+            `[coverage] the derived roster is EMPTY — proof:correctness resolves no members. The ` +
+                `meta-gate must never pass vacuously (the born-RED b934a08 condition).`,
+        );
+    }
+    const waveRoots = new Set(WAVE_HARD_GATES.map((g) => (g.wave.match(/^I\.W\d+/) ?? [g.wave])[0]));
     const EXPECTED_WAVES = ["I.W0", "I.W1", "I.W2", "I.W3", "I.W4", "I.W5", "I.W6", "I.W7"];
-    const missingWaves = EXPECTED_WAVES.filter((w) => !wavesCovered.has(w));
+    const missingWaves = EXPECTED_WAVES.filter((w) => !waveRoots.has(w));
     if (missingWaves.length > 0) {
         fail(
             `[coverage] the §Hard-gate roster is MISSING a wave: ${missingWaves.join(", ")} — every I wave ` +
@@ -247,9 +255,10 @@ for (const { wave, gate } of WAVE_HARD_GATES) {
         );
     } else {
         note(
-            `coverage: all ${EXPECTED_WAVES.length} I waves (I.W0–I.W7) declare a §Hard correctness gate ` +
-                `(I.W4 declares two: drag-gesture + perf-frame-budget). proof:demo-fonts is a FOLD into the ` +
-                `live-session body-font leg, not a §Hard gate (correctly excluded from the roster).`,
+            `coverage: the roster is DERIVED from proof:correctness membership (${WAVE_HARD_GATES.length} ` +
+                `gates — J.W3 S4/T4, no hardcoded list, no hand-edited exemption) and spans all ` +
+                `${EXPECTED_WAVES.length} I waves (I.W4 declares two: drag-gesture + perf-frame-budget; ` +
+                `demo-fonts enters under its J.W3 S5 SWITCH-actuation tiering).`,
         );
     }
 }

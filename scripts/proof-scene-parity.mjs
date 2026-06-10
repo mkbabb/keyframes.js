@@ -69,19 +69,18 @@
  *      BITE: delete the sidebar editable host → no editable curve anywhere → reds;
  *      a mis-named handler silently no-ops → the ref never changes → reds.
  *
- * Mirrors scripts/proof-easing-canvas-bounded.mjs / proof-scene-machine-
- * irrefragable.mjs (serveDist + Playwright + the FSM-settle plumbing + the
- * KF_REQUIRE_BROWSER skipOrFail). Browser-only clauses serve the BUILT
- * dist/gh-pages/ (run `npm run gh-pages` first). Under KF_REQUIRE_BROWSER a
- * playwright-absent skip becomes a hard fail so the per-mode interactivity floor
- * is never green-reported un-exercised. Re-runnable:
+ * Harness: the scripts/lib/demo-driver.mjs lifecycle (withPage = serveDist +
+ * resolveChromium + context/teardown, J.W3 S1) + navToScene (the per-EXPECTED-
+ * state scene settle). Browser-only clauses serve the BUILT dist/gh-pages/ (run
+ * `npm run gh-pages` first). Under KF_REQUIRE_BROWSER a playwright-absent skip
+ * becomes a hard fail AT THE LIB SEAM so the per-mode interactivity floor is
+ * never green-reported un-exercised. Re-runnable:
  * `node scripts/proof-scene-parity.mjs`.
  */
 import fs from "node:fs";
-import http from "node:http";
 import path from "node:path";
-import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import { navToScene, withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEMO = path.join(REPO, "demo");
@@ -258,70 +257,17 @@ const routerSrc = blankComments(read(path.join(DEMO, "app/router.ts")));
 }
 
 // ── BROWSER HALF (the per-mode interactivity floor) ──────────────────────────
-const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
-const skipOrFail = (reason) => {
-    if (REQUIRE_BROWSER) {
-        fail(
-            `browser half REQUIRED (KF_REQUIRE_BROWSER=1) but ${reason} — the ` +
-                "per-mode interactivity locks (motionpath-drag · square-drag · " +
-                "easing-curve-onstage) cannot pass vacuously",
-        );
-    } else {
-        console.log(`  ○ browser half skipped — ${reason}`);
-    }
-};
-
-const MIME = {
-    ".html": "text/html",
-    ".js": "text/javascript",
-    ".css": "text/css",
-    ".json": "application/json",
-    ".png": "image/png",
-    ".ttf": "font/ttf",
-    ".woff2": "font/woff2",
-    ".svg": "image/svg+xml",
-};
-const MACHINE_KEY = "keyframes-js-scene-machine"; // SCENE_MACHINE_PERSIST_KEY
 const CTRL_KEY = "animation-groups-control-options-store"; // controlOptionsStore
-
-function serveDist() {
-    return http.createServer((req, res) => {
-        const urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
-        const p = path.join(DIST, urlPath === "/" ? "index.html" : urlPath);
-        if (!p.startsWith(DIST) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) {
-            res.writeHead(404).end();
-            return;
-        }
-        res.writeHead(200, {
-            "content-type": MIME[path.extname(p)] ?? "application/octet-stream",
-        });
-        fs.createReadStream(p).pipe(res);
-    });
-}
 
 /** Drive a scene switch through the EXACT reconcile fixed point the in-app
  *  combobox funnels through (switchScene → runSceneSwitch → NAVIGATE → the
- *  echo-guarded writer): an IN-PAGE hash assignment (NOT page.goto — storage +
- *  the H.W1 trap survive). Wait for the machine's activeScene to REST on the
- *  target (proof:scene-machine-irrefragable green is the prerequisite), then a
- *  settle window. Re-assert the viewport (Playwright resets on navigate).  */
-async function settleOnScene(page, sceneId, vw, vh, settleMs = 1400) {
-    await page.evaluate((s) => {
-        location.hash = "#/" + s;
-    }, sceneId);
-    await page
-        .waitForFunction(
-            ([mk, id]) => {
-                try {
-                    return JSON.parse(localStorage.getItem(mk) || "{}").activeScene === id;
-                } catch {
-                    return false;
-                }
-            },
-            [MACHINE_KEY, sceneId],
-            { timeout: 8000 },
-        )
-        .catch(() => {});
+ *  echo-guarded writer): the lib's navToScene (an IN-PAGE hash assignment —
+ *  NOT page.goto, storage + the H.W1 trap survive — settled on the
+ *  destination's per-EXPECTED control surface; expectedTrigger null = the
+ *  destination renders NO control panel). Then a settle window. Re-assert the
+ *  viewport (Playwright resets on navigate).  */
+async function settleOnScene(page, sceneId, expectedTrigger, vw, vh, settleMs = 1400) {
+    await navToScene(page, sceneId, expectedTrigger, { timeout: 8000 });
     await page.setViewportSize({ width: vw, height: vh });
     await page.waitForTimeout(settleMs);
 }
@@ -359,24 +305,10 @@ async function waitVisible(page, selector, timeout = 8000) {
 async function freshEasingPage(browser, base, vw, vh) {
     const page = await browser.newPage({ viewport: { width: vw, height: vh } });
     await page.goto(`${base}/#/easing`, { waitUntil: "load" });
-    await page.evaluate(() => {
-        location.hash = "#/easing";
-    });
-    await page
-        .waitForFunction(
-            (mk) => {
-                try {
-                    return (
-                        JSON.parse(localStorage.getItem(mk) || "{}").activeScene === "easing"
-                    );
-                } catch {
-                    return false;
-                }
-            },
-            MACHINE_KEY,
-            { timeout: 8000 },
-        )
-        .catch(() => {});
+    // navToScene re-asserts the hash + waits for the FSM to rest on easing AND
+    // the easing control surface to project (the per-EXPECTED settle — the
+    // easing dock trigger reads "Easing").
+    await navToScene(page, "easing", "Easing", { timeout: 8000 });
     await page.setViewportSize({ width: vw, height: vh });
     await page.evaluate((ck) => {
         try {
@@ -398,43 +330,25 @@ async function freshEasingPage(browser, base, vw, vh) {
 }
 
 async function browserHalf() {
-    if (!fs.existsSync(path.join(DIST, "index.html"))) {
-        skipOrFail("dist/gh-pages not built (run `npm run gh-pages` first)");
-        return;
-    }
-    let chromium;
-    try {
-        const requireFrom = createRequire(
-            path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-        );
-        ({ chromium } = requireFrom("playwright-core"));
-    } catch {
-        try {
-            const requireFrom = createRequire(
-                path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-            );
-            ({ chromium } = requireFrom("@playwright/test"));
-        } catch {
-            skipOrFail("playwright not resolvable (set KF_PLAYWRIGHT_DIR or install @playwright/test)");
-            return;
-        }
-    }
-
-    const server = serveDist();
-    await new Promise((r) => server.listen(0, r));
-    const base = `http://127.0.0.1:${server.address().port}`;
-
     const VW = 1440;
     const VH = 900;
-    const browser = await chromium.launch();
-    try {
-        const page = await browser.newPage({ viewport: { width: VW, height: VH } });
+    const result = await withPage(
+        {
+            distDir: DIST,
+            label:
+                "the per-mode interactivity locks (motionpath-drag · " +
+                "square-drag · easing-curve-onstage)",
+            context: { viewport: { width: VW, height: VH } },
+        },
+        async (page, { url, browser }) => {
+        const base = url;
         await page.goto(`${base}/#/cube`, { waitUntil: "load" });
         // Let the app + machine boot on a real scene before the first switch.
         await page.waitForTimeout(800);
 
         // ── 5. proof:motionpath-drag ─────────────────────────────────────────
-        await settleOnScene(page, "motion-path", VW, VH);
+        // (motion-path renders NO control panel — EXPECT trigger null)
+        await settleOnScene(page, "motion-path", null, VW, VH);
         const mpReady = await waitVisible(page, ".mp-traveller");
         const guideReady = await waitVisible(page, ".mp-guide-path");
         if (!mpReady || !guideReady) {
@@ -522,7 +436,8 @@ async function browserHalf() {
         }
 
         // ── 6. proof:square-drag ─────────────────────────────────────────────
-        await settleOnScene(page, "square", VW, VH);
+        // (square's dock control trigger reads "Controls" — the built-in triad)
+        await settleOnScene(page, "square", "Controls", VW, VH);
         const sqReady = await waitVisible(page, ".demo-box");
         if (!sqReady) {
             fail(
@@ -797,10 +712,10 @@ async function browserHalf() {
         }
         }
 
-        await page.close();
-    } finally {
-        await browser.close();
-        server.close();
+        },
+    );
+    if (result.skipped) {
+        console.log(`  ○ browser half skipped — ${result.reason}`);
     }
 }
 

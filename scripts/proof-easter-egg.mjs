@@ -38,15 +38,16 @@
  *   revert an egg to a no-op → its effect never fires → that scene's browser
  *   clause reds.
  *
- * Mirrors scripts/proof-scene-parity.mjs (serveDist + Playwright + the FSM-settle
- * plumbing + the KF_REQUIRE_BROWSER skipOrFail). Re-runnable:
+ * Harness: the scripts/lib/demo-driver.mjs lifecycle (withPage = serveDist +
+ * resolveChromium + context/teardown, J.W3 S1; the lib's navToScene drives the
+ * IN-PAGE scene switches). Under KF_REQUIRE_BROWSER a playwright-absent skip
+ * becomes a hard fail AT THE LIB SEAM. Re-runnable:
  * `node scripts/proof-easter-egg.mjs`.
  */
 import fs from "node:fs";
-import http from "node:http";
 import path from "node:path";
-import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import { navToScene, withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEMO = path.join(REPO, "demo");
@@ -154,62 +155,22 @@ for (const egg of STATIC_EGGS) {
 }
 
 // ── BROWSER HALF ─────────────────────────────────────────────────────────────
-const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
-const skipOrFail = (reason) => {
-    if (REQUIRE_BROWSER) {
-        fail(
-            `browser half REQUIRED (KF_REQUIRE_BROWSER=1) but ${reason} — the ` +
-                "seven scene eggs cannot pass vacuously",
-        );
-    } else {
-        console.log(`  ○ browser half skipped — ${reason}`);
-    }
+// The destination control-tab labels navToScene settles on (the per-EXPECTED
+// predicate — the proof:scene-control-dfa DFA table): cube/amiga/square keep the
+// built-in "Controls" surface, spring/easing project their scene tabs,
+// sequence/motion-path render NO control panel (null).
+const EXPECTED_TRIGGER = {
+    cube: "Controls",
+    amiga: "Controls",
+    square: "Controls",
+    spring: "Spring",
+    easing: "Easing",
+    sequence: null,
+    "motion-path": null,
 };
-
-const MIME = {
-    ".html": "text/html",
-    ".js": "text/javascript",
-    ".css": "text/css",
-    ".json": "application/json",
-    ".png": "image/png",
-    ".ttf": "font/ttf",
-    ".woff2": "font/woff2",
-    ".svg": "image/svg+xml",
-};
-const MACHINE_KEY = "keyframes-js-scene-machine";
-
-function serveDist() {
-    return http.createServer((req, res) => {
-        const urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
-        const p = path.join(DIST, urlPath === "/" ? "index.html" : urlPath);
-        if (!p.startsWith(DIST) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) {
-            res.writeHead(404).end();
-            return;
-        }
-        res.writeHead(200, {
-            "content-type": MIME[path.extname(p)] ?? "application/octet-stream",
-        });
-        fs.createReadStream(p).pipe(res);
-    });
-}
 
 async function settleOnScene(page, sceneId, vw, vh, settleMs = 1400) {
-    await page.evaluate((s) => {
-        location.hash = "#/" + s;
-    }, sceneId);
-    await page
-        .waitForFunction(
-            ([mk, id]) => {
-                try {
-                    return JSON.parse(localStorage.getItem(mk) || "{}").activeScene === id;
-                } catch {
-                    return false;
-                }
-            },
-            [MACHINE_KEY, sceneId],
-            { timeout: 8000 },
-        )
-        .catch(() => {});
+    await navToScene(page, sceneId, EXPECTED_TRIGGER[sceneId], { timeout: 8000 });
     await page.setViewportSize({ width: vw, height: vh });
     await page.waitForTimeout(settleMs);
 }
@@ -248,39 +209,18 @@ async function fireDblclick(page, selector) {
     }, selector);
 }
 
+const VW = 1440;
+const VH = 900;
+
 async function browserHalf() {
-    if (!fs.existsSync(path.join(DIST, "index.html"))) {
-        skipOrFail("dist/gh-pages not built (run `npm run gh-pages` first)");
-        return;
-    }
-    let chromium;
-    try {
-        const requireFrom = createRequire(
-            path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-        );
-        ({ chromium } = requireFrom("playwright-core"));
-    } catch {
-        try {
-            const requireFrom = createRequire(
-                path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-            );
-            ({ chromium } = requireFrom("@playwright/test"));
-        } catch {
-            skipOrFail("playwright not resolvable (set KF_PLAYWRIGHT_DIR or install @playwright/test)");
-            return;
-        }
-    }
-
-    const server = serveDist();
-    await new Promise((r) => server.listen(0, r));
-    const base = `http://127.0.0.1:${server.address().port}`;
-
-    const VW = 1440;
-    const VH = 900;
-    const browser = await chromium.launch();
-    try {
-        const page = await browser.newPage({ viewport: { width: VW, height: VH } });
-        await page.goto(`${base}/#/cube`, { waitUntil: "load" });
+    const result = await withPage(
+        {
+            distDir: DIST,
+            label: "the seven scene eggs",
+            context: { viewport: { width: VW, height: VH } },
+        },
+        async (page, { url, browser }) => {
+        await page.goto(`${url}/#/cube`, { waitUntil: "load" });
         await page.waitForTimeout(800);
 
         // ── cube "the Roll" — dblclick → .cube--rolling + the transform spins ──
@@ -458,26 +398,8 @@ async function browserHalf() {
             });
             const ep = await ectx.newPage();
             try {
-                await ep.goto(`${base}/#/easing`, { waitUntil: "load" });
-                await ep.evaluate(() => {
-                    location.hash = "#/easing";
-                });
-                await ep
-                    .waitForFunction(
-                        (mk) => {
-                            try {
-                                return (
-                                    JSON.parse(localStorage.getItem(mk) || "{}")
-                                        .activeScene === "easing"
-                                );
-                            } catch {
-                                return false;
-                            }
-                        },
-                        MACHINE_KEY,
-                        { timeout: 8000 },
-                    )
-                    .catch(() => {});
+                await ep.goto(`${url}/#/easing`, { waitUntil: "load" });
+                await navToScene(ep, "easing", EXPECTED_TRIGGER.easing, { timeout: 8000 });
                 await ep.setViewportSize({ width: VW, height: VH });
                 // Open the controls pane + the easing tab (the sidebar host). Mirror
                 // proof:scene-parity's freshEasingPage: write the store AND toggle
@@ -695,11 +617,10 @@ async function browserHalf() {
                 }
             }
         }
-
-        await page.close();
-    } finally {
-        await browser.close();
-        server.close();
+        },
+    );
+    if (result.skipped) {
+        console.log(`  ○ browser half skipped — ${result.reason}`);
     }
 }
 

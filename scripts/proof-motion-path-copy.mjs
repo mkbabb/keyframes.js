@@ -36,15 +36,16 @@
  *      BITE: no copy affordance → no `.artifact` text → reds; a stale static string
  *      that does not track the edit → the artifact never updates → reds.
  *
- * Mirrors scripts/proof-scene-parity.mjs (serveDist + Playwright + the FSM-settle
- * plumbing + the KF_REQUIRE_BROWSER skipOrFail). Re-runnable:
+ * Harness: the scripts/lib/demo-driver.mjs lifecycle (withPage = serveDist +
+ * resolveChromium + context/teardown, J.W3 S1) + navToScene (the per-EXPECTED-
+ * state scene settle). Under KF_REQUIRE_BROWSER a playwright-absent skip becomes
+ * a hard fail AT THE LIB SEAM. Re-runnable:
  * `node scripts/proof-motion-path-copy.mjs`.
  */
 import fs from "node:fs";
-import http from "node:http";
 import path from "node:path";
-import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import { navToScene, withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEMO = path.join(REPO, "demo");
@@ -92,62 +93,11 @@ const targetSrc = read(path.join(DEMO, "motion-path/MotionPathTarget.vue"));
 }
 
 // ── BROWSER HALF ─────────────────────────────────────────────────────────────
-const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
-const skipOrFail = (reason) => {
-    if (REQUIRE_BROWSER) {
-        fail(
-            `browser half REQUIRED (KF_REQUIRE_BROWSER=1) but ${reason} — the ` +
-                "live copy-artifact + clipboard write + edit-tracking cannot pass vacuously",
-        );
-    } else {
-        console.log(`  ○ browser half skipped — ${reason}`);
-    }
-};
-
-const MIME = {
-    ".html": "text/html",
-    ".js": "text/javascript",
-    ".css": "text/css",
-    ".json": "application/json",
-    ".png": "image/png",
-    ".ttf": "font/ttf",
-    ".woff2": "font/woff2",
-    ".svg": "image/svg+xml",
-};
-const MACHINE_KEY = "keyframes-js-scene-machine";
-
-function serveDist() {
-    return http.createServer((req, res) => {
-        const urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
-        const p = path.join(DIST, urlPath === "/" ? "index.html" : urlPath);
-        if (!p.startsWith(DIST) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) {
-            res.writeHead(404).end();
-            return;
-        }
-        res.writeHead(200, {
-            "content-type": MIME[path.extname(p)] ?? "application/octet-stream",
-        });
-        fs.createReadStream(p).pipe(res);
-    });
-}
-
-async function settleOnScene(page, sceneId, vw, vh, settleMs = 1400) {
-    await page.evaluate((s) => {
-        location.hash = "#/" + s;
-    }, sceneId);
-    await page
-        .waitForFunction(
-            ([mk, id]) => {
-                try {
-                    return JSON.parse(localStorage.getItem(mk) || "{}").activeScene === id;
-                } catch {
-                    return false;
-                }
-            },
-            [MACHINE_KEY, sceneId],
-            { timeout: 8000 },
-        )
-        .catch(() => {});
+/** Drive a scene switch via the lib's navToScene (per-EXPECTED-state settle;
+ *  expectedTrigger null = the destination renders NO control panel), re-assert
+ *  the viewport, then a settle window. */
+async function settleOnScene(page, sceneId, expectedTrigger, vw, vh, settleMs = 1400) {
+    await navToScene(page, sceneId, expectedTrigger, { timeout: 8000 });
     await page.setViewportSize({ width: vw, height: vh });
     await page.waitForTimeout(settleMs);
 }
@@ -169,49 +119,26 @@ async function waitVisible(page, selector, timeout = 8000) {
 }
 
 async function browserHalf() {
-    if (!fs.existsSync(path.join(DIST, "index.html"))) {
-        skipOrFail("dist/gh-pages not built (run `npm run gh-pages` first)");
-        return;
-    }
-    let chromium;
-    try {
-        const requireFrom = createRequire(
-            path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-        );
-        ({ chromium } = requireFrom("playwright-core"));
-    } catch {
-        try {
-            const requireFrom = createRequire(
-                path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-            );
-            ({ chromium } = requireFrom("@playwright/test"));
-        } catch {
-            skipOrFail("playwright not resolvable (set KF_PLAYWRIGHT_DIR or install @playwright/test)");
-            return;
-        }
-    }
-
-    const server = serveDist();
-    await new Promise((r) => server.listen(0, r));
-    const base = `http://127.0.0.1:${server.address().port}`;
-
     const VW = 1440;
     const VH = 900;
-    // Grant clipboard so the CopyButton's writeText can be read back (the real
-    // copy affordance proof). The origin is the served loopback.
-    const context = await chromium.launch().then((b) => b);
-    const browser = context;
-    const ctx = await browser.newContext({
-        viewport: { width: VW, height: VH },
-        permissions: ["clipboard-read", "clipboard-write"],
-    });
-    try {
-        const page = await ctx.newPage();
-        await page.goto(`${base}/#/cube`, { waitUntil: "load" });
+    const result = await withPage(
+        {
+            distDir: DIST,
+            label: "the live copy-artifact + clipboard write + edit-tracking",
+            // Grant clipboard so the CopyButton's writeText can be read back (the
+            // real copy affordance proof). The origin is the served loopback.
+            context: {
+                viewport: { width: VW, height: VH },
+                permissions: ["clipboard-read", "clipboard-write"],
+            },
+        },
+        async (page, { url }) => {
+        await page.goto(`${url}/#/cube`, { waitUntil: "load" });
         await page.waitForTimeout(800);
 
         // ── 2. the rendered artifact + the real clipboard write + edit-track ──
-        await settleOnScene(page, "motion-path", VW, VH);
+        // (motion-path renders NO control panel — EXPECT trigger null)
+        await settleOnScene(page, "motion-path", null, VW, VH);
         const artifactReady = await waitVisible(page, ".artifact");
         const copyReady = await waitVisible(page, ".artifact ~ * button, .artifact");
         if (!artifactReady) {
@@ -320,11 +247,10 @@ async function browserHalf() {
             }
         }
 
-        await page.close();
-    } finally {
-        await ctx.close();
-        await browser.close();
-        server.close();
+        },
+    );
+    if (result.skipped) {
+        console.log(`  ○ browser half skipped — ${result.reason}`);
     }
 }
 

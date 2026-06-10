@@ -20,9 +20,11 @@
  *       proof:all (proof:correctness), so "green in the suite" actually holds AND
  *       the closure is satisfied by a correctness gate, not a hygiene one.
  *   (3) RUNTIME — every load-bearing gate's SCRIPT is a RUNTIME/INTERACTION gate:
- *       it opens a browser over the built dist (serveDist + KF_PLAYWRIGHT_DIR +
- *       newContext) AND ACTUATES the product (page.click / dispatchEvent /
- *       page.mouse / page.keyboard / page.dragAndDrop / PointerEvent / .hover). A
+ *       it opens a browser over the built dist (the lib withPage/withBrowser
+ *       lifecycle import — the J.W3 S1 single-sourced harness — OR the inline
+ *       serveDist + KF_PLAYWRIGHT_DIR + newContext trio) AND ACTUATES the product
+ *       (navToScene SWITCH / page.click / dispatchEvent / page.mouse /
+ *       page.keyboard / page.dragAndDrop / PointerEvent / .hover). A
  *       chronic row whose closure cites ONLY a source-shape / load-rest / proxy-
  *       store gate REDS. (This is the S4 core — a chronic exits only via a gate
  *       that drives the live interaction the chronic lives in.)
@@ -56,6 +58,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { actuationNamesOf, missingHarnessAnchors } from "./lib/gate-shape.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const SCRIPTS_DIR = path.join(REPO, "scripts");
@@ -92,19 +95,12 @@ const inProofAll = (gate) => inChain(PROOF_ALL, gate);
 const inCorrectnessTier = (gate) =>
     PROOF_CORRECTNESS ? inChain(PROOF_CORRECTNESS, gate) : inProofAll(gate);
 
-// ── The RUNTIME-gate detection (S4 rule 3 — the same primitives proof:gate-is-
-//    runtime uses; a chronic's cited gate must DRIVE the product) ──────────────
-const HARNESS_SIGNATURE = [/\bserveDist\b/, /KF_PLAYWRIGHT_DIR/, /\.newContext\(/];
-const ACTUATION = [
-    /\bpage\.click\(|\.click\(\s*\{|\.click\(\)/,
-    /\bpage\.dispatchEvent\(|document\.dispatchEvent\(|\.dispatchEvent\(/,
-    /\bpage\.mouse\.(down|up|move)\b/,
-    /\bpage\.keyboard\b|\.press\(/,
-    /\bpage\.dragAndDrop\(/,
-    /\bnew PointerEvent\(/,
-    /\.hover\(/,
-];
-
+// ── The RUNTIME-gate detection (S4 rule 3) — routed through the ONE lib-aware
+//    authority (scripts/lib/gate-shape.mjs), the SAME detector proof:gate-is-
+//    runtime consumes. The pre-fix form inlined a stale literal trio that did
+//    not know the J.W3 S1 lib lifecycle: every correctly-MIGRATED cited gate
+//    "failed" the signature — a detector break, not a product finding. The two
+//    meta-gates may never drift apart again: one authority, imported by both. ──
 function scriptSrcFor(gate) {
     const body = SCRIPTS[gate];
     if (!body) return null;
@@ -118,9 +114,9 @@ function scriptSrcFor(gate) {
 function isRuntimeGate(gate) {
     const src = scriptSrcFor(gate);
     if (src == null) return { runtime: false, why: "no readable scripts/proof-*.mjs script" };
-    const missingHarness = HARNESS_SIGNATURE.filter((re) => !re.test(src)).length;
-    if (missingHarness > 0) return { runtime: false, why: "no browser harness (serveDist + KF_PLAYWRIGHT_DIR + newContext) — a jsdom unit / source grep" };
-    const actuates = ACTUATION.some((re) => re.test(src));
+    const missingHarness = missingHarnessAnchors(src);
+    if (missingHarness.length > 0) return { runtime: false, why: "no browser harness (neither the lib withPage/withBrowser lifecycle import nor the inline serveDist + KF_PLAYWRIGHT_DIR + newContext trio) — a jsdom unit / source grep" };
+    const actuates = actuationNamesOf(src).length > 0;
     if (!actuates) return { runtime: false, why: "opens a browser but does NOT actuate (goto+rest load-rest oracle)" };
     return { runtime: true, why: "browser harness + actuates" };
 }

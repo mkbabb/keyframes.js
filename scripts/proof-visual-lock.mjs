@@ -6,6 +6,18 @@
  * full-width ribbon, a broken dot-fade, a mid-rung hero, a stacked mobile stage)
  * from "no gate can see it" into ONE re-runnable named-region pixel diff.
  *
+ * ── TIER / AUTHORITY (J.W3 S7 re-label — T3, BINDING) ─────────────────────────
+ * This gate is an **appearance-drift TRIPWIRE**, HYGIENE-tier, and is
+ * NON-AUTHORITATIVE for appearance correctness: its baseline is SELF-CAPTURED
+ * (`--update-baseline` golden-captures whatever the tree renders at capture
+ * time), so a green here means "the render has not DRIFTED from the committed
+ * baseline" — it can never mean "the appearance is CORRECT" (correctness
+ * authority STRIPPED — ci.yml:287). The pixel-truth correctness oracle lives in
+ * `proof:live-session`'s actuating DOM asserts (+ the per-wave §Hard gates). A
+ * close may cite this gate as corroboration of no-drift, NEVER as evidence the
+ * appearance works. The baseline is RE-CAPTURED at J.W7a (the appearance-grammar
+ * close motion).
+ *
  * ── WHAT IT LOCKS (and what it does NOT) ───────────────────────────────────────
  * It locks LAYOUT / COLOR / TYPE — the rendered SHAPE of the final demo. It does
  * NOT lock in-flight animation frames (WV-W8-HIGH-2): the named regions include
@@ -24,9 +36,11 @@
  *       locked; only the live pixels inside the subject rect are excluded.
  *
  * ── THE MATRIX (DRY in the DRIVER, net-new in the DIFF — WV-W8-HIGH-2) ─────────
- * Reuses `serveDist` + the H.W8-S1 re-sourced `SCENES` (so a new scene
- * AUTO-enrolls in the lock too) + `openControlsPanel` from the shared
- * demo-driver. For each scene × {mobile 375, desktop 1440} × {controls closed,
+ * Reuses the shared demo-driver: the `withPage` lifecycle (serveDist +
+ * resolveChromium + teardown, J.W3 S1 — under KF_REQUIRE_BROWSER a
+ * playwright-absent skip becomes a hard fail AT THE LIB SEAM) + the H.W8-S1
+ * re-sourced `SCENES` (so a new scene AUTO-enrolls in the lock too) +
+ * `openControlsPanel`. For each scene × {mobile 375, desktop 1440} × {controls closed,
  * open} it screenshots each NAMED REGION (not full-page — a full-page diff flaps
  * on AA noise; named regions are the controls pane, the hero, the ribbon, the
  * stage) to a COMMITTED PNG under `scripts/baselines/visual-lock/`, then diffs the
@@ -63,11 +77,12 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { PNG } from "pngjs";
 import pixelmatch from "pixelmatch";
+import { declarePosture } from "./lib/ci-env.mjs";
 import {
+    REQUIRE_BROWSER,
     SCENES,
-    resolveChromium,
-    serveDist,
     openControlsPanel,
+    withPage,
 } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -217,13 +232,13 @@ const fail = (label) => {
 // baseline — env-INDEPENDENT) stay HARD. The gate HARD-gates LOCALLY where the baseline
 // matches the dev environment. (A cross-OS-faithful lock would re-capture the baseline IN the
 // CI container — a booked follow-up; for now the pixel oracle is on-device.)
-const IN_CI = !!(process.env.CI || process.env.GITHUB_ACTIONS);
-const renderMiss = (label) => {
-    if (IN_CI) console.log(`  · [CI observe-only — cross-OS render; re-baseline in-container] ${label}`);
-    else fail(label);
-};
+// The posture is DECLARED through the ONE lib helper (scripts/lib/ci-env.mjs,
+// J.W3 S2) — no per-script IN_CI re-implementation.
+const { miss: renderMiss } = declarePosture("observe-only", {
+    reason: "cross-OS render; re-baseline in-container",
+    fail,
+});
 
-const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
 const skipOrFail = (reason) => {
     if (REQUIRE_BROWSER) {
         fail(
@@ -424,19 +439,16 @@ function baselinePath(scene, vp, state, region) {
 }
 
 async function captureAll({ write }) {
-    const chromium = resolveChromium();
-    if (!chromium) return { skipped: "playwright not resolvable" };
-    if (!fs.existsSync(path.join(DIST, "index.html"))) {
-        return { skipped: "dist/gh-pages not built (run `npm run gh-pages`)" };
-    }
-    fs.mkdirSync(BASELINE_DIR, { recursive: true });
-
-    const { url, close } = await serveDist(DIST);
-    const browser = await chromium.launch();
-    // PRM emulation at the CONTEXT level — every page inherits the rest frame.
     const captures = []; // { key, scene, vp, state, region, buffer }
-
-    try {
+    // The lib lifecycle (withPage, J.W3 S1) owns the server/chromium/teardown +
+    // the W7-1 required-but-unavailable rule at the seam; the per-scene PRM
+    // contexts are opened off the provided `browser` (the gate's own matrix), so
+    // the lib's default page stays idle at about:blank.
+    const result = await withPage(
+        { distDir: DIST, label: "the visual-lock appearance axis" },
+        async (_page, { url, browser }) => {
+        fs.mkdirSync(BASELINE_DIR, { recursive: true });
+        // PRM emulation at the CONTEXT level — every page inherits the rest frame.
         for (const scene of SCENES) {
             for (const vp of VIEWPORTS) {
                 // The set of states any region on this scene needs.
@@ -502,10 +514,9 @@ async function captureAll({ write }) {
                 }
             }
         }
-    } finally {
-        await browser.close();
-        await close();
-    }
+        },
+    );
+    if (result.skipped) return { skipped: result.reason };
 
     if (write) {
         let written = 0;

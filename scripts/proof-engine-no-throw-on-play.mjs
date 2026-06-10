@@ -45,11 +45,17 @@
  * frame-compiler.ts stash probe over a rebuilt dist).
  *
  * A CLAUSE of the I.W7 `proof:live-session` battery (the group-play leg).
- * Mirrors `scripts/proof-no-orphan-specular.mjs` (serveDist + KF_PLAYWRIGHT_DIR
- * chromium + fresh context). Under KF_REQUIRE_BROWSER a playwright-absent skip
- * is a hard fail. Serves the BUILT `dist/gh-pages/` (+ the BUILT library
- * `dist/keyframes.js` and its import-mapped deps for the live library probe).
- * Re-runnable:
+ * Harness: the scripts/lib/demo-driver.mjs lifecycle (withBrowser =
+ * env-driven resolveChromium + launch/teardown, J.W3 S1) + navToScene (the
+ * J.W0 per-EXPECTED-state settle). The HTTP server stays LOCAL and
+ * SPECIALIZED — not withPage — because the J.W1 live library probe needs
+ * routes the lib's serveDist has no overlay for: the lib-probe HTML +
+ * importmap onto `/__kf-vendor__/` (the installed value.js/parse-that deps)
+ * + `/__kf-lib__/` (the BUILT `dist/keyframes.js`), alongside the BUILT
+ * `dist/gh-pages/` demo. Under KF_REQUIRE_BROWSER a playwright-absent skip
+ * is a hard fail AT THE LIB SEAM (W7-1/S6d).
+ * P6 posture: hard — device-independent correctness oracle (red anywhere; J.W3
+ * S2b). Re-runnable:
  *   npm run build && npm run gh-pages && node scripts/proof-engine-no-throw-on-play.mjs
  */
 import fs from "node:fs";
@@ -57,7 +63,7 @@ import http from "node:http";
 import path from "node:path";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
-import { navToScene } from "./lib/demo-driver.mjs";
+import { navToScene, REQUIRE_BROWSER, withBrowser } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
@@ -109,12 +115,19 @@ console.log("proof:engine-no-throw-on-play — I.W0 (B1/B5 + this.transform grou
     }
 }
 
-const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
-const skipOrFail = (reason) => {
-    if (REQUIRE_BROWSER) fail(`browser half REQUIRED (KF_REQUIRE_BROWSER=1) but ${reason}`);
-    else console.log(`  ○ browser half skipped — ${reason}`);
-};
+const CTRL_KEY = "animation-groups-control-options-store";
 
+// The destination control-tab label navToScene settles on per scene (null = no
+// control panel projects — home).
+const TRIGGER = { "": null, cube: "Controls" };
+
+// The bare-"......" empty-input parse fingerprint + the serialize warn + the
+// route-storm "Err x" + the could-not-serialize line — the B1/B5 console
+// signatures, matched EXPLICITLY so a narrowed regex can never hide them.
+const PARSE_LINE = /Parse error at offset|"\.{4,}"|\bErr x\b|could not serialize|no CSS twin/;
+
+// The MIME table the SPECIALIZED local server answers with (the lib's serveDist
+// MIME map is not exported; the demo-dist fallback below needs it).
 const MIME = {
     ".html": "text/html",
     ".js": "text/javascript",
@@ -125,13 +138,6 @@ const MIME = {
     ".woff2": "font/woff2",
     ".ttf": "font/ttf",
 };
-const CTRL_KEY = "animation-groups-control-options-store";
-const MACHINE_KEY = "keyframes-js-scene-machine";
-
-// The bare-"......" empty-input parse fingerprint + the serialize warn + the
-// route-storm "Err x" + the could-not-serialize line — the B1/B5 console
-// signatures, matched EXPLICITLY so a narrowed regex can never hide them.
-const PARSE_LINE = /Parse error at offset|"\.{4,}"|\bErr x\b|could not serialize|no CSS twin/;
 
 // ── The live LIBRARY probe surface (J.W1 clause b + the clause-a re-parse) ────
 // The demo bundle does not expose the engine globally, so the typed-error
@@ -156,6 +162,9 @@ const LIB_PROBE_HTML = `<!doctype html>
 <script type="importmap">{"imports":{"@mkbabb/value.js":"/__kf-vendor__/value.js","@mkbabb/parse-that":"/__kf-vendor__/parse-that.js"}}</script>
 </head><body>built-dist library probe (proof:engine-no-throw-on-play, J.W1)</body></html>`;
 
+// The gate's SPECIALIZED server (deliberately LOCAL — see the header): the
+// lib-probe HTML + the vendor importmap targets + the built library overlay,
+// falling back to the built demo dist.
 function serveDist() {
     return http.createServer((req, res) => {
         const urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
@@ -208,19 +217,7 @@ async function openScene(browser, base, scene) {
         }
     }, CTRL_KEY);
     await page.goto(`${base}/#/${scene}`, { waitUntil: "load" });
-    await page
-        .waitForFunction(
-            ([mk, s]) => {
-                try {
-                    return JSON.parse(localStorage.getItem(mk) || "{}").activeScene === s;
-                } catch {
-                    return false;
-                }
-            },
-            [MACHINE_KEY, scene],
-            { timeout: 8000 },
-        )
-        .catch(() => {});
+    await navToScene(page, scene === "" ? "home" : scene, TRIGGER[scene], { timeout: 8000 });
     await page.waitForTimeout(900);
     return { ctx, page, errors, parseLines };
 }
@@ -244,25 +241,24 @@ async function clickRainbowPlay(page) {
 }
 
 async function browserHalf() {
+    // The dist-built precondition, held to the SAME W7-1 posture the lib seam
+    // applies to chromium (required ⇒ FAIL, never a vacuous pass; otherwise an
+    // honest skip note). REQUIRE_BROWSER is the lib's single-read authority.
     if (!fs.existsSync(path.join(DIST, "index.html"))) {
-        skipOrFail("dist/gh-pages not built (run `npm run gh-pages`)");
+        const reason = "dist/gh-pages not built (run `npm run gh-pages` first)";
+        if (REQUIRE_BROWSER) {
+            fail(`browser half REQUIRED (KF_REQUIRE_BROWSER=1) but ${reason} — the runtime clauses cannot pass vacuously (W7-1/S6d)`);
+        } else {
+            console.log(`  ○ browser half skipped — ${reason}`);
+        }
         return;
     }
-    let chromium;
-    try {
-        const requireFrom = createRequire(path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"));
-        ({ chromium } = requireFrom("playwright-core"));
-    } catch {
-        skipOrFail("playwright not resolvable (set KF_PLAYWRIGHT_DIR)");
-        return;
-    }
-
-    const server = serveDist();
-    await new Promise((r) => server.listen(0, r));
-    const base = `http://127.0.0.1:${server.address().port}`;
-    const browser = await chromium.launch();
-
-    try {
+    const result = await withBrowser(
+        async (browser) => {
+            const server = serveDist();
+            await new Promise((r) => server.listen(0, r));
+            const base = `http://127.0.0.1:${server.address().port}`;
+            try {
         // ── clause (a) — the rainbow play click is TOTAL on HOME (empty group,
         //    no animation selected — the named E1 witness) AND cube ──────────
         for (const scene of ["", "cube"]) {
@@ -595,10 +591,13 @@ async function browserHalf() {
                 await ctx.close();
             }
         }
-    } finally {
-        await browser.close();
-        server.close();
-    }
+            } finally {
+                await new Promise((r) => server.close(r));
+            }
+        },
+        { label: "the engine-no-throw-on-play runtime clauses" },
+    );
+    if (result.skipped) console.log(`  ○ browser half skipped — ${result.reason}`);
 }
 
 await browserHalf();

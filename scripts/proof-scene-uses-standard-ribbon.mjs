@@ -59,25 +59,24 @@
  * mounts).
  *
  * Settle-gated on the H.W1 FSM resting (mirrors proof:easing-canvas-bounded): each
- * scene is pinned via an IN-PAGE hash assignment (NOT page.goto — goto clears
- * storage + the H.W1 reconcile trap), the machine is polled to rest on the scene,
- * the viewport is re-asserted after navigation, the controls pane is forced open
- * with the scene tab selected so the ribbon mounts, and the gate waits until the
- * ribbon DOM resolves before measuring.
+ * scene is pinned via the lib's navToScene (an IN-PAGE hash assignment — NOT
+ * page.goto, which clears storage + the H.W1 reconcile trap — settled on the
+ * destination's per-EXPECTED control surface), the viewport is re-asserted after
+ * navigation, the controls pane is forced open with the scene tab selected so the
+ * ribbon mounts, and the gate waits until the ribbon DOM resolves before
+ * measuring.
  *
- * Mirrors scripts/proof-easing-canvas-bounded.mjs / proof-stage-not-clipped.mjs
- * (the serveDist + Playwright + settle plumbing). Browser-only (the mounted
+ * Harness: the scripts/lib/demo-driver.mjs lifecycle (withPage = serveDist +
+ * resolveChromium + context/teardown, J.W3 S1). Browser-only (the mounted
  * component + the rendered box dims are rendered facts — there is no static half);
- * under KF_REQUIRE_BROWSER a playwright-absent skip becomes a hard fail so a SHIP
- * is never green-reported un-exercised. Re-runnable:
+ * under KF_REQUIRE_BROWSER a playwright-absent skip becomes a hard fail AT THE
+ * LIB SEAM so a SHIP is never green-reported un-exercised. Re-runnable:
  * `node scripts/proof-scene-uses-standard-ribbon.mjs`. Serves the BUILT
  * dist/gh-pages/ (run `npm run gh-pages` first).
  */
-import fs from "node:fs";
-import http from "node:http";
 import path from "node:path";
-import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import { navToScene, withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
@@ -93,68 +92,17 @@ console.log(
     "proof:scene-uses-standard-ribbon — H.W10 S2 (the easing/spring PRIMARY transport IS the standard PlaybackRibbon · equal-dims G7)",
 );
 
-const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
-const skipOrFail = (reason) => {
-    if (REQUIRE_BROWSER) {
-        fail(
-            `browser half REQUIRED (KF_REQUIRE_BROWSER=1) but ${reason} — ` +
-                "the standard-ribbon assertion cannot pass vacuously",
-        );
-    } else {
-        console.log(`  ○ browser half skipped — ${reason}`);
-    }
-};
-
-const MIME = {
-    ".html": "text/html",
-    ".js": "text/javascript",
-    ".css": "text/css",
-    ".json": "application/json",
-    ".png": "image/png",
-    ".ttf": "font/ttf",
-    ".woff2": "font/woff2",
-    ".svg": "image/svg+xml",
-};
-const MACHINE_KEY = "keyframes-js-scene-machine"; // SCENE_MACHINE_PERSIST_KEY
 const CTRL_KEY = "animation-groups-control-options-store";
 
-function serveDist() {
-    const server = http.createServer((req, res) => {
-        const urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
-        const p = path.join(DIST, urlPath === "/" ? "index.html" : urlPath);
-        if (!p.startsWith(DIST) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) {
-            res.writeHead(404).end();
-            return;
-        }
-        res.writeHead(200, {
-            "content-type": MIME[path.extname(p)] ?? "application/octet-stream",
-        });
-        fs.createReadStream(p).pipe(res);
-    });
-    return server;
-}
+// The destination control-tab labels navToScene settles on (per-EXPECTED-state).
+const TRIGGER = { easing: "Easing", spring: "Spring" };
 
-/** Settle on #/<scene> via an IN-PAGE hash assignment (storage + the H.W1 trap
+/** Settle on #/<scene> via the lib's in-page hash nav (storage + the H.W1 trap
  *  survive; page.goto clears both). Re-assert the viewport AFTER navigation
  *  (Playwright resets on navigate). Force the controls pane OPEN + the scene tab
  *  selected so the ribbon (the scene's PRIMARY transport) mounts. */
 async function settleOnScene(page, scene, viewportWidth, viewportHeight) {
-    await page.evaluate((s) => {
-        location.hash = `#/${s}`;
-    }, scene);
-    await page
-        .waitForFunction(
-            ([mk, s]) => {
-                try {
-                    return JSON.parse(localStorage.getItem(mk) || "{}").activeScene === s;
-                } catch {
-                    return false;
-                }
-            },
-            [MACHINE_KEY, scene],
-            { timeout: 8000 },
-        )
-        .catch(() => {});
+    await navToScene(page, scene, TRIGGER[scene], { timeout: 8000 });
     await page.setViewportSize({ width: viewportWidth, height: viewportHeight });
     await page.evaluate(
         ([ck, s]) => {
@@ -261,42 +209,28 @@ async function probeRibbon(page) {
 }
 
 async function browserHalf() {
-    if (!fs.existsSync(path.join(DIST, "index.html"))) {
-        skipOrFail("dist/gh-pages not built (run `npm run gh-pages` first)");
-        return;
-    }
-    let chromium;
-    try {
-        const requireFrom = createRequire(
-            path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-        );
-        ({ chromium } = requireFrom("playwright-core"));
-    } catch {
-        try {
-            const requireFrom = createRequire(
-                path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
-            );
-            ({ chromium } = requireFrom("@playwright/test"));
-        } catch {
-            skipOrFail("playwright not resolvable (set KF_PLAYWRIGHT_DIR or install @playwright/test)");
-            return;
-        }
-    }
-
-    const server = serveDist();
-    await new Promise((r) => server.listen(0, r));
-    const base = `http://127.0.0.1:${server.address().port}`;
-
     const W = 1440;
     const H = 900;
     const TOL = 2; // sub-pixel + reka skin rounding tolerance
-    const browser = await chromium.launch();
-    try {
+    const result = await withPage(
+        {
+            distDir: DIST,
+            label: "the standard-ribbon assertion",
+            context: { viewport: { width: W, height: H } },
+        },
+        async (page, { url }) => {
+        await page.goto(`${url}/#/easing`, { waitUntil: "load" });
         // easing + spring (spring measured in its SOLVER view, where the standard
         // sweep transport mounts — the discrete view is a CSS toggle, out of scope).
         for (const scene of ["easing", "spring"]) {
-            const page = await browser.newPage({ viewport: { width: W, height: H } });
-            await page.goto(`${base}/#/${scene}`, { waitUntil: "load" });
+            // Fresh-storage reload per scene (the gate's original fresh-page-per-scene
+            // harness semantics: the ribbon is asserted on the scene's own fresh mount,
+            // not on carried-over cross-scene store state — scene-SWITCH projection is
+            // proof:scene-control-dfa's oracle, not this gate's). A bare goto here is a
+            // same-document hash nav, so clear + reload forces the true fresh boot.
+            await page.goto(`${url}/#/${scene}`, { waitUntil: "load" });
+            await page.evaluate(() => localStorage.clear());
+            await page.reload({ waitUntil: "load" });
             await settleOnScene(page, scene, W, H);
             const mounted = await waitRibbonMounted(page);
 
@@ -314,7 +248,6 @@ async function browserHalf() {
                         `rested on ${scene} or the controls pane / scene tab did not open. ` +
                         `If the scene STILL renders the bespoke fork (no .btn-playback), this is the born-RED.`,
                 );
-                await page.close();
                 continue;
             }
 
@@ -398,11 +331,11 @@ async function browserHalf() {
                 }
             }
 
-            await page.close();
         }
-    } finally {
-        await browser.close();
-        server.close();
+        },
+    );
+    if (result.skipped) {
+        console.log(`  ○ browser half skipped — ${result.reason}`);
     }
 }
 
