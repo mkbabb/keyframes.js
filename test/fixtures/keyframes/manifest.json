@@ -1,5 +1,5 @@
 {
-  "_README": "G.W16 TR-4 — the @keyframes parse corpus manifest. Each row pairs a .css input with its EXPECTED normalized frame structure (the authoritative AST lock: template-frame count + the sorted flattened sub-property keys at the midpoint) and the value-fidelity round-trip mode. `byte` rows must round-trip parse→format→reparse→interpFrames(0.5) BYTE-SAME; the single `epsilon` row (chromatic color) round-trips to within a value.js oklab string float-precision tolerance — a value.js HANDOFF (the oklab parse↔serialize float drift), NOT a kf serializer channel-drop. Delete a row's `frames`/`keys` and the corpus is no longer authoritative → the gate reds (clause 4).",
+  "_README": "G.W16 TR-4 — the @keyframes parse corpus manifest. Each row pairs a .css input with its EXPECTED normalized frame structure (the authoritative AST lock: template-frame count + the sorted flattened sub-property keys at the midpoint) and the value-fidelity round-trip mode. `byte` rows must round-trip parse→format→reparse→interpFrames(0.5) BYTE-SAME; the single `epsilon` row (chromatic color) round-trips to within a value.js oklab string float-precision tolerance — a value.js HANDOFF (the oklab parse↔serialize float drift), NOT a kf serializer channel-drop. `text` rows (J.W1 SEAM-3) carry computed-unit values (var()/calc()) that interpolate only against a live DOM box — their oracle is the SERIALIZED TEXT: serialize→reparse→serialize must be BYTE-SAME, every `verbatim` token must appear in the output AUTHORED (never DOM-resolved), and `keys` lock the flattened parsedVars shape instead of the midpoint. Delete a row's `frames`/`keys` and the corpus is no longer authoritative → the gate reds (clause 4).",
   "fixtures": [
     {
       "file": "transform-multiarg.css",
@@ -72,6 +72,28 @@
       "frames": 2,
       "keys": ["--w"],
       "roundtrip": "byte"
+    },
+    {
+      "file": "var-calc.css",
+      "frames": 2,
+      "keys": ["transform.translateX", "width"],
+      "roundtrip": "text",
+      "verbatim": [
+        "calc(100% - 20px)",
+        "calc(50% + 10px)",
+        "translateX(var(--x))",
+        "translateX(var(--y))"
+      ]
+    },
+    {
+      "file": "matrix3d.css",
+      "frames": 2,
+      "keys": ["transform.matrix3d"],
+      "roundtrip": "byte",
+      "verbatim": [
+        "matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)",
+        "matrix3d(2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 2, 0, 10, 20, 30, 1)"
+      ]
     }
   ]
 }

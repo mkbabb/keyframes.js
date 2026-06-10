@@ -51,11 +51,12 @@ The primary UI for interacting with animations across demos. Organized into subd
 
 - **AnimationControlsGroup.vue** — Orchestrates `AnimationGroup`: pauses group during scrub, resumes on release. Delegates playback to `useAnimationGroupPlayback`, progress polling to `useAnimationProgress`.
 - **AnimationMenuBar.vue** — Bottom-fixed menubar: animation selector dropdown, play/pause, reset.
-- **animationStores/** — Directory module (barrel re-export via `index.ts`). Split by concern:
+- **stores/** — Directory module (barrel re-export via `index.ts`). Split by concern:
   - `animationOptionsStore.ts` — `StoredAnimationOptions` types + defaults, lazy localStorage singleton, `getStoredAnimationOptions`, `createAnimationUUId`.
   - `controlOptionsStore.ts` — `StoredAnimationGroupControlOptions` (typed, no index signature), lazy localStorage singleton, `getStoredAnimationGroupControlOptions`.
   - `hashSharing.ts` — `encodeStateToHash`, `decodeStateFromHash`, `getAllState`, `restoreStateFromHash`, `initFromHash`.
-  - `scenePlayback.ts` — `ScenePlaybackState`, per-scene ephemeral playback CRUD, active scene tracking.
+  - `sceneMachine.ts` + `useSceneMachine.ts` — the scene/playback machine: `PlaybackSnapshot`, per-scene snapshots, active-scene tracking (persisted under `keyframes-js-scene-machine`).
+  - `controlSurfaceDFA.ts` / `scenePlaybackAdapters.ts` — the control-surface DFA projection + the per-scene playback adapters.
   - `storeUtils.ts` — `checkAndResetExpiredStore`, `touchTimestamp`, `deepDefaultStore`, `getAnimationSuperKey`, TTL/key constants.
   - `index.ts` — barrel re-export + `resetAllStores`.
 - **useAnimationGroupPlayback.ts** — Composable: scrub-pause-resume state machine, play/pause orchestration, animation selection.

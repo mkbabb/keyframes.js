@@ -73,7 +73,7 @@ export const DEFAULT_POINTS: readonly PathPoint[] = [
  * `S` controls expanded to explicit `C` controls), so the editable refactor
  * moved NO pixels at rest. Not consumed by the scene.
  */
-export const LEGACY_PATH_D =
+const LEGACY_PATH_D =
     "M 60 200 C 60 80, 200 80, 200 200 S 340 320, 340 200 S 200 60, 60 200 Z";
 
 /** Round to a stable precision so the emitted `d` is clean to copy/paste. */

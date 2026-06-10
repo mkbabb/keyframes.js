@@ -12,8 +12,6 @@
  * `parse`) are passed in, never reached back through the owning class.
  */
 import {
-    clamp,
-    convertToMs,
     parseCSSValueUnit,
     seekPreviousValue,
     unflattenObject,
@@ -30,6 +28,7 @@ import type {
     TransformFunction,
     Vars,
 } from "./constants";
+import { NOOP_TRANSFORM } from "./constants";
 import {
     calcFrameTime,
     createInterpVarValue,
@@ -61,11 +60,15 @@ export const resolveEasingOption = (
     }
     const fn = getTimingFunction(input);
     if (!fn) {
+        // J.W1 S8 — the stable structured code rides the typed throw so a
+        // programmatic consumer can branch on the reason (the K3-internal
+        // row; the full diagnostics channel stays a K.W0 seed).
         throw new AnimationOptionError(
             option,
             input,
             "unknown timing function — pass a callable TimingFunction, a " +
                 "typed Easing, a registry name, or a cubic-bezier() literal",
+            "UNKNOWN_TIMING_FN",
         );
     }
     // Attach the faithful CSS twin when one exists (CSS keyword,
@@ -82,6 +85,21 @@ export const resolveEasingOption = (
  * keyframe count below the scale. 1e6 keyframes is far past any real animation.
  */
 const FRAME_ID_SCALE = 1_000_000;
+
+/**
+ * The NAMED keyframe-selector grammar (J.W1 S3 — the SEAM-1 guard made
+ * TOTAL). A selector is CONFORMING iff it is (a) a percentage literal
+ * `<number>%` whose value lies in [0,100], or (b) the CSS keyframe keyword
+ * `from`/`to` (case-insensitive, per CSS) — and NOTHING else. The boundary
+ * is named so the guard is total, not a "looks-invalid" sniff that re-opens
+ * the gap on the next unseen token.
+ */
+const SELECTOR_KEYWORD_RE = /^(?:from|to)$/i;
+const SELECTOR_PERCENT_RE = /^(?:\d+(?:\.\d+)?|\.\d+)(?:[eE][+-]?\d+)?%$/;
+
+const SELECTOR_REASON =
+    "a keyframe selector must be a percentage 0%–100% " +
+    "(e.g. \"0%\", \"50%\") or the keyword 'from'/'to'";
 
 export class FrameCompiler<V extends Vars = any> {
     templateFrames: TemplateAnimationFrame<V>[] = [];
@@ -121,23 +139,6 @@ export class FrameCompiler<V extends Vars = any> {
         return this._options;
     }
 
-    convertFrameStart(frame: TemplateAnimationFrame<V>) {
-        if (
-            frame.start.unit === "s" ||
-            frame.start.unit === "ms" ||
-            !frame.start.unit
-        ) {
-            const timeUnit = frame.start.unit === "s" ? "s" : "ms";
-            const value = convertToMs(frame.start.value, timeUnit);
-
-            frame.start.value = (value / this.options.duration) * 100;
-            frame.start.unit = "%";
-        }
-        frame.start.value = clamp(frame.start.value, 0, 100);
-
-        return frame;
-    }
-
     addFrame<K extends V>(
         start: number | string | ValueUnit<number>,
         vars: Partial<K>,
@@ -152,23 +153,44 @@ export class FrameCompiler<V extends Vars = any> {
             start = String(start);
         }
 
-        // Fail-explicit belt (H.W0 H-A2): a blank/whitespace keyframe selector
-        // reaches value.js `parseCSSValueUnit("")`, which throws the cryptic,
-        // un-typed `Parse error at offset 0: "......"` — the live "......"
-        // console crash, surfaced by route-storm-restored blank state (the
-        // ROUTE-STORM trigger itself dies in H.W1). Here at the compile seam we
-        // turn that into a clear, typed `AnimationOptionError` so a malformed
-        // selector is named, not cryptic. (value.js returning a typed empty-
-        // input result is the paired HANDOFF.)
-        if (typeof start === "string" && start.trim() === "") {
+        // Fail-explicit belt (H.W0 H-A2, made TOTAL in J.W1 S3 — SEAM-1).
+        // The pre-J guard caught ONLY the blank selector; non-empty garbage
+        // ("abc") still reached value.js and threw the cryptic, un-typed
+        // `Parse error at offset 0: "…"`, while a length/time ("5px",
+        // "500ms") or an out-of-range percent ("150%") was SILENTLY accepted
+        // as a selector. The guard now validates against the NAMED conforming
+        // grammar (percentage 0%–100% ∪ from/to — see SELECTOR_PERCENT_RE/
+        // SELECTOR_KEYWORD_RE) BEFORE `parseCSSValueUnit`, so EVERY
+        // non-conforming selector is a clear, typed `AnimationOptionError`.
+        // The blank case carries the stable structured code "EMPTY_PARSE"
+        // (J.W1 S8) so a programmatic consumer branches on the reason, never
+        // on the message string.
+        const selector = start.trim();
+        if (selector === "") {
             throw new AnimationOptionError(
                 "start",
                 start,
-                "a keyframe selector must be a percentage or keyword (e.g. \"0%\", \"from\", \"50%\") — got an empty/blank string",
+                `${SELECTOR_REASON} — got an empty/blank string`,
+                "EMPTY_PARSE",
+            );
+        }
+        if (
+            !SELECTOR_KEYWORD_RE.test(selector) &&
+            !(SELECTOR_PERCENT_RE.test(selector) && parseFloat(selector) <= 100)
+        ) {
+            throw new AnimationOptionError(
+                "start",
+                start,
+                `${SELECTOR_REASON} — got ${JSON.stringify(start)}`,
             );
         }
 
-        const parsedStart = parseCSSValueUnit(start);
+        // Guarded-total: the conforming set ("<n>%", "from", "to") is exactly
+        // what value.js parses to a percentage ValueUnit — `from` → 0%,
+        // `to` → 100% — so no post-parse conversion/clamp remains (the former
+        // `convertFrameStart` time-selector branch died with the total guard:
+        // a time is not a keyframe selector).
+        const parsedStart = parseCSSValueUnit(selector);
 
         let templateFrame = {
             id: this.frameId,
@@ -182,10 +204,6 @@ export class FrameCompiler<V extends Vars = any> {
                     ? this.options.timingFunction
                     : resolveEasingOption("timingFunction", timingFunction),
         } as TemplateAnimationFrame<K>;
-
-        this.convertFrameStart(
-            templateFrame as unknown as TemplateAnimationFrame<V>,
-        );
 
         this.templateFrames.push(
             templateFrame as unknown as TemplateAnimationFrame<V>,
@@ -212,6 +230,14 @@ export class FrameCompiler<V extends Vars = any> {
         // reads the wrong frame the moment `reconcileVars` creates a segment
         // across non-adjacent keyframes (D-1). The inherited value is the
         // nearest PRECEDING keyframe that declares one.
+        // J.W1 S2 (ENG-2) — the seek is TOTAL. `seekPreviousValue` honestly
+        // returns `number | undefined`; the former stacked `!`s masked the
+        // miss and dereferenced `templateFrames[undefined]!.transform` — a
+        // TypeError on a transform-free bare `Animation` (a legitimate
+        // numeric/CSS-var animation). When NO preceding template carries a
+        // transform, the compiled frame takes the total no-op default (the
+        // I.W0 S3 `NOOP_TRANSFORM` field-default philosophy, applied at the
+        // compile seam) — a checked resolution, never a lying assertion.
         let transform = startFrame.transform;
 
         if (transform == null) {
@@ -219,18 +245,31 @@ export class FrameCompiler<V extends Vars = any> {
                 startIx,
                 this.templateFrames,
                 (f) => f.transform != null,
-            )!;
-            transform = this.templateFrames[transformIx]!.transform;
+            );
+            transform =
+                (transformIx === undefined
+                    ? undefined
+                    : this.templateFrames[transformIx]!.transform) ??
+                NOOP_TRANSFORM;
         }
 
+        // The same totality for the easing seek. `addFrame` always assigns a
+        // `timingFunction`, so the miss arm is reachable only through direct
+        // `templateFrames` mutation — but the resolution is total either way:
+        // a miss inherits the animation's own easing, the same default
+        // `addFrame` would have assigned.
         let timingFunction = startFrame.timingFunction;
         if (timingFunction == null) {
             const timingFunctionIx = seekPreviousValue(
                 startIx,
                 this.templateFrames,
                 (f) => f.timingFunction != null,
-            )!;
-            timingFunction = this.templateFrames[timingFunctionIx]!.timingFunction;
+            );
+            timingFunction =
+                (timingFunctionIx === undefined
+                    ? undefined
+                    : this.templateFrames[timingFunctionIx]!.timingFunction) ??
+                this.options.timingFunction;
         }
 
         // Content-derived id keyed on the stable (startIx, stopIx) pair (FC-2).

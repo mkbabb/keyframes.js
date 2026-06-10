@@ -1,7 +1,3 @@
-// Barrel re-export — preserves all existing import paths.
-// import { X } from "./animationStores" and
-// import { X } from "./animationStores/index" both resolve here.
-
 export {
     type StoredAnimationOptions,
     type StoredAnimationGroupOptions,
@@ -39,7 +35,6 @@ export {
     type PlaybackStatus,
     type AnimationPlaybackSnapshot,
     type PlaybackSnapshot,
-    type ScenePlaybackState,
     type SceneContext,
     type SceneEvent,
     type MachineState,

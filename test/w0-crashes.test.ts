@@ -100,3 +100,120 @@ describe("H.W0 H-A2 — a blank keyframe selector is a typed error, not the cryp
         expect(() => a.interpFrames(500)).not.toThrow();
     });
 });
+
+/**
+ * J.W1 S3 (SEAM-1) — the selector guard made TOTAL. The H.W0 guard caught
+ * ONLY `trim() === ""`; every non-empty non-conforming selector either
+ * cryptic-threw through value.js (`"abc"` → `Parse error at offset 0: …`)
+ * or was SILENTLY accepted (`"5px"` compiled; `"150%"` clamped). The
+ * boundary of "conforming" is NAMED: a percentage literal 0%–100%, or the
+ * CSS keyword `from`/`to` (case-insensitive) — and NOTHING else.
+ */
+describe("J.W1 SEAM-1 — the selector guard is TOTAL (typed error for ALL non-conforming selectors)", () => {
+    const NON_CONFORMING = [
+        "abc", // garbage — pre-fix: the cryptic value.js parse throw
+        "garbage", // garbage
+        "5px", // a LENGTH — pre-fix: SILENTLY accepted as a selector
+        "150%", // out-of-range percent — pre-fix: silently clamped to 100%
+        "-10%", // negative percent — pre-fix: silently clamped to 0%
+        "500ms", // a TIME — not a keyframe selector
+        "1.5s", // a TIME
+        "50", // a bare number string — not a percentage literal
+    ];
+
+    for (const sel of NON_CONFORMING) {
+        it(`selector ${JSON.stringify(sel)} throws the TYPED AnimationOptionError (never cryptic, never silent)`, () => {
+            let caught: unknown;
+            try {
+                new CSSKeyframesAnimation({ duration: 1000 }).fromKeyframes({
+                    [sel]: { opacity: 0 },
+                    "100%": { opacity: 1 },
+                } as any);
+            } catch (e) {
+                caught = e;
+            }
+            expect(caught).toBeInstanceOf(AnimationOptionError);
+            expect((caught as Error).message).toContain("keyframe selector");
+            expect((caught as Error).message).not.toContain("Parse error at offset");
+        });
+    }
+
+    it("the CONFORMING set still compiles: percentages 0%–100% and from/to (case-insensitive)", () => {
+        const a = new CSSKeyframesAnimation({ duration: 1000 }).fromKeyframes({
+            from: { opacity: 0 },
+            "25.5%": { opacity: 0.3 },
+            "  50%  ": { opacity: 0.5 }, // surrounding whitespace tolerated
+            TO: { opacity: 1 },
+        } as any);
+        expect(a.templateFrames.map((f) => String(f.start))).toEqual([
+            "0%",
+            "25.5%",
+            "50%",
+            "100%",
+        ]);
+        expect(() => a.interpFrames(500)).not.toThrow();
+    });
+
+    it("numeric addFrame starts stay first-class (the number → percent path)", () => {
+        const a = new CSSKeyframesAnimation({ duration: 1000 }).fromKeyframes({
+            "0%": { opacity: 0 },
+            "100%": { opacity: 1 },
+        });
+        expect(() => a.addFrame(62.5, { opacity: 0.6 })).not.toThrow();
+        // …and an out-of-range NUMBER now fails loud too (it was clamped).
+        expect(() => a.addFrame(150, { opacity: 2 })).toThrow(
+            AnimationOptionError,
+        );
+    });
+});
+
+/**
+ * J.W1 S8 (K3-internal) — the two engine-internal structured-reason rows.
+ * The typed error carries a stable `code` so a programmatic consumer can
+ * branch on the reason WITHOUT string-matching the human message. ONLY the
+ * two rows the ingestion lane folds into J.W1 — the full diagnostics
+ * channel stays a K.W0 seed.
+ */
+describe("J.W1 S8 — structured codes on the typed AnimationOptionError", () => {
+    it('the blank-selector throw carries code "EMPTY_PARSE"', () => {
+        let caught: unknown;
+        try {
+            new CSSKeyframesAnimation({ duration: 1000 }).fromKeyframes({
+                "   ": { opacity: 0 },
+                "100%": { opacity: 1 },
+            } as any);
+        } catch (e) {
+            caught = e;
+        }
+        expect(caught).toBeInstanceOf(AnimationOptionError);
+        expect((caught as AnimationOptionError).code).toBe("EMPTY_PARSE");
+    });
+
+    it('an unrecognized timing function carries code "UNKNOWN_TIMING_FN"', () => {
+        let caught: unknown;
+        try {
+            new CSSKeyframesAnimation({
+                duration: 1000,
+                timingFunction: "not-a-real-easing",
+            }).fromVars([{ opacity: 0 }, { opacity: 1 }]);
+        } catch (e) {
+            caught = e;
+        }
+        expect(caught).toBeInstanceOf(AnimationOptionError);
+        expect((caught as AnimationOptionError).code).toBe("UNKNOWN_TIMING_FN");
+    });
+
+    it("a garbage (non-blank) selector is typed but carries NO code — the codes are the two named rows only", () => {
+        let caught: unknown;
+        try {
+            new CSSKeyframesAnimation({ duration: 1000 }).fromKeyframes({
+                garbage: { opacity: 0 },
+                "100%": { opacity: 1 },
+            } as any);
+        } catch (e) {
+            caught = e;
+        }
+        expect(caught).toBeInstanceOf(AnimationOptionError);
+        expect((caught as AnimationOptionError).code).toBeUndefined();
+    });
+});

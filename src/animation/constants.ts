@@ -52,6 +52,18 @@ export type Vars<T = any> = {
 
 export type TransformFunction<V extends Vars> = (v: V, t: number) => void;
 
+/**
+ * THE total no-op transform default (I.W0 S3, hoisted shared in J.W1 S2).
+ * A single shared reference so a consumer can ask "is this still the
+ * default?" by identity (`transform === NOOP_TRANSFORM`) instead of a lying
+ * `transform == null` on a field whose type claims it is always set. Two
+ * seams carry it: `AnimationGroup.transform` (a childless group composites a
+ * harmless empty frame) and `FrameCompiler.createFrame` (a transform-free
+ * template — a legitimate numeric/CSS-var animation — compiles to a no-op,
+ * never the `templateFrames[undefined]!.transform` TypeError).
+ */
+export const NOOP_TRANSFORM: TransformFunction<any> = () => {};
+
 export type TimingFunction = (t: number) => number;
 
 /**
