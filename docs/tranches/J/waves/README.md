@@ -21,7 +21,7 @@ Tranche I bound the gate oracle to the running product, recovered nine live brea
 (B1–B9 + K) behind ACTUATING runtime gates, installed `proof:live-session` +
 `proof:gate-is-runtime` + the two-tier taxonomy, and made "green" mean *a human using the
 product at one desktop viewport sees it work* — then **shipped it BY HAND**. The J audit (32
-systemic + 14 design lanes, 46 evidence docs, every claim tree-verified) finds that **I's
+systemic + 14 design lanes, 47 evidence docs (incl. the post-fleet sota-landscape addendum), every claim tree-verified) finds that **I's
 close HOLDS at the surface it certified and the SAME blindspot shape — the oracle pointed one
 step short of where a human meets the product — survives at EVERY boundary BEYOND that
 surface.** The deploy chain runs on a flaky gate that has never been green end-to-end on

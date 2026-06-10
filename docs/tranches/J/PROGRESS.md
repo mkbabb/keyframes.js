@@ -6,7 +6,7 @@ parse-that `^0.9.0` consumed PUBLISHED).
 **Type:** TRANCHE DEVELOPMENT. The deliverable is the docs under `docs/tranches/J/**` — the charter
 (`J.md`), the wave specs (`waves/J.W*.md` — all ten on disk: J.W0/W1/W2/W3/W4/W5/W6/W7a/W7b/WZ),
 `PATH-FORWARD.md`, this board, and the glass-ui handoff doc (`glassui-AX-handoff.md`, AUTHORED on
-disk with J.W7b), atop the 46-doc audit corpus on disk. **No source/test/CI/demo is edited in the development
+disk with J.W7b), atop the 47-doc audit corpus on disk. **No source/test/CI/demo is edited in the development
 phase. No engine, gate, or library bump is written. No commit beyond docs is made.**
 **Date:** 2026-06-10. **Version in tree:** `4.1.0` (two unconsumed `patch` changesets;
 `release.yml` has NEVER run — `git tag -l 'v*'` tops at `v4.1.0`; the honest minor + publish are
@@ -48,7 +48,7 @@ Companion documents:
 Tranche I bound the gate oracle to the running product, recovered nine live breakages behind
 ACTUATING runtime gates, installed `proof:live-session` + `proof:gate-is-runtime` + the two-tier
 taxonomy, and made "green" mean *a human using the product at one desktop viewport sees it work* —
-then **shipped it by hand**. The J audit (32 systemic lanes + 14 design lanes, 46 evidence docs,
+then **shipped it by hand**. The J audit (32 systemic lanes + 14 design lanes, 47 evidence docs (incl. the post-fleet sota-landscape addendum),
 every claim tree-verified) finds that **I's close HOLDS at the surface it certified and the SAME
 blindspot shape survives at every boundary BEYOND that surface.**
 
@@ -421,7 +421,7 @@ The honest ledger names what genuinely holds, so the waves do not re-litigate th
 - **This development phase wrote ONLY docs under `docs/tranches/J/**`** — zero source/test/CI/demo
   edits, no git commit beyond docs. The deliverable is `J.md` + the wave specs (all ten on disk:
   J.W0/W1/W2/W3/W4/W5/W6/W7a/W7b/WZ) + `PATH-FORWARD.md` + this board + `glassui-AX-handoff.md`
-  (AUTHORED on disk with J.W7b), atop the 46-doc audit corpus.
+  (AUTHORED on disk with J.W7b), atop the 47-doc audit corpus.
 - **inv-16 / the permanent engine rule (T2 resolved):** `src/animation` is the kf PRODUCT — in scope
   whenever runtime correctness or measured elegance requires; the fence is against SIBLING forks
   only. glass-ui/value.js/parse-that are consumed PUBLISHED; every glass-ui design item is a HANDOFF

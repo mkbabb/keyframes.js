@@ -3,7 +3,7 @@
 J is keyframes.js' tenth tranche. I (the ninth) ended the gate-blindspot at the product
 surface: it recovered nine live breakages behind ACTUATING runtime gates, installed
 `proof:live-session` (the gate-of-gates), and made "green" mean *a human using the product
-sees it work*. **The J audit — 32 systemic lanes + 14 design lanes, 46 evidence docs under
+sees it work*. **The J audit — 32 systemic lanes + 14 design lanes, 47 evidence docs (incl. the post-fleet sota-landscape addendum) under
 `audit/`, every claim tree-verified — finds that I's close HOLDS at the surface it certified
 and that the SAME blindspot shape survives at every boundary BEYOND that surface:**
 
@@ -84,7 +84,12 @@ on disk under `docs/tranches/J/audit/`:
   build/packaging), the A→I lineage recaps (`recap-*.md`), the consolidated precept register
   (`precepts.md`), THE consolidated deferred/chronic ledger (`deferred-ledger.md`), the
   CI-on-Linux cure spec (`ci-linux-open-item.md`), the no-legacy sweep (`legacy-sweep.md`),
-  the constellation edges, the perf frontier, and an independent scope adversary.
+  the constellation edges, the perf frontier, and an independent scope adversary — plus the
+  post-fleet `sota-landscape.md` addendum (the 2026 GSAP/Motion/anime/native comparison: kf
+  is architecturally SOTA-class on three unique axes — CSS-@keyframes round-trip, perceptual
+  oklab interpolation, weighted layer blending — and NOT SOTA as a shipped product until the
+  J.W5/WZ publish; the scroll-orchestration tier is recorded as a K-tranche candidate, not a
+  J fold).
 - **14 design lanes** — under `audit/design/`: 8 per-pane audits over the 48-screenshot
   corpus (`screenshots/`, captured by the checked-in `scripts/capture.mjs`, zero console
   errors), plus the cross-cutting hierarchy synthesis, typography, color-pops/icons,
@@ -285,7 +290,7 @@ its changeset cut LAST among waves. J.WZ closes.
 
 This DEV phase AUTHORS. The IMPL phase AWAITS authorization — exactly the D→I boundary.
 Authored now: this charter, `PATH-FORWARD.md`, `PROGRESS.md` (the board + the J ledger),
-the per-wave specs, the glass-ui handoff doc, atop the 46-doc audit corpus already on
+the per-wave specs, the glass-ui handoff doc, atop the 47-doc audit corpus already on
 disk. Run later, only on explicit user authorization: every source/demo/engine/gate/test/
 CI edit; the glass-ui coordination asks; the changeset + publish + deploy legs
 (USER-DOMAIN, confirm-first).

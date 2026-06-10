@@ -3,7 +3,7 @@
 **Branch:** `tranche-j-dev` (forked off `master` @ `4072af9` = the I-close tip + the adopted
 post-close tail; clean tree; kf `4.1.0`-base).
 **Type:** TRANCHE DEVELOPMENT — this document, the `J.md` charter, `PROGRESS.md`, the per-wave
-specs, and the glass-ui handoff doc are the deliverable, atop the 46-doc audit corpus already on
+specs, and the glass-ui handoff doc are the deliverable, atop the 47-doc audit corpus already on
 disk. **No source/test/CI/demo is edited here. No commit is made. The IMPL phase awaits explicit
 authorization, gated on green CI — the D→I dev/impl boundary.**
 **Date:** 2026-06-10.
@@ -19,7 +19,7 @@ boundary BEYOND that surface, and extends the one move — the gate-ORACLE prece
 
 ## §1 — WHAT THE AUDIT FOUND (the five boundaries + the latent seam classes)
 
-The J audit ran **32 systemic lanes + 14 design lanes — 46 evidence docs under `audit/`, every
+The J audit ran **32 systemic lanes + 14 design lanes — 47 evidence docs (incl. the post-fleet sota-landscape addendum) under `audit/`, every
 claim tree-verified — surfacing 17 P0 · 120 P1 (82 systemic + 38 design) · 95 must-fold candidates
 · 64 glass-ui ledger items** (`J.md §finding-cluster`; doc count confirmed `ls audit/*.md`=32,
 `ls audit/design/*.md`=14). I's close HOLDS at the surface it certified — the engine fixes verify
