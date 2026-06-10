@@ -155,7 +155,7 @@ describe("Sequence transport — seek↔play parity (the C⁰-continuity lock)",
         expect(reversedPlay).toEqual(reversedSeek);
     });
 
-    it("BITE: the held-final-frame (advanceTo onEnd window) DIVERGES from the scrub map on reverse re-entry", () => {
+    it("BITE: the held-final-frame (advanceTo onEnd window) DIVERGES from the scrub map on reverse re-entry", async () => {
         // Demonstrate the naive flip the gate forbids: a child driven forward
         // PAST its end (advanceTo fires onEnd → clears startTime → holds final),
         // then re-entered at a lower local clock. The held-final-frame value (1)
@@ -168,21 +168,22 @@ describe("Sequence transport — seek↔play parity (the C⁰-continuity lock)",
         child.managed = true;
 
         // Forward past the end: advanceTo crosses the duration, fires onEnd.
-        return child.advanceTo(1500).then(() => {
-            child.interpFrames(1000, true); // the held-final-frame paint
-            const heldFinal = paintedOpacity(child); // 1 — the stale value
-            expect(heldFinal).toBeCloseTo(1, 5);
+        // (`await` is the path-agnostic caller form — the steady advance is
+        // SYNC since J.W6 S1, a thenable only on the first-tick delay sleep.)
+        await child.advanceTo(1500);
+        child.interpFrames(1000, true); // the held-final-frame paint
+        const heldFinal = paintedOpacity(child); // 1 — the stale value
+        expect(heldFinal).toBeCloseTo(1, 5);
 
-            // The TRUE scrub value at master clock 500 (local 500) is 0.5 — what
-            // the _applyAt map (clamp(500−0,0,1000)/1000) paints on re-entry.
-            const sameChild = opacityAnim(1000);
-            sameChild.interpFrames(500, true);
-            const scrub = paintedOpacity(sameChild);
-            expect(scrub).toBeCloseTo(0.5, 5);
+        // The TRUE scrub value at master clock 500 (local 500) is 0.5 — what
+        // the _applyAt map (clamp(500−0,0,1000)/1000) paints on re-entry.
+        const sameChild = opacityAnim(1000);
+        sameChild.interpFrames(500, true);
+        const scrub = paintedOpacity(sameChild);
+        expect(scrub).toBeCloseTo(0.5, 5);
 
-            // The divergence the gate bites on: held-final ≠ scrub.
-            expect(heldFinal).not.toBeCloseTo(scrub, 2);
-        });
+        // The divergence the gate bites on: held-final ≠ scrub.
+        expect(heldFinal).not.toBeCloseTo(scrub, 2);
     });
 });
 

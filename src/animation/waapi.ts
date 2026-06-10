@@ -73,6 +73,17 @@ export type WAAPIEligibility =
     | { eligible: false; reason: string };
 
 /**
+ * WebKit ENGINE feature-detect (CE-1.0). `webkitConvertPointFromNodeToPage`
+ * has shipped WebKit-only since Safari 4 and exists in no other engine —
+ * unlike UA strings, where Chromium AND jsdom both advertise "AppleWebKit",
+ * so a UA sniff would misfire in both. Read per call (a cheap property
+ * probe) so a test can install/remove the marker around one assertion.
+ */
+const isWebKitEngine = (): boolean =>
+    typeof (globalThis as { webkitConvertPointFromNodeToPage?: unknown })
+        .webkitConvertPointFromNodeToPage === "function";
+
+/**
  * Decide whether an animation can be delegated to the Web Animations
  * API for compositor-thread playback. Single source of truth — the
  * `Animation.play()` dispatcher consults this once, with no inline
@@ -161,6 +172,23 @@ export function isWAAPIEligible<V extends Vars>(
         return {
             eligible: false,
             reason: "easing has no faithful CSS twin (would run bare linear on the compositor)",
+        };
+    }
+
+    // CE-1.0 (J.W6 S9, measured on-device): WebKit refuses hardware
+    // acceleration for ANY animation carrying a custom `linear()` easing —
+    // even transform/opacity — so a delegated spring would run MAIN-THREAD
+    // WAAPI: an extra effect object + the shadow tick loop wrapping an
+    // animation no faster than the rAF path it bypassed. The delegation
+    // contract (top of file) only ever trades a perf OPPORTUNITY, never a
+    // loss, so the `linear()`-twinned easing (a spring's stops, or any
+    // custom `linear()` string) is HELD on the rAF path for WebKit.
+    // `cubic-bezier()`/keyword twins still delegate — the refusal is
+    // `linear()`-specific (a WebKit engine behaviour, not a syntax gap).
+    if (firstTF?.css?.startsWith("linear(") && isWebKitEngine()) {
+        return {
+            eligible: false,
+            reason: "WebKit refuses HW-accel for linear() easing — the spring twin stays on the rAF path (CE-1.0)",
         };
     }
 
@@ -311,8 +339,10 @@ export function toWAAPIOptions<V extends Vars>(
     // true curve between the sampled keyframe endpoints. Otherwise fall back
     // to bare `linear` (the keyframe stops carry whatever intent JS
     // interpolation baked in). Eligibility already guaranteed a uniform
-    // timing function AND rejects a CSS-twinned easing across multiple
-    // segments (per-segment curve restart), so reading frame 0's is enough.
+    // timing function, rejects a CSS-twinned easing across multiple
+    // segments (per-segment curve restart), and holds `linear()` twins on
+    // rAF for WebKit (CE-1.0 — HW-accel refused), so reading frame 0's is
+    // enough.
     const uniformTiming =
         animation.frames[0]?.timingFunction ?? animation.options.timingFunction;
     const easing = uniformTiming.css ?? "linear";

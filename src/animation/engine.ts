@@ -784,7 +784,8 @@ export class Animation<V extends Vars = any> {
         }
     }
 
-    async onStart() {
+    /** SYNC unless `delay > 0` — then a thenable resolving after the sleep. */
+    onStart(): Promise<void> | undefined {
         this.reversed = false;
 
         if (
@@ -805,14 +806,17 @@ export class Animation<V extends Vars = any> {
 
         if (this.options.delay > 0) {
             this.paused = true;
-            await sleep(this.options.delay);
-            this.paused = false;
+            return sleep(this.options.delay).then(() => {
+                this.paused = false;
+                this.started = true;
+            });
         }
 
         this.started = true;
+        return undefined;
     }
 
-    async onEnd() {
+    onEnd() {
         // Completion paints the rest frame per the fill contract — the one
         // place "where does the playhead rest?" is decided.
         this.paintRest();
@@ -836,27 +840,40 @@ export class Animation<V extends Vars = any> {
      * duration. This is the DRIVER-layer advance — the one meaning of the
      * absolute-clock step, distinct from the `tickDt(dt)` stepper surface
      * the rest of the engine canonicalized to.
+     *
+     * SYNC on the steady path (J.W6 S1 — the F.W5 held half, landed): every
+     * post-start frame returns a plain number (no per-frame promise+microtask
+     * hop); a thenable ONLY when the FIRST tick awaits the genuinely-async
+     * delay sleep. Ordering locked by proof:event-ordering.
      */
-    async advanceTo(t: number) {
+    advanceTo(t: number): number | Promise<number> {
         if (this.startTime === undefined) {
-            await this.onStart();
-            this.startTime = t + this.options.delay;
-            this.dispatchAnimationEvent("animationstart");
+            const pending = this.onStart();
+            const begin = (): number => {
+                this.startTime = t + this.options.delay;
+                this.dispatchAnimationEvent("animationstart");
+                return this._advance(t);
+            };
+            return pending ? pending.then(begin) : begin();
         }
+        return this._advance(t);
+    }
 
+    /** The post-start advance body — pause clock, local time, iteration end. */
+    private _advance(t: number): number {
         if (this.paused && this.pausedTime === 0) {
             this.pausedTime = t;
             return this.t;
         } else if (this.pausedTime > 0 && !this.paused) {
             const dt = t - this.pausedTime;
-            this.startTime += dt;
+            this.startTime! += dt;
             this.pausedTime = 0;
         }
 
-        this.t = t - this.startTime;
+        this.t = t - this.startTime!;
 
         if (this.t >= this.options.duration) {
-            await this.onEnd();
+            this.onEnd();
             this.t = this.options.duration;
         }
         return this.t;
@@ -866,7 +883,7 @@ export class Animation<V extends Vars = any> {
      * One frame of the standalone rAF play path, driven by the shared
      * `RAFPlayback.loop`. Returns whether the loop should continue.
      */
-    private async _frame(t: number): Promise<boolean> {
+    private _frame(t: number): boolean | Promise<boolean> {
         // Live reduced-motion: a long/infinite animation that was running when
         // the OS toggled `prefers-reduced-motion: reduce` re-consults the ONE
         // detector per tick and converges to the SAME terminal state the
@@ -879,12 +896,19 @@ export class Animation<V extends Vars = any> {
             () => false,
         );
         if (flipped) {
-            await this._snapToReducedMotion();
+            this._snapToReducedMotion();
             return false;
         }
 
-        t = await this.advanceTo(t);
+        // Sync steady path (J.W6 S1) — the loop-core reschedules inline.
+        const stepped = this.advanceTo(t);
+        return typeof stepped === "number"
+            ? this._renderFrame(stepped)
+            : stepped.then((local) => this._renderFrame(local));
+    }
 
+    /** The post-advance render half of `_frame` — paint, or settle on done. */
+    private _renderFrame(t: number): boolean {
         if (this.paused) {
             return false;
         }
@@ -981,7 +1005,7 @@ export class Animation<V extends Vars = any> {
      * gate already routes reduced-motion away from WAAPI, and a live flip on a
      * WAAPI animation cancels the compositor handles before settling.
      */
-    private async _snapToReducedMotion(): Promise<void> {
+    private _snapToReducedMotion(): void {
         this._cancelWAAPI();
         this.fillForwards();
         this.iteration = 0;

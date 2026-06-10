@@ -121,9 +121,13 @@ THE managed rAF driver — no other module owns a rAF handle. Three shapes:
 `play(duration, onTick, { respectReducedMotion })` (duration/progress loop with
 the light reduced-motion snap), `drive(tickable, onFrame?)` (settle-based dt
 loop over a `Tickable` — `SmoothProgress`/`SpringProgress`), and `loop(cb)`
-(self-rescheduling async frame loop — `Animation`, `AnimationGroup`, the WAAPI
-shadow tick). Exported so consumers driving their own light playback get the
-same gate.
+(self-rescheduling frame loop over a maybe-async callback — `Animation`,
+`AnimationGroup`, the WAAPI shadow tick). Since J.W6 S1 the steady
+`Animation`/group `_frame` returns a plain boolean, so the loop-core sync
+fast-path reschedules it inline — zero per-frame promise/microtask cost;
+`advanceTo` returns a thenable only on the genuinely-async first-tick delay
+sleep (ordering locked by `proof:event-ordering`). Exported so consumers
+driving their own light playback get the same gate.
 
 ## Boundary ergonomics — `resolveEasing` (`easing.ts`)
 
@@ -151,8 +155,12 @@ tag that `Function.prototype.bind` silently dropped, which had made every
 `fromString` animation read as "custom transform" and the WAAPI path dead in
 practice), a uniform timing function across frames, no CSS-twinned easing
 across multiple segments (WAAPI restarts the curve per segment), no computed
-units (`vh`/`calc`/`var`/`cqw`), and no color interpolation. Falls back to rAF
-with a queryable `waapiIneligibleReason`. `toWAAPIOptions` emits
+units (`vh`/`calc`/`var`/`cqw`), and no color interpolation. On WebKit a
+`linear()`-twinned easing is additionally HELD on rAF (CE-1.0, J.W6 S9 —
+WebKit refuses HW-accel for custom `linear()` easings, so a delegated spring
+would run main-thread WAAPI, heavier than the rAF path it bypassed; engine
+feature-detect via `webkitConvertPointFromNodeToPage`, not a UA sniff). Falls
+back to rAF with a queryable `waapiIneligibleReason`. `toWAAPIOptions` emits
 `Easing.css` when the uniform easing carries one (a spring's `linear()` from
 `springTimingFunction`), otherwise bare `linear`.
 

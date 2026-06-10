@@ -120,6 +120,49 @@ describe("WAAPI eligibility requires a faithful CSS twin", () => {
         expect(isWAAPIEligible(three).eligible).toBe(false);
     });
 
+    it("CE-1.0 — a spring linear() twin is INELIGIBLE on WebKit (HW-accel refused); cubic-bezier still delegates", async () => {
+        const el = document.createElement("div");
+        const spring = springTimingFunction({
+            response: 0.4,
+            dampingFraction: 0.7,
+        });
+        const makeSpring = () => {
+            const a = new CSSKeyframesAnimation({
+                duration: 300,
+                timingFunction: spring,
+            });
+            a.setTargets(el);
+            a.fromString(`from { opacity: 0; } to { opacity: 1; }`);
+            return a;
+        };
+        // Non-WebKit (jsdom carries no WebKit engine marker — its UA string
+        // falsely advertises AppleWebKit, which is WHY the guard is a
+        // feature-detect): the single-segment spring delegates.
+        expect(isWAAPIEligible(makeSpring()).eligible).toBe(true);
+
+        // Install the WebKit engine marker → the SAME animation is held on
+        // the rAF path (the probe-measured exclusion: a delegated spring
+        // would run main-thread WAAPI, heavier than the rAF path).
+        const g = globalThis as {
+            webkitConvertPointFromNodeToPage?: unknown;
+        };
+        g.webkitConvertPointFromNodeToPage = () => ({});
+        try {
+            const elig = isWAAPIEligible(makeSpring());
+            expect(elig.eligible).toBe(false);
+            if (!elig.eligible) {
+                expect(elig.reason).toMatch(/CE-1\.0/);
+                expect(elig.reason).toMatch(/linear\(\)/);
+            }
+            // ONLY linear() is held — a cubic-bezier() twin still delegates
+            // on WebKit (the refusal is linear()-specific).
+            const { anim } = await eligibleAnim();
+            expect(isWAAPIEligible(anim).eligible).toBe(true);
+        } finally {
+            delete g.webkitConvertPointFromNodeToPage;
+        }
+    });
+
     it("uniform-timing compares the callable identity, not the Easing wrapper", async () => {
         const el = document.createElement("div");
         const easing = await resolveEasing("ease-in-out");

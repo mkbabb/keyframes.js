@@ -18,6 +18,8 @@
  * never the type-only barrel.
  */
 import { afterAll, beforeAll, bench, describe } from "vitest";
+import { CSSKeyframesAnimation } from "../src/animation/engine";
+import { AnimationGroup } from "../src/animation/group";
 import { RAFPlayback } from "../src/animation/playback";
 import { SmoothProgress } from "../src/animation/smooth";
 import { SpringProgress } from "../src/animation/spring";
@@ -110,5 +112,82 @@ describe("RAFPlayback loop-core dispatch (synchronous drive stepper)", () => {
         pb.drive(sp);
         await pump(FRAMES);
         pb.stop();
+    });
+});
+
+/* ───────────────────────────────────────────────────────────────────────────
+ * J.W6 S1 (FB-2) — the HELD half measured. The symmetric shape for the
+ * `Animation`/`AnimationGroup` sync-step half: drive the REAL play loop
+ * (`RAFPlayback.loop` → `_frame` → `advanceTo`) over a bounded 600-frame
+ * steady window with rAF stubbed synchronous, on the realistic corpus —
+ * a K=8 transform animation (translate3d+scale3d+rotate+opacity, the demo's
+ * cube shape) and a 32-cell group (the `YIELD_BATCH=32` fast-path boundary).
+ * Durations far exceed the window so no `onEnd` fires mid-window: the
+ * measured quantity is the steady per-frame loop-core + advance + interp
+ * cost, on whichever `advanceTo` shape the tree carries (async arm = the
+ * F→I held half; sync arm = the converted half). Paired with the
+ * microtask-turn probe in `test/sync-step.measure.test.ts`; the decision
+ * threshold lives there (J.W6.md §S1).
+ * ────────────────────────────────────────────────────────────────────────── */
+
+const K8_KEYFRAMES = `
+    from { transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotate(0deg); opacity: 0; }
+    to { transform: translate3d(240px, 120px, 60px) scale3d(2, 1.5, 1.25) rotate(360deg); opacity: 1; }
+`;
+
+/** 600 frames × 16.667 ms ≈ 10 s — a 60 s duration keeps the window steady. */
+const STEADY_DURATION = 60_000;
+
+const makeK8Animation = () => {
+    const el = document.createElement("div");
+    const a = new CSSKeyframesAnimation({
+        duration: STEADY_DURATION,
+        delay: 0,
+        useWAAPI: false,
+    }).fromString(K8_KEYFRAMES);
+    a.setTargets(el);
+    return a;
+};
+
+/**
+ * Pump up to `frames` loop turns, draining however many microtask ticks the
+ * in-flight frame needs before its reschedule lands (0 on a sync `_frame`;
+ * a few on the async promise chain) — shape-agnostic, so the SAME pump
+ * measures both arms honestly.
+ */
+const pumpSteady = async (frames: number): Promise<void> => {
+    for (let f = 0; f < frames; f++) {
+        let drains = 0;
+        while (queue.length === 0 && drains < 64) {
+            await Promise.resolve();
+            drains += 1;
+        }
+        const next = queue.shift();
+        if (!next) break;
+        clock += 16.667;
+        next.cb(clock);
+    }
+    queue = [];
+};
+
+describe("Animation/group advanceTo loop-core (J.W6 S1 / FB-2)", () => {
+    bench(`play(Animation · K=8 transform) · ${FRAMES}-frame window`, async () => {
+        clock = 0;
+        queue = [];
+        const a = makeK8Animation();
+        void a.play();
+        await pumpSteady(FRAMES);
+        a.stop();
+    });
+
+    bench(`play(AnimationGroup · 32 cells · K=8) · ${FRAMES}-frame window`, async () => {
+        clock = 0;
+        queue = [];
+        const group = new AnimationGroup(
+            ...Array.from({ length: 32 }, makeK8Animation),
+        );
+        void group.play();
+        await pumpSteady(FRAMES);
+        group.stop();
     });
 });

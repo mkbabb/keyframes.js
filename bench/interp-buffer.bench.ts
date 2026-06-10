@@ -17,7 +17,7 @@
  */
 import { bench, describe } from "vitest";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
-import type { ValueUnit } from "@mkbabb/value.js";
+import { lerpArray, lerpValue, type ValueUnit } from "@mkbabb/value.js";
 
 /**
  * Build an animation whose every keyframe declares exactly `keys` flat
@@ -123,6 +123,142 @@ describe("interpFrames — computed endpoint (C1 memo, G.W2)", () => {
     bench("calc() leaf · 600-frame steady window (C1 endpoint memo)", () => {
         for (let f = 0; f < 600; f++) {
             anim.interpFrames((f / 600) * 1000, false, out);
+        }
+    });
+});
+
+/**
+ * J.W6 S2 — the SoA `lerpArray` ADOPT-or-KILL arm (`J.W6.md §S2`,
+ * `perf-frontier.md §PF-8`, `deferred-ledger.md:102`).
+ *
+ * The rider: pack the K interpolating channels into `Float64Array` keyframe
+ * buffers and interpolate via a SINGLE `lerpArray(from, to, t, out)` call
+ * (value.js 0.11.2, published), instead of the engine's per-channel
+ * `lerpValue → iv._lerp` closure dispatch (`engine.ts` `processFrame`).
+ *
+ * Corpus: the REAL-K shape the G measurement named — the demo's cube
+ * transform animation, translate3d(3) + scale3d(3) + rotateZ(1) +
+ * opacity(1) = exactly K=8 numeric channels (probe-verified:
+ * `allInterpVars.length === 8`), 5 stops, threaded over the ~600-frame
+ * steady window with a long-lived buffer (the `_frame`/`_interpOut` hoisted
+ * shape) so the per-channel dispatch is the measured quantity, not
+ * allocation. A K=10 corroborator (bare `rotate` expands to
+ * rotateX/Y/Z) brackets the G-era "K=8-10" claim.
+ *
+ * Two tiers per K:
+ *  - FULL-PIPELINE: the current `interpFrames` (segment search + easing +
+ *    per-channel lerp + buffer merge) vs a faithful SoA twin that keeps the
+ *    work `lerpArray` cannot remove (the same binary segment search over the
+ *    compiled frames, the same `timingFunction.fn` easing call) and replaces
+ *    ONLY the per-channel loop + merge with one `lerpArray`. This pair is
+ *    the DECISION arm: ADOPT iff the SoA twin shows ≥20% wall-time
+ *    reduction at K=8 (`perf-frontier.md:236`).
+ *  - DISPATCH-ONLY: the bare per-channel `lerpValue` loop vs the bare
+ *    `lerpArray` call on identical endpoints — isolates the closure-dispatch
+ *    overhead itself (the G-2 "2.5-4×" quantity), a corroborator for WHERE
+ *    any full-pipeline delta comes from.
+ */
+const makeTransformAnim = (rotateFn: "rotateZ" | "rotate") => {
+    const STOPS = 5;
+    const css = Array.from({ length: STOPS }, (_, s) => {
+        const pct = Math.round((s / (STOPS - 1)) * 100);
+        const k = s / (STOPS - 1);
+        return `${pct}% { transform: translate3d(${k * 160}px, ${k * 40}px, ${
+            k * 20
+        }px) scale3d(${1 + k * 0.8}, ${1 + k * 0.4}, 1) ${rotateFn}(${
+            k * 180
+        }deg); opacity: ${k}; }`;
+    }).join("\n");
+    return new CSSKeyframesAnimation({ duration: 1000 }).fromString(css);
+};
+
+/**
+ * Compile-time analog of the SoA FrameCompiler emission: per compiled frame
+ * segment, pack `allInterpVars[k].{start,stop}.value` into `Float64Array`
+ * from/to buffers (done ONCE, outside the bench loop — the refactor would do
+ * this at `parse()`), carrying the segment window + easing fn beside them.
+ */
+const packSoA = (anim: ReturnType<typeof makeTransformAnim>) => {
+    const segs = anim.frames.map((frame) => {
+        const K = frame.allInterpVars.length;
+        const from = new Float64Array(K);
+        const to = new Float64Array(K);
+        frame.allInterpVars.forEach((iv, k) => {
+            from[k] = iv.start.value as number;
+            to[k] = iv.stop.value as number;
+        });
+        return {
+            start: frame.time.start,
+            stop: frame.time.stop,
+            fn: frame.timingFunction.fn,
+            from,
+            to,
+        };
+    });
+    return { segs, out: new Float64Array(segs[0]!.from.length) };
+};
+
+describe("interpFrames — SoA lerpArray arm (J.W6 S2, real-K corpus)", () => {
+    const cases = [
+        ["K=8 (translate3d+scale3d+rotateZ+opacity)", "rotateZ"],
+        ["K=10 (rotate expands ×3)", "rotate"],
+    ] as const;
+
+    for (const [label, rotateFn] of cases) {
+        const anim = makeTransformAnim(rotateFn);
+        const out: Record<string, ValueUnit[]> = {};
+        const { segs, out: soaOut } = packSoA(anim);
+
+        bench(`${label} · per-channel _lerp (current) · 600-frame window`, () => {
+            for (let f = 0; f < 600; f++) {
+                anim.interpFrames((f / 600) * 1000, false, out);
+            }
+        });
+
+        bench(`${label} · SoA Float64Array+lerpArray · 600-frame window`, () => {
+            for (let f = 0; f < 600; f++) {
+                const t = (f / 600) * 1000;
+                // The same binary segment search the engine pays
+                // (`binarySearchRange` seed) — the SoA refactor cannot
+                // remove it, so the twin keeps it.
+                let lo = 0;
+                let hi = segs.length - 1;
+                while (lo < hi) {
+                    const mid = (lo + hi) >> 1;
+                    if (segs[mid]!.stop < t) lo = mid + 1;
+                    else hi = mid;
+                }
+                const seg = segs[lo]!;
+                const scaled =
+                    seg.start === seg.stop
+                        ? 1
+                        : (t - seg.start) / (seg.stop - seg.start);
+                lerpArray(seg.from, seg.to, seg.fn(scaled), soaOut);
+            }
+        });
+    }
+
+    // DISPATCH-ONLY corroborator at K=8: the bare per-channel closure loop
+    // vs the bare fused lerpArray on identical endpoints — no search, no
+    // easing, no merge. This is the isolated quantity the G-2 claim named.
+    const anim8 = makeTransformAnim("rotateZ");
+    const ivs = anim8.frames[0]!.allInterpVars;
+    const { segs: segs8 } = packSoA(anim8);
+    const seg0 = segs8[0]!;
+    const dispatchOut = new Float64Array(seg0.from.length);
+
+    bench("K=8 · dispatch-only · per-channel lerpValue ×8 (current)", () => {
+        for (let f = 0; f < 600; f++) {
+            const eased = f / 600;
+            for (let k = 0; k < ivs.length; k++) {
+                lerpValue(eased, ivs[k]!);
+            }
+        }
+    });
+
+    bench("K=8 · dispatch-only · single lerpArray (SoA)", () => {
+        for (let f = 0; f < 600; f++) {
+            lerpArray(seg0.from, seg0.to, f / 600, dispatchOut);
         }
     });
 });

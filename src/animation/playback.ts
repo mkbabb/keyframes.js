@@ -44,10 +44,12 @@ export interface Tickable {
  * - {@link drive} — settle-based dt loop over a {@link Tickable}
  *   (`SmoothProgress`, `SpringProgress`): steps until the stepper settles,
  *   auto-stopping; idempotent so target re-seats can re-arm it.
- * - {@link loop} — self-rescheduling frame loop over an async callback
+ * - {@link loop} — self-rescheduling frame loop over a maybe-async callback
  *   (`Animation`, `AnimationGroup`, the WAAPI shadow tick): the callback
- *   returns `true` to continue; rescheduling waits for the (possibly
- *   async) callback to complete, so a slow frame never double-schedules.
+ *   returns `true` to continue; a thenable result defers rescheduling until
+ *   it resolves, so a slow async frame never double-schedules, while a
+ *   sync frame (the steady `Animation`/group `_frame`, J.W6 S1) reschedules
+ *   inline on the sync fast-path.
  *
  * Because all three ride one core, none can diverge — the generation guard
  * that makes `loop` safe against a `stop()` + restart mid-frame protects
@@ -123,15 +125,17 @@ export class RAFPlayback {
         const frame = (now: number): void => {
             // F.W5 S1 — the sync fast-path. A synchronous `step` (every `drive`
             // stepper: `SmoothProgress`/`SpringProgress`/`Draggable` return a
-            // boolean from `tickDt`) reschedules INLINE — no `Promise.resolve`,
-            // no microtask hop (33 ns/frame, forever, for a stepper that
-            // dispatches no animation events). The async branch is byte-unchanged
-            // for the genuinely-async draw frame (`Animation`/`AnimationGroup`
-            // `loop`, which returns `Promise<boolean>` and carries event-ordering
-            // semantics): the `.then` callback body IS `reschedule`, so behaviour
-            // is identical across both shapes. `typeof (result).then === function`
-            // is the feature-detect (a thenable → async; a boolean → sync), not a
-            // special-case — the async path remains the true path for async work.
+            // boolean from `tickDt`; and, since J.W6 S1, the steady
+            // `Animation`/`AnimationGroup` `_frame`, whose `advanceTo` is sync
+            // past the first tick — ordering locked by proof:event-ordering)
+            // reschedules INLINE — no `Promise.resolve`, no microtask hop. The
+            // async branch is byte-unchanged for the genuinely-async frame (the
+            // first-tick delay sleep, the over-batch group yield, the WAAPI
+            // shadow tick): the `.then` callback body IS `reschedule`, so
+            // behaviour is identical across both shapes. `typeof (result).then
+            // === function` is the feature-detect (a thenable → async; a
+            // boolean → sync), not a special-case — the async path remains the
+            // true path for async work.
             const result = step(now);
             if (
                 result &&

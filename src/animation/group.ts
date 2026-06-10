@@ -88,7 +88,7 @@ export class AnimationGroup<V extends Vars> {
      * Pre-bound frame callback — allocated once in constructor to avoid
      * creating a new closure on every playback loop start.
      */
-    private _boundFrame: (t: number) => Promise<boolean>;
+    private _boundFrame: (t: number) => boolean | Promise<boolean>;
 
     /**
      * Cached entries array, sorted by layer zIndex. Rebuilt on demand
@@ -462,54 +462,57 @@ export class AnimationGroup<V extends Vars> {
     // ── Playback loop ────────────────────────────────────────────────
 
     /**
-     * Advance all child animations to absolute clock `t`.
-     * Awaits all child advanceTo() promises so deferred state updates
-     * (startTime, this.t) resolve before interpFrames reads them.
+     * Advance all child animations to absolute clock `t`. SYNC on the steady
+     * path (J.W6 S1): children that all step synchronously advance the group
+     * with no per-frame `Promise.all`/microtask hop; a thenable only on a
+     * genuinely-async child or the over-`YIELD_BATCH` yield path.
      */
-    async advanceTo(t: number) {
+    advanceTo(t: number): this | Promise<this> {
         this.lastTickTime = t;
-
-        if (!this.started) {
-            this.onStart();
-        }
+        if (!this.started) this.onStart();
 
         const entries = this.getEntries();
         const BATCH = AnimationGroup.YIELD_BATCH;
+        const pending =
+            entries.length <= BATCH
+                ? this._advanceSlice(entries, t)
+                : this._advanceBatched(entries, t, BATCH);
+        return pending
+            ? pending.then(() => this._endAdvance())
+            : this._endAdvance();
+    }
 
-        if (entries.length <= BATCH) {
-            // Fast path — small groups advance in a single slice, no yield.
-            await this._advanceSlice(entries, t);
-        } else {
-            // Large groups advance in batches with a main-thread yield between
-            // them, so the per-frame work doesn't run as one long task.
-            for (let i = 0; i < entries.length; i += BATCH) {
-                await this._advanceSlice(entries.slice(i, i + BATCH), t);
-                if (i + BATCH < entries.length) {
-                    await yieldToMain();
-                }
-            }
+    /** Batched advance — yield to the main thread between batches. */
+    private async _advanceBatched(
+        entries: AnimationGroupEntry<V>[],
+        t: number,
+        batch: number,
+    ): Promise<void> {
+        for (let i = 0; i < entries.length; i += batch) {
+            await this._advanceSlice(entries.slice(i, i + batch), t);
+            if (i + batch < entries.length) await yieldToMain();
         }
+    }
 
-        if (this.done) {
-            this.onEnd();
-        }
-
+    /** The post-advance tail — `onEnd` once the render marked done. */
+    private _endAdvance(): this {
+        if (this.done) this.onEnd();
         return this;
     }
 
-    /** Advance one slice of children to absolute clock `t`, awaiting them together. */
-    private async _advanceSlice(
+    /** Advance one slice — `undefined` iff every child stepped sync. */
+    private _advanceSlice(
         slice: AnimationGroupEntry<V>[],
         t: number,
-    ): Promise<void> {
-        const promises: Promise<number>[] = [];
+    ): Promise<void> | undefined {
+        let promises: Promise<number>[] | undefined;
         for (const entry of slice) {
             const anim = entry.animation;
-            if (!anim.paused || anim.pausedTime === 0) {
-                promises.push(anim.advanceTo(t));
-            }
+            if (anim.paused && anim.pausedTime !== 0) continue;
+            const stepped = anim.advanceTo(t);
+            if (typeof stepped !== "number") (promises ??= []).push(stepped);
         }
-        await Promise.all(promises);
+        return promises && Promise.all(promises).then(() => undefined);
     }
 
     /**
@@ -518,9 +521,15 @@ export class AnimationGroup<V extends Vars> {
      * (single-target: grouped blending; multi-target: per-child).
      * Returns whether the loop should continue.
      */
-    private async _frame(t: number): Promise<boolean> {
-        await this.advanceTo(t);
+    private _frame(t: number): boolean | Promise<boolean> {
+        const advanced = this.advanceTo(t);
+        return typeof (advanced as Promise<this>).then === "function"
+            ? (advanced as Promise<this>).then(() => this._renderFrame(t))
+            : this._renderFrame(t);
+    }
 
+    /** The post-advance render half of `_frame` — composite, or settle. */
+    private _renderFrame(t: number): boolean {
         if (this.paused) {
             return false;
         }
