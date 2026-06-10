@@ -25,6 +25,11 @@ FOLDS every chronic + deferred item the A→H recaps surfaced. Companion documen
 
 ## §0 — THE HEADLINE (why Tranche I exists)
 
+> **Superseded by:** `docs/tranches/I/impl/I-WZ-verify.md` (the post-close deploy/CI state) +
+> Tranche J. This section's deploy/staleness facts (master behind, the live demo on the broken H
+> tip, the d469e69 revert recommendation) are DEV-phase history, frozen as written (J.W5 S6,
+> pointer-only).
+
 Tranche H shipped with **ALL ~97 `proof:*` gates GREEN** — `tsc` 0, `proof:all`, `proof:browser`
 35/35, `proof:visual-lock`, `proof:chronic-closure` — and its FINAL declared every request resolved
 and the four chronics CLOSED. **The certification is false of the product.** The user drove the live

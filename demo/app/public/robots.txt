@@ -1,4 +1,3 @@
 # keyframes.js demo — public, indexable.
 User-agent: *
 Allow: /
-Sitemap: https://mkbabb.github.io/keyframes.js/sitemap.xml

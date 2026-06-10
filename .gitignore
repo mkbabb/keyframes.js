@@ -16,3 +16,8 @@ dist/
 .agents/
 skills-lock.json
 .claude/
+# J.W5.S6 (LS-12) — root-level PNGs are stray diagnostics (the I.B2
+# b2-gen-crash shot accreted here by mistake; its home is
+# docs/tranches/I/audit/investigate/shots/). Tracked screenshots live under
+# docs/**/shots/ or assets/; a future root-level diagnostic cannot re-accrete.
+/*.png
