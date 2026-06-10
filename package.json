@@ -39,6 +39,8 @@
         "build:watch": "vite build --watch --mode production",
         "gh-pages": "vite build --mode gh-pages",
         "proof:boundary": "node scripts/proof-boundary.mjs",
+        "proof:published-surface": "node scripts/proof-published-surface.mjs",
+        "proof:readme-runs": "node scripts/proof-readme-runs.mjs",
         "proof:repin-safe": "node scripts/proof-repin-safe.mjs",
         "proof:deps-current": "node scripts/proof-deps-current.mjs",
         "proof:repin-witness": "node scripts/proof-repin-witness.mjs",
@@ -155,12 +157,9 @@
         "type": "git",
         "url": "git+https://github.com/mkbabb/keyframes.js.git"
     },
-    "author": "",
+    "author": "Mike Babb <mike@babb.dev>",
     "engines": {
         "node": ">=22"
-    },
-    "peerDependencies": {
-        "vue": "^3.5.0"
     },
     "bugs": {
         "url": "https://github.com/mkbabb/keyframes.js/issues"

@@ -35,7 +35,7 @@ anim.play();
 
 This animates the element's style properties as specified in the keyframes. The default behavior, but you can get far more inventive with it.
 
-Plucked directly from the [`demo/simple`](demo/simple/App.vue) Vue file.
+The [demo apps](demo/) exercise this pattern end-to-end — [try them live](https://keyframes.babb.dev/).
 
 ## Table of Contents
 
@@ -46,6 +46,10 @@ Plucked directly from the [`demo/simple`](demo/simple/App.vue) Vue file.
   - [Transform Function](#the-transform-function)
   - [Timing Function](#the-timing-function)
   - [TemplateAnimationFrame](#templateanimationframe)
+  - [The dynamic engine — loadAnimationEngine()](#the-dynamic-engine--loadanimationengine)
+  - [animate](#animate)
+  - [MotionPath](#motionpath)
+  - [DrawSVG](#drawsvg)
 - [CSSKeyframesAnimation](#csskeyframesanimation)
   - [Parsing CSS Keyframes](#parsing-css-keyframes)
   - [Units](#units)
@@ -58,6 +62,14 @@ Plucked directly from the [`demo/simple`](demo/simple/App.vue) Vue file.
   - [SmoothProgress](#smoothprogress)
   - [ElementMorph](#elementmorph)
   - [Timeline](#timeline)
+  - [SpringProgress](#springprogress)
+  - [springLinearStops & springTimingFunction](#springlinearstops--springtimingfunction)
+  - [RAFPlayback](#rafplayback)
+  - [stagger](#stagger)
+  - [flip / flipShared](#flip--flipshared)
+  - [drag / Draggable](#drag--draggable)
+  - [decay / decayRest](#decay--decayrest)
+  - [Sequence](#sequence)
 - [Build & Development](#build--development)
 
 ## Installation
@@ -72,43 +84,46 @@ Works both in and out of the browser. Anything that touches the DOM (`getCompute
 
 ```
 src/
-├── animation/           # Animation engine: classes, group, presets, interpolation, WAAPI
-│   ├── index.ts         # Animation, CSSKeyframesAnimation
-│   ├── group.ts         # AnimationGroup — multi-animation compositor
-│   ├── numeric.ts       # NumericAnimation — keyframe interpolation over plain objects
-│   ├── smooth.ts        # SmoothProgress — exponential smoothing
-│   ├── morph.ts         # ElementMorph — position/scale interpolation between elements
-│   ├── timeline.ts      # Timeline, ScrollTimeline, ManualTimeline — progress drivers
-│   ├── animations.ts    # 30+ preset animations
-│   ├── constants.ts     # Types & defaults
-│   ├── utils.ts         # Frame calc, value interpolation
-│   └── waapi.ts         # Web Animations API delegation
-├── parsing/             # CSS @keyframes parsing & serialization
-│   ├── keyframes.ts     # @keyframes grammar (parse-that combinators)
-│   ├── format.ts        # Animation → CSS string (Prettier)
-│   ├── units.ts         # Re-export: CSS value/color parsers
-│   └── utils.ts         # Re-export: parser combinators
-├── units/               # Value types & normalization
-│   ├── normalize.ts     # DOM-aware unit normalization
-│   ├── color/           # Color space classes, converters, normalization
-│   └── *.ts             # Re-export barrels from @mkbabb/value.js
-├── easing.ts            # Re-export: easing functions
-├── math.ts              # Re-export: clamp, lerp, bezier
-└── utils.ts             # Re-export + memoizeDecorator
+├── animation/               # THE library — engine + every primitive (see src/animation/CLAUDE.md)
+│   ├── index.ts             # Package barrel: the LIGHT static surface + loadAnimationEngine()
+│   ├── engine.ts            # HEAVY: Animation, CSSKeyframesAnimation, AnimationGroup
+│   ├── group.ts             # AnimationGroup — multi-animation compositor
+│   ├── frame-compiler.ts    # Keyframe → frame compilation
+│   ├── animate.ts           # animate() — the single-call front door (HEAVY)
+│   ├── motion-path.ts       # MotionPath — offset-distance over an offset-path (HEAVY)
+│   ├── draw-svg.ts          # DrawSVG — stroke-dashoffset line drawing (HEAVY)
+│   ├── animations.ts        # 30+ presets (HEAVY — `presets` on loadAnimationEngine())
+│   ├── numeric.ts           # NumericAnimation — zero-alloc keyframe interpolation
+│   ├── smooth.ts            # SmoothProgress — exponential smoothing
+│   ├── spring.ts            # SpringProgress — analytic spring solver
+│   ├── springLinearStops.ts # spring → CSS linear() stop string
+│   ├── springTimingFunction.ts # spring → typed Easing (.fn + .css twin)
+│   ├── morph.ts             # ElementMorph — rect-to-rect transform interpolation
+│   ├── timeline.ts          # Timeline, ScrollTimeline, ManualTimeline (+ native bridge)
+│   ├── playback.ts          # RAFPlayback — THE managed rAF driver
+│   ├── stagger.ts           # stagger — per-index delay distributions
+│   ├── flip.ts              # flip / flipShared — FLIP over ElementMorph
+│   ├── drag.ts              # drag / Draggable — spring-backed pointer drag
+│   ├── decay.ts             # decay / decayRest — frictional glide closed form
+│   ├── sequence.ts          # Sequence — master-playhead orchestrator
+│   ├── easing.ts            # toEasing / resolveEasing — the easing boundary
+│   ├── adapter.ts / waapi.ts / format.ts / constants.ts / utils.ts / internal/
+└── env.d.ts
 
-demo/                    # Vue 3 demo apps
-├── @/                   # Shared: animation controls, shadcn-vue UI, styles
-├── cube/                # 3D cube + AnimationGroup + matrix editor (default demo)
-├── simple/              # Minimal single-animation example
-├── square/              # Custom transform function
-├── amiga/               # 3D animated sphere (Three.js)
-├── playground/          # Asset playground: drag-and-drop viewport with preset animation binding
-├── balls/               # Vanilla JS: CSS vars + staggered animations
-├── boxes/               # Vanilla JS: matrix3d transforms
-└── bench/               # Performance benchmarks (rAF vs CSS vs WAAPI)
+demo/                        # Vue 3 demo apps (see demo/CLAUDE.md)
+├── @/                       # Shared editor shell, composables, UI, styles
+├── app/                     # Multi-scene demo SPA — the deployed demo
+├── cube/                    # 3D cube + AnimationGroup + matrix editor
+├── square/                  # Custom transform function
+├── amiga/                   # 3D animated sphere (Three.js)
+├── easing/                  # Easing editor
+├── motion-path/             # MotionPath scene
+├── sequence/                # Sequence orchestration scene
+├── spring/                  # Spring physics scene
+└── playground/              # Asset playground
 
-test/                    # Vitest (jsdom) — 15 suites, 261 tests
-bench/                   # Vitest benchmarks — 3 suites
+test/                        # Vitest suites (jsdom)
+bench/                       # Vitest benchmarks
 ```
 
 ## Animation
@@ -131,6 +146,8 @@ The `Animation` object drives `CSSKeyframesAnimation` and `AnimationGroup`. It's
 - `colorSpace`: color interpolation space (default: `oklab`)
 - `hueMethod`: hue interpolation method for cylindrical color spaces (optional)
 - `useWAAPI`: delegate to Web Animations API when eligible (default: `true`)
+
+Validation is fail-explicit: a malformed option — a negative `duration`, an unknown `direction` — throws a typed `AnimationOptionError` naming the option and the offending value.
 
 ### The transform function
 
@@ -204,6 +221,79 @@ const kf3 = { start: "100%", vars: { x: 0, y: 1 } };
 ```
 
 `kf2` gets `y: 0` from `kf1`. This lets you specify keyframes loosely.
+
+### The dynamic engine — `loadAnimationEngine()`
+
+The package splits along a static/dynamic boundary (see [tree-shaking](#baseline-tree-shaking--reduced-motion)). The classes above — `Animation`, `CSSKeyframesAnimation`, `AnimationGroup` — are the **heavy** tier: they carry the CSS parser and `@mkbabb/value.js`, and their runtime constructors are reached **only** through `loadAnimationEngine()`, one awaited dynamic import:
+
+```ts run
+import { loadAnimationEngine } from "@mkbabb/keyframes.js";
+
+// ONE await loads the CSS engine (and value.js with it); repeat calls
+// resolve from the module cache. Light-only consumers never pay this.
+const { CSSKeyframesAnimation, presets } = await loadAnimationEngine();
+
+const anim = presets.fadeIn({ duration: 200 });
+anim.setTargets(element);
+await anim.play();
+```
+
+The engine surface (`AnimationEngine`): `Animation`, `CSSKeyframesAnimation`, `AnimationGroup`, `getAnimationId`, `getTimingFunction`, `resolveKeyframes`, `animate`, `MotionPath`/`fromMotionPath`, `DrawSVG`/`fromDrawSVG`, `presets`, and the option constants `DIRECTIONS`, `FILL_MODES`, `defaultOptions`, `defaultLayerConfig`. The **type** surface stays on the static barrel — `import type { Animation } from "@mkbabb/keyframes.js"` costs no runtime edge.
+
+### `animate`
+
+The single-call front door: construct + target + play in one call, dispatched on the **shape** of the input. The returned `CSSKeyframesAnimation` is the control handle — `.pause()` / `.play()` / `.stop()` / `await handle.finished`.
+
+```ts run
+const { animate } = await loadAnimationEngine();
+
+const fade = animate(box, { "0%": { opacity: 0 }, "100%": { opacity: 1 } }, { duration: 200 });
+await fade.finished;
+
+// Dispatch on the input's shape:
+animate(box, `from { opacity: 0 } to { opacity: 1 }`, { autoPlay: false }); // CSS string     → fromString
+animate(box, [{ opacity: 0 }, { opacity: 1 }], { autoPlay: false });        // vars array     → fromVars
+animate(box, { path: "path('M 0 0 H 100')" }, { autoPlay: false });         // MotionPath spec → fromMotionPath
+```
+
+Options: every [`AnimationOptions`](#animationoptions) key, plus `transform` (a custom renderer forwarded to the `from*` factory) and `autoPlay` (default `true`; `false` returns a constructed, targeted, not-yet-playing handle).
+
+### `MotionPath`
+
+CSS-native path motion: sweep `offset-distance` from → to over an author `offset-path`. The browser owns the geometry — keyframes interpolates one scalar — so the sweep is WAAPI-eligible and runs on the compositor thread where possible.
+
+```ts run
+const { fromMotionPath, MotionPath } = await loadAnimationEngine();
+
+const along = fromMotionPath(box, {
+    path: "path('M 0 0 Q 100 -100 200 0')",
+    rotate: "auto", // offset-rotate — face along the path
+    duration: 200,
+    autoPlay: false,
+});
+await along.play();
+
+new MotionPath(card, { path: "path('M 0 0 H 200')", autoPlay: false }); // class form
+```
+
+Options: `path` (required — any `offset-path` value: `path()`, `ray()`, `url(#id)`, a basic shape), `from` (default `"0%"`), `to` (default `"100%"`), `rotate` (a static `offset-rotate`), `autoPlay`, plus every `AnimationOptions` key.
+
+### `DrawSVG`
+
+CSS-native SVG line drawing: ONE `getTotalLength()` read sets `stroke-dasharray` to the path length; the animation sweeps `stroke-dashoffset` `L → 0`, so the stroke draws in. A bare `<length>` — WAAPI-eligible, the simplest compositor-thread shape.
+
+```ts run
+const { fromDrawSVG, DrawSVG } = await loadAnimationEngine();
+
+const draw = fromDrawSVG(pathEl, { duration: 200, autoPlay: false });
+await draw.play();
+
+// Erase instead — sweep 100% → 0% (percent strings, or 0..1 fractions):
+fromDrawSVG(pathEl, { from: "100%", to: "0%", autoPlay: false });
+new DrawSVG(pathEl, { autoPlay: false }); // class form; `.finished` resolves on completion
+```
+
+Options: `from`/`to` (`"0%"`–`"100%"` strings or `0`–`1` numbers; default draw-in `0% → 100%`), `autoPlay`, plus every `AnimationOptions` key. The target must be SVG geometry (`<path>`, `<line>`, `<circle>`, …) exposing `getTotalLength()`.
 
 ## `CSSKeyframesAnimation`
 
@@ -280,6 +370,8 @@ Layer configuration per animation: `zIndex`, `weight`, `blendMode`, `enabled`, `
 
 The group manages its own `requestAnimationFrame` loop and marks child animations as `managed`.
 
+`AnimationGroup` (parallel children, blended per-frame) and [`Sequence`](#sequence) (children positioned along a master clock) are the production realization of Web Animations Level 2's `GroupEffect`/`SequenceEffect` model — see [`Sequence`](#sequence) for the correspondence table.
+
 ## Presets
 
 30+ ready-to-use animations in [`animations.ts`](src/animation/animations.ts). All return `CSSKeyframesAnimation` instances and accept optional `InputAnimationOptions`. Each builds a value.js-bearing `CSSKeyframesAnimation`, so the presets ride the heavy dynamic boundary (the `presets` namespace on `loadAnimationEngine()`) rather than the value.js-free static barrel:
@@ -332,11 +424,16 @@ Off-DOM (SSR / Node) the check is a no-op and animations proceed normally.
 
 The library also ships general-purpose interpolation primitives, decoupled from CSS and the DOM. These compose into a pipeline: `timeline → progress → interpolator → values → apply`.
 
+Everything in this section lives on the **light static barrel** — `import { NumericAnimation, SpringProgress, … } from "@mkbabb/keyframes.js"` — and carries zero static value.js edge (see [tree-shaking](#baseline-tree-shaking--reduced-motion)). Two conventions hold throughout:
+
+- **Easing is callable.** Every light primitive takes a `TimingFunction` (`t => t'`) or a typed `Easing` — `toEasing` normalizes a bare callable to the typed shape, synchronously. A string easing *name* throws an `UnknownEasingError` — resolve it once, up front: `const easing = await resolveEasing("easeOutCubic")`.
+- **Every snippet executes.** Each example below runs verbatim against the built package in CI (`npm run proof:readme-runs`); `// =>` comments are asserted results, not aspirations.
+
 ### `NumericAnimation`
 
 Keyframe interpolation over plain `{key: number}` objects. Zero-allocation hot path — returns the same object reference each call. Two usage modes: stateless `.at()` queries, or managed `.play()` with rAF-driven playback.
 
-```ts
+```ts run
 // Stateless — drive from your own render loop
 const anim = new NumericAnimation([
     { x: 0, y: 0, opacity: 0 },
@@ -344,85 +441,320 @@ const anim = new NumericAnimation([
 ]);
 anim.at(0.5); // => { x: 50, y: 100, opacity: 0.5 }
 
-// Managed — rAF playback with per-frame callback
-const anim = new NumericAnimation(
-    [{ angle: 0 }, { angle: Math.PI * 4 }],
-    { duration: 2500, timingFunction: easeOutCubic },
-);
-await anim.play(({ angle }) => {
+// Managed — rAF playback with a per-frame callback; a string easing
+// name resolves once, up front:
+const easing = await resolveEasing("easeOutCubic");
+const dial = new NumericAnimation([{ angle: 0 }, { angle: Math.PI * 4 }], {
+    duration: 250,
+    timingFunction: easing,
+});
+await dial.play(({ angle }) => {
     ctx.clearRect(0, 0, w, h);
     drawDial(angle);
 });
 ```
 
-Options: `duration` (ms, required for `.play()`), `timingFunction`, `positions` (explicit keyframe positions as percentages). Call `.stop()` to cancel a running playback — the play promise resolves immediately.
+Options: `duration` (ms, required for `.play()`), `timingFunction` (callable or `Easing` — string names throw; resolve via `resolveEasing`), `positions` (explicit keyframe positions as percentages), `respectReducedMotion`. Call `.stop()` to cancel a running playback — the play promise resolves immediately.
 
 ### `SmoothProgress`
 
-Exponential smoothing for progress values. Frame-rate independent via `tickDt(dt)`.
+Exponential smoothing for progress values. Frame-rate independent via `tickDt(dt)` — the canonical millisecond step, the same `Tickable` surface [`RAFPlayback.drive`](#rafplayback) owns.
 
-```ts
+```ts run
 const smooth = new SmoothProgress({ damping: 0.15 });
 smooth.setTarget(1);
-smooth.tick();       // asymptotically approaches 1
+smooth.tickDt(16.7); // one frame step — asymptotically approaches the target
 smooth.snap();       // instantly converge
+smooth.current; // => 1
+
+// Managed — the smoother owns a rAF loop until it settles:
+smooth.setTarget(0);
+smooth.play((value) => element.style.setProperty("--p", String(value)));
+smooth.stop();
 ```
 
-Options: `damping` (lerp factor, default 0.1), `snapThreshold` (auto-snap distance, default 0.001), `targetEpsilon` (ignore target changes smaller than this — filters scroll jitter, default 0), `initial`, `clamp`.
+Options: `damping` (lerp factor, default 0.1), `snapThreshold` (auto-snap distance, default 0.001), `targetEpsilon` (ignore target changes smaller than this — filters scroll jitter, default 0), `initial`, `clamp` (default `true` — constrain to `[0, 1]`), `respectReducedMotion`. Reads: `.current`, `.target`, `.settled`.
 
 ### `ElementMorph`
 
 Interpolates position and scale between two DOM elements (or rects). Produces CSS transforms. Stateless `.apply()` or managed `.play()`.
 
-```ts
+```ts run
 // Stateless
 const morph = new ElementMorph(sourceEl, targetEl);
-morph.apply(element, progress); // writes transform + transformOrigin
+morph.apply(element, 0.5); // writes transform + transformOrigin at progress 0.5
 
-// Managed playback
-const morph = new ElementMorph(sourceEl, targetEl, {
-    duration: 400,
-    timingFunction: easeOutCubic,
+// Managed playback — feed it a spring for the canonical overshoot
+const springy = new ElementMorph(sourceEl, targetEl, {
+    duration: 250,
+    timingFunction: springTimingFunction({ response: 0.4, dampingFraction: 0.7 }),
 });
-await morph.play(element);
+await springy.play(element);
 ```
 
-Re-measures on demand via `morph.measure(from, to)`. Call `.stop()` to cancel.
+Re-measures on demand via `morph.measure(from, to)` (elements or `{ x, y, width, height }` rects). Call `.stop()` to cancel. Options: `duration`, `timingFunction` (callable or `Easing`), `transformOrigin` (default `"top left"`).
 
 ### `Timeline`
 
 Abstract progress driver. Pipeline: `sample() → clamp → easing → boundary snap → smoothing`.
 
-```ts
+```ts run
+const easing = await resolveEasing("easeOutCubic");
 const timeline = new ScrollTimeline({
     threshold: 0.35,
-    easing: easeOutCubic,
+    easing,
     boundaryEpsilon: 0.005,
     smoothing: { damping: 0.15, targetEpsilon: 0.002 },
 });
 
 function update() {
-    const p = timeline.tick();
+    element.style.opacity = String(timeline.tick());
     requestAnimationFrame(update);
 }
+
+// ManualTimeline — externally-set value → progress; smoothing off by default
+const manual = new ManualTimeline();
+manual.set(0.25);
+manual.tick(); // => 0.25
 ```
 
-Options: `easing`, `smoothing` (`SmoothProgressOptions` or `false`), `boundaryEpsilon` (snap eased values within this distance of 0/1 to the boundary — prevents scroll-endpoint oscillation, default 0.005).
+Options: `easing` (callable or `Easing`), `smoothing` (`SmoothProgressOptions` or `false`), `boundaryEpsilon` (snap eased values within this distance of 0/1 to the boundary — prevents scroll-endpoint oscillation, default 0.005).
 
 Subclasses:
 - **`ScrollTimeline`** — scroll position → progress. `threshold` sets viewport fraction for full progress (default 0.35). Injectable `getScrollY`/`getViewportHeight`.
 - **`ManualTimeline`** — externally set value → progress. Smoothing off by default.
 
+Where the platform ships native scroll-driven timelines, `createNativeTimeline({ kind: "scroll" | "view", … })` feature-detects and returns a native `AnimationTimeline` (or `null`) as an additive fast lane — the JS sampler stays the general fallback.
+
 See [`docs/scroll-morph.md`](docs/scroll-morph.md) for an architecture guide on building jitter-free scroll-driven morph animations.
+
+### `SpringProgress`
+
+A live-target spring tracker — the physics core under [`drag`](#drag--draggable). The solver integrates the damped harmonic oscillator **analytically** between target changes; setting `target` mid-flight re-seats the closed-form solution from the current `(value, velocity)`, so the trajectory never jumps. API mirrors SwiftUI's `.spring(response:dampingFraction:)`.
+
+```ts run
+const spring = new SpringProgress({ response: 0.5, dampingFraction: 0.86 });
+spring.target = 1;   // re-seat the closed form — continuous, no jump
+spring.tickDt(16.7); // advance one frame (milliseconds); returns the new value
+spring.settled; // => false
+
+// Managed — the spring owns a rAF loop until it settles; a new target
+// while playing auto-resumes the loop:
+spring.play((value, velocity) => {
+    element.style.transform = `translateX(${value * 100}px)`;
+});
+spring.target = 0.5;
+spring.stop();
+
+// The time-based surface (Motion's idiom): perceptual duration + bounce
+const bouncy = SpringProgress.fromDuration({ visualDuration: 0.4, bounce: 0.3 });
+bouncy.settled; // => true
+```
+
+Options: `response` (oscillation period in seconds, default 0.5), `dampingFraction` (ζ — `1` critically damped, `< 1` rings, `> 1` overdamped; default 0.86), `initial`, `initialVelocity` (units/s), `settleThreshold` / `velocitySettleThreshold` (default `1e-3`), `respectReducedMotion`. Reads: `.value`, `.velocity`, `.target`, `.settled`; plus `subscribe(fn)` → unsubscribe, `reset(value?, velocity?)`, `snap()`, `dispose()`. `SpringProgress.fromDuration({ visualDuration | duration, bounce })` maps `response = visualDuration`, `dampingFraction = 1 − bounce`.
+
+### `springLinearStops` & `springTimingFunction`
+
+One analytic solver, two emissions. `springLinearStops` samples a `0 → 1` spring into a CSS `linear()` timing-function string (stylesheets, design tokens); `springTimingFunction` samples the same curve into a typed `Easing` — `.fn` is the callable for JS interpolation, `.css` its identical `linear()` twin, so a WAAPI delegation runs the true overshoot on the compositor (see [Web Animations API](#web-animations-api)).
+
+```ts run
+// CSS: a linear() string for transition/animation-timing-function
+const stops = springLinearStops({ response: 0.5, dampingFraction: 0.45 });
+stops.startsWith("linear(0, "); // => true
+stops.endsWith(", 1)"); // => true
+
+// JS: a typed Easing — feed it to NumericAnimation / ElementMorph / Animation
+const spring = springTimingFunction({ response: 0.5, dampingFraction: 0.45 });
+spring.fn(0); // => 0
+spring.fn(1); // => 1
+// ζ < 1 overshoots past 1 mid-curve — the whole point:
+Math.max(...Array.from({ length: 101 }, (_, i) => spring.fn(i / 100))) > 1; // => true
+// Same solver, same preset, ONE curve:
+spring.css === springLinearStops({ response: 0.5, dampingFraction: 0.45 }); // => true
+```
+
+Options (both): `response`, `dampingFraction`, `sampleCount` (default 24 stops / 64 samples), `settleThreshold` (default `1e-3`), `maxDuration` (default `4 × response` — raise it for very underdamped springs, ζ < 0.3).
+
+### `RAFPlayback`
+
+THE managed rAF driver — every loop in the engine rides this one generation-guarded core, through three entry shapes: `play(duration, onTick)` (progress loop), `drive(tickable)` (step a `Tickable` — `SpringProgress`, `SmoothProgress` — until it settles), and `loop(cb)` (self-rescheduling async frame loop).
+
+```ts run
+const playback = new RAFPlayback();
+
+// Duration loop — progress 0 → 1 over 200ms; resolves on completion or stop():
+await playback.play(200, (progress) => {
+    element.style.opacity = String(progress);
+});
+
+// Bind-proof by construction: the control surface is arrow class-fields, so a
+// destructured method keeps its receiver — no .bind(), ever:
+const { stop } = playback;
+playback.play(10_000, () => {});
+stop(); // safe — the pending play promise resolves immediately
+playback.running; // => false
+
+// Settle loop — drive any Tickable to rest:
+const spring = new SpringProgress({ response: 0.3 });
+spring.target = 1;
+playback.drive(spring, () => {
+    element.style.transform = `translateX(${spring.value * 100}px)`;
+});
+playback.stop();
+```
+
+Notes: `play(duration, onTick, { respectReducedMotion })` snaps to `onTick(1)` in a single paint under `prefers-reduced-motion: reduce` — the shared reduced-motion gate the light primitives route through. `drive` is idempotent (re-arm freely on every target re-seat; the loop auto-stops on settle). `loop(cb)` reschedules only after the (possibly async) callback completes, so a slow frame never double-schedules. `.running` reports loop ownership.
+
+### `stagger`
+
+A construction-time per-index delay generator — a pure distribution, zero per-frame cost. Returns `(index, total) => delayMs` with a `.delays(total)` materializer.
+
+```ts run
+const delay = stagger(5, { each: 50, from: "center" });
+delay.delays(5); // => [100, 50, 0, 50, 100]
+delay(0, 5); // => 100
+
+// Reshape the distribution with an easing (resolved up front):
+const eased = stagger(4, { each: 100, ease: await resolveEasing("easeOutCubic") });
+eased(3, 4); // => 300
+```
+
+Options: `each` (per-step ms, default 100), `from` (`"first"` | `"last"` | `"center"` | `"edges"` | an index; default `"first"`), `ease` (callable or `Easing`; string names throw). Feed the delays to `AnimationGroup` per-child `delay`, `setTimeout`, or `animation-delay` — the generator is just arithmetic.
+
+#### Recipe — structural stagger, the CSS way
+
+The genre's text-reveal tools (GSAP SplitText) split text into per-letter DOM nodes. **Don't split text into letters**: letter-splitting produces non-functional accessibility markup across screen-reader/browser pairs (a 2026-documented hazard — `aria-label` is not honored on generic wrapper spans). keyframes.js takes the structural position: *we don't split your DOM; we stagger and spring over structure you own* — a visual-only reveal that never changes reading or tab order.
+
+- Reveal at **word or line** granularity, over markup you author: `aria-label` on a true container, `aria-hidden` fragments inside (or a visually-hidden duplicate) — the mitigations that actually work.
+- Drive the reveal with the shipped `stagger` + `SpringProgress` — the library performs no DOM mutation.
+- Perceptual color across the reveal is free — the engine's default `oklab` interpolation already applies.
+
+```ts run
+// Markup you own:
+//   <h1 aria-label="Spring forward">
+//     <span aria-hidden="true">Spring</span> <span aria-hidden="true">forward</span>
+//   </h1>
+const words = Array.from(heading.querySelectorAll<HTMLElement>("[aria-hidden]"));
+const delay = stagger(words.length, { each: 60 });
+
+words.forEach((word, i) => {
+    setTimeout(() => {
+        const spring = new SpringProgress({ response: 0.4, dampingFraction: 0.6 });
+        spring.target = 1;
+        spring.play((v) => {
+            word.style.opacity = String(Math.min(1, v));
+            word.style.transform = `translateY(${(1 - v) * 0.5}em)`;
+        });
+    }, delay(i, words.length));
+});
+```
+
+Where `sibling-index()` is available, the same distribution emits as zero-runtime CSS — the progressive-enhancement path, not the default: `sibling-index()` is **not yet Baseline** (expected mid–late 2026), cannot appear inside `@keyframes`, and cannot carry the spring curve (pair it with a [`springLinearStops`](#springlinearstops--springtimingfunction) `linear()` timing function for that).
+
+```css
+/* CSS-only structural stagger — progressive enhancement */
+h1 > span {
+    animation: word-in 600ms both;
+    animation-delay: calc(sibling-index() * 60ms);
+}
+```
+
+### `flip` / `flipShared`
+
+FLIP (First-Last-Invert-Play) layout animation over [`ElementMorph`](#elementmorph). `flip` animates a layout change on one element: measure (First) → `mutate()` (Last) → invert + play, with the two layout reads batched (no read/write thrash). `flipShared` animates element `a` onto element `b`'s rect — the shared-element / `layoutId` idiom.
+
+```ts run
+// FLIP a layout change — class toggle, reparent, any synchronous mutation:
+await flip(card, () => card.classList.toggle("expanded"), { duration: 200 });
+
+// Shared-element FLIP — animate `a` onto `b`'s rect; springs welcome:
+await flipShared(a, b, {
+    duration: 200,
+    timingFunction: springTimingFunction({ response: 0.3, dampingFraction: 0.8 }),
+});
+```
+
+Options: `duration` (default 300), `timingFunction` (callable or `Easing` — `springTimingFunction(…)` makes the FLIP springy), `transformOrigin` (default `"top left"`). Both return the play promise.
+
+### `drag` / `Draggable`
+
+A one-axis spring-backed drag: pointer capture follows the pointer as a live spring target; release hands the sampled pointer velocity (a rolling 100ms window) to the spring's re-seat, so the fling leaves the hand C¹-continuous — at exactly the flick speed. A 2-D drag composes two `Draggable`s, one per axis.
+
+```ts run
+const draggable = drag(element, {
+    axis: "x",
+    springOptions: { response: 0.3, dampingFraction: 0.9 },
+});
+
+const unsubscribe = draggable.subscribe((value, velocity) => {
+    element.style.transform = `translateX(${value}px)`;
+});
+
+draggable.dragging; // => false
+unsubscribe();
+draggable.detach(); // remove listeners; `.dispose()` tears down spring and all
+```
+
+Options: `axis` (`"x"` | `"y"`, default `"x"`), `transform` (map a client px coordinate → your value domain), `spring` (bring your own `SpringProgress`) or `springOptions`, `velocityWindow` (ms, default 100). Reads: `.value`, `.velocity`, `.dragging`, `.settled`, and `.spring` (the physics core). `drag(element, options)` is the one-call form of `new Draggable(options)` + `.attach(element)`.
+
+### `decay` / `decayRest`
+
+Frictional decay (inertial glide) — the closed-form sibling of the spring, for the fling with no target: velocity bleeds off under friction (`v' = −k·v`), coasting toward a finite rest point. `decay` returns a pure sampler; `decayRest` returns just the projected endpoint — the snap-target / paginated-fling decision without running a loop.
+
+```ts run
+const glide = decay({ initial: 0, velocity: 1200, friction: 5 });
+glide(0); // => { value: 0, velocity: 1200 }
+glide(0.25).value < 240; // => true
+
+// The projected endpoint, x0 + v0/k — no loop needed:
+decayRest({ velocity: 1200, friction: 5 }); // => 240
+```
+
+Options: `velocity` (required — release speed, units/s), `initial` (default 0), `friction` (1/s, strictly positive — larger = shorter glide; default 5). The sampler takes `t` in **seconds** (the spring's native clock).
+
+### `Sequence`
+
+The temporal orchestrator: position many animations along ONE master clock and drive them with a GSAP-class transport. Where [`AnimationGroup`](#animationgroup) composites many animations on one target per frame (spatial), `Sequence` maps a master playhead onto each child's local clock (temporal) — they compose, not compete. `Sequence` itself is light; the children arrive from the heavy engine.
+
+```ts run
+const { CSSKeyframesAnimation } = await loadAnimationEngine();
+
+const fade = new CSSKeyframesAnimation({ duration: 300 })
+    .fromString(`from { opacity: 0; } to { opacity: 1; }`)
+    .setTargets(box);
+const slide = new CSSKeyframesAnimation({ duration: 400 })
+    .fromString(`from { transform: translateX(-100px); } to { transform: translateX(0); }`)
+    .setTargets(card);
+
+const seq = new Sequence()
+    .add(fade)            // auto-append at 0
+    .add(slide, "-=100"); // overlap the previous segment by 100ms
+
+seq.duration; // => 600
+seq.seek(300);     // scrub — master playhead → each child's local clock
+await seq.play();  // the rAF transport drives the SAME map: play ≡ seek
+seq.timeScale(2).repeat(2).yoyo(); // transport persists across plays
+```
+
+Positions: a number (absolute ms), `"+=n"` / `"-=n"` (relative to the insertion cursor), or a label registered via `.label(name, at)` (unknown labels throw). Transport: `play()` / `pause()` / `resume()` / `stop()`, `seek(ms)`, `progress` (get/set, `[0, 1]`), `timeScale(n)`, `reverse()`, `repeat(n | Infinity)`, `yoyo()`, `await seq.finished`. Options: `respectReducedMotion` (snap to the rest frame in one paint).
+
+**Web Animations Level 2, in production.** `AnimationGroup` and `Sequence` are the production realization of WAAPI Level 2's `GroupEffect`/`SequenceEffect` model — grouping semantics no browser has ever shipped (polyfill-only, still a Working Draft, with `SequenceEffect` proposed for deletion upstream — [csswg-drafts#9557](https://github.com/w3c/csswg-drafts/issues/9557)) — running over real WAAPI children where eligible, with weighted blending and a transport the spec lacks. The correspondence is named, not mimicked: keyframes.js does not mirror the unsettled L2 class shapes, polyfill the missing native API, or pin its surface to class names the CSSWG is actively reworking.
+
+| Web Animations Level 2 concept | keyframes.js surface |
+| --- | --- |
+| `GroupEffect` (parallel children) | [`AnimationGroup`](#animationgroup) |
+| `SequenceEffect` / proposed `EffectTiming` `align: sequence` | `Sequence` auto-append |
+| `EffectTiming` `align: start` | `Sequence` `at: 0` |
 
 ## Build & Development
 
 ```sh
-npm run build        # library → dist/keyframes.js + keyframes.cjs + keyframes.d.ts
-npm run gh-pages     # demo → dist/
-npm run dev          # vite dev server on :8080 (cube demo)
+npm run build        # library (ESM) → dist/keyframes.js + lazy engine chunks + keyframes.d.ts
+npm run gh-pages     # demo (multi-scene SPA, demo/app) → dist/gh-pages/
+npm run dev          # vite dev server (demo/app)
 npm test             # vitest (jsdom)
 npm run bench        # vitest bench
+npm run proof:readme-runs  # execute every runnable README snippet against the built dist/
 ```
 
 **Dependencies**: [`@mkbabb/value.js`](https://github.com/mkbabb/value.js) (ValueUnit, Color, math, parsing, normalization) and [`@mkbabb/parse-that`](https://github.com/mkbabb/parse-that) (parser combinators).

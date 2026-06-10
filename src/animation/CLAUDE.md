@@ -9,18 +9,22 @@ Core animation engine. Library entry point is `index.ts` → `dist/keyframes.js`
 - **LIGHT (static)** — the physics/interpolation engines: `SpringProgress`,
   `SmoothProgress`, `NumericAnimation`, `ElementMorph`, the `Timeline` family,
   `RAFPlayback`, the spring-stop helpers (`springLinearStops`,
-  `springTimingFunction`), and the easing factories (`resolveEasing`,
-  `toEasing`). None carries a static import edge to `@mkbabb/value.js`: they
+  `springTimingFunction`), the orchestration tier (`stagger`, `flip`/`flipShared`,
+  `drag`/`Draggable`, `decay`/`decayRest`, `Sequence`), and the easing factories
+  (`resolveEasing`, `toEasing`). None carries a static import edge to `@mkbabb/value.js`: they
   read leaf helpers (rAF + clamp/lerp/scale) from `internal/leaves.ts` and
   accept easing as a callable `TimingFunction` or a typed `Easing`
   (`{ fn, css? }`); a string easing NAME is resolved once, up front, via
   `await resolveEasing(name)` — the one dynamic edge.
-- **HEAVY (dynamic)** — the CSS-keyframe parsing engine in `engine.ts`:
-  `Animation`, `CSSKeyframesAnimation`, `AnimationGroup`, `getAnimationId`,
-  `getTimingFunction`, `resolveKeyframes`, and the option constants. These
-  genuinely need value.js and are reached ONLY through `loadAnimationEngine()`
-  — an `await import("./engine")`. The barrel holds no static edge to that
-  module, so a light-only consumer never pulls value.js (or the parser) in.
+- **HEAVY (dynamic)** — the CSS-keyframe parsing engine in `engine.ts` plus the
+  front doors that construct it: `Animation`, `CSSKeyframesAnimation`,
+  `AnimationGroup`, `getAnimationId`, `getTimingFunction`, `resolveKeyframes`,
+  `animate`, `MotionPath`/`fromMotionPath`, `DrawSVG`/`fromDrawSVG`, the
+  `presets` namespace, and the option constants. These genuinely need value.js
+  and are reached ONLY through `loadAnimationEngine()` — an `await
+  import("./engine")` (merged with `./animate`, `./motion-path`, `./draw-svg`,
+  `./animations` via `Promise.all`). The barrel holds no static edge to those
+  modules, so a light-only consumer never pulls value.js (or the parser) in.
 
 Types stay whole on the static barrel (`import type` is erased under
 `verbatimModuleSyntax`). The boundary is gated in CI by `proof:boundary`
@@ -35,20 +39,29 @@ dormant static specifiers.
 ```
 animation/
 ├── index.ts         # package barrel — light exports + loadAnimationEngine() (the boundary)
-├── engine.ts        # HEAVY: Animation, CSSKeyframesAnimation, getAnimationId, getTimingFunction re-exports
+├── engine.ts        # HEAVY: defines Animation + CSSKeyframesAnimation + getAnimationId; re-exports AnimationGroup, getTimingFunction, resolveKeyframes
+├── frame-compiler.ts # FrameCompiler — the template→compiled frame pipeline split out of Animation (no run-state; pure value-in → frames-out)
 ├── group.ts         # AnimationGroup — multi-animation compositor (layer blending, scheduler.yield, PRM snap)
 ├── waapi.ts         # WAAPI eligibility + delegation (emits a spring linear() when the easing carries one)
 ├── adapter.ts       # resolveKeyframes — input → ResolvedKeyframes
+├── animate.ts       # animate() — single-call front door: shape dispatch + auto-target + auto-play (HEAVY: constructs CSSKeyframesAnimation)
+├── motion-path.ts   # MotionPath / fromMotionPath — offset-distance sweep over an author offset-path; browser owns the geometry (HEAVY)
+├── draw-svg.ts      # DrawSVG / fromDrawSVG — stroke-dashoffset line drawing over ONE getTotalLength() read (HEAVY)
 ├── numeric.ts       # NumericAnimation — keyframe interp over {key: number} objects
 ├── smooth.ts        # SmoothProgress — exponential smoothing for progress values
 ├── spring.ts        # SpringProgress — iOS-style spring physics tracker
 ├── springLinearStops.ts    # spring → CSS linear() stops string
 ├── springTimingFunction.ts # spring → typed Easing ({ fn, css: linear() } — one curve, two forms)
 ├── morph.ts         # ElementMorph — position/scale interp between DOM rects (composes NumericAnimation)
-├── timeline.ts      # Timeline (abstract), ScrollTimeline, ManualTimeline
+├── flip.ts          # flip / flipShared — FLIP (First-Last-Invert-Play) composition over ElementMorph (LIGHT)
+├── drag.ts          # drag / Draggable — pointer-capture drag/fling input layer over SpringProgress (LIGHT)
+├── decay.ts         # decay / decayRest — closed-form frictional glide x(t) = x0 + (v0/k)(1 − e^(−kt)) (LIGHT)
+├── stagger.ts       # stagger — pure construction-time per-index delay generator (LIGHT)
+├── sequence.ts      # Sequence — master-playhead temporal orchestrator (positions children along one clock; beside AnimationGroup, not over it)
+├── timeline.ts      # Timeline (abstract), ScrollTimeline, ManualTimeline, createNativeTimeline
 ├── playback.ts      # RAFPlayback — THE managed rAF driver (play/drive/loop) every loop rides
 ├── easing.ts        # resolveEasing(name) async factory + toEasing normalizer (light)
-├── animations.ts    # 30+ preset animations (fadeIn, bounce, shake, spinner, etc.)
+├── animations.ts    # preset animations (fadeIn, bounce, shake, spinner, …) + the preset taxonomy groups (enter/exit/attention/loop)
 ├── constants.ts     # Types + defaults (Easing, AnimationOptions, Vars, AnimationFrame, etc.)
 ├── utils.ts         # Frame calculation, value interpolation, getTimingFunction (CSS Easing L1 complete)
 ├── format.ts        # Animation → CSS string serialization (Easing.css faithful)
@@ -129,6 +142,41 @@ fast-path reschedules it inline — zero per-frame promise/microtask cost;
 sleep (ordering locked by `proof:event-ordering`). Exported so consumers
 driving their own light playback get the same gate.
 
+### The orchestration tier (`stagger.ts`, `flip.ts`, `drag.ts`, `decay.ts`, `sequence.ts`)
+All LIGHT (zero static value.js edge), composed over the engines above:
+- **`stagger(count, opts)`** (`stagger.ts`) — construction-time per-index delay
+  distribution; returns a `(i, total) => ms` generator handed to the substrate
+  that already carries delay (e.g. `AnimationGroup` per-child options).
+- **`flip(el, mutate, opts)` / `flipShared`** (`flip.ts`) — FLIP
+  (First-Last-Invert-Play) over `ElementMorph` + `RAFPlayback`; batched
+  read-mutate-read, no interleaved layout thrash.
+- **`drag` / `Draggable`** (`drag.ts`) — pointer-capture drag/fling input layer
+  over `SpringProgress`; release velocity re-seats the closed-form spring so
+  the fling is continuous with the gesture. Framework-free; SSR-safe until
+  `attach()`.
+- **`decay` / `decayRest`** (`decay.ts`) — closed-form frictional glide
+  `x(t) = x0 + (v0/k)(1 − e^(−kt))`; `decayRest` is the projected resting point.
+  Pure math — no rAF, no DOM.
+- **`Sequence`** (`sequence.ts`) — the master-playhead TEMPORAL orchestrator:
+  positions many child animations along one clock (GSAP-Timeline-class
+  sequencing). Sits BESIDE `AnimationGroup` (the SPATIAL per-frame blender),
+  never replaces it; the name `Timeline` was already taken by the progress
+  drivers (booked decision in the module header).
+
+### The heavy front doors (`animate.ts`, `motion-path.ts`, `draw-svg.ts`)
+HEAVY (each statically imports `./engine`, so they ride `loadAnimationEngine()`):
+- **`animate(target, input, opts?)`** (`animate.ts`) — single-call dispatch on
+  the SHAPE of `input` (CSS string / keyframe map / vars array / MotionPath
+  spec) → the right `from*` factory + auto-target + auto-play; returns the
+  constructed animation as the control handle.
+- **`MotionPath` / `fromMotionPath`** (`motion-path.ts`) — sweeps
+  `offset-distance` over an author `offset-path`; the browser owns the
+  geometry, keyframes interpolates the scalar. WAAPI-eligible (the `%` is
+  path-length-relative, exempt from the layout-`%` rejection).
+- **`DrawSVG` / `fromDrawSVG`** (`draw-svg.ts`) — stroke line-drawing:
+  `stroke-dashoffset: L → 0` over `stroke-dasharray: L` from ONE
+  `getTotalLength()` read. WAAPI-eligible unchanged.
+
 ## Boundary ergonomics — `resolveEasing` (`easing.ts`)
 
 The light engines accept easing as a callable `TimingFunction` or a typed
@@ -206,5 +254,5 @@ Defaults: 1000ms duration, 0 delay, 1 iteration, normal direction, forwards fill
 
 ## Dependencies
 
-- `@mkbabb/value.js` — `ValueUnit`, `Color`, the CSS parser, the easing registry, math/easing helpers. Reached by the HEAVY surface only (statically in `engine.ts`/`constants.ts`/`waapi.ts`; never by the light modules).
+- `@mkbabb/value.js` — `ValueUnit`, `Color`, the CSS parser, the easing registry, math/easing helpers. Reached by the HEAVY surface only (static runtime imports in `engine.ts`, `frame-compiler.ts`, `group.ts`, `adapter.ts`, `animations.ts`, `constants.ts`, `format.ts`, `utils.ts`, `waapi.ts`; the barrel's own `import type { Stylesheet }` is erased; never by the light modules — gated by `proof:boundary`).
 - `internal/leaves.ts` — value.js-free leaf copies of `clamp`/`scale`/`lerp` + rAF shims, so the light engines carry no static value.js edge.

@@ -226,6 +226,11 @@ memory rule — *dock/glass-ui fixes go in the glass-ui repo, never patched in t
 
 ## 8. Version + deploy disposition
 
+> **Superseded by:** `docs/tranches/I/impl/I-WZ-verify.md` (the post-close deploy/CI state) +
+> Tranche J. The staleness facts below ("10 commits behind", the live-demo tip, the pending
+> changesets) are close-date history, frozen as written; the changeset question resolves at
+> J.W5 (`.changeset/tranche-j.md`, the honest minor) (J.W5 S6, pointer-only).
+
 **Version: kf is NOT byte-stable vs `4.1.0`.** Unlike H (a pure demo tranche whose library
 surface was unchanged), Tranche I TOUCHES the library: I.W0 changed `src/animation/format.ts` +
 `src/animation/group.ts`, and the value.js floor moved to `^0.11.2`. The library deltas are

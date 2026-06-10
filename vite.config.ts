@@ -281,6 +281,18 @@ export default defineConfig((mode) => {
     if (mode.mode === "production") {
         return {
             ...defaultOptions,
+            // J.W5.S4 (BP-1) — the LIBRARY build copies NO public dir. The
+            // production (lib) mode runs with root = the project root, so
+            // Vite's default `publicDir: "public"` resolved to the repo-root
+            // CF-Pages staging dir (the gitignored `public/_redirects`) and
+            // copied it verbatim into `outDir` (`dist/`) — which is EXACTLY
+            // what `package.json "files": ["dist"]` tarballs, so the routing
+            // relic rode every `npm pack`/publish. The demo builds own their
+            // public dirs (gh-pages: root `demo/app/` → `demo/app/public/`,
+            // outDir `dist/gh-pages/`); the library tarball is code + types
+            // only. The seam fix, not a periodic `rm` — proof:published-
+            // surface clause (a) proves it STAYS out.
+            publicDir: false,
             optimizeDeps: {},
             build: {
                 minify: true,
