@@ -86,7 +86,7 @@
                                         <label :class="['text-mono-small text-muted-foreground cursor-help', isDetailEasing ? 'gold-shimmer' : '']">easing</label>
                                     </IconTooltip>
                                     <IconTooltip text="Edit easing curve">
-                                        <DockIconButton compact title="Edit easing curve" class="easing-edit-btn" @click.stop="onEditIconClick(storedAnimationOptions.animationOptions.timingFunction as string)">
+                                        <DockIconButton compact title="Edit easing curve" class="text-gold" @click.stop="onEditIconClick(storedAnimationOptions.animationOptions.timingFunction as string)">
                                             <Pencil class="icon-sm" />
                                         </DockIconButton>
                                     </IconTooltip>
@@ -345,9 +345,12 @@ onMounted(() => {
     pointer-events: none;
 }
 
-/* Constrain detail panel height so the bezier editor doesn't shift the page */
+/* Constrain detail panel height so the bezier editor doesn't shift the page.
+   J.W7b STY-2 — `50dvh` (dynamic viewport): tracks the real visible height on
+   mobile (no URL-bar over-reservation); identical to 50vh on desktop. The
+   honest host-cap fix, not a scoped override band-aid. */
 .panel-row--detail.panel-row--active > .panel-content {
-    max-height: min(50vh, 480px);
+    max-height: min(50dvh, 480px);
     overflow-y: auto;
 }
 
@@ -362,7 +365,8 @@ onMounted(() => {
    across the shadow boundary; the idiom is GLOBAL (design-idioms.css, unscoped),
    so it reaches `.labeled-field` directly with no `:deep`. */
 
-.easing-edit-btn {
-    color: var(--color-gold);
-}
+/* J.W7b STY-4 — the former `.easing-edit-btn { color: var(--color-gold) }`
+   scoped rule is DELETED: it bypassed the demo-owned `.text-gold` idiom
+   (design-idioms.css) to read the same token. The call site now wears
+   `text-gold` directly — one idiom, one home, identical computed color. */
 </style>

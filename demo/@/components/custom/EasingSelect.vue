@@ -11,7 +11,7 @@
                     <path
                         :d="activeCurvePath"
                         fill="none"
-                        class="stroke-[var(--ppmycota-primary,var(--foreground))]"
+                        class="ppmycota-stroke"
                         stroke-width="0.15"
                         stroke-linecap="round"
                         stroke-linejoin="round"
@@ -47,7 +47,7 @@
                                 <path
                                     :d="getItemPath(item.name)"
                                     fill="none"
-                                    class="stroke-[var(--ppmycota-primary,var(--foreground))]"
+                                    class="ppmycota-stroke"
                                     stroke-width="0.18"
                                     stroke-linecap="round"
                                     stroke-linejoin="round"

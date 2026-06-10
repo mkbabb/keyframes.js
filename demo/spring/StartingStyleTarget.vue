@@ -57,20 +57,26 @@
         </div>
 
         <!-- Preset switch — re-samples the spring, so the artifact + the live
-             transition update in lockstep (same solver, same preset). -->
+             transition update in lockstep (same solver, same preset).
+             J.W7b S1b — the published 3.9.0 `<ToggleChip variant="cell">`
+             (reka Toggle → `aria-pressed` + `data-state="on"`) replaces the
+             hand-rolled `<Button variant="outline">` + scoped active-ring
+             twin (deleted in the same motion). The call-site classes are the
+             pixel-parity consumer configuration (the cells' existing
+             outline-pill geometry/tone + the scene-semantic --color-progress
+             active ring, now off the primitive's data-state seam). -->
         <div class="grid grid-cols-4 gap-2 w-full max-w-3xl">
-            <Button
+            <ToggleChip
                 v-for="p in SPRING_PRESETS"
                 :key="p.name"
-                variant="outline"
-                size="sm"
-                class="h-auto py-1.5 flex flex-col items-center gap-0.5 btn-interactive"
-                :class="{ 'preset-active': isActivePreset(p) }"
-                @click="applyPreset(p)"
+                variant="cell"
+                :model-value="isActivePreset(p)"
+                class="rounded-pill border-none bg-background px-3 py-1.5 h-auto gap-0.5 font-medium leading-normal whitespace-nowrap btn-interactive hover:bg-accent hover:text-accent-foreground data-[state=on]:bg-background data-[state=on]:shadow-[inset_0_0_0_1px_var(--color-progress)]"
+                @update:model-value="applyPreset(p)"
             >
                 <span class="text-small text-foreground capitalize">{{ p.name }}</span>
                 <span class="text-admin-label text-muted-foreground tabular-nums">{{ p.response }} / {{ p.dampingFraction }}</span>
-            </Button>
+            </ToggleChip>
         </div>
     </Card>
 </template>
@@ -78,6 +84,7 @@
 <script setup lang="ts">
 import { computed, inject } from "vue";
 import { Button, Card } from "@mkbabb/glass-ui";
+import { ToggleChip } from "@mkbabb/glass-ui/toggle-chip";
 import { Eye, EyeOff } from "@lucide/vue";
 
 import { useSpringLinearStops } from "./useSpringLinearStops";
@@ -171,10 +178,9 @@ const copyableCss = computed(
     scale: 0.9;
 }
 
-.preset-active {
-    border-color: var(--color-progress);
-    box-shadow: 0 0 0 1px var(--color-progress) inset;
-}
+/* The former scoped active-ring rule is DELETED (J.W7b S1b, no-legacy): the
+   active affordance hangs off the consumed ToggleChip's `data-state="on"`
+   seam, same scene-semantic --color-progress ring via the call-site class. */
 
 .artifact {
     padding: 0.4rem 0.6rem;

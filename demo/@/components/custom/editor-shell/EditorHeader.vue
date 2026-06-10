@@ -86,7 +86,10 @@ function onAnchorClick() {
 
 <style scoped>
 .header-items-wrapper {
-    max-width: 500px;
+    /* J.W7b STY-5 — the expanded-state cap reads the named layout token
+       (design-idioms.css --header-items-max-w, same 500px value) instead of a
+       magic pixel literal; the collapse transition animates to/from it. */
+    max-width: var(--header-items-max-w);
     margin-right: 0.75rem;
     opacity: 1;
     transition:
