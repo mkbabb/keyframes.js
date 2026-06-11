@@ -53,15 +53,29 @@
                                     stroke-linejoin="round"
                                 />
                             </svg>
+                            <!-- U3-D1 (J.W7c LANE E) — the option curve-name
+                                 rides the governed `text-dropdown` scale it
+                                 inherits from the menuItem root (menuItemVariants
+                                 carries `text-dropdown`), so it sits FLUSH with the
+                                 SelectTrigger (also `text-dropdown`). The retired
+                                 `text-mono-caption` pinned it to the raw 0.75rem
+                                 caption — 2px BELOW the 14px trigger, the audit's
+                                 "shrinks 2px below" tell. `font-mono normal-case`
+                                 keeps the mono identifier voice without re-pinning
+                                 the size. -->
                             <span
                                 :class="[
-                                    'text-mono-caption normal-case',
+                                    'font-mono normal-case',
                                     item.isDetail ? 'gold-shimmer' : '',
                                 ]"
                             >{{ item.name }}</span>
+                            <!-- The secondary description rides the family's
+                                 SECONDARY governed rung (`text-dropdown-secondary` →
+                                 the ui-scale-aware caption), subordinate to the
+                                 primary name yet still on the dropdown type ladder. -->
                             <span
                                 v-if="item.description"
-                                class="ml-auto pl-2 text-mono-caption normal-case text-muted-foreground leading-tight whitespace-nowrap"
+                                class="ml-auto pl-2 text-dropdown-secondary font-mono normal-case text-muted-foreground leading-tight whitespace-nowrap"
                             >{{ item.description }}</span>
                         </span>
                     </SelectItem>

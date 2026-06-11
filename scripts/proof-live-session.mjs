@@ -927,12 +927,23 @@ async function runBattery() {
                     if (n >= 3) return;
                     sceneFails.push(`${key}: INTERACT red — only ${n} distinct spring-ball positions after the rail scrub (<3)`);
                 } else if (meta.kind === "sequence-transport") {
-                    // sequence — the storyboard's OWN transport drives the reel;
-                    // the rows responding IS the storyboard interaction.
+                    // sequence — J.W7c U6 REDESIGN evolved the control surface:
+                    // the scene's play/pause is now the GLOBAL bottom TransportDock
+                    // (the redesign's stated transport authority — "the bottom
+                    // TransportDock IS the transport, XH-2"; the former bespoke
+                    // `aria-label="Play or pause the sequence"` button was REMOVED).
+                    // So the storyboard interaction is actuated by the same rainbow
+                    // play the other group scenes use; the `.seq-track` rows
+                    // responding (engine-painted `--ball-p`) IS the interaction.
+                    // The reel button (a cascading-wave REPLAY twin) is the
+                    // fallback actuation if the dock play is momentarily occluded.
+                    // The ≥3-distinct-states oracle below is UNCHANGED — the bar
+                    // is not lowered, only the (evolved) actuation that reaches it.
+                    await clickRainbowPlay(page);
                     await page
-                        .locator('button[aria-label="Play or pause the sequence"]')
+                        .locator('button[aria-label^="Play the reel"]')
                         .first()
-                        .click({ timeout: 4000 })
+                        .click({ timeout: 2000 })
                         .catch(() => {});
                     const n = await page.evaluate(async () => {
                         const sleep = (m) => new Promise((r) => setTimeout(r, m));

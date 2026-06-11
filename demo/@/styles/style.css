@@ -121,15 +121,21 @@
     --work-area-max-width: clamp(72rem, 94vw, 120rem);
     --work-area-max-height: clamp(44rem, 88dvh, 66rem);
     --work-area-height: min(100dvh, var(--work-area-max-height));
+    /* The golden ratio — the single named constant the dock-band proportions
+       derive from (J.W7c U1). Everything below is a φ-derivation, not a magic
+       number: the vertical-slack bias pair and the bottom dock anchor both
+       reference --phi so the layout's asymmetry is mathematical, not hardcoded. */
+    --phi: 1.618;
+
     /* Optical-balance offset pair: split the vertical slack
-       (100dvh − work-area-height) as top:bottom ≈ 0.42:0.58, so the subject
-       parks slightly ABOVE geometric centre (the optical centre) consistently
-       across viewports — not a magic divisor that goes inert when slack is
-       tiny. The fractions sum to 1, so top + bottom == the full slack; on
-       mobile (small slack) the same 0.42/0.58 split still biases proportionally
-       and keeps small subjects clear of the bottom dock band. */
-    --work-area-vertical-bias-top: 0.42;
-    --work-area-vertical-bias-bottom: 0.58;
+       (100dvh − work-area-height) as top:bottom = 1/φ² : (1−1/φ²) = 0.382:0.618
+       (the golden split), so the subject parks ABOVE geometric centre (the
+       optical centre) consistently across viewports — not a magic divisor that
+       goes inert when slack is tiny. The fractions sum to 1, so top + bottom ==
+       the full slack; on mobile (small slack) the same golden split still
+       biases proportionally and keeps small subjects clear of the dock band. */
+    --work-area-vertical-bias-top: 0.382; /* 1/φ²  — subject parks above optical centre */
+    --work-area-vertical-bias-bottom: 0.618; /* 1 − 1/φ² */
     --work-area-vertical-slack: max(calc(100dvh - var(--work-area-height)), 0px);
     --work-area-top-offset: calc(var(--work-area-vertical-slack) * var(--work-area-vertical-bias-top));
     --work-area-bottom-offset: calc(var(--work-area-vertical-slack) * var(--work-area-vertical-bias-bottom));
@@ -164,13 +170,24 @@
         var(--menubar-measured-h, 0px)
     );
 
-    /* Bottom dock exclusion zone — symmetric with --work-area-top-offset,
-       derived from the SAME dock primitives (the --dock-band-reserve above) plus
-       the optical bottom-offset. Consumed by AnimationControlsGroup.vue:461
-       max-height calc; the env() (inside the band) keeps the open controls pane
-       clear of the menubar on notched devices. */
+    /* Bottom dock exclusion zone — the y-distance from the viewport bottom to
+       the TOP edge of the menubar pill: the dock's own bottom anchor (the gap
+       below the pill) PLUS the pill's measured band depth. Consumed by
+       AnimationControlsGroup.vue's mobile sheet anchor + the open-pane
+       max-height calc; the sheet must clear the pill the user actually sees.
+
+       J.W7c U1 CH-3 RE-CERTIFICATION: U1 pushed the dock DOWN by --dock-margin/φ
+       (the golden-asymmetry bottom anchor below). The reserve must follow the
+       dock to its NEW anchored position or the pill paints over the open sheet's
+       bottom ~5px again (the CH-3 mobile chronic — proof:live-session-mobile
+       caught exactly this: sheet.bottom 698 > menubar.top 693 = dock-margin/φ).
+       So the reserve now derives from --dock-bottom-anchor (which already folds
+       the φ push + the max(bottom-offset, safe-area) optical/notch term),
+       restoring sheet.bottom ≤ menubar.top at both detents. NOT fed back into
+       --work-area-max-height (that consumes the cycle-free --dock-band-reserve),
+       so no custom-property cycle forms. */
     --dock-menubar-reserve: calc(
-        var(--work-area-bottom-offset, 0px) + var(--dock-band-reserve)
+        var(--dock-bottom-anchor) + var(--dock-band-reserve)
     );
 
     /* ── The TOP dock band (J.W7a S5 / XH-4 — the top-center band contract) ──
@@ -192,6 +209,22 @@
     );
     --dock-top-band-reserve: calc(
         var(--dock-top-anchor) + var(--dock-band-reserve)
+    );
+
+    /* ── The BOTTOM dock anchor (J.W7c U1 — the golden-asymmetry sibling) ──
+       The top dock anchors TIGHT to the top (+ --dock-margin / 4); the bottom
+       dock anchors with MORE breathing room (+ --dock-margin / φ ≈ /1.618 — a
+       larger gap than /4). This is the deliberate, VISIBLE golden asymmetry the
+       live-audit U1 names: the top band hugs the viewport edge, the bottom band
+       floats further off it. Both anchors derive from ONE φ token + the same
+       optical offset + safe-area inset — no hardcoded px on either side.
+       Consumed by TransportDock.vue's `bottom:` (falls back to the bare
+       --work-area-bottom-offset if the anchor is somehow absent). */
+    --dock-bottom-anchor: calc(
+        max(
+            var(--work-area-bottom-offset, 0px),
+            env(safe-area-inset-bottom, 0px)
+        ) + var(--dock-margin) / var(--phi)
     );
 
     /* Pane-slide spring timing-function — RECONCILED to glass-ui's canonical

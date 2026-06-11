@@ -5,22 +5,38 @@
             'menubar-safe-pb px-2 py-1.5 m-0 flex items-center justify-center justify-items-center',
             'fixed left-0 right-0 z-dock',
         ]"
-        style="bottom: var(--work-area-bottom-offset, 0px);"
+        style="bottom: var(--dock-bottom-anchor, var(--work-area-bottom-offset, 0px));"
     >
         <!--
-            Always-expanded so the play/pause and other transport buttons
-            stay at a stable x position. When the dock collapsed to a
-            summary pill and expanded on hover, the summary's play button
-            and the full layer's play button sat at different x — a user
-            who hovered the collapsed button then clicked without moving
-            the mouse would land on a sibling button instead.
+            J.W7c U2 — the SHRUNKEN transport. The dock collapses to a summary
+            pill (the selected animation name + the rainbow play mirror, the
+            #collapsed slot below) and expands on hover/focus, driven by
+            GlassDock's own collapse. Both play controls actuate on POINTERDOWN
+            (onPlayPointerDown) — see the script comment: the collapse crossfade
+            could strand the trailing `click` on a leaving layer, so the toggle
+            rides the pointerdown that always reaches the live button (keyboard
+            still actuates via the bare click). Collapsing also shrinks the
+            menubar host, so the ResizeObserver (below) republishes a smaller
+            --menubar-measured-h and the mobile sheet anchor self-corrects to the
+            collapsed pill (audit X1).
         -->
-        <GlassDock ref="dockRef" :always-expanded="true" :fit-content="true">
+        <GlassDock ref="dockRef" :always-expanded="false" :fit-content="true">
             <!-- Expanded state: full controls -->
             <div class="flex items-center gap-3">
                 <IconTooltip text="Select animation">
                     <div class="relative flex items-center gap-1.5">
+                        <!-- J.W7c U4 — the animation select renders ONLY when
+                             there is more than one animation to choose between.
+                             A select/dropdown with a single option is dead
+                             chrome (a chevron that opens onto its own current
+                             value); single-animation scenes (spring, sequence,
+                             motion-path — one contractAnim each) instead show
+                             the lone animation's NAME as a static label, with no
+                             trigger affordance. Multi-animation scenes (cube,
+                             amiga, square) get the real select. Applies across
+                             all scenes by construction (the count is the gate). -->
                         <Select
+                            v-if="animationNames.length > 1"
                             class="p-0 m-0 cursor-pointer"
                             :model-value="storedControls.selectedAnimation"
                             @update:model-value="
@@ -71,6 +87,12 @@
                                 </SelectGroup>
                             </SelectContent>
                         </Select>
+                        <!-- Single-animation scenes: the name as a static label,
+                             no dropdown chrome, no chevron. -->
+                        <span
+                            v-else
+                            class="dock-label text-foreground whitespace-nowrap text-ellipsis"
+                        >{{ storedControls.selectedAnimation }}</span>
                     </div>
                 </IconTooltip>
 
@@ -104,7 +126,8 @@
                             'w-10 h-10 shrink-0',
                             isPlaying ? 'rainbow-vivid' : 'rainbow-pastel',
                         ]"
-                        @click="emit('togglePlay')"
+                        @pointerdown="onPlayPointerDown($event)"
+                        @click="onPlayClick()"
                     >
                         <Pause v-if="isPlaying" class="icon-lg" />
                         <Play v-else class="icon-lg pl-0.5" />
@@ -148,6 +171,7 @@
                         'w-8 h-8 shrink-0',
                         isPlaying ? 'rainbow-vivid' : 'rainbow-pastel',
                     ]"
+                    @pointerdown.stop="onPlayPointerDown($event)"
                     @click.stop="onCollapsedPlayClick()"
                 >
                     <Pause v-if="isPlaying" class="icon-md" />
@@ -235,9 +259,60 @@ onBeforeUnmount(() => {
     document.documentElement.style.removeProperty(MENUBAR_MEASURED_PROP);
 });
 
-function onCollapsedPlayClick() {
+// ── J.W7c U2 (fix-round 1) — the play toggle actuates on POINTERDOWN, not click.
+//
+// The persistent-walk oracle surfaced a real defect U2's collapse (`:always-
+// expanded=false`) introduced: a POINTER play actuation could be swallowed.
+// When the dock is in its hover/expanded phase but a collapse is imminent, the
+// crossfade swaps which `.dock-layer` is active mid-gesture; the layer the
+// pointerDOWN landed on goes `.is-leaving` (→ `pointer-events:none`) before the
+// browser would synthesize the trailing `click`, so a `@click`-only toggle was
+// DROPPED (proven: the button's `@pointerdown` fired but its `@click` never
+// did, play stayed off, and motion-path's one-shot traveller — parked at 100% —
+// produced <3 states, the S5 RED). The collapse is GlassDock-internal; no
+// consumer-side `keepOpen()`/`expand()` call reliably wins the race from
+// outside the dock (verified — the held counter does not gate this transition),
+// so the durable dock-side cure is a glass-ui handoff (booked RF-17).
+//
+// The robust DEMO-side cure: drive the toggle from `pointerdown`, which ALWAYS
+// fires on the live button (the crossfade can only strand the LATER `click`).
+// `onPlayPointerDown` toggles for pointer input and marks the gesture handled;
+// `onPlayClick` then toggles ONLY for clicks with no preceding pointerdown —
+// i.e. KEYBOARD activation (Enter/Space synthesize a bare `click`), preserving
+// full keyboard operability (proof:live-session S4) with no double-toggle. One
+// pair governs both the expanded button and the collapsed-summary mirror so the
+// two controls can never drift.
+let pointerHandled = false;
+
+function actuatePlay() {
+    // Re-pin the dock open (best-effort, matches the collapsed-button cure) then
+    // emit the toggle. The emit is the load-bearing line — it cannot be raced
+    // because pointerdown fires while the button is still live.
     dockRef.value?.expand();
-    emit('togglePlay');
+    emit("togglePlay");
+}
+
+function onPlayPointerDown(e: PointerEvent) {
+    // Only primary-button / touch / pen actuations toggle (ignore right/middle).
+    if (e.button !== 0 && e.pointerType === "mouse") return;
+    pointerHandled = true;
+    actuatePlay();
+    // Clear the guard after the synthesized click would have arrived, so the
+    // NEXT (keyboard) activation is not mistaken for a handled pointer gesture.
+    queueMicrotask(() => {
+        pointerHandled = false;
+    });
+}
+
+function onPlayClick() {
+    // A click WITHOUT a preceding pointerdown is keyboard activation — actuate.
+    // A click that followed a pointerdown was already handled there — skip it.
+    if (pointerHandled) return;
+    actuatePlay();
+}
+
+function onCollapsedPlayClick() {
+    onPlayClick();
 }
 
 const { storedControls, isPlaying, isStarted, animationProgress, animationNames } = defineProps<{

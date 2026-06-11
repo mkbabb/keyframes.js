@@ -1,128 +1,123 @@
 <template>
-    <!-- G6 + G5 (H.W10.S4) — the spring sidebar NORMALIZED onto the standard
-         controls component: ONE `Card surface="cartoon" tier="quiet"` (the H.W9
-         quiet register; the Card primitive carries `rounded-card` by construction
-         — dissolves G2) wrapping `Labeled*` label-left rows + the spring domain
-         content in ONE `panel-content` flow. The former ×3 inner sub-Cards + the
-         hand-rolled `text-admin-label`/`size="sm"` param rows are DELETED (no
-         legacy beside the replacement) — the control sizing lifts to the standard
-         scale automatically (G5: same components → same sizes). -->
+    <!-- J.W7c LANE B (U5 + U8) — the spring control panel REDESIGNED FROM FIRST
+         PRINCIPLES onto the cube/amiga main control grammar. The former panel was
+         a stack of MISMATCHED idioms (a hand-rolled tablist switch, two bare
+         label-left sliders that never joined a uniform label column, a 2×2 chip
+         grid, a REDUNDANT 4-row "canonical springs" comparison list re-naming the
+         same four presets the chips already select, and a jammed lone Monaco
+         editor). The redesign:
+           • ONE `Card surface="cartoon" tier="quiet"` (the W2/W9 control register),
+           • the view switcher is the IDIOMATIC `<SegmentedTabs variant="segmented">`
+             (glass-ui 3.11.2) — NOT a hand-rolled `role=tablist` (U5 congruence),
+           • the params ride the shared `.labeled-field-grid` UNIFORM-label-column
+             subgrid idiom (design-idioms.css §LABEL-subgrid) — the SAME grammar
+             AnimationControlsControls + EasingSidebar consume (U5: cube grammar),
+           • the redundant comparison list is DELETED (no legacy beside the
+             replacement) — the preset CELLS are the single preset surface, each
+             carrying its OWN live track ball so the comparison is IN the cell,
+           • a NEW ARTIFACT section with a KEYFRAMES VARIANT (U5): a second
+             `<SegmentedTabs>` forks the spring's emitted artifact between the CSS
+             `linear()` stops and a real `@keyframes` block — both sampled from the
+             ONE `springTimingFunction → Easing` / `springLinearStops` feedstock. -->
     <Card surface="cartoon" tier="quiet" class="w-full overflow-visible">
         <CardContent class="panel-content flex flex-col gap-3 px-4 py-3">
-            <!-- J.W7a S5 / XH-4 (D22) — the view switcher (H.W5.S3) lives in the
-                 RAIL now, at the head of the spring's control panel: relocated
-                 out of the top-center band it shared (and collided) with the
-                 scene-switcher dock on mobile (cross-hierarchy #4). One spring
-                 curve, two views — the live SpringProgress solver, and that same
-                 spring linear() easing a real @starting-style / allow-discrete
-                 transition. -->
-            <div
-                class="spring-view-switch glass-resting cartoon-surface flex shrink-0 gap-1 rounded-full p-1"
-                role="tablist"
-                aria-label="Spring view"
-            >
-                <button
-                    type="button"
-                    role="tab"
-                    class="spring-view-tab text-small btn-interactive rounded-full px-3.5 py-1"
-                    :class="{ 'spring-view-active': demo.view.value === 'solver' }"
-                    :aria-selected="demo.view.value === 'solver'"
-                    @click="demo.view.value = 'solver'"
-                >
-                    Live solver
-                </button>
-                <button
-                    type="button"
-                    role="tab"
-                    class="spring-view-tab text-small btn-interactive rounded-full px-3.5 py-1"
-                    :class="{ 'spring-view-active': demo.view.value === 'discrete' }"
-                    :aria-selected="demo.view.value === 'discrete'"
-                    @click="demo.view.value = 'discrete'"
-                >
-                    Discrete transition
-                </button>
+            <!-- View switcher — the IDIOMATIC SegmentedTabs (U5). One spring
+                 curve, two stages: the live SpringProgress solver, and that same
+                 spring linear() easing a real @starting-style transition. The
+                 segmented pill-slider REPLACES the former hand-rolled
+                 `role=tablist` + the scoped `.spring-view-*` active rules. -->
+            <SegmentedTabs
+                v-model="viewModel"
+                :options="VIEW_OPTIONS"
+                variant="segmented"
+                class="spring-view-tabs shrink-0"
+            />
+
+            <!-- Live params — the UNIFORM label-column grammar (the cube's bar).
+                 The two sliders join ONE `.labeled-field-grid` so their labels
+                 ("response" / "damping (ζ)") resolve the SAME width — congruent
+                 with AnimationControlsControls / EasingSidebar (U5). -->
+            <div class="labeled-field-grid">
+                <LabeledSlider
+                    :model-value="demo.response.value"
+                    label="response"
+                    label-class="text-mono-small text-muted-foreground"
+                    tooltip="Spring response time (s) — higher = slower"
+                    :min="0.1"
+                    :max="1.2"
+                    :step="0.01"
+                    @update:model-value="(v) => { demo.response.value = v; }"
+                />
+                <LabeledSlider
+                    :model-value="demo.dampingFraction.value"
+                    label="damping (ζ)"
+                    label-class="text-mono-small text-muted-foreground"
+                    tooltip="Damping fraction (ζ) — <1 overshoots, ≥1 settles"
+                    :min="0.2"
+                    :max="1.5"
+                    :step="0.01"
+                    @update:model-value="(v) => { demo.dampingFraction.value = v; }"
+                />
             </div>
 
-            <!-- Live params — label-left rows (the H.W9 F1 idiom) -->
-            <LabeledSlider
-                :model-value="demo.response.value"
-                label="response"
-                label-class="text-mono-small text-muted-foreground"
-                tooltip="Spring response time (s) — higher = slower"
-                :min="0.1"
-                :max="1.2"
-                :step="0.01"
-                @update:model-value="(v) => { demo.response.value = v; }"
-            />
-            <LabeledSlider
-                :model-value="demo.dampingFraction.value"
-                label="damping (ζ)"
-                label-class="text-mono-small text-muted-foreground"
-                tooltip="Damping fraction (ζ) — <1 overshoots, ≥1 settles"
-                :min="0.2"
-                :max="1.5"
-                :step="0.01"
-                @update:model-value="(v) => { demo.dampingFraction.value = v; }"
-            />
-
-            <!-- Canonical preset cells — J.W7b S1b: the published 3.9.0
-                 `<ToggleChip variant="cell">` (reka Toggle → `aria-pressed` +
-                 keyboard toggle + `data-state="on"` from the primitive) replaces
-                 the hand-rolled `<Button variant="outline">` + scoped
-                 active-ring twin, DELETED in the same motion. PIXEL-ISOMORPHIC consume
-                 (the W7b law): the utility classes below are consumer
-                 configuration through the primitive's documented `class` prop —
-                 they hold the cells' EXISTING outline-pill geometry/tone and the
-                 EXISTING scene-semantic `--color-progress` active ring (now
-                 hanging off the primitive's own `data-state` seam instead of a
-                 kf class-binding). The chip's native cell posture (centered
-                 stack, primary on-tint) is the LOUDER look — that appearance
-                 delta is W7a's to promote, not W7b's. -->
-            <div class="grid grid-cols-2 gap-2">
+            <!-- Preset cells — the SINGLE preset surface (the redundant comparison
+                 list is GONE). Each `<ToggleChip variant="cell">` (the published
+                 glass-ui 3.9.0 reka-Toggle primitive) selects a canonical preset
+                 AND carries its OWN live track ball, so the racing comparison the
+                 deleted list duplicated now lives IN the cell — one surface, no
+                 dead-checkerboard list. PIXEL-ISOMORPHIC consume: the utility
+                 classes are consumer configuration through the primitive's `class`
+                 prop (the outline-pill geometry + the scene-semantic
+                 `--color-progress` active ring on the primitive's own
+                 `data-state` seam). -->
+            <div class="preset-grid grid grid-cols-2 gap-2">
                 <ToggleChip
-                    v-for="t in demo.tracks"
+                    v-for="(t, i) in demo.tracks"
                     :key="t.preset.name"
                     variant="cell"
                     :model-value="isActivePreset(t)"
-                    class="rounded-pill border-none bg-background px-3 py-1.5 h-auto items-start gap-0.5 font-medium leading-normal whitespace-nowrap btn-interactive hover:bg-accent hover:text-accent-foreground data-[state=on]:bg-background data-[state=on]:shadow-[inset_0_0_0_1px_var(--color-progress)]"
+                    :title="t.preset.blurb"
+                    class="preset-cell rounded-pill border-none bg-background px-3 pt-1.5 pb-2 h-auto items-start gap-1 font-medium leading-normal whitespace-nowrap btn-interactive hover:bg-accent hover:text-accent-foreground data-[state=on]:bg-background data-[state=on]:shadow-[inset_0_0_0_1px_var(--color-progress)]"
                     @update:model-value="applyPreset(t.preset)"
                 >
-                    <span class="text-small text-foreground capitalize">{{ t.preset.name }}</span>
-                    <span class="text-mono-caption text-muted-foreground">{{ t.preset.response }} / {{ t.preset.dampingFraction }}</span>
+                    <span class="preset-name-row flex w-full flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5">
+                        <span class="text-small text-foreground capitalize">{{ t.preset.name }}</span>
+                        <span class="text-mono-caption text-muted-foreground">{{ t.preset.response }} / {{ t.preset.dampingFraction }}</span>
+                    </span>
+                    <!-- The cell's OWN live track ball — the comparison is IN the
+                         cell now (painter-positioned, J.W2 S5 hot path; no reactive
+                         :style on the 60 Hz path). -->
+                    <span class="preset-track relative block w-full h-2">
+                        <span class="progress-rail"></span>
+                        <span
+                            :ref="(el: any) => setTrackBallEl(i, el)"
+                            class="progress-ball preset-ball"
+                        ></span>
+                    </span>
                 </ToggleChip>
             </div>
 
-            <!-- Side-by-side canonical comparison (folded into the parent Card) -->
-            <div class="grid gap-2.5">
-                <span class="text-mono-small text-muted-foreground">canonical springs &mdash; re-seat all together</span>
-                <div
-                    v-for="(t, i) in demo.tracks"
-                    :key="t.preset.name"
-                    class="preset-row"
-                >
-                    <span class="preset-label text-mono-caption shrink-0 w-14 truncate" :title="t.preset.blurb">{{ t.preset.name }}</span>
-                    <div class="preset-track relative flex-1 h-7">
-                        <div class="progress-rail"></div>
-                        <!-- Painter-positioned (J.W2 S5): the track balls are the
-                             60 Hz hot path — direct style writes, no reactive
-                             :style binding. -->
-                        <div
-                            :ref="(el: any) => setTrackBallEl(i, el)"
-                            class="progress-ball preset-ball"
-                        ></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- springLinearStops CSS — Monaco editor (follows dark mode) -->
-            <div class="grid gap-2">
-                <div class="flex items-center justify-between">
-                    <span class="text-mono-small text-muted-foreground">springLinearStops() &rarr; CSS</span>
-                    <CopyButton class="shrink-0 w-4 h-4" :text="linearStopsCss" />
+            <!-- ── ARTIFACT section — the KEYFRAMES VARIANT (U5) ──────────────
+                 The spring's emitted artifact, forked by a second SegmentedTabs:
+                   • `linear()`   — the CSS `linear()` stops (the existing
+                     springLinearStops surface, two-way bound to the editor);
+                   • `@keyframes` — a REAL `@keyframes` block sampled from the SAME
+                     springTimingFunction → Easing feedstock (the keyframes section
+                     for spring the user asked for). Both read the ONE
+                     (response, dampingFraction) the sliders + cells drive. -->
+            <div class="artifact-section grid gap-2">
+                <div class="flex items-center justify-between gap-2">
+                    <SegmentedTabs
+                        v-model="artifactModel"
+                        :options="ARTIFACT_OPTIONS"
+                        variant="underline"
+                        class="artifact-tabs min-w-0 flex-1"
+                    />
+                    <CopyButton class="shrink-0 w-4 h-4" :text="artifactCss" />
                 </div>
                 <CSSCodeEditor
-                    v-model="linearStopsCss"
-                    height="110px"
+                    v-model="artifactCss"
+                    height="132px"
                     :font-size="12"
                     :line-numbers="false"
                     :padding="8"
@@ -138,6 +133,10 @@ import { computed, onMounted, onScopeDispose, ref, watch } from "vue";
 import { Card, CardContent } from "@mkbabb/glass-ui";
 import { LabeledSlider } from "@mkbabb/glass-ui/labeled-field";
 import { ToggleChip } from "@mkbabb/glass-ui/toggle-chip";
+import { SegmentedTabs } from "@mkbabb/glass-ui/tabs";
+import type { SegmentedTabOption } from "@mkbabb/glass-ui/tabs";
+
+import { springTimingFunction } from "@src/animation/springTimingFunction";
 
 import { useSpringLinearStops } from "./useSpringLinearStops";
 import CopyButton from "@components/custom/CopyButton.vue";
@@ -151,11 +150,24 @@ const demo = props.demo;
 
 const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
 
-// ── J.W2 S5 (DS-3) — the preset-track ball painter ──────────────────────────
-// The 4 comparison balls are the 60 Hz hot path: positioned by a registered
-// painter reading the demo's non-reactive `springLive` snapshot (direct
-// `style.left` writes, off the Vue render graph) — the former per-frame
-// reactive `t.value` :style bindings are DELETED with the migration.
+// ── View switcher (the SegmentedTabs model bridges the demo's `view` ref) ──────
+// SegmentedTabs' v-model is `string | string[]`; the spring view is the
+// single-select union, so a narrow getter/setter pair keeps the demo ref typed.
+const VIEW_OPTIONS: SegmentedTabOption[] = [
+    { label: "Live solver", value: "solver" },
+    { label: "Discrete transition", value: "discrete" },
+];
+const viewModel = computed<string>({
+    get: () => demo.view.value,
+    set: (v) => {
+        if (v === "solver" || v === "discrete") demo.view.value = v;
+    },
+});
+
+// ── J.W2 S5 (DS-3) — the preset-cell ball painter ──────────────────────────────
+// The 4 cell balls are the 60 Hz hot path: positioned by a registered painter
+// reading the demo's non-reactive `springLive` snapshot (direct `style.left`
+// writes, off the Vue render graph).
 const trackBallEls: (HTMLElement | null)[] = [];
 const setTrackBallEl = (i: number, el: any) => {
     trackBallEls[i] = (el as HTMLElement) ?? null;
@@ -182,83 +194,92 @@ const applyPreset = (preset: SpringPreset) => {
     demo.dampingFraction.value = preset.dampingFraction;
 };
 
+// ── The ARTIFACT fork — `linear()` vs `@keyframes` (the KEYFRAMES VARIANT) ──────
+const ARTIFACT_OPTIONS: SegmentedTabOption[] = [
+    { label: "linear()", value: "linear" },
+    { label: "@keyframes", value: "keyframes" },
+];
+const artifactModel = ref<string>("linear");
+
 // CSS `linear()` token sampled from the live params — the ONE springLinearStops
-// surface (useSpringLinearStops, H.W5.S3). Two-way bound to the Monaco editor:
-// editing the params regenerates it; the editor is read-mostly here (the model
-// just mirrors the generated stops).
+// surface (useSpringLinearStops, H.W5.S3).
 const springLinear = useSpringLinearStops(
     () => demo.response.value,
     () => demo.dampingFraction.value,
 );
-const linearStopsCss = ref("");
-const generated = computed(() => `--spring-easing: ${springLinear.value};`);
-watch(generated, (css) => { linearStopsCss.value = css; }, { immediate: true });
+
+// The KEYFRAMES variant — sample the SAME springTimingFunction Easing at the
+// canonical percentage stops and emit a real `@keyframes` block. The position
+// value is the spring's normalized displacement at each phase (overshoot > 1 for
+// ζ < 1), expressed as a `transform: translateX(<v>*100%)` keyframe — the
+// keyframes section the user asked for, fed by the ONE Easing feedstock.
+const KEYFRAME_STOPS = [0, 0.25, 0.5, 0.75, 1] as const;
+const springKeyframes = computed<string>(() => {
+    const easing = springTimingFunction({
+        response: demo.response.value,
+        dampingFraction: demo.dampingFraction.value,
+    });
+    const rows = KEYFRAME_STOPS.map((t) => {
+        const v = easing.fn(t);
+        const pct = Math.round(t * 100);
+        return `    ${pct}% { transform: translateX(${(v * 100).toFixed(2)}%); }`;
+    });
+    return `@keyframes spring {\n${rows.join("\n")}\n}`;
+});
+
+// The editor's bound text follows the active artifact. The editor is read-mostly
+// here (the model mirrors the generated artifact); switching tabs re-seeds it.
+const generatedArtifact = computed(() =>
+    artifactModel.value === "keyframes"
+        ? springKeyframes.value
+        : `--spring-easing: ${springLinear.value};`,
+);
+const artifactCss = ref("");
+watch(generatedArtifact, (css) => { artifactCss.value = css; }, { immediate: true });
 </script>
 
 <style scoped>
-/* ── F1 (H.W9.S3 idiom) — label-LEFT / value-RIGHT per row ──
-   G6 normalizes the spring sidebar onto the standard component, so it INHERITS
-   the F1 row shape (matching the standard AnimationControlsControls rows). Every
-   glass-ui `.labeled-field` (LabeledSlider here) becomes a two-cell grid (label
-   auto, control 1fr). The durable home is glass-ui's BOOKED `LabeledField
-   orientation="horizontal"` (inv-16 HANDOFF — NOT patched here). */
-.panel-content :deep(.labeled-field) {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    align-items: center;
-    column-gap: 0.75rem;
-    row-gap: 0.25rem;
-}
-.panel-content :deep(.labeled-field .labeled-field-error) {
-    grid-column: 1 / -1;
-}
+/* ── §LABEL-subgrid consume ──
+   The params ride the shared `.labeled-field-grid` idiom (design-idioms.css —
+   the DRY home). Each glass-ui `.labeled-field` (LabeledSlider) participates in
+   the ONE uniform [label] auto [value] 1fr subgrid track via the global rule;
+   nothing is re-authored here (the former scoped per-row `:deep(.labeled-field)
+   { auto 1fr }` is DELETED — no legacy beside the replacement). */
 
-/* The former scoped active-ring rule is DELETED (J.W7b S1b, no-legacy): the
-   active affordance now hangs off the consumed ToggleChip's own
-   `data-state="on"` attribute (the primitive's documented seam), carrying the
-   same scene-semantic `--color-progress` ring via the call-site class. */
-
-/* The view switcher (H.W5.S3, relocated here at J.W7a D22) — a compact
-   segmented control. Rides the shared glass-resting/cartoon-surface depth
-   idiom; the active tab takes the progress accent the spring scene uses
-   throughout. */
-.spring-view-switch {
+/* The SegmentedTabs primitive carries its own segmented/underline chrome from
+   glass-ui (3.11.2) — the former hand-rolled `.spring-view-*` switcher rules are
+   DELETED. The view tabs center; the artifact tabs sit flush-left in their row. */
+.spring-view-tabs {
     align-self: center;
 }
-.spring-view-tab {
-    color: var(--muted-foreground);
-    transition:
-        color var(--duration-fast, 150ms) ease,
-        background-color var(--duration-fast, 150ms) ease;
-}
-.spring-view-active {
-    color: var(--color-progress);
-    background: color-mix(in srgb, var(--color-progress) 14%, transparent);
-    box-shadow: 0 0 0 1px var(--color-progress) inset;
-}
 
-.preset-row {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+/* ── Preset cells — the SINGLE preset surface (the comparison list is gone) ──
+   Each cell stacks its name-row over its OWN live track ball. The rail + ball
+   geometry come from the shared .progress-rail / .progress-ball idiom
+   (design-idioms.css); the preset ball is the smallest + quietest indicator, so
+   it suppresses the glow and rides `left:` (the idiom centers vertically; this
+   scoped modifier centers horizontally + sets the per-site size). The rail tint
+   lifts to 14% (from the idiom's 8% default) so the short in-cell track reads as
+   a clear groove at rest — the per-site legibility delta the idiom's --rail-tint
+   seam exists for (the same axis EasingTarget/SpringTarget tune). */
+.preset-track .progress-rail {
+    --rail-tint: 14%;
 }
-.preset-track {
-    display: flex;
-    align-items: center;
-}
-/* The rail + ball geometry come from the shared .progress-rail / .progress-ball
-   idiom (design-idioms.css). The former 10% rail folds to the canonical 8% (a
-   named befitting motion-cohesion delta). The preset ball is the smallest +
-   quietest (a compact preset indicator), so it suppresses the glow and rides
-   `left:` (the idiom centers vertically; this scoped modifier centers
-   horizontally + sets the per-site size). */
 .preset-ball {
-    --ball-size: 1.1rem;
+    --ball-size: 0.85rem;
     --ball-glow: 0%;
     margin-left: calc(var(--ball-size) / -2);
     will-change: left;
 }
-.preset-label {
-    color: var(--muted-foreground);
+
+/* The artifact underline tabs are a QUIET fork header — trim the default tab
+   rung (glass-ui's `.segmented-tab` is ~16px) to the mono-caption size so the
+   `linear()` / `@keyframes` labels read as a sub-section fork, not a second loud
+   switch competing with the view tabs above + the serif stage. The `.segmented-
+   tab` deep target wins the glass-ui scoped-attribute specificity; the mono
+   family matches the CSS-artifact register the editor below carries. */
+.artifact-tabs :deep(.segmented-tab) {
+    font-family: var(--font-mono);
+    font-size: var(--type-caption);
 }
 </style>

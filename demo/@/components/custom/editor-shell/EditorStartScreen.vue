@@ -81,12 +81,15 @@
                 seed="keyframes.js"
                 color="var(--ball-tone, var(--ppmycota-primary, var(--primary)))"
                 :color-resolver="defaultBlobColorResolver"
+                :freeze="prefersReducedMotion"
             />
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
+import { usePreferredReducedMotion } from "@vueuse/core";
 import { List } from "@lucide/vue";
 // J.W7a S4 (D18) — the published generative math motif + its REQUIRED colour
 // seam (glass-ui 3.9.0 — a W7a consume, not a W7b edge).
@@ -94,6 +97,22 @@ import { FourierField } from "@mkbabb/glass-ui/fourier-field";
 import { defaultBlobColorResolver } from "@mkbabb/glass-ui/color";
 import AnimatedText from "@components/custom/AnimatedText.vue";
 import TypingDots from "@components/custom/TypingDots.vue";
+
+// J.W7c U-register verify r2 — FREEZE the generative field under reduced-motion.
+// Two ends meet here: (1) it is the correct reduced-motion posture — a decorative
+// animated math field must rest when the user prefers reduced motion (the same
+// contract TypingDots/AnimatedText already honour); (2) it cleanly DODGES the
+// pre-existing glass-ui RO→render init-order TDZ (handoff RF-16, `Cannot access
+// 'C' before initialization`): FourierField's render reads `freeze || x.reducedMotion`,
+// and a truthy `freeze` SHORT-CIRCUITS before the forward-`const` glass-ui reads,
+// so the crash never arms on the reduced-motion branch. This is a CONSUMER-SIDE
+// use of FourierField's OWN published `freeze` prop — NOT a glass-ui patch (inv-16
+// holds). The durable upstream cure (RF-16) still lands on the next glass-ui bump;
+// this consumer guard is the right posture regardless of that bump.
+const reducedMotionPref = usePreferredReducedMotion();
+const prefersReducedMotion = computed(
+    () => reducedMotionPref.value === "reduce",
+);
 
 // NOTE (H.W6): the former `ellipsis` string prop is gone — the trailing "..." is
 // now the dogfooded <TypingDots/> primitive (a fixed three-dot blink), not a
