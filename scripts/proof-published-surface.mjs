@@ -158,16 +158,19 @@ function clauseA() {
     }));
     const packedPaths = new Set(packed.map((f) => f.path));
 
-    // The on-disk dist/ file set (what `files: ["dist", "!dist/gh-pages"]`
-    // declares). The DEMO build outputs (dist/gh-pages — the J.W5 `!` negation
-    // — and the retired dist/demo-app shape) are deliberately UN-packed, so
-    // the must-pack walk applies the SAME negation: on a demo-built tree
-    // (gh-pages present beside the library dist — the normal state for the
-    // browser batteries) those files are expected ABSENT from the tarball.
-    // The a.2 DEMO-BUILD-LEAK clause below stays the other half: if one ever
-    // DOES pack, it reds there. (J.W4 fix: the pre-fix walk carried no
-    // negation, so a demo-built tree false-redded 50+ "did NOT pack" findings.)
-    const UNPACKED_DEMO_DIR = /^dist\/(?:gh-pages|demo-app)\//;
+    // The on-disk dist/ file set (what
+    // `files: ["dist", "!dist/gh-pages", "!dist/_*"]` declares). The DEMO build
+    // outputs (dist/gh-pages — the J.W5 `!` negation — and the retired
+    // dist/demo-app shape) AND the transient `_`-prefixed proof-harness builds
+    // (dist/_proof-typing-dots — the isolated TypingDots Vite harness the
+    // proof:typing-dots gate emits beside the library dist; gitignored via the
+    // `_*` rule, the `!dist/_*` negation un-packs it) are deliberately UN-packed,
+    // so the must-pack walk applies the SAME negation: on a built tree those
+    // files are expected ABSENT from the tarball. The a.2 leak clause below
+    // stays the other half: if one ever DOES pack, it reds there. (J.W4 fix:
+    // the pre-fix walk carried no negation, so a demo-built tree false-redded
+    // 50+ "did NOT pack" findings; J.WZ extends it to the `_*` harness dirs.)
+    const UNPACKED_DEMO_DIR = /^dist\/(?:gh-pages|demo-app|_[^/]*)\//;
     const distFiles = fs
         .readdirSync(DIST, { recursive: true, withFileTypes: true })
         .filter((d) => d.isFile() && !isPacklistJunk(d.name))

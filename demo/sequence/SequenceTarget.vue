@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col items-center justify-center gap-4 h-full w-full px-6 lg:px-8 max-w-3xl mx-auto overflow-hidden">
+    <div class="seq-root flex flex-col items-center justify-center gap-4 h-full w-full px-6 lg:px-8 max-w-3xl mx-auto overflow-hidden">
         <!-- I5 — the standard NON-cartoon glass <Card> protagonist plate (rounded
              by construction, shadow off). J.W7c C-SEQ-1 (U6): the card no longer
              STRETCHES the whole .stage-cell (the former flex-1 floated 5 rows on a
@@ -109,48 +109,32 @@
                                     @pointerdown="onRowDown(row.index, $event)"
                                     @keydown="onRowKeydown(row.index, $event)"
                                 ></div>
-                                <!-- The traveller — engine-painted --ball-p (0→1),
-                                     resting at its start gate (the cascade, C-SEQ-3). -->
-                                <div class="progress-ball seq-ball"></div>
+                                <!-- The traveller — the engine's child-animation
+                                     TARGET (J.WZ): the engine paints --ball-p +
+                                     opacity + the scale-pop onto THIS ball, not the
+                                     row track (the former track-target let
+                                     `scale: 0.7` shrink the whole row, dropping the
+                                     24px handle to 16.8px → target-size). -->
+                                <div
+                                    :ref="(el) => setBallEl(row.index, el as HTMLElement | null)"
+                                    class="progress-ball seq-ball"
+                                ></div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Master scrubber — the F.W16 rail/ball idiom; the storyboard's
-                 editable CONTENT (the playhead the user scrubs), not transport
-                 chrome (the bottom TransportDock IS the transport, XH-2 / §c). -->
-            <div class="px-4 py-3 border-t border-border/40 shrink-0">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-small text-foreground">master playhead</span>
-                    <span class="readout-accent text-mono-caption tabular-nums">{{ demo.progress.value.toFixed(3) }}</span>
-                </div>
-                <div
-                    ref="scrubEl"
-                    class="seq-scrub relative w-full h-9 cursor-pointer select-none"
-                    role="slider"
-                    aria-label="Scrub the sequence master playhead"
-                    :aria-valuenow="Math.round(demo.progress.value * 100)"
-                    aria-valuemin="0"
-                    aria-valuemax="100"
-                    tabindex="0"
-                    @pointerdown="onScrubDown"
-                    @keydown="onScrubKeydown"
-                >
-                    <div class="progress-rail"></div>
-                    <div
-                        class="progress-ball scrub-ball"
-                        :style="{ left: `calc(${clamp01(demo.progress.value) * 100}%)` }"
-                    ></div>
-                </div>
-            </div>
+            <!-- Master scrubber — the F.W16 rail/ball idiom. Extracted to a
+                 colocated sub-unit (SequenceScrubber.vue, J.WZ) at the scrubber
+                 seam to hold the ≤500L ceiling; it injects the demo, no props. -->
+            <SequenceScrubber />
         </Card>
     </div>
 </template>
 
 <script setup lang="ts">
-import { inject, onMounted, ref, useTemplateRef } from "vue";
+import { computed, inject, onMounted, ref } from "vue";
 import { useEventListener } from "@vueuse/core";
 import { Button, Card } from "@mkbabb/glass-ui";
 // J.W7a S2 (D8) — the published poster-metric primitive (glass-ui 3.9.0).
@@ -160,6 +144,8 @@ import { Clapperboard } from "@lucide/vue";
 import { useDragScrub } from "@composables/useDragScrub";
 import { SEQUENCE_DEMO_KEY } from "./sequenceKeys";
 import { ROW_COUNT } from "./useSequenceDemo";
+// The master scrubber is a colocated sub-unit (J.WZ — the ≤500L split seam).
+import SequenceScrubber from "./SequenceScrubber.vue";
 
 const demo = inject(SEQUENCE_DEMO_KEY)!;
 
@@ -182,16 +168,24 @@ const ROW_TONES = [
     "var(--rainbow-green)",
 ] as const;
 
-// Per-row track elements — each becomes its child animation's target (the engine
-// paints --ball-p onto it; no per-frame Vue work).
+// Per-row track elements — the drag-capture host + the rect the row handle's
+// `project` reads. NOT the engine target (J.WZ): see ballEls below.
 const rowEls: (HTMLElement | null)[] = Array(ROW_COUNT).fill(null);
 const setRowEl = (i: number, el: HTMLElement | null) => {
     rowEls[i] = el;
 };
 
+// Per-row TRAVELLER elements — each is its child animation's target (J.WZ): the
+// engine paints --ball-p + opacity + the scale-pop onto the BALL, not the track,
+// so `scale: 0.7` no longer shrinks the row (the 24px handle holds — target-size).
+const ballEls: (HTMLElement | null)[] = Array(ROW_COUNT).fill(null);
+const setBallEl = (i: number, el: HTMLElement | null) => {
+    ballEls[i] = el;
+};
+
 onMounted(() => {
     for (let i = 0; i < ROW_COUNT; i++) {
-        const el = rowEls[i];
+        const el = ballEls[i];
         if (el) demo.childAnims[i]!.setTargets(el);
     }
     // Paint the CURRENT playhead (not a hard t=0): a return entry may have already
@@ -200,46 +194,19 @@ onMounted(() => {
     demo.sequence.progress = demo.progress.value;
 });
 
-// ── Master scrubber: drag/keyboard scrubs the Sequence progress ──────────────
-// The drag rides the shared `useDragScrub` seam (H.W12.S1 / I8); `project` is the
-// clamped rail rect-ratio.
-const scrubEl = useTemplateRef<HTMLElement>("scrubEl");
-
-const { onPointerDown: onScrubDown } = useDragScrub({
-    el: scrubEl,
-    project: (e) => {
-        const el = scrubEl.value;
-        if (!el) return demo.progress.value;
-        const rect = el.getBoundingClientRect();
-        return clamp01((e.clientX - rect.left) / rect.width);
-    },
-    onScrub: (p) => demo.scrub(p),
-});
-
-const onScrubKeydown = (e: KeyboardEvent) => {
-    if (e.key === "ArrowRight" || e.key === "ArrowUp") {
-        demo.scrub(demo.progress.value + 0.05);
-        e.preventDefault();
-    } else if (e.key === "ArrowLeft" || e.key === "ArrowDown") {
-        demo.scrub(demo.progress.value - 0.05);
-        e.preventDefault();
-    } else if (e.key === "Home") {
-        demo.scrub(0);
-        e.preventDefault();
-    } else if (e.key === "End") {
-        demo.scrub(1);
-        e.preventDefault();
-    }
-};
-
 // ── Draggable rows: re-author each child's `at:` live (H.W12.S6 / I3) ─────────
 // ONE shared `useDragScrub` consumer drives every row handle. The pressed row's
 // index is latched; `project` reads THAT row's track rect → a [0,1] ratio → an
 // `at:` ms offset over [0, STAGGER_MAX]; `onScrub` re-emits via demo.reseatRow
 // (the engine Sequence re-sort). The track refs are the engine's --ball-p targets.
 const activeRow = ref<number | null>(null);
+// The pressed row's own track is the pointer-capture host (the scrub rail moved
+// to SequenceScrubber in the J.WZ split; the active track is the natural host).
+const activeRowEl = computed<HTMLElement | null>(() =>
+    activeRow.value == null ? null : rowEls[activeRow.value],
+);
 const { onPointerDown: onRowScrubDown } = useDragScrub({
-    el: scrubEl, // a stable capture host; the drag starts from the row handle
+    el: activeRowEl,
     project: (e) => {
         const i = activeRow.value;
         const el = i == null ? null : rowEls[i];
@@ -299,6 +266,7 @@ useEventListener(window, "keydown", (e: KeyboardEvent) => {
 .seq-target {
     --ball-tone: var(--color-progress);
 }
+
 
 /* The storyboard hugs its content (no flex-1 void); local micro-stack tokens
    order the frame's absolute siblings (playhead below the handles). */
@@ -404,10 +372,6 @@ useEventListener(window, "keydown", (e: KeyboardEvent) => {
     display: flex;
     align-items: center;
 }
-.seq-scrub {
-    display: flex;
-    align-items: center;
-}
 
 /* ── The swept master-playhead line (R-SEQ-E, H.W12.S6 / I3) ──────────────────
    Spans the shared row-track column (inset past the label column) so `left: %`
@@ -434,31 +398,47 @@ useEventListener(window, "keydown", (e: KeyboardEvent) => {
     will-change: left;
 }
 
-/* ── The draggable row start-handle (R-SEQ-D, H.W12.S6 / I3) ──────────────────
-   A vertical grip at the child's at: proportion; dragging it re-authors that
-   offset live. It is the START GATE the traveller rests on + launches from
-   (C-SEQ-3). Spans the full track width via `left: at/STAGGER_MAX`. */
+/* ── The draggable row start-handle (R-SEQ-D, H.W12.S6 / I3; J.WZ target-size) ─
+   The START GATE the traveller rests on + launches from (C-SEQ-3), at the
+   child's at: proportion (`left: at/STAGGER_MAX`). The ELEMENT is the 24×24px tap
+   target lighthouse measures (its own box — a pseudo would NOT grow it, so the
+   24px IS the element; the former 6.4px grip redded target-size on
+   sequence/mobile). The thin visible grip is painted by ::after. */
 .seq-handle {
     position: absolute;
     top: 50%;
-    width: 0.4rem;
-    height: 1.5rem;
-    margin-top: -0.75rem;
-    margin-left: -0.2rem;
-    border-radius: var(--radius-pill);
-    background: color-mix(in srgb, var(--ball-tone, var(--color-progress)) 70%, var(--background));
-    border: 1.5px solid var(--ball-tone, var(--color-progress));
+    width: 24px;
+    height: 24px;
+    margin-top: -12px;
+    margin-left: -12px;
     cursor: grab;
     touch-action: none;
     z-index: var(--z-seq-handle);
+}
+/* The visible grip — a thin master-toned bar centred in the 24px hit box.
+   pointer-events:none so the host owns every tap/drag (paint only). */
+.seq-handle::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0.4rem;
+    height: 1.5rem;
+    transform: translate(-50%, -50%);
+    border-radius: var(--radius-pill);
+    background: color-mix(in srgb, var(--ball-tone, var(--color-progress)) 70%, var(--background));
+    border: 1.5px solid var(--ball-tone, var(--color-progress));
+    pointer-events: none;
     transition:
         background 120ms ease,
         transform 120ms ease;
 }
-.seq-handle:hover,
-.seq-handle:focus-visible {
+.seq-handle:hover::after,
+.seq-handle:focus-visible::after {
     background: var(--ball-tone, var(--color-progress));
-    transform: scaleY(1.12);
+    transform: translate(-50%, -50%) scaleY(1.12);
+}
+.seq-handle:focus-visible {
     outline: none;
 }
 .seq-handle:active {
@@ -471,17 +451,15 @@ useEventListener(window, "keydown", (e: KeyboardEvent) => {
     border-color: var(--color-progress);
 }
 
-/* ── The per-row traveller (J.W7c C-SEQ-3, U6) ────────────────────────────────
-   Rides the engine-painted --ball-p (0→1) over the shared .progress-ball idiom.
-   THE CASCADE: it RESTS at its row's start gate (--row-start = at/STAGGER_MAX) and
-   glides to the track far end as the sweep enters — so even at t=0 the balls draw
-   the stagger as a DIAGONAL CASCADE (the distribution SEEN, not piled left).
-
-   THE SHADOW FIX (a born-RED latent bug the redesign repairs): the engine paints
-   --ball-p onto the TRACK; the ball reads it by INHERITANCE. The former `.seq-ball
-   { --ball-p: 0 }` SELF-DECLARATION shadowed that cascade (the travellers were
-   STATIC — the trap the design-idioms.css --ball-tone note names). Both --ball-p
-   + --row-start now read via the `var(--x, fallback)` form, so both cascades flow. */
+/* ── The per-row traveller (J.W7c C-SEQ-3, U6; J.WZ engine-target) ─────────────
+   The ball IS the child animation's TARGET (J.WZ): the engine writes --ball-p +
+   the fade-in opacity + the settle scale-pop onto THIS ball, so the pop scales
+   ONLY the ball — not the row track (the former track-as-target let `scale: 0.7`
+   shrink the whole row, dropping the 24px handle to 16.8px → target-size).
+   THE CASCADE: it RESTS at its start gate (--row-start = at/STAGGER_MAX,
+   inherited from .seq-row) and glides to the far end as the sweep enters — so
+   even at t=0 the balls draw a DIAGONAL CASCADE. Both --row-start (inherited) +
+   --ball-p (the engine's inline write) read via `var(--x, fallback)`. */
 .seq-ball {
     --ball-size: 1.6rem;
     /* usable = full rail minus the ball's width; left walks from the start gate to
@@ -494,11 +472,27 @@ useEventListener(window, "keydown", (e: KeyboardEvent) => {
     will-change: left;
 }
 
-/* The master scrub-ball — positioned by Vue (the one ball the engine does not
-   paint), at the idiom-default --ball-size + full glow: the DOMINANT ball that
-   drives the whole storyboard (SEQ-12). */
-.scrub-ball {
-    margin-left: calc(var(--ball-size, 36px) / -2);
-    will-change: left;
+/* ── MOBILE row-pitch compression (J.WZ — a11y target-size) ───────────────────
+   On a short viewport (375×667 — lighthouse mobile) the 5 storyboard rows at the
+   desktop pitch OVERFLOWED below the controls-sheet grab-handle, so the bottom
+   row's slider handle OVERLAPPED it (another interactive target) → target-size
+   redded sequence/mobile. The storyboard is `shrink-0`, so centring/padding can't
+   lift the overflow — compress the pitch so all 5 rows + 24px handles fit ABOVE
+   the sheet peek band (track stays 1.5rem = 24px, the handle minimum). PLACED
+   LAST to win the cascade (a media query adds no specificity); desktop unchanged. */
+@media (max-width: 1023px) {
+    .seq-storyboard {
+        padding-block: 0.5rem;
+    }
+    .seq-axis {
+        height: 0.95rem;
+        margin-bottom: 0;
+    }
+    .seq-rows {
+        row-gap: 0.15rem;
+    }
+    .seq-track {
+        height: 1.5rem;
+    }
 }
 </style>

@@ -184,6 +184,7 @@
 
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, useTemplateRef } from "vue";
+import { useResizeObserver } from "@vueuse/core";
 
 import {
     List,
@@ -236,27 +237,53 @@ const dockRef = useTemplateRef<InstanceType<typeof GlassDock>>("dockRef");
 // 390×844 + hasTouch context — the CH-3 re-certification oracle).
 const menubarHostEl = useTemplateRef<HTMLElement>("menubarHostEl");
 const MENUBAR_MEASURED_PROP = "--menubar-measured-h";
-let menubarResizeObserver: ResizeObserver | null = null;
+const MENUBAR_PEAK_PROP = "--menubar-measured-h-peak";
 
-onMounted(() => {
+// J.WZ (S1 stage-rect-invariant fix) — the menubar pill's border-box height is
+// NOT constant across the sheet toggle: opening the bottom sheet reflows the
+// GlassDock content (the transport row crossfades/repacks) so the LIVE measure
+// oscillates ~90px↔~84px. The sheet anchor WANTS that live value (it must clear
+// the menubar the user sees this instant — proof:live-session-mobile). But the
+// mobile full-bleed STAGE reserves its band from the same token, and a band that
+// breathes with the dock SHIFTS the fixed stage rect on every open/close — the
+// exact S1 violation proof:mobile-single-page clause (b) bites (host Δ ≈ ±8px).
+// Cure: publish a MONOTONIC high-water mark beside the live value. The stage
+// reserves the PEAK (stable by construction — it only ever grows), so the
+// full-bleed frame never moves; the sheet keeps tracking the live measure. The
+// peak is a pure ceiling over observed heights (never fed back into the measure),
+// so no custom-property cycle forms and over-reservation only ever keeps the
+// subject MORE clear of the dock, never less.
+let menubarPeak = 0;
+
+const publish = () => {
     const host = menubarHostEl.value;
-    if (!host || typeof ResizeObserver === "undefined") return;
-    const publish = () => {
-        const h = Math.ceil(host.getBoundingClientRect().height);
+    if (!host) return;
+    const h = Math.ceil(host.getBoundingClientRect().height);
+    document.documentElement.style.setProperty(MENUBAR_MEASURED_PROP, `${h}px`);
+    if (h > menubarPeak) {
+        menubarPeak = h;
         document.documentElement.style.setProperty(
-            MENUBAR_MEASURED_PROP,
-            `${h}px`,
+            MENUBAR_PEAK_PROP,
+            `${menubarPeak}px`,
         );
-    };
-    menubarResizeObserver = new ResizeObserver(publish);
-    menubarResizeObserver.observe(host);
-    publish();
-});
+    }
+};
 
+// The menubar-height observer rides @vueuse/core's useResizeObserver (inv-ζ
+// dogfood discipline, E.W2 §S1–S3): it auto-cleans via tryOnScopeDispose, so no
+// hand-rolled disconnect bookkeeping can leak on a mid-resize unmount. The
+// callback IS `publish` (re-emit --menubar-measured-h on every menubar reflow).
+useResizeObserver(menubarHostEl, publish);
+
+// Seed the property once the host is in the DOM (the observer's first callback
+// already fires on observe, but mount-seeding keeps the band math correct even
+// before the first reflow). The token is cleared on unmount so a torn-down dock
+// never strands a stale measured height on :root.
+onMounted(publish);
 onBeforeUnmount(() => {
-    menubarResizeObserver?.disconnect();
-    menubarResizeObserver = null;
     document.documentElement.style.removeProperty(MENUBAR_MEASURED_PROP);
+    document.documentElement.style.removeProperty(MENUBAR_PEAK_PROP);
+    menubarPeak = 0;
 });
 
 // ── J.W7c U2 (fix-round 1) — the play toggle actuates on POINTERDOWN, not click.

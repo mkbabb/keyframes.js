@@ -8,22 +8,40 @@
         :selected-control="dockSelectedControl"
         :control-surfaces="controlSurfaces"
         :extra-control-tabs="extraControlTabs"
+        :items-popup-open="mbabbMenuOpen || mbabbPressing"
         @switch-scene="runSceneSwitch"
         @warm-scene="warmScene"
         @toggle-controls-panel="storedControls.isControlsPanelOpen = !storedControls.isControlsPanelOpen"
         @update-selected-control="onDockSelectControl"
     >
         <template #items>
-            <!-- @mbabb dropdown — S8 (BLK-8): DockDropdownTrigger is itself a
-                 reka trigger (mirroring DockSelectTrigger), so it mounts DIRECTLY
-                 inside <DropdownMenu>. The former outer <DropdownMenuTrigger
-                 as-child> double-wrapped it — two triggers, two click handlers,
-                 the inner click swallowed (handlerCount:2, finalOpen:false).
-                 Keep-open is acquired IMPERATIVELY via useOptionalDockContext()
-                 on @update:open (NOT a v-model:open binding — keepOpen/release
-                 are a DI function pair, not a v-model surface). -->
+            <!-- @mbabb dropdown — S8 (BLK-8) / D9 re-cure: DockDropdownTrigger is
+                 itself a reka trigger (mirroring DockSelectTrigger), so it mounts
+                 DIRECTLY inside <DropdownMenu>. The former outer
+                 <DropdownMenuTrigger as-child> double-wrapped it (two triggers,
+                 the inner click swallowed); that wrap is GONE. reka still OWNS the
+                 open/close latch (uncontrolled) — a clean single toggle.
+
+                 The D9 race re-surfaced under the J.W7c U1 golden-proportion dock:
+                 reka's DockSelectTrigger opens on POINTERDOWN (wins instantly), but
+                 DockDropdownTrigger opens on CLICK — it needs pointerdown AND
+                 pointerup on the SAME node. The dock-control press-scale
+                 (`:active { scale: var(--scale-press-dock) /* .96 */ }`, glass-ui's
+                 affordance shared with the Select) shrinks the pill mid-press, so
+                 pointerup lands off the trigger and no `click` is ever synthesised →
+                 the menu never opens (the deterministic born-RED in a fresh context).
+
+                 FIX (product seam, no reka/glass-ui patch): on the trigger's
+                 POINTERDOWN we SYNTHESISE the click reka needs (a reflow-immune
+                 actuation mirroring the Select's pointerdown-wins behaviour) and kill
+                 the trailing native click, leaving reka in sole control of the
+                 toggle; and we surface the menu's open state to ChromeDock
+                 (`:items-popup-open`) so the DOCK holds itself open — keeping the
+                 trigger's expanded layer mounted while the menu is open (the slot's
+                 own useOptionalDockContext can't reach the GlassDock provider). See
+                 the handlers below for the full rationale. -->
             <DropdownMenu @update:open="onMbabbMenuOpen">
-                <DockDropdownTrigger aria-label="@mbabb menu" class="text-mono-caption normal-case lg:text-mono-small">@mbabb</DockDropdownTrigger>
+                <DockDropdownTrigger aria-label="@mbabb menu" class="text-mono-caption normal-case lg:text-mono-small" @pointerenter="onMbabbTriggerEnter" @pointerleave="onMbabbTriggerLeave" @pointerdown="onMbabbTriggerPointerdown" @click.capture="onMbabbTriggerClickCapture">@mbabb</DockDropdownTrigger>
                 <DropdownMenuContent align="end" :side-offset="8" class="z-modal min-w-[var(--dock-panel-width)] text-body p-1.5">
                     <!-- Share -->
                     <DropdownMenuItem @select.prevent class="flex items-center gap-2.5 px-1.5 py-1 rounded-lg">
@@ -170,7 +188,7 @@ import { EditorShell, EditorStartScreen, SharePopover } from "@components/custom
 import { Avatar, AvatarImage, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@mkbabb/glass-ui";
 import { DarkModeToggle } from "@mkbabb/glass-ui/controls";
 import { useGlobalDark } from "@mkbabb/glass-ui/dark";
-import { DockDropdownTrigger, useOptionalDockContext } from "@mkbabb/glass-ui/dock";
+import { DockDropdownTrigger } from "@mkbabb/glass-ui/dock";
 import ChromeDock from "@components/custom/dock/ChromeDock.vue";
 
 import { AnimationGroup } from "@src/animation/group";
@@ -349,12 +367,77 @@ const {
 // @switch-scene, the SharePopover restore) goes through this.
 const { runSceneSwitch } = useSceneTransition(switchScene, sceneHostEl);
 
-// ── S8 (BLK-8): keep the dock expanded while the @mbabb menu is open ──────────
-// Imperative DI function pair on DockContext (HD-2) — NOT a v-model surface.
-const dockContext = useOptionalDockContext();
+// ── S8/BLK-8 (D9): the @mbabb menu opens on POINTERDOWN, dock pinned while open ──
+//
+// THE RACE (BLK-8 root, re-surfaced by the J.W7c U1 golden-proportion dock): reka's
+// `DockSelectTrigger` opens on `pointerdown` (it wins instantly), but the
+// `DockDropdownTrigger` opens on `click` — it needs pointerdown AND pointerup to
+// land on the SAME element. The collapsed dock only stays expanded on hover, and
+// the press reflows/collapses the pill between down and up, moving the trigger out
+// from under the pointer; no `click` is synthesised → the menu never opens
+// (aria-expanded:false, finalOpen:false — the exact born-RED, deterministic in a
+// fresh context).
+//
+// FIX (product seam, no reka/glass-ui patch), two coupled parts:
+//
+//  (1) THE PRESS-SCALE REFLOW. The dock-control press affordance
+//      (`:active { scale: var(--scale-press-dock) /* .96 */ }`, glass-ui, shared
+//      with the Select) shrinks the pill mid-press, so the native pointerup/click
+//      lands off the trigger and reka — which opens on CLICK — never sees one. On
+//      the trigger's POINTERDOWN we SYNTHESISE the click reka listens for (a
+//      reflow-immune actuation that mirrors the Select's pointerdown-wins
+//      behaviour), and KILL the trailing native click in the capture phase so the
+//      latch toggles exactly once. reka stays UNCONTROLLED and owns open/close — a
+//      naturally clean toggle (closed→open→closed→open).
+//
+//  (2) THE LAYER COLLAPSE. The trigger lives in the dock's EXPANDED layer; once the
+//      dock collapses, that layer goes `visibility:hidden` and the trigger vanishes
+//      (so a second click can't reach it to close). The slot content is set up in
+//      App.vue, so its `useOptionalDockContext()` resolves ABOVE the GlassDock
+//      provider and CANNOT hold the dock — the prior S8 keep-open here was a silent
+//      no-op. We instead surface the menu's open state to ChromeDock
+//      (`:items-popup-open`), which holds the dock via its OWN dockRef — the same
+//      hold the scene/controls Selects ride.
+const mbabbMenuOpen = ref(false);
+// Pins the dock the instant the pointer is over the @mbabb trigger — BEFORE the
+// reka open-state round-trips back through @update:open — so a collapse already
+// scheduled (the pointer was parked off the dock) is suppressed before it can hide
+// the trigger's layer mid-press. Cleared on leave once the menu isn't open.
+const mbabbPressing = ref(false);
+// True only while OUR synthetic click is in flight — the capture-phase guard lets
+// that one reach reka and kills every native (reflow-prone) click.
+let mbabbSynthClick = false;
+function onMbabbTriggerEnter() {
+    mbabbPressing.value = true; // pin the dock open across the hover→press window
+}
+function onMbabbTriggerLeave() {
+    if (!mbabbMenuOpen.value) mbabbPressing.value = false;
+}
+function onMbabbTriggerPointerdown(event: PointerEvent) {
+    // Primary-button, non-ctrl only (match reka's Select pointerdown gate). Mouse,
+    // pen AND touch all actuate here: the press-scale reflow can swallow the native
+    // click on any input, so we synthesise on pointerdown across the board and kill
+    // the trailing native click (the capture guard) for a single clean toggle (D9).
+    if (event.button !== 0 || event.ctrlKey) return;
+    event.preventDefault();
+    mbabbPressing.value = true;
+    const el = event.currentTarget as HTMLElement | null;
+    mbabbSynthClick = true;
+    el?.click(); // reka's trigger onClick toggles on THIS synthetic, reflow-immune click
+    mbabbSynthClick = false;
+}
+function onMbabbTriggerClickCapture(event: MouseEvent) {
+    // Our synthetic click passes through to reka; a trailing NATIVE click (if the
+    // reflow even let one land) is killed in capture so it cannot double-toggle.
+    if (mbabbSynthClick) return;
+    event.preventDefault();
+    event.stopPropagation();
+}
 function onMbabbMenuOpen(open: boolean) {
-    if (open) dockContext?.keepOpen();
-    else dockContext?.release();
+    // reka owns the latch; mirror its open state to ChromeDock's dock hold so the
+    // trigger's layer stays mounted (visible) while the menu is open.
+    mbabbMenuOpen.value = open;
+    if (!open) mbabbPressing.value = false; // closed → drop the press pin
 }
 </script>
 

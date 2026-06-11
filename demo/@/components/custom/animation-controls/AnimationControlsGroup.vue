@@ -386,8 +386,18 @@ function switchTab(tab: string) {
            occupant — the scene-switcher — by construction. The reserve stays
            SYMMETRIC (the G8 one-envelope contract, proof:stage-within-docks):
            the bottom edge takes the same enlarged band, which also lifts the
-           centred subjects clear of the bottom transport pill. */
-        padding-block: var(--dock-top-band-reserve);
+           centred subjects clear of the bottom transport pill.
+
+           J.WZ (S1 stage-rect-invariant): the reserve reads the STABLE band
+           (--dock-top-band-reserve-stable, peak-derived) NOT the live
+           --dock-top-band-reserve. The live token folds --menubar-measured-h,
+           which oscillates ±8px as the bottom sheet toggles (the GlassDock
+           reflows) — feeding it into THIS fixed full-bleed frame's padding-block
+           SHIFTED the stage rect on every open/close (proof:mobile-single-page
+           clause (b)). The stable token only ever grows, so the frame holds still;
+           the sheet anchor (ControlsPaneWrapper) keeps the live token so it still
+           clears the menubar the user sees (proof:live-session-mobile). */
+        padding-block: var(--dock-top-band-reserve-stable);
         /* The orbit surface keeps `touch-action: none` (OrbitalDrag/AmigaScene
            own it on their own roots); this cell is a passive frame, so the swipe
            is owned by the sheet GRAB HANDLE — spatially disjoint (BLK-6). */

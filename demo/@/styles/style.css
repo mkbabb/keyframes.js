@@ -170,6 +170,24 @@
         var(--menubar-measured-h, 0px)
     );
 
+    /* J.WZ (S1 stage-rect-invariant) — the STABLE sibling of --dock-band-reserve.
+       --dock-band-reserve folds the LIVE --menubar-measured-h, which oscillates as
+       the bottom sheet toggles (the GlassDock content reflows ~90px↔~84px); the
+       sheet anchor WANTS that live value, but feeding it into the mobile full-bleed
+       stage's `padding-block` SHIFTS the fixed stage rect on every open/close (the
+       S1 violation proof:mobile-single-page clause (b) bites: host Δ ≈ ±8px). This
+       token reads the MONOTONIC peak instead (--menubar-measured-h-peak, published
+       by TransportDock — it only ever grows), so the stage frame reserves a band
+       that never breathes with the dock state. Same token floor; the peak replaces
+       the live term. Over-reservation only ever keeps the subject MORE clear. */
+    --dock-band-reserve-stable: max(
+        calc(
+            var(--dock-icon-height) + var(--dock-margin) +
+                env(safe-area-inset-bottom, 0px)
+        ),
+        var(--menubar-measured-h-peak, 0px)
+    );
+
     /* Bottom dock exclusion zone — the y-distance from the viewport bottom to
        the TOP edge of the menubar pill: the dock's own bottom anchor (the gap
        below the pill) PLUS the pill's measured band depth. Consumed by
@@ -312,6 +330,37 @@
         --work-area-vertical-slack: max(calc(100dvh - var(--work-area-height)), 0px);
         --work-area-top-offset: calc(var(--work-area-vertical-slack) * var(--work-area-vertical-bias-top));
         --work-area-bottom-offset: calc(var(--work-area-vertical-slack) * var(--work-area-vertical-bias-bottom));
+
+        /* J.WZ (S1 stage-rect-invariant) — the STABLE parallel of the work-area
+           top-band chain, computed from --dock-band-reserve-stable (the peak)
+           rather than the live --dock-band-reserve. The mobile full-bleed stage
+           reserves its top/bottom band from --dock-top-band-reserve-stable so the
+           fixed stage rect NEVER breathes when the bottom sheet toggles (the live
+           chain oscillates ±8px with the dock reflow → proof:mobile-single-page
+           clause (b) bites). The live chain above is UNTOUCHED — the sheet anchor
+           + detents keep tracking the live menubar (proof:live-session-mobile).
+           Mirrors --dock-top-anchor / --dock-top-band-reserve structurally, with
+           the stable band substituted for the live one at every term. */
+        --work-area-max-height-stable: min(
+            64rem,
+            calc(100dvh - var(--dock-band-reserve-stable))
+        );
+        --work-area-vertical-slack-stable: max(
+            calc(100dvh - min(100dvh, var(--work-area-max-height-stable))),
+            0px
+        );
+        --dock-top-anchor-stable: calc(
+            max(
+                    calc(
+                        var(--work-area-vertical-slack-stable) *
+                            var(--work-area-vertical-bias-top)
+                    ),
+                    env(safe-area-inset-top, 0px)
+                ) + var(--dock-margin) / 4
+        );
+        --dock-top-band-reserve-stable: calc(
+            var(--dock-top-anchor-stable) + var(--dock-band-reserve-stable)
+        );
     }
 }
 

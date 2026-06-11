@@ -57,6 +57,12 @@ const props = defineProps<{
      *  full triad when absent (non-App hosts that don't drive the DFA). */
     controlSurfaces?: string[];
     extraControlTabs?: { value: string; label: string; icon?: string }[];
+    /** A slotted #items popup (the @mbabb dropdown) is open. The slot content is
+     *  set up in the PARENT (App.vue), so its `useOptionalDockContext()` resolves
+     *  ABOVE this provider and cannot hold the dock open itself; the parent surfaces
+     *  the open state here so the dock's own keep-open hold (dockRef) pins it — the
+     *  same mutex the scene/controls Selects ride (BLK-8 / D9). */
+    itemsPopupOpen?: boolean;
 }>();
 
 // The active scene's inline-SVG glyph for the trigger + collapsed pill; the
@@ -114,7 +120,11 @@ watch(() => dockRef.value?.expanded, (isExpanded) => {
 // ── Popup mutex: only one dropdown at a time ──
 type PopupKey = "scene" | "controls";
 const openPopup = ref<PopupKey | null>(null);
-const isAnyOpen = computed(() => openPopup.value !== null);
+// The dock stays expanded while ANY popup is open — the scene/controls Selects
+// (openPopup mutex) OR a slotted #items popup the parent surfaces (the @mbabb
+// dropdown, whose own DI-injected hold can't reach this provider). Holding here is
+// what keeps the trigger's layer from collapsing to visibility:hidden mid-gesture.
+const isAnyOpen = computed(() => openPopup.value !== null || !!props.itemsPopupOpen);
 function popupModel(key: PopupKey) {
     return computed({
         get: () => openPopup.value === key,
@@ -130,9 +140,27 @@ function popupModel(key: PopupKey) {
 const sceneSelectOpen = popupModel("scene");
 const controlsSelectOpen = popupModel("controls");
 
+// While a popup is open, the dock MUST stay expanded so the trigger that owns the
+// popup remains visible + hit-testable (the @mbabb dropdown's open/close latch, the
+// scene/controls selects' re-pick). keepOpen() blocks the idle-TIMER collapse, but
+// the dock's document-pointerdown path can still force a collapse (its own
+// dismiss-synthetic pointerdown lands outside the dock and self-collapses it,
+// bypassing the hold counter). So we ALSO re-assert expand() if the dock slips to
+// collapsed while a popup is open — the trigger's layer never goes
+// visibility:hidden under an open menu (BLK-8 / D9). The guard below settles into a
+// stable expanded state (re-expand fires at most once per spurious collapse).
+watch(
+    () => dockRef.value?.expanded,
+    (isExpanded) => {
+        if (isExpanded === false && isAnyOpen.value) dockRef.value?.expand();
+    },
+);
+
 watch(isAnyOpen, (open) => {
-    if (open) dockRef.value?.keepOpen();
-    else dockRef.value?.release();
+    if (open) {
+        dockRef.value?.keepOpen();
+        dockRef.value?.expand();
+    } else dockRef.value?.release();
 });
 </script>
 

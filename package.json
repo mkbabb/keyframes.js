@@ -27,7 +27,8 @@
     },
     "files": [
         "dist",
-        "!dist/gh-pages"
+        "!dist/gh-pages",
+        "!dist/_*"
     ],
     "scripts": {
         "prepare": "npm run build:lib",
