@@ -26,9 +26,13 @@ that cites a green CI correctness run as evidence the felt budget holds is re-co
 over-read this section exists to forbid.
 
 **The policy decision (WZ-postclose c2, decided at J.W3):** device-dependent gates are
-**observe-only** in CI — NOT CI-excluded. `proof:lighthouse-mobile`'s full CI-exclusion is the
-legacy ad-hoc; its tier entry is **J.W4-owned** (`J.md` J.W4 row) and it leaves the
-`proof:ci-coverage` EXCLUDED set in that motion.
+**observe-only** in CI — NOT CI-excluded. `proof:lighthouse-mobile`'s full CI-exclusion was the
+legacy ad-hoc; **J.W4 S6 discharged its tier entry**: it left the `proof:ci-coverage`
+EXCLUDED set, declares `observe-only` through the one helper (hard on-device via
+`KF_REQUIRE_LH=1` — the calibrated-runner half bypasses the CI softening), runs in the
+HYGIENE tier (`proof:hygiene` + the ci.yml demo job), and its green observe-only CI run is
+NEVER over-read as "mobile perf held in CI" (the correctness owner of "mobile works" is the
+S1 mobile-input battery, `proof:live-session-mobile`).
 
 ## The posture manifest (the S2c-checked table)
 
@@ -41,6 +45,7 @@ byte-for-byte. Gates not listed are **hard** (the default; no declaration needed
 | `proof:perf-frame-budget` | observe-only | re-measure on-device |
 | `proof:scene-transition-perf` | observe-only | re-measure on-device |
 | `proof:visual-lock` | observe-only | cross-OS render; re-baseline in-container |
+| `proof:lighthouse-mobile` | observe-only | mobile Lighthouse CPU/network throttle assumes a calibrated or real-device host — absolute scores are environment artifacts on shared runners; hard on-device via KF_REQUIRE_LH=1 (J.W4 S6) |
 
 **Named non-instances (recorded so the postures are decisions, not drift):**
 
@@ -54,8 +59,6 @@ byte-for-byte. Gates not listed are **hard** (the default; no declaration needed
   **runner-calibrated**: the strict 50 ms threshold is UNCHANGED; only the composite cell
   count is sized to the shared-VM runner (~6× slower than real hardware). The full 200-cell
   stress is the local/dedicated `npm run bench` authority.
-- `proof:lighthouse-mobile` — legacy CI-excluded (pre-J); enters a tier under its P6
-  runner-calibrated posture at **J.W4** (the one orphan J.W4 owns).
 
 ## No-workaround prohibition (J.md §spine; S2)
 

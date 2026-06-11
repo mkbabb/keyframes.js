@@ -158,7 +158,16 @@ function clauseA() {
     }));
     const packedPaths = new Set(packed.map((f) => f.path));
 
-    // The on-disk dist/ file set (what `files: ["dist"]` declares).
+    // The on-disk dist/ file set (what `files: ["dist", "!dist/gh-pages"]`
+    // declares). The DEMO build outputs (dist/gh-pages — the J.W5 `!` negation
+    // — and the retired dist/demo-app shape) are deliberately UN-packed, so
+    // the must-pack walk applies the SAME negation: on a demo-built tree
+    // (gh-pages present beside the library dist — the normal state for the
+    // browser batteries) those files are expected ABSENT from the tarball.
+    // The a.2 DEMO-BUILD-LEAK clause below stays the other half: if one ever
+    // DOES pack, it reds there. (J.W4 fix: the pre-fix walk carried no
+    // negation, so a demo-built tree false-redded 50+ "did NOT pack" findings.)
+    const UNPACKED_DEMO_DIR = /^dist\/(?:gh-pages|demo-app)\//;
     const distFiles = fs
         .readdirSync(DIST, { recursive: true, withFileTypes: true })
         .filter((d) => d.isFile() && !isPacklistJunk(d.name))
@@ -166,7 +175,8 @@ function clauseA() {
             path
                 .join("dist", path.relative(DIST, path.join(d.parentPath, d.name)))
                 .replaceAll("\\", "/"),
-        );
+        )
+        .filter((p) => !UNPACKED_DEMO_DIR.test(p));
 
     const distInTarball = packed.filter((f) => f.path.startsWith("dist/"));
     console.log(
@@ -581,6 +591,95 @@ function clauseF() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// clause (g) — the EP-3 uncovered-export DISPOSITION (J.W4 S7)
+//
+// `engine-periphery.md` EP-3: flip/flipShared, drag/Draggable, DrawSVG/
+// fromDrawSVG ship load-bearing + tested with NO demo scene — zero live-session
+// runtime coverage. The J.W4 binding decision: PATH B — each is a recorded BOOK
+// in this manifest (docs/published-surface.md §EP-3) with its no-live-scene
+// status DISCLOSED and its unit coverage CITED (P-invariant-28: the terminal
+// disposition, not a punt). This clause machine-checks the BOOK both ways:
+//   (i)  every EP-3 export has a disposition row in the §EP-3 table;
+//   (ii) every row's cited `test/*.test.ts` file EXISTS on disk (a citation of
+//        deleted coverage is a stale BOOK — reds);
+//   (iii) a PATH B row's disposition cell carries the explicit
+//        "no live-session scene" disclosure (the honesty marker).
+// If a future wave gives an export a demo scene (PATH A), its row flips to
+// `PATH A` naming the scene — and the scene auto-joins the live-session sweep
+// via the scenes.ts roster (demo-driver's stale-key guard).
+// ─────────────────────────────────────────────────────────────────────────────
+
+const EP3_EXPORTS = ["flip", "flipShared", "drag", "Draggable", "DrawSVG", "fromDrawSVG"];
+
+function clauseG() {
+    console.log("\nclause (g) — the EP-3 uncovered-export disposition (J.W4 S7)");
+    if (!fs.existsSync(MANIFEST)) {
+        failures.push("(g) docs/published-surface.md is MISSING — the EP-3 disposition BOOK has no home.");
+        return;
+    }
+    const text = fs.readFileSync(MANIFEST, "utf8");
+    const sectionIdx = text.search(/^##\s+EP-3\b/m);
+    if (sectionIdx < 0) {
+        failures.push(
+            "(g) the §EP-3 live-coverage disposition section is MISSING from docs/published-surface.md — " +
+                "the uncovered exports (flip/drag/draw-svg) ride undispositioned (EP-3).",
+        );
+        return;
+    }
+    const section = text.slice(sectionIdx);
+    const rows = new Map();
+    for (const line of section.split("\n")) {
+        const m = line.match(/^\|\s*`([A-Za-z_$][\w$]*)`\s*\|\s*([^|]*)\|\s*([^|]*)\|/);
+        if (m) rows.set(m[1], { disposition: m[2].trim(), coverage: m[3].trim() });
+    }
+    let okCount = 0;
+    for (const name of EP3_EXPORTS) {
+        const row = rows.get(name);
+        if (!row) {
+            failures.push(
+                `(g) EP-3 export \`${name}\` has NO disposition row in the §EP-3 table — ` +
+                    "every uncovered export needs a PATH A scene or a PATH B BOOK (no silent ride).",
+            );
+            continue;
+        }
+        const isPathA = /PATH A/i.test(row.disposition);
+        const isPathB = /PATH B/i.test(row.disposition);
+        if (!isPathA && !isPathB) {
+            failures.push(`(g) EP-3 row \`${name}\` names neither PATH A nor PATH B — the disposition is ambiguous.`);
+            continue;
+        }
+        if (isPathB) {
+            if (!/no live-session scene/i.test(row.disposition)) {
+                failures.push(
+                    `(g) EP-3 PATH B row \`${name}\` lacks the explicit "no live-session scene" disclosure — ` +
+                        "the BOOK must disclose the uncovered status, not imply coverage.",
+                );
+            }
+            const cited = [...row.coverage.matchAll(/`(test\/[\w.-]+\.test\.ts)`/g)].map((m) => m[1]);
+            if (cited.length === 0) {
+                failures.push(`(g) EP-3 PATH B row \`${name}\` cites NO \`test/*.test.ts\` unit coverage — an undisclosed-coverage BOOK.`);
+                continue;
+            }
+            const missing = cited.filter((f) => !fs.existsSync(path.join(REPO, f)));
+            if (missing.length > 0) {
+                failures.push(
+                    `(g) EP-3 PATH B row \`${name}\` cites coverage that does not exist on disk: ${missing.join(", ")} — a stale BOOK.`,
+                );
+                continue;
+            }
+        }
+        okCount += 1;
+    }
+    if (okCount === EP3_EXPORTS.length) {
+        console.log(
+            `  ✓ all ${EP3_EXPORTS.length} EP-3 exports dispositioned (${EP3_EXPORTS.join(", ")}) — ` +
+                "each a PATH B BOOK with existing cited unit coverage and the no-live-scene disclosure " +
+                "(or a PATH A scene). No export rides un-dispositioned.",
+        );
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 async function main() {
     console.log(
@@ -594,6 +693,7 @@ async function main() {
     await clauseD(engineKeys);
     clauseE();
     clauseF();
+    clauseG();
 
     if (failures.length > 0) {
         console.error(

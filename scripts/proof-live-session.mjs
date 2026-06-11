@@ -27,8 +27,26 @@
  *   B6 — on /square a real drag selects NO text + the transform PERSISTS.
  *   B3 — on /amiga a centre-drag moves the SUBJECT, not the room.
  *   B7 — at rest the glass ::before carry NO bloom.
- *   B9 — every scene glyph PAINTS.
+ *   B9 — every scene glyph PAINTS (the sweep roster is the AUTO-TRACKING lib
+ *        SCENES export — every routed scene incl. home; J.W4 S5).
  *   font — the body font is NOT Plus Jakarta (the I.W6-font reclaim).
+ *   S5 — (J.W4) EVERY routed scene ENTERS clean per the expected-destination
+ *        predicate, PLAYS+INTERACTS per its class (spring rail-scrub, sequence
+ *        transport, motion-path traveller + handle-drag re-shape — never
+ *        glyph-paint-only), and the covering dock-combobox switch WALK lands
+ *        every adjacency once (wrap-to-home).
+ *   S2 — (J.W4) under emulated prefers-reduced-motion the engine's LIVE
+ *        respectReducedMotion path SNAPS: the TypingDots rest (vs a blinking
+ *        non-PRM control) and the sheet spring moves --sheet-t with no
+ *        intermediate emit.
+ *   S4 — (J.W4) keyboard-only operability: Tab reaches the play <button> with
+ *        a rendered :focus-visible ring; focused Enter actuates natively; the
+ *        global Space shortcut toggles play from anywhere.
+ *
+ *   The J.W4 MOBILE-INPUT half of the axes battery (390×844 + hasTouch — the
+ *   sheet/dock/drag/play touch matrix + the CH-3 occlusion geometry) is the
+ *   sibling proof:live-session-mobile (same harness, same budget allowlist by
+ *   reference — a separate newContext shape, NOT a new proxy lattice).
  *
  * TWO HARNESS MODES (H-6 — both required):
  *   • MODE-PERSIST — ONE persistent context for the suspend/resume/switch matrix
@@ -60,7 +78,9 @@ import { chargeBudget, isNamedBenign } from "./lib/console-budget.mjs";
 import {
     REQUIRE_BROWSER,
     SCENE_MACHINE_KEY,
+    SCENES,
     navToScene,
+    subjectRect,
     withBrowser,
     withPage,
 } from "./lib/demo-driver.mjs";
@@ -161,6 +181,45 @@ function makeBudget(label) {
 const USE_DEV_SERVER = process.env.KF_DEV_SERVER === "1";
 const MACHINE_KEY = SCENE_MACHINE_KEY; // SCENE_MACHINE_PERSIST_KEY (lib-sourced)
 const CTRL_KEY = "animation-groups-control-options-store";
+
+// ── J.W4 S5 — the per-scene SWEEP metadata over the AUTO-TRACKING lib SCENES ──
+// The sweep ROSTER is the lib's `SCENES` export (re-sourced from scenes.ts —
+// demo-driver's stale-key guard), NEVER a hardcoded literal (the `:711`
+// brittleness that let `home` fall out of the sweep entirely and left
+// spring/sequence/motion-path icon-paint-only — INVE-2). The only hand data is
+// the per-scene EXPECTED control-tab trigger (J.W0's per-expected-destination
+// predicate), the dock-combobox option LABEL (the real switch path), and the
+// scene's PLAY+INTERACT class. A scenes.ts add/remove reaches the sweep
+// automatically; a scene with no metadata row REDS the leg LOUD (the
+// bidirectional stale-key guard below) — the sweep can never silently omit a
+// routed scene.
+const SWEEP_META = {
+    home: { trigger: null, label: "Home", kind: "home" },
+    cube: { trigger: "Controls", label: "Cube", kind: "group-play" },
+    amiga: { trigger: "Controls", label: "Amiga", kind: "present-loop" },
+    square: { trigger: "Controls", label: "Square", kind: "group-play" },
+    easing: { trigger: "Easing", label: "Easing", kind: "group-play" },
+    spring: { trigger: "Spring", label: "Spring", kind: "spring-rail" },
+    sequence: { trigger: null, label: "Sequence", kind: "sequence-transport" },
+    "motion-path": { trigger: null, label: "Path", kind: "motion-path" },
+};
+{
+    const libKeys = SCENES.map((s) => s.key);
+    const metaKeys = Object.keys(SWEEP_META);
+    const unenrolled = libKeys.filter((k) => !(k in SWEEP_META));
+    const stale = metaKeys.filter((k) => !libKeys.includes(k));
+    if (unenrolled.length || stale.length) {
+        fail(
+            `S5 sweep metadata ≠ the auto-tracking SCENES export — ` +
+                (unenrolled.length
+                    ? `scenes.ts scene(s) with NO sweep row (the sweep may not silently omit a routed scene): ${unenrolled.join(", ")}. `
+                    : "") +
+                (stale.length
+                    ? `sweep row(s) for scenes that no longer route (stale): ${stale.join(", ")}.`
+                    : ""),
+        );
+    }
+}
 
 // ── shared page helpers (the actuating primitives) ────────────────────────────
 async function seedControlsOpen(page) {
@@ -597,9 +656,11 @@ async function runBattery() {
 
         // ── B7 leg — at rest the glass ::before carry NO bloom (rendered alpha ≤
         //    threshold). + B9 leg — every scene glyph PAINTS. + font leg — body
-        //    font is NOT Plus Jakarta. Sweep the scenes once. ──────────────────
+        //    font is NOT Plus Jakarta. Sweep EVERY routed scene once (J.W4 S5:
+        //    the roster is the AUTO-TRACKING lib SCENES export — home included —
+        //    never the old `:711`-class hardcoded literal). ─────────────────────
         {
-            const SCENES = ["cube", "easing", "spring", "sequence", "motion-path"];
+            const SWEEP_SCENES = SCENES.map((s) => s.key);
             const REST_OPACITY_MAX = 0.05;
             const SPECULAR_RADIAL = /radial-gradient/;
             let bloomers = [];
@@ -609,7 +670,7 @@ async function runBattery() {
             let scenesGlyphPainted = 0;
             let fontProbe = null;
 
-            for (const scene of SCENES) {
+            for (const scene of SWEEP_SCENES) {
                 const ctx = await browser.newContext({ viewport: { width: VW, height: 900 } });
                 const page = await ctx.newPage();
                 budget.attach(page, `B7/B9:${scene}`);
@@ -662,9 +723,531 @@ async function runBattery() {
                 await ctx.close();
             }
             dom.B7 = { totalGlass, maxRest, bloomers, pass: bloomers.length === 0 };
-            dom.B9 = { scenesGlyphPainted, total: SCENES.length, glyphFailures, pass: glyphFailures.length === 0 && scenesGlyphPainted === SCENES.length };
+            dom.B9 = { scenesGlyphPainted, total: SWEEP_SCENES.length, glyphFailures, pass: glyphFailures.length === 0 && scenesGlyphPainted === SWEEP_SCENES.length };
             const jakarta = fontProbe ? /Jakarta/i.test(fontProbe.body) : true;
             dom.font = { body: fontProbe?.body?.slice(0, 48) ?? "(unread)", jakarta, pass: !!fontProbe && !jakarta };
+        }
+
+        // ════════════════════════════════════════════════════════════════════
+        // J.W4 S5 — THE EVERY-SCENE PLAY+INTERACT SWEEP + THE COVERING SWITCH
+        // WALK (the AXES breadth leg). ONE persistent context walks EVERY
+        // routed scene (the auto-tracking lib SCENES roster — home included):
+        // each scene (1) ENTERS clean per J.W0's expected-destination-state
+        // predicate (machine + trigger TEXT, subject non-blank — the INVE-3
+        // entry oracle), (2) PLAYS+INTERACTS per its class (NOT glyph-paint-
+        // only: spring rail-scrub, sequence transport, motion-path traveller +
+        // a real handle-drag re-shape), and (3) SWITCHES to the NEXT scene via
+        // the REAL dock combobox (the covering N×1 walk — every adjacency in
+        // the scenes.ts order exercised once, wrap-to-home closing the cycle).
+        // ════════════════════════════════════════════════════════════════════
+        {
+            const ctx = await browser.newContext({ viewport: { width: VW, height: 900 } });
+            const page = await ctx.newPage();
+            budget.attach(page, "S5:every-scene-sweep");
+            await seedControlsOpen(page);
+
+            const walk = SCENES.map((s) => s.key); // scenes.ts order, home first
+            const sceneFails = [];
+            const visited = [];
+
+            /** The S5 broad liveness sampler — subject computed transforms +
+             *  inline movers + offset-distance (the motion-path axis). */
+            const sampleS5 = (ms = 2200) =>
+                page.evaluate(async (dur) => {
+                    const sleep = (m) => new Promise((r) => setTimeout(r, m));
+                    const seen = new Set();
+                    const t0 = performance.now();
+                    while (performance.now() - t0 < dur) {
+                        for (const sel of [".cube", ".graph", ".demo-box", ".progress-ball", ".hero-ball"]) {
+                            for (const el of document.querySelectorAll(sel)) {
+                                const cs = getComputedStyle(el);
+                                if (cs.transform && cs.transform !== "none") seen.add(sel + "|" + cs.transform);
+                                if (cs.offsetDistance && cs.offsetDistance !== "0%") seen.add(sel + "|od|" + cs.offsetDistance);
+                            }
+                        }
+                        for (const el of document.querySelectorAll(
+                            ".scene-host [style*='transform'], .stage-cell [style*='transform'], [style*='offset-distance']",
+                        )) {
+                            const v = (el.style.transform || "") + "|" + (el.style.offsetDistance || "");
+                            if (v !== "|") seen.add("inline|" + (el.className?.toString?.() ?? "").slice(0, 24) + "|" + v);
+                        }
+                        await sleep(40);
+                    }
+                    return seen.size;
+                }, ms);
+
+            /** Per-EXPECTED-destination-state assert (the J.W0 predicate read
+             *  back as an ORACLE: machine rests on the scene, the control-tab
+             *  trigger projects the DESTINATION's label — or is ABSENT for the
+             *  panel-less scenes — and the scene's subject is NON-BLANK). */
+            const assertEntry = async (key) => {
+                const meta = SWEEP_META[key];
+                const libScene = SCENES.find((s) => s.key === key);
+                const state = await page.evaluate(([mk]) => {
+                    let m = null;
+                    try {
+                        m = JSON.parse(localStorage.getItem(mk) || "{}").activeScene;
+                    } catch { /* unreadable */ }
+                    const trig = document.querySelector("[aria-label='Controls tab']");
+                    return { machine: m, trigger: trig ? (trig.textContent?.trim() || "") : null };
+                }, [MACHINE_KEY]);
+                const subj = await subjectRect(page, libScene.subjectSelector);
+                const machineOk = state.machine === key;
+                const trigOk = meta.trigger === null ? state.trigger === null : state.trigger === meta.trigger;
+                const subjOk = subj != null;
+                if (machineOk && trigOk && subjOk) return true;
+                sceneFails.push(
+                    `${key}: ENTRY red — machine=${state.machine} (want ${key}), trigger=${JSON.stringify(state.trigger)} ` +
+                        `(want ${JSON.stringify(meta.trigger)}), subject ${subjOk ? "ok" : `ABSENT (${libScene.subjectSelector} — blank mount)`}`,
+                );
+                return false;
+            };
+
+            /** SWITCH to a scene via the REAL dock combobox (hover-expand →
+             *  Scene trigger → option by LABEL — a trusted reka commit), then
+             *  wait on the destination's expected state. Self-heals the
+             *  collapsed-dock / consumed-first-click window per attempt. */
+            const dockSwitchTo = async (key) => {
+                const meta = SWEEP_META[key];
+                let optionsOpen = false;
+                for (let attempt = 0; attempt < 3 && !optionsOpen; attempt++) {
+                    await expandDock(page);
+                    await page.click('[aria-label="Scene"]', { timeout: 4000 }).catch(() => {});
+                    optionsOpen = await page
+                        .waitForFunction(
+                            () => document.querySelectorAll('[role="option"]').length > 1,
+                            { timeout: 2500 },
+                        )
+                        .then(() => true)
+                        .catch(() => false);
+                }
+                if (!optionsOpen) {
+                    sceneFails.push(`${key}: SWITCH red — the Scene combobox never opened (the real dock path)`);
+                    return false;
+                }
+                try {
+                    await page.getByRole("option", { name: meta.label, exact: true }).click({ timeout: 4000 });
+                } catch {
+                    sceneFails.push(`${key}: SWITCH red — option "${meta.label}" not clickable in the Scene combobox`);
+                    return false;
+                }
+                await page
+                    .waitForFunction(
+                        ([mk, id, expected]) => {
+                            try {
+                                const m = JSON.parse(localStorage.getItem(mk) || "{}").activeScene;
+                                const trig = document.querySelector("[aria-label='Controls tab']");
+                                const text = trig?.textContent?.trim() || null;
+                                return m === id && (expected === null ? !trig : text === expected);
+                            } catch {
+                                return false;
+                            }
+                        },
+                        [MACHINE_KEY, key, meta.trigger],
+                        { timeout: 12000 },
+                    )
+                    .catch(() => {});
+                await page.waitForTimeout(700);
+                return true;
+            };
+
+            /** The per-class PLAY+INTERACT pass (the anti-icon-paint-only
+             *  clause: every non-home scene is DRIVEN, not glanced at). */
+            const playInteract = async (key) => {
+                const meta = SWEEP_META[key];
+                if (meta.kind === "home") return; // the start screen has no play
+                if (meta.kind === "group-play") {
+                    await clickRainbowPlay(page);
+                    const n = await sampleS5();
+                    if (n >= 3) return;
+                    sceneFails.push(`${key}: PLAY red — only ${n} distinct mover states after the group-play click (<3)`);
+                } else if (meta.kind === "present-loop") {
+                    // amiga — a WebGL present loop: "plays" = the rAF loop is
+                    // LIVE on the mounted canvas (the subject-motion half is
+                    // owned by the B3 centre-drag MAD leg of this battery).
+                    // LIVENESS, not RATE (P6): the oracle is "10 rAF ticks
+                    // arrive", deadline-bounded — NOT "≥10 ticks inside a fixed
+                    // 600ms window". On the persistent walk context amiga's
+                    // FIRST mount compiles its shaders under SwiftShader inside
+                    // the measurement window (the B3a warm-up class), throttling
+                    // rAF to ~4-7 ticks/600ms — a device-DEPENDENT rate dip the
+                    // fixed window misread as "loop dead". A genuinely dead loop
+                    // (zero/stalled rAF) still reds AT THE DEADLINE: the count
+                    // never reaches 10 and the setTimeout fallback reports it.
+                    await clickRainbowPlay(page); // the click must be TOTAL (budget floors it)
+                    const frames = await page.evaluate(
+                        () =>
+                            new Promise((resolve) => {
+                                let n = 0;
+                                const t0 = performance.now();
+                                const tick = () => {
+                                    n++;
+                                    if (n >= 10 || performance.now() - t0 >= 3000) resolve(n);
+                                    else requestAnimationFrame(tick);
+                                };
+                                requestAnimationFrame(tick);
+                                setTimeout(() => resolve(n), 3200); // a NEVER-ticking rAF still reds
+                            }),
+                    );
+                    const canvas = await page.evaluate(() => !!document.querySelector("canvas.amiga-canvas, .scene-host canvas"));
+                    if (frames >= 10 && canvas) return;
+                    sceneFails.push(`${key}: PLAY red — present loop dead (frames=${frames} within the 3s deadline, canvas=${canvas})`);
+                } else if (meta.kind === "spring-rail") {
+                    // spring — scrub the rail (the J.W2 shared drag seam) and
+                    // watch the solver balls' style.left churn.
+                    const rail = await page.evaluate(() => {
+                        const el = document.querySelector(".spring-rail");
+                        const r = el?.getBoundingClientRect();
+                        return r ? { x: r.x, y: r.y + r.height / 2, w: r.width } : null;
+                    });
+                    if (!rail) {
+                        sceneFails.push(`${key}: INTERACT red — .spring-rail absent (the scrub surface)`);
+                        return;
+                    }
+                    const churn = page.evaluate(async () => {
+                        const sleep = (m) => new Promise((r) => setTimeout(r, m));
+                        const seen = new Set();
+                        const t0 = performance.now();
+                        while (performance.now() - t0 < 2200) {
+                            for (const el of document.querySelectorAll(".spring-rail [style*='left'], [class*='ball'][style*='left']")) {
+                                if (el.style.left) seen.add((el.className?.toString?.() ?? "").slice(0, 20) + "|" + el.style.left);
+                            }
+                            await sleep(40);
+                        }
+                        return seen.size;
+                    });
+                    await page.mouse.move(rail.x + rail.w * 0.25, rail.y);
+                    await page.mouse.down();
+                    for (let i = 1; i <= 10; i++) {
+                        await page.mouse.move(rail.x + rail.w * (0.25 + (0.5 * i) / 10), rail.y);
+                        await page.waitForTimeout(30);
+                    }
+                    await page.mouse.up();
+                    const n = await churn;
+                    if (n >= 3) return;
+                    sceneFails.push(`${key}: INTERACT red — only ${n} distinct spring-ball positions after the rail scrub (<3)`);
+                } else if (meta.kind === "sequence-transport") {
+                    // sequence — the storyboard's OWN transport drives the reel;
+                    // the rows responding IS the storyboard interaction.
+                    await page
+                        .locator('button[aria-label="Play or pause the sequence"]')
+                        .first()
+                        .click({ timeout: 4000 })
+                        .catch(() => {});
+                    const n = await page.evaluate(async () => {
+                        const sleep = (m) => new Promise((r) => setTimeout(r, m));
+                        const els = [...document.querySelectorAll(".seq-track, .seq-track *")].slice(0, 120);
+                        const seen = new Set();
+                        const t0 = performance.now();
+                        while (performance.now() - t0 < 2500) {
+                            els.forEach((el, i) => {
+                                const cs = getComputedStyle(el);
+                                seen.add(i + "|" + cs.transform + "|" + cs.opacity);
+                            });
+                            await sleep(50);
+                        }
+                        return seen.size - els.length; // distinct states BEYOND the rest state
+                    });
+                    if (n >= 3) return;
+                    sceneFails.push(`${key}: PLAY red — the sequence transport produced only ${n} row-state changes (<3)`);
+                } else if (meta.kind === "motion-path") {
+                    // motion-path — PLAY (the traveller rides the path) + a real
+                    // handle drag RE-SHAPES the editable path (the EP-interact).
+                    await clickRainbowPlay(page);
+                    const n = await sampleS5();
+                    if (n < 3) {
+                        sceneFails.push(`${key}: PLAY red — traveller produced only ${n} distinct states (<3)`);
+                    }
+                    const d0 = await page.evaluate(() => document.querySelector(".mp-guide-path")?.getAttribute("d") ?? null);
+                    const handle = await page.evaluate(() => {
+                        const el = document.querySelector(".mp-handle");
+                        const r = el?.getBoundingClientRect();
+                        return r ? { x: r.x + r.width / 2, y: r.y + r.height / 2 } : null;
+                    });
+                    if (!d0 || !handle) {
+                        sceneFails.push(`${key}: INTERACT red — guide path (${!!d0}) / handle (${!!handle}) absent`);
+                        return;
+                    }
+                    await page.mouse.move(handle.x, handle.y);
+                    await page.mouse.down();
+                    for (let i = 1; i <= 8; i++) {
+                        await page.mouse.move(handle.x + (24 * i) / 8, handle.y - (20 * i) / 8);
+                        await page.waitForTimeout(25);
+                    }
+                    await page.mouse.up();
+                    await page.waitForTimeout(300);
+                    const d1 = await page.evaluate(() => document.querySelector(".mp-guide-path")?.getAttribute("d") ?? null);
+                    if (d1 && d1 !== d0) return;
+                    sceneFails.push(`${key}: INTERACT red — the handle drag did NOT re-shape the editable path (d unchanged)`);
+                }
+            };
+
+            // ── the walk: deterministic hash ENTRY to home, then the covering
+            // dock-combobox switch chain through every routed scene, wrapping
+            // back to home (every scene a switch SOURCE and DESTINATION once).
+            await page.goto(`${base}/#/`, { waitUntil: "load" });
+            await navToScene(page, walk[0], SWEEP_META[walk[0]].trigger);
+            await page.waitForTimeout(800);
+            for (let i = 0; i < walk.length; i++) {
+                const key = walk[i];
+                if (await assertEntry(key)) visited.push(key);
+                await playInteract(key);
+                const next = walk[(i + 1) % walk.length]; // wrap → home closes the cycle
+                await dockSwitchTo(next);
+            }
+            // The wrap destination (home) enters clean — the cycle's last edge.
+            if (await assertEntry(walk[0])) visited.push(`${walk[0]} (wrap)`);
+
+            dom.S5 = {
+                roster: walk.length,
+                visited: visited.length,
+                sceneFails: sceneFails.slice(0, 8),
+                pass: sceneFails.length === 0 && visited.length === walk.length + 1,
+            };
+            await ctx.close();
+        }
+
+        // ════════════════════════════════════════════════════════════════════
+        // J.W4 S2 — THE REDUCED-MOTION LEG: the engine's LIVE respectReducedMotion
+        // snap path under an emulated `prefers-reduced-motion: reduce`. Scoped
+        // to the NAMED PRM-honoring consumers (a leg failure means the SNAP
+        // path regressed, not that unrelated motion exists):
+        //   (a) TypingDots (TypingDots.vue — per-dot CSSKeyframesAnimation,
+        //       respectReducedMotion: true): under PRM the engine snaps each dot
+        //       to its resting frame — the dot opacities are STATIC (the inverse
+        //       of the B1 multi-frame liveness oracle). A non-PRM CONTROL
+        //       context asserts the same dots DO blink, so the oracle
+        //       discriminates (it cannot pass on dead dots).
+        //   (b) the mobile sheet spring (useSheetSpring — respectReducedMotion:
+        //       true): a grab-pill tap moves `--sheet-t` between detents with NO
+        //       intermediate emit (the spring's withReducedMotion one-emit snap),
+        //       observed via a MutationObserver on the style writes.
+        // ════════════════════════════════════════════════════════════════════
+        {
+            // (control) — non-PRM: the home TypingDots BLINK (multi-frame loop).
+            let controlChurn = [];
+            {
+                const ctx = await browser.newContext({ viewport: { width: VW, height: 900 } });
+                const page = await ctx.newPage();
+                budget.attach(page, "S2:prm-control");
+                await page.goto(`${base}/#/`, { waitUntil: "load" });
+                await page.waitForTimeout(1000);
+                controlChurn = await page.evaluate(async () => {
+                    const sleep = (m) => new Promise((r) => setTimeout(r, m));
+                    const sets = new Map();
+                    const t0 = performance.now();
+                    while (performance.now() - t0 < 1800) {
+                        document.querySelectorAll(".typing-dot").forEach((el, i) => {
+                            (sets.get(i) ?? sets.set(i, new Set()).get(i)).add(getComputedStyle(el).opacity);
+                        });
+                        await sleep(40);
+                    }
+                    return [...sets.values()].map((s) => s.size);
+                });
+                await ctx.close();
+            }
+
+            // (a) — PRM: the SAME dots are SNAPPED to the resting frame.
+            let prmChurn = [];
+            let prmMatches = false;
+            {
+                const ctx = await browser.newContext({
+                    viewport: { width: VW, height: 900 },
+                    reducedMotion: "reduce",
+                });
+                const page = await ctx.newPage();
+                budget.attach(page, "S2:prm-typing-dots");
+                await page.goto(`${base}/#/`, { waitUntil: "load" });
+                await page.waitForTimeout(1000);
+                prmMatches = await page.evaluate(() => matchMedia("(prefers-reduced-motion: reduce)").matches);
+                prmChurn = await page.evaluate(async () => {
+                    const sleep = (m) => new Promise((r) => setTimeout(r, m));
+                    const sets = new Map();
+                    const t0 = performance.now();
+                    while (performance.now() - t0 < 1800) {
+                        document.querySelectorAll(".typing-dot").forEach((el, i) => {
+                            (sets.get(i) ?? sets.set(i, new Set()).get(i)).add(getComputedStyle(el).opacity);
+                        });
+                        await sleep(40);
+                    }
+                    return [...sets.values()].map((s) => s.size);
+                });
+                await ctx.close();
+            }
+
+            // (b) — PRM mobile: the sheet spring SNAPS --sheet-t in one emit.
+            let sheetTrail = null;
+            {
+                const ctx = await browser.newContext({
+                    viewport: { width: 390, height: 844 },
+                    hasTouch: true,
+                    isMobile: true,
+                    deviceScaleFactor: 3,
+                    reducedMotion: "reduce",
+                });
+                const page = await ctx.newPage();
+                budget.attach(page, "S2:prm-sheet-snap");
+                await page.goto(`${base}/#/easing`, { waitUntil: "load" });
+                await navToScene(page, "easing", "Easing");
+                await page.waitForTimeout(1200);
+                const haveSheet = await page.evaluate(() => {
+                    const w = document.querySelector(".controls-pane-wrapper");
+                    if (!w) return false;
+                    window.__sheetTrail = [];
+                    new MutationObserver(() => {
+                        window.__sheetTrail.push(getComputedStyle(w).getPropertyValue("--sheet-t").trim());
+                    }).observe(w, { attributes: true, attributeFilter: ["style"] });
+                    return !!document.querySelector(".sheet-grab-handle");
+                });
+                if (haveSheet) {
+                    await page.tap(".sheet-grab-handle"); // close (1 → 0)
+                    await page.waitForTimeout(700);
+                    await page.tap(".sheet-grab-handle"); // re-open (0 → 1)
+                    await page.waitForTimeout(700);
+                    sheetTrail = await page.evaluate(() => window.__sheetTrail ?? []);
+                }
+                await ctx.close();
+            }
+
+            const controlBlinks = controlChurn.length > 0 && controlChurn.every((n) => n >= 2);
+            const prmStatic = prmChurn.length > 0 && prmChurn.every((n) => n === 1);
+            const trailTerminal = (sheetTrail ?? []).every((v) => v === "0" || v === "1");
+            const sheetSnaps =
+                sheetTrail != null && sheetTrail.length >= 2 && sheetTrail.length <= 4 && trailTerminal;
+            dom.S2 = {
+                prmMatches,
+                controlChurn,
+                prmChurn,
+                sheetTrail,
+                pass: prmMatches && controlBlinks && prmStatic && sheetSnaps,
+            };
+        }
+
+        // ════════════════════════════════════════════════════════════════════
+        // J.W4 S4 — THE KEYBOARD/FOCUS LEG (a keyboard-only session — no mouse,
+        // no tap): Tab REACHES the play affordance with a RENDERED focus ring;
+        // a focused Enter actuates the native <button> (the browser-synthesized
+        // click — no kf-side keyup handler exists); the GLOBAL Space shortcut
+        // (registerShortcut, AnimationControlsGroup) toggles play from anywhere.
+        // ════════════════════════════════════════════════════════════════════
+        {
+            const ctx = await browser.newContext({ viewport: { width: VW, height: 900 } });
+            const page = await ctx.newPage();
+            budget.attach(page, "S4:keyboard");
+            await seedControlsOpen(page);
+            await page.goto(`${base}/#/cube`, { waitUntil: "load" });
+            await waitActiveScene(page, "cube");
+            await page.waitForTimeout(900);
+
+            // (0) the play button's UNFOCUSED paint — the focus ring must be a
+            // DELTA over this rest state (a permanent cartoon shadow may not
+            // satisfy the "a keyboard user can SEE where focus is" clause).
+            const restPaint = await page.evaluate(() => {
+                const el = document.querySelector('button[aria-label="Play animation"]');
+                if (!el) return null;
+                const cs = getComputedStyle(el);
+                return { outline: cs.outlineStyle + "|" + cs.outlineWidth, boxShadow: cs.boxShadow };
+            });
+
+            // (1) Tab ORDER: walk the focusable set; the play <button> must be
+            // REACHABLE (in the tab order, not tabindex=-1/pointer-only), with
+            // the dock's transport combobox encountered on the way.
+            const walk = [];
+            let reachedAt = -1;
+            for (let i = 1; i <= 60; i++) {
+                await page.keyboard.press("Tab");
+                const f = await page.evaluate(() => {
+                    const el = document.activeElement;
+                    if (!el || el === document.body) return "(body)";
+                    return el.getAttribute("aria-label") ?? el.getAttribute("role") ?? el.tagName.toLowerCase();
+                });
+                walk.push(f);
+                if (f === "Play animation" || f === "Pause animation") {
+                    reachedAt = i;
+                    break;
+                }
+            }
+            const sawTransport = walk.includes("Select animation");
+            const playReachable = reachedAt > 0;
+
+            // (2) focus-visible RENDERED on the keyboard-focused play button —
+            // the ring must be a PAINTED DELTA over the unfocused rest state
+            // (outline appears, or the box-shadow CHANGES), so a permanent
+            // decorative shadow can never green this clause vacuously.
+            let focusRing = null;
+            if (playReachable) {
+                focusRing = await page.evaluate((rest) => {
+                    const el = document.activeElement;
+                    const cs = getComputedStyle(el);
+                    const outline = cs.outlineStyle + "|" + cs.outlineWidth;
+                    const outlinePainted =
+                        cs.outlineStyle !== "none" && parseFloat(cs.outlineWidth) > 0 && outline !== rest?.outline;
+                    const shadowDelta = !!cs.boxShadow && cs.boxShadow !== "none" && cs.boxShadow !== rest?.boxShadow;
+                    return {
+                        matchesFV: el.matches(":focus-visible"),
+                        ringPainted: outlinePainted || shadowDelta,
+                    };
+                }, restPaint);
+            }
+
+            // (3a) focused ENTER synthesizes the native click → playback starts.
+            let enterToggled = false;
+            let enterLive = 0;
+            if (playReachable) {
+                await page.keyboard.press("Enter");
+                await page.waitForTimeout(250);
+                const aria1 = await page.evaluate(
+                    () => document.activeElement?.getAttribute("aria-label") ?? null,
+                );
+                enterLive = await page.evaluate(async () => {
+                    const sleep = (m) => new Promise((r) => setTimeout(r, m));
+                    const seen = new Set();
+                    const t0 = performance.now();
+                    while (performance.now() - t0 < 2000) {
+                        for (const el of document.querySelectorAll(
+                            ".scene-host [style*='transform'], .stage-cell [style*='transform'], .controls-pane-wrapper [style*='transform']",
+                        )) {
+                            if (el.style.transform) seen.add((el.className?.toString?.() ?? "").slice(0, 24) + "|" + el.style.transform);
+                        }
+                        await sleep(40);
+                    }
+                    return seen.size;
+                });
+                enterToggled = aria1 === "Pause animation";
+                // Enter again — the toggle is symmetric (and parks play OFF for
+                // the global-Space clause below).
+                await page.keyboard.press("Enter");
+                await page.waitForTimeout(250);
+            }
+
+            // (3b) the GLOBAL Space shortcut fires regardless of focus.
+            await page.evaluate(() => {
+                if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+            });
+            await page.keyboard.press("Space");
+            await page.waitForTimeout(400);
+            const spaceToggled = await page.evaluate(
+                () =>
+                    document.querySelector('button[aria-label="Pause animation"]') != null,
+            );
+
+            dom.S4 = {
+                reachedAt,
+                sawTransport,
+                focusRing,
+                enterToggled,
+                enterLive,
+                spaceToggled,
+                pass:
+                    playReachable &&
+                    sawTransport &&
+                    !!focusRing?.matchesFV &&
+                    !!focusRing?.ringPainted &&
+                    enterToggled &&
+                    enterLive >= 3 &&
+                    spaceToggled,
+            };
+            await ctx.close();
         }
 
         // ════════════════════════════════════════════════════════════════════
@@ -843,6 +1426,9 @@ function reportBattery(budget, dom) {
     verdict("B7", "B7 the glass ::before carry NO bloom at rest", "proof:specular-absent-at-rest");
     verdict("B9", "B9 every scene glyph PAINTS", "proof:icon-paint-live");
     verdict("font", "font reclaim — the body font is NOT Plus Jakarta", "proof:demo-fonts");
+    verdict("S5", "S5 EVERY routed scene enters clean + plays/interacts + the covering dock-switch walk lands", "J.W4 S5 (the AXES breadth leg)");
+    verdict("S2", "S2 the engine's respectReducedMotion path SNAPS live under PRM (dots rest · sheet one-emit)", "J.W4 S2 (the reduced-motion leg)");
+    verdict("S4", "S4 keyboard operability — Tab reaches play · focus-visible ring · Enter + global Space actuate", "J.W4 S4 (the keyboard/focus leg)");
 
     // Fold each failing DOM leg into the failures tally (the budget verdict above
     // already pushed its own). Collect the DOM fails so the process exits non-zero.
@@ -855,6 +1441,9 @@ function reportBattery(budget, dom) {
         ["B7", "B7 specular-rest", "proof:specular-absent-at-rest"],
         ["B9", "B9 glyph-paint", "proof:icon-paint-live"],
         ["font", "font-reclaim", "proof:demo-fonts"],
+        ["S5", "S5 every-scene-sweep", "J.W4 S5"],
+        ["S2", "S2 reduced-motion-snap", "J.W4 S2"],
+        ["S4", "S4 keyboard-focus", "J.W4 S4"],
     ]) {
         const d = dom[key];
         if (d && !d.pass && !failures.some((f) => f.includes(label))) {
@@ -880,6 +1469,8 @@ console.log(
         "DOM — the cube draw loop LIVE (B1), the suspend raising no _gen throw (B2), the easing canvas + handle-" +
         "drag mutation (B4), the amiga subject moving not the room (B3), the square drag selecting no text + " +
         "persisting (B6), the glass ::before flat at rest (B7), every glyph painting (B9), the body font not " +
-        "Plus Jakarta (font). The per-wave §Hard gates are the granular clauses of this battery. The day this " +
+        "Plus Jakarta (font) — PLUS the J.W4 axes legs: every routed scene entered + played + switched through " +
+        "(S5), the live reduced-motion snap (S2), and keyboard operability with a visible focus ring (S4). " +
+        "The per-wave §Hard gates are the granular clauses of this battery. The day this " +
         "gate is green, \"green\" means \"a human using the product would see it work.\"",
 );
