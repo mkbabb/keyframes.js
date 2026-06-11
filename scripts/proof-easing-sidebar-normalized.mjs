@@ -24,9 +24,7 @@
  * override).
  *
  * Falsifiable BROWSER clauses per sidebar (easing + spring), each BITING on the
- * exact defect, scoped to the live sidebar pane (J.W2 S4-stretch grammar: the
- * easing/spring single-surface panel mounts FLAT — no Tabs wrapper, no tabpanel
- * role — so the pane is located directly; see LOCATE_PANE_SRC):
+ * exact defect, scoped to the live sidebar (the active controls tabpanel's Card):
  *
  *   (a) STANDARD RUNG (the G5 sizing clause). ZERO `.text-admin-label` labels in
  *       the sidebar (the tightest-rung label class is gone), AND the param-row
@@ -57,24 +55,24 @@
  * legitimate domain affordances (the curve / the preset chips / the Monaco editor).
  *
  * Settle-gated on the H.W1 FSM resting (mirrors proof:easing-canvas-bounded): each
- * scene is pinned via the lib's navToScene (an IN-PAGE hash assignment — NOT
- * page.goto — goto clears storage + the H.W1 reconcile trap — settled on the
- * destination's per-EXPECTED control surface), the viewport is re-asserted after
- * navigation, the controls pane is forced open with the scene tab selected so the
- * FULL-RAIL sidebar mounts, and the gate waits until the sidebar Card resolves
- * before measuring.
+ * scene is pinned via an IN-PAGE hash assignment (NOT page.goto — goto clears
+ * storage + the H.W1 reconcile trap), the machine is polled to rest on the scene,
+ * the viewport is re-asserted after navigation, the controls pane is forced open
+ * with the scene tab selected so the FULL-RAIL sidebar mounts, and the gate waits
+ * until the sidebar Card resolves before measuring.
  *
- * Harness: the scripts/lib/demo-driver.mjs lifecycle (withPage = serveDist +
- * resolveChromium + context/teardown, J.W3 S1) + navToScene. Browser-only (the
- * computed rung + the rendered nesting are rendered facts — there is no static
- * half); under KF_REQUIRE_BROWSER a playwright-absent skip becomes a hard fail AT
- * THE LIB SEAM so a SHIP is never green-reported un-exercised. Re-runnable:
- * `node scripts/proof-easing-sidebar-normalized.mjs`.
+ * Mirrors scripts/proof-easing-canvas-bounded.mjs (the serveDist + Playwright +
+ * settle plumbing). Browser-only (the computed rung + the rendered nesting are
+ * rendered facts — there is no static half); under KF_REQUIRE_BROWSER a
+ * playwright-absent skip becomes a hard fail so a SHIP is never green-reported
+ * un-exercised. Re-runnable: `node scripts/proof-easing-sidebar-normalized.mjs`.
  * Serves the BUILT dist/gh-pages/ (run `npm run gh-pages` first).
  */
+import fs from "node:fs";
+import http from "node:http";
 import path from "node:path";
+import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
-import { navToScene, withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
@@ -90,18 +88,68 @@ console.log(
     "proof:easing-sidebar-normalized — H.W10 S4 (the easing/spring sidebars on the standard rung · ×3 inner Cards gone · Labeled* rows · G5/G6)",
 );
 
+const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
+const skipOrFail = (reason) => {
+    if (REQUIRE_BROWSER) {
+        fail(
+            `browser half REQUIRED (KF_REQUIRE_BROWSER=1) but ${reason} — ` +
+                "the normalized-sidebar clauses cannot pass vacuously",
+        );
+    } else {
+        console.log(`  ○ browser half skipped — ${reason}`);
+    }
+};
+
+const MIME = {
+    ".html": "text/html",
+    ".js": "text/javascript",
+    ".css": "text/css",
+    ".json": "application/json",
+    ".png": "image/png",
+    ".ttf": "font/ttf",
+    ".woff2": "font/woff2",
+    ".svg": "image/svg+xml",
+};
+const MACHINE_KEY = "keyframes-js-scene-machine"; // SCENE_MACHINE_PERSIST_KEY
 const CTRL_KEY = "animation-groups-control-options-store";
 
-// The destination control-tab trigger TEXT navToScene settles on (the
-// per-EXPECTED-state wait — the same labels proof:scene-control-dfa expects).
-const TRIGGER = { easing: "Easing", spring: "Spring" };
+function serveDist() {
+    const server = http.createServer((req, res) => {
+        const urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
+        const p = path.join(DIST, urlPath === "/" ? "index.html" : urlPath);
+        if (!p.startsWith(DIST) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) {
+            res.writeHead(404).end();
+            return;
+        }
+        res.writeHead(200, {
+            "content-type": MIME[path.extname(p)] ?? "application/octet-stream",
+        });
+        fs.createReadStream(p).pipe(res);
+    });
+    return server;
+}
 
-/** Settle on #/<scene> via the lib's in-page hash nav (storage + the H.W1 trap
+/** Settle on #/<scene> via an IN-PAGE hash assignment (storage + the H.W1 trap
  *  survive; page.goto clears both). Re-assert the viewport AFTER navigation
  *  (Playwright resets on navigate). Force the controls pane OPEN + the scene tab
  *  selected so the FULL-RAIL sidebar mounts. */
 async function settleOnScene(page, scene, viewportWidth, viewportHeight) {
-    await navToScene(page, scene, TRIGGER[scene], { timeout: 8000 });
+    await page.evaluate((s) => {
+        location.hash = `#/${s}`;
+    }, scene);
+    await page
+        .waitForFunction(
+            ([mk, s]) => {
+                try {
+                    return JSON.parse(localStorage.getItem(mk) || "{}").activeScene === s;
+                } catch {
+                    return false;
+                }
+            },
+            [MACHINE_KEY, scene],
+            { timeout: 8000 },
+        )
+        .catch(() => {});
     await page.setViewportSize({ width: viewportWidth, height: viewportHeight });
     await page.evaluate(
         ([ck, s]) => {
@@ -124,61 +172,44 @@ async function settleOnScene(page, scene, viewportWidth, viewportHeight) {
     await page.waitForTimeout(700);
 }
 
-/** In-page locator (serialized + eval'd in each page read) for the live sidebar
- *  PANE under BOTH mount shapes — the J.W2 S4-stretch product grammar
- *  (`docs/tranches/J/waves/J.W2-impl.md §S4-stretch`): a MULTI-surface scene
- *  (cube …) still renders a reka Tabs ACTIVE tabpanel; a SINGLE-surface scene
- *  (easing/spring) mounts its sole panel FLAT — the `TabsTrigger`/`TabsContent`
- *  wrappers are DELETED, so there is NO `[role=tabpanel]` to find (the former
- *  mount predicate's stale shape — the CI #4 red). The flat pane is located
- *  DIRECTLY: inside the open `.controls-pane`, the scroll container that parents
- *  the sidebar's glass-ui Card root (`.rounded-card.text-card-foreground` — the
- *  SAME Card-root signature clause (b) counts), preferring the Card that carries
- *  the sidebar content (`.labeled-field` rows / the curve canvas) so a stray
- *  pane Card can never shadow it. Returns the element whose SUBTREE the clauses
- *  probe (the sidebar Card included — clause (b)'s exactly-1 count is
- *  unchanged), or null when nothing painted (the honest mount-fail). */
-const LOCATE_PANE_SRC = `(() => {
-    const tabpanel = document.querySelector('[role="tabpanel"][data-state="active"]');
-    if (tabpanel) return tabpanel;
-    const cards = [...document.querySelectorAll(".controls-pane .rounded-card.text-card-foreground")];
-    const sidebarCard =
-        cards.find((c) => c.querySelector(".labeled-field, .easing-curve-canvas")) ?? cards[0];
-    return sidebarCard ? sidebarCard.parentElement : null;
-})`;
-
-/** Wait until the FULL-RAIL sidebar RENDERS (content present in the live sidebar
- *  pane — tabpanel OR the J.W2 flat mount) — NOT until it is normalized. The
- *  guard waits only for the sidebar to PAINT (a non-trivial subtree) so the
- *  three clauses can each bite on the SPECIFIC born-RED fact (the bespoke
- *  bare-class fork DOES render — it just has no `.labeled-field` rows / carries
- *  `.text-admin-label` / nests sub-Cards). Requiring `.labeled-field` here would
- *  conflate "not mounted" with "born-RED", hiding the precise BITE behind a
- *  timeout. */
+/** Wait until the FULL-RAIL sidebar RENDERS (content present in the active
+ *  controls tabpanel) — NOT until it is normalized. The guard waits only for the
+ *  sidebar to PAINT (a non-trivial subtree) so the three clauses can each bite on
+ *  the SPECIFIC born-RED fact (the bespoke bare-class fork DOES render — it just
+ *  has no `.labeled-field` rows / carries `.text-admin-label` / nests sub-Cards).
+ *  Requiring `.labeled-field` here would conflate "not mounted" with "born-RED",
+ *  hiding the precise BITE behind a timeout.
+ *  J.W2 S2 (S4-stretch): single-surface scenes (easing/spring — BOTH scenes this
+ *  gate probes) mount their panel FLAT — no reka `[role="tabpanel"]` exists by
+ *  design; the named `.single-surface-panel` host (AnimationControls.vue) is the
+ *  TabsContent analogue, so the anchor accepts EITHER. */
 async function waitSidebarMounted(page) {
     return page
         .waitForFunction(
-            (locSrc) => {
-                const panel = eval(locSrc)();
+            () => {
+                const panel = document.querySelector(
+                    '[role="tabpanel"][data-state="active"], .single-surface-panel',
+                );
                 if (!panel) return false;
-                // The sidebar has painted: the pane has a real child with area
+                // The sidebar has painted: the panel has a real child with area
                 // (the normalized Card OR the bespoke bare-class root — both render).
                 const root = panel.firstElementChild;
                 if (!root) return false;
                 const r = root.getBoundingClientRect();
                 return r.width > 0 && r.height > 0;
             },
-            LOCATE_PANE_SRC,
             { timeout: 8000 },
         )
         .then(() => true)
         .catch(() => false);
 }
 
-/** Probe the live sidebar pane (tabpanel or flat) for the G5/G6 normalization facts. */
+/** Probe the active controls tabpanel sidebar for the G5/G6 normalization facts. */
 async function probeSidebar(page) {
-    return page.evaluate((locSrc) => {
-        const panel = eval(locSrc)();
+    return page.evaluate(() => {
+        const panel = document.querySelector(
+            '[role="tabpanel"][data-state="active"], .single-surface-panel',
+        );
         if (!panel) return { found: false };
 
         // (b) BOUNDED NESTING — count glass-ui Card COMPONENTS (the Card root
@@ -211,43 +242,62 @@ async function probeSidebar(page) {
             trackHeights,
             labeledRowCount: labeledRows.length,
         };
-    }, LOCATE_PANE_SRC);
+    });
 }
 
 async function browserHalf() {
+    if (!fs.existsSync(path.join(DIST, "index.html"))) {
+        skipOrFail("dist/gh-pages not built (run `npm run gh-pages` first)");
+        return;
+    }
+    let chromium;
+    try {
+        const requireFrom = createRequire(
+            path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
+        );
+        ({ chromium } = requireFrom("playwright-core"));
+    } catch {
+        try {
+            const requireFrom = createRequire(
+                path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
+            );
+            ({ chromium } = requireFrom("@playwright/test"));
+        } catch {
+            skipOrFail("playwright not resolvable (set KF_PLAYWRIGHT_DIR or install @playwright/test)");
+            return;
+        }
+    }
+
+    const server = serveDist();
+    await new Promise((r) => server.listen(0, r));
+    const base = `http://127.0.0.1:${server.address().port}`;
+
     const W = 1440;
     const H = 900;
     const MIN_TRACK = 5; // the default md track (~6px) clears 5px; the sm 4px track does not
-    const result = await withPage(
-        { distDir: DIST, label: "the normalized-sidebar clauses" },
-        async (_page, { url, browser }) => {
+    const browser = await chromium.launch();
+    try {
         for (const scene of ["easing", "spring"]) {
             const page = await browser.newPage({ viewport: { width: W, height: H } });
-            await page.goto(`${url}/#/${scene}`, { waitUntil: "load" });
+            await page.goto(`${base}/#/${scene}`, { waitUntil: "load" });
             await settleOnScene(page, scene, W, H);
             const mounted = await waitSidebarMounted(page);
 
             if (!mounted) {
-                const dbg = await page.evaluate((locSrc) => {
-                    const panel = eval(locSrc)();
+                const dbg = await page.evaluate(() => {
+                    const panel = document.querySelector(
+                        '[role="tabpanel"][data-state="active"], .single-surface-panel',
+                    );
                     return {
-                        hasTabpanel: !!document.querySelector(
-                            '[role="tabpanel"][data-state="active"]',
-                        ),
-                        hasPane: !!panel,
-                        hasCard: !!document.querySelector(
-                            ".controls-pane .rounded-card",
-                        ),
-                        hasRow: !!document.querySelector(
-                            ".controls-pane .labeled-field",
-                        ),
+                        hasPanel: !!panel,
+                        hasCard: !!panel?.querySelector(".rounded-card"),
+                        hasRow: !!panel?.querySelector(".labeled-field"),
                         hash: location.hash,
                     };
-                }, LOCATE_PANE_SRC);
+                });
                 fail(
                     `${scene}: the normalized sidebar never mounted (` +
-                        `pane:${dbg.hasPane}, tabpanel:${dbg.hasTabpanel} (flat-mount scenes have none — J.W2 S4-stretch), ` +
-                        `.rounded-card:${dbg.hasCard}, ` +
+                        `tabpanel:${dbg.hasPanel}, .rounded-card:${dbg.hasCard}, ` +
                         `.labeled-field:${dbg.hasRow}, hash:${dbg.hash}) — the FSM may not have ` +
                         `rested on ${scene} or the controls pane / scene tab did not open. ` +
                         `If the sidebar is STILL the bespoke bare-class fork (no .labeled-field), this is the born-RED.`,
@@ -310,10 +360,9 @@ async function browserHalf() {
 
             await page.close();
         }
-        },
-    );
-    if (result.skipped) {
-        console.log(`  ○ browser half skipped — ${result.reason}`);
+    } finally {
+        await browser.close();
+        server.close();
     }
 }
 

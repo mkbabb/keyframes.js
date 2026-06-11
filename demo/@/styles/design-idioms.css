@@ -95,6 +95,10 @@
                              over-reservation), reconciled from the former 60vh +
                              two stray 60dvh literals (E.W3.S3). */
     --dock-panel-width: 17rem; /* w-[17rem] dock / header panel width (recurs ×2) */
+    --header-items-max-w: 500px; /* the EditorHeader expanded items-wrapper cap
+                                    (J.W7b STY-5 — the former raw `max-width:
+                                    500px`; the collapse animates max-width
+                                    0 ↔ this token, value unchanged). */
     --dropdown-min-width: 12rem; /* min-w-[var(--dropdown-min-width)] SelectContent
                                     dropdown min (recurs ×3 — TransportDock +
                                     TopDock ×2; distinct from the wider --dock-panel-width). */
@@ -231,6 +235,17 @@
     }
 }
 
+/* ── ppmycota-stroke — the easing-curve glyph stroke (J.W7b STY-3) ──
+   The SVG curve previews (EasingSelect's trigger + per-item glyphs) stroke
+   with the host-page `--ppmycota-primary` accent when the demo is embedded
+   (papio-pythonis), falling back to the demo's --foreground. The value
+   recurred as a bracket-arbitrary `stroke-[var(--ppmycota-primary,
+   var(--foreground))]` at every glyph; named ONCE here so the fallback chain
+   is single-sourced (identical computed stroke — a pure naming move). */
+@utility ppmycota-stroke {
+    stroke: var(--ppmycota-primary, var(--foreground));
+}
+
 /* ── .scale-on-hover — DELETED (H.W2.S4, no-legacy) ──
    The demo's `.scale-on-hover` block lived here as a re-author of glass-ui's
    first-class `@utility scale-on-hover` (`utilities.css:680-690`) — the IDENTICAL
@@ -278,44 +293,29 @@
     box-shadow: var(--shadow-cartoon-lg);
 }
 
-/* ── .gold-shimmer ──
-   The detail-curve hover-shimmer utility — applied ×3 across the easing
-   affordances (AnimationControlsControls.vue, EasingSelect.vue ×2). Until now
-   it resolved ONLY through the transitive glass-ui import (the inv-η rent at the
-   utility tier D.W2's `var()`-shaped clause shape did not sweep); the day
-   glass-ui renames or drops it, the demo's three shimmers silently flatten with
-   no error and no gate. Defined here with glass-ui-matching values (isomorphic),
-   binding to the demo-owned --color-gold ramp: a metallic gradient sweeping the
-   gold-dark→light→mid→light→dark stops, clipped to the text fill. The slide is
-   wrapped in a prefers-reduced-motion-respecting block — PRM users get the
-   static gold gradient without the sweep (the load-bearing fill stays). */
-.gold-shimmer {
-    background: linear-gradient(
-        90deg,
-        var(--color-gold-dark),
-        var(--color-gold-light),
-        var(--color-gold),
-        var(--color-gold-light),
-        var(--color-gold-dark)
-    );
-    background-size: 250% 100%;
-    background-clip: text;
-    -webkit-background-clip: text;
-    color: transparent;
-}
-@media (prefers-reduced-motion: no-preference) {
-    .gold-shimmer {
-        animation: gold-shimmer-slide var(--duration-shimmer, 5s) linear infinite;
-    }
-}
-@keyframes gold-shimmer-slide {
-    0% {
-        background-position: 200% 0;
-    }
-    100% {
-        background-position: -200% 0;
-    }
-}
+/* ── .gold-shimmer — DELETED (J.W7b S1g / STY-1, no-legacy) ──
+   The demo's `.gold-shimmer` block + its slide keyframe lived
+   here as a byte-equivalent re-author of glass-ui's published recipe — the
+   IDENTICAL gradient/background-clip composition (`utilities.css:356-366`,
+   `@layer components`) + the IDENTICAL keyframe (`animations.css:139-142`,
+   200% → -200%), both shipped by the consumed 3.9.0 and imported via
+   `@mkbabb/glass-ui/styles`. A replaced surface living beside its replacement
+   is the no-legacy violation; the class name is identical so the three
+   call-sites (AnimationControlsControls.vue, EasingSelect.vue ×2) resolve to
+   glass-ui's copy with zero churn.
+
+   PRM: glass-ui's copy wraps the `animation:` line in the same
+   `prefers-reduced-motion: no-preference` bracket the local copy carried —
+   PRM users keep the static gold gradient, no sweep.
+
+   DURATION: glass-ui's copy reads the unsuffixed `var(--duration-shimmer)`
+   (5s, theme.css) — the same value the local `var(--duration-shimmer, 5s)`
+   fallback resolved, so the sweep cadence is unchanged.
+
+   The demo KEEPS what it owns: the `--color-gold` / `--color-gold-light` /
+   `--color-gold-dark` token ramp (:root above) + the `.dark` parity bridge —
+   glass-ui's recipe paints THROUGH those demo-owned tokens (consumer
+   configuration, not a fork). */
 
 /* ── .progress-bar ──
    The keyframe-editor brush-sweep bar (S4) — the rainbow gradient reading the

@@ -31,20 +31,31 @@
                 @update:model-value="(v) => { demo.dampingFraction.value = v; }"
             />
 
-            <!-- Canonical preset buttons -->
+            <!-- Canonical preset cells — J.W7b S1b: the published 3.9.0
+                 `<ToggleChip variant="cell">` (reka Toggle → `aria-pressed` +
+                 keyboard toggle + `data-state="on"` from the primitive) replaces
+                 the hand-rolled `<Button variant="outline">` + scoped
+                 active-ring twin, DELETED in the same motion. PIXEL-ISOMORPHIC consume
+                 (the W7b law): the utility classes below are consumer
+                 configuration through the primitive's documented `class` prop —
+                 they hold the cells' EXISTING outline-pill geometry/tone and the
+                 EXISTING scene-semantic `--color-progress` active ring (now
+                 hanging off the primitive's own `data-state` seam instead of a
+                 kf class-binding). The chip's native cell posture (centered
+                 stack, primary on-tint) is the LOUDER look — that appearance
+                 delta is W7a's to promote, not W7b's. -->
             <div class="grid grid-cols-2 gap-2">
-                <Button
+                <ToggleChip
                     v-for="t in demo.tracks"
                     :key="t.preset.name"
-                    variant="outline"
-                    size="sm"
-                    class="h-auto py-1.5 flex flex-col items-start gap-0.5 btn-interactive"
-                    :class="{ 'preset-active': isActivePreset(t) }"
-                    @click="applyPreset(t.preset)"
+                    variant="cell"
+                    :model-value="isActivePreset(t)"
+                    class="rounded-pill border-none bg-background px-3 py-1.5 h-auto items-start gap-0.5 font-medium leading-normal whitespace-nowrap btn-interactive hover:bg-accent hover:text-accent-foreground data-[state=on]:bg-background data-[state=on]:shadow-[inset_0_0_0_1px_var(--color-progress)]"
+                    @update:model-value="applyPreset(t.preset)"
                 >
                     <span class="text-small text-foreground capitalize">{{ t.preset.name }}</span>
                     <span class="text-mono-caption text-muted-foreground">{{ t.preset.response }} / {{ t.preset.dampingFraction }}</span>
-                </Button>
+                </ToggleChip>
             </div>
 
             <!-- Side-by-side canonical comparison (folded into the parent Card) -->
@@ -90,8 +101,9 @@
 
 <script setup lang="ts">
 import { computed, onMounted, onScopeDispose, ref, watch } from "vue";
-import { Button, Card, CardContent } from "@mkbabb/glass-ui";
+import { Card, CardContent } from "@mkbabb/glass-ui";
 import { LabeledSlider } from "@mkbabb/glass-ui/labeled-field";
+import { ToggleChip } from "@mkbabb/glass-ui/toggle-chip";
 
 import { useSpringLinearStops } from "./useSpringLinearStops";
 import CopyButton from "@components/custom/CopyButton.vue";
@@ -167,10 +179,10 @@ watch(generated, (css) => { linearStopsCss.value = css; }, { immediate: true });
     grid-column: 1 / -1;
 }
 
-.preset-active {
-    border-color: var(--color-progress);
-    box-shadow: 0 0 0 1px var(--color-progress) inset;
-}
+/* The former scoped active-ring rule is DELETED (J.W7b S1b, no-legacy): the
+   active affordance now hangs off the consumed ToggleChip's own
+   `data-state="on"` attribute (the primitive's documented seam), carrying the
+   same scene-semantic `--color-progress` ring via the call-site class. */
 
 .preset-row {
     display: flex;

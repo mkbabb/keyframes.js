@@ -155,9 +155,34 @@ function main() {
         }
         // Anchor on the rule's OPENING brace so a renamed/stubbed selector
         // (e.g. `.gold-shimmer-STUBBED {`) does NOT satisfy the definition — the
-        // gate must red when the demo-local rule is removed (E.W3.S5 falsifiable).
-        if (goldShimmerReferenced && !hasDef(/\.gold-shimmer\s*\{/)) {
-            missing.push(".gold-shimmer (utility rule)");
+        // gate must red when the rule is removed (E.W3.S5 falsifiable).
+        //
+        // J.W7b S1g (STY-1) — `.gold-shimmer`'s DEFINITION HOME moved: the
+        // demo-local recipe in design-idioms.css was a documented DUPLICATION
+        // of the glass-ui `@utility` (styling-design-system.md STY-1,
+        // glassui-adopt.md B1) and is DELETED at the consume-edge; the owner is
+        // now the PUBLISHED glass-ui utilities (dist/styles/utilities.css,
+        // loaded via the demo's `@import "@mkbabb/glass-ui/styles"`), consuming
+        // the demo-owned `--color-gold*` ramp (still asserted demo-local
+        // above). The clause resolves the definition in EITHER home and stays
+        // falsifiable: it reds when the utility vanishes from BOTH (a demo
+        // re-author would also red J.W7b's clause-(b) gone-grep).
+        const GLASS_UI_UTILITIES = path.join(
+            REPO,
+            "node_modules/@mkbabb/glass-ui/dist/styles/utilities.css",
+        );
+        const glassUtilSrc = fs.existsSync(GLASS_UI_UTILITIES)
+            ? read(GLASS_UI_UTILITIES)
+            : "";
+        if (
+            goldShimmerReferenced &&
+            !hasDef(/\.gold-shimmer\s*\{/) &&
+            !/\.gold-shimmer\s*\{/.test(glassUtilSrc)
+        ) {
+            missing.push(
+                ".gold-shimmer (utility rule — defined in NEITHER design-idioms.css " +
+                    "NOR the published glass-ui utilities.css)",
+            );
         }
         if (enterReferenced && !hasDef(/@keyframes\s+enter\b/)) {
             missing.push("@keyframes enter");

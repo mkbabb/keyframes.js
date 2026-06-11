@@ -201,6 +201,12 @@ auto-contrast>settled</Badge>`; `design-idioms.css:411-456` is deleted.
 variant ships AA-lifted; GREEN when the four badge classes are grep-zero and the pills render off the
 glass-ui variant at computed contrast ≥ 4.5:1). **consume-on-future-AX-publish.**
 
+**[J.W7b IMPL, 2026-06-10]** the S1f CAVEAT probe resolved to **BOOK** (the fallback ACTIVATED): 3.9.0
+`Badge` variants = `default|destructive|outline|secondary|success|warning|info` (no `tone`/
+`auto-contrast`, no violet); `StatusDot` = the four lifecycle variants + raw `color` (a dot, no
+AA-lifted pill recipe) — the green/violet AA pair is NOT covered, so the 22-line recipe survives
+BOOKED, not deleted (`waves/J.W7b-impl.md §B BOOK-5`).
+
 ### AX-4 — `CopyableArtifact` (the copyable code-readout chip — 3 hand-rolled copies) · **P2**
 
 **kf evidence.** THREE byte-similar "label + copyable code value" chips, authored three ways:
@@ -379,6 +385,11 @@ consumer can render an oversized decorative ball, and (b) an optional `inertia` 
 `ScrubberTimeline` consume for the PlaybackRibbon slider is consume-on-3.9.0 — see §3 ADOPT-4; this
 REFINE is what lets the *decorative* visualizer also fold.)
 
+**[J.W7b IMPL re-verify, 2026-06-10]** still absent in 3.9.0 (`ScrubberTimeline.vue.d.ts` props =
+`modelValue`/`label` + `scrubStart`/`scrubEnd` only; `grep -rl "inertia" dist/` = 0). BOOK record:
+`waves/J.W7b-impl.md §B BOOK-2`. The BASE ADOPT-4 consume itself exited W7b on the parity clause —
+see the §3 status reconciliation.
+
 ### AX-12 — `MathMotif` / `BackgroundCurve` slot (project a function as a background texture) · **OPP**
 
 **kf evidence.** The easing stage's own bezier is not projected across its floor; the ghost-curve
@@ -464,6 +475,10 @@ published `cartoon-surface` carries `border-radius`; GREEN on the bump). kf's ex
 greens TODAY via `<Card>`; the PRIMITIVE half is what this ask flips.
 **consume-on-future-AX-publish.**
 
+**[J.W7b IMPL re-verify, 2026-06-10]** still absent in the on-disk 3.9.0 (`dist/styles/cards.css`
+`@utility cartoon-surface` = border-width/box-shadow/translate/transition/hover — no
+`border-radius`). BOOK record: `waves/J.W7b-impl.md §B BOOK-3`.
+
 ### RF-2 — headless typography / "brand-font-off" lever (the Plus-Jakarta force-apply) · **P1 — the STANDING edge (CONST-4)**
 
 **kf evidence.** `style.css:100-117` — kf must override `--font-stack-text`/`--font-stack-sans`/
@@ -492,6 +507,10 @@ REMOVES the four-token override and re-points the gate at the single lever once 
 a future glass-ui bump silently re-applies Plus Jakarta). **consume-on-future-AX-publish.** Per
 `constellation-edges.md §1c` disposition: **OUT (glass-ui-owned); kf workaround is sufficient and
 gated** — J does not revisit absent a pin bump.
+
+**[J.W7b IMPL re-verify, 2026-06-10]** no typography opt-in in the published 3.9.0 package; the kf
+four-token override (`style.css:100-117`) survives gated. BOOK record: `waves/J.W7b-impl.md §B
+BOOK-4`.
 
 ### RF-3 — `LabeledField orientation="horizontal"` + subgrid participation (the booked I-carry, G-3) · **P2 — the STANDING edge**
 
@@ -570,6 +589,11 @@ the primitive.
 on 3.9.0 — §3 ADOPT-7; the dedicated-wrapper REFINE greens on the future publish).
 **REFINE = consume-on-future-AX-publish; BASE consume = consume-on-3.9.0.**
 
+**[J.W7b IMPL, 2026-06-10]** the BASE consume (§3 ADOPT-7) did **NOT land in W7b** — parity-clause
+exit (the primitive's spring-animated indicator is an appearance delta vs the SP-7 instant-state
+twin; the swap belongs to the appearance lane, flagged for W7a/WZ routing). The POSTURE ask here is
+unchanged, BOOKED (`waves/J.W7b-impl.md §B BOOK-1, §C-1`).
+
 ### RF-6 — `StatusDot` scene-semantic tone slot (the green/violet pair) · **P2**
 
 **kf evidence.** `StatusDot` is consumed on the menubar + ChromeDock (`glassui-adopt.md` baseline),
@@ -593,6 +617,9 @@ of the `Badge`-side AX-3).
 
 **Paired born-RED kf gate.** rides `proof:badge-tone-recipe` (AX-3) — the `StatusDot` and `Badge`
 tone surfaces are the same AA-contrast ask, two components. **consume-on-future-AX-publish.**
+
+**[J.W7b IMPL, 2026-06-10]** caveat probe confirmed at impl: no scene-tone surface in 3.9.0
+`StatusDot` — rides AX-3's activated BOOK (`waves/J.W7b-impl.md §B BOOK-5`).
 
 ### RF-7 — `GlassDock initialExpanded` prop (the home-landing scene-selector) · **P2**
 
@@ -711,6 +738,13 @@ consumable `@utility`?
 **Paired born-RED kf gate.** `proof:gold-shimmer-utility` (RED until the `@utility` is a documented
 stable surface). **consume-on-future-AX-publish.** (This is the STY-1 gold-shimmer dedup J.W7b owns
 the consume-half of — see `J.md` J.W7b "gold-shimmer dedup STY-1.")
+
+**[J.W7b IMPL, 2026-06-10]** the kf consume-half **LANDED** (set (i) S1g/STY-1): the
+`design-idioms.css` 27-line recipe + `@keyframes gold-shimmer-slide` are DELETED (tombstone now at
+`:296`); the three call-sites resolve to the published `@utility` through the demo-owned
+`--color-gold*` ramp (consumer configuration, not a fork). The residual AX ask narrows to the
+STABILITY contract (document `.gold-shimmer` as a stable consumable surface); the gate now guards
+only that documentation half plus rename-drift (`waves/J.W7b-impl.md §A`).
 
 ### RF-13 — `--spring-*` timing-token discoverability (the `--spring-snappy` shadow) · **P3 / docs-only**
 
@@ -833,6 +867,18 @@ lane (a); `glassui-abstract.md` lane B.)
 > surface is GONE the instant the consume lands (hygiene corroborator). These do NOT wait on AX. The
 > dark-mode (`glassui-adopt.md D1`) and the global-PRM bracket (`D2`) are RECORD-as-good — no gap, no
 > deletion owed.
+>
+> **[J.W7b IMPL status reconciliation — branch `j-impl-w7b`, glass-ui 3.9.0 on disk, 2026-06-10.]**
+> **ADOPT-5 CONSUMED** (set (i): `SpringSidebar.vue` + `StartingStyleTarget.vue` →
+> `<ToggleChip variant="cell">`; `grep -rn "preset-active" demo/` = 0). **ADOPT-8 CONSUMED**
+> (set (i): `name="fade-slide"`, the 4 `.kf-editor-*` rules deleted, PRM guard inherited;
+> `grep -rn "kf-editor" demo/` = 0). **ADOPT-1/2/3/9 ride J.W7a** (the appearance-owning consumes —
+> `J.W7a.md` D8/D18/D5); **ADOPT-6 rides J.W7a's S4 typography motion**. **ADOPT-4 and ADOPT-7 did
+> NOT land in W7b** — the published primitive cannot replace the twin at pixel parity (`J.W7b.md
+> §Goal` parity clause: the animated segmented indicator vs the SP-7 instant twin; the
+> `ScrubberTimeline` 0..1 chrome vs the ms-domain token-themed `<Slider variant="timeline">`) — the
+> swaps exit W7b to the appearance lane (the kf twins SURVIVE un-deleted; NOT future-AX books — the
+> primitives are published). Full records: `waves/J.W7b-impl.md §A/§C`.
 
 ---
 

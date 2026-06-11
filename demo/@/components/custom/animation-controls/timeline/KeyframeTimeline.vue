@@ -70,8 +70,14 @@
             @diamond-hover="onDiamondHover"
         />
 
-        <!-- Selected Keyframe Editor (inline) -->
-        <Transition name="kf-editor">
+        <!-- Selected Keyframe Editor (inline). J.W7b S1d — the transition is
+             glass-ui's published `.fade-slide` class set (transitions.css:23-37):
+             the former hand-rolled keyframe-editor transition copy (4 scoped
+             rules, a near-exact re-author MISSING the PRM guard) is DELETED in
+             the same motion; the published classes carry the
+             `prefers-reduced-motion` bracket (transitions.css PRM block) the
+             local copy lacked. -->
+        <Transition name="fade-slide">
             <div v-if="selectedKeyframe" class="flex flex-col gap-3">
                 <Separator />
 
@@ -284,9 +290,6 @@ defineExpose({
 });
 </script>
 
-<style scoped>
-.kf-editor-enter-active { transition: opacity var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard); }
-.kf-editor-leave-active { transition: opacity var(--duration-instant) var(--ease-standard), transform var(--duration-instant) var(--ease-standard); }
-.kf-editor-enter-from { opacity: 0; transform: translateY(-8px); }
-.kf-editor-leave-to { opacity: 0; transform: translateY(-4px); }
-</style>
+<!-- J.W7b S1d — the 4 hand-rolled enter/leave transition rules are GONE: the
+     inline keyframe editor consumes glass-ui's published `.fade-slide`
+     <Transition> classes (PRM-guarded) instead of re-authoring them. -->

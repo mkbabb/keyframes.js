@@ -212,12 +212,12 @@ const onSelectName = (name: string) => {
    compose: de-nest → more room → grow the canvas to fill it).
 
    MEASURE-FIRST against the LIVE detail render (cube scene, the bezier detail
-   panel open). The detail-panel host caps at `min(50vh, 480px)` — VIEWPORT-HEIGHT
+   panel open). The detail-panel host caps at `min(50dvh, 480px)` — VIEWPORT-HEIGHT
    bound, so it is 360px at a 720-tall viewport and 450px at 900. The de-nested
    chrome around the canvas (title/readout header + the preset Select + grid gaps)
    + the `.easing-curve-canvas-wrapper` 0.5rem padding measured 136px total
    (`scrollHeight − canvasBlockSize`, live, both viewports). So the canvas BUDGET
-   before scroll = `min(50vh, 480px) − 136px` — 224px at 720, 314px at 900.
+   before scroll = `min(50dvh, 480px) − 136px` — 224px at 720, 314px at 900.
 
    THE GROW — `block-size: clamp(232px, 78cqi, 300px)` lands a 232px FLOOR (a REAL
    grow over W9's 220 → `proof:bezier-grown` bites: 232 > 220), growing toward the
@@ -227,23 +227,28 @@ const onSelectName = (name: string) => {
    360 → 8px overflow). The 78cqi term ties height to the RAIL inline width (296px →
    231px), which is identical at 720 and 900, so it cannot self-correct for the
    shorter cap. The `max-block-size` therefore TRACKS the viewport-height budget:
-   `calc(min(50vh, 480px) − 9rem)` = 360 − 144 = 216px would clamp BELOW 220 at 720
+   `calc(min(50dvh, 480px) − 9rem)` = 360 − 144 = 216px would clamp BELOW 220 at 720
    (too tight), so the trim is `8.5rem` (136px) — exactly the measured chrome — minus
-   a 1px sub-pixel guard: `calc(min(50vh, 480px) − 137px)` resolves 223px at 720
+   a 1px sub-pixel guard: `calc(min(50dvh, 480px) − 137px)` resolves 223px at 720
    (> 220 → grown; 223 + 136 = 359 ≤ 360 → FITS) and 313px at 900 (the rail-inline
    78cqi floor of 232 wins there — generous height). So both gates hold at BOTH
    anchors: grown above 220 AND fits without scroll. The square LAW is PRESERVED
    (`aspect-ratio:1` from EasingCurveCanvas — the 280px-wide canvas is never shorter
    than width-driven; the height clamp only bounds the block axis). `:deep()` reaches
-   the child's scoped canvas; the bounded ceiling wins over the canvas's own 280 cap. */
+   the child's scoped canvas; the bounded ceiling wins over the canvas's own 280 cap.
+
+   J.W7b STY-2 — the viewport term is `50dvh` (dynamic viewport), matching the
+   detail-panel HOST cap (AnimationControlsControls.vue) it mirrors: correct on
+   mobile URL-bar chrome, identical to 50vh on desktop (the measured 720/900
+   anchors above are unchanged). */
 :deep(.easing-curve-canvas) {
     block-size: clamp(232px, 78cqi, 300px);
-    max-block-size: calc(min(50vh, 480px) - 137px);
+    max-block-size: calc(min(50dvh, 480px) - 137px);
 }
 
 /* I.WZ — the I.W6 native-font reclaim (Plus Jakarta → native sans) re-rendered the
    detail-panel chrome ~4px TALLER, pushing the bezier stack 3px past the
-   `min(50vh, 480px)` host cap at a 720-tall viewport → a scrollbar
+   `min(50dvh, 480px)` host cap at a 720-tall viewport → a scrollbar
    (`proof:bezier-no-scroll` + the `proof:bezier-grown` "still fits" clause both red).
    The grown canvas must stay above the W9 220px floor (`proof:bezier-grown` clause 1),
    so the fix RECLAIMS the room from the canvas-wrapper's block padding — scoped to the

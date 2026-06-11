@@ -55,18 +55,16 @@
  *        `scrollHeight ≤ clientHeight + TOL` AND `overflow-y !== 'scroll'` (the grow
  *        reclaimed the J1/J5 space WITHOUT introducing scroll).
  *
- * Harness: the scripts/lib/demo-driver.mjs lifecycle (withPage = serveDist +
- * resolveChromium + context/teardown, J.W3 S1) + navToScene. Under
- * KF_REQUIRE_BROWSER a playwright-absent skip becomes a hard fail AT THE LIB SEAM
- * so a SHIP is never green-reported with the browser half un-exercised (the
- * static half still runs + bites). Re-runnable:
- * `node scripts/proof-easing-sidebar-minimal.mjs`.
+ * Under KF_REQUIRE_BROWSER a playwright-absent skip becomes a hard fail so a SHIP is
+ * never green-reported with the browser half un-exercised (the static half still
+ * runs + bites). Re-runnable: `node scripts/proof-easing-sidebar-minimal.mjs`.
  * Serves the BUILT dist/gh-pages/ (run `npm run gh-pages` first).
  */
 import fs from "node:fs";
+import http from "node:http";
 import path from "node:path";
+import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
-import { navToScene, withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
@@ -153,14 +151,68 @@ try {
 }
 
 // ── BROWSER HALF (the J3/J6/J4 rendered facts, settle-gated on the FSM) ─────────
+const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
+const skipOrFail = (reason) => {
+    if (REQUIRE_BROWSER) {
+        fail(
+            `browser half REQUIRED (KF_REQUIRE_BROWSER=1) but ${reason} — ` +
+                "the full-width-duration + grown-canvas + fits clauses cannot pass vacuously",
+        );
+    } else {
+        console.log(`  ○ browser half skipped — ${reason}`);
+    }
+};
+
+const MIME = {
+    ".html": "text/html",
+    ".js": "text/javascript",
+    ".css": "text/css",
+    ".json": "application/json",
+    ".png": "image/png",
+    ".ttf": "font/ttf",
+    ".woff2": "font/woff2",
+    ".svg": "image/svg+xml",
+};
+const MACHINE_KEY = "keyframes-js-scene-machine"; // SCENE_MACHINE_PERSIST_KEY
 const CTRL_KEY = "animation-groups-control-options-store";
 
-/** Settle on #/easing via the lib's in-page hash nav (storage + the H.W1 trap
+function serveDist() {
+    const server = http.createServer((req, res) => {
+        const urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
+        const p = path.join(DIST, urlPath === "/" ? "index.html" : urlPath);
+        if (!p.startsWith(DIST) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) {
+            res.writeHead(404).end();
+            return;
+        }
+        res.writeHead(200, {
+            "content-type": MIME[path.extname(p)] ?? "application/octet-stream",
+        });
+        fs.createReadStream(p).pipe(res);
+    });
+    return server;
+}
+
+/** Settle on #/easing via an IN-PAGE hash assignment (storage + the H.W1 trap
  *  survive; page.goto clears both). Re-assert the viewport AFTER navigation. Force
  *  the controls pane OPEN + the easing tab selected so the FULL-RAIL sidebar mounts.
  *  Mirrors proof-easing-sidebar-normalized.mjs settleOnScene. */
 async function settleOnEasing(page, viewportWidth, viewportHeight) {
-    await navToScene(page, "easing", "Easing", { timeout: 8000 });
+    await page.evaluate(() => {
+        location.hash = "#/easing";
+    });
+    await page
+        .waitForFunction(
+            (mk) => {
+                try {
+                    return JSON.parse(localStorage.getItem(mk) || "{}").activeScene === "easing";
+                } catch {
+                    return false;
+                }
+            },
+            MACHINE_KEY,
+            { timeout: 8000 },
+        )
+        .catch(() => {});
     await page.setViewportSize({ width: viewportWidth, height: viewportHeight });
     await page.evaluate(
         (ck) => {
@@ -183,37 +235,18 @@ async function settleOnEasing(page, viewportWidth, viewportHeight) {
     await page.waitForTimeout(700);
 }
 
-/** In-page locator (serialized + eval'd in each page read) for the live sidebar
- *  PANE under BOTH mount shapes — the J.W2 S4-stretch product grammar
- *  (`docs/tranches/J/waves/J.W2-impl.md §S4-stretch`): a MULTI-surface scene
- *  still renders a reka Tabs ACTIVE tabpanel; the SINGLE-surface easing scene
- *  mounts its sole panel FLAT — the `TabsTrigger`/`TabsContent` wrappers are
- *  DELETED, so there is NO `[role=tabpanel]` (the former mount predicate's
- *  stale shape). The flat pane is located DIRECTLY: inside the open
- *  `.controls-pane`, the scroll container that parents the sidebar's glass-ui
- *  Card root (`.rounded-card.text-card-foreground` — the SAME Card-root
- *  signature B4 counts), preferring the Card carrying the sidebar content
- *  (`.labeled-field` rows / the curve canvas). Returns the element whose
- *  SUBTREE the clauses probe (the sidebar Card included — B4's exactly-1 count
- *  is unchanged), or null when nothing painted (the honest mount-fail). */
-const LOCATE_PANE_SRC = `(() => {
-    const tabpanel = document.querySelector('[role="tabpanel"][data-state="active"]');
-    if (tabpanel) return tabpanel;
-    const cards = [...document.querySelectorAll(".controls-pane .rounded-card.text-card-foreground")];
-    const sidebarCard =
-        cards.find((c) => c.querySelector(".labeled-field, .easing-curve-canvas")) ?? cards[0];
-    return sidebarCard ? sidebarCard.parentElement : null;
-})`;
-
-/** Wait until the FULL-RAIL easing sidebar PAINTS (content in the live sidebar
- *  pane — tabpanel OR the J.W2 flat mount) — NOT until it is minimal. Each clause
- *  then bites on the SPECIFIC fact; requiring "minimal" here would conflate
- *  "not mounted" with "born-RED". */
+/** Wait until the FULL-RAIL easing sidebar PAINTS (content in the active controls
+ *  tabpanel) — NOT until it is minimal. Each clause then bites on the SPECIFIC fact;
+ *  requiring "minimal" here would conflate "not mounted" with "born-RED".
+ *  J.W2 S2 (S4-stretch): the easing scene mounts its panel FLAT — no reka
+ *  `[role="tabpanel"]` exists by design; the named `.single-surface-panel` host
+ *  (AnimationControls.vue) is the TabsContent analogue, so the anchor accepts
+ *  EITHER. */
 async function waitSidebarMounted(page) {
     return page
         .waitForFunction(
-            (locSrc) => {
-                const panel = eval(locSrc)();
+            () => {
+                const panel = document.querySelector('[role="tabpanel"][data-state="active"], .single-surface-panel');
                 if (!panel) return false;
                 const root = panel.firstElementChild;
                 if (!root) return false;
@@ -223,17 +256,16 @@ async function waitSidebarMounted(page) {
                 const cr = canvas ? canvas.getBoundingClientRect() : null;
                 return r.width > 0 && r.height > 0 && !!cr && cr.height > 0;
             },
-            LOCATE_PANE_SRC,
             { timeout: 8000 },
         )
         .then(() => true)
         .catch(() => false);
 }
 
-/** Probe the live easing-sidebar pane (tabpanel or flat) for the J facts. */
+/** Probe the active easing-sidebar tabpanel for the J facts. */
 async function probeSidebar(page) {
-    return page.evaluate((locSrc) => {
-        const panel = eval(locSrc)();
+    return page.evaluate(() => {
+        const panel = document.querySelector('[role="tabpanel"][data-state="active"], .single-surface-panel');
         if (!panel) return { found: false };
 
         // B1 — strip: no <h2>, no CSS-value text input, no "value"-labelled row.
@@ -312,47 +344,64 @@ async function probeSidebar(page) {
             paneClientH: pane ? pane.clientHeight : null,
             paneOverflowY: paneCS ? paneCS.overflowY : null,
         };
-    }, LOCATE_PANE_SRC);
+    });
 }
 
 async function browserHalf() {
+    if (!fs.existsSync(path.join(DIST, "index.html"))) {
+        skipOrFail("dist/gh-pages not built (run `npm run gh-pages` first)");
+        return;
+    }
+    let chromium;
+    try {
+        const requireFrom = createRequire(
+            path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
+        );
+        ({ chromium } = requireFrom("playwright-core"));
+    } catch {
+        try {
+            const requireFrom = createRequire(
+                path.join(process.env.KF_PLAYWRIGHT_DIR ?? REPO, "package.json"),
+            );
+            ({ chromium } = requireFrom("@playwright/test"));
+        } catch {
+            skipOrFail("playwright not resolvable (set KF_PLAYWRIGHT_DIR or install @playwright/test)");
+            return;
+        }
+    }
+
+    const server = serveDist();
+    await new Promise((r) => server.listen(0, r));
+    const base = `http://127.0.0.1:${server.address().port}`;
+
     const W = 1440;
     const H = 900;
     const FULLWIDTH_TOL = 8; // the J3 "≈ CardContent inner width" allowance
     const FIT_TOL = 1;
-    const result = await withPage(
-        {
-            distDir: DIST,
-            label: "the full-width-duration + grown-canvas + fits clauses",
-            context: { viewport: { width: W, height: H } },
-        },
-        async (page, { url }) => {
-        await page.goto(`${url}/#/easing`, { waitUntil: "load" });
+    const browser = await chromium.launch();
+    try {
+        const page = await browser.newPage({ viewport: { width: W, height: H } });
+        await page.goto(`${base}/#/easing`, { waitUntil: "load" });
         await settleOnEasing(page, W, H);
         const mounted = await waitSidebarMounted(page);
 
         if (!mounted) {
-            const dbg = await page.evaluate((locSrc) => {
-                const panel = eval(locSrc)();
+            const dbg = await page.evaluate(() => {
+                const panel = document.querySelector('[role="tabpanel"][data-state="active"], .single-surface-panel');
                 return {
-                    hasTabpanel: !!document.querySelector(
-                        '[role="tabpanel"][data-state="active"]',
-                    ),
-                    hasPane: !!panel,
-                    hasCard: !!document.querySelector(".controls-pane .rounded-card"),
-                    hasCanvas: !!document.querySelector(
-                        ".controls-pane .easing-curve-canvas",
-                    ),
+                    hasPanel: !!panel,
+                    hasCard: !!panel?.querySelector(".rounded-card"),
+                    hasCanvas: !!panel?.querySelector(".easing-curve-canvas"),
                     hash: location.hash,
                 };
-            }, LOCATE_PANE_SRC);
+            });
             fail(
-                `browser — the easing sidebar never mounted (pane:${dbg.hasPane}, ` +
-                    `tabpanel:${dbg.hasTabpanel} (the flat-mount scene has none — J.W2 S4-stretch), ` +
+                `browser — the easing sidebar never mounted (tabpanel:${dbg.hasPanel}, ` +
                     `.rounded-card:${dbg.hasCard}, .easing-curve-canvas:${dbg.hasCanvas}, hash:${dbg.hash}) — ` +
                     "the FSM may not have rested on easing or the pane/tab did not open. The J clauses cannot " +
                     "measure a sidebar that never painted (a vacuous pass is forbidden).",
             );
+            await page.close();
             return;
         }
 
@@ -449,10 +498,10 @@ async function browserHalf() {
             );
         }
 
-        },
-    );
-    if (result.skipped) {
-        console.log(`  ○ browser half skipped — ${result.reason}`);
+        await page.close();
+    } finally {
+        await browser.close();
+        server.close();
     }
 }
 

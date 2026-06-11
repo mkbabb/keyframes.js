@@ -27,7 +27,14 @@
     line-height: 1.75rem;
     font-family: var(--font-serif);
     letter-spacing: 0.02em;
-    transition: all var(--duration-fast) var(--ease-standard);
+    /* J.W7b STY-6 — the over-broad `transition: all` narrowed to the three
+       properties the trigger states actually change (color on activation,
+       background on the pill hover/active, font-weight on activation). `all`
+       silently animated EVERY future property change (layout included). */
+    transition:
+        color var(--duration-fast) var(--ease-standard),
+        background var(--duration-fast) var(--ease-standard),
+        font-weight var(--duration-fast) var(--ease-standard);
 }
 .tab-trigger-base[data-state="inactive"] {
     color: var(--muted-foreground);
