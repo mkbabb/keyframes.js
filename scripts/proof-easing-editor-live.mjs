@@ -378,18 +378,25 @@ async function browserHalf() {
         await switchScene(page, "spring", "Spring");
         const springSt = await paneState(page, "spring-sidebar");
         // SpringSidebar may not carry a `.spring-sidebar` class — fall back to the
-        // sidebar's known content marker (`.preset-row`, the canonical comparison
-        // rows). J.W2 S2 (S4-stretch): the spring panel mounts FLAT (no tabpanel),
-        // so the fallback asserts the flat-mounted content is rendered + visible.
+        // sidebar's known content marker: the canonical preset surface. J.W7c U5
+        // REDESIGNED the spring panel from first principles (`SegmentedTabs` + the
+        // single preset surface), renaming the legacy comparison `.preset-row` rows
+        // to the `.preset-cell` cells inside the `.preset-grid` — same flat-mounted
+        // content, evolved markers. The fallback asserts the flat-mounted preset
+        // surface is rendered + visible (both the J.W7c `.preset-cell`/`.preset-grid`
+        // shape AND the legacy `.preset-row` shape are read honestly, so the bite is
+        // unchanged: the spring panel mounts ACTIVE on switch-in). J.W2 S2
+        // (S4-stretch): the spring panel mounts FLAT (no tabpanel).
         let springA = isMountedActive(springSt);
         if (!springSt.present) {
             const springPanel = await page.evaluate(() => {
-                const row = document.querySelector(".controls-pane .preset-row");
+                const SEL = ".controls-pane .preset-cell, .controls-pane .preset-grid, .controls-pane .preset-row";
+                const row = document.querySelector(SEL);
                 if (!row) return { flatVisible: false, rows: 0 };
                 const r = row.getBoundingClientRect();
                 return {
                     flatVisible: r.width > 2 && r.height > 2,
-                    rows: document.querySelectorAll(".controls-pane .preset-row").length,
+                    rows: document.querySelectorAll(SEL).length,
                 };
             });
             springA = springPanel.flatVisible;

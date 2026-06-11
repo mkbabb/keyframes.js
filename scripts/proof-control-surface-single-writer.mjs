@@ -236,7 +236,11 @@ const SWEEP = [
         superKey: "Spring",
         trigger: "Spring",
         expect: "spring",
-        panelProbe: ".preset-row",
+        // J.W7c U5 REDESIGNED the spring panel: the legacy `.preset-row` comparison
+        // rows became the `.preset-cell` cells inside `.preset-grid` (same flat-mounted
+        // preset surface, evolved markers). The probe reads either shape so the bite is
+        // unchanged — the single-surface spring panel content must render on screen.
+        panelProbe: ".preset-cell, .preset-grid, .preset-row",
         liveProbe: ".timeline-green",
     },
     { scene: "sequence", superKey: "Sequence", trigger: null, expect: null },
