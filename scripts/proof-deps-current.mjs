@@ -12,7 +12,7 @@
 //
 //   (1) FLOOR — every `@mkbabb/*` dependency (across `dependencies` +
 //       `optionalDependencies`) is INSTALLED at ≥ the published floor:
-//       `value.js≥0.11.2`, `parse-that≥0.9.0`, `glass-ui≥3.9.0`. The floor
+//       `value.js≥0.11.2`, `parse-that≥0.9.0`, `glass-ui≥3.11.2`. The floor
 //       tracks the CORRECTNESS MINIMUM the I bugfixes require, not the re-pin
 //       history (J.W3 S6b / BP-5 / BP-6). Read from the installed
 //       `node_modules/<pkg>/package.json` `version` — the artifact npm actually
@@ -64,11 +64,20 @@ const FLOORS = {
     // `Parse error at offset 0: "......"` crash.
     "@mkbabb/value.js": "0.11.2",
     "@mkbabb/parse-that": "0.9.0",
-    // BP-6: 3.9.0 is the floor that protects the B7 specular regression —
+    // BP-6: 3.9.0 was the floor that protects the B7 specular regression —
     // a resolver downgrading into 3.5.x–3.8.x (valid in the old range)
     // re-introduces the at-rest bloom; 3.9.0 carries `specular="off"`
     // (proof:specular-absent-at-rest is the runtime contract).
-    "@mkbabb/glass-ui": "3.9.0",
+    // J.W7b: ADVANCED to 3.11.2 — the currency re-pin (~3.9.0 → ~3.11.2). The
+    // 3.11.x line re-implements the two-variant slider (cures the user's
+    // "sliders render wrong" report — new data-v scope, explicit
+    // --slider-{track-height,thumb-size,thumb-bg} tokens + data-held/-disabled/
+    // -variant=spectrum states) and root-fixes the dropdown/popover/select OPTION
+    // font-size so the content item inherits the trigger's register (select.js/
+    // dropdown-menu.js/popover.js/command.js all re-cut). The floor protects
+    // BOTH the B7 specular default AND these two upstream cures: a resolver
+    // dropping below 3.11.2 re-introduces the broken slider + the small-option font.
+    "@mkbabb/glass-ui": "3.11.2",
 };
 
 const FORBIDDEN_PROTOCOLS = ["file:", "link:", "git:", "git+"];

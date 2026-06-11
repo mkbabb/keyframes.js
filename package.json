@@ -175,7 +175,7 @@
         "@mkbabb/value.js": "^0.11.2"
     },
     "optionalDependencies": {
-        "@mkbabb/glass-ui": "~3.9.0"
+        "@mkbabb/glass-ui": "~3.11.2"
     },
     "devDependencies": {
         "@iconify-json/radix-icons": "^1.2.6",
