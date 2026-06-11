@@ -7,14 +7,38 @@
              `<Card>` — the protagonist plate, rounded-card by construction (I4
              closes FOR FREE). `shadow={false}` (FORK I5-shadow). All four stage
              scenes converge to ONE register. -->
-        <Card :shadow="false" class="w-full flex-1 min-h-0 flex flex-col overflow-hidden">
-            <!-- Header: title + live master progress read-out -->
-            <div class="flex items-center justify-between px-4 py-2.5 border-b border-border/40 shrink-0">
-                <div class="flex items-baseline gap-3 min-w-0">
-                    <span class="text-heading text-foreground truncate">Sequence</span>
+        <Card :shadow="false" class="seq-target w-full flex-1 min-h-0 flex flex-col overflow-hidden">
+            <!-- Header: title + live master progress read-out.
+                 J.W7a S2 (D7 / TYP-2, SEQ-01) — the scene name lifts to the
+                 Instrument-Serif `text-display` rung (the display voice carried
+                 inward; cross-typography §3).
+                 J.W7a S2 (D8) + S3 (D14) — the live master progress promotes to
+                 the published MetricBadge size="xl" poster rung wearing the
+                 master accent (--ball-tone, the canonical clock green); the
+                 structural `stagger × 5` stays the small muted caption — only
+                 the LIVE number pops. -->
+            <!-- The header rows WRAP (flex-wrap, here + the left group): the
+                 xl readout badge is wider than the old caption, and at 375w an
+                 unwrappable row starved the serif title to zero width and slid
+                 the badge under the reel button — the reflow keeps every
+                 member legible at phone widths (the D8 responsive behaviour;
+                 the XH-4 band contract stays intact — the strip grows DOWN
+                 into the card, never up into the scene-switcher band). -->
+            <div class="flex flex-wrap items-center justify-between gap-y-1 px-4 py-2.5 border-b border-border/40 shrink-0">
+                <div class="flex flex-wrap items-baseline gap-3 gap-y-1 min-w-0">
+                    <span class="text-display text-foreground truncate">Sequence</span>
                     <span class="text-mono-caption text-muted-foreground tabular-nums whitespace-nowrap">
-                        stagger &times; {{ ROW_COUNT }} &middot; progress {{ (demo.progress.value * 100).toFixed(0) }}%
+                        stagger &times; {{ ROW_COUNT }}
                     </span>
+                    <MetricBadge
+                        size="xl"
+                        label="progress"
+                        label-position="inline"
+                        :amount="(demo.progress.value * 100).toFixed(0)"
+                        unit="%"
+                        color="var(--ball-tone, var(--color-progress))"
+                        class="shrink-0"
+                    />
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
                     <!-- EE-SEQ-1 "the reel" — the discoverable twin of the hidden
@@ -47,17 +71,33 @@
                      wrapper spans ONLY the shared track region (inset past the
                      label column) so the line's `%` position resolves against the
                      track width, then translateX moves it (compositor-friendly). -->
-                <div class="seq-playhead-track" aria-hidden="true">
+                <!-- J.W7a S4 (D17 / C2) — the playhead track wrapper (already
+                     spanning EXACTLY the shared master-clock region) carries
+                     the `.stage-field-x` time grid: vertical quarter rules at
+                     0.25/0.5/0.75 of the stagger axis, so the storyboard's
+                     temporal structure reads behind the swept line (the C2
+                     evidence: "a playhead line but no time grid"). -->
+                <div class="seq-playhead-track stage-field-x" aria-hidden="true">
                     <div
                         class="seq-playhead"
                         :style="{ '--playhead-p': clamp01(demo.progress.value) }"
                     ></div>
                 </div>
 
+                <!-- J.W7a S3 (D12 / CP-2, SEQ-13) — the five rows draw the
+                     ascending violet→green spectrum the sequence GLYPH already
+                     advertises (sequence.svg: violet/blue/cyan/green bars):
+                     each row sets the ONE --ball-tone token (the D10 seam) and
+                     its rail, traveller, and start-handle all wear that stop —
+                     "you SEE each distinct traveler" instead of five identical
+                     green ghosts. The master playhead + scrubber stay the
+                     canonical clock green (the row spectrum answers to one
+                     green master — the icon's own grammar). -->
                 <div
                     v-for="row in demo.rows.value"
                     :key="row.index"
                     class="seq-row flex items-center gap-3"
+                    :style="{ '--ball-tone': ROW_TONES[row.index] }"
                 >
                     <span class="text-mono-caption text-muted-foreground tabular-nums shrink-0 w-20 text-right pr-2">
                         @{{ Math.round(row.at) }}ms
@@ -93,7 +133,9 @@
             <div class="px-4 py-3 border-t border-border/40 shrink-0">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-small text-foreground">master playhead</span>
-                    <span class="text-mono-caption text-muted-foreground tabular-nums">{{ demo.progress.value.toFixed(3) }}</span>
+                    <!-- J.W7a S3 (D14 / CP-4) — the live playhead value wears
+                         the master accent; the label stays muted. -->
+                    <span class="readout-accent text-mono-caption tabular-nums">{{ demo.progress.value.toFixed(3) }}</span>
                 </div>
                 <div
                     ref="scrubEl"
@@ -137,6 +179,9 @@
 import { inject, onMounted, ref, useTemplateRef } from "vue";
 import { useEventListener } from "@vueuse/core";
 import { Button, Card } from "@mkbabb/glass-ui";
+// J.W7a S2 (D8) — the published poster-metric primitive (glass-ui 3.9.0); the
+// MetricHeader abstraction over the four stage headers stays a W7b handoff edge.
+import { MetricBadge } from "@mkbabb/glass-ui/metric-badge";
 import { Clapperboard } from "@lucide/vue";
 
 // J.W7a S5 (D21/D23) — the playback-button.css import retired WITH the in-stage
@@ -150,6 +195,19 @@ import { ROW_COUNT } from "./useSequenceDemo";
 const demo = inject(SEQUENCE_DEMO_KEY)!;
 
 const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
+
+// J.W7a S3 (D12 / CP-2) — the per-row spectrum map, row 0 violet … row 4 green
+// (the sequence icon's ascending bars). All five stops resolve from the owned
+// --rainbow-* family (design-idioms.css); the fourth is the token-derived
+// cyan→green midpoint (the glyph ships four stops over five rows — the bridge
+// stop is mixed from its neighbours, never a new literal).
+const ROW_TONES = [
+    "var(--rainbow-violet)",
+    "var(--rainbow-blue)",
+    "var(--rainbow-cyan)",
+    "color-mix(in oklab, var(--rainbow-cyan) 45%, var(--rainbow-green))",
+    "var(--rainbow-green)",
+] as const;
 
 // Per-row track elements — each becomes its child animation's target so the
 // engine paints `--ball-p` directly onto it (no per-frame Vue work).
@@ -269,6 +327,14 @@ useEventListener(window, "keydown", (e: KeyboardEvent) => {
 </script>
 
 <style scoped>
+/* J.W7a S3 (D12) — the MASTER tone: the card root binds the seam to the
+   canonical clock green, so the master scrubber ball, the swept playhead, and
+   the header readout accent all read ONE master hue; the five rows OVERRIDE it
+   per-row with their spectrum stop (the inline --ball-tone in the v-for). */
+.seq-target {
+    --ball-tone: var(--color-progress);
+}
+
 .seq-track,
 .seq-scrub {
     display: flex;
@@ -320,7 +386,7 @@ useEventListener(window, "keydown", (e: KeyboardEvent) => {
     left: calc(var(--playhead-p, 0) * 100%);
     width: 2px;
     transform: translateX(-50%);
-    background: color-mix(in srgb, var(--color-progress) 55%, transparent);
+    background: color-mix(in srgb, var(--ball-tone, var(--color-progress)) 55%, transparent);
     border-radius: var(--radius-pill);
     will-change: left;
 }
@@ -337,8 +403,11 @@ useEventListener(window, "keydown", (e: KeyboardEvent) => {
     margin-top: -0.8rem;
     margin-left: -0.275rem;
     border-radius: var(--radius-pill);
-    background: color-mix(in srgb, var(--color-progress) 70%, var(--background));
-    border: 1.5px solid var(--color-progress);
+    /* J.W7a S3 (D12) — the start-handle wears its ROW's spectrum stop (the
+       cascaded per-row --ball-tone), so the editable offset marker and the
+       traveller it times read as one coloured voice per row. */
+    background: color-mix(in srgb, var(--ball-tone, var(--color-progress)) 70%, var(--background));
+    border: 1.5px solid var(--ball-tone, var(--color-progress));
     cursor: grab;
     touch-action: none;
     z-index: var(--z-seq-handle);
@@ -348,7 +417,7 @@ useEventListener(window, "keydown", (e: KeyboardEvent) => {
 }
 .seq-handle:hover,
 .seq-handle:focus-visible {
-    background: var(--color-progress);
+    background: var(--ball-tone, var(--color-progress));
     transform: scaleY(1.12);
     outline: none;
 }

@@ -14,18 +14,41 @@ export { BOX_SIZE };
 // same constant for the rest pose, so there is exactly ONE home used everywhere.
 export const SPHERE_HOME = 0;
 
-// The bounce amplitude — how far each axis swings from the centred home. Kept
-// inside the room walls (BOX_SIZE/2 = 6); the egg arcs about the centred subject
-// rather than re-cementing a far corner.
-const BOUNCE = BOX_SIZE / 2 - 1;
+// The AUTHORED bounce amplitude — how far each axis swings from the centred
+// home, kept inside the room walls (BOX_SIZE/2 = 6) so the egg arcs about the
+// centred subject rather than re-cementing a far corner. J.W7a D3 (fix-round 1):
+// the room walls are no longer the binding bound — the D3 protagonist frustum
+// is NARROWER than the room, so the scene maps this authored amplitude through
+// a per-axis frustum-fit scale (the `getBounceScale` seam below) and the
+// PLAYING envelope stays inside the live frame.
+export const BOUNCE = BOX_SIZE / 2 - 1;
+
+// J.W7a D3 (fix-round 1) — the frustum-fit seam: per-axis scale factors the
+// SCENE derives from its camera (subject = pivot = framing — the framing owner
+// owns the fit). The transform maps every keyframed position through it about
+// SPHERE_HOME, so the keyframes stay authored at ±BOUNCE while the rendered
+// excursion is contained by the frame that actually shows it.
+export type BounceScale = { x: number; y: number; z: number };
 
 export const SUPER_KEY = "Amiga";
 
-export function useAmigaAnimations(getSphere: () => THREE.Mesh<THREE.SphereGeometry, THREE.MeshLambertMaterial>) {
+export function useAmigaAnimations(
+    getSphere: () => THREE.Mesh<THREE.SphereGeometry, THREE.MeshLambertMaterial>,
+    getBounceScale?: () => BounceScale,
+) {
     const transform = (vars: Record<string, any>) => {
         const sphereMesh = getSphere();
         if (!sphereMesh) return;
-        Object.assign(sphereMesh.position, vars.position);
+        if (vars.position) {
+            const scale = getBounceScale?.();
+            for (const axis of ["x", "y", "z"] as const) {
+                const v = vars.position[axis];
+                if (v == null) continue;
+                const s = scale?.[axis] ?? 1;
+                sphereMesh.position[axis] =
+                    SPHERE_HOME + (v - SPHERE_HOME) * s;
+            }
+        }
         Object.assign(sphereMesh.rotation, vars.rotation);
 
         if (vars.colorT) {

@@ -45,7 +45,13 @@
                  "..." is TypingDots' static glyphs (S3 — opacity-driven, never a
                  keyframe value). --><span class="depth-text"><TypingDots /></span>
         </h1>
-        <h2 class="start-screen-prose text-title w-full italic">
+        <!-- J.W7a S2 (D9 / H2) — the subtitle steps ONE φ-rung down
+             (text-title 32.9px → text-heading 25.9px, still italic): at the
+             former rung it sat only ~3× below the mega hero and "visually
+             fights" it at desktop widths; the step restores a ≥5:1
+             hero:subtitle ratio and lands the subtitle between the hero and
+             the text-subheading hint — the φ ladder read top-down. -->
+        <h2 class="start-screen-prose text-heading w-full italic">
             {{ subtitle }}
             <List class="inline"></List> {{ subtitleSuffix }}
         </h2>
@@ -55,11 +61,37 @@
         >
             {{ hint }}
         </h2>
+
+        <!-- J.W7a S4 (D18 / H1, cross-hierarchy §e, glassui-adopt A4) — the
+             published FourierField (glass-ui 3.9.0) suffuses the math motif
+             into the home doorway's EMPTY left-half vacancy: an inverse-DFT
+             epicycle trace — "drawing with circles", the most on-brand
+             generative surface glass-ui ships an easing engine — at LOW
+             presence in the calm field, parked lower-left BELOW the hero
+             ladder and far from the cube (never over the moving subject — the
+             §S4 anti-goal). Desktop/laptop only (the scoped rule): at phone
+             widths the band belongs to the hero/subject split (D6). The hue
+             resolves through the scene-accent seam (--ball-tone, falling back
+             to the brand's curve violet) via the REQUIRED injected resolver,
+             so dark mode retints for free; reduced-motion freeze is inherited
+             from the primitive's useCanvas2D substrate. -->
+        <div class="fourier-vacancy" aria-hidden="true">
+            <FourierField
+                variant="hero"
+                seed="keyframes.js"
+                color="var(--ball-tone, var(--ppmycota-primary, var(--primary)))"
+                :color-resolver="defaultBlobColorResolver"
+            />
+        </div>
     </div>
 </template>
 
 <script setup lang="ts">
 import { List } from "@lucide/vue";
+// J.W7a S4 (D18) — the published generative math motif + its REQUIRED colour
+// seam (glass-ui 3.9.0 — a W7a consume, not a W7b edge).
+import { FourierField } from "@mkbabb/glass-ui/fourier-field";
+import { defaultBlobColorResolver } from "@mkbabb/glass-ui/color";
 import AnimatedText from "@components/custom/AnimatedText.vue";
 import TypingDots from "@components/custom/TypingDots.vue";
 
@@ -119,5 +151,34 @@ withDefaults(
    demo's own prose — NOT a glass-ui override of the shared `.text-*` utilities. */
 .start-screen-prose {
     text-wrap: pretty;
+}
+
+/* J.W7a S4 (D18 / H1) — the FourierField's vacancy frame. The hero host is a
+   zero-height absolute band (the children overflow it by design), so the
+   field's box is sized in viewport units off the SAME left gutter the hero
+   ladder rides (px-6 = 1.5rem): parked in the lower-left vacancy, well below
+   the subtitle/hint ladder and left of the cube's center-right orbit. The
+   published .fourier-field host is `position:absolute; inset:0` — it fills
+   this positioned frame. Low presence: the calm-field opacity keeps the motif
+   a whisper under the glass (the proportion rule — the trail accents, never
+   competes). */
+.fourier-vacancy {
+    /* Desktop/laptop only — declared HERE (not via `hidden lg:block`: the
+       built cascade carries a second `.hidden` rule after the lg variant, so
+       the utility pair loses the order fight; the scoped rule is the honest
+       single home for this one responsive decision). */
+    display: none;
+    position: absolute;
+    left: 1.5rem;
+    top: 62dvh;
+    width: min(30vw, 26rem);
+    height: min(28dvh, 18rem);
+    opacity: 0.6;
+    pointer-events: none;
+}
+@media (min-width: 1024px) {
+    .fourier-vacancy {
+        display: block;
+    }
 }
 </style>

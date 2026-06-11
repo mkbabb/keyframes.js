@@ -149,6 +149,36 @@
        Mobile-only consumption; one decision, tuned HERE. */
     --start-hero-band: 34dvh;
 
+    /* ── The square subject's owned identity hue (J.W7a S3 / D13 / SQ-5) ──
+       Retires the raw `background-color: aquamarine` literal (SquareScene.vue —
+       the ONE raw named-colour in the scene corpus, off the rainbow/gold token
+       ladder, un-tunable, no dark variant). The value is the EGG_HUES terminal
+       stop (#52E898, useSquareAnimations.ts) — the contract keyframe's 100%
+       backgroundColor, i.e. the hue the tumble egg already settles INTO — so
+       the box's rest colour and the egg's landing colour are ONE identity hue
+       by construction (cross-color-pops §5.3; pane-square SQ-5/SQ-11). */
+    --subject-teal: #52e898;
+
+    /* ── The graph / stage-field vocabulary (J.W7a S4 / D17 + D19 / W6-3) ──
+       The GRID brand pillar, finally tokenized (cross-grid-math C5/G3 names
+       the glass-ui `.bg-graph-paper` promotion as the W7b handoff edge; these
+       kf-LOCAL tokens are the now-shipping half).
+         • --graph-pitch / --graph-major — the two-tier engineering-graph-paper
+           pitches (fine 1rem lines + bolder 5rem majors) the page substrate
+           draws (EditorShell .grid-background, D19 — the W6-3 substrate-depth
+           fold: the glass plate finally has structure to refract against).
+         • --graph-opacity / --graph-major-opacity — the line strengths, mixed
+           over --foreground so dark mode retints for free. The major layer
+           (12%) deliberately resolves ABOVE the former near-invisible 0.10α
+           corner-tick floor (the §Hard-gate substrate-legibility clause g).
+         • --stage-field-tint — the per-stage field-tint magnitude (MP-OPP1's
+           `color-mix(… 4% …)` clean stage field). */
+    --graph-pitch: 1rem;
+    --graph-major: 5rem;
+    --graph-opacity: 5%;
+    --graph-major-opacity: 12%;
+    --stage-field-tint: 4%;
+
     /* ── The controls idle-fade opacity (F9, H.W9.S6) ──
        The rest-dim magnitude the OPEN controls pane fades to after ~10s of
        global window inactivity (the idle-fade restoration — see the §idle-fade
@@ -399,7 +429,21 @@
    --ball-size names the same seam EasingTarget already exposed for its JS
    getComputedStyle read (--track-ball-size-active/muted); that scene maps its
    active/muted tokens onto --ball-size per ball so the read stays the source of
-   truth. */
+   truth.
+
+   ── --ball-tone (J.W7a S3 / D10 — the colour seam, the J.md headline move) ──
+   The fill + glow + rail tint are PARAMETERIZED by ONE hue var, --ball-tone
+   (default --color-progress — pixel-identical for any scene that sets nothing),
+   the planned twin of .status-badge's proven --badge-tone seam one section
+   below. This is where the two-palette drift dies: the ICON palette promised a
+   spectrum (easing violet, motion-path cyan, sequence violet→green) that the
+   SUBJECT palette had collapsed to one green; each scene now sets ONE token at
+   its stage root and the subject keeps its icon's promise (cross-color-pops
+   §5.1; D11/D12). NOTE the fallback form `var(--ball-tone, …)` rather than a
+   self-declaration: the per-scene consumers set the token on an ANCESTOR (the
+   stage root / the sequence row), and a declaration on the ball itself would
+   shadow that cascade — the badge declares on itself because its consumers are
+   sibling CLASSES on the same element. */
 .progress-rail {
     position: absolute;
     top: 50%;
@@ -408,7 +452,7 @@
     height: 2px;
     transform: translateY(-50%);
     border-radius: var(--radius-pill);
-    background: color-mix(in srgb, var(--color-progress) var(--rail-tint, 8%), transparent);
+    background: color-mix(in srgb, var(--ball-tone, var(--color-progress)) var(--rail-tint, 8%), transparent);
     pointer-events: none;
 }
 .progress-ball {
@@ -418,9 +462,47 @@
     height: var(--ball-size, 36px);
     margin-top: calc(var(--ball-size, 36px) / -2);
     border-radius: var(--radius-pill);
-    background: var(--color-progress);
-    box-shadow: 0 2px 10px color-mix(in srgb, var(--color-progress) var(--ball-glow, 35%), transparent);
+    background: var(--ball-tone, var(--color-progress));
+    box-shadow: 0 2px 10px color-mix(in srgb, var(--ball-tone, var(--color-progress)) var(--ball-glow, 35%), transparent);
     pointer-events: none;
+}
+
+/* ── .readout-accent (J.W7a S3 / D14 / CP-4) ──
+   The LIVE computed value in each scene's mono readout wears the scene accent
+   (the cascaded --ball-tone): "the number that proves the engine runs is the
+   number that carries the colour" (cross-color-pops §5.4). Labels stay
+   --muted-foreground — only the live value pops (the proportionate readout
+   colour, never a panel tint). */
+.readout-accent {
+    color: var(--ball-tone, var(--color-progress));
+}
+
+/* ── .stage-field-{x,y} — the ghosted coordinate frame (J.W7a S4 / D17 / C2) ──
+   The designed stage-plate field: value gridlines at the 0.25/0.5/0.75 quarter
+   marks, drawn with the SAME `var(--border)` hairline the easing curve canvas's
+   own `.grid-line` treatment uses (EasingCurveCanvas — the sidebar specimen and
+   the stage share ONE visual language by construction). `-y` rules the VALUE
+   axis (horizontal lines + the bottom t-axis baseline — the easing stage's
+   frame for its projected curve); `-x` rules a TIME/POSITION axis (vertical
+   quarter ticks — the spring displacement rail, the sequence master-clock
+   region). kf-LOCAL + token-clean; the glass-ui `<GraphFrame>` promotion is the
+   recorded W7b ledger edge (cross-grid-math G1). The frame AMPLIFIES in the
+   stage region only — never the page field (the §S4 proportion anti-goal). */
+.stage-field-y {
+    background-image:
+        linear-gradient(to top, var(--border) 1px, transparent 1px),
+        repeating-linear-gradient(
+            to bottom,
+            var(--border) 0 1px,
+            transparent 1px calc(100% / 4)
+        );
+}
+.stage-field-x {
+    background-image: repeating-linear-gradient(
+        to right,
+        var(--border) 0 1px,
+        transparent 1px calc(100% / 4)
+    );
 }
 
 /* ── .status-badge family (settled / tracking / reverse) ──
@@ -440,9 +522,9 @@
    own 14% tint was 1.97:1 (lighthouse color-contrast). The hue survives the mix;
    only the lightness moves to meet AA. A future contrast tune lands ONCE here.
 
-   --badge-tone names the same parameterization seam .progress-ball's --ball-glow
-   exposes: each per-site badge sets only --badge-tone, never re-authors the
-   recipe.
+   --badge-tone names the same parameterization seam .progress-ball's --ball-tone
+   (J.W7a S3 / D10 — the once-planned twin, now cut) exposes: each per-site badge
+   sets only --badge-tone, never re-authors the recipe.
      • .settled-badge  → tone --color-progress (the canonical progress green)
      • .tracking-badge → tone --muted (its own neutral recipe: muted surface
        tint + muted-foreground text, no AA mix needed)

@@ -108,8 +108,17 @@ const PIXELMATCH_THRESHOLD = 0.1;
 // percent, orders of magnitude above 0.5% → still reds hard.
 const TOLERANCE_FRAC = 0.005;
 // The absolute floor — a region must mismatch at least this many px AND exceed the
-// fraction to red, so a handful of jittered AA pixels on a tiny region cannot flap.
-const TOLERANCE_MIN_PX = 40;
+// fraction to red, so jitter on a tiny region cannot flap. Re-bound measure-first
+// at the J.W7a re-capture: the in-process noise floor measures 0.24% (under the
+// fraction budget), but CROSS-PROCESS captures (a fresh browser launch per run —
+// exactly how baseline + gate actually execute) carry 1px full-width reflow lines
+// + the transport's Play/Pause mount-race label on the SMALL ribbon region,
+// measured at 453px (1.05% of ~43k px — where 0.5% is ~217px, less than ONE 1px
+// line). The floor moves to 500px: a sub-line cross-process jitter cannot flap a
+// small region, while a REAL small-region regression (a re-skinned/vanished
+// transport block) moves thousands of px AND tens of percent — both terms still
+// red hard. Large regions are unaffected (their binding term is the fraction).
+const TOLERANCE_MIN_PX = 500;
 
 const MACHINE_KEY = "keyframes-js-scene-machine"; // SCENE_MACHINE_PERSIST_KEY
 
@@ -152,6 +161,24 @@ const MASK_SUBJECTS = [
     ".hero-ball",
     ".progress-rail",
     ".progress-ball",
+    // The spring controls' canonical-spring preview rows — each `.preset-ball`
+    // (a `.progress-ball`) rests at a spring-settle x INSIDE its row track; the
+    // ball-only mask leaves the edge halo the header documents (measured at the
+    // J.W7a re-capture: 0.5009% on spring/mobile/open/controls — right at the
+    // budget). Mask the whole `.preset-track` row box (the container-level
+    // doctrine, same as `.hero-track`/`.spring-rail`).
+    ".preset-track",
+    // The square scene's drag subject — engine-SPRING-positioned (useSquare-
+    // Animations writes its transform each frame; the rest pose is the spring
+    // settle, which lands at a run-dependent few-px offset on the mobile-open
+    // stage re-seat). The one live engine subject the original list missed —
+    // measured flapping 11.9% against its own same-tree baseline at the J.W7a
+    // re-capture. Same container-level doctrine as `.cube`/`.hero-track`: the
+    // box rect is masked; the stage plate/chrome around it stays locked. (The
+    // box's --subject-teal fill + display-face type are RUNTIME-asserted by
+    // the J.W7a clause probes / J.W4 certification — the pixel lock cedes only
+    // the in-flight subject rect, never the facts.)
+    ".demo-box",
     ".mp-traveller", // the motion-path traveller
     ".mp-guide-path", // the path the traveller sweeps (the live offset-path)
     ".seq-playhead", // the sequence swept playhead line

@@ -104,53 +104,23 @@
         />
     </div>
 
-    <!-- Hidden SVG gradient definition for rainbow icon strokes. The defs stay
-         here (top-level, demo-global) because the Apply-CSS paintbrush in the
-         ribbon strokes `url(#rainbow-gradient)` — the gradient must live where
-         the SVG reference can resolve it. Stops reference the demo-owned
-         --rainbow-* family (design-idioms.css). -->
-    <svg width="0" height="0" class="absolute">
-        <defs>
-            <linearGradient id="rainbow-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" :style="{ stopColor: 'var(--rainbow-red)' }" />
-                <stop offset="20%" :style="{ stopColor: 'var(--rainbow-orange)' }" />
-                <stop offset="40%" :style="{ stopColor: 'var(--rainbow-yellow)' }" />
-                <stop offset="60%" :style="{ stopColor: 'var(--rainbow-green)' }" />
-                <stop offset="80%" :style="{ stopColor: 'var(--rainbow-blue)' }" />
-                <stop offset="100%" :style="{ stopColor: 'var(--rainbow-violet)' }" />
-            </linearGradient>
-        </defs>
-    </svg>
-
     </TooltipProvider>
 
-    <Teleport to="html">
-        <Toaster
-            :toastOptions="{
-                unstyled: true,
-                classes: {
-                    toast: 'bg-foreground text-background rounded-xl text-body px-4 py-3 grid grid-cols-1 gap-1 shadow-lg lg:w-80 w-64 max-w-[90vw]',
-                    title: 'font-bold text-body',
-                    description: 'font-normal text-small',
-                    actionButton: '',
-                    cancelButton: '',
-                    closeButton: '',
-                },
-            }"
-            theme="system"
-        />
-    </Teleport>
+    <!-- The document-level singletons (rainbow-gradient SVG defs + the Toaster
+         teleport) live in the colocated DemoGlobalChrome sub-component — they
+         resolve against the DOCUMENT, not this layout grid (the J.W7a
+         fix-round proof:demo-no-oversize seam; zero appearance delta). -->
+    <DemoGlobalChrome />
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, Teleport, useTemplateRef, watch, watchEffect } from "vue";
-
-import { Toaster } from "vue-sonner";
+import { computed, onMounted, reactive, ref, useTemplateRef, watch, watchEffect } from "vue";
 
 import { TooltipProvider } from "@mkbabb/glass-ui";
 
 import { Animation } from "@src/animation/engine";
 import ControlsPaneWrapper from "./components/ControlsPaneWrapper.vue";
+import DemoGlobalChrome from "./components/DemoGlobalChrome.vue";
 import TransportDock from "./TransportDock.vue";
 
 import {
@@ -228,6 +198,9 @@ const {
     onScrubStart,
     onScrubEnd,
     sliderUpdate,
+    getActiveT,
+    scrubActive,
+    cycleAnimation,
 } = useAnimationGroupPlayback(() => animationGroup, storedControls, emit);
 
 const { animationProgress } = useAnimationProgress(() => animationGroup, isPlaying);
@@ -319,44 +292,15 @@ registerShortcut("Delete", () => activeTimelineRef.value?.removeSelectedKeyframe
 registerShortcut("Mod+Z", () => activeTimelineRef.value?.undo?.(), { preventDefault: true, label: "Undo", group: "Actions" });
 registerShortcut("Mod+Shift+Z", () => activeTimelineRef.value?.redo?.(), { preventDefault: true, label: "Redo", group: "Actions" });
 
-function getActiveT(): number {
-    const name = storedControls.selectedAnimation;
-    if (!name) return 0;
-    const groupObj = animationGroup.animations[name];
-    if (!groupObj) return 0;
-    const anim = groupObj.animation;
-    const dur = anim.options.duration ?? 1000;
-    return dur > 0 ? anim.t / dur : 0;
-}
-
-function scrubActive(fraction: number) {
-    const name = storedControls.selectedAnimation;
-    if (!name) return;
-    const groupObj = animationGroup.animations[name];
-    if (!groupObj) return;
-    const anim = groupObj.animation;
-    const dur = anim.options.duration ?? 1000;
-    const t = Math.max(0, Math.min(dur, fraction * dur));
-    sliderUpdate({ t, animation: anim });
-}
-
+// The scrub/cycle actions the bindings above dispatch live with the playback
+// state they mutate — useAnimationGroupPlayback (getActiveT / scrubActive /
+// cycleAnimation; the J.W7a fix-round proof:demo-no-oversize seam). switchTab
+// stays here: it drives the component-owned animControlRefs registry.
 function switchTab(tab: string) {
     const name = storedControls.selectedAnimation;
     if (!name) return;
     const ctrl = animControlRefs[name];
     ctrl?.selectControl?.(tab);
-}
-
-function cycleAnimation(direction: number) {
-    const names = Object.keys(animationGroup.animations);
-    if (names.length === 0) return;
-    const currentIdx = names.indexOf(storedControls.selectedAnimation ?? "");
-    const nextIdx = (currentIdx + direction + names.length) % names.length;
-    storedControls.selectedAnimation = names[nextIdx]!;
-    if (!animationGroup.started) {
-        animationGroup.play();
-        syncPlayState(true);
-    }
 }
 
 </script>
