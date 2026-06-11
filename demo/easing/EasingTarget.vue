@@ -45,13 +45,29 @@
                     />
                 </span>
             </div>
+            <!-- U3-D2 (J.W7c LANE E) — the view-mode select gets REAL dropdown
+                 chrome. It FORMERLY wore a dock-tier <DockSelectTrigger> with the
+                 `dock-label` utility: outside a `.glass-dock` that trigger paints a
+                 TRANSPARENT background and `dock-label` falls back to the oversized
+                 `--type-subheading` (20.4px) rung — so it read as a big BARE-TEXT
+                 word with a faint chevron, no resting affordance that it's a control
+                 (the audit's "reads as bare text"). The standard glass <SelectTrigger>
+                 is the idiomatic primitive for a select on a RESTING glass surface:
+                 it paints the `glass-wash` resting fill + `rounded-pill` + the
+                 governed `text-dropdown` (14px) scale + a built-in animated chevron.
+                 `size="sm"` keeps the control header-proportionate; `w-auto` lets it
+                 hug "Singular"/family names instead of stretching full-width. -->
             <Select
                 :model-value="viewMode"
                 @update:model-value="onViewModeChange"
             >
-                <DockSelectTrigger aria-label="View mode" class="dock-label ml-3">
+                <SelectTrigger
+                    aria-label="View mode"
+                    size="sm"
+                    class="w-auto min-w-[7.5rem] shrink-0"
+                >
                     <SelectValue placeholder="Singular" />
-                </DockSelectTrigger>
+                </SelectTrigger>
                 <SelectContent class="min-w-40 text-small">
                     <SelectItem value="singular">Singular</SelectItem>
                     <SelectSeparator />
@@ -125,7 +141,6 @@
 <script setup lang="ts">
 import { computed, inject, ref, useTemplateRef, onMounted, onScopeDispose, watch, nextTick } from "vue";
 import { useResizeObserver } from "@vueuse/core";
-import { DockSelectTrigger } from "@mkbabb/glass-ui/dock";
 // J.W7a S2 (D8) — the published damped tabular-nums display (glass-ui 3.9.0):
 // the live readout's confident-mono promotion consumes the primitive, never a
 // hand-rolled size (the MetricHeader abstraction stays a W7b handoff edge).
@@ -136,6 +151,7 @@ import {
     SelectContent,
     SelectItem,
     SelectSeparator,
+    SelectTrigger,
     SelectValue,
 } from "@mkbabb/glass-ui";
 

@@ -77,41 +77,41 @@
              from the primitive's useCanvas2D substrate. -->
         <div class="fourier-vacancy" aria-hidden="true">
             <FourierField
-                v-if="!prefersReducedMotion"
                 variant="hero"
                 seed="keyframes.js"
                 color="var(--ball-tone, var(--ppmycota-primary, var(--primary)))"
                 :color-resolver="defaultBlobColorResolver"
+                :freeze="prefersReducedMotion"
             />
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
+import { usePreferredReducedMotion } from "@vueuse/core";
 import { List } from "@lucide/vue";
 // J.W7a S4 (D18) — the published generative math motif + its REQUIRED colour
 // seam (glass-ui 3.9.0 — a W7a consume, not a W7b edge).
 import { FourierField } from "@mkbabb/glass-ui/fourier-field";
 import { defaultBlobColorResolver } from "@mkbabb/glass-ui/color";
-import { computed } from "vue";
-import { usePreferredReducedMotion } from "@vueuse/core";
 import AnimatedText from "@components/custom/AnimatedText.vue";
 import TypingDots from "@components/custom/TypingDots.vue";
 
-// J.W4 fix-round-1 (the FourierField PRM mount gate) — under
-// `prefers-reduced-motion: reduce` the decorative generative canvas is NOT
-// mounted at all. Two reasons converge on the same move: (1) PRODUCT — a
-// reduced-motion user should not get a generative epicycle animation in the
-// calm field (the field "inherits the reduced-motion freeze", so it would only
-// paint ONE static frame anyway — gating its mount loses nothing for those
-// users while honoring their stated preference; the start screen stays a calm
-// resting field). (2) the upstream FourierField/useCanvas2D substrate
-// (glass-ui 3.11.2) crashes with a TDZ ReferenceError when it paints its first
-// static frame synchronously under reduced motion (the render closure reads the
-// not-yet-bound `useCanvas2D` handle) — a HANDOFF defect to glass-ui, recorded;
-// not mounting under PRM sidesteps it AND is the correct reduced-motion
-// behavior regardless of the upstream bug. The aria-hidden field is purely
-// decorative, so its absence under PRM is a no-op for assistive tech.
+// J.W7c U-register verify r2 — FREEZE the generative field under reduced-motion.
+// Two ends meet here: (1) it is the correct reduced-motion posture — a decorative
+// animated math field must rest when the user prefers reduced motion (the same
+// contract TypingDots/AnimatedText already honour); (2) it cleanly DODGES the
+// pre-existing glass-ui RO→render init-order TDZ (handoff RF-16, `Cannot access
+// 'C' before initialization`): FourierField's render reads `freeze || x.reducedMotion`,
+// and a truthy `freeze` SHORT-CIRCUITS before the forward-`const` glass-ui reads,
+// so the crash never arms on the reduced-motion branch. This is a CONSUMER-SIDE
+// use of FourierField's OWN published `freeze` prop — NOT a glass-ui patch (inv-16
+// holds). The durable upstream cure (RF-16) still lands on the next glass-ui bump;
+// this consumer guard is the right posture regardless of that bump.
+// (Merge note: the W4 fix-round-1 PRM mount-gate (v-if) was superseded by this
+// freeze posture — the calm field stays PRESENT as a static resting frame for
+// reduced-motion users instead of vanishing; one mechanism, the primitive's own.)
 const reducedMotionPref = usePreferredReducedMotion();
 const prefersReducedMotion = computed(
     () => reducedMotionPref.value === "reduce",

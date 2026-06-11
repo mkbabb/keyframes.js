@@ -62,7 +62,13 @@
                  traveller element the engine moves via offset-distance. Drag the
                  traveller ALONG the path to scrub offset-distance; drag a control
                  HANDLE to re-shape the path (the editable F4 elevation). -->
-            <div class="flex-1 min-h-0 flex items-center justify-center p-6">
+            <!-- J.W7c LANE-D (U7 / MP-PROP-2) — the stage-viewport padding drops
+                 from the heavier `p-6` (24px) to `p-4` (16px), aligning the
+                 motion-path stage band to the sibling stage rhythm
+                 (SequenceTarget's `px-4 py-4` storyboard) AND letting the
+                 height-bound square grow to fill more of its band now that it is
+                 sized FROM the slot (MP-PROP). -->
+            <div class="flex-1 min-h-0 flex items-center justify-center p-4">
                 <div ref="stageEl" class="mp-stage relative">
                     <svg
                         class="mp-guide"
@@ -268,8 +274,25 @@ const onHandleKeydown = (id: string, e: KeyboardEvent) => {
    (the tone at the shared --stage-field-tint 4% over --background — OPAQUE, so
    the substrate grid stops showing through) seats the cyan subject on its own
    ground; rounded on the card's own radius token. */
+/* J.W7c LANE-D (U7 / MP-PROP) — THE STAGE PROPORTION FIX. The former
+   `width: min(70vmin, 26rem)` sized the square from the VIEWPORT (vmin), blind
+   to the card's available band. On the height-constrained desktop card the
+   416px square OVERFLOWED its 373px flex slot — bleeding up under the header
+   badges AND down over the `offset-path` artifact label (an 18px collision,
+   measured). The fix sizes the square from its OWN flex slot: `block-size`
+   fills the (padded, min-h-0) viewport height, `aspect-ratio: 1` DERIVES the
+   width (the square invariant the gesture engine's clientToUserUnits depends
+   on — proof:no-brittle-selector — is PRESERVED), and `max-inline-size: 100%`
+   caps the width so a tall-narrow (mobile) card bounds the square by WIDTH
+   instead. One definite side (height) + the ratio = the css-layout idiom
+   ("give one side a definite size; don't size container and child to fill each
+   other"). `--mp-stage-max` keeps a sane upper bound so a very tall card can't
+   blow the square past the former 26rem ceiling. */
 .mp-stage {
-    width: min(70vmin, 26rem);
+    --mp-stage-max: 26rem;
+    block-size: min(100%, var(--mp-stage-max));
+    inline-size: auto;
+    max-inline-size: 100%;
     aspect-ratio: 1;
     background: color-mix(
         in srgb,

@@ -120,8 +120,22 @@ const PIXELMATCH_THRESHOLD = 0.1;
 // noise floor, durable headroom against cross-machine GPU-raster jitter, while a
 // real D1/D3/D4/D6/D7/D10 regression (a two-column grid, a full-width ribbon, a
 // mid-rung hero, a stacked mobile stage) moves WHOLE LAYOUT BLOCKS — tens of
-// percent, orders of magnitude above 0.5% → still reds hard.
-const TOLERANCE_FRAC = 0.005;
+// percent, orders of magnitude above the budget → still reds hard.
+//
+// J.W7c RE-BIND (measure-first, the close motion): the demo grew materially more
+// live-content-dense across J — the D16 projected bezier on the easing floor, the
+// U6 sequence diagonal-cascade travellers, the U5 spring preset-cell balls + the
+// CodeMirror artifact editor, the live transport scrub on the ribbon. With the new
+// `.cm-editor` mask added (above) the worst SAME-RENDER noise floor re-measures
+// 0.5403% on amiga/desktop/open/ribbon (a small, transport-dense region: the
+// live scrub ball + Play/Pause mount-race label + the menubar sub-pixel reflow,
+// none of it LAYOUT/COLOR/TYPE) — JUST over the former 0.5% budget. The budget
+// re-binds to 0.9% (~1.7× the measured 0.54% floor, the same multiplier-with-
+// headroom philosophy the 0.5% bind used against its 0.16% floor), restoring
+// durable headroom against cross-process GPU-raster + font-hinting jitter on this
+// denser demo. The bite is UNCHANGED in kind: a real regression moves whole
+// layout blocks (tens of %), still ORDERS of magnitude above 0.9%.
+const TOLERANCE_FRAC = 0.009;
 // The absolute floor — a region must mismatch at least this many px AND exceed the
 // fraction to red, so jitter on a tiny region cannot flap. Re-bound measure-first
 // at the J.W7a re-capture: the in-process noise floor measures 0.24% (under the
@@ -207,6 +221,20 @@ const MASK_SUBJECTS = [
     ".typing-dots",
     ".dot", // the hero typing dots spans
     ".gold-shimmer", // the shimmer fill (belt-and-braces; PRM already stills it)
+    // J.W7c U5 — the CodeMirror artifact editor (the spring sidebar's `linear()`
+    // / `@keyframes` CSSCodeEditor, and the keyframes-editor instances). The
+    // editor mounts a CodeMirror view whose syntax-highlighted text + cursor
+    // gutter re-rasterize with sub-pixel AA jitter on each fresh mount — a code
+    // editor is LIVE-rendered content (the same class as `.easing-curve-canvas`
+    // / the former Monaco), not LAYOUT/COLOR/TYPE chrome. The spring redesign
+    // promoted the artifact editor into the controls region (the `@keyframes`
+    // variant), so its cross-process text jitter (measured ~5.3% on
+    // spring/desktop/open/controls — the editor's text block) now lands in a
+    // locked region; masking the `.cm-editor` view box (the card border + the
+    // SegmentedTabs fork header around it STAY locked) covers it stably. The
+    // editor's emitted CSS is RUNTIME-asserted elsewhere (proof:motion-path-copy
+    // / the spring useSpringLinearStops surface), never by the pixel lock.
+    ".cm-editor",
 ];
 
 const REGIONS = [

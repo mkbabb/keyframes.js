@@ -824,6 +824,104 @@ consume-on-3.9.0 ADOPT — listed for completeness; no AX work).
 > (the standing GH-4/FB-4 edge — RF tail below); the **dock double-click/touch-gate** VERIFY-ONLY
 > (`constellation-edges.md CONST-5` — §3). Total dispositioned REFINE: **25**.
 
+### RF-16 — PRM ResizeObserver → render TDZ crash (`Cannot access 'C' before initialization`) · **P1 — born-RED, glass-ui-seam**
+
+**kf evidence (J.W7c live-audit, adversarial verify round 1).** Under emulated
+`prefers-reduced-motion: reduce` ONLY, a home-screen (`/#/`) load throws a runtime
+`ReferenceError: Cannot access 'C' before initialization` from a glass-ui ResizeObserver callback into
+an app render closure. Captured stack (built dist, `dist/gh-pages`):
+
+```
+ReferenceError: Cannot access 'C' before initialization
+    at Object.render (…/assets/index-*.js …)        ← app bundle render
+    at b (…/assets/glass-ui-*.js:12:1927)           ← glass-ui
+    at A (…/assets/glass-ui-*.js:12:3091)           ← glass-ui
+    at ResizeObserver.<anonymous> (…/assets/glass-ui-*.js:12:3179)  ← glass-ui RO
+```
+
+**PRE-EXISTING, NOT a J.W7c regression — proven.** The crash reproduces on the BASELINE tree (all
+J.W7c lane changes stashed, 3/3 runs) and disappears entirely when PRM is OFF (0 errors). It is a
+glass-ui reduced-motion code path: a ResizeObserver-driven component (`b`/`A` in the glass-ui chunk)
+calls back into a render before a `const` (`C`) in that closure is initialized — a minification/
+circular-init TDZ surfaced specifically on the reduced-motion branch. It correlates with the build-
+time Rolldown warning `[INVALID_ANNOTATION] /* #__PURE__ */ … comment ignored due to position`
+(`@vueuse/core`) and the `[INEFFECTIVE_DYNAMIC_IMPORT]` engine-chunk warnings — a toolchain
+hoisting-order interaction landed by the Vite 7→8 + Rolldown migration (`b2dfec2`).
+
+**Impact.** The PRM *assertion* still passes (the TypingDots correctly REST: `prmChurn:[1,1,1]`), so
+the dots are not user-broken — but the thrown error CHARGES the `proof:live-session` HARD error budget
+(5 charges: console.error + 2× pageerror + 2× weberror), reddening the gate-of-gates deterministically
+regardless of any kf-side change. It is in glass-ui's RO→render seam; per the inv-16 rule
+(*kf consumes published glass-ui; nothing above is patched in kf*) it is BOOKED here, not patched.
+
+**The gap.** glass-ui's ResizeObserver-driven component(s) hit a TDZ on a render-closure `const` under
+the reduced-motion branch in the minified build — an init-order bug exposed by the consumer's
+production bundler (Rolldown), not by glass-ui's own dev build.
+
+**Proposed glass-ui shape.** glass-ui ships its RO callback + render path free of forward-`const`
+references in the reduced-motion branch (hoist the `const`, or guard the RO callback against pre-init
+invocation) so the production bundle has no TDZ; verify under a Rolldown/`#__PURE__`-position build.
+
+**kf consume-edge after.** none — kf consumes the fixed glass-ui; the durable upstream cure removes
+the consumer guard's reason-for-being (the guard stays as the correct PRM posture regardless).
+
+**kf-side MITIGATION FOUND (J.W7c verify r2 — the gate is now GREEN, the AX ask DOWNGRADES).** The
+crash path is `freeze || x.reducedMotion` (FourierField render, `fourier-field.js:105,116`): a TRUTHY
+`freeze` SHORT-CIRCUITS the `||` BEFORE the forward-`const` glass-ui read, so the TDZ never arms. The
+home hero (`EditorStartScreen.vue`) now passes `:freeze="prefersReducedMotion"`
+(`usePreferredReducedMotion()`), which is ALSO the correct reduced-motion posture — a decorative
+animated math field must rest under PRM, the same contract TypingDots/AnimatedText honour. This is a
+CONSUMER-SIDE use of FourierField's OWN published `freeze` prop — NOT a glass-ui patch (inv-16 holds).
+VERIFIED on the built dist: 0 TDZ errors across PRM (3/3 fresh contexts) AND no-PRM (3/3); the prior
+3/3-PRM crash is gone. The AX ask is thus DOWNGRADED P1→P3: still wanted (so a consumer that animates
+FourierField through a PRM session — not just freezes it — never hits the TDZ), but no longer a born-RED
+blocker for kf.
+
+**Paired kf gate — NOW GREEN.** `proof:live-session` (the `S2:prm-typing-dots` error-budget charge) —
+GREEN as of the consumer `:freeze` guard; no longer a DISCLOSED-RED of record. The upstream init-order
+fix remains the durable cure for the general (animate-through-PRM) case. **consume-on-future-AX-publish.**
+
+### RF-17 — `GlassDock` collapse-crossfade strands the trailing `click` on a leaving layer (the actuation-vs-collapse race) · **P2 — kf-mitigated, durable cure is glass-ui-seam**
+
+**kf evidence (J.W7c live-audit, fix-round 1).** With a collapsible dock (`:always-expanded="false"`),
+a POINTER actuation of a control whose `@pointerdown` lands while a collapse is imminent can be
+SWALLOWED: the layer crossfade swaps which `.dock-layer` is `.is-active` mid-gesture, the layer the
+pointerdown landed on goes `.is-leaving` (→ `pointer-events:none`, `styles/dock/layers.css:165-170`)
+BEFORE the browser synthesizes the trailing `click`, so a `@click`-only handler never fires. Proven on
+the built dist with the bottom `TransportDock`: instrumented handlers showed the play button's
+`@pointerdown` firing but its `@click` NEVER firing, play staying off, and motion-path's one-shot
+traveller (parked at offset-distance 100%) producing only 1–2 distinct states — reddening
+`proof:live-session` S5 (`motion-path: PLAY red — traveller produced only N distinct states (<3)`).
+
+**No consumer-side call wins the race — verified.** `dockRef.expand()` and `dockRef.keepOpen()` were
+each tried from the consumer (on the button's `@pointerdown`, and pinned at `onMounted`); the dock
+collapsed and stranded the `click` in BOTH cases. The held-counter (`useDockState` `p.value`) gates the
+idle/mouseleave/outside-pointerdown collapse timers but NOT the crossfade transition that drops the
+trailing click — so the consumer cannot keep the just-pressed layer interactive through the click from
+outside the dock. (`:always-expanded="true"` makes it GREEN — single non-crossfading layer — confirming
+the collapse crossfade is the sole cause.)
+
+**kf interim mitigation (lands J.W7c, token-clean, NOT a glass-ui patch).** `TransportDock.vue` drives
+the play toggle from `@pointerdown` (which always reaches the live button — the crossfade can only
+strand the LATER `click`) with a `pointerHandled` guard so the synthesized pointer-click does not
+double-toggle while bare keyboard clicks (Enter/Space) still actuate (`proof:live-session` S4 keyboard
+leg preserved). This cures the actuation for kf's transport, but it is a per-control workaround — any
+consumer placing an interactive control in a collapsible dock layer hits the same swallow on `@click`.
+
+**Proposed glass-ui shape.** the dock keeps the LEAVING layer hit-testable for the in-flight gesture —
+e.g. defer the `.is-leaving` `pointer-events:none` flip until after the active pointer sequence
+completes (track an in-flight pointer on the layer), or expose a dock-level "actuation in progress"
+hold the crossfade respects — so a `@click` on a control pressed in the expanded layer is never dropped
+when a collapse races it. The consumer then drops the `@pointerdown` workaround and uses a plain
+`@click`.
+
+**kf consume-edge after.** `TransportDock.vue` reverts the play toggle to a single `@click` handler
+(deleting `onPlayPointerDown` / the `pointerHandled` guard) once the dock no longer strands the click.
+
+**Paired born-RED kf gate.** `proof:live-session` S5 (the motion-path PLAY/INTERACT leg) — held GREEN
+by the kf interim above; the glass-ui edge greens the consume-edge revert on the bump.
+**consume-on-future-AX-publish.**
+
 ### RF-tail — `{types}` directional View-Transition helper (the standing GH-4/FB-4 edge) · **OPP / BOOK**
 
 **kf evidence.** `useSceneTransition.ts:2` imports from `@mkbabb/glass-ui/motion-core` and is live,
