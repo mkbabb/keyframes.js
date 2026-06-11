@@ -7,14 +7,41 @@
              `<Card>` — the protagonist plate, rounded-card by construction (I4
              closes FOR FREE). `shadow={false}` (FORK I5-shadow). All four stage
              scenes converge to ONE register. -->
-        <Card :shadow="false" class="w-full flex-1 min-h-0 flex flex-col overflow-hidden">
-            <div class="flex items-center justify-between gap-3 px-4 py-2.5 border-b border-border/40 shrink-0">
-                <div class="flex items-baseline gap-3 min-w-0">
-                    <span class="text-heading text-foreground truncate">MotionPath</span>
-                    <span class="text-mono-caption text-muted-foreground tabular-nums whitespace-nowrap">
-                        offset-distance = {{ (distance * 100).toFixed(0) }}%
-                        &middot; tangent {{ Math.round(tangentDeg) }}&deg;
-                    </span>
+        <Card :shadow="false" class="mp-target w-full flex-1 min-h-0 flex flex-col overflow-hidden">
+            <!-- J.W7a S2 (D7 / TYP-2, MP-H2) — the scene name lifts to the
+                 Instrument-Serif `text-display` rung (the display voice carried
+                 inward; cross-typography §3).
+                 J.W7a S2 (D8 / MP-OPP5) + S3 (D14) — the traversal's live math
+                 promotes to the published MetricBadge register: the headline
+                 offset-distance at the size="xl" poster rung wearing the scene
+                 accent (--ball-tone, the icon cyan), the tangent as the quieter
+                 lg sibling. The amplification stays in the HEADER + the NUMBER —
+                 the path canvas below keeps the math live, never ornamented
+                 (the §S4 anti-goal). -->
+            <!-- The header rows WRAP (flex-wrap): at 375w an unwrappable row
+                 starved the serif title and slid the xl badge under the Reset
+                 control — the reflow keeps every member legible (the D8
+                 responsive behaviour; the strip grows DOWN into the card). -->
+            <div class="flex flex-wrap items-center justify-between gap-3 gap-y-1 px-4 py-2.5 border-b border-border/40 shrink-0">
+                <div class="flex flex-wrap items-baseline gap-3 gap-y-1 min-w-0">
+                    <span class="text-display text-foreground truncate">MotionPath</span>
+                    <MetricBadge
+                        size="xl"
+                        label="offset-distance"
+                        label-position="inline"
+                        :amount="(distance * 100).toFixed(0)"
+                        unit="%"
+                        color="var(--ball-tone, var(--color-progress))"
+                        class="shrink-0"
+                    />
+                    <MetricBadge
+                        size="lg"
+                        label="tangent"
+                        label-position="inline"
+                        :amount="Math.round(tangentDeg)"
+                        unit="&deg;"
+                        class="shrink-0"
+                    />
                 </div>
                 <!-- Revert the edited control net to the default figure loop.
                      The accessible name STARTS WITH the visible "Reset path"
@@ -142,6 +169,9 @@
 <script setup lang="ts">
 import { computed, inject, useTemplateRef } from "vue";
 import { Button, Card } from "@mkbabb/glass-ui";
+// J.W7a S2 (D8) — the published poster-metric primitive (glass-ui 3.9.0); the
+// MetricHeader abstraction over the four stage headers stays a W7b handoff edge.
+import { MetricBadge } from "@mkbabb/glass-ui/metric-badge";
 import { RotateCcw } from "@lucide/vue";
 import CopyButton from "@components/custom/CopyButton.vue";
 
@@ -223,9 +253,30 @@ const onHandleKeydown = (id: string, e: KeyboardEvent) => {
 </script>
 
 <style scoped>
+/* J.W7a S3 (D11 / CP-1, MP-OPP4) — the scene's ONE colour consumer: the
+   traveller keeps its icon's promise (motion-path.svg draws the cyan dashed
+   track + cyan node). Cascades from the stage root to the shared
+   .progress-ball traveller, the guide path, the control net, and the readout
+   accent — one token, the whole editor reads cyan (cross-color-pops §5.1). */
+.mp-target {
+    --ball-tone: var(--rainbow-cyan);
+}
+
+/* J.W7a S4 (D17 / MP-I1 + MP-OPP1) — the stage gains a CLEAN designed field:
+   the traveller no longer renders against the raw global crosshatch (the
+   dashed guide visually beat against the grid squares). A scene-tinted plate
+   (the tone at the shared --stage-field-tint 4% over --background — OPAQUE, so
+   the substrate grid stops showing through) seats the cyan subject on its own
+   ground; rounded on the card's own radius token. */
 .mp-stage {
     width: min(70vmin, 26rem);
     aspect-ratio: 1;
+    background: color-mix(
+        in srgb,
+        var(--ball-tone, var(--color-progress)) var(--stage-field-tint, 4%),
+        var(--background)
+    );
+    border-radius: var(--radius-card);
 }
 
 .mp-guide {
@@ -241,9 +292,10 @@ const onHandleKeydown = (id: string, e: KeyboardEvent) => {
 }
 
 /* The author path drawn as a dashed guide so the traversal reads against it —
-   tinted from the shared progress tone (consistent with the rail idiom's hue). */
+   tinted from the scene's tone seam (J.W7a S3 / D11: the icon cyan), so guide,
+   net, and traveller read as ONE coloured voice. */
 .mp-guide-path {
-    stroke: color-mix(in srgb, var(--color-progress) 35%, transparent);
+    stroke: color-mix(in srgb, var(--ball-tone, var(--color-progress)) 35%, transparent);
     stroke-width: 2.5;
     stroke-dasharray: 6 7;
     stroke-linecap: round;
@@ -252,16 +304,16 @@ const onHandleKeydown = (id: string, e: KeyboardEvent) => {
 /* ── Editable control net (H.W12.S6 / I3 — the F4 elevation) ──────────────────
    The faint anchor→control tethers show the cubic structure; the handles are the
    draggable nodes that re-author the single-source path. Tinted from the shared
-   --color-progress tone so the editor reads as one with the guide. */
+   --ball-tone seam (D11) so the editor reads as one with the guide. */
 .mp-tether {
-    stroke: color-mix(in srgb, var(--color-progress) 22%, transparent);
+    stroke: color-mix(in srgb, var(--ball-tone, var(--color-progress)) 22%, transparent);
     stroke-width: 1;
     stroke-dasharray: 3 4;
 }
 
 .mp-handle {
     fill: var(--background);
-    stroke: var(--color-progress);
+    stroke: var(--ball-tone, var(--color-progress));
     stroke-width: 2;
     cursor: grab;
     pointer-events: auto;
@@ -271,21 +323,21 @@ const onHandleKeydown = (id: string, e: KeyboardEvent) => {
 }
 .mp-handle:hover,
 .mp-handle:focus-visible {
-    fill: color-mix(in srgb, var(--color-progress) 30%, var(--background));
+    fill: color-mix(in srgb, var(--ball-tone, var(--color-progress)) 30%, var(--background));
     outline: none;
 }
 /* Anchors (ON the path) read solid; controls (OFF the path) read hollow + a
    softer tint — the GSAP-editor convention (square-ish anchors, round controls;
    here a fill/tint delta keeps the SVG simple). */
 .mp-handle--anchor {
-    fill: color-mix(in srgb, var(--color-progress) 55%, var(--background));
+    fill: color-mix(in srgb, var(--ball-tone, var(--color-progress)) 55%, var(--background));
 }
 .mp-handle--control {
     stroke-dasharray: 2.5 2.5;
 }
 .mp-handle--active {
     cursor: grabbing;
-    fill: var(--color-progress);
+    fill: var(--ball-tone, var(--color-progress));
 }
 
 /* The traveller rides the engine-set offset-path; its position is the swept

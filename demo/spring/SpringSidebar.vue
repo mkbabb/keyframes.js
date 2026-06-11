@@ -9,6 +9,40 @@
          scale automatically (G5: same components → same sizes). -->
     <Card surface="cartoon" tier="quiet" class="w-full overflow-visible">
         <CardContent class="panel-content flex flex-col gap-3 px-4 py-3">
+            <!-- J.W7a S5 / XH-4 (D22) — the view switcher (H.W5.S3) lives in the
+                 RAIL now, at the head of the spring's control panel: relocated
+                 out of the top-center band it shared (and collided) with the
+                 scene-switcher dock on mobile (cross-hierarchy #4). One spring
+                 curve, two views — the live SpringProgress solver, and that same
+                 spring linear() easing a real @starting-style / allow-discrete
+                 transition. -->
+            <div
+                class="spring-view-switch glass-resting cartoon-surface flex shrink-0 gap-1 rounded-full p-1"
+                role="tablist"
+                aria-label="Spring view"
+            >
+                <button
+                    type="button"
+                    role="tab"
+                    class="spring-view-tab text-small btn-interactive rounded-full px-3.5 py-1"
+                    :class="{ 'spring-view-active': demo.view.value === 'solver' }"
+                    :aria-selected="demo.view.value === 'solver'"
+                    @click="demo.view.value = 'solver'"
+                >
+                    Live solver
+                </button>
+                <button
+                    type="button"
+                    role="tab"
+                    class="spring-view-tab text-small btn-interactive rounded-full px-3.5 py-1"
+                    :class="{ 'spring-view-active': demo.view.value === 'discrete' }"
+                    :aria-selected="demo.view.value === 'discrete'"
+                    @click="demo.view.value = 'discrete'"
+                >
+                    Discrete transition
+                </button>
+            </div>
+
             <!-- Live params — label-left rows (the H.W9 F1 idiom) -->
             <LabeledSlider
                 :model-value="demo.response.value"
@@ -183,6 +217,25 @@ watch(generated, (css) => { linearStopsCss.value = css; }, { immediate: true });
    active affordance now hangs off the consumed ToggleChip's own
    `data-state="on"` attribute (the primitive's documented seam), carrying the
    same scene-semantic `--color-progress` ring via the call-site class. */
+
+/* The view switcher (H.W5.S3, relocated here at J.W7a D22) — a compact
+   segmented control. Rides the shared glass-resting/cartoon-surface depth
+   idiom; the active tab takes the progress accent the spring scene uses
+   throughout. */
+.spring-view-switch {
+    align-self: center;
+}
+.spring-view-tab {
+    color: var(--muted-foreground);
+    transition:
+        color var(--duration-fast, 150ms) ease,
+        background-color var(--duration-fast, 150ms) ease;
+}
+.spring-view-active {
+    color: var(--color-progress);
+    background: color-mix(in srgb, var(--color-progress) 14%, transparent);
+    box-shadow: 0 0 0 1px var(--color-progress) inset;
+}
 
 .preset-row {
     display: flex;

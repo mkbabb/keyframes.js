@@ -9,17 +9,40 @@
          `max-w-3xl` rides the content column as an optical reading measure. -->
     <Card
         :shadow="false"
-        class="flex flex-col items-center justify-center gap-8 h-full w-full px-6 lg:px-8 overflow-hidden"
+        class="spring-target flex flex-col items-center justify-center gap-8 h-full w-full px-6 lg:px-8 overflow-hidden"
     >
-        <!-- Header readout -->
-        <div class="flex w-full max-w-3xl items-center justify-between gap-3 shrink-0">
-            <div class="flex items-baseline gap-3 min-w-0">
-                <span class="text-heading text-foreground truncate">
+        <!-- Header readout.
+             J.W7a S2 (D7 / TYP-2, SP-2) — the scene name lifts to the
+             Instrument-Serif `text-display` rung (the display voice carried
+             inward; cross-typography §3).
+             J.W7a S2 (D8 / C3) + S3 (D14) — the live solver state promotes from
+             one 12px muted caption to the published MetricBadge register: the
+             headline x at the size="xl" audacious-poster rung wearing the scene
+             accent (color → --ball-tone), the velocity as the quieter lg
+             sibling. The NUMBER wins; the labels stay small muted mono. -->
+        <!-- The header rows WRAP (flex-wrap): at 375w an unwrappable row would
+             starve the serif title against the two metric badges — the reflow
+             keeps every member legible (the D8 responsive behaviour). -->
+        <div class="flex w-full max-w-3xl flex-wrap items-center justify-between gap-3 gap-y-1 shrink-0">
+            <div class="flex flex-wrap items-baseline gap-3 gap-y-1 min-w-0">
+                <span class="text-display text-foreground truncate">
                     SpringProgress
                 </span>
-                <span class="text-mono-caption text-muted-foreground tabular-nums whitespace-nowrap">
-                    x = {{ demo.liveValue.value.toFixed(3) }} &middot; v = {{ demo.liveVelocity.value.toFixed(2) }}
-                </span>
+                <MetricBadge
+                    size="xl"
+                    label="x"
+                    label-position="inline"
+                    :amount="demo.liveValue.value.toFixed(3)"
+                    color="var(--ball-tone, var(--color-progress))"
+                    class="shrink-0"
+                />
+                <MetricBadge
+                    size="lg"
+                    label="v"
+                    label-position="inline"
+                    :amount="demo.liveVelocity.value.toFixed(2)"
+                    class="shrink-0"
+                />
             </div>
             <span
                 class="status-badge text-admin-label px-2 py-0.5 rounded-full"
@@ -29,9 +52,14 @@
 
         <!-- The rail: tap/drag to re-seat the live target -->
         <div class="flex w-full max-w-3xl flex-col items-center justify-center gap-6">
+            <!-- J.W7a S4 (D17 / C2) — the displacement rail carries the shared
+                 `.stage-field-x` coordinate frame: vertical quarter ticks at
+                 0.25/0.5/0.75 of the target axis (the curve canvas's --border
+                 hairline language), so the re-seat gesture reads against a
+                 graduated field, not blank glass. -->
             <div
                 ref="railEl"
-                class="spring-rail relative w-full h-12 cursor-pointer select-none"
+                class="spring-rail stage-field-x relative w-full h-12 cursor-pointer select-none"
                 role="slider"
                 aria-label="Drag to re-seat the spring target"
                 :aria-valuenow="Math.round(demo.target.value * 100)"
@@ -65,9 +93,11 @@
         <div class="w-full max-w-3xl shrink-0">
             <div class="flex items-center justify-between mb-2">
                 <span class="text-small text-foreground">springTimingFunction sweep</span>
-                <span class="text-mono-caption text-muted-foreground tabular-nums">{{ demo.sampled.value.toFixed(3) }}</span>
+                <!-- J.W7a S3 (D14 / CP-4) — the live sampled value wears the
+                     scene accent; the label stays muted. -->
+                <span class="readout-accent text-mono-caption tabular-nums">{{ demo.sampled.value.toFixed(3) }}</span>
             </div>
-            <div class="sampler-track relative h-9">
+            <div class="sampler-track stage-field-x relative h-9">
                 <div class="progress-rail"></div>
                 <!-- The sampler ball — painter-positioned (J.W2 S5, as above). -->
                 <div ref="samplerBallEl" class="progress-ball sampler-ball"></div>
@@ -79,6 +109,9 @@
 <script setup lang="ts">
 import { inject, onMounted, onScopeDispose, useTemplateRef } from "vue";
 import { Card } from "@mkbabb/glass-ui";
+// J.W7a S2 (D8) — the published poster-metric primitive (glass-ui 3.9.0); the
+// MetricHeader abstraction over the four stage headers stays a W7b handoff edge.
+import { MetricBadge } from "@mkbabb/glass-ui/metric-badge";
 import { useDragScrub } from "@composables/useDragScrub";
 import { SPRING_DEMO_KEY } from "./springKeys";
 
@@ -143,6 +176,15 @@ const onKeydown = (e: KeyboardEvent) => {
 </script>
 
 <style scoped>
+/* J.W7a S3 (D11 / CP-1) — the scene's ONE colour consumer. The spring icon's
+   rest dot IS the progress green (spring.svg → --rainbow-green family), so the
+   tone seam binds EXPLICITLY to the canonical --color-progress: the already-
+   consistent identity is now a declared fact the clause-a oracle reads, not an
+   accident of the idiom default (cross-color-pops §5.1). */
+.spring-target {
+    --ball-tone: var(--color-progress);
+}
+
 .spring-rail,
 .sampler-track {
     display: flex;
@@ -168,14 +210,21 @@ const onKeydown = (e: KeyboardEvent) => {
     margin-left: -1.25rem;
     margin-top: -1.25rem;
     border-radius: var(--radius-pill);
-    border: 2px dashed color-mix(in srgb, var(--color-progress) 50%, transparent);
+    /* J.W7a S3 (D11) — the ghost marker reads the tone seam (a no-op for
+       spring, whose tone IS the canonical green; the rule stays seam-coherent). */
+    border: 2px dashed color-mix(in srgb, var(--ball-tone, var(--color-progress)) 50%, transparent);
     pointer-events: none;
     transition: border-color var(--duration-fast) ease;
 }
 
+/* J.W7a S1 (D4 / SP-1) — the live ball IS the scene's protagonist and takes
+   the idiom-default --ball-size (36px) + full canonical glow: at the former
+   1.75rem it "read as a footnote" against the vast glass plate. The h-12 rail
+   row seats the 36px ball with breathing room; the quiet sampler below keeps
+   its small translucent rung so the hierarchy (protagonist > sampler) is
+   legible at a glance. */
 .spring-ball {
-    --ball-size: 1.75rem;
-    margin-left: calc(var(--ball-size) / -2);
+    margin-left: calc(var(--ball-size, 36px) / -2);
     will-change: left;
 }
 
@@ -183,7 +232,7 @@ const onKeydown = (e: KeyboardEvent) => {
     --ball-size: 1.25rem;
     --ball-glow: 0%; /* the sweep sampler is a quiet translucent marker, no glow */
     margin-left: calc(var(--ball-size) / -2);
-    background: color-mix(in srgb, var(--color-progress) 65%, transparent);
+    background: color-mix(in srgb, var(--ball-tone, var(--color-progress)) 65%, transparent);
     will-change: left;
 }
 </style>

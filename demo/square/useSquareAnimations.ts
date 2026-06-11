@@ -116,14 +116,17 @@ export function useSquareAnimations(
             },
             // Sweep the palette WHILE the egg spin is live (keyed off the angle
             // WITHIN the current turn, so it cycles each tumble); when the spin
-            // settles, clear the inline background so the box's CSS aquamarine
-            // home colour returns.
+            // settles, clear the inline background so the box's CSS home colour
+            // (--subject-teal — the EGG_HUES terminal stop itself, J.W7a D13)
+            // returns.
             ...(spinning
                 ? { backgroundColor: lerpHue(((((springSpin.value % 360) + 360) % 360) / 360)) }
                 : {}),
         });
         // The spin just settled this frame → restore the home colour (the CSS
-        // `aquamarine` wins once the inline override is removed).
+        // `--subject-teal` token wins once the inline override is removed —
+        // and the egg's #52E898 terminal stop IS that token's value, so the
+        // landing is seamless by construction, J.W7a D13).
         if (springSpin.settled && box.value && box.value.style.backgroundColor) {
             box.value.style.backgroundColor = "";
         }

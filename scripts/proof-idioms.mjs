@@ -414,10 +414,18 @@ function main() {
         const hasRail = /\.progress-rail\s*\{/.test(idiomSrc);
         const hasBall = /\.progress-ball\s*\{/.test(idiomSrc);
         // The rail/ball is the rail-LINE + scrubber-ball, NOT the conic playing
-        // ring — the .progress-ball rule must read --color-progress as a solid
-        // fill, not a conic-gradient (the .progress-dot signature).
+        // ring — the .progress-ball rule must read the progress tone as a solid
+        // fill, not a conic-gradient (the .progress-dot signature). J.W7a D10
+        // (the BINDING J.md §MANDATE colour seam) parameterized the fill through
+        // --ball-tone with the canonical green as its default —
+        // `background: var(--ball-tone, var(--color-progress))` — so the
+        // predicate reads the SEAM form: still a solid single-var fill anchored
+        // on --color-progress (dropping the canonical default, or re-promoting
+        // the conic ring, still reds).
         const ballBlock = (idiomSrc.match(/\.progress-ball\s*\{[^}]*\}/) || [""])[0];
-        const isRailBallNotRing = /background:\s*var\(--color-progress\)/.test(ballBlock) && !/conic-gradient/.test(ballBlock);
+        const isRailBallNotRing =
+            /background:\s*var\(--ball-tone,\s*var\(--color-progress\)\)/.test(ballBlock) &&
+            !/conic-gradient/.test(ballBlock);
 
         // The scene consumers route through the pair (class applied in template).
         const consumers = [

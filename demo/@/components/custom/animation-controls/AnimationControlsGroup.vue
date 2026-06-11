@@ -5,6 +5,7 @@
             'controls-layout justify-items-stretch items-start relative',
             `controls-layout--stage-${stageMode}`,
             storedControls.isControlsPanelOpen ? 'controls-layout--open' : 'controls-layout--closed',
+            hasControlSurfaces ? '' : 'controls-layout--railless',
         ]"
         v-bind="$attrs"
     >
@@ -103,53 +104,23 @@
         />
     </div>
 
-    <!-- Hidden SVG gradient definition for rainbow icon strokes. The defs stay
-         here (top-level, demo-global) because the Apply-CSS paintbrush in the
-         ribbon strokes `url(#rainbow-gradient)` — the gradient must live where
-         the SVG reference can resolve it. Stops reference the demo-owned
-         --rainbow-* family (design-idioms.css). -->
-    <svg width="0" height="0" class="absolute">
-        <defs>
-            <linearGradient id="rainbow-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" :style="{ stopColor: 'var(--rainbow-red)' }" />
-                <stop offset="20%" :style="{ stopColor: 'var(--rainbow-orange)' }" />
-                <stop offset="40%" :style="{ stopColor: 'var(--rainbow-yellow)' }" />
-                <stop offset="60%" :style="{ stopColor: 'var(--rainbow-green)' }" />
-                <stop offset="80%" :style="{ stopColor: 'var(--rainbow-blue)' }" />
-                <stop offset="100%" :style="{ stopColor: 'var(--rainbow-violet)' }" />
-            </linearGradient>
-        </defs>
-    </svg>
-
     </TooltipProvider>
 
-    <Teleport to="html">
-        <Toaster
-            :toastOptions="{
-                unstyled: true,
-                classes: {
-                    toast: 'bg-foreground text-background rounded-xl text-body px-4 py-3 grid grid-cols-1 gap-1 shadow-lg lg:w-80 w-64 max-w-[90vw]',
-                    title: 'font-bold text-body',
-                    description: 'font-normal text-small',
-                    actionButton: '',
-                    cancelButton: '',
-                    closeButton: '',
-                },
-            }"
-            theme="system"
-        />
-    </Teleport>
+    <!-- The document-level singletons (rainbow-gradient SVG defs + the Toaster
+         teleport) live in the colocated DemoGlobalChrome sub-component — they
+         resolve against the DOCUMENT, not this layout grid (the J.W7a
+         fix-round proof:demo-no-oversize seam; zero appearance delta). -->
+    <DemoGlobalChrome />
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, Teleport, useTemplateRef, watch, watchEffect } from "vue";
-
-import { Toaster } from "vue-sonner";
+import { computed, onMounted, reactive, ref, useTemplateRef, watch, watchEffect } from "vue";
 
 import { TooltipProvider } from "@mkbabb/glass-ui";
 
 import { Animation } from "@src/animation/engine";
 import ControlsPaneWrapper from "./components/ControlsPaneWrapper.vue";
+import DemoGlobalChrome from "./components/DemoGlobalChrome.vue";
 import TransportDock from "./TransportDock.vue";
 
 import {
@@ -162,7 +133,7 @@ import { useAnimationGroupPlayback } from "./composables/useAnimationGroupPlayba
 import { useAnimationProgress } from "./composables/useAnimationProgress";
 import { useControlsLayout } from "./composables/useControlsLayout";
 
-const { superKey, animationGroup, autoPlay, hideControls, stageMode } = defineProps<{
+const { superKey, animationGroup, autoPlay, hideControls, stageMode, hasControlSurfaces = true } = defineProps<{
     animationGroup: AnimationGroup<any>;
     superKey?: string;
     autoPlay?: boolean;
@@ -172,6 +143,15 @@ const { superKey, animationGroup, autoPlay, hideControls, stageMode } = definePr
     // `editor`/`storyboard` keep a content card. Forwarded down to the sheet
     // wrapper so the visible-fraction floor applies to `subject` alone.
     stageMode?: "subject" | "editor" | "storyboard";
+    // J.W7a S5 / XH-1 (D20) — does the active scene's control-surface DFA set
+    // contain ANY surface? `false` (the empty-DFA scenes: sequence/motion-path)
+    // COLLAPSES the desktop [rail] track to 0 regardless of the stored open
+    // flag, so the hollow 400px ghost rail (the vacant grab-pill card over a
+    // void) cannot render — the stage reflows to fill. The MOBILE sheet axis is
+    // untouched (the H.W7 single-page model keeps its peek shell). Threaded
+    // from the App's machine projection (`controlSurfacesFor(activeScene)`);
+    // defaults TRUE so a non-App host (the playground) keeps its rail.
+    hasControlSurfaces?: boolean;
 }>();
 
 const storedControls = getStoredAnimationGroupControlOptions(superKey);
@@ -218,6 +198,9 @@ const {
     onScrubStart,
     onScrubEnd,
     sliderUpdate,
+    getActiveT,
+    scrubActive,
+    cycleAnimation,
 } = useAnimationGroupPlayback(() => animationGroup, storedControls, emit);
 
 const { animationProgress } = useAnimationProgress(() => animationGroup, isPlaying);
@@ -309,44 +292,15 @@ registerShortcut("Delete", () => activeTimelineRef.value?.removeSelectedKeyframe
 registerShortcut("Mod+Z", () => activeTimelineRef.value?.undo?.(), { preventDefault: true, label: "Undo", group: "Actions" });
 registerShortcut("Mod+Shift+Z", () => activeTimelineRef.value?.redo?.(), { preventDefault: true, label: "Redo", group: "Actions" });
 
-function getActiveT(): number {
-    const name = storedControls.selectedAnimation;
-    if (!name) return 0;
-    const groupObj = animationGroup.animations[name];
-    if (!groupObj) return 0;
-    const anim = groupObj.animation;
-    const dur = anim.options.duration ?? 1000;
-    return dur > 0 ? anim.t / dur : 0;
-}
-
-function scrubActive(fraction: number) {
-    const name = storedControls.selectedAnimation;
-    if (!name) return;
-    const groupObj = animationGroup.animations[name];
-    if (!groupObj) return;
-    const anim = groupObj.animation;
-    const dur = anim.options.duration ?? 1000;
-    const t = Math.max(0, Math.min(dur, fraction * dur));
-    sliderUpdate({ t, animation: anim });
-}
-
+// The scrub/cycle actions the bindings above dispatch live with the playback
+// state they mutate — useAnimationGroupPlayback (getActiveT / scrubActive /
+// cycleAnimation; the J.W7a fix-round proof:demo-no-oversize seam). switchTab
+// stays here: it drives the component-owned animControlRefs registry.
 function switchTab(tab: string) {
     const name = storedControls.selectedAnimation;
     if (!name) return;
     const ctrl = animControlRefs[name];
     ctrl?.selectControl?.(tab);
-}
-
-function cycleAnimation(direction: number) {
-    const names = Object.keys(animationGroup.animations);
-    if (names.length === 0) return;
-    const currentIdx = names.indexOf(storedControls.selectedAnimation ?? "");
-    const nextIdx = (currentIdx + direction + names.length) % names.length;
-    storedControls.selectedAnimation = names[nextIdx]!;
-    if (!animationGroup.started) {
-        animationGroup.play();
-        syncPlayState(true);
-    }
 }
 
 </script>
@@ -422,6 +376,18 @@ function cycleAnimation(direction: number) {
         align-self: stretch;
         justify-self: stretch;
         z-index: var(--z-content, 10);
+        /* J.W7a S5 / XH-4 (D22) — the mobile inset reserves the REAL
+           scene-switcher band, not just the band depth: the pill is anchored at
+           --dock-top-anchor below the viewport top (ChromeDock consumes the SAME
+           token), so the band it occupies = anchor + --dock-band-reserve. The
+           former reserve counted only the depth term and let stage-level chrome
+           (the easing metric header strip, the spring view toggle) rise INTO
+           the pill's band (cross-hierarchy #4). The top-center band now has ONE
+           occupant — the scene-switcher — by construction. The reserve stays
+           SYMMETRIC (the G8 one-envelope contract, proof:stage-within-docks):
+           the bottom edge takes the same enlarged band, which also lifts the
+           centred subjects clear of the bottom transport pill. */
+        padding-block: var(--dock-top-band-reserve);
         /* The orbit surface keeps `touch-action: none` (OrbitalDrag/AmigaScene
            own it on their own roots); this cell is a passive frame, so the swipe
            is owned by the sheet GRAB HANDLE — spatially disjoint (BLK-6). */
@@ -467,6 +433,18 @@ function cycleAnimation(direction: number) {
         transition: grid-template-columns var(--duration-slow) var(--spring-snappy);
     }
     .controls-layout--closed {
+        --rail-track: 0px;
+    }
+
+    /* J.W7a S5 / XH-1 (D20) — the ghost rail DIES. An empty-DFA scene
+       (sequence/motion-path — CONTROL_SURFACES = []) has NOTHING to put in the
+       rail, so its [rail] track is 0 REGARDLESS of the stored open flag: the
+       hollow 400px shell (a vacant grab-pill card top-left of a void column,
+       cross-hierarchy #1) cannot hold the track open, and the stage reflows to
+       fill the freed width (the COLLAPSE arm of the collapse-or-fill fork).
+       Declared after --open/--closed so the railless fact wins the custom-
+       property cascade at equal specificity. */
+    .controls-layout--railless {
         --rail-track: 0px;
     }
 

@@ -1,6 +1,14 @@
 <template>
+    <!-- J.W7a S1 (D6 / H3 + TYP-1) — the MOBILE hero parks in the TOP BAND: the
+         fixed `mt-28` (112px — a magic offset that landed the text in the
+         cube's reading plane at 375w, `home-mobile.png`) is replaced below lg
+         by `pt-[var(--dock-top-band-reserve)]` — the SAME token the
+         scene-switcher band + the mobile stage inset resolve, so the hero
+         starts exactly under the dock pill and the cube recedes below it
+         (CubeTarget's hero-backdrop band). Desktop keeps `lg:mt-24` —
+         byte-identical layout at ≥lg. -->
     <div
-        class="absolute left-0 top-0 z-controls mt-28 grid h-0 w-screen items-center gap-0 px-6 lg:mt-24 pointer-events-none"
+        class="absolute left-0 top-0 z-controls pt-[var(--dock-top-band-reserve)] grid h-0 w-screen items-center gap-0 px-6 lg:pt-0 lg:mt-24 pointer-events-none"
     >
         <!-- H.W4.S3 — the hero on the AUDACIOUS φ rung. `text-display-4` (86px,
              the middle rung) → `text-display-mega` (φ^(9/2), peak 177px — the
@@ -12,7 +20,15 @@
              balances "Select an / animation" to two lines; the scoped
              `line-height: 0.92` (below) tightens the two-line block at poster
              scale. NOT `.text-hero` (it is `white-space: nowrap` — a 3-word
-             hero overflows). -->
+             hero overflows).
+             J.W7a S1 (D6 / TYP-1) — BELOW lg the hero steps DOWN one φ tier to
+             the `--type-display-4` token (the scoped media rule below): the
+             mega rung's mobile FLOOR (86px) is "too large for the 375px stage
+             that also hosts the subject" (cross-typography TYP-1) — the two
+             focal elements fought for the same pixels. The poster mega rung
+             holds from lg up where the stage has room for both. The class
+             stays the ONE mega rung (the H.W4 no-legacy contract); the mobile
+             step consumes the published φ token, not a raw size. -->
         <h1 class="hero-display text-display-mega p-0">
             <AnimatedText
                 class="depth-text"
@@ -29,7 +45,13 @@
                  "..." is TypingDots' static glyphs (S3 — opacity-driven, never a
                  keyframe value). --><span class="depth-text"><TypingDots /></span>
         </h1>
-        <h2 class="start-screen-prose text-title w-full italic">
+        <!-- J.W7a S2 (D9 / H2) — the subtitle steps ONE φ-rung down
+             (text-title 32.9px → text-heading 25.9px, still italic): at the
+             former rung it sat only ~3× below the mega hero and "visually
+             fights" it at desktop widths; the step restores a ≥5:1
+             hero:subtitle ratio and lands the subtitle between the hero and
+             the text-subheading hint — the φ ladder read top-down. -->
+        <h2 class="start-screen-prose text-heading w-full italic">
             {{ subtitle }}
             <List class="inline"></List> {{ subtitleSuffix }}
         </h2>
@@ -39,11 +61,37 @@
         >
             {{ hint }}
         </h2>
+
+        <!-- J.W7a S4 (D18 / H1, cross-hierarchy §e, glassui-adopt A4) — the
+             published FourierField (glass-ui 3.9.0) suffuses the math motif
+             into the home doorway's EMPTY left-half vacancy: an inverse-DFT
+             epicycle trace — "drawing with circles", the most on-brand
+             generative surface glass-ui ships an easing engine — at LOW
+             presence in the calm field, parked lower-left BELOW the hero
+             ladder and far from the cube (never over the moving subject — the
+             §S4 anti-goal). Desktop/laptop only (the scoped rule): at phone
+             widths the band belongs to the hero/subject split (D6). The hue
+             resolves through the scene-accent seam (--ball-tone, falling back
+             to the brand's curve violet) via the REQUIRED injected resolver,
+             so dark mode retints for free; reduced-motion freeze is inherited
+             from the primitive's useCanvas2D substrate. -->
+        <div class="fourier-vacancy" aria-hidden="true">
+            <FourierField
+                variant="hero"
+                seed="keyframes.js"
+                color="var(--ball-tone, var(--ppmycota-primary, var(--primary)))"
+                :color-resolver="defaultBlobColorResolver"
+            />
+        </div>
     </div>
 </template>
 
 <script setup lang="ts">
 import { List } from "@lucide/vue";
+// J.W7a S4 (D18) — the published generative math motif + its REQUIRED colour
+// seam (glass-ui 3.9.0 — a W7a consume, not a W7b edge).
+import { FourierField } from "@mkbabb/glass-ui/fourier-field";
+import { defaultBlobColorResolver } from "@mkbabb/glass-ui/color";
 import AnimatedText from "@components/custom/AnimatedText.vue";
 import TypingDots from "@components/custom/TypingDots.vue";
 
@@ -79,6 +127,19 @@ withDefaults(
     line-height: 0.92;
 }
 
+/* J.W7a S1 (D6 / TYP-1) — the hero's MOBILE rung. Below lg the mega rung's
+   86px floor physically overlapped the cube at phone widths (`home-mobile.png`,
+   the H3 collision); the hero steps one φ tier down by consuming glass-ui's
+   published `--type-display-4` token (the same ladder, one rung lower — never
+   a raw px/rem leaf). The `text-display-mega` class remains the single rung
+   the markup carries; this is a viewport-scoped token consumption mirroring
+   the scoped `line-height` above. */
+@media (max-width: 1023px) {
+    .hero-display {
+        font-size: var(--type-display-4);
+    }
+}
+
 /* F.W13.S1 — `text-wrap: pretty` on the start-screen running prose (the
    subtitle + hint <h2>s, NOT the LCP <h1> hero — that is F.W16's balance-class
    substrate). These two headings are multi-line running prose ("from the list
@@ -90,5 +151,34 @@ withDefaults(
    demo's own prose — NOT a glass-ui override of the shared `.text-*` utilities. */
 .start-screen-prose {
     text-wrap: pretty;
+}
+
+/* J.W7a S4 (D18 / H1) — the FourierField's vacancy frame. The hero host is a
+   zero-height absolute band (the children overflow it by design), so the
+   field's box is sized in viewport units off the SAME left gutter the hero
+   ladder rides (px-6 = 1.5rem): parked in the lower-left vacancy, well below
+   the subtitle/hint ladder and left of the cube's center-right orbit. The
+   published .fourier-field host is `position:absolute; inset:0` — it fills
+   this positioned frame. Low presence: the calm-field opacity keeps the motif
+   a whisper under the glass (the proportion rule — the trail accents, never
+   competes). */
+.fourier-vacancy {
+    /* Desktop/laptop only — declared HERE (not via `hidden lg:block`: the
+       built cascade carries a second `.hidden` rule after the lg variant, so
+       the utility pair loses the order fight; the scoped rule is the honest
+       single home for this one responsive decision). */
+    display: none;
+    position: absolute;
+    left: 1.5rem;
+    top: 62dvh;
+    width: min(30vw, 26rem);
+    height: min(28dvh, 18rem);
+    opacity: 0.6;
+    pointer-events: none;
+}
+@media (min-width: 1024px) {
+    .fourier-vacancy {
+        display: block;
+    }
 }
 </style>

@@ -3,9 +3,15 @@
         ref="sceneRoot"
         class="scene-root relative h-full w-full"
     >
+        <!-- J.W7a S1 (D2 / XH-3 + A-07) — the amiga slab joins the rounded-glass
+             register: `rounded-card` (the SAME radius token every stage plate
+             resolves — clause (f) reads it computed) + the 1px inset
+             stage-boundary hairline (the scoped rule below), so the Three.js
+             room reads as a framed glass stage, not a hard-edged gray slab
+             bleeding into the page (cross-hierarchy #3). -->
         <canvas
             ref="canvas"
-            class="amiga-canvas h-full w-full rounded-lg"
+            class="amiga-canvas h-full w-full rounded-card"
             :class="{ 'amiga-canvas--boing': boinging }"
             @dblclick="onBoing"
         ></canvas>
@@ -19,7 +25,12 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 import { tesselateSphere } from "../../amiga/utils";
-import { useAmigaAnimations, BOX_SIZE, SPHERE_HOME } from "../../amiga/useAmigaAnimations";
+import {
+    useAmigaAnimations,
+    BOUNCE,
+    BOX_SIZE,
+    SPHERE_HOME,
+} from "../../amiga/useAmigaAnimations";
 import { useSphereSpin } from "../../amiga/useSphereSpin";
 import { useSceneVisibilityPause } from "../useSceneVisibilityPause";
 
@@ -35,7 +46,58 @@ let controls: OrbitControls | undefined;
 let scene: THREE.Scene | undefined;
 let camera: THREE.PerspectiveCamera | undefined;
 
-const { animationGroup } = useAmigaAnimations(() => sphereMesh);
+// J.W7a S1 (D3 · fix-round 1) — BOUNCE-AWARE framing. The D3 protagonist
+// reframe (FOV 50°, z = 0.7×BOX_SIZE) frames the REST pose; the bounce
+// animations translate the sphere ±BOUNCE about home, and at the tightened
+// frustum the PLAYING subject left the frame entirely (worst on a 390w
+// portrait, where the frustum half-width at the subject plane ≈2.2 units vs
+// the ±6 bounce+radius envelope). ONE move at the same subject=pivot=framing
+// seam: the bounce amplitude is scaled INTO the live frustum — per-axis fit
+// factors derived from the canonical camera (fov / aspect / distance-to-home)
+// so home ± scale·BOUNCE + r stays inside the frame even at the simultaneous-
+// worst corner (x extreme + y extreme + z nearest). Recomputed on mount +
+// canvas resize (aspect-aware); the rest pose and the D3 framing are
+// untouched.
+const SPHERE_RADIUS = 1;
+const BOUNCE_FIT_MARGIN = 0.95; // the sphere edge kisses, never crosses, the frame
+const bounceScale = { x: 1, y: 1, z: 1 };
+
+const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+
+const refreshBounceFraming = () => {
+    if (!camera) return;
+    // The canonical pose: the camera sits on the y–z plane looking at the
+    // centred home (= OrbitControls.target) → screen-horizontal == world-x,
+    // while world-y and world-z SHARE screen-vertical and view-depth with
+    // mirrored weights (|û_y| = |v̂_z|, |û_z| = |v̂_y|), so the vertical and
+    // depth projection sums collapse to the same S below.
+    const dx = camera.position.x - SPHERE_HOME;
+    const dy = camera.position.y - SPHERE_HOME;
+    const dz = camera.position.z - SPHERE_HOME;
+    const d0 = Math.hypot(dx, dy, dz);
+    const S = d0 > 0 ? (Math.abs(dy) + Math.abs(dz)) / d0 : 0;
+    if (!(d0 > 0) || !(S > 0)) return;
+    const mT =
+        BOUNCE_FIT_MARGIN *
+        Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+    // The y/z pair (screen-vertical + view-depth, coupled) is solved first;
+    // the x (screen-horizontal) fit then evaluates at the NEAREST plane the
+    // y/z bounce can bring the sphere to — the perspective worst case.
+    const sv = clamp01(
+        (mT * d0 - SPHERE_RADIUS) / (BOUNCE * S * (1 + mT)),
+    );
+    const dMin = d0 - sv * BOUNCE * S;
+    bounceScale.x = clamp01(
+        (mT * camera.aspect * dMin - SPHERE_RADIUS) / BOUNCE,
+    );
+    bounceScale.y = sv;
+    bounceScale.z = sv;
+};
+
+const { animationGroup } = useAmigaAnimations(
+    () => sphereMesh,
+    () => bounceScale,
+);
 
 // A5 (REBUILD): the SPHERE is the interactive subject. A pointer-drag on the
 // mesh spins it; on release the engine `decay()` glide coasts the spin to rest
@@ -89,15 +151,32 @@ onMounted(() => {
     const canvas = canvasEl.value!;
 
     scene = new THREE.Scene();
+    // J.W7a S1 (D3 / A-02) — the PROTAGONIST reframe: FOV 75°→50° + the camera
+    // pulled in to 0.7×BOX_SIZE. At the former 75°/z=BOX_SIZE the r=1 sphere
+    // subtended ~9.5° (<13% of the FOV) — "a ~90px ball in a 900×700 room". The
+    // narrowed FOV + closer dolly fill ~20% of the vertical FOV with the sphere
+    // while the room walls stay in frame as the contextual surround. Subject =
+    // pivot = framing (the I.W3 discipline carried): ONE consistent move — the
+    // sphere stays the centred home/look-at/orbit pivot, only the framing
+    // tightens. Fix-round 1: this frustum frames the REST pose only — the
+    // PLAYING bounce envelope is scaled into it via refreshBounceFraming()
+    // (the bounce-aware half of the same framing move, above).
     camera = new THREE.PerspectiveCamera(
-        75,
+        50,
         canvas.clientWidth / canvas.clientHeight,
         0.1,
         1000,
     );
 
-    camera.position.z = BOX_SIZE;
-    camera.position.y = BOX_SIZE / 3;
+    camera.position.z = BOX_SIZE * 0.7;
+    // J.W7a S1 (D6 / A-01) — the camera-space lift the pane-amiga lane names:
+    // the eye rises from BOX_SIZE/3 to BOX_SIZE/2 so the mobile-open sheet
+    // (whose subject-class detent tightens in the same motion —
+    // ControlsPaneWrapper) leaves the sphere clear above the sheet boundary.
+    camera.position.y = BOX_SIZE / 2;
+    // D3 fix-round 1 — derive the frustum-fit bounce scale from the canonical
+    // framing just set (re-derived on every canvas resize below).
+    refreshBounceFraming();
     // S1d (H.W7) — `alpha: true` so the canvas composites over the demo's
     // themed backdrop instead of an opaque white fill. Once the mobile stage
     // goes full-bleed (fixed; inset:0), an opaque-white clear would OBLITERATE
@@ -137,7 +216,7 @@ onMounted(() => {
     boxMesh.position.set(0, 0, 0);
     scene.add(boxMesh);
 
-    sphereMesh = tesselateSphere("white", "red", 1);
+    sphereMesh = tesselateSphere("white", "red", SPHERE_RADIUS);
     // I.W3 S1 — seat the subject at the CENTRED home (the room origin), not the
     // far corner. The cursor lands on the sphere at the canvas centre → a
     // centre-drag HITS the mesh and fires the spin gesture (useSphereSpin),
@@ -178,6 +257,9 @@ useResizeObserver(canvasEl, () => {
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
     renderer.setSize(w, h, false);
+    // D3 fix-round 1 — the frustum-fit bounce scale is aspect-dependent;
+    // re-derive it with the new frame.
+    refreshBounceFraming();
 });
 
 function startRenderLoop() {
@@ -290,6 +372,12 @@ defineExpose({
         var(--muted, hsl(0 0% 96%)),
         var(--background, hsl(0 0% 100%))
     );
+    /* J.W7a S1 (D2 / A-07) — the 1px inset stage-boundary hairline on the
+       border token: the canvas formerly merged seamlessly into the page
+       grid-background ("the stage boundary is ambiguous"); the hairline follows
+       the rounded-card radius and defines the glass stage's edge without a DOM
+       layer or blocking the transparent composite. */
+    box-shadow: inset 0 0 0 1px var(--border);
 }
 .amiga-canvas:active {
     cursor: grabbing;

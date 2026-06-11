@@ -1,36 +1,11 @@
 <template>
-    <div class="flex h-full w-full flex-col items-center justify-center gap-3 px-6 lg:px-8">
-        <!-- View switcher (H.W5.S3): one spring curve, two views — the live
-             SpringProgress solver, and that same spring linear() easing a real
-             @starting-style / allow-discrete transition (the former standalone
-             Discrete scene, merged here in one motion). -->
-        <div
-            class="spring-view-switch glass-resting cartoon-surface flex shrink-0 gap-1 rounded-full p-1"
-            role="tablist"
-            aria-label="Spring view"
-        >
-            <button
-                type="button"
-                role="tab"
-                class="spring-view-tab text-small btn-interactive rounded-full px-3.5 py-1"
-                :class="{ 'spring-view-active': demo.view.value === 'solver' }"
-                :aria-selected="demo.view.value === 'solver'"
-                @click="demo.view.value = 'solver'"
-            >
-                Live solver
-            </button>
-            <button
-                type="button"
-                role="tab"
-                class="spring-view-tab text-small btn-interactive rounded-full px-3.5 py-1"
-                :class="{ 'spring-view-active': demo.view.value === 'discrete' }"
-                :aria-selected="demo.view.value === 'discrete'"
-                @click="demo.view.value = 'discrete'"
-            >
-                Discrete transition
-            </button>
-        </div>
-
+    <!-- J.W7a S5 / XH-4 (D22) — the view switcher (H.W5.S3) RELOCATES out of
+         the top-center band into the RAIL (SpringSidebar's head): the floating
+         pill above the stage card stacked into the SAME band the scene-switcher
+         dock occupies and collided with it on mobile (cross-hierarchy #4,
+         `spring-mobile.png`). The top-center band now has ONE occupant; the
+         view fork lives with the spring's other controls. -->
+    <div class="flex h-full w-full flex-col items-center justify-center px-6 lg:px-8">
         <div class="min-h-0 w-full flex-1">
             <SpringTarget v-if="demo.view.value === 'solver'" />
             <StartingStyleTarget v-else />
@@ -204,22 +179,5 @@ defineExpose({
 });
 </script>
 
-<style scoped>
-/* The view switcher (H.W5.S3) — a compact segmented control. Rides the shared
-   glass-resting/cartoon-surface depth idiom; the active tab takes the progress
-   accent the spring scene uses throughout. */
-.spring-view-switch {
-    align-self: center;
-}
-.spring-view-tab {
-    color: var(--muted-foreground);
-    transition:
-        color var(--duration-fast, 150ms) ease,
-        background-color var(--duration-fast, 150ms) ease;
-}
-.spring-view-active {
-    color: var(--color-progress);
-    background: color-mix(in srgb, var(--color-progress) 14%, transparent);
-    box-shadow: 0 0 0 1px var(--color-progress) inset;
-}
-</style>
+<!-- J.W7a S5 / XH-4 (D22) — the `.spring-view-*` switcher rules moved WITH the
+     markup into SpringSidebar.vue (no legacy beside the replacement). -->

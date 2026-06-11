@@ -1,8 +1,24 @@
 <template>
-    <div class="square-stage flex h-full w-full items-center justify-center select-none">
+    <!-- J.W7a S1 (D1 / SQ-3 + SQ-1) — the square joins the I5 STAGE-CARD
+         register: the drag arena gains the standard glass protagonist plate
+         (`<Card surface="glass" tier="resting" :shadow="false">`, the SAME
+         plate easing/spring/sequence/motion-path stand on) instead of floating
+         bare on the page grid — the subject finally has a stage. The plate's
+         `rounded-card` resolves SQ-4 for free. `grid place-items-center` on the
+         stage cell resolves the off-center drift (SQ-1): the box is the
+         geometric center of the plate by construction. -->
+    <Card
+        :shadow="false"
+        class="square-stage grid h-full w-full place-items-center select-none"
+    >
+        <!-- J.W7a S2 (D7 / SQ-12, TYP §4) — "drag me" is the scene's typography
+             moment: the small body-mono whisper lifts to the Instrument-Serif
+             `text-display` rung — the type IS the affordance, the one audacious
+             word on the bold subject (the same display register the other
+             scene titles carry inward). -->
         <div
             ref="box"
-            class="demo-box font-mono"
+            class="demo-box text-display"
             :class="{ 'demo-box--dragging': dragging }"
             role="slider"
             aria-label="Drag the box — two springs chase per axis"
@@ -14,11 +30,12 @@
         >
             drag me
         </div>
-    </div>
+    </Card>
 </template>
 
 <script setup lang="ts">
 import { computed, markRaw, onBeforeUnmount, onMounted, reactive, useTemplateRef } from "vue";
+import { Card } from "@mkbabb/glass-ui";
 import { AnimationGroup } from "@src/animation/group";
 import { useDragScrub } from "@composables/useDragScrub";
 import { useSquareAnimations } from "../../square/useSquareAnimations";
@@ -144,7 +161,8 @@ defineExpose({
      it once paired with is dead (zero consumers) and was deleted outright. -->
 <style scoped>
 .square-stage {
-    /* The stage is the drag arena; the box translates within it. */
+    /* The stage is the drag arena; the box translates within it. The plate
+       (the I5 glass Card, D1) clips the spring overshoot at its rounded edge. */
     overflow: hidden;
 }
 
@@ -157,9 +175,17 @@ defineExpose({
     width: var(--size);
     height: var(--size);
     border-radius: var(--radius-lg);
-    font-weight: bold;
-    font-size: var(--type-body);
-    background-color: aquamarine;
+    /* J.W7a S3 (D13 / SQ-5, the no-legacy delta) — the raw `aquamarine`
+       named-colour literal DIES: the fill is the owned --subject-teal token
+       (design-idioms.css — the EGG_HUES terminal stop, so the tumble egg
+       settles INTO the box's own rest hue). The ink is a deep teal DERIVED
+       from the same token (never a second literal), so "drag me" holds AA on
+       its fill in BOTH themes — the former inherited foreground inverted to
+       near-white-on-mint in dark mode.
+       (The font-weight/size leaves with the D7 `text-display` swap above —
+       the published rung owns the type; scoped rules no longer shadow it.) */
+    background-color: var(--subject-teal);
+    color: color-mix(in oklab, var(--subject-teal) 25%, black);
     box-shadow: 0 0 0 0.5rem color-mix(in srgb, var(--background) 50%, transparent);
     /* Direct-manipulation affordance (S5). The transformFunc owns `transform`,
        so the cursor + touch-action carry the drag posture. */

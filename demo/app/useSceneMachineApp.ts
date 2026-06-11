@@ -71,7 +71,14 @@ export function useSceneMachineApp(opts: {
             const names = Object.keys(group.animations);
             if (names.length > 0) controls.selectedAnimation = names[0]!;
         }
-        if (window.innerWidth >= 1024) controls.isControlsPanelOpen = true;
+        // J.W7a S5 / XH-1 (D20) — the desktop force-open applies ONLY to scenes
+        // whose DFA control-surface set is non-empty. An empty-DFA scene
+        // (sequence/motion-path) has NOTHING to put in the rail; force-opening
+        // it was the structural source of the hollow 400px ghost rail (the
+        // [rail] track held open showing a vacant card, cross-hierarchy #1).
+        if (window.innerWidth >= 1024 && machine.controlSurfaces.value.length > 0) {
+            controls.isControlsPanelOpen = true;
+        }
 
         const exposed = sceneRef.value?.scenePlayback as ScenePlayback | undefined;
         const adapter = exposed ?? createGroupAdapter(() => currentAnimationGroup.value);

@@ -105,6 +105,50 @@ export function useAnimationGroupPlayback(
         getAnimationGroup().setChildTime(animation, t).render();
     };
 
+    // ── The keyboard-scrub helpers (the playback half of the shortcut surface;
+    // consolidated here from the host component at the J.W7a fix-round
+    // proof:demo-no-oversize seam — they read/write ONLY playback state the
+    // composable already owns: the selected animation, the child t, the
+    // play/sync pair). The registerShortcut BINDINGS stay in the host (.vue)
+    // — the ONE registry — these are the actions they dispatch. ──
+
+    /** The selected animation's normalized t ∈ [0,1] (0 when nothing selected). */
+    const getActiveT = (): number => {
+        const name = storedControls.selectedAnimation;
+        if (!name) return 0;
+        const groupObj = getAnimationGroup().animations[name];
+        if (!groupObj) return 0;
+        const anim = groupObj.animation;
+        const dur = anim.options.duration ?? 1000;
+        return dur > 0 ? anim.t / dur : 0;
+    };
+
+    /** Scrub the selected animation to a normalized fraction (clamped). */
+    const scrubActive = (fraction: number) => {
+        const name = storedControls.selectedAnimation;
+        if (!name) return;
+        const groupObj = getAnimationGroup().animations[name];
+        if (!groupObj) return;
+        const anim = groupObj.animation;
+        const dur = anim.options.duration ?? 1000;
+        const t = Math.max(0, Math.min(dur, fraction * dur));
+        sliderUpdate({ t, animation: anim });
+    };
+
+    /** Cycle the selection forward/back; start the group if it is idle. */
+    const cycleAnimation = (direction: number) => {
+        const animationGroup = getAnimationGroup();
+        const names = Object.keys(animationGroup.animations);
+        if (names.length === 0) return;
+        const currentIdx = names.indexOf(storedControls.selectedAnimation ?? "");
+        const nextIdx = (currentIdx + direction + names.length) % names.length;
+        storedControls.selectedAnimation = names[nextIdx]!;
+        if (!animationGroup.started) {
+            animationGroup.play();
+            syncPlayState(true);
+        }
+    };
+
     return {
         isPlaying,
         isStarted,
@@ -115,5 +159,8 @@ export function useAnimationGroupPlayback(
         onScrubStart,
         onScrubEnd,
         sliderUpdate,
+        getActiveT,
+        scrubActive,
+        cycleAnimation,
     };
 }

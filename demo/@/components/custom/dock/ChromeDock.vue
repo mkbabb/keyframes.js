@@ -139,7 +139,7 @@ watch(isAnyOpen, (open) => {
 <template>
     <div
         class="fixed left-1/2 -translate-x-1/2 z-dock flex items-center justify-center pointer-events-none"
-        style="top: calc(max(var(--work-area-top-offset, 0px), env(safe-area-inset-top, 0px)) + var(--dock-margin) / 4);"
+        style="top: var(--dock-top-anchor);"
     >
         <div class="pointer-events-auto">
             <!-- G.W12.S2: the :always-expanded="isMobile" occlusion-dodge mask is
@@ -239,11 +239,20 @@ watch(isAnyOpen, (open) => {
                         <slot name="items" />
                 </div>
 
-                <!-- Collapsed state -->
+                <!-- Collapsed state.
+                     J.W7a S2 (D7 / pane-cube C3) — the collapsed pill is the
+                     CUBE scene's (and every scene's) top-center identity
+                     moment, formerly a timid sans nav chip: the label lifts to
+                     the Instrument-Serif display face at the heading rung (the
+                     scoped .dock-scene-title below) and the colourful glyph
+                     steps icon-sm → icon-md, so the pill announces the scene in
+                     the brand voice. The label KEEPS calm text-foreground — the
+                     glyph sings, the label stays uncoloured (the cross-color-
+                     pops §3 proportion anti-goal; this is a TYPE delta only). -->
                 <template #collapsed>
-                    <component v-if="currentIcon" :is="currentIcon" class="icon-sm shrink-0 text-muted-foreground" />
-                    <Home v-else class="icon-sm text-muted-foreground" />
-                    <span class="dock-label font-semibold text-foreground whitespace-nowrap">
+                    <component v-if="currentIcon" :is="currentIcon" class="icon-md shrink-0 text-muted-foreground" />
+                    <Home v-else class="icon-md text-muted-foreground" />
+                    <span class="dock-scene-title text-foreground whitespace-nowrap">
                         {{ currentLabel }}
                     </span>
                     <ChevronDown class="icon-xs text-muted-foreground" />
@@ -252,3 +261,18 @@ watch(isAnyOpen, (open) => {
         </div>
     </div>
 </template>
+
+<style scoped>
+/* J.W7a S2 (D7 / C3) — the scene-title register for the collapsed dock pill:
+   the published display face (--font-display, Instrument Serif) at the
+   published φ heading token (--type-heading) — a token consumption, never a
+   raw size. Weight 600 matches the display-rung utilities; the body leading
+   keeps the pill's vertical rhythm. */
+.dock-scene-title {
+    font-family: var(--font-display);
+    font-size: var(--type-heading);
+    line-height: var(--type-leading-body);
+    font-weight: 600;
+    font-optical-sizing: auto;
+}
+</style>

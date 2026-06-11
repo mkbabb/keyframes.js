@@ -15,14 +15,34 @@
         :shadow="false"
         class="easing-target flex flex-col items-center justify-center gap-6 h-full w-full px-6 lg:px-8 overflow-hidden"
     >
-        <!-- Header: easing name + readout + view mode dropdown -->
-        <div class="flex w-full max-w-3xl items-center justify-between gap-3 shrink-0">
-            <div class="flex items-baseline gap-3 min-w-0">
-                <span class="text-heading text-foreground truncate">
+        <!-- Header: easing name + readout + view mode dropdown.
+             J.W7a S2 (D7 / TYP-2, E3) — the curve name lifts from text-heading
+             native-sans to the Instrument-Serif `text-display` rung: the brand
+             face carries inward from the doorway (cross-typography §3, "the
+             highest-leverage single change"); the scene earns a poster title
+             proportionate to its stage.
+             J.W7a S2 (D8 / C3) + S3 (D14 / CP-4) — the live readout promotes
+             from a 12px muted caption to a confident mono display: the eased
+             VALUE rides the published AnimatedDigit (damped tabular-nums — the
+             6 Hz readout cadence smooths into a continuous display) at the
+             mono-prose rung and wears the scene accent (.readout-accent →
+             --ball-tone); the f(t)= notation stays the small muted label. The
+             NUMBER wins; the label recedes. -->
+        <!-- The header rows WRAP (flex-wrap): a long curve name (easeInOutElastic)
+             beside the promoted readout must reflow at phone widths instead of
+             starving the serif title (the D8 responsive behaviour). -->
+        <div class="flex w-full max-w-3xl flex-wrap items-center justify-between gap-3 gap-y-1 shrink-0">
+            <div class="flex flex-wrap items-baseline gap-3 gap-y-1 min-w-0">
+                <span class="text-display text-foreground truncate">
                     {{ demo.currentEasingName.value }}
                 </span>
-                <span class="text-mono-caption text-muted-foreground tabular-nums whitespace-nowrap">
-                    f({{ demo.progress.value.toFixed(2) }}) = {{ easedValue.toFixed(3) }}
+                <span class="flex items-baseline gap-1 text-mono-small text-muted-foreground tabular-nums whitespace-nowrap shrink-0">
+                    f(<AnimatedDigit :value="demo.progress.value" :format="fmt2" />)&nbsp;=
+                    <AnimatedDigit
+                        class="readout-accent text-mono-prose font-semibold"
+                        :value="easedValue"
+                        :format="fmt3"
+                    />
                 </span>
             </div>
             <Select
@@ -48,31 +68,14 @@
             </Select>
         </div>
 
-        <!-- G4 (H.W10.S3) — the `singular` stage is ONE large engine-driven ball,
-             NOT a second copy of the curve editor (the duplicate
-             EasingCurveCanvas is DELETED; the editable curve lives in the sidebar
-             ONLY). The ball traverses under the SELECTED easing: its x-position
-             is `fn(progress) * maxX` over the shared `.progress-rail`/
-             `.progress-ball` idiom (the same `getBallX` math the comparison rows
-             use, at hero size) — the curve in MOTION (the inv ζ dogfood: the
-             ball's position IS the timing function applied to the engine's
-             progress sweep). One transport, one ball, all engine. -->
-        <div
-            v-if="viewMode === 'singular'"
-            class="flex w-full flex-1 min-h-0 items-center justify-center"
-        >
-            <div ref="heroTrackEl" class="hero-track relative w-full max-w-3xl h-16">
-                <div class="progress-rail"></div>
-                <!-- I.W4 D4 — the hero dot is positioned by a DIRECT non-reactive
-                     `style.transform` write inside the rAF loop (the registered
-                     dot painter below), NOT a per-frame reactive `:style` binding.
-                     This is the dot that drove the 243-node SVG re-render storm. -->
-                <div
-                    ref="heroBallEl"
-                    class="progress-ball hero-ball"
-                ></div>
-            </div>
-        </div>
+        <!-- The `singular` hero stage — ONE large engine-driven ball on the
+             lower-third rail under its projected live bezier (G4; J.W7a D4
+             D16 D17). Extracted as the colocated EasingHeroStage sub-component
+             (markup + painter + projected-curve CSS travel together; the
+             J.W7a fix-round proof:demo-no-oversize seam — ZERO appearance
+             delta). It injects the same EASING_DEMO_KEY demo and owns its
+             dot-painter lifecycle (mounted ⇔ registered). -->
+        <EasingHeroStage v-if="viewMode === 'singular'" />
 
         <!-- Multi-track mode: scrollable comparison list (genuinely additive —
              many curves at once; the optical max-measure rides this list). -->
@@ -123,6 +126,10 @@
 import { computed, inject, ref, useTemplateRef, onMounted, onScopeDispose, watch, nextTick } from "vue";
 import { useResizeObserver } from "@vueuse/core";
 import { DockSelectTrigger } from "@mkbabb/glass-ui/dock";
+// J.W7a S2 (D8) — the published damped tabular-nums display (glass-ui 3.9.0):
+// the live readout's confident-mono promotion consumes the primitive, never a
+// hand-rolled size (the MetricHeader abstraction stays a W7b handoff edge).
+import { AnimatedDigit } from "@mkbabb/glass-ui/animated-digit";
 import {
     Card,
     Select,
@@ -134,6 +141,7 @@ import {
 
 import { EASING_DEMO_KEY } from "./easingKeys";
 import { EASING_GROUPS, getFamilyForCurve } from "./easingGroups";
+import EasingHeroStage from "./EasingHeroStage.vue";
 import { camelCaseToHyphen, timingFunctions } from "@mkbabb/value.js";
 import type { TimingFunction } from "@src/animation/constants";
 
@@ -166,10 +174,10 @@ const readBallSizes = () => {
     // (I5, H.W11.S1) and CASCADE to every descendant. Read them off a real DOM
     // descendant ref — the stage root is now a glass-ui `<Card>` whose template
     // ref resolves to the component proxy, not an HTMLElement — so we read the
-    // cascaded value from the hero track (singular) or a comparison track (multi),
-    // whichever is mounted. Both inherit the same custom properties.
+    // cascaded value from a mounted comparison track (the tokens size the
+    // comparison balls ONLY; the hero stage owns its own size constant).
     const root: HTMLElement | null =
-        heroTrackEl.value ?? trackEls.value?.[0] ?? trackContainerEl.value;
+        trackEls.value?.[0] ?? trackContainerEl.value;
     if (!root) return;
     const styles = getComputedStyle(root);
     const toPx = (v: string): number => {
@@ -183,6 +191,11 @@ const readBallSizes = () => {
 };
 
 const easedValue = computed(() => demo.currentEasingFn.value(demo.progress.value));
+
+// J.W7a S2 (D8) — the AnimatedDigit formatters (the readout's fixed-precision
+// display forms; the primitive owns the damping + tabular-nums register).
+const fmt2 = (v: number) => v.toFixed(2);
+const fmt3 = (v: number) => v.toFixed(3);
 
 // Build the resolved function lookup
 const resolvedFunctions: Record<string, TimingFunction> = {};
@@ -228,7 +241,7 @@ const visibleCurves = computed<VisibleCurve[]>(() => {
         }));
 });
 
-// ── Track measurement (hero ball + comparison tracks) ──────────
+// ── Track measurement (comparison tracks; the hero stage measures itself) ──
 
 const trackContainerEl = useTemplateRef<HTMLElement>("trackContainerEl");
 // Owned refs replace the former `.closest(".easing-target")` /
@@ -239,29 +252,16 @@ const trackContainerEl = useTemplateRef<HTMLElement>("trackContainerEl");
 // root is now a glass-ui `<Card>` whose ref is a component proxy, not an
 // HTMLElement; the cascaded `--track-ball-size-*` tokens are read off the
 // real DOM descendant refs below.)
-const heroTrackEl = useTemplateRef<HTMLElement>("heroTrackEl");
 const trackEls = useTemplateRef<HTMLElement[]>("trackEls");
 // I.W4 D4 — the moving-dot elements the rAF loop positions imperatively (NO
-// per-frame reactive `:style`). The hero dot + every comparison dot.
-const heroBallEl = useTemplateRef<HTMLElement>("heroBallEl");
+// per-frame reactive `:style`): every comparison dot. (The hero dot's painter
+// lives in the colocated EasingHeroStage.)
 const trackBallEls = useTemplateRef<HTMLElement[]>("trackBallEls");
 const trackWidth = ref(0);
-const heroTrackWidth = ref(0);
 
-// ── G4 — the singular hero ball's x = `fn(progress) * maxX` ─────
-// The selected easing function applied to the engine's linear `progress` sweep:
-// the curve in MOTION (the inv ζ dogfood). The ball traverses the full hero
-// track; the ball SIZE is read off the shared idiom's --ball-size below.
-const HERO_BALL_SIZE = 56;
-
-// Pure geometry: the hero/comparison ball x at a raw sweep value (NO reactive
-// read — the painters call these with the loop's live phase). `fn(phase)` is the
+// Pure geometry: the comparison ball x at a raw sweep value (NO reactive
+// read — the painter calls this with the loop's live phase). `fn(phase)` is the
 // curve in motion.
-const heroBallXAt = (fn: TimingFunction, phase: number): number => {
-    const maxX = heroTrackWidth.value - HERO_BALL_SIZE;
-    if (maxX <= 0) return 0;
-    return fn(phase) * maxX;
-};
 const trackBallXAt = (fn: TimingFunction, isActive: boolean, phase: number): number => {
     const size = isActive ? BALL_SIZE_ACTIVE.value : BALL_SIZE_MUTED.value;
     const maxX = trackWidth.value - size;
@@ -276,15 +276,10 @@ const fnForCurve = (name: string): TimingFunction => {
     return resolvedFunctions[name] ?? ((t: number) => t);
 };
 
-// ── I.W4 D4 — the dot painters: DIRECT non-reactive `style.transform` writes ──
+// ── I.W4 D4 — the dot painter: DIRECT non-reactive `style.transform` writes ──
 // Registered with the demo's loop seam; called imperatively each frame with the
 // live raw sweep value. This is the hot path moved OFF the Vue render graph (the
 // 243-node SVG re-render storm is gone — the dots move, nothing re-renders).
-const paintHeroDot = (phase: number) => {
-    const el = heroBallEl.value;
-    if (!el) return;
-    el.style.transform = `translateX(${heroBallXAt(demo.currentEasingFn.value, phase)}px)`;
-};
 const paintTrackDots = (phase: number) => {
     const balls = trackBallEls.value;
     if (!balls) return;
@@ -296,16 +291,20 @@ const paintTrackDots = (phase: number) => {
     }
 };
 
-// Register exactly ONE painter for whichever mode is mounted (singular → hero,
-// multi → comparison). Re-registered when the mode / visible-curve set / geometry
-// changes so the loop always drives the live DOM. The demo paints once on
-// register (so a paused scene shows the correct rest position).
+// Register the comparison painter while a comparison mode is mounted (the
+// `singular` hero stage owns ITS painter — mounted ⇔ registered, inside
+// EasingHeroStage). Re-registered when the mode / visible-curve set changes so
+// the loop always drives the live DOM. The demo paints once on register (so a
+// paused scene shows the correct rest position).
 let unregisterPainter: (() => void) | null = null;
 const wirePainter = async () => {
     await nextTick(); // the new mode's balls must be in the DOM first
     unregisterPainter?.();
-    const paint = viewMode.value === "singular" ? paintHeroDot : paintTrackDots;
-    unregisterPainter = demo.registerDotPainter(paint);
+    unregisterPainter = null;
+    if (viewMode.value === "singular") return;
+    readBallSizes();
+    measureTrackWidth();
+    unregisterPainter = demo.registerDotPainter(paintTrackDots);
 };
 
 const measureTrackWidth = () => {
@@ -320,26 +319,15 @@ const measureTrackWidth = () => {
     demo.repaintDots();
 };
 
-const measureHeroTrackWidth = () => {
-    if (heroTrackEl.value) {
-        heroTrackWidth.value = heroTrackEl.value.clientWidth;
-    }
-    demo.repaintDots();
-};
-
-onMounted(() => {
-    readBallSizes();
-    measureTrackWidth();
-    measureHeroTrackWidth();
-    wirePainter();
-});
+onMounted(() => wirePainter());
 
 onScopeDispose(() => unregisterPainter?.());
 
 // Re-wire the painter when the mounted dot set changes (mode switch) or when the
 // visible comparison curves change (the v-for refs are recreated). The selected
 // curve changing does NOT need a re-wire — the painter resolves `currentEasingFn`
-// live — but the dots should repaint to the new curve at once while paused.
+// live — but the dots should repaint to the new curve at once while paused
+// (repaintDots walks EVERY registered painter, the hero stage's included).
 watch(viewMode, () => wirePainter());
 watch(visibleCurves, () => wirePainter());
 watch(
@@ -348,9 +336,8 @@ watch(
 );
 
 // vueuse owns the observer lifecycle (tryOnScopeDispose cleanup) — re-measure
-// on resize off the owned refs.
+// on resize off the owned ref.
 useResizeObserver(trackContainerEl, () => measureTrackWidth());
-useResizeObserver(heroTrackEl, () => measureHeroTrackWidth());
 </script>
 
 <style scoped>
@@ -363,23 +350,17 @@ useResizeObserver(heroTrackEl, () => measureHeroTrackWidth());
 .easing-target {
     --track-ball-size-active: 36px;
     --track-ball-size-muted: 24px;
+    /* J.W7a S3 (D11 / CP-1) — the scene's ONE colour consumer: the easing
+       subject keeps its icon's promise (easing.svg draws the violet curve).
+       Cascades from the stage root to the shared .progress-rail/.progress-ball
+       idiom, the readout accent, and the active track label — one token, the
+       whole scene agrees (cross-color-pops §5.1). */
+    --ball-tone: var(--rainbow-violet);
 }
 
-/* ── G4 (H.W10.S3) — the singular hero ball ──
-   ONE large engine-driven ball, the curve in MOTION. Rides the shared
-   `.progress-rail`/`.progress-ball` idiom (EasingTarget is the canonical
-   rail-tint 8% / ball-glow 35% lineage). The per-site delta is only the hero
-   SIZE (matched to the JS HERO_BALL_SIZE constant the x-math reads) and the
-   transform-positioning perf hint. */
-.hero-track {
-    display: flex;
-    align-items: center;
-}
-.hero-ball {
-    --ball-size: 56px;
-    left: 0;
-    will-change: transform;
-}
+/* The singular hero stage's projected-bezier + hero-ball rules (J.W7a D16 /
+   G4) live in the colocated EasingHeroStage.vue — markup + painter + CSS
+   travel together (the J.W7a fix-round proof:demo-no-oversize seam). */
 
 .track-row {
     display: flex;
@@ -411,7 +392,9 @@ useResizeObserver(heroTrackEl, () => measureHeroTrackWidth());
 .track-ball--muted {
     --ball-size: var(--track-ball-size-muted);
     --ball-glow: 0%; /* the muted comparison balls carry no glow */
-    background: color-mix(in srgb, var(--color-progress) 20%, transparent);
+    /* J.W7a S3 (D11) — the muted tint reads the cascaded scene tone (the same
+       20% presence, the seam hue). */
+    background: color-mix(in srgb, var(--ball-tone, var(--color-progress)) 20%, transparent);
 }
 
 .track-label {
@@ -423,7 +406,8 @@ useResizeObserver(heroTrackEl, () => measureHeroTrackWidth());
 }
 
 .track-label--active {
-    color: var(--color-progress);
+    /* J.W7a S3 (D11) — the active label matches the subject's tone seam. */
+    color: var(--ball-tone, var(--color-progress));
     font-weight: 600;
 }
 </style>

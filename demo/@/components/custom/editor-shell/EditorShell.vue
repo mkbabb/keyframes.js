@@ -66,6 +66,7 @@
             :auto-play="autoPlay"
             :hide-controls="showStartScreen"
             :stage-mode="stageMode"
+            :has-control-surfaces="hasControlSurfaces"
             @play-state-change="onPlayStateChange"
             @start-state-change="(s: boolean) => emit('startStateChange', s)"
         >
@@ -126,6 +127,11 @@ const props = withDefaults(
         // Typed as the union inline (the shared `@` subtree owns its own
         // contract; the app passes the value from scenes.ts's `stageModeFor`).
         stageMode?: "subject" | "editor" | "storyboard";
+        // J.W7a S5 / XH-1 (D20) — the active scene's DFA control-surface set is
+        // non-empty. `false` collapses the [rail] track + hides the pane wrapper
+        // (the ghost-rail kill). The App passes the machine projection; a
+        // non-App host (the playground) takes the TRUE default — rail unchanged.
+        hasControlSurfaces?: boolean;
     }>(),
     {
         superKey: undefined,
@@ -133,6 +139,7 @@ const props = withDefaults(
         gridBackground: true,
         autoPlay: false,
         stageMode: "subject",
+        hasControlSurfaces: true,
     },
 );
 
@@ -177,12 +184,42 @@ defineExpose({ headerRibbonRef });
     }
 }
 
+/* J.W7a S4 (D19 — the W6-3 substrate-depth fold, the terminal verdict).
+   The former substrate was a single 1rem corner-tick data-URI at 0.10α (+ a
+   duplicated dark twin) — "at display zoom it reads as off-white texture, not
+   a designed grid" (pane-home H4; cross-grid-math C5), leaving the glass plate
+   nothing to refract against (the I.W6 S3 deferral, wave-I.W6.md §6 W6-3).
+   REPLACED (no legacy beside the replacement — both data-URIs die) by a
+   deliberate two-tier engineering graph paper: fine lines at --graph-pitch
+   (1rem) + bolder major lines at --graph-major (5rem), all four layers reading
+   the demo-owned --graph-* tokens (design-idioms.css). The lines mix over
+   --foreground, so the dark theme retints from the SAME rules — the duplicated
+   dark data-URI is retired with its light twin. The major layer's
+   --graph-major-opacity (12%) deliberately resolves above the former 0.10α
+   floor: the substrate is PRESENT and legible behind the glass plate (the
+   §Hard-gate clause-g legibility assertion — W6-3 exits on a runtime clause,
+   never deferred again). */
 .grid-background {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2 2'%3E%3Cpath d='M1 2V0h1v1H0v1z' fill-opacity='0.10'/%3E%3C/svg%3E");
-    background-size: 1rem;
+    --graph-line-fine: color-mix(
+        in srgb,
+        var(--foreground) var(--graph-opacity, 5%),
+        transparent
+    );
+    --graph-line-major: color-mix(
+        in srgb,
+        var(--foreground) var(--graph-major-opacity, 12%),
+        transparent
+    );
+    background-image:
+        linear-gradient(to right, var(--graph-line-major) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--graph-line-major) 1px, transparent 1px),
+        linear-gradient(to right, var(--graph-line-fine) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--graph-line-fine) 1px, transparent 1px);
+    background-size:
+        var(--graph-major) var(--graph-major),
+        var(--graph-major) var(--graph-major),
+        var(--graph-pitch) var(--graph-pitch),
+        var(--graph-pitch) var(--graph-pitch);
     background-repeat: repeat;
-}
-:where(.dark) .grid-background {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2 2'%3E%3Cpath d='M1 2V0h1v1H0v1z' fill='white' fill-opacity='0.08'/%3E%3C/svg%3E");
 }
 </style>
