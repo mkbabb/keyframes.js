@@ -437,13 +437,61 @@ export async function withBrowser(fn, { launch = {}, label } = {}) {
             label,
         );
     }
-    const browser = await chromium.launch(launch);
-    const unregister = registerTeardown(() => browser.close());
-    try {
-        return { skipped: false, value: await fn(browser) };
-    } finally {
-        unregister();
-        await browser.close();
+    // J.W4 fix-round-1 (the launch-flake closed-guard — the W3 single-source seam).
+    // A bounded retry around the chromium LAUNCH only: on a shared/contended host
+    // the GPU/network-service process can crash during launch, surfacing as
+    // "Target page, context or browser has been closed" / a `launch` reject — a
+    // transient ENVIRONMENT instability, NOT an oracle failure (the report's
+    // secondary M4-play flake). The retry is SCOPED to the launch + browser-crash
+    // class ONLY: a failure thrown from inside `fn` (a real assertion/red) is NEVER
+    // retried — it rethrows immediately, so the gate's bite is preserved. KISS: at
+    // most 3 launch attempts, a short backoff between; a budget-0 gate must not red
+    // on a chromium process the host killed under us.
+    const LAUNCH_ATTEMPTS = 3;
+    const isTransientBrowserCrash = (e) => {
+        const m = String(e?.message ?? e);
+        return (
+            /Target (page|frame)?,? ?context or browser has been closed/i.test(m) ||
+            /browser has (disconnected|been closed)/i.test(m) ||
+            /Target closed/i.test(m) ||
+            /crashed|GPU process|Network service|Protocol error/i.test(m)
+        );
+    };
+    for (let attempt = 1; ; attempt++) {
+        let browser;
+        try {
+            browser = await chromium.launch(launch);
+        } catch (e) {
+            if (attempt < LAUNCH_ATTEMPTS && isTransientBrowserCrash(e)) {
+                await new Promise((r) => setTimeout(r, 400 * attempt));
+                continue;
+            }
+            throw e;
+        }
+        const unregister = registerTeardown(() => browser.close());
+        let fnThrew = false;
+        try {
+            return { skipped: false, value: await fn(browser) };
+        } catch (e) {
+            // A browser-level crash that propagated through `fn` (e.g. the launch
+            // settled but the GPU/network-service died on the first context/page)
+            // is the SAME transient class — retry the whole launch. Any OTHER
+            // throw is a real failure: mark it so the finally does not swallow it
+            // and rethrow (no oracle red is ever retried away).
+            if (attempt < LAUNCH_ATTEMPTS && isTransientBrowserCrash(e)) {
+                fnThrew = true;
+                await browser.close().catch(() => {});
+                unregister();
+                await new Promise((r) => setTimeout(r, 400 * attempt));
+                continue;
+            }
+            throw e;
+        } finally {
+            if (!fnThrew) {
+                unregister();
+                await browser.close().catch(() => {});
+            }
+        }
     }
 }
 

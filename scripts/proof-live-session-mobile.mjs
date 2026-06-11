@@ -50,12 +50,22 @@
  * anchor from the MEASURED menubar (`--menubar-measured-h`, TransportDock.vue +
  * style.css max()), exactly the I deferred-ledger CH-3 prescription.
  *
- * PENDING-W7a (the APPEARANCE-CERTIFICATION band — recorded, NOT implemented
- * here; gates on J.W7a + J.W3 and greens only on the post-W7a tree):
- *   · S1 mobile hero/subject overlap == 0 (the H3/A-01 cure certification)
- *   · the subject-keeps-protagonist-visibility half of the A-01 occlusion
- *   · S3 dark `--ball-tone`/accent computed contrast ≥ floor
- *   · the ghost-rail-absent assertion in the home sweep
+ * THE APPEARANCE-CERTIFICATION band — LANDED (phase-2, J.W7a HAS merged on this
+ * tree, so the legs certify the SUFFUSED appearance, not the pre-suffusion
+ * defect; they gate on J.W7a + J.W3 and green ONLY on the post-W7a tree). The
+ * three legs run AFTER the input-modality battery, each on its own mobile
+ * context, each born-RED-able on a self-contained dist plant:
+ *   · A1 — S1 mobile hero/subject overlap == 0 on 390×844 (the H3/A-01 cure
+ *          certification): hero h1 rect ∩ cube subject rect AREA == 0.
+ *   · A2 — S3 DARK --ball-tone/accent computed-contrast ≥ floor on a 390×844 +
+ *          colorScheme:dark context: the easing violet ball + .readout-accent
+ *          keep a WCAG luminance contrast ≥ floor against the .dark backdrop
+ *          (device-INDEPENDENT computed ratio; the post-suffusion accents
+ *          remain legible on dark).
+ *   · A3 — S5 ghost-rail-absent on the home sweep (J.W7a XH-1): the empty-DFA
+ *          home/sequence scenes carry .controls-layout--railless AND no hollow
+ *          rail-width pane card (the wrapper is the bottom sheet, never a wide
+ *          empty side column).
  *
  * P6 posture: hard (device-INDEPENDENT touch/geometry facts). Under
  * KF_REQUIRE_BROWSER a harness-absent skip is a hard fail AT THE LIB SEAM.
@@ -255,6 +265,34 @@ const sampleLiveness = (page, ms = 2500) =>
         }
         return seen.size;
     }, ms);
+
+// ── Appearance-band helpers (the WCAG computed-contrast oracle, A2) ──────────
+/** First three channels (0–255) of an rgb()/rgba()/color(srgb …) string. */
+function channels(c) {
+    if (!c) return null;
+    const srgb = c.match(/color\(srgb\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)/i);
+    if (srgb) return [+srgb[1] * 255, +srgb[2] * 255, +srgb[3] * 255];
+    const m = c.match(/[\d.]+/g);
+    return m ? m.slice(0, 3).map(Number) : null;
+}
+function relLuminance(rgb) {
+    const f = rgb.map((v) => {
+        const s = v / 255;
+        return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * f[0] + 0.7152 * f[1] + 0.0722 * f[2];
+}
+/** WCAG luminance contrast ratio (device-INDEPENDENT). */
+function contrastRatio(a, b) {
+    const ca = channels(a);
+    const cb = channels(b);
+    if (!ca || !cb) return null;
+    const la = relLuminance(ca);
+    const lb = relLuminance(cb);
+    const hi = Math.max(la, lb);
+    const lo = Math.min(la, lb);
+    return (hi + 0.05) / (lo + 0.05);
+}
 
 async function runBattery() {
     const budget = makeBudget();
@@ -755,16 +793,203 @@ async function runBattery() {
         );
     }
 
-    // ── PENDING-W7a — the APPEARANCE-CERTIFICATION clauses (recorded; gates on
-    //    J.W7a + J.W3; implemented in phase-2 on the post-W7a tree) ───────────
     note(
-        "PENDING-W7a (appearance band, NOT asserted here): mobile hero/subject overlap == 0 (H3/A-01 cure) · " +
-            "subject keeps protagonist visibility above the open sheet (A-01 half) · dark --ball-tone/accent " +
-            "contrast ≥ floor (S3) · ghost-rail-absent on home (XH-1)",
+        "input-modality band GREEN (W0+W3) — sheet/dock/drag/play touch battery + CH-3 occlusion geometry · " +
+            "the APPEARANCE-CERTIFICATION band (W7a+W3) runs next (this tree has J.W7a merged).",
     );
 }
 
+/**
+ * runAppearanceBand — the APPEARANCE-CERTIFICATION band (the three former
+ * PENDING-W7a legs, now LANDED — J.W7a has merged on this tree). Each leg runs
+ * on its OWN mobile context (light or dark) over the SAME J.W3 harness; each
+ * asserts a DEVICE-INDEPENDENT computed product-facing appearance fact the
+ * design lanes measured, and HARD-gates per P6. Each greens ONLY on the suffused
+ * (post-W7a) tree and is born-RED-able on a self-contained dist plant.
+ */
+async function runAppearanceBand() {
+    // ── A1 — the 390×844 hero/subject overlap == 0 (the H3/A-01 cure) ────────
+    const a1 = await withPage(
+        { distDir: DIST, context: MOBILE_CONTEXT, label: "A1: mobile hero/subject overlap" },
+        async (page, { url: base }) => {
+            await page.goto(`${base}/#/`, { waitUntil: "load" });
+            await page.waitForTimeout(1300);
+            return page.evaluate(() => {
+                const hero = document.querySelector("h1");
+                const hr = hero?.getBoundingClientRect();
+                // the home subject is the CSS-3D cube — its envelope is the union
+                // of the visible .cube-side face rects.
+                const faces = [...document.querySelectorAll(".cube-side, .cube")].filter((e) => {
+                    const b = e.getBoundingClientRect();
+                    const cs = getComputedStyle(e);
+                    return b.width > 8 && b.height > 8 && cs.visibility !== "hidden" && cs.display !== "none";
+                });
+                let cube = null;
+                for (const f of faces) {
+                    const r = f.getBoundingClientRect();
+                    if (!cube) cube = { x: r.x, y: r.y, right: r.right, bottom: r.bottom };
+                    else {
+                        cube.x = Math.min(cube.x, r.x);
+                        cube.y = Math.min(cube.y, r.y);
+                        cube.right = Math.max(cube.right, r.right);
+                        cube.bottom = Math.max(cube.bottom, r.bottom);
+                    }
+                }
+                let overlap = null;
+                if (hr && cube) {
+                    const ix = Math.max(0, Math.min(hr.right, cube.right) - Math.max(hr.x, cube.x));
+                    const iy = Math.max(0, Math.min(hr.bottom, cube.bottom) - Math.max(hr.y, cube.y));
+                    overlap = Math.round(ix * iy);
+                }
+                return {
+                    heroFound: !!hr,
+                    cubeFound: !!cube,
+                    hero: hr ? { y: Math.round(hr.y), bottom: Math.round(hr.bottom) } : null,
+                    cube: cube ? { y: Math.round(cube.y), bottom: Math.round(cube.bottom) } : null,
+                    overlap,
+                };
+            });
+        },
+    );
+    if (!a1.skipped) {
+        const m = a1.value;
+        if (m.heroFound && m.cubeFound && m.overlap === 0) {
+            ok(
+                `A1 appearance — 390×844 hero/subject overlap == 0: hero h1 (y ${m.hero.y}–${m.hero.bottom}) ` +
+                    `and the cube subject (y ${m.cube.y}–${m.cube.bottom}) do not intersect (the H3/A-01 collision CURED)`,
+            );
+        } else {
+            fail(
+                `A1 appearance — 390×844 hero/subject overlap is NOT 0 (heroFound=${m.heroFound}, ` +
+                    `cubeFound=${m.cubeFound}, overlap=${m.overlap}px²; hero=${JSON.stringify(m.hero)}, ` +
+                    `cube=${JSON.stringify(m.cube)}) — the mobile hero word is behind the cube (the H3 defect)`,
+            );
+        }
+    }
+
+    // ── A2 — the DARK --ball-tone/accent computed contrast ≥ floor ───────────
+    // The post-suffusion violet accent must stay LEGIBLE on the .dark backdrop.
+    // WCAG floor 3.0 (large graphic / UI accent component — the device-
+    // INDEPENDENT legibility floor for a non-text accent; the violet computes
+    // ~5.98 on this tree, well clear, so the floor bites only a real regression).
+    const CONTRAST_FLOOR = 3.0;
+    const a2 = await withPage(
+        {
+            distDir: DIST,
+            context: { ...MOBILE_CONTEXT, colorScheme: "dark" },
+            label: "A2: dark --ball-tone/accent contrast",
+        },
+        async (page, { url: base }) => {
+            await page.goto(`${base}/#/easing`, { waitUntil: "load" });
+            await navToScene(page, "easing", "Easing", { timeout: 12000 });
+            await page.waitForTimeout(900);
+            return page.evaluate(() => {
+                const isDark = document.documentElement.classList.contains("dark");
+                const bodyBg = getComputedStyle(document.body).backgroundColor;
+                const ball = document.querySelector(".progress-ball, .hero-ball");
+                const accent = document.querySelector(".readout-accent");
+                return {
+                    isDark,
+                    bodyBg,
+                    ballBg: ball ? getComputedStyle(ball).backgroundColor : null,
+                    ballTone: ball ? getComputedStyle(ball).getPropertyValue("--ball-tone").trim() : null,
+                    accentColor: accent ? getComputedStyle(accent).color : null,
+                };
+            });
+        },
+    );
+    if (!a2.skipped) {
+        const d = a2.value;
+        const ballC = contrastRatio(d.ballBg, d.bodyBg);
+        const accentC = contrastRatio(d.accentColor, d.bodyBg);
+        const tokenResolved =
+            !!d.ballTone && /#e64de6/i.test(d.ballTone); // the suffused violet token cascades
+        if (
+            d.isDark &&
+            tokenResolved &&
+            ballC !== null &&
+            accentC !== null &&
+            ballC >= CONTRAST_FLOOR &&
+            accentC >= CONTRAST_FLOOR
+        ) {
+            ok(
+                `A2 appearance — DARK --ball-tone/accent legible: the .dark token surface is LIVE ` +
+                    `(html.dark, backdrop ${d.bodyBg}), --ball-tone resolves the suffused violet (${d.ballTone}); ` +
+                    `the violet ball (${d.ballBg}) contrasts ${ballC.toFixed(2)} and the .readout-accent ` +
+                    `(${d.accentColor}) contrasts ${accentC.toFixed(2)} — both ≥ the ${CONTRAST_FLOOR} legibility floor`,
+            );
+        } else {
+            fail(
+                `A2 appearance — DARK --ball-tone/accent contrast below floor or token unresolved ` +
+                    `(isDark=${d.isDark}, ballTone=${d.ballTone}, ballContrast=${ballC?.toFixed?.(2)}, ` +
+                    `accentContrast=${accentC?.toFixed?.(2)}, floor=${CONTRAST_FLOOR}; backdrop=${d.bodyBg}) — ` +
+                    `a dark-only contrast break (the S3 INVE-2 dark row) the desktop-light tier cannot see`,
+            );
+        }
+    }
+
+    // ── A3 — ghost-rail-absent on the home sweep (J.W7a XH-1) ────────────────
+    // On mobile the layout is a bottom-sheet paradigm (no desktop grid rail),
+    // so the ghost-rail oracle is: the empty-DFA home/sequence scenes carry the
+    // .controls-layout--railless collapse arm AND no hollow rail-WIDTH side card
+    // renders (the wrapper is the full-width bottom sheet bar, never a wide
+    // empty 400px side column floating over a void).
+    const a3 = await withPage(
+        { distDir: DIST, context: MOBILE_CONTEXT, label: "A3: ghost-rail-absent home sweep" },
+        async (page, { url: base }) => {
+            const probe = async (scene) => {
+                await page.goto(`${base}/#/${scene === "home" ? "" : scene}`, { waitUntil: "load" });
+                if (scene !== "home") await navToScene(page, scene, null, { timeout: 12000 });
+                await page.waitForTimeout(900);
+                return page.evaluate(() => {
+                    const vw = window.innerWidth;
+                    const wrapper = document.querySelector(".controls-pane-wrapper");
+                    const wrapperRect = wrapper?.getBoundingClientRect();
+                    // a HOLLOW rail-width side card: a controls/rail element that is
+                    // a wide (≥40% vw) yet SHORT-relative-to-tall side column. On
+                    // mobile the wrapper is the bottom SHEET (full-width, short
+                    // height) — that is NOT a ghost rail. A ghost rail would be a
+                    // tall narrow-ish empty side column. We detect the desktop ghost
+                    // shape: an element wider than 200px AND taller than 300px that
+                    // is the rail track (its width is the rail width, not full vw).
+                    const ghostCol = [...document.querySelectorAll("[class*=rail], .controls-pane-wrapper")].some((e) => {
+                        const b = e.getBoundingClientRect();
+                        const isFullWidthSheet = b.width >= vw - 8; // the bottom sheet, not a rail
+                        return !isFullWidthSheet && b.width > 200 && b.height > 300;
+                    });
+                    return {
+                        railless: !!document.querySelector(".controls-layout--railless"),
+                        wrapperW: wrapperRect ? Math.round(wrapperRect.width) : null,
+                        wrapperH: wrapperRect ? Math.round(wrapperRect.height) : null,
+                        ghostCol,
+                        vw,
+                    };
+                });
+            };
+            return { home: await probe("home"), sequence: await probe("sequence") };
+        },
+    );
+    if (!a3.skipped) {
+        const r = a3.value;
+        const clean = (s) => s.railless && !s.ghostCol;
+        if (clean(r.home) && clean(r.sequence)) {
+            ok(
+                `A3 appearance — ghost rail ABSENT on the home sweep: home (railless, wrapper ` +
+                    `${r.home.wrapperW}×${r.home.wrapperH}) + sequence (railless, wrapper ${r.sequence.wrapperW}×` +
+                    `${r.sequence.wrapperH}, the full-width bottom sheet) carry NO hollow rail-width side column (XH-1)`,
+            );
+        } else {
+            fail(
+                `A3 appearance — a ghost rail SURVIVES on the home sweep (home: railless=${r.home.railless} ` +
+                    `ghostCol=${r.home.ghostCol}; sequence: railless=${r.sequence.railless} ghostCol=${r.sequence.ghostCol}) ` +
+                    `— a hollow wide side column floats over the void (the XH-1 defect)`,
+            );
+        }
+    }
+}
+
 await runBattery();
+await runAppearanceBand();
 
 if (failures.length > 0) {
     console.error(
@@ -777,6 +1002,8 @@ console.log(
     "\nproof:live-session-mobile — PASS: a REAL touch context drove the sheet (open → scroll → close → " +
         "RE-OPEN, all taps/swipes), the dock combobox switch landed per the expected-destination predicate, " +
         "the /square touch drag completed (persisted, no selection), the play tap started a live draw loop, " +
-        "the CH-3 occlusion geometry held (sheet.bottom ≤ menubar.top at both detents), and the error budget " +
-        "is ZERO. The mobile half of the AXES boundary is certified on its own axis.",
+        "the CH-3 occlusion geometry held (sheet.bottom ≤ menubar.top at both detents), the error budget " +
+        "is ZERO, AND the APPEARANCE-CERTIFICATION band (post-W7a) holds — the 390×844 hero/subject overlap " +
+        "is 0 (A1), the dark --ball-tone/accent stays legible above the contrast floor (A2), and the ghost " +
+        "rail is absent on the home sweep (A3). The mobile half of the AXES boundary is certified on its own axis.",
 );

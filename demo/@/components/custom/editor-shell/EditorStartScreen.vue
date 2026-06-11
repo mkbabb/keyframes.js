@@ -77,6 +77,7 @@
              from the primitive's useCanvas2D substrate. -->
         <div class="fourier-vacancy" aria-hidden="true">
             <FourierField
+                v-if="!prefersReducedMotion"
                 variant="hero"
                 seed="keyframes.js"
                 color="var(--ball-tone, var(--ppmycota-primary, var(--primary)))"
@@ -92,8 +93,29 @@ import { List } from "@lucide/vue";
 // seam (glass-ui 3.9.0 — a W7a consume, not a W7b edge).
 import { FourierField } from "@mkbabb/glass-ui/fourier-field";
 import { defaultBlobColorResolver } from "@mkbabb/glass-ui/color";
+import { computed } from "vue";
+import { usePreferredReducedMotion } from "@vueuse/core";
 import AnimatedText from "@components/custom/AnimatedText.vue";
 import TypingDots from "@components/custom/TypingDots.vue";
+
+// J.W4 fix-round-1 (the FourierField PRM mount gate) — under
+// `prefers-reduced-motion: reduce` the decorative generative canvas is NOT
+// mounted at all. Two reasons converge on the same move: (1) PRODUCT — a
+// reduced-motion user should not get a generative epicycle animation in the
+// calm field (the field "inherits the reduced-motion freeze", so it would only
+// paint ONE static frame anyway — gating its mount loses nothing for those
+// users while honoring their stated preference; the start screen stays a calm
+// resting field). (2) the upstream FourierField/useCanvas2D substrate
+// (glass-ui 3.11.2) crashes with a TDZ ReferenceError when it paints its first
+// static frame synchronously under reduced motion (the render closure reads the
+// not-yet-bound `useCanvas2D` handle) — a HANDOFF defect to glass-ui, recorded;
+// not mounting under PRM sidesteps it AND is the correct reduced-motion
+// behavior regardless of the upstream bug. The aria-hidden field is purely
+// decorative, so its absence under PRM is a no-op for assistive tech.
+const reducedMotionPref = usePreferredReducedMotion();
+const prefersReducedMotion = computed(
+    () => reducedMotionPref.value === "reduce",
+);
 
 // NOTE (H.W6): the former `ellipsis` string prop is gone — the trailing "..." is
 // now the dogfooded <TypingDots/> primitive (a fixed three-dot blink), not a

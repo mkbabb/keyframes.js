@@ -304,8 +304,12 @@ jobs:
               env:
                   KF_REQUIRE_BROWSER: "1"
                   KF_DEV_SERVER: "1"
-            - name: "[CORRECTNESS] proof:live-session-mobile (J.W4 S1/S7 — the 390×844 + hasTouch battery: sheet open/scroll/close/RE-OPEN + dock switch + touch-drag + play, all touch · CH-3 occlusion geometry sheet.bottom ≤ menubar.top · error budget = 0)"
+            - name: "[CORRECTNESS] proof:live-session-mobile (J.W4 S1/S7 — the 390×844 + hasTouch battery: sheet open/scroll/close/RE-OPEN + dock switch + touch-drag + play, all touch · CH-3 occlusion geometry sheet.bottom ≤ menubar.top · error budget = 0 · J.W4 appearance band A1 overlap==0 / A2 dark --ball-tone contrast / A3 ghost-rail-absent)"
               run: npm run proof:live-session-mobile
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            - name: "[CORRECTNESS] proof:appearance-suffusion (J.W7a §Hard gate (a)–(g) — the per-finding COMPUTED appearance oracles on the suffused dist: --ball-tone == icon hue · Instrument-Serif display register (amiga headerless) · 390×844 overlap==0 · projected easing curve mutates on a handle drag · ghost rail absent · amiga rounded-glass · two-tier substrate (W6-3))"
+              run: npm run proof:appearance-suffusion
               env:
                   KF_REQUIRE_BROWSER: "1"
             # [HYGIENE] proof:visual-lock — RE-TIERED to HYGIENE (I.W7 S5). The

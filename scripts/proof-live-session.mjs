@@ -929,11 +929,23 @@ async function runBattery() {
                 } else if (meta.kind === "sequence-transport") {
                     // sequence — the storyboard's OWN transport drives the reel;
                     // the rows responding IS the storyboard interaction.
-                    await page
-                        .locator('button[aria-label="Play or pause the sequence"]')
+                    // W4 fix-round-1 re-pin (the BINDING re-pin discipline): W7a's
+                    // storyboard-register convergence (XH-2) renamed the reel play
+                    // affordance — the real aria-label is the "cascading wave replay"
+                    // reel button (SequenceTarget.vue:50), NOT the old generic
+                    // "Play or pause the sequence". The click failure is now SURFACED
+                    // as a sceneFail (not silently `.catch`'d) so a future affordance
+                    // rename reds at the click locus, not opaquely at the churn count.
+                    const reelClicked = await page
+                        .locator('button[aria-label="Play the reel — a cascading wave replay"]')
                         .first()
                         .click({ timeout: 4000 })
-                        .catch(() => {});
+                        .then(() => true)
+                        .catch(() => false);
+                    if (!reelClicked) {
+                        sceneFails.push(`${key}: PLAY red — the reel play affordance (aria-label "Play the reel — a cascading wave replay") was not clickable`);
+                        return;
+                    }
                     const n = await page.evaluate(async () => {
                         const sleep = (m) => new Promise((r) => setTimeout(r, m));
                         const els = [...document.querySelectorAll(".seq-track, .seq-track *")].slice(0, 120);
