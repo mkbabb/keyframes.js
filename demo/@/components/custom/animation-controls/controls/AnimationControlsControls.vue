@@ -86,7 +86,12 @@
                                         <label :class="['text-mono-small text-muted-foreground cursor-help', isDetailEasing ? 'gold-shimmer' : '']">easing</label>
                                     </IconTooltip>
                                     <IconTooltip text="Edit easing curve">
-                                        <DockIconButton compact title="Edit easing curve" class="text-gold" @click.stop="onEditIconClick(storedAnimationOptions.animationOptions.timingFunction as string)">
+                                        <!-- `easing-edit-btn` is the NAMED BEHAVIORAL SEAM (the
+                                             pencil hook proof:bezier-{no-scroll,single-card,grown}
+                                             click to open the detail panel) — it carries NO style;
+                                             STY-4 deleted only its scoped color RULE (the color now
+                                             rides the owned `.text-gold` idiom). -->
+                                        <DockIconButton compact title="Edit easing curve" class="easing-edit-btn text-gold" @click.stop="onEditIconClick(storedAnimationOptions.animationOptions.timingFunction as string)">
                                             <Pencil class="icon-sm" />
                                         </DockIconButton>
                                     </IconTooltip>

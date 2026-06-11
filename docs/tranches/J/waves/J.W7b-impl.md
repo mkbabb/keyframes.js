@@ -4,7 +4,8 @@
 W0/W1/W2/W5/W6 merged). **Authority for every publish-state fact below:** the on-disk
 `node_modules/@mkbabb/glass-ui` **3.9.0** (pin `package.json "~3.9.0"`, lockfile resolves
 `registry.npmjs.org` 3.9.0). The sibling glass-ui checkout on disk is 3.10.1 and is **IGNORED**
-per inv-16 (kf consumes PUBLISHED only). Date: 2026-06-10. NOT committed; no push.
+per inv-16 (kf consumes PUBLISHED only). Date: 2026-06-10; adversarial verify + wave close
+2026-06-11 (§F). Committed at wave close; no push.
 
 This file is the wave note `J.W7b.md §S2` names: the **BOOK-with-target-version records** for the
 consume-on-FUTURE-AX-publish band (NO kf deletion — the B7 vaporware lesson), the parity-clause
@@ -203,4 +204,83 @@ contract); RF-1, RF-2, AX-11 (absence re-verified at IMPL).
 W7b re-captured NO baseline and owns NO appearance delta. Set (i) landed as measured SOURCE
 swaps at parity (per-edge probes in the set (i) report); set (ii) landed ZERO kf pixels by
 construction (book records + ledger annotations only). `proof:visual-lock` remains W7a's,
-untouched here.
+untouched here — and the §F verify ran it against the wave UNCHANGED, proving the claim
+rather than asserting it.
+
+---
+
+## §F — ADVERSARIAL VERIFY (wave close): PASSED
+
+### F-1 — the pixel-isomorphism proof: `proof:visual-lock` GREEN on the pre-J baseline, zero re-capture
+
+The decisive clause-(c) evidence: the FULL W7b (set (i) consumed with twins deleted in-motion,
+set (ii) booked) ran against the **EXISTING pre-J golden baseline** — the **49 region captures**
+in `scripts/baselines/visual-lock/` last written at `b17c65a` (tranche-I WZ; `git log` over the
+baseline dir shows NO commit since). Every region GREEN; `--update-baseline` was **never
+invoked** this wave. A source swap that held parity by construction is thereby PROVEN
+pixel-isomorphic against the appearance the tranche inherited: 49/49 regions (home/amiga/cube/
+easing/motion-path/sequence/spring/square × desktop+mobile × hero/stage/controls/ribbon, in
+their closed/open states) diff inside the noise floor.
+
+**Temporal-noise analysis (why GREEN here is signal, not slack).** The gate's tolerance is
+MEASURE-FIRST-bound (WV-W8-HIGH-1), not chosen to pass: pixelmatch threshold `0.1`; per-region
+budget `0.5%` of pixels with a `40px` absolute floor — committed at ~3× the measured worst
+same-render noise floor (`--measure`, 3× per region: 0.09%–0.16% residual font-hinting +
+sub-pixel re-mount jitter after PRM + the container-level `MASK_SUBJECTS` masks + the
+settle-stable capture wait). All in-flight engine pixels (canvas, sweep TRACKS, ticking
+`.tabular-nums` readouts, `.gold-shimmer` fill) are masked at the CONTAINER, so the locked
+surface is exactly the LAYOUT/COLOR/TYPE chrome the W7b swaps touched: the ToggleChip preset
+cells, the fade-slide mount, the gold-shimmer paint (now sourced from the published utility
+through the same demo-owned ramp). A real swap regression moves whole layout blocks — orders of
+magnitude above the budget — so GREEN-at-0.5% on an unchanged baseline is a tight isomorphism
+bound, not a permissive one.
+
+### F-2 — the DISCLOSED coverage gap: `StartingStyleTarget` (component-level parity evidence)
+
+One set (i) consumption site sits OUTSIDE the 49 locked regions, disclosed rather than papered
+over: `StartingStyleTarget.vue` renders only in the spring scene's **`discrete` view**
+(`SpringScene.vue:36`, the `v-else` arm of the view switch), while the baseline's spring
+captures lock the DEFAULT `solver` view — no golden region paints the discrete preset grid.
+Its S1b/ADOPT-5 parity is evidenced at COMPONENT level instead:
+
+- **The identical primitive, locked elsewhere:** the SAME `ToggleChip variant="cell"` swap
+  (same import, same variant, same deleted `.preset-active` idiom) landed in
+  `SpringSidebar.vue`, which IS inside the locked `spring-*-open-controls` regions — GREEN on
+  the pre-J baseline. The discrete grid consumes the same published component with the same
+  props surface; there is no second appearance to drift.
+- **The twin is provably gone, both sites:** `grep -rn "preset-active" demo/` = **0** (§A) —
+  the bespoke ring cannot half-survive at the uncovered site.
+- **The active affordance is structural:** the grid's active state hangs off the consumed
+  ToggleChip's own `data-state="on"` (`StartingStyleTarget.vue:182`), not a scene-local rule.
+
+### F-3 — the rest of the verify set
+
+- **Clause-(b) gone-greps, re-run: all 0** — `preset-active`, `kf-editor`, and the
+  gold-shimmer demo-local recipe (`@keyframes gold-shimmer-slide` + the `^\.gold-shimmer` rule;
+  tombstone at `design-idioms.css:296`, definition home now the PUBLISHED
+  `utilities.css:356` + `animations.css:139`).
+- **Published-only consumption:** every consumed primitive resolves from
+  `node_modules/@mkbabb/glass-ui` **3.9.0** (pin `~3.9.0`, registry lockfile) — the sibling
+  3.10.1 checkout untouched per inv-16.
+- **Set (ii):** 8 BOOK records (§B) with **zero kf deletion** — re-grepped: every named interim
+  seam survives.
+- **Ledger:** `glassui-AX-handoff.md` reconciled **46/46** — every row dispositioned with
+  anchor + seam + terminal tag (§D); the pointer-style annotations are the only ledger writes.
+
+### F-4 — verify-era fixes folded into the close (the working-tree residue, kept)
+
+Four falsifiability repairs surfaced BY the verify and land with the close commit — all
+gate-anchor or named-seam wiring, none appearance-bearing (F-1 ran with them in place):
+
+1. `AnimationControls.vue` — the `.single-surface-panel` flat-mount host: the exact box analogue
+   (`mt-2 h-full`) of the deleted `TabsContent` wrapper, giving the pane probes a STYLE-FREE
+   named seam (a bare `tabpanel` role without a tablist would be an ARIA defect).
+2. `proof-easing-sidebar-{normalized,minimal}.mjs` — the mount/probe anchors widened to accept
+   `[role="tabpanel"][data-state="active"]` **or** `.single-surface-panel` (the J.W2 flat-mount
+   scenes have no reka tabpanel by design).
+3. `AnimationControlsControls.vue` — `easing-edit-btn` restored as the NAMED BEHAVIORAL seam the
+   `proof:bezier-*` gates click (STY-4 deleted only its scoped color RULE; the class carries no
+   style — color rides the owned `.text-gold` idiom).
+4. `proof-idioms.mjs` — `.gold-shimmer`'s definition resolves in EITHER home (demo-local OR the
+   published `utilities.css`), still falsifiable: it reds when the utility vanishes from BOTH,
+   and a demo re-author also reds the clause-(b) gone-grep.

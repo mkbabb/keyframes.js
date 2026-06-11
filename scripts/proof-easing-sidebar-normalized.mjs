@@ -178,13 +178,17 @@ async function settleOnScene(page, scene, viewportWidth, viewportHeight) {
  *  the SPECIFIC born-RED fact (the bespoke bare-class fork DOES render — it just
  *  has no `.labeled-field` rows / carries `.text-admin-label` / nests sub-Cards).
  *  Requiring `.labeled-field` here would conflate "not mounted" with "born-RED",
- *  hiding the precise BITE behind a timeout. */
+ *  hiding the precise BITE behind a timeout.
+ *  J.W2 S2 (S4-stretch): single-surface scenes (easing/spring — BOTH scenes this
+ *  gate probes) mount their panel FLAT — no reka `[role="tabpanel"]` exists by
+ *  design; the named `.single-surface-panel` host (AnimationControls.vue) is the
+ *  TabsContent analogue, so the anchor accepts EITHER. */
 async function waitSidebarMounted(page) {
     return page
         .waitForFunction(
             () => {
                 const panel = document.querySelector(
-                    '[role="tabpanel"][data-state="active"]',
+                    '[role="tabpanel"][data-state="active"], .single-surface-panel',
                 );
                 if (!panel) return false;
                 // The sidebar has painted: the panel has a real child with area
@@ -204,7 +208,7 @@ async function waitSidebarMounted(page) {
 async function probeSidebar(page) {
     return page.evaluate(() => {
         const panel = document.querySelector(
-            '[role="tabpanel"][data-state="active"]',
+            '[role="tabpanel"][data-state="active"], .single-surface-panel',
         );
         if (!panel) return { found: false };
 
@@ -282,7 +286,7 @@ async function browserHalf() {
             if (!mounted) {
                 const dbg = await page.evaluate(() => {
                     const panel = document.querySelector(
-                        '[role="tabpanel"][data-state="active"]',
+                        '[role="tabpanel"][data-state="active"], .single-surface-panel',
                     );
                     return {
                         hasPanel: !!panel,

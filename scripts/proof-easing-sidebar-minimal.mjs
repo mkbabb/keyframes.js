@@ -237,12 +237,16 @@ async function settleOnEasing(page, viewportWidth, viewportHeight) {
 
 /** Wait until the FULL-RAIL easing sidebar PAINTS (content in the active controls
  *  tabpanel) — NOT until it is minimal. Each clause then bites on the SPECIFIC fact;
- *  requiring "minimal" here would conflate "not mounted" with "born-RED". */
+ *  requiring "minimal" here would conflate "not mounted" with "born-RED".
+ *  J.W2 S2 (S4-stretch): the easing scene mounts its panel FLAT — no reka
+ *  `[role="tabpanel"]` exists by design; the named `.single-surface-panel` host
+ *  (AnimationControls.vue) is the TabsContent analogue, so the anchor accepts
+ *  EITHER. */
 async function waitSidebarMounted(page) {
     return page
         .waitForFunction(
             () => {
-                const panel = document.querySelector('[role="tabpanel"][data-state="active"]');
+                const panel = document.querySelector('[role="tabpanel"][data-state="active"], .single-surface-panel');
                 if (!panel) return false;
                 const root = panel.firstElementChild;
                 if (!root) return false;
@@ -261,7 +265,7 @@ async function waitSidebarMounted(page) {
 /** Probe the active easing-sidebar tabpanel for the J facts. */
 async function probeSidebar(page) {
     return page.evaluate(() => {
-        const panel = document.querySelector('[role="tabpanel"][data-state="active"]');
+        const panel = document.querySelector('[role="tabpanel"][data-state="active"], .single-surface-panel');
         if (!panel) return { found: false };
 
         // B1 — strip: no <h2>, no CSS-value text input, no "value"-labelled row.
@@ -383,7 +387,7 @@ async function browserHalf() {
 
         if (!mounted) {
             const dbg = await page.evaluate(() => {
-                const panel = document.querySelector('[role="tabpanel"][data-state="active"]');
+                const panel = document.querySelector('[role="tabpanel"][data-state="active"], .single-surface-panel');
                 return {
                     hasPanel: !!panel,
                     hasCard: !!panel?.querySelector(".rounded-card"),

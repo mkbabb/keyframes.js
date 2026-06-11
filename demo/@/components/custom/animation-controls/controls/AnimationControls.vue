@@ -17,7 +17,20 @@
             class="pl-4 pr-7 pt-2 pb-2 w-full flex-1 min-h-0 flex flex-col justify-start"
         >
             <div class="flex-1 min-h-0 overflow-y-auto flex flex-col pb-1">
-                <slot name="tabs-content"></slot>
+                <!-- The flat-mount PANEL HOST — the exact analogue of the
+                     deleted `<TabsContent>` wrapper, on BOTH its axes:
+                     · PIXEL PARITY: TabsContent carried a default `mt-2` (8px)
+                       and the scenes passed `h-full`; the flat mount renders
+                       the SAME box the Tabs mount did (the visual-lock
+                       baseline) — a source swap, not an appearance delta.
+                     · NAMED SEAM: `single-surface-panel` (style-free) replaces
+                       the `[role="tabpanel"][data-state="active"]` anchor the
+                       pane probes key on (proof:easing-sidebar-{normalized,
+                       minimal}); a bare tabpanel role without a tablist would
+                       be an ARIA defect, so the seam is a class, not a role. -->
+                <div class="single-surface-panel mt-2 h-full">
+                    <slot name="tabs-content"></slot>
+                </div>
             </div>
         </div>
 
