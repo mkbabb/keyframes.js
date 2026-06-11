@@ -141,10 +141,27 @@
        back into the work-area sizing would form a custom-property cycle
        (max-height → bottom-offset → slack → height → max-height), invalidating
        the whole chain. The band depends only on dock + safe-area, so it breaks
-       the cycle while still reserving the true menubar exclusion zone. */
-    --dock-band-reserve: calc(
-        var(--dock-icon-height) + var(--dock-margin) +
-            env(safe-area-inset-bottom, 0px)
+       the cycle while still reserving the true menubar exclusion zone.
+
+       J.W4 S7 (CH-3/M1 re-certification): the token half ALONE under-measured
+       the band — the always-expanded TransportDock pill renders ~90px of host
+       (vs --dock-icon-height + --dock-margin ≈ 52px), so the mobile sheet
+       (anchored at --dock-menubar-reserve) ran 30+px BEHIND the menubar and the
+       pill painted over the sheet's bottom control row (the M1 occlusion the
+       I ledger's CH-3 row prescribed curing by "derive sheet anchor from
+       MEASURED menubar height"). TransportDock.vue now publishes its host's
+       REAL border-box height as `--menubar-measured-h` (:root, ResizeObserver);
+       the band takes the MAX of the token floor and the measured fact, so the
+       sheet always clears the menubar the user actually sees. The measured
+       height is content-driven (never a function of this reserve), so the
+       cycle-free property is preserved. Gated: proof:live-session-mobile
+       (sheet.bottom ≤ menubar.top on 390×844 + hasTouch). */
+    --dock-band-reserve: max(
+        calc(
+            var(--dock-icon-height) + var(--dock-margin) +
+                env(safe-area-inset-bottom, 0px)
+        ),
+        var(--menubar-measured-h, 0px)
     );
 
     /* Bottom dock exclusion zone — symmetric with --work-area-top-offset,

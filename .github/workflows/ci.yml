@@ -204,7 +204,13 @@ jobs:
     demo-smoke:
         name: demo gate (inv γ paints + inv δ occlusion-free)
         runs-on: ubuntu-latest
-        timeout-minutes: 20
+        # CICD-7 wall-clock bound, re-sized at J.W4 (measure-first): the pre-W4
+        # roster measured 19m13s end-to-end (run 27310054675) against the old
+        # 20m ceiling; J.W4 adds the mobile-input battery (~2m), the axes legs
+        # inside proof:live-session (~2m), and the observe-only mobile
+        # Lighthouse matrix (~5m). 35m bounds the new roster with headroom —
+        # a hang still dies well before the 6h GHA default.
+        timeout-minutes: 35
         steps:
             - uses: actions/checkout@v5
             - uses: actions/setup-node@v5
@@ -293,11 +299,15 @@ jobs:
               run: npm run proof:demo-fonts
               env:
                   KF_REQUIRE_BROWSER: "1"
-            - name: "[CORRECTNESS] proof:live-session (I.W7 THE HEADLINE — ONE interaction-driven session: PLAY + SWITCH + DRAG · error budget = 0 + product-facing DOM)"
+            - name: "[CORRECTNESS] proof:live-session (I.W7 THE HEADLINE — ONE interaction-driven session: PLAY + SWITCH + DRAG · error budget = 0 + product-facing DOM · J.W4 axes legs: reduced-motion snap + keyboard/focus + the every-scene play+interact sweep)"
               run: npm run proof:live-session
               env:
                   KF_REQUIRE_BROWSER: "1"
                   KF_DEV_SERVER: "1"
+            - name: "[CORRECTNESS] proof:live-session-mobile (J.W4 S1/S7 — the 390×844 + hasTouch battery: sheet open/scroll/close/RE-OPEN + dock switch + touch-drag + play, all touch · CH-3 occlusion geometry sheet.bottom ≤ menubar.top · error budget = 0)"
+              run: npm run proof:live-session-mobile
+              env:
+                  KF_REQUIRE_BROWSER: "1"
             # [HYGIENE] proof:visual-lock — RE-TIERED to HYGIENE (I.W7 S5). The
             # self-captured, subject-masked pixel baseline locks brokenness as golden
             # (rc-gate-blindspot §2.3); it is KEPT (cheap layout/type/color drift
@@ -504,6 +514,18 @@ jobs:
               run: npm run proof:lighthouse-a11y
               env:
                   KF_REQUIRE_BROWSER: "1"
+            # J.W4 S6 — the mobile Lighthouse corroborator under its DECLARED P6
+            # posture (observe-only-in-CI / hard-on-device via KF_REQUIRE_LH=1):
+            # misses are RECORDED in CI, never red. PLACEMENT IS LOAD-BEARING
+            # (W4-F1): the step consumes dist/gh-pages, so it MUST run with the
+            # other gh-pages-consuming gates ABOVE the `build:lib` step at the
+            # job tail — build:lib empties dist/, and a post-wipe run would
+            # RECORD-WITHHELD "dist/gh-pages not built" on every CI run (a
+            # de-facto CI-exclusion in disguise, the exact orphanhood S6 closes).
+            # lighthouse resolves from the repo root (`npm i --no-save
+            # lighthouse` above), same as proof:lighthouse-a11y.
+            - name: "[HYGIENE · observe-only-in-CI] proof:lighthouse-mobile (J.W4 S6 — per-scene mobile Lighthouse ceilings; declared P6 posture: misses RECORDED in CI, hard on-device via KF_REQUIRE_LH=1; never over-read as mobile perf holding in CI)"
+              run: npm run proof:lighthouse-mobile
             # D.W1/W2/W3 demo refinement gates — source + built-CSS instruments,
             # each BITES on its exact regression. They run AFTER the gh-pages
             # build above so proof:brittleness's @supports clause reads the real

@@ -1,5 +1,6 @@
 <template>
     <div
+        ref="menubarHostEl"
         :class="[
             'menubar-safe-pb px-2 py-1.5 m-0 flex items-center justify-center justify-items-center',
             'fixed left-0 right-0 z-dock',
@@ -158,7 +159,7 @@
 </template>
 
 <script setup lang="ts">
-import { useTemplateRef } from "vue";
+import { onBeforeUnmount, onMounted, useTemplateRef } from "vue";
 
 import {
     List,
@@ -191,6 +192,48 @@ import { GlassDock } from "@mkbabb/glass-ui/dock";
 import type { StoredAnimationGroupControlOptions } from "./stores";
 
 const dockRef = useTemplateRef<InstanceType<typeof GlassDock>>("dockRef");
+
+// ── J.W4 S7 (CH-3/M1 — the sheet anchor derives from the MEASURED menubar) ──
+// The mobile bottom sheet anchors at `bottom: var(--dock-menubar-reserve)`
+// (ControlsPaneWrapper.vue), and the reserve's dock band was DERIVED FROM A
+// TOKEN (`--dock-icon-height` + margin ≈ 52px) while the always-expanded
+// TransportDock pill actually renders ~80px tall (+ host padding ≈ 90px) — so
+// the open sheet's bottom ran 30+px BEHIND the menubar and the menubar pill
+// painted OVER the sheet's bottom control row (the M1 occlusion class, live at
+// 390×844; the I deferred-ledger CH-3 row's named cure is "derive sheet anchor
+// from MEASURED menubar height"). This observer IS that cure: it measures the
+// menubar host's REAL border-box height and publishes it as
+// `--menubar-measured-h` on :root; style.css folds it into
+// `--dock-band-reserve` via max(), so the sheet (and the work-area band math)
+// always clears the menubar the user actually sees — token drift can never
+// re-open the occlusion. Height is content-driven (never a function of the
+// reserve it feeds), so no custom-property cycle forms.
+// Gated by proof:live-session-mobile (sheet.bottom ≤ menubar.top on a real
+// 390×844 + hasTouch context — the CH-3 re-certification oracle).
+const menubarHostEl = useTemplateRef<HTMLElement>("menubarHostEl");
+const MENUBAR_MEASURED_PROP = "--menubar-measured-h";
+let menubarResizeObserver: ResizeObserver | null = null;
+
+onMounted(() => {
+    const host = menubarHostEl.value;
+    if (!host || typeof ResizeObserver === "undefined") return;
+    const publish = () => {
+        const h = Math.ceil(host.getBoundingClientRect().height);
+        document.documentElement.style.setProperty(
+            MENUBAR_MEASURED_PROP,
+            `${h}px`,
+        );
+    };
+    menubarResizeObserver = new ResizeObserver(publish);
+    menubarResizeObserver.observe(host);
+    publish();
+});
+
+onBeforeUnmount(() => {
+    menubarResizeObserver?.disconnect();
+    menubarResizeObserver = null;
+    document.documentElement.style.removeProperty(MENUBAR_MEASURED_PROP);
+});
 
 function onCollapsedPlayClick() {
     dockRef.value?.expand();

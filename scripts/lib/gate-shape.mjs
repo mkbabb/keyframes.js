@@ -55,6 +55,12 @@ export const ACTUATION_PRIMITIVES = [
     { re: /\bpage\.keyboard\b|\.press\(/, name: "page.keyboard / .press (key drive)" },
     { re: /\bpage\.dragAndDrop\(/, name: "page.dragAndDrop" },
     { re: /\bnew PointerEvent\(/, name: "trusted PointerEvent dispatch (handle drag)" },
+    // J.W4 — the TOUCH modality (the input-modality band): a real touch tap /
+    // CDP-dispatched touch sequence is a first-class actuation, same strength
+    // as a click/drag (page.tap routes Playwright's touchscreen; the CDP
+    // Input.dispatchTouchEvent trio is the touch-DRAG drive).
+    { re: /\.tap\(|\btouchscreen\.tap\b/, name: "touch tap (page/locator.tap — real touch actuation)" },
+    { re: /Input\.dispatchTouchEvent/, name: "CDP touch sequence (touchStart/Move/End — a real touch drag)" },
     { re: /\.hover\(/, name: ".hover (pointer hover-drive)" },
 ];
 

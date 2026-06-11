@@ -70,3 +70,25 @@ parser and `@mkbabb/value.js`; one dynamic import, cached thereafter
 | `FILL_MODES` | HEAVY | [README §AnimationOptions](../README.md#animationoptions) — the valid `fillMode` values, as a const tuple |
 | `defaultOptions` | HEAVY | [README §AnimationOptions](../README.md#animationoptions) — the `AnimationOptions` defaults |
 | `defaultLayerConfig` | HEAVY | [README §AnimationGroup](../README.md#animationgroup) — the per-layer blend-config defaults |
+
+## EP-3 — the live-coverage disposition (J.W4 S7 · the uncovered-export BOOK)
+
+`engine-periphery.md` EP-3: `flip`/`flipShared`, `drag`/`Draggable`, and
+`DrawSVG`/`fromDrawSVG` are load-bearing, README-taught, unit-tested exports
+with **no demo scene** — zero `proof:live-session` runtime coverage. Per the
+J.W4 spec's binding decision they take **PATH B — the recorded BOOK**: each is
+documented here with its cited unit coverage and its no-live-scene status
+DISCLOSED (this is the terminal disposition per P-invariant-28, not a punt; if
+a future wave lands a befitting demo scene, that export flips to PATH A and
+joins the every-scene sweep automatically via the scenes.ts roster). This
+table is machine-checked by `proof:published-surface` clause (g): every EP-3
+export below must carry a disposition row whose cited test file EXISTS.
+
+| Export | Disposition | Coverage (cited) |
+| --- | --- | --- |
+| `flip` | PATH B — no live-session scene | `test/flip.test.ts` (unit, vitest/jsdom) |
+| `flipShared` | PATH B — no live-session scene | `test/flip.test.ts` (unit, vitest/jsdom) |
+| `drag` | PATH B — no live-session scene | `test/drag.test.ts` (unit, vitest/jsdom) |
+| `Draggable` | PATH B — no live-session scene | `test/drag.test.ts` (unit, vitest/jsdom) |
+| `DrawSVG` | PATH B — no live-session scene | `test/draw-svg.test.ts` (unit) + `proof:drawsvg` (JSDOM hygiene gate, `scripts/proof-drawsvg.mjs`) |
+| `fromDrawSVG` | PATH B — no live-session scene | `test/draw-svg.test.ts` (unit) + `proof:drawsvg` (JSDOM hygiene gate, `scripts/proof-drawsvg.mjs`) |

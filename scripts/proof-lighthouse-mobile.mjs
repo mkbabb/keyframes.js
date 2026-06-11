@@ -52,7 +52,32 @@ import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 
+import { declarePosture } from "./lib/ci-env.mjs";
 import { SCENES, resolveChromium, serveDist, withBrowser } from "./lib/demo-driver.mjs";
+
+// ── J.W4 S6 — the DECLARED P6 posture, through the ONE shared helper ─────────
+// The gate measures a DEVICE-DEPENDENT quantity (throttled mobile Lighthouse
+// Performance) — the canonical observe-only-in-CI / hard-on-device third state:
+// in CI a ceiling miss is RECORDED (never red there — the P6 over-read
+// prohibition: a green observe-only CI run is NEVER read as "mobile perf held
+// in CI"); locally it is HARD; on a CALIBRATED runner `KF_REQUIRE_LH=1`
+// bypasses the posture routing and hard-asserts (the on-device half, handled
+// BEFORE the posture below — IN_CI must not soften a declared-calibrated run).
+// The correctness owner of "mobile works" remains the S1 mobile-input battery
+// (proof:live-session-mobile); this gate CORROBORATES. The reason string IS
+// the taxonomy-manifest row (docs/tranches/J/gate-taxonomy.md — proof:ci-coverage
+// asserts the two-way mapping).
+const redMisses = [];
+const posture = declarePosture("observe-only", {
+    reason:
+        "mobile Lighthouse CPU/network throttle assumes a calibrated or real-device host — " +
+        "absolute scores are environment artifacts on shared runners; hard on-device via KF_REQUIRE_LH=1",
+    fail: (label) => {
+        redMisses.push(label);
+        console.error(`  ✗ ${label}`);
+    },
+    note: (label) => console.log(`  · ${label}`),
+});
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
@@ -273,11 +298,32 @@ async function main() {
     }
 
     if (failures.length > 0) {
-        console.error(
-            `\nproof:lighthouse-mobile — FAIL (${failures.length}): a scene fell below its mobile ceiling.`,
+        // On a CALIBRATED runner (KF_REQUIRE_LH=1) the miss is HARD regardless
+        // of CI — the on-device half of the declared posture.
+        if (REQUIRE_LH) {
+            console.error(
+                `\nproof:lighthouse-mobile — FAIL (${failures.length}): a scene fell below its mobile ceiling (KF_REQUIRE_LH=1 — hard on the calibrated runner).`,
+            );
+            for (const f of failures) console.error(`  ✗ ${f}`);
+            process.exit(1);
+        }
+        // Otherwise the DECLARED observe-only posture routes each miss: in CI
+        // it is RECORDED (the run stays green — observe-only, never red there);
+        // locally it is HARD (the on-device default).
+        console.error(`\nproof:lighthouse-mobile — ${failures.length} ceiling miss(es), routed per the declared P6 posture (observe-only in CI · hard locally/on-device):`);
+        for (const f of failures) posture.miss(f);
+        if (redMisses.length > 0) {
+            console.error(
+                `\nproof:lighthouse-mobile — FAIL (${redMisses.length}): ceiling miss(es) on a local/on-device run (the hard half of the observe-only posture).`,
+            );
+            process.exit(1);
+        }
+        console.log(
+            "\nproof:lighthouse-mobile — RECORDED (CI observe-only): the misses above are OBSERVATIONAL — " +
+                "the felt mobile perf claim is NOT certified by this CI run (the P6 over-read prohibition); " +
+                "re-measure on a calibrated runner with KF_REQUIRE_LH=1.",
         );
-        for (const f of failures) console.error(`  ✗ ${f}`);
-        process.exit(1);
+        process.exit(0);
     }
 
     console.log(

@@ -55,12 +55,12 @@
 //                         context), not via one proof:all call.
 //  - proof:ci-coverage  — this gate itself. (It IS in proof:hygiene, so the
 //                         converse clause sees it as reachable.)
-//  - proof:lighthouse-mobile — RECORDED browser-gated/runner-calibrated (F.W1
-//                         §Folds, E/FINAL.md): it has a legitimate CI-calibration
-//                         excuse the grep gates do not, and runs local/dedicated.
-//                         Its TIER entry is J.W4-owned (J.md J.W4 row: "enters a
-//                         tier under its P6 posture") — the one orphan J.W4
-//                         tiers; it leaves this set in that motion.
+//  (proof:lighthouse-mobile — LEFT this set at J.W4 S6 (the J.md J.W4 row
+//   discharged): it now declares `observe-only` through the ONE ci-env helper
+//   (hard on-device via KF_REQUIRE_LH=1), carries its taxonomy-manifest row
+//   (gate-taxonomy.md), runs in proof:hygiene, and is invoked in the ci.yml
+//   demo job — visible to BOTH coverage directions. The last true orphan is
+//   tiered.)
 //  (proof:repin-safe — KILLED at J.W3 S6a, GC-5: a one-shot G.W1 pre-stage gate
 //   whose `^0.10.0→^0.11.0` re-pin is HISTORY; stale-by-construction. Script +
 //   package.json key + this exclusion entry deleted in ONE motion.)
@@ -128,9 +128,6 @@ for (const name of WORKFLOWS) {
 const EXCLUDED = new Set([
     "proof:all",
     "proof:ci-coverage",
-    // J.W4-owned tier decision (J.md J.W4 row) — the LAST true orphan; it leaves
-    // this set when J.W4 tiers it under its P6 runner-calibrated posture.
-    "proof:lighthouse-mobile",
     // proof:browser is a LOCAL dev meta-target (H.W8 WV-W8-HIGH-3) — it invokes the
     // browser gates that are ALREADY individually CI-wired in the demo-smoke job, so
     // it is not a distinct CI gate (running it in CI would duplicate them).
