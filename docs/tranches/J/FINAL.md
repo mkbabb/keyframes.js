@@ -561,7 +561,10 @@ oracle at each boundary the product crosses. **When J closes, "green" means: a h
 | the OBSERVED deploy round-trip CI run | `27310054675` |
 | the OBSERVED auto-deploy run (`event == workflow_run`) | `27310920981` |
 | the live served bytes | `index-DiVbdzH3.js` |
-| the honest minor cut + publish (`release.yml` first-ever run) | [RUN-ID / VERSION recorded at publish] |
+| the honest minor cut (`4.1.0 → 4.2.0`, the changeset consumed) | `f0822a1` (tag `v4.2.0`) |
+| the publish (`release.yml` FIRST-EVER run, tag-triggered, provenance) | run `27378331075` — `completed success`; `npm view @mkbabb/keyframes.js version` → **`4.2.0`** (`dist-tags.latest = 4.2.0`, verified 2026-06-11) |
+| the WZ close-tree fix round (the 12-fail roster: 2 contention + 10 real, all cured) | `31f61f6` |
+| **the close-merge round-trip RE-OBSERVED** (the J.W0 oracle witnessed on the close itself) | master `f0822a1` → CI `27378354065` green end-to-end → deploy `27379501160` (`event == workflow_run`, checkout `f0822a1`) → built `index-xIYGAIrv.js` → **live serves `assets/index-xIYGAIrv.js`** (exact match, 2026-06-11) |
 
 ---
 
