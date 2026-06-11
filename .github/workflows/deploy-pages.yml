@@ -55,7 +55,7 @@ jobs:
                   node-version: 24
                   cache: "npm"
             # The demo needs glass-ui (the library does not). It is the PUBLISHED
-            # registry package (`@mkbabb/glass-ui ~3.9.0`); `npm ci` installs it
+            # registry package (`@mkbabb/glass-ui ~3.11.2`); `npm ci` installs it
             # from the registry. No sibling clone, no `file:` link.
             - name: npm ci (installs the registry @mkbabb/glass-ui)
               run: npm ci

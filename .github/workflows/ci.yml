@@ -212,7 +212,7 @@ jobs:
                   node-version: 24
                   cache: "npm"
             # The demo arm needs glass-ui (the library gate does not). It is the
-            # PUBLISHED registry package (`@mkbabb/glass-ui ~3.9.0`, the I.W6
+            # PUBLISHED registry package (`@mkbabb/glass-ui ~3.11.2`, the I.W6
             # specular consume-edge — TILDE: 3.9.0 carries `specular="off"`, the
             # B7 bloom-absent contract proof:specular-absent-at-rest gates; the
             # floor lives in proof:deps-current, single-sourced from package.json).
@@ -255,6 +255,10 @@ jobs:
             # ════════════════════════════════════════════════════════════════
             - name: "[CORRECTNESS] proof:engine-no-throw-on-play (I.W0/B1+B5 — the rainbow group-play click is total · cube paints · no '......' parse line)"
               run: npm run proof:engine-no-throw-on-play
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            - name: "[CORRECTNESS] proof:subject-animates (J.W6 P0 — the subject-write seam oracle: every play path WRITES the interpolated frame to its subject, not just the playhead · born-RED on the apply=false _renderFrame break)"
+              run: npm run proof:subject-animates
               env:
                   KF_REQUIRE_BROWSER: "1"
             - name: "[CORRECTNESS] proof:fsm-suspend-resume-live (I.W1/B2 — synthetic visibilitychange on a playing raw-rAF scene raises NO _gen throw · resume-iff-was-playing)"
@@ -552,7 +556,7 @@ jobs:
             # parked against the UNPUBLISHED glass-ui 3.8.0 (vaporware the user never
             # sees; rc-gate-blindspot §2.5, the B7 vaporware lesson). SUPERSEDED by
             # the CORRECTNESS-tier proof:specular-absent-at-rest above, whose
-            # consume-edge is the PUBLISHED + consumed glass-ui ~3.9.0 flat default.
+            # consume-edge is the PUBLISHED + consumed glass-ui ~3.11.2 flat default.
             # The vaporware-HANDOFF rule in proof:chronic-closure now forbids re-
             # parking it. Key + script removed (no .mjs ever existed on disk).
             # H.W9 F4 — the ppmycota menu leads with the SVG brand mark, no emoji. A

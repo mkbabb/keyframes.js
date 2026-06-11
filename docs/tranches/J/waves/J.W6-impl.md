@@ -877,3 +877,113 @@ PF-1/PF-3 bundle sizes are deterministic build output (device-independent).
 **The close-ledger invariant holds:** every rider above exits with its named artifact inline in
 this note or a reasoned KILL that cites the number/probe that killed it. ZERO rows leave J.W6
 tagged MEASURE-FIRST without a measurement. Nothing rides a fifth tranche.
+
+---
+
+## P0 — the subject-write seam the S1 sync conversion refactored, and the oracle the whole battery LACKED (`proof:subject-animates` born-RED witnessed)
+
+**Date:** 2026-06-11. **Tree:** `tranche-j-dev` (HEAD `56aa00f` + this record). **Host:**
+darwin 25.4.0; Chromium via `KF_PLAYWRIGHT_DIR=/Users/mkbabb/Programming/glass-ui`,
+`KF_REQUIRE_BROWSER=1`. **Owner:** the J P0 regression surgeon (post-close audit of the S1 LAND).
+
+### The regression class (the seam the LAND moved)
+
+S1 (FB-2) converted `Animation.advanceTo` async→sync, and in doing so **SPLIT `Animation._frame`
+into two methods**: `_advance(t)` (the playhead/clock half — pause clock, local time, iteration
+end) and `_renderFrame(t)` (the render half). The SUBJECT WRITE — the single statement that
+paints the interpolated frame onto the animation's target —
+
+```ts
+// engine.ts _renderFrame
+if (!this.done) {
+    this.interpFrames(t, /* apply */ true, this._interpOut);   // ← the subject write
+    return true;
+}
+```
+
+is now a SEPARATE statement on a SEPARATE method from the clock advance. That is the textbook
+shape of a silent subject-write regression: a future edit (or a half-applied refactor, or a
+`true`→`false` typo at the `apply` arg) drops the subject write while `_advance` keeps the
+playhead — and the engine's own UI (`useAnimationProgress` polls `anim.t`) keeps reporting
+forward progress. **The played animation's progress bar advances while its subject stands
+frozen.** This is the "subject-write play regression" — the conversion didn't ship it (the tree's
+`_renderFrame` is correct), but it RODE the seam through a battery that had no oracle for it.
+
+### The mechanism — why EVERY existing gate is blind to it (the missing subject-write oracle)
+
+The whole live battery asserts the LOOP is live, never that the SUBJECT is WRITTEN:
+
+- `proof:engine-no-throw-on-play` clause (c) — *"cube transform paints LIVE — ≥3 distinct
+  non-none matrices across the cube subtree"* — samples `{.cube, .graph, .idle-hover}` on the
+  cube's ON-MOUNT autoplay. But `.idle-hover` carries the cube's **idle bob** (a separate motion),
+  `.graph` carries the **standalone perspective tilt** (`changeGraphPerspectiveAnim.play()`, a
+  separate `Animation`) AND the **orbital container matrix** — all of which move INDEPENDENTLY of
+  the group-play subject write. `.cube` itself is the inner 3D box and is NEVER directly
+  transformed (the cube's animated transform lands on the `.graph` CONTAINER via
+  `apply-transform-to-container`). On-device per-selector measurement of the autoplay window:
+  `.cube` distinct=1 (FROZEN by design), `.graph` distinct≈20–23, `.idle-hover` distinct≈115.
+  The gate passes ENTIRELY on the idle-bob + the standalone tilt — the engine play write could be
+  dead and clause (c) stays GREEN.
+- `proof:live-session` B1 — same `.cube/.graph` autoplay sample, same blindness.
+- The jsdom tier (`standalone-zero-alloc`, `useAnimationGroupPlayback`, etc.) asserts buffer
+  identity / call-counts / scrub math — never a VISUAL write (jsdom has no computed-style render),
+  and the group tests drive `sliderUpdate`/`render`, NOT the `play()` rAF loop.
+
+So **no gate isolated the one load-bearing property a human actually sees: when you press play,
+the SUBJECT traverses the animation.** That property was the un-guarded axis the LAND moved.
+
+### Born-RED record (the blindspot proven, not asserted)
+
+Planted defect at the seam — `engine.ts` `_renderFrame`: `interpFrames(t, true, …)` →
+`interpFrames(t, false, …)` (advance the playhead, drop the subject write); `npm run build`; the
+demo `npm run gh-pages` rebuilt. Witnessed on-device, verbatim outcomes:
+
+| Gate | With the seam break | Reads |
+|---|---|---|
+| **`proof:subject-animates` (NEW)** | **RED — exit 1**: `[raf] subject FROZEN on the play click — only 2 distinct computed value(s)` | the SUBJECT's computed style — bites |
+| `proof:engine-no-throw-on-play` clause (c) | **GREEN — exit 0**: *"cube transform paints LIVE — 101 distinct non-none matrices"* | the idle-bob / orbital / tilt — blind |
+
+The `false`→`true` was REVERTED after the witness; `git diff --stat src/animation/engine.ts` is
+empty (the tree's engine is unchanged — the P0 deliverable is the ORACLE, not an engine edit; the
+seam itself was already correct). On the reverted-clean tree `proof:subject-animates` is GREEN
+(exit 0), all three arms.
+
+### The fix — `proof:subject-animates`, the seam oracle (the missing axis, now guarded)
+
+`scripts/proof-subject-animates.mjs` (wired `package.json proof:subject-animates`, folded into
+`proof:correctness`, added to `ci.yml` under `KF_REQUIRE_BROWSER=1`, beside
+`proof:engine-no-throw-on-play`). It drives the **BUILT** `dist/keyframes.js` library against a
+**REAL** DOM subject in a **REAL** Chromium, by **CLICKING a play button** (a genuine user
+gesture — it actuates, satisfying `proof:gate-is-runtime`'s no-load-rest precept), then asserts
+the subject's COMPUTED style traverses **≥3 distinct interpolated values** across the play window
+— the property the battery never named. Three arms cover the three play paths the S1/S9
+conversions touched:
+
+| Arm | Path | Clean-tree result | Under the seam break |
+|---|---|---|---|
+| **raf** | `useWAAPI:false` → `_renderFrame` → `interpFrames(apply=true)` | 36 distinct, settles 200px | **2 distinct — RED** (the direct seam witness) |
+| **waapi** | `useWAAPI:true` → compositor write + the shadow loop | 38 distinct, settles 200px | GREEN (WAAPI visuals are compositor-owned, off the `_renderFrame` path) |
+| **group** | `AnimationGroup` single-target → `transformFramesGrouped` (the cube/easing/spring shape) | 37 distinct, settles 200px | GREEN (composite uses its own write seam) |
+
+The **raf** arm is the load-bearing witness for THIS seam (the `_renderFrame` write the S1
+conversion moved); the **waapi** + **group** arms guard their sibling subject-write seams against
+the same regression class on their own paths. P6 posture: hard — a device-independent correctness
+oracle (the engine WRITES to its subject or it does not), hard-gates in CI.
+
+### Verification (re-run at this record's close)
+
+| Gate | Result |
+|---|---|
+| `proof:subject-animates` (KF_REQUIRE_BROWSER=1) | **PASS 3/3** (raf 36 · waapi 38 · group 37 distinct; born-RED ×1 witnessed above) |
+| `proof:gate-is-runtime` | PASS (the new gate opens a browser AND actuates via `page.click` AND is wired into `proof:correctness`) |
+| `proof:ci-coverage` | PASS (`proof:all == CI` both ways, the new key reachable from `proof:correctness`) |
+| `npm run check` (tsc --noEmit) | CLEAN |
+| full `vitest run` | 77 files passed; 751 passed + 3 expected-fail (754) |
+
+**The audit conclusion.** The on-device per-scene measurement found NO behavioural subject-write
+regression in the shipped tree (cube/easing/spring animate identically to the pre-S1 baseline
+`8a40cf4`; the engine's three play paths all write). The P0 was the UN-GUARDED SEAM the S1 LAND
+created and rode through — the missing subject-write oracle the whole battery lacked. It is now
+born-RED-witnessed and machine-enforced. The conversion's gain (S1) keeps its correctness guard
+(`proof:event-ordering` for ordering) AND now its actuation guard (`proof:subject-animates` for
+the subject write) — the two halves of "the played animation does what a human sees."
