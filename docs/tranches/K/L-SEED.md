@@ -1,51 +1,70 @@
-# L-SEED — the frontier divination, re-seeded WHOLESALE to Tranche L (the Tranche-L charter seed)
+# L-SEED — the frontier divination, CONSUMED INTO Tranche K Band II (the round-trip frontier, folded; the body of record)
 
-**Re-seed provenance (K → L).** This document is `docs/tranches/J/audit/frontier/K-SEED.md`
-re-filed UNCHANGED in content as the Tranche-L charter seed. It was divined by the
-frontier-research fleet on **2026-06-10** as the Tranche-K seed; on **2026-06-11** — hours after
-the J close certified `proof:all` GREEN and shipped 4.2.0 — the user drove the live product and
-found its PRIMARY FIRST-RUN GESTURE broken (the hero rainbow-play → cube: the playhead advances
-while every subject stands frozen; rooted three ways in `docs/tranches/K/audit/`:
-`live-cold-play-path.md §P0-1`, `live-session-gap-analysis.md §1`, `demo-scenes-k.md`). That
-born-RED P0 + the binding 20-finding live-audit register (U-K1..K20) re-charters K as the
-PRODUCT-TRUTH + DESIGN-TOTALITY repair tranche. **The frontier below — the full CSS-@keyframes
-round-trip charter (CC-1 compiler, K1 ingestion, SO-1 scroll-as-CSS, WL2-B, PHYS-C, ED-1), the
-value.js half (§7), the 12 KILLs (§5), the BOOKs (§6) — therefore defers WHOLESALE to L,
-re-seeded UNCHANGED**, per `docs/tranches/K/audit/k-seed-reconciliation.md` (Shape A, argued
-against the split (Shape B) and the integrated charter (Shape C) on the merits; §4 is the L
-re-seed of record).
+**Provenance — CONSUMED INTO Tranche K Band II (2026-06-15 total-fold).** This document was
+`docs/tranches/J/audit/frontier/K-SEED.md`, divined by the frontier-research fleet on
+**2026-06-10** as the Tranche-K seed; on **2026-06-11** — hours after the J close certified
+`proof:all` GREEN and shipped 4.2.0 — the user drove the live product and found its PRIMARY
+FIRST-RUN GESTURE broken (the hero rainbow-play → cube: the playhead advances while every subject
+stands frozen; rooted three ways in `docs/tranches/K/audit/`: `live-cold-play-path.md §P0-1`,
+`live-session-gap-analysis.md §1`, `demo-scenes-k.md`). That born-RED P0 + the binding 20-finding
+live-audit register (U-K1..K20) chartered K's **Band I** — the PRODUCT-TRUTH + DESIGN-TOTALITY
+repair. The frontier below — the full CSS-@keyframes round-trip charter (CC-1 compiler, K1
+ingestion, SO-1 scroll-as-CSS, WL2-B, PHYS-C, ED-1), the value.js half (§7), the 12 KILLs (§5),
+the BOOKs (§6) — was at first DEFERRED, because its scroll/compile waves gated on net-new value.js
+grammar that did not yet exist (`docs/tranches/K/audit/k-seed-reconciliation.md`, Shape A).
 
-**The reconciling preface, verbatim** (`k-seed-reconciliation.md §4`):
+**THAT DEFERRAL IS NOW SUPERSEDED — the un-blocking it predicted HAPPENED.** On **2026-06-12**
+value.js shipped **0.12.0** (its Tranche N, which superseded the never-dispatched M;
+registry-verified — `docs/tranches/K/VALUEJS-N2-ASKS.md:20`), discharging the seed's
+"VJ.W0 RIPEN → publishes 0.11.3/0.12.0" gate (`L-SEED.md:199`; `VALUEJS-N2-ASKS.md:22`) and
+un-blocking **FOUR of the six** frontier waves outright. The RIPE-NOW consume edges all stand,
+one publish fresher (`lerpArray`, `deltaEOK`, `reverseAnimationShorthand` — `VALUEJS-N2-ASKS.md`
+§2 row 12). Only the **two genuine net-new gates remain OPEN** — **VJ.W1 SCROLL GRAMMAR** (gating
+the scroll wave) and **VJ.W2 PERCEPTUAL RAMP `sampleColorRamp`** (gating the compile wave's CC-2
+densify) — both confirmed ABSENT in 0.12.0 (`VALUEJS-N2-ASKS.md:61,124`), and both **DISPATCHED**
+to value.js's post-N tranche via the kf-side outbound ask `KF-TO-VALUEJS-GRAMMAR-ASKS.md`
+(the mirror of the inbound `VALUEJS-N2-ASKS.md`).
 
-> *"K consumed the product-truth/design repair band (U-K1..K20 + the cold-path P0); this frontier
-> deferred WHOLESALE to L, un-blocked by the value.js VJ.W0→VJ.W2 grammar shipped in the K
-> interval."*
+**On 2026-06-15 the user folded the frontier WHOLESALE into K Band II — there is NO residual L.**
+Per the binding charter (`docs/tranches/K/K.md` — title line, `§The frontier, un-blocked (Band
+II)`, the `§The chronic + deferred fold` "FOLDED into K Band II" band): the entire frontier — the
+six waves (mapped to **K.W7–K.W12**, see the body-item map below), the value.js half via the
+dispatch, the 12 KILLs as K's anti-charter, the BOOKs with their named tripwires — is CONSUMED
+into K. The reconciliation's **Shape-A wholesale-deferral recommendation is SUPERSEDED** (it is
+evidence-of-record only; the un-blocking it argued the L interval would deliver was instead
+delivered by value.js 0.12.0 inside the K interval itself). The frontier no longer waits in an L
+that will not come.
 
-**This is NOT a punt — it is a reasoned wholesale deferral that UN-BLOCKS the frontier**
-(`k-seed-reconciliation.md §3.1`; `docs/tranches/K/K.md` preamble — "THE FRONTIER DEFERS
-WHOLESALE TO L", and the close row of `§The finding-cluster → wave ledger` / the `§The chronic +
-deferred fold` DEFERRED-TO-L band):
+**Why the fold, not a deferral (the 2026-06-15 ground truth, `K.md §The frontier, un-blocked`):**
+the reconciliation's central deferral argument — value.js un-dispatched — dissolved (Tranche N
+shipped 0.12.0). The P0 is NOT mortgaged: Band I (K.W0→K.W6) leads regardless and is
+value.js-grammar-independent; Band II rides the honest substrate the repair leaves behind. And
+the playback-policy seam that once argued for a *split* now argues FOR the fold — K already owns
+that wiring for the P0, so PHYS-C rides it once (in K Band II), not twice across K and a separate L.
 
-- **The value.js gate resolves in the interval.** L.W2/L.W3 (the seed's W2 SCROLL-AS-CSS / W3
-  COMPILE) gate on net-new value.js grammar that does not yet exist — **VJ.W1 SCROLL GRAMMAR**
-  gates the scroll wave and **VJ.W2 PERCEPTUAL RAMP** gates the compile wave (§7). value.js must
-  first reconcile its stale Tranche M (planning-only, never dispatched; published 0.11.2 = the F
-  handoff + two patches — §7 "Census correction") and run **VJ.W0 → VJ.W2** in ITS own tranche
-  process. The K interval is exactly when that grammar ships, so **L starts UN-blocked** — strictly
-  better than K anchoring on CC-1 today and BLOCKING on a sibling repo's un-dispatched backlog.
-- **Nothing in the frontier decays by waiting one tranche.** The 12 KILLs (§5) are
-  "non-re-litigable"; the BOOKs (§6) carry named tripwires. The moat (the round-trip axis, §0) is
-  structurally uncontested — no competitor can enter it. By contrast **the P0 decays daily** —
-  every day the live site serves a non-animating front door — which is why K takes the repair band
-  first.
-- **L inherits a STRONGER substrate.** ED-3 (the dogfood inversion — "the demo consumes the
-  PUBLISHED barrel") is honest ONLY because K repaired the demo first; shipping ED-3 over a broken
-  demo would re-commit the J sin (`k-seed-reconciliation.md §3.1`, §4).
+**This is the BODY OF RECORD that K Band II consumes.** The §0–§7 divination below is preserved
+**verbatim** — every wave, every KILL, every BOOK, the entire value.js half — as the frontier
+reference the K.W7–K.W12 wave specs cite. The new K-born invariants that govern its consumption
+(the **replay-equality** invariant and the **acyclic-spine** invariant — value.js publishes
+grammar, kf consumes ONE tranche behind, born-RED-gated kf-side, NEVER a `file:` link or a
+vendored copy) live in `K.md §The invariant set carried into K`.
 
-**L's authorization is its own.** L develops only after K closes, on L's own authorization —
-exactly the dev/impl boundary the seed already declares for K (§0 below). Nothing in this seed is
-implemented or authored-as-L-waves yet. **The body below is verbatim the divination — every wave,
-every KILL, every BOOK, the entire value.js half — carried over without edit.**
+### The body-item → K wave map (which §body row each Band-II wave cites)
+
+| §body item | What | K Band II wave |
+|---|---|---|
+| **WL2-B** — animation-composition HONORING (§2; the K.W0-LEAD designation now reads K.W7) | the engine reads the captured `adapter.ts:120-126` value it currently drops + the diagnostics channel | **K.W7** FIDELITY FLOOR |
+| **K1 / K2** — LIVE-STYLESHEET INGESTION + `adopt()` (§1 #2) | `fromStyleSheets()`/`fromLiveAnimations()` (the CSSOM walk) + mid-flight takeover | **K.W8** INGEST |
+| **SO-1 / SO-2 / SO-3** — SCROLL ORCHESTRATION AS CSS (§1 #3) | parse + round-trip + dispatch the scroll grammar; `ScrollScene` driver; sticky-pin synthesis (**VJ.W1-gated**) | **K.W9** SCROLL-AS-CSS |
+| **CC-1 / CC-2 / CC-3 / CC-4** — the CSS COMPILER (§1 #1, the XL anchor) | compile to zero-runtime CSS; oklab densify (**VJ.W2-gated**); the four refusals; the "Export CSS" button | **K.W10** COMPILE |
+| **PHYS-C / PHYS-B2 / PHYS-E** — SPRING-DRIVEN BLEND WEIGHT (§2) | the physical layer crossfade on the weighted-blend compositor + the riders | **K.W11** PHYSICS |
+| **ED-1 / ED-2 / ED-3 / ED-4** — the AGENT-CONSUMABLE SURFACE (§2) | llms.txt + proof corpus; the Vue adapter; the dogfood inversion; the color-fidelity harness | **K.W12** EXTERNALIZE |
+
+(The §3 implied-K shape K.W0–K.W5 was the seed's ORIGINAL one-band numbering; under the K total
+fold the frontier waves are renumbered K.W7–K.W12 to ride AFTER Band I's repair waves K.W0–K.W6.
+The §4 J-amendments were applied at the J close. The §5 KILLs and §6 BOOKs carry as K's
+anti-charter. The §7 value.js half is the dispatch's source — VJ.W0 LANDED in 0.12.0; VJ.W1/VJ.W2
+are the two OPEN gates, dispatched.)
 
 ---
 ---

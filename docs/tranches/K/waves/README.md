@@ -1,10 +1,14 @@
 # Tranche K — the wave map · the cross-wave README
 
-This is the cross-wave index for Tranche K (the PRODUCT-TRUTH + DESIGN-TOTALITY tranche). It
-RENDERS the DAG, gives a one-paragraph charter per wave, lists the gate roster K ADDS, fixes the
-BINDING file-ownership boundary for the implementation phase (the W2 voice-tokens / W3 grid-tier
-EXACT seam — the two waves are file-adjacent and run in parallel, so the boundary is a hard
-contract, not a guideline), and summarizes the TASTE-packet protocol (the third K-born invariant).
+This is the cross-wave index for Tranche K — **two bands under one discipline: Band I the
+PRODUCT-TRUTH + DESIGN-TOTALITY repair (K.W0–K.W6), Band II the ROUND-TRIP FRONTIER (K.W7–K.W12,
+the frontier folded WHOLESALE into K — the 2026-06-15 total fold; there is no residual L)**. It
+RENDERS the two-band DAG, gives a one-paragraph charter per wave, lists the gate roster K ADDS,
+fixes the BINDING file-ownership boundaries for the implementation phase (the Band-I W2 voice-tokens
+/ W3 grid-tier EXACT seam, AND the Band-II W7 engine.ts-honoring / W11 group.ts-physics / W10
+compiler / W8·W9 new-surface disjoint loci — file-adjacent waves run in parallel, so each boundary
+is a hard contract, not a guideline), summarizes the TASTE-packet protocol (the K-born TASTE-boundary
+invariant), and the Band-II replay-equality + acyclic-spine invariants.
 
 **This README is a MAP, not a spec.** It asserts nothing the binding docs do not. Authority order:
 the charter `../K.md` (the cluster→wave ledger, the DAG, the three K-born invariants) GOVERNS; the
@@ -19,29 +23,31 @@ authorization (the D→J dev/impl boundary; `K.md §Phase`). No source/demo/gate
 
 ## §1 — The DAG (rendered)
 
-The longest serial path is **W0 → W1 → (W2 ∥ W3) → W4 → WZ**, with W5's legs riding their owning
-waves and W6 parallel throughout (`K.md §WAVE MAP`, `PATH-FORWARD.md §5`):
+The longest serial path is **W0 → W1 → (W2 ∥ W3) → W4 → W7 → (W8 ∥ W9) → W10 → W12 → WZ**, with W5's
+legs riding their owning waves, W6 parallel throughout, and W11 parallel to its owning Band-II band
+(`K.md §WAVE MAP`, `PATH-FORWARD.md §5`). **Band I leads (the repair); Band II rides the honest
+substrate Band I leaves behind:**
 
 ```
-                 ┌──────────────────── proof:cold-entry + the de-vacuoused B1 ───────────────────┐
-                 │            (W0's own hard gate — CONSUMED by every later wave's verification)  │
-                 │                                                                                ▼
-   K.W0 ───────> K.W1 ─────────┬─────> K.W2 ──┐                                          (every wave
- the cold      the consume     │   the font   │                                           re-uses the
- front door    edge (re-pin    │   voice root │                                           engine-write
- plays         3.11.2→3.13.0)  │              ├──> K.W4 ──────────────────────> K.WZ      oracle to
-   │  P0 LEADS  must precede    └─────> K.W3 ──┘  the pane     ▲                  CLOSE     assert its
-   │            the design        the grid/    verdicts,       │                            own subject)
-   │            waves             anchoring    round 2         │  the TASTE review-packet
-   │                              transposition                │  VERDICT (user-domain,
-   │                                                           │  BEFORE the version cut)
-   │     ┌──── K.W5 legs ride their OWNING waves ────────────────────────────────────────────────┐
-   │     │  proof:cold-entry lands WITH W0 · proof:subject-animates(real scenes) + single-option   │
-   │     │  gate land as their surfaces land · the TASTE-packet generator rides W3's capture lib;  │
-   │     │  the packets GENERATE at W4's close · release.yml F-1 timeout-minutes rides W1           │
-   │     └──────────────────────────────────────────────────────────────────────────────────────┘
-   │
-   └──── K.W6 (the P-invariant-28 terminations + measurements) — PARALLEL throughout ─────────────►
+ ── BAND I (the repair — leads) ─────────────────────┐  ── BAND II (the round-trip frontier — rides after) ──
+   ┌─────── proof:cold-entry + the de-vacuoused B1 ───┼──────── (consumed by every later wave, both bands) ───┐
+   │        (W0's own hard gate)                      │                                                       ▼
+ K.W0 ─> K.W1 ─────┬──> K.W2 ──┐                      │   K.W7 ──┬──> K.W8 ──────┐                    (every wave
+ cold    consume   │  font     │                      │ fidelity │   ingest      │                     re-uses the
+ door    edge      │  voice    ├──> K.W4 ─────────────┼─ floor   │   (consumes   ├──> K.W10 ──┬─> K.W12 ─> K.WZ
+ plays   (3.11.2   └──> K.W3 ──┘  pane               │  (engine │    W7 diag)   │   compile  │  external  CLOSE
+  │ P0    →3.13.0)     grid/      verdicts            │  honors  │              ╎│   (inverts │  (dogfood   ▲
+  │ LEADS  precedes    anchoring  round 2             │  comp.)  └──> K.W9* ────╎┘   W7 +     │   inversion)│
+  │        design                                     │          scroll-as-CSS ╎    composes │             │
+  │                                                   │          (VJ.W1-gated) ╎    W8)  ∥ K.W11 (physics)  │
+  │                                                   │                        ╎         (group.ts; file-  │
+  │   ┌── K.W5 legs ride their OWNING waves ──────────┴──────────────────────╎─────────disjoint from W10) │
+  │   │  cold-entry WITH W0 · subject-animates(real scenes) + single-option   ╎    · TASTE review-packet  │
+  │   │  land as surfaces land · TASTE-packet rides W3 lib (generates at W4)  ╎      VERDICT (user-domain, │
+  │   └────────────────────────────────────────────────────────────────────╎──────  BEFORE version cut) ─┘
+  │                                                                          ╎  Band-II replay-equality / honest refusal
+  └── K.W6 (P-invariant-28 terminations + measurements) — PARALLEL ─────────╎──────────────────────────────────────►
+     * K.W9 born-RED-gates on value.js VJ.W1 (dispatched); K.W10's CC-2 on VJ.W2 — consume edges light on PUBLISH
 ```
 
 **Edge rationale (BINDING — `K.md §WAVE MAP`):**
@@ -62,8 +68,29 @@ waves and W6 parallel throughout (`K.md §WAVE MAP`, `PATH-FORWARD.md §5`):
   W4's close. W5 is not a serial bottleneck — it is a roster of legs distributed across the DAG.
 - **W6 is parallel.** Ledger terminations + measurements run throughout; they gate nothing on the
   critical path.
-- **WZ closes** — and the design band closes ONLY on the user's review-packet verdict (the TASTE
-  boundary), a named user-domain step scheduled BEFORE the version cut.
+- **W7 LEADS Band II.** The fidelity floor — the engine HONORS the `animation-composition` it
+  currently drops (`engine.ts` zero reads of the `adapter.ts:120-126` captured value) + the
+  diagnostics channel. Engine-internal, value.js-INDEPENDENT; the round-trip must be made HONEST
+  before it is widened. It rides the honest substrate Band I leaves behind (`K.md §WAVE MAP`).
+- **W8 ∥ W9.** W8 (ingest — the CSSOM walk → `resolveKeyframes`) FOLLOWS W7 (it consumes W7's
+  diagnostics channel). W9 (scroll-as-CSS) is value.js-GATED: it born-RED-gates on the PUBLISHED
+  value.js VJ.W1 scroll grammar (the source half lands born-RED; the consume edge lights on publish —
+  the acyclic-spine invariant, NEVER a `file:` link). They run in parallel.
+- **W10 FOLLOWS W7 + W8.** The compiler INVERTS W7's honoring (it emits the `animation-composition`
+  layering W7 taught the engine to read — a fidelity floor it must first HONOR before it can EMIT)
+  and COMPOSES with W8's ingest (the ingest→recompile loop). CC-1 core proceeds on RIPE value.js
+  (`reverseAnimationShorthand`); CC-2 oklab densify born-RED-gates on VJ.W2. The compiler is the
+  round-trip's parser run BACKWARD over the same data model, NOT a re-derived lossy emitter.
+- **W11 ∥ W10.** The physics (PHYS-C spring-driven blend weight) is engine-internal (`group.ts`),
+  **file-disjoint from the W10 compiler**, and rides the K.W0/K.W1 `scenePlaybackAdapters`/
+  `sceneMachine` playback seam Band I rebuilds. It runs parallel to the compiler.
+- **W12 CLOSES Band II.** The externalize — `proof:agent-surface` + `proof:demo-on-published-surface`
+  (ED-3 the dogfood inversion — the demo consumes the PUBLISHED barrel `@mkbabb/keyframes.js`, NOT
+  `@src`). ED-3 is honest ONLY on Band I's repaired demo + all prior frontier surfaces published — so
+  it closes the frontier band last.
+- **WZ closes** — the design band closes ONLY on the user's review-packet verdict (the TASTE
+  boundary), a named user-domain step scheduled BEFORE the version cut; the frontier band closes on
+  the replay-equality invariant (W8/W10 replay pixel-equal, or an honest refusal per CC-3).
 
 ---
 
@@ -147,22 +174,101 @@ dispositioned (the live 35m ceiling re-measured against the post-J.W4 roster —
 defect it certifies. **Source lanes:** `live-session-gap-analysis.md`, `gate-estate-k.md`, `ci-cd-k.md`.
 
 ### K.W6 — the P-invariant-28 terminations (parallel) → [`K.W6.md`](./K.W6.md)
-The DL-K 32-row deferred/chronic ledger's exit-only rows discharged: the ≥4-tranche riders exit
+The DL-K deferred/chronic ledger's exit-only rows discharged: the ≥4-tranche riders exit
 probe-or-KILL (never a bare BOOK); the mobile-lighthouse floor re-asserted on a calibrated quiet
 host; the W2-noted pre-existing drag-seam gaps (TimelineTrack/useSheetGesture/useSphereSpin)
-dispositioned; the dev-mode parity chronicle (the stale-vite-cache class) dispositioned. **Headline
-gate:** the termination artifacts — each rider exits via a born-RED gate, a measurement, a published
-consume-edge, or a reasoned KILL. **Source lane:** `deferred-ledger-k.md`.
+dispositioned; the dev-mode parity chronicle (the stale-vite-cache class) dispositioned; the
+N2-resolved DL rows (DL-K18 LRU bound, DL-K17 diagnostics PRODUCER) exit by published-consume-edge.
+**Headline gate:** the termination artifacts — each rider exits via a born-RED gate, a measurement, a
+published consume-edge, or a reasoned KILL. **Source lane:** `deferred-ledger-k.md`.
+
+---
+
+**Band II — THE ROUND-TRIP FRONTIER (K.W7–K.W12; the frontier folded WHOLESALE into K — the
+consumed body of record is `../L-SEED.md`, the §body→K.W7–K.W12 map is `../L-SEED.md §body-item
+map`).** Band II rides the honest substrate Band I leaves behind; its waves carry NET-NEW oracles for
+features that do not exist (born-RED in the FRONTIER sense — the gate reds because the capability is
+ABSENT today), proven by the replay-equality invariant or an honest refusal.
+
+### K.W7 — the fidelity floor (LEADS Band II) → [`K.W7.md`](./K.W7.md)
+The engine DROPS a declared CSS operator: `adapter.ts:24-29,120-126` captures the author-declared
+`animation-composition` (add/accumulate); `engine.ts` reads it NEVER (grep=0). W7 makes the engine
+HONOR it on rAF (the additive accumulate path) + WAAPI (composite), and authors the diagnostics
+channel on `ResolvedKeyframes` (consuming the 0.12.0 `ParseDiagnostic`/`OnParseError` producer, N2
+row 10). Engine-internal, value.js-INDEPENDENT; the round-trip made HONEST before it is widened — the
+fidelity floor W10's compiler then inverts. **Headline gate:** `proof:composition-honored` (born-RED
+in the FRONTIER sense — the engine has zero reads of the captured value today). **Source lanes:**
+`../L-SEED.md §2 WL2-B`, `waapi-level-2.md`.
+
+### K.W8 — the ingest (∥ W9) → [`K.W8.md`](./K.W8.md)
+W8 walks the live CSSOM: `fromStyleSheets()`/`fromLiveAnimations()` adopt every `@keyframes` +
+`animation-*` declaration into kf objects (`CSSKeyframesRule.cssText` → `resolveKeyframes`, the path
+that already eats exactly that); K2 `adoptRunning()` extends the round-trip into the TEMPORAL
+dimension (seamless mid-flight takeover of a running CSS animation via `getAnimations()` currentTime
+handoff — NAMED `adoptRunning` to disambiguate from the SHIPPED `engine.ts:324 adoptCompiled`,
+HARDENING-5 HAZARD-1).
+FOLLOWS W7 (consumes its diagnostics channel for the robustness surface). **Headline gate:**
+`proof:ingest-replay-equal` (the ingested CSS replays PIXEL-EQUAL to its source animation; born-RED
+in the FRONTIER sense — no CSSOM-walk surface exists; the VJ-9 totality tripwire recorded). **Source
+lanes:** `../L-SEED.md §1 #2`, `live-stylesheet-ingestion.md`.
+
+### K.W9 — the scroll-as-CSS (∥ W8, value.js-gated) → [`K.W9.md`](./K.W9.md)
+The field's #1 named gap, closed the only-kf way: W9 parses + round-trips the scroll grammar
+(`animation-timeline: scroll()/view()`, `animation-range`, `timeline-scope`, the `animation-trigger`
+layer) and DISPATCHES — native compositor ScrollTimeline where eligible, the kf `ScrollScene` JS
+driver (SO-2) where the platform falls short (Firefox/pin/snap); the pin is `position:sticky`
+SYNTHESIS (SO-3; transform-pinning SO-4 KILLED). **value.js-GATED:** the scroll grammar is VJ.W1,
+DISPATCHED to value.js's post-N tranche via `../KF-TO-VALUEJS-GRAMMAR-ASKS.md` (confirmed ABSENT in
+0.12.0). The acyclic-spine: the source half lands born-RED, the consume edge lights on value.js's
+PUBLISH — NEVER a `file:` link. **Headline gate:** `proof:scroll-roundtrip` (born-RED in the FRONTIER
+sense + value.js-gated). **Source lanes:** `../L-SEED.md §1 #3`, `scroll-orchestration.md`.
+
+### K.W10 — the compile (the XL anchor) → [`K.W10.md`](./K.W10.md)
+The round-trip's backward direction: W10 compiles `AnimationGroup`/`Sequence`/`stagger` → a
+ZERO-RUNTIME pure-CSS artifact (@keyframes + animation-* longhands + linear() springs +
+animation-composition layering — INVERTING W7's honoring), with CC-3 the honest ineligibility report
+(the four refusals: weighted blend / custom renderers / perceptual oklab / computed-unit drift —
+`waapiIneligibleReason` generalized to the CSS domain) and CC-4 the "Export CSS" editor button (the
+CSS-animation IDE). FOLLOWS W7 (inverts the honoring) + W8 (composes the ingest→recompile loop); it is
+the parser run BACKWARD over the same data model, NOT a re-derived lossy emitter (the moat is the
+faithfulness). CC-1 core proceeds on RIPE `reverseAnimationShorthand`; CC-2 oklab densify born-RED-gates
+on VJ.W2. **Headline gate:** `proof:compile-replay-equal` (the compiled CSS replays PIXEL-EQUAL
+side-by-side to the JS playback, or CC-3 REFUSES). **Source lanes:** `../L-SEED.md §1 #1`,
+`css-compiler.md`.
+
+### K.W11 — the physics (∥ W10) → [`K.W11.md`](./K.W11.md)
+The axis-3 headline, only POSSIBLE on kf's substrate: W11 drives a physical layer crossfade on the
+weighted-blend compositor (a spring drives the blend weight between animation layers — no competitor
+has a weighted-blend tier to drive). Riders: PHYS-B2 `reseatToSpring` (velocity-continuous
+interruption of a parsed-CSS animation) + PHYS-E intensity-scaled reduced-motion (the ONE PRM gate
+takes a scale, WCAG 2.3.3-aligned) + the optional `VectorSpring` S companion (sugar over N
+`SpringProgress`, droppable). Engine-internal (`group.ts`/`spring.ts`/`reduced-motion.ts`),
+**FILE-DISJOINT from the W10 compiler** (§4B below; and disjoint from W7's blend-MODE leaf — W11 is
+the per-layer blend-WEIGHT tier), riding the K.W0/K.W1 playback seam Band I rebuilds. **Headline
+gates:** `proof:spring-blend-weight` (the flagship) + `proof:reseat-velocity-continuous` +
+`proof:scaled-prm` (all born-RED in the FRONTIER sense — no spring-driven blend weight today).
+**Source lanes:** `../L-SEED.md §2 PHYS-C`, `physics-frontier.md`.
+
+### K.W12 — the externalize (CLOSES Band II) → [`K.W12.md`](./K.W12.md)
+W12 closes the frontier band: ED-1 llms.txt + the proof corpus as a public artifact + a
+`proof:agent-surface` gate (only a proof-gated library HAS a proof corpus to expose); ED-2
+`@mkbabb/keyframes-vue` (a thin NEW adapter); ED-3 the dogfood inversion (the demo consumes the
+PUBLISHED barrel — the boundary-ORACLE at the package boundary, honest ONLY on Band I's repaired demo
++ all prior surfaces published); ED-4 the public color-FIDELITY conformance harness (`deltaEOK`,
+RIPE). **Headline gates:** `proof:agent-surface` + `proof:demo-on-published-surface` (the
+dogfood-inversion gate — the demo imports `@mkbabb/keyframes.js`, the published barrel, NOT `@src`).
+**Source lanes:** `../L-SEED.md §2 ED-1`, `ecosystem-distribution.md`.
 
 ### K.WZ — the close → [`K.WZ.md`](./K.WZ.md)
 FINAL.md held to inv ε; the prompt-recap extended through the close (`prompt-recap-k.md`); the
 chronic-closure substrate transition J→K; **the TASTE review packets presented + the user verdict
-recorded** (the named user-domain step BEFORE the version cut — the design band closes ONLY here);
-the version cut (≥patch for the P0; the design band may justify minor — version owner Mike Babb,
-confirm-first); publish + the close-merge auto-deploy round-trip RE-observed (the J.W0 oracle
-re-witnessed); `L-SEED.md` committed (the frontier re-seeded UNCHANGED). **Headline gate:** the close
-round-trip RE-observed + the TASTE verdict recorded. **Source lanes:** `prompt-recap-k.md`,
-`precepts-k.md`, `packaging-k.md`.
+recorded** (the named user-domain step BEFORE the version cut — the design band closes ONLY here); the
+frontier band closed on the replay-equality invariant (W8/W10 replay pixel-equal, or an honest refusal
+per CC-3); the version cut (≥patch for the P0; the design + frontier bands may justify minor — version
+owner Mike Babb, confirm-first); publish + the close-merge auto-deploy round-trip RE-observed (the J.W0
+oracle re-witnessed); `L-SEED.md` committed (the consumed body of record). **Headline gate:** the close
+round-trip RE-observed + the TASTE verdict recorded + the frontier replay-equality oracles green.
+**Source lanes:** `prompt-recap-k.md`, `precepts-k.md`, `packaging-k.md`.
 
 ---
 
@@ -187,6 +293,21 @@ witness plan IN its owning wave spec. Source: `gate-estate-k.md §9`, `live-sess
 | **`proof:deps-current`** | FLOOR ADVANCED | K.W1 | The installed glass-ui floor advances `3.11.2 → 3.13.0` (the tilde widened) | `3.11.2 < 3.13.0`; the floor greens vacuously on the stale pin (`gate-estate-k.md §7`). |
 | **`proof:visual-lock`** | RE-BASELINED | K.W4 / K.W5 | Re-capture the golden baseline AFTER the layout/pane refinement lands — never before | The W7c baseline IS the disliked state; "green" means "unchanged from W7c", not "good" (`gate-estate-k.md §5`). |
 | **the TASTE review-packet generator** | NEW (instrument) | K.W5 (rides W3 lib) | Per-pane before/after screenshots, desktop+mobile, the named deltas — the artifact the WZ user-verdict step consumes | n/a — instrumentation, not a binary oracle (the taste band is HUMAN, `gate-estate-k.md §8`). |
+| **`proof:composition-honored`** | NEW (Band II) | K.W7 | `engine.ts` READS the captured `animation-composition` (add/accumulate) on rAF + WAAPI — the engine honors the operator it currently drops | `engine.ts` has zero reads of the `adapter.ts:120-126` captured value (grep=0) — born-RED in the FRONTIER sense (`../L-SEED.md §2 WL2-B`). |
+| **`proof:diagnostics-channel`** | NEW (Band II) | K.W7 | `ResolvedKeyframes` carries a `diagnostics` field consuming the 0.12.0 `ParseDiagnostic`/`OnParseError` producer (N2 row 10) | `adapter.ts:18` `ResolvedKeyframes` has no `diagnostics` field (`../L-SEED.md §7`). |
+| **`proof:ingest-replay-equal`** | NEW (Band II) | K.W8 | The ingested CSS (`fromStyleSheets()`/`fromLiveAnimations()`) replays PIXEL-EQUAL to its source animation | No CSSOM-walk surface exists — born-RED in the FRONTIER sense (`../L-SEED.md §1 #2`). |
+| **`proof:scroll-roundtrip`** | NEW (Band II, value.js-gated) | K.W9 | `animation-timeline`/`-range`/`-trigger` parse + round-trip + dispatch; native ScrollTimeline / kf `ScrollScene` | `CSSTimelineOptions`/`parseAnimationTimeline` ABSENT in 0.12.0 — born-RED + value.js VJ.W1-gated; consume edge lights on PUBLISH (`VALUEJS-N2-ASKS.md:61`). |
+| **`proof:compile-replay-equal`** | NEW (Band II) | K.W10 | The compiled zero-runtime CSS replays PIXEL-EQUAL side-by-side to the JS playback, or CC-3 REFUSES (the four refusals) | No compiler exists; the moat is the faithfulness — born-RED in the FRONTIER sense (`../L-SEED.md §1 #1`). |
+| **`proof:spring-blend-weight`** | NEW (Band II) | K.W11 | A spring drives the weighted-blend layer crossfade (engine-internal, `group.ts`) | No spring-driven blend weight today — born-RED in the FRONTIER sense (`../L-SEED.md §2 PHYS-C`). |
+| **`proof:agent-surface`** | NEW (Band II) | K.W12 | The published proof corpus + llms.txt exposed as a public artifact; ED-3 the demo consumes the PUBLISHED barrel | No agent surface exists; ED-3 honest ONLY on Band I's repaired demo (`../L-SEED.md §2 ED-1`). |
+
+**The Band-II gate band (`K.md §invariant set` — the replay-equality invariant):** the frontier
+gates are NET-NEW oracles for features that do not exist; they are born-RED in the FRONTIER sense
+(the gate reds because the capability is ABSENT today, NOT because a regression was planted). Each is
+proven GREEN by REPLAY-PIXEL-EQUALITY (W8 ingest, W10 compile) or an HONEST refusal (CC-3's four
+refusals — REFUSED with a named reason, never silently approximated). The value.js-gated gates
+(W9 VJ.W1, W10's CC-2 VJ.W2) light their consume edge ONLY on value.js's PUBLISH (the acyclic-spine
+invariant — born-RED-gated kf-side, NEVER a `file:` link or a vendored copy).
 
 **The honest band assignment (`gate-estate-k.md §8`):** gates carry CORRECTNESS (binary product
 properties: the engine writes, the font resolves, the slider advances, no single-option select
@@ -196,14 +317,21 @@ makes the decision; the decision itself is never the gate's.
 
 ---
 
-## §4 — The BINDING file-ownership boundary (W2 voice tokens vs W3 grid tier — EXACT)
+## §4 — The BINDING file-ownership boundaries (the parallel-wave disjoint-loci contracts)
 
-W2 and W3 are file-ADJACENT (both live in `demo/@/styles`) and run in PARALLEL, so the ownership
-boundary is a HARD CONTRACT, not a guideline. The charter declares them SEPARABLE: **"W2 owns the
-voice tokens, W3 owns the grid/anchoring tier; the spec boundary is BINDING"** (`K.md §WAVE MAP`,
-`PATH-FORWARD.md §5`). The table below is the disjoint-loci contract each spec restates in its
-§Hand-off; if the IMPL finds a line ambiguous, it is W2's iff it is a FONT-FAMILY/voice decision and
-W3's iff it is a TRACK/ANCHOR/OFFSET/cluster decision.
+Two pairs of waves run in PARALLEL on file-ADJACENT loci, so each ownership boundary is a HARD
+CONTRACT, not a guideline: **§4A — the Band-I W2 voice-tokens / W3 grid-tier seam** (both in
+`demo/@/styles`), and **§4B — the Band-II engine/compiler/physics/new-surface seam** (W7 engine.ts
+honoring ∥ W11 group.ts physics ∥ W10 the compiler ∥ W8·W9 new surfaces). Each spec restates its half
+in its §Hand-off.
+
+### §4A — Band I: W2 voice tokens vs W3 grid tier (EXACT)
+
+W2 and W3 are file-ADJACENT (both live in `demo/@/styles`) and run in PARALLEL. The charter declares
+them SEPARABLE: **"W2 owns the voice tokens, W3 owns the grid/anchoring tier; the spec boundary is
+BINDING"** (`K.md §WAVE MAP`, `PATH-FORWARD.md §5`). The table below is the disjoint-loci contract
+each spec restates in its §Hand-off; if the IMPL finds a line ambiguous, it is W2's iff it is a
+FONT-FAMILY/voice decision and W3's iff it is a TRACK/ANCHOR/OFFSET/cluster decision.
 
 | Concern | OWNER | Locus (file:line) | Root |
 |---|---|---|---|
@@ -232,6 +360,45 @@ W3's iff it is a TRACK/ANCHOR/OFFSET/cluster decision.
 - The grid-line opacity (U-K20) is a VISUAL tune, owned by **K.W4** (the pane/visual-refine wave),
   not W2 or W3 — it touches `design-idioms.css` but is neither a voice token nor an anchor.
 - The FourierField removal (U-K20's other half) is **K.W4** via `live-fourier-grid.md`, not W3.
+
+### §4B — Band II: the engine / compiler / physics / new-surface seam (EXACT)
+
+The Band-II frontier waves touch `src/animation`. Three run in parallel against ADJACENT engine
+loci — **W7 (fidelity floor) ∥ W11 (physics)** and **W10 (compiler) ∥ W11** — so the ownership
+boundary is a HARD CONTRACT. The charter declares them disjoint: **W11 physics is "engine-internal
+(`group.ts`) … file-disjoint from the compiler"** (`K.md §WAVE MAP`); **W7 honoring reads
+`engine.ts`** (the interp/composite path) while **W10's compiler is the parser run BACKWARD over the
+data model** (the `format.ts` serialize lineage extended into a compile module). The discriminator: a
+line is W7's iff it is an engine READ of `animation-composition` (the honoring), W10's iff it is a
+compile/EMIT of CSS (the round-trip backward), W11's iff it is a `group.ts` blend-weight/spring
+decision, and W8's/W9's iff it is a NEW ingest/scroll surface.
+
+| Concern | OWNER | Locus (file) | Root |
+|---|---|---|---|
+| The `animation-composition` HONORING — the engine READS the captured operator (rAF additive accumulate + WAAPI composite) | **K.W7** | `engine.ts` (the interp/composite path); reads `adapter.ts:120-126` captured value | `../L-SEED.md §2 WL2-B`, `waapi-level-2.md` |
+| The diagnostics channel on `ResolvedKeyframes` (consume the 0.12.0 `ParseDiagnostic` producer) | **K.W7** | `adapter.ts:18` (`ResolvedKeyframes` gains a `diagnostics` field) | `../L-SEED.md §7`, `VALUEJS-N2-ASKS.md` N2 row 10 |
+| `fromStyleSheets()`/`fromLiveAnimations()` (the CSSOM walk) + K2 `adoptRunning()` (named to avoid the `adoptCompiled` collision — HAZARD-1) | **K.W8** | a NEW ingest module + `index.ts`/`adapter.ts` export edges (feeds `resolveKeyframes`) | `../L-SEED.md §1 #2`, `live-stylesheet-ingestion.md` |
+| The scroll grammar parse + round-trip + dispatch; the `ScrollScene` JS driver; sticky-pin synthesis | **K.W9** | a NEW scroll module + `timeline.ts` (`ScrollTimeline`) edges; the value.js VJ.W1 consume edge | `../L-SEED.md §1 #3`, `scroll-orchestration.md` |
+| The CSS COMPILER — compile `AnimationGroup`/`Sequence`/`stagger` → zero-runtime CSS (the parser run BACKWARD) + CC-3 refusals + CC-4 Export button | **K.W10** | a NEW compile module over the `format.ts` serialize lineage (NOT in `engine.ts` — disjoint from W7's read path) | `../L-SEED.md §1 #1`, `css-compiler.md` |
+| PHYS-C spring-driven blend weight on the weighted-blend compositor + PHYS-B2/PHYS-E | **K.W11** | `group.ts` (the weighted-blend tier) — **file-disjoint from the W10 compiler** | `../L-SEED.md §2 PHYS-C`, `physics-frontier.md` |
+| ED-1 agent surface (llms.txt + proof corpus) + ED-2 `@mkbabb/keyframes-vue` + ED-3 dogfood + ED-4 `deltaEOK` harness | **K.W12** | NEW public artifacts + a NEW sibling package (`keyframes-vue`) + the demo's barrel-import edge (ED-3) | `../L-SEED.md §2 ED-1`, `ecosystem-distribution.md` |
+
+**The Band-II seam edge cases (BINDING):**
+
+- **`engine.ts` is W7's (the honoring read), NOT W10's.** W10's compiler is a NEW module over the
+  `format.ts` serialize lineage — it does NOT edit `engine.ts`'s interp path. W7 lands FIRST (it
+  LEADS Band II); W10 then INVERTS the honoring by EMITTING the `animation-composition` layering — a
+  read-then-emit dependency, not a co-edit of the same file.
+- **`group.ts` is W11's alone.** The physics blend-weight tier is file-disjoint from the W10
+  compiler (`K.md §WAVE MAP`) — W11 and W10 run in parallel WITHOUT touching each other's files.
+- **`adapter.ts` is touched by BOTH W7 (the `diagnostics` field) and W8 (the ingest feed into
+  `resolveKeyframes`).** They edit DISJOINT concerns of the same file — the `ResolvedKeyframes` type
+  (W7) vs the new `fromStyleSheets()` producer that calls `resolveKeyframes` (W8). W8 FOLLOWS W7, so
+  these land in sequence, not in parallel — the seam is temporal, not just spatial.
+- **The value.js consume edges (W9 VJ.W1, W10's CC-2 VJ.W2) are PUBLISHED consumes, born-RED-gated
+  kf-side, NEVER a `file:` link or a vendored copy** (the acyclic-spine invariant, `K.md §invariant
+  set`). The grammar lands in value.js's tree (its own repo/authorization); kf consumes it one tranche
+  behind on the publish.
 
 ---
 
@@ -281,12 +448,21 @@ TOWARD those anchors.
 | [`K.W4.md`](./K.W4.md) | K.W4 | pane verdicts r2 | Spring editor + continuous slider + red-dashed + single-option totality + FourierField removal |
 | [`K.W5.md`](./K.W5.md) | K.W5 (legs) | gate-truth | `proof:cold-entry`, B1 de-vacuoused, subject-animates on real scenes, the TASTE generator |
 | [`K.W6.md`](./K.W6.md) | K.W6 (∥) | terminations | DL-K exit-only rows discharged (probe-or-KILL, no bare BOOK) |
-| [`K.WZ.md`](./K.WZ.md) | K.WZ | CLOSE | TASTE verdict recorded + version cut + round-trip RE-observed + `L-SEED.md` committed |
+| [`K.W7.md`](./K.W7.md) | K.W7 (Band II · LEADS) | fidelity floor | The engine HONORS `animation-composition` (it currently drops it) + the diagnostics channel |
+| [`K.W8.md`](./K.W8.md) | K.W8 (∥ W9) | ingest | `fromStyleSheets()`/`fromLiveAnimations()` (the CSSOM walk) + `adoptRunning()` — replay-equal |
+| [`K.W9.md`](./K.W9.md) | K.W9 (∥ W8) | scroll-as-CSS | Parse + round-trip + dispatch the scroll grammar (value.js VJ.W1-gated) |
+| [`K.W10.md`](./K.W10.md) | K.W10 (XL anchor) | compile | `AnimationGroup`/`Sequence`/`stagger` → zero-runtime CSS (the parser run BACKWARD) |
+| [`K.W11.md`](./K.W11.md) | K.W11 (∥ W10) | physics | Spring-driven blend weight on the weighted-blend compositor (`group.ts`, file-disjoint) |
+| [`K.W12.md`](./K.W12.md) | K.W12 (Band II · CLOSES) | externalize | Agent surface + the dogfood inversion (the demo consumes the PUBLISHED barrel) |
+| [`K.WZ.md`](./K.WZ.md) | K.WZ | CLOSE | TASTE verdict recorded + frontier replay-equality green + version cut + round-trip RE-observed |
 
 ---
 
-*Cross-references: the binding charter `../K.md`; the executive summary `../PATH-FORWARD.md`; the
-board + the K open-deferrals ledger `../PROGRESS.md`; the frontier `../L-SEED.md`; the 33-doc
-evidence corpus `../audit/*.md`. The spec-structure precedent is `../audit/wave-J.W0.md`
-(§Provenance / §State-verified / §Goal / §Scope / §Hard gate / §No-workaround / §Folds / §Hand-off /
-§Design-decisions). This README is a MAP; where it and a binding doc disagree, the binding doc wins.*
+*Cross-references: the binding charter `../K.md` (two bands); the executive summary
+`../PATH-FORWARD.md`; the board + the K open-deferrals ledger `../PROGRESS.md`; the frontier body of
+record (consumed into Band II) `../L-SEED.md`; the outbound value.js grammar ask
+`../KF-TO-VALUEJS-GRAMMAR-ASKS.md`; the inbound `../VALUEJS-N2-ASKS.md`; the 33-doc evidence corpus
+`../audit/*.md` (the Band-II frontier lanes are `../audit/frontier/*.md`). The spec-structure
+precedent is `../audit/wave-J.W0.md` (§Provenance / §State-verified / §Goal / §Scope / §Hard gate /
+§No-workaround / §Folds / §Hand-off / §Design-decisions). This README is a MAP; where it and a binding
+doc disagree, the binding doc wins.*
