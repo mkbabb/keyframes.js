@@ -12,21 +12,33 @@
   `rule.cssText`, feed the EXISTING `parseCSSStylesheet → resolveKeyframes` pipeline) + K2
   `adoptRunning(el, { animationName })` (mid-flight takeover of a running CSS animation via
   `getAnimations()` currentTime handoff — NAMED `adoptRunning` to DISAMBIGUATE from the SHIPPED
-  `engine.ts:324 adoptCompiled` — HARDENING-5 HAZARD-1) + the per-sheet CORS `try/catch` reporting
-  THROUGH W7's `ResolvedKeyframes.diagnostics` channel + the `proof:ingest-replay-equal` gate
-  (born-RED in the frontier sense) + the VJ-9 totality TRIPWIRE recorded. ·
+  `engine.ts:324 adoptCompiled` — HARDENING-5 HAZARD-1) + the per-sheet CORS `try/catch` emitting a
+  `CROSS_ORIGIN_SKIP` row as a typed `ParseDiagnostic` onto W7's ALREADY-LANDED
+  `ResolvedKeyframes.diagnostics: ParseDiagnostic[]` field (`K.W7.md §Scope S4`; the same stable-`code`
+  idiom as W7's `COMPOSITION_FALLBACK`/`EMPTY_PARSE`) + the `proof:ingest-replay-equal` gate
+  (born-RED in the frontier sense) + the VJ-9 totality TRIPWIRE recorded on the deferred ledger. ·
 - **DAG-deps:** **FOLLOWS K.W7** (`K.md §WAVE MAP`: "K.W8 (ingest) follows W7 (consumes its
   diagnostics channel)") — the CORS-skip and the unrecognized-rule rows land THROUGH the
-  `ResolvedKeyframes.diagnostics` field W7 authors (a silent cross-origin drop is the exact class
-  the proof culture forbids; the channel is a PREREQUISITE, not an add-on —
-  `../audit/frontier/live-stylesheet-ingestion.md §2.1`). Runs **∥ K.W9 (scroll-as-CSS)** —
-  file-disjoint (W8 a new ingest module, W9 a new scroll module); both follow W7. **K.W10 (compile)
-  COMPOSES with W8** — K1∘CC-1 is the full ingest→recompile loop (ingest a page's `@keyframes`,
-  scrub/spring-ify it in the IDE, recompile to CSS — `../audit/frontier/css-compiler.md §5`); W10
-  follows W8. The value.js half is RIPE-with-a-tripwire: `CSSKeyframesRule.cssText` already feeds
-  `resolveKeyframes` (no net-new grammar); robustness wants VJ-9 FULL partial-input totality
-  (PARTIAL in 0.12.0 — `VALUEJS-N2-ASKS.md §3`), recorded as a TRIPWIRE, NOT a gate (the ingest
-  ships on the shipped contract; arbitrary-live-web hardening rides VJ-9 when it lands).
+  `ResolvedKeyframes.diagnostics: ParseDiagnostic[]` field W7 AUTHORED (W8 is the PRODUCER half of
+  that field; W7 added the type + consumed the published 0.12.0 `ParseDiagnostic` producer, W8
+  populates the ingest rows — a silent cross-origin drop is the exact class the proof culture
+  forbids; the channel is a PREREQUISITE, not an add-on —
+  `../../J/audit/frontier/live-stylesheet-ingestion.md §2.1`). **The W7→W8 seam is TEMPORAL** (W8
+  FOLLOWS W7 — the field exists before W8 produces onto it; `K.W7.md §Hand-off`), not just spatial.
+  Runs **∥ K.W9 (scroll-as-CSS)** — file-disjoint (W8 a new ingest module, W9 a new scroll module);
+  both follow W7. **K.W10 (compile) COMPOSES with W8** — K1∘CC-1 is the full ingest→recompile loop
+  (ingest a page's `@keyframes`, scrub/spring-ify it in the IDE, recompile to CSS —
+  `../../J/audit/frontier/css-compiler.md §5`); W10 follows W8. **The value.js half is the RIPE case of
+  the acyclic spine — NOT a born-RED-gated edge.** `CSSKeyframesRule.cssText` already feeds
+  `resolveKeyframes` on the SHIPPED 0.12.0 contract (no net-new grammar); W8 carries NO source-half
+  born-RED value.js edge (UNLIKE K.W9/K.W10, whose VJ.W1/VJ.W2 grammar gates are the ones the
+  now-RATIFIED **N.W11.D / N.W11′** producer fold ships in value.js 0.13.0 —
+  `value.js/docs/tranches/N/GRAMMAR-FOLD.md §I/§II`; `KF-TO-VALUEJS-GRAMMAR-ASKS.md §0`). The only
+  value.js futurity W8 carries is the ROBUSTNESS widening VJ-9 FULL partial-input totality (PARTIAL
+  in 0.12.0 — it lands in value.js's **VJ.W3 SUBSTRATE TOTALITY**, distinct from the N.W11.D/N.W11′
+  fold; `KF-TO-VALUEJS-GRAMMAR-ASKS.md §5` VJ.W3 row, `§3` "NOT VJ-9 full partial-input totality"),
+  recorded as a TRIPWIRE, NOT a gate (the ingest ships on the shipped contract; arbitrary-live-web
+  hardening widens when VJ-9 lands — it does not block W8).
 
 ## §Provenance (the frontier lanes this wave consumes + the booked roots)
 
@@ -41,13 +53,14 @@
   K2 `adopt()` extends the round-trip into the TEMPORAL dimension (seamless mid-flight takeover of
   a running CSS animation via `getAnimations()` currentTime handoff — the canonical owner of the
   adopt/takeover seam, absorbing WL2-C's overlap). K1∘CC-1 = the full ingest→recompile loop."
-- **`../audit/frontier/live-stylesheet-ingestion.md §1-§3` — the wave-ready engineering detail.**
+- **`../../J/audit/frontier/live-stylesheet-ingestion.md §1-§3` — the wave-ready engineering detail.**
   §1: "kf is **one thin adapter away** from animating the live web's own CSS, because the engine's
-  input is already a string of CSS and the CSSOM emits strings of CSS (`adapter.ts:97` eats
-  exactly what `CSSKeyframesRule.cssText` produces)" — the bridge is "NOT a new parser — it is a
-  thin CSSOM-walk that reconstructs the text `resolveKeyframes` already eats." "Nothing in `src/`
-  touches `styleSheets` / `getAnimations` / `cssRules` / `adoptedStyleSheets` today (grep: zero
-  hits). The frontier is genuinely net-new capability, not a re-litigation." §2.1 (the hard edge):
+  input is already a string of CSS and the CSSOM emits strings of CSS (`adapter.ts:94`
+  `resolveKeyframes` → `adapter.ts:97` `parseCSSStylesheet` eats exactly what
+  `CSSKeyframesRule.cssText` produces)" — the bridge is "NOT a new parser — it is a thin CSSOM-walk
+  that reconstructs the text `resolveKeyframes` already eats." "Nothing in `src/` touches
+  `styleSheets` / `getAnimations` / `cssRules` / `adoptedStyleSheets` today (grep: zero hits). The
+  frontier is genuinely net-new capability, not a re-litigation." §2.1 (the hard edge):
   "`document.styleSheets[i].cssRules` throws a `SecurityError` for any cross-origin sheet without
   `Access-Control-Allow-Origin` + `crossorigin` on the `<link>`. … a 'walk every sheet' ingester
   MUST `try/catch` per-sheet and REPORT the skipped cross-origin sheets — it cannot silently drop
@@ -57,13 +70,16 @@
   … BUT: a CSS-originated `Animation`'s `replaceState` becomes `removed` if the underlying
   `animation-name` is removed/replaced, and a `fill:forwards` WAAPI animation takes precedence
   over all static styles until `commitStyles()` + `cancel()`. **kf already solved exactly this
-  handoff** — `playWAAPI` commits-on-finish then cancels to avoid the leaked-precedence trap
-  (`waapi.ts:386-398`)." §3 K1 verdict K-HEADLINE-CANDIDATE (M); K2 verdict K-CANDIDATE (L,
+  handoff** — `playWAAPI` commits-on-finish (`waapi.ts:404` awaits `wa.finished`, `:420-422`
+  feature-detects + calls `wa.commitStyles()`, then cancels) to avoid the leaked-precedence trap
+  (the lane's `waapi.ts:386-398` cite predates the W1 commit-on-finish block; the verified
+  discipline locus is `waapi.ts:404-422` — §State-verified)." §3 K1 verdict K-HEADLINE-CANDIDATE
+  (M); K2 verdict K-CANDIDATE (L,
   "strictly downstream of K1 … it needs K1's CSSOM reconstruction to preserve the axes" — K2
   reconstructs from the CSSOM `@keyframes` rule via K1, using `getAnimations()` ONLY for the
   playhead + timing, never as the keyframe source, "because the computed form has already lost
   `var()`/`cqw`/oklab — the very things kf's axes preserve").
-- **`../audit/frontier/waapi-level-2.md §5` — the `getAnimations()` interop seam (K2's
+- **`../../J/audit/frontier/waapi-level-2.md §5` — the `getAnimations()` interop seam (K2's
   discover/takeover detail).** §5.1: "`document.getAnimations()` is Baseline-widely-available and
   returns every live `Animation` on the document — CSS animations, CSS transitions, and WAAPI
   animations alike." §5.2 (i) DISCOVER + TAKEOVER: "read the CSS source the animation came from
@@ -94,35 +110,59 @@
   HAZARD-1 (the `adoptCompiled` collision) is resolved in §Scope by NAMING the new method
   `adoptRunning`.
 
-## §The state, verified (file:line / grep / API anchors)
+## §The state, verified (file:line / grep / API anchors — re-probed TODAY 2026-06-15)
 
 - **NO CSSOM-walk surface exists (CONFIRMED against the tree, 2026-06-15 — the born-RED root):**
   `grep -rn "styleSheets|getAnimations|cssRules|adoptedStyleSheets|fromStyleSheets|fromLiveAnimations"
   src/` → **ZERO hits** (the §State-verified probe printed "(ZERO hits — confirmed absent)"). kf
   has no `fromStyleSheets`, no `fromLiveAnimations`, no `getAnimations` read, no `cssRules` walk.
-  The capability is genuinely net-new.
-- **The text-bridge the ingest reuses is SHIPPED (CONFIRMED):** `resolveKeyframes(css)`
-  (`adapter.ts:96`) → value.js `parseCSSStylesheet` (a STRING parser); `CSSKeyframesAnimation.fromString(css)`
-  (`engine.ts`) consumes the full `ResolvedKeyframes`. The CSSOM emits `CSSKeyframesRule.cssText`
-  — a serialized author rule, EXACTLY the string `resolveKeyframes` eats. So K1 is the CSSOM walk
-  + `cssText` extraction + the EXISTING pipeline — no grammar work.
+  The capability is genuinely net-new — the gate reds because the surface does not exist.
+- **K2's `getAnimations()` takeover is SEPARATELY absent (CONFIRMED — the K2-specific born-RED
+  probe):** `grep -n "getAnimations|getKeyframes|currentTime|playState|CSSAnimation"
+  src/animation/engine.ts` → **ZERO hits** (the §State-verified probe printed "(ZERO
+  getAnimations/CSSAnimation in engine.ts — confirmed)"). The engine cannot enumerate, read the
+  playhead of, or adopt a running native animation. K2 is born-RED in the capability-ABSENT sense.
+- **The text-bridge the ingest reuses is SHIPPED (CONFIRMED):** `resolveKeyframes`
+  (`adapter.ts:94` the signature) → `adapter.ts:97` `parseCSSStylesheet(input)` (value.js's STRING
+  parser); `CSSKeyframesAnimation.fromString(keyframes)` (`engine.ts:1251`) consumes the full
+  `ResolvedKeyframes`. The CSSOM emits `CSSKeyframesRule.cssText` — a serialized author rule,
+  EXACTLY the string `resolveKeyframes` eats. So K1 is the CSSOM walk + `cssText` extraction + the
+  EXISTING pipeline — no grammar work. *(The lane's `adapter.ts:96`/`engine.ts:1227` cites predate
+  the J/K totality edits; the verified anchors are `adapter.ts:94`/`:97`, `engine.ts:1251`.)*
 - **The `adoptCompiled` COLLISION is real and scoped (CONFIRMED — HARDENING-5 HAZARD-1):**
   `engine.ts:324` `adoptCompiled(source: Animation<V>): this` already exists (gated by
   `proof:adopt-compiled`; `engine.ts:99,103` docstring "Adopt a compiled state via
-  `adoptCompiled(source)`"). It adopts a COMPILED `Animation` state INTERNALLY — it is NOT the K2
-  mid-flight `getAnimations()` takeover (`engine.ts` has ZERO `getAnimations` refs — the
-  §State-verified grep). **The K2 method MUST be named distinctly** — this spec NAMES it
+  `adoptCompiled(source)`"; the body transplants `source.compiler` whole — `engine.ts:324-335`).
+  It adopts a COMPILED `Animation` state INTERNALLY — it is NOT the K2 mid-flight
+  `getAnimations()` takeover (`engine.ts` has ZERO `getAnimations` refs — the §State-verified
+  grep above). **The K2 method MUST be named distinctly** — this spec NAMES it
   `adoptRunning(el, { animationName })` (the running-CSS-animation takeover), reserving `adopt()`
   for neither (the bare `adopt()` the ingestion lane K2 used would collide — the lane's `adopt()`
   is renamed here per HAZARD-1).
 - **The `commitStyles`/`cancel` handoff discipline is SHIPPED (CONFIRMED):** `playWAAPI`
-  commits-on-finish then cancels to avoid the leaked-precedence trap (`waapi.ts:386-398`); K2's
-  takeover reuses this discipline in the OPPOSITE direction (commit-on-ADOPT — bake the current
-  computed frame inline before cancelling the native animation, so there is no flash).
-- **value.js robustness status (CONFIRMED):** `@mkbabb/value.js@0.12.0` published; the
-  `parseCSSValueUnit("")` partial contract shipped at 0.11.2; VJ-9 FULL partial-input totality
-  remains OPEN (`VALUEJS-N2-ASKS.md §3`). The ingest ships on the shipped contract; the tripwire
-  records the robustness widening.
+  commits-on-finish then cancels to avoid the leaked-precedence trap (`waapi.ts:404` awaits
+  `wa.finished`, `:420-422` feature-detects + calls `wa.commitStyles()`; the cancel rides the
+  `stop()`/`reset()` lifecycle — `waapi.ts:382` comment); K2's takeover reuses this discipline in
+  the OPPOSITE direction (commit-on-ADOPT — bake the current computed frame inline before
+  cancelling the native animation, so there is no flash).
+- **W7's diagnostics field is the consume target (CONFIRMED ABSENT today, AUTHORED by W7):**
+  `grep -n "diagnostics" src/animation/adapter.ts` → NO hits today (the field does not exist on
+  the current tree); the SOLE `diagnostics` token in `src/` is the prose seed
+  `frame-compiler.ts:65` ("the full diagnostics channel stays a K.W0 seed"). W7 ADDS
+  `diagnostics: ParseDiagnostic[]` to `ResolvedKeyframes` (`K.W7.md §Scope S4`, consuming the published
+  0.12.0 `ParseDiagnostic`/`OnParseError` producer); W8 PRODUCES the `CROSS_ORIGIN_SKIP` rows onto
+  it. The W8 consume rides W7's already-landed field — a TEMPORAL dependency, not a co-author.
+- **value.js robustness status (CONFIRMED — the RIPE consume + the recorded tripwire):**
+  `@mkbabb/value.js@0.12.0` published (registry-verified `npm view @mkbabb/value.js@0.12.0 version`
+  → `0.12.0`); the installed pin is `^0.11.2` (`package.json:179`) — K.W1 re-pins to `^0.12.0`
+  BEFORE the frontier band (`K.md §Phase`), so W8's `cssText → resolveKeyframes` path rides the
+  SAME shipped 0.12.0 grammar K.W7 consumes. The `parseCSSValueUnit("")` partial contract shipped
+  at 0.11.2; **VJ-9 FULL partial-input totality remains OPEN — it lands in value.js's VJ.W3
+  SUBSTRATE TOTALITY (PARTIAL: producer shipped, full totality open), NOT in the now-RATIFIED
+  N.W11.D/N.W11′ grammar fold** (which ships VJ.W1/VJ.W2 — the K.W9/K.W10 gates, not W8;
+  `KF-TO-VALUEJS-GRAMMAR-ASKS.md §5` VJ.W3 row, `value.js/docs/tranches/N/GRAMMAR-FOLD.md`). The
+  ingest ships on the shipped contract TODAY; the tripwire records the robustness widening that
+  rides VJ-9's eventual publish — never a born-RED gate on W8.
 
 ## §Goal
 
@@ -163,8 +203,9 @@ recompile them back to CSS. Three moves:
   filter `instanceof CSSKeyframesRule`); (b) the `animation-name` → sibling-style-rule linkage
   (so an ingested `@keyframes pulse` also carries the `.foo { animation: pulse 2s }` options);
   (c) the `rule.cssText` serialize → the EXISTING `parseCSSStylesheet → resolveKeyframes` feed.
-  **WHY no parser work:** `adapter.ts:96` eats exactly what `CSSKeyframesRule.cssText` produces
-  (`../audit/frontier/live-stylesheet-ingestion.md §1`). **WHY HEAVY:** it needs the parser (the
+  **WHY no parser work:** `resolveKeyframes` (`adapter.ts:94` → `:97` `parseCSSStylesheet`) eats
+  exactly what `CSSKeyframesRule.cssText` produces (`../../J/audit/frontier/live-stylesheet-ingestion.md
+  §1`). **WHY HEAVY:** it needs the parser (the
   value.js stylesheet grammar) — it rides `loadAnimationEngine()`, the boundary unchanged.
   **NO-WORKAROUND:** NOT a new grammar/parser (the text bridge reuses `resolveKeyframes` WHOLE —
   the moment K1 re-parses or re-derives the keyframes itself it forfeits the round-trip's
@@ -176,10 +217,11 @@ recompile them back to CSS. Three moves:
   authored form, preserving `var()`/`cqw`/oklab); (4) seed the kf animation at the captured
   `currentTime` (the continuity seed — NOT seed-at-zero, which flashes); (5) `commitStyles()` the
   native animation's current computed frame inline, then `cancel()` it (the commit-on-ADOPT, the
-  inverse of `waapi.ts:386-398`); (6) hand control to the kf engine. **WHY reconstruct from the
+  inverse of `playWAAPI`'s commit-on-finish `waapi.ts:404-422`); (6) hand control to the kf engine.
+  **WHY reconstruct from the
   CSSOM rule, NOT `getAnimations().getKeyframes()`:** the computed keyframe list has already
   px-resolved `var()`/`cqw` and RGB-baked oklab — "the very things kf's axes preserve"
-  (`../audit/frontier/live-stylesheet-ingestion.md §2.2/K2`); `getAnimations()` is used ONLY for
+  (`../../J/audit/frontier/live-stylesheet-ingestion.md §2.2/K2`); `getAnimations()` is used ONLY for
   the playhead + timing scalar. **WHY `adoptRunning`, NOT `adopt()`:** the bare `adopt()` collides
   with the shipped `engine.ts:324 adoptCompiled` semantically (a reader would conflate the
   compiled-state internal adopt with the live-takeover) — `adoptRunning` names the
@@ -191,7 +233,7 @@ recompile them back to CSS. Three moves:
   module's per-sheet `try/catch` emits `CROSS_ORIGIN_SKIP` rows onto the
   `ResolvedKeyframes.diagnostics` field W7 authored; the unrecognized-rule and WAAPI-ineligibility
   reasons flow the same channel. **WHY a prerequisite, not an add-on:** "ingestion's honest
-  failure mode IS a diagnostic" (`../audit/frontier/live-stylesheet-ingestion.md §2.1`) — a CORS
+  failure mode IS a diagnostic" (`../../J/audit/frontier/live-stylesheet-ingestion.md §2.1`) — a CORS
   sheet that throws `SecurityError` is REPORTED, never dropped. The VJ-9 TRIPWIRE is recorded: the
   ingest ships on the shipped `parseCSSValueUnit` partial contract; when value.js publishes VJ-9
   FULL partial-input totality (`VALUEJS-N2-ASKS.md §3`), the ingest's robustness widens (every
@@ -220,16 +262,21 @@ CSSOM-walk surface exists today (the §State-verified ZERO grep).
   escape:** the assert is PIXEL-equality vs the source, not a structural "did it parse" check —
   a lossy reconstruction (wrong values, dropped stop) reds even though it "parsed."
 - **clause (b) — the round-trip is byte-faithful (CORRECTNESS · the serialize symmetry).** The
-  reconstructed kf object's serialized output (`CSSKeyframesToString`) re-parses to a
-  template-equivalent of the source `@keyframes` (the `format.ts` symmetry already tested for
-  AUTHORED input — extend the corpus to CSSOM-sourced input; `../audit/frontier/live-stylesheet-ingestion.md
-  §3 K1` measure-first gate). **BITE:** reds if the CSSOM round-trip mutates the template (a
-  `var()`/`matrix3d()` that should round-trip VERBATIM is lost). **NO escape:** the serialize is
-  from the DECLARED template, not a DOM-resolved sample (`format.ts:155` — the I.W0 S2 discipline).
+  reconstructed kf object's serialized output (`CSSKeyframesToString`, `format.ts:124`) re-parses
+  to a template-equivalent of the source `@keyframes` (the `format.ts` symmetry already tested for
+  AUTHORED input — extend the corpus to CSSOM-sourced input; `../../J/audit/frontier/live-stylesheet-ingestion.md
+  §3 K1` measure-first gate). **BORN-RED WITNESS:** there is no `fromStyleSheets` to feed the
+  serializer a CSSOM-sourced object today (the §State-verified ZERO grep) → the CSSOM round-trip
+  corpus has no input to exercise → the gate REDS by construction (the capability is ABSENT).
+  **BITE:** reds if the CSSOM round-trip mutates the template (a `var()`/`matrix3d()` that should
+  round-trip VERBATIM is lost). **NO escape:** the serialize is from the DECLARED template
+  (`format.ts:53-57` "the parsed-but-unresolved var map", `format.ts:74-85` `declaredKeyframeBody`),
+  NEVER a DOM-resolved sample (the I.W0 S2 discipline — the same one that keeps `var()`/`cqw`/oklab
+  intact through the round-trip).
 - **clause (c) — K2 `adoptRunning()` is FLASH-FREE (CORRECTNESS · the continuity oracle).** Adopt
   a running CSS animation at a known `currentTime`; the computed style at the adopt instant is
   within ε of the pre-adopt computed style (no flash), and scrubbing thereafter runs the kf curve
-  (`../audit/frontier/live-stylesheet-ingestion.md §3 K2` measure-first gate; the chrome-devtools-mcp
+  (`../../J/audit/frontier/live-stylesheet-ingestion.md §3 K2` measure-first gate; the chrome-devtools-mcp
   continuity probe). **BORN-RED WITNESS:** "a naive seed-at-zero adopt flashes; the cure is the
   `currentTime`-continuous seed" — the gate plants the seed-at-zero defect and witnesses the flash
   (the computed style jumps to the 0% state), then the continuity seed cures it. **BITE:** reds on
@@ -238,11 +285,16 @@ CSSOM-walk surface exists today (the §State-verified ZERO grep).
   observable a seed-at-zero adopt provably violates.
 - **clause (d) — the CORS skip is a DIAGNOSTIC, never a silent drop (CORRECTNESS · the honesty
   surface).** A cross-origin sheet (no `Access-Control-Allow-Origin`) is SKIPPED with a
-  `CROSS_ORIGIN_SKIP` row on the `ResolvedKeyframes.diagnostics` channel — the ingest does NOT
-  throw `SecurityError` uncaught and does NOT silently omit the sheet with no signal. **BITE:**
-  reds if a CORS sheet either throws uncaught (crash) or is dropped with no diagnostic row (silent
-  drop — the forbidden class). **NO escape:** the row is the per-sheet `try/catch` producer onto
-  W7's channel — the honest-failure clause of the ingest.
+  `CROSS_ORIGIN_SKIP` row — a typed `ParseDiagnostic` (the W7 producer type, the same stable-`code`
+  shape as W7's `COMPOSITION_FALLBACK`/`EMPTY_PARSE`) — on the `ResolvedKeyframes.diagnostics:
+  ParseDiagnostic[]` channel; the ingest does NOT throw `SecurityError` uncaught and does NOT
+  silently omit the sheet with no signal. **BORN-RED WITNESS:** there is no CSSOM walk to TRIGGER a
+  per-sheet `try/catch` today (the §State-verified ZERO grep on `cssRules`/`styleSheets`), and W7's
+  field carries no `CROSS_ORIGIN_SKIP` producer until W8 lands → the row-emit assert REDS by
+  construction. **BITE:** reds if a CORS sheet either throws uncaught (crash) or is dropped with no
+  diagnostic row (silent drop — the forbidden class). **NO escape:** the row is the per-sheet
+  `try/catch` producer onto W7's channel — the honest-failure clause of the ingest; a structural
+  "did it skip" check would pass on a silent drop, so the assert is the PRESENCE of the typed row.
 - **clause (e) — `adoptRunning` does NOT collide with `adoptCompiled` (HYGIENE — the HAZARD-1
   guard, labeled).** The new method is `adoptRunning`; `engine.ts:324 adoptCompiled` is untouched;
   `proof:adopt-compiled` still greens unchanged. *(Labeled HYGIENE — it guards the name collision
@@ -258,17 +310,31 @@ pixel/byte/continuity/diagnostic proof. **Two-tier taxonomy:** the wave's GREEN 
 replay-equality correctness clauses (a)-(d); clause (e) is a HYGIENE corroborator (the
 name-collision guard). **Replay-equality posture (declared):** this wave IS the forward half of
 the round-trip; its hard gate IS the replay-equality invariant (ingested CSS replays equal to its
-source — `K.md §invariant set`). **P6 posture (declared):** the structural legs (b: byte-faithful
-round-trip; d: the diagnostic row) are device-INDEPENDENT → they hard-gate on the Linux runner
-(jsdom can construct a `CSSStyleSheet` and walk `cssRules`); the PIXEL-equality legs (a, c) need a
-real renderer → they run on the headed chrome-devtools-mcp tier with a per-EXPECTED predicate (the
-sampled-`t` pixel diff), NOT a fixed settle. **Budget 0** (the gate asserts a POSITIVE product
-property — the ingest replays equal — not an error count; clause (d) asserts the CORS path emits a
-row, not that it throws). **value.js gate status:** RIPE-with-tripwire — the `cssText →
-resolveKeyframes` path is SHIPPED (no OPEN gate, no born-RED edge); the VJ-9 FULL partial-input
-totality is a recorded TRIPWIRE (the robustness widens on its publish), NOT a blocking gate. So
-W8 authors and runs the moment K.W7 lands — it does not wait on value.js's post-N tranche (unlike
-K.W9, which born-RED-gates on the OPEN VJ.W1).
+source — `K.md §invariant set`). **P6 posture (declared, per clause):**
+- *clause (b) — byte-faithful round-trip — device-INDEPENDENT* → hard-gates on the Linux runner
+  (jsdom constructs a `CSSStyleSheet`, walks `cssRules`, and the serialize/re-parse symmetry is a
+  computed-string fact, no renderer needed).
+- *clause (d) — the CORS diagnostic row — device-INDEPENDENT* → hard-gates on Linux (the CORS
+  `SecurityError` is simulated by a jsdom sheet stub whose `cssRules` getter throws; the assert is
+  the PRESENCE of the typed `CROSS_ORIGIN_SKIP` row, a structural fact — no real cross-origin
+  network needed).
+- *clause (a) — pixel-equal forward replay — RENDERER-DEPENDENT* → runs on the headed
+  chrome-devtools-mcp tier (jsdom does not paint; the source CSS animation needs a real compositor
+  to compare against) with a per-EXPECTED predicate (the sampled-`t` pixel diff), NOT a fixed settle.
+- *clause (c) — flash-free `adoptRunning` continuity — RENDERER-DEPENDENT* → runs headed: it needs
+  a RUNNING native `CSSAnimation` with a live `currentTime` (jsdom's `getAnimations()` returns no
+  running CSS animation), and the no-flash assert is a computed-style-continuity observable across
+  the adopt instant — per-EXPECTED settle on the adopt event, never a wall-clock sleep.
+
+**Budget 0** (the gate asserts a POSITIVE product property — the ingest replays equal — not an
+error count; clause (d) asserts the CORS path EMITS a row, not that it throws). **value.js gate
+status:** RIPE-with-tripwire — the `cssText → resolveKeyframes` path is SHIPPED (no OPEN gate, no
+born-RED edge); the VJ-9 FULL partial-input totality is a recorded TRIPWIRE on value.js's VJ.W3
+(the robustness widens on its publish), NOT a blocking gate, and NOT part of the N.W11.D/N.W11′
+grammar fold. So **W8 authors and runs the moment K.W7 lands** — it does not wait on value.js's
+post-N tranche (UNLIKE K.W9, which born-RED-gates on the OPEN VJ.W1 the N.W11′ fold ships, and
+K.W10's CC-2, which gates on VJ.W2/N.W11.D — those consume edges light on the 0.13.0 publish; W8's
+does not, because it has none).
 
 ## §No-workaround prohibitions (BINDING — the mandate's named forbiddings for this wave)
 
@@ -277,18 +343,22 @@ K.W9, which born-RED-gates on the OPEN VJ.W1).
   faithfulness (the moat is that kf's input AND the CSSOM's output are both author `@keyframes`
   text — `K.md §MANDATE`: "the compiler is the round-trip's parser run BACKWARD over the same data
   model"; the ingest is the parser run FORWARD over the same data model). The ARCH WASM-parser
-  kill is not even brushed (`../audit/frontier/live-stylesheet-ingestion.md §3 K1`).
+  kill is not even brushed (`../../J/audit/frontier/live-stylesheet-ingestion.md §3 K1`).
 - **NO silent cross-origin drop (S3).** Every skipped sheet is a `CROSS_ORIGIN_SKIP` diagnostic
   row on W7's channel — never an uncaught `SecurityError` and never a silent omission. "A silent
-  drop is the exact class the proof culture forbids" (`../audit/frontier/live-stylesheet-ingestion.md
+  drop is the exact class the proof culture forbids" (`../../J/audit/frontier/live-stylesheet-ingestion.md
   §2.1`).
 - **NO seed-at-zero adopt (S2).** `adoptRunning` seeds at the captured `currentTime`
   (velocity/phase-continuous), NOT at zero (which flashes). The flash is a born-RED witness in
   clause (c).
 - **NO reading the keyframe SOURCE from `getAnimations()` (S2).** K2 reconstructs the keyframes
   from the CSSOM `@keyframes` RULE (via K1 — the authored form, preserving `var()`/`cqw`/oklab);
-  `getAnimations()` provides ONLY the playhead + timing scalar. The computed `getKeyframes()` form
-  has lost the axes (`../audit/frontier/live-stylesheet-ingestion.md §2.2`).
+  `getAnimations()` provides ONLY the playhead (`currentTime`) + timing scalar (`playState`). The
+  computed `KeyframeEffect.getKeyframes()` form has already px-resolved `var()`/`cqw` and RGB-baked
+  oklab — "the very things kf's axes preserve" (`../../J/audit/frontier/live-stylesheet-ingestion.md
+  §2.2`; `../../J/audit/frontier/waapi-level-2.md §5.4` "`getKeyframes()` gives the computed keyframe
+  list, not the authored CSS"). Reconstructing from the computed list would silently forfeit the
+  round-trip's faithfulness — the exact moat-loss the mandate forbids.
 - **NO `adopt()` name collision (S2 — HARDENING-5 HAZARD-1).** The method is `adoptRunning`, NOT
   `adopt()`. The shipped `engine.ts:324 adoptCompiled` (compiled-state internal adopt) is
   untouched; the new live-takeover method is named distinctly so a reader never conflates them.
@@ -301,20 +371,27 @@ K.W9, which born-RED-gates on the OPEN VJ.W1).
 
 - **K1** (the CSSOM-walk ingester) — S1 (`fromStyleSheets()`/`fromLiveAnimations()`/
   `resolveLiveKeyframes`). `../L-SEED.md §1 #2` + the §body→K.W8 map;
-  `../audit/frontier/live-stylesheet-ingestion.md §3 K1` (K-HEADLINE-CANDIDATE, M);
-  `adapter.ts:96` (the reused pipeline), `src/` ZERO CSSOM hits (born-RED).
+  `../../J/audit/frontier/live-stylesheet-ingestion.md §3 K1` (K-HEADLINE-CANDIDATE, M);
+  `adapter.ts:94`/`:97` (the reused `resolveKeyframes` → `parseCSSStylesheet` pipeline),
+  `engine.ts:1251` (`fromString` consumes it), `src/` ZERO CSSOM hits (born-RED).
 - **K2** (`adoptRunning()` mid-flight takeover) — S2. `../L-SEED.md §1 #2` (the `adopt()` row,
-  renamed per HAZARD-1); `../audit/frontier/live-stylesheet-ingestion.md §3 K2` (K-CANDIDATE, L,
-  downstream of K1); `../audit/frontier/waapi-level-2.md §5` (the `getAnimations()` interop);
-  `waapi.ts:386-398` (the reused commit/cancel discipline); `engine.ts:324 adoptCompiled` (the
-  collision the new name avoids).
+  renamed per HAZARD-1); `../../J/audit/frontier/live-stylesheet-ingestion.md §3 K2` (K-CANDIDATE, L,
+  downstream of K1); `../../J/audit/frontier/waapi-level-2.md §5` (the `getAnimations()` interop;
+  §5.4 the source-recovery caveat that forces reconstruct-from-CSSOM); `waapi.ts:404-422` (the
+  reused commit-on-finish/`commitStyles`/cancel discipline); `engine.ts:324 adoptCompiled` (the
+  collision the new name avoids), `engine.ts` ZERO `getAnimations`/`CSSAnimation` (the K2 born-RED).
 - **K3-FULL (the CORS-skip / WAAPI-reason diagnostic rows)** — S3 (the PRODUCER half onto W7's
-  `ResolvedKeyframes.diagnostics` field). `../audit/frontier/live-stylesheet-ingestion.md §3 K3`
-  ("the FULL channel (CORS skip, WAAPI reasons) is K-scoped because it presupposes K1"). W7
-  AUTHORS the field; W8 PRODUCES the ingest rows.
+  `ResolvedKeyframes.diagnostics: ParseDiagnostic[]` field). `../../J/audit/frontier/live-stylesheet-ingestion.md
+  §3 K3` ("the FULL channel (CORS skip, WAAPI reasons) is K-scoped because it presupposes K1"). W7
+  AUTHORS the field (consuming the published 0.12.0 `ParseDiagnostic` producer); W8 PRODUCES the
+  ingest rows (`CROSS_ORIGIN_SKIP` + the WAAPI-ineligibility reasons) as typed `ParseDiagnostic`s.
 - **The VJ-9 robustness TRIPWIRE** — S3 (recorded, named condition). `../VALUEJS-N2-ASKS.md §3`
   (VJ-9 partial; the every-public-entry totality open) + `VALUEJS-N2-ASKS.md §2 row 4` (VJ-3
-  sentinels, ingestion robustness for K1). NOT a gate — a recorded widening.
+  sentinels, ingestion robustness for K1); the disposition is value.js's **VJ.W3 SUBSTRATE
+  TOTALITY** (`KF-TO-VALUEJS-GRAMMAR-ASKS.md §5` VJ.W3 row — "PARTIAL: producer shipped, full
+  totality open"), explicitly NOT the N.W11.D/N.W11′ grammar fold (`KF-TO-VALUEJS-GRAMMAR-ASKS.md
+  §3` "NOT VJ-9 full partial-input totality … the ingest ships on the shipped partial contract and
+  widens on VJ-9's publish"). NOT a gate — a recorded widening on the deferred ledger.
 
 ## §Hand-off (the BINDING file-ownership boundary — §4B of the README, restated)
 
@@ -329,27 +406,43 @@ W8 follows W7 and runs ∥ W9. Its loci (`waves/README.md §4B`):
   TYPE (W7) vs the new CSSOM-walk producer (W8). **W8 FOLLOWS W7, so these land in SEQUENCE, not
   in parallel** — the seam is TEMPORAL, not just spatial (README §4B: "W8 FOLLOWS W7, so these
   land in sequence … the seam is temporal").
-- **W8 ∥ W9 are file-disjoint.** W8 a new ingest module; W9 a new scroll module + `timeline.ts`
-  edges. They run in parallel without touching each other's files.
+- **W8 ∥ W9 are file-disjoint.** W8 a new ingest module + `adapter.ts`/`index.ts` export edges;
+  W9 a new scroll module + `timeline.ts`/`format.ts` edges (`K.W9.md §Scope`). They run in parallel
+  without touching each other's files. The ONLY shared file is `index.ts` (both add HEAVY exports —
+  W8 `resolveLiveKeyframes`/`fromStyleSheets`/`adoptRunning`, W9 the scroll surface); the seam is an
+  append to disjoint export lines, not a co-edit of the same symbol.
+- **W10 COMPOSES with W8 (the K1∘CC-1 loop) — a read-then-emit dependency, NOT a co-edit.** W10's
+  compiler (a NEW module over the `format.ts` serialize lineage) CONSUMES the `CSSKeyframesAnimation`
+  objects W8 produces (ingest a page's `@keyframes` → recompile to CSS), but it does NOT edit W8's
+  ingest module and W8 does NOT edit W10's compiler. The compose is at the OBJECT boundary (W8
+  yields kf objects, W10 emits CSS from them — `../../J/audit/frontier/css-compiler.md §5`); W10 FOLLOWS
+  W8 in the DAG, so the loop closes in sequence, never as a parallel co-write.
 - **The `adoptRunning` method lives on the engine surface; it does NOT touch `adoptCompiled`.**
   The HAZARD-1 disambiguation is a NAMING contract, not a co-edit — `adoptCompiled`
   (`engine.ts:324`) is untouched; `proof:adopt-compiled` greens unchanged.
 - **The value.js consume is the SHIPPED `cssText → resolveKeyframes` path + the VJ-9 tripwire —
-  NEVER a `file:` link or a vendored copy** (the acyclic-spine invariant). W8 needs no net-new
-  value.js grammar (the ingest is RIPE); the VJ-9 widening rides value.js's post-N publish when it
-  lands.
+  NEVER a `file:` link or a vendored copy** (the acyclic-spine invariant `K.md §invariant set`; the
+  cross-repo dev-resolution contract-v2 `../../../precepts/cross-repo-dev-resolution.md §2.1/§2.4`:
+  the bare `@mkbabb/value.js` specifier resolves through the `exports` map to the published `dist/`,
+  no `file:` alias, no sibling-`src/` widening). W8 needs no net-new value.js grammar (the ingest
+  is RIPE — it rides the SAME 0.12.0 grammar K.W1 re-pins for the whole band, born-RED-gated
+  kf-side only in the capability-ABSENT sense, NOT on an unpublished value.js symbol). The VJ-9
+  widening rides value.js's VJ.W3 publish (distinct from the N.W11.D/N.W11′ scroll/ramp fold that
+  gates K.W9/K.W10) when it lands — a robustness widening on the consume edge, never a block.
 
 ## §Design-decisions (the named calls this spec makes, so the impl does not re-litigate)
 
 - **The ingest is the parser run FORWARD over the same data model — NOT a re-derived ingester.**
   K1 reuses `resolveKeyframes` whole over `rule.cssText`; the round-trip's faithfulness is that
   the engine's input and the CSSOM's output are both author `@keyframes` text (the moat —
-  `../audit/frontier/live-stylesheet-ingestion.md §1`). A re-parse would be the lossy re-derivation
+  `../../J/audit/frontier/live-stylesheet-ingestion.md §1`). A re-parse would be the lossy re-derivation
   the compiler lane (K.W10) names as the moat-forfeit.
 - **K2 reconstructs from the CSSOM rule, NOT the computed keyframes.** `getAnimations()` provides
-  the playhead; K1 provides the authored keyframes (preserving the axes). This is the named
-  coupling that pushes K2 to L-effort and the reason it is STRICTLY downstream of K1
-  (`../audit/frontier/live-stylesheet-ingestion.md §3 K2`).
+  the playhead (`currentTime`/`playState`); K1 provides the authored keyframes (preserving the
+  `var()`/`cqw`/oklab axes the computed `getKeyframes()` list has lost —
+  `../../J/audit/frontier/waapi-level-2.md §5.4`). This is the named coupling that pushes K2 to L-effort
+  and the reason it is STRICTLY downstream of K1 (`../../J/audit/frontier/live-stylesheet-ingestion.md
+  §3 K2`).
 - **The method is `adoptRunning`, resolving HARDENING-5 HAZARD-1.** The bare `adopt()` the lane
   proposed would collide with the shipped `adoptCompiled` (a reader conflates the compiled-state
   internal adopt with the live takeover). `adoptRunning` names the running-CSS-animation takeover
@@ -361,4 +454,14 @@ W8 follows W7 and runs ∥ W9. Its loci (`waves/README.md §4B`):
 - **K1∘CC-1 is the ingest→recompile loop (composes with K.W10).** Ingest a page's `@keyframes`,
   scrub/spring-ify it in the IDE, recompile to CSS — the full round-trip. W8 ships the forward
   half; W10 ships the backward half; the loop closes when both land
-  (`../audit/frontier/css-compiler.md §5`).
+  (`../../J/audit/frontier/css-compiler.md §5`).
+- **Precepts adherence (the standing constellation law, cited).** This wave's value.js consume is
+  the PUBLISHED 0.12.0 grammar resolved through the `exports` map — the contract-v2 shape
+  (`../../../precepts/cross-repo-dev-resolution.md §2.1`), NEVER a `file:`/vendored/dev-condition
+  path (`§2.4` prohibitions). The dev/impl boundary HOLDS: this is a SPEC only — no
+  `src/`/`test/`/CI edit is authored here (`K.md §The DEV / IMPL boundary`). KISS + measure-first +
+  no-legacy-beside-its-replacement (`K.md §MANDATE`): the ingest reuses `resolveKeyframes` WHOLE (no
+  parallel parser), the diagnostics channel is a FLAT additive field of typed `ParseDiagnostic`s
+  (no logging framework), and the one perf-adjacent surface (the CSSOM walk) "runs once, at ingest"
+  (`../../J/audit/frontier/live-stylesheet-ingestion.md §3 K1`) — not a hot path, so the gate is
+  correctness, not perf.

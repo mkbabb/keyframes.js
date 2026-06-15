@@ -6,7 +6,8 @@
   and drives every exit-only row to a discharge that is a measurement artifact (a recorded
   number from a quiet host, a born-RED→GREEN gate, a published consume-edge), a tracked
   HANDOFF/BOOK with a NAMED tripwire, or a reasoned KILL — never a perpetual "MEASURE-FIRST"
-  punt re-deferred to L. · **DAG-deps:** **PARALLEL throughout** (`K.md §WAVE MAP`: "K.W6 is
+  punt re-deferred to a never-coming successor (P-invariant-28; there is no residual L). ·
+  **DAG-deps:** **PARALLEL throughout** (`K.md §WAVE MAP`: "K.W6 is
   parallel" / "W6 parallel throughout"). W6 does NOT block any other wave and is NOT blocked by
   any: its rows are the ledger residue the design/cold-path waves do NOT own. It CONSUMES three
   things the leading waves produce — (i) the **K ledger substrate** that K.W0's first motion
@@ -162,7 +163,8 @@ Make the K open-deferrals ledger TELL THE TRUTH about its own terminality: every
 the cluster waves do not own crosses its boundary with a **discharge a future reader can
 re-derive** — a recorded number from a named quiet host, a born-RED→GREEN gate diff, a published
 consume-edge, a tracked HANDOFF/BOOK with a NAMED tripwire, or a reasoned KILL — and **zero rows
-survive the close as a bare "MEASURE-FIRST"** that simply re-defers the measurement to L. This
+survive the close as a bare "MEASURE-FIRST"** that simply re-defers the measurement to a never-coming
+successor (there is no residual L). This
 is P-invariant-28 applied to the ledger residue: the §2 roll-up's ten ≥4-tranche riders each
 have their exit FORM on the record (W6 owns some; W6 AUDITS that the cluster-wave-owned ones
 discharged), and the perpetual-punt class (DL-K11 "remain UNASSERTED pending a calibrated host",

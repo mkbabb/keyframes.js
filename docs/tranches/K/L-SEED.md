@@ -22,8 +22,10 @@ one publish fresher (`lerpArray`, `deltaEOK`, `reverseAnimationShorthand` — `V
 §2 row 12). Only the **two genuine net-new gates remain OPEN** — **VJ.W1 SCROLL GRAMMAR** (gating
 the scroll wave) and **VJ.W2 PERCEPTUAL RAMP `sampleColorRamp`** (gating the compile wave's CC-2
 densify) — both confirmed ABSENT in 0.12.0 (`VALUEJS-N2-ASKS.md:61,124`), and both **DISPATCHED**
-to value.js's post-N tranche via the kf-side outbound ask `KF-TO-VALUEJS-GRAMMAR-ASKS.md`
-(the mirror of the inbound `VALUEJS-N2-ASKS.md`).
+to value.js via the kf-side outbound ask `KF-TO-VALUEJS-GRAMMAR-ASKS.md` (the mirror of the inbound
+`VALUEJS-N2-ASKS.md`) — RATIFIED into value.js's **N.W11.D / N.W11′ library track**, shipping in the
+**0.13.0** cut (`value.js …/N/GRAMMAR-FOLD.md`); the kf consume edges (K.W9/K.W10) light on the 0.13.0
+publish.
 
 **On 2026-06-15 the user folded the frontier WHOLESALE into K Band II — there is NO residual L.**
 Per the binding charter (`docs/tranches/K/K.md` — title line, `§The frontier, un-blocked (Band
@@ -188,6 +190,15 @@ J.W6's PF-8; the increment is generic numerics, off-axis) · ED-2-React (after t
 adapter proves the shape) · EPF-4 warmEngine() rides any K wave (S).
 
 ## §7 The value.js HALF (the boundary fleet — `valuejs-{census,frontier-allocation,fold-in,fold-out,boundary-judge}.md`)
+
+> **Cadence note (the consumption header supersedes the seed's wave numbering).** This §7 is the
+> FROZEN 2026-06-10 divination — it numbers the consume edges against the original pre-fold K shape
+> (K.W2/K.W3) and frames VJ.W1/VJ.W2 as a generic "value.js next-tranche SEED". The CURRENT, binding
+> disposition is the consumption header (top of this doc): the frontier folded WHOLESALE into K Band II
+> (the consume edges are **K.W9** scroll / **K.W10** CC-2 densify), and VJ.W1/VJ.W2 are RATIFIED into
+> value.js's **N.W11.D / N.W11′ library track**, shipping in the **0.13.0** cut
+> (`KF-TO-VALUEJS-GRAMMAR-ASKS.md`, `value.js …/N/GRAMMAR-FOLD.md`). The seed text below is evidence
+> of record; where it and the header differ, the header (and the per-wave specs) win.
 
 **The boundary principle (charter law, from the judge):** *value.js owns VALUES — CSS
 value/unit/color parse + serialize, the keyframes and shorthand GRAMMARS, DOM-aware computed

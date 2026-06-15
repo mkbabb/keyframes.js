@@ -6,7 +6,7 @@
   such directory** (no `@mkbabb/keyframes-vue`), `grep -rn "@mkbabb/keyframes" demo/` → **ZERO hits**
   (the demo reaches the engine through deep `@src/animation/*` paths, NOT the published barrel — the
   dogfood inversion is genuinely ABSENT), and `grep -rn "deltaEOK" src/` → **ZERO** (the value.js
-  0.12.0 `deltaEOK` producer is published but kf-unconsumed — no public color-fidelity harness
+  installed-0.11.2 `deltaEOK` producer is present but kf-unconsumed — no public color-fidelity harness
   exists). The capability is absent, not regressed: each gate reds because the surface does not
   exist.) · **Scope (NEW public artifacts + a NEW sibling package + the demo's barrel-import edge +
   ONE new gate; no engine source touched):** ED-1 `/llms.txt` + `/llms-full.txt` + the proof corpus
@@ -35,9 +35,11 @@
   — ED-1's llms.txt indexes the round-trip recipe (the ingest K.W8, the compile K.W10, the scroll
   K.W9, the composition-honoring K.W7); ED-4's color-fidelity harness shares the ΔE proof discipline
   with K.W10's CC-2 densify (`css-compiler.md §7` — "the only measurement is FIDELITY (the pixel/ΔE
-  proof)"). The value.js half is RIPE-CONSUMED (no OPEN gate): `deltaEOK` shipped in 0.12.0
-  (`VALUEJS-N2-ASKS.md §2 row 12`, the barrel `:172`), so W12 carries NO acyclic-spine born-RED edge
-  — like W7, it is a frontier wave whose every external dependency is already published.
+  proof)"). The value.js half is RIPE-CONSUMED (no OPEN gate): `deltaEOK` shipped in **0.11.2** and is
+  present in the installed barrel at `:20` (`VALUEJS-N2-ASKS.md §2 row 12`; the §State-verified probe),
+  so W12 carries NO acyclic-spine born-RED edge — like W7, it is a frontier wave whose every external
+  dependency is already published (and unlike K.W9/K.W10's CC-2, W12 needs NOTHING from value.js's
+  pending 0.13.0 cut).
 
 ## §Provenance (the frontier lane this wave consumes + the booked roots)
 
@@ -119,11 +121,25 @@
   dogfood inversion (the demo consumes the PUBLISHED barrel — the boundary-ORACLE at the package
   boundary), ED-4 the public color-FIDELITY conformance harness (the one benchmark only kf can publish
   honestly: midpoint deltaE vs CSS Color 4, not a throughput pissing match)."
-- **The N2 consume edge (RIPE, no acyclic-spine born-RED).** `../VALUEJS-N2-ASKS.md §2 row 12`: "The
-  RIPE-NOW edges all stand — `deltaEOK` (`:172`) … KF-DELTAE → ED-4/CC-2 — unchanged from L-SEED
-  RIPE-NOW; now one publish fresher." This is a PUBLISHED-CONSUME edge already shipped in 0.12.0; W12
-  is the wave that lights it for ED-4 (the SAME `deltaEOK` the K.W10 CC-2 densify pixel-proof consumes
-  — one producer, two consumers, both RIPE).
+- **The `deltaEOK` consume edge (RIPE since 0.11.2, no acyclic-spine born-RED).** `../VALUEJS-N2-ASKS.md
+  §2 row 12`: "The RIPE-NOW edges all stand — `deltaEOK` … KF-DELTAE → ED-4/CC-2 — unchanged from
+  L-SEED RIPE-NOW; now one publish fresher." **The precise currency (probe of record, 2026-06-15):**
+  `deltaEOK` is RIPE-NOW since **0.11.2** — it is NOT a 0.12.0-only producer (`../L-SEED.md §7` "RIPE
+  NOW (kf consume-edges gating on NOTHING — all shipped in 0.11.2) … KF-DELTAE `deltaEOK`"). The
+  INSTALLED tree pins `^0.11.2` (`package.json:179`), and the probe
+  `grep -rn "deltaEOK" node_modules/@mkbabb/value.js/dist/index.d.ts` →
+  `:20 export { … deltaEOK …, gamutMapOKLab, … } from './units/color/gamut'` (the installed **0.11.2**
+  barrel — the producer is present TODAY at `:20`, NOT pending). `deltaEOK` therefore consumes
+  RIPE regardless of the K.W1 `^0.11.2 → ^0.12.0` re-pin — the re-pin (`K.md §The consume edge`)
+  un-blocks OTHER N2 edges, but ED-4's ΔE kernel was already shipped a publish earlier. This is a
+  PUBLISHED-CONSUME edge; W12 is the wave that lights it for ED-4 (the SAME `deltaEOK` the K.W10 CC-2
+  densify pixel-proof consumes — one producer, two consumers, both RIPE). The value.js-side producer
+  doc-lineage (`value.js/docs/tranches/N/GRAMMAR-FOLD.md §I.2`, the now-RATIFIED N.W11.D fold) names
+  the SAME kernel: "`deltaEOK` (`gamut.ts:53`) … the spacing oracle AND the kf-side CC-2 ΔE
+  ship-vs-refuse proof — the SAME kernel both sides consume; ships 0.12.0." W12's ΔE consume needs
+  NOTHING from the pending 0.13.0 cut (unlike K.W9's `CSSTimelineOptions` / K.W10's CC-2
+  `sampleColorRamp`, which born-RED-gate on N.W11′/N.W11.D's 0.13.0 publish) — ED-4 is RIPE on the
+  installed 0.11.2.
 - **The 12 KILLs carried (`../L-SEED.md §5`, this wave's anti-charter):** ED-6 JSR publish is KILLED
   ("provenance already owned via `npm --provenance` in release.yml; JSR transpile-on-publish would
   LOSE the hand-tuned static/dynamic boundary") — W12 does NOT add a JSR target. The BOOK band
@@ -133,8 +149,9 @@
 - **The booked invariant roots:** `K.md §invariant set` — the **boundary-ORACLE precept** (J-born,
   carried — `proof:agent-surface` is the gate-ORACLE at the AGENT boundary, `proof:demo-on-published-surface`
   the boundary-ORACLE at the PACKAGE boundary) + the **acyclic-spine invariant** (W12's value.js half
-  is RIPE-consumed — `deltaEOK` shipped in 0.12.0; no OPEN gate, no born-RED edge; the agent surface
-  and the Vue adapter are kf-owned artifacts, value.js-grammar-independent) + the **TASTE boundary**
+  is RIPE-consumed — `deltaEOK` shipped in 0.11.2, present in the installed `^0.11.2` barrel at
+  `:20`; no OPEN gate, no born-RED edge, no unpublished symbol; the agent surface and the Vue
+  adapter are kf-owned artifacts, value.js-grammar-independent) + the **TASTE boundary**
   (W12 carries NO appearance verdict — its surfaces are correctness artifacts; the K.W4 pane re-cut's
   TASTE verdict closes at K.WZ, NOT here). The ED-5 spurious-Vue-peer fold was DISCHARGED at J.W5
   (the §body→K-SEED `§4 J-amendments` row; `grep -n peerDependencies package.json` → NO block today —
@@ -160,23 +177,41 @@
   `index.ts:20` "`loadAnimationEngine()` — an `await import('./engine')`"). The demo could not even be
   written against the published barrel TODAY without changing how it reaches the heavy tier — exactly
   the ED-3 honest tension (`ecosystem-distribution.md §1.2/§4`).
-- **The vite self-alias is the reason the demo writes `@src`, not the barrel (CONFIRMED):**
-  `vite.config.ts:152-156` — `"@src": …/src`, `"@mkbabb/keyframes.js": …/src/animation/index.ts`
-  (the self-alias points the bare specifier at the SOURCE so glass-ui's bare
-  `import … from "@mkbabb/keyframes.js"` resolves — `:142-151` header). The demo itself never writes
-  that import; it writes `@src`. ED-3 flips the demo's OWN kf imports onto `@mkbabb/keyframes.js`
-  (which the alias already resolves to source in dev, and which `npm i` resolves to the tarball in a
-  real consumer) — a real architectural change to how every scene mounts its engine, NOT a doc edit.
-- **`deltaEOK` is PUBLISHED and RIPE but kf-UNCONSUMED (CONFIRMED — the ED-4 consume edge):**
-  `grep -rn "deltaEOK" node_modules/@mkbabb/value.js/dist/index.d.ts` → `export { … deltaEOK …
-  gamutMapOKLab, … } from './units/color/gamut'` (the 0.12.0 barrel). `grep -rn "deltaEOK" src/` →
-  **ZERO** — kf does not yet consume it. ED-4's harness lights this edge (`VALUEJS-N2-ASKS.md §2 row
-  12`); it rides the K.W1 re-pin (`^0.11.2 → ^0.12.0`) like every other Band-II value.js consume.
+- **The vite self-alias is the reason the demo CAN write the barrel-specifier in dev (CONFIRMED — and
+  it is a DOCUMENTED contract-v2 supersession, NOT a fossil to attack):** `vite.config.ts:152-156` —
+  `"@src": …/src`, `"@mkbabb/keyframes.js": path.resolve(…, "src/animation/index.ts")`. The in-repo
+  header (`:140-151`) names WHY the self-alias exists and WHY it is precept-legal: "with glass-ui
+  consumed from the registry (not a workspace link), glass-ui's bare `import … from
+  '@mkbabb/keyframes.js'` … has no installed package to resolve against — rolldown would stub it as an
+  empty optional-peer-dep and drop the export. The self-alias dedupes glass-ui onto the SAME keyframes
+  instance the demo uses via `@src` … **(Supersedes contract-v2's no-self-alias rule, which presupposed
+  the `file:` symlink walk that the registry pin removed.)**" So the
+  `cross-repo-dev-resolution.md §2.4` no-self-alias prohibition is ALREADY superseded in-repo for the
+  registry-pin reason (gated quiet by `proof:resolution`, glass-ui-owned) — ED-3 does NOT touch the
+  alias and does NOT re-litigate the precept. ED-3's change is solely that the DEMO'S OWN kf imports
+  flip from `@src/animation/*` to the bare `@mkbabb/keyframes.js` specifier (which the existing alias
+  resolves to source in dev, and which `npm i` resolves to the tarball in a real consumer) — a real
+  architectural change to how every scene WRITES its engine import, NOT a doc edit and NOT an alias
+  edit. The alias is the dev-RESOLUTION substrate; the inversion is the demo WRITING the public
+  SPECIFIER over it.
+- **`deltaEOK` is PUBLISHED-and-INSTALLED-and-RIPE but kf-UNCONSUMED (CONFIRMED 2026-06-15 — the ED-4
+  consume edge, and the ED-4 born-RED root):**
+  `grep -rn "deltaEOK" node_modules/@mkbabb/value.js/dist/index.d.ts` →
+  `:20 export { DELTA_E_OK_JND, deltaEOK, oklabToLinearSRGB, …, gamutMapOKLab, … } from './units/color/gamut'`
+  — the producer is present at `:20` of the **installed 0.11.2** barrel
+  (`node -p "require('./node_modules/@mkbabb/value.js/package.json').version"` → **`0.11.2`**; the pin
+  is `^0.11.2`, `package.json:179`). `grep -rn "deltaEOK" src/` → **ZERO** — kf does not yet consume
+  it (the ED-4 born-RED: the producer ships, kf's harness does not exist). **The currency, precisely:**
+  `deltaEOK` is RIPE-NOW since **0.11.2** (`../L-SEED.md §7` "RIPE NOW … all shipped in 0.11.2 … KF-DELTAE
+  `deltaEOK`"), NOT a 0.12.0-only symbol — so the consume is NOT gated on the K.W1 `^0.11.2 → ^0.12.0`
+  re-pin (the re-pin un-blocks the OTHER N2 edges, `K.md §The consume edge`; ED-4's ΔE kernel was already
+  installed). ED-4's harness lights THIS edge (`VALUEJS-N2-ASKS.md §2 row 12`) on the installed barrel.
 - **J.W5's publish + manifest + `proof:published-surface` LANDED (CONFIRMED — the ED-1/ED-3 floor):**
   `node -p "require('./package.json').version"` → **`4.2.0`** (published on npm, release.yml's first
   run); `ls docs/published-surface.md` → **present** (the authoritative export roster ED-1 indexes
   and ED-3 asserts against); `grep -n "proof:published-surface\|proof:dogfood" package.json` →
-  `:44 proof:published-surface`, `:48 proof:dogfood` (both in the `proof:all` roster, `:160`). The
+  `:44 proof:published-surface`, `:48 proof:dogfood` (both wired into the `proof:hygiene` aggregate at
+  `package.json:160`, which `proof:all` (`:161`) chains via `proof:correctness && proof:hygiene`). The
   three-way published-surface oracle (tarball==`files`, every export ∈ README∪manifest, AnimationEngine
   interface ≡ runtime) is the STATIC floor ED-1 indexes and ED-3 makes DYNAMIC (`ecosystem-distribution.md
   §0/§4`). **W12 builds ON this floor; it does NOT re-author it** (inv ε — no manufactured work).
@@ -232,7 +267,8 @@ humans, frameworks, and agents alike. Four moves, each at the gestalt altitude t
    plays post-K.W0, the panes re-cut post-K.W4).
 4. **ED-4 — the public color-fidelity harness (S4).** A reproducible conformance harness: animate
    `#C462D8 → #E85252` (and a corpus of pairs), sample the midpoint, compare ΔE against the CSS Color
-   4 reference using the value.js 0.12.0 `deltaEOK` (RIPE-consumed) — PUBLISH the fidelity numbers.
+   4 reference using value.js's `deltaEOK` (RIPE-consumed since 0.11.2, installed barrel `:20`) —
+   PUBLISH the fidelity numbers.
    The ONE benchmark that extends a unique axis (axis-2 perceptual color) and is un-spinnable (it
    measures correctness against a spec, not speed against a rival). The throughput benchmark is BOOK
    (the credibility trap — `../L-SEED.md §5`/`ecosystem-distribution.md §5.3`); W12 ships the fidelity
@@ -242,8 +278,10 @@ humans, frameworks, and agents alike. Four moves, each at the gestalt altitude t
 
 - **S1 — ED-1 the agent surface (NEW public artifacts + ONE gate; NO engine source touched).** Locus:
   NEW `/llms.txt` + `/llms-full.txt` (repo root, served as public artifacts) + a NEW
-  `scripts/proof-agent-surface.mjs` wired to `npm run proof:agent-surface` + added to the `proof:all`
-  roster (`package.json:160`). The artifacts are GENERATED (not hand-maintained drift surfaces):
+  `scripts/proof-agent-surface.mjs` wired to `npm run proof:agent-surface` + chained into the
+  `proof:hygiene` aggregate (`package.json:160`) that `proof:all` (`:161`) runs (the same wiring the
+  existing `proof:published-surface`/`proof:dogfood` gates carry — `:160`). The artifacts are GENERATED
+  (not hand-maintained drift surfaces):
   `/llms.txt` lists the 13 primitives from `docs/published-surface.md`, each with a one-line intent +
   its README anchor + its `proof:*` gate name; `/llms-full.txt` inlines the round-trip recipe (the
   parse→animate→serialize canonical recipe — kf's axis-1, the thing only kf does) + the full export
@@ -292,11 +330,14 @@ humans, frameworks, and agents alike. Four moves, each at the gestalt altitude t
   `demo/sequence/…:4`, `demo/square/…:1`, `demo/cube/CubeTarget.vue:108` — flipped to the public
   `loadAnimationEngine()` boundary, an `await` at mount) + a NEW
   `scripts/proof-demo-on-published-surface.mjs` wired to `npm run proof:demo-on-published-surface` +
-  added to `proof:all`. The vite self-alias (`vite.config.ts:153-156`) already resolves
-  `@mkbabb/keyframes.js` to source in dev, so the dev HMR loop is preserved; the change is that the
-  DEMO now WRITES the public specifier (not `@src`), so the running storefront exercises the exact
-  surface a `npm i` consumer reaches — if a public export is missing, mis-typed, or wrongly tier-split,
-  the demo fails to build. `proof:demo-on-published-surface` is a build/grep oracle: (a) the demo's kf
+  chained into the `proof:hygiene` aggregate (`package.json:160`) that `proof:all` (`:161`) runs. The
+  vite self-alias (`vite.config.ts:152-156`) already resolves
+  `@mkbabb/keyframes.js` to source in dev (a DOCUMENTED contract-v2 supersession for the registry-pin
+  reason — `:140-151` header; `cross-repo-dev-resolution.md §2.4` no-self-alias is already superseded
+  in-repo, gated quiet by glass-ui's `proof:resolution`), so the dev HMR loop is preserved UNTOUCHED;
+  the change is that the DEMO now WRITES the public specifier (not `@src`), so the running storefront
+  exercises the exact surface a `npm i` consumer reaches — if a public export is missing, mis-typed, or
+  wrongly tier-split, the demo fails to build. `proof:demo-on-published-surface` is a build/grep oracle: (a) the demo's kf
   imports are `@mkbabb/keyframes.js` ONLY (zero `@src/animation/*` deep imports outside the
   `env.d.ts`/test seams); (b) the demo still mounts every scene's engine (the runtime leg — the
   inversion did not break the heavy-tier reach). **WHY this is the boundary-ORACLE COMPLETION:**
@@ -318,7 +359,9 @@ humans, frameworks, and agents alike. Four moves, each at the gestalt altitude t
   a still-broken demo (the inversion gates on Band I — a broken demo on the published barrel is a lie).
 - **S4 — ED-4 the public color-fidelity harness (the `deltaEOK` consume; NO throughput benchmark).**
   Locus: a NEW public conformance harness (a reproducible script + a published results artifact —
-  `proof:roundtrip-fidelity`/`bench/` lineage; it consumes the value.js 0.12.0 `deltaEOK`). The harness:
+  `proof:roundtrip-fidelity`/`bench/` lineage — `proof:roundtrip-fidelity` exists today,
+  `package.json:74`; it consumes value.js's `deltaEOK`, RIPE since 0.11.2, installed barrel `:20`).
+  The harness:
   animate a corpus of color pairs (e.g. `#C462D8 → #E85252`), sample the midpoint of kf's oklab lerp,
   compare ΔE against the CSS Color 4 reference midpoint using `deltaEOK` (the RIPE-consumed producer);
   PUBLISH the ΔE numbers (the conformance result — un-spinnable, a spec-measured correctness fact).
@@ -416,8 +459,12 @@ on the headed chrome-devtools-mcp tier (the aria flip + the slider advance, NOT 
 **Budget 0** (the gate asserts POSITIVE product properties — the index exists and matches, the demo
 consumes the barrel, the harness publishes the conformance — not an error count; the pre-cure tree
 threw NOTHING, the surfaces were simply ABSENT). **value.js gate status:** RIPE-CONSUMED — `deltaEOK`
-shipped in 0.12.0; W12 carries NO acyclic-spine born-RED edge (like W7, a frontier wave whose every
-external dependency is already published; the consume rides the K.W1 re-pin).
+shipped in **0.11.2** and is present in the installed `^0.11.2` barrel at `:20` (the §State-verified
+probe); W12 carries NO acyclic-spine born-RED edge (like W7, a frontier wave whose every external
+dependency is already published — and unlike K.W9/K.W10's CC-2, which born-RED-gate on the OPEN
+N.W11′/N.W11.D 0.13.0 cut, W12 needs NOTHING from 0.13.0). The K.W1 `^0.11.2 → ^0.12.0` re-pin
+un-blocks the OTHER N2 consumes; ED-4's ΔE kernel was installed a publish earlier and consumes RIPE
+either way.
 
 ## §No-workaround prohibitions (BINDING — the mandate's named forbiddings for this wave)
 
@@ -440,7 +487,9 @@ external dependency is already published; the consume rides the K.W1 re-pin).
   tier flips from `import … from "@src/animation/engine"` (the raw, NON-public chunk) to the PUBLIC
   `loadAnimationEngine()` boundary — a partial flip that keeps the heavy tier on the raw chunk is still
   the SOURCE boundary, not the PACKAGE boundary (the inversion is incomplete). The demo must WRITE the
-  public specifier; the vite self-alias is a dev-resolution convenience, NOT the inversion.
+  public specifier; the vite self-alias (`vite.config.ts:152-156`, a documented contract-v2
+  supersession) is the dev-RESOLUTION substrate that resolves that specifier to source in dev, NOT the
+  inversion itself — the inversion does not edit the alias.
 - **NO inversion onto a still-broken demo (S3 — the Band-I precondition).** The dogfood inversion gates
   on Band I (K.W0–K.W4) having repaired the demo — flipping a broken demo onto the published barrel
   certifies a broken product against its own package (a lie). Clause (c) asserts the cold-entry oracle
@@ -453,8 +502,10 @@ external dependency is already published; the consume rides the K.W1 re-pin).
 - **NO JSR publish target (the ED-6 KILL).** W12 does NOT add a JSR target — provenance is already
   owned (`npm --provenance` in release.yml, J.W5/WZ); JSR transpile-on-publish would LOSE the
   hand-tuned static/dynamic boundary (`../L-SEED.md §5` ED-6, a researched KILL, non-re-litigable).
-- **NO re-authored `deltaEOK` kernel (S4).** The color-fidelity harness CONSUMES the value.js 0.12.0
-  `deltaEOK` producer (`VALUEJS-N2-ASKS.md §2 row 12`), NOT a kf-local ΔE re-implementation (a
+- **NO re-authored `deltaEOK` kernel (S4).** The color-fidelity harness CONSUMES value.js's PUBLISHED
+  `deltaEOK` producer (RIPE since 0.11.2, installed barrel `:20`; `VALUEJS-N2-ASKS.md §2 row 12`; the
+  same kernel the now-RATIFIED N.W11.D fold names at `GRAMMAR-FOLD.md §I.2`/`gamut.ts:53`), NOT a
+  kf-local ΔE re-implementation (a
   re-author breaches inv-16 published-only consumption and is the legacy the mandate forbids). The
   acyclic-spine here is RIPE — value.js ships the ΔE math; kf consumes it.
 
@@ -474,8 +525,10 @@ external dependency is already published; the consume rides the K.W1 re-pin).
 - **ED-3 (the dogfood inversion)** — S3 (the demo's barrel-import edge + `proof:demo-on-published-surface`).
   `../L-SEED.md §2 ED-3` (the boundary-ORACLE at the package boundary, honest ONLY on Band I's repaired
   demo); `ecosystem-distribution.md §1.2/§4` (the gap + the frontier move + the K-not-J tension);
-  `vite.config.ts:153-156` (the self-alias — why the demo writes `@src` today); the 60 `@src/animation/*`
-  demo files (born-RED). **Gates on Band I (K.W0–K.W4) — the §Hand-off names the dependency.**
+  `vite.config.ts:152-156` (the self-alias — the dev-RESOLUTION substrate, a documented contract-v2
+  supersession the inversion does NOT touch; the demo flips its OWN written specifier, not the alias);
+  the 60 `@src/animation/*` demo files (born-RED). **Gates on Band I (K.W0–K.W4) — the §Hand-off names
+  the dependency.**
 - **ED-4 (the public color-fidelity harness)** — S4 (the midpoint-ΔE conformance harness consuming
   `deltaEOK`). `../L-SEED.md §2 ED-4` (the one benchmark kf can publish honestly); `ecosystem-distribution.md
   §5.4` (the K-CANDIDATE-sliver — un-spinnable, axis-2); `VALUEJS-N2-ASKS.md §2 row 12` (the RIPE
@@ -517,9 +570,13 @@ W12 is the LAST Band-II wave; it CLOSES the frontier band. Its loci (`waves/READ
   statically, `loadAnimationEngine()` for the heavy `CSSKeyframesAnimation`), born-correct-gated on its
   own `proof:published-surface` discipline. It declares the Vue peer; the core library never.
 - **The value.js consume edge (`deltaEOK`) is a PUBLISHED consume, NOT a `file:` link or a vendored
-  copy** (the acyclic-spine invariant). It rides the K.W1 re-pin (`^0.11.2 → ^0.12.0`); W12 consumes
-  the producer one tranche behind, RIPE — no OPEN gate, no unpublished symbol (the producer is already
-  on npm, the SAME `deltaEOK` K.W10's CC-2 consumes).
+  copy** (the acyclic-spine invariant). The producer is one tranche behind and already INSTALLED
+  (`^0.11.2`, barrel `:20`), RIPE — no OPEN gate, no unpublished symbol, no born-RED edge (the source
+  half is GREEN at value.js's side: `deltaEOK` shipped 0.11.2, the N.W11.D fold re-confirms it at
+  `GRAMMAR-FOLD.md §I.2`/`gamut.ts:53` "ships 0.12.0", and W12's consume needs nothing from the pending
+  0.13.0 cut). It does NOT depend on the K.W1 `^0.11.2 → ^0.12.0` re-pin (the re-pin un-blocks the
+  OTHER N2 consumes; ED-4's kernel was installed already) — the SAME `deltaEOK` K.W10's CC-2 ΔE proof
+  consumes, one producer, two RIPE consumers.
 - **→ K.WZ (the close, BINDING):** W12 closes Band II on the boundary-ORACLE (the agent index ==
   the surface, the demo == the package, the fidelity conformance published). K.WZ records the frontier
   band CLOSED on the replay-equality invariant (W8/W10 replay pixel-equal, W12 exposes them); the
@@ -573,9 +630,14 @@ W12 is the LAST Band-II wave; it CLOSES the frontier band. Its loci (`waves/READ
   compiles replay-pixel-equal; ED-4 shares K.W10's ΔE discipline). The replay-equality invariant
   (`K.md §invariant set`) closes the frontier band at K.WZ on W8/W10's pixel-proofs; W12 is the surface
   that makes those proofs externally consumable.
-- **W12's value.js half is RIPE — no acyclic-spine born-RED — RESOLVED.** `deltaEOK` shipped in 0.12.0
-  (`VALUEJS-N2-ASKS.md §2 row 12`); the agent surface + the Vue adapter are kf-owned artifacts
-  (value.js-grammar-independent). W12 carries NO OPEN gate, no unpublished symbol — like W7, it is a
-  frontier wave whose every external dependency is already published (unlike K.W9/K.W10's CC-2, which
-  gate on the OPEN VJ.W1/VJ.W2). The consume rides the K.W1 re-pin; the close-band publish (the agent
-  artifacts + the `keyframes-vue` package) is USER-DOMAIN at K.WZ.
+- **W12's value.js half is RIPE — no acyclic-spine born-RED — RESOLVED.** `deltaEOK` shipped in
+  **0.11.2** and is present in the installed `^0.11.2` barrel at `:20` (`VALUEJS-N2-ASKS.md §2 row 12`;
+  the §State-verified probe); the agent surface + the Vue adapter are kf-owned artifacts
+  (value.js-grammar-independent). W12 carries NO OPEN gate, no unpublished symbol, no born-RED edge —
+  like W7, it is a frontier wave whose every external dependency is already published. **Unlike
+  K.W9/K.W10's CC-2** (which born-RED-gate on the OPEN VJ.W1/VJ.W2, dispatched as the now-RATIFIED
+  value.js N.W11′/N.W11.D fold shipping in 0.13.0 — `GRAMMAR-FOLD.md`/`KF-TO-VALUEJS-GRAMMAR-ASKS.md`),
+  W12 needs NOTHING from the pending 0.13.0 cut: its only value.js edge (`deltaEOK`) is RIPE on the
+  installed 0.11.2. ED-4's consume does NOT depend on the K.W1 re-pin (the re-pin un-blocks the OTHER
+  N2 consumes); the close-band publish (the agent artifacts + the `keyframes-vue` package) is
+  USER-DOMAIN at K.WZ.

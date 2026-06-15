@@ -14,7 +14,7 @@
   operator the engine cannot faithfully HONOR.) · **Scope (engine-internal, value.js-INDEPENDENT;
   ONE captured-value read + ONE producer consume):** the `animation-composition` HONORING wired
   from the captured `adapter.ts:120-126` Map into the rAF additive-accumulate blend leaf
-  (`group.ts:316-375`, the G.W17-fixed element-wise loop) + the WAAPI `composite` pass-through
+  (`group.ts:298-373`, the G.W17-fixed element-wise case block) + the WAAPI `composite` pass-through
   (`waapi.ts` `toWAAPIKeyframes`/`toWAAPIOptions`, a Baseline keyword forward) + the
   `ResolvedKeyframes.diagnostics` channel consuming the SHIPPED 0.12.0 `ParseDiagnostic`/
   `OnParseError` producer (N2 row 10) + the `proof:composition-honored` and
@@ -47,7 +47,7 @@
   accumulate path) and WAAPI (composite support) is M-effort, born-RED-witnessable, and a
   CORRECTNESS floor the compiler (CC-1) then inverts. The round-trip must be honest before it is
   widened."
-- **`../audit/frontier/waapi-level-2.md §4` — the wave-ready engineering detail (the FB-1
+- **`../../J/audit/frontier/waapi-level-2.md §4` — the wave-ready engineering detail (the FB-1
   headline).** §4.1 the exact gap (file:line): the composition operator is CAPTURED then DROPPED
   — `adapter.ts:24-29` captures per-keyframe `animation-composition` onto
   `ResolvedKeyframes.composition`, `adapter.ts:120-126` populates the Map; `engine.ts fromString`
@@ -57,7 +57,8 @@
   `element.animate(...)` call passes keyframes + options with NO composite, so a CSS-declared
   `animation-composition: add` runs as silent `replace` on the compositor). §4.3 the two halves,
   both already substrated: (a) the rAF/object-target half is WIRING, not new machinery — the
-  blend leaf in `transformFramesGrouped` (`group.ts:316-375`) ALREADY does element-wise `add`
+  blend leaf in `transformFramesGrouped` (audit cites `group.ts:316-375`; the case block is
+  `group.ts:298-373` on today's tree) ALREADY does element-wise `add`
   (un-clamped, per the CSS spec) and `weighted` lerp; FB-1's rAF half routes a per-keyframe
   `composition: add|accumulate` from the captured Map into the per-frame blend mode; the
   `accumulate` operator (repeat-aware) is the one new semantic, "a bounded leaf, not a new
@@ -65,13 +66,15 @@
   of a Baseline keyword (`composite` is Baseline Chrome/Edge 112, Safari 16, Firefox 115 — §1).
   §4.4 the ONE real design cost (NEW-39): what does `add` mean for a non-numeric leaf — a color,
   a transform LIST, a `<custom-ident>`; kf's leaf already falls back to `replace` for non-numeric
-  units (`group.ts:339-341,367-369`), "the safe subset"; the K wave must decide: ship the
+  units (audit cites `group.ts:339-341,367-369`; the non-numeric `else { existing[i] = incoming[i]
+  }` fallbacks are `group.ts:327-328` (add) and `group.ts:358-364` (weighted) on today's tree, both
+  guarded by `isNumericUnit` `group.ts:18`), "the safe subset"; the K wave must decide: ship the
   numeric+transform-list subset (matching where WAAPI `composite` is well-defined) and
   `replace`-fallback the rest, with a queryable diagnostic — OR book the transform-list concat
   case. §4.6: clear of every ARCH kill (not per-property easing, not Typed-OM, not
   monomorphization, no Worker/WASM). §4 verdict: K-CANDIDATE, effort M, "the round-trip must be
   honest before it is widened."
-- **`../audit/frontier/live-stylesheet-ingestion.md §3 K3` — the diagnostics channel (the
+- **`../../J/audit/frontier/live-stylesheet-ingestion.md §3 K3` — the diagnostics channel (the
   consumed BOOK).** §1: "**LD-DIAG is already booked.** `recap-deferred.md:268`:
   `ResolvedKeyframes.diagnostics` channel — producer half landed — BOOK (kf seam) +
   value.js-HANDOFF (the structured sink)." K3 (§3): give `ResolvedKeyframes` a `diagnostics:
@@ -83,14 +86,27 @@
   engine-INTERNAL rows (EMPTY_PARSE / UNKNOWN_TIMING_FN) were J-FOLDED into J.W1 (§4 of the lane;
   `../L-SEED.md §4` K3-internal); W7 authors the FIELD on `ResolvedKeyframes` + the producer
   CONSUME — the cross-origin/WAAPI-reason rows land WITH K.W8 (which produces them).
-- **The N2 consume edge (RIPE, no acyclic-spine born-RED).** `../VALUEJS-N2-ASKS.md §2 row 10`:
-  "**VJ-F2 diagnostics producer** → **DL-K17** | `ParseDiagnostic` / `OnParseError`
-  (`parsing/utils.ts:65,80`; barrel `:320`) | `ResolvedKeyframes.diagnostics` (`adapter.ts:18`,
-  field absent) can CONSUME the producer — DL-K17's 'OR consume the value.js VJ.W3 producer' arm
-  is now real; the L channel decision should prefer it over authoring a kf-local channel | the
-  full-diagnostics deferral resolves by consume, not authorship." This is a PUBLISHED-CONSUME
-  edge already shipped in 0.12.0 — W7 is the wave that lights it; DL-K17 exits via this
-  consume-edge (the row also discharged in K.W6's parallel terminations band — see §Hand-off).
+- **The N2 consume edge (RIPE, no acyclic-spine born-RED — the producer shipped in 0.12.0, NOT the
+  pending 0.13.0 fold).** `../VALUEJS-N2-ASKS.md §2 row 10`: "**VJ-F2 diagnostics producer** →
+  **DL-K17** | `ParseDiagnostic` / `OnParseError` (`parsing/utils.ts:65,80`; barrel `:320`) |
+  `ResolvedKeyframes.diagnostics` (`adapter.ts:18`, field absent) can CONSUME the producer — DL-K17's
+  'OR consume the value.js VJ.W3 producer' arm is now real; the L channel decision should prefer it
+  over authoring a kf-local channel | the full-diagnostics deferral resolves by consume, not
+  authorship." This is a PUBLISHED-CONSUME edge already shipped in **0.12.0** — **VERIFIED BY DIRECT
+  TARBALL PROBE (2026-06-15):** `npm pack @mkbabb/value.js@0.12.0` → `package/dist/index.d.ts:42`
+  `export type { ParseDiagnostic, OnParseError } from './parsing/utils';` (the symbols are in the
+  PUBLISHED surface, not merely in source). The value.js producing-repo record corroborates: the
+  fold doc `value.js/docs/tranches/N/GRAMMAR-FOLD.md:302` names "the structured
+  `ParseDiagnostic`/`OnParseError` sink value.js shipped in N.W7" (N.W7 = the 0.12.0 cut). **THE
+  ACYCLIC-SPINE DISAMBIGUATION (load-bearing — do NOT conflate two value.js edges):** W7's
+  diagnostics producer is the **0.12.0 / N.W7** ship — RIPE, ALREADY PUBLISHED, so W7's S4 consume
+  edge lights on the K.W1 re-pin (`^0.11.2 → ^0.12.0`) with NO born-RED value.js wait. This is a
+  DIFFERENT, EARLIER edge than the **0.13.0 / N.W11.D + N.W11′** fold (`GRAMMAR-FOLD.md` PART I/II;
+  `../KF-TO-VALUEJS-GRAMMAR-ASKS.md §1-2`), which produces the SCROLL grammar (VJ.W1, gates K.W9)
+  and the PERCEPTUAL RAMP (`sampleColorRamp`, VJ.W2, gates K.W10's CC-2) — those are the OPEN
+  born-RED edges of W7's SIBLING Band-II waves, and W7 carries NONE of them. W7 is the one frontier
+  wave whose every value.js dependency is already on npm. DL-K17 exits via this RIPE consume-edge
+  (the row also discharged in K.W6's parallel terminations band — see §Hand-off).
 - **The booked invariant roots:** `K.md §invariant set` — the **replay-equality invariant**
   (Band II born; W7's honoring is a PRECONDITION for the compile replay-equality of K.W10 — a
   compiled `animation-composition: add` block replays equal to JS playback ONLY if the JS
@@ -110,32 +126,53 @@
   (`adapter.ts:24-26`) is explicit: "per-keyframe `animation-composition`
   (`replace`|`add`|`accumulate`), keyed by percent string — value.js lifts it onto
   `rule.composition`". **The producer is live; the consumer is missing.**
-- **`engine.ts` has ZERO reads of the captured value (CONFIRMED — the born-RED root):**
+- **`engine.ts` has ZERO reads of the captured value (CONFIRMED 2026-06-15 — the born-RED root):**
   `grep -n "composition" src/animation/engine.ts` → **NO hits** (the §State-verified probe
-  printed "(no composition token in engine.ts)"). The `fromString` keyframe loop consumes
-  `resolved.keyframes` and `resolved.timingFunctions` but never `resolved.composition` — the Map
-  is dead on arrival. **This is the born-RED root: the engine drops the operator.**
+  printed "(no composition token in engine.ts)"). The `fromString` keyframe loop (`engine.ts:1251`
+  `fromString(...)`; the per-percent loop at `engine.ts:1291` `for (const [percent, cachedFrame] of
+  resolved.keyframes.entries())`) consumes `resolved.keyframes` (`engine.ts:1291`) and
+  `resolved.timingFunctions` (`engine.ts:1305` `resolved.timingFunctions.get(percent)`) but NEVER
+  `resolved.composition` — the Map is dead on arrival. **This is the born-RED root: the engine
+  drops the operator.** (S1's locus is THIS loop — a `resolved.composition.get(percent)` read
+  threaded into the per-keyframe blend mode, beside the existing `.timingFunctions.get(percent)`
+  read; the `interpFrames(t, apply)` apply path at `engine.ts:657` is the engine-write channel
+  clause (a) reads.)
 - **`waapi.ts` emits ZERO `composite` (CONFIRMED):** `grep -n "composite" src/animation/waapi.ts`
   → the SOLE hit is the prose `waapi.ts:21` ("a registered `@property` custom does not composite
   anyway") — never a `KeyframeEffect.composite` or `element.animate(..., { composite })`. The
   delegated WAAPI path forwards no composite keyword, so a CSS-declared `animation-composition:
   add` runs as silent `replace` on the compositor.
-- **The rAF blend leaf is BUILT and correct (CONFIRMED):** `group.ts:336` `case "weighted":`,
-  `group.ts:356` reads `layer.weight`, and the element-wise loop (`group.ts:316-375`) does
-  un-clamped `add` and `weighted` lerp. The G.W17 dead-leaf fix is in the tree (the `add` path
-  was collapsed to `replace` until G.W17 — `../audit/frontier/waapi-level-2.md §2`). So the rAF
-  ACCUMULATION substrate is live; only the WIRING from the captured composition Map to that
-  substrate is missing.
+- **The rAF blend leaf is BUILT and correct (CONFIRMED against the tree, 2026-06-15 — the case
+  block is `group.ts:298-373`):** `group.ts:298` `case "replace":`, `group.ts:307` `case "add":`
+  (the un-clamped element-wise `existing[i].value += incoming[i].value` at `group.ts:325`, with the
+  explicit "Numeric add is UN-CLAMPED … `0.8 + 0.8 → 1.6`" comment `group.ts:310-313`),
+  `group.ts:336` `case "weighted":`, `group.ts:356` reads `layer.weight`. The non-numeric leaf
+  ALREADY `replace`-falls-back in BOTH composing cases — the `else { existing[i] = incoming[i] }`
+  at `group.ts:327-328` (add) and `group.ts:358-364` (weighted), guarded by the `isNumericUnit`
+  type-guard (`group.ts:18`, applied `:322-323,350-351`). The G.W17 dead-leaf fix is in the tree
+  (the `add` path was collapsed to `replace` until G.W17 — `../../J/audit/frontier/waapi-level-2.md §2`,
+  `../../G/audit/a-group-layering.md §GL-4`). So the rAF ACCUMULATION substrate is live AND its
+  non-numeric `replace`-fallback already exists (S3's honesty row attaches to it); only the WIRING
+  from the captured composition Map to that substrate is missing.
 - **The `ResolvedKeyframes.diagnostics` field is ABSENT (CONFIRMED):** `grep -n "diagnostics"
   src/animation/adapter.ts` → NO hits; the interface (`adapter.ts:18`) carries `keyframes`,
   `timingFunctions`, `composition`, `properties`, `options` — no `diagnostics`. The producer is
   PUBLISHED (value.js 0.12.0 `ParseDiagnostic`/`OnParseError`); the kf-side sink is unwired.
-- **The value.js producer is SHIPPED and RIPE (CONFIRMED):** `@mkbabb/value.js@0.12.0` is
-  published on npm (`npm view @mkbabb/value.js@0.12.0 version` → `0.12.0`, 2026-06-15); it ships
-  `ParseDiagnostic`/`OnParseError` (`VALUEJS-N2-ASKS.md:52`, `parsing/utils.ts:65,80`, barrel
-  `:320`). **The installed pin is `^0.11.2` (`package.json:179`)** — K.W1 re-pins to `^0.12.0`
-  BEFORE W7 (the re-pin precedes the design AND frontier bands; `K.md §Phase`). W7's diagnostics
-  consume rides the K.W1 re-pin (a BINDING ordering — see §No-workaround).
+- **The value.js producer is SHIPPED and RIPE (CONFIRMED BY DIRECT PROBE, 2026-06-15):**
+  `@mkbabb/value.js@0.12.0` is published on npm (`npm view @mkbabb/value.js@0.12.0 version` →
+  `0.12.0`); the producer is in the PUBLISHED surface, not merely the source — `npm pack
+  @mkbabb/value.js@0.12.0` → `package/dist/index.d.ts:42` `export type { ParseDiagnostic,
+  OnParseError } from './parsing/utils';` (defined in `package/dist/parsing/utils.d.ts`). The
+  kf-side inbound ledger records it (`VALUEJS-N2-ASKS.md §2 row 10`, `parsing/utils.ts:65,80`,
+  barrel `:320`); the value.js producing-repo names it as "shipped in N.W7"
+  (`value.js/docs/tranches/N/GRAMMAR-FOLD.md:302`). **The installed pin is `^0.11.2`
+  (`package.json:179`); the on-disk `node_modules/@mkbabb/value.js` is `0.11.2`** (so the producer
+  is NOT yet reachable from kf's graph — the consume is born-RED-witnessable kf-side until the
+  re-pin). **K.W1 re-pins to `^0.12.0` BEFORE W7** (the re-pin precedes the design AND frontier
+  bands; `K.md §Phase`; `K.W1.md:153,493` names the same 0.12.0 producer and the DL-K17 exit). W7's
+  diagnostics consume rides the K.W1 re-pin (a BINDING ordering — see §No-workaround). **This 0.12.0
+  edge is RIPE; it is NOT the 0.13.0 N.W11.D/N.W11′ scroll+ramp fold** that gates W7's siblings W9
+  and W10 (the disambiguation is in §Provenance and §Hand-off).
 - **No collision with the SHIPPED `adoptCompiled` (CONFIRMED — HARDENING-5 HAZARD-1 scoped):**
   `engine.ts:324` `adoptCompiled(source: Animation<V>): this` is the COMPILED-state internal
   adopt (gated by `proof:adopt-compiled`) — UNRELATED to W7's honoring; it is named here only to
@@ -158,7 +195,8 @@ emitter"). So the honoring leads. Four moves, each at the gestalt altitude the m
 1. **The rAF honoring (S1 — the captured Map → the blend leaf).** `engine.ts fromString` READS
    `resolved.composition` and threads each per-keyframe operator into the engine's interpolation
    so a single animation's `add` keyframe accumulates onto the underlying value the way the
-   group's `add` layer does (the same un-clamped element-wise leaf, `group.ts:316-375`). The
+   group's `add` layer does (the same un-clamped element-wise leaf, `group.ts:298-373`; the `add`
+   accumulation `group.ts:325`). The
    `accumulate` operator (repeat-aware accumulation) is the one new semantic — a bounded leaf,
    NOT a new pipeline.
 2. **The WAAPI honoring (S2 — the Baseline keyword pass-through).** `toWAAPIKeyframes` emits
@@ -179,26 +217,32 @@ emitter"). So the honoring leads. Four moves, each at the gestalt altitude the m
    — J.W1-landed) are JOINED by the composition-fallback row (S3); the CORS-skip / WAAPI-reason
    rows land WITH K.W8 (which produces them — the field is authored here, the producers populate
    it as each surface lands). A flat additive field with stable `code`s, NOT a logging framework
-   (KISS — `../audit/frontier/live-stylesheet-ingestion.md §3 K3` "keep it a flat additive field
+   (KISS — `../../J/audit/frontier/live-stylesheet-ingestion.md §3 K3` "keep it a flat additive field
    with stable codes").
 
 ## §Scope
 
-- **S1 — the rAF honoring (the captured Map → the blend leaf).** Locus: `engine.ts fromString`
-  (the keyframe loop that today reads `resolved.keyframes`/`resolved.timingFunctions`) gains a
-  read of `resolved.composition`; the per-keyframe operator threads into the interpolation's blend
-  mode. The blend MACHINERY already exists (`group.ts:316-375` — the un-clamped element-wise `add`,
-  the `weighted` lerp); S1 is the WIRING that routes a single animation's per-keyframe `add` onto
-  the same leaf, plus the `accumulate` repeat-aware accumulation (the one new semantic — repeat
-  iteration N accumulates onto the prior iteration's end, per the CSS spec). **WHY this is wiring,
-  not new machinery:** `../audit/frontier/waapi-level-2.md §4.3` — "FB-1's rAF half is: route a
-  per-keyframe `composition: add|accumulate` from the captured Map into a per-frame blend mode on
-  the engine's interpolation … This is the G.W17-recorded FIX, not a green-field add." **MEASURE-FIRST
-  (the one perf-adjacent risk):** the per-frame blend-mode branch in the `interpFrames` hot path —
-  extend the `bench/interpolation.bench.ts` (the recorded ~996k ops/s 2-frame opacity baseline,
-  `../audit/sota-landscape.md §5`) with a `composite:add` keyframe row; the FB-1 branch must NOT
+- **S1 — the rAF honoring (the captured Map → the blend leaf).** Locus: the `engine.ts fromString`
+  per-percent loop (`engine.ts:1291` — today reads `resolved.keyframes`, and `resolved.timingFunctions`
+  at `engine.ts:1305`) gains a `resolved.composition.get(percent)` read beside that
+  `.timingFunctions.get(percent)`; the per-keyframe operator threads into the interpolation's blend
+  mode applied by `interpFrames(t, apply)` (`engine.ts:657`, the engine-write channel). The blend
+  MACHINERY already exists (`group.ts:298-373` — the un-clamped element-wise `add` at
+  `group.ts:325`, the `weighted` lerp at `group.ts:336`); S1 is the WIRING that routes a single
+  animation's per-keyframe `add` onto the same leaf, plus the `accumulate` repeat-aware accumulation
+  (the one new semantic — repeat iteration N accumulates onto the prior iteration's end, per the CSS
+  spec). **The `accumulate` substrate is the engine's own iteration counter** (`engine.ts:131`
+  `iteration: number`, set against `setIterationCount` `engine.ts:370`) — `accumulate` reads the
+  prior iteration's end value off the SAME accumulation leaf, not a new pipeline. **WHY this is
+  wiring, not new machinery:** `../../J/audit/frontier/waapi-level-2.md §4.3` — "FB-1's rAF half is:
+  route a per-keyframe `composition: add|accumulate` from the captured Map into a per-frame blend
+  mode on the engine's interpolation … This is the G.W17-recorded FIX, not a green-field add."
+  **MEASURE-FIRST (the one perf-adjacent risk):** the per-frame blend-mode branch in the
+  `interpFrames` hot path — extend the `bench/interpolation.bench.ts` (PRESENT in the tree, `ls
+  bench/interpolation.bench.ts` confirms; the recorded ~996k ops/s 2-frame opacity baseline,
+  `../../J/audit/sota-landscape.md §5`) with a `composite:add` keyframe row; the FB-1 branch must NOT
   regress the `replace` path (a predictable branch on a per-keyframe constant should be free —
-  `../audit/frontier/waapi-level-2.md §4.5`). **NO-WORKAROUND:** the honoring is the engine
+  `../../J/audit/frontier/waapi-level-2.md §4.5`). **NO-WORKAROUND:** the honoring is the engine
   READING the captured value, NOT a re-parse of the CSS at apply time (the value is already in the
   Map; re-parsing would be the doc-rot the audit forbids).
 - **S2 — the WAAPI honoring (the Baseline keyword pass-through).** Locus: `waapi.ts`
@@ -206,7 +250,7 @@ emitter"). So the honoring leads. Four moves, each at the gestalt altitude the m
   `element.animate(...)`) + the `isWAAPIEligible` gate. `composite` is forwarded per-keyframe (or
   top-level where uniform); the eligibility gate ADMITS `add`/`accumulate` (today it neither
   emits nor rejects them — it never sees them). **WHY pass-through, not new capability:**
-  `composite` is Baseline (Chrome/Edge 112, Safari 16, Firefox 115 — `../audit/frontier/waapi-level-2.md
+  `composite` is Baseline (Chrome/Edge 112, Safari 16, Firefox 115 — `../../J/audit/frontier/waapi-level-2.md
   §1`); the browser already honors it; S2 forwards a keyword the platform owns.
   **RAF/WAAPI PARITY (the load-bearing gate clause):** the same `add` keyframe produces the same
   mid-frame SUM value on the rAF path (S1) and the WAAPI path (S2) — the parity assert is the
@@ -214,7 +258,7 @@ emitter"). So the honoring leads. Four moves, each at the gestalt altitude the m
   the eligible set to admit color/computed-unit composite (those stay rAF — the existing
   eligibility discipline holds; the WAAPI composite path runs ONLY where it is pixel-correct).
 - **S3 — the non-numeric refusal decision (NEW-39 resolved).** Locus: the blend leaf's
-  non-numeric branch (`group.ts:339-341,367-369` — the existing `replace`-fallback for non-numeric
+  non-numeric branch (`group.ts:327-328` add, `:358-364` weighted — the existing `replace`-fallback for non-numeric
   units) + the diagnostics emit (S4). The DECISION (named in this spec, not left to impl): ship
   the numeric + transform-list-concat subset where WAAPI `composite` is well-defined; the color /
   `<custom-ident>` / discrete leaf `replace`-falls-back AND emits a `COMPOSITION_FALLBACK`
@@ -222,7 +266,7 @@ emitter"). So the honoring leads. Four moves, each at the gestalt altitude the m
   property type (numeric add, transform-list concatenation, discrete = replace-at-50%); kf's leaf
   already does the safe subset (`replace`-fallback for non-numeric); S3 is the explicit choice of
   the eligible subset + the honesty row, "a contained decision, not a research project"
-  (`../audit/frontier/waapi-level-2.md §4.4`). **The transform-list concat case is decided IN
+  (`../../J/audit/frontier/waapi-level-2.md §4.4`). **The transform-list concat case is decided IN
   this wave** — either it ships (transform-list `add` = concatenation, matching CSS) with a parity
   gate row, or it books with a named tripwire; the impl does not guess. **NO-WORKAROUND:** the
   fallback is NEVER silent — a non-honored leaf ALWAYS emits its diagnostic row (the
@@ -290,7 +334,7 @@ engine has ZERO reads of the captured value today (the capability is ABSENT, not
   empty parse emits `EMPTY_PARSE`; an unrecognized per-stop timing fn emits `UNKNOWN_TIMING_FN`;
   a composition fallback emits `COMPOSITION_FALLBACK`. The channel is correct IFF every
   silent-fallback site in `adapter.ts`/`engine.ts` is mirrored by a diagnostic row
-  (`../audit/frontier/live-stylesheet-ingestion.md §3 K3` measure-first gate). **BORN-RED
+  (`../../J/audit/frontier/live-stylesheet-ingestion.md §3 K3` measure-first gate). **BORN-RED
   WITNESS:** `ResolvedKeyframes` has no `diagnostics` field today (`grep "diagnostics" adapter.ts`
   = ZERO) → the channel-population assert REDS. **BITE:** reds if a silent fallback exists without
   its row. **NO escape:** the producer is the value.js `OnParseError`; the rows are the consumed
@@ -312,19 +356,30 @@ born-RED witness is CONCRETE:** today's tree has ZERO `composition` reads in `en
 produces the REPLACE value on both paths — the new clauses red on exactly that observed shape.
 **Two-tier taxonomy:** the wave's GREEN depends on the correctness clauses (a)-(e); clause (f) is
 a HYGIENE corroborator (the hot-path bench may NEVER substitute for a red correctness clause).
-**Replay-equality posture (declared):** this wave's honoring is the PRECONDITION for K.W10's
-compile replay-equality — a compiled `animation-composition: add` block replays pixel-equal to JS
-playback ONLY because the JS playback (post-W7) honors `add`; W7 is born-RED in the FRONTIER sense
-(the engine drops the operator today), and the wave never claims the floor landed until clauses
-(a)-(e) are GREEN. **P6 posture (declared):** clauses (a)-(e) are device-INDEPENDENT correctness
-gates (the SUM value / the parity / the diagnostic row are computed facts, device-independent) →
-they hard-gate on the Linux runner; the WAAPI parity leg (c) that needs a real compositor runs on
-the headed chrome-devtools-mcp tier with a per-EXPECTED predicate (the SUM value), NOT a fixed
-settle. **Budget 0** (the gate asserts a POSITIVE product property — the operator is honored — not
-an error count; the pre-cure tree threw NOTHING, it silently dropped). **value.js gate status:**
-RIPE-CONSUMED — `ParseDiagnostic`/`OnParseError` shipped in 0.12.0; W7 carries NO acyclic-spine
-born-RED edge (the one frontier wave whose every dependency is already published; the consume
-rides the K.W1 re-pin).
+**Replay-equality posture (declared — the oracle W7 UNLOCKS).** W7 does not itself round-trip
+(K.W8 ingests, K.W10 compiles); it is the PRECONDITION the round-trip's replay-equality oracle
+STANDS ON. The causal chain is falsifiable in both directions: (i) clause (c)'s rAF↔WAAPI parity
+IS a replay-equality assert IN MINIATURE — the SAME `composite:add` keyframe replays to the SAME
+mid-frame value across two backends, the round-trip's "honored identically" property proven at the
+floor; (ii) FORWARD — a compiled `animation-composition: add` block (K.W10) replays pixel-equal to
+JS playback ONLY because the JS playback (post-W7) honors `add`. The replay-equality invariant
+(`K.md §invariant set`) names W7 as the substrate K.W10's `proof:compile-replay-equal` is provable
+on: a compiler that emits an operator the engine cannot honor is the lossy emitter the mandate
+forbids (`K.md §MANDATE` — "the compiler is the round-trip's parser run BACKWARD … NOT a
+re-derived lossy emitter"). W7 is born-RED in the FRONTIER sense (the engine drops the operator
+today), and the wave never claims the floor landed until clauses (a)-(e) are GREEN. **P6 posture
+(declared):** clauses (a)-(e) are device-INDEPENDENT correctness gates (the SUM value / the parity
+/ the diagnostic row are computed facts, device-independent) → they hard-gate on the Linux runner;
+the WAAPI parity leg (c) that needs a real compositor runs on the headed chrome-devtools-mcp tier
+with a per-EXPECTED predicate (the SUM value), NOT a fixed settle. **Budget 0** (the gate asserts a
+POSITIVE product property — the operator is honored — not an error count; the pre-cure tree threw
+NOTHING, it silently dropped). **value.js gate status:** RIPE-CONSUMED — `ParseDiagnostic`/
+`OnParseError` shipped in **0.12.0 / N.W7** (verified in the published surface: `dist/index.d.ts:42`
+by the §State-verified tarball probe; `value.js/docs/tranches/N/GRAMMAR-FOLD.md:302` "shipped in
+N.W7"); W7 carries NO acyclic-spine born-RED edge — the one frontier wave whose every value.js
+dependency is already published, the consume riding the K.W1 re-pin. It is NOT the 0.13.0 /
+N.W11.D + N.W11′ fold (scroll grammar + `sampleColorRamp`) that born-RED-gates W7's siblings W9 and
+W10; W7 has neither of those edges.
 
 ## §No-workaround prohibitions (BINDING — the mandate's named forbiddings for this wave)
 
@@ -354,7 +409,7 @@ rides the K.W1 re-pin).
   disambiguation rule (`K.md §invariant set`) carries into the frontier band exactly as it does
   in K.W0/K.W5.
 - **NO touching the W11 blend-WEIGHT tier (the §Hand-off file seam).** W7 reads the blend-MODE
-  leaf (`group.ts:316-375` — the `add`/`accumulate`/`replace` operator); W11 drives the
+  leaf (`group.ts:298-373` — the `add`/`accumulate`/`replace` operator); W11 drives the
   blend-WEIGHT (`group.ts` `layer.weight` → a spring). They are file-adjacent in `group.ts` and
   run ∥ — the boundary is BINDING (§Hand-off §4B): W7's diff is the per-keyframe COMPOSITION
   operator read; W11's diff is the per-layer WEIGHT stepper read. Neither edits the other's lines.
@@ -363,12 +418,13 @@ rides the K.W1 re-pin).
 
 - **WL2-B / FB-1** (the animation-composition HONORING) — S1 (rAF honoring) + S2 (WAAPI
   honoring) + S3 (the non-numeric refusal). `../L-SEED.md §2 WL2-B` + the §body→K.W7 map;
-  `../audit/frontier/waapi-level-2.md §4` (the FB-1 headline, K-CANDIDATE, effort M);
-  `adapter.ts:24-29,120-126` (captured), `engine.ts` (ZERO reads — born-RED), `group.ts:316-375`
+  `../../J/audit/frontier/waapi-level-2.md §4` (the FB-1 headline, K-CANDIDATE, effort M);
+  `adapter.ts:24-29,120-126` (captured), `engine.ts` (ZERO reads — born-RED; the S1 locus is the
+  `fromString` loop `engine.ts:1291`), `group.ts:298-373`
   (the G.W17-fixed leaf). **The fidelity floor the compiler (K.W10) inverts.**
 - **K3 / LD-DIAG / DL-K17** (the diagnostics channel) — S4 (the `ResolvedKeyframes.diagnostics`
   field consuming the value.js 0.12.0 `ParseDiagnostic`/`OnParseError` producer). `../L-SEED.md §7`
-  + `../audit/frontier/live-stylesheet-ingestion.md §3 K3`; `VALUEJS-N2-ASKS.md §2 row 10`
+  + `../../J/audit/frontier/live-stylesheet-ingestion.md §3 K3`; `VALUEJS-N2-ASKS.md §2 row 10`
   (the RIPE consume edge); `deferred-ledger-k.md` DL-K17. **DL-K17 exits via the
   published-consume-edge form** (the producer shipped in 0.12.0; the consume rides the K.W1
   re-pin) — co-discharged in K.W6's terminations band (the row is named in BOTH waves; W7 lights
@@ -394,15 +450,31 @@ W7 is the FIRST Band-II wave; it touches `engine.ts` (the honoring read) and `ad
   the TYPE (W7) vs the new CSSOM-walk producer (W8). W8 FOLLOWS W7 (it consumes the diagnostics
   channel), so these land in SEQUENCE, not in parallel — the seam is temporal.
 - **`group.ts` blend-MODE leaf is W7's; `group.ts` blend-WEIGHT tier is W11's.** W7 reads the
-  per-keyframe COMPOSITION operator into the `add`/`accumulate`/`replace` leaf (`group.ts:316-375`);
-  W11 reads the per-layer WEIGHT into a spring (`group.ts` `layer.weight`). File-adjacent, run ∥,
-  DISJOINT line concerns — the boundary is a HARD CONTRACT (each wave's §Hard gate reds only on
-  its half).
+  per-keyframe COMPOSITION operator into the `add`/`accumulate`/`replace` leaf (the case block
+  `group.ts:298-373` — `replace`@298, `add`@307, `weighted`@336); W11 reads the per-layer WEIGHT
+  into a spring (`group.ts:356` `layer.weight`). NOTE the file-adjacency hazard: the `weighted`
+  case (`group.ts:336-369`) is touched conceptually by BOTH — W7 routes a keyframe's COMPOSITION
+  operator to SELECT among the cases; W11 drives the WEIGHT value the `weighted` case LERPS by. The
+  contract: W7 never edits the `layer.weight` read at `group.ts:356`; W11 never edits the
+  case-selection switch. File-adjacent, run ∥, DISJOINT line concerns — the boundary is a HARD
+  CONTRACT (each wave's §Hard gate reds only on its half).
 - **The value.js consume edge (the `ParseDiagnostic` producer) is a PUBLISHED consume, NOT a
-  `file:` link or a vendored copy** (the acyclic-spine invariant). It rides the K.W1 re-pin
-  (`^0.11.2 → ^0.12.0`); W7 consumes the producer one tranche behind, born-RED-gated kf-side (the
-  field is absent today; the consume lights on the re-pin). W7 is the RIPE case — no OPEN gate, no
-  unpublished symbol; the producer is already on npm.
+  `file:` link or a vendored copy** (the acyclic-spine invariant `K.md §invariant set`; the
+  constellation law `docs/precepts/cross-repo-dev-resolution.md §6` — a sibling resolves through its
+  `exports` map to its built `dist/`, dev and prod alike, NEVER `src/` and NEVER a hard `dist/`
+  alias). The producer is the now-RATIFIED 0.12.0 / N.W7 ship (`value.js/docs/tranches/N/
+  GRAMMAR-FOLD.md:302` "the structured `ParseDiagnostic`/`OnParseError` sink value.js shipped in
+  N.W7"; the published symbol verified at `dist/index.d.ts:42` by the §State-verified tarball
+  probe). It rides the K.W1 re-pin (`^0.11.2 → ^0.12.0` via the semver range in `package.json`,
+  resolved through `node_modules/@mkbabb/value.js`'s `exports`→`dist`, NOT a manifest `file:`
+  specifier); W7 consumes the producer one tranche behind, born-RED-gated kf-side (the field is
+  absent today — `grep "diagnostics" adapter.ts` = ZERO; the consume lights on the re-pin). W7 is
+  the RIPE case — no OPEN gate, no unpublished symbol; the producer is already on npm. **Contrast
+  the SIBLING edges:** K.W9 (scroll) and K.W10's CC-2 (ramp) consume the 0.13.0 / N.W11.D + N.W11′
+  fold — those are the OPEN born-RED value.js edges (`GRAMMAR-FOLD.md` PART I/II); W7 has NEITHER.
+  The acyclic spine is one-directional throughout: value.js publishes the VALUE (the diagnostic
+  sink), kf consumes it; kf NEVER writes value.js's tree (`../KF-TO-VALUEJS-GRAMMAR-ASKS.md:32` —
+  "kf does not write value.js's tree").
 
 ## §Design-decisions (the named calls this spec makes, so the impl does not re-litigate)
 
@@ -417,11 +489,18 @@ W7 is the FIRST Band-II wave; it touches `engine.ts` (the honoring read) and `ad
   discrete leaf. The transform-list concat case ships WITH a parity gate row IF the leaf's
   concatenation matches CSS, else books with the named tripwire "transform-list `add` parity
   proven" — the impl picks ship-vs-book on the parity measurement, not on guesswork
-  (`../audit/frontier/waapi-level-2.md §4.4` "a contained decision, not a research project").
-- **The diagnostics channel is a CONSUME, not an authorship (S4).** The value.js 0.12.0 producer
+  (`../../J/audit/frontier/waapi-level-2.md §4.4` "a contained decision, not a research project").
+- **The diagnostics channel is a CONSUME, not an authorship (S4).** The value.js **0.12.0 / N.W7**
+  producer (`ParseDiagnostic`/`OnParseError`, in the published surface `dist/index.d.ts:42`;
+  ratified by the producing repo `value.js/docs/tranches/N/GRAMMAR-FOLD.md:302` "shipped in N.W7")
   is the structured sink; kf consumes it. This is the acyclic-spine's RIPE form — the one place in
-  Band II where value.js's grammar is ALREADY published, so the consume edge lights immediately on
-  the K.W1 re-pin with no born-RED wait (unlike K.W9/K.W10's CC-2, which gate on the OPEN VJ.W1/VJ.W2).
+  Band II where the value.js grammar W7 needs is ALREADY published, so the consume edge lights
+  immediately on the K.W1 re-pin with no born-RED wait. **The contrast is exact:** K.W9's scroll
+  grammar (VJ.W1) and K.W10's CC-2 ramp (VJ.W2, `sampleColorRamp`) gate on the LATER **0.13.0 /
+  N.W11.D + N.W11′** fold (the now-RATIFIED producer wave-numbering per `GRAMMAR-FOLD.md` PART I/II
+  + `../KF-TO-VALUEJS-GRAMMAR-ASKS.md §1-2`) — those consume edges light born-RED-gated kf-side on
+  the 0.13.0 publish. W7's edge is the 0.12.0 one and carries NO such wait; conflating the two
+  value.js cuts would mis-gate this wave.
 - **The fidelity floor is value.js-INDEPENDENT for the honoring itself.** S1/S2/S3 read a value
   ALREADY captured by the SHIPPED 0.11.2/0.12.0 adapter — the honoring needs no net-new value.js
   grammar; only S4's diagnostics CONSUME edge rides the (already-published) 0.12.0 producer. So W7

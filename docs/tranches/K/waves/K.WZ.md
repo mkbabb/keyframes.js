@@ -1,12 +1,14 @@
-# K.WZ — THE CLOSE (the boundary FINAL held to inv ε · the prompt-recap TOTAL · the chronic-closure substrate transition J→K · **the TASTE review-packet verdict ON RECORD before the cut** · the version cut + publish via release.yml + the close-merge round-trip RE-observed · L-SEED final · the K ledger terminal)
+# K.WZ — THE CLOSE (the boundary FINAL held to inv ε · the prompt-recap TOTAL · the chronic-closure substrate transition J→K · **the TASTE review-packet verdict ON RECORD before the cut** · the version cut + publish via release.yml + the close-merge round-trip RE-observed · **BOTH bands closed — Band I on the boundary-ORACLE battery, Band II the round-trip frontier on the replay-equality invariant** · L-SEED CONSUMED · the K ledger terminal)
 
 - **Phase:** DEV — spec authored, awaits IMPL+auth · **Class:** BOOK (the close docs —
   `docs/tranches/K/FINAL.md`) + **USER-DOMAIN** (the TASTE review-packet VERDICT + the version cut +
   npm publish + the close-merge deploy — version owner **Mike Babb** `mike@babb.dev`, confirm-first)
   + **RECORD** (the L-SEED final commit; the K-born invariant verdicts). · **Scope (docs + the
   substrate-transition wiring + the USER-DOMAIN verdict-and-release; NO new behaviour source):**
-  `docs/tranches/K/FINAL.md` (NEW — the K product-truth + design-totality close report held to inv
-  ε) + the prompt-recap TOTAL (`prompt-recap-k.md` extended through the close: every MANDATE row,
+  `docs/tranches/K/FINAL.md` (NEW — the K product-truth + design-totality + **round-trip-frontier**
+  close report held to inv ε — **it closes BOTH bands: Band I (K.W0–K.W6) on the boundary-ORACLE
+  battery, Band II the round-trip frontier (K.W7–K.W12) on the replay-equality invariant**) + the
+  prompt-recap TOTAL (`prompt-recap-k.md` extended through the close: every MANDATE row,
   every U-K1..K20 row, every A→J lineage PARTIAL, every DL-K fold row dispositioned) + the
   **TASTE-boundary review-packet protocol DISCHARGED** (the W4-close packets PRESENTED to the user,
   the user's per-pane VERDICT recorded BEFORE the version cut — the design band CANNOT close without
@@ -17,31 +19,49 @@
   (USER-DOMAIN, confirm-first) + the close-merge auto-deploy RE-observation (the K.W0/J.W0 round-trip
   oracle re-witnessed on the K close merge itself) + the AFTER review-packet capture (the W3-lib
   capture harness vs the K-open screenshot corpus under `audit/screenshots-k/`) + `L-SEED.md`
-  committed (the frontier re-seeded UNCHANGED) + the K ledger terminal. **ZERO `src/**` / `test/**`
+  recorded CONSUMED (the frontier folded WHOLESALE into K Band II per the 2026-06-15 total fold —
+  **there is no residual L**; the K-SEED reconciliation's Shape-A deferral SUPERSEDED, its
+  un-blocking argument HAPPENED via value.js 0.12.0) + the K ledger terminal. **ZERO `src/**` / `test/**`
   / `.github/**` / `demo/**` BEHAVIOUR edit** — the only non-doc motions are the chronic-closure
   parse-target re-point (a one-line `proof-chronic-closure.mjs` path constant, itself gated by the
   non-vacuity re-run) and the USER-DOMAIN `changeset version`/`npm publish` the wave AUTHORS the
   trigger for and the owner FIRES. · **DAG: LAST in K** — the close runs after every SHIP/DECIDE wave
-  (K.W0–K.W6) lands + green CI; it consumes `proof:all == CI` (K.W5/K.W6), the OBSERVED green-CI →
-  auto-deploy round-trip primitive (K.W0's `proof:cold-entry` lands WITH the deterministic deploy
-  chain; the J.W0 round-trip oracle carries forward), the `proof:cold-entry` GREEN (K.W0), the
-  `proof:published-surface` GREEN on the cut tree (K.W1 re-pin + K.W5 publish-edge), and the W4-close
-  TASTE packets (K.W4/K.W5). The close's own arbiter is the RUNNING product across every boundary K
-  taught it to cross — the COLD axis and the TASTE boundary included — never a prior FINAL, never an
-  agent's "designer-eye PASS".
+  of BOTH bands (Band I K.W0–K.W6 **AND** Band II the round-trip frontier K.W7–K.W12) lands + green
+  CI; it consumes `proof:all == CI` (K.W5/K.W6), the OBSERVED green-CI → auto-deploy round-trip
+  primitive (K.W0's `proof:cold-entry` lands WITH the deterministic deploy chain; the J.W0 round-trip
+  oracle carries forward), the `proof:cold-entry` GREEN (K.W0), the `proof:published-surface` GREEN on
+  the cut tree (K.W1 re-pin + K.W5 publish-edge), the W4-close TASTE packets (K.W4/K.W5), **AND the
+  Band-II frontier replay-equality oracles GREEN** (`proof:composition-honored` K.W7,
+  `proof:ingest-replay-equal` K.W8, `proof:scroll-roundtrip` K.W9 — its value.js-INDEPENDENT clauses
+  green, the VJ.W1-gated PARSE clause lit on the publish, `proof:compile-replay-equal` K.W10 — CC-1
+  core green, CC-2 densify green-via-refusal until VJ.W2 publishes, `proof:spring-blend-weight` K.W11,
+  `proof:agent-surface` + `proof:demo-on-published-surface` K.W12). The close's own arbiter is the
+  RUNNING product across every boundary K taught it to cross — the COLD axis, the TASTE boundary,
+  **AND the round-trip frontier (replay-pixel-equal both ways or an honest refusal)** included — never
+  a prior FINAL, never an agent's "designer-eye PASS".
 
-**Title.** *The product-truth + design-totality close. K extended the gate-ORACLE precept to the
-COLD axis (the product is TRUE from the first gesture — the hero rainbow-play starts the engine) and
-bounded it honestly at the TASTE boundary (where gates cannot carry the design verdict, the protocol
-packaged it and the USER signed it BEFORE the cut), made the design language total at its ROOTS (one
-font authority, one anchoring grid, the current glass-ui), terminated every ≥4-tranche rider the
-gate-blindspot had falsely closed, and deferred the entire library frontier WHOLESALE to L. The
+**Title.** *The product-truth + design-totality + round-trip-frontier close. K extended the
+gate-ORACLE precept to the COLD axis (the product is TRUE from the first gesture — the hero
+rainbow-play starts the engine) and bounded it honestly at the TASTE boundary (where gates cannot
+carry the design verdict, the protocol packaged it and the USER signed it BEFORE the cut), made the
+design language total at its ROOTS (one font authority, one anchoring grid, the current glass-ui),
+terminated every ≥4-tranche rider the gate-blindspot had falsely closed (Band I), AND made the
+CSS-@keyframes round-trip TOTAL on the honest substrate the repair left — the engine HONORS the
+`animation-composition` it had dropped, INGESTS the live web's CSS, parses+dispatches the scroll
+grammar, COMPILES its orchestration back to zero-runtime CSS replay-pixel-equal, drives layer
+crossfades with springs no competitor's substrate holds, and EXPOSES itself to agents + its own
+dogfood — every frontier claim signed by replay-equality or an honest refusal (Band II, K.W7–K.W12).
+**There is no residual L** — the frontier folded WHOLESALE into K Band II (the 2026-06-15 total
+fold), value.js dispatched to un-block its last two grammar gates (VJ.W1 scroll + VJ.W2 ramp). The
 close writes the K FINAL held to inv ε (each boundary claim cites its OBSERVED oracle — the cold-path
-engine-write, the deploy round-trip, the published surface, AND the user's recorded packet verdict),
+engine-write, the deploy round-trip, the published surface, the replay-equality pixel proofs, AND the
+user's recorded packet verdict),
 recaps EVERY prompt A→J + U-K1..K20 to a terminal verdict, TRANSITIONS the chronic-closure parse
 substrate from J's board to K's in one non-vacuous motion, RE-observes the auto-deploy round-trip on
-the close merge itself, books the USER-DOMAIN content-honest cut + publish, captures the AFTER
-review-packet corpus, and commits `L-SEED.md` (the frontier re-seeded UNCHANGED).*
+the close merge itself, books the USER-DOMAIN content-honest cut + publish (the agent artifacts + the
+`@mkbabb/keyframes-vue` adapter package included — K.W12), captures the AFTER review-packet corpus,
+and records `L-SEED.md` CONSUMED into the charter (the frontier folded into K Band II — there is no
+residual L; the value.js VJ.W1/VJ.W2 dispatch is the only OUT edge).*
 
 This is the §MANDATE's **P-invariant close** at the product-truth + design scale: every carry exits
 with a terminal disposition, no perpetual punt survives a fifth tranche (the ten ≥4-tranche `‡`
@@ -63,9 +83,10 @@ judge it — the user.
   held to inv ε; the prompt-recap (`prompt-recap-k.md` extended through the close); the
   chronic-closure substrate transition J→K; the TASTE review packets presented + the user verdict
   recorded; the version cut (patch/minor per content — the P0 fix is at minimum a patch; the design
-  band may justify minor) + publish + close-merge round-trip RE-observed; `L-SEED.md` committed (the
-  frontier re-seeded UNCHANGED); the K ledger terminal."* The §Hard gate the charter names: *"proof:all
-  green where proof:all==CI; the close merge auto-deploys; the packet verdict ON RECORD."*
+  band may justify minor) + publish + close-merge round-trip RE-observed; `L-SEED.md` recorded
+  CONSUMED (the frontier folded into K Band II — no residual L); the K ledger terminal."* The §Hard
+  gate the charter names: *"proof:all green where proof:all==CI; the close merge auto-deploys; the
+  packet verdict ON RECORD; the Band-II replay-equality oracles GREEN."*
 - **`K.md §invariant set` — the three K-born invariants the close must DISCHARGE WITH WITNESSES.**
   The COLD-axis invariant (*"a certified surface is exercised from its COLD/DEFAULT entry … the cold
   entry gates FIRST"*); the engine-write disambiguation rule (*"a liveness oracle must distinguish
@@ -115,11 +136,12 @@ judge it — the user.
   ~42m post-K-gate-additions (F-2 — K.W5/K.W6 measure-first); the glass-ui `~3.11.2 → 3.13.0` re-pin
   with the `proof:deps-current` floor advanced atomically (PKG-10 — K.W1). The publish fires ONLY on
   the boundary gates GREEN on the cut tree.
-- **`L-SEED.md` (head)** — the frontier divination re-filed UNCHANGED from `K-SEED.md` as the
-  Tranche-L charter seed, with the reconciling preface (`k-seed-reconciliation.md §4`, Shape A). The
-  close COMMITS it as the K terminal deliverable — the wholesale deferral on the record, NOT a punt
-  (the value.js grammar resolves in the interval; nothing in the frontier decays by waiting; the P0
-  decayed daily, which is why K took the repair band first).
+- **`L-SEED.md` (head)** — the frontier divination, now the CONSUMED frontier body folded WHOLESALE
+  into K Band II (the 2026-06-15 total fold — `K.md §The frontier, un-blocked (Band II)`; the
+  `k-seed-reconciliation.md §4` Shape-A deferral SUPERSEDED, its un-blocking argument HAPPENED via
+  value.js 0.12.0). The close RECORDS it CONSUMED as the K terminal frontier disposition — **there is
+  no residual L**; the six Band-II wave specs (K.W7–K.W12) carry the frontier, the value.js
+  VJ.W1/VJ.W2 grammar half is the only sibling-DISPATCHED edge (`KF-TO-VALUEJS-GRAMMAR-ASKS.md`).
 - **`completeness-critic.md §0 + §FOLD`** — the fleet-completeness verdict the close inherits: 32/32
   lanes substantive, 19/20 U-K rooted, U-K19 closed by the critic (the resize-on-drag site is
   `AssetViewport.vue`, playground-ONLY — NOT a deployed-SPA defect; dispositioned RECORD, not folded
@@ -210,8 +232,9 @@ DL-K fold row to a terminal verdict. The chronic-closure substrate TRANSITIONS f
 in ONE motion with the gate re-run proving it BITES on the new substrate (no vacuous-green hand-off).
 The content-honest cut is CUT and PUBLISHED (USER-DOMAIN, confirm-first), the close-merge auto-deploy
 round-trip is RE-observed (the J.W0/K.W0 oracle on the close itself), the AFTER review-packet corpus
-is captured against the K-open shots, and `L-SEED.md` is COMMITTED (the frontier re-seeded UNCHANGED,
-the wholesale deferral on the record). Seven moves, each at the gestalt altitude the mandate demands;
+is captured against the K-open shots, and `L-SEED.md` is RECORDED CONSUMED (the frontier folded
+WHOLESALE into K Band II — there is no residual L; the value.js VJ.W1/VJ.W2 grammar half DISPATCHED).
+Seven moves, each at the gestalt altitude the mandate demands;
 nothing rides a fifth tranche; no boundary is certified by hand, by paperwork, by one viewport, or by
 an agent's taste.
 
@@ -288,9 +311,11 @@ an agent's taste.
     `proof:published-surface` GREEN, AND the user's recorded packet verdict. NO chain-of-trust over a
     prior FINAL; the catastrophe (J's own honest gates blind to two axes) proves that is worthless.
     The close CANNOT overclaim because its oracle is the running product at the FIRST gesture +
-    the user's signature on the design — and where K could not make a boundary fully true (the
-    library frontier deferred WHOLESALE to L; an open glass-ui consume-edge), it says so with the
-    carry's named mechanism, never a silent gap.
+    the user's signature on the design + the Band-II replay-equality pixel proofs — and where K
+    could not make a boundary fully true (the two value.js-GATED frontier consume edges — VJ.W1
+    scroll grammar / VJ.W2 perceptual ramp — born-RED kf-side until value.js publishes; an open
+    glass-ui consume-edge), it says so with the carry's named mechanism (the published-consume-edge
+    that lights on the publish), never a silent gap.
   - **The single-voice discipline (the J §G supersession-coherence pattern to AVOID):** the K FINAL
     is the SOLE authoritative narrative. Where it supersedes a frozen DEV-phase disposition in a K
     wave spec or `K/PROGRESS.md`, it says so EXPLICITLY (a pointer to the FINAL's §), never leaving
@@ -331,7 +356,8 @@ an agent's taste.
     closure cell citing the gate/evidence: the RE-OPENED P0 band (DL-K1..K5) FOLD-landed; the glass-ui
     band (DL-K6..K10) consumed-on-3.13.0; the perf band (DL-K11..K13) measured; the J.W* residual
     (DL-K14..K19) folded-on-touch or BOOK; the sibling-handoff band (DL-K20..K25) consume-edge-shaped;
-    the K-SEED charter (DL-K26..K30) DEFERRED-TO-L via `L-SEED.md`; the BOOK/KILL bands (DL-K31/K32)
+    the K-SEED frontier charter (DL-K26..K30) FOLDED into K Band II via the consumed `L-SEED.md`
+    (K.W7–K.W12 — no residual L; the value.js VJ.W1/VJ.W2 half sibling-dispatched); the BOOK/KILL bands (DL-K31/K32)
     tripwired/reaffirmed; the two completeness-hardening consolidation bands (DL-K33 engine-core
     hygiene EC-1..EC-13 → K.W0/K.W5/value.js; DL-K34 packaging+README+toolchain PKG-1..PKG-11 →
     K.WZ/K.W1/value.js) folded/HANDOFF per `PROGRESS.md §"Open deferrals"`.
@@ -453,25 +479,32 @@ an agent's taste.
     `completeness-critic.md §FOLD CC-3 flagged was never done over the deployed origin — the close
     does it).
 
-- **S7 — `L-SEED.md` COMMITTED (the frontier re-seeded UNCHANGED · the wholesale deferral on the
-  record · the K terminal deliverable).** The close commits `docs/tranches/K/L-SEED.md` (authored in
-  DEV — `K-SEED.md` re-filed UNCHANGED in content as the Tranche-L charter seed, with the reconciling
-  preface `k-seed-reconciliation.md §4`):
-  - **The deferral is reasoned, NOT a punt** (`L-SEED.md` head, `K.md §The frontier defers wholesale
-    to L`): the value.js grammar gates (VJ.W1 scroll / VJ.W2 perceptual ramp) get the K interval to
-    ship in value.js' own tranche process, so L starts UN-blocked; none of the frontier decays by
-    waiting (the 12 KILLs non-re-litigable; the BOOKs tripwired); the P0 decayed DAILY, which is why
-    K took the repair band first; L inherits a STRONGER substrate (ED-3's dogfood inversion is honest
-    ONLY because K repaired the demo first — shipping ED-3 over a broken demo would re-commit the J
-    sin). **L's authorization is its own** — L develops only after K closes, on L's own authorization
-    (the dev/impl boundary).
-  - **The ONLY frontier fold INTO K is K3-internal** (the 2 engine diagnostic rows, already J.W1-tagged
-    — VERIFY landed, else a ~20-LoC K.W companion; `PATH-FORWARD.md §4`); WL2-B / PHYS-C are NOT folded
-    (M+-effort waves wearing fold hats — `DL-K16/K17` dispositioned in the ledger, not manufactured as
-    K work). The close RECORDS the L-SEED commit as the terminal frontier disposition.
-  - **WHY at the close:** the L-SEED is authored in DEV but COMMITTED as the terminal K deliverable so
-    the wholesale-deferral argument is on the record with the full K context (the P0 + the 20-finding
-    register + the value.js-interval un-blocking) — the opposite of an un-rowed frontier punt.
+- **S7 — `L-SEED.md` recorded CONSUMED (the frontier folded WHOLESALE into K Band II · there is no
+  residual L · the K terminal deliverable).** The close records `docs/tranches/K/L-SEED.md` as the
+  CONSUMED frontier body — the 2026-06-15 total fold (`K.md §MANDATE`, `K.md §The frontier,
+  un-blocked (Band II)`) supersedes the K-SEED reconciliation's Shape-A deferral; its central
+  un-blocking argument (value.js un-dispatched) DISSOLVED when value.js shipped 0.12.0:
+  - **The fold is reasoned, NOT a punt** (`K.md §The frontier, un-blocked (Band II)`): value.js's
+    Tranche N shipped 0.12.0, un-blocking FOUR of the six frontier waves outright (K.W7 fidelity
+    floor, K.W8 ingest, K.W11 physics, K.W12 externalize — value.js-INDEPENDENT or RIPE-consumed) and
+    leaving only TWO genuine grammar gates open (VJ.W1 scroll grammar gating K.W9, VJ.W2 perceptual
+    ramp gating K.W10's CC-2) — DISPATCHED to value.js via the kf-side outbound ask
+    `KF-TO-VALUEJS-GRAMMAR-ASKS.md`, RATIFIED into value.js's N.W11.D/N.W11′ library track (the 0.13.0
+    cut) (the acyclic-spine in motion; the consume edges land born-RED kf-side and light on the 0.13.0
+    PUBLISH). The 12 KILLs carry as K Band II's anti-charter (non-re-litigable);
+    the BOOKs carry with their named tripwires. **There is no residual L.**
+  - **The ENTIRE frontier folds INTO K Band II** (the six wave specs `waves/K.W7.md`–`K.W12.md`):
+    WL2-B → K.W7 (the fidelity floor LEADS Band II), K1/K2 → K.W8 (ingest), SO-1/SO-2/SO-3 → K.W9
+    (scroll-as-CSS, VJ.W1-gated), CC-1/CC-2/CC-3/CC-4 → K.W10 (the compile XL anchor, CC-2 VJ.W2-gated),
+    PHYS-C/B2/E → K.W11 (physics), ED-1/ED-2/ED-3/ED-4 → K.W12 (externalize). The K3-internal 2
+    engine diagnostic rows (J.W1-tagged) are LIFTED onto K.W7's `ResolvedKeyframes.diagnostics` field
+    (`K.W7.md §Folds`); DL-K16 (WL2-B honoring) and DL-K17 (the diagnostics channel) EXIT via K.W7 +
+    the published-consume-edge, NOT a future-L deferral (`PROGRESS.md` DL-K16/K17 rows). The close
+    RECORDS L-SEED CONSUMED as the terminal frontier disposition.
+  - **WHY at the close:** L-SEED is the consumed frontier body on the record with the full K context
+    (the P0 + the 20-finding register + the value.js 0.12.0 un-blocking) — the OPPOSITE of an
+    un-rowed frontier punt AND the opposite of a deferral that will not come; the band's two genuine
+    value.js gates are DISPATCHED, every other frontier item lands IN K Band II.
 
 ## §Hard gate (the close's terminal oracle — the boundary battery GREEN, OBSERVED · the PACKET VERDICT on record · zero un-dispositioned rows)
 
@@ -534,7 +567,7 @@ packet verdict ON RECORD.**
 - **clause (f) — the K ledger is TERMINAL: zero un-dispositioned rows (CORRECTNESS · the P-invariant
   close).** Every row in `K/PROGRESS.md §"Open deferrals"` carries a terminal disposition
   (FOLD-landed / RE-OPEN-then-FOLD / VERIFY-rerun / HANDOFF-with-born-RED-gate-or-published-consume-edge
-  / SEED-deferred-to-L / BOOK-tripwired / RECORD / KILL / USER-DOMAIN-fired); every ≥4-tranche `‡`
+  / FOLD-into-Band-II / BOOK-tripwired / RECORD / KILL / USER-DOMAIN-fired); every ≥4-tranche `‡`
   rider EXITED via a born-RED gate, a measurement, a published consume-edge, or a reasoned KILL (the
   ten riders of `deferred-ledger-k.md §2`; the close ledger carries ZERO rows tagged MEASURE-FIRST
   without a measurement — DL-K11 mobile-Lighthouse floors MEASURED on a quiet host, not deferred
@@ -551,29 +584,39 @@ packet verdict ON RECORD.**
   on an agent PASS while the user said "awful" hours later; the K design band closes ONLY on the
   user's signature on the packet. The per-finding runtime asserts (`PATH-FORWARD.md §6`) CORROBORATE;
   they may NOT substitute for the verdict.
-- **clause (h) — the prompt-recap is TOTAL + `L-SEED.md` committed (CORRECTNESS · inv ε on the recap +
-  the frontier terminal).** Every MANDATE row HELD-or-CARRIED; every U-K1..K20 row dispositioned to a
-  terminal verdict (and, for the design rows, to the USER's verdict); every A→J PARTIAL + every DL-K
-  fold row terminal (S2); `L-SEED.md` committed with the wholesale-deferral argument (S7). **BITE:**
-  reds if any prompt-derived request is unstatused (the status-gap shape the prior closes caught), or
-  if the frontier is an un-rowed punt rather than a committed reasoned deferral.
+- **clause (h) — the prompt-recap is TOTAL + `L-SEED.md` recorded CONSUMED (CORRECTNESS · inv ε on the
+  recap + the frontier terminal).** Every MANDATE row HELD-or-CARRIED; every U-K1..K20 row
+  dispositioned to a terminal verdict (and, for the design rows, to the USER's verdict); every A→J
+  PARTIAL + every DL-K fold row terminal (S2); `L-SEED.md` recorded CONSUMED — the frontier folded
+  WHOLESALE into K Band II (K.W7–K.W12), the value.js VJ.W1/VJ.W2 grammar half DISPATCHED (S7).
+  **BITE:** reds if any prompt-derived request is unstatused (the status-gap shape the prior closes
+  caught), or if any frontier item is an un-rowed punt rather than a Band-II wave spec or a
+  published-consume-edge dispatch.
 
 **The §spine bar — MUST bite.** Clauses (a)–(h) are CORRECTNESS: they actuate the running product at
-every boundary K taught it to cross — `proof:all == CI` GREEN (the regime), `proof:cold-entry` GREEN
-reading the engine's own hand (the COLD axis), the close-merge auto-deploy OBSERVED (deploy),
+every boundary K taught it to cross — `proof:all == CI` GREEN (the regime, which now INCLUDES the
+Band-II frontier replay-equality oracles: `proof:composition-honored` K.W7, `proof:ingest-replay-equal`
+K.W8, `proof:scroll-roundtrip` K.W9, `proof:compile-replay-equal` K.W10, `proof:spring-blend-weight`
+K.W11, `proof:agent-surface` + `proof:demo-on-published-surface` K.W12 — the round-trip made TOTAL,
+proven replay-pixel-equal both ways or refused honestly), `proof:cold-entry` GREEN reading the
+engine's own hand (the COLD axis), the close-merge auto-deploy OBSERVED (deploy),
 `proof:published-surface` GREEN on the cut tree (publish/docs), the substrate transition non-vacuous
 (the meta-gate's own honesty), the ledger terminal (the P-invariant), the TASTE packet verdict ON
-RECORD (the design band signed by the user), the recap TOTAL + L-SEED committed (inv ε + the frontier
-terminal). **The close is GREEN iff (a)–(h) hold against the close tree + the close merge.** The inv-ε
+RECORD (the design band signed by the user), the recap TOTAL + L-SEED recorded CONSUMED (inv ε + the
+frontier terminal — there is no residual L). **The close is GREEN iff (a)–(h) hold against the close
+tree + the close merge.** The inv-ε
 arbiter is the boundary battery itself + the user's signature — the close CANNOT overclaim because its
 evidence is the OBSERVED oracle at each boundary AND the user's recorded packet verdict, never a
 chain-of-trust over a prior FINAL, never an agent's taste. **The two K-born blind axes are CERTIFIED,
 recorded with their observed witnesses:** the COLD axis by clause (b) (`proof:cold-entry` reading the
 isolated engine write); the TASTE boundary by clause (g) (the user's per-pane packet verdict on
-record). **NO CARRIED gap is silent** — where K could not fully cure a boundary (the library frontier
-deferred WHOLESALE to L; an open glass-ui consume-edge that publishes after K), the carry's NAMED
-mechanism is recorded (S7; the consume-edge born-RED-able grep that flips the instant the publish
-lands — `deferred-ledger-k.md §1e`).
+record); **the round-trip frontier by the Band-II replay-equality oracles (the ingest/compile
+pixel-equality, the honoring SUM, the spring crossfade overshoot, the agent/dogfood boundary-ORACLE).**
+**NO CARRIED gap is silent** — where K could not fully cure a boundary (the two value.js-GATED
+frontier consume edges VJ.W1/VJ.W2 born-RED kf-side until value.js publishes; an open glass-ui
+consume-edge that publishes after K), the carry's NAMED mechanism is recorded (S7; the
+published-consume-edge born-RED-able grep that flips the instant the publish lands —
+`deferred-ledger-k.md §1e`, `KF-TO-VALUEJS-GRAMMAR-ASKS.md §5`).
 
 ## §No-workaround prohibitions (BINDING — the mandate's named forbiddings for the close)
 
@@ -617,10 +660,13 @@ lands — `deferred-ledger-k.md §1e`).
   (`deferred-ledger-k.md §2`) EXITS K via a born-RED gate, a measurement, a published consume-edge,
   or a reasoned KILL — never a bare BOOK on a fifth ride (P-invariant-28). The mobile-Lighthouse floors
   (DL-K11) are MEASURED on a quiet host, not deferred again behind the P6-posture rationalization.
-- **NO frontier punt disguised as a deferral.** `L-SEED.md` is committed with the wholesale-deferral
-  ARGUMENT (the value.js-interval un-blocking; the daily P0 decay; the stronger-substrate inheritance)
-  — a reasoned, rowed deferral, NOT an un-rowed "we'll get to it." The 12 KILLs stay non-re-litigable;
-  the BOOKs stay tripwired.
+- **NO frontier punt disguised as a deferral — AND no residual L.** `L-SEED.md` is recorded CONSUMED:
+  the frontier folded WHOLESALE into K Band II (the six wave specs K.W7–K.W12), the two genuine
+  value.js grammar gates (VJ.W1 scroll → N.W11′ / VJ.W2 ramp → N.W11.D) DISPATCHED to value.js
+  (RATIFIED into its 0.13.0 cut) as published-consume-edges (`KF-TO-VALUEJS-GRAMMAR-ASKS.md`) — every
+  frontier item lands IN a Band-II
+  wave spec or a born-RED-gated sibling dispatch, NEVER an un-rowed "we'll get to it" and NEVER a
+  deferral to an L that will not come. The 12 KILLs stay non-re-litigable; the BOOKs stay tripwired.
 
 ## §Folds (every K.md-assigned close item, with its evidence citation)
 
@@ -652,9 +698,12 @@ lands — `deferred-ledger-k.md §1e`).
 - **The AFTER review-packet capture (the W3-lib harness vs the K-open corpus)** — S5 + clause (g). The
   design-totality visual record; the named-deltas-only diff. `K.md §K.W5`, `audit/screenshots-k/`,
   `design-synthesis-k.md §5`.
-- **`L-SEED.md` committed (the frontier re-seeded UNCHANGED · the wholesale deferral on the record)**
-  — S7 + clause (h). `L-SEED.md` (head), `k-seed-reconciliation.md §4` (Shape A),
-  `K.md §The frontier defers wholesale to L`, `deferred-ledger-k.md §1f` (DL-K26..K32).
+- **`L-SEED.md` recorded CONSUMED (the frontier folded WHOLESALE into K Band II · there is no
+  residual L)** — S7 + clause (h). `L-SEED.md` (head — the consumed frontier body), `K.md §The
+  frontier, un-blocked (Band II)`, `K.md §MANDATE` (the 2026-06-15 total fold), the six Band-II wave
+  specs (`waves/K.W7.md`–`K.W12.md`), `KF-TO-VALUEJS-GRAMMAR-ASKS.md` (the VJ.W1/VJ.W2 outbound
+  dispatch), `deferred-ledger-k.md §1f` (DL-K26..K32, now Band-II FOLD rows); the
+  `k-seed-reconciliation.md §4` Shape-A deferral SUPERSEDED (evidence-of-record).
 - **The K ledger TERMINAL: zero un-dispositioned rows + the ten ≥4-tranche `‡` riders EXITED** — S2 +
   S3 + clause (f). `deferred-ledger-k.md §2` (the P-invariant-28 exit roll-up), `precepts-k.md §P16`.
 - **The release.yml-gates-on-correctness decision** — S4 (RECORD + the recorded USER-DOMAIN
@@ -698,11 +747,16 @@ lands — `deferred-ledger-k.md §1e`).
   the npm publish; the close merge to master (which RE-fires the auto-deploy round-trip, S6). The close
   AUTHORS the triggers + the gated pre-conditions; the owner CONFIRMS and FIRES.
 - **OUT / sibling (do NOT touch):** the value.js next-slice (VJ-1..9, rides the next re-pin,
-  consume-edge-shaped — `deferred-ledger-k.md §1e`); the glass-ui consume-edges that publish after K
-  (sibling-HANDOFF rows with their born-RED-able grep, never kf-patched — inv-16); the DEP-1 CNAME
-  confirm (deploy-repo-owned, verify-only); the ENTIRE library frontier (CC-1 compiler, K1 ingestion,
-  SO-1 scroll, PHYS-C, ED-1, the value.js half — DEFERRED WHOLESALE to L via `L-SEED.md`, S7). All
-  inv-16 sibling-coordination + the reasoned wholesale deferral, never kf-patched.
+  consume-edge-shaped — `deferred-ledger-k.md §1e`); **the two value.js-GATED frontier grammar items
+  (VJ.W1 scroll grammar gating K.W9 + VJ.W2 `sampleColorRamp` gating K.W10's CC-2 — DISPATCHED to
+  value.js via `KF-TO-VALUEJS-GRAMMAR-ASKS.md`, RATIFIED into its N.W11.D/N.W11′ library track (the
+  0.13.0 cut); the kf consume edges land born-RED kf-side and light on value.js's 0.13.0 PUBLISH,
+  NEVER a `file:` link or vendored copy — the acyclic-spine
+  invariant)**; the glass-ui consume-edges that publish after K (sibling-HANDOFF rows with their
+  born-RED-able grep, never kf-patched — inv-16); the DEP-1 CNAME confirm (deploy-repo-owned,
+  verify-only). **The library frontier itself is NOT OUT — it is IN K Band II (K.W7–K.W12); only the
+  value.js grammar half is sibling-dispatched.** All inv-16 sibling-coordination + the acyclic-spine
+  published-consume-edges, never kf-patched.
 
 ## §Design decisions (trade-offs RESOLVED)
 
@@ -738,24 +792,37 @@ lands — `deferred-ledger-k.md §1e`).
   registration to ONE motion. A vacuous swap is the gate-blindspot's deepest expression (a source-shape
   gate auditing a markdown table); the transition proves the K ledger is POLICED by a biting gate.
 - **The content-honest cut + publish stay USER-DOMAIN, gated on the boundary GREEN + the verdict —
-  RESOLVED.** The default cut is the honest PATCH `4.2.1` (the P0 fix + the demo design totality + the
-  demo-only glass-ui re-pin — no library API change); a minor `4.3.0` fires ONLY if a K wave landed a
-  genuinely-useful NEW public export (the candidate recorded, the decision made against the landed
-  content). The publish fires only on `proof:all == CI` GREEN + `proof:cold-entry` GREEN +
-  `proof:published-surface` GREEN + the close-merge round-trip OBSERVED + the TASTE packet verdict ON
-  RECORD. The owner (Mike Babb) confirms and fires; the close authors the gated trigger.
+  RESOLVED.** Band I alone would be an honest PATCH (the P0 fix + the demo design totality + the
+  demo-only glass-ui re-pin — no library API change). But **Band II lands a LARGE NEW public surface**
+  — the ingest (`fromStyleSheets`/`fromLiveAnimations`/`adoptRunning`, K.W8), the scroll module
+  (`createScrollScene`, K.W9), the compiler (`compileToCSS`, K.W10), the spring-driven
+  `transitionLayer`/`crossfade` + `reseatToSpring` + intensity-scaled reduced-motion (K.W11), the
+  agent artifacts + the color-fidelity harness (K.W12), AND the NEW sibling `@mkbabb/keyframes-vue`
+  package — so the content-honest cut is **at minimum a MINOR** (the new exports), and the surface
+  growth may justify a larger bump; the decision is made USER-DOMAIN against the LANDED content (which
+  Band-II waves actually shipped vs deferred their VJ-gated half) — never a fixed number authored
+  ahead of the impl. The `@mkbabb/keyframes-vue` package carries its OWN version + publish under the
+  SAME `proof:published-surface` discipline (K.W12). The publish fires only on `proof:all == CI` GREEN
+  (INCLUDING the Band-II replay-equality oracles) + `proof:cold-entry` GREEN + `proof:published-surface`
+  GREEN + the close-merge round-trip OBSERVED + the TASTE packet verdict ON RECORD. The owner (Mike
+  Babb) confirms and fires; the close authors the gated trigger.
 - **The close-merge round-trip is RE-observed on the close itself, AND the live cold path verified —
   RESOLVED.** J.W0 proved the auto-chain on A master push; the K close re-witnesses it on the K close
   merge, AND verifies the deployed `keyframes.babb.dev` cold front door ANIMATES on the served bytes
   (the live-origin re-verify `completeness-critic.md §CC-3` flagged was never done). The terminal
   product-truth observation is compound: the certified bytes are the served bytes, and those bytes
   animate from the first gesture — the P0 that decayed daily is dead on the live site.
-- **The frontier defers WHOLESALE to L, committed not punted — RESOLVED.** `L-SEED.md` is committed
-  with the reasoned wholesale-deferral argument (the value.js grammar resolves in the K interval; none
-  of the frontier decays by waiting; the P0 decayed daily; L inherits a stronger substrate because K
-  repaired the demo first). The ONLY frontier fold into K is the K3-internal engine-diagnostic rows
-  (~20 LoC if VERIFY fails); WL2-B/PHYS-C are NOT manufactured as K work. The 12 KILLs stay
-  non-re-litigable; the BOOKs stay tripwired.
+- **The frontier folds WHOLESALE into K Band II — there is no residual L — RESOLVED.** The 2026-06-15
+  total fold (`K.md §MANDATE`, `K.md §The frontier, un-blocked (Band II)`) supersedes the K-SEED
+  reconciliation's Shape-A deferral: its central argument (value.js un-dispatched) DISSOLVED when
+  value.js shipped 0.12.0, un-blocking FOUR of the six frontier waves outright (K.W7/K.W8/K.W11/K.W12)
+  and leaving only TWO genuine grammar gates open (VJ.W1 scroll gating K.W9, VJ.W2 ramp gating K.W10's
+  CC-2) — DISPATCHED to value.js via `KF-TO-VALUEJS-GRAMMAR-ASKS.md`, RATIFIED into its N.W11.D/N.W11′
+  library track (the 0.13.0 cut) (the acyclic-spine published-consume-edges, born-RED kf-side until the
+  0.13.0 publish). The ENTIRE frontier folds
+  into the six Band-II wave specs (K.W7–K.W12); `L-SEED.md` is recorded CONSUMED; the value.js grammar
+  half is the only sibling-dispatched edge. The 12 KILLs stay non-re-litigable; the BOOKs stay
+  tripwired.
 - **The close is single-voiced — RESOLVED.** The K FINAL is the sole authoritative narrative;
   supersessions of frozen DEV artifacts are explicit pointers, never silent re-writes that leave two
   live narratives. The `wave-I.WZ-postclose.md §G` two-narrative drift the I tranche was founded to

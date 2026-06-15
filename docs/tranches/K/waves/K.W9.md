@@ -2,20 +2,28 @@
 
 - **Phase:** DEV — spec authored, awaits IMPL+auth · **Class:** SHIP-in-K (Band II · NET-NEW
   capability; born-RED in the FRONTIER sense AND value.js-GATED. The born-RED is DOUBLE-rooted and
-  both roots are probe-verified against the tree 2026-06-15: **(1)** kf has NO scroll-grammar PARSE
-  and NO scroll DRIVER today — `grep -rnE "animation-timeline|animation-range|animation-trigger|timeline-scope|ScrollScene|parseAnimationTimeline|CSSTimelineOptions"
+  both roots are probe-verified against the INSTALLED tree 2026-06-15: **(1)** kf has NO scroll-grammar
+  PARSE and NO scroll DRIVER today — `grep -rnE "animation-timeline|animation-range|animation-trigger|timeline-scope|ScrollScene|parseAnimationTimeline|CSSTimelineOptions"
   src/` returns ZERO declaration/identifier hits; the ONLY matches are two PROSE comments inside the
   SHIPPED native bridge (`waapi.ts:462`, `timeline.ts:221` — both narrate the native
-  `animation-range` lane, NEITHER is a parser; §State-verified), so the scroll grammar is unparsed
-  and `createScrollScene` does not exist. **(2)** the typed scroll-VALUE grammar it would consume
-  does not yet exist in value.js — `@mkbabb/value.js@0.12.0` ships the property *names*
-  (`STYLE_NAMES` lists `animationTimeline`/`animationRange`/`animationRangeStart`/`animationRangeEnd`/
-  `timelineScope`/`scrollTimeline`/`viewTimeline`, `dist/units/constants.d.ts:33`) but has NO typed
-  `scroll()`/`view()`/range-phase value extractor and NO `CSSTimelineOptions`/`parseAnimationTimeline`
-  (`grep -rcE "CSSTimelineOptions|parseAnimationTimeline|rangePhase" node_modules/@mkbabb/value.js/dist/`
-  → ZERO; §State-verified). The capability is absent BOTH because the kf surface does not exist AND
-  because the typed value grammar it consumes is not yet published — the PARSE consume edge lights on
-  value.js's PUBLISH, born-RED-gated kf-side, NEVER a `file:` link or a vendored copy.) ·
+  `animation-range` lane, NEITHER is a parser; §State-verified re-probed below), so the scroll grammar
+  is unparsed and `createScrollScene` does not exist. **(2)** the typed scroll-VALUE grammar it would
+  consume does not yet exist in the INSTALLED value.js — the pin is `^0.11.2` (`package.json:179`;
+  `node -e` prints the resolved `0.11.2`), which ships the scroll property *names* (`STYLE_NAMES`
+  lists `animationTimeline`/`animationRange`/`animationRangeStart`/`animationRangeEnd`/
+  `timelineScope`/`scrollTimeline`/`viewTimeline`, `dist/units/constants.d.ts:33` — grep-verified
+  PRESENT) but has NO typed `scroll()`/`view()`/range-phase value extractor and NO
+  `CSSTimelineOptions`/`parseAnimationTimeline`
+  (`grep -rcE "CSSTimelineOptions|parseAnimationTimeline|rangePhase|serializeAnimationTimeline" node_modules/@mkbabb/value.js/dist/`
+  → ZERO across every dist file; §State-verified). The published `0.12.0` (`npm view` → `0.12.0`;
+  K.W1 re-pins `^0.11.2 → ^0.12.0`) is the SAME on this axis — the sharp born-RED holds at BOTH the
+  installed `0.11.2` and the published `0.12.0`. The capability is absent BOTH because the kf surface
+  does not exist AND because the typed value grammar it consumes is not yet published — the PARSE
+  consume edge lights on value.js's PUBLISH, born-RED-gated kf-side, NEVER a `file:` link or a
+  vendored copy. **The producer is now RATIFIED-PROPOSED:** value.js's `docs/tranches/N/GRAMMAR-FOLD.md`
+  develops VJ.W1 to executable depth as **N.W11′** (a sibling library wave, the typed `CSSTimelineOptions`
+  parser + inverse serializer in a NEW `value.js/src/parsing/scroll-timeline.ts`) shipping in the
+  **0.13.0** cut — the now-named producer this wave's clause (b) consume edge lights on.) ·
 - **Scope (a NEW scroll module + `timeline.ts`/`format.ts` edges; the value.js VJ.W1 consume edge):**
   SO-1 parse + round-trip `animation-timeline`/`-range`/`timeline-scope`/`animation-trigger`
   (consuming the dispatched value.js `CSSTimelineOptions` typed extractor + inverse serializer) +
@@ -57,7 +65,7 @@
   SYNTHESIS (SO-3 — kf authors the platform's pin; transform-pinning SO-4 is KILLED: cross-thread
   jitter). NOT the ScrollTimeline-native-replace ARCH kill: this ADDS a parse+dispatch tier above the
   JS driver and never deletes it."
-- **`../audit/frontier/scroll-orchestration.md §0-§6` — the wave-ready engineering detail.** §0
+- **`../../J/audit/frontier/scroll-orchestration.md §0-§6` — the wave-ready engineering detail.** §0
   (the decisive distinction — this is NOT the kill): "The killed thing is precise: **replacing kf's
   JS `Timeline` progress driver with the native `animation-timeline` so the JS sampler ceases to
   exist.** … This lane is squarely inside that grant. Three reasons it is categorically not the
@@ -84,7 +92,7 @@
   `createScrollScene(spec|css).pin().scrub().snap().on().attach()` + `get nativeAttachment`). §6
   verdicts: SO-1 K-HEADLINE-CANDIDATE; SO-2/SO-3 K-CANDIDATE; SO-4 KILL; SO-5 J-FOLD (→ K.W9
   sub-item); SO-6 (native REPLACE) KILL re-affirm.
-- **`../audit/frontier/physics-frontier.md §4` — the snapDecay primitive (PHYS-D, the `.snap()`
+- **`../../J/audit/frontier/physics-frontier.md §4` — the snapDecay primitive (PHYS-D, the `.snap()`
   composition root).** §4 "Momentum scrolling / snap physics — J-FOLD the primitive, DEFER the
   orchestration to the scroll lane": the snap primitive composes the SHIPPED `decay`/`decayRest`
   (`decay.ts:59-100`, the closed-form projected rest point) + `SpringProgress` settle; the
@@ -92,15 +100,31 @@
   primitive itself needs no net-new value.js grammar (it composes kf's own physics — `decayRest` +
   `SpringProgress.reset`), distinct from the MotionPath path-sampler (DL-K21/VJ-F1, RIPE in 0.12.0,
   `../VALUEJS-N2-ASKS.md §2 row 9`) which is MotionPath product, NOT the scroll snap.
-- **The value.js dispatch (the OPEN gate — the acyclic spine in motion).** `../VALUEJS-N2-ASKS.md §3`:
-  "**VJ.W1 SCROLL GRAMMAR + VJ.W2 `sampleColorRamp`** — the two genuine L gates remain net-new and
-  un-scheduled; value.js has recorded them for its post-N successor tranche; L re-confirms their
-  status at its open" (and the §body line: "VJ.W1 / VJ.W2 — OPEN, the two genuine L gates, recorded
-  value.js-side"). `K.md §value.js coordination`: "**VJ.W1 SCROLL GRAMMAR** (gates K.W9): the
+- **The value.js dispatch (the gate — DISPATCHED, the producer now RATIFIED-PROPOSED; the acyclic
+  spine in motion).** `K.md §value.js coordination`: "**VJ.W1 SCROLL GRAMMAR** (gates K.W9): the
   `CSSTimelineOptions` typed extractor + inverse serializer (`animation-timeline`/`-range`/
   `timeline-scope`/`animation-trigger`, `scroll()`/`view()`/range-phase) — the ONE genuine net-new
   grammar. Confirmed ABSENT in 0.12.0 (orchestrator-probed 2026-06-15)." The outbound ask is
   `../KF-TO-VALUEJS-GRAMMAR-ASKS.md §VJ.W1` — the kf-side spec value.js's post-N tranche consumes.
+- **The producer is RATIFIED-PROPOSED (the now-named producer this wave consumes — the dispatch
+  ANSWERED).** value.js's `/Users/mkbabb/Programming/value.js/docs/tranches/N/GRAMMAR-FOLD.md` develops
+  the dispatch to executable depth: **VJ.W1 → N.W11′** (a SIBLING library wave beside N.W11), a NEW
+  `value.js/src/parsing/scroll-timeline.ts` in the `parsing/easing.ts` parser-combinator idiom
+  (`GRAMMAR-FOLD.md §II.1`), shipping in the **0.13.0** cut (with a tight library-only post-N **Tranche
+  O** as the named fallback if the fold slips — `GRAMMAR-FOLD.md §II.8`). The producer's TYPED surface
+  is now concrete (`GRAMMAR-FOLD.md §II.2`): `parseAnimationTimeline(input, onParseError?) →
+  AnimationTimelineValue` (the `{kind:"scroll"|"view"|"name"|"auto"|"none", scroller?, axis?, inset?}`
+  shape), `parseAnimationRange → AnimationRangeValue` (`{start, end?}` of `{phase?: RangePhase, offset?}`
+  — `offset` emitted VERBATIM, the driver fills, per the §II.1 division-of-labour law), `parseTimelineScope`,
+  the aggregate `extractTimelineOptions(s: Stylesheet) → CSSTimelineOptions`, and the INVERSE serializers
+  `serializeAnimationTimeline`/`serializeAnimationRange`/`serializeTimelineScope`/`serializeTimelineOptions`.
+  The `animation-trigger`/`timeline-trigger` 2026 layer is partitioned as a forward-looking SUB-ITEM
+  value.js lands AFTER the scroll-timeline core (`GRAMMAR-FOLD.md §II.3.E`; the natural Tranche-O
+  candidate even under the fold). The producer-side born-RED is the mirror of kf's:
+  `value.js test/scroll-timeline.test.ts` REDs on the undefined import at 0.12.0 and greens on the
+  N.W11′ publish (`GRAMMAR-FOLD.md §II.4`). **This dispatch awaits value.js's user ratification**
+  (`GRAMMAR-FOLD.md §dispatch-gate`: ratify the fold OR elect Tranche O — the kf consume edge is
+  IDENTICAL either way, lighting on whichever cut publishes the `CSSTimelineOptions` extractor).
 - **The booked invariant roots:** `K.md §invariant set` — the **acyclic-spine invariant** (W9's
   source half lands born-RED against the recorded VJ.W1 absence; the PARSE consume edge lights on
   value.js's publish, born-RED-gated kf-side, NEVER a `file:` link or vendored grammar) + the
@@ -109,6 +133,15 @@
   REFUSED with a named reason, never silently approximated). The ScrollTimeline-native-REPLACE ARCH
   kill (carried `C.md:265` / `I.md:421` / `J.md:335`) is RE-AFFIRMED, never re-litigated (§0 of the
   lane; SO-6 KILL `../L-SEED.md §5`).
+- **The shared constellation precept (cited — the cross-repo law this wave's consume edge obeys):**
+  `docs/precepts/cross-repo-dev-resolution.md §2.4` forbids "No checked-in `dist/` artefact as a
+  tracked resolution target" and `§4` (invariant 30, contract-v2) mandates every `@mkbabb/*` consume
+  resolves the PUBLISHED `dist/` (the 3-key `exports` map), never a `src/` redirect. The VJ.W1 consume
+  edge obeys this verbatim: kf consumes value.js's PUBLISHED `0.13.0` `dist/` `CSSTimelineOptions`
+  extractor (a K.W1-style `^0.12.0 → ^0.13.0` re-pin), NEVER a `file:` link to value.js's WIP
+  `src/parsing/scroll-timeline.ts` (the §2.4 "No `file:`"/no-vendored forbidding) — the acyclic-spine
+  invariant IS the constellation precept made charter-binding. No back-edge: value.js → kf (grammar);
+  kf → glass-ui (spring).
 
 ## §The state, verified (file:line / grep / version anchors — all probed against the tree 2026-06-15)
 
@@ -130,7 +163,7 @@
   (constructed `timeline.ts:63`, run through `applyPipeline` `:79` → the smoother tick `:100-105`) are
   SHIPPED and KEPT — W9 ADDS a parse+dispatch tier ABOVE them; it deletes no driver. **W9 is squarely
   inside the fleet's "NET-NEW scroll ORCHESTRATION is fair game" grant**
-  (`../audit/frontier/scroll-orchestration.md §0`). **HARDENING-5 HAZARD-2 line-drift CORRECTED:** the
+  (`../../J/audit/frontier/scroll-orchestration.md §0`). **HARDENING-5 HAZARD-2 line-drift CORRECTED:** the
   frontier lane's frozen `waapi.ts:440` shorthand has DRIFTED — the current export is `:470` (the
   comment narrating the native lane is `:462`); the IMPL re-greps current line numbers, never copies
   the frozen lane's nor an earlier draft's.
@@ -139,7 +172,7 @@
   `timeline.ts:63` smoother), `decay`/`decayRest` (`decay.ts` — the snap projection), `SpringProgress`
   (`spring.ts` — the settle). The scroll DRIVER (SO-2 `ScrollScene`) COMPOSES these — "two of the four
   hard pieces (scrub, snap) are SHIPPED primitives awaiting a driver"
-  (`../audit/frontier/scroll-orchestration.md §3`). The new part is the DRIVER + the dispatch + the
+  (`../../J/audit/frontier/scroll-orchestration.md §3`). The new part is the DRIVER + the dispatch + the
   PARSE, not the physics.
 - **The `format.ts` serialize-from-template authority is SHIPPED (CONFIRMED — the S1 serialize half):**
   `format.ts:53-85` is "THE one declared-template projection (J.W1 S1 — ENG-1)" — it renders a stop
@@ -147,27 +180,34 @@
   live, fully-styled DOM to emit"). The scroll round-trip's SERIALIZE half extends THIS authority to
   emit the `animation-timeline`/`-range` declarations from the template — the round-trip is the
   parser run BACKWARD over the same data model.
-- **VJ.W1 scroll-VALUE grammar ABSENT in value.js 0.12.0 (CONFIRMED — born-RED root 2; the SHARP
-  form):** `@mkbabb/value.js@0.12.0` is published on npm (`npm view @mkbabb/value.js version` →
-  `0.12.0`); the installed pin is `^0.11.2` (`package.json:179`) — K.W1 re-pins to `^0.12.0` BEFORE
-  Band II. value.js 0.12.0 RECOGNIZES the scroll property *NAMES* (`STYLE_NAMES` in
-  `dist/units/constants.d.ts:33` lists `animationTimeline`, `animationRange`, `animationRangeStart`,
-  `animationRangeEnd`, `timelineScope`, `scrollTimeline`, `scrollTimelineAxis`, `scrollTimelineName`,
-  `viewTimeline`, `viewTimelineAxis`, `viewTimelineInset`, `viewTimelineName`) — but ships NO typed
-  scroll-VALUE extractor: `grep -rcE "CSSTimelineOptions|parseAnimationTimeline|rangePhase"
-  node_modules/@mkbabb/value.js/dist/` → **ZERO**. So the property names parse to bare ValueUnits;
-  the `scroll()`/`view()` FUNCTION grammar, the `<range-phase> <pct>` range grammar, and the typed
-  `CSSTimelineOptions` extractor + inverse serializer DO NOT EXIST. **The PARSE consume edge cannot
-  light until value.js publishes VJ.W1.** This is the SHARP born-RED: not "value.js knows nothing
-  about scroll" (it knows the names) but "value.js has no typed scroll-VALUE grammar to consume."
+- **VJ.W1 scroll-VALUE grammar ABSENT in the INSTALLED value.js (CONFIRMED — born-RED root 2; the
+  SHARP form):** the installed pin is `^0.11.2` (`package.json:179`); the resolved dist is `0.11.2`
+  (`node -e "console.log(require('@mkbabb/value.js/package.json').version)"` → `0.11.2`); the published
+  registry tip is `0.12.0` (`npm view @mkbabb/value.js version` → `0.12.0`), which K.W1 re-pins to
+  `^0.12.0` BEFORE Band II. The INSTALLED `0.11.2` dist RECOGNIZES the scroll property *NAMES*
+  (`STYLE_NAMES` in `dist/units/constants.d.ts:33` — grep-verified PRESENT: `animationTimeline`,
+  `animationRange`, `animationRangeStart`, `animationRangeEnd`, `timelineScope`, `scrollTimeline`,
+  `scrollTimelineAxis`, `scrollTimelineName`, `viewTimeline`, `viewTimelineAxis`, `viewTimelineInset`,
+  `viewTimelineName`) — but ships NO typed scroll-VALUE extractor:
+  `grep -rcE "CSSTimelineOptions|parseAnimationTimeline|rangePhase|serializeAnimationTimeline"
+  node_modules/@mkbabb/value.js/dist/` → **ZERO across every dist file**. So the property names parse
+  to bare ValueUnits; the `scroll()`/`view()` FUNCTION grammar, the `<range-phase> <pct>` range
+  grammar, and the typed `CSSTimelineOptions` extractor + inverse serializer DO NOT EXIST. **The
+  published `0.12.0` is the SAME on this axis** — `VALUEJS-N2-ASKS.md §3` + `GRAMMAR-FOLD.md §II.4`
+  both record the absence-probe against `0.12.0` as ZERO; the born-RED holds whether kf consumes the
+  installed `0.11.2` or the K.W1-repinned `0.12.0`. **The PARSE consume edge cannot light until
+  value.js publishes VJ.W1 (the N.W11′ producer, 0.13.0 cut — §Provenance).** This is the SHARP
+  born-RED: not "value.js knows nothing about scroll" (it knows the names) but "value.js has no typed
+  scroll-VALUE grammar to consume" — and the now-RATIFIED-PROPOSED producer (`GRAMMAR-FOLD.md §II.2`)
+  is the exact typed surface the edge will light on.
 - **The dispatch precedent is SHIPPED (CONFIRMED):** the WAAPI eligibility gate
   (`isWAAPIEligible`, `waapi.ts:109`) returns an eligibility verdict with a reason — the "delegate
   where provably correct, fall back to the always-correct JS driver, query the reason" discipline W9
-  generalizes to the scroll clock (`../audit/frontier/scroll-orchestration.md §4`).
+  generalizes to the scroll clock (`../../J/audit/frontier/scroll-orchestration.md §4`).
 
 ## §Goal
 
-Close the field's #1 named gap (`../audit/sota-landscape.md` the Scroll-driven row: kf is "PARTIAL
+Close the field's #1 named gap (`../../J/audit/sota-landscape.md` the Scroll-driven row: kf is "PARTIAL
 (progress driver + `createNativeTimeline`; **no pin/scrub/snap orchestration**)" vs GSAP "HAS — gold
 standard (ScrollTrigger + ScrollSmoother)") the ONLY-kf way: **kf treats scroll-driven CSS as a
 parseable, round-trippable source of truth — it parses the `animation-timeline`/`-range`/`-trigger`
@@ -180,7 +220,7 @@ WG is shipping, and round-trip it. The 2026 platform makes the gap real and dura
 timelines are Chrome/Edge 115+, Safari 26 shipped, Firefox behind a flag; `animation-trigger` is
 Chrome-145-only; NONE covers Firefox-default, scrub-smoothing, physics-snap, or non-DOM targets — the
 exact band kf's SHIPPED `SmoothProgress`/`SpringProgress`/`decay` inhabit
-(`../audit/frontier/scroll-orchestration.md §1`). Three moves:
+(`../../J/audit/frontier/scroll-orchestration.md §1`). Three moves:
 
 1. **SO-1 — the scroll-grammar round-trip (S1 — value.js-GATED).** kf parses
    `animation-timeline: scroll()/view()`, `animation-range: <range-phase> <pct> …`, `timeline-scope`,
@@ -214,18 +254,29 @@ exact band kf's SHIPPED `SmoothProgress`/`SpringProgress`/`decay` inhabit
   SERIALIZE half: round-trip those declarations BACK from the declared template (`format.ts:53-85` —
   the J.W1 S1 ENG-1 serialize-from-template authority, never a DOM-resolved sample). **WHY
   value.js-GATED:** the grammar lives where the `animation-*` parsing already lives — value.js's
-  stylesheet extractor (`extract.ts:114-176`); value.js 0.12.0 knows the property NAMES (`STYLE_NAMES`)
-  but has NO typed `scroll()`/`view()`/range-phase value extractor and no `CSSTimelineOptions`
-  (§State-verified). The `CSSTimelineOptions` extractor is VJ.W1, ABSENT in 0.12.0, DISPATCHED to
-  value.js's post-N tranche. **The acyclic-spine handling (BINDING):** the kf source half (the
-  `ScrollScene` consumer that CALLS `CSSTimelineOptions`) lands born-RED against the recorded VJ.W1
-  absence — the consume edge born-RED-gates kf-side, NEVER a `file:` link to value.js's WIP tree and
-  NEVER a vendored copy of the grammar in kf's tree; the edge lights when value.js publishes (the
-  J.W7b published-consume-edge idiom). **NO-WORKAROUND:** NOT a kf-local scroll-grammar parser (the
-  grammar is value.js's — `K.md §value.js coordination`; a kf-local parser breaches the acyclic spine
-  AND re-introduces the "kf has a local grammar" fiction the J.W5 audit corrected,
-  `../audit/frontier/scroll-orchestration.md §2`); NOT a `file:` link or vendored grammar (the
-  acyclic-spine invariant's named forbidding).
+  stylesheet extractor (`extract.ts:114-176`); the installed value.js (`0.11.2`; the published `0.12.0`
+  the same) knows the property NAMES (`STYLE_NAMES`) but has NO typed `scroll()`/`view()`/range-phase
+  value extractor and no `CSSTimelineOptions` (§State-verified). The `CSSTimelineOptions` extractor is
+  VJ.W1, ABSENT in 0.12.0, DISPATCHED to value.js's post-N tranche and now RATIFIED-PROPOSED as
+  **N.W11′** — a NEW `value.js/src/parsing/scroll-timeline.ts` (`GRAMMAR-FOLD.md §II.0,§II.7`),
+  0.13.0 cut. **The typed consume surface kf's `scroll.ts` CALLS (now concrete — `GRAMMAR-FOLD.md
+  §II.2`):** `parseAnimationTimeline(input, onParseError?) → AnimationTimelineValue`,
+  `parseAnimationRange → AnimationRangeValue`, `parseTimelineScope`, the aggregate
+  `extractTimelineOptions(s: Stylesheet) → CSSTimelineOptions`, and the inverse
+  `serializeAnimationTimeline`/`serializeAnimationRange`/`serializeTimelineScope`/`serializeTimelineOptions`
+  — the parser emitting the options VERBATIM (the named-timeline ref as a `<dashed-ident>` string, the
+  range offset as-written; the DRIVER resolves the live-DOM offset, per the §II.1 division-of-labour
+  law — VALUE is value.js's, TIME is kf's). **The acyclic-spine handling (BINDING):** the kf source
+  half (the `ScrollScene` consumer that CALLS `parseAnimationTimeline`/`extractTimelineOptions`) lands
+  born-RED against the recorded VJ.W1 absence — the consume edge born-RED-gates kf-side, NEVER a
+  `file:` link to value.js's WIP tree and NEVER a vendored copy of the grammar in kf's tree; the edge
+  lights when value.js publishes 0.13.0 (the J.W7b published-consume-edge idiom; the
+  `GRAMMAR-FOLD.md §II.5` reciprocal cadence: "value.js N.W11′ lands the parser born-RED → publishes
+  0.13.0 → kf K.W9's `scroll.ts` consumer re-pins one tranche behind; clause (b) GREENS"). **NO-WORKAROUND:**
+  NOT a kf-local scroll-grammar parser (the grammar is value.js's — `K.md §value.js coordination`; a
+  kf-local parser breaches the acyclic spine AND re-introduces the "kf has a local grammar" fiction the
+  J.W5 audit corrected, `../../J/audit/frontier/scroll-orchestration.md §2`); NOT a `file:` link or vendored
+  grammar (the acyclic-spine invariant's named forbidding).
 - **S2 — SO-2 the `ScrollScene` JS driver + the dispatch (value.js-INDEPENDENT; composes shipped
   primitives).** Locus: the NEW scroll module + `timeline.ts` edges (it composes the SHIPPED
   `ScrollTimeline` `timeline.ts:162` / `SmoothProgress` `timeline.ts:63`). The driver:
@@ -234,7 +285,7 @@ exact band kf's SHIPPED `SmoothProgress`/`SpringProgress`/`decay` inhabit
   primitive composing `decayRest` + `SpringProgress.reset`, SHIPPED), `.on('enter'|'leave', cb)` (the
   threshold detector DERIVED from the parsed `animation-range`, IntersectionObserver-class but
   CSS-sourced; SO-5 batches enter callbacks via `AnimationGroup.YIELD_BATCH`/`scheduler.yield`),
-  `.attach()` (runs the dispatch). The dispatch matrix (`../audit/frontier/scroll-orchestration.md §4`):
+  `.attach()` (runs the dispatch). The dispatch matrix (`../../J/audit/frontier/scroll-orchestration.md §4`):
   DOM target + WAAPI-eligible + native `ScrollTimeline` present → **NATIVE** via
   `attachNativeScrollTimeline` (`waapi.ts:470`); native present BUT scrub/snap/velocity requested →
   **JS** `ScrollScene` (native `animation-range` has no smoother — `timeline.ts:221`); native ABSENT
@@ -255,7 +306,7 @@ exact band kf's SHIPPED `SmoothProgress`/`SpringProgress`/`decay` inhabit
   and drives the pinned interval's animation through the §S2 dispatch. **WHY sticky, not transform:**
   the web consensus + the glass-ui dock-VT scar are decisive — "scroll repaints run on a different
   thread, so transform-tracked pins jitter/desync against the compositor; `position:sticky`/`fixed`
-  deliver better performance overall" (`../audit/frontier/scroll-orchestration.md §3.1`). kf owns no
+  deliver better performance overall" (`../../J/audit/frontier/scroll-orchestration.md §3.1`). kf owns no
   pinning MECHANISM — it owns the CSS AUTHORING of the platform's pinning mechanism. **NO-WORKAROUND:**
   SO-4 transform-pinning is KILLED (the named anti-charter row — `../L-SEED.md §5` SO-4 "scroll
   repaints on a different thread; transform-tracked pins jitter/desync; position:sticky synthesis is
@@ -288,18 +339,31 @@ unpublished — the PARSE clauses born-RED-gate on VJ.W1; the consume edge light
 - **clause (b) — SO-1 the PARSE round-trips a scroll-driven stylesheet (CORRECTNESS · value.js-GATED
   — born-RED-gates on VJ.W1).** A stylesheet `@keyframes reveal { from { opacity: 0; translate: 0 40px }
   to { opacity: 1; translate: 0 0 } } .card { animation: reveal linear both; animation-timeline:
-  view(); animation-range: entry 0% cover 40% }` parses to a typed `CSSTimelineOptions`, and
-  `format.ts` re-serializes it to valid CSS that re-parses to a template-equivalent (the round-trip's
-  faithfulness — parse → serialize → re-parse equivalence). **BORN-RED WITNESS (the acyclic-spine
-  form):** the typed scroll-VALUE extractor + `CSSTimelineOptions` are ABSENT in value.js 0.12.0
-  (`grep -rcE "CSSTimelineOptions|parseAnimationTimeline|rangePhase" node_modules/@mkbabb/value.js/dist/`
-  → ZERO, §State-verified) → the parse cannot run → the clause REDS against the RECORDED born-RED (the
-  kf source half lands; the consume edge is dark). **The consume edge LIGHTS when value.js publishes
-  VJ.W1** — the clause greens on the publish, born-RED-gated kf-side, NEVER a `file:` link. **BITE:**
-  reds until BOTH S1 ships the consumer AND value.js publishes the extractor; greens when the
-  round-trip is faithful. **NO escape:** the assert is the parse → serialize → re-parse equivalence,
-  not a "did it not throw" check — a lossy round-trip (a dropped range phase, a `scroll()` collapsed to
-  `view()`) reds even though it "parsed."
+  view(); animation-range: entry 0% cover 40% }` parses (via value.js's `extractTimelineOptions` /
+  `parseAnimationTimeline`+`parseAnimationRange`) to a typed `CSSTimelineOptions` —
+  `{ timeline: {kind:"view"}, range: {start:{phase:"entry",offset:"0%"}, end:{phase:"cover",offset:"40%"}} }`
+  — and `format.ts` (threading value.js's `serializeTimelineOptions`) re-serializes it to valid CSS
+  that re-parses to a template-equivalent. **THE REPLAY-EQUALITY ORACLE (the round-trip's faithfulness,
+  per the replay-equality invariant):** `serialize(parse(s))` is CANONICAL-FORM-EQUAL to `s`
+  (whitespace-normalized, default-omitted) — the exact `reverseAnimationShorthand` round-trip law
+  (`value.js animation-shorthand.ts:262`) that `GRAMMAR-FOLD.md §II.2.3,§II.4` clause 4 makes the
+  producer-side gate; kf's clause (b) RECIPROCATES it (`GRAMMAR-FOLD.md §II.5`: "the EXACT clause
+  kf-K.W9 `proof:scroll-roundtrip` (b) reciprocates"). **BORN-RED WITNESS (the acyclic-spine form):**
+  the typed scroll-VALUE extractor + `CSSTimelineOptions` are ABSENT in the installed value.js
+  (`grep -rcE "CSSTimelineOptions|parseAnimationTimeline|rangePhase|serializeAnimationTimeline"
+  node_modules/@mkbabb/value.js/dist/` → ZERO, §State-verified; the published `0.12.0` the same per
+  `GRAMMAR-FOLD.md §II.4`) → the parse cannot run → the clause REDS against the RECORDED born-RED (the
+  kf source half lands; the consume edge is dark). The PRODUCER-SIDE born-RED is the mirror:
+  `value.js test/scroll-timeline.test.ts` REDs on the undefined import at 0.12.0 and greens when N.W11′
+  ships (`GRAMMAR-FOLD.md §II.4`'s six-clause roster — parse correctness, range correctness, scope
+  correctness, the inverse round-trip law, the aggregate extract, fail-loud totality). **The consume
+  edge LIGHTS when value.js publishes VJ.W1 (the 0.13.0 N.W11′ cut, OR the Tranche-O fallback — the
+  edge is identical either way, `GRAMMAR-FOLD.md §II.8`)** — the clause greens on the publish,
+  born-RED-gated kf-side, NEVER a `file:` link. **BITE:** reds until BOTH S1 ships the consumer AND
+  value.js publishes the extractor; greens when the round-trip is canonical-form-equal. **NO escape:**
+  the assert is the parse → serialize → re-parse CANONICAL equivalence, not a "did it not throw" check
+  — a lossy round-trip (a dropped range phase, a `scroll()` collapsed to `view()`, a `<dashed-ident>`
+  named-timeline ref silently lost) reds even though it "parsed."
 - **clause (c) — the DISPATCH is conservative-correct, with a queryable reason (CORRECTNESS ·
   value.js-INDEPENDENT for the matrix).** An ELIGIBLE DOM scroll animation with a native
   `ScrollTimeline` present dispatches to NATIVE (`attachNativeScrollTimeline`, `waapi.ts:470`); the
@@ -330,8 +394,9 @@ on value.js's publish — the acyclic-spine form); clause (c) (the dispatch) ass
 conservative-correct backend choice with a queryable reason; clause (d) (the pin) asserts
 `position:sticky` synthesis, never transform-tracking. **The born-RED witness is DOUBLE-rooted and
 CONCRETE:** no scroll-parse surface or `ScrollScene` exists in kf (the §State-verified
-two-comments-only grep) AND the typed scroll-VALUE extractor + `CSSTimelineOptions` are ABSENT in
-value.js 0.12.0 (registry + dist-grep verified) — the clauses red on exactly that observed shape.
+two-comments-only grep) AND the typed scroll-VALUE extractor + `CSSTimelineOptions` are ABSENT in the
+installed value.js (the `0.11.2` dist-grep ZERO; the published `0.12.0` the same per
+`GRAMMAR-FOLD.md §II.4`) — the clauses red on exactly that observed shape.
 **Two-tier taxonomy:** the wave's GREEN depends on the correctness clauses (a)-(d); clause (e) is a
 HYGIENE corroborator (the ARCH-kill guard; it may NEVER substitute for a red correctness clause).
 **Acyclic-spine posture (declared — the BINDING handling):** the source half (the kf `ScrollScene` +
@@ -352,9 +417,13 @@ with a per-EXPECTED predicate (the backend attribution), NOT a fixed settle. **B
 asserts POSITIVE product properties — the driver scrubs+snaps, the round-trip is faithful, the
 dispatch is correct, the pin is sticky — not an error count; the pre-cure tree threw nothing, the
 capability simply does not exist). **value.js gate status:** VJ.W1 OPEN — DISPATCHED via
-`../KF-TO-VALUEJS-GRAMMAR-ASKS.md §VJ.W1`; clause (b) born-RED-gates on the publish; clauses (a)/(c)/(d)
-are un-blocked. Unlike K.W7 (RIPE-consumed) and K.W8 (RIPE-with-tripwire), W9 is the FIRST genuinely
-value.js-GATED frontier wave — the acyclic-spine's OPEN form.
+`../KF-TO-VALUEJS-GRAMMAR-ASKS.md §VJ.W1`, the producer now RATIFIED-PROPOSED as N.W11′ in the 0.13.0
+cut (`GRAMMAR-FOLD.md §II.7`, awaiting value.js's user ratification per `GRAMMAR-FOLD.md §dispatch-gate`;
+Tranche-O the named fallback); clause (b) born-RED-gates on the publish (the consume edge is identical
+whichever cut publishes); clauses (a)/(c)/(d) are un-blocked. Unlike K.W7 (RIPE-consumed) and K.W8
+(RIPE-with-tripwire), W9 is the FIRST genuinely value.js-GATED frontier wave — the acyclic-spine's OPEN
+form, with the producer now named end-to-end (kf consumer ↔ value.js producer reciprocated in
+`GRAMMAR-FOLD.md §II.5`).
 
 ## §No-workaround prohibitions (BINDING — the mandate's named forbiddings for this wave)
 
@@ -362,20 +431,25 @@ value.js-GATED frontier wave — the acyclic-spine's OPEN form.
   `animation-*` parsing already lives — `extract.ts:114-176`); kf consumes the dispatched typed
   `CSSTimelineOptions` extractor, born-RED-gated kf-side. A kf-local parser breaches the acyclic-spine
   invariant (`K.md §invariant set`) AND re-introduces the "kf has a local grammar" fiction the J.W5
-  audit corrected (`../audit/frontier/scroll-orchestration.md §2`; `K.md §MANDATE`). value.js knows
+  audit corrected (`../../J/audit/frontier/scroll-orchestration.md §2`; `K.md §MANDATE`). value.js knows
   the property NAMES already (`STYLE_NAMES`) — kf does NOT re-derive a parallel name table either.
 - **NO `file:` link or vendored grammar (S1 — the acyclic-spine's named forbidding).** The VJ.W1
-  consume edge is a PUBLISHED consume (value.js publishes; kf consumes one tranche behind on the
-  publish, born-RED-gated kf-side), NEVER a `file:` link to value.js's WIP tree and NEVER a vendored
-  copy of the scroll grammar in kf's tree (`K.md §invariant set`: "the frontier's value.js edges are
-  PUBLISHED consumes, born-RED-gated kf-side, NEVER a `file:` link or a vendored copy"; `K.md §MANDATE`).
+  consume edge is a PUBLISHED consume (value.js publishes the 0.13.0 N.W11′ cut; kf consumes one
+  tranche behind on the publish via a K.W1-style re-pin, born-RED-gated kf-side), NEVER a `file:` link
+  to value.js's WIP `src/parsing/scroll-timeline.ts` and NEVER a vendored copy of the scroll grammar in
+  kf's tree (`K.md §invariant set`: "the frontier's value.js edges are PUBLISHED consumes,
+  born-RED-gated kf-side, NEVER a `file:` link or a vendored copy"; `K.md §MANDATE`). The reciprocal
+  cadence is `GRAMMAR-FOLD.md §II.5`: "Each arrow is a PUBLISHED consume — born-RED-gated downstream,
+  NEVER a `file:` link or vendored copy." Even though the producer is now NAMED end-to-end, the seam
+  stays a published consume — naming the producer module does NOT license importing it across the repo
+  boundary before the publish.
 - **NO transform-pinning (S3 — SO-4 KILLED).** The pin is `position:sticky` synthesis; transform-
   tracking is the KILLED primitive (cross-thread repaint jitter; the glass-ui dock-VT scar —
   `../L-SEED.md §5` SO-4). The spec re-affirms the kill, it does not re-litigate it.
 - **NO ScrollTimeline-native-REPLACE (S2 — SO-6 ARCH kill re-affirmed).** W9 ADDS a parse+dispatch
   tier ABOVE the JS `ScrollTimeline` driver and NEVER deletes it. The killed thing is "replacing the
   JS `Timeline` progress driver with the native `animation-timeline` so the JS sampler ceases to exist"
-  (`../audit/frontier/scroll-orchestration.md §0`; `C.md:265`/`I.md:421`/`J.md:335`); W9 keeps the JS
+  (`../../J/audit/frontier/scroll-orchestration.md §0`; `C.md:265`/`I.md:421`/`J.md:335`); W9 keeps the JS
   sampler as the universal fallback (the dispatch matrix's last four rows are all JS). A proposal
   re-enters the kill ONLY if it argues "delete the JS `ScrollTimeline`, native is enough now" — W9
   never does.
@@ -387,31 +461,34 @@ value.js-GATED frontier wave — the acyclic-spine's OPEN form.
 - **NO inventing scroll physics (S2 — the COMPOSE discipline).** Scrub = `SmoothProgress` (SHIPPED),
   snap = `decay`/`SpringProgress` (SHIPPED), enter/leave = the range-derived detector, entry-batch =
   `AnimationGroup.YIELD_BATCH` (SHIPPED). "Two of the four hard pieces (scrub, snap) are SHIPPED
-  primitives awaiting a driver" (`../audit/frontier/scroll-orchestration.md §3`); the new part is the
+  primitives awaiting a driver" (`../../J/audit/frontier/scroll-orchestration.md §3`); the new part is the
   DRIVER, not the physics. No coupled vector springs, no novel snap math (the PHYS-A coupled form is
   KILLED, `../L-SEED.md §5`).
 
 ## §Folds (every K.md-assigned fold, with its frontier-lane + L-SEED/N2 citation)
 
 - **SO-1** (the scroll-grammar round-trip — value.js-GATED) — S1. `../L-SEED.md §1 #3` + the
-  §body→K.W9 map; `../audit/frontier/scroll-orchestration.md §2,§6` (SO-1 K-HEADLINE-CANDIDATE, the
-  genuine novel work); the value.js dispatch `../KF-TO-VALUEJS-GRAMMAR-ASKS.md §VJ.W1` (the OPEN gate);
-  `src/` two-comments-only grep (born-RED root 1 — no parse, no `ScrollScene`); value.js 0.12.0
-  `CSSTimelineOptions` absent / property-NAMES-only (born-RED root 2, the sharp form).
+  §body→K.W9 map; `../../J/audit/frontier/scroll-orchestration.md §2,§6` (SO-1 K-HEADLINE-CANDIDATE, the
+  genuine novel work); the value.js dispatch `../KF-TO-VALUEJS-GRAMMAR-ASKS.md §VJ.W1` (the gate) with
+  the producer now RATIFIED-PROPOSED as `value.js .../N/GRAMMAR-FOLD.md §II` (N.W11′, the typed
+  `CSSTimelineOptions` surface + the producer-side six-clause born-RED, 0.13.0 cut); `src/`
+  two-comments-only grep (born-RED root 1 — no parse, no `ScrollScene`); installed value.js `0.11.2`
+  (published `0.12.0` the same) `CSSTimelineOptions` absent / property-NAMES-only (born-RED root 2,
+  the sharp form).
 - **SO-2** (the `ScrollScene` JS driver + the dispatch — value.js-INDEPENDENT) — S2.
-  `../audit/frontier/scroll-orchestration.md §3,§4,§5,§6` (SO-2 K-CANDIDATE, composes shipped
+  `../../J/audit/frontier/scroll-orchestration.md §3,§4,§5,§6` (SO-2 K-CANDIDATE, composes shipped
   primitives); `SmoothProgress` (`smooth.ts`) / `decay` (`decay.ts`) / `SpringProgress` (`spring.ts`)
   / `ScrollTimeline` (`timeline.ts:162`) / `attachNativeScrollTimeline` (`waapi.ts:470`) — all SHIPPED;
   `createNativeTimeline` (`timeline.ts:227`) the feature-detect fallback.
 - **SO-3** (the `position:sticky` pin synthesis) — S3.
-  `../audit/frontier/scroll-orchestration.md §3.1,§6` (SO-3 K-CANDIDATE, folds into SO-1's
+  `../../J/audit/frontier/scroll-orchestration.md §3.1,§6` (SO-3 K-CANDIDATE, folds into SO-1's
   `ScrollScene`); SO-4 transform-pinning KILLED (`../L-SEED.md §5`).
 - **SO-5 (scroll-entry batching)** — a `ScrollScene` SUB-ITEM (S2's `.on('enter')`). J-judged a
   K.W9 sub-item (`../L-SEED.md §4`: "the judge OVERRODE … SO-5 scroll-entry batching … presuppose the
   K.W2[→K.W9] ScrollScene driver — they are K.W9[→W9] sub-items"); reuses
   `AnimationGroup.YIELD_BATCH`/`scheduler.yield` (`group.ts`). NOT a separate wave-leg — a sub-item of
   SO-2's `ScrollScene` if elected at impl.
-- **PHYS-D snapDecay** — a `.snap()` SUB-ITEM (S2). `../audit/frontier/physics-frontier.md §4`
+- **PHYS-D snapDecay** — a `.snap()` SUB-ITEM (S2). `../../J/audit/frontier/physics-frontier.md §4`
   (J-FOLD the primitive, DEFER the orchestration to THIS scroll lane); composes the SHIPPED `decayRest`
   (`decay.ts:59-100`) + `SpringProgress.reset` — no value.js edge (distinct from the MotionPath
   path-sampler DL-K21/VJ-F1, RIPE in 0.12.0 `../VALUEJS-N2-ASKS.md §2 row 9`, which is MotionPath
@@ -439,35 +516,60 @@ W9 runs ∥ W8 (both follow W7). Its loci (`waves/README.md §4B`):
   read-then-emit dependency, not a co-edit.
 - **The value.js VJ.W1 consume edge is a PUBLISHED consume, NEVER a `file:` link or vendored
   grammar** (the acyclic-spine invariant). The typed `CSSTimelineOptions` extractor lands in value.js's
-  tree (its own repo/authorization); kf consumes it one tranche behind on the publish. The dispatch is
-  `../KF-TO-VALUEJS-GRAMMAR-ASKS.md §VJ.W1`.
+  tree (its own repo/authorization — a NEW `value.js/src/parsing/scroll-timeline.ts`, N.W11′, the now
+  RATIFIED-PROPOSED producer of `GRAMMAR-FOLD.md §II.0,§II.7`); kf consumes it one tranche behind on the
+  0.13.0 publish via a K.W1-style re-pin. The reciprocal consume seam is `GRAMMAR-FOLD.md §II.5` (it
+  names kf's `src/animation/scroll.ts` consumer ↔ value.js's producer); the dispatch of record is
+  `../KF-TO-VALUEJS-GRAMMAR-ASKS.md §VJ.W1`. **The cross-repo boundary is BINDING:** value.js owns the
+  VALUE grammar (parse/serialize the `scroll()`/`view()`/range-phase VALUES), kf owns TIME (the
+  `ScrollScene` driver, the dispatch, the pin synthesis) — `../L-SEED.md §7` "value.js owns VALUES …
+  keyframes.js owns TIME"; kf does NOT write value.js's tree and the producer's wave numbering
+  (N.W11′) + 0.13.0 cut are value.js's to ratify and ship.
 
 ## §Design-decisions (the named calls this spec makes, so the impl does not re-litigate)
 
 - **W9 is NOT the ScrollTimeline-native-REPLACE kill.** It ADDS a parse+dispatch tier ABOVE the JS
   driver; it deletes no driver; the JS `ScrollTimeline` (`timeline.ts:162`) is the universal fallback
   (the dispatch matrix's last four rows). The §0 distinction is BINDING — the impl never argues
-  "native is enough now, delete the JS sampler" (`../audit/frontier/scroll-orchestration.md §0`).
+  "native is enough now, delete the JS sampler" (`../../J/audit/frontier/scroll-orchestration.md §0`).
 - **The acyclic-spine is handled by SPLITTING the wave's gate into a value.js-INDEPENDENT half
   (clauses a/c/d — SO-2/SO-3) and a value.js-GATED half (clause b — SO-1's PARSE).** The un-blocked
   half lands on K.W7's substrate and proves the driver born-correct BEFORE VJ.W1 publishes; the PARSE
   consume edge lights on the publish. This is the J.W7b published-consume-edge idiom made concrete:
   K's impl never blocks on the unpublished symbol. W9 is the FIRST OPEN-form acyclic-spine wave in
   Band II (W7 RIPE-consumed, W8 RIPE-with-tripwire) — the spec carries the OPEN-gate posture
-  explicitly so the impl recognizes the new shape.
+  explicitly so the impl recognizes the new shape. **The producer is now RATIFIED-PROPOSED (not a
+  vague post-N):** `GRAMMAR-FOLD.md §II` names it N.W11′ (`value.js/src/parsing/scroll-timeline.ts`,
+  the 0.13.0 cut) with the producer-side born-RED test and the concrete typed surface — so the
+  consume edge is named END-TO-END, but it stays a PUBLISHED consume (the impl re-pins on the publish;
+  it does NOT `file:`-link the WIP producer). The cut may be N.W11′/0.13.0 OR the Tranche-O fallback;
+  the consume edge is identical either way (`GRAMMAR-FOLD.md §II.8`).
 - **The born-RED root is the SHARP form: value.js knows the property NAMES, not the VALUE grammar.**
-  value.js 0.12.0's `STYLE_NAMES` recognizes `animationTimeline`/`animationRange`/`timelineScope`/etc.
-  (the longhand vocabulary), so the names parse to bare ValueUnits — what is ABSENT is the typed
-  `scroll()`/`view()`/range-phase VALUE extractor + `CSSTimelineOptions` (dist-grep ZERO). The dispatch
-  ask (`../KF-TO-VALUEJS-GRAMMAR-ASKS.md §VJ.W1`) is for the typed extractor + inverse serializer, NOT
-  for the property names (which value.js already ships). The impl does not re-ask for what is shipped.
+  the installed value.js `0.11.2`'s `STYLE_NAMES` (and the published `0.12.0`'s, the same) recognizes
+  `animationTimeline`/`animationRange`/`timelineScope`/etc. (the longhand vocabulary), so the names
+  parse to bare ValueUnits — what is ABSENT is the typed `scroll()`/`view()`/range-phase VALUE extractor
+  + `CSSTimelineOptions` (dist-grep ZERO). The dispatch ask (`../KF-TO-VALUEJS-GRAMMAR-ASKS.md §VJ.W1`)
+  is for the typed extractor + inverse serializer, NOT for the property names (which value.js already
+  ships) — `GRAMMAR-FOLD.md §II.0` confirms the producer-side gap is exactly this (the names present in
+  `STYLE_NAMES`, the typed VALUE grammar absent). The impl does not re-ask for what is shipped.
+- **The VALUE/TIME division-of-labour is RESOLVED (the parser emits VERBATIM; kf's driver resolves the
+  live-DOM offset).** value.js's `parseAnimationTimeline`/`parseAnimationRange` emit the typed options
+  VERBATIM — the named-timeline reference as a `<dashed-ident>` string, the range `offset` as-written
+  (`"40%"`, NOT resolved to px), `auto`/`none` as themselves — and do NOT resolve `scroll()` defaults
+  against a live DOM nor compute a scroller offset (`GRAMMAR-FOLD.md §II.1`, the `easing.ts:6-15`
+  division-of-labour law value.js holds: "a parser that pre-resolves gaps would double the spec
+  semantics across two modules"). kf's `ScrollScene` driver (TIME) is the side that resolves the live
+  scroller/offset against the DOM. **The impl does NOT ask value.js to resolve offsets** (that would
+  breach the seam and re-pre-resolve in the wrong repo) — `../L-SEED.md §7` "value.js owns VALUES …
+  keyframes.js owns TIME." This is a named call so the impl does not re-litigate where the offset
+  resolution lives.
 - **The pin is `position:sticky` synthesis, NOT a kf pin mechanism.** kf authors the platform's pin
   (emits the CSS); the browser does the pinning on the compositor. SO-4 transform-pinning is KILLED
   (the glass-ui dock-VT scar) — the spec re-affirms it.
 - **The driver COMPOSES shipped primitives — it invents no physics.** Scrub = `SmoothProgress`
   (shipped), snap = `decay`/`SpringProgress` (shipped, PHYS-D), enter/leave = the range-derived
   detector, entry-batch = `AnimationGroup.YIELD_BATCH` (shipped, SO-5). "Two of the four hard pieces
-  (scrub, snap) are SHIPPED primitives awaiting a driver" (`../audit/frontier/scroll-orchestration.md §3`)
+  (scrub, snap) are SHIPPED primitives awaiting a driver" (`../../J/audit/frontier/scroll-orchestration.md §3`)
   — the new part is the DRIVER + the PARSE + the dispatch, not the physics.
 - **The line-drift is corrected (HARDENING-5 HAZARD-2).** `attachNativeScrollTimeline` is exported at
   `waapi.ts:470` (NOT the frontier lane's frozen `:440`, NOR the `:462` comment that narrates the

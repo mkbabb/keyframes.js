@@ -621,8 +621,10 @@ trusted (DL-K2 is the false-GREEN mechanism for the band).
   CORRECTNESS clauses (a)-(d) close green; the APPEARANCE verdicts are recorded as TASTE-boundary
   rows the WZ packet carries.
 - **OUT / sibling (do NOT touch):** the engine `AnimationGroup.play/resume` surface (consumed
-  PUBLISHED, `group.ts:581/681`, inv-16 — W0 authors NO engine code); value.js (the frontier defers
-  to L, `L-SEED.md`); the version cut + publish (USER-DOMAIN, confirm-first, Mike Babb, K.WZ).
+  PUBLISHED, `group.ts:581/681`, inv-16 — W0 authors NO engine code); the value.js frontier grammar
+  half (VJ.W1 scroll / VJ.W2 ramp — sibling-DISPATCHED via `KF-TO-VALUEJS-GRAMMAR-ASKS.md`, born-RED
+  kf-side until the publish; the frontier ITSELF folds into K Band II K.W7–K.W12, NOT a residual L);
+  the version cut + publish (USER-DOMAIN, confirm-first, Mike Babb, K.WZ).
 
 ## §Design decisions (trade-offs RESOLVED)
 

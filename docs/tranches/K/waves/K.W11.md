@@ -4,13 +4,15 @@
   demo moment; born-RED in the FRONTIER sense — NO spring-driven blend weight exists TODAY: in
   `AnimationGroup` a layer's `weight` is a STATIC config number: `group.ts:336` is `case
   "weighted":`, and the leaf lerps each numeric element by the CONSTANT `layer.weight`
-  (`group.ts:355-357` — `lerp(existing[i].value, incoming[i].value, layer.weight)`); `weight` is a
+  (`group.ts:355-359` — `existing[i].value = lerp(existing[i].value, incoming[i].value,
+  layer.weight)`, `layer.weight` the third arg at `group.ts:356`); `weight` is a
   plain `number` (`constants.ts:202` `weight: number;`, default `1` `constants.ts:218`) set
-  IMPERATIVELY via `setLayerConfig` (`group.ts:776-795` — `Object.assign(entry.layer, config)`), so
+  IMPERATIVELY via `setLayerConfig` (`group.ts:776`, `Object.assign(entry.layer, config)` at
+  `group.ts:790`), so
   changing a layer's weight is a HARD CUT (the next frame blends at the new constant, no
   transition). The capability is genuinely absent: `grep -rn "weightSpring|transitionLayer|crossfade"
   src/` → **ZERO hits** (§State-verified). This is ONLY POSSIBLE on kf's substrate — GSAP/Motion/anime
-  have NO weighted-layer-blend tier at all (`../audit/sota-landscape.md §3` — "a compositor-style
+  have NO weighted-layer-blend tier at all (`../../J/audit/sota-landscape.md §3` — "a compositor-style
   lerp-by-weight tier no mainstream JS library exposes"), so the SUBSTRATE for a physical
   layer-crossfade does not exist outside kf.) · **Scope (engine-internal, value.js-INDEPENDENT;
   the `group.ts` blend-WEIGHT tier — file-disjoint from W10's compiler AND from W7's blend-MODE
@@ -47,7 +49,7 @@
   interruption of a PARSED-CSS animation — needs round-trip + spring algebra + linear() twin
   simultaneously, i.e. needs kf) and PHYS-E intensity-scaled reduced-motion (the ONE PRM gate takes
   a scale, not a boolean — net-new in the field, WCAG 2.3.3-aligned)."
-- **`../audit/frontier/physics-frontier.md §3,§2,§5` — the wave-ready engineering detail.** §3 (the
+- **`../../J/audit/frontier/physics-frontier.md §3,§2,§5` — the wave-ready engineering detail.** §3 (the
   K-HEADLINE-CANDIDATE — PHYS-C): "In `AnimationGroup`, a layer's `weight` is a STATIC config number
   (`group.ts:365` reads `layer.weight`; set imperatively via `setLayerConfig`, `group.ts:776-792`).
   The `weighted` blend arm lerps each numeric leaf toward the incoming value by that constant
@@ -64,7 +66,10 @@
   springing `b` up." MEASURE-FIRST gate: "a bench proving the `??`-read adds zero measurable cost to
   the `_grouped` blend hot path vs the constant-weight baseline (the gate is 'no regression on the
   200-cell LoAF group bench')." §2 (the K-CANDIDATE rider — PHYS-B2): "the KEYFRAME path
-  (`Animation`/`interpFrames`) — the engine path carries `effectiveT` (`engine.ts:1098`) but NO
+  (`Animation`/`interpFrames`) — the engine path carries `effectiveT` (the lane cited
+  `engine.ts:1098` at the J-era audit; **re-verified against the K tree 2026-06-15 the getter is at
+  `engine.ts:1122` `get effectiveT(): number`** — the §State-verified live anchor of record; the
+  audit's 1098 is the original citation, 1122 is the K-tree truth) but NO
   velocity. … `reseatToSpring(animation, newTarget)` — at interruption, finite-difference the interp
   stream over the last frame … seed a `SpringProgress` per animated property with that velocity, and
   hand the spring's `linear()` twin BACK to the engine as the transition easing toward `newTarget`.
@@ -93,49 +98,89 @@
   (`../L-SEED.md §5`); the analytic spring + reseat are SHIPPED (not re-litigated — the NEW seam is
   the BLEND-WEIGHT drive + the KEYFRAME-path reseat + the PRM scale).
 
-## §The state, verified (file:line / grep anchors)
+## §The state, verified (file:line / grep / version anchors — every claim a command + its observed output, RE-RUN against the tree 2026-06-15)
 
-- **PHYS-C: the blend weight is STATIC; no spring drives it (CONFIRMED against the tree, 2026-06-15
-  — the born-RED root):** `group.ts:336` `case "weighted":`; the leaf lerps each numeric element by
-  the CONSTANT `layer.weight` (`group.ts:355-357` — `existing[i].value = lerp(existing[i].value,
-  incoming[i].value, layer.weight)`). `weight` is a plain `number`: `constants.ts:202` `/** 0–1 for
-  'weighted' blend mode. Default: 1 */ weight: number;` on `AnimationLayerConfig`
-  (`constants.ts:198`), default `weight: 1` (`constants.ts:218`). It is set imperatively:
-  `setLayerConfig` (`group.ts:776-795`) does `Object.assign(entry.layer, config);
-  this.invalidateEntries();` — a HARD CUT. `grep -rn "weightSpring|transitionLayer|crossfade" src/`
-  → **ZERO hits** (the probe printed "(ZERO hits — PHYS-C absent)").
-- **PHYS-B2: the interp stream carries NO velocity (CONFIRMED — the born-RED root):** `grep -n
-  "velocity" src/animation/engine.ts` → ZERO hits in the interp/playback path; `interpFrames`
-  (`engine.ts:657`) is a pure positional lerp at `t`, `effectiveT` (`engine.ts:1122`) the playhead
-  scalar with no `dx/dt`. `grep -rn "reseatToSpring" src/` → **ZERO hits**. **The spring INGREDIENTS
-  all exist** (so PHYS-B2 is composition, not new physics): `spring.ts:226-227` `get velocity()`
-  returns `currentVelocity` (the EXACT analytic derivative, `spring.ts:385`); `spring.ts:407-412`
-  `reset(value?, velocity?)` seeds the closed form at a given `(x, v)`; `spring.ts:241-247` `set
-  target` → `reseatTarget` re-seats from live state; `springTimingFunction.ts`/`springLinearStops.ts`
-  emit the `linear()` twin. **The born-RED root is the bridge: no hook finite-differences the interp
-  stream to seed a spring.**
-- **PHYS-E: the ONE gate takes a BOOLEAN, not a scale (CONFIRMED — the born-RED root):**
+**Tree/version pins (the substrate this born-RED stands on, re-verified 2026-06-15):**
+`git rev-parse --abbrev-ref HEAD` → `tranche-k-dev`; `node -e "console.log(require('./package.json').version)"`
+→ `4.2.0` (the J close tip); `node -e "console.log(require('./node_modules/@mkbabb/value.js/package.json').version)"`
+→ `0.11.2` INSTALLED (0.12.0 published, K.W1 re-pins). **W11 needs NEITHER the installed 0.11.2
+NOR the published 0.12.0 grammar** — every locus is engine-internal kf source (`group.ts`/`spring.ts`/
+`engine.ts`/`reduced-motion.ts`); this is the strongest acyclic-spine statement a Band-II wave can
+make (the value.js pin is immaterial to W11's GREEN).
+
+- **PHYS-C: the blend weight is STATIC; no spring drives it (CONFIRMED against the tree,
+  2026-06-15 — the born-RED root).** `group.ts:336` `case "weighted":`; the leaf lerps each numeric
+  element by the CONSTANT `layer.weight` — the call OPENS at `group.ts:355` `existing[i].value =
+  lerp(` with `layer.weight` the third arg at `group.ts:356` and the call CLOSING `group.ts:357-358`
+  (the precise live range is `group.ts:355-359`), the non-numeric fallback `existing[i] =
+  incoming[i]` at `group.ts:361` (the `else` arm — co-precise with W7's `:358-364` weighted
+  citation). `weight` is a plain `number`: `constants.ts:202` `/** 0–1 for 'weighted' blend mode.
+  Default: 1 */ weight: number;` on `AnimationLayerConfig` (`constants.ts:198`), default `weight: 1`
+  (`constants.ts:218`). It is set imperatively: `setLayerConfig` (`group.ts:776`) does
+  `Object.assign(entry.layer, config);` (`group.ts:790`) — a HARD CUT (the next frame blends at the
+  new constant, no transition). **The group OWNS its rAF loop in managed mode** (`group.ts:74`
+  `readonly playback = new RAFPlayback();`; the per-frame draw `group.ts:590`
+  `this.playback.loop(this._boundFrame)`) — so the `weightSpring` stepper's per-frame advance has a
+  loop to ride (no new rAF ownership). **The absence probe (copy-pasteable, re-run 2026-06-15):**
+  ```
+  $ grep -rn "weightSpring|transitionLayer|crossfade" src/   →  exit 1, ZERO hits (PHYS-C absent)
+  ```
+- **PHYS-B2: the interp stream carries NO velocity (CONFIRMED 2026-06-15 — the born-RED root).**
+  ```
+  $ grep -n "velocity" src/animation/engine.ts   →  exit 1, ZERO hits (no dx/dt in the engine)
+  $ grep -rn "reseatToSpring" src/               →  exit 1, ZERO hits (the bridge is absent)
+  ```
+  `interpFrames` (`engine.ts:657`) is a pure positional lerp at `t`; `effectiveT` (`engine.ts:1122`
+  `get effectiveT(): number`) the playhead scalar with no `dx/dt`. **The spring INGREDIENTS all
+  exist** (so PHYS-B2 is composition, not new physics): `spring.ts:222` `get value()` /
+  `spring.ts:226-227` `get velocity()` returns `currentVelocity` (the EXACT analytic derivative,
+  assigned at `spring.ts:385` `this.currentVelocity = vRel;`); `spring.ts:407-412` `reset(value?,
+  velocity?)` seeds the closed form at a given `(x, v)`; `spring.ts:241-247` `set target` →
+  `reseatTarget` (`spring.ts:250-268`) re-seats from live `(originValue, originVelocity)`
+  (`spring.ts:260` `this.originVelocity = this.currentVelocity;`); `springTimingFunction.ts:65`
+  `springTimingFunction(...)` / `springLinearStops.ts:46` `springLinearStops(...)` emit the
+  `linear()` twin. **The born-RED root is the bridge: no hook finite-differences the interp stream to
+  seed a spring** — `interpFrames` produces position only.
+- **PHYS-E: the ONE gate takes a BOOLEAN, not a scale (CONFIRMED 2026-06-15 — the born-RED root).**
   `internal/reduced-motion.ts:101-107` — `withReducedMotion<T>(respect: boolean | undefined, snap:
   () => T, run: () => T): T` → `:106` `return respect && prefersReducedMotion() ? snap() : run();` —
-  a hard snap-or-run. Every play path passes a `boolean` `respectReducedMotion` (`spring.ts:46`,
-  `group.ts:59`, `smooth.ts:30`, `numeric.ts:45`, `engine.ts:513`). `grep -rn
-  "intensity|amplitude|reducedMotionScale" reduced-motion.ts spring.ts` → **ZERO hits**. The
-  amplitude-scale lever is EXACT-and-FREE on the analytic spring: `evaluateAt` (`spring.ts:341-385`)
-  computes `const x0 = this.originValue - this.targetValue;` (`spring.ts:342`) — the displacement
-  from rest; scaling `x0` by an intensity scales peak displacement while the envelope (curve shape +
-  settle time) is preserved by construction. The one-gate discipline ("the seven formerly
-  hand-written snap bodies … collapse to per-surface one-liners", `reduced-motion.ts:95-99`) makes
-  the scale a ONE-signature change.
-- **The `VectorSpring` S companion is ABSENT (CONFIRMED):** `grep -rn "VectorSpring" src/` → **ZERO
-  hits**. The 2D composition is caller-owned today (`drag.ts:28-30`: "the engine stays
-  one-dimensional, the caller owns the composition (KISS)"); `VectorSpring` is the optional sugar
-  that owns the array of N `SpringProgress`.
-- **value.js status (CONFIRMED — NONE needed):** PHYS-C/B2/E/the `VectorSpring` are engine-internal
-  / light-leaf (`group.ts`/`spring.ts`/`engine.ts`/`reduced-motion.ts`). No value.js grammar gate;
-  the spring's `linear()` twin (`springLinearStops`/`springTimingFunction`) is SHIPPED (PHYS-B2's
-  handoff reuses it). The spring/decay algebra is kf's PERMANENTLY (`L-SEED.md §7`,
-  `VALUEJS-N2-ASKS.md §5`). W11 carries NO acyclic-spine born-RED edge and NO consume edge — it is,
-  with K.W7, one of the two frontier waves un-blocked outright with no grammar dependency.
+  a hard snap-or-run. Every play path passes a `boolean` `respectReducedMotion`: `spring.ts:46`
+  `respectReducedMotion: boolean;`, `group.ts:59` `respectReducedMotion = false;`, `smooth.ts:30`,
+  `numeric.ts:45`, and `engine.ts:513` `setRespectReducedMotion(respectReducedMotion:
+  InputAnimationOptions["respectReducedMotion"])` whose body THROWS on a non-boolean
+  (`engine.ts:520` `if (typeof respectReducedMotion !== "boolean")` → `AnimationOptionError`) —
+  proving the type is binary today, not an intensity.
+  ```
+  $ grep -rn "intensity|amplitude|reducedMotionScale" src/animation/internal/reduced-motion.ts src/animation/spring.ts
+        →  exit 1, ZERO hits (no scale lever today)
+  ```
+  The amplitude-scale lever is EXACT-and-FREE on the analytic spring: `evaluateAt`
+  (`spring.ts:341-385`) computes `const x0 = this.originValue - this.targetValue;` (`spring.ts:342`)
+  — the displacement from rest; scaling `x0` by an intensity scales peak displacement while the
+  envelope (curve shape + settle time) is preserved by construction. The one-gate discipline ("the
+  seven formerly hand-written snap bodies … collapse to per-surface one-liners",
+  `reduced-motion.ts:95-99`) makes the scale a ONE-signature change.
+- **The `VectorSpring` S companion is ABSENT (CONFIRMED 2026-06-15).**
+  ```
+  $ grep -rn "VectorSpring" src/   →  exit 1, ZERO hits
+  ```
+  The 2D composition is caller-owned today (`drag.ts:26-29`: "A 2-D drag composes two `Draggable`s
+  … the engine stays one-dimensional, the caller owns the composition (KISS)"); `VectorSpring` is
+  the optional sugar that owns the array of N `SpringProgress`.
+- **value.js status (CONFIRMED — NONE needed; the acyclic edge that does NOT exist).** PHYS-C/B2/E
+  and the `VectorSpring` are engine-internal / light-leaf (`group.ts`/`spring.ts`/`engine.ts`/
+  `reduced-motion.ts`). No value.js grammar gate; the spring's `linear()` twin
+  (`springLinearStops`/`springTimingFunction`) is SHIPPED kf-internal (PHYS-B2's clause-(c) handoff
+  reuses it — it is NOT a value.js symbol, it is kf's own emitter). The spring/decay algebra is kf's
+  PERMANENTLY (`L-SEED.md §7` — "Spring/decay math stays in kf PERMANENTLY"; the VJ-owns-spring-math
+  hypothesis was researched-FALSE). W11 carries NO acyclic-spine born-RED edge and NO consume edge —
+  it is, with K.W7, one of the two frontier waves un-blocked outright with no grammar dependency
+  (`K.md §frontier table` PHYSICS "UN-BLOCKED ✅"). **The one composition that DOES touch the
+  ratified-proposed value.js fold is INDIRECT:** clause (c)'s `linear()`-replay rider composes with
+  K.W10, whose compile path's color leg consumes `sampleColorRamp` (the RATIFIED-PROPOSED N.W11.D
+  producer, value.js's `docs/tranches/N/GRAMMAR-FOLD.md` PART I — the sibling-idiom citation,
+  K.W9.md:110) — but that is W10's consume edge, not W11's; W11's `linear()` twin is kf-internal and
+  RIPE (§Hand-off, §Design-decisions).
 
 ## §Goal
 
@@ -198,10 +243,10 @@ has assembled; the frontier is pointing that algebra at kf's unique axes. Three 
   lerps); the ONLY change is `weight` becoming a read of a stepper's current value — one nullish
   read; the stepper is a SHIPPED LIGHT primitive (`SpringProgress` implements `Tickable`); no new
   physics, no new hot-path alloc (the spring is one analytic eval per frame, already zero-alloc) —
-  "the COMPOSITION of two things kf already owns" (`../audit/frontier/physics-frontier.md §3`).
+  "the COMPOSITION of two things kf already owns" (`../../J/audit/frontier/physics-frontier.md §3`).
   **MEASURE-FIRST (the one perf risk):** the `??`-read in the `_grouped` blend hot path — a bench
   proving it adds zero measurable cost vs the constant-weight baseline (the gate is "no regression on
-  the 200-cell LoAF group bench named in `../audit/sota-landscape.md §5`"; the `_grouped`
+  the 200-cell LoAF group bench named in `../../J/audit/sota-landscape.md §5`"; the `_grouped`
   fast-properties / delete-free / zero-alloc per-frame path is PRESERVED). **NO-WORKAROUND:** NOT a
   new blend-mode pipeline (the existing `weighted` leaf is reused; the spring drives the SAME scalar
   `weight`); NOT a coupled vector spring (PHYS-A KILLED — `../L-SEED.md §5`; the layer weight is ONE
@@ -224,7 +269,7 @@ has assembled; the frontier is pointing that algebra at kf's unique axes. Three 
   FIRST:** a `bench/interruption.bench.ts` proving the finite-diff velocity probe adds ZERO
   steady-state cost (it runs at the interruption event, not per frame). **NO-WORKAROUND:** NOT
   re-proposing spring interruption (the `SpringProgress`/`Draggable` path is ALREADY shipped exactly
-  — `../audit/frontier/physics-frontier.md §2 (b1)` KILL; the NEW seam is the KEYFRAME path's
+  — `../../J/audit/frontier/physics-frontier.md §2 (b1)` KILL; the NEW seam is the KEYFRAME path's
   finite-diff hook, not the stepper).
 - **S3 — PHYS-E intensity-scaled reduced-motion (the WCAG-aligned rider; the ONE-gate widening).**
   Locus: `reduced-motion.ts:101 withReducedMotion` — the signature widens to accept an intensity
@@ -249,7 +294,7 @@ has assembled; the frontier is pointing that algebra at kf's unique axes. Three 
   number[]` / `value: number[]` / `velocity: number[]` / `tick`, with a constructor flag `{ shared?:
   SpringConfig }` for shared-PRESET (one `(response, ζ)` across axes) vs independent (per-axis
   config). **WHY sugar, not physics:** "zero new physics, zero new hot-path … N existing steppers"
-  (`../audit/frontier/physics-frontier.md §1`); shared-PRESET ≠ shared-PHASE (the coupled ODE is the
+  (`../../J/audit/frontier/physics-frontier.md §1`); shared-PRESET ≠ shared-PHASE (the coupled ODE is the
   PHYS-A KILL). **NO-WORKAROUND:** NOT a coupled/shared-phase vector spring (the PHYS-A KILL,
   `../L-SEED.md §5` — "a vector spring IS N independent per-component springs"); it is N independent
   `SpringProgress` instances behind one array-shaped facade. **DROPPABLE:** S4 is OPTIONAL — if the
@@ -293,11 +338,25 @@ constant — the §State-verified `group.ts:356 layer.weight`).
   tree (the zero-velocity restart kink); greens on S2 (the finite-diff seed + `linear()` handoff).
   **NO escape:** the leave-velocity matching the measured pre-interruption velocity within ε is a
   property only the finite-diff seed produces — a zero-velocity restart provably fails.
-  **REPLAY-EQUALITY RIDER (labeled HYGIENE):** the reseated spring's `linear()` twin
-  (`springTimingFunction.ts`) is the SAME emitter K.W10 compiles; a corroborating assert — the reseat
-  transition serializes to a `linear()` block that replays equal to the JS spring handoff — declares
-  the round-trippability, composing with W10 (the wave's GREEN rests on the velocity-continuity, not
-  this rider).
+  **REPLAY-EQUALITY RIDER (labeled HYGIENE — the round-trip composition):** the reseated spring's
+  `linear()` twin (`springTimingFunction.ts:65`) is the SAME kf-internal emitter K.W10's compiler
+  consumes; a corroborating assert — the reseat transition serializes to a `linear()` block that
+  replays EQUAL (pixel-compared, the replay-equality invariant `K.md §invariant set`) to the JS
+  spring handoff — declares the round-trippability, composing INTO W10's compile path rather than
+  refusing it. **The acyclic-spine note (the ratified-proposed producer):** the `linear()` twin is
+  kf's OWN emitter (RIPE, no value.js edge — it does not gate on any grammar publish); the value.js
+  fold W10's compile path DOES ride — the RATIFIED-PROPOSED `sampleColorRamp` (N.W11.D) +
+  `CSSTimelineOptions` (N.W11′) grammars, developed to executable depth in value.js's
+  `docs/tranches/N/GRAMMAR-FOLD.md`
+  (PART I / PART II, both → the 0.13.0 cut) — touches W10's COLOR/SCROLL legs, NOT W11's spring
+  `linear()` twin. So clause (c)'s replay rider is GREEN-on-kf-substrate the moment S2 lands (no
+  publish wait); it is W10's own `proof:compile-replay-equal` that born-RED-gates on the 0.13.0
+  publish, and only on its color/scroll legs (CC-2 densify clause (d), the scroll round-trip), per
+  the published-consume-edge cadence (value.js `docs/tranches/N/GRAMMAR-FOLD.md §I.3`/`§II.5` —
+  born-RED kf-side, lights on the publish, NEVER a `file:` link or a vendored grammar; awaiting
+  value.js's user ratification per `GRAMMAR-FOLD.md §dispatch-gate`). The wave's GREEN rests on the
+  velocity-continuity correctness, not this rider — the rider is the receipt that W11's physics
+  COMPOSES with W10's round-trip rather than forfeiting it.
 - **clause (d) — PHYS-E the spring scales AMPLITUDE, not the curve, under reduced motion
   (`proof:scaled-prm`; CORRECTNESS · the WCAG assert).** At intensity `s`, a spring's PEAK
   displacement is `s ×` the full-intensity peak (analytic, assertable — `x0` scaled by `s`), the
@@ -335,10 +394,15 @@ write). **Replay-equality posture (declared):** PHYS-C's spring-driven weighted 
 FOUR named CSS-domain refusals (`K.md §invariant set`: "weighted blend / custom renderers /
 perceptual oklab / computed-unit drift") — so a spring-driven crossfade is HONESTLY REFUSED by the
 K.W10 compiler with a named reason (CC-3), never silently approximated (the honest-refusal clause);
-PHYS-B2's reseated spring IS round-trippable (its `linear()` twin is the SAME emitter K.W10
-compiles), so the interrupt-and-reseat composes INTO the round-trip rather than refusing it — clause
-(c)'s `linear()`-replay rider declares that composition (labeled HYGIENE; the wave's GREEN rests on
-the physics-trajectory correctness, the replay-equality oracle is the COMPOSING wave's, W10).
+PHYS-B2's reseated spring IS round-trippable (its `linear()` twin is the SAME kf-internal emitter
+K.W10 compiles — RIPE, no value.js edge), so the interrupt-and-reseat composes INTO the round-trip
+rather than refusing it — clause (c)'s `linear()`-replay rider declares that composition (labeled
+HYGIENE; the wave's GREEN rests on the physics-trajectory correctness, the replay-equality oracle is
+the COMPOSING wave's, W10). The value.js grammars W10's compile path rides — the RATIFIED-PROPOSED
+`sampleColorRamp` (N.W11.D) + `CSSTimelineOptions` (N.W11′), value.js's `docs/tranches/N/
+GRAMMAR-FOLD.md` PART I/II → 0.13.0 — touch W10's color/scroll legs, NOT this spring twin; W11's
+composition with W10 is therefore GREEN on kf's substrate the moment S2 lands, decoupled from the
+0.13.0 publish (the publish gates W10's CC-2/scroll legs, never W11).
 **P6 posture (declared):** the analytic asserts (a: the overshoot peak; b: the velocity continuity;
 c: the leave-velocity; d: the `s × peak` amplitude) are device-INDEPENDENT computed facts → they
 hard-gate on the Linux runner (the spring's closed form is deterministic; the composited weight
@@ -348,7 +412,15 @@ fixed settle. **Budget 0** (the gate asserts POSITIVE product properties — the
 the reseat is velocity-continuous, the amplitude scales — not an error count; the pre-cure tree threw
 NOTHING, it simply lacked the capability). **value.js gate status:** NONE — PHYS-C/B2/E are
 engine-internal; W11 carries NO acyclic-spine born-RED edge and NO consume edge (un-blocked today —
-`K.md §frontier table` PHYSICS "UN-BLOCKED ✅ (and wants K's seam)").
+`K.md §frontier table` PHYSICS "UN-BLOCKED ✅ (and wants K's seam)"). The ONLY value.js fold in
+W11's neighbourhood is INDIRECT and RATIFIED-PROPOSED: the `sampleColorRamp`/`CSSTimelineOptions`
+grammars (N.W11.D / N.W11′, the now-ratified-proposed producer in value.js's Tranche-N
+`docs/tranches/N/GRAMMAR-FOLD.md` PART I/II, both cut at 0.13.0, awaiting value.js's ratification per
+`GRAMMAR-FOLD.md §dispatch-gate`) gate K.W10's and K.W9's consume edges, NOT W11's — W11 references
+them only to
+declare that its `linear()`-twin composition (clause c) rides W10's RIPE kf-internal emitter, never
+a value.js publish. Acyclic-spine posture: value.js → kf (grammar, consumed ONE tranche behind,
+born-RED-gated kf-side); kf → glass-ui (spring); no back-edge; W11 adds no edge at all.
 
 ## §No-workaround prohibitions (BINDING — the mandate's named forbiddings for this wave)
 
@@ -358,12 +430,12 @@ engine-internal; W11 carries NO acyclic-spine born-RED edge and NO consume edge 
   is untouched — the composition of two things kf already owns).
 - **NO coupled vector spring (S1 — PHYS-A KILLED).** The layer weight is ONE scalar, one
   independent spring; the coupled/shared-phase vector spring is the KILLED physics-sim form
-  (`../L-SEED.md §5` PHYS-A; `../audit/frontier/physics-frontier.md §1`). The spec re-affirms the
+  (`../L-SEED.md §5` PHYS-A; `../../J/audit/frontier/physics-frontier.md §1`). The spec re-affirms the
   kill, it does not re-litigate it.
 - **NO re-proposing spring interruption (S2 — the (b1) KILL).** The `SpringProgress`/`Draggable`
   velocity-continuous interruption is ALREADY shipped exactly (`spring.ts:241-268`,
   `drag.ts:256`); re-proposing it would be re-litigation. The NEW seam is the KEYFRAME path's
-  finite-diff hook (PHYS-B2), not the stepper (`../audit/frontier/physics-frontier.md §2`).
+  finite-diff hook (PHYS-B2), not the stepper (`../../J/audit/frontier/physics-frontier.md §2`).
 - **NO per-property-easing storage (S2).** The spring easing is applied UNIFORMLY across the
   retargeting transition (a transition BETWEEN two states, computed once at interruption), NOT
   stored per-keyframe-per-property (the per-property-easing ARCH kill). NOT Typed-OM (the velocity
@@ -371,34 +443,51 @@ engine-internal; W11 carries NO acyclic-spine born-RED edge and NO consume edge 
 - **NO inventing an OS signal (S3).** PHYS-E makes the ONE gate expressive enough to honor a richer
   POLICY the app supplies (a settings slider, a per-animation `reducedMotionIntensity`); the OS
   exposes only a binary `prefers-reduced-motion`. kf provides the MECHANISM (the gate takes a
-  scale); the app provides the policy (`../audit/frontier/physics-frontier.md §5` "the honest
+  scale); the app provides the policy (`../../J/audit/frontier/physics-frontier.md §5` "the honest
   caveat"). NOT a per-surface PRM retrofit (the ONE gate takes the scale — one signature).
 - **NO touching W7's blend-MODE leaf OR W10's compiler (the §Hand-off file seam).** W11 drives the
   per-layer WEIGHT (`group.ts` `layer.weight` → a spring); W7 reads the per-keyframe COMPOSITION
   operator (`group.ts:316-375` `add`/`accumulate`/`replace`); W10 is a NEW compile module over the
   `format.ts` lineage. W11 is file-disjoint from W10 (README §4B) and DISJOINT-line from W7 in
   `group.ts` — the boundary is a HARD CONTRACT (each gate reds only on its half).
+- **NO `file:`/vendored value.js on the composing edge (the acyclic-spine prohibition, restated for
+  THIS wave).** W11 itself carries NO value.js edge — but where its clause-(c) `linear()` replay
+  composes INTO W10's round-trip (and where the doc names the N.W11.D/N.W11′ grammars W10/W9 ride),
+  the prohibition is BINDING: those are PUBLISHED consumes (value.js publishes 0.13.0, kf re-pins
+  ONE tranche behind, born-RED-gated kf-side), NEVER a `file:` link to value.js's WIP tree NEVER a
+  vendored copy of `sampleColorRamp`/`CSSTimelineOptions` (`K.md §MANDATE`: "the frontier's value.js
+  edges are PUBLISHED consumes, born-RED-gated kf-side, NEVER a `file:` link or a vendored copy").
+  W11's own `linear()` twin is kf-INTERNAL (not a value.js symbol), so it never tempts the shortcut.
+- **NO lossy emitter on the composing edge (the moat-is-faithfulness prohibition).** Where PHYS-B2's
+  reseated spring compiles (clause (c)'s replay rider into W10), the compiled `linear()` block is the
+  parser run BACKWARD over the SAME `(response, ζ)` spring model — the SHIPPED `springTimingFunction`
+  emitter — NOT a re-derived lossy approximation (`K.md §MANDATE`: "the compiler is the round-trip's
+  parser run BACKWARD over the same data model, NOT a re-derived lossy emitter"). The replay-equality
+  rider PROVES the faithfulness (pixel-equal to the JS handoff); a lossy twin would forfeit it.
 
 ## §Folds (every K.md-assigned fold, with its frontier-lane + L-SEED citation)
 
 - **PHYS-C** (the spring-driven blend weight — the K-HEADLINE) — S1. `../L-SEED.md §2 PHYS-C` + the
-  §body→K.W11 map; `../audit/frontier/physics-frontier.md §3` (K-HEADLINE-CANDIDATE, M);
-  `group.ts:336/356` (the static-weight born-RED root), `SpringProgress` (the shipped stepper).
-- **PHYS-B2** (`reseatToSpring` — the only-kf rider) — S2. `../audit/frontier/physics-frontier.md
-  §2 (b2)` (K-CANDIDATE, M); `spring.ts:241-268` (the shipped reseat), `springTimingFunction`/
-  `springLinearStops` (the shipped `linear()` twin), `engine.ts effectiveT` (the velocity-less
-  interp path — the born-RED root for the finite-diff hook).
+  §body→K.W11 map; `../../J/audit/frontier/physics-frontier.md §3` (K-HEADLINE-CANDIDATE, M);
+  `group.ts:336` (`case "weighted":`) / `group.ts:356` (`layer.weight` the lerp third-arg) — the
+  static-weight born-RED root; `SpringProgress` (the shipped `Tickable` stepper, `spring.ts:222 get
+  value`).
+- **PHYS-B2** (`reseatToSpring` — the only-kf rider) — S2. `../../J/audit/frontier/physics-frontier.md
+  §2 (b2)` (K-CANDIDATE, M); `spring.ts:241-268` (the shipped reseat — `set target`→`reseatTarget`),
+  `springTimingFunction.ts:65`/`springLinearStops.ts:46` (the shipped kf-internal `linear()` twin),
+  `engine.ts:1122 get effectiveT` (the velocity-less interp path — the born-RED root for the
+  finite-diff hook; `engine.ts:657 interpFrames` the positional lerp it probes).
 - **PHYS-E** (intensity-scaled reduced-motion — the WCAG-aligned rider) — S3.
-  `../audit/frontier/physics-frontier.md §5` (K-CANDIDATE, M, "nobody does it, WCAG wants it");
+  `../../J/audit/frontier/physics-frontier.md §5` (K-CANDIDATE, M, "nobody does it, WCAG wants it");
   `reduced-motion.ts:101-106` (the ONE binary gate the scale widens), `spring.ts:342 evaluateAt`
   (the amplitude multiply).
 - **`VectorSpring` (the S companion)** — S4 (the array facade over N `SpringProgress`, the
-  shared-PRESET constructor flag). `../audit/frontier/physics-frontier.md §1 (a)` (the PHYS-A coupled
+  shared-PRESET constructor flag). `../../J/audit/frontier/physics-frontier.md §1 (a)` (the PHYS-A coupled
   form KILLED — `../L-SEED.md §5`; the trivial independent form J-FOLD'd as "a light-barrel
   convenience"), `drag.ts:28-30` (the caller-owned 2D composition today). **OPTIONAL — rides as an S
   companion, droppable from the wave without touching PHYS-C/B2/E** (the coupled/shared-phase form
   stays KILLED, non-re-litigable).
-- **snapDecay / PHYS-D** — CONSUMED-BY K.W9's scroll snap (`../audit/frontier/physics-frontier.md
+- **snapDecay / PHYS-D** — CONSUMED-BY K.W9's scroll snap (`../../J/audit/frontier/physics-frontier.md
   §4` "the snap PRIMITIVE is a J-FOLD-sized composition the scroll lane CONSUMES"); the K-weight
   lives in K.W9, NOT here.
 
@@ -406,15 +495,22 @@ engine-internal; W11 carries NO acyclic-spine born-RED edge and NO consume edge 
 
 W11 runs ∥ W10, rides the K.W0/K.W1 seam. Its loci (`waves/README.md §4B`):
 
-- **`group.ts` blend-WEIGHT tier is W11's alone.** PHYS-C drives `layer.weight` via a spring
-  (`group.ts:356` → `layer.weightSpring?.value ?? layer.weight`); the `transitionLayer`/`crossfade`
-  API is NET-NEW on `AnimationGroup`. **W11 is file-disjoint from the W10 compiler** — "W11 and W10
-  run in parallel WITHOUT touching each other's files" (README §4B). The compiler READS `group.ts`'s
-  `BlendMode`/layering as DATA; it does not EDIT `group.ts`.
-- **`group.ts` blend-MODE leaf is W7's; blend-WEIGHT tier is W11's.** W7 reads the per-keyframe
-  COMPOSITION operator into the `add`/`accumulate`/`replace` leaf (`group.ts:316-375`); W11 reads
-  the per-layer WEIGHT into a spring (`group.ts:356`). File-adjacent in `group.ts`, DISJOINT line
-  concerns — the boundary is a HARD CONTRACT (each wave's §Hard gate reds only on its half).
+- **`group.ts` blend-WEIGHT tier is W11's alone.** PHYS-C drives `layer.weight` via a spring at the
+  lerp third-arg (`group.ts:356` → `layer.weightSpring?.value ?? layer.weight`); the
+  `transitionLayer`/`crossfade` API is NET-NEW on `AnimationGroup` (beside `setLayerConfig`,
+  `group.ts:776`). **W11 is file-disjoint from the W10 compiler — RECIPROCALLY DECLARED:** `K.W10.md
+  §Hand-off` states verbatim "`group.ts` is W11's alone … W11 and W10 run in parallel WITHOUT
+  touching each other's files" (README §4B); the compiler READS `group.ts`'s `BlendMode`/layering as
+  DATA, it does not EDIT `group.ts`. The boundary is binding in BOTH docs.
+- **`group.ts` blend-MODE leaf is W7's; blend-WEIGHT tier is W11's — RECIPROCALLY DECLARED.** W7
+  reads the per-keyframe COMPOSITION operator into the blend switch (`group.ts:316-368` — the `add`
+  arm's numeric leaf at `group.ts:325-328`, the `weighted` arm at `group.ts:336-367`); W11 reads the
+  per-layer WEIGHT into a spring at the SAME `weighted` arm's lerp third-arg (`group.ts:356`) and the
+  non-numeric fallback at `group.ts:361`. `K.W7.md §Hand-off` reciprocates verbatim ("`group.ts`
+  blend-WEIGHT tier vs W7's `group.ts` blend-MODE leaf"; W7's `:358-364` weighted citation is
+  line-precise with W11's `:355-361`). File-adjacent in `group.ts`, DISJOINT line concerns — the
+  boundary is a HARD CONTRACT (each wave's §Hard gate reds only on its half; they land as separable
+  `group.ts` commits — W11 the weight-spring read, W7 the composition read).
 - **PHYS-B2's finite-diff hook lives in `interpFrames`/`engine.ts` — the INTERRUPTION event, NOT
   the per-frame path.** It does NOT edit W7's `animation-composition` read (a different concern in
   `engine.ts` — the interruption velocity probe vs the composition read). If both touch `engine.ts`,
@@ -433,20 +529,27 @@ W11 runs ∥ W10, rides the K.W0/K.W1 seam. Its loci (`waves/README.md §4B`):
 - **PHYS-C is the lane's strongest finding — the spring fused with the weighted-blend axis.** It is
   the literal "only kf could do this": GSAP/Motion/anime have NO weighted-blend tier to drive, so
   the SUBSTRATE for a physical layer-crossfade does not exist outside kf
-  (`../audit/frontier/physics-frontier.md §3`). It is the COMPOSITION of two things kf already owns
+  (`../../J/audit/frontier/physics-frontier.md §3`). It is the COMPOSITION of two things kf already owns
   (the unique axis + the spring algebra), not new physics — one nullish read.
 - **PHYS-B2 is on the KEYFRAME path, NOT the stepper path.** The stepper-path interruption is
   ALREADY shipped exactly (re-proposing it is the (b1) KILL); the NEW seam is the finite-diff
   velocity probe on `interpFrames` — "the one place a numerical derivative is correct because
-  keyframes have no analytic velocity" — and the `linear()` handoff (`../audit/frontier/physics-frontier.md
-  §2`). **It COMPOSES with W8 + W10:** the interrupted animation is the PARSED-CSS source K.W8
-  reconstructs (the only-kf seam needs the round-trip source); the reseated spring's `linear()` twin
-  is K.W10-EMITTABLE (the reseat transition compiles). W11 names these compositions; it does NOT
-  author the ingest (W8) or the compiler (W10).
+  keyframes have no analytic velocity" — and the `linear()` handoff (`../../J/audit/frontier/physics-frontier.md
+  §2`). **It COMPOSES with W8 + W10 (reciprocal, named):** the interrupted animation is the
+  PARSED-CSS source K.W8 ingests/reconstructs (`fromString`/`fromStyleSheets` — the only-kf seam
+  needs the round-trip source K.W8 owns); the reseated spring's `linear()` twin
+  (`springTimingFunction.ts:65`) is K.W10-EMITTABLE (the reseat transition compiles into the
+  round-trip — clause (c)'s replay rider). **The acyclic distinction:** that `linear()` emitter is
+  kf-INTERNAL and RIPE (no value.js publish gates it); the value.js grammars W10's compile path
+  rides — `sampleColorRamp`/`CSSTimelineOptions`, the RATIFIED-PROPOSED N.W11.D/N.W11′ producer
+  (value.js's `docs/tranches/N/GRAMMAR-FOLD.md` PART I/II, both → 0.13.0, awaiting value.js's
+  ratification per `§dispatch-gate`) — touch W10's color/scroll legs, never the spring twin. W11
+  NAMES these compositions; it does NOT author the ingest (W8), the compiler (W10), or any value.js
+  grammar.
 - **PHYS-E is a MECHANISM K, not a headline.** kf provides the gate-takes-a-scale; the app provides
   the policy (the OS exposes only a binary signal). The value is net-new in the field (nobody
   scales intensity) and WCAG-aligned, but it rides the one-gate discipline as a one-signature
-  widening (`../audit/frontier/physics-frontier.md §5`).
+  widening (`../../J/audit/frontier/physics-frontier.md §5`).
 - **W11 rides the Band-I repaired seam — the physics demo is honest ONLY on K.W0's cured cold
   path.** The flagship crossfade plays from the cold hero CTA (K.W0's adapter-resume-made-total),
   the de-vacuoused B1 (K.W0/K.W5) reads the engine's own blend-weight write. This is the

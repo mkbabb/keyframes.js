@@ -148,8 +148,11 @@
   "UNKNOWN_TIMING_FN"`. The comment at `:27` reads "NOT a diagnostics channel (the full
   `Diagnostic[]` surface stays a K.W0 item)"; `adapter.ts` carries NO `diagnostics` field on
   `ResolvedKeyframes`. So the ~20-LoC companion the reconciliation lane (`k-seed-reconciliation.md
-  §R5`) names is NOT owed — the structured codes are present; the FULL channel is OUT (deferred to L
-  / value.js VJ.W3 per DL-K17), not a K.W1 implementation item.
+  §R5`) names is NOT a K.W1 implementation item — the structured codes are present; the FULL channel
+  is the **K.W7 fidelity-floor** `ResolvedKeyframes.diagnostics` field (Band II), consuming the
+  value.js 0.12.0 `ParseDiagnostic`/`OnParseError` producer that SHIPPED (DL-K17 exits via the K.W7
+  channel + the K.W6 published-consume-edge — NOT a deferral to an L that will not come;
+  `K.W7.md §Folds`, `PROGRESS.md` DL-K17 row).
 - **visual-lock is self-captured-baseline, NON-AUTHORITATIVE for appearance correctness**
   (`scripts/proof-visual-lock.mjs:11-18,69-71`): the baseline is `--update-baseline` golden-captured
   from whatever the tree renders; "GREEN means the appearance matches the captured baseline" — never
@@ -483,15 +486,16 @@ already HARD-locally / observe-only-in-CI by its own protocol (`proof-visual-loc
   §5 lists F-1 in both K.W1 and K.W5 — an executive-summary inconsistency; `K.md §clusters` is
   BINDING and places the IMPLEMENTATION in K.W5.) F-2 demo-smoke wall-clock + `proof:ci-wallclock` →
   K.W5; F-4 release.yml thinner-gate-set → OUT, separate `ci-cd-k.md §F-4` row.
-- **DL-K17 / the K3-internal diagnostics fold — VERIFY-LANDED (no implementation owed).** The
-  structured codes `EMPTY_PARSE`/`UNKNOWN_TIMING_FN` LANDED in J.W1 (`errors.ts:35` — verified this
-  session); the FULL `Diagnostic[]` channel on `ResolvedKeyframes` explicitly remains deferred
-  (`errors.ts:27` "the full `Diagnostic[]` surface stays a K.W0 item"; `adapter.ts` has no
-  `diagnostics` field). So the `~20-LoC companion` the reconciliation lane (`k-seed-reconciliation.md
-  §R5`) named is NOT owed — the codes are present; the full channel is OUT (deferred to L /
-  value.js VJ.W3 per `deferred-ledger-k.md` DL-K17). K.W1 RECORDS this disposition; it writes no
-  engine code. (This is the ONLY frontier-adjacent fold into K, and it discharges as VERIFY-LANDED,
-  not as work.)
+- **DL-K17 / the K3-internal diagnostics fold — the codes LANDED at J.W1; the FULL channel is K.W7
+  (Band II).** The structured codes `EMPTY_PARSE`/`UNKNOWN_TIMING_FN` LANDED in J.W1 (`errors.ts:35`
+  — verified this session); the FULL `Diagnostic[]` channel on `ResolvedKeyframes` (`adapter.ts` has
+  no `diagnostics` field today) is authored at the **K.W7 fidelity floor** (Band II), where it CONSUMES
+  the value.js 0.12.0 `ParseDiagnostic`/`OnParseError` producer that SHIPPED (N2 row 10). So the
+  `~20-LoC companion` the reconciliation lane (`k-seed-reconciliation.md §R5`) named is NOT a K.W1
+  item — the codes are present at J.W1, and the FULL channel exits as the K.W7 channel + the K.W6
+  published-consume-edge (NOT a deferral to an L that will not come — `K.W7.md §S4/§Folds`,
+  `PROGRESS.md` DL-K17 row). K.W1 RECORDS this disposition; it writes no engine code. (The K.W1
+  frontier-adjacent fold is VERIFY-LANDED for the codes; the channel itself is a Band-II wave.)
 
 ## §Hand-off / cross-wave boundaries (BINDING)
 
@@ -536,7 +540,7 @@ already HARD-locally / observe-only-in-CI by its own protocol (`proof-visual-loc
   rows that 3.13.0 does NOT ship → BOOKED in `glassui-handoff-k.md §4`, ride future AX publishes,
   NEVER patched in kf (inv-16); the F-4 release.yml thinner-gate-set → its own `ci-cd-k.md §F-4` row
   (not consume-edge); the version cut + npm publish → K.WZ (USER-DOMAIN, confirm-first, Mike Babb);
-  the value.js VJ.W3 full-diagnostics channel → L (DL-K17); the tilde-vs-caret pin-range choice →
+  the value.js VJ.W3 full-diagnostics channel → K.W7 (Band II) (DL-K17); the tilde-vs-caret pin-range choice →
   confirm-first IMPL decision (the gate asserts currency, not syntax).
 - **DL-K23 (`{types}` directional VT · RF-3/RF-4 LabeledField orientation · glass-ui typography
   opt-in) — HANDOFF, consumed on the published re-pin (K.W1 owning).** RF-3/RF-4 are the

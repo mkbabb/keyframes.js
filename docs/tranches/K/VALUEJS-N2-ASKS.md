@@ -1,4 +1,4 @@
-# VALUEJS-N2-ASKS — the value.js 0.12.0 inbound (the re-pin + witness-flip slate, the easing-editor hand-off, the L re-anchor)
+# VALUEJS-N2-ASKS — the value.js 0.12.0 inbound (the re-pin + witness-flip slate, the easing-editor hand-off, the VJ.W1/VJ.W2 re-anchor → RATIFIED N.W11.D/N.W11′, 0.13.0)
 
 **Provenance:** authored 2026-06-12 by value.js Tranche-N second-fleet lane X-KF-ITEMS (a
 SANCTIONED docs-only cross-repo write; the value.js fleet does not commit kf's tree — this file
@@ -58,9 +58,13 @@ publishes" condition is met.
 - **SEAM-4 `rotate()` shorthand** — `test/serialize-from-template.test.ts:143` `it.fails` does
   **NOT** flip. value.js recorded it ADJACENT, outside the 11-item slice (`W7A-recon.md §14`);
   the rotate→rotateX/Y/Z expansion is still live. Keep the witness AND its positive control.
-- **VJ.W1 SCROLL GRAMMAR + VJ.W2 `sampleColorRamp`** — the two genuine L gates remain net-new and
-  un-scheduled; value.js has recorded them for its post-N successor tranche (`X-KF.md §3.2/O5`).
-  L re-confirms their status at its open against value.js's then-current PROGRESS.
+- **VJ.W1 SCROLL GRAMMAR + VJ.W2 `sampleColorRamp`** — the two genuine net-new grammar gates remain
+  absent in 0.12.0; value.js first recorded them for a post-N successor (`X-KF.md §3.2/O5`), then
+  RATIFIED the fold into N's own library track — VJ.W2 → **N.W11.D**, VJ.W1 → **N.W11′**, both shipping
+  in the **0.13.0** cut (`value.js …/N/GRAMMAR-FOLD.md`). Under the 2026-06-15 total fold these are
+  K Band II's K.W9/K.W10 gates (the frontier folded WHOLESALE into K — **there is no residual L**);
+  the kf-side OUTBOUND dispatch is `KF-TO-VALUEJS-GRAMMAR-ASKS.md`, the consume edges lighting on
+  value.js's 0.13.0 publish.
 - **VJ-9 FULL partial-input totality** — partial: the `parseCSSValueUnit("")` contract shipped at
   0.11.2 (`fbea3e2`); the every-public-entry totality (the K1 ingestion precondition) is broader
   and remains open.
@@ -116,11 +120,13 @@ bare BOOK.
 
 ## §5 — K-planned value.js asks, acknowledged
 
-K authors NO net-new value.js asks (`X-KF.md §3` — every K reference points at the pre-existing
-L-SEED §7 ledger; K's posture is DEFER). The ledger's N-status, for L's re-anchor:
+This doc is the INBOUND record (the 0.12.0 edges kf consumes); the OUTBOUND dispatch of the two
+net-new grammar items is `KF-TO-VALUEJS-GRAMMAR-ASKS.md`. Under the 2026-06-15 total fold the
+frontier folded WHOLESALE into K Band II — **there is no residual L**. The ledger's N-status:
 **VJ.W0 — LANDED** (0.12.0: E1/E2 parsers, the LRU bound, parse-that `^0.9.0`; VJ-1 by
 composition, §3). **VJ.W3 — PARTIAL** (diagnostics producer shipped; full partial-input totality
 open). **VJ.W4 — PARTIAL** (sampler+tangent, MCI-5, VJ-F4 shipped; VJ-5 verify; MorphSVG product
-half is kf's). **VJ.W1 / VJ.W2 — OPEN**, the two genuine L gates, recorded value.js-side for its
-post-N tranche. The acyclic spine holds: value.js publishes grammar; kf consumes one tranche
-behind; no cycle, no contention.
+half is kf's). **VJ.W1 / VJ.W2 — OPEN @0.12.0**, the two genuine net-new grammar gates, RATIFIED
+into value.js's **N.W11.D / N.W11′ library track** (the 0.13.0 cut, `value.js …/N/GRAMMAR-FOLD.md`);
+they gate K Band II's K.W9/K.W10. The acyclic spine holds: value.js publishes grammar (0.13.0); kf
+consumes one tranche behind; no cycle, no contention.

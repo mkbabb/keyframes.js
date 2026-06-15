@@ -218,7 +218,8 @@ The field's #1 named gap, closed the only-kf way: W9 parses + round-trips the sc
 layer) and DISPATCHES — native compositor ScrollTimeline where eligible, the kf `ScrollScene` JS
 driver (SO-2) where the platform falls short (Firefox/pin/snap); the pin is `position:sticky`
 SYNTHESIS (SO-3; transform-pinning SO-4 KILLED). **value.js-GATED:** the scroll grammar is VJ.W1,
-DISPATCHED to value.js's post-N tranche via `../KF-TO-VALUEJS-GRAMMAR-ASKS.md` (confirmed ABSENT in
+DISPATCHED to value.js via `../KF-TO-VALUEJS-GRAMMAR-ASKS.md` — RATIFIED into value.js's N.W11.D/N.W11′
+library track, the 0.13.0 cut (confirmed ABSENT in
 0.12.0). The acyclic-spine: the source half lands born-RED, the consume edge lights on value.js's
 PUBLISH — NEVER a `file:` link. **Headline gate:** `proof:scroll-roundtrip` (born-RED in the FRONTIER
 sense + value.js-gated). **Source lanes:** `../L-SEED.md §1 #3`, `scroll-orchestration.md`.
@@ -307,8 +308,9 @@ gates are NET-NEW oracles for features that do not exist; they are born-RED in t
 (the gate reds because the capability is ABSENT today, NOT because a regression was planted). Each is
 proven GREEN by REPLAY-PIXEL-EQUALITY (W8 ingest, W10 compile) or an HONEST refusal (CC-3's four
 refusals — REFUSED with a named reason, never silently approximated). The value.js-gated gates
-(W9 VJ.W1, W10's CC-2 VJ.W2) light their consume edge ONLY on value.js's PUBLISH (the acyclic-spine
-invariant — born-RED-gated kf-side, NEVER a `file:` link or a vendored copy).
+(W9 VJ.W1 → value.js N.W11′, W10's CC-2 VJ.W2 → value.js N.W11.D — RATIFIED into the 0.13.0 cut)
+light their consume edge ONLY on value.js's **0.13.0** PUBLISH (the acyclic-spine invariant —
+born-RED-gated kf-side, NEVER a `file:` link or a vendored copy).
 
 **The honest band assignment (`gate-estate-k.md §8`):** gates carry CORRECTNESS (binary product
 properties: the engine writes, the font resolves, the slider advances, no single-option select
@@ -463,7 +465,7 @@ TOWARD those anchors.
 `../PATH-FORWARD.md`; the board + the K open-deferrals ledger `../PROGRESS.md`; the frontier body of
 record (consumed into Band II) `../L-SEED.md`; the outbound value.js grammar ask
 `../KF-TO-VALUEJS-GRAMMAR-ASKS.md`; the inbound `../VALUEJS-N2-ASKS.md`; the 33-doc evidence corpus
-`../audit/*.md` (the Band-II frontier lanes are `../audit/frontier/*.md`). The spec-structure
+`../audit/*.md` (the Band-II frontier lanes are `../../J/audit/frontier/*.md`). The spec-structure
 precedent is `../audit/wave-J.W0.md` (§Provenance / §State-verified / §Goal / §Scope / §Hard gate /
 §No-workaround / §Folds / §Hand-off / §Design-decisions). This README is a MAP; where it and a binding
 doc disagree, the binding doc wins.*

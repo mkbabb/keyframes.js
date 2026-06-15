@@ -1,11 +1,15 @@
 # KF-TO-VALUEJS-GRAMMAR-ASKS — the kf-side OUTBOUND grammar ask (the dispatch: VJ.W1 scroll grammar + VJ.W2 perceptual ramp; the mirror of the inbound `VALUEJS-N2-ASKS.md`)
 
 **Provenance:** authored 2026-06-15 by the kf Tranche-K Band-II FRONTIER-FOLD fleet (the
-value.js-coordination lane). This is the **OUTBOUND** ask — the kf-side spec value.js's **post-N
-tranche** consumes, the MIRROR of the INBOUND `VALUEJS-N2-ASKS.md` (which recorded the 0.12.0
-edges kf consumes). It dispatches the **two genuine net-new grammar items** that gate K Band II's
-scroll wave (K.W9) and the compile wave's oklab densify (K.W10's CC-2), per the binding charter's
-acyclic-spine law. Evidence of record, kf side: `docs/tranches/K/K.md §value.js coordination`,
+value.js-coordination lane). This is the **OUTBOUND** ask — the kf-side spec value.js's
+**N.W11.D / N.W11′ library track** consumes (the RATIFIED fold — `value.js …/N/GRAMMAR-FOLD.md`,
+`EXECUTION-ORCHESTRATION.md §3`), the MIRROR of the INBOUND `VALUEJS-N2-ASKS.md` (which recorded
+the 0.12.0 edges kf consumes). It dispatches the **two genuine net-new grammar items** that gate K
+Band II's scroll wave (K.W9) and the compile wave's oklab densify (K.W10's CC-2), per the binding
+charter's acyclic-spine law. **The fold is RATIFIED on the value.js side: VJ.W2 → N.W11.D (a lane of
+the color-SOTA wave N.W11), VJ.W1 → N.W11′ (a sibling library wave), both shipping in the 0.13.0
+cut** — so the kf consume edges (K.W9 `scroll.ts` / K.W10 CC-2) light on value.js's **0.13.0**
+publish, not on a vague post-N. Evidence of record, kf side: `docs/tranches/K/K.md §value.js coordination`,
 `docs/tranches/K/waves/K.W9.md`, `docs/tranches/K/waves/K.W10.md`, `docs/tranches/K/L-SEED.md §7`,
 the inbound `docs/tranches/K/VALUEJS-N2-ASKS.md §3` (which RECORDED both items ABSENT in 0.12.0).
 
@@ -19,10 +23,19 @@ published-consume-edge idiom). **This dispatch is NEVER a `file:` link or a vend
 a PUBLISHED consume across the constellation spine. No cycle: value.js → kf (grammar); kf →
 glass-ui (spring); no back-edge.
 
-**Who consumes this:** value.js's post-N tranche. Tranche N (live on `tranche-f-handoff`) recorded
-BOTH items for its post-N successor (`VALUEJS-N2-ASKS.md §3`, the value.js `X-KF.md §3.2/O5`); this
-doc is the kf-side SPEC that successor consumes. It adds NO kf wave, re-litigates NO kf decision,
-and duplicates NO kf spec — it is the outbound edge of the dispatch the charter names.
+**Who consumes this:** value.js's **N.W11.D / N.W11′ library track** (the RATIFIED grammar fold).
+Tranche N (live on `tranche-f-handoff`) first recorded BOTH items for a post-N successor
+(`VALUEJS-N2-ASKS.md §3`; `value.js/docs/tranches/N/WAVES-2.md:225,308` N.W18.C — "record for the
+post-N successor … correctly absent from N"); value.js's arm then **RATIFIED the fold INTO N's own
+library track** rather than spinning a separate successor — VJ.W2 into N.W11 (the color-SOTA wave) as
+**N.W11.D**, VJ.W1 as a sibling library wave **N.W11′** — both shipping in the **0.13.0** cut within
+the constellation beat (`value.js/docs/tranches/N/GRAMMAR-FOLD.md` PART I/II,
+`EXECUTION-ORCHESTRATION.md §3`), with a tight **Tranche O** as the named fallback if the fold slips.
+This doc is the kf-side SPEC that track consumes; **the consume cadence is now CONCRETE (not a vague
+post-N): kf's K.W9/K.W10 consume edges light on value.js's 0.13.0 publish.** §4 carries the disposition
+in full. This doc is a HAND-OFF: **kf does NOT write value.js's tree.** It adds NO kf wave, re-litigates
+NO kf decision, and duplicates NO kf spec — it is the outbound edge of the dispatch the charter names;
+the producing-repo work, its wave numbering (N.W11.D/N.W11′), and its 0.13.0 cut are value.js's to ship.
 
 ---
 
@@ -30,8 +43,8 @@ and duplicates NO kf spec — it is the outbound edge of the dispatch the charte
 
 | Ask | What value.js ships | The kf consume edge (the wave + the gate) | Status (registry-probed 2026-06-15) |
 |---|---|---|---|
-| **VJ.W1 SCROLL GRAMMAR** | the typed `CSSTimelineOptions` value extractor + inverse serializer (`scroll()`/`view()`/range-phase) — the typed VALUE grammar, NOT the property names | **K.W9** SCROLL-AS-CSS — `proof:scroll-roundtrip` clause (b) (the PARSE round-trip) | **OPEN** — DISPATCHED (§1) |
-| **VJ.W2 PERCEPTUAL RAMP** | `sampleColorRamp(from, to, n, {space, hueMethod})` beside `mix.ts`, reusing `lerpColorValue` + `gamutMapOKLab` | **K.W10** COMPILE — `proof:compile-replay-equal` clause (d) (CC-2 oklab densify) | **OPEN** — DISPATCHED (§2) |
+| **VJ.W1 SCROLL GRAMMAR** | the typed `CSSTimelineOptions` value extractor + inverse serializer (`scroll()`/`view()`/range-phase) — the typed VALUE grammar, NOT the property names | **K.W9** SCROLL-AS-CSS — `proof:scroll-roundtrip` clause (b) (the PARSE round-trip) | **OPEN @0.12.0 — RATIFIED → N.W11′, 0.13.0** (§1) |
+| **VJ.W2 PERCEPTUAL RAMP** | `sampleColorRamp(from, to, n, {space, hueMethod})` beside `mix.ts`, reusing `lerpColorValue` + `gamutMapOKLab` | **K.W10** COMPILE — `proof:compile-replay-equal` clause (d) (CC-2 oklab densify) | **OPEN @0.12.0 — RATIFIED → N.W11.D, 0.13.0** (§2) |
 
 **The decisive ground truth (why these two, and ONLY these two).** value.js 0.12.0 (its Tranche N)
 un-blocked FOUR of the six K frontier waves outright (`K.md §The frontier, un-blocked`); the RIPE
@@ -98,6 +111,16 @@ not a perf claim — `../audit/frontier/scroll-orchestration.md §2` "none for t
 
 ### §1.3 How kf consumes it (the acyclic-spine handling — born-RED-gated kf-side)
 
+**The kf consume seam (exact, reciprocal with `K.W9.md §S1`):** a NEW `src/animation/scroll.ts`
+(HEAVY — it needs the parser; reached via `loadAnimationEngine()`, the static/dynamic boundary
+HOLDS) is the `ScrollScene` consumer that CALLS the `CSSTimelineOptions` extractor; the inverse
+serialize half threads value.js's `serializeAnimationTimeline` through kf's `format.ts:53-85`
+serialize-from-template authority (the J.W1 S1 ENG-1 declared-template projection, `format.ts:155`
+— never a DOM-resolved sample). value.js's PRODUCER lands beside its `extract.ts:114-176`
+stylesheet extractor (where the `animation-*` value parsing already lives). This is the BINDING
+cross-wave boundary the dispatch reciprocates: `K.W9.md §S1` names `src/animation/scroll.ts` +
+`format.ts:53-85` as the consumer; this doc names the value.js producer it calls.
+
 - **The kf source half lands NOW (born-RED against the recorded absence).** K.W9's `ScrollScene`
   driver + the dispatch matrix + the `position:sticky` pin synthesis are value.js-INDEPENDENT (they
   compose the SHIPPED `SmoothProgress`/`decay`/`SpringProgress`/`ScrollTimeline`/
@@ -121,8 +144,9 @@ not a perf claim — `../audit/frontier/scroll-orchestration.md §2` "none for t
 ### §2.1 The precise gap (registry-probed 2026-06-15)
 
 `grep -rcE "sampleColorRamp" node_modules/@mkbabb/value.js@0.12.0/dist/` → **ZERO**.
-`sampleColorRamp` is ABSENT in 0.12.0 (`VALUEJS-N2-ASKS.md:61` — "VJ.W2 `sampleColorRamp` … the two
-genuine L gates remain net-new and un-scheduled … both confirmed ABSENT in 0.12.0"). value.js DOES
+`sampleColorRamp` is ABSENT in 0.12.0 (`VALUEJS-N2-ASKS.md:61` — "VJ.W1 SCROLL GRAMMAR + VJ.W2
+`sampleColorRamp` … the two genuine net-new grammar gates remain absent in 0.12.0 … RATIFIED into
+N's library track — VJ.W2 → N.W11.D, VJ.W1 → N.W11′, both shipping in the 0.13.0 cut"). value.js DOES
 ship the kernels `sampleColorRamp` would reuse: `lerpColorValue` (the per-step perceptual lerp),
 `gamutMapOKLab`/`gamutMap` (the egress mapping — `VALUEJS-N2-ASKS.md §2 row 7`), and `deltaEOK` (the
 perceptual-distance kernel kf's CC-2 ΔE proof consumes — `VALUEJS-N2-ASKS.md §2 row 12`, the
@@ -136,15 +160,25 @@ kernels, not net-new color science.
 - **Signature:** `(from: Color, to: Color, n: number, opts: { space: "oklab" | "oklch" | …;
   hueMethod: "shorter" | "longer" | "increasing" | "decreasing" }) → Color[]` — N intermediate
   color stops sampled along the perceptual interpolation from `from` to `to`.
-- **Reuses:** `lerpColorValue` (the per-step lerp value.js already ships) + `gamutMapOKLab`/`gamutMap`
-  (the egress mapping, so each emitted stop is in-gamut — no silent sRGB clip). The `hueMethod`
-  controls the hue path (the thing bare two-stop `@keyframes` cannot encode —
+- **Reuses (the value.js producer-side anchors, probed against value.js's tree 2026-06-15):**
+  `lerpColorValue` (the per-step lerp value.js already ships — `value.js/src/units/interpolate.ts:104`)
+  + `gamutMapOKLab`/`gamutMap` (the egress mapping, so each emitted stop is in-gamut — no silent sRGB
+  clip — `value.js/src/units/color/gamut.ts:247`). The new sampler lands beside `mixColorsN`
+  (`value.js/src/units/color/mix.ts:28`) — the existing N-color mix the ramp is a sibling of. The
+  `hueMethod` controls the hue path (the thing bare two-stop `@keyframes` cannot encode —
   `../audit/frontier/css-compiler.md §3c`).
 - **MEASURE-FIRST (the value.js-side discipline):** `K.md §value.js coordination` — "reusing
   `lerpColorValue` + `gamutMapOKLab` (MEASURE-FIRST)"; value.js measures the sampler against its
   existing `mix.ts` path before shipping (no perf regression on the per-step lerp).
 
 ### §2.3 How kf consumes it (the acyclic-spine handling — the densify is a WIDENING, not a blocker)
+
+**The kf consume seam (exact, reciprocal with `K.W10.md §S2`):** the NEW `src/animation/compile.ts`
+(HEAVY — `K.W10.md §S1`, the compile module over the `format.ts` lineage) color leg CALLS
+`sampleColorRamp(from, to, n, {space, hueMethod})` to bake N pre-sampled `oklab()` stops into the
+compiled `@keyframes`; the ship-vs-refuse ΔE-ε proof consumes the RIPE `deltaEOK`. This is the
+BINDING cross-wave boundary: `K.W10.md §S2` names `src/animation/compile.ts`'s color leg as the
+densify consumer; this doc names the value.js producer it calls.
 
 - **The kf source half lands NOW (born-RED against the recorded absence).** K.W10's CC-2 oklab
   densify consumer (which CALLS `sampleColorRamp` to bake N `oklab()` stops) lands born-RED against
@@ -201,26 +235,43 @@ authorize and run Band I + the un-blocked frontier while value.js ships the two 
 its own interval — the same acyclic cadence value.js's 0.12.0 just demonstrated (it shipped the
 four un-blocking edges in its Tranche N without kf blocking on them).
 
-value.js's post-N tranche reconciles these against its then-current `value.js/docs/tranches/N/
-PROGRESS.md` (Tranche N recorded both items for its post-N successor — `VALUEJS-N2-ASKS.md §3`).
-The 0.12.0 RIPE edges (`lerpArray`, `deltaEOK`, `reverseAnimationShorthand`, `ParseDiagnostic`,
-the path sampler) + the N2 witness-flip slate are K.W1/K.W6/K.W7/K.W10/K.W12 consumes, ALREADY
-shipped. The acyclic spine holds: value.js publishes grammar; kf consumes one tranche behind; no
-cycle, no contention, no `file:` link.
+value.js's **N.W11.D / N.W11′ library track** reconciles these against its then-current
+`value.js/docs/tranches/N/PROGRESS.md` (Tranche N first recorded both items for a post-N successor —
+`VALUEJS-N2-ASKS.md §3` — then RATIFIED the fold into N's library track, `GRAMMAR-FOLD.md`). The
+0.12.0 RIPE edges (`lerpArray`, `deltaEOK`, `reverseAnimationShorthand`, `ParseDiagnostic`, the path
+sampler) + the N2 witness-flip slate are K.W1/K.W6/K.W7/K.W10/K.W12 consumes, ALREADY shipped. The
+acyclic spine holds: value.js publishes grammar; kf consumes one tranche behind; no cycle, no
+contention, no `file:` link.
+
+**The live disposition (RATIFIED — concrete N.W11.D/N.W11′ → 0.13.0, not a vague post-N).** value.js's
+arm RATIFIED folding BOTH dispatched grammars into N's own LIBRARY track rather than spinning a
+separate successor tranche: **VJ.W2** (`sampleColorRamp`) into **N.W11.D** (a leg of N's color-SOTA
+wave N.W11, beside `mix.ts`/`lerpColorValue`/`gamutMapOKLab`), and **VJ.W1** (the typed
+`CSSTimelineOptions` scroll extractor + inverse serializer) as a sibling library wave **N.W11′** —
+both shipping in a tight **0.13.0** cut within the constellation beat, with a **Tranche O** as the
+named fallback if the fold slips (`value.js/docs/tranches/N/GRAMMAR-FOLD.md` PART I/II,
+`EXECUTION-ORCHESTRATION.md §3`; `value.js …/N/WAVES-2.md:225,308` N.W18.C the original record).
+**The producing-repo work is value.js's to ship** — kf does NOT write value.js's tree; the wave
+numbering (N.W11.D / N.W11′) and the 0.13.0 cut are the producing repo's. K's only edge is this
+outbound ask + the born-RED kf consume edges (K.W9 `proof:scroll-roundtrip` (b); K.W10
+`proof:compile-replay-equal` (d) CC-2) that light on the **0.13.0** publish — the same acyclic,
+published-consume-edge form, whether the grammar lands as 0.13.0's N.W11.D/N.W11′ or the
+Tranche-O fallback.
 
 ---
 
-## §5 — Status ledger (for value.js's re-anchor at its post-N open)
+## §5 — Status ledger (for value.js's re-anchor at the RATIFIED N.W11.D/N.W11′ open)
 
 | VJ item | What | Status | The kf consume edge | Born-RED-gated kf-side? |
 |---|---|---|---|---|
 | **VJ.W0 RIPEN** | E1/E2 parsers, LRU bound, parse-that `^0.9.0`, VJ-1 by composition | **LANDED** (0.12.0) | K.W1 re-pin + K.W6 DL exits | n/a (shipped) |
-| **VJ.W1 SCROLL GRAMMAR** | the typed `CSSTimelineOptions` extractor + inverse serializer | **OPEN — DISPATCHED (§1)** | K.W9 `proof:scroll-roundtrip` (b) | YES — source half lands born-RED; PARSE edge lights on publish |
-| **VJ.W2 PERCEPTUAL RAMP** | `sampleColorRamp` beside `mix.ts` | **OPEN — DISPATCHED (§2)** | K.W10 `proof:compile-replay-equal` (d) | YES — source half lands born-RED; densify edge lights on publish; GREEN via refusal until then |
+| **VJ.W1 SCROLL GRAMMAR** | the typed `CSSTimelineOptions` extractor + inverse serializer | **OPEN @0.12.0 — RATIFIED → N.W11′, 0.13.0 cut (§1)** | K.W9 `proof:scroll-roundtrip` (b) | YES — source half lands born-RED; PARSE edge lights on the 0.13.0 publish |
+| **VJ.W2 PERCEPTUAL RAMP** | `sampleColorRamp` beside `mix.ts` | **OPEN @0.12.0 — RATIFIED → N.W11.D, 0.13.0 cut (§2)** | K.W10 `proof:compile-replay-equal` (d) | YES — source half lands born-RED; densify edge lights on the 0.13.0 publish; GREEN via refusal until then |
 | **VJ.W3 SUBSTRATE TOTALITY** | VJ-9 full partial-input + the diagnostics producer | **PARTIAL** (producer shipped; full totality open) | K.W7 channel (RIPE) + K.W8 VJ-9 tripwire | n/a (RIPE consume + recorded tripwire) |
 | **VJ.W4 THE BIG ROCK** | the path sampler + MCI-5 + VJ-F4 | **PARTIAL** (sampler+tangent shipped; MorphSVG product is kf's) | K.W6 DL-K21 exit (RIPE) | n/a (RIPE consume) |
 
 **The acyclic spine holds.** value.js publishes VALUES; kf consumes ONE tranche behind,
 born-RED-gated kf-side; glass-ui consumes spring FROM kf. The two OPEN items (VJ.W1/VJ.W2) are
-DISPATCHED to value.js's post-N tranche via this doc; K.W9/K.W10's consume edges light on the
-publish. No cycle, no `file:` link, no vendored grammar.
+RATIFIED into value.js's **N.W11.D / N.W11′ library track** (the 0.13.0 cut) via this doc;
+K.W9/K.W10's consume edges light on the **0.13.0** publish. No cycle, no `file:` link, no
+vendored grammar.

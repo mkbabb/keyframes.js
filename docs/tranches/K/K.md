@@ -16,8 +16,9 @@ charter) — deferred at K's first authoring because its scroll/compile waves ga
 value.js grammar that did not yet exist. **In the interval that premise dissolved:** value.js
 shipped **0.12.0** (its Tranche N, which superseded the never-dispatched M), un-blocking FOUR of
 the six frontier waves outright and leaving only two genuine gates open. On **2026-06-15** the
-user folded the frontier WHOLESALE into K and dispatched value.js's post-N tranche to ship the
-last two grammar items (VJ.W1 scroll grammar + VJ.W2 perceptual ramp) in parallel. That is
+user folded the frontier WHOLESALE into K and dispatched the last two grammar items (VJ.W1 scroll
+grammar + VJ.W2 perceptual ramp) to value.js — RATIFIED into its **N.W11.D / N.W11′ library track**,
+shipping in the **0.13.0** cut (`value.js …/N/GRAMMAR-FOLD.md`) — to ship in parallel. That is
 **Band II — the frontier.** **There is no residual L** — `L-SEED.md` is consumed into this
 charter (§Band II); the 12 KILLs and the BOOKs carry forward as K's anti-charter.
 
@@ -73,8 +74,8 @@ re-verified by the orchestrator 2026-06-15):
 |---|---|---|---|
 | **FIDELITY FLOOR** (→ K.W7) | WL2-B `animation-composition` honoring (the adapter captures it `adapter.ts:24-29,120-126`; `engine.ts` drops it) + the diagnostics channel | none — the diagnostics now CONSUME the shipped 0.12.0 producer (`ParseDiagnostic`/`OnParseError`, N2 row 10) | **UN-BLOCKED** ✅ |
 | **INGEST** (→ K.W8) | K1 `fromStyleSheets()`/`fromLiveAnimations()` + K2 `adopt()` | none — `CSSKeyframesRule.cssText` already feeds `resolveKeyframes`; robustness wants VJ-9 full totality (PARTIAL) | **UN-BLOCKED** ✅ (robustness tripwire recorded) |
-| **SCROLL-AS-CSS** (→ K.W9) | SO-1 parse+dispatch + SO-2 `ScrollScene` + SO-3 sticky-pin | **VJ.W1 scroll grammar — OPEN** (verified `CSSTimelineOptions`/`parseAnimationTimeline` absent in 0.12.0) | **DISPATCHED** — K asks value.js (§value.js coordination); born-RED-gates on the publish |
-| **COMPILE** (→ K.W10, the XL anchor) | CC-1 the CSS compiler + CC-2 oklab densify + CC-3 ineligibility report | CC-1 core: `reverseAnimationShorthand` (RIPE 0.12.0) ✅; **CC-2 oklab densify: VJ.W2 `sampleColorRamp` — OPEN** | **DISPATCHED** — core proceeds on RIPE; the densify born-RED-gates on VJ.W2 |
+| **SCROLL-AS-CSS** (→ K.W9) | SO-1 parse+dispatch + SO-2 `ScrollScene` + SO-3 sticky-pin | **VJ.W1 scroll grammar — OPEN @0.12.0; RATIFIED → N.W11′, 0.13.0** (verified `CSSTimelineOptions`/`parseAnimationTimeline` absent in 0.12.0) | **DISPATCHED** — RATIFIED into value.js N.W11′ (§value.js coordination); born-RED-gates on the 0.13.0 publish |
+| **COMPILE** (→ K.W10, the XL anchor) | CC-1 the CSS compiler + CC-2 oklab densify + CC-3 ineligibility report | CC-1 core: `reverseAnimationShorthand` (RIPE 0.12.0) ✅; **CC-2 oklab densify: VJ.W2 `sampleColorRamp` — OPEN @0.12.0; RATIFIED → N.W11.D, 0.13.0** | **DISPATCHED** — core proceeds on RIPE; the densify born-RED-gates on VJ.W2/N.W11.D (0.13.0 publish) |
 | **PHYSICS** (→ K.W11) | PHYS-C spring-driven blend weight + PHYS-B2 reseatToSpring + PHYS-E | none — engine-internal (`group.ts`); rides the SAME `scenePlaybackAdapters`/`sceneMachine` seam K.W0/K.W1 rebuilds | **UN-BLOCKED** ✅ (and wants K's seam) |
 | **EXTERNALIZE** (→ K.W12) | ED-1 agent surface + ED-3 dogfood inversion + ED-4 color-fidelity (`deltaEOK` RIPE) | J.W5 publish ✅; ED-3 honest ONLY after Band I repairs the demo | **UN-BLOCKED** ✅ (and STRONGER on the repaired substrate) |
 
@@ -127,8 +128,8 @@ The user's verbatim-intent (2026-06-11/12, carried into every wave):
 
 And the 2026-06-15 fold directive: *"Explicate what the deferred L is to be — we should likely
 fold that into K"* → resolved (user-confirmed) as the **TOTAL fold + value.js dispatch**: the
-entire frontier folds into K Band II; value.js's post-N tranche is dispatched to ship VJ.W1 +
-VJ.W2; there is no residual L.
+entire frontier folds into K Band II; VJ.W1 + VJ.W2 are dispatched to value.js — RATIFIED into its
+**N.W11.D / N.W11′ library track** (the 0.13.0 cut); there is no residual L.
 
 Plus the binding live-audit register **U-K1..U-K20** (Band I, each rooted by an owning lane) and
 the standing precept spine (NO workarounds; NO legacy beside its replacement; transpositions for
@@ -216,10 +217,11 @@ with ingest); CC-1 core proceeds on RIPE value.js, CC-2 densify gates on VJ.W2 *
 all prior surfaces published).
 
 **The acyclic value.js spine (Band II):** K dispatches VJ.W1 (scroll grammar) + VJ.W2 (perceptual
-ramp) to value.js's post-N tranche (`KF-TO-VALUEJS-GRAMMAR-ASKS.md`); value.js publishes; K.W9/W10's
-consume edges light born-RED-gated kf-side. K's impl never blocks on an unpublished symbol — the
-source half lands against a recorded born-RED, the edge consumes on the publish (the J.W7b
-published-consume-edge idiom).
+ramp) to value.js (`KF-TO-VALUEJS-GRAMMAR-ASKS.md`) — RATIFIED into value.js's **N.W11.D / N.W11′
+library track**, shipping in the **0.13.0** cut (`value.js …/N/GRAMMAR-FOLD.md`); value.js publishes
+0.13.0; K.W9/W10's consume edges light born-RED-gated kf-side. K's impl never blocks on an unpublished
+symbol — the source half lands against a recorded born-RED, the edge consumes on the 0.13.0 publish
+(the J.W7b published-consume-edge idiom).
 
 **The longest serial path:** K.W0 → K.W1 → (K.W2 ∥ K.W3) → K.W4 → K.W7 → (K.W8 ∥ K.W9) → K.W10
 → K.W12 → K.WZ, with K.W5's legs, K.W6, and K.W11 parallel to their owning bands. **K.WZ closes**
@@ -232,25 +234,28 @@ invariant.
 ## § value.js coordination (the dispatch — the acyclic spine in motion)
 
 K does not write value.js's tree. It authors the **outbound grammar ask**
-(`KF-TO-VALUEJS-GRAMMAR-ASKS.md`) — the kf-side spec value.js's post-N tranche consumes, the
-mirror of the inbound `VALUEJS-N2-ASKS.md`. The dispatch:
+(`KF-TO-VALUEJS-GRAMMAR-ASKS.md`) — the kf-side spec value.js's **N.W11.D / N.W11′ library track**
+consumes (the RATIFIED fold), the mirror of the inbound `VALUEJS-N2-ASKS.md`. The dispatch:
 
-- **VJ.W1 SCROLL GRAMMAR** (gates K.W9): the `CSSTimelineOptions` typed extractor + inverse
-  serializer (`animation-timeline`/`-range`/`timeline-scope`/`animation-trigger`,
-  `scroll()`/`view()`/range-phase) — the ONE genuine net-new grammar (`L-SEED.md §7`). Confirmed
-  ABSENT in 0.12.0 (orchestrator-probed 2026-06-15).
-- **VJ.W2 PERCEPTUAL RAMP** (gates K.W10's CC-2): `sampleColorRamp(from,to,n,{space,hueMethod})`
-  beside `mix.ts`, reusing `lerpColorValue` + `gamutMapOKLab` (MEASURE-FIRST). Confirmed ABSENT
-  in 0.12.0.
-- value.js's post-N tranche reconciles these against its then-current `value.js/docs/tranches/N/
-  PROGRESS.md` (Tranche N is live on `tranche-f-handoff`; it recorded both items for its post-N
-  successor — `VALUEJS-N2-ASKS.md §3`). The 0.12.0 RIPE edges (`lerpArray`, `deltaEOK`,
-  `reverseAnimationShorthand`) + the N2 witness-flip slate are K.W1/K.W6 consumes, already shipped.
+- **VJ.W1 SCROLL GRAMMAR** (gates K.W9; RATIFIED → **N.W11′**, 0.13.0): the `CSSTimelineOptions`
+  typed extractor + inverse serializer (`animation-timeline`/`-range`/`timeline-scope`/
+  `animation-trigger`, `scroll()`/`view()`/range-phase) — the ONE genuine net-new grammar
+  (`L-SEED.md §7`). Confirmed ABSENT in 0.12.0 (orchestrator-probed 2026-06-15).
+- **VJ.W2 PERCEPTUAL RAMP** (gates K.W10's CC-2; RATIFIED → **N.W11.D**, 0.13.0):
+  `sampleColorRamp(from,to,n,{space,hueMethod})` beside `mix.ts`, reusing `lerpColorValue` +
+  `gamutMapOKLab` (MEASURE-FIRST). Confirmed ABSENT in 0.12.0.
+- value.js's **N.W11.D / N.W11′** track reconciles these against its then-current
+  `value.js/docs/tranches/N/PROGRESS.md` (Tranche N is live on `tranche-f-handoff`; it first recorded
+  both items for a post-N successor — `VALUEJS-N2-ASKS.md §3` — then RATIFIED the fold into N's library
+  track, the 0.13.0 cut — `value.js …/N/GRAMMAR-FOLD.md`, `EXECUTION-ORCHESTRATION.md §3`). The 0.12.0
+  RIPE edges (`lerpArray`, `deltaEOK`, `reverseAnimationShorthand`) + the N2 witness-flip slate are
+  K.W1/K.W6 consumes, already shipped.
 
 **The dispatch does not block K's authorization.** Band I is value.js-grammar-independent and
-leads; Band II's W7/W8/W11/W12 are un-blocked today; only W9 and W10's CC-2 light on the
+leads; Band II's W7/W8/W11/W12 are un-blocked today; only W9 and W10's CC-2 light on the **0.13.0**
 publish. K can authorize and run Band I + the un-blocked frontier while value.js ships the two
-grammar items in its own interval — the same acyclic cadence value.js's 0.12.0 just demonstrated.
+grammar items (N.W11.D/N.W11′) in its own interval — the same acyclic cadence value.js's 0.12.0
+just demonstrated.
 
 ---
 
@@ -283,8 +288,8 @@ carries the K board + the parse-substrate tables. The bands:
   this charter; **there is no residual L** (the 2026-06-15 total-fold supersedes the
   reconciliation's Shape A; `audit/k-seed-reconciliation.md` is evidence-of-record, its Shape-A
   recommendation now superseded — the un-blocking it argued for HAPPENED via value.js 0.12.0).
-- **OUT/sibling-DISPATCHED** — value.js VJ.W1/VJ.W2 (the outbound ask; value.js's own tranche);
-  glass-ui root items via the handoff ledger.
+- **OUT/sibling-DISPATCHED** — value.js VJ.W1/VJ.W2 (the outbound ask; RATIFIED into value.js's
+  N.W11.D/N.W11′ library track, the 0.13.0 cut); glass-ui root items via the handoff ledger.
 - **RECORD** — U-K19 playground-only; the J close gap analysis.
 - **KILL** — the 12 frontier KILLs (`L-SEED.md §5`) + the carried ARCH kills, un-re-litigated.
 

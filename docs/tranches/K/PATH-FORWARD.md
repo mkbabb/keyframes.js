@@ -105,8 +105,9 @@ scroll/compile waves gated on net-new value.js grammar that did not yet exist
 dissolved.** On **2026-06-12** value.js shipped **0.12.0** (its Tranche N, which superseded the
 never-dispatched M; registry-verified — `VALUEJS-N2-ASKS.md:20`), un-blocking **FOUR of the six**
 frontier waves outright and leaving only **two** genuine grammar gates open. On **2026-06-15** the
-user folded the frontier **WHOLESALE into K Band II** and dispatched value.js's post-N tranche to
-ship the last two items in parallel — **there is no residual L** (`K.md` title line, `§The frontier,
+user folded the frontier **WHOLESALE into K Band II** and dispatched the last two grammar items to
+value.js — RATIFIED into its **N.W11.D / N.W11′ library track**, shipping in the **0.13.0** cut
+(`value.js …/N/GRAMMAR-FOLD.md`) — to ship in parallel; **there is no residual L** (`K.md` title line, `§The frontier,
 un-blocked (Band II)`, `§The chronic + deferred fold`). The Shape-A wholesale-deferral is SUPERSEDED:
 the un-blocking it argued the L interval would deliver was instead delivered by value.js 0.12.0
 inside the K interval itself.
@@ -128,8 +129,10 @@ The frontier re-seeds as `L-SEED.md` (the **consumed body of record**, §0–§7
 reference the K.W7–K.W12 wave specs cite), with the total-fold preface. The 12 KILLs carry as K's
 anti-charter; the BOOKs carry with their named tripwires. The two value.js grammar items K still owes
 (VJ.W1 scroll grammar + VJ.W2 perceptual ramp) are DISPATCHED via the outbound ask
-`KF-TO-VALUEJS-GRAMMAR-ASKS.md` — the acyclic-spine cadence (value.js publishes; K's consume edge
-lights born-RED-gated kf-side; never a `file:` link or a vendored copy).
+`KF-TO-VALUEJS-GRAMMAR-ASKS.md` — RATIFIED into value.js's **N.W11.D / N.W11′ library track**, shipping
+in the **0.13.0** cut (`value.js …/N/GRAMMAR-FOLD.md`) — the acyclic-spine cadence (value.js publishes
+0.13.0; K's consume edge lights born-RED-gated kf-side on that publish; never a `file:` link or a
+vendored copy).
 
 ---
 
