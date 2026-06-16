@@ -78,6 +78,15 @@ console.log(
 );
 
 const ENGINE = "src/animation/engine.ts";
+// K.WZ — the K.W7 composition-honoring LEAF logic (the un-clamped add, the
+// repeat-aware accumulate, the captured underlying base, the non-numeric
+// `replace`-fallback + `COMPOSITION_FALLBACK` row) was extracted out of the
+// engine god-object into this colocated INTERNAL module (the engine.ts<1400
+// ceiling split — engine.ts keeps the CALL site + the rAF-only gate, the
+// module holds the leaf bodies). The body anchors below follow the code to
+// their true location; the engine-side anchors (the `applyComposition` call,
+// the `resolved.composition` read, the `transformFrames` gate) stay on ENGINE.
+const COMPOSITION = "src/animation/engine-composition.ts";
 const WAAPI = "src/animation/waapi.ts";
 const TEST = "test/composition-honored.test.ts";
 
@@ -94,11 +103,15 @@ requireAll("raf-read", ENGINE, [
 ]);
 
 // ── apply-honor — processFrame composites on the APPLY path ───────────────────
+// The CALL site stays on the engine (processFrame → applyComposition); the leaf
+// bodies (the un-clamped add, the captured base) live in the extracted module.
 requireAll("apply-honor", ENGINE, [
     {
         name: "processFrame calls applyComposition (the honoring leaf)",
         re: /this\.applyComposition\(\s*frame\s*\)/,
     },
+]);
+requireAll("apply-honor", COMPOSITION, [
     {
         name: "the composite accumulates the numeric leaf IN PLACE (un-clamped)",
         re: /unit\.value\s*=\s*b\s*\+\s*unit\.value/,
@@ -110,19 +123,29 @@ requireAll("apply-honor", ENGINE, [
 ]);
 
 // ── accumulate — the accumulate operator is repeat-aware (reads iteration) ────
-requireAll("accumulate", ENGINE, [
+// The iteration counter is threaded in via the runtime; the stack math lives in
+// the extracted module (the engine surfaces `iteration` on the runtime object).
+requireAll("accumulate", COMPOSITION, [
     {
-        name: 'accumulate reads the engine\'s own iteration counter',
-        re: /op\s*===\s*["']accumulate["']\s*\?\s*this\.iteration/,
+        name: "accumulate reads the iteration counter (runtime.iteration)",
+        re: /op\s*===\s*["']accumulate["']\s*\?\s*runtime\.iteration/,
     },
     {
         name: "the repeat-aware stack adds iters·(end − base) onto the base",
         re: /b\s*\+\s*iters\s*\*\s*\(\s*end\s*-\s*b\s*\)\s*\+\s*unit\.value/,
     },
 ]);
+// The engine THREADS its own `iteration` into the composition runtime (the
+// counter the accumulate stack reads) — the engine-side half of the contract.
+requireAll("accumulate", ENGINE, [
+    {
+        name: "the engine threads its iteration counter into the composition runtime",
+        re: /iteration:\s*this\.iteration/,
+    },
+]);
 
 // ── non-numeric — the non-numeric leaf replace-falls-back AND diagnoses ───────
-requireAll("non-numeric", ENGINE, [
+requireAll("non-numeric", COMPOSITION, [
     {
         name: "a non-numeric leaf emits COMPOSITION_FALLBACK (never silent)",
         re: /emitCompositionFallback\(/,

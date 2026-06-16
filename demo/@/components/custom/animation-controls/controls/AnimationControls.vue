@@ -229,12 +229,12 @@ import {
 } from "vue";
 import {
     ACTIVE_CONTROL_CONDITIONALS_KEY,
-    ACTIVE_SUPER_KEY,
     TABS_EXTERNALLY_MANAGED_KEY,
 } from "../injectionKeys";
 import { ChevronDown, Minimize2 } from "@lucide/vue";
 import { useTabStripScroll } from "./composables/useTabStripScroll";
 import { useKeyframesPaneReveal } from "./composables/useKeyframesPaneReveal";
+import { useSelectedControlSurface } from "./composables/useSelectedControlSurface";
 import {
     useSceneMachine,
     BUILT_IN_SURFACES,
@@ -328,80 +328,19 @@ const isSingleSurfaceScene = computed(
         builtInTabs.value.length === 0,
 );
 
-// J.W2 S2 — the ACTIVE scene's superKey + the currently-active conditional
-// surfaces (App-provided; undefined on a standalone host). The superKey is
-// atomic with `machine.activeScene`, so the write gate below can never lag the
-// transition; the conditionals make the projection conditional-surface-aware
-// (cube's matrix-controls falls back AT the authority when Matrix deselects).
-const activeSuperKey = inject(ACTIVE_SUPER_KEY, undefined);
+// ── THE SELECTED-SURFACE SINGLE AUTHORITY (colocated composable) ────────────
+// The machine-projected, synchronously-correct active surface + THE ONE WRITER
+// (the derivation-sync) + the suspend-on-leave gate + the user-pick DFA
+// projection all live in useSelectedControlSurface (the K.WZ proof:demo-no-
+// oversize seam; zero behavior change). `stripOptions`/`builtInTabs` deliberately
+// stay HERE (the proof:scene-control-dfa D1 source anchor greps the host). The
+// activeConditionals inject is read for the dock-parity strip union below.
 const activeConditionals = inject(ACTIVE_CONTROL_CONDITIONALS_KEY, undefined);
-
-// Does THIS host's store belong to the ACTIVE scene? During the NAVIGATE →
-// SCENE_READY window the controls still host the LEAVING scene's animations
-// (the App swaps `currentAnimationGroup` only on SCENE_READY) — a host whose
-// `animation.superKey` is not the active scene's must NOT write the destination
-// scene's projection into its own (the leaving scene's) store. This is the
-// suspend-on-leave half of the single-writer contract: the leaving scene's
-// preference SURVIVES the transition and fully resumes on re-entry (the
-// perf-battery §2 `selectedControl:"spring"`-in-the-Easing-store corruption,
-// cured structurally).
-const isActiveSceneHost = computed(
-    () =>
-        !activeSuperKey ||
-        activeSuperKey.value === (animation.superKey ?? "default"),
-);
-
-// ── THE SELECTED-SURFACE SINGLE AUTHORITY (I.W2.S1 · OWNS the I.W1-shared mount)
-// The `<Tabs> :model-value` is a MACHINE-PROJECTED, synchronously-correct value:
-// the active scene's selected surface resolved as a PURE FUNCTION of (the DFA
-// set × the group's stored pick) via `selectedControlSurfaceFor`. On a scene
-// SWITCH this is born `"easing"` on the very tick the reka `<Tabs>` root mounts,
-// so its `useVModel` `passive`-latch is taken CORRECT (not `undefined`/stale) —
-// the B4 desync (the panel selected-but-`data-state="inactive"` on switch-in) is
-// fixed at its source, no `nextTick` re-assert. The mount is order-independent:
-// it depends only on (DFA surfaces × the active group's pick), never on flush-
-// completion order — this is the single-authority I.W1's S3 consumes for B2's
-// resumed scene. The STANDALONE host (playground EditorShell, not scene-machine-
-// routed) keeps the raw stored pick (its activeScene stays the `home` default,
-// so the projection would be `undefined`); the DFA projection gates ONLY when
-// `tabsExternallyManaged`, mirroring `hasSurface`/`builtInTabs`.
-const selectedControlSurface = computed<string>(() =>
-    tabsExternallyManaged
-        ? machine.selectedControlSurface(
-              storedControls.selectedControl,
-              activeConditionals?.value,
-          ) ?? storedControls.selectedControl
-        : storedControls.selectedControl,
-);
-
-// Reconcile the store to the single authority — THE ONE WRITER (J.W2 S2).
-// Downstream store-reading computeds (the timeline-visible / keyframes-active
-// gates below, the ribbon's `selectedControl`, the dock trigger) read
-// `storedControls.selectedControl`; when the machine projection corrects a
-// stale pick (a single-surface scene entered with another scene's stored
-// selection; a matrix-controls pick whose Matrix condition lapsed), write it
-// BACK so the store mirrors the authority. This is a derivation-sync, NOT a
-// latch re-assert — idempotent, fires only on genuine divergence, and the
-// projection (not this write) is what the `<Tabs>` binds, so it can never race
-// the mount. Replaces the per-scene `setup` pokes (EasingScene/SpringScene) and
-// the CubeScene matrix-fallback watch, all DELETED — every fallback is a
-// function OF the DFA, computed here. The `isActiveSceneHost` gate is the
-// suspend-on-leave half: a stale-mounted host (NAVIGATE → SCENE_READY window)
-// never writes a cross-scene projection into the leaving scene's store.
-watch(
-    selectedControlSurface,
-    (surface) => {
-        if (
-            tabsExternallyManaged &&
-            surface &&
-            isActiveSceneHost.value &&
-            storedControls.selectedControl !== surface
-        ) {
-            storedControls.selectedControl = surface;
-        }
-    },
-    { immediate: true },
-);
+const { selectedControlSurface, projectPick } = useSelectedControlSurface({
+    animation,
+    storedControls,
+    tabsExternallyManaged,
+});
 
 const emit = defineEmits<{
     (
@@ -446,15 +385,9 @@ const { keyframesActive } = useKeyframesPaneReveal({ storedControls, keyframesPa
 const { overflowClass, reMeasure } = useTabStripScroll({ tabsHeaderEl });
 
 const selectControl = (key: string | number) => {
-    // J.W2 S2 — the user-pick path ALSO writes the DFA projection of the pick
-    // (not the raw key), so every value that ever lands in the field is a
-    // projection of the single authority: an invalid pick (a keyboard shortcut
-    // firing a surface this scene doesn't have) resolves to the scene's valid
-    // surface instead of transiting through the store.
-    const pick = key.toString();
-    storedControls.selectedControl = tabsExternallyManaged
-        ? machine.selectedControlSurface(pick, activeConditionals?.value) ?? pick
-        : pick;
+    // The user-pick path writes the DFA projection of the pick (not the raw key)
+    // — see useSelectedControlSurface.projectPick (the single-authority owner).
+    storedControls.selectedControl = projectPick(key.toString());
     reMeasure();
 };
 

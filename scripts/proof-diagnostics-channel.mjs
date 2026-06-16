@@ -71,6 +71,12 @@ console.log(
 
 const ADAPTER = "src/animation/adapter.ts";
 const ENGINE = "src/animation/engine.ts";
+// K.WZ — the COMPOSITION_FALLBACK engine row is PUSHED from the extracted
+// `engine-composition.ts` (the K.W7 leaf logic lifted off the engine god-object
+// for the engine.ts<1400 ceiling split). It still joins the SAME channel: the
+// helper pushes onto `runtime.diagnostics`, which IS the engine's
+// `this.diagnostics` (passed by reference). The push anchor follows the code.
+const COMPOSITION = "src/animation/engine-composition.ts";
 const TEST = "test/diagnostics-channel.test.ts";
 
 // ── field-exists — ResolvedKeyframes carries diagnostics: Diagnostic[] ────────
@@ -133,9 +139,13 @@ requireAll("surfaced", ENGINE, [
         name: "fromString surfaces resolved.diagnostics on the animation",
         re: /this\.diagnostics\s*=\s*\[\s*\.\.\.\s*resolved\.diagnostics\s*\]/,
     },
+]);
+// The COMPOSITION_FALLBACK engine row joins the SAME channel from the extracted
+// honoring helper — `runtime.diagnostics` is the engine's `this.diagnostics`.
+requireAll("surfaced", COMPOSITION, [
     {
-        name: "the COMPOSITION_FALLBACK engine row joins the same channel",
-        re: /this\.diagnostics\.push\(/,
+        name: "the COMPOSITION_FALLBACK engine row joins the same channel (runtime.diagnostics)",
+        re: /runtime\.diagnostics\.push\(/,
     },
 ]);
 

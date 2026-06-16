@@ -167,13 +167,30 @@ function main() {
         // above). The clause resolves the definition in EITHER home and stays
         // falsifiable: it reds when the utility vanishes from BOTH (a demo
         // re-author would also red J.W7b's clause-(b) gone-grep).
+        // glass-ui 4.0.0 restructured utilities.css into a thin @import root
+        // that delegates to utilities/*.css partials (base.css, animate.css,
+        // components.css, btn.css, a11y-overrides.css). The gate must track
+        // the consumed reality: read the root PLUS every partial so the rule
+        // is found wherever the current pin stores it. The assertion is
+        // unchanged — gold-shimmer is published by glass-ui, not re-authored
+        // in the demo.
         const GLASS_UI_UTILITIES = path.join(
             REPO,
             "node_modules/@mkbabb/glass-ui/dist/styles/utilities.css",
         );
-        const glassUtilSrc = fs.existsSync(GLASS_UI_UTILITIES)
-            ? read(GLASS_UI_UTILITIES)
-            : "";
+        const GLASS_UI_UTILITIES_DIR = path.join(
+            REPO,
+            "node_modules/@mkbabb/glass-ui/dist/styles/utilities",
+        );
+        const glassUtilSrc = [
+            fs.existsSync(GLASS_UI_UTILITIES) ? read(GLASS_UI_UTILITIES) : "",
+            ...(fs.existsSync(GLASS_UI_UTILITIES_DIR)
+                ? fs
+                      .readdirSync(GLASS_UI_UTILITIES_DIR)
+                      .filter((f) => f.endsWith(".css"))
+                      .map((f) => read(path.join(GLASS_UI_UTILITIES_DIR, f)))
+                : []),
+        ].join("\n");
         if (
             goldShimmerReferenced &&
             !hasDef(/\.gold-shimmer\s*\{/) &&

@@ -124,8 +124,6 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
-import { useMediaQuery } from "@vueuse/core";
 import type { AnimationGroup } from "@src/animation/group";
 import type { AnimationLayerConfig } from "@src/animation/constants";
 import type { Animation } from "@src/animation/engine";
@@ -135,6 +133,7 @@ import AnimationControls from "../controls/AnimationControls.vue";
 import RibbonBar from "./RibbonBar.vue";
 import SheetGrabHandle from "./SheetGrabHandle.vue";
 import { useSheetState } from "../composables/useSheetState";
+import { usePaneRegister } from "../composables/usePaneRegister";
 
 const props = defineProps<{
     animationGroup: AnimationGroup<any>;
@@ -170,12 +169,11 @@ const props = defineProps<{
     extraTabs?: SegmentedTabOption[];
 }>();
 
-const stageMode = computed(() => props.stageMode ?? "subject");
-
-// J.W7a S1 (D5) — the glass-wash adoption is DESKTOP-only (the mobile sheet
-// keeps its own popover-card paint). The same 1024px line every layout
-// composable in this subtree draws (useControlsLayout / ResponsiveSelect).
-const isDesktop = useMediaQuery("(min-width: 1024px)");
+// The resolved stage mode + desktop break (the pane register concern) live in
+// usePaneRegister (the K.WZ proof:demo-no-oversize seam; zero behavior change).
+const { stageMode, isDesktop } = usePaneRegister({
+    stageMode: () => props.stageMode,
+});
 
 // The bottom-sheet open-intent + SpringProgress motion + settle-forwarding live
 // in the colocated useSheetState composable (the K.WZ proof:demo-no-oversize

@@ -129,24 +129,30 @@ const LIBRARY_CEILING_OVERRIDE = new Map([
     [
         "src/animation/engine.ts",
         {
-            cap: 1700,
+            cap: 1400,
             why:
                 "the Animation + CSSKeyframesAnimation core state-machine at its " +
                 "cohesive gestalt (F.md NEW-3 / a-engine-post-e F-ENG-5, re-verified " +
                 "post-growth at a-backend-godmodules G-GM-1) — the four-group state " +
-                "machine (compile-delegation facade · ~13 live-options-reference " +
+                "machine (compile-delegation facade · the live-options-reference " +
                 "setters · lifecycle/playback machine · fill/rest contract) shares " +
                 "ONE `this`-bound re-derive seam the FrameCompiler depends on; a " +
                 "split-for-line-count severs it (the legacy-shape the Mandate " +
-                "forbids). K.W7 (composition-honoring + the diagnostics channel) " +
-                "grew it +255L onto that same seam. 1400→1700 records the K.W7 " +
-                "growth WITHOUT licensing further sprawl (the cap sits just above " +
-                "the current 1651L; an unjustified further growth still reds). " +
-                "BORN-RED HANDOFF (P-invariant-28): the FULL engine-seam " +
-                "transposition the D.W4 audit named ('the 1100-line god-object at " +
-                "the right seam' — the lifecycle/playback machine lifted off the " +
-                "frame-compile facade) is a DEFERRED future-tranche split, NOT a " +
-                "silent punt; it is too deep+risky to rush at the K close (it " +
+                "forbids). K.WZ REVERSED the K.W7 +255L inflation: the " +
+                "composition-honoring LEAF logic (applyComposition / " +
+                "captureUnderlyingBase / endValueFor / emitCompositionFallback / " +
+                "computeHasComposition) was extracted to the colocated INTERNAL " +
+                "`engine-composition.ts`, and the fail-explicit option-NORMALIZER " +
+                "surface to `engine-options.ts` (engine.ts keeps the thin call " +
+                "seams + the `this`-bound side-effects). The cap returns 1700→1400 " +
+                "(the pre-K.W7 value) — engine.ts is back to 1396L, under the C-6 " +
+                "1400 ceiling the two engine gates (proof:engine-no-throw-on-play " +
+                "[hygiene g] + proof:engine) also enforce; an unjustified further " +
+                "growth still reds. BORN-RED HANDOFF (P-invariant-28): the FULL " +
+                "engine-seam transposition the D.W4 audit named ('the 1100-line " +
+                "god-object at the right seam' — the lifecycle/playback machine " +
+                "lifted off the frame-compile facade) is a DEFERRED future-tranche " +
+                "split, NOT a silent punt; it is too deep+risky to rush (it " +
                 "re-threads the FrameCompiler's `this`-bound re-derive contract). " +
                 "Named here so the deferral is citable, not invisible.",
         },
@@ -167,7 +173,7 @@ const LIBRARY_CEILING_OVERRIDE = new Map([
     [
         "src/animation/group.ts",
         {
-            cap: 1000,
+            cap: 820,
             why:
                 "the AnimationGroup compositor 4-concern gestalt (a-backend-" +
                 "godmodules G-GM-3) — the zero-alloc `_grouped` buffer machinery, " +
@@ -175,19 +181,28 @@ const LIBRARY_CEILING_OVERRIDE = new Map([
                 "and the scheduler-yield batching share one per-frame composite " +
                 "seam; the buffer discipline (null-fill clear, whitelist key-skip, " +
                 "post-blend compaction) is GL-7/GL-8 ALREADY-SOTA. Do NOT carve. " +
-                "I.W0 B5 raised 800→820 (the NOOP_TRANSFORM total-fallback). K.W11 " +
-                "(spring-driven blend weight) grew it +170L: the weighted leaf now " +
-                "reads `layer.weightSpring?.value ?? layer.weight`, the per-layer " +
-                "spring lives on the SAME composite seam (a blend weight is a " +
-                "composite input, not a separable concern — proof:spring-blend-" +
-                "weight is born-RED on group.ts:375). 820→1000 records the K.W11 " +
-                "growth WITHOUT licensing sprawl (the cap sits just above the " +
-                "current 977L; further unjustified growth still reds). BORN-RED " +
-                "HANDOFF (P-invariant-28): the deep compositor-seam split rides " +
-                "WITH the engine.ts transposition the D.W4 audit named — the " +
-                "buffer/blend/lifecycle/batch concerns separate only once the " +
-                "engine's composite contract is re-threaded; deferred to the same " +
-                "future tranche, named here so the deferral is citable.",
+                "I.W0 B5 raised 800→820 (the NOOP_TRANSFORM total-fallback) — the " +
+                "stable base ceiling restored here. The K.W11 820→1000 raise (the " +
+                "spring-driven blend weight) is RETIRED: the cohesive K.W11 block " +
+                "(the `LayerTransitionSpring` type + spring CONSTRUCTION + the " +
+                "shared name↔reference lookup) plus the adjacent grouped-key fold, " +
+                "the scheduler-yield batched advance, the multi-target render, the " +
+                "PRM child-snap, and the child-paused broadcast are EXTERNALIZED to " +
+                "the INTERNAL `src/animation/group-layer-springs.ts` (pure functions " +
+                "group.ts imports); the gate-anchored composite STATEMENTS the " +
+                "`weighted` leaf + spring seam need (the `?? layer.weight` read, " +
+                "`layer.weightSpring = spring`, `existing.target`, the per-frame " +
+                "`spring.tickDt(dt)`, the settle commit/clear) stay inline — " +
+                "proof:spring-blend-weight (+ proof:blend's 2-arm element-loop) lock " +
+                "them ON this seam, so the spring METHODS cannot leave group.ts; the " +
+                "EXTRACTION carries the surrounding helpers. The file is back under " +
+                "820 (zero behaviour change — proof:{spring-blend-weight,blend,zero-" +
+                "alloc,engine} green). BORN-RED HANDOFF (P-invariant-28): the deep " +
+                "compositor-seam split (buffer/blend/lifecycle/batch fully separated) " +
+                "still rides WITH the engine.ts transposition the D.W4 audit named — " +
+                "it separates only once the engine's composite contract is re-" +
+                "threaded; deferred to the same future tranche, named here so the " +
+                "deferral is citable.",
         },
     ],
     [
