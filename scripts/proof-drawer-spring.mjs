@@ -76,6 +76,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { navToScene, withPage } from "./lib/demo-driver.mjs";
+import { declarePosture } from "./lib/ci-env.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
@@ -86,6 +87,20 @@ const fail = (label) => {
     failures.push(label);
     console.error(`  ✗ ${label}`);
 };
+const note = (label) => console.log(`  · ${label}`);
+
+// The (b) SETTLE clause is an absolute WALL-CLOCK measurement (settleMs from first
+// motion to terminal-EPS) — throttle-sensitive on a loaded GitHub-Actions Linux
+// runner (P6 device-dependent). It rides the ONE observe-only mechanism: RECORDED
+// in CI, HARD on the dev box / under KF_REQUIRE_*. The device-INDEPENDENT clauses —
+// the ζ<1 overshoot-shape (a monotone CSS ease can NEVER overshoot), the
+// single-frame PRM snap, and the static no-CSS-ease-on-height fact — carry the hard
+// "the sheet IS the engine's SpringProgress, not a CSS ramp" assertion regardless.
+const { miss: settleMiss } = declarePosture("observe-only", {
+    reason: "wall-clock spring-settle ms is throttle-sensitive on a loaded CI runner; the overshoot-shape + PRM-snap + static-no-CSS-ease clauses carry the hard spring-vs-ease verdict",
+    fail,
+    note,
+});
 
 console.log(
     "proof:drawer-spring — H.W7.S2 (the mobile sheet is the engine's own SpringProgress, not a CSS ease)",
@@ -347,7 +362,9 @@ async function browserHalf() {
                                     `instance, NOT the 550ms CSS ramp nor the response-0.5 --spring-snappy ≈401ms)`,
                             );
                         } else {
-                            fail(
+                            // observe-only in CI (throttle-sensitive wall-clock);
+                            // hard on the dev box / under KF_REQUIRE_*.
+                            settleMiss(
                                 `(b) settle — the sheet took ${a.settleMs === null ? "≥the sample window" : a.settleMs.toFixed(0) + "ms"} ` +
                                     `to settle (budget ${SETTLE_BUDGET_MS}ms). A 550ms CSS ease / the response-0.5 ` +
                                     `--spring-snappy busts the budget — the sheet must construct the response-0.3 spring instance.`,

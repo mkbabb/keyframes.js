@@ -50,7 +50,16 @@ const FAIL = "\x1b[31m✗\x1b[0m";
 
 // Thresholds (the GREEN band — generous against frame jitter, but far above the
 // 6 Hz born-RED witness of ~13 distinct / dwell ~21):
-const MIN_DISTINCT = 120; // 60 Hz over 2 s ≈ 120 frames → ~one position per frame
+//
+// DEVICE-INDEPENDENCE (P6): the continuity signal is the distinct-position
+// FRACTION (distinct / sampled-frames) and the MAX-DWELL — both frame-RATE
+// invariant. An ABSOLUTE distinct count (the old MIN_DISTINCT=120) is NOT: it
+// assumes a 60 Hz rAF over the 2 s window, but a loaded CI runner samples ~49 Hz
+// (≈98 frames) and would under-count to ~88 distinct while STILL being perfectly
+// continuous (dwell 1). The fraction cancels the frame rate: a 60 Hz continuous
+// thumb runs ≈ 0.9 distinct/frame; the 6 Hz born-RED step runs ≈ 0.13.
+const MIN_DISTINCT_FRACTION = 0.6; // continuous ≈ 0.9; 6 Hz born-RED ≈ 0.13 (0.6 cleanly between)
+const MIN_FRAMES = 40; // the play window actually sampled a LIVE thumb (not a frozen capture)
 const MAX_DWELL = 4; // a continuous thumb dwells ≤ a few frames; 6 Hz dwells ~21
 
 async function ensurePlaying(page) {
@@ -175,16 +184,22 @@ async function main() {
             if (cont.error) {
                 results.push({ ok: false, msg: `clause (a): ${cont.error}` });
             } else {
+                const distinctFraction =
+                    cont.frames > 0 ? cont.distinct / cont.frames : 0;
                 const ok =
-                    cont.distinct >= MIN_DISTINCT && cont.maxDwell <= MAX_DWELL;
+                    cont.frames >= MIN_FRAMES &&
+                    distinctFraction >= MIN_DISTINCT_FRACTION &&
+                    cont.maxDwell <= MAX_DWELL;
                 results.push({
                     ok,
                     msg:
                         `clause (a) — the spring scrubber thumb is CONTINUOUS ` +
                         `(60 Hz painter, NOT the 6 Hz step): ${cont.distinct} distinct ` +
-                        `positions / max-dwell ${cont.maxDwell} frames over ${cont.frames} ` +
-                        `(need ≥${MIN_DISTINCT} distinct, ≤${MAX_DWELL} dwell; the born-RED ` +
-                        `witness was ~13 distinct / dwell ~21)`,
+                        `positions / ${(distinctFraction * 100).toFixed(0)}% distinct-fraction / ` +
+                        `max-dwell ${cont.maxDwell} frames over ${cont.frames} sampled ` +
+                        `(need ≥${(MIN_DISTINCT_FRACTION * 100).toFixed(0)}% distinct-fraction over ` +
+                        `≥${MIN_FRAMES} frames, ≤${MAX_DWELL} dwell — frame-rate-independent; the ` +
+                        `born-RED 6 Hz witness was ~13% / dwell ~21)`,
                 });
             }
 

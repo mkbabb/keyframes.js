@@ -46,6 +46,7 @@ byte-for-byte. Gates not listed are **hard** (the default; no declaration needed
 | `proof:scene-transition-perf` | observe-only | re-measure on-device |
 | `proof:visual-lock` | observe-only | cross-OS render; re-baseline in-container |
 | `proof:lighthouse-mobile` | observe-only | mobile Lighthouse CPU/network throttle assumes a calibrated or real-device host — absolute scores are environment artifacts on shared runners; hard on-device via KF_REQUIRE_LH=1 (J.W4 S6) |
+| `proof:drawer-spring` | observe-only | the (b) SETTLE clause is an absolute wall-clock spring-settle ms (~176ms physics vs a 350ms budget) — throttle-sensitive on a loaded GitHub-Actions Linux runner (K.WZ CI-greenify); RECORDED in CI, hard on-device/local. The device-INDEPENDENT clauses (ζ<1 overshoot-shape, single-frame PRM snap, static no-CSS-ease-on-height) carry the hard spring-vs-ease verdict. |
 
 **Named non-instances (recorded so the postures are decisions, not drift):**
 
