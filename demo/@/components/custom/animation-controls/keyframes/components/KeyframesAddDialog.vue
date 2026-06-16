@@ -4,9 +4,13 @@
         @update:open="(value) => emit('update:open', value)"
     >
         <DialogTrigger as-child>
-            <FilePlus2
-                class="cursor-pointer scale-on-hover rounded-lg stroke-2"
-            ></FilePlus2>
+            <button
+                type="button"
+                aria-label="Add keyframes"
+                class="inline-flex items-center justify-center cursor-pointer scale-on-hover rounded-lg bg-transparent border-none p-0"
+            >
+                <FilePlus2 class="stroke-2"></FilePlus2>
+            </button>
         </DialogTrigger>
 
         <DialogContent

@@ -40,6 +40,7 @@
                     :options="VIEW_OPTIONS"
                     variant="pill"
                     class="spring-view-tabs min-w-0 flex-1"
+                    :aria-orientation="undefined"
                 />
             </div>
 
