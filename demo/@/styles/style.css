@@ -468,7 +468,7 @@
    adaptive darken untouched. The class/attr selectors carry enough specificity to
    win over glass-ui's 0-specificity `:where()` self-engage; this is a CONSUME-seam
    token re-point (inv-16 — never patches node_modules). */
-:where(.glass-quiet, .glass-wash, .glass-resting, .glass-card),
+:where(.glass-quiet, .glass-wash, .glass-resting),
 [data-tier="quiet"],
 [data-tier="wash"],
 [data-tier="resting"] {

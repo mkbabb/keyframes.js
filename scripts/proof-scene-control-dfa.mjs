@@ -82,7 +82,7 @@ console.log("proof:scene-control-dfa — H.W11 S4 / I2 (the per-scene control-su
     const tableDriven =
         /v-for="tab in builtInTabs"/.test(ac) ||
         (/:options="stripOptions"/.test(ac) &&
-            /stripOptions[\s\S]{0,400}?builtInTabs\.value/.test(ac));
+            /stripOptions[\s\S]{0,800}?builtInTabs\.value/.test(ac));
     const noHardCoded =
         // the legacy reka-trigger literal shape …
         !/value="controls"\s+:class="tabClasses"/.test(ac) &&

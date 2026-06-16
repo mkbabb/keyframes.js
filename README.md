@@ -55,6 +55,10 @@ The [demo apps](demo/) exercise this pattern end-to-end — [try them live](http
   - [Units](#units)
 - [AnimationGroup](#animationgroup)
 - [Presets](#presets)
+- [The round-trip — ingest, drive, compile](#the-round-trip--ingest-drive-compile)
+  - [Ingest — read the live web's CSS](#ingest--read-the-live-webs-css)
+  - [Scroll-as-CSS — the animation-timeline grammar](#scroll-as-css--the-animation-timeline-grammar)
+  - [Compile — the parser run backward](#compile--the-parser-run-backward)
 - [Web Animations API](#web-animations-api)
 - [Baseline, tree-shaking & reduced motion](#baseline-tree-shaking--reduced-motion)
 - [Beyond CSS](#beyond-css)
@@ -70,6 +74,7 @@ The [demo apps](demo/) exercise this pattern end-to-end — [try them live](http
   - [drag / Draggable](#drag--draggable)
   - [decay / decayRest](#decay--decayrest)
   - [Sequence](#sequence)
+- [Ecosystem & agents](#ecosystem--agents)
 - [Build & Development](#build--development)
 
 ## Installation
@@ -390,6 +395,114 @@ animate(element, presets.fadeIn());
 ```
 
 **Fade**: `fadeIn`, `fadeOut` · **Attention**: `pulse`, `heartbeat`, `glow`, `shake`, `bounce` · **Entrance/Exit**: `flip`, `rotateIn`, `slideIn`, `slideInLeft/Right`, `slideOutLeft/Right`, `blurIn/Out/InOut`, `jumpUp/Down`, `warpLeft/Right` · **Effects**: `hover`, `typewriter`, `typingCursor`, `rainbowText`, `progressBar`, `skeletonLoading`, `spinner`, `parallaxScroll`, `gradientBackground`, `rotateScale`, `accordionExpand`, `notificationBounce`, `textFocusBlur`
+
+## The round-trip — ingest, drive, compile
+
+keyframes.js's authoring object **is** parsed CSS `@keyframes`. That one fact opens a loop no other engine can close:
+
+1. **Ingest** — read the live web's CSS (`@keyframes` in a stylesheet, or a *running* CSS animation) straight into a kf `CSSKeyframesAnimation`.
+2. **Drive** — run it through the engine: physics-shaped springs, perceptual `oklab` color, scroll-driven progress, weighted blending.
+3. **Compile** — emit the result **back** to zero-runtime CSS — `compileToCSS` is the parser run *backward* over the same data model (`format.ts` is `keyframes.ts` in reverse).
+
+This is the moat. GSAP, Motion, and anime author in a bespoke tween model — for them "export to CSS" is a lossy re-derivation nobody ships, and "import the page's CSS" has no meaning. Because kf's internal model is *already* CSS, the forward and backward halves are inverses over one structure: a `var()`, a `matrix3d()`, a `cqw` round-trips **verbatim**. The whole round-trip rides the heavy engine, reached through one `await loadAnimationEngine()`.
+
+### Ingest — read the live web's CSS
+
+Walk the document's stylesheets into kf objects, or take over a CSS animation *mid-flight*. Every entry point returns a **diagnostics** channel — a cross-origin sheet whose `cssRules` throws becomes a `CORS_SKIP` row, never a silent drop.
+
+```ts
+const { fromStyleSheets, fromLiveAnimations, adoptRunning } =
+    await loadAnimationEngine();
+
+// Every @keyframes rule in document.styleSheets, reconstructed and keyed by name.
+// The sibling `.class { animation: spin 2s … }` rule's options are recovered too,
+// so each reconstructed animation carries its AUTHORED timing.
+const { animations, diagnostics } = fromStyleSheets();
+const spin = animations.get("spin")?.animation; // a CSSKeyframesAnimation
+for (const d of diagnostics) console.warn(d.code, d.message); // e.g. CORS_SKIP
+
+// Narrow to one name, or pass an explicit source (a sheet / array of sheets):
+fromStyleSheets({ animationName: "spin" });
+fromStyleSheets([...document.styleSheets]);
+
+// fromLiveAnimations — the same walk, scoped to a RUNNING element's animations.
+fromLiveAnimations(element);
+
+// adoptRunning — the mid-flight TEMPORAL takeover: read the element's running
+// CSS animation via getAnimations(), seed kf at the SAME currentTime (continuity,
+// not seed-at-zero), and hand back the kf object to keep driving.
+const { animation } = await adoptRunning(element, { animationName: "spin" });
+```
+
+`fromStyleSheets(source?, options?)` and `fromLiveAnimations(element, options?)` return `{ animations: Map<name, { name, animation, diagnostics }>, diagnostics }`. `resolveLiveKeyframes` is the lower-level walk both share. `adoptRunning(el, options)` returns `{ animation, … }` — the reconstructed kf object seeded at the live playhead.
+
+### Scroll-as-CSS — the animation-timeline grammar
+
+The CSS `animation-timeline` / `animation-range` grammar, round-tripped through value.js's typed extractor, and driven by a JS `ScrollScene` where the platform's native scroll-driven timelines aren't available. value.js owns the scroll **values** (the grammar, parsed verbatim — `scroll(root block)`, `entry 0%`, `cover 100%`); the kf `ScrollScene` owns **time** (resolving the live scroller against the DOM).
+
+```ts
+const { parseScrollCSS, roundTripScrollCSS, createScrollScene, pinCSS } =
+    await loadAnimationEngine();
+
+// PARSE the author grammar into typed options — verbatim, no DOM resolution:
+const opts = parseScrollCSS(`
+    .hero { animation-timeline: scroll(root block); animation-range: entry 0% cover 100%; }
+`);
+// opts.timeline => { kind: "scroll", scroller: "root", axis: "block" }
+// opts.range    => { start: { phase: "entry", offset: "0%" }, end: { phase: "cover", offset: "100%" } }
+
+// roundTripScrollCSS proves the grammar is an inverse pair (parse → serialize):
+roundTripScrollCSS(`.hero { animation-timeline: scroll(root block); }`);
+
+// DRIVE it — the JS fallback scene resolves the scroller against the DOM and
+// maps the resolved range onto [0, 1]; feed `.progress` to any interpolator.
+const scene = createScrollScene({ range: opts.range, scrub: 0.2 });
+element.style.opacity = String(scene.progress);
+
+// pinCSS — synthesize the position:sticky pin a scroll-pinned scene needs:
+pinCSS();            // => "position: sticky; top: 0px;"
+pinCSS({ top: 24 }); // => "position: sticky; top: 24px;"
+```
+
+`dispatchScrollBackend` picks the conservative-correct backend (native `ScrollTimeline` where eligible, the JS scene otherwise); `serializeScrollOptions` is the inverse of `parseScrollCSS`. Where the platform ships native scroll-driven timelines, [`createNativeTimeline`](#timeline) is the additive fast lane and this scene is the general fallback.
+
+### Compile — the parser run backward
+
+`compileToCSS` walks an orchestration graph — an [`AnimationGroup`](#animationgroup), a [`Sequence`](#sequence), or a bare child list (e.g. a [`stagger`](#stagger)-delayed cohort) — and emits a **pure, zero-runtime CSS** artifact: one `@keyframes` block + an `animation` shorthand per child, `replace`/`add` layering as `animation-composition`, springs as `linear()`, materialized stagger delays, and computed units (`vh`/`cqw`/`calc()`/`var()`) verbatim. A human pastes the result and ships with **zero kf bytes on the page**.
+
+```ts
+const { CSSKeyframesAnimation, compileToCSS } = await loadAnimationEngine();
+
+const fade = new CSSKeyframesAnimation({ duration: 600 })
+    .fromString(`from { background-color: #c462d8; } to { background-color: #e85252; }`)
+    .setTargets(element);
+
+const { css, eligible, refusals } = await compileToCSS([fade]);
+// eligible === true, refusals === []
+// css is a paste-ready @keyframes block. Because the platform interpolates color
+// in sRGB but kf interpolates in perceptual oklab, the compiler DENSIFIES the
+// color track into intermediate oklab() stops, so the browser's piecewise-linear
+// fill TRACKS kf's perceptual lerp — gated on a ΔE proof (ship only if it matches):
+//
+//   @keyframes a0 {
+//     0%      { background-color: oklab(0.6573 0.1489 -0.1223); }
+//     6.6667% { background-color: oklab(0.6563 0.1503 -0.1091); }
+//     …
+//   }
+```
+
+**The honest-refusal surface (the trust seam).** What cannot round-trip faithfully is **refused** with a named reason — never silently approximated. `compileToCSS` returns `{ css, eligible, refusals }`; when `eligible` is `false`, `refusals` names each child and why, and the JS playback is the only faithful path for those:
+
+| Refusal reason | What it proves | The faithful path |
+|---|---|---|
+| `weighted-blend` | no `animation-composition` twin exists | JS `AnimationGroup` |
+| `custom-renderer` | a closure cannot be CSS | JS playback |
+| `perceptual-oklab` | the oklab densify exceeds the ΔE band | JS playback (true perceptual lerp) |
+| `computed-unit-drift` | the narrow case where verbatim emit would drift | JS playback |
+
+A refusal is **marketing for the moat**: it names exactly the kf axis (weighted blending, perceptual color) that exceeds pure CSS. `compileToCSS(input, options?)` options: `staggerDelays` (the materialized `stagger.delays(total)`, emitted as literal per-child `animation-delay`), `densifyStops` (the oklab stop count), `deltaEEpsilon` (the ship-vs-refuse threshold), `printWidth`.
+
+> The snippets in this section are reached through `loadAnimationEngine()` and run against the built `dist/` (the `ts run` README examples in §Beyond CSS / §Animation are the CI-asserted set — `npm run proof:readme-runs`); the round-trip surface above is additionally exercised by `proof:ingest-replay`, `proof:scroll-roundtrip`, and `proof:compile-replay`.
 
 ## Web Animations API
 
@@ -745,6 +858,16 @@ Positions: a number (absolute ms), `"+=n"` / `"-=n"` (relative to the insertion 
 | `GroupEffect` (parallel children) | [`AnimationGroup`](#animationgroup) |
 | `SequenceEffect` / proposed `EffectTiming` `align: sequence` | `Sequence` auto-append |
 | `EffectTiming` `align: start` | `Sequence` `at: 0` |
+
+## Ecosystem & agents
+
+- **[`@mkbabb/keyframes-vue`](packages/keyframes-vue/)** — a thin Vue 3 adapter over this library. Two on-brand primitives: the declarative `<Keyframes :css>` component (the author's CSS `@keyframes` → a scalar-progress slot — the component no other engine can write, because no other engine parses author CSS as its source format) and the `useKfAnimation` composable kernel. `@mkbabb/keyframes.js` and `vue` are **peers** — the core library never carries Vue.
+
+  ```sh
+  npm i @mkbabb/keyframes-vue @mkbabb/keyframes.js vue
+  ```
+
+- **[`llms.txt`](./llms.txt)** — the agent surface: a machine-readable index of every capability, **generated** from the CI-verified published surface (`docs/published-surface.md`) so it cannot drift from the shipped API. Point an LLM/agent at it for a grounded map of the primitives, the static/dynamic boundary, and the round-trip. `llms-full.txt` carries the expanded form.
 
 ## Build & Development
 

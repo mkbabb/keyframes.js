@@ -85,47 +85,97 @@ console.log(
 );
 
 const SCROLL = "src/animation/scroll-scene.ts";
+// The K close decomposition split the scroll module at the natural concern seam:
+// scroll-scene.ts owns the TIME driver (and re-exports the grammar surface), and
+// the colocated scroll-grammar.ts owns the GRAMMAR — the value.js CONSUME edge
+// (parseAnimationTimeline / parseAnimationRange / serializeTimelineOptions). The
+// (b-parse) source-shape clause therefore checks the scroll module SET (the union
+// of both files); the value.js-grammar consume must live in EXACTLY ONE of them,
+// never as a kf-local re-derived parser in EITHER. (Relocation, not weakening.)
+const GRAMMAR = "src/animation/scroll-grammar.ts";
+const SCROLL_SET = [SCROLL, GRAMMAR];
 const INDEX = "src/animation/index.ts";
 const TEST = "test/scroll-scene.test.ts";
 
-// ── (b-parse) — scroll-scene CONSUMES value.js's typed scroll-grammar ─────────
-requireAll("b-parse", SCROLL, [
-    {
-        name: "imports the typed extractor from @mkbabb/value.js (NOT a kf-local parser)",
-        re: /extractTimelineOptions[\s\S]*?from\s*["']@mkbabb\/value\.js["']/,
-    },
-    {
-        name: "consumes parseAnimationTimeline (the VALUE grammar, value.js's)",
-        re: /parseAnimationTimeline/,
-    },
-    {
-        name: "consumes parseAnimationRange (the range VALUE grammar)",
-        re: /parseAnimationRange/,
-    },
-    {
-        name: "consumes serializeTimelineOptions (the inverse serializer — round-trip)",
-        re: /serializeTimelineOptions/,
-    },
-]);
-// A kf-local re-derivation of the scroll grammar is the named no-workaround
-// breach. There must be NO hand-rolled scroll() / view() token tokenizer here —
-// the parse is value.js's. (We grep for the FORBIDDEN shape: a local regex that
-// tokenizes `scroll(`/`view(` instead of calling value.js.)
+// ── (b-parse) — the scroll module SET CONSUMES value.js's typed scroll-grammar ─
+// Check the UNION of scroll-scene.ts + scroll-grammar.ts (wherever the K-split
+// landed the consume). Each anchor must be satisfied by SOME file in the set; the
+// value.js-grammar import must be a RUNTIME import (NOT a type-only `import type`
+// — a kf-local re-derived parser would carry no value.js runtime edge at all, so
+// the runtime-import requirement is what makes this clause BITE).
 {
-    const src = read(SCROLL);
-    const localParser =
-        /(?:RegExp|\.match|\.exec|\.test)\([^)]*scroll\\?\(|new RegExp\([^)]*view/.test(
+    const clause = "b-parse";
+    const sources = SCROLL_SET.map((f) => ({ file: f, src: read(f) }));
+    const union = sources.map((s) => s.src).join("\n");
+    const setLabel = SCROLL_SET.join(" ∪ ");
+
+    // The RUNTIME value.js-grammar import: a non-`type` import specifier from
+    // @mkbabb/value.js that brings in extractTimelineOptions. `import type {…}`
+    // (erased) does NOT satisfy this — the consume must be a real runtime edge.
+    const runtimeGrammarImport = sources.some(({ src }) =>
+        /import\s*\{[^}]*\bextractTimelineOptions\b[\s\S]*?\}\s*from\s*["']@mkbabb\/value\.js["']/.test(
             src,
-        );
-    if (localParser) {
+        ),
+    );
+
+    const anchors = [
+        {
+            name: "the typed extractor is imported (RUNTIME, not `import type`) from @mkbabb/value.js (NOT a kf-local parser)",
+            present: runtimeGrammarImport,
+        },
+        {
+            name: "consumes parseAnimationTimeline (the VALUE grammar, value.js's)",
+            present: /parseAnimationTimeline/.test(union),
+        },
+        {
+            name: "consumes parseAnimationRange (the range VALUE grammar)",
+            present: /parseAnimationRange/.test(union),
+        },
+        {
+            name: "consumes serializeTimelineOptions (the inverse serializer — round-trip)",
+            present: /serializeTimelineOptions/.test(union),
+        },
+    ];
+    const missing = anchors.filter((a) => !a.present);
+    if (missing.length > 0) {
         fail(
-            "b-parse",
-            `${SCROLL}: a kf-local scroll()/view() tokenizer detected — the scroll VALUE grammar is value.js's (the acyclic-spine no-workaround). Consume parseAnimationTimeline, never re-derive.`,
+            clause,
+            `the scroll module set (${setLabel}) is missing: ` +
+                missing.map((m) => m.name).join("; ") +
+                ` — the value.js scroll-grammar consume is not locked in either split half.`,
         );
     } else {
         ok(
+            clause,
+            `the scroll module set (${setLabel}) consumes value.js's typed scroll-grammar (runtime import of extractTimelineOptions + parse/serialize), never a kf-local parser`,
+        );
+    }
+}
+// A kf-local re-derivation of the scroll grammar is the named no-workaround
+// breach. There must be NO hand-rolled scroll() / view() token tokenizer in
+// EITHER split half — the parse is value.js's. (We grep each file in the set for
+// the FORBIDDEN shape: a local regex that tokenizes `scroll(`/`view(` instead of
+// calling value.js.)
+{
+    let anyLocalParser = false;
+    for (const file of SCROLL_SET) {
+        const src = read(file);
+        const localParser =
+            /(?:RegExp|\.match|\.exec|\.test)\([^)]*scroll\\?\(|new RegExp\([^)]*view/.test(
+                src,
+            );
+        if (localParser) {
+            anyLocalParser = true;
+            fail(
+                "b-parse",
+                `${file}: a kf-local scroll()/view() tokenizer detected — the scroll VALUE grammar is value.js's (the acyclic-spine no-workaround). Consume parseAnimationTimeline, never re-derive.`,
+            );
+        }
+    }
+    if (!anyLocalParser) {
+        ok(
             "b-parse",
-            "no kf-local scroll-grammar parser — the VALUE grammar is consumed from value.js",
+            "no kf-local scroll-grammar parser in either split half — the VALUE grammar is consumed from value.js",
         );
     }
 }

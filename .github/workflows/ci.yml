@@ -105,6 +105,21 @@ jobs:
             # (e) root CLAUDE.md structural-claim tripwire, (f) peer-dep honesty.
             - name: proof:published-surface (J.W5 — tarball == exports == docs · the publish-boundary oracle)
               run: npm run proof:published-surface
+            # K.W12 ED-1 — the agent index (/llms.txt + /llms-full.txt) can never
+            # drift from the J.W5 published surface (the gate-ORACLE at the AGENT
+            # boundary: linked exports == the manifest roster, cited gates real).
+            - name: proof:agent-surface (K.W12 ED-1 — the agent index == the published surface)
+              run: npm run proof:agent-surface
+            # K.W12 ED-3 — the dogfood inversion boundary-ORACLE at the PACKAGE
+            # boundary (STAGED: the self-alias seam + the @src deep-import census
+            # + the honest disposition; the full flip lands at K.WZ).
+            - name: proof:demo-on-published-surface (K.W12 ED-3 — the demo consumes the published barrel · staged)
+              run: npm run proof:demo-on-published-surface
+            # K.W12 ED-4 — the public color-fidelity conformance: midpoint ΔE vs
+            # the CSS Color 4 reference (via the PUBLISHED deltaEOK), under the
+            # JND. The ONE benchmark only kf can publish honestly (un-spinnable).
+            - name: proof:color-fidelity (K.W12 ED-4 — midpoint ΔE vs CSS Color 4 · the un-spinnable benchmark)
+              run: npm run proof:color-fidelity
             # J.W5 clause (c) — every README §Beyond CSS / §Animation runnable snippet
             # EXECUTES against the built dist; `// =>` results verified; the
             # taught-roster floor forbids the under-tagging false-green.
@@ -216,13 +231,28 @@ jobs:
     demo-smoke:
         name: demo gate (inv γ paints + inv δ occlusion-free)
         runs-on: ubuntu-latest
-        # CICD-7 wall-clock bound, re-sized at J.W4 (measure-first): the pre-W4
-        # roster measured 19m13s end-to-end (run 27310054675) against the old
-        # 20m ceiling; J.W4 adds the mobile-input battery (~2m), the axes legs
-        # inside proof:live-session (~2m), and the observe-only mobile
-        # Lighthouse matrix (~5m). 35m bounds the new roster with headroom —
-        # a hang still dies well before the 6h GHA default.
-        timeout-minutes: 35
+        # CICD-7 wall-clock bound, RE-CALIBRATED at K.W5 (measure-first; F-2/DL-K13).
+        # History: the pre-J.W4 roster measured 19m13s end-to-end (run 27310054675)
+        # against the old 20m ceiling; J.W4 added ~9m (mobile-input battery + axes
+        # legs + observe-only mobile Lighthouse) → the J.W4 35m ceiling. But that
+        # ceiling was NEVER re-verified after the post-J.W4 gate additions: by
+        # ci-cd-k.md F-2 the J.W6/J.W7a/H.W12 cohort (subject-animates + single-
+        # writer + sheet-reopen + appearance-suffusion + the four motion-path/
+        # easter-egg gates) added ~14m → a ~42m PROJECTED total that already EXCEEDS
+        # the 35m artifact. K then adds five more browser gates to this job. Their
+        # LOCAL wall-clocks (K.W5 measure-first, KF_REQUIRE_BROWSER=1, dist warm):
+        #   proof:cold-entry 41s · proof:font-census 41s · proof:layout-cluster 24s ·
+        #   proof:spring-slider-continuous 19s · proof:taste-packet 42s ≈ 2.8m local.
+        # GHA shared runners run ~1.5–3× slower than dedicated hardware on browser
+        # work (ci-cd-k.md F-2), so the K band projects to ~6–9m of CI time over the
+        # already-over-budget ~42m → ~48–51m worst-case on a slow runner. The ceiling
+        # re-binds to 50m: it BOUNDS the measured projection with a thin margin while
+        # still dying far before the 6h GHA default (a real hang is killed). This is a
+        # MEASURED recalibration, NOT a blind bump — the durable cure is the W6/W3
+        # harness net-deletion (one shared chromium+server, withBrowser reuse) +
+        # F-7's static-gate migration out of demo-smoke, both MEASURED, not pre-
+        # optimized here (F-2 §Hand-off → W6-infra).
+        timeout-minutes: 50
         steps:
             - uses: actions/checkout@v5
             - uses: actions/setup-node@v5
@@ -336,6 +366,21 @@ jobs:
               run: npm run proof:appearance-suffusion
               env:
                   KF_REQUIRE_BROWSER: "1"
+            # K.W4 Lane A (S1+S2) — the SPRING pane verdicts, authored at K.W4 and
+            # wired into the roster + CI here (K.W5 gate-truth wave): (a) the spring
+            # transport scrubber thumb is born-CONTINUOUS (the 60 Hz position painter,
+            # NOT the 6 Hz PROGRESS_READOUT mirror that visibly stepped — ≥120 distinct
+            # positions / max-dwell ≤4 over a 2s play window, born-RED ~13 distinct /
+            # dwell ~21); (b) the spring keyframes editor is TWO-WAY (a typed per-stop
+            # edit PERSISTS across a preset interaction — the read-only viewer retired).
+            # Both clauses are device-INDEPENDENT CORRECTNESS oracles read on the engine's
+            # own write channel (per-frame thumb rect + DOM-text persistence); KF_REQUIRE_BROWSER
+            # turns a playwright-absent skip into a hard CI fail (the continuity + the
+            # two-way persistence cannot pass vacuously).
+            - name: "[CORRECTNESS] proof:spring-slider-continuous (K.W4 Lane A S1+S2 — the spring scrubber rides the 60 Hz painter · the keyframes editor is two-way)"
+              run: npm run proof:spring-slider-continuous
+              env:
+                  KF_REQUIRE_BROWSER: "1"
             # [HYGIENE] proof:visual-lock — RE-TIERED to HYGIENE (I.W7 S5). The
             # self-captured, subject-masked pixel baseline locks brokenness as golden
             # (rc-gate-blindspot §2.3); it is KEPT (cheap layout/type/color drift
@@ -345,6 +390,19 @@ jobs:
             # not painted pink). It may NEVER count toward a correctness/chronic tally.
             - name: "[HYGIENE] proof:visual-lock (RE-TIERED — self-baseline drift check; correctness authority STRIPPED, see proof:live-session)"
               run: npm run proof:visual-lock
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            # K.W5 S5 — the TASTE-boundary PROTOCOL corroborator (HYGIENE). Proves the
+            # TASTE-packet GENERATOR (scripts/lib/taste-packet.mjs, riding the
+            # proof:visual-lock region-screenshot seam + the withPage lib) produces a
+            # WELL-FORMED review packet: per-pane before/after, desktop+mobile, the named
+            # deltas labeled, the taste-anchor checklist UNCHECKED, the verdict slot UNSET.
+            # It NEVER carries the design verdict (the verdict is USER-DOMAIN, scheduled
+            # BEFORE the close — an agent PASS is corroboration only, the J.W7c failure
+            # mode this protocol prevents). KF_REQUIRE_BROWSER turns a playwright-absent
+            # skip into a hard CI fail (the generator's existence cannot pass vacuously).
+            - name: "[HYGIENE · protocol] proof:taste-packet (K.W5 S5 — the TASTE-packet generator produces a well-formed before/after review packet; the verdict stays USER-DOMAIN)"
+              run: npm run proof:taste-packet
               env:
                   KF_REQUIRE_BROWSER: "1"
             # H.W1 KEYSTONE — the live scene+playback FSM gate: the (scenes²×

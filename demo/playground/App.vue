@@ -3,18 +3,32 @@
         :animation-group="animationGroup"
         :super-key="superKey"
         :show-start-screen="false"
+        :extra-tabs="extraTabs"
     >
-        <template #tabs-trigger="{ selectedAnimation }">
-            <TabsTrigger value="assets" class="tab-trigger-base tab-trigger-pill">Assets</TabsTrigger>
-        </template>
-
+        <!-- glass-ui 4.0.0 (BA.W-TABS) — the playground's "Assets" tab now rides
+             the options-driven `<SegmentedTabs>` strip AS DATA via the standalone-
+             host `extra-tabs` seam (the same DATA shape a machine-driven host gets
+             from `extraControlTabs`), and its panel is a PLAIN gated `[role=tabpanel]`
+             div in the `tabs-content` slot — mirroring CubeScene's matrix-controls
+             body. The former reka `<TabsTrigger>`/`<TabsContent>` (re-sourced from
+             `reka-ui` after glass-ui removed the reka Tabs wrapper) are DELETED: a
+             reka `<TabsContent>` would throw "Symbol(TabsRootContext) not found" now
+             that AnimationControls renders a `<SegmentedTabs>` strip, not a reka
+             `<Tabs>` root. The panel is rendered ONLY while the active surface is
+             "assets" (gated on the SAME single-authority `selectedControl` value the
+             strip drives), exactly as the built-in panels are. -->
         <template #tabs-content>
-            <TabsContent value="assets">
+            <div
+                v-if="playgroundControls.selectedControl === 'assets'"
+                role="tabpanel"
+                data-state="active"
+                tabindex="0"
+            >
                 <AssetLayerPanel
                     ref="layerPanelRef"
                     :animation-names="animationNames"
                 />
-            </TabsContent>
+            </div>
         </template>
 
         <template #target="{ selectedAnimation, isPlaying }">
@@ -37,7 +51,7 @@
 
 <script setup lang="ts">
 import { ref, toRaw, useTemplateRef, watch } from "vue";
-import { TabsContent, TabsTrigger } from "reka-ui";
+import type { SegmentedTabOption } from "@mkbabb/glass-ui/tabs";
 import { EditorShell } from "@components/custom/editor-shell";
 import { AssetLayerPanel, AssetViewport, useAssetManager } from "@components/custom/asset-manager";
 import { getStoredAnimationGroupControlOptions } from "@components/custom/animation-controls/stores";
@@ -46,6 +60,13 @@ import { usePlaygroundAnimations } from "./usePlaygroundAnimations";
 import "@styles/style.css";
 
 const { animationGroup, animationNames, superKey } = usePlaygroundAnimations();
+
+// glass-ui 4.0.0 (BA.W-TABS) — the playground's scene-specific control tab,
+// supplied to the options-driven `<SegmentedTabs>` strip AS DATA through the
+// standalone-host `extra-tabs` seam (this host is NOT scene-machine-driven, so
+// there is no `extraControlTabs` machine projection to ride). Its panel is the
+// gated `tabs-content` div above. One tab, static — no reka `<TabsTrigger>`.
+const extraTabs: SegmentedTabOption[] = [{ value: "assets", label: "Assets" }];
 
 // The controls pane (which hosts the "Assets" tab content) only renders when
 // a non-empty `selectedAnimation` is set. The playground has no animation

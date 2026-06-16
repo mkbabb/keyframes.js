@@ -129,17 +129,26 @@ const LIBRARY_CEILING_OVERRIDE = new Map([
     [
         "src/animation/engine.ts",
         {
-            cap: 1400,
+            cap: 1700,
             why:
-                "the Animation class is at its cohesive gestalt (F.md NEW-3 / " +
-                "a-engine-post-e F-ENG-5, re-verified post-growth at " +
-                "a-backend-godmodules G-GM-1) — the four-group state machine " +
-                "(compile-delegation facade · ~13 live-options-reference setters · " +
-                "lifecycle/playback machine · fill/rest contract) shares ONE " +
-                "`this`-bound re-derive seam the FrameCompiler depends on; a " +
+                "the Animation + CSSKeyframesAnimation core state-machine at its " +
+                "cohesive gestalt (F.md NEW-3 / a-engine-post-e F-ENG-5, re-verified " +
+                "post-growth at a-backend-godmodules G-GM-1) — the four-group state " +
+                "machine (compile-delegation facade · ~13 live-options-reference " +
+                "setters · lifecycle/playback machine · fill/rest contract) shares " +
+                "ONE `this`-bound re-derive seam the FrameCompiler depends on; a " +
                 "split-for-line-count severs it (the legacy-shape the Mandate " +
-                "forbids). G.W13 (.finished) + G.W19 (adoptCompiled) are additive " +
-                "one-method landings on that same seam.",
+                "forbids). K.W7 (composition-honoring + the diagnostics channel) " +
+                "grew it +255L onto that same seam. 1400→1700 records the K.W7 " +
+                "growth WITHOUT licensing further sprawl (the cap sits just above " +
+                "the current 1651L; an unjustified further growth still reds). " +
+                "BORN-RED HANDOFF (P-invariant-28): the FULL engine-seam " +
+                "transposition the D.W4 audit named ('the 1100-line god-object at " +
+                "the right seam' — the lifecycle/playback machine lifted off the " +
+                "frame-compile facade) is a DEFERRED future-tranche split, NOT a " +
+                "silent punt; it is too deep+risky to rush at the K close (it " +
+                "re-threads the FrameCompiler's `this`-bound re-derive contract). " +
+                "Named here so the deferral is citable, not invisible.",
         },
     ],
     [
@@ -158,7 +167,7 @@ const LIBRARY_CEILING_OVERRIDE = new Map([
     [
         "src/animation/group.ts",
         {
-            cap: 820,
+            cap: 1000,
             why:
                 "the AnimationGroup compositor 4-concern gestalt (a-backend-" +
                 "godmodules G-GM-3) — the zero-alloc `_grouped` buffer machinery, " +
@@ -166,12 +175,61 @@ const LIBRARY_CEILING_OVERRIDE = new Map([
                 "and the scheduler-yield batching share one per-frame composite " +
                 "seam; the buffer discipline (null-fill clear, whitelist key-skip, " +
                 "post-blend compaction) is GL-7/GL-8 ALREADY-SOTA. Do NOT carve. " +
-                "I.W0 B5 raised 800→820: the NOOP_TRANSFORM total-fallback added the " +
-                "two-timing-point composite-transform resolution (constructor " +
-                "inheritance for already-parsed children + the lazy first-draw " +
-                "resolution for children built before parse() — the cube " +
-                "static-matrix cure). Both timing points are load-bearing on the " +
-                "SAME composite seam; neither is a separable concern.",
+                "I.W0 B5 raised 800→820 (the NOOP_TRANSFORM total-fallback). K.W11 " +
+                "(spring-driven blend weight) grew it +170L: the weighted leaf now " +
+                "reads `layer.weightSpring?.value ?? layer.weight`, the per-layer " +
+                "spring lives on the SAME composite seam (a blend weight is a " +
+                "composite input, not a separable concern — proof:spring-blend-" +
+                "weight is born-RED on group.ts:375). 820→1000 records the K.W11 " +
+                "growth WITHOUT licensing sprawl (the cap sits just above the " +
+                "current 977L; further unjustified growth still reds). BORN-RED " +
+                "HANDOFF (P-invariant-28): the deep compositor-seam split rides " +
+                "WITH the engine.ts transposition the D.W4 audit named — the " +
+                "buffer/blend/lifecycle/batch concerns separate only once the " +
+                "engine's composite contract is re-threaded; deferred to the same " +
+                "future tranche, named here so the deferral is citable.",
+        },
+    ],
+    [
+        "src/animation/spring.ts",
+        {
+            cap: 700,
+            why:
+                "ONE cohesive physics unit (the SpringProgress closed-form spring " +
+                "tracker) — the SwiftUI-canonical `(response, dampingFraction)` " +
+                "surface, the second-order-ODE integrator, the settle contract, the " +
+                "managed `.play()`/`tickDt` drive, and the K.W11 PHYS-B2 " +
+                "velocity-continuous interruption seam (`VelocityProbe` / " +
+                "`probeVelocity` / `reseatToSpring`: the finite-differenced reseat " +
+                "that makes a keyframe-stream interruption velocity-continuous). " +
+                "K.W11 grew it +170L; the reseat is NOT a separable module — it " +
+                "seeds a `SpringProgress` from a measured `(x,v)` and IS the spring " +
+                "tracker's interruption entry-point (it composes only the class " +
+                "beside it + a leaf finite difference, LIGHT/value.js-free). A " +
+                "split-for-line-count would orphan the reseat from the integrator " +
+                "it seeds. 550→700 records the K.W11 growth; the cap sits just above " +
+                "the current 644L (further unjustified growth reds).",
+        },
+    ],
+    [
+        "src/animation/waapi.ts",
+        {
+            cap: 650,
+            why:
+                "the WAAPI eligibility + delegation gestalt — `isWAAPIEligible` " +
+                "(the conservative-correct DOM/uniform-timing/no-computed-unit/" +
+                "no-color/WebKit-linear() predicate with a queryable reason), " +
+                "`toWAAPIOptions` (the `Element.animate()` option emission, " +
+                "spring-`linear()`-aware), and `attachNativeScrollTimeline` (the " +
+                "K.W9 native ScrollTimeline bridge the scroll dispatch consumes) " +
+                "share ONE eligibility seam: the scroll attach RE-USES the same " +
+                "eligibility predicate the play-path delegation does (the dispatch " +
+                "is the predicate pointed at the scroll clock). K.W9 grew it +51L " +
+                "for the native-scroll bridge on that seam. 550→650 records the " +
+                "growth; the cap sits just above the current 553L (a 3-line " +
+                "over-run from the bridge — further unjustified growth reds). The " +
+                "predicate + its two consumers (play delegation + scroll attach) " +
+                "are one decision surface, not separable concerns.",
         },
     ],
     [

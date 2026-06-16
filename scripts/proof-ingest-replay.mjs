@@ -78,22 +78,33 @@ const ok = (clause, msg) => console.log(`  ✓ [${clause}] ${msg}`);
 const stripComments = (src) =>
     src.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/(^|[^:])\/\/[^\n]*/g, "$1 ");
 
+// `file` may be ONE path or an ARRAY of paths (the K-close decomposition split
+// ingest.ts at the CSSOM-walk vs adopt/handoff seam into `ingest.ts` +
+// `ingest-cssom.ts`; the surface contract bites over the colocated PAIR, the
+// SAME code, now relocated). When an array, the anchors are sought across the
+// CONCATENATED sources — no clause is weakened, only the sweep follows the split.
 const requireAll = (clause, file, anchors) => {
-    if (!existsSync(join(root, file))) {
-        fail(clause, `${file} does not exist — the ingest surface is ABSENT.`);
+    const files = Array.isArray(file) ? file : [file];
+    const present = files.filter((f) => existsSync(join(root, f)));
+    if (present.length === 0) {
+        fail(
+            clause,
+            `${files.join(" + ")} does not exist — the ingest surface is ABSENT.`,
+        );
         return;
     }
-    const src = read(file);
+    const src = present.map((f) => read(f)).join("\n");
+    const label = files.join(" + ");
     const missing = anchors.filter(({ re }) => !re.test(src));
     if (missing.length > 0) {
         fail(
             clause,
-            `${file} is missing: ` +
+            `${label} is missing: ` +
                 missing.map((m) => m.name).join("; ") +
                 ` — the ${clause} contract is no longer locked.`,
         );
     } else {
-        ok(clause, `${file} locks ${anchors.length} ${clause} anchor(s)`);
+        ok(clause, `${label} locks ${anchors.length} ${clause} anchor(s)`);
     }
 };
 
@@ -101,13 +112,31 @@ console.log(
     "proof:ingest-replay — K.W8 (the round-trip pointed FORWARD at the live web)",
 );
 
+// The K-close decomposition split the ingest surface at the CSSOM-walk vs the
+// adopt/handoff seam: the STYLESHEET walk (resolveLiveKeyframes / fromStyleSheets
+// / fromLiveAnimations + the cssRules/CORS/fromString machinery) lives in
+// `ingest-cssom.ts`; the mid-flight TEMPORAL takeover (adoptRunning + the
+// continuity seed) lives in `ingest.ts`, which re-exports the walk surface. The
+// source-shape contract bites over the colocated PAIR (the SAME code, relocated).
 const INGEST = "src/animation/ingest.ts";
+const INGEST_CSSOM = "src/animation/ingest-cssom.ts";
+const INGEST_SURFACE = [INGEST, INGEST_CSSOM];
 const INDEX = "src/animation/index.ts";
 const ENGINE = "src/animation/engine.ts";
 const TEST = "test/ingest.test.ts";
 
+// Read the concatenated ingest surface (the split PAIR) for the inline
+// NO-WORKAROUND scans below (they must read the SAME code the requireAll
+// anchors do, now spread across the two colocated files).
+const readSurface = () =>
+    INGEST_SURFACE.filter((f) => existsSync(join(root, f)))
+        .map((f) => read(f))
+        .join("\n");
+const surfaceExists = () =>
+    INGEST_SURFACE.some((f) => existsSync(join(root, f)));
+
 // ── module-exists — the K1/K2 surface ─────────────────────────────────────────
-requireAll("module-exists", INGEST, [
+requireAll("module-exists", INGEST_SURFACE, [
     {
         name: "export fromStyleSheets",
         re: /export\s+const\s+fromStyleSheets\b/,
@@ -124,7 +153,7 @@ requireAll("module-exists", INGEST, [
 ]);
 
 // ── reuses-resolve — the parse pipeline is REUSED WHOLE (no re-derivation) ─────
-requireAll("reuses-resolve", INGEST, [
+requireAll("reuses-resolve", INGEST_SURFACE, [
     {
         name: "feeds rule.cssText into CSSKeyframesAnimation.fromString",
         re: /\.fromString\(/,
@@ -160,7 +189,7 @@ requireAll("reuses-resolve", INGEST, [
 }
 
 // ── cssom-walk — reads styleSheets/cssRules + filters @keyframes ──────────────
-requireAll("cssom-walk", INGEST, [
+requireAll("cssom-walk", INGEST_SURFACE, [
     { name: "reads .cssRules (the CSSOM walk)", re: /\.cssRules\b/ },
     {
         name: "filters CSSKeyframesRule (instanceof or type 7)",
@@ -170,7 +199,7 @@ requireAll("cssom-walk", INGEST, [
 ]);
 
 // ── cors-honest — per-sheet try/catch → CORS_SKIP, never a silent drop ────────
-requireAll("cors-honest", INGEST, [
+requireAll("cors-honest", INGEST_SURFACE, [
     {
         name: "a CORS_SKIP diagnostic row is emitted",
         re: /["']CORS_SKIP["']/,
@@ -182,7 +211,7 @@ requireAll("cors-honest", INGEST, [
 ]);
 
 // ── adopt-runtime — getAnimations playhead + CSSOM-rule reconstruction + seed ─
-requireAll("adopt-runtime", INGEST, [
+requireAll("adopt-runtime", INGEST_SURFACE, [
     {
         name: "adoptRunning reads getAnimations() for the playhead",
         re: /getAnimations\(\)/,

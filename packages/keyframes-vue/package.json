@@ -1,0 +1,52 @@
+{
+    "name": "@mkbabb/keyframes-vue",
+    "version": "0.1.0",
+    "description": "A thin Vue 3 adapter over @mkbabb/keyframes.js: the declarative <Keyframes :css> component (the on-brand CSS-@keyframes primitive no other engine can ship) + the useKfAnimation kernel.",
+    "license": "MIT",
+    "keywords": [
+        "keyframes",
+        "vue",
+        "vue3",
+        "animation",
+        "css",
+        "css-animations",
+        "composable"
+    ],
+    "type": "module",
+    "sideEffects": false,
+    "main": "./dist/keyframes-vue.js",
+    "module": "./dist/keyframes-vue.js",
+    "types": "./dist/keyframes-vue.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/keyframes-vue.d.ts",
+            "import": "./dist/keyframes-vue.js",
+            "default": "./dist/keyframes-vue.js"
+        }
+    },
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "build": "vite build",
+        "check": "tsc --noEmit"
+    },
+    "peerDependencies": {
+        "@mkbabb/keyframes.js": ">=4.2.0",
+        "vue": "^3.5.0"
+    },
+    "devDependencies": {
+        "@mkbabb/keyframes.js": ">=4.2.0",
+        "typescript": "^6.0.3",
+        "vue": "^3.5.35"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/mkbabb/keyframes.js.git",
+        "directory": "packages/keyframes-vue"
+    },
+    "author": "Mike Babb <mike@babb.dev>",
+    "engines": {
+        "node": ">=22"
+    }
+}

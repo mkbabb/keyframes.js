@@ -22,6 +22,7 @@
             :is-pane-hovered="isPaneHovered"
             :is-pane-idle="isPaneIdle"
             :scroll-fade-class="scrollFadeClass"
+            :extra-tabs="extraTabs"
             :on-panel-transition-end="onPanelTransitionEnd"
             :on-sheet-settled="onSheetSettled"
             :on-pane-mouse-enter="onPaneMouseEnter"
@@ -117,6 +118,7 @@
 import { computed, onMounted, reactive, ref, useTemplateRef, watch, watchEffect } from "vue";
 
 import { TooltipProvider } from "@mkbabb/glass-ui";
+import type { SegmentedTabOption } from "@mkbabb/glass-ui/tabs";
 
 import ControlsPaneWrapper from "./components/ControlsPaneWrapper.vue";
 import DemoGlobalChrome from "./components/DemoGlobalChrome.vue";
@@ -130,7 +132,7 @@ import { useAnimationGroupPlayback } from "./composables/useAnimationGroupPlayba
 import { useAnimationProgress } from "./composables/useAnimationProgress";
 import { useControlsLayout } from "./composables/useControlsLayout";
 
-const { superKey, animationGroup, autoPlay, hideControls, stageMode, hasControlSurfaces = true } = defineProps<{
+const { superKey, animationGroup, autoPlay, hideControls, stageMode, hasControlSurfaces = true, extraTabs } = defineProps<{
     animationGroup: AnimationGroup<any>;
     superKey?: string;
     autoPlay?: boolean;
@@ -149,6 +151,11 @@ const { superKey, animationGroup, autoPlay, hideControls, stageMode, hasControlS
     // from the App's machine projection (`controlSurfacesFor(activeScene)`);
     // defaults TRUE so a non-App host (the playground) keeps its rail.
     hasControlSurfaces?: boolean;
+    // glass-ui 4.0.0 (BA.W-TABS) — standalone-host extra tabs (the playground's
+    // "Assets" tab), forwarded down to AnimationControls' options-driven strip.
+    // A scene-machine-driven host (the App) leaves this empty and rides the
+    // machine's `extraControlTabs` projection instead.
+    extraTabs?: SegmentedTabOption[];
 }>();
 
 const storedControls = getStoredAnimationGroupControlOptions(superKey);

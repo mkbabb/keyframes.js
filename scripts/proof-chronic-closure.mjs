@@ -99,14 +99,15 @@ import { actuationNamesOf, missingHarnessAnchors } from "./lib/gate-shape.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const SCRIPTS_DIR = path.join(REPO, "scripts");
-// THE CANONICAL SUBSTRATE (J.WZ S3 — the substrate TRANSITION): the J-tranche
-// PROGRESS.md chronic ledger SUPERSEDES I's `## Open deferrals` table in the SAME
-// motion the J ledger becomes authoritative. The I/H tables remain narrative
-// history. This is the ONE path constant the J close re-points (J.WZ.md §S3); the
-// grammar is evolved WITH it (header-aware columns + disposition bands + the
-// Chronicity-integer ≥4 EXIT-ONLY enforcement) so the gate BITES on the new
-// substrate — never a vacuous swap.
-const CHRONIC_LEDGER = path.join(REPO, "docs/tranches/J/PROGRESS.md");
+// THE CANONICAL SUBSTRATE (K.WZ — the substrate TRANSITION): the K-tranche
+// PROGRESS.md chronic ledger SUPERSEDES J's `## Open deferrals` table in the SAME
+// motion the K ledger becomes authoritative (K.WZ motion, P-SUBSTRATE invariant).
+// The J/I/H tables remain narrative history. This is the ONE path constant the K
+// close re-points; the grammar is evolved WITH the new substrate (header-aware
+// columns + disposition bands + the Chronicity-integer ≥4 EXIT-ONLY enforcement)
+// so the gate BITES on the K substrate — never a vacuous swap. The K ledger is the
+// authoritative parse target for `proof:chronic-closure` from K.WZ forward.
+const CHRONIC_LEDGER = path.join(REPO, "docs/tranches/K/PROGRESS.md");
 const PKG = path.join(REPO, "package.json");
 
 const failures = [];
@@ -264,6 +265,9 @@ const DISP = {
     kill: (d) => /\bKILL\b/i.test(d),
     userDomain: (d) => /\bUSER-?DOMAIN\b/i.test(d),
     exitOnly: (d) => /\bEXIT-?ONLY\b|\bMEASURE-?FIRST\b/i.test(d),
+    // EXITED = a row whose landing-wave has already COMMITTED; terminal, sibling band
+    // (the gate already ran and BIT; the closure cell is evidence, not a live contract).
+    exited: (d) => /\bEXITED\b/i.test(d),
 };
 
 // An EXIT-shaped disposition (satisfies the ≥4-tranche P-invariant-28 mandate). A
@@ -276,6 +280,9 @@ function isExitShaped(d) {
     // A HANDOFF is exit-shaped ONLY when it is sibling-published-consumed (the
     // vaporware check below polices the version-target honesty separately).
     if (DISP.handoff(d)) return true;
+    // EXITED = a landed terminal row (the gate already ran + BIT + committed).
+    // Exit-shaped: the P-inv-28 mandate is satisfied by the commit landing.
+    if (DISP.exited(d)) return true;
     return false;
 }
 
@@ -454,7 +461,7 @@ function auditRow(row, srcLabel) {
 }
 
 // ── Run ───────────────────────────────────────────────────────────────────────
-const LEDGER_LABEL = "J/PROGRESS.md";
+const LEDGER_LABEL = "K/PROGRESS.md";
 const rows = parseChronicTable(CHRONIC_LEDGER, LEDGER_LABEL);
 if (rows.length === 0 && failures.length === 0) {
     fail(`[substrate] parsed ZERO chronic rows from the ${LEDGER_LABEL} §"Open deferrals" — refusing to pass vacuously`);
@@ -485,7 +492,7 @@ const audited = rows.map((r) => auditRow(r, LEDGER_LABEL));
 if (failures.length) {
     console.error("\n✗ proof:chronic-closure — the chronic ledger is not closed to RUNTIME discipline:\n");
     console.error(
-        "  The binding rule (J.WZ substrate): a kf-runtime-closing row (FOLD/VERIFY-ONLY) exits ONLY via\n" +
+        "  The binding rule (K.WZ substrate): a kf-runtime-closing row (FOLD/VERIFY-ONLY) exits ONLY via\n" +
             "  a RUNTIME gate (opens a browser AND actuates) that was witnessed born-RED in the correctness\n" +
             "  tier — OR names its terminal non-gate mechanism. A ≥4-tranche row must EXIT (P-invariant-28).\n" +
             "  A source-shape / load-rest / proxy gate, a vaporware HANDOFF, or a wrong-axis gate REDS.",
@@ -507,7 +514,7 @@ const BAND = (a) => {
     return "FOLD";
 };
 
-console.log(`\n✓ proof:chronic-closure — the J ledger is TERMINAL; every kf-runtime closure exits via a gate that BIT (${LEDGER_LABEL} §"Open deferrals", ${audited.length} rows):`);
+console.log(`\n✓ proof:chronic-closure — the K ledger is TERMINAL; every kf-runtime closure exits via a gate that BIT (${LEDGER_LABEL} §"Open deferrals", ${audited.length} rows):`);
 for (const a of audited) {
     const rt = a.runtimeGates.join(", ");
     const ch = a.chronicity != null ? `[${a.chronicity}t] ` : "";
@@ -516,7 +523,7 @@ for (const a of audited) {
     console.log(`    • ${ch}${a.name} — ${BAND(a)}${ret}${gates}`);
 }
 console.log(
-    "\n  The substrate TRANSITION is non-vacuous: the gate parses the J ledger by header, reads each row's\n" +
+    "\n  The K substrate TRANSITION is non-vacuous: the gate parses the K ledger by header, reads each row's\n" +
         "  DISPOSITION band, holds the FOLD/VERIFY-ONLY rows to the runtime-gate-that-BIT contract, enforces\n" +
         "  the ≥4-tranche EXIT-ONLY mandate off the Chronicity integer, and reds a vaporware HANDOFF — the\n" +
         "  meta-gate polices the PRODUCT on the new substrate, not the column's paperwork.",

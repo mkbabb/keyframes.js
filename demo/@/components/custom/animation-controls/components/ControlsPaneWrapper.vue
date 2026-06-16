@@ -79,6 +79,7 @@
                             :is-playing="isPlaying"
                             :layer-config="groupObject.layer"
                             :active="storedControls.selectedAnimation == name"
+                            :extra-tabs="extraTabs"
                         >
                             <template #tabs-trigger>
                                 <slot
@@ -129,6 +130,7 @@ import type { AnimationGroup } from "@src/animation/group";
 import type { AnimationLayerConfig } from "@src/animation/constants";
 import type { Animation } from "@src/animation/engine";
 import type { StoredAnimationGroupControlOptions } from "../stores";
+import type { SegmentedTabOption } from "@mkbabb/glass-ui/tabs";
 import AnimationControls from "../controls/AnimationControls.vue";
 import RibbonBar from "./RibbonBar.vue";
 import SheetGrabHandle from "./SheetGrabHandle.vue";
@@ -162,6 +164,10 @@ const props = defineProps<{
     // useScrollFade (the composable owner). The wrapper renders the element;
     // the parent measures it.
     setPaneEl: (el: HTMLElement | null) => void;
+    // glass-ui 4.0.0 (BA.W-TABS) — the standalone-host extra-tab options,
+    // forwarded down to each AnimationControls' `extraTabs` seam (the playground
+    // injects its "Assets" tab here, AS DATA, not via a reka `<TabsTrigger>`).
+    extraTabs?: SegmentedTabOption[];
 }>();
 
 const stageMode = computed(() => props.stageMode ?? "subject");

@@ -1,0 +1,366 @@
+/**
+ * lib/agent-surface — the K.W12 ED-1 agent-surface SOURCE OF TRUTH.
+ *
+ * The ONE place the agent index is derived from the published surface. The
+ * generator (`gen-agent-surface.mjs`) EMITS the artifacts from here; the gate
+ * (`proof-agent-surface.mjs`) re-derives from here and set-equates the emitted
+ * artifacts against a fresh build — so the agent surface cannot drift from the
+ * `docs/published-surface.md` manifest + the `proof:*` gate roster.
+ *
+ * THE INVARIANT (clause (a) of proof:agent-surface): every export the index
+ * LINKS is a real published export (∈ the manifest roster); every `proof:*`
+ * gate the index CITES is a real gate (∈ the package.json proof:* roster). The
+ * curated index is a sub-selection of the FULL roster — the 13 headline
+ * primitives — but the FULL export roster (the llms-full.txt tail) names EVERY
+ * published export, so the union of the two artifacts covers the surface.
+ */
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+export const REPO = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "..",
+    "..",
+);
+
+const MANIFEST = path.join(REPO, "docs/published-surface.md");
+const PKG = path.join(REPO, "package.json");
+const README_URL =
+    "https://github.com/mkbabb/keyframes.js/blob/master/README.md";
+
+/**
+ * The published-export roster — every backticked export-name row in
+ * `docs/published-surface.md`, with its tier (LIGHT/HEAVY). This is the SAME
+ * roster `proof:published-surface` clause (b) machine-checks against the
+ * barrel, so the agent index is anchored to the gate-verified surface.
+ */
+export function parseManifestRoster() {
+    const text = fs.readFileSync(MANIFEST, "utf8");
+    const rows = [];
+    for (const line of text.split("\n")) {
+        // | `Export` | TIER | … |  — the first two cells.
+        const m = line.match(
+            /^\|\s*`([A-Za-z_$][\w$]*)`\s*\|\s*(LIGHT|HEAVY)\s*\|/,
+        );
+        if (m) rows.push({ name: m[1], tier: m[2] });
+    }
+    // De-dup (a name appears once); preserve first-seen order.
+    const seen = new Set();
+    return rows.filter((r) => (seen.has(r.name) ? false : seen.add(r.name)));
+}
+
+/** The set of every `proof:*` script name in package.json (the gate roster). */
+export function parseProofRoster() {
+    const pkg = JSON.parse(fs.readFileSync(PKG, "utf8"));
+    return new Set(
+        Object.keys(pkg.scripts ?? {}).filter((k) => k.startsWith("proof:")),
+    );
+}
+
+/**
+ * THE CURATED INDEX — the 13 headline primitives the agent reads first. Each
+ * row: the primitive name, a one-line intent, the published EXPORTS it links
+ * (every one ∈ the manifest roster — gate-asserted), the README anchor, and the
+ * `proof:*` gate that PROVES it (∈ the proof roster — gate-asserted). This is a
+ * curated SELECTION; the full roster (llms-full.txt) names every export.
+ *
+ * The "ONLY kf does this" axes are flagged: [axis-1] round-trippable CSS,
+ * [axis-2] perceptual color, [axis-3] the static/dynamic boundary.
+ */
+export const CURATED = [
+    {
+        name: "CSSKeyframesAnimation",
+        intent:
+            "parse author CSS @keyframes → animate any element/object; the round-trippable source-of-truth axis [axis-1]",
+        exports: ["CSSKeyframesAnimation", "Animation", "loadAnimationEngine"],
+        anchor: "csskeyframesanimation",
+        proof: "proof:roundtrip-fidelity",
+    },
+    {
+        name: "animate",
+        intent:
+            "the single-call front door: construct + target + play, dispatched on input shape (CSS string / vars / motion-path spec)",
+        exports: ["animate"],
+        anchor: "animate",
+        proof: "proof:engine-correctness",
+    },
+    {
+        name: "AnimationGroup",
+        intent:
+            "composite many animations with replace/add/weighted layer blending (spatial composition)",
+        exports: ["AnimationGroup", "defaultLayerConfig"],
+        anchor: "animationgroup",
+        proof: "proof:blend",
+    },
+    {
+        name: "Sequence",
+        intent:
+            "master-playhead temporal orchestration beside AnimationGroup's spatial blend",
+        exports: ["Sequence"],
+        anchor: "sequence",
+        proof: "proof:orchestration",
+    },
+    {
+        name: "compileToCSS",
+        intent:
+            "the round-trip's BACKWARD half: an orchestration graph → a pure zero-runtime CSS artifact (the parser run backward; GSAP/Motion cannot do this) [axis-1]",
+        exports: ["compileToCSS"],
+        anchor: "the-dynamic-engine--loadanimationengine",
+        proof: "proof:compile-replay",
+    },
+    {
+        name: "fromStyleSheets",
+        intent:
+            "INGEST: read the live web's own CSS @keyframes back into kf animations (CSSOM → CSSKeyframesAnimation), CORS-skip diagnostics never a silent drop [axis-1]",
+        exports: ["fromStyleSheets", "fromLiveAnimations", "adoptRunning"],
+        anchor: "the-dynamic-engine--loadanimationengine",
+        proof: "proof:ingest-replay",
+    },
+    {
+        name: "ScrollScene",
+        intent:
+            "scroll-driven animation as CSS: parse animation-timeline/-range, drive on the compositor where eligible and shipped physics where not, serialize back to valid CSS [axis-1]",
+        exports: ["ScrollScene", "createScrollScene", "roundTripScrollCSS"],
+        anchor: "timeline",
+        proof: "proof:scroll-roundtrip",
+    },
+    {
+        name: "SpringProgress",
+        intent:
+            "closed-form spring physics tracker; reseatToSpring for velocity-continuous interruption; the linear() twin is round-trippable",
+        exports: ["SpringProgress", "reseatToSpring", "probeVelocity"],
+        anchor: "springprogress",
+        proof: "proof:spring-blend-weight",
+    },
+    {
+        name: "springTimingFunction",
+        intent:
+            "spring physics → a typed Easing ({ fn, css }) / a CSS linear() stops string — a spring you can hand to native CSS [axis-1]",
+        exports: ["springTimingFunction", "springLinearStops"],
+        anchor: "springlinearstops--springtimingfunction",
+        proof: "proof:roundtrip-easing",
+    },
+    {
+        name: "stagger",
+        intent:
+            "pure construction-time per-index delay distribution (materializes into the compiled CSS)",
+        exports: ["stagger"],
+        anchor: "stagger",
+        proof: "proof:orchestration",
+    },
+    {
+        name: "Timeline",
+        intent:
+            "progress driver (sample → clamp → easing → boundary-snap → smoothing); ScrollTimeline/ManualTimeline/createNativeTimeline variants — the caller owns the loop",
+        exports: [
+            "Timeline",
+            "ScrollTimeline",
+            "ManualTimeline",
+            "createNativeTimeline",
+        ],
+        anchor: "timeline",
+        proof: "proof:sync-step",
+    },
+    {
+        name: "NumericAnimation",
+        intent:
+            "zero-alloc keyframe interpolation over { key: number } objects — animate any plain object, no DOM",
+        exports: ["NumericAnimation"],
+        anchor: "numericanimation",
+        proof: "proof:zero-alloc",
+    },
+    {
+        name: "loadAnimationEngine",
+        intent:
+            "the one gateway to the HEAVY tier: an awaited dynamic import that carries the CSS parser + value.js; light-only consumers never pay it [axis-3]",
+        exports: ["loadAnimationEngine"],
+        anchor: "the-dynamic-engine--loadanimationengine",
+        proof: "proof:boundary",
+    },
+];
+
+/** The canonical round-trip recipe — kf's axis-1, the thing only kf does. */
+export const ROUNDTRIP_RECIPE = `// THE ROUND-TRIP (kf's unique axis: author CSS is the source format).
+// PARSE  author CSS @keyframes  → an animation object
+// ANIMATE that object over any element / plain object / scroll
+// SERIALIZE it BACK to valid CSS (the parser run backward — compileToCSS)
+//
+// The agent's INPUT format IS the library's SOURCE format: every other
+// library makes the agent TRANSLATE CSS into a bespoke tween syntax; kf
+// does not. This is why kf has an agent surface no competitor can write.
+
+import { loadAnimationEngine } from "@mkbabb/keyframes.js";
+
+// ONE await loads the CSS engine (and value.js with it); cached thereafter.
+const { CSSKeyframesAnimation, compileToCSS } = await loadAnimationEngine();
+
+// PARSE — feed it the SAME CSS @keyframes a stylesheet would carry:
+const anim = new CSSKeyframesAnimation({ duration: 2000 }).fromString(\`
+    @keyframes slide {
+        from { transform: translateX(-100%); background-color: #C462D8; }
+        100% { transform: translateX(50%);   background-color: #E85252; }
+    }
+\`);
+
+// ANIMATE — colors interpolate in perceptual oklab by default [axis-2]:
+anim.setTargets(document.getElementById("box"));
+anim.play();
+
+// SERIALIZE — back to a pure, zero-runtime CSS artifact (the backward half):
+const { css, eligible, refusals } = compileToCSS(anim);
+// \`css\` is a @keyframes block + animation shorthand; \`refusals\` names what
+// cannot round-trip faithfully (never a silent approximation).`;
+
+// ──────────────────────────────────────────────────────────────────────────────
+// The artifact builders.
+// ──────────────────────────────────────────────────────────────────────────────
+
+function tierOf(roster, name) {
+    return roster.find((r) => r.name === name)?.tier ?? "?";
+}
+
+/** /llms.txt — the curated INDEX (the 13 primitives, one line each). */
+export function buildLlmsTxt() {
+    const roster = parseManifestRoster();
+    const L = [];
+    L.push("# keyframes.js — the agent index (llms.txt)");
+    L.push("");
+    L.push(
+        "> CSS keyframe animations for anything in JavaScript. Parse author",
+    );
+    L.push(
+        "> `@keyframes`, animate any object or DOM element, and round-trip it",
+    );
+    L.push(
+        "> BACK to CSS. Every capability below is backed by a CI-verified",
+    );
+    L.push(
+        "> `proof:*` gate — this index is GENERATED from the machine-checked",
+    );
+    L.push(
+        "> published surface (`docs/published-surface.md`) and cannot drift",
+    );
+    L.push("> from it (`proof:agent-surface`).");
+    L.push("");
+    L.push(
+        "The three axes only kf has: [axis-1] author CSS is the source format",
+    );
+    L.push(
+        "(round-trippable — parse AND serialize); [axis-2] perceptual color",
+    );
+    L.push(
+        "(oklab lerp, ΔE-conformant — see the color-fidelity harness); [axis-3]",
+    );
+    L.push(
+        "a static/dynamic boundary (a value.js-free LIGHT tier + a `loadAnimationEngine()`",
+    );
+    L.push("HEAVY tier).");
+    L.push("");
+    L.push(`Install: \`npm i @mkbabb/keyframes.js\` · README: ${README_URL}`);
+    L.push("");
+    L.push("## Primitives (each backed by a runnable proof gate)");
+    L.push("");
+    for (const p of CURATED) {
+        const tiers = [...new Set(p.exports.map((e) => tierOf(roster, e)))];
+        const tier = tiers.length === 1 ? tiers[0] : tiers.join("+");
+        L.push(`### ${p.name}  (${tier})`);
+        L.push(`- intent: ${p.intent}`);
+        L.push(
+            `- exports: ${p.exports.map((e) => `\`${e}\``).join(", ")}`,
+        );
+        L.push(`- docs: ${README_URL}#${p.anchor}`);
+        L.push(`- proof: \`${p.proof}\` (CI-verified — \`npm run ${p.proof}\`)`);
+        L.push("");
+    }
+    L.push("## The full export roster + the round-trip recipe");
+    L.push("");
+    L.push(
+        "See `/llms-full.txt` for the inline round-trip recipe (parse → animate",
+    );
+    L.push(
+        "→ serialize) and the COMPLETE export roster (every LIGHT + HEAVY",
+    );
+    L.push("export, the surface a `npm i` consumer reaches).");
+    L.push("");
+    return L.join("\n");
+}
+
+/** /llms-full.txt — the round-trip recipe inline + the full export roster. */
+export function buildLlmsFullTxt() {
+    const roster = parseManifestRoster();
+    const light = roster.filter((r) => r.tier === "LIGHT");
+    const heavy = roster.filter((r) => r.tier === "HEAVY");
+    const L = [];
+    L.push("# keyframes.js — the agent surface, full (llms-full.txt)");
+    L.push("");
+    L.push(
+        "Generated from `docs/published-surface.md` (the machine-checked",
+    );
+    L.push(
+        "published-export manifest) + the `proof:*` gate roster. Verified by",
+    );
+    L.push(
+        "`proof:agent-surface`: the index can never advertise an export the",
+    );
+    L.push("surface does not publish, nor cite a gate that does not exist.");
+    L.push("");
+    L.push(`README: ${README_URL}`);
+    L.push("");
+    L.push("## The round-trip recipe (kf's unique axis-1)");
+    L.push("");
+    L.push("```ts");
+    L.push(ROUNDTRIP_RECIPE);
+    L.push("```");
+    L.push("");
+    L.push("## The curated primitive index");
+    L.push("");
+    for (const p of CURATED) {
+        L.push(`- **${p.name}** — ${p.intent}`);
+        L.push(
+            `  - exports: ${p.exports.map((e) => `\`${e}\``).join(", ")} · proof: \`${p.proof}\` · docs: ${README_URL}#${p.anchor}`,
+        );
+    }
+    L.push("");
+    L.push("## The full export roster (the npm-i surface)");
+    L.push("");
+    L.push(
+        "### LIGHT — the static barrel (value.js-free, tree-shakeable)",
+    );
+    L.push("");
+    L.push('`import { … } from "@mkbabb/keyframes.js"`');
+    L.push("");
+    for (const r of light) L.push(`- \`${r.name}\``);
+    L.push("");
+    L.push(
+        "### HEAVY — reached only through `await loadAnimationEngine()` [axis-3]",
+    );
+    L.push("");
+    L.push("`const engine = await loadAnimationEngine()`");
+    L.push("");
+    for (const r of heavy) L.push(`- \`${r.name}\``);
+    L.push("");
+    L.push(
+        `Total published value exports: ${roster.length} (${light.length} LIGHT + ${heavy.length} HEAVY).`,
+    );
+    L.push("");
+    L.push("## The proof corpus (the public capability ledger)");
+    L.push("");
+    L.push(
+        "Every claim above is signed by a CI-executed gate. The proof corpus",
+    );
+    L.push(
+        "is itself a public artifact: run `npm run proof:all` to execute the",
+    );
+    L.push(
+        "full roster (~" +
+            parseProofRoster().size +
+            " `proof:*` gates). Each gate is a self-describing capability",
+    );
+    L.push(
+        'claim — not "the library claims X" but "the library PROVES X, here',
+    );
+    L.push('is the gate, here is the runnable snippet CI executes".');
+    L.push("");
+    return L.join("\n");
+}

@@ -92,15 +92,13 @@ across K and a separate L.
 
 ## § Phase — TRANCHE DEVELOPMENT (the audit + these docs; implementation awaits authorization)
 
-K is in DEVELOPMENT on `tranche-k-dev` (forked off `master` @ `4f1fc4c` — the J close tip; kf
-`4.2.0` published; value.js `^0.11.2` installed / `0.12.0` published (Band I K.W1 re-pins),
-glass-ui `~3.11.2` / `3.13.0` published (K.W1 consumes), parse-that `^0.9.0`). The 32-lane audit
-is RUN under `docs/tranches/K/audit/`. This charter, `PATH-FORWARD.md`, `PROGRESS.md` (the board
-+ the K ledger), the per-wave specs (`waves/K.W0–K.WZ`, both bands), the **value.js outbound
-grammar ask** (`KF-TO-VALUEJS-GRAMMAR-ASKS.md`), and the consumed `L-SEED.md` are the DEVELOPMENT
-deliverables. **K.W0–K.WZ are authored-now-run-later wave specs; the implementation phase opens
-only on explicit user authorization — exactly the D→J dev/impl boundary. No engine, demo, gate,
-test, or CI source is written in development.**
+**K is in IMPLEMENTATION** on `tranche-k-dev` (forked off `master` @ `4f1fc4c` — the J close tip; kf
+`4.2.0` published; value.js `^0.13.0` (K.W9 `a34b298` re-pin — VJ.W1/VJ.W2 consumed), glass-ui
+`~4.0.0` (K.W1′ `e293ce2` — the dock cure + 4.0.0 BA), parse-that `^0.9.0`). **Band I (K.W0–K.W6)
+DONE; Band II (K.W7–K.W11) DONE; K.W12 IMPL (in progress); K.WZ AUTHORED.** The 32-lane audit is
+under `docs/tranches/K/audit/`; `proof:chronic-closure` is GREEN on the K substrate (44 rows; all
+DL-K rows EXITED or HANDOFF/BOOK/KILL-terminal). K.WZ closes when K.W12 lands and the user's TASTE
+verdict is recorded.
 
 ---
 

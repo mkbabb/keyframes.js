@@ -246,11 +246,20 @@ const KeyframeTimeline = defineAsyncComponent(() => import("../timeline/Keyframe
 import AnimationControlsControls from "./AnimationControlsControls.vue";
 import { getStoredAnimationGroupControlOptions } from "../stores";
 
-const { animation, isPlaying: isPlayingProp, layerConfig, active } = defineProps<{
+const { animation, isPlaying: isPlayingProp, layerConfig, active, extraTabs } = defineProps<{
     animation: Animation<any>;
     isPlaying?: boolean;
     layerConfig?: AnimationLayerConfig;
     active?: boolean;
+    // glass-ui 4.0.0 (BA.W-TABS) — the STANDALONE-host extra-tab seam. A non-
+    // scene-machine host (the playground EditorShell, `tabsExternallyManaged`
+    // false) has no `extraControlTabs` machine projection to ride, so it injects
+    // its scene-specific strip options AS DATA here (the SAME options-driven
+    // pattern the machine-driven host gets from `extraControlTabs`), instead of a
+    // reka `<TabsTrigger>`. The corresponding panel rides the `tabs-content` slot
+    // gated on `selectedControlSurface` (the host owns its panel, exactly as the
+    // built-in surfaces do). Empty by default — machine-driven hosts ignore it.
+    extraTabs?: SegmentedTabOption[];
 }>();
 
 const storedControls = getStoredAnimationGroupControlOptions(animation);
@@ -295,11 +304,15 @@ const builtInTabs = computed(() =>
 // A STANDALONE host (the playground EditorShell, not scene-machine-routed) gets no
 // extra tabs (its activeScene rests on `home`), mirroring `builtInTabs`/`hasSurface`.
 const stripOptions = computed<SegmentedTabOption[]>(() => {
+    // A scene-machine-driven host derives its extra tabs from the machine's
+    // `extraControlTabs` projection; a STANDALONE host (the playground) injects
+    // them via the `extraTabs` prop (the same DATA shape, sourced from the host
+    // instead of the machine) — see the `extraTabs` prop note.
     const extra: SegmentedTabOption[] = tabsExternallyManaged
         ? machine
               .extraControlTabs(activeConditionals?.value)
               .map((t) => ({ value: t.value, label: t.label }))
-        : [];
+        : (extraTabs ?? []);
     return [...builtInTabs.value, ...extra];
 });
 
