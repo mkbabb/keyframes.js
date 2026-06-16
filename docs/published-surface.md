@@ -74,6 +74,83 @@ parser and `@mkbabb/value.js`; one dynamic import, cached thereafter
 | `defaultOptions` | HEAVY | [README §AnimationOptions](../README.md#animationoptions) — the `AnimationOptions` defaults |
 | `defaultLayerConfig` | HEAVY | [README §AnimationGroup](../README.md#animationgroup) — the per-layer blend-config defaults |
 
+### K.W8 INGEST — the round-trip pointed FORWARD at the live web
+
+The ingest surface (`src/animation/ingest.ts`, HEAVY — it statically imports the
+engine + adapter, the value.js `@keyframes` parser). kf READS the live web's OWN
+CSS: it walks `document.styleSheets`, filters to `CSSKeyframesRule`, serialises
+each via `rule.cssText`, and feeds THAT text into the EXISTING
+`resolveKeyframes` pipeline — the parser run FORWARD over the SAME data model (no
+new grammar, no re-derivation). `adoptRunning` takes over a RUNNING CSS animation
+mid-flight via the `getAnimations()` currentTime handoff (the continuity seed,
+NOT seed-at-zero). Every step it cannot complete faithfully (a cross-origin
+sheet, a malformed rule) becomes a citable `CORS_SKIP`/`PARSE_ERROR` diagnostic
+on `ResolvedKeyframes.diagnostics` — never a silent drop. Each row is
+manifest-only + gate-covered (`proof:ingest-replay` — the forward-direction
+replay-equality oracle; the value proof `test/ingest.test.ts`).
+
+| Export | Tier | Taught |
+| --- | --- | --- |
+| `fromStyleSheets` | HEAVY | manifest-only: K.W8 K1 — walk the document's (or a given list's) stylesheets → a `Map<name, CSSKeyframesAnimation>` of reconstructed animations + the CORS-skip diagnostics; `proof:ingest-replay` + `test/ingest.test.ts` clause (a)/(b)/(d) |
+| `fromLiveAnimations` | HEAVY | manifest-only: K.W8 K1 — narrow to the names currently RUNNING via `getAnimations()`, reconstructed from their source `@keyframes` rule (NOT the lossy computed `getKeyframes()`); `proof:ingest-replay` + `test/ingest.test.ts` |
+| `resolveLiveKeyframes` | HEAVY | manifest-only: K.W8 K1 — the lowest-level CSSOM walk (the live-CSSOM analogue of `resolveKeyframes`); per-sheet `try/catch` → a `CORS_SKIP` diagnostic, never a silent drop; `proof:ingest-replay` + `test/ingest.test.ts` clause (d) |
+| `adoptRunning` | HEAVY | manifest-only: K.W8 K2 — the mid-flight takeover of a running CSS animation (`getAnimations()` currentTime handoff + commit-on-adopt + the continuity seed); named `adoptRunning` to disambiguate from `engine.adoptCompiled` (HARDENING-5 HAZARD-1); `proof:ingest-replay` + `test/ingest.test.ts` clause (c) |
+
+### K.W9 SCROLL-AS-CSS — the scroll-grammar round-trip + `ScrollScene` driver
+
+The scroll-driven-animation surface (`src/animation/scroll-scene.ts`, HEAVY — it
+consumes value.js 0.13.0's typed `CSSTimelineOptions` scroll grammar). kf PARSES
+the `animation-timeline`/`-range`/`timeline-scope`/`-trigger` the CSS WG
+standardized, DRIVES it on the compositor where eligible (native `ScrollTimeline`)
+and on its shipped physics where not (the JS `ScrollScene`: `SmoothProgress`
+scrub + `decayRest`/`SpringProgress` snap), and SERIALIZES it BACK to valid CSS —
+the only library that round-trips a scroll-driven stylesheet. value.js owns the
+scroll VALUES; the `ScrollScene` driver owns TIME. Each row is manifest-only +
+gate-covered (`proof:scroll-roundtrip` — the replay-equality oracle + the
+dispatch matrix + the `position:sticky` pin assert; the value proof
+`test/scroll-scene.test.ts`); the SO-4 transform-pinning primitive is KILLED
+(cross-thread jitter — the pin is `position:sticky` synthesis only).
+
+| Export | Tier | Taught |
+| --- | --- | --- |
+| `ScrollScene` | HEAVY | manifest-only: the JS scroll driver (scrub/snap/enter-leave over a parsed `animation-range`); `proof:scroll-roundtrip` + `test/scroll-scene.test.ts` clause (a)/(e) |
+| `createScrollScene` | HEAVY | manifest-only: construct a `ScrollScene` from parsed `CSSTimelineOptions` or a spec; `proof:scroll-roundtrip` + `test/scroll-scene.test.ts` clause (a) |
+| `parseScrollCSS` | HEAVY | manifest-only: SO-1 PARSE — a scroll-driven stylesheet → typed `CSSTimelineOptions` (consumes value.js `extractTimelineOptions`); `proof:scroll-roundtrip` clause (b) |
+| `parseScrollTimeline` | HEAVY | manifest-only: parse one `animation-timeline` value (value.js `parseAnimationTimeline` pass-through); `proof:scroll-roundtrip` clause (b) |
+| `parseScrollRange` | HEAVY | manifest-only: parse one `animation-range` shorthand (value.js `parseAnimationRange` pass-through); `proof:scroll-roundtrip` clause (b) |
+| `serializeScrollOptions` | HEAVY | manifest-only: SO-1 SERIALIZE — typed `CSSTimelineOptions` → CSS longhands (value.js `serializeTimelineOptions`); `proof:scroll-roundtrip` clause (b) |
+| `roundTripScrollCSS` | HEAVY | manifest-only: the full `parse → serialize` round-trip (the replay-equality oracle); `proof:scroll-roundtrip` clause (b) |
+| `dispatchScrollBackend` | HEAVY | manifest-only: the conservative-correct native-vs-JS dispatch with a queryable reason (the `waapiIneligibleReason` idiom on the scroll clock); `proof:scroll-roundtrip` clause (c) |
+| `resolveRange` | HEAVY | manifest-only: resolve a parsed `animation-range` to `[start,end]` scroll-extent fractions (the driver's TIME-side fill); `proof:scroll-roundtrip` clause (b) |
+| `pinCSS` | HEAVY | manifest-only: SO-3 the `position:sticky` pin synthesis (SO-4 transform-pinning KILLED); `proof:scroll-roundtrip` clause (d) |
+
+### K.W10 COMPILE — the round-trip's BACKWARD half (the XL anchor)
+
+The CSS compiler (`src/animation/compile.ts`, HEAVY — it statically imports
+value.js's `reverseAnimationShorthand`/`sampleColorRamp`/`deltaEOK` + the engine).
+`compileToCSS` walks an orchestration graph — an `AnimationGroup` (spatial
+blend), a `Sequence` (temporal positioning), or a bare child list (e.g. a
+`stagger` cohort) — and emits a PURE, ZERO-RUNTIME CSS artifact: one
+`@keyframes` block + one `animation` shorthand per child, the `replace`/`add`
+layering as a SEPARATE `animation-composition` longhand (INVERTING W7's
+honoring), springs as `linear()`, materialized stagger/sequence delays, computed
+units (`vh`/`cqw`/`calc()`/`var()`) VERBATIM (STRICTLY BETTER than WAAPI — CSS
+re-resolves natively), and color tracks DENSIFIED into perceptual `oklab()` stops
+(consuming `sampleColorRamp`) under the ΔE-ε proof (`deltaEOK`). The compiler is
+the parser run BACKWARD over the SAME data model (`format.ts` is `keyframes.ts`
+run backward — GSAP/Motion/anime cannot do this, their authoring object is not
+CSS). What cannot round-trip faithfully is REFUSED with a NAMED reason — the four
+CC-3 refusals (`weighted` blend / custom renderers / perceptual oklab beyond
+densify / computed-unit drift), the `waapiIneligibleReason` idiom generalized to
+the CSS domain — never silently approximated. The "Export CSS" editor button
+(CC-4) makes the demo a CSS-animation IDE. The row is manifest-only + gate-covered
+(`proof:compile-replay` — the backward-direction replay-equality oracle; the value
+proof `test/compile-roundtrip.test.ts`).
+
+| Export | Tier | Taught |
+| --- | --- | --- |
+| `compileToCSS` | HEAVY | manifest-only: K.W10 CC-1/CC-2/CC-3 — compile an `AnimationGroup`/`Sequence`/child list → a zero-runtime CSS artifact (`@keyframes` + `animation-*` longhands + `animation-composition` layering + `linear()` springs + materialized stagger delays + perceptual `oklab()` densify) + the four CC-3 refusals (the `{ css, eligible, refusals }` trust surface); the parser run BACKWARD over the SAME data model; `proof:compile-replay` + `test/compile-roundtrip.test.ts` clause (a)/(b)/(c)/(d) |
+
 ## EP-3 — the live-coverage disposition (J.W4 S7 · the uncovered-export BOOK)
 
 `engine-periphery.md` EP-3: `flip`/`flipShared`, `drag`/`Draggable`, and

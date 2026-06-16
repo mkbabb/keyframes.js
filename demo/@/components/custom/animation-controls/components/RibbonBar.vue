@@ -29,6 +29,18 @@
                     >
                         <Sparkles class="icon-sm text-gold" /> Format
                     </Button>
+                    <!-- K.W10 CC-4 — Export CSS: compile the orchestration graph
+                         to a zero-runtime CSS artifact via the gated compileToCSS
+                         (the round-trip's BACKWARD half) + the honest CC-3
+                         ineligibility report. The editor is a CSS-animation IDE. -->
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        :class="RIBBON_BUTTON_CLASS"
+                        @click="activeKeyframesRef?.exportCompiledCSS?.()"
+                    >
+                        <FileCode class="icon-sm text-emerald-500" /> Export CSS
+                    </Button>
                     <Button
                         size="sm"
                         variant="outline"
@@ -111,6 +123,7 @@ import {
     Camera,
     Copy,
     Download,
+    FileCode,
     FilePlus2,
     Paintbrush,
     Sparkles,

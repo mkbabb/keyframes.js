@@ -127,6 +127,8 @@ jobs:
               run: npm run proof:standalone-zero-alloc
             - name: proof:compile-deterministic (E.W8 — byte-deterministic compile ids)
               run: npm run proof:compile-deterministic
+            - name: proof:compile-replay (K.W10 — THE COMPILE; the round-trip's BACKWARD half replays equal or REFUSES)
+              run: npm run proof:compile-replay
             - name: proof:orchestration (F.W3 — stagger/FLIP/decay/Sequence behaviour locks)
               run: npm run proof:orchestration
             - name: proof:interp-fastprops (F.W4 — the dict-mode buffer fold + single-frame alias)
@@ -143,6 +145,14 @@ jobs:
               run: npm run proof:motion-path
             - name: proof:blend (G.W17 — the dead add/weighted blend leaf, element-wise)
               run: npm run proof:blend
+            - name: proof:composition-honored (K.W7 — the engine HONORS the animation-composition operator add/accumulate/composite)
+              run: npm run proof:composition-honored
+            - name: proof:diagnostics-channel (K.W7 — ResolvedKeyframes.diagnostics consumes the value.js ParseDiagnostic producer)
+              run: npm run proof:diagnostics-channel
+            - name: proof:spring-blend-weight (K.W11 — the layer blend weight is spring-driven, zero-alloc on the constant path)
+              run: npm run proof:spring-blend-weight
+            - name: proof:scroll-roundtrip (K.W9 — the scroll-timeline grammar round-trips via value.js 0.13.0; native-vs-JS dispatch)
+              run: npm run proof:scroll-roundtrip
             - name: proof:drawsvg (G.W13 — CSS-native DrawSVG, WAAPI-eligible)
               run: npm run proof:drawsvg
             - name: proof:finished (G.W13 — the .finished completion front-door)
@@ -153,6 +163,8 @@ jobs:
               run: npm run proof:interpolate-anything
             - name: proof:roundtrip-fidelity (G.W16 — parse→format→reparse byte-same midpoint)
               run: npm run proof:roundtrip-fidelity
+            - name: proof:ingest-replay (K.W8 — the round-trip FORWARD; CSSOM walk replays equal to source)
+              run: npm run proof:ingest-replay
             - name: proof:orbital-rotate3d (G.W18 — the orbital rotate3d output collapse)
               run: npm run proof:orbital-rotate3d
             - name: proof:asset-store-singleton (G.W8 — useAssetManager createGlobalState identity)
@@ -218,7 +230,7 @@ jobs:
                   node-version: 24
                   cache: "npm"
             # The demo arm needs glass-ui (the library gate does not). It is the
-            # PUBLISHED registry package (`@mkbabb/glass-ui ~3.11.2`, the I.W6
+            # PUBLISHED registry package (`@mkbabb/glass-ui ~4.0.0`, the I.W6
             # specular consume-edge — TILDE: 3.9.0 carries `specular="off"`, the
             # B7 bloom-absent contract proof:specular-absent-at-rest gates; the
             # floor lives in proof:deps-current, single-sourced from package.json).
@@ -242,6 +254,18 @@ jobs:
                   KF_REQUIRE_BROWSER: "1"
             - name: proof:demo-usability (G.W11 — Discrete route reachable · hero word-gap · unique Play aria)
               run: npm run proof:demo-usability
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            - name: proof:cold-entry (K.W0 — the cold hero CTA STARTS the engine; the engine-write disambiguation)
+              run: npm run proof:cold-entry
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            - name: proof:font-census (K.W2 — the dock band resolves the display voice; the three-voice totality)
+              run: npm run proof:font-census
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            - name: proof:layout-cluster (K.W3 — the docks cluster + the rail is derived + the surplus distributed, all 5 viewports)
+              run: npm run proof:layout-cluster
               env:
                   KF_REQUIRE_BROWSER: "1"
             # ════════════════════════════════════════════════════════════════
@@ -582,7 +606,7 @@ jobs:
             # parked against the UNPUBLISHED glass-ui 3.8.0 (vaporware the user never
             # sees; rc-gate-blindspot §2.5, the B7 vaporware lesson). SUPERSEDED by
             # the CORRECTNESS-tier proof:specular-absent-at-rest above, whose
-            # consume-edge is the PUBLISHED + consumed glass-ui ~3.11.2 flat default.
+            # consume-edge is the PUBLISHED + consumed glass-ui ~4.0.0 flat default.
             # The vaporware-HANDOFF rule in proof:chronic-closure now forbids re-
             # parking it. Key + script removed (no .mjs ever existed on disk).
             # H.W9 F4 — the ppmycota menu leads with the SVG brand mark, no emoji. A

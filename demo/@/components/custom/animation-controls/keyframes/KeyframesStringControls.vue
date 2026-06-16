@@ -43,6 +43,11 @@ import { copyText } from "@utils/clipboard";
 import * as animations from "@src/animation/animations";
 
 import { CSSKeyframesToString } from "@src/animation/format";
+// K.W10 CC-4 (DEMO LEG — FLAGGED) — the "Export CSS" editor button compiles the
+// CURRENT animation to a ZERO-RUNTIME CSS artifact via the SAME `compileToCSS`
+// the `proof:compile-replay` gate proves (no demo-local re-emit), surfacing the
+// CC-3 ineligibility report VERBATIM. The editor becomes a CSS-animation IDE.
+import { compileToCSS } from "@src/animation/compile";
 
 import CSSCodeEditor from "./CSSCodeEditor.vue";
 
@@ -242,6 +247,49 @@ onMounted(async () => {
     await updateCSSAnimationKeyframesStringFromAnimation();
 });
 
+// K.W10 CC-4 (DEMO LEG) — Export CSS: compile the CURRENT animation to a
+// ZERO-RUNTIME CSS artifact via the SAME gated `compileToCSS` (the round-trip's
+// BACKWARD half), copy it, and surface the CC-3 ineligibility report VERBATIM
+// (the named refusal IS the product value — it teaches where kf's unique axes
+// exceed pure CSS). A `weighted` blend / custom renderer / un-densifiable oklab
+// REFUSES with its typed reason; the JS playback stays the only faithful path.
+const exportCompiledCSS = async () => {
+    try {
+        const compiled = await compileToCSS([animation]);
+        if (compiled.eligible && compiled.css) {
+            await copyText(
+                compiled.css,
+                "Compiled CSS copied — zero-runtime, paste & ship 🎉",
+            );
+        } else if (compiled.css) {
+            // Partial: some children compiled, some refused — copy what shipped,
+            // name what did not (the honest-refusal clause).
+            await copyText(compiled.css, "Compiled CSS copied (partial)");
+            for (const refusal of compiled.refusals) {
+                toast.warning(`Could not compile "${refusal.name}"`, {
+                    description: refusal.message,
+                    duration: 10000,
+                });
+            }
+        } else {
+            // Nothing compiled — the whole animation exceeds pure CSS. Show the
+            // VERBATIM refusal reasons (no softened "could not compile").
+            for (const refusal of compiled.refusals) {
+                toast.error(`Cannot compile to CSS — ${refusal.reason}`, {
+                    description: refusal.message,
+                    duration: 10000,
+                });
+            }
+        }
+    } catch (e: unknown) {
+        toast.error("Export CSS failed 🔧", {
+            description: (e as Error).message,
+            duration: 10000,
+        });
+        console.error(e);
+    }
+};
+
 // Expose methods for parent components
 defineExpose({
     formatCSS: formatEditor,
@@ -250,6 +298,7 @@ defineExpose({
             await copyText(cssKeyframesString.value, "CSS copied to clipboard");
         }
     },
+    exportCompiledCSS,
     getCSSString: () => cssKeyframesString.value,
     applyCSSStyles,
     cssApplied,

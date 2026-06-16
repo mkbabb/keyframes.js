@@ -145,6 +145,14 @@ const pickKeyframes = (ast: Stylesheet): KeyframeRule[] => {
  * and re-parse. A leading `/* @keyframes … *​/` comment no longer defeats the
  * detection (the PX-1 comment-defeat bug — the regex `/@keyframes\b/` matched
  * inside a comment and skipped the wrap, yielding a silent empty parse).
+ *
+ * K.W8 SIBLING — `resolveLiveKeyframes` (`./ingest`) is the LIVE-CSSOM analogue
+ * of this STRING normaliser: where `resolveKeyframes` normalises a string of
+ * CSS, `resolveLiveKeyframes` walks `document.styleSheets`, serialises each
+ * `CSSKeyframesRule` via `rule.cssText`, and feeds THAT text into THIS function
+ * — the parser pointed FORWARD at the web the page already ships. It lives in a
+ * separate module (`./ingest`) to avoid an `engine → adapter → ingest → engine`
+ * import cycle; reach it via `loadAnimationEngine()` (the `index.ts` HEAVY edge).
  */
 export const resolveKeyframes = (
     input: string | Stylesheet,

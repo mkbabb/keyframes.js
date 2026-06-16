@@ -1,13 +1,20 @@
 import {
     camelCaseToHyphen,
     formatCSS,
+    reverseAnimationShorthand,
     reverseCSSTime,
     timingFunctions,
     unflattenObjectToString,
     ValueUnit,
 } from "@mkbabb/value.js";
+import type { CSSAnimationOptions } from "@mkbabb/value.js";
 import type { Animation } from "./engine";
-import type { AnimationOptions, Easing, Vars } from "./constants";
+import type {
+    AnimationOptions,
+    CompositeOperator,
+    Easing,
+    Vars,
+} from "./constants";
 import { AnimationOptionError } from "./internal/errors";
 import type { ParsedVarMap } from "./utils";
 
@@ -168,6 +175,114 @@ export function animationOptionsToString(
     css = `.${name} {\n${css}}\n`;
 
     return css;
+}
+
+/**
+ * K.W10 CC-1 — the per-stop declared-body projection EXPOSED to the compiler
+ * (`compile.ts`). `compileToCSS` walks an orchestration graph and emits one
+ * `@keyframes` per child; each stop body is THIS function — the SAME
+ * declared-template authority `CSSKeyframesToString` projects from
+ * (`parsedVars[i]` via `unflattenObjectToString`), so a child compiled by the
+ * group walker is byte-identical to the single-animation serializer's body. The
+ * `bodyOverride` arg lets CC-2's oklab densify substitute a DENSER stop set for
+ * a color leg WITHOUT re-deriving the projection — the densified `{ … }` body is
+ * threaded in, every other key still rides the verbatim declared projection.
+ */
+export function declaredKeyframeBodyFor<V extends Vars>(
+    animation: Animation<V>,
+    i: number,
+    defaultEasing: string,
+): string {
+    return declaredKeyframeBody(animation, i, defaultEasing);
+}
+
+/**
+ * K.W10 CC-1 — the `@keyframes <name> { … }` block builder, factored out of
+ * {@link CSSKeyframesToString} so the multi-animation compiler (`compile.ts`)
+ * emits one block per child from the SAME declared-template authority. Returns
+ * the UN-formatted block (caller runs `formatCSS` once over the whole artifact);
+ * `bodyByStop` (CC-2 densify) substitutes a per-stop body where provided, else
+ * the verbatim declared projection rides. This is the parser run BACKWARD: the
+ * block re-parses to the SAME template it serialized from.
+ */
+export function keyframesBlock<V extends Vars>(
+    animation: Animation<V>,
+    name: string,
+    bodyByStop?: ReadonlyMap<number, string>,
+): string {
+    const defaultEasing = serializeEasing(animation.options.timingFunction);
+
+    // Coalesce identical stop bodies onto one selector list (`0%, 50% { … }`) —
+    // the same de-dup `CSSKeyframesToString` does. A densified stop is unique
+    // (it carries its own body), so it never coalesces away.
+    const keyframesMap = new Map<string, ValueUnit[]>();
+    animation.templateFrames.forEach((templateFrame, i) => {
+        const body =
+            bodyByStop?.get(i) ??
+            declaredKeyframeBody(animation, i, defaultEasing);
+        const existing = keyframesMap.get(body);
+        if (existing) existing.push(templateFrame.start);
+        else keyframesMap.set(body, [templateFrame.start]);
+    });
+
+    let stops = "";
+    for (const [body, percents] of keyframesMap) {
+        stops += `${percents.join(", ")} ${body}\n`;
+    }
+
+    return `@keyframes ${name} {\n${stops}}`;
+}
+
+/**
+ * K.W10 CC-1 — the per-child `animation` SHORTHAND emit via value.js's
+ * `reverseAnimationShorthand` (the published 0.12.0 inverse of the
+ * `animation`-shorthand parser). This is the round-trip producer for each
+ * child's `animation` longhand: kf's {@link AnimationOptions} → the
+ * value.js-spec {@link CSSAnimationOptions} → the canonical shorthand string —
+ * the parser run BACKWARD over value.js's OWN shorthand grammar, NOT a bespoke
+ * re-derivation.
+ *
+ * `animation-composition` is DELIBERATELY NOT folded into the shorthand here:
+ * per the CSS Animations L2 grammar it is NOT a sub-property of the `animation`
+ * shorthand (a browser would not parse `animation: … add name` as composition),
+ * so the compiler ({@link compileToCSS} via `animationComposition`) emits it as
+ * a SEPARATE `animation-composition:` longhand. Keeping it off the shorthand is
+ * the faithfulness — the emitted CSS must re-parse to the same layered result.
+ *
+ * The easing MUST have a faithful CSS twin (`serializeEasing` THROWS otherwise —
+ * the CC-3 custom-renderer/closure refusal generalized to the easing channel);
+ * a spring's `linear()` flows through verbatim.
+ */
+export function animationShorthand(options: AnimationOptions, name: string): string {
+    const cssOptions: CSSAnimationOptions = {
+        name,
+        duration: options.duration,
+        timingFunction: serializeEasing(options.timingFunction),
+        iterationCount: isFinite(options.iterationCount)
+            ? options.iterationCount
+            : Infinity,
+        direction: options.direction,
+        fillMode: options.fillMode,
+    };
+    if (options.delay > 0) cssOptions.delay = options.delay;
+    return reverseAnimationShorthand(cssOptions);
+}
+
+/**
+ * K.W10 CC-1 — the `animation-composition` SEPARATE longhand (CC-1's W7
+ * inversion). CSS `animation-composition` is `replace | add | accumulate`; kf's
+ * `add` LAYER blend (`BlendMode`) and per-stop `add`/`accumulate` honor (W7)
+ * ride here as the standalone longhand, so the emitted CSS replays the SAME
+ * layered result the JS playback did. Returns `undefined` for the default
+ * `replace` (omitted — the byte-minimal round-trip; `replace` is the CSS
+ * default).
+ */
+export function animationComposition(
+    composition: CompositeOperator,
+): string | undefined {
+    return composition === "replace"
+        ? undefined
+        : `animation-composition: ${composition};`;
 }
 
 export async function CSSKeyframesToString<V extends Vars>(

@@ -115,6 +115,57 @@ export type { MotionPathOptions, OffsetPath } from "./motion-path";
 // CSS-native DrawSVG (G.W13) — HEAVY (composes the engine); the runtime rides
 // loadAnimationEngine below. Its option/target types are erased here.
 export type { DrawSVGOptions, SVGDrawTarget } from "./draw-svg";
+// K.W8 INGEST (FLAGGED ADDITIVE EDIT) — the round-trip pointed FORWARD at the
+// live web. `fromStyleSheets`/`fromLiveAnimations`/`resolveLiveKeyframes`/
+// `adoptRunning` walk the CSSOM + take over a running CSS animation; ingest.ts
+// statically imports the engine + adapter (value.js-bearing), so the RUNTIME
+// rides loadAnimationEngine below. ONLY its option/result TYPES are re-exported
+// here (erased — no static value.js edge on the LIGHT barrel; proof:boundary
+// stays green).
+export type {
+    IngestOptions,
+    IngestResult,
+    IngestedAnimation,
+    AdoptRunningOptions,
+    AdoptResult,
+} from "./ingest";
+// K.W9 SCROLL-AS-CSS (FLAGGED ADDITIVE EDIT) — HEAVY (scroll-scene.ts carries a
+// static `@mkbabb/value.js` edge: it consumes the 0.13.0 scroll-grammar typed
+// extractor/serializer). The runtime (`ScrollScene`, `parseScrollCSS`,
+// `dispatchScrollBackend`, `pinCSS`, …) rides loadAnimationEngine below; ONLY
+// its types are re-exported here (erased — no static value.js edge on the LIGHT
+// barrel; proof:boundary stays green). The kf `ScrollScene` driver owns TIME;
+// value.js owns the scroll VALUES.
+export type {
+    ScrollSceneOptions,
+    ScrollDispatchRequest,
+    ScrollDispatch,
+    ScrollBackend,
+    ScrollSceneEvent,
+    ScrollSceneSubscriber,
+    ResolvedRange,
+    SnapPoints,
+    AnimationTimelineValue,
+    AnimationRangeValue,
+    CSSTimelineOptions,
+    RangeBoundary,
+    RangePhase,
+} from "./scroll-scene";
+export type { ScrollScene } from "./scroll-scene";
+// K.W10 COMPILE (FLAGGED ADDITIVE EDIT) — the round-trip's BACKWARD half: compile
+// an orchestration graph (AnimationGroup / Sequence / child list) → zero-runtime
+// CSS. HEAVY (compile.ts statically imports value.js's reverseAnimationShorthand
+// /sampleColorRamp + the engine), so the runtime `compileToCSS` rides
+// loadAnimationEngine below; ONLY its option/result TYPES are re-exported here
+// (erased — no static value.js edge on the LIGHT barrel; proof:boundary stays
+// green). The compiler is the parser run BACKWARD over the SAME data model.
+export type {
+    CompileInput,
+    CompileOptions,
+    CompiledCSS,
+    CompileRefusal,
+    CompileRefusalReason,
+} from "./compile";
 // Heavy-class TYPES stay on the static barrel (erased) so consumers keep
 // `import type { Animation } from "@mkbabb/keyframes.js"` for annotations.
 // The runtime constructors are reached only via `loadAnimationEngine()`.
@@ -132,6 +183,35 @@ import type {
     DrawSVG as DrawSVGClass,
     fromDrawSVG as fromDrawSVGImpl,
 } from "./draw-svg";
+// K.W8 INGEST (FLAGGED ADDITIVE EDIT) — the HEAVY ingest runtime surface, merged
+// onto the engine below (ingest.ts statically imports the engine + adapter, so
+// it rides the dynamic boundary, never the LIGHT static barrel).
+import type {
+    fromStyleSheets as fromStyleSheetsImpl,
+    fromLiveAnimations as fromLiveAnimationsImpl,
+    resolveLiveKeyframes as resolveLiveKeyframesImpl,
+    adoptRunning as adoptRunningImpl,
+} from "./ingest";
+// K.W9 SCROLL-AS-CSS (FLAGGED ADDITIVE EDIT) — the HEAVY scroll-scene runtime
+// surface, merged onto the engine below (scroll-scene.ts has a static value.js
+// edge, so it rides the dynamic boundary, never the LIGHT static barrel).
+import type {
+    ScrollScene as ScrollSceneClass,
+    createScrollScene as createScrollSceneImpl,
+    parseScrollCSS as parseScrollCSSImpl,
+    parseScrollTimeline as parseScrollTimelineImpl,
+    parseScrollRange as parseScrollRangeImpl,
+    serializeScrollOptions as serializeScrollOptionsImpl,
+    roundTripScrollCSS as roundTripScrollCSSImpl,
+    dispatchScrollBackend as dispatchScrollBackendImpl,
+    resolveRange as resolveRangeImpl,
+    pinCSS as pinCSSImpl,
+} from "./scroll-scene";
+// K.W10 COMPILE (FLAGGED ADDITIVE EDIT) — the HEAVY compiler runtime surface,
+// merged onto the engine below (compile.ts statically imports value.js's
+// reverseAnimationShorthand/sampleColorRamp + the engine, so it rides the
+// dynamic boundary, never the LIGHT static barrel).
+import type { compileToCSS as compileToCSSImpl } from "./compile";
 import type * as AnimationPresets from "./animations";
 import type {
     AnimationOptions,
@@ -181,6 +261,52 @@ export interface AnimationEngine {
     FILL_MODES: readonly AnimationOptions["fillMode"][];
     defaultOptions: AnimationOptions;
     defaultLayerConfig: AnimationLayerConfig;
+    /**
+     * K.W8 INGEST (FLAGGED ADDITIVE) — the round-trip pointed FORWARD at the
+     * live web. `fromStyleSheets`/`fromLiveAnimations`/`resolveLiveKeyframes`
+     * walk the CSSOM into kf `CSSKeyframesAnimation` objects (per-sheet CORS
+     * `try/catch` → a `CORS_SKIP` diagnostic, never a silent drop); `adoptRunning`
+     * takes over a RUNNING CSS animation mid-flight via `getAnimations()`
+     * currentTime handoff (the continuity seed, NOT seed-at-zero). HEAVY (the
+     * ingest needs the value.js parser) — reached only here, never the LIGHT
+     * barrel. Named `adoptRunning` to disambiguate from `engine.adoptCompiled`.
+     */
+    fromStyleSheets: typeof fromStyleSheetsImpl;
+    fromLiveAnimations: typeof fromLiveAnimationsImpl;
+    resolveLiveKeyframes: typeof resolveLiveKeyframesImpl;
+    adoptRunning: typeof adoptRunningImpl;
+    /**
+     * K.W9 SCROLL-AS-CSS (FLAGGED ADDITIVE) — the scroll-grammar round-trip
+     * (`parseScrollCSS` / `serializeScrollOptions` / `roundTripScrollCSS`,
+     * consuming value.js 0.13.0's typed `CSSTimelineOptions` extractor +
+     * inverse serializer), the `ScrollScene` JS driver (`createScrollScene`),
+     * the conservative-correct backend dispatch (`dispatchScrollBackend`), and
+     * the `position:sticky` pin synthesis (`pinCSS`). HEAVY (static value.js
+     * edge) — reached only here, never the LIGHT barrel.
+     */
+    ScrollScene: typeof ScrollSceneClass;
+    createScrollScene: typeof createScrollSceneImpl;
+    parseScrollCSS: typeof parseScrollCSSImpl;
+    parseScrollTimeline: typeof parseScrollTimelineImpl;
+    parseScrollRange: typeof parseScrollRangeImpl;
+    serializeScrollOptions: typeof serializeScrollOptionsImpl;
+    roundTripScrollCSS: typeof roundTripScrollCSSImpl;
+    dispatchScrollBackend: typeof dispatchScrollBackendImpl;
+    resolveRange: typeof resolveRangeImpl;
+    pinCSS: typeof pinCSSImpl;
+    /**
+     * K.W10 COMPILE (FLAGGED ADDITIVE) — the round-trip's BACKWARD half:
+     * `compileToCSS(group | sequence | childList)` → a ZERO-RUNTIME CSS artifact
+     * (`@keyframes` + `animation-*` longhands + `animation-composition` layering
+     * + `linear()` springs + materialized stagger delays + perceptual `oklab()`
+     * densify) PLUS the CC-3 ineligibility report (the four named refusals —
+     * `weighted` blend / custom renderers / perceptual oklab beyond densify /
+     * computed-unit drift). The compiler is the parser run BACKWARD over the SAME
+     * data model (`format.ts` is `keyframes.ts` run backward); a human pastes the
+     * result and ships with ZERO kf bytes on the page. HEAVY (value.js-bearing) —
+     * reached only here, never the LIGHT barrel.
+     */
+    compileToCSS: typeof compileToCSSImpl;
 }
 
 /**
@@ -205,14 +331,36 @@ export const loadAnimationEngine = async (): Promise<AnimationEngine> => {
     // Both pull value.js into the heavy chunk; `animate` lives in its own module
     // (it constructs CSSKeyframesAnimation) and is merged onto the engine surface
     // so consumers reach it the same way: `const { animate } = await loadAnimationEngine()`.
-    const [engine, animateMod, motionMod, drawMod, presets] =
-        await Promise.all([
-            import("./engine"),
-            import("./animate"),
-            import("./motion-path"),
-            import("./draw-svg"),
-            import("./animations"),
-        ]);
+    const [
+        engine,
+        animateMod,
+        motionMod,
+        drawMod,
+        ingestMod,
+        scrollMod,
+        compileMod,
+        presets,
+    ] = await Promise.all([
+        import("./engine"),
+        import("./animate"),
+        import("./motion-path"),
+        import("./draw-svg"),
+        // K.W8 INGEST (FLAGGED ADDITIVE) — the ingest module statically imports
+        // the engine + adapter (value.js-bearing); merged here so consumers
+        // reach the CSSOM walk + takeover the same way as the rest of the heavy
+        // surface.
+        import("./ingest"),
+        // K.W9 SCROLL-AS-CSS (FLAGGED ADDITIVE) — the scroll module pulls
+        // value.js's scroll-grammar into the heavy chunk; merged here so
+        // consumers reach it the same way as the rest of the heavy surface.
+        import("./scroll-scene"),
+        // K.W10 COMPILE (FLAGGED ADDITIVE) — the compiler statically imports
+        // value.js's reverseAnimationShorthand/sampleColorRamp + the engine;
+        // merged here so consumers reach the round-trip's BACKWARD half the same
+        // way as the rest of the heavy surface.
+        import("./compile"),
+        import("./animations"),
+    ]);
     return Object.assign(
         {
             animate: animateMod.animate,
@@ -220,6 +368,21 @@ export const loadAnimationEngine = async (): Promise<AnimationEngine> => {
             fromMotionPath: motionMod.fromMotionPath,
             DrawSVG: drawMod.DrawSVG,
             fromDrawSVG: drawMod.fromDrawSVG,
+            fromStyleSheets: ingestMod.fromStyleSheets,
+            fromLiveAnimations: ingestMod.fromLiveAnimations,
+            resolveLiveKeyframes: ingestMod.resolveLiveKeyframes,
+            adoptRunning: ingestMod.adoptRunning,
+            ScrollScene: scrollMod.ScrollScene,
+            createScrollScene: scrollMod.createScrollScene,
+            parseScrollCSS: scrollMod.parseScrollCSS,
+            parseScrollTimeline: scrollMod.parseScrollTimeline,
+            parseScrollRange: scrollMod.parseScrollRange,
+            serializeScrollOptions: scrollMod.serializeScrollOptions,
+            roundTripScrollCSS: scrollMod.roundTripScrollCSS,
+            dispatchScrollBackend: scrollMod.dispatchScrollBackend,
+            resolveRange: scrollMod.resolveRange,
+            pinCSS: scrollMod.pinCSS,
+            compileToCSS: compileMod.compileToCSS,
             presets,
         },
         engine,
