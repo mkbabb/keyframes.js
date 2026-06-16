@@ -182,7 +182,7 @@
     "homepage": "https://github.com/mkbabb/keyframes.js#readme",
     "dependencies": {
         "@mkbabb/parse-that": "^0.9.0",
-        "@mkbabb/value.js": "^0.12.0"
+        "@mkbabb/value.js": "^0.13.0"
     },
     "optionalDependencies": {
         "@mkbabb/glass-ui": "~4.0.0"

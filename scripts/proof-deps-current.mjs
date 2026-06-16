@@ -69,7 +69,7 @@ const FLOORS = {
     // reverseAnimationShorthand) the Band-II compile/color-fidelity waves spend.
     // (value.js 0.13.0 — the K-dispatched scroll/ramp grammar fold — is the Band
     // II K.W9/K.W10 consume edge, not yet published.)
-    "@mkbabb/value.js": "0.12.0",
+    "@mkbabb/value.js": "0.13.0",
     "@mkbabb/parse-that": "0.9.0",
     // BP-6: 3.9.0 was the floor that protects the B7 specular regression —
     // a resolver downgrading into 3.5.x–3.8.x (valid in the old range)
