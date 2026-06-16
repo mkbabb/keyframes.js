@@ -56,27 +56,19 @@
             <code class="artifact text-mono-caption tabular-nums text-muted-foreground block w-full overflow-x-auto whitespace-nowrap">{{ springCss }}</code>
         </div>
 
-        <!-- Preset switch — re-samples the spring, so the artifact + the live
-             transition update in lockstep (same solver, same preset).
-             J.W7b S1b — the published 3.9.0 `<ToggleChip variant="cell">`
-             (reka Toggle → `aria-pressed` + `data-state="on"`) replaces the
-             hand-rolled `<Button variant="outline">` + scoped active-ring
-             twin (deleted in the same motion). The call-site classes are the
-             pixel-parity consumer configuration (the cells' existing
-             outline-pill geometry/tone + the scene-semantic --color-progress
-             active ring, now off the primitive's data-state seam). -->
-        <div class="grid grid-cols-4 gap-2 w-full max-w-3xl">
-            <ToggleChip
-                v-for="p in SPRING_PRESETS"
-                :key="p.name"
-                variant="cell"
-                :model-value="isActivePreset(p)"
-                class="rounded-pill border-none bg-background px-3 py-1.5 h-auto gap-0.5 font-medium leading-normal whitespace-nowrap btn-interactive hover:bg-accent hover:text-accent-foreground data-[state=on]:bg-background data-[state=on]:shadow-[inset_0_0_0_1px_var(--color-progress)]"
-                @update:model-value="applyPreset(p)"
-            >
-                <span class="text-small text-foreground capitalize">{{ p.name }}</span>
-                <span class="text-admin-label text-muted-foreground tabular-nums">{{ p.response }} / {{ p.dampingFraction }}</span>
-            </ToggleChip>
+        <!-- K.W4 S5 — the redundant 4-preset ROW is RETIRED (the same four
+             presets were shown THREE times: here + the SpringSidebar cells +
+             implicitly the sliders, live-spring-sequence-mp-verdict.md §4). The
+             ONE preset surface now lives in the SpringSidebar rail; this discrete
+             stage demotes to a single QUIET result line naming the active preset
+             (the same shared params drive it), so the discrete view stays
+             legible about WHICH spring it eases without re-mounting the picker. -->
+        <div class="active-preset-line flex w-full max-w-3xl items-center justify-center gap-2 shrink-0">
+            <span class="text-mono-caption text-muted-foreground">eased by</span>
+            <span class="active-preset-chip text-mono-small capitalize">{{ activePresetName }}</span>
+            <span class="text-mono-caption text-muted-foreground tabular-nums">
+                ({{ demo.response.value.toFixed(2) }} / {{ demo.dampingFraction.value.toFixed(2) }})
+            </span>
         </div>
     </Card>
 </template>
@@ -84,14 +76,13 @@
 <script setup lang="ts">
 import { computed, inject } from "vue";
 import { Button, Card } from "@mkbabb/glass-ui";
-import { ToggleChip } from "@mkbabb/glass-ui/toggle-chip";
 import { Eye, EyeOff } from "@lucide/vue";
 
 import { useSpringLinearStops } from "./useSpringLinearStops";
 import CopyButton from "@components/custom/CopyButton.vue";
 
 import { SPRING_DEMO_KEY } from "./springKeys";
-import { SPRING_PRESETS, type SpringPreset } from "./springPresets";
+import { SPRING_PRESETS } from "./springPresets";
 
 // The discrete view of the Spring scene (H.W5.S3 — merged from the former
 // standalone Discrete scene). `visible` / `toggle` are owned by the SPRING demo
@@ -101,16 +92,17 @@ const demo = inject(SPRING_DEMO_KEY)!;
 const visible = demo.visible;
 const toggle = demo.toggleDiscrete;
 
-// The preset switch drives the SHARED demo params (response / dampingFraction) —
-// ONE solver, two views: switching a preset here also moves the live-solver
-// sliders, so the discrete transition + the rail read one source of truth.
-const applyPreset = (p: SpringPreset) => {
-    demo.response.value = p.response;
-    demo.dampingFraction.value = p.dampingFraction;
-};
-const isActivePreset = (p: SpringPreset) =>
-    Math.abs(demo.response.value - p.response) < 1e-6 &&
-    Math.abs(demo.dampingFraction.value - p.dampingFraction) < 1e-6;
+// K.W4 S5 — the active preset NAME for the quiet result line (the redundant
+// 4-cell picker is retired; the ONE preset surface is the SpringSidebar rail).
+// Falls back to "custom" when the shared params don't match a canonical preset.
+const activePresetName = computed(() => {
+    const match = SPRING_PRESETS.find(
+        (p) =>
+            Math.abs(demo.response.value - p.response) < 1e-6 &&
+            Math.abs(demo.dampingFraction.value - p.dampingFraction) < 1e-6,
+    );
+    return match?.name ?? "custom";
+});
 
 // The emitted CSS linear() — the ONE springLinearStops surface
 // (useSpringLinearStops, H.W5.S3), sampled off the SAME shared params the
@@ -130,6 +122,20 @@ const copyableCss = computed(
 <style scoped>
 .stage-viewport {
     min-height: 7rem;
+}
+
+/* ── K.W4 S5 — the quiet active-preset result line (the retired picker's heir) ──
+   The discrete view names WHICH spring it eases as a single chip wearing the
+   red-dashed motion language (the --color-progress token, repointed red by Lane
+   B, as a dashed outline — the settled-state register U-K17 prefers), NOT a
+   redundant 4-cell picker. */
+.active-preset-chip {
+    color: color-mix(in srgb, var(--color-progress) 60%, var(--foreground));
+    padding: 0.05rem 0.5rem;
+    border-radius: var(--radius-pill);
+    outline: 1px dashed color-mix(in srgb, var(--color-progress) 45%, transparent);
+    outline-offset: -1px;
+    background: color-mix(in srgb, var(--color-progress) 8%, transparent);
 }
 
 /* The discrete entry/exit card. The visible state is the base; @starting-style

@@ -23,31 +23,32 @@
         <!-- The header rows WRAP (flex-wrap): at 375w an unwrappable row would
              starve the serif title against the two metric badges — the reflow
              keeps every member legible (the D8 responsive behaviour). -->
-        <div class="flex w-full max-w-3xl flex-wrap items-center justify-between gap-3 gap-y-1 shrink-0">
-            <div class="flex flex-wrap items-baseline gap-3 gap-y-1 min-w-0">
-                <span class="text-display text-foreground truncate">
+        <!-- K.W4 S5 (U-K18) — the readout RE-TIERED: the PRIMARY datum (x, the
+             live displacement that proves the engine runs) is promoted to the
+             display-tier `.spring-readout-primary` audacious number wearing the
+             scene accent; the SECONDARIES (v, settled) are DEMOTED to a quiet
+             caption row. The former flat row gave x + v the SAME small MetricBadge
+             size (the equal-weight inversion the user named); the re-tier moves
+             the display weight to the one number that matters. -->
+        <div class="flex w-full max-w-3xl flex-wrap items-end justify-between gap-3 gap-y-2 shrink-0">
+            <div class="flex flex-col gap-1 min-w-0">
+                <span class="text-display text-foreground truncate leading-none">
                     SpringProgress
                 </span>
-                <MetricBadge
-                    size="xl"
-                    label="x"
-                    label-position="inline"
-                    :value="demo.liveValue.value.toFixed(3)"
-                    color="var(--ball-tone, var(--color-progress))"
-                    class="shrink-0"
-                />
-                <MetricBadge
-                    size="lg"
-                    label="v"
-                    label-position="inline"
-                    :value="demo.liveVelocity.value.toFixed(2)"
-                    class="shrink-0"
-                />
+                <div class="flex items-baseline gap-2">
+                    <span class="text-mono-small text-muted-foreground">x</span>
+                    <span class="spring-readout-primary tabular-nums">{{ demo.liveValue.value.toFixed(3) }}</span>
+                </div>
             </div>
-            <span
-                class="status-badge text-admin-label px-2 py-0.5 rounded-full"
-                :class="demo.liveSettled.value ? 'settled-badge' : 'tracking-badge'"
-            >{{ demo.liveSettled.value ? "settled" : "tracking" }}</span>
+            <div class="flex flex-col items-end gap-1 shrink-0">
+                <span
+                    class="status-badge text-admin-label px-2 py-0.5 rounded-full"
+                    :class="demo.liveSettled.value ? 'settled-badge' : 'tracking-badge'"
+                >{{ demo.liveSettled.value ? "settled" : "tracking" }}</span>
+                <span class="text-mono-caption text-muted-foreground tabular-nums">
+                    v {{ demo.liveVelocity.value.toFixed(2) }}
+                </span>
+            </div>
         </div>
 
         <!-- The rail: tap/drag to re-seat the live target -->
@@ -109,9 +110,6 @@
 <script setup lang="ts">
 import { inject, onMounted, onScopeDispose, useTemplateRef } from "vue";
 import { Card } from "@mkbabb/glass-ui";
-// J.W7a S2 (D8) — the published poster-metric primitive (glass-ui 3.9.0); the
-// MetricHeader abstraction over the four stage headers stays a W7b handoff edge.
-import { MetricBadge } from "@mkbabb/glass-ui/metric-badge";
 import { useDragScrub } from "@composables/useDragScrub";
 import { SPRING_DEMO_KEY } from "./springKeys";
 
@@ -183,6 +181,21 @@ const onKeydown = (e: KeyboardEvent) => {
    accident of the idiom default (cross-color-pops §5.1). */
 .spring-target {
     --ball-tone: var(--color-progress);
+}
+
+/* ── K.W4 S5 (U-K18) — the PRIMARY readout, display-tier ──
+   The live displacement x is the one number that proves the engine runs; it
+   gets the audacious-poster register (the missing display-type IN the pane),
+   wearing the scene accent (the cascaded --ball-tone), while v + the settled
+   badge demote to a quiet caption column. The former flat row gave x and v the
+   SAME small MetricBadge size (the equal-weight inversion U-K18 named). */
+.spring-readout-primary {
+    font-size: clamp(2.25rem, 6cqi, 3.25rem);
+    font-weight: 650;
+    line-height: 1;
+    letter-spacing: -0.01em;
+    color: var(--ball-tone, var(--color-progress));
+    font-variant-numeric: tabular-nums;
 }
 
 .spring-rail,

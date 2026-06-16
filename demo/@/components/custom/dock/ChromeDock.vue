@@ -100,6 +100,25 @@ const allControlTabs = computed(() => {
 // affordance presence now settles synchronously with the route.
 const hasControlPanel = computed(() => allControlTabs.value.length > 0);
 
+// K.W4 S6 (U-K16) — single-option-select TOTALITY, by CONSTRUCTION. The
+// controls-tab `<Select>` renders ONLY when there is MORE THAN ONE tab to choose
+// between (`> 1`); a scene with exactly ONE control surface (easing → ['easing'],
+// spring → ['spring']) has nothing to SELECT, so it renders a STATIC label instead
+// of a dead 1-item dropdown that opens onto the value the trigger already shows
+// (the U4 dead-chrome case, `controlSurfaceDFA.ts:76-85`). This mirrors
+// TransportDock's single-animation pattern (a static name when there is one
+// animation, a Select when there are many). The rule is the boundary: `> 1 ⇒
+// select, else static label` — NOT a raised count threshold to paper a scene.
+// `hasControlPanel` (`> 0`) still gates the collapse toggle + separators (a
+// 1-tab scene HAS a panel — it just has nothing to pick), so those still render.
+const multipleControlTabs = computed(() => allControlTabs.value.length > 1);
+
+// The lone control tab (when `hasControlPanel && !multipleControlTabs`) — its
+// label + icon drive the static label that replaces the dead dropdown.
+const soleControlTab = computed(() =>
+    allControlTabs.value.length === 1 ? allControlTabs.value[0] : undefined,
+);
+
 const isMobile = useMediaQuery("(max-width: 1023px)");
 
 const emit = defineEmits<{
@@ -195,9 +214,14 @@ watch(isAnyOpen, (open) => {
 
                         <div v-if="hasControlPanel" class="dock-separator"></div>
 
-                        <!-- Controls tab selector -->
+                        <!-- Controls tab selector. K.W4 S6 (U-K16) — the SELECT
+                             renders ONLY when there is more than one tab to choose
+                             between (`multipleControlTabs`); a single-surface scene
+                             (easing/spring) renders the STATIC label below instead
+                             of a dead 1-item dropdown (the U4 totality rule, by
+                             construction — `> 1 ⇒ select, else static label`). -->
                         <Select
-                            v-if="hasControlPanel"
+                            v-if="multipleControlTabs"
                             :model-value="selectedControl ?? 'controls'"
                             :open="controlsSelectOpen"
                             @update:open="controlsSelectOpen = $event"
@@ -219,6 +243,25 @@ watch(isAnyOpen, (open) => {
                                 </SelectGroup>
                             </SelectContent>
                         </Select>
+
+                        <!-- K.W4 S6 (U-K16) — the single-surface STATIC label. When
+                             a scene has exactly ONE control tab (easing/spring) there
+                             is nothing to select, so the dropdown is replaced by a
+                             plain icon+label readout (the same dock-label register the
+                             trigger used, minus the chevron + the click affordance).
+                             Mirrors TransportDock's single-animation static name. -->
+                        <div
+                            v-else-if="hasControlPanel && soleControlTab"
+                            aria-label="Controls tab"
+                            class="dock-label dock-static-label flex items-center gap-2"
+                        >
+                            <component
+                                v-if="soleControlTab.icon && TAB_ICONS[soleControlTab.icon]"
+                                :is="TAB_ICONS[soleControlTab.icon]"
+                                class="icon-md text-muted-foreground"
+                            />
+                            <span>{{ soleControlTab.label }}</span>
+                        </div>
 
                         <div v-if="hasControlPanel" class="dock-separator"></div>
 
@@ -268,22 +311,24 @@ watch(isAnyOpen, (open) => {
                 </div>
 
                 <!-- Collapsed state.
-                     J.W7a S2 (D7 / pane-cube C3) — the collapsed pill is the
-                     CUBE scene's (and every scene's) top-center identity
-                     moment, formerly a timid sans nav chip: the label lifts to
-                     the Instrument-Serif display face at the heading rung (the
-                     scoped .dock-scene-title below) and the colourful glyph
-                     steps icon-sm → icon-md, so the pill announces the scene in
-                     the brand voice. The label KEEPS calm text-foreground — the
-                     glyph sings, the label stays uncoloured (the cross-color-
-                     pops §3 proportion anti-goal; this is a TYPE delta only). -->
+                     K.W4 F6 (U-K20-adjacent) — on glass-ui 4.0.0 the collapsed
+                     dock necks to a PERFECT CIRCLE (the summary pane floors to
+                     `--dock-collapsed-summary-min-size` with `aspect-ratio: 1`),
+                     and a circle cannot hold the icon + the scene name + a chevron
+                     — the former three-part chip CLIPPED the label ("Cube" → "Cub").
+                     The collapsed content is now ICON-FORWARD: only the scene's
+                     colourful glyph, centred cleanly in the circle (the scene's
+                     identity moment is the glyph, which is already the brand-voice
+                     pop — the J.W7a §3 anti-goal that the label stays uncoloured is
+                     trivially satisfied when the label is absent). The serif
+                     scene-title + chevron belong to the EXPANDED bar (already good);
+                     the EXPANDED scene <Select> trigger above carries the full
+                     `{{ currentLabel }}` for the named identity. This is a kf-CONSUME
+                     fit (no GlassDock patch) — the slot content shrinks to what the
+                     circle holds. -->
                 <template #collapsed>
                     <component v-if="currentIcon" :is="currentIcon" class="icon-md shrink-0 text-muted-foreground" />
                     <Home v-else class="icon-md text-muted-foreground" />
-                    <span class="dock-scene-title text-foreground whitespace-nowrap">
-                        {{ currentLabel }}
-                    </span>
-                    <ChevronDown class="icon-xs text-muted-foreground" />
                 </template>
             </GlassDock>
         </div>
@@ -291,16 +336,15 @@ watch(isAnyOpen, (open) => {
 </template>
 
 <style scoped>
-/* J.W7a S2 (D7 / C3) — the scene-title register for the collapsed dock pill:
-   the published display face (--font-display, Instrument Serif) at the
-   published φ heading token (--type-heading) — a token consumption, never a
-   raw size. Weight 600 matches the display-rung utilities; the body leading
-   keeps the pill's vertical rhythm. */
-.dock-scene-title {
-    font-family: var(--font-display);
-    font-size: var(--type-heading);
-    line-height: var(--type-leading-body);
-    font-weight: 600;
-    font-optical-sizing: auto;
+/* K.W4 S6 (U-K16) — the single-surface STATIC label register. When a 1-tab scene
+   (easing/spring) renders a static label instead of the dead controls-tab dropdown,
+   it must read at the SAME inline height + padding the `DockSelectTrigger` occupied
+   so the dock row keeps its rhythm (no height jump vs a multi-tab scene's trigger).
+   The `dock-label` glass-ui class supplies the font register; this rule only pads
+   the inline box to the trigger's footprint and keeps the text from wrapping. */
+.dock-static-label {
+    padding-inline: var(--dock-label-padding-inline, 0.5rem);
+    white-space: nowrap;
+    color: var(--foreground);
 }
 </style>

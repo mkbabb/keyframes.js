@@ -79,7 +79,12 @@ const userReversed = ref(false);
 
 const onScrubUpdate = (v: { t: number }) => {
     const dur = demo.contractAnim.options.duration;
-    if (dur > 0) demo.progress.value = Math.max(0, Math.min(1, v.t / dur));
+    // K.W4 S2 + F5 — route the scrub through `scrubTo` (the ONE continuous seam):
+    // it moves the thumb + the visualizer + the live ball together AND works
+    // while idle (scrub-while-idle — the playhead is set without play first). The
+    // former `demo.progress.value = …` wrote only the 6 Hz text mirror, so an
+    // idle scrub repainted nothing.
+    if (dur > 0) demo.scrubTo(v.t / dur);
 };
 
 const onToggleReverse = () => {
@@ -100,7 +105,12 @@ const onScrubEnd = () => {
 const standardRibbon = () =>
     h(PlaybackRibbon, {
         animation: demo.contractAnim,
-        currentT: demo.progress.value * demo.contractAnim.options.duration,
+        // K.W4 S2 — the scrubber thumb reads the CONTINUOUS 60 Hz position
+        // channel (`scrubberPhase`), NOT the 6 Hz `progress` text mirror that
+        // made the thumb visibly STEP (live-spring-sequence-mp-verdict.md §2). A
+        // single position read per frame moves only the thumb (the badges ride
+        // the 6 Hz throttle elsewhere) — the slider is born-continuous.
+        currentT: demo.scrubberPhase.value * demo.contractAnim.options.duration,
         isAnimPlaying: demo.isPlaying.value,
         isAnimStarted: true,
         userReversed: userReversed.value,

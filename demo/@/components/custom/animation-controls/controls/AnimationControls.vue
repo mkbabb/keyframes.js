@@ -40,9 +40,11 @@
         >
             <!-- Tabs header (hidden when managed externally via ChromeDock).
                  glass-ui 4.0.0 (BA.W-TABS) — the reka `<Tabs>`/`<TabsList>` strip
-                 is the canonical `<SegmentedTabs variant="underline">` (the PAPER
-                 material — panel-nav `role=tablist`/`tab`, the ink-hairline
-                 indicator engine). The strip is OPTIONS-DRIVEN: `stripOptions`
+                 is the canonical `<SegmentedTabs>` (panel-nav `role=tablist`/`tab`,
+                 one indicator engine). K.W4 S4 (U-K12) — the material is `pill`
+                 (the glass-track slider chip), NOT the near-invisible `underline`
+                 ink-hairline rule the user called an "unlabeled divider". The strip
+                 is OPTIONS-DRIVEN: `stripOptions`
                  unions the DFA-valid built-in triad with the scene-specific tabs
                  (the machine's `extraControlTabs` data), so the former
                  `tabs-trigger` slot + per-trigger reka injection retire — every tab
@@ -52,8 +54,17 @@
                  overflow probe is retained below for the scroll-into-view of the
                  active tab on a narrow viewport). -->
             <div v-if="!tabsExternallyManaged" ref="tabsHeaderEl" class="relative w-fit flex items-center justify-center flex-shrink-0 glass-wash rounded-panel px-2 py-0.5 overflow-hidden">
+                <!-- K.W4 S4 (U-K12) — the in-panel control strip is the PILL
+                     register, not the near-invisible `underline` (the user's
+                     verdict: "pills if tabs at all"). `variant="pill"` is the
+                     3.13.0/4.0.0 glass-track slider — a legible on-brand chip the
+                     active tab reads as, where the underline ink-hairline "read as
+                     an unlabeled divider" (`live-dock-tabs-selects.md §1`). The
+                     display-font register on the option labels is W2's single
+                     `--font-display` authority (consumed via `tab-trigger.css`,
+                     not re-authored here — the W2 boundary). -->
                 <SegmentedTabs
-                    variant="underline"
+                    variant="pill"
                     :options="stripOptions"
                     :model-value="selectedControlSurface"
                     @update:model-value="selectControl"
@@ -212,9 +223,6 @@ import {
     computed,
     defineAsyncComponent,
     inject,
-    nextTick,
-    onMounted,
-    ref,
     Teleport,
     useTemplateRef,
     watch,
@@ -225,7 +233,8 @@ import {
     TABS_EXTERNALLY_MANAGED_KEY,
 } from "../injectionKeys";
 import { ChevronDown, Minimize2 } from "@lucide/vue";
-import { useScrollFade } from "../composables/useScrollFade";
+import { useTabStripScroll } from "./composables/useTabStripScroll";
+import { useKeyframesPaneReveal } from "./composables/useKeyframesPaneReveal";
 import {
     useSceneMachine,
     BUILT_IN_SURFACES,
@@ -406,69 +415,22 @@ const timelineRef = useTemplateRef<InstanceType<typeof KeyframeTimeline>>("timel
 const tabsContentEl = useTemplateRef<HTMLElement>("tabsContentEl");
 const tabsHeaderEl = useTemplateRef<HTMLElement>("tabsHeaderEl");
 
-// glass-ui 4.0.0 (BA.W-TABS) — `<SegmentedTabs>` owns its option buttons
-// internally (no per-trigger ref hook), so the prior owned `tabTriggerEls` map +
-// `setTabTriggerRef` callback ref are GONE. The active-tab scroll-into-view reads
-// the strip's own `[role=tab][aria-selected=true]` node (the underline variant's
-// panel-nav DOM) under the header element directly.
-
 const isTimelineVisible = computed(() =>
     storedControls.selectedControl === "timeline" || storedControls.isTimelineExpanded,
 );
 
-// B-2: the keyframes pane is force-mounted and content-visibility-cached when
-// inactive. `keyframesActive` toggles the `.inactive` class + the `inert`
-// attribute (inert, not bare aria-hidden, so focusable Monaco descendants leave
-// the tab order too — closing the aria-hidden-focus a11y defect).
+// B-2: the keyframes pane is force-mounted + content-visibility-cached when
+// inactive; its reveal-focus concern lives in useKeyframesPaneReveal (the K.WZ
+// proof:demo-no-oversize seam; zero behavior change). The template ref stays
+// declared here (template refs resolve in setup scope) and is passed in.
 const keyframesPaneEl = useTemplateRef<any>("keyframesPaneEl");
-const keyframesActive = computed(() => storedControls.selectedControl === "keyframes");
+const { keyframesActive } = useKeyframesPaneReveal({ storedControls, keyframesPaneEl });
 
-// On reveal, move focus into the freshly-shown Monaco pane (the cached pane was
-// inert + content-visibility:hidden while inactive) and let Monaco's deferred
-// ResizeObserver re-measure now that the box has layout again. The pane is
-// force-mounted (never torn down), so focus restores cleanly on reveal.
-watch(keyframesActive, (active) => {
-    if (!active) return;
-    nextTick(() => {
-        // The keyframes panel is now a plain `[role=tabpanel]` div ref — resolve
-        // the DOM node whether the ref is a component instance ($el) or the element.
-        const node = (keyframesPaneEl.value?.$el ?? keyframesPaneEl.value) as HTMLElement | undefined;
-        // The tabpanel root carries tabindex=0 when active — focus it so the
-        // revealed pane owns the tab sequence; Monaco re-measures on the layout
-        // pass that content-visibility restoration triggers.
-        node?.focus?.();
-    });
-});
-
-// --- Overflow detection (left + right) via shared composable ---
-const tabsListElRef = ref<HTMLElement | null>(null);
-
-const { fadeClass: overflowClass, check: checkOverflow } = useScrollFade({
-    el: tabsListElRef,
-    axis: "x",
-    classPrefix: "tabs-overflow",
-    observeEl: tabsHeaderEl,
-});
-
-const scrollActiveTabIntoView = () => {
-    // glass-ui 4.0.0 (BA.W-TABS) — the active tab is `<SegmentedTabs>`' own
-    // `[role=tab][aria-selected=true]` button (the underline panel-nav DOM); read
-    // it off the header element rather than an owned per-trigger ref map.
-    const activeBtn = tabsHeaderEl.value?.querySelector<HTMLElement>(
-        "[role=tab][aria-selected=true]",
-    );
-    activeBtn?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
-};
-
-onMounted(() => {
-    // The `<SegmentedTabs variant="underline">` strip renders the `role=tablist`
-    // element (the panel-nav material); there is no public ref for it, so this is
-    // a single DOCUMENTED vendor-DOM contract (the `[data-sonner-toaster]`
-    // disposition, D.W3) — the overflow probe observes that strip node.
-    tabsListElRef.value =
-        tabsHeaderEl.value?.querySelector<HTMLElement>("[role=tablist]") ?? null;
-    scrollActiveTabIntoView();
-});
+// --- Overflow detection + active-tab scroll-into-view (colocated composable) ---
+// The DFA strip itself (`stripOptions` ← `builtInTabs`) stays here; the overflow
+// fade + the active-tab scroll-into-view plumbing live in useTabStripScroll
+// (the K.WZ proof:demo-no-oversize seam; zero behavior change).
+const { overflowClass, reMeasure } = useTabStripScroll({ tabsHeaderEl });
 
 const selectControl = (key: string | number) => {
     // J.W2 S2 — the user-pick path ALSO writes the DFA projection of the pick
@@ -480,22 +442,11 @@ const selectControl = (key: string | number) => {
     storedControls.selectedControl = tabsExternallyManaged
         ? machine.selectedControlSurface(pick, activeConditionals?.value) ?? pick
         : pick;
-    nextTick(() => {
-        checkOverflow();
-        scrollActiveTabIntoView();
-    });
+    reMeasure();
 };
 
 // Re-measure when slot content changes (e.g., Matrix Controls tab appearing)
-watch(
-    () => storedControls.selectedControl,
-    () => {
-        nextTick(() => {
-            checkOverflow();
-            scrollActiveTabIntoView();
-        });
-    },
-);
+watch(() => storedControls.selectedControl, reMeasure);
 
 defineExpose({
     keyframesControlsRef,

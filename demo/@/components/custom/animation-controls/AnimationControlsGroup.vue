@@ -118,17 +118,14 @@ import { computed, onMounted, reactive, ref, useTemplateRef, watch, watchEffect 
 
 import { TooltipProvider } from "@mkbabb/glass-ui";
 
-import { Animation } from "@src/animation/engine";
 import ControlsPaneWrapper from "./components/ControlsPaneWrapper.vue";
 import DemoGlobalChrome from "./components/DemoGlobalChrome.vue";
 import TransportDock from "./TransportDock.vue";
 
-import {
-    getStoredAnimationGroupControlOptions,
-    resetAllStores,
-} from "./stores";
+import { getStoredAnimationGroupControlOptions } from "./stores";
 import { AnimationGroup } from "@src/animation/group";
-import { registerShortcut } from "@mkbabb/glass-ui/keyboard";
+import { useAnimationGroupActions } from "./composables/useAnimationGroupActions";
+import { useControlsKeyboardShortcuts } from "./composables/useControlsKeyboardShortcuts";
 import { useAnimationGroupPlayback } from "./composables/useAnimationGroupPlayback";
 import { useAnimationProgress } from "./composables/useAnimationProgress";
 import { useControlsLayout } from "./composables/useControlsLayout";
@@ -238,70 +235,40 @@ const {
 
 const transportDockRef = useTemplateRef<InstanceType<typeof TransportDock>>("transportDockRef");
 
-const updateLayerConfig = (name: string, config: Partial<import("@src/animation/constants").AnimationLayerConfig>) => {
-    animationGroup.setLayerConfig(name, config);
-};
+// The group-mutation action helpers (layer-config / keyframes-edit invalidate /
+// reset / clear) live in the colocated useAnimationGroupActions composable (the
+// K.WZ proof:demo-no-oversize seam; zero behavior change).
+const { updateLayerConfig, keyframesUpdate, reset, clear } = useAnimationGroupActions({
+    getGroup: () => animationGroup,
+    storedControls,
+    findAnimationGroupObject,
+    syncPlayState,
+});
 
-const keyframesUpdate = (e: { animation: Animation<any> }) => {
-    const groupObject = findAnimationGroupObject(e.animation);
-    if (groupObject != null) {
-        groupObject.values = {};
-    }
-};
-
-const reset = () => {
-    animationGroup.stop();
-    syncPlayState();
-};
-
-const clear = () => {
-    animationGroup.stop();
-    syncPlayState();
-    storedControls.selectedAnimation = null;
-    // resetAllStores() now also wipes the scene-machine persist key, so the
-    // active-scene fact resets to HOME_SCENE_ID on reload. The old raw
-    // `localStorage.setItem("keyframes-js-active-scene", "home")` write is
-    // DELETED — the machine owns that fact (H.W1); the legacy key is read by
-    // nobody.
-    resetAllStores();
-    window.location.reload();
-};
-
-// --- Keyboard shortcuts ---
-
-registerShortcut("Space", () => toggleAnimationGroup(), { preventDefault: true, label: "Play / Pause", group: "Playback" });
-registerShortcut("Escape", () => reset(), { label: "Stop animation", group: "Playback" });
-registerShortcut("R", () => { transportDockRef.value?.resetIconSpin(); reset(); }, { label: "Reset animation", group: "Playback" });
-registerShortcut("ArrowLeft", () => scrubActive(getActiveT() - 0.01), { preventDefault: true, label: "Scrub back", group: "Playback" });
-registerShortcut("ArrowRight", () => scrubActive(getActiveT() + 0.01), { preventDefault: true, label: "Scrub forward", group: "Playback" });
-registerShortcut("Shift+ArrowLeft", () => scrubActive(getActiveT() - 0.1), { preventDefault: true, label: "Scrub back (large)", group: "Playback" });
-registerShortcut("Shift+ArrowRight", () => scrubActive(getActiveT() + 0.1), { preventDefault: true, label: "Scrub forward (large)", group: "Playback" });
-registerShortcut("Home", () => scrubActive(0), { preventDefault: true, label: "Jump to start", group: "Playback" });
-registerShortcut("End", () => scrubActive(1), { preventDefault: true, label: "Jump to end", group: "Playback" });
-registerShortcut("[", () => cycleAnimation(-1), { label: "Previous animation", group: "Navigation" });
-registerShortcut("]", () => cycleAnimation(1), { label: "Next animation", group: "Navigation" });
-registerShortcut("1", () => switchTab("controls"), { label: "Controls tab", group: "Navigation" });
-registerShortcut("2", () => switchTab("keyframes"), { label: "Keyframes tab", group: "Navigation" });
-registerShortcut("3", () => switchTab("timeline"), { label: "Timeline tab", group: "Navigation" });
-registerShortcut("Mod+S", () => activeKeyframesRef.value?.copyCSS?.(), { preventDefault: true, label: "Copy CSS", group: "Actions" });
-registerShortcut("Delete", () => activeTimelineRef.value?.removeSelectedKeyframe?.(), { label: "Delete keyframe", group: "Actions" });
-// Undo / redo over the timeline keyframe state (F.W14.S1) — bound through the
-// ONE existing registry (not a second window listener), so they inherit the
-// editable-target skip + surface in the KeyboardShortcutsModal. The destructive
-// timeline ops (clear / removeKeyframe / inline CSS edits) become reversible.
-registerShortcut("Mod+Z", () => activeTimelineRef.value?.undo?.(), { preventDefault: true, label: "Undo", group: "Actions" });
-registerShortcut("Mod+Shift+Z", () => activeTimelineRef.value?.redo?.(), { preventDefault: true, label: "Redo", group: "Actions" });
-
-// The scrub/cycle actions the bindings above dispatch live with the playback
-// state they mutate — useAnimationGroupPlayback (getActiveT / scrubActive /
-// cycleAnimation; the J.W7a fix-round proof:demo-no-oversize seam). switchTab
-// stays here: it drives the component-owned animControlRefs registry.
+// --- Keyboard shortcuts (colocated composable — the K.WZ proof:demo-no-oversize
+// seam; zero behavior change). The action closures pass IN; the component still
+// owns the playback/ref state they mutate. switchTab stays here: it drives the
+// component-owned animControlRefs registry. The scrub/cycle actions live with
+// the playback state they mutate — useAnimationGroupPlayback (getActiveT /
+// scrubActive / cycleAnimation).
 function switchTab(tab: string) {
     const name = storedControls.selectedAnimation;
     if (!name) return;
     const ctrl = animControlRefs[name];
     ctrl?.selectControl?.(tab);
 }
+
+useControlsKeyboardShortcuts({
+    toggleAnimationGroup,
+    reset,
+    resetIconSpin: () => transportDockRef.value?.resetIconSpin(),
+    getActiveT,
+    scrubActive,
+    cycleAnimation,
+    switchTab,
+    activeKeyframesRef,
+    activeTimelineRef,
+});
 
 </script>
 

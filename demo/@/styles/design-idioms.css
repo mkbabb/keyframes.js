@@ -31,7 +31,8 @@
    ════════════════════════════════════════════════════════════════════════ */
 
 /* ── K.W3 M1 — register --rail-width as a typed <length> custom property ──
-   The derived rail track (clamp(20rem, 26svi, 30rem)) is registered as a typed
+   The derived rail track (clamp(25rem, 33svi, 32rem) — K.W4 F1 widened) is
+   registered as a typed
    `syntax: "<length>"` property so it COMPUTES to a USED px value rather than
    staying an un-resolved string: `svi` (small-viewport-inline) is a viewport
    unit — computationally independent of layout — so a registered <length>
@@ -54,11 +55,11 @@
        `20rem` is REJECTED by Chromium's @property registration ("initial value
        not computationally independent" — rem is treated as context-dependent for
        a registered initial), which silently DROPS the whole registration and
-       leaves --rail-width an un-resolved string. 320px is the px equivalent of
-       the 20rem clamp floor at the default 16px root — the valid absolute-length
-       fallback that keeps the registration LIVE so the clamp/svi resolves to a
-       used px value. */
-    initial-value: 320px;
+       leaves --rail-width an un-resolved string. 400px is the px equivalent of
+       the 25rem clamp floor at the default 16px root (K.W4 F1 — lifted with the
+       wider clamp) — the valid absolute-length fallback that keeps the
+       registration LIVE so the clamp/svi resolves to a used px value. */
+    initial-value: 400px;
 }
 
 /* ── Tokens: the demo's playful spectrum + gold accent + layout constants ──
@@ -162,17 +163,30 @@
        400px DIES (net-deletion, no legacy beside its replacement); the rail now
        WIDENS on a cinema display and BOUNDS on a phone via an intrinsic clamp():
          • 20rem FLOOR — the rail never starves below its control rows;
-         • 26svi MID — viewport-aware intrinsic sizing: registered as a typed
+         • 33svi MID — viewport-aware intrinsic sizing: registered as a typed
            <length> @property (above) so the clamp resolves to px (svi is a
            viewport unit, layout-independent), and the ONE computed length
            cascades (inherits: true) so the grid [rail] track and the
            `.controls-content { width }` pane read the IDENTICAL value (no
-           track/content mismatch). It resolves ≈ 374px at a 1440 shell, saturates
-           at the 30rem (480px) cap from ~1846px-wide up (3440/5120 cinema), and
-           bottoms at the 20rem (320px) floor on a phone-narrow shell — scaled but
+           track/content mismatch). It resolves ≈ 475px at a 1440 shell, saturates
+           at the 32rem (512px) cap from ~1552px-wide up (3440/5120 cinema), and
+           bottoms at the 25rem (400px) floor on a phone-narrow shell — scaled but
            bounded, the §Hard-gate clause (b) property;
-         • 30rem CEILING — no 30rem-wide rail maroons a 5K panel; the chrome stays
+         • 32rem CEILING — no 32rem-wide rail maroons a 5K panel; the chrome stays
            bounded while the stage GROWS into the surplus (M4).
+
+       K.W4 F1 — the rail ~25% WIDER (the user's live verdict: "the controls rail
+       is TOO THIN — make it ~25% WIDER"). The K.W3 clamp(20rem, 26svi, 30rem)
+       ≈ 374px@1440 read too narrow; widened to clamp(25rem, 33svi, 32rem)
+       ≈ 475px@1440 (≈ 27% wider). STILL DERIVED + bounded (floor/mid/ceiling lift
+       in lockstep, the svi viewport-aware mid preserved) — NO fixed px
+       re-introduced, so proof:layout-cluster stays green: the rail still SCALES
+       across viewports (400px floor → 475px@1440 → 512px cap) and bounds at the
+       cap, clause (b)'s "scaled, not invariant 400px" property holds AND stays
+       within the gate's RAIL_MAX bound (the cap 512px ≤ the 520px envelope, so the
+       gate's bounded-check passes without a gate-script edit — the cap moved
+       inside the existing design envelope, not by raising the threshold). The
+       25rem floor (400px) keeps the wider control rows from starving on a phone.
        A <length>, so it is valid as BOTH the grid [rail] track AND the
        `.controls-content { width }` consumer — the single width authority is
        preserved (H.W3.S3): the lg grid track (AnimationControlsGroup,
@@ -182,7 +196,7 @@
        sidebar, ribbon, and timeline match by construction. The open/close axis
        (the track between var(--rail-width) and 0px) is PRESERVED — only the
        open-width literal changes from 400px to the derived clamp(). */
-    --rail-width: clamp(20rem, 26svi, 30rem);
+    --rail-width: clamp(25rem, 33svi, 32rem);
     --mask-fade: 2.5rem; /* the edge-fade magnitude — ONE design decision ("how wide is an
                             edge fade") consumed by BOTH the tab-overflow horizontal fade
                             (AnimationControls) and the controls-pane vertical scroll fade
@@ -235,14 +249,26 @@
            fold: the glass plate finally has structure to refract against).
          • --graph-opacity / --graph-major-opacity — the line strengths, mixed
            over --foreground so dark mode retints for free. The major layer
-           (12%) deliberately resolves ABOVE the former near-invisible 0.10α
+           deliberately resolves ABOVE the former near-invisible 0.10α
            corner-tick floor (the §Hard-gate substrate-legibility clause g).
+
+           K.W4 S8 (U-K20 token half) — the grid lines dialed LESS opaque, the
+           user's "less busy substrate" verdict (the FourierField removal is Lane
+           C's; this is the opacity half). The fine pitch drops 5% → 3% (no gate
+           floor on the fine tier — proof-appearance-suffusion reads --graph-opacity
+           but asserts no minimum). The major pitch drops 12% → 11% — LESS opaque,
+           but DELIBERATELY held STRICTLY ABOVE the 10% legibility floor the gate
+           asserts (proof-appearance-suffusion clause (g): majorOpacityPct > 10).
+           The spec's sketch was ~8%, but 8% < the gate floor and would RED the
+           substrate-legibility gate; 11% is the measured call that reads quieter
+           while keeping the major tier above its asserted floor (re-check the gate,
+           not just the eye — the named §Hard-gate guard).
          • --stage-field-tint — the per-stage field-tint magnitude (MP-OPP1's
            `color-mix(… 4% …)` clean stage field). */
     --graph-pitch: 1rem;
     --graph-major: 5rem;
-    --graph-opacity: 5%;
-    --graph-major-opacity: 12%;
+    --graph-opacity: 3%;
+    --graph-major-opacity: 11%;
     --stage-field-tint: 4%;
 
     /* ── The controls idle-fade opacity (F9, H.W9.S6) ──

@@ -343,13 +343,32 @@
     --axis-z: hsl(240 76% 58%);
     --axis-w: var(--foreground);
 
-    /* ── Progress / slider color tokens ── */
-    --color-progress: hsl(142 71% 45%);
-    --color-slider-track: hsl(142 40% 72%);
-
     /* ── Accent red tokens ── */
     --accent-red: hsl(0 72% 63%);
     --accent-red-foreground: hsl(0 0% 100%);
+
+    /* ── Progress / slider color tokens (K.W4 S3 / U-K17 — the motion-color
+         authority collapsed to ONE: the RED-DASHED) ──
+       The demo carried TWO motion-color identities: the red-dashed (the cube
+       AnimationVisualizer's solid-red ball chasing a dashed-red destination twin,
+       AnimationVisualizer.vue:21,35) and a SEPARATE disliked GREEN
+       (--color-progress = hsl(142 71% 45%)) driving the spring slider thumbs +
+       preset rings + every .progress-ball/.progress-rail/.progress-dot + the scrub
+       track. The user wants ONE — the red-dashed (design-synthesis-k §3/§5). This
+       is the spatial-color analog of the W2 display-token collapse: a TOKEN-level
+       repoint, NOT a per-component hand-roll. --color-progress now resolves the
+       --accent-red family (the SAME hue every motion surface already drew on the
+       cube), and --color-slider-track its lower-saturation rail twin. Every
+       downstream consumer (the conic --dot-p ring, the rail/ball pair, the
+       readout-accent, the status-badge tone, the timeline scrub track) inherits
+       the red by construction — the green is GONE on the motion surfaces. The
+       rainbow play CTA gradient is a SEPARATE palette (--rainbow-*) and is
+       PRESERVED VERBATIM (design-synthesis-k §6; the one sanctioned multi-color
+       pop). The settled/FINAL register pairs this red with the dashed outline
+       (mirroring AnimationVisualizer.vue:35's border-2 border-dashed
+       border-accent-red/40 bg-accent-red/15) at each preset-cell call-site. */
+    --color-progress: var(--accent-red);
+    --color-slider-track: hsl(0 60% 78%);
 
     /* ── Branding ── (uncaged from utils.css, D.W2.S2)
        The --ppmycota-primary brand colour stays a GLOBAL token (it is a token,
@@ -364,10 +383,13 @@
 
 .dark {
     color-scheme: dark;
-    --color-progress: hsl(142 50% 55%);
-    --color-slider-track: hsl(142 30% 40%);
     --accent-red: hsl(5 55% 50%);
     --accent-red-foreground: hsl(0 0% 95%);
+    /* K.W4 S3 — the dark-mode motion-color authority follows the same red
+       collapse: --color-progress aliases the dark --accent-red, the slider-track
+       its lower-saturation dark twin (was the disliked green hsl(142 50% 55%)). */
+    --color-progress: var(--accent-red);
+    --color-slider-track: hsl(5 35% 42%);
 }
 
 /* ════════════════════════════════════════════════════════════════════════

@@ -19,8 +19,8 @@
  *   (a) --ball-tone == icon hue per scene (the S3 colour oracle, the J.md
  *       headline move): easing → --rainbow-violet (#e64de6, bg rgb(230,77,230));
  *       motion-path traveller → --rainbow-cyan (#1ae6e6, bg rgb(26,230,230));
- *       spring ball → --color-progress (#21c45d, bg rgb(33,196,93) — the icon's
- *       rest dot IS green, the declared bind); square box → --subject-teal
+ *       spring ball → --color-progress (the RED-DASHED authority, bg rgb(229,93,93)
+ *       — K.W4 S3/clause(d): the green is GONE on the motion surfaces); square box → --subject-teal
  *       (#52e898, bg rgb(82,232,152)) AND aquamarine (rgb(127,255,212)) DEAD.
  *   (b) the display register's computed font-family resolves Instrument Serif at
  *       the named moments (the four Target headers: ease/SpringProgress/Sequence/
@@ -192,7 +192,10 @@ async function runSuffusion() {
                 );
             }
 
-            // spring ball → --color-progress (the declared green bind)
+            // spring ball → --color-progress (the RED-DASHED motion-color bind —
+            // K.W4 S3/clause(d): the green palette is GONE on the motion surfaces,
+            // --color-progress now resolves the --accent-red family; the ball bg
+            // resolves the red rgb(229,93,93), NOT the retired green rgb(33,196,93)).
             await page.goto(`${base}/#/spring`, { waitUntil: "load" });
             await navToScene(page, "spring", "Spring", { timeout: 12000 });
             await page.waitForTimeout(700);
@@ -200,24 +203,24 @@ async function runSuffusion() {
                 const cs = getComputedStyle(document.documentElement);
                 const ball = document.querySelector(".spring-ball, .progress-ball.spring-ball");
                 return {
-                    green: cs.getPropertyValue("--color-progress").trim(),
+                    accentRed: cs.getPropertyValue("--color-progress").trim(),
                     tone: ball ? getComputedStyle(ball).getPropertyValue("--ball-tone").trim() : null,
                     bg: ball ? getComputedStyle(ball).backgroundColor : null,
                 };
             });
             if (
                 springTone.tone &&
-                springTone.tone.toLowerCase() === springTone.green.toLowerCase() &&
-                /33,\s*196,\s*93/.test(springTone.bg ?? "")
+                springTone.tone.toLowerCase() === springTone.accentRed.toLowerCase() &&
+                /229,\s*93,\s*93/.test(springTone.bg ?? "")
             ) {
                 ok(
                     `(a) spring .spring-ball --ball-tone == --color-progress (${springTone.tone}, the ` +
-                        `declared green bind — the icon's rest dot IS green); bg ${springTone.bg}`,
+                        `RED-DASHED motion-color authority — K.W4 S3, the green is GONE); bg ${springTone.bg}`,
                 );
             } else {
                 fail(
                     `(a) spring .spring-ball --ball-tone is NOT the declared --color-progress ` +
-                        `(tone=${springTone.tone}, expected ${springTone.green}; bg=${springTone.bg})`,
+                        `(tone=${springTone.tone}, expected ${springTone.accentRed}; bg=${springTone.bg})`,
                 );
             }
 

@@ -14,9 +14,12 @@
          hero now parks at the SAME optical top offset the work-area card +the top
          dock anchor derive from (the φ 0.382 slack split), so the hero rides the
          layout chain, not a hardcoded number. Mobile keeps the
-         `pt-[var(--dock-top-band-reserve)]` top-band park (D6 / unchanged). This
-         is the VERTICAL-POSITION reconcile ONLY — the hero COMPOSITION (the
-         FourierField, the empty-quadrant vacancy) is K.W4's seam, untouched. -->
+         `pt-[var(--dock-top-band-reserve)]` top-band park (D6 / unchanged).
+         K.W4 S8 (U-K20) — the hero COMPOSITION is now the title ladder ALONE: the
+         J-added FourierField (the lower-left epicycle field) is REMOVED. The
+         lower-left vacancy is left as HONEST blank grid (the graph-paper substrate
+         alone — the user's intent is clearance, not substitution; two math
+         backgrounds is one too many). No fabricated replacement. -->
     <div
         class="absolute left-0 top-0 z-controls pt-[var(--dock-top-band-reserve)] grid h-0 w-screen items-center gap-0 px-6 lg:pt-0 lg:mt-[var(--work-area-top-offset)] pointer-events-none"
     >
@@ -72,60 +75,27 @@
             {{ hint }}
         </h2>
 
-        <!-- J.W7a S4 (D18 / H1, cross-hierarchy §e, glassui-adopt A4) — the
-             published FourierField (glass-ui 3.9.0) suffuses the math motif
-             into the home doorway's EMPTY left-half vacancy: an inverse-DFT
-             epicycle trace — "drawing with circles", the most on-brand
-             generative surface glass-ui ships an easing engine — at LOW
-             presence in the calm field, parked lower-left BELOW the hero
-             ladder and far from the cube (never over the moving subject — the
-             §S4 anti-goal). Desktop/laptop only (the scoped rule): at phone
-             widths the band belongs to the hero/subject split (D6). The hue
-             resolves through the scene-accent seam (--ball-tone, falling back
-             to the brand's curve violet) via the REQUIRED injected resolver,
-             so dark mode retints for free; reduced-motion freeze is inherited
-             from the primitive's useCanvas2D substrate. -->
-        <div class="fourier-vacancy" aria-hidden="true">
-            <FourierField
-                variant="hero"
-                seed="keyframes.js"
-                color="var(--ball-tone, var(--ppmycota-primary, var(--primary)))"
-                :color-resolver="defaultBlobColorResolver"
-                :freeze="prefersReducedMotion"
-            />
-        </div>
+        <!-- K.W4 S8 (U-K20) — the FourierField that formerly suffused the
+             lower-left vacancy is REMOVED. The vacancy is HONEST blank grid: the
+             two-tier graph-paper substrate alone reads as the math texture (the
+             grid-opacity dial is Lane B's). The hero is the title ladder + the
+             subject; no fabricated replacement, no second math background. -->
     </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
-import { usePreferredReducedMotion } from "@vueuse/core";
 import { List } from "@lucide/vue";
-// J.W7a S4 (D18) — the published generative math motif + its REQUIRED colour
-// seam (glass-ui 3.9.0 — a W7a consume, not a W7b edge).
-import { FourierField } from "@mkbabb/glass-ui/fourier-field";
-import { defaultBlobColorResolver } from "@mkbabb/glass-ui/color";
 import AnimatedText from "@components/custom/AnimatedText.vue";
 import TypingDots from "@components/custom/TypingDots.vue";
 
-// J.W7c U-register verify r2 — FREEZE the generative field under reduced-motion.
-// Two ends meet here: (1) it is the correct reduced-motion posture — a decorative
-// animated math field must rest when the user prefers reduced motion (the same
-// contract TypingDots/AnimatedText already honour); (2) it cleanly DODGES the
-// pre-existing glass-ui RO→render init-order TDZ (handoff RF-16, `Cannot access
-// 'C' before initialization`): FourierField's render reads `freeze || x.reducedMotion`,
-// and a truthy `freeze` SHORT-CIRCUITS before the forward-`const` glass-ui reads,
-// so the crash never arms on the reduced-motion branch. This is a CONSUMER-SIDE
-// use of FourierField's OWN published `freeze` prop — NOT a glass-ui patch (inv-16
-// holds). The durable upstream cure (RF-16) still lands on the next glass-ui bump;
-// this consumer guard is the right posture regardless of that bump.
-// (Merge note: the W4 fix-round-1 PRM mount-gate (v-if) was superseded by this
-// freeze posture — the calm field stays PRESENT as a static resting frame for
-// reduced-motion users instead of vanishing; one mechanism, the primitive's own.)
-const reducedMotionPref = usePreferredReducedMotion();
-const prefersReducedMotion = computed(
-    () => reducedMotionPref.value === "reduce",
-);
+// K.W4 S8 (U-K20) — the FourierField + its REQUIRED `defaultBlobColorResolver`
+// colour seam are REMOVED (the user rejected the J-added math field; the hero is
+// the title ladder + the HONEST blank-grid vacancy). With the field gone, the
+// `usePreferredReducedMotion` + `computed` imports and the RF-16 freeze-guard
+// (the consumer-side `:freeze` short-circuit that dodged the glass-ui RO→render
+// init-order TDZ) are MOOT and removed with it — there is no animated field left
+// to freeze. The durable upstream RF-16 cure is recorded in the AX-handoff ledger;
+// removing the only consumer of the freeze prop leaves no live use here.
 
 // NOTE (H.W6): the former `ellipsis` string prop is gone — the trailing "..." is
 // now the dogfooded <TypingDots/> primitive (a fixed three-dot blink), not a
@@ -209,32 +179,7 @@ withDefaults(
     }
 }
 
-/* J.W7a S4 (D18 / H1) — the FourierField's vacancy frame. The hero host is a
-   zero-height absolute band (the children overflow it by design), so the
-   field's box is sized in viewport units off the SAME left gutter the hero
-   ladder rides (px-6 = 1.5rem): parked in the lower-left vacancy, well below
-   the subtitle/hint ladder and left of the cube's center-right orbit. The
-   published .fourier-field host is `position:absolute; inset:0` — it fills
-   this positioned frame. Low presence: the calm-field opacity keeps the motif
-   a whisper under the glass (the proportion rule — the trail accents, never
-   competes). */
-.fourier-vacancy {
-    /* Desktop/laptop only — declared HERE (not via `hidden lg:block`: the
-       built cascade carries a second `.hidden` rule after the lg variant, so
-       the utility pair loses the order fight; the scoped rule is the honest
-       single home for this one responsive decision). */
-    display: none;
-    position: absolute;
-    left: 1.5rem;
-    top: 62dvh;
-    width: min(30vw, 26rem);
-    height: min(28dvh, 18rem);
-    opacity: 0.6;
-    pointer-events: none;
-}
-@media (min-width: 1024px) {
-    .fourier-vacancy {
-        display: block;
-    }
-}
+/* K.W4 S8 (U-K20) — the `.fourier-vacancy` frame is REMOVED with the field it
+   positioned. The lower-left quadrant is now the unadorned graph-paper substrate
+   (the honest blank-grid vacancy); no positioned host remains. */
 </style>

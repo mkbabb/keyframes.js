@@ -123,7 +123,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, watch } from "vue";
+import { computed } from "vue";
 import { useMediaQuery } from "@vueuse/core";
 import type { AnimationGroup } from "@src/animation/group";
 import type { AnimationLayerConfig } from "@src/animation/constants";
@@ -132,7 +132,7 @@ import type { StoredAnimationGroupControlOptions } from "../stores";
 import AnimationControls from "../controls/AnimationControls.vue";
 import RibbonBar from "./RibbonBar.vue";
 import SheetGrabHandle from "./SheetGrabHandle.vue";
-import { useSheetSpring } from "../composables/useSheetSpring";
+import { useSheetState } from "../composables/useSheetState";
 
 const props = defineProps<{
     animationGroup: AnimationGroup<any>;
@@ -171,36 +171,14 @@ const stageMode = computed(() => props.stageMode ?? "subject");
 // composable in this subtree draws (useControlsLayout / ResponsiveSelect).
 const isDesktop = useMediaQuery("(min-width: 1024px)");
 
-// The sheet's open intent — ONE writable model over the store fact, read by the
-// spring (motion) and read+written by the gesture (the handle's swipe/tap).
-const sheetOpen = computed({
-    get: () => props.storedControls.isControlsPanelOpen,
-    set: (v: boolean) => {
-        props.storedControls.isControlsPanelOpen = v;
-    },
+// The bottom-sheet open-intent + SpringProgress motion + settle-forwarding live
+// in the colocated useSheetState composable (the K.WZ proof:demo-no-oversize
+// seam; zero behavior change). `sheetOpen` is the writable model the grab handle
+// v-models; `sheetStyle` is the `--sheet-t` the mobile CSS detents read.
+const { sheetOpen, sheetStyle } = useSheetState({
+    storedControls: props.storedControls,
+    onSettled: props.onSheetSettled,
 });
-
-// ── The SpringProgress drawer (H.W7.S2 / inv ζ) ──────────────────────────────
-// The sheet's open/close motion is its OWN SpringProgress (useSheetSpring),
-// NOT a CSS `grid-template-rows` ease. `sheetT` ∈ [0,1] springs between the peek
-// detent (0) and the expanded detent (1); the sheet height reads it.
-const { sheetT, settled } = useSheetSpring(sheetOpen);
-
-// J.W2 S3 (M2) — forward the spring's settle to the layout owner. The combined
-// (settled × open) source matters: under PRM the spring snaps synchronously on
-// the open flip (settled never nets false across the tick), so watching
-// `settled` alone would miss the re-open — the `sheetOpen` leg carries it. The
-// consumer (useControlsLayout.onSheetSettled) gates on open + mobile, so a
-// close-settle is a no-op there.
-watch([settled, sheetOpen], ([isSettled]) => {
-    props.onSheetSettled(isSettled);
-});
-
-// The sheet's reactive style — a single custom-property the CSS detents read.
-// Mobile-only (the desktop rail-collapse axis ignores it). `--sheet-t` drives
-// `height` between the peek and expanded detents (both ≤70dvh — NEVER
-// full-height; WV-W7-HIGH-5).
-const sheetStyle = computed(() => ({ "--sheet-t": sheetT.value }));
 
 const emit = defineEmits<{
     (e: "sliderUpdate", val: { t: number; animation: Animation<any> }): void;
@@ -217,6 +195,45 @@ const emit = defineEmits<{
 </script>
 
 <style scoped>
+/* ── K.W4 F2 — ONE SUBTLE BORDER wrapping the two control elements ──
+   The user's live verdict: "the glass card panel should be ONE SUBTLE BORDER
+   wrapping the two control elements (the controls card + the playback card), NOT
+   two heavy separate glass cards." Pre-cure the controls pane read as two
+   floating heavy cartoon cards — the AnimationControls panel and the RibbonBar
+   (playback) card, each with its own offset-stamp depth + border, separated by a
+   gap. The cure GROUPS them: ONE subtle border + radius + a faint surface tint
+   around `.controls-content`, so the two inner cards read as SECTIONS of one
+   cohesive panel rather than two competing cards.
+
+   GATE-HONEST: the inner cartoon Cards KEEP their gated register — the
+   `surface="cartoon" tier="quiet"` translucency (proof:glass-and-cartoon) AND
+   the `--shadow-cartoon-md` offset-stamp depth that grows on hover
+   (proof:cartoon-is-panel-depth) are UNTOUCHED (no :deep override strips them).
+   This wrapper border is PURELY additive — it groups the cards visually without
+   altering the per-card surface the gates probe. The cohesion is a unifying
+   container, not a flattening of the cards.
+
+   The border reads off the design-system --border token at a low-saturation
+   wash; the radius matches the card family (--radius-card); a faint
+   --card-tinted plate behind the group gives it the "one panel" read. Desktop
+   only via the @media block below (the mobile sheet IS already one bordered
+   card — the sheet register, see the mobile block). */
+.controls-content {
+    position: relative;
+}
+@media (min-width: 1024px) {
+    .controls-content {
+        border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+        border-radius: var(--radius-card, 1rem);
+        background: color-mix(in srgb, var(--card) 22%, transparent);
+        /* The group padding owns the breathing room between the wrapping border
+           and the inner cards (the cards' own padding stays inside). The existing
+           shadow-clearance padding (below) is preserved — this adds the inset so
+           the wrapping border does not crowd the inner cartoon cards' stamp. */
+        padding-top: 0.5rem;
+    }
+}
+
 /* ── MOBILE BOTTOM SHEET (H.W7.S1/S2) — the SpringProgress drawer ──
    The 550ms CSS `grid-template-rows` ease is DELETED (no legacy beside the
    replacement). The sheet is a `position: fixed` bottom card whose HEIGHT

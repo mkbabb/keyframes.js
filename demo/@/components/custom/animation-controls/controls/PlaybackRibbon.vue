@@ -159,11 +159,37 @@ const scrubTo = (effectiveT: number) => {
 </script>
 
 <style scoped>
-/* Green-themed timeline slider using project color tokens */
+/* ── The timeline scrub slider — the RED-DASHED motion-color authority (K.W4
+   S3/F4) ──
+   The class name is retained (`.timeline-green` lands on the wrapper that sets
+   the reka <Slider> CSS vars) but the GREEN is GONE: --color-slider-track /
+   --color-progress now resolve the --accent-red family at the token root
+   (style.css K.W4 S3), so the track + thumb paint the SAME red the cube
+   AnimationVisualizer's ball/dashed-twin already drew — ONE motion-color
+   identity (design-synthesis-k §3). No per-component red class; the token
+   repoint carries it.
+
+   F4 — the track THICKER (the user's live verdict: "the timeline SCRUBBER track
+   is too thin"). glass-ui 4.0.0's Slider sets --slider-track-height ON the
+   `.glass-slider[data-size=md]` element itself (1.25rem ≈ 20px), which sits
+   CLOSER to the `.slider-track` than this `.timeline-green` wrapper — so a var
+   set on the wrapper is OVERRIDDEN by the size-default and never reaches the
+   track (measured: wrapper sets .625rem, track still resolves the md 1.25rem).
+   The cure sets the height on the slider element ITSELF via :deep, beating the
+   `[data-size=md]` default's specificity (0,2,0 with the variant attr) so it
+   actually lands: the scrub rail lifts to 1.5rem (24px) — clearly more
+   substantial than the 20px md default the user called "too thin", a chunky
+   scrubbable rail with the red range fill. The thumb keeps its variant size. */
 .timeline-green {
-    --slider-track-bg: color-mix(in srgb, var(--color-slider-track) 15%, transparent);
-    --slider-range-bg: color-mix(in srgb, var(--color-slider-track) 40%, transparent);
+    --slider-track-bg: color-mix(in srgb, var(--color-slider-track) 22%, transparent);
+    --slider-range-bg: color-mix(in srgb, var(--color-slider-track) 45%, transparent);
     --slider-thumb-bg: var(--color-progress);
+}
+/* Set the track height on the slider element (where [data-size=md] declares it)
+   so it wins the cascade and reaches `.slider-track`'s var(--slider-track-height)
+   read — the wrapper-level var did not. */
+.timeline-green :deep(.glass-slider[data-variant=timeline]) {
+    --slider-track-height: 1.5rem;
 }
 .timeline-green:hover {
     --slider-thumb-bg: color-mix(in srgb, var(--color-progress) 80%, transparent);

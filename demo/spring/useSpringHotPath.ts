@@ -59,8 +59,25 @@ export function useSpringHotPath(tracks: SpringTrack[]) {
     // The normalized [0,1] sweep phase the comparison row runs on. It is the one
     // round-trippable scalar the raw-rAF ScenePlayback contract preserves across
     // a scene switch (the live markRaw springs are re-created on remount, so the
-    // phase IS the scene's restorable position). The scrubber-equivalent.
+    // phase IS the scene's restorable position). The CONTRACT authority — written
+    // at PROGRESS_READOUT_HZ (the few-Hz text cadence + the snapshot/restore seam).
     const progress = ref(0);
+
+    // ── K.W4 S2 — the CONTINUOUS scrubber-position channel (the slider cure) ──
+    // The stepping-slider root (live-spring-sequence-mp-verdict.md §2): the
+    // transport scrubber thumb was driven off `progress` — a PROGRESS_READOUT_HZ
+    // (6 Hz) mirror — so the position visibly STEPPED (13 distinct positions /
+    // max-dwell 21 frames over a 2 s play window, the born-RED witness). The cure
+    // is a SEPARATE channel for the POSITION: `scrubberPhase` is written EVERY
+    // frame off the 60 Hz sampler-sweep truth (painter-style — it drives ONLY the
+    // scrubber thumb + the visualizer time-twin, never the badges/numerals, so it
+    // is NOT the re-paint storm the 6 Hz throttle guards against). A few-Hz cadence
+    // is correct for a TEXT numeral (a human cannot read a number changing 60×/s)
+    // and WRONG for a position (the eye sees the 6 Hz step). The two channels are
+    // disjoint by construction: `progress` = text + contract; `scrubberPhase` =
+    // position. (NOT raising PROGRESS_READOUT_HZ to 60 — that un-throttles the
+    // text; NOT a CSS transition masking the steps — the position is born-continuous.)
+    const scrubberPhase = ref(0);
 
     /** The always-current NON-reactive spring state (the painters read this;
      *  the reactive refs lag it by ≤ one readout tick, by design). `phase` is
@@ -119,6 +136,13 @@ export function useSpringHotPath(tracks: SpringTrack[]) {
         }
     };
 
+    /** K.W4 S2 — push the CONTINUOUS sweep phase into the scrubber-position
+     *  channel. Called EVERY frame (60 Hz) from the loop AND on every scrub /
+     *  reset so the thumb tracks born-continuous, never the 6 Hz text mirror. */
+    const paintScrubberPhase = (): void => {
+        scrubberPhase.value = springLive.phase;
+    };
+
     return {
         // Readout mirrors (few-Hz)
         liveValue,
@@ -126,6 +150,9 @@ export function useSpringHotPath(tracks: SpringTrack[]) {
         liveSettled,
         sampled,
         progress,
+        // K.W4 S2 — the continuous scrubber-position channel (60 Hz)
+        scrubberPhase,
+        paintScrubberPhase,
         // The non-reactive hot-path seam
         springLive,
         registerSpringPainter,

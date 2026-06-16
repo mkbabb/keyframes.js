@@ -10,6 +10,8 @@ import { useRafScene } from "../app/useRafScene";
 import { useSceneMachine } from "@components/custom/animation-controls/stores";
 import { SPRING_PRESETS } from "./springPresets";
 import { useSpringHotPath, type SpringTrack } from "./useSpringHotPath";
+import { useSpringKeyframesEditor } from "./useSpringKeyframesEditor";
+import { useSpringDerby } from "./useSpringDerby";
 
 // The comparison-row vocabulary stays importable from the demo composable (the
 // sidebar consumes it here); the interface itself lives with the hot-path seam.
@@ -114,6 +116,8 @@ export function useSpringDemo() {
         liveSettled,
         sampled,
         progress,
+        scrubberPhase,
+        paintScrubberPhase,
         springLive,
         registerSpringPainter,
         repaintSprings,
@@ -129,6 +133,19 @@ export function useSpringDemo() {
     const samplerCss = computed(
         () =>
             `springTimingFunction({ response: ${response.value.toFixed(2)}, dampingFraction: ${dampingFraction.value.toFixed(2)} })`,
+    );
+
+    // ── K.W4 S1 — the PROPER keyframes EDITOR animation (the cube grammar) ────
+    // Colocated in `useSpringKeyframesEditor` (its own concern seam — the same
+    // split shape as `useSpringHotPath`): the engine-owned KeyframesEditor's
+    // two-way `CSSKeyframesAnimation` (per-stop value, add/remove stop) that
+    // RETIRES the read-only viewer. The editor is the PRIMARY authoring path; a
+    // typed edit PERSISTS (the solver presets are a derived convenience). The
+    // `seedKeyframes()` action re-seeds ONLY on the explicit "re-sample" gesture.
+    const { springEditAnim, seedKeyframes } = useSpringKeyframesEditor(
+        () => response.value,
+        () => dampingFraction.value,
+        SAMPLER_DURATION,
     );
 
     let samplerAnim = markRaw(buildSamplerAnimation());
@@ -165,6 +182,12 @@ export function useSpringDemo() {
         // matches the painted state whenever the loop is idle.
         if (machine.status.value !== "playing") {
             flushReadouts();
+            // K.W4 S2 — reconcile the continuous channels to the live phase on
+            // the loop's last frame so the scrubber thumb + the visualizer twin
+            // rest EXACTLY where the loop left them (no snap-back to a stale 6 Hz
+            // mirror when the machine pauses mid-sweep).
+            paintScrubberPhase();
+            contractAnim.t = springLive.phase * contractAnim.options.duration;
             return false;
         }
 
@@ -194,6 +217,14 @@ export function useSpringDemo() {
         // Hot path — direct DOM writes, NO Vue reactivity (D4 transposed).
         repaintSprings();
 
+        // K.W4 S2 — the CONTINUOUS scrubber position, written EVERY frame (60 Hz):
+        // `scrubberPhase` (one position ref) drives the reka <Slider> thumb
+        // born-continuous (never the 6 Hz step); `contractAnim.t` (markRaw) is the
+        // visualizer ball's time-twin. Neither touches the badges (those ride the
+        // 6 Hz throttle below) — the painter channel, NOT a re-paint storm.
+        paintScrubberPhase();
+        contractAnim.t = springLive.phase * contractAnim.options.duration;
+
         // Cold path — the reactive readout mirrors at a few Hz only.
         maybeFlushReadouts(now);
 
@@ -221,17 +252,27 @@ export function useSpringDemo() {
         // The painters read `springLive` directly — the hot path never routes
         // through this reactive ref.
         getProgress: () => progress.value,
-        setProgress: (t) => {
-            // A scrub / restore writes the sweep position: keep the reactive
-            // readouts, the live snapshot, AND the painted balls in lock-step
-            // (a discrete event, not the 60 Hz hot path).
-            springLive.phase = t;
-            springLive.sampled = samplerAnim.at(t).x;
-            flushReadouts();
-            repaintSprings();
-        },
+        setProgress: (t) => scrubTo(t),
         getPlaying: () => machine.status.value === "playing",
     });
+
+    // ── K.W4 S2 + F5 — the ONE scrub seam (scrub-while-idle) ──────────────────
+    // A scrub / restore writes the sweep position: readouts + live snapshot +
+    // painted balls + the continuous scrubber channel + the contract twin move
+    // TOGETHER (a discrete event), so a scrub-while-idle (the loop not running)
+    // STILL moves the thumb/visualizer/ball — the playhead is set WITHOUT play
+    // first (F5). The SAME body the adapter's `setProgress` restore uses; the
+    // transport-scrubber drag calls it directly (the former `progress.value = v`
+    // wrote only the 6 Hz mirror + repainted nothing while idle).
+    function scrubTo(t: number): void {
+        const clamped = Math.max(0, Math.min(1, t));
+        springLive.phase = clamped;
+        springLive.sampled = samplerAnim.at(clamped).x;
+        flushReadouts();
+        repaintSprings();
+        paintScrubberPhase();
+        contractAnim.t = clamped * contractAnim.options.duration;
+    }
 
     // ── Methods ──────────────────────────────────────────────────────
 
@@ -250,48 +291,19 @@ export function useSpringDemo() {
     };
 
     // ── EASTER EGG — "the Derby" (H.W12.S6) ──────────────────────────────────
-    // Double-click the rail → a spring DERBY. The canonical trackers
-    // (smooth/snappy/bouncy/gentle) are normally re-seated TOGETHER; the egg
-    // launches them in a STAGGERED wave (a 110ms cascade) so their different
-    // damping fractions are SEEN racing — the bouncy track overshoots and rings
-    // while the gentle one glides in late. DOGFOODS each track's own
-    // SpringProgress (inv ζ); the shared loop is the sole driver, so the egg only
-    // re-seats targets on a timer. Bounces back to 0 after the launch so the
-    // showcase returns to rest.
-    let derbyRunning = false;
-    const derbyTimers: ReturnType<typeof setTimeout>[] = [];
-    const STAGGER_MS = 110;
-
-    const derby = () => {
-        if (derbyRunning) return;
-        derbyRunning = true;
-        derbyTimers.length = 0;
-
-        // Launch each canonical track to 1 in a staggered wave.
-        tracks.forEach((t, i) => {
-            derbyTimers.push(
-                setTimeout(() => {
-                    t.spring.target = 1;
-                    startLoop();
-                }, i * STAGGER_MS),
-            );
-        });
-        // The live ball joins the wave last, then the whole field bounces home.
-        const launchSpan = tracks.length * STAGGER_MS;
-        derbyTimers.push(
-            setTimeout(() => {
-                liveSpring.target = 1;
-                target.value = 1;
-                startLoop();
-            }, launchSpan),
-        );
-        derbyTimers.push(
-            setTimeout(() => {
-                reseat(0);
-                derbyRunning = false;
-            }, launchSpan + 900),
-        );
-    };
+    // Colocated in `useSpringDerby` (its own concern seam): the staggered-wave
+    // launch of the canonical trackers so their different damping fractions are
+    // SEEN racing. The live ball joins the wave last (`launchLive`), then the
+    // whole field bounces home (`settle`); the shared loop is the sole driver.
+    const { derby } = useSpringDerby(
+        tracks,
+        () => {
+            liveSpring.target = 1;
+            target.value = 1;
+        },
+        () => reseat(0),
+        () => startLoop(),
+    );
 
     /** Rebuild the interactive spring when params change, preserving state. */
     const rebuildLiveSpring = () => {
@@ -352,6 +364,8 @@ export function useSpringDemo() {
         springLive.sampled = samplerAnim.at(0).x;
         flushReadouts();
         repaintSprings();
+        paintScrubberPhase();
+        contractAnim.t = 0;
         startTime = performance.now();
         machine.dispatch({ type: "RESET" });
     };
@@ -361,12 +375,8 @@ export function useSpringDemo() {
     // the adapter) then re-seats progress + the playing/paused status.
     startLoop();
 
-    // ── Dispose seam ─────────────────────────────────────────────────
-    // Stop the gallery's pending derby timers on scope dispose (the raw
-    // RAFPlayback's own teardown is owned by useRafScene's onScopeDispose).
-    onScopeDispose(() => {
-        derbyTimers.forEach(clearTimeout);
-    });
+    // (The derby's pending-timer teardown is owned by `useSpringDerby`'s own
+    // onScopeDispose; the raw RAFPlayback teardown by useRafScene's.)
 
     // ── Scene-contract group (the bottom-bar transport host) ──────────
     // The bottom bar's transport (`AnimationControlsGroup`) requires an
@@ -407,19 +417,18 @@ export function useSpringDemo() {
         { immediate: true },
     );
 
-    // G3 (H.W10.S2) — mirror the sweep phase onto the contract animation's clock
-    // so the STANDARD PlaybackRibbon (scrubber Slider + AnimationVisualizer ball,
-    // mounted in the spring scene's ribbonContent slot) tracks the live sweep: the
-    // visualizer reads `effectiveT/duration`, the scrubber reads `currentT`. The
-    // contract anim drives NO motion (no DOM target) — a pure time-twin. A watch
-    // (not the rAF frame) avoids the contractAnim TDZ (the loop arms at mount).
-    watch(
-        progress,
-        (p) => {
-            contractAnim.t = p * contractAnim.options.duration;
-        },
-        { immediate: true },
-    );
+    // G3 (H.W10.S2) — the contract animation's clock mirrors the sweep phase so
+    // the STANDARD PlaybackRibbon (the AnimationVisualizer ball — it polls
+    // `effectiveT/duration` on its own rAF) tracks the live sweep. The contract
+    // anim drives NO motion (no DOM target) — a pure time-twin.
+    //
+    // K.W4 S2 — the per-frame `contractAnim.t` write now lives in `frame()` (the
+    // 60 Hz hot path) + every scrub/reset/restore seam, so the visualizer twin is
+    // born-CONTINUOUS like the scrubber thumb — NOT the former 6 Hz `watch(progress)`
+    // mirror that stepped the position (live-spring-sequence-mp-verdict.md §2b).
+    // The watch is RETIRED (no-legacy); this is the ONE-TIME mount sync so the
+    // twin is seated before the loop's first frame.
+    contractAnim.t = progress.value * contractAnim.options.duration;
 
     return {
         // Sub-view (H.W5.S3 — the merged Discrete view)
@@ -455,6 +464,9 @@ export function useSpringDemo() {
         // Playback
         isPlaying,
         progress,
+        // K.W4 S2 — the continuous 60 Hz scrubber-position channel (the cured
+        // slider reads THIS, not the 6 Hz `progress` text mirror).
+        scrubberPhase,
 
         // Methods
         reseat,
@@ -464,6 +476,12 @@ export function useSpringDemo() {
         play,
         pause,
         togglePlay,
+        // K.W4 S2 + F5 — the transport-scrubber scrub seam (scrub-while-idle).
+        scrubTo,
+        // K.W4 S1 — the engine-owned KeyframesEditor animation (two-way, per-stop)
+        // + the explicit "re-sample from spring" seed action.
+        springEditAnim,
+        seedKeyframes,
 
         // Scene contract
         animationGroup,
