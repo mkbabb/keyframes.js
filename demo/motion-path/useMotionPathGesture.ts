@@ -225,20 +225,17 @@ export function useMotionPathGesture(
             remeasure();
             lapAccum = 0;
             lastDragRatio = distance.value;
-            const group = demo.animationGroup.value;
-            wasPlayingBeforeDrag = group.playing();
-            if (wasPlayingBeforeDrag) {
-                group.pause();
-                demo.isPlaying.value = false;
-            }
+            // S5c — pause-for-gesture routes through the MACHINE (the single
+            // playback authority), not a direct `group.pause()` + shadow write.
+            // Read the live engine state for the was-playing latch, then dispatch.
+            wasPlayingBeforeDrag = demo.animationGroup.value.playing();
+            if (wasPlayingBeforeDrag) demo.pause();
         },
         onEnd: () => {
             // Release → resume autoplay from the re-seated playhead (setChildTime
-            // updated pausedTime, so the resume is continuous, not a jump).
-            if (wasPlayingBeforeDrag) {
-                demo.animationGroup.value.resume();
-                demo.isPlaying.value = true;
-            }
+            // updated pausedTime, so the resume is continuous, not a jump). The
+            // machine's PLAY → group-adapter resume restarts the engine group.
+            if (wasPlayingBeforeDrag) demo.play();
             wasPlayingBeforeDrag = false;
         },
     });
@@ -252,11 +249,9 @@ export function useMotionPathGesture(
         else if (e.key === "End") next = 1;
         if (next === null) return;
         e.preventDefault();
-        const group = demo.animationGroup.value;
-        if (group.playing()) {
-            group.pause();
-            demo.isPlaying.value = false;
-        }
+        // S5c — a keyboard scrub pauses the sweep through the machine (not a
+        // direct group.pause() + shadow write).
+        if (demo.animationGroup.value.playing()) demo.pause();
         applyDistance(next);
     };
 
@@ -290,19 +285,14 @@ export function useMotionPathGesture(
             if (activeHandle.value) demo.movePoint(activeHandle.value, u.x, u.y);
         },
         onStart: () => {
-            const group = demo.animationGroup.value;
-            handleWasPlaying = group.playing();
-            if (handleWasPlaying) {
-                group.pause();
-                demo.isPlaying.value = false;
-            }
+            // S5c — the control-handle drag pauses the sweep through the machine
+            // (so the re-shaped path doesn't fight the playing traveller).
+            handleWasPlaying = demo.animationGroup.value.playing();
+            if (handleWasPlaying) demo.pause();
         },
         onEnd: () => {
             activeHandle.value = null;
-            if (handleWasPlaying) {
-                demo.animationGroup.value.resume();
-                demo.isPlaying.value = true;
-            }
+            if (handleWasPlaying) demo.play();
             handleWasPlaying = false;
         },
     });

@@ -34,6 +34,11 @@ export function useSquareAnimations(
     // `null` before mount) as well as a plain ref — the box only exists after
     // mount, so the transformFunc null-guards every read.
     box: Readonly<Ref<HTMLElement | null | undefined>>,
+    // S5b (K.W0) — invoked the frame the live loop self-terminates (every spring
+    // settled). The host uses it to clear the one-shot "Play = tumble" play state
+    // when the barrel-roll comes to rest (an honest verb that returns to idle —
+    // NO timer band-aid, NO shadow flag; the loop's own settle IS the signal).
+    onSettle?: () => void,
 ) {
     // One spring per axis. Value/target are normalized [-1, 1] of the box's free
     // travel (mapped to a px translate). The (response 0.32, ζ 0.62) feel reads
@@ -132,7 +137,11 @@ export function useSquareAnimations(
         }
 
         // Self-terminate once every spring settles — re-armed by reseat()/tumble().
-        return !(springX.settled && springY.settled && springSpin.settled);
+        const live = !(springX.settled && springY.settled && springSpin.settled);
+        // S5b — the moment the loop comes fully to rest, signal the host so the
+        // one-shot "Play = tumble" play state clears (the button returns to Play).
+        if (!live) onSettle?.();
+        return live;
     };
 
     // The accumulating spin target — each tumble adds a full turn (720°, 1080°…

@@ -59,7 +59,17 @@ let camera: THREE.PerspectiveCamera | undefined;
 // canvas resize (aspect-aware); the rest pose and the D3 framing are
 // untouched.
 const SPHERE_RADIUS = 1;
-const BOUNCE_FIT_MARGIN = 0.95; // the sphere edge kisses, never crosses, the frame
+// K4-B CURE — amplitude reduced from the edge-kiss 0.95 to a tasteful 0.35.
+// Decision: BOUNCE_FIT_MARGIN is the sole amplitude knob the refreshBounceFraming()
+// fit pipeline exposes; lowering it from 0.95 (edge-kiss BY DESIGN, §Provenance)
+// to 0.35 gives a ≈37% of the canvas-half excursion on each axis, so:
+//   - at rest the sphere dominates the framed area (the centred subject reads);
+//   - on play the bounce is a visible but contained hover arc (~35% of the frame),
+//     not a frame-filling sweep (69%w / 37%h measured at 0.95);
+//   - the authored BOUNCE constant (=5) stays unchanged so the seam is surgical;
+//   - 0.35 was chosen so the simultaneous-worst corner (x+y+z extremes) still
+//     keeps the sphere clearly inside the frame on portrait mobile.
+const BOUNCE_FIT_MARGIN = 0.35; // tasteful hover arc, NOT edge-kiss
 const bounceScale = { x: 1, y: 1, z: 1 };
 
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));

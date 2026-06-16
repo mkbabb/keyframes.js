@@ -377,38 +377,111 @@ async function runBattery() {
         // MODE-FRESH — the INDEPENDENT per-scene legs (a fresh context per scene).
         // ════════════════════════════════════════════════════════════════════
 
-        // ── B1 leg — the rainbow group-play click is TOTAL + the cube draw loop
-        //    is LIVE (≥3 distinct .cube/.graph transforms). Run on HOME (the empty
-        //    group E1 repro) + cube. ─────────────────────────────────────────
+        // ── B1 leg — DE-VACUOUSED (K.W0 S6 Deliverable 2: the engine-write
+        //    disambiguation rule). The verbatim B1 greened on 41-101 distinct
+        //    transforms from the `.idle-hover` CSS bob with the engine OFF — a
+        //    liveness oracle that could not tell an ENGINE write from a decorative
+        //    CSS animation (DL-K2, the gate-blindspot meta-chronic). The cure is to
+        //    DISAMBIGUATE (read the engine's own hand), NOT raise the distinct-count:
+        //      · NO seedControlsOpen on this COLD leg (the genuine cold user never
+        //        has isControlsPanelOpen:true; seeding it re-creates the warm vacuity).
+        //      · the LOAD-BEARING assert is the engine-attributable pair — the dock
+        //        play aria flips Play→Pause AND the playback slider's aria-valuenow
+        //        advances from "0" under ONE gesture (NO second clickRainbowPlay).
+        //      · the OrbitalDrag-wrapper distinct-count is GATED on the
+        //        `play-aria-flips Play→Pause` precondition (its bare count carries
+        //        decorative orbital churn engine-OFF — 13 distinct on the broken cold
+        //        path; the aria gate is what makes its motion engine-ATTRIBUTABLE),
+        //        with `.idle-hover` AND `.graph` DROPPED from the sample.
+        //    Born-RED on the broken cold path (the resume() no-op never starts the
+        //    engine → aria never flips → the precondition fails → RED); GREEN on the
+        //    cure (S1 the resume made total). The full COLD-axis oracle is the
+        //    sibling proof:cold-entry; B1 here is its de-vacuoused in-battery face.
         {
             const ctx = await browser.newContext({ viewport: { width: VW, height: 900 } });
             const page = await ctx.newPage();
-            budget.attach(page, "B1:home/cube-play");
-            await seedControlsOpen(page);
+            budget.attach(page, "B1:cold-hero-play");
+            // NO seedControlsOpen — a genuine cold context (the cure's named forbidding).
             await page.goto(`${base}/#/`, { waitUntil: "load" });
-            await page.waitForTimeout(500);
-            await clickRainbowPlay(page); // home: empty-group play (the E1 throw site)
-            await page.waitForTimeout(1200);
-            // Switch to cube + sample the live transform across the autoplay window.
-            const distinct = await page.evaluate(async () => {
+            await page.evaluate(() => localStorage.clear());
+            await page.goto(`${base}/#/`, { waitUntil: "load" });
+            await page
+                .waitForFunction(
+                    () => !!document.querySelector('button[aria-label="Play animation"]'),
+                    null,
+                    { timeout: 8000 },
+                )
+                .catch(() => {});
+            // The engine-attributable scalars BEFORE the one gesture.
+            const readEngine = () =>
+                page.evaluate(() => {
+                    const pause = !!document.querySelector('button[aria-label="Pause animation"]');
+                    const play = !!document.querySelector('button[aria-label="Play animation"]');
+                    const s = document.querySelector('[role="slider"]');
+                    const sv = s ? parseFloat(s.getAttribute("aria-valuenow") || "0") : null;
+                    return { aria: pause ? "Pause" : play ? "Play" : "?", slider: sv };
+                });
+            const before = await readEngine();
+            await clickRainbowPlay(page); // the ONE cold gesture — NO second click
+            // The hero CTA hands off `#/` → `#/cube`; wait — per the EXPECTED
+            // predicate, NOT a fixed settleMs — for the route to settle on cube
+            // (where the slider projects).
+            await page
+                .waitForFunction(() => location.hash === "#/cube", null, { timeout: 8000 })
+                .catch(() => {});
+            await page
+                .waitForFunction(() => !!document.querySelector('[role="slider"]'), null, { timeout: 8000 })
+                .catch(() => {});
+            // PER-EXPECTED predicate wait: the engine STARTED iff the playback slider
+            // (the engine-attributable playhead) advances above "0". The aria flip is
+            // OPTIMISTIC UI, so the slider advance is the genuine engine signal.
+            const engineStarted = await page
+                .waitForFunction(
+                    () => {
+                        const s = document.querySelector('[role="slider"]');
+                        const sv = s ? parseFloat(s.getAttribute("aria-valuenow") || "0") : 0;
+                        return sv > 0;
+                    },
+                    null,
+                    { timeout: 4000 },
+                )
+                .then(() => true)
+                .catch(() => false);
+            const after = await readEngine();
+            // The aria-GATED OrbitalDrag-wrapper distinct-count (the corroborator):
+            // `.idle-hover` and `.graph` DROPPED; sampled ONLY while aria="Pause".
+            const wrapperDistinct = await page.evaluate(async () => {
                 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-                location.hash = "#/cube";
+                const isPause = () => !!document.querySelector('button[aria-label="Pause animation"]');
+                if (!isPause()) return 0; // the precondition (engine playing) never held
                 const seen = new Set();
-                for (let i = 0; i < 100; i++) {
-                    for (const sel of [".cube", ".graph", ".idle-hover"]) {
-                        const el = document.querySelector(sel);
-                        if (el) {
-                            const t = getComputedStyle(el).transform;
-                            if (t && t !== "none") seen.add(sel + "|" + t);
-                        }
+                for (let i = 0; i < 100 && isPause(); i++) {
+                    // The engine-write subject: the OrbitalDrag wrapper (`.graph > div`,
+                    // apply-transform-to-container). `.idle-hover` (the CSS bob) and the
+                    // bare `.graph` (the engine-off orbital churn) are EXCLUDED.
+                    const el = document.querySelector(".graph > div");
+                    if (el && !el.matches?.(".idle-hover") && !el.closest?.(".idle-hover")) {
+                        const t = getComputedStyle(el).transform;
+                        if (t && t !== "none") seen.add(t);
                     }
                     await sleep(25);
                 }
                 return seen.size;
             });
-            await clickRainbowPlay(page); // cube: the rainbow play on a real group
-            await page.waitForTimeout(800);
-            dom.B1 = { distinct, live: distinct >= 3, pass: distinct >= 3 };
+            const sliderAdvanced = engineStarted && (after.slider ?? 0) > 0 && (before.slider ?? 0) === 0;
+            const ariaIsPause = after.aria === "Pause";
+            // The LOAD-BEARING verdict is the slider advance (the engine-attributable
+            // playhead — the aria flip is OPTIMISTIC UI, so it is a co-condition, not
+            // the gate); the wrapper count is a GATED corroborator (reported, not
+            // load-bearing — the §Provenance adjudication).
+            dom.B1 = {
+                aria: `${before.aria}→${after.aria}`,
+                slider: `${before.slider}→${after.slider}`,
+                ariaIsPause,
+                sliderAdvanced,
+                wrapperDistinctGated: wrapperDistinct,
+                pass: sliderAdvanced && ariaIsPause,
+            };
             await ctx.close();
         }
 
@@ -1429,7 +1502,7 @@ function reportBattery(budget, dom) {
         else fail(`${label} — FAIL [${citedGate}] · ${JSON.stringify(d).slice(0, 220)}`);
     };
 
-    verdict("B1", "B1 cube draw loop is LIVE after group-play (≥3 distinct transforms)", "proof:engine-no-throw-on-play");
+    verdict("B1", "B1 DE-VACUOUSED — the COLD hero play STARTS the engine (aria flips Play→Pause + slider advances from \"0\"; the wrapper count GATED on aria, idle bob excluded)", "proof:cold-entry (K.W0 S6)");
     verdict("B2", "B2 synthetic visibilitychange on a playing scene raises NO _gen throw", "proof:fsm-suspend-resume-live");
     verdict("B4", "B4 switch-into-easing mounts the curve canvas + a handle-drag mutates", "proof:easing-editor-live");
     verdict("B3", "B3 amiga centre-drag moves the SUBJECT not the room", "proof:amiga-subject-is-pivot");
@@ -1444,7 +1517,7 @@ function reportBattery(budget, dom) {
     // Fold each failing DOM leg into the failures tally (the budget verdict above
     // already pushed its own). Collect the DOM fails so the process exits non-zero.
     for (const [key, label, gate] of [
-        ["B1", "B1 cube-live", "proof:engine-no-throw-on-play"],
+        ["B1", "B1 cold-hero-starts-engine", "proof:cold-entry (K.W0 S6)"],
         ["B2", "B2 suspend-no-throw", "proof:fsm-suspend-resume-live"],
         ["B4", "B4 easing-mount+drag", "proof:easing-editor-live"],
         ["B3", "B3 amiga-subject", "proof:amiga-subject-is-pivot"],

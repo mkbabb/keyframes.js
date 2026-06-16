@@ -4,6 +4,11 @@ import { AnimationGroup } from "@src/animation/group";
 import type { CSSKeyframesAnimation } from "@src/animation/engine";
 
 import {
+    createGroupAdapter,
+    useSceneMachine,
+} from "@components/custom/animation-controls/stores";
+
+import {
     buildPathD,
     DEFAULT_POINTS,
     type PathPoint,
@@ -45,7 +50,42 @@ export function useMotionPathDemo() {
         markRaw(new AnimationGroup()),
     );
     const isStarted = ref(true);
-    const isPlaying = ref(false);
+
+    // ── Playback intent: MACHINE-NATIVE, not a private shadow (S5c / D12) ──────
+    // The former `isPlaying = ref(false)` was the un-migrated D12 SHADOW-AUTHORITY:
+    // the gesture engine mutated it at four callsites BESIDE the machine (a pause-
+    // for-drag / resume-on-release that bypassed the single playback authority), so
+    // the cold-mount play state and the bottom-bar transport could disagree with
+    // what the engine group was actually doing. Migrated to the same pattern the
+    // sibling rAF scenes use: `isPlaying` is a READ-ONLY projection of the machine
+    // status; play/pause DISPATCH to the machine, whose group adapter (the
+    // `scenePlayback` exposed below) suspends/resumes the engine group. The gesture
+    // engine now routes its transient pause/resume through `play()`/`pause()` — no
+    // shadow ref to drift, and the traveller's position round-trips through the
+    // group snapshot (each anim's `t`) by construction.
+    const machine = useSceneMachine();
+    const isPlaying = computed(() => machine.status.value === "playing");
+
+    /** Resume the engine group via the machine (the gesture resume-on-release). */
+    const play = (): void => {
+        if (isPlaying.value) return;
+        machine.dispatch({ type: "PLAY" });
+    };
+    /** Pause the engine group via the machine (the gesture pause-for-drag). */
+    const pause = (): void => {
+        if (!isPlaying.value) return;
+        machine.dispatch({ type: "PAUSE" });
+    };
+
+    // ── The ScenePlayback adapter (S5c — the App registers THIS on SCENE_READY) ─
+    // MotionPath IS a group scene (the `fromMotionPath` CSSKeyframesAnimation rides
+    // a contract `AnimationGroup`), so the machine-native adapter is the group
+    // adapter — the SAME contract cube/amiga ride. Exposing it makes the App treat
+    // playback as machine-owned (`ownsPlayback` true ⇒ it never writes the readonly
+    // `isPlaying` computed), and the group snapshot round-trips the traveller's
+    // offset-distance position (`anim.t`) across suspend/restore. The getter reads
+    // the LIVE group (lazily) so it tracks the post-`registerAnimation` swap.
+    const scenePlayback = createGroupAdapter(() => animationGroup.value);
 
     // ── The editable control net (the single source, H.W12.S6 / I3) ──────────
     // A mutable copy of the default figure-loop points (DEFAULT_POINTS is a
@@ -94,7 +134,12 @@ export function useMotionPathDemo() {
     return {
         animationGroup,
         isStarted,
+        // Machine-native playback (S5c): a read-only projection + dispatchers + the
+        // group ScenePlayback adapter the App registers (NO shadow `isPlaying` ref).
         isPlaying,
+        play,
+        pause,
+        scenePlayback,
         registerAnimation,
         // The editable geometry (H.W12.S6 / I3) — the single source.
         points,

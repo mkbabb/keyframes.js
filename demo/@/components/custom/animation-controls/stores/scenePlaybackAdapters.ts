@@ -75,7 +75,8 @@ export function createGroupAdapter(
 
         resume(): void {
             const group = getGroup();
-            if (group.started && group.paused) group.resume();
+            if (!group.started) group.play();          // START a fresh group (the P0 cure)
+            else if (group.paused) group.resume();     // un-pause a started one (the extant behavior)
         },
 
         isPlaying(): boolean {

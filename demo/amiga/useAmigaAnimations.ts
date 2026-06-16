@@ -51,14 +51,22 @@ export function useAmigaAnimations(
         }
         Object.assign(sphereMesh.rotation, vars.rotation);
 
-        if (vars.colorT) {
-            const raw = vars.colorT;
-            const colorT = Array.isArray(raw) ? raw[0].value : raw;
-            const color = new THREE.Color().setHSL(colorT, 1, 0.95);
-            sphereMesh.material.color = color;
-        }
+        // K4-A CURE: the per-frame material.color hue-cycle is REMOVED — colorT
+        // is no longer keyframed in the rotations animation below, so the
+        // checkerboard map renders at its constructed white default (satRange 0).
     };
 
+    // K4-A CURE — colorT removed from the default group's rotations keyframes.
+    // Decision: surgical removal of colorT from the authored keyframes is
+    // preferred over routing to emissive, because:
+    //   (a) colorT ONLY appears here (the default group); the boing easter-egg
+    //       already resets material.color to white on stop (AmigaScene.onBoing);
+    //   (b) the checkerboard's authored white/red saturation is the visual identity
+    //       — a hue multiplier cycling over 20s was never an explicit design
+    //       intent, just an incidental consequence of animating a spare scalar;
+    //   (c) removing it from the keyframes leaves the material.color at its
+    //       constructed default (THREE.Color(0xffffff) = white) so the map texture
+    //       renders at full authored saturation with zero churn (satRange = 0).
     const rotations = new CSSKeyframesAnimation({
         duration: 20000,
         iterationCount: Infinity,
@@ -71,7 +79,6 @@ export function useAmigaAnimations(
                     y: 0,
                     z: 0,
                 },
-                colorT: 0,
             },
             {
                 rotation: {
@@ -79,7 +86,6 @@ export function useAmigaAnimations(
                     y: 2 * Math.PI,
                     z: 2 * Math.PI,
                 },
-                colorT: 1,
             },
         ],
         transform,

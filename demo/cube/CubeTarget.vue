@@ -56,10 +56,7 @@
                                         ? 'opacity-100'
                                         : 'opacity-25')
                                 "
-                                :style="{
-                                    animationDelay: `${Math.random() * 10}s`,
-                                    animationDuration: `${Math.random() * 10}s`,
-                                }"
+                                :style="rainbowTimings[index]"
                             >
                             </span>
                             <template v-if="!ppMode">
@@ -131,6 +128,17 @@ const cubeSides = [
     { class: "top", content: "5", color: "rgba(255, 0, 255, 0.8)" },
     { class: "bottom", content: "6", color: "rgba(0, 255, 255, 0.8)" },
 ];
+
+// S5d (K.W0) — the per-face rainbow-wrapper animation timings were drawn with
+// `Math.random()` INSIDE the inline :style binding, so every render re-rolled the
+// delay/duration and the rainbow shimmer flickered on each reactive tick. The
+// timings are a constant property of each face, not render state: draw them ONCE
+// at setup (one entry per cube side) and bind the static array by index. No
+// per-render randomness — the shimmer is now stable across reactivity.
+const rainbowTimings = cubeSides.map(() => ({
+    animationDelay: `${Math.random() * 10}s`,
+    animationDuration: `${Math.random() * 10}s`,
+}));
 
 // ── EASTER EGG — "the Roll" (H.W12.S6) ───────────────────────────────────────
 // Double-click M. Cubert → roll the die. The cube IS a six-faced die (1–6); the

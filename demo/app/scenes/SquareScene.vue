@@ -34,7 +34,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, markRaw, onBeforeUnmount, onMounted, reactive, useTemplateRef } from "vue";
+import { computed, markRaw, onBeforeUnmount, onMounted, reactive, ref, useTemplateRef, watch } from "vue";
 import { Card } from "@mkbabb/glass-ui";
 import { AnimationGroup } from "@src/animation/group";
 import { useDragScrub } from "@composables/useDragScrub";
@@ -42,11 +42,35 @@ import { useSquareAnimations } from "../../square/useSquareAnimations";
 
 const superKey = "Square";
 
+// S5b (K.W0 / U-K5 "none of the animations work properly /square") — THE PLAY VERB
+// MADE HONEST. The box is drag-autonomous (the spring loop owns its paint); the
+// contract `AnimationGroup` below is a keyframes-readout transport host whose
+// grouped interpolation passes FLAT ValueUnits that don't match the nested-object
+// structure the box transformFunc reads (`singleTarget = false`), so `group.play()`
+// painted NOTHING — a dead Play. The cure (the named decision, option (b)): Play
+// TUMBLES the box. `isPlaying` is a WRITABLE ref the App toggles (the cube/amiga
+// contract); a rising edge fires the existing spring-driven `tumble()` — a real,
+// visible 360° barrel-roll with a colour sweep, painted by the ONE spring-loop
+// authority — and the play state self-clears when the tumble settles (`onSettle`).
+// No new shadow playback authority, no timer: the loop's own settle is the signal.
+const isPlaying = ref(false);
+
 const box = useTemplateRef<HTMLElement>("box");
 const { anim, springX, springY, reseat, settle, travel, paintRest, tumble, dispose } =
-    useSquareAnimations(box);
+    useSquareAnimations(box, () => {
+        // The barrel-roll has come to rest — return the Play button to its idle
+        // posture (the honest one-shot verb).
+        isPlaying.value = false;
+    });
 anim.name = "Transform";
 anim.superKey = superKey;
+
+// Fire the honest tumble on the Play CTA's rising edge (the App writes `isPlaying`
+// for this scene — the non-`scenePlayback` writable-ref contract). A falling edge
+// (settle / pause) needs no action: the tumble is a self-completing one-shot.
+watch(isPlaying, (playing, was) => {
+    if (playing && !was) tumble();
+});
 
 const animationGroup = markRaw(new AnimationGroup(anim as any));
 // Force per-animation transform path — the grouped path passes flat ValueUnit
@@ -151,6 +175,11 @@ const onKeydown = (e: KeyboardEvent) => {
 defineExpose({
     animationGroup: computed(() => animationGroup),
     superKey,
+    // S5b — the writable play state the App toggles for a group-adapter scene
+    // (the cube/amiga contract: `onPlayStateChange` writes `isPlaying` when the
+    // scene does NOT own its own `scenePlayback`). Here the rising edge tumbles
+    // the box (the honest Play verb), and `onSettle` clears it back to idle.
+    isPlaying,
 });
 </script>
 

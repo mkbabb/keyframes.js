@@ -41,7 +41,6 @@ import {
 import { Lock, LockOpen, RotateCcw } from "@lucide/vue";
 
 import { MatrixEditor } from "@components/custom/matrix-editor";
-import { EditorStartScreen } from "@components/custom/editor-shell";
 import CubeTarget from "../../cube/CubeTarget.vue";
 
 import { getStoredAnimationGroupControlOptions } from "@components/custom/animation-controls/stores";
@@ -135,11 +134,6 @@ const headerLeft = () =>
         ],
     });
 
-const startScreen = () =>
-    h(EditorStartScreen, {
-        hint: "or drag M. cubert \u{1F642}\u200D\u2194\uFE0F",
-    });
-
 const tabsTrigger = (slotProps: { selectedAnimation: string }) =>
     slotProps.selectedAnimation === CUBE_ANIMATION_NAMES.Matrix
         ? h(TabsTrigger, {
@@ -210,7 +204,6 @@ defineExpose({
     isPlaying,
     isStarted,
     headerLeft,
-    startScreen,
     tabsTrigger,
     tabsContent,
     ribbonContent,

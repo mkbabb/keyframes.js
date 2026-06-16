@@ -86,19 +86,38 @@ export function useSceneMachineApp(opts: {
     }
 
     // ── The SCENE_READY emit (S4 — once per entry, targets-attached) ──────────
-    // `readyFor` is the scene-id the last SCENE_READY fired for; a new scene-id
-    // (or a remount of the same id) re-arms it. NOT a nextTick count.
+    // The once-per-entry guard keys on the (scene-id × BOUND-GROUP-IDENTITY)
+    // pair, not the scene-id alone (K.W0). A new scene-id re-arms it; so does a
+    // *fresh group object* for the same scene-id — the home→cube hero handoff
+    // crosses the `AnimationControlsGroup :key="superKey"` boundary
+    // (`__home__`→`Cube`, EditorShell.vue), so CubeScene REMOUNTS and exposes a
+    // BRAND-NEW group. Keying on scene-id alone, the synchronous pre-remount
+    // drive consumed the guard against the OLD (doomed) group — which the
+    // outgoing CubeScene's `onBeforeUnmount` then `stop()`ed — and the genuinely-
+    // live post-remount group was blocked from ever re-driving SCENE_READY/PLAY
+    // (the cold hero P0: the FSM read playing/started while the live engine was
+    // dead). Keying on the group identity, the post-remount group RE-drives.
     let readyFor: string | null = null;
+    let readyGroup: object | null = null;
 
     /**
      * Mark the active scene ready: bind its adapter, emit SCENE_READY (the
      * restore), and apply the auto-play intent. Fires once the scene's
      * `defineExpose` surface is reachable through `sceneRef` (the genuine
      * targets-attached moment). Driven from BOTH the <Suspense> @resolve and the
-     * group watcher — the once-per-entry guard makes the double-drive safe.
+     * group watcher — the once-per-(entry × group) guard makes the double-drive
+     * safe AND re-drives against a fresh group when the scene remounts.
      */
     function markSceneReady() {
-        if (readyFor === currentSceneId.value) return; // already fired this entry
+        // The live group the scene currently exposes (the genuine bind target).
+        // `undefined` for home (no group) and transiently mid-remount.
+        const liveGroup = (sceneRef.value?.animationGroup ?? null) as object | null;
+
+        // Already driven THIS entry against THIS exact group? No-op. A fresh
+        // group object for the same scene-id (a remount across the superKey-keyed
+        // AnimationControlsGroup boundary) does NOT match `readyGroup`, so it
+        // falls through and re-drives the restore/auto-play against the live one.
+        if (readyFor === currentSceneId.value && readyGroup === liveGroup) return;
 
         // The targets-attached precondition (S4 / WV-W1-MED-5): for a non-home
         // scene, `sceneRef` must be bound to THE CURRENT scene (its exposed
@@ -112,9 +131,20 @@ export function useSceneMachineApp(opts: {
             sceneRef.value?.superKey === currentSuperKey.value;
         if (!boundToCurrent) return;
 
+        // A non-home scene is genuinely ready ONLY once it exposes its live
+        // group (the targets-attached moment). The synchronous pre-remount drive
+        // for the home→cube handoff reaches here while `sceneRef` is still the
+        // OUTGOING (home-keyed) CubeScene that is about to unmount; binding +
+        // PLAYing THAT group is the P0 (its `onBeforeUnmount` `stop()`s it the
+        // same tick). Defer to the group-watcher's re-drive once the incoming
+        // scene's fresh group binds — `autoPlayNext` is preserved across the
+        // deferral, so the live group inherits the gesture's auto-play intent.
+        if (!isHome.value && !liveGroup) return;
+
         // Bind the adapter now the scene is genuinely the current one.
         bindSceneAdapter();
         readyFor = currentSceneId.value;
+        readyGroup = liveGroup;
 
         machine.dispatch({ type: "SCENE_READY" });
 
@@ -136,12 +166,19 @@ export function useSceneMachineApp(opts: {
     watch(() => sceneRef.value?.animationGroup, markSceneReady);
 
     // Re-arm the guard on every machine scene change; drive readiness DIRECTLY
-    // for the home ↔ cube no-remount transition (shared Suspense key 'cube' → no
-    // @resolve / no group-watch change). A genuine remount is driven by the
-    // group watcher / @resolve when the new scene's surface binds (NOT here —
-    // sceneRef is still the old one).
+    // for the home ↔ cube transition (shared Suspense key 'cube' → no @resolve).
+    // home and cube share the CubeScene component but NOT the `superKey`
+    // (`__home__` vs `Cube`), so crossing home→cube REMOUNTS the scene across the
+    // `AnimationControlsGroup :key="superKey"` boundary — the synchronous drive
+    // here lands on the OUTGOING group (no liveGroup yet for the incoming one),
+    // so markSceneReady binds nothing playable and DEFERS; the group-watcher's
+    // re-drive (the new group's bind) carries the SCENE_READY/PLAY. We still
+    // call it here to advance the restore for the home→home / cube→cube echo and
+    // to re-arm the guard. A genuine remount of another scene is driven by the
+    // group watcher / @resolve when the new scene's surface binds.
     watch(currentSceneId, (id, prev) => {
         readyFor = null;
+        readyGroup = null;
         const shared = (s: string) => s === "home" || s === "cube";
         if (shared(id) && shared(prev)) markSceneReady();
     });

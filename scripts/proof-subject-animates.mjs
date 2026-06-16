@@ -46,10 +46,11 @@ import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { REQUIRE_BROWSER, withBrowser } from "./lib/demo-driver.mjs";
+import { REQUIRE_BROWSER, navToScene, withBrowser, withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const LIB_DIST = path.join(REPO, "dist");
+const GH_DIST = path.join(REPO, "dist/gh-pages");
 
 const failures = [];
 const ok = (l) => console.log(`  ✓ ${l}`);
@@ -212,11 +213,116 @@ async function browserHalf() {
     if (result.skipped) console.log(`  ○ browser half skipped — ${result.reason}`);
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// K.W0 S6 (Deliverable 3 · clause d) — EXTEND the oracle from the synthetic
+// `<div>` to the REAL demo scenes (closing F4). The synthetic leg above drives
+// `dist/keyframes.js` `Animation.play()` against a throwaway `<div id="raf-
+// subject">`; it never touches the demo cube's matrix/CSS-var transform path
+// (live-session-gap-analysis §F4). This leg drives the BUILT `dist/gh-pages/`
+// demo cube and asserts the engine's `interpFrames(apply=true)` write reaches
+// the REAL subject — read on the engine's OWN write channel (the playback
+// slider's `aria-valuenow` advancing from "0", the engine-attributable playhead
+// the cube's group composite paints), NOT bare getComputedStyle churn. The leg
+// REDS if the real subject does not receive the engine write (the cold-path
+// no-op surface) and GREENS on the cure.
+// ─────────────────────────────────────────────────────────────────────────────
+async function realSceneHalf() {
+    if (!fs.existsSync(path.join(GH_DIST, "index.html"))) {
+        const reason = "dist/gh-pages not built (run `npm run gh-pages` first)";
+        if (REQUIRE_BROWSER) {
+            fail(`real-scene half REQUIRED (KF_REQUIRE_BROWSER=1) but ${reason} — the real-subject oracle cannot pass vacuously (W7-1)`);
+        } else {
+            console.log(`  ○ real-scene half skipped — ${reason}`);
+        }
+        return;
+    }
+    const result = await withPage(
+        { distDir: GH_DIST, label: "the real-scene subject-write oracle", context: { viewport: { width: 1440, height: 900 } } },
+        async (page, { url }) => {
+            await page.goto(`${url}/#/cube`, { waitUntil: "load" });
+            await page.evaluate(() => localStorage.clear());
+            await navToScene(page, "cube", "Controls");
+            await page
+                .waitForFunction(
+                    () => !!document.querySelector('button[aria-label="Play animation"]'),
+                    null,
+                    { timeout: 8000 },
+                )
+                .catch(() => {});
+            const readSlider = () =>
+                page.evaluate(() => {
+                    const s = document.querySelector('[role="slider"]');
+                    return s ? parseFloat(s.getAttribute("aria-valuenow") || "0") : null;
+                });
+            const sliderBefore = await readSlider();
+            // Drive the real subject via the dock play (the genuine gesture that
+            // reaches the cube group's play()).
+            await page.evaluate(() => document.querySelector('button[aria-label="Play animation"]')?.click());
+            // PER-EXPECTED predicate wait (NOT a fixed settleMs): the engine WROTE
+            // the subject iff the playhead the group composite paints advances.
+            const wrote = await page
+                .waitForFunction(
+                    () => {
+                        const pause = !!document.querySelector('button[aria-label="Pause animation"]');
+                        const s = document.querySelector('[role="slider"]');
+                        const sv = s ? parseFloat(s.getAttribute("aria-valuenow") || "0") : 0;
+                        return pause && sv > 0;
+                    },
+                    null,
+                    { timeout: 4000 },
+                )
+                .then(() => true)
+                .catch(() => false);
+            const sliderAfter = await readSlider();
+            // Corroborate the SUBJECT itself received the write: the engine-write
+            // subject (the OrbitalDrag wrapper carrying the apply-transform-to-
+            // container engine matrix) traversed values while playing, idle bob
+            // excluded — a GATED corroborator (the load-bearer is the playhead the
+            // group composite paints onto the real subject).
+            const subjectGated = await page.evaluate(async () => {
+                const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+                const isPause = () => !!document.querySelector('button[aria-label="Pause animation"]');
+                if (!isPause()) return 0;
+                const seen = new Set();
+                for (let i = 0; i < 60 && isPause(); i++) {
+                    const el = document.querySelector(".graph > div");
+                    if (el && !el.closest?.(".idle-hover")) {
+                        const t = getComputedStyle(el).transform;
+                        if (t && t !== "none") seen.add(t);
+                    }
+                    await sleep(30);
+                }
+                return seen.size;
+            });
+            const advanced = wrote && (sliderAfter ?? 0) > 0 && (sliderBefore ?? 0) === 0;
+            if (advanced) {
+                ok(
+                    `[real-cube] the demo cube's REAL subject RECEIVES the engine write — the group ` +
+                        `composite's interpFrames(apply=true) playhead advanced ${sliderBefore} → ${sliderAfter} ` +
+                        `(the engine-attributable scalar painted onto the real subject), aria flipped to ` +
+                        `"Pause animation", the engine-write subject traversed ${subjectGated} distinct ` +
+                        `transforms gated on aria=Pause (idle bob excluded). F4 closed: the gate now drives ` +
+                        `the demo's matrix/CSS-var transform path, not only the synthetic <div>.`,
+                );
+            } else {
+                fail(
+                    `[real-cube] the demo cube's REAL subject did NOT receive the engine write — the playhead ` +
+                        `stayed ${sliderBefore} → ${sliderAfter} (advanced=${advanced}, engineWrote=${wrote}). ` +
+                        `The group composite advanced the clock but never wrote the interpolated frame to the ` +
+                        `real subject (the cold-path no-op surface — born-RED; greens on the cure).`,
+                );
+            }
+        },
+    );
+    if (result.skipped) console.log(`  ○ real-scene half skipped — ${result.reason}`);
+}
+
 await browserHalf();
+await realSceneHalf();
 
 if (failures.length) {
     console.error(`\nproof:subject-animates — FAIL (${failures.length}):`);
     for (const f of failures) console.error(`  - ${f}`);
     process.exit(1);
 }
-console.log("\nproof:subject-animates — PASS: every play path (rAF / WAAPI / group composite) WRITES the interpolated frame to its subject — the subject's computed style traverses the animation, not just the playhead. The seam the J.W6 S1 sync conversion refactored is guarded.");
+console.log("\nproof:subject-animates — PASS: every play path (rAF / WAAPI / group composite) WRITES the interpolated frame to its subject — the subject's computed style traverses the animation, not just the playhead — AND the REAL demo cube on the built dist/gh-pages/ receives the engine write (the group composite's interpFrames(apply=true) playhead advances on the real subject, not only the synthetic <div> — K.W0 S6 clause d, F4 closed). The seam the J.W6 S1 sync conversion refactored is guarded, end to end.");

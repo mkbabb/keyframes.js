@@ -20,6 +20,25 @@
             --menubar-measured-h and the mobile sheet anchor self-corrects to the
             collapsed pill (audit X1).
         -->
+        <!--
+            K.W0 S3 (U-K1 — the transport default detent, the kf-side decision).
+            NAMED DECISION: the bottom transport defaults to the COLLAPSED detent
+            (`:always-expanded="false"`) — it must NOT render its full layer at
+            rest (the U-K1 defect: only the TOP dock honoured the collapse while
+            this transport stayed full, y:770 `dock-layer--full is-active`,
+            probe-dock-default.mjs). Collapsed-but-PLAY-REACHABLE: the #collapsed
+            slot below keeps the rainbow play CTA (the PRIMARY first-run gesture)
+            present as the summary-pill play mirror, so the detent never strands
+            the play affordance.
+            `:always-expanded="false"` is the ONLY kf-side lever for the detent;
+            the FULL collapse-policy integration (GlassDock honouring the detent so
+            the transport actually shrinks to the pill at rest, not just the top
+            dock) is a glass-ui collapse-policy fix that lands on the K.W1
+            re-pin (RF-17 / the dock-collapse handoff) — NOT a retuned magic
+            offset here (the K mandate's named forbidding). This is a TASTE-boundary
+            item: this collapsed default is corroboration; the appearance verdict
+            closes on the user's review packet.
+        -->
         <GlassDock ref="dockRef" :always-expanded="false" :fit-content="true">
             <!-- Expanded state: full controls -->
             <div class="flex items-center gap-3">

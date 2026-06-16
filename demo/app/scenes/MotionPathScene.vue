@@ -30,7 +30,14 @@ storedControls.isControlsPanelOpen = false;
 defineExpose({
     animationGroup: computed(() => demo.animationGroup.value),
     superKey: SUPER_KEY,
+    // S5c — `isPlaying` is now a READ-ONLY machine-status projection (the D12
+    // shadow ref is deleted); the App must NOT write it. Exposing `scenePlayback`
+    // (the group adapter) makes the App treat playback as machine-owned
+    // (`ownsPlayback` true ⇒ it routes play/pause through the machine, never an
+    // `isPlaying =` write) and round-trips the traveller's offset-distance
+    // position across suspend/restore via the group snapshot.
     isPlaying: demo.isPlaying,
     isStarted: demo.isStarted,
+    scenePlayback: demo.scenePlayback,
 });
 </script>

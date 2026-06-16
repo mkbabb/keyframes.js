@@ -51,6 +51,24 @@ interface PersistedContext {
     perScene: Record<SceneId, PlaybackSnapshot>;
 }
 
+/**
+ * K.W0 S4-C — coerce a hydrated per-scene snapshot map to COLD-BOOT-PAUSED. Each
+ * entry keeps its `started` flag + scrub state (`animations`/`progress`) so the
+ * SCENE_READY restore re-seats the position faithfully, but `playing` is forced
+ * false so NO scene auto-resumes its loop on a gestureless cold boot (K4-C). Pure
+ * — returns a fresh map; the persisted store on disk is untouched (the next
+ * single-writer dispatch re-persists from the live, session-true context).
+ */
+function coerceColdBootPaused(
+    perScene: Record<SceneId, PlaybackSnapshot>,
+): Record<SceneId, PlaybackSnapshot> {
+    const out: Record<SceneId, PlaybackSnapshot> = {};
+    for (const [id, snap] of Object.entries(perScene)) {
+        out[id] = { ...snap, playing: false };
+    }
+    return out;
+}
+
 export const useSceneMachine = createGlobalState(() => {
     // The persisted half of the context. @vueuse/useStorage = persistence
     // (ST-6) — NOT the mutation discipline (MED-4); the discipline is the
@@ -63,11 +81,26 @@ export const useSceneMachine = createGlobalState(() => {
     // The live machine value. `status` is ephemeral (never persisted — a reload
     // re-derives it from the snapshot on SCENE_READY). `context` mirrors the
     // persisted store so a single writer keeps them in lockstep.
+    //
+    // K.W0 S4-C — THE COLD-BOOT-STARTS-PAUSED policy (the gesture-gated-playback
+    // policy, restore face). A COLD APP BOOT (the context hydrated from
+    // localStorage at startup, NO user gesture yet this session) must restore the
+    // scrub POSITION faithfully but start PAUSED — no scene auto-resumes its
+    // animation without a user gesture (K4-C: the amiga bounce auto-resumed on a
+    // gestureless cold reload because the hydrated `playing:true` flowed through
+    // the SCENE_READY restore → restoreGroupPlaybackState → group.resume()). We
+    // coerce the hydrated per-scene snapshot's `playing → false` ONCE here, at the
+    // hydration seam, keeping `started` + the `animations`/`progress` scrub state
+    // so the restore still re-seats the position (paused). A subsequent IN-SESSION
+    // scene switch is faithful (the live `captureActive` snapshot carries the
+    // session's true `playing`, not this hydrated value). This is the same
+    // gesture-gated-playback policy as S1: S1 makes a USER GESTURE start the
+    // engine; S4-C makes a GESTURELESS cold boot NOT auto-resume.
     const machine = shallowRef<MachineState>({
         status: "idle",
         context: {
             activeScene: persisted.value.activeScene,
-            perScene: persisted.value.perScene ?? {},
+            perScene: coerceColdBootPaused(persisted.value.perScene ?? {}),
         },
     });
 
