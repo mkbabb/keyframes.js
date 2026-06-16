@@ -225,21 +225,20 @@ describe("G.W15 proof:color-fidelity — color value identity (S2/TR-2)", () => 
 
 // ── S3 — the fn-arity-pad witness (MCI-5) ────────────────────────────────────
 //
-// `createInterpVarValue` pads the shorter leaf array to `maxLength` with
-// `new ValueUnit(0)` (utils.ts:317). For `filter: blur(4px)` → `blur(4px)
-// brightness(2)` the left side has ONE leaf and the right has TWO; the pad
-// inserts a numeric `0` for the absent `brightness`, so the padded slot lerps
-// `0 → 2` and at t=0 resolves to `0` (black) instead of holding `brightness`'s
-// CSS identity `1`. This is silent-wrong for non-`0`-identity functions.
+// `createInterpVarValue` pads the shorter leaf array to `maxLength`. For
+// `filter: blur(4px)` → `blur(4px) brightness(2)` the left side has ONE leaf
+// and the right has TWO; the padded slot stands in for the ABSENT `brightness`.
+// Before value.js's MCI-5 consume the pad inserted a numeric `ValueUnit(0)`, so
+// the slot lerped `0 → 2` and at t=0 resolved to `0` (black) — silent-wrong for
+// every non-`0`-identity function.
 //
-// `test.fails` makes the witness GREEN today (the inner identity-`1` assertion
-// FAILS against the live `ValueUnit(0)` pad, which `test.fails` asserts) and it
-// FLIPS RED the instant value.js's MCI-5 identity-aware pad lands and the slot
-// holds `1` — forcing this wrapper's removal as the consume-leg signal. It is
-// NOT a perpetually-red gate (inv-27): the suite stays green while the HANDOFF
-// is pending. The kf-side fix is NOT here (it is value-domain knowledge owned by
-// value.js — folds into G.WV).
-describe("G.W15 proof:fn-arity-pad — the MCI-5 identity-pad witness (S3)", () => {
+// MCI-5 is now CONSUMED (K.W1): the pad threads the absent function's name
+// (`FN_NAME`, stamped at flatten) into value.js's `functionIdentityValue`, so
+// the slot holds `brightness`'s CSS IDENTITY `1` at t=0 and lerps `1 → 2`. The
+// former `it.fails` witness has FLIPPED to a normal passing `it(` (the inner
+// identity-`1` assertion now PASSES), and the live-wrong positive control is
+// retired with the gap it watched.
+describe("G.W15 proof:fn-arity-pad — the MCI-5 identity-pad consume (S3)", () => {
     /** The padded `brightness` slot value at progress `t`, via the named seam. */
     const paddedBrightnessAt = (t: number): number => {
         const left = parseAndFlattenObject({ filter: "blur(4px)" });
@@ -251,26 +250,13 @@ describe("G.W15 proof:fn-arity-pad — the MCI-5 identity-pad witness (S3)", () 
         return Number(String(lerpValue(t, slot)));
     };
 
-    // GREEN today (the inner assertion fails against the live ValueUnit(0) pad);
-    // FLIPS RED when value.js MCI-5 identity-aware pad lands → delete the wrapper.
-    it.fails(
-        "filter brightness pad holds identity 1 at t=0 — value.js MCI-5 not yet consumed",
-        () => {
-            // The CSS identity for `brightness` is 1; the live `ValueUnit(0)` pad
-            // makes it resolve 0. This inner assertion FAILS today (0 !== 1) so
-            // `it.fails` is GREEN. When MCI-5 lands, the slot holds 1, the inner
-            // PASSES, and `it.fails` FLIPS RED → remove this wrapper.
-            expect(paddedBrightnessAt(0)).toBe(1);
-        },
-    );
-
-    // The standing positive control of the witness's own mechanism — the pad IS
-    // live-wrong today (resolves 0, not 1). This bites if the witness is deleted
-    // (the gap goes un-watched) or if the pad somehow already held 1 without the
-    // HANDOFF (then this would red, signalling the witness is stale).
-    it("the live ValueUnit(0) pad resolves brightness to 0 at t=0 (the witnessed gap)", () => {
-        expect(paddedBrightnessAt(0)).toBe(0);
-        // it lerps 0 → 2, so at the endpoint it reaches 2 (the only correct stop).
+    // CONSUMED (K.W1): the identity-aware pad holds `brightness`'s CSS identity
+    // `1` at t=0 (was `0` under the retired `ValueUnit(0)` pad) and lerps `1 → 2`
+    // to the authored endpoint. This is the genuinely-correct interpolation; the
+    // assertion REDS if the identity thread regresses to the bare-`0` pad.
+    it("filter brightness pad holds the CSS identity 1 at t=0 — value.js MCI-5 consumed", () => {
+        expect(paddedBrightnessAt(0)).toBe(1);
+        // lerps the identity 1 → the authored 2, reaching 2 at the endpoint.
         expect(paddedBrightnessAt(1)).toBe(2);
     });
 });

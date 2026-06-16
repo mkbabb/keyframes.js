@@ -5,9 +5,12 @@ import {
     CSSValues,
     cssLinear,
     flattenObject,
+    functionIdentityValue,
     FunctionValue,
-    jumpTerms,
+    memoize,
     normalizeValueUnits,
+    parseLinearStops,
+    parseSteps,
     prepareInterpVar,
     steppedEase,
     timingFunctions,
@@ -19,7 +22,6 @@ import {
 import type {
     ColorSpace,
     HueInterpolationMethod,
-    LinearStop,
     NormalizeValueUnitsOptions,
 } from "@mkbabb/value.js";
 import type {
@@ -31,17 +33,48 @@ import type {
 
 export type ParsedVarMap = Record<string, ValueArray>;
 
-const flattenToValueUnits = (value: unknown): ValueUnit[] => {
+/**
+ * The function-token name a leaf `ValueUnit` was flattened OUT of, stamped so
+ * the identity-aware arity pad ({@link createInterpVarValue}) can resolve the
+ * CSS identity element of an ABSENT function (e.g. `scale → 1`, `translateX →
+ * 0px`) instead of the bare numeric `0`. `flattenObject`/value.js's parse tree
+ * dissolves the `FunctionValue` wrapper into bare leaves, dropping the name; we
+ * re-attach it here at flatten time. `value.js`'s `ValueUnit.clone()` does NOT
+ * preserve this field, so the cache restamps it (see `tryParseLeaves`).
+ */
+const FN_NAME = Symbol("kf.fnName");
+
+type NamedValueUnit = ValueUnit & { [FN_NAME]?: string };
+
+/** Read the stamped flatten-origin function name off a leaf (if any). */
+const fnNameOf = (u: ValueUnit): string | undefined =>
+    (u as NamedValueUnit)[FN_NAME];
+
+/** Stamp the flatten-origin function name onto a leaf, returning it. */
+const stampFnName = (u: ValueUnit, fnName: string | undefined): ValueUnit => {
+    if (fnName !== undefined) (u as NamedValueUnit)[FN_NAME] = fnName;
+    return u;
+};
+
+const flattenToValueUnits = (
+    value: unknown,
+    fnName?: string,
+): ValueUnit[] => {
     if (value instanceof ValueUnit) {
-        return [value.clone()];
+        return [stampFnName(value.clone(), fnName ?? fnNameOf(value))];
     }
 
     if (value instanceof FunctionValue) {
-        return value.values.flatMap((entry) => flattenToValueUnits(entry));
+        // The function token (`scale`, `translateX`, `brightness`, …) lives on
+        // `FunctionValue.name`; thread it down so each leaf remembers its
+        // origin function for the identity-aware pad.
+        return value.values.flatMap((entry) =>
+            flattenToValueUnits(entry, value.name),
+        );
     }
 
     if (value instanceof ValueArray) {
-        return value.flatMap((entry) => flattenToValueUnits(entry));
+        return value.flatMap((entry) => flattenToValueUnits(entry, fnName));
     }
 
     throw new TypeError(
@@ -80,54 +113,10 @@ const applyPropertyContext = (
 const CUBIC_BEZIER_LITERAL =
     /^\s*cubic-bezier\s*\(\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*\)\s*$/i;
 
-/**
- * Match a CSS `steps(n[, position])` literal per CSS Easing Level 1.
- */
-const STEPS_LITERAL =
-    /^\s*steps\s*\(\s*(\d+)\s*(?:,\s*(jump-start|jump-end|jump-none|jump-both|start|end|both)\s*)?\)\s*$/i;
-
-/**
- * Match a CSS `linear(...)` easing-function literal (CSS Easing Level 2,
- * Baseline 2023-12-11) — `linear(0, 0.5 25%, 1)`. The parens distinguish it
- * from the bare `linear` keyword (the registry identity curve), so this only
- * intercepts the multi-stop form. The inner stop list is parsed by
- * {@link parseLinearStops}.
- */
-const LINEAR_LITERAL = /^\s*linear\s*\(\s*(.+)\s*\)\s*$/i;
-
-/**
- * Parse the inner stop list of a `linear(...)` literal into value.js
- * `LinearStop[]`. Each comma-separated entry is `<output> [<input%> [<input%>]]`
- * — a bare output (its input is positionally distributed by `cssLinear`), or
- * an output with one or two explicit input percentages (two = a flat segment
- * spanning that input range, per the CSS grammar). Returns `undefined` for a
- * malformed list so the caller falls through (never a silent wrong curve).
- */
-const parseLinearStops = (inner: string): LinearStop[] | undefined => {
-    const stops: LinearStop[] = [];
-    for (const part of inner.split(",")) {
-        const tokens = part.trim().split(/\s+/).filter(Boolean);
-        if (tokens.length === 0) return undefined;
-        const output = Number.parseFloat(tokens[0]!);
-        if (!Number.isFinite(output)) return undefined;
-        const positions = tokens.slice(1);
-        if (positions.length === 0) {
-            stops.push({ output });
-            continue;
-        }
-        for (const pos of positions) {
-            // CSS `linear()` stop positions are <percentage>; value.js's
-            // `cssLinear` takes `input` as that percent magnitude (0–100),
-            // not a 0–1 fraction. Strip the `%` and pass the number as-is.
-            const input = Number.parseFloat(
-                pos.endsWith("%") ? pos.slice(0, -1) : pos,
-            );
-            if (!Number.isFinite(input)) return undefined;
-            stops.push({ output, input });
-        }
-    }
-    return stops.length >= 2 ? stops : undefined;
-};
+/** Cheap prefix guards so a non-`steps(`/`linear(` string never reaches the
+ * (throwing) value.js parsers — keeps the registry fall-through hot. */
+const STEPS_PREFIX = /^\s*steps\s*\(/i;
+const LINEAR_PAREN_PREFIX = /^\s*linear\s*\(/i;
 
 /**
  * Resolve a timing-function input to a callable `TimingFunction`.
@@ -167,14 +156,17 @@ export const getTimingFunction = (
         }
     }
 
-    // CSS `steps(n[, position])` literal + the step keywords.
-    const stepsMatch = timingFunction.match(STEPS_LITERAL);
-    if (stepsMatch) {
-        const count = Number.parseInt(stepsMatch[1]!, 10);
-        const term = (stepsMatch[2]?.toLowerCase() ??
-            "end") as (typeof jumpTerms)[number];
-        if (count > 0 && (jumpTerms as readonly string[]).includes(term)) {
-            return steppedEase(count, term);
+    // CSS `steps(n[, position])` literal + the step keywords — parsed by
+    // value.js's `parseSteps` (the full `steps(...)` string; throws on
+    // `count < 1` / non-integer / malformed, `jumpTerm` defaults `jump-end`).
+    // It throws where the old regex shim fell through, so wrap it: a malformed
+    // `steps(...)` degrades to the registry lookup exactly as before.
+    if (STEPS_PREFIX.test(timingFunction)) {
+        try {
+            const { count, jumpTerm } = parseSteps(timingFunction);
+            return steppedEase(count, jumpTerm);
+        } catch {
+            // fall through to the registry / undefined
         }
     }
     if (timingFunction === "step-start") return steppedEase(1, "jump-start");
@@ -185,12 +177,29 @@ export const getTimingFunction = (
     // and any `@keyframes` `animation-timing-function: linear(...)`). Without
     // this branch a re-imported `linear()` falls through to the registry, fails
     // the lookup, and the option setter silently defaults to `easeInOutCubic` —
-    // so the rAF JS curve and the compositor `linear()` twin disagree. Reading
-    // it back via value.js's `cssLinear` evaluator closes that round-trip.
-    const linearMatch = timingFunction.match(LINEAR_LITERAL);
-    if (linearMatch) {
-        const stops = parseLinearStops(linearMatch[1]!);
-        if (stops) return cssLinear(stops);
+    // so the rAF JS curve and the compositor `linear()` twin disagree. value.js's
+    // `parseLinearStops` takes the FULL `linear(...)` string (Level-2 grammar,
+    // ≥1 stop) and THROWS on malformed input, so wrap it: a bad `linear()`
+    // degrades to the registry lookup exactly as the old shim did (never a
+    // silent wrong curve). `cssLinear` then closes the round-trip.
+    if (LINEAR_PAREN_PREFIX.test(timingFunction)) {
+        // value.js's own stylesheet serializer (`rule.timingFunction`) emits a
+        // `linear()`'s stops as a FLAT comma list — `linear(0, 0.5, 25%, 1)` —
+        // not the canonical space-joined `linear(0, 0.5 25%, 1)`. That form its
+        // OWN `parseLinearStops` rejects, breaking the engine's spring-`linear()`
+        // round-trip (a value.js 0.12.0 serialize/parse asymmetry). Fold a
+        // comma that DIRECTLY precedes a `<number>%` back to a space: a `%` token
+        // can only be a stop's INPUT position (a `%` output is invalid CSS), so
+        // the fold is unambiguous. A canonical author `linear()` is untouched.
+        const normalized = timingFunction.replace(
+            /,\s*(-?[\d.]+%)/g,
+            " $1",
+        );
+        try {
+            return cssLinear(parseLinearStops(normalized));
+        } catch {
+            // fall through to the registry / undefined
+        }
     }
 
     const resolved = timingFunctions[timingFunction as TimingFunctionNames];
@@ -200,7 +209,51 @@ export const getTimingFunction = (
     return undefined;
 };
 
-const tryParseCache = new Map<string, ValueArray>();
+/**
+ * Bounded LRU over the string→flattened-leaf parse. value.js's `memoize`
+ * (`{ maxCacheSize }`, evicts least-recently-used first) replaces the former
+ * UNBOUNDED `Map` (the 6-tranche DL-K18 row), keyed by `(childKey, strValue)`
+ * via an explicit `keyFn` (the `${childKey}:${strValue}` shape the old
+ * hand-rolled cache used). The cached leaves are returned as fresh
+ * `.clone()`s per call (the property context + `FN_NAME` stamp differ per
+ * use-site), so the cache holds shared masters and never aliases. The bound is
+ * value.js-consistent (its own default is `Infinity` — we pick an explicit
+ * finite ceiling; a measured BOUND, not a perf rewrite). At ~hundreds of
+ * distinct CSS literals per app this never evicts in practice; it only caps a
+ * pathological unbounded-author-input leak.
+ */
+const TRY_PARSE_CACHE_MAX = 2048;
+
+const tryParseLeaves = memoize(
+    (childKey: string, strValue: string): ValueUnit[] => {
+        // value.js and keyframes.js each ship their own copy of
+        // @mkbabb/parse-that under different node_modules realms,
+        // so the Parser<T> classes are nominally distinct from
+        // TypeScript's perspective. The runtime is the same. Cast
+        // to `any` to bypass the cross-realm type comparison.
+        const fnArgs = (CSSFunction.FunctionArgs as any).map(
+            (v: ValueArray) => {
+                v.setSubProperty(childKey);
+                return v;
+            },
+        );
+        const p = tryParse(
+            (parseAny as any)(fnArgs, CSSValues.Value),
+            strValue,
+        ) as ValueUnit | ValueArray | FunctionValue;
+
+        return flattenToValueUnits(p);
+    },
+    {
+        maxCacheSize: TRY_PARSE_CACHE_MAX,
+        // The default `keyFn` is `JSON.stringify`, which keys off only the
+        // FIRST argument (`childKey`) — collapsing every `strValue` under one
+        // childKey to a single slot. Key on BOTH args explicitly (the old
+        // hand-rolled cache used `${childKey}:${strValue}`).
+        keyFn: (childKey: string, strValue: string) =>
+            `${childKey}:${strValue}`,
+    },
+);
 
 export function parseAndFlattenObject(
     input: Record<string, unknown>,
@@ -218,7 +271,7 @@ export function parseAndFlattenObject(
             );
         } else if (value instanceof FunctionValue) {
             const flattened = value.values.flatMap((entry) =>
-                flattenToValueUnits(parse(key, entry)),
+                flattenToValueUnits(parse(key, entry), value.name),
             );
             return applyPropertyContext(
                 new ValueArray(...flattened),
@@ -236,37 +289,20 @@ export function parseAndFlattenObject(
             );
         }
 
-        const strValue = String(value);
-        const cacheKey = `${childKey}:${strValue}`;
-        const cached = tryParseCache.get(cacheKey);
-        if (cached) {
-            return applyPropertyContext(cached.clone(), mainKey, childKey);
-        }
-
-        // value.js and keyframes.js each ship their own copy of
-        // @mkbabb/parse-that under different node_modules realms,
-        // so the Parser<T> classes are nominally distinct from
-        // TypeScript's perspective. The runtime is the same. Cast
-        // to `any` to bypass the cross-realm type comparison.
-        const fnArgs = (CSSFunction.FunctionArgs as any).map(
-            (v: ValueArray) => {
-                v.setSubProperty(childKey);
-                return v;
-            },
+        // The bounded-LRU cache holds shared master leaves; clone per call so
+        // the property context below (and any later mutation) is per-use-site.
+        // `ValueUnit.clone()` drops the `FN_NAME` stamp, so re-apply it from the
+        // master onto each clone — the identity-pad must see the origin function.
+        const masters = tryParseLeaves(childKey, String(value));
+        const leaves = masters.map((m) =>
+            stampFnName(m.clone(), fnNameOf(m)),
         );
-        const p = tryParse(
-            (parseAny as any)(fnArgs, CSSValues.Value),
-            strValue,
-        ) as ValueUnit | ValueArray | FunctionValue;
 
-        const parsed = applyPropertyContext(
-            new ValueArray(...flattenToValueUnits(p)),
+        return applyPropertyContext(
+            new ValueArray(...leaves),
             mainKey,
             childKey,
         );
-        tryParseCache.set(cacheKey, parsed.clone());
-
-        return parsed;
     };
 
     const parsedVars = Object.entries(flat).reduce<ParsedVarMap>(
@@ -303,7 +339,17 @@ export const createInterpVarValue = (
     }
 
     const maxLength = Math.max(left.length, right.length);
-    const padToLength = (arr: ValueArray): ValueUnit[] => {
+    /**
+     * Pad `arr` up to `maxLength`. A padded slot stands in for a function the
+     * OTHER side (`counterpart`) has but `arr` lacks — so its fill value is that
+     * function's CSS IDENTITY element (`scale → 1`, `translateX → 0px`,
+     * `brightness → 1`), resolved via value.js's `functionIdentityValue` off the
+     * `FN_NAME` stamped at flatten time. Absent a known function name (a bare
+     * scalar list, or a name value.js has no identity for) it falls back to the
+     * historical `ValueUnit(0)` — so non-identity-`0` functions stop
+     * silently-lerping from black/zero (MCI-5).
+     */
+    const padToLength = (arr: ValueArray, counterpart: ValueArray): ValueUnit[] => {
         const out = arr.map((entry) => {
             if (!(entry instanceof ValueUnit)) {
                 throw new TypeError(
@@ -314,13 +360,19 @@ export const createInterpVarValue = (
         });
 
         while (out.length < maxLength) {
-            out.push(new ValueUnit(0));
+            const counterLeaf = counterpart[out.length];
+            const fnName =
+                counterLeaf instanceof ValueUnit
+                    ? fnNameOf(counterLeaf)
+                    : undefined;
+            const identity = fnName ? functionIdentityValue(fnName) : undefined;
+            out.push(identity ?? new ValueUnit(0));
         }
         return out;
     };
 
-    const newLeft = padToLength(left);
-    const newRight = padToLength(right);
+    const newLeft = padToLength(left, right);
+    const newRight = padToLength(right, left);
 
     return newLeft.map((l, i) => {
         const r = newRight[i];

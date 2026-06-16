@@ -31,19 +31,22 @@
  *       gate (the leaves-parity idiom) + the hueMethod VALUE lock. BITE: drop the
  *       parity `expect(kf...).toBe(vj...)` or a known-coordinate lock → reds.
  *
- *   s3-arity-pad        — the MCI-5 witness is locked as an `it.fails`
- *       expected-fail (GREEN today against the live ValueUnit(0) pad; FLIPS RED
- *       when value.js MCI-5 lands). BITE: delete the `it.fails` witness → the gap
- *       goes un-watched → reds.
+ *   s3-arity-pad        — the MCI-5 consume is locked (K.W1): the pad holds the
+ *       function's CSS IDENTITY (`brightness → 1`) at t=0. The former `it.fails`
+ *       witness has FLIPPED to a passing `it(` (the inner identity-`1` assertion
+ *       now PASSES). BITE: delete the identity-`1` lock → the consume goes
+ *       un-watched → reds.
  *
  *   s4-cqw-emit         — the bare-cqw positive control asserts the emit carries
  *       `cqw` (the browser resolves per frame). BITE: delete the `50cqw` lock →
  *       the classification asymmetry is no longer witnessed → reds.
  *
- *   no-source-edit      — the wave is TEST-ONLY: the test imports kf source +
- *       value.js (the leaves-parity heavy-side precedent), and carries NO `src/`
- *       mutation. BITE: a `src/` import that writes back, or a kf-side per-call
- *       guard added to createInterpVarValue, would breach the witness charter.
+ *   identity-consume    — the pad consumes value.js's `functionIdentityValue`
+ *       producer (the published MCI-5 fix), NOT a hand-rolled kf identity table.
+ *       The pad routes the absent function's name into `functionIdentityValue`
+ *       and falls back to the historical `new ValueUnit(0)` only when value.js
+ *       has no identity. BITE: a kf-local identity LITERAL (a hard-coded
+ *       `brightness → 1` map) instead of the value.js consume → reds.
  *
  * Mirrors `proof:motion-path`: exits 1 on any residual.
  */
@@ -130,19 +133,19 @@ requireAll("s2-color-fidelity", TEST, [
     },
 ]);
 
-// ── s3-arity-pad — the MCI-5 witness is locked as an it.fails expected-fail ────
+// ── s3-arity-pad — the MCI-5 consume is locked: the pad holds the CSS identity ─
 requireAll("s3-arity-pad", TEST, [
     {
-        name: "the MCI-5 witness is an it.fails expected-fail (not a bare red gate)",
-        re: /it\.fails\(\s*\n?\s*["']filter brightness pad holds identity 1 at t=0/,
+        name: "the MCI-5 witness has flipped to a passing it( (the consume landed)",
+        re: /it\(\s*\n?\s*["']filter brightness pad holds the CSS identity 1 at t=0/,
     },
     {
-        name: "the inner assertion locks the CSS identity 1 (the consume-leg target)",
+        name: "the assertion locks the CSS identity 1 at t=0 (the consumed target)",
         re: /paddedBrightnessAt\(0\)\)\.toBe\(1\)/,
     },
     {
-        name: "the positive control witnesses the live ValueUnit(0) pad resolves 0",
-        re: /paddedBrightnessAt\(0\)\)\.toBe\(0\)/,
+        name: "and locks the lerp to the authored endpoint 2 at t=1",
+        re: /paddedBrightnessAt\(1\)\)\.toBe\(2\)/,
     },
     {
         name: "drives the named createInterpVarValue seam (utils.ts), not a shim",
@@ -162,35 +165,42 @@ requireAll("s4-cqw-emit", TEST, [
     },
 ]);
 
-// ── no-source-edit — the wave is TEST-ONLY (no kf-side per-call guard added) ───
+// ── identity-consume — the pad consumes value.js's functionIdentityValue ──────
 {
-    // The S3 witness must NOT be "fixed" by a per-call guard in
-    // createInterpVarValue — the identity-aware pad is value.js-domain knowledge
-    // (the G.WV HANDOFF). Guard against the temptation: utils.ts's pad must still
-    // be the bare `new ValueUnit(0)` push (no `brightness`/identity special-case).
+    // MCI-5 is CONSUMED (K.W1): the pad resolves the absent function's CSS
+    // identity through value.js's PUBLISHED `functionIdentityValue` producer,
+    // falling back to the historical `new ValueUnit(0)` only when value.js has
+    // no identity for the name. This is the published-consume-edge form, NOT a
+    // hand-rolled kf identity LITERAL (a hard-coded `brightness → 1` map would
+    // re-author value-domain knowledge kf must consume, not own).
     const utils = read("src/animation/utils.ts");
-    const padIsBare = /out\.push\(new ValueUnit\(0\)\)/.test(utils);
-    const hasIdentitySpecialCase =
-        /brightness|identity[\s\S]{0,40}pad|cssIdentity/i.test(
-            utils.slice(
-                utils.indexOf("createInterpVarValue"),
-                utils.indexOf("createInterpVarValue") + 1400,
-            ),
+    const importsProducer =
+        /import\s*\{[\s\S]*?functionIdentityValue[\s\S]*?\}\s*from\s*["']@mkbabb\/value\.js["']/.test(
+            utils,
         );
-    if (!padIsBare) {
-        fail(
-            "no-source-edit",
-            "src/animation/utils.ts no longer pads with the bare `new ValueUnit(0)` — either value.js's MCI-5 fix was consumed (delete the S3 it.fails wrapper) or a kf-side guard was added (a charter breach: the fix is value.js-domain).",
+    const padConsumesIdentity =
+        /functionIdentityValue\([^)]*\)/.test(utils) &&
+        /identity\s*\?\?\s*new ValueUnit\(0\)/.test(utils);
+    // A hard-coded identity literal map (kf re-authoring the value table) is the
+    // breach this clause forbids — e.g. `{ brightness: 1, scale: 1, … }` inline.
+    const hasIdentityLiteralMap =
+        /(brightness|scale|saturate)\s*:\s*1\b[\s\S]{0,80}(translate|blur|opacity)\s*:/.test(
+            utils,
         );
-    } else if (hasIdentitySpecialCase) {
+    if (!importsProducer || !padConsumesIdentity) {
         fail(
-            "no-source-edit",
-            "src/animation/utils.ts createInterpVarValue gained an identity special-case — the MCI-5 fix is a value.js HANDOFF, not a kf-side per-call guard (the no-special-case seam).",
+            "identity-consume",
+            "src/animation/utils.ts no longer routes the arity pad through value.js's `functionIdentityValue` producer (`identity ?? new ValueUnit(0)`) — the MCI-5 consume edge regressed.",
+        );
+    } else if (hasIdentityLiteralMap) {
+        fail(
+            "identity-consume",
+            "src/animation/utils.ts gained a hand-rolled identity LITERAL map — the MCI-5 fix is a value.js consume (`functionIdentityValue`), not a kf-authored value table.",
         );
     } else {
         ok(
-            "no-source-edit",
-            "the createInterpVarValue pad stays the bare `new ValueUnit(0)` (TEST-ONLY; the MCI-5 fix is a value.js HANDOFF)",
+            "identity-consume",
+            "the arity pad consumes value.js's `functionIdentityValue` (published MCI-5), bare `ValueUnit(0)` only as the no-identity fallback",
         );
     }
 }
@@ -202,7 +212,7 @@ if (failures.length > 0) {
             failures.join("\n") +
             "\n\n  The corpus drives a fixed @keyframes through interpFrames(0.5) and\n" +
             "  asserts EXACT midpoints (S1), locks color value identity against the\n" +
-            "  value.js seam (S2), witnesses the MCI-5 arity pad (S3, it.fails) and\n" +
+            "  value.js seam (S2), locks the MCI-5 identity-pad consume (S3) and\n" +
             "  the bare-cqw emit (S4). Restore the clause each anchor names. The\n" +
             "  behaviour proof rides `vitest run " +
             TEST +
@@ -214,8 +224,8 @@ console.log(
     "proof:interpolate-anything — PASS: the value-type matrix locks exact\n" +
         "midpoints (multi-arg transform/filter/drop-shadow/box-shadow/gradient/\n" +
         "custom-prop), color value-fidelity is locked against the value.js seam\n" +
-        "(known-coordinate + parity + hueMethod), the MCI-5 arity pad is an\n" +
-        "it.fails witness, and the bare-cqw emit is the positive control. The\n" +
+        "(known-coordinate + parity + hueMethod), the MCI-5 identity pad is\n" +
+        "consumed from value.js, and the bare-cqw emit is the positive control. The\n" +
         "behaviour proof rides `vitest run " +
         TEST +
         "`.",

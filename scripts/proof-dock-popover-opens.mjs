@@ -110,16 +110,34 @@ async function browserHalf() {
         // The dock starts collapsed (ChromeDock :start-collapsed="true"); hover it
         // to expand so the @mbabb trigger paints + becomes hit-testable. Hover
         // dispatches the mouseenter/pointermove the dock listens for.
+        //
+        // K.W1 — track the glass-ui 3.13.0 consumed reality (AZ.W-DOCK-FLICKER, the
+        // HOVER_INTENT_MS = 60 hover-hysteresis): a collapsed→hover expand only commits
+        // after the pointer DWELLS on the dock for ≥60ms — "a sweeping-edge enter is
+        // canceled by the chasing leave inside this window" (dock constants.d.ts). The
+        // @mbabb trigger lives in the TOP dock (ChromeDock, top-center), so the prior
+        // hover-then-`mouse.move(640, 870)` (bottom-center) sequence was exactly that
+        // canceled sweep: the bottom move fired onMouseLeave on the top dock and cleared
+        // the pending 60ms expand before it could commit, so @mbabb never painted. The
+        // gesture a real user makes — and the one the 3.13.0 intent-dwell rewards — is to
+        // hover the dock that OWNS the trigger and DWELL. So hover the .glass-dock that
+        // contains the trigger and hold past the intent window (NO pointer-leave move).
+        // This is an actuation fix to match the consumed dock behavior, NOT a threshold
+        // relaxation: the gate's assertion (a trusted click OPENS the @mbabb popover) is
+        // unchanged below; only HOW the collapsed dock is coaxed open is corrected.
         const TRIGGER = '[aria-label="@mbabb menu"]';
         let expanded = false;
         for (let i = 0; i < 30 && !expanded; i++) {
             try {
-                // Hover the dock region (the collapsed pill sits bottom-center).
-                const dock = page.locator(".z-dock, [class*='z-dock']").first();
+                // Hover the .glass-dock that OWNS the @mbabb trigger (the top dock) and
+                // DWELL — Playwright's .hover() centers the pointer on the dock; holding
+                // there (no leave) lets the 60ms hover-intent commit the expand.
+                const ownerDock = page.locator(".glass-dock").filter({ has: page.locator(TRIGGER) }).first();
+                const dock = (await ownerDock.count()) ? ownerDock : page.locator(".glass-dock").first();
                 if (await dock.count()) await dock.hover({ force: true }).catch(() => {});
-                // Belt-and-braces: hover the viewport bottom-center too.
-                await page.mouse.move(640, 870);
-                await page.waitForTimeout(150);
+                // DWELL past HOVER_INTENT_MS (60) + the morph settle — do NOT move the
+                // pointer off the dock (that would re-arm the AZ.W-DOCK-FLICKER cancel).
+                await page.waitForTimeout(250);
                 expanded = await page
                     .locator(TRIGGER)
                     .first()

@@ -62,7 +62,14 @@ const FLOORS = {
     // BP-5: 0.11.2 is the floor that protects the B1/B5 empty-input regression —
     // a dev pinning 0.11.1 (valid in the old range) re-introduces the
     // `Parse error at offset 0: "......"` crash.
-    "@mkbabb/value.js": "0.11.2",
+    // K.W1: ADVANCED to 0.12.0 — the value.js Tranche N currency re-pin
+    // (^0.11.2 → ^0.12.0; the N2 witness-flip slate). 0.12.0 ships the
+    // ParseDiagnostic/OnParseError producer (the K.W7 fidelity-floor diagnostics
+    // channel consumes it), plus the RIPE edges (lerpArray, deltaEOK,
+    // reverseAnimationShorthand) the Band-II compile/color-fidelity waves spend.
+    // (value.js 0.13.0 — the K-dispatched scroll/ramp grammar fold — is the Band
+    // II K.W9/K.W10 consume edge, not yet published.)
+    "@mkbabb/value.js": "0.12.0",
     "@mkbabb/parse-that": "0.9.0",
     // BP-6: 3.9.0 was the floor that protects the B7 specular regression —
     // a resolver downgrading into 3.5.x–3.8.x (valid in the old range)
@@ -73,11 +80,21 @@ const FLOORS = {
     // "sliders render wrong" report — new data-v scope, explicit
     // --slider-{track-height,thumb-size,thumb-bg} tokens + data-held/-disabled/
     // -variant=spectrum states) and root-fixes the dropdown/popover/select OPTION
-    // font-size so the content item inherits the trigger's register (select.js/
-    // dropdown-menu.js/popover.js/command.js all re-cut). The floor protects
-    // BOTH the B7 specular default AND these two upstream cures: a resolver
-    // dropping below 3.11.2 re-introduces the broken slider + the small-option font.
-    "@mkbabb/glass-ui": "3.11.2",
+    // font-size so the content item inherits the trigger's register.
+    // K.W1: ADVANCED to 3.13.0 — the AZ-tranche currency re-pin (~3.11.2 →
+    // ~3.13.0; DL-K6 / U-K14 "upgrade to LATEST glass-ui"). The 3.12→3.13 hop
+    // ships `useDockClickIntegrity` (the RF-17 collapse-crossfade click-strand
+    // cure — the kf pointerdown twin is net-deleted), the fluid-typography clamp
+    // rungs, the dock padding-block pin, and the SegmentedTabs liquid indicator.
+    // The 3.13.0 breaking seams (variant-rail/instrument-strip removed,
+    // PAPER_WASH_GROUND gone, ExpandableContainer gutted) are each verified
+    // DISJOINT from kf's consume surface. NB: glass-ui 4.0.0 (the BA tranche
+    // major) is now PUBLISHED — kf consumes ONE TRANCHE BEHIND per the
+    // acyclic-spine (3.13.0 = AZ, the predecessor of BA/4.0.0); the 4.0.0 consume
+    // (W-TABS/surface-axis/MetricBadge `value` breaks) is the NEXT kf tranche's
+    // edge, recorded not consumed mid-K. A resolver dropping below 3.13.0
+    // re-introduces the slider/option-font regressions AND the RF-17 twin need.
+    "@mkbabb/glass-ui": "3.13.0",
 };
 
 const FORBIDDEN_PROTOCOLS = ["file:", "link:", "git:", "git+"];

@@ -412,6 +412,35 @@ async function runBattery() {
                     { timeout: 8000 },
                 )
                 .catch(() => {});
+            // K.W1 — track the glass-ui 3.13.0 dock-morph reality. The cold-home
+            // bottom TransportDock starts collapsed (glass-ui default) then morphs
+            // open on the iOS-26 interruptible SpringProgress (DOCK_SPRING); while
+            // that morph settles, the full layer's rightmost play button's painted
+            // hit-area LAGS its post-transform getBoundingClientRect, so the cold
+            // gesture's TRUSTED pointer can land on the dock host wrapper instead of
+            // the button (elementFromPoint at the button center returns the host —
+            // the click is swallowed before it reaches the press-time twin, so the
+            // engine never starts: the slider stays null/0). This is NOT a settle-to-
+            // pass on the ASSERTION (the engine-start verdict below is unchanged): it
+            // is a per-EXPECTED-state wait that the actuation target is STABLY hit-
+            // testable, the same morph-aware-actuation reality proof:dock-popover-opens
+            // tracks (the dock's RF-17 collapse/morph handoff). Poll until the play
+            // button's own center resolves to the play button (the morph has settled
+            // the hit-area), then the ONE cold gesture lands deterministically.
+            await page
+                .waitForFunction(
+                    () => {
+                        const b = document.querySelector('button[aria-label="Play animation"]');
+                        if (!b) return false;
+                        const r = b.getBoundingClientRect();
+                        if (r.width <= 0 || r.height <= 0) return false;
+                        const top = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+                        return !!top && (top === b || b.contains(top) || top.closest('button[aria-label="Play animation"]') === b);
+                    },
+                    null,
+                    { timeout: 6000 },
+                )
+                .catch(() => {});
             // The engine-attributable scalars BEFORE the one gesture.
             const readEngine = () =>
                 page.evaluate(() => {

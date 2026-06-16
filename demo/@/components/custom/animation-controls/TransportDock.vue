@@ -15,7 +15,10 @@
             (onPlayPointerDown) — see the script comment: the collapse crossfade
             could strand the trailing `click` on a leaving layer, so the toggle
             rides the pointerdown that always reaches the live button (keyboard
-            still actuates via the bare click). Collapsing also shrinks the
+            still actuates via the bare click). K.W1 RE-OBSERVED: glass-ui 3.13.0's
+            `useDockClickIntegrity` did NOT subsume this twin — without it
+            proof:live-session S5 motion-path PLAY reds — so the twin is RETAINED
+            and RF-17 stays a glass-ui handoff. Collapsing also shrinks the
             menubar host, so the ResizeObserver (below) republishes a smaller
             --menubar-measured-h and the mobile sheet anchor self-corrects to the
             collapsed pill (audit X1).
@@ -306,6 +309,20 @@ onBeforeUnmount(() => {
 });
 
 // ── J.W7c U2 (fix-round 1) — the play toggle actuates on POINTERDOWN, not click.
+//
+// K.W1 RF-17 RE-OBSERVED + RETAINED. K.W1 net-DELETED this pointerdown twin on
+// the premise that glass-ui 3.13.0's `useDockClickIntegrity` (the in-dock
+// press-time identity guard) subsumed it. It does NOT: with the twin removed and
+// only `@click="actuatePlay"`, proof:live-session's S5 motion-path PLAY reds
+// (the dock-switch WALK enters motion-path with the bottom TransportDock mid-
+// collapse-crossfade, the trailing `@click` is stranded, play stays off, the
+// one-shot traveller produces <3 states — reproduced via scripts driving the
+// walk-entry: aria stays "Play", 1 distinct state). The K.W1 spec's rule:
+// a deletion that reds proof:dock-popover-opens OR proof:live-session is
+// REVERTED, the twin KEPT, the residual BOOKED. So the twin is RESTORED and
+// RF-17 stays a glass-ui collapse-crossfade-strand HANDOFF (useDockClickIntegrity
+// guards the click identity but does not keep the click-target layer alive
+// through the crossfade — the durable cure is still dock-side).
 //
 // The persistent-walk oracle surfaced a real defect U2's collapse (`:always-
 // expanded=false`) introduced: a POINTER play actuation could be swallowed.

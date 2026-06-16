@@ -298,6 +298,38 @@
     --accent-red-foreground: hsl(0 0% 95%);
 }
 
+/* ── Glass content-tier translucency reclaim (K.W1 — the glass-ui 3.13.0 consume edge) ──
+   glass-ui 3.13.0 (AZ.W-ADAPTIVE-AUTO Arm 1, dist/styles/glass/ladder.css:185-196)
+   made the content-tier ink-darken UNCONDITIONAL: a bare, 0-specificity
+   `:where(.glass-floating, .glass-overlay, .glass-card, .glass-resting, .glass-quiet,
+   .glass-wash)` block now lifts `--glass-tint-strength` from the 0% rest default to
+   the AA floor (`--glass-tint-strength-aa`, 20%) and re-points `--glass-tint-source`
+   to warm ink — with NO `@container style(--glass-backdrop: light)` gate (the W54
+   glass-first MAXIMAL default assumes a bright/near-white substrate). The
+   keyframes.js stage is a DARK, themed substrate, so that unconditional self-darken
+   pushed every cartoon-panel Card's quiet plate from its design-intent 0.50 α (the
+   F8 "glass is back" translucency) up to 0.60 α — the opaque regression
+   proof:glass-and-cartoon's ≤0.55 ceiling bites (measured live: bg α 0.6 with
+   --glass-tint-strength:20%; α drops to 0.50 the instant the floor is 0%).
+
+   This is glass-ui's OWN documented dark-substrate opt-out (ladder.css:163-164 — "a
+   dark-substrate consumer who wants the pristine plate sets
+   `--glass-tint-strength: 0%`"). We neutralise the AA FLOOR (not --glass-tint-strength
+   directly) so BOTH the unconditional Arm-1 self-engage AND a future `@container
+   light` darken resolve their `color-mix(in oklab, <rung bg>, --glass-tint-source 0%)`
+   as a ZERO-delta mix — the pristine translucent plate (0.50) returns. Scoped to the
+   demo's glass CONTENT tiers (the cartoon panels are `.glass-quiet`); the dock + the
+   overlay band (Dialog/Popover/DropdownMenu/Tooltip/Select-content) keep glass-ui's
+   adaptive darken untouched. The class/attr selectors carry enough specificity to
+   win over glass-ui's 0-specificity `:where()` self-engage; this is a CONSUME-seam
+   token re-point (inv-16 — never patches node_modules). */
+:where(.glass-quiet, .glass-wash, .glass-resting, .glass-card),
+[data-tier="quiet"],
+[data-tier="wash"],
+[data-tier="resting"] {
+    --glass-tint-strength-aa: 0%;
+}
+
 @media (max-width: 1023px) {
     :root {
         --work-area-max-width: 100dvw;
