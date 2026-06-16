@@ -160,12 +160,15 @@ async function browserHalf() {
 
         // Open the menu. (S8 keeps the dock expanded while the menu is open.)
         await page.locator(TRIGGER).first().click();
-        await page.waitForTimeout(250);
 
         // Find the dark-mode row's LABEL (the `<span>Dark mode</span>` text), NOT the
         // icon button. role="menuitem" content portals; the label span is the gutter
         // target the F5 row @click must own. Locate by exact text within the menu.
         const labelLoc = page.getByText("Dark mode", { exact: true }).first();
+        // WAIT for the menu popover to RENDER its rows — a fixed waitForTimeout races
+        // the slow CI runner's portal render (the born-RED on Linux was menu:false /
+        // items:[]). Auto-wait for the row to be visible before asserting.
+        await labelLoc.waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
         const labelVisible = await labelLoc.isVisible().catch(() => false);
         if (!labelVisible) {
             const dbg = await page.evaluate(() => ({

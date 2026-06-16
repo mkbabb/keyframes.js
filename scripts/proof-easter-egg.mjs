@@ -281,7 +281,11 @@ async function browserHalf() {
                 fail("[amiga] egg fires — the .amiga-canvas did not mount");
             } else {
                 await fireDblclick(page, ".amiga-canvas");
-                await page.waitForTimeout(250);
+                // Wait for the class to appear rather than a fixed timeout — the
+                // handler is synchronous but Vue's reactive flush can lag on a
+                // loaded Linux CI runner, so poll until the class is set or 5s elapse.
+                const amigaLoc = page.locator(".amiga-canvas.amiga-canvas--boing");
+                await amigaLoc.waitFor({ state: "attached", timeout: 5000 }).catch(() => {});
                 const boinging = await page.evaluate(() =>
                     document
                         .querySelector(".amiga-canvas")
@@ -600,7 +604,12 @@ async function browserHalf() {
                         await page.waitForTimeout(12);
                     }
                     await page.mouse.up();
-                    await page.waitForTimeout(150);
+                    // Wait for the class to appear rather than a fixed timeout — the
+                    // lap-accumulator flushes reactively on pointer-up; on a loaded
+                    // Linux CI runner the 150ms fixed wait can expire before the Vue
+                    // flush writes the class, so poll until attached or 5s elapse.
+                    const winkLoc = page.locator(".mp-traveller.mp-traveller--winking");
+                    await winkLoc.waitFor({ state: "attached", timeout: 5000 }).catch(() => {});
                     const winking = await page.evaluate(() =>
                         document
                             .querySelector(".mp-traveller")

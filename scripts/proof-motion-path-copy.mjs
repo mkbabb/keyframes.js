@@ -220,7 +220,19 @@ async function browserHalf() {
                     await page.waitForTimeout(16);
                 }
                 await page.mouse.up();
-                await page.waitForTimeout(200);
+                // Wait for the reactive artifact update rather than a fixed settle:
+                // poll until .artifact text changes from the pre-drag value (or 5s).
+                const beforeText = before.text;
+                let waited = 0;
+                while (waited < 5000) {
+                    const current = await page.evaluate(() => {
+                        const art = document.querySelector(".artifact");
+                        return (art?.textContent ?? "").trim();
+                    });
+                    if (current !== beforeText) break;
+                    await page.waitForTimeout(100);
+                    waited += 100;
+                }
                 editedText = await page.evaluate(() => {
                     const art = document.querySelector(".artifact");
                     return (art?.textContent ?? "").trim();

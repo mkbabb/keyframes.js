@@ -102,6 +102,12 @@ async function settleOnCube(page, viewportWidth, viewportHeight) {
  *  proof:dock-popover-opens uses. Returns true once the detail panel host + the
  *  EasingCurveCanvas are live. */
 async function openBezierPanel(page) {
+    // Wait for the easing-edit pencil to be present + visible before querying it.
+    // page.$() is a snapshot (no auto-wait); on a slow CI runner the 600 ms settle
+    // in settleOnCube may not be enough for the controls panel to fully mount, so
+    // we poll until the element is actionable (up to 5 s) before handing off to click.
+    const pencilLoc = page.locator(".easing-edit-btn").first();
+    await pencilLoc.waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
     const pencil = await page.$(".easing-edit-btn");
     if (!pencil) return false;
     try {

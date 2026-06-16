@@ -133,6 +133,12 @@ async function settleOnCube(page, viewportWidth, viewportHeight) {
 /** Open the cubic-bézier detail panel via a REAL click on the live easing-edit
  *  pencil — the same trusted-input driver proof:bezier-no-scroll uses. */
 async function openBezierPanel(page) {
+    // Wait for the pencil button to be visible before querying it — the
+    // controls-layout was just force-opened via DOM manipulation in
+    // settleOnCube; on a slow CI runner the portal/subtree may not have
+    // rendered within the fixed 600 ms settle, so we poll for up to 5 s.
+    const pencilLoc = page.locator(".easing-edit-btn").first();
+    await pencilLoc.waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
     const pencil = await page.$(".easing-edit-btn");
     if (!pencil) return false;
     try {
