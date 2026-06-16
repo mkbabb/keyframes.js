@@ -27,6 +27,7 @@ import { AnimationOptionError, parseOption } from "./internal/errors";
 import { withReducedMotion } from "./internal/reduced-motion";
 import { RAFPlayback } from "./playback";
 import { resolveKeyframes } from "./adapter";
+import type { Diagnostic } from "./adapter";
 import {
     COLOR_SPACES,
     DIRECTIONS,
@@ -37,6 +38,7 @@ import {
 import type {
     AnimationFrame,
     AnimationOptions,
+    CompositeOperator,
     Easing,
     InputAnimationOptions,
     TemplateAnimationFrame,
@@ -129,6 +131,38 @@ export class Animation<V extends Vars = any> {
     t: number = 0;
 
     iteration: number = 0;
+
+    /**
+     * Structured parse/honoring diagnostics (K.W7 S4) — surfaced from the
+     * adapter's `resolveKeyframes` ({@link CSSKeyframesAnimation.fromString})
+     * and joined by the engine's own composition-fallback rows. A FLAT additive
+     * array of stable-coded {@link Diagnostic} rows; empty on a clean parse with
+     * no fallback. Every SILENT fallback site is mirrored here — the honesty
+     * surface (`proof:diagnostics-channel`). Queryable; no console output.
+     */
+    diagnostics: Diagnostic[] = [];
+
+    /**
+     * The captured UNDERLYING base value for each composited leaf (K.W7 S1) —
+     * keyed by the flat property key, holding the per-element numeric base the
+     * `add`/`accumulate` operator accumulates ONTO. CSS `animation-composition:
+     * add` composites the animation's effect on top of the element's underlying
+     * value (its value WITHOUT this animation); we snapshot it the first time a
+     * composited leaf is applied (before the engine overwrites the inline
+     * style), then accumulate onto it each frame. Empty for a pure-`replace`
+     * animation (the legacy zero-overhead path — the Map is never touched).
+     */
+    private _compositionBase: Map<string, number[]> = new Map();
+
+    /** Properties whose non-numeric composite already emitted its
+     * `COMPOSITION_FALLBACK` row — so a long playback emits the honesty row
+     * ONCE per property, not once per frame (S3/S4). */
+    private _compositionFallbackSeen: Set<string> = new Set();
+
+    /** True once `fromString`/`addFrame` saw a non-`replace` operator — the hot
+     * path skips ALL composition work when this is false (the predictable
+     * per-animation-constant branch the §gate's clause (f) measures free). */
+    private _hasComposition: boolean = false;
 
     started: boolean = false;
     done: boolean = false;
@@ -287,8 +321,15 @@ export class Animation<V extends Vars = any> {
         vars: Partial<K>,
         transform?: TransformFunction<K>,
         timingFunction?: InputAnimationOptions["timingFunction"],
+        composition?: CompositeOperator,
     ): Animation<K> {
-        this.compiler.addFrame(start, vars, transform, timingFunction);
+        this.compiler.addFrame(
+            start,
+            vars,
+            transform,
+            timingFunction,
+            composition,
+        );
         return this as unknown as Animation<K>;
     }
 
@@ -296,7 +337,29 @@ export class Animation<V extends Vars = any> {
     parse() {
         this.compiler.parse(this.targets);
         this.computeStableKeys();
+        this.computeHasComposition();
         return this;
+    }
+
+    /**
+     * Set `_hasComposition` (K.W7 S1) — true iff ANY compiled frame carries a
+     * non-`replace` `animation-composition` operator. The honoring hot-path
+     * branch (`processFrame` → `applyComposition`) reads this ONE per-animation
+     * constant; a pure-`replace` animation never pays for the composition work.
+     * Also resets the per-run base/fallback caches so a re-parse (new keyframes)
+     * re-snapshots the underlying base.
+     */
+    private computeHasComposition(): void {
+        let has = false;
+        for (const frame of this.frames) {
+            if (frame.composition != null && frame.composition !== "replace") {
+                has = true;
+                break;
+            }
+        }
+        this._hasComposition = has;
+        this._compositionBase.clear();
+        this._compositionFallbackSeen.clear();
     }
 
     /**
@@ -332,6 +395,9 @@ export class Animation<V extends Vars = any> {
         // The adopted frames may carry a different key-set — recompute the
         // stable-key union so the reused interpolation buffer sizes correctly.
         this.computeStableKeys();
+        // The adopted frames may carry composition operators — re-derive the
+        // honoring flag + reset the per-run base/fallback caches (K.W7).
+        this.computeHasComposition();
         return this;
     }
 
@@ -779,9 +845,173 @@ export class Animation<V extends Vars = any> {
             lerpValue(eased, iv);
         }
 
+        // K.W7 S1 — HONOR `animation-composition` on the rAF APPLY path. The
+        // lerp above wrote the segment's value into each leaf's `.value`; an
+        // `add`/`accumulate` segment composites that lerped value onto the
+        // captured underlying base IN PLACE (the same un-clamped numeric leaf
+        // the group's `add` layer runs), so the inline-style write the DOM sees
+        // IS the SUM. GATED on `transformFrames`: only the rAF apply (the
+        // engine-write channel) composites — a `false` sample (the WAAPI
+        // keyframe build in `toWAAPIKeyframes`, the group blend, a `.at()`
+        // query) keeps the RAW lerped effect, because the WAAPI compositor adds
+        // the base ITSELF (S2, the `composite` keyword). Compositing here on a
+        // WAAPI sample would DOUBLE-count (base added twice) — so the parity
+        // (clause (c)) holds precisely because the rAF apply composites and the
+        // WAAPI sample does not. A pure-`replace` animation never enters this
+        // branch (the `_hasComposition` per-animation constant — the
+        // predictable branch the §gate's clause (f) measures free).
+        if (
+            transformFrames &&
+            this._hasComposition &&
+            frame.composition != null
+        ) {
+            this.applyComposition(frame);
+        }
+
         if (transformFrames) {
             frame.transform(this.unflatten ? frame.vars : frame.flatVars, t);
         }
+    }
+
+    /**
+     * Composite ONE frame's lerped numeric leaves onto the captured underlying
+     * base, per the frame's `animation-composition` operator (K.W7 S1). The
+     * leaf is a `ValueUnit[]` (a one-element array for a scalar, an N-element
+     * array for a multi-component leaf — a transform list); the lerp already
+     * wrote `unit.value`, so the composite is `unit.value += base` IN PLACE
+     * (un-clamped — CSS does not clamp at composition; the same `group.ts` `add`
+     * leaf contract). The underlying base is snapshotted the first time the leaf
+     * is composited (from the target's pre-animation value), keyed by the flat
+     * property name. The `replace` operator is filtered out by the caller.
+     *
+     *   - `add`        — `value = base + lerp`
+     *   - `accumulate` — repeat-aware: `value = base + iteration·(endΔ) + lerp`,
+     *                    so iteration N stacks onto N−1's net effect (the one new
+     *                    semantic; reads the engine's own `iteration` counter).
+     *
+     * A NON-NUMERIC leaf (color, `<custom-ident>`, discrete) has no faithful
+     * numeric add: it `replace`-falls-back (the leaf keeps its lerped value) AND
+     * emits a `COMPOSITION_FALLBACK` row naming the property — never a silent
+     * wrong pixel (the honest-refusal clause). The row is emitted ONCE per
+     * property (a `Set` guard) so a long playback does not flood the channel.
+     */
+    private applyComposition(frame: AnimationFrame<V>): void {
+        const op = frame.composition;
+        if (op == null || op === "replace") return;
+
+        const flatVars = frame.flatVars as unknown as Record<string, ValueUnit[]>;
+        for (const key in flatVars) {
+            const leaf = flatVars[key];
+            if (!Array.isArray(leaf) || leaf.length === 0) continue;
+
+            // Non-numeric refusal (S3 / NEW-39): a leaf any element of which is
+            // not a plain numeric ValueUnit has no faithful numeric add. It
+            // `replace`-falls-back (keeps the lerped value) and emits its row.
+            const numeric = leaf.every(
+                (u) => u instanceof ValueUnit && typeof u.value === "number",
+            );
+            if (!numeric) {
+                this.emitCompositionFallback(key, op);
+                continue;
+            }
+
+            // Capture the underlying base ONCE (before the engine's first write
+            // overwrote it). Keyed by the flat property; one number per element.
+            let base = this._compositionBase.get(key);
+            if (base === undefined) {
+                base = this.captureUnderlyingBase(key, leaf.length);
+                this._compositionBase.set(key, base);
+            }
+
+            // The repeat-aware accumulate stacks the PRIOR iterations' net
+            // effect (the segment's end value minus its base, per completed
+            // iteration). For `add`, the stack is zero (iteration-independent).
+            const iters = op === "accumulate" ? this.iteration : 0;
+            for (let i = 0; i < leaf.length; i++) {
+                const unit = leaf[i]!;
+                const b = base[i] ?? 0;
+                if (iters > 0) {
+                    // The net per-iteration delta is (end − base); `accumulate`
+                    // adds it once per COMPLETED iteration on top of the base,
+                    // then the live lerp on top of that (CSS repeat-aware
+                    // accumulation). `unit.value` currently holds the live lerp.
+                    const end = this.endValueFor(frame, key, i);
+                    unit.value = b + iters * (end - b) + unit.value;
+                } else {
+                    unit.value = b + unit.value;
+                }
+            }
+        }
+    }
+
+    /**
+     * Snapshot the underlying base for a composited leaf (K.W7 S1) — the
+     * element's value WITHOUT this animation, the value `add`/`accumulate`
+     * composites onto. Reads the target's pre-animation INLINE style for the
+     * leaf's CSS property and parses each component to a number; an absent /
+     * non-numeric inline value is the CSS initial-ish `0` (additive identity),
+     * so a fresh element with no underlying declaration composites as a pure
+     * `add` onto `0` (the lerped value passes through unchanged — faithful: no
+     * underlying value means nothing to add to). Bounded to `count` elements.
+     */
+    private captureUnderlyingBase(key: string, count: number): number[] {
+        const base = new Array<number>(count).fill(0);
+        const target = this.targets[0];
+        if (target == null || target.style == null) return base;
+        // The flat key's leaf segment is the CSS-ish property (e.g. `opacity`,
+        // or `transform.translateX` → `translateX`); read the inline value and
+        // parse leading numeric components positionally.
+        const prop = key.split(".").pop() ?? key;
+        const raw =
+            target.style.getPropertyValue(prop) ||
+            (target.style as unknown as Record<string, string>)[prop] ||
+            "";
+        if (!raw) return base;
+        const nums = raw.match(/-?\d*\.?\d+(?:e[+-]?\d+)?/gi);
+        if (nums == null) return base;
+        for (let i = 0; i < count && i < nums.length; i++) {
+            const n = Number.parseFloat(nums[i]!);
+            if (Number.isFinite(n)) base[i] = n;
+        }
+        return base;
+    }
+
+    /**
+     * The segment END value for a leaf element (K.W7 — the `accumulate`
+     * repeat-aware stack). The compiled `InterpolatedVar` carries `start`/`stop`
+     * ValueUnits; the end of the segment is `stop.value`. Returns the captured
+     * base when the stop is not a plain number (the accumulate degrades to a
+     * no-stack `add`, never a NaN).
+     */
+    private endValueFor(
+        frame: AnimationFrame<V>,
+        key: string,
+        index: number,
+    ): number {
+        const ivArr = frame.interpVars[key];
+        const iv = ivArr?.[index];
+        const stop = iv?.stop;
+        if (stop instanceof ValueUnit && typeof stop.value === "number") {
+            return stop.value;
+        }
+        return this._compositionBase.get(key)?.[index] ?? 0;
+    }
+
+    /** Emit a `COMPOSITION_FALLBACK` diagnostic ONCE per property (S3/S4). */
+    private emitCompositionFallback(
+        property: string,
+        op: CompositeOperator,
+    ): void {
+        if (this._compositionFallbackSeen.has(property)) return;
+        this._compositionFallbackSeen.add(property);
+        this.diagnostics.push({
+            code: "COMPOSITION_FALLBACK",
+            message:
+                `animation-composition: ${op} on a non-numeric leaf ` +
+                `"${property}" has no faithful numeric add — composited as ` +
+                `\`replace\` (the lerped value), never a wrong sum`,
+            property,
+        });
     }
 
     /** SYNC unless `delay > 0` — then a thenable resolving after the sleep. */
@@ -1258,6 +1488,13 @@ export class CSSKeyframesAnimation<V extends Vars> extends Animation<V> {
         const resolved = resolveKeyframes(keyframes);
         this.propertyRegistry = resolved.properties;
 
+        // K.W7 S4 — surface the adapter's structured diagnostics (EMPTY_PARSE,
+        // and any value.js PARSE_ERROR consumed through OnParseError) on the
+        // animation. A fresh array per `fromString` so a re-parse does not
+        // carry stale rows; the engine's own COMPOSITION_FALLBACK rows join it
+        // at apply time. The channel is queryable; nothing is logged.
+        this.diagnostics = [...resolved.diagnostics];
+
         // F.W8 — apply a sibling style rule's `animation` shorthand/longhands as
         // the option BASE, with the constructor-explicit options overriding it.
         // value.js's `extractAnimationOptions` returns only the declared fields;
@@ -1313,7 +1550,21 @@ export class CSSKeyframesAnimation<V extends Vars> extends Animation<V> {
                 const css = tfText ? cssTwinFor(tfText) : undefined;
                 easing = css ? { fn: resolvedFn, css } : { fn: resolvedFn };
             }
-            this.addFrame(percent, frame as Partial<V>, transform, easing);
+            // K.W7 S1 — thread the captured per-keyframe `animation-composition`
+            // operator (`add`/`accumulate`/`replace`) from the adapter's Map
+            // into the template frame BESIDE the per-keyframe easing read. This
+            // is the WIRING the audit named: the engine READING the value it
+            // dropped, never a re-parse of the CSS at apply time.
+            const composition = resolved.composition.get(percent) as
+                | CompositeOperator
+                | undefined;
+            this.addFrame(
+                percent,
+                frame as Partial<V>,
+                transform,
+                easing,
+                composition,
+            );
         }
 
         this.parse();

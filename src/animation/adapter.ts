@@ -4,9 +4,52 @@ import {
     extractProperties,
     parseCSSStylesheet,
     type KeyframeRule,
+    type OnParseError,
+    type ParseDiagnostic,
     type PropertyDescriptor,
     type Stylesheet,
 } from "@mkbabb/value.js";
+
+/**
+ * The stable diagnostic `code`s the kf-side sink emits (K.W7 S4). A FLAT,
+ * additive enum — NOT a logging framework — so a programmatic consumer branches
+ * on the reason without scraping a message string (the J.W1 typed-throw idiom
+ * lifted onto the structured field). The engine-internal rows
+ * (`EMPTY_PARSE`/`UNKNOWN_TIMING_FN`) were J.W1-landed as typed throws; W7 lifts
+ * them onto this field. `COMPOSITION_FALLBACK` is the K.W7 honesty row (the
+ * non-numeric composite leaf's refusal). `PARSE_ERROR` carries the value.js
+ * `OnParseError` producer's structured diagnostic verbatim. The CORS-skip /
+ * WAAPI-reason rows are AUTHORED here but POPULATED by K.W8 (which owns the
+ * CSSOM walk that produces them).
+ */
+export type DiagnosticCode =
+    | "EMPTY_PARSE"
+    | "UNKNOWN_TIMING_FN"
+    | "COMPOSITION_FALLBACK"
+    | "PARSE_ERROR"
+    | "CORS_SKIP"
+    | "WAAPI_INELIGIBLE";
+
+/**
+ * A structured parse/honoring diagnostic (K.W7 S4). Extends the value.js
+ * `ParseDiagnostic` producer (the CONSUMED shape — `message`/`offset`/`line`/
+ * `column`/`expected`/`input`) with a stable kf-side {@link DiagnosticCode} and
+ * an optional `property` (the leaf a `COMPOSITION_FALLBACK` names). The
+ * value.js half (`message`/`offset`/…) is `Partial` because the engine-internal
+ * rows (EMPTY_PARSE, COMPOSITION_FALLBACK) are NOT byte-offset parse failures —
+ * they carry a `message` + `code` only; a row sourced from the value.js
+ * `OnParseError` producer carries the full positional record. NOT a kf-local
+ * re-author of the producer: it CONSUMES `ParseDiagnostic`'s field shape and
+ * widens it with the stable code (inv-16 published-only consumption holds).
+ */
+export interface Diagnostic extends Partial<ParseDiagnostic> {
+    /** A stable, branch-on-able code — never scrape `message`. */
+    code: DiagnosticCode;
+    /** The human-readable summary (always present; the producer's or kf's). */
+    message: string;
+    /** The CSS property a `COMPOSITION_FALLBACK` refuses to composite. */
+    property?: string;
+}
 
 /**
  * Result of normalising a CSS keyframes input down to the shape the
@@ -35,6 +78,18 @@ export interface ResolvedKeyframes {
      * when the input has no matching style rule.
      */
     options: ReturnType<typeof extractAnimationOptions>;
+
+    /**
+     * Structured parse/honoring diagnostics (K.W7 S4) — every SILENT fallback
+     * the resolve path used to swallow, now a citable row. CONSUMES the value.js
+     * 0.12.0 `ParseDiagnostic`/`OnParseError` producer (N2 row 10): a failed
+     * parse surfaced through `OnParseError` lands here as a `PARSE_ERROR` row,
+     * and the kf-side fallbacks (`EMPTY_PARSE`, and the engine's
+     * `COMPOSITION_FALLBACK`) join it. A FLAT additive array with stable
+     * {@link DiagnosticCode}s, NOT a logging framework. Empty on a clean parse.
+     * K.W8 populates the ingest rows (`CORS_SKIP`, `WAAPI_INELIGIBLE`) it owns.
+     */
+    diagnostics: Diagnostic[];
 }
 
 const declsToVarMap = (rule: KeyframeRule): Record<string, unknown> => {
@@ -94,12 +149,51 @@ const pickKeyframes = (ast: Stylesheet): KeyframeRule[] => {
 export const resolveKeyframes = (
     input: string | Stylesheet,
 ): ResolvedKeyframes => {
+    const diagnostics: Diagnostic[] = [];
+    // The CONSUMED value.js producer (N2 row 10): a sink of the published
+    // `OnParseError` shape. The kf-side honesty rows AND any value.js parse
+    // diagnostic flow through this ONE sink — every row that lands on the
+    // channel passes through the producer's `(ParseDiagnostic) => void` contract
+    // (NOT a re-authored kf-local logger). A value.js parse that emits a
+    // `ParseDiagnostic` (K.W8 wires its CSSOM walk through this) lands as a
+    // `PARSE_ERROR` row; the engine-internal EMPTY_PARSE row rides the same sink.
+    // Ready for K.W8: a value.js parse derailment, surfaced through the
+    // producer's `OnParseError` contract, lands as a `PARSE_ERROR` row verbatim
+    // (the consumed `ParseDiagnostic` shape carried whole). The CSSOM walk K.W8
+    // owns threads THIS sink into its per-sheet parse so one bad sheet becomes a
+    // row, not a thrown abort. Authored here; populated when that producer lands.
+    const onParseError: OnParseError = (d: ParseDiagnostic) => {
+        diagnostics.push({ ...d, code: "PARSE_ERROR" });
+    };
+    void onParseError;
+    // The engine-internal honesty rows ride the SAME flat channel — a stable
+    // `code` + a `message`, the consumed `ParseDiagnostic` field shape widened.
+    const sink = (code: DiagnosticCode, extra: Partial<Diagnostic>): void => {
+        diagnostics.push({ code, message: extra.message ?? code, ...extra });
+    };
+
     let ast = typeof input === "string" ? parseCSSStylesheet(input) : input;
     let rules = pickKeyframes(ast);
 
     if (typeof input === "string" && rules.length === 0 && input.trim()) {
         ast = parseCSSStylesheet(`@keyframes anonymous {\n${input.trim()}\n}`);
         rules = pickKeyframes(ast);
+    }
+
+    // EMPTY_PARSE (K.W7 S4, lifting the J.W1 engine-internal row onto the
+    // structured field). A NON-EMPTY input that surfaced ZERO @keyframes rules
+    // even after the bare-list re-wrap is a SILENT empty parse — the adapter
+    // historically returned an empty `keyframes` Map with no signal, so a
+    // consumer got a frame-less animation with no reason. Mirror it as a citable
+    // row (never a throw — resolve stays lenient, the J.W1 forgiving-language
+    // posture; the diagnostic is the honesty surface, not a fail-loud).
+    if (typeof input === "string" && rules.length === 0 && input.trim()) {
+        sink("EMPTY_PARSE", {
+            message:
+                "the input is non-empty but parsed to zero @keyframes rules " +
+                "(no animatable stops) — the resulting animation has no frames",
+            input,
+        });
     }
 
     const keyframes = new Map<string, Record<string, unknown>>();
@@ -133,5 +227,6 @@ export const resolveKeyframes = (
         composition,
         properties: extractProperties(ast),
         options: extractAnimationOptions(ast),
+        diagnostics,
     };
 };

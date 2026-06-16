@@ -125,8 +125,14 @@ requireAll("in-place-blend", GROUP, [
         re: /existing\[i\]\.value\s*\+=\s*incoming\[i\]\.value/,
     },
     {
-        name: "weighted lerps in place (existing[i].value = lerp(...))",
-        re: /existing\[i\]\.value\s*=\s*lerp\(\s*existing\[i\]\.value\s*,\s*incoming\[i\]\.value\s*,\s*layer\.weight/,
+        // The weighted lerp mutates in place; its third arg is the per-layer
+        // weight scalar `w` (K.W11 PHYS-C hoisted it out of the element loop as
+        // `const w = layer.weightSpring?.value ?? layer.weight` so a spring can
+        // DRIVE it — the constant `layer.weight` is the fallback). Accept either
+        // the bare `layer.weight` or the hoisted `w`; the spring-read provenance
+        // is gated by proof:spring-blend-weight's `phys-c-read` clause.
+        name: "weighted lerps in place (existing[i].value = lerp(..., w | layer.weight))",
+        re: /existing\[i\]\.value\s*=\s*lerp\(\s*existing\[i\]\.value\s*,\s*incoming\[i\]\.value\s*,\s*(?:w|layer\.weight)\b/,
     },
     {
         name: "a non-numeric index replaces (existing[i] = incoming[i])",

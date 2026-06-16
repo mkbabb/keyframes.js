@@ -31,12 +31,18 @@ export { NumericAnimation } from "./numeric";
 export type { NumericAnimationOptions, NumericFrameCallback } from "./numeric";
 export { SmoothProgress } from "./smooth";
 export type { SmoothProgressOptions } from "./smooth";
-export { SpringProgress } from "./spring";
+export { SpringProgress, reseatToSpring, probeVelocity } from "./spring";
 export type {
     SpringProgressOptions,
     SpringSubscriber,
     SpringFrameCallback,
+    VelocityProbe,
 } from "./spring";
+// K.W11 PHYS-E — the intensity-scaled reduced-motion mechanism (value.js-free
+// light leaf): the ONE gate's policy type + the amplitude-scale resolver a
+// consumer can read to scale its own non-spring motion under reduced motion.
+export { reducedMotionScale } from "./internal/reduced-motion";
+export type { ReducedMotionPolicy } from "./internal/reduced-motion";
 export { springLinearStops } from "./springLinearStops";
 export type { SpringLinearStopsOptions } from "./springLinearStops";
 export { springTimingFunction } from "./springTimingFunction";
@@ -94,6 +100,7 @@ export type {
     AnimationFrame,
     BlendMode,
     AnimationLayerConfig,
+    WeightStepper,
     Vars,
     InterpolatedVar,
 } from "./constants";

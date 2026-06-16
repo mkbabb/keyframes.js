@@ -90,6 +90,17 @@ export interface TemplateAnimationFrame<V extends Vars> {
 
     transform?: TransformFunction<V>;
     timingFunction?: Easing;
+
+    /**
+     * The author-declared `animation-composition` operator for this stop
+     * (`replace` | `add` | `accumulate`), captured by the adapter and threaded
+     * here so the engine HONORS it (K.W7 — the fidelity floor). Genuine
+     * omission means `replace` (the default composite). value.js lifts it onto
+     * `rule.composition`; `resolveKeyframes` captures it on
+     * `ResolvedKeyframes.composition`; `fromString` reads that Map into this
+     * field. The compiled {@link AnimationFrame.composition} inherits it.
+     */
+    composition?: CompositeOperator;
 }
 
 export interface AnimationFrame<V extends Vars> {
@@ -124,7 +135,33 @@ export interface AnimationFrame<V extends Vars> {
     transform: TransformFunction<V>;
 
     timingFunction: Easing;
+
+    /**
+     * The compiled per-segment `animation-composition` operator (K.W7). A
+     * segment runs from a START stop to a STOP stop; the operator is the STOP
+     * stop's declared composition (CSS attaches `animation-composition` to the
+     * keyframe being composited TOWARD). `replace` (or omission) is the legacy
+     * behaviour — the apply writes the lerped value verbatim. `add` accumulates
+     * the lerped numeric leaf onto the captured underlying base (un-clamped,
+     * element-wise — the same leaf `group.ts`'s `add` layer runs); `accumulate`
+     * is repeat-aware (iteration N stacks onto N−1's end). A non-numeric leaf
+     * (color, `<custom-ident>`) `replace`-falls-back AND emits a
+     * `COMPOSITION_FALLBACK` diagnostic — never a silent wrong pixel.
+     */
+    composition?: CompositeOperator;
 }
+
+/**
+ * The CSS `animation-composition` operator (K.W7). Distinct from
+ * {@link BlendMode} (the GROUP's per-LAYER blend tier — `replace`/`add`/
+ * `weighted`): this is the per-KEYFRAME composite operator the author declares
+ * on a single animation, matching the CSS grammar exactly (`weighted` is not a
+ * CSS composite; `accumulate` is the repeat-aware one CSS adds). The engine
+ * routes `add`/`accumulate` onto the SAME un-clamped numeric leaf the group's
+ * `add` layer runs (`group.ts`), so the two tiers share one accumulation
+ * semantic without sharing a type.
+ */
+export type CompositeOperator = "replace" | "add" | "accumulate";
 
 export type AnimationOptions = {
     duration: number;
@@ -195,11 +232,42 @@ export const defaultOptions: AnimationOptions = {
 
 export type BlendMode = "replace" | "add" | "weighted";
 
+/**
+ * The minimal stepper surface a spring-driven blend weight reads (K.W11
+ * PHYS-C). A `SpringProgress` satisfies it structurally (`value` getter +
+ * `tickDt` + `settled`); typing it as this narrow shape — NOT importing
+ * `SpringProgress` — keeps `constants.ts` from gaining a class edge and lets
+ * a consumer drive a layer's weight with ANY analytic stepper (a decay glide,
+ * a custom `Tickable`). The read is one nullish access in the `weighted` blend
+ * leaf; the group's managed loop advances it per frame via `tickDt`.
+ */
+export interface WeightStepper {
+    /** The stepper's current scalar — read in place of the constant `weight`. */
+    readonly value: number;
+    /** Advance the stepper by `dt` milliseconds (the group's managed tick). */
+    tickDt(dt: number): number;
+    /** True once the stepper has converged — the group clears it then. */
+    readonly settled: boolean;
+}
+
 export interface AnimationLayerConfig {
     /** Higher wins. Default: 0 */
     zIndex: number;
     /** 0–1 for 'weighted' blend mode. Default: 1 */
     weight: number;
+    /**
+     * Optional spring (or any {@link WeightStepper}) DRIVING this layer's
+     * blend `weight` (K.W11 PHYS-C — the spring-driven crossfade). When
+     * present the `weighted` blend leaf reads `weightSpring.value` in place of
+     * the constant `weight` (one nullish read; the per-frame lerp untouched),
+     * so a layer transition follows a PHYSICAL trajectory that can overshoot
+     * and settle — the flagship demo moment only kf's weighted-blend substrate
+     * can hold. Constructed + advanced by `AnimationGroup.transitionLayer` /
+     * `crossfade`; cleared on settle, when the read falls back to the
+     * now-updated constant `weight`. Absent on a static-weight layer (the
+     * read is `?? layer.weight`), so the constant path is byte-unchanged.
+     */
+    weightSpring?: WeightStepper;
     /**
      * Default: 'replace'. Defaulting on a genuinely-omitted blend mode is
      * the sanctioned contract (the fail-explicit seam throws only on

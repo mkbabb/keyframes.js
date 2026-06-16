@@ -36,6 +36,42 @@ describe("interpFrames", () => {
             complexAnim.interpFrames((i / 60) * 1000, false);
         }
     });
+
+    // K.W7 clause (f) — MEASURE-FIRST. The composition honoring runs only on the
+    // apply path (`transformFrames=true`), so these two APPLY benches isolate
+    // the per-keyframe-constant branch's cost: a `replace` apply (the honoring
+    // branch short-circuits on the `_hasComposition=false` constant) vs a
+    // `composite:add` apply (the branch is taken, the numeric leaf accumulates
+    // onto the captured base). The predictable per-keyframe-constant branch must
+    // keep the `replace` apply at its baseline — the honoring is free on the
+    // overwhelming replace majority.
+    const replaceEl = document.createElement("div");
+    replaceEl.style.opacity = "0.3";
+    const replaceApply = new CSSKeyframesAnimation(
+        { duration: 1000 },
+        replaceEl,
+    ).fromString(`from { opacity: 0; } to { opacity: 1; }`);
+
+    const addEl = document.createElement("div");
+    addEl.style.opacity = "0.3";
+    const addApply = new CSSKeyframesAnimation(
+        { duration: 1000 },
+        addEl,
+    ).fromString(
+        `@keyframes a { 0% { opacity: 0 } 100% { opacity: 1; animation-composition: add } }`,
+    );
+
+    bench("2-frame opacity REPLACE apply (60 frames)", () => {
+        for (let i = 0; i < 60; i++) {
+            replaceApply.interpFrames((i / 60) * 1000, true);
+        }
+    });
+
+    bench("2-frame opacity composite:add apply (60 frames)", () => {
+        for (let i = 0; i < 60; i++) {
+            addApply.interpFrames((i / 60) * 1000, true);
+        }
+    });
 });
 
 describe("transformFramesGrouped", () => {

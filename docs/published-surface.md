@@ -24,6 +24,9 @@ tier, third its README anchor (or a `manifest-only: <reason>` note).
 | `NumericAnimation` | LIGHT | [README §NumericAnimation](../README.md#numericanimation) |
 | `SmoothProgress` | LIGHT | [README §SmoothProgress](../README.md#smoothprogress) |
 | `SpringProgress` | LIGHT | [README §SpringProgress](../README.md#springprogress) |
+| `reseatToSpring` | LIGHT | manifest-only: K.W11 PHYS-B2 — velocity-continuous interruption of a parsed-CSS animation; finite-differences a `VelocityProbe` interp stream and seeds a `SpringProgress` at the current position with the measured velocity, targeting a new value (the spring's `linear()` twin is round-trippable). |
+| `probeVelocity` | LIGHT | manifest-only: K.W11 PHYS-B2 — the finite-difference leaf of `reseatToSpring`; `(curr − prev)/dt` over a two-sample `VelocityProbe`, the one place a numerical derivative is correct on a velocity-less keyframe stream. |
+| `reducedMotionScale` | LIGHT | manifest-only: K.W11 PHYS-E — resolves a `ReducedMotionPolicy` (`boolean \| number`) to the amplitude scale ∈ [0,1] a stepper multiplies its displacement-from-rest by (the WCAG 2.3.3 intensity); the consumer can read it to scale its own non-spring motion. The app supplies the policy; kf supplies the mechanism. |
 | `springLinearStops` | LIGHT | [README §springLinearStops & springTimingFunction](../README.md#springlinearstops--springtimingfunction) |
 | `springTimingFunction` | LIGHT | [README §springLinearStops & springTimingFunction](../README.md#springlinearstops--springtimingfunction) |
 | `ElementMorph` | LIGHT | [README §ElementMorph](../README.md#elementmorph) |

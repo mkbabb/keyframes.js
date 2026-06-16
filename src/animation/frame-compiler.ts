@@ -22,6 +22,7 @@ import { AnimationOptionError } from "./internal/errors";
 import type {
     AnimationFrame,
     AnimationOptions,
+    CompositeOperator,
     Easing,
     InputAnimationOptions,
     TemplateAnimationFrame,
@@ -144,6 +145,7 @@ export class FrameCompiler<V extends Vars = any> {
         vars: Partial<K>,
         transform?: TransformFunction<K>,
         timingFunction?: InputAnimationOptions["timingFunction"],
+        composition?: CompositeOperator,
     ): void {
         if (typeof start === "number") {
             start = String(start) + "%";
@@ -203,6 +205,9 @@ export class FrameCompiler<V extends Vars = any> {
                 timingFunction == null
                     ? this.options.timingFunction
                     : resolveEasingOption("timingFunction", timingFunction),
+            // K.W7 — the author-declared `animation-composition` operator for
+            // this stop (omission = `replace`, the default composite).
+            composition,
         } as TemplateAnimationFrame<K>;
 
         this.templateFrames.push(
@@ -279,6 +284,12 @@ export class FrameCompiler<V extends Vars = any> {
         // of identical input now produce byte-identical frames[], ids included.
         const id = startIx * FRAME_ID_SCALE + endIx;
 
+        // K.W7 — the segment carries the STOP stop's `animation-composition`.
+        // CSS attaches `animation-composition` to the keyframe being composited
+        // TOWARD, so a segment `start → stop` honors `stop`'s operator (the
+        // declared composite of the value the segment is interpolating INTO).
+        const composition = endFrame.composition;
+
         return {
             id,
             ixs,
@@ -290,6 +301,7 @@ export class FrameCompiler<V extends Vars = any> {
             allInterpVars: [],
             transform,
             timingFunction,
+            ...(composition != null ? { composition } : {}),
         } as AnimationFrame<V>;
     }
 

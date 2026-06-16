@@ -3,12 +3,24 @@ import { withReducedMotion } from "./internal/reduced-motion";
 import { yieldToMain } from "./internal/scheduler";
 import { RAFPlayback } from "./playback";
 import { Animation, getAnimationId } from "./engine";
+import { SpringProgress, type SpringProgressOptions } from "./spring";
 import type {
     AnimationLayerConfig,
     TransformFunction,
     Vars,
 } from "./constants";
 import { defaultLayerConfig, NOOP_TRANSFORM } from "./constants";
+
+/**
+ * Options for `AnimationGroup.transitionLayer` / `crossfade` (K.W11 PHYS-C).
+ * The `spring` half is the {@link SpringProgressOptions} subset that shapes the
+ * weight trajectory (`response`/`dampingFraction`/`bounce`-via-config); the
+ * spring is ALWAYS seeded at the layer's CURRENT weight and targets the new
+ * weight, so `initial`/`initialVelocity` are managed internally and excluded.
+ */
+export type LayerTransitionSpring = Partial<
+    Omit<SpringProgressOptions, "initial" | "initialVelocity">
+>;
 
 /**
  * Typed blend-carrier guard — the group is heavy-side (it statically
@@ -106,6 +118,16 @@ export class AnimationGroup<V extends Vars> {
      */
     private _groupedKeys: string[] = [];
     private _groupedKeysDirty = true;
+
+    /**
+     * K.W11 PHYS-C — true iff ANY layer currently carries a `weightSpring`. A
+     * pure fast-path guard: when false (the universal case — no crossfade in
+     * flight) `advanceTo` skips the per-frame spring scan entirely, so the
+     * constant-weight blend hot path takes ZERO new work. Set true by
+     * `transitionLayer`; recomputed false by `advanceLayerSprings` once every
+     * driving spring has settled and been cleared.
+     */
+    private _hasLayerSprings = false;
 
     constructor(...inputs: (Animation<V> | AnimationGroupInput<V>)[]) {
         this._boundFrame = this._frame.bind(this);
@@ -333,11 +355,24 @@ export class AnimationGroup<V extends Vars> {
                     }
                     break;
 
-                case "weighted":
+                case "weighted": {
                     // Lerp each numeric leaf element toward the incoming value by
                     // `weight`, in place. `weight === 1` produces a fully-blended
                     // value distinct from `replace` because the lerp leaf still
                     // mutates the existing carrier in place.
+                    //
+                    // K.W11 PHYS-C — the spring-driven blend weight. When the
+                    // layer carries a `weightSpring` (a `SpringProgress` or any
+                    // `WeightStepper`, set by `transitionLayer`/`crossfade`),
+                    // the lerp factor is the stepper's CURRENT value instead of
+                    // the constant `layer.weight` — ONE nullish read, hoisted
+                    // out of the element loop (the weight is a per-LAYER scalar,
+                    // uniform across the leaf), so the crossfade follows a
+                    // PHYSICAL trajectory that can overshoot 1.0 and settle. On
+                    // settle the spring is cleared (advanceLayerSprings) and the
+                    // read falls back to the now-updated constant — the constant
+                    // path is byte-unchanged when no spring is present.
+                    const w = layer.weightSpring?.value ?? layer.weight;
                     for (const key in values) {
                         if (whitelist && !whitelist.has(key)) continue;
                         const incoming = values[key];
@@ -353,7 +388,7 @@ export class AnimationGroup<V extends Vars> {
                                     existing[i].value = lerp(
                                         existing[i].value,
                                         incoming[i].value,
-                                        layer.weight,
+                                        w,
                                     );
                                 } else {
                                     existing[i] = incoming[i];
@@ -364,6 +399,7 @@ export class AnimationGroup<V extends Vars> {
                         }
                     }
                     break;
+                }
             }
         }
 
@@ -459,6 +495,14 @@ export class AnimationGroup<V extends Vars> {
      * genuinely-async child or the over-`YIELD_BATCH` yield path.
      */
     advanceTo(t: number): this | Promise<this> {
+        // K.W11 PHYS-C — advance any spring-driven layer weights by the frame
+        // delta BEFORE updating `lastTickTime`. The first tick of a play has
+        // `lastTickTime === 0` (a settle/start reset it), so the delta would be
+        // the whole absolute clock — clamp it to 0 so a layer spring never
+        // takes one giant first step (it integrates from the next real frame).
+        const dt = this.lastTickTime === 0 ? 0 : t - this.lastTickTime;
+        if (this._hasLayerSprings) this.advanceLayerSprings(dt);
+
         this.lastTickTime = t;
         if (!this.started) this.onStart();
 
@@ -806,5 +850,127 @@ export class AnimationGroup<V extends Vars> {
                 ? nameOrAnim
                 : getAnimationId(nameOrAnim);
         return this.animations[key]?.layer;
+    }
+
+    // ── Spring-driven blend weight (K.W11 PHYS-C) ────────────────────────
+
+    /**
+     * Resolve a name/reference to its registered entry, throwing the same
+     * fail-explicit "no animation registered" error the other layer methods
+     * raise. The shared lookup the transition API + `setLayerConfig` use.
+     */
+    private requireEntry(
+        nameOrAnim: string | Animation<V>,
+        method: string,
+    ): AnimationGroupEntry<V> {
+        const key =
+            typeof nameOrAnim === "string"
+                ? nameOrAnim
+                : getAnimationId(nameOrAnim);
+        const entry = this.animations[key];
+        if (!entry) {
+            throw new Error(
+                `AnimationGroup.${method}: no animation registered for key "${key}". Known keys: ${Object.keys(this.animations).join(", ") || "(none)"}.`,
+            );
+        }
+        return entry;
+    }
+
+    /**
+     * Spring a layer's blend `weight` from its CURRENT value to `weight`
+     * (K.W11 PHYS-C — the spring-driven crossfade). Constructs a
+     * `SpringProgress` seeded at the layer's current weight, targeting the new
+     * weight, and parks it on `layer.weightSpring`; the group's managed loop
+     * advances it per frame (`advanceLayerSprings`) and the `weighted` blend
+     * leaf reads its value in place of the constant. With an UNDER-damped
+     * spring the weight momentarily blends PAST the target (the canonical iOS
+     * "snap into place" for a whole animation layer) before settling — a
+     * PHYSICAL trajectory, NOT a hard cut.
+     *
+     * Re-targeting mid-flight (a second `transitionLayer` before the spring
+     * settles) RE-SEATS the existing spring from its live `(value, velocity)`
+     * (the shipped `set target` → `reseatTarget`), so the weight does not kink —
+     * it inherits the in-flight velocity. On settle the spring clears and the
+     * leaf falls back to the now-updated constant `weight`.
+     *
+     * Forces the layer's `blendMode` to `weighted` (the only weight-parametric
+     * mode); `add`/`replace` are not weight-driven and the spec leaves them
+     * untouched. Chainable.
+     */
+    transitionLayer(
+        nameOrAnim: string | Animation<V>,
+        target: { weight: number; spring?: LayerTransitionSpring },
+    ): this {
+        const entry = this.requireEntry(nameOrAnim, "transitionLayer");
+        const layer = entry.layer;
+        layer.blendMode = "weighted";
+
+        const existing = layer.weightSpring;
+        if (existing instanceof SpringProgress) {
+            // Re-seat the in-flight spring from its live (value, velocity) —
+            // velocity-continuous, no kink. `set target` does the re-seat.
+            existing.target = target.weight;
+        } else {
+            // Seed a fresh spring at the layer's current weight (the value the
+            // blend was reading), targeting the new weight.
+            const spring = new SpringProgress({
+                ...target.spring,
+                initial: layer.weight,
+            });
+            spring.target = target.weight;
+            layer.weightSpring = spring;
+        }
+
+        this._hasLayerSprings = true;
+        this.invalidateEntries();
+        return this;
+    }
+
+    /**
+     * Physically crossfade between two layers (K.W11 PHYS-C): spring layer `a`
+     * down to weight `0` and layer `b` up to weight `1`, each over its own
+     * `SpringProgress` (the same `spring` shape). Two `transitionLayer` calls —
+     * the flagship demo moment: a crossfade that overshoots and settles, only
+     * possible on kf's weighted-blend substrate. Chainable.
+     */
+    crossfade(
+        a: string | Animation<V>,
+        b: string | Animation<V>,
+        options?: { spring?: LayerTransitionSpring },
+    ): this {
+        const spring = options?.spring;
+        this.transitionLayer(a, { weight: 0, ...(spring ? { spring } : {}) });
+        this.transitionLayer(b, { weight: 1, ...(spring ? { spring } : {}) });
+        return this;
+    }
+
+    /**
+     * Advance every spring-driven layer weight by the frame delta `dt` ms
+     * (K.W11 PHYS-C). Called from `advanceTo` ONLY when `_hasLayerSprings` is
+     * true, so the constant-weight blend path pays nothing. On a spring's
+     * settle the live `weightSpring.value` has converged to its target, so the
+     * driven `layer.weight` is committed to that target and the spring CLEARED —
+     * the `weighted` leaf's `?? layer.weight` read then serves the constant,
+     * byte-identical to a never-sprung layer. Recomputes `_hasLayerSprings`
+     * false once the last spring clears.
+     */
+    private advanceLayerSprings(dt: number): void {
+        let anyActive = false;
+        for (const entry of this.getEntries()) {
+            const spring = entry.layer.weightSpring;
+            if (spring === undefined) continue;
+            if (dt > 0) spring.tickDt(dt);
+            if (spring.settled) {
+                // Commit the converged value to the constant weight, then drop
+                // the spring so the read falls back to it (no per-frame stepper
+                // once the crossfade has settled). `delete` (not `= undefined`)
+                // under `exactOptionalPropertyTypes` — the field is optional.
+                entry.layer.weight = spring.value;
+                delete entry.layer.weightSpring;
+            } else {
+                anyActive = true;
+            }
+        }
+        this._hasLayerSprings = anyActive;
     }
 }

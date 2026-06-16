@@ -1,5 +1,9 @@
 import { clamp } from "./internal/leaves";
-import { withReducedMotion } from "./internal/reduced-motion";
+import {
+    reducedMotionScale,
+    withReducedMotion,
+    type ReducedMotionPolicy,
+} from "./internal/reduced-motion";
 import { RAFPlayback } from "./playback";
 
 /**
@@ -39,11 +43,24 @@ export interface SpringProgressOptions {
     /** Velocity settle threshold (units/s). Default 1e-3. */
     velocitySettleThreshold: number;
     /**
-     * When true, honor `prefers-reduced-motion: reduce` by snapping to
-     * target immediately rather than springing. SSR-safe (no-op on
-     * non-browser environments). Default false.
+     * Honor `prefers-reduced-motion: reduce` (K.W11 PHYS-E — the
+     * intensity-scaled, WCAG 2.3.3-aligned gate):
+     *
+     * - `false` (default) — ignore the preference; the spring runs at full
+     *   amplitude.
+     * - `true` — the classic binary snap: under an active query the spring
+     *   jumps to target at zero velocity (amplitude scale `0`). SSR-safe.
+     * - a `number` ∈ [0, 1] — the AMPLITUDE INTENSITY: under an active query
+     *   the spring keeps its trajectory SHAPE (curve + settle time) but scales
+     *   its displacement-from-rest (`originValue − targetValue`) to this
+     *   fraction. At `0.3` the peak overshoot is 30 % of the full-intensity
+     *   peak; the envelope is preserved by construction (the analytic form
+     *   makes the scaling exact and free). `1` ≈ full motion, `0` ≡ the snap.
+     *
+     * The scale is the CONSUMER's policy (a settings slider, a per-animation
+     * field) — the OS exposes only a binary signal; kf provides the mechanism.
      */
-    respectReducedMotion: boolean;
+    respectReducedMotion: ReducedMotionPolicy;
 }
 
 /**
@@ -161,6 +178,20 @@ export class SpringProgress {
     private originValue: number;
     private originVelocity: number;
 
+    /**
+     * Amplitude scale ∈ [0, 1] resolved from `respectReducedMotion` at each
+     * target re-seat (K.W11 PHYS-E). `1` is full motion (the default / no
+     * active query); a numeric policy under an active `prefers-reduced-motion`
+     * query yields the intensity. `evaluateAt` solves toward a SCALED target
+     * `origin + s·(target − origin)`, so the spring still starts at the origin
+     * but travels only `s ×` the full distance — the peak overshoot scales while
+     * the envelope (curve + settle time) is preserved by construction. Re-resolved
+     * per re-seat (not per frame) so a live OS toggle is honored at the next
+     * target change, and the per-frame `evaluateAt` stays a field read — zero
+     * extra `matchMedia` cost in the hot path.
+     */
+    private amplitudeScale = 1;
+
     // Derived solver parameters, refreshed on construction + target
     // change. Held as plain fields for hot-path read.
     private omega: number; // ω₀ = 2π / response
@@ -188,6 +219,11 @@ export class SpringProgress {
         this.elapsed = 0;
         this.originValue = this.currentValue;
         this.originVelocity = this.currentVelocity;
+        // K.W11 PHYS-E — resolve the amplitude scale for the initial leg (a
+        // spring constructed with `initialVelocity` integrates from frame one).
+        this.amplitudeScale = reducedMotionScale(
+            this.options.respectReducedMotion,
+        );
 
         this.omega = (2 * Math.PI) / this.options.response;
         this.zeta = this.options.dampingFraction;
@@ -260,6 +296,14 @@ export class SpringProgress {
                 this.originVelocity = this.currentVelocity;
                 this.elapsed = 0;
                 this.isSettled = false;
+
+                // K.W11 PHYS-E — resolve the amplitude scale for THIS leg from
+                // the live preference. A positive intensity reaches the `run`
+                // branch (the `withReducedMotion` snap arm is `_snapSettled`);
+                // here we record how far the displacement is allowed to travel.
+                this.amplitudeScale = reducedMotionScale(
+                    this.options.respectReducedMotion,
+                );
 
                 // Auto-resume the managed loop if `.play()` attached a callback.
                 if (this._onFrame) this._startLoop();
@@ -339,7 +383,19 @@ export class SpringProgress {
      *   overdamped:    x(t) = A e^(r₁ t) + B e^(r₂ t)
      */
     private evaluateAt(t: number): void {
-        const x0 = this.originValue - this.targetValue;
+        // K.W11 PHYS-E — amplitude scaling under reduced motion. The spring
+        // travels toward a SCALED target `origin + s·(target − origin)`: it
+        // still STARTS at the origin (x0 = origin − scaledTarget = s·(origin −
+        // target)) but settles only `s ×` the full distance, so the peak
+        // displacement (and the overshoot) scales by `s` while the envelope
+        // (decay + frequency → curve shape + settle time) is preserved by
+        // construction. The initial velocity `v0` is a physical fact and is NOT
+        // scaled. At s = 1 (the default / no active query) `scaledTarget ===
+        // targetValue` — the constant path is byte-unchanged.
+        const s = this.amplitudeScale;
+        const scaledTarget =
+            this.originValue + s * (this.targetValue - this.originValue);
+        const x0 = this.originValue - scaledTarget;
         const v0 = this.originVelocity;
         const w = this.omega;
         const z = this.zeta;
@@ -381,18 +437,28 @@ export class SpringProgress {
             vRel = A * r1 * e1 + B * r2 * e2;
         }
 
-        this.currentValue = this.targetValue + xRel;
+        // The spring settles to the SCALED target (the reduced-amplitude rest),
+        // not the full target — that is the WCAG amplitude reduction: the travel
+        // is shortened, the meaning (settle + envelope) is kept.
+        this.currentValue = scaledTarget + xRel;
         this.currentVelocity = vRel;
     }
 
     private checkSettled(): void {
-        const dx = Math.abs(this.currentValue - this.targetValue);
+        // Settle against the SCALED target — under amplitude scaling the spring
+        // rests at `origin + s·(target − origin)`, so converge there (at s = 1
+        // this is `targetValue`, unchanged).
+        const s = this.amplitudeScale;
+        const scaledTarget =
+            this.originValue + s * (this.targetValue - this.originValue);
+        const dx = Math.abs(this.currentValue - scaledTarget);
         const dv = Math.abs(this.currentVelocity);
         if (
             dx < this.options.settleThreshold &&
             dv < this.options.velocitySettleThreshold
         ) {
-            this.currentValue = this.targetValue;
+            // Rest at the scaled target (== targetValue at full amplitude).
+            this.currentValue = scaledTarget;
             this.currentVelocity = 0;
             this.isSettled = true;
         }
@@ -413,6 +479,11 @@ export class SpringProgress {
         this.originValue = v;
         this.originVelocity = vel;
         this.elapsed = 0;
+        // K.W11 PHYS-E — re-resolve the amplitude scale for the leg this reset
+        // begins (a reset with a non-zero velocity integrates immediately).
+        this.amplitudeScale = reducedMotionScale(
+            this.options.respectReducedMotion,
+        );
         this.isSettled = vel === 0;
         this.emit();
         this._playback.stop();
@@ -488,4 +559,85 @@ export class SpringProgress {
             this._onFrame?.(this.currentValue, this.currentVelocity),
         );
     }
+}
+
+/**
+ * A two-sample window over a position stream — the last two `(value, time)`
+ * the engine emitted before an interruption (K.W11 PHYS-B2). `time` is in
+ * MILLISECONDS (the engine's `effectiveT` clock); `value` is the interpolated
+ * scalar of the animated property at that time. The finite difference
+ * `(curr.value − prev.value) / ((curr.time − prev.time) / 1000)` is the
+ * measured velocity in units/SECOND — the one place a numerical derivative is
+ * correct, because a keyframe stream carries NO analytic velocity.
+ */
+export interface VelocityProbe {
+    /** The earlier sample `(value, time-ms)`. */
+    prev: { value: number; time: number };
+    /** The later sample `(value, time-ms)` — the interruption position. */
+    curr: { value: number; time: number };
+}
+
+/**
+ * Measure the instantaneous velocity (units/SECOND) of a position stream from
+ * a two-sample {@link VelocityProbe} (K.W11 PHYS-B2). The forward difference
+ * `(curr − prev) / dt` with `dt` in seconds. A zero / negative `dt` (two
+ * samples at the same frame, or out-of-order) yields `0` — no division blow-up,
+ * a stationary read.
+ */
+export function probeVelocity(probe: VelocityProbe): number {
+    const dtMs = probe.curr.time - probe.prev.time;
+    if (dtMs <= 0) return 0;
+    return (probe.curr.value - probe.prev.value) / (dtMs / 1000);
+}
+
+/**
+ * Velocity-continuous interruption of a parsed-CSS (or any positional)
+ * animation, re-served as a spring (K.W11 PHYS-B2 — the only-kf seam).
+ *
+ * At interruption the engine path carries a POSITION (`effectiveT` → the
+ * interpolated value) but NO velocity — a keyframe stream has no analytic
+ * derivative. This finite-differences the interp stream over the last frame
+ * (the {@link VelocityProbe}: the two most recent `(value, time)` samples), then
+ * seeds a fresh {@link SpringProgress} at the CURRENT position
+ * (`probe.curr.value`) with that MEASURED velocity, targeting `newTarget`. The
+ * first post-interruption frames therefore continue the prior direction and
+ * speed within ε — no visible kink — instead of restarting from rest.
+ *
+ * The spring's `linear()` twin (`springTimingFunction` / `springLinearStops`)
+ * is the SAME kf-internal emitter the compiler consumes, so the reseated
+ * transition is round-trippable: the velocity-continuous interruption composes
+ * INTO the round-trip rather than forfeiting it.
+ *
+ * Pure construction — no DOM, no rAF until the returned spring is `.play()`ed
+ * or `tickDt`-driven. value.js-free (LIGHT): it composes only `SpringProgress`
+ * and the leaf finite difference.
+ *
+ * @param probe     The two most recent `(value, time-ms)` samples of the
+ *                  interrupted stream (`prev` then `curr`, the interruption
+ *                  position).
+ * @param newTarget The value the spring transitions toward.
+ * @param options   Spring config (`response` / `dampingFraction` / thresholds /
+ *                  `respectReducedMotion`); `initial` and `initialVelocity` are
+ *                  IGNORED — they are seeded from the probe.
+ * @returns A `SpringProgress` seeded at `(probe.curr.value, measured velocity)`,
+ *          targeting `newTarget`.
+ */
+export function reseatToSpring(
+    probe: VelocityProbe,
+    newTarget: number,
+    options?: Partial<
+        Omit<SpringProgressOptions, "initial" | "initialVelocity">
+    >,
+): SpringProgress {
+    const velocity = probeVelocity(probe);
+    const spring = new SpringProgress({
+        ...options,
+        initial: probe.curr.value,
+        initialVelocity: velocity,
+    });
+    // Re-seat onto the new target from the measured `(x, v)` — the closed-form
+    // solution is continuous (origin = current position, origin velocity =
+    // the measured velocity), so the trajectory leaves at the prior speed.
+    spring.target = newTarget;
+    return spring;
 }
