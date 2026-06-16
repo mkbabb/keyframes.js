@@ -19,7 +19,11 @@
     gap: 0.5rem;
     border-radius: var(--radius-pill);
     font-size: var(--type-body, 1rem);
-    font-family: var(--font-serif);
+    /* K.W2 S1/S3 — the display voice, single-sourced from the ONE --font-display
+       authority (was var(--font-serif), the redundant second display token now
+       DELETED). The transport band carries ONE voice: Play/Pause MATCH Reverse and
+       the tabs, all sourced from --font-display (S3 register decision: display). */
+    font-family: var(--font-display);
     letter-spacing: 0.02em;
 }
 .btn-playback-accent {

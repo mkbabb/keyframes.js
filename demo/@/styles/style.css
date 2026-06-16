@@ -37,18 +37,28 @@
    ════════════════════════════════════════════════════════════════════════ */
 
 @theme {
-    --font-serif: "Instrument Serif", "Instrument Serif Fallback", Georgia, serif;
-    /* Display voice for the glass-ui phi-ladder: text-display, text-title,
-       text-heading, text-subheading and dock-label all resolve
-       var(--font-display) (which would otherwise fall to glass-ui's default
-       Fraunces, then Georgia). Instrument Serif is the demo's deliberate
-       identity face: one token, zero new payload. Single-weight ~400, so
-       --font-display-weight: 400 (glass-ui default) is correct and the
-       Fraunces WONK/SOFT axes no-op.
+    /* THE SINGLE DISPLAY VOICE AUTHORITY (K.W2 S1/S4 — the typographic root).
+       There is exactly ONE display token: --font-display = Instrument Serif. The
+       former redundant --font-serif (an identical second display declaration that
+       let a future edit split the dock band silently — styling-typography-k §3) is
+       DELETED; its two consumer sites (playback-button.css, tab-trigger.css) now
+       read --font-display directly.
+
+       THE TRUE BUILD (the prior comment here LIED on three counts — it claimed
+       text-title/-heading/-subheading/dock-label resolve --font-display and named
+       Fraunces; both false — so it MASKED U-K6/U-K8 since J): of glass-ui's φ-ladder
+       (typography.css) ONLY the `text-display-*` rungs bind var(--font-display); the
+       `text-title`/`-heading`/`-subheading`/`dock-label` utilities bind
+       var(--font-text) (the body register). glass-ui's OWN display default is Plus
+       Jakarta Sans (NOT Fraunces). The dock band carries the display voice via the
+       demo's ONE @layer demo-typography rule below (S2), NOT by glass-ui's
+       dock-label default. Instrument Serif is the demo's deliberate identity face:
+       one token, zero new payload. Single-weight ~400, so --font-display-weight: 400
+       (glass-ui default) is correct.
 
        "Instrument Serif Fallback" sits between the web font and raw Georgia:
        it is the metric-matched fallback face defined below (E.W11.S5) so the
-       LCP <h1> (text-display-4, EditorStartScreen.vue) lands in its FINAL box
+       LCP <h1> (text-display-mega, EditorStartScreen.vue) lands in its FINAL box
        from first paint and does not reflow on Instrument-Serif arrival. */
     --font-display: "Instrument Serif", "Instrument Serif Fallback", Georgia, serif;
     --font-mono: "Fira Code", monospace;
@@ -108,11 +118,18 @@
        --font-display in @theme) + Fira Code (mono) over a clean native UI sans
        for the body/dock/controls. Override the underlying stack token here so the
        brand font never lands on our surfaces (and never half-loads a webfont the
-       demo build does not serve). --font-stack-display is left alone — the
-       @theme --font-display already wins for the display register. */
+       demo build does not serve).
+
+       K.W2 S4 — close the `.font-display` trap: --font-stack-display is REPOINTED
+       to var(--font-display) (it formerly bridged to --font-stack-text = native
+       sans, so glass-ui's `.font-display { font-family: var(--font-stack-display) }`
+       utility resolved native sans — the OPPOSITE of its name, a latent inversion).
+       Now the bare `.font-display` utility, the φ `text-display-*` ladder, and the
+       dock band all resolve the SAME single display face. */
     --font-stack-text: ui-sans-serif, system-ui, -apple-system, "Segoe UI",
         Roboto, Helvetica, Arial, sans-serif;
     --font-stack-sans: var(--font-stack-text);
+    --font-stack-display: var(--font-display);
     --font-text: var(--font-stack-text);
     --font-sans: var(--font-stack-text);
 
@@ -444,5 +461,30 @@
     .is-disabled {
         opacity: 0.5;
         pointer-events: none;
+    }
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   THE DOCK BAND JOINS THE DISPLAY VOICE AT THE ROOT (K.W2 S2 — U-K6/U-K8)
+   ────────────────────────────────────────────────────────────────────────
+   glass-ui's `dock-label` utility binds `font-family: var(--font-text)` (the
+   body register — typography.css :324-330 on 3.13.0, RE-VERIFIED post-re-pin),
+   so the bottom dock labels render native SANS while the design intends the
+   Instrument-Serif DISPLAY voice (the split-voice dock the 4-tranche typography
+   chronic kept re-felt: DL-K10, U-K6/U-K8). The cure is ONE demo-side rule at
+   the family bind — NOT a per-site font class on each dock <span> (the named
+   forbidding). `@layer demo-typography` is declared LAST in this stylesheet, so
+   it is ordered AFTER glass-ui's `utilities` layer (where the `@utility
+   dock-label` compiles) and wins the cascade. This flips EVERY `.dock-label`
+   site (ChromeDock controls-tab + scene-select triggers/groups; TransportDock
+   transport labels) to the single --font-display authority with ZERO call-site
+   churn; the controls-pane mono + body prose are untouched (the rule matches
+   only `.dock-label`). `.dock-scene-title` already binds --font-display
+   (ChromeDock scoped style) — the whole dock band now agrees. inv-16: the demo
+   OVERRIDES the consumed contract at the @layer it owns, never patches
+   node_modules. */
+@layer demo-typography {
+    .dock-label {
+        font-family: var(--font-display);
     }
 }

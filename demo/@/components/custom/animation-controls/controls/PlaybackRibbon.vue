@@ -37,9 +37,16 @@
                  ask, closed by the layout idiom (grid-cols-2 = equal width;
                  matched h-10 = equal height) for EVERY scene that mounts this
                  ribbon (cube/amiga/easing/spring), not a per-button magic number. -->
+            <!-- K.W2 S3 — the transport band carries ONE voice. Reverse adopts the
+                 SAME .btn-playback skin as Play/Pause (was an ad-hoc `text-body`
+                 register), so both transport buttons resolve the SINGLE display
+                 authority (--font-display) by construction — the dual-authority
+                 silent split (Play=serif via --font-serif, Reverse=sans via
+                 text-body) is dead. NOT a per-site font class: the existing
+                 .btn-playback button skin is the shared transport register. -->
             <Button
                 :class="[
-                    'h-10 w-full rounded-full gap-2 text-body btn-interactive',
+                    'btn-playback h-10 w-full rounded-full gap-2 btn-interactive',
                     'aria-pressed:bg-primary/10 aria-pressed:border-primary/40',
                 ]"
                 :aria-pressed="userReversed"

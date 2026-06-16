@@ -25,7 +25,11 @@
     padding: 0.375rem 0.75rem;
     font-size: var(--type-prose, 1.125rem);
     line-height: 1.75rem;
-    font-family: var(--font-serif);
+    /* K.W2 S1/S3 — the display voice, single-sourced from the ONE --font-display
+       authority (was var(--font-serif), the redundant second display token now
+       DELETED). The tab register matches the transport band: display, sourced from
+       the same single token the dock band binds. */
+    font-family: var(--font-display);
     letter-spacing: 0.02em;
     /* J.W7b STY-6 — the over-broad `transition: all` narrowed to the three
        properties the trigger states actually change (color on activation,
