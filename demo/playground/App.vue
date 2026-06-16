@@ -37,7 +37,7 @@
 
 <script setup lang="ts">
 import { ref, toRaw, useTemplateRef, watch } from "vue";
-import { TabsContent, TabsTrigger } from "@mkbabb/glass-ui";
+import { TabsContent, TabsTrigger } from "reka-ui";
 import { EditorShell } from "@components/custom/editor-shell";
 import { AssetLayerPanel, AssetViewport, useAssetManager } from "@components/custom/asset-manager";
 import { getStoredAnimationGroupControlOptions } from "@components/custom/animation-controls/stores";

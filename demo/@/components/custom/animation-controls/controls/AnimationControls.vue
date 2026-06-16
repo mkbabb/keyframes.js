@@ -34,45 +34,51 @@
             </div>
         </div>
 
-        <Tabs
+        <div
             v-else
             class="pl-4 pr-7 pt-2 pb-2 w-full flex-1 min-h-0 flex flex-col justify-start"
-            :model-value="selectedControlSurface"
-            @update:model-value="selectControl"
         >
-            <!-- Tabs header (hidden when managed externally via ChromeDock) -->
-            <div v-if="!tabsExternallyManaged" ref="tabsHeaderEl" class="relative w-fit flex items-center justify-center flex-shrink-0 glass-wash rounded-panel px-1 py-0.5 overflow-hidden">
-                <TabsList
-                    ref="tabsListRef"
-                    :class="[
-                        'relative flex items-center justify-center bg-transparent p-0 gap-0 w-fit max-w-full min-w-0 overflow-x-auto h-auto rounded-none scrollbar-hidden',
-                        overflowClass,
-                    ]"
-                >
-                    <!-- The BUILT-IN editor triad is rendered FROM the DFA
-                         (H.W11.S4 / I2) — `builtInTabs` is the active scene's
-                         valid {controls,keyframes,timeline} subset, so an INVALID
-                         built-in surface CANNOT render per scene (the easing
-                         scene → none of the triad; only its slotted easing tab). -->
-                    <TabsTrigger
-                        v-for="tab in builtInTabs"
-                        :key="tab.value"
-                        :ref="(el: any) => setTabTriggerRef(tab.value, el)"
-                        :value="tab.value"
-                        :class="tabClasses"
-                        >{{ tab.label }}</TabsTrigger
-                    >
-                    <slot name="tabs-trigger"></slot>
-                </TabsList>
+            <!-- Tabs header (hidden when managed externally via ChromeDock).
+                 glass-ui 4.0.0 (BA.W-TABS) — the reka `<Tabs>`/`<TabsList>` strip
+                 is the canonical `<SegmentedTabs variant="underline">` (the PAPER
+                 material — panel-nav `role=tablist`/`tab`, the ink-hairline
+                 indicator engine). The strip is OPTIONS-DRIVEN: `stripOptions`
+                 unions the DFA-valid built-in triad with the scene-specific tabs
+                 (the machine's `extraControlTabs` data), so the former
+                 `tabs-trigger` slot + per-trigger reka injection retire — every tab
+                 is data. The strip's own overflow fade comes from `<FadingScroll>`
+                 at the consumer level in BA, but the ≤4-tab control strip never
+                 overflows, so no scroller is wired here (the `useScrollFade`
+                 overflow probe is retained below for the scroll-into-view of the
+                 active tab on a narrow viewport). -->
+            <div v-if="!tabsExternallyManaged" ref="tabsHeaderEl" class="relative w-fit flex items-center justify-center flex-shrink-0 glass-wash rounded-panel px-2 py-0.5 overflow-hidden">
+                <SegmentedTabs
+                    variant="underline"
+                    :options="stripOptions"
+                    :model-value="selectedControlSurface"
+                    @update:model-value="selectControl"
+                    :class="['w-fit max-w-full min-w-0', overflowClass]"
+                />
             </div>
 
             <div ref="tabsContentEl" class="flex-1 min-h-0 overflow-y-auto flex flex-col pb-1">
-                <!-- Each BUILT-IN pane is gated on the DFA (H.W11.S4 / I2): a
-                     scene whose valid set omits a surface mounts NO pane for it
-                     (so the easing scene never spins up the Monaco keyframes
-                     pane). The scene-specific surfaces flow through the
-                     `tabs-content` slot below. -->
-                <TabsContent v-if="hasSurface('controls')" value="controls">
+                <!-- glass-ui 4.0.0 (BA.W-TABS) — `<SegmentedTabs>` owns the STRIP
+                     only; the content panels are owned HERE. Each formerly-reka
+                     `<TabsContent value="x">` is now a plain `[role=tabpanel]` div
+                     gated on the active surface (`selectedControlSurface`), keeping
+                     the SAME DFA gate (a scene whose valid set omits a surface
+                     mounts NO pane — the easing scene never spins up the Monaco
+                     keyframes pane) and the SAME panel boxes. The
+                     `[role=tabpanel][data-state=active]` seam the pane probes key on
+                     (proof:easing-sidebar) is reproduced explicitly: `role`,
+                     `data-state`, and a `tabindex` so the revealed panel is
+                     focusable, matching the prior reka tabpanel contract. -->
+                <div
+                    v-if="hasSurface('controls') && selectedControlSurface === 'controls'"
+                    role="tabpanel"
+                    data-state="active"
+                    tabindex="0"
+                >
                     <AnimationControlsControls
                         :animation="animation"
                         :is-playing="isPlayingProp"
@@ -84,21 +90,25 @@
                         @scrub-start="emit('scrubStart')"
                         @scrub-end="emit('scrubEnd')"
                     ></AnimationControlsControls>
-                </TabsContent>
+                </div>
 
-                <!-- B-2 (CWV/INP): force-mount the Monaco-heavy keyframes pane and
+                <!-- B-2 (CWV/INP): FORCE-MOUNT the Monaco-heavy keyframes pane and
                      cache it via content-visibility:hidden when inactive, instead
-                     of letting reka unmount it (which re-spins Monaco's worker /
-                     model / themes on every switch-back). `inert` (not bare
-                     aria-hidden, which leaves focusable Monaco descendants in the
-                     tab order — the aria-hidden-focus a11y defect) takes the cached
-                     pane out of BOTH the tab order and the AT tree while inactive;
-                     the focus-move on reveal restores it. Scoped to THIS Monaco
-                     pane only — the lightweight controls pane stays unmounted. -->
-                <TabsContent
+                     of unmounting it (which re-spins Monaco's worker / model /
+                     themes on every switch-back). With reka gone the force-mount is
+                     literal: the pane is ALWAYS rendered while the surface is valid
+                     (`v-if` on `hasSurface`, NOT on the active value) and toggles
+                     visibility via the `.inactive` class + `inert`. `inert` (not
+                     bare aria-hidden, which leaves focusable Monaco descendants in
+                     the tab order — the aria-hidden-focus a11y defect) takes the
+                     cached pane out of BOTH the tab order and the AT tree while
+                     inactive; the focus-move on reveal restores it. `data-state`
+                     mirrors the active flag for the panel-slide seam. -->
+                <div
                     v-if="hasSurface('keyframes')"
-                    value="keyframes"
-                    force-mount
+                    role="tabpanel"
+                    :data-state="keyframesActive ? 'active' : 'inactive'"
+                    :tabindex="keyframesActive ? 0 : -1"
                     ref="keyframesPaneEl"
                     :class="['monaco-pane', keyframesActive ? '' : 'inactive']"
                     :inert="!keyframesActive"
@@ -112,9 +122,14 @@
                         "
                         :animation="animation"
                     ></KeyframesStringControls>
-                </TabsContent>
+                </div>
 
-                <TabsContent v-if="hasSurface('timeline')" value="timeline">
+                <div
+                    v-if="hasSurface('timeline') && selectedControlSurface === 'timeline'"
+                    role="tabpanel"
+                    data-state="active"
+                    tabindex="0"
+                >
                     <!-- Placeholder shown in the tab when timeline is expanded to bottom bar -->
                     <div
                         v-if="storedControls.isTimelineExpanded"
@@ -132,13 +147,20 @@
                             Collapse
                         </Button>
                     </div>
-                </TabsContent>
+                </div>
 
+                <!-- Scene-specific panels (cube's matrix-controls body, the
+                     easing/spring sidebars). These flow through the `tabs-content`
+                     slot AS BEFORE; the scene gates its own body on the active
+                     surface. NOTE: the scene-supplied bodies that wrapped content
+                     in a reka `<TabsContent>` must re-home onto a plain gated div
+                     (a cross-cluster follow-on — reported, not edited here). -->
                 <slot name="tabs-content"></slot>
 
-                <!-- Timeline: outside TabsContent but inside scrollable area so Teleport lifecycle
-                     isn't tied to TabsContent mount/unmount (which breaks moveTeleport).
-                     When collapsed, renders in-place here. When expanded, teleports to bottom bar. -->
+                <!-- Timeline: outside the gated panels but inside the scrollable
+                     area so Teleport lifecycle isn't tied to a panel mount/unmount
+                     (which breaks moveTeleport). When collapsed, renders in-place
+                     here. When expanded, teleports to bottom bar. -->
                 <Teleport to="#timeline-expanded-target" :disabled="!storedControls.isTimelineExpanded" defer>
                     <div
                         v-if="isTimelineVisible"
@@ -155,21 +177,36 @@
                     </div>
                 </Teleport>
             </div>
-        </Tabs>
+        </div>
     </div>
     </TooltipProvider>
 </template>
 
 <script setup lang="ts">
 // Colocated tab-trigger skin + tab-panel slide (uncaged from utils.css, D.W2.S2).
-// Non-scoped global rules — the classes land on reka-ui's <TabsTrigger> /
-// <TabsContent> DOM shared across this host and the scene tab triggers.
+// glass-ui 4.0.0 (BA.W-TABS) — this host's strip is now `<SegmentedTabs>` (its own
+// underline chrome), so the `.tab-trigger-*` skin no longer paints HERE; the
+// non-scoped `[data-state=active][role=tabpanel]` panel-slide STILL lands on this
+// host's plain gated panel divs (which carry `role=tabpanel` + `data-state`), and
+// the `.tab-trigger-*` classes survive for the scene tab triggers that still
+// reference them (a cross-cluster follow-on migrates those).
 import "./tab-trigger.css";
 
 import { Animation } from "@src/animation/engine";
 import type { AnimationLayerConfig } from "@src/animation/constants";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger, TooltipProvider, Button } from "@mkbabb/glass-ui";
+import { TooltipProvider, Button } from "@mkbabb/glass-ui";
+// glass-ui 4.0.0 (BA.W-TABS) — the reka `Tabs`/`TabsList`/`TabsTrigger`/`TabsContent`
+// family LEFT the root barrel. The canonical panel-nav is `<SegmentedTabs
+// variant="underline">` from `/tabs` (an options-driven STRIP, not a compound
+// component): the strip renders `role=tablist`/`tab` buttons from `:options`, and
+// the CONTENT panels are owned by THIS consumer (plain divs gated on the active
+// value — there is no `<TabsContent>` context). The scene-specific surfaces that
+// formerly injected reka `<TabsTrigger>` via the `tabs-trigger` slot now ride the
+// strip AS DATA through the machine's `extraControlTabs` projection (the same
+// metadata the dock reads), so no cross-realm reka tab-context is needed.
+import { SegmentedTabs } from "@mkbabb/glass-ui/tabs";
+import type { SegmentedTabOption } from "@mkbabb/glass-ui/tabs";
 
 import {
     computed,
@@ -239,6 +276,23 @@ const builtInTabs = computed(() =>
         (s) => !tabsExternallyManaged || machine.controlSurfaces.value.includes(s),
     ).map((s) => BUILT_IN_TAB_META[s]!),
 );
+
+// glass-ui 4.0.0 (BA.W-TABS) — the `<SegmentedTabs>` strip is OPTIONS-DRIVEN, so
+// the scene-specific tabs (easing/spring sidebars, cube's conditional
+// matrix-controls) ride the strip as DATA, unioned onto the built-in triad. The
+// metadata is the machine's `extraControlTabs` projection (the SAME source the
+// dock reads), keyed off `activeScene` × the active conditionals — synchronously
+// correct per tick, no reka `<TabsTrigger>` injection, no cross-realm tab context.
+// A STANDALONE host (the playground EditorShell, not scene-machine-routed) gets no
+// extra tabs (its activeScene rests on `home`), mirroring `builtInTabs`/`hasSurface`.
+const stripOptions = computed<SegmentedTabOption[]>(() => {
+    const extra: SegmentedTabOption[] = tabsExternallyManaged
+        ? machine
+              .extraControlTabs(activeConditionals?.value)
+              .map((t) => ({ value: t.value, label: t.label }))
+        : [];
+    return [...builtInTabs.value, ...extra];
+});
 
 // J.W2 S2 (S4-stretch) — a scene whose DFA set is exactly ONE scene-specific
 // surface (easing → ['easing'], spring → ['spring']) mounts its panel FLAT:
@@ -351,17 +405,12 @@ const keyframesControlsRef = useTemplateRef<InstanceType<typeof KeyframesStringC
 const timelineRef = useTemplateRef<InstanceType<typeof KeyframeTimeline>>("timelineRef");
 const tabsContentEl = useTemplateRef<HTMLElement>("tabsContentEl");
 const tabsHeaderEl = useTemplateRef<HTMLElement>("tabsHeaderEl");
-const tabsListRef = useTemplateRef<HTMLElement>("tabsListRef");
 
-// Owned tab-trigger element refs, keyed by tab value. The active tab is the one
-// whose key matches `storedControls.selectedControl` (Vue state) — no DOM
-// `data-state` re-read.
-const tabTriggerEls = new Map<string, HTMLElement>();
-const setTabTriggerRef = (value: string, el: any) => {
-    const node = (el?.$el ?? el) as HTMLElement | null;
-    if (node) tabTriggerEls.set(value, node);
-    else tabTriggerEls.delete(value);
-};
+// glass-ui 4.0.0 (BA.W-TABS) — `<SegmentedTabs>` owns its option buttons
+// internally (no per-trigger ref hook), so the prior owned `tabTriggerEls` map +
+// `setTabTriggerRef` callback ref are GONE. The active-tab scroll-into-view reads
+// the strip's own `[role=tab][aria-selected=true]` node (the underline variant's
+// panel-nav DOM) under the header element directly.
 
 const isTimelineVisible = computed(() =>
     storedControls.selectedControl === "timeline" || storedControls.isTimelineExpanded,
@@ -375,23 +424,21 @@ const keyframesPaneEl = useTemplateRef<any>("keyframesPaneEl");
 const keyframesActive = computed(() => storedControls.selectedControl === "keyframes");
 
 // On reveal, move focus into the freshly-shown Monaco pane (the cached pane was
-// inert + content-visibility:hidden while inactive) and let Monaco's
-// deferred ResizeObserver re-measure now that the box has layout again. reka's
-// roving focus stays intact because the pane was force-mounted (never torn down).
+// inert + content-visibility:hidden while inactive) and let Monaco's deferred
+// ResizeObserver re-measure now that the box has layout again. The pane is
+// force-mounted (never torn down), so focus restores cleanly on reveal.
 watch(keyframesActive, (active) => {
     if (!active) return;
     nextTick(() => {
-        // The glass-ui/reka <TabsContent> forwards its root; resolve the DOM
-        // node whether the ref is a component instance ($el) or the element.
+        // The keyframes panel is now a plain `[role=tabpanel]` div ref — resolve
+        // the DOM node whether the ref is a component instance ($el) or the element.
         const node = (keyframesPaneEl.value?.$el ?? keyframesPaneEl.value) as HTMLElement | undefined;
-        // The reka tabpanel root is focusable (tabindex=0) — focus it so the
+        // The tabpanel root carries tabindex=0 when active — focus it so the
         // revealed pane owns the tab sequence; Monaco re-measures on the layout
         // pass that content-visibility restoration triggers.
         node?.focus?.();
     });
 });
-
-const tabClasses = "tab-trigger-base tab-trigger-pill";
 
 // --- Overflow detection (left + right) via shared composable ---
 const tabsListElRef = ref<HTMLElement | null>(null);
@@ -404,17 +451,20 @@ const { fadeClass: overflowClass, check: checkOverflow } = useScrollFade({
 });
 
 const scrollActiveTabIntoView = () => {
-    // Active tab = the trigger whose value matches Vue's `selectedControl` —
-    // read the state, scroll the OWNED trigger ref (not a DOM `data-state` read).
-    const activeBtn = tabTriggerEls.get(storedControls.selectedControl);
+    // glass-ui 4.0.0 (BA.W-TABS) — the active tab is `<SegmentedTabs>`' own
+    // `[role=tab][aria-selected=true]` button (the underline panel-nav DOM); read
+    // it off the header element rather than an owned per-trigger ref map.
+    const activeBtn = tabsHeaderEl.value?.querySelector<HTMLElement>(
+        "[role=tab][aria-selected=true]",
+    );
     activeBtn?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
 };
 
 onMounted(() => {
-    // The reka-ui <TabsList> renders the `role=tablist` element; there is no
-    // public ref for it, so this is a single DOCUMENTED vendor-DOM contract
-    // (the `[data-sonner-toaster]` disposition, D.W3). If reka-ui ships a ref,
-    // a later follow-on adopts it.
+    // The `<SegmentedTabs variant="underline">` strip renders the `role=tablist`
+    // element (the panel-nav material); there is no public ref for it, so this is
+    // a single DOCUMENTED vendor-DOM contract (the `[data-sonner-toaster]`
+    // disposition, D.W3) — the overflow probe observes that strip node.
     tabsListElRef.value =
         tabsHeaderEl.value?.querySelector<HTMLElement>("[role=tablist]") ?? null;
     scrollActiveTabIntoView();
@@ -451,7 +501,6 @@ defineExpose({
     keyframesControlsRef,
     timelineRef,
     selectControl,
-    tabClasses,
 });
 </script>
 

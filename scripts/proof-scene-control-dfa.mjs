@@ -72,17 +72,31 @@ console.log("proof:scene-control-dfa — H.W11 S4 / I2 (the per-scene control-su
         "@/components/custom/animation-controls/controls/AnimationControls.vue",
     );
     const ac = read(acPath);
-    // The triggers come from the DFA (a v-for over builtInTabs), NOT a
-    // hard-coded controls/keyframes/timeline literal list.
-    const tableDriven = /v-for="tab in builtInTabs"/.test(ac);
+    // The triggers come from the DFA (the built-in triad + the scene-conditional
+    // surfaces), NOT a hard-coded controls/keyframes/timeline literal list. Two
+    // accepted shapes: the legacy reka `<Tabs>` v-for over builtInTabs, OR (K.W1′,
+    // glass-ui 4.0.0) the `<SegmentedTabs :options="stripOptions">` strip whose
+    // stripOptions derive from `builtInTabs` (the DFA-filtered subset) unioned with
+    // the machine's `extraControlTabs` projection — strictly MORE DFA-driven (the
+    // scene triggers now flow through the DFA data path, not an injected slot).
+    const tableDriven =
+        /v-for="tab in builtInTabs"/.test(ac) ||
+        (/:options="stripOptions"/.test(ac) &&
+            /stripOptions[\s\S]{0,400}?builtInTabs\.value/.test(ac));
     const noHardCoded =
+        // the legacy reka-trigger literal shape …
         !/value="controls"\s+:class="tabClasses"/.test(ac) &&
         !/value="keyframes"\s+:class="tabClasses"/.test(ac) &&
-        !/value="timeline"\s+:class="tabClasses"/.test(ac);
+        !/value="timeline"\s+:class="tabClasses"/.test(ac) &&
+        // … and the 4.0.0 SegmentedTabs shape: no hard-coded options array literal
+        // enumerating the triad (the options must come from builtInTabs, asserted
+        // by tableDriven — a literal triad would not reference builtInTabs.value).
+        !/:options="\[\s*\{\s*value:\s*["']controls["']/.test(ac);
     if (tableDriven && noHardCoded) {
         ok(
             "D1 source: AnimationControls renders the built-in triad FROM the DFA " +
-                "(v-for builtInTabs) — no hard-coded controls/keyframes/timeline trigger literals",
+                "(v-for builtInTabs, or the SegmentedTabs stripOptions←builtInTabs strip) — " +
+                "no hard-coded controls/keyframes/timeline trigger literals",
         );
     } else {
         fail(

@@ -94,7 +94,7 @@ const FLOORS = {
     // (W-TABS/surface-axis/MetricBadge `value` breaks) is the NEXT kf tranche's
     // edge, recorded not consumed mid-K. A resolver dropping below 3.13.0
     // re-introduces the slider/option-font regressions AND the RF-17 twin need.
-    "@mkbabb/glass-ui": "3.13.0",
+    "@mkbabb/glass-ui": "4.0.0",
 };
 
 const FORBIDDEN_PROTOCOLS = ["file:", "link:", "git:", "git+"];

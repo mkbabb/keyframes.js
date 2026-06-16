@@ -34,10 +34,18 @@ import {
     HoverCard,
     HoverCardContent,
     HoverCardTrigger,
-    TabsContent,
-    TabsTrigger,
     Button,
 } from "@mkbabb/glass-ui";
+// glass-ui 4.0.0 (K.W1′ BA.W-TABS) — the control tab STRIP migrated from the
+// reka `<Tabs>` compound to `<SegmentedTabs variant="underline">` in
+// AnimationControls.vue, which DROPPED the reka `<Tabs>` ROOT that provided
+// `TabsRootContext`. The former scene-injected reka `<TabsTrigger>`/`<TabsContent>`
+// (re-sourced from reka-ui here) are now ORPHANS — they throw "Injection
+// Symbol(TabsRootContext) not found" at runtime. The cube's `matrix-controls`
+// tab is now projected AS DATA by the DFA (`extraControlTabs` → the
+// `SegmentedTabs :options` strip), and its body is a PLAIN `[role=tabpanel]`
+// gated on the active surface (mirroring the parent's built-in panels). So the
+// reka Tabs import is deleted entirely (no legacy beside the replacement).
 import { Lock, LockOpen, RotateCcw } from "@lucide/vue";
 
 import { MatrixEditor } from "@components/custom/matrix-editor";
@@ -45,7 +53,7 @@ import CubeTarget from "../../cube/CubeTarget.vue";
 
 import { getStoredAnimationGroupControlOptions } from "@components/custom/animation-controls/stores";
 import { useTransformState } from "@components/custom/matrix-editor/useTransformState";
-import { useCubeAnimations, SUPER_KEY, CUBE_ANIMATION_NAMES } from "../../cube/useCubeAnimations";
+import { useCubeAnimations, SUPER_KEY } from "../../cube/useCubeAnimations";
 import { sharedCubeTransform } from "../cubeTransformStore";
 
 const superKey = SUPER_KEY;
@@ -134,24 +142,42 @@ const headerLeft = () =>
         ],
     });
 
-const tabsTrigger = (slotProps: { selectedAnimation: string }) =>
-    slotProps.selectedAnimation === CUBE_ANIMATION_NAMES.Matrix
-        ? h(TabsTrigger, {
-            value: "matrix-controls",
-            class: "tab-trigger-base tab-trigger-underline",
-        }, { default: () => "Matrix Controls" })
-        : null;
+// glass-ui 4.0.0 (K.W1′ BA.W-TABS) — the matrix-controls TRIGGER is no longer a
+// scene-injected reka `<TabsTrigger>`. AnimationControls dropped the
+// `tabs-trigger` slot; the cube's conditional `matrix-controls` tab now rides the
+// `<SegmentedTabs>` strip AS DATA, projected by the DFA's `extraControlTabs`
+// (`CONDITIONAL_SURFACES.cube = ["matrix-controls"]`, labelled "Matrix Controls"
+// in `SCENE_SURFACE_TABS`). That projection is gated on the SAME condition the
+// former `tabsTrigger` guarded — the App supplies `matrix-controls` as an active
+// conditional iff the cube's Matrix animation is selected (App.vue's
+// `activeControlConditionals`, gated on `selectedAnimation === CUBE_ANIMATION_NAMES.Matrix`)
+// — so the tab still appears only while the Matrix animation is selected. The former
+// `tabsTrigger` function (and its `defineExpose` entry) are therefore DELETED.
 
+// The matrix-controls BODY is now a PLAIN gated tabpanel (NO reka `<TabsContent>`,
+// which needs the removed `TabsRootContext`). It mirrors AnimationControls' own
+// built-in panels: rendered ONLY while the active surface is "matrix-controls"
+// (gated on `storedControls.selectedControl` — the SAME single-authority value
+// `ribbonContent` keys on, written back by the AnimationControls derivation-sync
+// and falling back to "controls" when the Matrix condition lapses), as a plain
+// `[role=tabpanel][data-state=active]` div (the proof seam the pane probes key
+// on), else nothing (null) — matching the parent's `selectedControlSurface === 'x'`
+// gating. The active surface is read from the store CubeScene already holds (the
+// `tabs-content` slot chain does not forward it — ControlsPaneWrapper/App re-expose
+// only selectedAnimation; the store read is the in-scope mirror of ribbonContent's
+// gate, both reading the same authority).
 const tabsContent = () =>
-    h(TabsContent, { value: "matrix-controls" }, {
-        default: () => h(MatrixEditor, {
-            matrix3dEnd: matrix3dEnd.value,
-            matrixCellMeta: matrixCellMeta.value,
-            superKey,
-            onUpdateMatrixCell: updateMatrixCell,
-            onResetMatrix: resetMatrix,
-        }),
-    });
+    storedControls.selectedControl === "matrix-controls"
+        ? h("div", { role: "tabpanel", "data-state": "active" }, [
+            h(MatrixEditor, {
+                matrix3dEnd: matrix3dEnd.value,
+                matrixCellMeta: matrixCellMeta.value,
+                superKey,
+                onUpdateMatrixCell: updateMatrixCell,
+                onResetMatrix: resetMatrix,
+            }),
+        ])
+        : null;
 
 const ribbonContent = (slotProps: { selectedControl: string }) =>
     slotProps.selectedControl === "matrix-controls"
@@ -204,7 +230,6 @@ defineExpose({
     isPlaying,
     isStarted,
     headerLeft,
-    tabsTrigger,
     tabsContent,
     ribbonContent,
 });

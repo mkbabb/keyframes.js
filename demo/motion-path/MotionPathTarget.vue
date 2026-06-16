@@ -29,7 +29,7 @@
                         size="xl"
                         label="offset-distance"
                         label-position="inline"
-                        :amount="(distance * 100).toFixed(0)"
+                        :value="(distance * 100).toFixed(0)"
                         unit="%"
                         color="var(--ball-tone, var(--color-progress))"
                         class="shrink-0"
@@ -38,7 +38,7 @@
                         size="lg"
                         label="tangent"
                         label-position="inline"
-                        :amount="Math.round(tangentDeg)"
+                        :value="Math.round(tangentDeg)"
                         unit="&deg;"
                         class="shrink-0"
                     />

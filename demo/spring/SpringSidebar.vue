@@ -29,7 +29,7 @@
             <SegmentedTabs
                 v-model="viewModel"
                 :options="VIEW_OPTIONS"
-                variant="segmented"
+                variant="pill"
                 class="spring-view-tabs shrink-0"
             />
 

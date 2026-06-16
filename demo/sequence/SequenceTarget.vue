@@ -19,7 +19,7 @@
                         size="xl"
                         label="progress"
                         label-position="inline"
-                        :amount="(demo.progress.value * 100).toFixed(0)"
+                        :value="(demo.progress.value * 100).toFixed(0)"
                         unit="%"
                         color="var(--ball-tone, var(--color-progress))"
                         class="shrink-0"

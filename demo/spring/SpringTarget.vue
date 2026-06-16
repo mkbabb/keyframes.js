@@ -32,7 +32,7 @@
                     size="xl"
                     label="x"
                     label-position="inline"
-                    :amount="demo.liveValue.value.toFixed(3)"
+                    :value="demo.liveValue.value.toFixed(3)"
                     color="var(--ball-tone, var(--color-progress))"
                     class="shrink-0"
                 />
@@ -40,7 +40,7 @@
                     size="lg"
                     label="v"
                     label-position="inline"
-                    :amount="demo.liveVelocity.value.toFixed(2)"
+                    :value="demo.liveVelocity.value.toFixed(2)"
                     class="shrink-0"
                 />
             </div>
