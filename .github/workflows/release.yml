@@ -36,6 +36,12 @@ permissions:
 jobs:
     publish:
         runs-on: ubuntu-latest
+        # F-1 (K.W5 S6): the publish sequence measured <5m warm; 15m is ~3×
+        # headroom and terminates within the runner's billing epoch — closing
+        # the gap the cancel-in-progress: false asymmetry leaves open (a stuck
+        # npm publish is BLOCKED but never CANCELLED → it can stall 6h without
+        # a ceiling). ci-cd-k.md F-1.
+        timeout-minutes: 15
         steps:
             - uses: actions/checkout@v5
             - uses: actions/setup-node@v5
