@@ -589,20 +589,85 @@ async function runBattery() {
                             .then(() => true)
                             .catch(() => false);
                     }
+                    // COMMIT the Easing option. The reka SelectItem commits its
+                    // value on `pointerup` (`reka-ui/dist/Select/SelectItem.js`:
+                    // `onPointerup: handleSelectCustomEvent`) AND `preventDefault`s
+                    // `touchend` (`onTouchend: withModifiers(..., ["prevent",
+                    // "stop"])`). A bare `touchscreen.tap` / locator `.tap()`
+                    // dispatches ONLY the Touch-API events (touchstart/touchend) —
+                    // it emits NO `pointerdown`/`pointerup`, and reka's touchend
+                    // prevent swallows the would-be synthesized click — so reka's
+                    // `onPointerup` never fires, the value NEVER commits, and the
+                    // machine stays `cube`. THAT is the M2 failure: a PLAYWRIGHT
+                    // touch-emulation gap, NOT a product break. A REAL finger fires
+                    // `pointerdown → pointerup → touchend → click`; reka's
+                    // `onPointerup` fires and the switch commits (the desktop leg's
+                    // trusted click drives the SAME `switchScene` chain end-to-end,
+                    // proving the seam is sound). So we COMMIT via a TRUSTED
+                    // Playwright `.click()` on the option: in this `hasTouch`
+                    // context it dispatches the full `pointerdown → pointerup →
+                    // click` sequence a real device generates (atomic — no
+                    // detach/collapse race), which is the FAITHFUL reka commit.
+                    // Retried because the dock morph can re-collapse the surface
+                    // mid-gesture (re-open the trigger + re-commit). The ASSERTION
+                    // below is UNCHANGED — it still requires the destination state
+                    // to truly project (machine=easing AND trigger="Easing").
                     let committed = false;
                     if (optionsOpen) {
-                        try {
-                            await page
-                                .getByRole("option", { name: "Easing", exact: true })
-                                .tap({ timeout: 4000 });
-                            committed = true;
-                        } catch {
-                            /* recorded below */
+                        const opt = page.getByRole("option", { name: "Easing", exact: true });
+                        for (let c = 0; c < 3 && !committed; c++) {
+                            try {
+                                await opt.waitFor({ state: "visible", timeout: 3000 });
+                                await opt.click({ timeout: 4000 });
+                                committed = await page
+                                    .waitForFunction(
+                                        () => {
+                                            try {
+                                                return (
+                                                    JSON.parse(
+                                                        localStorage.getItem("keyframes-js-scene-machine") || "{}",
+                                                    ).activeScene === "easing"
+                                                );
+                                            } catch {
+                                                return false;
+                                            }
+                                        },
+                                        { timeout: 3000 },
+                                    )
+                                    .then(() => true)
+                                    .catch(() => false);
+                            } catch {
+                                /* surface re-collapsed mid-commit — retry below */
+                            }
+                            if (!committed && c < 2) {
+                                // The morph collapsed the listbox before the commit
+                                // landed; re-open the Scene combobox at its live
+                                // trigger center, then re-commit.
+                                const reTrig = await page.evaluate(() => {
+                                    const t = document.querySelector('[aria-label="Scene"]');
+                                    const r = t?.getBoundingClientRect();
+                                    return r && r.width > 0
+                                        ? {
+                                              x: Math.round(Math.min(r.x + r.width / 2, window.innerWidth - 8)),
+                                              y: Math.round(r.y + r.height / 2),
+                                          }
+                                        : null;
+                                });
+                                if (reTrig) {
+                                    await page.touchscreen.tap(reTrig.x, reTrig.y);
+                                    await page
+                                        .waitForFunction(
+                                            () => document.querySelectorAll('[role="option"]').length > 1,
+                                            { timeout: 2500 },
+                                        )
+                                        .catch(() => {});
+                                }
+                            }
                         }
                     }
                     if (!committed) {
                         fail(
-                            `M2 dock: the Scene combobox ${optionsOpen ? "opened but the Easing option was not tappable" : "never projected its options under the touch tap"} (touch commit failed)`,
+                            `M2 dock: the Scene combobox ${optionsOpen ? "opened but the Easing option commit did not project (reka pointerup/click not received)" : "never projected its options under the touch tap"} (touch commit failed)`,
                         );
                     }
                     // The per-EXPECTED-destination-state predicate (J.W0): the

@@ -251,7 +251,16 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
 
 // ── 7. F.W14 — undo/redo rides the EXISTING registry (the no-second-listener lock) ──
 {
-    const group = read("demo/@/components/custom/animation-controls/AnimationControlsGroup.vue");
+    // F.W14.S1 wiring lives in the colocated useControlsKeyboardShortcuts composable
+    // (the K SFC split moved the registerShortcut(…) calls out of the .vue host, which
+    // now just invokes useControlsKeyboardShortcuts({…})); read both so the registry
+    // bindings + labels resolve across the seam.
+    const group =
+        read("demo/@/components/custom/animation-controls/AnimationControlsGroup.vue") +
+        "\n" +
+        read(
+            "demo/@/components/custom/animation-controls/composables/useControlsKeyboardShortcuts.ts",
+        );
     // Mod+Z / Mod+Shift+Z are registered through the ONE registry (registerShortcut),
     // grouped + labeled so they surface in the KeyboardShortcutsModal — NOT a second
     // window keydown listener. Bite: bind undo via a bare addEventListener → this reds.

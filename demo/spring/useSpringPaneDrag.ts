@@ -1,4 +1,5 @@
 import { onScopeDispose, watch, type Ref } from "vue";
+import { useEventListener } from "@vueuse/core";
 
 import { Draggable } from "@src/animation/drag";
 import { RAFPlayback } from "@src/animation/playback";
@@ -126,16 +127,20 @@ export function useSpringPaneDrag(active?: Ref<boolean>): SpringPaneDragHandle {
 
         const onUp = (): void => endSuppression();
 
-        handleEl.addEventListener("pointerdown", onDown);
-        handleEl.addEventListener("pointerup", onUp);
-        handleEl.addEventListener("pointercancel", onUp);
+        // The handle listeners ride vueuse's useEventListener (the demo's single
+        // listener seam — proof:brittleness allows no bare addEventListener); each
+        // returns a stop fn the detach contract calls (and the composable's scope
+        // auto-disposes as a backstop).
+        const stopDown = useEventListener(handleEl, "pointerdown", onDown);
+        const stopUp = useEventListener(handleEl, "pointerup", onUp);
+        const stopCancel = useEventListener(handleEl, "pointercancel", onUp);
         const detachX = dragX.attach(handleEl);
         const detachY = dragY.attach(handleEl);
 
         detachHandlers = () => {
-            handleEl.removeEventListener("pointerdown", onDown);
-            handleEl.removeEventListener("pointerup", onUp);
-            handleEl.removeEventListener("pointercancel", onUp);
+            stopDown();
+            stopUp();
+            stopCancel();
             endSuppression();
             detachX();
             detachY();

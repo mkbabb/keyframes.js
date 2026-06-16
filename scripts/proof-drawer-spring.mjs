@@ -170,11 +170,24 @@ function staticHalf() {
     // Belt-and-braces: the spring composable is actually wired (the `useSheetSpring`
     // subscription must be the motion source — guards against deleting the ease AND
     // the spring together, which would leave a static sheet that passes (a) vacuously).
-    if (/useSheetSpring\s*\(/.test(raw) && /--sheet-t/.test(raw)) {
-        ok("static — ControlsPaneWrapper.vue wires `useSheetSpring(…)` and reads `--sheet-t` (the spring IS the motion source)");
+    // The K.WZ proof:demo-no-oversize seam split moved the useSheetSpring(…) call into
+    // the colocated useSheetState composable, which ControlsPaneWrapper now imports and
+    // whose `--sheet-t` it binds — read the composable alongside so the wire resolves.
+    const sheetStatePath = path.join(
+        REPO,
+        "demo/@/components/custom/animation-controls/composables/useSheetState.ts",
+    );
+    const sheetState = fs.existsSync(sheetStatePath)
+        ? fs.readFileSync(sheetStatePath, "utf8")
+        : "";
+    const springWired =
+        /useSheetSpring\s*\(/.test(sheetState) && /useSheetState\b/.test(raw);
+    if (springWired && /--sheet-t/.test(raw)) {
+        ok("static — ControlsPaneWrapper.vue wires `useSheetState(…)` → `useSheetSpring(…)` and binds `--sheet-t` (the spring IS the motion source)");
     } else {
         fail(
-            "static — ControlsPaneWrapper.vue must wire `useSheetSpring(…)` writing `--sheet-t` " +
+            "static — ControlsPaneWrapper.vue must wire the sheet spring (`useSheetState(…)` → " +
+                "`useSheetSpring(…)`) writing `--sheet-t` " +
                 "(deleting the CSS ease without the spring would leave the sheet motionless — a vacuous (a) pass)",
         );
     }

@@ -111,7 +111,10 @@ const STATIC_EGGS = [
     },
     {
         scene: "spring",
-        file: "spring/useSpringDemo.ts",
+        // K.W4 colocation split — the derby effect moved into useSpringDerby.ts (the
+        // egg's own sub-unit beside useSpringDemo.ts); read both so the effect tokens
+        // resolve across the seam.
+        file: ["spring/useSpringDemo.ts", "spring/useSpringDerby.ts"],
         tokens: [/\bderby\b/, /derbyRunning/, /spring\.target|liveSpring\.target/],
         triggerFile: "spring/SpringTarget.vue",
         triggerTokens: [/@dblclick="demo\.derby"/],

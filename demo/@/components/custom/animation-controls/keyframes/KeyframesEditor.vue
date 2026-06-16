@@ -1,6 +1,13 @@
 <template>
     <div class="contents">
-        <Card surface="cartoon" tier="quiet" class="p-0 m-0">
+        <!-- The per-stop card list. When `framed` (the default, standalone
+             authoring surface) it carries its OWN `Card surface="cartoon"`. When
+             the editor is mounted INSIDE another Card (e.g. SpringSidebar's quiet
+             parent Card — K.W1′), `:framed="false"` DROPS the inner Card so the
+             list flows into the parent surface directly (no card-in-card; the
+             glass-ui 4.0.0 single-surface contract). The CardContent's padding +
+             grid are preserved on the bare wrapper so the layout is identical. -->
+        <Card v-if="framed" surface="cartoon" tier="quiet" class="p-0 m-0">
             <CardContent class="p-2 m-0 mt-0 grid gap-4 relative">
                 <KeyframeCardList
                     ref="cardList"
@@ -13,6 +20,17 @@
                 />
             </CardContent>
         </Card>
+        <div v-else class="p-2 m-0 mt-0 grid gap-4 relative">
+            <KeyframeCardList
+                ref="cardList"
+                :frame-strings="templateFrameStrings"
+                :frames="animation.templateFrames"
+                @update-start="onUpdateStart"
+                @update-c-s-s="onUpdateCSS"
+                @remove="({ event, index }) => removeKeyframe(event, index)"
+                @keydown="onKeyDown"
+            />
+        </div>
 
         <div class="grid gap-4 sticky bottom-0 bg-background rounded-panel p-4 pt-4 m-4">
             <Slider
@@ -99,8 +117,13 @@ import { parseCSSValueUnit } from "@mkbabb/value.js";
 import * as animations from "@src/animation/animations";
 import { insertTabAtCursor } from "./utils/contenteditable";
 
-const { animation } = defineProps<{
+const { animation, framed = true } = defineProps<{
     animation: Animation<any>;
+    /** Whether the per-stop card list carries its OWN framing `Card`. Default
+     *  `true` (the standalone authoring surface). Pass `false` when the editor is
+     *  mounted inside another Card (e.g. SpringSidebar's parent Card) so the inner
+     *  Card is DROPPED — no card-in-card (glass-ui 4.0.0 single-surface). */
+    framed?: boolean;
 }>();
 
 const emit = defineEmits<{

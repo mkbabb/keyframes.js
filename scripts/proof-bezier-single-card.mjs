@@ -169,10 +169,19 @@ async function browserHalf() {
                         stoppedAtRoot = true;
                         break;
                     }
-                    // The glass-ui Card root ALWAYS carries data-surface (cartoon /
-                    // glass / …). A decorative `rounded-card` wrapper does NOT, so
-                    // it is correctly NOT counted as a Card.
-                    if (el.hasAttribute("data-surface")) {
+                    // The glass-ui <Card> ROOT signature is `.rounded-card` +
+                    // `.text-card-foreground` (verified glass-ui Card*.js) — this
+                    // DISTINGUISHES a real <Card> from a glass-ui GlassPanel hero
+                    // (e.g. .easing-curve-canvas-wrapper, a legitimate domain element).
+                    // NOTE (K.W1′): at glass-ui 4.0.0 GlassPanel emits `data-surface`
+                    // UNCONDITIONALLY (surface defaults to "glass"), so the old
+                    // `hasAttribute("data-surface")` proxy over-counts the GlassPanel
+                    // hero as a Card. The `.text-card-foreground` co-signature is the
+                    // 4.0.0-correct Card test — identical to proof:easing-sidebar-normalized.
+                    if (
+                        el.classList.contains("rounded-card") &&
+                        el.classList.contains("text-card-foreground")
+                    ) {
                         cards.push({
                             surface: el.getAttribute("data-surface"),
                             tier: el.getAttribute("data-tier"),

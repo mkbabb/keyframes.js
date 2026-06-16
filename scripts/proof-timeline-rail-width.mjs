@@ -198,12 +198,16 @@ async function browserHalf() {
             //     keep the stamp inside the [rail]-track overflow:hidden). The
             //     border-box width:var(--rail-width) keeps BOTH pads inside the
             //     budget → content-box = rail − 24. The gate's floor was a stale
-            //     rail−14 (one-side pad, the H.W3 assumption before F7); the
-            //     binding is PERFECT (400/400/400 border-box, 376 content-box =
-            //     400 − 24) — the floor is corrected to rail − 24. The EQUALITY to
-            //     the live content-box (contentBoxOk) is the load-bearing assert; a
-            //     re-introduced cap (768) breaks both it AND the upper bound.
-            const PAD = 24; // H.W9.S2/F7 symmetric shadow-clearance (12px ×2)
+            //     rail−14 (one-side pad, the H.W3 assumption before F7).
+            //     K.W3/F2 UPDATE: the user's "subtle border around the two controls
+            //     elements" added `.controls-content { border: 1px solid }` (the
+            //     desktop wrapping plate, ControlsPaneWrapper.vue:230) — 1px ×2 sits
+            //     OUTSIDE clientWidth, so the content-box clearance is now 24px pad
+            //     + 2px border = rail − 26 (measured 475.19 border-box → 449 content-
+            //     box). The EQUALITY to the live content-box (contentBoxOk) stays the
+            //     load-bearing assert; a re-introduced cap (768) breaks it AND the
+            //     upper bound.
+            const PAD = 26; // 24px symmetric shadow-clearance (12px ×2) + 2px K.W3/F2 wrapping border (1px ×2)
             if (!probe.acFound) {
                 fail(
                     "rail-width root binding — the AnimationControls root " +

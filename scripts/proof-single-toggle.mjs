@@ -101,10 +101,21 @@ async function browserHalf() {
         let expanded = false;
         for (let i = 0; i < 30 && !expanded; i++) {
             try {
-                const dock = page.locator(".z-dock, [class*='z-dock']").first();
+                // Hover the .glass-dock that OWNS the @mbabb trigger (the top dock) and
+                // DWELL — holding the pointer on the dock (no leave) lets the glass-ui
+                // 4.0.0 60ms hover-intent commit the expand. Moving the pointer away
+                // (the old mouse.move(640,870)) re-arms the dock-flicker cancel before
+                // the dwell commits, so the trigger never surfaces. This mirrors the
+                // proof:dock-popover-opens actuation; the toggle assertion is unchanged.
+                const ownerDock = page
+                    .locator(".glass-dock")
+                    .filter({ has: page.locator(TRIGGER) })
+                    .first();
+                const dock = (await ownerDock.count())
+                    ? ownerDock
+                    : page.locator(".glass-dock").first();
                 if (await dock.count()) await dock.hover({ force: true }).catch(() => {});
-                await page.mouse.move(640, 870);
-                await page.waitForTimeout(150);
+                await page.waitForTimeout(250);
                 expanded = await page
                     .locator(TRIGGER)
                     .first()
