@@ -114,6 +114,7 @@
         "proof:timeline-rail-width": "node scripts/proof-timeline-rail-width.mjs",
         "proof:demo-shell-grid": "node scripts/proof-demo-shell-grid.mjs",
         "proof:stage-not-clipped": "node scripts/proof-stage-not-clipped.mjs",
+        "proof:layout-cluster": "node scripts/proof-layout-cluster.mjs",
         "proof:cartoon-shadow-unclipped": "node scripts/proof-cartoon-shadow-unclipped.mjs",
         "proof:no-deprecated-guard": "node scripts/proof-no-deprecated-guard.mjs",
         "proof:single-writer": "node scripts/proof-single-writer.mjs",

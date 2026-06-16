@@ -7,8 +7,18 @@
          starts exactly under the dock pill and the cube recedes below it
          (CubeTarget's hero-backdrop band). Desktop keeps `lg:mt-24` —
          byte-identical layout at ≥lg. -->
+    <!-- K.W3 M4/C5 — the hero VERTICAL position folds into the work-area chain.
+         The former `lg:mt-24` (a raw 6rem Tailwind margin — a magic offset
+         coupling the hero to a fixed number instead of the layout's own optical
+         band) is REPLACED at ≥lg by `lg:mt-[var(--work-area-top-offset)]`: the
+         hero now parks at the SAME optical top offset the work-area card +the top
+         dock anchor derive from (the φ 0.382 slack split), so the hero rides the
+         layout chain, not a hardcoded number. Mobile keeps the
+         `pt-[var(--dock-top-band-reserve)]` top-band park (D6 / unchanged). This
+         is the VERTICAL-POSITION reconcile ONLY — the hero COMPOSITION (the
+         FourierField, the empty-quadrant vacancy) is K.W4's seam, untouched. -->
     <div
-        class="absolute left-0 top-0 z-controls pt-[var(--dock-top-band-reserve)] grid h-0 w-screen items-center gap-0 px-6 lg:pt-0 lg:mt-24 pointer-events-none"
+        class="absolute left-0 top-0 z-controls pt-[var(--dock-top-band-reserve)] grid h-0 w-screen items-center gap-0 px-6 lg:pt-0 lg:mt-[var(--work-area-top-offset)] pointer-events-none"
     >
         <!-- H.W4.S3 — the hero on the AUDACIOUS φ rung. `text-display-4` (86px,
              the middle rung) → `text-display-mega` (φ^(9/2), peak 177px — the
@@ -51,7 +61,7 @@
              fights" it at desktop widths; the step restores a ≥5:1
              hero:subtitle ratio and lands the subtitle between the hero and
              the text-subheading hint — the φ ladder read top-down. -->
-        <h2 class="start-screen-prose text-heading w-full italic">
+        <h2 class="start-screen-prose start-screen-subtitle text-heading w-full italic">
             {{ subtitle }}
             <List class="inline"></List> {{ subtitleSuffix }}
         </h2>
@@ -173,6 +183,30 @@ withDefaults(
    demo's own prose — NOT a glass-ui override of the shared `.text-*` utilities. */
 .start-screen-prose {
     text-wrap: pretty;
+}
+
+/* K.W3 U-K9 — cure the home subtitle's ragged 2-line wrap at phone width
+   (≈390px the subtitle "from the list [icon] below, then press Play." broke to
+   two lines with an orphan word at the `text-heading` rung). The cure, scoped
+   to phone width ONLY and to the SUBTITLE only (the hint keeps its `pretty`
+   running-prose wrap):
+     • `text-wrap: balance` — distributes the line break evenly so a 2-line
+       subtitle reads as two balanced lines, never an orphan tail (balance is the
+       short-heading algorithm; pretty is the running-prose one — the subtitle is
+       a heading, so balance is the right fit here, overriding the inherited
+       `.start-screen-prose` pretty at this width);
+     • a modest size clamp `clamp(1.25rem, 6.2cqi, var(--type-heading))` so the
+       subtitle steps down just enough on a narrow phone to fit, capped at the
+       published --type-heading rung token at wider phone widths (NEVER above it,
+       and NEVER changing the FONT FAMILY — the text-heading voice is untouched,
+       only the responsive SIZE on this one heading is bounded). cqi resolves
+       against the home container; on a non-container ancestor it falls back to
+       svi, still bounding the phone case. */
+@media (max-width: 1023px) {
+    .start-screen-subtitle {
+        text-wrap: balance;
+        font-size: clamp(1.25rem, 6.2cqi, var(--type-heading));
+    }
 }
 
 /* J.W7a S4 (D18 / H1) — the FourierField's vacancy frame. The hero host is a

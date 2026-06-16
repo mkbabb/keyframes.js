@@ -135,9 +135,45 @@
 
     /* ── Layout ── */
     --dock-icon-height: 2.75rem;
-    --work-area-max-width: clamp(72rem, 94vw, 120rem);
-    --work-area-max-height: clamp(44rem, 88dvh, 66rem);
+    /* K.W3 M4 — the work-area card GROWS into the surplus on a cinema display
+       (the "distribute the surplus deliberately" rule the §2 probe named missing:
+       pre-cure the card froze at 120rem/66rem = 1920×1056 and everything past it
+       was DEAD GUTTER — 37.5%W / 36.7%H fill at 5K with 1600px empty graph-paper
+       each side). The 94vw / 88dvh RESPONSIVE drivers are unchanged (so 1920×1080
+       still reads the 94%W / 88%H baseline — the happy-path layout-grid-k §2
+       baseline row is byte-stable); only the CEILINGS lift (120rem→160rem width,
+       66rem→120rem height) so the centered card keeps growing past the old freeze
+       and the [stage] minmax(0,1fr) subject fills the new real estate. Still
+       BOUNDED (center-card, not full-bleed): the card caps at 160rem/120rem so on
+       a 5K panel it fills ~50%W/66%H — a large centered card the chrome clusters
+       to (M3's capped docks hug it), NOT a UI marooned in a void. The lifted
+       ceilings keep the rail bounded (M1's 30rem clamp ceiling governs the rail
+       regardless of card width) and the dock anchors bounded (M3's
+       --dock-anchor-ceiling caps the slack regardless of card height). */
+    --work-area-max-width: clamp(72rem, 94vw, 160rem);
+    --work-area-max-height: clamp(44rem, 88dvh, 120rem);
     --work-area-height: min(100dvh, var(--work-area-max-height));
+
+    /* K.W3 M3 — the dock-anchor CEILING (the named cap the unbounded slack floats
+       are bounded TO; the §2 5K/portrait float dies here). The dock anchors are
+       slack × bias, and slack = viewport − the work-area clamp ceiling — so past
+       the C2/C3 freeze the slack (and the anchors with it) grow WITHOUT BOUND: at
+       5120×2880 the top dock floated 698.8px in, the bottom 1132.2px (the docks
+       maroon mid-void). This ONE named token caps the FLOAT term so the docks
+       CLUSTER to the clamped content card instead of the viewport. 4rem (64px) is
+       the measured call against the five probe viewports: it sits ABOVE every
+       normal-desktop optical offset (800h→36.7px, 900h→41.3px — so the cap is
+       INERT at laptop/baseline sizes, the natural φ-optical balance survives
+       untouched) and FAR below every pathological float (146.7px @1440h up to
+       696.8px @2880h — so it bites exactly where the slack runs away). The §4
+       sketch was 6rem/8rem; 4rem is the tighter measured value that keeps the
+       docks hugging the card on a cinema display while leaving the optical bias
+       free on a laptop. NOT a per-screen media-query ladder, NOT a re-tuned
+       φ-bias — ONE ceiling, capping the slack at the derivation (K.md §MANDATE:
+       "the dock layout dies at the GRID/anchoring system, NOT retuned magic
+       offsets"). The φ --dock-margin/4 ÷ /φ asymmetry (below) is PRESERVED on top
+       of the capped float — it is φ-derived, not a magic number. */
+    --dock-anchor-ceiling: 4rem;
     /* The golden ratio — the single named constant the dock-band proportions
        derive from (J.W7c U1). Everything below is a φ-derivation, not a magic
        number: the vertical-slack bias pair and the bottom dock anchor both
@@ -237,10 +273,20 @@
        AND by the mobile stage-cell top inset (AnimationControlsGroup), so the
        top-center band has ONE occupant — the scene-switcher — by construction.
        (The durable glass-ui `GlassDock` reserved-band QUERY is the W7b handoff
-       edge; this is the kf-side relocation, cross-hierarchy §handoff.) */
+       edge; this is the kf-side relocation, cross-hierarchy §handoff.)
+
+       K.W3 M3 — the FLOAT is now CAPPED: min(optical-offset, --dock-anchor-ceiling)
+       so the dock CLUSTERS to the clamped work-area card on a cinema display
+       instead of floating on unbounded slack (the §2 5K float — 698.8px in — dies;
+       capped to ≤ 64px + the φ /4 term). The min() is INSIDE the optical max() so
+       the safe-area inset still wins on a notched device when it exceeds the cap.
+       The cap is inert at normal desktop sizes (the offset is below the ceiling
+       there), so the φ-optical balance is untouched on a laptop. */
     --dock-top-anchor: calc(
-        max(var(--work-area-top-offset, 0px), env(safe-area-inset-top, 0px)) +
-            var(--dock-margin) / 4
+        min(
+            max(var(--work-area-top-offset, 0px), env(safe-area-inset-top, 0px)),
+            var(--dock-anchor-ceiling)
+        ) + var(--dock-margin) / 4
     );
     --dock-top-band-reserve: calc(
         var(--dock-top-anchor) + var(--dock-band-reserve)
@@ -254,11 +300,20 @@
        floats further off it. Both anchors derive from ONE φ token + the same
        optical offset + safe-area inset — no hardcoded px on either side.
        Consumed by TransportDock.vue's `bottom:` (falls back to the bare
-       --work-area-bottom-offset if the anchor is somehow absent). */
+       --work-area-bottom-offset if the anchor is somehow absent).
+
+       K.W3 M3 — the bottom FLOAT is CAPPED by the SAME --dock-anchor-ceiling as
+       the top twin: min(optical-offset, ceiling) + the φ /φ term, so the bottom
+       dock hugs the clamped card on huge screens (the §2 1132.2px @5K /588.3px
+       @portrait float dies; bounded to ≤ 64px + the φ term). The golden /4÷/φ
+       asymmetry is PRESERVED — only the FLOAT term is bounded, not the bias. */
     --dock-bottom-anchor: calc(
-        max(
-            var(--work-area-bottom-offset, 0px),
-            env(safe-area-inset-bottom, 0px)
+        min(
+            max(
+                var(--work-area-bottom-offset, 0px),
+                env(safe-area-inset-bottom, 0px)
+            ),
+            var(--dock-anchor-ceiling)
         ) + var(--dock-margin) / var(--phi)
     );
 
@@ -313,6 +368,57 @@
     --color-slider-track: hsl(142 30% 40%);
     --accent-red: hsl(5 55% 50%);
     --accent-red-foreground: hsl(0 0% 95%);
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   K.W3 M3 — THE DOCK-CLUSTER ANCHOR (the forward idiom, feature-DETECTED)
+   ────────────────────────────────────────────────────────────────────────
+   The PROGRESSIVE ENHANCEMENT over the always-correct bounded-min() floor (the
+   --dock-{top,bottom}-anchor cap above). Where CSS anchor-positioning is
+   supported, the docks TETHER directly to the work-area card's stage cell rect
+   (which IS clamped by --work-area-max-{width,height}) instead of reading the
+   viewport-derived optical offset at all — the docks hug the card geometrically,
+   the strongest form of "cluster to the content, not the viewport."
+
+   Anchor-positioning is NOT yet Baseline (modern-web css-layout §5: "not
+   natively supported by any major browser yet"), so the WHOLE subsystem is
+   gated behind `@supports (anchor-name: --x)` with the bounded-min() cap as the
+   path every browser takes by default. The wave is GREEN on the min() floor
+   alone — this block is the ≤20-line graceful enhancement the guide's
+   "Interpreting Fallbacks" prefers for a not-yet-Baseline feature, NOT a
+   polyfill. `position-area` overrides the inline `top:`/`bottom:` only when the
+   feature is live; otherwise the capped anchor governs.
+
+   Desktop only: the stage cell is a named grid cell at ≥1024px (the mobile
+   stage is a fixed full-bleed layer with no card to tether to). The tether
+   swaps ONLY the offset SOURCE (the dock's `top:`/`bottom:` inset) — it reads
+   the stage cell's edge via anchor() instead of the viewport-derived capped
+   offset — leaving the docks' existing centering (top: left-1/2) and full-width
+   (bottom: left-0/right-0) placement untouched, so the enhancement is a clean
+   drop-in over the floor, never a re-layout. The φ --dock-margin breathing gap
+   rides on top of the tether (the golden /4 ÷ /φ asymmetry preserved). */
+@supports (anchor-name: --stage) and (top: anchor(--stage top)) {
+    @media (min-width: 1024px) {
+        /* The stage cell publishes the anchor (also set in
+           AnimationControlsGroup's desktop grid; declared here as the contract). */
+        .stage-cell {
+            anchor-name: --stage;
+        }
+        /* The top scene-switcher pill tethers its top edge to the stage cell's
+           TOP edge + the φ /4 gap; the bottom transport tethers its bottom edge
+           to the stage cell's BOTTOM edge + the φ /φ gap. Both clamp to the card
+           (which is itself clamped), so the docks hug the content card on a
+           cinema display by geometric construction, not by a capped offset. */
+        .z-dock:has(> .pointer-events-auto) {
+            position-anchor: --stage;
+            top: calc(anchor(--stage top) + var(--dock-margin) / 4);
+        }
+        .menubar-safe-pb.z-dock {
+            position-anchor: --stage;
+            top: auto;
+            bottom: calc(anchor(--stage bottom) + var(--dock-margin) / var(--phi));
+        }
+    }
 }
 
 /* ── Glass content-tier translucency reclaim (K.W1 — the glass-ui 3.13.0 consume edge) ──

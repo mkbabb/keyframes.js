@@ -30,6 +30,37 @@
    glass-ui ASK, not a demo patch.
    ════════════════════════════════════════════════════════════════════════ */
 
+/* ── K.W3 M1 — register --rail-width as a typed <length> custom property ──
+   The derived rail track (clamp(20rem, 26svi, 30rem)) is registered as a typed
+   `syntax: "<length>"` property so it COMPUTES to a USED px value rather than
+   staying an un-resolved string: `svi` (small-viewport-inline) is a viewport
+   unit — computationally independent of layout — so a registered <length>
+   resolves the clamp to px at computed-value time (an UNREGISTERED custom
+   property, by contrast, returns its specified expression verbatim from
+   getComputedStyle; and a registered property using `cqi` would NOT resolve
+   either, since container units stay layout-dependent). `inherits: true`
+   cascades that ONE computed length down unchanged, so the grid [rail] track on
+   `.controls-layout` AND the consuming `.controls-content { width }` pane read
+   the IDENTICAL resolved length — track and visible pane agree by construction
+   (no mismatch). `svi` is the right viewport unit here: it widens the rail on a
+   cinema display and bounds it on a phone-narrow shell, the VIEWPORT-AWARE
+   intrinsic sizing the §Hard-gate clause (b) checks (the rail SCALED, not
+   invariant 400px). initial-value is 320px (the px equivalent of the 20rem
+   floor — see the note on the declaration: a rem initial is rejected). */
+@property --rail-width {
+    syntax: "<length>";
+    inherits: true;
+    /* initial-value MUST be computationally-independent (an absolute length):
+       `20rem` is REJECTED by Chromium's @property registration ("initial value
+       not computationally independent" — rem is treated as context-dependent for
+       a registered initial), which silently DROPS the whole registration and
+       leaves --rail-width an un-resolved string. 320px is the px equivalent of
+       the 20rem clamp floor at the default 16px root — the valid absolute-length
+       fallback that keeps the registration LIVE so the clamp/svi resolves to a
+       used px value. */
+    initial-value: 320px;
+}
+
 /* ── Tokens: the demo's playful spectrum + gold accent + layout constants ──
    OUTSIDE @layer so these override glass-ui's incidental same-named tokens —
    the demo's copy is authoritative for the demo. */
@@ -102,10 +133,21 @@
     --dropdown-min-width: 12rem; /* min-w-[var(--dropdown-min-width)] SelectContent
                                     dropdown min (recurs ×3 — TransportDock +
                                     TopDock ×2; distinct from the wider --dock-panel-width). */
-    --target-viewport-h: 30vh; /* h-[var(--target-viewport-h)] cube-target viewport height */
-    --target-viewport-w: 30vw; /* w-[var(--target-viewport-w)] cube-target viewport WIDTH
-                                  — the dimensional sibling of --target-viewport-h (a vh
-                                  token cannot name a vw width; E.W3.S2 corrects the conflation). */
+    /* K.W3 M4/C6 — the cube target tracks the STAGE CELL, not the raw viewport.
+       The former 30vh/30vw sized the loader glyph off the viewport, so it
+       OVER-GREW past the C2/C3 work-area freeze (a glyph 30% of a 5K panel is a
+       island in the surplus, not anchored to the clamped stage). M2 makes
+       `.controls-layout` a container (container-type: inline-size) and the
+       `.stage-cell` lives inside it, so cqi/cqb resolve against the clamped
+       stage column — the glyph now tracks the cell the cube centres in, bounded
+       by the work-area clamp rather than the raw viewport. cqi = inline (width),
+       cqb = block (height); the loader glyph is square-ish, so each axis reads
+       its own container dimension. The fallback (svi/svh on a non-qualifying
+       ancestor) keeps it sized if the container scope is ever absent. */
+    --target-viewport-h: 30cqb; /* h-[var(--target-viewport-h)] cube-target loader height — tracks the stage cell block-size */
+    --target-viewport-w: 30cqi; /* w-[var(--target-viewport-w)] cube-target loader width — tracks the stage cell inline-size
+                                  — the dimensional sibling of --target-viewport-h (a cqb
+                                  token cannot name an inline width; E.W3.S2 corrects the conflation). */
     --visualizer-track-gutter: 3rem; /* w-[calc(100%-var(--visualizer-track-gutter))] track
                                         inset — couples to the left-6 (1.5rem) inset each side
                                         = 3rem total gutter; one token keeps the calc and the
@@ -113,14 +155,34 @@
     --easing-dropdown-max-h: min(24rem, 60dvh); /* max-h-[var(--easing-dropdown-max-h)] easing
                                                    SelectContent cap — its 60dvh half is the S3
                                                    reconciled unit. */
-    --rail-width: 400px; /* the rail·stage·rail grid's [rail] track width — the SINGLE
-                                     width authority (H.W3.S3): the lg grid track
-                                     (AnimationControlsGroup, grid-template-columns: [rail] var(--rail-width) [stage] 1fr),
-                                     the pane width (ControlsPaneWrapper .controls-content), and the
-                                     expanded timeline ([rail] track) ALL resolve to this one token,
-                                     so the sidebar, ribbon, and timeline match by construction.
-                                     Replaces the former pane-width token + the 768px sidebar
-                                     cap + col-span-full — N files, one token, actually honored. */
+    /* K.W3 M1 — the rail track is DERIVED, not a fixed 400px (C1, the one true
+       hardcoded layout offset U-K7 names; the born-RED witness: controlsPane.w
+       == 400 INVARIANT across a 4× viewport-area span — 1280/1920/3440/5120 —
+       the clearest proof the layout did not respond to large screens). The fixed
+       400px DIES (net-deletion, no legacy beside its replacement); the rail now
+       WIDENS on a cinema display and BOUNDS on a phone via an intrinsic clamp():
+         • 20rem FLOOR — the rail never starves below its control rows;
+         • 26svi MID — viewport-aware intrinsic sizing: registered as a typed
+           <length> @property (above) so the clamp resolves to px (svi is a
+           viewport unit, layout-independent), and the ONE computed length
+           cascades (inherits: true) so the grid [rail] track and the
+           `.controls-content { width }` pane read the IDENTICAL value (no
+           track/content mismatch). It resolves ≈ 374px at a 1440 shell, saturates
+           at the 30rem (480px) cap from ~1846px-wide up (3440/5120 cinema), and
+           bottoms at the 20rem (320px) floor on a phone-narrow shell — scaled but
+           bounded, the §Hard-gate clause (b) property;
+         • 30rem CEILING — no 30rem-wide rail maroons a 5K panel; the chrome stays
+           bounded while the stage GROWS into the surplus (M4).
+       A <length>, so it is valid as BOTH the grid [rail] track AND the
+       `.controls-content { width }` consumer — the single width authority is
+       preserved (H.W3.S3): the lg grid track (AnimationControlsGroup,
+       grid-template-columns: [rail] var(--rail-width) [stage] minmax(0,1fr)), the
+       pane width (ControlsPaneWrapper .controls-content), and the expanded
+       timeline ([rail] track) ALL resolve to this one derived value, so the
+       sidebar, ribbon, and timeline match by construction. The open/close axis
+       (the track between var(--rail-width) and 0px) is PRESERVED — only the
+       open-width literal changes from 400px to the derived clamp(). */
+    --rail-width: clamp(20rem, 26svi, 30rem);
     --mask-fade: 2.5rem; /* the edge-fade magnitude — ONE design decision ("how wide is an
                             edge fade") consumed by BOTH the tab-overflow horizontal fade
                             (AnimationControls) and the controls-pane vertical scroll fade

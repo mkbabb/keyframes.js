@@ -312,6 +312,60 @@ function switchTab(tab: string) {
     max-width: 100dvw;
     max-height: 100dvh;
     margin: auto;
+    /* K.W3 M2 — the macro grid becomes a CONTAINER (the existing-idiom promotion:
+       the micro tier already uses container queries at TimingFunctionPanel.vue +
+       style.css:.container-inline-size, and subgrid at .labeled-field-grid; this
+       promotes the SAME mechanism to the macro tier). `inline-size` ONLY (NOT
+       `size`/both-axes): the block-size is already definite here (height:
+       min(100dvh, --work-area-max-height)), and `size` would collapse descendants
+       with no definite block-size (modern-web css-layout §4 "Do not"). Two jobs:
+       (1) the desktop/mobile FORK below queries this box via @container instead of
+       @media (min/max-width) — the macro tier reads ITS box, not the viewport;
+       (2) the DESCENDANT cqi/cqb consumers resolve against the clamped work-area
+       card — M1's --rail-width clamp(20rem, 26cqi, 30rem) on `.controls-content`
+       and C6's --target-viewport-w/h: 30cqi/30cqb on the cube-target loader both
+       now track the card, not the raw viewport. */
+    container-type: inline-size;
+    container-name: controls-layout;
+
+    /* K.W3 M1+M2+M4 — the named rail·stage·rail grid (H.W3.S4) is the
+       UNCONDITIONAL base: `display: grid` + the template resolve at every width
+       (mobile's children override to `position: fixed` in the @container fork
+       below, so the grid is inert there — no in-flow items). The template MUST be
+       unconditional because `.controls-layout` is itself the container
+       (container-type above) and an element can NOT match its own @container
+       query — so a desktop-only `@container (min-width:64rem)` on THIS element's
+       own `display`/template would never apply. The mobile transposition (to the
+       fixed bottom-sheet + full-bleed stage overlay) is the @container-gated
+       FORK (the @media → @container conversion lands on the MOBILE deviation,
+       which targets DESCENDANTS that CAN query their ancestor container — the
+       former @media (max-width:1023px) viewport fork DIES with it).
+         • [rail] var(--rail-track): the DERIVED --rail-width clamp (20rem floor,
+           26cqi tracking the work-area card, 30rem ceiling — no fixed 400px). The
+           open/close axis is the [rail] track between var(--rail-width) and 0px
+           (PRESERVED — only the open-width literal changed from 400px to the
+           clamp).
+         • [stage] minmax(0, 1fr): the SUBJECT GROWS into the M4 surplus past the
+           lifted C2/C3 ceilings (center-card-with-growing-stage — the rail stays
+           bounded chrome, the stage is content). minmax(0,1fr) (not bare 1fr)
+           lets the stage shrink below its content min so a wide subject never
+           forces horizontal overflow of the card. */
+    display: grid;
+    --rail-track: var(--rail-width);
+    grid-template-columns: [rail] var(--rail-track) [stage] minmax(0, 1fr);
+    grid-template-rows: [top] auto [stage] 1fr [bottom] auto;
+    transition: grid-template-columns var(--duration-slow) var(--spring-snappy);
+}
+
+/* The open/close + railless track-collapse (the [rail] track between
+   var(--rail-width) and 0px) — UNCONDITIONAL beside the base template it drives
+   (H.W3.S4; J.W7a XH-1 ghost-rail collapse). On mobile the children are fixed,
+   so a collapsed/held rail track is inert there. */
+.controls-layout--closed {
+    --rail-track: 0px;
+}
+.controls-layout--railless {
+    --rail-track: 0px;
 }
 
 /* ── G8 (H.W10.S5) — the [stage]-track dock-safe containment PRIMITIVE ──
@@ -338,13 +392,25 @@ function switchTab(tab: string) {
     padding-block: var(--dock-band-reserve);
 }
 
-/* ── MOBILE (H.W7.S1) — the stack→overlay transposition ──
+/* ── MOBILE — the stack→overlay transposition (H.W7.S1) ──
    The mobile `grid-rows-[auto_1fr_auto]` stack is DELETED (no legacy beside the
    replacement). The stage LEAVES the layout flow and becomes the full-bleed
    FIXED background; the controls pane becomes a bottom SHEET overlaying it
    (ControlsPaneWrapper.vue). The `.controls-layout` root is no longer a 3-row
    grid on mobile — it is a passive positioning context whose only mobile job is
-   to host the fixed children. */
+   to host the fixed children.
+
+   K.W3 M2 (the @media-vs-@container SEAM, resolved by relationship): the
+   DESKTOP rail·stage PLACEMENT fork is a @container query (below — the component
+   reads ITS box, the existing-idiom promotion). The MOBILE full-bleed
+   transposition stays @media (max-width: 1023px) because it is a VIEWPORT
+   relationship, NOT a container one: the stage goes `position: fixed; inset: 0`
+   to fill the VIEWPORT (not its container), and the sheet anchors to the
+   viewport's bottom — modern-web css-layout §4's own rule ("container queries =
+   component context; media queries = global page layout / the viewport-filling
+   layer"). So the @media fork that DIED is the desktop one (→ @container); the
+   mobile full-bleed-to-viewport keeps @media, the correct query for a
+   viewport-relative layer (and the proof:mobile-single-page S1 contract). */
 @media (max-width: 1023px) {
     /* The layout root's children (stage + sheet + expanded-timeline) are all
        `fixed` on mobile, so it carries no in-flow content; centering is a no-op. */
@@ -418,46 +484,17 @@ function switchTab(tab: string) {
     }
 }
 
-/* ── Desktop: the named rail·stage·rail frame (H.W3.S4) ──
-   ONE grid, one --rail-width token. The former 3-track
-   [rail 1fr 1fr] grid (whose `1fr 1fr` siblings collapsed to 0px and forced
-   the stage to span the whole grid) collapses to two named columns: [rail] is
-   the controls rail + the expanded timeline; [stage] is the centered subject.
-   The open/close axis IS the [rail] track width (var(--rail-width) ↔ 0) —
-   this REPLACES the deleted translateX(-110%) overlay slide (no legacy beside
-   replacement, WV-W3-HIGH-2). Closing the pane collapses [rail] to 0 and the
-   stage reflows to fill the freed width. Rows: [top] auto (reserved for the
-   H.W4 hero / dock, F7) · [stage] 1fr (the main content) · [bottom] auto (the
-   expanded timeline + the fixed menubar's reserve). */
-@media (min-width: 1024px) {
-    .controls-layout {
-        /* `display: grid` is set HERE (desktop only) — the former unconditional
-           `grid` utility class on the root was DELETED with the mobile-stack
-           transposition (H.W7.S1), since mobile no longer uses a grid (the stage
-           is fixed, the sheet is fixed). Desktop keeps the named rail·stage·rail
-           grid. */
-        display: grid;
-        --rail-track: var(--rail-width);
-        grid-template-columns: [rail] var(--rail-track) [stage] 1fr;
-        grid-template-rows: [top] auto [stage] 1fr [bottom] auto;
-        transition: grid-template-columns var(--duration-slow) var(--spring-snappy);
-    }
-    .controls-layout--closed {
-        --rail-track: 0px;
-    }
-
-    /* J.W7a S5 / XH-1 (D20) — the ghost rail DIES. An empty-DFA scene
-       (sequence/motion-path — CONTROL_SURFACES = []) has NOTHING to put in the
-       rail, so its [rail] track is 0 REGARDLESS of the stored open flag: the
-       hollow 400px shell (a vacant grab-pill card top-left of a void column,
-       cross-hierarchy #1) cannot hold the track open, and the stage reflows to
-       fill the freed width (the COLLAPSE arm of the collapse-or-fill fork).
-       Declared after --open/--closed so the railless fact wins the custom-
-       property cascade at equal specificity. */
-    .controls-layout--railless {
-        --rail-track: 0px;
-    }
-
+/* ── Desktop: the named rail·stage·rail item PLACEMENTS (H.W3.S4; K.W3 M2) ──
+   The grid + the named template themselves are the UNCONDITIONAL base (above —
+   an element can't match its own @container query). What is genuinely
+   desktop-only is the PLACEMENT of the children INTO the named cells: the pane
+   in [rail], the subject in [stage], the timeline in [rail]/[bottom]. These
+   target DESCENDANTS of `.controls-layout`, which CAN query their ancestor
+   container — so the @media (min-width:1024px) → @container (min-width:64rem)
+   promotion lands HERE (the macro tier reads ITS box). On mobile (the
+   @container max-width:64rem fork above) these same children override to
+   `position: fixed`, leaving grid flow, so these placements are inert there. */
+@container controls-layout (min-width: 64rem) {
     /* The controls pane occupies the [rail] track, the [stage] content row. */
     .controls-layout > :deep(.controls-pane-wrapper) {
         grid-column: rail;
@@ -465,10 +502,16 @@ function switchTab(tab: string) {
     }
 
     /* The subject gets its OWN [stage] track (the former full-grid stage span
-       is deleted). */
+       is deleted). K.W3 M3 — the stage cell publishes `anchor-name: --stage` so
+       the docks can TETHER to its (clamped) rect under @supports
+       (anchor-name: --x) — the forward-idiom enhancement over the always-correct
+       bounded-min() anchor floor (style.css). anchor-name is inert where
+       unsupported (the docks fall back to the capped --dock-*-anchor offset), so
+       this is a pure progressive enhancement, never a re-layout. */
     .stage-cell {
         grid-column: stage;
         grid-row: stage;
+        anchor-name: --stage;
     }
 
     /* The expanded timeline is a vertical extension of the rail: [rail] track,
