@@ -204,6 +204,11 @@ import { useSceneMachineApp } from "./useSceneMachineApp";
 import { useSceneSwap } from "./useSceneSwap";
 import { useSceneTransition } from "./useSceneTransition";
 import { scenes, sceneMap, warmScene, stageModeFor, HOME_SCENE_ID } from "./scenes";
+import { useMonacoCancellationGuard } from "./useMonacoCancellationGuard";
+
+// Swallow Monaco's benign "Canceled" CancellationError (keyframes-pane editor
+// disposed mid-async on a fast scene switch) — app-lifetime, scope-managed.
+useMonacoCancellationGuard();
 
 // Tabs in the controls pane are managed via the ChromeDock controls tab dropdown
 provide(TABS_EXTERNALLY_MANAGED_KEY, true);
