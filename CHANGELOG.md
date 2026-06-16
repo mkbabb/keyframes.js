@@ -1,5 +1,50 @@
 # Changelog
 
+## 4.3.0
+
+### Minor Changes
+
+Tranche K — THE PRODUCT-TRUTH + ROUND-TRIP-FRONTIER tranche, two bands under one
+discipline. An additive, non-breaking minor: no export removed, no signature broken.
+
+**Band I — the repair** (closed on the user's TASTE verdict). The cold hero
+rainbow-play now STARTS the engine on the first gesture (the P0 cured at the adapter
+seam); the liveness oracle reads the engine's own write channel, never the idle bob.
+glass-ui re-pinned `~3.11.2 → ~3.13.0 → ~4.0.0` (the dock cured at the source: the
+collapsed pill is a perfect circle, the hover-flash gone — adopted, never patched).
+value.js re-pinned `^0.11.2 → ^0.12.0 → ^0.13.0`. ONE display-voice authority (the
+dock joined at the root, proven by a computed-font census). The dock anchoring became
+a DERIVED grid that clusters on a cinema display and a phone alike. The panes re-cut:
+the spring made a real keyframes editor, the stepping slider cured at root, the
+motion-color unified to the red-dashed, the FourierField removed.
+
+**Band II — the CSS-@keyframes round-trip made TOTAL** (the new public surface, HEAVY
+via `loadAnimationEngine()` unless noted):
+- **The fidelity floor** — the engine now HONORS the `animation-composition` operator
+  (add / accumulate on rAF, composite on WAAPI) it had been silently dropping; a
+  `ResolvedKeyframes.diagnostics` channel.
+- **Ingest** — `fromStyleSheets` / `fromLiveAnimations` / `resolveLiveKeyframes` /
+  `adoptRunning`: read the live web's own CSS (walk the CSSOM, adopt a running native
+  animation mid-flight by `currentTime` handoff), replay-pixel-equal or refused with a
+  named reason.
+- **Scroll-as-CSS** — `parseScrollCSS` / `roundTripScrollCSS` / `createScrollScene` /
+  `pinCSS` / `dispatchScrollBackend`: parse + round-trip the `animation-timeline`
+  grammar (via value.js 0.13.0) and dispatch native ScrollTimeline or the kf JS driver.
+- **Compile** — `compileToCSS`: the parser run BACKWARD — an `AnimationGroup` /
+  `Sequence` → zero-runtime CSS (`@keyframes` + longhands + `linear()` springs +
+  `animation-composition` layering), oklab-densified (ΔE-OK to floating-point
+  precision), with a typed four-refusal ineligibility surface.
+- **Physics** — `reseatToSpring` / `probeVelocity` / `reducedMotionScale` (LIGHT):
+  spring-driven layer blend weight, velocity-continuous interruption of a parsed-CSS
+  animation, WCAG-2.3.3 intensity-scaled reduced motion.
+- **Externalize** — `llms.txt` (the agent surface), the sibling `@mkbabb/keyframes-vue`
+  adapter, the public color-fidelity conformance harness.
+
+The moat: the authoring object IS CSS, so the round-trip is the parser run both ways
+over the same data model — proven faithful both ways by replay-equality or an honest
+refusal. value.js 0.13.0 (the dispatched `sampleColorRamp` + scroll-timeline grammar)
+ships in lockstep; the constellation acyclic spine holds.
+
 ## 4.2.0
 
 ### Minor Changes
