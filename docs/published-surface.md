@@ -153,8 +153,32 @@ the CSS domain — never silently approximated. The "Export CSS" editor button
 proof `test/compile-roundtrip.test.ts`).
 
 | Export         | Tier  | Taught                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| -------------- | ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| -------------- | ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `compileToCSS` | HEAVY | manifest-only: K.W10 CC-1/CC-2/CC-3 — compile an `AnimationGroup`/`Sequence`/child list → a zero-runtime CSS artifact (`@keyframes` + `animation-*` longhands + `animation-composition` layering + `linear()` springs + materialized stagger delays + perceptual `oklab()` densify) + the four CC-3 refusals (the `{ css, eligible, refusals }` trust surface); the parser run BACKWARD over the SAME data model; `proof:compile-replay` + `test/compile-roundtrip.test.ts` clause (a)/(b)/(c)/(d) |
+
+### L.W6 AGENT-AUTHORING — the round-trip's FORWARD half (the validation layer)
+
+The agent-authoring verb (`src/animation/validate.ts`, HEAVY — it statically
+imports the engine + compile + waapi, all value.js-bearing). `validate(css, opts?)`
+is the FORWARD direction of the moat — not a new direction but the VALIDATION
+layer over the compile surface, the first question an LLM agent asks before it
+suggests kf at all: "will this `@keyframes` block ship faithfully?" It is a
+READ-ONLY projection over three already-gate-proven typed channels — the adapter's
+`diagnostics` (`resolveKeyframes`), the compiler's `{ eligible, refusals }`
+(`compileToCSS`), and the WAAPI `eligibility` (`isWAAPIEligible`) — onto ONE flat,
+agent-shaped `ValidateResult` envelope an LLM branches on WITHOUT scraping a
+message string. NO new engine code, NO new drop-diagnostic: it READS the channels
+L.W1/L.W2 already made honest. `explain(css, opts?)` formats the SAME verdict as a
+DETERMINISTIC human/LLM-readable string (field order fixed, byte-stable for a
+doctest). The verb is gate-covered (`proof:agent-validate` + `test/agent-validate.test.ts`
+clause (c) the spec-faithful @property/!important verdict / (d) the multi-color
+perceptual-oklab refusal), and the `/llms.txt` "Agent authoring loop" section
+teaches the validate→fix→compile LOOP (generated, never hand-edited).
+
+| Export     | Tier  | Taught                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| ---------- | ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `validate` | HEAVY | manifest-only: L.W6 S1 — the READ-ONLY projection over the adapter `diagnostics` / compile `{ eligible, refusals }` / WAAPI `eligibility` channels onto ONE flat `ValidateResult` envelope (`{ parseable, eligible, refusals, diagnostics, waapi }`) an LLM agent branches on without scraping a message; a pure JOIN, no new engine code; `proof:agent-validate` + `test/agent-validate.test.ts` clause (c)/(d)                                                                                       |
+| `explain`  | HEAVY | manifest-only: L.W6 S2 — the human/LLM-readable companion; formats `validate`'s typed result as a DETERMINISTIC string (field order fixed, byte-stable for a doctest) — the demo's ineligibility panel as a first-class library API, the surface the `/llms.txt` "Agent authoring loop" section links; `proof:agent-validate` + `test/agent-validate.test.ts` clause (d)                                                                                                                             |
 
 ## EP-3 — the live-coverage disposition (J.W4 S7 · the uncovered-export BOOK)
 

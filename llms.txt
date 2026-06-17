@@ -95,6 +95,35 @@ Install: `npm i @mkbabb/keyframes.js` · README: https://github.com/mkbabb/keyfr
 - docs: https://github.com/mkbabb/keyframes.js/blob/master/README.md#the-dynamic-engine--loadanimationengine
 - proof: `proof:boundary` (CI-verified — `npm run proof:boundary`)
 
+## Agent authoring loop
+
+kf validates + compiles; the LLM generates and fixes. The forward
+direction of the moat — the first question to ask before suggesting kf:
+"will this `@keyframes` block ship faithfully?" `validate(css)` answers
+it as one flat envelope (no message-scraping); `explain(css)` formats the
+SAME verdict human/LLM-readable. Both ride `loadAnimationEngine()` (HEAVY).
+
+```ts
+const { validate, explain } = await loadAnimationEngine();
+
+const result = await validate(css);
+if (!result.parseable) {
+    // fix parse errors — inspect result.diagnostics (stable .code, never scrape)
+}
+if (!result.eligible) {
+    // inspect result.refusals (named reason per child); offer JS playback
+}
+if (!result.waapi.eligible) {
+    // note result.waapi.reason; the animation runs on rAF, still correct
+}
+// if result.eligible: offer the compileToCSS output (zero-runtime CSS)
+
+// explain(css) returns the same verdict as deterministic human-readable text:
+console.log(await explain(css));
+```
+
+proof: `proof:agent-validate` (CI-verified — `npm run proof:agent-validate`)
+
 ## The full export roster + the round-trip recipe
 
 See `/llms-full.txt` for the inline round-trip recipe (parse → animate

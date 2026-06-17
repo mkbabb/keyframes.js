@@ -220,6 +220,52 @@ function tierOf(roster, name) {
     return roster.find((r) => r.name === name)?.tier ?? "?";
 }
 
+/**
+ * The L.W6 agent-authoring LOOP teaching — emitted IFF `validate` AND `explain`
+ * are present in the published-surface manifest roster (the gate coupling: no
+ * verb in the manifest → no LOOP section → `proof:agent-validate` (b) reds). The
+ * section teaches the validate→fix→compile LOOP as a STRUCTURED code block an LLM
+ * follows, not a narrative. Generated (never hand-maintained), so it cannot drift
+ * from the actual exports (`proof:agent-validate` (e) byte-checks it).
+ *
+ * Returns the section lines (heading + body), or `[]` when the verb is absent.
+ */
+export function buildAgentLoopSection(roster) {
+    const names = new Set(roster.map((r) => r.name));
+    if (!names.has("validate") || !names.has("explain")) return [];
+    return [
+        "## Agent authoring loop",
+        "",
+        "kf validates + compiles; the LLM generates and fixes. The forward",
+        "direction of the moat — the first question to ask before suggesting kf:",
+        '"will this `@keyframes` block ship faithfully?" `validate(css)` answers',
+        "it as one flat envelope (no message-scraping); `explain(css)` formats the",
+        "SAME verdict human/LLM-readable. Both ride `loadAnimationEngine()` (HEAVY).",
+        "",
+        "```ts",
+        "const { validate, explain } = await loadAnimationEngine();",
+        "",
+        "const result = await validate(css);",
+        "if (!result.parseable) {",
+        "    // fix parse errors — inspect result.diagnostics (stable .code, never scrape)",
+        "}",
+        "if (!result.eligible) {",
+        "    // inspect result.refusals (named reason per child); offer JS playback",
+        "}",
+        "if (!result.waapi.eligible) {",
+        "    // note result.waapi.reason; the animation runs on rAF, still correct",
+        "}",
+        "// if result.eligible: offer the compileToCSS output (zero-runtime CSS)",
+        "",
+        "// explain(css) returns the same verdict as deterministic human-readable text:",
+        "console.log(await explain(css));",
+        "```",
+        "",
+        "proof: `proof:agent-validate` (CI-verified — `npm run proof:agent-validate`)",
+        "",
+    ];
+}
+
 /** /llms.txt — the curated INDEX (the 13 primitives, one line each). */
 export function buildLlmsTxt() {
     const roster = parseManifestRoster();
@@ -273,6 +319,9 @@ export function buildLlmsTxt() {
         L.push(`- proof: \`${p.proof}\` (CI-verified — \`npm run ${p.proof}\`)`);
         L.push("");
     }
+    // L.W6 — the agent-authoring LOOP teaching (emitted IFF validate+explain are
+    // in the manifest; the gate coupling proof:agent-validate (b)/(e) asserts).
+    for (const line of buildAgentLoopSection(roster)) L.push(line);
     L.push("## The full export roster + the round-trip recipe");
     L.push("");
     L.push(
@@ -322,6 +371,9 @@ export function buildLlmsFullTxt() {
         );
     }
     L.push("");
+    // L.W6 — the agent-authoring LOOP teaching (emitted IFF validate+explain are
+    // in the manifest), inline in the full surface as well as the curated index.
+    for (const line of buildAgentLoopSection(roster)) L.push(line);
     L.push("## The full export roster (the npm-i surface)");
     L.push("");
     L.push(

@@ -71,6 +71,35 @@ const { css, eligible, refusals } = compileToCSS(anim);
 - **loadAnimationEngine** — the one gateway to the HEAVY tier: an awaited dynamic import that carries the CSS parser + value.js; light-only consumers never pay it [axis-3]
   - exports: `loadAnimationEngine` · proof: `proof:boundary` · docs: https://github.com/mkbabb/keyframes.js/blob/master/README.md#the-dynamic-engine--loadanimationengine
 
+## Agent authoring loop
+
+kf validates + compiles; the LLM generates and fixes. The forward
+direction of the moat — the first question to ask before suggesting kf:
+"will this `@keyframes` block ship faithfully?" `validate(css)` answers
+it as one flat envelope (no message-scraping); `explain(css)` formats the
+SAME verdict human/LLM-readable. Both ride `loadAnimationEngine()` (HEAVY).
+
+```ts
+const { validate, explain } = await loadAnimationEngine();
+
+const result = await validate(css);
+if (!result.parseable) {
+    // fix parse errors — inspect result.diagnostics (stable .code, never scrape)
+}
+if (!result.eligible) {
+    // inspect result.refusals (named reason per child); offer JS playback
+}
+if (!result.waapi.eligible) {
+    // note result.waapi.reason; the animation runs on rAF, still correct
+}
+// if result.eligible: offer the compileToCSS output (zero-runtime CSS)
+
+// explain(css) returns the same verdict as deterministic human-readable text:
+console.log(await explain(css));
+```
+
+proof: `proof:agent-validate` (CI-verified — `npm run proof:agent-validate`)
+
 ## The full export roster (the npm-i surface)
 
 ### LIGHT — the static barrel (value.js-free, tree-shakeable)
@@ -96,10 +125,15 @@ const { css, eligible, refusals } = compileToCSS(anim);
 - `flipShared`
 - `drag`
 - `Draggable`
+- `drag2D`
 - `decay`
 - `decayRest`
 - `Sequence`
 - `loadAnimationEngine`
+- `warmEngine`
+- `loadEngine`
+- `loadCompiler`
+- `loadIngest`
 - `resolveEasing`
 - `toEasing`
 - `AnimationOptionError`
@@ -140,13 +174,15 @@ const { css, eligible, refusals } = compileToCSS(anim);
 - `resolveRange`
 - `pinCSS`
 - `compileToCSS`
+- `validate`
+- `explain`
 
-Total published value exports: 58 (27 LIGHT + 31 HEAVY).
+Total published value exports: 65 (32 LIGHT + 33 HEAVY).
 
 ## The proof corpus (the public capability ledger)
 
 Every claim above is signed by a CI-executed gate. The proof corpus
 is itself a public artifact: run `npm run proof:all` to execute the
-full roster (~133 `proof:*` gates). Each gate is a self-describing capability
+full roster (~144 `proof:*` gates). Each gate is a self-describing capability
 claim — not "the library claims X" but "the library PROVES X, here
 is the gate, here is the runnable snippet CI executes".

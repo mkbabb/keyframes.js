@@ -180,6 +180,15 @@ export type {
     CompileRefusal,
     CompileRefusalReason,
 } from "./compile";
+// L.W6 AGENT-AUTHORING VERB (FLAGGED ADDITIVE EDIT) — the round-trip's FORWARD
+// half: the VALIDATION layer over the compile surface. `validate`/`explain` are
+// a READ-ONLY projection over three already-typed channels (the adapter
+// diagnostics / compile refusals / WAAPI eligibility) onto ONE agent-shaped
+// envelope. HEAVY (validate.ts statically imports the engine/compile/waapi, all
+// value.js-bearing), so the runtime rides loadAnimationEngine below; ONLY its
+// option/result TYPES are re-exported here (erased — no static value.js edge on
+// the LIGHT barrel; proof:boundary stays green).
+export type { ValidateOptions, ValidateResult } from "./validate";
 // Heavy-class TYPES stay on the static barrel (erased) so consumers keep
 // `import type { Animation } from "@mkbabb/keyframes.js"` for annotations.
 // The runtime constructors are reached only via `loadAnimationEngine()`.
@@ -234,6 +243,14 @@ import type {
 // reverseAnimationShorthand/sampleColorRamp + the engine, so it rides the
 // dynamic boundary, never the LIGHT static barrel).
 import type { compileToCSS as compileToCSSImpl } from "./compile";
+// L.W6 AGENT-AUTHORING VERB (FLAGGED ADDITIVE EDIT) — the HEAVY validate/explain
+// runtime surface, merged onto the engine below (validate.ts statically imports
+// the engine + compile + waapi, all value.js-bearing, so it rides the dynamic
+// boundary, never the LIGHT static barrel).
+import type {
+    validate as validateImpl,
+    explain as explainImpl,
+} from "./validate";
 import type * as AnimationPresets from "./animations";
 import type {
     AnimationOptions,
@@ -329,6 +346,21 @@ export interface AnimationEngine {
      * reached only here, never the LIGHT barrel.
      */
     compileToCSS: typeof compileToCSSImpl;
+    /**
+     * L.W6 AGENT-AUTHORING VERB (FLAGGED ADDITIVE) — the round-trip's FORWARD
+     * half: the VALIDATION layer over the compile surface, the first question an
+     * LLM agent asks before it suggests kf ("will this `@keyframes` block ship
+     * faithfully?"). `validate(css, opts?)` is a READ-ONLY projection over three
+     * already-typed channels (the adapter `diagnostics`, the compile
+     * `{ eligible, refusals }`, the WAAPI `eligibility`) onto ONE agent-shaped
+     * `ValidateResult` envelope an LLM branches on WITHOUT scraping a message;
+     * `explain(css, opts?)` formats the SAME verdict deterministic human/LLM-
+     * readable. NO new engine code — a pure JOIN over the channels L.W1/L.W2 made
+     * honest. HEAVY (validate.ts imports the engine + compile + waapi) — reached
+     * only here, never the LIGHT barrel.
+     */
+    validate: typeof validateImpl;
+    explain: typeof explainImpl;
 }
 
 /**
@@ -540,6 +572,12 @@ export const loadAnimationEngine = (): Promise<AnimationEngine> =>
         // way as the rest of the heavy surface. Shares `_compileMod` with
         // `loadCompiler()`.
         (_compileMod ??= import("./compile")),
+        // L.W6 AGENT-AUTHORING VERB (FLAGGED ADDITIVE) — validate.ts statically
+        // imports the engine + compile + waapi (all value.js-bearing); merged here
+        // so consumers reach the forward-half VALIDATION layer the same way as the
+        // rest of the heavy surface. A pure read-only projection — no new chunk
+        // dependency the engine did not already pull.
+        import("./validate"),
         import("./animations"),
     ]).then(
         ([
@@ -550,6 +588,7 @@ export const loadAnimationEngine = (): Promise<AnimationEngine> =>
             ingestMod,
             scrollMod,
             compileMod,
+            validateMod,
             presets,
         ]) =>
             Object.assign(
@@ -574,6 +613,8 @@ export const loadAnimationEngine = (): Promise<AnimationEngine> =>
                     resolveRange: scrollMod.resolveRange,
                     pinCSS: scrollMod.pinCSS,
                     compileToCSS: compileMod.compileToCSS,
+                    validate: validateMod.validate,
+                    explain: validateMod.explain,
                     presets,
                 },
                 engine,

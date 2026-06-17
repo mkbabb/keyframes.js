@@ -110,6 +110,14 @@ jobs:
             # boundary: linked exports == the manifest roster, cited gates real).
             - name: proof:agent-surface (K.W12 ED-1 — the agent index == the published surface)
               run: npm run proof:agent-surface
+            # L.W6 — the agent-authoring VERB (validate/explain): the round-trip's
+            # FORWARD half, the VALIDATION layer over the compile surface. A HEAVY-
+            # surface oracle that runs in jsdom/node (no browser, no demo build), so
+            # it rides the library `gates` job beside proof:agent-surface. Asserts
+            # the verb exists + is boundary-clean (HEAVY, import-type on the barrel),
+            # the /llms.txt LOOP teaching is fresh, and the (c)/(d) behaviour locks.
+            - name: proof:agent-validate (L.W6 — the agent-authoring verb · validate/explain)
+              run: npm run proof:agent-validate
             # K.W12 ED-3 — the dogfood inversion boundary-ORACLE at the PACKAGE
             # boundary (STAGED: the self-alias seam + the @src deep-import census
             # + the honest disposition; the full flip lands at K.WZ).
