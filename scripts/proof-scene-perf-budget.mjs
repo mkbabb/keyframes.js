@@ -211,10 +211,15 @@ console.log("proof:scene-perf-budget — H.W5 S6 (the cube/amiga scene-quality +
     }
 
     // A5 anchor — useSphereSpin consumes the engine decay() (the dogfood seam)
-    // and the present loop ticks the glide.
+    // and the present loop ticks the glide. The import may name `decay` either
+    // from the deep `@src/animation/decay` path OR — post-L.W8 S1 ED-3 DOGFOOD
+    // INVERSION — from the published barrel specifier `@mkbabb/keyframes.js`
+    // (the form proof:demo-on-published-surface now MANDATES for every demo
+    // engine consumer; the same idiom useOrbitalInertia.ts rides). Either is the
+    // engine `decay()` seam; the anchor still asserts the call shape + the tick.
     const spinSrc = read(path.join(DEMO, "amiga/useSphereSpin.ts"));
     const decaySeam =
-        /import\s*\{[^}]*\bdecay\b[^}]*\}\s*from\s*["']@src\/animation\/decay["']/.test(spinSrc) &&
+        /import\s*\{[^}]*\bdecay\b[^}]*\}\s*from\s*["'](?:@src\/animation\/decay|@mkbabb\/keyframes\.js)["']/.test(spinSrc) &&
         /decay\(\s*\{[^}]*velocity[^}]*friction[^}]*\}\s*\)/.test(spinSrc);
     const loopTicks = /sphereSpin\.tickGlide\(\)/.test(amigaSrc);
     if (decaySeam && loopTicks) {

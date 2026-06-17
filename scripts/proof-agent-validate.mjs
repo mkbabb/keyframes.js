@@ -155,10 +155,21 @@ const requireAll = (clause, file, anchors) => {
     // (they would carry a value.js edge → proof:boundary reds). Only their erased
     // TYPES may be on the static barrel.
     const barrelSrc = existsSync(join(root, BARREL)) ? read(BARREL) : "";
+    // The L-tranche engine-loader extraction moved the dynamic `import("./
+    // validate")` + the `validate: validateMod.validate` assigns OUT of the
+    // barrel and INTO `./load-engine` (the barrel re-exports `loadAnimationEngine`
+    // from there). Read the dynamic-import wiring from whichever file the loader
+    // lives in. The assertion is unchanged: validate/explain ride the dynamic
+    // import; the static-value-export leak is still checked on the LIGHT barrel.
+    const LOAD_ENGINE = "src/animation/load-engine.ts";
+    const loadEngineSrc = existsSync(join(root, LOAD_ENGINE))
+        ? read(LOAD_ENGINE)
+        : "";
+    const wiringSrc = barrelSrc + "\n" + loadEngineSrc;
     const ridesDynamic =
-        /validate:\s*\w+Mod\.validate/.test(barrelSrc) &&
-        /explain:\s*\w+Mod\.explain/.test(barrelSrc) &&
-        /import\(["']\.\/validate["']\)/.test(barrelSrc);
+        /validate:\s*\w+Mod\.validate/.test(wiringSrc) &&
+        /explain:\s*\w+Mod\.explain/.test(wiringSrc) &&
+        /import\(["']\.\/validate["']\)/.test(wiringSrc);
     const leaksStatic =
         /export\s*\{[^}]*\b(?:validate|explain)\b[^}]*\}\s*from\s*["']\.\/validate["']/.test(
             barrelSrc,

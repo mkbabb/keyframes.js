@@ -80,18 +80,40 @@ function main() {
     const waapi = read("waapi.ts");
     const timeline = read("timeline.ts");
 
+    // L decomposition (tranche-L `refactor: decompose engine.ts`) extracted the
+    // CSS-rule metadata recovery — including the `CSS.registerProperty` pass —
+    // out of `engine.ts` into `engine-css-metadata.ts`, with `engine.ts` left
+    // importing + calling `registerPropertyDescriptors(...)` inside `fromString`.
+    // The S1 source-shape check reads the ENGINE SURFACE = engine.ts + the
+    // extracted sibling, so it tracks the decomposition instead of the file
+    // layout. (Missing sibling → empty string → the clause still reds.)
+    let engineCssMetadata = "";
+    try {
+        engineCssMetadata = read("engine-css-metadata.ts");
+    } catch {
+        // Pre-decomposition layout (or a deleted module): the engine surface is
+        // engine.ts alone — the S1 clause then reds on the absent call, exactly
+        // as it would if the registration pass were reverted.
+    }
+    const engineSurface = engine + "\n" + engineCssMetadata;
+
     // ── 1. S1 — @property registry → CSS.registerProperty ─────────────────
     {
-        const hasCall = /CSS\.registerProperty\s*\(/.test(engine);
+        // The registration pass must EXIST in the engine surface AND be wired
+        // into engine.ts's `fromString` (whether inline or via the extracted
+        // `registerPropertyDescriptors` delegate). Reverting either side reds.
+        const hasCall =
+            /CSS\.registerProperty\s*\(/.test(engineSurface) &&
+            /registerProperty(?:Descriptors)?\s*\(/.test(engine);
         // The feature-detect: `typeof CSS` (jsdom/SSR-guarded, like the other
         // capability gates) AND `registerProperty` membership.
         const hasDetect =
-            /typeof\s+CSS\s*===?\s*["']undefined["']/.test(engine) &&
-            /registerProperty/.test(engine);
+            /typeof\s+CSS\s*===?\s*["']undefined["']/.test(engineSurface) &&
+            /registerProperty/.test(engineSurface);
         // The duplicate-name throw must be swallowed (a try/catch around the
         // call) — a bare call would abort `fromString` on a re-registration.
         const hasSwallow = /try\s*\{[\s\S]*registerProperty[\s\S]*\}\s*catch/.test(
-            engine,
+            engineSurface,
         );
         if (!hasCall) {
             fail(

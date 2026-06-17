@@ -122,6 +122,13 @@ const INGEST = "src/animation/ingest.ts";
 const INGEST_CSSOM = "src/animation/ingest-cssom.ts";
 const INGEST_SURFACE = [INGEST, INGEST_CSSOM];
 const INDEX = "src/animation/index.ts";
+// L close (`fix(tranche-L close): the gate-suite roster reconciliation`)
+// extracted `loadAnimationEngine` + its dynamic `import("./…")` edges and the
+// engine-surface runtime assigns out of `index.ts` into `load-engine.ts` (a new
+// module the barrel re-exports `loadAnimationEngine` from). The ingest dynamic
+// import + the `fromStyleSheets/adoptRunning: ingestMod.…` assigns now live
+// there; the barrel keeps ONLY the erased type re-export.
+const LOAD_ENGINE = "src/animation/load-engine.ts";
 const ENGINE = "src/animation/engine.ts";
 const ADAPTER = "src/animation/adapter.ts";
 const TEST = "test/ingest.test.ts";
@@ -284,7 +291,10 @@ requireAll("adopt-runtime", INGEST_SURFACE, [
 }
 
 // ── barrel-heavy — the ingest runtime rides loadAnimationEngine, types erased ─
-requireAll("barrel-heavy", INDEX, [
+// The dynamic import + the engine-surface assigns live in the load-engine module
+// the barrel re-exports `loadAnimationEngine` from; the erased TYPE re-export
+// stays on the barrel itself.
+requireAll("barrel-heavy", LOAD_ENGINE, [
     {
         name: "the ingest module is dynamically imported in loadAnimationEngine",
         re: /import\(["']\.\/ingest["']\)/,
@@ -297,25 +307,28 @@ requireAll("barrel-heavy", INDEX, [
         name: "adoptRunning is merged onto the heavy engine surface",
         re: /adoptRunning:\s*ingestMod\.adoptRunning/,
     },
+]);
+requireAll("barrel-heavy", INDEX, [
     {
         name: "the ingest TYPES are re-exported (erased — no static value.js edge)",
         re: /export\s+type\s*\{[\s\S]*?IngestResult[\s\S]*?\}\s*from\s*["']\.\/ingest["']/,
     },
 ]);
 {
-    // The ingest must NOT have a STATIC runtime export on the barrel (that would
-    // pull value.js into the LIGHT graph — proof:boundary would red). Only the
-    // dynamic merge + the erased types are allowed.
-    if (existsSync(join(root, INDEX))) {
-        const src = stripComments(read(INDEX));
+    // The ingest must NOT have a STATIC runtime export on the barrel surface
+    // (that would pull value.js into the LIGHT graph — proof:boundary would
+    // red). Only the dynamic merge + the erased types are allowed — on EITHER
+    // the barrel or the load-engine module.
+    const staticRuntimeRe =
+        /export\s*\{\s*(?:fromStyleSheets|fromLiveAnimations|resolveLiveKeyframes|adoptRunning)\b[^}]*\}\s*from\s*["']\.\/ingest["']/;
+    if (existsSync(join(root, INDEX)) && existsSync(join(root, LOAD_ENGINE))) {
         const staticRuntime =
-            /export\s*\{\s*(?:fromStyleSheets|fromLiveAnimations|resolveLiveKeyframes|adoptRunning)\b[^}]*\}\s*from\s*["']\.\/ingest["']/.test(
-                src,
-            );
+            staticRuntimeRe.test(stripComments(read(INDEX))) ||
+            staticRuntimeRe.test(stripComments(read(LOAD_ENGINE)));
         if (staticRuntime) {
             fail(
                 "barrel-heavy",
-                `${INDEX} statically re-exports an ingest RUNTIME value — the ingest is HEAVY (value.js-bearing) and must ride loadAnimationEngine(), never the LIGHT static barrel (proof:boundary).`,
+                `the barrel surface statically re-exports an ingest RUNTIME value — the ingest is HEAVY (value.js-bearing) and must ride loadAnimationEngine(), never the LIGHT static barrel (proof:boundary).`,
             );
         } else {
             ok(

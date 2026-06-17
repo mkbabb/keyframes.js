@@ -81,6 +81,14 @@ console.log("proof:drawsvg — G.W13 (CSS-native DrawSVG)");
 
 const DS = "src/animation/draw-svg.ts";
 const INDEX = "src/animation/index.ts";
+// L close (`fix(tranche-L close): the gate-suite roster reconciliation`)
+// extracted `loadAnimationEngine` + its dynamic `import("./…")` edges and the
+// engine-surface runtime assigns out of `index.ts` into `load-engine.ts` (a new
+// module the barrel re-exports `loadAnimationEngine` from). The dynamic import +
+// runtime assign of DrawSVG now live there; the barrel keeps ONLY the type
+// re-export. The barrel-wired clause reads the load-engine surface for the
+// runtime wiring and BOTH surfaces for the no-static-value-export prohibition.
+const LOAD_ENGINE = "src/animation/load-engine.ts";
 const TEST = "test/draw-svg.test.ts";
 
 // ── primitive-exists — fromDrawSVG + DrawSVG are exported ──────────────────────
@@ -173,27 +181,32 @@ requireAll("animates-offset", DS, [
 
 // ── barrel-wired — fromDrawSVG/DrawSVG behind loadAnimationEngine() ───────────
 {
-    const src = read(INDEX);
-    const importsFromDraw = /import\([\s\S]*?["']\.\/draw-svg["']\)/.test(src);
+    // The runtime wiring (dynamic import + engine-surface assign) lives in the
+    // load-engine module the barrel re-exports `loadAnimationEngine` from.
+    const loadSrc = read(LOAD_ENGINE);
+    const importsFromDraw =
+        /import\([\s\S]*?["']\.\/draw-svg["']\)/.test(loadSrc);
     const assignsFactory =
-        /fromDrawSVG:\s*drawMod\.fromDrawSVG/.test(src) &&
-        /DrawSVG:\s*drawMod\.DrawSVG/.test(src);
+        /fromDrawSVG:\s*drawMod\.fromDrawSVG/.test(loadSrc) &&
+        /DrawSVG:\s*drawMod\.DrawSVG/.test(loadSrc);
     // A STATIC runtime re-export of the factory would breach the boundary;
     // only the TYPE export (`export type { DrawSVGOptions ... }`) is allowed
-    // statically. Reject a static value re-export of the runtime symbols.
+    // statically. Reject a static value re-export of the runtime symbols on
+    // EITHER the barrel or the load-engine module.
+    const staticValueExportRe =
+        /export\s*\{\s*(?:[^}]*\b)?(?:fromDrawSVG|DrawSVG)\b[^}]*\}\s*from\s*["']\.\/draw-svg["']/;
     const staticValueExport =
-        /export\s*\{\s*(?:[^}]*\b)?(?:fromDrawSVG|DrawSVG)\b[^}]*\}\s*from\s*["']\.\/draw-svg["']/.test(
-            src,
-        );
+        staticValueExportRe.test(read(INDEX)) ||
+        staticValueExportRe.test(loadSrc);
     if (!importsFromDraw || !assignsFactory || staticValueExport) {
         fail(
             "barrel-wired",
-            `${INDEX}: dynamic import of ./draw-svg=${importsFromDraw}, runtime assign on the engine surface=${assignsFactory}, static value re-export (forbidden)=${staticValueExport} — DrawSVG must ride loadAnimationEngine() behind the heavy boundary, like MotionPath.`,
+            `${LOAD_ENGINE}: dynamic import of ./draw-svg=${importsFromDraw}, runtime assign on the engine surface=${assignsFactory}, static value re-export anywhere on the barrel surface (forbidden)=${staticValueExport} — DrawSVG must ride loadAnimationEngine() behind the heavy boundary, like MotionPath.`,
         );
     } else {
         ok(
             "barrel-wired",
-            `fromDrawSVG/DrawSVG ride loadAnimationEngine() (heavy boundary); only their types are on the static barrel`,
+            `fromDrawSVG/DrawSVG ride loadAnimationEngine() (heavy boundary, via ${LOAD_ENGINE}); only their types are on the static barrel`,
         );
     }
 }

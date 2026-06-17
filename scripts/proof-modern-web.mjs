@@ -277,9 +277,24 @@ function walkCount(dir) {
     if (src == null) {
         fail(id, `${opsRel} not found.`);
     } else {
-        const imports = /import\s*\{[^}]*\byieldToMain\b[^}]*\}\s*from\s*["']@src\/animation\/internal\/scheduler["']/.test(
-            src,
-        );
+        // The op MUST name the engine's OWN `yieldToMain`. Two equivalent
+        // surfaces satisfy this: the static deep `@src/animation/internal/
+        // scheduler` import (the original form) OR — post-L.W8 S1 dogfood
+        // inversion — a destructure off the HEAVY `loadAnimationEngine()`
+        // surface (`yieldToMain: typeof yieldToMainImpl` in load-engine.ts).
+        // The inversion routes it through the lazy engine chunk on PURPOSE: a
+        // static deep `@src/animation/engine`+`/internal/scheduler` import (the
+        // pre-W8 form) would eagerly pull the HEAVY engine + value.js into the
+        // demo's static graph — defeating the static/dynamic boundary the
+        // architecture enforces. Either form is the ONE engine yield ladder;
+        // the hand-rolled guard below still bites a second ladder.
+        const imports =
+            /import\s*\{[^}]*\byieldToMain\b[^}]*\}\s*from\s*["']@src\/animation\/internal\/scheduler["']/.test(
+                src,
+            ) ||
+            /\{[^}]*\byieldToMain\b[^}]*\}\s*=\s*await\s+loadAnimationEngine\s*\(\s*\)/.test(
+                src,
+            );
         const calls = /\byieldToMain\s*\(\s*\)/.test(src);
         // Guard against a second hand-rolled yield ladder in demo code (the
         // gestalt mandate: ONE yield ladder, the engine's — no demo-local

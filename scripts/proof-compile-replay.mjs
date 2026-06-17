@@ -89,6 +89,10 @@ const COMPILE = "src/animation/compile.ts";
 const COMPILE_COLOR = "src/animation/compile-color.ts";
 const FORMAT = "src/animation/format.ts";
 const BARREL = "src/animation/index.ts";
+// The L-tranche engine-loader extraction home (the dynamic `import("./compile")`
+// + `compileToCSS: compileMod.compileToCSS` assign live here now, re-exported by
+// the barrel). The heavy-boundary clause reads the wiring from both.
+const LOAD_ENGINE = "src/animation/load-engine.ts";
 const TEST = "test/compile-roundtrip.test.ts";
 
 /** Assert every anchor is present in `file`; the clause reds on any missing. */
@@ -183,10 +187,31 @@ requireAll("four-refusals-named", COMPILE, [
 // ── heavy-boundary — HEAVY (loadAnimationEngine), NOT a LIGHT value export ──────
 {
     const barrelSrc = existsSync(join(root, BARREL)) ? read(BARREL) : "";
+    // The L-tranche extraction moved the engine-loading machinery (the memoized
+    // dynamic-import accessors + the `compileToCSS: compileMod.compileToCSS`
+    // assign) OUT of the barrel and INTO `./load-engine` — the barrel now only
+    // RE-EXPORTS `loadAnimationEngine` from there. So read the dynamic wiring
+    // from whichever of the two the engine-loader currently lives in (barrel or
+    // load-engine), and require the barrel to re-export it. The assertion is
+    // unchanged: `compileToCSS` rides the dynamic `import("./compile")`, never a
+    // static LIGHT-barrel value export.
+    const loadEngineSrc = existsSync(join(root, LOAD_ENGINE))
+        ? read(LOAD_ENGINE)
+        : "";
+    const wiringSrc = barrelSrc + "\n" + loadEngineSrc;
+    // The barrel must re-export the loader from ./load-engine (the boundary chain
+    // is intact) OR own it inline — either way `loadAnimationEngine` is reachable.
+    const barrelExposesLoader =
+        /\bloadAnimationEngine\b/.test(barrelSrc) &&
+        (/from\s*["']\.\/load-engine["']/.test(barrelSrc) ||
+            /export\s+(?:async\s+)?function\s+loadAnimationEngine\b/.test(
+                barrelSrc,
+            ));
     // compileToCSS must ride the dynamic loadAnimationEngine assign…
     const ridesDynamic =
-        /compileToCSS:\s*compileMod\.compileToCSS/.test(barrelSrc) &&
-        /import\(["']\.\/compile["']\)/.test(barrelSrc);
+        barrelExposesLoader &&
+        /compileToCSS:\s*compileMod\.compileToCSS/.test(wiringSrc) &&
+        /import\(["']\.\/compile["']\)/.test(wiringSrc);
     // …and must NOT be a static runtime value export on the LIGHT barrel.
     const leaksStatic =
         /export\s*\{[^}]*\bcompileToCSS\b[^}]*\}\s*from\s*["']\.\/compile["']/.test(

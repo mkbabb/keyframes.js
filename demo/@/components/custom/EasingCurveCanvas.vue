@@ -1,13 +1,16 @@
 <template>
     <GlassPanel
         variant="wash"
-        class="easing-curve-canvas-wrapper w-full overflow-hidden rounded-card p-2"
+        class="easing-curve-canvas-wrapper rounded-card w-full overflow-hidden
+            p-2"
     >
         <!-- J.W2 S1 (W4-3): ONLY pointer-down lives here — the move/up/cancel
              lifecycle (and `setPointerCapture` + the global select-suppression
              token) is owned by the shared `useDragCapture` seam. -->
         <!-- L.W11 S5 — the instrument masthead (the canvas reads as a device). -->
-        <span class="easing-instrument-label text-admin-label" aria-hidden="true">EASE · f(t)</span>
+        <span class="easing-instrument-label" aria-hidden="true"
+            >EASE · f(t)</span
+        >
         <svg
             ref="svgEl"
             class="easing-curve-canvas w-full touch-none select-none"
@@ -35,10 +38,42 @@
             <line x1="0" y1="1" x2="1" y2="0" class="diagonal-ref" />
 
             <!-- Axis labels (inside the graph) -->
-            <text x="0.06" y="0.94" class="axis-label" dominant-baseline="auto" text-anchor="start">0</text>
-            <text x="0.94" y="0.1" class="axis-label" dominant-baseline="hanging" text-anchor="end">1</text>
-            <text x="0.94" y="0.94" class="axis-label" dominant-baseline="auto" text-anchor="end">t</text>
-            <text x="0.06" y="0.1" class="axis-label" dominant-baseline="hanging" text-anchor="start">f(t)</text>
+            <text
+                x="0.06"
+                y="0.94"
+                class="axis-label"
+                dominant-baseline="auto"
+                text-anchor="start"
+            >
+                0
+            </text>
+            <text
+                x="0.94"
+                y="0.1"
+                class="axis-label"
+                dominant-baseline="hanging"
+                text-anchor="end"
+            >
+                1
+            </text>
+            <text
+                x="0.94"
+                y="0.94"
+                class="axis-label"
+                dominant-baseline="auto"
+                text-anchor="end"
+            >
+                t
+            </text>
+            <text
+                x="0.06"
+                y="0.1"
+                class="axis-label"
+                dominant-baseline="hanging"
+                text-anchor="start"
+            >
+                f(t)
+            </text>
 
             <!-- Handle lines (bezier mode only) -->
             <template v-if="editable && controlPointsSvg">
@@ -106,9 +141,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, useTemplateRef } from "vue";
+import { computed, useTemplateRef } from "vue";
 import { GlassPanel } from "@mkbabb/glass-ui/glass-panel";
-import { useDragCapture } from "@components/custom/animation-controls/controls/composables/useDragCapture";
+import { useEasingCurveDrag } from "@components/custom/composables/useEasingCurveDrag";
 
 const props = defineProps<{
     easingFn: (t: number) => number;
@@ -118,14 +153,22 @@ const props = defineProps<{
     editable?: boolean;
 }>();
 
-const emit = defineEmits<{ (e: "update:bezierPoints", points: [number, number, number, number]): void }>();
+const emit = defineEmits<{
+    (e: "update:bezierPoints", points: [number, number, number, number]): void;
+}>();
 
 const svgEl = useTemplateRef<SVGSVGElement>("svgEl");
 
 // L.W11 S5 (PAPER) — the two-tier graticule lines: minor (0.125 grid) + major
 // (0.25/0.75) + the brightest centre crosshair, each as a vertical + horizontal.
 const gridLines = (() => {
-    const lines: { x1: number; y1: number; x2: number; y2: number; cls: string }[] = [];
+    const lines: {
+        x1: number;
+        y1: number;
+        x2: number;
+        y2: number;
+        cls: string;
+    }[] = [];
     const add = (vals: number[], cls: string) => {
         for (const v of vals) {
             lines.push({ x1: v, y1: 0, x2: v, y2: 1, cls }); // vertical
@@ -185,109 +228,17 @@ const viewBox = computed(() => {
 });
 
 // ── Drag interaction (bezier mode only) ─────────────────────────
-// J.W2 S1 (W4-3) — the handle drag rides the SHARED control-surface drag seam
-// (`useDragCapture`, the same family as the timeline diamonds): the composable
-// owns `setPointerCapture` on the SVG, the move/up/cancel listener lifecycle,
-// AND the global `body.is-dragging` select-suppression token — so a drag that
-// sweeps off the bezier handle onto the dock/control chrome can never highlight
-// it (B6-a inherited, not re-authored per surface). The former inline
-// `@pointermove`/`@pointerup` handlers + the local `setPointerCapture` call are
-// DELETED with the migration; `startDragging` keeps ONLY the hit-test (which
-// handle, if any) and then hands the gesture to the seam.
-
-const currentHandleIndex = ref<number | null>(null);
-
-const pointerToSVG = (event: PointerEvent): { x: number; y: number } => {
-    const svg = svgEl.value;
-    if (!svg) return { x: 0, y: 0 };
-    const ctm = svg.getScreenCTM();
-    if (!ctm) return { x: 0, y: 0 };
-
-    const inv = ctm.inverse();
-    const svgX = inv.a * event.clientX + inv.c * event.clientY + inv.e;
-    const svgY = inv.b * event.clientX + inv.d * event.clientY + inv.f;
-
-    // Convert SVG Y back to bezier Y
-    return { x: svgX, y: 1 - svgY };
-};
-
-const RUBBER_K = 0.5;
-const RUBBER_MAX = 2;
-
-function rubberBand(value: number, lo: number, hi: number): number {
-    if (value >= lo && value <= hi) return value;
-    if (value > hi) {
-        const over = value - hi;
-        return hi + over / (1 + over * RUBBER_K);
-    }
-    const under = lo - value;
-    return lo - under / (1 + under * RUBBER_K);
-}
-
-const SMOOTH_FACTOR = 0.35;
-let smoothedY: number | null = null;
-
-const startDragging = (event: PointerEvent) => {
-    if (!props.editable || !props.bezierPoints) return;
-    event.preventDefault();
-
-    const { x, y } = pointerToSVG(event);
-    const hitRadius = event.pointerType === "touch" ? 0.15 : 0.08;
-
-    const pts = [
-        { x: props.bezierPoints[0], y: props.bezierPoints[1] },
-        { x: props.bezierPoints[2], y: props.bezierPoints[3] },
-    ];
-
-    let closestIndex: number | null = null;
-    let closestDist = Infinity;
-    for (let i = 0; i < 2; i++) {
-        const dist = Math.hypot(pts[i].x - x, pts[i].y - y);
-        if (dist < hitRadius && dist < closestDist) {
-            closestDist = dist;
-            closestIndex = i;
-        }
-    }
-
-    if (closestIndex === null) return;
-
-    currentHandleIndex.value = closestIndex;
-    smoothedY = null;
-
-    // Hand the gesture to the shared seam: it captures the pointer on the SVG
-    // (the event's currentTarget), arms the global select-suppression token, and
-    // drives onDrag/stopDragging for the gesture's lifetime.
-    onPointerDown(event);
-};
-
-const stopDragging = () => {
-    currentHandleIndex.value = null;
-    smoothedY = null;
-};
-
-const onDrag = (event: PointerEvent) => {
-    if (currentHandleIndex.value === null || !props.bezierPoints) return;
-
-    const { x, y } = pointerToSVG(event);
-    const clampedX = Math.max(0, Math.min(1, x));
-    const dampedY = Math.max(-RUBBER_MAX, Math.min(RUBBER_MAX, rubberBand(y, 0, 1)));
-
-    if (smoothedY === null) smoothedY = dampedY;
-    else smoothedY = smoothedY + (dampedY - smoothedY) * (1 - SMOOTH_FACTOR);
-
-    const newPoints: [number, number, number, number] = [...props.bezierPoints];
-    const idx = currentHandleIndex.value;
-    newPoints[idx * 2] = clampedX;
-    newPoints[idx * 2 + 1] = smoothedY;
-
-    emit("update:bezierPoints", newPoints);
-};
-
-// The shared seam (gesture-in-flight authority): owns capture + the global
-// select-suppression token; `onDrag` is the move body, `stopDragging` the end.
-const { onPointerDown } = useDragCapture({
-    onMove: onDrag,
-    onEnd: stopDragging,
+// The "drag the bezier handles" gesture unit lives in the COLOCATED
+// `useEasingCurveDrag` composable (L.W11 split, kept under the 500L demo
+// ceiling): it owns the hit-test + the SVG↔bezier coordinate transform +
+// rubber-band/smoothing, and rides the SHARED control-surface drag seam
+// (`useDragCapture` — capture + the global select-suppression token). The
+// component keeps ONLY the template + bezier-display computeds + the <style>.
+const { currentHandleIndex, startDragging } = useEasingCurveDrag({
+    svgEl,
+    editable: () => props.editable,
+    bezierPoints: () => props.bezierPoints,
+    onUpdate: (points) => emit("update:bezierPoints", points),
 });
 </script>
 
@@ -304,9 +255,14 @@ const { onPointerDown } = useDragCapture({
     border: none;
     /* L.W11 S5 — scope-local instrument tokens (the KEPT violet, additive aliases). */
     --trace: var(--ppmycota-primary, var(--primary));
-    --trace-glow: color-mix(in srgb, var(--ppmycota-primary, var(--primary)) 60%, transparent);
+    --trace-glow: color-mix(
+        in srgb,
+        var(--ppmycota-primary, var(--primary)) 60%,
+        transparent
+    );
     position: relative;
-    box-shadow: inset 0 0 2.5rem color-mix(in srgb, var(--foreground) 7%, transparent);
+    box-shadow: inset 0 0 2.5rem
+        color-mix(in srgb, var(--foreground) 7%, transparent);
 }
 
 /* L.W11 S5 — a whisper of phosphor scanline grain (≈2%), scoped to the plate. */
@@ -332,7 +288,11 @@ const { onPointerDown } = useDragCapture({
     border-radius: inherit;
     background: radial-gradient(
         120% 120% at 15% 100%,
-        color-mix(in srgb, var(--trace) var(--stage-field-tint, 4%), transparent),
+        color-mix(
+            in srgb,
+            var(--trace) var(--stage-field-tint, 4%),
+            transparent
+        ),
         transparent 60%
     );
     z-index: var(--z-behind, 0);
@@ -340,11 +300,17 @@ const { onPointerDown } = useDragCapture({
 
 /* L.W11 S5 — the instrument masthead label. */
 .easing-instrument-label {
+    /* W11 engraving — own type (verbatim text-admin-label), not that
+       sidebar-normalized-away semantic class (proof:easing-sidebar-normalized). */
     position: absolute;
     top: 0.4rem;
     left: 0.6rem;
     z-index: var(--z-content, 2);
     font-family: var(--font-mono);
+    font-size: var(--type-admin-label);
+    text-transform: uppercase;
+    font-weight: 500;
+    line-height: 1;
     color: var(--muted-foreground);
     opacity: 0.55;
     letter-spacing: 0.08em;
@@ -407,7 +373,9 @@ const { onPointerDown } = useDragCapture({
     stroke-width: 0.025;
     stroke-dasharray: 0.03 0.02;
     opacity: 0.5;
-    transition: stroke var(--duration-fast) var(--ease-standard), opacity var(--duration-fast) var(--ease-standard);
+    transition:
+        stroke var(--duration-fast) var(--ease-standard),
+        opacity var(--duration-fast) var(--ease-standard);
 }
 
 /* L.W11 S5 (COLOR) — the trace becomes a luminous SIGNAL: the KEPT violet stroke
@@ -419,8 +387,7 @@ const { onPointerDown } = useDragCapture({
     fill: none;
     stroke-linecap: round;
     stroke-linejoin: round;
-    filter:
-        drop-shadow(0 0 0.018px var(--trace-glow))
+    filter: drop-shadow(0 0 0.018px var(--trace-glow))
         drop-shadow(0 0 0.045px var(--trace-glow));
     transition: filter var(--duration-fast) var(--ease-standard);
 }
@@ -432,17 +399,14 @@ const { onPointerDown } = useDragCapture({
     --trace-smear: 0px;
 }
 .bezier-path.trace-smear--active {
-    filter:
-        drop-shadow(0 0 0.018px var(--trace-glow))
-        drop-shadow(0 0 0.045px var(--trace-glow))
-        blur(0.004px);
+    filter: drop-shadow(0 0 0.018px var(--trace-glow))
+        drop-shadow(0 0 0.045px var(--trace-glow)) blur(0.004px);
 }
 @media (prefers-reduced-motion: reduce) {
     .bezier-path,
     .bezier-path.trace-smear--active {
         transition: none;
-        filter:
-            drop-shadow(0 0 0.018px var(--trace-glow))
+        filter: drop-shadow(0 0 0.018px var(--trace-glow))
             drop-shadow(0 0 0.045px var(--trace-glow));
     }
 }
@@ -483,7 +447,8 @@ const { onPointerDown } = useDragCapture({
     fill: var(--ppmycota-primary, var(--primary));
     opacity: 0.95;
     transition: none;
-    filter: drop-shadow(0 0 0.02px white) drop-shadow(0 0 0.06px var(--trace-glow));
+    filter: drop-shadow(0 0 0.02px white)
+        drop-shadow(0 0 0.06px var(--trace-glow));
 }
 
 /* J.W2 S1 — the former local `user-select: none` here is DELETED: gesture-time

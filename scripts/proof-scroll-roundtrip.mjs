@@ -341,10 +341,17 @@ requireAll("c-dispatch", SCROLL, [
 {
     const clause = "boundary";
     const idx = read(INDEX);
-    // The runtime scroll-scene surface must ride loadAnimationEngine (the dynamic
-    // import of "./scroll-scene"), NOT a static `export { ScrollScene } from
-    // "./scroll-scene"` on the light barrel (which would pull value.js static).
-    const ridesDynamic = /import\(\s*["']\.\/scroll-scene["']\s*\)/.test(idx);
+    // The L-tranche engine-loader extraction moved the dynamic `import("./scroll-
+    // scene")` assign OUT of the barrel and INTO `./load-engine` (the barrel
+    // re-exports `loadAnimationEngine` from there). So read the dynamic-import
+    // wiring from whichever file the loader currently lives in. The assertion is
+    // unchanged: the scroll-scene runtime rides loadAnimationEngine (the dynamic
+    // import), NOT a static `export { ScrollScene } from "./scroll-scene"` on the
+    // light barrel (which would pull value.js static).
+    const loadEngine = read("src/animation/load-engine.ts");
+    const wiring = idx + "\n" + loadEngine;
+    const ridesDynamic = /import\(\s*["']\.\/scroll-scene["']\s*\)/.test(wiring);
+    // The static-value-export leak is checked on the LIGHT barrel ONLY.
     const staticValueExport =
         /export\s*\{[^}]*\}\s*from\s*["']\.\/scroll-scene["']/.test(idx);
     if (!ridesDynamic) {

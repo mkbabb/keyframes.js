@@ -443,7 +443,8 @@ onScopeDispose(() => {
     }
 }
 
-/* the live attitude readout chip — bottom-left; .readout-accent + tnum. */
+/* the live attitude readout chip — bottom-left; .readout-accent + tnum. L.W11 —
+   value DEEPENED toward --foreground for WCAG AA (--accent-red TOKEN untouched). */
 .cube-attitude {
     position: absolute;
     left: 1rem;
@@ -455,11 +456,10 @@ onScopeDispose(() => {
     line-height: 1.2;
     font-feature-settings: "tnum";
     white-space: nowrap;
-    opacity: 0.86;
+    color: color-mix(in srgb, var(--ball-tone, var(--color-progress)) 70%, var(--foreground));
 }
 .cube-attitude__axis {
     color: var(--muted-foreground);
-    opacity: 0.7;
     margin-inline: 0.15em 0.1em;
 }
 @media (max-width: 1023px) {
