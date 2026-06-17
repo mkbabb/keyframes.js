@@ -123,6 +123,7 @@ const INGEST_CSSOM = "src/animation/ingest-cssom.ts";
 const INGEST_SURFACE = [INGEST, INGEST_CSSOM];
 const INDEX = "src/animation/index.ts";
 const ENGINE = "src/animation/engine.ts";
+const ADAPTER = "src/animation/adapter.ts";
 const TEST = "test/ingest.test.ts";
 
 // Read the concatenated ingest surface (the split PAIR) for the inline
@@ -342,6 +343,210 @@ requireAll("test-locks", TEST, [
     {
         name: "clause (d) CORS skip is a CORS_SKIP diagnostic row",
         re: /toContain\(["']CORS_SKIP["']\)|d\.code\s*===\s*["']CORS_SKIP["']/,
+    },
+]);
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// L.W3 — Ingest deepening: five NEW arms appended to this EXISTING gate (no new
+// package.json proof:* key). Each clause is BORN-RED on today's UNCURED tree —
+// its anchor regex does NOT match the current source — and greens ONLY when its
+// S-clause cures. The eight K.W8 clauses + these five = TWELVE; the wave exits
+// on `proof:ingest-replay` GREEN over all twelve. See docs/tranches/L/waves/L.W3.md.
+//
+// ANTI-VACUOUS: each anchor below names a CURE-ONLY symbol the pre-cure source
+// provably lacks (verified by grep against today's tree before authoring). A
+// clause that matched today would be vacuous — the anchor is the bite.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// ── S1 delay-reset — seedAtTime strips the source delay before onStart() ──────
+// RED today: `seedAtTime` (ingest.ts) calls `animation.onStart()` with no delay
+// reset; when options.delay > 0 the delay branch sets paused=true and the
+// takeover freezes. The cure resets the delay to 0 BEFORE onStart() — via
+// `setDelay(0)` or `options.delay = 0` INSIDE seedAtTime's body. The anchor
+// requires that reset to appear; today neither token exists in ingest.ts.
+{
+    if (existsSync(join(root, INGEST))) {
+        const src = stripComments(read(INGEST));
+        // The reset must live in seedAtTime (the takeover-only strip), not as a
+        // reconstruction-time option (the sibling rule preserves the declared
+        // delay for serialization symmetry). We require the seedAtTime body — the
+        // span from `const seedAtTime` to the file end — to carry the reset.
+        const seedIdx = src.indexOf("seedAtTime");
+        const seedBody = seedIdx >= 0 ? src.slice(seedIdx) : "";
+        const hasReset =
+            /setDelay\(\s*0\s*\)/.test(seedBody) ||
+            /options\.delay\s*=\s*0\b/.test(seedBody);
+        if (!hasReset) {
+            fail(
+                "delay-reset",
+                `${INGEST}: seedAtTime does NOT reset the source delay to 0 before onStart() ` +
+                    `(no setDelay(0) | options.delay = 0 in its body) — a takeover of an animation ` +
+                    `with animation-delay > 0 freezes (onStart's delay branch leaves paused=true). ` +
+                    `The mid-flight takeover MUST strip the delay (the native side already elapsed it).`,
+            );
+        } else {
+            ok(
+                "delay-reset",
+                "seedAtTime resets the source delay to 0 before onStart() (the takeover is a mid-flight continuation, not a re-delayed start)",
+            );
+        }
+    } else {
+        fail("delay-reset", `${INGEST} does not exist — the ingest surface is ABSENT.`);
+    }
+}
+
+// ── nested-walk — walkSheet descends into CSSGroupingRule for nested @keyframes ─
+// RED today: `walkSheet` (ingest-cssom.ts) is a flat loop — a single `.cssRules`
+// access at the CALLER (resolveLiveKeyframes); walkSheet itself never re-reads
+// `.cssRules` and never recurses. The cure descends into grouping rules: a
+// SECOND `.cssRules` access INSIDE walkSheet AND a recursive `walkSheet(` call.
+// The anchors require the cure-only recursion tokens; today walkSheet has zero
+// recursive self-call and zero inner `.cssRules` read.
+{
+    if (existsSync(join(root, INGEST_CSSOM))) {
+        const src = stripComments(read(INGEST_CSSOM));
+        const walkIdx = src.indexOf("const walkSheet");
+        // Bound the search to the walkSheet body (up to the next top-level const).
+        const afterWalk = walkIdx >= 0 ? src.slice(walkIdx) : "";
+        const nextConstIdx = afterWalk.search(/\nconst\s+\w+\s*=/);
+        const walkBody =
+            walkIdx >= 0
+                ? nextConstIdx > 0
+                    ? afterWalk.slice(0, nextConstIdx)
+                    : afterWalk
+                : "";
+        // The recursive descent: walkSheet calls itself on a grouping rule's
+        // .cssRules (the cure idiom). Require BOTH the self-call AND a CSSGrouping
+        // structural test (a .cssRules read inside the body, not just the caller).
+        const recurses = /\bwalkSheet\s*</.test(walkBody) || /\bwalkSheet\s*\(/.test(walkBody);
+        const innerCssRules = /\.cssRules\b/.test(walkBody);
+        if (!recurses || !innerCssRules) {
+            fail(
+                "nested-walk",
+                `${INGEST_CSSOM}: walkSheet does NOT descend into CSSGroupingRule ` +
+                    `(recursive walkSheet call present=${recurses}, inner .cssRules read present=${innerCssRules}) — ` +
+                    `a @keyframes inside @media/@supports/@layer/@container is silently absent ` +
+                    `(zero diagnostics, empty Map — the forbidden silent-absent class). The walk ` +
+                    `MUST recurse into grouping rules (bounded depth guard).`,
+            );
+        } else {
+            ok(
+                "nested-walk",
+                "walkSheet descends recursively into CSSGroupingRule (nested @keyframes inside @media/@supports/@layer/@container are reconstructed)",
+            );
+        }
+    } else {
+        fail(
+            "nested-walk",
+            `${INGEST_CSSOM} does not exist — the ingest surface is ABSENT.`,
+        );
+    }
+}
+
+// ── adopt-refuse — ADOPT_REFUSE distinguishes an ingest refusal from WAAPI-API ─
+// RED today: `DiagnosticCode` (adapter.ts) has NO "ADOPT_REFUSE" entry; both
+// refuse paths in ingest.ts emit "WAAPI_INELIGIBLE". The cure adds the code to
+// the type AND uses it in ingest.ts for the ingest-domain refusal. Two anchors:
+// the type carries it (adapter.ts) AND it is emitted (ingest.ts).
+requireAll("adopt-refuse", ADAPTER, [
+    {
+        name: 'DiagnosticCode carries the "ADOPT_REFUSE" entry (the new ingest-domain code)',
+        re: /["']ADOPT_REFUSE["']/,
+    },
+]);
+{
+    if (existsSync(join(root, INGEST))) {
+        const src = stripComments(read(INGEST));
+        if (!/["']ADOPT_REFUSE["']/.test(src)) {
+            fail(
+                "adopt-refuse",
+                `${INGEST}: the "no running animation by that name" / "rule not reconstructed" ` +
+                    `refusal does NOT emit "ADOPT_REFUSE" — it is conflated with "WAAPI_INELIGIBLE" ` +
+                    `(a genuine WAAPI-API absence), forcing consumers to scrape the message string to ` +
+                    `tell the branches apart (violates the stable-code, never-scrape-message contract).`,
+            );
+        } else {
+            ok(
+                "adopt-refuse",
+                'adoptRunning emits "ADOPT_REFUSE" for the ingest-domain refusal (distinct from the WAAPI-API-absent "WAAPI_INELIGIBLE")',
+            );
+        }
+    } else {
+        fail("adopt-refuse", `${INGEST} does not exist — the ingest surface is ABSENT.`);
+    }
+}
+
+// ── shadow-walk — resolveLiveKeyframes walks a ShadowRoot's stylesheets ────────
+// RED today: the source-resolution block (ingest-cssom.ts) handles
+// null / Array / Document only — NO ShadowRoot branch. The cure adds a
+// ShadowRoot branch collecting `styleSheets` + `adoptedStyleSheets`. The anchors
+// require BOTH the `ShadowRoot` token AND `adoptedStyleSheets`; today neither
+// appears anywhere in the ingest surface (verified: zero hits pre-cure).
+requireAll("shadow-walk", INGEST_SURFACE, [
+    {
+        name: "the source-resolution block handles a ShadowRoot source",
+        re: /\bShadowRoot\b/,
+    },
+    {
+        name: "the ShadowRoot branch collects adoptedStyleSheets (Baseline 2023)",
+        re: /\badoptedStyleSheets\b/,
+    },
+]);
+
+// ── scroll-time — adoptRunning resolves a scroll-driven CSSUnitValue currentTime ─
+// RED today: the currentTime extraction (ingest.ts) accepts ONLY
+// `typeof rawTime === "number"` — a CSSUnitValue ({value, unit: "percent"})
+// from a scroll-driven CSSAnimation defaults silently to 0. The cure branches on
+// the CSSUnitValue shape (unit === "percent"). The anchor requires a
+// `percent` / `CSSUnitValue` branch in ingest.ts; today neither token exists.
+{
+    if (existsSync(join(root, INGEST))) {
+        const src = stripComments(read(INGEST));
+        const hasScrollBranch =
+            /\bCSSUnitValue\b/.test(src) ||
+            /["']percent["']/.test(src) ||
+            /\.unit\s*===\s*["']percent["']/.test(src);
+        if (!hasScrollBranch) {
+            fail(
+                "scroll-time",
+                `${INGEST}: the currentTime extraction has NO CSSUnitValue/"percent" branch — ` +
+                    `a scroll-driven CSSAnimation's currentTime ({value, unit: "percent"}) is not a ` +
+                    `number, so it defaults silently to 0 (the takeover jumps the scroll target to ` +
+                    `position 0 — the flash the continuity seed exists to prevent). The extraction ` +
+                    `MUST branch on the CSSUnitValue percent shape and seed from the scroll percentage.`,
+            );
+        } else {
+            ok(
+                "scroll-time",
+                'adoptRunning resolves a scroll-driven CSSUnitValue ("percent") currentTime (the scroll percentage seeds the playhead, never a silent default-to-0)',
+            );
+        }
+    } else {
+        fail("scroll-time", `${INGEST} does not exist — the ingest surface is ABSENT.`);
+    }
+}
+
+// ── test-locks-w3 — the five L.W3 born-RED value asserts are present ──────────
+requireAll("test-locks-w3", TEST, [
+    {
+        name: "S1 lock: a takeover with animation-delay advances past the seeded time",
+        re: /advances past the seeded time/,
+    },
+    {
+        name: "S2 lock: a @keyframes inside @media is reconstructed (recursive descent)",
+        re: /the recursive descent/,
+    },
+    {
+        name: "S3 lock: a name not present refuses with ADOPT_REFUSE",
+        re: /refuses with ADOPT_REFUSE/,
+    },
+    {
+        name: "S4 lock: a @keyframes in a ShadowRoot's adoptedStyleSheets is reconstructed",
+        re: /in a ShadowRoot's adoptedStyleSheets is reconstructed/,
+    },
+    {
+        name: "S5 lock: a CSSUnitValue percent currentTime is NOT silently defaulted to 0",
+        re: /CSSUnitValue percent currentTime is NOT silently defaulted to 0/,
     },
 ]);
 

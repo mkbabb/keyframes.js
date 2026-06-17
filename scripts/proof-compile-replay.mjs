@@ -252,6 +252,102 @@ requireAll("densify-delta-proof", TEST, [
     }
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+//  L.W2 — Compiler completeness (the four POST-CURE-ONLY clauses).
+//
+//  The K.W10 gate above is GREEN today; L.W2 closes the four residual compile
+//  gaps it does NOT bite. Each clause asserts a CURE-ONLY discriminant — a symbol
+//  ABSENT on the 4.3.0 tree — so it REDS today and GREENS iff the matching
+//  S-clause cure lands. The anti-vacuous warnings (L.W2.md §The born-RED gate)
+//  are honored EXACTLY: a clause that the UNCURED tree could already satisfy is a
+//  VACUOUS clause — its anchor is the wrong one.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// ── multi-color-honest (bites S2, ⚠28/⚠29, viol28, W113) ───────────────────────
+//
+//  S2 breach: `compile-color.ts:190` SILENTLY returns `null` for
+//  `colorKeys.length > 1`; the caller ships the verbatim sRGB block with
+//  `eligible:true` (the ΔE drift the single-color path REFUSES, here shipped
+//  silently). The CURE introduces ONE of two NEW symbols, NEITHER present today:
+//    • Option A: a `for (… of colorKeys)` per-key densify loop (the single
+//      `colorKeys[0]` densify generalized; the `> 1` early-out DELETED).
+//    • Option B: a DISTINCT `"multi-color-perceptual-oklab"` refusal reason.
+//  Anti-vacuous: the OLD draft regex scanned forward for `densify` — but the word
+//  appears in the BREACH COMMENT at compile-color.ts:188-189 ("multi-color
+//  densify is BOOK"), and `perceptual-oklab` (the single-color reason) already
+//  exists — so neither is a multi-color discriminant. We require ONLY the new
+//  symbols, AND assert the silent early-out is GONE.
+requireAll("multi-color-honest", COMPILE_COLOR, [
+    {
+        name: "multi-color path cures (per-key densify loop OR distinct multi-color refusal reason)",
+        re: /multi-color-perceptual-oklab|for\s*\(\s*const\s+\w+\s+of\s+colorKeys\b/,
+    },
+]);
+{
+    const ccsrc = existsSync(join(root, COMPILE_COLOR)) ? read(COMPILE_COLOR) : "";
+    if (/colorKeys\.length\s*>\s*1\s*\)\s*return\s+null\s*;/.test(ccsrc)) {
+        fail(
+            "multi-color-honest",
+            "compile-color.ts still SILENTLY returns null for colorKeys.length > 1 — densify per-key or refuse with multi-color-perceptual-oklab (the verbatim sRGB block ships with eligible:true, the ΔE drift the single-color path refuses).",
+        );
+    }
+}
+
+// ── scroll-compile-emit (bites S1, CC-6, W12/W119, Lane-33) ────────────────────
+//
+//  S1 breach: `compileToCSS` emits a `.class { animation: … }` rule with ZERO
+//  `animation-timeline`/`animation-range` — a scroll-driven source compiles to a
+//  scroll-BLIND artifact the browser plays on the time clock. The CURE threads
+//  the parsed scroll options through `serializeScrollOptions` and appends the
+//  longhands. NONE of `animation-timeline` / `serializeScrollOptions` /
+//  `scrollOptions` exists in compile.ts today (zero hits) → RED today, GREEN when
+//  S1's compose wiring lands.
+requireAll("scroll-compile-emit", COMPILE, [
+    {
+        name: "animation-timeline / serializeScrollOptions / scrollOptions emit in compileChild (the scroll grammar EMIT half)",
+        re: /animation-timeline|serializeScrollOptions|scrollOptions/,
+    },
+]);
+
+// ── static-weight-compile (bites S3, CC-5, W36) ────────────────────────────────
+//
+//  S3 breach: `compile.ts:179` marks a layer `weighted` on
+//  `entry.layer.weightSpring != null`, refusing the static-weight case where a
+//  pre-multiply-into-`accumulate` is EXACT. The CURE partitions the flag into
+//  `springWeighted` / `staticWeighted` (+ a `staticWeight` field on
+//  CompileChild). Anti-vacuous: the OLD draft regex's first alternative
+//  `weightSpring != null` ALREADY matches compile.ts:179 today — VACUOUS. We
+//  require ONLY the cure-only partition names (NONE present today: zero hits for
+//  springWeighted|staticWeighted|staticWeight).
+requireAll("static-weight-compile", COMPILE, [
+    {
+        name: "static/spring weight partition (the cure-only variable names — NOT the pre-existing weightSpring != null)",
+        re: /springWeighted|staticWeighted|staticWeight/,
+    },
+]);
+
+// ── no-reverseMs (bites S4, ⚠30, viol30, W115) ─────────────────────────────────
+//
+//  S4 breach: `compile.ts:241` defines a private `const reverseMs` that diverges
+//  from value.js's `reverseCSSTime` (`reverseMs(1000)`="1s" vs
+//  `reverseCSSTime(1000)`="1000ms") — two time serializers in one artifact. The
+//  CURE deletes `reverseMs` and uses `reverseCSSTime` for the delay emit. The
+//  `const reverseMs` definition is PRESENT today → RED; GREEN when it is deleted.
+{
+    const src = existsSync(join(root, COMPILE)) ? read(COMPILE) : "";
+    if (/\bconst\s+reverseMs\b/.test(src)) {
+        fail(
+            "no-reverseMs",
+            "compile.ts still defines its own reverseMs — delete it, use reverseCSSTime (value.js, already imported in format.ts:5); a stagger cohort with 2s delays would emit `2s` while the shorthand emits `2000ms` in the same artifact.",
+        );
+    } else {
+        ok(
+            "no-reverseMs",
+            "compile.ts no longer defines a divergent reverseMs (the time serializer is unified on value.js's reverseCSSTime)",
+        );
+    }
+}
+
 console.log("");
 if (failures.length > 0) {
     console.error(

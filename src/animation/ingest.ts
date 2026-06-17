@@ -96,6 +96,21 @@ export interface AdoptResult<V extends Vars = any> {
 }
 
 /**
+ * Is `v` a `CSSUnitValue` (a `{ value: number, unit: string }`)? A scroll-driven
+ * `CSSAnimation.currentTime` is one — `{ value: 42, unit: "percent" }` — not a
+ * numeric ms (L.W3 S5). The structural duck-type (NOT `instanceof CSSUnitValue`,
+ * which is absent in jsdom and unstable across realms) recognises the shape so
+ * the scroll-time branch is not coupled to a specific Typed-OM implementation.
+ */
+const isCSSUnitValue = (
+    v: unknown,
+): v is { value: number; unit: string } => {
+    if (typeof v !== "object" || v === null) return false;
+    const u = v as { value?: unknown; unit?: unknown };
+    return typeof u.value === "number" && typeof u.unit === "string";
+};
+
+/**
  * K2 — `adoptRunning`: the mid-flight TEMPORAL takeover. Given a live element
  * with a running CSS animation, seamlessly hand control to the kf engine:
  *
@@ -148,8 +163,13 @@ export const adoptRunning = async <V extends Vars = any>(
                 animationName,
         );
     if (live == null) {
+        // An INGEST-domain refusal (L.W3 S3): the Web Animations API IS present
+        // (getAnimations() resolved above) but reports no running animation by
+        // that name. This is NOT a WAAPI-API absence — it is a refused takeover.
+        // `ADOPT_REFUSE` is the stable code that lets a consumer branch on
+        // "adopt refused" vs "WAAPI absent" without scraping the message.
         diagnostics.push({
-            code: "WAAPI_INELIGIBLE",
+            code: "ADOPT_REFUSE",
             message:
                 `no running CSS animation named "${animationName}" on the element — ` +
                 "adoptRunning() refuses (the takeover names exactly one running " +
@@ -159,11 +179,38 @@ export const adoptRunning = async <V extends Vars = any>(
     }
 
     // The captured playhead — the continuity seed. `currentTime` is a
-    // `CSSNumberish` (ms | null | a {value, unit} for a scroll timeline); we
-    // take the numeric ms form, defaulting to 0 only when truly absent.
+    // `CSSNumberish` (ms | null | a CSSUnitValue `{value, unit}` for a scroll
+    // timeline). Three shapes resolve here (L.W3 S5):
+    //   • a finite `number` → the ms playhead (the rAF-timeline case).
+    //   • a CSSUnitValue with `unit === "percent"` → a SCROLL-DRIVEN playhead:
+    //     `value` is the scroll progress in [0,100]; `scrollProgress = value/100`
+    //     is the [0,1] domain. The ms playhead is `scrollProgress * duration`,
+    //     computed AFTER reconstruction (the duration is the reconstructed
+    //     object's). Defaulting it to 0 would jump the scroll target to the top
+    //     of the range — the same flash the continuity seed exists to prevent.
+    //   • a CSSUnitValue with any OTHER unit → an unexpected form (a future spec
+    //     extension); `adoptRunning` REFUSES with an `ADOPT_REFUSE` row citing the
+    //     unit, rather than silently mis-seeding.
     const rawTime = (live as { currentTime?: unknown }).currentTime;
-    const currentTime =
-        typeof rawTime === "number" && Number.isFinite(rawTime) ? rawTime : 0;
+    let scrollProgress: number | null = null;
+    let msTime = 0;
+    if (typeof rawTime === "number" && Number.isFinite(rawTime)) {
+        msTime = rawTime;
+    } else if (isCSSUnitValue(rawTime)) {
+        if (rawTime.unit === "percent" && Number.isFinite(rawTime.value)) {
+            scrollProgress = rawTime.value / 100;
+        } else {
+            diagnostics.push({
+                code: "ADOPT_REFUSE",
+                message:
+                    `the running animation "${animationName}" reports a currentTime ` +
+                    `in an unsupported unit "${String(rawTime.unit)}" — adoptRunning() ` +
+                    "refuses (only a numeric ms playhead or a scroll-driven " +
+                    '"percent" CSSUnitValue can seed the takeover faithfully)',
+            });
+            return { animation: null, currentTime: 0, diagnostics };
+        }
+    }
 
     // (2) reconstruct from the CSSOM @keyframes RULE — the authored form, NOT
     // the computed getKeyframes() (which has lost var()/cqw/oklab). The walk
@@ -179,20 +226,36 @@ export const adoptRunning = async <V extends Vars = any>(
 
     const ingested = ingest.animations.get(animationName);
     if (ingested == null) {
+        // The reconstruction-failure refusal (L.W3 S3): the `@keyframes` rule
+        // could not be FOUND or reconstructed in an adopt context. `PARSE_ERROR`
+        // (the prior code) conflates a value.js grammar failure — which the
+        // per-rule walk already emits on its own channel — with the adopt-context
+        // refusal to take over. `ADOPT_REFUSE` is the correct domain code for a
+        // refused takeover (the native animation keeps running; nothing adopted).
         diagnostics.push({
-            code: "PARSE_ERROR",
+            code: "ADOPT_REFUSE",
             message:
                 `the @keyframes rule for "${animationName}" could not be found or ` +
                 "reconstructed from the CSSOM — adoptRunning() refuses rather than " +
                 "reconstruct from the lossy computed keyframe list",
         });
         // The native animation keeps running; we adopted nothing (honest refusal).
-        return { animation: null, currentTime, diagnostics };
+        return { animation: null, currentTime: msTime, diagnostics };
     }
 
     const animation = ingested.animation;
     for (const d of ingested.diagnostics) diagnostics.push(d);
     animation.setTargets(el as HTMLElement);
+
+    // Resolve the ms playhead the takeover seeds from (L.W3 S5). For a numeric
+    // currentTime it is `msTime` verbatim; for a scroll-driven CSSUnitValue it is
+    // the scroll progress mapped into the reconstructed object's ms timeline
+    // (`scrollProgress * duration` — the manual-timeline seeding path: the kf
+    // playhead resumes at the scroll position, never the silent default-to-0).
+    const currentTime =
+        scrollProgress != null
+            ? scrollProgress * animation.options.duration
+            : msTime;
 
     // (4) commit-on-ADOPT: paint the kf object's frame AT the captured playhead
     // inline BEFORE cancelling the native animation, so the element never flashes
@@ -253,6 +316,18 @@ const seedAtTime = <V extends Vars>(
     // `startTime` baseline can), re-introducing the flash. The takeover is
     // explicitly an rAF-seeded continuation.
     animation.setUseWAAPI(false);
+    // Strip the source delay BEFORE onStart() (L.W3 S1). A mid-flight takeover is
+    // a CONTINUATION — the native animation already consumed its `animation-delay`
+    // on the page; re-imposing it re-freezes an animation the user was watching
+    // play. `onStart()` enters the `options.delay > 0` branch (engine.ts), sets
+    // `paused = true`, and returns a pending sleep promise; seedAtTime does NOT
+    // await it, so `paused` would stay true and the first `advanceTo` hits the
+    // `paused && pausedTime === 0` early-out — the engine frozen at the seed
+    // forever. Resetting the delay to 0 here makes `onStart()` take the immediate
+    // (non-delay) path. The reconstructed object's DECLARED delay is preserved on
+    // the sibling-rule serialization path (the strip is takeover-local, not a
+    // reconstruction-time option) so round-trip symmetry is intact.
+    animation.setDelay(0);
     // Run the direction/fill setup (NOT a re-`animationstart` — `onStart` only
     // dispatches when it falls through to the delay path; the takeover skips
     // delay, so no event re-fires). This positions `reversed`/fill exactly as a

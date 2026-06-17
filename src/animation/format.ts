@@ -6,6 +6,7 @@ import {
     serializeStylesheetItem,
     timingFunctions,
     unflattenObjectToString,
+    ValueArray,
     ValueUnit,
 } from "@mkbabb/value.js";
 import type {
@@ -262,6 +263,91 @@ export function keyframesBlock<V extends Vars>(
     }
 
     return `@keyframes ${name} {\n${stops}}`;
+}
+
+/**
+ * CC-5 (L.W2 S3) — the STATIC-weight pre-multiply result: a ready `@keyframes`
+ * block whose numeric keyframe leaves have been scaled by the constant blend
+ * weight (so an `accumulate` layer reproduces the weighted blend in exact CSS), OR
+ * a refusal naming the non-numeric leaf that cannot be scaled.
+ */
+export type PremultiplyResult =
+    | { block: string }
+    | { refused: true; key: string };
+
+/**
+ * CC-5 (L.W2 S3) — pre-multiply a child's numeric keyframe leaves by a STATIC
+ * blend `weight` and project the scaled `@keyframes` block. A constant-weight
+ * `weighted` layer is the simple pre-compositing case: the author chose a fixed
+ * scalar blend, so the output keyframe values can be scaled by `weight` at compile
+ * time and the layer emitted as `animation-composition: accumulate` — exact CSS,
+ * no spring, no JS runtime (`compile.ts` walkGroup partition).
+ *
+ * READ-ONLY over the animation: each stop's declared `ValueArray`s are CLONED
+ * (`ValueArray.clone()`), and only the CLONES' numeric leaves are scaled —
+ * `animation.parsedVars` is NEVER mutated (the compiler is read-only over the
+ * animation object). The scaled clones flow through the SAME
+ * `unflattenObjectToString` projection {@link declaredKeyframeBody} uses, so a
+ * `translateX(120px)` at `weight: 0.5` round-trips as `translateX(60px)`.
+ *
+ * Only NUMERIC leaves scale. A non-numeric leaf (a `color`, a bare string token —
+ * `unit === "color"` or a non-`number` `value`) has no scalar pre-multiply, so a
+ * static-weight animation carrying one REFUSES (`{ refused, key }`) — the caller
+ * records it as a `weighted-blend` refusal (the JS playback is the faithful path).
+ */
+export function premultipliedKeyframesBlock<V extends Vars>(
+    animation: Animation<V>,
+    name: string,
+    weight: number,
+): PremultiplyResult {
+    const defaultEasing = serializeEasing(animation.options.timingFunction);
+
+    const keyframesMap = new Map<string, ValueUnit[]>();
+    for (let i = 0; i < animation.templateFrames.length; i++) {
+        const templateFrame = animation.templateFrames[i]!;
+        const declared: ParsedVarMap = animation.parsedVars[i] ?? {};
+
+        // Clone each declared ValueArray and scale ONLY its numeric leaves; a
+        // non-numeric leaf (color/string) refuses. CLONE-only — parsedVars stays
+        // untouched (read-only-over-the-animation invariant).
+        const scaled: ParsedVarMap = {};
+        for (const [key, arr] of Object.entries(declared)) {
+            const cloned = (arr as ValueArray).clone();
+            for (const leaf of cloned as Iterable<ValueUnit>) {
+                if (typeof leaf.value === "number") {
+                    leaf.value = leaf.value * weight;
+                } else if (leaf.unit === "color" || typeof leaf.value === "string") {
+                    return { refused: true, key };
+                }
+            }
+            scaled[key] = cloned;
+        }
+
+        const decls = Object.entries(unflattenObjectToString(scaled)).map(
+            ([propName, v]) => `  ${camelCaseToHyphen(propName)}: ${v};`,
+        );
+        const frameEasing = templateFrame.timingFunction
+            ? serializeEasing(templateFrame.timingFunction)
+            : defaultEasing;
+        if (frameEasing !== defaultEasing) {
+            decls.push(`  animation-timing-function: ${frameEasing};`);
+        }
+        const composition = templateFrame.composition;
+        if (composition != null && composition !== "replace") {
+            decls.push(`  animation-composition: ${composition};`);
+        }
+        const body = `{\n${decls.join("\n").trim()}\n}`;
+
+        const existing = keyframesMap.get(body);
+        if (existing) existing.push(templateFrame.start);
+        else keyframesMap.set(body, [templateFrame.start]);
+    }
+
+    let stops = "";
+    for (const [body, percents] of keyframesMap) {
+        stops += `${percents.join(", ")} ${body}\n`;
+    }
+    return { block: `@keyframes ${name} {\n${stops}}` };
 }
 
 /**

@@ -131,6 +131,32 @@ const isKeyframesRule = (rule: CSSRule): rule is CSSKeyframesRule => {
 };
 
 /**
+ * The recursion depth cap for {@link walkSheet}'s descent into nested
+ * `CSSGroupingRule` bodies (L.W3 S2). Real-world stylesheet nesting is shallow
+ * (`@media` → `@supports` → `@layer` → `@container` ≤ 4 in practice); 32 is a
+ * generous adversarial-recursion guard so a pathological/cyclic CSSOM can never
+ * blow the stack — the walk stops descending past 32, the rules already read at
+ * shallower depths are kept.
+ */
+const MAX_WALK_DEPTH = 32;
+
+/**
+ * Is this rule a `CSSGroupingRule` whose `.cssRules` body must be entered
+ * recursively (L.W3 S2)? `@media`/`@supports`/`@layer`/`@container` bodies all
+ * expose their own `CSSRuleList`. The test is the SAME structural duck-type
+ * idiom as {@link isKeyframesRule} — a rule that carries a `.cssRules` list and
+ * is NOT itself a `@keyframes` rule (whose `cssRules` holds keyframe SELECTORS,
+ * not nested rules) — so the walk is not coupled to a specific CSSOM
+ * implementation via `instanceof CSSGroupingRule`.
+ */
+const isGroupingRule = (
+    rule: CSSRule,
+): rule is CSSRule & { cssRules: CSSRuleList } => {
+    const r = rule as Partial<{ cssRules: CSSRuleList }>;
+    return typeof r.cssRules !== "undefined" && !isKeyframesRule(rule);
+};
+
+/**
  * Walk one sheet's `cssRules`, reconstructing each `@keyframes` rule (filtered
  * by `animationName` when set), and linking the FIRST sibling style rule that
  * references it via `animation`/`animation-name` so the reconstructed object
@@ -138,11 +164,21 @@ const isKeyframesRule = (rule: CSSRule): rule is CSSKeyframesRule => {
  * `SecurityError` (a `sheet.cssRules` read on a sheet without
  * `Access-Control-Allow-Origin`) is caught by the CALLER's per-sheet `try/catch`
  * (which emits the `CORS_SKIP` row) — this body assumes `cssRules` is readable.
+ *
+ * RECURSIVE over `CSSGroupingRule` bodies (L.W3 S2): a `@keyframes` declared
+ * inside `@media`/`@supports`/`@layer`/`@container` is NOT a top-level entry of
+ * the sheet's flat `CSSRuleList` — it lives in the grouping rule's OWN
+ * `.cssRules`. After the flat loop, every grouping rule is descended into (the
+ * `out` Map accumulates across depths), so a nested `@keyframes` is reconstructed
+ * rather than silently absent (the forbidden silent-drop class). The
+ * `sibling`-style-rule linkage is per-level: a `.class` and the `@keyframes` it
+ * names that share a `@media` block are matched within that block's own list.
  */
 const walkSheet = <V extends Vars>(
     rules: CSSRuleList,
     out: Map<string, IngestedAnimation<V>>,
     options: IngestOptions,
+    depth: number = 0,
 ): void => {
     // First pass: collect every style rule's `cssText` so an `@keyframes` rule
     // can find the sibling `.class { animation: name … }` that names it. We feed
@@ -189,6 +225,21 @@ const walkSheet = <V extends Vars>(
         );
         if (animation != null) {
             out.set(name, { name, animation, diagnostics: perRule });
+        }
+    }
+
+    // Recursive descent into CSSGroupingRule bodies (L.W3 S2): `@media`,
+    // `@supports`, `@layer`, `@container` expose their nested rules on their own
+    // `.cssRules` list, which the flat loop above never enters. A `@keyframes`
+    // declared inside one of these groups is reconstructed by re-running the SAME
+    // walk over the group's inner `.cssRules` (the `out` Map accumulates across
+    // depths). Bounded by `MAX_WALK_DEPTH` so a pathological CSSOM cannot recurse
+    // without limit.
+    if (depth < MAX_WALK_DEPTH) {
+        for (let i = 0; i < rules.length; i++) {
+            const rule = rules[i];
+            if (rule == null || !isGroupingRule(rule)) continue;
+            walkSheet<V>(rule.cssRules, out, options, depth + 1);
         }
     }
 };
@@ -255,7 +306,7 @@ const reconstructFromRule = <V extends Vars>(
  * the parser pointed forward at the web the page already ships.
  */
 export const resolveLiveKeyframes = <V extends Vars = any>(
-    source?: Document | CSSStyleSheet[] | CSSStyleSheet,
+    source?: Document | ShadowRoot | CSSStyleSheet[] | CSSStyleSheet,
     options: IngestOptions = {},
 ): IngestResult<V> => {
     const animations = new Map<string, IngestedAnimation<V>>();
@@ -271,7 +322,8 @@ export const resolveLiveKeyframes = <V extends Vars = any>(
                 diagnostics,
                 "CORS_SKIP",
                 "no document in scope — resolveLiveKeyframes() needs a Document, " +
-                    "a CSSStyleSheet[], or a CSSStyleSheet (SSR has no live CSSOM)",
+                    "a ShadowRoot, a CSSStyleSheet[], or a CSSStyleSheet (SSR has " +
+                    "no live CSSOM)",
             );
             return { animations, diagnostics };
         }
@@ -280,6 +332,24 @@ export const resolveLiveKeyframes = <V extends Vars = any>(
         sheets = source;
     } else if (typeof Document !== "undefined" && source instanceof Document) {
         sheets = Array.from(source.styleSheets);
+    } else if (
+        typeof ShadowRoot !== "undefined" &&
+        source instanceof ShadowRoot
+    ) {
+        // Shadow-DOM walk (L.W3 S4): a custom element's `@keyframes` may live in
+        // its shadow root's `styleSheets` (declarative `<template shadowrootmode>`
+        // / `<style>` inside the tree) OR its `adoptedStyleSheets` (constructable
+        // stylesheets, Baseline 2023). Both are walked; neither is a top-level
+        // `document.styleSheets` entry, so without this branch a shadow `@keyframes`
+        // is invisible to `fromStyleSheets()` (the silent-absent class). The
+        // per-sheet `try/catch` → `CORS_SKIP` below still applies (a constructable
+        // sheet from another realm may throw on `.cssRules`).
+        sheets = [
+            ...(source.styleSheets != null
+                ? Array.from(source.styleSheets)
+                : []),
+            ...(source.adoptedStyleSheets ?? []),
+        ];
     } else {
         sheets = [source as CSSStyleSheet];
     }
@@ -328,7 +398,7 @@ export const resolveLiveKeyframes = <V extends Vars = any>(
  * for (const d of diagnostics) console.warn(d.code, d.message); // honest skips
  */
 export const fromStyleSheets = <V extends Vars = any>(
-    source?: Document | CSSStyleSheet[] | CSSStyleSheet,
+    source?: Document | ShadowRoot | CSSStyleSheet[] | CSSStyleSheet,
     options: IngestOptions = {},
 ): IngestResult<V> => resolveLiveKeyframes<V>(source, options);
 

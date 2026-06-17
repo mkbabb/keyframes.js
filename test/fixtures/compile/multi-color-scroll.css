@@ -1,0 +1,26 @@
+/*
+ * L.W2 S2 fixture — the MULTI-COLOR silent-densify case (⚠28/⚠29, viol28, W113).
+ *
+ * Two SIMULTANEOUSLY-changing color properties (`color` + `background-color`)
+ * across one segment. kf's JS playback interpolates BOTH tracks in perceptual
+ * oklab; the verbatim two-stop `@keyframes` the compiler emits today
+ * interpolates them in browser-sRGB — the SAME ΔE drift the single-color path
+ * REFUSES at ΔE-ε, but here `densifyColorBlock` early-outs at
+ * `compile-color.ts:190` (`if (colorKeys.length > 1) return null;`) and the
+ * caller ships the verbatim block with `eligible: true`. A silent lossy ship.
+ *
+ * Endpoints chosen to maximize the sRGB-vs-oklab divergence (red→blue and
+ * green→magenta are both long perceptual chords): the worst-case midpoint ΔE
+ * is well above any reasonable ε, so a HONEST compiler must densify both tracks
+ * under ΔE-ε (Option A) or refuse with a named reason (Option B).
+ */
+@keyframes multiColorScroll {
+    0% {
+        color: rgb(255 0 0);
+        background-color: rgb(0 255 0);
+    }
+    100% {
+        color: rgb(0 0 255);
+        background-color: rgb(255 0 255);
+    }
+}

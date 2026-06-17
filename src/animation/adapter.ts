@@ -28,7 +28,15 @@ export type DiagnosticCode =
     | "COMPOSITION_FALLBACK"
     | "PARSE_ERROR"
     | "CORS_SKIP"
-    | "WAAPI_INELIGIBLE";
+    | "WAAPI_INELIGIBLE"
+    // The ingest-domain takeover REFUSAL (K.W8 / L.W3 S3). Distinct from
+    // `WAAPI_INELIGIBLE` (a genuine Web-Animations-API ABSENCE — the element has
+    // no `getAnimations()`): `ADOPT_REFUSE` is the API-PRESENT-but-cannot-adopt
+    // class — no running animation by that name, the `@keyframes` rule could not
+    // be found/reconstructed, or a scroll-driven `currentTime` carries a unit kf
+    // cannot map. A consumer branches on the code to tell "WAAPI absent" from
+    // "adopt refused" WITHOUT scraping the message (the stable-`code` contract).
+    | "ADOPT_REFUSE";
 
 /**
  * A structured parse/honoring diagnostic (K.W7 S4). Extends the value.js
@@ -90,6 +98,16 @@ export interface ResolvedKeyframes {
      * K.W8 populates the ingest rows (`CORS_SKIP`, `WAAPI_INELIGIBLE`) it owns.
      */
     diagnostics: Diagnostic[];
+
+    /**
+     * The parsed CSS `Stylesheet` AST the resolve walked (L.W2 S1). Surfaced so a
+     * caller can recover scroll-grammar (`animation-timeline`/`animation-range`)
+     * from the SAME parse via `extractTimelineOptions(resolved.stylesheet)` —
+     * `CSSKeyframesAnimation.fromString` threads it onto `scrollOptions` so the
+     * compiler's EMIT half (CC-6) can serialize the scroll longhands back out. A
+     * read-only metadata field; the keyframe/option resolution is unchanged.
+     */
+    stylesheet: Stylesheet;
 }
 
 const declsToVarMap = (rule: KeyframeRule): Record<string, unknown> => {
@@ -236,5 +254,6 @@ export const resolveKeyframes = (
         properties: extractProperties(ast),
         options: extractAnimationOptions(ast),
         diagnostics,
+        stylesheet: ast,
     };
 };

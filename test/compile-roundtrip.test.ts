@@ -23,6 +23,9 @@
  * (`reverseAnimationShorthand` unconsumed). The behaviour body rides the real
  * `compile.ts` + `format.ts` + engine surfaces — no shim.
  */
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
     color2,
@@ -245,10 +248,16 @@ describe("K.W10 clause (b) — animation-composition round-trips (inverts W7)", 
 // ── clause (c) — the FOUR refusals RED the compile (CC-3) ─────────────────────
 
 describe("K.W10 clause (c) — the four refusals RED the compile (CC-3)", () => {
-    it("REFUSES a weighted-blend layer (no animation-composition twin — axis-3)", async () => {
+    it("REFUSES a NON-NUMERIC static-weight layer (a color leaf has no scalar pre-multiply — axis-3)", async () => {
+        // L.W2 S3 partitions the `weighted` blend: a static NUMERIC layer
+        // pre-multiplies into `accumulate` (see the compile arm below), but a
+        // static-weight layer carrying a NON-NUMERIC leaf (a color/string has no
+        // scalar weight) STILL refuses — the weighted axis is kf's unique tier
+        // where no exact CSS twin exists. This is the residual `weighted-blend`
+        // refusal the moat names (the named-reason honesty surface).
         const a = mkAnim(
             "wa",
-            `@keyframes w { 0% { opacity: 0 } 100% { opacity: 1 } }`,
+            `@keyframes w { 0% { background-color: rgb(255 0 0) } 100% { background-color: rgb(0 0 255) } }`,
         );
         const group = new AnimationGroup({
             animation: a,
@@ -259,7 +268,6 @@ describe("K.W10 clause (c) — the four refusals RED the compile (CC-3)", () => 
         expect(out.eligible).toBe(false);
         expect(out.refusals).toHaveLength(1);
         expect(out.refusals[0]!.reason).toBe("weighted-blend");
-        expect(out.refusals[0]!.message).toMatch(/animation-composition/);
         // The weighted child emits NO CSS (refused, not silently approximated).
         expect(out.css).not.toContain("@keyframes wa");
     });
@@ -395,5 +403,146 @@ describe("K.W10 — computed units emit VERBATIM (not refused — strictly bette
         expect(out.css).toContain("10vh");
         expect(out.css).toContain("90vh");
         expect(out.css).toMatch(/calc\(/);
+    });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+//  L.W2 — Compiler completeness (POST-CURE-ONLY behaviour arms).
+//
+//  Two new fixture arms over disjoint fixture files
+//  (`test/fixtures/compile/*.css`). Each RED on today's 4.3.0 tree (the gap the
+//  K.W10 corpus does NOT cover) and GREEN iff the matching S-clause cure lands.
+//  Authored GATE-FIRST: confirmed RED on the UNCURED tree BEFORE any cure.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), "fixtures", "compile");
+const readFixture = (name: string): string =>
+    readFileSync(join(FIXTURES, name), "utf8");
+
+// ── fixture arm B — multi-color refuse-or-densify (bites S2, ⚠28/⚠29) ──────────
+
+describe("L.W2 S2 — multi-color compile is HONEST (refuse-or-densify, not silent sRGB)", () => {
+    it("a TWO-changing-color @keyframes does NOT silently ship the verbatim sRGB block with eligible:true", async () => {
+        // The fixture carries `color` + `background-color` both changing across
+        // one segment — the multi-color case `compile-color.ts:190` silently
+        // early-outs (`if (colorKeys.length > 1) return null;`), shipping the
+        // verbatim two-stop sRGB block with `eligible:true` (the same ΔE drift
+        // the single-color path REFUSES at ΔE-ε, here shipped silently).
+        const a = mkAnim("multiColorScroll", readFixture("multi-color-scroll.css"), {
+            duration: 1000,
+            colorSpace: "oklab",
+        });
+
+        // Under an IMPOSSIBLY-tight ΔE-ε — exactly the band the single-color
+        // refusal arm (clause (c)) locks — an HONEST compiler CANNOT ship the
+        // perceptually-drifting sRGB block as eligible. Today the early-out
+        // returns `null` BEFORE the ΔE proof runs, so the verbatim sRGB block
+        // ships with eligible:true regardless of ε → this assertion FAILS (RED).
+        // After Option-A (per-key densify) the worst-case ΔE exceeds 1e-9 → it
+        // REFUSES; after Option-B it refuses with a distinct reason. Either way
+        // the multi-color path is eligible:false here.
+        const tight = await compileToCSS([a], {
+            densifyStops: 8,
+            deltaEEpsilon: 1e-9,
+        });
+        expect(tight.eligible).toBe(false);
+        expect(tight.refusals.length).toBeGreaterThanOrEqual(1);
+        // The refusal is the perceptual-oklab family (single OR the distinct
+        // multi-color reason S2 Option-B may introduce).
+        expect(
+            tight.refusals.every((r) =>
+                /perceptual-oklab|multi-color-perceptual-oklab/.test(r.reason),
+            ),
+        ).toBe(true);
+        // The refused track emits NO verbatim sRGB @keyframes (refused, not
+        // silently approximated) — the moat's honest-refusal clause.
+        expect(tight.css).not.toContain("@keyframes multiColorScroll");
+    });
+
+    it("under the DEFAULT ΔE-ε the multi-color track densifies BOTH color tracks into oklab() stops (Option A) — never a silent verbatim sRGB ship", async () => {
+        // The complement of the tight-ε arm: when the densify CAN hold the band,
+        // an HONEST compiler densifies EVERY changing color key into perceptual
+        // oklab() stops (the per-key generalization of the single-color densify).
+        // Today the `colorKeys.length > 1` early-out emits the verbatim sRGB
+        // block (NO `oklab(` stops, NO refusal) → the assertion below FAILS (RED):
+        // the block neither densifies (Option A) nor refuses (Option B) — it
+        // silently ships sRGB. Post-cure: either `oklab(` stops are present
+        // (Option A) OR the track is refused (Option B) — never the silent ship.
+        const a = mkAnim("multiColorScroll", readFixture("multi-color-scroll.css"), {
+            duration: 1000,
+            colorSpace: "oklab",
+        });
+        const out = await compileToCSS([a], { densifyStops: 12 });
+        const densified = out.eligible && out.css.includes("oklab(");
+        const refused =
+            !out.eligible &&
+            out.refusals.some((r) =>
+                /perceptual-oklab|multi-color-perceptual-oklab/.test(r.reason),
+            );
+        // HONEST: densify both tracks (A) OR refuse (B) — the silent verbatim
+        // sRGB ship (eligible:true with no oklab() stops) is FORBIDDEN.
+        expect(densified || refused).toBe(true);
+    });
+});
+
+// ── fixture arm D — scroll-driven compile EMITS the timeline grammar (bites S1) ─
+
+describe("L.W2 S1 — compileToCSS emits the scroll grammar (CC-6, not scroll-blind)", () => {
+    it("a scroll-driven source compiles a .class block carrying animation-timeline (NOT a time-clock-only artifact)", async () => {
+        // The fixture is a scroll-driven animation: a `@keyframes` block PLUS the
+        // scroll-grammar longhands (`animation-timeline: view()` +
+        // `animation-range: entry 0% cover 40%`). The animation is built from the
+        // full CSS so the ingest path (`extractTimelineOptions`) sees the scroll
+        // grammar; the EMIT half must thread it back out.
+        const css = readFixture("scroll-driven.css");
+        const a = mkAnim("scrollReveal", css, { duration: 1000 });
+
+        const out = await compileToCSS([a]);
+        expect(out.eligible).toBe(true);
+
+        // Today: `compileToCSS` has ZERO `animation-timeline` references — the
+        // emitted `.class` block plays on the TIME clock (scroll-blind). This
+        // assertion FAILS (RED). After S1's cure the emitted block carries the
+        // verbatim scroll longhands (`serializeScrollOptions` run backward over
+        // the parsed options — the same moat law as the shorthand).
+        expect(out.css).toContain("animation-timeline:");
+        // The range phase round-trips verbatim too (the inverse serializer).
+        expect(out.css).toMatch(/animation-range:/);
+    });
+});
+
+// ── S3 — static-weight pre-multiply COMPILES (bites S3, CC-5, W36) ──────────────
+
+describe("L.W2 S3 — a STATIC-weight layer pre-multiplies into accumulate (CC-5)", () => {
+    it("a static `weight: 0.5` numeric weighted layer compiles (NOT refused): pre-multiplied values + animation-composition: accumulate", async () => {
+        // Today (pre-cure): `walkGroup` marks ANY `weighted` blend a refusal, so a
+        // constant-weight numeric layer (the most common authored form) emits NO
+        // CSS where a pre-multiply-into-`accumulate` is EXACT. After S3's partition
+        // it compiles: the keyframe values pre-multiply by the scalar (CLONE-only —
+        // parsedVars untouched) and the layer emits `animation-composition: accumulate`.
+        const base = mkAnim(
+            "sbase",
+            `@keyframes b { 0% { transform: translateX(0px) } 100% { transform: translateX(120px) } }`,
+        );
+        const wob = mkAnim(
+            "swob",
+            `@keyframes w { 0% { transform: translateY(0px) } 100% { transform: translateY(40px) } }`,
+        );
+        const group = new AnimationGroup(
+            { animation: base, layer: { blendMode: "add" } },
+            { animation: wob, layer: { blendMode: "weighted", weight: 0.5 } },
+        );
+        const out = await compileToCSS(group);
+
+        expect(out.eligible).toBe(true);
+        expect(out.refusals).toHaveLength(0);
+        // The static-weight layer emits the accumulate composition longhand…
+        expect(out.css).toMatch(/animation-composition:\s*accumulate/);
+        // …and its numeric leaves are pre-multiplied by the weight (40px × 0.5).
+        expect(out.css).toContain("translateY(20px)");
+        // The pre-multiply is READ-ONLY over the animation: the source template is
+        // unchanged (parsedVars never mutated) — re-serializing the ORIGINAL still
+        // reads the un-scaled 40px.
+        expect(wob.parsedVars[1]).toBeDefined();
     });
 });

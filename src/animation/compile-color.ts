@@ -30,6 +30,7 @@ import {
     sampleColorRamp,
     scale,
     type Color,
+    type HueInterpolationMethod,
     type ValueUnit,
 } from "@mkbabb/value.js";
 import type { Animation } from "./engine";
@@ -140,67 +141,31 @@ export type DensifyResult =
     | { refused: true; delta: number }
     | null;
 
+/** One key's densify trace: its ordered stops + the worst inter-stop ΔE drift. */
+interface KeyDensify {
+    /** The CSS longhand property name (`background-color`, `color`, …). */
+    cssProp: string;
+    /** The densified stops for THIS key — `{ pct, css }` at evenly-spaced %. */
+    stops: { pct: number; css: string }[];
+    /** The WORST midpoint ΔE this key drifts (the per-key ship-vs-refuse term). */
+    worstDelta: number;
+}
+
 /**
- * CC-2 — the densified `@keyframes` block for an animation carrying a color
- * track. For each ADJACENT declared stop pair where the SINGLE animated color
- * property changes, bake N `oklab()` stops sampled from value.js's
- * `sampleColorRamp` (kf's perceptual ramp) at evenly-spaced percentages, so the
- * browser's piecewise-linear sRGB fill TRACKS kf's perceptual oklab lerp.
- *
- * Returns `{ block }` (the densified `@keyframes` string) when the densify ships
- * under ΔE-ε, `{ refused: true, delta }` when it drifts past the threshold, or
- * `null` when no single-color densify applies (the caller falls back to the
- * verbatim declared block — exact when there is no color interpolation).
- *
- * The ΔE proof: the platform interpolates BETWEEN the emitted `oklab()` stops by
- * a per-channel lerp (NOT kf's perceptual curve). The densify is faithful iff
- * that inter-stop browser-lerp tracks kf's JS perceptual lerp under ΔE-ε. We
- * measure the WORST drift at the MIDPOINT between each adjacent emitted-stop pair
- * (the browser's oklab channel-lerp midpoint vs kf's perceptual color at the same
- * global t). A coarse densify drifts MORE → it refuses; a dense one holds the
- * band → it ships. MEASURE-FIRST (a drifting densify is worse than a refusal).
+ * CC-2 — densify ONE changing color key into dense `oklab()` stops, measuring the
+ * worst inter-stop ΔE drift. Factored out of {@link densifyColorBlock} so the
+ * multi-color path (L.W2 S2 Option A) densifies EACH key independently and merges
+ * the per-key stop sets — the single-key logic generalized, no architectural
+ * change. Returns the key's `{ cssProp, stops, worstDelta }` trace.
  */
-export function densifyColorBlock<V extends Vars>(
+function densifyKey<V extends Vars>(
     animation: Animation<V>,
-    name: string,
-    n: number,
-    epsilon: number,
-): DensifyResult {
-    // Collect color keys whose track CHANGES across the template.
-    const colorKeys: string[] = [];
-    const keySeen = new Set<string>();
-    for (let i = 0; i + 1 < animation.templateFrames.length; i++) {
-        const declared = animation.parsedVars[i] ?? {};
-        for (const [key, arr] of Object.entries(declared)) {
-            if (keySeen.has(key)) continue;
-            if (!Array.isArray(arr) || !arr.some((v) => isColorUnit(v))) continue;
-            const a = colorValueAt(animation, i, key);
-            const b = colorValueAt(animation, i + 1, key);
-            if (a && b && a.toString() !== b.toString()) {
-                colorKeys.push(key);
-                keySeen.add(key);
-            }
-        }
-    }
-    if (colorKeys.length === 0) return null;
-
-    // The canonical densify is single-color (one perceptual track baked into
-    // dense oklab() stops). A multi-color animation keeps the verbatim block (the
-    // headline is the one-color case; multi-color densify is BOOK).
-    if (colorKeys.length > 1) return null;
-
-    const key = colorKeys[0]!;
-    const stopCount = Math.max(3, n);
+    key: string,
+    stopCount: number,
+    space: "oklab" | "oklch",
+    hueOpt: { hueMethod?: HueInterpolationMethod },
+): KeyDensify {
     const cssProp = key.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
-
-    const space = (
-        animation.options.colorSpace === "oklch" ? "oklch" : "oklab"
-    ) as "oklab" | "oklch";
-    const hueOpt = animation.options.hueMethod
-        ? { hueMethod: animation.options.hueMethod }
-        : {};
-
-    // Build the full ordered densified stop list across every changing segment.
     const stops: { pct: number; css: string }[] = [];
     let worstDelta = 0;
 
@@ -245,14 +210,109 @@ export function densifyColorBlock<V extends Vars>(
             stops.push({ pct: lastPct, css: lastColor.toString() });
         }
     }
+    return { cssProp, stops, worstDelta };
+}
+
+/**
+ * CC-2 — the densified `@keyframes` block for an animation carrying one OR MORE
+ * changing color tracks. For each changing color key, and each ADJACENT declared
+ * stop pair where it changes, bake N `oklab()` stops sampled from value.js's
+ * `sampleColorRamp` (kf's perceptual ramp) at evenly-spaced percentages, so the
+ * browser's piecewise-linear sRGB fill TRACKS kf's perceptual oklab lerp.
+ *
+ * L.W2 S2 Option A — multi-color is HONEST. A two-changing-color track (e.g.
+ * `color` + `background-color`) used to early-out at `colorKeys.length > 1`,
+ * shipping the verbatim two-stop sRGB block with `eligible: true` (the SAME ΔE
+ * drift the single-color path REFUSES, here shipped silently — ⚠28/⚠29, viol28).
+ * The fix generalizes the densify: EACH changing color key densifies
+ * INDEPENDENTLY ({@link densifyKey}), the per-key stop sets merge by percentage
+ * into one block, and `worstDelta` is the MAX over every key — so a multi-color
+ * track ships ONLY if EVERY key holds under ΔE-ε, else it refuses. No new refusal
+ * reason: the existing `perceptual-oklab` decision covers the worst-case key.
+ *
+ * Returns `{ block }` (the densified `@keyframes` string) when EVERY changing
+ * color key ships under ΔE-ε, `{ refused: true, delta }` when ANY key drifts past
+ * the threshold (the worst-case key), or `null` when no color densify applies
+ * (the caller falls back to the verbatim declared block — exact when there is no
+ * color interpolation).
+ *
+ * The ΔE proof: the platform interpolates BETWEEN the emitted `oklab()` stops by
+ * a per-channel lerp (NOT kf's perceptual curve). The densify is faithful iff
+ * that inter-stop browser-lerp tracks kf's JS perceptual lerp under ΔE-ε. We
+ * measure the WORST drift at the MIDPOINT between each adjacent emitted-stop pair
+ * (the browser's oklab channel-lerp midpoint vs kf's perceptual color at the same
+ * global t), over EVERY changing key. A coarse densify drifts MORE → it refuses;
+ * a dense one holds the band → it ships. MEASURE-FIRST (a drifting densify is
+ * worse than a refusal).
+ */
+export function densifyColorBlock<V extends Vars>(
+    animation: Animation<V>,
+    name: string,
+    n: number,
+    epsilon: number,
+): DensifyResult {
+    // Collect color keys whose track CHANGES across the template.
+    const colorKeys: string[] = [];
+    const keySeen = new Set<string>();
+    for (let i = 0; i + 1 < animation.templateFrames.length; i++) {
+        const declared = animation.parsedVars[i] ?? {};
+        for (const [key, arr] of Object.entries(declared)) {
+            if (keySeen.has(key)) continue;
+            if (!Array.isArray(arr) || !arr.some((v) => isColorUnit(v))) continue;
+            const a = colorValueAt(animation, i, key);
+            const b = colorValueAt(animation, i + 1, key);
+            if (a && b && a.toString() !== b.toString()) {
+                colorKeys.push(key);
+                keySeen.add(key);
+            }
+        }
+    }
+    if (colorKeys.length === 0) return null;
+
+    const stopCount = Math.max(3, n);
+    const space = (
+        animation.options.colorSpace === "oklch" ? "oklch" : "oklab"
+    ) as "oklab" | "oklch";
+    const hueOpt = animation.options.hueMethod
+        ? { hueMethod: animation.options.hueMethod }
+        : {};
+
+    // L.W2 S2 Option A — densify EVERY changing color key independently and merge
+    // the per-key stop sets by percentage. `worstDelta` is the MAX over all keys
+    // (the WORST-CASE key governs ship-vs-refuse — never the average), so a
+    // multi-color track ships ONLY if every key holds under ΔE-ε. The per-key
+    // densified percentages align (every key densifies the SAME template stop
+    // intervals), so the merge is a clean per-percentage declaration accumulation.
+    let worstDelta = 0;
+    // pct → ordered list of `cssProp: css` declarations (insertion-ordered by
+    // key, then by percentage within each key's pass).
+    const byPct = new Map<number, string[]>();
+    const pctOrder: number[] = [];
+    for (const key of colorKeys) {
+        const traced = densifyKey(animation, key, stopCount, space, hueOpt);
+        worstDelta = Math.max(worstDelta, traced.worstDelta);
+        for (const { pct, css } of traced.stops) {
+            let decls = byPct.get(pct);
+            if (!decls) {
+                decls = [];
+                byPct.set(pct, decls);
+                pctOrder.push(pct);
+            }
+            decls.push(`${traced.cssProp}: ${css};`);
+        }
+    }
 
     if (worstDelta > epsilon) {
         return { refused: true, delta: worstDelta };
     }
 
+    // Emit the merged block in ascending percentage order (a stable, canonical
+    // stop ordering the re-parse reads identically).
+    pctOrder.sort((p, q) => p - q);
     let body = "";
-    for (const { pct, css } of stops) {
-        body += `${pct}% {\n  ${cssProp}: ${css};\n}\n`;
+    for (const pct of pctOrder) {
+        const decls = byPct.get(pct)!;
+        body += `${pct}% {\n  ${decls.join("\n  ")}\n}\n`;
     }
     return { block: `@keyframes ${name} {\n${body}}` };
 }

@@ -1,0 +1,35 @@
+/*
+ * L.W2 S1 fixture — the SCROLL-DRIVEN compile case (CC-6, W12/W119, Lane-33).
+ *
+ * A scroll-driven animation: a `@keyframes` block PLUS the scroll-grammar
+ * longhands (`animation-timeline` + `animation-range`) value.js's
+ * `extractTimelineOptions` parses on INGEST (K.W9). The compiler today
+ * (`compileToCSS`) walks the animation and emits a `.class { animation: … }`
+ * rule with ZERO `animation-timeline` / `animation-range` declarations
+ * (`grep animation-timeline src/animation/compile.ts` → zero hits) — the
+ * compiled artifact is SCROLL-BLIND: a browser plays it on the time clock, not
+ * the scroll clock. The EMIT half of the round-trip the ingest half already
+ * closed.
+ *
+ * After S1's cure, `compileToCSS` threads the parsed `scrollOptions` through
+ * `serializeScrollOptions` and appends the VERBATIM longhands to the `.class`
+ * rule (the value.js inverse serializer run backward — the same moat law as the
+ * shorthand). The vitest arm asserts the emitted `.class` block contains
+ * `animation-timeline:` (and the `view()` / `entry … cover …` range verbatim).
+ */
+@keyframes scrollReveal {
+    0% {
+        opacity: 0;
+        transform: translateY(40px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0px);
+    }
+}
+
+.scroll-reveal {
+    animation: scrollReveal linear both;
+    animation-timeline: view();
+    animation-range: entry 0% cover 40%;
+}

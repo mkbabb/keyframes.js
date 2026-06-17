@@ -50,7 +50,7 @@
  * stays green (the value.js-free light surface stays value.js-free).
  */
 
-import { formatCSS } from "@mkbabb/value.js";
+import { formatCSS, reverseCSSTime } from "@mkbabb/value.js";
 import type { Animation } from "./engine";
 import { AnimationGroup } from "./group";
 import { getAnimationId } from "./engine";
@@ -59,8 +59,11 @@ import {
     animationComposition,
     animationShorthand,
     keyframesBlock,
+    premultipliedKeyframesBlock,
 } from "./format";
 import { densifyColorBlock, round } from "./compile-color";
+import { serializeScrollOptions } from "./scroll-grammar";
+import type { CSSTimelineOptions } from "./scroll-grammar";
 import type { CompositeOperator, Vars } from "./constants";
 
 // ── The ineligibility report (CC-3) — the four named refusals ────────────────
@@ -151,8 +154,20 @@ interface CompileChild<V extends Vars> {
     name: string;
     /** The CSS `animation-composition` operator for this child's layering (CC-1 inverting W7). */
     composition: CompositeOperator;
-    /** A layer-level `weighted` blend forces a refusal (CC-3 §3a). */
+    /**
+     * A SPRING-driven `weighted` blend (a live `weightSpring` crossfade) forces a
+     * refusal (CC-3 §3a) — it has no static CSS twin. A STATIC `weighted` layer is
+     * NOT this: it pre-multiplies into an `accumulate` layer (see {@link staticWeight}).
+     */
     weighted: boolean;
+    /**
+     * CC-5 (L.W2 S3) — a STATIC `weighted` layer's constant blend scalar. When
+     * defined, `compileChild` pre-multiplies the child's numeric keyframe leaves by
+     * this weight (CLONE-only — never mutates `parsedVars`) and emits the result as
+     * an `animation-composition: accumulate` layer (exact CSS, no spring, no
+     * runtime). `undefined` for a `replace`/`add` layer or a spring crossfade.
+     */
+    staticWeight?: number;
     /** An absolute offset (ms) — a Sequence position / stagger delay, emitted as `animation-delay`. */
     delay: number;
 }
@@ -167,23 +182,34 @@ export type CompileInput<V extends Vars = any> =
  * Walk an `AnimationGroup` into compile children. The layer `blendMode` maps to
  * the CSS `animation-composition` operator: `replace` → `replace`, `add` → `add`
  * (INVERTING W7's honoring — the operator W7 taught the engine to READ is now
- * EMITTED), `weighted` → a REFUSAL flag (no `animation-composition` twin — the
- * §3a refusal that PROVES axis-3's uniqueness). A spring-driven `weightSpring`
- * is a live crossfade — also `weighted`, also refused.
+ * EMITTED).
+ *
+ * CC-5 (L.W2 S3) — the `weighted` blend PARTITIONS:
+ *   • a SPRING-driven `weighted` (a live `weightSpring` crossfade) has no static
+ *     CSS twin → a REFUSAL flag (`springWeighted` → `weighted: true`), the §3a
+ *     refusal that PROVES axis-3's uniqueness.
+ *   • a STATIC `weighted` (constant scalar, `weightSpring == null`) is the simple
+ *     pre-compositing case: the keyframe values pre-multiply by the scalar at
+ *     compile time and the layer emits as `animation-composition: accumulate` —
+ *     exact CSS, no spring, no JS runtime. Carried on `staticWeight`.
  */
 function walkGroup<V extends Vars>(group: AnimationGroup<V>): CompileChild<V>[] {
     const children: CompileChild<V>[] = [];
     for (const key of Object.keys(group.animations)) {
         const entry = group.animations[key]!;
         const blend = entry.layer.blendMode;
-        const weighted = blend === "weighted" || entry.layer.weightSpring != null;
+        const springWeighted =
+            blend === "weighted" && entry.layer.weightSpring != null;
+        const staticWeighted =
+            blend === "weighted" && entry.layer.weightSpring == null;
         const composition: CompositeOperator =
-            blend === "add" ? "add" : "replace";
+            blend === "add" ? "add" : staticWeighted ? "accumulate" : "replace";
         children.push({
             animation: entry.animation,
             name: cssIdent(getAnimationId(entry.animation)),
             composition,
-            weighted,
+            weighted: springWeighted,
+            ...(staticWeighted ? { staticWeight: entry.layer.weight } : {}),
             delay: 0,
         });
     }
@@ -236,10 +262,6 @@ function cssIdent(name: string): string {
     const cleaned = name.replace(/[^a-zA-Z0-9_-]/g, "-");
     return /^[a-zA-Z_]/.test(cleaned) ? cleaned : `a${cleaned}`;
 }
-
-/** Materialize a ms offset as a CSS time token (`200ms` / `1.5s`). */
-const reverseMs = (ms: number): string =>
-    ms % 1000 === 0 ? `${ms / 1000}s` : `${ms}ms`;
 
 /**
  * Detect a computed-unit DRIFT residue (CC-3 §3e). Returns the first flat
@@ -339,12 +361,42 @@ function compileChild<V extends Vars>(
         return null;
     }
 
-    // CC-1 — the @keyframes block (densified, or the verbatim declared-template
-    // projection) + the animation shorthand (reverseAnimationShorthand).
+    // CC-5 (L.W2 S3) — a STATIC-weight layer pre-multiplies its numeric keyframe
+    // leaves by the constant scalar and emits as `accumulate` (exact CSS, no
+    // spring). The pre-multiply CLONES the declared leaves (never mutates
+    // parsedVars); a non-numeric leaf (color/string) has no scalar pre-multiply →
+    // a weighted-blend refusal (the JS playback is the faithful path). The
+    // `accumulate` composition is set by walkGroup's static partition.
+    let staticBlock: string | undefined;
+    if (child.staticWeight != null) {
+        const premul = premultipliedKeyframesBlock(
+            animation,
+            name,
+            child.staticWeight,
+        );
+        if ("refused" in premul) {
+            refusals.push({
+                name,
+                reason: "weighted-blend",
+                message:
+                    `static-weight pre-multiply cannot scale the non-numeric leaf ` +
+                    `"${premul.key}" (a color/string has no scalar weight) — the ` +
+                    "weighted blend is kf's unique tier; the JS playback is the only " +
+                    "faithful path",
+            });
+            return null;
+        }
+        staticBlock = premul.block;
+    }
+
+    // CC-1 — the @keyframes block: the static-weight pre-multiply (CC-5), else the
+    // densified color block (CC-2), else the verbatim declared-template projection
+    // + the animation shorthand (reverseAnimationShorthand).
     const block =
-        densify && "block" in densify
+        staticBlock ??
+        (densify && "block" in densify
             ? densify.block
-            : keyframesBlock(animation, name);
+            : keyframesBlock(animation, name));
 
     // The per-child `animation` shorthand; `serializeEasing` THROWS for a custom
     // closure easing with no CSS twin — caught + recorded as a custom-renderer
@@ -375,11 +427,47 @@ function compileChild<V extends Vars>(
     // express). `reverseAnimationShorthand` already emits `options.delay`; the
     // EXTERNAL stagger/sequence offset layers on top here.
     const delayDecl =
-        child.delay > 0 ? `\n  animation-delay: ${reverseMs(child.delay)};` : "";
+        child.delay > 0
+            ? `\n  animation-delay: ${reverseCSSTime(child.delay)};`
+            : "";
 
-    const rule = `.${name} {\n  animation: ${shorthand};${compositionLine}${delayDecl}\n}`;
+    // CC-6 (L.W2 S1) — the scroll grammar EMIT half. When the source carried
+    // scroll grammar (`animation-timeline`/`animation-range`, parsed on ingest
+    // onto `animation.scrollOptions`), append the VERBATIM longhands via value.js's
+    // `serializeScrollOptions` (the inverse serializer run backward over the parsed
+    // typed options — the SAME moat law as the `animation` shorthand). Without
+    // this the compiled `.class` block is SCROLL-BLIND: the browser plays it on
+    // the time clock, semantically wrong relative to the JS source. The longhands
+    // are NOT shorthand sub-properties (CSS Animations L2), so they ride as
+    // separate longhands — parallel to `animation-composition`.
+    const scrollDecl = scrollLonghands(animation);
+
+    const rule = `.${name} {\n  animation: ${shorthand};${compositionLine}${delayDecl}${scrollDecl}\n}`;
 
     return `${block}\n\n${rule}`;
+}
+
+/**
+ * CC-6 (L.W2 S1) — the scroll-grammar longhand declarations for a child, or `""`.
+ * Reads the parsed `scrollOptions` (`CSSKeyframesAnimation.fromString` populates
+ * it from `extractTimelineOptions`) and runs value.js's `serializeScrollOptions`
+ * BACKWARD over the typed options to the canonical `animation-timeline` /
+ * `animation-range` (/ `timeline-scope` / `animation-trigger`) longhands. Returns
+ * the newline-prefixed declarations for the `.class` rule body, or `""` for a
+ * plain time-clock animation (`scrollOptions` `undefined`). The field lives on
+ * `CSSKeyframesAnimation` only — a plain `Animation` (no field) yields `""`.
+ */
+function scrollLonghands<V extends Vars>(animation: Animation<V>): string {
+    const opts = (
+        animation as Animation<V> & { scrollOptions?: CSSTimelineOptions }
+    ).scrollOptions;
+    if (opts == null) return "";
+    const decls = serializeScrollOptions(opts);
+    let out = "";
+    for (const [prop, value] of Object.entries(decls)) {
+        if (value != null) out += `\n  ${prop}: ${value};`;
+    }
+    return out;
 }
 
 /**

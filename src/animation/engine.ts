@@ -14,11 +14,13 @@
  */
 import {
     clamp,
+    extractTimelineOptions,
     isObject,
     lerpValue,
     scale,
     sleep,
     ValueUnit,
+    type CSSTimelineOptions,
     type PropertyDescriptor,
 } from "@mkbabb/value.js";
 import { binarySearchRange } from "./internal/binarySearch";
@@ -1239,6 +1241,19 @@ export class CSSKeyframesAnimation<V extends Vars> extends Animation<V> {
      */
     propertyRegistry: Map<string, PropertyDescriptor> = new Map();
 
+    /**
+     * Parsed scroll-grammar (`animation-timeline` / `animation-range` /
+     * `timeline-scope` / `animation-trigger`) recovered from a sibling style rule
+     * by `fromString` (L.W2 S1 — CC-6). Populated from
+     * `extractTimelineOptions(resolved.stylesheet)`; `undefined` when the input
+     * carried no scroll grammar (the canonical time-clock animation). A read-only
+     * metadata field — no hot-path impact, analogous to {@link propertyRegistry}.
+     * The compiler (`compileToCSS`) reads it to EMIT the scroll longhands back out
+     * (`serializeScrollOptions` run backward over the parsed options — the same
+     * moat law as the `animation` shorthand), closing the round-trip's EMIT half.
+     */
+    scrollOptions?: CSSTimelineOptions;
+
     fromString(keyframes: string, transform?: TransformFunction<V>) {
         transform = this.resolveTransform(transform);
 
@@ -1248,6 +1263,19 @@ export class CSSKeyframesAnimation<V extends Vars> extends Animation<V> {
         // pre-detection or fallback parser path.
         const resolved = resolveKeyframes(keyframes);
         this.propertyRegistry = resolved.properties;
+
+        // L.W2 S1 (CC-6) — recover the scroll grammar from the SAME parse. value.js's
+        // `extractTimelineOptions` reads `animation-timeline`/`animation-range`/
+        // `timeline-scope`/`animation-trigger` off the stylesheet into a typed
+        // `CSSTimelineOptions`. Set the field ONLY when scroll grammar is actually
+        // present (it returns `{}` for a canonical time-clock animation), so the
+        // compiler's EMIT half threads only a real scroll source — a plain
+        // animation leaves `scrollOptions` `undefined` (byte-identical to before).
+        // Under `exactOptionalPropertyTypes`, a re-parse with no scroll grammar
+        // must CLEAR a stale field rather than assign `undefined` into the optional.
+        const timeline = extractTimelineOptions(resolved.stylesheet);
+        if (Object.keys(timeline).length > 0) this.scrollOptions = timeline;
+        else delete this.scrollOptions;
 
         // K.W7 S4 — surface the adapter's structured diagnostics (EMPTY_PARSE,
         // and any value.js PARSE_ERROR consumed through OnParseError) on the
