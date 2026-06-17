@@ -121,6 +121,8 @@ proof: `proof:agent-validate` (CI-verified — `npm run proof:agent-validate`)
 - `ManualTimeline`
 - `createNativeTimeline`
 - `RAFPlayback`
+- `Oscillator`
+- `waveformValue`
 - `stagger`
 - `flip`
 - `flipShared`
@@ -184,12 +186,12 @@ proof: `proof:agent-validate` (CI-verified — `npm run proof:agent-validate`)
 - `transformTargetsStyle`
 - `yieldToMain`
 
-Total published value exports: 72 (33 LIGHT + 39 HEAVY).
+Total published value exports: 74 (35 LIGHT + 39 HEAVY).
 
 ## The proof corpus (the public capability ledger)
 
 Every claim above is signed by a CI-executed gate. The proof corpus
 is itself a public artifact: run `npm run proof:all` to execute the
-full roster (~146 `proof:*` gates). Each gate is a self-describing capability
+full roster (~150 `proof:*` gates). Each gate is a self-describing capability
 claim — not "the library claims X" but "the library PROVES X, here
 is the gate, here is the runnable snippet CI executes".

@@ -67,6 +67,14 @@ console.log(
 
 const GROUP = "src/animation/group.ts";
 const SPRING = "src/animation/spring.ts";
+// L.WZ ceiling split — the PHYS-B2 velocity-continuous interruption seam
+// (`VelocityProbe` / `probeVelocity` / `reseatToSpring`) was EXTRACTED out of
+// the `spring.ts` god-module into the colocated `./spring-reseat` module (the
+// spring.ts ≤700 ceiling split, the engine-composition.ts precedent — the gate
+// FOLLOWS the code to its new home). `spring.ts` re-exports the public symbols
+// so the barrel resolves them through `./spring` unchanged; the `phys-b2-reseat`
+// arm below greps the function BODIES at their new home.
+const SPRING_RESEAT = "src/animation/spring-reseat.ts";
 const CONSTANTS = "src/animation/constants.ts";
 const PRM = "src/animation/internal/reduced-motion.ts";
 const TEST = "test/spring-blend-weight.test.ts";
@@ -169,7 +177,7 @@ requireAll("phys-c-field", CONSTANTS, [
 // ── PHYS-B2 — reseatToSpring is velocity-continuous (finite-diff seed) ────────
 // BITE: seed from rest (drop the measured velocity) → the interruption restarts
 // from zero velocity → the no-kink continuity test reds.
-requireAll("phys-b2-reseat", SPRING, [
+requireAll("phys-b2-reseat", SPRING_RESEAT, [
     {
         name: "probeVelocity finite-differences (curr − prev) / dt",
         re: /export\s+function\s+probeVelocity[\s\S]*?\(probe\.curr\.value\s*-\s*probe\.prev\.value\)\s*\/\s*\(dtMs\s*\/\s*1000\)/,
