@@ -43,10 +43,10 @@
 import { onScopeDispose, useTemplateRef } from "vue";
 import { useResizeObserver } from "@vueuse/core";
 import { bumpLayoutEpoch } from "@mkbabb/value.js";
-import type { Animation } from "@src/animation/engine";
-import { SmoothProgress } from "@src/animation/smooth";
-import { SpringProgress } from "@src/animation/spring";
-import { RAFPlayback } from "@src/animation/playback";
+import type { Animation } from "@mkbabb/keyframes.js";
+import { SmoothProgress } from "@mkbabb/keyframes.js";
+import { SpringProgress } from "@mkbabb/keyframes.js";
+import { RAFPlayback } from "@mkbabb/keyframes.js";
 import { useRafLoop } from "../composables/useRafLoop";
 import { useDragCapture } from "./composables/useDragCapture";
 import { useTouchGate } from "@mkbabb/glass-ui";

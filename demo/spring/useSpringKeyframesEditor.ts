@@ -1,7 +1,7 @@
 import { markRaw } from "vue";
 
-import { CSSKeyframesAnimation } from "@src/animation/engine";
-import { springTimingFunction } from "@src/animation/springTimingFunction";
+import { kfEngine } from "@utils/kfEngine";
+import { springTimingFunction } from "@mkbabb/keyframes.js";
 
 /**
  * K.W4 S1 — the spring scene's PROPER keyframes-EDITOR animation (the cube
@@ -32,6 +32,10 @@ export function useSpringKeyframesEditor(
     dampingFraction: () => number,
     duration: number,
 ) {
+    // HEAVY constructor from the warmed engine (kfEngine(), L.W8 S1 dogfood
+    // inversion) — synchronous, since the warm resolves before any scene mounts.
+    const { CSSKeyframesAnimation } = kfEngine();
+
     /** Build the spring's emitted `@keyframes` block sampled from the live params
      *  — the editor's seed feedstock (the SAME springTimingFunction → displacement
      *  the artifact viewer used, now an EDITABLE animation rather than a string). */

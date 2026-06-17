@@ -1,9 +1,7 @@
 import { FunctionValue, ValueUnit } from "@mkbabb/value.js";
 import { markRaw, shallowRef } from "vue";
 import type { Ref } from "vue";
-import { CSSKeyframesAnimation } from "@src/animation/engine";
-import { AnimationGroup } from "@src/animation/group";
-import * as animations from "@src/animation/animations";
+import { kfEngine } from "@utils/kfEngine";
 import { getStoredAnimationOptions } from "@components/custom/animation-controls/stores";
 import { useSceneVisibilityPause } from "../app/useSceneVisibilityPause";
 
@@ -19,6 +17,11 @@ export function useCubeAnimations(
     matrix3dStart: Ref<FunctionValue>,
     matrix3dEnd: Ref<FunctionValue>,
 ) {
+    // HEAVY surface from the warmed engine (kfEngine(), L.W8 S1 dogfood inversion)
+    // — synchronous, since the warm resolves before any scene mounts. `presets`
+    // is the barrel's preset namespace (the old `* as animations` deep import).
+    const { CSSKeyframesAnimation, AnimationGroup, presets } = kfEngine();
+
     const matrixAnimationOptions = getStoredAnimationOptions(
         CUBE_ANIMATION_NAMES.Matrix,
         SUPER_KEY,
@@ -73,7 +76,7 @@ export function useCubeAnimations(
     );
 
     const hoverAnim = shallowRef(
-        markRaw(animations.hover(hoverAnimationOptions.animationOptions)),
+        markRaw(presets.hover(hoverAnimationOptions.animationOptions)),
     );
     hoverAnim.value.name = CUBE_ANIMATION_NAMES.Hover;
     hoverAnim.value.superKey = SUPER_KEY;

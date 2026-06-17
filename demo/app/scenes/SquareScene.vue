@@ -36,7 +36,7 @@
 <script setup lang="ts">
 import { computed, markRaw, onBeforeUnmount, onMounted, reactive, ref, useTemplateRef, watch } from "vue";
 import { Card } from "@mkbabb/glass-ui";
-import { AnimationGroup } from "@src/animation/group";
+import { kfEngine } from "@utils/kfEngine";
 import { useDragScrub } from "@composables/useDragScrub";
 import { useSquareAnimations } from "../../square/useSquareAnimations";
 
@@ -72,6 +72,10 @@ watch(isPlaying, (playing, was) => {
     if (playing && !was) tumble();
 });
 
+// HEAVY (AnimationGroup); constructed through the warmed engine surface
+// (kfEngine(), L.W8 S1 dogfood inversion) — synchronous, since the warm resolves
+// before any scene mounts.
+const { AnimationGroup } = kfEngine();
 const animationGroup = markRaw(new AnimationGroup(anim as any));
 // Force per-animation transform path — the grouped path passes flat ValueUnit
 // values which don't match the nested object structure our transform expects.

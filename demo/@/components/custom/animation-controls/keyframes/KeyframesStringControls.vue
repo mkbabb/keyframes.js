@@ -21,7 +21,8 @@
 </template>
 <script setup lang="ts">
 import { reverseCSSTime } from "@mkbabb/value.js";
-import { Animation, CSSKeyframesAnimation } from "@src/animation/engine";
+import type { Animation } from "@mkbabb/keyframes.js";
+import { kfEngine } from "@utils/kfEngine";
 
 import { onMounted, ref, useTemplateRef } from "vue";
 import { useTimeoutFn } from "@vueuse/core";
@@ -40,14 +41,14 @@ import {
 import { toast } from "vue-sonner";
 import { copyText } from "@utils/clipboard";
 
-import * as animations from "@src/animation/animations";
-
-import { CSSKeyframesToString } from "@src/animation/format";
-// K.W10 CC-4 (DEMO LEG — FLAGGED) — the "Export CSS" editor button compiles the
-// CURRENT animation to a ZERO-RUNTIME CSS artifact via the SAME `compileToCSS`
-// the `proof:compile-replay` gate proves (no demo-local re-emit), surfacing the
-// CC-3 ineligibility report VERBATIM. The editor becomes a CSS-animation IDE.
-import { compileToCSS } from "@src/animation/compile";
+// HEAVY surface from the warmed engine (kfEngine(), L.W8 S1 dogfood inversion) —
+// synchronous, since the warm resolves before the app mounts. `presets` is the
+// barrel's preset namespace (the old `* as animations`); `CSSKeyframesToString`
+// serializes a parsed animation back to CSS; `compileToCSS` (K.W10 CC-4 DEMO LEG)
+// powers the "Export CSS" button — the SAME gated compiler the round-trip proves,
+// surfacing the CC-3 ineligibility report VERBATIM (the editor as a CSS IDE).
+const { CSSKeyframesAnimation, presets, CSSKeyframesToString, compileToCSS } =
+    kfEngine();
 
 import CSSCodeEditor from "./CSSCodeEditor.vue";
 
@@ -159,9 +160,9 @@ const syncStoredOptionsFromAnimation = (parsedOptions?: Record<string, any>) => 
     }
 };
 
-const onEditorChange = (value: string) => {
-    const parseAndUpdate = () => {
-        const { keyframes, options } = parseAnimationCSS(value);
+const onEditorChange = async (value: string) => {
+    const parseAndUpdate = async () => {
+        const { keyframes, options } = await parseAnimationCSS(value);
 
         const tmpAnimation = new CSSKeyframesAnimation(
             animation.options,
@@ -194,7 +195,7 @@ const onEditorChange = (value: string) => {
     };
 
     try {
-        parseAndUpdate();
+        await parseAndUpdate();
     } catch (e: unknown) {
         parseErrorShake.play();
 
@@ -240,7 +241,7 @@ const brushAnimation = new CSSKeyframesAnimation({
     }`,
 );
 
-const parseErrorShake = animations.shake();
+const parseErrorShake = presets.shake();
 
 onMounted(async () => {
     brushAnimation.setTargets(brushEl.value!);

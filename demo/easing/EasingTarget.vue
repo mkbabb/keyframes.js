@@ -159,7 +159,7 @@ import { EASING_DEMO_KEY } from "./easingKeys";
 import { EASING_GROUPS, getFamilyForCurve } from "./easingGroups";
 import EasingHeroStage from "./EasingHeroStage.vue";
 import { camelCaseToHyphen, timingFunctions } from "@mkbabb/value.js";
-import type { TimingFunction } from "@src/animation/constants";
+import type { TimingFunction } from "@mkbabb/keyframes.js";
 
 const demo = inject(EASING_DEMO_KEY)!;
 

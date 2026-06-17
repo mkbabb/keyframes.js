@@ -17,8 +17,9 @@
  *
  * CLAUSES (each BITES):
  *
- *   verb-exists       — `engine.ts` defines `adoptCompiled(source: Animation<V>):
- *       this`. BITE: rename/drop it → reds.
+ *   verb-exists       — `engine.ts` defines `adoptCompiled(source:
+ *       KeyframesAnimation<V>): this` (the core class, renamed from `Animation`
+ *       in PKG-3 / L.W8 §S4). BITE: rename/drop it → reds.
  *
  *   transplant        — the verb adopts the compiler whole (`this._compiler =
  *       source.compiler`), NOT a fresh re-compile. BITE: `new FrameCompiler(...)`
@@ -83,8 +84,10 @@ const TEST = "test/adopt-compiled.test.ts";
 // ── verb-exists + transplant + options-rebind + recompute-keys ────────────────
 requireAll("verb-exists", ENGINE, [
     {
-        name: "defines `adoptCompiled(source: Animation<V>): this`",
-        re: /adoptCompiled\s*\(\s*source\s*:\s*Animation<V>\s*\)\s*:\s*this\b/,
+        // PKG-3 (L.W8 §S4): the core class was renamed `Animation` →
+        // `KeyframesAnimation`; the adoptCompiled source-param anchor follows it.
+        name: "defines `adoptCompiled(source: KeyframesAnimation<V>): this`",
+        re: /adoptCompiled\s*\(\s*source\s*:\s*KeyframesAnimation<V>\s*\)\s*:\s*this\b/,
     },
 ]);
 

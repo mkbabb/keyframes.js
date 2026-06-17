@@ -51,7 +51,7 @@
                                 <LabeledSelect
                                     :model-value="storedAnimationOptions.animationOptions.direction ?? 'normal'"
                                     :is-open="isOpen('direction')"
-                                    :items="DIRECTIONS"
+                                    :items="directions"
                                     :descriptions="DIRECTION_DESCRIPTIONS"
                                     label="direction"
                                     label-class="text-mono-small text-muted-foreground"
@@ -63,7 +63,7 @@
                                 <LabeledSelect
                                     :model-value="storedAnimationOptions.animationOptions.fillMode ?? 'forwards'"
                                     :is-open="isOpen('fillMode')"
-                                    :items="FILL_MODES"
+                                    :items="fillModes"
                                     :descriptions="FILL_MODE_DESCRIPTIONS"
                                     label="fill mode"
                                     label-class="text-mono-small text-muted-foreground"
@@ -201,7 +201,7 @@
 </template>
 
 <script setup lang="ts">
-import { Animation } from "@src/animation/engine";
+import type { Animation } from "@mkbabb/keyframes.js";
 
 import { Card, CardContent, Separator } from "@mkbabb/glass-ui";
 import { DockIconButton } from "@mkbabb/glass-ui/dock";
@@ -221,14 +221,12 @@ import { Teleport, computed, onMounted, ref, toRef } from "vue";
 import {
     getStoredAnimationOptions,
 } from "../stores";
-import {
-    DIRECTIONS,
-    FILL_MODES,
-} from "@src/animation/constants";
+import { loadAnimationEngine } from "@mkbabb/keyframes.js";
 import type {
     AnimationLayerConfig,
     TimingFunctionNames,
-} from "@src/animation/constants";
+    AnimationOptions,
+} from "@mkbabb/keyframes.js";
 import {
     DIRECTION_DESCRIPTIONS,
     FILL_MODE_DESCRIPTIONS,
@@ -308,10 +306,21 @@ const { userReversed, toggleAnimation, toggleReverse } = usePlaybackToggle(
     () => emit("togglePlay"),
 );
 
-onMounted(() => {
+// L.W8 S1 ED-3 — DIRECTIONS / FILL_MODES are HEAVY (const tuples on the engine
+// surface); they ride loadAnimationEngine() rather than a deep @src import. The
+// select items populate within microtasks of mount (well before the panel is
+// interactive); until then the dropdowns render empty — an honest pre-load frame.
+const directions = ref<readonly AnimationOptions["direction"][]>([]);
+const fillModes = ref<readonly AnimationOptions["fillMode"][]>([]);
+
+onMounted(async () => {
     updateTimingFunctionFromName(
         storedAnimationOptions.animationOptions.timingFunction as TimingFunctionNames,
     );
+
+    const engine = await loadAnimationEngine();
+    directions.value = engine.DIRECTIONS;
+    fillModes.value = engine.FILL_MODES;
 });
 </script>
 

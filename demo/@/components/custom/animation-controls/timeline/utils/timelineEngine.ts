@@ -1,25 +1,25 @@
 import { camelCaseToHyphen, hyphenToCamelCase } from "@mkbabb/value.js";
-import {
+import { loadAnimationEngine } from "@mkbabb/keyframes.js";
+import type {
     CSSKeyframesAnimation,
-    resolveKeyframes,
-} from "@src/animation/engine";
-import type { InputAnimationOptions } from "@src/animation/constants";
-import { CSSKeyframesToString } from "@src/animation/format";
+    InputAnimationOptions,
+} from "@mkbabb/keyframes.js";
 
 import type { TimelineKeyframe, TimelineState } from "../timelineTypes";
 import { createKeyframeId } from "../timelineTypes";
 import { flattenVars } from "./flattenVars";
 
-const parseCSSKeyframes = (input: string) => resolveKeyframes(input).keyframes;
-
 /**
- * Convert timeline keyframes into a CSSKeyframesAnimation.
+ * Convert timeline keyframes into a CSSKeyframesAnimation. ASYNC because the
+ * engine constructor is HEAVY (reached via `loadAnimationEngine()` after the
+ * L.W8 S1 dogfood inversion).
  */
-export function buildAnimationFromTimeline(
+export async function buildAnimationFromTimeline(
     state: TimelineState,
     options: InputAnimationOptions,
     targets: HTMLElement[],
-): CSSKeyframesAnimation<any> {
+): Promise<CSSKeyframesAnimation<any>> {
+    const { CSSKeyframesAnimation } = await loadAnimationEngine();
     const keyframesMap: Record<string, Record<string, string>> = {};
 
     // Sort by percent and group
@@ -58,15 +58,20 @@ export async function exportTimelineToCSS(
     options: InputAnimationOptions,
     targets: HTMLElement[],
 ): Promise<string> {
-    const anim = buildAnimationFromTimeline(state, options, targets);
+    const { CSSKeyframesToString } = await loadAnimationEngine();
+    const anim = await buildAnimationFromTimeline(state, options, targets);
     return await CSSKeyframesToString(anim, state.animationName);
 }
 
 /**
- * Import CSS @keyframes string into timeline keyframes.
+ * Import CSS @keyframes string into timeline keyframes. ASYNC because
+ * `resolveKeyframes` is HEAVY (reached via `loadAnimationEngine()`).
  */
-export function importCSSToTimeline(css: string): TimelineKeyframe[] {
-    const parsed = parseCSSKeyframes(css);
+export async function importCSSToTimeline(
+    css: string,
+): Promise<TimelineKeyframe[]> {
+    const { resolveKeyframes } = await loadAnimationEngine();
+    const parsed = resolveKeyframes(css).keyframes;
     const keyframes: TimelineKeyframe[] = [];
 
     for (const [selector, vars] of parsed.entries()) {

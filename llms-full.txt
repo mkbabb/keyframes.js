@@ -116,6 +116,7 @@ proof: `proof:agent-validate` (CI-verified — `npm run proof:agent-validate`)
 - `springTimingFunction`
 - `ElementMorph`
 - `Timeline`
+- `KeyframesScrollTimeline`
 - `ScrollTimeline`
 - `ManualTimeline`
 - `createNativeTimeline`
@@ -143,6 +144,7 @@ proof: `proof:agent-validate` (CI-verified — `npm run proof:agent-validate`)
 
 `const engine = await loadAnimationEngine()`
 
+- `KeyframesAnimation`
 - `Animation`
 - `CSSKeyframesAnimation`
 - `AnimationGroup`
@@ -176,13 +178,18 @@ proof: `proof:agent-validate` (CI-verified — `npm run proof:agent-validate`)
 - `compileToCSS`
 - `validate`
 - `explain`
+- `CSSKeyframesToString`
+- `CSSKeyframesToStrings`
+- `formatCSSKeyframeString`
+- `transformTargetsStyle`
+- `yieldToMain`
 
-Total published value exports: 65 (32 LIGHT + 33 HEAVY).
+Total published value exports: 72 (33 LIGHT + 39 HEAVY).
 
 ## The proof corpus (the public capability ledger)
 
 Every claim above is signed by a CI-executed gate. The proof corpus
 is itself a public artifact: run `npm run proof:all` to execute the
-full roster (~144 `proof:*` gates). Each gate is a self-describing capability
+full roster (~146 `proof:*` gates). Each gate is a self-describing capability
 claim — not "the library claims X" but "the library PROVES X, here
 is the gate, here is the runnable snippet CI executes".

@@ -1,8 +1,8 @@
 import { markRaw, shallowRef } from "vue";
 import type { Ref, ShallowRef } from "vue";
 import { useRafFn } from "@vueuse/core";
-import { CSSKeyframesAnimation } from "@src/animation/engine";
-import type { InputAnimationOptions } from "@src/animation/constants";
+import type { CSSKeyframesAnimation } from "@mkbabb/keyframes.js";
+import type { InputAnimationOptions } from "@mkbabb/keyframes.js";
 import { createKeyframeId } from "../timelineTypes";
 import type { TimelineKeyframe, TimelineState } from "../timelineTypes";
 import {
@@ -29,14 +29,14 @@ export function useTimelineBuild(
     const animation: ShallowRef<CSSKeyframesAnimation<any> | null> =
         shallowRef(null);
 
-    const rebuild = () => {
+    const rebuild = async () => {
         if (state.value.keyframes.length < 2) {
             animation.value = null;
             return;
         }
 
         try {
-            const anim = buildAnimationFromTimeline(
+            const anim = await buildAnimationFromTimeline(
                 state.value,
                 animOptions.value,
                 targets.value,
@@ -139,16 +139,16 @@ export function useTimelineBuild(
         }
     };
 
-    const importCSS = (css: string) => {
+    const importCSS = async (css: string) => {
         try {
-            const imported = importCSSToTimeline(css);
+            const imported = await importCSSToTimeline(css);
             if (imported.length === 0) {
                 toast.error("No keyframes found in CSS");
                 return;
             }
 
             state.value.keyframes = imported;
-            rebuild();
+            await rebuild();
 
             toast.success(`Imported ${imported.length} keyframes`);
         } catch (e) {
@@ -158,7 +158,7 @@ export function useTimelineBuild(
         }
     };
 
-    const loadPreset = (presetAnim: CSSKeyframesAnimation<any>) => {
+    const loadPreset = async (presetAnim: CSSKeyframesAnimation<any>) => {
         const keyframes: TimelineKeyframe[] = [];
 
         for (const frame of presetAnim.templateFrames) {
@@ -179,7 +179,7 @@ export function useTimelineBuild(
 
         state.value.keyframes = keyframes;
         state.value.animationName = presetAnim.name ?? "preset-animation";
-        rebuild();
+        await rebuild();
     };
 
     const clear = () => {

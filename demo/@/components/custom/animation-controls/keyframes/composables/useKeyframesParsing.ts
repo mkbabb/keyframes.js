@@ -1,9 +1,6 @@
 import { debounce } from "@mkbabb/value.js";
-import type { Animation } from "@src/animation/engine";
-import {
-    CSSKeyframesToString,
-    CSSKeyframesToStrings,
-} from "@src/animation/format";
+import type { Animation } from "@mkbabb/keyframes.js";
+import { loadAnimationEngine } from "@mkbabb/keyframes.js";
 import { nextTick, watch } from "vue";
 import type { KeyframesState } from "./useKeyframesState";
 import { useKeyframeOps } from "./useKeyframeOps";
@@ -33,6 +30,7 @@ export function useKeyframesParsing(
     const updateCSSAnimationKeyframesStringFromAnimation = async (
         cssAnimationKeyframes?: string,
     ) => {
+        const { CSSKeyframesToString } = await loadAnimationEngine();
         const keyframesString =
             cssAnimationKeyframes ??
             (await CSSKeyframesToString(
@@ -47,6 +45,7 @@ export function useKeyframesParsing(
     };
 
     const updateAllStrings = async () => {
+        const { CSSKeyframesToStrings } = await loadAnimationEngine();
         templateFrameStrings.value = [];
         templateFrameStrings.value = await CSSKeyframesToStrings(animation);
 

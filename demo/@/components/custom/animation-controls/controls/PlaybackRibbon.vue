@@ -80,7 +80,7 @@
 // shared across this ribbon and the scene play buttons.
 import "./playback-button.css";
 
-import type { Animation } from "@src/animation/engine";
+import type { Animation } from "@mkbabb/keyframes.js";
 
 import { Button, Slider, useTouchGate } from "@mkbabb/glass-ui";
 import { useDragCapture } from "./composables/useDragCapture";

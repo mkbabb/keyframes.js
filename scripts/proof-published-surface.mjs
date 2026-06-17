@@ -682,6 +682,60 @@ function clauseG() {
     }
 }
 
+// ═════════════════════════════════════════════════════════════════════════════
+// clause (h) — proof:pkg3-clean: no `_2`-suffixed collision aliases in the d.ts
+// (L.W8 S4 · PKG-3 · audit W126)
+//
+// API Extractor renames a source class that collides with a `globalThis.*` name
+// (the WAAPI `Animation`, the Houdini `ScrollTimeline`) to `<Name>_2` and then
+// re-exports it `export { <Name>_2 as <Name> }`. The alias is invisible at the
+// barrel (the consumer sees `Animation`), but it LEAKS into every intermediate
+// type in IDE hover text — `addFrame(…): Animation_2<K>` instead of
+// `Animation<K>` (packaging-k.md:118-127). The cure (S4) renames the SOURCE
+// classes (`Animation` → `KeyframesAnimation`, `ScrollTimeline` →
+// `KeyframesScrollTimeline`) so no collision rename fires.
+//
+// This clause greps the EMITTED `dist/keyframes.d.ts` for the `/_2\s+as\s+/`
+// re-export pattern and asserts ZERO. RED today (`Animation_2 as Animation`,
+// `flip_2 as flip`, `ScrollTimeline_2 as ScrollTimeline`, … all present).
+// GREEN when the rename lands. It ALSO catches a future API-Extractor upgrade
+// re-introducing a `_2` alias — it reads the artifact, not a source proxy.
+// ═════════════════════════════════════════════════════════════════════════════
+
+function clausePkg3Clean() {
+    console.log(
+        "\nclause (h) — proof:pkg3-clean: no `_2` collision aliases in dist/keyframes.d.ts (S4 · PKG-3)",
+    );
+    const dts = fs.readFileSync(DTS, "utf8");
+    // The collision-rename re-export shape: `<Name>_2 as <Name>` (in an `export
+    // { … }` list or a re-export clause). Capture each offending alias + its
+    // 1-based line for a named, actionable finding.
+    const ALIAS_RE = /\b([A-Za-z_$][\w$]*_2)\s+as\s+([A-Za-z_$][\w$]*)/g;
+    const lines = dts.split("\n");
+    const hits = [];
+    for (let i = 0; i < lines.length; i++) {
+        for (const m of lines[i].matchAll(ALIAS_RE)) {
+            hits.push({ line: i + 1, alias: m[1], as: m[2] });
+        }
+    }
+    if (hits.length === 0) {
+        console.log(
+            "  ✓ zero `_2 as` collision aliases — the d.ts surface names every type canonically (no globalThis.* rename leak into IDE hover text).",
+        );
+    } else {
+        failures.push(
+            `(h) ${hits.length} \`_2\`-suffixed collision alias(es) in dist/keyframes.d.ts (PKG-3 — ` +
+                "API Extractor renamed a source class colliding with a `globalThis.*` name; the alias " +
+                "leaks into every intermediate type in IDE hover. Rename the source class " +
+                "(`Animation` → `KeyframesAnimation`, `ScrollTimeline` → `KeyframesScrollTimeline`) so no " +
+                "collision rename fires):\n      " +
+                hits
+                    .map((h) => `\`${h.alias} as ${h.as}\` (dist/keyframes.d.ts:${h.line})`)
+                    .join(", "),
+        );
+    }
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 async function main() {
@@ -697,6 +751,7 @@ async function main() {
     clauseE();
     clauseF();
     clauseG();
+    clausePkg3Clean();
 
     if (failures.length > 0) {
         console.error(

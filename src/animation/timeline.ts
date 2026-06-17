@@ -150,7 +150,7 @@ export abstract class Timeline {
     }
 }
 
-export interface ScrollTimelineOptions extends TimelineOptions {
+export interface KeyframesScrollTimelineOptions extends TimelineOptions {
     /** Viewport fraction for full progress. Default 0.35. */
     threshold?: number | undefined;
     /** Custom scroll position supplier. Default: window.scrollY. */
@@ -159,12 +159,39 @@ export interface ScrollTimelineOptions extends TimelineOptions {
     getViewportHeight?: (() => number) | undefined;
 }
 
-export class ScrollTimeline extends Timeline {
+/**
+ * @deprecated Renamed to {@link KeyframesScrollTimelineOptions} in 5.0.0
+ * (PKG-3, L.W8 §S4) — the old `ScrollTimelineOptions` name collides with the
+ * ambient lib.dom `ScrollTimelineOptions`. Expressed as a pure TYPE RE-EXPORT
+ * alias (NOT a `type ScrollTimelineOptions = …` local declaration, which would
+ * be a NEW colliding declaration the d.ts roll-up renames with a numeric suffix)
+ * so it stays backward-compat WITHOUT re-triggering the collision —
+ * `proof:pkg3-clean` stays GREEN. Migrate to `KeyframesScrollTimelineOptions`.
+ */
+export { type KeyframesScrollTimelineOptions as ScrollTimelineOptions };
+
+/**
+ * The JS scroll-progress sampler.
+ *
+ * ── PKG-3 RENAME (L.W8 §S4 · audit W126). Formerly `ScrollTimeline`. Renamed
+ * `ScrollTimeline` → `KeyframesScrollTimeline` because the rolled-up d.ts
+ * declaration `ScrollTimeline` collided with the ambient `globalThis.ScrollTimeline`
+ * (the Houdini native scroll timeline): API Extractor renamed the colliding
+ * source class and re-exported it under a numeric-suffixed alias that leaked
+ * into IDE hover text. Naming the class `KeyframesScrollTimeline` (no ambient
+ * collision) clears the rename; gated by `proof:pkg3-clean`. The old
+ * `ScrollTimeline` name survives as a backward-compat RE-EXPORT alias (value +
+ * type) — see the `@deprecated` `ScrollTimeline` export below; because the
+ * canonical name no longer collides, API Extractor emits the alias cleanly
+ * (`KeyframesScrollTimeline` exported under the `ScrollTimeline` name, no
+ * numeric suffix).
+ */
+export class KeyframesScrollTimeline extends Timeline {
     private threshold: number;
     private getScrollY: () => number;
     private getViewportHeight: () => number;
 
-    constructor(options?: ScrollTimelineOptions) {
+    constructor(options?: KeyframesScrollTimelineOptions) {
         super(options);
         this.threshold = options?.threshold ?? 0.35;
         this.getScrollY = options?.getScrollY ?? (() => window.scrollY);
@@ -177,6 +204,18 @@ export class ScrollTimeline extends Timeline {
         return maxScroll <= 0 ? 0 : this.getScrollY() / maxScroll;
     }
 }
+
+/**
+ * @deprecated Renamed to {@link KeyframesScrollTimeline} in 5.0.0 (PKG-3,
+ * L.W8 §S4). The old `ScrollTimeline` name collided with the ambient
+ * `globalThis.ScrollTimeline` (Houdini), formerly leaking a numeric-suffixed
+ * collision alias into the d.ts. This is a pure RE-EXPORT alias (value + type)
+ * of {@link KeyframesScrollTimeline} so `new ScrollTimeline()` /
+ * `instanceof ScrollTimeline` / `import type { ScrollTimeline }` keep working.
+ * Because the canonical name no longer collides, the alias emits cleanly (no
+ * numeric suffix). Migrate to `KeyframesScrollTimeline`.
+ */
+export { KeyframesScrollTimeline as ScrollTimeline };
 
 export class ManualTimeline extends Timeline {
     private value: number = 0;
@@ -229,14 +268,14 @@ export function createNativeTimeline(
 ): AnimationTimeline | null {
     if (typeof window === "undefined") return null;
 
-    // Qualify with `globalThis.` — the bare identifiers `ScrollTimeline` /
-    // `ViewTimeline` would resolve to THIS module's own JS `ScrollTimeline`
-    // class (a foot-gun), not the native platform global. The `globalThis.`
-    // member is the platform's own constructor, typed by lib.dom's
-    // `declare var ScrollTimeline`. The option types are DERIVED from those
-    // constructors (`ConstructorParameters`) — the lib.dom `ScrollTimelineOptions`
-    // is shadowed in this file by the local `ScrollTimelineOptions` interface
-    // (the JS sampler's), so naming it directly would resolve to the wrong type.
+    // Qualify with `globalThis.` — the bare identifier `ScrollTimeline` is the
+    // module's backward-compat re-export alias of the JS `KeyframesScrollTimeline`
+    // sampler (PKG-3, L.W8 §S4), NOT the native platform global; `globalThis.`
+    // pins the platform's own constructor (typed by lib.dom's `declare var
+    // ScrollTimeline`). The option types are DERIVED from those constructors
+    // (`ConstructorParameters`) — the JS sampler's own option interface is now
+    // `KeyframesScrollTimelineOptions`, distinct from lib.dom's
+    // `ScrollTimelineOptions`, so the names no longer shadow.
     if (spec.kind === "scroll") {
         if (typeof globalThis.ScrollTimeline === "undefined") return null;
         type NativeScrollOptions = NonNullable<

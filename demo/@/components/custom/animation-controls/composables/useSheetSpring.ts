@@ -1,5 +1,5 @@
 import { onScopeDispose, ref, watch, type Ref } from "vue";
-import { SpringProgress } from "@src/animation/spring";
+import { SpringProgress } from "@mkbabb/keyframes.js";
 
 /**
  * The engine-dogfooded mobile bottom-SHEET drawer (H.W7.S2 / inv ζ). The demo's

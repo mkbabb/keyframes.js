@@ -1,7 +1,6 @@
 import * as THREE from "three";
 
-import { CSSKeyframesAnimation } from "@src/animation/engine";
-import { AnimationGroup } from "@src/animation/group";
+import { kfEngine } from "@utils/kfEngine";
 
 const BOX_SIZE = 12;
 
@@ -36,6 +35,10 @@ export function useAmigaAnimations(
     getSphere: () => THREE.Mesh<THREE.SphereGeometry, THREE.MeshLambertMaterial>,
     getBounceScale?: () => BounceScale,
 ) {
+    // HEAVY surface from the warmed engine (kfEngine(), L.W8 S1 dogfood inversion)
+    // — synchronous, since the warm resolves before any scene mounts.
+    const { CSSKeyframesAnimation, AnimationGroup } = kfEngine();
+
     const transform = (vars: Record<string, any>) => {
         const sphereMesh = getSphere();
         if (!sphereMesh) return;

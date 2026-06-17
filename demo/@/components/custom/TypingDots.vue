@@ -29,8 +29,8 @@ import { steppedEase } from "@mkbabb/value.js";
 // (mirrors CopyButton.vue:24 / typingCursor / spinner — a per-dot
 // CSSKeyframesAnimation with iterationCount: Infinity). `steppedEase` is the
 // value.js CURVE for the discrete dot cadence, NOT the dogfood symbol.
-import { CSSKeyframesAnimation } from "@src/animation/engine";
-import { stagger } from "@src/animation/stagger";
+import type { CSSKeyframesAnimation } from "@mkbabb/keyframes.js";
+import { loadAnimationEngine, stagger } from "@mkbabb/keyframes.js";
 
 const props = withDefaults(
     defineProps<{
@@ -69,9 +69,16 @@ const delays = stagger(props.count, { each: STEP_MS, from: "first" }).delays(
 
 const anims: CSSKeyframesAnimation<{ opacity: number }>[] = [];
 
-onMounted(() => {
+// Guards a late engine resolve against an early unmount: if the component tore
+// down while loadAnimationEngine() was in flight, do not play/leak any anim.
+let unmounted = false;
+
+onMounted(async () => {
     const els = dotEls.value;
     if (!els) return;
+
+    const { CSSKeyframesAnimation } = await loadAnimationEngine();
+    if (unmounted) return;
 
     els.forEach((el, i) => {
         // PRIMARY loop path: a per-dot CSSKeyframesAnimation with
@@ -99,6 +106,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+    unmounted = true;
     for (const anim of anims) anim.stop();
     anims.length = 0;
 });

@@ -97,7 +97,8 @@
     </div>
 </template>
 <script setup lang="ts">
-import { Animation, CSSKeyframesAnimation } from "@src/animation/engine";
+import type { Animation } from "@mkbabb/keyframes.js";
+import { kfEngine } from "@utils/kfEngine";
 
 import { Card, CardContent, Slider } from "@mkbabb/glass-ui";
 
@@ -114,8 +115,12 @@ import { Paintbrush, WandSparkles } from "@lucide/vue";
 import { Menubar, MenubarMenu, MenubarTrigger } from "@components/ui/menubar";
 
 import { parseCSSValueUnit } from "@mkbabb/value.js";
-import * as animations from "@src/animation/animations";
 import { insertTabAtCursor } from "./utils/contenteditable";
+
+// HEAVY surface from the warmed engine (kfEngine(), L.W8 S1 dogfood inversion) —
+// synchronous, since the warm resolves before the app mounts. `presets` is the
+// barrel's preset namespace (the old `* as animations` deep import).
+const { CSSKeyframesAnimation, presets } = kfEngine();
 
 const { animation, framed = true } = defineProps<{
     animation: Animation<any>;
@@ -199,10 +204,10 @@ const removeKeyframe = async (_e: Event, frameIx: number) => {
     const el2 =
         frameIx < cards.length - 1 ? cards[frameIx + 1] : cards[frameIx - 1];
 
-    await animations
+    await presets
         .warpLeft()
         .setTargets(el1)
-        .group(animations.jumpUp().setTargets(el2))
+        .group(presets.jumpUp().setTargets(el2))
         .play();
 
     removeKeyframeData(frameIx);

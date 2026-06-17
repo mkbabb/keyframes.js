@@ -83,3 +83,47 @@ jobs:
               run: npm publish --provenance --access public
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+    # L.W8 S2 — the sibling-adapter publish. @mkbabb/keyframes-vue consumes the
+    # PUBLISHED @mkbabb/keyframes.js barrel as a PEER (>=4.3.0); it must land on
+    # npm AFTER the core publish (the peer floor has to be resolvable before the
+    # adapter installs it). `needs: publish` sequences it strictly after the core
+    # leg; if the core publish fails, this job never runs (a half-published
+    # constellation is the exact corruption the gate ordering prevents).
+    #
+    # The adapter is NOT wired into the monorepo dev tree (the acyclic-spine
+    # invariant — no file: link, no vendored copy): it installs its OWN peers from
+    # the registry (`npm install` in packages/keyframes-vue/), type-checks + builds
+    # against that installed peer, then publishes. Same OIDC provenance (id-token:
+    # write, inherited from the workflow `permissions`) + the same NPM_TOKEN auth.
+    #
+    # proof:keyframes-vue-published clause (b) STAYS RED until THIS job fires the
+    # first 0.1.0 cut (the publish is USER-DOMAIN — this job is AUTHORED, gated on
+    # a v*.*.* tag, but only the user's tag-push triggers it).
+    publish-keyframes-vue:
+        needs: publish
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+        defaults:
+            run:
+                working-directory: packages/keyframes-vue
+        steps:
+            - uses: actions/checkout@v5
+            - uses: actions/setup-node@v5
+              with:
+                  node-version: 24
+                  registry-url: "https://registry.npmjs.org"
+            # Install the adapter's OWN peers from the registry (kf >=4.3.0 + vue +
+            # the dts build chain) — NOT a root `npm ci` (the sibling is outside the
+            # root workspace by design). The core publish above has already landed
+            # 4.3.0, so the peer floor resolves.
+            - name: install (registry peers; the sibling is workspace-external)
+              run: npm install
+            - name: check (tsc --noEmit, adapter-scoped)
+              run: npm run check
+            - name: build (adapter lib → dist/keyframes-vue.{js,d.ts})
+              run: npm run build
+            - name: publish (with provenance)
+              run: npm publish --provenance --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

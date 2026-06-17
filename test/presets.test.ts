@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
-    fadeIn, fadeOut, pulse, shake, bounce, flip,
+    // PKG-3 (L.W8 §S4): the card-flip preset was renamed `flip` → `flipPreset`
+    // to clear the d.ts collision with the LIGHT top-level `flip` (FLIP-layout)
+    // export. The access path is now `presets.flipPreset`.
+    fadeIn, fadeOut, pulse, shake, bounce, flipPreset,
     rotateIn, slideIn, heartbeat, glow, typewriter,
     rainbowText, warpLeft, warpRight,
     blurIn, blurOut, blurInOut,
@@ -13,7 +16,7 @@ import {
 } from "../src/animation/animations";
 
 const presets = {
-    fadeIn, fadeOut, pulse, shake, bounce, flip,
+    fadeIn, fadeOut, pulse, shake, bounce, flipPreset,
     rotateIn, slideIn, heartbeat, glow, typewriter,
     rainbowText, warpLeft, warpRight,
     blurIn, blurOut, blurInOut,

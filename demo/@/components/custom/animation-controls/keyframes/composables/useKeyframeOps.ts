@@ -1,6 +1,6 @@
 import { formatCSS } from "@mkbabb/value.js";
-import { Animation, CSSKeyframesAnimation } from "@src/animation/engine";
-import { yieldToMain } from "@src/animation/internal/scheduler";
+import type { Animation } from "@mkbabb/keyframes.js";
+import { loadAnimationEngine } from "@mkbabb/keyframes.js";
 import { debounce } from "@mkbabb/value.js";
 import { toast } from "vue-sonner";
 import type { KeyframesState } from "./useKeyframesState";
@@ -13,29 +13,11 @@ interface StringSync {
     debouncedUpdateAllStrings: () => void;
 }
 
-/** Run `fn`; on throw, surface a toast with a Retry action and re-log. */
-function withErrorToast(
-    fn: () => void,
-    message: string,
-    retry: () => void,
-): void {
-    try {
-        fn();
-    } catch (e) {
-        toast.error(message, {
-            description: (e as Error).message,
-            duration: 10000,
-            action: { label: "Retry", onClick: retry },
-        });
-        console.error(e);
-    }
-}
-
 /**
- * The async sibling of `withErrorToast` — same error/retry contract, but
- * `await`s `fn` so an op that yields the main thread mid-work (the engine's
- * `yieldToMain`, S4 INP relief) still routes a throw through the toast+retry
- * path. Used by the heavy parse→compile edit op.
+ * Run `fn`; on throw, surface a toast with a Retry action and re-log. `await`s
+ * `fn` so an op that yields the main thread mid-work (the engine's `yieldToMain`,
+ * S4 INP relief) or awaits `loadAnimationEngine()` (L.W8 S1 dogfood inversion)
+ * still routes a throw through the toast+retry path.
  */
 async function withErrorToastAsync(
     fn: () => Promise<void>,
@@ -82,8 +64,11 @@ export function useKeyframeOps(
             // fire-and-forget; the throw path is owned by `withErrorToastAsync`.
             void withErrorToastAsync(
                 async () => {
+                    const { CSSKeyframesAnimation, yieldToMain } =
+                        await loadAnimationEngine();
+
                     const { options, keyframes } =
-                        parseAnimationCSS(keyframesString);
+                        await parseAnimationCSS(keyframesString);
 
                     // Yield AFTER the parse, BEFORE the compile: the two heaviest
                     // slices land in separate tasks, so neither monopolizes the
@@ -119,9 +104,10 @@ export function useKeyframeOps(
             const start = animation.templateFrames[frameIx]!.start;
             const wrapped = `${start} { ${keyframeString} }`;
 
-            withErrorToast(
-                () => {
-                    const { keyframes, options } = parseAnimationCSS(wrapped);
+            void withErrorToastAsync(
+                async () => {
+                    const { keyframes, options } =
+                        await parseAnimationCSS(wrapped);
                     const [_, newVars] = Object.entries(keyframes)[0]!;
 
                     Object.assign(
@@ -158,10 +144,10 @@ export function useKeyframeOps(
         addKeyframesString.value = keyframesString;
         kfControls.addKeyframes = keyframesString;
 
-        withErrorToast(
-            () => {
+        void withErrorToastAsync(
+            async () => {
                 const { options, keyframes } =
-                    parseAnimationCSS(keyframesString);
+                    await parseAnimationCSS(keyframesString);
 
                 // SINGLE COMPILE (E.W8 S0): append the new stops to the LIVE
                 // animation and parse ONCE — no throwaway Animation that re-adds

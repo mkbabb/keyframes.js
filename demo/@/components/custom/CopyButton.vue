@@ -19,10 +19,9 @@
 <script setup lang="ts">
 import { Clipboard, ClipboardCheck } from "@lucide/vue";
 
-import { onMounted, ref, useTemplateRef } from "vue";
-import type { InputAnimationOptions } from "@src/animation/constants";
-import { CSSKeyframesAnimation } from "@src/animation/engine";
-import { AnimationGroup } from "@src/animation/group";
+import { onMounted, ref, shallowRef, useTemplateRef } from "vue";
+import type { InputAnimationOptions, AnimationGroup } from "@mkbabb/keyframes.js";
+import { loadAnimationEngine } from "@mkbabb/keyframes.js";
 import { copyText } from "@utils/clipboard";
 
 const props = defineProps({
@@ -49,33 +48,11 @@ const options: Partial<InputAnimationOptions> = {
     timingFunction: "bounceInEase",
 };
 
-const clipboardCheckedAnim = new CSSKeyframesAnimation(options)
-    .fromString(/*css*/ `@keyframes fade-in {
-            0%, 100% {
-                transform: scale(1);
-                opacity: 0;
-            }
-            50% {
-                transform: scale(1.25);
-                opacity: 1;
-            }
-        }`);
-
-const clipboardAnim = new CSSKeyframesAnimation(options)
-    .fromString(/*css*/ `@keyframes fade-out {
-            0%, 100% {
-                transform: scale(1);
-
-            }
-            50% {
-                transform: scale(1.25);
-
-            }
-        }`);
-
-const group = new AnimationGroup(clipboardAnim, clipboardCheckedAnim);
-
-group.singleTarget = false;
+// The copy-feedback group is HEAVY (CSSKeyframesAnimation/AnimationGroup), so it
+// is constructed through loadAnimationEngine() at mount rather than a deep @src
+// import. The engine resolves within microtasks of mount — well before a user
+// can click — and `group` is null-guarded until it is in hand.
+const group = shallowRef<AnimationGroup<any> | null>(null);
 
 const handleClick = () => {
     copyText(props.text);
@@ -88,12 +65,46 @@ const handleClick = () => {
         liveStatus.value = "Copied to clipboard";
     });
 
-    group.play();
+    void group.value?.play();
 };
 
-onMounted(() => {
+onMounted(async () => {
+    const { CSSKeyframesAnimation, AnimationGroup } =
+        await loadAnimationEngine();
+
+    const clipboardCheckedAnim = new CSSKeyframesAnimation(options).fromString(
+        /*css*/ `@keyframes fade-in {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.25);
+                opacity: 1;
+            }
+        }`,
+    );
+
+    const clipboardAnim = new CSSKeyframesAnimation(options).fromString(
+        /*css*/ `@keyframes fade-out {
+            0%, 100% {
+                transform: scale(1);
+
+            }
+            50% {
+                transform: scale(1.25);
+
+            }
+        }`,
+    );
+
+    const g = new AnimationGroup(clipboardAnim, clipboardCheckedAnim);
+    g.singleTarget = false;
+
     clipboardCheckedAnim.setTargets(clipboardChecked.value!);
     clipboardAnim.setTargets(clipboard.value!);
+
+    group.value = g;
 });
 </script>
 <style scoped>

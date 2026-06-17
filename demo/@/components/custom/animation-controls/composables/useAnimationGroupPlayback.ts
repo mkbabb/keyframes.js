@@ -1,6 +1,6 @@
 import { ref } from "vue";
-import type { Animation } from "@src/animation/engine";
-import type { AnimationGroup } from "@src/animation/group";
+import type { Animation } from "@mkbabb/keyframes.js";
+import type { AnimationGroup } from "@mkbabb/keyframes.js";
 
 /** The playback emit contract this composable drives — typed to the host
  *  component's `defineEmits` signature so the call site needs no `emit as any`

@@ -20,7 +20,7 @@
 //     easing, which has no group).
 // ─────────────────────────────────────────────────────────────────────────────
 
-import type { AnimationGroup } from "@src/animation/group";
+import type { AnimationGroup } from "@mkbabb/keyframes.js";
 import type {
     AnimationPlaybackSnapshot,
     PlaybackSnapshot,

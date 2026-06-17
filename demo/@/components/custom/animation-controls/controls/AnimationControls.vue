@@ -203,8 +203,8 @@
 // reference them (a cross-cluster follow-on migrates those).
 import "./tab-trigger.css";
 
-import { Animation } from "@src/animation/engine";
-import type { AnimationLayerConfig } from "@src/animation/constants";
+import type { Animation } from "@mkbabb/keyframes.js";
+import type { AnimationLayerConfig } from "@mkbabb/keyframes.js";
 
 import { TooltipProvider, Button } from "@mkbabb/glass-ui";
 // glass-ui 4.0.0 (BA.W-TABS) — the reka `Tabs`/`TabsList`/`TabsTrigger`/`TabsContent`

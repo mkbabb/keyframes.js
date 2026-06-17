@@ -1,6 +1,6 @@
-import { CSSKeyframesAnimation } from "@src/animation/engine";
-import { RAFPlayback } from "@src/animation/playback";
-import { SpringProgress } from "@src/animation/spring";
+import { kfEngine } from "@utils/kfEngine";
+import { RAFPlayback } from "@mkbabb/keyframes.js";
+import { SpringProgress } from "@mkbabb/keyframes.js";
 import { onScopeDispose, type Ref } from "vue";
 
 /**
@@ -197,7 +197,11 @@ export function useSquareAnimations(
     // ── The bottom-bar transport-contract host (the nested-object keyframes) ──
     // Minimal CSSKeyframesAnimation carrying the SAME nested-object keyframes so
     // the Keyframes-string readout serializes the authored nested shape. Like the
-    // Spring/Easing contract anim, it drives no box paint.
+    // Spring/Easing contract anim, it drives no box paint. HEAVY — constructed
+    // through the warmed engine surface (kfEngine(), L.W8 S1 dogfood inversion);
+    // the warm resolves before any scene mounts, so this stays synchronous. The
+    // live spring drag path (above) is LIGHT and runs independent of this.
+    const { CSSKeyframesAnimation } = kfEngine();
     const anim = new CSSKeyframesAnimation({
         duration: 2000,
         iterationCount: Infinity,

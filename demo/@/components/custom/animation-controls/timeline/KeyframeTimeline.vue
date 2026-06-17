@@ -157,7 +157,7 @@ import CSSCodeEditor from "../keyframes/CSSCodeEditor.vue";
 import { useTimeline } from "./composables/useTimeline";
 import TimelineTrack from "./components/TimelineTrack.vue";
 import type { TimelineKeyframe } from "./timelineTypes";
-import type { InputAnimationOptions } from "@src/animation/constants";
+import type { InputAnimationOptions } from "@mkbabb/keyframes.js";
 
 const props = defineProps<{
     targets: HTMLElement[];

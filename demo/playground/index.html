@@ -22,9 +22,16 @@
         <script type="module">
             import { createApp } from "vue";
             import App from "./App.vue";
+            // L.W8 S1 ED-3 DOGFOOD INVERSION — warm the published kf engine
+            // surface (loadAnimationEngine()) before mount so the playground's
+            // synchronous heavy construction (AnimationGroup + presets) reads it
+            // via kfEngine(). The heavy graph still rides the dynamic boundary.
+            import { warmKfEngine } from "../@/utils/kfEngine";
 
             const app = createApp(App);
-            app.mount("#app");
+            void warmKfEngine().finally(() => {
+                app.mount("#app");
+            });
         </script>
     </head>
 

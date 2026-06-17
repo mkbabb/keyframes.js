@@ -18,6 +18,15 @@ import {
 import { useKfAnimation } from "./useKfAnimation";
 
 /**
+ * The engine options the `<Keyframes>` component forwards (duration, easing,
+ * direction, …). A LOCAL, exported alias over the peer's `InputAnimationOptions`
+ * — declaring it here gives the emitted `.d.ts` a NAMEABLE handle so the
+ * inferred component type never has to deep-name a transitive `@mkbabb/value.js`
+ * type (the TS2883 portability trap on the peer's `InputAnimationOptions.hueMethod`).
+ */
+export type KeyframesOptions = Partial<InputAnimationOptions>;
+
+/**
  * <Keyframes :css :options v-slot="{ t, started, reversed }"> — the on-brand
  * declarative primitive (K.W12 ED-2, the HEADLINE of the Vue adapter).
  *
@@ -42,7 +51,7 @@ export const Keyframes = defineComponent({
         css: { type: String as PropType<string>, required: true },
         /** Animation options forwarded to the engine (duration, easing, …). */
         options: {
-            type: Object as PropType<Partial<InputAnimationOptions>>,
+            type: Object as PropType<KeyframesOptions>,
             default: () => ({}),
         },
         /** Autoplay on mount / on css change (default true). */

@@ -156,6 +156,8 @@ jobs:
               run: npm run proof:replay-equality
             - name: proof:orchestration (F.W3 — stagger/FLIP/decay/Sequence behaviour locks)
               run: npm run proof:orchestration
+            - name: proof:animate-orchestration (L.W8 S3 — animate() dispatches the orchestration tier; AnimationGroup/Sequence → .play(), W127)
+              run: npm run proof:animate-orchestration
             - name: proof:transport-events (L.W5 S3 — Sequence segment/label crossing callback channel)
               run: npm run proof:transport-events
             - name: proof:interp-fastprops (F.W4 — the dict-mode buffer fold + single-frame alias)
@@ -339,6 +341,24 @@ jobs:
               id: proof-peer-satisfied
               continue-on-error: true
               run: npm run proof:peer-satisfied
+            # L.W8 S2 — proof:keyframes-vue-published: the sibling-adapter publish
+            # tripwire, BORN-RED-BY-DESIGN (the SAME disposition as
+            # proof:peer-satisfied above). The actual `npm publish` of
+            # @mkbabb/keyframes-vue is USER-DOMAIN; this wave implements everything
+            # UP TO publish (peer-floor bump, build, the release.yml job) but does
+            # NOT publish, so clause (b) STAYS RED until the user runs the publish.
+            # It rides THIS report-all demo-smoke job (continue-on-error) so the
+            # expected RED is RECORDED in one run; the terminal check-failures step
+            # reds the job. DELIBERATELY ABSENT from the blocking proof:hygiene chain
+            # (an absent-on-npm RED there would abort the && chain). Invoked via the
+            # `npm run proof:keyframes-vue-published` package key (NOT raw node) so the
+            # two coverage clauses (proof:ci-coverage 0/0b) can see it; it is a NAMED
+            # EXCLUDED tripwire there (same disposition as proof:peer-satisfied), so it
+            # is not demanded in a blocking aggregator tier.
+            - name: "[born-RED tripwire] proof:keyframes-vue-published (L.W8 S2 — @mkbabb/keyframes-vue UNPUBLISHED + stale peer floor; RED until the USER publishes)"
+              id: proof-keyframes-vue-published
+              continue-on-error: true
+              run: npm run proof:keyframes-vue-published
             - name: install playwright + lighthouse (demo-gate only; --no-save keeps the lib posture)
               run: npm i --no-save @playwright/test lighthouse
             - name: install chromium
@@ -1505,6 +1525,7 @@ jobs:
               run: |
                   failed=""
                   if [ "${{ steps.proof-peer-satisfied.outcome }}" = "failure" ]; then failed="$failed proof-peer-satisfied"; fi
+                  if [ "${{ steps.proof-keyframes-vue-published.outcome }}" = "failure" ]; then failed="$failed proof-keyframes-vue-published"; fi
                   if [ "${{ steps.proof-demo-smoke.outcome }}" = "failure" ]; then failed="$failed proof-demo-smoke"; fi
                   if [ "${{ steps.proof-occlusion.outcome }}" = "failure" ]; then failed="$failed proof-occlusion"; fi
                   if [ "${{ steps.proof-demo-usability.outcome }}" = "failure" ]; then failed="$failed proof-demo-usability"; fi

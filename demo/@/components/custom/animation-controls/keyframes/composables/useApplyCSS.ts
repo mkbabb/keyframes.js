@@ -1,6 +1,6 @@
 import { ref } from "vue";
 import type { Ref } from "vue";
-import type { Animation } from "@src/animation/engine";
+import type { Animation } from "@mkbabb/keyframes.js";
 import { useHighlightCSS } from "./useHighlightCSS";
 
 /**

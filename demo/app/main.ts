@@ -16,10 +16,25 @@ import { router } from "./router";
 // EditorShell.vue also imports these; Vite dedupes the shared modules, so
 // dev and prod resolve identically.
 import "@styles/style.css";
+// L.W8 S1 ED-3 DOGFOOD INVERSION — the demo consumes the PUBLISHED kf barrel; the
+// HEAVY surface (CSSKeyframesAnimation / AnimationGroup / presets / …) rides the
+// barrel's `loadAnimationEngine()` dynamic boundary. The scene-machine reconcile
+// constructs an empty placeholder `AnimationGroup` SYNCHRONOUSLY on every scene
+// switch and feeds it into non-null prop contracts (EditorShell → controls), so
+// the engine is warmed ONCE here before mount and read synchronously thereafter
+// (demo/@/utils/kfEngine.ts). This is the honest dogfood: the demo boots on the
+// same dynamic engine chunk a `npm i` consumer reaches — value.js still never
+// lands on the LIGHT static barrel (proof:boundary stays green). The first-paint
+// skeleton + critical CSS are JS-independent (criticalCSSPlugin inlines them), so
+// this boot await does not block the visual first paint.
+import { warmKfEngine } from "@utils/kfEngine";
 
 const app = createApp(App);
 app.use(router);
-app.mount("#app");
+
+void warmKfEngine().finally(() => {
+    app.mount("#app");
+});
 
 // Dev-only Long Animation Frames observer — the attribution source for the
 // perf measurement + the demo bench (B.W4 §4). The `import.meta.env.DEV`

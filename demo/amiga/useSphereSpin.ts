@@ -7,7 +7,7 @@ import { useEventListener } from "@vueuse/core";
 // over many frames, so the engine drives a NON-DOM (Three.js) target —
 // independent of the camera orbit (OrbitControls). `decay` is the light surface
 // (zero value.js edge), imported directly like every demo engine consumer.
-import { decay, type DecaySample } from "@src/animation/decay";
+import { decay, type DecaySample } from "@mkbabb/keyframes.js";
 
 /**
  * The interactive subject of the amiga scene (A5 rebuild). Drag the SPHERE to

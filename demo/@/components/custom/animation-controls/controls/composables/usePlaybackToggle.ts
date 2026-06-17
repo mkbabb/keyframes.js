@@ -1,6 +1,6 @@
 import { ref } from "vue";
 
-import type { Animation } from "@src/animation/engine";
+import type { Animation } from "@mkbabb/keyframes.js";
 
 /**
  * The manual reverse-intent + play/pause toggle surface for a single controls

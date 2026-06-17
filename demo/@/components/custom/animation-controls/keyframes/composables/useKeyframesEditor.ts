@@ -1,4 +1,4 @@
-import type { Animation } from "@src/animation/engine";
+import type { Animation } from "@mkbabb/keyframes.js";
 import { useKeyframesState } from "./useKeyframesState";
 import { useKeyframesParsing } from "./useKeyframesParsing";
 

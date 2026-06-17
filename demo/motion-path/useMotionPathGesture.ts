@@ -1,8 +1,8 @@
 import { onMounted, ref, watch, type Ref } from "vue";
 
-import { fromMotionPath } from "@src/animation/motion-path";
-import { ManualTimeline } from "@src/animation/timeline";
-import type { CSSKeyframesAnimation } from "@src/animation/engine";
+import { kfEngine } from "@utils/kfEngine";
+import { ManualTimeline } from "@mkbabb/keyframes.js";
+import type { CSSKeyframesAnimation } from "@mkbabb/keyframes.js";
 
 import { useDragScrub } from "@composables/useDragScrub";
 import { clientToUserUnits } from "./motionPathGeometry";
@@ -99,9 +99,11 @@ export function useMotionPathGesture(
         const el = travellerEl.value;
         if (!el) return;
         // Construct the path-motion animation on the traveller via the engine's
-        // fromMotionPath factory: it sets the author offset-path + offset-rotate
+        // fromMotionPath factory (HEAVY — from the warmed kfEngine(), L.W8 S1
+        // dogfood inversion): it sets the author offset-path + offset-rotate
         // (tangent-following) on the element and builds the offset-distance
         // sweep. autoPlay:false — the editor's bottom bar drives it.
+        const { fromMotionPath } = kfEngine();
         anim = fromMotionPath(el, {
             path: `path('${demo.pathD.value}')`,
             rotate: "auto",

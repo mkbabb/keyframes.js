@@ -1,7 +1,10 @@
 import { computed, markRaw, ref, shallowRef } from "vue";
 
-import { AnimationGroup } from "@src/animation/group";
-import type { CSSKeyframesAnimation } from "@src/animation/engine";
+import { kfEngine } from "@utils/kfEngine";
+import type {
+    AnimationGroup,
+    CSSKeyframesAnimation,
+} from "@mkbabb/keyframes.js";
 
 import {
     createGroupAdapter,
@@ -45,6 +48,11 @@ import {
  * (proof:motion-path-copy).
  */
 export function useMotionPathDemo() {
+    // HEAVY constructor from the warmed engine (kfEngine(), L.W8 S1 dogfood
+    // inversion) — synchronous, since the warm resolves before any scene mounts.
+    // The `AnimationGroup` TYPE flows from the barrel (separate namespace).
+    const { AnimationGroup } = kfEngine();
+
     // Starts empty; the traveller's MotionPath animation is registered on mount.
     const animationGroup = shallowRef<AnimationGroup<any>>(
         markRaw(new AnimationGroup()),

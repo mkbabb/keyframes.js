@@ -1,10 +1,9 @@
 import { computed, markRaw, onScopeDispose, ref, watch } from "vue";
 
-import { AnimationGroup } from "@src/animation/group";
-import { CSSKeyframesAnimation } from "@src/animation/engine";
-import { SpringProgress } from "@src/animation/spring";
-import { springTimingFunction } from "@src/animation/springTimingFunction";
-import { NumericAnimation } from "@src/animation/numeric";
+import { kfEngine } from "@utils/kfEngine";
+import { SpringProgress } from "@mkbabb/keyframes.js";
+import { springTimingFunction } from "@mkbabb/keyframes.js";
+import { NumericAnimation } from "@mkbabb/keyframes.js";
 
 import { useRafScene } from "../app/useRafScene";
 import { useSceneMachine } from "@components/custom/animation-controls/stores";
@@ -46,6 +45,10 @@ const SAMPLER_DURATION = 1400;
  * contract (WV-W1-HIGH-3).
  */
 export function useSpringDemo() {
+    // HEAVY surface from the warmed engine (kfEngine(), L.W8 S1 dogfood inversion)
+    // — synchronous, since the warm resolves before any scene mounts.
+    const { CSSKeyframesAnimation, AnimationGroup } = kfEngine();
+
     // ── Sub-view selection (H.W5.S3 — the Discrete→Spring merge) ──────
     // The Spring scene now hosts TWO views of one spring curve:
     //   • "solver"   — the live SpringProgress rail + springTimingFunction sweep;

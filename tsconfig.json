@@ -15,6 +15,19 @@
         "skipLibCheck": true,
         "paths": {
             "@src/*": ["./src/*"],
+            // L.W8 S1 ED-3 DOGFOOD INVERSION — the TYPE-resolution twin of the
+            // vite self-alias (`@mkbabb/keyframes.js` → src/animation/index.ts).
+            // The demo flips its kf imports to the published barrel SPECIFIER;
+            // without this path, TS resolves those types to dist/keyframes.d.ts
+            // (the built roll-up) while the runtime + `loadAnimationEngine()`
+            // values resolve to SOURCE via the vite alias — two nominal type
+            // identities for the SAME class (the `_compiler` private-field
+            // mismatch). Pinning the barrel specifier to source here makes TS and
+            // the bundler agree on ONE realm in dev. tsconfig.lib.json inherits
+            // this but only includes src/ (which never imports the barrel), so the
+            // publishable-surface check is unaffected — it still resolves the real
+            // package. Mirrors @src; NOT a removal of the self-alias.
+            "@mkbabb/keyframes.js": ["./src/animation/index.ts"],
             "@styles/*": ["./demo/@/styles/*"],
             "@components/*": ["./demo/@/components/*"],
             "@utils/*": ["./demo/@/utils/*"],

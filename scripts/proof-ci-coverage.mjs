@@ -168,6 +168,16 @@ const EXCLUDED = new Set([
     // tier membership that would re-introduce the abort — the gate rides CI as a
     // report-all tripwire, by L.W4 S8's born-RED contract, not as an aggregator member.
     "proof:peer-satisfied",
+    // L.W8 S2 — proof:keyframes-vue-published is the BORN-RED-BY-DESIGN sibling-adapter
+    // publish tripwire (the SAME disposition as proof:peer-satisfied above). It IS
+    // CI-invoked (the demo-smoke report-all job, continue-on-error) but is DELIBERATELY
+    // ABSENT from the blocking proof:correctness/proof:hygiene && chains: clause (b)
+    // STAYS RED until the USER runs `npm publish` in packages/keyframes-vue/ (the actual
+    // publish is USER-DOMAIN — this wave implements everything UP TO it). Placing it in a
+    // blocking && chain would abort the chain on the expected RED. The exclusion keeps the
+    // converse-coverage clause (0b) from demanding a tier membership that would re-introduce
+    // the abort — the gate rides CI as a report-all tripwire, not as an aggregator member.
+    "proof:keyframes-vue-published",
 ]);
 
 const gates = Object.keys(pkg.scripts)

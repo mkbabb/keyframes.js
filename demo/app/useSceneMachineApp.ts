@@ -10,7 +10,8 @@
 
 import { markRaw, watch, type ComputedRef, type Ref, type ShallowRef } from "vue";
 import { useDocumentVisibility } from "@vueuse/core";
-import { AnimationGroup } from "@src/animation/group";
+import type { AnimationGroup } from "@mkbabb/keyframes.js";
+import { kfEngine } from "@utils/kfEngine";
 import type { ScenePlayback } from "@components/custom/animation-controls/stores";
 import {
     getStoredAnimationGroupControlOptions,
@@ -58,7 +59,9 @@ export function useSceneMachineApp(opts: {
 
         const group = sceneRef.value?.animationGroup;
         if (!group || isHome.value) {
-            currentAnimationGroup.value = markRaw(new AnimationGroup());
+            currentAnimationGroup.value = markRaw(
+                new (kfEngine().AnimationGroup)(),
+            );
             return;
         }
 

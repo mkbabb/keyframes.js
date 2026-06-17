@@ -233,7 +233,7 @@ import { StatusDot } from "@mkbabb/glass-ui/status-dot";
 
 import { RotateCcw } from "@lucide/vue";
 
-import { CSSKeyframesAnimation } from "@src/animation/engine";
+import { kfEngine } from "@utils/kfEngine";
 import { GlassDock } from "@mkbabb/glass-ui/dock";
 
 import type { StoredAnimationGroupControlOptions } from "./stores";
@@ -408,6 +408,10 @@ const resolveEl = (ref: any): HTMLElement | null => {
 
 const resetIconEl = useTemplateRef<HTMLElement>("resetIconEl");
 const trashIconEl = useTemplateRef<HTMLElement>("trashIconEl");
+
+// HEAVY constructor from the warmed engine (kfEngine(), L.W8 S1 dogfood
+// inversion) — synchronous, since the warm resolves before the app mounts.
+const { CSSKeyframesAnimation } = kfEngine();
 
 const resetSpinAnim = new CSSKeyframesAnimation({
     duration: 400,

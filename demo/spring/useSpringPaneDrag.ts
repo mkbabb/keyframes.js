@@ -1,8 +1,8 @@
 import { onScopeDispose, watch, type Ref } from "vue";
 import { useEventListener } from "@vueuse/core";
 
-import { Draggable } from "@src/animation/drag";
-import { RAFPlayback } from "@src/animation/playback";
+import { Draggable } from "@mkbabb/keyframes.js";
+import { RAFPlayback } from "@mkbabb/keyframes.js";
 import {
     acquireSelectSuppression,
     releaseSelectSuppression,

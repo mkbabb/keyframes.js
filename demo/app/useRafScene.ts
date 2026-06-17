@@ -1,6 +1,6 @@
 import { markRaw, onScopeDispose } from "vue";
 
-import { RAFPlayback } from "@src/animation/playback";
+import { RAFPlayback } from "@mkbabb/keyframes.js";
 import {
     createRafAdapter,
     type ScenePlayback,

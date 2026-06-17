@@ -1,4 +1,4 @@
-import { Animation } from "@src/animation/engine";
+import type { Animation } from "@mkbabb/keyframes.js";
 
 export const STORE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 

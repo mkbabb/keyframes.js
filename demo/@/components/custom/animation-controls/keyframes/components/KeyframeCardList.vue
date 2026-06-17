@@ -7,7 +7,7 @@
             <KeyframeCard
                 :ref="(el: any) => setCardRef(i, el)"
                 :frame-string="s"
-                :formatted-c-s-s="formatCSSKeyframeString(s)"
+                :formatted-c-s-s="formattedStrings[i] ?? s"
                 :frame-start="frames[i].start.toString()"
                 :index="i"
                 @update-start="(val) => emit('updateStart', { val, index: i })"
@@ -25,15 +25,31 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, shallowRef } from "vue";
 import { Separator } from "@mkbabb/glass-ui";
-import { formatCSSKeyframeString } from "@src/animation/format";
+import { loadAnimationEngine } from "@mkbabb/keyframes.js";
 import KeyframeCard from "../KeyframeCard.vue";
 
-defineProps<{
+const props = defineProps<{
     frameStrings: string[];
     frames: any[];
 }>();
+
+// L.W8 S1 ED-3 — `formatCSSKeyframeString` (a value.js-free pure-string trim) is
+// HEAVY-surface (it lives in the engine chunk), so it rides loadAnimationEngine()
+// rather than a deep @src import. It resolves within microtasks of mount (well
+// before any card renders), and until then the raw frame string is shown — an
+// honest pre-format frame, never a blank. Each formatted string is derived
+// reactively from `frameStrings` once the formatter is in hand.
+const formatFn =
+    shallowRef<((keyframe: string) => string) | null>(null);
+void loadAnimationEngine().then((engine) => {
+    formatFn.value = engine.formatCSSKeyframeString;
+});
+
+const formattedStrings = computed(() =>
+    props.frameStrings.map((s) => (formatFn.value ? formatFn.value(s) : s)),
+);
 
 const emit = defineEmits<{
     (e: "updateStart", val: { val: string; index: number }): void;

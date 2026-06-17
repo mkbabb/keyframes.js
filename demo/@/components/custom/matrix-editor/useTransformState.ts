@@ -2,8 +2,7 @@ import { easeInBounce } from "@mkbabb/value.js";
 import { computed, ref, watch } from "vue";
 import type { ComputedRef, Ref } from "vue";
 import { mat4 } from "gl-matrix";
-import { CSSKeyframesAnimation } from "@src/animation/engine";
-import { transformTargetsStyle } from "@src/animation/utils";
+import { kfEngine } from "@utils/kfEngine";
 import type { TransformState } from "@components/custom/orbital-drag";
 import {
     MATRIX_AXES,
@@ -22,6 +21,12 @@ export function useTransformState(
     targetRef: Ref<HTMLElement | undefined>,
     initialTransform?: TransformState,
 ) {
+    // HEAVY surface from the warmed engine (kfEngine(), L.W8 S1 dogfood
+    // inversion) — synchronous, since the warm resolves before any scene mounts.
+    // `transformTargetsStyle` paints a Vars snapshot onto DOM targets (the same
+    // painter the run loop drives).
+    const { CSSKeyframesAnimation, transformTargetsStyle } = kfEngine();
+
     const matrix3dStart = ref(createMatrix());
     const matrix3dEnd = ref(createMatrix());
 

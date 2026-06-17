@@ -1,6 +1,6 @@
 import { ref } from "vue";
 import type { Ref } from "vue";
-import type { AnimationGroup } from "@src/animation/group";
+import type { AnimationGroup } from "@mkbabb/keyframes.js";
 import { useRafLoop } from "./useRafLoop";
 
 export function useAnimationProgress(

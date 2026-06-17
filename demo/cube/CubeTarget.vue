@@ -102,7 +102,8 @@
 <script setup lang="ts">
 import { onScopeDispose, ref, useTemplateRef } from "vue";
 import { Loader2 } from "@lucide/vue";
-import { CSSKeyframesAnimation } from "@src/animation/engine";
+import type { CSSKeyframesAnimation } from "@mkbabb/keyframes.js";
+import { loadAnimationEngine } from "@mkbabb/keyframes.js";
 import OrbitalDrag from "@components/custom/orbital-drag/OrbitalDrag.vue";
 import type { TransformState } from "@components/custom/orbital-drag";
 
@@ -164,7 +165,7 @@ const ROLL_FACES: ReadonlyArray<{ x: number; y: number }> = [
     { x: 90, y: 0 },    // 6 — bottom
 ];
 
-const onRoll = () => {
+const onRoll = async () => {
     if (rolling.value || !cubeEl.value) return;
     rolling.value = true;
 
@@ -172,6 +173,12 @@ const onRoll = () => {
     // 1–2 extra whole turns per axis for the tumble drama, landing on the face.
     const endX = face.x + (1 + Math.floor(Math.random() * 2)) * 360;
     const endY = face.y + (1 + Math.floor(Math.random() * 2)) * 360;
+
+    const { CSSKeyframesAnimation } = await loadAnimationEngine();
+    if (!cubeEl.value) {
+        rolling.value = false;
+        return;
+    }
 
     rollAnim?.stop();
     rollAnim = new CSSKeyframesAnimation({

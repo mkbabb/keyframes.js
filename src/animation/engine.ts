@@ -74,14 +74,27 @@ const hasClone = (value: unknown): value is { clone: () => unknown } => {
     return typeof maybeClone === "function";
 };
 
-export const getAnimationId = (animation: Animation | string): string => {
+export const getAnimationId = (
+    animation: KeyframesAnimation | string,
+): string => {
     if (typeof animation === "string") return animation;
     return animation.name ?? String(animation.id);
 };
 
 let nextId = 0;
 
-export class Animation<V extends Vars = any> {
+/**
+ * The core animation engine — keyframes, timing, interpolation, playback.
+ *
+ * ── PKG-3 RENAME (L.W8 §S4 · audit W126). Formerly `Animation`; renamed to
+ * `KeyframesAnimation` because the old name collided with the ambient
+ * `globalThis.Animation` (WAAPI), leaking a numeric-suffixed collision alias
+ * into the d.ts roll-up (packaging-k.md:118-127). The old `Animation` name
+ * survives as a backward-compat RE-EXPORT alias (value + type) below — see the
+ * `@deprecated` `Animation` export for the full rationale. Gated by
+ * `proof:pkg3-clean`. The runtime constructor is `KeyframesAnimation`.
+ */
+export class KeyframesAnimation<V extends Vars = any> {
     id: number = nextId++;
     name: string | undefined;
     superKey: string | undefined;
@@ -320,7 +333,7 @@ export class Animation<V extends Vars = any> {
         transform?: TransformFunction<K>,
         timingFunction?: InputAnimationOptions["timingFunction"],
         composition?: CompositeOperator,
-    ): Animation<K> {
+    ): KeyframesAnimation<K> {
         this.compiler.addFrame(
             start,
             vars,
@@ -328,7 +341,7 @@ export class Animation<V extends Vars = any> {
             timingFunction,
             composition,
         );
-        return this as unknown as Animation<K>;
+        return this as unknown as KeyframesAnimation<K>;
     }
 
     /** Compile the template frames into the sampled `frames[]`. Chainable. */
@@ -376,7 +389,7 @@ export class Animation<V extends Vars = any> {
      *
      * @param source an animation whose `compiler` is already compiled.
      */
-    adoptCompiled(source: Animation<V>): this {
+    adoptCompiled(source: KeyframesAnimation<V>): this {
         // Transplant the compiled compiler whole (its `frames`/`templateFrames`/
         // `parsedVars` come with it) into the backing field.
         this._compiler = source.compiler;
@@ -1166,12 +1179,28 @@ export class Animation<V extends Vars = any> {
         return this;
     }
 
-    group(...animations: Animation<V>[]) {
+    group(...animations: KeyframesAnimation<V>[]) {
         return new AnimationGroup<V>(this, ...animations);
     }
 }
 
-export class CSSKeyframesAnimation<V extends Vars> extends Animation<V> {
+/**
+ * @deprecated Renamed to {@link KeyframesAnimation} in 5.0.0 (PKG-3, L.W8 §S4).
+ * The old `Animation` name collided with the ambient `globalThis.Animation`
+ * (WAAPI), so the rolled-up d.ts formerly leaked a numeric-suffixed collision
+ * alias into every intermediate type in IDE hover text. The CANONICAL
+ * declaration is now `KeyframesAnimation` (no ambient collision); this
+ * `Animation` is a pure RE-EXPORT alias of it — value AND type — so existing
+ * code keeps working: `import type { Animation } from "@mkbabb/keyframes.js"`,
+ * `new Animation()`, and `instanceof Animation` all resolve to
+ * `KeyframesAnimation`. Because the canonical name no longer collides, API
+ * Extractor emits the clean re-export (`KeyframesAnimation` exported under the
+ * `Animation` name, no numeric suffix) — `proof:pkg3-clean` stays GREEN.
+ * Migrate to `KeyframesAnimation`; this alias is a transition aid.
+ */
+export { KeyframesAnimation as Animation };
+
+export class CSSKeyframesAnimation<V extends Vars> extends KeyframesAnimation<V> {
     constructor(
         options?: Partial<InputAnimationOptions>,
         ...targets: HTMLElement[]

@@ -14,10 +14,18 @@
  * rAF clock and asserts NO further frame callback executes. BITE: revert the
  * `onScopeDispose` stop → the loop survives dispose → a frame still fires → reds.
  */
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { effectScope } from "vue";
+import { warmKfEngine } from "../demo/@/utils/kfEngine";
 import { useEasingDemo } from "../demo/easing/useEasingDemo";
 import { useSpringDemo } from "../demo/spring/useSpringDemo";
+
+// L.W8 S1 ED-3 — the demo composables now read the HEAVY engine surface
+// synchronously via the warmed `kfEngine()` (the demo warms it before mount).
+// In the unit harness there is no app boot, so warm it once up front.
+beforeAll(async () => {
+    await warmKfEngine();
+});
 import { useSceneMachine } from "../demo/@/components/custom/animation-controls/stores/useSceneMachine";
 
 /**

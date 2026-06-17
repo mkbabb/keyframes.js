@@ -1,6 +1,6 @@
 import { ref, watch, type Ref } from "vue";
 import { useRafFn, useDocumentVisibility } from "@vueuse/core";
-import type { Animation } from "@src/animation/engine";
+import type { Animation } from "@mkbabb/keyframes.js";
 
 /**
  * Syncs reactive refs to a markRaw animation's state via rAF polling.

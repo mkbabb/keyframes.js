@@ -1,6 +1,6 @@
 import { watch, onScopeDispose, ref } from "vue";
 import type { Ref } from "vue";
-import { RAFPlayback } from "@src/animation/playback";
+import { RAFPlayback } from "@mkbabb/keyframes.js";
 
 /**
  * A composable that manages a per-frame loop with optional reactive guard.

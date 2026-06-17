@@ -1,7 +1,12 @@
 import { ValueUnit, lerp } from "@mkbabb/value.js";
 import { withReducedMotion } from "./internal/reduced-motion";
 import { RAFPlayback } from "./playback";
-import { Animation, getAnimationId } from "./engine";
+import { KeyframesAnimation, getAnimationId } from "./engine";
+// PKG-3 (L.W8 §S4): the class was renamed `Animation` → `KeyframesAnimation`
+// (the runtime VALUE). The `Animation` name survives only as a deprecated TYPE
+// alias — kept here for the existing `Animation<V>` annotations below — while
+// the `instanceof` guard reads the canonical runtime constructor.
+import type { Animation } from "./engine";
 import { SpringProgress } from "./spring";
 import {
     advanceBatched,
@@ -132,7 +137,7 @@ export class AnimationGroup<V extends Vars> {
             let animation: Animation<V>;
             let layerConfig: Partial<AnimationLayerConfig> | undefined;
 
-            if (input instanceof Animation) {
+            if (input instanceof KeyframesAnimation) {
                 animation = input;
             } else {
                 animation = input.animation;

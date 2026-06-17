@@ -1,5 +1,5 @@
 import { convert2 } from "@mkbabb/value.js";
-import type { Animation } from "@src/animation/engine";
+import type { Animation } from "@mkbabb/keyframes.js";
 import { ref } from "vue";
 import {
     createAnimationUUId,

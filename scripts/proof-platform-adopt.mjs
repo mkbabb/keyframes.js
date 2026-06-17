@@ -199,11 +199,14 @@ function main() {
         const attachFeatureDetected =
             /createNativeTimeline/.test(waapi) &&
             /attached:\s*false/.test(waapi);
-        // THE ARCH-KILL: the JS ScrollTimeline sampler MUST still exist (the
-        // additive bridge never replaces it — native is Chromium-only).
-        const jsSamplerSurvives = /export class ScrollTimeline extends Timeline/.test(
-            timeline,
-        );
+        // THE ARCH-KILL: the JS scroll sampler MUST still exist (the additive
+        // bridge never replaces it — native is Chromium-only). PKG-3 (L.W8 §S4):
+        // the JS sampler class was renamed `ScrollTimeline` → `KeyframesScrollTimeline`
+        // to clear the `globalThis.ScrollTimeline` d.ts collision; `ScrollTimeline`
+        // survives as the @deprecated backward-compat re-export alias. The sampler
+        // survives iff its canonical class declaration is present.
+        const jsSamplerSurvives =
+            /export class KeyframesScrollTimeline extends Timeline/.test(timeline);
         if (!hasNativeFactory) {
             fail(
                 "[S5] timeline.ts has no feature-detected createNativeTimeline " +

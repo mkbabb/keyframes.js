@@ -124,9 +124,9 @@
 </template>
 
 <script setup lang="ts">
-import type { AnimationGroup } from "@src/animation/group";
-import type { AnimationLayerConfig } from "@src/animation/constants";
-import type { Animation } from "@src/animation/engine";
+import type { AnimationGroup } from "@mkbabb/keyframes.js";
+import type { AnimationLayerConfig } from "@mkbabb/keyframes.js";
+import type { Animation } from "@mkbabb/keyframes.js";
 import type { StoredAnimationGroupControlOptions } from "../stores";
 import type { SegmentedTabOption } from "@mkbabb/glass-ui/tabs";
 import AnimationControls from "../controls/AnimationControls.vue";

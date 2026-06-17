@@ -1,6 +1,6 @@
 import { ref, type Ref } from "vue";
 
-import type { SpringProgress } from "@src/animation/spring";
+import type { SpringProgress } from "@mkbabb/keyframes.js";
 
 import { SPRING_PRESETS, type SpringPreset } from "./springPresets";
 

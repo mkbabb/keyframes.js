@@ -5,27 +5,32 @@
 </template>
 
 <script setup lang="ts">
-import * as animations from "@src/animation/animations";
-import { onMounted, ref, useTemplateRef, watch } from "vue";
+import { loadAnimationEngine } from "@mkbabb/keyframes.js";
+import type { CSSKeyframesAnimation } from "@mkbabb/keyframes.js";
+import { onMounted, ref, shallowRef, useTemplateRef, watch } from "vue";
 
-const enter = animations.fadeIn();
-const leave = animations.fadeOut();
+// The fade presets are HEAVY (each returns a CSSKeyframesAnimation); they ride
+// loadAnimationEngine() rather than a deep @src import. Built once at mount.
+const enter = shallowRef<CSSKeyframesAnimation<any> | null>(null);
+const leave = shallowRef<CSSKeyframesAnimation<any> | null>(null);
 
 const el = useTemplateRef<HTMLElement>("el");
 
 const children = ref<HTMLElement[]>([]);
 
 const onEnter = async () => {
-    enter.setTargets(...children.value);
-    leave.setTargets(...children.value);
+    if (!enter.value || !leave.value) return;
+    enter.value.setTargets(...children.value);
+    leave.value.setTargets(...children.value);
 
-    leave.stop();
-    enter.play();
+    leave.value.stop();
+    enter.value.play();
 };
 
 const onLeave = async () => {
-    enter.stop();
-    await leave.play();
+    if (!enter.value || !leave.value) return;
+    enter.value.stop();
+    await leave.value.play();
 };
 
 const isHidden = (el: HTMLElement) =>
@@ -42,7 +47,11 @@ watch(
     },
 );
 
-onMounted(() => {
+onMounted(async () => {
+    const { presets } = await loadAnimationEngine();
+    enter.value = presets.fadeIn();
+    leave.value = presets.fadeOut();
+
     children.value = el.value!.childNodes as unknown as HTMLElement[];
     onEnter();
 });

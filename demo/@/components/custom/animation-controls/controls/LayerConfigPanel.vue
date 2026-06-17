@@ -60,7 +60,7 @@
 </template>
 
 <script setup lang="ts">
-import type { AnimationLayerConfig } from "@src/animation/constants";
+import type { AnimationLayerConfig } from "@mkbabb/keyframes.js";
 import { LabeledField, LabeledSelect, LabeledSlider, LabeledSwitch } from "@mkbabb/glass-ui/labeled-field";
 import { Input } from "@mkbabb/glass-ui/forms";
 import { Separator } from "@mkbabb/glass-ui";

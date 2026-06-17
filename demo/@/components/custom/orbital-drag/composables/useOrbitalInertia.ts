@@ -6,9 +6,11 @@ import { axes } from "..";
 // inv ζ (orchestration analogue, F.W10.S1): the orbital inertia consumes the
 // engine's SHIPPED analytic `decay()` closed form — it no longer hand-rolls the
 // `Math.pow(inertiaFactor, dt/TARGET_DT)` discrete Euler decay the engine now
-// owns. `decay` is the light surface (zero value.js edge), imported directly
-// like every other demo engine consumer (`@src/animation/*`).
-import { decay } from "@src/animation/decay";
+// owns. `decay` is the light surface (zero value.js edge), imported from the
+// published barrel `@mkbabb/keyframes.js` like every other demo engine consumer
+// (L.W8 ED-3 dogfood inversion — the demo consumes the published surface, not
+// deep `@src/animation/*` paths).
+import { decay } from "@mkbabb/keyframes.js";
 // The Vue-free measure-first mapping (k from inertiaFactor) + TARGET_DT, kept in
 // a pure module so the inertia-parity gate imports it without the .vue graph.
 import { TARGET_DT, inertiaFactorToFriction } from "./inertiaDecay";

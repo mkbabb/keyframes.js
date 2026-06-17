@@ -4,7 +4,7 @@ import {
     parseCSSStylesheet,
     type CSSAnimationOptions,
 } from "@mkbabb/value.js";
-import { resolveKeyframes } from "@src/animation/engine";
+import { loadAnimationEngine } from "@mkbabb/keyframes.js";
 
 /**
  * Pure CSS → AST parse adapter.
@@ -18,9 +18,12 @@ import { resolveKeyframes } from "@src/animation/engine";
  * superset guard from the editor call site), so both a full stylesheet and a
  * bare declaration list are tolerated.
  *
- * Pure: no Vue reactivity, no side effects.
+ * No Vue reactivity, no side effects. ASYNC because `resolveKeyframes` is HEAVY
+ * (reached through `loadAnimationEngine()` after the L.W8 S1 dogfood inversion);
+ * value.js's AST parse/extract stay synchronous, only the kf resolve awaits.
  */
-export const parseAnimationCSS = (input: string) => {
+export const parseAnimationCSS = async (input: string) => {
+    const { resolveKeyframes } = await loadAnimationEngine();
     const ast = parseCSSStylesheet(
         /@keyframes\b/i.test(input)
             ? input

@@ -9,10 +9,9 @@ import {
 } from "@mkbabb/value.js";
 import { computed, markRaw, onScopeDispose, ref, watch } from "vue";
 
-import { CSSKeyframesAnimation } from "@src/animation/engine";
-import { AnimationGroup } from "@src/animation/group";
-import { NumericAnimation } from "@src/animation/numeric";
-import type { TimingFunction } from "@src/animation/constants";
+import { kfEngine } from "@utils/kfEngine";
+import { NumericAnimation } from "@mkbabb/keyframes.js";
+import type { TimingFunction } from "@mkbabb/keyframes.js";
 
 import {
     generateCurveSVGPath,
@@ -47,6 +46,10 @@ type JumpTerm = NonNullable<Parameters<typeof steppedEase>[1]>;
 // ── Composable ─────────────────────────────────────────────────────
 
 export function useEasingDemo() {
+    // HEAVY surface from the warmed engine (kfEngine(), L.W8 S1 dogfood inversion)
+    // — synchronous, since the warm resolves before any scene mounts.
+    const { CSSKeyframesAnimation, AnimationGroup } = kfEngine();
+
     const timingFunctionsAnd = getTimingFunctionsAnd();
 
     // ── Reactive state ─────────────────────────────────────────────

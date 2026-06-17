@@ -3,7 +3,7 @@ import {
     ACTIVE_CONTROL_CONDITIONALS_KEY,
     ACTIVE_SUPER_KEY,
 } from "../../injectionKeys";
-import type { Animation } from "@src/animation/engine";
+import type { Animation } from "@mkbabb/keyframes.js";
 import { useSceneMachine } from "../../stores";
 import type { StoredAnimationGroupControlOptions } from "../../stores";
 

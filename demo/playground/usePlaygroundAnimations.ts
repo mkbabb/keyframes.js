@@ -1,6 +1,5 @@
 import { markRaw } from "vue";
-import { AnimationGroup } from "@src/animation/group";
-import * as presets from "@src/animation/animations";
+import { kfEngine } from "@utils/kfEngine";
 
 const SUPER_KEY = "playground";
 
@@ -9,6 +8,10 @@ const SUPER_KEY = "playground";
  * that can be bound to assets in the playground.
  */
 export function usePlaygroundAnimations() {
+    // HEAVY surface from the warmed engine (kfEngine(), L.W8 S1 dogfood
+    // inversion) — synchronous, warmed before the playground app mounts.
+    const { AnimationGroup, presets } = kfEngine();
+
     const bounce = presets.bounce({
         duration: 1500,
         iterationCount: Infinity,

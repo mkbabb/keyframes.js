@@ -5,10 +5,40 @@ The boundary-ORACLE at the **package** boundary: the demo consumes the PUBLISHED
 storefront is the dynamic integration test of the exact surface a `npm i`
 consumer reaches (`proof:published-surface` made DYNAMIC).
 
-## Status: STAGED, gated on the K.WZ publish (the HONEST disposition)
+## Status: LANDED (L.W8 S1) — the flip is COMPLETE
 
-The inversion is **recorded** and its seam is **in place**, but the full flip is
-**gated on K.WZ**. This is the honest version, not a punt — here is exactly why.
+The inversion has **landed** at **L.W8 S1**: every demo file consumes the
+published `@mkbabb/keyframes.js` barrel — **zero** `@src/animation/*` deep
+imports. `KFVUE_INVERSION_LANDED=1 npm run proof:demo-on-published-surface` is
+GREEN (clause (b) asserts zero deep imports; the census reads `0 files`). The
+LIGHT named exports (`SpringProgress`, `RAFPlayback`, `stagger`, `decay`,
+`Sequence`, …) are static barrel imports; the HEAVY surface
+(`CSSKeyframesAnimation` / `AnimationGroup` / `presets` / the serialization +
+compile helpers) is reached ONLY through the barrel's `loadAnimationEngine()`
+dynamic accessor — `proof:boundary` stays GREEN (value.js never lands on the
+LIGHT static barrel; the built demo keeps `engine-*`/`value-*` as separate lazy
+chunks). The multi-scene app + playground WARM the engine once before mount
+(`demo/@/utils/kfEngine.ts`), so the scene-machine's synchronous heavy
+construction reads the resolved surface without threading async through the
+non-null control-suite prop contracts.
+
+The L.W8 S1 flip also surfaced five HEAVY engine helpers the demo legitimately
+needs onto `loadAnimationEngine()`'s return (`CSSKeyframesToString` /
+`CSSKeyframesToStrings` / `formatCSSKeyframeString` / `transformTargetsStyle` /
+`yieldToMain`) — documented in `docs/published-surface.md`, gated by
+`proof:published-surface` clauses (b)/(d). A type-resolution twin of the vite
+self-alias (`tsconfig.json` `paths`) keeps TS and the bundler on ONE realm in
+dev so the barrel-specifier types unify with the `loadAnimationEngine()` runtime.
+
+### Historical disposition (the STAGED posture, pre-L.W8)
+
+The text below is the original K.W12 STAGED disposition — retained as the record
+of why the flip was gated on the **K.WZ** publish and the **Band-I** honesty
+precondition before it could honestly land. The flip executed once the published
+surface caught up; the seam it rode (the **self-alias**) is unchanged.
+
+The inversion was **recorded** and its seam was **in place**, but the full flip
+was **gated on K.WZ**. This was the honest version, not a punt — here is exactly why.
 
 ### Why the full flip cannot land before K.WZ
 

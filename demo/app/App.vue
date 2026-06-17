@@ -191,7 +191,8 @@ import { useGlobalDark } from "@mkbabb/glass-ui/dark";
 import { DockDropdownTrigger } from "@mkbabb/glass-ui/dock";
 import ChromeDock from "@components/custom/dock/ChromeDock.vue";
 
-import { AnimationGroup } from "@src/animation/group";
+import type { AnimationGroup } from "@mkbabb/keyframes.js";
+import { kfEngine } from "@utils/kfEngine";
 import {
     getStoredAnimationGroupControlOptions,
     useSceneMachine,
@@ -255,7 +256,9 @@ const sceneHostEl = useTemplateRef<HTMLElement>("sceneHostEl");
 // Start with an empty AnimationGroup. The active scene's real group is bound
 // once the scene exposes it (after mount). markRaw groups are NEVER held in the
 // machine context (MED-6) — only their serializable snapshots are.
-const currentAnimationGroup = shallowRef<AnimationGroup<any>>(markRaw(new AnimationGroup()));
+const currentAnimationGroup = shallowRef<AnimationGroup<any>>(
+    markRaw(new (kfEngine().AnimationGroup)()),
+);
 const autoPlayNext = ref(false);
 
 const storedControls = computed(() => getStoredAnimationGroupControlOptions(currentSuperKey.value));

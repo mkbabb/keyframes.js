@@ -49,14 +49,18 @@ export { springTimingFunction } from "./springTimingFunction";
 export type { SpringTimingFunctionOptions } from "./springTimingFunction";
 export { ElementMorph } from "./morph";
 export type { MorphRect, ElementMorphOptions } from "./morph";
+// `ScrollTimeline` is the @deprecated PKG-3 alias of `KeyframesScrollTimeline`
+// (L.W8 §S4 — renamed to clear the `globalThis.ScrollTimeline` d.ts collision).
 export {
     Timeline,
+    KeyframesScrollTimeline,
     ScrollTimeline,
     ManualTimeline,
     createNativeTimeline,
 } from "./timeline";
 export type {
     TimelineOptions,
+    KeyframesScrollTimelineOptions,
     ScrollTimelineOptions,
     NativeTimelineSpec,
 } from "./timeline";
@@ -190,9 +194,12 @@ export type {
 // the LIGHT barrel; proof:boundary stays green).
 export type { ValidateOptions, ValidateResult } from "./validate";
 // Heavy-class TYPES stay on the static barrel (erased) so consumers keep
-// `import type { Animation } from "@mkbabb/keyframes.js"` for annotations.
-// The runtime constructors are reached only via `loadAnimationEngine()`.
+// `import type { KeyframesAnimation } from "@mkbabb/keyframes.js"` for
+// annotations. The runtime constructors are reached only via
+// `loadAnimationEngine()`. `Animation` is the @deprecated PKG-3 alias of
+// `KeyframesAnimation` (L.W8 §S4) — kept for backward-compat annotations.
 export type {
+    KeyframesAnimation,
     Animation,
     CSSKeyframesAnimation,
     AnimationGroup,
@@ -200,6 +207,7 @@ export type {
 
 // ── HEAVY engine (value.js-bearing, dynamic) ─────────────────────────────
 import type {
+    KeyframesAnimation,
     Animation,
     CSSKeyframesAnimation,
     AnimationGroup,
@@ -251,6 +259,22 @@ import type {
     validate as validateImpl,
     explain as explainImpl,
 } from "./validate";
+// L.W8 S1 ED-3 DOGFOOD INVERSION (FLAGGED ADDITIVE) — the heavy
+// serialization/painting/scheduler helpers the demo (and any round-tripping
+// consumer) reaches through `loadAnimationEngine()`. `CSSKeyframesToString`/
+// `CSSKeyframesToStrings`/`formatCSSKeyframeString` serialize a parsed
+// `Animation` back to CSS (`format.ts`, value.js-bearing); `transformTargetsStyle`
+// paints a `Vars` snapshot onto DOM targets (`utils.ts`, the same painter
+// `Animation.interpFrames` drives); `yieldToMain` is the engine's ONE INP-relief
+// yield ladder (`internal/scheduler.ts`, value.js-free). All ride the engine
+// chunk the dynamic boundary already pulls — no new static value.js edge.
+import type {
+    CSSKeyframesToString as CSSKeyframesToStringImpl,
+    CSSKeyframesToStrings as CSSKeyframesToStringsImpl,
+    formatCSSKeyframeString as formatCSSKeyframeStringImpl,
+} from "./format";
+import type { transformTargetsStyle as transformTargetsStyleImpl } from "./utils";
+import type { yieldToMain as yieldToMainImpl } from "./internal/scheduler";
 import type * as AnimationPresets from "./animations";
 import type {
     AnimationOptions,
@@ -269,10 +293,17 @@ import type { Stylesheet } from "@mkbabb/value.js";
  * with `./engine`'s runtime exports.
  */
 export interface AnimationEngine {
+    /**
+     * The core engine constructor (PKG-3, L.W8 §S4) — renamed from `Animation`
+     * to clear the `globalThis.Animation` d.ts collision. `Animation` below is
+     * the @deprecated backward-compat alias (same runtime constructor).
+     */
+    KeyframesAnimation: typeof KeyframesAnimation;
+    /** @deprecated Use {@link KeyframesAnimation}. Backward-compat alias (PKG-3). */
     Animation: typeof Animation;
     CSSKeyframesAnimation: typeof CSSKeyframesAnimation;
     AnimationGroup: typeof AnimationGroup;
-    getAnimationId: (animation: Animation | string) => string;
+    getAnimationId: (animation: KeyframesAnimation | string) => string;
     getTimingFunction: (
         timingFunction:
             | TimingFunction
@@ -361,6 +392,22 @@ export interface AnimationEngine {
      */
     validate: typeof validateImpl;
     explain: typeof explainImpl;
+    /**
+     * L.W8 S1 ED-3 DOGFOOD INVERSION (FLAGGED ADDITIVE) — the heavy
+     * serialization/painting/scheduler helpers over a parsed `Animation`.
+     * `CSSKeyframesToString`/`CSSKeyframesToStrings` re-serialize the parsed
+     * keyframes back to CSS (the FORWARD half of `fromString`, value.js-bearing);
+     * `formatCSSKeyframeString` trims one keyframe body for display;
+     * `transformTargetsStyle` paints a `Vars` snapshot onto DOM targets (the
+     * same painter the run loop drives); `yieldToMain` is the engine's ONE
+     * INP-relief yield ladder. HEAVY (they ride the engine chunk) — reached only
+     * here, never the LIGHT barrel.
+     */
+    CSSKeyframesToString: typeof CSSKeyframesToStringImpl;
+    CSSKeyframesToStrings: typeof CSSKeyframesToStringsImpl;
+    formatCSSKeyframeString: typeof formatCSSKeyframeStringImpl;
+    transformTargetsStyle: typeof transformTargetsStyleImpl;
+    yieldToMain: typeof yieldToMainImpl;
 }
 
 /**
@@ -373,10 +420,13 @@ export interface AnimationEngine {
  * `engine` chunk alone, not the eight-chunk full surface.
  */
 export interface EngineCore {
+    /** The core engine constructor (PKG-3, L.W8 §S4 — renamed from `Animation`). */
+    KeyframesAnimation: typeof KeyframesAnimation;
+    /** @deprecated Use {@link KeyframesAnimation}. Backward-compat alias (PKG-3). */
     Animation: typeof Animation;
     CSSKeyframesAnimation: typeof CSSKeyframesAnimation;
     AnimationGroup: typeof AnimationGroup;
-    getAnimationId: (animation: Animation | string) => string;
+    getAnimationId: (animation: KeyframesAnimation | string) => string;
     getTimingFunction: (
         timingFunction:
             | TimingFunction
@@ -579,6 +629,15 @@ export const loadAnimationEngine = (): Promise<AnimationEngine> =>
         // dependency the engine did not already pull.
         import("./validate"),
         import("./animations"),
+        // L.W8 S1 ED-3 DOGFOOD INVERSION (FLAGGED ADDITIVE) — the format/utils/
+        // scheduler helpers. `format`/`utils` are value.js-bearing and already
+        // sit on the engine chunk's static graph; `internal/scheduler` is
+        // value.js-free. Merged here so a consumer reaching the serialization /
+        // DOM-paint / yield helpers does so the same way as the rest of the heavy
+        // surface — no new static value.js edge on the LIGHT barrel.
+        import("./format"),
+        import("./utils"),
+        import("./internal/scheduler"),
     ]).then(
         ([
             engine,
@@ -590,6 +649,9 @@ export const loadAnimationEngine = (): Promise<AnimationEngine> =>
             compileMod,
             validateMod,
             presets,
+            formatMod,
+            utilsMod,
+            schedulerMod,
         ]) =>
             Object.assign(
                 {
@@ -616,6 +678,11 @@ export const loadAnimationEngine = (): Promise<AnimationEngine> =>
                     validate: validateMod.validate,
                     explain: validateMod.explain,
                     presets,
+                    CSSKeyframesToString: formatMod.CSSKeyframesToString,
+                    CSSKeyframesToStrings: formatMod.CSSKeyframesToStrings,
+                    formatCSSKeyframeString: formatMod.formatCSSKeyframeString,
+                    transformTargetsStyle: utilsMod.transformTargetsStyle,
+                    yieldToMain: schedulerMod.yieldToMain,
                 },
                 engine,
             ),

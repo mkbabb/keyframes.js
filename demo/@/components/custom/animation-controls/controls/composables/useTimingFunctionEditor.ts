@@ -4,12 +4,12 @@ import {
     cubicBezierToString,
     timingFunctions,
 } from "@mkbabb/value.js";
-import { Animation } from "@src/animation/engine";
+import type { Animation } from "@mkbabb/keyframes.js";
 
 import type {
     TimingFunction,
     TimingFunctionNames,
-} from "@src/animation/constants";
+} from "@mkbabb/keyframes.js";
 import type { StoredAnimationOptions } from "../../stores";
 
 import {

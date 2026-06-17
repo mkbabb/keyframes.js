@@ -1,6 +1,6 @@
 import { computed, toValue, type ComputedRef, type MaybeRefOrGetter } from "vue";
 
-import { springLinearStops } from "@src/animation/springLinearStops";
+import { springLinearStops } from "@mkbabb/keyframes.js";
 
 /**
  * The ONE spring → CSS `linear()` surface for the Spring scene (H.W5.S3).

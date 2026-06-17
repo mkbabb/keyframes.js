@@ -111,7 +111,7 @@ import { Button } from "@mkbabb/glass-ui";
 import { IconTooltip } from "@mkbabb/glass-ui/icon-tooltip";
 import type { SegmentedTabOption } from "@mkbabb/glass-ui/tabs";
 import { Keyboard } from "@lucide/vue";
-import type { AnimationGroup } from "@src/animation/group";
+import type { AnimationGroup } from "@mkbabb/keyframes.js";
 
 import "@styles/style.css";
 

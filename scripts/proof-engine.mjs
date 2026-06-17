@@ -77,16 +77,31 @@ if (!/export class FrameCompiler/.test(compiler)) {
 }
 {
     const engine = read("src/animation/engine.ts").split("\n");
-    const start = engine.findIndex((l) => /^export class Animation</.test(l));
-    const end = engine.findIndex((l) => /^export class CSSKeyframesAnimation/.test(l));
+    // PKG-3 (L.W8 §S4): the core engine class was renamed `Animation` →
+    // `KeyframesAnimation` to clear the `globalThis.Animation` d.ts collision;
+    // the body-size ceiling check anchors on the renamed class. Measure the
+    // class body to its OWN closing brace (the first top-level `}` after the
+    // class header) — the faithful "is the class a god-object?" measure — so the
+    // ceiling stays on the class itself and excludes the backward-compat
+    // `export { KeyframesAnimation as Animation }` alias block that follows it.
+    const start = engine.findIndex((l) => /^export class KeyframesAnimation</.test(l));
+    let end = -1;
+    if (start !== -1) {
+        for (let i = start + 1; i < engine.length; i++) {
+            if (/^}/.test(engine[i])) {
+                end = i;
+                break;
+            }
+        }
+    }
     if (start === -1 || end === -1 || end <= start) {
-        fail("engine-seam", "could not locate the Animation class body in engine.ts");
+        fail("engine-seam", "could not locate the KeyframesAnimation class body in engine.ts");
     } else {
-        const size = end - start; // lines from `export class Animation` to the class above CSSKeyframesAnimation
+        const size = end - start; // lines from `export class KeyframesAnimation` to its closing brace
         if (size > ANIMATION_CLASS_CEILING) {
-            fail("engine-seam", `Animation class is ${size} lines > ceiling ${ANIMATION_CLASS_CEILING} — the god-object is regrowing`);
+            fail("engine-seam", `KeyframesAnimation class is ${size} lines > ceiling ${ANIMATION_CLASS_CEILING} — the god-object is regrowing`);
         } else {
-            ok("engine-seam", `Animation class is ${size} lines ≤ ceiling ${ANIMATION_CLASS_CEILING} (FrameCompiler holds the compile half)`);
+            ok("engine-seam", `KeyframesAnimation class is ${size} lines ≤ ceiling ${ANIMATION_CLASS_CEILING} (FrameCompiler holds the compile half)`);
         }
     }
 }

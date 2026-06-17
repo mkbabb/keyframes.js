@@ -120,7 +120,21 @@ const flipKeyframes = /*css*/ `
     animation-timing-function: ease-in;
   }
 `;
-export const flip = (options?: InputAnimationOptions) =>
+/**
+ * The card-flip attention preset.
+ *
+ * ── PKG-3 RENAME (L.W8 §S4 · audit W126). Formerly the preset `flip`. Renamed
+ * `flip` → `flipPreset` because the rolled-up `dist/keyframes.d.ts` placed this
+ * preset (reachable as `presets.flip`) and the LIGHT top-level `flip` export
+ * (the FLIP-layout helper in `flip.ts`) under the same name `flip`, so API
+ * Extractor renamed this one with a numeric suffix and re-exported it under the
+ * `flip` name inside the `AnimationPresets` namespace — a numeric-suffixed alias
+ * `proof:pkg3-clean` greps for. Naming the preset `flipPreset` (distinct from the
+ * light `flip`) clears the collision. BREAKING (5.0.0): the access path is now
+ * `presets.flipPreset`; the nested taxonomy key `attentionPresets.flip` is
+ * unchanged (a property name, not a top-level declaration — no collision).
+ */
+export const flipPreset = (options?: InputAnimationOptions) =>
     new CSSKeyframesAnimation({
         duration: 1000,
         timingFunction: "ease-in-out",
@@ -838,7 +852,9 @@ export const attentionPresets = {
     pulse,
     shake,
     bounce,
-    flip,
+    // The taxonomy key stays `flip` (a nested property — no top-level
+    // collision); the factory is the renamed `flipPreset` (PKG-3, L.W8 §S4).
+    flip: flipPreset,
     notificationBounce,
     springPop,
     springWobble,

@@ -1,4 +1,4 @@
-import type { Animation } from "@src/animation/engine";
+import type { Animation } from "@mkbabb/keyframes.js";
 import { createGlobalState, useStorage } from "@vueuse/core";
 import { checkAndResetExpiredStore, getAnimationSuperKey } from "./storeUtils";
 

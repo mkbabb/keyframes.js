@@ -1,11 +1,11 @@
 import { computed, markRaw, onScopeDispose, ref, watch } from "vue";
 
-import { AnimationGroup } from "@src/animation/group";
-import { CSSKeyframesAnimation } from "@src/animation/engine";
-import { Sequence } from "@src/animation/sequence";
-import { stagger } from "@src/animation/stagger";
-import { springTimingFunction } from "@src/animation/springTimingFunction";
-import { RAFPlayback } from "@src/animation/playback";
+import { kfEngine } from "@utils/kfEngine";
+import type { CSSKeyframesAnimation as CSSKeyframesAnimationT } from "@mkbabb/keyframes.js";
+import { Sequence } from "@mkbabb/keyframes.js";
+import { stagger } from "@mkbabb/keyframes.js";
+import { springTimingFunction } from "@mkbabb/keyframes.js";
+import { RAFPlayback } from "@mkbabb/keyframes.js";
 
 import { useSceneVisibilityPause } from "../app/useSceneVisibilityPause";
 import {
@@ -79,6 +79,12 @@ export interface SequenceRow {
 }
 
 export function useSequenceDemo() {
+    // HEAVY surface from the warmed engine (kfEngine(), L.W8 S1 dogfood inversion)
+    // — synchronous, since the warm resolves before any scene mounts. The TYPES
+    // (`*T` aliases) flow from the barrel; only the runtime constructors come from
+    // the resolved surface here.
+    const { CSSKeyframesAnimation, AnimationGroup } = kfEngine();
+
     // ── The stagger distribution → the Sequence `at:` positions ──────────────
     // `stagger` is a pure construction-time per-index delay generator: from the
     // "first" origin it is a monotone ramp 0, each, 2·each, … — a clean staircase
@@ -112,7 +118,7 @@ export function useSequenceDemo() {
         response: 0.45,
         dampingFraction: 0.62,
     });
-    const childAnims: CSSKeyframesAnimation<any>[] = [];
+    const childAnims: CSSKeyframesAnimationT<any>[] = [];
     for (let i = 0; i < ROW_COUNT; i++) {
         const anim = new CSSKeyframesAnimation({
             duration: ROW_DURATION,
@@ -314,7 +320,7 @@ export function useSequenceDemo() {
         // returns the storyboard to its default state, undoing any row re-author.
         delays.value = [...DEFAULT_DELAYS];
         for (const e of sequence.entries) {
-            const i = childAnims.indexOf(e.animation as CSSKeyframesAnimation<any>);
+            const i = childAnims.indexOf(e.animation as CSSKeyframesAnimationT<any>);
             if (i >= 0) e.at = DEFAULT_DELAYS[i]!;
         }
         sequence.entries.sort((a, b) => a.at - b.at);

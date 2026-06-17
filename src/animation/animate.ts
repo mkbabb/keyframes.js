@@ -29,6 +29,8 @@
  */
 
 import { CSSKeyframesAnimation } from "./engine";
+import { AnimationGroup } from "./group";
+import { Sequence } from "./sequence";
 import { fromMotionPath } from "./motion-path";
 import type { MotionPathOptions } from "./motion-path";
 import type {
@@ -56,7 +58,7 @@ export type MotionPathInput = Pick<
 >;
 
 /**
- * The declarative input to {@link animate} — one of the four `from*` shapes:
+ * The declarative input to {@link animate} — one of the six dispatch shapes:
  *
  *  • `string`            — a CSS `@keyframes` (or bare keyframe-block) source.
  *  • `KeyframeMap`       — `{ "0%": {...}, "100%": {...} }` or the `Map` form.
@@ -64,12 +66,18 @@ export type MotionPathInput = Pick<
  *                          pair, or more stops), distributed evenly 0→100%.
  *  • `MotionPathInput`   — `{ path, from?, to?, rotate? }` — an `offset-distance`
  *                          sweep over an author `offset-path` (F.W12 §S2).
+ *  • `AnimationGroup`    — the SPATIAL per-frame blender (L.W8 §S3) — routed to
+ *                          its own `.play()`, NOT wrapped in a new animation.
+ *  • `Sequence`          — the TEMPORAL master-playhead orchestrator (L.W8 §S3)
+ *                          — routed to its own `.play()`.
  */
 export type AnimateInput<V extends Vars> =
     | string
     | KeyframeMap<V>
     | V[]
-    | MotionPathInput;
+    | MotionPathInput
+    | AnimationGroup<V>
+    | Sequence<V>;
 
 /**
  * Options accepted by {@link animate}. The animation-options surface, plus an
@@ -136,8 +144,28 @@ export function animate<V extends Vars = any>(
     target: HTMLElement | HTMLElement[],
     input: AnimateInput<V>,
     options?: AnimateOptions,
-): CSSKeyframesAnimation<V> {
+): CSSKeyframesAnimation<V> | AnimationGroup<V> | Sequence<V> {
     const { transform, autoPlay = true, ...animOptions } = options ?? {};
+
+    // Orchestration tier → dispatch to the input's OWN play path (L.W8 §S3,
+    // W127). An `AnimationGroup` (the SPATIAL per-frame blender) and a
+    // `Sequence` (the TEMPORAL master-playhead) each OWN their loop and their
+    // children's targets — `animate` must NOT wrap them in a new
+    // `CSSKeyframesAnimation`. Both are HEAVY (they need the engine at
+    // call-time for `.play()`), and they ride `loadAnimationEngine()` already
+    // via `engine.ts`'s re-exports, so the runtime `instanceof` checks fire
+    // after the dynamic import has resolved — NO new static value.js edge.
+    // Checked FIRST: an instance is a non-array, non-Map object that would
+    // otherwise be misread as a keyframe map by `isKeyframeMap`. We forward the
+    // target (`setTargets` is present on both; the optional-call guards a future
+    // shape), gate the `.play()` on `autoPlay` (same semantics as every other
+    // shape), and return the instance BY REFERENCE as the control handle.
+    if (input instanceof AnimationGroup || input instanceof Sequence) {
+        const targets = Array.isArray(target) ? target : [target];
+        input.setTargets?.(...targets);
+        if (autoPlay) void input.play();
+        return input;
+    }
 
     // MotionPath spec → fromMotionPath (F.W12 §S2). Checked FIRST among the
     // object shapes (a `{ path }` is a non-array object that would otherwise

@@ -68,7 +68,7 @@ import {
     DialogTrigger,
 } from "@mkbabb/glass-ui";
 import { FileIcon, FilePlus2 } from "@lucide/vue";
-import { CSSKeyframesAnimation } from "@src/animation/engine";
+import { loadAnimationEngine } from "@mkbabb/keyframes.js";
 import { isInsideToaster } from "@utils/toastGuard";
 import { useCodeHighlight } from "../composables/useHighlightCSS";
 import { insertTabAtCursor } from "../utils/contenteditable";
@@ -122,8 +122,9 @@ function onKeyDown(e: KeyboardEvent) {
     highlightAll();
 }
 
-const animateProgressBar = () => {
+const animateProgressBar = async () => {
     if (!progressBarEl.value) return;
+    const { CSSKeyframesAnimation } = await loadAnimationEngine();
     new CSSKeyframesAnimation({ duration: 1000 }, progressBarEl.value)
         .fromVars([{ width: "0%" }, { width: "100%" }])
         .play();

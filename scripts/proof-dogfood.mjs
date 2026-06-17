@@ -97,13 +97,24 @@ const SEQUENCE_DEMO = "demo/sequence/useSequenceDemo.ts";
 // regression: re-introducing it means the demo re-derives the physics the engine
 // ships. Matched loosely enough that any `Math.pow(... / TARGET_DT)` reds.
 const HANDROLLED_DECAY = /Math\.pow\([^)]*\/\s*TARGET_DT[^)]*\)/;
-// The genuine dogfood: the engine's `decay` imported from its light surface.
-const IMPORTS_DECAY =
-    /import\s*\{[^}]*\bdecay\b[^}]*\}\s*from\s*["']@src\/animation\/(decay|index)["']/;
-const IMPORTS_SEQUENCE =
-    /import\s*\{[^}]*\bSequence\b[^}]*\}\s*from\s*["']@src\/animation\/(sequence|index)["']/;
-const IMPORTS_STAGGER =
-    /import\s*\{[^}]*\bstagger\b[^}]*\}\s*from\s*["']@src\/animation\/(stagger|index)["']/;
+// The genuine dogfood: the engine's `decay`/`Sequence`/`stagger` imported from
+// its LIGHT surface. After the L.W8 S1 ED-3 dogfood inversion the demo consumes
+// the PUBLISHED barrel (`@mkbabb/keyframes.js`) rather than the deep `@src`
+// source paths — the strictly more-honest dogfood (the demo runs on what `npm i`
+// ships). Both specifiers satisfy the clause: the deep `@src/animation/<leaf>`
+// (or `/index`) AND the published `@mkbabb/keyframes.js` barrel. The bite is
+// unchanged — deleting the import (either form) still reds.
+const SURFACE = `(?:@src\\/animation\\/(?:LEAF|index)|@mkbabb\\/keyframes\\.js)`;
+const surfaceImport = (sym, leaf) =>
+    new RegExp(
+        `import\\s*\\{[^}]*\\b${sym}\\b[^}]*\\}\\s*from\\s*["']${SURFACE.replace(
+            "LEAF",
+            leaf,
+        )}["']`,
+    );
+const IMPORTS_DECAY = surfaceImport("decay", "decay");
+const IMPORTS_SEQUENCE = surfaceImport("Sequence", "sequence");
+const IMPORTS_STAGGER = surfaceImport("stagger", "stagger");
 
 // Directories that never hold reviewable SOURCE: the git-ignored build output
 // (`dist/`) that pollutes a naive grep, plus dependency/VCS noise. Excluding

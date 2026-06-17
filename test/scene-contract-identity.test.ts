@@ -18,12 +18,19 @@
 // intent is lost across a suspend/restore and the cross-pair desyncs. Greens on
 // S2's ScenePlayback contract.
 
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { effectScope } from "vue";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
 import { AnimationGroup } from "../src/animation/group";
+import { warmKfEngine } from "../demo/@/utils/kfEngine";
 import { useEasingDemo } from "../demo/easing/useEasingDemo";
 import { useSceneMachine } from "../demo/@/components/custom/animation-controls/stores/useSceneMachine";
+
+// L.W8 S1 ED-3 — the demo composables read the HEAVY engine surface synchronously
+// via the warmed `kfEngine()`; the unit harness has no app boot, so warm it once.
+beforeAll(async () => {
+    await warmKfEngine();
+});
 import {
     createGroupAdapter,
     createRafAdapter,

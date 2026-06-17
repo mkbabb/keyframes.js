@@ -125,7 +125,7 @@ import DemoGlobalChrome from "./components/DemoGlobalChrome.vue";
 import TransportDock from "./TransportDock.vue";
 
 import { getStoredAnimationGroupControlOptions } from "./stores";
-import { AnimationGroup } from "@src/animation/group";
+import type { AnimationGroup } from "@mkbabb/keyframes.js";
 import { useAnimationGroupActions } from "./composables/useAnimationGroupActions";
 import { useControlsKeyboardShortcuts } from "./composables/useControlsKeyboardShortcuts";
 import { useAnimationGroupPlayback } from "./composables/useAnimationGroupPlayback";

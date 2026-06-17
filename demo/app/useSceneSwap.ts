@@ -1,6 +1,6 @@
 import { computed, ref, watch, type ComputedRef } from "vue";
 import { supportsViewTransitions } from "@mkbabb/glass-ui/motion-core";
-import { SpringProgress } from "@src/animation/spring";
+import { SpringProgress } from "@mkbabb/keyframes.js";
 
 /**
  * The engine-dogfooded scene-swap cross-dissolve — the NO-VT FALLBACK. Where
