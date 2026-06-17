@@ -1,3 +1,5 @@
+import { decayRest } from "./decay";
+import { clamp } from "./internal/leaves";
 import { SpringProgress } from "./spring";
 import type { SpringProgressOptions } from "./spring";
 
@@ -59,6 +61,30 @@ export interface DragOptions {
      * 100ms.
      */
     velocityWindow?: number;
+    /**
+     * Hard constraint on the value domain `[min, max]`. The drag cannot pull
+     * the spring target beyond these limits (a clamp in value domain, BEFORE
+     * the rubber-band factor). When omitted the drag is unconstrained — the
+     * mapped coordinate goes straight to the spring target as before.
+     */
+    bounds?: { min: number; max: number };
+    /**
+     * Rubber-band resistance factor in `[0, 1]`. When the mapped pointer
+     * coordinate exceeds {@link bounds}, the spring target is set to the
+     * boundary + (excess × `rubberBand`) — the pointer coordinate decays
+     * toward the limit rather than being hard-clamped. Default `0.4` (the
+     * Motion / iOS spring-overscroll feel); `0` is a hard clamp, `1` is
+     * pass-through (unconstrained). Has no effect when `bounds` is omitted.
+     */
+    rubberBand?: number;
+    /**
+     * Snap targets in the value domain. On release, the spring's projected
+     * resting point (via {@link decayRest}) selects the nearest target; the
+     * spring is reseated toward that target rather than decelerating freely.
+     * {@link bounds} (if set) apply AFTER snap selection — a snap target
+     * outside bounds is clamped to the bound. Omitted / empty = no snap.
+     */
+    snap?: number[];
 }
 
 /** One timestamped sample in the rolling velocity window. */
@@ -70,6 +96,20 @@ interface PointerSample {
 }
 
 const DEFAULT_VELOCITY_WINDOW = 100;
+
+/**
+ * Default rubber-band resistance — the Motion / iOS spring-overscroll feel
+ * (the mapped coordinate decays toward the limit at 40 % of the excess).
+ */
+const DEFAULT_RUBBER_BAND = 0.4;
+
+/**
+ * Friction coefficient for the release-rest projection that drives snap
+ * selection (same model + default as {@link decayRest}). The spring tracks no
+ * `friction` of its own, so the drag picks the snap target by the closed-form
+ * frictional rest the fling would coast to.
+ */
+const DEFAULT_DECAY_K = 5;
 
 /**
  * A one-axis draggable: pointer-capture follow + release-velocity fling
@@ -92,6 +132,13 @@ export class Draggable {
     private readonly transform: (clientCoord: number) => number;
     private readonly velocityWindow: number;
 
+    /** Hard `[min, max]` value-domain constraint, or `undefined` (free). */
+    private readonly bounds: { min: number; max: number } | undefined;
+    /** Rubber-band resistance over `bounds` (only consulted when bounds set). */
+    private readonly rubberBand: number;
+    /** Snap targets in the value domain, or `undefined` (no snap). */
+    private readonly snap: number[] | undefined;
+
     private element: HTMLElement | undefined;
     private capturedPointerId: number | undefined;
 
@@ -112,6 +159,12 @@ export class Draggable {
         this.axis = options?.axis ?? "x";
         this.transform = options?.transform ?? ((c) => c);
         this.velocityWindow = options?.velocityWindow ?? DEFAULT_VELOCITY_WINDOW;
+        this.bounds = options?.bounds;
+        this.rubberBand = options?.rubberBand ?? DEFAULT_RUBBER_BAND;
+        this.snap =
+            options?.snap !== undefined && options.snap.length > 0
+                ? options.snap
+                : undefined;
         this.spring =
             options?.spring ?? new SpringProgress(options?.springOptions);
     }
@@ -235,8 +288,31 @@ export class Draggable {
         const value = this.coordOf(e);
         // Track the pointer directly: set the live target. (The spring's
         // re-seat keeps the follow continuous; a stiff spring tracks 1:1.)
-        this.spring.target = value;
+        // With `bounds` set, a coordinate past a limit is rubber-banded — the
+        // boundary plus a fraction of the excess — so an over-drag resists
+        // instead of tracking 1:1 (rubberBand 0 = hard clamp, 1 = pass-through).
+        this.spring.target = this.applyBounds(value);
         this.pushSample(value, e.timeStamp);
+    }
+
+    /**
+     * Map a raw value-domain coordinate through {@link bounds} +
+     * {@link rubberBand}. With no bounds the coordinate passes through. Below
+     * `min`: `min + (value − min)·rubberBand`. Above `max`: `max +
+     * (value − max)·rubberBand`. In range: the coordinate unchanged. At
+     * `rubberBand = 0` the value is hard-clamped to the limit; at `1` the band
+     * is fully transparent (pass-through).
+     */
+    private applyBounds(value: number): number {
+        const b = this.bounds;
+        if (!b) return value;
+        if (value < b.min) {
+            return b.min + (value - b.min) * this.rubberBand;
+        }
+        if (value > b.max) {
+            return b.max + (value - b.max) * this.rubberBand;
+        }
+        return value;
     }
 
     private handleUp(e: PointerEvent): void {
@@ -249,11 +325,65 @@ export class Draggable {
 
         if (el) this.endGesture(el);
 
+        if (this.snap) {
+            // S2 — snap-to-target: project the natural frictional resting point
+            // the fling would coast to (`decayRest`, the closed-form glide), pick
+            // the nearest declared snap target, reseat the spring from `(value,
+            // releaseVelocity)` and retarget it toward the snap. The spring then
+            // decelerates toward the slot rather than coasting freely. Bounds (if
+            // set) clamp the chosen target so a snap outside the range lands on
+            // the limit.
+            const projected = decayRest({
+                initial: value,
+                velocity: releaseVelocity,
+                friction: DEFAULT_DECAY_K,
+            });
+            let snapTarget = this.nearestSnap(projected);
+            if (this.bounds) {
+                snapTarget = clamp(snapTarget, this.bounds.min, this.bounds.max);
+            }
+            // Reseat at the release `(x, v)` (so the fling leaves at the flick
+            // speed), then retarget toward the snap — the spring's mid-flight
+            // retarget keeps the trajectory continuous.
+            this.spring.reset(value, releaseVelocity);
+            this.spring.target = snapTarget;
+            return;
+        }
+
         // Hand the release velocity to the spring's re-seat. `reset(x, v)`
         // re-seats the closed-form solution from `(value, releaseVelocity)`
         // (spring.ts) so the fling is C¹-continuous with the gesture — the
         // trajectory leaves the release point at exactly the flick speed.
         this.spring.reset(value, releaseVelocity);
+
+        // S1 corrective — if the release seats the spring outside bounds (an
+        // over-dragged release inside the rubber-band zone), retarget the
+        // nearest bound so the post-release fling always settles in range. No
+        // velocity override: the spring reseat above already carries the
+        // in-flight velocity, so the correction is C¹-continuous.
+        if (this.bounds) {
+            const v = this.spring.value;
+            if (v < this.bounds.min || v > this.bounds.max) {
+                this.spring.target = clamp(v, this.bounds.min, this.bounds.max);
+            }
+        }
+    }
+
+    /** The snap target nearest `value` (ties → the first encountered). */
+    private nearestSnap(value: number): number {
+        // `this.snap` is non-undefined and non-empty when this is reached.
+        const targets = this.snap!;
+        let best = targets[0]!;
+        let bestDist = Math.abs(value - best);
+        for (let i = 1; i < targets.length; i++) {
+            const t = targets[i]!;
+            const d = Math.abs(value - t);
+            if (d < bestDist) {
+                best = t;
+                bestDist = d;
+            }
+        }
+        return best;
     }
 
     /**
@@ -320,4 +450,105 @@ export function drag(
     const draggable = new Draggable(options);
     draggable.attach(element);
     return draggable;
+}
+
+/**
+ * The composite handle a {@link drag2D} returns — two one-axis `Draggable`s
+ * wired behind a single `(x, y, vx, vy)` subscriber and a unified dispose.
+ * Sugar only: the 1-D engine stays 1-D (KISS); this is the front door that
+ * spares every 2-D consumer the two-Draggable boilerplate.
+ */
+export interface Drag2DHandle {
+    /** The x-axis `Draggable` (tracks `clientX`). */
+    readonly x: Draggable;
+    /** The y-axis `Draggable` (tracks `clientY`). */
+    readonly y: Draggable;
+    /**
+     * Current `(x, y)` position. While an axis is dragging this is the live
+     * pointer-pinned target; otherwise the spring's settled / in-flight value.
+     */
+    readonly value: { x: number; y: number };
+    /** Current `(vx, vy)` velocity (units/s). */
+    readonly velocity: { x: number; y: number };
+    /** True when BOTH axes have settled. */
+    readonly settled: boolean;
+    /**
+     * Subscribe to `(x, y, vx, vy)` emissions — fires whenever EITHER axis
+     * updates (live drag follow + post-release fling). Returns an unsubscribe
+     * handle.
+     */
+    subscribe(
+        fn: (x: number, y: number, vx: number, vy: number) => void,
+    ): () => void;
+    /** Remove all listeners and dispose both `Draggable`s. */
+    dispose(): void;
+}
+
+/**
+ * Construct a 2-D drag — two one-axis {@link Draggable}s (one per axis), a
+ * shared subscriber that emits `(x, y, vx, vy)` whenever either axis updates,
+ * and a unified `dispose()`. KISS: the 1-D engine stays 1-D; this is additive
+ * sugar that wires the composition the caller would otherwise hand-roll.
+ *
+ * `options.x` / `options.y` are independent {@link DragOptions} — `bounds`,
+ * `rubberBand`, and `snap` pass through PER AXIS (e.g. bound `x` to the
+ * viewport width and `y` to its height separately). The `axis` field of each
+ * is FORCED (`x` → `"x"`, `y` → `"y"`); any author `axis` is ignored.
+ */
+export function drag2D(
+    element: HTMLElement,
+    options?: { x?: DragOptions; y?: DragOptions },
+): Drag2DHandle {
+    const x = new Draggable({ ...options?.x, axis: "x" });
+    const y = new Draggable({ ...options?.y, axis: "y" });
+    x.attach(element);
+    y.attach(element);
+
+    const subscribers = new Set<
+        (x: number, y: number, vx: number, vy: number) => void
+    >();
+
+    // Read the live 2-D position: while an axis is dragging the pointer pins
+    // the value to the spring's target (the spring tracks it 1:1 under rAF);
+    // otherwise the spring's own value (settled / in-flight fling) is the truth.
+    const posOf = (d: Draggable): number =>
+        d.dragging ? d.spring.target : d.spring.value;
+
+    const emit = (): void => {
+        const px = posOf(x);
+        const py = posOf(y);
+        const vx = x.velocity;
+        const vy = y.velocity;
+        for (const fn of subscribers) fn(px, py, vx, vy);
+    };
+
+    // Bridge both axes' spring emissions into the shared (x, y, vx, vy) fan-out
+    // (kept alive for the handle's lifetime — disposed in `dispose`).
+    const unsubX = x.subscribe(() => emit());
+    const unsubY = y.subscribe(() => emit());
+
+    return {
+        x,
+        y,
+        get value() {
+            return { x: posOf(x), y: posOf(y) };
+        },
+        get velocity() {
+            return { x: x.velocity, y: y.velocity };
+        },
+        get settled() {
+            return x.settled && y.settled;
+        },
+        subscribe(fn) {
+            subscribers.add(fn);
+            return () => subscribers.delete(fn);
+        },
+        dispose() {
+            subscribers.clear();
+            unsubX();
+            unsubY();
+            x.dispose();
+            y.dispose();
+        },
+    };
 }

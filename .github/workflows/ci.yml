@@ -148,6 +148,8 @@ jobs:
               run: npm run proof:replay-equality
             - name: proof:orchestration (F.W3 — stagger/FLIP/decay/Sequence behaviour locks)
               run: npm run proof:orchestration
+            - name: proof:transport-events (L.W5 S3 — Sequence segment/label crossing callback channel)
+              run: npm run proof:transport-events
             - name: proof:interp-fastprops (F.W4 — the dict-mode buffer fold + single-frame alias)
               run: npm run proof:interp-fastprops
             - name: proof:sync-step (F.W5 — the drive sync fast-path + the event-ordering lock)

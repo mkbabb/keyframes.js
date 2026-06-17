@@ -69,8 +69,13 @@ export { stagger } from "./stagger";
 export type { StaggerOrigin, StaggerOptions, StaggerFn } from "./stagger";
 export { flip, flipShared } from "./flip";
 export type { FlipOptions } from "./flip";
-export { drag, Draggable } from "./drag";
-export type { DragOptions, DragAxis, DragSubscriber } from "./drag";
+export { drag, Draggable, drag2D } from "./drag";
+export type {
+    DragOptions,
+    DragAxis,
+    DragSubscriber,
+    Drag2DHandle,
+} from "./drag";
 export { decay, decayRest } from "./decay";
 export type { DecayOptions, DecaySample } from "./decay";
 export { Sequence } from "./sequence";
@@ -78,6 +83,10 @@ export type {
     SequencePosition,
     SequenceEntry,
     SequenceOptions,
+    SequenceEvent,
+    SequenceSegmentSubscriber,
+    SequenceLabelSubscriber,
+    SequenceSubscriber,
 } from "./sequence";
 // Easing construction at the boundary: `toEasing` normalizes a callable /
 // typed Easing synchronously (value.js-free); `resolveEasing` resolves a

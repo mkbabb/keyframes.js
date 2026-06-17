@@ -43,13 +43,44 @@
  * P6 posture: hard — device-independent correctness oracle (red anywhere; J.W3
  * S2b). Re-runnable: `node scripts/proof-drag-gesture.mjs`. Serves
  * the BUILT dist/gh-pages/.
+ *
+ * ── L.W5 EXTENSION (S1 bounds / S2 snap / S4 drag2D) — the GESTURE-PRIMITIVE
+ * clauses (born-RED on HEAD-pre-cure, audit Lane 32 W-GESTURE-BOUNDS +
+ * W-FRONT-DOOR+). These run over the LIGHT compiled barrel (`dist/keyframes.js`)
+ * + the `drag.ts` source IN-PROCESS — no browser, no demo build (the
+ * `proof:orchestration` pattern). `Draggable`/`drag2D` are value.js-free, so
+ * the import never pulls value.js in (`proof:boundary` stays green).
+ *
+ *  • clause (S1 bounds) — `new Draggable({ bounds: { min: 0, max: 200 },
+ *    rubberBand: 0 })`, a synthetic pointer-down at 100 + pointer-move to 300
+ *    (100px over max) leaves `spring.target <= 200` (the hard clamp). On today's
+ *    tree `DragOptions` has no `bounds` field — the option is ignored, the move
+ *    sets `spring.target = 300` unguarded — the clause FAILS. A static
+ *    corroborator: `DragOptions` declares a `bounds` field in `drag.ts`
+ *    (zero hits today).
+ *  • clause (S2 snap) — `new Draggable({ snap: [0, 100, 200] })`, a release at
+ *    x=60 with velocity 0 reseats `spring.target` to the nearest snap target
+ *    (100). On today's tree the release seats `spring.target = 60` (no snap) —
+ *    the clause FAILS. Static corroborator: a `snap` field in `drag.ts`.
+ *  • clause (S4 drag2D) — `drag2D` + `Drag2DHandle` are exported; a 2-D drag
+ *    from (50, 80) to (100, 120) follows so `handle.value.x ≈ 100` and
+ *    `handle.value.y ≈ 120`. On today's tree `drag2D` is `undefined` on the
+ *    barrel (and absent from `drag.ts`) — the clause FAILS.
+ *
+ * These three clauses are MANDATORY (pure-JS, no browser) — they never skip;
+ * a missing surface is a red, not a vacuous pass.
  */
+import { readFileSync } from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { REQUIRE_BROWSER, navToScene, withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
+// The LIGHT compiled barrel + the drag source — the L.W5 S1/S2/S4 gesture
+// clauses run over these in-process (no browser, no demo build needed).
+const LIB = path.join(REPO, "dist/keyframes.js");
+const DRAG_SRC = path.join(REPO, "src/animation/drag.ts");
 
 const failures = [];
 const ok = (label) => console.log(`  ✓ ${label}`);
@@ -445,14 +476,211 @@ async function browserHalf() {
     if (result.skipped) console.log(`  ○ browser half skipped — ${result.reason}`);
 }
 
+// ── L.W5 — the LIGHT gesture-primitive half (S1 bounds / S2 snap / S4 drag2D) ─
+//
+// A minimal element stub: records the per-gesture listeners `Draggable`
+// binds, no-ops pointer capture, and dispatches a synthetic PointerEvent to
+// the bound handlers. `Draggable.handle{Down,Move,Up}` read only
+// `e.pointerId` / `e.clientX|Y` / `e.timeStamp` and call
+// `el.addEventListener` / `el.setPointerCapture`, so this faithful stub drives
+// the real (uncured) class with no DOM.
+function stubEl() {
+    const listeners = new Map();
+    return {
+        listeners,
+        addEventListener(type, fn) {
+            if (!listeners.has(type)) listeners.set(type, new Set());
+            listeners.get(type).add(fn);
+        },
+        removeEventListener(type, fn) {
+            listeners.get(type)?.delete(fn);
+        },
+        setPointerCapture() {},
+        releasePointerCapture() {},
+        dispatch(type, ev) {
+            for (const fn of listeners.get(type) ?? []) fn(ev);
+        },
+    };
+}
+
+const pe = (type, { clientX = 0, clientY = 0, pointerId = 1, timeStamp = 0 }) => ({
+    type,
+    clientX,
+    clientY,
+    pointerId,
+    timeStamp,
+});
+
+async function lightHalf() {
+    console.log(
+        "\n  L.W5 — the LIGHT gesture-primitive half (S1 bounds / S2 snap / S4 drag2D):",
+    );
+
+    let mod;
+    try {
+        mod = await import(pathToFileURL(LIB).href);
+    } catch (e) {
+        fail(
+            `the LIGHT barrel could not be imported (${LIB}) — build the ` +
+                `library first (\`npm run build\`): ${e?.message ?? e}`,
+        );
+        return;
+    }
+    const { Draggable, drag2D } = mod;
+    if (typeof Draggable !== "function") {
+        fail(`the LIGHT barrel does not export \`Draggable\` as a class`);
+        return;
+    }
+
+    const dragSrc = readFileSync(DRAG_SRC, "utf8");
+
+    // ── clause (S1 bounds) — a drag past max is clamped (rubberBand:0) ────────
+    {
+        // Static corroborator: `DragOptions` declares a `bounds` field.
+        const hasBoundsField =
+            /bounds\??\s*:\s*\{[^}]*\bmin\b[^}]*\bmax\b/.test(dragSrc) ||
+            /bounds\??\s*:\s*\{\s*min:\s*number;\s*max:\s*number\s*\}/.test(
+                dragSrc,
+            );
+
+        const el = stubEl();
+        const d = new Draggable({ bounds: { min: 0, max: 200 }, rubberBand: 0 });
+        d.attach(el);
+        el.dispatch("pointerdown", pe("pointerdown", { clientX: 100, timeStamp: 0 }));
+        // Move 100px past the declared max (200) → 300.
+        el.dispatch("pointermove", pe("pointermove", { clientX: 300, timeStamp: 16 }));
+        const target = d.spring.target;
+        d.dispose?.();
+
+        const clamped = target <= 200;
+        if (!clamped || !hasBoundsField) {
+            fail(
+                `clause (S1 bounds) — a drag past max=200 with rubberBand:0 left ` +
+                    `\`spring.target = ${target}\` (expected <= 200, a hard clamp); ` +
+                    `DragOptions \`bounds\` field present in drag.ts: ${hasBoundsField}. ` +
+                    `Today the bounds option is ignored — \`handleMove\` sets ` +
+                    `\`spring.target = value\` unconditionally (W-GESTURE-BOUNDS born-RED).`,
+            );
+        } else {
+            ok(
+                `clause (S1 bounds) — a drag past max=200 (rubberBand:0) clamps ` +
+                    `\`spring.target\` to ${target} (<= 200); DragOptions carries a bounds field`,
+            );
+        }
+    }
+
+    // ── clause (S2 snap) — release at 60 (vel 0) snaps to nearest target 100 ──
+    {
+        const hasSnapField = /snap\??\s*:\s*(?:readonly\s*)?number\s*\[\s*\]/.test(
+            dragSrc,
+        );
+
+        const el = stubEl();
+        const d = new Draggable({ snap: [0, 100, 200] });
+        d.attach(el);
+        // Down then up at x=60 with no intervening move (velocity 0). The
+        // pointerup carries the same timeStamp neighborhood so estimateVelocity
+        // returns ~0 — a held release at 60.
+        el.dispatch("pointerdown", pe("pointerdown", { clientX: 60, timeStamp: 0 }));
+        el.dispatch("pointerup", pe("pointerup", { clientX: 60, timeStamp: 0 }));
+        const target = d.spring.target;
+        d.dispose?.();
+
+        // The nearest snap target to a rest-projection of 60 is 100.
+        const snappedTo100 = Math.abs(target - 100) < 1e-6;
+        if (!snappedTo100 || !hasSnapField) {
+            fail(
+                `clause (S2 snap) — a release at x=60 with velocity 0 left ` +
+                    `\`spring.target = ${target}\` (expected 100, the nearest snap ` +
+                    `target in [0,100,200]); DragOptions \`snap\` field present in ` +
+                    `drag.ts: ${hasSnapField}. Today \`handleUp\` reseats the spring ` +
+                    `at the bare release coordinate — no snap projection ` +
+                    `(W-GESTURE-BOUNDS snap arm born-RED).`,
+            );
+        } else {
+            ok(
+                `clause (S2 snap) — a release at x=60 (vel 0) reseats ` +
+                    `\`spring.target\` to ${target} (the nearest snap target); ` +
+                    `DragOptions carries a snap field`,
+            );
+        }
+    }
+
+    // ── clause (S4 drag2D) — the 2-D single-call sugar follows both axes ──────
+    {
+        const hasDrag2DSource = /\bdrag2D\b/.test(dragSrc);
+        const hasHandleSource = /\bDrag2DHandle\b/.test(dragSrc);
+
+        if (typeof drag2D !== "function") {
+            fail(
+                `clause (S4 drag2D) — \`drag2D\` is NOT exported from the LIGHT ` +
+                    `barrel (typeof === "${typeof drag2D}"); drag.ts declares ` +
+                    `\`drag2D\`: ${hasDrag2DSource}, \`Drag2DHandle\`: ${hasHandleSource}. ` +
+                    `Every 2-D drag needs eight lines of two-Draggable boilerplate ` +
+                    `(W-FRONT-DOOR+ born-RED — \`grep -nE "drag2D|Drag2DHandle" ` +
+                    `src/animation/drag.ts\` → zero hits).`,
+            );
+        } else {
+            // Functional follow: a 2-D drag from (50, 80) to (100, 120) should
+            // leave handle.value near (100, 120).
+            let followed = false;
+            let valX;
+            let valY;
+            try {
+                const el = stubEl();
+                const handle = drag2D(el, {});
+                el.dispatch(
+                    "pointerdown",
+                    pe("pointerdown", { clientX: 50, clientY: 80, timeStamp: 0 }),
+                );
+                el.dispatch(
+                    "pointermove",
+                    pe("pointermove", { clientX: 100, clientY: 120, timeStamp: 16 }),
+                );
+                valX = handle?.value?.x;
+                valY = handle?.value?.y;
+                followed =
+                    typeof valX === "number" &&
+                    typeof valY === "number" &&
+                    Math.abs(valX - 100) < 1 &&
+                    Math.abs(valY - 120) < 1;
+                handle?.dispose?.();
+            } catch (e) {
+                fail(`clause (S4 drag2D) — drag2D follow threw: ${e?.message ?? e}`);
+            }
+            if (!followed) {
+                fail(
+                    `clause (S4 drag2D) — a 2-D drag from (50,80) to (100,120) did ` +
+                        `NOT follow: handle.value = (${valX}, ${valY}); expected ` +
+                        `near (100, 120).`,
+                );
+            } else if (!hasDrag2DSource || !hasHandleSource) {
+                fail(
+                    `clause (S4 drag2D) — drag2D follows but the source markers are ` +
+                        `missing (drag2D: ${hasDrag2DSource}, Drag2DHandle: ${hasHandleSource}).`,
+                );
+            } else {
+                ok(
+                    `clause (S4 drag2D) — drag2D follows both axes to ` +
+                        `(${valX}, ${valY}); Drag2DHandle exported`,
+                );
+            }
+        }
+    }
+}
+
+await lightHalf();
 await browserHalf();
 
 if (failures.length > 0) {
     console.error(
-        `\nproof:drag-gesture — FAIL (${failures.length}): a drag still highlights the chrome it sweeps ` +
-            `(B6-a — the seam's global select-suppression token is not live for some surface), OR the ` +
-            `dragged box recenters instead of persisting (B6-b — releasePolicy not "persist"), OR Home ` +
-            `lost its recenter. D1 (the shared gesture-in-flight token) + D2 (persist policy) are not both live.`,
+        `\nproof:drag-gesture — FAIL (${failures.length}):\n  ` +
+            failures.join("\n  ") +
+            `\n\n  One or more drag clauses red. The browser half (I.W4 D1/D2): a drag highlights the ` +
+            `chrome it sweeps (B6-a — the global select-suppression token is not live for some surface), ` +
+            `or the dragged box recenters instead of persisting (B6-b — releasePolicy not "persist"), or ` +
+            `Home lost its recenter. The LIGHT gesture-primitive half (L.W5 S1/S2/S4): Draggable lacks the ` +
+            `bounds clamp / snap projection, or drag2D is absent (W-GESTURE-BOUNDS + W-FRONT-DOOR+).`,
     );
     process.exit(1);
 }
@@ -460,5 +688,7 @@ console.log(
     "\nproof:drag-gesture — PASS: a real drag over a chrome label selects no text and userSelect is " +
         "suppressed for the whole gesture across every drag surface (D1 — the shared seam owns the global " +
         "is-dragging token); the dragged square persists where released (D2 — releasePolicy:\"persist\"); " +
-        "Home still recenters. B6-a + B6-b are closed at the seam.",
+        "Home still recenters (B6-a + B6-b closed at the seam). The LIGHT gesture-primitive half holds: " +
+        "Draggable clamps to bounds (S1), snaps to the nearest target on release (S2), and drag2D follows " +
+        "both axes (S4) — W-GESTURE-BOUNDS + W-FRONT-DOOR+ closed.",
 );

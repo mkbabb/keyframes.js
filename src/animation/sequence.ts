@@ -79,6 +79,47 @@ export interface SequenceEntry<V extends Vars> {
     at: number;
 }
 
+/**
+ * The transport-crossing events a `Sequence` fires via {@link Sequence.on} —
+ * the segment-lifecycle pair plus the named-label crossing.
+ *
+ * - `"segment:enter"` — the playhead crossed INTO a segment's
+ *   `[at, at + duration)` span (forward across `at`, or backward across the
+ *   span's end).
+ * - `"segment:leave"` — the complementary crossing OUT of that span.
+ * - `"label"` — the playhead straddled a position registered via
+ *   {@link Sequence.label}, in EITHER direction.
+ *
+ * Mirror of `ScrollSceneEvent` (`scroll-scene.ts:190`) — a typed, per-event
+ * subscribe channel.
+ */
+export type SequenceEvent = "segment:enter" | "segment:leave" | "label";
+
+/**
+ * A `segment:enter` / `segment:leave` subscriber. Receives the crossing
+ * segment's own `animation` reference and the master-clock position (ms) at the
+ * crossing. The clock lets the consumer infer direction (a backward crossing
+ * arrives with a smaller `masterClock` than the prior call).
+ */
+export type SequenceSegmentSubscriber = (
+    animation: Animation<any>,
+    masterClock: number,
+) => void;
+
+/**
+ * A `label` subscriber. Receives the crossed label's `name` and the
+ * master-clock position (ms) at the crossing.
+ */
+export type SequenceLabelSubscriber = (
+    name: string,
+    masterClock: number,
+) => void;
+
+/** The union over the two subscriber shapes (the {@link Sequence.on} fallthrough). */
+export type SequenceSubscriber =
+    | SequenceSegmentSubscriber
+    | SequenceLabelSubscriber;
+
 export interface SequenceOptions {
     /**
      * When true, `play()` honors `prefers-reduced-motion: reduce` by snapping
@@ -100,6 +141,40 @@ export class Sequence<V extends Vars = any> {
 
     /** Named positions on the master clock, registered via {@link label}. */
     private readonly labels = new Map<string, number>();
+
+    /**
+     * The per-event subscriber sets — the {@link on} channel. Mirror of
+     * `ScrollScene.subscribers` (`scroll-scene.ts:360-366`): three Sets keyed by
+     * {@link SequenceEvent}. Empty by construction; the crossing detector in
+     * {@link _fireCrossings} early-exits while all three stay empty (zero
+     * overhead for the common no-subscriber transport).
+     */
+    private readonly _subscribers = new Map<
+        SequenceEvent,
+        Set<SequenceSubscriber>
+    >([
+        ["segment:enter", new Set()],
+        ["segment:leave", new Set()],
+        ["label", new Set()],
+    ]);
+
+    /**
+     * The set of segments whose `[at, at + duration)` span contained the
+     * PREVIOUS painted phase — the `segment:enter`/`segment:leave` edge memory.
+     * A segment in the current active set but not here ENTERED; one here but not
+     * in the current set LEFT. Maintained only while a segment subscriber is
+     * registered (the detector early-exits otherwise).
+     */
+    private readonly _activeSegments = new Set<SequenceEntry<V>>();
+
+    /**
+     * The previous painted phase (ms) — the `from` end of every crossing
+     * straddle (`label`, and the directional `segment` edges). `undefined`
+     * before the first `seek`/frame paints; updated on EVERY paint so a
+     * subscriber registered mid-transport straddles from the true prior
+     * playhead (not a stale or zeroed origin).
+     */
+    private _prevPhase: number | undefined = undefined;
 
     /**
      * The running insertion cursor (ms) — the end of the last-inserted
@@ -203,6 +278,34 @@ export class Sequence<V extends Vars = any> {
     }
 
     /**
+     * Subscribe to a segment-lifecycle or label crossing. Returns an
+     * unsubscribe handle — the `ScrollScene.on` idiom (`scroll-scene.ts:506-514`).
+     *
+     * - `"segment:enter"` fires when the playhead enters a segment's
+     *   `[at, at + duration)` span (forward across `at`, or backward across the
+     *   span end); the callback receives that segment's `animation` reference
+     *   and the master-clock position at the crossing.
+     * - `"segment:leave"` fires on the complementary crossing OUT of the span.
+     * - `"label"` fires when the playhead straddles a registered label position
+     *   in EITHER direction; the callback receives `(name, masterClock)`.
+     *
+     * Crossings fire on EVERY paint — `seek` (scrub) and the rAF play loop,
+     * forward, reverse, and yoyo. The callback's `masterClock` lets the consumer
+     * infer direction; there is no `once` idiom — unsubscribe in the callback
+     * (via the returned handle) for one-shot behaviour.
+     */
+    on(
+        event: "segment:enter" | "segment:leave",
+        cb: SequenceSegmentSubscriber,
+    ): () => void;
+    on(event: "label", cb: SequenceLabelSubscriber): () => void;
+    on(event: SequenceEvent, cb: SequenceSubscriber): () => void {
+        const set = this._subscribers.get(event)!;
+        set.add(cb);
+        return () => set.delete(cb);
+    }
+
+    /**
      * Append a child animation at `at` (absolute ms, a label, a `"+="`/`"-="`
      * relative token, or — omitted — the running cursor, i.e. after the
      * previous segment). Advances the insertion cursor to this segment's end.
@@ -256,6 +359,7 @@ export class Sequence<V extends Vars = any> {
      */
     seek(masterClock: number): this {
         this._time = masterClock;
+        this._fireCrossings(masterClock);
         this._applyAt(masterClock);
         return this;
     }
@@ -280,6 +384,83 @@ export class Sequence<V extends Vars = any> {
             );
             animation.interpFrames(local, true);
         }
+    }
+
+    /**
+     * Detect and fire segment-lifecycle + label crossings between the previous
+     * painted phase (`_prevPhase`) and `phase` — the ONE detector both `seek`
+     * (scrub) and `_frame` (the rAF play loop) drive, so play fires the identical
+     * crossings a scrub would. Mirror of `ScrollScene.fire` (`scroll-scene.ts:513`).
+     *
+     * `_prevPhase` is updated on EVERY call (even the early-exit) so a subscriber
+     * registered mid-transport straddles from the true prior playhead. The
+     * firing loops run ONLY while at least one subscriber set is non-empty —
+     * the zero-overhead path for the common no-subscriber transport.
+     */
+    private _fireCrossings(phase: number): void {
+        const enterSet = this._subscribers.get("segment:enter")!;
+        const leaveSet = this._subscribers.get("segment:leave")!;
+        const labelSet = this._subscribers.get("label")!;
+
+        // Early-exit when ALL three sets are empty — no segment/label iteration
+        // for the common no-subscriber transport. `_prevPhase` still advances
+        // below so a later subscriber straddles from the true prior playhead.
+        if (enterSet.size === 0 && leaveSet.size === 0 && labelSet.size === 0) {
+            this._prevPhase = phase;
+            return;
+        }
+
+        const prev = this._prevPhase;
+
+        // ── Segment lifecycle ────────────────────────────────────────────────
+        // A segment is active when `at ≤ phase < at + duration`. Comparing the
+        // current active membership against `_activeSegments` (the previous
+        // membership) yields the enter/leave edges — independent of direction,
+        // so reverse and yoyo sweeps fire the complementary crossing naturally.
+        if (enterSet.size > 0 || leaveSet.size > 0) {
+            for (const entry of this.entries) {
+                const isActive =
+                    phase >= entry.at &&
+                    phase < entry.at + entry.animation.options.duration;
+                const wasActive = this._activeSegments.has(entry);
+                if (isActive && !wasActive) {
+                    this._activeSegments.add(entry);
+                    for (const cb of enterSet) {
+                        (cb as SequenceSegmentSubscriber)(
+                            entry.animation,
+                            phase,
+                        );
+                    }
+                } else if (!isActive && wasActive) {
+                    this._activeSegments.delete(entry);
+                    for (const cb of leaveSet) {
+                        (cb as SequenceSegmentSubscriber)(
+                            entry.animation,
+                            phase,
+                        );
+                    }
+                }
+            }
+        }
+
+        // ── Label crossing ───────────────────────────────────────────────────
+        // A label fires when its position was STRADDLED between the previous and
+        // current phase, in either direction: `min(prev, phase) < pos ≤
+        // max(prev, phase)`. Skipped on the first paint (no prior phase to
+        // straddle from).
+        if (labelSet.size > 0 && prev !== undefined && prev !== phase) {
+            const lo = Math.min(prev, phase);
+            const hi = Math.max(prev, phase);
+            for (const [name, pos] of this.labels) {
+                if (pos > lo && pos <= hi) {
+                    for (const cb of labelSet) {
+                        (cb as SequenceLabelSubscriber)(name, phase);
+                    }
+                }
+            }
+        }
+
+        this._prevPhase = phase;
     }
 
     /**
@@ -435,6 +616,13 @@ export class Sequence<V extends Vars = any> {
                 }
             }
         }
+
+        // Segment/label crossing callbacks — the SAME detector `seek` drives,
+        // so play fires the identical crossings a scrub would (forward, reverse,
+        // and yoyo; the callback's `masterClock` carries the direction). Fires
+        // BEFORE the paint so a subscriber observing `segment:enter` sees the
+        // entering segment's pre-paint state, matching `seek`'s order.
+        this._fireCrossings(phase);
 
         // ONE map — identical to `seek`. No `advanceTo`/`onEnd` window, so a
         // reverse / yoyo sweep that re-enters a finished segment paints the
