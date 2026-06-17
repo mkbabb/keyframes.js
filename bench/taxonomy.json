@@ -1,0 +1,314 @@
+{
+    "$comment": [
+        "bench/taxonomy.json — the BUDGETED bench manifest (L.W7 S6, Lane 33, audit ⚠34).",
+        "",
+        "proof:bench-runs is a RUN-CHECK: a bench runs, a positive `hz` is emitted, no",
+        "budget is asserted (a 2x regression prints a slower number and the gate stays",
+        "GREEN). Two gaps follow (L.W7.md §S6): (1) no bench covers the value.js color-math",
+        "alloc claims (VJ.L1-VJ.L8 / W78-W85 — transformMat3/oklab2xyz/mixColors/",
+        "gamutMapToRgbSpace), and (2) every bench-backed SOTA claim (the lerpArray SoA win,",
+        "the warmEngine pre-resolve) is un-budgeted.",
+        "",
+        "This manifest maps each bench case to ONE category. proof:bench-taxonomy reads it",
+        "and enforces the contract per category:",
+        "  run-check    — bench runs and emits positive `hz`; no budget asserted (delegates",
+        "                 to proof:bench-runs's finite-positive-hz check).",
+        "  observe-only — bench runs; result recorded; no floor; re-run sets a new baseline.",
+        "  budgeted     — `hz` must exceed `floorHz` (a recorded baseline x fraction); the",
+        "                 floor lives in `floorHz` below, derived per the named fraction.",
+        "  cross-repo   — the case targets a SIBLING (value.js color-math); EXCLUDED from kf",
+        "                 CI; asserted PRESENT in KF-TO-VALUEJS-O-ASKS.md (the Tranche O",
+        "                 dispatch). The bench is value.js's to author + run.",
+        "",
+        "inv-L-device-honesty: a `budgeted` floor is a device-DEPENDENT wall-clock predicate;",
+        "the gate declares `observe-only` posture for the budgeted arm in CI (RECORDED, not",
+        "RED on the slow runner) and HARD on-device/local. The taxonomy STRUCTURE (every case",
+        "covered, every cross-repo ask present) is device-INDEPENDENT and HARD everywhere.",
+        "",
+        "BORN-RED today: proof:bench-taxonomy does not exist (no script, no package.json",
+        "entry) and this manifest's `budgeted` cases name bench arms that L.W7's cures have",
+        "not shipped yet (warmEngine pre-resolve). The gate RED-s until the script + manifest",
+        "+ the named budgeted bench arms all exist."
+    ],
+    "version": 1,
+    "suites": [
+        "bench/interpolation.bench.ts",
+        "bench/parser.bench.ts",
+        "bench/interp-buffer.bench.ts",
+        "bench/compile.bench.ts",
+        "bench/spring-tick.bench.ts"
+    ],
+    "cases": [
+        {
+            "suite": "bench/interpolation.bench.ts",
+            "name": "2-frame opacity (60 frames)",
+            "category": "run-check"
+        },
+        {
+            "suite": "bench/interpolation.bench.ts",
+            "name": "2-frame multi-property (60 frames)",
+            "category": "run-check"
+        },
+        {
+            "suite": "bench/interpolation.bench.ts",
+            "name": "11-stop complex (60 frames)",
+            "category": "run-check"
+        },
+        {
+            "suite": "bench/interpolation.bench.ts",
+            "name": "2-frame opacity REPLACE apply (60 frames)",
+            "category": "run-check"
+        },
+        {
+            "suite": "bench/interpolation.bench.ts",
+            "name": "2-frame opacity composite:add apply (60 frames)",
+            "category": "run-check"
+        },
+        {
+            "suite": "bench/interpolation.bench.ts",
+            "name": "3-animation group (60 frames)",
+            "category": "run-check"
+        },
+        {
+            "suite": "bench/parser.bench.ts",
+            "name": "simple 2-stop (cold)",
+            "category": "run-check"
+        },
+        {
+            "suite": "bench/parser.bench.ts",
+            "name": "complex 11-stop (cold)",
+            "category": "run-check"
+        },
+        {
+            "suite": "bench/parser.bench.ts",
+            "name": "simple 2-stop full pipeline",
+            "category": "run-check"
+        },
+        {
+            "suite": "bench/parser.bench.ts",
+            "name": "complex 11-stop full pipeline",
+            "category": "run-check"
+        },
+        {
+            "suite": "bench/parser.bench.ts",
+            "name": "lengths/colors/calc/transforms (cold)",
+            "category": "run-check"
+        },
+        {
+            "suite": "bench/parser.bench.ts",
+            "name": "unique value per iteration (full combinator parse)",
+            "category": "observe-only"
+        },
+        {
+            "suite": "bench/parser.bench.ts",
+            "name": "bare parseCSSValue — single length",
+            "category": "run-check"
+        },
+        {
+            "suite": "bench/parser.bench.ts",
+            "name": "bare parseCSSValue — transform function",
+            "category": "run-check"
+        },
+        {
+            "suite": "bench/parser.bench.ts",
+            "name": "bare parseCSSValue — calc expression",
+            "category": "run-check"
+        },
+        {
+            "suite": "bench/parser.bench.ts",
+            "name": "full pipeline — single-property 2-stop",
+            "category": "run-check"
+        },
+        {
+            "suite": "bench/interp-buffer.bench.ts",
+            "name": "K=2 · 600-frame steady window (threaded buffer)",
+            "category": "run-check"
+        },
+        {
+            "suite": "bench/interp-buffer.bench.ts",
+            "name": "K=5 · 600-frame steady window (threaded buffer)",
+            "category": "run-check"
+        },
+        {
+            "suite": "bench/interp-buffer.bench.ts",
+            "name": "K=12 · 600-frame steady window (threaded buffer)",
+            "category": "run-check"
+        },
+        {
+            "suite": "bench/interp-buffer.bench.ts",
+            "name": "calc() leaf · 600-frame steady window (C1 endpoint memo)",
+            "category": "run-check"
+        },
+        {
+            "suite": "bench/interp-buffer.bench.ts",
+            "name": "K=8 (translate3d+scale3d+rotateZ+opacity) · per-channel _lerp (current) · 600-frame window",
+            "category": "observe-only",
+            "$note": "the SoA DECISION arm's BASELINE — the current per-channel _lerp throughput the budgeted SoA twin is measured AGAINST (the W122 1.2x-at-K=8 floor is the ratio of the two)."
+        },
+        {
+            "suite": "bench/interp-buffer.bench.ts",
+            "name": "K=8 (translate3d+scale3d+rotateZ+opacity) · SoA Float64Array+lerpArray · 600-frame window",
+            "category": "budgeted",
+            "floorFraction": 1.2,
+            "baselineCase": "K=8 (translate3d+scale3d+rotateZ+opacity) · per-channel _lerp (current) · 600-frame window",
+            "$note": "W122 win: the SoA lerpArray K=8 arm must run >= 1.2x the per-channel _lerp baseline (the J.W6 S2 ADOPT threshold, perf-frontier.md:236). The floor is the baselineCase's hz x floorFraction, computed at run time from the same report — so it tracks the runner, not an absolute wall-clock number (inv-L-device-honesty)."
+        },
+        {
+            "suite": "bench/interp-buffer.bench.ts",
+            "name": "K=10 (rotate expands ×3) · per-channel _lerp (current) · 600-frame window",
+            "category": "observe-only"
+        },
+        {
+            "suite": "bench/interp-buffer.bench.ts",
+            "name": "K=10 (rotate expands ×3) · SoA Float64Array+lerpArray · 600-frame window",
+            "category": "observe-only"
+        },
+        {
+            "suite": "bench/interp-buffer.bench.ts",
+            "name": "K=8 · dispatch-only · per-channel lerpValue ×8 (current)",
+            "category": "observe-only"
+        },
+        {
+            "suite": "bench/interp-buffer.bench.ts",
+            "name": "K=8 · dispatch-only · single lerpArray (SoA)",
+            "category": "observe-only"
+        },
+        {
+            "suite": "bench/compile.bench.ts",
+            "name": "2-stop cold compile",
+            "category": "run-check"
+        },
+        {
+            "suite": "bench/compile.bench.ts",
+            "name": "6-stop cold compile",
+            "category": "run-check"
+        },
+        {
+            "suite": "bench/compile.bench.ts",
+            "name": "11-stop cold compile",
+            "category": "run-check"
+        },
+        {
+            "suite": "bench/compile.bench.ts",
+            "name": "50-stop cold compile",
+            "category": "run-check"
+        },
+        {
+            "suite": "bench/compile.bench.ts",
+            "name": "200-stop cold compile",
+            "category": "run-check"
+        },
+        {
+            "suite": "bench/compile.bench.ts",
+            "name": "N=50 · value.js parse() (grammar leaf)",
+            "category": "observe-only"
+        },
+        {
+            "suite": "bench/compile.bench.ts",
+            "name": "N=50 · fromString (parse + compile + sample)",
+            "category": "observe-only"
+        },
+        {
+            "suite": "bench/compile.bench.ts",
+            "name": "N=200 · value.js parse() (grammar leaf)",
+            "category": "observe-only"
+        },
+        {
+            "suite": "bench/compile.bench.ts",
+            "name": "N=200 · fromString (parse + compile + sample)",
+            "category": "observe-only"
+        },
+        {
+            "suite": "bench/spring-tick.bench.ts",
+            "name": "underdamped (ζ=0.5) · 600 tickDt steps",
+            "category": "run-check"
+        },
+        {
+            "suite": "bench/spring-tick.bench.ts",
+            "name": "critically damped (ζ=1) · 600 tickDt steps",
+            "category": "run-check"
+        },
+        {
+            "suite": "bench/spring-tick.bench.ts",
+            "name": "overdamped (ζ=1.5) · 600 tickDt steps",
+            "category": "run-check"
+        },
+        {
+            "suite": "bench/spring-tick.bench.ts",
+            "name": "live re-seat · 600 target changes + ticks",
+            "category": "run-check"
+        },
+        {
+            "suite": "bench/spring-tick.bench.ts",
+            "name": "scalar · K=8 independent SpringProgress · 600 tickDt",
+            "category": "observe-only",
+            "$note": "the SpringProgress vector-sugar DECISION baseline (L.W7 §S2, W122) — K=8 independent scalar SpringProgress instances, the throughput the vector arm is measured AGAINST. proof:spring-vector reads this pair and records ADOPT (>=1.2×) or KILL (<1.2×); ADOPT shipped setTargets(Float64Array) on SpringProgress."
+        },
+        {
+            "suite": "bench/spring-tick.bench.ts",
+            "name": "vector · K=8 SpringVectorProbe (Float64Array) · 600 tickDt",
+            "category": "budgeted",
+            "floorFraction": 1.2,
+            "baselineCase": "scalar · K=8 independent SpringProgress · 600 tickDt",
+            "$note": "W122 ADOPT win: the multi-channel vector path (the setTargets(Float64Array) body) must run >= 1.2× the K-independent-scalar baseline at K=8 (the §S2 ADOPT threshold). MEASURED at 2.97–3.78× → ADOPT; setTargets(Float64Array) shipped on SpringProgress. The floor is the baselineCase's hz × 1.2, computed at run time from the same report so it tracks the runner (inv-L-device-honesty). proof:spring-vector records the durable ADOPT verdict in scripts/spring-vector-decision.json."
+        },
+        {
+            "suite": "bench/interp-buffer.bench.ts",
+            "name": "warmEngine — loadAnimationEngine resolves before first animate",
+            "category": "budgeted",
+            "floorHz": 1000,
+            "$note": "L.W7 S1/S6 — the warmEngine pre-resolve case. After warmEngine() fires its idle import (module-load fire-and-forget), the first await loadAnimationEngine() resolves against the already-settled `_enginePromise` — a sub-millisecond microtask, no second import. floorHz 1000 = a 1ms resolve floor (device-independent: a memoized microtask resolve is far under 1ms on any runner; the budgeted arm is observe-only in CI so a slow runner never reds it). SHIPPED at S1 (warmEngine + the memoization) + S6 (this arm); was the born-RED pendingBudgeted witness until both landed."
+        }
+    ],
+    "pendingBudgeted": [],
+    "crossRepo": [
+        {
+            "id": "VJ.L1",
+            "ask": "transformMat3 zero-alloc 3x3 MVM (W78)",
+            "valueJsSeam": "value.js/src/units/color/matrix.ts:19-27",
+            "doc": "KF-TO-VALUEJS-O-ASKS.md"
+        },
+        {
+            "id": "VJ.L2",
+            "ask": "oklab2xyz scratch-buffer the Vec3 intermediates (W78)",
+            "valueJsSeam": "value.js/src/conversions/oklab.ts:28",
+            "doc": "KF-TO-VALUEJS-O-ASKS.md"
+        },
+        {
+            "id": "VJ.L3",
+            "ask": "xyz2oklab scratch-buffer the Vec3 intermediates (W78)",
+            "valueJsSeam": "value.js/src/conversions/oklab.ts:57",
+            "doc": "KF-TO-VALUEJS-O-ASKS.md"
+        },
+        {
+            "id": "VJ.L4",
+            "ask": "mixColors per-space scratch buffer, drop keys().filter() closure (W79)",
+            "valueJsSeam": "value.js/src/color/dispatch.ts:391",
+            "doc": "KF-TO-VALUEJS-O-ASKS.md"
+        },
+        {
+            "id": "VJ.L5",
+            "ask": "gamutMapToRgbSpace scalar probe, no per-iteration Color alloc (W80)",
+            "valueJsSeam": "value.js/src/color/dispatch.ts:223",
+            "doc": "KF-TO-VALUEJS-O-ASKS.md"
+        },
+        {
+            "id": "VJ.L6",
+            "ask": "normalizeColor indexed channel write, drop forEach closure (W81)",
+            "valueJsSeam": "value.js/src/color/normalize.ts:34",
+            "doc": "KF-TO-VALUEJS-O-ASKS.md"
+        },
+        {
+            "id": "VJ.L7",
+            "ask": "memoize Infinity fast-path + DIRECT_PATHS expansion (W82-84)",
+            "valueJsSeam": "value.js/src/color/dispatch.ts",
+            "doc": "KF-TO-VALUEJS-O-ASKS.md"
+        },
+        {
+            "id": "VJ.L8",
+            "ask": "intra-bucket dispatch refinement + scale() constant-range fast paths (W85)",
+            "valueJsSeam": "value.js/src/color/dispatch.ts",
+            "doc": "KF-TO-VALUEJS-O-ASKS.md"
+        }
+    ]
+}

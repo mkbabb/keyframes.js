@@ -285,4 +285,94 @@ describe("SpringProgress", () => {
             expect(sp.settled).toBe(true);
         });
     });
+
+    /**
+     * L.W7 §S2, W122 — the ADOPTed multi-channel vector overload
+     * (`setTargets(Float64Array)` / `tickVector` / `values`). MEASURE-FIRST: the
+     * `proof:spring-vector` probe measured the vector path at 2.97–3.78× over K=8
+     * independent scalar instances (>= the 1.2× ADOPT threshold), authorizing
+     * this surface. The CORRECTNESS contract: a vector lane rings IDENTICALLY to a
+     * scalar `SpringProgress` of the same `(response, dampingFraction)` — same
+     * closed-form solver, same `(omega, zeta, omegaD)`. These tests prove the
+     * shipped vector body matches the scalar reference within ε.
+     */
+    describe("vector mode — setTargets / tickVector / values", () => {
+        it("a lane rings identically to a scalar spring of the same config", () => {
+            const cfg = {
+                response: 0.5,
+                dampingFraction: 0.5,
+                settleThreshold: 1e-12,
+                velocitySettleThreshold: 1e-12,
+            };
+            // Scalar reference.
+            const scalar = new SpringProgress(cfg);
+            scalar.target = 100;
+            // Vector with one lane onto the same target.
+            const vec = new SpringProgress(cfg);
+            vec.setTargets(new Float64Array([100]));
+
+            for (let f = 0; f < 60; f++) {
+                scalar.tickDt(FRAME_MS);
+                vec.tickVector(FRAME_MS);
+                expect(vec.values[0]!).toBeCloseTo(scalar.value, 9);
+                expect(vec.velocities[0]!).toBeCloseTo(scalar.velocity, 9);
+            }
+        });
+
+        it("steps K channels under one shared solver into one stable buffer", () => {
+            const vec = new SpringProgress({
+                response: 0.5,
+                dampingFraction: 0.86,
+            });
+            const targets = new Float64Array([10, 20, 30, 40, 50, 60, 70, 80]);
+            vec.setTargets(targets);
+            // `values` is a STABLE reference (never re-allocated across ticks).
+            const buf = vec.values;
+            for (let f = 0; f < 30; f++) vec.tickVector(FRAME_MS);
+            expect(vec.values).toBe(buf);
+            // Every lane has travelled off 0 toward its own target and is within
+            // a small overshoot band of it (ζ=0.86 is mildly underdamped, so a
+            // lane may sit a few % past its target near the first peak — the
+            // proof is the lane TRACKS its own target, distinct per channel).
+            for (let i = 0; i < targets.length; i++) {
+                expect(buf[i]!).toBeGreaterThan(0);
+                expect(buf[i]!).toBeLessThan(targets[i]! * 1.2);
+                expect(buf[i]!).toBeGreaterThan(targets[i]! * 0.3);
+            }
+        });
+
+        it("re-seats each lane continuously from its current (x, v)", () => {
+            const vec = new SpringProgress({ response: 0.5, dampingFraction: 1 });
+            vec.setTargets(new Float64Array([100, 100]));
+            for (let f = 0; f < 10; f++) vec.tickVector(FRAME_MS);
+            const before = vec.values[0]!;
+            // Re-seat onto a new target; the lane must START from `before`
+            // (continuous — no jump to the new origin).
+            vec.setTargets(new Float64Array([0, 200]));
+            vec.tickVector(FRAME_MS);
+            // First post-reseat sample is within a frame's travel of `before`,
+            // NOT snapped to 0 — continuity.
+            expect(Math.abs(vec.values[0]! - before)).toBeLessThan(before);
+        });
+
+        it("returns the empty buffer before the first setTargets and no-ops on dt<=0", () => {
+            const vec = new SpringProgress();
+            expect(vec.values.length).toBe(0);
+            expect(vec.velocities.length).toBe(0);
+            // tickVector before arming is a safe no-op returning the empty buffer.
+            expect(vec.tickVector(FRAME_MS).length).toBe(0);
+            vec.setTargets(new Float64Array([5, 5]));
+            const snapshot = Float64Array.from(vec.values);
+            vec.tickVector(0); // dt <= 0 — no advance.
+            expect(Array.from(vec.values)).toEqual(Array.from(snapshot));
+        });
+
+        it("throws on a lane-count change (the buffers are stable references)", () => {
+            const vec = new SpringProgress();
+            vec.setTargets(new Float64Array([1, 2, 3]));
+            expect(() => vec.setTargets(new Float64Array([1, 2]))).toThrow(
+                RangeError,
+            );
+        });
+    });
 });

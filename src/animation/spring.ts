@@ -135,6 +135,14 @@ export type SpringSubscriber = (value: number, velocity: number) => void;
 /** Per-frame callback for `.play()` mode. */
 export type SpringFrameCallback = (value: number, velocity: number) => void;
 
+/**
+ * The shared empty lane buffer `SpringProgress.values` / `.velocities` return
+ * before the first {@link SpringProgress.setTargets} arms the vector lanes — one
+ * frozen zero-length `Float64Array`, so a scalar-only spring's getters never
+ * allocate. (L.W7 §S2.)
+ */
+const EMPTY_LANES = new Float64Array(0);
+
 const defaultSpringOptions: SpringProgressOptions = {
     response: 0.5,
     dampingFraction: 0.86,
@@ -200,6 +208,25 @@ export class SpringProgress {
 
     private subscribers: Set<SpringSubscriber> = new Set();
     private disposed: boolean = false;
+
+    // ── Vector lanes (L.W7 §S2, W122 — ADOPT @ 2.97–3.78× over K scalars) ────
+    // A `setTargets(Float64Array)` overload that steps K channels under THIS
+    // spring's (omega, zeta, omegaD) into one shared `Float64Array` per tick —
+    // instead of K independent scalar `SpringProgress` instances. Lazily armed
+    // on the first `setTargets` call (a scalar-only spring never allocates these,
+    // so the scalar hot path is byte-unchanged). Each lane carries its own
+    // `(origin, originVelocity, target, current, velocity)`; the analytic solver
+    // is the SAME closed form `evaluateAt` uses (shared `omega`/`zeta`/`omegaD`),
+    // so the lanes ring identically to a scalar spring of the same config. The
+    // throughput win is pure dispatch/alloc amortization: one `tickVector` call
+    // loops K channels into the shared buffer, no per-channel method dispatch and
+    // no per-instance object. value.js-free (LIGHT) — plain typed-array math.
+    private vecOrigin: Float64Array | null = null;
+    private vecOriginVel: Float64Array | null = null;
+    private vecTarget: Float64Array | null = null;
+    private vecCurrent: Float64Array | null = null;
+    private vecVelocity: Float64Array | null = null;
+    private vecElapsed = 0;
 
     // Managed playback for `.play()` / `.stop()` — loop ownership delegates
     // to the shared RAFPlayback driver (this class is a pure stepper: it
@@ -487,6 +514,141 @@ export class SpringProgress {
         this.isSettled = vel === 0;
         this.emit();
         this._playback.stop();
+    }
+
+    // ── Vector mode (L.W7 §S2, W122 — the ADOPTed multi-channel overload) ────
+
+    /**
+     * Re-seat a MULTI-CHANNEL spring vector onto `targets` (one lane per
+     * element), under this spring's `(response, dampingFraction)`. The lanes
+     * ring identically to a scalar `SpringProgress` of the same config — the
+     * solver is the SAME closed form (`evaluateAt`) shared across channels — but
+     * step in ONE `tickVector(dt)` call into one `Float64Array` per tick, the
+     * dispatch/alloc amortization the W122 probe measured at 2.97–3.78× over K
+     * independent scalar instances (ADOPT @ K=8, `proof:spring-vector`).
+     *
+     * First call ARMS the lanes (lazily — a scalar-only spring never allocates
+     * the vector buffers, so the scalar hot path is unchanged). Subsequent calls
+     * re-seat each lane's origin from the lane's CURRENT `(x, v)`, so a mid-flight
+     * target change is continuous per channel — the vector analogue of the scalar
+     * `set target` re-seat. The lane count is fixed by the FIRST `setTargets`
+     * length; a later call with a different length throws (the buffers are
+     * stable references the consumer reads via {@link values}).
+     *
+     * `initialVelocity` (the scalar seed) does NOT carry into the lanes — a fresh
+     * vector starts each lane at rest unless re-seated from prior motion. The
+     * scalar `currentValue` / `target` are untouched; the two modes are
+     * independent surfaces on one solver.
+     */
+    setTargets(targets: Float64Array): void {
+        const k = targets.length;
+        if (this.vecTarget === null) {
+            this.vecOrigin = new Float64Array(k);
+            this.vecOriginVel = new Float64Array(k);
+            this.vecTarget = new Float64Array(k);
+            this.vecCurrent = new Float64Array(k);
+            this.vecVelocity = new Float64Array(k);
+        } else if (this.vecTarget.length !== k) {
+            throw new RangeError(
+                `setTargets length ${k} does not match the armed lane count ` +
+                    `${this.vecTarget.length}; the lane buffers are stable ` +
+                    `references — construct a new SpringProgress for a new arity.`,
+            );
+        }
+        // Re-seat each lane's origin from its current (x, v) — continuous per
+        // channel (the vector analogue of the scalar `set target` re-seat).
+        this.vecOrigin!.set(this.vecCurrent!);
+        this.vecOriginVel!.set(this.vecVelocity!);
+        this.vecTarget!.set(targets);
+        this.vecElapsed = 0;
+    }
+
+    /**
+     * The shared output lane buffer — the K channels' current values, written
+     * in place by {@link tickVector}. A STABLE reference (never re-allocated
+     * after the first {@link setTargets}); read it after each tick. Returns an
+     * empty `Float64Array` before the first `setTargets` arms the lanes.
+     */
+    get values(): Float64Array {
+        return this.vecCurrent ?? EMPTY_LANES;
+    }
+
+    /**
+     * The shared output velocity lane buffer — the K channels' current
+     * velocities, written in place by {@link tickVector}. A STABLE reference;
+     * empty before the first {@link setTargets}.
+     */
+    get velocities(): Float64Array {
+        return this.vecVelocity ?? EMPTY_LANES;
+    }
+
+    /**
+     * Advance EVERY lane by `dt` MILLISECONDS — one call, K channels, one buffer
+     * write. The analytic per-channel step is the same closed form `evaluateAt`
+     * uses (the shared `omega`/`zeta`/`omegaD`), with the transcendentals
+     * (`exp`/`cos`/`sin`) hoisted once per tick and reused across lanes — the
+     * amortization the W122 probe measured. No-op (returns the same buffer)
+     * before the first {@link setTargets}, when disposed, or for `dt <= 0`.
+     */
+    tickVector(dt: number): Float64Array {
+        if (this.disposed || this.vecTarget === null || dt <= 0) {
+            return this.values;
+        }
+        this.vecElapsed += dt / 1000;
+        const t = this.vecElapsed;
+        const w = this.omega;
+        const z = this.zeta;
+        const wd = this.omegaD;
+        const origin = this.vecOrigin!;
+        const originVel = this.vecOriginVel!;
+        const target = this.vecTarget!;
+        const current = this.vecCurrent!;
+        const velocity = this.vecVelocity!;
+
+        // Hoist the per-tick transcendentals — shared across all lanes.
+        const decayU = z < 1 ? Math.exp(-z * w * t) : 0;
+        const cos = z < 1 ? Math.cos(wd * t) : 0;
+        const sin = z < 1 ? Math.sin(wd * t) : 0;
+        const decayC = z === 1 ? Math.exp(-w * t) : 0;
+        let r1 = 0;
+        let r2 = 0;
+        let e1 = 0;
+        let e2 = 0;
+        if (z > 1) {
+            const disc = w * Math.sqrt(z * z - 1);
+            r1 = -z * w + disc;
+            r2 = -z * w - disc;
+            e1 = Math.exp(r1 * t);
+            e2 = Math.exp(r2 * t);
+        }
+
+        for (let i = 0; i < current.length; i++) {
+            const x0 = origin[i]! - target[i]!;
+            const v0 = originVel[i]!;
+            let xRel: number;
+            let vRel: number;
+            if (z < 1) {
+                const A = x0;
+                const B = (v0 + z * w * x0) / wd;
+                xRel = decayU * (A * cos + B * sin);
+                vRel =
+                    decayU *
+                    ((B * wd - A * z * w) * cos - (A * wd + B * z * w) * sin);
+            } else if (z === 1) {
+                const A = x0;
+                const B = v0 + w * x0;
+                xRel = decayC * (A + B * t);
+                vRel = decayC * (B - w * (A + B * t));
+            } else {
+                const A = (v0 - r2 * x0) / (r1 - r2);
+                const B = x0 - A;
+                xRel = A * e1 + B * e2;
+                vRel = A * r1 * e1 + B * r2 * e2;
+            }
+            current[i] = target[i]! + xRel;
+            velocity[i] = vRel;
+        }
+        return current;
     }
 
     // ── Subscribe / dispose ──────────────────────────────────────────

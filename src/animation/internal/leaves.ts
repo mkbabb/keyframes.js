@@ -48,6 +48,38 @@ export function lerp(start: number, end: number, t: number): number {
 }
 
 /**
+ * Parallel linear interpolation over `Float64Array` channels — one fused loop
+ * instead of K scalar `lerp` calls. Pixel-identical to K independent `lerp()`
+ * calls: `out[i] = (1 - t)·start[i] + t·stop[i]`.
+ *
+ * Inlined here (the value.js-free leaf home) rather than imported from
+ * `@mkbabb/value.js` (its `src/math.ts:60` `lerpArray`). value.js exposes ONLY
+ * its barrel export (`@mkbabb/value.js` → `dist/value.js`) — no tree-shakeable
+ * `./math` subpath — so a static `import { lerpArray } from "@mkbabb/value.js"`
+ * here would pull value.js's CSS-grammar static init into the LIGHT bundle and
+ * red `proof:boundary` (the source-grep assertion bans ANY static value.js
+ * specifier in a light module). Re-homing it locally severs that edge — the
+ * same discipline as `clamp`/`scale`/`lerp` above. Kept byte-equivalent to
+ * value.js's copy so behaviour is identical across the seam.
+ *
+ * `start`, `stop`, `out` must share the same length; only `out` is written.
+ * Returns `out`.
+ */
+export function lerpArray(
+    start: Float64Array,
+    stop: Float64Array,
+    t: number,
+    out: Float64Array,
+): Float64Array {
+    const n = start.length;
+    const u = 1 - t;
+    for (let i = 0; i < n; i++) {
+        out[i] = u * start[i]! + t * stop[i]!;
+    }
+    return out;
+}
+
+/**
  * rAF shim with a `setTimeout` fallback for non-DOM environments
  * (jsdom / Node), where it returns a `NodeJS.Timeout` rather than a
  * numeric handle. Either suffices as an opaque cancel handle.

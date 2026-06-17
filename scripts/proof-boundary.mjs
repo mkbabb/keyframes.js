@@ -27,14 +27,20 @@
  *      parse fails the gate, not passes it). A STRUCTURAL barrel invariant
  *      backs the parse: the barrel may hold NO direct runtime light export
  *      (`export const/function/class/let/var`) other than the dynamic
- *      `loadAnimationEngine` accessor — so a light value authored inline on
- *      the barrel (which `export { … } from` parsing would never see)
- *      cannot drift unproven; it reddens the gate until re-expressed as a
- *      `export { … } from` re-export the entry derivation captures.
- *   3. DYNAMIC-CHUNK PRESENCE — bundling `loadAnimationEngine` must emit
- *      the heavy engine as a NON-ENTRY dynamic chunk: a build that drops
- *      the dynamic boundary (eager-importing the engine, or tree-shaking
- *      the accessor away) turns the gate red.
+ *      boundary accessors (`loadAnimationEngine` + the L.W7 S1/S3
+ *      `warmEngine`/`loadEngine`/`loadCompiler`/`loadIngest`) — so a light
+ *      value authored inline on the barrel (which `export { … } from` parsing
+ *      would never see) cannot drift unproven; it reddens the gate until
+ *      re-expressed as a `export { … } from` re-export the entry derivation
+ *      captures.
+ *   3. DYNAMIC-CHUNK PRESENCE — bundling EACH dynamic-boundary accessor
+ *      (`loadAnimationEngine` + `warmEngine`/`loadEngine`/`loadCompiler`/
+ *      `loadIngest`) must emit the heavy engine as a NON-ENTRY dynamic chunk
+ *      with NO static engine / value.js edge on the accessor's own entry: a
+ *      build that drops the dynamic boundary (eager-importing the engine, or
+ *      tree-shaking the accessor away) turns the gate red. Bundling each by
+ *      name also enforces presence — gating an absent accessor fails the
+ *      bundle (the born-RED bite of adding a name before the export).
  *   4. SOURCE-GREP COMPLEMENT — every SOURCE module that actually appears
  *      in a light entry's static graph (derived from assertion 1's real
  *      module sets, never a hand-maintained name list) must hold no static
@@ -94,9 +100,9 @@ function holdsValueJsSpecifier(src) {
             String.raw`(?:^|\n)\s*(?:import|export)\b[^;'"]*from\s+["']${SPEC}["']`,
         ).test(stripped) ||
         // bare side-effect `import "…"` (no `from`)
-        new RegExp(
-            String.raw`(?:^|\n)\s*import\s+["']${SPEC}["']`,
-        ).test(stripped)
+        new RegExp(String.raw`(?:^|\n)\s*import\s+["']${SPEC}["']`).test(
+            stripped,
+        )
     );
 }
 
@@ -124,13 +130,38 @@ function parseLightExports() {
 }
 
 /**
+ * The barrel's dynamic-boundary accessors — the ONLY direct runtime exports the
+ * barrel may author inline. Each fires a `dynamic import("./…")` (never a static
+ * value.js specifier), so each is proven by assertion 3 (its OWN entry holds no
+ * static engine/value.js edge AND the heavy engine emits behind it as a dynamic
+ * chunk), NOT by assertion 1's `export { … } from` entry derivation.
+ *
+ *   - `loadAnimationEngine` — the full heavy surface (backward-compat; B.W2).
+ *   - `warmEngine`          — L.W7 S1: fire-and-forget memoized warm trigger.
+ *   - `loadEngine`/`loadCompiler`/`loadIngest` — L.W7 S3: granular per-capability
+ *     accessors sharing the memoized `loadAnimationEngine` substrate.
+ *
+ * Gating an ABSENT name here is the born-RED bite: assertion 3 bundles each by
+ * name, and bundling a symbol the barrel does not export fails rolldown — so
+ * adding a name to this list before the barrel exports it reddens the gate.
+ */
+const DYNAMIC_ACCESSORS = [
+    "loadAnimationEngine",
+    "warmEngine",
+    "loadEngine",
+    "loadCompiler",
+    "loadIngest",
+];
+
+/**
  * The barrel's structural invariant: every LIGHT export is a `export { … }
- * from` re-export (which assertion 1 then bundles + proves). The ONE permitted
- * direct runtime export is the dynamic `loadAnimationEngine` accessor (proven
- * by assertion 3, not 1). Any OTHER direct light export — `export const foo`,
- * `export function`, `export class`, `export let/var` — would be invisible to
- * `parseLightExports` and silently unproven, contradicting inv α's "a new
- * light export is proven automatically." Return the offending declarations.
+ * from` re-export (which assertion 1 then bundles + proves). The ONLY permitted
+ * direct runtime exports are the dynamic boundary accessors in
+ * `DYNAMIC_ACCESSORS` (proven by assertion 3, not 1). Any OTHER direct light
+ * export — `export const foo`, `export function`, `export class`,
+ * `export let/var` — would be invisible to `parseLightExports` and silently
+ * unproven, contradicting inv α's "a new light export is proven automatically."
+ * Return the offending declarations.
  */
 function strayDirectExports() {
     const src = fs
@@ -142,7 +173,7 @@ function strayDirectExports() {
     for (const m of src.matchAll(
         /(?:^|\n)\s*export\s+(?:default\s+)?(const|let|var|function|class)\s+([A-Za-z0-9_$]+)/g,
     )) {
-        if (m[2] === "loadAnimationEngine") continue; // the one dynamic accessor
+        if (DYNAMIC_ACCESSORS.includes(m[2])) continue; // the dynamic accessors
         stray.push(`export ${m[1]} ${m[2]}`);
     }
     return stray;
@@ -259,10 +290,20 @@ async function main() {
     }
 
     // ── 3. Dynamic-chunk presence (the boundary itself) ────────────────
-    {
+    // Every dynamic-boundary accessor (`loadAnimationEngine` + the L.W7 S1/S3
+    // `warmEngine`/`loadEngine`/`loadCompiler`/`loadIngest`) must, bundled as
+    // its OWN entry: (a) hold NO static heavy-engine edge — it reaches the
+    // engine only through `await import("./engine")`, never a static input; and
+    // (b) emit the heavy engine as a NON-ENTRY dynamic chunk — a build that
+    // drops the dynamic boundary (eager-import, or tree-shaking the accessor
+    // away) reds here. `warmEngine` fires `void loadAnimationEngine()`, so its
+    // bundle reaches the engine dynamically too; the same two-sided proof holds.
+    // Bundling each BY NAME also enforces presence: gating an absent accessor
+    // fails rolldown (the born-RED bite of adding a name before the export).
+    for (const accessor of DYNAMIC_ACCESSORS) {
         const output = await bundleEntry(
-            "loadAnimationEngine",
-            ".proof-boundary-entry.mjs",
+            accessor,
+            `.proof-boundary-${accessor}.mjs`,
         );
         const entry = output.find((o) => o.type === "chunk" && o.isEntry);
         const dynamicEngine = output.filter(
@@ -271,24 +312,30 @@ async function main() {
                 !o.isEntry &&
                 o.moduleIds.some(isHeavyEngine),
         );
-        const entryEngine = entry
-            ? entry.moduleIds.filter(isHeavyEngine)
-            : [];
+        const entryEngine = entry ? entry.moduleIds.filter(isHeavyEngine) : [];
+        const entryValueJs = entry ? entry.moduleIds.filter(isValueJs) : [];
         console.log(
-            `  loadAnimationEngine    dynamic engine chunks: ${dynamicEngine.length}` +
-                ` (static engine edges: ${entryEngine.length})`,
+            `  ${accessor.padEnd(22)} dynamic engine chunks: ${dynamicEngine.length}` +
+                ` (static engine edges: ${entryEngine.length}, value.js: ${entryValueJs.length})`,
         );
         if (entryEngine.length > 0) {
             failures.push(
-                "loadAnimationEngine: the heavy engine is a STATIC input of " +
-                    "the accessor entry — the dynamic boundary collapsed.",
+                `${accessor}: the heavy engine is a STATIC input of the ` +
+                    "accessor entry — the dynamic boundary collapsed.",
+            );
+        }
+        if (entryValueJs.length > 0) {
+            failures.push(
+                `${accessor}: value.js is a STATIC input of the accessor ` +
+                    "entry — a dynamic accessor must name no static value.js " +
+                    `specifier:\n    ${entryValueJs.map(rel).join("\n    ")}`,
             );
         }
         if (dynamicEngine.length === 0) {
             failures.push(
-                "loadAnimationEngine: the heavy engine did NOT emit as a " +
-                    "dynamic chunk — the boundary was tree-shaken away or " +
-                    "rewired; the accessor no longer reaches the engine.",
+                `${accessor}: the heavy engine did NOT emit as a dynamic ` +
+                    "chunk — the boundary was tree-shaken away or rewired; the " +
+                    "accessor no longer reaches the engine.",
             );
         }
     }
@@ -323,7 +370,9 @@ async function main() {
     }
 
     if (failures.length > 0) {
-        console.error("\nproof:boundary — FAIL (inv α — the boundary is broken):");
+        console.error(
+            "\nproof:boundary — FAIL (inv α — the boundary is broken):",
+        );
         for (const f of failures) console.error("  ✗ " + f);
         console.error(
             "\n  A light module reintroduced a static value.js / engine edge (or the\n" +

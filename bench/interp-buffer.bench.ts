@@ -17,6 +17,7 @@
  */
 import { bench, describe } from "vitest";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
+import { loadAnimationEngine, warmEngine } from "../src/animation";
 import { lerpArray, lerpValue, type ValueUnit } from "@mkbabb/value.js";
 
 /**
@@ -259,6 +260,44 @@ describe("interpFrames — SoA lerpArray arm (J.W6 S2, real-K corpus)", () => {
     bench("K=8 · dispatch-only · single lerpArray (SoA)", () => {
         for (let f = 0; f < 600; f++) {
             lerpArray(seg0.from, seg0.to, f / 600, dispatchOut);
+        }
+    });
+});
+
+/**
+ * L.W7 S1/S6 — the `warmEngine()` pre-resolve budgeted arm (W121, Lane 33).
+ *
+ * `warmEngine()` (the LIGHT barrel) fires `loadAnimationEngine()`'s dynamic
+ * import fire-and-forget on idle, memoized through the module-scope
+ * `_enginePromise`. The CONTRACT this arm measures: after a warm, the first
+ * `await loadAnimationEngine()` from an interaction handler resolves against the
+ * ALREADY-SETTLED Promise — a sub-millisecond microtask, no second import — so
+ * the first `.animate()` / `CSSKeyframesAnimation` is synchronous against a
+ * resolved surface, not a cold network+parse+compile stall.
+ *
+ * The bench warms ONCE at module load (fire-and-forget, exactly as a real shell
+ * does in `requestIdleCallback`), then each iteration awaits
+ * `loadAnimationEngine()`. After the first settle every iteration measures the
+ * memoized fast path (the same in-flight Promise, zero re-import) — the
+ * "resolves before first animate" quantity. `proof:bench-taxonomy` names this
+ * arm in its `pendingBudgeted` roster: it is BORN-RED until `warmEngine` ships
+ * (S1) and this arm exists (S6); GREEN once both land.
+ *
+ * Imports `warmEngine`/`loadAnimationEngine` from the barrel — both LIGHT static
+ * named exports that fire DYNAMIC imports (no static value.js edge; the heavy
+ * surface they resolve rides `loadAnimationEngine`'s chunk boundary).
+ */
+// Fire the idle warm-up once, off the bench's critical path (the shell shape).
+warmEngine();
+
+describe("warmEngine pre-resolve (L.W7 S1, W121)", () => {
+    bench("warmEngine — loadAnimationEngine resolves before first animate", async () => {
+        // After the module-load warm settles, this resolves against the memoized
+        // `_enginePromise` — one microtask, no second import (the S1 contract).
+        const engine = await loadAnimationEngine();
+        // Touch the resolved surface so the await is not dead-code-eliminated.
+        if (typeof engine.animate !== "function") {
+            throw new Error("warmEngine pre-resolve did not settle the engine");
         }
     });
 });

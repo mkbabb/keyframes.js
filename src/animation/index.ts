@@ -49,7 +49,12 @@ export { springTimingFunction } from "./springTimingFunction";
 export type { SpringTimingFunctionOptions } from "./springTimingFunction";
 export { ElementMorph } from "./morph";
 export type { MorphRect, ElementMorphOptions } from "./morph";
-export { Timeline, ScrollTimeline, ManualTimeline, createNativeTimeline } from "./timeline";
+export {
+    Timeline,
+    ScrollTimeline,
+    ManualTimeline,
+    createNativeTimeline,
+} from "./timeline";
 export type {
     TimelineOptions,
     ScrollTimelineOptions,
@@ -178,10 +183,18 @@ export type {
 // Heavy-class TYPES stay on the static barrel (erased) so consumers keep
 // `import type { Animation } from "@mkbabb/keyframes.js"` for annotations.
 // The runtime constructors are reached only via `loadAnimationEngine()`.
-export type { Animation, CSSKeyframesAnimation, AnimationGroup } from "./engine";
+export type {
+    Animation,
+    CSSKeyframesAnimation,
+    AnimationGroup,
+} from "./engine";
 
 // ── HEAVY engine (value.js-bearing, dynamic) ─────────────────────────────
-import type { Animation, CSSKeyframesAnimation, AnimationGroup } from "./engine";
+import type {
+    Animation,
+    CSSKeyframesAnimation,
+    AnimationGroup,
+} from "./engine";
 import type { ResolvedKeyframes } from "./engine";
 import type { animate as animateImpl } from "./animate";
 import type {
@@ -319,10 +332,172 @@ export interface AnimationEngine {
 }
 
 /**
+ * The engine CORE surface — `Animation` / `CSSKeyframesAnimation` /
+ * `AnimationGroup` + the timing/keyframe helpers + the option constants. This
+ * is `./engine`'s own runtime exports: parse + interpolate WITHOUT the
+ * ingest / compile / motion-path / draw-svg / animate / preset front doors. The
+ * granular `loadEngine()` (L.W7 S3) resolves exactly this — a consumer that
+ * needs only `new CSSKeyframesAnimation(opts).fromString(css)` pays for the
+ * `engine` chunk alone, not the eight-chunk full surface.
+ */
+export interface EngineCore {
+    Animation: typeof Animation;
+    CSSKeyframesAnimation: typeof CSSKeyframesAnimation;
+    AnimationGroup: typeof AnimationGroup;
+    getAnimationId: (animation: Animation | string) => string;
+    getTimingFunction: (
+        timingFunction:
+            | TimingFunction
+            | TimingFunctionNames
+            | string
+            | undefined,
+    ) => TimingFunction | undefined;
+    resolveKeyframes: (input: string | Stylesheet) => ResolvedKeyframes;
+    DIRECTIONS: readonly AnimationOptions["direction"][];
+    FILL_MODES: readonly AnimationOptions["fillMode"][];
+    defaultOptions: AnimationOptions;
+    defaultLayerConfig: AnimationLayerConfig;
+}
+
+/**
+ * The COMPILER surface (L.W7 S3 `loadCompiler()`) — the engine core PLUS the
+ * round-trip's BACKWARD half, `compileToCSS`. A consumer compiling an
+ * orchestration graph to zero-runtime CSS pays for `engine` + `compile`, not
+ * the ingest / motion / draw / preset weight.
+ */
+export interface CompilerSurface extends EngineCore {
+    compileToCSS: typeof compileToCSSImpl;
+}
+
+/**
+ * The INGEST surface (L.W7 S3 `loadIngest()`) — the engine core PLUS the
+ * forward-pointed live-web walk (`fromStyleSheets` / `fromLiveAnimations` /
+ * `resolveLiveKeyframes` / `adoptRunning`) and the scroll-grammar round-trip
+ * (`ScrollScene` + `parseScrollCSS` / `serializeScrollOptions` / …). A
+ * consumer ingesting CSSOM / adopting a running animation / driving a scroll
+ * scene pays for `engine` + `ingest` + `scroll-scene`, not the compile /
+ * motion / draw / preset weight.
+ */
+export interface IngestSurface extends EngineCore {
+    fromStyleSheets: typeof fromStyleSheetsImpl;
+    fromLiveAnimations: typeof fromLiveAnimationsImpl;
+    resolveLiveKeyframes: typeof resolveLiveKeyframesImpl;
+    adoptRunning: typeof adoptRunningImpl;
+    ScrollScene: typeof ScrollSceneClass;
+    createScrollScene: typeof createScrollSceneImpl;
+    parseScrollCSS: typeof parseScrollCSSImpl;
+    parseScrollTimeline: typeof parseScrollTimelineImpl;
+    parseScrollRange: typeof parseScrollRangeImpl;
+    serializeScrollOptions: typeof serializeScrollOptionsImpl;
+    roundTripScrollCSS: typeof roundTripScrollCSSImpl;
+    dispatchScrollBackend: typeof dispatchScrollBackendImpl;
+    resolveRange: typeof resolveRangeImpl;
+    pinCSS: typeof pinCSSImpl;
+}
+
+// ── Memoized chunk imports — the dynamic boundary, deduped ────────────────
+// Each `import("./…")` is memoized once (module-scope `null` → Promise) so the
+// granular accessors (`loadEngine`/`loadCompiler`/`loadIngest`) and the full
+// `loadAnimationEngine` share ONE in-flight Promise per chunk: a `warmEngine()`
+// pre-flight that has started the engine import is reused by a later
+// `loadAnimationEngine()` — no double import. The browser module cache already
+// dedupes the network fetch; memoizing the Promises makes the SAME accessor
+// resolve synchronously on its second call and guarantees the
+// warmEngine/loadAnimationEngine "same in-flight Promise" contract (S1).
+let _engineMod: Promise<typeof import("./engine")> | null = null;
+let _compileMod: Promise<typeof import("./compile")> | null = null;
+let _ingestMod: Promise<typeof import("./ingest")> | null = null;
+let _scrollMod: Promise<typeof import("./scroll-scene")> | null = null;
+
+const importEngine = (): Promise<typeof import("./engine")> =>
+    (_engineMod ??= import("./engine"));
+
+/**
+ * Load the engine CORE (L.W7 S3) — `Animation` / `CSSKeyframesAnimation` /
+ * `AnimationGroup` + the timing/keyframe helpers + the option constants, from
+ * the `engine` chunk ALONE. The narrowest granular door: parse + interpolate
+ * without the ingest / compile / motion / draw / animate / preset front doors.
+ *
+ * ```ts
+ * const { CSSKeyframesAnimation } = await loadEngine();
+ * const anim = new CSSKeyframesAnimation(opts).fromString(css);
+ * ```
+ *
+ * Memoizes the engine chunk import shared with `loadAnimationEngine`, so a
+ * later full-surface load reuses the in-flight engine Promise.
+ */
+let _engineSurface: Promise<EngineCore> | null = null;
+export const loadEngine = (): Promise<EngineCore> =>
+    (_engineSurface ??= importEngine());
+
+/**
+ * Load the COMPILER surface (L.W7 S3) — the engine core PLUS `compileToCSS`,
+ * the round-trip's BACKWARD half (orchestration graph → zero-runtime CSS).
+ * Resolves the `engine` + `compile` chunks; both are memoized, so a later
+ * `loadAnimationEngine()` reuses them.
+ *
+ * ```ts
+ * const { compileToCSS } = await loadCompiler();
+ * const { css } = compileToCSS(group);
+ * ```
+ */
+let _compilerSurface: Promise<CompilerSurface> | null = null;
+export const loadCompiler = (): Promise<CompilerSurface> =>
+    (_compilerSurface ??= Promise.all([
+        importEngine(),
+        (_compileMod ??= import("./compile")),
+    ]).then(([engine, compileMod]) =>
+        Object.assign({ compileToCSS: compileMod.compileToCSS }, engine),
+    ));
+
+/**
+ * Load the INGEST surface (L.W7 S3) — the engine core PLUS the live-web walk
+ * (`fromStyleSheets` / `fromLiveAnimations` / `resolveLiveKeyframes` /
+ * `adoptRunning`) and the scroll-grammar round-trip (`ScrollScene` +
+ * `parseScrollCSS` / `serializeScrollOptions` / …). Resolves the `engine` +
+ * `ingest` + `scroll-scene` chunks; all are memoized, so a later
+ * `loadAnimationEngine()` reuses them.
+ *
+ * ```ts
+ * const { fromStyleSheets } = await loadIngest();
+ * const { animations } = fromStyleSheets(document.styleSheets);
+ * ```
+ */
+let _ingestSurface: Promise<IngestSurface> | null = null;
+export const loadIngest = (): Promise<IngestSurface> =>
+    (_ingestSurface ??= Promise.all([
+        importEngine(),
+        (_ingestMod ??= import("./ingest")),
+        (_scrollMod ??= import("./scroll-scene")),
+    ]).then(([engine, ingestMod, scrollMod]) =>
+        Object.assign(
+            {
+                fromStyleSheets: ingestMod.fromStyleSheets,
+                fromLiveAnimations: ingestMod.fromLiveAnimations,
+                resolveLiveKeyframes: ingestMod.resolveLiveKeyframes,
+                adoptRunning: ingestMod.adoptRunning,
+                ScrollScene: scrollMod.ScrollScene,
+                createScrollScene: scrollMod.createScrollScene,
+                parseScrollCSS: scrollMod.parseScrollCSS,
+                parseScrollTimeline: scrollMod.parseScrollTimeline,
+                parseScrollRange: scrollMod.parseScrollRange,
+                serializeScrollOptions: scrollMod.serializeScrollOptions,
+                roundTripScrollCSS: scrollMod.roundTripScrollCSS,
+                dispatchScrollBackend: scrollMod.dispatchScrollBackend,
+                resolveRange: scrollMod.resolveRange,
+                pinCSS: scrollMod.pinCSS,
+            },
+            engine,
+        ),
+    ));
+
+/**
  * Load the heavy CSS-keyframe parsing engine — `Animation`,
  * `CSSKeyframesAnimation`, `AnimationGroup`, `getTimingFunction`,
  * `resolveKeyframes`, and the animation-options constants (`DIRECTIONS`,
- * `FILL_MODES`, `defaultOptions`, `defaultLayerConfig`).
+ * `FILL_MODES`, `defaultOptions`, `defaultLayerConfig`) — PLUS every heavy
+ * front door (`animate`, `MotionPath`/`DrawSVG`, the ingest + scroll + compile
+ * round-trip, the `presets` namespace). The FULL surface; backward-compatible.
  *
  * This is the dynamic boundary: the `import("./engine")` pulls value.js into
  * the consumer's graph only when first awaited, so a light-only consumer
@@ -333,67 +508,108 @@ export interface AnimationEngine {
  * const anim = new CSSKeyframesAnimation(opts).fromString(css);
  * ```
  *
- * The browser caches the dynamic module after the first load, so repeat
- * calls resolve from the module cache without a second fetch.
+ * Memoized via a module-scope `_enginePromise` shared with `warmEngine()`
+ * (L.W7 S1): a `loadAnimationEngine()` call after `warmEngine()` has started
+ * returns the SAME in-flight Promise — no double import. The per-chunk imports
+ * are themselves memoized, so the granular `loadEngine`/`loadCompiler`/
+ * `loadIngest` accessors share the same in-flight chunk Promises.
  */
-export const loadAnimationEngine = async (): Promise<AnimationEngine> => {
-    // Both pull value.js into the heavy chunk; `animate` lives in its own module
-    // (it constructs CSSKeyframesAnimation) and is merged onto the engine surface
-    // so consumers reach it the same way: `const { animate } = await loadAnimationEngine()`.
-    const [
-        engine,
-        animateMod,
-        motionMod,
-        drawMod,
-        ingestMod,
-        scrollMod,
-        compileMod,
-        presets,
-    ] = await Promise.all([
-        import("./engine"),
+let _enginePromise: Promise<AnimationEngine> | null = null;
+export const loadAnimationEngine = (): Promise<AnimationEngine> =>
+    (_enginePromise ??= Promise.all([
+        importEngine(),
+        // `animate` lives in its own module (it constructs CSSKeyframesAnimation)
+        // and is merged onto the engine surface so consumers reach it the same
+        // way: `const { animate } = await loadAnimationEngine()`.
         import("./animate"),
         import("./motion-path"),
         import("./draw-svg"),
         // K.W8 INGEST (FLAGGED ADDITIVE) — the ingest module statically imports
         // the engine + adapter (value.js-bearing); merged here so consumers
         // reach the CSSOM walk + takeover the same way as the rest of the heavy
-        // surface.
-        import("./ingest"),
+        // surface. Shares the memoized `_ingestMod` with `loadIngest()`.
+        (_ingestMod ??= import("./ingest")),
         // K.W9 SCROLL-AS-CSS (FLAGGED ADDITIVE) — the scroll module pulls
         // value.js's scroll-grammar into the heavy chunk; merged here so
         // consumers reach it the same way as the rest of the heavy surface.
-        import("./scroll-scene"),
+        // Shares the memoized `_scrollMod` with `loadIngest()`.
+        (_scrollMod ??= import("./scroll-scene")),
         // K.W10 COMPILE (FLAGGED ADDITIVE) — the compiler statically imports
         // value.js's reverseAnimationShorthand/sampleColorRamp + the engine;
         // merged here so consumers reach the round-trip's BACKWARD half the same
-        // way as the rest of the heavy surface.
-        import("./compile"),
+        // way as the rest of the heavy surface. Shares `_compileMod` with
+        // `loadCompiler()`.
+        (_compileMod ??= import("./compile")),
         import("./animations"),
-    ]);
-    return Object.assign(
-        {
-            animate: animateMod.animate,
-            MotionPath: motionMod.MotionPath,
-            fromMotionPath: motionMod.fromMotionPath,
-            DrawSVG: drawMod.DrawSVG,
-            fromDrawSVG: drawMod.fromDrawSVG,
-            fromStyleSheets: ingestMod.fromStyleSheets,
-            fromLiveAnimations: ingestMod.fromLiveAnimations,
-            resolveLiveKeyframes: ingestMod.resolveLiveKeyframes,
-            adoptRunning: ingestMod.adoptRunning,
-            ScrollScene: scrollMod.ScrollScene,
-            createScrollScene: scrollMod.createScrollScene,
-            parseScrollCSS: scrollMod.parseScrollCSS,
-            parseScrollTimeline: scrollMod.parseScrollTimeline,
-            parseScrollRange: scrollMod.parseScrollRange,
-            serializeScrollOptions: scrollMod.serializeScrollOptions,
-            roundTripScrollCSS: scrollMod.roundTripScrollCSS,
-            dispatchScrollBackend: scrollMod.dispatchScrollBackend,
-            resolveRange: scrollMod.resolveRange,
-            pinCSS: scrollMod.pinCSS,
-            compileToCSS: compileMod.compileToCSS,
+    ]).then(
+        ([
+            engine,
+            animateMod,
+            motionMod,
+            drawMod,
+            ingestMod,
+            scrollMod,
+            compileMod,
             presets,
-        },
-        engine,
-    );
+        ]) =>
+            Object.assign(
+                {
+                    animate: animateMod.animate,
+                    MotionPath: motionMod.MotionPath,
+                    fromMotionPath: motionMod.fromMotionPath,
+                    DrawSVG: drawMod.DrawSVG,
+                    fromDrawSVG: drawMod.fromDrawSVG,
+                    fromStyleSheets: ingestMod.fromStyleSheets,
+                    fromLiveAnimations: ingestMod.fromLiveAnimations,
+                    resolveLiveKeyframes: ingestMod.resolveLiveKeyframes,
+                    adoptRunning: ingestMod.adoptRunning,
+                    ScrollScene: scrollMod.ScrollScene,
+                    createScrollScene: scrollMod.createScrollScene,
+                    parseScrollCSS: scrollMod.parseScrollCSS,
+                    parseScrollTimeline: scrollMod.parseScrollTimeline,
+                    parseScrollRange: scrollMod.parseScrollRange,
+                    serializeScrollOptions: scrollMod.serializeScrollOptions,
+                    roundTripScrollCSS: scrollMod.roundTripScrollCSS,
+                    dispatchScrollBackend: scrollMod.dispatchScrollBackend,
+                    resolveRange: scrollMod.resolveRange,
+                    pinCSS: scrollMod.pinCSS,
+                    compileToCSS: compileMod.compileToCSS,
+                    presets,
+                },
+                engine,
+            ),
+    ));
+
+/**
+ * Fire-and-forget idle-warmer for the heavy engine (L.W7 S1, W121).
+ *
+ * Pre-flights `loadAnimationEngine()`'s dynamic import so the first
+ * `.animate()` / `new CSSKeyframesAnimation()` call on a cold page resolves
+ * against an already-in-flight (or already-resolved) Promise instead of paying
+ * network + parse + compile latency inline. Call it during idle —
+ * `requestIdleCallback`, `visibilitychange`, or `mouseenter` on the app shell:
+ *
+ * ```ts
+ * requestIdleCallback(() => warmEngine());
+ * ```
+ *
+ * Idempotent and value.js-free by construction: it shares the SAME
+ * module-scope `_enginePromise` with `loadAnimationEngine()`, so a
+ * `loadAnimationEngine()` after `warmEngine()` returns the same in-flight
+ * Promise — no double import. It fires a DYNAMIC import only; it names no
+ * static value.js specifier, so `proof:boundary` stays green.
+ *
+ * L.W7 S4 (MEASURE-FIRST — the `scheduler.postTask` adoption is DEFERRED, not
+ * shipped). `scheduler.postTask("background", …)` would be the idiomatic home
+ * for an idle warm, but the `proof:scheduler-posttask` probe only SKIPS in
+ * jsdom (the API is absent there) — it has NOT positively MEASURED that the
+ * `"background"` call does not degrade INP on a real engine. Per the wave's own
+ * measure-first law (and inv ε — no claim without an observed oracle), warmEngine
+ * stays on the PROVEN bare `void loadAnimationEngine()` path. The probe + gate are
+ * ARMED: when a real-browser run (Playwright with `scheduler.postTask`) measures
+ * the background dispatch safe, warmEngine adopts `postTask("background")` then —
+ * a gated future change, not an unmeasured ship today.
+ */
+export const warmEngine = (): void => {
+    void loadAnimationEngine();
 };

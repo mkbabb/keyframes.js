@@ -1,0 +1,10 @@
+{
+  "$comment": "SpringProgress vector-sugar ADOPT-or-KILL verdict (L.W7 §S2). vectorHz/scalarHz at K=8 vs the >=1.2 (20%) ADOPT threshold. ADOPT authorizes setTargets(Float64Array); KILL forbids it (the sugar is not built — MEASURE-FIRST, no unproven code).",
+  "k": 8,
+  "winFraction": 1.2,
+  "vectorHz": 50681.655364738624,
+  "scalarHz": 13442.977795968212,
+  "ratio": 3.770121184008721,
+  "verdict": "ADOPT",
+  "recordedAt": "2026-06-17T07:18:51.600Z"
+}

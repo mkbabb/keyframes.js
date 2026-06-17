@@ -202,6 +202,39 @@ jobs:
               run: npm run proof:repin-witness
             - name: proof:bench-runs (F.W1 — the compile/interp/parser benches run, non-empty)
               run: npm run proof:bench-runs
+            # L.W7 S6 (Lane 33) — proof:bench-taxonomy: the budgeted bench manifest
+            # (bench/taxonomy.json). Every bench case is classified {run-check |
+            # budgeted | observe-only | cross-repo}; budgeted floors (the lerpArray
+            # SoA win at K=8, the spring-vector probe, the warmEngine pre-resolve)
+            # are asserted (observe-only/wall-clock in CI per the taxonomy posture
+            # row — RECORDED, never red on the slow runner; hard on-device); the
+            # VJ.L1–VJ.L8 color-math asks are dispatched to value.js Tranche O. A
+            # vitest-bench run over src/ — no demo build, so it rides the library job.
+            - name: proof:bench-taxonomy (L.W7 S6 — the budgeted bench taxonomy · lerpArray SoA + spring-vector + warmEngine floors · VJ.L1–VJ.L8 cross-repo dispatch)
+              run: npm run proof:bench-taxonomy
+            # L.W7 S4 (W123) — proof:scheduler-posttask: the scheduler.postTask
+            # priority-bands born-RED probe. SKIP-when-absent (jsdom/Node lack the
+            # API) + the device-INDEPENDENT assertion that yieldToMain's
+            # scheduler.yield fast-path is unaffected by warmEngine's "background"
+            # postTask adoption. A vitest run over src/ — library job.
+            - name: proof:scheduler-posttask (L.W7 S4 — scheduler.postTask "background" probe · yieldToMain yield-path unaffected)
+              run: npm run proof:scheduler-posttask
+            # L.W7 S5 (W40) — proof:epf1-measure: the EPF-1 ingest read/write
+            # phase-separation MEASURE-FIRST gate. OBSERVE-ONLY (category
+            # forced-layout per inv-L-device-honesty — carries its taxonomy posture
+            # row): it records the device-INDEPENDENT layout-thrash COUNT baseline
+            # (scripts/epf1-baseline.json), exits 0 regardless. The 50%-reduction
+            # floor opens only when the batch-reads/batch-writes cure ships under
+            # EPF1_CURE=1 (NOT in L.W7). Library job.
+            - name: proof:epf1-measure (L.W7 S5 — the EPF-1 ingest read/write thrash baseline · observe-only · forced-layout)
+              run: npm run proof:epf1-measure
+            # L.W7 S2 (W122) — proof:spring-vector: the SpringProgress vector-sugar
+            # MEASURE-FIRST ADOPT-or-KILL probe. Asserts the recorded verdict
+            # (scripts/spring-vector-decision.json): ADOPT (>=20% at K=8 →
+            # setTargets(Float64Array) authorized) OR KILL (the sugar is not built —
+            # no unproven code). A vitest-bench probe over src/ — library job.
+            - name: proof:spring-vector (L.W7 S2 — the SpringProgress vector-sugar ADOPT-or-KILL probe · MEASURE-FIRST, no unproven code)
+              run: npm run proof:spring-vector
             # H.W8 S1 (I-1) — the SCENES manifest is RE-SOURCED from demo/app/scenes.ts:
             # the runtime SCENES keys ≡ scenes.ts ids (bidirectional set-equality, NOT a
             # hard count — auto-tracks every scene add/remove). A new scene with no manifest

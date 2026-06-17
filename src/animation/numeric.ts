@@ -1,7 +1,7 @@
 import { toEasing } from "./easing";
 import { binarySearchRange } from "./internal/binarySearch";
 import { AnimationOptionError } from "./internal/errors";
-import { clamp, lerp, scale } from "./internal/leaves";
+import { clamp, lerpArray, scale } from "./internal/leaves";
 import { RAFPlayback } from "./playback";
 import type { Easing, TimingFunction } from "./constants";
 
@@ -9,10 +9,20 @@ interface NumericSegment<T extends Record<string, number>> {
     startPos: number;
     stopPos: number;
     keys: (keyof T & string)[];
-    startVals: number[];
-    stopVals: number[];
+    from: Float64Array;
+    to: Float64Array;
     timingFunction: TimingFunction;
 }
+
+/**
+ * Module-scope scratch buffer for the `lerpArray` consume (L.W7 S2). Grown
+ * lazily to the widest channel count seen across all `NumericAnimation`
+ * instances, never shrunk — a stable reference reused across every `.at()`
+ * call so the interpolation hot path allocates nothing. `lerpArray` only ever
+ * reads `seg.from.length` channels, so an over-sized `_out` (from a wider
+ * sibling animation) is harmless — the trailing slots are ignored.
+ */
+let _out = new Float64Array(0);
 
 export interface NumericAnimationOptions {
     /**
@@ -132,12 +142,20 @@ export class NumericAnimation<T extends Record<string, number>> {
         const stop = this.keyframes[index + 1]!;
         const keys = Object.keys(start) as (keyof T & string)[];
 
+        const from = new Float64Array(keys.length);
+        const to = new Float64Array(keys.length);
+        for (let i = 0; i < keys.length; i++) {
+            const k = keys[i]!;
+            from[i] = start[k] as number;
+            to[i] = stop[k] as number;
+        }
+
         return {
             startPos: this.positions[index]!,
             stopPos: this.positions[index + 1]!,
             keys,
-            startVals: keys.map((k) => start[k] as number),
-            stopVals: keys.map((k) => stop[k] as number),
+            from,
+            to,
             timingFunction: this._easingFn,
         };
     }
@@ -172,12 +190,19 @@ export class NumericAnimation<T extends Record<string, number>> {
         );
         const eased = seg.timingFunction(scaled);
 
-        for (let i = 0; i < seg.keys.length; i++) {
-            (this.result as Record<string, number>)[seg.keys[i]!] = lerp(
-                seg.startVals[i]!,
-                seg.stopVals[i]!,
-                eased,
-            );
+        // One fused `lerpArray` over the packed `Float64Array` channels, instead
+        // of K scalar `lerp` calls (L.W7 S2). Grow the shared `_out` scratch
+        // buffer lazily — never shrink it (a stable module-scope reference so
+        // the interp hot path allocates nothing).
+        const n = seg.keys.length;
+        if (_out.length < n) {
+            _out = new Float64Array(n);
+        }
+        lerpArray(seg.from, seg.to, eased, _out);
+
+        const result = this.result as Record<string, number>;
+        for (let i = 0; i < n; i++) {
+            result[seg.keys[i]!] = _out[i]!;
         }
 
         return this.result;
