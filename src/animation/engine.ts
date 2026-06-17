@@ -14,7 +14,6 @@
  */
 import {
     clamp,
-    extractTimelineOptions,
     isObject,
     lerpValue,
     scale,
@@ -56,6 +55,11 @@ import {
     normalizeIterationCount,
     normalizeTimingFunction,
 } from "./engine-options";
+import {
+    recoverAnimationOptionsBase,
+    recoverScrollOptions,
+    registerPropertyDescriptors,
+} from "./engine-css-metadata";
 import { cssTwinFor } from "./easing";
 import { FrameCompiler } from "./frame-compiler";
 import {
@@ -1273,13 +1277,12 @@ export class CSSKeyframesAnimation<V extends Vars> extends KeyframesAnimation<V>
     /**
      * Parsed scroll-grammar (`animation-timeline` / `animation-range` /
      * `timeline-scope` / `animation-trigger`) recovered from a sibling style rule
-     * by `fromString` (L.W2 S1 — CC-6). Populated from
-     * `extractTimelineOptions(resolved.stylesheet)`; `undefined` when the input
-     * carried no scroll grammar (the canonical time-clock animation). A read-only
-     * metadata field — no hot-path impact, analogous to {@link propertyRegistry}.
-     * The compiler (`compileToCSS`) reads it to EMIT the scroll longhands back out
-     * (`serializeScrollOptions` run backward over the parsed options — the same
-     * moat law as the `animation` shorthand), closing the round-trip's EMIT half.
+     * by `fromString` (L.W2 S1 — CC-6) via `recoverScrollOptions` (the
+     * CSS-metadata-recovery seam); `undefined` when the input carried no scroll
+     * grammar (the canonical time-clock animation). A read-only metadata field —
+     * no hot-path impact, analogous to {@link propertyRegistry}. The compiler
+     * (`compileToCSS`) reads it to EMIT the scroll longhands back out, closing the
+     * round-trip's EMIT half.
      */
     scrollOptions?: CSSTimelineOptions;
 
@@ -1293,17 +1296,12 @@ export class CSSKeyframesAnimation<V extends Vars> extends KeyframesAnimation<V>
         const resolved = resolveKeyframes(keyframes);
         this.propertyRegistry = resolved.properties;
 
-        // L.W2 S1 (CC-6) — recover the scroll grammar from the SAME parse. value.js's
-        // `extractTimelineOptions` reads `animation-timeline`/`animation-range`/
-        // `timeline-scope`/`animation-trigger` off the stylesheet into a typed
-        // `CSSTimelineOptions`. Set the field ONLY when scroll grammar is actually
-        // present (it returns `{}` for a canonical time-clock animation), so the
-        // compiler's EMIT half threads only a real scroll source — a plain
-        // animation leaves `scrollOptions` `undefined` (byte-identical to before).
-        // Under `exactOptionalPropertyTypes`, a re-parse with no scroll grammar
-        // must CLEAR a stale field rather than assign `undefined` into the optional.
-        const timeline = extractTimelineOptions(resolved.stylesheet);
-        if (Object.keys(timeline).length > 0) this.scrollOptions = timeline;
+        // L.W2 S1 (CC-6) — recover the scroll grammar from the SAME parse via the
+        // CSS-metadata-recovery seam. Under `exactOptionalPropertyTypes`, a
+        // re-parse with no scroll grammar must DELETE a stale field rather than
+        // assign `undefined` into the optional.
+        const timeline = recoverScrollOptions(resolved.stylesheet);
+        if (timeline !== undefined) this.scrollOptions = timeline;
         else delete this.scrollOptions;
 
         // K.W7 S4 — surface the adapter's structured diagnostics (EMPTY_PARSE,
@@ -1313,38 +1311,11 @@ export class CSSKeyframesAnimation<V extends Vars> extends KeyframesAnimation<V>
         // at apply time. The channel is queryable; nothing is logged.
         this.diagnostics = [...resolved.diagnostics];
 
-        // F.W8 — apply a sibling style rule's `animation` shorthand/longhands as
-        // the option BASE, with the constructor-explicit options overriding it.
-        // value.js's `extractAnimationOptions` returns only the declared fields;
-        // translate its CSS shape to the engine's (infinite → `Infinity`, the
-        // timing-function string flows through `getTimingFunction` as the
-        // per-keyframe case does). No-op (byte-identical) when the input carries
-        // no style rule. The dead `resolved.options` field is now consumed.
-        const opt = resolved.options;
-        const base: Partial<InputAnimationOptions> = {};
-        if (opt.duration != null) base.duration = opt.duration;
-        if (opt.timingFunction != null)
-            base.timingFunction =
-                opt.timingFunction as InputAnimationOptions["timingFunction"];
-        if (opt.iterationCount !== undefined)
-            base.iterationCount =
-                opt.iterationCount === null ? Infinity : opt.iterationCount;
-        if (opt.direction != null)
-            base.direction =
-                opt.direction as NonNullable<
-                    InputAnimationOptions["direction"]
-                >;
-        if (opt.delay != null) base.delay = opt.delay;
-        if (opt.fillMode != null)
-            base.fillMode = opt.fillMode as NonNullable<
-                InputAnimationOptions["fillMode"]
-            >;
-        // L.W1 S5 (Band A) — the LAYER-level `animation-composition` longhand
-        // value.js 0.13.0 surfaces on `CSSAnimationOptions.composition`. Carry it
-        // onto `options.composite` so an authored `animation-composition: add`
-        // (arriving via a sibling `.class` rule) round-trips instead of dropping.
-        if (opt.composition != null)
-            base.composite = opt.composition as CompositeOperator;
+        // F.W8 — recover a sibling style rule's `animation` shorthand/longhands as
+        // the option BASE via the CSS-metadata-recovery seam, with the
+        // constructor-explicit options overriding it. The base is EMPTY (a
+        // byte-identical no-op) when the input carried no style rule.
+        const base = recoverAnimationOptionsBase(resolved.options);
         if (Object.keys(base).length > 0) {
             this.setOptions({ ...base, ...this._ctorOptions });
         }
@@ -1393,61 +1364,13 @@ export class CSSKeyframesAnimation<V extends Vars> extends KeyframesAnimation<V>
 
         this.parse();
 
-        // D-LIB-1: register the parsed `@property` registry with the platform.
-        // Until now the registry was an inert metadata-recovery `Map`; a typed
-        // custom the author declared via `@property` was, to the browser, an
-        // untyped string — so the WAAPI path animated it DISCRETELY (a silent
-        // regression vs the rAF path's JS interpolation). Registering makes the
-        // native path interpolate the typed custom SMOOTHLY (isomorphism-
-        // restoring). Feature-detected; the JS path is the verbatim fallback.
-        this.registerProperties();
+        // D-LIB-1: register the parsed `@property` registry with the platform via
+        // the CSS-metadata-recovery seam, so the native (WAAPI) path interpolates
+        // a typed custom SMOOTHLY instead of discretely (the rAF JS path is the
+        // verbatim fallback). Feature-detected — see `engine-css-metadata.ts`.
+        registerPropertyDescriptors(this.propertyRegistry);
 
         return this;
-    }
-
-    /**
-     * Register every parsed `@property` descriptor with the UA via
-     * `CSS.registerProperty` (D-LIB-1) — one guarded pass at the end of
-     * `fromString`. Feature-detected (`CSS.registerProperty` may be absent:
-     * SSR, jsdom, older engines) so it no-ops to today's behaviour where
-     * unsupported. A duplicate-name re-registration throws a benign
-     * `InvalidModificationError` (the global registry is process-wide and
-     * idempotent for a given name) — swallowed per-descriptor so one already-
-     * registered name never aborts the rest of the pass.
-     *
-     * Baseline 2024-07-09 (newly available — feature-detect mandatory).
-     */
-    private registerProperties(): void {
-        if (
-            typeof CSS === "undefined" ||
-            typeof CSS.registerProperty !== "function"
-        ) {
-            return;
-        }
-        for (const [name, descriptor] of this.propertyRegistry) {
-            // `syntax` is required by the platform; a descriptor parsed without
-            // one cannot be registered (it stays an untyped custom). value.js's
-            // `ValueArray.toString()` is the canonical CSS serialization of the
-            // initial value (the same form value.js emits for `initial-value:`).
-            if (descriptor.syntax == null) continue;
-            const definition: PropertyDefinition = {
-                name,
-                syntax: descriptor.syntax,
-                inherits: descriptor.inherits ?? false,
-            };
-            if (descriptor.initialValue != null) {
-                definition.initialValue = descriptor.initialValue.toString();
-            }
-            try {
-                CSS.registerProperty(definition);
-            } catch {
-                // InvalidModificationError on a duplicate name (process-wide
-                // registry) — benign, the property is already registered with
-                // these semantics. Any other throw (malformed syntax/initial
-                // value the UA rejects) likewise must not abort playback: the
-                // JS path remains correct, so swallow and move on.
-            }
-        }
     }
 
     transform(vars: V) {
