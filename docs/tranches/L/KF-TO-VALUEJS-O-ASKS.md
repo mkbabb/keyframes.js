@@ -7,7 +7,9 @@ ask — the kf-side spec value.js's **Tranche O** consumes, the successor to the
 `docs/tranches/K/KF-TO-VALUEJS-GRAMMAR-ASKS.md` (VJ.W1 scroll grammar + VJ.W2 perceptual
 ramp, both LANDED in the 0.13.0 cut as N.W11′/N.W11.D). Where the K dispatch asked for
 the **two net-new grammar items that gated K's frontier**, this L dispatch asks for the
-**ten totality items the 36-lane L audit found OPEN at 0.13.0** — each one a value.js
+**twelve totality items the 36-lane L audit + the L.W10 CSS-parity spike found OPEN at
+0.13.0** (the ten audit items plus the two W10-RE-CONFIRMED hard-crashes — CSS Nesting §9 +
+bare `linear-gradient` §13 — and the §14 math-subpath DRY cleanup) — each one a value.js
 defect kf currently WORKS AROUND at the consume seam, in violation of
 `inv-L-acyclic-purity` (`L.md §invariant set`: "a defect in a published sibling is fixed
 AT THE SIBLING and consumed via re-pin — NEVER corrected at the kf consume seam").
@@ -44,7 +46,7 @@ kf-side without re-implementing value.js's grammar — they are value.js's to fi
 
 ---
 
-## §0 — The dispatch in one table (ten asks · the kf workaround each DELETES)
+## §0 — The dispatch in one table (twelve asks · the kf workaround each DELETES)
 
 | # | Ask | value.js producer seam | The kf consume edge | The kf workaround it DELETES | Audit anchor |
 |---|---|---|---|---|---|
@@ -56,17 +58,21 @@ kf-side without re-implementing value.js's grammar — they are value.js's to fi
 | **6** | **partial-input HONESTY** — fail, don't silently truncate | `src/parsing/stylesheet.ts:212-245` (per-decl parse accepts PARTIAL) | adapter `onParseError:173` (authored, inert) | — (the truncation IS the loss in §1; this is its honesty half) | viol10, ★OnParseError-inert |
 | **7** | **the perf set VJ.L1–L8** — per-call alloc in the color hot paths | `units/color/matrix.ts:19`, `conversions/oklab.ts:28/57`, `color/dispatch.ts:391/223`, `normalize.ts:34` | `compile-color.ts` densify · oklab playback lerp | — (perf; no workaround — a budgeted bench gates the claim) | W78-85, ★transformMat3/oklab2xyz/mixColors/gamutMap |
 | **8** | **`parseCSSSubValue`/`parseCSSValueOrArgs`** — ELIMINATE kf's direct parse-that dep + the FN_NAME stamp gap | a value.js root export composing its OWN parsers + a typed-construct / preserved-name surface | `utils.ts:1` `import { any } from "@mkbabb/parse-that"` · `FN_NAME` Symbol (`utils.ts:45`) | **the whole `@mkbabb/parse-that` production dependency** + **the `FN_NAME` Symbol re-stamp** (`utils.ts:45-57,294-298`) | viol18/24, W88/W94, ★FN_NAME/★parse-that-dep |
-| **9** | **nesting/container/layer recursive parse** | `src/parsing/stylesheet.ts` (unknown at-rule body = opaque string) | adapter ingest · `fromStyleSheets` totality | — (silently dropped; the kf cure needs the typed recursive producer) | W101-102, ★CSS-Nesting/★@container |
+| **9** | **nesting/container/layer recursive parse** — CSS Nesting THROWS (not silent-drop; W10 §1 row 1 correction) | `src/parsing/stylesheet.ts:501/503-510` (unknown at-rule body = opaque string; full-consume aborts on `&`) | adapter ingest · `fromStyleSheets` totality | — (`& .child` → THROW `Parse error at offset N`; un-workable at the consume seam) | W101-102, W10 §1 r1, ★CSS-Nesting/★@container |
 | **10** | **`parseTransitionShorthand`/`reverseTransitionShorthand`** — the `transition` mirror of the shipped `reverseAnimationShorthand` | a value.js `transition`-family parse + inverse-serialize pair (mirror `parsing/animation-shorthand.ts`) | `compile.ts`/`format.ts` (consume the inverse for `transition` longhand⇄shorthand the way `reverseAnimationShorthand` is consumed at `format.ts:268`) | — (value.js ships NO `transition` shorthand pair; kf has no inverse to call — the FORWARD parity gap) | W104, animation-shorthand mirror |
 | **11** | **`animation-play-state` grammar** — surface `playState` on `CSSAnimationOptions` | a value.js `animation-play-state` longhand parse → `extractAnimationOptions` `playState?: "running" \| "paused"` | `engine.ts:fromString` reads it into `options.playState`; `format.ts` emits the longhand | — (L.W1 S5 split: 0.13.0 `extract.d.ts:8-17` carries NO `playState`; the round-trip is dispatch-blocked, NOT a kf band-aid) | L.W1 S5 |
 | **12** | **invalid-keyframe-decl DIAGNOSTIC** — surface (not silently drop) a keyframe declaration ignored per CSS Animations §3 (e.g. one qualified `!important`) | a value.js parse-diagnostic row (`OnParseError` channel) naming the dropped decl + the spec reason, while STILL dropping it (spec-correct) | `adapter.ts` resolve path folds it into `ResolvedKeyframes.diagnostics`; `validate()`/`explain()` (L.W6) project it | — (L.W1 S1 correction: value.js spec-correctly DROPS keyframe `!important` at the AST level — kf can't honor the no-silent-drop law without value.js surfacing the drop; re-parsing the body as a style-rule is the FORBIDDEN workaround the verify-lane attempted and the orchestrator REVERTED) | L.W1 S1, CSS-Anim §3 |
+| **13** | **structured-gradient grammar** — bare `linear-gradient(red,blue)` CRASHES (`t is not iterable`); radial/conic head MANGLED (W10 §1 r6–8) | `src/parsing/index.ts:125-208` `handleGradient` (only linear head built; `.opt()` direction crash at `:188-205`) | adapter gradient ingest · `compile.ts` color/background leg | — (TypeError crash on Baseline CSS + silent head corruption; un-workable at the consume seam) | W10 §1 r6/r7/r8, ★structured-gradient |
+| **14** | **`@mkbabb/value.js/math` tree-shakeable subpath** — narrow math entry (no ValueUnit/Color/grammar edge) | a value.js `exports`-map `./math` subpath + a value.js-free `math` entry module | kf LIGHT tier `import { lerpArray } from "@mkbabb/value.js/math"` | **the inline `lerpArray` copy** in kf's LIGHT tier (a duplicated kernel forced by the missing subpath — DRY/spine-cleanliness, not a defect-cure) | L.W7 S2, W-MATH-SUBPATH |
 
 **The decisive ground truth.** value.js 0.13.0 closed the K frontier (scroll grammar +
-perceptual ramp) — the K dispatch's two items LANDED. But the 36-lane L audit, probing the
-FULL CSS surface (not just the animation core), found ten OPEN totality defects, **eight
-of them silent-loss or replay-equality breaches on the forward leg** that kf cannot cure
-without re-authoring value.js's grammar. §1–§9 + §12 carry each in full; §10 records the cadence;
-§11 the status ledger.
+perceptual ramp) — the K dispatch's two items LANDED. But the 36-lane L audit + the L.W10
+CSS-parity spike, probing the FULL CSS surface (not just the animation core), found TWELVE
+OPEN totality defects, **most of them silent-loss or replay-equality breaches on the forward
+leg** that kf cannot cure without re-authoring value.js's grammar — plus **two genuine
+HARD-CRASHES on Baseline-stable CSS** the W10 spike RE-CONFIRMED: CSS Nesting THROWS (§9) and
+bare `linear-gradient(red,blue)` THROWS (§13). §1–§9 + §12–§14 carry each in full; §10 records
+the cadence; §11 the status ledger.
 
 ---
 
@@ -404,12 +410,31 @@ with NO direct parse-that reach-through.
 
 value.js's stylesheet parser treats every unknown at-rule body as an OPAQUE string — no
 recursive parse of `@media`/`@supports`/`@layer`/`@container` contents (W101-102, ★). The
-audit live-probes: CSS Nesting (Baseline-2023) is *"silently DROPPED — nested rules inside a
-declaration block are lost with no error"*; `@container (min-width:200px){…}` *"degrades to
-genericAtRule with an UNPARSED string prelude"*; the `@container` condition is not typed
-(not merely an opaque prelude — no size-query / `style()` branch parse). For kf's live-ingest
+`@container (min-width:200px){…}` body *"degrades to a `kind:"unknown"` rule with an UNPARSED
+string body"* (L.W10 §1 row 3, live-confirmed) — the `@container` condition is not typed (not
+merely an opaque prelude, but a whole opaque-string body). For kf's live-ingest
 (`fromStyleSheets`/`adoptRunning`) totality, a stylesheet that nests `@keyframes` inside a
 `@media`/`@layer`/`@container` (extremely common) has its inner `@keyframes` LOST.
+
+**CSS Nesting is NOT a silent drop — it is a hard THROW (L.W10 §1 row 1 correction,
+RE-CONFIRMED 2026-06-17).** The 36-lane audit recorded CSS Nesting as *"silently DROPPED — no
+error"*, but the L.W10 research spike found the audit had probed **parse-that's** `cssParser`
+(which silent-drops), while **kf consumes value.js's `parseCSSStylesheet`, which THROWS**: the
+top-level full-consume check (`value.js/src/parsing/stylesheet.ts:503-510`) cannot consume the
+`&`, so the WHOLE parse aborts. Live probe of the installed 0.13.0 tree (re-run at this
+dispatch finalize):
+
+```
+parseCSSStylesheet(".a{color:red; & .b{color:blue}}")  → THROW: "Parse error at offset 14"
+parseCSSStylesheet(".a{color:red}")                    → OK   (the `&` is the unconsumable token)
+```
+
+This is a **HIGH-severity crash on Baseline-2023 CSS**, not a degraded animation: any kf
+consumer feeding a nested stylesheet to `fromStyleSheets`/`adoptRunning` gets a hard parse
+error, not a lossy ingest. The cure (the `nestedRule` production in `styleRule`, per L.W10
+§3.3) must make the `&`/`& .child` parse SUCCEED (a typed `kind:"nested"`/child-rule node) so
+the THROW is GONE — the gate's `nesting` row (`proof:css-parity`, L.W10 §4) asserts the throw
+is gone, not merely that a shape is typed.
 
 ### §9.2 What kf asks value.js to ship
 
@@ -469,6 +494,104 @@ on the 0.14.0 publish.
 
 ---
 
+## §13 — structured-gradient grammar: the bare-`linear-gradient` CRASH + radial/conic head corruption (W10 spike — HIGH)
+
+### §13.1 The precise gap (line-anchored, RE-CONFIRMED 2026-06-17)
+
+The L.W10 CSS-parity spike (`docs/tranches/L/audit/W10-css-parity-spike.md §1 rows 6–8`)
+live-probed value.js's gradient grammar (`value.js/src/parsing/index.ts:125-208`
+`handleGradient`) and found it builds only the `linearGradient` head — radial/conic fall
+through a `colorStopList` mis-parse, and the direction-optional leg of `linearGradient` itself
+CRASHES. Two distinct defects, both RE-CONFIRMED against the installed 0.13.0 tree at this
+dispatch finalize:
+
+1. **bare `linear-gradient(red, blue)` THROWS — HIGH.** The `linearGradient` arm composes
+   `any(fromAngle, direction).skip(comma).opt()` (`value.js/src/parsing/index.ts:188-205`); the
+   `.opt()` direction-optional path has a bug that crashes when no direction is present. Live
+   probe:
+
+   ```
+   parseCSSValue("linear-gradient(red, blue)")        → THROW: "t is not iterable"
+   parseCSSValue("linear-gradient(90deg, red, blue)")  → OK: typed FunctionValue (the angle is the workaround)
+   ```
+
+   The angle is OPTIONAL in CSS (`linear-gradient(red, blue)` is Baseline-stable since forever),
+   so this is a **`TypeError` crash on canonical CSS, not a graceful refusal**. A kf consumer
+   feeding `background: linear-gradient(red, blue)` to the adapter gets a hard parse error.
+
+2. **`radial-gradient`/`conic-gradient` head MANGLED — MEDIUM.** `radial-gradient(circle at
+   center, …)` parses but its head structure is LOST: `.toString()` emits `radial-gradient(circle,
+   at, center, …)` — `circle`/`at`/`center` shredded into raw comma-joined idents (L.W10 §1 row 6).
+   `conic-gradient(from 90deg at center, …)` survives the `from 90deg` but SILENTLY DROPS the
+   `at center` position (row 7). Parses-and-corrupts, not a throw — so the loss is invisible to
+   kf's compile-side refusal gates (a forward-leg silent breach, the §1/§6 honesty class).
+
+### §13.2 What kf asks value.js to ship
+
+(W10-S7 / `KF-TO-VALUEJS-O §13`) Two coupled fixes in `handleGradient`:
+
+- **Fix the bare-`linear-gradient` `.opt()` crash** so `linear-gradient(red, blue)` (no
+  direction) parses to the same typed `FunctionValue` it returns WITH a direction — the
+  direction defaults to `to bottom` (180deg) per the CSS Images spec, not a `TypeError`.
+- **Complete the radial/conic head grammar**: a typed head with `shape:"circle"|"ellipse"`,
+  `size`, and `position` (the `at <position>` branch) for `radial-gradient`, and the `from
+  <angle> at <position>` head for `conic-gradient` — replay-equal through
+  `serializeStylesheetItem`/`FunctionValue.toString()` (no head shredding, no silent position
+  drop).
+
+### §13.3 How kf consumes it · the gate
+
+kf's adapter ingests gradient leaves; a THROW aborts the whole keyframe parse (un-workable
+at the consume seam — the parse is already dead), and the radial/conic corruption breaks the
+compile-back leg. **No kf workaround to delete** (a crash/corruption cannot be cured kf-side
+without re-implementing value.js's gradient grammar — `inv-L-acyclic-purity` forbids it). The
+consume edge: the `proof:css-parity` `structured-gradient` row (L.W10 §4) asserts the bare
+`linear-gradient` no longer throws AND the radial head is typed — RED today (THROW + mangle),
+GREEN on the 0.14.0 publish. This is one of the **two genuine value.js hard-crashes** the W10
+spike flagged as FIRST-priority value.js O fixes (the other is §9's nesting THROW), both on
+Baseline-stable CSS.
+
+---
+
+## §14 — `@mkbabb/value.js/math` tree-shakeable subpath (the `lerpArray`-inline forcing function — L.W7 S2)
+
+### §14.1 The precise gap
+
+value.js exposes ONLY the root barrel (`@mkbabb/value.js`) — there is no `@mkbabb/value.js/math`
+(or any narrowed) subpath in its `exports` map. The math primitives kf's LIGHT tier needs
+(scalar/vector `lerp`, `clamp`, `lerpArray`) live behind the SAME barrel that drags in the
+ValueUnit/Color/`@keyframes` grammar (the HEAVY value.js surface). A LIGHT kf module that
+imported `lerpArray` from `@mkbabb/value.js` would pull the entire grammar into the light bundle
+— a `proof:boundary` violation. The L.W7 S2 perf wave recorded the consequence: kf's LIGHT
+tier **inlines its own `lerpArray`** (a hand-copy of value.js's array lerp) PURELY because there
+is no tree-shakeable math subpath to import it from value.js-free. That inline is a small,
+duplicated kernel kf would rather consume from the sibling — but cannot, because importing it
+crosses the boundary.
+
+### §14.2 What kf asks value.js to ship
+
+(L.W7 S2 / W-MATH-SUBPATH) A `@mkbabb/value.js/math` subpath export (an `exports` map entry
+plus a value.js-free `math` entry module) that ships the scalar + vector math kernels
+(`lerp`, `clamp`, `lerpArray`, the interp primitives) with **zero static edge to ValueUnit /
+Color / the CSS grammar** — so a kf LIGHT module can `import { lerpArray } from
+"@mkbabb/value.js/math"` and `proof:boundary` stays GREEN (the subpath carries no value.js
+HEAVY specifier into the light bundle). The subpath is the produce-half; kf's inline-`lerpArray`
+deletion is the consume-half.
+
+### §14.3 How kf consumes it · the gate
+
+On the `@mkbabb/value.js/math` subpath landing in a published cut, kf's LIGHT tier DELETES its
+inline `lerpArray` and imports the kernel from `@mkbabb/value.js/math`. **The workaround is the
+inline copy** (a duplicated-kernel band-aid forced by the missing subpath — not a defect-cure
+workaround like §5/§8, but a redundant-grammar/DRY violation the subpath retires). `proof:boundary`
+MUST stay GREEN across the swap (the subpath is value.js-free by construction); a budgeted
+`proof:zero-alloc`/bench arm confirms the imported kernel matches the inline's alloc profile.
+RED-against-redundancy today (the inline exists because the subpath does not); GREEN on the
+subpath consume. This is a MEDIUM-severity DRY/spine-cleanliness ask, not a crash — but it is
+the one place the LIGHT boundary forces kf to copy value.js code rather than consume it.
+
+---
+
 ## §10 — The cadence (the dispatch does not block L's Band A)
 
 Per `L.md §The two bands`: **Band A — kf-internal TOTALITY (value.js-0.13.0-and-4.3.0-sufficient)
@@ -482,8 +605,9 @@ proceeds immediately.** L.W1–L.W8 do NOT block on this dispatch:
   widening is the O ask).
 - **L.W2's scroll-compile + multi-color densify/refuse** rides the SHIPPED 0.13.0
   `sampleColorRamp`/`deltaEOK`/scroll grammar (the K dispatch's LANDED items). Band A.
-- **L.W7's perf** is gated by §7 but the kf-side bench taxonomy + the LIGHT-tier `lerpArray`
-  consume (already published) land Band A; the value.js alloc-drop is the consume widening.
+- **L.W7's perf** is gated by §7 but the kf-side bench taxonomy lands Band A; the value.js
+  alloc-drop (§7) and the `@mkbabb/value.js/math` tree-shakeable subpath (§14, which retires
+  kf's inline `lerpArray`) are the consume-widening O asks.
 
 So this dispatch is the Band-B value.js leg: **kf authorizes and runs Band A while value.js
 ships Tranche O in its own interval** — the same acyclic cadence value.js's 0.13.0 cut just
@@ -509,14 +633,18 @@ ledger carries it as a Band-B consume-edge with a named tripwire — `L.md §The
 | **§6 partial-input honesty** | full-consume-or-fail + diagnostic on tail (viol10) | `adapter.ts:173` `onParseError` (inert→live) | — (the inert sink ACTIVATES; no band-aid to delete) | YES — honest-refusal arm REDs today (partial silently succeeds) |
 | **§7 perf VJ.L1–L8** | zero-alloc color hot paths (W78-85) | `compile-color.ts` densify; oklab playback | — (missed-opportunity, not a violation) | YES — budgeted bench REDs against the alloc budget |
 | **§8 parseCSSSubValue + FN_NAME** | root parser API + preserved fn-name (W88/W94/W90) | `utils.ts:1` import; `FN_NAME` stamp | **the whole `@mkbabb/parse-that` dep** + **the `FN_NAME` Symbol** | YES — `proof:boundary` (W96) REDs on any surviving parse-that import |
-| **§9 nesting/container/layer** | typed recursive `StylesheetItem` + typed @container (W101-102) | L.W3 recursive group-rule walk; `proof:ingest-replay` nested arm | — (inner `@keyframes` LOST; can't reach into opaque string) | YES — nested-`@keyframes` arm REDs today |
+| **§9 nesting/container/layer** | typed recursive `StylesheetItem` + typed @container + the `nestedRule` production (W101-102, W10 §1 r1) | L.W3 recursive group-rule walk; `proof:ingest-replay` nested arm; `proof:css-parity` `nesting` row | — (CSS Nesting THROWS `Parse error at offset N`; inner `@keyframes` LOST in opaque bodies; un-workable at the seam) | YES — `nesting` row asserts the THROW is GONE; nested-`@keyframes` arm REDs today |
 | **§12 transition shorthand** | `parseTransitionShorthand`/`reverseTransitionShorthand` mirroring the shipped animation pair (W104) | `format.ts`/`compile.ts` (the `transition` longhand⇄shorthand leg, beside `reverseAnimationShorthand` at `format.ts:268`) | — (FORWARD parity gap; value.js ships no `transition` pair, so there's no kf band-aid to delete — only an absent inverse) | YES — a `proof:replay-equality` `transition`-shorthand arm REDs until the pair publishes |
+| **§13 structured gradient** | bare-`linear-gradient` `.opt()` crash fix + typed radial/conic head (W10 §1 r6–8) | adapter gradient ingest; `compile.ts` color/background leg; `proof:css-parity` `structured-gradient` row | — (TypeError crash `t is not iterable` on `linear-gradient(red,blue)` + silent radial/conic head corruption; un-workable at the seam) | YES — `structured-gradient` row asserts the bare-linear THROW is GONE + the radial head is typed; REDs today |
+| **§14 value.js/math subpath** | `@mkbabb/value.js/math` `exports` subpath + value.js-free `math` entry (W-MATH-SUBPATH, L.W7 S2) | kf LIGHT tier `import { lerpArray } from "@mkbabb/value.js/math"`; `proof:boundary` stays GREEN; budgeted bench | **the inline `lerpArray` copy** in kf's LIGHT tier (a DRY/spine band-aid forced by the missing subpath) | YES — RED-against-redundancy today (the inline exists because the subpath does not) |
 
 **The acyclic spine holds.** value.js publishes Tranche O VALUES (grammar totality + the
 perf set + the parser-API surface); kf consumes one tranche behind (`^0.13.0 → ^0.14.0`),
-born-RED-gated kf-side; glass-ui consumes spring FROM kf. The ten asks DELETE four named kf
+born-RED-gated kf-side; glass-ui consumes spring FROM kf. The twelve asks DELETE five named kf
 workarounds (the `linear()` regex, the `FN_NAME` Symbol, the direct parse-that dep, the
-inert-sink dead-end) and CLOSE five silent-loss forward-leg breaches that kf cannot cure at
-the consume seam without violating `inv-L-acyclic-purity`. No cycle, no `file:` link, no
-vendored grammar. **kf does NOT write value.js's tree** — the wave numbering and the 0.14.0
-cut are value.js's to ship; this is the outbound edge of the dispatch the L charter names.
+inert-sink dead-end, the inline `lerpArray` copy) and CLOSE the silent-loss / replay-equality
+forward-leg breaches AND the **two genuine HARD-CRASHES on Baseline CSS** (CSS Nesting §9 +
+bare `linear-gradient` §13, both W10-RE-CONFIRMED) that kf cannot cure at the consume seam
+without violating `inv-L-acyclic-purity`. No cycle, no `file:` link, no vendored grammar.
+**kf does NOT write value.js's tree** — the wave numbering and the 0.14.0 cut are value.js's
+to ship; this is the outbound edge of the dispatch the L charter names.

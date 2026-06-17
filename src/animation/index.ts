@@ -66,6 +66,13 @@ export type {
 } from "./timeline";
 export { RAFPlayback } from "./playback";
 export type { RAFPlaybackOptions, Tickable } from "./playback";
+// L.W9 S5 KF-OSCILLATOR (W128) — the LIGHT periodic phase clock (value.js-free:
+// a frequency-driven phase ramp + a pure waveform shaper, NO CSS parsing). The
+// caller drives the loop (mirrors SmoothProgress/SpringProgress — no rAF
+// ownership); glass-ui BB's W-EASING-PRIMITIVE wave + the demo KF-OSCILLATOR
+// scene consume the phase. proof:boundary enumerates it as a value.js-free entry.
+export { Oscillator, waveformValue } from "./oscillator";
+export type { OscillatorConfig, OscillatorWaveform } from "./oscillator";
 
 // ── Orchestration tier (E.W10 — value.js-free light helpers over the engines) ─
 // stagger/flip/drag/decay/Sequence carry zero static value.js edge: stagger is

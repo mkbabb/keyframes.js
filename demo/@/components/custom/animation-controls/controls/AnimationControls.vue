@@ -69,6 +69,7 @@
                     :model-value="selectedControlSurface"
                     @update:model-value="selectControl"
                     :class="['w-fit max-w-full min-w-0', overflowClass]"
+                    :aria-orientation="undefined"
                 />
             </div>
 

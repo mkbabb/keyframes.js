@@ -287,6 +287,21 @@ jobs:
             # demo-driver.mjs — zero browser, zero demo-smoke wall-clock. Rides the gates job.
             - name: proof:settle-is-predicate (L.W4 S2 — openControlsPanel settles on a state predicate, not a fixed-ms sleep)
               run: npm run proof:settle-is-predicate
+            # L.W9 — proof:workaround-deletion: the Band-B consume-edge deletion
+            # ledger. FIVE kf workarounds for sibling defects (aria-orientation
+            # suppress, pointerHandled, the linear() normalize regex, the FN_NAME
+            # Symbol sidechannel, the direct parse-that import). The three-state
+            # model resolves each arm to GREEN (ABSENT) / PENDING (PRESENT +
+            # sibling UNPUBLISHED → exit 0, the STAGED Band-B state) / RED (PRESENT
+            # + sibling PUBLISHED → the deletion is now SAFE and OVERDUE). Today
+            # every paired sibling fix (glass-ui 4.1.0 / value.js 0.14.0) is
+            # UNPUBLISHED, so every arm is PENDING and the gate exits 0 — SAFE for
+            # the blocking gates job (it is a proof:hygiene member, not a report-all
+            # tripwire). STATIC: a device-INDEPENDENT source-tree grep, no browser,
+            # no demo build — rides the library gates job. It only ever turns RED to
+            # demand a consume-edge deletion that the sibling publish has made safe.
+            - name: proof:workaround-deletion (L.W9 — the Band-B consume-edge deletion ledger · PENDING today · RED only when a sibling root-fix publishes)
+              run: npm run proof:workaround-deletion
 
     demo-smoke:
         name: demo gate (inv γ paints + inv δ occlusion-free)
@@ -359,6 +374,22 @@ jobs:
               id: proof-keyframes-vue-published
               continue-on-error: true
               run: npm run proof:keyframes-vue-published
+            # L.W9 S4 — proof:control-point-live: the DL-K7 GlassControlPoint
+            # tripwire, BORN-RED-BY-DESIGN (the SAME disposition as the two
+            # tripwires above). GlassControlPoint — the SVG control-point handle the
+            # keyframes curve editor consumes — is ABSENT from the published
+            # @mkbabb/glass-ui (a ≥5-tranche HANDOFF, W34). The gate is GATE-FIRST:
+            # authored BEFORE any implementation, per the K close's BOOK. It rides
+            # THIS report-all demo-smoke job (continue-on-error, where the registry
+            # @mkbabb/glass-ui IS installed so the published surface is probeable) so
+            # the expected RED is RECORDED in one run; the terminal check-failures
+            # step reds the job. DELIBERATELY ABSENT from the blocking proof:hygiene
+            # chain (the expected RED would abort the && chain) — it is a NAMED
+            # EXCLUDED tripwire in proof:ci-coverage, not an aggregator member.
+            - name: "[born-RED tripwire] proof:control-point-live (L.W9 S4 — GlassControlPoint absent from published glass-ui; RED until glass-ui BB ships it + kf re-pins)"
+              id: proof-control-point-live
+              continue-on-error: true
+              run: npm run proof:control-point-live
             - name: install playwright + lighthouse (demo-gate only; --no-save keeps the lib posture)
               run: npm i --no-save @playwright/test lighthouse
             - name: install chromium
@@ -1526,6 +1557,7 @@ jobs:
                   failed=""
                   if [ "${{ steps.proof-peer-satisfied.outcome }}" = "failure" ]; then failed="$failed proof-peer-satisfied"; fi
                   if [ "${{ steps.proof-keyframes-vue-published.outcome }}" = "failure" ]; then failed="$failed proof-keyframes-vue-published"; fi
+                  if [ "${{ steps.proof-control-point-live.outcome }}" = "failure" ]; then failed="$failed proof-control-point-live"; fi
                   if [ "${{ steps.proof-demo-smoke.outcome }}" = "failure" ]; then failed="$failed proof-demo-smoke"; fi
                   if [ "${{ steps.proof-occlusion.outcome }}" = "failure" ]; then failed="$failed proof-occlusion"; fi
                   if [ "${{ steps.proof-demo-usability.outcome }}" = "failure" ]; then failed="$failed proof-demo-usability"; fi
@@ -1614,6 +1646,7 @@ jobs:
                   if [ -n "$failed" ]; then
                     echo "demo-smoke REPORT-ALL — these proof:* steps FAILED (all steps ran; no fail-fast abort):$failed"
                     echo "(proof:peer-satisfied is born-RED-by-design — the live F-2 peer-cycle until glass-ui BB widens its peer range + kf re-pins, L.W9.)"
+                    echo "(proof:control-point-live is born-RED-by-design — GlassControlPoint is absent from the published glass-ui until BB ships it + kf re-pins, L.W9 S4 / DL-K7.)"
                     exit 1
                   fi
                   echo "demo-smoke REPORT-ALL — every proof:* step passed."

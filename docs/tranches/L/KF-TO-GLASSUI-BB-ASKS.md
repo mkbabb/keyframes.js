@@ -27,11 +27,15 @@ consumer of the pill variant ships an invalid attribute on every scene.
 **Audit evidence.** `audit-32-skeleton.txt §CROSS-REPO-ASK`: *"SegmentedTabs emits
 `aria-orientation` unconditionally even on `role=group` (pill) — a genuine glass-ui
 defect, NOT a kf concern"* (`/Users/mkbabb/Programming/glass-ui/src/c`). The consume-side
-band-aid is `demo/spring/SpringSidebar.vue:43` (`:aria-orientation="undefined"`) — which
-suppresses the defect on ONE of at least TWO affected pill strips; `AnimationControls.vue:66`
-carries the same invalid attribute un-suppressed across every scene (`⚠1`/`⚠2`/`⚠3`).
+band-aid is `demo/spring/SpringSidebar.vue:43` (`:aria-orientation="undefined"`) — which, AS
+THE AUDIT FOUND IT, suppressed the defect on ONE of TWO affected pill strips while
+`AnimationControls.vue` carried the same invalid attribute UN-SUPPRESSED across every scene
+(`⚠1`/`⚠2`/`⚠3` — the incomplete-fix). At L.W9 finalize that second strip was suppressed too
+(the interim COMPLETED — see the Interim posture decision below); the un-suppressed-leak state
+the audit named is the AS-FOUND record, now closed for the interim's duration.
 `⚠2` names the inv-16 violation explicitly: the correct path is *"consume a FIXED published
-glass-ui, not to locally correct an attribute glass-ui erroneously adds"*.
+glass-ui, not to locally correct an attribute glass-ui erroneously adds"* — the suppression is
+the INTERIM, not the cure; the cure is the glass-ui BB root fix this §1 dispatches.
 
 **The ask.** In the pill (`role=group`) branch of `SegmentedTabs`, add a one-line
 conditional: emit `aria-orientation` ONLY when the rendered ARIA role is a role that
@@ -39,12 +43,41 @@ permits it (`tablist`, `toolbar`, `separator`, `slider`, `scrollbar`) — never 
 `role=group`. This is a one-line guard in glass-ui's component source; every constellation
 consumer is made correct at once.
 
-**kf-side consume gate.** Born-RED today: **two** suppress-lines must be deleted, not one:
-`SpringSidebar.vue:43` (`:aria-orientation="undefined"`) AND `AnimationControls.vue:66`
-(the same attribute emitted un-suppressed — ⚠3 names the incomplete-fix). kf's consume-side
-deletion gate (`proof:no-aria-orientation-suppress`) asserts ZERO occurrences of
-`:aria-orientation` in the demo tree; it is born-RED on today's tree (the `SpringSidebar`
-band-aid + the `AnimationControls` leak both fire it), GREEN only on the glass-ui publish
+**Fleet-wide blast radius (VERIFIED — L.W9 dispatch finalize, 2026-06-17).** A disk grep of
+`variant="pill"` across `demo/` returns EXACTLY TWO render-site strips (the verification the
+consume-edge owes per the wave spec's "the fleet-wide blast radius … must be VERIFIED before
+claiming 'incomplete fix'"):
+
+1. `demo/spring/SpringSidebar.vue:41` — the spring view-switcher (`variant="pill"`).
+2. `demo/@/components/custom/animation-controls/controls/AnimationControls.vue:67` — the
+   control-surface strip (`variant="pill"`), rendered on every scene that mounts the controls.
+
+The other `variant="pill"` grep hits are doc-comments / composable comments, not render sites.
+So the invalid-`aria-orientation` blast radius is precisely these two strips — no third leak.
+
+**Interim posture — DECISION (L.W9 dispatch finalize): COMPLETE the interim (suppress BOTH).**
+The wave spec (`L.W9.md §S1`) named the honest choice: either suppress on BOTH pill strips so
+the interim is COMPLETE (not half-applied), OR hold AS-IS and record the un-suppressed strip as
+a KNOWN leak with the named tripwire. The decision taken is the FIRST: both strips now carry
+`:aria-orientation="undefined"` so the demo emits NO invalid `aria-orientation` attribute
+fleet-wide until glass-ui BB ships the root fix.
+
+- `demo/spring/SpringSidebar.vue:43` — `:aria-orientation="undefined"` (pre-existing).
+- `demo/@/components/custom/animation-controls/controls/AnimationControls.vue:72` —
+  `:aria-orientation="undefined"` (ADDED at L.W9 finalize — the strip was previously the
+  un-suppressed leak ⚠3 named).
+
+The suppression is ITSELF the workaround whose deletion is gated on glass-ui BB. Completing it
+does NOT close the workaround — it makes the interim WHOLE while it lasts. `proof:workaround-deletion`
+S1 stays **PENDING** (PRESENT + glass-ui@4.1.0 UNPUBLISHED = exit 0 PENDING) — confirmed: the
+gate scans `demo/**/*.vue` for the `:aria-orientation="undefined"` shape and reports PENDING
+(not RED) because the sibling fix is unpublished; adding the second suppress kept the arm
+PENDING→PENDING (no gate-state change, no green gate redded).
+
+**kf-side consume gate.** Born-RED-staged today via `proof:workaround-deletion` S1: on the
+glass-ui publish that guards the attribute, kf re-pins and DELETES BOTH suppress-lines in one
+commit. The gate asserts ZERO `:aria-orientation="undefined"` occurrences in the demo tree —
+PENDING today (both band-aids present, sibling unpublished), GREEN only on the glass-ui publish
 that guards the attribute + the kf re-pin + the simultaneous deletion of both lines.
 
 **Named tripwire.** glass-ui 4.x (any `4.0.x` patch or `4.1.0`) ships the pill-branch
@@ -259,7 +292,8 @@ KF-OSCILLATOR deliver-and-consume wave.
 kf 4.3.0 (published; glass-ui ~4.0.0 consumed)
 │
 ├─ §1 SegmentedTabs aria fix ───────► glass-ui 4.0.x patch or 4.1.0
-│    kf-side: proof:no-aria-orientation-suppress (born-RED: 2 suppress lines)
+│    kf-side: proof:workaround-deletion S1 (PENDING: 2 suppress lines present,
+│             glass-ui@4.1.0 unpublished — interim COMPLETE on both pill strips)
 │    → consume + delete both lines in one commit → GREEN
 │
 ├─ §2 W-DOCK-MORPH-FAMILY / RF-17 ──► glass-ui 4.1.0 (the BB cut)

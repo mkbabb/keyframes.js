@@ -217,6 +217,16 @@ async function main() {
         "Timeline",
         "RAFPlayback",
         "resolveEasing",
+        // L.W9 S5 KF-OSCILLATOR (W128) — the LIGHT periodic phase clock. A
+        // frequency-driven phase ramp + a pure waveform shaper; value.js-free (no
+        // CSS parsing, no rAF ownership — the caller drives the loop, mirroring
+        // SmoothProgress/SpringProgress). Enumerating it in the CORE floor asserts
+        // the barrel parse FINDS `Oscillator` as a LIGHT entry, so assertion 1
+        // bundles its source graph + proves zero static value.js edge; assertion 4
+        // source-greps its module. A future commit dropping the export (or moving
+        // it behind the dynamic boundary) reds this floor — born-RED before the
+        // class shipped, GREEN now the value.js-free entry is on the light surface.
+        "Oscillator",
     ];
     for (const name of CORE) {
         if (!lightExports.includes(name)) {

@@ -178,6 +178,18 @@ const EXCLUDED = new Set([
     // converse-coverage clause (0b) from demanding a tier membership that would re-introduce
     // the abort — the gate rides CI as a report-all tripwire, not as an aggregator member.
     "proof:keyframes-vue-published",
+    // L.W9 S4 — proof:control-point-live is the BORN-RED-BY-DESIGN DL-K7 GlassControlPoint
+    // tripwire (the SAME disposition as proof:peer-satisfied / proof:keyframes-vue-published
+    // above). GlassControlPoint is ABSENT from the published @mkbabb/glass-ui (the keyframes
+    // curve-editor consume target the K close HANDED OFF as W34, a ≥5-tranche chronic). It IS
+    // CI-invoked (the demo-smoke report-all job, continue-on-error) but is DELIBERATELY ABSENT
+    // from the blocking proof:correctness/proof:hygiene && chains: it STAYS RED until glass-ui
+    // BB publishes the component AND kf re-pins. Placing it in a blocking && chain would abort
+    // the chain on the expected RED. The exclusion keeps the converse-coverage clause (0b) from
+    // demanding a tier membership that would re-introduce the abort — the gate rides CI as a
+    // report-all tripwire, NOT as an aggregator member. (proof:workaround-deletion, by contrast,
+    // exits 0 PENDING today, so it IS a blocking proof:hygiene member and needs no exclusion.)
+    "proof:control-point-live",
 ]);
 
 const gates = Object.keys(pkg.scripts)
