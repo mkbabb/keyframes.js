@@ -1444,6 +1444,29 @@ jobs:
               run: npm run proof:easter-egg
               env:
                   KF_REQUIRE_BROWSER: "1"
+            # L.W11 (the design-refinement SPINE) — proof:crayon-preserved is a pure
+            # SOURCE-SHAPE regression-lock (no browser, device-independent): every
+            # keeper crayon (--rainbow-* six stops + cyan, --accent-red/--color-progress,
+            # the six cube facet rgbs, the --face-1…6/--spring-lane-*/--amiga-red hoist
+            # targets) must resolve to the SAME computed color as the 4.3.0 baseline. It
+            # REDs the instant a refinement mutes/removes/recolors a keeper — the user's
+            # binding verdict: REFINE, do NOT abrogate. NO KF_REQUIRE_BROWSER (source-only).
+            - name: proof:crayon-preserved (L.W11 — the crayon keepers resolve to their 4.3.0 hue · REFINE not abrogate · the wave SPINE)
+              id: proof-crayon-preserved
+              continue-on-error: true
+              run: npm run proof:crayon-preserved
+            # L.W11 — proof:design-refinement: the nine NEW per-scene instrument eggs
+            # (S1-S9), each a hidden trigger → an observable off-the-normal-path effect
+            # dogfooding a public engine primitive (CSSKeyframesAnimation / SpringProgress
+            # / Sequence / DrawSVG / SmoothProgress / AnimationGroup) — NO hand-rolled rAF
+            # (inv ζ). A sibling of proof:easter-egg's shape with a browser half on the
+            # dist; KF_REQUIRE_BROWSER turns a playwright-absent skip into a hard CI fail.
+            - name: proof:design-refinement (L.W11 — the nine NEW per-scene instrument eggs · trigger → observable effect · engine-dogfooded · inv ζ)
+              id: proof-design-refinement
+              continue-on-error: true
+              run: npm run proof:design-refinement
+              env:
+                  KF_REQUIRE_BROWSER: "1"
             # H.W4 S3 — the hero on the audacious φ rung. SOURCE-shape (the <h1>
             # carries text-display-mega, not text-display-4, no raw leaf-tail rung) +
             # a PX FLOOR (computed font-size ≥140px at 1440×900 — NOT a fluid
@@ -1635,6 +1658,8 @@ jobs:
                   if [ "${{ steps.proof-motion-path-editable.outcome }}" = "failure" ]; then failed="$failed proof-motion-path-editable"; fi
                   if [ "${{ steps.proof-motion-path-copy.outcome }}" = "failure" ]; then failed="$failed proof-motion-path-copy"; fi
                   if [ "${{ steps.proof-easter-egg.outcome }}" = "failure" ]; then failed="$failed proof-easter-egg"; fi
+                  if [ "${{ steps.proof-crayon-preserved.outcome }}" = "failure" ]; then failed="$failed proof-crayon-preserved"; fi
+                  if [ "${{ steps.proof-design-refinement.outcome }}" = "failure" ]; then failed="$failed proof-design-refinement"; fi
                   if [ "${{ steps.proof-hero-rung.outcome }}" = "failure" ]; then failed="$failed proof-hero-rung"; fi
                   if [ "${{ steps.proof-hero-balance.outcome }}" = "failure" ]; then failed="$failed proof-hero-balance"; fi
                   if [ "${{ steps.proof-hero-cls.outcome }}" = "failure" ]; then failed="$failed proof-hero-cls"; fi

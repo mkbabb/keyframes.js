@@ -1,0 +1,122 @@
+{
+    "wave": "L.W11",
+    "generatedAt": "2026-06-17T11:31:29.142Z",
+    "before": "visual-lock-baseline",
+    "afterDist": "/Users/mkbabb/Programming/keyframes.js/dist/gh-pages",
+    "viewports": [
+        "mobile",
+        "desktop"
+    ],
+    "panes": [
+        {
+            "pane": "home-hero",
+            "scene": "home",
+            "region": "hero",
+            "deltas": [
+                "S1 — crayon-red proportioned to the live t=0→1 readouts + caret",
+                "S1 — the rainbow concentrated on the play-CTA hover ring",
+                "S1 — the graph PAPER vignette + grain + 60s major-grid drift"
+            ],
+            "shots": [
+                {
+                    "viewport": "mobile",
+                    "before": "home-hero-mobile-before.png",
+                    "after": "home-hero-mobile-after.png"
+                },
+                {
+                    "viewport": "desktop",
+                    "before": "home-hero-desktop-before.png",
+                    "after": "home-hero-desktop-after.png"
+                }
+            ]
+        },
+        {
+            "pane": "cube-stage",
+            "scene": "cube",
+            "region": "stage",
+            "deltas": [
+                "S2 — the six KEPT crayon facets re-materialed as lit-lacquer plates (--face-1…6, no hue touched)",
+                "S2 — drafting-stamp face markings (serif tnum numeral + Fira axis tag)",
+                "S2 — the live rx ry rz Euler chip in .readout-accent"
+            ],
+            "shots": [
+                {
+                    "viewport": "mobile",
+                    "before": "cube-stage-mobile-before.png",
+                    "after": "cube-stage-mobile-after.png"
+                },
+                {
+                    "viewport": "desktop",
+                    "before": "cube-stage-desktop-before.png",
+                    "after": "cube-stage-desktop-after.png"
+                }
+            ]
+        },
+        {
+            "pane": "spring-controls",
+            "scene": "spring",
+            "region": "controls",
+            "deltas": [
+                "S6 — the linear() Fira-Code block KEPT as the copyable deliverable",
+                "S6 — the SVG plot of its 26 stops drawn beside it",
+                "S6 — the four rainbow derby lanes (--spring-lane-* from --rainbow-*)"
+            ],
+            "shots": [
+                {
+                    "viewport": "mobile",
+                    "before": "spring-controls-mobile-before.png",
+                    "after": "spring-controls-mobile-after.png"
+                },
+                {
+                    "viewport": "desktop",
+                    "before": "spring-controls-desktop-before.png",
+                    "after": "spring-controls-desktop-after.png"
+                }
+            ]
+        },
+        {
+            "pane": "cube-ribbon",
+            "scene": "cube",
+            "region": "ribbon",
+            "deltas": [
+                "S2 — the transport row in the muted-axis FRAME register (crayons stay on the SIGNAL plate)"
+            ],
+            "shots": [
+                {
+                    "viewport": "mobile",
+                    "before": "cube-ribbon-mobile-before.png",
+                    "after": "cube-ribbon-mobile-after.png"
+                },
+                {
+                    "viewport": "desktop",
+                    "before": "cube-ribbon-desktop-before.png",
+                    "after": "cube-ribbon-desktop-after.png"
+                }
+            ]
+        }
+    ],
+    "tasteAnchorChecklist": [
+        {
+            "anchor": "rainbow play — the one sanctioned multi-color pop, present + correct",
+            "preserved": null
+        },
+        {
+            "anchor": "hero serif — the Instrument Serif display voice",
+            "preserved": null
+        },
+        {
+            "anchor": "icon family — the consistent icon idiom",
+            "preserved": null
+        },
+        {
+            "anchor": "red-dashed final state — the unified motion-color terminal",
+            "preserved": null
+        }
+    ],
+    "verdict": null,
+    "verdictBy": null,
+    "verdictAt": null,
+    "missingBefore": [
+        "cube-ribbon-mobile"
+    ]
+}

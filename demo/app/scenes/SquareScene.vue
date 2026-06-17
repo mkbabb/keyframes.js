@@ -11,6 +11,20 @@
         :shadow="false"
         class="square-stage grid h-full w-full place-items-center select-none"
     >
+        <!-- L.W11 S4 — the draughtsman's instrument layer (the coordinate field,
+             the rubber-band tether, the telemetry strip, the legend) lives in the
+             colocated SquareInstrument sub-unit (markup + styles together). It is
+             fed DERIVED READS of the spring state — no second writer, no rAF. -->
+        <SquareInstrument
+            :defl-x="deflX"
+            :defl-y="deflY"
+            :settled="settled"
+            :tether-active="tetherActive"
+            :readout-x="springReadout.x"
+            :readout-y="springReadout.y"
+            :tumble-hint-shown="tumbleHintShown"
+        />
+
         <!-- J.W7a S2 (D7 / SQ-12, TYP §4) — "drag me" is the scene's typography
              moment: the small body-mono whisper lifts to the Instrument-Serif
              `text-display` rung — the type IS the affordance, the one audacious
@@ -18,7 +32,7 @@
              scene titles carry inward). -->
         <div
             ref="box"
-            class="demo-box text-display"
+            class="demo-box palette-sweep-host text-display"
             :class="{ 'demo-box--dragging': dragging }"
             role="slider"
             aria-label="Drag the box — two springs chase per axis"
@@ -39,6 +53,7 @@ import { Card } from "@mkbabb/glass-ui";
 import { kfEngine } from "@utils/kfEngine";
 import { useDragScrub } from "@composables/useDragScrub";
 import { useSquareAnimations } from "../../square/useSquareAnimations";
+import SquareInstrument from "../../square/SquareInstrument.vue";
 
 const superKey = "Square";
 
@@ -56,14 +71,48 @@ const superKey = "Square";
 const isPlaying = ref(false);
 
 const box = useTemplateRef<HTMLElement>("box");
+
+// L.W11 S4 — the instrument-layer reactive state (the rubber-band tether + the
+// settled/tracking telemetry badge). These are DERIVED READS of the live spring
+// snapshot the composable feeds via `onTick` — never a second writer, never a
+// second rAF (the spring loop is the sole driver; this just mirrors its state
+// into the few reactive bindings the SVG/badge consume).
+const settled = ref(true);
+const tetherActive = ref(false);
+// The live normalized deflection (-1..1 per axis), mirrored at the loop cadence.
+const deflX = ref(0);
+const deflY = ref(0);
+// Progressive disclosure: the tumble hint appears only after the first drag-settle.
+const tumbleHintShown = ref(false);
+let hasDragged = false;
+
 const { anim, springX, springY, reseat, settle, travel, paintRest, tumble, dispose } =
-    useSquareAnimations(box, () => {
-        // The barrel-roll has come to rest — return the Play button to its idle
-        // posture (the honest one-shot verb).
-        isPlaying.value = false;
-    });
+    useSquareAnimations(
+        box,
+        () => {
+            // The barrel-roll has come to rest — return the Play button to its idle
+            // posture (the honest one-shot verb).
+            isPlaying.value = false;
+        },
+        // The per-frame derived-read hook: mirror the live spring snapshot into the
+        // tether + badge bindings. The tether is visible while the springs are
+        // un-settled OR a drag is in flight.
+        ({ x, y, settled: isSettled }) => {
+            deflX.value = x;
+            deflY.value = y;
+            settled.value = isSettled;
+            tetherActive.value = dragging.value || !isSettled;
+            // Reveal the egg hint after the first successful drag-settle.
+            if (isSettled && hasDragged && !tumbleHintShown.value) {
+                tumbleHintShown.value = true;
+            }
+        },
+    );
 anim.name = "Transform";
 anim.superKey = superKey;
+
+// (The tether SVG geometry lives in the colocated SquareInstrument sub-unit,
+// fed `deflX`/`deflY` as props — the derived-read instrument layer.)
 
 // Fire the honest tumble on the Play CTA's rising edge (the App writes `isPlaying`
 // for this scene — the non-`scenePlayback` writable-ref contract). A falling edge
@@ -116,6 +165,10 @@ let homeY = 0;
 // the offset is stable across the drag (re-grabbing mid-flight subtracts the live
 // deflection to recover it).
 const captureFrame = () => {
+    // L.W11 S4 — a drag has begun: arm the progressive tumble-hint disclosure
+    // (the hint appears once the first drag settles) and mark the tether active.
+    hasDragged = true;
+    tetherActive.value = true;
     const el = box.value;
     if (!el) return;
     const br = el.getBoundingClientRect();
@@ -197,13 +250,19 @@ defineExpose({
     /* The stage is the drag arena; the box translates within it. The plate
        (the I5 glass Card, D1) clips the spring overshoot at its rounded edge. */
     overflow: hidden;
+    position: relative;
 }
+
+/* The instrument layer (field · tether · telemetry · legend) is styled inside
+   the colocated SquareInstrument sub-unit (markup + styles together). This scene
+   keeps only the subject (the box) + the stage's palette-sweep bloom. */
 
 .demo-box {
     display: flex;
     justify-content: center;
     align-items: center;
     position: relative;
+    z-index: var(--z-content, 2);
     --size: 12rem;
     width: var(--size);
     height: var(--size);
@@ -216,18 +275,72 @@ defineExpose({
        its fill in BOTH themes — the former inherited foreground inverted to
        near-white-on-mint in dark mode.
        (The font-weight/size leaves with the D7 `text-display` swap above —
-       the published rung owns the type; scoped rules no longer shadow it.) */
+       the published rung owns the type; scoped rules no longer shadow it.)
+       L.W11 S4 — a two-tone material (a subtle top-down oklab gradient + an
+       inset edge-light) reads the teal as a physical chip under the graph light,
+       not a flat fill. The base --subject-teal token is the KEPT identity; the
+       gradient only adds depth (the keeper hue is untouched). */
     background-color: var(--subject-teal);
+    background-image: linear-gradient(
+        to bottom,
+        color-mix(in oklab, var(--subject-teal) 92%, white 8%),
+        var(--subject-teal)
+    );
     color: color-mix(in oklab, var(--subject-teal) 25%, black);
-    box-shadow: 0 0 0 0.5rem color-mix(in srgb, var(--background) 50%, transparent);
+    box-shadow:
+        inset 0 1px 0 color-mix(in srgb, white 22%, transparent),
+        0 0 0 0.5rem color-mix(in srgb, var(--background) 50%, transparent);
     /* Direct-manipulation affordance (S5). The transformFunc owns `transform`,
        so the cursor + touch-action carry the drag posture. */
     cursor: grab;
     touch-action: none;
     will-change: transform;
+    transition: box-shadow var(--duration-fast, 160ms) var(--ease-standard, ease);
+}
+
+/* L.W11 S4 — hover-arm: the rig "powers on" under the pointer (the deflection-
+   reactive aura blooms a faint red motion-authority ring at the edge). */
+.demo-box:hover {
+    box-shadow:
+        inset 0 1px 0 color-mix(in srgb, white 28%, transparent),
+        0 0 0 0.5rem color-mix(in srgb, var(--color-progress) 12%, transparent);
 }
 
 .demo-box--dragging {
     cursor: grabbing;
+    box-shadow:
+        inset 0 1px 0 color-mix(in srgb, white 28%, transparent),
+        0 0 0 0.5rem color-mix(in srgb, var(--color-progress) 22%, transparent);
+}
+
+/* ── L.W11 S4 — the palette-sweep BLOOM (the tumble egg's landing thunk) ──
+   While `data-palette-sweep` is set (the egg's colour sweep is live, painted by
+   the kept SpringProgress spin) the box blooms a soft rainbow-sourced halo so
+   the barrel-roll lands as an EVENT — the off-the-normal-path effect the
+   design-refinement probe reads. PRM collapses it to no bloom (the box still
+   tumbles + sweeps colour; only the decorative halo is dropped). */
+.demo-box[data-palette-sweep] {
+    box-shadow:
+        inset 0 1px 0 color-mix(in srgb, white 30%, transparent),
+        0 0 1.5rem 0.25rem color-mix(in srgb, var(--rainbow-violet) 35%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .square-tether {
+        /* Snap: no fade, the line is either present or not (geometry unchanged). */
+        transition: none;
+    }
+    .demo-box,
+    .demo-box:hover,
+    .demo-box--dragging {
+        transition: none;
+    }
+    .demo-box[data-palette-sweep] {
+        /* Drop the decorative bloom under reduced motion (the tumble + colour
+           sweep still play — only the halo is suppressed). */
+        box-shadow:
+            inset 0 1px 0 color-mix(in srgb, white 22%, transparent),
+            0 0 0 0.5rem color-mix(in srgb, var(--background) 50%, transparent);
+    }
 }
 </style>

@@ -63,6 +63,7 @@
                         :animation-names="animationNames"
                         @update="(id, updates) => updateAsset(id, updates)"
                         @update-transform="(id, transform) => updateTransform(id, transform)"
+                        @bind-ignition="(id, name) => emit('bind-ignition', id, name)"
                     />
                 </div>
             </template>
@@ -117,6 +118,12 @@ import {
 
 defineProps<{
     animationNames?: string[];
+}>();
+
+// L.W11 S9 — forward the bind-ignition signal from the properties panel up to the
+// playground host (App.vue), which lights the asset (key-light bloom + comet-tail).
+const emit = defineEmits<{
+    (e: "bind-ignition", id: string, animationName: string): void;
 }>();
 
 const {

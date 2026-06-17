@@ -37,13 +37,34 @@
          the sidebar editor. -->
     <div class="flex w-full flex-1 min-h-0 justify-center">
         <div class="stage-floor stage-field-y relative flex w-full max-w-3xl items-end pb-12">
+            <!-- L.W11 S5 — the projected trace promoted to a glowing SIGNAL +
+                 self-drawing on enter. The path is the SAME single-source
+                 demo.svgPath the sidebar canvas renders; the gradient stroke is
+                 brightest at the core and falls to the tails (the beam is
+                 brightest where the action is). The `trace-smear` filter applies
+                 a directional motion-blur read from the demo's SmoothProgress
+                 decay (`demo.traceSmearAmount()`) so a handle drag SMEARS the
+                 beam, decaying to a crisp trace on release (PRM-snapped). -->
             <svg
-                class="easing-stage-curve"
+                ref="stageCurveEl"
+                class="easing-stage-curve trace-smear"
+                :style="{ '--trace-smear': smearBlur }"
                 viewBox="0 0 1 1"
                 preserveAspectRatio="none"
                 aria-hidden="true"
             >
-                <path class="easing-stage-curve-path" :d="demo.svgPath.value" />
+                <defs>
+                    <linearGradient id="easing-trace-grad" x1="0" y1="1" x2="1" y2="0">
+                        <stop offset="0%" class="trace-grad-tail" />
+                        <stop offset="50%" class="trace-grad-core" />
+                        <stop offset="100%" class="trace-grad-tail" />
+                    </linearGradient>
+                </defs>
+                <path
+                    ref="stageCurvePathEl"
+                    class="easing-stage-curve-path self-draw"
+                    :d="demo.svgPath.value"
+                />
             </svg>
             <div ref="heroTrackEl" class="hero-track relative w-full h-16">
                 <div class="progress-rail"></div>
@@ -64,6 +85,7 @@
 import { inject, onMounted, onScopeDispose, ref, useTemplateRef } from "vue";
 import { useResizeObserver } from "@vueuse/core";
 
+import { kfEngine } from "@utils/kfEngine";
 import { EASING_DEMO_KEY } from "./easingKeys";
 
 const demo = inject(EASING_DEMO_KEY)!;
@@ -73,6 +95,19 @@ const demo = inject(EASING_DEMO_KEY)!;
 const heroTrackEl = useTemplateRef<HTMLElement>("heroTrackEl");
 const heroBallEl = useTemplateRef<HTMLElement>("heroBallEl");
 const heroTrackWidth = ref(0);
+
+// L.W11 S5 — the projected-trace SVG + its path (the self-drawing-on-enter +
+// drag-smear targets). `smearBlur` is the reactive CSS-var fallback the template
+// binds; the live per-frame value is written imperatively below (off the render
+// graph) by sampling the demo's SmoothProgress decay.
+const stageCurveEl = useTemplateRef<SVGSVGElement>("stageCurveEl");
+const stageCurvePathEl = useTemplateRef<SVGPathElement>("stageCurvePathEl");
+const smearBlur = ref("0px");
+
+// Whether reduced-motion is requested — the smear + the self-draw boot both snap.
+const prefersReducedMotion = (): boolean =>
+    typeof matchMedia === "function" &&
+    matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 // ── G4 — the singular hero ball's x = `fn(progress) * maxX` ─────
 // The selected easing function applied to the engine's linear `progress` sweep:
@@ -92,10 +127,25 @@ const heroBallXAt = (phase: number): number => {
 // I.W4 D4 — the dot painter: a DIRECT non-reactive `style.transform` write,
 // registered with the demo's loop seam and called imperatively each frame (the
 // hot path lives OFF the Vue render graph).
+//
+// L.W11 S5 (the drag-smear egg) — the SAME painter also samples the demo's
+// SmoothProgress smear decay (`demo.traceSmearAmount()`) and writes the
+// directional motion-blur amount onto the trace SVG as a CSS var, OFF the render
+// graph. A handle drag kicks the smear (in useEasingDemo.updateBezierPoints); it
+// relaxes to 0 via the engine's SmoothProgress (inv ζ — no hand-rolled rAF). The
+// blur is suppressed under reduced-motion (the smear value still decays; we just
+// never paint a blur).
+let smearReduced = false;
 const paintHeroDot = (phase: number) => {
     const el = heroBallEl.value;
-    if (!el) return;
-    el.style.transform = `translateX(${heroBallXAt(phase)}px)`;
+    if (el) el.style.transform = `translateX(${heroBallXAt(phase)}px)`;
+    const svg = stageCurveEl.value;
+    if (svg && demo.traceSmearAmount) {
+        const amt = smearReduced ? 0 : demo.traceSmearAmount();
+        // Scale to a gentle px blur (the trace lives in unit space, projected to
+        // ~the plate width; ~0..3px reads as a beam smear without erasing it).
+        svg.style.setProperty("--trace-smear", `${(amt * 3).toFixed(2)}px`);
+    }
 };
 
 const measureHeroTrackWidth = () => {
@@ -113,8 +163,28 @@ const measureHeroTrackWidth = () => {
 // unregister on dispose.
 let unregisterPainter: (() => void) | null = null;
 onMounted(() => {
+    smearReduced = prefersReducedMotion();
     measureHeroTrackWidth();
     unregisterPainter = demo.registerDotPainter(paintHeroDot);
+
+    // L.W11 S5 (the once-on-enter self-drawing trace) — the projected curve draws
+    // itself origin→end via the library's OWN DrawSVG / fromDrawSVG primitive (the
+    // inv ζ dogfood — the engine's stroke-dashoffset line-drawing). A delight on
+    // first paint; PRM snaps straight to the drawn state. The engine is already
+    // warm (kfEngine resolves before any scene mounts), so this is synchronous.
+    const path = stageCurvePathEl.value;
+    if (path && typeof path.getTotalLength === "function") {
+        if (prefersReducedMotion()) {
+            // Snap to drawn: clear any dash so the full trace shows immediately.
+            path.style.strokeDasharray = "";
+            path.style.strokeDashoffset = "";
+        } else {
+            const { fromDrawSVG } = kfEngine();
+            // Draw in over ~620ms with the standard ease — the instrument "powers
+            // on" once, then the page is simply the page.
+            fromDrawSVG(path, { duration: 620, timingFunction: "ease-out" });
+        }
+    }
 });
 onScopeDispose(() => unregisterPainter?.());
 
@@ -139,14 +209,44 @@ useResizeObserver(heroTrackEl, () => measureHeroTrackWidth());
     bottom: 5rem;
     pointer-events: none;
     overflow: visible;
+    /* L.W11 S5 — scope-local trace tokens (the KEPT --ppmycota-primary, never
+       recolored — these are additive aliases for the bloom + smear). */
+    --trace: var(--ppmycota-primary, var(--primary));
+    --trace-glow: color-mix(in srgb, var(--ppmycota-primary, var(--primary)) 55%, transparent);
+    --trace-smear: 0px;
+    /* The drag-bend SMEAR — a directional motion-blur read from the demo's
+       SmoothProgress decay (written per-frame as --trace-smear). At rest 0px
+       (crisp); a fast handle drag blooms it, decaying back to 0 on release. */
+    filter: blur(var(--trace-smear, 0px));
+    transition: filter 60ms linear;
 }
+/* L.W11 S5 — the trace promoted to a glowing SIGNAL: a gradient stroke (bright
+   violet at the core, falling to the tails) + an emitted-light bloom, so the
+   projected curve reads as a beam, not an 8% ghost. The hero ball still FOLLOWS
+   the curve; the curve is now a luminous signal rather than barely-there. */
 .easing-stage-curve-path {
     fill: none;
-    stroke: var(--ppmycota-primary, var(--primary));
+    stroke: url(#easing-trace-grad);
     stroke-width: 3px;
     vector-effect: non-scaling-stroke;
     stroke-linecap: round;
-    opacity: 0.08;
+    filter: drop-shadow(0 0 4px var(--trace-glow));
+}
+.trace-grad-core {
+    stop-color: var(--ppmycota-primary, var(--primary));
+    stop-opacity: 0.24;
+}
+.trace-grad-tail {
+    stop-color: var(--ppmycota-primary, var(--primary));
+    stop-opacity: 0.07;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .easing-stage-curve {
+        /* Snap: no smear transition, no blur (the self-draw also snaps in JS). */
+        filter: none;
+        transition: none;
+    }
 }
 
 /* ── G4 (H.W10.S3) — the singular hero ball ──

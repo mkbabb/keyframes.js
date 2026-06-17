@@ -42,7 +42,10 @@
              holds from lg up where the stage has room for both. The class
              stays the ONE mega rung (the H.W4 no-legacy contract); the mobile
              step consumes the published φ token, not a raw size. -->
-        <h1 class="hero-display text-display-mega p-0">
+        <h1
+            ref="heroEl"
+            class="hero-display text-display-mega p-0"
+        >
             <AnimatedText
                 class="depth-text"
                 :text="title"
@@ -79,14 +82,47 @@
              lower-left vacancy is REMOVED. The vacancy is HONEST blank grid: the
              two-tier graph-paper substrate alone reads as the math texture (the
              grid-opacity dial is Lane B's). The hero is the title ladder + the
-             subject; no fabricated replacement, no second math background. -->
+             subject; no fabricated replacement, no second math background.
+
+             L.W11.S1 — the EASTER EGG fills that vacancy with the RIGHT one
+             thing: a quadrant-sized GLASS card that TYPES its own @keyframes
+             block in Fira Code (a blinking --accent-red caret), then the engine
+             parses it (CSSKeyframesAnimation), lifts the hero word to each
+             translateY, and format.ts serializes it BACK to a CSS string on a
+             ~6s round-trip loop — the moat (parse → animate → get the CSS back)
+             made visible BESIDE the hero, never displacing it. Hover restarts
+             the compile; PRM rests the completed block statically. -->
+        <div
+            class="kf-source-egg source-typing-card pointer-events-auto"
+            :class="{ 'kf-source-egg--prm': prefersReduced }"
+            @pointerenter="recompile"
+            aria-hidden="true"
+        >
+            <div class="kf-source-egg__chrome">
+                <span class="kf-source-egg__dot"></span>
+                <span class="kf-source-egg__label">@keyframes · live</span>
+            </div>
+            <pre
+                class="kf-source-egg__code"
+            ><code>{{ typedSource }}<span class="kf-source-egg__caret" :class="{ 'kf-source-egg__caret--blink': caretBlink }"></span></code></pre>
+            <div
+                class="kf-source-egg__out"
+                :class="{ 'kf-source-egg__out--show': serializedOut }"
+            >
+                <span class="kf-source-egg__out-arrow">// serialized →</span>
+                {{ serializedOut }}
+            </div>
+        </div>
     </div>
 </template>
 
 <script setup lang="ts">
+import { useTemplateRef } from "vue";
+import { loadAnimationEngine } from "@mkbabb/keyframes.js";
 import { List } from "@lucide/vue";
 import AnimatedText from "@components/custom/AnimatedText.vue";
 import TypingDots from "@components/custom/TypingDots.vue";
+import { useHeroSourceEgg } from "./useHeroSourceEgg";
 
 // K.W4 S8 (U-K20) — the FourierField + its REQUIRED `defaultBlobColorResolver`
 // colour seam are REMOVED (the user rejected the J-added math field; the hero is
@@ -114,6 +150,17 @@ withDefaults(
         hint: undefined,
     },
 );
+
+// ── L.W11.S1 EASTER EGG — the live @keyframes source card (colocated sub-unit) ─
+// The lower-left vacancy gets the RIGHT one thing: a glass card that TYPES its own
+// @keyframes block, the REAL engine parses it (CSSKeyframesAnimation), lifts the
+// hero to each translateY, and format.ts serializes it BACK to a CSS string — the
+// moat as a quiet ~6s loop beside the hero. The orchestration lives in
+// useHeroSourceEgg; `loadAnimationEngine` is injected here so this SFC keeps the
+// dogfood edge (the engine the library ships, not a hand-rolled rAF). PRM-snapped.
+const heroEl = useTemplateRef<HTMLElement>("heroEl");
+const { typedSource, serializedOut, caretBlink, prefersReduced, recompile } =
+    useHeroSourceEgg(() => heroEl.value, loadAnimationEngine);
 </script>
 
 <style scoped>
@@ -182,4 +229,149 @@ withDefaults(
 /* K.W4 S8 (U-K20) — the `.fourier-vacancy` frame is REMOVED with the field it
    positioned. The lower-left quadrant is now the unadorned graph-paper substrate
    (the honest blank-grid vacancy); no positioned host remains. */
+
+/* ── L.W11.S1 — the live @keyframes source card (the egg) ─────────────────────
+   A quadrant-sized glass card pinned to the lower-left vacancy. It overlaps the
+   graph major-grid (layered transparency, not a tidy cell) and sits beside the
+   hero. The Fira-Code block types itself; the caret is the crayon --accent-red.
+   The host <h1>/overlay is pointer-events:none — the card re-enables pointer
+   events for the hover-recompile. Hidden below lg (the mobile column has no room
+   beside the receded cube — the TYP-1 collision the J-tranche solved; the
+   round-trip story is desktop-only, a reward for the larger canvas). */
+.kf-source-egg {
+    position: fixed;
+    left: clamp(1rem, 4vw, 3.5rem);
+    bottom: clamp(5rem, 12vh, 8rem);
+    z-index: var(--z-content, 10);
+    width: min(24rem, 34vw);
+    max-width: 92vw;
+    padding: 0.65rem 0.8rem 0.7rem;
+    border-radius: var(--radius-card, 0.75rem);
+    /* the cartoon+quiet glass register: a translucent tinted plate + the cartoon
+       depth shadow the demo's control surfaces wear */
+    background: color-mix(in srgb, var(--card, white) 82%, transparent);
+    backdrop-filter: blur(8px) saturate(1.1);
+    -webkit-backdrop-filter: blur(8px) saturate(1.1);
+    box-shadow:
+        inset 0 0 0 1px color-mix(in srgb, var(--border) 70%, transparent),
+        0 2px 0 0 color-mix(in srgb, var(--border) 50%, transparent),
+        0 10px 28px -12px color-mix(in srgb, black 40%, transparent);
+    color: var(--foreground);
+    /* a quiet entrance: the card fades up under the hero (the orchestrated load) */
+    animation: kf-source-rise 700ms var(--ease-standard, ease) 240ms both;
+}
+@media (max-width: 1023px) {
+    .kf-source-egg {
+        display: none;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .kf-source-egg {
+        animation: none;
+    }
+}
+@keyframes kf-source-rise {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.kf-source-egg__chrome {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-bottom: 0.45rem;
+    font-family: var(--font-mono);
+    font-size: var(--type-micro);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+    opacity: 0.8;
+}
+.kf-source-egg__dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--accent-red, var(--color-progress));
+    box-shadow: 0 0 6px -1px var(--accent-red, var(--color-progress));
+}
+.kf-source-egg__label {
+    line-height: 1;
+}
+
+.kf-source-egg__code {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: clamp(0.66rem, 0.9vw, 0.8rem);
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: var(--foreground);
+    min-height: 6.5em; /* reserve the block height so the type-in does not jump */
+}
+.kf-source-egg__code code {
+    font-family: inherit;
+}
+
+/* the typed caret — the crayon --accent-red, the page's motion-authority red */
+.kf-source-egg__caret {
+    display: inline-block;
+    width: 0.5ch;
+    height: 1.05em;
+    margin-left: 0.04em;
+    transform: translateY(0.16em);
+    background: var(--accent-red, var(--color-progress));
+    border-radius: 1px;
+}
+@media (prefers-reduced-motion: no-preference) {
+    .kf-source-egg__caret--blink {
+        animation: kf-caret-blink 1s steps(1, end) infinite;
+    }
+}
+@keyframes kf-caret-blink {
+    0%,
+    50% {
+        opacity: 1;
+    }
+    50.01%,
+    100% {
+        opacity: 0;
+    }
+}
+
+/* the round-trip's "CSS back" line — slides in under the block when format.ts
+   has serialized the animation back to a string */
+.kf-source-egg__out {
+    margin-top: 0.5rem;
+    padding-top: 0.45rem;
+    border-top: 1px dashed color-mix(in srgb, var(--border) 70%, transparent);
+    font-family: var(--font-mono);
+    font-size: var(--type-micro);
+    line-height: 1.4;
+    color: var(--muted-foreground);
+    opacity: 0;
+    transform: translateY(4px);
+    transition:
+        opacity 240ms var(--ease-standard, ease),
+        transform 240ms var(--ease-standard, ease);
+    word-break: break-all;
+}
+.kf-source-egg__out--show {
+    opacity: 0.92;
+    transform: translateY(0);
+}
+.kf-source-egg__out-arrow {
+    color: var(--accent-red, var(--color-progress));
+    opacity: 0.85;
+}
+
+/* PRM: the card rests on the completed block, the out-line hidden, no caret. */
+.kf-source-egg--prm .kf-source-egg__caret {
+    display: none;
+}
 </style>

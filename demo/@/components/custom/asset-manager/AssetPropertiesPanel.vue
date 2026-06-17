@@ -96,8 +96,12 @@
                     />
 
                     <label class="font-mono text-admin-label text-muted-foreground">font</label>
+                    <!-- L.W11 S9 — the stale 'Fraunces' default (a since-deleted
+                         face) corrected to the display face the system actually
+                         ships (Instrument Serif), aligning the control's default to
+                         the render path's `var(--font-display)`. -->
                     <Input
-                        :model-value="asset.fontFamily ?? 'Fraunces'"
+                        :model-value="asset.fontFamily ?? 'Instrument Serif'"
                         class="text-mono-caption normal-case h-6"
                         @change="(e: Event) => emit('update', asset.id, { fontFamily: (e.target as HTMLInputElement).value })"
                     />
@@ -110,12 +114,21 @@
                     />
                 </template>
 
-                <!-- Animation binding -->
+                <!-- Animation binding — L.W11 S9 the BIND IGNITION trigger.
+                     Binding a preset is the page's whole point; the Select now
+                     fires `onBindAnimation`, which both updates the asset AND emits
+                     a `bind-ignition` event when the binding goes unset→set. The
+                     playground wrapper (App.vue, gated `[data-foundry]`) catches it
+                     and IGNITES the asset: a warm key-light bloom + a first-cycle
+                     comet-tail tracing the preset's actual easing curve, drawn back
+                     onto the page (engine-dogfooded; PRM-collapsed to a state flip).
+                     This is generic-safe (the event is inert if nobody listens —
+                     the app scenes simply do not wire the ignition). -->
                 <template v-if="animationNames && animationNames.length > 0">
                     <label class="font-mono text-admin-label text-muted-foreground">animation</label>
                     <Select
                         :model-value="asset.animationName ?? '__none__'"
-                        @update:model-value="(v: any) => emit('update', asset.id, { animationName: v === '__none__' ? undefined : v })"
+                        @update:model-value="(v: any) => onBindAnimation(v)"
                     >
                         <SelectTrigger class="text-mono-caption normal-case h-6">
                             <SelectValue placeholder="None" />
@@ -147,7 +160,7 @@ import {
 } from "@mkbabb/glass-ui";
 import { Input } from "@mkbabb/glass-ui/forms";
 
-defineProps<{
+const props = defineProps<{
     asset: Asset;
     animationNames?: string[];
 }>();
@@ -155,5 +168,19 @@ defineProps<{
 const emit = defineEmits<{
     (e: "update", id: string, updates: Partial<Asset>): void;
     (e: "updateTransform", id: string, transform: Partial<AssetTransform>): void;
+    // L.W11 S9 — the BIND IGNITION signal: fired when an asset's animation goes
+    // unset→set, so the playground foundry can light the asset. Inert if unlistened.
+    (e: "bind-ignition", id: string, animationName: string): void;
 }>();
+
+// L.W11 S9 — the bind handler. Updates the asset's animationName AND, when the
+// binding ignites a preset that was previously unbound, emits `bind-ignition`
+// so the foundry key-light blooms + the comet-tail traces the preset curve.
+const onBindAnimation = (v: string) => {
+    const next = v === "__none__" ? undefined : v;
+    const wasBound = !!props.asset.animationName;
+    emit("update", props.asset.id, { animationName: next });
+    // Ignition fires only on a fresh bind (unset→set), not on a re-pick or clear.
+    if (next && !wasBound) emit("bind-ignition", props.asset.id, next);
+};
 </script>

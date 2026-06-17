@@ -21,8 +21,9 @@
                 >
                     <div
                         ref="cubeEl"
-                        class="cube preserve-3d animation relative flex items-center justify-center justify-items-center"
+                        class="cube cube--relit preserve-3d animation relative flex items-center justify-center justify-items-center"
                         :class="{ 'cube--rolling': rolling }"
+                        :style="{ '--spin-energy': spinEnergy }"
                         @dblclick="onRoll"
                     >
                         <span
@@ -48,6 +49,7 @@
                                 // bare local rung, not a semantic z-* layer.
                                 'absolute z-10 flex items-center justify-center',
                             ]"
+                            :style="{ '--lit': faceLit[index] }"
                         >
                             <span
                                 :class="
@@ -62,19 +64,35 @@
                             <template v-if="!ppMode">
                                 <div
                                     :class="[
-                                        'h-full w-full font-bold',
+                                        'face-lacquer h-full w-full font-bold',
                                         'flex items-center justify-center',
                                     ]"
                                     :style="{
                                         backgroundColor: side.color,
                                     }"
                                 >
+                                    <!-- L.W11.S2 — the re-lit overlay (a --lit-keyed
+                                         highlight/shadow modulating LUMINANCE over
+                                         the KEPT crayon, never its hue) + the
+                                         drafting-stamp axis tag (the Fira-Code
+                                         coordinate annotation paired with the
+                                         serif numeral). Both pointer-transparent. -->
+                                    <span
+                                        class="face-relit pointer-events-none absolute inset-0"
+                                        aria-hidden="true"
+                                    ></span>
                                     <span
                                         :class="[
-                                            'text-display-2 h-full w-full',
+                                            'face-numeral text-display-2 h-full w-full',
+                                            'relative',
                                             'flex items-center justify-center',
                                         ]"
                                         >{{ side.content }}</span
+                                    >
+                                    <span
+                                        class="face-axis-tag pointer-events-none absolute"
+                                        aria-hidden="true"
+                                        >{{ side.axisTag }}</span
                                     >
                                 </div>
                             </template>
@@ -96,6 +114,18 @@
             <div class="axis-line y"></div>
             <div class="axis-line z"></div>
         </div>
+
+        <!-- L.W11.S2 — the live attitude readout: rx/ry/rz Euler degrees in a
+             Fira-Code .readout-accent chip, reading the SAME transform model
+             OrbitalDrag publishes per rotation (no second clock/rAF). -->
+        <div
+            class="cube-attitude readout-accent pointer-events-none select-none"
+            aria-hidden="true"
+        >
+            <span class="cube-attitude__axis">rx</span> {{ euler.x }}°
+            <span class="cube-attitude__axis">ry</span> {{ euler.y }}°
+            <span class="cube-attitude__axis">rz</span> {{ euler.z }}°
+        </div>
     </div>
 </template>
 
@@ -106,6 +136,7 @@ import type { CSSKeyframesAnimation } from "@mkbabb/keyframes.js";
 import { loadAnimationEngine } from "@mkbabb/keyframes.js";
 import OrbitalDrag from "@components/custom/orbital-drag/OrbitalDrag.vue";
 import type { TransformState } from "@components/custom/orbital-drag";
+import { useCubeRelit } from "./useCubeRelit";
 
 const props = defineProps<{
     isPlaying: boolean;
@@ -121,14 +152,26 @@ const graphEl = useTemplateRef<HTMLElement>("graphEl");
 
 defineExpose({ cubeEl, graphEl });
 
+// L.W11.S2 — the six crayon facets are KEPT, every hue intact; the raw rgba
+// literals are HOISTED one-for-one into named --face-1…6 tokens (proof:crayon-
+// preserved hue-EXACT), resolved by the backgroundColor binding at paint time.
+// Each facet carries a drafting-stamp axis tag; its re-lit normal lives in
+// useCubeRelit (FACE_NORMALS, index-aligned — rest pose: front toward +Z).
 const cubeSides = [
-    { class: "front", content: "1", color: "rgba(255, 0, 0, 0.8)" },
-    { class: "right", content: "2", color: "rgba(0, 255, 0, 0.8)" },
-    { class: "back", content: "3", color: "rgba(0, 0, 255, 0.8)" },
-    { class: "left", content: "4", color: "rgba(255, 255, 0, 0.8)" },
-    { class: "top", content: "5", color: "rgba(255, 0, 255, 0.8)" },
-    { class: "bottom", content: "6", color: "rgba(0, 255, 255, 0.8)" },
+    { class: "front", content: "1", color: "var(--face-1)", axisTag: "+Z" },
+    { class: "right", content: "2", color: "var(--face-2)", axisTag: "+X" },
+    { class: "back", content: "3", color: "var(--face-3)", axisTag: "−Z" },
+    { class: "left", content: "4", color: "var(--face-4)", axisTag: "−X" },
+    { class: "top", content: "5", color: "var(--face-5)", axisTag: "−Y" },
+    { class: "bottom", content: "6", color: "var(--face-6)", axisTag: "+Y" },
 ];
+
+// L.W11.S2 — the orientation-coupled RE-LIT die (the signature egg). faceLit
+// (per-face --lit), the live euler readout, and --spin-energy ride the LIVE
+// transform model OrbitalDrag publishes per rotation — reactive, NO second rAF
+// (inv ζ); the crayon hue is untouched (--lit is LUMINANCE only). Colocated unit.
+const { faceLit, euler, spinEnergy, flashRoll, disposeFlash } =
+    useCubeRelit(transform);
 
 // S5d (K.W0) — the per-face rainbow-wrapper animation timings were drawn with
 // `Math.random()` INSIDE the inline :style binding, so every render re-rolled the
@@ -195,15 +238,33 @@ const onRoll = async () => {
     );
     rollAnim.setTargets(cubeEl.value);
     rollAnim.play();
+    // L.W11.S2 — the landing THUNK: flash --spin-energy to 1 as the arc settles
+    // so the bloom swells then bleeds off (the SAME channel the orbit feeds).
+    flashRoll();
     // Release the gesture lock after the arc; the fillMode:forwards leaves the
     // die resting on its rolled face (the next drag/animation re-bases as usual).
     setTimeout(() => { rolling.value = false; }, 1200);
 };
 
-onScopeDispose(() => rollAnim?.stop());
+onScopeDispose(() => {
+    rollAnim?.stop();
+    disposeFlash();
+});
 </script>
 
 <style scoped>
+/* L.W11.S2 — register --lit (re-lit luminance) + --spin-energy (bloom) so they INTERPOLATE. */
+@property --lit {
+    syntax: "<number>";
+    inherits: true;
+    initial-value: 0.5;
+}
+@property --spin-energy {
+    syntax: "<number>";
+    inherits: true;
+    initial-value: 0;
+}
+
 .graph {
     perspective: 1200px;
 }
@@ -265,6 +326,9 @@ onScopeDispose(() => rollAnim?.stop());
     width: var(--side-size);
     height: var(--side-size);
     backface-visibility: hidden;
+    /* L.W11.S2 — smooth the per-face re-light between rotation ticks (the
+       registered @property --lit interpolates at the rotation cadence). */
+    transition: --lit 160ms linear;
     /* G5: the faces carry a STATIC per-face transform (they never re-transform —
        only the parent .cube/.idle-hover/OrbitalDrag container animates), so the
        former resident `will-change: transform` here pinned six permanent
@@ -288,6 +352,121 @@ onScopeDispose(() => rollAnim?.stop());
     }
     &.right {
         transform: rotateY(90deg) translateZ(var(--side-offset));
+    }
+}
+
+/* L.W11.S2 — the lit-lacquer MATERIAL: a glossy lacquer read over the inline
+   crayon backgroundColor (LUMINANCE-only — proof:crayon-preserved unaffected). */
+.face-lacquer {
+    position: relative;
+    overflow: hidden;
+    border-radius: inherit;
+    /* a fixed diagonal lacquer sheen over the crayon backgroundColor */
+    background-image: linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.22) 0%,
+        rgba(255, 255, 255, 0) 38%,
+        rgba(0, 0, 0, 0.14) 100%
+    );
+    box-shadow:
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.28),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+/* The re-lit overlay: highlight rises with --lit (face toward the light), shadow
+   veil deepens as it falls. The crayon is never recolored — only lit. */
+.face-relit {
+    border-radius: inherit;
+    background:
+        /* upper-right specular sweep, strengthening toward the light */
+        radial-gradient(
+            120% 120% at 78% 18%,
+            rgba(255, 255, 255, calc(0.05 + 0.5 * var(--lit, 0.5))) 0%,
+            rgba(255, 255, 255, 0) 52%
+        ),
+        /* a --background-tinted shadow veil that lifts as the face turns away */
+        linear-gradient(
+            180deg,
+            color-mix(in srgb, var(--background) calc((1 - var(--lit, 0.5)) * 46%), transparent) 0%,
+            color-mix(in srgb, var(--background) calc((1 - var(--lit, 0.5)) * 62%), transparent) 100%
+        );
+}
+
+/* The face numeral rides the content plane (z off the named --z-* scale). */
+.face-numeral {
+    z-index: var(--z-content, 1);
+}
+/* The drafting-stamp axis tag — Fira-Code annotation, muted axis register (FRAME). */
+.face-axis-tag {
+    right: 0.55rem;
+    bottom: 0.4rem;
+    font-family: var(--font-mono);
+    font-size: clamp(0.6rem, 1.4cqi, 0.8rem);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    color: var(--muted-foreground);
+    opacity: 0.62;
+    font-feature-settings: "tnum";
+    z-index: var(--z-content, 1);
+}
+
+/* --spin-energy bloom + drop-shadow: the kept physics made VISIBLE — grows with
+   live angular motion + the roll flash, bleeds off via the transition. PRM-gated. */
+.cube--relit {
+    transition:
+        filter 240ms var(--ease-standard),
+        --spin-energy 220ms var(--ease-standard);
+}
+@media (prefers-reduced-motion: no-preference) {
+    .cube--relit {
+        filter: drop-shadow(
+            0 calc(2px + var(--spin-energy, 0) * 10px)
+                calc(6px + var(--spin-energy, 0) * 22px)
+                color-mix(in srgb, var(--color-progress) calc(18% + var(--spin-energy, 0) * 34%), transparent)
+        );
+    }
+    .cube--relit::after {
+        content: "";
+        position: absolute;
+        inset: -40%;
+        z-index: var(--z-behind, -1);
+        border-radius: 50%;
+        pointer-events: none;
+        background: radial-gradient(
+            circle at 50% 50%,
+            color-mix(in srgb, var(--color-progress) calc(var(--spin-energy, 0) * 22%), transparent) 0%,
+            transparent 62%
+        );
+        opacity: var(--spin-energy, 0);
+        transition: opacity 240ms var(--ease-standard);
+    }
+}
+
+/* the live attitude readout chip — bottom-left; .readout-accent + tnum. */
+.cube-attitude {
+    position: absolute;
+    left: 1rem;
+    bottom: 1rem;
+    z-index: var(--z-content, 1);
+    font-family: var(--font-mono);
+    font-size: clamp(0.62rem, 1.3cqi, 0.78rem);
+    letter-spacing: 0.02em;
+    line-height: 1.2;
+    font-feature-settings: "tnum";
+    white-space: nowrap;
+    opacity: 0.86;
+}
+.cube-attitude__axis {
+    color: var(--muted-foreground);
+    opacity: 0.7;
+    margin-inline: 0.15em 0.1em;
+}
+@media (max-width: 1023px) {
+    .cube-attitude {
+        left: 0.5rem;
+        bottom: 0.5rem;
+        font-size: var(--type-micro);
     }
 }
 

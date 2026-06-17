@@ -61,6 +61,7 @@
             <div
                 ref="railEl"
                 class="spring-rail stage-field-x relative w-full h-12 cursor-pointer select-none"
+                :class="{ 'spring-rail--derby': demo.derbyActive.value }"
                 role="slider"
                 aria-label="Drag to re-seat the spring target"
                 :aria-valuenow="Math.round(demo.target.value * 100)"
@@ -72,6 +73,16 @@
                 @dblclick="demo.derby"
             >
                 <div class="progress-rail"></div>
+                <!-- L.W11 S6 — the y=1 TARGET LINE every trace is measured
+                     against (the rail's right edge = the spring's target). It
+                     gives ONE quiet red-dashed `settle-pulse` when the live
+                     spring crosses `liveSettled` (the settled register) — the
+                     instrument confirming "locked". -->
+                <div
+                    class="spring-target-line settle-pulse"
+                    :class="{ 'settle-pulse--fire': demo.liveSettled.value }"
+                    aria-hidden="true"
+                ></div>
                 <!-- Ghost target marker (where the spring is chasing) — a
                      DISCRETE position (re-seat events), so it stays reactive. -->
                 <div
@@ -82,6 +93,36 @@
                      registered spring painter (J.W2 S5: direct style writes off
                      the Vue render graph; no reactive :style on the hot path). -->
                 <div ref="liveBallEl" class="progress-ball spring-ball"></div>
+
+                <!-- ── L.W11 S6 EGG — the four-lane DERBY overlay ──────────────
+                     Double-click the rail and four SpringProgress solvers race
+                     four RAINBOW LANES over a shared target line: bouncy (ζ=0.45)
+                     rings PAST it, gentle (ζ=1.0) never crosses. Each lane wears
+                     its sanctioned --spring-lane-* tone; the balls ride the live
+                     `springLive.trackValues` (the engine's physics, painter-
+                     positioned — inv ζ, no second rAF). Shown ONLY during the
+                     race (`derbyActive`); the page rests as one calm red spring. -->
+                <div
+                    v-if="demo.derbyActive.value"
+                    class="derby-lanes"
+                    aria-hidden="true"
+                >
+                    <div
+                        v-for="lane in demo.derbyLanes"
+                        :key="lane.name"
+                        :class="['derby-lane', `spring-lane-${lane.name}`]"
+                        :style="{ '--ball-tone': lane.tone }"
+                    >
+                        <span class="derby-lane-rail"></span>
+                        <span
+                            :ref="(el: any) => setDerbyBallEl(lane.index, el)"
+                            class="progress-ball derby-lane-ball"
+                        ></span>
+                        <span class="derby-lane-tag text-mono-caption tabular-nums">
+                            {{ lane.name }} · ζ{{ lane.zeta.toFixed(2) }}
+                        </span>
+                    </div>
+                </div>
             </div>
             <p class="text-small text-muted-foreground text-center">
                 Tap or drag the rail &mdash; the ball springs to the new target. Adjust
@@ -104,6 +145,15 @@
                 <div ref="samplerBallEl" class="progress-ball sampler-ball"></div>
             </div>
         </div>
+
+        <!-- ── L.W11 S6 — the linear() 26-stop PLOT (the curve drawn, beside its
+             string). The parse + draw lives in the colocated SpringTrace sub-unit
+             (the natural concern seam); it reads the live (response, ζ) so the
+             trace re-plots as the sliders move. -->
+        <SpringTrace
+            :response="demo.response.value"
+            :damping-fraction="demo.dampingFraction.value"
+        />
     </Card>
 </template>
 
@@ -112,6 +162,7 @@ import { inject, onMounted, onScopeDispose, useTemplateRef } from "vue";
 import { Card } from "@mkbabb/glass-ui";
 import { useDragScrub } from "@composables/useDragScrub";
 import { SPRING_DEMO_KEY } from "./springKeys";
+import SpringTrace from "./SpringTrace.vue";
 
 const demo = inject(SPRING_DEMO_KEY)!;
 
@@ -122,6 +173,16 @@ const samplerBallEl = useTemplateRef<HTMLElement>("samplerBallEl");
 // The sweep can overshoot past 1 (underdamped) — clamp the *marker* position
 // so the ball stays inside the track even though the read-out shows >1.
 const clampSweep = (v: number) => Math.max(0, Math.min(1, v));
+
+// ── L.W11 S6 — the four DERBY LANE balls (painter-positioned) ────────────────
+// Each lane ball reads the live `springLive.trackValues[index]` directly (the
+// engine's physics, off the Vue render graph). The lanes' clampSweep is RELAXED
+// on the value axis so the curve crosses the target line (bouncy rings PAST it);
+// the ball still rides its bounded horizontal rail.
+const derbyBallEls: (HTMLElement | null)[] = [];
+const setDerbyBallEl = (i: number, el: any) => {
+    derbyBallEls[i] = (el as HTMLElement) ?? null;
+};
 
 // ── J.W2 S5 (DS-3) — the spring painters: DIRECT non-reactive `style` writes ──
 // Registered with the demo's loop seam; called imperatively each frame with the
@@ -137,6 +198,20 @@ onMounted(() => {
         }
         if (samplerBallEl.value) {
             samplerBallEl.value.style.left = `${clampSweep(live.sampled) * 100}%`;
+        }
+        // L.W11 S6 — position the four derby-lane balls from the live tracker
+        // values (clampSweep RELAXED here so the bouncy lane visibly rings PAST
+        // the target line — the overshoot is the point). Painter-positioned, the
+        // SAME hot path; no second writer, no second rAF (inv ζ).
+        const trackValues = live.trackValues;
+        for (let i = 0; i < derbyBallEls.length; i++) {
+            const el = derbyBallEls[i];
+            if (el) {
+                // Allow a small overshoot beyond 100% so the ring is seen; cap so
+                // the ball can't leave the lane entirely.
+                const v = Math.max(0, Math.min(1.18, trackValues[i] ?? 0));
+                el.style.left = `${v * 100}%`;
+            }
         }
     });
 });
@@ -247,5 +322,115 @@ const onKeydown = (e: KeyboardEvent) => {
     margin-left: calc(var(--ball-size) / -2);
     background: color-mix(in srgb, var(--ball-tone, var(--color-progress)) 65%, transparent);
     will-change: left;
+}
+
+/* ── L.W11 S6 — the y=1 TARGET LINE + the settle-pulse ──
+   The rail's right edge is the spring's target (value 1). A faint vertical line
+   marks it; on `liveSettled` it gives ONE quiet red-dashed pulse (the settled
+   register — the instrument confirming "locked"). Compositor-cheap; PRM drops
+   the pulse animation (the line stays). */
+.spring-target-line {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: 0;
+    border-right: 2px dashed color-mix(in srgb, var(--color-progress) 35%, transparent);
+    pointer-events: none;
+}
+/* The settle-pulse resting state (no flash); `--fire` plays the one pulse. */
+.settle-pulse {
+    transition: border-right-color var(--duration-fast, 160ms) ease;
+}
+.settle-pulse--fire {
+    animation: spring-settle-pulse 220ms var(--ease-standard, ease) 1;
+}
+
+/* `.spring-rail--derby` — the rail's racing state (the four-lane overlay is
+   shown; the live rail recedes slightly so the lanes read as the foreground). */
+.spring-rail--derby .progress-rail,
+.spring-rail--derby .spring-ball,
+.spring-rail--derby .spring-target-marker {
+    opacity: 0.35;
+    transition: opacity var(--duration-fast, 160ms) ease;
+}
+@keyframes spring-settle-pulse {
+    0% {
+        border-right-color: var(--color-progress);
+        filter: drop-shadow(0 0 4px color-mix(in srgb, var(--color-progress) 60%, transparent));
+    }
+    100% {
+        border-right-color: color-mix(in srgb, var(--color-progress) 35%, transparent);
+        filter: none;
+    }
+}
+
+/* ── L.W11 S6 — the four-lane DERBY overlay ──
+   Four stacked rainbow lanes that appear ONLY during the race (derbyActive). Each
+   lane wears its sanctioned --spring-lane-* tone (consumed via --ball-tone — the
+   .progress-ball idiom keys on it), with a small ζ tag. The bouncy lane's ball
+   rings PAST the target line (the painter's relaxed clamp); the gentle lane never
+   crosses. Absolutely overlaid on the rail region; fades in/out. */
+.derby-lanes {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    display: grid;
+    gap: 0.35rem;
+    padding: 0.25rem 0;
+    pointer-events: none;
+    z-index: var(--z-content, 3);
+    animation: derby-fade-in 220ms var(--ease-standard, ease) 1;
+}
+.derby-lane {
+    position: relative;
+    height: 0.9rem;
+    display: flex;
+    align-items: center;
+}
+.derby-lane-rail {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 2px;
+    transform: translateY(-50%);
+    border-radius: var(--radius-pill);
+    background: color-mix(in srgb, var(--ball-tone, var(--color-progress)) 22%, transparent);
+}
+.derby-lane-ball {
+    --ball-size: 0.8rem;
+    --ball-glow: 30%;
+    position: absolute;
+    top: 50%;
+    margin-top: calc(var(--ball-size) / -2);
+    margin-left: calc(var(--ball-size) / -2);
+    will-change: left;
+    /* the phosphor afterglow in the lane hue */
+    filter: drop-shadow(0 0 5px color-mix(in srgb, var(--ball-tone, var(--color-progress)) 50%, transparent));
+}
+.derby-lane-tag {
+    position: absolute;
+    right: 0;
+    top: -0.65rem;
+    color: color-mix(in srgb, var(--ball-tone, var(--color-progress)) 90%, var(--foreground));
+    opacity: 0.85;
+    text-transform: none;
+}
+
+@keyframes derby-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .settle-pulse--fire {
+        animation: none;
+    }
+    .derby-lanes {
+        animation: none;
+    }
 }
 </style>

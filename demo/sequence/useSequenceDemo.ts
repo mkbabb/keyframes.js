@@ -8,6 +8,7 @@ import { springTimingFunction } from "@mkbabb/keyframes.js";
 import { RAFPlayback } from "@mkbabb/keyframes.js";
 
 import { useSceneVisibilityPause } from "../app/useSceneVisibilityPause";
+import { useSequenceInstrument } from "./useSequenceInstrument";
 import {
     useSceneMachine,
     createRafAdapter,
@@ -194,6 +195,11 @@ export function useSequenceDemo() {
     const isReversed = ref(false);
     const timeScale = ref(1);
     const progress = ref(0);
+
+    // L.W11 S7 — the ignition-cascade egg's gesture/boot flags (colocated split,
+    // ≤500L); the cascade MOTION is the engine's --ball-p fan-out, not a clock (ζ).
+    const { isScrubbing, scrubDir, setScrubbing, setScrubDir, isPoweringOn, powerOn } =
+        useSequenceInstrument();
 
     /** Read the live Sequence playhead into the reactive progress mirror. */
     const syncFromSequence = () => {
@@ -467,6 +473,8 @@ export function useSequenceDemo() {
         reseatRow,
         playReel,
         isReeling,
+        // L.W11 S7 — the ignition-cascade gesture state + the power-on boot.
+        isScrubbing, scrubDir, setScrubbing, setScrubDir, isPoweringOn, powerOn,
         sequence,
         childAnims,
         animationGroup,

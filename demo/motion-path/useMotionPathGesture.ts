@@ -114,7 +114,44 @@ export function useMotionPathGesture(
         demo.registerAnimation(anim);
         remeasure();
         tangentDeg.value = computeTangent(distance.value);
+
+        // ── L.W11 S8 — the guide SELF-BUILDS on mount (DrawSVG dogfood) ───────
+        // The page builds itself out of the engine's own primitives: the guide
+        // path draws itself in via the library's `fromDrawSVG` (stroke-dashoffset
+        // totalLen→0), then hands back to the resting marching-ants. DrawSVG sets
+        // an inline `stroke-dasharray: L` (one solid dash) which would clobber the
+        // resting `6 7` dash flow — so on `.finished` we clear the inline dash
+        // props and let the stylesheet's marching-ants resume. PRM-snapped: under
+        // reduced motion we skip the self-draw (the path is already drawn). NO
+        // hand-rolled rAF — DrawSVG owns its managed loop (inv ζ).
+        runSelfBuild(guidePathEl.value);
     });
+
+    // The self-build flag the Target binds to `.is-self-building` — the egg's NEW
+    // instrument-layer marker (guide-draw). True for the ~600ms self-draw run.
+    const selfBuilding = ref(false);
+    const runSelfBuild = (pathEl: SVGPathElement | null) => {
+        if (!pathEl) return;
+        const prefersReduced =
+            typeof window !== "undefined" &&
+            window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+        if (prefersReduced) return; // snap: the path rests already drawn
+        const { fromDrawSVG } = kfEngine();
+        selfBuilding.value = true;
+        const draw = fromDrawSVG(pathEl, {
+            duration: 600,
+            from: "0%",
+            to: "100%",
+            autoPlay: true,
+        });
+        void draw.finished.finally(() => {
+            // Hand back to the resting marching-ants: clear DrawSVG's inline dash
+            // props so the stylesheet's `stroke-dasharray: 6 7` flow resumes.
+            pathEl.style.removeProperty("stroke-dasharray");
+            pathEl.style.removeProperty("stroke-dashoffset");
+            selfBuilding.value = false;
+        });
+    };
 
     // ── Projection: client point → nearest path-length ratio ─────────────────
     // Walk sampled points along the guide <path>, find the nearest, return its
@@ -311,6 +348,8 @@ export function useMotionPathGesture(
         dragging,
         activeHandle,
         winking,
+        // L.W11 S8 — the guide self-build (DrawSVG) state for `.is-self-building`.
+        selfBuilding,
         onPointerDown,
         onKeydown,
         onHandlePointerDown,

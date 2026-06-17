@@ -347,6 +347,25 @@
     --accent-red: hsl(0 72% 63%);
     --accent-red-foreground: hsl(0 0% 100%);
 
+    /* ── The six cube facet crayons (L.W11.S2 — the HUE-EXACT hygiene lift) ──
+       M. Cubert's six saturated facets are the canonical crayon SIGNAL surface
+       (the user's explicit keeper — coherence by REGISTER, not collapse). They
+       lived as raw rgba() literals inside CubeTarget.vue's `cubeSides` array
+       (the `color:` per face), off the token ladder. Lifted here ONE-FOR-ONE,
+       NO hue touched: each --face-N carries the EXACT rgba the facet already
+       drew, so the die is byte-identical (proof:visual-lock / proof:crayon-
+       preserved stay green). CubeTarget now references var(--face-N) per facet;
+       the colors are single-sourced HERE so a future re-material (the lit-
+       lacquer inset — the S2 scene egg, owned by the cube lane) tunes the
+       crayon in ONE place. The face order matches the cubeSides class order:
+       front(1)/right(2)/back(3)/left(4)/top(5)/bottom(6). */
+    --face-1: rgba(255, 0, 0, 0.8); /* front — '1' (red) */
+    --face-2: rgba(0, 255, 0, 0.8); /* right — '2' (green) */
+    --face-3: rgba(0, 0, 255, 0.8); /* back  — '3' (blue) */
+    --face-4: rgba(255, 255, 0, 0.8); /* left  — '4' (yellow) */
+    --face-5: rgba(255, 0, 255, 0.8); /* top   — '5' (magenta) */
+    --face-6: rgba(0, 255, 255, 0.8); /* bottom — '6' (cyan) */
+
     /* ── Progress / slider color tokens (K.W4 S3 / U-K17 — the motion-color
          authority collapsed to ONE: the RED-DASHED) ──
        The demo carried TWO motion-color identities: the red-dashed (the cube

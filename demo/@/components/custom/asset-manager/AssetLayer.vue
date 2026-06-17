@@ -31,6 +31,27 @@
                     @update:model-value="(v: string) => emit('update', asset.id, { name: v })"
                 />
 
+                <!-- L.W11 S9 — the BOUND-PRESET chip. When a layer is alive (an
+                     animationName is bound), a 1-em crayon swatch codes the
+                     authorship CHOICE (the preset family, from the owned
+                     --rainbow-* ramp) beside a mono caption of the preset name.
+                     The crayon is the SEASONING (authorship signal), in proportion
+                     — never a chip wash. Inert layers stay quiet. This closes the
+                     "which shapes are alive" gap in the very list meant to manage
+                     them. -->
+                <span
+                    v-if="asset.animationName"
+                    class="layer-preset-chip text-mono-caption normal-case text-muted-foreground shrink-0 flex items-center gap-1"
+                    :title="`bound: ${asset.animationName}`"
+                >
+                    <span
+                        class="layer-preset-swatch"
+                        :style="{ '--swatch': presetHue(asset.animationName) }"
+                        aria-hidden="true"
+                    ></span>
+                    <span class="truncate max-w-[5.5rem]">{{ asset.animationName }}</span>
+                </span>
+
                 <!-- Visibility toggle -->
                 <Button
                     variant="ghost"
@@ -125,9 +146,37 @@ const ICON_MAP: Record<AssetKind, any> = {
 
 const kindIcon = computed(() => ICON_MAP[props.asset.kind]);
 
+// L.W11 S9 — code the bound preset's swatch from the owned --rainbow-* family
+// (authorship CHOICE as a deft crayon accent). A small, stable per-preset map;
+// any unmapped name falls back to the system red (--color-progress), so the
+// swatch is always meaningful and never a chip wash.
+const PRESET_HUE: Record<string, string> = {
+    bounce: "var(--rainbow-orange)",
+    "fade-in": "var(--rainbow-blue)",
+    pulse: "var(--rainbow-violet)",
+    "rotate-scale": "var(--rainbow-cyan)",
+    shake: "var(--rainbow-yellow)",
+};
+const presetHue = (name: string): string =>
+    PRESET_HUE[name] ?? "var(--color-progress)";
+
 const editableLabelRef = useTemplateRef<InstanceType<typeof EditableLabel>>("editableLabelRef");
 
 const startRename = () => {
     editableLabelRef.value?.startRename();
 };
 </script>
+
+<style scoped>
+/* L.W11 S9 — the 1-em bound-preset swatch (crayon as authorship signal). A small
+   filled dot in the bound preset's --rainbow-* hue (the seasoning beside the red
+   system colour), with a soft ring so it reads as a lit indicator, not a bullet. */
+.layer-preset-swatch {
+    width: 1em;
+    height: 1em;
+    border-radius: var(--radius-pill, 999px);
+    background: var(--swatch, var(--color-progress));
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--swatch, var(--color-progress)) 30%, transparent);
+    flex: none;
+}
+</style>

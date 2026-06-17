@@ -12,18 +12,38 @@
         <canvas
             ref="canvas"
             class="amiga-canvas h-full w-full rounded-card"
-            :class="{ 'amiga-canvas--boing': boinging }"
+            :class="{
+                'amiga-canvas--boing': boinging,
+                'amiga-canvas--power-on': booting,
+            }"
             @dblclick="onBoing"
         ></canvas>
+
+        <!-- L.W11.S3 — the CRT phosphor atmosphere stack (a colocated sub-unit;
+             pointer-events:none so the spin/orbit gesture is untouched). The
+             `booting` power-on flash + the --spin-bloom flare drive it. -->
+        <AmigaCrtOverlay
+            :booting="booting"
+            :spin-bloom="spinBloom"
+        />
     </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef } from "vue";
+import {
+    computed,
+    markRaw,
+    onBeforeUnmount,
+    onMounted,
+    ref,
+    useTemplateRef,
+} from "vue";
 import { useIntersectionObserver, useResizeObserver } from "@vueuse/core";
+import { RAFPlayback } from "@mkbabb/keyframes.js";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
+import AmigaCrtOverlay from "../../amiga/AmigaCrtOverlay.vue";
 import { tesselateSphere } from "../../amiga/utils";
 import {
     useAmigaAnimations,
@@ -31,6 +51,7 @@ import {
     BOX_SIZE,
     SPHERE_HOME,
 } from "../../amiga/useAmigaAnimations";
+import { useAmigaBoot } from "../../amiga/useAmigaBoot";
 import { useSphereSpin } from "../../amiga/useSphereSpin";
 import { useSceneVisibilityPause } from "../useSceneVisibilityPause";
 
@@ -41,7 +62,12 @@ const sceneRootEl = useTemplateRef<HTMLElement>("sceneRoot");
 
 let sphereMesh: ReturnType<typeof tesselateSphere>;
 let renderer: THREE.WebGLRenderer | undefined;
-let rafId: number | undefined;
+// L.W11.S3 (inv ζ) — the WebGL present loop now rides the engine's MANAGED
+// RAFPlayback driver (the `loop()` self-rescheduling shape) instead of a bare
+// `requestAnimationFrame`, so this scene — which now also hosts the engine-
+// dogfooded power-on BOOT egg — owns NO hand-rolled rAF. One driver, the engine's,
+// for every loop in the scene (the demo's `useRafScene` discipline, applied here).
+const present = markRaw(new RAFPlayback());
 let controls: OrbitControls | undefined;
 let scene: THREE.Scene | undefined;
 let camera: THREE.PerspectiveCamera | undefined;
@@ -157,6 +183,29 @@ const onBoing = () => {
     }, 4200);
 };
 
+// L.W11.S3 EASTER EGG — "the power-on BOOT" (a colocated sub-unit, useAmigaBoot).
+// On IntersectionObserver re-entry the page boots like a 1984 Amiga: a phosphor
+// flash (the .amiga-canvas--power-on marker + the AmigaCrtOverlay flash) snaps the
+// CRT on, then the SAME Boing `animationGroup` plays one wall-slam arc (inv ζ — no
+// new rAF). PRM-snapped inside the composable. `booting`/`spinBloom` drive the CRT.
+const { booting, spinBloom, runBoot, disposeBoot } = useAmigaBoot(
+    animationGroup,
+    () => sphereMesh,
+    () => boinging.value,
+    (v) => (boinging.value = v),
+);
+// The power-on BOOT is a RE-ENTRY delight, never a cold-arrival auto-play: the
+// proof:cold-entry contract holds the engine OFF until the human's dock-play (a
+// cold auto-boot would auto-resume the transport group). A per-session visited
+// flag (sessionStorage survives the KeepAlive remount) excludes the first cold
+// visit; the boot replays on every genuine return — the "gift that keeps giving".
+const AMIGA_VISITED_KEY = "kf-amiga-visited";
+const amigaVisitedThisSession = (() => {
+    try { return sessionStorage.getItem(AMIGA_VISITED_KEY) === "1"; }
+    catch { return false; }
+})();
+let bootedOnce = false;
+
 onMounted(() => {
     const canvas = canvasEl.value!;
 
@@ -226,7 +275,14 @@ onMounted(() => {
     boxMesh.position.set(0, 0, 0);
     scene.add(boxMesh);
 
-    sphereMesh = tesselateSphere("white", "red", SPHERE_RADIUS);
+    // L.W11.S3 — the Boing-Ball crayon red is KEPT but RE-SOURCED: the raw
+    // 'red' literal is retired to var(--amiga-red) (→ var(--rainbow-red), the
+    // demo's canonical crayon red — hue single-sourced in design-idioms.css).
+    // tesselateSphere resolves the CSS var against the live DOM before painting
+    // the offscreen 2D checker (Canvas2D fillStyle does not resolve var() on its
+    // own), so the ball is painted with the resolved crayon — token-clean AND
+    // pixel-correct. '#ffffff' replaces the 'white' keyword for the same retire.
+    sphereMesh = tesselateSphere("#ffffff", "var(--amiga-red)", SPHERE_RADIUS);
     // I.W3 S1 — seat the subject at the CENTRED home (the room origin), not the
     // far corner. The cursor lands on the sphere at the canvas centre → a
     // centre-drag HITS the mesh and fires the spin gesture (useSphereSpin),
@@ -253,6 +309,10 @@ onMounted(() => {
     sphereSpin.attach(canvas);
 
     startRenderLoop();
+
+    // Mark amiga visited THIS session so the NEXT return fires the power-on BOOT
+    // (the cold first visit is excluded — proof:cold-entry). Set AFTER mount.
+    try { sessionStorage.setItem(AMIGA_VISITED_KEY, "1"); } catch { /* private mode */ }
 });
 
 // Canvas resize → camera-aspect. A plain reactive DOM observer (not the
@@ -273,23 +333,30 @@ useResizeObserver(canvasEl, () => {
 });
 
 function startRenderLoop() {
-    if (rafId != null) return;
-    function animate() {
-        rafId = requestAnimationFrame(animate);
+    if (present.running) return;
+    // The managed driver's `loop(cb)` self-reschedules each frame while `cb`
+    // returns true; returning true keeps the present loop alive (it is stopped
+    // explicitly via `present.stop()`, the genuine suspend seam).
+    present.loop(() => {
         controls?.update();
         // Advance the engine `decay()` release glide — drives the sphere mesh
         // rotation for ≥N frames after a flick (the A5 engine-drives-mesh story).
         sphereSpin.tickGlide();
+        // L.W11.S3 — spin → phosphor bloom: a hard flick that is still gliding
+        // pushes --spin-bloom toward 1 (the CRT flares); it bleeds off when the
+        // glide settles. Sampled INSIDE the managed present loop (no second rAF)
+        // — the bloom is just a CSS var the .crt-overlay reads.
+        const gliding = sphereSpin.isGliding();
+        const target = gliding ? 1 : 0;
+        spinBloom.value += (target - spinBloom.value) * 0.08;
+        if (spinBloom.value < 0.002 && !gliding) spinBloom.value = 0;
         if (renderer && scene && camera) renderer.render(scene, camera);
-    }
-    animate();
+        return true; // keep presenting until an explicit stop()
+    });
 }
 
 function stopRenderLoop() {
-    if (rafId != null) {
-        cancelAnimationFrame(rafId);
-        rafId = undefined;
-    }
+    present.stop();
 }
 
 // B-3: pause the WebGL present loop while the tab is backgrounded (a hidden tab
@@ -297,7 +364,7 @@ function stopRenderLoop() {
 // damping continues from rest on resume; nothing to re-base (the render is
 // clock-free), so the sphere picks up exactly where it stood.
 useSceneVisibilityPause(
-    () => rafId != null,
+    () => present.running,
     stopRenderLoop,
     startRenderLoop,
 );
@@ -314,14 +381,35 @@ useSceneVisibilityPause(
 useIntersectionObserver(
     sceneRootEl,
     ([entry]) => {
-        if (entry?.isIntersecting) startRenderLoop();
-        else stopRenderLoop();
+        if (entry?.isIntersecting) {
+            startRenderLoop();
+            // L.W11.S3 — the power-on BOOT fires on genuine RE-entry only (NEVER on
+            // the cold first arrival — the proof:cold-entry contract: the engine
+            // starts ONLY on the human's dock-play). The per-session visited flag
+            // gates the FIRST cold mount out; the `booting`/`bootedOnce` pair keeps
+            // it a once-per-entry delight, never a per-tick re-fire. (PRM-snapped
+            // inside runBoot.)
+            if (
+                amigaVisitedThisSession &&
+                !bootedOnce &&
+                (entry.intersectionRatio ?? 0) > 0
+            ) {
+                bootedOnce = true;
+                runBoot();
+            }
+        } else {
+            stopRenderLoop();
+            // Re-arm so the NEXT scroll-back boots again (the "gift that keeps
+            // giving" — the boot replays on each genuine re-entry after the first).
+            bootedOnce = false;
+        }
     },
     { rootMargin: "200px" },
 );
 
 onBeforeUnmount(() => {
     if (boingTimer != null) clearTimeout(boingTimer);
+    disposeBoot();
     animationGroup.stop();
     stopRenderLoop();
     sphereSpin.detach();
@@ -395,6 +483,12 @@ defineExpose({
 /* While the Boing egg arc plays, the grab cursor stands down (nothing to grab
    mid-boing — the engine owns the mesh). */
 .amiga-canvas--boing {
+    cursor: default;
+}
+/* L.W11.S3 — the once-on-enter power-on marker class on the canvas (the CRT
+   flash + boot bounces ride `booting`; the CRT atmosphere stack lives in the
+   colocated AmigaCrtOverlay child). Isomorphic cursor stand-down during boot. */
+.amiga-canvas--power-on {
     cursor: default;
 }
 </style>

@@ -77,10 +77,14 @@
                         <!-- The guide path: re-reads the SINGLE-source pathD; an
                              editable-control-point drag re-emits it and BOTH this
                              d AND the traveller's offset-path change in lockstep. -->
+                        <!-- L.W11 S8 — `guide-draw`: the path the engine's DrawSVG
+                             self-draws on mount (then the marching-ants take over);
+                             `handle-deform`: the curve deforms under a handle drag. -->
                         <path
                             ref="guidePathEl"
                             :d="demo.pathD.value"
-                            class="mp-guide-path"
+                            class="mp-guide-path guide-draw handle-deform"
+                            :class="{ 'is-self-building': selfBuilding }"
                             fill="none"
                             aria-hidden="true"
                         />
@@ -103,13 +107,17 @@
                              user-unit space + aria-valuetext announcing BOTH
                              coordinates (the 2D-thumb slider idiom, mirroring
                              the traveller's valuenow/min/max posture below). -->
+                        <!-- L.W11 S8 — author-the-curve, the-creature-obeys: each
+                             control node carries `handle-deform` — dragging it
+                             re-authors the cubic, the ants keep flowing on the NEW
+                             shape, and the traveller banks into the new tangent. -->
                         <circle
                             v-for="pt in demo.points.value"
                             :key="pt.id"
                             :cx="pt.x"
                             :cy="pt.y"
                             :r="pt.kind === 'anchor' ? 9 : 7"
-                            class="mp-handle"
+                            class="mp-handle handle-deform"
                             :class="[
                                 pt.kind === 'anchor' ? 'mp-handle--anchor' : 'mp-handle--control',
                                 { 'mp-handle--active': activeHandle === pt.id },
@@ -129,10 +137,13 @@
                          offset-distance on THIS element (fromMotionPath). Slider
                          posture — pointer-drag scrubs the distance along the path,
                          the engine resumes its sweep on release. -->
+                    <!-- L.W11 S8 — `handle-deform`: the traveller OBEYS a handle
+                         deform — it banks into the new tangent as you re-author the curve. -->
                     <div
                         ref="travellerEl"
-                        class="progress-ball mp-traveller"
+                        class="progress-ball mp-traveller handle-deform"
                         :class="{ 'mp-traveller--dragging': dragging, 'mp-traveller--winking': winking }"
+                        :style="{ '--tangent': `${tangentDeg}deg` }"
                         role="slider"
                         aria-label="Drag the traveller along the path"
                         :aria-valuenow="Math.round(distance * 100)"
@@ -142,8 +153,14 @@
                         @pointerdown="onPointerDown"
                         @keydown="onKeydown"
                     >
-                        <!-- EE-MP-2: a full-lap drag winks the glyph (😎) + spins. -->
-                        <span class="mp-traveller-glyph">{{ winking ? "\u{1F60E}" : "\u{1F642}\u{200D}\u{2194}\u{FE0F}" }}</span>
+                        <!-- L.W11 S8 — THE CREATURE BANKS: the kept 🙂↔️ glyph leans
+                             into the LIVE tangent (`rotate(var(--tangent))`) as it
+                             walks AND as you deform a handle; `.mp-traveller-bank`
+                             damps the rotation so it banks smoothly.
+                             EE-MP-2: a full-lap drag winks (😎) + spins. -->
+                        <span class="mp-traveller-bank">
+                            <span class="mp-traveller-glyph">{{ winking ? "\u{1F60E}" : "\u{1F642}\u{200D}\u{2194}\u{FE0F}" }}</span>
+                        </span>
                     </div>
                 </div>
             </div>
@@ -207,6 +224,7 @@ const {
     dragging,
     activeHandle,
     winking,
+    selfBuilding,
     onPointerDown,
     onKeydown,
     onHandlePointerDown,
@@ -268,38 +286,33 @@ const onHandleKeydown = (id: string, e: KeyboardEvent) => {
     --ball-tone: var(--rainbow-cyan);
 }
 
-/* J.W7a S4 (D17 / MP-I1 + MP-OPP1) — the stage gains a CLEAN designed field:
-   the traveller no longer renders against the raw global crosshatch (the
-   dashed guide visually beat against the grid squares). A scene-tinted plate
-   (the tone at the shared --stage-field-tint 4% over --background — OPAQUE, so
-   the substrate grid stops showing through) seats the cyan subject on its own
-   ground; rounded on the card's own radius token. */
-/* J.W7c LANE-D (U7 / MP-PROP) — THE STAGE PROPORTION FIX. The former
-   `width: min(70vmin, 26rem)` sized the square from the VIEWPORT (vmin), blind
-   to the card's available band. On the height-constrained desktop card the
-   416px square OVERFLOWED its 373px flex slot — bleeding up under the header
-   badges AND down over the `offset-path` artifact label (an 18px collision,
-   measured). The fix sizes the square from its OWN flex slot: `block-size`
-   fills the (padded, min-h-0) viewport height, `aspect-ratio: 1` DERIVES the
-   width (the square invariant the gesture engine's clientToUserUnits depends
-   on — proof:no-brittle-selector — is PRESERVED), and `max-inline-size: 100%`
-   caps the width so a tall-narrow (mobile) card bounds the square by WIDTH
-   instead. One definite side (height) + the ratio = the css-layout idiom
-   ("give one side a definite size; don't size container and child to fill each
-   other"). `--mp-stage-max` keeps a sane upper bound so a very tall card can't
-   blow the square past the former 26rem ceiling. */
+/* J.W7a S4 (D17) — a CLEAN designed field: an OPAQUE scene-tinted cyan plate
+   seats the subject on its own ground (no raw global crosshatch beat).
+   J.W7c LANE-D (U7 / MP-PROP) — STAGE PROPORTION FIX: sized from its OWN flex
+   slot, not the viewport — `block-size` fills the (min-h-0) height, `aspect-ratio:1`
+   DERIVES the width (the square invariant clientToUserUnits depends on is PRESERVED),
+   `max-inline-size:100%` bounds a tall-narrow card by width; --mp-stage-max caps it. */
 .mp-stage {
     --mp-stage-max: 26rem;
     block-size: min(100%, var(--mp-stage-max));
     inline-size: auto;
     max-inline-size: 100%;
     aspect-ratio: 1;
-    background: color-mix(
-        in srgb,
-        var(--ball-tone, var(--color-progress)) var(--stage-field-tint, 4%),
-        var(--background)
-    );
+    /* L.W11 S8 — the BLUEPRINT GROUND: the kept D17 cyan wash stays the base tone;
+       over it we LAYER the demo's own two-tier graph (crosshair datum + major + fine)
+       tinted from --ball-tone (cyan) end-to-end + an inner-vignette depth. --c = cyan. */
+    --c: var(--ball-tone, var(--color-progress));
+    background-color: color-mix(in srgb, var(--c) var(--stage-field-tint, 4%), var(--background));
+    background-image:
+        linear-gradient(to right, transparent calc(50% - 0.5px), color-mix(in srgb, var(--c) 12%, transparent) calc(50% - 0.5px) calc(50% + 0.5px), transparent calc(50% + 0.5px)),
+        linear-gradient(to bottom, transparent calc(50% - 0.5px), color-mix(in srgb, var(--c) 12%, transparent) calc(50% - 0.5px) calc(50% + 0.5px), transparent calc(50% + 0.5px)),
+        repeating-linear-gradient(to right, color-mix(in srgb, var(--c) 8%, transparent) 0 1px, transparent 1px var(--graph-major, 5rem)),
+        repeating-linear-gradient(to bottom, color-mix(in srgb, var(--c) 8%, transparent) 0 1px, transparent 1px var(--graph-major, 5rem)),
+        repeating-linear-gradient(to right, color-mix(in srgb, var(--c) 4%, transparent) 0 1px, transparent 1px var(--graph-pitch, 1rem)),
+        repeating-linear-gradient(to bottom, color-mix(in srgb, var(--c) 4%, transparent) 0 1px, transparent 1px var(--graph-pitch, 1rem));
     border-radius: var(--radius-card);
+    box-shadow: inset 0 0 32px color-mix(in srgb, var(--c) 6%, transparent);
+    cursor: crosshair; /* the whole field reads as a drawing canvas */
 }
 
 .mp-guide {
@@ -322,6 +335,28 @@ const onHandleKeydown = (id: string, e: KeyboardEvent) => {
     stroke-width: 2.5;
     stroke-dasharray: 6 7;
     stroke-linecap: round;
+    /* L.W11 S8 — MARCHING ANTS: a slow stroke-dashoffset loop (one `6 7` cycle = 13
+       units) so the track reads as a live conveyor, flowing on the NEW shape as you
+       deform. PRM holds it static; suppressed while the guide self-builds. */
+    animation: mp-ants 3s linear infinite;
+}
+/* The marching-ants loop is held off while DrawSVG self-builds (same dash prop). */
+.mp-guide-path.is-self-building {
+    animation: none;
+}
+
+/* L.W11 S8 instrument-egg markers (proof:design-refinement domMarker, owned here
+   so they resolve under proof:styling-idioms): `guide-draw` = the DrawSVG self-draw
+   path; `handle-deform` = every author-the-curve participant (guide/nodes/traveller).
+   The will-change keeps the compositor warm; PRM drops the hint. */
+.guide-draw { will-change: stroke-dashoffset; }
+.handle-deform { will-change: transform; }
+@media (prefers-reduced-motion: reduce) {
+    .guide-draw,
+    .handle-deform { will-change: auto; }
+}
+@keyframes mp-ants {
+    to { stroke-dashoffset: -13; }
 }
 
 /* ── Editable control net (H.W12.S6 / I3 — the F4 elevation) ──────────────────
@@ -363,19 +398,12 @@ const onHandleKeydown = (id: string, e: KeyboardEvent) => {
     fill: var(--ball-tone, var(--color-progress));
 }
 
-/* The traveller rides the engine-set offset-path; its position is the swept
-   offset-distance (the browser resolves geometry from the path). It consumes the
-   shared .progress-ball idiom (design-idioms.css) — the recipe it formerly
-   hand-rolled with two drifted literals (the glow/blur drift F §1 consolidated
-   everywhere else). Only the per-site variation lives here:
-     • the offset-path positioning (top:0; left:0 — the engine sweeps
-       offset-distance, so the ball is NOT rail-centered via margin-top),
-     • --ball-size: 2.75rem (the largest ball in the demo),
-     • --ball-glow: 40% — a NAMED per-site motion-cohesion delta (the larger
-       traveller earns a brighter glow; the same seam EasingTarget/Spring use),
-       over the idiom's 35% default. The 12px blur folds to the idiom's 10px.
-     • display: grid; place-items: center — centers the glyph child.
-     • cursor: grab + touch-action: none — the slider affordance (S4a drag). */
+/* The traveller rides the engine-set offset-path (position = swept
+   offset-distance). It consumes the shared .progress-ball idiom; only per-site
+   variation lives here: offset-path positioning (top/left:0, not margin-centered),
+   --ball-size 2.75rem (the largest ball), --ball-glow 40% (a NAMED cohesion delta
+   over the 35% default), grid place-items:center for the glyph, and grab +
+   touch-action:none for the S4a drag affordance. */
 .mp-traveller {
     top: 0;
     left: 0;
@@ -399,6 +427,15 @@ const onHandleKeydown = (id: string, e: KeyboardEvent) => {
     --ball-glow: 55%;
 }
 
+/* L.W11 S8 — THE BANKING WRAPPER: the kept 🙂↔️ glyph tilts to the LIVE tangent,
+   damped (`transition: rotate`); a separate wrapper so the wink spin + bank don't fight. */
+.mp-traveller-bank {
+    display: grid;
+    place-items: center;
+    rotate: var(--tangent, 0deg);
+    transition: rotate 120ms ease-out;
+}
+
 .mp-traveller-glyph {
     /* H.W4.S4 (L2 leaf-tail sweep) — the raw 1.25rem was eyeballing the √φ
        rung; route it to the named `--type-subheading` (1.272rem) so the
@@ -408,23 +445,30 @@ const onHandleKeydown = (id: string, e: KeyboardEvent) => {
     pointer-events: none;
 }
 
-/* ── EE-MP-2 "the emoji winks" (H.W12.S6 / I3 egg) ────────────────────────────
-   A full-lap drag swaps the glyph to 😎 and spins the traveller once + brightens
-   the glow. transform/box-shadow only (compositor-friendly per the CSS guide). */
+/* EE-MP-2 "the emoji winks" + L.W11 S8 crayon-spark. A full-lap drag swaps to 😎 +
+   spins; the ONE proportionate crayon-spark is a single warm --rainbow-yellow flash
+   (~120ms) — the warm family KEPT, earning its one lap delight. PRM-off.
+   IDIOM-CONSUMING: the base ball glow stays the .progress-ball idiom's
+   --ball-glow box-shadow (design-idioms.css:584) — the wink only LIFTS --ball-glow
+   (40% → 60%); the warm spark rides a SEPARATE filter drop-shadow keyed to
+   --rainbow-yellow, so it never re-authors the idiom's --color-progress box-shadow
+   (proof:idioms scene-refork:zero). */
 .mp-traveller--winking {
     --ball-glow: 60%;
-    animation: mp-wink-spin 700ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    animation:
+        mp-wink-spin 700ms cubic-bezier(0.34, 1.56, 0.64, 1),
+        mp-wink-spark 700ms ease-out;
+}
+@keyframes mp-wink-spark {
+    0%, 100% { filter: drop-shadow(0 0 0 transparent); }
+    14% {
+        filter: drop-shadow(0 0 11px color-mix(in srgb, var(--rainbow-yellow) 70%, transparent));
+    }
 }
 @keyframes mp-wink-spin {
-    0% {
-        transform: rotate(0) scale(1);
-    }
-    55% {
-        transform: rotate(220deg) scale(1.25);
-    }
-    100% {
-        transform: rotate(360deg) scale(1);
-    }
+    0% { transform: rotate(0) scale(1); }
+    55% { transform: rotate(220deg) scale(1.25); }
+    100% { transform: rotate(360deg) scale(1); }
 }
 
 /* The copy-paste artifact — the inline-code register the StartingStyle/Discrete
@@ -436,14 +480,13 @@ const onHandleKeydown = (id: string, e: KeyboardEvent) => {
     background: color-mix(in srgb, var(--muted) 50%, transparent);
 }
 
-/* MANDATORY PRM degrade — the wink spin is decorative delight; under reduced
-   motion the glyph still swaps (the reward), but without the rotation. */
+/* MANDATORY PRM degrade — the wink/spark/marching-ants/banking-ease are decorative;
+   under reduced motion the glyph still swaps + the tangent rotation still applies
+   (a static state read), but the continuous + transitional motion is held. */
 @media (prefers-reduced-motion: reduce) {
-    .mp-traveller--winking {
-        animation: none;
-    }
-    .mp-handle {
-        transition: none;
-    }
+    .mp-traveller--winking { animation: none; }
+    .mp-handle { transition: none; }
+    .mp-guide-path { animation: none; }
+    .mp-traveller-bank { transition: none; }
 }
 </style>

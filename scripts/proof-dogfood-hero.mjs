@@ -41,15 +41,30 @@ const TYPING_DOTS = path.join(
 );
 const rel = (p) => path.relative(REPO, p).split(path.sep).join("/");
 
-// The dogfood symbol: a kf ENGINE CLASS imported from the engine's own light/
-// heavy surface. Mirror proof-dogfood.mjs's IMPORTS_* shape exactly (a named
-// import from `@src/animation/<module|index>`). The hero's dots loop on a
-// per-dot CSSKeyframesAnimation (the PRIMARY path, WV-W6-HIGH-2 — NumericAnimation
-// cannot loop); NumericAnimation is accepted as a co-witness for completeness.
+// The dogfood symbol: a kf ENGINE CLASS sourced from the engine's own light/
+// heavy surface. Mirror proof-dogfood.mjs's IMPORTS_* shape (a named import from
+// `@src/animation/<module|index>`) — AND, since L.W8's publish/dogfood completion
+// migrated the demo to consume the PUBLISHED `@mkbabb/keyframes.js`, ALSO accept
+// the sanctioned heavy-surface access the published demo uses: a CSSKeyframesAnimation
+// destructured out of `await loadAnimationEngine()` (the documented dynamic boundary
+// in CLAUDE.md — the heavy class is NOT a static named export; only `import type` is).
+// Either path proves the dots loop on the kf engine itself; the BITE (a hero with NO
+// kf engine class at all) is unchanged. The hero's dots loop on a per-dot
+// CSSKeyframesAnimation (the PRIMARY path, WV-W6-HIGH-2 — NumericAnimation cannot
+// loop); NumericAnimation is accepted as a co-witness for completeness.
 const IMPORTS_CSS_KEYFRAMES =
     /import\s*\{[^}]*\bCSSKeyframesAnimation\b[^}]*\}\s*from\s*["']@src\/animation\/(engine|index)["']/;
 const IMPORTS_NUMERIC =
     /import\s*\{[^}]*\bNumericAnimation\b[^}]*\}\s*from\s*["']@src\/animation\/(numeric|index)["']/;
+// L.W8 publish-surface dogfood path: `loadAnimationEngine()` is imported from the
+// published `@mkbabb/keyframes.js`, and the engine class is destructured from its
+// resolved value (`const { CSSKeyframesAnimation } = await loadAnimationEngine()`).
+// This IS the inv-ζ dogfood on the published surface (the heavy class reaches the
+// demo ONLY through loadAnimationEngine — the static/dynamic boundary).
+const IMPORTS_LOAD_ENGINE =
+    /import\s*\{[^}]*\bloadAnimationEngine\b[^}]*\}\s*from\s*["']@mkbabb\/keyframes\.js["']/;
+const DESTRUCTURES_ENGINE_CLASS =
+    /\{[^}]*\b(?:CSSKeyframesAnimation|NumericAnimation)\b[^}]*\}\s*=\s*await\s+loadAnimationEngine\s*\(/;
 
 // The value.js curve — `steppedEase` MUST resolve from value.js, never from
 // `@src` (it is not a kf symbol). This is the negative half of WV-W6-MED-1.
@@ -77,28 +92,35 @@ if (!fs.existsSync(TYPING_DOTS)) {
 } else {
     const src = fs.readFileSync(TYPING_DOTS, "utf8");
 
-    // ── Clause 1 — the kf-engine class import (the dogfood proof) ─────────────
+    // ── Clause 1 — the kf-engine class dogfood (the dogfood proof) ────────────
+    // Either the @src static import (pre-L.W8) OR the published-surface
+    // loadAnimationEngine() destructure (L.W8 publish/dogfood completion) proves
+    // the dots loop on the kf engine itself.
     const hasCss = IMPORTS_CSS_KEYFRAMES.test(src);
     const hasNumeric = IMPORTS_NUMERIC.test(src);
-    if (hasCss || hasNumeric) {
+    const hasLoadEngine =
+        IMPORTS_LOAD_ENGINE.test(src) && DESTRUCTURES_ENGINE_CLASS.test(src);
+    if (hasCss || hasNumeric || hasLoadEngine) {
         const which = [
-            hasCss && "CSSKeyframesAnimation",
-            hasNumeric && "NumericAnimation",
+            hasCss && "CSSKeyframesAnimation (@src)",
+            hasNumeric && "NumericAnimation (@src)",
+            hasLoadEngine &&
+                "CSSKeyframesAnimation/NumericAnimation (via loadAnimationEngine() — the published heavy-surface boundary)",
         ]
             .filter(Boolean)
             .join(" + ");
         ok(
-            `${rel(TYPING_DOTS)} imports the kf engine class ${which} from ` +
-                `@src/animation/(engine|index) — the dots loop on the engine ` +
-                `itself (the CopyButton/typingCursor/spinner template)`,
+            `${rel(TYPING_DOTS)} sources the kf engine class ${which} — the dots ` +
+                `loop on the engine itself (the CopyButton/typingCursor/spinner template)`,
         );
     } else {
         fail(
-            `${rel(TYPING_DOTS)} imports NO kf engine class — the hero dots are ` +
-                `NOT dogfooded (inv ζ violated). Import CSSKeyframesAnimation ` +
-                `from "@src/animation/engine" (the per-dot infinite blink, ` +
-                `WV-W6-HIGH-2) — NOT steppedEase alone (a value.js curve is not ` +
-                `the dogfood symbol, WV-W6-MED-1).`,
+            `${rel(TYPING_DOTS)} sources NO kf engine class — the hero dots are ` +
+                `NOT dogfooded (inv ζ violated). Either import CSSKeyframesAnimation ` +
+                `from "@src/animation/engine" OR destructure it from ` +
+                `\`await loadAnimationEngine()\` of "@mkbabb/keyframes.js" (the per-dot ` +
+                `infinite blink, WV-W6-HIGH-2) — NOT steppedEase alone (a value.js ` +
+                `curve is not the dogfood symbol, WV-W6-MED-1).`,
         );
     }
 
@@ -144,6 +166,7 @@ if (failures.length > 0) {
 }
 console.log(
     "\nproof:dogfood-hero — PASS: the hero dots loop on a kf engine class " +
-        "(CSSKeyframesAnimation/NumericAnimation from @src); steppedEase is the " +
-        "value.js curve, not the dogfood. inv ζ holds.",
+        "(CSSKeyframesAnimation/NumericAnimation from @src OR via loadAnimationEngine() " +
+        "of the published @mkbabb/keyframes.js — the heavy-surface boundary); steppedEase " +
+        "is the value.js curve, not the dogfood. inv ζ holds.",
 );

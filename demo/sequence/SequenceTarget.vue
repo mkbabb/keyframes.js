@@ -55,24 +55,21 @@
                  (C-SEQ-3, --row-start) so the stagger reads as a DIAGONAL CASCADE
                  even at t=0 — the distribution SEEN, not piled left. -->
             <div class="seq-storyboard px-4 py-4 shrink-0">
-                <div class="seq-stage" :style="{ '--stagger-max': demo.STAGGER_MAX }">
-                    <!-- The master-clock axis ruler: quarter labels derived from STAGGER_MAX. -->
-                    <div class="seq-axis stage-field-x" aria-hidden="true">
-                        <span
-                            v-for="q in AXIS_QUARTERS"
-                            :key="q"
-                            class="seq-axis-tick text-mono-caption text-muted-foreground tabular-nums"
-                            :style="{ '--tick-p': q }"
-                        >{{ Math.round(q * demo.STAGGER_MAX) }}</span>
-                    </div>
+                <!-- L.W11 S7 — the IGNITION-CASCADE host (`.cascade-chase`): scrubbing
+                     detonates the lanes in a diagonal cascade chasing the thumb
+                     (`--scrub-dir` flips on drag-back); `.is-powering-on` runs the
+                     ~700ms boot once. The motion is the engine's --ball-p fan-out. -->
+                <div
+                    class="seq-stage cascade-chase"
+                    :class="{ 'is-scrubbing': demo.isScrubbing.value, 'is-powering-on': demo.isPoweringOn.value }"
+                    :style="{ '--stagger-max': demo.STAGGER_MAX, '--scrub-dir': demo.scrubDir.value }"
+                >
+                    <!-- The master-clock axis ruler — a colocated sub-unit. -->
+                    <SequenceAxis :quarters="AXIS_QUARTERS" :stagger-max="demo.STAGGER_MAX" />
 
-                    <!-- The swept master-playhead line — pure CSS over `progress`. -->
-                    <div class="seq-playhead-track" aria-hidden="true">
-                        <div
-                            class="seq-playhead"
-                            :style="{ '--playhead-p': clamp01(demo.progress.value) }"
-                        ></div>
-                    </div>
+                    <!-- The swept phosphor master-playhead — a colocated sub-unit
+                         (SequencePlayhead, the ≤500L split seam). -->
+                    <SequencePlayhead :progress="demo.progress.value" />
 
                     <!-- The five rows — each sets ONE --ball-tone + its --row-start
                          (the at: proportion); label, rail, traveller + handle wear it. -->
@@ -84,6 +81,7 @@
                             :style="{
                                 '--ball-tone': ROW_TONES[row.index],
                                 '--row-start': clamp01(row.at / demo.STAGGER_MAX),
+                                '--row-index': row.index,
                             }"
                         >
                             <span class="seq-row-label text-mono-caption text-muted-foreground tabular-nums">
@@ -144,8 +142,11 @@ import { Clapperboard } from "@lucide/vue";
 import { useDragScrub } from "@composables/useDragScrub";
 import { SEQUENCE_DEMO_KEY } from "./sequenceKeys";
 import { ROW_COUNT } from "./useSequenceDemo";
-// The master scrubber is a colocated sub-unit (J.WZ — the ≤500L split seam).
+// Colocated sub-units (the ≤500L split seam): the master scrubber (J.WZ), the
+// L.W11 S7 phosphor master-playhead + the master-clock axis ruler.
 import SequenceScrubber from "./SequenceScrubber.vue";
+import SequencePlayhead from "./SequencePlayhead.vue";
+import SequenceAxis from "./SequenceAxis.vue";
 
 const demo = inject(SEQUENCE_DEMO_KEY)!;
 
@@ -192,6 +193,9 @@ onMounted(() => {
     // re-seated `progress` via the ScenePlayback restore, so seeking the live value
     // avoids clobbering it regardless of mount/restore ordering (H.W1).
     demo.sequence.progress = demo.progress.value;
+    // L.W11 S7 — fire the orchestrated power-on boot once (PRM-snapped inside
+    // `powerOn`): ruler clip-wipe → staggered lane drop, demonstrating `stagger`.
+    demo.powerOn();
 });
 
 // ── Draggable rows: re-author each child's `at:` live (H.W12.S6 / I3) ─────────
@@ -265,20 +269,33 @@ useEventListener(window, "keydown", (e: KeyboardEvent) => {
    read ONE clock green); the rows OVERRIDE it per-row with their spectrum stop. */
 .seq-target {
     --ball-tone: var(--color-progress);
+    /* L.W11 S7 — --seq-glow: the ONE intensity the playhead comet + lane balls share. */
+    --seq-glow: 0;
 }
 
+/* L.W11 S7 — register --ball-p so the bloom INTERPOLATES between engine frames. */
+@property --ball-p {
+    syntax: "<number>";
+    inherits: true;
+    initial-value: 0;
+}
 
-/* The storyboard hugs its content (no flex-1 void); local micro-stack tokens
-   order the frame's absolute siblings (playhead below the handles). */
+/* The storyboard hugs its content; local micro-stack tokens order the absolute siblings. */
 .seq-storyboard {
     --z-seq-playhead: 1;
     --z-seq-handle: 2;
+    --scrub-dir: 1; /* L.W11 S7 — cascade direction (+1 fwd); the scrubber flips it. */
 }
 
-/* The contained timeline FRAME — the motion-path stage grammar: a bounded, gently
-   master-tinted, rounded plate that OWNS its time grid (the .stage-field-x rules
-   live INSIDE it, never bleeding the page grid). Defines the shared subgrid column
-   geometry ONCE (a uniform label col + the elastic track col). */
+/* L.W11 S7 — IGNITION-CASCADE heat: scrubbing lifts the shared --seq-glow. */
+.seq-stage.is-scrubbing {
+    --seq-glow: 1;
+    border-color: color-mix(in srgb, var(--ball-tone, var(--color-progress)) 30%, var(--border));
+}
+
+/* The contained timeline FRAME — a bounded, master-tinted rounded plate that OWNS
+   its time grid (the .stage-field-x rules live inside it). Defines the shared
+   subgrid column geometry ONCE (a uniform label col + the elastic track col). */
 .seq-stage {
     --label-col: 3.25rem;
     --col-gap: 0.75rem;
@@ -299,31 +316,6 @@ useEventListener(window, "keydown", (e: KeyboardEvent) => {
             color-mix(in srgb, var(--ball-tone, var(--color-progress)) 5%, var(--background)),
             color-mix(in srgb, var(--ball-tone, var(--color-progress)) 2%, var(--background))
         );
-}
-
-/* ── The master-clock axis ruler (J.W7c C-SEQ-2) ──────────────────────────────
-   Spans the SHARED track column (2) so the tick labels resolve against the track
-   width. .stage-field-x paints the quarter rules; the ticks NAME them. */
-.seq-axis {
-    grid-column: 2;
-    position: relative;
-    height: 1.1rem;
-    margin-bottom: 0.15rem;
-}
-.seq-axis-tick {
-    position: absolute;
-    top: 0;
-    left: calc(var(--tick-p, 0) * 100%);
-    transform: translateX(-50%);
-    line-height: 1.1rem;
-    white-space: nowrap;
-}
-/* First + last ticks hug the edges so the labels never clip the frame. */
-.seq-axis-tick:first-child {
-    transform: translateX(0);
-}
-.seq-axis-tick:last-child {
-    transform: translateX(-100%);
 }
 
 /* ── The rows — a CSS subgrid so the label column is UNIFORM (§LABEL-subgrid) ── */
@@ -352,8 +344,12 @@ useEventListener(window, "keydown", (e: KeyboardEvent) => {
     line-height: 1.15;
     text-align: right;
 }
+/* L.W11 S7 — ENGRAVED CHANNEL NUMBER: the display voice (Instrument Serif); `@…ms` stays mono. */
 .seq-row-name {
+    font-family: var(--font-display);
     font-weight: 600;
+    font-size: var(--type-subheading);
+    line-height: 1;
 }
 /* J.W7c φ-ladder (proof:phi-leaf-zero) — the `at:` sub-line stays on the φ
    token ladder (it inherits `--type-caption` from the parent's `.text-mono-
@@ -373,37 +369,9 @@ useEventListener(window, "keydown", (e: KeyboardEvent) => {
     align-items: center;
 }
 
-/* ── The swept master-playhead line (R-SEQ-E, H.W12.S6 / I3) ──────────────────
-   Spans the shared row-track column (inset past the label column) so `left: %`
-   resolves against the track width — the SAME axis the handles ride. */
-.seq-playhead-track {
-    position: absolute;
-    grid-column: unset;
-    top: calc(0.75rem + 1.25rem); /* frame pad-top + axis ruler height */
-    bottom: 1rem;
-    left: calc(1rem + var(--track-inset));
-    right: 1rem;
-    pointer-events: none;
-    z-index: var(--z-seq-playhead);
-}
-.seq-playhead {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: calc(var(--playhead-p, 0) * 100%);
-    width: 2px;
-    transform: translateX(-50%);
-    background: color-mix(in srgb, var(--ball-tone, var(--color-progress)) 55%, transparent);
-    border-radius: var(--radius-pill);
-    will-change: left;
-}
-
-/* ── The draggable row start-handle (R-SEQ-D, H.W12.S6 / I3; J.WZ target-size) ─
-   The START GATE the traveller rests on + launches from (C-SEQ-3), at the
-   child's at: proportion (`left: at/STAGGER_MAX`). The ELEMENT is the 24×24px tap
-   target lighthouse measures (its own box — a pseudo would NOT grow it, so the
-   24px IS the element; the former 6.4px grip redded target-size on
-   sequence/mobile). The thin visible grip is painted by ::after. */
+/* The draggable row start-handle (R-SEQ-D; J.WZ target-size): the START GATE the
+   traveller rests on + launches from, at the child's at: proportion. The ELEMENT
+   is the 24×24px tap target lighthouse measures (the thin grip is painted by ::after). */
 .seq-handle {
     position: absolute;
     top: 50%;
@@ -470,23 +438,56 @@ useEventListener(window, "keydown", (e: KeyboardEvent) => {
     );
     z-index: var(--z-seq-handle); /* the traveller rests ON its gate, above it */
     will-change: left;
+    /* L.W11 S7 — THE IGNITION CASCADE (lane-detonate): kept ball/rail/rainbow STAY;
+       the glow scales with the engine's --ball-p so staggered lanes BLOOM in a
+       DIAGONAL cascade. One box-shadow calc() — no rAF (inv ζ). */
+    box-shadow: 0 0
+        calc(2px + var(--ball-p, 0) * 16px + var(--seq-glow, 0) * 6px)
+        calc(var(--ball-p, 0) * 4px)
+        color-mix(in srgb, var(--ball-tone, var(--color-progress)) calc(30% + var(--ball-p, 0) * 50%), transparent);
 }
 
-/* ── MOBILE row-pitch compression (J.WZ — a11y target-size) ───────────────────
-   On a short viewport (375×667 — lighthouse mobile) the 5 storyboard rows at the
-   desktop pitch OVERFLOWED below the controls-sheet grab-handle, so the bottom
-   row's slider handle OVERLAPPED it (another interactive target) → target-size
-   redded sequence/mobile. The storyboard is `shrink-0`, so centring/padding can't
-   lift the overflow — compress the pitch so all 5 rows + 24px handles fit ABOVE
-   the sheet peek band (track stays 1.5rem = 24px, the handle minimum). PLACED
-   LAST to win the cascade (a media query adds no specificity); desktop unchanged. */
+/* L.W11 S7 — the IGNITION-CASCADE host marker (proof:design-refinement domMarker,
+   owned here so it resolves under proof:styling-idioms). `.cascade-chase` seats the
+   per-lane glow seam (--seq-glow, lifted by the scrubber as the thumb sweeps); the
+   detonation is engine-driven (--ball-p, no rAF — inv ζ). */
+.cascade-chase {
+    --seq-glow: 0;
+    will-change: transform;
+}
+
+/* L.W11 S7 — POWER-ON BOOT (~700ms): ruler clip-wipe → staggered lane drop (`stagger`). */
+.seq-stage.is-powering-on .seq-axis {
+    animation: seq-ruler-wipe 420ms ease-out both;
+}
+.seq-stage.is-powering-on .seq-row {
+    animation: seq-lane-drop 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: calc(var(--row-index, 0) * 60ms + 120ms);
+}
+@keyframes seq-ruler-wipe {
+    from { clip-path: inset(0 100% 0 0); opacity: 0; }
+    to { clip-path: inset(0 0 0 0); opacity: 1; }
+}
+@keyframes seq-lane-drop {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* MANDATORY PRM degrade — the boot is decorative; held to the snapped still frame. */
+@media (prefers-reduced-motion: reduce) {
+    .seq-stage.is-powering-on .seq-axis,
+    .seq-stage.is-powering-on .seq-row {
+        animation: none;
+    }
+}
+
+/* MOBILE row-pitch compression (J.WZ a11y target-size): on 375×667 the 5 rows at
+   desktop pitch overflowed under the sheet grab-handle (target-size overlap), so
+   compress the pitch to fit all 5 rows + 24px handles above the peek band (track
+   stays 1.5rem = the handle minimum). Placed LAST to win the cascade; desktop unchanged. */
 @media (max-width: 1023px) {
     .seq-storyboard {
         padding-block: 0.5rem;
-    }
-    .seq-axis {
-        height: 0.95rem;
-        margin-bottom: 0;
     }
     .seq-rows {
         row-gap: 0.15rem;

@@ -20,8 +20,9 @@ import {
 import { NAMED_EASING_BEZIER } from "@components/custom/animation-controls/animationDescriptions";
 import { useRafScene } from "../app/useRafScene";
 import { useSceneMachine } from "@components/custom/animation-controls/stores";
-import { getFamilyForCurve, getFamilyCurves, type CurveGroupItem } from "./easingGroups";
+import { getFamilyForCurve, getFamilyCurves } from "./easingGroups";
 import { useEasingGallery } from "./useEasingGallery";
+import { useEasingTraceSmear } from "./useEasingTraceSmear";
 
 // ── Static data ────────────────────────────────────────────────────
 
@@ -309,15 +310,19 @@ export function useEasingDemo() {
         }
     };
 
-    // EASTER EGG — "the Gallery" (H.W12.S6): the self-playing curve tour, a
-    // colocated sub-unit (useEasingGallery — the natural easter-egg concern seam).
+    // EASTER EGG — "the Gallery" (H.W12.S6): the self-playing curve tour (colocated in useEasingGallery).
     const { gallery, disposeGallery } = useEasingGallery(
         selectEasing,
         currentEasingName,
         timingFunctionsAnd,
     );
 
+    // EASTER EGG — "the drag-bend SMEAR" (L.W11 S5): SmoothProgress-decay smear (colocated).
+    const { amount: traceSmearAmount, kickFromPoints } = useEasingTraceSmear();
+
     const updateBezierPoints = (points: [number, number, number, number]) => {
+        // L.W11 S5 — kick the trace smear from the handle update's velocity.
+        kickFromPoints(bezierControlPoints.value, points);
         bezierControlPoints.value = points;
         // If editing a named curve's bezier, switch to custom
         if (currentEasingName.value !== "cubic-bezier") {
@@ -477,6 +482,9 @@ export function useEasingDemo() {
         pause,
         togglePlay,
         reset,
+
+        // L.W11 S5 — the drag-bend SMEAR amount (SmoothProgress decay, inv ζ).
+        traceSmearAmount,
 
         // Scene contract
         animationGroup,

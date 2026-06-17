@@ -89,6 +89,36 @@
        is the sibling styling task; the token lives here. */
     --rainbow-cyan: hsl(180 80% 50%);
 
+    /* ── The Amiga Boing-Ball crayon red (L.W11.S3 — the HUE-EXACT lift) ──
+       The 1985 Boing Ball's saturated red checker is a kept crayon SIGNAL
+       surface. It lived as the raw CSS named-colour literal `'red'`
+       (AmigaScene.vue tesselateSphere('white','red',…)) — off the rainbow
+       ladder, un-tunable, no dark variant, AND the visually-garish pure
+       rgb(255,0,0) rather than the demo's canonical crayon. RE-SOURCED here to
+       the sanctioned spectrum: --amiga-red ALIASES --rainbow-red, so the ball
+       wears the SAME crayon red as the rest of the demo's signal palette
+       ("right colour, raw plumbing" — the red was never the defect, the literal
+       was). The AmigaScene call-site now passes var(--amiga-red) and
+       tesselateSphere resolves it against the live DOM at paint time. Tune the
+       Boing red ONCE here; proof:crayon-preserved pins it to --rainbow-red. */
+    --amiga-red: var(--rainbow-red);
+
+    /* ── The four spring-derby lane hues (L.W11.S6 — sanctioned-rainbow CONSUME) ──
+       The spring scene's four-lane DERBY easter egg (gated behind the kept
+       dblclick — SpringTarget.vue) races four SpringProgress solvers in four
+       coloured lanes. The lane hues are the crayon palette used WITH PROPORTION
+       — the one place the page must tell four springs apart by colour — so they
+       CONSUME the sanctioned --rainbow-* family rather than minting a fifth
+       identity. The exact mapping (spring.md / the crayon-preserved baseline):
+       smooth→blue, snappy→green, bouncy→violet (the playful ring), gentle
+       (critically damped → the RED identity)→--color-progress (the unified
+       motion-red). Aliases only — every hue resolves to a keeper, so the derby
+       borrows the signal palette without abrogating it. */
+    --spring-lane-smooth: var(--rainbow-blue);
+    --spring-lane-snappy: var(--rainbow-green);
+    --spring-lane-bouncy: var(--rainbow-violet);
+    --spring-lane-gentle: var(--color-progress);
+
     /* ── The gold sparkle accent ──
        The Format-button <Sparkles> accent. Referenced by
        AnimationControlsGroup.vue (text-[var(--color-gold)], routing to the

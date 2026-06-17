@@ -39,6 +39,11 @@ export function useSquareAnimations(
     // when the barrel-roll comes to rest (an honest verb that returns to idle —
     // NO timer band-aid, NO shadow flag; the loop's own settle IS the signal).
     onSettle?: () => void,
+    // L.W11 S4 — a per-frame DERIVED-READ hook for the scene's instrument layer
+    // (the rubber-band tether + the settled/tracking telemetry). Invoked with the
+    // live spring snapshot each frame the loop runs, so the tether is a read of
+    // the SAME spring state the box paints — NO second writer, NO second rAF.
+    onTick?: (snapshot: { x: number; y: number; settled: boolean }) => void,
 ) {
     // One spring per axis. Value/target are normalized [-1, 1] of the box's free
     // travel (mapped to a px translate). The (response 0.32, ζ 0.62) feel reads
@@ -70,30 +75,82 @@ export function useSquareAnimations(
         if (backgroundColor) el.style.backgroundColor = backgroundColor;
     };
 
-    // ── EASTER EGG — "the Tumble" (H.W12.S6) ─────────────────────────────────
+    // ── EASTER EGG — "the Tumble palette-sweep" (H.W12.S6 + L.W11 S4) ─────────
     // Double-click the box → a delighted barrel-roll. A THIRD `SpringProgress`
     // chases a +360° target (a snappy underdamped spin with overshoot), folded
     // into the SAME paint loop + the SAME nested-object `transformFunc` (ONE
     // paint authority — the spin rides `transform.rotate`, no second writer).
-    // While it spins the box sweeps through the contract-keyframe palette
-    // (#C462D8 → #52E898) so the tumble also EXHIBITS the engine's color twin.
-    // Re-seats to 0 after settling so a re-tumble starts fresh. inv ζ — the
-    // light-surface SpringProgress drives the spin, no hand-rolled rAF.
+    // While it spins the box sweeps through the rainbow palette so the tumble
+    // also EXHIBITS the engine's color twin. inv ζ — the light-surface
+    // SpringProgress drives the spin, no hand-rolled rAF.
+    //
+    // L.W11 S4 (the design-refinement egg) — the loved violet→green sweep is a
+    // PROVENANCE FIX, not a colour kill: the EGG_HUES no longer dangle as three
+    // raw hex literals (drift-prone against --subject-teal) — they are RESOLVED
+    // ONCE at mount from the demo's sanctioned `--rainbow-*` family (the same
+    // spectrum the demo paints everywhere else), so the tumble palette-sweep
+    // rides the named crayon tokens by construction (hue-exact, zero drift). The
+    // lerp math is untouched; the marker is `paletteSweep`/`sweepHue` so the
+    // design-refinement gate reads the NEW egg layer.
     const springSpin = new SpringProgress({ response: 0.55, dampingFraction: 0.58, initial: 0 });
-    const EGG_HUES = ["#C462D8", "#7E6BE8", "#52E898"] as const;
-    const lerpHue = (t: number): string => {
-        const span = EGG_HUES.length - 1;
+
+    // The palette-sweep stops, re-sourced from the rainbow tokens at mount. The
+    // fallback hexes are the 4.3.0 EGG_HUES (kept byte-identical so a pre-mount
+    // read or a missing token never drifts the hue): violet → blend → green.
+    const PALETTE_SWEEP_FALLBACK = ["#C462D8", "#7E6BE8", "#52E898"] as const;
+    const paletteSweepHues: string[] = [...PALETTE_SWEEP_FALLBACK];
+
+    /** Resolve the palette-sweep stops from the sanctioned `--rainbow-*` family
+     *  once at mount (violet → cyan → green, the demo's chosen 3-stop slice — the
+     *  SAME spectrum --subject-teal terminates on). A provenance fix: the pixels
+     *  are the named crayons, never a drift-prone literal. */
+    const resolvePaletteSweep = (): void => {
+        const root = typeof document !== "undefined" ? document.documentElement : null;
+        if (!root) return;
+        const cs = getComputedStyle(root);
+        const read = (token: string): string | null => {
+            const v = cs.getPropertyValue(token).trim();
+            return v.length ? v : null;
+        };
+        const violet = read("--rainbow-violet");
+        const cyan = read("--rainbow-cyan");
+        const green = read("--rainbow-green");
+        if (violet && cyan && green) {
+            paletteSweepHues[0] = violet;
+            paletteSweepHues[1] = cyan;
+            paletteSweepHues[2] = green;
+        }
+    };
+
+    // Parse a resolved token value (`rgb(...)`/`#hex`/`hsl(...)` are all served by
+    // getComputedStyle as `rgb(...)`; the fallback may be `#hex`) into channels.
+    const toRGB = (c: string): [number, number, number] => {
+        const s = c.trim();
+        const rgbM = s.match(/rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)/i);
+        if (rgbM) return [+rgbM[1]!, +rgbM[2]!, +rgbM[3]!];
+        if (s.startsWith("#")) {
+            const h = s.length === 4
+                ? s.slice(1).split("").map((d) => d + d).join("")
+                : s.slice(1);
+            return [
+                parseInt(h.slice(0, 2), 16),
+                parseInt(h.slice(2, 4), 16),
+                parseInt(h.slice(4, 6), 16),
+            ];
+        }
+        return [0, 0, 0];
+    };
+
+    /** The palette-sweep colour at t∈[0,1] across the three rainbow-sourced
+     *  stops (the kept lerp; only the SOURCE of the stops moved to the tokens). */
+    const sweepHue = (t: number): string => {
+        const span = paletteSweepHues.length - 1;
         const i = Math.min(span - 1, Math.floor(t * span));
         const f = t * span - i;
         const mix = (a: number, b: number) => Math.round(a + (b - a) * f);
-        const hex = (h: string) => [
-            parseInt(h.slice(1, 3), 16),
-            parseInt(h.slice(3, 5), 16),
-            parseInt(h.slice(5, 7), 16),
-        ];
-        const [r1, g1, b1] = hex(EGG_HUES[i]!);
-        const [r2, g2, b2] = hex(EGG_HUES[i + 1]!);
-        return `rgb(${mix(r1!, r2!)}, ${mix(g1!, g2!)}, ${mix(b1!, b2!)})`;
+        const [r1, g1, b1] = toRGB(paletteSweepHues[i]!);
+        const [r2, g2, b2] = toRGB(paletteSweepHues[i + 1]!);
+        return `rgb(${mix(r1, r2)}, ${mix(g1, g2)}, ${mix(b1, b2)})`;
     };
 
     // ── The live paint loop (ticks both springs, paints via transformFunc) ──
@@ -122,22 +179,38 @@ export function useSquareAnimations(
             // Sweep the palette WHILE the egg spin is live (keyed off the angle
             // WITHIN the current turn, so it cycles each tumble); when the spin
             // settles, clear the inline background so the box's CSS home colour
-            // (--subject-teal — the EGG_HUES terminal stop itself, J.W7a D13)
+            // (--subject-teal — the rainbow-green terminal stop, J.W7a D13)
             // returns.
             ...(spinning
-                ? { backgroundColor: lerpHue(((((springSpin.value % 360) + 360) % 360) / 360)) }
+                ? { backgroundColor: sweepHue(((((springSpin.value % 360) + 360) % 360) / 360)) }
                 : {}),
         });
+        // L.W11 S4 — mark the box with `data-palette-sweep` while the egg's
+        // colour sweep is live, so the off-the-normal-path effect is observable
+        // (the design-refinement browser probe reads `palette|sweep` on the box)
+        // and scene CSS can register the tumble (a one-shot bloom, PRM-guarded).
+        if (box.value) {
+            if (spinning) box.value.setAttribute("data-palette-sweep", "");
+            else box.value.removeAttribute("data-palette-sweep");
+        }
         // The spin just settled this frame → restore the home colour (the CSS
         // `--subject-teal` token wins once the inline override is removed —
-        // and the egg's #52E898 terminal stop IS that token's value, so the
-        // landing is seamless by construction, J.W7a D13).
+        // and the sweep's rainbow-green terminal stop IS that token's value, so
+        // the landing is seamless by construction, J.W7a D13).
         if (springSpin.settled && box.value && box.value.style.backgroundColor) {
             box.value.style.backgroundColor = "";
         }
 
         // Self-terminate once every spring settles — re-armed by reseat()/tumble().
         const live = !(springX.settled && springY.settled && springSpin.settled);
+        // L.W11 S4 — feed the scene's instrument layer the live spring snapshot
+        // (the tether + the settled/tracking badge are derived reads of THIS, no
+        // second rAF). Fired every frame the loop runs, plus once more on settle.
+        onTick?.({
+            x: springX.value,
+            y: springY.value,
+            settled: springX.settled && springY.settled,
+        });
         // S5b — the moment the loop comes fully to rest, signal the host so the
         // one-shot "Play = tumble" play state clears (the button returns to Play).
         if (!live) onSettle?.();
@@ -222,11 +295,16 @@ export function useSquareAnimations(
     );
 
     // Paint the rest pose once on mount (the springs start at 0 → the box sits
-    // home, un-deflected, before any drag).
+    // home, un-deflected, before any drag). Also resolve the palette-sweep stops
+    // from the live `--rainbow-*` tokens here (mount-time, DOM available) so the
+    // tumble egg rides the sanctioned crayon family by construction (L.W11 S4).
     const paintRest = (): void => {
+        resolvePaletteSweep();
         transformFunc({
             transform: { x: 0, y: 0, a: { b: { c: { d: 1 } } } },
         });
+        // Seat the instrument layer at rest (the tether hidden, the badge settled).
+        onTick?.({ x: springX.value, y: springY.value, settled: true });
     };
 
     const dispose = (): void => {

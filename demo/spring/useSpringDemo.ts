@@ -293,12 +293,10 @@ export function useSpringDemo() {
         reseat(target.value > 0.5 ? 0 : 1);
     };
 
-    // ── EASTER EGG — "the Derby" (H.W12.S6) ──────────────────────────────────
-    // Colocated in `useSpringDerby` (its own concern seam): the staggered-wave
-    // launch of the canonical trackers so their different damping fractions are
-    // SEEN racing. The live ball joins the wave last (`launchLive`), then the
-    // whole field bounces home (`settle`); the shared loop is the sole driver.
-    const { derby } = useSpringDerby(
+    // ── EASTER EGG — "the Derby" (H.W12.S6 + L.W11 S6): the staggered-wave launch
+    // of the canonical trackers SEEN racing in four rainbow lanes (colocated in
+    // useSpringDerby; the shared loop is the sole driver, inv ζ). ──
+    const { derby, derbyActive, lanes } = useSpringDerby(
         tracks,
         () => {
             liveSpring.target = 1;
@@ -474,7 +472,9 @@ export function useSpringDemo() {
         // Methods
         reseat,
         toggleTarget,
-        derby,
+        derby, // L.W11 S6 — the four-lane derby + its reactive state/lanes:
+        derbyActive,
+        derbyLanes: lanes,
         reset,
         play,
         pause,

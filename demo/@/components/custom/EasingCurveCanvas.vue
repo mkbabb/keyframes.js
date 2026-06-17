@@ -6,6 +6,8 @@
         <!-- J.W2 S1 (W4-3): ONLY pointer-down lives here — the move/up/cancel
              lifecycle (and `setPointerCapture` + the global select-suppression
              token) is owned by the shared `useDragCapture` seam. -->
+        <!-- L.W11 S5 — the instrument masthead (the canvas reads as a device). -->
+        <span class="easing-instrument-label text-admin-label" aria-hidden="true">EASE · f(t)</span>
         <svg
             ref="svgEl"
             class="easing-curve-canvas w-full touch-none select-none"
@@ -14,27 +16,23 @@
             xmlns="http://www.w3.org/2000/svg"
             @pointerdown="startDragging"
         >
-            <!-- Background grid -->
+            <!-- Background graticule — L.W11 S5 (PAPER): the flat uniform grid
+                 promoted to the demo's OWN two-tier graticule (faint minor + bold
+                 major + brightest centre crosshair), the --graph-pitch/--graph-major
+                 hierarchy brought INSIDE the plate. Built from one `gridLines`
+                 array (vertical + horizontal at each tier). -->
             <rect x="0" y="0" width="1" height="1" class="bounding-box" />
+            <line
+                v-for="(g, i) in gridLines"
+                :key="'grid' + i"
+                :x1="g.x1"
+                :y1="g.y1"
+                :x2="g.x2"
+                :y2="g.y2"
+                :class="['grid-line', g.cls]"
+            />
+            <!-- the f(t)=t null line, tinted toward the trace -->
             <line x1="0" y1="1" x2="1" y2="0" class="diagonal-ref" />
-            <line
-                v-for="v in [0.25, 0.5, 0.75]"
-                :key="'gx' + v"
-                :x1="v"
-                y1="0"
-                :x2="v"
-                y2="1"
-                class="grid-line"
-            />
-            <line
-                v-for="v in [0.25, 0.5, 0.75]"
-                :key="'gy' + v"
-                x1="0"
-                :y1="v"
-                x2="1"
-                :y2="v"
-                class="grid-line"
-            />
 
             <!-- Axis labels (inside the graph) -->
             <text x="0.06" y="0.94" class="axis-label" dominant-baseline="auto" text-anchor="start">0</text>
@@ -60,11 +58,16 @@
                 />
             </template>
 
-            <!-- Curve path -->
+            <!-- Curve path — L.W11 S5: the `trace-smear` marker is the egg's
+                 editor-side hook (the drag-bend SMEAR). While a handle is being
+                 dragged the trace gains a faint directional motion-blur (a CSS
+                 state, not a rAF); the engine-driven decay-on-release smear lives
+                 on the hero-stage projection (useEasingDemo's SmoothProgress). -->
             <path
                 v-if="editable && bezierPoints"
                 :d="bezierPathD"
-                class="bezier-path"
+                class="bezier-path trace-smear"
+                :class="{ 'trace-smear--active': currentHandleIndex !== null }"
             />
             <path v-else :d="svgPath" class="bezier-path" />
 
@@ -118,6 +121,22 @@ const props = defineProps<{
 const emit = defineEmits<{ (e: "update:bezierPoints", points: [number, number, number, number]): void }>();
 
 const svgEl = useTemplateRef<SVGSVGElement>("svgEl");
+
+// L.W11 S5 (PAPER) — the two-tier graticule lines: minor (0.125 grid) + major
+// (0.25/0.75) + the brightest centre crosshair, each as a vertical + horizontal.
+const gridLines = (() => {
+    const lines: { x1: number; y1: number; x2: number; y2: number; cls: string }[] = [];
+    const add = (vals: number[], cls: string) => {
+        for (const v of vals) {
+            lines.push({ x1: v, y1: 0, x2: v, y2: 1, cls }); // vertical
+            lines.push({ x1: 0, y1: v, x2: 1, y2: v, cls }); // horizontal
+        }
+    };
+    add([0.125, 0.375, 0.625, 0.875], "grid-line--minor");
+    add([0.25, 0.75], "grid-line--major");
+    add([0.5], "grid-line--center");
+    return lines;
+})();
 
 // Convert bezier Y (0=bottom, 1=top) to SVG Y (0=top, increases downward)
 const toSvgY = (y: number) => 1 - y;
@@ -283,6 +302,53 @@ const { onPointerDown } = useDragCapture({
    frame; the wash IS the inner surface, not a second plate. */
 .easing-curve-canvas-wrapper {
     border: none;
+    /* L.W11 S5 — scope-local instrument tokens (the KEPT violet, additive aliases). */
+    --trace: var(--ppmycota-primary, var(--primary));
+    --trace-glow: color-mix(in srgb, var(--ppmycota-primary, var(--primary)) 60%, transparent);
+    position: relative;
+    box-shadow: inset 0 0 2.5rem color-mix(in srgb, var(--foreground) 7%, transparent);
+}
+
+/* L.W11 S5 — a whisper of phosphor scanline grain (≈2%), scoped to the plate. */
+.easing-curve-canvas-wrapper::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    background-image: repeating-linear-gradient(
+        to bottom,
+        color-mix(in srgb, var(--foreground) 4%, transparent) 0 1px,
+        transparent 1px 3px
+    );
+    opacity: 0.5;
+}
+/* The radial field tint — the screen glows faintly violet from the origin. */
+.easing-curve-canvas-wrapper::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    background: radial-gradient(
+        120% 120% at 15% 100%,
+        color-mix(in srgb, var(--trace) var(--stage-field-tint, 4%), transparent),
+        transparent 60%
+    );
+    z-index: var(--z-behind, 0);
+}
+
+/* L.W11 S5 — the instrument masthead label. */
+.easing-instrument-label {
+    position: absolute;
+    top: 0.4rem;
+    left: 0.6rem;
+    z-index: var(--z-content, 2);
+    font-family: var(--font-mono);
+    color: var(--muted-foreground);
+    opacity: 0.55;
+    letter-spacing: 0.08em;
+    pointer-events: none;
 }
 
 /* H.W4.S1 — the canvas is now CONTAINER-BOUNDED, not viewport-unbounded.
@@ -312,17 +378,28 @@ const { onPointerDown } = useDragCapture({
     stroke-width: 0.015;
 }
 
+/* L.W11 S5 — the f(t)=t null line, tinted toward the trace (the "null curve"). */
 .diagonal-ref {
-    stroke: var(--muted-foreground);
+    stroke: var(--trace, var(--muted-foreground));
     stroke-width: 0.008;
     stroke-dasharray: 0.02 0.015;
-    opacity: 0.3;
+    opacity: 0.22;
 }
 
+/* L.W11 S5 (PAPER) — the two-tier graticule: faint minor, bolder major, brightest centre. */
 .grid-line {
     stroke: var(--border);
     stroke-width: 0.008;
-    opacity: 0.4;
+}
+.grid-line--minor {
+    opacity: 0.22;
+}
+.grid-line--major {
+    opacity: 0.45;
+}
+.grid-line--center {
+    opacity: 0.55;
+    stroke-width: 0.006;
 }
 
 .handle-line {
@@ -330,16 +407,44 @@ const { onPointerDown } = useDragCapture({
     stroke-width: 0.025;
     stroke-dasharray: 0.03 0.02;
     opacity: 0.5;
+    transition: stroke var(--duration-fast) var(--ease-standard), opacity var(--duration-fast) var(--ease-standard);
 }
 
+/* L.W11 S5 (COLOR) — the trace becomes a luminous SIGNAL: the KEPT violet stroke
+   gains an emitted-light bloom (a layered --trace-glow drop-shadow). Hue
+   unchanged — only the bloom is added. */
 .bezier-path {
-    /* The curve carries the design-system accent in all modes; pp-mode can
-       still retint via the --ppmycota-primary cascade when it is defined. */
     stroke: var(--ppmycota-primary, var(--primary));
     stroke-width: 0.04;
     fill: none;
     stroke-linecap: round;
     stroke-linejoin: round;
+    filter:
+        drop-shadow(0 0 0.018px var(--trace-glow))
+        drop-shadow(0 0 0.045px var(--trace-glow));
+    transition: filter var(--duration-fast) var(--ease-standard);
+}
+
+/* L.W11 S5 (the drag-bend smear, editor side) — while a handle is grabbed the
+   trace flexes with a faint blur (a CSS state; the engine-driven decay-on-release
+   lives on the hero-stage projection). PRM suppresses the blur. */
+.trace-smear {
+    --trace-smear: 0px;
+}
+.bezier-path.trace-smear--active {
+    filter:
+        drop-shadow(0 0 0.018px var(--trace-glow))
+        drop-shadow(0 0 0.045px var(--trace-glow))
+        blur(0.004px);
+}
+@media (prefers-reduced-motion: reduce) {
+    .bezier-path,
+    .bezier-path.trace-smear--active {
+        transition: none;
+        filter:
+            drop-shadow(0 0 0.018px var(--trace-glow))
+            drop-shadow(0 0 0.045px var(--trace-glow));
+    }
 }
 
 .control-point {
@@ -356,20 +461,29 @@ const { onPointerDown } = useDragCapture({
     opacity: 0.5;
 }
 
+/* L.W11 S5 — handles that look ADJUSTABLE at rest: violet accent ring + soft glow. */
 .control-point.handle {
     fill: var(--foreground);
-    stroke: var(--background);
-    stroke-width: 0.025;
+    stroke: var(--trace, var(--primary));
+    stroke-width: 0.02;
+    cursor: grab;
+    filter: drop-shadow(0 0 0.02px var(--trace-glow));
 }
 
 .control-point.handle:hover {
     r: 0.055;
+    filter: drop-shadow(0 0 0.04px var(--trace-glow));
+}
+.control-point.handle:active {
+    cursor: grabbing;
 }
 
+/* L.W11 S5 — the probe gets a whiter-hot core + comet glow (the beam's focus). */
 .traveling-dot {
     fill: var(--ppmycota-primary, var(--primary));
-    opacity: 0.9;
+    opacity: 0.95;
     transition: none;
+    filter: drop-shadow(0 0 0.02px white) drop-shadow(0 0 0.06px var(--trace-glow));
 }
 
 /* J.W2 S1 — the former local `user-select: none` here is DELETED: gesture-time
