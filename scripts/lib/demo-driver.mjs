@@ -573,10 +573,47 @@ export async function openControlsPanel(page) {
     //    This is what unhides the controls pane (its v-show keys on it).
     try {
         await page.click('[aria-label="Select animation"]', { timeout: 4000 });
-        await page.waitForTimeout(500);
+        // SETTLE (L.W4 S2): the option list has MATERIALISED (the reka
+        // SelectContent teleported its [role=option] nodes) — not a fixed 500 ms.
+        await waitForRender(
+            page,
+            () => document.querySelectorAll("[role=option]").length > 0,
+            { timeout: 4000 },
+        );
         const firstOption = page.locator("[role=option]").first();
+        const firstOptionText = (await firstOption.textContent())?.trim() ?? "";
         await firstOption.click({ timeout: 4000 });
-        await page.waitForTimeout(800);
+        // SETTLE (L.W4 S2): the SELECTION committed — `selectedAnimation` is set
+        // in the control-options store for this superKey AND the trigger no
+        // longer shows its empty placeholder (the option text changed). Not a
+        // fixed 800 ms: the wait returns the instant Vue reacts to the pick.
+        await waitForRender(
+            page,
+            ([storeKey, superKey, picked]) => {
+                let committed = false;
+                try {
+                    const store = JSON.parse(
+                        localStorage.getItem(storeKey) ?? "{}",
+                    );
+                    committed = Boolean(store?.[superKey]?.selectedAnimation);
+                } catch {
+                    committed = false;
+                }
+                // The trigger's value text now reflects a pick (no longer empty,
+                // and matches the option chosen when text is available).
+                const trig = document.querySelector(
+                    '[aria-label="Select animation"]',
+                );
+                const trigText = trig?.textContent?.trim() ?? "";
+                const triggerSettled =
+                    trigText.length > 0 && (!picked || trigText.includes(picked));
+                return committed || triggerSettled;
+            },
+            {
+                timeout: 4000,
+                arg: [CONTROL_OPTIONS_STORE_KEY, superKey, firstOptionText],
+            },
+        );
     } catch {
         // The Select did not open (already-selected, or teleport miss) — seed
         // the store as a fallback so a selection still holds across the wait.
@@ -619,26 +656,31 @@ export async function openControlsPanel(page) {
     if (!isOpen) {
         try {
             await page.click('[title="Open controls"]', { timeout: 3000 });
-            await page.waitForTimeout(600);
+            // SETTLE (L.W4 S2): the pane is OPEN — `.controls-pane--open` in the
+            // DOM OR `#controls-ribbon-target` visible. Not a fixed 600 ms.
+            await waitForRender(
+                page,
+                () =>
+                    !!document.querySelector(".controls-pane--open") ||
+                    !!document.querySelector("#controls-ribbon-target"),
+                { timeout: 3000 },
+            );
         } catch {
             /* toggle not present (already open, or no panel) */
         }
     }
 
-    // 3. Settle, then confirm the pane materialised. If neither the open class
-    //    nor the ribbon target appears the drive failed and the caller probes
-    //    the closed layout as-is (honest, not a false green).
-    await page.waitForTimeout(800);
-    try {
-        await page.waitForFunction(
-            () =>
-                !!document.querySelector(".controls-pane--open") ||
-                !!document.querySelector("#controls-ribbon-target"),
-            { timeout: 6000 },
-        );
-    } catch {
-        /* the pane did not open (e.g. an empty group); caller probes as-is */
-    }
+    // 3. Confirm the pane MATERIALISED (L.W4 S2): the trailing fixed-800 ms sleep
+    //    + the follow-up waitForFunction collapse into ONE waitForRender on the
+    //    pane-open predicate. It returns the instant the pane is open; on expiry
+    //    the caller probes the closed layout as-is (honest, not a false green).
+    await waitForRender(
+        page,
+        () =>
+            !!document.querySelector(".controls-pane--open") ||
+            !!document.querySelector("#controls-ribbon-target"),
+        { timeout: 6000 },
+    );
 }
 
 /**
@@ -648,6 +690,34 @@ export async function openControlsPanel(page) {
  * (J.W0 S2 — the per-gate `MACHINE_KEY` copies die with the consolidation).
  */
 export const SCENE_MACHINE_KEY = "keyframes-js-scene-machine";
+
+/**
+ * waitForRender — the SETTLE-ON-STATE primitive (L.W4 S2). Poll
+ * `page.waitForFunction(predicate, { timeout })` and return the INSTANT the
+ * predicate holds — never a fixed wall-clock sleep. This is the `navToScene`
+ * contract generalised: the `timeout` is a CEILING (a slow Linux runner spends
+ * the budget; a fast box returns immediately), so a transposed caller is
+ * load-INDEPENDENT by construction — it cannot macOS-pass / Linux-fail on a
+ * render-race the way a `page.waitForTimeout(N)` does.
+ *
+ * If the predicate genuinely never holds within the ceiling the wait expires;
+ * the `.catch(() => {})` keeps the drive HONEST (the caller then probes the real
+ * — possibly wrong — DOM and its assertion reds), exactly as `navToScene` does.
+ * Only the timing race is removed, never the bite.
+ *
+ * @param page       a Playwright page handle.
+ * @param predicate  a `waitForFunction` predicate: a browser-evaluated function
+ *                   (optionally `[fn, arg]` to forward an argument) that returns
+ *                   truthy when the render has settled.
+ * @param opts       { timeout = 8000, arg } — `timeout` is the ceiling; `arg` is
+ *                   forwarded to the predicate when `predicate` is a bare fn.
+ * @returns the resolved predicate handle, or undefined on ceiling-expiry.
+ */
+export async function waitForRender(page, predicate, { timeout = 8000, arg } = {}) {
+    return page
+        .waitForFunction(predicate, arg, { timeout })
+        .catch(() => undefined);
+}
 
 /**
  * navToScene — drive a hash-nav transition + WAIT for the DESTINATION's

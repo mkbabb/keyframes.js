@@ -880,6 +880,16 @@ npm run bench        # vitest bench
 npm run proof:readme-runs  # execute every runnable README snippet against the built dist/
 ```
 
+### Local CI repro
+
+A macOS-pass / Linux-fail CI flake (a render-race, an absolute frame/ms threshold) can be reproduced locally — no push, no 30-minute wait — by running the demo-smoke roster inside the same Linux container the CI runner uses:
+
+```sh
+make ci-linux    # node:24-slim container · npm ci → gh-pages → proof:all:demo
+```
+
+It pulls `node:24-slim` (kf's CI Node), mounts the repo at `/workspace`, installs the Playwright browser, builds the demo, and runs the demo gate roster with `KF_REQUIRE_BROWSER=1`, exiting with the container's code. `docker` is the only requirement.
+
 **Dependencies**: [`@mkbabb/value.js`](https://github.com/mkbabb/value.js) (ValueUnit, Color, math, parsing, normalization) and [`@mkbabb/parse-that`](https://github.com/mkbabb/parse-that) (parser combinators).
 
 **TypeScript**: `strict: true`, `verbatimModuleSyntax: true`, `target: ES2022`, `moduleResolution: bundler`.

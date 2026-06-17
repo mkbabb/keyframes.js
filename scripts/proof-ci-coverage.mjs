@@ -45,6 +45,19 @@
 //   non-empty reason, AND every observe-only table row is backed by a live
 //   declaration (no stale manifest rows). A NEW device-dependent gate cannot
 //   ship a re-implemented IN_CI or an unlisted observe-only posture unnoticed.
+// CLAUSE 4 EXTENSION (L.W4 S4 / inv-L-device-honesty) — the CATEGORY +
+//   ARCHITECTURAL-cure columns: every observe-only row in the taxonomy posture
+//   table (whole-gate postures AND clause-level documented-LIMITATION rows like
+//   `proof:live-session-mobile` (M2), L.W4 S6) MUST carry a non-empty Category
+//   {wall-clock | pixel-render | physics-settle | forced-layout | touch-emulation}
+//   AND a non-empty Architectural cure. A device-honesty declaration that drifts
+//   back to an informal note inside the reason string reds.
+// CLAUSE 5 (L.W4 S7) — the PUBLISH-PATH roster: release.yml MUST invoke
+//   proof:published-surface AND proof:deps-current BEFORE its `npm publish` step
+//   (the tarball==exports==docs oracle + the @mkbabb/* floor·protocol·realm-
+//   convergent lock). A publish shipping a stale floor or a mismatched API surface
+//   without either gate firing is the G-CONST-1 recurrence proof:deps-current was
+//   built to forbid. Born-RED on the pre-L release.yml (proof:boundary → publish).
 //
 // RUN: node scripts/proof-ci-coverage.mjs
 //
@@ -138,6 +151,23 @@ const EXCLUDED = new Set([
     // (running them in CI would duplicate every member), exactly like proof:all.
     "proof:correctness",
     "proof:hygiene",
+    // L.W4 S3 — proof:all:demo is the DEMO-roster meta-aggregator the Makefile
+    // `ci-linux` target runs inside the node:24-slim container (proof:demo-smoke +
+    // proof:occlusion + proof:peer-satisfied). Like proof:all/correctness/hygiene it
+    // is a chain of already-individually-CI-wired gates, not a distinct CI gate —
+    // running it in CI would duplicate its members. It is NOT a coverage hole: its
+    // every member is independently invoked in the demo-smoke job.
+    "proof:all:demo",
+    // L.W4 S8 — proof:peer-satisfied is the BORN-RED-BY-DESIGN F-2 peer-cycle
+    // tripwire. It IS CI-invoked (the demo-smoke report-all job, continue-on-error,
+    // + release.yml's recorded publish-path step) but it is DELIBERATELY ABSENT from
+    // the blocking proof:correctness/proof:hygiene && chains: it STAYS RED until
+    // glass-ui BB widens its peer range to admit value.js 0.13.0 + kf re-pins (L.W9),
+    // and placing it in a blocking && chain would abort the chain on the expected
+    // RED. The exclusion keeps the converse-coverage clause (0b) from demanding a
+    // tier membership that would re-introduce the abort — the gate rides CI as a
+    // report-all tripwire, by L.W4 S8's born-RED contract, not as an aggregator member.
+    "proof:peer-satisfied",
 ]);
 
 const gates = Object.keys(pkg.scripts)
@@ -459,6 +489,144 @@ if (noConcurrency.length > 0) {
                     `gate(s) [${declared.join(", ")}] are listed in the taxonomy ` +
                     "posture table with a reason, and no table row is stale " +
                     "(declarations ⇄ manifest, both directions).",
+            );
+        }
+
+        // ── clause 4 EXTENSION (L.W4 S4 / inv-L-device-honesty) — the CATEGORY +
+        // ARCHITECTURAL-CURE columns. Every observe-only row in the posture table
+        // (whether a whole-gate posture OR a clause-level documented LIMITATION row
+        // like `proof:live-session-mobile` (M2), L.W4 S6) MUST carry a non-empty
+        // Category {wall-clock|pixel-render|physics-settle|forced-layout|
+        // touch-emulation} AND a non-empty Architectural cure. Without these the
+        // inv-L-device-honesty declaration drifts back to an informal note inside the
+        // reason string. The row shape is `| Gate | observe-only | Category | Cure |
+        // Reason |` — this regex reads ALL FIVE cells for any observe-only row,
+        // INCLUDING the M2 limitation row the strict 4(b) NAME regex skips. ─────────
+        const CATEGORIES = new Set([
+            "wall-clock",
+            "pixel-render",
+            "physics-settle",
+            "forced-layout",
+            "touch-emulation",
+        ]);
+        const fullRows = [
+            ...taxonomy.matchAll(
+                /^\|\s*([^|]*?)\s*\|\s*observe-only\s*\|\s*([^|]*?)\s*\|\s*([^|]*?)\s*\|\s*([^|]*?)\s*\|/gim,
+            ),
+        ].map((m) => ({
+            gate: m[1].trim(),
+            category: m[2].trim(),
+            cure: m[3].trim(),
+            reason: m[4].trim(),
+        }));
+        const noCategory = fullRows.filter((r) => !r.category);
+        const badCategory = fullRows.filter(
+            (r) => r.category && !CATEGORIES.has(r.category),
+        );
+        const noCure = fullRows.filter((r) => !r.cure);
+        if (fullRows.length === 0) {
+            failures.push(
+                "device-honesty (L.W4 S4 / inv-L-device-honesty) — the taxonomy posture " +
+                    "table has NO 5-column observe-only rows (Gate | observe-only | Category " +
+                    "| Architectural cure | Reason). The CATEGORY + cure columns are required " +
+                    "by inv-L-device-honesty — the table must carry them.",
+            );
+        }
+        if (noCategory.length > 0) {
+            failures.push(
+                "device-honesty (L.W4 S4 / inv-L-device-honesty) — observe-only table " +
+                    "row(s) with an EMPTY Category: " +
+                    noCategory.map((r) => r.gate).join(", ") +
+                    ". Every observe-only declaration must name its device-dependence class " +
+                    "{wall-clock | pixel-render | physics-settle | forced-layout | touch-emulation}.",
+            );
+        }
+        if (badCategory.length > 0) {
+            failures.push(
+                "device-honesty (L.W4 S4 / inv-L-device-honesty) — observe-only table " +
+                    "row(s) with an UNKNOWN Category: " +
+                    badCategory.map((r) => `${r.gate} ("${r.category}")`).join(", ") +
+                    `. The valid category set is {${[...CATEGORIES].join(" | ")}}.`,
+            );
+        }
+        if (noCure.length > 0) {
+            failures.push(
+                "device-honesty (L.W4 S4 / inv-L-device-honesty) — observe-only table " +
+                    "row(s) with an EMPTY Architectural cure: " +
+                    noCure.map((r) => r.gate).join(", ") +
+                    ". Each observe-only row must record the durable fix that would promote " +
+                    "it to `hard` — the cure IS the inv-L-device-honesty declaration.",
+            );
+        }
+        if (
+            fullRows.length > 0 &&
+            noCategory.length === 0 &&
+            badCategory.length === 0 &&
+            noCure.length === 0
+        ) {
+            passes.push(
+                `device-honesty (L.W4 S4 / inv-L-device-honesty) — all ${fullRows.length} ` +
+                    "observe-only taxonomy row(s) carry a non-empty Category (from the valid " +
+                    "set) AND a non-empty Architectural cure: " +
+                    fullRows.map((r) => `${r.gate}→${r.category}`).join(", ") +
+                    ". The device-honesty declaration is column-bound, not an informal note.",
+            );
+        }
+    }
+}
+
+// ── clause 5 (L.W4 S7): the PUBLISH-PATH roster — release.yml runs the publish-
+// boundary oracles BEFORE `npm publish`. The pre-L release.yml ran only check:lib →
+// build:lib → test → proof:boundary; a publish that shipped a stale @mkbabb/* floor
+// (proof:deps-current) or a mismatched API-Extractor surface (proof:published-surface)
+// passed without either gate firing (Lane 36 ⚠gate-ORACLE completeness; the G-CONST-1
+// recurrence proof:deps-current was built to forbid). This clause reads release.yml and
+// asserts BOTH `npm run proof:published-surface` AND `npm run proof:deps-current` appear
+// BEFORE the `npm publish` step. RED on the pre-L release.yml; GREEN on the cure. ──────
+{
+    const release = wf("release.yml");
+    const lines = release.split("\n");
+    // Anchor on the actual `run: npm publish` STEP (a `run:` key), NOT a header
+    // comment that merely names `npm publish` in prose (the `#`-prefixed line at the
+    // top of release.yml describes the gate order and would false-match a bare
+    // /npm publish/ regex — the exact line-5 false-positive this anchor avoids).
+    const publishIdx = lines.findIndex((l) =>
+        /^\s*run:\s*npm publish\b/.test(l),
+    );
+    const idxOf = (gate) =>
+        lines.findIndex((l) => /^\s*run:\s*/.test(l) && l.includes(`npm run ${gate}`));
+    const REQUIRED = ["proof:published-surface", "proof:deps-current"];
+    if (publishIdx === -1) {
+        failures.push(
+            "publish-path (L.W4 S7) — release.yml has NO `npm publish` step; the publish-" +
+                "boundary roster cannot be ordered against a missing publish. Re-ground the gate.",
+        );
+    } else {
+        const violations = [];
+        for (const gate of REQUIRED) {
+            const i = idxOf(gate);
+            if (i === -1) {
+                violations.push(`${gate} is ABSENT from release.yml`);
+            } else if (i > publishIdx) {
+                violations.push(
+                    `${gate} runs AFTER \`npm publish\` (line ${i + 1} > ${publishIdx + 1})`,
+                );
+            }
+        }
+        if (violations.length > 0) {
+            failures.push(
+                "publish-path (L.W4 S7) — release.yml does NOT run the publish-boundary " +
+                    "oracles before `npm publish`: " +
+                    violations.join("; ") +
+                    ". A publish that ships a stale @mkbabb/* floor or a mismatched API surface " +
+                    "passes without either gate firing — add proof:published-surface + " +
+                    "proof:deps-current between proof:boundary and `npm publish`.",
+            );
+        } else {
+            passes.push(
+                "publish-path (L.W4 S7) — release.yml runs proof:published-surface AND " +
+                    "proof:deps-current BEFORE `npm publish` (the tarball==exports==docs oracle " +
+                    "+ the @mkbabb/* floor·protocol·realm-convergent lock close the publish-boundary gap).",
             );
         }
     }

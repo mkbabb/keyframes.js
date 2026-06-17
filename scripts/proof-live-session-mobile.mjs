@@ -29,6 +29,23 @@
  *        mounts per J.W0's per-EXPECTED-state predicate (machine activeScene +
  *        the destination control-tab trigger TEXT — cube→easing so the trigger
  *        DISCRIMINATES). NOT a hash assignment — the real touch combobox path.
+ *
+ *        ┌─ NAMED PLAYWRIGHT LIMITATION (L.W4 S6 / audit W19) ─────────────────┐
+ *        │ The M2 reka SelectItem COMMIT uses a Playwright `.click()` in this   │
+ *        │ hasTouch context — NOT `.tap()` — because `touchscreen.tap()` /      │
+ *        │ locator `.tap()` dispatch ONLY the Touch-API events                  │
+ *        │ (touchstart/touchend) and emit NO pointerdown/pointerup: reka's      │
+ *        │ `onPointerup` (the commit handler) never fires, and reka's `touchend`│
+ *        │ preventDefault swallows the would-be synthesized click — the value   │
+ *        │ never commits. The `.click()` (pointerdown→pointerup→click) is the   │
+ *        │ FAITHFUL commit a real finger generates. This is a PLAYWRIGHT        │
+ *        │ touch-emulation gap, NOT a product break. Recorded as the            │
+ *        │ `proof:live-session-mobile` (M2) observe-only row (category          │
+ *        │ touch-emulation) in docs/tranches/J/gate-taxonomy.md; the durable    │
+ *        │ cure is a CDP true-touch driver (Input.dispatchTouchEvent →          │
+ *        │ Pointer-Events bridge) or real-device verification (the authoritative│
+ *        │ oracle). proof:ci-coverage clause 4 asserts the row's category+cure. │
+ *        └─────────────────────────────────────────────────────────────────────┘
  *   M3 — THE DRAG SURFACE: on /square a CDP touch-DRAG COMPLETES — the
  *        transform PERSISTS (≠ identity after settle) and `getSelection()` is
  *        empty (the touch-only `touch-action`/selection regression class).

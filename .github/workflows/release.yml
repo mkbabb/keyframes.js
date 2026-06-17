@@ -1,7 +1,8 @@
 # release — publish @mkbabb/keyframes.js to npm on a v*.*.* tag.
 #
 # Re-runs the LIBRARY-SCOPED release gate (check:lib → build:lib → test →
-# proof:boundary) before `npm publish`. The library build is glass-ui-free
+# proof:boundary → proof:published-surface → proof:deps-current → proof:peer-satisfied
+# [recorded, L.W4 S7/S8]) before `npm publish`. The library build is glass-ui-free
 # (A inv β): `@mkbabb/glass-ui` is a PUBLISHED registry optionalDependency used
 # only by the demo, so the library publish leg never reaches the demo seam.
 #
@@ -57,6 +58,27 @@ jobs:
               run: npm test -- --run
             - name: proof:boundary (value.js static/dynamic boundary gate)
               run: npm run proof:boundary
+            # L.W4 S7 — the publish-path roster (Lane 36 ⚠gate-ORACLE completeness).
+            # The pre-L release.yml ran only check:lib → build:lib → test →
+            # proof:boundary; a publish that shipped a stale @mkbabb/* floor or a
+            # mismatched API-Extractor surface passed without either gate firing. These
+            # two HARD gates close the gap (already in ci.yml; the release.yml addition
+            # authors no new logic). proof:ci-coverage clause 5 asserts BOTH appear here
+            # before `npm publish`.
+            - name: proof:published-surface (L.W4 S7 — tarball == exports == docs · the publish-boundary oracle)
+              run: npm run proof:published-surface
+            - name: proof:deps-current (L.W4 S7 — @mkbabb/* pins current · protocol-clean · realm-convergent lock)
+              run: npm run proof:deps-current
+            # L.W4 S8 — proof:peer-satisfied on the publish path: the F-2 peer-cycle
+            # tripwire. BORN-RED-BY-DESIGN (glass-ui's published peer range rejects
+            # value.js 0.13.0 → ELSPROBLEMS). It rides the publish path as a RECORDED
+            # report-all step (continue-on-error) — the publish precondition L.W8 reads —
+            # NOT a hard publish-block: it STAYS RED until glass-ui BB widens the peer +
+            # kf re-pins (L.W9), and a hard gate here would deadlock every publish on the
+            # expected RED (the same born-RED posture it carries in the demo-smoke job).
+            - name: "[born-RED tripwire] proof:peer-satisfied (L.W4 S8 — glass-ui peer range vs installed value.js; RECORDED on the publish path, RED until glass-ui BB widens + kf re-pins)"
+              continue-on-error: true
+              run: npm run proof:peer-satisfied
             - name: publish (with provenance)
               run: npm publish --provenance --access public
               env:

@@ -229,6 +229,19 @@ jobs:
               run: npm run proof:chronic-closure
             - name: proof:ci-coverage (F.W2 — every proof:* gate is invoked in CI)
               run: npm run proof:ci-coverage
+            # L.W4 S5 — proof:no-single-option-select: the U4 lone-option count-guard
+            # is live in every scene-driven <Select> (animation + control-tab). STATIC
+            # (no browser, glass-ui-free) — reads the demo Vue SFC tree, asserts the
+            # `length > 1` count guard. A future component re-rendering a single-option
+            # dropdown unconditionally reds. Rides the library gates job (device-independent).
+            - name: proof:no-single-option-select (L.W4 S5 — the U4 lone-option count-guard is live in every scene-driven select)
+              run: npm run proof:no-single-option-select
+            # L.W4 S2 — proof:settle-is-predicate: the load-bearing openControlsPanel
+            # helper settles on a STATE PREDICATE (waitForRender), never a fixed-ms sleep
+            # (the 259-sleep macOS-pass / Linux-fail render-race class). STATIC grep over
+            # demo-driver.mjs — zero browser, zero demo-smoke wall-clock. Rides the gates job.
+            - name: proof:settle-is-predicate (L.W4 S2 — openControlsPanel settles on a state predicate, not a fixed-ms sleep)
+              run: npm run proof:settle-is-predicate
 
     demo-smoke:
         name: demo gate (inv γ paints + inv δ occlusion-free)
@@ -270,6 +283,19 @@ jobs:
             # clone, no `file:` link (the pre-re-pin model the spine retired).
             - name: npm ci (installs the registry @mkbabb/glass-ui)
               run: npm ci
+            # L.W4 S8 — proof:peer-satisfied: the F-2 peer-cycle tripwire,
+            # BORN-RED-BY-DESIGN. glass-ui's PUBLISHED peerDependencies range for
+            # @mkbabb/value.js REJECTS the installed value.js (ELSPROBLEMS) — the
+            # exact ranges are read FROM the installed manifests by the gate, never
+            # hardcoded here. It STAYS RED until glass-ui BB widens the peer range
+            # AND kf re-pins (Band-B, L.W9). It rides this report-all demo-smoke job
+            # (continue-on-error) so the expected RED is RECORDED in one run; the
+            # terminal check-failures step reds the job. DELIBERATELY ABSENT from the
+            # blocking proof:hygiene chain (it would abort the && chain on the expected RED).
+            - name: "[born-RED tripwire] proof:peer-satisfied (L.W4 S8 — glass-ui's peer range vs the installed value.js; the live F-2 peer-cycle, RED until glass-ui BB widens + kf re-pins)"
+              id: proof-peer-satisfied
+              continue-on-error: true
+              run: npm run proof:peer-satisfied
             - name: install playwright + lighthouse (demo-gate only; --no-save keeps the lib posture)
               run: npm i --no-save @playwright/test lighthouse
             - name: install chromium
@@ -277,26 +303,38 @@ jobs:
             - name: build the demo (gh-pages)
               run: npm run gh-pages
             - name: proof:demo-smoke (inv γ — the demo cannot ship blank)
+              id: proof-demo-smoke
+              continue-on-error: true
               run: npm run proof:demo-smoke
               env:
                   KF_REQUIRE_BROWSER: "1"
             - name: proof:occlusion (inv δ — no page occludes on any viewport)
+              id: proof-occlusion
+              continue-on-error: true
               run: npm run proof:occlusion
               env:
                   KF_REQUIRE_BROWSER: "1"
             - name: proof:demo-usability (G.W11 — Discrete route reachable · hero word-gap · unique Play aria)
+              id: proof-demo-usability
+              continue-on-error: true
               run: npm run proof:demo-usability
               env:
                   KF_REQUIRE_BROWSER: "1"
             - name: proof:cold-entry (K.W0 — the cold hero CTA STARTS the engine; the engine-write disambiguation)
+              id: proof-cold-entry
+              continue-on-error: true
               run: npm run proof:cold-entry
               env:
                   KF_REQUIRE_BROWSER: "1"
             - name: proof:font-census (K.W2 — the dock band resolves the display voice; the three-voice totality)
+              id: proof-font-census
+              continue-on-error: true
               run: npm run proof:font-census
               env:
                   KF_REQUIRE_BROWSER: "1"
             - name: proof:layout-cluster (K.W3 — the docks cluster + the rail is derived + the surplus distributed, all 5 viewports)
+              id: proof-layout-cluster
+              continue-on-error: true
               run: npm run proof:layout-cluster
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -316,55 +354,81 @@ jobs:
             # union of every wave's leg.
             # ════════════════════════════════════════════════════════════════
             - name: "[CORRECTNESS] proof:engine-no-throw-on-play (I.W0/B1+B5 — the rainbow group-play click is total · cube paints · no '......' parse line)"
+              id: proof-engine-no-throw-on-play
+              continue-on-error: true
               run: npm run proof:engine-no-throw-on-play
               env:
                   KF_REQUIRE_BROWSER: "1"
             - name: "[CORRECTNESS] proof:subject-animates (J.W6 P0 — the subject-write seam oracle: every play path WRITES the interpolated frame to its subject, not just the playhead · born-RED on the apply=false _renderFrame break)"
+              id: proof-subject-animates
+              continue-on-error: true
               run: npm run proof:subject-animates
               env:
                   KF_REQUIRE_BROWSER: "1"
             - name: "[CORRECTNESS] proof:fsm-suspend-resume-live (I.W1/B2 — synthetic visibilitychange on a playing raw-rAF scene raises NO _gen throw · resume-iff-was-playing)"
+              id: proof-fsm-suspend-resume-live
+              continue-on-error: true
               run: npm run proof:fsm-suspend-resume-live
               env:
                   KF_REQUIRE_BROWSER: "1"
             - name: "[CORRECTNESS] proof:easing-editor-live (I.W2/B4 — switch-into-easing mounts the curve canvas + a handle-drag mutates the path)"
+              id: proof-easing-editor-live
+              continue-on-error: true
               run: npm run proof:easing-editor-live
               env:
                   KF_REQUIRE_BROWSER: "1"
             - name: "[CORRECTNESS] proof:amiga-subject-is-pivot (I.W3/B3 — a centre-drag moves the SUBJECT not the room · no ReadPixels GPU stall)"
+              id: proof-amiga-subject-is-pivot
+              continue-on-error: true
               run: npm run proof:amiga-subject-is-pivot
               env:
                   KF_REQUIRE_BROWSER: "1"
             - name: "[CORRECTNESS] proof:drag-gesture (I.W4/B6 — a real drag selects no chrome text + the box transform persists)"
+              id: proof-drag-gesture
+              continue-on-error: true
               run: npm run proof:drag-gesture
               env:
                   KF_REQUIRE_BROWSER: "1"
             - name: "[CORRECTNESS] proof:perf-frame-budget (I.W4/B8 — dock expand + easing preview hold the felt frame budget under a CPU throttle)"
+              id: proof-perf-frame-budget
+              continue-on-error: true
               run: npm run proof:perf-frame-budget
               env:
                   KF_REQUIRE_BROWSER: "1"
             - name: "[CORRECTNESS] proof:icon-paint-live (I.W5/B9+K — every SceneDescriptor.icon PAINTS · zero asset-404 · document.title === keyframes.js · live VT)"
+              id: proof-icon-paint-live
+              continue-on-error: true
               run: npm run proof:icon-paint-live
               env:
                   KF_REQUIRE_BROWSER: "1"
             - name: "[CORRECTNESS] proof:specular-absent-at-rest (I.W6/B7 — the glass ::before catch-light bloom is ABSENT at rest, by the rendered pixels)"
+              id: proof-specular-absent-at-rest
+              continue-on-error: true
               run: npm run proof:specular-absent-at-rest
               env:
                   KF_REQUIRE_BROWSER: "1"
             - name: "[CORRECTNESS] proof:demo-fonts (I.W6-font — the body + dock + control chrome carry NO Plus Jakarta · display is Instrument Serif)"
+              id: proof-demo-fonts
+              continue-on-error: true
               run: npm run proof:demo-fonts
               env:
                   KF_REQUIRE_BROWSER: "1"
             - name: "[CORRECTNESS] proof:live-session (I.W7 THE HEADLINE — ONE interaction-driven session: PLAY + SWITCH + DRAG · error budget = 0 + product-facing DOM · J.W4 axes legs: reduced-motion snap + keyboard/focus + the every-scene play+interact sweep)"
+              id: proof-live-session
+              continue-on-error: true
               run: npm run proof:live-session
               env:
                   KF_REQUIRE_BROWSER: "1"
                   KF_DEV_SERVER: "1"
             - name: "[CORRECTNESS] proof:live-session-mobile (J.W4 S1/S7 — the 390×844 + hasTouch battery: sheet open/scroll/close/RE-OPEN + dock switch + touch-drag + play, all touch · CH-3 occlusion geometry sheet.bottom ≤ menubar.top · error budget = 0 · J.W4 appearance band A1 overlap==0 / A2 dark --ball-tone contrast / A3 ghost-rail-absent)"
+              id: proof-live-session-mobile
+              continue-on-error: true
               run: npm run proof:live-session-mobile
               env:
                   KF_REQUIRE_BROWSER: "1"
             - name: "[CORRECTNESS] proof:appearance-suffusion (J.W7a §Hard gate (a)–(g) — the per-finding COMPUTED appearance oracles on the suffused dist: --ball-tone == icon hue · Instrument-Serif display register (amiga headerless) · 390×844 overlap==0 · projected easing curve mutates on a handle drag · ghost rail absent · amiga rounded-glass · two-tier substrate (W6-3))"
+              id: proof-appearance-suffusion
+              continue-on-error: true
               run: npm run proof:appearance-suffusion
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -380,6 +444,8 @@ jobs:
             # turns a playwright-absent skip into a hard CI fail (the continuity + the
             # two-way persistence cannot pass vacuously).
             - name: "[CORRECTNESS] proof:spring-slider-continuous (K.W4 Lane A S1+S2 — the spring scrubber rides the 60 Hz painter · the keyframes editor is two-way)"
+              id: proof-spring-slider-continuous
+              continue-on-error: true
               run: npm run proof:spring-slider-continuous
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -391,6 +457,8 @@ jobs:
             # rest + proof:amiga-subject-is-pivot (which assert the live subject ALIVE,
             # not painted pink). It may NEVER count toward a correctness/chronic tally.
             - name: "[HYGIENE] proof:visual-lock (RE-TIERED — self-baseline drift check; correctness authority STRIPPED, see proof:live-session)"
+              id: proof-visual-lock
+              continue-on-error: true
               run: npm run proof:visual-lock
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -404,6 +472,8 @@ jobs:
             # mode this protocol prevents). KF_REQUIRE_BROWSER turns a playwright-absent
             # skip into a hard CI fail (the generator's existence cannot pass vacuously).
             - name: "[HYGIENE · protocol] proof:taste-packet (K.W5 S5 — the TASTE-packet generator produces a well-formed before/after review packet; the verdict stays USER-DOMAIN)"
+              id: proof-taste-packet
+              continue-on-error: true
               run: npm run proof:taste-packet
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -423,6 +493,8 @@ jobs:
             # correctness now lives in proof:fsm-suspend-resume-live (which exercises
             # the LIVE adapter + its _gen, not the snapshot).
             - name: "[HYGIENE] proof:scene-machine-irrefragable (RE-TIERED — pure-reducer snapshot round-trip; correctness authority STRIPPED, see proof:fsm-suspend-resume-live)"
+              id: proof-scene-machine-irrefragable
+              continue-on-error: true
               run: npm run proof:scene-machine-irrefragable
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -439,6 +511,8 @@ jobs:
             # H.W1 FSM resting; KF_REQUIRE_BROWSER turns a playwright-absent skip into a hard
             # CI fail (the per-scene + navigation-matrix clauses cannot pass vacuously).
             - name: proof:scene-control-dfa (H.W11 S4/I2 — each scene renders ONLY its valid control-surface set · the navigation matrix is total · the DFA EXTENDS W1)
+              id: proof-scene-control-dfa
+              continue-on-error: true
               run: npm run proof:scene-control-dfa
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -450,6 +524,8 @@ jobs:
             # rogue write is gone). Born-RED on the pre-J.W2 tree; KF_REQUIRE_BROWSER
             # turns a playwright-absent skip into a hard CI fail.
             - name: proof:control-surface-single-writer (J.W2 S2/DS-1 — ONE writing authority for selectedControl · cross-store purity over the sweep · matrix fallback at the authority)
+              id: proof-control-surface-single-writer
+              continue-on-error: true
               run: npm run proof:control-surface-single-writer
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -466,10 +542,14 @@ jobs:
             # turns a playwright-absent skip into a hard CI fail (the budget + round-trip
             # cannot pass vacuously).
             - name: proof:scene-transition-perf (H.W11 S4/I2 — the MEASURE-FIRST transition budget settles ≤120ms · the control-surface round-trip identity EXTENDS W1)
+              id: proof-scene-transition-perf
+              continue-on-error: true
               run: npm run proof:scene-transition-perf
               env:
                   KF_REQUIRE_BROWSER: "1"
             - name: proof:dock-popover-opens (H.W1 S8/BLK-8 — the @mbabb dock popover opens on a trusted click)
+              id: proof-dock-popover-opens
+              continue-on-error: true
               run: npm run proof:dock-popover-opens
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -480,6 +560,8 @@ jobs:
             # measures the FELT frame budget under a CPU throttle (the dropped-frame
             # axis the token-peak proxy structurally could not see). Script git-rm'd.
             - name: proof:single-toggle (H.W1 S8/BLK-8 — the @mbabb trigger carries exactly one toggle)
+              id: proof-single-toggle
+              continue-on-error: true
               run: npm run proof:single-toggle
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -491,6 +573,8 @@ jobs:
             # prop). Born-RED today (the label click is inert — only the icon flips).
             # KF_REQUIRE_BROWSER turns a playwright-absent skip into a hard CI fail.
             - name: proof:darkmode-row-toggle (H.W9 F5 — the dark-mode row label flips the theme once per click · passive indicator icon)
+              id: proof-darkmode-row-toggle
+              continue-on-error: true
               run: npm run proof:darkmode-row-toggle
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -502,6 +586,8 @@ jobs:
             # real delta. Born-RED today (the idle class was dead, opacity rests at 1).
             # KF_REQUIRE_BROWSER turns a playwright-absent skip into a hard CI fail.
             - name: proof:idle-fade (H.W9 F9 — the OPEN controls pane rest-dims to --controls-idle-opacity after >10s idle · lifts on hover)
+              id: proof-idle-fade
+              continue-on-error: true
               run: npm run proof:idle-fade
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -517,6 +603,8 @@ jobs:
             # Settle-gated on the H.W1 FSM resting; KF_REQUIRE_BROWSER turns a
             # playwright-absent skip into a hard CI fail (neither clause can pass vacuously).
             - name: proof:single-column-pack (H.W3 leaf-row single-column + mis-size lock · H.W9 F1 label-left/value-right)
+              id: proof-single-column-pack
+              continue-on-error: true
               run: npm run proof:single-column-pack
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -533,6 +621,8 @@ jobs:
             # proof:single-column-pack, whose one-column invariant STAYS green);
             # KF_REQUIRE_BROWSER turns a playwright-absent skip into a hard CI fail.
             - name: proof:label-subgrid (H.W11 I1 — uniform label column via subgrid · REFINES W9 F1)
+              id: proof-label-subgrid
+              continue-on-error: true
               run: npm run proof:label-subgrid
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -545,6 +635,8 @@ jobs:
             # playwright-absent skip into a hard CI fail (the binding cannot pass
             # vacuously).
             - name: proof:timeline-rail-width (H.W3 — the four-way --rail-width binding + mobile full-bleed)
+              id: proof-timeline-rail-width
+              continue-on-error: true
               run: npm run proof:timeline-rail-width
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -558,6 +650,8 @@ jobs:
             # viewport re-asserted, pane open, grid resolved to --rail-width);
             # KF_REQUIRE_BROWSER turns a playwright-absent skip into a hard CI fail.
             - name: proof:demo-shell-grid (H.W3 — ONE named rail·stage·rail grid · no legacy two-track apparatus · dead token gone)
+              id: proof-demo-shell-grid
+              continue-on-error: true
               run: npm run proof:demo-shell-grid
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -568,6 +662,8 @@ jobs:
             # is the documented fallback if it ever clips. KF_REQUIRE_BROWSER turns a
             # playwright-absent skip into a hard CI fail (a clip cannot pass vacuously).
             - name: proof:stage-not-clipped (H.W3 S4 — the stage subject is un-clipped at 1280/1440 · open/closed)
+              id: proof-stage-not-clipped
+              continue-on-error: true
               run: npm run proof:stage-not-clipped
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -582,10 +678,14 @@ jobs:
             # artifact, not a source grep. KF_REQUIRE_BROWSER turns a playwright-absent
             # skip into a hard CI fail (the clearance cannot pass vacuously).
             - name: proof:cartoon-shadow-unclipped (H.W9 F7 — the active panel Card's cartoon shadow left lobe lands inside the padded pane · 1280/1440)
+              id: proof-cartoon-shadow-unclipped
+              continue-on-error: true
               run: npm run proof:cartoon-shadow-unclipped
               env:
                   KF_REQUIRE_BROWSER: "1"
             - name: proof:computed-real-dom (G.W16 S2 — the C5 50dvh fix on the genuine layout path)
+              id: proof-computed-real-dom
+              continue-on-error: true
               run: npm run proof:computed-real-dom
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -599,6 +699,8 @@ jobs:
             # and the gate tightens by deletion as those closes land. lighthouse
             # resolves from the repo root (the `npm i --no-save lighthouse` above).
             - name: proof:lighthouse-a11y (C.W1 S6 — A11y (demo-owned) = 100 + SEO ≥ 90, open-panel lighthouse gate)
+              id: proof-lighthouse-a11y
+              continue-on-error: true
               run: npm run proof:lighthouse-a11y
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -613,6 +715,8 @@ jobs:
             # lighthouse resolves from the repo root (`npm i --no-save
             # lighthouse` above), same as proof:lighthouse-a11y.
             - name: "[HYGIENE · observe-only-in-CI] proof:lighthouse-mobile (J.W4 S6 — per-scene mobile Lighthouse ceilings; declared P6 posture: misses RECORDED in CI, hard on-device via KF_REQUIRE_LH=1; never over-read as mobile perf holding in CI)"
+              id: proof-lighthouse-mobile
+              continue-on-error: true
               run: npm run proof:lighthouse-mobile
             # D.W1/W2/W3 demo refinement gates — source + built-CSS instruments,
             # each BITES on its exact regression. They run AFTER the gh-pages
@@ -620,10 +724,16 @@ jobs:
             # built demo CSS (dist/gh-pages/). No browser needed (grep + built-CSS
             # scan) — they slot in beside the existing demo gates.
             - name: proof:decomposition (D.W1 — ceilings · ONE parse adapter · pure utils re-homed · no rAF/timeout blobs)
+              id: proof-decomposition
+              continue-on-error: true
               run: npm run proof:decomposition
             - name: proof:no-deprecated-guard (H.W1 S5 — the deprecated next() nav-guard is gone from router.ts)
+              id: proof-no-deprecated-guard
+              continue-on-error: true
               run: npm run proof:no-deprecated-guard
             - name: proof:single-writer (H.W1 S9.c — the FSM mutation boundary; no consumer writes activeScene/status)
+              id: proof-single-writer
+              continue-on-error: true
               run: npm run proof:single-writer
             # RETIRED (I.W7 S5): the static dragscrub proxy — a static-grep
             # source-shape gate (the drag DANCE has ONE home). SUPERSEDED by the
@@ -641,6 +751,8 @@ jobs:
             # no writable computed writes in its GET half. Born-RED on the pre-W12
             # gesture engine inline in the Target. Structural + grep, no browser.
             - name: proof:composable-encapsulation (H.W12 S2/I9 — the motion-path gesture engine is in the composable · the Target is projection-math-free · pure store getters)
+              id: proof-composable-encapsulation
+              continue-on-error: true
               run: npm run proof:composable-encapsulation
             # H.W12 S3/I10 — the demo stays decomposed + colocated (born-GREEN
             # regression guard). Every demo .vue/.ts (under demo/, dist/ excluded)
@@ -649,6 +761,8 @@ jobs:
             # engine (src/animation) is FENCED + out of the sweep (inv ζ). The bite
             # is a FUTURE over-split or orphan. Static — no browser, no build.
             - name: proof:demo-no-oversize (H.W12 S3/I10 — every demo file ≤500L · scene Target/composable/key colocation coherent · the engine is FENCED)
+              id: proof-demo-no-oversize
+              continue-on-error: true
               run: npm run proof:demo-no-oversize
             # H.W12 S4/I11 — the scene targets are de-brittled. ZERO class-string
             # DOM walks (.closest(".class")/querySelector(".class")) in spring/
@@ -659,8 +773,12 @@ jobs:
             # there, visibly, not in two drifting copies). Born-RED on the pre-W12
             # bare SAMPLE_STEP=5 magic + the implicit square coupling. Static grep.
             - name: proof:no-brittle-selector (H.W12 S4/I11 — zero class-string DOM walks · named SAMPLE_STEP · ONE documented square-viewBox scale helper)
+              id: proof-no-brittle-selector
+              continue-on-error: true
               run: npm run proof:no-brittle-selector
             - name: proof:no-dup-utility (H.W2 S4/S1/S6 — 0 demo .scale-on-hover rule · 0 <Card> glass-card · glass-card resolves only to the enumerated static set)
+              id: proof-no-dup-utility
+              continue-on-error: true
               run: npm run proof:no-dup-utility
             # RETIRED + DELETED (I.W7 S5): proof:specular-handoff — a born-RED IOU
             # parked against the UNPUBLISHED glass-ui 3.8.0 (vaporware the user never
@@ -677,6 +795,8 @@ jobs:
             # proof:idioms clause-1). Scoped to the ppmycota row (the @mbabb row's 🎉 is
             # legitimate). Grep + asset-resolve — slots in beside the demo static gates.
             - name: proof:pp-logo-svg (H.W9 F4 — the ppmycota menu leads with the .ppmycota-logo-sm SVG mark · zero emoji · asset resolves)
+              id: proof-pp-logo-svg
+              continue-on-error: true
               run: npm run proof:pp-logo-svg
             # H.W9 F3+F6 RETIRE — proof:cartoon-specular-coexist + proof:specular-calm
             # are GONE: their subject (the W2 S2-COMPOSITE bezier card with the tracked,
@@ -699,6 +819,8 @@ jobs:
             # in-page; KF_REQUIRE_BROWSER turns a playwright-absent skip into a hard CI
             # fail (the cartoon-depth restoration cannot be reported green un-exercised).
             - name: proof:cartoon-is-panel-depth (H.W2 S1 — ≥5 panel Cards resolve --shadow-cartoon-md at rest → --shadow-cartoon-lg on hover)
+              id: proof-cartoon-is-panel-depth
+              continue-on-error: true
               run: npm run proof:cartoon-is-panel-depth
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -716,6 +838,8 @@ jobs:
             # turns a playwright-absent skip into a hard CI fail (the F8 glass recovery
             # cannot be reported green un-exercised).
             - name: proof:glass-and-cartoon (H.W9 F8 — every cartoon panel Card carries tier="quiet" · translucent α ≤ 0.55 + backdrop-filtered glass)
+              id: proof-glass-and-cartoon
+              continue-on-error: true
               run: npm run proof:glass-and-cartoon
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -727,10 +851,16 @@ jobs:
             # ::before alpha is FLAT at rest by the pixels (the INVERSION).
             # Script git-rm'd.
             - name: proof:idioms (D.W2 — owned design-idioms.css · leaf-tail swept · utils.css monolith uncaged)
+              id: proof-idioms
+              continue-on-error: true
               run: npm run proof:idioms
             - name: proof:phi-leaf-zero (H.W4 — the φ-hero chronic SYSTEM-property gate CH-2/M1 · zero raw rungs (residual L1+L2→0) AND the hero on the audacious top φ rung text-display-mega)
+              id: proof-phi-leaf-zero
+              continue-on-error: true
               run: npm run proof:phi-leaf-zero
             - name: proof:icon-idiom (H.W4 S4 — the 61-no-op icon-sizing lock · every icon-* resolves to a design-idioms.css def · xs<sm<md<lg differentiated · SVG cascade)
+              id: proof-icon-idiom
+              continue-on-error: true
               run: npm run proof:icon-idiom
             # H.W12 S5/I12 — the OWNED-IDIOMS contract-MEMBERSHIP extension. EXTENDS
             # proof:icon-idiom's resolve-or-red plumbing from the four W4 icon-* to the
@@ -746,8 +876,12 @@ jobs:
             # with no definition reds; a removed W4 icon-* def reds (clause b); a removed
             # multi-file shared recipe (status-badge/code-token) reds.
             - name: proof:styling-idioms (H.W12 I12 — the OWNED-IDIOMS contract membership extends to the FULL referenced-idiom set · resolve-or-red · FORK-I12 reduction guard)
+              id: proof-styling-idioms
+              continue-on-error: true
               run: npm run proof:styling-idioms
             - name: proof:dogfood-hero (H.W6 inv ζ — the hero dots loop on a kf engine class from @src; steppedEase is the value.js curve, NOT the dogfood symbol)
+              id: proof-dogfood-hero
+              continue-on-error: true
               run: npm run proof:dogfood-hero
             # H.W6 (WV-W6-HIGH-1) — the per-dot dogfooded blink lock. Mounts the
             # REAL <TypingDots/> in ISOLATION (a tiny on-the-fly Vite harness — the
@@ -761,6 +895,8 @@ jobs:
             # KF_REQUIRE_BROWSER turns a playwright-absent skip into a hard CI fail
             # so the perceptual fix cannot be reported green un-sampled.
             - name: proof:typing-dots (H.W6 — 3 staggered dots · left-to-right cadence · never-vanish (≥0.15) · fixed ≤1.6s cycle · no cascade collision)
+              id: proof-typing-dots
+              continue-on-error: true
               run: npm run proof:typing-dots
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -773,6 +909,8 @@ jobs:
             # the DEMOTED block-size ≤280 ceiling. KF_REQUIRE_BROWSER turns a
             # playwright-absent skip into a hard CI fail (the ceiling cannot pass vacuously).
             - name: proof:easing-canvas-bounded (H.W4 S1/S2 — inline-size container · canvas ≤0.55 of panel · ≤280px · square law · header clears the frame)
+              id: proof-easing-canvas-bounded
+              continue-on-error: true
               run: npm run proof:easing-canvas-bounded
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -791,6 +929,8 @@ jobs:
             # (the cube model — the harden caveat). KF_REQUIRE_BROWSER turns a playwright-
             # absent skip into a hard CI fail (the mounted-component fact cannot pass vacuously).
             - name: proof:scene-uses-standard-ribbon (H.W10 G3+G7 — the easing/spring PRIMARY transport IS the standard PlaybackRibbon · Play/Reverse · equal-dim cells)
+              id: proof-scene-uses-standard-ribbon
+              continue-on-error: true
               run: npm run proof:scene-uses-standard-ribbon
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -809,6 +949,8 @@ jobs:
             # not asserted). KF_REQUIRE_BROWSER turns a playwright-absent skip into a hard
             # CI fail (the computed rung + the rendered nesting cannot pass vacuously).
             - name: proof:easing-sidebar-normalized (H.W10 G5+G6 — the easing/spring sidebars on the standard rung · ×3 inner Cards gone · Labeled* rows)
+              id: proof-easing-sidebar-normalized
+              continue-on-error: true
               run: npm run proof:easing-sidebar-normalized
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -830,6 +972,8 @@ jobs:
             # KF_REQUIRE_BROWSER turns a playwright-absent skip into a hard CI fail (the
             # full-width + grown-canvas + fits clauses cannot pass vacuously).
             - name: proof:easing-sidebar-minimal (H.W12 J — the easing sidebar MINIMAL · no value input/label · no <h2> · full-width duration · grown bezier · single container)
+              id: proof-easing-sidebar-minimal
+              continue-on-error: true
               run: npm run proof:easing-sidebar-minimal
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -849,6 +993,8 @@ jobs:
             # EasingTarget.vue:47-59. KF_REQUIRE_BROWSER turns a playwright-absent skip
             # into a hard CI fail (the stage-is-a-ball fact cannot pass vacuously).
             - name: proof:easing-stage-is-ball (H.W10 G4 — the easing singular stage IS one engine-driven ball · zero duplicate curve on stage · editable curve in the sidebar)
+              id: proof-easing-stage-is-ball
+              continue-on-error: true
               run: npm run proof:easing-stage-is-ball
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -865,6 +1011,8 @@ jobs:
             # KF_REQUIRE_BROWSER turns a playwright-absent skip into a hard CI fail (the
             # computed-radius clause cannot pass vacuously).
             - name: proof:scene-card-rounded (H.W10 G2 — every kf-owned cartoon surface rounds · the easing/spring stage is full-bleed, no square-corner card)
+              id: proof-scene-card-rounded
+              continue-on-error: true
               run: npm run proof:scene-card-rounded
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -886,6 +1034,8 @@ jobs:
             # rounded's full-bleed branch. KF_REQUIRE_BROWSER turns a playwright-absent
             # skip into a hard CI fail (the converged register cannot pass vacuously).
             - name: proof:stage-glass-card (H.W11 I5 — the four stage scenes converge to ONE standard non-cartoon glass Card · data-surface=glass · rounded · glass backdrop · reverses W10 G8 full-bleed)
+              id: proof-stage-glass-card
+              continue-on-error: true
               run: npm run proof:stage-glass-card
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -907,6 +1057,8 @@ jobs:
             # demo-side radius guarantee cannot pass vacuously); the static + witness
             # halves run regardless.
             - name: proof:card-rounded-primitive (H.W11 I4 — no kf-owned card renders square · motion-path rounded · the glass-ui radius-primitive is a born-RED-paired HANDOFF witness)
+              id: proof-card-rounded-primitive
+              continue-on-error: true
               run: npm run proof:card-rounded-primitive
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -927,6 +1079,8 @@ jobs:
             # dock). KF_REQUIRE_BROWSER turns a playwright-absent skip into a hard CI fail
             # (the live containment cannot pass vacuously).
             - name: proof:stage-within-docks (H.W10 G8 — the scene subject is contained between BOTH affixed dock bands · zero per-scene dock-inset · the [stage]-track primitive)
+              id: proof-stage-within-docks
+              continue-on-error: true
               run: npm run proof:stage-within-docks
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -947,6 +1101,8 @@ jobs:
             # sheet (S1). Settle-gated on the H.W1 FSM resting; KF_REQUIRE_BROWSER turns a
             # playwright-absent skip into a hard CI fail (the overlay geometry cannot pass vacuously).
             - name: proof:mobile-single-page (H.W7 S1 — the mobile stage is the full-bleed background · the controls OVERLAY it · ≤70dvh detents · subject-class 0.45 floor)
+              id: proof-mobile-single-page
+              continue-on-error: true
               run: npm run proof:mobile-single-page
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -971,6 +1127,8 @@ jobs:
             # KF_REQUIRE_BROWSER turns a playwright-absent skip into a hard CI fail (a
             # z-order/hit-test/anchor fact cannot pass vacuously).
             - name: proof:dock-zorder (H.W7 S3/F3 — fixed stage z-below both docks · elementFromPoint at each dock button returns the dock · the open sheet does not steal the menubar pointer · LOW-1 fixed-CB · keep-open mutex anchor-stable)
+              id: proof-dock-zorder
+              continue-on-error: true
               run: npm run proof:dock-zorder
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -991,6 +1149,8 @@ jobs:
             # absent skip into a hard CI fail (the spring-shape/PRM facts cannot pass
             # vacuously). Co-lands with proof:mobile-single-page (F1+F2 are one rebuild).
             - name: proof:drawer-spring (H.W7 S2/inv ζ — the mobile sheet is the engine's own SpringProgress · no CSS ease · <350ms settle · overshoot ring · single-frame PRM snap)
+              id: proof-drawer-spring
+              continue-on-error: true
               run: npm run proof:drawer-spring
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -1003,6 +1163,8 @@ jobs:
             # pre-J.W2 tree; KF_REQUIRE_BROWSER turns a playwright-absent skip into a
             # hard CI fail.
             - name: proof:sheet-reopen-scroll (J.W2 S3/M2 — close → re-open settles via the spring's own signal · the sheet body SCROLLS · no transitionend latch)
+              id: proof-sheet-reopen-scroll
+              continue-on-error: true
               run: npm run proof:sheet-reopen-scroll
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -1018,6 +1180,8 @@ jobs:
             # cap; the back button is external top-LEFT). KF_REQUIRE_BROWSER turns a
             # playwright-absent skip into a hard CI fail (the panel-fit cannot pass vacuously).
             - name: proof:bezier-no-scroll (H.W9 F2 — the cubic-bézier detail panel fits · back baked into the CardHeader right · 1280/1440)
+              id: proof-bezier-no-scroll
+              continue-on-error: true
               run: npm run proof:bezier-no-scroll
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -1031,6 +1195,8 @@ jobs:
             # the H.W1 FSM resting; KF_REQUIRE_BROWSER turns a playwright-absent skip
             # into a hard CI fail (the card depth cannot be measured vacuously).
             - name: proof:bezier-single-card (H.W11 I6 — exactly ONE Card depth · the inner bezier Card de-nested · no card-in-card)
+              id: proof-bezier-single-card
+              continue-on-error: true
               run: npm run proof:bezier-single-card
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -1046,6 +1212,8 @@ jobs:
             # the `:33` "editing:" subtitle. Settle-gated on the H.W1 FSM resting;
             # KF_REQUIRE_BROWSER turns a playwright-absent skip into a hard CI fail.
             - name: proof:bezier-grown (H.W11 I7 — the bezier canvas grows above the W9 220px cap · no "editing:" subtitle · still fits · 1280/1440)
+              id: proof-bezier-grown
+              continue-on-error: true
               run: npm run proof:bezier-grown
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -1066,6 +1234,8 @@ jobs:
             # source half + a BROWSER half. KF_REQUIRE_BROWSER turns a playwright-
             # absent skip into a hard CI fail (the live perf facts cannot pass vacuously).
             - name: proof:scene-perf-budget (H.W5 S6 — amiga tile-count/pixel-identity · dpr cap ≤2 · scene-host contain:paint · inactive-root content-visibility · engine-drives-mesh)
+              id: proof-scene-perf-budget
+              continue-on-error: true
               run: npm run proof:scene-perf-budget
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -1098,6 +1268,8 @@ jobs:
             # KF_REQUIRE_BROWSER turns a playwright-absent skip into a hard CI fail
             # (the per-mode interactivity floor cannot pass vacuously).
             - name: proof:scene-parity (H.W5 S3/S4/S5 — Discrete merged away · {spring,sequence,motion-path} survivors · springLinearStops fold to ONE · motionpath/square/easing pointer affordances)
+              id: proof-scene-parity
+              continue-on-error: true
               run: npm run proof:scene-parity
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -1113,6 +1285,8 @@ jobs:
             # turns a playwright-absent skip into a hard CI fail (the re-author cannot
             # pass vacuously).
             - name: "proof:sequence-rows-draggable (H.W12 I3 — drag a row handle changes its at: value AND the Sequence re-sorts the stagger distribution)"
+              id: proof-sequence-rows-draggable
+              continue-on-error: true
               run: npm run proof:sequence-rows-draggable
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -1130,6 +1304,8 @@ jobs:
             # a playwright-absent skip into a hard CI fail (the lockstep re-shape cannot
             # pass vacuously).
             - name: proof:motion-path-editable (H.W12 I3 — drag a control handle → the guide d AND the traveller offset-path BOTH change to the SAME d · single-source PATH_D, no drift)
+              id: proof-motion-path-editable
+              continue-on-error: true
               run: npm run proof:motion-path-editable
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -1145,6 +1321,8 @@ jobs:
             # playwright-absent skip into a hard CI fail (the copy artifact cannot pass
             # vacuously).
             - name: "proof:motion-path-copy (H.W12 I3 — a copy affordance emits an offset-path path() · re-reads the single source · the real clipboard write)"
+              id: proof-motion-path-copy
+              continue-on-error: true
               run: npm run proof:motion-path-copy
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -1167,6 +1345,8 @@ jobs:
             # reka tab-init race). KF_REQUIRE_BROWSER turns a playwright-absent skip into
             # a hard CI fail (the seven eggs cannot pass vacuously).
             - name: proof:easter-egg (H.W12 I3 — EACH scene's hidden egg fires its observable off-the-normal-path effect · reel · wink · roll · boing · tumble · derby · gallery)
+              id: proof-easter-egg
+              continue-on-error: true
               run: npm run proof:easter-egg
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -1176,6 +1356,8 @@ jobs:
             # ≥--type-display-mega clamp compare). Settle-gated on the home FSM
             # resting (the #start-screen slot, isHome). Born-RED 86px on text-display-4.
             - name: proof:hero-rung (H.W4 S3 — the hero is text-display-mega · ≥140px @1440 · no leaf-tail rung)
+              id: proof-hero-rung
+              continue-on-error: true
               run: npm run proof:hero-rung
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -1185,6 +1367,8 @@ jobs:
             # block as the last title word at 1440 (measured at 1440 + 390). Asserts
             # the LAYOUT fold only (the dot cadence is proof:typing-dots, WV-W4-MED-3).
             - name: proof:hero-balance (H.W4 S3 — one optical block · no orphaned-`...` grid row · title ≤2 lines · dots inline)
+              id: proof-hero-balance
+              continue-on-error: true
               run: npm run proof:hero-balance
               env:
                   KF_REQUIRE_BROWSER: "1"
@@ -1195,10 +1379,14 @@ jobs:
             # ≤0.02 over a fresh load + the swap AND the overlay non-displacement
             # (the structural reason). The observer is installed at document-start.
             - name: proof:hero-cls (H.W4 S3 — the mega-rung hero contributes CLS ≤0.02 · the zero-height overlay keeps the <h1> out of flow)
+              id: proof-hero-cls
+              continue-on-error: true
               run: npm run proof:hero-cls
               env:
                   KF_REQUIRE_BROWSER: "1"
             - name: proof:brittleness (D.W3 — no global DOM reach · z-scale single-sourced · @supports guards)
+              id: proof-brittleness
+              continue-on-error: true
               run: npm run proof:brittleness
             # F.W2 — the THREE inv-tagged demo gates the workflow never ran:
             # proof:dogfood (inv ζ — the shop-window runs its own engine),
@@ -1208,10 +1396,16 @@ jobs:
             # They scan the demo source (+ the built CSS above), so they ride the
             # demo job after the gh-pages build.
             - name: proof:dogfood (inv ζ — the demo dogfoods the engine, incl. the F.W10 inertia swap)
+              id: proof-dogfood
+              continue-on-error: true
               run: npm run proof:dogfood
             - name: proof:demo-elevate (inv ο — View Transitions · a11y · idioms · the F.W13-16 clauses)
+              id: proof-demo-elevate
+              continue-on-error: true
               run: npm run proof:demo-elevate
             - name: proof:modern-web (the modern-web-guidance checklist)
+              id: proof-modern-web
+              continue-on-error: true
               run: npm run proof:modern-web
               # The guidance corpus is a local-dev aid (npx modern-web-guidance
               # install) — absent on a clean runner. The gate sanctions this CI
@@ -1221,6 +1415,8 @@ jobs:
               env:
                   KF_MWG_OPTIONAL: "1"
             - name: proof:platform-adopt (the feature-detected platform adopts)
+              id: proof-platform-adopt
+              continue-on-error: true
               run: npm run proof:platform-adopt
             # C.W1 S4 — the LoAF >50ms-trace gate: the dev-only LoAF observer's
             # REAL 2nd consumer (closing the LoAF + >50ms-trace chronics + the
@@ -1253,3 +1449,107 @@ jobs:
               env:
                   KF_REQUIRE_BROWSER: "1"
                   KF_LOAF_COUNT: "48"
+            # L.W4 S1 — the REPORT-ALL terminal summary.
+            # Every proof:* step above rides `continue-on-error: true`, so a red in
+            # step N never aborts steps N+1..N+k (the K whack-a-mole root: a flake hid
+            # correctness misses in the dozens of steps after it). This step reads each
+            # step's outcome and exits 1 if ANY is `failure` — the job goes RED, but
+            # every gate ran and every red annotation is visible (the failures[]
+            # accumulator pattern, hoisted to the GHA job level). proof:peer-satisfied is
+            # INCLUDED: its born-RED F-2 state is a live defect the job SHOULD surface.
+            - name: "check-failures (L.W4 S1 — report-all: exit 1 if ANY demo-smoke proof:* step failed; all steps ran)"
+              if: always()
+              run: |
+                  failed=""
+                  if [ "${{ steps.proof-peer-satisfied.outcome }}" = "failure" ]; then failed="$failed proof-peer-satisfied"; fi
+                  if [ "${{ steps.proof-demo-smoke.outcome }}" = "failure" ]; then failed="$failed proof-demo-smoke"; fi
+                  if [ "${{ steps.proof-occlusion.outcome }}" = "failure" ]; then failed="$failed proof-occlusion"; fi
+                  if [ "${{ steps.proof-demo-usability.outcome }}" = "failure" ]; then failed="$failed proof-demo-usability"; fi
+                  if [ "${{ steps.proof-cold-entry.outcome }}" = "failure" ]; then failed="$failed proof-cold-entry"; fi
+                  if [ "${{ steps.proof-font-census.outcome }}" = "failure" ]; then failed="$failed proof-font-census"; fi
+                  if [ "${{ steps.proof-layout-cluster.outcome }}" = "failure" ]; then failed="$failed proof-layout-cluster"; fi
+                  if [ "${{ steps.proof-engine-no-throw-on-play.outcome }}" = "failure" ]; then failed="$failed proof-engine-no-throw-on-play"; fi
+                  if [ "${{ steps.proof-subject-animates.outcome }}" = "failure" ]; then failed="$failed proof-subject-animates"; fi
+                  if [ "${{ steps.proof-fsm-suspend-resume-live.outcome }}" = "failure" ]; then failed="$failed proof-fsm-suspend-resume-live"; fi
+                  if [ "${{ steps.proof-easing-editor-live.outcome }}" = "failure" ]; then failed="$failed proof-easing-editor-live"; fi
+                  if [ "${{ steps.proof-amiga-subject-is-pivot.outcome }}" = "failure" ]; then failed="$failed proof-amiga-subject-is-pivot"; fi
+                  if [ "${{ steps.proof-drag-gesture.outcome }}" = "failure" ]; then failed="$failed proof-drag-gesture"; fi
+                  if [ "${{ steps.proof-perf-frame-budget.outcome }}" = "failure" ]; then failed="$failed proof-perf-frame-budget"; fi
+                  if [ "${{ steps.proof-icon-paint-live.outcome }}" = "failure" ]; then failed="$failed proof-icon-paint-live"; fi
+                  if [ "${{ steps.proof-specular-absent-at-rest.outcome }}" = "failure" ]; then failed="$failed proof-specular-absent-at-rest"; fi
+                  if [ "${{ steps.proof-demo-fonts.outcome }}" = "failure" ]; then failed="$failed proof-demo-fonts"; fi
+                  if [ "${{ steps.proof-live-session.outcome }}" = "failure" ]; then failed="$failed proof-live-session"; fi
+                  if [ "${{ steps.proof-live-session-mobile.outcome }}" = "failure" ]; then failed="$failed proof-live-session-mobile"; fi
+                  if [ "${{ steps.proof-appearance-suffusion.outcome }}" = "failure" ]; then failed="$failed proof-appearance-suffusion"; fi
+                  if [ "${{ steps.proof-spring-slider-continuous.outcome }}" = "failure" ]; then failed="$failed proof-spring-slider-continuous"; fi
+                  if [ "${{ steps.proof-visual-lock.outcome }}" = "failure" ]; then failed="$failed proof-visual-lock"; fi
+                  if [ "${{ steps.proof-taste-packet.outcome }}" = "failure" ]; then failed="$failed proof-taste-packet"; fi
+                  if [ "${{ steps.proof-scene-machine-irrefragable.outcome }}" = "failure" ]; then failed="$failed proof-scene-machine-irrefragable"; fi
+                  if [ "${{ steps.proof-scene-control-dfa.outcome }}" = "failure" ]; then failed="$failed proof-scene-control-dfa"; fi
+                  if [ "${{ steps.proof-control-surface-single-writer.outcome }}" = "failure" ]; then failed="$failed proof-control-surface-single-writer"; fi
+                  if [ "${{ steps.proof-scene-transition-perf.outcome }}" = "failure" ]; then failed="$failed proof-scene-transition-perf"; fi
+                  if [ "${{ steps.proof-dock-popover-opens.outcome }}" = "failure" ]; then failed="$failed proof-dock-popover-opens"; fi
+                  if [ "${{ steps.proof-single-toggle.outcome }}" = "failure" ]; then failed="$failed proof-single-toggle"; fi
+                  if [ "${{ steps.proof-darkmode-row-toggle.outcome }}" = "failure" ]; then failed="$failed proof-darkmode-row-toggle"; fi
+                  if [ "${{ steps.proof-idle-fade.outcome }}" = "failure" ]; then failed="$failed proof-idle-fade"; fi
+                  if [ "${{ steps.proof-single-column-pack.outcome }}" = "failure" ]; then failed="$failed proof-single-column-pack"; fi
+                  if [ "${{ steps.proof-label-subgrid.outcome }}" = "failure" ]; then failed="$failed proof-label-subgrid"; fi
+                  if [ "${{ steps.proof-timeline-rail-width.outcome }}" = "failure" ]; then failed="$failed proof-timeline-rail-width"; fi
+                  if [ "${{ steps.proof-demo-shell-grid.outcome }}" = "failure" ]; then failed="$failed proof-demo-shell-grid"; fi
+                  if [ "${{ steps.proof-stage-not-clipped.outcome }}" = "failure" ]; then failed="$failed proof-stage-not-clipped"; fi
+                  if [ "${{ steps.proof-cartoon-shadow-unclipped.outcome }}" = "failure" ]; then failed="$failed proof-cartoon-shadow-unclipped"; fi
+                  if [ "${{ steps.proof-computed-real-dom.outcome }}" = "failure" ]; then failed="$failed proof-computed-real-dom"; fi
+                  if [ "${{ steps.proof-lighthouse-a11y.outcome }}" = "failure" ]; then failed="$failed proof-lighthouse-a11y"; fi
+                  if [ "${{ steps.proof-lighthouse-mobile.outcome }}" = "failure" ]; then failed="$failed proof-lighthouse-mobile"; fi
+                  if [ "${{ steps.proof-decomposition.outcome }}" = "failure" ]; then failed="$failed proof-decomposition"; fi
+                  if [ "${{ steps.proof-no-deprecated-guard.outcome }}" = "failure" ]; then failed="$failed proof-no-deprecated-guard"; fi
+                  if [ "${{ steps.proof-single-writer.outcome }}" = "failure" ]; then failed="$failed proof-single-writer"; fi
+                  if [ "${{ steps.proof-composable-encapsulation.outcome }}" = "failure" ]; then failed="$failed proof-composable-encapsulation"; fi
+                  if [ "${{ steps.proof-demo-no-oversize.outcome }}" = "failure" ]; then failed="$failed proof-demo-no-oversize"; fi
+                  if [ "${{ steps.proof-no-brittle-selector.outcome }}" = "failure" ]; then failed="$failed proof-no-brittle-selector"; fi
+                  if [ "${{ steps.proof-no-dup-utility.outcome }}" = "failure" ]; then failed="$failed proof-no-dup-utility"; fi
+                  if [ "${{ steps.proof-pp-logo-svg.outcome }}" = "failure" ]; then failed="$failed proof-pp-logo-svg"; fi
+                  if [ "${{ steps.proof-cartoon-is-panel-depth.outcome }}" = "failure" ]; then failed="$failed proof-cartoon-is-panel-depth"; fi
+                  if [ "${{ steps.proof-glass-and-cartoon.outcome }}" = "failure" ]; then failed="$failed proof-glass-and-cartoon"; fi
+                  if [ "${{ steps.proof-idioms.outcome }}" = "failure" ]; then failed="$failed proof-idioms"; fi
+                  if [ "${{ steps.proof-phi-leaf-zero.outcome }}" = "failure" ]; then failed="$failed proof-phi-leaf-zero"; fi
+                  if [ "${{ steps.proof-icon-idiom.outcome }}" = "failure" ]; then failed="$failed proof-icon-idiom"; fi
+                  if [ "${{ steps.proof-styling-idioms.outcome }}" = "failure" ]; then failed="$failed proof-styling-idioms"; fi
+                  if [ "${{ steps.proof-dogfood-hero.outcome }}" = "failure" ]; then failed="$failed proof-dogfood-hero"; fi
+                  if [ "${{ steps.proof-typing-dots.outcome }}" = "failure" ]; then failed="$failed proof-typing-dots"; fi
+                  if [ "${{ steps.proof-easing-canvas-bounded.outcome }}" = "failure" ]; then failed="$failed proof-easing-canvas-bounded"; fi
+                  if [ "${{ steps.proof-scene-uses-standard-ribbon.outcome }}" = "failure" ]; then failed="$failed proof-scene-uses-standard-ribbon"; fi
+                  if [ "${{ steps.proof-easing-sidebar-normalized.outcome }}" = "failure" ]; then failed="$failed proof-easing-sidebar-normalized"; fi
+                  if [ "${{ steps.proof-easing-sidebar-minimal.outcome }}" = "failure" ]; then failed="$failed proof-easing-sidebar-minimal"; fi
+                  if [ "${{ steps.proof-easing-stage-is-ball.outcome }}" = "failure" ]; then failed="$failed proof-easing-stage-is-ball"; fi
+                  if [ "${{ steps.proof-scene-card-rounded.outcome }}" = "failure" ]; then failed="$failed proof-scene-card-rounded"; fi
+                  if [ "${{ steps.proof-stage-glass-card.outcome }}" = "failure" ]; then failed="$failed proof-stage-glass-card"; fi
+                  if [ "${{ steps.proof-card-rounded-primitive.outcome }}" = "failure" ]; then failed="$failed proof-card-rounded-primitive"; fi
+                  if [ "${{ steps.proof-stage-within-docks.outcome }}" = "failure" ]; then failed="$failed proof-stage-within-docks"; fi
+                  if [ "${{ steps.proof-mobile-single-page.outcome }}" = "failure" ]; then failed="$failed proof-mobile-single-page"; fi
+                  if [ "${{ steps.proof-dock-zorder.outcome }}" = "failure" ]; then failed="$failed proof-dock-zorder"; fi
+                  if [ "${{ steps.proof-drawer-spring.outcome }}" = "failure" ]; then failed="$failed proof-drawer-spring"; fi
+                  if [ "${{ steps.proof-sheet-reopen-scroll.outcome }}" = "failure" ]; then failed="$failed proof-sheet-reopen-scroll"; fi
+                  if [ "${{ steps.proof-bezier-no-scroll.outcome }}" = "failure" ]; then failed="$failed proof-bezier-no-scroll"; fi
+                  if [ "${{ steps.proof-bezier-single-card.outcome }}" = "failure" ]; then failed="$failed proof-bezier-single-card"; fi
+                  if [ "${{ steps.proof-bezier-grown.outcome }}" = "failure" ]; then failed="$failed proof-bezier-grown"; fi
+                  if [ "${{ steps.proof-scene-perf-budget.outcome }}" = "failure" ]; then failed="$failed proof-scene-perf-budget"; fi
+                  if [ "${{ steps.proof-scene-parity.outcome }}" = "failure" ]; then failed="$failed proof-scene-parity"; fi
+                  if [ "${{ steps.proof-sequence-rows-draggable.outcome }}" = "failure" ]; then failed="$failed proof-sequence-rows-draggable"; fi
+                  if [ "${{ steps.proof-motion-path-editable.outcome }}" = "failure" ]; then failed="$failed proof-motion-path-editable"; fi
+                  if [ "${{ steps.proof-motion-path-copy.outcome }}" = "failure" ]; then failed="$failed proof-motion-path-copy"; fi
+                  if [ "${{ steps.proof-easter-egg.outcome }}" = "failure" ]; then failed="$failed proof-easter-egg"; fi
+                  if [ "${{ steps.proof-hero-rung.outcome }}" = "failure" ]; then failed="$failed proof-hero-rung"; fi
+                  if [ "${{ steps.proof-hero-balance.outcome }}" = "failure" ]; then failed="$failed proof-hero-balance"; fi
+                  if [ "${{ steps.proof-hero-cls.outcome }}" = "failure" ]; then failed="$failed proof-hero-cls"; fi
+                  if [ "${{ steps.proof-brittleness.outcome }}" = "failure" ]; then failed="$failed proof-brittleness"; fi
+                  if [ "${{ steps.proof-dogfood.outcome }}" = "failure" ]; then failed="$failed proof-dogfood"; fi
+                  if [ "${{ steps.proof-demo-elevate.outcome }}" = "failure" ]; then failed="$failed proof-demo-elevate"; fi
+                  if [ "${{ steps.proof-modern-web.outcome }}" = "failure" ]; then failed="$failed proof-modern-web"; fi
+                  if [ "${{ steps.proof-platform-adopt.outcome }}" = "failure" ]; then failed="$failed proof-platform-adopt"; fi
+                  if [ -n "$failed" ]; then
+                    echo "demo-smoke REPORT-ALL — these proof:* steps FAILED (all steps ran; no fail-fast abort):$failed"
+                    echo "(proof:peer-satisfied is born-RED-by-design — the live F-2 peer-cycle until glass-ui BB widens its peer range + kf re-pins, L.W9.)"
+                    exit 1
+                  fi
+                  echo "demo-smoke REPORT-ALL — every proof:* step passed."
