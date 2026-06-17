@@ -1,0 +1,161 @@
+
+### home (kf) — The drafting table — refine and amplify the four extant pillars (graph PAPER, GLASS cards, Instrument-Serif/Fira-Code AUDACIOUS TYPOGRAPHY, visible MA
+  ↩ cube's 'kill the crayon-box primaries' — KEPT: the cube's axis crayons stay untouched; this page just does not duplicate them (COLOR section
+  ↩ color-picker's 'replace the HSL spectrum square' — KEPT: the spectrum square stays exactly as authored; the full --rainbow-* six-stop HSL fa
+  ↩ MOTION 'Replace the idle liftDown' — REVERSED to 'KEEP liftDown, promote it': AnimatedText.vue:78-91 liftDown is preserved as a11y substrate
+  ↩ the §Aesthetic-direction 'whole page / the hero itself' framing of the live source panel — TEMPERED to a quadrant-sized easter egg beside th
+  • [color] Crayon red proportioned to the live readouts; rainbow concentrated on the play CTA
+     refine: KEEP both crayon tokens exactly as authored — --accent-red collapsing to --color-progress (style.css:347/370) and the full --rainbow-* six-stop HSL family (design-idioms.css:78-90). Refine only PROPOR
+     egg: Hover the play CTA: the full --rainbow-* spectrum sweeps once around the ring via background-position (design-idioms.css:459-471) and the cube backdrop spins up ~10% faster — a pre
+  • [mathematics] Promote the hero liftDown from hand-rolled CSS to an engine-clocked lift (keep the fallback)
+     refine: KEEP AnimatedText's liftDown (AnimatedText.vue:78-91) as the a11y word-split substrate AND the reduced-motion / pre-load fallback — never deleted, same lift, same final frame. Layer ON TOP: once await
+     egg: The lower-left live source panel: a small surface='cartoon' tier='quiet' GLASS card types a @keyframes block character-by-character in Fira Code with a blinking --accent-red caret;
+  • [paper] Give the flat graph PAPER atmosphere — vignette + grain + major-grid drift, one grid only
+     refine: Honor the J-tranche 'two math backgrounds is one too many' verdict — ENHANCE the single shipped --graph-* substrate (EditorShell.vue:213-235), add no second pattern. Add a radial focus vignette toward
+     egg: The near-imperceptible ~40px/60s major-grid drift — the substrate is never truly still, giving the static cube something to sit against; PRM-off. A quiet aliveness most visitors fe
+
+### cube (kf) — Drafting-table instrument whose six crayon-bright facets are KEPT and re-materialed as lit lacquered indicator panels — frame muted (axis HSLs), facet
+  ↩ REVERSED cube's 'kill the crayon-box primaries / repaint faces from the muted axis-token family': the six rgb(255,0,0)… primaries are the us
+  ↩ REVERSED the stale axis-derived --face-x/--face-y/--face-z/--face-back-mix token proposal: replaced with --face-1…6 holding the EXACT crayon
+  ↩ TEMPERED 'unify the die to ONE palette / the scientific HSL set is premium where 255,0,0 is garish': coherence now by REGISTER not collapse 
+  ↩ REVERSED implementation-plan step-1 'Kills the crayon palette' → 'Tokenize the crayon faces (KEEP the colors)'.
+  ↩ REWORDED the §one-unforgettable-moment 'six colored stickers' line so the re-lit die keeps its vivid crayon facets, now glossy/lit, never re
+  • [color] Re-material the kept crayon facets (color stays, flatness dies)
+     refine: KEEP all six saturated primaries; lift the raw rgba literals at CubeTarget.vue:124-130 into a named --face-1…6 + --face-alpha token family in style.css :root (one-for-one, no hue touched), bound at Cu
+     egg: The orientation-coupled RE-LIT die: orbit the cube and the light stays pinned upper-right — faces turning toward it brighten and catch a thin specular, faces turning away sink into
+  • [typography] Drafting-stamp face markings + live attitude readout
+     refine: KEEP the Instrument Serif numeral but demote+pair it: replace the lone centered text-display-2 (CubeTarget.vue:74-77) with a two-part stamp per face — big serif numeral at ~40% face-size top-left (fon
+  • [mathematics] Velocity-coupled atmosphere makes the kept physics VISIBLE
+     refine: KEEP the ball/quaternion/decay physics core; express it. Map the existing angularVelocitySpeed (OrbitalDrag.vue:75) to a stage --spin-energy (0…1) that lifts a faint radial bloom + a drop-shadow that 
+     egg: The double-click ROLL (CubeTarget.vue:167-194, already engine-dogfooded on ease-out-back) is KEPT and given a landing 'thunk': on settle, flash --spin-energy to 1 and let the bloom
+
+### amiga (kf) — A powered-on 1985 CRT reliquary: the crayon-RED Boing Ball kept and named, framed by a magenta phosphor glow, booting behind real scanlines — a measur
+  ↩ Reversed the magenta checker swap: tesselateSphere(…, 'var-magenta') + the --amiga-magenta token + 'this alone makes the ball canon' — the c
+  ↩ Tempered the magenta from subject to atmosphere: kept (it is --primary's hue) but proportioned to the CRT bloom/scanline tint (--amiga-phosp
+  ↩ Reframed the A2 audit verdict from 'weak / off-canon' to 'right color, raw plumbing' — the red was never the defect, the literal was
+  ↩ Tempered the wholesale room/atmosphere clauses: the grid-bg PAPER substrate is now explicitly preserved behind the CRT overlay (composited o
+  • [color] Tokenize the crayon red — keep the hue, retire the raw literal
+     refine: AmigaScene.vue:229 tesselateSphere('white','red',…) → tesselateSphere('#ffffff','var(--amiga-red)',…). Add --amiga-red: var(--rainbow-red) and --amiga-phosphor: oklch(0.78 0.14 318) to design-idioms.c
+     egg: The magenta '!' in the BOING nameplate (--amiga-phosphor) — a single proportionate flash of the Amiga's own pink in the type, nodding to heritage while the ball stays crayon red
+  • [mathematics] The bounce-trace graticule — the engine's apex math made visible
+     refine: In the boot DROP, add an opt-in faint Fira Code on-screen graticule (baseline + decaying apex ticks in --amiga-phosphor low-alpha) that reads the SAME bouncingY keyframe apexes the engine computes (us
+     egg: The graticule sketches each bounce apex live as the red ball falls during the power-on boot, then dissolves — a demoscene 'the math is the art' flourish that only fires on entry/re
+  • [glass] Refine the glass bezel into a CRT monitor surround
+     refine: AmigaScene.vue:390 — KEEP the rounded-card glass plate + inset 0 0 0 1px var(--border) hairline; thicken it conceptually with a second inset shadow ring in --amiga-phosphor at low alpha reading as the
+     egg: On :active grab, a 1px R/B chromatic-aberration kick on the bezel/overlay so touching the live tube fringes like a consumer Trinitron — proportionate, compositor-cheap, gesture-mod
+
+### square (kf) — A spring-loaded instrument plate: refine the existing draggable square + ζ0.62 spring chase into a calibrated drafting rig — graticule axes, crayon-ra
+  ↩ Reversed the egg-palette 'orphan/off-system/replace the raw EGG_HUES' framing (audit §4, COLOR clause 1, plan step 7): the violet→green cray
+  ↩ Tempered the signature-tether rhetoric ('it's the whole point of the page', 'no other scene owns it') into a proportionate REFINEMENT of the
+  ↩ Reframed the SPATIAL coordinate-field clause as KEEP-the-crosshair-and-quarter-ticks plus ADD a proportionate phase-trace overlay easter egg
+  • [mathematics] The rubber-band tether — spring math made physical
+     refine: KEEP the existing draggable subject (the useDragScrub seam + the ζ0.62 spring chase in useSquareAnimations.ts:46-47) and ADD a derived-read SVG/pseudo tether line home-crosshair→box-centre (SquareScen
+     egg: A faint phase-trace ghost — the box's recent (position, velocity) path plotted against the .stage-field-x graticule at very low alpha — blooms for the dwell of the un-settled chase
+  • [color] The crayon tumble egg, re-sourced not re-coloured
+     refine: KEEP the loved violet→green EGG_HUES sweep (useSquareAnimations.ts:83 + contract keyframes :209-215) — a provenance fix, NOT a colour kill. Resolve --rainbow-violet→--rainbow-cyan→--rainbow-green (des
+     egg: Double-click tumbles the box through the now-token-sourced rainbow sweep; a progressive 'double-click to tumble' hint (text-mono-caption) appears only after the first successful dr
+  • [typography] Instrument telemetry in the display+mono register
+     refine: Mirror SpringTarget.vue:33-52 exactly (invent no new type system): add a top-left header inside the Card — a text-display Instrument-Serif scene title (transformFunc) leading-none, a two-axis x/y read
+     egg: The static 'drag me' display word (SquareScene.vue:21, text-display) breathes with the gesture: while .demo-box--dragging, a one-line transition opens its letter-spacing and fades 
+
+### easing (kf) — An oscilloscope, not a settings panel — the curve promoted from hairline decoration to a luminous violet signal on a deepened graph-paper screen, the 
+  ↩ No crayon-kill or HSL-square swap existed in this treatment to reverse (those belong to cube/color-picker); the rainbow is KEPT and newly gi
+  ↩ 'Replace the inert GlassPanel interior' reversed to 'tint the existing wash plate with an added inner layer' — glass KEPT, not traded
+  ↩ 'Rebuild/replace the flat grid' reversed to 'deepen the demo's own --graph-pitch/--graph-major paper-grain inside the plate' — PAPER promote
+  ↩ Hero 'ball on a flat line = quiet to the point of generic' reversed to KEEP the ball + rail and ADD a mathematical overlay (projected trace 
+  ↩ Power-on boot scoped to first-paint/once/PRM-snapped so it stays a delight, not a dominant boot re-theme
+  • [mathematics] The trace becomes a luminous signal — violet bloom over the kept hairline
+     refine: KEEP the violet --ppmycota-primary stroke on .bezier-path (EasingCurveCanvas.vue:335-343) and the cascaded --ball-tone=--rainbow-violet probe; introduce scene-scoped --trace/--trace-glow tokens and ad
+     egg: Drag-bend signature: dragging a bezier handle smears .bezier-path proportional to per-frame velocity, decaying to zero on release via the engine's own SmoothProgress/decay (dogfood
+  • [paper] Deepen the graph-paper into a scope screen — the demo's own two-tier grain, brought inside the plate
+     refine: KEEP the GlassPanel variant=wash plate and the existing grid; promote the flat uniform-0.4 three-line grid (EasingCurveCanvas.vue:322-333) into the substrate's OWN two-tier --graph-pitch/--graph-major
+     egg: Power-on boot, once on scene enter, PRM-snapped: graticule staggers in (minor->major), then the trace self-draws origin->end via the library's own DrawSVG/fromDrawSVG (dogfood), th
+  • [color] The comparison small-multiple becomes a spectrum-of-curves race — the crayon palette's one proportionate job
+     refine: KEEP the .track-row small-multiple (EasingTarget.vue:103-136) and the 20% muted-ball tint baseline; add a single shared vertical 'now' playhead line the balls cross at different times (one absolutely-
+     egg: Surface the gallery tour (useEasingGallery): KEEP the power-user dblclick (EasingSidebar.vue:38) and ADD a labeled 'Tour the gallery' affordance beside it, with a visible running s
+
+### spring (kf) — An oscilloscope for physics built FROM the four pillars — the calm red spring at rest, the ball drawing the curve it was always tracing, the bench blo
+  ↩ REVERSED spring's 'Replace the 1D ball-on-rail / the trace NOT the ball / single worst offender' — the ball + rail are KEPT as the live curs
+  ↩ REVERSED the clampSweep kill — clampSweep (SpringTarget.vue:124) is RELAXED only on the trace's vertical axis so the curve crosses the targe
+  ↩ TEMPERED 'demote the linear() string to view-source / plottable data as muted grey text' — the Fira Code code block (StartingStyleTarget.vue
+  ↩ KEPT + PROPORTIONED the crayons — rainbow lane hues (--spring-lane-* from --rainbow-*) are consumed only where the page must tell four sprin
+  ↩ FRAMED the derby as an easter egg — gated behind the existing double-click/re-seat (SpringTarget.vue:72); resting state is one calm red spri
+  • [mathematics] The ball draws its own trajectory — phase trace as overlay, not replacement
+     refine: KEEP the live .spring-ball on its .progress-rail (SpringTarget.vue:74-84, imperative painter :133-142) and give the rail a vertical axis: a small SVG plot with a horizontal target line at y=1 and the 
+     egg: The four-lane DERBY: gated behind the already-wired double-click/re-seat (demo.derby, SpringTarget.vue:72), four SpringProgress solvers race four traces in four rainbow lanes over 
+  • [typography] Plot the linear() curve beside its string — and name the curve's properties
+     refine: KEEP the copy-pasteable Fira Code linear() code block + CopyButton (StartingStyleTarget.vue:56) as the deliverable a designer pastes; add the SVG plot of those same 26 stops ALONGSIDE it (numeral and 
+     egg: Slider-drag → live curve morph: dragging the ζ slider (SpringSidebar.vue:61-70, useSpringLinearStops already recomputes) reshapes the plot in real time — at ζ=1.5 a flat critically
+  • [color] Four lane hues from the sanctioned rainbow — crayons used with proportion
+     refine: Add four demo tokens beside the rainbow set in design-idioms.css :root (consume, not new identity): --spring-lane-smooth: var(--rainbow-blue), --spring-lane-snappy: var(--rainbow-green), --spring-lane
+     egg: Settle pulse: when the live spring crosses demo.liveSettled (SpringTarget.vue:46), the target line gives one quiet red-dashed pulse (the settled register, style.css:368) — a 200ms 
+
+### sequence (kf) — THE STUDIO TRANSPORT — refine the kept glass-and-crayon timeline into a precision instrument: a phosphor master playhead and rainbow-coded lanes that 
+  ↩ No crayon-kill clause existed in this page to reverse (Sequence never proposed killing the crayons or the HSL square) — but the COLOR 'Keep 
+  ↩ Tempered the lane-ignition + unforgettable-moment clauses from a re-theme reading to a refinement: the existing .progress-ball, its rail, an
+  ↩ Re-anchored the §Aesthetic-direction lede from 'pick the extreme' to a refinement of the four pillars (GLASS/PAPER/TYPOGRAPHY/MATHEMATICS am
+  ↩ Scoped the signatures (ignition cascade + power-on boot) as proportionate, PRM-guarded eggs over existing data/DOM — a crescendo, not a domi
+  • [color] Ignition cascade — the rainbow lanes bloom under the swept phosphor playhead
+     refine: KEEP the existing .progress-ball + rail + the --rainbow-* lane tones (SequenceTarget.vue:163-169, violet→green) and the engine-painted --ball-p; refine by scaling each ball's box-shadow bloom with --b
+     egg: Scrub the master Sequence.progress and the five rainbow lanes detonate in a diagonal cascade chasing your thumb (violet→blue→cyan→teal→green), cooling in reverse as you drag back —
+  • [mathematics] Phosphor master playhead — the swept red clock made a luminous protagonist
+     refine: KEEP the real progress-driven .seq-playhead (SequenceTarget.vue:389-399) on its existing left: calc(var(--playhead-p)*100%) transform; refine the 55%-transparent hairline into three compositor-cheap l
+     egg: Reverse (demo.reverse) visibly flips the sweep: the comet trail and diamond bevel re-render on the other side via [data-reversed] (already exposed by useSequenceDemo's isReversed) 
+  • [typography] Engraved transport panel — Instrument-Serif channel names + a lit timecode hero over the major/minor film raster
+     refine: Push the display voice down into the lanes: set .seq-row-name (SequenceTarget.vue:89-92) in Instrument Serif (var(--font-display)) so each lane is an engraved channel number while @…ms stays Fira Code
+     egg: Orchestrated power-on (PRM-guarded, ~700ms): ruler draws left→right via clip-path inset wipe, the five lanes drop in staggered top→bottom (animation-delay: calc(var(--row-index)*60
+
+### motion-path (kf) — A cyan vector-drafting table that breathes — KEEP the traveller-on-its-line + glass-resting stage + the one owned crayon (cyan), refine them, and ADD 
+  ↩ §Audit #1 + §COLOR 'Blueprint ground': 'Replace the flat .mp-stage wash' → KEEP the D17 wash as the base tone and LAYER the cyan two-tier gr
+  ↩ §MICRO-INTERACTIONS handle hover: 'Replace the transition: r 120ms fill fade' → KEEP the fill-tint as the resting hover tier, ADD the scale 
+  ↩ §COLOR 'Keep --accent-red out': re-cast crayon-REMOVAL into crayon-PLACEMENT ('single-crayon discipline / one crayon per drafting table') — 
+  • [mathematics] The traveller banks into the live tangent
+     refine: KEEP the traveller-on-its-line (the 🙂↔️ glyph in its glowing ball, MotionPathTarget.vue:132-147 / .mp-traveller-glyph:402) — do NOT replace it with a dot or a plotted trace. Bind the already-computed
+     egg: author-the-curve, the-creature-obeys — grab a control handle and pull; the cubic deforms like wire under your finger, the marching-ants keep flowing on the NEW shape, and in the sa
+  • [paper] Commit one crayon to a full blueprint ground
+     refine: KEEP the D17 flat .mp-stage cyan wash as the base tone (MotionPathTarget.vue:297-302) — do NOT replace it. LAYER over it the demo's owned --graph-pitch (1rem fine) + --graph-major (5rem major) two-tie
+     egg: a single-frame warm crayon-spark — when the wink fires (mp-wink-spin, :414-428, the lap-completion 😎), flash one warm --rainbow-* stop (yellow/orange) in the glow bloom under the 
+  • [typography] The drafting-table titleblock cartouche
+     refine: KEEP the Instrument-Serif text-display title (MotionPathTarget.vue:27) and the strong MetricBadge poster numbers (:28-44) — push them BOLDER and more mathematical, add NO new face. Wrap title+badges (
+     egg: the marching-ants self-build — on mount, dogfood the library's own primitives: the guide path draws itself via stroke-dashoffset totalLen→0 (DrawSVG), the control net pops in stagg
+
+### playground (kf) — A motion FOUNDRY: refine the glass cartoon panels + untouched graph-paper substrate into a warm key-lit casting floor where binding a preset is a lumi
+  ↩ NONE killed here — playground.md never proposed a crayon-kill or HSL-replace (those clauses live in the cube + color-picker treatments). The
+  • [mathematics] The bind IGNITION — authorship made a visible event, with the easing curve drawn into the trail
+     refine: KEEP the per-asset preset bind (AssetPropertiesPanel.vue:114-132 Select → App.vue:98-116 setTargets) and the engine's existing AnimationGroup as the single paint authority; refine the silent dropdown 
+     egg: The first-cycle comet-tail traces the preset's actual easing curve — the bezier/spring math the engine produces, drawn back onto the page as the ignition fades within one cycle; PR
+  • [color] KEEP THE CRAYONS — the rainbow pop codes the bound preset, in proportion
+     refine: Generic chrome recolor stays the system-coherence fix: the manipulation chrome (AssetViewport.vue:150 selection outline, :78 resize handles, :90,93 rotation handle/stem, AssetLayer.vue:9 selected-row 
+     egg: The rainbow crayon codes authorship CHOICE — a 1-em per-preset color swatch on the live-layer chip, the seasoning beside the red system colour; a deft signature accent, never a chi
+  • [glass] The casting-floor key-light over the UNTOUCHED graph paper — the four pillars, lit
+     refine: REFINE-not-abrogate: the shared engineering graph-paper substrate (EditorShell.vue:213-235, PAPER pillar) is UNTOUCHED as the deepest layer; the glass cartoon Card panels + dock + Select (GLASS pillar
+     egg: Move your mouse over the empty stage and the warm key-light FOLLOWS the pointer — the lights-following-you invitation before the first drop; after a bind it settles toward the asse
+
+### color-picker (value.js) — Editorial-instrument color picker: the hand-familiar HSL square KEPT, with perceptual truth (the sRGB gamut boundary) drawn over it as a living contou
+  ↩ color-picker A1 + 'one unforgettable thing': 'replace the HSL/HSV spectrum square with a bare OKLCH L×C plane' / 'headline betrayal' — REVER
+  ↩ The implicit crayon-kill: the COLOR 'discipline'/`--color-gold` clause read as a blanket ban on the demo's saturated color voice — REVERSED 
+  ↩ Implementation-plan items 1-2 'Replace HSL spectrumStyle' — TEMPERED to 'KEEP … ADD a stacked overlay layer'
+  • [mathematics] The breathing gamut as an overlay on the KEPT HSL square
+     refine: KEEP the familiar HSL/HSV square (SpectrumCanvas.vue:208-224) as the draggable substrate — drag math, WatercolorDot cursor (SpectrumCanvas.vue:21-29), and hand-memory all preserved — and ADD a stacked
+     egg: The sRGB boundary CONTOUR contracts/swells live as the hue turns (huge at yellow, closing in at blue); push the WatercolorDot against the moving wall and it snap-resists ~6px and s
+  • [color] Crayon primaries KEPT + proportioned as the celebratory accent
+     refine: KEEP the saturated --rainbow-* / --accent-red primaries (glass-ui scale-paper.css:137-151, color-radius.css:258) and the demo's .pastel-rainbow-text signature (utils.css:35-48) as an intentful accent.
+     egg: The 'COLOR SPACE — 03 / 15' catalog eyebrow (ColorSpaceSelector.vue:17) can index the active space in the crayon hue of its own primary — a restrained pop spark where the page is b
+  • [paper] Graphite drafting-paper graticule under the GLASS plate
+     refine: Amplify the PAPER pillar: overlay a faint 1px isostep graticule on the field (CSS background-image grid ~16px at --gamut-edge × 0.3) so the perceptual non-uniformity of equal pixel steps is registered
+     egg: On pointerdown the WatercolorDot rings with a momentary --gamut-edge pulse (tie to isDragging, SpectrumCanvas.vue:46) so the grab registers physically against the graticule — a 1-s
+
+### hero-lab (value.js) — Perceptual Observatory — a drafting-table-at-night instrument lab where the graph-paper bench, a breathing oklch mesh, glass lenses, and inked mathema
+  ↩ Crayon-kill reversed: prior draft had NO place for the crayon-box primaries and implied a gold-only palette — crayons (rgb(255,0,0)/rgb(0,25
+  ↩ 'Replace the grey page background' reversed to 'Promote it': the graphite/--muted base (hero-lab.css:4-8) is KEPT as the deep substrate; onl
+  ↩ 'Kill the two filler note-cards entirely' tempered to 'fold them': load-bearing sentence lifts into the deck, the rest re-homes on-demand in
+  ↩ 'The background IS the product / monastic foreground' softened to 'carries the demo / measured restraint' so PAPER and the crayon datum live
+  ↩ Signatures reframed as proportionate easter eggs: the 'watch the grey die' sRGB<->oklch toggle and the breathing-mesh hue drift are discover
+  • [color] The crayon datum — sRGB-primary calibration ticks on the hue dial
+     refine: KEEP the crayon primaries; fold them as the calibration tick the perceptual mesh is measured against. Along the kicker/control rail (re-proportioned .hero-lab-header at hero-lab.css:18-23) lay a thin 
+     egg: As the oklch mesh's hue sweeps past each crayon tick, that tick gives a single brief gold-edged pulse — the field reporting where it crosses its own sRGB reference primary.
+  • [paper] PAPER amplified — the drafting-table graph ruling made structural
+     refine: Promote the prior 'faint texture under the mesh' into a first-class two-tier oklch graph-paper ruling drawn ABOVE the mesh (ink-on-lit-paper): a fine 1px rule in color-mix(in oklab, var(--lab-ink) 4%,
+  • [mathematics] Watch the grey die — the sRGB<->oklch proof-toggle as discovered signature
+     refine: KEEP the full-bleed A/B toggle (INTERPOLATION: sRGB / oklch) over the living mesh — the page's defining MATHEMATICS-made-visible moment — but frame it as a proportionate easter egg, not a lived-in sta
+     egg: The whole-viewport flip itself is the easter egg — one toggle and the field visibly loses its blood; no static screenshot or sRGB tool can reproduce it, and the page rests in oklch

@@ -15,21 +15,26 @@ other scene in the demo animates a *thing* (a cube, a sphere, a box, a ball on a
 path). The spring scene's subject is not an object — it is **a force you can't
 see made visible**. The page's whole reason to exist is the shape of an
 underdamped curve: the overshoot, the ring, the settle. So the aesthetic is
-**laboratory instrument / measurement bench**: a calibrated, slightly austere,
-high-contrast surface where the *signal* is the hero and everything else is the
-graticule around it. Think Tektronix scope face, a seismograph drum, a Braun
-measuring device — not a playground.
+**laboratory instrument / measurement bench**, sitting on the demo's existing
+graph-paper drafting substrate: a calibrated, slightly austere, high-contrast
+surface where the *signal* is the hero and the GLASS card holds the bench and the
+PAPER grid backs it. Think Tektronix scope face, a seismograph drum, a Braun
+measuring device — but built *from the four pillars already on the page* (glass,
+paper, audacious serif type, visible math), not bolted on as a new theme.
 
-The current page treats the spring as a **ball that slides on a rail** (the
-`.spring-ball` traveling `.progress-rail`, `SpringTarget.vue:84`). That is the
-weakest possible expression of a spring: it shows you *position* but throws away
-the *curve*, which is the entire point. A 1D ball on a line cannot show
-overshoot — it just stops at the wall. The SOTA bar for a CSS-animation engine's
-spring page is the **phase portrait**: you should see the position trace ITSELF
-drawn out in time, the overshoot cresting *past* the target line and ringing
-back, exactly as the `linear()` string already encodes (`springLinearStops.ts:65`
-emits values that exceed 1 for ζ < 1 — the overshoot is *right there in the
-data*, currently invisible).
+The current page expresses the spring as a **ball that slides on a rail** (the
+`.spring-ball` traveling `.progress-rail`, `SpringTarget.vue:84`) — and that ball
+is GOOD: it is the live "now" of the system, the imperative-painter dogfood, the
+thing your eye locks onto. We KEEP it. What it *lacks* is the curve around it: a
+1D ball pinned to a line shows position but hides overshoot — when ζ<1 and the
+spring rings past its target, the ball clamps to the wall (`clampSweep`, `:124`).
+So the refinement is not to remove the ball — it is to **let the ball draw its
+own trajectory**: keep the rail, keep the ball, and add the **phase trace** as a
+mathematical OVERLAY the ball rides through — the position curve drawn out in
+time, the overshoot cresting *past* the target line and ringing back, exactly as
+the `linear()` string already encodes (`springLinearStops.ts:65` emits values
+that exceed 1 for ζ < 1 — the overshoot is *right there in the data*, currently
+unplotted). The ball becomes the bright cursor on a curve it was always tracing.
 
 **The ONE unforgettable thing — "the derby."** This page alone owns a
 **four-lane spring race**. Re-seat the target (or double-click — `demo.derby` is
@@ -50,26 +55,30 @@ re-seat, the engine's own physics drawn four ways at once.
 
 What reads generic / weak / AI-slop against the SOTA bar:
 
-1. **The spring is a ball on a rail — the curve is thrown away (the single
-   worst offender).** `SpringTarget.vue:84` renders the protagonist as a
-   `.progress-ball` traveling a horizontal `.progress-rail` (`:74`), positioned
-   by an imperative `left: %` write (`:135-137`). A ball sliding left-to-right
-   on a line **physically cannot show overshoot** — when ζ<1 and the spring
-   rings past its target, the ball just pins to the wall (the code even *clamps*
-   it: `clampSweep`, `:124`, "the ball stays inside the track even though the
-   read-out shows >1"). The most important visual fact about a spring — that it
-   *exceeds and returns* — is actively hidden. This is a tutorial-grade
-   visualization of a SOTA physics engine.
+1. **The ball-on-a-rail is good, but it has no curve around it — the overshoot
+   is hidden (the single biggest opportunity).** `SpringTarget.vue:84` renders
+   the protagonist as a `.progress-ball` traveling a horizontal `.progress-rail`
+   (`:74`), positioned by an imperative `left: %` write (`:135-137`). The ball
+   itself is *right* — it is the live "now," the painter dogfood, the eye's
+   anchor; it stays. The defect is that the rail throws away the *shape*: a ball
+   sliding left-to-right cannot show overshoot, so when ζ<1 and the spring rings
+   past its target the code clamps it (`clampSweep`, `:124`, "the ball stays
+   inside the track even though the read-out shows >1"). The most important
+   visual fact about a spring — that it *exceeds and returns* — is present in the
+   data but never drawn. The fix is *additive*: keep the ball, give it a trace.
 
-2. **The `linear()` artifact — the page's crown jewel — is shown as grey
-   monospace text.** `StartingStyleTarget.vue:56` renders the emitted
-   `linear(0, 0.234 4.17%, …, 1)` string in a `text-mono-caption
-   text-muted-foreground` code block. This string IS the deliverable — it is
-   what a designer copies into their stylesheet, the literal output of
-   `springLinearStops()` (`:60-72`), 26 stops that trace the exact overshoot
-   curve. Rendering humanity's most plottable data structure as muted grey text
-   is the equivalent of printing a photograph as its hex bytes. There is a
-   *graph* hiding in that string and the page shows none of it.
+2. **The `linear()` artifact — the page's crown jewel — is shown only as
+   monospace text, never plotted.** `StartingStyleTarget.vue:56` renders the
+   emitted `linear(0, 0.234 4.17%, …, 1)` string in a `text-mono-caption
+   text-muted-foreground` code block. That code block is *correct and must stay*:
+   it is the copy-pasteable deliverable, the literal output of
+   `springLinearStops()` (`:60-72`), 26 stops a designer pastes into their
+   stylesheet — and as raw mono type it already honors the audacious-type pillar
+   (Fira Code, the engineering voice). The gap is not that it is text; it is that
+   the page *only* offers the text and never the *picture*. There is a graph
+   hiding in those 26 stops, and the refinement is to plot it ALONGSIDE the
+   string — the two readings of one curve, numeral and trace, side by side — not
+   to demote the numerals away.
 
 3. **Two metric badges fight; the curve has no home.** `SpringTarget.vue:33-52`
    gives a big `.spring-readout-primary` displacement number (good — the K.W4
@@ -79,14 +88,17 @@ What reads generic / weak / AI-slop against the SOTA bar:
    readout, no "ζ < 1 → this one rings" cue. The numbers describe a point; the
    spring is a *trajectory*.
 
-4. **The preset cells are four tiny rails, redundant with the stage.**
-   `SpringSidebar.vue:79-101` renders four `ToggleChip` cells, each with its OWN
-   in-cell `.preset-track` + traveling `.preset-ball` (`:93-99`), painter-driven
-   at 60Hz (`:177-183`). So the page shows the *same ball-on-rail metaphor* FIVE
-   times (the stage rail + the sampler + four preset cells), each a 1D position
-   with no curve. Four chances to show four *different curve shapes* side by
-   side, all spent on four identical sliding dots. This is exactly the derby's
-   raw material, wasted.
+4. **The four preset cells repeat the rail without distinguishing the four
+   springs.** `SpringSidebar.vue:79-101` renders four `ToggleChip` cells, each
+   with its OWN in-cell `.preset-track` + traveling `.preset-ball` (`:93-99`),
+   painter-driven at 60Hz (`:177-183`). The cells are fine as a *register* — they
+   keep the ball-on-rail family the scene already speaks — but right now all four
+   look the same: same red, same dot, no cue that bouncy and gentle are different
+   curves. The refinement is small and additive: tint each cell its own lane hue
+   (from the sanctioned rainbow family, §Color below) and let each cell's ball
+   leave a faint curve-shaped wake, so the four cells *foreshadow* the four
+   different curves without re-authoring the recipe. This is the derby's raw
+   material, currently undifferentiated rather than wasted.
 
 5. **The `@starting-style` view is the strongest idea, undersold.**
    `StartingStyleTarget.vue:146-185` is genuinely SOTA under the hood — a real
@@ -150,16 +162,20 @@ families already are.
   artifact graph (below) is shown, annotate it the way a scope annotates a
   trace: tiny Fira Code tick labels at 0% / 25% / 50% / 75% / 100% along the
   time axis, `text-[0.625rem]` `--muted-foreground`. The string stays
-  copy-pasteable (`StartingStyleTarget.vue:56`) but is no longer the *primary*
-  representation — it demotes to a "view source" detail under the plot.
+  copy-pasteable and fully present (`StartingStyleTarget.vue:56`) — the plot is
+  its *companion*, not its replacement. Numeral and trace sit together: the
+  designer reads one, copies the other, and the page honors both the artifact and
+  the audacious-mono-type pillar that renders it.
 
 ### COLOR
 
 - **Give the four presets four distinguishable lane hues — from the sanctioned
-  rainbow family.** This is the headline color move and the derby's prerequisite.
-  Add four demo tokens beside the rainbow set in `design-idioms.css :root`,
-  mapping each preset to a member of the *already-owned* spectrum (so this is a
-  consume, not a new identity):
+  rainbow family, used with proportion.** This is the headline color move and the
+  derby's prerequisite. The rainbow crayons stay crayons: pure, saturated, and
+  *intentful* — they fire only where the page's job is literally to tell four
+  springs apart, never as ambient decoration. Add four demo tokens beside the
+  rainbow set in `design-idioms.css :root`, mapping each preset to a member of the
+  *already-owned* spectrum (so this is a consume, not a new identity):
   ```css
   --spring-lane-smooth: var(--rainbow-blue);    /* calm, settles    */
   --spring-lane-snappy: var(--rainbow-green);   /* quick            */
@@ -180,26 +196,40 @@ families already are.
   the *comparison* surfaces (the preset cells + the derby), so the system reads:
   red = "the spring I'm controlling," rainbow = "the family I'm comparing."
 
-### MOTION — the trace, not the ball
+### MOTION — the ball, and the trace it draws
 
-- **Replace the 1D ball-on-rail with a 2D PHASE TRACE (the core fix).** The
-  stage subject becomes a small SVG plot: a horizontal **target line** across the
-  middle, and the spring's position drawn as a **trace that crests over the line
-  and rings back** when ζ<1. Two ways to source the geometry, both pure dogfood:
-  - *Static curve:* feed the live `linear()` stops into an SVG `<path>` (parse
-    the `0.234 4.17%` stops → `(x=pct, y=value)` points). The overshoot is
-    `y > 1` → the path *visibly crosses above the target line*. This is the
-    `springLinearStops()` output finally *plotted* instead of printed.
-  - *Live trace:* keep the imperative painter (`SpringTarget.vue:133-142`) but
-    have it draw the ball's *history* — a fading polyline of the last ~1.2s of
-    `live.value`, so re-seating leaves a comet-trail that shows the ring. The
-    ball stays (it's the *now*), but it now drags its trajectory behind it.
+- **Keep the ball + rail; add a 2D PHASE TRACE as the mathematical overlay it
+  rides through (the core refinement).** The stage subject stays the live
+  `.spring-ball` on its `.progress-rail` — but the rail gains a vertical
+  dimension: a small SVG plot behind/around the ball with a horizontal **target
+  line**, and the spring's position drawn as a **trace that crests over the line
+  and rings back** when ζ<1. The ball is the bright cursor; the trace is the
+  curve it has always been tracing, now made visible. Two sources of geometry,
+  both pure dogfood, and they STACK rather than compete:
+  - *Static curve (the graticule layer):* feed the live `linear()` stops into an
+    SVG `<path>` (parse the `0.234 4.17%` stops → `(x=pct, y=value)` points). The
+    overshoot is `y > 1` → the path *visibly crosses above the target line*. This
+    is the `springLinearStops()` output finally *plotted* beside its own string —
+    the math made beautifully visible (the visible-mathematics pillar), the
+    crayon-red identity curve drawn against the paper graticule.
+  - *Live trace (the comet):* keep the imperative painter
+    (`SpringTarget.vue:133-142`) and have the *same* ball draw its own *history* —
+    a fading polyline of the last ~1.2s of `live.value`, so re-seating leaves a
+    comet-trail that shows the ring. The ball stays the *now*; it just drags its
+    trajectory behind it.
 
-  Either way the overshoot becomes *the* visual event. The `clampSweep` hack
-  (`:124`) dies — the trace is *supposed* to cross the line.
-- **The derby (the signature — see §below).** Four `SpringProgress` solvers, one
-  shared re-seat, four traces racing in four lanes. `demo.derby` is already wired
-  (`SpringTarget.vue:72`); this gives it a stage worth watching.
+  The overshoot becomes *the* visual event without ever removing the element the
+  page already has. The `clampSweep` hack (`:124`) relaxes for the *trace's*
+  vertical axis (the curve is *supposed* to cross the line); the ball's
+  horizontal travel can keep its bounded rail. Refine, don't abrogate: the ball
+  earns a second axis.
+- **The derby (the signature easter-egg — see §below).** Four `SpringProgress`
+  solvers, one shared re-seat, four traces racing in four lanes. It stays
+  *earned, not default*: `demo.derby` is already wired to the double-click
+  (`SpringTarget.vue:72`) — a discovered delight, not a permanent re-theme. The
+  single live red spring is the resting state; the four-lane rainbow race is the
+  moment you trigger. This gives the existing binding a stage worth watching
+  while keeping the page calm at rest (proportion).
 - **Charge the drag gesture.** Route the rail re-seat through the library's own
   `Draggable` (the closed-form fling) instead of the bare `useDragScrub` ratio
   (`SpringTarget.vue:148-157`). On `pointerdown`, the *target* marker lifts
@@ -285,22 +315,26 @@ families already are.
 
 ## §The one unforgettable moment
 
-**The derby.** Re-seat the target — drag the rail, or just double-click (it's
-already bound, `SpringTarget.vue:72`). Four traces launch at once down four
-parallel lanes, each in its own rainbow hue: **bouncy** (violet, ζ=0.45) leaps
-*past* the shared target line, overshoots into the zone above it, and rings back
-down through it twice before settling; **snappy** (green, ζ=0.65) crests just
-over and tucks in; **smooth** (blue, ζ=0.86) eases up and kisses the line;
-**gentle** (red, ζ=1.0, the critically-damped identity hue) creeps in from below
-and *never crosses*. For about a second you are watching four differential
-equations race, the overshoot lobes cresting over one shared graticule line like
-four seismograph needles, the phosphor glow trailing each beam. Then they all
-lock, the target line gives its one red-dashed settle-pulse, and the bench goes
-quiet. No other scene is a *comparison* — the cube, the sphere, the box each have
-ONE subject. The spring scene's subject is a *family*, so it alone can race them.
-And it is the engine dogfooding its own `SpringProgress` four ways on one shared
-re-seat — the most physics ever on screen at once in the whole demo, drawn as
-the curve that physics actually is.
+**The derby — a discovered delight, not the default.** At rest the page is the
+one calm red spring: ball, rail, trace. Then you re-seat with intent — drag the
+rail, or double-click (already bound, `SpringTarget.vue:72`) — and the bench
+*blooms*: four traces launch at once down four parallel lanes, each in its own
+rainbow hue: **bouncy** (violet, ζ=0.45) leaps *past* the shared target line,
+overshoots into the zone above it, and rings back down through it twice before
+settling; **snappy** (green, ζ=0.65) crests just over and tucks in; **smooth**
+(blue, ζ=0.86) eases up and kisses the line; **gentle** (red, ζ=1.0, the
+critically-damped identity hue, the crayon held back for the one that *doesn't*
+cross) creeps in from below and *never crosses*. For about a second you are
+watching four differential equations race, the overshoot lobes cresting over one
+shared graticule line like four seismograph needles, the phosphor glow trailing
+each beam. Then they all lock, the target line gives its one red-dashed
+settle-pulse, the rainbow drains back to the single resting red, and the bench
+goes quiet. The race is the easter egg; the calm is the home state. No other
+scene is a *comparison* — the cube, the sphere, the box each have ONE subject.
+The spring scene's subject is a *family*, so it alone can race them. And it is the
+engine dogfooding its own `SpringProgress` four ways on one shared re-seat — the
+most physics ever on screen at once in the whole demo, drawn as the curve that
+physics actually is, and proportioned to fire only when you ask for it.
 
 ---
 
@@ -308,24 +342,27 @@ the curve that physics actually is.
 
 Priority order — each step is self-contained and shippable.
 
-1. **Plot the `linear()` string as an SVG trace** *(highest impact, lowest
-   risk, no new physics)*
+1. **Plot the `linear()` string as an SVG trace, BESIDE its string** *(highest
+   impact, lowest risk, no new physics)*
    New small component `demo/spring/SpringTrace.vue` (or inline SVG in
    `SpringTarget.vue`): parse `useSpringLinearStops`' output
    (`useSpringLinearStops.ts` already gives the reactive string) into
    `(pct, value)` points, draw a `<path>`, draw the target line at y=1, let the
-   overshoot cross it. Replace the grey code block as the *primary* view in
-   `StartingStyleTarget.vue:56` (keep the string as a demoted "source" detail
-   under the plot). Kills the "data printed as text" offense; makes overshoot
-   visible with zero solver changes.
+   overshoot cross it. The existing mono code block (`StartingStyleTarget.vue:56`)
+   STAYS as the copy-pasteable numeral reading + `CopyButton`; the plot is added
+   adjacent (the two readings of one curve, type and trace). Closes the "only
+   text, never plotted" gap; makes overshoot visible with zero solver changes and
+   zero loss of the artifact a designer copies.
 
-2. **Phase-trace the live stage** *(the core metaphor fix)*
-   `SpringTarget.vue:74-84` — replace the `.progress-rail` + `.spring-ball` with
-   the trace plot (or augment: keep the ball as "now," add a fading history
-   polyline). Drive it from the existing imperative painter (`:133-142`); drop
-   `clampSweep` (`:124`) so the trace crosses the target line. Add the two-axis
-   graticule (extend `.stage-field-x` with the `.stage-field-y` horizontal lines
-   + a brighter target line at 1.0).
+2. **Add the phase trace to the live stage (keep the ball + rail)** *(the core
+   refinement)*
+   `SpringTarget.vue:74-84` — keep the `.progress-rail` + `.spring-ball`; wrap
+   them in the trace plot so the ball reads as the cursor on the curve, and add a
+   fading history polyline driven by the SAME imperative painter (`:133-142`).
+   Relax `clampSweep` (`:124`) on the trace's vertical axis so the curve crosses
+   the target line (the ball's horizontal rail can stay bounded). Add the
+   two-axis graticule (extend `.stage-field-x` with the `.stage-field-y`
+   horizontal lines + a brighter target line at 1.0) on the paper substrate.
 
 3. **Four lane hues from the rainbow family** *(the color move, derby
    prerequisite)*
@@ -375,5 +412,52 @@ Tokens touched: `design-idioms.css :root` (`--spring-lane-*`, optional
 (the derby solvers + shared re-seat), `demo/app/scenes/SpringScene.vue` (the
 "Race" ribbon verb). No glass-ui patching (all changes ride demo-owned token
 layers + scoped styles, per inv-16); the `springLinearStops()` /
-`SpringProgress` dogfood is preserved and *amplified* — the page finally plots
-the curve it already emits.
+`SpringProgress` dogfood is preserved and *amplified* — the page keeps every
+element it has (ball, rail, string, red identity, preset cells) and adds the
+trace, the graticule, and the lane hues *around* them. Every clause is additive:
+nothing the page already does well is removed, only the curve it was missing is
+drawn.
+
+---
+
+## §Design verdict reconciliation
+
+What was REVERSED or tempered to honor the design verdict (refine-not-abrogate,
+keep the crayons proportioned, signatures as easter eggs):
+
+- **REVERSED — "Replace the 1D ball-on-rail" / "the trace, NOT the ball" /
+  "the single worst offender."** The verdict names this page's clause by hand:
+  *"spring's 'kill the ball-on-a-rail and PLOT a phase trace' becomes 'KEEP the
+  ball + rail, refine them, and ADD the phase/graticule as a mathematical
+  overlay/easter-egg.'"* The ball is now KEPT as the live cursor; the phase trace
+  is layered *around* it (the ball draws the curve it was always tracing). The
+  §Motion header is now "the ball, and the trace it draws"; audit clause 1 is
+  reframed from "worst offender" to "biggest additive opportunity"; impl step 2
+  keeps `.progress-rail` + `.spring-ball` and *wraps* them. `clampSweep` is
+  *relaxed on the trace's vertical axis*, not deleted — the ball's bounded rail
+  survives.
+- **TEMPERED — "demote the `linear()` string to a view-source detail" /
+  "rendering plottable data as muted grey text" / "printed as text."** The mono
+  code block is the copy-pasteable artifact AND already honors the
+  audacious-mono-type pillar (Fira Code). It STAYS, fully present, beside the new
+  plot — numeral and trace as two readings of one curve. The plot is a companion,
+  never a replacement; the `CopyButton` deliverable is untouched.
+- **KEPT + PROPORTIONED — the crayons.** The rainbow lane hues
+  (`--spring-lane-*` from `--rainbow-*`, `design-idioms.css:78-90`) are NOT killed
+  and NOT replaced — they are *consumed* exactly where the page's job is to tell
+  four springs apart, and held back everywhere else. The single live spring keeps
+  the canonical crayon-red identity (`--color-progress`); the critically-damped
+  "gentle" lane is the red crayon used with intent (the one that *doesn't* cross).
+  Saturated primaries fire as a restrained signature, never as ambient wash.
+- **FRAMED AS EASTER EGG — the derby.** Already gated behind the
+  double-click/re-seat (`SpringTarget.vue:72`), so it is naturally a *discovered*
+  delight, not a dominant re-theme. The doc now states the resting state (one calm
+  red spring) explicitly and frames the four-lane rainbow race as the moment you
+  *trigger*, draining back to red on settle — proportionate, not a permanent
+  re-skin.
+- **AMPLIFIED — the four pillars.** Glass (the resting Card + dock), paper (the
+  graticule now drawn on the existing drafting substrate), audacious type
+  (Instrument-Serif display + the new Fira Code engineering-annotation stratum,
+  pushed bolder/more mathematical), and visible mathematics (the `linear()` curve
+  finally plotted, ζ/overshoot/settle named) are all *enhanced in place*, never
+  swapped.

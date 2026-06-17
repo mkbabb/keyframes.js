@@ -56,15 +56,17 @@ What reads generic / weak / AI-slop against the SOTA bar:
    **luminance** — a bright core with a falloff halo that reads as emitted light. We
    own a violet brand accent and we're spending it at 8% opacity.
 
-2. **The canvas reads as a generic grid box, not an instrument screen.**
+2. **The canvas is honest graph-paper, but flat — it could read as an instrument screen.**
    `EasingCurveCanvas.vue:309-333` draws `.bounding-box` (1px border), three `.grid-line`
    verticals + three horizontals at `opacity: 0.4`, a `.diagonal-ref` dashed line, and
-   four 0.055px `.axis-label` glyphs at `opacity: 0.5`. It is a competent, *forgettable*
-   graph — the exact chart-junk vocabulary every cubic-bezier clone ships. There's no
-   graticule hierarchy (a scope has bold majors + faint minors + a center crosshair), no
-   field tint, no vignette, nothing that says "this is a measuring surface." The
-   `GlassPanel variant="wash"` wrapper (`:4`) gives it a faint blur plate but the screen
-   inside is inert.
+   four 0.055px `.axis-label` glyphs at `opacity: 0.5`. It is a *correct, on-brand* grid —
+   the same PAPER pillar the page substrate speaks — but drawn flat, one uniform tier. It
+   has no graticule *hierarchy* (the page substrate already runs bold majors + faint minors
+   via `--graph-pitch`/`--graph-major`; the canvas doesn't inherit that two-tier logic),
+   no center crosshair, no field tint, no vignette. The `GlassPanel variant="wash"` wrapper
+   (`:4`) gives it a faint blur plate — the GLASS pillar is present — but the screen inside
+   is inert. The fix is to *deepen* the graph-paper it already draws (bring the substrate's
+   own two-tier idiom inside the plate), not to swap it for a foreign vocabulary.
 
 3. **The two handles are anonymous dots.** `.control-point.handle`
    (`EasingCurveCanvas.vue:359-367`) is a `fill: var(--foreground)` circle with a
@@ -80,13 +82,18 @@ What reads generic / weak / AI-slop against the SOTA bar:
    glow, no trail, no presence beyond a solid circle. On a scope the beam *is* the bright
    point; here it's the dimmest element on screen.
 
-5. **The hero stage is ~90% empty glass with a ball on a flat line.** `EasingTarget.vue`
-   + `EasingHeroStage.vue`: one `.progress-ball` (`--ball-size: 56px`, green
-   `--ball-tone: var(--rainbow-violet)`) slides a `.progress-rail` hairline under an 8%
-   ghost curve, anchored at the lower third (`pb-12`). The composition is honest but
-   *quiet to the point of generic* — a single ball on a single line is the universal
-   "loading bar" gestalt. The stage doesn't dramatize that the ball's HEIGHT *is* the
-   curve; the ghost curve at 8% can't carry that relationship.
+5. **The hero stage's ball-on-a-rail is right — it's just under-dramatized.** `EasingTarget.vue`
+   + `EasingHeroStage.vue`: one `.progress-ball` (`--ball-size: 56px`, `--ball-tone:
+   var(--rainbow-violet)` — note the ball already rides the demo's own *rainbow* family,
+   the signature accent) slides a `.progress-rail` hairline under an 8% ghost curve,
+   anchored at the lower third (`pb-12`). **KEEP the ball + the rail** — they are the demo's
+   honest, legible "the engine is running" gestalt, and the rainbow-violet tone is an
+   intentful signature, not a default. What's missing is the *mathematical reading*: nothing
+   yet dramatizes that the ball's HEIGHT *is* the curve, because the projected curve sits at
+   8% and there's no plumb line tying position-on-the-clock to value-on-the-output. The move
+   is to ADD a mathematical overlay (a brighter projected trace + a drop-line) *over* the
+   existing ball/rail — an enhancement that makes the relationship visible — not to replace
+   the ball with a bare phase plot.
 
 6. **Typography is doing 70% of its job.** The curve name DID lift to `text-display`
    Instrument Serif (`EasingTarget.vue:36-38`) and the readout DID promote to a damped
@@ -103,12 +110,14 @@ What reads generic / weak / AI-slop against the SOTA bar:
    the canvas** (`EasingSidebar.vue:38`). No affordance, no label, no visual signature
    when it runs. A motion catalogue this good should be a *named feature*, not a secret.
 
-8. **The comparison view is a spreadsheet of identical rows.** `EasingTarget.vue:103-136`
-   stacks `.track-row`s — a right-aligned `text-mono-caption` label + a ball on a rail.
-   It's a functional small-multiple but visually monotone: every row is the same height,
-   same rail, same tint; the active one only gets a color swap. There's no sense that
-   you're watching *many timing functions race the same clock* — which is exactly the
-   dramatic, screenshot-worthy thing a comparison view could be.
+8. **The comparison view is a correct small-multiple, but visually monotone.**
+   `EasingTarget.vue:103-136` stacks `.track-row`s — a right-aligned `text-mono-caption`
+   label + a ball on a rail. The small-multiple is the *right* structure (keep it) — it's
+   just undifferentiated: every row is the same height, same rail, same tint; the active one
+   only gets a color swap. There's no shared playhead and no per-track hue, so it doesn't yet
+   read as *many timing functions racing the same clock* — which is exactly the dramatic,
+   screenshot-worthy thing this view can become with a "now" line + a rainbow-stop per track
+   (the demo's own palette, finally doing legible work). Enhance the rows; don't reshape them.
 
 ---
 
@@ -145,16 +154,26 @@ the demo's `design-idioms.css` vocabulary) — never a wholesale swap.
   projected curve from `opacity: 0.08` (`EasingHeroStage.vue:149`) to a **gradient-stroke
   trace**: `opacity: 0.22` at the bright core, falling to ~0.06 at the tails via a
   `<linearGradient>` along the path — the beam is brightest where the action is.
-- **Keep the green/violet split honest.** The ball stays the cascaded `--ball-tone`
-  (`EasingTarget.vue:374` already sets it to `--rainbow-violet`) so the probe and the
-  trace share one hue family — but give the probe a *whiter hot core* so it reads as the
-  beam's focal point against the violet trace (the scope-beam relationship: bright point
-  on a glowing line). The comparison-track muted balls stay at 20% tint (`:413`).
-- **Tint the screen.** Replace the inert `GlassPanel variant="wash"` interior with a
-  faint **radial field tint** centered low (where the curve starts), using
+- **Keep the rainbow family — proportion it as the signature accent.** The ball stays the
+  cascaded `--ball-tone` = `--rainbow-violet` (`EasingTarget.vue:374`) so the probe and the
+  trace share one hue family — the rainbow six (`design-idioms.css:78-90`) is the demo's
+  *intentful, restrained* spectrum and we KEEP it, not just inherit it. Give the probe a
+  *whiter hot core* so it reads as the beam's focal point against the violet trace (the
+  scope-beam relationship: bright point on a glowing line). One proportionate place to let
+  the *full* rainbow fire as signature, not decoration: the **comparison-race** balls
+  (REFINEMENT below) — let each timing-function track carry a distinct rainbow stop (red→
+  violet across the small-multiple), so the race reads as a *spectrum of curves* and the
+  demo's crayon palette earns a real, legible job. Everywhere else the violet stays the
+  lone signal color — the rainbow is the accent that fires *once*, on the race, with intent.
+  The comparison-track muted balls keep their 20% tint baseline (`:413`) and pick up the
+  per-track rainbow hue at full strength only on the active/animating row.
+- **Tint the screen — over the existing glass, not instead of it.** KEEP the
+  `GlassPanel variant="wash"` plate (it is the GLASS pillar); *add* a faint **radial field
+  tint** centered low (where the curve starts) as an inner layer on the wash interior, using
   `color-mix(in srgb, var(--trace) var(--stage-field-tint), transparent)` — the
-  `--stage-field-tint: 4%` token already exists (`design-idioms.css:272`). The screen
-  glows faintly violet from the origin, like a powered phosphor surface.
+  `--stage-field-tint: 4%` token already exists (`design-idioms.css:272`). The screen glows
+  faintly violet from the origin, like a powered phosphor surface — the glass plate gains a
+  tint, it isn't traded away for one.
 
 ### MOTION
 
@@ -174,13 +193,16 @@ the demo's `design-idioms.css` vocabulary) — never a wholesale swap.
   positions at decaying opacity sampled from the last frames, or a simpler CSS approach: a
   `box-shadow`-driven comet glow elongated along travel direction. The beam should leave a
   faint afterimage as it climbs the curve, the way a real scope phosphor decays.
-- **Orchestrated load.** On scene enter, the instrument *powers on*: graticule fades in
-  first (staggered minor → major), then the trace draws itself origin→end via
-  `stroke-dashoffset` (the library SHIPS `DrawSVG`/`fromDrawSVG` for exactly this —
-  *dogfood the engine's own line-drawing primitive*), then the probe drops onto the
-  trace and begins its sweep. ~600ms total, staggered. This is the one orchestrated load
-  the methodology asks for, and it makes the page's first impression "instrument booting,"
-  not "div appeared."
+- **Orchestrated load — the power-on, as a proportionate signature.** On scene enter the
+  instrument *powers on*, ONCE: graticule fades in first (staggered minor → major), then the
+  trace draws itself origin→end via `stroke-dashoffset` (the library SHIPS
+  `DrawSVG`/`fromDrawSVG` for exactly this — *dogfood the engine's own line-drawing
+  primitive*), then the probe drops onto the trace and begins its sweep. ~600ms total,
+  staggered. This is a *delight on first paint*, not a re-theme: it plays on mount and then
+  the page is simply the page — measured, not a dominant boot animation that re-fires or
+  delays interaction. PRM: snap straight to the drawn state. It makes the first impression
+  "instrument booting," not "div appeared," and earns the easter-egg slot without taxing the
+  steady state.
 
 ### SPATIAL
 
@@ -195,11 +217,15 @@ the demo's `design-idioms.css` vocabulary) — never a wholesale swap.
   (`EasingSidebar.vue:178-181`, `clamp(260px, 64cqi, 360px)`). Push the floor a touch and
   let the instrument label + the promoted readout frame it top and bottom so the canvas
   reads as a *screen in a chassis*, not a square in a list.
-- **Comparison view as a race, not a table.** In `EasingTarget.vue:103-136`, keep the
-  small-multiple but add a single shared **vertical "now" line** (a faint playhead) the
-  balls cross at different times — so the eye instantly sees ease-out balls sprinting
-  ahead while ease-in balls lag. One absolutely-positioned line over the track stack at
-  `progress * width`. That converts a spreadsheet into a visibly-dramatic timing race.
+- **Comparison view as a race — keep the small-multiple, dramatize it.** In
+  `EasingTarget.vue:103-136`, KEEP the `.track-row` stack (it is the correct, legible
+  small-multiple) and add two things over it: a single shared **vertical "now" line** (a
+  faint playhead) the balls cross at different times — so the eye instantly sees ease-out
+  balls sprinting ahead while ease-in balls lag (one absolutely-positioned line at
+  `progress * width`) — and the **per-track rainbow tint** (COLOR above): each row's active
+  ball draws a distinct `--rainbow-*` stop, red→violet down the stack. That converts a
+  monotone table into a visibly-dramatic, *spectrum-colored* timing race and gives the
+  demo's crayon palette its one proportionate, intentful job on the page.
 
 ### MICRO-INTERACTIONS
 
@@ -220,13 +246,15 @@ the demo's `design-idioms.css` vocabulary) — never a wholesale swap.
 
 ### BACKGROUND
 
-- **The graticule, rebuilt as a scope screen.** Replace the flat three-line grid
-  (`EasingCurveCanvas.vue:322-326`, uniform `opacity: 0.4`) with a **two-tier graticule**:
-  faint minor divisions + bolder major divisions at 0.25/0.5/0.75 + a slightly brighter
-  **center crosshair**. This is the same `--graph-pitch`/`--graph-major` two-tier idiom
-  the page substrate already uses (`design-idioms.css:268-271`) — bring it *inside* the
-  canvas. The diagonal `f(t)=t` reference (`:315-320`) stays but tinted toward `--trace`
-  at low opacity, so the linear baseline reads as "the null curve."
+- **The graticule, deepened into a scope screen.** KEEP the grid — *promote* the flat
+  three-line grid (`EasingCurveCanvas.vue:322-326`, uniform `opacity: 0.4`) into a **two-tier
+  graticule** by giving it the hierarchy the page substrate already has: faint minor divisions
+  + bolder major divisions at 0.25/0.5/0.75 + a slightly brighter **center crosshair**. This
+  is the same `--graph-pitch`/`--graph-major` two-tier idiom the substrate runs
+  (`design-idioms.css:268-271`, majors held above the 10% legibility floor — respect that gate
+  inside the canvas too) — we're bringing the demo's OWN paper-grain *inside* the plate, not
+  importing a foreign graticule. The diagonal `f(t)=t` reference (`:315-320`) stays but tinted
+  toward `--trace` at low opacity, so the linear baseline reads as "the null curve."
 - **The trace bloom.** The curve gains a true emitted-light halo: a `drop-shadow(0 0 Npx
   var(--trace-glow))` filter on `.bezier-path`, sized so the violet beam glows against the
   dark screen without smearing the graticule. This is the single highest-leverage visual
@@ -262,6 +290,57 @@ that teaches timing functions is itself driven by them.
 
 ---
 
+## §Design verdict reconciliation
+
+The user's fleet-wide verdict is **refine, do not abrogate** — keep the crayon/rainbow
+primaries (proportioned as a restrained signature), preserve + amplify the four pillars
+(GLASS, PAPER, audacious TYPOGRAPHY, visible MATHEMATICS), and fold the signature moments as
+*tasteful, proportionate easter eggs*, not dominant re-themes. This treatment was already the
+disciplined one of the fleet — it spends a *brand* accent (`--ppmycota-primary`, not a
+crayon), it never proposed killing the rainbow or any HSL square, and its own §Refinements
+preamble already pledges "never a wholesale swap." So the reconciliation here is small and
+surgical; what changed:
+
+- **Crayons KEPT and given a real job (was: inherited silently).** The ball already rides
+  `--ball-tone: var(--rainbow-violet)` — that's the demo's own crayon family, and we now say
+  so explicitly and KEEP it. New proportioned use: the **comparison race** lets the *full*
+  rainbow six fire as a spectrum-of-curves (red→violet down the track stack), the one place
+  the palette earns a legible job. Everywhere else the violet stays the *lone* signal color —
+  the rainbow is the accent that fires **once**, with intent, not a re-theme. No crayon was
+  killed; the palette gained purpose.
+
+- **"Replace the inert GlassPanel interior" → tinted, not traded (GLASS).** Reversed the
+  replacement framing: the wash plate is KEPT; the radial field tint is an *added inner layer*
+  on it. The glass pillar is amplified, not swapped.
+
+- **"Rebuild the graticule" → deepen the demo's own paper-grain (PAPER).** Reversed
+  "rebuilt"/"replace the flat grid"; the grid is KEPT and *promoted* into the substrate's own
+  two-tier `--graph-pitch`/`--graph-major` idiom (majors respect the 10% legibility gate).
+  We bring the page's paper INSIDE the plate — not import a foreign scope graticule.
+
+- **Hero "ball on a flat line = generic" → KEEP the ball + rail, ADD the math overlay
+  (MATHEMATICS).** Reversed the "quiet to the point of generic" dismissal. The ball-on-a-rail
+  is the honest "engine is running" gestalt and stays; the new projected trace + plumb
+  drop-line are a mathematical *overlay over* it that makes height-equals-curve visible — the
+  exact "keep the ball, add the phase/graticule as a math easter-egg" shape the verdict names.
+
+- **Signatures held to proportion (easter eggs).** The power-on boot is explicitly scoped to
+  *first paint, once, PRM-snapped* — a delight, not a dominant boot theme. The drag-bend /
+  settle-tick / probe-trail stay the page's one signature interaction (it is genuinely
+  distinctive and dogfoods the engine), kept proportionate: one quiet crosshair pulse on
+  release, not a celebration.
+
+- **TYPOGRAPHY untouched where it already wins, pushed where it's timid.** The Instrument-Serif
+  curve name + tabular-mono voltmeter readout are KEPT verbatim; the only typographic moves
+  *promote* an existing dimmed literal (the `cubic-bezier(…)` string) and add a single
+  characterful instrument micro-label — amplification, no new font, no palette swap.
+
+Net: every clause now KEEPS its extant element and ENHANCES it; nothing in the original
+called for a crayon-kill or an HSL-square swap, so no such reversal was needed here (those
+belong to the cube / color-picker pages). The file:line specificity is unchanged throughout.
+
+---
+
 ## §Implementation plan
 
 In priority order. Files to touch + the specific change.
@@ -290,11 +369,14 @@ In priority order. Files to touch + the specific change.
      drop italic, enlarge CopyButton hit target, add violet copy-success flash.
 
 4. **`EasingTarget.vue` — the comparison race + the gallery affordance.**
-   - Comparison stack (`:103-136`): add the shared vertical "now" playhead line.
-   - Surface the gallery: replace the undocumented dblclick (`EasingSidebar.vue:38`) with a
-     real labeled affordance — a small "Tour the gallery" control near the canvas — and give
-     the tour a visible running signature (a sweeping trace-color pulse per step). Keep the
-     dblclick as a power-user shortcut.
+   - Comparison stack (`:103-136`): KEEP the `.track-row` small-multiple; add the shared
+     vertical "now" playhead line + the per-track rainbow tint (red→violet down the stack —
+     the crayon palette's one proportionate job). Active row draws its `--rainbow-*` stop at
+     full strength; muted rows hold the 20% tint baseline.
+   - Surface the gallery: KEEP the power-user dblclick (`EasingSidebar.vue:38`) and ADD a
+     real labeled affordance beside it — a small "Tour the gallery" control near the canvas —
+     and give the tour a visible running signature (a sweeping trace-color pulse per step).
+     The hidden shortcut stays; it just stops being the *only* door.
 
 5. **`EasingSelect.vue` — kinetic curve previews.**
    - Per-item glyph (`:43-55`): hover-draw the stroke via `stroke-dashoffset`.
@@ -305,6 +387,9 @@ In priority order. Files to touch + the specific change.
      `EasingHeroStage.vue` mount hooks, PRM-guarded.
 
 All tokens route through the existing system: `--ppmycota-primary` (the new `--trace`),
-`--stage-field-tint`, `--graph-pitch`/`--graph-major`, `--ball-tone`, `--ease-standard`,
-`--duration-fast`. No new font, no palette swap — the violet was always there; this
-treatment finally *turns it on*.
+`--stage-field-tint`, `--graph-pitch`/`--graph-major`, `--ball-tone`, the full
+`--rainbow-*` six (the comparison-race spectrum), `--ease-standard`, `--duration-fast`. No
+new font, no palette swap — the violet was always there and the crayons were always there;
+this treatment finally *turns the violet on* and gives the rainbow its one proportionate,
+intentful job. Every clause KEEPS its element and ENHANCES it (the four pillars amplified, the
+signatures held to easter-egg proportion) — per the §Design verdict reconciliation above.

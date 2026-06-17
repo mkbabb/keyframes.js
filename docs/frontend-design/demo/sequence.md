@@ -21,18 +21,30 @@ feels mechanical, weighted, exact**. The current page gestures at all of this bu
 polite settings panel. The direction is to commit, hard, to **the instrument** — and to make the
 page *dogfood its own motion as the design signature*.
 
-Pick the extreme: **industrial / instrument-panel**, not playful-toy and not editorial. Tight
+Pick the lean: **industrial / instrument-panel**, not playful-toy and not editorial. Tight
 monospaced numerics, a ruled raster substrate, a phosphor-red playhead that bleeds light, machined
-handle grips, and transport that snaps with spring overshoot. Within the glass-ui language — the
-TASTE-approved cartoon-quiet panels, the `--accent-red` motion authority, the Instrument Serif
-display voice, the `--rainbow-*` row spectrum — but pushed to **a console you'd find in a mixing
-suite**, not a card you'd find in a CRUD app.
+handle grips, and transport that snaps with spring overshoot. This is a **refinement of the
+extant glass-ui language, not a re-theme** — every one of the four pillars stays and is *amplified*:
+GLASS (the cartoon-quiet panels/dock keep their surface), PAPER (the `--graph-pitch`/`--graph-major`
+drafting substrate the well refracts against), AUDACIOUS TYPOGRAPHY (Instrument Serif display +
+Fira Code numerics pushed bolder and more engraved), MATHEMATICS (the master playhead, the staggered
+distribution, the `linear()` springs made *beautifully visible*). The crayon accents stay exactly
+as the user likes them: the `--accent-red` motion authority and the `--rainbow-*` lane spectrum are a
+**restrained, intentful signature** — red owns the one master clock, the rainbow names the five lanes
+(violet→green, `SequenceTarget.vue:163-169`), and that two-tier crayon coding is *kept and
+proportioned*, never widened into a decorative palette. The move is **depth and light around the
+TASTE-approved colour**, not a new colour: a console you'd find in a mixing suite, dressed in the
+same crayon-and-glass language as the rest of the demo.
 
-**The ONE unforgettable thing:** *a phosphor playhead that physically sweeps the lanes — a 2px
-red line with a machined diamond head and a comet-trail of light — and as it crosses each lane's
-start gate, that lane's ball **ignites** (its glow blooms, its number lights). Scrubbing the master
-makes five lanes detonate in a diagonal cascade under your thumb. You are conducting light along a
-ruler.* Nobody forgets a playhead that lights the room as it passes.
+**The ONE unforgettable thing (a proportionate signature, built on the KEPT ball + rail + rainbow):**
+*a phosphor playhead that physically sweeps the lanes — a 2px red line with a machined diamond head
+and a comet-trail of light — and as it crosses each lane's start gate, that lane's **existing** ball
+**ignites** (the same rainbow ball, its kept glow blooms, its number lights). Scrubbing the master
+makes the five rainbow lanes detonate in a diagonal cascade under your thumb. You are conducting
+light along a ruler.* The cascade is an **easter-egg crescendo over the parts that already exist** —
+the balls, the rail, the `--ball-p` the engine already paints, the crayon lane hues — not a new
+mechanism and not a new palette. Nobody forgets a playhead that lights the room as it passes; and it
+lights it in the demo's own colours.
 
 ---
 
@@ -128,11 +140,15 @@ patch (inv-16).
 
 ### COLOR — phosphor on graphite
 
-- **Keep `--accent-red` as the master authority** (the K.W4 collapse — playhead, master ball,
-  timecode, transport state all read the one red). The lanes keep their `--rainbow-*` spectrum
-  (`SequenceTarget.vue:163-169`) — violet→green — which is *exactly* the After-Effects multi-track
-  color-coding idiom. No palette change; the existing two-tier (master = red, lanes = spectrum) is
-  already the right structure. **The move is depth, not hue.**
+- **Keep the crayons — proportion them, don't replace them.** `--accent-red` stays the master
+  authority (the K.W4 collapse — playhead, master ball, timecode, transport state all read the one
+  red), and the lanes keep their `--rainbow-*` spectrum (`SequenceTarget.vue:163-169`) — violet→green
+  — which is *exactly* the After-Effects multi-track colour-coding idiom and *exactly* the crayon
+  signature the user likes. **No palette change, no hue swap, no crayon kill.** The existing two-tier
+  (master = red, lanes = rainbow) is already the right structure; the refinement is to *use* it with
+  more proportion — red fires ONLY where the master authority belongs, rainbow fires ONLY to name the
+  five lanes, and the new depth/light below sits *under* that crayon, never on top of it. The move is
+  depth, not hue.
 
 - **Darken the stage into a console.** `.seq-stage` (`:282-302`) — replace the near-invisible 5%/2%
   wash with a **graphite work-surface** that reads as a recessed panel in *both* themes:
@@ -162,8 +178,11 @@ This page must *be* the demo. Every motion below is CSS-driven off the existing 
      `useSequenceDemo`'s `isReversed`).
   All three use `will-change: left` (already present) — compositor-cheap.
 
-- **Lane ignition keyed to the playhead crossing.** The data already exists: a lane's ball is "lit"
-  when `--ball-p > 0`. Add a CSS-only ignition by making the ball's **glow scale with `--ball-p`**:
+- **Lane ignition keyed to the playhead crossing (KEEP the ball, refine its glow).** The data already
+  exists: a lane's ball is "lit" when `--ball-p > 0`. This does **not** replace the existing ball or
+  its rainbow tone — it *amplifies* the kept `.progress-ball` glow by making its bloom scale with
+  `--ball-p`, in the lane's own crayon hue (`--ball-tone`). The ball, the rail it rides, and the
+  rainbow stay; the refinement is a registered-property `calc()` over them:
   `box-shadow: 0 0 calc(2px + var(--ball-p, 0) * 16px) calc(var(--ball-p,0) * 4px)
   color-mix(in srgb, var(--ball-tone) calc(30% + var(--ball-p,0) * 50%), transparent);` So as the
   master sweep drives each child's `--ball-p` 0→1, that lane *blooms* — and because the lanes are
@@ -257,9 +276,48 @@ velocity).
 This is owned by this page alone because **only the Sequence scene has many clocks on one master
 playhead** — the cube blends, the spring oscillates, the easing samples, but only here does one
 sweep *conduct a distribution of light*. It's built entirely on data the page already computes
-(`--playhead-p`, `--ball-p`, `--row-start`), so it's a skin over the existing engine — and it
-*is* the demo: the user feels `stagger` + `Sequence` in their thumb. Nobody forgets conducting light
-along a ruler.
+(`--playhead-p`, `--ball-p`, `--row-start`) and lights up the elements the page already draws (the
+balls, the rail, the rainbow lane hues), so it's a **skin/easter-egg over the existing engine and the
+kept crayon language**, not a re-theme — and it *is* the demo: the user feels `stagger` + `Sequence`
+in their thumb. The crayon spectrum is the *point* of the cascade (you read the order of the clocks
+by their kept colours), so the rainbow is preserved and *celebrated*, never replaced. Nobody forgets
+conducting light along a ruler — in the demo's own colours.
+
+---
+
+## §Design verdict reconciliation
+
+This treatment was *already* substantially verdict-compliant — Sequence never proposed killing the
+crayons or the HSL square — so the pass here is a **tightening, not a rescue**. What was reversed or
+tempered, and why:
+
+- **No crayon-kill clause existed to reverse, but the framing was sharpened.** The COLOR section's
+  "Keep `--accent-red`" bullet now reads as an explicit *keep-and-proportion* of BOTH crayon tiers
+  (master red + the `--rainbow-*` lanes, `SequenceTarget.vue:163-169`). Where the prior draft said
+  "no palette change," it now says **no crayon kill, no hue swap** and frames the rainbow as the
+  user-liked signature, used with *more proportion* (red only at the master authority, rainbow only
+  to name the five lanes) rather than widened. Why: honor verdict #1 — the crayons are a restrained,
+  intentful accent and must be folded deftly, not merely tolerated.
+
+- **Tempered "ignition" from a re-theme reading to a refinement of the kept ball.** The lane-ignition
+  clause and the unforgettable-moment section now state plainly that the existing `.progress-ball`,
+  its rail, and its rainbow `--ball-tone` are **kept** — the `--ball-p`-scaled `box-shadow` only
+  *amplifies* the glow that already exists, in the lane's own crayon hue. Why: verdict #2 (refine,
+  don't abrogate) and #3 (the cascade is a proportionate easter egg over existing parts, not a new
+  mechanism or palette).
+
+- **Re-anchored the direction to "refinement of the four pillars," not "the extreme."** The
+  §Aesthetic-direction lede now names GLASS / PAPER / TYPOGRAPHY / MATHEMATICS as the pillars being
+  *amplified* and labels the instrument lean a refinement of the extant glass-ui language, not a
+  re-theme. Why: verdict #2/#4 — measured, surgical refinement of the TASTE-approved language.
+
+- **Held the signatures as proportionate eggs.** The ignition cascade (the page's one signature) and
+  the orchestrated power-on boot are kept but explicitly scoped as *delights over existing data/DOM*,
+  PRM-guarded, ~700ms — a crescendo, not a dominant theme. Why: verdict #3 — signature moments fold
+  as tasteful easter eggs, proportionate.
+
+Nothing here was deleted from the prior treatment; the depth/light/typography/ruler refinements all
+stand, now unambiguously sitting *under and around* the kept crayon-and-glass language.
 
 ---
 

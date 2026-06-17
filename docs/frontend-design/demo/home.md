@@ -10,34 +10,40 @@
 
 ## §Aesthetic direction
 
-**The POV: BLUEPRINT BRUTALISM — the engine's own source code, animating itself
-on the drafting table.**
+**The POV: THE DRAFTING TABLE — the four pillars the demo already owns (GLASS,
+PAPER, AUDACIOUS TYPOGRAPHY, MATHEMATICS), refined and amplified until the
+landing reads as an instance of its own engine.**
 
 keyframes.js IS a CSS `@keyframes` engine. The landing must not *describe* that;
-it must *be* an instance of it. The whole page is a sheet of engineering graph
-paper (the `--graph-*` substrate already shipped, EditorShell.vue:213) on which
-the product literally **drafts its own headline as a `@keyframes` block, plays
-it, serializes it back to CSS, and pastes the result into the page** — the
-"CSS in → animation out → CSS back" round-trip rendered as a visible, looping
-motion narrative. The serif display voice (Instrument Serif) reads as the
-*authored intent*; the Fira Code mono reads as the *machine output*. The page is
-the conversation between the two faces.
+it must *be* an instance of it — but by **sharpening the language already on the
+page**, not by re-theming it. The page stays what it is: a sheet of engineering
+graph PAPER (the `--graph-*` substrate already shipped, EditorShell.vue:213)
+carrying GLASS cards (the glass-ui surface register), AUDACIOUS TYPOGRAPHY
+(Instrument Serif display + Fira Code mono, style.css:63–64) and visible
+MATHEMATICS (the bezier/spring/matrix/perceptual-color the engine actually
+computes). The refinements push each pillar bolder; they do not swap any of
+them. The serif display voice reads as the *authored intent*; the Fira Code mono
+reads as the *machine output*; the page is the conversation between the two
+faces.
 
-**The ONE unforgettable thing:** a **living `@keyframes` block in the corner of
-the page whose typed-out rules drive the hero word in real time** — you watch
-`transform: translateY(...)` get written character-by-character in mono, and the
-hero word lifts in perfect lock-step. Source and result, side by side, on the
-same clock. Nobody forgets a headline that *shows you its own keyframes being
-written as it moves.* That is the moat: every other animation-library landing
-shows you a finished demo; this one shows you the **compilation**.
+**The proportionate signature (a delight, not the theme):** a **small living
+`@keyframes` block in the lower-left whose typed-out rules drive the hero word in
+real time** — you watch `transform: translateY(...)` get written
+character-by-character in mono, and the hero word lifts in lock-step. Source and
+result, on the same clock. It is the page's *one* unforgettable easter egg — a
+quiet quadrant-sized delight that rewards a second look, NOT a full-canvas
+re-theme. It sits *beside* the hero and cube; it never displaces them. That
+restraint is the point: every other animation-library landing shows you a
+finished demo; this one *also* lets you catch it compiling, if you look.
 
-This direction does not theme-swap glass-ui. It leans into idioms the demo
-already owns — the graph-paper plate (EditorShell.vue:213), Instrument Serif +
-Fira Code (style.css:63–64), the `--accent-red` motion-color authority
-(style.css:370), the `--rainbow-*` CTA pop (design-idioms.css:78–90), the
-`depth-text` cartoon shadow, and the genuinely-dogfooded `AnimatedText` /
-`TypingDots` engine seams — and pushes them to an extreme: the drafting-table
-metaphor made literal.
+This direction does not theme-swap glass-ui and does not evict a single extant
+idiom. It leans into what the demo already owns — the graph-paper plate
+(EditorShell.vue:213), Instrument Serif + Fira Code (style.css:63–64), the
+**KEPT crayon signature** (`--accent-red` motion authority collapsing to
+`--color-progress`, style.css:347/370; the `--rainbow-*` six-stop family,
+design-idioms.css:78–90), the `depth-text` cartoon shadow, and the
+genuinely-dogfooded `AnimatedText` / `TypingDots` engine seams — and refines
+their *proportion, placement, and timing*. Refine, never abrogate.
 
 ---
 
@@ -145,19 +151,28 @@ mono = machine output.
 ### COLOR
 
 The palette is already cohesive and *not* AI-slop (no purple-on-white — the
-motion authority is a deliberate dashed **red**, style.css:370). Sharpen it:
+motion authority is a deliberate **crayon red**, style.css:347/370). The crayons
+are a TASTE-APPROVED signature; the work is **proportion**, not replacement —
+keep every token, refine *when and where* it fires:
 
-- **Commit to the red as the signature accent on this page.** The hero mono
-  label, the live `t` readout, the typed-source caret, and the play CTA's *ring*
-  all draw `--accent-red` / `--color-progress` (style.css:370). One dominant
-  hue, used with discipline — the antithesis of a gradient mush.
+- **The crayon red IS the page's signature accent — keep it, give it
+  discipline.** The hero mono label, the live `t` readout, the typed-source
+  caret, and the play CTA's *ring* all draw `--accent-red` / `--color-progress`
+  (style.css:347/370). One dominant crayon, fired with restraint — the
+  antithesis of a gradient mush. This is the crayon used *proportionately*: a few
+  load-bearing strokes of pure red, never a wash.
 
-- **Reserve the `--rainbow-*` family for exactly ONE element: the play CTA.**
-  design-idioms.css:459–471 is a six-stop spectrum used today only on the
-  keyframe-editor brush bar. The landing's primary CTA (§MICRO-INTERACTIONS)
-  earns the *one sanctioned multi-color pop* (the codebase already names this
-  rule — style.css:368). Rainbow on the CTA, red everywhere else. That contrast
-  *is* the color story.
+- **Keep the full `--rainbow-*` six-stop family — concentrate its one big
+  appearance on the play CTA.** design-idioms.css:78–90 (the six HSL stops +
+  cyan mid) and the :459–471 spectrum recipe stay exactly as authored; nothing is
+  removed or muted. The landing simply *places* its single largest rainbow
+  moment on the primary CTA (§MICRO-INTERACTIONS) — the *one sanctioned
+  multi-color pop* the codebase already names (style.css:368) — so the full
+  spectrum lands with maximum impact rather than being diluted across the page.
+  Rainbow on the CTA, crayon red on the readouts: that deliberate contrast *is*
+  the color story. (The HSL spectrum and primaries elsewhere in the fleet — the
+  cube's axis crayons, the spring badges' `--rainbow-violet`, the color-picker's
+  spectrum square — are KEPT untouched; this page just doesn't duplicate them.)
 
 - **Dark mode is the hero context.** The graph-paper retints for free over
   `--foreground` (EditorShell.vue:207). Author the new atmosphere (§BACKGROUND)
@@ -169,16 +184,19 @@ motion authority is a deliberate dashed **red**, style.css:370). Sharpen it:
 This is the page's whole job. The refinement: **make the dogfood VISIBLE and
 turn the idle twitch into a round-trip narrative.**
 
-- **Replace the idle `liftDown` with a SOURCE-DRIVEN lift.** Today
-  `AnimatedText`'s `liftDown` (AnimatedText.vue:78–91) is a hand-rolled CSS
-  `@keyframes` (ironic on a `@keyframes`-engine landing). Keep `AnimatedText` as
-  the a11y/word-split substrate, but drive the hero word's transform from a
-  **real `CSSKeyframesAnimation`** (the heavy engine, reached via
-  `await loadAnimationEngine()` — index.ts boundary; the page is already async-
-  scene-loaded so this fits) whose keyframes are the *same string being typed in
-  the source panel*. Source text and rendered motion share one clock. This is
+- **KEEP the idle `liftDown`; PROMOTE it from hand-rolled CSS to an
+  engine-driven lift.** Today `AnimatedText`'s `liftDown` (AnimatedText.vue:78–91)
+  is a hand-rolled CSS `@keyframes` — a little ironic on a `@keyframes`-engine
+  landing. The refinement does NOT delete it: `AnimatedText` stays the
+  a11y/word-split substrate AND `liftDown` remains the reduced-motion / no-engine
+  fallback (so the hero still bobs gracefully if the heavy split never loads).
+  The enhancement layers *on top*: once `await loadAnimationEngine()` resolves
+  (index.ts boundary; the page is already async-scene-loaded so this fits), the
+  hero word's transform is driven by a **real `CSSKeyframesAnimation`** whose
+  keyframes are the *same string being typed in the source panel*. Same lift,
+  same final frame — now source text and rendered motion share one clock. This is
   the difference between "we use CSS animations" and "watch our engine compile
-  one."
+  one," achieved by *upgrading* the existing motion rather than replacing it.
 
 - **One orchestrated load (≤900ms), staggered, using the library's own
   `stagger`.** On mount, reveal in sequence: (1) the graph-paper vignette fades
@@ -311,19 +329,66 @@ round-trip*: a mono line slides in below — `// serialized →` — and the eng
 own `format.ts` prints the animation **back to a CSS string**, with a brief
 "copied" flash (it's actually copyable). Pause. Clear. Retype. ~6s loop.
 
-No other animation library's landing shows you its **compiler**. Motion shows a
-finished demo. GSAP shows a timeline. Theatre.js shows an editor. keyframes.js
-alone shows the **CSS → engine → motion → CSS round-trip as the hero itself** —
-the literal, single-sentence pitch from CLAUDE.md ("Parse `@keyframes`, animate
-any object… get the CSS back") rendered as a self-driving loop. *You watch the
-keyframes get written, and the word moves as they're written.* That is the thing
-the visitor screenshots and sends to a coworker.
+No other animation library's landing lets you *catch* its **compiler**. Motion
+shows a finished demo. GSAP shows a timeline. Theatre.js shows an editor.
+keyframes.js alone surfaces the **CSS → engine → motion → CSS round-trip** as a
+quiet quadrant-sized loop *beside* the hero — the literal, single-sentence pitch
+from CLAUDE.md ("Parse `@keyframes`, animate any object… get the CSS back")
+rendered as a self-driving easter egg. It is the page's delight, not its
+dominant theme: the hero word, the serif voice, the graph paper and the cube
+still carry the composition; the source panel is the reward for looking closer.
+*You watch the keyframes get written, and the word moves as they're written.*
+That is the thing the visitor screenshots and sends to a coworker — and it earns
+that by being proportionate, not by taking over the page.
 
 It is also a **structural truth, not a gimmick**: it uses the real engine
 (`CSSKeyframesAnimation`, `stagger`, `format`), the real fonts (serif intent +
 mono machine), the real accent (`--accent-red`), and fills the real vacancy
 (lower-left) with the real product. The page becomes a working instance of
 itself.
+
+---
+
+## §Design verdict reconciliation
+
+The user's binding verdict on the fleet — **keep the crayons (proportioned),
+refine-not-abrogate the four pillars (GLASS, PAPER, AUDACIOUS TYPOGRAPHY,
+MATHEMATICS), fold the signature moments as proportionate easter eggs, deftness
+throughout** — was applied to this treatment. What changed:
+
+- **TEMPERED — the signature moment from "the whole page" to a proportionate
+  easter egg.** The original `§Aesthetic direction` framed the live source panel
+  as the page's dominant identity ("the hero itself", "the whole page is…").
+  Re-scoped to a *quadrant-sized delight beside* the hero/cube/serif — a reward
+  for looking closer, never a re-theme. The hero word, the graph paper, the
+  glass, and the cube carry the composition; the panel is the easter egg (verdict
+  §3, §4).
+
+- **REVERSED — "Replace the idle `liftDown`" → "KEEP `liftDown`, promote it."**
+  The MOTION clause now preserves `AnimatedText`'s `liftDown`
+  (AnimatedText.vue:78–91) as the a11y substrate AND the reduced-motion / pre-load
+  fallback, and layers the engine-driven `CSSKeyframesAnimation` lift *on top* —
+  same lift, same final frame, now engine-clocked. Refine, not abrogate (verdict
+  §2). The implementation-plan step 2 was corrected to match.
+
+- **SHARPENED — the crayons are KEPT and proportioned, never minimized.** The
+  COLOR section now states explicitly that `--accent-red` / `--color-progress`
+  (style.css:347/370) and the full `--rainbow-*` six-stop HSL family
+  (design-idioms.css:78–90) are TASTE-APPROVED and stay exactly as authored. The
+  work is *proportion* — a few load-bearing crayon-red strokes on the readouts,
+  the one big rainbow appearance concentrated on the play CTA — not muting or
+  replacing any token (verdict §1). A note was added that the fleet-wide
+  primaries this clause does NOT touch (the cube's axis crayons, the spring
+  `--rainbow-violet` badge, the color-picker spectrum square) stay KEPT.
+
+- **HELD — already verdict-aligned, amplified not changed.** The four pillars
+  were already the treatment's spine: graph PAPER + vignette/grain/drift
+  (BACKGROUND), GLASS source/CTA cards (SPATIAL), the Instrument-Serif/Fira-Code
+  AUDACIOUS TYPOGRAPHY pairing pushed bolder (TYPOGRAPHY), and the visible
+  MATHEMATICS of the live `t` readout + the compile loop. These were kept and
+  their *proportion* tightened. The remaining signature moments (orchestrated
+  ≤900ms load, the rainbow play-pop, the cube nudge-and-return, the hover-
+  recompile) read as proportionate easter eggs as written.
 
 ---
 
@@ -345,9 +410,10 @@ All source changes are PROPOSALS — this doc writes no code outside itself.
    `await loadAnimationEngine()` → `CSSKeyframesAnimation`, applies the transform
    to the hero word, and serializes back via `format.ts` on loop. Mount it in
    the vacated lower-left of `EditorStartScreen.vue:78–82`. Drive the hero lift
-   from this panel's animation instead of `AnimatedText`'s `liftDown`
-   (AnimatedText.vue:78–91 becomes the entrance-only / a11y substrate). PRM:
-   static completed block, no typing.
+   from this panel's animation once the engine loads; KEEP `AnimatedText`'s
+   `liftDown` (AnimatedText.vue:78–91) as the entrance + reduced-motion / pre-load
+   fallback (never deleted). PRM: static completed block, no typing, hero rests in
+   its `liftDown` final frame.
 
 3. **Orchestrated load via `stagger`.**
    In `EditorStartScreen.vue` `<script setup>`, compute entrance delays with
