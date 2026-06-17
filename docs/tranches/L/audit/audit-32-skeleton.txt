@@ -1,0 +1,297 @@
+LANES: 31
+
+===== LANE SUMMARIES (1-liners) =====
+• [K.W0–W3 idiom + gestalt audit (Band I repair, ] All four waves (W0 cold-entry P0, W1 consume-edge, W2 typographic root, W3 layout transposition) landed idiomatically and at gestalt altitude. The cold-entry P0 was cured
+• [K.W4–K.W6 audit (pane verdicts / gate-truth / ] K.W4 delivered all nine S-clauses cleanly and idiomatically: the KeyframesEditor is mounted two-way (no read-only artifact), the stepping slider rides a genuine 60 Hz scr
+• [engine-core / Tranche K Band II frontier (W7 f] Both W7 (composition honoring + diagnostics channel) and W11 (spring-driven blend weight + reseat + intensity PRM) are architecturally SOUND transpositions, not bolted-on
+• [K.W8 INGEST AUDIT] K.W8 is structurally complete and idiomatic against its spec. The proof:ingest-replay gate passes fully (12/12 source-shape clauses, 12/12 vitest tests). The core design 
+• [Tranche K W9 (scroll-as-CSS) + W10 (compile) —] The round-trip holds REPLAY-EQUALITY for a well-defined SUBSET, not the full CSS surface. Three separately-faithful round-trips exist — (1) the single-animation @keyframe
+• [K.W12 (externalize) + K.WZ (close) audit] The K close is HONEST at every boundary it claims to certify — inv ε holds. Every wave entry in FINAL.md cites a concrete commit, a named gate, and an observed born-RED→g
+• [gate-audit] All eight gates across commits 4492ab1, 495ae68, and 9390196 fall into the legitimate gate-tracks-consumed-reality category: the assertions (predicates, counts, state-mac
+• [audit — device-independence reformulations (K.] Both reformulations are substantively P6-sound. The spring-slider-continuous fraction+dwell reformulation is genuinely frame-rate-invariant and constitutes an architectur
+• [PRODUCT-fixes-idiom-vs-bandaid (this session: ] Three of the four fixes are idiomatic and well-scoped: the KeyframesAddDialog button-wrap mirrors the existing SharePopover as-child idiom and adds an accessible name; th
+• [GATE-SUITE-ROBUSTNESS (CI flake / fail-fast / ] The 6-round / ~30-min-each whack-a-mole has three independent architectural roots, all confirmed in source. (1) Fail-fast everywhere: ci.yml's demo-smoke job is ~70 seque
+• [K deferred-ledger disposition audit (tranche-k] K closed TERMINAL on `proof:chronic-closure` (44 rows, exit 0, `K/PROGRESS.md` substrate). All ten ≥4-tranche P-invariant-28 riders EXITED — no perpetual punt survived. B
+• [L-SEED VERDICT — KILL audit + BOOK tripwire sc] All 12 L-SEED KILLs remain valid and should NOT be revived as L waves. Each kill's rationale is either structural/precept-invariant (inv-16 blocks VT-A, kf-owns-time bloc
+• [cross-tranche chronic deferral audit A→K] The A→K cross-tranche chronic audit finds that P-invariant-28 is satisfied at the K close — proof:chronic-closure is GREEN on 44 rows, all ten ≥4-tranche riders exited. H
+• [cross-repo-ask audit (K close)] All four ask documents were read and cross-referenced against the K FINAL and the live demo tree. The two value.js grammar dispatches (VJ.W1 scroll grammar → N.W11′, VJ.W
+• [prompt-ledger-A→K] The consolidated A→K prompt ledger has zero drops. Every distinct user request from Tranche A through Tranche K reaches a terminal verdict — ADDRESSED, RECORD, OUT/HANDOF
+• [K.WZ — Tranche K Close Audit (4.3.0 publish + ] 4.3.0 is PUBLISHED and verified on npm (dist-tags.latest = 4.3.0; release.yml run 27640592021 SUCCESS). The master branch carries the full K tranche (tip 9bbc227). The de
+• [precepts-k] The J-born structural spine (no-legacy/P1, inv-16/P13, inv-α/P6, inv-β/P7, inv-ζ/P11) held without exception through all 12 K waves and the CI-greenify session. Every arc
+• [value.js Tranche N — constellation audit for k] value.js is on branch `tranche-f-handoff` at version 0.13.0. The first block (N.W0–N.W7) is fully shipped including the 0.12.0 library-asks wave and 0.13.0 grammar fold (
+• [value.js CSS-grammar coverage / true-CSS-parit] value.js parses the HARD parts of modern CSS faithfully — all 15 color spaces, oklch/lab/display-p3 via color() (parse side), relative color syntax (rgb(from …)), color-m
+• [value.js↔kf compiler SEAM + replay-equality] The round-trip is two single-authority directions over ONE data model (kf's internal model IS parsed value.js keyframes): FORWARD = CSS → value.js parseCSSStylesheet/extr
+• [value.js SOTA performance audit — L-SEED propo] The value.js codebase has absorbed a substantial and well-documented series of perf tranches (D.W1/E.W1/F-waves/G-waves): V8 hidden-class monomorphism on Color channels (
+• [value.js API ergonomics + kf consume-seam audi] The value.js ↔ kf seam is functionally correct but carries three categories of structural debt. First, the `FN_NAME` Symbol sidechannel (finding #2) is the highest-severi
+• [parse-that tranche-f-handoff / PT-WAVE-3a stat] parse-that is at v0.9.0 published 2026-06-07, branch tranche-f-handoff, 266 tests all green. Three PT-WAVE commits (WAVE-1 diagnostics state-threading, WAVE-2 packrat iso
+• [parse-that chain audit] The parse-that → value.js → kf spine is acyclic and inv-16 clean: all three repos consume only published npm versions in production, both library builds externalize parse
+• [parse-that SOTA + CSS-grammar capability audit] parse-that's COMBINATOR CORE is genuinely SOTA-shaped — mutable zero-alloc ParserState, O(1) dispatch() jump table, LUT byte-scanners, zero-copy Span variants, flag-fused
+• [parse-that + value.js CSS grammar parity audit] The parse-that + value.js grammar stack is substantially complete for the core animation/keyframe use-case but has ten well-defined parity gaps relative to full bi-direct
+• [frame-compiler SOTA + bi-directional audit (sr] The frame pipeline IS architecturally SOTA: addFrame to parse to AnimationFrame[] is a pure value-in/frames-out unit with no run-state (no clock/rAF/lifecycle), content-d
+• [compiler-roundtrip-fidelity (compile.ts / comp] VERDICT: "what you author IS what you get back, losslessly" holds for the STRUCTURAL + EASING + COMPUTED-UNIT axes (verified: per-kf steps()/cubic-bezier()/registry-name 
+• [CSS-PARITY — the bi-directional parse↔animate↔] The grand round-trip moat (the K Band-II frontier: CSS compiler, CSSOM ingest, scroll-grammar round-trip, animation-composition honoring, spring-blend physics) is IMPLEME
+• [SOTA-performance frontier (kf-L)] The premise that an "L tranche" exists is FALSE-by-record: the K-SEED/L-SEED frontier folded WHOLESALE into Tranche K, which SHIPPED as 4.3.0 (commit 4737ab3) — PHYS-C ph
+• [SOTA-usability/API frontier (kf-L) — the bi-di] kf is already the BEST CSS-in-JS animation + bi-directional-CSS engine for one structural reason no competitor can replicate: its authoring object IS parsed CSS @keyframe
+
+===== PRECEPT VIOLATIONS (FULL) =====
+⚠1 NO-WORKAROUND / consume-seam band-aid: demo/spring/SpringSidebar.vue:43 :aria-orientation="undefined" suppresses a glass-ui defect at the kf consume seam instead of driving the fix to glass-ui's root via a BB ask — and applies it to only one of two affected pill strips, leaving the invalid attribute live on AnimationControls.vue:66 across every scene
+⚠2 inv-16 (spirit): although the commit body claims inv-16 compliance because it did NOT patch glass-ui source, the chosen remedy (override-the-attribute-at-consume) is itself the anti-pattern — the correct inv-16 path is to consume a FIXED published glass-ui, not to locally correct an attribute glass-ui erroneously adds. The acyclic-spine remedy (glass-ui fix → publish → kf re-pin) is bypassed.
+⚠3 Incomplete-fix / gestalt: the same root defect's second instance (AnimationControls pill strip) was not addressed; a per-symptom fix that clears one scene's score while the defect persists fleet-wide violates the convergent-global-cohesion precept (prefer the root fix over a local symptom patch)
+⚠4 P-invariant-28 (≥4-tranche rider must exit, not re-BOOK): VIOLATED across H→J for DL-K1/K2/K3/K4/K10 — J's VERIFY-ONLY band certified these 'TERMINATED' via source-shape gates that never drove the cold path. K.W0 rebuilt the oracle and terminated them at the product level. The meta-chronic (DL-K2, ≥9 tranches) is the causal root — every other mis-termination propagated through the same blindspot.
+⚠5 No-workaround (the BLK-8 / RF-17 click-strand): the kf onPlayPointerDown/pointerHandled interim (retained at K.W1 after the REVERT of the 3.13.0 useDockClickIntegrity attempt) is a workaround of a glass-ui primitive defect. Inv-16 and the no-workaround precept both indict it. L must retire it on the 4.1.0 consume-edge, not carry a 3rd interim.
+⚠6 Acyclic-spine (inv-16): the glass-ui file: symlink pin (file:../glass-ui, present G-open, documented in G audit) was a violation of the acyclic-spine invariant — it was corrected to ^3.3.0 at G.W2/RP-5. No recurrence detected at K-close; package.json now pins ~4.0.0 (tilde, published, no file: protocol).
+⚠7 inv-16 (kf writes only its own repo): demo/spring/SpringSidebar.vue:43 (:aria-orientation=undefined) is a consume-side workaround patching glass-ui 4.0.0's incorrect aria-orientation-on-role=group behavior. kf's demo must not carry workarounds for upstream component bugs — this must be fixed in glass-ui (BB) and the workaround line deleted on the fixed consume.
+⚠8 glass-ui F-2 peer-cycle (acyclic-spine / no-workarounds): glass-ui's published peer dependency ^0.10.0||^0.11.0 does not admit the published value.js 0.12.0 or 0.13.0, producing a live peer-warning blast radius on any kf consumer that installs glass-ui + value.js today. This is a glass-ui BB-side obligation (CONSTELLATION-DAG.md §5); value.js N.W18's abrogation sweep would assume a producer fix that is not in the 4.0.0 cut. The no-silent-drop law requires BB's W-CLOSE to explicitly disposition every addendum row (land / point-release / BOOK with named tripwire).
+⚠9 T1 (KISS/gate-corpus): K.WZ.md:524 claims T1 'is RESOLVED and recorded' without naming which option was chosen; FINAL.md is entirely silent on T1; the corpus grew 14 gates net-addition; 'collapse the lattice' language persists in precepts-k.md:253 uncancelled — K.WZ.md's claim is an inv ε overclaim (a boundary asserted without a cited evidence oracle).
+⚠10 Near-workaround / replay-equality breach: src/parsing/stylesheet.ts:221-232 parseDeclarationValue treats a PARTIAL parse (first comma-segment only) as success and emits it as the whole declaration, silently dropping the remainder — violates replay-equality (round-trip is not the parser run backward) and hides the grammar gap rather than failing honestly. The stylesheet top-level requires full input consumption (stylesheet.ts:503-510) but the per-declaration value parse does NOT.
+⚠11 Parity-claim drift (no-legacy-adjacent): src/parsing/grammars/*.bbnf declare env()/attr()/toggle()/system-colors as the intended grammar while the production parser omits them, and nothing gates the reference against the implementation — the .bbnf overstates real coverage with no equivalence test enforcing it.
+⚠12 Semantic incorrectness (not a precept per se but a gestalt/isomorphism breach): src/parsing/index.ts:61-105 expands rotate()/scale()/skew() across X/Y/Z axes, producing a transform that does NOT match CSS semantics (rotate≡rotateZ; scale sets X+Y, not Z) — the transposition is non-isomorphic to the source CSS.
+⚠13 no-silent-degrade (the Mandate's honest-refusal clause): value.js's CSSValues.Values truncates comma-separated multi-value declarations at the first top-level comma and returns status=true, so kf's resolveKeyframes/parseAndFlattenObject silently drops the tail of multi-box-shadow / transition lists / font-family / background layers at PARSE time — no diagnostic, no refusal. compile.ts CC-3 refuses what it cannot emit, but this loss happens UPSTREAM of compile, on the forward leg, invisibly (evidence: empirical probe — 'box-shadow: 0 0 0 red, 0 0 0 blue' parses to a 4-leaf ValueArray '0 0 0 rgb(255 0 0)', the second shadow gone).
+⚠14 no-legacy / dead-code: the parseDeclarationValue fallback to a single string ValueUnit (value.js stylesheet.ts:212-235) documents 'falls back ... for comma-separated lists like font-family: Arial, sans-serif' — but CSSValues.Values SUCCEEDS on the first segment (status=true), so the fallback never fires. The comment asserts a behavior the code does not have: a thought-handled gap that is actually open.
+⚠15 replay-equality (round-trip = parser run backward) is asserted TOTAL by compile.ts/format.ts module docs ('a var()/matrix3d()/cqw round-trips VERBATIM', 'ONE serialization authority') but is only PARTIAL: @property registrations never re-emit backward (propertyRegistry is parsed + registered with the UA in engine.ts:1225/1318 but neither CSSKeyframesToString nor compileToCSS calls value.js's existing serializeProperty), so a compiled artifact animating a registered --custom-prop loses its @property typing and breaks on re-ship.
+⚠16 replay-equality (per-stop channel symmetry): roundtrip-easing.test.ts locks per-stop animation-timing-function symmetry, but the SIBLING per-stop animation-composition channel is asymmetric — the adapter captures it (adapter.ts ResolvedKeyframes.composition), the frame-compiler stores it (templateFrame.composition), but declaredKeyframeBody (format.ts:81-103) emits per-stop easing and NOT per-stop composition, so fromString(per-stop add) → CSSKeyframesToString → reparse loses the operator (it survives ONLY as a layer-level longhand through compile.ts).
+⚠17 forward asymmetry: value.js parses named keyframe selectors entry/exit/cover/contain (stylesheet.ts namedKeyframeSelector) and the adapter surfaces them as their literal name (adapter.ts:115), but frame-compiler.addFrame's total selector guard (SELECTOR_KEYWORD_RE/SELECTOR_PERCENT_RE, frame-compiler.ts:179-188) accepts only from/to/percent and THROWS AnimationOptionError on a named selector — what value.js produces, kf cannot ingest.
+⚠18 inv-16 soft violation: kf/src/animation/utils.ts stamps `FN_NAME` Symbol onto value.js `ValueUnit` instances — kf is writing state onto a class it does not own. The field is invisible to value.js (not preserved by `.clone()`, not typed, not documented). Remedy in value.js (VJ-L1), not a kf workaround.
+⚠19 replay-equality: value.js's `serializeDeclaration` emits `linear()` stops in a form its own `parseLinearStops` rejects (`0.5, 25%` vs `0.5 25%`). kf carries the fix via a regex in `getTimingFunction` — the parse run backward is not the serializer run forward. Remedy in value.js (VJ-L2).
+⚠20 no-workarounds: the regex normalize for `linear()` in `getTimingFunction` (src/animation/utils.ts:193-196) is an explicit workaround for a value.js round-trip bug, with the comment 'a value.js 0.12.0 serialize/parse asymmetry'. This is a workaround living in the consumer; it must be deleted once VJ-L2 lands.
+⚠21 typesVersions: pointing to a nonexistent path (dist/src/parse/index.d.ts) in the published 0.9.0 package is a legacy/workaround artifact — the modern exports map already covers types correctly; the stale field violates the NO-legacy-code precept and the substrate-and-consumer-land-together precept (the dist does not match what the manifest claims)
+⚠22 §1.5 expose (parseSingleValue / parseFunctionArgs) is a primitive without a current consumer — value.js has not adopted it; this violates the 'substrate and consumer land together' precept and the 'no public surface without a current consumer' overfitting rule (the produce-half shipped, the consume-half did not)
+⚠23 replay-equality: FunctionValue.toString() does not round-trip space-separated CSS function argument syntax (linear()/scroll() positional args serialize with commas, breaking parse(serialize(parse(s))) identity). kf workarounds this in getTimingFunction (utils.ts:188-202) and the value.js 0.13.0 CHANGELOG explicitly acknowledges the same bug for scroll() as a known limitation.
+⚠24 acyclic-spine / KISS: kf has @mkbabb/parse-that as a first-class production dependency solely because it needs the `any` combinator to compose value.js parsers. This composition belongs in value.js (which already owns the parsers). The fix is a cross-repo ask, not a kf-local fix — kf must not reach through value.js's parser abstraction layer to compose primitives from parse-that.
+⚠25 NO-DUPLICATION / gestalt: two independent CSS grammars coexist in the spine (parse-that typescript/src/parse/parsers/css/ AND value.js src/parsing/stylesheet.ts), each typing a different slice (parse-that: selectors+specificity+@media/@supports; value.js: calc/ValueUnit/@keyframes). kf consumes only the value.js one; parse-that's CSS module has no constellation consumer. True-CSS-parity cannot be anchored across two divergent grammars.
+⚠26 REPLAY-EQUALITY violated by absence: parse-that's CSS AST (types.ts) carries no Span/loc on any node and there is NO serializer in parsers/css/, so round-trip = parser-run-backward is structurally impossible for the CSS layer.
+⚠27 NO-LEGACY / dead-tier: packrat.ts ships a self-documented-UNSOUND memoization tier (id-only key, 'unsound across offsets') with zero production consumers, kept opt-in rather than removed or correctly reimplemented (Warth-Douglass-Millstein booked but not done).
+⚠28 Honest-refusal clause (compile.ts:35-43, the replay-equality invariant): a multi-color color track that drifts ΔE=0.82 from kf's own oklab playback ships silently as a verbatim sRGB @keyframes block with eligible:true, where a single-color track at the same drift HARD-REFUSES (perceptual-oklab). 'What cannot round-trip faithfully is REFUSED with a NAMED reason, never silently approximated' is violated by compile-color.ts:190.
+⚠29 No-workaround / no-BOOK-the-lossy-default: the multi-color case is marked 'multi-color densify is BOOK' (compile-color.ts:188-189) but the BOOK fallback is a SILENTLY LOSSY emit, not a deferral to a safe state — the safe deferral would be a refusal, not a wrong-color ship.
+⚠30 Consume-published-siblings / DRY (inv-16 spirit): compile.ts:241 reverseMs re-authors value.js's reverseCSSTime, which the sibling format.ts already imports and uses — two divergent time serializers in one module (reverseMs(1000)='1s' vs reverseCSSTime(1000)='1000ms').
+⚠31 replay-equality BREACH (active, in the implemented surface): a parsed `!important` declaration round-trips WITHOUT the flag — adapter.ts:95-104 reads only decl.name/decl.value, dropping the value.js-parsed Declaration.important (stylesheet.d.ts:5), and format.ts declaredKeyframeBody never emits it. The serialize is NOT the parser run backward for any important declaration. This is the same class of silent-drop the house serializeEasing THROW idiom (format.ts:43-51) was built to forbid, but unguarded here.
+⚠32 no-legacy/no-workaround: NONE found — the implemented K surface is idiomatic (typed CompileRefusal over silent approximation; the declared-template projection over DOM-resolved samples; value.js consumed published-only). The named-keyframe-selector inert-string pass-through (adapter.ts:111-116) is an honest, commented deferral, not a workaround.
+⚠33 inv-16: HELD — kf consumes value.js 0.13.0 via ^0.13.0 (no file:/vendored); the scroll grammar + sampleColorRamp + reverseAnimationShorthand are all published-consumed, acyclic spine intact (glass-ui→value.js→kf).
+⚠34 NO precept violations found in the perf surface. The K-shipped perf code is clean: group.ts zero-alloc compositor uses stable-key null-fill not delete (F.W4 dictionary-mode discipline), the WAAPI guard trades a perf OPPORTUNITY for guaranteed rAF-pixel isomorphism (no-workaround: it never ships a wrong pixel to go faster), and YIELD_BATCH sheds latency-not-work (no silent degradation of author intent). inv-16 is HONORED: lerpArray and the scroll/ramp grammar are consumed from PUBLISHED value.js 0.13.0 (git a34b298 re-pin ^0.13.0), never file:/vendored. The acyclic spine (glass-ui 4.0.0 → value.js 0.13.0 → kf) consumes published predecessors. The ONLY latent gap is a missed-OPPORTUNITY not a violation: lerpArray is published but un-consumed on the LIGHT NumericAnimation path (L-PERF-2 closes it) — that is an unclaimed edge, not a workaround or legacy.
+
+===== L-WAVE PROPOSALS (title · deps) [129] =====
+W1. L-wave: RF-17 net-deletion — delete the kf pointerdown workaround when glass-ui ships the dock-layer collapse-crossfade strand fix  «dep: glass-ui collapse-crossfade strand fix (the durable dock-side RF-17 cure) publis»
+W2. proof:no-single-option-select gate — the missing CI hard-gate for the U4 totality rule  «dep: none — the product fix is already in place; this is the gate-only gap»
+W3. TimelineTrack diamond drag-seam: born-RED-or-leave measurement artifact needed  «dep: none»
+W4. proof:subject-animates demo arm (ARM-D) — confirm or create the real matrix3d/--ball-p oracle  «dep: K.W0's proof:cold-entry oracle (already GREEN) — the demo arm reuses the same ar»
+W5. L: Reject (or per-keyframe-composite) mixed-operator animations on the WAAPI path — close the rAF↔WAAPI parity hole  «dep: none — engine-internal, value.js-independent (the diagnostics channel field is a»
+W6. L: Mirror the CSS-path UNKNOWN_TIMING_FN silent fallback as a diagnostics row  «dep: none — engine-internal»
+W7. L.W-INGEST-DEEP: recursive group-rule walk for nested @keyframes  «dep: No value.js gate. Follows K.W8.»
+W8. L.W-INGEST-DELAY: seedAtTime must reset delay to 0 for mid-flight continuity  «dep: No value.js gate. Follows K.W8.»
+W9. L.W-INGEST-ADOPT-REFUSE: ADOPT_REFUSE diagnostic code for not-found / no-getAnimations cases  «dep: No value.js gate. Follows K.W8.»
+W10. L.W-INGEST-SHADOW: walk adoptedStyleSheets for Shadow DOM / constructable-stylesheet parity  «dep: No value.js gate. Baseline 2023 API. Follows K.W8.»
+W11. L.W-INGEST-SCROLL-TIME: CSSNumberish currentTime resolution in adoptRunning for scroll-driven animations  «dep: Composes K.W9 (ScrollScene) and K.W8 (adoptRunning). Follows both.»
+W12. CC-6 — compile the scroll grammar (close the W9↔W10 compose gap)  «dep: none — value.js 0.13.0 scroll grammar already published and consumed»
+W13. CC-3.5 — refuse (not silently emit) the multi-color / cross-thread-color densify residue  «dep: none — sampleColorRamp/deltaEOK already published at 0.13.0»
+W14. ED-3 complete: the full barrel flip (63 demo files from @src/animation/* to @mkbabb/keyframes.js)  «dep: 4.3.0 published on npm (confirmed); proof:cold-entry GREEN (confirmed K.W0)»
+W15. keyframes-vue peer floor bump (>=4.2.0 → >=4.3.0) and first publish  «dep: 4.3.0 published (confirmed)»
+W16. KF-OSCILLATOR: a new LIGHT Oscillator primitive (periodic phase-clock for idle-breath and BB W-EASING-PRIMITIVE)
+W17. Engine-seam chunk-boundary refinement: split ingest/scroll/compile into their own loadAnimationEngine() lazy chunks
+W18. glass-ui 4.1.0 re-pin: W-DOCK-MORPH-FAMILY polish + DL-K9 RF-17 resolution  «dep: glass-ui 4.1.0 published at the BB close (cross-repo ask — CROSS-REPO-ASK)»
+W19. proof:live-session-mobile M2 — certify a TRUE touch-event-only commit path for reka SelectItem
+W20. proof:drawer-spring settle clause — declare measured on-device budget in gate-taxonomy.md
+W21. Enforce reason-string equality in proof:ci-coverage, or drop the 'byte-for-byte' claim from gate-taxonomy.md
+W22. Add an observe-only category taxonomy to gate-taxonomy.md — distinguish wall-clock-timing from pixel-render from physics-settle, and record the per-category architectural cure
+W23. L architectural option: Linux-container local repro for timing-class observe-only gates  «dep: Blocked on the category-taxonomy proposal (need the category column to know whic»
+W24. BB ask to glass-ui: SegmentedTabs must omit aria-orientation on the pill (role=group) variant  «dep: glass-ui publish gate (next 4.x with the fix) → kf re-pin ~4.x.y»
+W25. Until the glass-ui fix lands: audit ALL pill SegmentedTabs consumers and make the interim suppression complete, OR (preferred) hold the gate honestly
+W26. Relocate the Monaco Canceled swallow from the app root to the CSSCodeEditor dispose seam
+W27. L-GATE-1: Report-all (non-fail-fast) diagnostic posture for the demo-smoke job  «dep: none — pure repo-internal tooling»
+W28. L-GATE-2: A waitForRender/settle lib primitive replacing the 259 fixed-ms sleeps  «dep: none — repo-internal; rides the existing withPage/navToScene seam»
+W29. L-GATE-3: Linux-container local-repro (the slow-runner, reproduced on the dev box)  «dep: none — repo-internal; requires Docker on the dev box only»
+W30. L-GATE-4: Single-source the device-dependent thresholds (pixel/ms) the runner-calibration already started  «dep: none — extends the existing ci-env.mjs authority»
+W31. L.W0 — The publish completion (ED-3 + @mkbabb/keyframes-vue + PKG-3 MAJOR decision)  «dep: 4.3.0 already published (the substrate); @mkbabb/keyframes.js publish gate (proo»
+W32. L.W1 — KF-OSCILLATOR + glass-ui 4.1.0 consume (the BB cadence wave)  «dep: glass-ui BB close (the 4.1.0 cut must publish before kf re-pins)»
+W33. L.W2 — Engine-seam split: ingest/scroll/compile as distinct lazy chunks  «dep: L.W0 publish completion (4.3.0/5.0.0 stable surface to split)»
+W34. L.W3 — GlassControlPoint build-in-kf decision (the keyframes editor enabler)  «dep: glass-ui BB surface reconcile (is GlassControlPoint in BB scope?) — cross-repo a»
+W35. L.W4 — FB-3 MorphSVG (fromMorphSVG / getPointAtLength) consume, when value.js VJ.W4 ships  «dep: value.js VJ.W4 publish (the getPointAtLength / fromMorphSVG / arc-length sampler»
+W36. CC-5 — Static-weight pre-multiply inside the CSS compiler  «dep: K.W10 DONE (2784e46 landed) — no further value.js or glass-ui gate»
+W37. CC-6 — @supports progressive-enhancement variant: scroll() stagger  «dep: value.js 0.13.0 (installed, ^0.13.0 pinned); K.W9 DONE; K.W10 DONE — all gates m»
+W38. K5 — Embeddable inspector (distribution narrative)  «dep: K.W8 DONE, K.W10 DONE — tripwire fired; no value.js or glass-ui gate»
+W39. ED-2-React — @mkbabb/keyframes-react thin adapter  «dep: @mkbabb/keyframes-vue 0.1.0 STAGED (K.W12); L must publish keyframes-vue before »
+W40. EPF-1 — Engine read/write phase separation (measure-first, now has real workload)  «dep: K.W8 DONE (ingest-cssom.ts exists) — the workload now real; no value.js or glass»
+W41. K4 — LoAF self-instrumentation (tripwire: LoAF Baseline — now fired)  «dep: K.W7 diagnostics channel DONE (c0482cb) — the producer is K4's emit target; LoAF»
+W42. PHYS-A note — VectorSpring convenience sugar (S micro-wave, L-eligible)  «dep: K.W11 DONE (c0482cb) — SpringProgress foundation in place; no gates»
+W43. L.W_consume — glass-ui 4.1.0 BB re-pin + RF-17 click-strand retirement  «dep: glass-ui 4.1.0 BB publish (KF-TO-GLASSUI-BB-ASKS.md §2)»
+W44. L.W_morphsvg — MorphSVG / fromMorphSVG consumer (the real competitor-feature gap)  «dep: value.js VJ.W4 remainder (getPointAtLength published in a value.js cut post-0.13»
+W45. L.W_glassui-cp — GlassControlPoint build-in-kf decision (AX-1, 5-tranche, the keyframes-editor enabler)  «dep: gate-first BOOK: proof:control-point-live authored before impl; then glass-ui 4.»
+W46. L.W_books — K-SEED BOOKs tripwire-fire pass (CC-5/CC-6/VT-D/K4/K5/EPF-1/EPF-4)  «dep: platform Baseline verification at L-open (Baseline.web.dev checks for sibling-in»
+W47. L.W_parse-that — parse-that (id,offset) packrat re-key (PT-1, 4-tranche gate-first BOOK)  «dep: parse-that publish shipping the (id,offset) re-key (the PT-WAVE-2 completion; cu»
+W48. L dispatch to glass-ui BB: W-DOCK-MORPH-FAMILY consume + KF-OSCILLATOR delivery  «dep: glass-ui BB 4.1.0 publish (W-DOCK-MORPH-FAMILY in the cut); no value.js gate (va»
+W49. L dispatch to value.js Tranche O: VJ.W3 substrate totality (VJ-9 full partial-input) + SEAM-4 rotate() shorthand  «dep: value.js Tranche O (0.14.0) shipping VJ-9 full partial-input + SEAM-4 rotate() s»
+W50. L dispatch to glass-ui BB: SegmentedTabs pill-variant aria-orientation-on-role=group a11y fix  «dep: glass-ui BB 4.1.0 (or a 4.0.x patch) shipping the aria-orientation guard»
+W51. L new primitive: MorphSVG shape-interpolation product (gates on value.js VJ.W4 PathGeometry — RIPE at 0.12.0)  «dep: value.js 0.12.0 VJ.W4 sampler — already PUBLISHED and RIPE; no additional value.»
+W52. L.W0 — Deploy round-trip re-observation + version-cut confirm (USER-DOMAIN)  «dep: 4.3.0 cut already fired (4737ab3); deploy-pages.yml workflow_run trigger; keyfra»
+W53. L.W1 — glass-ui 4.1.0 consume (W-DOCK-MORPH-FAMILY polish)  «dep: glass-ui BB tranche publishing 4.1.0 with W-DOCK-MORPH-FAMILY»
+W54. L.W2 — GlassControlPoint gate-first BOOK (AX-1, 5-tranche, keyframes-editor enabler)  «dep: glass-ui publishing GlassControlPoint in a future minor/major»
+W55. L.W3 — MorphSVG remainder + parse-that packrat tripwire check (FB-3, PT-2)  «dep: value.js VJ.W4 arc-length sampler publish; parse-that ^0.9.0 packrat (id,offset)»
+W56. L.W4 — @mkbabb/keyframes-vue 0.1.0 close ceremony + proof:demo-on-published-surface verification  «dep: @mkbabb/keyframes.js@4.3.0 + @mkbabb/keyframes-vue@0.1.0 published; proof:demo-o»
+W57. L — Oscillator primitive (KF-OSCILLATOR BOOKED in KF-TO-GLASSUI-BB-ASKS.md §1)  «dep: BB W-EASING-PRIMITIVE co-schedule; value.js-free (LIGHT boundary)»
+W58. L.W0 — Deploy-round-trip close oracle (the K pending leg)  «dep: CI run 27655766822 green → deploy-pages auto-fires → keyframes.babb.dev cold-ent»
+W59. L.W1 — glass-ui 4.1.0 re-pin (the W-DOCK-MORPH-FAMILY polish consume edge)  «dep: glass-ui BB tranche publishes 4.1.0 (the W-DOCK-MORPH-FAMILY polish); kf-side: u»
+W60. L.W2 — KF-OSCILLATOR LIGHT primitive (the BB co-schedule item)  «dep: glass-ui BB W-EASING-PRIMITIVE wave schedule confirmed; value.js W-EASING-PRIMIT»
+W61. L.W3 — Engine-seam chunk-boundary split (round-trip API loadAnimationEngine refinement)  «dep: profile the actual bundle sizes in dist/ (the hash-named chunks) to determine if»
+W62. T1 Formal Resolution: own the corpus + kill the 'collapse the lattice' language  «dep: None — value.js and glass-ui publish gates not required.»
+W63. Deploy round-trip observation (K.WZ clause (c)) — the final K inv ε step  «dep: CI must be green on master (9bbc227) — the CI-greenify session completed this pr»
+W64. P15 CI contract form: proof:all as the deploy signal (or formally record flat as deliberate)  «dep: None.»
+W65. kf-L: Consume value.js 0.13.0 — re-pin + activate K.W9/K.W10 born-RED consume edges  «dep: value.js 0.13.0 PUBLISHED (confirmed 9fce504, 2026-06-16)»
+W66. kf-L: Activate K.W9 ScrollScene createScrollScene full suite (was born-RED on VJ.W1 absence)  «dep: value.js 0.13.0 PUBLISHED (the re-pin L-wave above)»
+W67. kf-L: Activate K.W10 CC-2 oklab densify via sampleColorRamp (was born-RED on VJ.W2 absence)  «dep: value.js 0.13.0 PUBLISHED (the re-pin L-wave above)»
+W68. kf-L: Watch N.W10 gate-opener for value.js demo health — cascade kill unblocks the W12-W17 design-gate chain  «dep: value.js N.W10 (RATIFIED, not yet dispatched); glass-ui BA 4.0.0 cut (the one re»
+W69. List-grammar substrate: top-level comma-separated <X># lists as a first-class ValueList node  «dep: value.js minor publish; kf re-pins consume-edge after»
+W70. Structured gradient grammar (linear/radial/conic) replacing the linear-only ad-hoc parser  «dep: value.js minor publish»
+W71. color() replay-equal serialization + var()/calc substitution-token inside color components  «dep: value.js minor publish»
+W72. Full transform-function grammar with CORRECT axis semantics + matrix/perspective/3d typing  «dep: value.js minor publish»
+W73. @property typed-custom-property bridge: <syntax> grammar + var()-typed-interpolation  «dep: value.js minor publish; downstream kf compile-seam consumes the typed registry»
+W74. KF-TO-VALUEJS ask: comma-aware declaration-value LIST grammar in value.js (CSSValues.ValueList / parseDeclarationValue returns segmented list)  «dep: value.js publish (new minor — comma-list grammar + serializer); kf re-pins ^0.14»
+W75. Wire @property backward serialization into compileToCSS/CSSKeyframesToString (consume value.js's existing serializeProperty)
+W76. Close the per-stop animation-composition serialization asymmetry in declaredKeyframeBody
+W77. Named-keyframe-selector ingest path (entry/exit/cover/contain) into the frame-compiler  «dep: possibly value.js (named-range→progress mapping) — resolve in the design spike b»
+W78. VJ.L1 — transformMat3 scalar-inlined, zero-allocation 3×3 MVM
+W79. VJ.L2 — mixColors() zero-alloc rewrite with per-space scratch buffer
+W80. VJ.L3 — gamutMapToRgbSpace binary search with scalar probe, no per-iteration Color allocation
+W81. VJ.L4 — normalizeColor hot-loop: indexed channel write, drop keys().forEach closure
+W82. VJ.L5 — memoize fast-path: skip LRU delete/re-set when maxCacheSize is Infinity  «dep: No cross-repo deps; ships in next value.js patch release»
+W83. VJ.L6 — DIRECT_PATHS table expansion: oklch↔oklab, hsl↔oklch for gamut-map and sampleColorRamp hot paths
+W84. VJ.L7 — Intra-bucket dispatch refinement for 'c' and 'l' color parser buckets
+W85. VJ.L8 — scale() constant-range fast paths for the per-channel normalize hot loop
+W86. VJ-L1: First-class `FlatLeaf` type and `flattenDeclaration` on value.js  «dep: value.js must publish VJ-L1 before kf can consume it (acyclic-spine: value.js → »
+W87. VJ-L2: Fix the `linear()` serialize/parse round-trip in value.js — add `linearStopsToCSS`  «dep: value.js must publish VJ-L2 before kf can consume it. No glass-ui gate.»
+W88. VJ-L3: Expose `parseCSSValueOrArgs` — eliminate kf's direct parse-that import  «dep: value.js publishes VJ-L3; kf consumes. VJ-L1 landing first is desirable but not »
+W89. KF-L4: `proof:replay-equality` gate — parse → serialize → parse identity assertion  «dep: Can land independently; benefits maximally when VJ-L2 is already in (so the line»
+W90. VJ-L5: Typed `ValueUnit` constructor — named-options overload or builder  «dep: Independent; no gate dependency.»
+W91. PT-WAVE-4: typesVersions surgery + CJS drop  «dep: none — self-contained»
+W92. PT-WAVE-5: value.js consumer adoption of parseSingleValue / parseFunctionArgs (§1.5 consumer half)  «dep: parse-that 0.9.0 published (done); value.js 0.13.0 already pins ^0.9.0»
+W93. PT-WAVE-6: packrat soundness (Warth-Douglass-Millstein keyed on (id, offset))  «dep: PT-WAVE-4 (clean publish posture first)»
+W94. value.js: expose parseCSSSubValue(property, str) — eliminate kf's direct parse-that dependency  «dep: value.js publish gate (new minor, e.g. 0.14.0); kf re-pin to ^0.14.0»
+W95. value.js: fix FunctionValue.toString() for space-separated CSS function argument syntax (replay-equality restore)  «dep: value.js publish gate (new minor, e.g. 0.14.0 — may bundle with parseCSSSubValue»
+W96. proof:boundary: extend holdsValueJsSpecifier to also catch direct @mkbabb/parse-that imports in light modules
+W97. Unify on ONE CSS grammar: make value.js's parser the single CSS authority and DELETE parse-that/parsers/css/, OR promote parse-that/parsers/css/ to the spec-complete tokenizer that value.js's typed layer consumes  «dep: value.js + parse-that coordinated minor publish; kf re-pins ^value.js after»
+W98. Close the true-CSS-parity capability gaps in the chosen grammar: CSS Nesting (& + bare nesting), url-token, modern typed at-rules (@container/@layer/@scope/@property/@page), and a proper url/escape-aware tokenizer  «dep: gated by proposal 1 direction; coordinated value.js/parse-that publish»
+W99. Replay-equality (round-trip serializer) as a first-class capability: attach Spans to every CSS AST node and add a format-backward emitter so parse(serialize(ast)) === ast and serialize(parse(src)) preserves author surface  «dep: gated by proposal 1; same coordinated publish»
+W100. Investigate incremental/streaming parse as the SOTA-perf differentiator for kf live-ingest (re-parse-on-edit, document-fragment reuse) — research-and-challenge wave before any code  «dep: none to research; any implementation is a coordinated parse-that publish + kf re»
+W101. VJ-NEST: Recursive stylesheet parse — @media/@supports/@container/@layer as typed recursive StylesheetItem  «dep: Lands in value.js; gated by value.js minor publish before kf-L consumes it»
+W102. VJ-CONTAINER: Typed @container condition parse — size queries + style() branch  «dep: parse-that patch publish first; then value.js consumes»
+W103. VJ-PROPERTY-SYNTAX: Typed @property syntax-string grammar — CSS Properties & Values API Level 1  «dep: value.js only; no parse-that change needed»
+W104. VJ-TRANSITION: parseTransitionShorthand + reverseTransitionShorthand — the missing mirror of the animation shorthand pair  «dep: value.js only»
+W105. PT-PERMUTATION: `permutation(...parsers)` combinator in parse-that — typed `||` CSS 'any order' semantics  «dep: parse-that publish; then value.js re-pins and collapses workarounds»
+W106. PT-UNICODE-DISPATCH: Extend dispatch() to handle non-ASCII first-char via Map fallback  «dep: parse-that publish only»
+W107. VJ-ENV-ATTR: Typed env() and attr() parsers — close the BBNF-to-combinator gap  «dep: value.js only»
+W108. VJ-SYSTEM-COLORS: System color sentinel — Canvas, CanvasText, ButtonFace etc. as deferred VJ-3 pattern  «dep: value.js only»
+W109. VJ-GRADIENT-FULL: Complete radial-gradient + conic-gradient head grammar — at-position, shape, size keywords  «dep: value.js only; large; candidate for its own tranche wave»
+W110. VJ-CALC-WS: Enforce mandatory whitespace around additive operators in calc() — CSS Values L4 §10.9 correctness  «dep: value.js only; breaking for any callers currently relying on whitespace-free cal»
+W111. Fold the three flatten/projection authorities onto one bidirectional codec module (flatten<->unflatten as a single named seam)  «dep: none — all three sites are already value.js-HEAVY; no new publish gate»
+W112. Memoize parseAndFlattenObject against template-frame identity so an option-only re-parse re-flattens nothing (mirror the renormalizeColors targeted-rederive principle)  «dep: none»
+W113. Close the multi-color silent-divergence hole: densify EACH changing color key independently, or REFUSE with a named reason (never ship the verbatim sRGB block silently)  «dep: none — sampleColorRamp/deltaEOK already consumed PUBLISHED from value.js»
+W114. Add a multi-color fixture + a multi-color refusal/densify assertion to the round-trip corpus so the gate BITES on the lossy case it currently skips  «dep: sequence after the compile-color.ts densify generalization, or land RED first as»
+W115. Unify the compiler's time serialization onto value.js's reverseCSSTime (delete the bespoke reverseMs)  «dep: none — reverseCSSTime already PUBLISHED + consumed in format.ts»
+W116. L.W0 — DECLARATION-FLOOR: honor + round-trip !important (the replay-equality cure)  «dep: none — value.js 0.13.0 already exposes Declaration.important»
+W117. L.W1 — OPERATOR-FLOOR: composite / iteration-composite + animation-play-state on AnimationOptions  «dep: value.js value-grammar extension (the dispatch-and-consume cadence; acyclic spin»
+W118. L.W2 — SELECTOR-FLOOR: animate the named keyframe selectors (entry/exit/cover/contain)  «dep: none — composes the shipped ScrollScene phase mapper»
+W119. L.W3 — COMPILE-COMPLETENESS: emit animation-timeline/animation-range from compileToCSS  «dep: value.js 0.13.0 (already published — serializeTimelineOptions); rides L.W1's eng»
+W120. L.W-KILL-GUARD — record @starting-style + view-transition as the standing anti-charter, re-confirmed at L  «dep: none (a value.js AST extension would gate any future ingest)»
+W121. L-PERF-1: warmEngine() idle-warmer (the one clean shippable perf increment)  «dep: none — value.js/glass-ui publish-independent»
+W122. L-PERF-2: consume value.js lerpArray into the LIGHT numeric/spring tier (NumericAnimation.at, SpringProgress vector sugar)  «dep: value.js lerpArray — ALREADY PUBLISHED (0.13.0 in tree); no new publish gate»
+W123. L-PERF-3 (BOOK→born-RED probe): scheduler.postTask priority bands + time-budget yielding over the fixed YIELD_BATCH count  «dep: none»
+W124. L.W-BOUNDARY — granular dynamic boundary: split loadAnimationEngine() into per-capability lazy accessors  «dep: none (kf-owned; no sibling publish gate)»
+W125. L.W-DOGFOOD — land the ED-3 dogfood inversion: flip the demo onto the PUBLISHED barrel + publish keyframes-vue, then invert the demo onto <Keyframes>/useKfAnimation  «dep: keyframes-vue 0.1.0 publish (USER-DOMAIN); kf 4.3.0 already on npm»
+W126. L.W-TYPES — retire the PKG-3 d.ts collision-aliases (`Animation_2 as Animation`) — clean the public type surface at its API-Extractor root  «dep: none (kf-owned); may co-schedule with the 5.0.0 cut»
+W127. L.W-FRONT-DOOR — extend animate() to dispatch over the orchestration tier and add a canonical round-trip verb  «dep: none (kf-owned, over the already-shipped compile surface)»
+W128. L.W-OSCILLATOR — ship the BOOKED KF-OSCILLATOR LIGHT primitive (periodic phase-clock: frequency + waveform → phase ∈ [0,1))  «dep: glass-ui W-EASING-PRIMITIVE co-schedule (consume signal); no publish gate on kf »
+W129. L.W-REACT (BOOK→candidate only if Vue proves the pattern) — @mkbabb/keyframes-react adapter with the on-brand <Keyframes css> primitive  «dep: keyframes-vue published + demo-dogfooded first (the pattern-proof tripwire)»
+
+===== CROSS-REPO-ASK findings =====
+→ SegmentedTabs emits aria-orientation unconditionally even on role="group" (pill) — a genuine glass-ui defect, NOT a kf concern (/Users/mkbabb/Programming/glass-ui/src/c)
+→ c176bd0 :aria-orientation="undefined" consume-suppression is a band-aid — applied to only ONE of (at least) TWO affected pill strips; AnimationControls.vue strip is left un-suppressed and emits the same invalid attribute on EVERY scene (demo/spring/SpringSidebar.vue:43 has the)
+→ glass-ui is a live BB repo (HEAD fad51215, 71-wave atlas-expand band) — the aria-orientation fix is a one-line conditional bind there; driving it via BB makes ALL consumers correct at once, replacing the per-call-site suppression (/Users/mkbabb/Programming/glass-ui git l)
+→ ED-2-React precondition note: no React demo exists to dogfood-invert against — L requires one (docs/tranches/K/waves/K.W12.md:324 ('NOT)
+→ C-1 value.js next-slice (VJ.W3/VJ.W4 remainder) — value.js HANDOFF; 8-tranche chronic-by-design; VJ.W4 arc-length/getPointAtLength+MorphSVG open in 0.13.0 (docs/tranches/K/audit/deferred-ledger-k.)
+→ glass-ui BB W-PEER-SPINE — confirm ^4.0.0 peer survives the BB 4.1.0 major bump (no peer warning on kf re-pin) (docs/tranches/K/KF-TO-GLASSUI-BB-ASKS.md)
+→ SegmentedTabs pill-variant: role=group receives aria-orientation despite ARIA spec forbidding it — consume-side workaround in demo (SpringSidebar.vue:43 :aria-orientation=undefined) (demo/spring/SpringSidebar.vue:43; node_m)
+→ glass-ui BB un-folded value.js-N2 addendum (registers A′/F) — self-reported gap; A′-2 (GooBlob PRM P0) and F-2 (peer ^0.10.0||^0.11.0 not admitting 0.12.0/0.13.0) require BB-side disposition (docs/tranches/K/CONSTELLATION-DAG.md §5 )
+→ F-2 glass-ui peer ^0.10.0||^0.11.0 does NOT admit value.js 0.12.0/0.13.0 — live peer-warning blast radius TODAY (docs/tranches/K/CONSTELLATION-DAG.md §5 )
+→ GlassControlPoint AX-1 (5-tranche; keyframes-editor enabler) — HANDOFF to glass-ui; gate-first BOOK (docs/tranches/K/FINAL.md §4; GlassContro)
+→ FB-3 MorphSVG remainder — HANDOFF gated on value.js VJ.W4 remainder (docs/tranches/K/audit/prompt-recap-k.md )
+→ PT-2 parse-that packrat (id,offset) re-key — HANDOFF, gate-first BOOK (docs/tranches/K/audit/prompt-recap-k.md )
+→ fourier-web still pins @mkbabb/value.js ^0.10.0 — excludes 0.11.x/0.12.x/0.13.0 (fourier-owned bump ask, NOT value.js's write) (N.md §3: 'fourier-web pins ^0.10.0 (excl)
+→ Comma-separated value lists SILENTLY TRUNCATE to the first segment (replay-equality + correctness break) (src/parsing/index.ts:255 (CSSValues.Valu)
+→ Bare linear-gradient(red, blue) THROWS `t is not iterable` (src/parsing/index.ts:188-205 handleGradi)
+→ radial-/conic-gradient bodies corrupted — `at`, shape, size, position parsed as opaque tokens (src/parsing/index.ts:125-208 — handleGra)
+→ color() function not replay-equal — `color(` wrapper dropped, space-name leaks as function name (src/parsing/color.ts:508-543 colorFuncti)
+→ transform rotate()/scale()/skew() axis EXPANSION is semantically WRONG (renders a different transform) (src/parsing/index.ts:61-105 handleTransf)
+→ var() inside a color function THROWS (very common real-world CSS) (src/parsing/color.ts:257-269 colorValue )
+→ env() / attr() / image-set() / cross-fade() / paint() / url() parse only via the generic FunctionValue fallback (src/parsing/index.ts:224-233 Function_ e)
+→ Generic whitespace-grammar functions get whitespace→comma injection on serialize (src/parsing/index.ts:13-17 FunctionArgs )
+→ @property typed custom properties parsed but syntax string is opaque, initial-value untyped against it (src/parsing/stylesheet.ts:379-407 buildP)
+→ value.js CSSValues.Values silently truncates comma-separated multi-value declarations at the first top-level comma (forward-leg loss) (value.js src/parsing/stylesheet.ts:212-2)
+→ The diagnostics OnParseError sink is authored but inert — value.js parse failures do not flow to it (adapter.ts:173-176 onParseError defined )
+→ flattenObject / parseAndFlattenObject in the kf consume-edge reallocates a new plain object tree on every call — no structural cache across frames for the same property path set (/Users/mkbabb/Programming/keyframes.js/s)
+→ §1.5 parseSingleValue / parseFunctionArgs exposed at package root — consumer (value.js) adoption pending (typescript/src/parse/parsers/css/index.t)
+→ linear() round-trip asymmetry: kf workarounds a known value.js serialize bug (replay-equality violation) (/Users/mkbabb/Programming/keyframes.js/s)
+→ Recursive-descent CSS path stack-overflows (SIGABRT) under fat-LTO in the Rust bench harness — bounded-depth defect on deeply nested selectors (docs/precepts/audits/REAUDIT-2026-04-30/)
+→ The ONE non-lossless edge is an honest documented value.js HANDOFF (oklab string serialize/parse drifts ~1e-13), not a kf channel-drop — round-trip stays falsifiable via number-count + 1e-9 closeness (test/roundtrip-fidelity.test.ts:21-27,17)
+→ FN_NAME identity stamp is a Symbol side-channel re-applied on every clone because value.js ValueUnit.clone() drops it — a cross-repo provenance gap kf works around correctly but owns the restamp (src/animation/utils.ts:42-57,292-299; sr)
+→ color-chromatic.css does NOT round-trip byte-same (epsilon row) — value.js oklab string serialize↔parse drifts the last float ~1e-13 (test/roundtrip-fidelity.test.ts:21-27 + )
+→ @starting-style entry rules not parsed/round-tripped — the KILL (CC-7) covers only the COMPILER emitting it, not ingestion (grep @starting-style src/ → 0 hits; K-SE)
+→ keyframes-vue scaffolded 0.1.0 but UNPUBLISHED; the dogfood loop (demo consumes the published adapter) cannot close until it ships (packages/keyframes-vue/package.json vers)
+
+===== KILL findings =====
+✗ DL-K32 — 12 K-SEED KILLs are non-re-litigable anti-charter
+✗ KILL VT-A (flipShared→VT dispatcher) — structural, permanent
+✗ KILL VT-B (parse ::view-transition @keyframes) — architectural boundary, permanent
+✗ KILL CE-2 (@property for compositing) — Chromium bug unshipped, platform physics unchanged
+✗ KILL CE-3 (compositor-offloaded oklab ramp) — fundamental rendering architecture
+✗ KILL EPF-2 (interpolation JIT) — premise remains false
+✗ KILL EPF-5 (adaptive quality / general) — anti-precept: sheds author-declared intent
+✗ KILL K-T1 (kf-owned splitText) — off all three axes, a11y hazard
+✗ KILL K-T3 (Custom-Highlight-API animation) — paint mask, not motion substrate
+✗ KILL CC-7 (blanket @starting-style) — platform-incorrect framing, structural
+✗ KILL ED-6 (JSR publish) — hand-tuned static/dynamic boundary would be lost
+✗ KILL PHYS-A (coupled vector springs) — mathematically equivalent to N independent springs
+✗ DL-K32 — 12 K-SEED ARCH KILLs (VT-A/B, CE-2/3, EPF-2/5, K-T1/T3, SO-4, CC-7, ED-6, PHYS-A): permanent non-re-litigable; K's anti-charter
+✗ Tranche O — clean fallback for any VJ-ledger residue post-N — named but NOT elected
+✗ View-transition grammar (::view-transition, view-transition-name keyframes) absent — KILLed as value.js's job
+✗ Worker / OffscreenCanvas / AnimationWorklet (Houdini) — re-examined 2026, STILL-KILL: no DOM-style write path off-main-thread; AnimationWorklet abandoned; OffscreenCanvas is canvas-only
+✗ EPF-2 interpolation JIT (precompiled closures) — STILL-KILL: dispatch already monomorphic-per-iv via value.js _lerp (utils.ts:339 prepareInterpVar); a new Function emitter is CSP/boundary/KISS-hostile for a sub-25% predicted win
+✗ EPF-5 LoAF adaptive-quality (shed blend layers / coarsen sampling) — STILL-KILL: silently degrades author-declared intent; the weighted-blend axis IS the product; kf already has the correct pressure response (YIELD_BATCH sheds latency not work)
+✗ GPU / WebGPU compute for interpolation — KILL: no DOM-style write path from a compute pass; matrix3d() serialization (M individual style writes) is the layout surface, not the lerp arithmetic (b16: engine is not the cube's limiter — Vue reactivity is)
+
+===== CHRONIC-FOLD findings =====
+♾ DL-K9 RF-17 GlassDock click-strand — kf interim retained, glass-ui handoff pending (deferred-ledger-k.md DL-K9: 'RF-17 R)
+♾ DL-K7 GlassControlPoint — 5-tranche, exited K as HANDOFF with gate-first BOOK (deferred-ledger-k.md DL-K7: 'EXITED )
+♾ No top-level `<color-interpolation-method>` / `in <space>` parsing outside color-mix (src/parsing/index.ts handleGradient )
+♾ oklab color-string serialize→parse float drift (~1e-13) — a known, gated value.js handoff (test/roundtrip-fidelity.test.ts:21-2)
+♾ EPF-1 engine-level read/write phase separation (fastdom discipline over the cq-unit forced-layout probe) — BOOK, tripwire un-fired; uniquely on-brand but the thrash is epoch-boundary-only and no real multi-computed workload exists (docs/tranches/J/audit/frontier/engin)
+
+===== HIGH-severity L-WAVE-CANDIDATE findings =====
+★ seedAtTime delay-paused bug — adoptRunning freezes when source animation has delay > 0 (src/animation/ingest.ts:258-272 — seedAt)
+★ Compiler is scroll-BLIND — W9 and W10 round-trips do not compose (the headline gap) (src/animation/compile.ts (zero timeline/)
+★ Multi-color densify silently emits non-faithful sRGB with eligible:true (replay-equality honest-refusal violation) (src/animation/compile-color.ts:187-190 `)
+★ Both CI job and proof:all are serial-AND fail-fast — first red aborts; no report-all diagnostic mode exists (.github/workflows/ci.yml (demo-smoke: ~7)
+★ 259 fixed-ms waitForTimeout() sleeps are the macOS-pass/Linux-fail render-race root (grep waitForTimeout scripts/*.mjs = 259 )
+★ The settle-on-state cure already exists but was applied to ONE function only (scripts/lib/demo-driver.mjs:654-713 navT)
+★ No Linux-container local-repro — only feedback channel for a Linux-specific flake is push + ~30min CI (no Docker/container:/act/Makefile in .gi)
+★ ED-3 dogfood inversion — STAGED, not landed (demo still @src) (scripts/proof-demo-on-published-surface.)
+★ @mkbabb/keyframes-vue 0.1.0 — package exists locally but NOT published to npm (packages/keyframes-vue/package.json vers)
+★ N.W10–N.W17 (second block design body) RATIFIED but not yet implemented (PROGRESS.md:38-51 — all rows show RATIFI)
+★ @property registrations never round-trip backward — compiled artifact loses custom-property typing (kf engine.ts:1225 (propertyRegistry from)
+★ transformMat3 allocates a new Vec3 tuple every call — hot path in all oklab/oklch conversions (/Users/mkbabb/Programming/value.js/src/u)
+★ oklab2xyz and xyz2oklab allocate two intermediate Vec3 tuples per call (lms + lmsLinear) inside every XYZ-hub conversion (/Users/mkbabb/Programming/value.js/src/u)
+★ mixColors() allocates a resultComponents array and calls c1.keys() + filter() on every call — paid on every sampleColorRamp stop and every color-mix() parse (/Users/mkbabb/Programming/value.js/src/u)
+★ gamutMapToRgbSpace constructs a new OKLCHColor + calls color2() twice inside each of 24 binary-search iterations — 48 Color allocations per out-of-gamut wide-gamut pixel (/Users/mkbabb/Programming/value.js/src/u)
+★ `FN_NAME` Symbol sidechannel on `ValueUnit` — private kf state on a published value.js class (src/animation/utils.ts:45-57, 294-298 — )
+★ `linear()` serialize/parse asymmetry in value.js — kf carries the fix (src/animation/utils.ts:187-193 — comment)
+★ Two divergent CSS grammars in the spine: parse-that owns parsers/css/ (structural AST), value.js re-implements its OWN stylesheet+value grammar on parse-that's LOW-LEVEL combinators — kf never reaches parsers/css/ (value.js src/parsing/stylesheet.ts:8 imp)
+★ CSS Nesting (Baseline-2023) is silently DROPPED — nested rules inside a declaration block are lost with no error (Live: cssParser.parse('.card{color:red;&)
+★ url-token mis-tokenized: unquoted url(a/b.png) shredded into ident/slash/ident/ident instead of one url value (Live: cssParser.parse('.x{background:url)
+★ Modern at-rules (@container/@layer/@scope/@property/@page) degrade to genericAtRule with an UNPARSED string prelude (Live: @container (min-width:200px){...} )
+★ NO serializer / format-backward in parse-that's CSS module — replay-equality (round-trip = parser run backward) is structurally absent (grep for serialize|format|toCss|stringif)
+★ Nested CSS rules: stylesheet.ts treats every unknown at-rule body as opaque string — no recursive parse of @media/@supports/@layer/@container contents (/Users/mkbabb/Programming/value.js/src/p)
+★ @container query rule: no typed parse of the container-condition (not merely opaque prelude) (/Users/mkbabb/Programming/value.js/src/p)
+★ Multi-color track ships verbatim sRGB block silently (eligible:true) — measured ΔE=0.82 vs kf's own oklab playback, no densify, no refusal (src/animation/compile-color.ts:188-190 ()
+★ Asymmetric honest-refusal: a 1-color drift past ΔE-ε HARD-REFUSES (perceptual-oklab), but the SAME drift on a 2+-color track ships silently — violates the replay-equality invariant's honest-refusal clause (compile.ts:329-340 (single-color refusal)
+★ proof:roundtrip-fidelity + proof:compile-replay corpus has NO multi-color fixture — the gate is green over the exact lossy case (gate blind-spot) (test/fixtures/keyframes/manifest.json: e)
+★ !important silently dropped — a replay-equality breach (value.js parses it, kf throws it away) (src/animation/adapter.ts:95-104 (declsTo)
+★ loadAnimationEngine() eagerly Promise.all's ALL 8 heavy chunks — the static/dynamic boundary (axis-3) is one all-or-nothing door, not granular (src/animation/index.ts:334-363 (Promise.)
+★ K FINAL RECORDED the engine-seam split as an explicit kf-owned follow-up, not a K blocker (docs/tranches/K/FINAL.md:66 — 'The futur)
+★ ED-3 dogfood inversion NOT landed — demo still imports deep @src/animation/* paths; zero @mkbabb/keyframes barrel imports in demo (grep @mkbabb/keyframes demo/ → 0 hits; d)

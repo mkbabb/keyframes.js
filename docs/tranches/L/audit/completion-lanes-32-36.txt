@@ -1,0 +1,88 @@
+COMPLETION LANES: 5 (32,35,33,34,36)
+
+
+##### Lane 32 — COMPETITIVE-SOTA POSITIONING + COMPLETENESS-CRITIC
+  kf's TRUE differentiator is structurally unique and correctly identified across the existing 31 lanes: the authoring object IS parsed CSS @keyframes, so the engine closes a bi-directional loop — INGEST the live web's CSS (fromStyleSheets/fromLiveAnimations/adoptRunning), DRIVE it (oklab color, springs, weighted blend, scroll), and COMPILE it BACK to zero-runtime CSS (compileToCSS) with an honest-r
+  PROPOSALS:
+    • L.W-GESTURE-BOUNDS — Draggable bounds + snap + rubber-band (GSAP Draggable / Motion dragConstraints parity) «none — LIGHT, value.js-independent, over shipped decay/sprin»
+    • L.W-TRANSPORT-EVENTS — segment-lifecycle + label-callback channel for Sequence (and a subscribe hook for the LIGHT non-DOM path) «none — kf-owned, LIGHT; reuses the shipped ScrollScene .on p»
+    • L.W-AGENT-AUTHOR — the generative + validation agent surface that closes the moat's FORWARD direction for LLMs «none to research; composes shipped compileToCSS/ingest/diagn»
+    • L.W-FRONT-DOOR+ — extend animate() to dispatch over the orchestration tier (fold W127) AND accept the new transport-event channel «sequences after L.W-TRANSPORT-EVENTS; folds the existing W12»
+  KEY FINDINGS:
+    [med/L-WAVE-CANDIDATE] GAP (drag): no bounds / snap / rubber-band — GSAP Draggable + InertiaPlugin parity hole
+    [med/L-WAVE-CANDIDATE] GAP (orchestration observability): Sequence + animate have no per-segment lifecycle callbacks/label-events — t
+    [high/L-WAVE-CANDIDATE] GAP (the untapped moat-multiplier): no agent/LLM AUTHORING verb — kf indexes capabilities for agents but offer
+    [med/BOOK] COMPLETENESS-CRITIC: the 31 lanes are GRAMMAR/ROUND-TRIP-heavy and gesture/DX-light — systematic under-coverag
+    ⚠ NO NEW violations found on the LIGHT orchestration/gesture/DX surface Lane 32 audited (drag/decay/spring/Sequence/stagger/flip/animate). The binding p
+    ⚠ OBSERVATION (not a violation): the absence of per-segment callbacks on Sequence is a missing-FEATURE, not a precept breach — but shipping a GSAP-style
+    ⚠ OBSERVATION (overfitting tripwire for the agent wave): L.W-AGENT-AUTHOR must NOT add a public surface without a current consumer (the overfitting rule
+
+##### Lane 35 — AGENT-AUTHORING VERB design (Tranche L)
+  kf already has every PART of an agent-authoring loop but exposes no VERB an LLM agent would call to check "will this @keyframes ship faithfully?". The full machinery exists: `resolveKeyframes` (parse + a typed `Diagnostic[]` channel, adapter.ts:25-93), `compileToCSS` returning `{ css, eligible, refusals }` with four NAMED `CompileRefusal` reasons (compile.ts:74-134), and `isWAAPIEligible` returnin
+  PROPOSALS:
+    • L.W-AGENT-VALIDATE — the agent-authoring validate/explain verb over the existing compile + diagnostics + eligibility channels «L.W1 (replay-equality FLOOR — the !important/@property/compo»
+    • GEN-1 (KILL) — generate-from-intent verb is off-axis; add to L's anti-charter «none — a documentation/anti-charter decision, non-re-litigab»
+  KEY FINDINGS:
+    [high/L-WAVE-CANDIDATE] The agent-authoring VERB is genuinely net-new — not captured by W127 or anywhere in the L wave map
+    [high/L-WAVE-CANDIDATE] Every PART of validate(css) already exists — the verb is a pure read-only projection over three existing typed
+    [high/KILL] A generate-from-intent verb is OUT OF SCOPE — proposing it would be the one real precept tension (KISS / inv-1
+    [med/L-WAVE-CANDIDATE] Boundary placement is unambiguous — validate/explain are HEAVY, adding NO new static value.js edge
+    [med/L-WAVE-CANDIDATE] llms.txt must teach the LOOP, not just list the verb — the agent-surface generation is gated and cannot drift
+    [med/L-WAVE-CANDIDATE] The verb should validate the FULL round-trip surface L.W1/L.W2 close, not just today's subset — sequencing dep
+    ⚠ NONE in the proposed design — validate/explain are read-only projections over already-CI-gated typed channels (no quick solution, no workaround, no le
+
+##### Lane 33 — GATE / TEST / BENCH CORPUS COVERAGE
+  VERDICT: the corpus does NOT gate the L work. The 5 deep-audit replay-equality breaches (!important, @property backward-serialize, per-stop animation-composition, named keyframe selectors, multi-color densify) ALL silently pass because NO fixture exercises any of them — a structural gate blind-spot, not a tuning miss. Evidence: 84 test files, 15 .css fixtures + manifest.json, 8 benches, ~50 CI pro
+  PROPOSALS:
+    • L.W1 — proof:replay-equality: the born-RED full-surface round-trip gate that BITES on all 5 breaches «value.js 0.13.0 already exposes Declaration.important; @prop»
+    • L.W2 — multi-color + scroll-driven COMPILE fixtures: make proof:compile-replay bite the lossy cases it currently skips «value.js 0.13.0 sampleColorRamp/deltaEOK (published, consume»
+    • L.W3 — extend proof:ingest-replay with the delay/nested/shadow/refuse arms (born-RED per the 4 ingest cures) «None — Band A, follows K.W8.»
+    • L.W4 — gate-suite device-honesty transposition: a waitForRender/settle primitive replacing 259 fixed-ms sleeps + a report-all CI posture + an observe-only category taxonomy «None — repo-internal. Linux-container local-repro (W29) is a»
+    • L.W5 — born-RED perf oracles: a LIGHT-tier zero-alloc gate (lerpArray consume) + a budgeted bench taxonomy for the perf waves «value.js lerpArray published (0.13.0 in tree). The value.js »
+    • L.W6 — the missing born-RED CI gates: proof:no-single-option-select (W2) + proof:live-session-mobile M2 touch path (W19) «None — product fixes in place; gate-only.»
+  KEY FINDINGS:
+    [high/L-WAVE-CANDIDATE] The 5 replay-equality breaches ALL silently pass: NO fixture exercises any of them (the gate blind-spot is str
+    [high/L-WAVE-CANDIDATE] NO proof:replay-equality gate exists — the L.W1 hard gate (audit W89) is unbuilt
+    [high/L-WAVE-CANDIDATE] The round-trip/compile gates are SOURCE-SHAPE: they grep for test anchors, they do not enumerate the input spa
+    [high/L-WAVE-CANDIDATE] proof:ingest-replay has NO arm for the W3 ingest cures (seedAtTime delay-reset, nested group-rule, Shadow-DOM 
+    [high/L-WAVE-CANDIDATE] The scroll-BLIND headline has NO compose gate: proof:scroll-roundtrip proves ENGINE dispatch, proof:compile-re
+    [high/L-WAVE-CANDIDATE] proof:color-fidelity is a SINGLE-PAIR midpoint ΔE — it cannot catch the multi-color densify silent-lossy ship
+    [high/L-WAVE-CANDIDATE] adapter.ts:declsToVarMap reads only decl.name/decl.value — the !important breach is at source, unguarded, and 
+    [med/L-WAVE-CANDIDATE] compile-replay clause(b) tests LAYER-level animation-composition but the breach is per-STOP — the gate's compo
+    [med/CROSS-REPO-ASK] NO bench covers the SOTA value.js color-math alloc claims — the perf frontier is entirely un-instrumented kf-s
+    [med/L-WAVE-CANDIDATE] proof:zero-alloc covers ONLY the AnimationGroup compositor — the LIGHT tier (NumericAnimation, SpringProgress)
+    [med/L-WAVE-CANDIDATE] proof:bench-runs is a RUN-CHECK not a budget — every bench-backed SOTA-perf claim (warmEngine, granular bounda
+    [med/L-WAVE-CANDIDATE] The granular dynamic boundary (W124) has a gate that proves the WRONG thing: proof:boundary asserts value.js-f
+    [med/L-WAVE-CANDIDATE] proof:no-single-option-select (W2) is named as a missing CI hard-gate — the product fix exists, the gate-only 
+    [med/L-WAVE-CANDIDATE] 259 fixed-ms waitForTimeout sleeps are the macOS-pass/Linux-fail render-race root — the settle-on-state cure e
+    [med/L-WAVE-CANDIDATE] CI demo-smoke + proof:all are serial-AND fail-fast — no report-all mode; first red aborts the whole corpus
+    [med/CROSS-REPO-ASK] value.js comma-list forward-leg truncation is invisible at PARSE time — the loss is upstream of every kf gate
+    ⚠ replay-equality (round-trip = parser run backward) is asserted TOTAL by compile.ts/format.ts module docs but is PARTIAL and UNGATED for 5 breach class
+    ⚠ inv-L-device-honesty (the new L gate-suite law): 259 fixed-ms waitForTimeout sleeps make the gate corpus macOS-pass/Linux-fail; the settle-on-state cu
+    ⚠ NO-WORKAROUND / gate-honesty: the two round-trip gates are source-shape (grep the .test.ts for anchors) rather than enumerating the input space — a ga
+    ⚠ gestalt / no-partial-fix: the corpus has a single-color color-fidelity instrument, a layer-level (not per-stop) composition test, an engine-only (not 
+
+##### Lane 34 — DEMO-UX SOTA + DOCS/AGENT-SURFACE
+  The bi-directional round-trip is genuinely DOGFOODED and the agent surface is already SOTA — neither needs a net-new L wave; both are correctly chartered in the existing L.md. (1) The demo VISIBLY dogfoods author CSS → animate → export CSS: KeyframesStringControls.vue:50,256-291 wires an "Export CSS" button to the library's OWN gate-proven `compileToCSS` (the `proof:compile-replay` symbol, no demo
+  PROPOSALS:
+    • README prose for the six undocumented 4.3.0 exports (reseatToSpring, probeVelocity, reducedMotionScale, resolveRange, parseScrollTimeline, parseScrollRange) «none (Band A, 4.3.0-sufficient); pairs with the existing L.W»
+  KEY FINDINGS:
+    [med/ALREADY-DONE] Demo dogfood is SOURCE-level, not PUBLISHED-BARREL-level: 63 files import @src/animation/*, zero @mkbabb/keyfr
+    ⚠ No new precept violations found in the audited demo-UX / docs / agent-surface surface beyond those already named and booked in docs/tranches/L/L.md:12
+
+##### Lane 36 — RELEASE-PIPELINE + SUPPLY-CHAIN
+  The tag→release→deploy spine is structurally sound in its three legs (release.yml: tag-triggered, OIDC `id-token: write` provenance, `cancel-in-progress: false` correct asymmetry, 15m timeout; deploy-pages.yml: workflow_run green-CI gate on master push, head_sha checkout). But TWO real defects sit in the supply chain and ONE gate-coverage gap sits in the publish boundary. (1) LIVE F-2 peer-cycle: 
+  PROPOSALS:
+    • L-WAVE: harden the publish path — run proof:published-surface + proof:deps-current in release.yml before npm publish «none (gates exist)»
+    • L-WAVE: a proof:peer-satisfied gate that reads the FULL installed peer graph (catches the F-2 ELSPROBLEMS class) «the glass-ui CROSS-REPO-ASK (the gate stays RED until glass-»
+    • L-WAVE: publish @mkbabb/keyframes-vue under the same release discipline (the K.W12 ED-2 discharge) «the release.yml hardening wave (shared publish path)»
+    • L-WAVE: the version-cadence decision — MAJOR 5.0.0 vs MINOR 4.4.0 (USER-DOMAIN, propose the criteria) «the keyframes-vue publish wave (if its first publish is fold»
+  KEY FINDINGS:
+    [high/CROSS-REPO-ASK] F-2 glass-ui peer-cycle is LIVE: value.js 0.13.0 fails glass-ui's ^0.10.0||^0.11.0 peer — ELSPROBLEMS on every
+    [high/L-WAVE-CANDIDATE] No gate catches glass-ui's stale value.js peer range — proof:deps-current clause 3 only checks the parse-that 
+    [med/L-WAVE-CANDIDATE] release.yml publish job runs a thinner gate roster than ci.yml — omits proof:published-surface and proof:deps-
+    [med/L-WAVE-CANDIDATE] keyframes-vue is UNPUBLISHED with zero publish automation and a stale peer floor
+    ⚠ acyclic-spine / cross-repo: glass-ui 4.0.0's peerDependency `@mkbabb/value.js: ^0.10.0 || ^0.11.0` does not admit value.js 0.13.0 that both kf and gla
+    ⚠ no-quick-solution / no-workaround: the F-2 peer-cycle must NOT be papered over with an npm `overrides` block or a peerDependenciesMeta optional flag i
+    ⚠ gate-ORACLE completeness: the release.yml publish path runs a strict SUBSET of ci.yml's gates (no proof:published-surface, no proof:deps-current) — th
+    ⚠ KISS / staged-debt: keyframes-vue carries a STAGED publish (K.W12 ED-2) that never discharged — an unbuilt, unpublished, unautomated package with a st
