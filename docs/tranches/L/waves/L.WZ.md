@@ -1,6 +1,27 @@
 # L.WZ — Close
 
-- **Phase:** DEV — spec authored, awaits IMPL + auth · **Class:** BOOK (the close docs —
+> **STATUS (2026-06-17 — close-docs LANDED, held to inv ε):** `FINAL.md` (S1–S9), the terminal
+> `PROGRESS.md §"Open deferrals"` (DL-L1–L13 + the 45 DLL rows), and `prompt-recap-L.md` (zero drops,
+> §8–§11 the L-impl terminal) are ON DISK and CROSS-CONSISTENT — every boundary cites its observed
+> oracle; every Band-B consume-edge is NAMED with its sibling tripwire (UN-CONSUMED at close); the
+> deploy round-trip is HANDOFF (NOT observed); the version `5.0.0` is RECOMMENDED (NOT cut). The
+> coherence+honesty audit (2026-06-17) CORRECTED one inv ε overclaim in place — the DL-L13 "collapse
+> the lattice language deleted/absent" claim did NOT reproduce (`grep precepts-k.md` → 2 hits, §3 T1
+> 246/253); the T1 terminal now correctly cites the WIRED `proof:gate-is-runtime` derivation rule
+> (K-decision option (b)), not a language-deletion that did not happen. **STILL PENDING (the
+> orchestrator/USER-DOMAIN finale):** (1) the `proof:all` three roster reds cleared
+> (`proof:gate-is-runtime`/`proof:agent-surface`/`proof:decomposition` — verified exit 1 on this tip,
+> the orchestrator's close-impl motion); (2) the `proof:chronic-closure` substrate re-point K→L (the
+> atomic non-vacuity motion — `CHRONIC_LEDGER` still points at K, verified); (3) the USER-DOMAIN
+> version cut + npm publishes + glass-ui BB consume → deploy round-trip; (4) the TASTE verdict. This
+> wave's spec remains the authoritative S1–S7 structure below.
+>
+> The `proof:all` deploy signal, the substrate re-point, and the version cut are NOT this DOCS-ONLY
+> close's to fire — they are the named finale. Nothing below is asserted done that a re-run cannot
+> reproduce.
+
+- **Phase:** DEV — spec authored, close-docs LANDED, awaits the orchestrator close-impl + USER-DOMAIN
+  finale · **Class:** BOOK (the close docs —
   `docs/tranches/L/FINAL.md`) + **USER-DOMAIN** (the version cadence decision + npm publish +
   the close-merge deploy — version owner **Mike Babb** `mbabb@ncsu.edu`, confirm-first) +
   **RECORD** (the deferred ledger TERMINATED — BOTH the 13 DL-L PROGRESS cluster rows, the
@@ -61,9 +82,14 @@ evidence base L.WZ cites. The close wave owns two audit-seam obligations:
 
 **DL-L13 / T1 formal resolution** — `⚠9`; `K.WZ.md:524` claimed T1 "RESOLVED" without naming
 the chosen option; `FINAL.md` was silent; "collapse the lattice" language persisted uncancelled in
-`precepts-k.md:253`. L.W0 resolved T1 in the dev phase (the language was deleted, `proof:gate-is-runtime`
-is the formal T1 resolution). L.WZ CITES the resolved state with its observed oracle — the gate
-running, the language absent — not a re-assertion.
+`precepts-k.md:253`. L.W0 resolved T1 in the dev phase by WIRING the derivation rule:
+`proof:gate-is-runtime` is AUTHORED + WIRED into `proof:hygiene` (verified `package.json:106`/`:190`)
+as the formal T1 resolution — the K-decision option (b) "formally own the corpus", the gate set
+DERIVED from `proof:correctness` membership rather than declared. **inv ε note (the language was NOT
+deleted):** `precepts-k.md §3 T1` lines 246/253 still carry the "collapse the lattice" wording
+(`grep` → 2 hits) — a prior draft asserted the language "deleted/absent", which does NOT reproduce.
+L.WZ CITES the resolved state with its TRUE oracle — the wired derivation gate — not a
+language-deletion that did not happen.
 
 **DL-L12 / mobile Lighthouse re-verification** — the K floors (home 68 / cube 66 / amiga 52 /
 square 65 / easing 63 / spring 55, from `K/FINAL.md §5`) are the floor. L.WZ re-runs
@@ -119,10 +145,12 @@ not a re-assertion of intent. The FINAL:
   itself).
 
 **Anti-overclaim discipline (the ⚠9 lesson).** T1 is cited as RESOLVED-WITH-ORACLE (the
-`proof:gate-is-runtime` run; the "collapse the lattice" language absent from `precepts-k.md`). The
-Band-B un-consumed edges are named, not asserted closed. The `proof:lighthouse-mobile` scores are
-RECORDED, not claimed hard-gated. The FINAL does NOT assert `5.0.0` shipped until the version
-cut is OBSERVED.
+`proof:gate-is-runtime` derivation gate WIRED into `proof:hygiene`, `package.json:106`/`:190` — the
+K-decision option (b) "own the corpus"). **The T1 terminal does NOT claim the "collapse the lattice"
+language was deleted** — `grep` of `precepts-k.md` returns 2 hits (§3 T1 lines 246/253); the prior
+"language absent" assertion did not reproduce and was corrected for inv ε. The Band-B un-consumed
+edges are named, not asserted closed. The `proof:lighthouse-mobile` scores are RECORDED, not claimed
+hard-gated. The FINAL does NOT assert `5.0.0` shipped until the version cut is OBSERVED.
 
 ---
 
@@ -167,7 +195,7 @@ VERIFY-ONLY, USER-DOMAIN.
 | DL-L10 (kf-owned constellation workarounds) | **FOLD** if sibling publishes before close (each workaround-deletion gate GREEN); **HANDOFF** with named tripwire if any sibling publish outstanding |
 | DL-L11 (true-CSS-parity frontier) | **FOLD** (research-spike decision record written; `proof:css-parity` authored RED) + **HANDOFF** Band B: value.js O + parse-that coordinated grammar pending; RED status is the HONEST state at close if siblings have not published |
 | DL-L12 (mobile Lighthouse floors) | **VERIFY-ONLY** → L.WZ re-runs `proof:lighthouse-mobile` on the L dist; the K floors are the hard floor; result RECORDED |
-| DL-L13 (T1 formal resolution) | **FOLD** → L.W0 LANDED; "collapse the lattice" language deleted; `proof:gate-is-runtime` GREEN; T1 non-re-litigable |
+| DL-L13 (T1 formal resolution) | **FOLD** → L.W0 LANDED; `proof:gate-is-runtime` AUTHORED + WIRED into `proof:hygiene` (the derivation rule — K-decision option (b)); T1 non-re-litigable. (NB: the "collapse the lattice" language is NOT deleted from `precepts-k.md §3 T1` — the terminal rests on the wired gate; `proof:gate-is-runtime` is RED-local at the close tip per §S6) |
 
 **P-invariant-28 check.** DL-L7 (chronicity 6, E→L), DL-L8 (chronicity 6, C→L), DL-L9
 (chronicity 5, E→L) are ≥4-tranche HANDOFF rows. The invariant requires these to EXIT — a named

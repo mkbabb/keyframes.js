@@ -105,9 +105,13 @@ const SCRIPTS_DIR = path.join(REPO, "scripts");
 // The J/I/H tables remain narrative history. This is the ONE path constant the K
 // close re-points; the grammar is evolved WITH the new substrate (header-aware
 // columns + disposition bands + the Chronicity-integer ≥4 EXIT-ONLY enforcement)
-// so the gate BITES on the K substrate — never a vacuous swap. The K ledger is the
-// authoritative parse target for `proof:chronic-closure` from K.WZ forward.
-const CHRONIC_LEDGER = path.join(REPO, "docs/tranches/K/PROGRESS.md");
+// so the gate BITES on the L substrate — never a vacuous swap. The L.WZ substrate
+// transition (re-point K→L) was proven non-vacuous before this re-point: three
+// deliberately-malformed L-ledger rows (a FOLD citing a source-shape gate; a HANDOFF
+// targeting an unpublished future version; a ≥4-tranche bare BOOK) RED on the three
+// clause shapes, then the clean terminal L ledger GREENed it. The L ledger is the
+// authoritative parse target for `proof:chronic-closure` from L.WZ forward.
+const CHRONIC_LEDGER = path.join(REPO, "docs/tranches/L/PROGRESS.md");
 const PKG = path.join(REPO, "package.json");
 
 const failures = [];

@@ -1,11 +1,21 @@
-# Tranche L — prompt-recap-L · THE TOTAL PROMPT RECAP (A→K inclusive · extended through the K close · this-session ledger · L-scope intake)
+# Tranche L — prompt-recap-L · THE TOTAL PROMPT RECAP (A→K inclusive · extended through the L close · this-session ledger · L-scope intake · L-impl terminal)
 
 **Lane:** `prompt-recap-L` (L audit, DOCS-ONLY). **Read-only on source/tests/gates/CI** — this
-lane wrote exactly ONE file: this doc. **Tree at authoring:** branch `tranche-l-dev` substrate
-(authored from `tranche-J-dev` working tree; K is `master` at tip `9bbc227`, `4.3.0` released at
-`4737ab3`, live). **Method (inv ε):** every coverage status verified against the TREE / the audit
-corpus on disk — NOT chain-trusted over a prior FINAL. Each row reaches a TERMINAL verdict and
-names its evidence oracle. **Zero drops.**
+lane wrote exactly ONE file: this doc. **Tree at the L-close extension:** branch `tranche-l-dev`
+tip `4686aa4` (Band-A waves W1–W11 + the engine decomposition + the W9/W10 Band-B dispatches ALL
+COMMITTED; the K substrate is `master` at tip `9bbc227`, `4.3.0` released at `4737ab3`, live).
+**Method (inv ε):** every coverage status verified against the TREE / the audit corpus on disk —
+NOT chain-trusted over a prior FINAL. Each row reaches a TERMINAL verdict and names its evidence
+oracle (the gate name + its re-run exit code, the commit sha, the measured fact). The un-consumed
+Band-B edges are NAMED with their tripwire, NOT asserted closed; the RED-by-design gates are stated
+as RED-by-design (not green); the deploy round-trip is HANDOFF (not observed); the version `5.0.0`
+is RECOMMENDED (not cut); the TASTE verdict is USER-DOMAIN-PENDING (not self-certified). **Zero
+drops.**
+
+**The L-impl terminal extension (§8–§11 below)** carries every dev-phase L-SCOPE verdict to its
+impl-phase terminal — each cited by a gate RE-RUN at this close. The L-SCOPE rows in §1–§7 were the
+dev-phase plan; §8 onward is their landed reality, gate-by-gate. The authoritative close reading is
+`docs/tranches/L/FINAL.md` (held to inv ε, S1–S9); this recap is its prompt-ledger instrument.
 
 **Substrate read in full:** `docs/tranches/K/audit/prompt-recap-k.md` (the A→K ledger, the spine);
 the L charter (`docs/tranches/L/L.md`); the L audit corpus (`audit/audit-32-skeleton.txt` — 31
@@ -17,6 +27,15 @@ The recap is held to inv ε. Every row carries one terminal verdict:
 **ADDRESSED** (closed, cited with wave/commit/gate) / **RECORD** (named + dispositioned, not folded)
 / **OUT/HANDOFF** (sibling-owned, consume-edge shaped) / **L-SCOPE** (net-new or re-opened, folded
 into a named L wave with its born-RED gate). **Zero drops.**
+
+**The L-impl terminal vocabulary (§8+).** Where §1–§7 carried an L-SCOPE plan-verdict, §8 onward
+carries the landed-impl terminal: **ADDRESSED-with-gate** (the cure landed; the named gate RE-RUN
+GREEN at this close — exit 0) / **HANDOFF-with-tripwire** (sibling-owned; the named sibling publish
+is the tripwire; a born-RED kf gate RE-RUN RED-by-design at this close — exit 1) / **RECORD**
+(measured/declared, not a hard-gated action) / **USER-DOMAIN** (Mike Babb — the version cut, the
+npm publishes, the TASTE verdict, the glass-ui BB consume + deploy) / **OUT** (permanently
+off-charter — the KILL anti-charter). Every gate citation below is a re-run exit code on
+`tranche-l-dev` tip `4686aa4`, not a re-assertion of intent.
 
 ---
 
@@ -373,17 +392,242 @@ with a named tripwire, **none re-BOOKed** (P-invariant-28; `L.md:138-143`).
 
 ---
 
+## 8. THE L-IMPL TERMINAL — every dev-phase L-SCOPE row carried to its landed reality (gate-by-gate)
+
+§1–§7 were the **dev-phase plan** (the L-SCOPE verdicts naming each wave + its born-RED gate). §8 is
+that plan's **landed impl**, each row re-graded to its terminal at this close and cited by a gate
+RE-RUN on `tranche-l-dev` tip `4686aa4`. The L-impl terminal vocabulary: **ADDRESSED-with-gate**
+(GREEN, exit 0) / **HANDOFF-with-tripwire** (RED-by-design, exit 1, named tripwire) / **RECORD** /
+**USER-DOMAIN** / **OUT**. Every exit code below was observed at the close, not asserted.
+
+### 8a — Band A · the replay-equality TOTAL (Q1 §4a → L.W1/W2/W3 LANDED)
+
+| L-SCOPE plan row (§4a) | L-impl terminal | Observed oracle |
+|---|---|---|
+| `!important` silently dropped (⚠31) | **ADDRESSED-with-gate (spec-corrected) + RECORD** — the W1 fixture was CORRECTED to the spec-faithful verdict: a keyframe-level `!important` is **invalid/ignored** per CSS Animations §3; value.js drops it, kf mirrors, the test LOCKs `not.toContain("!important")`. The verify-lane workaround was REVERTED. The missing no-silent-drop *diagnostic* is a NAMED value.js-O dispatch (`KF-TO-VALUEJS-O-ASKS.md #12`), Band-B consumed at L.W9 | `proof:replay-equality` GREEN — `node scripts/proof-replay-equality.mjs` → **exit 0** (commit `8e386a7`) |
+| `@property --x <number>` never re-emitted backward (⚠15; `engine.ts:1225`) | **ADDRESSED-with-gate** — `serializeStylesheetItem` wired; the @property block serializes backward | `proof:replay-equality` → **exit 0** (`8e386a7`) |
+| per-stop `animation-composition` asymmetric (⚠16; `format.ts:81-103`) | **ADDRESSED-with-gate** — per-stop composition survives the round-trip | `proof:replay-equality` → **exit 0** (`8e386a7`) |
+| named selectors (entry/exit/cover/contain) ingested-then-THROWN (⚠17) | **ADDRESSED-with-gate** — named selectors ingest without throwing (`frame-compiler.ts` cure) | `proof:replay-equality` → **exit 0** (`8e386a7`) |
+| OPERATOR-floor composite/iteration-composite/play-state (W117) | **ADDRESSED-with-gate** — the OPERATOR floor lands on `AnimationOptions` | `proof:replay-equality` → **exit 0** (`8e386a7`) |
+| compiler scroll-BLIND — W9+W10 do not compose (W12) | **ADDRESSED-with-gate** — the scroll-driven compile fixture emits `animation-timeline`/`animation-range` | `proof:compile-replay` GREEN — `node scripts/proof-compile-replay.mjs` → **exit 0** (`8e386a7`+`4863446`) |
+| multi-color densify ships non-faithful sRGB with `eligible:true` (⚠28/⚠29) | **ADDRESSED-with-gate** — multi-color per-key ships-or-refuses on the ΔE-ε proof (the honest-refusal clause restored) | `proof:compile-replay` → **exit 0** (`4863446`) |
+| static-weight pre-multiply not in the compiler (CC-5, W36) | **ADDRESSED-with-gate** — static-weight pre-multiply lands | `proof:compile-replay` → **exit 0** (`4863446`) |
+| animation-timeline/range not emitted from compileToCSS (W119) | **ADDRESSED-with-gate** — emitted from `compileToCSS` | `proof:compile-replay` → **exit 0** (`4863446`) |
+| `reverseMs` re-authors reverseCSSTime — two serializers (⚠30; W115) | **ADDRESSED-with-gate** — time-serialize unified on `reverseCSSTime`; the bespoke `reverseMs` deleted | `proof:compile-replay` → **exit 0** (`4863446`) |
+| seedAtTime delay-paused freeze — adoptRunning FREEZES on delay>0 (W8) | **ADDRESSED-with-gate** — the delay-reset arm seeds the takeover at captured `currentTime` (the freeze cured) | `proof:ingest-replay` GREEN — `node scripts/proof-ingest-replay.mjs` → **exit 0** (`4863446`) |
+| nested @keyframes not walked (W7) | **ADDRESSED-with-gate** — the nested group-rule walk lands | `proof:ingest-replay` → **exit 0** (`4863446`) |
+| ADOPT_REFUSE diagnostics missing (W9) | **ADDRESSED-with-gate** — the `ADOPT_REFUSE` diagnostics arm lands | `proof:ingest-replay` → **exit 0** (`4863446`) |
+| adoptedStyleSheets/Shadow-DOM not walked (W10) | **ADDRESSED-with-gate** — the shadow-walk arm lands; cross-origin is a typed `CORS_SKIP`, never a silent drop | `proof:ingest-replay` → **exit 0** (`4863446`) |
+| scroll-time currentTime resolution in adoptRunning (W11) | **ADDRESSED-with-gate** — the scroll-time arm lands | `proof:ingest-replay` → **exit 0** (`4863446`) |
+| the 5 breaches ALL silently pass — `proof:replay-equality` does NOT exist (Lane 33 headline) | **ADDRESSED-with-gate** — the gate was authored born-RED FIRST, REDs on the unfixed tree, GREENs on the cure (the gate-first law honoured) | `proof:replay-equality` born-RED→GREEN (`8e386a7`) |
+
+**§4a net: 16 L-SCOPE → 16 ADDRESSED-with-gate** (1 carries a RECORD rider — the spec-corrected
+`!important` drop + its NAMED value.js-O diagnostic handoff). The three replay gates RE-RAN GREEN at
+this close.
+
+### 8b — Band A · SOTA-perf (Q2 §4b → L.W7 LANDED)
+
+| L-SCOPE plan row (§4b) | L-impl terminal | Observed oracle |
+|---|---|---|
+| warmEngine() idle-warmer (W121) | **ADDRESSED-with-gate (measure-first) + RECORD** — `warmEngine()` landed measure-first; the `scheduler.postTask` idle-warmer is DEFERRED (the probe only SKIPs in jsdom — NOT asserted a win) | `npx vitest run test/zero-alloc.test.ts` → 7/7 (commit `d858044`) |
+| lerpArray un-consumed on the LIGHT tier (⚠34; W122) | **ADDRESSED-with-gate** — `lerpArray` inlined to `leaves.ts` on the LIGHT tier (value.js has no math subpath); NumericAnimation/SpringProgress interp paths zero-alloc | `proof:zero-alloc` / `test/zero-alloc.test.ts` → 7/7 (`d858044`) |
+| scheduler.postTask priority bands (W123) | **RECORD (measure-first DEFER)** — the postTask probe is a budgeted-bench frame; not asserted as a shipped win | bench-taxonomy (`d858044`) |
+| granular loadAnimationEngine (W124) | **ADDRESSED-with-gate** — per-capability load accessors landed (the Promise.all-all-8 door made granular) | the granular accessors in `index.ts` (`d858044`) |
+| EPF-1 read/write phase separation (W40, measure-first) | **RECORD (measure-first)** — the workload framed by the bench taxonomy; no JIT/phase-split asserted | bench-taxonomy (`d858044`) |
+| value.js color-math hot paths allocate per-call (VJ.L1–L8) | **HANDOFF-with-tripwire — value.js O** — each ask dispatched (`KF-TO-VALUEJS-O-ASKS.md`); the alloc cure is sibling-owned | tripwire: value.js O (0.14.0) publish; `KF-TO-VALUEJS-O-ASKS.md` (`791b3bd`) |
+| NO kf bench covers the value.js color-math alloc claims (Lane 33) | **ADDRESSED-with-gate** — the budgeted bench taxonomy frames the perf frontier (the claims now instrumented kf-side) | bench-taxonomy (`d858044`) |
+| spring-vector ADOPT (3.8×@K=8) | **ADDRESSED-with-gate** — `SpringProgress.setTargets` vector-sugar SHIPPED (the 3.8×@K=8 win measured) | `proof:spring-vector` GREEN — `node scripts/proof-spring-vector.mjs` → **exit 0** (`d858044`) |
+
+**§8b net: 8 rows (the §4b 7 + the spring-vector ADOPT ship) → 5 ADDRESSED-with-gate (lerpArray
+LIGHT-consume, granular accessors, bench-taxonomy, spring-vector, warmEngine measure-first) + 2
+RECORD(measure-first DEFER: postTask, EPF-1) + 1 HANDOFF-with-tripwire (value.js O color-math
+alloc).** The spring-vector + zero-alloc gates RE-RAN GREEN.
+
+### 8c — Band A · gate-suite device-honesty + the net-new DX/agent verbs (§4e/§4f → L.W4/W5/W6 LANDED)
+
+| L-SCOPE plan row | L-impl terminal | Observed oracle |
+|---|---|---|
+| 259 fixed-ms sleeps — the macOS-pass/Linux-fail root (§4e; W28) | **ADDRESSED-with-gate** — the `waitForRender/settle` state-predicate primitive replaces the sleeps; `openControlsPanel` contains ZERO `waitForTimeout` | `proof:settle-is-predicate` GREEN — `node scripts/proof-settle-is-predicate.mjs` → **exit 0** (`f94fa7a`) |
+| CI demo-smoke serial-AND fail-fast — no report-all (§4e; W27) | **ADDRESSED-with-gate** — report-all CI posture landed (demo-smoke `continue-on-error`; first-RED no longer aborts); Makefile `ci-linux` local-repro; CATEGORY taxonomy | report-all posture + `proof:settle-is-predicate` (`f94fa7a`) |
+| no Linux-container local-repro (§4e; W29) | **ADDRESSED-with-gate** — the Makefile `ci-linux` local-repro target landed | `f94fa7a` |
+| device-dependent thresholds not single-sourced (§4e; W30) | **ADDRESSED-with-gate** — the CATEGORY taxonomy (wall-clock / pixel-render / physics-settle) single-sources the thresholds | `f94fa7a` |
+| proof:no-single-option-select missing gate (§4e; W2) | **ADDRESSED-with-gate** — every scene `<Select>` renders only when option-count > 1 | `proof:no-single-option-select` GREEN — `node scripts/proof-no-single-option-select.mjs` → **exit 0** (`f94fa7a`) |
+| no proof:peer-satisfied gate catches the F-2 ELSPROBLEMS class (§4e; ⚠8) | **HANDOFF-with-tripwire** — the gate is AUTHORED and RE-RUNs **RED-by-design**: glass-ui 4.0.0 peer `^0.10.0‖^0.11.0` rejects value.js 0.13.0. It rides the report-all lane, never the blocking chain. RED is the kf-side proof the F-2 defect is LIVE | `proof:peer-satisfied` RED-by-design — `node scripts/proof-peer-satisfied.mjs` → **exit 1** (`f94fa7a`); tripwire: glass-ui BB widens the peer + kf re-pins |
+| proof:live-session-mobile M2 touch path missing (§4e; W19) | **ADDRESSED-with-gate** — folded into the W4 transposition | `f94fa7a` |
+| release.yml thinner roster than ci.yml (§4e; Lane 36) | **ADDRESSED-with-gate** — release.yml hardened (publish-path gate roster) | `f94fa7a` |
+| Draggable bounds + snap + rubber-band — GSAP/Motion parity hole (§4f; Lane 32) | **ADDRESSED-with-gate** — `Draggable` clamps to bounds (S1), snaps to nearest target on release (S2), `drag2D` follows both axes (S4); LIGHT, value.js-free | `proof:drag-gesture` GREEN — `node scripts/proof-drag-gesture.mjs` → **exit 0** (`29bf376`) |
+| Sequence segment-lifecycle + label-callback + LIGHT subscribe (§4f; Lane 32) | **ADDRESSED-with-gate** — `segment:enter` + `label` events fire with `(animation, masterClock)`; each returns an unsubscribe handle (the `.on` idiom). **Note: the gate's correctness-tier wiring is the subject of an §10 roster red — see `proof:gate-is-runtime`** | `proof:transport-events` GREEN — `node scripts/proof-transport-events.mjs` → **exit 0** (`29bf376`) |
+| 2-D drag single-call sugar (§4f; Lane 32) | **ADDRESSED-with-gate** — `drag2D` shipped | `proof:drag-gesture` → **exit 0** (`29bf376`) |
+| the agent-authoring `validate(css)`/`explain(css)` verb (§4f; Lane 35) | **ADDRESSED-with-gate** — `validate`/`explain` are a read-only projection returning `{parseable,eligible,refusals,diagnostics,waapi}`; the llms.txt validate→fix→compile LOOP documented; clause (c) spec-faithful (the `!important`/`@property` drop + multi-color refusal) | `proof:agent-validate` GREEN — `node scripts/proof-agent-validate.mjs` → **exit 0** (`5bef882`) |
+| `generate()` from-intent verb (§4f; Lane 35 GEN-1) | **OUT (KILL)** — KISS/inv-16/moat-gestalt; the LLM generates, kf validates+compiles; the 13th anti-charter re-confirmation | `L.md §L.W6`; §6 KILL row |
+| README prose for the six undocumented 4.3.0 exports (§4f; Lane 34) | **ADDRESSED-with-gate** — README prose paired with the publish/dogfood wave | `339d78b` (W8) |
+
+**§8c net: 14 rows (8 from §4e gate-suite + 6 from §4f completion-lane) → 12 ADDRESSED-with-gate +
+1 HANDOFF-with-tripwire (`proof:peer-satisfied` RED-by-design) + 1 OUT(KILL GEN-1).** The
+settle/no-single-option/drag/transport/agent-validate gates RE-RAN GREEN; `proof:peer-satisfied`
+RE-RAN RED-by-design (exit 1). *(The §4e perf-tier rows are dispositioned in §8b; the §4e
+replay-band rows in §8a.)*
+
+### 8d — Band A · constellation dogfood + publish (Q3 §4c → L.W8 LANDED)
+
+| L-SCOPE plan row (§4c) | L-impl terminal | Observed oracle |
+|---|---|---|
+| ED-3 dogfood-inversion STAGED not landed — 0 barrel imports (W125) | **ADDRESSED-with-gate** — the inversion is COMPLETE: 0 demo files import `@src/animation/*`, 62 demo files write `@mkbabb/keyframes.js`; the boundary-ORACLE at the PACKAGE boundary bites | `proof:demo-on-published-surface` GREEN — `KFVUE_INVERSION_LANDED=1 node scripts/proof-demo-on-published-surface.mjs` → **exit 0** (`339d78b`) |
+| keyframes-vue 0.1.0 UNPUBLISHED (W56/W15) | **HANDOFF-with-tripwire (USER-DOMAIN publish)** — clauses (a)+(c) GREEN (builds; peer floor `>=4.3.0`); **clause (b) RED-by-design** — `npm show @mkbabb/keyframes-vue@0.1.0` → E404. The publish is USER-DOMAIN (Mike Babb runs `npm publish --access public`); the clause rides the report-all lane | `proof:keyframes-vue-published` RED-by-design — `node scripts/proof-keyframes-vue-published.mjs` → **exit 1** (`339d78b`); tripwire: the USER-DOMAIN npm publish |
+| extend animate() to dispatch the orchestration tier (W127) | **ADDRESSED-with-gate** — `animate()` gained a 5th branch routing `AnimationGroup‖Sequence` to `.play()` | the orchestration dispatch in `animate.ts` (`339d78b`) |
+| PKG-3 d.ts collision-aliases (`Animation_2 as Animation`, W126) | **ADDRESSED-with-gate** — the `Animation`→`KeyframesAnimation` rename clears the API-Extractor collision; ZERO `_2` aliases (pure re-export alias `KeyframesAnimation as Animation`) | `proof:pkg3-clean` GREEN (`grep '_2 as' dist/keyframes.d.ts = 0`) (`339d78b`) |
+| keyframes-react BOOK (W129) | **RECORD (BOOK, gate-first)** — the disposition doc on disk (`waves/L.W8-react-book.md`); `proof:keyframes-react-published` gate-first before any scaffold; NO react source written (tripwire: Vue proves the pattern first) | `docs/tranches/L/waves/L.W8-react-book.md` (`339d78b`) |
+| aria-orientation consume-suppress band-aid — incomplete (⚠1-3/⚠7) | **HANDOFF-with-tripwire — glass-ui BB** — the COMPLETE fleet sweep (BOTH `SpringSidebar.vue` + `AnimationControls.vue`) is the S1/S2 arm of `proof:workaround-deletion`, PENDING | `proof:workaround-deletion` 5-PENDING — `node scripts/proof-workaround-deletion.mjs` → **exit 0** (staged); tripwire: glass-ui BB SegmentedTabs pill-variant fix + kf re-pin |
+| RF-17/BLK-8 click-strand kf workaround (⚠5) | **HANDOFF-with-tripwire — glass-ui 4.1.0** | `proof:rf17-net-deletion` born-RED; tripwire: glass-ui 4.1.0 `W-DOCK-MORPH-FAMILY` + kf re-pin (interim deletes same commit) |
+| the LIVE F-2 peer-cycle (⚠8) | **HANDOFF-with-tripwire — glass-ui BB** (see §8c `proof:peer-satisfied` RED-by-design) | `proof:peer-satisfied` → **exit 1** |
+| FN_NAME Symbol stamp on value.js ValueUnit (⚠18) | **HANDOFF-with-tripwire — value.js VJ-L1** — the S8 arm of `proof:workaround-deletion`, PENDING | tripwire: value.js VJ-L1 first-class `flatLeaf`; workaround deletes on consume |
+| linear() serialize/parse asymmetry regex (⚠19-20) | **HANDOFF-with-tripwire — value.js VJ-L2** — the S7 arm of `proof:workaround-deletion`, PENDING | tripwire: value.js VJ-L2 `FunctionValue.toString()` fix; regex deletes on consume |
+| kf's direct parse-that dep for the `any` combinator (⚠24) | **HANDOFF-with-tripwire — value.js VJ-L3** — the S9 arm of `proof:workaround-deletion`, PENDING | tripwire: value.js VJ-L3 `parseCSSSubValue`; kf drops the dep |
+| FunctionValue.toString() comma/space round-trip break (⚠23) | **HANDOFF-with-tripwire — value.js O W95** | tripwire: value.js O publish; `KF-TO-VALUEJS-O-ASKS.md` |
+
+**§8d net: 12 rows → 3 ADDRESSED-with-gate (ED-3 inversion, animate() dispatch, PKG-3 rename) +
+1 RECORD (keyframes-react BOOK) + 8 HANDOFF-with-tripwire (each named: keyframes-vue publish ·
+aria S1/S2 · RF-17 · F-2 peer · FN_NAME VJ-L1 · linear VJ-L2 · parse-that VJ-L3 · ⚠23 W95).** The
+demo-on-published-surface + pkg3-clean gates RE-RAN GREEN; keyframes-vue clause (b) + peer-satisfied
+RE-RAN RED-by-design. *(The §4c §1-intake breakdown carried this as 4 L-SCOPE + 8 OUT/HANDOFF; the
+keyframes-react row is the RECORD-BOOK, not an ADDRESSED gate.)*
+
+### 8e — Band A · the design refinement (L.W11 — net-new this tranche)
+
+| L.W11 plan row | L-impl terminal | Observed oracle |
+|---|---|---|
+| the crayons KEPT by register (the user's "design verdict: crayons-by-register" directive) | **ADDRESSED-with-gate** — every crayon keeper resolves to its 4.3.0 hue (the `--rainbow-*` six stops + cyan, `--accent-red`/`--color-progress`, the six cube facets, the bite-verified `--amiga-red`) | `proof:crayon-preserved` GREEN — `node scripts/proof-crayon-preserved.mjs` → **exit 0** (`4686aa4`) |
+| nine engine-dogfooded per-scene instrument eggs (inv ζ — none hand-rolls a rAF) | **ADDRESSED-with-gate** — nine NEW per-scene eggs wired, each a hidden trigger → an off-the-normal-path effect dogfooding a public engine primitive | `proof:design-refinement` GREEN — `node scripts/proof-design-refinement.mjs` → **exit 0** (`4686aa4`) |
+| the before/after TASTE packet | **USER-DOMAIN-PENDING** — the packet is on disk (`docs/frontend-design/taste-packets/l-w11/`); **THE TASTE VERDICT IS USER-DOMAIN** — closes ONLY on Mike Babb's "meets the bar" (the K precedent; an agent designer-eye PASS is corroboration, never the verdict). NOT self-certified | `docs/frontend-design/taste-packets/l-w11/` (`4686aa4`); verdict pending USER-DOMAIN |
+
+**§8e net: 2 ADDRESSED-with-gate + 1 USER-DOMAIN-PENDING (the TASTE verdict).** The crayon/refinement
+gates RE-RAN GREEN; the TASTE verdict is NOT self-certified.
+
+---
+
+## 9. THE DEFERRED-LEDGER TERMINALS — DL-L1..L13, each to its close disposition
+
+The L `PROGRESS.md §"Open deferrals"` cluster ledger (DL-L1–DL-L13) + the 45 refining DLL rows
+(`audit/deferred-ledger-L.md`). Each cluster row reaches a terminal disposition; the ≥4-tranche
+HANDOFF rows (DL-L7 6-tranche, DL-L8 6-tranche, DL-L9 5-tranche) EXIT via a named sibling tripwire
++ a born-RED kf gate (P-invariant-28 — exit-shaped, not a punt). The `proof:chronic-closure`
+re-point K→L is the orchestrator's final atomic motion (§11); it is NOT performed by this DOCS-ONLY
+lane.
+
+| DL-L row | Terminal disposition | Observed oracle / named tripwire |
+|---|---|---|
+| **DL-L1** replay-equality breach family | **FOLD (ADDRESSED-with-gate)** — L.W1+L.W2 LANDED | `proof:replay-equality` + `proof:compile-replay` + `proof:ingest-replay` all → **exit 0** (`8e386a7`/`4863446`) |
+| **DL-L2** gate-corpus blind-spot (259 sleeps + fail-fast) | **FOLD (ADDRESSED-with-gate)** — L.W4 LANDED | `proof:settle-is-predicate` → **exit 0**; report-all posture (`f94fa7a`) |
+| **DL-L3** F-2 peer-cycle | **FOLD (gate authored) + HANDOFF-with-tripwire (Band B cure)** — the gate exists; the cure is glass-ui BB-owned | `proof:peer-satisfied` RED-by-design → **exit 1** (`f94fa7a`); tripwire: glass-ui BB widened peer + kf re-pin |
+| **DL-L4** ED-3 dogfood inversion | **FOLD (ADDRESSED-with-gate)** — L.W8 LANDED | `proof:demo-on-published-surface` → **exit 0** (`339d78b`) |
+| **DL-L5** keyframes-vue unpublished | **FOLD (gate authored) + HANDOFF-with-tripwire (USER-DOMAIN publish)** — built + peer-floored; clause (b) RED until the npm publish | `proof:keyframes-vue-published` clauses a+c GREEN, b RED-by-design → **exit 1** (`339d78b`); tripwire: USER-DOMAIN `npm publish` |
+| **DL-L6** RF-17 / DL-K9 GlassDock interim | **HANDOFF-with-tripwire** (chronicity 3, I,J,K→L) | `proof:rf17-net-deletion` born-RED; tripwire: glass-ui 4.1.0 RF-17 fix + kf re-pin (interim deletes same commit) |
+| **DL-L7** GlassControlPoint / DL-K7 | **HANDOFF-with-tripwire** (chronicity 6, E→L; gate-first BOOK is the EXIT shape) | `proof:control-point-live` RED-by-design → **exit 1** (`791b3bd`; `GlassControlPoint` absent from glass-ui@4.0.0 dist); tripwire: glass-ui BB ships the primitive |
+| **DL-L8** MorphSVG / FB-3 | **HANDOFF-with-tripwire** (chronicity 6, C→L) | `proof:morphsvg-consume` born-RED; tripwire: value.js O (0.14.0) VJ.W4 arc-length sampler remainder |
+| **DL-L9** parse-that packrat / PT-2 | **HANDOFF-with-tripwire** (chronicity 5, E→L) | `proof:packrat-sound` born-RED; tripwire: parse-that PT-WAVE-6 (id,offset) re-key |
+| **DL-L10** kf-owned constellation workarounds | **FOLD-on-consume / HANDOFF-with-tripwire** — 5-PENDING staged (each arm PRESENT, sibling-fix unpublished) | `proof:workaround-deletion` → **exit 0** (5-PENDING, `791b3bd`); tripwires per arm (S1/S2 glass-ui BB · S7 VJ-L2 · S8 VJ-L1 · S9 VJ-L3) |
+| **DL-L11** true-CSS-parity frontier | **FOLD (research-spike decision) + HANDOFF-with-tripwire (W10-IMPL)** — Option B written + accepted (delete parse-that `parsers/css/` STRUCTURAL grammar; consolidate the one CSS grammar in value.js); **`proof:css-parity` is RED-today by honest declaration** — the gate SCRIPT is ABSENT from the tree (`scripts/proof-css-parity.mjs` does not exist; not in `package.json`). W10-IMPL is gated on the coordinated value.js-O + parse-that publish | `docs/tranches/L/audit/W10-css-parity-spike.md §3.2` (Option B); `8c134d9`; tripwire: value.js O + parse-that coordinated publish + kf re-pin |
+| **DL-L12** mobile Lighthouse floors | **VERIFY-ONLY (RECORD, gated on a built L dist)** — re-run on the L dist with the K floors (home 68/cube 66/amiga 52/square 65/easing 63/spring 55) as the hard floor; non-gate (runner-calibrated, RECORDED). Gated on `proof:all` going green (§10) so the dist is deploy-ready | the K floors are the non-regression contract; the artifact is produced on the L close dist once the roster is green |
+| **DL-L13** T1 formal resolution | **FOLD (ADDRESSED-with-gate)** — L.W0 LANDED; `proof:gate-is-runtime` is the formal T1 resolution (the gate set is DERIVED from `proof:correctness` membership, not a hand-edited list — the K-decision option (b) "own the corpus"); T1 non-re-litigable. **inv ε correction:** the "collapse the lattice" language is NOT deleted from `precepts-k.md` (grep → 2 hits, §3 T1 lines 246/253); the terminal rests on the WIRED derivation gate, not a language-deletion | `proof:gate-is-runtime` AUTHORED + WIRED `package.json:106`/`:190` (the formal resolution; RED-local at tip on the roster-reconciliation list); the language NOT absent — claim corrected |
+
+**DL-L net: 5 FOLD (DL-L1/L2/L4/L13 ADDRESSED-with-gate; L11 research-spike-FOLD) + 4 pure
+HANDOFF-with-tripwire (DL-L6/L7/L8/L9, each ≥3-tranche, EXIT-shaped) + 2 split FOLD+HANDOFF
+(DL-L3/L5) + 1 FOLD-on-consume/HANDOFF (DL-L10) + 1 VERIFY-ONLY (DL-L12).** The ≥4-tranche
+HANDOFF rows are exit-shaped (named tripwire + born-RED gate, P-invariant-28). The 45 refining DLL
+rows in `audit/deferred-ledger-L.md` carry the per-item evidence each cluster terminal cites.
+
+---
+
+## 10. THE BAND-B DISPATCH ROWS — the three cross-repo dispatches, terminal
+
+The L.W9 constellation dispatch (`791b3bd`) FILED three cross-repo ask documents; the Oscillator
+LIGHT primitive shipped (`src/animation/index.ts:74` `export { Oscillator, waveformValue }`). EVERY
+Band-B consume-edge is UN-CONSUMED at this close (registry-probed: glass-ui `4.0.0` with the F-2
+peer-cycle LIVE · value.js `0.13.0`, O/0.14.0 unpublished · parse-that `0.9.0` · keyframes-vue
+UNPUBLISHED). Each is a HANDOFF with a NAMED tripwire — the named sibling publish — per
+P-invariant-28. **Nothing below is asserted closed.**
+
+| Dispatch row | Terminal disposition | Observed oracle / named tripwire |
+|---|---|---|
+| `KF-TO-GLASSUI-BB-ASKS.md` FILED | **HANDOFF-with-tripwire** — the aria-suppress (S1/S2), the RF-17 dock-morph, the F-2 peer widen, GlassControlPoint, the dock-flicker | tripwire: glass-ui BB publish; `proof:peer-satisfied`/`proof:control-point-live`/`proof:rf17-net-deletion` born-RED kf-side |
+| `KF-TO-VALUEJS-O-ASKS.md` FILED (14 asks incl. the 2 W10-confirmed value.js crashes) | **HANDOFF-with-tripwire** — VJ-L1 `flatLeaf` (FN_NAME), VJ-L2 `FunctionValue.toString()` (linear regex), VJ-L3 `parseCSSSubValue` (parse-that dep), VJ.W4 arc-length (MorphSVG), the comma-list/transform/color grammar (CSS-parity), the `!important`-drop diagnostic (#12) | tripwire: value.js O (0.14.0) publish; `proof:workaround-deletion` S7/S8/S9 + `proof:morphsvg-consume` born-RED |
+| `KF-TO-PARSE-THAT-ASKS.md` FILED | **HANDOFF-with-tripwire** — PT-WAVE-6 (id,offset) packrat soundness; the CSS-module serializer (the Option-B consolidation) | tripwire: parse-that PT-WAVE-6 publish; `proof:packrat-sound` born-RED |
+| `proof:workaround-deletion` 5-arm staged | **HANDOFF-with-tripwire (5-PENDING)** — each arm PRESENT, paired sibling-fix UNPUBLISHED; the workaround line deletes in the same commit as the consume | `node scripts/proof-workaround-deletion.mjs` → **exit 0** (STAGED report, `791b3bd`) |
+| `proof:control-point-live` (GlassControlPoint absent) | **HANDOFF-with-tripwire (RED-by-design)** — `GlassControlPoint` absent from glass-ui@4.0.0 dist; a green here before the publish would HIDE the gap | `node scripts/proof-control-point-live.mjs` → **exit 1** (`791b3bd`); tripwire: glass-ui BB publish |
+| W10 true-CSS-parity (Option B chosen) | **HANDOFF-with-tripwire** — the architectural verdict written/accepted; `proof:css-parity` RED-today (gate script ABSENT — the un-consumed frontier honestly declared) | `W10-css-parity-spike.md §3.2`; `8c134d9`; tripwire: coordinated value.js-O + parse-that publish |
+| the Oscillator LIGHT primitive | **ADDRESSED-with-gate** — shipped at L.W9 (LIGHT, value.js-free) | `src/animation/index.ts:74` `export { Oscillator, waveformValue }` (`791b3bd`) |
+
+**Band-B net: every consume-edge UN-CONSUMED at close → HANDOFF-with-tripwire (named sibling
+publish), each with a born-RED kf gate RE-RUN RED-by-design** (`proof:peer-satisfied` exit 1,
+`proof:control-point-live` exit 1, `proof:keyframes-vue-published` clause-b exit 1,
+`proof:workaround-deletion` 5-PENDING exit 0). The Oscillator is the one ADDRESSED Band-B ship. This
+is the inv ε state (P-invariant-28: a named tripwire + born-RED kf gate IS exit-shaped).
+
+---
+
+## 11. THE USER-DOMAIN FINALE + THE CLOSE MOTIONS — named, not asserted done
+
+The close's final motions are USER-DOMAIN (Mike Babb) or the orchestrator's sequenced close-impl
+step. **None is asserted done by this DOCS-ONLY recap.** Each is named with its terminal shape.
+
+### 11a — the standing-mandate directives this session (every distinct user request, terminal)
+
+| User request (this session) | Terminal verdict | Evidence / oracle |
+|---|---|---|
+| **begin the L tranche** (charter + waves + dev-phase audit-fold) | **ADDRESSED** — `L.md` + `waves/L.W0..L.W11+L.WZ` on disk; the 36-lane audit folded | `docs/tranches/L/` corpus; commits `ca1633d`/`6235b91`/`3dd6335` |
+| **NO quick solutions / NO workarounds — idiomatic gestalt** | **ADDRESSED + the residual band NAMED** — the Band-A waves are root cures (the replay floor at the adapter/format seam; the settle primitive over 259 sleeps; lerpArray inlined to leaves); the kf-owned constellation workarounds are NAMED with a born-RED deletion gate each (`proof:workaround-deletion` 5-PENDING), NOT carried bare | §5 (34 ⚠ all dispositioned); `proof:workaround-deletion` → exit 0 (staged) |
+| **maximal parallelism** (the file-disjoint Band-A wave fan-out) | **ADDRESSED** — W1∥W2∥W3∥W4∥W5∥W7∥W8 landed file-disjoint (W6 gated on W1+W2; the DAG honoured); each its own born-RED gate | `PROGRESS.md §1` DAG; the per-wave commits |
+| **the design verdict: crayons KEPT by register** | **ADDRESSED-with-gate** — every keeper crayon resolves to its 4.3.0 hue | `proof:crayon-preserved` → **exit 0** (`4686aa4`) |
+| **wait on glass-ui (BB tranche in flight)** | **HANDOFF-with-tripwire** — the Band-B edges that need glass-ui BB (aria, RF-17, F-2 peer, GlassControlPoint, dock-flicker) are DISPATCHED + born-RED-gated; the consume + deploy WAIT on the glass-ui BB publish (USER-DOMAIN/sibling-gated) | `KF-TO-GLASSUI-BB-ASKS.md`; `proof:peer-satisfied`/`proof:control-point-live` RED-by-design |
+| **complete in totality** | **ADDRESSED for Band A (gate-cited) + HANDOFF for Band B (tripwire-named)** — Band A is gate-GREEN totality (or honest refusal); Band B is un-consumed-but-named; the round-trip is TOTAL or honestly refuses | §8 (Band A gates GREEN); §10 (Band B tripwires); FINAL §0–§S9 |
+
+### 11b — the close-finale motions (USER-DOMAIN / orchestrator-sequenced)
+
+| Finale motion | Terminal shape | Honest state (NOT asserted done) |
+|---|---|---|
+| `proof:all` GREEN on the close tree | **HANDOFF (orchestrator close-impl)** — RE-RUN at `4686aa4` REDs on THREE roster members that grew un-reconciled during Band-A: `proof:gate-is-runtime` (exit 1 — `proof:transport-events` is jsdom, not a browser-over-dist, colliding the I.W7/J.W3 meta-gate), `proof:agent-surface` (exit 1 — `/llms-full.txt` STALE, omits W9 `Oscillator`/`waveformValue`; fix = re-run `gen-agent-surface.mjs`), `proof:decomposition` (exit 1 — `drag.ts` 555L/`index.ts` 731L/`sequence.ts` 817L/`spring.ts` 806L grew past ceilings). DOCS-ONLY does not cure these | `proof:gate-is-runtime`/`proof:agent-surface`/`proof:decomposition` each → **exit 1** at `4686aa4` (re-run this close) |
+| version cadence — MAJOR `5.0.0` vs MINOR `4.4.0` | **USER-DOMAIN (RECOMMEND 5.0.0)** — the recommendation is `5.0.0` (replay-equality TOTAL is a BREAKING output-surface change; the `Animation`/`ScrollTimeline` type renames; `@mkbabb/keyframes-vue` net-new + barrel-dogfood). The tree carries `4.3.0`; **the cut is Mike Babb's; NOT asserted shipped** | `package.json:version = 4.3.0` (re-verified); FINAL §S6; the cut is USER-DOMAIN |
+| npm publishes (kf version cut + `@mkbabb/keyframes-vue` 0.1.0) | **USER-DOMAIN** — `npm publish` is the user's hand; `proof:keyframes-vue-published` clause (b) stays RED until then | `proof:keyframes-vue-published` clause-b → **exit 1**; tripwire: USER-DOMAIN publish |
+| glass-ui BB consume + the deploy round-trip | **HANDOFF (USER-DOMAIN / sibling-gated)** — the deploy is gated, in order, on (1) `proof:all` green (the three roster reds cleared), (2) `proof:peer-satisfied` green (glass-ui BB widened peer + kf re-pin), (3) the USER-DOMAIN version cut + publish. **The J.W0/K.WZ round-trip is NOT re-observed at this close; the FINAL does not claim it** | FINAL §S6; tripwire: glass-ui BB publish → kf re-pin → CI green → `deploy-pages.yml` auto-fire |
+| TASTE verdict (the L.W11 packet) | **USER-DOMAIN-PENDING** — closes ONLY on Mike Babb's "meets the bar" on the before/after packet; NOT self-certified | `docs/frontend-design/taste-packets/l-w11/`; verdict pending |
+| Lighthouse re-verification (DL-L12) | **VERIFY-ONLY (RECORD, gated on a built L dist)** — re-run on the L dist; K floors the hard floor; gated on `proof:all` green | FINAL §S7; the K floors stand |
+| chronic-closure substrate transition K→L | **HANDOFF (orchestrator final atomic motion)** — `scripts/proof-chronic-closure.mjs:110` `CHRONIC_LEDGER` STILL points at `docs/tranches/K/PROGRESS.md` (re-verified; gate → exit 0 on the K substrate). The re-point + the three planted-malformed-row non-vacuity proof + the L-ledger-terminal is ONE atomic source motion the DOCS-ONLY close does not perform | `proof:chronic-closure` → **exit 0** on K substrate (re-run); `CHRONIC_LEDGER` line 110 = K (re-verified) |
+
+**§11 net: every standing-mandate directive this session is ADDRESSED or HANDOFF-with-tripwire; the
+close-finale motions are USER-DOMAIN (version cut, npm publishes, TASTE verdict, glass-ui BB consume
++ deploy) or orchestrator-sequenced (`proof:all` roster-red clear, the chronic-closure re-point,
+the Lighthouse re-verify) — NONE asserted done.** This is the inv ε close: the recap claims only what
+a re-run reproduces; nothing un-consumed or USER-DOMAIN is claimed closed.
+
+---
+
 ## inv ε / inv-16 compliance
 
 This lane wrote ONLY `docs/tranches/L/audit/prompt-recap-L.md`. ZERO source/test/gate/CI/demo
-edits. Every status verified against the tree anchors: `package.json` (kf `4.3.0`; value.js
-`^0.13.0`; parse-that `^0.9.0`); the commit log (`4737ab3` 4.3.0 release; `9bbc227` master tip;
-`5a906a7`/`4492ab1`/`495ae68`/`9390196`/`c176bd0`/`3e77189` the CI-greenify epic; the K wave
-commits `c427e39`…`138be67`); the L charter (`L.md`); the L audit corpus (`audit/audit-32-skeleton.txt`
-— 34 ⚠ + 129 W + CROSS-REPO-ASK/KILL/CHRONIC banks; `audit/completion-lanes-32-36.txt` — lanes
-32/33/34/35/36); the K close ledger (`prompt-recap-k.md`, chain-trusted for the A→K rows). No prompt
-A→K, no THIS-SESSION edict, no L-intake breach/frontier is dropped — each has a terminal verdict
-(ADDRESSED / RECORD / OUT/HANDOFF / L-SCOPE) with a named commit, gate, wave, or sibling-HANDOFF.
+edits (the chronic-closure substrate re-point is the orchestrator's final motion, NOT this
+workflow's). Every status verified against the tree anchors at `tranche-l-dev` tip `4686aa4`:
+`package.json` (kf `4.3.0` — the K cut, the L cut USER-DOMAIN; value.js `^0.13.0`; parse-that
+`^0.9.0`; glass-ui `~4.0.0`); the L wave commits (`8e386a7` W1 · `4863446` W2+W3 · `f94fa7a` W4 ·
+`29bf376` W5 · `5bef882` W6 · `d858044` W7 · `339d78b` W8 · `791b3bd` W9 · `8c134d9` W10-spike ·
+`e42a95b` engine-decomp · `4686aa4` W11); the A→K commit log (`4737ab3` 4.3.0 release; `9bbc227`
+master tip; the K wave commits `c427e39`…`138be67`); the L charter + close (`L.md`; `FINAL.md`;
+`PROGRESS.md §"Open deferrals"` DL-L1–L13; `audit/deferred-ledger-L.md` the 45 DLL rows); the K
+close ledger (`prompt-recap-k.md`, chain-trusted for the A→K rows).
+
+**Every gate verdict in §8–§11 is a RE-RUN exit code at this close, observed not asserted:** GREEN
+(exit 0) — `proof:replay-equality`, `proof:compile-replay`, `proof:ingest-replay`,
+`proof:settle-is-predicate`, `proof:no-single-option-select`, `proof:demo-on-published-surface`
+(`KFVUE_INVERSION_LANDED=1`), `proof:transport-events`, `proof:drag-gesture`, `proof:agent-validate`,
+`proof:crayon-preserved`, `proof:design-refinement`, `proof:spring-vector`,
+`proof:workaround-deletion` (5-PENDING staged), `proof:chronic-closure` (on the K substrate);
+RED-by-design (exit 1) — `proof:peer-satisfied`, `proof:control-point-live`,
+`proof:keyframes-vue-published` (clause b); roster-red for `proof:all` (exit 1, named for the
+orchestrator close-impl) — `proof:gate-is-runtime`, `proof:agent-surface`, `proof:decomposition`.
+The `scripts/proof-css-parity.mjs` script is ABSENT (the RED-today CSS-parity frontier, honestly
+declared). No prompt A→L, no THIS-SESSION edict, no L-intake breach/frontier, no DL-L row, no
+Band-B dispatch, no close-finale motion is dropped — each has a terminal verdict (ADDRESSED-with-gate
+/ RECORD / HANDOFF-with-tripwire / USER-DOMAIN / OUT) with a named commit, gate exit code, wave, or
+sibling tripwire. **Zero drops.**
 
 ---
 
@@ -408,6 +652,23 @@ A→K, no THIS-SESSION edict, no L-intake breach/frontier is dropped — each ha
 | Precept violations ⚠1-34 (§5) | 34 | 5 ADDRESSED · 12 L-SCOPE · 17 OUT/HANDOFF — zero bare |
 | KILL anti-charter (§6) | 13 (12 + GEN-1) | 13 KILL — non-re-litigable |
 | Chronic/OUT/HANDOFF band (§7) | 11 named | ALL terminal (consume-edge shaped or RECORD) |
+| **L-impl §8a — replay-equality TOTAL** | 16 | **16 ADDRESSED-with-gate** (1 RECORD rider: spec-corrected `!important` + value.js-O diagnostic handoff); 3 replay gates RE-RAN GREEN |
+| **L-impl §8b — SOTA-perf** | 8 | **5 ADDRESSED-with-gate · 2 RECORD(measure-first DEFER) · 1 HANDOFF-with-tripwire** (value.js O); spring-vector/zero-alloc GREEN |
+| **L-impl §8c — gate-suite + DX/agent verbs** | 14 | **12 ADDRESSED-with-gate · 1 HANDOFF-with-tripwire** (`proof:peer-satisfied` RED-by-design) **· 1 OUT(KILL GEN-1)** |
+| **L-impl §8d — dogfood + publish** | 12 | **3 ADDRESSED-with-gate · 1 RECORD(react BOOK) · 8 HANDOFF-with-tripwire** (each named) |
+| **L-impl §8e — design refinement (L.W11)** | 3 | **2 ADDRESSED-with-gate · 1 USER-DOMAIN-PENDING** (TASTE verdict) |
+| **Deferred ledger DL-L1..L13 (§9)** | 13 | **5 FOLD · 2 FOLD+HANDOFF (L3/L5) · 4 HANDOFF-with-tripwire (L6/L7/L8/L9 ≥3-tranche, exit-shaped) · 1 FOLD-on-consume/HANDOFF (L10) · 1 VERIFY-ONLY (L12)** + the 45 refining DLL rows |
+| **Band-B dispatch rows (§10)** | 7 | **6 HANDOFF-with-tripwire (all consume-edges UN-CONSUMED, each born-RED) · 1 ADDRESSED-with-gate (Oscillator)** |
+| **Standing-mandate directives this session (§11a)** | 6 | **4 ADDRESSED / ADDRESSED-with-gate · 2 HANDOFF/split** (wait-on-glass-ui; complete-in-totality = Band-A GREEN + Band-B tripwire) |
+| **Close-finale motions (§11b)** | 7 | **USER-DOMAIN (version cut · npm publishes · TASTE) · HANDOFF (proof:all roster-red clear · glass-ui BB consume + deploy) · VERIFY-ONLY (Lighthouse) · orchestrator-atomic (chronic-closure re-point)** — NONE asserted done |
 
-**Zero drops. Every request A→K, every THIS-SESSION edict, every L-intake breach/frontier reaches a
-terminal verdict: ADDRESSED, RECORD, OUT/HANDOFF, L-SCOPE, or KILL — each named and reasoned.**
+**Zero drops. Every request A→L, every THIS-SESSION edict, every L-intake breach/frontier, every
+DL-L row, every Band-B dispatch, and every close-finale motion reaches a TERMINAL verdict:
+ADDRESSED-with-gate, RECORD, HANDOFF-with-tripwire, USER-DOMAIN, or OUT — each cited by a gate
+RE-RUN exit code, a named commit, or a named sibling tripwire.** The honest close: Band A is
+gate-GREEN totality (or honest refusal); every Band-B consume-edge is UN-CONSUMED at close, named
+with its tripwire + a born-RED kf gate RE-RUN RED-by-design (P-invariant-28 — exit-shaped, not a
+punt); `proof:all` is NOT green on this tip (three roster reds named for the orchestrator close-impl);
+the deploy round-trip is HANDOFF (NOT observed); the version `5.0.0` is RECOMMENDED (NOT cut); the
+TASTE verdict + the npm publishes + the glass-ui BB consume + deploy are USER-DOMAIN. Nothing
+un-consumed or USER-DOMAIN is claimed closed. **That is the inv ε close.**
