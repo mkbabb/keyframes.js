@@ -3,11 +3,15 @@ import {
     formatCSS,
     reverseAnimationShorthand,
     reverseCSSTime,
+    serializeStylesheetItem,
     timingFunctions,
     unflattenObjectToString,
     ValueUnit,
 } from "@mkbabb/value.js";
-import type { CSSAnimationOptions } from "@mkbabb/value.js";
+import type {
+    CSSAnimationOptions,
+    PropertyDescriptor,
+} from "@mkbabb/value.js";
 import type { Animation } from "./engine";
 import type {
     AnimationOptions,
@@ -85,16 +89,29 @@ function declaredKeyframeBody<V extends Vars>(
 ): string {
     const declared: ParsedVarMap = animation.parsedVars[i] ?? {};
 
+    const templateFrame = animation.templateFrames[i]!;
+
     const decls = Object.entries(unflattenObjectToString(declared)).map(
         ([propName, v]) => `  ${camelCaseToHyphen(propName)}: ${v};`,
     );
 
-    const templateFrame = animation.templateFrames[i]!;
     const frameEasing = templateFrame.timingFunction
         ? serializeEasing(templateFrame.timingFunction)
         : defaultEasing;
     if (frameEasing !== defaultEasing) {
         decls.push(`  animation-timing-function: ${frameEasing};`);
+    }
+
+    // L.W1 S3 — the per-stop `animation-composition` round-trip, symmetric with
+    // the per-stop easing emit above. value.js lifts the author's per-keyframe
+    // `animation-composition` onto `rule.composition`; the adapter captures it on
+    // `templateFrame.composition`; emit it back for any stop whose operator is
+    // non-`replace` (the CSS default — omitting it is correct for `replace`), so
+    // the declared layering survives parse → serialize → re-parse instead of
+    // silently collapsing to `replace`.
+    const composition = templateFrame.composition;
+    if (composition != null && composition !== "replace") {
+        decls.push(`  animation-composition: ${composition};`);
     }
 
     const css = decls.join("\n").trim();
@@ -170,6 +187,20 @@ export function animationOptionsToString(
 
     if (options.delay > 0) {
         css += `  animation-delay: ${reverseCSSTime(options.delay)};\n`;
+    }
+
+    // L.W1 S5 (Band A) — the LAYER-level `animation-composition` longhand. An
+    // authored `animation-composition: add` that arrived through a sibling
+    // `.class { animation: … }` ingest rides `options.composite`; emit it back
+    // (via the ONE `animationComposition` longhand authority) for a non-default
+    // operator so the layer-level compositing replays on re-parse. `replace` (or
+    // omission) emits nothing — the byte-minimal round-trip.
+    const compositeDecl =
+        options.composite != null
+            ? animationComposition(options.composite)
+            : undefined;
+    if (compositeDecl != null) {
+        css += `  ${compositeDecl}\n`;
     }
 
     css = `.${name} {\n${css}}\n`;
@@ -285,6 +316,36 @@ export function animationComposition(
         : `animation-composition: ${composition};`;
 }
 
+/**
+ * L.W1 S2 — serialize the `@property` registry BACK to its `@property` blocks.
+ * `CSSKeyframesAnimation.fromString` parses `@property --foo { … }` rules into
+ * `animation.propertyRegistry` (`Map<string, PropertyDescriptor>`) and registers
+ * them with the UA, but the backward serialize path dropped them — a compiled
+ * artifact lost its custom-property TYPING block on re-ship (`--foo` falls back
+ * to the `<universal>` type, breaking `@property`-typed transitions). Emit each
+ * registry entry via value.js's `serializeStylesheetItem` (the published inverse
+ * of the `@property` parser) — NOT a bespoke re-derivation. Returns the joined
+ * blocks (one per entry) or `""` when the registry is empty. A plain `Animation`
+ * (no registry) yields `""` — the field lives on `CSSKeyframesAnimation` only.
+ */
+function propertyRegistryToString<V extends Vars>(
+    animation: Animation<V>,
+): string {
+    const registry = (
+        animation as Animation<V> & {
+            propertyRegistry?: ReadonlyMap<string, PropertyDescriptor>;
+        }
+    ).propertyRegistry;
+    if (registry == null || registry.size === 0) return "";
+    const blocks: string[] = [];
+    for (const [name, descriptor] of registry) {
+        blocks.push(
+            serializeStylesheetItem({ kind: "property", name, descriptor }),
+        );
+    }
+    return blocks.join("\n");
+}
+
 export async function CSSKeyframesToString<V extends Vars>(
     animation: Animation<V>,
     name: string = "animation",
@@ -327,7 +388,13 @@ export async function CSSKeyframesToString<V extends Vars>(
 
     const animationOptionsString = animationOptionsToString(options, name);
 
-    const keyframes = `${animationOptionsString}\n@keyframes ${name} {\n${keyframesString}}`;
+    // L.W1 S2 — prepend the `@property` typing blocks (if any) so a parsed
+    // `@property --foo { … }` survives the backward serialize. Layout:
+    // `@property` blocks + blank line + the `.class` options + `@keyframes`.
+    const propertyBlocks = propertyRegistryToString(animation);
+    const propertyPrefix = propertyBlocks ? `${propertyBlocks}\n\n` : "";
+
+    const keyframes = `${propertyPrefix}${animationOptionsString}\n@keyframes ${name} {\n${keyframesString}}`;
 
     const out = await formatCSS(keyframes, printWidth);
 

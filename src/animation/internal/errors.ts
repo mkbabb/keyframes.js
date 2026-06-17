@@ -31,8 +31,19 @@ const repr = (value: unknown): string => {
  *   compile seam (the H-A2 "......" class, named).
  * - `UNKNOWN_TIMING_FN` — a present-but-unresolvable timing function (not a
  *   callable, a registry name, or a cubic-bezier()/steps() literal).
+ * - `NAMED_SELECTOR_NO_TIMELINE` — a scroll-range named selector
+ *   (`entry`/`exit`/`cover`/`contain`) was accepted at ingest (L.W1 S4), but a
+ *   numeric `%` position was genuinely demanded with NO `ScrollTimeline`/
+ *   `ManualTimeline` present to map the phase. A named selector is only
+ *   meaningful in a scroll context; resolving it to a number outside one is a
+ *   consumer bug, so the deferred resolve refuses with this code rather than
+ *   inventing a position. (The bare-ingest floor — accept + preserve, no
+ *   resolution demanded — never throws.)
  */
-export type AnimationOptionErrorCode = "EMPTY_PARSE" | "UNKNOWN_TIMING_FN";
+export type AnimationOptionErrorCode =
+    | "EMPTY_PARSE"
+    | "UNKNOWN_TIMING_FN"
+    | "NAMED_SELECTOR_NO_TIMELINE";
 
 /** Thrown when an animation option receives malformed (non-undefined) input. */
 export class AnimationOptionError extends Error {

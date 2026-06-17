@@ -189,6 +189,29 @@ export type AnimationOptions = {
     colorSpace: ColorSpace;
 
     hueMethod?: HueInterpolationMethod;
+
+    /**
+     * The LAYER-level `animation-composition` operator (L.W1 S5, Band A) — the
+     * round-trip field for an authored `animation-composition: add` that arrived
+     * through a sibling `.class { animation: … }` shorthand/longhand ingest.
+     * Distinct from the per-KEYFRAME {@link TemplateAnimationFrame.composition}
+     * (the per-stop operator); this is the whole-animation composite the engine
+     * carries off `extractAnimationOptions`'s `composition` field. Omission means
+     * `replace` (the CSS default — the serializer omits it). value.js 0.13.0's
+     * `CSSAnimationOptions.composition` surfaces it; `fromString` reads it here.
+     */
+    composite?: CompositeOperator;
+
+    /**
+     * `animation-iteration-composite` (CSS Animations L2). BOOKED, not
+     * implemented: the L2 draft marks this property experimental — there is no
+     * stable value.js parse for it and no honoring path in the engine. The field
+     * is a typed `never` placeholder (a named tripwire): a future
+     * silently-WRONG implementation that tries to assign anything to it reddens
+     * the type check, forcing the implementation to land alongside a real
+     * `proof:iteration-composite-baseline` gate rather than sliding in unproven.
+     */
+    iterationComposite?: never;
 };
 
 export type InputAnimationOptions = Partial<{
@@ -216,6 +239,9 @@ export type InputAnimationOptions = Partial<{
     colorSpace?: ColorSpace;
 
     hueMethod?: HueInterpolationMethod;
+
+    /** The LAYER-level `animation-composition` operator (L.W1 S5). Omission ⇒ `replace`. */
+    composite?: CompositeOperator;
 }>;
 
 export const defaultOptions: AnimationOptions = {

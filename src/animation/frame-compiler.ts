@@ -98,9 +98,40 @@ const FRAME_ID_SCALE = 1_000_000;
 const SELECTOR_KEYWORD_RE = /^(?:from|to)$/i;
 const SELECTOR_PERCENT_RE = /^(?:\d+(?:\.\d+)?|\.\d+)(?:[eE][+-]?\d+)?%$/;
 
+/**
+ * The SCROLL-RANGE named-selector grammar (L.W1 S4 — viol17/W118). value.js
+ * parses `entry`/`exit`/`cover`/`contain` as a `KeyframeSelector {
+ * kind: "named" }` (CSS scroll-driven animations `<keyframe-selector>` extended
+ * form); the adapter surfaces them as their literal name, optionally followed
+ * by a range fraction (`entry 0%`, `entry 50%`). The range-fraction form is the
+ * common real-world shape; the bare form (`entry`) maps to `entry 0% 100%` per
+ * the scroll-animations spec. These selectors are conforming — `addFrame`
+ * ACCEPTS and PRESERVES them verbatim (round-tripping the authored token)
+ * instead of throwing — but they are only RESOLVABLE to a numeric `%` under a
+ * `ScrollTimeline`/`ManualTimeline` phase mapper. The bare-ingest floor stores
+ * the raw token opaquely (see {@link NAMED_SELECTOR_SUPERTYPE}); the
+ * resolve-to-`%` is deferred to attach time (the no-timeline-but-position-
+ * demanded case refuses with `NAMED_SELECTOR_NO_TIMELINE`, never a silent
+ * invented number).
+ */
+const SELECTOR_NAMED_RANGE_RE =
+    /^(?:entry|exit|cover|contain)(?:\s+\d+(?:\.\d+)?%)?$/i;
+
+/**
+ * The `ValueUnit.superType` marker tagging a stored scroll-range named selector
+ * (L.W1 S4). The opaque storage is `new ValueUnit(rawSelector, undefined,
+ * [NAMED_SELECTOR_SUPERTYPE])`: the `value` carries the raw selector STRING so
+ * `toString()` round-trips the authored token VERBATIM (`entry` → `entry`,
+ * `entry 0%` → `entry 0%`), and the `superType` tag is the channel the deferred
+ * phase resolver keys on (the percent-literal/keyword path never carries it).
+ */
+const NAMED_SELECTOR_SUPERTYPE = "named-selector";
+
 const SELECTOR_REASON =
     "a keyframe selector must be a percentage 0%–100% " +
-    "(e.g. \"0%\", \"50%\") or the keyword 'from'/'to'";
+    "(e.g. \"0%\", \"50%\"), the keyword 'from'/'to', or a scroll-range " +
+    "named selector (entry/exit/cover/contain, optionally with a range " +
+    "fraction like 'entry 0%')";
 
 export class FrameCompiler<V extends Vars = any> {
     templateFrames: TemplateAnimationFrame<V>[] = [];
@@ -160,9 +191,10 @@ export class FrameCompiler<V extends Vars = any> {
         // ("abc") still reached value.js and threw the cryptic, un-typed
         // `Parse error at offset 0: "…"`, while a length/time ("5px",
         // "500ms") or an out-of-range percent ("150%") was SILENTLY accepted
-        // as a selector. The guard now validates against the NAMED conforming
-        // grammar (percentage 0%–100% ∪ from/to — see SELECTOR_PERCENT_RE/
-        // SELECTOR_KEYWORD_RE) BEFORE `parseCSSValueUnit`, so EVERY
+        // as a selector. The guard validates against the NAMED conforming
+        // grammar (percentage 0%–100% ∪ from/to ∪ the scroll-range named
+        // selectors — see SELECTOR_PERCENT_RE / SELECTOR_KEYWORD_RE /
+        // SELECTOR_NAMED_RANGE_RE) BEFORE `parseCSSValueUnit`, so EVERY
         // non-conforming selector is a clear, typed `AnimationOptionError`.
         // The blank case carries the stable structured code "EMPTY_PARSE"
         // (J.W1 S8) so a programmatic consumer branches on the reason, never
@@ -176,23 +208,49 @@ export class FrameCompiler<V extends Vars = any> {
                 "EMPTY_PARSE",
             );
         }
-        if (
-            !SELECTOR_KEYWORD_RE.test(selector) &&
-            !(SELECTOR_PERCENT_RE.test(selector) && parseFloat(selector) <= 100)
-        ) {
-            throw new AnimationOptionError(
-                "start",
-                start,
-                `${SELECTOR_REASON} — got ${JSON.stringify(start)}`,
-            );
-        }
 
-        // Guarded-total: the conforming set ("<n>%", "from", "to") is exactly
-        // what value.js parses to a percentage ValueUnit — `from` → 0%,
-        // `to` → 100% — so no post-parse conversion/clamp remains (the former
-        // `convertFrameStart` time-selector branch died with the total guard:
-        // a time is not a keyframe selector).
-        const parsedStart = parseCSSValueUnit(selector);
+        // L.W1 S4 (viol17/W118) — the scroll-range named selectors
+        // (`entry`/`exit`/`cover`/`contain`, optionally `entry 0%`) are
+        // CONFORMING, not garbage: value.js parses them (`kind:"named"`) and
+        // the adapter surfaces them literally. The pre-L guard THREW on them —
+        // what value.js produced, the frame-compiler could not ingest. The cure
+        // is NOT "silently accept and ignore" but "accept AND preserve": store
+        // the raw token opaquely as `ValueUnit(rawSelector, undefined,
+        // [NAMED_SELECTOR_SUPERTYPE])` — `value` holds the selector STRING so it
+        // round-trips VERBATIM through `format.ts` (`String(start)`), and the
+        // `superType` tag is the channel the deferred phase resolver keys on. No
+        // `parseCSSValueUnit` (it THROWS on `entry`); no pre-attach throw (the
+        // named selector resolves to a numeric `%` only under a ScrollTimeline/
+        // ManualTimeline phase mapper, deferred to attach time — the genuinely-
+        // resolution-required-but-timeline-absent case refuses with the
+        // structured `NAMED_SELECTOR_NO_TIMELINE`, never an invented number).
+        let parsedStart: ValueUnit;
+        if (SELECTOR_NAMED_RANGE_RE.test(selector)) {
+            parsedStart = new ValueUnit(selector, undefined, [
+                NAMED_SELECTOR_SUPERTYPE,
+            ]);
+        } else {
+            if (
+                !SELECTOR_KEYWORD_RE.test(selector) &&
+                !(
+                    SELECTOR_PERCENT_RE.test(selector) &&
+                    parseFloat(selector) <= 100
+                )
+            ) {
+                throw new AnimationOptionError(
+                    "start",
+                    start,
+                    `${SELECTOR_REASON} — got ${JSON.stringify(start)}`,
+                );
+            }
+
+            // Guarded-total: the conforming set ("<n>%", "from", "to") is
+            // exactly what value.js parses to a percentage ValueUnit — `from` →
+            // 0%, `to` → 100% — so no post-parse conversion/clamp remains (the
+            // former `convertFrameStart` time-selector branch died with the
+            // total guard: a time is not a keyframe selector).
+            parsedStart = parseCSSValueUnit(selector);
+        }
 
         let templateFrame = {
             id: this.frameId,

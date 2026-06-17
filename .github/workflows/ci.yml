@@ -144,6 +144,8 @@ jobs:
               run: npm run proof:compile-deterministic
             - name: proof:compile-replay (K.W10 — THE COMPILE; the round-trip's BACKWARD half replays equal or REFUSES)
               run: npm run proof:compile-replay
+            - name: proof:replay-equality (L.W1 — the replay-equality FLOOR; @property/per-stop-composition/named-selector/composite round-trip; keyframe !important spec-faithfully dropped)
+              run: npm run proof:replay-equality
             - name: proof:orchestration (F.W3 — stagger/FLIP/decay/Sequence behaviour locks)
               run: npm run proof:orchestration
             - name: proof:interp-fastprops (F.W4 — the dict-mode buffer fold + single-frame alias)

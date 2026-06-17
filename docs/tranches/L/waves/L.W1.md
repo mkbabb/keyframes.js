@@ -54,6 +54,28 @@ Each S-clause is a concrete, falsifiable deliverable. Together they constitute
 
 ### S1 — `!important` honor (`adapter.ts` `declsToVarMap`, viol31/W116)
 
+> **CORRECTION (impl phase, 2026-06-17 — inv ε).** The S1 premise below is
+> **factually wrong**, discovered during implementation and verified against the
+> live CSS Animations §3 draft + value.js 0.13.0 source. A keyframe declaration
+> qualified `!important` is **INVALID and IGNORED** per spec (L1 *and* L2);
+> value.js's `liftKeyframeMetadata` drops the whole declaration at the AST level
+> — exactly as a browser does. So "kf silently drops keyframe `!important`" was
+> **never a kf breach**; kf mirroring the platform drop is *correct*, and
+> re-emitting it would ship invalid CSS + animate a frame a browser ignores,
+> **breaking replay-equality**. The audit anchors (`audit-32-skeleton.txt:294`,
+> `precepts-L.md:328` "L2 allows it for specificity override") are wrong per the
+> live spec. **Resolution (mirrors the S5 `playState` split):** (1) the
+> SPEC-FAITHFUL behaviour (kf never emits keyframe `!important`) is the
+> regression-lock, asserted behaviourally in `test/replay-equality.test.ts` S1
+> (`not.toContain("!important")`) — it reds if the recover-and-re-emit workaround
+> is re-introduced; (2) the no-silent-drop LAW (surface the spec-mandated drop as
+> a *diagnostic*) is a value.js-Tranche-O dispatch dep (`KF-TO-VALUEJS-O-ASKS.md`
+> ask #12), consumed Band-B (L.W9). The `proof:replay-equality` `important-honor`
+> source clause is **removed**; the gate ships S2/S3/S4/S5. A consumer-side
+> re-parse of the keyframe body as a style-rule (the verify-lane's attempt) is the
+> **forbidden** workaround — it was reverted. The original (incorrect) S1 spec is
+> retained below for the audit trail.
+
 **Breach.** `declsToVarMap` (`adapter.ts` declsToVarMap) reads only `decl.name` and
 `decl.value`, discarding `decl.important` (`Declaration.important: boolean`,
 `stylesheet.d.ts:5`). `format.ts:declaredKeyframeBody` never emits

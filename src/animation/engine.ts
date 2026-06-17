@@ -508,6 +508,20 @@ export class Animation<V extends Vars = any> {
         return this;
     }
 
+    /**
+     * Set the LAYER-level `animation-composition` operator (L.W1 S5, Band A).
+     * Genuine omission (`undefined`) leaves the field unset — the serializer
+     * treats it as the CSS default `replace` and omits the longhand. A present
+     * value is stored verbatim (`replace` | `add` | `accumulate`), so a sibling
+     * `.class { animation-composition: add }` ingested by `fromString`
+     * round-trips on re-serialize.
+     */
+    setComposite(composite: InputAnimationOptions["composite"]) {
+        if (composite === undefined) return this;
+        this.options.composite = composite;
+        return this;
+    }
+
     setOptions(options: Partial<InputAnimationOptions>) {
         this.setTimingFunction(options.timingFunction);
         this.setDuration(options.duration);
@@ -519,6 +533,7 @@ export class Animation<V extends Vars = any> {
         this.setRespectReducedMotion(options.respectReducedMotion);
         this.setColorSpace(options.colorSpace);
         this.setHueMethod(options.hueMethod);
+        this.setComposite(options.composite);
         return this;
     }
 
@@ -1267,6 +1282,12 @@ export class CSSKeyframesAnimation<V extends Vars> extends Animation<V> {
             base.fillMode = opt.fillMode as NonNullable<
                 InputAnimationOptions["fillMode"]
             >;
+        // L.W1 S5 (Band A) — the LAYER-level `animation-composition` longhand
+        // value.js 0.13.0 surfaces on `CSSAnimationOptions.composition`. Carry it
+        // onto `options.composite` so an authored `animation-composition: add`
+        // (arriving via a sibling `.class` rule) round-trips instead of dropping.
+        if (opt.composition != null)
+            base.composite = opt.composition as CompositeOperator;
         if (Object.keys(base).length > 0) {
             this.setOptions({ ...base, ...this._ctorOptions });
         }
