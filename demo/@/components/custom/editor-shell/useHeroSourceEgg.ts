@@ -17,18 +17,18 @@ import type { loadAnimationEngine as LoadAnimationEngine } from "@mkbabb/keyfram
  * completed block (the narrative still reads: source + result both visible).
  */
 
-// The @keyframes block the card writes — and the SAME keyframes the engine runs
-// on the hero. The 20% stop's -22px is the lift the hero crests to.
-const HERO_KEYFRAMES = {
-    "0%": { transform: "translateY(0px)" },
-    "20%": { transform: "translateY(-22px)" },
-    "100%": { transform: "translateY(0px)" },
-};
+// The @keyframes block the card writes — AND the literal source the engine parses
+// on the hero (`fromString`, the moat's actual front door, NOT a hand-built JS
+// object). The 20% stop's -22px is the lift the hero crests to. Parsing the SAME
+// string the card types is the truest dogfood: source-in === what-runs. (The
+// JS-object `fromKeyframes({transform:"translateY(-22px)"})` form silently drops
+// the function wrapper at flatten — value.js owns that grammar gap; the CSS-parse
+// path reconstructs `translateY` faithfully, so the card parses its own CSS.)
 const FULL_SOURCE =
     "@keyframes hero {\n" +
-    "  0%   { transform: translateY(0);     }\n" +
+    "  0%   { transform: translateY(0px);  }\n" +
     "  20%  { transform: translateY(-22px); }\n" +
-    "  100% { transform: translateY(0);     }\n" +
+    "  100% { transform: translateY(0px);  }\n" +
     "}";
 
 export function useHeroSourceEgg(
@@ -69,14 +69,15 @@ export function useHeroSourceEgg(
             await loadEngine();
         if (disposed) return;
 
-        // Build the REAL engine animation from the SAME keyframes the card types.
+        // Build the REAL engine animation by PARSING the same @keyframes string
+        // the card types (`fromString` — the moat's front door).
         (heroAnim as { stop?: () => void } | undefined)?.stop?.();
         const anim = new CSSKeyframesAnimation({
             duration: 1400,
             iterationCount: 1,
             fillMode: "forwards",
             timingFunction: "ease-in-out",
-        }).fromKeyframes(HERO_KEYFRAMES);
+        }).fromString(FULL_SOURCE);
         heroAnim = anim as typeof heroAnim;
         const el = getHeroEl();
         if (el) anim.setTargets(el);

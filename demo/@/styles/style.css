@@ -1,6 +1,13 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "@mkbabb/glass-ui/styles";
+/* The OFL woff2 corpus (Fira Code mono + the display/sans faces) — DELIBERATELY
+   excluded from the `styles` index by glass-ui (loaded once, self-contained
+   base64 @font-face, no external request). The consumer MUST import it or
+   --font-mono: "Fira Code" silently renders the SF Mono/Menlo fallback (the
+   index.html "arrives via the styles cascade" note was wrong — the cascade
+   omits it by design). This is the AUTHORITATIVE Fira Code payload. */
+@import "@mkbabb/glass-ui/styles/fonts";
 /* The demo's OWNED design idioms — imported IMMEDIATELY AFTER the glass-ui
    cascade so the demo's --rainbow-* / --color-gold / .scale-on-hover /
    @keyframes enter definitions are the AUTHORITATIVE copy (the latent

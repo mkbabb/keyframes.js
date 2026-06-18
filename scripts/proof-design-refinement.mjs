@@ -263,6 +263,7 @@ for (const egg of W11_EGGS) {
 // Born-RED: the host markers don't exist yet, so each arm reports the egg absent.
 // Once landed, the arm fires the trigger and asserts the new observable flips.
 const EXPECTED_TRIGGER = {
+    home: null,
     cube: "Controls",
     amiga: "Controls",
     square: "Controls",
@@ -368,6 +369,51 @@ async function browserHalf() {
                         `[${egg.scene}] W11 egg fires — the NEW egg host (${b.host}) is not ` +
                             `present; born-RED until L.W11 adds the instrument layer`,
                     );
+                    continue;
+                }
+                // ── home — the REAL observable (inv-M-observable-truth), NOT a
+                // DOM-presence proxy. The card types its @keyframes and plays an
+                // ENGINE animation on `.hero-display`; its computed transform MUST
+                // depart `none` (the translateY lift). The L.W11 ship had this
+                // SILENTLY DEAD — `fromKeyframes({transform:"translateY(-22px)"})`
+                // (a function-STRING) is dropped at flatten, so the host was
+                // visible but the hero never lifted, and the old presence-proxy
+                // arm passed green. This arm reds on that exact breach.
+                if (egg.scene === "home") {
+                    const lift = await page.evaluate(async () => {
+                        const el = document.querySelector(".hero-display");
+                        if (!el) return -1;
+                        let maxTy = 0;
+                        const t0 = performance.now();
+                        while (performance.now() - t0 < 7500) {
+                            const tr = getComputedStyle(el).transform;
+                            const m =
+                                tr && tr !== "none"
+                                    ? tr.match(/matrix\(([^)]+)\)/)
+                                    : null;
+                            if (m) {
+                                const ty = Math.abs(
+                                    parseFloat(m[1].split(",")[5]),
+                                );
+                                if (ty > maxTy) maxTy = ty;
+                            }
+                            await new Promise((r) => setTimeout(r, 40));
+                        }
+                        return +maxTy.toFixed(2);
+                    });
+                    if (lift >= 4) {
+                        ok(
+                            `[home] W11 egg fires — the hero LIFT is LIVE: .hero-display ` +
+                                `computed transform departs none (max |translateY| = ${lift}px). ` +
+                                `Real-observable: a dropped string-form transform reds here.`,
+                        );
+                    } else {
+                        fail(
+                            `[home] W11 egg fires — the hero lift is DEAD: .hero-display ` +
+                                `transform never departed none (max |translateY| = ${lift}px) ` +
+                                `over a 7.5s window — the typed @keyframes did not animate the hero`,
+                        );
+                    }
                     continue;
                 }
                 // The host exists — assert the NEW observable marker is reachable

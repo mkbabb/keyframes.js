@@ -59,9 +59,12 @@
             crossorigin
         />
 
-        <!-- Fira Code arrives self-hosted via @mkbabb/glass-ui/styles cascade.
-             Instrument Serif remains Google-Fonts-loaded (not in glass-ui font subsystem).
-             Non-blocking pattern: media="print" prevents render-block, onload swaps to "all". -->
+        <!-- Fira Code arrives self-hosted via an EXPLICIT `@import
+             "@mkbabb/glass-ui/styles/fonts"` in @/styles/style.css (the glass-ui
+             `styles` index OMITS the woff2 corpus by design — it is NOT in the
+             default cascade). Instrument Serif remains Google-Fonts-loaded (not in
+             glass-ui's font subsystem). Non-blocking: media="print" prevents
+             render-block, onload swaps to "all". -->
         <link
             rel="stylesheet"
             href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap"
