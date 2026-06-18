@@ -1,0 +1,1269 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Tranche N — Stage scene-switcher · prototype</title>
+
+<!--
+  ============================================================================
+  Tranche N — the liquid-glass theatrical Stage scene-switcher (PROTOTYPE)
+  ============================================================================
+  Self-contained, no build step. Open directly in a browser.
+  Faithful to docs/tranches/N/audit/design-synthesis.md (the LOCKED design).
+
+  This file is a PROTOTYPE. The production implementation lives in
+  demo/@/components/custom/scene-stage/ as Vue SFCs and DIVERGES from this file
+  at the seams flagged "DIVERGENCE:" throughout. Headline divergences:
+
+    1. SpringProgress dogfood. This file hand-rolls a critically-damped spring
+       stepper (mini-spring) that mirrors @mkbabb/keyframes.js SpringProgress
+       EXACTLY: the ODE  x'' + 2ζω₀x' + ω₀²x = ω₀²·target  (ω₀ = 2π/response,
+       ζ = dampingFraction), velocity-continuous re-seat on target change.
+       Production imports SpringProgress from the LIGHT barrel and rides
+       RAFPlayback (inv ζ — no hand-rolled rAF). The hand-roll here exists ONLY
+       so the prototype is a single file. The physics are identical.
+
+    2. The LIGHT-barrel law (locked decision 1). Production NEVER imports
+       loadAnimationEngine / fromMotionPath / value.js — the picker is
+       SpringProgress / NumericAnimation / stagger / decay only, so
+       proof:boundary stays green. This prototype touches no engine at all.
+
+    3. Teleport/Popover overlay (locked decision 2). Here the stage is a real
+       Popover-API top-layer element (popover="manual"). Production Teleports a
+       <SceneStage> Popover to <body>, SIBLING to the keyed <Suspense> scene
+       host — NEVER a KeepAlive/Transition wrapper around it (the B.W3 blocker).
+
+    4. The previews (locked decision 5) are bespoke cheap idle loops here, NOT
+       real scaled scenes. Production keeps them bespoke + content-visibility
+       gates the loops; distant ring members are static posters.
+
+    5. The commit (locked decision 3) here is console.log + a flash + a VT.
+       Production routes through the existing runSceneSwitch / startViewTransition
+       and shares a transient view-transition-name with the scene host's
+       scene-subject so the front card morphs into the live scene.
+  ============================================================================
+-->
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet" />
+
+<style>
+/* ===========================================================================
+   REGISTERED CUSTOM PROPERTIES — typed @property so they INTERPOLATE.
+   --stage-light is THE one downlight intensity scalar (locked decision 4).
+   The specular coords are typed so the catch-light eases between samples.
+   =========================================================================== */
+@property --stage-light   { syntax: "<number>"; inherits: true;  initial-value: 1; }
+@property --front-dim      { syntax: "<number>"; inherits: true;  initial-value: 0; }
+@property --specular-x     { syntax: "<percentage>"; inherits: false; initial-value: 50%; }
+@property --specular-y     { syntax: "<percentage>"; inherits: false; initial-value: 50%; }
+@property --sheen-intensity{ syntax: "<number>"; inherits: false; initial-value: 0; }
+
+/* ===========================================================================
+   TOKENS. Glass + paper idiom; Instrument Serif display, Fira Code mono.
+   --stage-void is THEME-INVARIANT (locked decision 4): the dark theatre reads
+   in BOTH light and dark. Only the glass cards/arrows pick up theme specular.
+   =========================================================================== */
+:root {
+    --font-display: "Instrument Serif", Georgia, serif;
+    --font-mono: "Fira Code", ui-monospace, monospace;
+
+    /* theme-invariant theatre void (the dark stage in both themes) */
+    --stage-void: oklch(0.13 0.012 270);
+    --stage-void-edge: oklch(0.06 0.01 270);
+
+    /* the cone + pool light (warm theatre white) */
+    --light-hue: 48;
+    --pool-core: oklch(0.97 0.03 var(--light-hue));
+    --cone-fill: oklch(0.95 0.02 var(--light-hue));
+
+    /* glass cohort */
+    --glass-tint: 255 255 255;
+    --glass-rim: hsl(0 0% 100% / 0.18);
+    --glass-blur: 13px;
+    --specular-warm: hsl(44 60% 92%);
+
+    /* chrome / surfaces outside the void */
+    --page-bg: oklch(0.16 0.014 268);
+    --ink: oklch(0.96 0.01 268);
+    --ink-dim: oklch(0.74 0.02 268);
+    --accent: oklch(0.78 0.13 200);
+
+    /* motion (CSS linear()/bezier twins of the glass-ui spring tokens) */
+    --spring-bouncy: linear(0,.009,.035 2.1%,.141,.281 6.7%,.723 12.9%,.938,1.017,1.077,1.121,1.149 24.3%,1.159,1.163,1.151,1.122 32.2%,1.07,1.029 39.6%,.991,.983,.984 47.6%,.998,1.011 56.6%,1.014,1.013,1.005 75.3%,1.001,.999);
+    --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:root[data-theme="light"] {
+    /* the void stays dark; only the page chrome around it brightens */
+    --page-bg: oklch(0.93 0.012 90);
+    --ink: oklch(0.22 0.02 268);
+    --ink-dim: oklch(0.42 0.02 268);
+    --glass-rim: hsl(0 0% 100% / 0.22);
+    --specular-warm: hsl(44 55% 96%);
+    /* DIVERGENCE: production lets glass-ui's dark/light specular cohort swap
+       (0.08/0.12 dark vs 0.1/0.16 light) — here it's one warm sheen. */
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+    margin: 0;
+    height: 100%;
+    background: var(--page-bg);
+    color: var(--ink);
+    font-family: var(--font-mono);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+}
+
+/* ===========================================================================
+   THE LANDING — the dimmed live "scene" + the dock Select that invokes the
+   stage. Mirrors the demo's ChromeDock scene Select trigger.
+   =========================================================================== */
+.landing {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-content: center;
+    gap: 1.5rem;
+    text-align: center;
+    padding: 2rem;
+    transition: filter 0.5s var(--ease-standard), opacity 0.5s var(--ease-standard);
+}
+.landing.dimmed {
+    /* the live scene recedes behind the smoked glass when the stage opens */
+    filter: blur(3px) brightness(0.55);
+    opacity: 0.7;
+}
+.landing h1 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(2.4rem, 7vw, 4.5rem);
+    line-height: 1.05;
+    margin: 0;
+    letter-spacing: 0.01em;
+}
+.landing .kicker {
+    font-size: 0.8rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+}
+.landing p { color: var(--ink-dim); max-width: 42ch; margin: 0 auto; line-height: 1.6; }
+.now-showing { font-family: var(--font-display); font-size: 1.4rem; color: var(--ink); }
+.now-showing .idx { font-family: var(--font-mono); color: var(--ink-dim); font-size: 0.9rem; }
+
+/* the dock Select trigger (glass control) */
+.dock {
+    display: inline-flex;
+    gap: 0.6rem;
+    align-items: center;
+    align-self: center;
+    margin-top: 0.5rem;
+}
+.dock-select {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.7rem 1.2rem;
+    min-height: 44px;
+    border-radius: 0.9rem;
+    border: 0.75px solid var(--glass-rim);
+    background: rgb(var(--glass-tint) / 0.1);
+    backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+    box-shadow: inset 0 0 0 0.75px var(--glass-rim), 0 8px 24px hsl(0 0% 0% / 0.25);
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 0.92rem;
+    cursor: pointer;
+    transition: transform 0.2s var(--ease-out), box-shadow 0.2s var(--ease-out), background 0.2s;
+    view-transition-name: dock-select-trigger;
+}
+.dock-select:hover { transform: translateY(-1px); background: rgb(var(--glass-tint) / 0.16); }
+.dock-select:active { transform: translateY(0) scale(0.98); }
+.dock-select:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.dock-select .label { font-family: var(--font-display); font-size: 1.05rem; }
+.dock-select .chev { color: var(--ink-dim); }
+
+.toolbar {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    display: flex;
+    gap: 0.5rem;
+    z-index: 5;
+}
+.tool-btn {
+    min-height: 36px;
+    padding: 0.45rem 0.8rem;
+    border-radius: 0.7rem;
+    border: 0.75px solid var(--glass-rim);
+    background: rgb(var(--glass-tint) / 0.08);
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: background 0.18s, transform 0.18s var(--ease-out);
+}
+.tool-btn:hover { background: rgb(var(--glass-tint) / 0.16); }
+.tool-btn[aria-pressed="true"] { background: var(--accent); color: oklch(0.15 0.02 200); border-color: transparent; }
+.tool-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ===========================================================================
+   THE STAGE OVERLAY — a Popover-API top-layer element (locked decision 2).
+   @starting-style + transition-behavior: allow-discrete + overlay drive the
+   liquid-glass entry/exit (locked decision 6 motion via VT where supported).
+   =========================================================================== */
+.stage[popover] {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: none;
+    overflow: hidden;
+    /* the theme-invariant void, with a soft radial vignette toward black */
+    background:
+        radial-gradient(125% 95% at 50% 32%, var(--stage-void) 0%, var(--stage-void-edge) 72%, oklch(0.03 0.006 270) 100%);
+    /* The theatre is ALWAYS dark, so its ink is theme-INVARIANT light — override
+       the light-theme --ink flip here so the cascade keeps nameplate/arrows/hint
+       readable in BOTH themes (cures the light-mode dark-on-dark contrast bug). */
+    --ink: oklch(0.96 0.01 268);
+    --ink-dim: oklch(0.74 0.02 268);
+    color: var(--ink);
+    /* liquid-glass: the world goes smoky as the stage inflates in */
+    opacity: 1;
+    scale: 1;
+    transition:
+        opacity 0.42s var(--ease-out),
+        scale 0.5s var(--spring-bouncy),
+        display 0.5s allow-discrete,
+        overlay 0.5s allow-discrete;
+    view-transition-name: stage-root;
+}
+.stage[popover]:popover-open { opacity: 1; scale: 1; }
+.stage[popover]:not(:popover-open) { opacity: 0; scale: 0.94; }
+@starting-style {
+    .stage[popover]:popover-open { opacity: 0; scale: 0.92; }
+}
+/* the smoked-glass scrim ::backdrop blurs the receding live scene */
+.stage[popover]::backdrop {
+    background: hsl(0 0% 0% / 0.55);
+    backdrop-filter: blur(24px) saturate(0.6) brightness(0.4);
+    -webkit-backdrop-filter: blur(24px) saturate(0.6) brightness(0.4);
+    transition:
+        background 0.42s var(--ease-out),
+        backdrop-filter 0.42s var(--ease-out),
+        display 0.5s allow-discrete,
+        overlay 0.5s allow-discrete;
+}
+.stage[popover]:not(:popover-open)::backdrop { background: hsl(0 0% 0% / 0); backdrop-filter: blur(0px); }
+@starting-style {
+    .stage[popover]:popover-open::backdrop { background: hsl(0 0% 0% / 0); backdrop-filter: blur(0px); }
+}
+
+/* ===========================================================================
+   THE 3D STAGE PLANE — perspective + rotateX(15deg) (locked decision 4).
+   The cone, pool, and ring all share this tilt; the front card counter-
+   rotates to face the user.
+   =========================================================================== */
+.stage-3d {
+    position: absolute;
+    inset: 0;
+    perspective: 1200px;
+    perspective-origin: 50% 34%;
+    display: grid;
+    place-items: center;
+}
+.stage-plane {
+    position: relative;
+    width: min(92vw, 1000px);
+    height: min(72vh, 620px);
+    transform-style: preserve-3d;
+    transform-origin: center 78%;
+    rotate: x 15deg;
+}
+
+/* ---- the downlight cone: clip-path trapezoid + linear-gradient + screen ---- */
+.cone {
+    position: absolute;
+    left: 50%;
+    top: -4%;
+    width: 46%;
+    height: 92%;
+    translate: -50% 0;
+    /* narrow at top, flaring to the floor — the volumetric shaft */
+    clip-path: polygon(34% 0%, 66% 0%, 96% 100%, 4% 100%);
+    background: linear-gradient(
+        to bottom,
+        oklch(0.95 0.02 var(--light-hue) / calc(0.03 * var(--stage-light)))   0%,
+        oklch(0.96 0.03 var(--light-hue) / calc(0.12 * var(--stage-light)))   55%,
+        oklch(0.98 0.04 var(--light-hue) / calc(0.26 * var(--stage-light)))  100%
+    );
+    mix-blend-mode: screen;
+    filter: blur(3px);
+    /* feather the cone edges so it reads volumetric, not a cut shape */
+    mask-image: linear-gradient(to right, transparent, #000 18%, #000 82%, transparent);
+    will-change: opacity;
+    pointer-events: none;
+    transform: translateZ(0);
+}
+/* a faint dust/haze grain inside the cone */
+.cone::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(oklch(1 0 0 / 0.05) 0.5px, transparent 0.5px);
+    background-size: 7px 7px;
+    mix-blend-mode: screen;
+    opacity: calc(0.5 * var(--stage-light));
+}
+
+/* ---- the glowing floor pool: radial-gradient ellipse ---- */
+.pool {
+    position: absolute;
+    left: 50%;
+    bottom: 4%;
+    width: 56%;
+    aspect-ratio: 3.1 / 1;
+    translate: -50% 0;
+    background: radial-gradient(
+        ellipse at center,
+        oklch(0.98 0.03 var(--light-hue) / calc(0.85 * var(--stage-light))) 0%,
+        oklch(0.92 0.04 var(--light-hue) / calc(0.35 * var(--stage-light))) 38%,
+        transparent 70%
+    );
+    border-radius: 50%;
+    filter: blur(7px);
+    mix-blend-mode: screen;
+    will-change: opacity;
+    pointer-events: none;
+}
+/* the translating fill-light that turns attention toward a hovered item
+   (locked decision: hover-brighten de-emphasises the centre) */
+.fill-light {
+    position: absolute;
+    left: 50%;
+    bottom: 14%;
+    width: 30%;
+    aspect-ratio: 2.4 / 1;
+    translate: calc(-50% + var(--fill-shift, 0px)) 0;
+    background: radial-gradient(ellipse at center, oklch(0.9 0.02 var(--light-hue) / 0.16) 0%, transparent 68%);
+    border-radius: 50%;
+    filter: blur(10px);
+    mix-blend-mode: screen;
+    opacity: var(--fill-on, 0);
+    transition: opacity 0.28s var(--ease-out);
+    pointer-events: none;
+}
+
+/* ===========================================================================
+   THE CAROUSEL RING — a 7-item turntable. Each item's transform/scale/opacity/
+   blur/brightness/z-index re-derive PER-FRAME from its live effective angle in
+   JS (locked decision: ONE coherent motion off ONE ring-angle spring).
+   =========================================================================== */
+.ring {
+    position: absolute;
+    left: 50%;
+    top: 44%;
+    width: 0;
+    height: 0;
+    transform-style: preserve-3d;
+}
+.ring-item {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 168px;
+    height: 210px;
+    margin-left: -84px;
+    margin-top: -118px;
+    transform-style: preserve-3d;
+    /* the per-frame transform is written from JS; this is the identity base */
+    will-change: transform, filter, opacity;
+    cursor: pointer;
+    border: none;
+    padding: 0;
+    background: none;
+    font: inherit;
+    color: inherit;
+}
+.ring-item:focus { outline: none; }
+/* the focus ring is a discrete, contrast-safe selection signal (a11y:
+   brightness is decorative only) */
+.ring-item:focus-visible .card {
+    box-shadow:
+        inset 0 0 0 0.75px var(--glass-rim),
+        0 0 0 2px var(--accent),
+        0 0 22px oklch(0.78 0.13 200 / 0.5);
+}
+
+/* the glass card — a ladder rung, NO refract (refract only on arrows + plate) */
+.card {
+    position: absolute;
+    inset: 0;
+    border-radius: 1.1rem;
+    overflow: hidden;
+    background: rgb(var(--glass-tint) / 0.07);
+    backdrop-filter: blur(var(--glass-blur)) saturate(1.3);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.3);
+    box-shadow:
+        inset 0 0 0 0.75px var(--glass-rim),
+        0 18px 40px hsl(0 0% 0% / 0.45);
+    display: grid;
+    grid-template-rows: 1fr auto;
+}
+.card .preview {
+    position: relative;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+}
+.card .cap {
+    padding: 0.5rem 0.7rem 0.6rem;
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    letter-spacing: 0.01em;
+    text-align: center;
+    border-top: 0.5px solid hsl(0 0% 100% / 0.08);
+    background: linear-gradient(to top, hsl(0 0% 0% / 0.2), transparent);
+}
+
+/* ===========================================================================
+   THE FRONT PLATE + NAME-PLATE + ARROWS — the controls below the stage.
+   The front plate + arrows carry .glass-refract + specular (locked decision 6).
+   =========================================================================== */
+.console {
+    position: absolute;
+    left: 50%;
+    bottom: clamp(2rem, 6vh, 4.5rem);
+    translate: -50% 0;
+    display: flex;
+    align-items: center;
+    gap: clamp(1.5rem, 5vw, 3.5rem);
+    z-index: 3;
+}
+
+/* the name-plate (Instrument Serif name + Fira Code n/7) */
+.nameplate {
+    display: grid;
+    place-items: center;
+    gap: 0.2rem;
+    min-width: 260px;
+    padding: 0.9rem 1.6rem;
+    border-radius: 1rem;
+    /* the refractive front plate — glass + specular catch-light */
+    background: rgb(var(--glass-tint) / 0.09);
+    backdrop-filter: blur(16px) saturate(1.5);
+    -webkit-backdrop-filter: blur(16px) saturate(1.5);
+    box-shadow:
+        inset 0 0 0 0.75px var(--glass-rim),
+        0 10px 30px hsl(0 0% 0% / 0.4);
+    position: relative;
+    overflow: hidden;
+    view-transition-name: stage-nameplate;
+}
+/* the pointer-tracked specular sheen (CONTROL-on-plate sanctioned) */
+.nameplate::before, .arrow::before {
+    content: "";
+    position: absolute;
+    inset: -20%;
+    background: radial-gradient(
+        circle 38% at var(--specular-x) var(--specular-y),
+        var(--specular-warm) 0%,
+        transparent 60%
+    );
+    opacity: var(--sheen-intensity);
+    mix-blend-mode: screen;
+    pointer-events: none;
+    transition: --specular-x 0.15s var(--ease-standard), --specular-y 0.15s var(--ease-standard), --sheen-intensity 0.25s;
+}
+.nameplate .scene-name {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 4vw, 2.3rem);
+    line-height: 1;
+    width: fit-content; /* stable VT aspect ratio for the name morph */
+    transition: letter-spacing 0.24s var(--ease-out);
+}
+.nameplate .scene-idx {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    color: var(--ink-dim);
+    letter-spacing: 0.12em;
+}
+.nameplate.committing .scene-name { letter-spacing: 0.04em; }
+
+/* the two glassy intent-arrows */
+.arrow {
+    --dir: 1;
+    flex: none;
+    width: 60px;
+    height: 60px;
+    min-width: 44px;
+    min-height: 44px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+    color: var(--ink);
+    background: rgb(var(--glass-tint) / 0.1);
+    backdrop-filter: blur(13px) saturate(1.6);
+    -webkit-backdrop-filter: blur(13px) saturate(1.6);
+    box-shadow:
+        inset 0 0 0 0.75px var(--glass-rim),
+        0 8px 22px hsl(0 0% 0% / 0.4);
+    /* idle: a slow directional drift + the spring-driven swell/recoil scale.
+       --swell + --lunge are written per-frame from the arrow's mini-spring. */
+    scale: var(--swell, 1);
+    translate: calc((var(--drift, 0px) + var(--lunge, 0px)) * var(--dir)) 0;
+    transition: background 0.2s, box-shadow 0.2s;
+    will-change: transform, scale;
+}
+.arrow:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.arrow svg { width: 26px; height: 26px; transition: filter 0.2s; }
+.arrow:hover { background: rgb(var(--glass-tint) / 0.18); }
+.arrow:hover svg { filter: drop-shadow(0 0 6px oklch(0.85 0.05 200 / 0.6)); }
+.arrow.prev { --dir: -1; }
+.arrow.next { --dir: 1; }
+
+/* the aria-live region + commit flash */
+.sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+.commit-flash {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(ellipse 60% 45% at 50% 56%, oklch(0.99 0.04 var(--light-hue) / 0.6), transparent 70%);
+    opacity: 0;
+    z-index: 4;
+}
+.commit-flash.fire { animation: flash 0.6s var(--ease-out); }
+@keyframes flash { 0% { opacity: 0; } 18% { opacity: 1; } 100% { opacity: 0; } }
+
+/* the hint strip */
+.stage-hint {
+    position: absolute;
+    bottom: 0.8rem;
+    left: 50%;
+    translate: -50% 0;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: oklch(0.7 0.02 268 / 0.65);
+    letter-spacing: 0.05em;
+    z-index: 3;
+    text-align: center;
+}
+.stage-hint kbd {
+    font-family: var(--font-mono);
+    background: hsl(0 0% 100% / 0.08);
+    border: 0.5px solid var(--glass-rim);
+    border-radius: 0.3rem;
+    padding: 0.05rem 0.35rem;
+}
+.stage-close {
+    position: absolute;
+    top: 1.2rem;
+    right: 1.2rem;
+    min-width: 44px;
+    min-height: 44px;
+    border-radius: 0.7rem;
+    border: 0.75px solid var(--glass-rim);
+    background: rgb(var(--glass-tint) / 0.08);
+    color: var(--ink);
+    font-family: var(--font-mono);
+    cursor: pointer;
+    z-index: 4;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+.stage-close:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* =========================== the 7 bespoke idle previews ====================
+   Each dogfoods ONE light primitive's flavour (locked decision 5). CSS-only
+   here for portability; content-visibility-gated JS-loop variants flagged.
+   ============================================================================ */
+.pv { width: 86px; height: 86px; position: relative; }
+
+/* CUBE — slow 3D tumble */
+.pv-cube { transform-style: preserve-3d; animation: tumble 6s linear infinite; }
+.pv-cube .face {
+    position: absolute; inset: 14px; border-radius: 6px;
+    border: 1.5px solid oklch(0.8 0.12 var(--f, 20));
+    background: oklch(0.7 0.13 var(--f, 20) / 0.18);
+}
+.pv-cube .f1 { --f: 20;  transform: rotateY(0deg) translateZ(20px); }
+.pv-cube .f2 { --f: 140; transform: rotateY(90deg) translateZ(20px); }
+.pv-cube .f3 { --f: 270; transform: rotateY(180deg) translateZ(20px); }
+.pv-cube .f4 { --f: 200; transform: rotateX(90deg) translateZ(20px); }
+@keyframes tumble { from { transform: rotateY(0) rotateX(-15deg); } to { transform: rotateY(360deg) rotateX(-15deg); } }
+
+/* AMIGA — the Boing ball hop + squash, checkerboard hue cycling */
+.pv-amiga .ball {
+    width: 48px; height: 48px; border-radius: 50%;
+    background:
+        repeating-conic-gradient(from 0deg, oklch(0.7 0.22 20) 0 30deg, oklch(0.96 0.02 90) 30deg 60deg);
+    box-shadow: inset -6px -6px 12px hsl(0 0% 0% / 0.4);
+    animation: boing 1.8s cubic-bezier(0.3,0,0.2,1) infinite, hue 5s linear infinite;
+    transform-origin: center bottom;
+}
+@keyframes boing {
+    0%,100% { transform: translateY(-20px) scaleY(1); }
+    45% { transform: translateY(-20px) scaleY(1); }
+    50% { transform: translateY(8px) scaleY(0.82) scaleX(1.12); }
+    55% { transform: translateY(-20px) scaleY(1); }
+}
+@keyframes hue { to { filter: hue-rotate(360deg); } }
+
+/* SQUARE — a box that breathes (radius) and rocks */
+.pv-square .box {
+    width: 52px; height: 52px;
+    background: oklch(0.72 0.1 268 / 0.35);
+    border: 1.5px solid oklch(0.82 0.1 268);
+    animation: breathe 3.2s ease-in-out infinite;
+}
+@keyframes breathe {
+    0%,100% { border-radius: 8px; transform: rotate(-2deg); }
+    50% { border-radius: 20px; transform: rotate(2deg); }
+}
+
+/* EASING — a bezier curve that draws itself, then a ball traces it */
+.pv-easing svg { width: 80px; height: 80px; }
+.pv-easing .curve {
+    fill: none; stroke: oklch(0.82 0.12 150); stroke-width: 2.5;
+    stroke-dasharray: 120; stroke-dashoffset: 120;
+    animation: draw 3s ease-in-out infinite;
+}
+.pv-easing .dot { fill: oklch(0.92 0.08 150); animation: trace 3s ease-in-out infinite; }
+@keyframes draw { 0% { stroke-dashoffset: 120; } 55%,100% { stroke-dashoffset: 0; } }
+@keyframes trace {
+    0%,50% { offset-distance: 0%; opacity: 0; }
+    55% { opacity: 1; }
+    100% { offset-distance: 100%; opacity: 1; }
+}
+
+/* SPRING — a needle that flicks to a target and rings to rest (overshoot) */
+.pv-spring .gauge { width: 70px; height: 70px; position: relative; }
+.pv-spring .needle {
+    position: absolute; left: 50%; bottom: 8px;
+    width: 3px; height: 30px; border-radius: 2px;
+    background: oklch(0.85 0.14 30);
+    transform-origin: bottom center;
+    animation: flick 2.6s cubic-bezier(0.34, 1.56, 0.46, 1) infinite;
+}
+.pv-spring .pin { position: absolute; left: 50%; bottom: 6px; width: 7px; height: 7px; border-radius: 50%; background: oklch(0.9 0.1 30); translate: -50% 0; }
+@keyframes flick {
+    0% { transform: translateX(-50%) rotate(-42deg); }
+    35% { transform: translateX(-50%) rotate(40deg); }
+    55% { transform: translateX(-50%) rotate(-14deg); }
+    72% { transform: translateX(-50%) rotate(7deg); }
+    100% { transform: translateX(-50%) rotate(-42deg); }
+}
+
+/* SEQUENCE — staggered dots rise in a wave then fade (from:'first') */
+.pv-sequence { display: flex; gap: 7px; align-items: flex-end; height: 56px; }
+.pv-sequence i {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: oklch(0.82 0.12 300);
+    animation: rise 2.4s ease-in-out infinite;
+}
+.pv-sequence i:nth-child(1) { animation-delay: 0s; }
+.pv-sequence i:nth-child(2) { animation-delay: 0.12s; }
+.pv-sequence i:nth-child(3) { animation-delay: 0.24s; }
+.pv-sequence i:nth-child(4) { animation-delay: 0.36s; }
+@keyframes rise { 0%,60%,100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-26px); opacity: 1; } }
+
+/* PATH — a traveller sweeping a figure-8 offset-path, rotate:auto banks it */
+.pv-path .traveller {
+    width: 12px; height: 12px; border-radius: 3px;
+    background: oklch(0.84 0.13 60);
+    offset-path: path("M 10 30 C 10 10, 50 10, 50 30 C 50 50, 10 50, 10 30 Z");
+    offset-rotate: auto;
+    animation: sweep 3.4s linear infinite;
+}
+@keyframes sweep { to { offset-distance: 100%; } }
+
+/* ===========================================================================
+   REDUCED MOTION (locked decision 7): snap the ring, freeze --stage-light,
+   kill VT/idle/shimmer. The JS also branches (PRM toggle for the demo).
+   =========================================================================== */
+.prm .cone, .prm .pool, .prm .fill-light { transition: none !important; }
+.prm .pv-cube, .prm .pv-amiga .ball, .prm .pv-square .box,
+.prm .pv-easing .curve, .prm .pv-easing .dot, .prm .pv-spring .needle,
+.prm .pv-sequence i, .prm .pv-path .traveller { animation: none !important; }
+.prm .nameplate::before, .prm .arrow::before { display: none; }
+@media (prefers-reduced-motion: reduce) {
+    .stage[popover], .stage[popover]::backdrop { transition-duration: 0.1s !important; scale: 1 !important; }
+    ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+}
+/* the demo PRM toggle forces the same brackets regardless of OS setting */
+.prm.stage[popover], .prm .stage[popover] { }
+:root.prm .stage[popover], :root.prm .stage[popover]::backdrop { transition-duration: 0.1s !important; }
+::view-transition { pointer-events: none; }
+
+/* the stage-bloom VT keyframe (entry) — graceful: absent → instant popover */
+::view-transition-new(stage-root) { animation: stage-bloom 0.5s var(--ease-out); }
+::view-transition-old(stage-root) { animation: stage-bloom 0.42s var(--ease-out) reverse; }
+@keyframes stage-bloom { from { opacity: 0; } to { opacity: 1; } }
+
+@media (max-width: 720px) {
+    .ring-item { width: 132px; height: 168px; margin-left: -66px; margin-top: -94px; }
+    .console { gap: 1.2rem; flex-wrap: wrap; justify-content: center; }
+    .nameplate { min-width: 200px; }
+    /* DIVERGENCE: production has a dedicated phone-narrow flat-carousel layout;
+       this prototype just tightens the ring radius via JS (RING_RADIUS_MOBILE). */
+}
+</style>
+</head>
+<body>
+
+<!-- ====================== THE LANDING (the dimmed live scene) ============== -->
+<main class="landing" id="landing">
+    <div class="kicker">keyframes.js · Tranche N</div>
+    <h1>The&nbsp;Stage</h1>
+    <p>A theatrical downlight scene-switcher. A spotlight cone descends to a glowing floor pool; a seven-item turntable carries living previews. Open the Stage to choose a scene.</p>
+    <div class="now-showing">Now showing: <span id="nowName">Cube</span> <span class="idx" id="nowIdx">1 / 7</span></div>
+    <div class="dock">
+        <button class="dock-select" id="openStage" aria-haspopup="dialog">
+            <span class="label" id="dockLabel">Cube</span>
+            <span class="chev">▾ Switch scene</span>
+        </button>
+    </div>
+</main>
+
+<div class="toolbar">
+    <button class="tool-btn" id="themeToggle" aria-pressed="false">◐ Theme</button>
+    <button class="tool-btn" id="prmToggle" aria-pressed="false" title="Force reduced-motion path">⏸ Reduce motion</button>
+</div>
+
+<!-- ====================== THE STAGE OVERLAY (Popover top-layer) ============ -->
+<div class="stage" id="stage" popover="manual" role="dialog" aria-modal="true" aria-label="Scene switcher stage">
+    <button class="stage-close" id="closeStage" aria-label="Close stage (Esc)">✕</button>
+
+    <div class="stage-3d">
+        <div class="stage-plane">
+            <div class="cone"></div>
+            <div class="pool"></div>
+            <div class="fill-light" id="fillLight"></div>
+            <div class="ring" id="ring" role="listbox" aria-label="Scenes" tabindex="0" aria-activedescendant="ring-item-0"></div>
+        </div>
+    </div>
+
+    <div class="commit-flash" id="commitFlash"></div>
+
+    <div class="console">
+        <button class="arrow prev" id="arrowPrev" aria-label="Previous scene">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+        </button>
+
+        <div class="nameplate" id="nameplate">
+            <div class="scene-name" id="sceneName">Cube</div>
+            <div class="scene-idx" id="sceneIdx">1 / 7</div>
+        </div>
+
+        <button class="arrow next" id="arrowNext" aria-label="Next scene">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>
+        </button>
+    </div>
+
+    <div class="stage-hint">
+        <kbd>←</kbd> <kbd>→</kbd> spin · <kbd>Home</kbd>/<kbd>End</kbd> · <kbd>Enter</kbd> commit · <kbd>Esc</kbd> close · click a flank to spin
+    </div>
+
+    <div class="sr-only" aria-live="polite" id="liveRegion"></div>
+</div>
+
+<script type="module">
+/* ===========================================================================
+   MINI-SPRING — a faithful re-implementation of @mkbabb/keyframes.js
+   SpringProgress for this single-file prototype.
+
+   DIVERGENCE (locked decision 1 + inv ζ): production imports SpringProgress
+   from the LIGHT barrel and drives it via RAFPlayback — it NEVER hand-rolls a
+   rAF loop and NEVER imports the heavy engine / value.js. This class exists
+   ONLY so the prototype is one file. The ODE, the (response, dampingFraction)
+   surface, and the velocity-continuous re-seat are byte-for-byte the same
+   semantics as spring.ts:
+
+       x'' + 2ζω₀x' + ω₀²x = ω₀²·target,   ω₀ = 2π/response,  ζ = dampingFraction
+
+   setTarget() re-seats the closed-form solution from the current (x, v), so an
+   interruption mid-spin is jump-free — exactly SpringProgress's contract.
+   =========================================================================== */
+class MiniSpring {
+    constructor({ response = 0.5, dampingFraction = 0.86, initial = 0 } = {}) {
+        this.response = response;
+        this.zeta = dampingFraction;
+        this.x = initial;
+        this.v = 0;
+        this.target = initial;
+    }
+    setTarget(t) { this.target = t; /* (x, v) carry over → velocity-continuous re-seat */ }
+    /** Integrate the damped harmonic oscillator by dt seconds (semi-implicit, clamped). */
+    tickDt(dt) {
+        dt = Math.min(dt, 1 / 30); // clamp huge frames (tab refocus), like RAFPlayback
+        const w0 = (2 * Math.PI) / this.response;
+        const z = this.zeta;
+        // sub-step for stiff springs to keep it stable
+        const steps = Math.max(1, Math.ceil(dt / 0.008));
+        const h = dt / steps;
+        for (let i = 0; i < steps; i++) {
+            const a = w0 * w0 * (this.target - this.x) - 2 * z * w0 * this.v;
+            this.v += a * h;
+            this.x += this.v * h;
+        }
+        return this.x;
+    }
+    get settled() {
+        return Math.abs(this.x - this.target) < 1e-3 && Math.abs(this.v) < 1e-3;
+    }
+    snap(t) { this.target = t; this.x = t; this.v = 0; }
+}
+
+/* ===========================================================================
+   SCENE DATA — the 7 real scene names + their bespoke idle preview + pool tint.
+   =========================================================================== */
+const SCENES = [
+    { id: "cube",     name: "Cube",     hue: 20,  preview: cubePV },
+    { id: "amiga",    name: "Amiga",    hue: 20,  preview: amigaPV },
+    { id: "square",   name: "Square",   hue: 268, preview: squarePV },
+    { id: "easing",   name: "Easing",   hue: 150, preview: easingPV },
+    { id: "spring",   name: "Spring",   hue: 30,  preview: springPV },
+    { id: "sequence", name: "Sequence", hue: 300, preview: sequencePV },
+    { id: "path",     name: "Path",     hue: 60,  preview: pathPV },
+];
+const N = SCENES.length;
+const SEG = 360 / N; // 51.43° per item
+
+/* bespoke preview factories (CSS-driven idle loops). DIVERGENCE: production
+   gates each loop on contentvisibilityautostatechange so off-front loops pause
+   and distant ring members render as a static poster. */
+function cubePV()     { return html(`<div class="pv pv-cube"><div class="face f1"></div><div class="face f2"></div><div class="face f3"></div><div class="face f4"></div></div>`); }
+function amigaPV()    { return html(`<div class="pv pv-amiga"><div class="ball"></div></div>`); }
+function squarePV()   { return html(`<div class="pv pv-square"><div class="box"></div></div>`); }
+function easingPV()   { return html(`<div class="pv pv-easing"><svg viewBox="0 0 80 80"><path class="curve" d="M 6 70 C 30 70, 50 10, 74 10"/><circle class="dot" r="4" style="offset-path:path('M 6 70 C 30 70, 50 10, 74 10')"/></svg></div>`); }
+function springPV()   { return html(`<div class="pv pv-spring"><div class="gauge"><div class="needle"></div><div class="pin"></div></div></div>`); }
+function sequencePV() { return html(`<div class="pv pv-sequence"><i></i><i></i><i></i><i></i></div>`); }
+function pathPV()     { return html(`<div class="pv pv-path"><div class="traveller"></div></div>`); }
+function html(s) { const t = document.createElement("template"); t.innerHTML = s.trim(); return t.content.firstElementChild; }
+
+/* ===========================================================================
+   STATE + ELEMENTS
+   =========================================================================== */
+const root = document.documentElement;
+const stage = document.getElementById("stage");
+const ring = document.getElementById("ring");
+const fillLight = document.getElementById("fillLight");
+const sceneNameEl = document.getElementById("sceneName");
+const sceneIdxEl = document.getElementById("sceneIdx");
+const nameplate = document.getElementById("nameplate");
+const liveRegion = document.getElementById("liveRegion");
+const commitFlash = document.getElementById("commitFlash");
+const arrowPrev = document.getElementById("arrowPrev");
+const arrowNext = document.getElementById("arrowNext");
+
+let selected = 0;        // index of the front scene
+let hoverIndex = null;   // hovered ring item (for hover-brighten)
+let stageOpen = false;
+
+const RING_RADIUS = () => (window.innerWidth <= 720 ? 250 : 340); // px translateZ
+
+/* the ONE ring-angle spring (degrees). spin-to-front sets its target by the
+   shortest signed delta; falloff per item derives from the live angle.
+   response 0.55, damping 0.82 = a hair of overshoot (the synthesis spec). */
+const ringSpring = new MiniSpring({ response: 0.55, dampingFraction: 0.82, initial: 0 });
+
+/* per-arrow micro-motion springs (swell + recoil). press → recoil; the lunge
+   decays via a closed-form decay() (dogfoods decay.ts in production). */
+const arrowSpring = {
+    prev: new MiniSpring({ response: 0.4, dampingFraction: 0.7, initial: 1 }),
+    next: new MiniSpring({ response: 0.4, dampingFraction: 0.7, initial: 1 }),
+};
+const arrowLunge = { prev: { x0: 0, v0: 0, t0: 0 }, next: { x0: 0, v0: 0, t0: 0 } };
+
+/* the --stage-light hover-brighten authority. eased via CSS transition on the
+   registered @property; we just write target values. */
+let stageLightTarget = 1;
+let fillShiftTarget = 0;
+let fillOn = 0;
+
+/* reduced-motion: OS query OR the demo toggle */
+const prmQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+let prmForced = false;
+const prm = () => prmForced || prmQuery.matches;
+
+/* ===========================================================================
+   BUILD THE RING
+   =========================================================================== */
+const items = SCENES.map((scene, i) => {
+    const btn = document.createElement("button");
+    btn.className = "ring-item";
+    btn.id = `ring-item-${i}`;
+    btn.setAttribute("role", "option");
+    btn.setAttribute("aria-label", `${scene.name}, ${i + 1} of ${N}`);
+    btn.tabIndex = -1;
+    const card = document.createElement("div");
+    card.className = "card";
+    const preview = document.createElement("div");
+    preview.className = "preview";
+    preview.style.setProperty("--light-hue", scene.hue);
+    preview.appendChild(scene.preview());
+    const cap = document.createElement("div");
+    cap.className = "cap";
+    cap.textContent = scene.name;
+    card.append(preview, cap);
+    btn.appendChild(card);
+    ring.appendChild(btn);
+
+    btn.addEventListener("click", () => onItemClick(i));
+    btn.addEventListener("pointerenter", () => setHover(i));
+    btn.addEventListener("pointerleave", () => setHover(null));
+    return btn;
+});
+
+/* angle of item i relative to the front, given the ring rotation (deg). The
+   front item sits at effective angle ~0. */
+function effectiveAngle(i, ringDeg) {
+    let a = (i * SEG) - selectedBaseDeg() + ringDeg;
+    // normalize to [-180, 180]
+    a = ((a % 360) + 540) % 360 - 180;
+    return a;
+}
+/* the ring rotation that brings `selected` to front is tracked as the spring's
+   resting target; selectedBaseDeg keeps item0 at 0 when ringDeg==selected*SEG */
+function selectedBaseDeg() { return 0; }
+
+/* ===========================================================================
+   PER-FRAME RING RENDER — re-derive every item's transform/scale/opacity/blur/
+   brightness/z from its LIVE effective angle. ONE coherent motion off the ONE
+   ring spring (the synthesis core: incoming grows+brightens, outgoing dims).
+   =========================================================================== */
+function renderRing(ringDeg) {
+    const R = RING_RADIUS();
+    for (let i = 0; i < N; i++) {
+        const a = effectiveAngle(i, ringDeg);
+        const rad = a * Math.PI / 180;
+        const abs = Math.abs(a);
+        // falloff by absolute angle (synthesis: 1→0.62→0.42 scale, etc.)
+        const t = Math.min(abs / 180, 1);
+        const scale = lerp(1.0, 0.42, smooth(t * 1.4));
+        let opacity = abs > 150 ? 0 : lerp(1.0, 0.16, smooth(t * 1.25));
+        const blur = lerp(0, 8, smooth(t));
+        let brightness = abs > 150 ? 0 : lerp(1.0, 0.26, smooth(t));
+
+        // hover-brighten: lift the hovered item, de-emphasise the front
+        if (hoverIndex === i && i !== nearestFront(ringDeg)) {
+            brightness = Math.min(brightness + 0.22, 1);
+        }
+        if (hoverIndex !== null && i === nearestFront(ringDeg) && hoverIndex !== i) {
+            brightness = Math.max(brightness - 0.12, 0);
+        }
+        const lift = (hoverIndex === i) ? 28 : 0; // "closer look" translateZ pop
+
+        const el = items[i];
+        // turntable transform: rotate around ring center, push out by radius,
+        // counter-rotate so the card faces the user (front card flat).
+        el.style.transform =
+            `rotateY(${a}deg) translateZ(${R + lift}px) rotateY(${-a}deg) scale(${scale})`;
+        el.style.opacity = opacity.toFixed(3);
+        el.style.filter = `blur(${blur.toFixed(2)}px) brightness(${brightness.toFixed(3)})`;
+        // z-order by cos(angle): front paints last
+        el.style.zIndex = String(Math.round(100 + Math.cos(rad) * 100));
+        el.style.pointerEvents = opacity > 0.05 ? "auto" : "none";
+        // only the front+neighbours carry will-change during motion (perf budget)
+        el.style.willChange = abs < 110 ? "transform, filter, opacity" : "auto";
+        el.setAttribute("aria-selected", i === nearestFront(ringDeg) ? "true" : "false");
+    }
+}
+function nearestFront(ringDeg) {
+    let best = 0, bestAbs = 999;
+    for (let i = 0; i < N; i++) {
+        const abs = Math.abs(effectiveAngle(i, ringDeg));
+        if (abs < bestAbs) { bestAbs = abs; best = i; }
+    }
+    return best;
+}
+const lerp = (a, b, t) => a + (b - a) * t;
+const smooth = (t) => { t = Math.min(Math.max(t, 0), 1); return t * t * (3 - 2 * t); };
+
+/* ===========================================================================
+   SPIN-TO-FRONT — shortest signed angular delta to bring item i to the front.
+   The spring re-seats from its current (x, v) → interruptible mid-spin.
+   =========================================================================== */
+function spinTo(i) {
+    selected = i;
+    // we want effectiveAngle(i) → 0  ⇒  ringDeg target = -i*SEG (+ k*360 nearest)
+    const want = -i * SEG;
+    const cur = ringSpring.target;
+    // shortest signed delta from current target's modular position
+    let delta = ((want - cur) % 360 + 540) % 360 - 180;
+    ringSpring.setTarget(cur + delta);
+    if (prm()) { ringSpring.snap(cur + delta); renderRing(ringSpring.x); }
+    updateNamePlate();
+    announce();
+}
+function step(dir) { spinTo((selected + dir + N) % N); throwArrow(dir > 0 ? "next" : "prev"); }
+
+function onItemClick(i) {
+    if (i === nearestFront(ringSpring.x)) commit();
+    else spinTo(i);
+}
+
+/* ===========================================================================
+   ARROWS — idle shimmer + drift, hover swell, press recoil + decay lunge.
+   The lunge uses the closed-form decay glide x(t)=x0+(v0/k)(1-e^-kt).
+   DIVERGENCE: production dogfoods decay() / decayRest from the LIGHT barrel.
+   =========================================================================== */
+const DECAY_K = 9;
+function throwArrow(which) {
+    const s = arrowSpring[which];
+    s.x = 0.92; s.v = 6; s.setTarget(1); // recoil dip then spring back through overshoot
+    const l = arrowLunge[which];
+    l.x0 = 0; l.v0 = 64; l.t0 = performance.now() / 1000; // 8px-ish lunge that decays
+}
+function arrowDrift(now) {
+    // idle ±3px directional drift (doubles to ±6 on hover); shimmer sweep
+    const driftAmp = (el) => (el.matches(":hover") ? 6 : 3);
+    [["prev", arrowPrev], ["next", arrowNext]].forEach(([key, el]) => {
+        const amp = prm() ? 0 : driftAmp(el);
+        const drift = Math.sin(now / 1200) * amp;
+        // lunge decay
+        const l = arrowLunge[key];
+        let lunge = 0;
+        if (!prm() && l.v0 !== 0) {
+            const dt = now / 1000 - l.t0;
+            lunge = l.x0 + (l.v0 / DECAY_K) * (1 - Math.exp(-DECAY_K * dt));
+            if (dt > 0.8) { l.v0 = 0; }
+        }
+        el.style.setProperty("--drift", `${drift.toFixed(2)}px`);
+        el.style.setProperty("--lunge", `${(lunge * 0.12).toFixed(2)}px`);
+        el.style.setProperty("--swell", arrowSpring[key].x.toFixed(3));
+        // idle specular shimmer sweep (sheen sweeps L→R every ~3.2s)
+        if (!prm()) {
+            const sweep = ((now / 3200) % 1) * 140 - 20;
+            el.style.setProperty("--specular-x", `${sweep}%`);
+            el.style.setProperty("--specular-y", `40%`);
+            const hovered = el.matches(":hover");
+            el.style.setProperty("--sheen-intensity", hovered ? "0.5" : "0.18");
+        }
+    });
+}
+function setupArrowHover(el, key) {
+    el.addEventListener("pointerenter", () => { arrowSpring[key].setTarget(1.12); });
+    el.addEventListener("pointerleave", () => { arrowSpring[key].setTarget(1); });
+    el.addEventListener("pointerdown", () => { arrowSpring[key].x = 0.92; arrowSpring[key].v = 0; });
+}
+setupArrowHover(arrowPrev, "prev");
+setupArrowHover(arrowNext, "next");
+arrowPrev.addEventListener("click", () => step(-1));
+arrowNext.addEventListener("click", () => step(1));
+
+/* ===========================================================================
+   HOVER-BRIGHTEN + FOCUS-SHIFT — lift --stage-light toward the hovered item,
+   translate the fill-light toward its screen-x, de-emphasise the centre.
+   =========================================================================== */
+function setHover(i) {
+    hoverIndex = i;
+    if (prm()) { stageLightTarget = 1; fillOn = 0; applyStageLight(); return; }
+    if (i === null || i === nearestFront(ringSpring.x)) {
+        stageLightTarget = 1; fillOn = 0; fillShiftTarget = 0;
+    } else {
+        stageLightTarget = 1.22;
+        fillOn = 1;
+        // shift the fill toward the hovered item's side
+        const a = effectiveAngle(i, ringSpring.x);
+        fillShiftTarget = Math.max(-160, Math.min(160, a * 2.4));
+    }
+    applyStageLight();
+}
+function applyStageLight() {
+    stage.style.setProperty("--stage-light", String(prm() ? 1 : stageLightTarget));
+    fillLight.style.setProperty("--fill-on", String(fillOn));
+    fillLight.style.setProperty("--fill-shift", `${fillShiftTarget}px`);
+}
+
+/* nameplate specular tracks the pointer over the plate */
+nameplate.addEventListener("pointermove", (e) => {
+    if (prm()) return;
+    const r = nameplate.getBoundingClientRect();
+    nameplate.style.setProperty("--specular-x", `${((e.clientX - r.left) / r.width) * 100}%`);
+    nameplate.style.setProperty("--specular-y", `${((e.clientY - r.top) / r.height) * 100}%`);
+    nameplate.style.setProperty("--sheen-intensity", "0.4");
+});
+nameplate.addEventListener("pointerleave", () => nameplate.style.setProperty("--sheen-intensity", "0.12"));
+
+/* ===========================================================================
+   NAME-PLATE + ARIA-LIVE
+   =========================================================================== */
+function updateNamePlate() {
+    const s = SCENES[selected];
+    sceneNameEl.textContent = s.name;
+    sceneIdxEl.textContent = `${selected + 1} / ${N}`;
+    root.style.setProperty("--light-hue", s.hue); // pool rim tint per scene
+    ring.setAttribute("aria-activedescendant", `ring-item-${selected}`);
+}
+function announce() {
+    liveRegion.textContent = `${SCENES[selected].name}, ${selected + 1} of ${N}`;
+}
+
+/* ===========================================================================
+   COMMIT — spin-to-front (already), lock-in pulse, then the fade-into-scene.
+   DIVERGENCE: production routes through runSceneSwitch / startViewTransition,
+   sharing a transient view-transition-name with the scene host's scene-subject
+   so the front card morphs into the live scene; state via the sceneMachine
+   snapshot (never KeepAlive). Here: console.log + flash + close VT.
+   =========================================================================== */
+function commit() {
+    const s = SCENES[selected];
+    console.log(`[Stage commit] runSceneSwitch("${s.id}") — ${s.name}, ${selected + 1}/${N}`);
+    // lock-in beat: pool brightness pulse + nameplate settle
+    if (!prm()) {
+        commitFlash.classList.remove("fire");
+        void commitFlash.offsetWidth;
+        commitFlash.classList.add("fire");
+        nameplate.classList.add("committing");
+        setTimeout(() => nameplate.classList.remove("committing"), 320);
+    }
+    liveRegion.textContent = `Switching to ${s.name}`;
+    // update the landing's "now showing" + dock label (the real handoff)
+    document.getElementById("nowName").textContent = s.name;
+    document.getElementById("nowIdx").textContent = `${selected + 1} / 7`;
+    document.getElementById("dockLabel").textContent = s.name;
+    setTimeout(() => closeStage(), prm() ? 0 : 340);
+}
+
+/* ===========================================================================
+   OPEN / CLOSE — Popover top-layer + View Transition entry/exit + stagger.
+   DIVERGENCE: production Teleports a <SceneStage> Popover to <body> and wraps
+   the open/close in glass-ui startViewTransition; the keyed Suspense scene host
+   stays bare (no KeepAlive). Here we drive the native Popover directly.
+   =========================================================================== */
+const landing = document.getElementById("landing");
+function doOpen() {
+    stageOpen = true;
+    landing.classList.add("dimmed");
+    stage.showPopover();
+    // ring spring rests where the selected item is already front
+    ringSpring.snap(-selected * SEG);
+    renderRing(ringSpring.x);
+    updateNamePlate();
+    announce();
+    applyStageLight();
+    staggerReveal();
+    // route focus into the stage (a11y)
+    requestAnimationFrame(() => ring.focus());
+}
+function openStage() {
+    if (!document.startViewTransition || prm()) { doOpen(); return; }
+    document.startViewTransition(() => doOpen());
+}
+function doClose() {
+    stageOpen = false;
+    landing.classList.remove("dimmed");
+    stage.hidePopover();
+    document.getElementById("openStage").focus(); // return focus to the trigger
+}
+function closeStage() {
+    if (!stageOpen) return;
+    if (!document.startViewTransition || prm()) { doClose(); return; }
+    document.startViewTransition(() => doClose());
+}
+/* stagger(from:'center') reveal — items pop in from the centre outward.
+   DIVERGENCE: production uses the stagger() generator from the LIGHT barrel. */
+function staggerReveal() {
+    const order = [...items.keys()].sort((a, b) => {
+        const da = Math.abs(effectiveAngle(a, ringSpring.x));
+        const db = Math.abs(effectiveAngle(b, ringSpring.x));
+        return da - db; // centre-out
+    });
+    order.forEach((idx, rank) => {
+        const el = items[idx];
+        if (prm()) { el.style.opacity = el.style.opacity || "1"; return; }
+        el.animate(
+            [{ opacity: 0, transform: el.style.transform + " scale(0.7)" },
+             { opacity: el.style.opacity || 1, transform: el.style.transform }],
+            { duration: 420, delay: rank * 55, easing: "cubic-bezier(0.16,1,0.3,1)", fill: "backwards" }
+        );
+    });
+}
+
+document.getElementById("openStage").addEventListener("click", openStage);
+document.getElementById("closeStage").addEventListener("click", closeStage);
+stage.addEventListener("click", (e) => { if (e.target === stage) closeStage(); });
+
+/* ===========================================================================
+   KEYBOARD CAROUSEL (a11y, locked decision 7)
+   =========================================================================== */
+ring.addEventListener("keydown", (e) => {
+    switch (e.key) {
+        case "ArrowRight": case "ArrowDown": e.preventDefault(); step(1); break;
+        case "ArrowLeft":  case "ArrowUp":   e.preventDefault(); step(-1); break;
+        case "Home": e.preventDefault(); spinTo(0); break;
+        case "End":  e.preventDefault(); spinTo(N - 1); break;
+        case "Enter": case " ": e.preventDefault(); commit(); break;
+        case "Escape": e.preventDefault(); closeStage(); break;
+    }
+});
+stage.addEventListener("keydown", (e) => { if (e.key === "Escape") { e.preventDefault(); closeStage(); } });
+
+/* ===========================================================================
+   THE rAF DRIVE LOOP — ticks the ring spring + arrow springs, renders the ring.
+   DIVERGENCE: production rides RAFPlayback.drive(spring) (inv ζ — the ONE
+   managed rAF). This single loop stands in for it in the prototype.
+   =========================================================================== */
+let lastT = performance.now();
+function frame(now) {
+    const dt = (now - lastT) / 1000;
+    lastT = now;
+    if (stageOpen && !prm()) {
+        if (!ringSpring.settled) ringSpring.tickDt(dt);
+        arrowSpring.prev.tickDt(dt);
+        arrowSpring.next.tickDt(dt);
+        renderRing(ringSpring.x);
+        arrowDrift(now);
+    } else if (stageOpen && prm()) {
+        renderRing(ringSpring.x); // static, snapped
+    }
+    requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+/* ===========================================================================
+   THEME + PRM TOGGLES
+   =========================================================================== */
+const themeToggle = document.getElementById("themeToggle");
+themeToggle.addEventListener("click", () => {
+    const dark = root.getAttribute("data-theme") === "dark";
+    root.setAttribute("data-theme", dark ? "light" : "dark");
+    themeToggle.setAttribute("aria-pressed", String(dark));
+});
+const prmToggle = document.getElementById("prmToggle");
+prmToggle.addEventListener("click", () => {
+    prmForced = !prmForced;
+    prmToggle.setAttribute("aria-pressed", String(prmForced));
+    root.classList.toggle("prm", prmForced);
+    stage.classList.toggle("prm", prmForced);
+    applyStageLight();
+    renderRing(ringSpring.x);
+});
+
+/* init the landing label */
+updateNamePlate();
+document.getElementById("dockLabel").textContent = SCENES[selected].name;
+</script>
+</body>
+</html>
