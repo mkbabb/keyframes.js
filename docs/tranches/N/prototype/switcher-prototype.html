@@ -1,1269 +1,1143 @@
-<!doctype html>
-<html lang="en" data-theme="dark">
+<!DOCTYPE html>
+<html lang="en" class="dark">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Tranche N — Stage scene-switcher · prototype</title>
-
-<!--
-  ============================================================================
-  Tranche N — the liquid-glass theatrical Stage scene-switcher (PROTOTYPE)
-  ============================================================================
-  Self-contained, no build step. Open directly in a browser.
-  Faithful to docs/tranches/N/audit/design-synthesis.md (the LOCKED design).
-
-  This file is a PROTOTYPE. The production implementation lives in
-  demo/@/components/custom/scene-stage/ as Vue SFCs and DIVERGES from this file
-  at the seams flagged "DIVERGENCE:" throughout. Headline divergences:
-
-    1. SpringProgress dogfood. This file hand-rolls a critically-damped spring
-       stepper (mini-spring) that mirrors @mkbabb/keyframes.js SpringProgress
-       EXACTLY: the ODE  x'' + 2ζω₀x' + ω₀²x = ω₀²·target  (ω₀ = 2π/response,
-       ζ = dampingFraction), velocity-continuous re-seat on target change.
-       Production imports SpringProgress from the LIGHT barrel and rides
-       RAFPlayback (inv ζ — no hand-rolled rAF). The hand-roll here exists ONLY
-       so the prototype is a single file. The physics are identical.
-
-    2. The LIGHT-barrel law (locked decision 1). Production NEVER imports
-       loadAnimationEngine / fromMotionPath / value.js — the picker is
-       SpringProgress / NumericAnimation / stagger / decay only, so
-       proof:boundary stays green. This prototype touches no engine at all.
-
-    3. Teleport/Popover overlay (locked decision 2). Here the stage is a real
-       Popover-API top-layer element (popover="manual"). Production Teleports a
-       <SceneStage> Popover to <body>, SIBLING to the keyed <Suspense> scene
-       host — NEVER a KeepAlive/Transition wrapper around it (the B.W3 blocker).
-
-    4. The previews (locked decision 5) are bespoke cheap idle loops here, NOT
-       real scaled scenes. Production keeps them bespoke + content-visibility
-       gates the loops; distant ring members are static posters.
-
-    5. The commit (locked decision 3) here is console.log + a flash + a VT.
-       Production routes through the existing runSceneSwitch / startViewTransition
-       and shares a transient view-transition-name with the scene host's
-       scene-subject so the front card morphs into the live scene.
-  ============================================================================
--->
-
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Stage — Volumetric Theatre · candidate-a</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet" />
-
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet" />
 <style>
-/* ===========================================================================
-   REGISTERED CUSTOM PROPERTIES — typed @property so they INTERPOLATE.
-   --stage-light is THE one downlight intensity scalar (locked decision 4).
-   The specular coords are typed so the catch-light eases between samples.
-   =========================================================================== */
-@property --stage-light   { syntax: "<number>"; inherits: true;  initial-value: 1; }
-@property --front-dim      { syntax: "<number>"; inherits: true;  initial-value: 0; }
-@property --specular-x     { syntax: "<percentage>"; inherits: false; initial-value: 50%; }
-@property --specular-y     { syntax: "<percentage>"; inherits: false; initial-value: 50%; }
-@property --sheen-intensity{ syntax: "<number>"; inherits: false; initial-value: 0; }
+/* =====================================================================
+   STAGE — VOLUMETRIC THEATRE  ·  candidate-a (rebuild)
+   A genuinely volumetric god-ray spotlight descending onto a dimmed
+   grid-paper turntable. Real CSS 3D, theme-adaptive liquid-glass cards,
+   7 faithful live mini-scene previews, single-rAF critically-damped spring.
 
-/* ===========================================================================
-   TOKENS. Glass + paper idiom; Instrument Serif display, Fira Code mono.
-   --stage-void is THEME-INVARIANT (locked decision 4): the dark theatre reads
-   in BOTH light and dark. Only the glass cards/arrows pick up theme specular.
-   =========================================================================== */
+   NOTE: the real impl dogfoods @mkbabb/keyframes.js SpringProgress on
+   RAFPlayback (the LIGHT barrel) for the carousel spring + the light-pool
+   tracking. The inline critically-damped spring below is a stand-in that
+   matches SpringProgress's closed-form damped step (single rAF, correct dt).
+   ===================================================================== */
+
 :root {
+    /* ── Demo theme: warm near-white paper / deep warm ink ── */
+    --paper: hsl(38 44% 96%);          /* warm near-white substrate (light) */
+    --foreground: hsl(28 18% 16%);     /* deep warm ink on paper (light) */
+    --plate: hsl(40 40% 99%);
+
+    /* grid-paper tokens (verbatim from the demo) */
+    --graph-pitch: 1rem;
+    --graph-major: 5rem;
+    --graph-opacity: 3%;
+    --graph-major-opacity: 11%;
+
+    /* crayon accents (cube facets / amiga red), used TASTEFULLY (desaturated) */
+    --c-red:     #f00;
+    --c-green:   #0f0;
+    --c-blue:    #00f;
+    --c-yellow:  #ff0;
+    --c-magenta: #f0f;
+    --c-cyan:    #0ff;
+    --amiga-red: #f04242;
+
+    /* warm theatre downlight */
+    --warm-light: 44 90% 72%;          /* hsl triplet — warm amber-white */
+    --warm-core:  46 96% 86%;
+
     --font-display: "Instrument Serif", Georgia, serif;
     --font-mono: "Fira Code", ui-monospace, monospace;
 
-    /* theme-invariant theatre void (the dark stage in both themes) */
-    --stage-void: oklch(0.13 0.012 270);
-    --stage-void-edge: oklch(0.06 0.01 270);
+    /* glass card surface (theme-adaptive via color-mix on --foreground/--paper) */
+    --glass-tint: var(--paper);
+    --glass-ink:  var(--foreground);
 
-    /* the cone + pool light (warm theatre white) */
-    --light-hue: 48;
-    --pool-core: oklch(0.97 0.03 var(--light-hue));
-    --cone-fill: oklch(0.95 0.02 var(--light-hue));
-
-    /* glass cohort */
-    --glass-tint: 255 255 255;
-    --glass-rim: hsl(0 0% 100% / 0.18);
-    --glass-blur: 13px;
-    --specular-warm: hsl(44 60% 92%);
-
-    /* chrome / surfaces outside the void */
-    --page-bg: oklch(0.16 0.014 268);
-    --ink: oklch(0.96 0.01 268);
-    --ink-dim: oklch(0.74 0.02 268);
-    --accent: oklch(0.78 0.13 200);
-
-    /* motion (CSS linear()/bezier twins of the glass-ui spring tokens) */
-    --spring-bouncy: linear(0,.009,.035 2.1%,.141,.281 6.7%,.723 12.9%,.938,1.017,1.077,1.121,1.149 24.3%,1.159,1.163,1.151,1.122 32.2%,1.07,1.029 39.6%,.991,.983,.984 47.6%,.998,1.011 56.6%,1.014,1.013,1.005 75.3%,1.001,.999);
-    --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
-    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    /* stage chrome text stays theatre-light (invariant) regardless of theme */
+    --stage-text: hsl(46 60% 94%);
+    --stage-text-dim: hsl(44 22% 78%);
 }
 
-:root[data-theme="light"] {
-    /* the void stays dark; only the page chrome around it brightens */
-    --page-bg: oklch(0.93 0.012 90);
-    --ink: oklch(0.22 0.02 268);
-    --ink-dim: oklch(0.42 0.02 268);
-    --glass-rim: hsl(0 0% 100% / 0.22);
-    --specular-warm: hsl(44 55% 96%);
-    /* DIVERGENCE: production lets glass-ui's dark/light specular cohort swap
-       (0.08/0.12 dark vs 0.1/0.16 light) — here it's one warm sheen. */
+.dark {
+    color-scheme: dark;
+    --paper: hsl(28 16% 9%);           /* deep warm ink substrate (dark) */
+    --foreground: hsl(40 36% 90%);     /* light warm ink on dark */
+    --plate: hsl(26 16% 12%);
+    --graph-opacity: 5.5%;
+    --graph-major-opacity: 14%;
+    --glass-tint: hsl(30 14% 14%);
+    --glass-ink: var(--foreground);
 }
 
 * { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
 
-html, body {
-    margin: 0;
-    height: 100%;
-    background: var(--page-bg);
-    color: var(--ink);
+body {
+    background: var(--paper);
+    color: var(--foreground);
     font-family: var(--font-mono);
+    overflow: hidden;
     -webkit-font-smoothing: antialiased;
+    transition: background 600ms cubic-bezier(.4,0,.2,1), color 600ms cubic-bezier(.4,0,.2,1);
+}
+
+/* the app */
+#app {
+    position: fixed;
+    inset: 0;
+    perspective: 1000px;             /* FIX #1/#3 — strong stage perspective */
+    perspective-origin: 50% 38%;
     overflow: hidden;
 }
 
-/* ===========================================================================
-   THE LANDING — the dimmed live "scene" + the dock Select that invokes the
-   stage. Mirrors the demo's ChromeDock scene Select trigger.
-   =========================================================================== */
-.landing {
-    position: fixed;
-    inset: 0;
-    display: grid;
-    place-content: center;
-    gap: 1.5rem;
-    text-align: center;
-    padding: 2rem;
-    transition: filter 0.5s var(--ease-standard), opacity 0.5s var(--ease-standard);
+/* =====================================================================
+   GRID-PAPER substrate (FIX #5) — the real demo paper, then dimmed by the
+   downlight via the radial vignette mask layers below it.
+   ===================================================================== */
+.grid-paper {
+    position: absolute;
+    inset: -10%;
+    --graph-line-fine:  color-mix(in srgb, var(--foreground) var(--graph-opacity), transparent);
+    --graph-line-major: color-mix(in srgb, var(--foreground) var(--graph-major-opacity), transparent);
+    background-color: var(--paper);
+    background-image:
+        linear-gradient(to right,  var(--graph-line-major) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--graph-line-major) 1px, transparent 1px),
+        linear-gradient(to right,  var(--graph-line-fine)  1px, transparent 1px),
+        linear-gradient(to bottom, var(--graph-line-fine)  1px, transparent 1px);
+    background-size:
+        var(--graph-major) var(--graph-major),
+        var(--graph-major) var(--graph-major),
+        var(--graph-pitch) var(--graph-pitch),
+        var(--graph-pitch) var(--graph-pitch);
+    transition: background-color 600ms cubic-bezier(.4,0,.2,1);
 }
-.landing.dimmed {
-    /* the live scene recedes behind the smoked glass when the stage opens */
-    filter: blur(3px) brightness(0.55);
-    opacity: 0.7;
-}
-.landing h1 {
-    font-family: var(--font-display);
-    font-weight: 400;
-    font-size: clamp(2.4rem, 7vw, 4.5rem);
-    line-height: 1.05;
-    margin: 0;
-    letter-spacing: 0.01em;
-}
-.landing .kicker {
-    font-size: 0.8rem;
-    letter-spacing: 0.28em;
-    text-transform: uppercase;
-    color: var(--ink-dim);
-}
-.landing p { color: var(--ink-dim); max-width: 42ch; margin: 0 auto; line-height: 1.6; }
-.now-showing { font-family: var(--font-display); font-size: 1.4rem; color: var(--ink); }
-.now-showing .idx { font-family: var(--font-mono); color: var(--ink-dim); font-size: 0.9rem; }
 
-/* the dock Select trigger (glass control) */
-.dock {
-    display: inline-flex;
-    gap: 0.6rem;
-    align-items: center;
-    align-self: center;
-    margin-top: 0.5rem;
-}
-.dock-select {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.7rem;
-    padding: 0.7rem 1.2rem;
-    min-height: 44px;
-    border-radius: 0.9rem;
-    border: 0.75px solid var(--glass-rim);
-    background: rgb(var(--glass-tint) / 0.1);
-    backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
-    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
-    box-shadow: inset 0 0 0 0.75px var(--glass-rim), 0 8px 24px hsl(0 0% 0% / 0.25);
-    color: var(--ink);
-    font-family: var(--font-mono);
-    font-size: 0.92rem;
-    cursor: pointer;
-    transition: transform 0.2s var(--ease-out), box-shadow 0.2s var(--ease-out), background 0.2s;
-    view-transition-name: dock-select-trigger;
-}
-.dock-select:hover { transform: translateY(-1px); background: rgb(var(--glass-tint) / 0.16); }
-.dock-select:active { transform: translateY(0) scale(0.98); }
-.dock-select:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-.dock-select .label { font-family: var(--font-display); font-size: 1.05rem; }
-.dock-select .chev { color: var(--ink-dim); }
-
-.toolbar {
-    position: fixed;
-    top: 1rem;
-    right: 1rem;
-    display: flex;
-    gap: 0.5rem;
-    z-index: 5;
-}
-.tool-btn {
-    min-height: 36px;
-    padding: 0.45rem 0.8rem;
-    border-radius: 0.7rem;
-    border: 0.75px solid var(--glass-rim);
-    background: rgb(var(--glass-tint) / 0.08);
-    color: var(--ink);
-    font-family: var(--font-mono);
-    font-size: 0.78rem;
-    cursor: pointer;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    transition: background 0.18s, transform 0.18s var(--ease-out);
-}
-.tool-btn:hover { background: rgb(var(--glass-tint) / 0.16); }
-.tool-btn[aria-pressed="true"] { background: var(--accent); color: oklch(0.15 0.02 200); border-color: transparent; }
-.tool-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-
-/* ===========================================================================
-   THE STAGE OVERLAY — a Popover-API top-layer element (locked decision 2).
-   @starting-style + transition-behavior: allow-discrete + overlay drive the
-   liquid-glass entry/exit (locked decision 6 motion via VT where supported).
-   =========================================================================== */
-.stage[popover] {
-    position: fixed;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    max-width: none;
-    max-height: none;
-    margin: 0;
-    padding: 0;
-    border: none;
-    overflow: hidden;
-    /* the theme-invariant void, with a soft radial vignette toward black */
+/* FIX #4 + #5 — the downlight VIGNETTE: dim the paper at the edges, keep it
+   lit (and clearly paper) in the pool. Tuned so darks are LIFTED — the edge
+   is a soft warm shade, never near-black. The mask center tracks the light. */
+.paper-vignette {
+    position: absolute;
+    inset: -10%;
+    pointer-events: none;
     background:
-        radial-gradient(125% 95% at 50% 32%, var(--stage-void) 0%, var(--stage-void-edge) 72%, oklch(0.03 0.006 270) 100%);
-    /* The theatre is ALWAYS dark, so its ink is theme-INVARIANT light — override
-       the light-theme --ink flip here so the cascade keeps nameplate/arrows/hint
-       readable in BOTH themes (cures the light-mode dark-on-dark contrast bug). */
-    --ink: oklch(0.96 0.01 268);
-    --ink-dim: oklch(0.74 0.02 268);
-    color: var(--ink);
-    /* liquid-glass: the world goes smoky as the stage inflates in */
-    opacity: 1;
-    scale: 1;
-    transition:
-        opacity 0.42s var(--ease-out),
-        scale 0.5s var(--spring-bouncy),
-        display 0.5s allow-discrete,
-        overlay 0.5s allow-discrete;
-    view-transition-name: stage-root;
+        radial-gradient(120% 95% at var(--pool-x, 50%) 84%,
+            transparent 0%,
+            transparent 30%,
+            hsl(26 22% 6% / 0.16) 58%,
+            hsl(26 24% 5% / 0.34) 100%);
+    mix-blend-mode: multiply;
+    transition: background 240ms linear;
 }
-.stage[popover]:popover-open { opacity: 1; scale: 1; }
-.stage[popover]:not(:popover-open) { opacity: 0; scale: 0.94; }
-@starting-style {
-    .stage[popover]:popover-open { opacity: 0; scale: 0.92; }
+:root:not(.dark) .paper-vignette {
+    background:
+        radial-gradient(120% 95% at var(--pool-x, 50%) 84%,
+            transparent 0%,
+            transparent 34%,
+            hsl(30 30% 30% / 0.10) 60%,
+            hsl(28 30% 24% / 0.20) 100%);
 }
-/* the smoked-glass scrim ::backdrop blurs the receding live scene */
-.stage[popover]::backdrop {
-    background: hsl(0 0% 0% / 0.55);
-    backdrop-filter: blur(24px) saturate(0.6) brightness(0.4);
-    -webkit-backdrop-filter: blur(24px) saturate(0.6) brightness(0.4);
-    transition:
-        background 0.42s var(--ease-out),
-        backdrop-filter 0.42s var(--ease-out),
-        display 0.5s allow-discrete,
-        overlay 0.5s allow-discrete;
-}
-.stage[popover]:not(:popover-open)::backdrop { background: hsl(0 0% 0% / 0); backdrop-filter: blur(0px); }
-@starting-style {
-    .stage[popover]:popover-open::backdrop { background: hsl(0 0% 0% / 0); backdrop-filter: blur(0px); }
+/* a warm pool of LIGHT washing the paper directly under the beam */
+.paper-pool {
+    position: absolute;
+    inset: -10%;
+    pointer-events: none;
+    background:
+        radial-gradient(46% 30% at var(--pool-x, 50%) 78%,
+            hsl(var(--warm-light) / 0.22) 0%,
+            hsl(var(--warm-light) / 0.10) 40%,
+            transparent 72%);
+    mix-blend-mode: screen;
+    transition: background 240ms linear, opacity 600ms ease;
+    opacity: var(--light-energy, 1);
 }
 
-/* ===========================================================================
-   THE 3D STAGE PLANE — perspective + rotateX(15deg) (locked decision 4).
-   The cone, pool, and ring all share this tilt; the front card counter-
-   rotates to face the user.
-   =========================================================================== */
-.stage-3d {
+/* =====================================================================
+   THE VOLUMETRIC GOD-RAY (FIX C + #7) — layered translucent cones,
+   drifting dust motes, a soft floor-pool bloom. Lives ABOVE the paper,
+   BELOW the stage cards (z so cards catch the light but aren't washed).
+   ===================================================================== */
+.beam-wrap {
     position: absolute;
     inset: 0;
-    perspective: 1200px;
-    perspective-origin: 50% 34%;
-    display: grid;
-    place-items: center;
+    pointer-events: none;
+    z-index: 2;
+    opacity: 0;
+    transition: opacity 900ms cubic-bezier(.22,1,.36,1);
+    will-change: opacity, transform;
 }
-.stage-plane {
-    position: relative;
-    width: min(92vw, 1000px);
-    height: min(72vh, 620px);
-    transform-style: preserve-3d;
-    transform-origin: center 78%;
-    rotate: x 15deg;
+.beam-wrap.lit { opacity: 1; }
+
+/* the light source — a hot point above the stage */
+.beam-source {
+    position: absolute;
+    left: var(--beam-x, 50%);
+    top: -4%;
+    width: 14vw; height: 14vw;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, hsl(var(--warm-core) / 0.9) 0%, hsl(var(--warm-light) / 0.5) 28%, transparent 68%);
+    filter: blur(6px);
+    opacity: var(--light-energy, 1);
+    transition: left 260ms cubic-bezier(.22,1,.36,1), opacity 200ms linear;
 }
 
-/* ---- the downlight cone: clip-path trapezoid + linear-gradient + screen ---- */
+/* the cone shafts — three stacked translucent trapezoids of warm light,
+   each a clip-path cone widening to the floor; layered for volume. */
 .cone {
     position: absolute;
-    left: 50%;
-    top: -4%;
-    width: 46%;
-    height: 92%;
-    translate: -50% 0;
-    /* narrow at top, flaring to the floor — the volumetric shaft */
-    clip-path: polygon(34% 0%, 66% 0%, 96% 100%, 4% 100%);
-    background: linear-gradient(
-        to bottom,
-        oklch(0.95 0.02 var(--light-hue) / calc(0.03 * var(--stage-light)))   0%,
-        oklch(0.96 0.03 var(--light-hue) / calc(0.12 * var(--stage-light)))   55%,
-        oklch(0.98 0.04 var(--light-hue) / calc(0.26 * var(--stage-light)))  100%
-    );
+    left: var(--beam-x, 50%);
+    top: -2%;
+    height: 96%;
+    transform: translateX(-50%);
+    transform-origin: 50% 0%;
     mix-blend-mode: screen;
-    filter: blur(3px);
-    /* feather the cone edges so it reads volumetric, not a cut shape */
-    mask-image: linear-gradient(to right, transparent, #000 18%, #000 82%, transparent);
-    will-change: opacity;
-    pointer-events: none;
-    transform: translateZ(0);
+    transition: left 260ms cubic-bezier(.22,1,.36,1);
+    filter: blur(1px);
 }
-/* a faint dust/haze grain inside the cone */
-.cone::after {
-    content: "";
+.cone-1 {
+    width: 62vw;
+    clip-path: polygon(46% 0%, 54% 0%, 88% 100%, 12% 100%);
+    background: linear-gradient(to bottom,
+        hsl(var(--warm-core) / calc(0.30 * var(--light-energy,1))) 0%,
+        hsl(var(--warm-light) / calc(0.13 * var(--light-energy,1))) 42%,
+        hsl(var(--warm-light) / calc(0.04 * var(--light-energy,1))) 78%,
+        transparent 100%);
+}
+.cone-2 {
+    width: 44vw;
+    clip-path: polygon(45% 0%, 55% 0%, 80% 100%, 20% 100%);
+    background: linear-gradient(to bottom,
+        hsl(var(--warm-core) / calc(0.34 * var(--light-energy,1))) 0%,
+        hsl(var(--warm-light) / calc(0.16 * var(--light-energy,1))) 46%,
+        transparent 92%);
+    filter: blur(3px);
+}
+.cone-3 {
+    width: 26vw;
+    clip-path: polygon(44% 0%, 56% 0%, 72% 100%, 28% 100%);
+    background: linear-gradient(to bottom,
+        hsl(var(--warm-core) / calc(0.42 * var(--light-energy,1))) 0%,
+        hsl(var(--warm-light) / calc(0.18 * var(--light-energy,1))) 50%,
+        transparent 96%);
+    filter: blur(5px);
+}
+
+/* the bloom where the beam meets the floor pool */
+.beam-bloom {
+    position: absolute;
+    left: var(--beam-x, 50%);
+    bottom: 8%;
+    width: 44vw; height: 22vw;
+    transform: translateX(-50%);
+    background: radial-gradient(ellipse at center,
+        hsl(var(--warm-core) / calc(0.32 * var(--light-energy,1))) 0%,
+        hsl(var(--warm-light) / calc(0.14 * var(--light-energy,1))) 36%,
+        transparent 72%);
+    mix-blend-mode: screen;
+    filter: blur(8px);
+    transition: left 260ms cubic-bezier(.22,1,.36,1);
+}
+
+/* drifting dust motes inside the cone (canvas-free, pure CSS) */
+/* in LIGHT theme the screen-blended cone washes out against bright paper;
+   give the whole beam a touch more presence so it stays a real light shaft. */
+:root:not(.dark) .beam-wrap { filter: saturate(1.05) contrast(1.06) brightness(1.04); }
+.motes { position: absolute; inset: 0; mix-blend-mode: screen; opacity: calc(0.7 * var(--light-energy,1)); }
+.mote {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle, hsl(var(--warm-core) / 0.9), transparent 70%);
+    filter: blur(.4px);
+    animation: drift linear infinite;
+}
+@keyframes drift {
+    0%   { transform: translate(0, 0) scale(.7); opacity: 0; }
+    12%  { opacity: .9; }
+    88%  { opacity: .7; }
+    100% { transform: translate(var(--mx, 14px), -120px) scale(1.1); opacity: 0; }
+}
+
+/* =====================================================================
+   THE TURNTABLE STAGE (FIX #1, #3) — a tilted 3D plane carrying the ring.
+   ===================================================================== */
+.stage {
     position: absolute;
     inset: 0;
-    background-image: radial-gradient(oklch(1 0 0 / 0.05) 0.5px, transparent 0.5px);
-    background-size: 7px 7px;
-    mix-blend-mode: screen;
-    opacity: calc(0.5 * var(--stage-light));
+    z-index: 3;
+    transform-style: preserve-3d;
+    display: grid;
+    place-items: center;
+    opacity: 0;
+    transform: translateZ(-260px) scale(.96);
+    transition: opacity 900ms cubic-bezier(.22,1,.36,1),
+                transform 1100ms cubic-bezier(.22,1,.36,1),
+                filter 900ms ease;
+    filter: blur(6px);
+}
+.stage.active {
+    opacity: 1;
+    transform: translateZ(0) scale(1);
+    filter: blur(0);
 }
 
-/* ---- the glowing floor pool: radial-gradient ellipse ---- */
-.pool {
-    position: absolute;
-    left: 50%;
-    bottom: 4%;
-    width: 56%;
-    aspect-ratio: 3.1 / 1;
-    translate: -50% 0;
-    background: radial-gradient(
-        ellipse at center,
-        oklch(0.98 0.03 var(--light-hue) / calc(0.85 * var(--stage-light))) 0%,
-        oklch(0.92 0.04 var(--light-hue) / calc(0.35 * var(--stage-light))) 38%,
-        transparent 70%
-    );
-    border-radius: 50%;
-    filter: blur(7px);
-    mix-blend-mode: screen;
-    will-change: opacity;
-    pointer-events: none;
-}
-/* the translating fill-light that turns attention toward a hovered item
-   (locked decision: hover-brighten de-emphasises the centre) */
-.fill-light {
-    position: absolute;
-    left: 50%;
-    bottom: 14%;
-    width: 30%;
-    aspect-ratio: 2.4 / 1;
-    translate: calc(-50% + var(--fill-shift, 0px)) 0;
-    background: radial-gradient(ellipse at center, oklch(0.9 0.02 var(--light-hue) / 0.16) 0%, transparent 68%);
-    border-radius: 50%;
-    filter: blur(10px);
-    mix-blend-mode: screen;
-    opacity: var(--fill-on, 0);
-    transition: opacity 0.28s var(--ease-out);
-    pointer-events: none;
+/* the turntable disc — a deep physical platter the ring sits on */
+.turntable {
+    position: relative;
+    width: min(86vw, 1180px);
+    height: min(58vh, 560px);
+    transform-style: preserve-3d;
+    /* FIX #3 — the plane faces the user tilted ~22deg downward */
+    transform: rotateX(22deg);
+    margin-top: 6vh;
 }
 
-/* ===========================================================================
-   THE CAROUSEL RING — a 7-item turntable. Each item's transform/scale/opacity/
-   blur/brightness/z-index re-derive PER-FRAME from its live effective angle in
-   JS (locked decision: ONE coherent motion off ONE ring-angle spring).
-   =========================================================================== */
+/* the physical platter ellipse on the floor (reads as a real turntable) */
+.platter {
+    position: absolute;
+    left: 50%; top: 60%;
+    width: 118%; height: 64%;
+    transform: translate(-50%, -50%) translateZ(-1px);
+    border-radius: 50%;
+    background:
+        radial-gradient(ellipse at 50% 42%,
+            hsl(var(--warm-light) / calc(0.10 * var(--light-energy,1))) 0%,
+            transparent 62%),
+        radial-gradient(ellipse at 50% 50%,
+            color-mix(in srgb, var(--foreground) 9%, transparent) 0%,
+            color-mix(in srgb, var(--foreground) 5%, transparent) 54%,
+            transparent 78%);
+    border: 1px solid color-mix(in srgb, var(--foreground) 10%, transparent);
+    box-shadow:
+        inset 0 2px 30px color-mix(in srgb, var(--foreground) 8%, transparent),
+        0 30px 70px hsl(26 24% 4% / 0.4);
+}
+/* concentric turntable groove rings */
+.platter::after {
+    content: "";
+    position: absolute; inset: 8%;
+    border-radius: 50%;
+    background:
+        repeating-radial-gradient(circle at 50% 50%,
+            transparent 0 6px,
+            color-mix(in srgb, var(--foreground) 4%, transparent) 6px 7px);
+    opacity: .6;
+    -webkit-mask: radial-gradient(ellipse at 50% 50%, #000 50%, transparent 80%);
+            mask: radial-gradient(ellipse at 50% 50%, #000 50%, transparent 80%);
+}
+
+/* the ring that the cards are positioned on (3D) */
 .ring {
     position: absolute;
-    left: 50%;
-    top: 44%;
-    width: 0;
-    height: 0;
+    left: 50%; top: 48%;
+    width: 0; height: 0;
     transform-style: preserve-3d;
-}
-.ring-item {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 168px;
-    height: 210px;
-    margin-left: -84px;
-    margin-top: -118px;
-    transform-style: preserve-3d;
-    /* the per-frame transform is written from JS; this is the identity base */
-    will-change: transform, filter, opacity;
-    cursor: pointer;
-    border: none;
-    padding: 0;
-    background: none;
-    font: inherit;
-    color: inherit;
-}
-.ring-item:focus { outline: none; }
-/* the focus ring is a discrete, contrast-safe selection signal (a11y:
-   brightness is decorative only) */
-.ring-item:focus-visible .card {
-    box-shadow:
-        inset 0 0 0 0.75px var(--glass-rim),
-        0 0 0 2px var(--accent),
-        0 0 22px oklch(0.78 0.13 200 / 0.5);
 }
 
-/* the glass card — a ladder rung, NO refract (refract only on arrows + plate) */
+/* =====================================================================
+   CARDS (FIX A) — theme-adaptive LIQUID GLASS, never black slabs.
+   ===================================================================== */
 .card {
     position: absolute;
-    inset: 0;
-    border-radius: 1.1rem;
-    overflow: hidden;
-    background: rgb(var(--glass-tint) / 0.07);
-    backdrop-filter: blur(var(--glass-blur)) saturate(1.3);
-    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.3);
-    box-shadow:
-        inset 0 0 0 0.75px var(--glass-rim),
-        0 18px 40px hsl(0 0% 0% / 0.45);
-    display: grid;
-    grid-template-rows: 1fr auto;
-}
-.card .preview {
-    position: relative;
-    overflow: hidden;
-    display: grid;
-    place-items: center;
-}
-.card .cap {
-    padding: 0.5rem 0.7rem 0.6rem;
-    font-family: var(--font-display);
-    font-size: 1.05rem;
-    letter-spacing: 0.01em;
-    text-align: center;
-    border-top: 0.5px solid hsl(0 0% 100% / 0.08);
-    background: linear-gradient(to top, hsl(0 0% 0% / 0.2), transparent);
-}
-
-/* ===========================================================================
-   THE FRONT PLATE + NAME-PLATE + ARROWS — the controls below the stage.
-   The front plate + arrows carry .glass-refract + specular (locked decision 6).
-   =========================================================================== */
-.console {
-    position: absolute;
-    left: 50%;
-    bottom: clamp(2rem, 6vh, 4.5rem);
-    translate: -50% 0;
-    display: flex;
-    align-items: center;
-    gap: clamp(1.5rem, 5vw, 3.5rem);
-    z-index: 3;
-}
-
-/* the name-plate (Instrument Serif name + Fira Code n/7) */
-.nameplate {
-    display: grid;
-    place-items: center;
-    gap: 0.2rem;
-    min-width: 260px;
-    padding: 0.9rem 1.6rem;
-    border-radius: 1rem;
-    /* the refractive front plate — glass + specular catch-light */
-    background: rgb(var(--glass-tint) / 0.09);
-    backdrop-filter: blur(16px) saturate(1.5);
-    -webkit-backdrop-filter: blur(16px) saturate(1.5);
-    box-shadow:
-        inset 0 0 0 0.75px var(--glass-rim),
-        0 10px 30px hsl(0 0% 0% / 0.4);
-    position: relative;
-    overflow: hidden;
-    view-transition-name: stage-nameplate;
-}
-/* the pointer-tracked specular sheen (CONTROL-on-plate sanctioned) */
-.nameplate::before, .arrow::before {
-    content: "";
-    position: absolute;
-    inset: -20%;
-    background: radial-gradient(
-        circle 38% at var(--specular-x) var(--specular-y),
-        var(--specular-warm) 0%,
-        transparent 60%
-    );
-    opacity: var(--sheen-intensity);
-    mix-blend-mode: screen;
-    pointer-events: none;
-    transition: --specular-x 0.15s var(--ease-standard), --specular-y 0.15s var(--ease-standard), --sheen-intensity 0.25s;
-}
-.nameplate .scene-name {
-    font-family: var(--font-display);
-    font-size: clamp(1.5rem, 4vw, 2.3rem);
-    line-height: 1;
-    width: fit-content; /* stable VT aspect ratio for the name morph */
-    transition: letter-spacing 0.24s var(--ease-out);
-}
-.nameplate .scene-idx {
-    font-family: var(--font-mono);
-    font-size: 0.82rem;
-    color: var(--ink-dim);
-    letter-spacing: 0.12em;
-}
-.nameplate.committing .scene-name { letter-spacing: 0.04em; }
-
-/* the two glassy intent-arrows */
-.arrow {
-    --dir: 1;
-    flex: none;
-    width: 60px;
-    height: 60px;
-    min-width: 44px;
-    min-height: 44px;
-    border-radius: 50%;
-    border: none;
+    left: 0; top: 0;
+    width: 220px; height: 290px;
+    margin-left: -110px; margin-top: -145px;
+    transform-style: preserve-3d;
+    border-radius: 22px;
     cursor: pointer;
-    position: relative;
-    overflow: hidden;
-    display: grid;
-    place-items: center;
-    color: var(--ink);
-    background: rgb(var(--glass-tint) / 0.1);
-    backdrop-filter: blur(13px) saturate(1.6);
-    -webkit-backdrop-filter: blur(13px) saturate(1.6);
-    box-shadow:
-        inset 0 0 0 0.75px var(--glass-rim),
-        0 8px 22px hsl(0 0% 0% / 0.4);
-    /* idle: a slow directional drift + the spring-driven swell/recoil scale.
-       --swell + --lunge are written per-frame from the arrow's mini-spring. */
-    scale: var(--swell, 1);
-    translate: calc((var(--drift, 0px) + var(--lunge, 0px)) * var(--dir)) 0;
-    transition: background 0.2s, box-shadow 0.2s;
-    will-change: transform, scale;
-}
-.arrow:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-.arrow svg { width: 26px; height: 26px; transition: filter 0.2s; }
-.arrow:hover { background: rgb(var(--glass-tint) / 0.18); }
-.arrow:hover svg { filter: drop-shadow(0 0 6px oklch(0.85 0.05 200 / 0.6)); }
-.arrow.prev { --dir: -1; }
-.arrow.next { --dir: 1; }
-
-/* the aria-live region + commit flash */
-.sr-only {
-    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
-    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
-}
-.commit-flash {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background: radial-gradient(ellipse 60% 45% at 50% 56%, oklch(0.99 0.04 var(--light-hue) / 0.6), transparent 70%);
-    opacity: 0;
-    z-index: 4;
-}
-.commit-flash.fire { animation: flash 0.6s var(--ease-out); }
-@keyframes flash { 0% { opacity: 0; } 18% { opacity: 1; } 100% { opacity: 0; } }
-
-/* the hint strip */
-.stage-hint {
-    position: absolute;
-    bottom: 0.8rem;
-    left: 50%;
-    translate: -50% 0;
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
-    color: oklch(0.7 0.02 268 / 0.65);
-    letter-spacing: 0.05em;
-    z-index: 3;
-    text-align: center;
-}
-.stage-hint kbd {
-    font-family: var(--font-mono);
-    background: hsl(0 0% 100% / 0.08);
-    border: 0.5px solid var(--glass-rim);
-    border-radius: 0.3rem;
-    padding: 0.05rem 0.35rem;
-}
-.stage-close {
-    position: absolute;
-    top: 1.2rem;
-    right: 1.2rem;
-    min-width: 44px;
-    min-height: 44px;
-    border-radius: 0.7rem;
-    border: 0.75px solid var(--glass-rim);
-    background: rgb(var(--glass-tint) / 0.08);
-    color: var(--ink);
-    font-family: var(--font-mono);
-    cursor: pointer;
-    z-index: 4;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-}
-.stage-close:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-
-/* =========================== the 7 bespoke idle previews ====================
-   Each dogfoods ONE light primitive's flavour (locked decision 5). CSS-only
-   here for portability; content-visibility-gated JS-loop variants flagged.
-   ============================================================================ */
-.pv { width: 86px; height: 86px; position: relative; }
-
-/* CUBE — slow 3D tumble */
-.pv-cube { transform-style: preserve-3d; animation: tumble 6s linear infinite; }
-.pv-cube .face {
-    position: absolute; inset: 14px; border-radius: 6px;
-    border: 1.5px solid oklch(0.8 0.12 var(--f, 20));
-    background: oklch(0.7 0.13 var(--f, 20) / 0.18);
-}
-.pv-cube .f1 { --f: 20;  transform: rotateY(0deg) translateZ(20px); }
-.pv-cube .f2 { --f: 140; transform: rotateY(90deg) translateZ(20px); }
-.pv-cube .f3 { --f: 270; transform: rotateY(180deg) translateZ(20px); }
-.pv-cube .f4 { --f: 200; transform: rotateX(90deg) translateZ(20px); }
-@keyframes tumble { from { transform: rotateY(0) rotateX(-15deg); } to { transform: rotateY(360deg) rotateX(-15deg); } }
-
-/* AMIGA — the Boing ball hop + squash, checkerboard hue cycling */
-.pv-amiga .ball {
-    width: 48px; height: 48px; border-radius: 50%;
+    /* placement is set per-frame in JS via transform (translate3d + scale) */
+    will-change: transform, opacity, filter;
+    /* the GLASS body */
     background:
-        repeating-conic-gradient(from 0deg, oklch(0.7 0.22 20) 0 30deg, oklch(0.96 0.02 90) 30deg 60deg);
-    box-shadow: inset -6px -6px 12px hsl(0 0% 0% / 0.4);
-    animation: boing 1.8s cubic-bezier(0.3,0,0.2,1) infinite, hue 5s linear infinite;
-    transform-origin: center bottom;
+        linear-gradient(145deg,
+            color-mix(in srgb, var(--glass-tint) 62%, transparent) 0%,
+            color-mix(in srgb, var(--glass-tint) 42%, transparent) 100%);
+    backdrop-filter: blur(7px) saturate(118%);
+    -webkit-backdrop-filter: blur(7px) saturate(118%);
+    border: 1px solid color-mix(in srgb, var(--glass-ink) 16%, transparent);
+    box-shadow:
+        0 1px 0 color-mix(in srgb, white 24%, transparent) inset,
+        0 -1px 0 color-mix(in srgb, var(--glass-ink) 14%, transparent) inset,
+        0 24px 48px hsl(26 24% 4% / 0.32);
+    overflow: hidden;
+    transition: box-shadow 240ms ease;
 }
-@keyframes boing {
-    0%,100% { transform: translateY(-20px) scaleY(1); }
-    45% { transform: translateY(-20px) scaleY(1); }
-    50% { transform: translateY(8px) scaleY(0.82) scaleX(1.12); }
-    55% { transform: translateY(-20px) scaleY(1); }
+/* specular catch-light sweeping the glass (FIX A — premium, not a rectangle) */
+.card::before {
+    content: "";
+    position: absolute; inset: 0;
+    border-radius: inherit;
+    background:
+        linear-gradient(135deg,
+            color-mix(in srgb, white 30%, transparent) 0%,
+            transparent 26%),
+        radial-gradient(140% 70% at 30% -10%,
+            color-mix(in srgb, white 22%, transparent) 0%,
+            transparent 50%);
+    pointer-events: none;
+    opacity: .8;
 }
-@keyframes hue { to { filter: hue-rotate(360deg); } }
-
-/* SQUARE — a box that breathes (radius) and rocks */
-.pv-square .box {
-    width: 52px; height: 52px;
-    background: oklch(0.72 0.1 268 / 0.35);
-    border: 1.5px solid oklch(0.82 0.1 268);
-    animation: breathe 3.2s ease-in-out infinite;
+/* thin glass rim highlight */
+.card::after {
+    content: "";
+    position: absolute; inset: 0;
+    border-radius: inherit;
+    border: 1px solid transparent;
+    background:
+        linear-gradient(160deg,
+            color-mix(in srgb, white 30%, transparent),
+            transparent 30%,
+            transparent 70%,
+            color-mix(in srgb, var(--glass-ink) 10%, transparent)) border-box;
+    -webkit-mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
+            mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude;
+    pointer-events: none;
 }
-@keyframes breathe {
-    0%,100% { border-radius: 8px; transform: rotate(-2deg); }
-    50% { border-radius: 20px; transform: rotate(2deg); }
-}
-
-/* EASING — a bezier curve that draws itself, then a ball traces it */
-.pv-easing svg { width: 80px; height: 80px; }
-.pv-easing .curve {
-    fill: none; stroke: oklch(0.82 0.12 150); stroke-width: 2.5;
-    stroke-dasharray: 120; stroke-dashoffset: 120;
-    animation: draw 3s ease-in-out infinite;
-}
-.pv-easing .dot { fill: oklch(0.92 0.08 150); animation: trace 3s ease-in-out infinite; }
-@keyframes draw { 0% { stroke-dashoffset: 120; } 55%,100% { stroke-dashoffset: 0; } }
-@keyframes trace {
-    0%,50% { offset-distance: 0%; opacity: 0; }
-    55% { opacity: 1; }
-    100% { offset-distance: 100%; opacity: 1; }
-}
-
-/* SPRING — a needle that flicks to a target and rings to rest (overshoot) */
-.pv-spring .gauge { width: 70px; height: 70px; position: relative; }
-.pv-spring .needle {
-    position: absolute; left: 50%; bottom: 8px;
-    width: 3px; height: 30px; border-radius: 2px;
-    background: oklch(0.85 0.14 30);
-    transform-origin: bottom center;
-    animation: flick 2.6s cubic-bezier(0.34, 1.56, 0.46, 1) infinite;
-}
-.pv-spring .pin { position: absolute; left: 50%; bottom: 6px; width: 7px; height: 7px; border-radius: 50%; background: oklch(0.9 0.1 30); translate: -50% 0; }
-@keyframes flick {
-    0% { transform: translateX(-50%) rotate(-42deg); }
-    35% { transform: translateX(-50%) rotate(40deg); }
-    55% { transform: translateX(-50%) rotate(-14deg); }
-    72% { transform: translateX(-50%) rotate(7deg); }
-    100% { transform: translateX(-50%) rotate(-42deg); }
+.card.front {
+    box-shadow:
+        0 1px 0 color-mix(in srgb, white 34%, transparent) inset,
+        0 -1px 0 color-mix(in srgb, var(--glass-ink) 16%, transparent) inset,
+        0 0 0 1px hsl(var(--warm-light) / 0.30),
+        0 30px 70px hsl(26 24% 4% / 0.4),
+        0 0 60px hsl(var(--warm-light) / calc(0.22 * var(--light-energy,1)));
 }
 
-/* SEQUENCE — staggered dots rise in a wave then fade (from:'first') */
-.pv-sequence { display: flex; gap: 7px; align-items: flex-end; height: 56px; }
-.pv-sequence i {
-    width: 9px; height: 9px; border-radius: 50%;
-    background: oklch(0.82 0.12 300);
-    animation: rise 2.4s ease-in-out infinite;
+.card-stage {
+    position: absolute;
+    left: 12px; right: 12px; top: 12px;
+    height: 196px;
+    border-radius: 14px;
+    overflow: hidden;
+    background:
+        radial-gradient(120% 80% at 50% 0%,
+            color-mix(in srgb, var(--glass-tint) 30%, transparent),
+            color-mix(in srgb, var(--paper) 40%, transparent));
+    border: 1px solid color-mix(in srgb, var(--glass-ink) 10%, transparent);
+    box-shadow: inset 0 2px 14px hsl(26 24% 4% / 0.22);
 }
-.pv-sequence i:nth-child(1) { animation-delay: 0s; }
-.pv-sequence i:nth-child(2) { animation-delay: 0.12s; }
-.pv-sequence i:nth-child(3) { animation-delay: 0.24s; }
-.pv-sequence i:nth-child(4) { animation-delay: 0.36s; }
-@keyframes rise { 0%,60%,100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-26px); opacity: 1; } }
-
-/* PATH — a traveller sweeping a figure-8 offset-path, rotate:auto banks it */
-.pv-path .traveller {
-    width: 12px; height: 12px; border-radius: 3px;
-    background: oklch(0.84 0.13 60);
-    offset-path: path("M 10 30 C 10 10, 50 10, 50 30 C 50 50, 10 50, 10 30 Z");
-    offset-rotate: auto;
-    animation: sweep 3.4s linear infinite;
+/* a faint grid-paper INSIDE each preview stage so they read on-brand */
+.card-stage::before {
+    content: ""; position: absolute; inset: 0; opacity: .5;
+    background-image:
+        linear-gradient(to right,  color-mix(in srgb, var(--glass-ink) 7%, transparent) 1px, transparent 1px),
+        linear-gradient(to bottom, color-mix(in srgb, var(--glass-ink) 7%, transparent) 1px, transparent 1px);
+    background-size: 16px 16px, 16px 16px;
+    pointer-events: none;
 }
-@keyframes sweep { to { offset-distance: 100%; } }
 
-/* ===========================================================================
-   REDUCED MOTION (locked decision 7): snap the ring, freeze --stage-light,
-   kill VT/idle/shimmer. The JS also branches (PRM toggle for the demo).
-   =========================================================================== */
-.prm .cone, .prm .pool, .prm .fill-light { transition: none !important; }
-.prm .pv-cube, .prm .pv-amiga .ball, .prm .pv-square .box,
-.prm .pv-easing .curve, .prm .pv-easing .dot, .prm .pv-spring .needle,
-.prm .pv-sequence i, .prm .pv-path .traveller { animation: none !important; }
-.prm .nameplate::before, .prm .arrow::before { display: none; }
+.card-label {
+    position: absolute;
+    left: 14px; right: 14px; bottom: 12px;
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 8px;
+}
+.card-name {
+    font-family: var(--font-display);
+    font-size: 30px;
+    line-height: 1;
+    letter-spacing: .2px;
+    color: var(--glass-ink);
+}
+.card-idx {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: .5px;
+    color: color-mix(in srgb, var(--glass-ink) 60%, transparent);
+}
+
+/* =====================================================================
+   PREVIEW MINI-SCENES (FIX #2, B) — refined, desaturated crayon readouts.
+   ===================================================================== */
+.pv { position: absolute; inset: 0; display: grid; place-items: center; }
+
+/* desaturated crayon helpers — tasteful instrument tones, not neon */
+:root {
+    --p-red:     color-mix(in srgb, var(--c-red)     62%, #c9b6a4);
+    --p-green:   color-mix(in srgb, var(--c-green)   48%, #b4c2a2);
+    --p-blue:    color-mix(in srgb, var(--c-blue)    60%, #b6bccc);
+    --p-yellow:  color-mix(in srgb, var(--c-yellow)  52%, #cabf98);
+    --p-magenta: color-mix(in srgb, var(--c-magenta) 52%, #ccaec0);
+    --p-cyan:    color-mix(in srgb, var(--c-cyan)    48%, #a6c0c4);
+    --p-amiga:   color-mix(in srgb, var(--amiga-red) 80%, #d8aa9a);
+}
+
+/* --- Cube: a REAL 3D CSS cube, 6 crayon faces, slow X+Y spin --- */
+.cube-scene { perspective: 320px; }
+.cube { width: 64px; height: 64px; transform-style: preserve-3d; animation: cubespin 14s linear infinite; }
+@keyframes cubespin {
+    0%   { transform: rotateX(-22deg) rotateY(0deg); }
+    100% { transform: rotateX(-22deg) rotateY(360deg); }
+}
+.cube .f {
+    position: absolute; width: 64px; height: 64px;
+    border: 1px solid color-mix(in srgb, var(--glass-ink) 30%, transparent);
+    border-radius: 4px;
+    display: grid; place-items: center;
+    font-family: var(--font-mono); font-weight: 600; font-size: 22px;
+    color: color-mix(in srgb, var(--glass-ink) 70%, white);
+    text-shadow: 0 1px 2px rgba(0,0,0,.3);
+    box-shadow: inset 0 0 18px rgba(255,255,255,.18);
+}
+.cube .f1 { background: color-mix(in srgb, var(--p-red)     78%, transparent); transform: translateZ(32px); }
+.cube .f2 { background: color-mix(in srgb, var(--p-green)   78%, transparent); transform: rotateY(90deg) translateZ(32px); }
+.cube .f3 { background: color-mix(in srgb, var(--p-blue)    78%, transparent); transform: rotateY(180deg) translateZ(32px); }
+.cube .f4 { background: color-mix(in srgb, var(--p-yellow)  78%, transparent); transform: rotateY(-90deg) translateZ(32px); }
+.cube .f5 { background: color-mix(in srgb, var(--p-magenta) 78%, transparent); transform: rotateX(90deg) translateZ(32px); }
+.cube .f6 { background: color-mix(in srgb, var(--p-cyan)    78%, transparent); transform: rotateX(-90deg) translateZ(32px); }
+
+/* --- Amiga: red/white checker sphere BOUNCING with squash --- */
+.amiga-floor { position: absolute; left: 18%; right: 18%; bottom: 26%; height: 2px; background: color-mix(in srgb, var(--glass-ink) 22%, transparent); }
+.boing-wrap { position: absolute; left: 50%; bottom: 30%; transform: translateX(-50%); animation: boingY 1.6s cubic-bezier(.5,0,.5,1) infinite; }
+.boing {
+    width: 56px; height: 56px; border-radius: 50%;
+    background:
+        radial-gradient(circle at 34% 30%, rgba(255,255,255,.9) 0%, transparent 36%),
+        repeating-conic-gradient(from 0deg,
+            var(--p-amiga) 0deg 30deg, #f4ede4 30deg 60deg);
+    -webkit-mask: radial-gradient(circle at 50% 50%, #000 49%, transparent 50%);
+            mask: radial-gradient(circle at 50% 50%, #000 49%, transparent 50%);
+    box-shadow: inset -8px -8px 16px rgba(0,0,0,.28), inset 6px 6px 14px rgba(255,255,255,.3);
+    animation: boingSquash 1.6s cubic-bezier(.5,0,.5,1) infinite, boingSpin 3.2s linear infinite;
+}
+@keyframes boingY { 0%,100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-56px); } }
+@keyframes boingSquash { 0%,44%,56%,100% { transform: scale(1,1); } 50% { transform: scale(1.04,.94); } 2%,98% { transform: scale(1.14,.82); } }
+@keyframes boingSpin { 0% { background-position: 0; } 100% { background-position: 60px; } }
+
+/* --- Square: rounded crayon-green box drifting + scaling + rotating --- */
+.sq {
+    width: 76px; height: 76px; border-radius: 16px;
+    background: linear-gradient(145deg,
+        color-mix(in srgb, var(--p-green) 80%, transparent),
+        color-mix(in srgb, var(--p-green) 50%, transparent));
+    border: 1px solid color-mix(in srgb, var(--glass-ink) 24%, transparent);
+    box-shadow: inset 0 2px 10px rgba(255,255,255,.3), 0 8px 18px hsl(26 24% 4% / .3);
+    display: grid; place-items: center;
+    color: color-mix(in srgb, var(--glass-ink) 60%, white);
+    font-family: var(--font-mono); font-size: 9px; letter-spacing: .4px;
+    animation: sqdrift 5s ease-in-out infinite;
+}
+@keyframes sqdrift {
+    0%,100% { transform: translate(-10px,4px) rotate(-6deg) scale(.96); }
+    50%     { transform: translate(10px,-4px) rotate(6deg) scale(1.06); }
+}
+
+/* --- Easing: SVG bezier curve + ball sweeping with a fading trace --- */
+.ease-svg { width: 86%; height: 86%; }
+.ease-curve { fill: none; stroke: color-mix(in srgb, var(--p-blue) 70%, var(--glass-ink)); stroke-width: 2.4; opacity: .85; }
+.ease-grid { stroke: color-mix(in srgb, var(--glass-ink) 14%, transparent); stroke-width: 1; }
+.ease-ball { fill: var(--p-red); filter: drop-shadow(0 0 4px color-mix(in srgb, var(--p-red) 60%, transparent)); }
+.ease-trace { fill: none; stroke: var(--p-red); stroke-width: 2; opacity: .35; stroke-linecap: round; }
+
+/* --- Spring: rail + needle springing to target, damped ring --- */
+.spring-rail { position: absolute; left: 16%; right: 16%; top: 50%; height: 3px; border-radius: 2px;
+    background: color-mix(in srgb, var(--glass-ink) 16%, transparent); }
+.spring-target { position: absolute; right: 18%; top: 50%; width: 2px; height: 26px; transform: translateY(-50%);
+    background: color-mix(in srgb, var(--p-red) 70%, transparent); opacity: .6; }
+.spring-needle { position: absolute; top: 50%; width: 18px; height: 18px; border-radius: 50%; transform: translate(-50%,-50%);
+    background: radial-gradient(circle at 34% 30%, #fff, var(--p-red) 70%);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--p-red) 60%, transparent);
+    left: 18%; animation: springgo 2.8s cubic-bezier(.16,1.2,.3,1) infinite; }
+@keyframes springgo {
+    0%    { left: 18%; }
+    52%   { left: 82%; }
+    60%   { left: 78%; }
+    68%   { left: 81%; }
+    76%   { left: 79.5%; }
+    84%,100% { left: 82%; }
+}
+
+/* --- Sequence: 5 bars cascade in a staggered wave --- */
+.seq { display: flex; gap: 9px; align-items: flex-end; height: 86px; }
+.seq-bar { width: 12px; border-radius: 4px;
+    background: linear-gradient(to top,
+        color-mix(in srgb, var(--p-magenta) 70%, transparent),
+        color-mix(in srgb, var(--p-cyan) 60%, transparent));
+    box-shadow: inset 0 1px 2px rgba(255,255,255,.3);
+    transform-origin: bottom; animation: seqwave 2.4s ease-in-out infinite; }
+.seq-bar:nth-child(1) { animation-delay: 0s;    height: 28px; }
+.seq-bar:nth-child(2) { animation-delay: .12s;  height: 44px; }
+.seq-bar:nth-child(3) { animation-delay: .24s;  height: 64px; }
+.seq-bar:nth-child(4) { animation-delay: .36s;  height: 48px; }
+.seq-bar:nth-child(5) { animation-delay: .48s;  height: 34px; }
+@keyframes seqwave { 0%,100% { transform: scaleY(.35); opacity: .55; } 40% { transform: scaleY(1); opacity: 1; } }
+
+/* --- Path: SVG curvy offset-path + traveller dot looping --- */
+.path-svg { width: 88%; height: 88%; }
+.path-line { fill: none; stroke: color-mix(in srgb, var(--p-cyan) 64%, var(--glass-ink)); stroke-width: 2.2;
+    stroke-dasharray: 4 5; opacity: .7; }
+.path-dot { r: 5; fill: var(--p-yellow); filter: drop-shadow(0 0 5px color-mix(in srgb, var(--p-yellow) 60%, transparent)); }
+
+/* =====================================================================
+   STAGE CHROME — name-plate + glassy arrows (theatre-light text)
+   ===================================================================== */
+.chrome {
+    position: absolute;
+    left: 50%; bottom: 7vh;
+    transform: translateX(-50%);
+    z-index: 6;
+    display: flex; align-items: center; gap: 28px;
+    opacity: 0; transition: opacity 700ms ease 200ms;
+}
+.chrome.active { opacity: 1; }
+
+.arrow {
+    position: relative;
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    border: 1px solid color-mix(in srgb, var(--stage-text) 30%, transparent);
+    background:
+        radial-gradient(120% 120% at 30% 20%, hsl(var(--warm-light)/.22), transparent 60%),
+        color-mix(in srgb, hsl(var(--warm-light)) 8%, hsl(28 16% 12% / .42));
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    color: var(--stage-text);
+    display: grid; place-items: center;
+    cursor: pointer;
+    box-shadow: 0 8px 24px hsl(26 24% 4% / .4), 0 0 0 0 hsl(var(--warm-light)/0);
+    transition: transform 160ms cubic-bezier(.22,1,.36,1), box-shadow 240ms ease, background 240ms ease;
+    overflow: hidden;
+}
+/* idle shimmer */
+.arrow::after {
+    content: ""; position: absolute; inset: -40%;
+    background: linear-gradient(115deg, transparent 38%, hsl(var(--warm-core)/.5) 50%, transparent 62%);
+    transform: translateX(-120%);
+    animation: shimmer 4.2s ease-in-out infinite;
+}
+@keyframes shimmer { 0%,72% { transform: translateX(-120%); } 86%,100% { transform: translateX(120%); } }
+.arrow svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 2.4; fill: none; }
+.arrow:hover { transform: scale(1.12); box-shadow: 0 10px 30px hsl(26 24% 4% / .5), 0 0 26px hsl(var(--warm-light)/.4); }
+.arrow:active { transform: scale(.92); }
+
+.nameplate { text-align: center; min-width: 220px; }
+.nameplate .name {
+    font-family: var(--font-display);
+    font-size: 54px; line-height: .92;
+    color: var(--stage-text);
+    text-shadow: 0 2px 18px hsl(var(--warm-light)/.4), 0 1px 0 hsl(26 24% 4% / .5);
+    transition: opacity 200ms ease;
+}
+.nameplate .meta {
+    font-family: var(--font-mono);
+    font-size: 12px; letter-spacing: 2px;
+    color: var(--stage-text-dim);
+    margin-top: 4px;
+}
+
+/* =====================================================================
+   SINGLE-VIEW LANDING (FIX #6) — a single live scene, then morph to stage
+   ===================================================================== */
+.landing {
+    position: absolute;
+    inset: 0; z-index: 8;
+    display: grid; place-items: center;
+    transition: opacity 800ms cubic-bezier(.4,0,.2,1), transform 1000ms cubic-bezier(.22,1,.36,1), filter 800ms ease;
+}
+.landing.recede {
+    opacity: 0;
+    transform: translateZ(-160px) scale(1.08);
+    filter: blur(10px);
+    pointer-events: none;
+}
+.landing-glass {
+    position: relative;
+    width: min(72vw, 720px);
+    height: min(58vh, 520px);
+    border-radius: 26px;
+    overflow: hidden;
+    background:
+        linear-gradient(150deg,
+            color-mix(in srgb, var(--glass-tint) 60%, transparent),
+            color-mix(in srgb, var(--glass-tint) 38%, transparent));
+    backdrop-filter: blur(10px) saturate(120%); -webkit-backdrop-filter: blur(10px) saturate(120%);
+    border: 1px solid color-mix(in srgb, var(--glass-ink) 16%, transparent);
+    box-shadow: 0 1px 0 color-mix(in srgb,white 26%,transparent) inset, 0 30px 80px hsl(26 24% 4% / .4);
+}
+.landing-stage { position: absolute; inset: 0; }
+.landing-stage .cube-scene { width: 100%; height: 100%; perspective: 700px; }
+.landing-stage .cube { width: 150px; height: 150px; animation-duration: 18s; }
+.landing-stage .cube .f { width: 150px; height: 150px; font-size: 52px; }
+.landing-stage .cube .f1 { transform: translateZ(75px); }
+.landing-stage .cube .f2 { transform: rotateY(90deg) translateZ(75px); }
+.landing-stage .cube .f3 { transform: rotateY(180deg) translateZ(75px); }
+.landing-stage .cube .f4 { transform: rotateY(-90deg) translateZ(75px); }
+.landing-stage .cube .f5 { transform: rotateX(90deg) translateZ(75px); }
+.landing-stage .cube .f6 { transform: rotateX(-90deg) translateZ(75px); }
+
+.landing-caption {
+    position: absolute; left: 28px; top: 24px; z-index: 2;
+}
+.landing-caption .eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: 3px;
+    text-transform: uppercase; color: color-mix(in srgb, var(--glass-ink) 60%, transparent); }
+.landing-caption .title { font-family: var(--font-display); font-size: 56px; line-height: .9; color: var(--glass-ink); margin-top: 2px; }
+
+.switch-btn {
+    position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%);
+    z-index: 3;
+    font-family: var(--font-mono); font-size: 13px; letter-spacing: 1.5px;
+    padding: 12px 26px; border-radius: 999px;
+    color: var(--glass-ink);
+    background:
+        radial-gradient(120% 120% at 30% 20%, color-mix(in srgb,white 24%,transparent), transparent 60%),
+        color-mix(in srgb, var(--glass-tint) 50%, transparent);
+    border: 1px solid color-mix(in srgb, var(--glass-ink) 20%, transparent);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    cursor: pointer;
+    box-shadow: 0 8px 24px hsl(26 24% 4% / .3);
+    transition: transform 160ms cubic-bezier(.22,1,.36,1), box-shadow 240ms ease;
+}
+.switch-btn:hover { transform: translateX(-50%) scale(1.05); box-shadow: 0 10px 30px hsl(26 24% 4% / .4), 0 0 22px hsl(var(--warm-light)/.35); }
+.switch-btn:active { transform: translateX(-50%) scale(.96); }
+
+/* =====================================================================
+   TOP-RIGHT controls (theme / PRM / back)
+   ===================================================================== */
+.controls {
+    position: absolute; right: 18px; top: 16px; z-index: 12;
+    display: flex; gap: 8px;
+}
+.ctl {
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: .5px;
+    padding: 8px 12px; border-radius: 10px;
+    color: var(--foreground);
+    background: color-mix(in srgb, var(--glass-tint) 50%, transparent);
+    border: 1px solid color-mix(in srgb, var(--glass-ink) 16%, transparent);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    cursor: pointer; user-select: none;
+    transition: transform 140ms ease, background 200ms ease;
+}
+.ctl:hover { transform: translateY(-1px); }
+.ctl[aria-pressed="true"] { background: color-mix(in srgb, hsl(var(--warm-light)) 26%, transparent); color: hsl(26 30% 12%); }
+
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* reduced-motion path: freeze the light + kill drift/shimmer */
+.prm .beam-wrap, .prm .motes, .prm .arrow::after { animation: none !important; }
+.prm .beam-source, .prm .paper-pool, .prm .cone, .prm .beam-bloom { transition: none !important; }
+.prm .cube, .prm .boing, .prm .boing-wrap, .prm .sq, .prm .seq-bar,
+.prm .spring-needle, .prm .path-dot, .prm .ease-ball { animation: none !important; }
 @media (prefers-reduced-motion: reduce) {
-    .stage[popover], .stage[popover]::backdrop { transition-duration: 0.1s !important; scale: 1 !important; }
-    ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
-}
-/* the demo PRM toggle forces the same brackets regardless of OS setting */
-.prm.stage[popover], .prm .stage[popover] { }
-:root.prm .stage[popover], :root.prm .stage[popover]::backdrop { transition-duration: 0.1s !important; }
-::view-transition { pointer-events: none; }
-
-/* the stage-bloom VT keyframe (entry) — graceful: absent → instant popover */
-::view-transition-new(stage-root) { animation: stage-bloom 0.5s var(--ease-out); }
-::view-transition-old(stage-root) { animation: stage-bloom 0.42s var(--ease-out) reverse; }
-@keyframes stage-bloom { from { opacity: 0; } to { opacity: 1; } }
-
-@media (max-width: 720px) {
-    .ring-item { width: 132px; height: 168px; margin-left: -66px; margin-top: -94px; }
-    .console { gap: 1.2rem; flex-wrap: wrap; justify-content: center; }
-    .nameplate { min-width: 200px; }
-    /* DIVERGENCE: production has a dedicated phone-narrow flat-carousel layout;
-       this prototype just tightens the ring radius via JS (RING_RADIUS_MOBILE). */
+    .beam-wrap, .motes, .arrow::after,
+    .cube, .boing, .boing-wrap, .sq, .seq-bar, .spring-needle, .ease-ball { animation: none !important; }
 }
 </style>
 </head>
 <body>
+<div id="app">
 
-<!-- ====================== THE LANDING (the dimmed live scene) ============== -->
-<main class="landing" id="landing">
-    <div class="kicker">keyframes.js · Tranche N</div>
-    <h1>The&nbsp;Stage</h1>
-    <p>A theatrical downlight scene-switcher. A spotlight cone descends to a glowing floor pool; a seven-item turntable carries living previews. Open the Stage to choose a scene.</p>
-    <div class="now-showing">Now showing: <span id="nowName">Cube</span> <span class="idx" id="nowIdx">1 / 7</span></div>
-    <div class="dock">
-        <button class="dock-select" id="openStage" aria-haspopup="dialog">
-            <span class="label" id="dockLabel">Cube</span>
-            <span class="chev">▾ Switch scene</span>
-        </button>
+    <!-- grid-paper substrate (FIX #5) -->
+    <div class="grid-paper" id="gridPaper"></div>
+    <div class="paper-pool" id="paperPool"></div>
+    <div class="paper-vignette" id="paperVignette"></div>
+
+    <!-- the volumetric god-ray (FIX C / #7) -->
+    <div class="beam-wrap" id="beam">
+        <div class="beam-source"></div>
+        <div class="cone cone-1"></div>
+        <div class="cone cone-2"></div>
+        <div class="cone cone-3"></div>
+        <div class="motes" id="motes"></div>
+        <div class="beam-bloom"></div>
     </div>
-</main>
 
-<div class="toolbar">
-    <button class="tool-btn" id="themeToggle" aria-pressed="false">◐ Theme</button>
-    <button class="tool-btn" id="prmToggle" aria-pressed="false" title="Force reduced-motion path">⏸ Reduce motion</button>
-</div>
-
-<!-- ====================== THE STAGE OVERLAY (Popover top-layer) ============ -->
-<div class="stage" id="stage" popover="manual" role="dialog" aria-modal="true" aria-label="Scene switcher stage">
-    <button class="stage-close" id="closeStage" aria-label="Close stage (Esc)">✕</button>
-
-    <div class="stage-3d">
-        <div class="stage-plane">
-            <div class="cone"></div>
-            <div class="pool"></div>
-            <div class="fill-light" id="fillLight"></div>
-            <div class="ring" id="ring" role="listbox" aria-label="Scenes" tabindex="0" aria-activedescendant="ring-item-0"></div>
+    <!-- the turntable stage (FIX #1 / #3) -->
+    <div class="stage" id="stage" aria-hidden="true">
+        <div class="turntable">
+            <div class="platter"></div>
+            <div class="ring" id="ring"></div>
         </div>
     </div>
 
-    <div class="commit-flash" id="commitFlash"></div>
-
-    <div class="console">
-        <button class="arrow prev" id="arrowPrev" aria-label="Previous scene">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+    <!-- stage chrome: arrows + name-plate -->
+    <div class="chrome" id="chrome" role="group" aria-label="Scene navigation">
+        <button class="arrow" id="prev" aria-label="Previous scene">
+            <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
-
-        <div class="nameplate" id="nameplate">
-            <div class="scene-name" id="sceneName">Cube</div>
-            <div class="scene-idx" id="sceneIdx">1 / 7</div>
+        <div class="nameplate">
+            <div class="name" id="plateName">Cube</div>
+            <div class="meta" id="plateMeta">1 / 7</div>
         </div>
-
-        <button class="arrow next" id="arrowNext" aria-label="Next scene">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>
+        <button class="arrow" id="next" aria-label="Next scene">
+            <svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
     </div>
 
-    <div class="stage-hint">
-        <kbd>←</kbd> <kbd>→</kbd> spin · <kbd>Home</kbd>/<kbd>End</kbd> · <kbd>Enter</kbd> commit · <kbd>Esc</kbd> close · click a flank to spin
+    <!-- single-view landing (FIX #6) -->
+    <div class="landing" id="landing">
+        <div class="landing-glass">
+            <div class="landing-stage">
+                <div class="cube-scene">
+                    <div class="pv"><div class="cube">
+                        <div class="f f1">1</div><div class="f f2">2</div><div class="f f3">3</div>
+                        <div class="f f4">4</div><div class="f f5">5</div><div class="f f6">6</div>
+                    </div></div>
+                </div>
+            </div>
+            <div class="landing-caption">
+                <div class="eyebrow">keyframes.js · demo</div>
+                <div class="title">Cube</div>
+            </div>
+            <button class="switch-btn" id="switchBtn">Switch scene&nbsp;&nbsp;→</button>
+        </div>
     </div>
 
-    <div class="sr-only" aria-live="polite" id="liveRegion"></div>
+    <!-- controls -->
+    <div class="controls">
+        <button class="ctl" id="backBtn" hidden>← Single view</button>
+        <button class="ctl" id="themeBtn">◐ Light</button>
+        <button class="ctl" id="prmBtn" aria-pressed="false">PRM</button>
+    </div>
+
+    <div class="sr-only" id="liveRegion" role="status" aria-live="polite"></div>
 </div>
 
 <script type="module">
-/* ===========================================================================
-   MINI-SPRING — a faithful re-implementation of @mkbabb/keyframes.js
-   SpringProgress for this single-file prototype.
-
-   DIVERGENCE (locked decision 1 + inv ζ): production imports SpringProgress
-   from the LIGHT barrel and drives it via RAFPlayback — it NEVER hand-rolls a
-   rAF loop and NEVER imports the heavy engine / value.js. This class exists
-   ONLY so the prototype is one file. The ODE, the (response, dampingFraction)
-   surface, and the velocity-continuous re-seat are byte-for-byte the same
-   semantics as spring.ts:
-
-       x'' + 2ζω₀x' + ω₀²x = ω₀²·target,   ω₀ = 2π/response,  ζ = dampingFraction
-
-   setTarget() re-seats the closed-form solution from the current (x, v), so an
-   interruption mid-spin is jump-free — exactly SpringProgress's contract.
-   =========================================================================== */
-class MiniSpring {
-    constructor({ response = 0.5, dampingFraction = 0.86, initial = 0 } = {}) {
-        this.response = response;
-        this.zeta = dampingFraction;
-        this.x = initial;
-        this.v = 0;
-        this.target = initial;
-    }
-    setTarget(t) { this.target = t; /* (x, v) carry over → velocity-continuous re-seat */ }
-    /** Integrate the damped harmonic oscillator by dt seconds (semi-implicit, clamped). */
-    tickDt(dt) {
-        dt = Math.min(dt, 1 / 30); // clamp huge frames (tab refocus), like RAFPlayback
-        const w0 = (2 * Math.PI) / this.response;
-        const z = this.zeta;
-        // sub-step for stiff springs to keep it stable
-        const steps = Math.max(1, Math.ceil(dt / 0.008));
-        const h = dt / steps;
-        for (let i = 0; i < steps; i++) {
-            const a = w0 * w0 * (this.target - this.x) - 2 * z * w0 * this.v;
-            this.v += a * h;
-            this.x += this.v * h;
-        }
-        return this.x;
-    }
-    get settled() {
-        return Math.abs(this.x - this.target) < 1e-3 && Math.abs(this.v) < 1e-3;
-    }
-    snap(t) { this.target = t; this.x = t; this.v = 0; }
-}
-
-/* ===========================================================================
-   SCENE DATA — the 7 real scene names + their bespoke idle preview + pool tint.
-   =========================================================================== */
+/* =====================================================================
+   STATE + DATA
+   ===================================================================== */
 const SCENES = [
-    { id: "cube",     name: "Cube",     hue: 20,  preview: cubePV },
-    { id: "amiga",    name: "Amiga",    hue: 20,  preview: amigaPV },
-    { id: "square",   name: "Square",   hue: 268, preview: squarePV },
-    { id: "easing",   name: "Easing",   hue: 150, preview: easingPV },
-    { id: "spring",   name: "Spring",   hue: 30,  preview: springPV },
-    { id: "sequence", name: "Sequence", hue: 300, preview: sequencePV },
-    { id: "path",     name: "Path",     hue: 60,  preview: pathPV },
+    { name: "Cube",     build: cubePreview     },
+    { name: "Amiga",    build: amigaPreview    },
+    { name: "Square",   build: squarePreview   },
+    { name: "Easing",   build: easingPreview   },
+    { name: "Spring",   build: springPreview   },
+    { name: "Sequence", build: sequencePreview },
+    { name: "Path",     build: pathPreview     },
 ];
 const N = SCENES.length;
-const SEG = 360 / N; // 51.43° per item
 
-/* bespoke preview factories (CSS-driven idle loops). DIVERGENCE: production
-   gates each loop on contentvisibilityautostatechange so off-front loops pause
-   and distant ring members render as a static poster. */
-function cubePV()     { return html(`<div class="pv pv-cube"><div class="face f1"></div><div class="face f2"></div><div class="face f3"></div><div class="face f4"></div></div>`); }
-function amigaPV()    { return html(`<div class="pv pv-amiga"><div class="ball"></div></div>`); }
-function squarePV()   { return html(`<div class="pv pv-square"><div class="box"></div></div>`); }
-function easingPV()   { return html(`<div class="pv pv-easing"><svg viewBox="0 0 80 80"><path class="curve" d="M 6 70 C 30 70, 50 10, 74 10"/><circle class="dot" r="4" style="offset-path:path('M 6 70 C 30 70, 50 10, 74 10')"/></svg></div>`); }
-function springPV()   { return html(`<div class="pv pv-spring"><div class="gauge"><div class="needle"></div><div class="pin"></div></div></div>`); }
-function sequencePV() { return html(`<div class="pv pv-sequence"><i></i><i></i><i></i><i></i></div>`); }
-function pathPV()     { return html(`<div class="pv pv-path"><div class="traveller"></div></div>`); }
-function html(s) { const t = document.createElement("template"); t.innerHTML = s.trim(); return t.content.firstElementChild; }
+const ring   = document.getElementById("ring");
+const stage  = document.getElementById("stage");
+const chrome = document.getElementById("chrome");
+const beam   = document.getElementById("beam");
+const landing= document.getElementById("landing");
+const app    = document.getElementById("app");
+const live   = document.getElementById("liveRegion");
 
-/* ===========================================================================
-   STATE + ELEMENTS
-   =========================================================================== */
-const root = document.documentElement;
-const stage = document.getElementById("stage");
-const ring = document.getElementById("ring");
-const fillLight = document.getElementById("fillLight");
-const sceneNameEl = document.getElementById("sceneName");
-const sceneIdxEl = document.getElementById("sceneIdx");
-const nameplate = document.getElementById("nameplate");
-const liveRegion = document.getElementById("liveRegion");
-const commitFlash = document.getElementById("commitFlash");
-const arrowPrev = document.getElementById("arrowPrev");
-const arrowNext = document.getElementById("arrowNext");
+const plateName = document.getElementById("plateName");
+const plateMeta = document.getElementById("plateMeta");
 
-let selected = 0;        // index of the front scene
-let hoverIndex = null;   // hovered ring item (for hover-brighten)
-let stageOpen = false;
+let active = 0;          // logical selected index
+let prm = false;         // reduced motion
+let onStage = false;
 
-const RING_RADIUS = () => (window.innerWidth <= 720 ? 250 : 340); // px translateZ
+/* the spring carousel position — `pos` is a continuous angle index that the
+   spring drives toward `target`. Shortest signed delta, interruptible.
+   The REAL impl uses @mkbabb/keyframes.js SpringProgress (LIGHT barrel) on
+   RAFPlayback; this inline critically-damped step matches its closed form. */
+let pos = 0, vel = 0, target = 0;
+const STIFF = 150, DAMP = 24;     // critically-damped-ish; smooth + quick
 
-/* the ONE ring-angle spring (degrees). spin-to-front sets its target by the
-   shortest signed delta; falloff per item derives from the live angle.
-   response 0.55, damping 0.82 = a hair of overshoot (the synthesis spec). */
-const ringSpring = new MiniSpring({ response: 0.55, dampingFraction: 0.82, initial: 0 });
+/* light-pool tracking — slides toward hovered / front card */
+let poolX = 50, poolXTarget = 50, poolVel = 0;
+let energy = 1;                   // breathing intensity
 
-/* per-arrow micro-motion springs (swell + recoil). press → recoil; the lunge
-   decays via a closed-form decay() (dogfoods decay.ts in production). */
-const arrowSpring = {
-    prev: new MiniSpring({ response: 0.4, dampingFraction: 0.7, initial: 1 }),
-    next: new MiniSpring({ response: 0.4, dampingFraction: 0.7, initial: 1 }),
-};
-const arrowLunge = { prev: { x0: 0, v0: 0, t0: 0 }, next: { x0: 0, v0: 0, t0: 0 } };
+/* =====================================================================
+   PREVIEW BUILDERS — return innerHTML for each card-stage
+   ===================================================================== */
+function cubePreview() {
+    return `<div class="pv cube-scene"><div class="cube">
+        <div class="f f1">1</div><div class="f f2">2</div><div class="f f3">3</div>
+        <div class="f f4">4</div><div class="f f5">5</div><div class="f f6">6</div>
+    </div></div>`;
+}
+function amigaPreview() {
+    return `<div class="pv">
+        <div class="amiga-floor"></div>
+        <div class="boing-wrap"><div class="boing"></div></div>
+    </div>`;
+}
+function squarePreview() {
+    return `<div class="pv"><div class="sq">drag&nbsp;me</div></div>`;
+}
+function easingPreview() {
+    return `<div class="pv"><svg class="ease-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <line class="ease-grid" x1="0" y1="100" x2="100" y2="100"/>
+        <line class="ease-grid" x1="0" y1="0" x2="0" y2="100"/>
+        <path class="ease-trace" d="M0,100 C40,100 60,0 100,0"/>
+        <path class="ease-curve" d="M0,100 C40,100 60,0 100,0"/>
+        <circle class="ease-ball" r="4">
+            <animateMotion dur="2.6s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1"
+                calcMode="spline" keySplines="0.65 0 0.35 1" path="M0,100 C40,100 60,0 100,0"/>
+        </circle>
+    </svg></div>`;
+}
+function springPreview() {
+    return `<div class="pv">
+        <div class="spring-rail"></div>
+        <div class="spring-target"></div>
+        <div class="spring-needle"></div>
+    </div>`;
+}
+function sequencePreview() {
+    return `<div class="pv"><div class="seq">
+        <div class="seq-bar"></div><div class="seq-bar"></div><div class="seq-bar"></div>
+        <div class="seq-bar"></div><div class="seq-bar"></div>
+    </div></div>`;
+}
+function pathPreview() {
+    const d = "M10,78 C18,30 44,18 54,44 C62,64 84,66 90,28";
+    return `<div class="pv"><svg class="path-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <path class="path-line" d="${d}"/>
+        <circle class="path-dot">
+            <animateMotion dur="4s" repeatCount="indefinite" path="${d}" rotate="auto"
+                calcMode="spline" keyTimes="0;0.5;1" keySplines="0.4 0 0.6 1;0.4 0 0.6 1"/>
+        </circle>
+    </svg></div>`;
+}
 
-/* the --stage-light hover-brighten authority. eased via CSS transition on the
-   registered @property; we just write target values. */
-let stageLightTarget = 1;
-let fillShiftTarget = 0;
-let fillOn = 0;
-
-/* reduced-motion: OS query OR the demo toggle */
-const prmQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-let prmForced = false;
-const prm = () => prmForced || prmQuery.matches;
-
-/* ===========================================================================
-   BUILD THE RING
-   =========================================================================== */
-const items = SCENES.map((scene, i) => {
-    const btn = document.createElement("button");
-    btn.className = "ring-item";
-    btn.id = `ring-item-${i}`;
-    btn.setAttribute("role", "option");
-    btn.setAttribute("aria-label", `${scene.name}, ${i + 1} of ${N}`);
-    btn.tabIndex = -1;
-    const card = document.createElement("div");
-    card.className = "card";
-    const preview = document.createElement("div");
-    preview.className = "preview";
-    preview.style.setProperty("--light-hue", scene.hue);
-    preview.appendChild(scene.preview());
-    const cap = document.createElement("div");
-    cap.className = "cap";
-    cap.textContent = scene.name;
-    card.append(preview, cap);
-    btn.appendChild(card);
-    ring.appendChild(btn);
-
-    btn.addEventListener("click", () => onItemClick(i));
-    btn.addEventListener("pointerenter", () => setHover(i));
-    btn.addEventListener("pointerleave", () => setHover(null));
-    return btn;
+/* =====================================================================
+   BUILD THE RING CARDS
+   ===================================================================== */
+const cards = SCENES.map((scene, i) => {
+    const el = document.createElement("div");
+    el.className = "card";
+    el.setAttribute("role", "button");
+    el.setAttribute("tabindex", "-1");
+    el.setAttribute("aria-label", `${scene.name}, scene ${i + 1} of ${N}`);
+    el.innerHTML = `
+        <div class="card-stage">${scene.build()}</div>
+        <div class="card-label">
+            <span class="card-name">${scene.name}</span>
+            <span class="card-idx">${i + 1}/${N}</span>
+        </div>`;
+    el.addEventListener("click", () => selectIndex(i));
+    el.addEventListener("mouseenter", () => hoverTo(i));
+    el.addEventListener("mouseleave", () => hoverTo(null));
+    ring.appendChild(el);
+    return el;
 });
 
-/* angle of item i relative to the front, given the ring rotation (deg). The
-   front item sits at effective angle ~0. */
-function effectiveAngle(i, ringDeg) {
-    let a = (i * SEG) - selectedBaseDeg() + ringDeg;
-    // normalize to [-180, 180]
-    a = ((a % 360) + 540) % 360 - 180;
-    return a;
-}
-/* the ring rotation that brings `selected` to front is tracked as the spring's
-   resting target; selectedBaseDeg keeps item0 at 0 when ringDeg==selected*SEG */
-function selectedBaseDeg() { return 0; }
+/* =====================================================================
+   DUST MOTES — sprinkle a handful of drifting particles inside the cone
+   ===================================================================== */
+(function seedMotes() {
+    const host = document.getElementById("motes");
+    for (let i = 0; i < 26; i++) {
+        const m = document.createElement("div");
+        m.className = "mote";
+        const size = 1 + Math.random() * 2.6;
+        const x = 38 + Math.random() * 24;        // cluster within the cone
+        const y = 6 + Math.random() * 78;
+        m.style.width = m.style.height = size + "px";
+        m.style.left = x + "%";
+        m.style.top = y + "%";
+        m.style.setProperty("--mx", (Math.random() * 28 - 14) + "px");
+        m.style.animationDuration = (7 + Math.random() * 8) + "s";
+        m.style.animationDelay = (-Math.random() * 10) + "s";
+        host.appendChild(m);
+    }
+})();
 
-/* ===========================================================================
-   PER-FRAME RING RENDER — re-derive every item's transform/scale/opacity/blur/
-   brightness/z from its LIVE effective angle. ONE coherent motion off the ONE
-   ring spring (the synthesis core: incoming grows+brightens, outgoing dims).
-   =========================================================================== */
-function renderRing(ringDeg) {
-    const R = RING_RADIUS();
+/* =====================================================================
+   RING LAYOUT — per-frame 3D placement (FIX #1, #8)
+   Cards sit on a circle; we compute each card's offset from the smooth
+   `pos`, then place it with translate3d (real Z depth) + scale + opacity
+   + brightness. Minimal blur (max ~1px on the far rear). NO heavy blur.
+   ===================================================================== */
+const RADIUS = 360;       // ring radius in px (in the tilted plane)
+
+function layout() {
+    const frontIdx = ((Math.round(pos) % N) + N) % N;
+
     for (let i = 0; i < N; i++) {
-        const a = effectiveAngle(i, ringDeg);
-        const rad = a * Math.PI / 180;
-        const abs = Math.abs(a);
-        // falloff by absolute angle (synthesis: 1→0.62→0.42 scale, etc.)
-        const t = Math.min(abs / 180, 1);
-        const scale = lerp(1.0, 0.42, smooth(t * 1.4));
-        let opacity = abs > 150 ? 0 : lerp(1.0, 0.16, smooth(t * 1.25));
-        const blur = lerp(0, 8, smooth(t));
-        let brightness = abs > 150 ? 0 : lerp(1.0, 0.26, smooth(t));
+        // signed shortest offset of card i from the continuous pos
+        let off = i - pos;
+        off = ((off + N / 2) % N + N) % N - N / 2;   // wrap to [-N/2, N/2)
 
-        // hover-brighten: lift the hovered item, de-emphasise the front
-        if (hoverIndex === i && i !== nearestFront(ringDeg)) {
-            brightness = Math.min(brightness + 0.22, 1);
-        }
-        if (hoverIndex !== null && i === nearestFront(ringDeg) && hoverIndex !== i) {
-            brightness = Math.max(brightness - 0.12, 0);
-        }
-        const lift = (hoverIndex === i) ? 28 : 0; // "closer look" translateZ pop
+        const a = off * (Math.PI * 2 / N);           // angle on the ring
+        const z = Math.cos(a) * RADIUS;              // depth (front = +)
+        const x = Math.sin(a) * RADIUS * 1.18;       // horizontal spread
+        const depth01 = (z / RADIUS + 1) / 2;        // 0 (rear) .. 1 (front)
 
-        const el = items[i];
-        // turntable transform: rotate around ring center, push out by radius,
-        // counter-rotate so the card faces the user (front card flat).
+        // FIX #4 + E — LIFTED darks: rear stays clearly visible.
+        const scale = 0.62 + depth01 * 0.42;
+        const opacity = 0.5 + depth01 * 0.5;         // never 0 — rear still reads
+        const bright = 0.78 + depth01 * 0.30;        // depth via brightness, not black
+        const blur = (1 - depth01) * 1.0;            // 0px front .. 1px rear (minimal)
+        const liftZ = (depth01 - 0.5) * 80;          // pop the front toward viewer
+
+        const el = cards[i];
         el.style.transform =
-            `rotateY(${a}deg) translateZ(${R + lift}px) rotateY(${-a}deg) scale(${scale})`;
+            `translate3d(${x}px, 0px, ${z + liftZ - RADIUS}px) scale(${scale.toFixed(3)})`;
         el.style.opacity = opacity.toFixed(3);
-        el.style.filter = `blur(${blur.toFixed(2)}px) brightness(${brightness.toFixed(3)})`;
-        // z-order by cos(angle): front paints last
-        el.style.zIndex = String(Math.round(100 + Math.cos(rad) * 100));
-        el.style.pointerEvents = opacity > 0.05 ? "auto" : "none";
-        // only the front+neighbours carry will-change during motion (perf budget)
-        el.style.willChange = abs < 110 ? "transform, filter, opacity" : "auto";
-        el.setAttribute("aria-selected", i === nearestFront(ringDeg) ? "true" : "false");
+        el.style.filter = `brightness(${bright.toFixed(3)}) blur(${blur.toFixed(2)}px)`;
+        el.style.zIndex = String(Math.round(depth01 * 100));
+        el.classList.toggle("front", i === frontIdx);
+        el.setAttribute("aria-current", i === frontIdx ? "true" : "false");
     }
-}
-function nearestFront(ringDeg) {
-    let best = 0, bestAbs = 999;
-    for (let i = 0; i < N; i++) {
-        const abs = Math.abs(effectiveAngle(i, ringDeg));
-        if (abs < bestAbs) { bestAbs = abs; best = i; }
-    }
-    return best;
-}
-const lerp = (a, b, t) => a + (b - a) * t;
-const smooth = (t) => { t = Math.min(Math.max(t, 0), 1); return t * t * (3 - 2 * t); };
 
-/* ===========================================================================
-   SPIN-TO-FRONT — shortest signed angular delta to bring item i to the front.
-   The spring re-seats from its current (x, v) → interruptible mid-spin.
-   =========================================================================== */
-function spinTo(i) {
-    selected = i;
-    // we want effectiveAngle(i) → 0  ⇒  ringDeg target = -i*SEG (+ k*360 nearest)
-    const want = -i * SEG;
-    const cur = ringSpring.target;
-    // shortest signed delta from current target's modular position
-    let delta = ((want - cur) % 360 + 540) % 360 - 180;
-    ringSpring.setTarget(cur + delta);
-    if (prm()) { ringSpring.snap(cur + delta); renderRing(ringSpring.x); }
-    updateNamePlate();
-    announce();
-}
-function step(dir) { spinTo((selected + dir + N) % N); throwArrow(dir > 0 ? "next" : "prev"); }
-
-function onItemClick(i) {
-    if (i === nearestFront(ringSpring.x)) commit();
-    else spinTo(i);
+    plateName.textContent = SCENES[frontIdx].name;
+    plateMeta.textContent = `${frontIdx + 1} / ${N}`;
 }
 
-/* ===========================================================================
-   ARROWS — idle shimmer + drift, hover swell, press recoil + decay lunge.
-   The lunge uses the closed-form decay glide x(t)=x0+(v0/k)(1-e^-kt).
-   DIVERGENCE: production dogfoods decay() / decayRest from the LIGHT barrel.
-   =========================================================================== */
-const DECAY_K = 9;
-function throwArrow(which) {
-    const s = arrowSpring[which];
-    s.x = 0.92; s.v = 6; s.setTarget(1); // recoil dip then spring back through overshoot
-    const l = arrowLunge[which];
-    l.x0 = 0; l.v0 = 64; l.t0 = performance.now() / 1000; // 8px-ish lunge that decays
-}
-function arrowDrift(now) {
-    // idle ±3px directional drift (doubles to ±6 on hover); shimmer sweep
-    const driftAmp = (el) => (el.matches(":hover") ? 6 : 3);
-    [["prev", arrowPrev], ["next", arrowNext]].forEach(([key, el]) => {
-        const amp = prm() ? 0 : driftAmp(el);
-        const drift = Math.sin(now / 1200) * amp;
-        // lunge decay
-        const l = arrowLunge[key];
-        let lunge = 0;
-        if (!prm() && l.v0 !== 0) {
-            const dt = now / 1000 - l.t0;
-            lunge = l.x0 + (l.v0 / DECAY_K) * (1 - Math.exp(-DECAY_K * dt));
-            if (dt > 0.8) { l.v0 = 0; }
-        }
-        el.style.setProperty("--drift", `${drift.toFixed(2)}px`);
-        el.style.setProperty("--lunge", `${(lunge * 0.12).toFixed(2)}px`);
-        el.style.setProperty("--swell", arrowSpring[key].x.toFixed(3));
-        // idle specular shimmer sweep (sheen sweeps L→R every ~3.2s)
-        if (!prm()) {
-            const sweep = ((now / 3200) % 1) * 140 - 20;
-            el.style.setProperty("--specular-x", `${sweep}%`);
-            el.style.setProperty("--specular-y", `40%`);
-            const hovered = el.matches(":hover");
-            el.style.setProperty("--sheen-intensity", hovered ? "0.5" : "0.18");
-        }
-    });
-}
-function setupArrowHover(el, key) {
-    el.addEventListener("pointerenter", () => { arrowSpring[key].setTarget(1.12); });
-    el.addEventListener("pointerleave", () => { arrowSpring[key].setTarget(1); });
-    el.addEventListener("pointerdown", () => { arrowSpring[key].x = 0.92; arrowSpring[key].v = 0; });
-}
-setupArrowHover(arrowPrev, "prev");
-setupArrowHover(arrowNext, "next");
-arrowPrev.addEventListener("click", () => step(-1));
-arrowNext.addEventListener("click", () => step(1));
+/* =====================================================================
+   THE SINGLE rAF LOOP (FIX #7, #8) — drives:
+     · the critically-damped carousel spring (pos → target)
+     · the light-pool slide (poolX → poolXTarget)
+     · the breathing light energy
+   Correct dt every frame. One loop. No nested rAF.
+   ===================================================================== */
+let last = performance.now();
 
-/* ===========================================================================
-   HOVER-BRIGHTEN + FOCUS-SHIFT — lift --stage-light toward the hovered item,
-   translate the fill-light toward its screen-x, de-emphasise the centre.
-   =========================================================================== */
-function setHover(i) {
-    hoverIndex = i;
-    if (prm()) { stageLightTarget = 1; fillOn = 0; applyStageLight(); return; }
-    if (i === null || i === nearestFront(ringSpring.x)) {
-        stageLightTarget = 1; fillOn = 0; fillShiftTarget = 0;
-    } else {
-        stageLightTarget = 1.22;
-        fillOn = 1;
-        // shift the fill toward the hovered item's side
-        const a = effectiveAngle(i, ringSpring.x);
-        fillShiftTarget = Math.max(-160, Math.min(160, a * 2.4));
-    }
-    applyStageLight();
-}
-function applyStageLight() {
-    stage.style.setProperty("--stage-light", String(prm() ? 1 : stageLightTarget));
-    fillLight.style.setProperty("--fill-on", String(fillOn));
-    fillLight.style.setProperty("--fill-shift", `${fillShiftTarget}px`);
-}
-
-/* nameplate specular tracks the pointer over the plate */
-nameplate.addEventListener("pointermove", (e) => {
-    if (prm()) return;
-    const r = nameplate.getBoundingClientRect();
-    nameplate.style.setProperty("--specular-x", `${((e.clientX - r.left) / r.width) * 100}%`);
-    nameplate.style.setProperty("--specular-y", `${((e.clientY - r.top) / r.height) * 100}%`);
-    nameplate.style.setProperty("--sheen-intensity", "0.4");
-});
-nameplate.addEventListener("pointerleave", () => nameplate.style.setProperty("--sheen-intensity", "0.12"));
-
-/* ===========================================================================
-   NAME-PLATE + ARIA-LIVE
-   =========================================================================== */
-function updateNamePlate() {
-    const s = SCENES[selected];
-    sceneNameEl.textContent = s.name;
-    sceneIdxEl.textContent = `${selected + 1} / ${N}`;
-    root.style.setProperty("--light-hue", s.hue); // pool rim tint per scene
-    ring.setAttribute("aria-activedescendant", `ring-item-${selected}`);
-}
-function announce() {
-    liveRegion.textContent = `${SCENES[selected].name}, ${selected + 1} of ${N}`;
-}
-
-/* ===========================================================================
-   COMMIT — spin-to-front (already), lock-in pulse, then the fade-into-scene.
-   DIVERGENCE: production routes through runSceneSwitch / startViewTransition,
-   sharing a transient view-transition-name with the scene host's scene-subject
-   so the front card morphs into the live scene; state via the sceneMachine
-   snapshot (never KeepAlive). Here: console.log + flash + close VT.
-   =========================================================================== */
-function commit() {
-    const s = SCENES[selected];
-    console.log(`[Stage commit] runSceneSwitch("${s.id}") — ${s.name}, ${selected + 1}/${N}`);
-    // lock-in beat: pool brightness pulse + nameplate settle
-    if (!prm()) {
-        commitFlash.classList.remove("fire");
-        void commitFlash.offsetWidth;
-        commitFlash.classList.add("fire");
-        nameplate.classList.add("committing");
-        setTimeout(() => nameplate.classList.remove("committing"), 320);
-    }
-    liveRegion.textContent = `Switching to ${s.name}`;
-    // update the landing's "now showing" + dock label (the real handoff)
-    document.getElementById("nowName").textContent = s.name;
-    document.getElementById("nowIdx").textContent = `${selected + 1} / 7`;
-    document.getElementById("dockLabel").textContent = s.name;
-    setTimeout(() => closeStage(), prm() ? 0 : 340);
-}
-
-/* ===========================================================================
-   OPEN / CLOSE — Popover top-layer + View Transition entry/exit + stagger.
-   DIVERGENCE: production Teleports a <SceneStage> Popover to <body> and wraps
-   the open/close in glass-ui startViewTransition; the keyed Suspense scene host
-   stays bare (no KeepAlive). Here we drive the native Popover directly.
-   =========================================================================== */
-const landing = document.getElementById("landing");
-function doOpen() {
-    stageOpen = true;
-    landing.classList.add("dimmed");
-    stage.showPopover();
-    // ring spring rests where the selected item is already front
-    ringSpring.snap(-selected * SEG);
-    renderRing(ringSpring.x);
-    updateNamePlate();
-    announce();
-    applyStageLight();
-    staggerReveal();
-    // route focus into the stage (a11y)
-    requestAnimationFrame(() => ring.focus());
-}
-function openStage() {
-    if (!document.startViewTransition || prm()) { doOpen(); return; }
-    document.startViewTransition(() => doOpen());
-}
-function doClose() {
-    stageOpen = false;
-    landing.classList.remove("dimmed");
-    stage.hidePopover();
-    document.getElementById("openStage").focus(); // return focus to the trigger
-}
-function closeStage() {
-    if (!stageOpen) return;
-    if (!document.startViewTransition || prm()) { doClose(); return; }
-    document.startViewTransition(() => doClose());
-}
-/* stagger(from:'center') reveal — items pop in from the centre outward.
-   DIVERGENCE: production uses the stagger() generator from the LIGHT barrel. */
-function staggerReveal() {
-    const order = [...items.keys()].sort((a, b) => {
-        const da = Math.abs(effectiveAngle(a, ringSpring.x));
-        const db = Math.abs(effectiveAngle(b, ringSpring.x));
-        return da - db; // centre-out
-    });
-    order.forEach((idx, rank) => {
-        const el = items[idx];
-        if (prm()) { el.style.opacity = el.style.opacity || "1"; return; }
-        el.animate(
-            [{ opacity: 0, transform: el.style.transform + " scale(0.7)" },
-             { opacity: el.style.opacity || 1, transform: el.style.transform }],
-            { duration: 420, delay: rank * 55, easing: "cubic-bezier(0.16,1,0.3,1)", fill: "backwards" }
-        );
-    });
-}
-
-document.getElementById("openStage").addEventListener("click", openStage);
-document.getElementById("closeStage").addEventListener("click", closeStage);
-stage.addEventListener("click", (e) => { if (e.target === stage) closeStage(); });
-
-/* ===========================================================================
-   KEYBOARD CAROUSEL (a11y, locked decision 7)
-   =========================================================================== */
-ring.addEventListener("keydown", (e) => {
-    switch (e.key) {
-        case "ArrowRight": case "ArrowDown": e.preventDefault(); step(1); break;
-        case "ArrowLeft":  case "ArrowUp":   e.preventDefault(); step(-1); break;
-        case "Home": e.preventDefault(); spinTo(0); break;
-        case "End":  e.preventDefault(); spinTo(N - 1); break;
-        case "Enter": case " ": e.preventDefault(); commit(); break;
-        case "Escape": e.preventDefault(); closeStage(); break;
-    }
-});
-stage.addEventListener("keydown", (e) => { if (e.key === "Escape") { e.preventDefault(); closeStage(); } });
-
-/* ===========================================================================
-   THE rAF DRIVE LOOP — ticks the ring spring + arrow springs, renders the ring.
-   DIVERGENCE: production rides RAFPlayback.drive(spring) (inv ζ — the ONE
-   managed rAF). This single loop stands in for it in the prototype.
-   =========================================================================== */
-let lastT = performance.now();
 function frame(now) {
-    const dt = (now - lastT) / 1000;
-    lastT = now;
-    if (stageOpen && !prm()) {
-        if (!ringSpring.settled) ringSpring.tickDt(dt);
-        arrowSpring.prev.tickDt(dt);
-        arrowSpring.next.tickDt(dt);
-        renderRing(ringSpring.x);
-        arrowDrift(now);
-    } else if (stageOpen && prm()) {
-        renderRing(ringSpring.x); // static, snapped
+    let dt = (now - last) / 1000;
+    last = now;
+    if (dt > 0.05) dt = 0.05;     // clamp big gaps (tab switches)
+
+    if (prm) {
+        pos = target;
+        poolX = poolXTarget;
+        energy = 1;
+        vel = 0; poolVel = 0;
+    } else {
+        // critically-damped spring step (semi-implicit Euler) for pos
+        const accel = -STIFF * (pos - target) - DAMP * vel;
+        vel += accel * dt;
+        pos += vel * dt;
+
+        // light pool slide (softer spring)
+        const pAccel = -90 * (poolX - poolXTarget) - 18 * poolVel;
+        poolVel += pAccel * dt;
+        poolX += poolVel * dt;
+
+        // breathing energy — gentle sine, never crushes below ~0.9
+        energy = 0.96 + 0.08 * Math.sin(now / 1300);
     }
+
+    app.style.setProperty("--light-energy", energy.toFixed(3));
+    const poolPct = poolX.toFixed(2) + "%";
+    document.getElementById("paperPool").style.setProperty("--pool-x", poolPct);
+    document.getElementById("paperVignette").style.setProperty("--pool-x", poolPct);
+    beam.style.setProperty("--beam-x", poolPct);
+
+    if (onStage) layout();
+
     requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
 
-/* ===========================================================================
-   THEME + PRM TOGGLES
-   =========================================================================== */
-const themeToggle = document.getElementById("themeToggle");
-themeToggle.addEventListener("click", () => {
-    const dark = root.getAttribute("data-theme") === "dark";
-    root.setAttribute("data-theme", dark ? "light" : "dark");
-    themeToggle.setAttribute("aria-pressed", String(dark));
-});
-const prmToggle = document.getElementById("prmToggle");
-prmToggle.addEventListener("click", () => {
-    prmForced = !prmForced;
-    prmToggle.setAttribute("aria-pressed", String(prmForced));
-    root.classList.toggle("prm", prmForced);
-    stage.classList.toggle("prm", prmForced);
-    applyStageLight();
-    renderRing(ringSpring.x);
+/* =====================================================================
+   NAVIGATION
+   ===================================================================== */
+function setTarget(idx) {
+    // shortest signed path: pick a target near `pos` so the spring takes the
+    // short way around the ring (interruptible — re-call mid-flight is fine).
+    active = ((idx % N) + N) % N;
+    let t = active;
+    while (t - pos > N / 2)  t -= N;
+    while (t - pos < -N / 2) t += N;
+    target = t;
+    poolXTarget = 50;     // recentre the light on the soon-to-be front card
+    announce(`${SCENES[active].name}, scene ${active + 1} of ${N}`);
+}
+function selectIndex(i) { setTarget(i); }
+function step(dir) { setTarget(active + dir); }
+
+function hoverTo(i) {
+    if (i === null) { poolXTarget = 50; return; }
+    // slide light toward the hovered flank's screen x (FIX #7)
+    let off = i - pos;
+    off = ((off + N / 2) % N + N) % N - N / 2;
+    const a = off * (Math.PI * 2 / N);
+    const screenX = 50 + Math.sin(a) * 26;     // ring angle → screen %
+    poolXTarget = Math.max(20, Math.min(80, screenX));
+}
+
+function commit() {
+    const frontIdx = ((Math.round(pos) % N) + N) % N;
+    console.log(`[Stage] committed scene: ${SCENES[frontIdx].name} (#${frontIdx + 1})`);
+    announce(`Entering ${SCENES[frontIdx].name}`);
+    stage.style.transition = "opacity 500ms ease, filter 500ms ease";
+    stage.style.opacity = "0.0";
+    stage.style.filter = "blur(8px)";
+    setTimeout(() => {
+        stage.style.opacity = "1";
+        stage.style.filter = "blur(0)";
+    }, 560);
+}
+
+function announce(msg) { live.textContent = msg; }
+
+/* =====================================================================
+   ENTER / EXIT — the liquid-glass morph (FIX #6)
+   ===================================================================== */
+function enterStage() {
+    if (onStage) return;
+    onStage = true;
+    landing.classList.add("recede");
+    beam.classList.add("lit");
+    setTimeout(() => {
+        stage.classList.add("active");
+        stage.setAttribute("aria-hidden", "false");
+        chrome.classList.add("active");
+        document.getElementById("backBtn").hidden = false;
+        cards.forEach(c => c.setAttribute("tabindex", "0"));
+        cards[active]?.focus({ preventScroll: true });
+    }, 220);   // let the single-view begin receding, then bloom the stage in
+    setTarget(active);
+}
+function exitStage() {
+    if (!onStage) return;
+    onStage = false;
+    stage.classList.remove("active");
+    stage.setAttribute("aria-hidden", "true");
+    chrome.classList.remove("active");
+    beam.classList.remove("lit");
+    landing.classList.remove("recede");
+    document.getElementById("backBtn").hidden = true;
+    cards.forEach(c => c.setAttribute("tabindex", "-1"));
+}
+
+/* =====================================================================
+   WIRING
+   ===================================================================== */
+document.getElementById("switchBtn").addEventListener("click", enterStage);
+document.getElementById("backBtn").addEventListener("click", exitStage);
+document.getElementById("prev").addEventListener("click", () => step(-1));
+document.getElementById("next").addEventListener("click", () => step(+1));
+
+document.getElementById("themeBtn").addEventListener("click", (e) => {
+    const isDark = document.documentElement.classList.toggle("dark");
+    e.currentTarget.textContent = isDark ? "◐ Light" : "◑ Dark";
 });
 
-/* init the landing label */
-updateNamePlate();
-document.getElementById("dockLabel").textContent = SCENES[selected].name;
+document.getElementById("prmBtn").addEventListener("click", (e) => {
+    prm = !prm;
+    app.classList.toggle("prm", prm);
+    e.currentTarget.setAttribute("aria-pressed", String(prm));
+    announce(prm ? "Reduced motion on" : "Reduced motion off");
+});
+
+// keyboard: Arrow / Home / End, Enter commits, Esc exits
+window.addEventListener("keydown", (e) => {
+    if (!onStage) return;
+    switch (e.key) {
+        case "ArrowRight": case "ArrowDown": e.preventDefault(); step(+1); break;
+        case "ArrowLeft":  case "ArrowUp":   e.preventDefault(); step(-1); break;
+        case "Home":  e.preventDefault(); setTarget(0); break;
+        case "End":   e.preventDefault(); setTarget(N - 1); break;
+        case "Enter": e.preventDefault(); commit(); break;
+        case "Escape": e.preventDefault(); exitStage(); break;
+    }
+});
+
+// respect the OS reduced-motion preference at load
+if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    prm = true; app.classList.add("prm");
+    document.getElementById("prmBtn").setAttribute("aria-pressed", "true");
+}
+
+// initial layout pass so cards are placed even before entering
+pos = 0; target = 0;
+layout();
+
+// test hook for the screenshot harness
+window.__stage = {
+    enter: enterStage, exit: exitStage,
+    step, setTarget, hoverTo, commit,
+    setPRM(v){ prm = v; app.classList.toggle("prm", v); document.getElementById("prmBtn").setAttribute("aria-pressed", String(v)); },
+    setTheme(d){ document.documentElement.classList.toggle("dark", d); document.getElementById("themeBtn").textContent = d ? "◐ Light" : "◑ Dark"; },
+    get state(){ return { onStage, active, pos: +pos.toFixed(3), target, poolX: +poolX.toFixed(2) }; }
+};
 </script>
 </body>
 </html>
