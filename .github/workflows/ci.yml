@@ -274,6 +274,13 @@ jobs:
               run: npm run proof:chronic-closure
             - name: proof:ci-coverage (F.W2 — every proof:* gate is invoked in CI)
               run: npm run proof:ci-coverage
+            # M.W1 — proof:report-all: the parallel report-all runner meta-gate.
+            # Plants a real multi-red tree + observes that scripts/run-all.mjs
+            # (the new proof:all) surfaces EVERY red in ONE pass (the serial `&&`
+            # chain aborts-first → the O(N²) 3-hr iterate-to-green, cured). Node-only
+            # (sandbox child processes), library-scoped, no browser/demo build.
+            - name: "[HYGIENE-meta] proof:report-all (M.W1 — the orchestrated proof:all reports every red in one pass · concurrency actuated · no red swallowed · tier membership intact)"
+              run: npm run proof:report-all
             # L.W4 S5 — proof:no-single-option-select: the U4 lone-option count-guard
             # is live in every scene-driven <Select> (animation + control-tab). STATIC
             # (no browser, glass-ui-free) — reads the demo Vue SFC tree, asserts the
