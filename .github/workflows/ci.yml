@@ -135,6 +135,12 @@ jobs:
               run: npm run proof:readme-runs
             - name: proof:boundary (value.js static/dynamic boundary gate, all light entries)
               run: npm run proof:boundary
+            - name: "proof:consume-bundle (M.W9 atlas — a LIGHT-surface consumer drags zero value.js/engine)"
+              run: npm run proof:consume-bundle
+            - name: "proof:css-parity (M.W11 — kf consumes value.js grammar; P0/nesting/depth-walk cured)"
+              run: npm run proof:css-parity
+            - name: "proof:packrat-sound (M.W10 — consumed parse-that packrat is sound + LR-intact)"
+              run: npm run proof:packrat-sound
             - name: proof:engine (D.W4 transposition source gate — tick-canon · seam · pause-honest · snap-symmetry · no-legacy)
               run: npm run proof:engine
             - name: proof:zero-alloc (AnimationGroup composite allocates 0 bytes/frame + FrameCompiler seam + snap symmetry)
