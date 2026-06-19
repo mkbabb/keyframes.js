@@ -181,6 +181,7 @@
         "proof:report-all": "node scripts/proof-report-all.mjs",
         "proof:no-single-option-select": "node scripts/proof-no-single-option-select.mjs",
         "proof:peer-satisfied": "node scripts/proof-peer-satisfied.mjs",
+        "proof:css-parity": "node scripts/proof-css-parity.mjs",
         "proof:keyframes-vue-published": "node scripts/proof-keyframes-vue-published.mjs",
         "proof:workaround-deletion": "node scripts/proof-workaround-deletion.mjs",
         "proof:control-point-live": "node scripts/proof-control-point-live.mjs",
@@ -209,8 +210,8 @@
     },
     "homepage": "https://github.com/mkbabb/keyframes.js#readme",
     "dependencies": {
-        "@mkbabb/parse-that": "^0.9.0",
-        "@mkbabb/value.js": "^0.13.0"
+        "@mkbabb/parse-that": "^0.11.0",
+        "@mkbabb/value.js": "^1.0.0"
     },
     "optionalDependencies": {
         "@mkbabb/glass-ui": "~4.0.0"

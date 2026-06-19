@@ -21,3 +21,7 @@ skills-lock.json
 # docs/tranches/I/audit/investigate/shots/). Tracked screenshots live under
 # docs/**/shots/ or assets/; a future root-level diagnostic cannot re-accrete.
 /*.png
+
+# workflow-orchestration artifacts (not source)
+.wf-fix.js
+**/.wf-fix.js
