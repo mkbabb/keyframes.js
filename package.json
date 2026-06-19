@@ -182,6 +182,8 @@
         "proof:no-single-option-select": "node scripts/proof-no-single-option-select.mjs",
         "proof:peer-satisfied": "node scripts/proof-peer-satisfied.mjs",
         "proof:css-parity": "node scripts/proof-css-parity.mjs",
+        "proof:packrat-sound": "node scripts/proof-packrat-sound.mjs",
+        "proof:consume-bundle": "node scripts/proof-consume-bundle.mjs",
         "proof:keyframes-vue-published": "node scripts/proof-keyframes-vue-published.mjs",
         "proof:workaround-deletion": "node scripts/proof-workaround-deletion.mjs",
         "proof:control-point-live": "node scripts/proof-control-point-live.mjs",
