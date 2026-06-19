@@ -64,16 +64,16 @@ Carries from M §0 with one addition:
 
 **P-invariant-28 reckoning (the O mandate):**
 
-- DM-2 GlassControlPoint (8-tranche at O) — **FORBIDDEN-8TH-CARRY → BUILD-IN** (O.W5).
-  No further ride.
-- DM-3 MorphSVG (8-tranche at O) — **FORBIDDEN-8TH-CARRY → BUILD-IN** (O.W6). No
-  further ride.
+- DM-2 GlassControlPoint (born E) — **7 carries through M · O closes the forbidden 8th
+  carry via BUILD-IN** (O.W5). No further ride.
+- DM-3 MorphSVG (born C) — **7 carries through M · O closes the forbidden 8th carry
+  via BUILD-IN** (O.W6). No further ride.
 - DM-5 S8/S9 — chronicity 3 at O (K, L, M → O). P-inv-28 does not mandate exit at 3,
   but the no-perpetual-punts precept demands a NAMED terminal home. Named: value.js P
-  (VJ-L1 + VJ-L3). P-inv-28 belt fires at chronicity 4 (kf-Q) if value.js P slips.
-- DM-1 RF-17 (4-tranche, belt ACTIVE at M) — HANDOFF to O.W12 (BC-gated). If BC cut
-  does not ship before O.WZ, the owner must issue a reasoned KILL or re-negotiate —
-  no 5th carry under no-workaround.
+  (VJ-L1 + VJ-L3). P-inv-28 belt fires at chronicity 4 (kf-P) if value.js P slips.
+- DM-1 RF-17 (5-tranche entering O: I,J,K,L,M carried in-tree) — HANDOFF to O.W12
+  (BC-gated). If BC cut does not ship before O.WZ, the owner must issue a reasoned KILL
+  or re-negotiate — no 6th carry under no-workaround.
 
 ---
 
@@ -83,7 +83,7 @@ Carries from M §0 with one addition:
 
 | Item | Born | O Chronicity | Disposition | Owning O wave | Evidence (file:line) |
 |---|---|---|---|---|---|
-| **DM-1** RF-17 / GlassDock click-strand interim (`onPlayPointerDown`/`pointerHandled` in `TransportDock.vue`) | I (BLK-8) | **5 (I,J,K,L,M→O)** | **HANDOFF → O.W12 (BC-gated consume).** Delete S2 (`pointerHandled`/`onPlayPointerDown`) in ONE atomic commit on the BC cut. P-inv-28 belt ACTIVE (4-tranche at M; 5-tranche at O). If BC cut does not ship before O.WZ, owner must KILL or re-negotiate — no 6th carry. **CORRECTED TRIPWIRE:** glass-ui BC cut (not BB 4.1.0 — BB closed at 4.0.1, never published 4.1.0). | O.W12 | `TransportDock.vue:15,151,196,342,348,358,361,366,373` — `onPlayPointerDown`/`pointerHandled` confirmed PRESENT; `proof:workaround-deletion` S2=PENDING (live 2026-06-19); `audit/AUDIT-DIGEST.md A3-bc-dock:64`; `A2-bc-kf-seam:41` (stale 4.1.0 tripwire) |
+| **DM-1** RF-17 / GlassDock click-strand interim (`onPlayPointerDown`/`pointerHandled` in `TransportDock.vue`) | I (BLK-8) | **5 (I,J,K,L,M→O)** | **HANDOFF → O.W12 (BC-gated consume).** Delete S2 (`pointerHandled`/`onPlayPointerDown`) in ONE atomic commit on the BC cut. P-inv-28 belt ACTIVE (4-tranche at M; 5-tranche at O). If BC cut does not ship before O.WZ, owner must KILL or re-negotiate — no 6th carry. **CORRECTED TRIPWIRE:** glass-ui BC cut (not BB 4.1.0 — BB closed at 4.0.1, never published 4.1.0). **PRE-AUTHORED CONTINGENCY KILL on file — see §6 DM-1 RF-17 CONTINGENCY KILL** (fires only if O.WZ S2 STILL PENDING AND no BC cut bearing `useDockClickIntegrity` — VOID the instant BC ships the cure). | O.W12 | `TransportDock.vue:15,151,196,342,348,358,361,366,373` — `onPlayPointerDown`/`pointerHandled` confirmed PRESENT; `proof:workaround-deletion` S2=PENDING (live 2026-06-19); `audit/AUDIT-DIGEST.md A3-bc-dock:64`; `A2-bc-kf-seam:41` (stale 4.1.0 tripwire) |
 | **DM-7** keyframes-vue 0.1.0 unpublished | K.W12 | **3 (K,L,M→O)** | **HANDOFF (USER-DOMAIN — Mike Babb).** `proof:keyframes-vue-published` clause (b) RED-by-design; clause (a) artifact GREEN. The USER-DOMAIN publish is the O.WZ deploy-unblock precondition. | O.WZ | `packages/keyframes-vue/dist/keyframes-vue.js` PRESENT; npm shows E404; `audit/AUDIT-DIGEST.md D19-deploy-roundtrip:502` |
 | **DM-24** N Stage scene-switcher HANDOFF (**NET-NEW — never inserted into deferred-ledger-M.md; added here per M-RECONCILIATION §7**) | N (2026-06-18) | **1 (N→O)** | **HANDOFF (BC-gated).** N Stage implementation exists on `n-stage-impl` (`SceneStage.vue`, `CarouselDisk.vue`, `StageArrows.vue`, composables/, previews/). Shelved by owner directive (commit `e2375b8`). **CORRECTED TRIPWIRE:** glass-ui BC cut (not `W-DOCK-MORPH-FAMILY` — the BB wave name was contradicted/rebuilt under BC names; the N unshelf fires on the BC cut publish + dock-engine landing). Pre-unshelf: rebase `n-stage-impl` onto O master (11 commits behind; pins pre-constellation stack `^0.13.0`/`^0.9.0`). Scene-select affordance (ASK-3) is kf-owned (kf's ChromeDock composition atop the BC stable dock substrate) — no BC wave authors a scene-select slot. | O.W15 | `docs/tranches/M/M-RECONCILIATION.md:289` (DM-24 spec); `git rev-list ...n-stage-impl --count → 4`; `audit/AUDIT-DIGEST.md F27-n-stage:714`; `A2-bc-kf-seam:43` (ASK-3 silently dropped) |
 
@@ -91,8 +91,8 @@ Carries from M §0 with one addition:
 
 | Item | Born | O Chronicity | Disposition | Owning O wave | Evidence (file:line) |
 |---|---|---|---|---|---|
-| **DM-2** GlassControlPoint / `DemoControlPoint` | E | **8 (E,F,G,H,I,J,K,L,M→O)** | **BUILD-IN (O.W5) — FORBIDDEN 8TH CARRY CLOSED.** `DemoControlPoint.vue` over the LIGHT `drag2D` in `demo/@/components/`. BC confirmed NO to `GlassControlPoint` (`KF-BC.md:75`). Retire `proof:control-point-live`; author `proof:demo-control-point` born-RED on the absent component. P-inv-28 ABSOLUTE terminus: no 9th ride. | O.W5 | `grep -rn 'DemoControlPoint' demo/ src/` → ZERO (2026-06-19); `proof:control-point-live` RED-by-design; `src/animation/index.ts:88` `export { drag, Draggable, drag2D }` LIGHT; `audit/AUDIT-DIGEST.md C13-kf-deferred-ledger:334` + `F25-chronic-deferrals:658` |
-| **DM-3** MorphSVG / `fromMorphSVG` | C | **8 (C,F,G,H,I,J,K,L,M→O)** | **BUILD-IN (O.W6) — FORBIDDEN 8TH CARRY CLOSED.** `fromMorphSVG` over value.js 1.0.2 `PathGeometry` (`dist/transform/path.d.ts:36-67` — `getTotalLength`, `getPointAtLength`, `getPointAtT` confirmed exported). Author `proof:morphsvg-consume` born-RED on absent `fromMorphSVG`. No sibling gate. P-inv-28 ABSOLUTE terminus: no 9th ride. | O.W6 | `grep -rn 'fromMorphSVG' src/animation/` → ZERO; `ls scripts/proof-morphsvg-consume.mjs` → ABSENT; `node_modules/@mkbabb/value.js/dist/transform/path.d.ts:36-67` PRESENT; `audit/AUDIT-DIGEST.md C13-kf-deferred-ledger:331` + `F25-chronic-deferrals:661` |
+| **DM-2** GlassControlPoint / `DemoControlPoint` | E | **born E · 7 carries through M · O closes the forbidden 8th carry via BUILD-IN** | **BUILD-IN (O.W5) — FORBIDDEN 8TH CARRY CLOSED.** `DemoControlPoint.vue` over the LIGHT `drag2D` in `demo/@/components/`. BC confirmed NO to `GlassControlPoint` (`KF-BC.md:75`). Retire `proof:control-point-live`; author `proof:demo-control-point` born-RED on the absent component. P-inv-28 ABSOLUTE terminus: no 9th carry. | O.W5 | `grep -rn 'DemoControlPoint' demo/ src/` → ZERO (2026-06-19); `proof:control-point-live` RED-by-design; `src/animation/index.ts:88` `export { drag, Draggable, drag2D }` LIGHT; `audit/AUDIT-DIGEST.md C13-kf-deferred-ledger:334` + `F25-chronic-deferrals:658` |
+| **DM-3** MorphSVG / `fromMorphSVG` | C | **born C · 7 carries through M · O closes the forbidden 8th carry via BUILD-IN** | **BUILD-IN (O.W6) — FORBIDDEN 8TH CARRY CLOSED.** `fromMorphSVG` over value.js 1.0.2 `PathGeometry` (`dist/transform/path.d.ts:36-67` — `getTotalLength`, `getPointAtLength`, `getPointAtT` confirmed exported). Author `proof:morphsvg-consume` born-RED on absent `fromMorphSVG`. No sibling gate. P-inv-28 ABSOLUTE terminus: no 9th carry. | O.W6 | `grep -rn 'fromMorphSVG' src/animation/` → ZERO; `ls scripts/proof-morphsvg-consume.mjs` → ABSENT; `node_modules/@mkbabb/value.js/dist/transform/path.d.ts:36-67` PRESENT; `audit/AUDIT-DIGEST.md C13-kf-deferred-ledger:331` + `F25-chronic-deferrals:661` |
 
 ### 1c — FOLD-LANDED rows (DONE on the post-consume master; re-verify GREEN on O dist)
 
@@ -147,8 +147,8 @@ Carries from M §0 with one addition:
 | **S1** aria-orientation suppress | K | **3 (K,L,M→O)** | `:aria-orientation="undefined"` in `SpringSidebar.vue:43` + `AnimationControls.vue:72` (BOTH sites — not just `:43` as KF-BC.md misreported) | **glass-ui BC cut + the SegmentedTabs.vue SFC guard landing.** NOT merely the BC version number — S1 must NOT be deleted if BC ships without the `role=group` conditional guard (`:aria-orientation` disallowed on `role=group` per ARIA 1.2; BC.W-TABS-IOS byte-fence forbids it in Band 3; a NEW BC SFC wave required). O.W11 dispatches the corrected ask. | `SpringSidebar.vue:43` + `AnimationControls.vue:72` | O.W12 (BC-gated) | `SegmentedTabs.vue:406` unconditional; `audit/AUDIT-DIGEST.md A4-bc-aria-ax:91`; `A2-bc-kf-seam:37` |
 | **S2** RF-17 `onPlayPointerDown`/`pointerHandled` | I | **5 (I,J,K,L,M→O)** | `pointerHandled\|onPlayPointerDown` in `TransportDock.vue` | **glass-ui BC cut.** `useDockClickIntegrity` is live in 4.0.1 dist (confirmed). The stale S2 tripwire in `proof-workaround-deletion.mjs:228` hard-codes `4.1.0` — O retargets to BC-cut published. Pre-deletion: re-verify the BC-cut buttery dock eliminates the crossfade-strand root (run `proof:live-session` S5 motion-path PLAY BEFORE deleting). | `TransportDock.vue` `pointerHandled`/`onPlayPointerDown` lines | O.W12 (BC-gated) | `TransportDock.vue:313-338` K.W1 RE-OBSERVED comment; `audit/AUDIT-DIGEST.md A3-bc-dock:67`; `A2-bc-kf-seam:41` |
 | **S7** `linear()` flat-comma regex | K | **GREEN (FIRED M consume)** | `timingFunction.replace` flat-comma fold in `utils.ts` | value.js VJ-L2 `linearStopsToCSS` — FIRED (value.js 1.0.0) | DELETED (M.W9 consume) | — | `audit/AUDIT-DIGEST.md C13-kf-deferred-ledger:322` |
-| **S8** FN_NAME Symbol sidechannel | K | **3 (K,L,M→O)** | `FN_NAME\|Symbol("kf\.` in `src/animation/utils.ts:45-57` (7 sites) | **value.js P shipping VJ-L1 `flatLeaf` provenance API** — probed as `"flatLeaf" in vjs === true` (NOT the version string `0.14.0` which is already published without VJ-L1; the api-present probe is the honest oracle). P-inv-28 belt fires at chronicity 4 (kf-Q) if value.js P slips. | `utils.ts:45-57` FN_NAME block | O.W16 (value.js-P-gated) | `utils.ts:45`; `audit/AUDIT-DIGEST.md B10-vjl1-vjl3:237`; `C15-kf-engine:380` |
-| **S9** direct `@mkbabb/parse-that` import | K | **3 (K,L,M→O)** | `from "@mkbabb/parse-that"` in `utils.ts:1` + `package.json` production dep | **value.js P shipping VJ-L3 `parseCSSSubValue` helper** — probed as `"parseCSSSubValue" in vjs === true`. Delete: `utils.ts:1` import + `package.json` dep + the two `as any` casts (`utils.ts:229,236`) in ONE atomic commit. Also: delete stale cross-realm comment at `utils.ts:224-228` (single shared module instance confirmed — the cross-realm framing is factually stale). W96 `proof:boundary` parse-that-scan clause added at O.W9 (born-RED on `utils.ts:1` today). | `utils.ts:1` import + `package.json:215` | O.W16 (value.js-P-gated) | `utils.ts:1`; `package.json:215`; `audit/AUDIT-DIGEST.md B10-vjl1-vjl3:241`; `B9-parsethat-arch:217` |
+| **S8** FN_NAME Symbol sidechannel | K | **3 (K,L,M→O)** | `FN_NAME\|Symbol("kf\.` in `src/animation/utils.ts:45-57` (7 sites) | **value.js P shipping VJ-L1 `flatLeaf` provenance API** — probed as `"flatLeaf" in vjs === true` (NOT the version string `0.14.0` which is already published without VJ-L1; the api-present probe is the honest oracle). P-inv-28 belt fires at chronicity 4 (kf-P) if value.js P slips. Two-arm fallback if value.js P slips: (a) kf-side WeakMap<ValueUnit,string> populated at flatten time (realm-CLEAN, dissolves the foreign-object-annotation breach, kf-internal-sufficient — BUT does NOT survive ValueUnit.clone() so the clone-restamp ceremony stays, hence VJ-L1 is still strictly preferred); (b) DECLARED spine-edge quarantine (allow-listed in proof:boundary — breach persists but not silent). Both strictly inferior to the value.js-P consume. | `utils.ts:45-57` FN_NAME block | O.W16 (value.js-P-gated) | `utils.ts:45`; `audit/AUDIT-DIGEST.md B10-vjl1-vjl3:237`; `C15-kf-engine:380` |
+| **S9** direct `@mkbabb/parse-that` import | K | **3 (K,L,M→O)** | `from "@mkbabb/parse-that"` in `utils.ts:1` + `package.json` production dep | **value.js P shipping VJ-L3 `parseCSSSubValue` helper** — probed as `"parseCSSSubValue" in vjs === true`. Delete: `utils.ts:1` import + `package.json` dep + the two `as any` casts (`utils.ts:229,236`) in ONE atomic commit. Also: delete stale cross-realm comment at `utils.ts:224-228` (single shared module instance confirmed — the cross-realm framing is factually stale). W96 `proof:boundary` parse-that-scan clause added at O.W9 (born-RED on `utils.ts:1` today). P-inv-28 belt fires at chronicity 4 (kf-P) if value.js P slips. Two-arm fallback if value.js P slips: S9 (direct parse-that import) is NOT eliminable without VJ-L3 (kf needs value.js's CSS sub-value grammar); the only fallback is a DECLARED spine-edge quarantine (allow-listed in proof:boundary, breach persists but not silent). Strictly inferior to the value.js-P consume. | `utils.ts:1` import + `package.json:215` | O.W16 (value.js-P-gated) | `utils.ts:1`; `package.json:215`; `audit/AUDIT-DIGEST.md B10-vjl1-vjl3:241`; `B9-parsethat-arch:217` |
 
 ---
 
@@ -171,11 +171,11 @@ These items have no DM predecessor — they are born in the O re-audit.
 
 | Item | O chronicity | Exit form | Status |
 |---|---|---|---|
-| **DM-2** GlassControlPoint | **8** | BUILD-IN O.W5 — `DemoControlPoint` over LIGHT `drag2D`; retire `proof:control-point-live`; author `proof:demo-control-point` born-RED | **FORBIDDEN 8TH CARRY — O.W5 MUST BUILD-IN; no 9th ride** |
-| **DM-3** MorphSVG | **8** | BUILD-IN O.W6 — `fromMorphSVG` over published `PathGeometry`; author `proof:morphsvg-consume` born-RED | **FORBIDDEN 8TH CARRY — O.W6 MUST BUILD-IN; no 9th ride** |
+| **DM-2** GlassControlPoint (born E) | **7 carries through M · forbidden 8th closed** | BUILD-IN O.W5 — `DemoControlPoint` over LIGHT `drag2D`; retire `proof:control-point-live`; author `proof:demo-control-point` born-RED | **O closes the forbidden 8th carry via BUILD-IN — no 9th carry** |
+| **DM-3** MorphSVG (born C) | **7 carries through M · forbidden 8th closed** | BUILD-IN O.W6 — `fromMorphSVG` over published `PathGeometry`; author `proof:morphsvg-consume` born-RED | **O closes the forbidden 8th carry via BUILD-IN — no 9th carry** |
 | **DM-1** RF-17 | 5 | HANDOFF O.W12 (BC-gated) — no 6th carry under no-workaround; if BC slips past O.WZ, owner must KILL or re-negotiate | **5-tranche; P-inv-28 belt ACTIVE; terminal window named** |
-| **DM-5 S8** FN_NAME | 3 | HANDOFF O.W16 (value.js-P-gated VJ-L1); P-inv-28 belt fires at chronicity 4 (kf-Q) if P slips | Named terminal home: value.js P VJ-L1; tripwire = api-present probe |
-| **DM-5 S9** parse-that import | 3 | HANDOFF O.W16 (value.js-P-gated VJ-L3); same P-inv-28 belt at chronicity 4 | Named terminal home: value.js P VJ-L3; tripwire = api-present probe |
+| **DM-5 S8** FN_NAME | 3 | HANDOFF O.W16 (value.js-P-gated VJ-L1); P-inv-28 belt fires at chronicity 4 (kf-P) if P slips | Named terminal home: value.js P VJ-L1; tripwire = api-present probe |
+| **DM-5 S9** parse-that import | 3 | HANDOFF O.W16 (value.js-P-gated VJ-L3); same P-inv-28 belt at chronicity 4 (kf-P) | Named terminal home: value.js P VJ-L3; tripwire = api-present probe |
 | **DM-9** CH-1 specular | 6 | VERIFY-ONLY-TERMINATED: `proof:specular-absent-at-rest` GREEN | P-inv-28 satisfied (born-RED oracle) |
 | **DM-10** CH-2 typography | 7 | VERIFY-ONLY-TERMINATED: `proof:font-census` GREEN | P-inv-28 satisfied |
 | **DM-11** CH-3 mobile | 8 | VERIFY-ONLY-TERMINATED: `proof:spring-slider-continuous` + `proof:subject-animates` GREEN | P-inv-28 satisfied |
@@ -184,10 +184,11 @@ These items have no DM predecessor — they are born in the O re-audit.
 | **DM-14** CH-6 DFA suspend | 5 | VERIFY-ONLY-TERMINATED: `proof:fsm-suspend-resume-live` GREEN | P-inv-28 satisfied |
 | **DM-15** scene-control-dfa | 5 | VERIFY-ONLY-TERMINATED: `proof:control-surface-single-writer` GREEN | P-inv-28 satisfied |
 
-**The two FORBIDDEN-8TH-CARRY items (DM-2 + DM-3) MUST exit at O.W5/O.W6.** Both were
-declared "ABSOLUTE terminal at M" in the M ledger and STILL NOT built. The O re-audit
-explicitly designates these as the top-priority impl actions — before any other O wave.
-`proof:chronic-closure` will flag a bare BOOK at chronicity 8 as a planted-probe failure.
+**DM-2 (born E) and DM-3 (born C) carried 7 tranches through M and MUST exit at O.W5/O.W6
+(O closes the forbidden 8th carry via BUILD-IN).** Both were declared "ABSOLUTE terminal at M"
+in the M ledger and STILL NOT built. The O re-audit explicitly designates these as the
+top-priority impl actions — before any other O wave. `proof:chronic-closure` will flag a bare
+BOOK with 7+ carries as a planted-probe failure.
 
 ---
 
@@ -215,7 +216,7 @@ its born-RED witness on today's tree, and the GREEN condition.
 The M kills (W100 incremental-parse, `generate()`, DL-L7..DL-L13) carry as O's standing
 anti-charter (non-re-litigable). The DM-4 KILL was **overturned to FIX** by D4
 (`M-RECONCILIATION §4`) — the KILL record for DM-4 is VOID; the FIX is the dispositive
-exit form. No new O kills added at this authoring time.
+exit form.
 
 > **DM-4 KILL VOID — superseded by FIX (D4 + parse-that A.W2).** The parse-that WDM
 > `(id,offset)` composite key FIX shipped at parse-that 0.11.0 (A.W2). `proof:packrat-sound`
@@ -225,14 +226,39 @@ exit form. No new O kills added at this authoring time.
 
 ---
 
+### DM-1 RF-17 — PRE-AUTHORED CONTINGENCY KILL
+
+> **PRE-AUTHORED CONTINGENCY KILL (a standing, self-voiding record).**
+>
+> **TRIGGER (falsifiable, AND-joined):** at the O.WZ close-gate, `proof:workaround-deletion`
+> S2 still PENDING **AND** no glass-ui BC cut bearing `useDockClickIntegrity` is published.
+>
+> **DISPOSITION:** reclassify the S2 dock-pointer interim from "workaround pending sibling
+> fix" to a DECLARED kf-internal input-integrity seam — annotated with a comment citing the
+> unshipped glass-ui dependency + this KILL, and allow-listed in `proof:workaround-deletion`
+> so S2 reports GREEN-as-declared-seam (not PENDING-against-a-phantom).
+>
+> **VOID CONDITION:** this KILL is VOID the instant glass-ui publishes a cut whose
+> `useDockClickIntegrity` eliminates the crossfade-strand root — S2 reverts to the normal
+> atomic delete-on-re-pin (the intended O.W12 exit).
+>
+> **RATIONALE:** the interim is correct defensive code curing a real pointer-swallow strand
+> observed I→M; quarantining it as a declared seam is the honest no-workaround-compliant
+> terminal when the sibling does not ship.
+>
+> **Cross-ref:** DM-1 row (§1a); `proof:workaround-deletion` S2 arm (§2); §4 P-inv-28
+> roll-up DM-1 row.
+
+---
+
 ## §7 — THE `proof:chronic-closure` SUBSTRATE TRANSITION
 
 At O.WZ the orchestrator performs the atomic re-point (the M.WZ→L / L.WZ→K precedent):
 
 1. `scripts/proof-chronic-closure.mjs:114` `CHRONIC_LEDGER` changes from
-   `docs/tranches/L/PROGRESS.md` to `docs/tranches/M/PROGRESS.md` (the M.WZ motion that
-   was deferred pending glass-ui BC — O.WZ performs it if still PENDING).
-2. Fix `LEDGER_LABEL` from `'K/PROGRESS.md'` to `'L/PROGRESS.md'` in the same commit.
+   `docs/tranches/L/PROGRESS.md` to `docs/tranches/O/PROGRESS.md` (M.WZ never re-pointed
+   L→M; O.WZ leaps directly to O — the ledger re-point target is `docs/tranches/O/PROGRESS.md`).
+2. Fix `LEDGER_LABEL` accordingly in the same commit.
 3. Populate `M/PROGRESS.md §"Open deferrals" §D` with the DM-24 + DM-25 + DM-W1-bridge
    rows (IMPL-OPEN per `M-RECONCILIATION §11` — never executed).
 4. The non-vacuity planted-probe: three deliberately-malformed O-ledger rows (a
@@ -249,7 +275,7 @@ At O.WZ the orchestrator performs the atomic re-point (the M.WZ→L / L.WZ→K p
 |---|---|---|
 | **HANDOFF (sibling-gated, un-fired)** | 3 | DM-1 (BC) · DM-7 (USER-DOMAIN) · DM-24 (BC/N Stage) |
 | **DISPATCH (cross-repo ask authored)** | 3 | DO-1 VJ-L1 · DO-2 VJ-L3 · DO-3 aria correction |
-| **BUILD-IN (FORBIDDEN-8TH-CARRY closed)** | 2 | DM-2 (O.W5 DemoControlPoint) · DM-3 (O.W6 MorphSVG) |
+| **BUILD-IN (forbidden 8th carry closed via BUILD-IN)** | 2 | DM-2 born-E (O.W5 DemoControlPoint) · DM-3 born-C (O.W6 MorphSVG) |
 | **Band-D NOW (no-legacy transpositions)** | 1 | DO-4 (alias drops + leaves.ts→math) |
 | **Band-B NOW (correctness)** | 2 | DM-21 (@property compileToCSS) · DM-22 (NaN named-selector) |
 | **Band-A NOW (apparatus)** | 2 | DM-23 (runner transposition) · DO-6 (vendor sub-chunks) |
@@ -261,12 +287,13 @@ At O.WZ the orchestrator performs the atomic re-point (the M.WZ→L / L.WZ→K p
 | **VALUE.JS-P-GATED HANDOFF** | 2 | S8 (O.W16) · S9 (O.W16) |
 
 **P-INVARIANT-28 CLOSURE ASSERTION (O).** Every row carries (a) a tag, (b) a named owning
-O wave, and (c) a named tripwire or terminal disposition. **Zero rows are bare BOOKs.** The
-two 8-tranche FORBIDDEN-8TH-CARRY items (DM-2, DM-3) have BUILD-IN homes at O.W5/O.W6.
-The 5-tranche DM-1 is a named HANDOFF with a named terminal window (BC cut; if it slips,
-owner must KILL or re-negotiate). The S8/S9 chronicity-3 items have a named terminal home
-(value.js P VJ-L1/VJ-L3) with a P-inv-28 belt tripwire at chronicity 4. The VERIFY-ONLY-
-TERMINATED rows (DM-8..DM-15) satisfy P-inv-28 via born-RED oracle provenance.
+O wave, and (c) a named tripwire or terminal disposition. **Zero rows are bare BOOKs.**
+DM-2 (born E) and DM-3 (born C) carried 7 tranches through M — O closes the forbidden 8th
+carry via BUILD-IN at O.W5/O.W6. The 5-tranche DM-1 is a named HANDOFF with a named
+terminal window (BC cut; if it slips, owner must KILL or re-negotiate). The S8/S9
+chronicity-3 items have a named terminal home (value.js P VJ-L1/VJ-L3) with a P-inv-28
+belt tripwire at chronicity 4 (kf-P). The VERIFY-ONLY-TERMINATED rows (DM-8..DM-15)
+satisfy P-inv-28 via born-RED oracle provenance.
 
 ---
 

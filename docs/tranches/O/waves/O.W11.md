@@ -13,7 +13,12 @@ This wave authors the correction into **`KF-TO-GLASSUI-BC-ADDENDUM.md`** (the ou
 
 ### The misidentification (what "CONFIRMED" got wrong)
 
-glass-ui BC's `KF-INBOUND.md` ASK#2 declares the aria-orientation fix "CONFIRMED — emitting a real axis-derived value." But the **actual ARIA defect is the opposite of what that confirms**: `aria-orientation` is **DISALLOWED on `role=group` entirely** — it is a valid state only for `scrollbar`, `separator`, `slider`, `tablist`, `toolbar`, `treeitem`, `menu`, `menubar`, `radiogroup`, `tabpanel`, `listbox`, `combobox` (WAI-ARIA 1.2 §6.3 "Inherited and Prohibited Properties"). Emitting "a real axis-derived value" on `role=group` is **still a spec violation** — the value being "real" does not make the attribute permitted on that role.
+glass-ui BC's `KF-INBOUND.md` ASK#2 declares the aria-orientation fix "CONFIRMED — emitting a real axis-derived value." But the **actual ARIA defect is the opposite of what that confirms**: `aria-orientation` is **DISALLOWED on `role=group` entirely** — per WAI-ARIA 1.2 §6.3 "Inherited and Prohibited Properties" it is a valid state only for:
+
+- **Used in Roles (direct):** `scrollbar`, `select`, `separator`, `slider`, `tablist`, `toolbar`
+- **Inherits into Roles:** `listbox`, `menu`, `menubar`, `radiogroup`, `tree`, `treegrid`
+
+Emitting "a real axis-derived value" on `role=group` is **still a spec violation** — the value being "real" does not make the attribute permitted on that role.
 
 The glass-ui `SegmentedTabs.vue` renders TWO roles off one `variant` axis and emits `aria-orientation` on BOTH:
 
@@ -38,7 +43,7 @@ kf carries the suppress at **TWO** sites (the M `KF-TO-GLASSUI-BC.md` claim "kf 
 
 | kf S1 site | What it is |
 |------------|-----------|
-| `demo/@/components/custom/animation-controls/SpringSidebar.vue:43` | `:aria-orientation="undefined"` on a pill strip |
+| `demo/spring/SpringSidebar.vue:43` | `:aria-orientation="undefined"` on a pill strip |
 | `demo/@/components/custom/animation-controls/controls/AnimationControls.vue:72` | `:aria-orientation="undefined"` on a pill strip |
 
 These exist to **suppress the prohibited attribute** glass-ui emits — a defensive band-aid. `proof:workaround-deletion` S1 (`proof-workaround-deletion.mjs:204-217`) matches `aria-orientation\s*=\s*["']?\s*undefined` in `demo/` and pairs it with `sibling: { @mkbabb/glass-ui, 4.1.0 }`. Today it is **PENDING** (workaround PRESENT, sibling UNPUBLISHED) — but the M premise that BC's CONFIRMED fix would discharge it is FALSE: even on the BC cut, the pill strip still emits the prohibited attr unless the guard lands.
@@ -68,7 +73,7 @@ The full ARIA-spec rationale + the grounded glass-ui file:line live in the outgo
 
 1. **`pill-prohibited-present`** (the observable-truth probe): mount `<SegmentedTabs variant="pill" :options="[…]" v-model="…">`, query the `[role="group"]` element, assert `el.getAttribute("aria-orientation")` is **non-null** (the prohibited attr IS emitted). **Today: RED-clause-TRUE** — the pill strip carries `aria-orientation="horizontal"` on `role=group` (the ask is LIVE; the defect is real). When BC ships the guard, this flips to `null` → the ask is DISCHARGED.
 2. **`underline-permitted-present`** (the contrast — asserts the ask is SURGICAL, not a blanket strip): mount `variant="underline"`, query `[role="tablist"]`, assert `aria-orientation` **IS** present (the permitted emission must SURVIVE the guard). This pins the ask to "omit on group, KEEP on tablist" — a fix that strips it from both would red this clause.
-3. **`kf-suppress-still-present`** (the cross-check — the kf consume edge is genuinely still live): `grep aria-orientation.*undefined demo/` finds BOTH `SpringSidebar.vue:43` AND `AnimationControls.vue:72`. Asserts the dispatch is NOT prematurely closed — the suppress the ask exists to delete is still in the tree.
+3. **`kf-suppress-still-present`** (the cross-check — the kf consume edge is genuinely still live): `grep aria-orientation.*undefined demo/` finds BOTH `demo/spring/SpringSidebar.vue:43` AND `demo/@/components/custom/animation-controls/controls/AnimationControls.vue:72`. Asserts the dispatch is NOT prematurely closed — the suppress the ask exists to delete is still in the tree.
 
 **How it is born-RED (the plant-a-failure).** The gate's GREEN condition is **"the ask is DISCHARGED"** — i.e. BC shipped the guard (`role=group` carries NO `aria-orientation`, `role=tablist` still does) **AND** kf deleted both S1 suppress lines (the consume landed at F.W12). On today's installed glass-ui (4.0.1, the BC HEAD's published predecessor), the pill strip emits `aria-orientation="horizontal"` on `role=group` (clause 1 RED-TRUE) and both kf suppress lines are present (clause 3 RED-TRUE). So `proof:glassui-aria-ask` exits non-zero — born-RED — and stays RED until BC publishes the guard AND kf consumes. The RED is the GENUINE observable: a real component mount + a real `getAttribute("aria-orientation")` returns a NON-NULL string on a `role=group` element, which ARIA 1.2 §6.3 prohibits. It is NOT a source-grep proxy for "did glass-ui fix it" — it RENDERS the component and reads the computed attribute a screen reader would consume.
 
@@ -76,7 +81,7 @@ The full ARIA-spec rationale + the grounded glass-ui file:line live in the outgo
 |--------|----------------------------------------|-------------------------------------------|-----------------|
 | `pill-prohibited-present` | mount `variant="pill"`; `el[role=group].getAttribute("aria-orientation")` | non-null (`"horizontal"`) — a PROHIBITED attr on `role=group` (ARIA 1.2 §6.3) | `null` — the guard omits it on the group |
 | `underline-permitted-present` | mount `variant="underline"`; `el[role=tablist].getAttribute("aria-orientation")` | present — PERMITTED on tablist; must survive the guard | still present (the fix is surgical) |
-| `kf-suppress-still-present` | `grep -n 'aria-orientation.*undefined' demo/` | `SpringSidebar.vue:43` + `AnimationControls.vue:72` — S1 LIVE | both deleted at F.W12 (the consume) |
+| `kf-suppress-still-present` | `grep -n 'aria-orientation.*undefined' demo/` | `demo/spring/SpringSidebar.vue:43` + `demo/@/components/custom/animation-controls/controls/AnimationControls.vue:72` — S1 LIVE | both deleted at F.W12 (the consume) |
 
 **Anti-proxy note (inv-observable-truth).** The forbidden proxy is the EXACT trap M's "CONFIRMED" fell into: asserting glass-ui emits "a real axis-derived value" (a source-shape claim the value is non-empty) and greening — which is TRUE today and yet the attribute is STILL prohibited on `role=group`. `proof:glassui-aria-ask` instead asserts the attribute is **ABSENT on the group role specifically** — the genuine ARIA contract — so a "real value on the wrong role" can never green it; only a role-conditional guard can.
 
@@ -85,7 +90,7 @@ The full ARIA-spec rationale + the grounded glass-ui file:line live in the outgo
 ## Dependencies
 
 - **glass-ui BC (the dispatched sibling) — the guard is NOT in any BC wave yet.** `BC.W-TABS-IOS` byte-fences the SFC (`BC.W-TABS-IOS.md:69`); a net-new BC SFC wave (`BC.W-ARIA-ORIENTATION-GUARD` or a non-fenced successor) must author it (`AUDIT-DIGEST.md` A4). The NAMED tripwire: the published glass-ui `SegmentedTabs` mounted with `variant="pill"` renders `role=group` with `aria-orientation === null`. **This is stronger than a version-number gate** — `AUDIT-DIGEST.md` A4 warns "gate S1 GREEN on the glass-ui aria-orientation SFC fix landing in a published version — NOT merely on BC cut version number … BC could ship 4.1.0 without the SFC fix."
-- **F.W12 (the consume wave) — GATED on this dispatch's discharge.** O.W12 deletes both kf S1 suppress lines (`SpringSidebar.vue:43`, `AnimationControls.vue:72`) once the guard lands, flipping `proof:workaround-deletion` S1 GREEN, and re-points the S1 arm's stale `4.1.0` sibling to the content-aware mount-probe (the version sentinel is necessary but not sufficient). F.W12 also carries the separate kf-internal `role=tabpanel`-ownership fix. O.W11 is the ask half; F.W12 is the consume half — same S1 edge, split by phase.
+- **F.W12 (the consume wave) — GATED on this dispatch's discharge.** O.W12 deletes both kf S1 suppress lines (`demo/spring/SpringSidebar.vue:43`, `demo/@/components/custom/animation-controls/controls/AnimationControls.vue:72`) once the guard lands, flipping `proof:workaround-deletion` S1 GREEN, and re-points the S1 arm's stale `4.1.0` sibling to the content-aware mount-probe (the version sentinel is necessary but not sufficient). F.W12 also carries the separate kf-internal `role=tabpanel`-ownership fix. O.W11 is the ask half; F.W12 is the consume half — same S1 edge, split by phase.
 - **O.W2 (ledger re-point) — the NOW slice this wave seeds.** The S1 arm's `4.1.0` → content-aware mount-probe retarget (`proof-workaround-deletion.mjs:216`) is folded at O.W2 so the gate stops pairing S1 with a phantom version (`O.md:69-72,82`; the `4.1.0` BB version was never published — BB closed at 4.0.1).
 - **No value.js dep, no parse-that dep.** This is a pure glass-ui-edge dispatch; the value.js asks (VJ-L1/L3) are the SEPARATE O.W10 dispatch.
 

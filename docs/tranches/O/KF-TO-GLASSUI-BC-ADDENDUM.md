@@ -29,9 +29,12 @@ is correctly axis-derived. The defect is that **`aria-orientation` is emitted on
 role that PROHIBITS it.**
 
 Per **WAI-ARIA 1.2 §6.3 "Inherited and Prohibited Properties,"** `aria-orientation`
-is a **supported state on a closed set of roles only** — `scrollbar`, `separator`,
-`slider`, `tablist`, `toolbar`, `treeitem`, `menu`, `menubar`, `radiogroup`,
-`tabpanel`, `listbox`, `combobox`. It is **NOT** a supported property of `role=group`
+is a **supported state on a closed set of roles only**:
+
+- **Used in Roles (direct):** `scrollbar`, `select`, `separator`, `slider`, `tablist`, `toolbar`
+- **Inherits into Roles:** `listbox`, `menu`, `menubar`, `radiogroup`, `tree`, `treegrid`
+
+It is **NOT** a supported property of `role=group`
 (`group` inherits from `section`/`structure`; `aria-orientation` is not in its
 property set). An `aria-orientation` on `role=group` is an **invalid attribute** —
 AT may ignore it, and an ARIA conformance checker FLAGS it. Emitting "a real
@@ -59,7 +62,7 @@ carries the prohibited attribute on **every render**.
 
 | # | ASK | Why | kf-side follow-up when BC ships |
 |---|-----|-----|----------------------------------|
-| **ASK-1′ (CORRECTION)** | **role-conditional `aria-orientation` guard** — emit `aria-orientation` ONLY on the `tablist` role; OMIT it on `role=group`. The minimal edit: `:aria-orientation="isUnderline ? (isVertical ? 'vertical' : 'horizontal') : undefined"` (`SegmentedTabs.vue:406`). Vue omits an attr bound to `undefined`, so the pill (`group`) strip renders NO `aria-orientation` while the underline (`tablist`) strip keeps it. | The current unconditional emit puts a **prohibited** ARIA attribute on the default `pill` variant (`role=group`), violating WAI-ARIA 1.2 §6.3. kf's `SpringSidebar.vue:43` + `AnimationControls.vue:72` carry `:aria-orientation="undefined"` suppress band-aids ONLY because of this. | kf deletes BOTH suppress lines (`proof:workaround-deletion` S1 flips GREEN). The kf gate is content-aware: it MOUNTS the published `SegmentedTabs variant="pill"` and asserts `role=group` carries NO `aria-orientation` — so a version bump WITHOUT the SFC fix will NOT green it. |
+| **ASK-1′ (CORRECTION)** | **role-conditional `aria-orientation` guard** — emit `aria-orientation` ONLY on the `tablist` role; OMIT it on `role=group`. The minimal edit: `:aria-orientation="isUnderline ? (isVertical ? 'vertical' : 'horizontal') : undefined"` (`SegmentedTabs.vue:406`). Vue omits an attr bound to `undefined`, so the pill (`group`) strip renders NO `aria-orientation` while the underline (`tablist`) strip keeps it. | The current unconditional emit puts a **prohibited** ARIA attribute on the default `pill` variant (`role=group`), violating WAI-ARIA 1.2 §6.3. kf's `demo/spring/SpringSidebar.vue:43` + `demo/@/components/custom/animation-controls/controls/AnimationControls.vue:72` carry `:aria-orientation="undefined"` suppress band-aids ONLY because of this. | kf deletes BOTH suppress lines (`proof:workaround-deletion` S1 flips GREEN). The kf gate is content-aware: it MOUNTS the published `SegmentedTabs variant="pill"` and asserts `role=group` carries NO `aria-orientation` — so a version bump WITHOUT the SFC fix will NOT green it. |
 | **ASK-1′-GATE (ask)** | **a born-RED glass-ui gate clause** asserting the rendered `pill` strip (`role=group`) does NOT carry `aria-orientation` — a computed-attr check on the mounted `SegmentedTabs` with `variant="pill"` returning `null`/`undefined`. | No gate in glass-ui or kf currently asserts this constraint (`proof:tabs-ios` T4 checks `aria-pressed`/`aria-selected`/roving-tabindex but NOT the orientation-absence). Without a glass-ui-side gate, a future refactor can re-introduce the prohibited emit. | kf's `proof:glassui-aria-ask` (O.W11) is the consumer-side mirror; a glass-ui-side gate makes the contract bilateral. |
 
 ### The wave-home note (where the fix must land in BC)

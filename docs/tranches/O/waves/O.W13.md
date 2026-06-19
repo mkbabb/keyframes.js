@@ -17,7 +17,7 @@ M-substrate: **M.W-DESIGN-PAINT** (the pixel-readback visual-truth gate, fully d
 
 The gate blind-spot (`feedback_gate_blindspot_appearance_axis.md`) is the authoritative finding: the existing gate suite is thorough on CORRECTNESS and BEHAVIOUR but has a structural gap on **appearance**. Green source-shape gates miss visual failures. The running demo has no pixel-readback oracle.
 
-**The genuine observable (M.W-DESIGN-PAINT §"The genuine observable").** The proxy to avoid: CSS property greps, emitted-CSS round-trip checks, screenshot diffs against unvalidated baselines. The REAL observable is the painted pixels in the live browser: colour at landmark regions, delta-frame transform for running animations, specular `::before` opacity under hover.
+**The genuine observable (M.W-DESIGN-PAINT §"The genuine observable").** The proxy to avoid: CSS property greps, emitted-CSS round-trip checks, screenshot diffs against unvalidated baselines. The REAL observable is the painted pixels in the live browser: colour at landmark regions, delta-frame transform for running animations. (The M.W-DESIGN-PAINT-era "specular `::before` opacity under hover" observable is RETIRED — that pseudo was deleted from the demo; the glass sheen is a glass-ui-owned born-RED HANDOFF per §S3, not a kf paint check.)
 
 **The BC-gate rationale for S4 (M.W-DESIGN-PAINT §"The BC-gate rationale").** The gate script is authored NOW (born-RED, kf-internal). The BASELINE LOCK is BC-gated because the BC consume changes the visual surface (dock redesign, aria corrections, possible glass-card specular cohort changes) — a pre-BC baseline would immediately red on the BC consume due to surface change, not a genuine regression. The correct posture: author gate first (NOW), establish the baseline AFTER the final-state consume (GATED on O.W12 GREEN).
 
@@ -68,17 +68,19 @@ The check matrix is adopted from M.W-DESIGN-PAINT §S2 verbatim — the 8-scene 
 **The PRM global check (the reduced-motion row).** Under `prefers-reduced-motion: reduce` (Playwright `emulateMediaFeatures`):
 - No scene shows a running rAF loop: the designated animated element's `transform` matrix must NOT change between two rAF frames.
 - **Critical precision (M.W-DESIGN-PAINT §S2):** kf animations are driven by `RAFPlayback` (rAF-based, `playback.ts`), NOT the Web Animations API. `getAnimations()` is ALWAYS empty for kf animations and MUST NOT be used as the witness (it is a proxy that passes on a running rAF loop). The real check: `getComputedStyle().transform` at frame N and frame N+1; under PRM + `respectReducedMotion`, the animation snaps to its final frame and the rAF loop stops — zero delta. Non-zero delta is the born-RED signal.
-- The glass specular `::before` pseudo has `opacity: 0` under PRM (the specular does not animate under the glass-ui bracket).
+- (The former glass-specular `::before` PRM bullet is RETIRED — see §S3: the `.glass-specular-track ::before` observable was deleted from the demo; the glass sheen is a glass-ui-owned born-RED HANDOFF, not a kf paint check.)
 
 ---
 
-### S3 — The glass specular check
+### S3 — Glass specular: a born-RED HANDOFF to glass-ui BC (NOT a kf-side paint check)
 
-**Breach.** The glass specular on glass cards is a key design-language element. No existing gate asserts it activates on hover. A dropped specular (from a `position: fixed` stacking-context collapse, `will-change: transform` isolation leak, or BC glass-ui change) is invisible to all current gates.
+**Why the original kf-side check is RETIRED.** M.W-DESIGN-PAINT §S3 specified a hover paint check over `.glass-specular-track`'s `::before` opacity. That observable **no longer exists in the demo** — the `.glass-specular-track ::before` opacity mechanism was DELETED from the demo surface (verified 2026-06-19: the selector + its `::before` pseudo are absent). A gate authored over a deleted observable would either false-RED unconditionally (the selector never matches) or false-GREEN vacuously (the `page.hover` no-ops on an absent element) — neither bites a real defect. So the kf-side specular paint clause is STRUCK from `proof:design-paint`.
 
-**Cure.** For each scene that renders a front glass card (cube, spring, sequence): `page.hover(selector)` and read `getComputedStyle(el, '::before').opacity`. Must be `> 0` in hover state (the glass-ui specular mechanism: `--mouse-x/--mouse-y` set on pointer-move, `::before` opacity transitions to 1).
+**The correct disposition (per the F6 / specular consume-edge).** The glass specular / glass-stage sheen is a **born-RED HANDOFF to glass-ui BC**, not a kf-internal paint assertion. The specular mechanism lives in the glass-ui card component (the `--mouse-x`/`--mouse-y`-driven sheen layer), and the F6-vs-I5 reconciliation partitions it as `no-orphan-specular`: the sheen is owned by the glass-ui BC cut, and the kf demo consumes it through the published glass-card component — it is NOT a surface kf paints or gates directly. The kf-side obligation is the CONSUME (O.W12's BC re-pin), after which the sheen is whatever the BC cut ships; kf does not re-implement or re-gate the pseudo.
 
-**The REAL observable.** `getComputedStyle(el, '::before').opacity` is the runtime truth — NOT a source grep for `opacity: 0` (that is the initial state, not the hover state).
+**If a specular paint witness is wanted post-BC.** Should the BC cut ship a NAMED specular mechanism on a glass-card selector, a re-targeted paint row may be added to `proof:design-paint` AT THAT TIME over the EXACT BC component selector/pseudo the cut publishes (read its computed `::before`/sheen-layer opacity under hover on the BC-consumed `dist/gh-pages`). Until the BC cut names that selector, this clause carries NO kf-side check — the specular is a glass-ui-owned born-RED HANDOFF, allow-listed out of `proof:design-paint`'s check matrix so the gate does not bite a deleted observable.
+
+**PRM specular note (carries into S2's reduced-motion row).** The earlier S2 PRM bullet asserting "the glass specular `::before` has `opacity: 0` under PRM" is RETIRED for the same reason — there is no kf-side `.glass-specular-track ::before` to read. PRM correctness for the glass sheen rides the glass-ui BC bracket, not a kf paint check.
 
 ---
 
@@ -115,9 +117,10 @@ This S5 clause is **conditional** on O.W15. If the Stage is shelved at O.WZ, S5 
 | Clause | Failure mode today (the REAL observable) | Why this is NOT a proxy |
 |---|---|---|
 | S2 animation live | animated element has zero-delta `transform` between frames | NOT a CSS property grep — the property exists in source even on a frozen animation; the gate reads ACTUAL computed values in the REAL browser |
-| S3 glass specular | specular `::before` has `opacity: 0` after hover (the specular never activates) | NOT a source grep for `--mouse-x` — the variable can be set while the specular effect fails due to stacking-context or `will-change` isolation |
 | S2 colour sample | landmark pixel is blank white or transparent-black (dropped backdrop-filter or z-index burial) | NOT an emitted-CSS check — the property can be emitted correctly and produce no visual effect |
 | PRM check | animated element `transform` matrix changes between two rAF frames under `prefers-reduced-motion: reduce` | NOT `getAnimations()` — kf uses `RAFPlayback`, not WAAPI; `getAnimations()` is always empty for kf animations and is a proxy that never bites |
+
+(The M.W-DESIGN-PAINT-era S3 glass-specular `::before` row is RETIRED — the `.glass-specular-track ::before` observable was deleted from the demo; the glass sheen is a glass-ui-owned born-RED HANDOFF per §S3, allow-listed out of the check matrix.)
 
 **Born-RED today (by construction).** `scripts/proof-design-paint.mjs` does not exist. `node scripts/proof-design-paint.mjs` → exit 1 (file not found). This is the genuine born-RED state: the visual-truth oracle is absent.
 

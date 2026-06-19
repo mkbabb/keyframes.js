@@ -1,9 +1,11 @@
 # O.W16 — value.js-P consume: S8 FN_NAME + S9 parse-that delete + W96 boundary scan GREEN
 
+> **CANON #9 scope note.** The `leaves.ts` → `@mkbabb/value.js/math` `lerpArray`/§14 swap has been STRUCK from this wave — it belongs to **O.W9 §S3 ONLY** (the four-function `clamp`/`scale`/`lerp`/`lerpArray` swap + the stale `leaves.ts:56–61` comment delete, phased NOW). O.W16 keeps ONLY the S8 FN_NAME delete + the S9 parse-that delete + the `proof:boundary` W96 parse-that source-scan. No `leaves.ts` edit lands in this wave.
+
 **Band:** G — value.js-P consume
 **Phase:** GATED (value.js Tranche P — fires atomically on VJ-L1 flatLeaf + VJ-L3 parseCSSSubValue publish)
-**Sequence:** O.W10 (the KF-TO-VALUEJS-P-ASKS dispatch authored) → *value.js P VJ-L1/L3 publish fires* → O.W16 → O.W7 (engine-seam transposition unblocked)
-**Owning chronic/DM:** DM-5 S8 + S9 arms (chronicity 3 at O: K, L, M → O; P-inv-28 terminal window named — if value.js P slips past kf-Q, the four-tranche belt fires and a BUILD-IN alternative must be found)
+**Sequence:** O.W10 (the KF-TO-VALUEJS-P-ASKS dispatch authored) → *value.js P VJ-L1/L3 publish fires* → **O.W16** (S8 FN_NAME + S9 parse-that delete) → **O.W7** (engine-seam transposition unblocked) → O.WZ (close; `proof:chronic-closure` reads DF-11-A discharged). The value.js-P spine edge is `O.W16 → O.W7 → O.WZ` — O.W7 sits BETWEEN this wave and the close, NOT a dangling "(VJ-L1)" label.
+**Owning chronic/DM:** DM-5 S8 + S9 arms (chronicity 3 at O: K, L, M → O; P-inv-28 terminal window named — the `P-inv-28 >=4` belt fires at **kf-P** (the NEXT kf tranche after O, NOT kf-Q) if value.js P slips, and the two-arm fallback applies — S8 → a realm-CLEAN kf-side `WeakMap<ValueUnit,string>` populated at flatten time (does NOT survive `.clone()`, so VJ-L1 stays strictly preferred); S9 → a DECLARED `proof:boundary`-allow-listed spine-edge quarantine, NOT eliminable without VJ-L3)
 
 ---
 
@@ -17,7 +19,7 @@ M.W9 developed the value.js-O consume spec in full (docs/tranches/M/waves/M.W9.m
 
 Both are correctly held PENDING by `proof:workaround-deletion`'s three-state model. The W96 parse-that scan — named in L.W9.md §S9 and M.W9 §S5 as the gate-completeness cure — has NEVER been implemented: `scripts/proof-boundary.mjs`'s `holdsValueJsSpecifier` (`:93–107`) matches only `@mkbabb/value.js` specifiers; the two `parse-that` mentions in the file (`:54`, `:192`) are prose-only — no assertion scans any kf source module for a direct parse-that import (audit B10, B11, C15). The W96 hole is the M.md viol-M8 cure: O.W16 authors the scan **born-RED on today's tree**, then it flips GREEN when S9 deletes `utils.ts:1`.
 
-Additionally, `src/animation/internal/leaves.ts:68–80` still inlines a byte-equivalent copy of value.js's `lerpArray` because value.js 1.0.x was expected to lack a `./math` subpath. That subpath is now confirmed live at `node_modules/@mkbabb/value.js/dist/subpaths/math.d.ts` (audit E21). The `lerpArray` swap is a boundary-safe atomic action alongside S8/S9 deletion: it lands in a LIGHT module and value.js `./math` carries zero CSS-grammar static-init edge (`proof:boundary` holds it GREEN).
+The `src/animation/internal/leaves.ts:68–80` inline `lerpArray` copy (and the byte-equivalent `clamp`/`scale`/`lerp` inlines + the stale `leaves.ts:56–61` "no ./math subpath" comment) is NOT this wave's concern — the four-function `@mkbabb/value.js/math` swap belongs to **O.W9 §S3** (phased NOW; the `./math` subpath is confirmed live at `node_modules/@mkbabb/value.js/dist/subpaths/math.d.ts`, audit E21). O.W16 touches `src/animation/utils.ts` + `scripts/proof-boundary.mjs` + `package.json` ONLY; it does not edit `leaves.ts` (CANON #9).
 
 **The O.W10 dispatch is the upstream action.** O.W10 dispatches `KF-TO-VALUEJS-P-ASKS.md` to the value.js owner, requesting VJ-L1 (a first-class `fnName` field on `ValueUnit`, preserved by `.clone()`) and VJ-L3 (a `parseCSSSubValue(property, value)` thin wrapper over the existing internal parser). O.W16 is the kf-side consume that fires once value.js P publishes those APIs. kf cannot write value.js (inv-16). The dispatch text is precise (see O.W10); this wave is the delete.
 
@@ -32,8 +34,6 @@ Additionally, `src/animation/internal/leaves.ts:68–80` still inlines a byte-eq
 | B7, B8 | `node -e "'parseCSSSubValue' in require('@mkbabb/value.js')"` | `false` — VJ-L3 absent from 1.0.2 |
 | B11, C15 | `scripts/proof-boundary.mjs:93–107` | `holdsValueJsSpecifier` — matches only `@mkbabb/value.js`, NOT `@mkbabb/parse-that`; W96 ABSENT |
 | B9 | `scripts/proof-workaround-deletion.mjs` live | `S8=PENDING S9=PENDING` (1 GREEN / 4 PENDING, exit 0) |
-| E21 | `node_modules/@mkbabb/value.js/dist/subpaths/math.d.ts:7` | `lerpArray` exported — subpath live, swap unblocked |
-| D19, D20 | `src/animation/internal/leaves.ts:68–80` | inline `lerpArray` copy — workaround comment still references "no ./math subpath" |
 
 ---
 
@@ -68,20 +68,16 @@ Additionally, `src/animation/internal/leaves.ts:68–80` still inlines a byte-eq
 
 **Gate bite.** `proof:workaround-deletion` S8 arm asserts zero `FN_NAME|Symbol\("kf\.` pattern in `src/animation/utils.ts`. PENDING today; GREEN after VJ-L1 publish + delete.
 
-### S4 — Delete the direct parse-that dep (S9 arm — VJ-L3 consumed) + swap the inline `lerpArray` (§14)
+### S4 — Delete the direct parse-that dep (S9 arm — VJ-L3 consumed)
 
 **Breach (S9).** `src/animation/utils.ts:1` imports `{ any as parseAny }` from `@mkbabb/parse-that`; `package.json` carries it as a production dep. `tryParseLeaves` (`:227–246`) uses `(parseAny as any)(fnArgs, CSSValues.Value)` to compose value.js's parsers.
-
-**Breach (§14).** `src/animation/internal/leaves.ts:68–80` inlines `lerpArray`; the comment `:56–63` references a missing `./math` subpath that is NOW confirmed live (`node_modules/@mkbabb/value.js/dist/subpaths/math.d.ts`).
 
 **Cure (S9).** On the VJ-L3 consume:
 1. Delete `import { any as parseAny } from "@mkbabb/parse-that"` (`utils.ts:1`).
 2. Replace the `(parseAny as any)(fnArgs, CSSValues.Value)` composition in `tryParseLeaves` with `parseCSSSubValue(childKey, strValue)` (the VJ-L3 value.js root-export).
 3. Remove `"@mkbabb/parse-that"` from `package.json` `dependencies` (it survives ONLY as a `devDependency` if the test suite still needs it directly; else remove entirely).
 
-**Cure (§14).** Delete the inline `lerpArray` body (`leaves.ts:68–80`) + the stale gap comment (`:56–63`); replace with `import { lerpArray } from "@mkbabb/value.js/math"`. This is a LIGHT module — the `./math` subpath must be confirmed value.js-grammar-free (`proof:boundary` is the gate: the import must not drag a value.js CSS-grammar edge into the LIGHT bundle). Re-run the parity test asserting byte-equality of the imported `lerpArray` to the former inline (the existing `proof:boundary` source-grep assertion will catch a non-value-free `./math` import before it slips through).
-
-**Constraint.** The §14 swap can land independently of S9 if `./math` is already live (it is). S3 + S4 (the Symbol delete + the parse-that delete) should land in ONE atomic commit alongside S2's re-pin; the `lerpArray` swap folds into the same commit.
+**Constraint.** S3 + S4 (the Symbol delete + the parse-that delete) should land in ONE atomic commit alongside S2's re-pin. The `leaves.ts` → `@mkbabb/value.js/math` swap (the former §14) is NOT in this wave — it is O.W9 §S3 (CANON #9).
 
 **Gate bite.** `proof:workaround-deletion` S9 arm asserts zero `from "@mkbabb/parse-that"` pattern in `src/animation/utils.ts`. PENDING today; GREEN after VJ-L3 publish + delete. The W96 boundary scan (S1) flips from exit 1 to exit 0 on the same delete.
 
@@ -111,7 +107,7 @@ Additionally, `src/animation/internal/leaves.ts:68–80` still inlines a byte-eq
 
 **Born-RED on today's tree (the keystone).** S1's W96 assertion does not yet exist. Adding it produces an immediate exit 1 against the live `utils.ts:1` import — the gate is born-RED by construction. S8/S9 are PENDING (the three-state model exits 0 in PENDING state). The born-RED form for S8/S9 is: after S2's re-pin (value.js P published), the arms transition from PENDING → truly RED (present + sibling published) before S3/S4 delete them — the GENUINE defect, not a proxy.
 
-**Green condition.** value.js Tranche P publishes VJ-L1 (`fnName` field on `ValueUnit`, preserved by `.clone()`) and VJ-L3 (`parseCSSSubValue(property, value)` root export); kf re-pins (S2), deletes `FN_NAME` Symbol + replaces with `.fnName` field (S3), deletes parse-that import + removes production dep + swaps `lerpArray` inline for `@mkbabb/value.js/math` (S4), all in one atomic commit; W96 boundary scan (S1) flips exit 1 → exit 0; `proof:workaround-deletion` S8+S9 → GREEN; `proof:interpolate-anything` arity-pad fixture → GREEN; O.W7 engine-seam is UNBLOCKED.
+**Green condition.** value.js Tranche P publishes VJ-L1 (`fnName` field on `ValueUnit`, preserved by `.clone()`) and VJ-L3 (`parseCSSSubValue(property, value)` root export); kf re-pins (S2), deletes `FN_NAME` Symbol + replaces with `.fnName` field (S3), deletes parse-that import + removes production dep (S4), all in one atomic commit; W96 boundary scan (S1) flips exit 1 → exit 0; `proof:workaround-deletion` S8+S9 → GREEN; `proof:interpolate-anything` arity-pad fixture → GREEN; O.W7 engine-seam is UNBLOCKED. (The `leaves.ts` → `@mkbabb/value.js/math` swap is O.W9 §S3, not this wave — CANON #9.)
 
 ---
 
@@ -121,8 +117,8 @@ Additionally, `src/animation/internal/leaves.ts:68–80` still inlines a byte-eq
 - **O.W10 (the KF-TO-VALUEJS-P-ASKS dispatch).** The ask must be filed before this wave can be triggered. O.W16 is the consume; O.W10 is the upstream ask.
 - **Independent of the glass-ui BC track (O.W12).** S1/S2 (aria + dock) are O.W12's surface. File collision: none. The workaround-deletion gate shows `3 GREEN (S7+S8+S9) / 2 PENDING (S1+S2) / 0 RED` after this wave; the BC arms are independent.
 - **O.W7 (engine-seam transposition) is UNBLOCKED by this wave.** The `FN_NAME` stamp was the stated blocker for the engine-seam split (`proof-decomposition.mjs` BORN-RED HANDOFF; M.W13 spec). After S3 deletes it, the transposition precondition is met and O.W7 can proceed.
-- **P-invariant-28 terminal window.** DM-5 S8/S9 are at chronicity 3 (K, L, M → O). The four-tranche belt does NOT formally fire yet. But the governing precept (no perpetual punts) demands a terminal home in kf O. This is it. If value.js P slips past kf-Q, the chronicity reaches 4 — at that point P-inv-28 mandates an architectural BUILD-IN alternative (eliminating the Symbol sidechannel through a different provenance design, and replacing the parse-that `any` call with a value.js-exposed composition that already exists or a kf-internal parser for the narrow sub-value domain). No 5th carry is permitted.
-- **The `./math` swap is independently available today** (the subpath is live at `node_modules/@mkbabb/value.js/dist/subpaths/math.d.ts`) and may land atomically with S3+S4 regardless of VJ-L1/L3 timing. If value.js P ships VJ-L1/L3 in the same cut, S2–S4 all land together. If `./math` is already live and the owner prefers to land the `lerpArray` swap earlier, it can precede S3/S4 as a standalone commit — but the `proof:boundary` source-grep hold (S1) prevents any regression.
+- **P-invariant-28 terminal window.** DM-5 S8/S9 are at chronicity 3 (K, L, M → O). The S8/S9 belt window (`P-inv-28 >=4`) fires at **kf-P** (the NEXT kf tranche after O), NOT kf-Q. The governing precept (no perpetual punts) demands a terminal home in kf O. This is it. The two-arm fallback if value.js P slips: **S8** (the `FN_NAME` Symbol) → a kf-side `WeakMap<ValueUnit, string>` populated at flatten time (realm-CLEAN, dissolves the foreign-object-annotation breach, kf-internal-sufficient — BUT does NOT survive `ValueUnit.clone()`, so the clone-restamp ceremony stays; VJ-L1 is therefore still strictly preferred); **S9** (the direct parse-that import) → NOT eliminable without VJ-L3 (kf needs value.js's CSS sub-value grammar), the only fallback being a DECLARED spine-edge quarantine (allow-listed in `proof:boundary`, the breach persists but is not silent). Both fallbacks are strictly inferior to the value.js-P consume. If value.js P slips past kf-P, the belt fires at chronicity 4.
+- **The `leaves.ts` → `@mkbabb/value.js/math` swap is NOT this wave (CANON #9).** The four-function `clamp`/`scale`/`lerp`/`lerpArray` swap + the stale `leaves.ts:56–61` comment delete is O.W9 §S3 (phased NOW; the `./math` subpath is live at `node_modules/@mkbabb/value.js/dist/subpaths/math.d.ts`). O.W16 does not edit `leaves.ts`.
 
 ---
 

@@ -191,20 +191,39 @@ composition produced — the round-trip equality, not a `typeof` proxy.
    chain; the wave ordering — O.W16 before O.W7 — is the mechanism, no extra
    gating needed.)
 
-3. **The P-invariant-28 belt window (chronicity → 4 at kf-Q if P slips).**
+3. **The P-invariant-28 belt window (chronicity → 4 at kf-P if P slips).**
    DM-5 (the S8/S9 value.js-workaround chronic) is at **chronicity 3** entering
    kf O (carried K→L→M, rising to 3 at O). P-inv-28's mandatory-exit belt fires
    at **chronicity ≥4**. The **named terminal**: if value.js Tranche P does
-   **not** ship VJ-L1 + VJ-L3 before the kf-Q tranche, DM-5 hits chronicity 4 at
-   kf-Q and the P-inv-28 belt **forces a terminal** — either (a) value.js P
-   ships the APIs (the intended exit, this dispatch), or (b) kf executes a
-   **named KILL**: keep the `fnName` provenance as a kf-internal concern with a
-   first-class non-Symbol carrier (a side `WeakMap<ValueUnit, string>` keyed at
-   flatten time — value.js-realm-clean, no foreign-object annotation) and accept
-   the direct parse-that dep as a *declared* spine edge with its own
-   `proof:boundary` allowance. **(a) is strongly preferred** (it dissolves the
-   spine breach; (b) only quarantines it). This is the named terminal home the
-   no-perpetual-punts precept demands; the window is **value.js P before kf-Q**.
+   **not** ship VJ-L1 + VJ-L3 before the kf-P tranche, DM-5 hits chronicity 4 at
+   kf-P and the P-inv-28 belt **forces a terminal** via one of two arms:
+
+   - **(a) S8 two-arm kf-internal KILL (WeakMap carrier):** keep the `fnName`
+     provenance as a kf-internal concern with a first-class non-Symbol carrier —
+     a side `WeakMap<ValueUnit, string>` populated at flatten time. This is
+     value.js-realm-clean (no foreign-object annotation, dissolves the B10/B11
+     inv-L-acyclic-purity breach). HOWEVER: a WeakMap key is the `ValueUnit`
+     instance, so it does NOT survive `ValueUnit.clone()` — the clone-restamp
+     ceremony (`utils.ts:64`, `:289-294`) **stays**, and the map must be
+     re-stamped on every clone. **kf-internal-sufficient — BUT VJ-L1 is still
+     strictly preferred** because VJ-L1 eliminates the clone-restamp ceremony
+     entirely by carrying `fnName` as a real ctor field.
+
+   - **(b) S9 declared-edge quarantine:** the direct `@mkbabb/parse-that` import
+     + the two `as any` cross-realm casts are **NOT eliminable without VJ-L3** —
+     kf needs value.js's CSS sub-value grammar, and there is no kf-internal
+     substitute. If VJ-L3 does not ship, the ONLY available fallback is a
+     **DECLARED spine-edge quarantine**: allow-list the parse-that import in
+     `proof:boundary` (the W96 scan), annotate it with a comment citing the
+     unshipped VJ-L3 dependency, and let the breach persist as a **declared seam
+     rather than a silent violation**. This does NOT dissolve the constellation-
+     spine breach (B10/B11); it only makes it non-silent. Strictly inferior to
+     VJ-L3.
+
+   **(a-preferred, b-fallback — VJ-L1/VJ-L3 the intended exit):** value.js P
+   shipping both APIs dissolves both arms cleanly (no WeakMap, no declared seam,
+   no parse-that dep). This is the named terminal home the no-perpetual-punts
+   precept demands; the window is **value.js P before kf-P**.
 
    **The tripwire (the consume signal).** kf's `proof:workaround-deletion`
    `apiPresent` guard is the live oracle: S8 exits PENDING when

@@ -50,8 +50,8 @@ sessions immediately prior) the owner launched the Constellation Campaign (64 la
 ~6.6M tokens): three repos executed in DAG order — parse-that A → value.js O → kf M consume +
 gates — and the campaign closed with a live CF Pages redeploy on 2026-06-19. But the **bulk of M's
 developed waves were never implemented** (verified live, 2026-06-19): 14 of 16 waves are
-DEVELOPED-not-IMPLEMENTED on master `aef3ef3`; the two 7-tranche P-inv-28 absolute-terminal
-chronics (DM-2/DM-3) were not built; the apparatus consolidation (M.W1–M.W4), the engine
+DEVELOPED-not-IMPLEMENTED on master `aef3ef3`; DM-2 (born E) and DM-3 (born C) — each with
+7 carries through M — were not built (the P-inv-28 forbidden 8th carry); the apparatus consolidation (M.W1–M.W4), the engine
 correctness waves (M.W5–M.W7), and the design waves (M.W-DESIGN-PAINT/M.W15) are all unbuilt. A
 32-agent O re-audit (~4M tokens, 2026-06-19) confirmed this and surfaced additional gaps. O is the
 **close-out tranche**: it implements what M developed, terminates the absolute chronics, executes
@@ -66,7 +66,7 @@ glass-ui BC aria-orientation correction), consumes the glass-ui BC cut, and cuts
 | 1 | N-tranche excursion (Tranche N launched mid-M-session; STAGE-SPEC authored; impl on n-stage-impl; shelved) | ADDRESSED — N is a net-new tranche; DM-24 records the HANDOFF; O.W15 unfurls N on BC dock fire |
 | 2 | Reorient pivot ("stop stopping" — proceed kf-internally, don't wait for sibling publishes) | ADDRESSED — M.W11 Band reclassified A+C; born-RED gates authored on installed 0.13.0; the campaign proceeds in parallel |
 | 3 | 32-lane constellation re-audit + CONSTELLATION-CAMPAIGN.md (the D1–D11 locked decisions; BB→BC re-target; packrat FIX not KILL) | FOLD-INTO-M / ADDRESSED — produced M-RECONCILIATION.md + two new wave stubs (M.W-DESIGN-PAINT + M.W15); no source written |
-| 4 | M.W1 implemented on tranche-l-dev (commit 5d047ac: scripts/run-all.mjs) | PARTIALLY-ADDRESSED — runner LANDED; born-RED gate proof:report-all NOT authored; DM-W1-bridge ledger row added in §2 |
+| 4 | M.W1 implemented on tranche-l-dev (commit 5d047ac: scripts/run-all.mjs + proof:report-all gate) | ADDRESSED — runner LANDED at 5d047ac; proof:report-all (C1–C6 clauses) also EXISTS on master at 5d047ac (`scripts/proof-report-all.mjs` confirmed); DM-W1-bridge ledger row records the O.W1 lint-tier extension |
 
 ---
 
@@ -83,7 +83,7 @@ Source: `J/J.md:111-119` (verbatim recurring mandate A→L→M→O). Re-issued f
 | NO quick solutions / NO workarounds — idiomatic gestalt | **ADDRESSED + NAMED RESIDUALS** — the 5 live workaround families (S1/S2/S8/S9/leaves.ts) each exit via an O wave or a named sibling dispatch; no new band-aids chartered; the transpositions are architectural (engine-seam split, leaves→/math, aliases drop) | `O.md §2 precept reckoning`; `AUDIT-DIGEST.md F29`; O.W9/W10/W12/W16 |
 | Architectural transpositions for elegance/simplicity/performance | **ADDRESSED (chartered, gate-first)** — O.W7 engine-seam 1397→~900 (the god-object split); O.W9 no-legacy cuts (aliases + leaves.ts→/math); O.W8 perf; O.W5 DemoControlPoint + O.W6 fromMorphSVG (the chronic build-ins) | `O.md §3 band table`; each wave carries a born-RED gate |
 | NO legacy beside its replacement | **ADDRESSED (chartered)** — O.W9 deletes deprecated `Animation`/`ScrollTimeline`/`ScrollTimelineOptions` aliases + 22 demo consumers; `internal/leaves.ts` `clamp`/`scale`/`lerp`/`lerpArray` → `@mkbabb/value.js/math`; `proof:boundary` W96 scan guards the parse-that dep delete | `O.md §2`; `AUDIT-DIGEST.md F29 ⚠`; O.W9 |
-| Fold ALL chronics to terminal or KILL (P-invariant-28) | **ADDRESSED (chartered) → FOLD-INTO-O** — DM-2 (GlassControlPoint, 7-tranche): O.W5 BUILD-IN DemoControlPoint; DM-3 (MorphSVG, 7-tranche): O.W6 BUILD-IN fromMorphSVG; DM-1 (RF-17, 4-tranche): O.W12 CONSUME on BC cut; DM-5 (S8/S9, chronicity 3): O.W16 CONSUME on VJ-L1/L3 + dispatched at O.W10; **NO 8th ride** | `O.md §4`; `O.md §3 Band C`; `AUDIT-DIGEST.md F25/F28` |
+| Fold ALL chronics to terminal or KILL (P-invariant-28) | **ADDRESSED (chartered) → FOLD-INTO-O** — DM-2 (born E · 7 carries through M): O.W5 BUILD-IN closes the forbidden 8th carry via DemoControlPoint; DM-3 (born C · 7 carries through M): O.W6 BUILD-IN closes the forbidden 8th carry via fromMorphSVG; DM-1 (RF-17, 5-tranche): O.W12 CONSUME on BC cut; DM-5 (S8/S9, chronicity 3): O.W16 CONSUME on VJ-L1/L3 + dispatched at O.W10 | `O.md §4`; `O.md §3 Band C`; `AUDIT-DIGEST.md F25/F28` |
 | Recap ALL prompts (zero drops) | **ADDRESSED — THIS DOC** — `prompt-recap-M.md` zero-drops chain-trusted (A→M); this lane extends it to the constellation campaign + O session + the four IMPL-OPEN post-M events | this document |
 | Dev only (no source) | **HONORED** — O is DEVELOPMENT-PHASE-ONLY; inv-16 holds throughout; this lane wrote only this file; `O.md §8` dev→impl boundary | `O.md §8`; inv-16 |
 
@@ -119,7 +119,7 @@ O re-audit RE-OPENED, the four IMPL-OPEN post-M events, and the net-new O-sessio
 | DM-3 MorphSVG "build-in over PathGeometry" | M.W14 DEVELOPED (not impl) | **FORBIDDEN 8th carry** — `fromMorphSVG` absent from src/; `proof:morphsvg-consume` absent; P-inv-28 absolute terminal VIOLATED | **O.W6 BUILD-IN** (born-RED: `proof:morphsvg-consume`; `fromMorphSVG` absent today) |
 | M.W5 @property/compileToCSS + NaN named-selector | DEVELOPED (not impl) | ⚠M1 ACTIVE — `NAMED_SELECTOR_NO_TIMELINE` typed at `errors.ts:46`, never thrown; `compileToCSS` does not emit `@property` blocks | **O.W3** named-selector NaN-frame cure |
 | M.W6 multi-color oklch + densify | DEVELOPED (not impl) | ⚠M2/M3 ACTIVE — `colorToOklabCSS` called unconditionally; oklch emits oklab(); non-color props dropped | **O.W4** multi-color refusal + ingest |
-| M.W2–M.W4 apparatus (eslint/vitest-browser/synthetic-clock) | DEVELOPED (not impl) | gate apparatus O(N²) wound NOT cured beyond M.W1 runner (proof:report-all gate script absent on master) | **O.W1** (lint/dep-cruiser), **O.W2** (ledger + stale-gate retarget); full apparatus chartered |
+| M.W2–M.W4 apparatus (eslint/vitest-browser/synthetic-clock) | DEVELOPED (not impl) | gate apparatus O(N²) wound NOT cured beyond M.W1 runner + proof:report-all (both on master at 5d047ac) | **O.W1** (lint/dep-cruiser tier adds eslint/dep-cruiser on top of the existing runner+gate), **O.W2** (ledger + stale-gate retarget); full apparatus chartered |
 | DM-24/DM-25/DM-W1-bridge NOT in ledger | M-RECONCILIATION §7/§9 specified add-to-ledger; not executed | **GAP** — `deferred-ledger-M.md` + `PROGRESS.md §D` have zero DM-24/DM-25/DM-W1-bridge rows despite M-RECONCILIATION §11 IMPL-OPEN spec | **O.W2** (ledger re-point + sync) |
 | prompt-recap-M.md NOT updated for 4 post-charter events | M-RECONCILIATION §11 IMPL-OPEN | F28 AUDIT-DIGEST finding: Events 1–4 never folded | **THIS DOC** (the O prompt-recap absorbs them; §0 above) |
 | proof:workaround-deletion S2 checks glass-ui@4.1.0 | stale — useDockClickIntegrity ships in 4.0.1 already | gate version sentinel points at a version (4.1.0) that was NEVER published (BB closed at 4.0.1) | **O.W2** (stale-gate retarget) |
@@ -196,7 +196,7 @@ Each is a binding record row.
 | **value.js 1.0.1** (instanceof-narrowing type fix) | **ADDRESSED — SHIPPED** | kf re-pin `97c5eae` |
 | **value.js 1.0.2** (dist subpath-chunk shadow fix) | **ADDRESSED — SHIPPED** | kf re-pin `834d5a5` |
 | **kf M.W9 gate** `proof:css-parity` 8/8 + `proof:packrat-sound` 2/2 + `proof:consume-bundle` 2/2 + `proof:peer-satisfied` GREEN + `proof:boundary` (inv α holds) | **ADDRESSED — SHIPPED + GREEN** | commits `96bec5e`, `a69db5b`, `aef3ef3` |
-| **kf M.W1** `scripts/run-all.mjs` (the parallel report-all runner) | **ADDRESSED — IMPLEMENTED** (gate `proof:report-all` NOT authored — DM-W1-bridge) | `5d047ac`; gate ABSENT on master (`AUDIT-DIGEST.md F28`) |
+| **kf M.W1** `scripts/run-all.mjs` (the parallel report-all runner) + `scripts/proof-report-all.mjs` (C1–C6 clauses) | **ADDRESSED — IMPLEMENTED** (both runner AND `proof:report-all` gate exist on master at `5d047ac`; wired into `ci.yml`; M.W1 FULLY DELIVERED) | `5d047ac`; `scripts/proof-report-all.mjs` PRESENT on master; `ci.yml` wired |
 | **kf CF Pages redeploy** `keyframes.babb.dev` HTTP 200 | **ADDRESSED** | `M-CONSUME-CLOSE.md §deploy`; live probe 2026-06-19 |
 | **VJ-L1 (flatLeaf)** and **VJ-L3 (parseCSSSubValue)** | **NOT SHIPPED in value.js 1.0.2** — DISPATCH → **O.W10** asks value.js P; **O.W16** consumes | `AUDIT-DIGEST.md B7 BLOCKER`; `proof:workaround-deletion` S8+S9 PENDING |
 
@@ -261,9 +261,9 @@ Each is a binding record row.
 
 | Sub-directive | Terminal | Evidence / oracle |
 |---|---|---|
-| Fold ALL chronics (P-inv-28 — no perpetual punts) | **ADDRESSED (chartered)** — DM-2 (7-tranche): O.W5 BUILD-IN; DM-3 (7-tranche): O.W6 BUILD-IN; DM-1 (4-tranche): O.W12 BC-GATED CONSUME; DM-5 (chronicity 3): O.W16 VJ-P-GATED CONSUME + O.W10 DISPATCH; every chronic has a terminal home | `O.md §4`; `AUDIT-DIGEST.md F25/F28` |
-| No 8th carry for DM-2 (GlassControlPoint) | **ADDRESSED (chartered) — BUILD-IN** — O.W5 DemoControlPoint over LIGHT `Draggable`; born-RED: `proof:demo-control-point` (component absent today → GREEN on build); no sibling gate | `O.md §4 DM-2`; `AUDIT-DIGEST.md F25 critical` |
-| No 8th carry for DM-3 (MorphSVG) | **ADDRESSED (chartered) — BUILD-IN** — O.W6 `fromMorphSVG` over value.js 1.0.2 `PathGeometry`; born-RED: `proof:morphsvg-consume` (export absent today); value.js 1.0.2 PRESENT | `O.md §4 DM-3`; `AUDIT-DIGEST.md F25 critical`; value.js `dist/transform/path` confirmed |
+| Fold ALL chronics (P-inv-28 — no perpetual punts) | **ADDRESSED (chartered)** — DM-2 (born E · 7 carries through M): O.W5 BUILD-IN closes the forbidden 8th carry; DM-3 (born C · 7 carries through M): O.W6 BUILD-IN closes the forbidden 8th carry; DM-1 (5-tranche): O.W12 BC-GATED CONSUME; DM-5 (chronicity 3): O.W16 VJ-P-GATED CONSUME + O.W10 DISPATCH; every chronic has a terminal home | `O.md §4`; `AUDIT-DIGEST.md F25/F28` |
+| DM-2 (born E · 7 carries through M) — O closes the forbidden 8th carry via BUILD-IN | **ADDRESSED (chartered) — BUILD-IN** — O.W5 DemoControlPoint over LIGHT `Draggable`; born-RED: `proof:demo-control-point` (component absent today → GREEN on build); no sibling gate | `O.md §4 DM-2`; `AUDIT-DIGEST.md F25 critical` |
+| DM-3 (born C · 7 carries through M) — O closes the forbidden 8th carry via BUILD-IN | **ADDRESSED (chartered) — BUILD-IN** — O.W6 `fromMorphSVG` over value.js 1.0.2 `PathGeometry`; born-RED: `proof:morphsvg-consume` (export absent today); value.js 1.0.2 PRESENT | `O.md §4 DM-3`; `AUDIT-DIGEST.md F25 critical`; value.js `dist/transform/path` confirmed |
 | No-legacy — deprecated aliases drop | **ADDRESSED (chartered)** — O.W9 drops `Animation`/`ScrollTimeline`/`ScrollTimelineOptions` aliases (`engine.ts:1205`, `timeline.ts:218/171`); 22 demo consumers migrate; the major cut (DM-16) is the honest home | `O.md §2`; `AUDIT-DIGEST.md F29` |
 | No-legacy — `internal/leaves.ts` → `@mkbabb/value.js/math` | **ADDRESSED (chartered)** — O.W9 replaces the `clamp`/`scale`/`lerp`/`lerpArray` duplicates with the `./math` subpath (confirmed present: `value.js dist/subpaths/math.js`); `proof:boundary` W96 guards no regression | `O.md §2`; `AUDIT-DIGEST.md F29`; O.W9 |
 | Deferred-ledger sync (DM-24/DM-25/DM-W1-bridge missing rows) | **ADDRESSED (chartered)** — O.W2 inserts the three missing rows + corrects DM-4/DM-17 KILL→FIX framings | `O.md §3 Band A`; `AUDIT-DIGEST.md F26 critical` |
@@ -300,7 +300,7 @@ written there (F28 AUDIT-DIGEST). This doc absorbs them.
 | **Event 1 — N-tranche excursion** (owner initiated Tranche N mid-M-session; N.W0–N.W7 wave specs authored; prototype implemented on `n-stage-impl`; STAGE-SPEC authored 2026-06-18; shelved by owner directive) | **ADDRESSED** — N is a net-new tranche; inv-16 honored (demo-layer only); the shelve commit `e2375b8` + the STAGE-SPEC are the record; DM-24 rows the HANDOFF; O.W15 (Band F) unfurls N integration on BC dock + glass-ui BC cut publish. The proof gates chartered in the N wave specs (proof:n-stage-shell, proof:n-carousel-ring, etc.) are born-RED (absent on master — zero N-specific gates wired into proof:all per F27) and will be authored at O.W15. Evidence: `AUDIT-DIGEST.md F27`; `docs/tranches/N/STAGE-SPEC.md`; n-stage-impl commits `b271fa1`, `f14e943`, `8606eec`, `e2375b8`. |
 | **Event 2 — The reorient pivot ("stop stopping")** (owner directive 2026-06-18: proceed kf-internally; don't wait for sibling publishes to author gates; the campaign reorientation) | **ADDRESSED** — M.W11 reclassified Band A+C (`proof:css-parity` authored NOW, born-RED on installed 0.13.0); M.W8 Phase-1 (4.0.1 lockfile) actioned; born-RED gates authored against installed versions today rather than waiting for the sibling-publish condition. Carried forward: O NOW-phased waves (Band A+B+C+D.W9) are immediately executable, honoring the "stop stopping" directive. Evidence: `M-RECONCILIATION.md §6 Event 2`; `M-RECONCILIATION.md §3`; `O.md §3 phase axis`. |
 | **Event 3 — 32-lane constellation re-audit + CONSTELLATION-CAMPAIGN.md** (the re-audit conducted 2026-06-18; D1–D11 locked; the M-RECONCILIATION spec authored; M.W-DESIGN-PAINT + M.W15 wave stubs added; two O re-audit-surfaced asks filed) | **FOLD-INTO-M / ADDRESSED** — `CONSTELLATION-CAMPAIGN.md` is the record; `M-RECONCILIATION.md` is the spec; no source written (inv-16). The D1–D11 decisions are LOCKED (§3b above). The re-audit produced two net-new O DISPATCH asks: O.W10 (VJ-L1/L3 → value.js P) and O.W11 (glass-ui BC aria-orientation correction). Evidence: `docs/tranches/M/CONSTELLATION-CAMPAIGN.md`; `docs/tranches/M/M-RECONCILIATION.md`; `O.md §5`. |
-| **Event 4 — M.W1 implemented on `tranche-l-dev`** (commit `5d047ac`: `scripts/run-all.mjs` the parallel report-all runner; NOT on `n-stage-impl`; proof:report-all gate script ABSENT) | **PARTIALLY-ADDRESSED** — runner IMPLEMENTED at `5d047ac` (confirmed: `git log master -- scripts/run-all.mjs` → `5d047ac`); born-RED gate `proof:report-all` NOT yet authored on master; DM-W1-bridge ledger row captures the bridge gap. O.W1 completes: the lint/dep-cruiser tier + `proof:report-all` gate script. Evidence: `M-RECONCILIATION.md §2`; `5d047ac`; `AUDIT-DIGEST.md F28 stale-error correction: both run-all.mjs and proof-report-all.mjs exist on master at 5d047ac — the audit noted the gate script itself still needs authoring per M.W1.md §Born-RED`. |
+| **Event 4 — M.W1 implemented on `tranche-l-dev`** (commit `5d047ac`: `scripts/run-all.mjs` the parallel report-all runner AND `scripts/proof-report-all.mjs` the C1–C6 gate, both wired into `ci.yml`) | **ADDRESSED** — runner AND `proof:report-all` gate BOTH exist on master at `5d047ac` (CANON #6: `proof:report-all` is NOT unauthored — `scripts/proof-report-all.mjs` EXISTS on master at commit `5d047ac` with C1–C6 clauses + wired into `ci.yml`; the M.W1 runner + gate ARE BOTH IMPLEMENTED). DM-W1-bridge ledger row captures what O.W1 ADDS: the eslint/dep-cruiser lint-tier extension, NOT the gate re-authoring. Evidence: `M-RECONCILIATION.md §2`; `5d047ac`; `scripts/proof-report-all.mjs` PRESENT (master); `ci.yml` wired. |
 
 ---
 
@@ -308,9 +308,9 @@ written there (F28 AUDIT-DIGEST). This doc absorbs them.
 
 | Frontier (AUDIT-DIGEST lane) | O band · wave | Born-RED gate / the REAL observable |
 |---|---|---|
-| 1. Apparatus: M.W1 runner exists but gate absent; M.W2–W4 unbuilt | **Band A — O.W1 (lint), O.W2 (ledger + retarget)** | O.W1: `proof:lint-tier` (no eslint/dep-cruiser config today — born-RED by absence); O.W2: stale-gate retarget (S2 4.1.0→4.0.1; DM-4/DM-17 KILL→FIX; insert DM-24/DM-25/DM-W1-bridge rows) |
+| 1. Apparatus: M.W1 runner + proof:report-all gate BOTH exist (5d047ac); M.W2–W4 unbuilt | **Band A — O.W1 (lint), O.W2 (ledger + retarget)** | O.W1: `proof:lint-tier` (no eslint/dep-cruiser config today — born-RED by absence; runner+report-all gate already PRESENT); O.W2: stale-gate retarget (S2 4.1.0→4.0.1; DM-4/DM-17 KILL→FIX; insert DM-24/DM-25/DM-W1-bridge rows) |
 | 2. Engine correctness: ⚠M1 NaN named-selector + ⚠M2/M3 oklch/densify active | **Band B — O.W3 (named-selector NaN), O.W4 (multi-color)** | O.W3: a named-selector frame asserts NOT NaN + `NAMED_SELECTOR_NO_TIMELINE` actually thrown (today: typed, never thrown); O.W4: `oklch` fixture asserts `oklch(` in output; mixed animation preserves non-color props |
-| 3. Chronic terminals: DM-2/DM-3 not built, 8-tranche P-inv-28 violation | **Band C — O.W5 (DemoControlPoint), O.W6 (fromMorphSVG)** | O.W5: `proof:demo-control-point` born-RED (DemoControlPoint.vue absent today); O.W6: `proof:morphsvg-consume` born-RED (`fromMorphSVG` absent today) |
+| 3. Chronic terminals: DM-2 (born E) / DM-3 (born C) · 7 carries through M · forbidden 8th carry (not built) | **Band C — O.W5 (DemoControlPoint), O.W6 (fromMorphSVG)** | O.W5: `proof:demo-control-point` born-RED (DemoControlPoint.vue absent today); O.W6: `proof:morphsvg-consume` born-RED (`fromMorphSVG` absent today) |
 | 4. No-legacy + transpositions: aliases live; leaves.ts duplicates; engine 1397L | **Band D — O.W7 (engine-seam VJ-gated), O.W8 (perf), O.W9 (no-legacy cuts)** | O.W9 (NOW): `proof:changelog-5.0.0` asserts FOUR breaking changes; `proof:no-leaves-dupe` asserts leaves.ts empty/absent; O.W7 (VJ-gated): engine.ts ≤ 900L |
 | 5. BC-gated consume: S1/S2 PENDING; design-paint gate absent; N-Stage unshelf | **Band F — O.W12 (S1/S2 + re-pin), O.W13 (design-paint), O.W14 (lighthouse posture), O.W15 (N Stage unshelf DM-24)** | O.W12: `proof:workaround-deletion` S1+S2 GREEN post-BC; O.W13: `proof:design-paint` pixel-readback (gate script absent today → born-RED); O.W14: posture flip observe→hard |
 | 6. VJ-P-gated consume: S8/S9 PENDING (VJ-L1/L3 absent from 1.0.2) | **Band G — O.W16 (S8 FN_NAME + S9 parse-that delete)** | O.W16: `proof:workaround-deletion` S8+S9 GREEN + `proof:boundary` W96 no-import (today PENDING — tripwire: value.js P ships VJ-L1+L3) |
@@ -323,15 +323,15 @@ written there (F28 AUDIT-DIGEST). This doc absorbs them.
 
 | Chronic (chronicity at O) | O terminal | Oracle / tripwire |
 |---|---|---|
-| **DM-2 GlassControlPoint** (G→M = 7-tranche, O = **8th — FORBIDDEN**) | **O.W5 BUILD-IN** — `DemoControlPoint.vue` over LIGHT `Draggable` (BC said NO; kf owns it); `proof:control-point-live` RETIRED; `proof:demo-control-point` authored born-RED on absence | `O.md §4`; `AUDIT-DIGEST.md F25/F28` |
-| **DM-3 MorphSVG** (C→M = 7-tranche, O = **8th — FORBIDDEN**) | **O.W6 BUILD-IN** — `fromMorphSVG` over value.js 1.0.2 `PathGeometry` (`dist/transform/path` confirmed); `proof:morphsvg-consume` born-RED on absent export | `O.md §4`; `AUDIT-DIGEST.md F25/F28` |
-| **DM-1 RF-17** (I,J,K,L,M→O = 5-tranche) | **O.W12 CONSUME (BC-gated)** — S2 `pointerHandled`/`onPlayPointerDown` delete on BC cut + verify the crossfade-strand case eliminated by BC dock buttery engine (S2 comment at `TransportDock.vue:313` notes the integrity composable does NOT subsume the twin) | `O.md §4`; `AUDIT-DIGEST.md A3`; `proof:workaround-deletion` S2 |
-| **DM-5 S8/S9 workarounds** (K,L,M→O = chronicity 3) | **O.W16 CONSUME** on value.js P (VJ-L1/L3); dispatched at O.W10; named P-inv-28 terminal window: if value.js P slips past kf-Q, the terminal fires at Q (chronicity 4 = mandatory exit belt) | `O.md §4`; `AUDIT-DIGEST.md B10`; tripwire: `flatLeaf in vj` = false today |
+| **DM-2 GlassControlPoint** (born E · 7 carries through M · O closes the forbidden 8th carry via BUILD-IN) | **O.W5 BUILD-IN** — `DemoControlPoint.vue` over LIGHT `Draggable` (BC said NO; kf owns it); `proof:control-point-live` RETIRED; `proof:demo-control-point` authored born-RED on absence | `O.md §4`; `AUDIT-DIGEST.md F25/F28` |
+| **DM-3 MorphSVG** (born C · 7 carries through M · O closes the forbidden 8th carry via BUILD-IN) | **O.W6 BUILD-IN** — `fromMorphSVG` over value.js 1.0.2 `PathGeometry` (`dist/transform/path` confirmed); `proof:morphsvg-consume` born-RED on absent export | `O.md §4`; `AUDIT-DIGEST.md F25/F28` |
+| **DM-1 RF-17** (I,J,K,L,M→O = 5-tranche) | **O.W12 CONSUME (BC-gated)** — S2 `pointerHandled`/`onPlayPointerDown` delete on BC cut + verify the crossfade-strand case eliminated by BC dock buttery engine (S2 comment at `TransportDock.vue:313` notes the integrity composable does NOT subsume the twin); PRE-AUTHORED CONTINGENCY KILL on file (see deferred-ledger-O §6) | `O.md §4`; `AUDIT-DIGEST.md A3`; `proof:workaround-deletion` S2 |
+| **DM-5 S8/S9 workarounds** (K,L,M→O = chronicity 3) | **O.W16 CONSUME** on value.js P (VJ-L1/L3); dispatched at O.W10; named P-inv-28 terminal window: if value.js P slips past kf-P, the terminal fires at kf-P (chronicity 4 = mandatory exit belt) | `O.md §4`; `AUDIT-DIGEST.md B10`; tripwire: `flatLeaf in vj` = false today |
 | **DM-7 keyframes-vue** (→M = USER-DOMAIN carry) | **USER-DOMAIN** (Mike Babb) — `@mkbabb/keyframes-vue@0.1.0` E404; verify types against 5.0.0 renames before publish | `O.md §6`; `proof:keyframes-vue-published` RED |
 | **DM-16 no-legacy renames (5.0.0 cut)** | **O.W9 + O.WZ** — the four breaking changes chartered + `proof:changelog-5.0.0` born-RED | `O.md §6`; `AUDIT-DIGEST.md F29` |
 | **DM-24 N Stage HANDOFF** | **O.W15 CONSUME** on BC dock (BC cut publish fires the tripwire); the STAGE-SPEC is the rebuild plan; author 15 N-specific proof gates before merge | `O.md §3 Band F`; `AUDIT-DIGEST.md F27` |
 | **DM-25 consume-bundle** | **BORN-CLOSED** — `proof:consume-bundle` GREEN at `96bec5e`; ledger row insert in O.W2 | `AUDIT-DIGEST.md F26`; `96bec5e` |
-| **DM-W1-bridge** (proof:report-all gate ABSENT) | **O.W1** (the lint/apparatus wave authors the gate script per M.W1.md §Born-RED C1–C6 clauses) | `M-RECONCILIATION.md §2`; O.W1 |
+| **DM-W1-bridge** (proof:report-all BOTH runner+gate PRESENT at 5d047ac; O.W1 adds lint-tier) | **O.W1** (the lint/apparatus wave adds eslint/dep-cruiser tier atop the existing runner+gate; `proof:report-all` C1–C6 already PRESENT at `5d047ac`) | `M-RECONCILIATION.md §2`; O.W1; `scripts/proof-report-all.mjs` master |
 | **The 5 PENDING workaround arms (S1/S2/S8/S9 + leaves.ts)** | S1/S2: O.W12 (BC-gated) · S8/S9: O.W16 (VJ-P-gated) · leaves.ts: O.W9 (NOW) | `proof:workaround-deletion` 4-PENDING; O.W9/W12/W16 |
 
 ---
@@ -394,7 +394,7 @@ The following cross-checks confirm zero drops:
 | Demo-gate cascade | ADDRESSED in §5 above |
 | THIS Tranche-O ask (32-agent re-audit + fold-all + no-legacy + gestalt + dev-only) | ADDRESSED in §6a–§6d above |
 | Four O re-audit frontiers (AUDIT-DIGEST.md F28 + lanes) | ADDRESSED in §8 above |
-| Chronic terminal P-inv-28 (DM-2/DM-3 8-tranche, DM-1 5-tranche, DM-5 chron-3) | ADDRESSED in §9 above |
+| Chronic terminal P-inv-28 (DM-2 born-E/DM-3 born-C · 7 carries through M · forbidden 8th; DM-1 5-tranche; DM-5 chron-3) | ADDRESSED in §9 above |
 | Cross-repo dispatches (VJ-L1/L3, glass-ui BC aria-orientation correction) | ADDRESSED in §10 above |
 | USER-DOMAIN finale (5.0.0 cut, publishes, TASTE, BC/VJ-P tripwires) | ADDRESSED in §11 above |
 
@@ -402,7 +402,6 @@ The following cross-checks confirm zero drops:
 
 | Row | Partial state | O wave that completes |
 |---|---|---|
-| M.W1 (runner exists; gate `proof:report-all` absent) | Runner IMPLEMENTED; gate NOT authored | **O.W1** (authors C1–C6 clauses per M.W1.md §Born-RED) |
 | "Totality" (campaign closed actionable-NOW; 14/16 M waves DEVELOPED-not-IMPL) | Actionable-NOW slice DONE; residuals open | **O.W1–O.WZ** (the full O band structure) |
 | S7 deleted; S1/S2/S8/S9 PENDING | S7 GREEN; 4 arms PENDING | **O.W12** (S1/S2 BC-gated) · **O.W16** (S8/S9 VJ-P-gated) |
 | M.W8 Phase-1 FIRED (4.0.1 lockfile); Phase-2 PENDING | Phase-1 GREEN; Phase-2 BC-gated | **O.W12** (Phase-2 fires on BC cut) |
@@ -450,15 +449,15 @@ completing O wave named. That is the inv ε open.**
 | Campaign mandate sub-directives (§3a) | 4 | ADDRESSED / PARTIALLY-ADDRESSED (residuals → O waves) |
 | D1–D11 locked decisions (§3b) | 11 | 11 ADDRESSED |
 | Observatory-truth lessons (§3c) | 5 | 5 ADDRESSED |
-| Campaign deliverables (§3d) | 14 | 12 ADDRESSED (SHIPPED) · 2 NOT SHIPPED (VJ-L1/L3) → O.W10 DISPATCH + O.W16 CONSUME |
+| Campaign deliverables (§3d) | 14 | 12 ADDRESSED (SHIPPED; M.W1 fully delivered — runner+gate both at 5d047ac) · 2 NOT SHIPPED (VJ-L1/L3) → O.W10 DISPATCH + O.W16 CONSUME |
 | Master merge (§4) | 5 sub | 3 ADDRESSED · 1 USER-DOMAIN · 1 PARTIALLY (CI posture) |
 | Demo-gate cascade (§5) | 12 | 9 ADDRESSED · 3 NOT DONE (proof:chronic-closure, keyframes-vue, round-trip formal gate) → O.W2/O.WZ |
 | THIS Tranche-O ask sub-directives (§6a–§6d) | 12 | 9 ADDRESSED · 3 PARTIAL (wave specs in parallel fan-out; O.W0 gate) |
 | O re-audit frontiers (§8) | 8 | 8 → named O bands/waves (A/B/C/D/E/F/G/Z), each born-RED-gated |
-| Chronic/deferred terminal P-inv-28 (§9) | 10 rows | 2 BUILD-IN (DM-2/DM-3) · 1 BC-GATED (DM-1) · 1 VJ-P-GATED (DM-5) · 1 BORN-CLOSED (DM-25) · 2 O-NOW (DM-16/DM-W1) · 2 USER-DOMAIN (DM-7/DM-24 tripwire) · 1 (leaves.ts NOW) |
+| Chronic/deferred terminal P-inv-28 (§9) | 10 rows | 2 BUILD-IN (DM-2 born-E/DM-3 born-C · 7 carries through M · forbidden 8th closed via BUILD-IN) · 1 BC-GATED (DM-1 · 5-tranche · no 6th carry) · 1 VJ-P-GATED (DM-5 · chronicity 3 · kf-P belt at 4) · 1 BORN-CLOSED (DM-25) · 2 O-NOW (DM-16/DM-W1) · 2 USER-DOMAIN (DM-7/DM-24 tripwire) · 1 (leaves.ts NOW) |
 | Cross-repo asks + sequencing (§10) | 3 dispatch + sequencing | 1 FILED-at-M (glass-ui BC) · 2 DISPATCH-at-O (VJ-P + glass-ui aria correction) · 1 USER-DOMAIN Oscillator |
 | USER-DOMAIN finale (§11) | 8 | USER-DOMAIN (5.0.0 cut, publishes, TASTE, BC cut, VJ-P) · HANDOFF (proof:all, round-trip, parse-that B) — NONE asserted done |
-| PARTIALLY-ADDRESSED rows with completing O wave | 5 | ALL named with their O wave (§12) |
+| PARTIALLY-ADDRESSED rows with completing O wave | 4 | ALL named with their O wave (§12); proof:report-all PROMOTED to ADDRESSED (CANON #6) |
 
 **Zero drops. Every request A→M (chain-trusted) and every NEW constellation-campaign + master-merge
 + demo-gate + Tranche-O-ask request reaches a TERMINAL verdict: ADDRESSED / HANDOFF / USER-DOMAIN

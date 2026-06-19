@@ -2,7 +2,7 @@
 
 **Band:** D — Transposition + no-legacy
 **Phase:** VJ-L1-GATED (fires atomically on value.js Tranche P shipping VJ-L1 flatLeaf, consumed via O.W16; NOT NOW)
-**Sequence:** O.W10 (KF-TO-VALUEJS-P-ASKS dispatch) → value.js P publish (VJ-L1) → **O.W16** (S8 FN_NAME delete) → **O.W7** (the split over the cleared `utils.ts` seam) → O.WZ (chronic-closure reads DF-11-A discharged)
+**Sequence:** O.W10 (KF-TO-VALUEJS-P-ASKS dispatch) → value.js P publish (VJ-L1) → **O.W16** (S8 FN_NAME delete) → **O.W7** (the split over the cleared `utils.ts` seam) → O.WZ (chronic-closure reads DF-11-A discharged). The value.js-P spine edge is `O.W16 → O.W7 → O.WZ` — this wave (O.W7) sits BETWEEN O.W16 and the close, NOT a dangling "(VJ-L1)" label.
 **Owning chronic/DM:** DF-11-A (the FULL engine-seam transposition; the single largest structural debt in the library surface, lane-11 §10 / C15) + DF-11-B (the co-deferred group.ts compositor arm)
 
 M-substrate: **M.W13** (the engine-seam transposition developed wave, 2026-06-17). This wave
@@ -76,7 +76,7 @@ edge**. O re-forms it: **O.W10 dispatches VJ-L1 to value.js Tranche P → value.
 O.W16 deletes S8 (`proof:workaround-deletion` S8 flips PENDING→GREEN) → O.W7 splits the engine over
 the cleared seam.** O.W7 is a **GATED** wave: not startable until O.W16 lands. (DM-5 S8 chronicity:
 K,L,M→O = 3 today, named with its terminal value.js-P home per P-inv-28 — not a perpetual punt;
-the belt fires at chronicity 4 / kf-Q if value.js P slips.)
+the `P-inv-28 >=4` belt fires at **kf-P** (the NEXT kf tranche after O, NOT kf-Q) if value.js P slips.)
 
 **The three-place ceiling enforcement (the gate ground truth, from M.W13 §Context, re-verified).**
 The engine.ts ceiling is enforced in THREE gates, not one:

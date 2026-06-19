@@ -48,12 +48,14 @@ the M wave specs are O's substrate (referenced, delta'd — never re-authored).
 The re-audit enumerated the concrete violations the tree carries **right now** — each owed a
 terminal transposition in O (not a band-aid):
 
-- **Chronic carries (P-invariant-28 — no perpetual punts).** `DM-2` GlassControlPoint (7-tranche)
-  and `DM-3` MorphSVG (7-tranche) were both declared **"ABSOLUTE terminal at M — no 8th BOOK"** in
-  the deferred ledger — yet **neither was built.** This is the forbidden 8th carry. O Band C builds
-  both in (kf-owned, no sibling gate — value.js 1.0.2 already ships the `PathGeometry`
+- **Chronic carries (P-invariant-28 — no perpetual punts).** `DM-2` GlassControlPoint (born E) and
+  `DM-3` MorphSVG (born C) — **DM-2 (born E) / DM-3 (born C) · 7 carries through M** — were both
+  declared **"ABSOLUTE terminal at M — no 8th carry"** in the deferred ledger, yet **M.W14 NEVER
+  BUILT them** (the forbidden 8th carry). O Band C builds both in over a PUBLISHED substrate
+  (kf-owned, no sibling gate — value.js 1.0.2 already ships the `PathGeometry`
   `getTotalLength`/`getPointAtLength` that MorphSVG needs, and BC decided GlassControlPoint=NO so
-  kf owns `DemoControlPoint` over its LIGHT `Draggable`). **No 8th ride.**
+  kf owns `DemoControlPoint` over its LIGHT `Draggable`/`drag2D`). **O closes the forbidden 8th
+  carry via BUILD-IN — no 9th ride.**
 - **Legacy on the published surface (no-legacy → the 5.0.0 cut absorbs it).** Deprecated `Animation`
   type alias (19 demo consumers) → `KeyframesAnimation`; `@deprecated ScrollTimeline`/`ScrollTimelineOptions`
   aliases → dropped; `internal/leaves.ts` duplicating `clamp`/`scale`/`lerp`/`lerpArray` that value.js
@@ -81,35 +83,40 @@ cross-repo ask), or **GATED** (fires atomically on a named sibling publish).
 |---|---|---|---|
 | **A — Apparatus + ledger hygiene** | O.W0 (charter), O.W1 (lint/dep-cruiser tier), O.W2 (ledger re-point + stale-gate retarget) | NOW | the fast-iterate floor + the BB→BC / 4.1.0→BC-cut / DM-4→FIX / DM-24-add corrections, in one honest pass |
 | **B — Engine correctness** | O.W3 (named-selector NaN-frame cure), O.W4 (multi-color refusal + ingest) | NOW | `NAMED_SELECTOR_NO_TIMELINE` actually thrown; the DM-22 NaN-always-active frame bug fixed |
-| **C — The chronic terminals (P-inv-28 ABSOLUTE)** | O.W5 (`DemoControlPoint` over LIGHT `Draggable` + retire control-point-live), O.W6 (`fromMorphSVG` over value.js `PathGeometry`) | NOW | the two 7-tranche chronics **built in** — the forbidden 8th carry closed |
-| **D — Transposition + no-legacy** | O.W7 (engine-seam `engine.ts` 1397→~900), O.W8 (perf), O.W9 (no-legacy cuts: aliases + `leaves.ts`→`/math`) | NOW (W9) · VJ-gated (W7) | the god-object split + the elegance/perf transpositions + the legacy purge |
+| **C — The chronic terminals (P-inv-28 ABSOLUTE)** | O.W5 (`DemoControlPoint` over LIGHT `Draggable` + retire control-point-live), O.W6 (`fromMorphSVG` over value.js `PathGeometry`) | NOW | DM-2 (born E) / DM-3 (born C) · 7 carries through M · **O closes the forbidden 8th carry via BUILD-IN** |
+| **D — Transposition + no-legacy** | O.W7 (engine-seam `engine.ts` 1397→~900), O.W8 (perf), O.W9 (no-legacy cuts: aliases + `leaves.ts`→`/math`) | NOW W8,W9 · VJ-P-gated W7 | the god-object split + the elegance/perf transpositions + the legacy purge |
 | **E — Sibling dispatch** | O.W10 (`KF-TO-VALUEJS-P-ASKS`: VJ-L1 flatLeaf + VJ-L3 parseCSSSubValue), O.W11 (glass-ui BC aria-orientation **correction** ask) | DISPATCH | the two genuinely-new cross-repo asks the re-audit surfaced |
-| **F — glass-ui BC consume** | O.W12 (S1+S2 delete + re-pin BC cut), O.W13 (design-paint pixel-readback on BC glass), O.W14 (lighthouse posture flip), O.W15 (N Stage unshelf, DM-24) | GATED (BC cut) | the BC-gated consume — fires atomically on the BC publish |
+| **F — glass-ui BC consume** | O.W12 (S1+S2 delete + re-pin BC cut), O.W13 (design-paint pixel-readback on BC glass), O.W14 (lighthouse posture flip + content-visibility gate + hero word-gap verify), O.W15 (N Stage unshelf, DM-24) | GATED-BC-cut W12,W14/S1+S3,W15 · NOW-author W13/S1-gate,W14/S4-word-gap | the BC-gated consume (W12→W13→W14→W15) — the lighthouse floors lock at W14 before the W15 N-Stage perf integration |
 | **G — value.js-P consume** | O.W16 (S8 `FN_NAME` + S9 parse-that delete; `proof:boundary` W96 scan GREEN) | GATED (value.js P) | the engine-seam unblock + the boundary-honesty close |
 | **Z — Close + the 5.0.0 cut** | O.WZ (`proof:changelog-5.0.0`, Oscillator republish, keyframes-vue, deploy round-trip, ledger re-point M→O) | NOW-author · USER-DOMAIN publish | the major cut + the auto round-trip restored |
 
 **The DAG (phase-ordered).**
 ```
 O.W0 charter ─► A{W1 lint, W2 ledger} ─► B{W3 nan-frame, W4 ingest} ─► C{W5 DemoControlPoint, W6 MorphSVG}
-                       │                                                          │
-                       ├──────────────► D.W9 no-legacy cuts (NOW) ───────────────┤
-                       │                                                          ▼
-   E.W10 value.js-P ask ──┐                                              D.W7 engine-seam ◄── (VJ-L1)
-   E.W11 glass-ui aria ──┐│                                                          │
-                         ▼▼                                                          ▼
-                 G.W16 (VJ-L1/L3 publish) ──────────────────────────────► O.WZ close ◄─── F{W12 S1/S2, W13 paint, W14 lighthouse, W15 N-Stage} (BC cut)
+                       │                                                                       │
+                       ├──────────► D.W9 no-legacy cuts (NOW) ──────────────────────┐          │
+                       ├──────────► D.W8 perf (NOW) ────────────────────────────────┤          │
+                       │                                                            ▼          ▼
+   E.W10 value.js-P ask ──┐                                                                     │
+   E.W11 glass-ui aria ──┐│                                                                     ▼
+                         ▼▼            value.js-P spine                                    O.WZ close
+                 G.W16 (VJ-L1/L3 publish) ──► D.W7 engine-seam (VJ-L1) ──────────────────────► ▲
+                                                                                                │
+                 F (BC cut): W12 S1/S2 ─► W13 paint ─► W14 lighthouse+CV+word-gap ─► W15 N-Stage ┘
 ```
-Bands A→C + D.W9 are **immediately executable** (the bulk of the value). D.W7, G are value.js-P-gated;
-F is BC-gated; Z closes when all green + the USER-DOMAIN publishes fire.
+Bands A→C + D.W8 + D.W9 are **immediately executable** (the bulk of the value). The value.js-P spine
+is **G.W16 → D.W7 → O.WZ** (D.W7 engine-seam sits BETWEEN O.W16 and the close, unblocked by VJ-L1);
+F is BC-gated, sequenced **W12 → W13 → W14 → W15** (W14's lighthouse floors lock BEFORE W15's
+N-Stage perf integration); Z closes when all green + the USER-DOMAIN publishes fire.
 
 ## 4 — The chronic terminals (no 8th carry)
 
 | Chronic | Tranches carried | O terminal |
 |---|---|---|
-| **DM-2 GlassControlPoint** | 7 (G→M) | **O.W5 BUILD-IN** — `DemoControlPoint.vue` over the LIGHT `Draggable`/`drag2D` (BC said NO; kf owns it). Retire `proof:control-point-live`; author `proof:demo-control-point` born-RED on the absent component, GREEN on the build. |
-| **DM-3 MorphSVG** | 7 (G→M) | **O.W6 BUILD-IN** — `fromMorphSVG` over value.js 1.0.2 `PathGeometry` (`dist/transform/path`: `getTotalLength`/`getPointAtLength` confirmed published). Author `proof:morphsvg-consume` born-RED on the absent export. No sibling gate. |
-| **DM-1 RF-17 dock crossfade** | 4 (I→M) | **O.W12 CONSUME** — delete S2 on the BC cut (`useDockClickIntegrity` ships at BC HEAD). BC-gated; the cut is the unblock. |
-| **DM-5 S8/S9 value.js workarounds** | 2 (K→M), →3 at O | **O.W16 CONSUME** on value.js P (VJ-L1/L3). Dispatched at O.W10; P-inv-28 belt fires at chronicity 4 (kf-Q) if value.js P slips — the terminal window is named explicitly, not left open. |
+| **DM-2 GlassControlPoint** | born E · 7 carries through M | **O.W5 BUILD-IN** — `DemoControlPoint.vue` over the LIGHT `Draggable`/`drag2D` (BC said NO; kf owns it). Retire `proof:control-point-live`; author `proof:demo-control-point` born-RED on the absent component, GREEN on the build. **O closes the forbidden 8th carry.** |
+| **DM-3 MorphSVG** | born C · 7 carries through M | **O.W6 BUILD-IN** — `fromMorphSVG` over value.js 1.0.2 `PathGeometry` (`dist/transform/path`: `getTotalLength`/`getPointAtLength` confirmed published). Author `proof:morphsvg-consume` born-RED on the absent export. No sibling gate. **O closes the forbidden 8th carry.** |
+| **DM-1 RF-17 dock crossfade** | 5-tranche entering O (I,J,K,L,M carried in-tree) | **O.W12 CONSUME** — delete S2 on the BC cut (`useDockClickIntegrity` ships at BC HEAD). BC-gated; the cut is the unblock. A pre-authored CONTINGENCY KILL stands in `deferred-ledger-O.md §6` if the S2 dock-pointer interim has no BC cut at the O.WZ close-gate (reclassify to a declared kf-internal input-integrity seam; VOID the instant glass-ui ships `useDockClickIntegrity`). |
+| **DM-5 S8/S9 value.js workarounds** | chronicity 3 entering O (K,L,M) | **O.W16 CONSUME** on value.js P (VJ-L1/L3). Dispatched at O.W10; the P-inv-28 ≥4 belt fires at **kf-P** (the NEXT kf tranche after O) if value.js P slips — the terminal window is named explicitly, not left open. Two-arm fallback: S8 → a kf-side `WeakMap<ValueUnit,string>` at flatten time (realm-CLEAN, but does NOT survive `ValueUnit.clone()` — VJ-L1 strictly preferred); S9 → a DECLARED spine-edge quarantine (not eliminable without VJ-L3). |
 
 ## 5 — The sibling dispatches (inv-16 — kf asks, never writes)
 

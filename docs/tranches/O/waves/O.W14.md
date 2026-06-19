@@ -5,8 +5,11 @@
 for S4 hero word-gap assertion verify (kf-internal, no sibling dep — the source fix is already
 landed at `AnimatedText.vue:29-30`; the born-RED gate clause is absent)
 **Sequence:** O.W12 (S1+S2 workaround deletes + re-pin) → O.W13 (design-paint baseline lock) →
-**O.W14** (lighthouse posture flip + content-visibility gate + hero word-gap clause) → O.W15
-(sequence + motion-path floor additions)
+**O.W14** (lighthouse posture flip + content-visibility gate + hero word-gap clause) → **O.W15**
+(the N Stage unshelf, DM-24 — the owning wave). Per CANON #8, O.W14's lighthouse floors lock
+BEFORE O.W15's N-Stage perf integration; the sequence + motion-path ceiling additions fold into
+O.W15's N-Stage perf integration (the BC-consumed-actuals measurement that W15 performs on the
+integrated tree).
 **Owning chronic/DM:** DM-8 (Lighthouse floors VERIFY-ONLY chronic — S1 promotes it from
 observe-only → hard-gate via a posture flip; P-inv-28 does not formally fire here as DM-8 is
 classified VERIFY-ONLY at O, but the no-perpetual-punts precept demands the posture flip at the
@@ -30,10 +33,12 @@ gate, S3 consume-bundle, S4 BC.W-LIGHTHOUSE coord record). Delta from M.W15 to O
   `marginInlineEnd: 0.25em`). But the `proof:demo-usability` X-5 hero gap clause must be verified
   on the BC-consumed `dist/gh-pages` build — if the built dist does not include the cure (e.g. a
   stale dist, a misconfigured build), the gate bites. O.W14 makes this the explicit verify step (S4).
-- The N Stage unshelf (DM-24) is named in the PROGRESS.md O.W14 row but is the CONTENT of O.W15
-  per the O.md Band F description ("O.W15 — N Stage unshelf, DM-24"). O.W14 owns the perf posture
-  machinery; O.W15 owns the N Stage demo-content. The DM-24 unshelf follows the lighthouse floors
-  being locked (O.W14 GREEN is the pre-condition for O.W15's DM-24 content integration).
+- O.W14 carries NO N Stage content (CANON #8). O.W14 = lighthouse posture flip + content-visibility
+  gate + hero word-gap verify ONLY. The N Stage unshelf (DM-24) is the CONTENT of O.W15 (the owning
+  wave, per CANON #8). O.W14 owns the perf posture machinery; O.W15 owns the N Stage demo-content +
+  its N-Stage perf integration. The Band F consume order is `O.W12 → O.W13 → O.W14 → O.W15`: O.W14's
+  lighthouse floors lock BEFORE O.W15's N-Stage perf integration (O.W14 GREEN is the pre-condition
+  for O.W15). If the PROGRESS.md O.W14 row still names DM-24, that is a stale label — DM-24 is O.W15.
 
 ---
 
@@ -193,10 +198,12 @@ hidden` or any cv:auto element), the gate covers those elements immediately.
 **O.W14 scope (this wave):** the 6 existing scenes in `SCENE_CEILINGS` (home, cube, amiga, square,
 easing, spring). The posture flip (S1) covers exactly these 6.
 
-**O.W15 scope (next wave):** ADD `sequence` and `motion-path` to `SCENE_CEILINGS` at their
-BC-consumed actuals. Those two scenes are currently ABSENT from `SCENE_CEILINGS` and are silently
-skipped by `if (ceiling == null) continue` — an E22/E23 audit finding. The addition belongs in
-O.W15 because O.W15 is the Demo-perf + CWV wave that extends the measurement coverage.
+**O.W15 scope (next wave — the N Stage unshelf, DM-24):** ADD `sequence` and `motion-path` to
+`SCENE_CEILINGS` at their BC-consumed actuals, as part of O.W15's N-Stage perf integration. Those
+two scenes are currently ABSENT from `SCENE_CEILINGS` and are silently skipped by
+`if (ceiling == null) continue` — an E22/E23 audit finding. The addition folds into O.W15 because
+O.W15 is where the N Stage integrates and the post-integration BC-consumed perf actuals are measured
+(CANON #8: W14's lighthouse floors lock BEFORE W15's N-Stage perf integration).
 
 This boundary ensures O.W14 does not attempt to set floors for scenes whose BC-consumed performance
 is unknown at authoring time. Both waves are BC-gated; the floor measurements happen post-BC.
@@ -292,9 +299,10 @@ build; the verify step is the open obligation.
   independent checks (pixel readback vs. layout measurement) and can run in parallel after O.W12.
   The ordering in the Sequence header (O.W13 → O.W14) is a DOCUMENTATION ordering; at impl time
   both S4 verifications run on the same dist build.
-- **O.W15 (sequence + motion-path floors) — the successor.** O.W14 SCOPES OUT the sequence and
-  motion-path ceiling additions. O.W15 fires after O.W14 GREENs and the 6-scene posture flip is
-  confirmed stable.
+- **O.W15 (the N Stage unshelf, DM-24) — the successor.** O.W14 SCOPES OUT the sequence and
+  motion-path ceiling additions; they fold into O.W15's N-Stage perf integration. O.W15 fires after
+  O.W14 GREENs and the 6-scene posture flip is confirmed stable (CANON #8: W14 floors lock BEFORE
+  W15's N-Stage perf integration).
 - **`dist/gh-pages` build** — the gates serve the built dist, not Vite-transformed source. `npm run
   gh-pages` must precede every gate run in this wave.
 - **Playwright + lighthouse devDeps** — already added to `devDependencies` via the existing CI step
@@ -327,4 +335,5 @@ the GREEN transition fires post-BC on the BC-consumed demo.
 4. Run S2 (`proof:content-visibility-gated`) on BC-consumed demo → confirm loop-pause or defer to O.W15.
 5. Run `node scripts/proof-demo-usability.mjs` → confirm hero word-gap clause GREEN (S4).
 6. `npm run proof:all` → GREEN.
-7. O.W15 fires: adds sequence + motion-path to `SCENE_CEILINGS` and unshelf DM-24 N Stage.
+7. O.W15 fires: the N Stage unshelf (DM-24) — its N-Stage perf integration adds sequence +
+   motion-path to `SCENE_CEILINGS` on the integrated tree.
