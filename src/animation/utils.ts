@@ -183,20 +183,15 @@ export const getTimingFunction = (
     // degrades to the registry lookup exactly as the old shim did (never a
     // silent wrong curve). `cssLinear` then closes the round-trip.
     if (LINEAR_PAREN_PREFIX.test(timingFunction)) {
-        // value.js's own stylesheet serializer (`rule.timingFunction`) emits a
-        // `linear()`'s stops as a FLAT comma list — `linear(0, 0.5, 25%, 1)` —
-        // not the canonical space-joined `linear(0, 0.5 25%, 1)`. That form its
-        // OWN `parseLinearStops` rejects, breaking the engine's spring-`linear()`
-        // round-trip (a value.js 0.12.0 serialize/parse asymmetry). Fold a
-        // comma that DIRECTLY precedes a `<number>%` back to a space: a `%` token
-        // can only be a stop's INPUT position (a `%` output is invalid CSS), so
-        // the fold is unambiguous. A canonical author `linear()` is untouched.
-        const normalized = timingFunction.replace(
-            /,\s*(-?[\d.]+%)/g,
-            " $1",
-        );
+        // value.js's serializer now emits canonical space-joined `linear()` stops
+        // (`linear(0, 0.5 25%, 1)`) — VJ-L2 (value.js ≥ 1.0.0), consumed here — so
+        // `parseLinearStops` takes the string DIRECTLY. The former flat-comma
+        // normalize fold (a value.js 0.12.0 serialize/parse asymmetry workaround)
+        // is RETIRED with the consume of the root fix (proof:workaround-deletion S7).
+        // A bad `linear()` still degrades to the registry lookup (never a silent
+        // wrong curve), exactly as before.
         try {
-            return cssLinear(parseLinearStops(normalized));
+            return cssLinear(parseLinearStops(timingFunction));
         } catch {
             // fall through to the registry / undefined
         }

@@ -124,6 +124,36 @@ const isVue = (f) => f.endsWith(".vue");
 const isTs = (f) => f.endsWith(".ts");
 const exact = (rel) => (f) => f === join(root, rel);
 
+// ── Replacement-API capability probe (observable-truth) ──
+//
+// A registry version EXISTING does NOT prove the specific consume-edge fix
+// landed: value.js's O tranche shipped VJ-L2 (linear() serialize) but DEFERRED
+// VJ-L1 (flatLeaf provenance) and VJ-L3 (parseCSSSubValue). So the version-publish
+// probe alone over-reports — it flips S8/S9 RED on the mere existence of
+// value.js@0.14.0+ even though those APIs are absent. An arm is RED only when the
+// REPLACEMENT API is genuinely consumable; "version published but API absent" is
+// PENDING (held until the API actually ships), NOT RED. The gate checks the
+// installed value.js for each replacement.
+const vjs = await import("@mkbabb/value.js").catch(() => ({}));
+const vjsCaps = {
+    // VJ-L2 — linear() serializes with space-separated position hints.
+    linearSerialize: (() => {
+        try {
+            return (
+                vjs.parseCSSValue?.("linear(0, 0.5 50%, 1)")?.toString() ===
+                "linear(0, 0.5 50%, 1)"
+            );
+        } catch {
+            return false;
+        }
+    })(),
+    // VJ-L1 — a first-class flat-leaf provenance API (NOT shipped in O).
+    flatLeaf: "flatLeaf" in vjs || "flatLeaves" in vjs,
+    // VJ-L3 — a sub-value parse helper so kf need not reach parse-that directly
+    // (NOT shipped in O).
+    parseCSSSubValue: "parseCSSSubValue" in vjs || "parseSingleValue" in vjs,
+};
+
 // ── Publish probe (the three-state classifier's PUBLISHED/UNPUBLISHED axis) ──
 
 /**
@@ -200,14 +230,19 @@ const arms = [
     {
         id: "S7",
         title:
-            "linear() flat-comma normalize regex (utils.ts LINEAR_PAREN_PREFIX) " +
+            "linear() flat-comma normalize fold (utils.ts timingFunction.replace) " +
             "→ value.js VJ-L2 FunctionValue.toString() fix",
+        // The WORKAROUND is the flat-comma → space fold on the timing-function
+        // string (NOT the `LINEAR_PAREN_PREFIX` cheap prefix guard, which stays —
+        // a non-`linear(` string must never reach the throwing value.js parser).
+        // The fold was `timingFunction.replace(/,\s*(-?[\d.]+%)/g, " $1")`.
         witness: {
             subpath: "src/animation/utils.ts",
             fileFilter: exact("src/animation/utils.ts"),
-            pattern: /LINEAR_PAREN_PREFIX/,
+            pattern: /timingFunction\.replace/,
         },
         sibling: { pkg: "@mkbabb/value.js", version: "0.14.0", name: "VJ-L2 linear() serialize fix" },
+        apiPresent: vjsCaps.linearSerialize,
     },
     {
         id: "S8",
@@ -223,6 +258,7 @@ const arms = [
             pattern: /FN_NAME|Symbol\(\s*["']kf\./,
         },
         sibling: { pkg: "@mkbabb/value.js", version: "0.14.0", name: "VJ-L1 flatLeaf provenance API" },
+        apiPresent: vjsCaps.flatLeaf,
     },
     {
         id: "S9",
@@ -235,6 +271,7 @@ const arms = [
             pattern: /from\s+["']@mkbabb\/parse-that["']/,
         },
         sibling: { pkg: "@mkbabb/value.js", version: "0.14.0", name: "VJ-L3 parseCSSSubValue helper" },
+        apiPresent: vjsCaps.parseCSSSubValue,
     },
 ];
 
@@ -264,10 +301,12 @@ for (const arm of arms) {
     // PRESENT — probe the paired sibling publish.
     const where = hits.map((h) => `${h.file}:${h.line}`).join(", ");
     const pub = probePublish(arm.sibling.pkg, arm.sibling.version);
+    // RED requires the REPLACEMENT API to genuinely exist, not just the version.
+    const apiLanded = arm.apiPresent === undefined || arm.apiPresent === true;
 
-    if (pub === "PUBLISHED") {
-        // PRESENT + PUBLISHED → RED. The sibling fixed the root; kf has not
-        // consumed. The deletion is OVERDUE and now SAFE.
+    if (pub === "PUBLISHED" && apiLanded) {
+        // PRESENT + PUBLISHED + API LANDED → RED. The sibling fixed the root; kf
+        // has not consumed. The deletion is OVERDUE and now SAFE.
         console.error(
             `  ✗ ${arm.id} RED — PRESENT + sibling PUBLISHED. ${arm.title}`,
         );
@@ -281,11 +320,13 @@ for (const arm of arms) {
             detail: `PRESENT @ ${where}; ${arm.sibling.pkg}@${arm.sibling.version} PUBLISHED`,
         });
     } else {
-        // PRESENT + (UNPUBLISHED | INDETERMINATE) → PENDING (exit 0).
+        // PRESENT + (API-not-landed | UNPUBLISHED | INDETERMINATE) → PENDING.
         const why =
-            pub === "UNPUBLISHED"
-                ? `${arm.sibling.pkg}@${arm.sibling.version} is NOT YET published (E404)`
-                : `${arm.sibling.pkg}@${arm.sibling.version} publish state INDETERMINATE (registry unreachable — conservatively PENDING)`;
+            pub === "PUBLISHED" && arm.apiPresent === false
+                ? `${arm.sibling.pkg}@${arm.sibling.version} is published but its ${arm.sibling.name} has NOT landed (value.js O shipped VJ-L2 only) — held until the API ships`
+                : pub === "UNPUBLISHED"
+                  ? `${arm.sibling.pkg}@${arm.sibling.version} is NOT YET published (E404)`
+                  : `${arm.sibling.pkg}@${arm.sibling.version} publish state INDETERMINATE (registry unreachable — conservatively PENDING)`;
         console.log(
             `  … ${arm.id} PENDING — PRESENT + sibling UNPUBLISHED. ${arm.title}`,
         );
