@@ -8,6 +8,16 @@
 > M's dev→impl boundary. **inv-16 holds throughout** (Tranche O writes only keyframes.js;
 > every cross-repo need is a *dispatch*, never a foreign-tree edit).
 
+> **RATIFIED (owner) — 2026-06-20.** The tranche-development phase is owner-approved + locked.
+> The three open decisions are settled: **(1)** the glass-ui BC aria-orientation correction is
+> **COMMUNICATED** — dropped in BC's inbound mailbox (`glass-ui/docs/tranches/BC/inbound/KF-O-ARIA-CORRECTION.md`),
+> re-opening the misidentified ASK#2; BC owns the net-new SFC-guard wave + its gate. **(2)** the
+> Oscillator republish rides the O.WZ **5.0.0** cut (USER-DOMAIN; the BC viz waves book the
+> picker-loop seam against it). **(3)** the **value.js Tranche P** dispatch (`KF-TO-VALUEJS-P-ASKS.md`,
+> VJ-L1 flatLeaf + VJ-L3 parseCSSSubValue) is ratified + ready to communicate when the value.js
+> session opens. **IMPLEMENTATION remains UNauthorized** — O.W1…O.WZ open only on the owner's
+> explicit go. Everything else herein is locked.
+
 ---
 
 ## 1 — Why Tranche O exists (the M-as-built delta)

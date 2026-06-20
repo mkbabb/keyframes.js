@@ -1,5 +1,11 @@
 # keyframes.js → glass-ui BC — the cross-repo dispatch (INFORM + ASK)
 
+> **⚠ ASK-1/ASK-2 (aria-orientation) RE-OPENED at Tranche O (2026-06-20).** The kf-O re-audit
+> found BC's "CONFIRMED" answer was a misidentification (aria-orientation is prohibited on
+> `role=group`, not merely a value question). The corrected ask supersedes ASK-1 here — see
+> `docs/tranches/O/KF-TO-GLASSUI-BC-ADDENDUM.md` (+ `O.W11`); COMMUNICATED to BC's inbound at
+> `glass-ui/docs/tranches/BC/inbound/KF-O-ARIA-CORRECTION.md`.
+
 > Authored 2026-06-19 at the keyframes M close. glass-ui is a DOWNSTREAM consumer
 > on the constellation spine (parse-that → value.js → keyframes.js → glass-ui).
 > This is the handoff to glass-ui's **BC** tranche (BB closed at 4.0.1). It is a
