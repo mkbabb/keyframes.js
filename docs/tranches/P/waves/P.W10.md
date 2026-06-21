@@ -1,0 +1,157 @@
+# P.W10 — the no-legacy band: the `leaves.ts`→`/math` BUNDLE-EXTERNALIZATION TRAP (the precept correction to O.W9) + the deprecated-alias drops + the `proof:no-cross-realm-cast` structural gate
+
+**Band:** E — no-legacy (the precept reckoning, gated correct).
+**Phase:** **NOW** — every arm fires on today's installed tree (value.js 1.0.2's `./math` subpath shipped; the three `@deprecated` aliases + the `as any` casts are live). Zero sibling publish gates the landing. (The S9 parse-that import retire is VJ-L3-GATED at O.W16 — NOT this wave; P.W10 authors only the W96 STRUCTURAL guard that bites whether or not VJ-L3 ships.)
+**Sequence:** `P.W1 (the perf-gate apparatus + lint tier) ─► P.W10 (no-legacy NOW) ∥ P.W11 (the WeakMap early-cure NOW) ─► P.WZ (the 5.1.x cut absorbs the breaking alias drops)`. P.W10 lands the no-legacy cuts the moment the apparatus exists; P.WZ cuts the version that absorbs the breaking renames. The codegen consume (P.W4, GATED) may *incidentally* clear the direct `@mkbabb/parse-that` production import — but that disposition is recorded HERE (the W96 scan), not in P.W4.
+**Owning DM/idea:** **the F4-precept TRAP correction** (`AUDIT-DIGEST.md` F4-precept :1325-1327 `[HIGH·risk]` "kf internal/leaves.ts math duplication — the no-legacy cut as written would RED `proof:boundary`" + :1331-1334 `[aggressive·arch]` "Externalize value.js/math as a bundle-external in the kf LIGHT build" + :1339-1342 `[incremental·correctness]` "a constellation-wide `proof:no-cross-realm-cast` structural gate") — the deferred-ledger-P **DP-6** (leaves.ts BUNDLE-EXTERNALIZATION TRAP) fold. Carries the O.W9 deprecated-alias drops (S1/S2) onto the P tree (their sibling — O.W7 — re-sequences under P), and the X4 W96 parse-that scan (`AUDIT-DIGEST.md` X4-correctness :1119-1122).
+
+---
+
+## Context
+
+The no-legacy / no-workaround mandate forbids legacy on the published surface and KISS forbids unjustified duplication. O.W9 named two no-legacy obligations and authored a cure for each — but the re-audit found one of the two cures is **self-contradictory as written**: it would RED the very boundary gate it claims to leave GREEN. P.W10 is the **precept correction**: it transposes the `leaves.ts`→`/math` cut from a *delete* (which reds `proof:boundary`) into a **bundle-externalization** (which keeps it GREEN), and it carries the genuinely-safe alias drops + authors the two structural guards (`proof:no-cross-realm-cast`, the W96 parse-that scan) the precept demands.
+
+### The TRAP — O.W9 §S3's `leaves.ts`→`/math` cut would RED `proof:boundary` (the F4 finding, grounded)
+
+O.md:70 / O.W9 §S3 claim the `internal/leaves.ts` math duplicates (`clamp`/`scale`/`lerp`/`lerpArray`) can be retired by *importing the canonical* value.js `./math` subpath: replace `export function lerpArray(…)` with `export { clamp, scale, lerp, lerpArray } from "@mkbabb/value.js/math"`. The premise — value.js 1.0.2 ships a parse-that-FREE, grammar-FREE `./math` subpath — is TRUE (verified this session: `node_modules/@mkbabb/value.js/dist/subpaths/math.d.ts` exports exactly `clamp, scale, lerp, lerpArray, logerp, deCasteljau, cubicBezier, …` with a `parse-that-FREE` docstring). **But the cure as written would RED `proof:boundary`.**
+
+The reason is the gate's own source-grep assertion. `proof-boundary.mjs:93-107` (`holdsValueJsSpecifier`) bans EVERY static value.js value-specifier in a light-surface module — and the regex is **subpath-inclusive by construction**: `:96` `const SPEC = String.raw`@mkbabb\/value\.js(?:\/[^"']*)?``;` — the `(?:\/[^"']*)?` arm matches `@mkbabb/value.js/math` exactly. The gate's own comment (`:88-91`) states the intent: *"AND the subpath form (`@mkbabb/value.js/dist/value.js`), so the grep is self-sufficient and not contingent on value.js's exports-map staying subpath-free."* So `export { lerpArray } from "@mkbabb/value.js/math"` in `internal/leaves.ts` — a module reached by EVERY light entry (`numeric.ts`, `playback.ts`, `smooth.ts`, `spring.ts`, …) — would make `proof:boundary` assertion 4 (the source-grep complement, `:353-380`) RED with `light-surface source holds a static "@mkbabb/value.js" specifier`.
+
+**The deeper truth (F4 :1327): the `leaves.ts` duplication is STRUCTURALLY FORCED by the boundary gate, not legacy.** The four local math copies exist *because* a static value.js specifier — bare OR subpath — reds the boundary. O.W9 §S3 read the gate's intent ("ban the bare specifier; the subpath is fine") incorrectly: the gate bans the subpath TOO. A plain re-export is not a no-legacy cut — it is a boundary breach.
+
+### The GESTALT FIX — a bundle-externalization transposition (not a delete, not a keep-with-comment)
+
+The elegant move is the **bundle-externalization transposition** the F4 `[aggressive·arch]` idea names (:1331-1334): mark `@mkbabb/value.js/math` **external in the kf LIGHT build** so the specifier RESOLVES AT THE CONSUMER (a bare runtime module edge in the published `dist/keyframes.js`), never INLINED into the light bundle. Three facts make this exact:
+
+1. **The published lib build already externalizes value.js — but by BARE name only.** `vite.config.ts:306` `rolldownOptions.external: ["vue", "prettier", "@mkbabb/parse-that", "@mkbabb/value.js"]`. A bare `"@mkbabb/value.js"` string does NOT match the subpath `"@mkbabb/value.js/math"` (rolldown's `external` array does exact-string / package-boundary matching, NOT prefix matching for a sub-path unless declared). So the externalization must be **widened** to cover the subpath: add `"@mkbabb/value.js/math"` (or a predicate/regex `/^@mkbabb\/value\.js(\/|$)/`) to the external list — the single line that makes the subpath a runtime edge in `dist/keyframes.js`, never inlined.
+2. **`proof:boundary` is NOT about the published bundle — it is about the INLINE truth.** The gate deliberately does NOT externalize value.js (`proof-boundary.mjs:192-198` external: `["vue", "prettier"]` ONLY): it bundles value.js source INTO the entry chunk so a reintroduced STATIC edge *bundles the CSS grammar* and reds. That is the gate's whole point — catch a light module that drags grammar in. The `./math` subpath, externalized in the *published* build, is STILL a static specifier the gate's source-grep sees. **So the gate must learn the difference between "a subpath that pulls grammar" and "a parse-that-FREE math leaf."** That is the W97 clause (below): the boundary gate gains a `math-subpath-clean` clause that *bundles `@mkbabb/value.js/math` as its OWN entry* and asserts its static graph is grammar/parse-that-free — promoting the subpath from "banned specifier" to "verified-clean externalizable edge," and adds the subpath to an allow-list the source-grep consults.
+3. **OR — the equally-honest no-legacy outcome: KEEP `leaves.ts` as the LIGHT-surface-clean local, document WHY, and DELETE the stale comment that mis-states the reason.** The duplication is NOT legacy if the gate structurally forbids the import. The genuine no-legacy cut may be to keep the four byte-equivalent leaves (parity-tested against value.js's `src/math.ts`) and replace the *stale* `:56-61` "no `./math` subpath" comment with the *true* rationale: "the boundary gate bans even the subpath specifier from light source; these leaves are the gate-forced clean local, not legacy." The DECISION between (the externalization, arms 1-2) and (the documented keep, arm 3) is **measured by W97**: if the math subpath's static graph is verified grammar-free AND the externalization is mechanically clean, externalize (the DRY win — one source of `lerpArray`); if W97 finds ANY transitive grammar edge (a future value.js refactor that imports an easing helper into `./math`), KEEP and document. **Either way the cure is gate-verified, not asserted — the precept that O.W9 §S3 violated.**
+
+### The deprecated-alias drops (O.W9 §S1/§S2 — carried onto the P tree, genuinely safe)
+
+O.W9 §S1/§S2 drop three `@deprecated` backward-compat aliases on the published `dist/keyframes.d.ts`:
+- `engine.ts:1205` — `export { KeyframesAnimation as Animation }` (`@deprecated`); 22 demo files `import type { Animation }`.
+- `timeline.ts:171` — `export { type KeyframesScrollTimelineOptions as ScrollTimelineOptions }` (`@deprecated`).
+- `timeline.ts:209-218` — the `@deprecated ScrollTimeline` re-export alias (value + type) of `KeyframesScrollTimeline`.
+
+These are pure published-surface legacy — the no-legacy mandate bans them. They carry onto P **unchanged** from O.W9 (the cure is identical; the only delta is the tranche home — the breaking renames are absorbed by the 5.1.x cut at P.WZ, the major-bump-or-minor decision recorded there). NONE is gated on a sibling — they are kf-owned surface cuts on today's tree.
+
+### The `as any` cross-realm casts + the W96 parse-that scan (the structural guards the precept demands)
+
+`utils.ts:229,236` carry two `as any` cross-realm casts — `(CSSFunction.FunctionArgs as any).map(…)` and `(parseAny as any)(fnArgs, CSSValues.Value)` — bridging the nominally-distinct `Parser<T>` realm (value.js and kf each bundle their own `@mkbabb/parse-that` copy). These are S9's tail: the direct `@mkbabb/parse-that` import at `utils.ts:1` + the production dep + the two casts. The S9 DELETE is VJ-L3-gated (O.W16) — **not this wave**. But two STRUCTURAL guards are NOW-able and precept-required:
+
+- **The W96 parse-that source-scan** (`AUDIT-DIGEST.md` X4 :1119-1122; KF-TO-VALUEJS-P-ASKS.md:158-164 "named since L.W9 but never implemented"): a `proof:boundary` clause scanning `src/animation/**` for `from "@mkbabb/parse-that"`, asserting ZERO. Born-RED today (`utils.ts:1`). It is the structural guard preventing S9 silent RECURRENCE — it bites whether or not VJ-L3 ships, and once S9 is deleted (O.W16) it stays GREEN forever. Authoring it NOW (before the delete) is the gate-first discipline.
+- **The `proof:no-cross-realm-cast` structural gate** (`AUDIT-DIGEST.md` F4 :1339-1342): a gate banning `as any` over an imported library type — the single most insidious workaround class (invisible to `tsc`). The feasibility caveat the digest names (:1341) — *some `as any` over a genuinely cross-realm type with no shared nominal seam is unavoidable* — is encoded as a **`// @cross-realm:` escape annotation**: a cast carrying the annotation (with a reason) is allow-listed; a bare `as any` over a library import is RED. The `utils.ts:229,236` casts wear the annotation (the cross-realm `Parser<T>` is genuinely irreducible until VJ-L3 collapses the seam by moving the parse INTO value.js), so they GREEN *as declared exceptions* — the breach persists but is NOT silent. A NEW bare `as any` over a value.js/parse-that import reds. This turns the precept (no workarounds) into an enforced invariant with an honest escape hatch for the genuinely-irreducible seam.
+
+### Audit evidence
+
+| Ref | Source location | Fact (verified this session, 2026-06-20) |
+|-----|-----------------|------------------------------|
+| the TRAP | `scripts/proof-boundary.mjs:93-107` | `holdsValueJsSpecifier` bans EVERY value.js specifier including subpath — `:96` `SPEC = `@mkbabb\/value\.js(?:\/[^"']*)?`` matches `@mkbabb/value.js/math` |
+| the gate intent | `proof-boundary.mjs:88-91` | comment: "AND the subpath form … so the grep is self-sufficient and not contingent on value.js's exports-map staying subpath-free" — the subpath ban is DELIBERATE |
+| the self-contradiction | O.md:70 / `O.W9.md:122-127` (§S3 cure) | "`export { clamp, scale, lerp, lerpArray } from "@mkbabb/value.js/math"`" — a static subpath specifier in `internal/leaves.ts`, a LIGHT module — would RED assertion 4 (`proof-boundary.mjs:353-380`) |
+| the leaves duplication | `src/animation/internal/leaves.ts:23,28,46,68-80` | local `clamp`/`scale`/`lerp`/`lerpArray`, value.js-free; the `:50-64` `lerpArray` docstring records the WHY ("no tree-shakeable `./math` subpath … would red `proof:boundary`") — STRUCTURALLY FORCED, not legacy |
+| the math subpath (clean) | `node_modules/@mkbabb/value.js/dist/subpaths/math.d.ts:7` | `export { clamp, scale, lerp, lerpArray, logerp, deCasteljau, cubicBezier, … } from '../math'` — `parse-that-FREE` (`:1-2` docstring), grammar-free by construction (the externalization candidate) |
+| the published external | `vite.config.ts:306` | `rolldownOptions.external: ["vue", "prettier", "@mkbabb/parse-that", "@mkbabb/value.js"]` — value.js externalized by BARE name; the subpath `@mkbabb/value.js/math` is NOT covered (exact-string match) |
+| the boundary's non-external | `proof-boundary.mjs:192-198` | external: `["vue", "prettier"]` ONLY — value.js stays NON-external so a static edge bundles the grammar (the gate's whole point) |
+| alias #1 | `src/animation/engine.ts:1205` | `export { KeyframesAnimation as Animation }` — `@deprecated`; 22 demo `import type { Animation }` consumers (O re-audit count) |
+| alias #2/#3 | `src/animation/timeline.ts:171,209-218` | `@deprecated ScrollTimelineOptions` + `ScrollTimeline` re-exports of the PKG-3 `KeyframesScrollTimeline*` names |
+| the cross-realm casts | `src/animation/utils.ts:229,236` | `(CSSFunction.FunctionArgs as any).map(…)` + `(parseAny as any)(fnArgs, CSSValues.Value)` — bridging nominally-distinct `Parser<T>` realms; S9 tail |
+| the S9 import | `src/animation/utils.ts:1` + `package.json:215` | `import { any as parseAny } from "@mkbabb/parse-that"` + `"@mkbabb/parse-that": "^0.11.0"` production dep — the W96 scan target |
+| W96 named-never-built | `KF-TO-VALUEJS-P-ASKS.md:158-164` / `AUDIT-DIGEST.md` X4 :1119 | the parse-that boundary scan named since L.W9, never implemented — P.W10 authors it |
+| DP-6 fold | `audit/deferred-ledger-P.md:219` | "DP-6 leaves.ts TRAP → `proof:boundary` W97 `math-subpath-clean` clause (NEW — P.W10)" |
+| precedent gate | `scripts/proof-no-deprecated-guard.mjs` (`package.json:136`) | the comment-aware grep-over-a-surface idiom the deprecated-alias clauses mirror |
+
+---
+
+## Scope
+
+Each S-clause is a concrete, falsifiable deliverable. The no-legacy cuts ride a GATE-VERIFIED transposition, never an asserted delete.
+
+### S1 — author `proof:no-cross-realm-cast` born-RED FIRST (the keystone structural gate)
+
+**Breach.** No gate bans `as any` over an imported library type — the single most insidious workaround class (invisible to `tsc`, caught only by a never-built bespoke scan). The precept (no workarounds) is un-enforced.
+
+**Cure (gate-first — author the RED before any cut).** Author `scripts/proof-no-cross-realm-cast.mjs`: scan `src/animation/**` for `as any` (and `as unknown as`) over an identifier IMPORTED from `@mkbabb/value.js` / `@mkbabb/parse-that`; assert ZERO **un-annotated** violators. The escape hatch: a cast carrying a `// @cross-realm: <reason>` line-or-trailing annotation is allow-listed (a DECLARED, reasoned exception — the genuinely-irreducible cross-realm `Parser<T>` seam). The `utils.ts:229,236` casts gain the annotation (the cross-realm `Parser<T>` is irreducible until VJ-L3 moves the parse into value.js); they GREEN as declared exceptions. A NEW bare `as any` over a library import reds. Wire into `proof:hygiene` (beside `proof:no-deprecated-guard`, `package.json:194`).
+
+### S2 — author the `proof:boundary` W96 parse-that source-scan (the S9-recurrence guard)
+
+**Breach.** `utils.ts:1` directly imports `@mkbabb/parse-that` (S9) with NO structural guard — a silent recurrence of the constellation-spine breach is undetectable.
+
+**Cure.** Add the W96 clause to `proof-boundary.mjs`: scan `src/animation/**` (excluding `node_modules`, `dist`) for any `from "@mkbabb/parse-that"` / `require("@mkbabb/parse-that")` specifier; assert ZERO. Born-RED today (`utils.ts:1`). It bites whether or not VJ-L3 ships — the structural guard that keeps S9 deleted FOREVER once O.W16 lands. (The DELETE of `utils.ts:1` is O.W16's job, VJ-L3-gated; P.W10 authors only the guard.)
+
+### S3 — author the `proof:boundary` W97 `math-subpath-clean` clause (the TRAP-resolution decision oracle)
+
+**Breach (the precept correction).** `proof:boundary`'s source-grep bans the `@mkbabb/value.js/math` subpath from light source (`:96`), so O.W9 §S3's `leaves.ts`→`/math` re-export cure would RED the gate. The gate cannot today tell a grammar-pulling subpath from a parse-that-FREE math leaf.
+
+**Cure.** Add the W97 `math-subpath-clean` clause: bundle `@mkbabb/value.js/math` as its OWN rolldown entry (the `bundleEntry` pattern, `proof-boundary.mjs:182-205`) and assert its STATIC module graph contains ZERO CSS-grammar / parse-that / `engine.ts` modules. GREEN iff the subpath is structurally grammar-free (it is, by construction — but the gate VERIFIES it, never assumes). On GREEN, the subpath is added to an ALLOW-LIST the source-grep complement (`holdsValueJsSpecifier`) consults: `@mkbabb/value.js/math` is permitted in a light module IFF W97 confirms its graph is clean. **W97 is the decision oracle for S4** — it measures whether the externalization (S4 arm A) is safe.
+
+### S4 — resolve the `leaves.ts` TRAP: externalize-if-clean OR document-the-keep (the gate-verified no-legacy cut)
+
+**Breach.** The four `leaves.ts` math leaves are byte-duplicates of value.js's `src/math.ts` — KISS debt IF the subpath can be safely consumed; STRUCTURALLY-FORCED clean locals IF it cannot. O.W9 §S3 asserted the delete without verifying.
+
+**Cure (the transposition — gate-VERIFIED, not asserted).**
+- **Arm A (externalize — the DRY win, IF W97 GREEN):** widen `vite.config.ts:306` `external` to cover `@mkbabb/value.js/math` (add the subpath string OR the predicate `/^@mkbabb\/value\.js(\/|$)/`); replace the four local math functions in `leaves.ts` with `export { clamp, scale, lerp, lerpArray } from "@mkbabb/value.js/math"`; delete the stale `:50-64` comment. The published `dist/keyframes.js` carries a bare runtime edge to the subpath (resolved at the consumer); `proof:boundary` stays GREEN because W97's allow-list permits the verified-clean subpath. **The rAF shim stays local** (`requestAnimationFrame`/`cancelAnimationFrame`, `leaves.ts:87-124`) — NOT in `./math`.
+- **Arm B (document-the-keep — IF W97 finds a grammar edge, OR the externalization is mechanically fragile):** KEEP the four byte-equivalent leaves; replace the stale `:50-64` "no `./math` subpath" comment with the TRUE rationale ("the boundary gate bans the subpath specifier from light source; these are the gate-forced clean local, parity-tested against value.js `src/math.ts` — NOT legacy"). This is the equally-honest no-legacy outcome: the duplication is not legacy when the gate structurally forbids the import.
+
+**The decision is W97's verdict, recorded in a decision JSON** (S6). Arm A iff W97 confirms the subpath graph is clean AND the externalization is mechanically clean; Arm B otherwise. Either way the cure is GATE-VERIFIED.
+
+### S5 — carry the O.W9 deprecated-alias drops onto the P tree (the genuinely-safe no-legacy cuts)
+
+**Breach.** Three `@deprecated` aliases on the published `dist/keyframes.d.ts` (`engine.ts:1205`, `timeline.ts:171`, `timeline.ts:209-218`) — pure published-surface legacy.
+
+**Cure.** Drop all three; migrate the 22 demo `import type { Animation }` consumers to `KeyframesAnimation` (mechanical — value + type both resolve to `KeyframesAnimation` today). Author `proof:no-legacy-surface` (the O.W9 §S4 keystone, carried): build the library and assert ZERO `@deprecated` on the rolled-up `dist/keyframes.d.ts` (the REAL consumer observable, not a source proxy). The breaking renames are absorbed by the 5.1.x cut at P.WZ.
+
+### S6 — record the TRAP-resolution verdict (P-inv-28 terminal home)
+
+Record the W97 verdict in `scripts/leaves-externalization-decision.json` (beside `spring-vector-decision.json`): ARM-A (externalized — the subpath graph clean, DRY win) OR ARM-B (documented-keep — a grammar edge / fragility found, the leaves retained with the corrected rationale). The leaves.ts TRAP (DP-6) gets a terminal home — never a bare deferral. A KEEP is not a punt: it is a gate-verified decision with the stale comment corrected.
+
+---
+
+## Born-RED gate
+
+### `proof:no-cross-realm-cast` (NEW — `scripts/proof-no-cross-realm-cast.mjs`) + the `proof:boundary` W96/W97 clauses (EXTENDED) + `proof:no-legacy-surface` (NEW)
+
+| Clause | Witness on today's (2026-06-20) tree | The REAL observable | GREEN condition |
+|---|---|---|---|
+| `no-cross-realm-cast` (S1 — **KEYSTONE structural**) | `grep -n "as any" src/animation/utils.ts` → `:229`, `:236` (over `CSSFunction.FunctionArgs` / `parseAny`, both `@mkbabb/*` imports), UN-annotated | two bare `as any` over imported library types — the insidious workaround class invisible to `tsc`; a NEW one would drift unproven | every `as any` / `as unknown as` over a value.js/parse-that import carries a `// @cross-realm:` reason annotation; the `utils.ts:229,236` casts annotated (declared exceptions); zero un-annotated violators |
+| `W96` parse-that scan (S2) | `grep -rn 'from "@mkbabb/parse-that"' src/animation/` → `utils.ts:1` | the direct parse-that production-dep breach (S9) has no structural guard — a silent recurrence is undetectable | the W96 clause exits 1 today (`utils.ts:1`); GREEN after O.W16 deletes `utils.ts:1` — and stays GREEN forever (the structural guard) |
+| `W97` math-subpath-clean (S3 — the TRAP decision oracle) | `node scripts/proof-boundary.mjs` has no clause that bundles `@mkbabb/value.js/math` and verifies its graph | the gate cannot distinguish a grammar-pulling subpath from a parse-that-FREE math leaf — so it bans the subpath wholesale, FORCING the `leaves.ts` duplication | W97 bundles `@mkbabb/value.js/math` as its own entry, asserts ZERO grammar/parse-that/`engine.ts` modules in its static graph, and adds it to the source-grep allow-list — promoting "banned specifier" to "verified-clean externalizable edge" |
+| `leaves-trap-resolved` (S4) | `leaves.ts:23,28,46,68-80` local defs + the stale `:50-64` comment claiming "no `./math` subpath" | the four math leaves are byte-duplicates held by a comment that mis-states the reason — KISS debt OR gate-forced clean local, UNDECIDED | Arm A: `leaves.ts` re-exports from the W97-verified subpath, `vite.config.ts:306` external widened, `proof:boundary` GREEN; OR Arm B: leaves kept, comment corrected to the TRUE rationale — the verdict recorded (S6) |
+| `d.ts-deprecated-free` (S5 — the published-surface keystone) | `npm run build` → grep `@deprecated` in `dist/keyframes.d.ts` → the three alias JSDocs | the rolled-up published d.ts carries the three `@deprecated` aliases — the EXACT surface the npm consumer's IDE + `import type` resolve against | ZERO `@deprecated` on the published roll-up; 22 demo `Animation` imports migrated to `KeyframesAnimation` |
+
+### How it is born-RED via a planted failure
+
+- **`no-cross-realm-cast` is born-RED with NO plant needed** — `utils.ts:229,236` are live bare `as any` over `@mkbabb/*` imports the instant the gate runs. **The discriminating bite (the proxy-trap guard):** a cure that DELETES the `as any` text but replaces it with `as unknown as Parser<T>` (the laundered double-cast, the SAME workaround obfuscated) STILL reds — the gate matches the `as unknown as` shape too, and the genuine escape is the `// @cross-realm:` annotation (a reasoned declaration), never a syntactic dodge. The observable is "an un-reasoned cross-realm cast," not "the literal text `as any`."
+- **`W96` is born-RED** because `utils.ts:1` holds `from "@mkbabb/parse-that"` today — the scan exits 1. The bite: it CANNOT be gamed by an `import(...)` dynamic form or a re-export — the scan matches every specifier shape (`from`, `require`, dynamic) the way `holdsValueJsSpecifier` does for value.js.
+- **`W97` is born-RED via a PLANTED failure** that proves the gate measures the GRAPH, not the name: temporarily add `import "@mkbabb/value.js"` (the BARE grammar-pulling root, NOT `./math`) to a fixture the W97 entry bundles → W97 reds with grammar modules in the graph, proving the clause bites the genuine "this subpath pulls grammar" observable. On the real `./math` subpath (grammar-free by construction), W97 greens — and ONLY then is the subpath allow-listed. A clause that merely greps "does `leaves.ts` import `./math`" would be the proxy mistake (it greens on a subpath that secretly pulls grammar); the bundle-the-graph witness bites the real edge.
+- **`leaves-trap-resolved` is born-RED** because the local defs + stale comment are live today. The discriminating bite: a cure that does the O.W9 §S3 NAIVE re-export WITHOUT widening `vite.config.ts` external + WITHOUT the W97 allow-list → `proof:boundary` assertion 4 REDs (the subpath specifier in light source) — proving the cure is the GATE-VERIFIED externalization, not the asserted delete. A cure that keeps the leaves but leaves the stale comment reds on the comment-content check (Arm B requires the TRUE rationale).
+- **`d.ts-deprecated-free` is born-RED with no plant** — the three `@deprecated` aliases are on the published d.ts the instant the library builds. The bite (from O.W9 §S4): a cure that renames the alias in source but leaves a `@deprecated` re-export API-Extractor rolls UP into `dist/keyframes.d.ts` STILL reds — the observable is the published surface, not the source intent.
+
+**Portable / structural gates (not perf floors).** Every clause here is STRUCTURAL (a source-grep or a bundle-graph assertion), device-independent by construction — no absolute thresholds, no CI device-dependence (unlike the P.W1/P.W2 perf-ratio gates). CI posture: HARD via `declarePosture(hard)` — these are correctness/precept invariants, not observe-only perf measurements.
+
+---
+
+## Dependencies
+
+- **value.js 1.0.2 (already pinned) — the `./math` subpath SHIPPED; NO sibling publish gates this wave.** `@mkbabb/value.js/math` is on the installed tree (`dist/subpaths/math.d.ts`, parse-that-FREE). S3/S4 consume it directly. Every arm is a kf-side surface cut + a kf-side gate over the installed tree — phase NOW.
+- **P.W1 (the perf-gate apparatus + LINT tier) — soft precondition.** The new structural gates wire into `proof:hygiene` (P.W1 ratifies the gate-roster discipline); the LINT tier's sub-second per-save checks make the iterate-to-green on the gate authoring faster. P.W1 → P.W10 is a natural ordering (Band A before Band E), no hard gate.
+- **O.W16 (the VJ-L3 consume) — SEQUENCE-COUPLED for S2's GREEN, NOT for the authoring.** P.W10 AUTHORS the W96 scan born-RED NOW (`utils.ts:1` is the witness); the scan flips RED→GREEN when O.W16 deletes `utils.ts:1` on the VJ-L3 re-pin. The structural guard exists independent of the delete — it bites whether or not VJ-L3 ships (the S9 P-inv-28 structural belt). The `proof:no-cross-realm-cast` `utils.ts:229,236` casts are annotated as declared exceptions NOW; O.W16 deletes them (the casts vanish with the parse-that import) and the annotations go with them.
+- **O.W7 (engine-seam) — Band-sibling, DISJOINT region.** O.W7 lifts the playback machine out of the `KeyframesAnimation` class body; P.W10/S5 deletes the `@deprecated Animation` re-export at `engine.ts:1205` (the alias line, not the class body). Sequence S5 (the alias drop) BEFORE O.W7 so the alias line is gone when O.W7 moves the class body — they compose cleanly (O.W7 reads a class with no trailing deprecated alias). (O.W7 re-sequences under P as the VJ-L1-gated engine split; its FN_NAME precondition is P.W11's WeakMap early-cure OR the VJ-L1 publish — see P.W11.)
+- **P.WZ (the 5.1.x cut) — the honest home for the breaking alias drops.** The `Animation`/`ScrollTimeline` alias drops (S5) are breaking; the 5.1.x-vs-5.x-major decision is recorded at P.WZ (the campaign §3 names 5.1.x as non-breaking perf — the alias drops force the version-policy decision, recorded there, not assumed here).
+- **DP-6 / DP-7 fold (deferred-ledger-P).** DP-6 (the leaves.ts TRAP) folds to S3/S4; the W96 scan + `proof:no-cross-realm-cast` discharge the S9 STRUCTURAL guard arm (the DELETE arm is O.W16/DM-5 S9). No 5th carry — each gets a gate-verified terminal.
+
+---
+
+## dev→impl boundary
+
+This file is the Tranche P DEVELOPMENT spec for P.W10 — **DOCS ONLY** (inv-16: kf writes only keyframes.js; the `./math` subpath is CONSUMED, value.js owns it; the S9 DELETE is dispatched at O.W16/KF-TO-VALUEJS-P.md — P.W10 authors only the kf-side STRUCTURAL guard). The IMPLEMENTATION (the `proof:no-cross-realm-cast` gate, the W96/W97 `proof:boundary` clauses, the `leaves.ts` TRAP resolution + the `vite.config.ts` external widen OR the documented keep, the three alias drops + the 22-consumer migration, the `proof:no-legacy-surface` gate, the decision JSON) opens ONLY on the owner's explicit authorization. Phase NOW: zero sibling publish gates the landing. When it opens it is:
+
+- **gate-first** — `proof:no-cross-realm-cast` (S1) and the W96/W97 `proof:boundary` clauses (S2/S3) authored born-RED BEFORE any cut; the W97 decision oracle ratified BEFORE the S4 leaves transposition.
+- **observable-truth** — W97 bundles the math subpath and verifies its GRAPH (never assumes the subpath is clean); `d.ts-deprecated-free` greps the BUILT `dist/keyframes.d.ts` (the consumer's surface, not the source); the cross-realm gate bites an un-REASONED cast (the `// @cross-realm:` annotation is a declaration, not a syntactic dodge).
+- **no-legacy** — the precept correction: O.W9 §S3's asserted delete (which reds `proof:boundary`) is transposed into a GATE-VERIFIED bundle-externalization OR a documented gate-forced keep; the three `@deprecated` aliases are PURGED from the published surface; the stale `leaves.ts` comment is corrected to the TRUE rationale (a stale comment is legacy too).
+- **gestalt (the transposition, not the band-aid)** — the `leaves.ts` cut is the F4 `[aggressive·arch]` bundle-externalization (resolve the specifier AT the consumer, never inline) — a structural transposition, not a delete; the gate LEARNS to distinguish a grammar-pulling subpath from a clean math leaf (W97), so the boundary discipline is SHARPENED, not relaxed.
+- **KISS** — Arm A is one external-list widen + a re-export (one source of `lerpArray`, DRY); Arm B is keep-the-byte-equivalent-leaves + correct-one-comment. The `proof:no-cross-realm-cast` escape is a single `// @cross-realm:` annotation, not a per-cast allow-list file.
+- **P-invariant-28** — the leaves.ts TRAP verdict (Arm A or Arm B) recorded in `leaves-externalization-decision.json` (a terminal home, not a perpetual deferral); the S9 STRUCTURAL guard (W96) + the `proof:no-cross-realm-cast` gate are the chronicity-4 structural belt for S9 (the DELETE belt being O.W16/DM-5; if VJ-L3 slips, the W96 scan keeps the breach NON-silent — a DECLARED spine-edge, never a silent recurrence). No arm carries forward as a bare deferral.
+
+The born-RED witness (the two bare `as any` over `@mkbabb/*` imports at `utils.ts:229,236`; the `from "@mkbabb/parse-that"` at `utils.ts:1`; the absent W97 clause; the local `leaves.ts` math + stale comment; the three `@deprecated` aliases on the published d.ts) stands on today's tree; the cure opens on authorization.
