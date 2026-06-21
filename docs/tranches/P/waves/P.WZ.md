@@ -39,9 +39,9 @@ record, measured ratio per transposition):
 
 | Transposition | Gate | Expected ratio | Decision file |
 |---|---|---|---|
-| SoA Float64Array interp (P.W2) | `proof:soa-interp` SoA-hz / per-channel-hz at K=8 | ≥1.20× | `perf-delta-P.json` ADOPT/KILL row |
-| Typed-OM write path (P.W3) | `proof:typed-om-bench` Typed-OM / string-serialize at 200 frames | ≥1.15× | `perf-delta-P.json` row |
-| SoA AnimationGroup compositor (P.W2) | `proof:zero-alloc` heap-delta arm extended | zero fresh allocs per blend | `perf-delta-P.json` row |
+| SoA composite blend throughput (P.W2) | `proof:soa-composite` SoA-hz / boxed-hz at K=8 | ≥1.20× | `perf-delta-P.json` ADOPT/KILL row |
+| Typed-OM write path (P.W3) | `proof:typed-om-eligible` Typed-OM / string-serialize at 200 frames | ≤0.85× (≥15% faster) | `perf-delta-P.json` row |
+| SoA AnimationGroup compositor alloc (P.W2) | `proof:soa-composite` alloc-count arm (heap-delta) | zero fresh allocs per blend | `perf-delta-P.json` row |
 | reconcileVars O(1) Map (P.W2 micro-edit) | `bench/compile.bench.ts` N=1000 vs N=10 | ratio ≤1.05× (linear, not quadratic) | `perf-delta-P.json` row |
 | Codegen-consume (P.W4, GATED) | `proof:codegen-consume` | ≥1.5× throughput vs combinator | `codegen-consume-decision.json` ADOPT/KILL |
 
@@ -139,17 +139,17 @@ The record format mirrors `spring-vector-decision.json` (the established precede
 
 ```json
 {
-  "P.W2.SoA-interp": {
+  "P.W2.soa-composite": {
     "state": "ADOPT | KILL | PENDING",
     "measured_ratio": null,
     "floor_ratio": 1.20,
-    "bench": "bench/numeric-soa.bench.ts SoA-hz/per-channel-hz at K=8",
+    "bench": "bench/group-composite.bench.ts SoA-hz/boxed-hz at K=8 (proof:soa-composite)",
     "date": null,
     "git_sha": null
   },
-  "P.W2.compositor": { ... },
+  "P.W2.compositor-alloc": { ... },
   "P.W2.reconcileVars": { ... },
-  "P.W3.typed-om": { ... },
+  "P.W3.typed-om-eligible": { ... },
   "P.W4.codegen-consume": { "state": "GATED", ... }
 }
 ```

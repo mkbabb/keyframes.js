@@ -1,8 +1,10 @@
 # P.W12 — glass-ui 4.1.0 consume: S2 delete NOW + S1 GATED on aria-guard
 
 **Band:** G — glass-ui BC consume
-**Phase:** GATED (two-speed: S2 NOW-actionable on re-pin to `~4.1.0`; S1 GATED on the pending
-aria-guard SFC wave — the O.W11 dispatch)
+**Phase:** two-speed — **NOW S2** (re-pin only — the glass-ui `useDockClickIntegrity` root fix
+is ALREADY published+installed in the 4.0.1+ dist; NO sibling WAIT) · **GATED S1** (waits on the
+UNshipped BC SFC aria guard — the O.W11 dispatch; the role-conditional `role=group` guard is NOT
+in 4.1.0)
 **Sequence:** O.W11 (BC aria-orientation SFC dispatch COMMUNICATED) → **P.W12** → P.WZ close
 **Owning chronic/DM:** DM-1 (RF-17 dock click-strand interim, chronicity **6 at P** — the
 P-inv-28 CRITICAL belt; NO 7th carry; the contingency KILL record from `deferred-ledger-O.md §6`
@@ -77,29 +79,51 @@ The state at P authoring (2026-06-20):
 
 ### S1 — Correct `proof:workaround-deletion` gate arms (pre-consume, gate hygiene NOW)
 
-**Breach.** Both S1 and S2 arms in `scripts/proof-workaround-deletion.mjs` carry
-`sibling: { pkg: '@mkbabb/glass-ui', version: '4.1.0' }`. Since 4.1.0 IS now published, the
-version sentinel fires PUBLISHED for both arms. For S2 this is correct — the root cure IS in
-the dist. For S1 this produces a **false RED**: the S1 aria-guard (`role=group` conditional) is
-NOT in 4.1.0, so the S1 arm going RED would demand a delete that would reintroduce the ARIA
-violation. The gate must accurately distinguish the two arms.
+**Breach (the CONFIRMED-LIVE S1 BUG — DP-1/#12).** The S1 arm in
+`scripts/proof-workaround-deletion.mjs` carries `version: '4.1.0'` but has **NO `apiPresent`
+field** — the DO-2 content-aware probe was wired ONLY to S7/S8/S9, never to S1. So S1's PUBLISHED
+verdict is driven by the version sentinel ALONE: now that 4.1.0 IS published, the version
+sentinel fires PUBLISHED → S1 goes **FALSELY RED**, demanding a delete that would reintroduce
+the ARIA-1.2 §6.3 violation (the aria-guard is NOT in 4.1.0). This is a false-RED-on-a-phantom-
+version: the version is published but the FIX it implies is not. (S2 carries the same version
+sentinel but its delete IS correct — the dock cure IS in the dist — so the same hygiene fix
+that cures S1's false-RED also correctly flips S2 to RED.)
 
-**Cure.** Replace BOTH version sentinels with **content-present probes** in the S1 and S2 arm
-`sibling` / `apiPresent` configurations:
+**Cure (EXTEND `apiPresent` to S1 — the concrete grepDist probe).** Wire the DO-2 content-aware
+`apiPresent` field onto the S1 arm (mirroring the S7/S8/S9 shape), so PUBLISHED requires BOTH
+the version floor AND the fix-content present in the installed dist:
 
-- **S2 probe (dock fix present):** `grep 'useDockClickIntegrity'` over the installed
-  `node_modules/@mkbabb/glass-ui/dist/dock.js`. If hit count > 0, the fix is present → PUBLISHED
-  for S2. This probe already reflects the real 4.0.1+ dist rather than a version number.
-- **S1 probe (aria-guard present):** `grep` the installed
-  `node_modules/@mkbabb/glass-ui/dist/tabs.js` (or equivalent compiled output of
-  `SegmentedTabs.vue`) for a conditional expression that gates `aria-orientation` on
-  `isUnderline`/`role===tablist` (e.g., the pattern `aria-orientation.*isUnderline` or
-  `isVertical.*isUnderline` near the role binding). Absence of this guard → fix NOT present →
-  PENDING. Presence → fix landed → S1 becomes actionable.
+- **S1 `apiPresent` probe (aria-guard present — the grepDist check).** Add to the S1 arm a
+  `apiPresent` that greps the INSTALLED published glass-ui dist's tabs output
+  (`node_modules/@mkbabb/glass-ui/dist/tabs.js`, the compiled `SegmentedTabs.vue`) for the
+  ROLE-CONDITIONAL aria guard — the conditional expression that emits `aria-orientation` ONLY
+  on the `tablist`/`isUnderline` render path and OMITS it on `role=group`. Concretely, the
+  probe shape (the S7/S8/S9 `grepDist` idiom):
 
-The version-number field in the S2 arm shifts to the INSTALLED package version (checked via
-`node_modules/@mkbabb/glass-ui/package.json`) compared against `4.1.0` as the floor for the
-re-pin record. The sibling name clarifies: `name: 'BC dock crossfade-strand cure (useDockClickIntegrity, content-present)'`.
+  ```js
+  // S1 arm — wire the missing apiPresent (was version-only → falsely RED)
+  apiPresent: {
+      file: 'node_modules/@mkbabb/glass-ui/dist/tabs.js',
+      // the role-conditional aria guard: aria-orientation gated on isUnderline/tablist,
+      // ABSENT today (4.1.0 emits it unconditionally on role=group)
+      pattern: /aria-orientation[^]{0,80}(isUnderline|tablist)/,
+      // present → the BC SFC guard landed → S1 actionable; absent → correctly PENDING
+  },
+  ```
+
+  ABSENT today (4.1.0 emits `:aria-orientation` unconditionally) → S1 correctly PENDING, NOT a
+  false-RED-on-a-phantom-version. PRESENT (a future glass-ui ships the role-conditional guard) →
+  S1 becomes actionable.
+- **S2 `apiPresent` probe (dock fix present — already content-aware via DO-2, re-affirmed):**
+  `grepDist` `'useDockClickIntegrity'` over the installed
+  `node_modules/@mkbabb/glass-ui/dist/dock.js`. Hit > 0 → fix present → PUBLISHED for S2 (the
+  4.0.1+ dist reality, not a bare version number).
+
+The version-number field stays as the re-pin FLOOR (the INSTALLED package version checked via
+`node_modules/@mkbabb/glass-ui/package.json` compared against `4.1.0`), but PUBLISHED now
+requires the `apiPresent` content probe to ALSO fire — so the version + the fix-content must
+BOTH be present. The S1 sibling name clarifies:
+`name: 'BC aria-orientation role=group conditional guard (content-present)'`.
 
 **Gate bite.** After the hygiene fix: S2 arm transitions to RED (the cure IS in the dist; the
 workaround is PRESENT and the delete is OVERDUE). S1 arm stays PENDING (the aria-guard is NOT in
@@ -193,20 +217,25 @@ aria-role guard) as a KILL of the workaround shape, clearly not a "set to undefi
 
 **Gates used (S1 EXISTING + S2 EXISTING, both corrected; no new gate script authored):**
 
-- `proof:workaround-deletion` S1 arm — corrected from version-sentinel to content-present probe;
-  stays PENDING after correction (BC SFC guard not in 4.1.0)
-- `proof:workaround-deletion` S2 arm — corrected from version-sentinel to content-present probe;
-  transitions to RED after correction (root fix IS in dist, workaround PRESENT, delete OVERDUE)
+- `proof:workaround-deletion` S1 arm — corrected by WIRING the missing `apiPresent` grepDist
+  probe (the DO-2 content-aware field S7/S8/S9 already carry but S1 lacked) so PUBLISHED requires
+  the role-conditional aria guard in the dist; stays PENDING after correction (BC SFC guard not
+  in 4.1.0) — the false-RED-on-a-phantom-version is cured
+- `proof:workaround-deletion` S2 arm — re-affirmed content-present (`apiPresent` greps
+  `useDockClickIntegrity` in the dist); transitions to RED after correction (root fix IS in dist,
+  workaround PRESENT, delete OVERDUE)
 - `proof:peer-satisfied` — GREEN today (cleared at M-consume on glass-ui 4.0.1); must stay GREEN
   after the `~4.1.0` re-pin
 
 **The S1 false-RED lesson (born-RED form).**
 
 The REAL observable today: `npm show @mkbabb/glass-ui version → 4.1.0` is PUBLISHED, but the
-installed `tabs.js` has no `aria-orientation.*isUnderline` conditional guard. If P.W12 S1 were
-to check only the version, it would go RED and demand a delete that violates ARIA-1.2.
-The content-present probe is the born-RED form — it is RED only when the FIX is genuinely
-present AND the workaround is PRESENT. A PUBLISHED version without the fix stays PENDING.
+installed `tabs.js` has no role-conditional aria guard. The CONFIRMED-LIVE bug: the S1 arm has
+`version: '4.1.0'` but NO `apiPresent` field (DO-2 wired it only to S7/S8/S9) — so S1 checks the
+version ALONE and goes FALSELY RED on the published-but-fix-absent 4.1.0, demanding a delete that
+violates ARIA-1.2. Wiring the `apiPresent` grepDist probe (the role-conditional `aria-orientation`
+guard) is the born-RED form — S1 is RED only when the FIX is genuinely present in the dist AND the
+workaround is PRESENT. A PUBLISHED version without the fix-content stays PENDING.
 
 **The S2 born-RED form.**
 
@@ -217,7 +246,7 @@ with S2 the moment the hygiene fix (S1) lands.
 
 | Gate / clause | Witness today (glass-ui 4.0.1 installed, 4.1.0 published) | Failure mode today | Expected after P.W12 |
 |---|---|---|---|
-| S1 `proof:workaround-deletion` S1 arm | 2 PRESENT `:aria-orientation="undefined"` sites in `demo/` | With the corrected content-present probe: PENDING (BC guard absent from tabs.js) — with the stale version probe: false RED (4.1.0 published but guard not in it) | S1 arm PENDING-via-content-probe after hygiene fix; GREEN only when BC SFC guard ships |
+| S1 `proof:workaround-deletion` S1 arm | 2 PRESENT `:aria-orientation="undefined"` sites in `demo/`; the S1 arm has `version:'4.1.0'` but NO `apiPresent` field | With the wired `apiPresent` grepDist probe: PENDING (role-conditional guard absent from tabs.js) — with the bug (version-only, no apiPresent): false RED (4.1.0 published but guard not in it) | S1 arm PENDING-via-`apiPresent`-content-probe after hygiene fix; GREEN only when BC SFC guard ships |
 | S2 `proof:workaround-deletion` S2 arm | 9 PRESENT `pointerHandled`/`onPlayPointerDown` hits in `TransportDock.vue` | With corrected probe: **RED** (useDockClickIntegrity IS in dock.js, workaround PRESENT) — delete is OVERDUE | S2 arm GREEN after atomic deletion + re-pin |
 | S2 re-pin | `package.json ~4.0.0` | stale pin; 4.1.0 is live | `~4.1.0` bump → `proof:peer-satisfied` stays GREEN |
 | `proof:live-session` S5 | not yet run on 4.1.0 | crossfade-strand case status unverified at 4.1.0 | S5 PASS → S3 delete authorized; S5 FAIL → contingency KILL path |
@@ -259,13 +288,16 @@ deletion are the impl actions.
 ## dev→impl boundary
 
 **Gate hygiene (S1 pre-delete hygiene):** kf-internal; may execute immediately on authorization.
-Corrects `proof-workaround-deletion.mjs` S1 + S2 sibling probes from version-sentinel to
-content-present probes. This is a gate-first action — it does not delete any workaround; it
-only ensures the gate accurately reports the observable truth.
+WIRES the missing `apiPresent` grepDist probe onto the S1 arm of `proof-workaround-deletion.mjs`
+(the DO-2 content-aware field S7/S8/S9 carry but S1 lacked — the CONFIRMED-LIVE false-RED bug),
+and re-affirms the S2 arm's `apiPresent` content probe. This is a gate-first action — it does not
+delete any workaround; it only ensures the gate accurately reports the observable truth (a
+published-but-fix-absent version reads PENDING, not false-RED).
 
-**S2 + S3 (re-pin + dock delete):** OPEN — the BC cut (4.1.0) IS published; `useDockClickIntegrity`
-IS in the dist. Gate hygiene must precede. `proof:live-session` S5 must pass. Then ONE atomic
-commit: re-pin + delete. Authorization to proceed requires the owner's explicit impl go.
+**S2 + S3 (re-pin + dock delete) — NOW (no sibling WAIT):** OPEN — the BC cut (4.1.0) IS
+published; `useDockClickIntegrity` IS in the installed 4.0.1+ dist. Gate hygiene must precede.
+`proof:live-session` S5 must pass. Then ONE atomic commit: re-pin + delete. Authorization to
+proceed requires the owner's explicit impl go.
 
 **S4 (S1 hold):** NOT an impl action — it is a NON-action with a documented rationale. The
 two suppress lines STAY. The gate must accurately show PENDING. No source change until the BC

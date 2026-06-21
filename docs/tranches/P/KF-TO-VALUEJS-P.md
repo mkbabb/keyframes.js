@@ -33,21 +33,34 @@ keyframes P** (the consumer).
 
 | # | ASK | value.js file:line (grounded) | proposed API / mechanism | kf consume-seam it dissolves | born-RED gate | ver |
 |---|-----|-------------------------------|---------------------------|------------------------------|---------------|-----|
-| **P.W0** | **commit the uncommitted O docs + reconcile the stale PROGRESS** to CLOSED-as-built | `value.js/docs/tranches/O/` is **untracked** (`git status` → `?? docs/tranches/O/`); `O/PROGRESS.md:1-3` reads `DEVELOPMENT — charter only` on a fully-executed tranche (1.0.2 on master) | `git add docs/tranches/O/` + rewrite the PROGRESS header to **CLOSED** with per-wave SHIPPED status (record-as-built honesty) | n/a (value.js record hygiene; constellation-truth precondition) | `proof:progress-honesty` (value.js-side): the PROGRESS header is not `DEVELOPMENT — charter only` while master serves ≥1.0.0 | — |
+| **VJ-P.W0** | **commit the uncommitted O docs + reconcile the stale PROGRESS** to CLOSED-as-built | `value.js/docs/tranches/O/` is **untracked** (`git status` → `?? docs/tranches/O/`); `O/PROGRESS.md:1-3` reads `DEVELOPMENT — charter only` on a fully-executed tranche (1.0.2 on master) | `git add docs/tranches/O/` + rewrite the PROGRESS header to **CLOSED** with per-wave SHIPPED status (record-as-built honesty) | n/a (value.js record hygiene; constellation-truth precondition) | `proof:progress-honesty` (value.js-side): the PROGRESS header is not `DEVELOPMENT — charter only` while master serves ≥1.0.0 | — |
 | **VJ-L1** | **first-class `flatLeaf` provenance** — `FunctionValue.name` survives `flattenObject` + `clone()` as a typed field | `units/index.ts:26-31` (6-positional ctor, NO `fnName`); `:120` `clone()`; `utils.ts:85,92` `flattenObject` `FunctionValue` branch | optional `fnName?: string` (or a `meta` record) on `ValueUnit`, copied by `clone()`, populated by `flattenObject` from the enclosing `FunctionValue.name` | **S8** — the `FN_NAME` Symbol sidechannel (`kf utils.ts:45-57,64,289-294`) | `proof:workaround-deletion` **S8** arm: `apiPresent` flips when a flattened `scale(2)` leaf carries `.fnName === "scale"` after `.clone()` | **1.1.0** |
 | **VJ-L3** | **`parseCSSSubValue` root helper** — typed re-entry parser internalizing `any(CSSFunction.FunctionArgs, CSSValues.Value)` | `parsing/index.ts:1` (`any` from parse-that); `parseCSSSubValue` ABSENT (`grep` → ZERO) | `parseCSSSubValue(value, opts?)` root export wrapping the **FunctionArgs-FIRST** composition (the V4 truncation trap) | **S9** — the direct `@mkbabb/parse-that` import + 2 `as any` casts + the production dep (`kf utils.ts:1,229,236`) | `proof:workaround-deletion` **S9** + the new `proof:boundary` **W96** parse-that-scan | **1.1.0** |
 | **VJ-P1** | **`color2Into` out-param** — gamut bisection writes channels into a caller-owned scratch `Color` | `color/dispatch.ts:245` (`'eliminating it requires a color2Into out-param (deferred, O.W5 scope)'`); `:257` `color2(probe, target)` in the 24-step loop; `gamut.ts:247,283,307` already tuple-based | `color2Into(src, to, out)` mirroring `matrix.ts` `transformMat3Into` scratch — `gamutMapToRgbSpace` reuses one egress scratch | **(no kf delete)** — kf inherits the GC win on the rAF wide-gamut egress (faster `lerpColorValue`) | `proof:gamut-alloc` tightened: `gamutMapToRgbSpace` allocs/call ≤ 15 (born-RED on today's ~84) | **1.2.0** |
 | **VJ-P2** | **typed Float64 channel view** — kill string-keyed megamorphic channel reads in the interp/conversion loops | `color/index.ts:286` (`[key: string]: any` index signature — KEEP, public); `interpolate.ts` `lerpColorValue` reads `color[k]` | optional packed `_ch: Float64Array` lazily materialized; interp/conversion read `_ch[i]` (SoA-adjacent, AoS public shape preserved) | **(no kf delete)** — kf inherits faster per-frame color interpolation | `proof:perf-target` color-channel-access clause: the Float64-view interp ≥ the named-field baseline | **1.2.0** |
 | **VJ-P3** | **narrow the `: any` property/subProperty seam → `string`** (strict-mode invariant) | `units/index.ts:57` `setSubProperty(subProperty: any)`; `:61` `setProperty(property: any)`; `:174,178,274,278` (the container mirrors) | type the params `string` (BC — callers already pass strings); the kf consume-edge gains a typed seam | **(strengthens)** — kf's `parseAndFlattenObject` `setSubProperty`/`setProperty` calls type-check (`MEMORY.md` calc/computed pipeline) | `proof:any-seam` (value.js-side): `tsc` rejects `vu.setSubProperty(42)` | **1.2.0** |
-| **VJ-P4** | **CODEGEN-CONSUME** — value.js generates its CSS-value parser from `css/l4/*.bbnf` over the parse-that-B codegen edge | `parsing/grammars/css-values.bbnf:6` (`not yet wired to the runtime`); `parsing/grammars/css-color.bbnf`; `parsing/index.ts:14,29,63` (~700 lines hand-maintained combinators) | consume `@mkbabb/parse-that/codegen` (parse-that B) → emit ONE straight-line `charCodeAt` scanner per grammar at BUILD time; the `.bbnf` becomes the parser | **(no kf delete)** — kf inherits faster frame-compilation; resolves the `.bbnf` "not wired" limbo | `proof:grammar-parity` + a throughput bench — parity over every `constants.ts UNITS` item, throughput ≥0.85× hand-rolled, **guarded against the A.W3 runtime-dispatch falsification** | **1.2.0** |
+| **VJ-P4** | **CODEGEN-CONSUME** — value.js generates its CSS-value parser from `css/l4/*.bbnf` over the parse-that-B codegen edge | `parsing/grammars/css-values.bbnf:6` (`not yet wired to the runtime`); `parsing/grammars/css-color.bbnf`; `parsing/index.ts:14,29,63` (~700 lines hand-maintained combinators) | consume `@mkbabb/parse-that/codegen` (parse-that B) → emit ONE straight-line `charCodeAt` scanner per grammar at BUILD time; the `.bbnf` becomes the parser (**grammar-as-source-of-truth**: ~700 hand-combinator lines dissolve) | **(no kf delete)** — kf inherits parity-or-better frame-compilation + the maintainability of spec-as-source; resolves the `.bbnf` "not wired" limbo | `proof:grammar-parity` + a throughput bench — parity over every `constants.ts UNITS` item, **parity-or-better throughput on the value.js PORTABLE JSON.parse-ratio anchor** (no regression vs the hand-written parser), **guarded against the A.W3 runtime-dispatch falsification** | **1.2.0** |
 
 All ASKs are **BC-additive** to value.js's published 1.x surface (no breaking
 change). The 1.1.0 pair (VJ-L1 + VJ-L3) is the kf-unblock; the 1.2.0 quartet
 (VJ-P1–P4) is the optimization frontier and rides after.
 
+**The two namespaces (distinct by design).** The **VJ-L\*** asks are the inherited
+**API** asks — VJ-L1 (`flatLeaf`/`fnName` provenance) + VJ-L3 (`parseCSSSubValue`),
+carried unchanged from the O dispatch. The **VJ-P\*** asks are the NEW **perf**
+frontier — VJ-P1 (`color2Into` out-param), VJ-P2 (typed Float64 channel view),
+VJ-P3 (the `: any`→string seam narrowing), VJ-P4 (the CODEGEN-CONSUME). `color2Into`
+is **VJ-P1** (NOT "VJ-L4") and the typed channel view is **VJ-P2** — they belong to
+the VJ-P perf namespace, never the VJ-L API namespace.
+
 ---
 
-## P.W0 — commit the O docs + reconcile the stale PROGRESS (the FIRST P action)
+## VJ-P.W0 — commit the O docs + reconcile the stale PROGRESS (the FIRST value.js-P action)
+
+> **Wave-naming note (P.W0 disambiguation).** This is **VJ-P.W0** — value.js
+> Tranche P's first (record-hygiene) wave. It is NOT a kf wave: **there is NO kf
+> P.W0** — the kf P-wave roster starts at **P.W1**. The `VJ-` prefix keeps
+> value.js's first wave from colliding with the kf P-wave namespace.
 
 **The need, grounded (record-as-built honesty).** value.js Tranche O executed
 all six library waves (O.W0–O.W6) and reached **1.0.2 on master**, but two
@@ -68,7 +81,7 @@ record-truth breaches persist, both verified this session (2026-06-20):
 anchor and `O/PROGRESS.md` as the close-state oracle. If those docs are not
 committed, the constellation-truth contract (the cross-repo coordination record)
 rests on an uncommitted tree — a record-honesty breach the campaign's §1
-"record-as-built honesty" precept forbids. P.W0 is the precondition for every
+"record-as-built honesty" precept forbids. VJ-P.W0 is the precondition for every
 downstream ASK reading a durable O record.
 
 **The adjacent one-liner (value.js's own ledger, noted for completeness).** While
@@ -106,13 +119,17 @@ MCI-5 fix). Without the name, an absent `scale` would lerp from black/zero.
 sidechannel onto a foreign-realm object — an inv-L-acyclic-purity violation
 (B10/B11): kf annotates value.js's data model from outside.
 
-**The proposed value.js API (BC-additive). The V2/V4 transposition note — `fnName`
-as a meta-record field, NOT a 7th positional arg.** The audit (V2 novelIdea #3,
-V4 critical finding) flagged that the `ValueUnit` ctor is **already 6 positional
-optionals** (`units/index.ts:26-31`) and `clone()`/`coalesce()` re-thread all by
-index — bolting a 7th positional `fnName` makes `clone()` pass `undefined` for
-`targets` to reach it (the V4 wart). value.js P has two equally-valid shapes;
-**kf consumes whichever value.js publishes** and adapts `fnNameOf` to read it:
+**The proposed value.js API — the COMMITTED path is the CONSERVATIVE gated form.**
+VJ-L1's committed ask is **purely additive**: value.js adds an **additive `fnName`
+field** to `ValueUnit` (preserved by `clone()`, populated by `flattenObject` from
+the enclosing `FunctionValue.name`), and **`FunctionValue` STAYS the serialize
+source-of-truth** — the flatten leaf is a *provenance carrier*, NOT a re-rooting of
+the value model. The V2/V4 transposition note flagged that the `ValueUnit` ctor is
+**already 6 positional optionals** (`units/index.ts:26-31`) and `clone()`/`coalesce()`
+re-thread all by index — bolting a 7th positional `fnName` makes `clone()` pass
+`undefined` for `targets` to reach it (the V4 wart). value.js P has two equally-valid
+*additive* shapes for WHERE `fnName` lives; **kf consumes whichever value.js
+publishes** and adapts `fnNameOf` to read it:
 
 ```ts
 // Option A (minimal, O-anchored): a 7th optional field
@@ -133,11 +150,21 @@ and `flattenObject`'s `FunctionValue` branch (`utils.ts:92`) sets the provenance
 on each leaf from `obj.name`. **`fnName` is distinct from `subProperty`** — B10
 found `subProperty` already conflates property-name with function-name semantics
 (`setSubProperty` is overloaded across the container mirrors), so it cannot carry
-this; a dedicated home is the only clean carrier. The **flatLeaf-first value
-model** (the radical V2 framing): make the provenance-carrying leaf the canonical
-parsed shape so `flattenObject` is a *projection*, not a tree-dissolve that drops
-the name — which **dissolves the entire kf S8 sidechannel class intrinsically**
-(VJ-L1 becomes the model, not an add-on).
+this; a dedicated home is the only clean carrier.
+
+**The RADICAL "make flat leaf canonical" reshape is DEMOTED to a SPIKE-GATED
+investigation (NOT the committed ask).** The V2-radical framing — make the
+provenance-carrying leaf the canonical parsed shape so `flattenObject` becomes a
+*projection* rather than a tree-dissolve, dissolving the kf S8 sidechannel class
+intrinsically — would re-root value.js's value model and **displace `FunctionValue`
+as the serialize source-of-truth**. That is a breaking re-architecture, not a
+BC-additive field, and value.js P does **NOT** commit it. It is a SPIKE-GATED
+investigation with a hard **precondition**: a **`FunctionValue.toString` round-trip
+corpus** must prove that a canonical-flat-leaf model re-serializes every
+`FunctionValue` (`scale(2) rotate(45deg)`, nested `calc()`, multi-arg gradients)
+byte-identically to the current `FunctionValue`-rooted `toString` — BEFORE any
+reshape is authorized. Absent that corpus + a GREEN round-trip, the **conservative
+additive `fnName`** is the only sanctioned form.
 
 **The kf consume-seam (inherited O.W16, GATED).** On the value.js-P re-pin, kf's
 `utils.ts`:
@@ -355,8 +382,10 @@ this is **wiring, not greenfield**). value.js's 1.2.0 codegen-consume:
    grammar from `css-values.bbnf` / `css-color.bbnf` — no closures, no `callSpan`
    recursion, every call site monomorphic by construction;
 2. replace the ~700 lines of hand-maintained combinators with the generated
-   parser (**the spec becomes the parser**; the "not wired" limbo resolves);
-3. keyframes inherits faster frame-compilation for free.
+   parser (**grammar-as-source-of-truth**: the `.bbnf` spec IS the parser, ~700
+   hand-combinator lines dissolve; the "not wired" limbo resolves);
+3. keyframes inherits **parity-or-better** frame-compilation + the
+   maintainability of spec-as-source (gated at NO throughput regression).
 
 This re-wires the DEAD O.W6 SpanParser-jump-table consume edge into a **LIVE
 codegen edge** — the surviving form of the §7 falsified thesis.
@@ -373,8 +402,10 @@ sits one layer further down the same DAG edge.)
 
 **The kf payoff (no kf delete — an inherited compile-perf win + kf's own P.W4).**
 kf's `FrameCompiler` rides value.js's CSS-value parse on every `addFrame`; the
-generated monomorphic scanner cuts frame-compilation cost. kf's **P.W4
-codegen-consume** (kf Band B, GATED) is the kf-side terminal of the same edge.
+generated monomorphic scanner holds frame-compilation cost at **parity-or-better**
+while making the `.bbnf` spec the single source of truth (the maintainability win).
+kf's **P.W4 codegen-consume** (kf Band B, GATED) is the kf-side terminal of the
+same edge.
 
 **Born-RED gate (value.js-side, `proof:grammar-parity` + a throughput bench).**
 - **Parity:** for **every** unit in `value.js/src/constants.ts UNITS`, assert the
@@ -383,9 +414,11 @@ codegen-consume** (kf Band B, GATED) is the kf-side terminal of the same edge.
   generated parser exists today (the `.bbnf` is "not wired") → the parity harness
   has nothing to compare → RED until the codegen edge lands.
 - **Throughput:** a bench (`css-parse-perf.mjs`) running the CODEGEN parser over
-  the value corpus, gated in `proof:perf-target` to close the documented **0.58×
-  BBNF-vs-hand-rolled gap toward ≥0.85×**, measured portable (the ratio-bench
-  device-independence discipline).
+  the value corpus, gated in `proof:perf-target` for **parity-or-better** vs the
+  hand-written parser on the value.js **PORTABLE JSON.parse-ratio anchor** (a
+  device-independent ratio, NOT an absolute MB/s figure or a claimed multiple — the
+  win is grammar-as-source-of-truth + combinator-closure elimination, gated at NO
+  regression).
 - **The falsification guard clause:** the gate fails if the emitted parser is a
   runtime dispatch loop (assert: zero `switch (kind)` / `callSpan`-shaped
   recursion in the generated source) — guarding against re-running the A.W3
@@ -416,8 +449,9 @@ codegen-consume** (kf Band B, GATED) is the kf-side terminal of the same edge.
    threaded through the flatten/parse seam O.W7 must relocate). To avoid a hard block
    if value.js P slips, **kf is shipping P.W11 NOW**: a kf-internal
    `WeakMap<ValueUnit, string>` `FN_NAME` carrier populated at flatten time — the
-   X4-radical / P-inv-28-chronicity-3 early exit that lifts O.W7's VJ-L1 gate **without
-   waiting for value.js P**.
+   X4-radical / **P-inv-28 chronicity-4 belt exit** (S8 is at chronicity 4 —
+   K,L,M,O→P — and the belt fires THIS tranche, P) that lifts O.W7's VJ-L1 gate
+   **without waiting for value.js P**.
 
    **What this means for value.js P:** the WeakMap early-cure is value.js-realm-clean
    (no foreign-object annotation — it dissolves the B10/B11 inv-L-acyclic-purity
@@ -436,18 +470,23 @@ codegen-consume** (kf Band B, GATED) is the kf-side terminal of the same edge.
    | **1.1.0** | VJ-L1 `flatLeaf` + VJ-L3 `parseCSSSubValue` (BC-additive, ~10+15 LoC) | kf O.W16 S8/S9 delete + W96 boundary scan | nothing (no parse-that dep) — the kf-unblock |
    | **1.2.0** | VJ-P1 `color2Into` + VJ-P2 Float64 channel view + VJ-P3 `: any`→string + VJ-P4 codegen-consume | kf inherits perf (no kf-side delete); kf P.W4 codegen-consume (GATED) | VJ-P4 GATED on parse-that B `@mkbabb/parse-that/codegen` |
 
-   P.W0 (commit O docs + reconcile PROGRESS) is the **first action**, predating both
+   VJ-P.W0 (commit O docs + reconcile PROGRESS) is the **first action**, predating both
    publishes. The 1.1.0 pair is the critical-path kf-unblock; the 1.2.0 quartet is the
    optimization frontier and is non-breaking (kf rides it transparently except for the
    GATED P.W4 codegen edge).
 
-4. **The P-invariant-28 belt window (DM-5 → chronicity 4 at kf-P if P slips).** The
-   S8/S9 value.js-workaround chronic (DM-5) is at **chronicity 3** entering kf-P;
-   P-inv-28's mandatory-exit belt fires at **chronicity ≥4**. The named terminals:
-   - **VJ-L1/VJ-L3 (the intended exit):** value.js P ships both before kf-P closes →
-     S8/S9 dissolve cleanly (no WeakMap, no parse-that dep).
-   - **(a) the WeakMap early-cure (kf-internal, P.W11):** unblocks O.W7 NOW but leaves
-     the clone-restamp ceremony — kf-internal-sufficient, VJ-L1 still preferred.
+4. **The P-invariant-28 belt FIRES THIS tranche (S8/S9 at chronicity 4 — K,L,M,O→P).**
+   The S8/S9 value.js-workaround chronic (DM-5) is at **chronicity 4** entering kf-P
+   (the K,L,M,O carries → P); P-inv-28's mandatory-exit belt fires **THIS tranche (P)**.
+   The S8/S9 EXIT = **O.W16** (the value.js VJ-L1/L3 consume, inherited at P) **+ the
+   P.W11 WeakMap early-cure for S8** — the WeakMap is the **chronicity-4 belt exit**
+   (NOT a "chronicity-3 early exit"). The named terminals:
+   - **O.W16 — VJ-L1/VJ-L3 (the intended exit):** value.js P ships both before kf-P
+     closes → S8/S9 dissolve cleanly (no WeakMap, no parse-that dep).
+   - **P.W11 — the WeakMap early-cure for S8 (kf-internal, the chronicity-4 belt exit):**
+     unblocks O.W7 NOW and fires the belt for S8 THIS tranche, but leaves the
+     clone-restamp ceremony — kf-internal-sufficient, VJ-L1 still preferred as the
+     ceremony-eliminating terminal.
    - **(b) S9 declared-edge quarantine (last-resort):** if VJ-L3 does not ship, the
      parse-that import is NOT eliminable kf-internally (kf needs value.js's CSS
      sub-value grammar, no substitute) — the fallback is a DECLARED W96 allow-list with
@@ -479,13 +518,16 @@ are the **new P optimization frontier** this packet adds.
 ## Net actions
 
 **value.js Tranche P (the sibling — to author in value.js's tree, never from kf):**
-1. **P.W0 (FIRST):** `git add docs/tranches/O/` (commit the uncommitted O docs);
+1. **VJ-P.W0 (FIRST):** `git add docs/tranches/O/` (commit the uncommitted O docs);
    reconcile `O/PROGRESS.md` header `DEVELOPMENT — charter only` → CLOSED-as-built
    (record honesty); fold the `index.ts:169-171` O(N²) `setSubProperty` one-liner.
 2. **1.1.0 — the kf-unblock (no parse-that dep, ships first):**
-   - **VJ-L1** — the `fnName` provenance carrier on `ValueUnit` (field or meta-record
-     per V2/V4), preserved by `clone()`, populated by `flattenObject` from
-     `FunctionValue.name`. BC-additive (~10 LoC).
+   - **VJ-L1** — the CONSERVATIVE additive `fnName` provenance carrier on `ValueUnit`
+     (field or meta-record per V2/V4), preserved by `clone()`, populated by
+     `flattenObject` from `FunctionValue.name`. **`FunctionValue` STAYS the serialize
+     source-of-truth.** BC-additive (~10 LoC). The radical canonical-flat-leaf
+     reshape is NOT committed — it is a SPIKE gated on a `FunctionValue.toString`
+     round-trip corpus.
    - **VJ-L3** — `parseCSSSubValue(value, opts?)` wrapping
      `tryParse(any(CSSFunction.FunctionArgs, CSSValues.Value), value)` —
      **FunctionArgs-FIRST** (the V4 truncation guard). BC-additive (~15 LoC).

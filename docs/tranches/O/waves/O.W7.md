@@ -2,7 +2,7 @@
 
 **Band:** D — Transposition + no-legacy
 **Phase:** VJ-L1-GATED (fires atomically on value.js Tranche P shipping VJ-L1 flatLeaf, consumed via O.W16; NOT NOW)
-**Sequence:** O.W10 (KF-TO-VALUEJS-P-ASKS dispatch) → value.js P publish (VJ-L1) → **O.W16** (S8 FN_NAME delete) → **O.W7** (the split over the cleared `utils.ts` seam) → O.WZ (chronic-closure reads DF-11-A discharged). The value.js-P spine edge is `O.W16 → O.W7 → O.WZ` — this wave (O.W7) sits BETWEEN O.W16 and the close, NOT a dangling "(VJ-L1)" label.
+**Sequence:** O.W10 (KF-TO-VALUEJS-P-ASKS dispatch) → value.js P publish (VJ-L1) → **O.W16** (S8 FN_NAME delete) → **O.W7** (the split over the cleared `utils.ts` seam) → O.WZ (chronic-closure reads DF-11-A discharged). The value.js-P spine edge is `O.W16 → O.W7 → O.WZ` — this wave (O.W7) sits BETWEEN O.W16 and the close, NOT a dangling "(VJ-L1)" label. **ALTERNATE VJ-L1-discharge (the re-home path):** kf Tranche P's **P.W11** ships a realm-clean `WeakMap<ValueUnit,string>` FN_NAME carrier that discharges the VJ-L1 precondition NOW *without* waiting for value.js P — so O.W7 is **RE-HOMED into P's execution window** (P.W11 WeakMap early-cure → O.W7-under-P lands the split → P.W3 S4 deepens it into the `Playhead` value-object). The split therefore opens on EITHER the O.W16/VJ-L1 consume OR the P.W11 WeakMap early-cure, whichever lands first.
 **Owning chronic/DM:** DF-11-A (the FULL engine-seam transposition; the single largest structural debt in the library surface, lane-11 §10 / C15) + DF-11-B (the co-deferred group.ts compositor arm)
 
 M-substrate: **M.W13** (the engine-seam transposition developed wave, 2026-06-17). This wave

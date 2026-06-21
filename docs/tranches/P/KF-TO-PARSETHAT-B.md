@@ -17,12 +17,17 @@ This dispatch is the binding cross-repo contract behind the **CODEGEN SPINE**
 (`CONSTELLATION-OPTIMIZATION-CAMPAIGN.md §4`) — the surviving form of the §7
 SpanParser thesis A.W3 falsified as a *runtime* switch. parse-that B is the
 spine's ROOT leg: it ships the emitter; value.js P generates its CSS-value
-parser from `css/l4/*.bbnf`; kf P (**P.W4**, GATED) inherits faster
-frame-compilation behind the same `CSSKeyframesAnimation` facade. The asks are
+parser from `css/l4/*.bbnf`; kf P (**P.W4**, GATED) inherits **parity-or-better**
+frame-compilation behind the same `CSSKeyframesAnimation` facade. The win is
+**grammar-as-source-of-truth** (the `.bbnf` spec IS the parser — ~700
+hand-combinator lines dissolve) + the elimination of combinator-closure
+overhead, **gated at parity-or-better throughput** (never a claimed multiple).
+The asks are
 **BC-additive** (no breaking change to parse-that's published 0.11.0 surface —
 the codegen subpath is a NEW entry alongside `./core ./diagnostics ./packrat
 ./utils`; the packrat fix is internal; the Span-combinator generation is
-internal) — a single `0.12.0` minor closes all four.
+internal) — a single `0.12.0` minor closes the four deliverables (gated behind
+the PT-B0 de-risk spike).
 
 **The premise correction (record-as-built honesty, campaign §1).** The campaign
 audit overturned the "no bench / greenfield codegen" framing: parse-that
@@ -37,11 +42,12 @@ spine is WIRING, not greenfield.** What parse-that B is missing is (a) a publish
 
 ---
 
-## The four ASKs
+## The ASKs (PT-B0 de-risk spike + four deliverables)
 
 | # | ASK | parse-that surface (file:line) | parse-that B deliverable | the value.js+kf payoff | proof arm that GREENs (born-RED) |
 |---|-----|--------------------------------|--------------------------|------------------------|-----------------------------------|
-| **PT-B1** | **`@mkbabb/parse-that/codegen` subpath** — a build-time BBNF/SpanParser→specialized straight-line `charCodeAt` TS emitter (NOT runtime dispatch; guarded against A.W3). | the retained SpanParser tagged-union (`typescript/src/parse/span.ts:580-902` — `SpanParserKind`, the `SpanParser` union, the 10 `*Span` builders, `callSpan()`); the package exports (`typescript/package.json:7-33` — 5 subpaths, no `./codegen`). | a NEW `./codegen` export wrapping `bbnf-lang`'s `TsEmitter` (`bbnf-lang/crates/core/src/backend/ts/code.rs:53`) or a JS port that walks the closure-free `SpanParser` data and emits ONE monomorphic recognizer per grammar. | value.js generates its CSS-value parser from `css/l4/*.bbnf` (replacing ~700 hand-maintained combinator lines); kf inherits a 10–50x-floor-attacking frame-compile path (P.W4). | `proof:codegen-parity` + `proof:codegen-throughput` (born-RED): the emitted parser is AST-byte-identical to the combinator parser over the value corpus AND closes the documented 0.58x BBNF-vs-hand-rolled gap toward ≥0.85x, MEASURE-FIRST from the live 540/926 MB/s baseline. |
+| **PT-B0** | **the CSS-EMIT DE-RISK SPIKE (the spine's FIRST gated step)** — born-RED preconditions BEFORE any CSS-generation commitment: (1) the emitter handles value.js's superType-tagged combinator shapes; (2) a BYTE-IDENTICAL parity corpus vs the hand-written parser; (3) a PORTABLE throughput parity-or-better. | the `bbnf-lang` `CompileTarget::Ts`/`TsEmitter` (`bbnf-lang/crates/core/src/backend/ts/code.rs:53`) over value.js's `css/l4/*.bbnf`; the value.js combinator shapes carry `superType` tags (`parsing/index.ts`) the emitter must reproduce. | a gated spike: prove the emitter (path A or B below) round-trips value.js's superType-tagged shapes to byte-identical ASTs over a parity corpus at PORTABLE parity-or-better throughput, BEFORE PT-B1 commits to CSS generation. | de-risks the spine: PT-B1 commits to CSS codegen only AFTER the spike GREENs; a falsified spike re-routes (path A↔B) or KILLs before value.js P depends on it. | `proof:codegen-spike` (born-RED): no `./codegen` emit exists today; the spike reds until the emitter round-trips the superType-tagged corpus byte-identically AND clears the PORTABLE JSON.parse-ratio anchor (parity-or-better, no regression vs the hand-written parser). |
+| **PT-B1** | **`@mkbabb/parse-that/codegen` subpath** — a build-time BBNF/SpanParser→specialized straight-line `charCodeAt` TS emitter (NOT runtime dispatch; guarded against A.W3). GATED on PT-B0. | the retained SpanParser tagged-union (`typescript/src/parse/span.ts:580-902` — `SpanParserKind`, the `SpanParser` union, the 10 `*Span` builders, `callSpan()`); the package exports (`typescript/package.json:7-33` — 5 subpaths, no `./codegen`). | a NEW `./codegen` export. TWO impl paths: **(A) bbnf-lang directly** — wrap `bbnf-lang`'s `TsEmitter` (`bbnf-lang/crates/core/src/backend/ts/code.rs:53`); needs a wasm-binding + a publish (cross-realm). **(B) a pure-TS SpanParser tree-walk** — walk the closure-free `SpanParser` data and emit ONE monomorphic recognizer per grammar; IN-REALM, zero bbnf-lang publish dep (the PREFERRED in-realm path). | value.js generates its CSS-value parser from `css/l4/*.bbnf` — the `.bbnf` spec BECOMES the parser (**grammar-as-source-of-truth**: ~700 hand-maintained combinator lines dissolve) + combinator-closure overhead is eliminated; kf inherits a **parity-or-better** frame-compile path (P.W4). | `proof:codegen-parity` + `proof:codegen-throughput` (born-RED): the emitted parser is AST-byte-identical to the combinator parser over the value corpus AND clears the value.js PORTABLE JSON.parse-ratio anchor (parity-or-better throughput — no regression vs the hand-written parser). |
 | **PT-B2** | **the packrat cross-input pollution FIX** — `memoize()` returns a stale result across different inputs (the MEMO key lacks a `src` component); a real correctness BLOCKER. | `typescript/src/parse/packrat.ts:55-56` (`getCijKey = (parser.id << 20) \| (offset & MAX)` — no `src`); `:90` (`MEMO = new Map<number,MemoCell>()`); `:253` (`memoizeFn`). | a `src`-identity guard in `memoizeFn` (auto-reset on `state.src` change) **OR** a WeakRef-epoch cache lifecycle; PLUS the float64-safe multiply key (`id * 1048576 + offset`) closing the `id ≥ 4096` int32-overflow aliasing. | value.js's parse LRU and kf's memoized timing-function parses become input-safe with zero caller discipline; eliminates a class of silent-wrong-answer the codegen-generated parser would also inherit. | `proof:packrat-cross-input` (born-RED): `memoize(p).parse('hello')` then the SAME memoized parser on `ParserState('CAPS123')` WITHOUT `resetPackrat()` returns the `CAPS123` result, not the cached `hello` one; AND `getCijKey(ids[0],0) !== getCijKey(ids[4096],0)`. |
 | **PT-B3** | **generate the 16 Span combinators from the value combinators** — one backtracking-control source; dissolve ~400 lines of copy-pasted save/restore/mergeError plumbing. | `typescript/src/parse/span.ts:16-360` (the 10 `*Span` builders — `stringSpan/regexSpan/manySpan/sepBySpan/wrapSpan/optSpan/skipSpan/nextSpan/altSpan/takeUntilAnySpan`) vs the value twins in `parser.ts`/`leaf.ts` (identical control flow, the only delta = the Span collector). | a collector-parametric combinator factory (the value `many`/`sepBy`/`wrap` parameterized over a Span-accumulator) replacing the hand-written Span twins — one source of save/restore truth feeding BOTH the closure lane AND the codegen IR. | the codegen emitter (PT-B1) walks ONE combinator vocabulary, not two drifting ones; a backtracking bug fixed in `many` is fixed in `manySpan` for free. | `proof:span-combinator-parity` (born-RED): the collector-parametric `manySpan`/`sepBySpan` are byte-identical in output AND within 5% throughput of the current hand-written Span lane (the zero-alloc property is preserved — the gate reds a deopting generic collector). |
 | **PT-B4** | **the perf frontier** — combinator FUSION + a 2-char (16-bit) dispatch widening for the residual 3–4-deep `any()` buckets; PLUS a `bench` script + `proof:perf` CI gate (the frontier is currently regression-blind). | `typescript/src/parse/leaf.ts:60-104` (`dispatch()` first-char Int8Array LUT); `:107-136` (`all()` allocs a fresh `matches[]`/call); `parser.ts` then-chains (`[v1, state.value]`/call); `package.json:34-40` (NO `bench` target, NO `proof:perf`). | fuse static `a.then(b).map(f)` / `all(a,b,c)` / `any(a,b,c)` chains into ONE monomorphic closure (zero intermediate tuples); widen `dispatch()` to a length+second-byte discriminator; add `"bench": "vitest bench"` + `proof:perf` over a checked-in baseline JSON. | removes per-call tuple/array alloc on value.js's hottest shapes (59 `all()` sites); flattens the residual megamorphism `dispatch()`'s first-char halving left; makes the spine's perf claims CI-auditable. | `proof:perf` (born-RED): an alloc-counting bench asserts `fuse(all(a,b,c))` does ZERO array allocs (vs ≥1 today); a 2-char-collision corpus (calc/clamp/cos/conic) parses ≥40% faster through the widened dispatch; a 15% `json-comprehensive` regression reds CI. |
@@ -75,22 +81,28 @@ the entire toolchain end-to-end:
 | the CSS-L4 grammar set | `bbnf-lang/grammar/css/l4/{value-unit,color,keyframes,easing,transforms,gradients,filters,...}.bbnf` (15 files) | the spec value.js generates FROM — `value-unit.bbnf` already routes the number rule through `parse_that::scan_number_f64` |
 | parity tests | `crates/core/tests/backend_ts.rs`, `gen_ts_parser.rs`, `ts_node_execute.rs`, `backend_ts_typecheck.rs` | the emitter's output type-checks, executes under Node, and round-trips the JSON grammar — the parity discipline PT-B1's gate inherits |
 
-**What parse-that B ADDS.** A published JS-consumable `./codegen` subpath. Two
-shapes (B chooses):
+**What parse-that B ADDS.** A published JS-consumable `./codegen` subpath, GATED
+behind the PT-B0 de-risk spike. Two impl paths (B chooses):
 
-- **(A) bbnf-lang as the emit engine** — `./codegen` exposes a thin JS wrapper
+- **(A) bbnf-lang as the emit engine** — `./codegen` exposes a JS wrapper
   invoking `bbnf-lang`'s `TsEmitter` over a `.bbnf` source string, returning the
-  generated TS source. This is the lowest-effort wiring (the emitter, grammars,
-  and parity tests all exist in Rust/WASM already).
-- **(B) the SpanParser tree-walk in TS** — `./codegen` exports
+  generated TS source. The emitter, grammars, and parity tests all exist in
+  Rust/WASM already — but this path **needs a wasm-binding + a publish** to be
+  JS-consumable (cross-realm: bbnf-lang must ship as a dependency).
+- **(B) the pure-TS SpanParser tree-walk** — `./codegen` exports
   `spanParserToFunction(sp: SpanParser, name): string` that walks the closure-free
   `SpanParser` union (`span.ts:599-609`) and emits the recognizer. This keeps the
-  emit in-realm but re-implements what bbnf-lang already proves.
+  emit **IN-REALM with zero bbnf-lang publish dependency** — the **PREFERRED
+  in-realm path** (no cross-realm wasm-binding/publish; the SpanParser data
+  foundation already lives in parse-that). It re-implements the tree-walk
+  bbnf-lang's `TsEmitter` proves, but pays no cross-realm coupling.
 
-The campaign **prefers (A)** (the spine is wiring — `bbnf-lang` is the emit
-engine; parse-that ships the JS-consumable seam; value.js generates from
-`css/l4/*.bbnf`). But it leaves the encoding to parse-that B (B owns the emitter
-tier; kf only consumes the generated value.js parser, two hops down the DAG).
+The campaign **prefers (B)** — the in-realm SpanParser tree-walk avoids the
+bbnf-lang wasm-binding + publish dependency that path (A) requires, keeping the
+emitter tier within parse-that's own realm. bbnf-lang stays the PROOF (the
+`CompileTarget::Ts` emitter validates the straight-line shape) and path (A)'s
+fallback. parse-that B owns the final encoding (B owns the emitter tier; kf only
+consumes the generated value.js parser, two hops down the DAG).
 
 **The falsification guard (born-RED, NON-NEGOTIABLE — CONSTITUTION §4).** The
 emitter MUST produce STRAIGHT-LINE source, NEVER a runtime interpreter dressed as
@@ -101,7 +113,10 @@ first-char `charCodeAt` branch; each `many`/`sepBy` becomes an inline `while`
 loop; the offset threads as a local `int`, not a re-walked tree.
 
 **The proof arm (PT-B1 → `proof:codegen-parity` + `proof:codegen-throughput`).**
-Born-RED, MEASURE-FIRST, two-clause (mirrors the X2/P4 gate spec):
+Born-RED, MEASURE-FIRST, two-clause (mirrors the X2/P4 gate spec). The win is
+**grammar-as-source-of-truth** (the `.bbnf` spec IS the parser) + the elimination
+of combinator-closure overhead — **gated at PARITY-OR-BETTER throughput, NEVER a
+claimed multiple**:
 
 1. **`codegen-parity`** — over the full value corpus (every unit in CSS Values 4
    + the color/transform/gradient grammars), the generated parser's AST output is
@@ -109,16 +124,15 @@ Born-RED, MEASURE-FIRST, two-clause (mirrors the X2/P4 gate spec):
    subpath exists, no generated parser to diff. The corpus-parity discipline is
    `backend_ts.rs`'s, lifted into a JS CI gate.
 2. **`codegen-throughput`** — a NEW bench scenario (`test/benchmarks/codegen-css.bench.ts`)
-   runs the CODEGEN parser over the value corpus and asserts it closes the
-   documented gap (BBNF JSON 540 MB/s vs hand-rolled 926 MB/s = 0.58x;
-   `future-research.md §11`) toward **≥0.85x** — measured against the live
-   value.js floor (`value.js/bench/css-parse-perf.mjs` observed ~4.7 MB/s
-   value-parser / ~7.9 MB/s stylesheet; the codegen target is set FROM this
-   measured floor, NOT a claimed percentage). Born-RED via a PLANTED FAILURE: a
-   stub `./codegen` that emits a `callSpan`-driver wrapper (the falsified runtime
-   shape) must FAIL `codegen-throughput` (it cannot beat the closure lane — that
-   IS the A.W3 result), so the gate can NEVER false-green on a re-attempted
-   runtime interpreter.
+   runs the CODEGEN parser over the value corpus and asserts **parity-or-better**
+   throughput vs the hand-written parser, re-founded on the **value.js PORTABLE
+   JSON.parse-ratio anchor** (the device-independent ratio bench, NOT an absolute
+   MB/s figure or a claimed percentage): the generated parser must show NO
+   regression against the hand-written parser on the portable ratio. Born-RED via
+   a PLANTED FAILURE: a stub `./codegen` that emits a `callSpan`-driver wrapper
+   (the falsified runtime shape) must FAIL `codegen-throughput` (it cannot reach
+   parity with the closure lane — that IS the A.W3 result), so the gate can NEVER
+   false-green on a re-attempted runtime interpreter.
 
 ---
 
@@ -305,9 +319,11 @@ substrate is present:
   `proof:perf` gate over a checked-in baseline JSON (PT-B4 part 3). The benches
   run; they are just not CI-gated against regression.
 - `bbnf-lang` carries its OWN bench corpus (`crates/core/benches/css/ts.rs`,
-  `crates/core/benches/json/ts.rs`) — the codegen-throughput numbers PT-B1's gate
-  needs have a Rust-side precedent; the JS-side `proof:codegen-throughput` mirrors
-  the live `value.js/bench/css-parse-perf.mjs` floor (~4.7 MB/s).
+  `crates/core/benches/json/ts.rs`) — the codegen-throughput discipline PT-B1's
+  gate needs has a Rust-side precedent; the JS-side `proof:codegen-throughput` is
+  founded on the value.js PORTABLE JSON.parse-ratio anchor (a device-independent
+  ratio, NOT an absolute MB/s figure) — parity-or-better vs the hand-written
+  parser, no regression.
 
 ### The SpanParser P-inv-28 limbo: this dispatch chooses BUILD
 
@@ -353,10 +369,15 @@ SpanParser data structure survives as the codegen IR; the runtime-dispatch
 ## Dependencies
 
 - **parse-that B is the DAG ROOT — it depends on NOTHING in the constellation.**
-  It is the FIRST tranche; value.js P and kf P consume its output. The only
-  external substrate it consumes is `bbnf-lang` (the TS emitter, if PT-B1 takes
-  encoding (A)) — which EXISTS locally and is itself a parse-that consumer
-  (`bbnf-path-ts/ts/`), so the realm is already coupled.
+  It is the FIRST tranche; value.js P and kf P consume its output. Under the
+  PREFERRED in-realm path (B — the pure-TS SpanParser tree-walk), parse-that B
+  takes **zero external substrate**: the SpanParser data foundation already lives
+  in parse-that, so the `./codegen` emit needs no bbnf-lang publish dependency.
+  Only the fallback path (A — bbnf-lang-via-wasm) consumes `bbnf-lang` (the TS
+  emitter, needing a wasm-binding + a publish) — which EXISTS locally and is itself
+  a parse-that consumer (`bbnf-path-ts/ts/`), so even then the realm is already
+  coupled. bbnf-lang stays the PROOF (the `CompileTarget::Ts` emitter validates the
+  straight-line shape) regardless of which path B picks.
 - **PT-B2 (the packrat fix) is sequencing-critical** — it should land at B's first
   correctness wave (B.W0/W1), BEFORE PT-B1's large generated grammars consume the
   packrat tier (the cross-input pollution + 4096-ID aliasing the codegen grammars
@@ -380,12 +401,13 @@ SpanParser data structure survives as the codegen IR; the runtime-dispatch
 
 This file is the keyframes Tranche P DEVELOPMENT dispatch to parse-that — **DOCS
 ONLY**. It writes ZERO parse-that source (inv-16: kf writes only keyframes.js;
-every cross-repo need is a *dispatch*, never a foreign-tree edit). The four ASKs
-are coordination records for parse-that's Tranche B session to formalize into its
-own waves on its own authorization — parse-that owns the emitter encoding (the
-SpanParser tree-walk vs the bbnf-lang wrapper), the packrat cure arm (src-guard vs
-WeakRef-epoch), the Span-combinator factory's deopt risk, and the fusion's
-backtracking-preservation. kf's role is downstream + DAG-ordered: consume the
+every cross-repo need is a *dispatch*, never a foreign-tree edit). The ASKs (the
+PT-B0 CSS-emit de-risk spike + the four deliverables) are coordination records for
+parse-that's Tranche B session to formalize into its own waves on its own
+authorization — parse-that owns the emitter encoding (the PREFERRED in-realm
+pure-TS SpanParser tree-walk, path B, vs the cross-realm bbnf-lang-via-wasm
+wrapper, path A), the packrat cure arm (src-guard vs WeakRef-epoch), the
+Span-combinator factory's deopt risk, and the fusion's backtracking-preservation. kf's role is downstream + DAG-ordered: consume the
 generated value.js parser (P.W4, GATED) ONLY after parse-that B publishes 0.12.0
 AND value.js P publishes the generated parser — publish-then-consume, never
 cross-write. The whole packet is observable-truth (every ASK carries a falsifiable

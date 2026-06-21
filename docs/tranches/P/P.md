@@ -15,6 +15,14 @@
 > is the kf-P tranche charter *under* that constitution; it does not re-litigate the locked
 > decisions, it sequences the kf work that rides them.
 
+> **PRECONDITION-STATE banner (the two-tier O→P gate).** P opens after O is **AUTHORIZED** and O's NOW
+> correctness/chronic-terminal bands (DM-2/DM-3 build-ins O.W5/O.W6, the DM-22 cure) are available as
+> P's substrate — NOT after O is fully *implemented*. **O is DEVELOPED-not-IMPLEMENTED** (verified:
+> `engine.ts` is still 1397L). O.W7 (the VJ-L1-GATED engine split) is **RE-HOMED into P's execution
+> window**: P.W11's realm-clean WeakMap early-cure discharges the VJ-L1 precondition NOW → O.W7-under-P
+> lands the split → P.W3 S4 deepens it into the `Playhead` value-object. This is the canonical chain;
+> §1/§5 below state it identically.
+
 ---
 
 ## 1 — Why Tranche P exists (the optimization+demo-design mandate atop O)
@@ -42,7 +50,10 @@ foundation O lays. The dependency is concrete and named:
 | **O.WZ 5.0.0 cut** (the no-legacy renames; the Oscillator + additive tail published) | O Band Z (USER-DOMAIN) | **P Band Z** cuts **5.1.x** — perf is non-breaking, it rides AFTER O's major |
 | **value.js 1.0.2 `PathGeometry` / `./math` / `flatLeaf`(P) / `parseCSSSubValue`(P)** | constellation | **P Band B/E/F/G** consume the published surfaces; the codegen-consume (P.W4) rides parse-that B → value.js P |
 
-P does **not** orphan O. P opens only after O is authorized; the two compose by phase (O = NOW
+P does **not** orphan O. P opens after O is **AUTHORIZED** and O's NOW correctness/chronic-terminal
+bands are available as P's substrate (NOT after O is fully *implemented* — O is
+DEVELOPED-not-IMPLEMENTED, `engine.ts` still 1397L; O.W7's VJ-L1-GATED split is RE-HOMED into P's
+execution window per the PRECONDITION-STATE banner above). The two compose by phase (O = NOW
 correctness; P = the perf/design layer over the corrected tree). The carried-forward chronics are
 tracked in `P/audit/deferred-ledger-P.md` (every O terminal a P inheritance, not a re-defer).
 
@@ -101,8 +112,10 @@ a terminal transposition in P (not a band-aid, not a file-rename masquerading as
   K1/K3 lanes).** Today `transformTargetsStyle` (utils.ts:417) allocates a fresh `Record<string,string>`
   every rAF frame and writes K individual `style.setProperty` calls (each a string-serialize + browser
   CSS re-parse). The transposition: a two-phase pipeline (interpolate-all → write-all) with batched
-  `StylePropertyMap.set()` (Typed-OM, broadly Baseline). **P Band B owns this** (P.W3), gated
-  `proof:typed-om-eligible` (real-browser pixel-readback).
+  `StylePropertyMap.set()` (Typed-OM — **LIMITED AVAILABILITY**: Chrome/Edge 66+, Safari 16.4+, NO
+  Firefox for the aggregate API; PROGRESSIVE-ENHANCEMENT with a string-`setProperty` fallback,
+  feature-detect-gated). **P Band B owns this** (P.W3), gated `proof:typed-om-eligible` (real-browser
+  pixel-readback).
 
 - **The codegen-consume (the campaign's missing perf payload — CONSTITUTION §4 · V1-N2/P1/P4/X2
   lanes).** Four audit lanes converged on the same radical play: emit, at BUILD TIME, ONE specialized
@@ -119,9 +132,11 @@ a terminal transposition in P (not a band-aid, not a file-rename masquerading as
   production import + two cross-realm `as any` casts (utils.ts:1,229,236); S1 aria-suppress; S2
   dock-pointer interim. Each retires on a *root fix* — **P does not band-aid these**: S2 deletes NOW
   (the BC `useDockClickIntegrity` root fix shipped 4.0.1); S1 stays GATED on the BC aria guard
-  (`KF-TO-GLASSUI` correction stands); S8/S9 retire on value.js P (VJ-L1 flatLeaf + VJ-L3
-  parseCSSSubValue) — **with the VJ-L1 WeakMap early-cure (Band F) as the P-inv-28 chronicity-3 early
-  exit that unblocks O.W7 NOW if value.js P slips.**
+  (`KF-TO-GLASSUI` correction stands); S8 (born E) / S9 (born C) **exit at O.W16** (the value.js
+  VJ-L1/VJ-L3 consume, inherited at P) **+ P.W11 WeakMap early-cure for S8** — these are at
+  **chronicity 4** (K,L,M,O→P), and the VJ-L1 WeakMap early-cure (Band F) is the **P-inv-28
+  chronicity-4 belt exit** that unblocks O.W7 NOW if value.js P slips. (P.W12 is S1/S2 ONLY — the
+  glass-ui aria/dock consume, NOT S8/S9.)
 
 ## 3 — The eight bands (the wave structure)
 
@@ -137,8 +152,8 @@ sibling publish).
 | **C — Demo-fleet (frontend-design)** | P.W5 (cube + amiga), P.W6 (square + spring), P.W7 (easing-curve-editor + DemoControlPoint showcase), P.W8 (N-Stage switcher + mobile) | NOW | the 29-idea design fleet over the O-built chronic terminals: per-scene refinement, the spring parameter-space heatmap, amiga flick-to-boing, the curve-editor dogfooding `DemoControlPoint`, the N-Stage shelf-driver + the entirely-unbuilt mobile |
 | **D — Correctness** | P.W9 (NaN-frame cure + grammar-fuzz + differential-oracle) | NOW | the property-based / differential-vs-browser oracle frontier the corpus tests miss — fast-check fuzz, the CDP computed-style differential, the named-selector roundtrip post-O.W3 |
 | **E — No-legacy** | P.W10 (leaves.ts-externalization-TRAP + deprecated-aliases + cross-realm-seam-gate) | NOW | the genuine `leaves.ts`→`/math` bundle-externalization transposition (NOT a delete), the `proof:no-cross-realm-cast` structural gate, the deprecated-alias purge atop O's 5.0.0 renames |
-| **F — Unblock** | P.W11 (VJ-L1-WeakMap early-cure → unblock O.W7) | NOW | the kf-internal `WeakMap<ValueUnit,string>` FN_NAME carrier — the P-inv-28 chronicity-3 early exit that lifts O.W7's VJ-L1 gate WITHOUT waiting for value.js P |
-| **G — Consume** | P.W12 (glass-ui 4.1.0 S2-delete-NOW + S1-GATED-on-guard) | NOW S2 · GATED S1 | the glass-ui consume: delete S2/dock atomically on 4.1.0 (root fix shipped); hold S1/aria GATED on the BC SFC guard (the O correction premise unmet) |
+| **F — Unblock** | P.W11 (VJ-L1-WeakMap early-cure → unblock O.W7) | NOW | the kf-internal `WeakMap<ValueUnit,string>` FN_NAME carrier — the P-inv-28 **chronicity-4 belt exit** for S8 (the belt fires THIS tranche) that lifts O.W7's VJ-L1 gate WITHOUT waiting for value.js P |
+| **G — Consume** | P.W12 (glass-ui 4.1.0 S2-delete-NOW + S1-GATED-on-guard) | **NOW S2** (re-pin only — the glass-ui `useDockClickIntegrity` root fix is ALREADY published+installed; no sibling WAIT) · **GATED S1** (waits on the UNshipped BC SFC aria guard) | the glass-ui consume: delete S2/dock atomically on 4.1.0 (root fix shipped); hold S1/aria GATED on the BC SFC guard (the O correction premise unmet) |
 | **Z — Close + 5.1.x cut** | P.WZ (close + 5.1.x cut) | NOW-author · USER-DOMAIN publish | the non-breaking perf cut riding AFTER O's 5.0.0 major — the SoA/Typed-OM/codegen wins published, the ledger re-pointed O→P, the deploy round-trip re-observed |
 
 **Phase-axis note.** P carries far more **NOW** weight than O did: the engine transpositions (Band B
@@ -184,8 +199,8 @@ value — all NOW). The two gated edges close last:
   carrier NOW (X4 radical idea) — it unblocks O.W7's split IMMEDIATELY without the value.js P wait. The
   WeakMap does NOT survive `ValueUnit.clone()` (the re-stamp ceremony stays — VJ-L1 remains strictly
   preferred as the *true* terminal), so P Band B's `Playhead` transposition (which deepens O.W7) can
-  proceed over the cleared seam while value.js P is still in flight. This is the P-inv-28 chronicity-3
-  early exit named in the CONSTITUTION §3.
+  proceed over the cleared seam while value.js P is still in flight. This is the P-inv-28 **chronicity-4
+  belt exit** for S8 (the belt fires THIS tranche, P) named in the CONSTITUTION §3.
 
 - **The codegen-consume gated on parse-that B + value.js P (Band B.W4).** P.W4 consumes the generated
   value.js CSS-value parser — it CANNOT land until parse-that B ships `@mkbabb/parse-that/codegen` AND
@@ -201,8 +216,12 @@ major.
 
 ## 5 — The relationship to O (P sequences atop O — the dependency, stated precisely)
 
-P is **not** a re-do of O and **not** a parallel tranche — it is the **next** tranche, opening only
-after O is authorized + implemented. The coupling is three concrete inheritances:
+P is **not** a re-do of O and **not** a parallel tranche — it is the **next** tranche, opening after O
+is **AUTHORIZED** and O's NOW correctness/chronic-terminal bands (DM-2/DM-3 build-ins O.W5/O.W6, the
+DM-22 cure) are available as P's substrate — NOT after O is fully *implemented* (O is
+DEVELOPED-not-IMPLEMENTED; `engine.ts` is still 1397L). O.W7 (the VJ-L1-GATED engine split) is RE-HOMED
+into P's execution window: P.W11's WeakMap early-cure discharges the VJ-L1 precondition NOW → O.W7-under-P
+lands the split → P.W3 S4 deepens it. The coupling is three concrete inheritances:
 
 1. **O.W5/O.W6 chronic terminals are P Band C's substrate.** O builds `DemoControlPoint` (over LIGHT
    `drag2D`) and `fromMorphSVG` (over value.js `PathGeometry`). **P Band C dogfoods them** — the
@@ -235,11 +254,14 @@ O.WZ cuts **5.0.0** (major — the no-legacy renames are breaking: `Animation`�
 `presets.flip`→`presets.flipPreset`; + the multi-color refusal semantic). It also ensures the
 Oscillator + the eight-export additive tail reach the **published** dist (frozen at 4.3.0 today).
 
-P.WZ cuts **5.1.x** — a **non-breaking** minor riding AFTER O's major. The P perf+design work is
-additive by construction: the SoA compositor and Typed-OM write-path are internal strategy changes
-(no API delta); the `Playhead` value-object is an internal transposition (the public driver protocol
-is *formalized*, not re-shaped — the external `startTime =` pokes become typed handle calls but the
-surface holds); the codegen-consume is a faster parser behind the same `CSSKeyframesAnimation` facade;
+P.WZ cuts **5.1.x** — a **non-breaking** minor (BC-additive) riding AFTER O's major. The P perf+design
+work is additive by construction: the SoA compositor and Typed-OM write-path are internal strategy
+changes (no API delta); the `Playhead` value-object is an INTERNAL transposition (P.W3 S4 — the
+public `startTime`/`pausedTime` field-write seam + `advanceTo`/`interpFrames`/`seek`/`effectiveT`
+KEEP their published signatures via DELEGATING ACCESSORS; no public engine-class member is removed or
+retyped, and P.W3 S4 wires `proof:published-surface` into its born-RED set to enforce that BC-preservation
+clause — a future field-removal would escalate to 6.0.0, but the committed path is 5.1.x via delegating
+accessors); the codegen-consume is a faster parser behind the same `CSSKeyframesAnimation` facade;
 the demo-fleet is demo-only. P.WZ authors the changelog 5.1.x entry (the perf wins + the demo fleet),
 re-points the chronic ledger O→P (the M→O→P substrate chain), and observes the deploy round-trip as
 live-byte equality (the CI→deploy→live serves-the-exact-hash oracle). The publish + the keyframes-vue
@@ -252,10 +274,11 @@ scheduled by the sibling sessions into their own trees — the proven inv-16 fen
 O's `KF-TO-VALUEJS-P-ASKS.md` + the BC aria correction):
 
 - **`KF-TO-VALUEJS-P.md` → value.js Tranche P** — VJ-L1 `flatLeaf` provenance + VJ-L3 `parseCSSSubValue`
-  (the S8/S9 root fixes), the `color2Into` out-param + typed Float64 channel view (the perf tail), the
-  codegen-generation of the CSS-value parser from `css/l4/*.bbnf` (the spine's value.js leg), the
-  P.W0 doc-honesty reconciliation (commit the uncommitted O docs; the stale "DEVELOPMENT — charter
-  only" PROGRESS → CLOSED-as-built). Version split: 1.1.0 (API) then 1.2.0 (perf).
+  (the S8/S9 root fixes), the VJ-P1 `color2Into` out-param + VJ-P2 typed Float64 channel view (the perf
+  tail), the codegen-generation of the CSS-value parser from `css/l4/*.bbnf` (the spine's value.js leg),
+  the **VJ-P.W0** doc-honesty reconciliation (commit the uncommitted O docs; the stale "DEVELOPMENT —
+  charter only" PROGRESS → CLOSED-as-built — value.js Tranche P's first wave; there is NO kf P.W0, the
+  kf roster starts at P.W1). Version split: 1.1.0 (API) then 1.2.0 (perf).
 - **`KF-TO-PARSETHAT-B.md` → parse-that Tranche B** — `@mkbabb/parse-that/codegen` (the BBNF→specialized-
   monomorphic-TS emitter over the retained SpanParser + bbnf-lang `TsEmitter`), the **packrat cross-input
   pollution FIX** (the MEMO key has no `src` component — a real correctness BLOCKER), the Span-combinator

@@ -32,10 +32,7 @@ gating, demo-fleet shelving, mobile N-Stage unbuilt, S1 false-RED correction).
 5. **DM-1 RF-17 at chronicity 6 — CRITICAL window.** (I,J,K,L,M,O→P = 6 carries.) The
    pre-authored contingency KILL from deferred-ledger-O.md §6 carries forward unchanged.
    P.W12 is the terminal window. No 7th carry.
-6. **DM-2/DM-3 at chronicity 9 — ABSOLUTE FINAL.** O.W5/O.W6 are the chartered BUILD-IN
-   homes; implementation NOT yet executed (O impl unauthorized). If O.W5/O.W6 not yet
-   implemented when P opens, P.W7/P.W5 are the ABSOLUTE final BUILD-IN homes. No 10th
-   carry under any scenario.
+6. **DM-2 (born E) / DM-3 (born C) — 7 carries through M · O CHARTERS the forbidden-8th-carry close (O.W5/O.W6) · P INHERITS + IMPLEMENTS the build-in (chartered, never built) — ABSOLUTE FINAL.** O.W5/O.W6 are the chartered BUILD-IN homes; implementation NOT yet executed (O impl unauthorized). If O.W5/O.W6 not yet implemented when P opens, P.W7/P.W5 are the ABSOLUTE final BUILD-IN homes. No further carry under any scenario.
 7. **The codegen-consume (P.W4) is GATED — not a NOW wave.** Fires only when parse-that B
    ships `@mkbabb/parse-that/codegen` + value.js P consumes it to emit a generated parser.
    The kf-side gate (`proof:codegen-consume`) is born-RED today because the codegen parser
@@ -61,12 +58,8 @@ Carries from O §0 unchanged:
 
 **P-invariant-28 reckoning (the P mandate):**
 
-- **DM-2** GlassControlPoint (born E) — **9 carries through O.** O.W5 closes the forbidden
-  8th carry via BUILD-IN (AUTHORIZED but NOT YET IMPLEMENTED). P.W7 is the **ABSOLUTE
-  FINAL** home if O.W5 slips. No 10th carry.
-- **DM-3** MorphSVG (born C) — **9 carries through O.** O.W6 closes the forbidden 8th carry
-  via BUILD-IN (AUTHORIZED but NOT YET IMPLEMENTED). P.W5 is the **ABSOLUTE FINAL** home if
-  O.W6 slips. No 10th carry.
+- **DM-2** GlassControlPoint (born E) — **7 carries through M · O CHARTERS the forbidden-8th-carry close (O.W5) · P INHERITS + IMPLEMENTS the build-in (chartered, never built; P.W7 is the impl if O.W5 slips).** P.W7 is the **ABSOLUTE FINAL** home if O.W5 slips. No further carry.
+- **DM-3** MorphSVG (born C) — **7 carries through M · O CHARTERS the forbidden-8th-carry close (O.W6) · P INHERITS + IMPLEMENTS the build-in (chartered, never built; P.W5 is the impl if O.W6 slips).** P.W5 is the **ABSOLUTE FINAL** home if O.W6 slips. No further carry.
 - **DM-5 S8/S9** — chronicity 4 at P (K,L,M,O→P). **P-inv-28 belt FIRES THIS TRANCHE.**
   Named terminal home: value.js P VJ-L1 (S8) + VJ-L3 (S9). P.W11 WeakMap is the kf-internal
   P-inv-28 exit for S8 if VJ-L1 slips. No 5th carry without a terminal disposition.
@@ -92,8 +85,8 @@ Carries from O §0 unchanged:
 
 | Item | Born | P Chronicity | Disposition | Owning P wave | Evidence (file:line) |
 |---|---|---|---|---|---|
-| **DM-2** GlassControlPoint / `DemoControlPoint` | E | **born E · 9 carries through O · ABSOLUTE FINAL** | **BUILD-IN (O.W5 home; if O.W5 not impl → P.W7 is FINAL).** `DemoControlPoint.vue` over the LIGHT `drag2D` in `demo/@/components/`. O.W5 AUTHORIZED but NOT YET IMPLEMENTED. P.W7 dogfoods it as the easing curve-editor drag handle. **Critical S-clause (D5 lane):** DemoControlPoint MUST construct drag2D with `springOptions:{dampingFraction:1}` (critically damped, no overshoot — the curve-editor precision requirement). **No 10th carry under any scenario.** | P.W7 (requires O.W5 substrate OR builds inline) | `grep -rn 'DemoControlPoint' demo/ src/` → ZERO (2026-06-20); `proof:demo-control-point` absent; `audit/AUDIT-DIGEST.md K4-demo-engine:542` + `D5-easing:824` (critical S-clause) |
-| **DM-3** MorphSVG / `fromMorphSVG` | C | **born C · 9 carries through O · ABSOLUTE FINAL** | **BUILD-IN (O.W6 home; if O.W6 not impl → P.W5 is FINAL).** `fromMorphSVG` over value.js 1.0.2 `PathGeometry` (`dist/transform/path.d.ts:36-67` — confirmed published). P.W5 dogfoods it in the demo fleet morph scene. **No 10th carry under any scenario.** | P.W5 (requires O.W6 substrate OR builds inline) | `grep -rn 'fromMorphSVG' src/animation/` → ZERO; `ls scripts/proof-morphsvg-consume.mjs` → ABSENT; `node_modules/@mkbabb/value.js/dist/transform/path.d.ts:36-67` PRESENT; `audit/AUDIT-DIGEST.md K5-defer-O:587` |
+| **DM-2** GlassControlPoint / `DemoControlPoint` | E | **born E · 7 carries through M · O CHARTERS forbidden-8th-carry close (O.W5) · P INHERITS + IMPLEMENTS · ABSOLUTE FINAL** | **BUILD-IN (O.W5 home; if O.W5 not impl → P.W7 is FINAL).** `DemoControlPoint.vue` over the LIGHT `drag2D` in `demo/@/components/`. O.W5 AUTHORIZED but NOT YET IMPLEMENTED. P.W7 dogfoods it as the easing curve-editor drag handle. **Critical S-clause (D5 lane):** DemoControlPoint MUST construct drag2D with `springOptions:{dampingFraction:1}` (critically damped, no overshoot — the curve-editor precision requirement). **No further carry under any scenario.** | P.W7 (requires O.W5 substrate OR builds inline) | `grep -rn 'DemoControlPoint' demo/ src/` → ZERO (2026-06-20); `proof:demo-control-point` absent; `audit/AUDIT-DIGEST.md K4-demo-engine:542` + `D5-easing:824` (critical S-clause) |
+| **DM-3** MorphSVG / `fromMorphSVG` | C | **born C · 7 carries through M · O CHARTERS forbidden-8th-carry close (O.W6) · P INHERITS + IMPLEMENTS · ABSOLUTE FINAL** | **BUILD-IN (O.W6 home; if O.W6 not impl → P.W5 is FINAL).** `fromMorphSVG` over value.js 1.0.2 `PathGeometry` (`dist/transform/path.d.ts:36-67` — confirmed published). P.W5 dogfoods it in the demo fleet morph scene. **No further carry under any scenario.** | P.W5 (requires O.W6 substrate OR builds inline) | `grep -rn 'fromMorphSVG' src/animation/` → ZERO; `ls scripts/proof-morphsvg-consume.mjs` → ABSENT; `node_modules/@mkbabb/value.js/dist/transform/path.d.ts:36-67` PRESENT; `audit/AUDIT-DIGEST.md K5-defer-O:587` |
 
 ### 1c — FOLD-LANDED rows (DONE on the post-consume master; re-verify GREEN on P dist)
 
@@ -154,7 +147,7 @@ retarget the S1 tripwire before any deletion.
 
 | Arm | Born | P Chronicity | What it witnesses | CORRECTED Tripwire | Delete target | P wave | Evidence |
 |---|---|---|---|---|---|---|---|
-| **S1** aria-orientation suppress | K | **4 (K,L,M,O→P) — P-inv-28 belt** | `:aria-orientation="undefined"` in `SpringSidebar.vue:43` + `AnimationControls.vue:72` | **glass-ui BC cut + the `SegmentedTabs.vue` `role=group` conditional-guard SFC fix landing.** NOT 4.1.0 version number (the guard is ABSENT from 4.1.0 — this is the corrected F1 over-claim). BC must author a net-new SFC wave guarding `:aria-orientation` to tablist-only. S1 tripwire must be retargeted to: `grep -q 'aria-orientation.*tablist\|aria-orientation.*role' dist/tabs.js` (content-present probe, not version). **P.W12 must execute the O.W2 DO-2 retarget that was never applied.** | `SpringSidebar.vue:43` + `AnimationControls.vue:72` | P.W12 (BC SFC guard) | `glass-ui/tabs.js` (4.1.0) unconditional; `audit/AUDIT-DIGEST.md F1-chronic:1175` (S1 FALSE RED documented) + K5:591 |
+| **S1** aria-orientation suppress | K | **4 (K,L,M,O→P) — P-inv-28 belt** | `:aria-orientation="undefined"` in `SpringSidebar.vue:43` + `AnimationControls.vue:72` | **glass-ui BC cut + the `SegmentedTabs.vue` `role=group` conditional-guard SFC fix landing.** NOT 4.1.0 version number (the guard is ABSENT from 4.1.0 — this is the corrected F1 over-claim). BC must author a net-new SFC wave guarding `:aria-orientation` to tablist-only. S1 tripwire must be retargeted to: `grep -q 'aria-orientation.*tablist\|aria-orientation.*role' dist/tabs.js` (content-present probe, not version). **P.W12 must execute the O.W2 DO-2 retarget that was never applied.** **PROOF-SCRIPT BUG (confirmed live, decision #12):** the live `proof-workaround-deletion.mjs` S1 arm has `version:'4.1.0'` + NO `apiPresent` field (the DO-2 content-aware probe was wired only to S7/S8/S9). S1 is therefore FALSELY RED — the script fires as RED because 4.1.0 IS published, but the aria guard is absent from that version. P.W12 MUST extend `apiPresent` to S1: a `grepDist` check that the installed glass-ui dist's tabs emits the `role=group`-conditional aria guard (absent today → correctly PENDING, not FALSE-RED-on-a-phantom-version). | `SpringSidebar.vue:43` + `AnimationControls.vue:72` | P.W12 (BC SFC guard) | `glass-ui/tabs.js` (4.1.0) unconditional; `audit/AUDIT-DIGEST.md F1-chronic:1175` (S1 FALSE RED documented) + K5:591 |
 | **S2** RF-17 `onPlayPointerDown`/`pointerHandled` | I | **6 (I,J,K,L,M,O→P) — CRITICAL** | `pointerHandled\|onPlayPointerDown` in `TransportDock.vue` | **glass-ui BC cut re-pin** (content-present probe: `grep 'useDockClickIntegrity' node_modules/@mkbabb/glass-ui/dist/dock.js` — confirmed PRESENT in 4.0.1 and 4.1.0). S2 IS actionable on the BC cut re-pin. Pre-deletion: re-verify the BC-cut buttery dock eliminates the crossfade-strand root. | `TransportDock.vue` `pointerHandled`/`onPlayPointerDown` lines | P.W12 (BC-gated) | `dock.js:534` `useDockClickIntegrity` confirmed; `audit/AUDIT-DIGEST.md F1-chronic:1175` |
 | **S7** `linear()` flat-comma regex | K | **GREEN (FIRED M consume)** | `timingFunction.replace` flat-comma fold | value.js VJ-L2 `linearStopsToCSS` — FIRED (value.js 1.0.0) | DELETED (M.W9) | — | GREEN |
 | **S8** FN_NAME Symbol sidechannel | K | **4 (K,L,M,O→P) — P-inv-28 belt FIRES** | `FN_NAME\|Symbol("kf\.` in `src/animation/utils.ts:45-57` (7 sites) | **value.js P shipping VJ-L1 `flatLeaf` provenance API** — probed as `"fnName" in new ValueUnit(0,'px') === true`. **P-inv-28 belt active at chronicity 4.** P.W11 WeakMap fallback is the kf-internal early exit: replaces Symbol with `WeakMap<ValueUnit,string>` — clone-restamp ceremony STAYS (WeakMap does not survive clone()); strictly inferior to VJ-L1 but P-inv-28-compliant for THIS tranche. | `utils.ts:45-57` FN_NAME block | O.W16 (VJ-L1 publish arm) · P.W11 (WeakMap arm) | `utils.ts:45`; `audit/AUDIT-DIGEST.md X4-correctness:1086` + `K5-defer-O:611` (WeakMap fallback spec) |
@@ -179,12 +172,12 @@ retarget the S1 tripwire before any deletion.
 
 | Item | P chronicity | Exit form | Status |
 |---|---|---|---|
-| **DM-2** GlassControlPoint (born E) | **9 carries through O · ABSOLUTE FINAL** | BUILD-IN O.W5/P.W7 — `DemoControlPoint` over LIGHT `drag2D` (critically damped spring required); no 10th carry | O.W5 chartered; if not impl → P.W7 FINAL |
-| **DM-3** MorphSVG (born C) | **9 carries through O · ABSOLUTE FINAL** | BUILD-IN O.W6/P.W5 — `fromMorphSVG` over published `PathGeometry`; no 10th carry | O.W6 chartered; if not impl → P.W5 FINAL |
+| **DM-2** GlassControlPoint (born E) | **born E · 7 carries through M · O charters O.W5 · P INHERITS+IMPLEMENTS · ABSOLUTE FINAL** | BUILD-IN O.W5/P.W7 — `DemoControlPoint` over LIGHT `drag2D` (critically damped spring required); no further carry | O.W5 chartered; if not impl → P.W7 FINAL |
+| **DM-3** MorphSVG (born C) | **born C · 7 carries through M · O charters O.W6 · P INHERITS+IMPLEMENTS · ABSOLUTE FINAL** | BUILD-IN O.W6/P.W5 — `fromMorphSVG` over published `PathGeometry`; no further carry | O.W6 chartered; if not impl → P.W5 FINAL |
 | **DM-1** RF-17 | **6** | HANDOFF P.W12 (BC-gated) — no 7th carry; contingency KILL record carries | CRITICAL terminal window |
 | **DM-5 S1** aria-orientation | **4** | HANDOFF P.W12 (BC SFC guard wave); P.W12 retargets tripwire first | P-inv-28 belt at 4 |
-| **DM-5 S8** FN_NAME | **4** | HANDOFF O.W16 (VJ-L1); P.W11 WeakMap is kf-internal P-inv-28 exit | P-inv-28 belt FIRES THIS TRANCHE |
-| **DM-5 S9** parse-that import | **4** | HANDOFF O.W16 (VJ-L3); P.W10 W96 scan is structural guard | P-inv-28 belt FIRES THIS TRANCHE |
+| **DM-5 S8** FN_NAME | **4 (chronicity-4 belt fires THIS tranche)** | HANDOFF O.W16 (VJ-L1); P.W11 WeakMap is the **chronicity-4 belt exit** (kf-internal P-inv-28 exit if VJ-L1 slips) | P-inv-28 belt FIRES THIS TRANCHE |
+| **DM-5 S9** parse-that import | **4 (chronicity-4 belt fires THIS tranche)** | HANDOFF O.W16 (VJ-L3); P.W10 W96 scan is structural guard | P-inv-28 belt FIRES THIS TRANCHE |
 | **DM-7** keyframes-vue | **4** | USER-DOMAIN P.WZ; NO 5th carry | P-inv-28 belt FIRES THIS TRANCHE |
 | **DM-9** CH-1 specular | 7 | VERIFY-ONLY-TERMINATED: `proof:specular-absent-at-rest` GREEN | P-inv-28 satisfied |
 | **DM-10** CH-2 typography | 8 | VERIFY-ONLY-TERMINATED: `proof:font-census` GREEN | P-inv-28 satisfied |
@@ -284,11 +277,12 @@ At P.WZ the orchestrator performs the atomic re-point (the O.WZ→O precedent):
 
 **P-INVARIANT-28 CLOSURE ASSERTION (P).** Every row carries (a) a tag, (b) a named owning
 P wave, (c) a named tripwire or terminal disposition. **Zero rows are bare BOOKs.**
-DM-2 (born E) and DM-3 (born C) are at 9 carries — ABSOLUTE FINAL (O.W5/P.W7 and O.W6/P.W5
-respectively). DM-1 (6-tranche) has a named terminal window (P.W12; contingency KILL carries).
-DM-5 S8/S9 and DM-7 are all at 4-tranche P-inv-28 belt — named terminal homes enforced THIS
-TRANCHE. The VERIFY-ONLY-TERMINATED rows (DM-8..DM-15) satisfy P-inv-28 via born-RED oracle
-provenance.
+DM-2 (born E · 7 carries through M · O charters O.W5 · P INHERITS+IMPLEMENTS) and DM-3 (born C
+· 7 carries through M · O charters O.W6 · P INHERITS+IMPLEMENTS) are ABSOLUTE FINAL BUILD-INs
+(O.W5/P.W7 and O.W6/P.W5 respectively). DM-1 (6-tranche) has a named terminal window (P.W12;
+contingency KILL carries). DM-5 S8/S9 and DM-7 are all at chronicity-4 P-inv-28 belt — named
+terminal homes enforced THIS TRANCHE. The VERIFY-ONLY-TERMINATED rows (DM-8..DM-15) satisfy
+P-inv-28 via born-RED oracle provenance.
 
 ---
 
