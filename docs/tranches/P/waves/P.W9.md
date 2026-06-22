@@ -222,19 +222,23 @@ Arbitrary<CSSFragment> → parse via CSSKeyframesAnimation.fromString()
    bounded numeric channels from `fc.float({ min: 0, max: 1 })`. The `oklch(L none H)` arm is the
    planted regression for the none→NaN breach.
 
-2. **`mathArb`** — generates `calc(<expr>)`, `round(<number>)` (bare strategy form — the planted
-   regression for the round() omit throw), `clamp(<min>, <val>, <max>)` with `fc.float()` leaves.
+2. **`mathArb`** — generates `calc(<expr>)`, `clamp(<min>, <val>, <max>)` with `fc.float()` leaves.
+   The `round(<number>)` (bare strategy-omit) arm is **SKIPPED** (not a permanent-RED born-RED): it
+   is omitted from `mathArb` until value.js P ships the strategy-branch fix, then added in a
+   follow-on commit. The gate uses `fc.context()` to document the skipped arm with
+   `"round-strategy-omit: SKIP until value.js P — V3-correctness dispatch"` so the harness is
+   useful and GREEN on today's value.js 1.0.2, not blocked on a sibling.
 
 3. **`keyframeStopArb`** — generates `@keyframes x { <stop%> { <prop>: <colorArb|mathArb> } }` with
    `fc.integer({ min: 0, max: 100 })` selector percentages, one to three stops.
 
-**Born-RED by planted regression.** The fuzz harness is born-RED if the model generates a
-`round(<number>)` input (the round() strategy-omit form) before value.js ships the strategy-branch
-fix: `CSSKeyframesAnimation.fromString('@keyframes x { 0% { --v: round(1px) } }')` throws `"t is
-not iterable"` at value.js `roundFn` (a fatal parse error, not a graceful value). The gate asserts
-zero throws from `fromString` for any generated input (throws are structural equality failures — a
-grammar the model generates must be parseable). After value.js P ships the round() fix, the
-`round(<number>)` arm parses cleanly and the round-trip equality holds.
+**Born-RED only on the absent devDep, not on the sibling fix.** The fuzz harness is born-RED today
+because `fast-check` is absent from devDependencies (the gate cannot import it → exits 1). Once
+`fast-check` is added, the `colorArb` + `keyframeStopArb` arms run TODAY against value.js 1.0.2
+and are GREEN (the none→NaN breach and the color() wrapper-loss form are already fixed in 1.0.2).
+The `round(<number>)` arm is SKIPPED (not RED) until value.js P ships — so the harness ships
+useful coverage now and gains the round() arm as a follow-on. A harness that is permanently RED
+until a sibling ships is a blocked harness — the SKIP posture makes it immediately useful.
 
 **Gate:** `proof:grammar-fuzz` (NEW — `node scripts/proof-grammar-fuzz.mjs`, thin wrapper driving
 `vitest run test/grammar-fuzz.test.ts`). Wire into `proof:hygiene` alongside
@@ -244,9 +248,11 @@ Seed is fixed (`fc.seed(42)`) for reproducibility on CI; a randomized run is ava
 
 **Planted-failure (born-RED proof).** Today: `fast-check` is absent from `devDependencies`
 (`grep "fast-check" package.json` → zero hits) — the gate script cannot import it → exits 1.
-After `fast-check` is added but before value.js P fixes round(): the `round(<number>)` arm of
-`mathArb` causes a throw — the gate remains RED. After value.js P ships the round() fix:
-the gate turns GREEN (all 200 cases parse, serialize, re-parse to structurally equal frames).
+After `fast-check` is added: the `colorArb` + `keyframeStopArb` arms run against today's
+value.js 1.0.2 and turn GREEN immediately (the `none→NaN` and `color()` wrapper-loss forms are
+fixed in 1.0.2). The `round(<number>)` arm is SKIPPED with an explicit note — the gate is GREEN
+and useful now. When value.js P ships the round() fix, add the `round(<number>)` case to `mathArb`
+and remove the SKIP — the gate stays GREEN through the extension.
 
 ### S4 — Differential oracle: `proof:kf-differential` kf.at(t) vs WAAPI interpolation
 
@@ -318,8 +324,7 @@ The four born-RED observables, witnessed on today's tree:
 | `proof:named-selector-nan-frame` `throw-or-finite` **(KEYSTONE)** | `new CSSKeyframesAnimation().fromString('@keyframes x { entry {opacity:0} exit {opacity:1} }').parse([])` does NOT throw; produces `frame.time = {start: NaN, stop: NaN}` — confirmed live with `node -e "'entry'*1000/100"` → `NaN` | `Number.isFinite(frame.time.start) === false` AND no throw | `parse([])` throws `AnimationOptionError` with `code === "NAMED_SELECTOR_NO_TIMELINE"` |
 | `proof:named-selector-nan-frame` `dead-write-becomes-live` | `grep "NAMED_SELECTOR_SUPERTYPE" frame-compiler.ts` → write site only, zero reads in `parse()` body | `parse()` body has zero `NAMED_SELECTOR_SUPERTYPE` reads | `parse()` body reads `NAMED_SELECTOR_SUPERTYPE` in the pre-sort scan |
 | `proof:named-selector-nan-frame` `no-throw-typed-becomes-thrown` | `grep -rn "NAMED_SELECTOR_NO_TIMELINE" src/animation/` → `errors.ts:46` only, zero throw sites | zero throw sites | at least one throw site in `frame-compiler.ts:parse()` |
-| `proof:grammar-fuzz` (harness absent) | `grep "fast-check" package.json` → zero; `test/grammar-fuzz.test.ts` absent | gate script cannot import `fast-check` → exits 1 | `fast-check` in devDeps; 200 generated CSS fragments parse + round-trip with structural equality |
-| `proof:grammar-fuzz` (planted regression: round() omit) | `CSSKeyframesAnimation.fromString('@keyframes x { 0% { --v: round(1px) } }')` throws `"t is not iterable"` at value.js `roundFn` | fromString throws on any `round(<number>)` input | value.js P ships the round() strategy-branch fix; zero fromString throws for model-generated inputs |
+| `proof:grammar-fuzz` (harness absent) | `grep "fast-check" package.json` → zero; `test/grammar-fuzz.test.ts` absent | gate script cannot import `fast-check` → exits 1 | `fast-check` in devDeps; 200 generated CSS fragments (colorArb + keyframeStopArb arms) parse + round-trip with structural equality; `round()` arm SKIPPED with explicit note until value.js P |
 | `proof:kf-differential` (script absent) | `ls scripts/proof-kf-differential.mjs` → no file | exits 1 | script present; ≥4 WAAPI-eligible fixtures run; all numeric props within tolerance |
 
 **Born-RED on the keystone defect (the NaN-frame bug).** The `throw-or-finite` clause is the
@@ -338,9 +343,11 @@ source would green on the DEAD WRITE — it would pass today while the bug is li
    the `dead-write-becomes-live` clause confirms the SUPERTYPE constant is read — but the
    `non-named-unaffected` regression guard catches any over-throw (non-named animations must not
    throw). The three corroborator clauses together prevent a false-green stub.
-3. The `proof:grammar-fuzz` gate's planted-regression arm (the `round(<number>)` throw from
-   value.js) stays RED until value.js P ships its fix — the fuzz harness is a two-phase gate: RED
-   now (absent devDep), RED again on the round() arm, then GREEN after value.js P.
+3. The `proof:grammar-fuzz` gate's `round(<number>)` arm is SKIPPED (not a permanent-RED planted
+   regression — CONTRIVANCE-AUDIT.md #5): the harness ships with `colorArb` + `keyframeStopArb`
+   arms GREEN on today's value.js 1.0.2; the round() arm is added as a follow-on when value.js P
+   ships the fix. A gate that is permanently RED on a sibling is a blocked gate — the SKIP posture
+   ships useful coverage now.
 
 ---
 
@@ -351,12 +358,12 @@ source would green on the DEAD WRITE — it would pass today while the bug is li
   `frame.start.superType?.includes(NAMED_SELECTOR_SUPERTYPE)` TODAY. S1 + S2 are pure kf-internal
   changes with zero cross-repo dependency.
 
-- **S3 grammar-fuzz depends on value.js P for the full GREEN.** The `round(<number>)` planted
-  regression is PERMANENTLY RED until value.js P ships the round() strategy-branch fix (V3 HIGH
-  correctness finding). S3 is authored NOW (the harness + gate infrastructure lands before value.js
-  P); it turns full-GREEN only after value.js P publishes. This is the intended gated posture:
-  the harness is the TRIP-WIRE, not a passive wait. Wire the gate with a clear exit message:
-  `"proof:grammar-fuzz: PENDING value.js P round() fix (V3-correctness — dispatch to value.js P)"`.
+- **S3 grammar-fuzz is GREEN on today's value.js 1.0.2.** The `colorArb` + `keyframeStopArb` arms
+  work against the current value.js and turn GREEN immediately once `fast-check` is added. The
+  `round(<number>)` arm is SKIPPED (not a permanent-RED blocking dep) until value.js P ships the
+  round() strategy-branch fix — see CONTRIVANCE-AUDIT.md #5. Wire the gate with a clear skip note:
+  `"round-strategy-omit: SKIP until value.js P — V3-correctness dispatch"`. The gate is useful now,
+  not blocked on a sibling. The round() arm is a follow-on addition, not a gate-blocking precondition.
 
 - **S4 differential oracle depends on O.W2 (DM-23 vitest-browser runner) for the FULL oracle path.**
   The subset (WAAPI-eligible fixtures via Playwright) is implementable NOW using the established
@@ -374,10 +381,11 @@ source would green on the DEAD WRITE — it would pass today while the bug is li
   `proof:replay-equality` S4 re-target from O.W3 S2). O.W3's spec is AUTHORITATIVE for S1/S2;
   P.W9 adds S3/S4 as novel oracle extensions. Zero spec conflict.
 
-- **Couples to value.js P (DISPATCH).** The grammar-fuzz harness (S3) surfaces the three confirmed
-  inv-O-2 breaches as planted regressions. The GREEN condition for S3's round() arm is GATED on
-  value.js P shipping the round() fix; this is recorded in the dispatch packet
-  `docs/tranches/P/KF-TO-VALUEJS-P.md` as a kf-side gate that unblocks on the value.js fix.
+- **Couples to value.js P (DISPATCH) for the round() arm only.** The grammar-fuzz harness (S3)
+  ships GREEN on today's value.js 1.0.2 (the `colorArb` + `keyframeStopArb` arms). The round()
+  arm is SKIPPED until value.js P ships the strategy-branch fix; the skip is recorded in the
+  dispatch packet `docs/tranches/P/KF-TO-VALUEJS-P.md`. The harness is NOT blocked on value.js P
+  for its initial authoring and CI wiring.
 
 - **Independent of every other P-Band wave.** P.W9 touches:
   `src/animation/frame-compiler.ts` (insert the `NAMED_SELECTOR_SUPERTYPE` scan in `parse()`) +
@@ -409,8 +417,10 @@ dev→impl boundary (P.md:7-9). When it opens, the implementation order is:
    the `NAMED_SELECTOR_NO_TIMELINE` throw. Re-run `proof:named-selector-nan-frame` → GREEN.
 3. **S2 re-target**: update `proof-replay-equality.mjs` S4 clause to the behavioral anchor (replace
    the source-shape regex). Confirm `proof:replay-equality` stays GREEN for all existing fixtures.
-4. **S3 grammar-fuzz**: confirm `proof:grammar-fuzz` exits RED on the round() planted-regression
-   arm; record the pending-value.js-P status in the gate message.
+4. **S3 grammar-fuzz**: confirm `proof:grammar-fuzz` exits GREEN on the `colorArb` +
+   `keyframeStopArb` arms (both work against value.js 1.0.2 today); the `round(<number>)` arm is
+   SKIPPED with an explicit note — the gate is immediately useful, not blocked on value.js P. Add
+   the round() arm as a follow-on once value.js P ships.
 5. **S4 differential oracle**: author `scripts/proof-kf-differential.mjs`; confirm GREEN on the
    four WAAPI-eligible corpus fixtures on macOS.
 6. **Wire gates**: add `proof:named-selector-nan-frame` + `proof:grammar-fuzz` to `proof:hygiene`;

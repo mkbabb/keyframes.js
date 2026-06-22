@@ -4,9 +4,16 @@
 > Constellation Optimization Campaign — `P/CONSTELLATION-OPTIMIZATION-CAMPAIGN.md`).
 > This **supersedes and extends** the O dispatch (`docs/tranches/O/KF-TO-VALUEJS-P-ASKS.md`):
 > O carried the two **API** asks (VJ-L1 `flatLeaf` + VJ-L3 `parseCSSSubValue`)
-> that value.js O **deferred**; P **inherits them unchanged** and **adds the
-> optimization frontier** — the `color2Into` gamut zero-alloc tail, the typed
-> Float64 channel view, and the `: any` property/subProperty seam narrowing.
+> that value.js O **deferred**. Under the CONTRIVANCE-AUDIT (`P/CONTRIVANCE-AUDIT.md`)
+> reformulation this dispatch is **trimmed to the grounded in-realm core**: VJ-L3
+> `parseCSSSubValue` (a real cross-realm breach kf cannot self-solve) is the surviving
+> API ask; VJ-L1 `flatLeaf` is **DEMOTED-TO-SPIKE** (kf's P.W11 realm-clean WeakMap is
+> the terminal S8 cure — VJ-L1's only residual is retiring the clone-restamp ceremony,
+> a nice-to-have re-opened on a measured need); and the perf frontier narrows to the
+> grounded `color2Into` gamut zero-alloc tail (VJ-P1) + the `: any` property/subProperty
+> seam narrowing (VJ-P3). **The typed Float64 channel view (VJ-P2) is DROPPED** — its
+> premises are falsified by shipped value.js (the string-keyed read it claimed to cure is
+> already routed around).
 > value.js is the UPSTREAM library on the constellation spine
 > (parse-that → value.js → keyframes.js → glass-ui); this is the formal handoff
 > to value.js's **Tranche P** session.
@@ -17,11 +24,15 @@
 > O fence pattern (kf authored the dispatch, value.js's session implements).
 
 This dispatch is the binding cross-repo contract behind kf wave **P.W11**
-(the VJ-L1 WeakMap early-cure — the NOW arm that unblocks O.W7 if value.js P
-slips) and the inherited **O.W16** (the GATED S8/S9 delete on the publish).
-The version split: value.js **1.1.0** (API — VJ-L1 + VJ-L3, BC-additive, the
-kf-unblock) **then 1.2.0** (perf — the allocation + seam frontier, non-breaking).
-value.js P sequences **BEFORE keyframes P** (the consumer).
+(the realm-clean WeakMap that is the TERMINAL S8 cure — in-realm, no sibling
+API needed) and the inherited **O.W16** (the GATED S9 delete on the publish).
+**O.W7's engine-seam split is NOT VJ-L1-gated** — it is executable NOW on the
+current tree; the file-split itself (and the P.W11 WeakMap) makes the flatten/parse
+seam in-realm, so VJ-L1 is not a precondition for it. The version split: value.js
+**1.1.0** (API — VJ-L3 `parseCSSSubValue`, BC-additive, the surviving kf-unblock;
+VJ-L1 demoted-to-spike) **then 1.2.0** (perf — the `color2Into` allocation tail +
+the `: any` seam narrowing, non-breaking). value.js P sequences **BEFORE
+keyframes P** (the consumer).
 
 ---
 
@@ -30,23 +41,31 @@ value.js P sequences **BEFORE keyframes P** (the consumer).
 | # | ASK | value.js file:line (grounded) | proposed API / mechanism | kf consume-seam it dissolves | born-RED gate | ver |
 |---|-----|-------------------------------|---------------------------|------------------------------|---------------|-----|
 | **VJ-P.W0** | **commit the uncommitted O docs + reconcile the stale PROGRESS** to CLOSED-as-built | `value.js/docs/tranches/O/` is **untracked** (`git status` → `?? docs/tranches/O/`); `O/PROGRESS.md:1-3` reads `DEVELOPMENT — charter only` on a fully-executed tranche (1.0.2 on master) | `git add docs/tranches/O/` + rewrite the PROGRESS header to **CLOSED** with per-wave SHIPPED status (record-as-built honesty) | n/a (value.js record hygiene; constellation-truth precondition) | `proof:progress-honesty` (value.js-side): the PROGRESS header is not `DEVELOPMENT — charter only` while master serves ≥1.0.0 | — |
-| **VJ-L1** | **first-class `flatLeaf` provenance** — `FunctionValue.name` survives `flattenObject` + `clone()` as a typed field | `units/index.ts:26-31` (6-positional ctor, NO `fnName`); `:120` `clone()`; `utils.ts:85,92` `flattenObject` `FunctionValue` branch | optional `fnName?: string` (or a `meta` record) on `ValueUnit`, copied by `clone()`, populated by `flattenObject` from the enclosing `FunctionValue.name` | **S8** — the `FN_NAME` Symbol sidechannel (`kf utils.ts:45-57,64,289-294`) | `proof:workaround-deletion` **S8** arm: `apiPresent` flips when a flattened `scale(2)` leaf carries `.fnName === "scale"` after `.clone()` | **1.1.0** |
+| **VJ-L1** *(DEMOTE-TO-SPIKE)* | **`flatLeaf` provenance** — `FunctionValue.name` survives `flattenObject` + `clone()` as a typed field. **NOT the terminal S8 cure** (P.W11's realm-clean WeakMap is); residual payoff = retire the clone-restamp ceremony only | `units/index.ts:26-31` (6-positional ctor, NO `fnName`); `:120` `clone()`; `utils.ts:85,92` `flattenObject` `FunctionValue` branch | optional `fnName?: string` (or a `meta` record) on `ValueUnit`, copied by `clone()`, populated by `flattenObject` from the enclosing `FunctionValue.name` — **re-opened only on a measured need** | **(no kf delete required)** — P.W11 WeakMap closes S8 in-realm; VJ-L1 would additionally retire the `utils.ts:64,289-294` restamp ceremony | spike-gated (re-open on a measured need); NOT the O.W7 unblocker | spike |
 | **VJ-L3** | **`parseCSSSubValue` root helper** — typed re-entry parser internalizing `any(CSSFunction.FunctionArgs, CSSValues.Value)` | `parsing/index.ts:1` (`any` from parse-that); `parseCSSSubValue` ABSENT (`grep` → ZERO) | `parseCSSSubValue(value, opts?)` root export wrapping the **FunctionArgs-FIRST** composition (the V4 truncation trap) | **S9** — the direct `@mkbabb/parse-that` import + 2 `as any` casts + the production dep (`kf utils.ts:1,229,236`) | `proof:workaround-deletion` **S9** + the new `proof:boundary` **W96** parse-that-scan | **1.1.0** |
-| **VJ-P1** | **`color2Into` out-param** — gamut bisection writes channels into a caller-owned scratch `Color` | `color/dispatch.ts:245` (`'eliminating it requires a color2Into out-param (deferred, O.W5 scope)'`); `:257` `color2(probe, target)` in the 24-step loop; `gamut.ts:247,283,307` already tuple-based | `color2Into(src, to, out)` mirroring `matrix.ts` `transformMat3Into` scratch — `gamutMapToRgbSpace` reuses one egress scratch | **(no kf delete)** — kf inherits the GC win on the rAF wide-gamut egress (faster `lerpColorValue`) | `proof:gamut-alloc` tightened: `gamutMapToRgbSpace` allocs/call ≤ 15 (born-RED on today's ~84) | **1.2.0** |
-| **VJ-P2** | **typed Float64 channel view** — kill string-keyed megamorphic channel reads in the interp/conversion loops | `color/index.ts:286` (`[key: string]: any` index signature — KEEP, public); `interpolate.ts` `lerpColorValue` reads `color[k]` | optional packed `_ch: Float64Array` lazily materialized; interp/conversion read `_ch[i]` (SoA-adjacent, AoS public shape preserved) | **(no kf delete)** — kf inherits faster per-frame color interpolation | `proof:perf-target` color-channel-access clause: the Float64-view interp ≥ the named-field baseline | **1.2.0** |
-| **VJ-P3** | **narrow the `: any` property/subProperty seam → `string`** (strict-mode invariant) | `units/index.ts:57` `setSubProperty(subProperty: any)`; `:61` `setProperty(property: any)`; `:174,178,274,278` (the container mirrors) | type the params `string` (BC — callers already pass strings); the kf consume-edge gains a typed seam | **(strengthens)** — kf's `parseAndFlattenObject` `setSubProperty`/`setProperty` calls type-check (`MEMORY.md` calc/computed pipeline) | `proof:any-seam` (value.js-side): `tsc` rejects `vu.setSubProperty(42)` | **1.2.0** |
+| **VJ-P1** | **`color2Into` out-param** — gamut bisection writes channels into a caller-owned scratch `Color` | `color/dispatch.ts:245` (`'eliminating it requires a color2Into out-param (deferred, O.W5 scope)'`); `:257` `color2(probe, target)` in the 24-step loop; `gamut.ts:247,283,307` already tuple-based | `color2Into(src, to, out)` mirroring `matrix.ts` `transformMat3Into` scratch — `gamutMapToRgbSpace` reuses one egress scratch | **(no kf delete)** — kf inherits the GC win on the rAF wide-gamut egress (faster `lerpColorValue`) | `proof:gamut-alloc` set to the MEASURED post-cure residual + a small margin (run the existing `proof-gamut-alloc.mjs` over the `color2Into` branch; not a guessed `≤15`) | **1.2.0** |
+| **VJ-P3** | **narrow the `: any` property/subProperty seam → `string`** (strict-mode invariant) | `units/index.ts:57` `setSubProperty(subProperty: any)`; `:61` `setProperty(property: any)`; `:174,178,274,278` (the container mirrors) | type the params `string` (BC — callers already pass strings); the kf consume-edge gains a typed seam | **(strengthens)** — kf's `parseAndFlattenObject` `setSubProperty`/`setProperty` calls type-check (`MEMORY.md` calc/computed pipeline) | the existing repo-wide `tsc` strict build catches regressions (no bespoke `proof:any-seam` gate needed) | **1.2.0** |
 
-All ASKs are **BC-additive** to value.js's published 1.x surface (no breaking
-change). The 1.1.0 pair (VJ-L1 + VJ-L3) is the kf-unblock; the 1.2.0 trio
-(VJ-P1–P3) is the optimization frontier and rides after.
+All surviving ASKs are **BC-additive** to value.js's published 1.x surface (no
+breaking change). The 1.1.0 ask (VJ-L3) is the surviving kf-unblock; the 1.2.0 pair
+(VJ-P1 + VJ-P3) is the grounded optimization frontier and rides after. **VJ-L1 is
+demoted-to-spike** (a measured-need re-open, not a binding ask); **VJ-P2 is dropped**
+(falsified premises — see below).
 
-**The two namespaces (distinct by design).** The **VJ-L\*** asks are the inherited
-**API** asks — VJ-L1 (`flatLeaf`/`fnName` provenance) + VJ-L3 (`parseCSSSubValue`),
-carried unchanged from the O dispatch. The **VJ-P\*** asks are the NEW **perf**
-frontier — VJ-P1 (`color2Into` out-param), VJ-P2 (typed Float64 channel view),
-VJ-P3 (the `: any`→string seam narrowing). `color2Into`
-is **VJ-P1** (NOT "VJ-L4") and the typed channel view is **VJ-P2** — they belong to
-the VJ-P perf namespace, never the VJ-L API namespace.
+**The two namespaces (distinct by design).** The **VJ-L\*** asks are the **API**
+asks — VJ-L3 (`parseCSSSubValue`), the surviving binding ask; VJ-L1 (`flatLeaf`/`fnName`
+provenance) is **DEMOTED-TO-SPIKE** (P.W11's WeakMap is the terminal S8 cure, so VJ-L1
+is a residual ceremony-retirement nicety, not a precondition for anything). The
+**VJ-P\*** asks are the **perf** frontier — VJ-P1 (`color2Into` out-param) + VJ-P3
+(the `: any`→string seam narrowing). `color2Into` is **VJ-P1** (NOT "VJ-L4"); it
+belongs to the VJ-P perf namespace, never the VJ-L API namespace.
+
+**VJ-P2 (typed Float64 channel view) is DROPPED.** The CONTRIVANCE-AUDIT found its
+premises are falsified by shipped value.js: the string-keyed megamorphic read it
+claimed to cure is **already routed around** in the shipped interpolate path. If a
+residual read is ever *suspected* on a measured bottleneck, the in-realm move is
+**widening value.js's own `interpolate.ts buildColorChannels`**, NOT a new public
+`Color._ch` shape addition. No new public Color surface is sanctioned.
 
 ---
 
@@ -94,7 +113,16 @@ value.js's gate to author; kf names it for the coordination contract.)
 
 ---
 
-## VJ-L1 — the `flatLeaf` provenance API (the kf-S8 root fix — inherited from O, unchanged)
+## VJ-L1 — the `flatLeaf` provenance API (DEMOTE-TO-SPIKE — NOT the S8 terminal, NOT the O.W7 unblocker)
+
+> **CONTRIVANCE-AUDIT reformulation (2026-06-22).** VJ-L1 is **demoted-to-spike**.
+> kf's **P.W11 realm-clean WeakMap is the TERMINAL S8 cure** — in-realm, no sibling
+> API needed (it dissolves the B10/B11 foreign-object-annotation breach without
+> waiting on value.js). VJ-L1's **only residual payoff** is retiring the 5-line
+> clone-restamp ceremony (`utils.ts:64,289-294`) — a nice-to-have, **NOT the O.W7
+> unblocker** (O.W7's split is executable NOW; the WeakMap and the file-split itself
+> make the seam in-realm). VJ-L1 is therefore **re-opened only on a measured need**;
+> the prose below records the original ask shape for that contingent re-open.
 
 **The kf need, grounded.** When kf flattens an author keyframe object, value.js's
 `flattenObject` (`value.js/src/units/utils.ts:85`, the `obj instanceof FunctionValue`
@@ -161,22 +189,22 @@ byte-identically to the current `FunctionValue`-rooted `toString` — BEFORE any
 reshape is authorized. Absent that corpus + a GREEN round-trip, the **conservative
 additive `fnName`** is the only sanctioned form.
 
-**The kf consume-seam (inherited O.W16, GATED).** On the value.js-P re-pin, kf's
-`utils.ts`:
-- deletes `FN_NAME` / `NamedValueUnit` / `stampFnName` (`:45-57`),
-- rewrites `fnNameOf(u)` to `u.fnName` (the public field) (`:50-51`),
-- drops the re-stamp on every `clone()` (`:64`, `:289-294`) — `clone()` carries it,
-- the identity-pad (`:341-363`) reads `counterLeaf.fnName` directly.
+**The S8 terminal is P.W11 (in-realm), NOT this dispatch.** S8 closes the moment
+kf swaps the `Symbol("kf.fnName")` for a kf-local `WeakMap<ValueUnit, string>`
+(P.W11, gated `proof:no-foreign-symbol-stamp`) — no value.js publish required. The
+WeakMap keeps the same `fnNameOf`/`stampFnName` API but stores the provenance
+off-realm-object, dissolving the foreign-annotation breach. The clone-restamp
+ceremony (`utils.ts:64,289-294`) **stays** under the WeakMap (a WeakMap key is the
+`ValueUnit` instance, which does not survive `clone()`).
 
-**The proof arm.** `proof:workaround-deletion`'s **S8** row currently reports
-`S8 PENDING — value.js 1.0.x is published but its VJ-L1 flatLeaf provenance API
-has NOT landed` (its `apiPresent` guard probes the live API: `"fnName" in new
-ValueUnit(0)` is `false` today). When value.js P ships, `apiPresent` flips, kf
-executes the delete, S8 flips PENDING→GREEN. The **REAL observable** (not a
-`typeof` proxy): a flattened `scale(2)` leaf carries `.fnName === "scale"` after a
-`.clone()` round-trip — value.js's own API, not a kf Symbol — and the identity pad
-still resolves `scale → 1` for an absent counterpart (the MCI-5 behaviour
-preserved across the seam swap).
+**The contingent VJ-L1 consume-seam (only if VJ-L1 is later spiked + shipped).** If a
+measured need re-opens VJ-L1 and value.js ships an additive `fnName` field, kf would
+additionally:
+- rewrite the WeakMap `fnNameOf(u)` to `u.fnName` (the public field),
+- drop the re-stamp on every `clone()` (`:64`, `:289-294`) — `clone()` carries it,
+- the identity-pad (`:341-363`) reads `counterLeaf.fnName` directly.
+This is the **ceremony-retirement nicety** — strictly additive to the P.W11 terminal,
+never a precondition for it.
 
 ---
 
@@ -282,48 +310,36 @@ allocs/call, cutting per-frame GC pressure for wide-gamut color animation across
 the whole engine. kf consumes the faster value.js transparently (no API change to
 the kf consume-edge).
 
-**Born-RED gate (value.js-side — the gate already exists, just tighten N_TARGET).**
-The `proof:gamut-alloc` gate (`value.js/scripts/proof-gamut-alloc.mjs`) already
-instruments Color-constructor calls over a display-p3 egress animation. RED today:
-`N_TARGET = 90`, residual ~84. The ASK tightens `N_TARGET` **90 → 15** over the
-BUILT `dist/subpaths/color.js`. Born-RED via the existing instrumentation:
-revert `color2Into` → the loop re-allocates → ≥84 → the tightened gate reds.
-**TEMPTING-BUT-WRONG (the V1 guard):** do NOT mutate the input Color in place — the
-out-param must be a CALLER-OWNED scratch, never the source (aliasing would corrupt
-the bisection probe).
+**Born-RED gate (value.js-side — the gate already exists; set N_TARGET to the MEASURED
+residual, not a guessed `15`).** The `proof:gamut-alloc` gate
+(`value.js/scripts/proof-gamut-alloc.mjs`) already instruments Color-constructor calls
+over a display-p3 egress animation. RED today: `N_TARGET = 90`, residual ~84. Per the
+CONTRIVANCE-AUDIT (MEASURE-FIRST), the ASK sets `N_TARGET` to the **MEASURED post-cure
+residual + a small margin** — captured by running the existing `proof-gamut-alloc.mjs`
+instrumentation over the BUILT `color2Into` branch, NOT a guessed `≤15` floor. Born-RED
+via the existing instrumentation: revert `color2Into` → the loop re-allocates → ≥84 →
+the measured-target gate reds. **TEMPTING-BUT-WRONG (the V1 guard):** do NOT mutate the
+input Color in place — the out-param must be a CALLER-OWNED scratch, never the source
+(aliasing would corrupt the bisection probe).
 
 ---
 
-## VJ-P2 — typed Float64 channel view (kill string-keyed megamorphic channel reads)
+## VJ-P2 — typed Float64 channel view — **DROPPED (CONTRIVANCE-AUDIT, 2026-06-22)**
 
-**The need, grounded.** `Color<T>` keeps a `[key: string]: any` index signature
-(`color/index.ts:286`) for its public dynamic shape — KEEP-documented (`:211`).
-But the per-frame color interp (`interpolate.ts` `lerpColorValue`) and the
-conversion converters read `color[k]` through that dynamic signature, driving
-**megamorphic property reads** in the hottest loops (V1-N3, V2). V8 cannot
-monomorphize a string-keyed read on a class with an index signature.
-
-**The mechanism (SoA-adjacent without breaking the public AoS shape).** Give each
-`Color` an optional packed `_ch: Float64Array` (r,g,b,alpha) **lazily
-materialized**, and have `lerpColorValue` + the conversion converters read/write
-`_ch[i]` instead of `color[k]`. The named fields stay (the `[key:string]:any`
-public shape is preserved); the typed view is **strictly internal** to the
-interp/conversion loops. **TEMPTING-BUT-WRONG (V1 guard):** do NOT replace the
-named fields — the index signature is KEEP-documented public surface; this is an
-additive internal fast-path, not a shape change.
-
-**The kf payoff (no kf delete).** kf's per-frame color interpolation
-(`engine.ts` → value.js `lerpColorValue`) inherits the monomorphic typed-array
-read path — faster color animation with zero kf-side change. Sequence this
-**AFTER VJ-P1** (V1 rec) so the new internal scratch Colors from `color2Into`
-inherit the packed view from birth.
-
-**Born-RED gate.** `proof:perf-target` color-channel-access clause (over
-`value.js/bench/color-channel-access.mjs` + `color-interp.mjs`, which exist):
-assert the Float64-view interp throughput ≥ the named-field baseline. Born-RED:
-the bench runs against the un-viewed path today → no improvement → the asserting
-clause reds until the view lands. Portable (a ratio bench, not an absolute ms
-threshold — the device-dependence lesson).
+> **VJ-P2 is DROPPED, not dispatched.** The CONTRIVANCE-AUDIT (`P/CONTRIVANCE-AUDIT.md`)
+> found its premises **falsified by shipped value.js**: the string-keyed megamorphic
+> `[key:string]:any` channel read it claimed to cure is **already routed around** in
+> the shipped `interpolate.ts` path. The justification (V8 cannot monomorphize the
+> read) no longer holds against the live tree. There is therefore no measured
+> bottleneck, and a new public `Color._ch` Float64Array shape would be speculative
+> surface against a non-default, non-real path (smell-test Q1/Q2/Q3 fail).
+>
+> **The contingent in-realm move (NOT this ask).** If a residual megamorphic read is
+> ever *suspected* on a measured bottleneck, the cure is **widening value.js's own
+> `interpolate.ts buildColorChannels`** (an internal, same-realm refactor value.js
+> owns) — **NOT** a new public `Color._ch` shape. No new public Color surface is
+> sanctioned by this dispatch; the AoS `[key:string]:any` public shape is KEEP-documented
+> and untouched.
 
 ---
 
@@ -349,10 +365,12 @@ silent coercion.
 `subProperty` for `getComputedValue` DOM resolution) type-checks at the seam.
 Sequence as a 1.2.0 precept-correction (low-risk, additive-to-strictness).
 
-**Born-RED gate (value.js-side, `proof:any-seam`).** A type-fixture: `tsc`
-rejects `new ValueUnit(1,'px').setSubProperty(42)` (a `number`). Born-RED:
-today the `any` param accepts it (the fixture compiles clean — RED, the gate
-WANTS a compile error); GREEN when the param is `string` and `tsc` errors.
+**Verification (no bespoke gate — the existing strict build catches it).** Per the
+CONTRIVANCE-AUDIT, do NOT stand up a dedicated `proof:any-seam` gate: rely on the
+existing repo-wide `tsc` strict build. Once the param is `string`, a regression that
+re-widens it to `any` (or a `vu.setSubProperty(42)` callsite) surfaces as an ordinary
+`tsc` error in the strict build — no new CI surface required for a trivially-BC
+strictness improvement.
 
 ---
 
@@ -365,64 +383,69 @@ WANTS a compile error); GREEN when the param is `string` and `tsc` errors.
    (1.1.0 API · 1.2.0 perf)    (5.1.x perf · demo-design)
    ```
 
-   The 1.1.0 API pair (VJ-L1 + VJ-L3) has no external sibling gate — it can ship
-   the moment value.js P opens, unblocking kf immediately. The 1.2.0 perf trio
-   (VJ-P1/P2/P3) rides after with no external dependency.
+   The 1.1.0 API ask (VJ-L3 `parseCSSSubValue`) has no external sibling gate — it
+   can ship the moment value.js P opens, unblocking kf's S9 immediately. The 1.2.0
+   perf pair (VJ-P1/P3) rides after with no external dependency. **VJ-L1 is
+   demoted-to-spike** (not on the publish critical path); **VJ-P2 is dropped**.
 
-2. **The VJ-L1 WeakMap early-cure kf is doing NOW (so kf O.W7 is not hard-blocked).**
-   kf's `engine.ts` god-object split (O.W7, 1397→~900) is VJ-L1-gated — it sequences
-   AFTER value.js P ships `flatLeaf` (which dissolves the S8 `FN_NAME` sidechannel
-   threaded through the flatten/parse seam O.W7 must relocate). To avoid a hard block
-   if value.js P slips, **kf is shipping P.W11 NOW**: a kf-internal
-   `WeakMap<ValueUnit, string>` `FN_NAME` carrier populated at flatten time — the
-   X4-radical / **P-inv-28 chronicity-4 belt exit** (S8 is at chronicity 4 —
-   K,L,M,O→P — and the belt fires THIS tranche, P) that lifts O.W7's VJ-L1 gate
-   **without waiting for value.js P**.
+2. **The P.W11 WeakMap is the TERMINAL S8 cure — and O.W7 is NOT VJ-L1-gated.**
+   kf's `engine.ts` god-object split (O.W7, 1397→~900) is **executable NOW** on the
+   current tree — the same phase as O.W8/W9, NOT VJ-L1-gated. The flatten/parse seam
+   O.W7 relocates is made in-realm by **kf's own P.W11 realm-clean
+   `WeakMap<ValueUnit, string>`** (the `FN_NAME` carrier, populated at flatten time) —
+   or simply by the file-split itself. The **P-inv-28 chronicity-4 belt exit** (S8 is
+   at chronicity 4 — K,L,M,O→P — and the belt fires THIS tranche, P) is the WeakMap,
+   in-realm, with **zero dependency on value.js P**.
 
-   **What this means for value.js P:** the WeakMap early-cure is value.js-realm-clean
-   (no foreign-object annotation — it dissolves the B10/B11 inv-L-acyclic-purity
-   breach) **BUT a WeakMap key is the `ValueUnit` instance, so it does NOT survive
-   `ValueUnit.clone()`** — the clone-restamp ceremony (`kf utils.ts:64,289-294`)
-   **stays**. **VJ-L1 is therefore still strictly preferred**: it carries `fnName` as
-   a real ctor field that `clone()` preserves, eliminating the restamp ceremony
-   entirely. The WeakMap is the *kf-side accelerant* (unblocks O.W7 now); **VJ-L1 is
-   the *intended terminal*** (eliminates the ceremony). value.js P shipping VJ-L1 lets
-   kf retire BOTH the Symbol (S8) AND the WeakMap fallback in one consume.
+   **What this means for value.js P:** the WeakMap is the **TERMINAL S8 cure** — it
+   dissolves the B10/B11 inv-L-acyclic-purity breach (no foreign-object annotation)
+   without any value.js publish. **A WeakMap key is the `ValueUnit` instance, so it
+   does NOT survive `ValueUnit.clone()`** — the clone-restamp ceremony
+   (`kf utils.ts:64,289-294`) stays. **VJ-L1's ONLY residual payoff** is retiring
+   that 5-line ceremony (a real ctor field `clone()` preserves) — a **nice-to-have**,
+   **NOT a precondition for O.W7 and NOT the S8 terminal**. VJ-L1 is therefore
+   **demoted-to-spike**: re-open it only on a measured need (the ceremony itself is not
+   a measured bottleneck). value.js P is **not blocked on, and does not block,** kf's
+   S8 close.
 
 3. **The version split — 1.1.0 (API) then 1.2.0 (perf).**
 
    | value.js publish | contents | gates kf consume |
    |---|---|---|
-   | **1.1.0** | VJ-L1 `flatLeaf` + VJ-L3 `parseCSSSubValue` (BC-additive, ~10+15 LoC) | kf O.W16 S8/S9 delete + W96 boundary scan |
-   | **1.2.0** | VJ-P1 `color2Into` + VJ-P2 Float64 channel view + VJ-P3 `: any`→string | kf inherits perf (no kf-side delete) |
+   | **1.1.0** | VJ-L3 `parseCSSSubValue` (BC-additive, ~15 LoC) | kf O.W16 **S9** delete + W96 boundary scan (S8 closes in-realm at P.W11 — no value.js publish needed) |
+   | **1.2.0** | VJ-P1 `color2Into` + VJ-P3 `: any`→string | kf inherits perf (no kf-side delete) |
+   | *(spike)* | VJ-L1 `flatLeaf` `fnName` field | re-opened only on a measured need; retires the kf clone-restamp ceremony (NOT a precondition) |
+   | *(dropped)* | ~~VJ-P2 Float64 channel view~~ | falsified premises — the string-keyed read is already routed around in shipped value.js |
 
    VJ-P.W0 (commit O docs + reconcile PROGRESS) is the **first action**, predating both
-   publishes. The 1.1.0 pair is the critical-path kf-unblock; the 1.2.0 trio is the
-   optimization frontier and is non-breaking (kf rides it transparently).
+   publishes. The 1.1.0 ask (VJ-L3) is the critical-path kf-unblock for S9; the 1.2.0
+   pair (VJ-P1/P3) is the grounded optimization frontier and is non-breaking (kf rides
+   it transparently). S8's terminal is kf-internal (P.W11), off the value.js publish path.
 
 4. **The P-invariant-28 belt FIRES THIS tranche (S8/S9 at chronicity 4 — K,L,M,O→P).**
    The S8/S9 value.js-workaround chronic (DM-5) is at **chronicity 4** entering kf-P
    (the K,L,M,O carries → P); P-inv-28's mandatory-exit belt fires **THIS tranche (P)**.
-   The S8/S9 EXIT = **O.W16** (the value.js VJ-L1/L3 consume, inherited at P) **+ the
-   P.W11 WeakMap early-cure for S8** — the WeakMap is the **chronicity-4 belt exit**
-   (NOT a "chronicity-3 early exit"). The named terminals:
-   - **O.W16 — VJ-L1/VJ-L3 (the intended exit):** value.js P ships both before kf-P
-     closes → S8/S9 dissolve cleanly (no WeakMap, no parse-that dep).
-   - **P.W11 — the WeakMap early-cure for S8 (kf-internal, the chronicity-4 belt exit):**
-     unblocks O.W7 NOW and fires the belt for S8 THIS tranche, but leaves the
-     clone-restamp ceremony — kf-internal-sufficient, VJ-L1 still preferred as the
-     ceremony-eliminating terminal.
+   The two chronics exit by DIFFERENT, INDEPENDENT terminals:
+   - **S8 EXIT = P.W11 (kf-internal, the chronicity-4 belt exit, the TERMINAL):** the
+     realm-clean `WeakMap<ValueUnit, string>` swap fires the belt for S8 THIS tranche
+     with **zero dependency on value.js P** — it dissolves the foreign-symbol-stamp
+     breach in-realm (gated `proof:no-foreign-symbol-stamp`). It leaves the clone-restamp
+     ceremony; that residual is VJ-L1's only payoff, and VJ-L1 is **demoted-to-spike**
+     (re-opened only on a measured need, never a precondition).
+   - **S9 EXIT = O.W16 — VJ-L3 (the intended exit):** value.js P ships `parseCSSSubValue`
+     before kf-P closes → S9 dissolves cleanly (no parse-that dep). The parse-that import
+     is NOT eliminable kf-internally (kf needs value.js's CSS sub-value grammar, no
+     substitute), so VJ-L3 is the real cross-realm cure.
    - **(b) S9 declared-edge quarantine (last-resort):** if VJ-L3 does not ship, the
-     parse-that import is NOT eliminable kf-internally (kf needs value.js's CSS
-     sub-value grammar, no substitute) — the fallback is a DECLARED W96 allow-list with
-     a comment citing the unshipped VJ-L3, making the breach non-silent. Strictly
-     inferior to VJ-L3.
+     fallback is a DECLARED W96 allow-list with a comment citing the unshipped VJ-L3,
+     making the breach non-silent. Strictly inferior to VJ-L3.
 
    **The tripwire (the consume signal).** kf's `proof:workaround-deletion` `apiPresent`
-   guard is the live oracle: S8 exits PENDING when `"fnName" in new ValueUnit(0)` is
-   `true`; S9 exits PENDING when `typeof require("@mkbabb/value.js").parseCSSSubValue
-   === "function"`. Both transition false→true on the value.js P publish — no manual
-   coordination, the gate reads the installed surface.
+   guard is the live oracle for **S9** (the value.js-gated chronic): S9 exits PENDING
+   when `typeof require("@mkbabb/value.js").parseCSSSubValue === "function"`, transitioning
+   false→true on the value.js P publish — no manual coordination, the gate reads the
+   installed surface. **S8 is NOT value.js-gated** — it exits at P.W11 in-realm, oracled
+   by `proof:no-foreign-symbol-stamp` (no `apiPresent` probe on a value.js publish).
 
 ---
 
@@ -434,9 +457,10 @@ WANTS a compile error); GREEN when the param is `string` and `tsc` errors.
 | `@mkbabb/value.js` | **1.0.2** | `^1.0.2` | `^1.1.0` (the VJ-L1/VJ-L3 publish) at O.W16; `^1.2.0` (the perf frontier) at P Band B |
 
 VJ-L2 (the `linear()` space-joined serializer) shipped in value.js O and is
-**already consumed** (kf S7 GREEN). VJ-L1 and VJ-L3 are the **remaining two** of
-the three L.W9-anticipated asks — inherited from the O dispatch unchanged; VJ-P1–P4
-are the **new P optimization frontier** this packet adds.
+**already consumed** (kf S7 GREEN). **VJ-L3** is the surviving binding API ask
+(inherited unchanged); **VJ-L1 is demoted-to-spike** (P.W11's WeakMap is the S8
+terminal). **VJ-P1** (`color2Into`) + **VJ-P3** (`: any`→string) are the grounded P
+optimization frontier; **VJ-P2 is dropped** (falsified premises).
 
 ---
 
@@ -447,35 +471,47 @@ are the **new P optimization frontier** this packet adds.
    reconcile `O/PROGRESS.md` header `DEVELOPMENT — charter only` → CLOSED-as-built
    (record honesty); fold the `index.ts:169-171` O(N²) `setSubProperty` one-liner.
 2. **1.1.0 — the kf-unblock (no parse-that dep, ships first):**
-   - **VJ-L1** — the CONSERVATIVE additive `fnName` provenance carrier on `ValueUnit`
-     (field or meta-record per V2/V4), preserved by `clone()`, populated by
-     `flattenObject` from `FunctionValue.name`. **`FunctionValue` STAYS the serialize
-     source-of-truth.** BC-additive (~10 LoC). The radical canonical-flat-leaf
-     reshape is NOT committed — it is a SPIKE gated on a `FunctionValue.toString`
-     round-trip corpus.
    - **VJ-L3** — `parseCSSSubValue(value, opts?)` wrapping
      `tryParse(any(CSSFunction.FunctionArgs, CSSValues.Value), value)` —
-     **FunctionArgs-FIRST** (the V4 truncation guard). BC-additive (~15 LoC).
+     **FunctionArgs-FIRST** (the V4 truncation guard). BC-additive (~15 LoC). The
+     surviving binding API ask (unblocks kf's S9).
 3. **1.2.0 — the perf frontier (rides after):**
-   - **VJ-P1** `color2Into` out-param (gamut ~84 → <12 allocs/call).
-   - **VJ-P2** the typed Float64 channel view (kill megamorphic channel reads).
-   - **VJ-P3** narrow the `: any` property/subProperty seam → `string`.
+   - **VJ-P1** `color2Into` out-param (gamut ~84 → the measured post-cure residual;
+     `proof:gamut-alloc N_TARGET` set to that measurement + margin).
+   - **VJ-P3** narrow the `: any` property/subProperty seam → `string` (verified by the
+     existing repo-wide strict `tsc`, no bespoke gate).
+4. **Spike / dropped (NOT binding asks):**
+   - **VJ-L1** `flatLeaf` `fnName` field — **DEMOTE-TO-SPIKE**: P.W11's WeakMap is the
+     terminal S8 cure; VJ-L1's residual is retiring the kf clone-restamp ceremony, a
+     nice-to-have re-opened only on a measured need. The radical canonical-flat-leaf
+     reshape stays a corpus-gated investigation.
+   - **VJ-P2** typed Float64 channel view — **DROPPED**: premises falsified by shipped
+     value.js (the string-keyed read is already routed around); a residual suspicion
+     widens value.js's own `interpolate.ts buildColorChannels`, NOT a new public Color
+     shape.
 
-**keyframes.js (on the value.js publishes — the GATED consumes):**
-1. **On 1.1.0 (O.W16, inherited):** re-pin `^1.1.0`; delete S8 (the `FN_NAME`
-   Symbol + helpers; rewrite `fnNameOf` → `.fnName`) AND retire the P.W11 WeakMap
-   fallback; delete S9 (the parse-that import + the two `as any` casts; call
-   `parseCSSSubValue`); drop `@mkbabb/parse-that` from `package.json`; author + green
-   the `proof:boundary` **W96** parse-that-scan; confirm `proof:workaround-deletion`
-   S8/S9 flip PENDING→GREEN; unblock O.W7.
-2. **On 1.2.0 (P Band B):** re-pin `^1.2.0`; inherit the perf wins transparently
-   (VJ-P1/P2/P3 — no kf-side delete).
+**keyframes.js (the in-realm S8 close + the GATED S9 consume):**
+1. **NOW (P.W11, in-realm, no value.js publish):** close S8 by swapping the
+   `Symbol("kf.fnName")` for a kf-local `WeakMap<ValueUnit, string>` (same
+   `fnNameOf`/`stampFnName` API); green `proof:no-foreign-symbol-stamp`; this is the
+   S8 terminal and it also makes the O.W7 seam in-realm (O.W7 is NOT VJ-L1-gated).
+2. **On 1.1.0 (O.W16, the GATED S9 consume):** re-pin `^1.1.0`; delete S9 (the
+   parse-that import + the two `as any` casts; call `parseCSSSubValue`); drop
+   `@mkbabb/parse-that` from `package.json`; author + green the `proof:boundary` **W96**
+   parse-that-scan; confirm `proof:workaround-deletion` S9 flips PENDING→GREEN.
+3. **On 1.2.0 (P Band B):** re-pin `^1.2.0`; inherit the perf wins transparently
+   (VJ-P1/P3 — no kf-side delete).
+4. **(spike, only if VJ-L1 is ever shipped):** retire the clone-restamp ceremony
+   (`utils.ts:64,289-294`) by reading `u.fnName` directly — strictly additive to the
+   P.W11 WeakMap terminal.
 
-**The contract.** value.js publishes; kf re-pins and deletes. Neither writes the
-other's tree (inv-16). The gate roster — `proof:workaround-deletion` apiPresent +
-the new W96 scan (1.1.0) + the inherited-perf benches (1.2.0) — is the binding
-oracle. The consume fires when the installed value.js surface carries the APIs,
-observed at runtime, not asserted by coordination.
+**The contract.** value.js publishes the surviving asks; kf re-pins and deletes.
+Neither writes the other's tree (inv-16). The gate roster — `proof:workaround-deletion`
+apiPresent for **S9** + the new W96 scan (1.1.0/VJ-L3) + the inherited-perf benches
+(1.2.0/VJ-P1) — is the binding cross-repo oracle. The **S8 terminal is in-realm**
+(P.W11 WeakMap, oracled by `proof:no-foreign-symbol-stamp`), off the value.js publish
+path entirely. The cross-repo consume fires when the installed value.js surface carries
+the APIs, observed at runtime, not asserted by coordination.
 
 ---
 

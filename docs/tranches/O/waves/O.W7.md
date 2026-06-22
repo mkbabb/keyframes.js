@@ -1,8 +1,8 @@
 # O.W7 — The engine-seam transposition (the lifecycle/playback machine lifted off the frame-compile facade)
 
 **Band:** D — Transposition + no-legacy
-**Phase:** VJ-L1-GATED (fires atomically on value.js Tranche P shipping VJ-L1 flatLeaf, consumed via O.W16; NOT NOW)
-**Sequence:** O.W10 (KF-TO-VALUEJS-P-ASKS dispatch) → value.js P publish (VJ-L1) → **O.W16** (S8 FN_NAME delete) → **O.W7** (the split over the cleared `utils.ts` seam) → O.WZ (chronic-closure reads DF-11-A discharged). The value.js-P spine edge is `O.W16 → O.W7 → O.WZ` — this wave (O.W7) sits BETWEEN O.W16 and the close, NOT a dangling "(VJ-L1)" label. **ALTERNATE VJ-L1-discharge (the re-home path):** kf Tranche P's **P.W11** ships a realm-clean `WeakMap<ValueUnit,string>` FN_NAME carrier that discharges the VJ-L1 precondition NOW *without* waiting for value.js P — so O.W7 is **RE-HOMED into P's execution window** (P.W11 WeakMap early-cure → O.W7-under-P lands the split → P.W3 S4 deepens it into the `Playhead` value-object). The split therefore opens on EITHER the O.W16/VJ-L1 consume OR the P.W11 WeakMap early-cure, whichever lands first.
+**Phase:** NOW — kf-internal, executable on authorization. The split is NOT gated on VJ-L1 or any value.js-P publish. kf's **P.W11** `WeakMap<ValueUnit,string>` in-realm FN_NAME carrier is the terminal S8 cure and discharges the VJ-L1 precondition inside kf's own tree — O.W7 does NOT depend on value.js P shipping VJ-L1 before the split can land.
+**Sequence:** O.W9 (no-legacy cuts, NOW) → **O.W7** (this wave, NOW — the split over the post-O.W9 `engine.ts`) → O.WZ (chronic-closure reads DF-11-A discharged). O.W7 is a **same-phase Band-D wave** alongside O.W8 and O.W9 — NOT positioned between O.W16 and the close.
 **Owning chronic/DM:** DF-11-A (the FULL engine-seam transposition; the single largest structural debt in the library surface, lane-11 §10 / C15) + DF-11-B (the co-deferred group.ts compositor arm)
 
 M-substrate: **M.W13** (the engine-seam transposition developed wave, 2026-06-17). This wave
@@ -11,11 +11,16 @@ state-machine anatomy, the `this`-bound re-derive contract, the three-place ceil
 the `engine-composition.ts` extraction precedent — lives in M.W13.md and is NOT re-authored here.
 
 Key delta from M.W13 to O.W7:
-- **The blocker moved tranches.** M.W13 gated on `value.js 0.14.0 (VJ-L1)` consumed by M.W9.
-  value.js Tranche O shipped **VJ-L2 only** — VJ-L1 `flatLeaf` was NEVER shipped (B10, B7
-  BLOCKER: `"flatLeaf" in require("@mkbabb/value.js") === false` on 1.0.2). So the blocking
-  HANDOFF is now **value.js Tranche P** (dispatched at O.W10), consumed at **O.W16** (the S8
-  `FN_NAME` Symbol delete), and O.W7 reads the post-O.W16 `utils.ts` seam — NOT M.W9's.
+- **The VJ-L1 gate is REMOVED.** M.W13 gated on `value.js 0.14.0 (VJ-L1)` consumed by M.W9.
+  value.js Tranche O shipped VJ-L2 only — VJ-L1 `flatLeaf` was NEVER shipped (B10, B7 BLOCKER:
+  `"flatLeaf" in require("@mkbabb/value.js") === false` on 1.0.2). The contrivance audit
+  (CONTRIVANCE-AUDIT.md) found that VJ-L1's only residual kf-side payoff is retiring the
+  5-line clone-restamp ceremony (`utils.ts:64,289-294`) — a nice-to-have. The TERMINAL S8 cure
+  is P.W11's **in-realm `WeakMap<ValueUnit,string>`** FN_NAME carrier, which discharges the
+  VJ-L1 precondition inside kf's own tree without waiting for a value.js sibling publish.
+  O.W7 therefore executes NOW — it does NOT depend on O.W16 or value.js P. VJ-L1 remains a
+  spike re-opened only on a measured need; removing the 'VJ-L1 unblocks O.W7' framing is
+  correct and recorded in KF-TO-VALUEJS-P.md.
 - **The chronicity advanced.** engine.ts is **still 1397L** on 2026-06-19 (C15: `wc -l` confirmed,
   3L under the 1400 override). The DF-11-A HANDOFF text is verbatim-present at
   `proof-decomposition.mjs:151-157` and rode D→…→M unsplit. The override is the most-deferred
@@ -56,27 +61,27 @@ concern **3** off concern **1** into a colocated INTERNAL `engine-playback.ts` (
 `engine-composition.ts` 221L / `engine-options.ts` 193L / `engine-css-metadata.ts` 148L
 precedent) — expected outcome **1397L → ~900L** (M.W13 §S1, lane-11 §6).
 
-**Why the FN_NAME-stamp split is BLOCKED on value.js VJ-L1 (the gating fact this wave carries).**
+**Why the FN_NAME-stamp is NOT a blocker for the split (the contrivance-audit resolution).**
 The split's one load-bearing risk (M.W13 §Context, lane-11 §8) is the `this`-bound re-derive
 contract — and one of its couplings is NOT in engine.ts itself but in the `utils.ts` interp seam
 the compile half reaches through: kf stamps a private `FN_NAME = Symbol("kf.fnName")`
 (`utils.ts:45`) onto **published value.js `ValueUnit` instances** to carry the flatten-origin
 function name through interp, re-stamped on every `.clone()` because `ValueUnit.clone()` drops it
-(S8 — verified live, B10: `utils.ts:1/45/47/50/51/54/55/64/213/236/289/293/342/361`). Splitting the
-playback machine off the facade **while that Symbol sidechannel is live on a class kf does not own**
-risks exactly the invisible-state coupling the D.W4 audit flagged. The provenance belongs in
-value.js's flatten API — **VJ-L1 `flatLeaf(valueUnit, { fnName })`**. O.W7 does NOT delete the
-Symbol (that is O.W16's job, the value.js-P consume); it **CONSUMES the cleared `utils.ts` seam**
-and lifts the playback machine.
+(S8 — verified live, B10: `utils.ts:1/45/47/50/51/54/55/64/213/236/289/293/342/361`). The
+contrivance audit found the TERMINAL cure is P.W11's **in-realm `WeakMap<ValueUnit,string>`** —
+realm-clean, no cross-realm ownership risk, no sibling API needed. The WeakMap carrier is the S8
+cure; the VJ-L1 `flatLeaf` API's only residual value is retiring the 5-line clone-restamp ceremony
+(`utils.ts:64,289-294`) — a nice-to-have, NOT a precondition for the split. O.W7 proceeds over the
+CURRENT `utils.ts` seam; P.W11 retires the Symbol once the WeakMap lands. The split is safe because
+the FN_NAME Symbol is scoped entirely to the compile-delegation concern (concern 1) — it is NOT read
+inside the lifecycle/playback methods being moved (concern 3). The invisible-state coupling risk
+the D.W4 audit flagged is therefore discharged in-realm, not deferred to a sibling publish.
 
-**The new blocker chain (the M→O delta, B7/B10/F25/G30).** value.js Tranche O shipped VJ-L2 only;
-VJ-L1 and VJ-L3 were **DEFERRED and never shipped** (B7 BLOCKER, B10 BLOCKER — confirmed by live
-probe on 1.0.2). So the M.W13 chain `value.js 0.14.0 → M.W9 → M.W13` is **broken at the first
-edge**. O re-forms it: **O.W10 dispatches VJ-L1 to value.js Tranche P → value.js P publishes →
-O.W16 deletes S8 (`proof:workaround-deletion` S8 flips PENDING→GREEN) → O.W7 splits the engine over
-the cleared seam.** O.W7 is a **GATED** wave: not startable until O.W16 lands. (DM-5 S8 chronicity:
-K,L,M→O = 3 today, named with its terminal value.js-P home per P-inv-28 — not a perpetual punt;
-the `P-inv-28 >=4` belt fires at **kf-P** (the NEXT kf tranche after O, NOT kf-Q) if value.js P slips.)
+**The M→O delta (B7/B10/F25/G30).** value.js Tranche O shipped VJ-L2 only; VJ-L1 and VJ-L3 were
+DEFERRED and never shipped (B7 BLOCKER, B10 BLOCKER — confirmed by live probe on 1.0.2). The M.W13
+chain `value.js 0.14.0 → M.W9 → M.W13` was broken at the first edge; O re-routes it. DM-5 S8
+chronicity: K,L,M→O = 3 today; the terminal cure is P.W11 WeakMap (kf-internal, not a value.js-P
+gate); the `P-inv-28 ≥4` belt fires at **kf-P** only if the WeakMap itself slips into a 4th carry.
 
 **The three-place ceiling enforcement (the gate ground truth, from M.W13 §Context, re-verified).**
 The engine.ts ceiling is enforced in THREE gates, not one:
@@ -122,9 +127,10 @@ checks), orthogonal to this structural lift.
 
 ## Scope (delta-only — full S-clauses in M.W13.md §S1–S5)
 
-O.W7 implements M.W13 S1–S5 verbatim over the **post-O.W16** `utils.ts` (the `FN_NAME` Symbol
-already deleted by the value.js-P consume). Each S-clause is unchanged from M.W13; the only delta
-is the precondition source (O.W16, not M.W9).
+O.W7 implements M.W13 S1–S5 verbatim over the **current** `utils.ts` (the `FN_NAME` Symbol
+persists through the split and is retired separately by P.W11 — it is scoped to the compile-
+delegation concern, not the playback concern being extracted). Each S-clause is unchanged from
+M.W13; the only delta is the removal of the VJ-L1 gate (the split is NOW, not GATED).
 
 - **S1 — Lift the lifecycle/playback machine into `engine-playback.ts`.** Extract concern 3 into a
   colocated INTERNAL module, statically imported by engine.ts, never re-exported beyond the engine
@@ -185,34 +191,32 @@ extraction can reduce. **Discriminating bite:** plant a BREAKING extraction (rep
 even though the line count dropped — proving the cure is the behaviour, not the size.
 
 **Green condition.** The lifecycle/playback machine lifted into `engine-playback.ts` (S1) over the
-post-O.W16 (FN_NAME-cleared) `utils.ts` seam, the `this`-bound re-derive contract preserved
-byte-for-byte; engine.ts ~900L; the 1400 override retired or re-written to the measured cap with a
-revised `why` (S2); the three parallel ceiling clauses re-pointed (S2); `proof:decomposition` exits
-0 WITHOUT the 1400 override; the full behavioural suite GREEN through the move (S3); the group.ts
-arm disposed (S5, P-inv-28 discharged).
+current `utils.ts` seam (FN_NAME Symbol present but scoped to concern 1, not concern 3 — P.W11
+retires it separately), the `this`-bound re-derive contract preserved byte-for-byte; engine.ts
+~900L; the 1400 override retired or re-written to the measured cap with a revised `why` (S2); the
+three parallel ceiling clauses re-pointed (S2); `proof:decomposition` exits 0 WITHOUT the 1400
+override; the full behavioural suite GREEN through the move (S3); the group.ts arm disposed (S5,
+P-inv-28 discharged).
 
 ---
 
 ## Dependencies
 
-- **value.js Tranche P VJ-L1 flatLeaf — THE blocking HANDOFF (via O.W16).** value.js O shipped
-  VJ-L2 only; VJ-L1 was DEFERRED and never shipped (B7/B10 BLOCKER). O.W10 dispatches VJ-L1 to
-  value.js Tranche P; O.W16 consumes it (deletes the `FN_NAME` Symbol, `proof:workaround-deletion`
-  S8 flips PENDING→GREEN). **O.W7 opens only AFTER O.W16's consume commit lands** (the cleared
-  `utils.ts` seam). The HANDOFF chain: value.js P publish (VJ-L1) → O.W16 consume → O.W7 split.
-  Named tripwire: `flatLeaf in require("@mkbabb/value.js")` transitions false→true; the
-  `proof:workaround-deletion` S8 arm is the machine-readable gate.
-- **O.W16 (the value.js-P consume) — the in-tranche precondition.** O.W16 S8 deletes the `FN_NAME`
-  Symbol on the value.js-P re-pin. O.W7 reads the post-FN_NAME-delete `utils.ts`. The two are
-  sequenced (O.W16 → O.W7), not parallel.
+- **No value.js-P gate. No O.W16 precondition.** The VJ-L1 `flatLeaf` API is NOT a precondition
+  for this split. The FN_NAME Symbol is scoped to the compile-delegation concern (concern 1) and is
+  not read inside the lifecycle/playback methods being lifted (concern 3). The TERMINAL S8 cure is
+  P.W11's in-realm `WeakMap<ValueUnit,string>` (kf-internal — no cross-repo dep). O.W7 executes
+  NOW on the current `utils.ts` seam; the Symbol persists through the split and is retired
+  separately by P.W11. O.W16 (the value.js-P consume) is independent and sequenced by its own
+  precondition (value.js P publishing VJ-L1/L3) — it is NOT a gate for O.W7.
 - **O.W1 (the LINT tier) — the soft precondition.** Sub-second per-save ceiling checks make the
-  iterate-to-green during the split far faster; O.W1 lands early (Band A), O.W7 lands late (Band D),
-  the ordering is natural — no explicit gate.
-- **O.W9 (no-legacy cuts) — Band-D sibling, NO collision.** O.W9 drops the `@deprecated Animation`
+  iterate-to-green during the split far faster; O.W1 lands early (Band A), O.W7 lands in the same
+  Band-D phase — no explicit gate, the ordering is natural.
+- **O.W9 (no-legacy cuts) — Band-D sibling, sequence first.** O.W9 drops the `@deprecated Animation`
   alias on `engine.ts:1205` and swaps `internal/leaves.ts`; O.W7 lifts concern 3 out of the
   `KeyframesAnimation` class body. The two touch engine.ts in disjoint regions (O.W9: the alias
-  line + the leaves; O.W7: the class-body methods). Sequence O.W9 (NOW) before O.W7 (GATED) so the
-  alias line is already gone when the class body moves — they compose cleanly.
+  line + the leaves; O.W7: the class-body methods). Sequence O.W9 before O.W7 so the alias line is
+  already gone when the class body moves — they compose cleanly.
 - **O.W8 (perf) — Band-D sibling, no collision.** O.W8 measures the playback hot path
   (`_frame`/`interpFrames`); O.W7 MOVES it into `engine-playback.ts`. The zero-alloc steady-state
   path (`_interpOut` buffer reuse) is a SHARED invariant — O.W7 S3 keeps `proof:standalone-zero-
@@ -228,12 +232,12 @@ arm disposed (S5, P-inv-28 discharged).
 ## dev→impl boundary
 
 This file is the Tranche O DEVELOPMENT spec for O.W7 — DOCS ONLY (inv-16: kf writes only
-keyframes.js; the VJ-L1 need is a DISPATCH at O.W10, never a value.js-tree edit). The IMPLEMENTATION
-(the `engine-playback.ts` extraction, the override retire, the three-clause re-point, the group.ts
-disposition) opens ONLY on the owner's explicit authorization AND on the VJ-L1-GATED HANDOFF firing
-(value.js P publishes VJ-L1 → O.W16 lands). Gate-first, born-RED, observable-truth, no-legacy,
-gestalt, KISS throughout. The full developed S-clause body is M.W13.md; this wave carries the O
-authorization, the moved-tranche blocker chain, the born-RED witness, and the delta — it does NOT
-re-author M.W13's body. The born-RED witness (S4: the override removed → `proof:decomposition` exit
-1 on 1397L) is observable on today's tree the instant the override is lifted; the cure awaits both
-authorization and the O.W16 precondition.
+keyframes.js). The IMPLEMENTATION (the `engine-playback.ts` extraction, the override retire, the
+three-clause re-point, the group.ts disposition) opens ONLY on the owner's explicit authorization.
+There is no VJ-L1 gate; no O.W16 precondition. The split is executable on the current tree once
+O.W9 has landed (the alias line gone). Gate-first, born-RED, observable-truth, no-legacy, gestalt,
+KISS throughout. The full developed S-clause body is M.W13.md; this wave carries the O authorization,
+the contrivance-audit resolution (VJ-L1 gate removed), the born-RED witness, and the delta — it does
+NOT re-author M.W13's body. The born-RED witness (S4: the override removed → `proof:decomposition`
+exit 1 on 1397L) is observable on today's tree the instant the override is lifted; the cure awaits
+the owner's authorization (and O.W9 sequencing).

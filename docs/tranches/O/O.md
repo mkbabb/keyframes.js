@@ -94,30 +94,32 @@ cross-repo ask), or **GATED** (fires atomically on a named sibling publish).
 | **A — Apparatus + ledger hygiene** | O.W0 (charter), O.W1 (lint/dep-cruiser tier), O.W2 (ledger re-point + stale-gate retarget) | NOW | the fast-iterate floor + the BB→BC / 4.1.0→BC-cut / DM-4→FIX / DM-24-add corrections, in one honest pass |
 | **B — Engine correctness** | O.W3 (named-selector NaN-frame cure), O.W4 (multi-color refusal + ingest) | NOW | `NAMED_SELECTOR_NO_TIMELINE` actually thrown; the DM-22 NaN-always-active frame bug fixed |
 | **C — The chronic terminals (P-inv-28 ABSOLUTE)** | O.W5 (`DemoControlPoint` over LIGHT `Draggable` + retire control-point-live), O.W6 (`fromMorphSVG` over value.js `PathGeometry`) | NOW | DM-2 (born E) / DM-3 (born C) · 7 carries through M · **O closes the forbidden 8th carry via BUILD-IN** |
-| **D — Transposition + no-legacy** | O.W7 (engine-seam `engine.ts` 1397→~900), O.W8 (perf), O.W9 (no-legacy cuts: aliases + `leaves.ts`→`/math`) | NOW W8,W9 · VJ-P-gated W7 | the god-object split + the elegance/perf transpositions + the legacy purge |
+| **D — Transposition + no-legacy** | O.W7 (engine-seam `engine.ts` 1397→~900), O.W8 (perf), O.W9 (no-legacy cuts: aliases + `leaves.ts`→`/math`) | NOW (all three — VJ-L1 gate removed from O.W7; see CONTRIVANCE-AUDIT.md #3) | the god-object split + the elegance/perf transpositions + the legacy purge |
 | **E — Sibling dispatch** | O.W10 (`KF-TO-VALUEJS-P-ASKS`: VJ-L1 flatLeaf + VJ-L3 parseCSSSubValue), O.W11 (glass-ui BC aria-orientation **correction** ask) | DISPATCH | the two genuinely-new cross-repo asks the re-audit surfaced |
 | **F — glass-ui BC consume** | O.W12 (S1+S2 delete + re-pin BC cut), O.W13 (design-paint pixel-readback on BC glass), O.W14 (lighthouse posture flip + content-visibility gate + hero word-gap verify), O.W15 (N Stage unshelf, DM-24) | GATED-BC-cut W12,W14/S1+S3,W15 · NOW-author W13/S1-gate,W14/S4-word-gap | the BC-gated consume (W12→W13→W14→W15) — the lighthouse floors lock at W14 before the W15 N-Stage perf integration |
-| **G — value.js-P consume** | O.W16 (S8 `FN_NAME` + S9 parse-that delete; `proof:boundary` W96 scan GREEN) | GATED (value.js P) | the engine-seam unblock + the boundary-honesty close |
+| **G — value.js-P consume** | O.W16 (S8 `FN_NAME` + S9 parse-that delete; `proof:boundary` W96 scan GREEN) | GATED (value.js P) | the S8/S9 workaround deletion + the boundary-honesty close (O.W7 engine-seam is NOT gated on this — see CONTRIVANCE-AUDIT.md #3) |
 | **Z — Close + the 5.0.0 cut** | O.WZ (`proof:changelog-5.0.0`, Oscillator republish, keyframes-vue, deploy round-trip, ledger re-point M→O) | NOW-author · USER-DOMAIN publish | the major cut + the auto round-trip restored |
 
 **The DAG (phase-ordered).**
 ```
 O.W0 charter ─► A{W1 lint, W2 ledger} ─► B{W3 nan-frame, W4 ingest} ─► C{W5 DemoControlPoint, W6 MorphSVG}
                        │                                                                       │
-                       ├──────────► D.W9 no-legacy cuts (NOW) ──────────────────────┐          │
-                       ├──────────► D.W8 perf (NOW) ────────────────────────────────┤          │
-                       │                                                            ▼          ▼
-   E.W10 value.js-P ask ──┐                                                                     │
-   E.W11 glass-ui aria ──┐│                                                                     ▼
-                         ▼▼            value.js-P spine                                    O.WZ close
-                 G.W16 (VJ-L1/L3 publish) ──► D.W7 engine-seam (VJ-L1) ──────────────────────► ▲
-                                                                                                │
+                       ├──────────► D.W9 no-legacy cuts (NOW) ──► D.W7 engine-seam (NOW) ─────┤
+                       ├──────────► D.W8 perf (NOW) ──────────────────────────────────────────┤
+                       │                                                                       ▼
+   E.W10 value.js-P ask ──┐                                                               O.WZ close
+   E.W11 glass-ui aria ──┐│                                                                    ▲
+                         ▼▼            value.js-P spine                                        │
+                 G.W16 (VJ-L1/L3 publish) ─────────────────────────────────────────────────── ┤
+                                                                                               │
                  F (BC cut): W12 S1/S2 ─► W13 paint ─► W14 lighthouse+CV+word-gap ─► W15 N-Stage ┘
 ```
-Bands A→C + D.W8 + D.W9 are **immediately executable** (the bulk of the value). The value.js-P spine
-is **G.W16 → D.W7 → O.WZ** (D.W7 engine-seam sits BETWEEN O.W16 and the close, unblocked by VJ-L1);
-F is BC-gated, sequenced **W12 → W13 → W14 → W15** (W14's lighthouse floors lock BEFORE W15's
-N-Stage perf integration); Z closes when all green + the USER-DOMAIN publishes fire.
+Bands A→C + D (all three: W7, W8, W9) are **immediately executable** (the bulk of the value).
+O.W7 is NOW — the VJ-L1 gate is removed (CONTRIVANCE-AUDIT.md #3; the terminal S8 cure is P.W11's
+in-realm WeakMap, not a value.js-P precondition). The value.js-P spine is **G.W16 → O.WZ** (O.W16
+is independent of O.W7); F is BC-gated, sequenced **W12 → W13 → W14 → W15** (W14's lighthouse
+floors lock BEFORE W15's N-Stage perf integration); Z closes when all green + the USER-DOMAIN
+publishes fire.
 
 ## 4 — The chronic terminals (no 8th carry)
 
@@ -133,8 +135,10 @@ N-Stage perf integration); Z closes when all green + the USER-DOMAIN publishes f
 - **`KF-TO-VALUEJS-P-ASKS.md` (O.W10).** value.js O shipped VJ-L2 (linear serialize) but **deferred
   VJ-L1 (a first-class `flatLeaf` provenance API) and VJ-L3 (`parseCSSSubValue`)**. kf's S8 `FN_NAME`
   Symbol sidechannel and S9 direct parse-that import exist *only* because those APIs are absent. The
-  dispatch asks value.js Tranche P to ship them; O.W16 deletes S8/S9 on consume; O.W7 (engine-seam) is
-  unblocked by VJ-L1 (it removes the `FN_NAME` stamp the split is blocked on).
+  dispatch asks value.js Tranche P to ship them; O.W16 deletes S8/S9 on consume. O.W7 (engine-seam)
+  is NOT gated on VJ-L1 — the TERMINAL S8 cure is P.W11's in-realm WeakMap; VJ-L1's residual value
+  is retiring the 5-line clone-restamp ceremony (a nice-to-have, not a split precondition —
+  CONTRIVANCE-AUDIT.md #3).
 - **glass-ui BC aria-orientation CORRECTION (O.W11).** The re-audit found BC's `KF-INBOUND.md` ASK#2
   marked "CONFIRMED" but `SegmentedTabs.vue:406` emits `:aria-orientation` **unconditionally** — including
   on `role=group` (the pill variant), where ARIA disallows it. The kf S1 deletion premise is therefore
