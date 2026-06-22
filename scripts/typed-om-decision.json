@@ -1,0 +1,16 @@
+{
+  "$comment": "Typed-OM (StylePropertyMap.set) vs string setProperty write cost, real Chromium. The permanent dual-path is only justified if TOM clearly wins on the multi-property shape AND does not regress single-property.",
+  "browser": "chromium (playwright-core 1.60.0)",
+  "supportsTOM": true,
+  "multiProperty": {
+    "hzString": 1557632,
+    "hzTypedOM": 1061571,
+    "tomOverString": 0.68
+  },
+  "singleProperty": {
+    "hzString": 5025126,
+    "hzTypedOM": 7092199,
+    "tomOverString": 1.41
+  },
+  "verdict": "KILL the dual-path (TOM does NOT clear the bar — the string path is fine; ship the _styleOut out-buffer alloc-cure alone)"
+}
