@@ -17,20 +17,21 @@
 This dispatch is the binding cross-repo contract for parse-that's leg of the
 campaign's **IN-REALM optimization payload**
 (`CONSTELLATION-OPTIMIZATION-CAMPAIGN.md §4`). parse-that B is the DAG ROOT leg of
-the constellation (parse-that → value.js → kf → glass-ui), and it ships **three
-grounded in-realm deliverables + one housekeeping KILL**: the packrat cross-input
-pollution FIX (the correctness BLOCKER), the
-Span-combinator DEDUP (collapse the ~400 copy-pasted backtracking lines into one
-collector-parametric vocabulary), and the perf frontier (combinator fusion +
-2-char dispatch widening + the `proof:perf` regression gate) — plus the SpanParser
-KILL (P-inv-28: it has no in-realm consumer, so the tier + its bench are deleted,
-keeping the A.W3 falsification as a docs paragraph). value.js P consumes the
+the constellation (parse-that → value.js → kf → glass-ui), and it ships **two
+grounded in-realm deliverables + one no-consumer KILL** (the FULL-LOOP reformulation
+folded the Span-combinator DEDUP into the KILL — see below): the packrat cross-input
+pollution FIX (the correctness BLOCKER, **ADOPT**), and the perf frontier (combinator
+fusion + 2-char dispatch widening + the `proof:perf` regression gate, **ADOPT**) — plus
+the SpanParser KILL (P-inv-28: it has no in-realm consumer, so the tier + its bench are
+deleted, keeping the A.W3 falsification as a docs paragraph). The **Span-combinator DEDUP
+is RE-SCOPED**: the 15 `*Span` builders have ZERO production consumers (measured), so
+the dedup is moot — the zero-consumer `*Span` lane folds into the PT-B4 KILL (delete dead
+code, do not dedup it), not a collector-parametric factory. value.js P consumes the
 packrat-correctness fix + the perf-floor; kf P inherits a faster, input-safe
 parser behind the same `CSSKeyframesAnimation` facade. The asks are **BC-additive**
 (no breaking change to parse-that's published 0.11.0 surface — the packrat fix is
-internal; the Span-combinator dedup is internal; the SpanParser KILL removes only
-a module-internal tier with no published consumer) — a single `0.12.0` minor
-closes the four deliverables.
+internal; the KILL removes only module-internal no-consumer tiers) — a single `0.12.0`
+minor closes the deliverables.
 
 > **Codegen is explicitly OUT of this campaign (owner directive, 2026-06-22).**
 > parse-that ships NO codegen subpath, NO `./codegen`, NO SpanParser→TS emitter,
@@ -47,18 +48,32 @@ WIRING (a `bench` script + a `proof:perf` regression gate over it).
 
 ---
 
-## The ASKs (three in-realm deliverables + the SpanParser KILL)
+## The ASKs (two in-realm deliverables + the SpanParser KILL; PT-B2 folded into the KILL)
 
 | # | ASK | parse-that surface (file:line) | parse-that B deliverable | the value.js+kf payoff | proof arm that GREENs (born-RED) |
 |---|-----|--------------------------------|--------------------------|------------------------|-----------------------------------|
 | **PT-B1** | **the packrat cross-input pollution FIX** (the BLOCKER, lands FIRST) — `memoize()` returns a stale result across different inputs (the MEMO key lacks a `src` component); a real correctness BLOCKER. | `typescript/src/parse/packrat.ts:55-56` (`getCijKey = (parser.id << 20) \| (offset & MAX)` — no `src`); `:90` (`MEMO = new Map<number,MemoCell>()`); `:253` (`memoizeFn`). | a `src`-identity guard in `memoizeFn` (auto-reset on `state.src` change) **OR** a WeakRef-epoch cache lifecycle; PLUS the float64-safe multiply key (`id * 1048576 + offset`) closing the `id ≥ 4096` int32-overflow aliasing. | value.js's parse LRU and kf's memoized timing-function parses become input-safe with zero caller discipline; eliminates a class of silent-wrong-answer in any hot re-parse session. | `proof:packrat-cross-input` (born-RED): `memoize(p).parse('hello')` then the SAME memoized parser on `ParserState('CAPS123')` WITHOUT `resetPackrat()` returns the `CAPS123` result, not the cached `hello` one; AND `getCijKey(ids[0],0) !== getCijKey(ids[4096],0)`. |
-| **PT-B2** | **the Span-combinator DEDUP** — collapse the ~400 lines of copy-pasted Span backtracking plumbing (the 10 `*Span` builders) into ONE collector-parametric vocabulary; a no-legacy/gestalt DEDUP (a bug fixed once, not twice). | `typescript/src/parse/span.ts:16-360` (the 10 `*Span` builders — `stringSpan/regexSpan/manySpan/sepBySpan/wrapSpan/optSpan/skipSpan/nextSpan/altSpan/takeUntilAnySpan`) vs the value twins in `parser.ts`/`leaf.ts` (identical control flow, the only delta = the Span collector). | a collector-parametric combinator factory (the value `many`/`sepBy`/`wrap` parameterized over a Span-accumulator) replacing the hand-written Span twins — ONE source of save/restore truth, not two drifting ones. | a backtracking bug fixed in `many` is fixed in `manySpan` for free; ~400 duplicated lines dissolve; ONE save/restore vocabulary to maintain. | `proof:span-combinator-parity` (born-RED): the collector-parametric `manySpan`/`sepBySpan` are byte-identical in output AND within 5% throughput of the current hand-written Span lane (the zero-alloc property is preserved — the gate reds a deopting generic collector). |
+| **PT-B2** *(RE-SCOPE → FOLD into PT-B4)* | **the Span-combinator lane** — originally a DEDUP of the ~400 copy-pasted `*Span` lines; **MEASURED: the 15 `*Span` builders have ZERO production consumers**, so the dedup is moot. Do NOT dedup dead code — fold the zero-consumer lane's disposition into the PT-B4 KILL. | `typescript/src/parse/span.ts:16-360` (the 15 `*Span`/`*Node` builders); grep over `value.js/src`, `kf/src`, `parse-that/src/parse/parsers` → ZERO production hits (all route through `dispatch()+regex`/`all`/`any`). | NO collector-parametric factory. parse-that B EITHER (a) defers the dedup as opportunistic if a future `json`/`csv` consumer materializes, OR (b) raises a P-inv-28 terminal verdict on the `*Span` public surface (delete it with the SpanParser KILL). | no parametric-factory investment to protect a zero-consumer lane; a no-consumer surface gets a terminal disposition, not a refactor. | NO `proof:span-combinator-parity` perf gate (it would protect a zero-alloc property of a zero-consumer lane). If the lane is deleted (option b), only the BC export-removal note is recorded. |
 | **PT-B3** | **the perf frontier** — combinator FUSION + a 2-char (16-bit) dispatch widening for the residual 3–4-deep `any()` buckets; PLUS a `bench` script + `proof:perf` CI gate (the frontier is currently regression-blind). | `typescript/src/parse/leaf.ts:60-104` (`dispatch()` first-char Int8Array LUT); `:107-136` (`all()` allocs a fresh `matches[]`/call); `parser.ts` then-chains (`[v1, state.value]`/call); `package.json:34-40` (NO `bench` target, NO `proof:perf`). | fuse static `a.then(b).map(f)` / `all(a,b,c)` / `any(a,b,c)` chains into ONE monomorphic closure (zero intermediate tuples); widen `dispatch()` to a length+second-byte discriminator; add `"bench": "vitest bench"` + `proof:perf` over a checked-in baseline JSON. | removes per-call tuple/array alloc on value.js's hottest shapes (59 `all()` sites); flattens the residual megamorphism `dispatch()`'s first-char halving left; makes the campaign's perf claims CI-auditable. | `proof:perf` (born-RED): an alloc-counting bench asserts `fuse(all(a,b,c))` does ZERO array allocs (vs ≥1 today); a 2-char-collision corpus (calc/clamp/cos/conic) parses ≥40% faster through the widened dispatch; a 15% `json-comprehensive` regression reds CI. |
-| **PT-B4** | **the SpanParser KILL** (P-inv-28 resolves to KILL) — the retained SpanParser introspection tier has NO in-realm consumer (its only rationale was the codegen foundation; codegen moved to a separate bbnf-lang session), so DELETE the tier + its bench, keeping the A.W3 falsification as a docs paragraph. | the retained SpanParser introspection tier (`typescript/src/parse/span.ts:540-902` — `SpanParserKind`, the `SpanParser` tagged-union, `callSpan()`); the `span-dispatch.bench.ts` A.W3 record. (The live `*Span` builders at `span.ts:16-360` are NOT killed — they are the runtime Span lane, kept and deduplicated by PT-B2.) | delete `span.ts:540-902` + `span-dispatch.bench.ts`; preserve ONLY the A.W3 falsification as a docs paragraph (the runtime-switch loss record). (parse-that's session decides; the recommendation is KILL.) | removes a parked, no-consumer tier from the surface; the A.W3 lesson survives as documentation, not as dead module-internal code. | `proof:span-parser-killed` (or fold into PT-B2's housekeeping): no `SpanParser` tagged-union / `callSpan()` remain in `span.ts`; the `span-dispatch.bench.ts` artifact is gone; the A.W3 paragraph is present in `future-research.md §7`. |
+| **PT-B4** | **the SpanParser KILL** (P-inv-28 resolves to KILL) — the retained SpanParser introspection tier has NO in-realm consumer (its only rationale was the codegen foundation; codegen moved to a separate bbnf-lang session), so DELETE the tier + its bench, keeping the A.W3 falsification as a docs paragraph. | the retained SpanParser introspection tier (`typescript/src/parse/span.ts:540-902` — `SpanParserKind`, the `SpanParser` tagged-union, `callSpan()`); the `span-dispatch.bench.ts` A.W3 record. (The live `*Span` builders at `span.ts:16-360` are a SEPARATE no-consumer lane — PT-B2 RE-SCOPE folds their disposition here: deleted as zero-consumer surface, not deduped.) | delete `span.ts:540-902` + `span-dispatch.bench.ts`; preserve ONLY the A.W3 falsification as a docs paragraph (the runtime-switch loss record). (parse-that's session decides; the recommendation is KILL.) | removes a parked, no-consumer tier from the surface; the A.W3 lesson survives as documentation, not as dead module-internal code. | `proof:span-parser-killed` (or fold into PT-B2's housekeeping): no `SpanParser` tagged-union / `callSpan()` remain in `span.ts`; the `span-dispatch.bench.ts` artifact is gone; the A.W3 paragraph is present in `future-research.md §7`. |
 
 ---
 
 ## PT-B1 — the packrat cross-input pollution FIX (the BLOCKER, lands FIRST)
+
+> **FULL-LOOP verdict (2026-06-22): ADOPT — the campaign's correctness BLOCKER, lands FIRST
+> (parse-that B.W0/W1).** Both defects REPRODUCED at runtime (vitest probe, `beforeEach(resetPackrat)`
+> removed): `memoize(regex(/[a-z]+/)).parse('hello')` then the SAME parser `.parse('world')`
+> returns `'hello'` (STALE); `memoize(all(word,'-',num)).parse('abc-123')` then `.parse('xyz-789')`
+> returns `['abc','-','123']` (STALE); and `getCijKey(0,0) === getCijKey(4096,0) === 0` (the int32
+> overflow aliasing). **Cure (refined): src-identity auto-reset at the parseState ENTRY boundary**
+> (NOT a per-`memoizeFn`-call `CURRENT_SRC` compare — gate the reset where a top-level `parse()`
+> already knows its src, for zero per-node cost) **+ the free float64-safe multiply-key**
+> (`id*1048576+offset`). Stack the `try/finally` hardening + the `allStrict()` undefined-preserving
+> variant so value.js can retire its drop-undefined workaround. The born-RED gate
+> `proof:packrat-cross-input` drops `beforeEach(resetPackrat)` and asserts BOTH the stale-clause
+> (witnessed RED) AND the post-fix positive (B correct + A re-memoizes). See
+> `docs/tranches/P/FULL-LOOP-LEDGER.md §parsethat-B-asks`. DISPATCH only (inv-16).
 
 **The bug, grounded (verified at runtime — `AUDIT-DIGEST.md` P3-correct-packrat).**
 The MEMO cache has no source-string identity component, so applying a memoized
@@ -118,43 +133,57 @@ cross-input path is genuinely exercised.
 
 ---
 
-## PT-B2 — the Span-combinator DEDUP (no-legacy/gestalt — a bug fixed once, not twice)
+## PT-B2 — the Span-combinator lane (RE-SCOPE: the *Span builders have ZERO consumers → FOLD into the PT-B4 KILL)
 
-**The duplication, grounded (`AUDIT-DIGEST.md` P2 idea #4).** `span.ts` duplicates
-every value combinator's save/restore/mergeError backtracking plumbing as a Span
-twin: compare `parser.ts` `many` (the value lane) vs `span.ts:85-120` `manySpan`
-— identical control flow, the ONLY delta is the Span collector (offsets) vs the
-value collector. The 10 `*Span` builders (`span.ts:16-360`:
-`stringSpan/regexSpan/manySpan/sepBySpan/wrapSpan/optSpan/skipSpan/nextSpan/altSpan`
-+ `takeUntilAnySpan`) are ~400 lines of copy-pasted backtracking — a single bug
-in `many`'s offset-restore must be fixed twice today.
+> **FULL-LOOP verdict (2026-06-22): RE-SCOPE — the DEDUP is MOOT (measured: zero consumers).**
+> The original ask was a collector-parametric factory collapsing the ~400 copy-pasted `*Span`
+> lines. The MEASURED finding overturns it: a grep across all three trees
+> (`manySpan|sepBySpan|regexSpan|wrapSpan|altSpan|takeUntilAnySpan|stringSpan|optSpan|skipSpan|nextSpan`)
+> over `value.js/src`, `kf/src`, `parse-that/src/parse/parsers` returns **ZERO production hits** —
+> value.js consumes parse-that via `all`/`any`/`regex`/`string`/`dispatch` (never a `*Span`
+> builder), and parse-that's own `json.ts`/`csv.ts` use `dispatch()+regex`. The 15 `*Span`
+> builders (`span.ts:16-360`) are an **unexercised lane**. A parametric-factory refactor + a 5%
+> perf gate would de-risk dead weight and land deopt risk on code nobody runs. **Do NOT dedup
+> dead code: FOLD the disposition into the PT-B4 KILL** — if the `*Span` runtime lane has no
+> consumer that will ever materialize, it is a P-inv-28 no-consumer surface and is deleted with
+> the SpanParser tier, not factored. See `docs/tranches/P/FULL-LOOP-LEDGER.md §parsethat-B-asks`.
 
-**Why this is a DEDUP, not an IR.** This is a no-legacy/gestalt cleanup: ONE
-backtracking-control source instead of two drifting copies. A bug in `many`'s
-offset-restore is fixed ONCE, not twice; ~400 duplicated lines dissolve. (Note:
-this is NOT a codegen IR — there is no emitter consuming a Span "vocabulary";
-codegen is out of this campaign's scope. The Span dedup stands on its own merits
-as deduplication of the runtime Span lane.)
+**The MEASURED finding (grep over all three trees).** The 10 `*Span` builders + the 5 `*Node`
+builders (15 total, `span.ts:16-360`) have ZERO production consumers: value.js, kf, and
+parse-that's own `json.ts`/`csv.ts` parsers all route through `dispatch()+regex`/`all`/`any`,
+never a `*Span`. The "a bug in `many`'s offset-restore is fixed once not twice" payoff applies
+to a lane with **no live bug surface** — the duplication is real but it duplicates code nobody
+exercises in production.
 
-**The cure (radical, parse-that B owns the risk).** A collector-parametric
-combinator factory: `many`/`sepBy`/`wrap`/`opt`/`skip`/`next`/`alt` parameterized
-over a collector closure, with the Span lane = `(span-accumulator)` and the value
-lane = `(value-accumulator)`. The TEMPTING-BUT-WRONG trap: a generic collector
-closure could DEOPT vs the inlined Span body (the zero-alloc property that
-justifies the Span lane). The gate guards exactly that.
+**The disposition (parse-that B owns the call — recommend FOLD into PT-B4).** Two grounded
+options, NOT a parametric-factory build:
+- **(a) defer-opportunistic** — if parse-that keeps the lane for a future `json`/`csv` use, the
+  DEDUP is deferred to a future tranche and made OPPORTUNISTIC (fix `many`-restore bugs in both
+  copies when touched). No factory now.
+- **(b) P-inv-28 surface disposition (recommended)** — raise a terminal verdict on the `*Span`
+  public surface itself: since no consumer will ever materialize, **deprecate/delete it alongside
+  the PT-B4 SpanParser KILL** (one atomic `span.ts` diff). This is the no-legacy move — a
+  no-consumer surface gets a terminal disposition, not a parametric-factory investment.
 
-**The proof arm (PT-B2 → `proof:span-combinator-parity`).** Born-RED, two-clause:
-(1) the collector-parametric `manySpan`/`sepBySpan` produce byte-identical Span
-output to the current hand-written builders over the span corpus; (2) a perf gate
-asserts they are within **5%** throughput of the hand-written Span lane (the
-zero-alloc property preserved — a deopting generic collector REDS the gate). The
-born-RED witness: today there is no parametric factory; the planted failure is a
-naive `Array.map`-based collector that allocates per element — it must RED the 5%
-clause.
+**No `proof:span-combinator-parity` perf gate is authored.** Spending a parametric factory + a
+5% zero-alloc gate to protect a zero-consumer lane is exactly the contrivance the FULL-LOOP
+reformulation retires. If parse-that B does delete the lane (option b), the only gate needed is
+that the published surface change is recorded (the BC note on the export removal).
 
 ---
 
 ## PT-B3 — the perf frontier (fusion + 2-char dispatch + the regression gate)
+
+> **FULL-LOOP verdict (2026-06-22): ADOPT — the alloc/dispatch wins are MEASURED on a real
+> value.js consumer.** vitest probes confirm: `all()` allocates a fresh `matches[]` per call
+> (**~7.0 MB heap delta / 2M calls**, 56.7 ns/op); `then()` allocates `[v1, state.value]` per
+> call (40.3 ns/op); the 4-deep `c`-bucket `any()` worst-case (`conic`, 4th) is **60.8 ns/op**
+> vs best-case (`calc`, 1st) 21.9 ns/op = a **2.8× penalty**; `package.json` has NO `bench`, NO
+> `proof:perf`. ADOPT as three ordered sub-deliverables. **ONE scope correction:** the 2-char
+> widening only DISAMBIGUATES the 2nd-byte-distinct tokens — probed `{ca:[calc], cl:[clamp],
+> co:[cos,conic], cu:[cubic]}`, so the `co` bucket STILL collides (cos vs conic); the gate's
+> ≥40% clause must scope to ca/cl/cu (fully flattened) and treat `co` honestly as a 2-deep
+> residual, NOT over-claim a full flatten. See `docs/tranches/P/FULL-LOOP-LEDGER.md §parsethat-B-asks`.
 
 **The frontier, grounded (`AUDIT-DIGEST.md` P1/P2/V1-N4).** parse-that's combinator
 core is already tight (the 128-entry `dispatch()` Int8Array LUT at `leaf.ts:60`,
@@ -198,6 +227,19 @@ fuzz-equivalence corpus reds any divergence).
 
 ## PT-B4 — the SpanParser KILL (P-inv-28 resolves to KILL)
 
+> **FULL-LOOP verdict (2026-06-22): KILL — confirmed, zero consumers across all three trees.**
+> A grep over `parse-that/src`, `value.js/src`, `kf/src`
+> (`callSpan|SpanParserKind|spanParserToParser|SpanParser\b|stringSpanNode|manySpanNode|altSpanNode`)
+> returns **ZERO consumers** outside `span.ts`; the tier is NOT re-exported (the `index.ts:11`
+> hit is a comment). The tier (`span.ts:540-902` — `SpanParserKind`, the tagged-union, the
+> `*Node` builders, `callSpan`, `spanParserToParser`) + `span-dispatch.bench.ts` exist on the
+> current tree (RED). Its only rationale (the codegen foundation) moved to a separate bbnf-lang
+> session OUT of scope — P-inv-28 resolves to KILL. Preserve ONLY the A.W3 falsification (the 3
+> workloads + the ~10-14% V8 slowdown) as a `future-research.md §7` paragraph. **RECOMMEND
+> folding into one atomic `span.ts` diff with the PT-B2 RE-SCOPE** (the `*Span` lane has the
+> same zero-consumer disposition); verify the `parserNames` tuple is pruned of any SpanParser-only
+> orphans. See `docs/tranches/P/FULL-LOOP-LEDGER.md §parsethat-B-asks`. DISPATCH only (inv-16).
+
 **The disposition, resolved.** The retained SpanParser introspection tier
 (`span.ts:540-902` — `SpanParserKind`, the `SpanParser` tagged-union, `callSpan()`)
 was retained at Tranche A "expressly as the codegen foundation"
@@ -213,10 +255,12 @@ Delete `span.ts:540-902` (the `SpanParser` tagged-union + `callSpan()`) and the
 paragraph** (`future-research.md §7`): the SpanParser tagged-union, measured as a
 *runtime* recursive `switch`, was ~10–14% SLOWER on V8 than the closure lane across
 three workloads — a correct, final falsification that survives as documentation,
-not as dead module-internal code. **Scope precision:** the KILL targets ONLY the
-dormant introspection tier (`span.ts:540-902`). The live `*Span` builders
-(`span.ts:16-360`) are the runtime Span lane — they are KEPT and deduplicated by
-PT-B2, not killed. (This KILL MAY fold into PT-B2's housekeeping.)
+not as dead module-internal code. **Scope precision (PT-B2 RE-SCOPE folds in here):** the
+KILL primarily targets the dormant introspection tier (`span.ts:540-902`). The `*Span` runtime
+builders (`span.ts:16-360`) have the SAME zero-consumer disposition (measured: ZERO production
+hits across value.js/kf/parse-that) — PT-B2 is RE-SCOPED so the `*Span` lane is NOT deduped via
+a collector-parametric factory but folded into this KILL: parse-that B EITHER defers them
+opportunistically OR deletes them with the introspection tier (one atomic `span.ts` diff).
 
 **The proof arm (PT-B4 → `proof:span-parser-killed`).** Born-RED: today the
 `SpanParser` tagged-union + `callSpan()` still live at `span.ts:540-902` and
@@ -296,14 +340,17 @@ documentation rather than as no-consumer code.
 
 ### The constellation version split
 
-- **parse-that B → 0.12.0** — the packrat-fix (PT-B1) + the Span-combinator DEDUP
-  (PT-B2) + the perf frontier (PT-B3) + the SpanParser KILL (PT-B4). BC-additive
-  over 0.11.0 (the packrat fix is internal; the Span dedup is internal; the
-  SpanParser KILL removes only a module-internal no-consumer tier).
-- **value.js P → 1.1.0** (API: VJ-L1 `flatLeaf` + VJ-L3 `parseCSSSubValue`) then
-  **1.2.0** (perf: VJ-P1 `color2Into` + VJ-P2 typed-channel-view + the `:any` seam
-  narrowing — the color/alloc/perf work, NOT a generated parser). value.js P
-  consumes parse-that B's packrat fix + perf floor.
+- **parse-that B → 0.12.0** — the packrat-fix (PT-B1, ADOPT) + the perf frontier
+  (PT-B3, ADOPT) + the SpanParser KILL (PT-B4, KILL — folding in the PT-B2 RE-SCOPE:
+  the zero-consumer `*Span` lane is deleted, not deduped). BC-additive over 0.11.0
+  (the packrat fix is internal; the KILL removes only module-internal no-consumer
+  tiers).
+- **value.js P → 1.1.0** (API: VJ-L3 `parseCSSSubValue` — the surviving binding ask;
+  VJ-L1 `flatLeaf` is **DEMOTED-TO-SPIKE**, not on the publish path) then
+  **1.2.0** (perf: VJ-P1 `color2Into` (ADOPT) + the VJ-P3 `:any`→`string` seam
+  narrowing — the color/alloc/perf work, NOT a generated parser; **VJ-P2 typed-channel
+  -view is DROPPED**, falsified premises). The authoritative version split is
+  `KF-TO-VALUEJS-P.md`. value.js P consumes parse-that B's packrat fix + perf floor.
 - **keyframes P → 5.1.x** — inherits a faster, input-safe value.js parser behind
   the same `CSSKeyframesAnimation` facade (GATED on parse-that B + value.js P).
 
@@ -313,8 +360,9 @@ documentation rather than as no-consumer code.
 
 - **parse-that B is the DAG ROOT — it depends on NOTHING in the constellation,
   and NOTHING external.** It is the FIRST tranche; value.js P and kf P consume its
-  output. All four deliverables are IN-REALM over parse-that's own tree (the
-  packrat fix, the Span dedup, the perf frontier, the SpanParser KILL); none takes
+  output. All deliverables are IN-REALM over parse-that's own tree (the
+  packrat fix, the perf frontier, the SpanParser KILL — with the RE-SCOPED `*Span`
+  lane folded into the KILL); none takes
   an external substrate. **bbnf-lang is NOT a dependency, NOT a substrate, NOT a
   design reference** — codegen is its own separate session, OUT of this campaign's
   scope (owner directive, 2026-06-22).
@@ -327,9 +375,10 @@ documentation rather than as no-consumer code.
   parse-that; kf P inherits it two hops down via the value.js parser. kf's downstream
   wave is GATED born-RED — it stays RED until parse-that B publishes 0.12.0 AND
   value.js P re-pins it.
-- **PT-B2/PT-B3/PT-B4 are parse-that-internal** — the Span dedup (one combinator
-  vocabulary), the perf-regression floor (`proof:perf`), and the SpanParser KILL.
-  kf consumes the perf floor's stability but none of these tiers directly.
+- **PT-B2/PT-B3/PT-B4 are parse-that-internal** — the `*Span` lane disposition
+  (RE-SCOPED: folded into the KILL, no factory), the perf-regression floor
+  (`proof:perf`), and the SpanParser KILL. kf consumes the perf floor's stability but
+  none of these tiers directly.
 - **NO kf publish dependency, NO value.js publish dependency.** parse-that B fires
   entirely on its own tree. This dispatch is a coordination record — kf authors the
   ASK; parse-that B schedules it into its own waves; kf re-pins + consumes (via
@@ -341,21 +390,21 @@ documentation rather than as no-consumer code.
 
 This file is the keyframes Tranche P DEVELOPMENT dispatch to parse-that — **DOCS
 ONLY**. It writes ZERO parse-that source (inv-16: kf writes only keyframes.js;
-every cross-repo need is a *dispatch*, never a foreign-tree edit). The four ASKs
-(the packrat fix, the Span dedup, the perf frontier, the SpanParser KILL) are
+every cross-repo need is a *dispatch*, never a foreign-tree edit). The ASKs
+(the packrat fix (ADOPT), the perf frontier (ADOPT), the SpanParser KILL — with the
+RE-SCOPED `*Span` lane folded in) are
 coordination records for parse-that's Tranche B session to formalize into its own
-waves on its own authorization — parse-that owns the packrat cure arm (src-guard vs
-WeakRef-epoch), the Span-combinator factory's deopt risk, the fusion's
-backtracking-preservation, and the SpanParser KILL's housekeeping. kf's role is
+waves on its own authorization — parse-that owns the packrat cure arm (src-guard at the
+parseState entry boundary vs WeakRef-epoch), the `*Span` lane disposition (defer vs delete),
+the fusion's backtracking-preservation, and the SpanParser KILL's housekeeping. kf's role is
 downstream + DAG-ordered: consume the faster, input-safe value.js parser (GATED)
 ONLY after parse-that B publishes 0.12.0 AND value.js P re-pins it —
 publish-then-consume, never cross-write. The whole packet is observable-truth
 (every ASK carries a falsifiable born-RED gate witnessed on parse-that's CURRENT
-tree — the confirmed cross-input pollution, the duplicated Span combinators, the
+tree — the confirmed cross-input pollution, the ZERO-consumer `*Span` lane, the
 missing `proof:perf`, the no-consumer SpanParser tier), no-legacy (the SpanParser
-gets a terminal disposition — KILL, no 4th bare carry; the Span dedup dissolves
-~400 duplicated lines), gestalt (ONE combinator vocabulary for the runtime Span
-lane; ONE perf-regression floor), and P-invariant-28 (the SpanParser retention
+AND the zero-consumer `*Span` lane get a terminal disposition — KILL, no 4th bare carry),
+gestalt (ONE perf-regression floor), and P-invariant-28 (the SpanParser retention
 resolves to KILL, the packrat BLOCKER gets a born-RED correctness gate).
 **Codegen is explicitly OUT** — it is BBNF-lang's job in a completely separate
 session, not part of this campaign. Implementation opens only on parse-that's owner

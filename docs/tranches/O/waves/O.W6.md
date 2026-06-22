@@ -56,7 +56,7 @@ The two siblings that already exist prove the shape. `fromMotionPath` (`motion-p
 | boundary wiring | `src/animation/load-engine.ts:33-39,132-137,422-423,474-477` | `MotionPath`/`fromMotionPath`/`DrawSVG`/`fromDrawSVG` typed on `AnimationEngine`, dynamic-imported in the `Promise.all`, assigned on the engine surface — the wiring `fromMorphSVG` joins |
 | barrel type re-export | `src/animation/index.ts:139,142` | `export type { MotionPathOptions, OffsetPath }` / `export type { DrawSVGOptions, SVGDrawTarget }` — the types-only LIGHT-barrel pattern `MorphSVGOptions` mirrors |
 | gate shape | `scripts/proof-drawsvg.mjs:19-58` (clauses: `primitive-exists`, `no-valuejs-edge`→here `single-valuejs-edge`, `barrel-wired`, `test-locks`), `scripts/proof-motion-path.mjs` | the build-in gate shape: primitive-exists + value.js-edge-bounded + barrel-wired + behaviour proof in `test/*.test.ts` |
-| roster slot | `package.json:83,86,193` | `proof:motion-path` / `proof:drawsvg` in `proof:correctness` — the BLOCKING tier `proof:morphsvg-consume` joins beside |
+| roster slot | `package.json:83,86,194` | `proof:motion-path` / `proof:drawsvg` are script-defined at `:83`/`:86` and rostered in **`proof:hygiene`** (`:194`), NOT `proof:correctness` (`:193`) — full-loop roster correction; `proof:morphsvg-consume` joins them in `proof:hygiene` to genuinely sit beside |
 | ledger (M.md delta) | `O.md:31,84,110` | "M.W14 terminal-belt: `fromMorphSVG` ABSENT … O Band C (the chronic terminals)"; "O.W6 (`fromMorphSVG` over value.js `PathGeometry`)" |
 | ledger (DM-3) | `O.md:55-56,110` | "DM-3 MorphSVG (7-tranche) … declared ABSOLUTE terminal at M — no 8th BOOK — yet … never built. This is the forbidden 8th carry. O Band C builds … in (kf-owned, no sibling gate — value.js 1.0.2 already ships the `PathGeometry` `getTotalLength`/`getPointAtLength` that MorphSVG needs)" |
 
@@ -109,7 +109,7 @@ So `const { fromMorphSVG } = await loadAnimationEngine()` resolves, identical to
 
 **Breach.** No `proof:morphsvg-consume` gate exists (`ls scripts/proof-morphsvg*.mjs` → no match; `grep -n "morphsvg" package.json` → none). M.W14 §S3 named it "born-RED (APIs absent in 0.13.0)" — an inv-ε error (the API was present at 0.13.0 and is present at 1.0.2; the RED cause is the UNIMPLEMENTED kf compositor, `M.W14.md:229-231`).
 
-**Cure.** Author `scripts/proof-morphsvg-consume.mjs`, mirroring the `proof:motion-path` / `proof:drawsvg` shape (source-shape clauses + a behaviour proof), and wire it into the `proof:correctness` roster (`package.json:193`, as `"proof:morphsvg-consume": "node scripts/proof-morphsvg-consume.mjs && vitest run test/morph-svg.test.ts"`, beside `proof:motion-path` / `proof:drawsvg`). Clauses:
+**Cure.** Author `scripts/proof-morphsvg-consume.mjs`, mirroring the `proof:motion-path` / `proof:drawsvg` shape (source-shape clauses + a behaviour proof), and wire it into the **`proof:hygiene`** roster (`package.json:194`, as `"proof:morphsvg-consume": "node scripts/proof-morphsvg-consume.mjs && vitest run test/morph-svg.test.ts"`, beside `proof:motion-path` / `proof:drawsvg` — which live in `proof:hygiene`, NOT `proof:correctness`; full-loop roster correction, ledger line 551). Clauses:
 
 1. **`primitive-exists`** (source-shape): `morph-svg.ts` exports `fromMorphSVG` AND `MorphSVG`. BITE: rename/drop the export → red.
 2. **`single-valuejs-edge`** (source-shape): `morph-svg.ts` carries EXACTLY ONE `@mkbabb/value.js` specifier — the `PathGeometry` import (the HEAVY edge it legitimately needs) — and NO second geometry home / second eligibility predicate of its own (it composes the engine + `PathGeometry` only). The BARREL re-export of `fromMorphSVG`/`MorphSVG` is type-only. BITE: a static value-export of `fromMorphSVG` on the LIGHT barrel, OR a second value.js specifier, OR a hand-rolled path-`d` parser instead of `PathGeometry` → red.
@@ -154,7 +154,7 @@ The gate is born-RED on today's tree: clauses 1–3,5 red because the file/wirin
 - **value.js 1.0.2 — already pinned + installed; NO new sibling publish.** `PathGeometry` + `getPointAtT` + `getTotalLength` are in the INSTALLED surface (`index.d.ts:50`, `path.d.ts:36-54`, verified). This is the wave's defining fact: it has NO sibling tripwire — the exit is a kf-side build-in over a PUBLISHED substrate. (Contrast the BC-gated Band-F waves `O.md:87` and the value.js-P-gated Band-G O.W16 `O.md:88`, which are pure-wait HANDOFFs.) The M.W14-era `^0.13.0` pin advanced through the constellation campaign to `1.0.0`/`1.0.2`; the `transform/path` API is unchanged + DOM-free across that range, so no re-pin is required for this wave.
 - **The kf engine — already composes value.js.** `engine.ts` statically imports `@mkbabb/value.js`; `morph-svg.ts` constructs `CSSKeyframesAnimation` so it rides that same HEAVY chunk. The ONLY new value.js symbol is `PathGeometry` (on the HEAVY chunk, not the LIGHT barrel). The build-in needs NO new LIGHT library surface.
 - **Couples to O.WZ (the chronic terminal).** O.WZ's `proof:chronic-closure` substrate transition (L/M → O re-point, `O.md:89`) reads the DM-3 terminal disposition this wave produces (`O/PROGRESS.md §"Open deferrals"` — the DM-3 MorphSVG BUILD-IN row, with the `morph-svg.ts` commit hash). The DM-3 BUILD-IN row MUST be recorded before O.WZ's planted-probe (a ≥4-tranche bare BOOK must red; DM-3 greens as a build-in). The three P-invariant-28 Band-C exits (DM-2 O.W5, DM-3 O.W6, DM-4 packrat KILL/FOLD at O.W2) are the O.WZ ledger rows.
-- **Independent of every other Band-A/B/C/D wave.** File surfaces: `src/animation/morph-svg.ts` (NEW), `src/animation/load-engine.ts` + `index.ts` (the HEAVY barrel wiring, additive — beside the existing `fromMotionPath`/`fromDrawSVG` rows), `scripts/proof-morphsvg-consume.mjs` (NEW), `test/morph-svg.test.ts` (NEW), `package.json` (gate roster — add `proof:morphsvg-consume` to `proof:correctness`), `docs/tranches/O/PROGRESS.md` (DM-3 disposition). No collision with the engine/correctness waves (O.W3/W4), the gate apparatus (O.W1/W2), or the SIBLING Band-C chronic (O.W5 — a SEPARATE file `DemoControlPoint.vue`, a SEPARATE gate `proof:demo-control-point`). It BENEFITS from O.W1's report-all runner (its new gate's reds are reported alongside others in one pass).
+- **Independent of every other Band-A/B/C/D wave.** File surfaces: `src/animation/morph-svg.ts` (NEW), `src/animation/load-engine.ts` + `index.ts` (the HEAVY barrel wiring, additive — beside the existing `fromMotionPath`/`fromDrawSVG` rows), `scripts/proof-morphsvg-consume.mjs` (NEW), `test/morph-svg.test.ts` (NEW), `package.json` (gate roster — add `proof:morphsvg-consume` to `proof:hygiene`, beside `proof:motion-path`/`proof:drawsvg`), `docs/tranches/O/PROGRESS.md` (DM-3 disposition). No collision with the engine/correctness waves (O.W3/W4), the gate apparatus (O.W1/W2), or the SIBLING Band-C chronic (O.W5 — a SEPARATE file `DemoControlPoint.vue`, a SEPARATE gate `proof:demo-control-point`). It BENEFITS from O.W1's report-all runner (its new gate's reds are reported alongside others in one pass).
 - **NO glass-ui dep, NO parse-that dep, NO value.js PUBLISH dep.** This is a pure-NOW Band-C wave — it fires entirely on today's installed tree (the ONLY thing it consumes — the published `PathGeometry` — is already there).
 
 ---
@@ -181,8 +181,39 @@ This file is the Tranche O DEVELOPMENT spec for O.W6 — DOCS ONLY. It writes ze
 ## Excluded from this wave
 
 - **Orient-along-path for `fromMorphSVG`** (the `PathGeometry.sampleAtLength` tangent `angle`, `path.d.ts:49-54`) — BOOK. This wave's morph interpolates POSITIONS (the `{x,y}` point-pairs); the `rotate: auto` tangent-orient half is a follow-on over the published `sampleAtLength(length): {x,y,angle}` and is NOT required for the P-inv-28 exit (the position morph IS the MorphSVG capability). (`M.W14.md:460-463`.)
-- **Topology-aware vertex correspondence** (the Flubber "matched point counts / shape resampling" refinement for paths with wildly different command counts) — BOOK. Uniform arc-length sampling at a fixed `samples` count is the correct floor; the smart-correspondence refinement is a quality follow-on, not the exit. (`M.W14.md:464-467`.)
+- **Topology-aware vertex correspondence** (the Flubber "matched point counts / shape resampling" refinement for paths with wildly different command counts) — BOOK. Uniform arc-length sampling at a fixed `samples` count is the correct floor; the smart-correspondence refinement is a quality follow-on, not the exit. (`M.W14.md:464-467`.) **Engine-compatibility note (full-loop, ledger line 551):** uniform-`samples` sampling is also the *engine-compatibility enabler* — interpolating a CSS `d:`/`path()` channel requires MATCHED command counts between the `0%` and `100%` frames, and uniform sampling guarantees this (both polylines emit exactly `samples`+1 points). That matched-count guarantee is the concrete reason topology-aware correspondence is correctly BOOKED rather than required for the exit: the floor already produces engine-valid frames; smart-correspondence only improves *quality*, never *validity*.
 - **A library `MorphSVG` PRESET or an `animate({morph})` dispatch arm** — out of scope. This wave ships the `fromMorphSVG` factory + the `MorphSVG` class + their HEAVY barrel surface. An `animate()` shape-dispatch branch (like the `fromMotionPath` `{path}` branch, `animate.ts`) is a separable follow-on. (`M.W14.md:468-470`.)
 - **`DemoControlPoint` + `proof:demo-control-point` (DM-2)** — that is O.W5 (the SIBLING Band-C chronic, over the LIGHT `drag2D`), a SEPARATE file + gate. This wave is ONLY the DM-3 MorphSVG/`fromMorphSVG` terminal. (`O.md:84,109`.)
 - **The packrat KILL/FOLD (DM-4)** — folded at O.W2 per the D4 owner reconciliation (`AUDIT-DIGEST.md`: DM-4 KILL→FOLD-LANDED, `proof:packrat-sound` GREEN via parse-that A.W2 in 0.11.0). NOT this wave.
 - **Promoting `morph-svg.ts` to a demo MorphSVG SCENE** — out of scope. This wave ships the LIBRARY primitive + its gate; a demo scene over it (a triangle→square morph showcase) is a demo-band follow-on, not the P-inv-28 exit (which is the build-in + the live runtime gate over it).
+
+---
+
+**Full-loop disposition (`docs/tranches/P/FULL-LOOP-LEDGER.md` O.W5-6-chronics / [ADOPT] O.W6,
+line 543-551):** ADOPT — **the keystone is PROVEN, not merely planned.** The full-loop BENCHED the
+EXACT triangle→square morph the `live-morph` gate will run (RAN: `npx tsx` from project root):
+
+- **Export existence:** `PathGeometry` / `getTotalLength` / `getPointAtLength` are all `typeof
+  function` on value.js 1.0.2 (`index.d.ts:50`); `PathGeometry.getPointAtT` / `sampleAtLength` are
+  callable (`path.d.ts:36-54`).
+- **Keystone measurement (the gate's exact distinctness assertion):** triangle
+  `"M 0 0 L 100 0 L 50 100 Z"` → square `"M 0 0 L 100 0 L 100 100 L 0 100 Z"`, sampled at 64 uniform
+  `t`, lerped at mid-`t` → **mid-`t` mean per-point distance 11.27 from EACH endpoint vs 22.54
+  between the endpoints** (mid is exactly midway, DISTINCT from both — the S3 `live-morph` clause's
+  precise assertion, MEASURED).
+- **Clause-4 precision EMPIRICALLY VINDICATED:** `dist(from[0], to[0]) = 0.000000` — the start
+  vertex `M 0 0` IS shared between triangle and square; a single-endpoint-vertex compare WOULD be
+  degenerate (false-RED a correct morph or false-GREEN a stub). The full-set / interior-`s`
+  distinctness the clause mandates is required, not optional.
+- **Degenerate refusal feasible:** `PathGeometry('M 50 50 Z').totalLength === 0` and
+  `PathGeometry('M 50 50').totalLength === 0` — the refuse-don't-fake law is implementable.
+- **Wiring slots exact:** `load-engine.ts:34-39` (type imports), `:135-137` (interface rows),
+  `:422-423` (Promise.all import), `:474-477` (engine-surface assign) are the
+  `fromMotionPath`/`fromDrawSVG` precedent `fromMorphSVG` joins.
+
+TWO corrections folded in: (1) **roster claim CORRECTED** — `proof:motion-path`/`proof:drawsvg` live
+in `proof:hygiene` (`package.json:194`), NOT `proof:correctness` (`:193`); `proof:morphsvg-consume`
+is wired into `proof:hygiene` to genuinely sit beside them. (2) **engine-compatibility note added** —
+uniform-`samples` sampling guarantees matched command counts for a `d:`/`path()` channel, the
+concrete reason topology-aware correspondence is correctly BOOKED. Implementation stays gate-first /
+no-legacy / HEAVY-behind-`loadAnimationEngine()` as specified.

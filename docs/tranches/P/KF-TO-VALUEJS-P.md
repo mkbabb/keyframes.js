@@ -285,6 +285,17 @@ insufficient; the round-trip equality over a multi-function string is the gate.
 
 ## VJ-P1 — `color2Into` out-param (the deferred O.W3/O.W5 alloc tail — the campaign §5 headline)
 
+> **FULL-LOOP verdict (2026-06-22): ADOPT — the 1.2.0 perf headline, MEASURE-validated.**
+> `node value.js/scripts/proof-gamut-alloc.mjs` → **5/5 PASS**, confirming **84 allocs/call**
+> on the display-p3 OOG egress (witness `N_BASELINE=104`; C2-jnd fast-path already 5 allocs;
+> C3-epsilon bit-stable). The residual is exactly the per-step `color2(probe, target)`
+> Color-wrapper boxing at `dispatch.ts:257` — the precise target VJ-P1 names; the
+> `transformMat3Into` scratch precedent is confirmed at `matrix.ts:34`. value.js adds
+> `color2Into(src, to, out)` writing into a caller-owned (NOT source-aliased) module-scoped
+> egress scratch; `N_TARGET` is then re-baselined to the MEASURED post-cure residual
+> (likely <12) + a small margin via the existing `proof-gamut-alloc.mjs`. See
+> `docs/tranches/P/FULL-LOOP-LEDGER.md §valuejs-P-asks`.
+
 **The need, grounded.** value.js's gamut hot path still allocates **~84 Color
 objects/call** (V1, V5): O.W3 only got 104→84, and the `color2Into` out-param
 that closes it is **explicitly DEFERRED** at `color/dispatch.ts:245`
@@ -386,11 +397,11 @@ strictness improvement.
 | # | ASK | value.js status | the gap (net-new) | kf consume |
 |---|-----|-----------------|-------------------|------------|
 | **VJ-CSS1** | `extractFunctions(ast)→Map<string,CustomFunctionDescriptor>` | `@function` blocks ALREADY parse (O.W4 S7, `parsing/stylesheet.ts:631-703`) | a ~10-line depth-walk in `parsing/extract.ts` (mirroring `extractProperties`, `extract.ts:87`), exported from `index.ts` | kf `adapter.ts` collects @function descriptors → P.W13 inlines `--foo(args)` calls |
-| **VJ-CSS2** | `sibling-index()` / `sibling-count()` parse arms | NOT-YET | two `FunctionValue` parse arms (emit `FunctionValue("sibling-index", [])`) | kf resolves to an integer at compile (a `stagger` fit) |
-| **VJ-CSS3** | `contrast-color(<color> vs <color>+)` combinator | grammar stub only (`grammars/css-color.bbnf:95-101`) | ~30 LoC in `color.ts` (the `color-mix()` pattern) → `FunctionValue('contrast-color', …)` eagerly evaluated to one `Color` via WCAG contrast. **NEWLY BASELINE (all 3 engines, April 2026) — highest-value** | kf inherits the resolved color |
+| **VJ-CSS2** *(RE-SCOPE: PARSE-ARM-ONLY)* | `sibling-index()` / `sibling-count()` parse arms | NOT-YET (grep ZERO in `value.js/src`) | two `FunctionValue` parse arms (emit `FunctionValue("sibling-index", [])`), gated by a round-trip parse test ONLY | kf compile-time INTEGER resolution is **DEFERRED** — do NOT author the resolve half until a live `stagger`-over-DOM-siblings consumer exists. Lowest priority of the four. |
+| **VJ-CSS3** *(RE-SCOPE: NAMING)* | `contrast-color(<color>)` combinator (L7 — verify SHIPPED syntax, NOT the `vs <color>+` list copied from the legacy `color-contrast`) | **NAMING correction:** the anchored stub `grammars/css-color.bbnf:95-101` is `color-contrast()` (legacy **CSS Color L6**, never shipped), NOT the new `contrast-color()` (**L7**) — which is genuinely ABSENT (grep ZERO) | a **NET-NEW** `contrast-color()` `FunctionValue` arm eagerly evaluated to one `Color` via WCAG contrast (the `color-mix()` pattern); decide whether to retire the never-shipped `color-contrast()` stub. **CONFIRM the 'April 2026 baseline / highest-value' claim via a real browser-support oracle (unverifiable in-session) before it outranks VJ-CSS1.** | kf inherits the resolved color |
 | **VJ-CSS4** (follow-up) | `if()` multi-branch — emit the FULL ordered clause list | parses, but COLLAPSES to first-consequent + first-else (`parsing/index.ts:310-349`) | use the already-computed `clauses` array instead of find-first | kf P.W13 resolves N-branch `if()` (the common 2-branch ships NOW without this) |
 
-**NONE of these blocks the NOW slice of P.W13:** `if()` (2-branch) + `spring()` already parse, so kf resolves them in-realm today. VJ-CSS1/2 gate only the `@function`/`sibling-index` arms; VJ-CSS3 is an independent grounded color addition. All are SMALL + additive (no BC break to value.js 0.11.0→1.x). These ride value.js Tranche P alongside (or before) VJ-L3.
+**NONE of these blocks the NOW slice of P.W13:** `if()` (2-branch) + `spring()` already parse, so kf resolves them in-realm today. VJ-CSS1 gates only the `@function` arm; VJ-CSS2 is RE-SCOPED to a parse-arm-only addition with a DEFERRED resolve (no kf consumer yet); VJ-CSS3 is a NET-NEW grounded color addition (anchor corrected — `contrast-color()` L7, not the legacy `color-contrast()` L6 stub). All are SMALL + additive (no BC break to value.js 0.11.0→1.x). These ride value.js Tranche P alongside (or before) VJ-L3.
 
 ---
 
@@ -474,7 +485,7 @@ strictness improvement.
 | Package | Published | kf pins | kf re-pin on the P publish |
 |---------|-----------|---------|-----------------------------|
 | `@mkbabb/parse-that` | 0.11.0 | `^0.11.0` (production dep, **S9** — for the `any` combinator only) | **DROPPED** from `dependencies` once VJ-L3 lands |
-| `@mkbabb/value.js` | **1.0.2** | `^1.0.2` | `^1.1.0` (the VJ-L1/VJ-L3 publish) at O.W16; `^1.2.0` (the perf frontier) at P Band B |
+| `@mkbabb/value.js` | **1.0.2** | `^1.0.2` | `^1.1.0` (the VJ-L3 publish) at O.W16; `^1.2.0` (the perf frontier) at P Band B |
 
 VJ-L2 (the `linear()` space-joined serializer) shipped in value.js O and is
 **already consumed** (kf S7 GREEN). **VJ-L3** is the surviving binding API ask

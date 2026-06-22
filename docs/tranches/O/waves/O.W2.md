@@ -33,12 +33,26 @@ sibling: { pkg: "@mkbabb/glass-ui", version: "4.1.0", name: "BB SegmentedTabs ar
 sibling: { pkg: "@mkbabb/glass-ui", version: "4.1.0", name: "BB W-DOCK-MORPH-FAMILY click-strand cure" }
 ```
 
-`@mkbabb/glass-ui@4.1.0` was **never published**. BB closed at 4.0.1; the BC cut is USER-DOMAIN
-(≥4.1.0). Audit lanes A2, G32, C14 confirm: `npm show @mkbabb/glass-ui versions --json` →
-`["4.0.0", "4.0.1"]` only; `4.1.0` → E404 (confirmed live 2026-06-19). The `probePublish()`
-function returns `"UNPUBLISHED"` for 4.1.0 — the arms are PENDING because the probe fires on a
-version that can NEVER be published. The gate is structurally sound (three-state model is
-correct) but probes the wrong version — an observable-truth violation.
+`@mkbabb/glass-ui@4.1.0` was **never published** *as of O.W2 authoring (2026-06-19)*. BB closed at
+4.0.1; the BC cut is USER-DOMAIN (≥4.1.0). Audit lanes A2, G32, C14 confirmed at that date:
+`npm show @mkbabb/glass-ui versions --json` → `["4.0.0", "4.0.1"]` only; `4.1.0` → E404 (live
+2026-06-19). The `probePublish()` function returned `"UNPUBLISHED"` for 4.1.0 — the arms were
+PENDING because the probe fired on a version that could not yet be published.
+
+> **Full-loop correction (2026-06-22, `FULL-LOOP-LEDGER.md` O.W1-4-apparatus / [AUGMENT] O.W2,
+> line 501):** **`@mkbabb/glass-ui@4.1.0` PUBLISHED on 2026-06-20** — the day AFTER O.W2 was
+> authored (RAN: `npm show @mkbabb/glass-ui versions --json` → includes `'4.1.0'`;
+> `npm view @mkbabb/glass-ui@4.1.0` → "published 2 days ago by mkbabb"). The "phantom" premise of
+> Finding 1 was only phantom from 2026-06-19→2026-06-20; it is corrected here for historical
+> accuracy. **The S1 content-probe retarget is now MORE needed, not less:** the current
+> `proof:workaround-deletion` fires RED for the WRONG reason — it treats 4.1.0 publication as
+> sufficient, but the 4.1.0 dist `tabs.js` STILL emits `'aria-orientation': L.value ? 'vertical' :
+> 'horizontal'` unconditionally even on `role: group` (RAN: `grep 'aria-orientation'
+> node_modules/@mkbabb/glass-ui/dist/tabs.js` → emitted unconditionally; the conditional guard the
+> S1 delete-premise needs is ABSENT from the published dist). Publication WITHOUT the feature-guard
+> is exactly the false-positive a version-sentinel probe cannot distinguish — so the gate is
+> structurally sound (three-state model correct) but probes the wrong predicate (version-publish,
+> not feature-content) — an observable-truth violation.
 
 **A2 additional finding (BLOCKER):** For S1 (aria-orientation), the BC resolution is not
 merely a version bump. ASK#2 in KF-BC.md was declared "CONFIRMED — emitting a real axis-derived
@@ -174,6 +188,18 @@ Also fix the DM-21 transposition error in `docs/tranches/M/waves/M.W-DESIGN-PAIN
 Verified absent 2026-06-19: `grep "no-phantom-version" package.json` → no match;
 `ls scripts/proof-no-phantom-version.mjs` → no such file.
 
+> **Full-loop rephrasing (2026-06-22, `FULL-LOOP-LEDGER.md` O.W2 line 501 + the brainstorm at line
+> 499):** with 4.1.0 now PUBLISHED, the "phantom" framing of this gate is partly obsolete (the
+> phantom existed only 2026-06-19→2026-06-20). The gate's enduring value is NOT detecting an
+> unpublishable version — it is asserting **feature-content presence**, i.e. that every PENDING arm
+> in `proof:workaround-deletion` probes the ACTUAL feature it gates (the conditional
+> `aria-orientation` guard, the buttery dock engine), not a version number. **Rephrase
+> `proof:no-phantom-version` → `proof:probe-fidelity`:** assert that no `proof:*` arm gates a
+> workaround deletion on a bare version sentinel; every arm's GREEN must require the
+> feature-content the deletion premise needs. The closed-tranche-version scan below survives as one
+> sub-clause (a version sentinel `≤4.0.1` is still a defect — but the load-bearing assertion is now
+> feature-presence, which a published-but-feature-absent 4.1.0 makes urgent).
+
 **What it asserts (the REAL observable):** No `proof:*` script probes a version of a sibling
 package that is VERIFIABLY UNPUBLISHED AND STRUCTURALLY CANNOT PUBLISH (i.e., the version is in
 a released tranche's past — the BB tranche closed at 4.0.1, so `@mkbabb/glass-ui@4.1.0` is a
@@ -264,3 +290,23 @@ This is the implementation-authorization wave for the honest-correction actions.
 
 IMPLEMENTATION opens on the owner's explicit authorization. No engine, demo, or library source
 is modified.
+
+---
+
+**Full-loop disposition (`docs/tranches/P/FULL-LOOP-LEDGER.md` O.W1-4-apparatus / [AUGMENT] O.W2,
+line 493-501):** O.W2 is substantively correct with ONE stale-premise corrected. (1) **glass-ui@4.1.0
+PUBLISHED 2026-06-20** — the day after O.W2 was authored; Finding 1's "never published / E404"
+premise is corrected for historical accuracy (the phantom existed only 2026-06-19→2026-06-20).
+(2) **The S1 content-probe retarget is now MORE needed, not less** — the current gate fires RED for
+the WRONG reason (publication treated as sufficient), but the conditional `aria-orientation` guard is
+ABSENT from the 4.1.0 dist (`tabs.js` emits it unconditionally even on `role: group`). RAN:
+`node scripts/proof-workaround-deletion.mjs` → '1 GREEN / 2 PENDING / 2 RED' with S1=RED S2=RED
+(both fire RED because 4.1.0 is now published — the version-publish predicate is satisfied while the
+feature-content is not). (3) **S2 retarget is structurally correct, but P.W12 owns the S2 deletion** —
+O.W2 only retargets the probe to content-aware; the actual `pointerHandled`/`onPlayPointerDown`
+deletion + the BC re-pin live in P.W12 (`useDockClickIntegrity` confirmed present in 4.1.0 dist). (4)
+**Findings 2-5 are unambiguously correct and unaffected** by the 4.1.0 event (control-point-live
+retirement — no `GlassControlPoint` export in 4.1.0 dist; DM-4/17/24 M-ledger edits). (5) The
+`proof:no-phantom-version` gate is **rephrased to probe feature-content presence, not version
+publication alone** (→ `proof:probe-fidelity`). AUGMENT verdict: substance KEPT, premise + gate-name
+corrected against the live 4.1.0 publication.

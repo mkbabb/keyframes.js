@@ -61,22 +61,30 @@ differential oracle) as the "two oracle ideas the corpus tests miss" (AUDIT-DIGE
 
 ### The grammar-fuzz harness (X4-N2 / V3-N5)
 
-The three confirmed inv-O-2 breaches in value.js (none→NaN, color() wrapper loss, round()
-strategy-omit — V3-grammar-correct lane) were all hand-discovered in an audit. A property-based /
-model-based fuzz oracle would have caught them automatically. The kf side of this idea: author a
-fast-check `fc.oneof(colorArb, mathArb, gradientStopArb)` Arbitrary that generates structurally
-valid CSS fragments, parses them through the full `CSSKeyframesAnimation.fromString` pipeline, and
-asserts that the round-trip is structurally equal (parse → serialize → re-parse produces
-semantically identical frames). This is a **kf-hosted** gate because kf already imports value.js
-and runs the full parse pipeline — it is the end-to-end oracle for the constellation's grammar
-correctness. The value.js-internal fuzz (V3-N5) is a DISPATCH item; this is the kf-side consume.
+The three confirmed inv-O-2 breaches in value.js (none→NaN, color() wrapper loss, round() —
+V3-grammar-correct lane) were all hand-discovered in an audit. A property-based / model-based fuzz
+oracle would have caught them automatically. The kf side of this idea: author a fast-check
+`fc.oneof(colorArb, mathArb, gradientStopArb)` Arbitrary that generates structurally valid CSS
+fragments, parses them through the full `CSSKeyframesAnimation.fromString` pipeline, and asserts
+that the round-trip is structurally equal (parse → serialize → re-parse produces semantically
+identical frames). This is a **kf-hosted** gate because kf already imports value.js and runs the
+full parse pipeline — it is the end-to-end oracle for the constellation's grammar correctness. The
+value.js-internal fuzz (V3-N5) is a DISPATCH item; this is the kf-side consume.
 
-**What would have been caught:** the none→NaN breach would have caused a color frame's `opacity`
-channel to serialize as `"NaN"`, which is not a valid CSS number — the structural re-parse would
-produce a different unit type, failing the equality check. The color() wrapper loss would have
-caused `color(display-p3 ...)` to round-trip as `display-p3(...)` — a different function name,
-failing the round-trip check. The round() strategy-omit would have thrown during parse — a gate
-failure by exception.
+**LIVE breach status (probe-confirmed, loop harden 2026-06-22).** ALL three breaches are LIVE in
+value.js 1.0.2 — not fixed. Probe results (direct `parseCSSValue` + kf round-trip):
+- `oklch(0.6 none 200)` → serializes as `'oklch(0.6 NaN 200)'` (none→NaN LIVE); kf round-trip
+  embeds `"NaN"` in the output and re-parse produces a different unit type.
+- `color(display-p3 1 0 0)` → serializes as `'display-p3(1 0 0)'` (wrapper-loss LIVE).
+- `round(3.7px, 1px)` WITH a strategy → throws `TypeError: t is not iterable` (not just the bare
+  strategy-omit form — ALL round() forms throw).
+- Control `oklch(0.6 0.2 200)` → round-trips correctly (clean baseline).
+
+**What the harness catches:** the none→NaN breach causes a color frame's channel to serialize as
+`"NaN"` — not a valid CSS number, the re-parse produces a different unit type, failing equality.
+The color() wrapper loss causes `color(display-p3 ...)` to round-trip as `display-p3(...)` — a
+different function name, failing the check. The round() breach throws during parse — a gate failure
+by exception.
 
 ### The kf-vs-browser differential oracle (X4-N1)
 
@@ -192,15 +200,22 @@ Additionally, **re-target the `proof:replay-equality` S4 clause** from the sourc
 the behavioral anchor (throw-OR-finite contract). The new S4 clause drives the same named-selector
 fixture through the engine and asserts the disjunction; the old regex is REPLACED (not kept).
 
-### S3 — Grammar-fuzz harness: `proof:grammar-fuzz` with fast-check model arbitraries
+### S3 — Grammar-fuzz harness: `proof:grammar-fuzz` with fast-check model arbitraries (RE-SCOPED)
+
+**RE-SCOPE (loop harden, 2026-06-22).** The original spec asserted that `colorArb` +
+`keyframeStopArb` arms run GREEN on value.js 1.0.2 because the none→NaN and color() wrapper-loss
+breaches "are already fixed in 1.0.2." This premise is **FALSIFIED** by probe. All three breaches
+are LIVE in 1.0.2 (see Context above). Additionally, ALL round() forms throw (not just the
+bare-strategy-omit form the original spec skipped) — `round(3.7px, 1px)` WITH a strategy ALSO
+throws. The harness must be authored GREEN-today by correctly scoping the three broken arms.
 
 **Breach.** No property-based / model-based fuzz harness exists in the keyframes.js test suite
 (`grep -rn "fast-check\|fc\.\|fc\.oneof" test/ scripts/` → zero hits). The three confirmed inv-O-2
-breaches in value.js (none→NaN, color() wrapper loss, round() strategy-omit) were all discovered
-by manual audit — they would have been surfaced automatically by a round-trip fuzz oracle. The
+breaches in value.js (none→NaN, color() wrapper loss, round()) were all discovered by manual audit
+— they would have been surfaced automatically by a round-trip fuzz oracle. The
 `test/fixtures/keyframes/` corpus is hand-crafted and thin (15 files, zero named-selector, zero
-color-none-channel, zero round()-with-omitted-strategy coverage — `AUDIT-DIGEST.md` X4: "corpus
-coverage … entirely absent for property-based / differential-vs-browser testing").
+color-none-channel, zero round()-coverage — `AUDIT-DIGEST.md` X4: "corpus coverage … entirely
+absent for property-based / differential-vs-browser testing").
 
 **Cure.** Add `fast-check` as a devDependency (`npm install --save-dev fast-check`). Author
 `test/grammar-fuzz.test.ts` — a vitest test that uses fast-check arbitraries to generate
@@ -217,42 +232,56 @@ Arbitrary<CSSFragment> → parse via CSSKeyframesAnimation.fromString()
 
 **The three Arbitrary families** (model-grammar, not raw-string fuzz):
 
-1. **`colorArb`** — generates `oklch(L C H)`, `oklch(L none H)` (the none-channel form),
-   `color(display-p3 R G B)` (the wrapper-loss form), `rgb(R,G,B)`, `color-mix(in oklch, ...)` with
-   bounded numeric channels from `fc.float({ min: 0, max: 1 })`. The `oklch(L none H)` arm is the
-   planted regression for the none→NaN breach.
+1. **`colorArb`** — generates the GREEN-today arms: `oklch(L C H)` (plain), `rgb(R,G,B)`,
+   `color-mix(in oklch, ...)` with bounded numeric channels from `fc.float({ min: 0, max: 1 })`.
+   The following arms are **SKIPPED with expected-failure tripwires** (breaches LIVE in 1.0.2,
+   dispatched to value.js P):
+   - `oklch(L none H)` — none-channel → serializes `"NaN"`, round-trip breaks. **Expected-failure
+     tripwire**: `fc.assert(fc.property(noneChannelArb, css => expectKnownBroken(css, /NaN/)))` so
+     the arm auto-flips from KNOWN-BROKEN to GREEN when value.js P fixes none-channel serialization.
+     Dispatch note: `"none-channel: KNOWN-BROKEN on value.js 1.0.2 — VJ-P dispatch"`.
+   - `color(display-p3 R G B)` — wrapper-loss → round-trips as `display-p3(...)`. **Expected-failure
+     tripwire**: same pattern, detects the wrapper-loss symptom. Dispatch note: `"color()-wrapper:
+     KNOWN-BROKEN on value.js 1.0.2 — VJ-P dispatch"`.
 
-2. **`mathArb`** — generates `calc(<expr>)`, `clamp(<min>, <val>, <max>)` with `fc.float()` leaves.
-   The `round(<number>)` (bare strategy-omit) arm is **SKIPPED** (not a permanent-RED born-RED): it
-   is omitted from `mathArb` until value.js P ships the strategy-branch fix, then added in a
-   follow-on commit. The gate uses `fc.context()` to document the skipped arm with
-   `"round-strategy-omit: SKIP until value.js P — V3-correctness dispatch"` so the harness is
-   useful and GREEN on today's value.js 1.0.2, not blocked on a sibling.
+2. **`mathArb`** — generates the GREEN-today arms: `calc(<expr>)`, `clamp(<min>, <val>, <max>)` with
+   `fc.float()` leaves. The `round()` arm is **SKIPPED entirely** — ALL round() forms throw
+   `TypeError: t is not iterable` in value.js 1.0.2 (both with and without a strategy — probe
+   confirmed). This is a live-RED probe today, not a future-gated item. Document with:
+   `"round(): ALL forms throw in value.js 1.0.2 — VJ-P dispatch (round() engine fix)"`.
+   Add the `round()` arm as a follow-on once value.js P ships the full round() fix.
 
 3. **`keyframeStopArb`** — generates `@keyframes x { <stop%> { <prop>: <colorArb|mathArb> } }` with
-   `fc.integer({ min: 0, max: 100 })` selector percentages, one to three stops.
+   `fc.integer({ min: 0, max: 100 })` selector percentages, one to three stops, using only the
+   GREEN-today arms of `colorArb` and `mathArb`.
 
-**Born-RED only on the absent devDep, not on the sibling fix.** The fuzz harness is born-RED today
-because `fast-check` is absent from devDependencies (the gate cannot import it → exits 1). Once
-`fast-check` is added, the `colorArb` + `keyframeStopArb` arms run TODAY against value.js 1.0.2
-and are GREEN (the none→NaN breach and the color() wrapper-loss form are already fixed in 1.0.2).
-The `round(<number>)` arm is SKIPPED (not RED) until value.js P ships — so the harness ships
-useful coverage now and gains the round() arm as a follow-on. A harness that is permanently RED
-until a sibling ships is a blocked harness — the SKIP posture makes it immediately useful.
+**Born-RED today (the absent devDep), GREEN-on-today-tree once devDep lands.** The fuzz harness is
+born-RED because `fast-check` is absent from devDependencies (the gate cannot import it → exits 1).
+Once `fast-check` is added, the GREEN-today arms (plain oklch, rgb, color-mix, calc, clamp,
+keyframeStopArb over those) run against value.js 1.0.2 and are GREEN. The three broken arms ship as:
+- none-channel + wrapper-loss: **expected-failure tripwires** (auto-flip when value.js P fixes them)
+- round(): **SKIP** with a live-RED dispatch note (all forms throw today)
+
+A harness permanently RED until a sibling ships is a blocked harness — the scoped-GREEN posture
+makes it immediately useful while the tripwires provide an automatic regression catch when value.js
+P lands. Feed the three probe-exact outputs to `docs/tranches/P/KF-TO-VALUEJS-P.md` as a gold
+regression corpus for value.js to fix against:
+- `oklch(0.6 none 200)` → expected `'oklch(0.6 none 200)'`, got `'oklch(0.6 NaN 200)'`
+- `color(display-p3 1 0 0)` → expected `'color(display-p3 1 0 0)'`, got `'display-p3(1 0 0)'`
+- `round(3.7px, 1px)` → expected parsed result, got `TypeError: t is not iterable`
 
 **Gate:** `proof:grammar-fuzz` (NEW — `node scripts/proof-grammar-fuzz.mjs`, thin wrapper driving
 `vitest run test/grammar-fuzz.test.ts`). Wire into `proof:hygiene` alongside
-`proof:roundtrip-fidelity`. The fast-check run defaults to 200 cases; the gate times out at 30s.
-Seed is fixed (`fc.seed(42)`) for reproducibility on CI; a randomized run is available as a
-`proof:grammar-fuzz-random` variant for pre-release stress sweeps.
+`proof:roundtrip-fidelity`. The fast-check run defaults to 200 cases (cap at ~50 for CI); the gate
+times out at 30s. Seed is fixed (`fc.seed(42)`) for reproducibility on CI; a randomized run is
+available as a `proof:grammar-fuzz-random` variant for pre-release stress sweeps.
 
 **Planted-failure (born-RED proof).** Today: `fast-check` is absent from `devDependencies`
 (`grep "fast-check" package.json` → zero hits) — the gate script cannot import it → exits 1.
-After `fast-check` is added: the `colorArb` + `keyframeStopArb` arms run against today's
-value.js 1.0.2 and turn GREEN immediately (the `none→NaN` and `color()` wrapper-loss forms are
-fixed in 1.0.2). The `round(<number>)` arm is SKIPPED with an explicit note — the gate is GREEN
-and useful now. When value.js P ships the round() fix, add the `round(<number>)` case to `mathArb`
-and remove the SKIP — the gate stays GREEN through the extension.
+After `fast-check` is added: the GREEN-today arms run and pass; the three broken arms run as
+expected-failure tripwires (two) and a SKIP (one) — the gate is GREEN and useful now. When value.js
+P ships the fixes, the tripwires auto-flip to standard passing arms, the round() SKIP becomes a
+real arm — the gate stays GREEN through the extension.
 
 ### S4 — Differential oracle: `proof:kf-differential` kf.at(t) vs WAAPI interpolation
 
@@ -324,7 +353,7 @@ The four born-RED observables, witnessed on today's tree:
 | `proof:named-selector-nan-frame` `throw-or-finite` **(KEYSTONE)** | `new CSSKeyframesAnimation().fromString('@keyframes x { entry {opacity:0} exit {opacity:1} }').parse([])` does NOT throw; produces `frame.time = {start: NaN, stop: NaN}` — confirmed live with `node -e "'entry'*1000/100"` → `NaN` | `Number.isFinite(frame.time.start) === false` AND no throw | `parse([])` throws `AnimationOptionError` with `code === "NAMED_SELECTOR_NO_TIMELINE"` |
 | `proof:named-selector-nan-frame` `dead-write-becomes-live` | `grep "NAMED_SELECTOR_SUPERTYPE" frame-compiler.ts` → write site only, zero reads in `parse()` body | `parse()` body has zero `NAMED_SELECTOR_SUPERTYPE` reads | `parse()` body reads `NAMED_SELECTOR_SUPERTYPE` in the pre-sort scan |
 | `proof:named-selector-nan-frame` `no-throw-typed-becomes-thrown` | `grep -rn "NAMED_SELECTOR_NO_TIMELINE" src/animation/` → `errors.ts:46` only, zero throw sites | zero throw sites | at least one throw site in `frame-compiler.ts:parse()` |
-| `proof:grammar-fuzz` (harness absent) | `grep "fast-check" package.json` → zero; `test/grammar-fuzz.test.ts` absent | gate script cannot import `fast-check` → exits 1 | `fast-check` in devDeps; 200 generated CSS fragments (colorArb + keyframeStopArb arms) parse + round-trip with structural equality; `round()` arm SKIPPED with explicit note until value.js P |
+| `proof:grammar-fuzz` (harness absent) | `grep "fast-check" package.json` → zero; `test/grammar-fuzz.test.ts` absent; all three round() forms throw on value.js 1.0.2 (probe confirmed); none→NaN + color()-wrapper-loss LIVE (probe confirmed) | gate script cannot import `fast-check` → exits 1 | `fast-check` in devDeps; GREEN-today arms (plain oklch, rgb, color-mix, calc, clamp, keyframeStopArb over those) pass; none-channel + wrapper-loss arms as expected-failure tripwires (auto-flip on value.js P); round() arm SKIPPED entirely (ALL forms throw today — VJ-P dispatch) |
 | `proof:kf-differential` (script absent) | `ls scripts/proof-kf-differential.mjs` → no file | exits 1 | script present; ≥4 WAAPI-eligible fixtures run; all numeric props within tolerance |
 
 **Born-RED on the keystone defect (the NaN-frame bug).** The `throw-or-finite` clause is the
@@ -343,11 +372,13 @@ source would green on the DEAD WRITE — it would pass today while the bug is li
    the `dead-write-becomes-live` clause confirms the SUPERTYPE constant is read — but the
    `non-named-unaffected` regression guard catches any over-throw (non-named animations must not
    throw). The three corroborator clauses together prevent a false-green stub.
-3. The `proof:grammar-fuzz` gate's `round(<number>)` arm is SKIPPED (not a permanent-RED planted
-   regression — CONTRIVANCE-AUDIT.md #5): the harness ships with `colorArb` + `keyframeStopArb`
-   arms GREEN on today's value.js 1.0.2; the round() arm is added as a follow-on when value.js P
-   ships the fix. A gate that is permanently RED on a sibling is a blocked gate — the SKIP posture
-   ships useful coverage now.
+3. The `proof:grammar-fuzz` gate's three broken arms (none-channel, wrapper-loss, round()) are NOT
+   permanent-RED planted regressions (CONTRIVANCE-AUDIT.md #5 anti-pattern). The harness ships with
+   the GREEN-today arms passing; the none-channel + wrapper-loss arms ship as expected-failure
+   tripwires (they document the known-broken state and auto-flip when value.js P fixes them); the
+   round() arm is SKIPPED entirely (ALL forms throw — a live-RED dispatch note, not a gate-RED).
+   A gate that is permanently RED on a sibling is a blocked gate — the scoped-GREEN posture ships
+   useful coverage now while the tripwires automatically catch the value.js P fixes when they land.
 
 ---
 
@@ -358,12 +389,16 @@ source would green on the DEAD WRITE — it would pass today while the bug is li
   `frame.start.superType?.includes(NAMED_SELECTOR_SUPERTYPE)` TODAY. S1 + S2 are pure kf-internal
   changes with zero cross-repo dependency.
 
-- **S3 grammar-fuzz is GREEN on today's value.js 1.0.2.** The `colorArb` + `keyframeStopArb` arms
-  work against the current value.js and turn GREEN immediately once `fast-check` is added. The
-  `round(<number>)` arm is SKIPPED (not a permanent-RED blocking dep) until value.js P ships the
-  round() strategy-branch fix — see CONTRIVANCE-AUDIT.md #5. Wire the gate with a clear skip note:
-  `"round-strategy-omit: SKIP until value.js P — V3-correctness dispatch"`. The gate is useful now,
-  not blocked on a sibling. The round() arm is a follow-on addition, not a gate-blocking precondition.
+- **S3 grammar-fuzz — GREEN-today scoping (RE-SCOPED, probe-confirmed 2026-06-22).** The
+  none→NaN and color()-wrapper-loss breaches are LIVE in value.js 1.0.2 (not fixed); ALL round()
+  forms throw. The harness ships GREEN-today by: (a) running only the confirmed-green arms (plain
+  oklch, rgb, color-mix, calc, clamp, keyframeStopArb over those) as standard passing cases; (b)
+  converting none-channel + wrapper-loss into expected-failure tripwires that document the
+  known-broken state and auto-flip when value.js P fixes them; (c) SKIPPING round() entirely with
+  a live-RED dispatch note (all forms throw — VJ-P dispatch). The three exact probe outputs are
+  dispatched to `docs/tranches/P/KF-TO-VALUEJS-P.md` as the regression corpus. The gate is useful
+  now, not blocked on value.js P. The green arms are the gate's contribution to coverage NOW; the
+  tripwires + skip are the value.js-P regression detectors.
 
 - **S4 differential oracle depends on O.W2 (DM-23 vitest-browser runner) for the FULL oracle path.**
   The subset (WAAPI-eligible fixtures via Playwright) is implementable NOW using the established
@@ -381,11 +416,12 @@ source would green on the DEAD WRITE — it would pass today while the bug is li
   `proof:replay-equality` S4 re-target from O.W3 S2). O.W3's spec is AUTHORITATIVE for S1/S2;
   P.W9 adds S3/S4 as novel oracle extensions. Zero spec conflict.
 
-- **Couples to value.js P (DISPATCH) for the round() arm only.** The grammar-fuzz harness (S3)
-  ships GREEN on today's value.js 1.0.2 (the `colorArb` + `keyframeStopArb` arms). The round()
-  arm is SKIPPED until value.js P ships the strategy-branch fix; the skip is recorded in the
-  dispatch packet `docs/tranches/P/KF-TO-VALUEJS-P.md`. The harness is NOT blocked on value.js P
-  for its initial authoring and CI wiring.
+- **Couples to value.js P (DISPATCH) for three broken arms.** The grammar-fuzz harness (S3) ships
+  GREEN on today's value.js 1.0.2 via the green-today arms. The three broken arms are dispatched:
+  none-channel + wrapper-loss ship as expected-failure tripwires (auto-flip on value.js P); round()
+  is SKIPPED entirely (all forms throw). All three are recorded in the dispatch packet
+  `docs/tranches/P/KF-TO-VALUEJS-P.md` with the exact probe outputs as the regression corpus. The
+  harness is NOT blocked on value.js P for its initial authoring and CI wiring.
 
 - **Independent of every other P-Band wave.** P.W9 touches:
   `src/animation/frame-compiler.ts` (insert the `NAMED_SELECTOR_SUPERTYPE` scan in `parse()`) +
@@ -417,10 +453,12 @@ dev→impl boundary (P.md:7-9). When it opens, the implementation order is:
    the `NAMED_SELECTOR_NO_TIMELINE` throw. Re-run `proof:named-selector-nan-frame` → GREEN.
 3. **S2 re-target**: update `proof-replay-equality.mjs` S4 clause to the behavioral anchor (replace
    the source-shape regex). Confirm `proof:replay-equality` stays GREEN for all existing fixtures.
-4. **S3 grammar-fuzz**: confirm `proof:grammar-fuzz` exits GREEN on the `colorArb` +
-   `keyframeStopArb` arms (both work against value.js 1.0.2 today); the `round(<number>)` arm is
-   SKIPPED with an explicit note — the gate is immediately useful, not blocked on value.js P. Add
-   the round() arm as a follow-on once value.js P ships.
+4. **S3 grammar-fuzz**: author GREEN-today arms (plain oklch, rgb, color-mix, calc, clamp,
+   keyframeStopArb over those) + convert none-channel + wrapper-loss arms to expected-failure
+   tripwires + SKIP round() entirely with a live-RED dispatch note. Confirm `proof:grammar-fuzz`
+   exits GREEN. Feed the three probe-exact breach outputs to `KF-TO-VALUEJS-P.md` as the regression
+   corpus for value.js P to fix against. Add round() + unflag tripwires as a follow-on once
+   value.js P ships.
 5. **S4 differential oracle**: author `scripts/proof-kf-differential.mjs`; confirm GREEN on the
    four WAAPI-eligible corpus fixtures on macOS.
 6. **Wire gates**: add `proof:named-selector-nan-frame` + `proof:grammar-fuzz` to `proof:hygiene`;

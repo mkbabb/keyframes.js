@@ -48,21 +48,28 @@ The easing scene is "the demo's headline interactive surface and is genuinely we
         │  normalized (x,y) v-model
   DemoControlPoint  (the O.W5 handle)             ── kf DEMO component over LIGHT drag2D
         ▲
-        │  springOptions:{dampingFraction:1}  ← P.W7's tuning (the precision fix)
-  drag2D  (pointer-capture, spring follow)        ── kf LIGHT (src/animation/drag-2d.ts) — ZERO value.js edge
+        │  springOptions:{dampingFraction:1}  ← P.W7's tuning (the precision fix — pure demo-construction;
+        │                                        pass-through confirmed at drag.ts:56→:169)
+  drag2D  (pointer-capture, spring follow)        ── kf LIGHT (src/animation/drag-2d.ts) — re-exported
+        │                                           through drag.ts; emit-off-settle at drag-2d.ts:88-89
+        │                                        ZERO value.js edge
         ▲
         │  glass tokens (--trace / --trace-glow specular)
   glass  (handle polish)                          ── glass-ui published @mkbabb/glass-ui/styles CSS (NO component import)
 ```
 
-P.W7 writes only the **demo** layer (`demo/easing/`, `demo/@/components/custom/`) + the gate (`scripts/`) — inv-16 holds, NO library source, NO sibling publish. The one library-shaped fact P.W7 *uses* (not writes) is that `drag2D` forwards a `springOptions` through to its per-axis `Draggable`'s `SpringProgress`; if that pass-through is absent on the installed library, the precision fix is a **born-RED handoff to O.W5's impl** (the S1 clause names it) — NOT a P.W7 library edit.
+**IMPORTANT — y-domain inversion note.** `EasingHeroStage.vue:219` inverts y as `1 - easingFn(t)` for the SVG path. S2's closed-form viewBox clamp must therefore operate on `1-y1` / `1-y2` in the SVG y-domain (not raw `y1`,`y2`): `Math.min(0, 1, 1-y1, 1-y2)` / `Math.max(0, 1, 1-y1, 1-y2)`.
+
+**Explicit coupling — drag2D RE-SCOPE keeper.** The CONTRIVANCE-AUDIT RE-SCOPED `drag2D` ("do not export drag2D/Drag2DHandle from the barrel without a live consumer"). `drag2D` is still exported from `index.ts:88,93` today. **O.W5's `DemoControlPoint.vue` IS the live consumer that resolves this RE-SCOPE**; P.W7 makes `DemoControlPoint` the demo's headline instrument and confirms the KEEP-iff-O.W5-lands verdict. This coupling must be recorded in `docs/tranches/P/PROGRESS.md`: the drag2D RE-SCOPE is DISCHARGED when O.W5 lands DemoControlPoint.
+
+P.W7 writes only the **demo** layer (`demo/easing/`, `demo/@/components/custom/`) + the gate (`scripts/`) — inv-16 holds, NO library source, NO sibling publish. The `springOptions` pass-through is confirmed present on the installed library — S1 is a pure demo-construction change.
 
 ### Audit evidence
 
 | Ref | Source location | Fact (verified 2026-06-20) |
 |-----|-----------------|------------------------------|
-| ring-risk | `src/animation/drag.ts:234` + `src/animation/spring.ts:108-109` | `drag2D` emits off the rAF spring settle; default `dampingFraction: 0.86` is under-damped → overshoot past the release point |
-| critically-damped | `src/animation/spring.ts:31` | `dampingFraction: 1` = critically damped, NO overshoot — the curve-editor-correct spring |
+| ring-risk | `src/animation/drag.ts:234` + `src/animation/spring.ts:108-109` | `drag2D` emits off the rAF spring settle; default `dampingFraction: 0.86` is under-damped → overshoot past the release point (bench: 0.5% of travel, 54 frames) |
+| critically-damped | `src/animation/spring.ts:31` + `drag.ts:56→:169` | `dampingFraction: 1` = critically damped, NO overshoot (bench: exactly 0%, 57 frames); `springOptions` pass-through CONFIRMED PRESENT (pure demo-construction — no handoff) |
 | hero read-only | `demo/easing/EasingHeroStage.vue:48-68,208` | the projected curve is `aria-hidden="true"` + `pointer-events:none` — un-editable |
 | hero non-uniform | `demo/easing/EasingHeroStage.vue:54` | `preserveAspectRatio="none"` — per-axis scale; the per-axis CTM decouples cleanly |
 | sidebar editor | `demo/@/components/custom/EasingCurveCanvas.vue:110-135` | the editable canvas (`editable && controlPointsSvg`) renders the two handles + traveling dot |
@@ -73,7 +80,7 @@ P.W7 writes only the **demo** layer (`demo/easing/`, `demo/@/components/custom/`
 | read-only readout | `demo/easing/EasingSidebar.vue:123-131` | the `(x1,y1,x2,y2)` readout is display-only, never an input |
 | painter discipline | `demo/easing/useEasingDemo.ts:189-228` (`registerDotPainter`) | the hot path is already off the Vue render graph — the design layer must not regress it |
 | live precedent | `scripts/proof-easing-editor-live.mjs:38-44` | a `page.mouse` drag over `.control-point.handle` asserting the bezier `d` mutates + the subject re-animates — the live-drag harness shape this wave's hero clause mirrors |
-| substrate | `src/animation/index.ts:88` + `src/animation/drag-2d.ts:22-46` | LIGHT `drag2D` + `Drag2DHandle` ({x,y}, velocity, settled, subscribe, dispose) — the O.W5 substrate, present today |
+| substrate | `src/animation/index.ts:88` + `src/animation/drag-2d.ts:22-46` | LIGHT `drag2D` + `Drag2DHandle` ({x,y}, velocity, settled, subscribe, dispose) — the O.W5 substrate, present today; `drag2D` lives in `drag-2d.ts` and is re-exported through `drag.ts`; emit-off-settle at `drag-2d.ts:88-89` |
 | O.W5 keystone | `O/waves/O.W5.md:115-124` | `proof:demo-control-point` `live-drag` + `keyboard-operable` clauses — P.W7 extends, never re-authors, this gate |
 
 ---
@@ -88,9 +95,11 @@ Each S-clause is a concrete, falsifiable deliverable. **S1** tunes the `DemoCont
 
 **Breach.** `drag2D`'s default spring is under-damped (`spring.ts:108-109` `dampingFraction: 0.86`) and the handle emits off the spring settle (`drag.ts:234`). A bezier control point released mid-drag would **overshoot past the drop point** before settling back — a precision regression for a curve editor (`AUDIT-DIGEST.md:824-826`, named a BLOCKER for O.W5 impl). The bespoke `useEasingCurveDrag.ts` O.W5 deletes did NOT ring (it tracked the pointer directly); the consolidation must not introduce ringing it never had.
 
-**Cure.** `DemoControlPoint.vue` constructs `drag2D` with a **critically-damped** spring: pass `springOptions: { dampingFraction: 1 }` (`spring.ts:31` — no overshoot) per axis — OR a near-instant `response` if the editor wants a touch of follow-lag without overshoot. The control point tracks the pointer 1:1 while down (the live target is pointer-pinned — `drag-2d.ts:30-33`) and lands EXACTLY on the release point on settle (no ring-back). This is the curve-editor's correctness contract: where you drop the handle is the curve you authored.
+**Probe-validated (loop harden, 2026-06-22).** The `springOptions` pass-through from `DragOptions` through to `Draggable`'s `SpringProgress` is **already present** on today's installed library: `drag.ts:56` exposes `DragOptions.springOptions`, which is forwarded through to `SpringProgress` at `:169`. The bench confirmed: `dampingFraction: 0.86` overshoots 0.5% of travel (54 frames to settle), `dampingFraction: 1.0` overshoots exactly 0% (57 frames, critically damped). **S1 is therefore a pure demo-construction change** — `DemoControlPoint.vue` passes `springOptions: { dampingFraction: 1 }` per axis, NO library edit, NO handoff. Delete the born-RED-handoff-to-O.W5 branch: it was a precondition note against the unverified state; the pass-through is confirmed live. Optionally tune `{ response: ~0.15, dampingFraction: 1 }` for a snappy ring-free follow-lag.
 
-**Constraint (precondition — the inv-16 fence).** This requires `drag2D` to forward a `springOptions` (or per-axis `DragOptions.springOptions`) through to its `Draggable`'s `SpringProgress`. If the installed LIGHT library already forwards it (verify: `grep -n "springOptions\|SpringProgress" src/animation/drag.ts src/animation/drag-2d.ts`), S1 is a pure demo-construction change (the component passes the option). If it does NOT, the forward is a **library-shaped need** — a born-RED HANDOFF to O.W5's impl (a one-line `DragOptions.springOptions` pass-through in `drag.ts`), NOT a P.W7 library edit (inv-16). The gate's `damped-no-overshoot` clause (S5) reds either way until the option lands; the handoff is recorded, not silently absorbed.
+**Cure.** `DemoControlPoint.vue` constructs `drag2D` with a **critically-damped** spring: pass `springOptions: { dampingFraction: 1 }` (`spring.ts:31` — no overshoot) per axis — or `{ response: ~0.15, dampingFraction: 1 }` for an iOS-canonical near-instant feel without overshoot. The control point lands EXACTLY on the release point on settle (no ring-back). This is the curve-editor's correctness contract: where you drop the handle is the curve you authored.
+
+**Constraint (inv-16 — CONFIRMED pure demo construction).** The `springOptions` pass-through is confirmed present (`drag.ts:56→:169`); S1 is a component-option change only, no library edit needed.
 
 **Gate bite (S5 coverage).** `proof:easing-curve-editor` `damped-no-overshoot` clause: drag a handle to a measured offset, release, sample the bound `(x,y)` over the settle window, assert it is **monotonic to the release value** (no sample exceeds the release-point coordinate by > a tight epsilon). Today: the default-spring handle overshoots → red. After the critically-damped construction: green.
 
@@ -167,7 +176,7 @@ Each S-clause is a concrete, falsifiable deliverable. **S1** tunes the `DemoCont
 | Gate / clause | Witness on today's tree | Failure mode today (the REAL observable) | Expected after the design layer |
 |---|---|---|---|
 | `hero-editable` (**KEYSTONE**) | `#/easing` singular + `page.mouse.down→move→up` over a HERO handle | the hero curve is `aria-hidden`+`pointer-events:none` (`EasingHeroStage.vue:208`) — NO draggable handle on the hero; the only editor is the ~300px sidebar | ≥2 draggable `DemoControlPoint` handles on the hero stage; a real hero drag mutates `bezierPathD` AND re-times the ball |
-| `damped-no-overshoot` | drag-release a handle, sample the settle window | `drag2D` default `dampingFraction: 0.86` (`spring.ts:108-109`) overshoots past the drop point | the bound `(x,y)` is monotonic to the release value (critically-damped, S1) |
+| `damped-no-overshoot` | drag-release a handle, sample the settle window | `drag2D` default `dampingFraction: 0.86` (`spring.ts:108-109`) overshoots past the drop point (0.5% of travel, 54 frames — bench confirmed) | the bound `(x,y)` is monotonic to the release value (critically-damped, S1 — pure demo construction: `springOptions:{dampingFraction:1}` confirmed passable via `drag.ts:56→:169`) |
 | `diff-ghost` | select `ease-out`, drag, grep the pseudo-tree for `.bezier-path--ghost` | only the `f(t)=t` diagonal exists (`EasingCurveCanvas.vue:38`); no named-curve reference | a `.bezier-path--ghost` with the original `ease-out` `d` present on a named→custom edit, ABSENT on a from-scratch custom |
 | `precision-author` | focus a handle, `Shift+ArrowRight`; type into the readout | the readout is read-only (`EasingSidebar.vue:123-131`); only a coarse single-step nudge exists | `Shift+Arrow` nudges 0.001 (fine); a typed `cubic-bezier(...)` moves the handles + `d` |
 | unify-handles follow-on (no extra gate this wave) | `docs/tranches/P/PROGRESS.md` follow-on row | the radical "unify all drag handles on drag2D" idea has no terminal home | a recorded deferred follow-on with a NAMED future gate (`proof:drag-primitive-unified`) |
@@ -182,8 +191,8 @@ Each S-clause is a concrete, falsifiable deliverable. **S1** tunes the `DemoCont
 
 ## Dependencies
 
-- **O.W5 `DemoControlPoint` — the substrate (the DAG edge `O.W5 → P.W7`).** P.W7 dresses the handle O.W5 builds + consolidates; it does NOT re-build it. If O.W5 is not yet implemented, P.W7's clauses red on the absent handle (the same RED as O.W5's `proof:demo-control-point`). This is a NOW→NOW intra-repo sequence, NOT a sibling publish gate.
-- **LIGHT `drag2D` `springOptions` pass-through (the S1 precondition).** The critically-damped fix needs `drag2D`/`DragOptions` to forward `springOptions` to the per-axis `SpringProgress`. If present on the installed library → pure demo construction. If absent → a born-RED HANDOFF to O.W5's impl (a one-line `drag.ts` pass-through), NOT a P.W7 library edit (inv-16). The `damped-no-overshoot` clause reds until the option lands.
+- **O.W5 `DemoControlPoint` — the substrate (the DAG edge `O.W5 → P.W7`). HARD PRECONDITION.** P.W7 dresses the handle O.W5 builds + consolidates; it does NOT re-build it. Both `DemoControlPoint.vue` AND `scripts/proof-demo-control-point.mjs` are **ABSENT** on today's tree; P.W7 CANNOT be authorized until O.W5 implements them. If O.W5 is not yet implemented, P.W7's clauses red on the absent handle (the same RED as O.W5's `proof:demo-control-point`). This is a NOW→NOW intra-repo sequence, NOT a sibling publish gate. The born-RED gate (`proof:easing-curve-editor`) is well-formed, falsifiable, and a genuine non-duplicative superset of `proof-easing-editor-live.mjs` — but it opens only after O.W5 lands.
+- **LIGHT `drag2D` `springOptions` pass-through (CONFIRMED PRESENT).** Probe-verified (loop harden, 2026-06-22): the `springOptions` pass-through from `DragOptions` through to `Draggable`'s `SpringProgress` is present at `drag.ts:56→:169`. S1 is a pure demo-construction change — no library edit, no handoff.
 - **glass-ui published `@mkbabb/glass-ui/styles` tokens — already a demo dep.** The `--trace`/`--trace-glow` specular for the handle + ghost is CSS (`EasingCurveCanvas.vue:414-443`); NO new glass-ui component import, NO new peer obligation (inv-16).
 - **`parseCSSValue` — present (the S4 numeric round-trip).** `useEasingDemo.ts:337-371` already resolves named/bezier/steps; the writable readout reuses it. No value.js publish dep.
 - **Independent of every other Band-C wave** (P.W5 cube/amiga, P.W6 square/spring, P.W8 N-Stage) and of the engine-perf (P.W2–P.W4) / correctness (P.W9) / consume (P.W12) waves. File surfaces: `demo/easing/EasingHeroStage.vue` (hero handles + de-decorate the handle layer), `demo/@/components/custom/EasingCurveCanvas.vue` (closed-form viewBox + ghost path), `demo/@/components/custom/DemoControlPoint.vue` (springOptions construction — O.W5's file, P.W7 sets the option), `demo/easing/EasingSidebar.vue` (writable readout), `demo/easing/useEasingDemo.ts` (named-curve capture for the ghost), `scripts/proof-easing-curve-editor.mjs` (NEW), `package.json` (gate roster), `docs/tranches/P/PROGRESS.md` (the unify-handles follow-on record). It BENEFITS from P.W1's portable-perf-gate infra (the viewBox fold is a per-move alloc/time win the apparatus can witness) but does not depend on it.
@@ -193,7 +202,7 @@ Each S-clause is a concrete, falsifiable deliverable. **S1** tunes the `DemoCont
 
 ## dev→impl boundary
 
-This file is the Tranche P DEVELOPMENT spec for P.W7 — DOCS ONLY. It writes zero engine/demo/library source (inv-16: kf writes only keyframes.js; the one library-shaped need — the `drag2D` `springOptions` pass-through — is a born-RED HANDOFF to O.W5's impl, never a foreign-tree edit). The IMPLEMENTATION (the critically-damped construction, the hero promotion + closed-form viewBox, the diff-ghost, the precision authoring, the `proof:easing-curve-editor` authoring) opens only on the owner's explicit authorization, DAG-ordered AFTER O.W5. When it opens it is gate-first (S5 `proof:easing-curve-editor` authored born-RED BEFORE S1–S4 land), observable-truth (the `hero-editable` keystone over the real hero-drag re-timing the ball), no-legacy (no bespoke pointer handler re-introduced — the handle is O.W5's consolidated `drag2D` path), KISS (the closed-form viewBox replaces the 17-sample proxy; the numeric + drag are two views of one model), gestalt (ONE bezier model behind hero + sidebar + numeric; the unify-handles follow-on terminal-homed not orphaned), and P-invariant-28 (the separable drag-unification is a recorded deferral with a named future gate, never a bare carry).
+This file is the Tranche P DEVELOPMENT spec for P.W7 — DOCS ONLY. It writes zero engine/demo/library source (inv-16: kf writes only keyframes.js). The IMPLEMENTATION (the critically-damped construction, the hero promotion + closed-form viewBox, the diff-ghost, the precision authoring, the `proof:easing-curve-editor` authoring) opens only on the owner's explicit authorization, **DAG-ordered AFTER O.W5** (both `DemoControlPoint.vue` and `scripts/proof-demo-control-point.mjs` are ABSENT today; the hard precondition is O.W5's landing). The `springOptions` pass-through is probe-confirmed present (`drag.ts:56→:169`) — no library handoff at impl time. When it opens it is gate-first (S5 `proof:easing-curve-editor` authored born-RED BEFORE S1–S4 land), observable-truth (the `hero-editable` keystone over the real hero-drag re-timing the ball), no-legacy (no bespoke pointer handler re-introduced — the handle is O.W5's consolidated `drag2D` path), KISS (the closed-form viewBox replaces the 17-sample proxy; the numeric + drag are two views of one model), gestalt (ONE bezier model behind hero + sidebar + numeric; the unify-handles follow-on terminal-homed not orphaned), and P-invariant-28 (the separable drag-unification is a recorded deferral with a named future gate, never a bare carry).
 
 ---
 
@@ -213,7 +222,7 @@ This file is the Tranche P DEVELOPMENT spec for P.W7 — DOCS ONLY. It writes ze
 ## Excluded from this wave
 
 - **Re-building `DemoControlPoint` or the `EasingCurveCanvas` consolidation** — that is O.W5 (`O.W5.md:81-124`). P.W7 dresses the built handle; it does not author it.
-- **Editing the LIGHT library** (`src/animation/drag.ts` / `drag-2d.ts`) — the `springOptions` pass-through, IF absent on the installed library, is a born-RED HANDOFF to O.W5's impl (inv-16), NOT a P.W7 edit.
+- **Editing the LIGHT library** (`src/animation/drag.ts` / `drag-2d.ts`) — the `springOptions` pass-through is probe-confirmed present (`drag.ts:56→:169`); no library edit is needed (inv-16 holds as pure demo construction).
 - **The unify-all-demo-drag-handles refactor** (`proof:drag-primitive-unified`) — a separable tranche (`O.W5.md:204`, `AUDIT-DIGEST.md:845-848`); recorded as a terminal-homed follow-on (S5), not built. Each surface (timeline frame-snap, motion-path unbounded, sequence-row) has distinct physics; conflating now violates KISS.
 - **Promoting `DemoControlPoint` to a LIBRARY export** — out of scope (it is a kf-demo primitive over the existing LIGHT `drag2D`; a library control-point is a keyframes-vue concern, `O.W5.md:201`).
 - **The N-Stage scene-switcher + mobile** — that is P.W8 (a SEPARATE Band-C wave over the `scene-stage` subtree + the N-prototype unshelf).

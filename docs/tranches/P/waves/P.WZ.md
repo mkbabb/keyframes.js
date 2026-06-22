@@ -3,9 +3,10 @@
 **Band:** Z — Close + the 5.1.x cut
 **Phase:** NOW-author · USER-DOMAIN publish (the LAST wave — author the gates + the close docs
 NOW; the version cut + npm publish are USER-DOMAIN — Mike Babb fires the tag)
-**Sequence:** P.W1…P.W12 all at terminal disposition → *(Bands A+B+C+D+E green) + (Band F
-P.W11 WeakMap early-cure + O.W7 engine-seam) + (Band G S2 consumed, S1 on guard or contingency)
-+ (codegen-consume on sibling publishes OR ADOPT/KILL verdict)* → **P.WZ close** → USER-DOMAIN
+**Sequence:** P.W1…P.W13 all at terminal disposition → *(Bands A+B+C+D+E green, including
+Band B P.W13 emerging-CSS resolve via `proof:emerging-css-resolve`) + (Band F
+P.W11 WeakMap early-cure + O.W7 engine-seam) + (Band G S2 consumed, S1 on guard or contingency)*
+→ **P.WZ close** → USER-DOMAIN
 `v5.1.x` tag → `release.yml` publish → `deploy-pages.yml` round-trip observed
 **Owning chronic/DM:** DM-7 keyframes-vue (4-tranche, P-inv-28 belt ACTIVE — USER-DOMAIN
 publish here, NO 5th carry); DM-20 deploy round-trip (3-tranche, USER-DOMAIN); DM-16 5.0.0
@@ -20,9 +21,12 @@ P — MUST exit here if BC SFC guard did not ship)
 P.WZ is the tranche terminal. It sequences atop O.WZ (the 5.0.0 cut, the no-legacy renames,
 the Oscillator publish, the chronic-ledger M→O re-point). By the time P.WZ runs, the O
 substrate is closed and the P bands have built the optimization + frontend-design layer:
-SoA-compositor + Typed-OM write path (Bands B), the demo-fleet design passes (Bands C), the NaN
+the SoA-compositor (ADOPT 3.7× — `group-soa-decision.json`, internal-only) + the `_styleOut`
+alloc-cure (the P.W3 grounded deliverable; the Typed-OM write path is KILL at 0.69× —
+`typed-om-decision.json`, no dual-path shipped) + the emerging-CSS `resolve-values.ts` lowering
+pass (P.W13) (Bands B), the demo-fleet design passes (Bands C), the NaN
 cure + differential oracle (Band D), the leaves.ts externalization transposition (Band E), the
-VJ-L1 WeakMap early-cure + O.W7 engine-seam (Band F), and the glass-ui 4.1.0 consume (Band G).
+P.W11 WeakMap early-cure + O.W7 engine-seam (Band F), and the glass-ui 4.1.0 consume (Band G).
 
 P.WZ does the close: it records the portable perf-delta (the optimization payoff, measured ratio);
 re-points `proof:chronic-closure` O→P; resolves DM-7 (keyframes-vue, P-inv-28 belt at 4); cuts
@@ -39,11 +43,11 @@ record, measured ratio per transposition):
 
 | Transposition | Gate | Expected ratio | Decision file |
 |---|---|---|---|
-| SoA composite blend throughput (P.W2) | `proof:soa-composite` SoA-hz / boxed-hz at K=8 | ≥1.20× | `perf-delta-P.json` ADOPT/KILL row |
-| Typed-OM write path (P.W3) | `proof:typed-om-eligible` Typed-OM / string-serialize at 200 frames | ≤0.85× (≥15% faster) | `perf-delta-P.json` row |
+| SoA composite blend throughput (P.W2) | `proof:soa-composite` SoA-hz / boxed-hz at K=8 | ≥1.20× (**ADOPT 3.7×** observed) | `perf-delta-P.json` ADOPT/KILL row |
+| `_styleOut` out-buffer alloc-cure (P.W3) | `proof:zero-alloc` heap-delta on the per-frame style egress | zero fresh allocs per frame | `perf-delta-P.json` ADOPT row |
+| Typed-OM write path (P.W3) | `proof:typed-om-eligible` string-serialize / Typed-OM at 200 frames | **KILL 0.69×** (slower — no dual-path shipped) | `typed-om-decision.json` KILL |
 | SoA AnimationGroup compositor alloc (P.W2) | `proof:soa-composite` alloc-count arm (heap-delta) | zero fresh allocs per blend | `perf-delta-P.json` row |
 | reconcileVars O(1) Map (P.W2 micro-edit) | `bench/compile.bench.ts` N=1000 vs N=10 | ratio ≤1.05× (linear, not quadratic) | `perf-delta-P.json` row |
-| Codegen-consume (P.W4, GATED) | `proof:codegen-consume` | ≥1.5× throughput vs combinator | `codegen-consume-decision.json` ADOPT/KILL |
 
 Each ratio is measured on the P dist (`dist/keyframes.js`) via the portable
 `baselineCase×floorFraction` discipline (P.W1 infra): all ratios are normalized to a baseline
@@ -149,8 +153,8 @@ The record format mirrors `spring-vector-decision.json` (the established precede
   },
   "P.W2.compositor-alloc": { ... },
   "P.W2.reconcileVars": { ... },
-  "P.W3.typed-om-eligible": { ... },
-  "P.W4.codegen-consume": { "state": "GATED", ... }
+  "P.W3.styleOut-alloc": { "state": "ADOPT", ... },
+  "P.W3.typed-om-eligible": { "state": "KILL", "measured_ratio": 0.69, ... }
 }
 ```
 
@@ -240,16 +244,21 @@ chronicity 4. No 5th carry.
 ### S4 — The 5.1.x version cut (USER-DOMAIN — criteria proposed, user fires)
 
 **Breach.** P's perf + demo-design transpositions are non-breaking (no API renames, no removed
-exports). The cut is therefore **MINOR or PATCH** (`5.1.0` if the Oscillator / additive tail
-already shipped at O.WZ 5.0.0; or `5.0.1`/`5.1.0` depending on O.WZ's exact cut). The codegen
-consume (P.W4) is GATED and may not be included if parse-that B / value.js P have not shipped
-by close — P.WZ records the ADOPT/KILL verdict in `codegen-consume-decision.json` instead.
+exports). The cut is therefore **MINOR** (`5.1.0` if the Oscillator / additive tail
+already shipped at O.WZ 5.0.0; or `5.0.1`/`5.1.0` depending on O.WZ's exact cut). P.W4
+codegen-consume is a **RETIRED tombstone** (owner directive 2026-06-22 — codegen is BBNF-lang's
+separate session, OUT of this campaign); there is no codegen ADOPT/KILL verdict to record and no
+`codegen-consume-decision.json` to author.
 
 **The version rationale.** Perf-non-breaking = MINOR per semver. The case for `5.1.0`: the P
-public API is unchanged; the SoA compositor and Typed-OM path are internal; `springLinearStopsArray()`
-(added to the LIGHT surface in P.W6) is additive; the `DemoControlPoint` and `fromMorphSVG`
-BUILD-INs (O.W5/O.W6) are demo-only. The chosen string is RECORDED in a one-paragraph version-
-decision note BEFORE `changeset version` cuts it.
+public API is unchanged; the SoA compositor (ADOPT 3.7×, internal-only) and the `_styleOut`
+alloc-cure are internal strategy changes on non-default paths (zero API delta); the Typed-OM
+write path is KILL (no dual-path shipped). The ONE additive LIGHT surface item is
+`springLinearStopsArray()` (added in P.W6) — an additive export makes this MINOR, not PATCH.
+P.W13's `resolve-values.ts` is a HEAVY export (behind `loadAnimationEngine()`); adding HEAVY
+exports is additive and does not break the LIGHT static surface, so 5.1.x stays correct. The
+`DemoControlPoint` and `fromMorphSVG` BUILD-INs (O.W5/O.W6) are demo-only. The chosen string is
+RECORDED in a one-paragraph version-decision note BEFORE `changeset version` cuts it.
 
 **The cut/deploy decoupling (the J/K/O precedent).** The npm publish and the Cloudflare deploy
 are decoupled: the close-merge → auto-deploy fires on `master push` + CI success; the version
@@ -281,12 +290,17 @@ the GREEN state on the P 5.1.x dist. Re-run:
 Any gate that reverts RED is a NEW P regression to wave-assign, NOT a close. A regressed
 VERIFY-ONLY gate halts P.WZ until the wave is addressed.
 
-**The codegen-consume (P.W4, GATED).** If parse-that B + value.js P have NOT shipped the
-codegen pipeline by P.WZ, `proof:codegen-consume` stays born-RED (the codegen parser does not
-exist). P.WZ records `state: "KILL"` in `codegen-consume-decision.json` with the rationale
-(sibling publish timing — the P-inv-28 terminal: the codegen gate does NOT carry to a next
-tranche as a born-RED obligation; it is KILLED and re-authorized as a fresh ask when both
-siblings publish).
+**P.W4 codegen-consume is RETIRED (no verdict to record).** P.W4 is a tombstone (owner
+directive 2026-06-22 — codegen is BBNF-lang's separate session, OUT of this campaign). There is
+no `proof:codegen-consume` gate, no `codegen-consume-decision.json`, and no ADOPT/KILL verdict
+in the P close — the wave simply does not exist.
+
+**P.W13 emerging-CSS (Band B, NOW-or-noted).** `proof:emerging-css-resolve` (the NOW arm:
+if()→resolved-color + spring()→kf-curve sample-equality) must be GREEN on the P dist; the
+value.js-P-gated arms (@function inline / cycle-guard) are noted PENDING the sibling call-parse
+publish, not a close blocker. Re-verify `proof:perf-frame-budget` (DM-12) with the P.W13
+compile-time lowering pass in place — the resolve-values rewriter runs once at compile, so a
+frame-budget regression here would signal an unexpected per-frame cost.
 
 ---
 
@@ -315,8 +329,9 @@ The FINAL cites all four with their run IDs / filenames — never an assertion, 
 **Deliverable:** `docs/tranches/P/FINAL.md` — the P boundary close report, held to
 inv-O-observable-truth (every boundary claim CITES its observed oracle).
 
-- **The `perf-delta-P.json` ADOPT/KILL roster** — all rows resolved; the SoA and Typed-OM
-  ratios observed on the P dist; the codegen-consume row ADOPT or KILL.
+- **The `perf-delta-P.json` ADOPT/KILL roster** — all rows resolved; the SoA composite ADOPT
+  (3.7×) + the `_styleOut` alloc-cure ADOPT observed on the P dist; the Typed-OM write path KILL
+  (0.69×, `typed-om-decision.json`) recorded. (P.W4 codegen is RETIRED — no row.)
 - **DM-1 RF-17 close record** — S3 delete commit hash cited; chronicity 6 confirmed CLOSED.
 - **DM-5 S1 close record** — either the BC SFC-guard consume (GREEN arm) or the
   contingency-closed ARIA-compliant replacement (CONTINGENCY-CLOSED arm), with the rationale.
@@ -366,11 +381,13 @@ the P close does not proceed until the re-point + non-vacuity proof runs.
 **Green condition.** `perf-delta-P.json` AUTHORED + every row ADOPT/KILL (no PENDING rows at
 close); `proof:chronic-closure` re-pointed O→P with non-vacuous planted-probe RED; DM-7
 (keyframes-vue) USER-DOMAIN published + `PEER_FLOOR` bumped; `proof:all` GREEN on the
-consolidated P runner; VERIFY-ONLY roster (DM-8…DM-15) re-verified GREEN on P dist; Band G
-S2 GREEN (dock interim DELETED + re-pinned to `~4.1.0`) + S1 GREEN or CONTINGENCY-CLOSED;
-the deploy round-trip OBSERVED as the four-link live-byte equality; `codegen-consume-decision.json`
-ADOPT or KILL. The version cut + keyframes-vue publish are USER-DOMAIN — the FINAL cites the
-OBSERVED `package.json` version + registry presence AFTER the user fires the P tag.
+consolidated P runner; VERIFY-ONLY roster (DM-8…DM-15) re-verified GREEN on P dist; Band B
+P.W13 `proof:emerging-css-resolve` NOW arm GREEN (or the value.js-P-gated arms noted PENDING);
+Band G S2 GREEN (dock interim DELETED + re-pinned to `~4.1.0`) + S1 GREEN or CONTINGENCY-CLOSED;
+the deploy round-trip OBSERVED as the four-link live-byte equality. (P.W4 codegen is RETIRED —
+no `codegen-consume-decision.json`, no verdict to record.) The version cut + keyframes-vue
+publish are USER-DOMAIN — the FINAL cites the OBSERVED `package.json` version + registry
+presence AFTER the user fires the P tag.
 
 ---
 
@@ -381,7 +398,7 @@ This is the tranche terminal — it depends on **every prior P wave at terminal 
 | Dep | Required state | Phase / status |
 |---|---|---|
 | **Band A (P.W1)** | lint-tier GREEN; bench-taxonomy extended with ratio floors; portable perf-gate infra | NOW |
-| **Band B (P.W2/W3/W4)** | SoA compositor + computed-unit cache + Typed-OM write path GREEN; codegen-consume ADOPT or KILL | W2/W3 NOW; W4 GATED (parse-that B + value.js P) |
+| **Band B (P.W2/W3/W13)** | SoA compositor ADOPT (3.7×) + computed-unit cache + `_styleOut` alloc-cure GREEN (Typed-OM KILL 0.69×, no dual-path); P.W13 emerging-CSS resolve (`proof:emerging-css-resolve`) NOW arm GREEN | W2/W3/W13 NOW (P.W4 codegen RETIRED — out of scope) |
 | **Band C (P.W5/W6/W7/W8)** | demo-fleet design passes + N-Stage mobile GREEN; DemoControlPoint / fromMorphSVG dogfooded | NOW (kf-owned) |
 | **Band D (P.W9)** | NaN-frame cure + grammar fuzz + differential oracle GREEN | NOW |
 | **Band E (P.W10)** | leaves.ts bundle-externalization + deprecated-alias purge + cross-realm-seam gate GREEN | NOW (TRAP-aware) |

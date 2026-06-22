@@ -12,6 +12,15 @@
 M.W5 developed this cure at the spec level but was never implemented. The 32-lane re-audit
 (C15-kf-engine, C12-kf-M-waves) confirmed the defect is live on master.
 
+> **Ownership (2026-06-22, `FULL-LOOP-LEDGER.md` O.W3 line 513):** O.W3 is **authoritative for
+> DM-22** — it is the specification (DEVELOPED, never IMPLEMENTED). **P.W9 inherits as the
+> implementation tranche** (impl + the grammar-fuzz + differential-oracle extensions) with **zero
+> spec conflict and no double-author** (the P deferred ledger carries the same Path-A throw). The
+> NaN defect is CONFIRMED LIVE by direct probe (RAN: `npx tsx /tmp/test-nan-frame.mts` →
+> 'No throw — frame count: 1, frame 0 start: NaN stop: NaN'). O.W3's standalone-gate design
+> (`proof:named-selector-nan-frame` SEPARATE from `proof:replay-equality`) is independently
+> confirmed correct.
+
 ### The exact defect chain (all refs verified on master, 2026-06-19)
 
 | Step | Location | Fact |
@@ -197,3 +206,22 @@ extension point).
   That fix touches `compile.ts`/`format.ts` and belongs to a separate O wave not in the Band-B
   O.W3/O.W4 scope.
 - **Multi-color refusal + ingest gates** — O.W4 scope. O.W3 is the frame-compiler parse seam only.
+
+---
+
+**Full-loop disposition (`docs/tranches/P/FULL-LOOP-LEDGER.md` O.W1-4-apparatus / [AUGMENT] O.W3,
+line 505-513):** O.W3 is grounded and the NaN defect is **CONFIRMED LIVE** by direct probe (RAN:
+`npx tsx /tmp/test-nan-frame.mts` → `parse([])` does not throw; `frame.time = { start: NaN, stop: NaN }`;
+binarySearch over the NaN range returns idx 0 for every `t` → always-active). The dead-write claim is
+confirmed (`grep NAMED_SELECTOR_SUPERTYPE frame-compiler.ts` → hits only in `addFrame` context, zero
+in the `parse()` body) and the S4 proxy claim is confirmed (`proof-replay-equality.mjs:173-178` is a
+pure source-shape regex). **O.W3 is authoritative for DM-22; P.W9 correctly inherits as the
+implementation tranche with zero spec conflict (no double-author).** O.W3's standalone-gate design
+(`proof:named-selector-nan-frame` separate from `proof:replay-equality`) is the correct call —
+independently confirmed. ONE dispatch finding for the P tree (recorded here, not authored in P.W9 —
+inv-16): **P.W9's S4 carries a stale cross-reference to "the DM-23 vitest-browser runner (O.W2)"** —
+O.W2's wave spec does NOT own vitest-browser (it covers ledger re-point + stale-gate retarget). The
+WAAPI-eligible Playwright subset is implementable TODAY with `demo-driver.mjs` and requires no
+vitest-browser; the full CDP path defers to a P.WZ+ item. P.W9 S4 should drop the O.W2/DM-23
+dependency for the subset gate. AUGMENT verdict: O.W3 KEPT as-specced (Path-A throw, pre-sort
+superType scan); the lone augmentation is the P.W9 ownership/cross-ref reconciliation above.

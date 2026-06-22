@@ -15,6 +15,19 @@
 > charter *under* that constitution; it does not re-litigate the locked decisions, it sequences the
 > kf work that rides them.
 
+> **The validated-verdict evidence base is `P/FULL-LOOP-LEDGER.md`** (2026-06-22 — the harden ·
+> validate · brainstorm · reformulate loop applied to all 67 constellation items; 34 KEEP · 12
+> AUGMENT · 11 RE-SCOPE · 7 ADOPT · 2 SIMPLIFY · 1 KILL). Every band-table verdict below cites it.
+> The headline MEASURED verdicts the boards now reflect: **P.W6 spring-heatmap ADOPT** (closed-form
+> **272×** settle-time / **507×** overshoot faster than 400 live `SpringProgress` instances —
+> `/tmp/spring-heatmap-probe.mts`); **P.W11 WeakMap ADOPT** (realm-clean, the S8 terminal — ZERO kf
+> own-symbols post-swap, byte-equivalent over 20 arity-pad interp vars); **O.W6 `fromMorphSVG` ADOPT**
+> (mid-t distinct from both endpoints: 11.27/11.27/22.54 on the triangle→square morph); **VJ-P1
+> `color2Into` ADOPT** (the **84-alloc** display-p3 egress tail, `proof-gamut-alloc.mjs` 5/5);
+> **PT-B1 ADOPT** (the packrat cross-input pollution BLOCKER — stale-result reproduced live); **PT-B2
+> RE-SCOPE / PT-B4 KILL** (the `*Span` tier has ZERO production consumers across value.js/kf/parse-that —
+> measured grep).
+
 > **PRECONDITION-STATE banner (the two-tier O→P gate).** P opens after O is **AUTHORIZED** and O's NOW
 > correctness/chronic-terminal bands (DM-2/DM-3 build-ins O.W5/O.W6, the DM-22 cure) are available as
 > P's substrate — NOT after O is fully *implemented*. **O is DEVELOPED-not-IMPLEMENTED** (verified:
@@ -49,7 +62,7 @@ foundation O lays. The dependency is concrete and named:
 
 | O substrate P sequences atop | O home | P consumes / extends |
 |---|---|---|
-| **O.W5/O.W6 chronic terminals** (`DemoControlPoint` over LIGHT `drag2D`; `fromMorphSVG` over value.js `PathGeometry`) — the forbidden-8th-carry BUILD-INs | O Band C (NOW) | **P Band C** dogfoods them as the demo-fleet showcase (the curve-editor handle is `DemoControlPoint`; the morph scene is `fromMorphSVG`) |
+| **O.W5/O.W6 chronic terminals** (`DemoControlPoint` over LIGHT `drag2D`; `fromMorphSVG` over value.js `PathGeometry` — **O.W6 ADOPT**, FULL-LOOP-LEDGER `O.W5-6-chronics`: the triangle→square keystone is PROVEN, mid-t distinct from both endpoints 11.27/11.27/22.54) — the forbidden-8th-carry BUILD-INs | O Band C (NOW) | **P Band C** dogfoods them as the demo-fleet showcase (the curve-editor handle is `DemoControlPoint`; the morph scene is `fromMorphSVG`) |
 | **O.W7 engine-seam split** (`engine.ts` 1397→~900, the lifecycle/playback machine lifted off the compile facade) — **NOT VJ-L1-gated** (CONTRIVANCE-AUDIT: executable NOW, same phase as O.W8/W9) | O Band D (NOW) | **P Band B** consumes the *shrunk* file; the `Playhead` value-object deepening is **DROPPED** (no perf claim — the shrink IS O.W7's file-split); **P Band F** P.W11 WeakMap is the realm-clean S8 terminal that also keeps the seam in-realm |
 | **O.WZ 5.0.0 cut** (the no-legacy renames; the Oscillator + additive tail published) | O Band Z (USER-DOMAIN) | **P Band Z** cuts **5.1.x** — perf is non-breaking, it rides AFTER O's major |
 | **value.js 1.0.2 `PathGeometry` / `./math` / `flatLeaf`(P) / `parseCSSSubValue`(P)** | constellation | **P Band B/E/F/G** consume the published surfaces; the API/correctness/perf-floor coupling (packrat fix, perf gate) flows parse-that B → value.js P → kf-P |
@@ -167,10 +180,10 @@ sibling publish).
 |---|---|---|---|
 | **A — Apparatus** | P.W1 (lint+bench-coverage+portable-perf-gate infra) | NOW | the optimization measurement floor — close the un-CI'd bench gaps, ratify the portable ratio discipline, author the perf-gate apparatus every aggressive idea below requires |
 | **B — Engine-perf (VALIDATED) + emerging-CSS** | P.W2 (SoA-compositor — **SPIKE RAN → ADOPT**, measured **3.7×** bit-identical on the real path, scoped add/weighted; the computed-unit composite-key MEASURE-FIRST), P.W3 (the `_styleOut` out-buffer alloc-cure **GROUNDED CORE** + the Typed-OM write-path **SPIKE RAN → KILL**, measured **0.69×** multi-property; the `Playhead` value-object **DROPPED**), **P.W13 (emerging-CSS resolution — `resolve-values.ts`: if()/spring() NOW, @function/sibling-index value.js-P-gated)**, ~~P.W4~~ (RETIRED tombstone — codegen, BBNF-lang separate session) | NOW W2,W3,W13 | the spikes were RUN (owner: "validate, don't abrogate"): SoA ADOPT (`group-soa-decision.json`), Typed-OM KILL (`typed-om-decision.json`) — the same method, OPPOSITE verdicts, neither decidable on paper. P.W13 makes if()/@function/spring()/sibling-index() animate in EVERY browser (the `springTimingFunction` precedent; `EMERGING-CSS-RESEARCH.md`) |
-| **C — Demo-fleet (frontend-design)** | P.W5 (cube + amiga), P.W6 (square + spring), P.W7 (easing-curve-editor + DemoControlPoint showcase), P.W8 (N-Stage switcher + mobile) | NOW | the 29-idea design fleet over the O-built chronic terminals: per-scene refinement, the spring parameter-space heatmap, amiga flick-to-boing, the curve-editor dogfooding `DemoControlPoint`, the N-Stage shelf-driver + the entirely-unbuilt mobile |
+| **C — Demo-fleet (frontend-design)** | P.W5 (cube + amiga), P.W6 (square + spring), P.W7 (easing-curve-editor + DemoControlPoint showcase), P.W8 (N-Stage switcher + mobile) | NOW | the 29-idea design fleet over the O-built chronic terminals: per-scene refinement, the spring parameter-space heatmap (**P.W6 S3 ADOPT** — closed-form **272×/507×** over 400 live `SpringProgress`, tint by the EXACT analytic overshoot; FULL-LOOP-LEDGER `P.W6 S3`), amiga flick-to-boing, the curve-editor dogfooding `DemoControlPoint`, the N-Stage shelf-driver + the entirely-unbuilt mobile |
 | **D — Correctness** | P.W9 (NaN-frame cure + grammar-fuzz + differential-oracle) | NOW | the property-based / differential-vs-browser oracle frontier the corpus tests miss — fast-check fuzz, the CDP computed-style differential, the named-selector roundtrip post-O.W3 |
 | **E — No-legacy** | P.W10 (leaves.ts-externalization-TRAP + deprecated-aliases + cross-realm-seam-gate) | NOW | the genuine `leaves.ts`→`/math` bundle-externalization transposition (NOT a delete), the `proof:no-cross-realm-cast` structural gate, the deprecated-alias purge atop O's 5.0.0 renames |
-| **F — S8 terminal** | P.W11 (realm-clean WeakMap — the terminal S8 cure) | NOW | the kf-internal `WeakMap<ValueUnit,string>` FN_NAME carrier — the P-inv-28 **chronicity-4 belt exit** for S8 (the belt fires THIS tranche), the TERMINAL in-realm S8 cure (no value.js dependency); it ALSO keeps the O.W7 seam in-realm, but O.W7 is NOT VJ-L1-gated so this is not an "unblock" |
+| **F — S8 terminal** | P.W11 (realm-clean WeakMap — the terminal S8 cure) | NOW | the kf-internal `WeakMap<ValueUnit,string>` FN_NAME carrier — the P-inv-28 **chronicity-4 belt exit** for S8 (the belt fires THIS tranche), the TERMINAL in-realm S8 cure (no value.js dependency). **ADOPT (FULL-LOOP-LEDGER `P.W11-weakmap`):** validated realm-clean — ZERO kf own-symbols on the `ValueUnit` post-swap, byte-equivalent over 20 arity-pad interp vars; the clone-restamp ceremony stays (honest inferiority — VJ-L1 strictly preferred for ceremony-retirement, demoted-to-spike). It ALSO keeps the O.W7 seam in-realm, but O.W7 is NOT VJ-L1-gated so this is not an "unblock" |
 | **G — Consume** | P.W12 (glass-ui 4.1.0 S2-delete-NOW + S1-GATED-on-guard) | **NOW S2** (re-pin only — the glass-ui `useDockClickIntegrity` root fix is ALREADY published+installed; no sibling WAIT) · **GATED S1** (waits on the UNshipped BC SFC aria guard) | the glass-ui consume: delete S2/dock atomically on 4.1.0 (root fix shipped); hold S1/aria GATED on the BC SFC guard (the O correction premise unmet) |
 | **Z — Close + 5.1.x cut** | P.WZ (close + 5.1.x cut) | NOW-author · USER-DOMAIN publish | the non-breaking perf cut riding AFTER O's 5.0.0 major — the `_styleOut` out-buffer alloc-cure + O.W7 seam split + demo-fleet wins published (the SoA fold / Typed-OM write path ship ONLY if their MEASURE-FIRST spikes ADOPT), the ledger re-pointed O→P, the deploy round-trip re-observed |
 
@@ -299,23 +312,33 @@ P writes **only keyframes.js**. The two cross-repo needs are **dispatch packets*
 scheduled by the sibling sessions into their own trees — the proven inv-16 fence pattern (the same as
 O's `KF-TO-VALUEJS-P-ASKS.md` + the BC aria correction):
 
-- **`KF-TO-VALUEJS-P.md` → value.js Tranche P** — VJ-L3 `parseCSSSubValue` (the surviving binding API
-  ask, the S9 root fix), the VJ-P1 `color2Into` out-param + the VJ-P3 `:any`→string seam narrowing (the
-  grounded perf tail), the **VJ-P.W0** doc-honesty reconciliation (commit the uncommitted O docs; the
-  stale "DEVELOPMENT — charter only" PROGRESS → CLOSED-as-built — value.js Tranche P's first wave; there
-  is NO kf P.W0, the kf roster starts at P.W1). Per the CONTRIVANCE-AUDIT: **VJ-L1 `flatLeaf` is
+- **`KF-TO-VALUEJS-P.md` → value.js Tranche P** — **VJ-L3 `parseCSSSubValue`** (the surviving binding API
+  ask, the S9 root fix — KEEP, FULL-LOOP-LEDGER `valuejs-P-asks`: `parseCSSValue` truncates
+  `'scale(2) rotate(45deg)'`, so kf's FunctionArgs-first composition is non-substitutable), the **VJ-P1
+  `color2Into` out-param ADOPT** (the 1.2.0 perf headline — `proof-gamut-alloc.mjs` 5/5 confirms the
+  **84-alloc/call** display-p3 egress tail [witness `N_BASELINE=104`]; mirror the shipped
+  `transformMat3Into` caller-owned-scratch precedent; re-baseline `N_TARGET` to the MEASURED post-cure
+  residual) + the VJ-P3 `:any`→string seam narrowing (the grounded perf tail), the **VJ-P.W0**
+  doc-honesty reconciliation. Per the CONTRIVANCE-AUDIT + FULL-LOOP-LEDGER: **VJ-L1 `flatLeaf` is
   DEMOTE-TO-SPIKE** (P.W11's WeakMap is the terminal S8 cure — VJ-L1's residual is retiring the
-  clone-restamp ceremony, NOT the S8 root fix and NOT the O.W7 unblocker) and **VJ-P2 the typed Float64
-  channel view is DROPPED** (premises falsified by shipped value.js). Version split: 1.1.0 (API — VJ-L3)
-  then 1.2.0 (perf — VJ-P1 color zero-alloc + VJ-P3 `:any` seam narrowing; codegen-generate is NOT in
-  1.2.0 scope).
-- **`KF-TO-PARSETHAT-B.md` → parse-that Tranche B** — **PT-B1** the packrat cross-input pollution FIX
-  (the BLOCKER — memoize() returns stale across inputs; MEMO key lacks `src`; packrat.ts:55) + the
-  4096-ID float64-key fix; **PT-B2** the Span-combinator DEDUP (collapse the ~400 lines of copy-pasted
-  Span backtracking plumbing into ONE collector-parametric vocabulary — a no-legacy/gestalt DEDUP, bug
-  fixed once not twice); **PT-B3** the perf frontier (combinator fusion + 2-char dispatch widening +
-  bench/proof:perf regression gate). The SpanParser tier (span.ts:540-902) RECOMMENDED for deletion
-  (P-inv-28 resolution: no in-realm consumer after codegen retraction). Version: 0.12.0.
+  clone-restamp ceremony, NOT the S8 root fix and NOT the O.W7 unblocker; if ever spiked, prefer the
+  meta-record Option B shape) and **VJ-P2 the typed Float64 channel view is DROPPED** (premises falsified
+  by shipped value.js). Version split: 1.1.0 (API — VJ-L3) then 1.2.0 (perf — VJ-P1 color zero-alloc +
+  VJ-P3 `:any` seam narrowing; codegen-generate is NOT in 1.2.0 scope).
+- **`KF-TO-PARSETHAT-B.md` → parse-that Tranche B** — **PT-B1 ADOPT (the campaign correctness BLOCKER —
+  lands FIRST)**: the packrat cross-input pollution FIX (memoize() returns stale across inputs — REPRODUCED
+  LIVE: `memoize(regex(/[a-z]+/)).parse('hello')` then `.parse('world')` returns `'hello'`; MEMO key lacks
+  `src`, packrat.ts:55) + the 4096-ID float64-safe multiply-key (`id*1048576+offset`); reset at the
+  `parseState` ENTRY boundary (zero per-node cost), born-RED gate `proof:packrat-cross-input`. **PT-B2
+  RE-SCOPE**: the Span-combinator DEDUP is REFRAMED — the `*Span` builders have **ZERO production consumers**
+  (value.js/kf/json/csv all use `dispatch`+`regex`, measured grep), so do NOT spend a parametric-factory +
+  5% perf gate now; defer the factory as opportunistic OR raise a P-inv-28 disposition on the `*Span` public
+  surface. **PT-B3 ADOPT** (one scope correction): the perf frontier (combinator fusion + 2-char dispatch
+  widening — gated on the 2nd-byte-DISAMBIGUATED tokens ca/cl/cu only; `co`=cos+conic is honestly a 2-deep
+  residual — + bench/proof:perf regression gate). **PT-B4 KILL (P-inv-28 → KILL)**: the dormant SpanParser
+  introspection tier (span.ts:540-902) has ZERO consumers; delete it + `span-dispatch.bench.ts`, preserve
+  ONLY the A.W3 falsification (~10-14% V8 slowdown) as a `future-research.md §7` paragraph; recommend
+  folding into PT-B2's housekeeping (one atomic span.ts diff). Version: 0.12.0.
 
 The DAG enforces the inv-16 ordering: parse-that B → value.js P → kf-P (the API + correctness +
 perf-floor coupling). kf P's one GATED value.js-edge (the **S9 delete** that feeds O.W16, on the VJ-L3
