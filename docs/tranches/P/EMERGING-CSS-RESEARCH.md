@@ -1,0 +1,57 @@
+# Tranche P — EMERGING-CSS support: research evidence + the plan
+
+> Owner directive (2026-06-22): novel CSS features SHOULD be supported in our grammar (value.js parses) + engine (keyframes.js resolves) — the library LEADS the platform; browsers catch up. Research: 2 web-research passes (6 lanes). The pattern: value.js parses VERBATIM (mostly already done); ONE kf compile-time lowering pass resolves each to a concrete animatable value (the springTimingFunction precedent).
+
+## The unifying architecture
+
+**Seam:** between `resolveKeyframes` (adapter.ts) and `FrameCompiler.parse → parseAndFlattenObject` (utils.ts), at flatten time. **New module** `src/animation/resolve-values.ts`: `resolveValues(value, ctx)` — a recursive ValueArray/FunctionValue/ValueUnit rewriter (returns the SAME node types, so frame-compile + interpolation are unchanged) with a cycle-guard (`seen` Set + depth). `adapter.ts` ResolvedKeyframes gains `functions: Map<string,CustomFunctionDescriptor>` (via a new value.js `extractFunctions()`, mirroring `extractProperties`). Per-endpoint resolution: each keyframe value lowers to a concrete value at compile/parse; interpolation runs as today.
+
+## Per-feature
+
+### CSS @function
+
+- **Status:** CSS Functions and Mixins Module Level 1, W3C CSS WG (drafts.csswg.org/css-mixins-1; also TR/css-mixins-1). Editor's Draft class, NOT a CR and NOT Baseline. Shipping: landed in Chrome 139 and Edge 139 (Chromium), after being deferred from Chrome 136 to 139 for impactful spec changes needing more expe
+- **Browser:** Chrome 139+ and Edge 139+ ONLY (Chromium, shipped 2025, deferred from 136). NO Safari, NO Firefox as of June 2026. Not Baseline (MDN: Experimental). caniuse wf-function / mdn-css_at-rules_function. Because only one engin
+- **Effort:** MEDIUM
+- **value.js (parse):** LARGELY DONE. value.js src/parsing/stylesheet.ts:631-703 already parses the @function DEFINITION into StylesheetItem { kind:'function', name, descriptor:{parameters, result, declarations} } (parseFunctionParameters splits name/type/default by colon; buildFunctionDescriptor hoists `result` and keeps local declarations). Types: CustomFunctionParameter {name, type?, defaultValue?} and CustomFunctionDescriptor {parameters?, result?: ValueArray, declarations?: Declaration[]} (stylesheet.ts:44-54). RE
+- **kf engine (resolve):** This is the bulk of the work; it is a self-contained compile-time lowering pass in keyframes.js. (1) REGISTRY: in the adapter (src/animation/adapter.ts, beside the existing @property registry plumbing at ~line 81) collect every StylesheetItem kind:'function' from parseCSSStylesheet into a Map<string, CustomFunctionDescriptor> keyed by name (e.g. '--double'). Mirror how property descriptors are gathered into propertyRegistry. (2) LOWERING PASS: after the keyframes AST is built but BEFORE frame compilation (frame-compiler.ts addFrame->parse), walk every value (ValueUnit/FunctionValue tree) in ev
+- **Risks:** TYPED-ARG COERCION is the genuinely hard part: the spec validates each bound arg against the param registration syntax at computed-value time and falls back to the default on mismatch (e.g. 50% passed where <number> expected => invalid). keyframes must reuse v
+
+### spring-siblings-contrast — a 3-feature lane
+
+- **Status:** spring(): NOT standardized. csswg-drafts Issue #280 ([css-timing]/[css-easing-2] label) — Dean Jackson's 2016 WebKit proposal; implemented in WebKit only, exposed in Safari Technology Preview (params not optional there). Issue #229 ([css-easing-2] complex easing) frames spring() as "just a bandaid" 
+- **Browser:** spring(): WebKit-only, Safari Technology Preview (experimental, never shipped to stable, no WG spec). Chrome/Firefox: none. | sibling-index()/sibling-count(): Chrome Canary behind a flag (~early-mid 2025); NOT Baseline; 
+- **Effort:** MEDIUM
+- **value.js (parse):** value.js owns the CSS grammar; add three FunctionValue parse rules in its functions/values grammar (the lane keframes.js dispatches to it — VJ-side work):
+(1) spring(): register `spring` as an <easing-function> producer. Parse the SPACE-separated positional list `<number>{1,3} <number>?` → FunctionValue{ name:"spring", args:[mass, stiffness, damping, initialVelocity] } with defaults filled (1,100,10,0) and validation (mass>0, stiffness>0, damping>=0). Critically: spring() must be accepted EVERYW
+- **kf engine (resolve):** kf RESOLVES each at compile/sample time — no native browser support needed.
+(1) spring() — THE natural fit, ~LOW effort. CSS spring(mass m, stiffness k, damping c, initialVelocity v0) maps EXACTLY onto kf's existing SpringProgress (response, dampingFraction, initialVelocity) by the standard 2nd-order-ODE algebra kf already uses (spring.ts comments the ODE x''+2ζω₀x'+ω₀²x=ω₀²·target, ω₀=2π/response, ζ=dampingFraction). Conversion: ω₀=√(k/m); ζ=c/(2√(k·m)); therefore response = 2π/ω₀ = 2π·√(m/k) and dampingFraction = c/(2·√(k·m)); initialVelocity passes straight through to SpringProgress.initial
+- **Risks:** spring(): the EASY win is real but two honest sharp edges — (a) duration:auto requires a kf hook to derive animation-duration from the solver's settle time (kf can do it via the same maxDuration logic, but it is new wiring, not free); (b) WebKit refuses HW-acc
+
+### CSS if() — inline conditional values (CSS Values & Units L5)
+
+- **Status:** SPEC: CSS Values and Units Module Level 5 (drafts.csswg.org), standards-track Editor's Draft, experimental / Limited Availability — NOT Baseline. Grammar: <if()> = if( [<if-branch>;]* <if-branch>;? ); <if-branch> = <if-condition> : <declaration-value>? ; <if-condition> = <if-test> | else; <if-test> 
+- **Browser:** Chrome 137 (stable, late May 2025 — Chrome 137 release notes + web.dev May-2025 platform roundup) shipped if() with all three condition types (style/media/supports). Edge 137 + Opera (Chromium) follow. Safari: NOT shippe
+- **Effort:** MEDIUM
+- **value.js (parse):** STATUS: DONE for the common case. value.js already parses if() -> FunctionValue("if", [cond, value, else]) (parsing/index.ts:310-349, exported, round-trip-gated C17). NO new keyframes.js-driven parse work needed to ship 2-branch (condition + else) if(). OPTIONAL value.js FOLLOW-UP (a value.js tranche item, dispatch it): emit the FULL ordered clause array (it is already computed as `clauses` in handleIf's .map) instead of collapsing to first-consequent + first-else, so MULTI-branch if() (style(--
+- **kf engine (resolve):** Add an if()-resolution lowering pass in keyframes.js, threaded into the existing resolve/compile pipeline. (1) NEW MODULE src/animation/if-resolve.ts (HEAVY — it imports value.js FunctionValue/ValueUnit): resolveIf(fnValue, ctx) -> ValueUnit|FunctionValue|null; ctx = { element?: Element, customProps?: Map<string,string> | (name)=>string, supports: (q)=>bool, matchMedia: (q)=>{matches:bool} } (inject the env so it stays jsdom/SSR-testable, exactly like ScrollTimeline injects getScrollY/getViewportHeight in timeline.ts). (2) WALK + SUBSTITUTE in resolveKeyframes (adapter.ts) — after the ValueArr
+- **Risks:** GUARANTEED-INVALID semantics: the no-match/no-else case must DROP the declaration (let prior/initial value win), not emit empty-string — emitting empty-string would corrupt the frame interpolation. Easy to get wrong; must be gated explicitly. · style() needs t
+
+### valuejs-coverage — value
+
+- **Status:** Six features audited. @function: CSS Functions and Mixins Level 1 (CSSWG working draft, Chrome 139/141+ only, NOT Baseline). if(): CSS Values Level 5 (Chrome 137+ only, NOT Baseline). spring(): CSS Easing Functions Level 2 proposal (NO browser support, CSSWG issue #280 open since 2016, WebKit experi
+- **Browser:** @function: Chrome 139/141+ only. NOT Baseline. Firefox/Safari in progress. contrast-color(): ALL THREE ENGINES — Chrome 147, Firefox 146, Safari 26.0. Baseline Newly Available April 2026. if(): Chrome 137+ only. NOT Base
+- **Effort:** MEDIUM
+- **value.js (parse):** The net-new work for value.js Tranche P (the genuine gaps, not re-work of what already landed in O): (1) contrast-color() PARSER COMBINATOR — HIGH PRIORITY, NEWLY BASELINE. The grammar stub in grammars/css-color.bbnf:95-101 is the spec reference. Net-new: add a `colorContrast` parser in color.ts following the color-mix() pattern: `contrast-color(from <color> vs <color>+)` → FunctionValue('contrast-color', [base, ...candidates]) eagerly evaluated to a single concrete Color via WCAG contrast compa
+- **kf engine (resolve):** The keyframes.js engine gaps (what keyframes.js must build, given what value.js already provides): (1) @function CALL-SITE INLINING (net-new, value.js-P-gated on extractFunctions()). The adapter.ts resolveKeyframes() already collects @property via extractProperties(). On the value.js-P publish of extractFunctions(), adapter.ts collects @function descriptors into ResolvedKeyframes. Then in frame-compiler.ts or utils.ts: when parseAndFlattenObject encounters a FunctionValue whose name matches a registered @function (a dashed-ident call like --double(2)), substitute the descriptor's parameters wi
+- **Risks:** contrast-color() is Baseline (April 2026) — NOT implementing it in the next tranche leaves the library BEHIND the platform for the first time in this feature class. Priority should be elevated. · extractFunctions() is the keystone for @function lowering — with
+
+### engine-resolution-arch — the ONE compile-time CSS lowering pass (resolveValues) that inlin
+
+- **Status:** Spec status per lowered feature (grounds "library leads, browser catches up"): (1) if() — CSS Values L5 inline conditional; Chromium-only (Chrome/Edge/Opera 137+), Firefox in progress, Safari roadmap 2026-27 → NOT Baseline. (2) sibling-index()/sibling-count() — CSS Values L5; Chromium stable (120+),
+- **Browser:** N/A — static research lane; no browser/demo run performed. The library-vs-platform delta is the load-bearing finding: native if()/sibling-*() are Chromium-only/pre-Baseline and native spring() is absent everywhere, so a 
+- **Effort:** MEDIUM
+- **value.js (parse):** value.js (parser) work, mostly already landed: KEEP the division-of-labour law — value.js parses VERBATIM, NEVER evaluates. (1) if() — DONE (O.W4 S6, parsing/index.ts:310). (2) @function block — DONE (O.W4 S7, parsing/stylesheet.ts:631-703). (3) spring() + lowerSpringEasing — DONE (parsing/easing.ts:184/261, exported from index.ts:239). NET-NEW, SMALL: (4) add extractFunctions(ast: Stylesheet)→Map<string,CustomFunctionDescriptor> in parsing/extract.ts — a ~10-line depth-walk mirroring extractPro
+- **kf engine (resolve):** keyframes.js (engine) — THE seam and the new module. SEAM: between resolveKeyframes (adapter.ts) and FrameCompiler.parse → parseAndFlattenObject (utils.ts), at flatten time. Two coordinated changes: (A) adapter.ts ResolvedKeyframes gains `functions: Map<string,CustomFunctionDescriptor>` (populate via the new extractFunctions(ast), exactly as `properties` is populated via extractProperties at adapter.ts:254). (B) NEW module src/animation/resolve-values.ts exporting resolveValues(value, ctx) where ctx = { functions: Map, properties: Map, env: { matchMedia?, supports?, customProps?: Map, siblingI
+- **Risks:** EFFORT BREAKDOWN (the field above is the umbrella-pass cost; per-feature): spring()=SMALL (physics+lowering already exist both sides; only the registry-walk arm is new — the natural fit, ships first). sibling-index()/sibling-count()=SMALL (tiny net-new value.j
+

@@ -374,6 +374,26 @@ strictness improvement.
 
 ---
 
+## VJ-CSS — the emerging-CSS parser gaps (SMALL, grounded; for kf P.W13 resolution)
+
+> Owner directive (2026-06-22): novel CSS features SHOULD be supported in the grammar; the
+> library LEADS the platform. kf's **P.W13** authors ONE compile-time lowering pass
+> (`resolve-values.ts`) that resolves `if()` / `@function` / `spring()` / `sibling-index()` to
+> concrete animatable values (the `springTimingFunction` precedent). **Most of the parser side is
+> already done in value.js O.W4** — these are the small genuine gaps (the division-of-labour law
+> holds: value.js parses VERBATIM, kf resolves). Researched in `docs/tranches/P/EMERGING-CSS-RESEARCH.md`.
+
+| # | ASK | value.js status | the gap (net-new) | kf consume |
+|---|-----|-----------------|-------------------|------------|
+| **VJ-CSS1** | `extractFunctions(ast)→Map<string,CustomFunctionDescriptor>` | `@function` blocks ALREADY parse (O.W4 S7, `parsing/stylesheet.ts:631-703`) | a ~10-line depth-walk in `parsing/extract.ts` (mirroring `extractProperties`, `extract.ts:87`), exported from `index.ts` | kf `adapter.ts` collects @function descriptors → P.W13 inlines `--foo(args)` calls |
+| **VJ-CSS2** | `sibling-index()` / `sibling-count()` parse arms | NOT-YET | two `FunctionValue` parse arms (emit `FunctionValue("sibling-index", [])`) | kf resolves to an integer at compile (a `stagger` fit) |
+| **VJ-CSS3** | `contrast-color(<color> vs <color>+)` combinator | grammar stub only (`grammars/css-color.bbnf:95-101`) | ~30 LoC in `color.ts` (the `color-mix()` pattern) → `FunctionValue('contrast-color', …)` eagerly evaluated to one `Color` via WCAG contrast. **NEWLY BASELINE (all 3 engines, April 2026) — highest-value** | kf inherits the resolved color |
+| **VJ-CSS4** (follow-up) | `if()` multi-branch — emit the FULL ordered clause list | parses, but COLLAPSES to first-consequent + first-else (`parsing/index.ts:310-349`) | use the already-computed `clauses` array instead of find-first | kf P.W13 resolves N-branch `if()` (the common 2-branch ships NOW without this) |
+
+**NONE of these blocks the NOW slice of P.W13:** `if()` (2-branch) + `spring()` already parse, so kf resolves them in-realm today. VJ-CSS1/2 gate only the `@function`/`sibling-index` arms; VJ-CSS3 is an independent grounded color addition. All are SMALL + additive (no BC break to value.js 0.11.0→1.x). These ride value.js Tranche P alongside (or before) VJ-L3.
+
+---
+
 ## INFORM (what value.js Tranche P must know — the DAG, the early-cure, the version split)
 
 1. **The DAG — value.js P sequences BEFORE keyframes P.**
