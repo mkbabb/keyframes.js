@@ -21,7 +21,7 @@ register). Companion documents:
 - **`P.md`** — the binding charter (the 8 bands + phase axis; the DAG; the chronic terminal
   mandate; the sibling dispatches; the 5.1.x cut rationale; the dev→impl boundary).
 - **`CONSTELLATION-OPTIMIZATION-CAMPAIGN.md`** — the shared constitution (topology, DAG,
-  codegen spine §4, headline novel ideas §5, version split; the three sibling sessions cite it).
+  headline novel ideas §5, version split; the three sibling sessions cite it). §4 codegen spine is RETIRED.
 - **`audit/AUDIT-DIGEST.md`** — the 32-lane triumvirate optimization audit corpus. Every §1
   born-RED witness and §2 cluster anchor cites this digest by lane section + re-runnable
   `file:line`.
@@ -43,8 +43,7 @@ Tranche P is the **optimization + frontend-design** tranche. The audit (CONSTELL
 corrected three stale premises:
 - Both siblings **already have bench infrastructure** (value.js 9 bench files + portable
   JSON.parse-ratio gate; parse-that `test/benchmarks/`) — the perf frontier has a substrate.
-- **`bbnf-lang` EXISTS** at `/Users/mkbabb/Programming/bbnf-lang` (TS-emitter codegen tool,
-  `css/l4/*.bbnf` grammars + parity tests) — the codegen spine is *wiring*, not greenfield.
+- **Codegen (BBNF-lang) is out of this campaign's scope** — retired by owner directive 2026-06-22; codegen is BBNF-lang's job in a completely separate session; P.W4 is a RETIRED tombstone.
 - **glass-ui 4.1.0 published BUT `SegmentedTabs.vue:406` STILL emits `:aria-orientation`
   unconditionally** (audit F1 finding, K5 finding) — S1 deletion is NOT safe on 4.1.0 (the
   `role=group` conditional guard is absent); only **S2/dock** (`useDockClickIntegrity`, shipped
@@ -71,7 +70,7 @@ plan authored this dev phase, born-RED gate named; impl opens on explicit author
 | **P.W1** | A | NOW | Lint-tier coverage + bench-coverage + portable-perf-gate-infra | **DEVELOPED** | `proof:lint-tier` (NEW — `eslint` ABSENT, planted violation exits 1); `proof:bench-taxonomy` EXTENDED (new bench files wired; ratio-floor assertions for perf ideas) + portable `baselineCase×floorFraction` for every new bench arm | NOW — no sibling dep; extends O.W1/O.W8 apparatus |
 | **P.W2** | B | NOW | SoA compositor + computed-unit cache (engine perf NOW) | **DEVELOPED** | `proof:soa-composite` (NEW — ratio born-RED: `SoA-engine-hz / per-channel-engine-hz < 1.0` at K=8 over FULL interp corpus today — numeric-soa.bench.ts + interp-buffer.bench.ts) + `proof:zero-alloc` heap-delta arm EXTENDED (transformTargetsStyle out-buffer alloc = 0; reconcileVars O(1) Map) | NOW — no sibling dep; value.js 1.0.2 `./math` subpath already published |
 | **P.W3** | B | NOW | Typed-OM write path (DOM mutation batching) | **DEVELOPED** | `proof:typed-om-eligible` (NEW — born-RED: a pure-transform animation reports `waapiDelegated===false` and `typedOmUsed===false` today) + `proof:typed-om-eligible` throughput ratio (Typed-OM path ≥ 1.15× string-serialize path in a 200-frame bench; LIMITED AVAILABILITY: Chrome/Edge 66+, Safari 16.4+, NO Firefox — progressive-enhancement, feature-detect-gated) | NOW — CSS Typed OM LIMITED AVAILABILITY (Chrome/Edge 66+, Safari 16.4+, no Firefox); no sibling dep |
-| **P.W4** | B | GATED (parse-that B + value.js P) | Codegen-consume (kf-side, born-RED) | **DEVELOPED** | `proof:codegen-consume` (NEW — born-RED: a kf-side bench running the CODEGEN CSS-value parser over the frame-compiler corpus must show ≥1.5× throughput vs the combinator parser; RED today because the codegen parser does not yet exist; the W4 kf gate becomes ACTIVE only after parse-that B ships `@mkbabb/parse-that/codegen` + value.js P uses it to emit `src/parsing/generated-value-parser.ts`) | GATED — parse-that B.W3 (codegen tier) → value.js P (consume + emit generated parser) → kf re-pins + records ADOPT/KILL in `codegen-consume-decision.json` |
+| ~~**P.W4**~~ | B | **RETIRED** | ~~Codegen-consume (kf-side)~~ — **RETIRED TOMBSTONE (2026-06-22, owner directive).** Codegen is BBNF-lang's job in a completely separate session. This slot is kept as a tombstone so P.W5..P.WZ numbering is stable. | **RETIRED** | N/A — no gate; no impl; no further action. The A.W3 falsification record (SpanParser runtime-switch slower on V8) is preserved in the AUDIT-DIGEST as historical evidence; the campaign's NON-adoption is recorded here. | N/A |
 | **P.W5** | C | NOW | Cube + Amiga demo-fleet design pass | **DEVELOPED** | `proof:cube-design-paint` (NEW — born-RED: `SegmentedTabs.vue:406` unconditional; plus cube rainbow-wrapper absent; amiga telemetry absent) — Playwright pixel-readback clauses per scene | NOW — no sibling dep; dogfoods DemoControlPoint (O.W5 BUILD-IN) |
 | **P.W6** | C | NOW | Square + Spring demo-fleet design pass | **DEVELOPED** | `proof:square-design-paint` + `proof:spring-design-paint` (NEW — born-RED: `role=slider` missing `aria-valuenow` at SquareScene.vue:37; SpringTrace.vue linear() stop parser assigns wrong x-coordinates; no phase-portrait or heatmap element in DOM) | NOW — no sibling dep; dogfoods springLinearStopsArray() (P.W6 adds it to LIGHT surface) |
 | **P.W7** | C | NOW | Easing curve-editor + DemoControlPoint showcase | **DEVELOPED** | `proof:easing-design-paint` (NEW — born-RED: `≥2 draggable handles` absent from hero stage; DemoControlPoint over drag2D with `dampingFraction:1` critically-damped absent — the O.W5 spring-tuning S-clause) | NOW — requires O.W5 DemoControlPoint BUILD-IN as substrate |
@@ -84,7 +83,7 @@ plan authored this dev phase, born-RED gate named; impl opens on explicit author
 
 **The DAG (phase-ordered, from P.md §3):**
 ```
-P.W1 apparatus ─► B{P.W2 SoA+cache, P.W3 Typed-OM, P.W4 codegen(GATED)} ─► C{P.W5 cube/amiga, P.W6 sq/spring, P.W7 easing, P.W8 N-Stage}
+P.W1 apparatus ─► B{P.W2 SoA+cache, P.W3 Typed-OM, [P.W4 RETIRED tombstone]} ─► C{P.W5 cube/amiga, P.W6 sq/spring, P.W7 easing, P.W8 N-Stage}
                          │                                                                 │
                          ├──────────────────► D{P.W9 correctness} ───────────────────────┤
                          │                                                                 │
@@ -172,7 +171,7 @@ If any gate reverts RED, that is a NEW P regression to wave-assign.
 | Item | Born | Chronicity | Disposition | Owning wave | Gate / evidence |
 |---|---|---|---|---|---|
 | **DP-1 S1 FALSE-RED corrected / S2 NOW-deletable** (F1/K5 audit finding: proof:workaround-deletion S1 shows FALSE RED on 4.1.0 — the aria guard is NOT in it; S2 is NOW deletable via content-present probe) | P (2026-06-20) | 1 (P→P) | **FOLD → P.W12** (retarget S1 from version probe to conditional-guard content-present check; S2 delete on BC cut re-pin; S1 delete GATES separately on the SFC guard wave) | **P.W12** | Audit K5 + F1: `SegmentedTabs.vue:406` line 306 in 4.1.0 tabs.js still unconditional. S2: `grep 'useDockClickIntegrity' node_modules/@mkbabb/glass-ui/dist/dock.js` present → S2 actionable. |
-| **DP-2 codegen-consume deferral** (P.W4 kf-side codegen gate born-RED; fires only when parse-that B + value.js P ship the codegen pipeline) | P (2026-06-20) | 1 (P→P) | **HANDOFF → parse-that B.W3 → value.js P (consume) → kf P.W4** | **P.W4** | `proof:codegen-consume` born-RED (no codegen parser exists); GREEN on `codegen-consume-decision.json` ADOPT record. |
+| ~~**DP-2 codegen-consume deferral**~~ (P.W4 kf-side codegen gate) | P (2026-06-20) | — | **RETIRED (2026-06-22, owner directive).** Codegen is BBNF-lang's separate session; P.W4 is a RETIRED tombstone; `proof:codegen-consume` is NOT authored; `codegen-consume-decision.json` is NOT authored. Historical evidence (the audit RAISED codegen; the campaign did NOT adopt it) lives in AUDIT-DIGEST.md. | ~~P.W4~~ | **RETIRED — no gate, no impl.** |
 | **DP-3 demo-fleet unbuilt items** (spring heatmap; amiga drag2D transpose; easing hero-stage handles; N-Stage mobile) | P (2026-06-20) | 1 (P→P) | **FOLD → P Bands B/C** (each has its named wave home) | **P.W5/W6/W7/W8** | Per-scene `proof:*-design-paint` born-RED gates. |
 | **DP-4 mobile N-Stage entirely unbuilt** (D6 lane: zero `@media (max-width…)` in CarouselDisk.vue; the shelf-driver) | P (2026-06-20) | 1 (P→P) | **FOLD → P.W8** (CSS scroll-snap transposition is the mobile architecture, not a patch) | **P.W8** | `proof:n-stage-mobile` born-RED (390px viewport — no scroll-snap carousel); GREEN when native scroll-snap carousel renders on phone-narrow viewport. |
 | **DP-5 VJ-L1 WeakMap early-cure P-inv-28 arm** (S8 at chronicity 4 = P-inv-28 belt fires; kf-internal WeakMap is the named early-exit if value.js P slips) | P (2026-06-20) | 1 (P→P) | **FOLD → P.W11** (WeakMap replaces Symbol; clone-restamp ceremony STAYS; inferior to VJ-L1 but P-inv-28-compliant) | **P.W11** | `proof:decomposition` born-RED (engine.ts >900L ceiling); GREEN on WeakMap cure + engine.ts ≤900L; does NOT retire S8 arm (S8 GREEN only on VJ-L1 api-present probe). |
@@ -217,15 +216,15 @@ substrate so the P.WZ re-point is READY.
 | **BUILD-IN (kf-owned, ABSOLUTE terminal — O or P must close)** | DM-2 (born E · O.W5/P.W7 DemoControlPoint · P INHERITS+IMPLEMENTS) · DM-3 (born C · O.W6/P.W5 fromMorphSVG · P INHERITS+IMPLEMENTS) |
 | **FOLD-LANDED (tripwire FIRED + gate GREEN)** | DM-4 · DM-5 S7 · DM-6 · DM-17 · DM-18 · DM-19 · DM-25 |
 | **VERIFY-ONLY / RE-AFFIRM (terminated chronics)** | DM-8 · DM-9 · DM-10 · DM-11 · DM-12 · DM-13 · DM-14 · DM-15 |
-| **NET-NEW P obligations (FOLD → named wave home)** | DP-1 (S1 false-RED + S2 now-deletable, P.W12) · DP-2 (codegen-consume, P.W4) · DP-3 (demo-fleet unbuilt, Bands C) · DP-4 (mobile N-Stage, P.W8) · DP-5 (VJ-L1 WeakMap early-cure, P.W11) |
+| **NET-NEW P obligations (FOLD → named wave home)** | DP-1 (S1 false-RED + S2 now-deletable, P.W12) · ~~DP-2 (codegen-consume, RETIRED)~~ · DP-3 (demo-fleet unbuilt, Bands C) · DP-4 (mobile N-Stage, P.W8) · DP-5 (VJ-L1 WeakMap early-cure, P.W11) |
 
 **P-INVARIANT-28 CLOSURE ASSERTION (P).** Every row carries (a) a tag, (b) a named owning wave,
 (c) a named tripwire or terminal disposition. **Zero rows are bare BOOKs.** DM-1 is at
 6-tranche — the contingency KILL record carries. DM-2 (born E, O charters forbidden-8th-carry
 close O.W5, P INHERITS+IMPLEMENTS) and DM-3 (born C, O charters O.W6, P INHERITS+IMPLEMENTS)
 are ABSOLUTE FINAL BUILD-INs. DM-5 S8/S9 and DM-7 are at chronicity-4 P-inv-28 belt — named
-terminal homes are ENFORCED. The codegen-consume (DP-2) is GATED on parse-that B + value.js P
-— a HANDOFF, not a BOOK.
+terminal homes are ENFORCED. DP-2 (codegen-consume) is RETIRED (2026-06-22) — not a HANDOFF,
+not a BOOK; tombstoned in P.W4.
 
 ---
 

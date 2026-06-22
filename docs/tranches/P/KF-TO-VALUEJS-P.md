@@ -6,11 +6,10 @@
 > O carried the two **API** asks (VJ-L1 `flatLeaf` + VJ-L3 `parseCSSSubValue`)
 > that value.js O **deferred**; P **inherits them unchanged** and **adds the
 > optimization frontier** — the `color2Into` gamut zero-alloc tail, the typed
-> Float64 channel view, the `: any` property/subProperty seam narrowing, and the
-> **CODEGEN-CONSUME** (value.js generates its CSS-value parser from `css/l4/*.bbnf`
-> over the parse-that-B codegen edge). value.js is the UPSTREAM library on the
-> constellation spine (parse-that → value.js → keyframes.js → glass-ui); this is
-> the formal handoff to value.js's **Tranche P** session.
+> Float64 channel view, and the `: any` property/subProperty seam narrowing.
+> value.js is the UPSTREAM library on the constellation spine
+> (parse-that → value.js → keyframes.js → glass-ui); this is the formal handoff
+> to value.js's **Tranche P** session.
 >
 > **inv-16 holds: no value.js source is written from keyframes.js.** value.js's P
 > session schedules these ASKs into its own waves; kf re-pins and deletes its
@@ -19,13 +18,10 @@
 
 This dispatch is the binding cross-repo contract behind kf wave **P.W11**
 (the VJ-L1 WeakMap early-cure — the NOW arm that unblocks O.W7 if value.js P
-slips), the inherited **O.W16** (the GATED S8/S9 delete on the publish), and
-**P.W4** (the GATED codegen-consume). The version split: value.js **1.1.0**
-(API — VJ-L1 + VJ-L3, BC-additive, the kf-unblock) **then 1.2.0** (perf — the
-allocation + seam + codegen frontier, non-breaking). Per the DAG, value.js P
-sequences **AFTER parse-that B** (which ships `@mkbabb/parse-that/codegen`, the
-codegen substrate value.js's 1.2.0 codegen-consume depends on) and **BEFORE
-keyframes P** (the consumer).
+slips) and the inherited **O.W16** (the GATED S8/S9 delete on the publish).
+The version split: value.js **1.1.0** (API — VJ-L1 + VJ-L3, BC-additive, the
+kf-unblock) **then 1.2.0** (perf — the allocation + seam frontier, non-breaking).
+value.js P sequences **BEFORE keyframes P** (the consumer).
 
 ---
 
@@ -39,17 +35,16 @@ keyframes P** (the consumer).
 | **VJ-P1** | **`color2Into` out-param** — gamut bisection writes channels into a caller-owned scratch `Color` | `color/dispatch.ts:245` (`'eliminating it requires a color2Into out-param (deferred, O.W5 scope)'`); `:257` `color2(probe, target)` in the 24-step loop; `gamut.ts:247,283,307` already tuple-based | `color2Into(src, to, out)` mirroring `matrix.ts` `transformMat3Into` scratch — `gamutMapToRgbSpace` reuses one egress scratch | **(no kf delete)** — kf inherits the GC win on the rAF wide-gamut egress (faster `lerpColorValue`) | `proof:gamut-alloc` tightened: `gamutMapToRgbSpace` allocs/call ≤ 15 (born-RED on today's ~84) | **1.2.0** |
 | **VJ-P2** | **typed Float64 channel view** — kill string-keyed megamorphic channel reads in the interp/conversion loops | `color/index.ts:286` (`[key: string]: any` index signature — KEEP, public); `interpolate.ts` `lerpColorValue` reads `color[k]` | optional packed `_ch: Float64Array` lazily materialized; interp/conversion read `_ch[i]` (SoA-adjacent, AoS public shape preserved) | **(no kf delete)** — kf inherits faster per-frame color interpolation | `proof:perf-target` color-channel-access clause: the Float64-view interp ≥ the named-field baseline | **1.2.0** |
 | **VJ-P3** | **narrow the `: any` property/subProperty seam → `string`** (strict-mode invariant) | `units/index.ts:57` `setSubProperty(subProperty: any)`; `:61` `setProperty(property: any)`; `:174,178,274,278` (the container mirrors) | type the params `string` (BC — callers already pass strings); the kf consume-edge gains a typed seam | **(strengthens)** — kf's `parseAndFlattenObject` `setSubProperty`/`setProperty` calls type-check (`MEMORY.md` calc/computed pipeline) | `proof:any-seam` (value.js-side): `tsc` rejects `vu.setSubProperty(42)` | **1.2.0** |
-| **VJ-P4** | **CODEGEN-CONSUME** — value.js generates its CSS-value parser from `css/l4/*.bbnf` over the parse-that-B codegen edge | `parsing/grammars/css-values.bbnf:6` (`not yet wired to the runtime`); `parsing/grammars/css-color.bbnf`; `parsing/index.ts:14,29,63` (~700 lines hand-maintained combinators) | consume `@mkbabb/parse-that/codegen` (parse-that B) → emit ONE straight-line `charCodeAt` scanner per grammar at BUILD time; the `.bbnf` becomes the parser (**grammar-as-source-of-truth**: ~700 hand-combinator lines dissolve) | **(no kf delete)** — kf inherits parity-or-better frame-compilation + the maintainability of spec-as-source; resolves the `.bbnf` "not wired" limbo | `proof:grammar-parity` + a throughput bench — parity over every `constants.ts UNITS` item, **parity-or-better throughput on the value.js PORTABLE JSON.parse-ratio anchor** (no regression vs the hand-written parser), **guarded against the A.W3 runtime-dispatch falsification** | **1.2.0** |
 
 All ASKs are **BC-additive** to value.js's published 1.x surface (no breaking
-change). The 1.1.0 pair (VJ-L1 + VJ-L3) is the kf-unblock; the 1.2.0 quartet
-(VJ-P1–P4) is the optimization frontier and rides after.
+change). The 1.1.0 pair (VJ-L1 + VJ-L3) is the kf-unblock; the 1.2.0 trio
+(VJ-P1–P3) is the optimization frontier and rides after.
 
 **The two namespaces (distinct by design).** The **VJ-L\*** asks are the inherited
 **API** asks — VJ-L1 (`flatLeaf`/`fnName` provenance) + VJ-L3 (`parseCSSSubValue`),
 carried unchanged from the O dispatch. The **VJ-P\*** asks are the NEW **perf**
 frontier — VJ-P1 (`color2Into` out-param), VJ-P2 (typed Float64 channel view),
-VJ-P3 (the `: any`→string seam narrowing), VJ-P4 (the CODEGEN-CONSUME). `color2Into`
+VJ-P3 (the `: any`→string seam narrowing). `color2Into`
 is **VJ-P1** (NOT "VJ-L4") and the typed channel view is **VJ-P2** — they belong to
 the VJ-P perf namespace, never the VJ-L API namespace.
 
@@ -361,87 +356,18 @@ WANTS a compile error); GREEN when the param is `string` and `tsc` errors.
 
 ---
 
-## VJ-P4 — the CODEGEN-CONSUME (value.js generates its CSS parser from `css/l4/*.bbnf` — the campaign §4 SPINE)
-
-**The need, grounded — the `.bbnf` "not wired" limbo.** value.js carries two BBNF
-grammars — `parsing/grammars/css-values.bbnf` and `css-color.bbnf` — that
-explicitly say **`not yet wired to the runtime`** (`css-values.bbnf:6`). They are
-spec-only documentation; the **hand-written ~700-line combinator table**
-(`parsing/index.ts:14,29,63` — the `transformFunctions`/`transformDimensions`/
-`gradientNames` arms) is the real source of truth. The two silently drift (V2
-novelIdea #4: "a unit added to the grammar is not added to the parser"). This is a
-**codegen-or-delete fork** the audit flagged across four lanes (V1-N2, P1, P4, X2).
-
-**The mechanism (the campaign §4 spine — parse-that B → value.js P).** parse-that
-Tranche B ships `@mkbabb/parse-that/codegen` (the SpanParser-tree-walk / **bbnf-lang
-`TsEmitter`** edge — bbnf-lang EXISTS at `/Users/mkbabb/Programming/bbnf-lang`
-with a `CompileTarget::Ts` emitter + `css/l4/*.bbnf` grammars + parity tests, so
-this is **wiring, not greenfield**). value.js's 1.2.0 codegen-consume:
-
-1. emit, at **BUILD TIME**, ONE specialized straight-line `charCodeAt` scanner per
-   grammar from `css-values.bbnf` / `css-color.bbnf` — no closures, no `callSpan`
-   recursion, every call site monomorphic by construction;
-2. replace the ~700 lines of hand-maintained combinators with the generated
-   parser (**grammar-as-source-of-truth**: the `.bbnf` spec IS the parser, ~700
-   hand-combinator lines dissolve; the "not wired" limbo resolves);
-3. keyframes inherits **parity-or-better** frame-compilation + the
-   maintainability of spec-as-source (gated at NO throughput regression).
-
-This re-wires the DEAD O.W6 SpanParser-jump-table consume edge into a **LIVE
-codegen edge** — the surviving form of the §7 falsified thesis.
-
-**THE FALSIFICATION GUARD (born-RED on every codegen idea — DO NOT re-litigate).**
-A.W3 falsified the SpanParser tagged-union as a *runtime* recursive switch
-(~10–14% slower on V8 — V8 monomorphic-inlines per-site closures better than a
-hand-rolled dispatch loop). **Codegen sidesteps this entirely** by emitting
-build-time straight-line source, NOT a runtime interpreter. The gate must assert
-the emitter produces STRAIGHT-LINE source, **never a runtime interpreter dressed
-as a generated function**. (This is also why VJ-P4 is GATED on parse-that B's
-`@mkbabb/parse-that/codegen` shipping the emitter — kf's P.W4 codegen-consume
-sits one layer further down the same DAG edge.)
-
-**The kf payoff (no kf delete — an inherited compile-perf win + kf's own P.W4).**
-kf's `FrameCompiler` rides value.js's CSS-value parse on every `addFrame`; the
-generated monomorphic scanner holds frame-compilation cost at **parity-or-better**
-while making the `.bbnf` spec the single source of truth (the maintainability win).
-kf's **P.W4 codegen-consume** (kf Band B, GATED) is the kf-side terminal of the
-same edge.
-
-**Born-RED gate (value.js-side, `proof:grammar-parity` + a throughput bench).**
-- **Parity:** for **every** unit in `value.js/src/constants.ts UNITS`, assert the
-  `.bbnf`-generated parser and the live hand-written parser produce
-  byte-identical `ValueUnit`/`FunctionValue` trees over a corpus. Born-RED: no
-  generated parser exists today (the `.bbnf` is "not wired") → the parity harness
-  has nothing to compare → RED until the codegen edge lands.
-- **Throughput:** a bench (`css-parse-perf.mjs`) running the CODEGEN parser over
-  the value corpus, gated in `proof:perf-target` for **parity-or-better** vs the
-  hand-written parser on the value.js **PORTABLE JSON.parse-ratio anchor** (a
-  device-independent ratio, NOT an absolute MB/s figure or a claimed multiple — the
-  win is grammar-as-source-of-truth + combinator-closure elimination, gated at NO
-  regression).
-- **The falsification guard clause:** the gate fails if the emitted parser is a
-  runtime dispatch loop (assert: zero `switch (kind)` / `callSpan`-shaped
-  recursion in the generated source) — guarding against re-running the A.W3
-  falsified play.
-
----
-
 ## INFORM (what value.js Tranche P must know — the DAG, the early-cure, the version split)
 
-1. **The DAG — value.js P sequences AFTER parse-that B, BEFORE keyframes P.**
+1. **The DAG — value.js P sequences BEFORE keyframes P.**
 
    ```
-   parse-that Tranche B  ─►  value.js Tranche P  ─►  keyframes Tranche P (consumer)
-     (0.12.0 codegen)         (1.1.0 API · 1.2.0 perf)    (5.1.x perf · demo-design)
-           │                         │                            │
-           └── the CODEGEN SPINE ────┴──── generated parser ──────┘
+   value.js Tranche P  ─►  keyframes Tranche P (consumer)
+   (1.1.0 API · 1.2.0 perf)    (5.1.x perf · demo-design)
    ```
 
-   The hard edge: VJ-P4 (the codegen-consume) is **GATED on parse-that B** shipping
-   `@mkbabb/parse-that/codegen` (the bbnf-lang `TsEmitter` edge). The 1.1.0 API pair
-   (VJ-L1 + VJ-L3) has **no parse-that dependency** — it can ship the moment value.js
-   P opens, unblocking kf immediately. The 1.2.0 perf quartet rides after (VJ-P1/P2/P3
-   are kf-internal-to-value.js with no sibling gate; **only VJ-P4 waits on parse-that B**).
+   The 1.1.0 API pair (VJ-L1 + VJ-L3) has no external sibling gate — it can ship
+   the moment value.js P opens, unblocking kf immediately. The 1.2.0 perf trio
+   (VJ-P1/P2/P3) rides after with no external dependency.
 
 2. **The VJ-L1 WeakMap early-cure kf is doing NOW (so kf O.W7 is not hard-blocked).**
    kf's `engine.ts` god-object split (O.W7, 1397→~900) is VJ-L1-gated — it sequences
@@ -465,15 +391,14 @@ same edge.
 
 3. **The version split — 1.1.0 (API) then 1.2.0 (perf).**
 
-   | value.js publish | contents | gates kf consume | blocked on |
-   |---|---|---|---|
-   | **1.1.0** | VJ-L1 `flatLeaf` + VJ-L3 `parseCSSSubValue` (BC-additive, ~10+15 LoC) | kf O.W16 S8/S9 delete + W96 boundary scan | nothing (no parse-that dep) — the kf-unblock |
-   | **1.2.0** | VJ-P1 `color2Into` + VJ-P2 Float64 channel view + VJ-P3 `: any`→string + VJ-P4 codegen-consume | kf inherits perf (no kf-side delete); kf P.W4 codegen-consume (GATED) | VJ-P4 GATED on parse-that B `@mkbabb/parse-that/codegen` |
+   | value.js publish | contents | gates kf consume |
+   |---|---|---|
+   | **1.1.0** | VJ-L1 `flatLeaf` + VJ-L3 `parseCSSSubValue` (BC-additive, ~10+15 LoC) | kf O.W16 S8/S9 delete + W96 boundary scan |
+   | **1.2.0** | VJ-P1 `color2Into` + VJ-P2 Float64 channel view + VJ-P3 `: any`→string | kf inherits perf (no kf-side delete) |
 
    VJ-P.W0 (commit O docs + reconcile PROGRESS) is the **first action**, predating both
-   publishes. The 1.1.0 pair is the critical-path kf-unblock; the 1.2.0 quartet is the
-   optimization frontier and is non-breaking (kf rides it transparently except for the
-   GATED P.W4 codegen edge).
+   publishes. The 1.1.0 pair is the critical-path kf-unblock; the 1.2.0 trio is the
+   optimization frontier and is non-breaking (kf rides it transparently).
 
 4. **The P-invariant-28 belt FIRES THIS tranche (S8/S9 at chronicity 4 — K,L,M,O→P).**
    The S8/S9 value.js-workaround chronic (DM-5) is at **chronicity 4** entering kf-P
@@ -506,7 +431,7 @@ same edge.
 | Package | Published | kf pins | kf re-pin on the P publish |
 |---------|-----------|---------|-----------------------------|
 | `@mkbabb/parse-that` | 0.11.0 | `^0.11.0` (production dep, **S9** — for the `any` combinator only) | **DROPPED** from `dependencies` once VJ-L3 lands |
-| `@mkbabb/value.js` | **1.0.2** | `^1.0.2` | `^1.1.0` (the VJ-L1/VJ-L3 publish) at O.W16; `^1.2.0` (the perf frontier) at P Band B/P.W4 |
+| `@mkbabb/value.js` | **1.0.2** | `^1.0.2` | `^1.1.0` (the VJ-L1/VJ-L3 publish) at O.W16; `^1.2.0` (the perf frontier) at P Band B |
 
 VJ-L2 (the `linear()` space-joined serializer) shipped in value.js O and is
 **already consumed** (kf S7 GREEN). VJ-L1 and VJ-L3 are the **remaining two** of
@@ -535,8 +460,6 @@ are the **new P optimization frontier** this packet adds.
    - **VJ-P1** `color2Into` out-param (gamut ~84 → <12 allocs/call).
    - **VJ-P2** the typed Float64 channel view (kill megamorphic channel reads).
    - **VJ-P3** narrow the `: any` property/subProperty seam → `string`.
-   - **VJ-P4** the CODEGEN-CONSUME (generate the CSS parser from `css/l4/*.bbnf` over
-     parse-that B's `@mkbabb/parse-that/codegen` — GATED on parse-that B).
 
 **keyframes.js (on the value.js publishes — the GATED consumes):**
 1. **On 1.1.0 (O.W16, inherited):** re-pin `^1.1.0`; delete S8 (the `FN_NAME`
@@ -545,9 +468,8 @@ are the **new P optimization frontier** this packet adds.
    `parseCSSSubValue`); drop `@mkbabb/parse-that` from `package.json`; author + green
    the `proof:boundary` **W96** parse-that-scan; confirm `proof:workaround-deletion`
    S8/S9 flip PENDING→GREEN; unblock O.W7.
-2. **On 1.2.0 (P Band B/P.W4):** re-pin `^1.2.0`; inherit the perf wins
-   transparently (VJ-P1/P2/P3 — no kf-side delete); execute kf P.W4 codegen-consume
-   (GATED on parse-that B + value.js VJ-P4).
+2. **On 1.2.0 (P Band B):** re-pin `^1.2.0`; inherit the perf wins transparently
+   (VJ-P1/P2/P3 — no kf-side delete).
 
 **The contract.** value.js publishes; kf re-pins and deletes. Neither writes the
 other's tree (inv-16). The gate roster — `proof:workaround-deletion` apiPresent +
@@ -566,7 +488,6 @@ ASKs in value.js's own tree; kf re-pins and deletes its workarounds on each
 publish. Every ASK carries a **falsifiable born-RED gate** (the API asks: an
 `apiPresent` runtime probe over the published surface, RED today, GREEN on the
 publish; the perf asks: a PORTABLE ratio bench, RED on today's allocation/read
-profile, GREEN on the optimization; the codegen ask: a parity + throughput bench
-guarded against the A.W3 runtime-dispatch falsification). Implementation opens
-only on the owner's explicit go, per-repo, DAG-ordered (parse-that B → value.js P
-→ keyframes P). observable-truth, no-legacy, gestalt, P-inv-28 hold throughout.
+profile, GREEN on the optimization). Implementation opens only on the owner's
+explicit go, per-repo, DAG-ordered (value.js P → keyframes P).
+observable-truth, no-legacy, gestalt, P-inv-28 hold throughout.

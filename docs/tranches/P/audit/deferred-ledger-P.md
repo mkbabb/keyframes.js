@@ -8,8 +8,9 @@ yet authorized; inv-16 holds throughout per `P.md`).
 rows from `docs/tranches/O/audit/deferred-ledger-O.md` carried forward with UPDATED
 dispositions reflecting the P audit (32-lane triumvirate optimization re-audit, `P/audit/
 AUDIT-DIGEST.md`, 2026-06-20), the P wave assignments from `P.md §3`, the S1–S9 workaround
-arms with CORRECTED tripwires, and the net-new P findings (VJ-L1/L3 belt, codegen-consume
-gating, demo-fleet shelving, mobile N-Stage unbuilt, S1 false-RED correction).
+arms with CORRECTED tripwires, and the net-new P findings (VJ-L1/L3 belt, demo-fleet shelving,
+mobile N-Stage unbuilt, S1 false-RED correction). NOTE: the codegen-consume (DP-2) was raised
+by the audit but RETIRED by owner directive 2026-06-22 — see §3 DP-2 and §7 preamble point 7.
 
 **THE CORRECTED O-state facts this ledger carries (the P re-audit findings — F1/F2/K5):**
 
@@ -33,10 +34,11 @@ gating, demo-fleet shelving, mobile N-Stage unbuilt, S1 false-RED correction).
    pre-authored contingency KILL from deferred-ledger-O.md §6 carries forward unchanged.
    P.W12 is the terminal window. No 7th carry.
 6. **DM-2 (born E) / DM-3 (born C) — 7 carries through M · O CHARTERS the forbidden-8th-carry close (O.W5/O.W6) · P INHERITS + IMPLEMENTS the build-in (chartered, never built) — ABSOLUTE FINAL.** O.W5/O.W6 are the chartered BUILD-IN homes; implementation NOT yet executed (O impl unauthorized). If O.W5/O.W6 not yet implemented when P opens, P.W7/P.W5 are the ABSOLUTE final BUILD-IN homes. No further carry under any scenario.
-7. **The codegen-consume (P.W4) is GATED — not a NOW wave.** Fires only when parse-that B
-   ships `@mkbabb/parse-that/codegen` + value.js P consumes it to emit a generated parser.
-   The kf-side gate (`proof:codegen-consume`) is born-RED today because the codegen parser
-   does not yet exist.
+7. **The codegen-consume (P.W4) is RETIRED (2026-06-22, owner directive).** Codegen is
+   BBNF-lang's job in a completely separate session — out of this campaign's scope. P.W4 is a
+   RETIRED tombstone; `proof:codegen-consume` is NOT authored; no generated parser is shipped
+   or consumed by kf-P. Historical record: the 32-lane audit DID propose codegen (AUDIT-DIGEST.md
+   CONSTITUTION §4, P4-codegen-span, X2-novel-triumvirate); the campaign did NOT adopt it.
 8. **The mobile N-Stage is entirely unbuilt** (D6 lane, zero `@media (max-width…)` in
    CarouselDisk.vue) — the shelf-driver. P.W8 owns the CSS scroll-snap transposition.
 
@@ -160,7 +162,7 @@ retarget the S1 tripwire before any deletion.
 | Item | Born | Disposition | Owning P wave | Evidence |
 |---|---|---|---|---|
 | **DP-1** S1 false-RED tripwire + S2 NOW-deletable verdict | P re-audit | **FOLD → P.W12.** S1 tripwire MUST be retargeted to content-present probe (NOT version number). S2 IS deletable on BC cut re-pin. | P.W12 | `audit/AUDIT-DIGEST.md F1-chronic:1175`; K5:591; `glass-ui/tabs.js:306` (4.1.0) unconditional |
-| **DP-2** codegen-consume (P.W4) GATED on parse-that B + value.js P | P re-audit | **HANDOFF → parse-that B.W3 → value.js P → kf P.W4.** The kf-side born-RED gate (`proof:codegen-consume`) is authored NOW (born-RED: codegen parser absent); GREEN only after sibling pipeline ships. `codegen-consume-decision.json` is the ADOPT/KILL verdict record. | P.W4 | `audit/AUDIT-DIGEST.md CONSTITUTION §4`; P4-codegen-span:320; X2-novel-triumvirate:999 |
+| ~~**DP-2**~~ ~~codegen-consume (P.W4)~~ | P re-audit | **RETIRED (2026-06-22, owner directive).** Codegen is BBNF-lang's separate session; P.W4 is a RETIRED tombstone. No `proof:codegen-consume` gate is authored. No `codegen-consume-decision.json`. The SpanParser disposition (P-inv-28: no in-realm consumer) resolves as KILL recommendation dispatched to parse-that B (fold into PT-B2 housekeeping or as PT-B4). Historical record of the audit's codegen proposal lives in AUDIT-DIGEST.md (do not rewrite). | ~~P.W4~~ | **RETIRED** |
 | **DP-3** demo-fleet unbuilt items (spring heatmap; amiga drag2D transpose; easing hero handles; square velocity-tilt) | P re-audit | **FOLD → P Bands B/C.** Each has a named wave and born-RED gate. Spring heatmap → P.W6; amiga drag2D → P.W5; easing hero handles → P.W7; square → P.W6. | P.W5/W6/W7 | `audit/AUDIT-DIGEST.md D1-D5 lanes`; novel ideas per scene |
 | **DP-4** mobile N-Stage entirely unbuilt | P re-audit | **FOLD → P.W8.** CSS scroll-snap transposition (not a patch). `proof:n-stage-mobile` born-RED (zero scroll-snap on 390px emulated). | P.W8 | `audit/AUDIT-DIGEST.md D6-shell-switcher:864`; `n-stage-impl` `grep -c max-width CarouselDisk.vue` → 0 |
 | **DP-5** VJ-L1 WeakMap early-cure (S8 P-inv-28 belt exit) | P re-audit | **FOLD → P.W11.** WeakMap replaces FN_NAME Symbol; clone-restamp ceremony STAYS. P-inv-28-compliant kf-internal exit for S8 if value.js P slips. Does NOT retire S8 tripwire (S8=GREEN only on VJ-L1 api-present). | P.W11 | `audit/AUDIT-DIGEST.md X4-correctness:1115`; K5:609 (WeakMap spec) |
@@ -207,7 +209,7 @@ any scenario.
 | DM-5 S8 FN_NAME | `proof:workaround-deletion` S8 arm + `proof:decomposition` | S8=PENDING (`flatLeaf in vjs === false`); `FN_NAME` grep → 7 hits | P.W11: S8 arm stays PENDING (WeakMap doesn't retire the tripwire); `proof:decomposition` GREEN (engine.ts ≤900L) |
 | DM-5 S9 parse-that | `proof:workaround-deletion` S9 arm + `proof:boundary` W96 scan | S9=PENDING; W96 RED on `utils.ts:1` | S9=GREEN + W96 GREEN (on VJ-L3 publish + kf consume) |
 | DM-24 N Stage mobile | `proof:n-stage-mobile` (NEW — P.W8) | Zero `@media (max-width…)` in CarouselDisk.vue; no scroll-snap on 390px | Scroll-snap carousel renders on phone-narrow; `@supports` gated; VT wired |
-| DP-2 codegen-consume | `proof:codegen-consume` (NEW — P.W4) | Codegen parser absent; no `codegen-consume-decision.json` | `codegen-consume-decision.json` ADOPT record; kf bench shows ≥1.5× vs combinator |
+| ~~DP-2 codegen-consume~~ | **RETIRED (2026-06-22)** — no gate authored | N/A (RETIRED) | N/A (RETIRED) |
 | DP-5 VJ-L1 WeakMap | `proof:decomposition` (from O.W7) | `engine.ts` > LIBRARY_CEILING (1400L today) | `engine.ts` ≤900L (WeakMap cure + playback-machine split) |
 | DP-6 leaves.ts TRAP | `proof:boundary` W97 `math-subpath-clean` clause (NEW — P.W10) | `internal/leaves.ts` PRESENT; `@mkbabb/value.js/math` NOT bundle-external in LIGHT build | W97 GREEN (math subpath confirmed grammar-free; bundle-external entry declared in `vite.config.ts`) |
 
@@ -268,12 +270,12 @@ At P.WZ the orchestrator performs the atomic re-point (the O.WZ→O precedent):
 
 | Tag | Count | Rows |
 |---|---|---|
-| **HANDOFF (sibling-gated, un-fired)** | 4 | DM-1 (BC, 6-tranche CRITICAL) · DM-7 (USER-DOMAIN, 4-tranche belt) · DM-24 (BC/N-Stage) · DP-2 (codegen-consume, parse-that B + value.js P) |
+| **HANDOFF (sibling-gated, un-fired)** | 3 | DM-1 (BC, 6-tranche CRITICAL) · DM-7 (USER-DOMAIN, 4-tranche belt) · DM-24 (BC/N-Stage) |
 | **BUILD-IN (ABSOLUTE terminal — O or P final)** | 2 | DM-2 (9-tranche, O.W5/P.W7) · DM-3 (9-tranche, O.W6/P.W5) |
 | **USER-DOMAIN** | 2 | DM-16 (5.0.0 cut) · DM-20 (deploy round-trip) |
 | **FOLD-LANDED** | 7 | DM-4 · DM-5 S7 · DM-6 · DM-17 · DM-18 · DM-19 · DM-25 |
 | **VERIFY-ONLY / RE-AFFIRM (terminated chronics)** | 8 | DM-8 … DM-15 |
-| **NET-NEW P obligations (FOLD → named wave home)** | 6 | DP-1 (S1 false-RED + S2 now-deletable, P.W12) · DP-2 (codegen-consume, P.W4) · DP-3 (demo-fleet, P.W5-W7) · DP-4 (mobile N-Stage, P.W8) · DP-5 (VJ-L1 WeakMap, P.W11) · DP-6 (leaves.ts TRAP, P.W10) |
+| **NET-NEW P obligations (FOLD → named wave home)** | 5 | DP-1 (S1 false-RED + S2 now-deletable, P.W12) · ~~DP-2 (codegen-consume, RETIRED 2026-06-22)~~ · DP-3 (demo-fleet, P.W5-W7) · DP-4 (mobile N-Stage, P.W8) · DP-5 (VJ-L1 WeakMap, P.W11) · DP-6 (leaves.ts TRAP, P.W10) |
 
 **P-INVARIANT-28 CLOSURE ASSERTION (P).** Every row carries (a) a tag, (b) a named owning
 P wave, (c) a named tripwire or terminal disposition. **Zero rows are bare BOOKs.**
@@ -282,7 +284,8 @@ DM-2 (born E · 7 carries through M · O charters O.W5 · P INHERITS+IMPLEMENTS)
 (O.W5/P.W7 and O.W6/P.W5 respectively). DM-1 (6-tranche) has a named terminal window (P.W12;
 contingency KILL carries). DM-5 S8/S9 and DM-7 are all at chronicity-4 P-inv-28 belt — named
 terminal homes enforced THIS TRANCHE. The VERIFY-ONLY-TERMINATED rows (DM-8..DM-15) satisfy
-P-inv-28 via born-RED oracle provenance.
+P-inv-28 via born-RED oracle provenance. DP-2 (codegen-consume) is RETIRED — not a BOOK, not
+a HANDOFF; the SpanParser P-inv-28 resolution is a KILL recommendation dispatched to parse-that B.
 
 ---
 
@@ -292,7 +295,8 @@ P-inv-28 via born-RED oracle provenance.
 - `docs/tranches/O/PROGRESS.md §2` — the O open-deferrals board (parallel source)
 - `docs/tranches/P/audit/AUDIT-DIGEST.md` — F1 (chronic state), F2 (deferred plan), K5
   (O-as-unimplemented), X4 (correctness), D5 (easing drag2D critical S-clause), D6 (mobile
-  unbuilt), CONSTITUTION §4 (codegen spine)
+  unbuilt). (CONSTITUTION §4 codegen-spine: historical audit evidence — not adopted; campaign
+  NON-adoption is recorded in P.md §2, PROGRESS.md P.W4 tombstone, and this ledger DP-2.)
 - `scripts/proof-workaround-deletion.mjs` — S1..S9 arm specs (S7 GREEN; S1 FALSE RED;
   S2 PENDING-actionable; S8/S9 PENDING on api-present probe)
 - `glass-ui/dist/tabs.js` (4.1.0) — `:aria-orientation` unconditional at line 306 (S1 FALSE RED

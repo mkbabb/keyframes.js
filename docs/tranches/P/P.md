@@ -11,9 +11,9 @@
 
 > **The constitution is `P/CONSTELLATION-OPTIMIZATION-CAMPAIGN.md`** — the shared spine the three
 > sibling sessions cite. It locks the topology (ONE kf-hosted tranche + TWO dispatch packets), the
-> DAG (parse-that B → value.js P → keyframes P), the CODEGEN SPINE (§4), and the version split. P.md
-> is the kf-P tranche charter *under* that constitution; it does not re-litigate the locked
-> decisions, it sequences the kf work that rides them.
+> DAG (parse-that B → value.js P → keyframes P), and the version split. P.md is the kf-P tranche
+> charter *under* that constitution; it does not re-litigate the locked decisions, it sequences the
+> kf work that rides them.
 
 > **PRECONDITION-STATE banner (the two-tier O→P gate).** P opens after O is **AUTHORIZED** and O's NOW
 > correctness/chronic-terminal bands (DM-2/DM-3 build-ins O.W5/O.W6, the DM-22 cure) are available as
@@ -48,7 +48,7 @@ foundation O lays. The dependency is concrete and named:
 | **O.W5/O.W6 chronic terminals** (`DemoControlPoint` over LIGHT `drag2D`; `fromMorphSVG` over value.js `PathGeometry`) — the forbidden-8th-carry BUILD-INs | O Band C (NOW) | **P Band C** dogfoods them as the demo-fleet showcase (the curve-editor handle is `DemoControlPoint`; the morph scene is `fromMorphSVG`) |
 | **O.W7 engine-seam split** (`engine.ts` 1397→~900, the lifecycle/playback machine lifted off the compile facade) — **VJ-L1-gated** via O.W16 | O Band D (VJ-L1-GATED) | **P Band B** transposes the *shrunk* file at the TRUE seam (the `Playhead` value-object — K2 lane); **P Band F** ships the VJ-L1 WeakMap early-cure that unblocks O.W7 NOW if value.js P slips |
 | **O.WZ 5.0.0 cut** (the no-legacy renames; the Oscillator + additive tail published) | O Band Z (USER-DOMAIN) | **P Band Z** cuts **5.1.x** — perf is non-breaking, it rides AFTER O's major |
-| **value.js 1.0.2 `PathGeometry` / `./math` / `flatLeaf`(P) / `parseCSSSubValue`(P)** | constellation | **P Band B/E/F/G** consume the published surfaces; the codegen-consume (P.W4) rides parse-that B → value.js P |
+| **value.js 1.0.2 `PathGeometry` / `./math` / `flatLeaf`(P) / `parseCSSSubValue`(P)** | constellation | **P Band B/E/F/G** consume the published surfaces; the API/correctness/perf-floor coupling (packrat fix, perf gate) flows parse-that B → value.js P → kf-P |
 
 P does **not** orphan O. P opens after O is **AUTHORIZED** and O's NOW correctness/chronic-terminal
 bands are available as P's substrate (NOT after O is fully *implemented* — O is
@@ -59,8 +59,7 @@ tracked in `P/audit/deferred-ledger-P.md` (every O terminal a P inheritance, not
 
 The audit corrected **three stale premises** up front (record-as-built honesty, F5/V1/V2/P1 lanes):
 both siblings **already have bench infrastructure** (the "no-bench" premise was FALSE — value.js has
-9 bench files + a portable JSON.parse-ratio gate; parse-that has `test/benchmarks/`); **`bbnf-lang`
-exists** locally (a real TS-emitter codegen tool — the spine is *wiring*, not greenfield); and
+9 bench files + a portable JSON.parse-ratio gate; parse-that has `test/benchmarks/`); and
 **glass-ui 4.1.0 published BUT `SegmentedTabs.vue:406` still emits `aria-orientation`
 unconditionally** — so the kf S1 deletion is NOT yet safe (the O aria-guard dispatch stands), while
 S2/dock (`useDockClickIntegrity`, shipped 4.0.1) **IS** deletable NOW.
@@ -117,15 +116,12 @@ a terminal transposition in P (not a band-aid, not a file-rename masquerading as
   feature-detect-gated). **P Band B owns this** (P.W3), gated `proof:typed-om-eligible` (real-browser
   pixel-readback).
 
-- **The codegen-consume (the campaign's missing perf payload — CONSTITUTION §4 · V1-N2/P1/P4/X2
-  lanes).** Four audit lanes converged on the same radical play: emit, at BUILD TIME, ONE specialized
-  straight-line `charCodeAt` scanner per grammar (no closures, no `callSpan` recursion, every call site
-  monomorphic by construction). parse-that B ships `@mkbabb/parse-that/codegen` (the SpanParser /
-  bbnf-lang `TsEmitter` substrate); value.js P generates its CSS-value parser from `css/l4/*.bbnf`; kf
-  inherits faster frame-compilation for free. **P Band B owns the kf-side consume** (P.W4, GATED on
-  parse-that B + value.js P), gated by a parity+throughput bench **guarded against the A.W3 runtime-
-  dispatch falsification** (the emitter must produce STRAIGHT-LINE source, never a runtime interpreter
-  dressed as a generated function).
+- ~~**The codegen-consume (the campaign's missing perf payload — CONSTITUTION §4).** P.W4 / the
+  BBNF→TS emitter / the generated CSS-value parser.~~ **RETIRED (2026-06-22, owner directive).** The
+  codegen spine is BBNF-lang's job in a completely separate session — out of this campaign's scope.
+  P.W4 is a RETIRED tombstone (§3 Band B below). The campaign's perf payload is the IN-REALM
+  optimizations: value.js color zero-alloc + flatLeaf, kf SoA compositor + Playhead + Typed-OM,
+  parse-that correctness + perf-frontier. No generated parser is shipped or consumed by kf-P.
 
 - **The remaining live workarounds.** S8 `FN_NAME` Symbol sidechannel (utils.ts:45 — stamped onto
   foreign value.js `ValueUnit` instances, re-stamped on every `.clone()`); S9 direct `@mkbabb/parse-that`
@@ -148,28 +144,30 @@ sibling publish).
 | Band | Wave(s) | Phase | Headline |
 |---|---|---|---|
 | **A — Apparatus** | P.W1 (lint+bench-coverage+portable-perf-gate infra) | NOW | the optimization measurement floor — close the un-CI'd bench gaps, ratify the portable ratio discipline, author the perf-gate apparatus every aggressive idea below requires |
-| **B — Engine-perf (the transpositions)** | P.W2 (SoA-compositor + computed-unit-cache), P.W3 (Typed-OM write-path + Playhead value-object), P.W4 (codegen-consume, GATED) | NOW W2,W3 · GATED W4 | the radical engine plays: the contiguous `Float64Array` composite fold, the `StylePropertyMap` batched write, the `Playhead` driver-protocol transposition, the BBNF codegen-consume |
+| **B — Engine-perf (the transpositions)** | P.W2 (SoA-compositor + computed-unit-cache), P.W3 (Typed-OM write-path + Playhead value-object), ~~P.W4~~ (RETIRED tombstone — codegen-consume, BBNF-lang separate session) | NOW W2,W3 | the radical engine plays: the contiguous `Float64Array` composite fold, the `StylePropertyMap` batched write, the `Playhead` driver-protocol transposition; codegen is out of campaign scope |
 | **C — Demo-fleet (frontend-design)** | P.W5 (cube + amiga), P.W6 (square + spring), P.W7 (easing-curve-editor + DemoControlPoint showcase), P.W8 (N-Stage switcher + mobile) | NOW | the 29-idea design fleet over the O-built chronic terminals: per-scene refinement, the spring parameter-space heatmap, amiga flick-to-boing, the curve-editor dogfooding `DemoControlPoint`, the N-Stage shelf-driver + the entirely-unbuilt mobile |
 | **D — Correctness** | P.W9 (NaN-frame cure + grammar-fuzz + differential-oracle) | NOW | the property-based / differential-vs-browser oracle frontier the corpus tests miss — fast-check fuzz, the CDP computed-style differential, the named-selector roundtrip post-O.W3 |
 | **E — No-legacy** | P.W10 (leaves.ts-externalization-TRAP + deprecated-aliases + cross-realm-seam-gate) | NOW | the genuine `leaves.ts`→`/math` bundle-externalization transposition (NOT a delete), the `proof:no-cross-realm-cast` structural gate, the deprecated-alias purge atop O's 5.0.0 renames |
 | **F — Unblock** | P.W11 (VJ-L1-WeakMap early-cure → unblock O.W7) | NOW | the kf-internal `WeakMap<ValueUnit,string>` FN_NAME carrier — the P-inv-28 **chronicity-4 belt exit** for S8 (the belt fires THIS tranche) that lifts O.W7's VJ-L1 gate WITHOUT waiting for value.js P |
 | **G — Consume** | P.W12 (glass-ui 4.1.0 S2-delete-NOW + S1-GATED-on-guard) | **NOW S2** (re-pin only — the glass-ui `useDockClickIntegrity` root fix is ALREADY published+installed; no sibling WAIT) · **GATED S1** (waits on the UNshipped BC SFC aria guard) | the glass-ui consume: delete S2/dock atomically on 4.1.0 (root fix shipped); hold S1/aria GATED on the BC SFC guard (the O correction premise unmet) |
-| **Z — Close + 5.1.x cut** | P.WZ (close + 5.1.x cut) | NOW-author · USER-DOMAIN publish | the non-breaking perf cut riding AFTER O's 5.0.0 major — the SoA/Typed-OM/codegen wins published, the ledger re-pointed O→P, the deploy round-trip re-observed |
+| **Z — Close + 5.1.x cut** | P.WZ (close + 5.1.x cut) | NOW-author · USER-DOMAIN publish | the non-breaking perf cut riding AFTER O's 5.0.0 major — the SoA compositor + Typed-OM write path + demo-fleet wins published, the ledger re-pointed O→P, the deploy round-trip re-observed |
 
 **Phase-axis note.** P carries far more **NOW** weight than O did: the engine transpositions (Band B
 W2/W3), the demo fleet (Band C), correctness (Band D), no-legacy (Band E), the VJ-L1 early-cure (Band
 F), and the S2 delete (Band G) are all kf-internal — executable on authorization with zero sibling
-wait. The two GATED edges are **P.W4 codegen-consume** (parse-that B + value.js P) and **P.W12 S1
-delete** (glass-ui BC aria guard). Band F's existence is precisely to *minimize* the gated surface —
-the WeakMap early-cure converts O.W7's hard VJ-L1 gate into a NOW.
+wait. The one remaining GATED edge is **P.W12 S1 delete** (glass-ui BC aria guard). Band F's existence
+is precisely to *minimize* the gated surface — the WeakMap early-cure converts O.W7's hard VJ-L1 gate
+into a NOW. (P.W4 codegen-consume is RETIRED — codegen is BBNF-lang's separate session.)
 
 ## 4 — The DAG (the band ordering + the gated couplings)
 
 ```
 parse-that Tranche B  ─►  value.js Tranche P  ─►  keyframes Tranche P (consumer)
-  (0.12.0 codegen)         (1.1.0 API · 1.2.0 perf)    (5.1.x perf · demo-design)
-        │                         │                            │
-        └── the CODEGEN SPINE ────┴──── generated parser ──────┘  (P.W4 GATED)
+  (0.12.0 packrat-fix       (1.1.0 API · 1.2.0 perf)    (5.1.x perf · demo-design)
+   + Span-dedup             VJ-L1 flatLeaf · VJ-L3
+   + perf-frontier)         parseCSSSubValue · color
+                            zero-alloc · perf)
+  [API + correctness + perf-floor coupling — NOT a codegen spine; codegen = BBNF-lang separate session]
 ```
 
 ```
@@ -184,7 +182,7 @@ P.W1 apparatus (NOW) ─► B{W2 SoA-compositor (NOW), W3 Typed-OM+Playhead (NOW
                                                                             │
    G.W12 S2-delete (NOW) · S1-delete (GATED: glass-ui BC aria guard)        │
                                                                             ▼
-   parse-that B publish ─► value.js P publish ─► P.W4 codegen-consume (GATED) ─► P.WZ close (5.1.x)
+   parse-that B publish ─► value.js P publish ─► O.W16 S8/S9 exits ──► P.WZ close (5.1.x)
 ```
 
 **The band ordering.** Band A (the apparatus) lands FIRST — the portable-perf-gate infra is the
@@ -202,15 +200,14 @@ value — all NOW). The two gated edges close last:
   proceed over the cleared seam while value.js P is still in flight. This is the P-inv-28 **chronicity-4
   belt exit** for S8 (the belt fires THIS tranche, P) named in the CONSTITUTION §3.
 
-- **The codegen-consume gated on parse-that B + value.js P (Band B.W4).** P.W4 consumes the generated
-  value.js CSS-value parser — it CANNOT land until parse-that B ships `@mkbabb/parse-that/codegen` AND
-  value.js P generates its parser from `css/l4/*.bbnf`. The kf-side consume is "inherit faster
-  frame-compilation for free" — a re-pin + a parity+throughput gate, NOT a kf-authored emitter (inv-16:
-  the emitter lives in parse-that; value.js owns the generation; kf consumes). The gate is **born-RED
-  guarded against the A.W3 falsification** — it asserts the generated parser is STRAIGHT-LINE +
-  throughput ≥0.85x hand-rolled, never a re-attempt of the runtime tagged-union switch.
+~~**P.W4 codegen-consume (RETIRED).** The codegen spine (BBNF→TS emitter, generated CSS-value parser)
+is BBNF-lang's job in a completely separate session — out of this campaign's scope. P.W4 is a RETIRED
+tombstone; it is not renumbered (P.W5..P.WZ numbering stays stable). The perf payload kf-P delivers is
+the IN-REALM optimizations: SoA compositor + Typed-OM write path in Band B; parse-that correctness
+(packrat fix) + perf-frontier + Span-dedup in the dispatch; value.js color zero-alloc + flatLeaf in
+the dispatch.~~
 
-The close (P.WZ) fires when all NOW bands are GREEN + the two gated edges resolve (or are
+The close (P.WZ) fires when all NOW bands are GREEN + the S1 gated edge resolves (or is
 contingency-disposed per the ledger). The **5.1.x cut** is non-breaking — perf rides AFTER O's 5.0.0
 major.
 
@@ -239,8 +236,8 @@ lands the split → P.W3 S4 deepens it. The coupling is three concrete inheritan
 
 3. **O.WZ 5.0.0 cut precedes P.WZ 5.1.x cut.** O cuts the major (the breaking no-legacy renames +
    Oscillator publish). **P cuts 5.1.x** — perf is non-breaking, it RIDES AFTER. P.WZ does not
-   re-do the major; it ships the SoA/Typed-OM/codegen wins as a minor over O's 5.0.0 baseline,
-   re-points the chronic ledger O→P, and re-observes the deploy round-trip.
+   re-do the major; it ships the SoA compositor + Typed-OM write path + demo-fleet wins as a minor
+   over O's 5.0.0 baseline, re-points the chronic ledger O→P, and re-observes the deploy round-trip.
 
 The carried-forward chronics (O's DM-2/DM-3 BUILD-INs, the DM-22 NaN cure, the BC-gated S1, the
 value.js-P-gated S8/S9) are P's inherited foundation — tracked in `deferred-ledger-P.md` with a real
@@ -261,8 +258,7 @@ public `startTime`/`pausedTime` field-write seam + `advanceTo`/`interpFrames`/`s
 KEEP their published signatures via DELEGATING ACCESSORS; no public engine-class member is removed or
 retyped, and P.W3 S4 wires `proof:published-surface` into its born-RED set to enforce that BC-preservation
 clause — a future field-removal would escalate to 6.0.0, but the committed path is 5.1.x via delegating
-accessors); the codegen-consume is a faster parser behind the same `CSSKeyframesAnimation` facade;
-the demo-fleet is demo-only. P.WZ authors the changelog 5.1.x entry (the perf wins + the demo fleet),
+accessors); the demo-fleet is demo-only. P.WZ authors the changelog 5.1.x entry (the perf wins + the demo fleet),
 re-points the chronic ledger O→P (the M→O→P substrate chain), and observes the deploy round-trip as
 live-byte equality (the CI→deploy→live serves-the-exact-hash oracle). The publish + the keyframes-vue
 peer-bump stay **USER-DOMAIN** (Mike Babb fires the tag).
@@ -275,30 +271,32 @@ O's `KF-TO-VALUEJS-P-ASKS.md` + the BC aria correction):
 
 - **`KF-TO-VALUEJS-P.md` → value.js Tranche P** — VJ-L1 `flatLeaf` provenance + VJ-L3 `parseCSSSubValue`
   (the S8/S9 root fixes), the VJ-P1 `color2Into` out-param + VJ-P2 typed Float64 channel view (the perf
-  tail), the codegen-generation of the CSS-value parser from `css/l4/*.bbnf` (the spine's value.js leg),
-  the **VJ-P.W0** doc-honesty reconciliation (commit the uncommitted O docs; the stale "DEVELOPMENT —
-  charter only" PROGRESS → CLOSED-as-built — value.js Tranche P's first wave; there is NO kf P.W0, the
-  kf roster starts at P.W1). Version split: 1.1.0 (API) then 1.2.0 (perf).
-- **`KF-TO-PARSETHAT-B.md` → parse-that Tranche B** — `@mkbabb/parse-that/codegen` (the BBNF→specialized-
-  monomorphic-TS emitter over the retained SpanParser + bbnf-lang `TsEmitter`), the **packrat cross-input
-  pollution FIX** (the MEMO key has no `src` component — a real correctness BLOCKER), the Span-combinator
-  generation, the combinator-fusion + 2-char dispatch widening. Version: 0.12.0.
+  tail), the **VJ-P.W0** doc-honesty reconciliation (commit the uncommitted O docs; the stale
+  "DEVELOPMENT — charter only" PROGRESS → CLOSED-as-built — value.js Tranche P's first wave; there is
+  NO kf P.W0, the kf roster starts at P.W1). Version split: 1.1.0 (API) then 1.2.0 (perf — color
+  zero-alloc + typed-channel-view + `:any` seam narrowing; codegen-generate is NOT in 1.2.0 scope).
+- **`KF-TO-PARSETHAT-B.md` → parse-that Tranche B** — **PT-B1** the packrat cross-input pollution FIX
+  (the BLOCKER — memoize() returns stale across inputs; MEMO key lacks `src`; packrat.ts:55) + the
+  4096-ID float64-key fix; **PT-B2** the Span-combinator DEDUP (collapse the ~400 lines of copy-pasted
+  Span backtracking plumbing into ONE collector-parametric vocabulary — a no-legacy/gestalt DEDUP, bug
+  fixed once not twice); **PT-B3** the perf frontier (combinator fusion + 2-char dispatch widening +
+  bench/proof:perf regression gate). The SpanParser tier (span.ts:540-902) RECOMMENDED for deletion
+  (P-inv-28 resolution: no in-realm consumer after codegen retraction). Version: 0.12.0.
 
-The DAG enforces the inv-16 ordering: parse-that B → value.js P → kf-P. kf P's GATED waves (P.W4
-codegen-consume; the value.js-P-gated S8/S9 deletes that feed O.W16/O.W7) fire atomically on the
-named sibling publish; kf never reaches into a sibling tree to make them land.
+The DAG enforces the inv-16 ordering: parse-that B → value.js P → kf-P (the API + correctness +
+perf-floor coupling). kf P's GATED waves (the value.js-P-gated S8/S9 deletes that feed O.W16/O.W7)
+fire atomically on the named sibling publish; kf never reaches into a sibling tree to make them land.
 
 ## 8 — The dev→impl boundary + verification
 
 This phase's deliverable is the Tranche P development docs, verified by: the 32-lane audit on disk
 (`P/audit/`) + re-runnable; the deferred-fold ledger (`deferred-ledger-P.md`) with a real terminal per
-item (every O chronic a P inheritance, zero un-dispositioned punts; the codegen P-inv-28 on the
-SpanParser retention assigned its BUILD home); the prompt-recap (`prompt-recap-P.md`) capturing the
-optimization+triumvirate+frontend-design intake (the one uncaptured prompt F3 found); the two sibling
-dispatches authored; and **each wave's falsifiable born-RED gate** — for perf ideas a **PORTABLE ratio
-bench** (numerator and denominator from the same report; device-independent by construction), for
-codegen a **parity+throughput bench guarded against the A.W3 runtime-dispatch falsification**, for the
-demo-fleet a real-browser observable (CDP/Playwright pixel-readback or a content-aware probe). The
-IMPLEMENTATION (P.W1…P.WZ) opens only on the owner's explicit go, per-repo, DAG-ordered — gate-first,
-born-RED, observable-truth, no-legacy, gestalt, KISS throughout. inv-16 holds: P writes only
-keyframes.js.
+item (every O chronic a P inheritance, zero un-dispositioned punts; the SpanParser P-inv-28 resolution
+dispatched to parse-that B as a KILL recommendation); the prompt-recap (`prompt-recap-P.md`) capturing
+the optimization+triumvirate+frontend-design intake (the one uncaptured prompt F3 found); the two
+sibling dispatches authored; and **each wave's falsifiable born-RED gate** — for perf ideas a
+**PORTABLE ratio bench** (numerator and denominator from the same report; device-independent by
+construction), for the demo-fleet a real-browser observable (CDP/Playwright pixel-readback or a
+content-aware probe). The IMPLEMENTATION (P.W1…P.WZ) opens only on the owner's explicit go, per-repo,
+DAG-ordered — gate-first, born-RED, observable-truth, no-legacy, gestalt, KISS throughout. inv-16
+holds: P writes only keyframes.js.
