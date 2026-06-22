@@ -2,9 +2,19 @@
 
 > A conservative, fastidious audit (9 lanes, owner-requested 2026-06-22 after the codegen-spine retraction) of the recent value.js + keyframes.js tranche specs. It hunts items in the codegen-spine vein and reformulates each toward the smallest grounded change. DOCS-ONLY.
 
+## OWNER CORRECTIONS (2026-06-22) — applied OVER the lane verdicts below
+
+Two owner directives override specific lane verdicts. The raw lane findings are preserved below as evidence; these corrections take precedence.
+
+1. **VALIDATE, don't abrogate — and the SoA verdict FLIPPED to ADOPT.** The "demote-to-spike" items are to be PROTOTYPED + MEASURED, not dropped on paper. The headline (SoA compositor) was tested: `bench/group-soa-validate.mjs` → `scripts/group-soa-decision.json` measured the SoA fold on `transformFramesGrouped`'s ACTUAL leaf shape and returned **ADOPT** — weighted **3.66×** / add **3.69×**, **bit-identical** output. The audit was right that the *justification* was contrived (the 3.86× was transplanted); the *idea* is sound on the real path. P.W2 is now ADOPT-scoped to the add/weighted arms (default `replace` untouched). Every other `MEASURE-FIRST`/`DEMOTE-TO-SPIKE` item gets the same treatment: run the bench, let the number decide — `KILL` only on a measured loss.
+
+2. **Novel CSS features BELONG in our grammar — `if()` / `@function` / `spring()` are GROUNDED, not speculative.** The audit (lane `valuejs-tranches`) flagged value.js's O.W4/O.W5 support for emerging CSS (`if()`, `@function`, `sibling-index()`, `spring()`) as a SPECULATIVE DEPENDENCY because no browser ships them. **That smell-test clause does NOT apply to a grammar+engine library whose REMIT is to lead the platform.** value.js is the canonical CSS grammar; supporting standardized + emerging CSS is its purpose, and the keyframes engine can RESOLVE/ANIMATE these (`if()` → branch resolution; `@function` → lowering/inlining; `spring()` → kf already owns spring easing via `SpringProgress`/`springTimingFunction`) **today, before browsers catch up.** Those O.W4/O.W5 items are RE-INSTATED as grounded forward-looking grammar+engine support (dispatched to value.js to support proactively; kf engine to resolve). The "SPECULATIVE DEPENDENCY" smell is narrowed accordingly (see the refined clause in the smell-test below).
+
 ## The contrivance skeleton
 
 A speculative-payoff perf/arch claim, justified by a TRANSPLANTED or ASSERTED number, attached to a NON-DEFAULT or NOT-YET-REAL path, carrying NEW abstraction or DUAL maintenance, chartered BEFORE the bottleneck was measured born-RED on the wave’s OWN target path on the SAME report.
+
+**Refined SPECULATIVE-DEPENDENCY clause (per owner correction #2):** the smell is depending on an external PROTOTYPE (bbnf-lang) or a not-yet-shipped SIBLING API for the consumer's OWN fix (e.g. VJ-L1 to unblock O.W7 when kf can self-solve). It is NOT proactively supporting standardized/emerging CSS in a grammar+engine library — leading the platform is the library's purpose, not a contrivance.
 
 ## The reformulation ledger
 

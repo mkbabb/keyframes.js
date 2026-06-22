@@ -43,16 +43,22 @@ the **7-question pre-charter smell-test** IN ITS HEADER before chartering (verba
 (kf SoA/Typed-OM/Playhead; value.js VJ-L1/VJ-P2) is reformulated per that audit (§4/§5 record each
 disposition); the grounded in-realm core survives. This is the discipline this constitution now binds.
 
-**DISPATCH note — the value.js-side contrivances (recorded, NOT edited from kf; inv-16).** The audit
-also flagged value.js-side items for the value.js Tranche P session to reformulate in its OWN tree
-(kf does not edit them — this is a dispatch record only): **O.W4 experimental grammar** (`if()`,
-`@function`, sibling-index/sibling-count, contrast-color) → RE-SCOPE (split O.W4-core from
-O.W4-experimental; the experimental clauses gate on a stable browser baseline); **O.W5 spring()-supersede
-+ @function-lowering** (`lowerCustomFunction`) → DROP (unshipped CSS — no consumer beyond kf-internal);
-**O.W6 byte-loop scanner rewrite + SpanParser harvest** → DEMOTE-TO-SPIKE (keep only the born-RED
-baseline bench S1 + the `proof:perf-target` gate S5; require a same-report MB/s ratio before adopting
-the byte-loop). These are value.js's to land per inv-16; kf records them so the constellation coordination
-is durable.
+**DISPATCH note — value.js Tranche P coordination (recorded, NOT edited from kf; inv-16).** Two
+classes, per the owner corrections (2026-06-22):
+
+- **Novel-CSS grammar support → KEEP + SUPPORT PROACTIVELY (NOT a contrivance).** **O.W4 emerging
+  grammar** (`if()`, `@function`, `sibling-index()`/`sibling-count()`, `contrast-color`) and **O.W5
+  `spring()` + `@function` lowering** (`lowerCustomFunction`) are **grounded forward-looking grammar+engine
+  support** — value.js's remit is to LEAD the CSS platform, and the keyframes engine RESOLVES/ANIMATES
+  these before browsers ship (`if()` → branch resolution; `@function` → lowering/inlining; `spring()` →
+  kf already owns spring easing via `SpringProgress`/`springTimingFunction`). The audit's "unshipped CSS,
+  speculative" flag does NOT apply to a grammar+engine library (see `CONTRIVANCE-AUDIT.md` owner-correction
+  #2). The ASK to value.js P: support these proactively; kf consumes + animates them. No browser-shipping gate.
+- **Perf rewrites → VALIDATE, don't abrogate.** **O.W6 byte-loop scanner rewrite + SpanParser harvest**
+  → run the born-RED baseline bench (S1) + the `proof:perf-target` same-report MB/s ratio FIRST; ADOPT only
+  on a measured win, KILL on a measured loss (the SoA precedent — `scripts/group-soa-decision.json` — is the
+  model: the kf SoA fold was tested and FLIPPED to ADOPT at 3.7×). These are value.js's to land per inv-16;
+  kf records them so the constellation coordination is durable.
 
 ## 2 — The topology (the F5 decision)
 
