@@ -12,6 +12,7 @@
                 class="preserve-3d relative flex items-center justify-center justify-items-center select-none"
                 v-model="transform"
                 :apply-transform-to-container="props.isPlaying || props.isStarted"
+                @pressed-keys="onPressedKeys"
             >
                 <div
                     :class="[
@@ -110,9 +111,28 @@
                 </div>
             </OrbitalDrag>
 
-            <div class="axis-line x"></div>
-            <div class="axis-line y"></div>
-            <div class="axis-line z"></div>
+            <!-- P.W5.S3 EGG — the keyboard axis-lock reveal. OrbitalDrag already
+                 CONSTRAINS rotation to a single axis while X/Y/Z is held, but the
+                 constraint was invisible. Holding the key now lights the matching
+                 axis line: `--axis-active` lifts its opacity + a drop-shadow bloom
+                 in the axis's own color, so the otherwise-hidden single-axis lock
+                 becomes spatially legible. Reads the latch OrbitalDrag already
+                 owns — no new rAF, no new gesture machinery. -->
+            <div
+                class="axis-line x"
+                :class="{ 'axis-line--locked': axisLock.x }"
+                :style="{ '--axis-active': axisLock.x ? 1 : 0 }"
+            ></div>
+            <div
+                class="axis-line y"
+                :class="{ 'axis-line--locked': axisLock.y }"
+                :style="{ '--axis-active': axisLock.y ? 1 : 0 }"
+            ></div>
+            <div
+                class="axis-line z"
+                :class="{ 'axis-line--locked': axisLock.z }"
+                :style="{ '--axis-active': axisLock.z ? 1 : 0 }"
+            ></div>
         </div>
 
         <!-- L.W11.S2 — the live attitude readout: rx/ry/rz Euler degrees in a
@@ -130,12 +150,12 @@
 </template>
 
 <script setup lang="ts">
-import { onScopeDispose, ref, useTemplateRef } from "vue";
+import { onScopeDispose, reactive, ref, useTemplateRef } from "vue";
 import { Loader2 } from "@lucide/vue";
 import type { CSSKeyframesAnimation } from "@mkbabb/keyframes.js";
 import { loadAnimationEngine } from "@mkbabb/keyframes.js";
 import OrbitalDrag from "@components/custom/orbital-drag/OrbitalDrag.vue";
-import type { TransformState } from "@components/custom/orbital-drag";
+import type { PressedKeys, TransformState } from "@components/custom/orbital-drag";
 import { useCubeRelit } from "./useCubeRelit";
 
 const props = defineProps<{
@@ -172,6 +192,20 @@ const cubeSides = [
 // (inv ζ); the crayon hue is untouched (--lit is LUMINANCE only). Colocated unit.
 const { faceLit, euler, spinEnergy, flashRoll, disposeFlash } =
     useCubeRelit(transform);
+
+// ── EASTER EGG — "the axis-lock reveal" (P.W5.S3) ─────────────────────────────
+// Hold X / Y / Z and OrbitalDrag CONSTRAINS the rotation to that single axis —
+// a powerful affordance that was, until now, completely invisible. The latched
+// axis line now LIGHTS UP (--axis-active + a drop-shadow bloom in its own color),
+// making the otherwise-hidden single-axis constraint spatially legible. It reads
+// the `pressedKeys` latch OrbitalDrag already owns (emitted on every toggle) —
+// no new rAF, no new gesture machinery (inv ζ): a threshold + a CSS state flip.
+const axisLock = reactive({ x: false, y: false, z: false });
+const onPressedKeys = (keys: PressedKeys) => {
+    axisLock.x = keys.x;
+    axisLock.y = keys.y;
+    axisLock.z = keys.z;
+};
 
 // S5d (K.W0) — the per-face rainbow-wrapper animation timings were drawn with
 // `Math.random()` INSIDE the inline :style binding, so every render re-rolled the
@@ -262,6 +296,13 @@ onScopeDispose(() => {
 @property --spin-energy {
     syntax: "<number>";
     inherits: true;
+    initial-value: 0;
+}
+/* P.W5.S3 — register --axis-active (0…1) so the axis-lock reveal's opacity +
+   drop-shadow bloom INTERPOLATE cleanly when X/Y/Z is pressed/released. */
+@property --axis-active {
+    syntax: "<number>";
+    inherits: false;
     initial-value: 0;
 }
 
@@ -474,13 +515,33 @@ onScopeDispose(() => {
     width: 1000vw;
     height: 0px;
     border: 1px dashed var(--color);
-    opacity: 0.75;
+    /* P.W5.S3 — at rest the axis lines sit at the 0.75 register; holding the
+       matching X/Y/Z key drives --axis-active → 1, lifting the locked line to
+       full opacity and blooming a drop-shadow in its own axis color, so the
+       single-axis constraint OrbitalDrag enforces becomes spatially legible. */
+    opacity: calc(0.75 + var(--axis-active, 0) * 0.25);
+    filter: drop-shadow(
+        0 0 calc(var(--axis-active, 0) * 6px)
+            color-mix(in srgb, var(--color) calc(var(--axis-active, 0) * 80%), transparent)
+    );
+    /* Smooth the reveal as the key latches/releases (the registered @property
+       lets both channels interpolate). PRM-respecting via the wrapper below. */
+    transition:
+        opacity 180ms var(--ease-standard, ease),
+        --axis-active 180ms var(--ease-standard, ease),
+        filter 180ms var(--ease-standard, ease);
     /* Below the content plane — the demo's named below-stack rung (W3.S2).
        Reconciles the former orphan raw below-plane value to the z-contract
        documented in style.css (--z-behind < --z-content). */
     z-index: var(--z-behind, -10);
     position: absolute;
     pointer-events: none;
+
+    /* While locked, the dashed stroke goes solid — a second, motion-free tell
+       that the axis is the active rotation constraint. */
+    &.axis-line--locked {
+        border-style: solid;
+    }
 
     &.x {
         --color: var(--axis-x);

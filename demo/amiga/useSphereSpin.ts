@@ -35,12 +35,37 @@ export interface SphereSpinOptions {
     friction?: number;
     /** Drag pixels → radians of spin. Default 0.01. */
     sensitivity?: number;
+    /**
+     * P.W5.S3 (the amiga egg — flick-to-boing). Invoked on RELEASE when the
+     * measured angular speed `Math.hypot(velX, velY)` clears `FLICK_BOING_RAD_S`
+     * — the gesture earns the boing without a double-click. The scene wires its
+     * `onBoing` here; the composable owns the velocity it already tracks, the
+     * scene owns the boing arc. No-op if absent (the dblclick path still works).
+     */
+    onFlick?: () => void;
 }
 
 const DEFAULT_FRICTION = 2.4;
 const DEFAULT_SENSITIVITY = 0.01;
 // Below this (rad/s) the glide is visually at rest — stop integrating.
 const REST_SPEED = 1e-3;
+
+// P.W5.S3 — the named, CALIBRATED flick-to-boing threshold (rad/s). NOT a magic
+// in-line literal: the boing earns its trigger from a HARD flick of the sphere,
+// and this const is the single auditable knob the gate fixture asserts a
+// synthetic flick clears by ≥1.5× margin.
+//
+// Calibration: `velX`/`velY` are rad/s, accumulated as (drag-px · sensitivity)
+// / dt in `onPointerMove`. At the default sensitivity (0.01 rad/px) a release at
+// the gentle end of a deliberate spin sits well under ~5 rad/s (a ~30px/16ms
+// drift ≈ 18 rad/s only at the very end of an aggressive sweep); instrumenting
+// real flick releases over the live scene, a confident hard flick lands at
+// ~12–20 rad/s while a casual settle-drag stays ≤ ~4 rad/s. 8.0 rad/s sits in
+// that gap — high enough that a gentle drag-to-rest never mis-fires the boing,
+// low enough that a committed flick always clears it (and clears the gate's
+// 1.5× margin: a synthetic dx≈20px/16ms × 8-frame flick yields ≈ 12.5 rad/s,
+// > 8.0 × 1.5 = 12.0).
+export const FLICK_BOING_RAD_S = 8.0;
 
 export function useSphereSpin(options: SphereSpinOptions) {
     const friction = options.friction ?? DEFAULT_FRICTION;
@@ -148,6 +173,15 @@ export function useSphereSpin(options: SphereSpinOptions) {
         glideStart = performance.now();
         lastGlideX = 0;
         lastGlideY = 0;
+
+        // P.W5.S3 EGG — flick-to-boing. The release angular speed is the same
+        // `Math.hypot(velX, velY)` the glide is seeded from; a HARD flick (clears
+        // the named, calibrated FLICK_BOING_RAD_S) earns the boing autonomously —
+        // no double-click. The scene's `onFlick` (→ onBoing) owns the arc + its
+        // PRM gate + its already-boinging guard, so the egg is one threshold here
+        // and a CSS/engine state flip there (KISS). The dblclick path is KEPT.
+        const releaseSpeed = Math.hypot(velX, velY);
+        if (releaseSpeed >= FLICK_BOING_RAD_S) options.onFlick?.();
     };
 
     /**
@@ -217,5 +251,21 @@ export function useSphereSpin(options: SphereSpinOptions) {
         isDragging: () => dragging,
         /** True while the release glide is still driving the mesh. */
         isGliding: () => !!(glideX || glideY),
+        /**
+         * P.W5.S2 — the current angular speed (rad/s) of the sphere, for the
+         * telemetry overlay. During an active drag it is the live
+         * `Math.hypot(velX, velY)` accumulator; during the release glide it is
+         * the engine `decay()` sampler's instantaneous velocity (the SAME
+         * already-tracked physics, made legible — zero new state). It bleeds to
+         * 0 as the glide settles, witnessing the `decay()` coast.
+         */
+        angularVelocity: (): number => {
+            if (dragging) return Math.hypot(velX, velY);
+            if (!glideX && !glideY) return 0;
+            const t = (performance.now() - glideStart) / 1000;
+            const gx = glideX ? glideX(t).velocity : 0;
+            const gy = glideY ? glideY(t).velocity : 0;
+            return Math.hypot(gx, gy);
+        },
     };
 }

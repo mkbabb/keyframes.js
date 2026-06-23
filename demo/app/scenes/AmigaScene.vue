@@ -38,7 +38,11 @@ import {
     ref,
     useTemplateRef,
 } from "vue";
-import { useIntersectionObserver, useResizeObserver } from "@vueuse/core";
+import {
+    useIntersectionObserver,
+    usePreferredReducedMotion,
+    useResizeObserver,
+} from "@vueuse/core";
 import { RAFPlayback } from "@mkbabb/keyframes.js";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
@@ -141,11 +145,25 @@ const { animationGroup } = useAmigaAnimations(
 // The raycast hit-test routes a sphere-grab to the spin gesture (orbit stands
 // down for its duration) and a background-grab to OrbitControls (disjoint
 // landlords, never racing).
+// P.W5.S3 — reduced-motion gate for the flick-to-boing egg (the same OS-respect
+// the boot egg keeps): a user who asked for less motion gets the spin/glide but
+// NOT the autonomous wall-slam boing arc.
+const prm = usePreferredReducedMotion();
+
 const sphereSpin = useSphereSpin({
     getMesh: () => sphereMesh,
     getCamera: () => camera,
     setOrbitEnabled: (enabled) => {
         if (controls) controls.enabled = enabled;
+    },
+    // P.W5.S3 EGG — flick-to-boing: a hard flick of the sphere (release speed
+    // ≥ FLICK_BOING_RAD_S, measured inside useSphereSpin) earns the boing arc
+    // without a double-click. PRM-gated; `onBoing`'s own `boinging` guard keeps
+    // it from re-firing mid-arc. The dblclick path (the canvas @dblclick) is KEPT
+    // — the flick is purely additive, the discovery earned by gesture.
+    onFlick: () => {
+        if (prm.value === "reduce") return;
+        onBoing();
     },
 });
 

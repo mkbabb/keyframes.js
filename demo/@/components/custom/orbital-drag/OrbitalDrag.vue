@@ -1,6 +1,10 @@
 <template>
     <div ref="containerRef" :style="containerStyle">
-        <slot></slot>
+        <!-- P.W5.S3 — the axis-lock-reveal egg seam: expose `pressedKeys` (the
+             X/Y/Z/modifier latch this component already owns) as a scoped slot
+             prop so the cube can light the locked axis line. Reactive, no new
+             rAF — the same ref the gesture readers mutate. -->
+        <slot :pressed-keys="pointer.pressedKeys.value"></slot>
     </div>
 </template>
 
@@ -10,6 +14,7 @@ import { useEventListener } from "@vueuse/core";
 import { quat, vec3 } from "gl-matrix";
 import { computed, onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
 import type { TransformBounds, TransformState, VelocityState } from ".";
+import type { PressedKeys } from "./types";
 import { axes, defaultTransformBounds, defaultTransformState, defaultVelocityState } from ".";
 import { useOrbitalInertia } from "./composables/useOrbitalInertia";
 import { useOrbitalPinch } from "./composables/useOrbitalPinch";
@@ -29,6 +34,10 @@ const emit = defineEmits<{
     (e: "rotate", state: TransformState["rotate"]): void;
     (e: "translate", state: TransformState["translate"]): void;
     (e: "scale", scale: TransformState["scale"]): void;
+    // P.W5.S3 — the axis-lock-reveal egg: emit the X/Y/Z/modifier latch whenever
+    // it changes so a parent (the cube) can light the locked axis line. Reactive,
+    // no rAF — fired from the keydown/keyup watch over the owned `pressedKeys`.
+    (e: "pressedKeys", keys: PressedKeys): void;
 }>();
 
 const model = defineModel<TransformState>({
@@ -300,6 +309,15 @@ watch(
         if (x === echo.x && y === echo.y && z === echo.z) return;
         rebuildQuaternionFromEuler();
     },
+);
+
+// P.W5.S3 — the axis-lock-reveal egg: surface the X/Y/Z latch to the parent the
+// moment it changes (keydown/keyup mutate `pointer.pressedKeys` in place, so a
+// deep watch catches each toggle). The cube reads this to light the locked axis.
+watch(
+    () => pointer.pressedKeys.value,
+    (keys) => emit("pressedKeys", { ...keys }),
+    { deep: true },
 );
 
 // Dampen velocities on release of drag/touch/wheel + emit deferred rotation

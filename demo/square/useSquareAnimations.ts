@@ -63,7 +63,7 @@ export function useSquareAnimations(
     const transformFunc = (vars: Record<string, any>) => {
         const el = box.value;
         if (!el) return;
-        const { transform, backgroundColor } = vars;
+        const { transform, backgroundColor, tilt, squash } = vars;
         const tx = transform?.x ?? 0;
         const ty = transform?.y ?? 0;
         const scale = transform?.a?.b?.c?.d ?? 1;
@@ -71,7 +71,31 @@ export function useSquareAnimations(
         // no-op), the "tumble" egg sweeps it for a barrel-roll. Composing it into
         // the same custom transform keeps ONE paint authority (no second writer).
         const rotate = transform?.rotate ?? 0;
-        el.style.transform = `translate(${tx}px, ${ty}px) rotate(${rotate}deg) scale(${scale})`;
+        // P.W6 S1(d) — velocity-tilt + directional squash. The box banks into the
+        // pull (a skewX/skewY from the per-axis spring VELOCITY) and squashes along
+        // the drag axis (a non-uniform scale from velocity magnitude). These ride
+        // the SAME transform string (ONE paint authority, no second writer, no
+        // extra rAF — the inv-ζ anti-rAF law). Velocity is the already-tracked
+        // public `springX.velocity`/`springY.velocity` (zero new physics). The
+        // skew is the visible mass: a fast pull leans the chip, a settle un-banks
+        // it — the spring's hidden momentum made legible.
+        const skewX = tilt?.x ?? 0;
+        const skewY = tilt?.y ?? 0;
+        const sx = squash?.x ?? 1;
+        const sy = squash?.y ?? 1;
+        el.style.transform =
+            `translate(${tx}px, ${ty}px) rotate(${rotate}deg) ` +
+            `skew(${skewX.toFixed(3)}deg, ${skewY.toFixed(3)}deg) ` +
+            `scale(${(scale * sx).toFixed(4)}, ${(scale * sy).toFixed(4)})`;
+        // Mirror the bank/squash onto CSS custom properties so the scene can paint
+        // a velocity-reactive affordance off them (and a gate can witness the box
+        // banking) — the transform itself stays the single paint authority.
+        if (tilt) {
+            el.style.setProperty("--spring-tilt", `${Math.hypot(skewX, skewY).toFixed(3)}`);
+        }
+        if (squash) {
+            el.style.setProperty("--spring-squash", `${(Math.abs(sx - 1) + Math.abs(sy - 1)).toFixed(4)}`);
+        }
         if (backgroundColor) el.style.backgroundColor = backgroundColor;
     };
 
@@ -169,12 +193,42 @@ export function useSquareAnimations(
         // so the nested-object structure is genuinely read every frame.
         const defl = Math.min(1, Math.hypot(springX.value, springY.value));
         const spinning = !springSpin.settled;
+        // P.W6 S1(d) — read the ALREADY-tracked per-axis spring velocity (public,
+        // spring.ts:250) and map it to a bank/squash. The skew leans the chip into
+        // the direction of travel (capped so a hard fling never shears it apart);
+        // the squash stretches along the velocity axis and pinches the cross-axis
+        // (volume-preserving-ish), so a fast pull reads as inertial mass. The egg
+        // SPIN suppresses the tilt (a barrel-roll owns its own geometry) so the two
+        // never fight. Zero new physics, zero new rAF — pure derived reads.
+        const TILT_GAIN = 5; // deg per (unit/s); spring velocity ~[-3..3] at a hard pull
+        const TILT_CAP = 9; // deg — the shear ceiling
+        const SQUASH_GAIN = 0.035; // scale delta per (unit/s)
+        const SQUASH_CAP = 0.1;
+        const clampTilt = (v: number) =>
+            spinning ? 0 : Math.max(-TILT_CAP, Math.min(TILT_CAP, v * TILT_GAIN));
+        // The skew banks PERPENDICULAR to each axis's motion (x-velocity skews the
+        // vertical edges, y-velocity skews the horizontal edges) for a coherent lean.
+        const tiltX = clampTilt(springY.velocity);
+        const tiltY = clampTilt(springX.velocity);
+        const sqMag = spinning
+            ? 0
+            : Math.max(
+                  -SQUASH_CAP,
+                  Math.min(SQUASH_CAP, Math.hypot(springX.velocity, springY.velocity) * SQUASH_GAIN),
+              );
+        // Stretch along the dominant velocity axis, pinch the cross-axis.
+        const xDominant = Math.abs(springX.velocity) >= Math.abs(springY.velocity);
         transformFunc({
             transform: {
                 x: springX.value * TRAVEL,
                 y: springY.value * TRAVEL,
                 rotate: springSpin.value,
                 a: { b: { c: { d: 1 + defl * 0.12 } } },
+            },
+            tilt: { x: tiltX, y: tiltY },
+            squash: {
+                x: 1 + (xDominant ? sqMag : -sqMag),
+                y: 1 + (xDominant ? -sqMag : sqMag),
             },
             // Sweep the palette WHILE the egg spin is live (keyed off the angle
             // WITHIN the current turn, so it cycles each tumble); when the spin
@@ -302,6 +356,8 @@ export function useSquareAnimations(
         resolvePaletteSweep();
         transformFunc({
             transform: { x: 0, y: 0, a: { b: { c: { d: 1 } } } },
+            tilt: { x: 0, y: 0 },
+            squash: { x: 1, y: 1 },
         });
         // Seat the instrument layer at rest (the tether hidden, the badge settled).
         onTick?.({ x: springX.value, y: springY.value, settled: true });

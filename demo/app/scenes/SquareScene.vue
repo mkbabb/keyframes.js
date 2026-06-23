@@ -29,19 +29,49 @@
              moment: the small body-mono whisper lifts to the Instrument-Serif
              `text-display` rung — the type IS the affordance, the one audacious
              word on the bold subject (the same display register the other
-             scene titles carry inward). -->
+             scene titles carry inward).
+
+             P.W6 S1(a) — the per-axis 2D-slider-group ARIA contract. A single
+             `role="slider"` with a scalar `aria-valuenow` is a lossy
+             misrepresentation of a 2D drag (a 1D control reporting a blended
+             scalar). Instead the box is the `role="group"` container (the 2D
+             instrument) holding TWO visually-hidden `role="slider"` children, one
+             per axis, each carrying a COMPLETE WCAG 4.1.2 contract
+             (`aria-valuemin="-1"`, `aria-valuemax="1"`, live `:aria-valuenow`
+             tracking `springX.target`/`springY.target`). The box stays the
+             keyboard target (arrow nudges move both axis sliders); the
+             `.focus-ring` idiom (P.W6 S1(b)) gives keyboard focus a visible ring. -->
         <div
             ref="box"
-            class="demo-box palette-sweep-host text-display"
+            class="demo-box palette-sweep-host text-display focus-ring"
             :class="{ 'demo-box--dragging': dragging }"
-            role="slider"
-            aria-label="Drag the box — two springs chase per axis"
-            :aria-valuetext="`x ${springReadout.x}, y ${springReadout.y}`"
+            role="group"
+            aria-label="Drag the box across two axes — a spring chases each axis"
             tabindex="0"
             @pointerdown="onPointerDown"
             @keydown="onKeydown"
             @dblclick="tumble"
         >
+            <span
+                class="sr-only-slider"
+                role="slider"
+                aria-label="Horizontal position"
+                aria-orientation="horizontal"
+                aria-valuemin="-1"
+                aria-valuemax="1"
+                :aria-valuenow="axisNow.x"
+                :aria-valuetext="`x ${springReadout.x}`"
+            />
+            <span
+                class="sr-only-slider"
+                role="slider"
+                aria-label="Vertical position"
+                aria-orientation="vertical"
+                aria-valuemin="-1"
+                aria-valuemax="1"
+                :aria-valuenow="axisNow.y"
+                :aria-valuetext="`y ${springReadout.y}`"
+            />
             drag me
         </div>
     </Card>
@@ -134,6 +164,17 @@ animationGroup.singleTarget = false;
 // on the hot path — read on demand from the markRaw springs).
 const springReadout = reactive({ x: "0.00", y: "0.00" });
 
+// P.W6 S1(a) — the per-axis NUMERIC `aria-valuenow` (each axis slider's WCAG
+// 4.1.2 value). Written beside `springReadout` at the same few-Hz cadence the
+// drag/keyboard events fire (NOT the 60 Hz paint loop), so assistive tech reads
+// the live per-axis target without any hot-path Vue work. Rounded to 2 dp so a
+// screen reader announces a stable value, not float noise.
+const axisNow = reactive({ x: 0, y: 0 });
+const syncAxisNow = () => {
+    axisNow.x = Math.round(springX.target * 100) / 100;
+    axisNow.y = Math.round(springY.target * 100) / 100;
+};
+
 onMounted(() => {
     anim.setTargets(box.value!);
     // Paint the rest pose so the box sits home before any drag (the spring loop
@@ -194,6 +235,7 @@ const { dragging, onPointerDown } = useDragScrub<{ nx: number; ny: number }>({
         reseat(nx, ny);
         springReadout.x = springX.target.toFixed(2);
         springReadout.y = springY.target.toFixed(2);
+        syncAxisNow();
     },
     // Persist on release — leave the springs at their dragged target and let them
     // chase-to-rest THERE (the box stays where released). `settle()` re-arms the
@@ -202,11 +244,63 @@ const { dragging, onPointerDown } = useDragScrub<{ nx: number; ny: number }>({
         settle();
         springReadout.x = springX.target.toFixed(2);
         springReadout.y = springY.target.toFixed(2);
+        syncAxisNow();
     },
+});
+
+// ── EASTER EGG — "the envelope tour" (P.W6, the REVEAL egg) ────────────────
+// Press `c` (corners) on the focused box → the spring tours all four extremes of
+// the [-1,1]² travel field and returns home, REVEALING the bounded coordinate
+// space the instrument field draws (the `x·y ∈ [-1, 1]` legend made physical).
+// Each leg re-seats the SAME springs the drag uses (no second authority, no new
+// rAF) so you see the spring chase each corner with the real banking velocity —
+// the egg teaches the reachable envelope AND the spring's feel at once. Distinct
+// from the double-click tumble (which reveals the colour twin); the two never
+// collide (one is keyboard, one is dblclick). The legs are paced by the spring's
+// own settle, not a fixed timer: each corner waits for the chase to arrive.
+const ENVELOPE_LEGS: ReadonlyArray<[number, number]> = [
+    [1, -1], // top-right
+    [1, 1], // bottom-right
+    [-1, 1], // bottom-left
+    [-1, -1], // top-left
+    [0, 0], // home
+];
+let touring = false;
+let tourTimer: ReturnType<typeof setTimeout> | null = null;
+const tourEnvelope = () => {
+    if (touring) return;
+    touring = true;
+    let i = 0;
+    const step = () => {
+        if (i >= ENVELOPE_LEGS.length) {
+            touring = false;
+            tourTimer = null;
+            return;
+        }
+        const [nx, ny] = ENVELOPE_LEGS[i]!;
+        i += 1;
+        reseat(nx, ny);
+        springReadout.x = nx.toFixed(2);
+        springReadout.y = ny.toFixed(2);
+        syncAxisNow();
+        // Pace each leg by the spring's own travel time (the snappy 0.32 response
+        // settles well under 520ms) — a hold long enough to SEE the corner before
+        // the next leg, but no hand-rolled rAF (the spring loop paints).
+        tourTimer = setTimeout(step, 520);
+    };
+    step();
+};
+onBeforeUnmount(() => {
+    if (tourTimer) clearTimeout(tourTimer);
 });
 
 // Keyboard nudge (slider posture parity with Spring/MotionPath).
 const onKeydown = (e: KeyboardEvent) => {
+    if (e.key === "c" || e.key === "C") {
+        e.preventDefault();
+        tourEnvelope();
+        return;
+    }
     const step = 0.25;
     let dx = 0;
     let dy = 0;
@@ -219,6 +313,7 @@ const onKeydown = (e: KeyboardEvent) => {
         reseat(0, 0);
         springReadout.x = "0.00";
         springReadout.y = "0.00";
+        syncAxisNow();
         return;
     } else return;
     e.preventDefault();
@@ -227,6 +322,7 @@ const onKeydown = (e: KeyboardEvent) => {
     reseat(nx, ny);
     springReadout.x = nx.toFixed(2);
     springReadout.y = ny.toFixed(2);
+    syncAxisNow();
 };
 
 defineExpose({
@@ -256,6 +352,22 @@ defineExpose({
 /* The instrument layer (field · tether · telemetry · legend) is styled inside
    the colocated SquareInstrument sub-unit (markup + styles together). This scene
    keeps only the subject (the box) + the stage's palette-sweep bloom. */
+
+/* P.W6 S1(a) — the per-axis sliders are SEMANTIC-only (the visible affordance is
+   the box itself + its instrument layer). Visually hidden but present for AT,
+   the canonical sr-only clip pattern (no layout footprint, focusable-exempt —
+   they carry no tabindex; the box is the single keyboard target). */
+.sr-only-slider {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
 
 .demo-box {
     display: flex;
@@ -306,11 +418,51 @@ defineExpose({
         0 0 0 0.5rem color-mix(in srgb, var(--color-progress) 12%, transparent);
 }
 
+/* P.W6 S1(d) — the dragging shadow now also intensifies with the live velocity
+   BANK: the box paints `--spring-tilt` (the skew magnitude) onto itself from the
+   spring loop, and the motion-authority edge ring brightens with it — a fast
+   pull READS as kinetic energy at the edge (the spring's velocity surfaced as
+   light, not just geometry). `--spring-tilt` defaults to 0 (a flat box glows the
+   base 22%). */
 .demo-box--dragging {
     cursor: grabbing;
+    --tilt-glow: calc(var(--spring-tilt, 0) * 1.4%);
     box-shadow:
         inset 0 1px 0 color-mix(in srgb, white 28%, transparent),
-        0 0 0 0.5rem color-mix(in srgb, var(--color-progress) 22%, transparent);
+        0 0 0 0.5rem
+            color-mix(
+                in srgb,
+                var(--color-progress) calc(22% + var(--tilt-glow)),
+                transparent
+            );
+}
+
+/* P.W6 S1(d) — the grab-pulse "capture confirmed" ring. A one-shot expanding
+   ring fires from the box edge the instant a drag begins (the `--dragging` class
+   flips the `::before` into existence, and `@starting-style` transitions it from
+   a tight, opaque ring to a wide, faded one — a single tactile thunk, zero JS,
+   one transition). The ring is the red motion-authority hue (the same the
+   deflection aura uses). Pointer-events:none so it never steals the gesture.
+   On browsers without @starting-style the ::before simply renders at its end
+   state (invisible) — it degrades to no-pulse, never a broken layout. */
+.demo-box--dragging::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: var(--z-behind, -1);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-progress) 55%, transparent);
+    opacity: 0;
+    transition:
+        box-shadow var(--duration-slow, 420ms) var(--ease-out, ease-out),
+        opacity var(--duration-slow, 420ms) var(--ease-out, ease-out);
+}
+@starting-style {
+    .demo-box--dragging::before {
+        box-shadow: 0 0 0 0.15rem color-mix(in srgb, var(--color-progress) 80%, transparent);
+        opacity: 0.9;
+    }
 }
 
 /* ── L.W11 S4 — the palette-sweep BLOOM (the tumble egg's landing thunk) ──
@@ -334,6 +486,12 @@ defineExpose({
     .demo-box:hover,
     .demo-box--dragging {
         transition: none;
+    }
+    /* PRM — drop the grab-pulse entry transition (the ring is decorative; the
+       box still banks + captures, only the expanding pulse is suppressed). */
+    .demo-box--dragging::before {
+        transition: none;
+        opacity: 0;
     }
     .demo-box[data-palette-sweep] {
         /* Drop the decorative bloom under reduced motion (the tumble + colour

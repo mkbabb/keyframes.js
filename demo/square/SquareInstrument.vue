@@ -38,6 +38,13 @@
             v-if="tumbleHintShown"
             class="text-mono-caption text-muted-foreground square-legend-hint"
         >double-click to tumble</span>
+        <!-- P.W6 — the envelope-tour egg's discoverability whisper (revealed on
+             the same first-settle disclosure as the tumble hint). Focus the box,
+             press C → the spring tours the [-1,1]² travel envelope. -->
+        <span
+            v-if="tumbleHintShown"
+            class="text-mono-caption text-muted-foreground square-legend-hint"
+        >press C to trace the field</span>
     </div>
 </template>
 
