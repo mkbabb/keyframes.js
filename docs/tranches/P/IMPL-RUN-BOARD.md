@@ -20,9 +20,10 @@
 ## Last-completed leg
 **Phase 1 ✅ (parse-that 0.12.0 published) · Phase 2 ✅ (value.js 1.1.0 published) · Phase 3a IN PROGRESS.**
 kf pins bumped to value.js ^1.1.0 + parse-that ^0.12.0, installed, baseline GREEN (891 tests, tsc clean).
-**Phase 3a Batch 1 (workflow, 3 Opus lanes) running:** L1 utils.ts (S9 parseCSSSubValue consume + drop parse-that dep + S8 WeakMap FN_NAME + P.W3 _styleOut), L2 group.ts (P.W2 SoA Float64 compositor), L3 compile-pipeline (P.W13 resolve-values.ts if/spring NOW + P.W9 NaN-frame cure).
-NEXT: integrate+verify Batch 1 (tsc + 891 tests + new gates) → Batch 2 (O.W6 fromMorphSVG · P.W1 apparatus+O.W8 · O.W9 no-legacy) → Phase 3b demo fleet → build+deploy.
-SCOPE NOTE: O.W7 engine.ts split DEFERRED (risky internal re-org, no deploy/perf benefit; O.W9 alias-drop kept per no-legacy). VJ-CSS3 contrast-color + if() multibranch deferred to value.js follow-up.
+**Phase 3a Batch 1 ✅ DONE + committed (495484a):** S9 parseCSSSubValue consume (parse-that dep REMOVED — acyclic spine restored) + S8 WeakMap (realm-clean, proof:no-foreign-symbol-stamp) + P.W3 _styleOut; P.W2 SoA compositor (ADOPT, add 2.54×/weighted 2.35× on the real path, bit-identical); P.W13 emerging-CSS resolve-values.ts (if/spring NOW). tsc clean, 899 tests, 3 new gates GREEN.
+**Phase 3a Batch 2 (workflow, 2 lanes) running:** L4 O.W6 fromMorphSVG over value.js PathGeometry; L5 P.W1 apparatus-lite (classify sync-step bench + portable-perf-gate helper).
+NEXT: integrate Batch 2 → Phase 3b demo fleet (P.W5/W6 heatmap/W7/W8) → kf lib build + publish (5.0.0/5.1.x) → Cloudflare deploy.
+**DEFERRED (noted follow-ups, not deploy-critical):** P.W9 NaN-frame (needs deferred-resolution cure, not parse-throw — restored tranche-L behavior); O.W7 engine.ts split (risky re-org); O.W9 @deprecated-alias drop + 22-consumer migration (churny); eslint/dep-cruiser lint-tier (P.W1 S1); P.W10 leaves.ts externalize; P.W12 dock (glass-ui consume); VJ-CSS3 contrast-color + if() multibranch (value.js follow-up).
 
 ---
 ### (historical) Phase 1 parse-that B detail:

@@ -243,7 +243,7 @@ anim.setTargets(element);
 await anim.play();
 ```
 
-The engine surface (`AnimationEngine`): `Animation`, `CSSKeyframesAnimation`, `AnimationGroup`, `getAnimationId`, `getTimingFunction`, `resolveKeyframes`, `animate`, `MotionPath`/`fromMotionPath`, `DrawSVG`/`fromDrawSVG`, `presets`, and the option constants `DIRECTIONS`, `FILL_MODES`, `defaultOptions`, `defaultLayerConfig`. The **type** surface stays on the static barrel — `import type { Animation } from "@mkbabb/keyframes.js"` costs no runtime edge.
+The engine surface (`AnimationEngine`): `Animation`, `CSSKeyframesAnimation`, `AnimationGroup`, `getAnimationId`, `getTimingFunction`, `resolveKeyframes`, `animate`, `MotionPath`/`fromMotionPath`, `DrawSVG`/`fromDrawSVG`, `MorphSVG`/`fromMorphSVG`, `presets`, and the option constants `DIRECTIONS`, `FILL_MODES`, `defaultOptions`, `defaultLayerConfig`. The **type** surface stays on the static barrel — `import type { Animation } from "@mkbabb/keyframes.js"` costs no runtime edge.
 
 ### `animate`
 
@@ -299,6 +299,23 @@ new DrawSVG(pathEl, { autoPlay: false }); // class form; `.finished` resolves on
 ```
 
 Options: `from`/`to` (`"0%"`–`"100%"` strings or `0`–`1` numbers; default draw-in `0% → 100%`), `autoPlay`, plus every `AnimationOptions` key. The target must be SVG geometry (`<path>`, `<line>`, `<circle>`, …) exposing `getTotalLength()`.
+
+### `MorphSVG`
+
+Path-shape morphing — interpolate one SVG path `d` into another. value.js's `PathGeometry` owns the geometry (arc-length sampling via `getTotalLength()`/`getPointAtLength()`); keyframes samples both paths at `samples` uniform points and lerps the matched point sets, so the engine's native numeric interpolation *is* the morph (a true blend — the midpoint is distinct from both endpoints, not a cross-fade).
+
+```ts
+const { fromMorphSVG, MorphSVG } = await loadAnimationEngine();
+
+// Morph a triangle into a square over 600ms:
+const morph = new MorphSVG("M0,0 L10,0 L5,10 Z", "M0,0 L10,0 L10,10 L0,10 Z", {
+    samples: 64,
+    duration: 600,
+});
+const dAtMid = morph.sampleD(0.5); // the interpolated `d` at t = 0.5
+```
+
+Options: `samples` (point count per path; default `64`), plus every `AnimationOptions` key. Both inputs must be non-degenerate path `d` strings (non-zero arc length, ≥ 2 samples) — a degenerate input refuses with a typed `AnimationOptionError`. `MorphSVG.sampleD(t)` reassembles the morphed `d` at any `t`; the per-point coordinates also surface as `--morph-{i}-x`/`--morph-{i}-y` custom properties for direct CSS binding.
 
 ## `CSSKeyframesAnimation`
 

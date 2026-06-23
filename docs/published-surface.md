@@ -74,6 +74,8 @@ parser and `@mkbabb/value.js`; one dynamic import, cached thereafter
 | `fromMotionPath`        | HEAVY | [README §MotionPath](../README.md#motionpath)                                                                                                              |
 | `DrawSVG`               | HEAVY | [README §DrawSVG](../README.md#drawsvg)                                                                                                                    |
 | `fromDrawSVG`           | HEAVY | [README §DrawSVG](../README.md#drawsvg)                                                                                                                    |
+| `MorphSVG`              | HEAVY | [README §MorphSVG](../README.md#morphsvg)                                                                                                                  |
+| `fromMorphSVG`          | HEAVY | [README §MorphSVG](../README.md#morphsvg)                                                                                                                  |
 | `presets`               | HEAVY | [README §Presets](../README.md#presets)                                                                                                                    |
 | `getAnimationId`        | HEAVY | [README §The dynamic engine](../README.md#the-dynamic-engine--loadanimationengine) — stable string id for an `Animation` (or passthrough)                  |
 | `getTimingFunction`     | HEAVY | [README §The dynamic engine](../README.md#the-dynamic-engine--loadanimationengine) — easing name/literal → `TimingFunction` (the value.js registry lookup) |
@@ -210,3 +212,5 @@ export below must carry a disposition row whose cited test file EXISTS.
 | `Draggable`   | PATH B — no live-session scene | `test/drag.test.ts` (unit, vitest/jsdom)                                                           |
 | `DrawSVG`     | PATH B — no live-session scene | `test/draw-svg.test.ts` (unit) + `proof:drawsvg` (JSDOM hygiene gate, `scripts/proof-drawsvg.mjs`) |
 | `fromDrawSVG` | PATH B — no live-session scene | `test/draw-svg.test.ts` (unit) + `proof:drawsvg` (JSDOM hygiene gate, `scripts/proof-drawsvg.mjs`) |
+| `MorphSVG`     | PATH B — no live-session scene | `test/morph-svg.test.ts` (unit) + `proof:morphsvg-consume` (JSDOM hygiene gate, `scripts/proof-morphsvg-consume.mjs`) |
+| `fromMorphSVG` | PATH B — no live-session scene | `test/morph-svg.test.ts` (unit) + `proof:morphsvg-consume` (JSDOM hygiene gate, `scripts/proof-morphsvg-consume.mjs`) |

@@ -140,6 +140,14 @@ export type { MotionPathOptions, OffsetPath } from "./motion-path";
 // CSS-native DrawSVG (G.W13) — HEAVY (composes the engine); the runtime rides
 // loadAnimationEngine below. Its option/target types are erased here.
 export type { DrawSVGOptions, SVGDrawTarget } from "./draw-svg";
+// MorphSVG (O.W6, the DM-3 7-tranche chronic terminal) — HEAVY (composes the
+// engine + value.js's PathGeometry, the ONE geometry edge it needs); the runtime
+// `fromMorphSVG`/`MorphSVG` ride loadAnimationEngine below. ONLY its option/point
+// TYPES are re-exported here (erased — no static value.js edge on the LIGHT
+// barrel; proof:boundary stays green). The barrel NEVER static-value-exports
+// fromMorphSVG/MorphSVG — that would pull PathGeometry (value.js) onto the light
+// path.
+export type { MorphSVGOptions, MorphPoint } from "./morph-svg";
 // K.W8 INGEST (FLAGGED ADDITIVE EDIT) — the round-trip pointed FORWARD at the
 // live web. `fromStyleSheets`/`fromLiveAnimations`/`resolveLiveKeyframes`/
 // `adoptRunning` walk the CSSOM + take over a running CSS animation; ingest.ts

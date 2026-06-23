@@ -37,6 +37,15 @@ import type {
     DrawSVG as DrawSVGClass,
     fromDrawSVG as fromDrawSVGImpl,
 } from "./draw-svg";
+// O.W6 MORPHSVG (the DM-3 7-tranche chronic terminal) — the HEAVY path-shape
+// morph runtime surface, merged onto the engine below. `morph-svg.ts` constructs
+// CSSKeyframesAnimation AND imports value.js's PathGeometry (the ONE geometry
+// edge it legitimately needs), so it rides the dynamic boundary, never the LIGHT
+// static barrel.
+import type {
+    MorphSVG as MorphSVGClass,
+    fromMorphSVG as fromMorphSVGImpl,
+} from "./morph-svg";
 // K.W8 INGEST (FLAGGED ADDITIVE EDIT) — the HEAVY ingest runtime surface, merged
 // onto the engine below (ingest.ts statically imports the engine + adapter, so
 // it rides the dynamic boundary, never the LIGHT static barrel).
@@ -135,6 +144,14 @@ export interface AnimationEngine {
     /** CSS-native DrawSVG (G.W13) — stroke-dashoffset sweep over the path length. */
     DrawSVG: typeof DrawSVGClass;
     fromDrawSVG: typeof fromDrawSVGImpl;
+    /**
+     * MorphSVG (O.W6, the DM-3 7-tranche chronic terminal) — SVG path-shape
+     * morphing over value.js's `PathGeometry`. Samples two `d` strings at
+     * `samples` uniform arc-length steps, pairs the points, and interpolates the
+     * `(x, y)` pairs across `t`; `MorphSVG.sampleD(t)` reads the morphed `d`.
+     */
+    MorphSVG: typeof MorphSVGClass;
+    fromMorphSVG: typeof fromMorphSVGImpl;
     /**
      * The preset library (`fadeIn`, `bounce`, `shake`, …) — heavy (each returns
      * a `CSSKeyframesAnimation`), so it rides the dynamic boundary as a namespace
@@ -421,6 +438,12 @@ export const loadAnimationEngine = (): Promise<AnimationEngine> =>
         import("./animate"),
         import("./motion-path"),
         import("./draw-svg"),
+        // O.W6 MORPHSVG (the DM-3 7-tranche chronic terminal) — the morph-svg
+        // module constructs CSSKeyframesAnimation AND imports value.js's
+        // PathGeometry; merged here so consumers reach the path-shape morph the
+        // same way as the rest of the heavy surface. Rides the dynamic boundary,
+        // never the LIGHT static barrel.
+        import("./morph-svg"),
         // K.W8 INGEST (FLAGGED ADDITIVE) — the ingest module statically imports
         // the engine + adapter (value.js-bearing); merged here so consumers
         // reach the CSSOM walk + takeover the same way as the rest of the heavy
@@ -459,6 +482,7 @@ export const loadAnimationEngine = (): Promise<AnimationEngine> =>
             animateMod,
             motionMod,
             drawMod,
+            morphMod,
             ingestMod,
             scrollMod,
             compileMod,
@@ -475,6 +499,8 @@ export const loadAnimationEngine = (): Promise<AnimationEngine> =>
                     fromMotionPath: motionMod.fromMotionPath,
                     DrawSVG: drawMod.DrawSVG,
                     fromDrawSVG: drawMod.fromDrawSVG,
+                    MorphSVG: morphMod.MorphSVG,
+                    fromMorphSVG: morphMod.fromMorphSVG,
                     fromStyleSheets: ingestMod.fromStyleSheets,
                     fromLiveAnimations: ingestMod.fromLiveAnimations,
                     resolveLiveKeyframes: ingestMod.resolveLiveKeyframes,

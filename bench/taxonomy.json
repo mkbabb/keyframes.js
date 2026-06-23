@@ -1,6 +1,8 @@
 {
     "$comment": [
         "bench/taxonomy.json — the BUDGETED bench manifest (L.W7 S6, Lane 33, audit ⚠34).",
+        "Extended at P.W1 S2 to cover the compositor-SoA frontier + the sync-step",
+        "run-check suite + the color2Into cross-repo dispatch.",
         "",
         "proof:bench-runs is a RUN-CHECK: a bench runs, a positive `hz` is emitted, no",
         "budget is asserted (a 2x regression prints a slower number and the gate stays",
@@ -28,7 +30,23 @@
         "BORN-RED today: proof:bench-taxonomy does not exist (no script, no package.json",
         "entry) and this manifest's `budgeted` cases name bench arms that L.W7's cures have",
         "not shipped yet (warmEngine pre-resolve). The gate RED-s until the script + manifest",
-        "+ the named budgeted bench arms all exist."
+        "+ the named budgeted bench arms all exist.",
+        "",
+        "P.W1 S2 additions:",
+        "  sync-step (run-check)     — 4 existing cases in bench/sync-step.bench.ts that",
+        "                              ran but were UNCLASSIFIED, invisible to the coverage",
+        "                              gate (the real gap the FULL-LOOP-LEDGER identified).",
+        "  group-composite (budgeted) — the compositor-SoA frontier: add/weighted SoA vs",
+        "                              boxed at K=3/8/12, replace arm dispatch-free baseline.",
+        "                              The SoA-vs-boxed ratio at K=8 is the ADOPT/KILL gate",
+        "                              (proof:soa-composite); the per-arm ratio is same-report",
+        "                              (device-INDEPENDENT by construction). The replace arm",
+        "                              benches are observe-only (dispatch-free; nothing to fold).",
+        "  color2Into cross-repo      — the value.js-P gamut zero-alloc ask (VJ-P1); added to",
+        "                              crossRepo[] tracking the dispatch. Born pendingBudgeted",
+        "                              (no kf bench file yet — awaiting value.js-P re-pin).",
+        "                              NOTE: no codegen-parse scenario class — P.W4 is a",
+        "                              RETIRED TOMBSTONE (owner directive 2026-06-22)."
     ],
     "version": 1,
     "suites": [
@@ -36,7 +54,9 @@
         "bench/parser.bench.ts",
         "bench/interp-buffer.bench.ts",
         "bench/compile.bench.ts",
-        "bench/spring-tick.bench.ts"
+        "bench/spring-tick.bench.ts",
+        "bench/sync-step.bench.ts",
+        "bench/group-composite.bench.ts"
     ],
     "cases": [
         {
@@ -258,6 +278,120 @@
             "category": "budgeted",
             "floorHz": 1000,
             "$note": "L.W7 S1/S6 — the warmEngine pre-resolve case. After warmEngine() fires its idle import (module-load fire-and-forget), the first await loadAnimationEngine() resolves against the already-settled `_enginePromise` — a sub-millisecond microtask, no second import. floorHz 1000 = a 1ms resolve floor (device-independent: a memoized microtask resolve is far under 1ms on any runner; the budgeted arm is observe-only in CI so a slow runner never reds it). SHIPPED at S1 (warmEngine + the memoization) + S6 (this arm); was the born-RED pendingBudgeted witness until both landed."
+        },
+        {
+            "suite": "bench/sync-step.bench.ts",
+            "name": "drive(SmoothProgress) · 600-frame window",
+            "category": "run-check",
+            "$note": "P.W1 S2 — RAFPlayback loop-core dispatch (sync drive stepper). Previously unclassified (the suite ran + exited 0 but was invisible to the coverage gate). Measures the promise+microtask loop-core cost for a SmoothProgress tickDt over 600 stub-rAF frames. No budget asserted — this is a correctness/coverage run-check; wall-clock magnitude is observe-only."
+        },
+        {
+            "suite": "bench/sync-step.bench.ts",
+            "name": "drive(SpringProgress) · 600-frame window",
+            "category": "run-check",
+            "$note": "P.W1 S2 — RAFPlayback loop-core dispatch (sync drive stepper). SpringProgress variant of the loop-core cost measurement. No budget asserted."
+        },
+        {
+            "suite": "bench/sync-step.bench.ts",
+            "name": "play(Animation · K=8 transform) · 600-frame window",
+            "category": "run-check",
+            "$note": "P.W1 S2 — Animation/group advanceTo loop-core (J.W6 S1 / FB-2). The K=8 transform (translate3d+scale3d+rotate+opacity) steady-state 600-frame window: measures per-frame loop-core + advance + interp cost. No budget asserted."
+        },
+        {
+            "suite": "bench/sync-step.bench.ts",
+            "name": "play(AnimationGroup · 32 cells · K=8) · 600-frame window",
+            "category": "run-check",
+            "$note": "P.W1 S2 — Animation/group advanceTo loop-core (J.W6 S1 / FB-2). The 32-cell AnimationGroup (YIELD_BATCH=32 fast-path boundary) steady-state window. No budget asserted."
+        },
+        {
+            "suite": "bench/group-composite.bench.ts",
+            "name": "replace · K=3",
+            "category": "observe-only",
+            "$note": "P.W1 S2 / compositor-SoA. The DEFAULT replace arm is dispatch-free — a bare reference-assign. Benched to CONFIRM the SoA fold has nothing to win here. observe-only (the replace arm is untouched by the SoA fold; proof:soa-composite reads the add/weighted SoA-vs-boxed ratio, not replace)."
+        },
+        {
+            "suite": "bench/group-composite.bench.ts",
+            "name": "replace · K=8",
+            "category": "observe-only",
+            "$note": "P.W1 S2 / compositor-SoA. Replace arm baseline at K=8 — dispatch-free reference-assign."
+        },
+        {
+            "suite": "bench/group-composite.bench.ts",
+            "name": "replace · K=12",
+            "category": "observe-only",
+            "$note": "P.W1 S2 / compositor-SoA. Replace arm baseline at K=12 — dispatch-free reference-assign."
+        },
+        {
+            "suite": "bench/group-composite.bench.ts",
+            "name": "add boxed · K=3",
+            "category": "observe-only",
+            "$note": "P.W1 S2 / compositor-SoA. Boxed AoS per-element add blend baseline at K=3 (the arm the SoA fold replaces). observe-only — the SoA-vs-boxed ratio at K=8 is the ADOPT/KILL gate; K=3 and K=12 arms record context."
+        },
+        {
+            "suite": "bench/group-composite.bench.ts",
+            "name": "add SoA · K=3",
+            "category": "observe-only",
+            "$note": "P.W1 S2 / compositor-SoA. SoA Float64Array fold add arm at K=3. observe-only — ADOPT/KILL decision is at K=8."
+        },
+        {
+            "suite": "bench/group-composite.bench.ts",
+            "name": "add boxed · K=8",
+            "category": "observe-only",
+            "$note": "P.W1 S2 / compositor-SoA. Boxed AoS add blend baseline at K=8 — the denominator of the proof:soa-composite ADOPT/KILL ratio. observe-only in the taxonomy (the ratio gate proof:soa-composite owns the HARD predicate)."
+        },
+        {
+            "suite": "bench/group-composite.bench.ts",
+            "name": "add SoA · K=8",
+            "category": "observe-only",
+            "$note": "P.W1 S2 / compositor-SoA. SoA fold add arm at K=8 — the numerator of the proof:soa-composite ADOPT/KILL ratio. observe-only in the taxonomy (proof:soa-composite owns the HARD same-report ratio predicate)."
+        },
+        {
+            "suite": "bench/group-composite.bench.ts",
+            "name": "add boxed · K=12",
+            "category": "observe-only",
+            "$note": "P.W1 S2 / compositor-SoA. Boxed AoS add blend at K=12. observe-only."
+        },
+        {
+            "suite": "bench/group-composite.bench.ts",
+            "name": "add SoA · K=12",
+            "category": "observe-only",
+            "$note": "P.W1 S2 / compositor-SoA. SoA fold add arm at K=12. observe-only."
+        },
+        {
+            "suite": "bench/group-composite.bench.ts",
+            "name": "weighted boxed · K=3",
+            "category": "observe-only",
+            "$note": "P.W1 S2 / compositor-SoA. Boxed AoS weighted blend baseline at K=3. observe-only."
+        },
+        {
+            "suite": "bench/group-composite.bench.ts",
+            "name": "weighted SoA · K=3",
+            "category": "observe-only",
+            "$note": "P.W1 S2 / compositor-SoA. SoA fold weighted arm at K=3. observe-only."
+        },
+        {
+            "suite": "bench/group-composite.bench.ts",
+            "name": "weighted boxed · K=8",
+            "category": "observe-only",
+            "$note": "P.W1 S2 / compositor-SoA. Boxed AoS weighted blend baseline at K=8 — denominator of the proof:soa-composite weighted-arm ratio. observe-only in taxonomy."
+        },
+        {
+            "suite": "bench/group-composite.bench.ts",
+            "name": "weighted SoA · K=8",
+            "category": "observe-only",
+            "$note": "P.W1 S2 / compositor-SoA. SoA fold weighted arm at K=8 — numerator of the proof:soa-composite weighted-arm ratio. observe-only in taxonomy."
+        },
+        {
+            "suite": "bench/group-composite.bench.ts",
+            "name": "weighted boxed · K=12",
+            "category": "observe-only",
+            "$note": "P.W1 S2 / compositor-SoA. Boxed AoS weighted blend at K=12. observe-only."
+        },
+        {
+            "suite": "bench/group-composite.bench.ts",
+            "name": "weighted SoA · K=12",
+            "category": "observe-only",
+            "$note": "P.W1 S2 / compositor-SoA. SoA fold weighted arm at K=12. observe-only."
         }
     ],
     "pendingBudgeted": [],
@@ -309,6 +443,13 @@
             "ask": "intra-bucket dispatch refinement + scale() constant-range fast paths (W85)",
             "valueJsSeam": "value.js/src/color/dispatch.ts",
             "doc": "KF-TO-VALUEJS-O-ASKS.md"
+        },
+        {
+            "id": "VJ-P1",
+            "ask": "color2Into zero-alloc gamut mapping (the ~84 → <12 allocs/call claim — AUDIT-DIGEST.md V1-N1)",
+            "valueJsSeam": "value.js/src/color/dispatch.ts (gamutMapToRgbSpace, the zero-alloc color2Into path)",
+            "doc": "KF-TO-VALUEJS-P.md",
+            "$note": "P.W1 S2 cross-repo tracking — the value.js-P gamut bisection zero-alloc ask. No kf bench file exists yet (born pendingBudgeted in the frontier sense: the crossRepo[] entry tracks the dispatch; a bench/color-interp.bench.ts densify-COMPILE arm is proposed, not shipped — awaiting value.js-P re-pin). The taxonomy tracks the cross-repo frontier without waiting on the sibling publish (O.W8 crossRepo discipline)."
         }
     ]
 }
