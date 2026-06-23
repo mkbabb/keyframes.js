@@ -21,7 +21,16 @@
 - ✅ **parse-that 0.12.0** published · ✅ **value.js 1.1.0** published · ✅ **keyframes 4.4.0** published
 - ✅ **keyframes.babb.dev REDEPLOYED + verified** — HTTP 200 serving `index-e9_Uza8v.js` (the exact deployed hash); CF Pages deploy `4c2c10e4`, project `keyframes`.
 - Honest semver: kf shipped **4.4.0** (MINOR — additive MorphSVG/emerging-CSS + internal SoA/WeakMap/_styleOut/S9; the planned 5.0.0 awaits the deferred O.W9 breaking alias-drops).
-- REMAINING (enhancement, not blocking): spring heatmap (in progress) → redeploy. Then the honest deferred-follow-ups list below.
+- ✅ **Spring heatmap LIVE** (closed-form 272–507×) + ✅ **demo-fleet polish LIVE** (cube axis-lock reveal, amiga flick-to-boing, square ARIA+velocity-tilt+envelope-tour, easing curve-physics readout + name-that-curve) — redeployed, `index-DwKmrGBp.js` serving HTTP 200, hash-verified.
+- **DRIVE COMPLETE.** All 4 phases shipped + verified + live. Retry cron retired.
+
+**HONEST DEFERRED FOLLOW-UPS (require owner direction, NOT autonomous):**
+- **O.W9 no-legacy → 5.0.0** — drop the @deprecated `Animation`/`ScrollTimeline` aliases + migrate 22 demo consumers. This is a BREAKING major; warrants owner review before publishing 5.0.0 (4.4.0 shipped the additive/internal work).
+- **P.W9 NaN-frame** — the proper cure is deferred-resolution + a PLAY-time guard (not the reverted parse-throw); a moderate frame/play-pipeline change.
+- **P.W12 dock + glass-ui aria** — cross-repo (needs glass-ui BC state).
+- **value.js VJ-CSS3 contrast-color() + if() multibranch** — a new value.js patch (1.1.1/1.2.0).
+- **Demo: P.W7 DemoControlPoint chain (gated on a library drag2D LIGHT export), P.W8 N-Stage switcher + the unbuilt mobile** — bigger demo builds.
+- **O.W7 engine.ts split, P.W1 eslint tier, P.W10 leaves.ts externalize** — internal cleanliness/infra.
 
 ## Last-completed leg
 **Phase 1 ✅ (parse-that 0.12.0 published) · Phase 2 ✅ (value.js 1.1.0 published) · Phase 3a IN PROGRESS.**
