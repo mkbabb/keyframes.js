@@ -1,0 +1,225 @@
+# Q.WZ — Close + the 5.0.0/5.1.x cut (the terminal tranche close · the live-byte deploy oracle · the P-inv-28 ledger terminated)
+
+**Band:** Z — Close + the 5.0.0/5.1.x cut (the LAST wave — author the gates + the close docs NOW; the two version cuts + the two npm publishes are USER-DOMAIN — Mike Babb fires the tags).
+**Phase:** NOW-author · USER-DOMAIN publish.
+**Sequence (DAG edges):** `Q.WA3 master-merge-reconcile (the FIRST motion, all 3 repos → master)` → *all Q bands at terminal disposition* → **Q.WZ close**. Specifically (Q.md §3 spine): `Q.WE1 alias-drop ─► Q.WF1 engine.ts split (splits a CLEAN class) ─► Q.WZ 5.0.0 cut`; and `Q.WG1 parse-that 0.13.0 ─► Q.WG2 value.js 1.2.0 ─► Q.WG4 kf GATED consumes ─► Q.WZ 5.1.x cut`; and `glass-ui BC publish (Q.WG3, USER-DOMAIN) ─► kf S1/S2 delete (GATED) ──► Q.WZ`. The two cuts are SEQUENCED: `5.0.0 (BREAKING — alias drop) → 5.1.x (additive — perf + demo + emerging-CSS-P2 consuming value.js 1.2.0)`.
+**Owning-DM-or-idea:** **DM-2 DemoControlPoint** (the NINTH carry — MANDATORY exit, the worst P-inv-28 violation in the constellation; built at Q.WC1, dogfooded Q.WC2 — the close RECORDS it cleared); **DM-7 keyframes-vue** (the P-inv-28 belt CROSSED into a 5th carry — USER-DOMAIN publish runbook + a gate, MANDATORY exit HERE, no 6th carry); **DM-16** (the 5.0.0 cut, 4-tranche USER-DOMAIN); **DM-20** (deploy round-trip re-observed, USER-DOMAIN); the `proof:chronic-closure` substrate re-point (3-tranche-stale at `L/PROGRESS.md` — the M.WZ/O.WZ/P.WZ re-points ALL skipped; the atomic L→Q final motion lands HERE); the VERIFY-ONLY/RE-AFFIRM roster (DM-8…DM-15) re-verified on the Q dist. Audit substrate: **B3-chronic-ledger** (the deceptive-ledger sweep), **B4-prompt-recap** (the two DROPPED obligations folded), **B7-honesty-record** (the triple-stale pointer), **B6-dag-ordering** (the close sits downstream of every band).
+
+---
+
+## Context
+
+Q.WZ is the terminal tranche close — and it is unlike any prior `*.WZ`, because Q is the **no-deferral terminal tranche**: the close criterion is not "the bands that landed are green" but "**every Q wave gate is green AND every chronic is discharged with a system-gate exit**" (the DM-2 lesson — no "ABSOLUTE FINAL" without a gate that BIT). By the time Q.WZ runs, the Q bands have built the totality the impl drive deferred: the lint tier finally landed (Q.WA1), the drag2D LIGHT export certified (Q.WA2), CI made genuinely green + the master-merge reconciled (Q.WA3), the wave-charter + DAG manifest gated (Q.WA4); the emerging-CSS Phase-2 element-aware arm + @function inlining + SoA completion (Band B); the DemoControlPoint built-in + the easing curve-editor dogfood + the mobile shelf-driver + the MorphSVG scene (Band C); the proper NaN-frame deferred-resolution cure + the grammar-fuzz/differential oracles (Band D); the @deprecated alias drop + the leaves.ts externalization (Band E); the engine.ts split + the group.ts SoA decomposition (Band F); and the three cross-repo dispatches consumed atomically on their named sibling publishes (Band G).
+
+Q.WZ does the close: it **terminates the P-inv-28 ledger** (every chronic discharged, re-points `proof:chronic-closure` L→Q in ONE atomic motion); it **cuts 5.0.0** (the no-legacy alias drop is breaking — a MAJOR) THEN **cuts 5.1.x** (the additive perf + demo + emerging-CSS-Phase-2 tier, consuming value.js 1.2.0 — non-breaking, rides after the major); it **terminates the keyframes-vue P-inv-28 belt** (the USER-DOMAIN publish runbook + the gate — DM-7 crossed into a 5th carry at the impl drive and MUST exit here); and it **re-observes the deploy round-trip as live-byte equality** — the bytes the site serves, not a gate exit code.
+
+The audit grounds every one of these in live file:line evidence (lanes B3-chronic-ledger, B4-prompt-recap, B7-honesty-record, B6-dag-ordering):
+
+### The npm + tree state — kf is 4.4.0, the planned 5.0.0 was NEVER cut
+
+`package.json:4` is **4.4.0** (verified live: `node -p "require('./package.json').version"` → `4.4.0`), pinning `@mkbabb/value.js` `^1.1.0`. The impl drive shipped 4.4.0 MINOR precisely because the breaking alias-drops were deferred (IMPL-RUN-BOARD.md:23, the HONEST semver call). The `@deprecated` aliases now point at a **phantom 5.0.0 the impl drive never cut** (B6 finding). Q.WE1 lands the alias drop; Q.WZ cuts the version. The 5.1.x additive tier (the perf + demo + emerging-CSS-P2 work, consuming value.js 1.2.0) rides AFTER the major, per the version narrative (Q.md §4): `parse-that 0.13.0 → value.js 1.2.0 → kf 5.0.0 (breaking) → kf 5.1.x (additive)`.
+
+### The `proof:chronic-closure` substrate is TRIPLE-STALE (the closure machine itself chronically deferred)
+
+`scripts/proof-chronic-closure.mjs:114` `CHRONIC_LEDGER = docs/tranches/L/PROGRESS.md` (verified live); `:468` `LEDGER_LABEL = "K/PROGRESS.md"` (a SECOND staleness — the label says K, the path reads L). The M.WZ atomic re-point (L→M), the O.WZ re-point (M→O — actually L→O per O.WZ spec), and the P.WZ re-point (O→P) were **ALL specced but NONE executed** (B3 finding: "proof:chronic-closure has been auditing 3-tranche-stale paperwork"; B7 finding: "DOUBLE-STALE LEDGER POINTER … Both are wrong"). The closure meta-gate is itself the longest-running chronic. Q.WZ executes the **L→Q** re-point in ONE atomic motion — the substrate Q.W0 §S4 authored (`docs/tranches/Q/PROGRESS.md §"Open deferrals"`) becomes the authoritative parse target, and `LEDGER_LABEL` is corrected to the Q-tranche text. (The intermediate M/O/P substrates are NOT re-walked — the Q ledger is the consolidated direct successor, every prior chronic re-stated with its Q-terminal disposition; `chronic-ledger-Q.md` is the durable audit companion.)
+
+### DM-2 DemoControlPoint — the NINTH carry, the MANDATORY exit
+
+`grep -rn "DemoControlPoint" demo/ src/` → **ZERO** (verified). DM-2 (GlassControlPoint → DemoControlPoint) was declared **"ABSOLUTE FINAL / forbidden-8th-carry CLOSED" at O.W5** (deferred-ledger-O.md:94) AND **"ABSOLUTE FINAL" at P.W7** (deferred-ledger-P.md:177) — yet was never built. It is a **NINTH carry** (born E, carried E→F→G→H→I→J→K→L→M→O→P→Q) — the single clearest P-invariant-28 violation in the constellation (B3-chronic-ledger). It is BUILT at **Q.WC1** (over the LIGHT drag2D export Q.WA2 certified) and DOGFOODED as the easing curve-editor handle at **Q.WC2**. Q.WZ does NOT build it — it RECORDS it cleared (the `proof:demo-control-point` gate GREEN, the dead `proof:control-point-live` premise retired) and asserts the P-inv-28 belt is satisfied. **No row enters Q.WZ as a bare BOOK; DM-2 enters as a BUILD-IN with a gate that BIT.**
+
+### DM-7 keyframes-vue — the P-inv-28 belt CROSSED (a 5th carry), the MANDATORY USER-DOMAIN exit
+
+`npm show @mkbabb/keyframes-vue version` → **E404** (verified at the impl drive; B3 finding); `packages/keyframes-vue/package.json:3` is `0.1.0` with peer floor `>=4.3.0` (`:35,:40`); `scripts/proof-keyframes-vue-published.mjs:63` `PEER_FLOOR = "4.3.0"` (stale since K close); clause (b) RED-by-design (E404). DM-7 was declared a **P-inv-28 BELT item at chronicity 4** with terminal "USER-DOMAIN publish at P.WZ, NO 5th carry" (deferred-ledger-P.md:204). The impl drive PUBLISHED kf 4.4.0 WITHOUT publishing keyframes-vue — so DM-7 **CROSSED the belt into chronicity 5** (B4-prompt-recap DROPPED-FLAG #1: "the sharpest finding"). Q.WZ is the MANDATORY exit: the USER-DOMAIN publish runbook + the gate. **No 6th carry under any scenario.**
+
+### The two DROPPED obligations (B4-prompt-recap) — both folded HERE
+
+The impl drive left two obligations DROPPED-flagged that the Q charter (Q.md §5) folds, and Q.WZ is where they reach their terminal:
+1. **"totality"** (impl-1) — the ~10 deferred waves are each a terminal Q wave; Q.WZ cannot close until every one is discharged. This is the **no "ABSOLUTE FINAL" without a system-gate exit** law — the DM-2 lesson made binding (the close criterion = every Q wave gate green AND `proof:chronic-closure` terminates non-vacuously over the Q ledger).
+2. **the keyframes-vue P-inv-28 belt** — DM-7, named not left open: the USER-DOMAIN publish runbook + the `proof:keyframes-vue-published` clause (b) GREEN.
+
+### Audit evidence
+
+| Lane / ref | Source location | Fact (live-probed 2026-06-23) |
+|---|---|---|
+| B7, B3 | `package.json:4` | `4.4.0` — the impl drive shipped MINOR; the planned 5.0.0 never cut |
+| B3, B7 | `scripts/proof-chronic-closure.mjs:114` | `CHRONIC_LEDGER = docs/tranches/L/PROGRESS.md` — 3-tranche-stale; re-pointed L→Q HERE |
+| B7 | `scripts/proof-chronic-closure.mjs:468` | `LEDGER_LABEL = "K/PROGRESS.md"` — the SECOND staleness (label≠path); corrected HERE |
+| B3, B4 | `grep -rn "DemoControlPoint" demo/ src/` | **ZERO** — DM-2 the NINTH carry, unbuilt; built at Q.WC1, recorded cleared HERE |
+| B3, B4 | `npm show @mkbabb/keyframes-vue version` | **E404** — DM-7 unpublished; the P-inv-28 belt CROSSED into a 5th carry |
+| B4, B3 | `scripts/proof-keyframes-vue-published.mjs:63` | `PEER_FLOOR = "4.3.0"` (stale since K); bumped to the 5.0.0 floor HERE |
+| B4 | `packages/keyframes-vue/package.json:3,:35,:40` | `0.1.0`; peer `>=4.3.0` (built, never published) |
+| Q.W0 §S4 | `docs/tranches/Q/PROGRESS.md §"Open deferrals"` | the Q chronic substrate Q.W0 authored — the L→Q re-point parse target |
+| Q.W0 §S5 | live `keyframes.babb.dev` | the 4.4.0 round-trip served `index-DwKmrGBp.js` (the Q opening oracle) — Q.WZ re-observes on the cut |
+| precedent | O.WZ / P.WZ | the live-byte oracle SHAPE: `CI <run-id> → deploy <run-id> → live serves index-<hash>.js exact` |
+| precedent | commit `4f1fc4c` (J-close) | the live-byte oracle origin shape |
+
+---
+
+## Scope
+
+Each S-clause is a concrete, falsifiable deliverable. Together they close Q: the P-inv-28 ledger terminated (every chronic discharged, the substrate re-pointed L→Q non-vacuously); the breaking 5.0.0 cut absorbing the alias drop; the additive 5.1.x cut riding the value.js-1.2.0 consume; the keyframes-vue belt terminated; the VERIFY-ONLY roster re-verified on the Q dist; and the deploy round-trip observed with EXACT live bytes.
+
+### S1 — `proof:chronic-closure` re-pointed L→Q (non-vacuous, ONE atomic motion) — the P-inv-28 ledger TERMINATED
+
+**Breach.** `scripts/proof-chronic-closure.mjs:114` `CHRONIC_LEDGER = docs/tranches/L/PROGRESS.md`; `:468` `LEDGER_LABEL = "K/PROGRESS.md"` — TRIPLE-STALE (the M/O/P re-points all skipped; the label disagrees with the path). The closure machine itself is the longest chronic (B3, B7).
+
+**Cure (the ORCHESTRATOR'S ATOMIC FINAL MOTION).** Re-point `CHRONIC_LEDGER` from `docs/tranches/L/PROGRESS.md` directly to `docs/tranches/Q/PROGRESS.md §"Open deferrals"` (the Q substrate Q.W0 §S4 authored — the consolidated direct successor) in ONE motion, simultaneously with the Q ledger becoming authoritative + TERMINAL, and correct `LEDGER_LABEL` to `"Q/PROGRESS.md"` in the SAME commit. (The L→M→O→P intermediate hops are NOT re-walked: the Q ledger re-states every prior chronic with its Q-terminal disposition + chronicity integer, so no chronic silently drops across the multi-tranche skip — the `proof:chronic-closure` coverage clause `:489` "a chronic silently dropped across the substrate transition is the exact re-classification escape the meta-gate forbids" is the enforcing rule.)
+
+**Non-vacuity protocol (the K.WZ/L.WZ/M.WZ/O.WZ/P.WZ precedent; the gate's own rule set `proof-chronic-closure.mjs:367–381`, the Chronicity-integer ≥4 EXIT-ONLY mechanism).** Three planted Q-ledger rows RED on all three clause shapes BEFORE the clean terminal Q ledger greens it:
+
+```
+# Planted row 1 — FOLD citing a source-shape gate (the runtime-band rule)
+| DQ-PLANT-1 | Q | 1 (Q) | FOLD → Q.W0 | Q.W0 | `proof:boundary` (source-shape grep) |
+```
+→ must RED: `[runtime-band] FOLD row 'DQ-PLANT-1' cites a source-shape gate 'proof:boundary' — not a RUNTIME gate`.
+
+```
+# Planted row 2 — HANDOFF targeting an unpublished future version (the tripwire rule)
+| DQ-PLANT-2 | Q | 1 (Q) | HANDOFF → value.js 3.0.0 | Q.WG2 | value.js 3.0.0 not yet on npm |
+```
+→ must RED: `[tripwire] HANDOFF row 'DQ-PLANT-2' targets an unpublished sibling version — tripwire is not a published-consume-edge`.
+
+```
+# Planted row 3 — bare BOOK, chronicity ≥4 (the P-invariant-28 rule)
+| DQ-PLANT-3 | E (E..Q) | 9 (E..Q) | BOOK (future decide) | — | — |
+```
+→ must RED: `[p-invariant-28] ≥4-tranche row (chronicity 9) carries NO EXIT-shaped disposition ("BOOK") — P-invariant-28 forbids a fifth ride`.
+
+**Procedure (ONE atomic commit).** (a) plant the three malformed rows in `Q/PROGRESS.md §"Open deferrals"`; (b) `node scripts/proof-chronic-closure.mjs` → confirm RED on all three clause shapes; (c) remove the planted rows + confirm GREEN on the clean terminal Q ledger; (d) in the SAME commit, re-point `CHRONIC_LEDGER` L→Q **and** correct `LEDGER_LABEL` to `"Q/PROGRESS.md"`. Re-point + non-vacuity proof + Q ledger terminal are ONE commit. Output: `✓ proof:chronic-closure — the Q ledger is TERMINAL`.
+
+**The P-invariant-28 belt at Q close (the no-deferral binding criterion).** NO ≥4-tranche row may enter Q.WZ as a bare BOOK. The terminal register (`chronic-ledger-Q.md` is the durable record; the gist enforced HERE):
+- **DM-2 DemoControlPoint (9 — the NINTH carry):** BUILD-IN via **Q.WC1** + dogfood **Q.WC2**. `proof:demo-control-point` GREEN. ABSOLUTE terminal — the MANDATORY exit.
+- **DM-7 keyframes-vue (5 — the CROSSED belt):** USER-DOMAIN publish at **Q.WZ** (S3). `proof:keyframes-vue-published` clause (b) GREEN. No 6th carry.
+- **DM-22 NaN-frame (4-tranche chronic):** the deferred-resolution + play-time-guard cure at **Q.WD1**. `proof:named-selector-nan-frame` GREEN (BOTH the S4 round-trip AND no-NaN-at-play). Named terminal.
+- **DM-5 S8 FN_NAME (4):** the P.W11 WeakMap is realm-clean (`proof:no-foreign-symbol-stamp` GREEN); the ceremony residual exits via ONE of two MUTUALLY-EXCLUSIVE terminals (no double-cure). **PRIMARY: the value.js VJ-Q4 (VJ-L1) `flatLeaf .fnName` clean exit** — the `clone()`-preserved provenance field dispatched in `KF-TO-VALUEJS-Q.md` (VJ-Q4) + consumed GATED at **Q.WG4** (`Q.WG-GATED-CONSUMES` S4, GATED on value.js 1.2.0); `fnNameOf(u)` reads `u.fnName`, the WeakMap + the clone-restamp ceremony DELETED. **EXPLICIT FALLBACK (only if value.js declines VJ-Q4): the in-realm parallel-array terminal at Q.WB3** (the owner-favored Option-B design). `proof:workaround-deletion` S8 flips PENDING→GREEN on whichever terminal fires. Named terminal.
+- **DM-5 S9 parse-that import (4):** EXITED — the production dep removed at the impl drive (`proof:boundary` W96 GREEN). FOLD-LANDED.
+- **DM-1 RF-17 dock interim (7) + DM-5 S1 aria (5):** HANDOFF — `proof:workaround-deletion` S1/S2 GREEN on the glass-ui BC re-pin (**Q.WG3** publish → kf delete GATED). The S1/S2 false-RED arms corrected NOW (Q.WG3 retargets the version-probe to a content-present probe). If BC slips the window, the FINAL NAMES the contingency (the L/M/O/P close discipline) — it does NOT assert closed.
+- **DM-8…DM-15 (VERIFY-ONLY / RE-AFFIRM):** all TERMINATED — GREEN gate re-verified on the Q dist IS the exit (S5).
+
+### S2 — The 5.0.0 BREAKING version cut (USER-DOMAIN — criteria proposed, the user fires)
+
+**Breach.** `package.json:4` is `4.4.0`; the registry latest is `4.4.0`. The `@deprecated` aliases (`Animation`/`ScrollTimeline`/`ScrollTimelineOptions` + the two interface-key aliases) are STILL on the published surface (the alias drop deferred at O.W9 → P.W10 → the impl drive); the canonical names shipped cleanly at L.W8 §S4. The breaking renames now point at a phantom 5.0.0 (B6).
+
+**Cure (USER-DOMAIN — Mike Babb fires).** The agent proposes the criteria; the user fires the cut. The case for MAJOR `5.0.0`: the alias drop (**Q.WE1**) is a genuine BREAKING change (a consumer's `import { Animation }` / `import { ScrollTimeline }` value import stops resolving — the canonical name is now `KeyframesAnimation` / `KeyframesScrollTimeline`); `docs/MIGRATION-5.0.0.md` is the one permitted legacy-adjacent artifact (the breaking-change documentation, authored at Q.WE1 §S5). `proof:alias-dropped` (the no-legacy alias gate) is authored gate-FIRST by **Q.WE1 §S1** — the SINGLE owner; Q.WA3 and Q.WZ only REFERENCE it. `proof:changelog-5.0.0` (the breaking-set CHANGELOG gate, a DISTINCT gate from `proof:alias-dropped`) is authored gate-first at **Q.WE1** beside the alias drop; it asserts the breaking set is documented and cross-checks the source annotation is gone, so a CHANGELOG entry for a rename never made REDs too. The cut is wired into `release.yml` before `npm publish` so a 5.0.0 publish with an incomplete CHANGELOG is BLOCKED. The chosen string is RECORDED in a one-paragraph version-decision note BEFORE `changeset version` cuts it. The FINAL cites the OBSERVED `package.json` version + the registry presence AFTER the user fires the tag — NEVER asserts `5.0.0` shipped before the cut is observed.
+
+**The cut ordering (the breaking-cut spine, Q.md §3 friction-chain 1).** Q.WE1 (alias drop) MUST have landed BEFORE Q.WF1 (engine.ts split — splits a clean class) MUST have landed BEFORE the 5.0.0 cut. The engine split lifts a class with no trailing `@deprecated` re-export (a clean seam). The 5.0.0 cut is the breaking-set absorber.
+
+### S3 — keyframes-vue publish + peer floor (USER-DOMAIN — the P-inv-28 belt MANDATORY exit, DM-7)
+
+**Breach.** `proof:keyframes-vue-published` clause (b) RED-by-design (E404; `:18,:33`); the adapter is `0.1.0` with peer floor `>=4.3.0` (`packages/keyframes-vue/package.json:3,:35,:40`); `PEER_FLOOR = "4.3.0"` (`:63`, stale since K close). DM-7 CROSSED the P-inv-28 belt into a 5th carry at the impl drive (B4 DROPPED-FLAG #1). This is the MANDATORY exit — NO 6th carry.
+
+**Cure (USER-DOMAIN — Mike Babb fires, the COMPLETE runbook).** Before the 5.0.0 cut (inert doc/gate changes that PRECEDE the publish to keep the gate correct post-cut):
+- Bump `packages/keyframes-vue/package.json` `peerDependencies['@mkbabb/keyframes.js']` → `>=5.0.0` (and the `devDependencies` line `:40`).
+- Bump `scripts/proof-keyframes-vue-published.mjs:63` `PEER_FLOOR` → `"5.0.0"`.
+- Run `npm run check` in `packages/keyframes-vue/` against the 5.0.0 named types BEFORE the cut — if the adapter source references the OLD names directly (not through `loadAnimationEngine()`'s return type), the check fails on the version-cut tree (an un-verified pre-cut obligation, not an assumption — the adapter is a thin wrapper over `loadAnimationEngine()` + the `<Keyframes :css>` SFC, so the renamed canonical types must resolve).
+- The `publish-keyframes-vue` job (`release.yml`, `needs: publish`) fires on the `v5.0.0` tag AFTER the core publish; add the npm-install retry/delay step to mitigate registry-propagation lag (the adapter installs the freshly-published `5.0.0` peer).
+
+**Gate bite.** `proof:keyframes-vue-published` clause (b) flips E404 → GREEN once the tarball lands on the registry. The CI `check-failures` step drops this tripwire. DM-7 EXITS at chronicity 5. **No 6th carry under any scenario.** If the owner elects NOT to publish, the ONLY P-inv-28-compliant alternative is an owner-ratified KILL (retire `packages/keyframes-vue/` + the gate) recorded in the FINAL — NOT a bare carry.
+
+### S4 — The 5.1.x ADDITIVE version cut (USER-DOMAIN — the perf + demo + emerging-CSS-P2 tier consuming value.js 1.2.0)
+
+**Breach.** The Q perf + demo-design + emerging-CSS-Phase-2 transpositions are non-breaking (no API renames, no removed exports — the breaking set was absorbed by 5.0.0). They consume **value.js 1.2.0** (the @function dashed-call parse, the `/math` subpath, the `if()` multibranch, the color-arch out-param family, VJ-L1 `flatLeaf .fnName`) — GATED on the Q.WG2 dispatch publishing + Q.WG4 consuming. The cut is therefore **MINOR** (`5.1.0`).
+
+**Cure (USER-DOMAIN — criteria proposed, user fires).** The version rationale (semver-honest): perf-non-breaking = MINOR. The case for `5.1.0`: the public LIGHT static surface is unchanged; the SoA completion (Q.WB3 `processFrame` fold), the WAAPI curvature densify (Q.WB4), the @function inlining (Q.WB2), the emerging-CSS Phase-2 element-aware arm (Q.WB1) are internal strategy / additive HEAVY-export changes (adding HEAVY exports behind `loadAnimationEngine()` is additive and does not break the LIGHT static surface, so 5.1.x stays correct); the DemoControlPoint / MorphSVG-scene / mobile-shelf builds (Band C) are demo-only. The `package.json` re-pin `@mkbabb/value.js` `^1.1.0` → `^1.2.0` (Q.WG4) is the consume edge — the cut version-record cites the observed value.js registry presence of `1.2.0` (never asserted before the Q.WG2 dispatch publishes). The chosen string is RECORDED in a one-paragraph version-decision note BEFORE `changeset version` cuts it.
+
+**The two-cut decoupling.** The 5.0.0 cut (S2) and the 5.1.x cut (S4) are SEQUENCED but distinct tags: `v5.0.0` fires `release.yml` for the breaking surface; `v5.1.0` fires it for the additive tier (after the value.js 1.2.0 consume lands). The deploy round-trip (S6) is SEPARATELY sequenced from the npm publishes — the close-merge → auto-deploy fires on `master push` + CI success; the version tags fire the publish jobs. They occur in either order (the J/K/O/P precedent — the version bump is not needed to serve the demo). If value.js 1.2.0 slips the close window, the FINAL honestly NAMES the 5.1.x cut as PENDING-the-consume (it does NOT assert it cut) and the 5.0.0 breaking cut stands alone — the additive tier follows when the sibling publishes.
+
+### S5 — `proof:all` GREEN + the VERIFY-ONLY re-verify roster on the Q dist
+
+**Gate.** `npm run proof:all` GREEN on the Q close tree (the consolidated runner including every Q-era `proof:*` script, the re-pointed `proof:chronic-closure`, the Q.WA4 `proof:wave-charter` + `proof:dag` manifest gates, and the Q.WA3-fixed `proof:ci-coverage` — bidirectional: every authored Q gate wired into CI + reachable from `proof:all`).
+
+**VERIFY-ONLY / RE-AFFIRM roster (DM-8…DM-15) re-verified on the Q dist (5.0.0/5.1.x).** Each carried K-chronic is TERMINATED (P.WZ never executed, so the LAST live re-verify was the M/4.4.0 dist — Q re-verifies on the 5.0.0/5.1.x dist). Re-run:
+- `proof:lighthouse-mobile` (DM-8, `KF_REQUIRE_LH=1`)
+- `proof:specular-absent-at-rest` (DM-9)
+- `proof:font-census` (DM-10)
+- `proof:spring-slider-continuous` + `proof:subject-animates` (DM-11)
+- `proof:perf-frame-budget` (DM-12 — re-verify with the SoA-`processFrame` completion (Q.WB3) + the engine.ts split (Q.WF1) in place; a regression signals an undetected overhead in the new fold or seam)
+- `proof:engine-no-throw-on-play` (DM-13 — re-verify with the NaN-frame play-time guard (Q.WD1) in place: a guard that throws on a sample WITHOUT a timeline must NOT throw on a normally-played animation)
+- `proof:fsm-suspend-resume-live` (DM-14)
+- `proof:control-surface-single-writer` (DM-15)
+
+Any gate that reverts RED is a NEW Q regression to wave-assign, NOT a close. A regressed VERIFY-ONLY gate halts Q.WZ until the wave is addressed. The DM-13 re-verify is the KEY interlock: the NaN-frame cure (Q.WD1) MUST keep `proof:engine-no-throw-on-play` GREEN — the play-time guard fires ONLY at PLAY-without-timeline on a named selector, never on a normal play.
+
+### S6 — The deploy round-trip as LIVE-BYTE equality (the observable-truth keystone)
+
+**Gate.** The deploy is "observed" ONLY when the live-served `index-<hash>.js` is shown EQUAL to the freshly-built `dist/gh-pages` artifact for the merge SHA — the J/K/O/P-close oracle shape. A green local `proof:all` is NOT the deploy claim (local `proof:all` excludes `proof:peer-satisfied`, which runs only on the publish/CI path — local green can coexist with CI red and a stale site).
+
+**Deploy round-trip re-observation (each link OBSERVED).** The Q opening oracle (Q.W0 §S5) recorded the 4.4.0 round-trip serving `index-DwKmrGBp.js`; the Q close re-observes on the cut:
+1. `proof:all` GREEN on the consolidated Q runner — observe the run.
+2. Close-merge to `master` (the Q.WA3 master-merge-reconcile is the precondition — all 3 repos at master before any cut) → CI run N GREEN — observe the run ID.
+3. `deploy-pages.yml` fires as a `workflow_run` consequence (`conclusion == 'success' && head_branch == 'master' && event == 'push'`) — observe the run ID. (The auto round-trip is restorable ONLY after BOTH historical tripwires clear: `proof:control-point-live` retired at Q.WC1; `proof:keyframes-vue-published` GREEN via S3.)
+4. The live `keyframes.babb.dev` `index-<hash>.js` filename equals the freshly-built `dist/gh-pages` hash for the merge SHA — observe the hash equality.
+
+The FINAL cites all four with their run IDs / filenames — never an assertion, always an oracle.
+
+### S7 — The close docs (Q/FINAL.md + the prompt-recap + the precept reckoning + the chronic ledger)
+
+**Deliverable:** `docs/tranches/Q/FINAL.md` — the Q boundary close report, held to inv-observable-truth (every boundary claim CITES its observed oracle). It consolidates the four Q audit-close docs this band authors NOW:
+
+- **`docs/tranches/Q/PROGRESS.md`** (the board — DEVELOPMENT status, the wave roster, the DAG state) — the Q wave board + the `proof:chronic-closure` Open-deferrals substrate.
+- **`docs/tranches/Q/audit/prompt-recap-Q.md`** (the FULL A→P→impl-drive→Q recap, chain-trusting `prompt-recap-P.md`) — every prompt ADDRESSED / terminal-wave / KILL; the two DROPPED obligations (totality + keyframes-vue belt) folded; zero drops.
+- **`docs/tranches/Q/audit/precept-reckoning-Q.md`** (the precept audit) — where the shipped 4.4.0 + the Q waves stand against the immutable mandate; every Q-redressable violation named with its terminal wave.
+- **`docs/tranches/Q/audit/chronic-ledger-Q.md`** (the P-inv-28 ledger) — DM-2 the 9th carry MANDATORY exit; every chronic + its terminal Q wave + chronicity count; the L→Q substrate re-point recorded.
+
+The FINAL also records:
+- **DM-2 close record** — the Q.WC1 build-in commit hash cited; `proof:demo-control-point` GREEN; the 9th carry CLEARED.
+- **DM-7 keyframes-vue close record** — the USER-DOMAIN publish observed; `proof:keyframes-vue-published` clause (b) GREEN cited; OR the owner-ratified KILL with rationale.
+- **The two version cuts RECORDED** — the observed `package.json` version + the registry presence of `@mkbabb/keyframes.js@5.0.0` (breaking) and `@5.1.x` (additive), cited AFTER the user fires the tags.
+- **The VERIFY-ONLY roster re-verified** on the Q dist — each DM-8…DM-15 gate re-run result cited.
+- **The deploy round-trip RECORDED** as the four-link live-byte oracle (S6).
+- **The Band G contingency NAMED** if any sibling (glass-ui BC, value.js 1.2.0) slipped the window — the FINAL does NOT assert a GATED edge closed without its observed publish.
+
+---
+
+## Born-RED gate
+
+**Three gates: one re-targeted/observed (S1) + two existing observed (S5, S6).** The keystone born-RED of the wave is `proof:chronic-closure` — it bites the REAL 3-tranche-stale substrate + the planted-row non-vacuity, NOT a proxy. (The breaking-set gate `proof:changelog-5.0.0` AND the no-legacy alias gate `proof:alias-dropped` are BOTH authored gate-first at Q.WE1 — the SINGLE owner of each; Q.WZ consumes them as publish-block preconditions, not as its own authoring.)
+
+`proof:chronic-closure` (EXISTING — re-pointed L→Q in the atomic non-vacuity motion, S1). Born-pointing-at-L (TRIPLE-STALE); the three planted Q-rows RED on all three clause shapes before the clean terminal Q ledger greens it. This is the no-deferral binding criterion: the gate's Chronicity-integer ≥4 EXIT-ONLY mechanism mechanizes "every chronic discharged" — a bare BOOK ≥4-tranche row REDs the whole gate, so Q.WZ cannot close while any chronic lacks a terminal.
+
+`proof:keyframes-vue-published` (EXISTING — observed GREEN via the USER-DOMAIN publish, S3). Born-RED clause (b) (E404); GREEN only on the registry tarball + `PEER_FLOOR` bumped to 5.0.0.
+
+`proof:all` + the deploy round-trip (EXISTING — S5/S6). Born-blocked (by any un-resolved Q wave gate or chronic) until all Q bands reach terminal disposition; the live site serves the 4.4.0-era `index-DwKmrGBp.js` until the Q round-trip fires.
+
+| Gate / clause | Witness on today's tree | Failure mode today (the REAL observable) | Expected at Q close |
+|---|---|---|---|
+| S1 `proof:chronic-closure` (re-pointed) | `proof-chronic-closure.mjs:114` → `docs/tranches/L/PROGRESS.md`; `:468` `LEDGER_LABEL = "K/PROGRESS.md"` | the substrate is 3-tranche-stale (M/O/P re-points all skipped); the label≠path; the Q ledger has no terminal substrate; a chronic could silently drop across the L→Q skip; DM-2 the 9th carry has no system-gate exit | re-pointed L→Q; `LEDGER_LABEL = "Q/PROGRESS.md"`; the three planted Q-rows RED on all three clause shapes; the clean terminal Q ledger greens; output `✓ the Q ledger is TERMINAL` |
+| S2 `proof:changelog-5.0.0` (consumed; authored at Q.WE1, the SINGLE owner) | the alias drop deferred; the registry is `4.4.0` | a 5.0.0 publish with an under-counted CHANGELOG is un-blocked (the gate authored at Q.WE1) | GREEN on the 5.0.0 cut (all breaking entries present + source annotation gone); wired into `release.yml` pre-publish |
+| S3 `proof:keyframes-vue-published` | clause (b) E404; `PEER_FLOOR = "4.3.0"` (`:63`) | the adapter is unpublished — DM-7 the P-inv-28 belt CROSSED into a 5th carry; CI `check-failures` REDs | clause (b) GREEN on the USER-DOMAIN publish; `PEER_FLOOR` bumped to 5.0.0; CI tripwire cleared; DM-7 EXITS — no 6th carry |
+| S5 VERIFY-ONLY roster | DM-8…DM-15 gates GREEN on the 4.4.0 dist | a Q perf transposition / engine split / NaN-cure that degrades frame budget or throws on play regresses a terminated chronic | all re-verified GREEN on the Q 5.0.0/5.1.x dist; any RED = new Q regression, wave-assigned |
+| S6 `proof:all` + deploy | all Q wave gates at terminal disposition; live site at the 4.4.0 hash `index-DwKmrGBp.js` | any un-resolved Q gate exits 1 → CI failure → deploy blocked; the live site stays at the 4.4.0 bundle | Q close-merge → CI GREEN → `deploy-pages.yml` fires → live `index-<hash>.js` hash EQUALS merge-SHA `dist/gh-pages` artifact (the exact-byte oracle) |
+
+**Born-RED on today's tree (the keystone).** `proof:chronic-closure` is born-pointing-at-L (TRIPLE-STALE: the path, the label, and three skipped re-points), and the Q ledger is not yet its parse target — the substrate-transition state IS the genuine breach (the closure machine has audited stale paperwork for 3 tranches; DM-2 the 9th carry has no system-gate exit). There is NO source-shape stand-in: the gate parses the REAL Q ledger rows + asserts the Chronicity-integer ≥4 EXIT-ONLY mandate (a bare BOOK ≥4-tranche row REDs), and reds a vaporware HANDOFF (an unpublished-sibling tripwire). The deploy is born-blocked on the un-resolved Q bands; the live site serves the 4.4.0 bundle until the round-trip fires.
+
+**Green condition.** `proof:chronic-closure` re-pointed L→Q with the Q ledger TERMINAL + non-vacuous (the three planted-row RED proof) + `LEDGER_LABEL` corrected; every ≥4-tranche chronic discharged via an EXIT-shaped disposition with a gate that BIT (DM-2 BUILD-IN Q.WC1; DM-7 USER-DOMAIN publish or KILL; DM-22 NaN-cure Q.WD1; S8 terminal; S9 FOLD-LANDED; DM-1/S1 BC-consumed or contingency-named); `proof:changelog-5.0.0` GREEN on the 5.0.0 cut + wired into `release.yml`; `proof:keyframes-vue-published` clause (b) GREEN + `PEER_FLOOR` at 5.0.0; `proof:all` GREEN on the consolidated Q runner (including the re-pointed closure, the `proof:wave-charter` + `proof:dag` manifest gates, the fixed `proof:ci-coverage`); the VERIFY-ONLY roster (DM-8…DM-15) re-verified GREEN on the Q dist; the deploy round-trip OBSERVED as the four-link live-byte equality. The two version cuts + the keyframes-vue publish are USER-DOMAIN — the FINAL cites the OBSERVED `package.json` version + registry presence AFTER the user fires the `v5.0.0` + `v5.1.0` tags. If glass-ui BC or value.js 1.2.0 slip the close window, the FINAL NAMES the contingency paths taken — it does NOT assert them closed without evidence.
+
+---
+
+## Dependencies
+
+This is the tranche terminal — it depends on **every prior Q wave at terminal disposition**. Enumerated:
+
+| Dep | Required state | Phase / status |
+|---|---|---|
+| **Q.W0 (record-hygiene)** | the Q chronic substrate authored (`Q/PROGRESS.md §"Open deferrals"` + `chronic-ledger-Q.md`); the deploy opening-oracle recorded (`index-DwKmrGBp.js`); the dirty decision-JSONs committed; the `proof:no-deprecated-guard` misnomer named | NOW — the floor (the substrate S1 re-points to) |
+| **Band A (Q.WA1/WA2/WA3/WA4)** | lint tier GREEN; drag2D LIGHT export certified (the DM-2 enabler); **CI genuinely green + the master-merge reconcile** (the FIRST motion — all 3 repos at master before any cut) + `proof:ci-coverage` fixed + the device-dependence CI-harden; `proof:wave-charter` + the DAG manifest gated | NOW — executable on authorization |
+| **Band B (Q.WB1…WB4)** | emerging-CSS Phase-2 element-aware arm GREEN; SoA `processFrame` completion GREEN; @function inlining GREEN (Q.WB2 GATED on value.js 1.2.0 dashed-call parse); WAAPI densify GREEN | NOW (WB2/WB3-color GATED on value.js 1.2.0) |
+| **Band C (Q.WC1…WC5)** — the ABSOLUTE terminals | `DemoControlPoint` built (Q.WC1) — **retires `proof:control-point-live`, clearing the FIRST auto-deploy tripwire**; the easing curve-editor dogfood (Q.WC2); the mobile shelf-driver + N-Stage (Q.WC3); the MorphSVG scene (Q.WC4); amiga telemetry (Q.WC5) | NOW — kf-owned, no sibling gate |
+| **Band D (Q.WD1/WD2)** | the NaN-frame deferred-resolution + play-time-guard cure GREEN (`proof:named-selector-nan-frame` — BOTH S4 round-trip AND no-NaN-at-play); the grammar-fuzz + differential oracles GREEN | NOW |
+| **Band E (Q.WE1/WE2)** — the breaking set | the @deprecated alias drop + the 22-consumer migration + `MIGRATION-5.0.0.md` + `proof:alias-dropped`/`proof:changelog-5.0.0` (the breaking set S2 asserts); the leaves.ts externalization (Q.WE2 GATED on value.js `/math` subpath) | NOW (E2 GATED on value.js `/math`) |
+| **Band F (Q.WF1/WF2)** | engine.ts 1397→~900 split (lifts a CLEAN class — AFTER Q.WE1); the group.ts SoA decomposition; `proof:decomposition` GREEN (the cap:1400 override REMOVED) | NOW |
+| **Band G (Q.WG1…WG4)** — the cross-repo legs | **parse-that 0.13.0** consumed; **value.js 1.1.1 + 1.2.0** consumed (`contrast-color()` + `if()` multibranch + the color-arch out-param family + the VJ-Q4 `flatLeaf .fnName` PRIMARY S8 terminal + `/math` + the dashed-call parse); **glass-ui BC** consumed (S1/S2 delete); the kf GATED consumes (Q.WG4 re-pins value.js `^1.2.0`) | DISPATCH + GATED (on the named sibling publishes) |
+| **Band-G wave-id ↔ file map** (so each `Q.WG*` reference resolves) | **Q.WG1** = `KF-TO-PARSETHAT-Q.md`; **Q.WG2** = `KF-TO-VALUEJS-Q.md` (homes the VJ-Q4 PRIMARY S8 terminal); **Q.WG3** = `KF-TO-GLASSUI-Q.md`; **Q.WG4** = `waves/Q.WG-GATED-CONSUMES.md` + `waves/Q.WG-S1S2-HYGIENE.md` | the same map recorded in `PROGRESS.md §1` |
+| **The two USER-DOMAIN publishes** | `v5.0.0` (breaking) → `v5.1.0` (additive); keyframes-vue publishes on `needs: publish` | USER-DOMAIN (Mike Babb, confirm-first). DM-7 (keyframes-vue belt) clears HERE; DM-2 (control-point) cleared at Q.WC1 |
+| **`proof:chronic-closure` non-vacuity** | three planted Q-rows RED before the clean ledger greens | non-vacuous by construction (the gate's grammar enforces it) |
+| **The acyclic spine (inv-16)** | parse-that 0.13.0 → value.js 1.1.1/1.2.0 → kf re-pin → glass-ui BC consume | kf writes only keyframes.js; every cross-repo need (parse-that 0.13.0, value.js 1.2.0, glass-ui BC) is a DISPATCH doc + a GATED consume, never a foreign-tree edit |
+
+**The close criteria (the binding terminal conditions — the no-deferral law).** Q closes when: **every Q wave gate is GREEN** (Bands A+B+C+D+E+F) + **Band G consumed on its named sibling publishes** + **the P-inv-28 ledger TERMINATED** (`proof:chronic-closure` re-pointed L→Q, non-vacuous, every ≥4-tranche chronic EXIT-shaped with a gate that BIT — no bare BOOK) + **both version cuts fired** (5.0.0 breaking, 5.1.x additive) + **DM-7 keyframes-vue USER-DOMAIN published-or-KILLed** + **the deploy round-trip observed as live-byte equality**. This is stricter than the O/P close: Q is the no-deferral terminal — "ABSOLUTE FINAL" requires the gate that BIT, not a declaration (the DM-2 lesson). If glass-ui BC or value.js 1.2.0 slip the close window, the FINAL honestly NAMES the contingency paths taken (the L/M/O/P close discipline) — it does NOT assert them closed without evidence, and the 5.1.x additive cut is recorded PENDING-the-consume while the 5.0.0 breaking cut stands alone.
+
+---
+
+## dev→impl boundary
+
+This wave is **NOW-author · USER-DOMAIN publish**. The chronic re-point (S1), the close-doc authoring (S7 — `Q/PROGRESS.md`, `prompt-recap-Q.md`, `precept-reckoning-Q.md`, `chronic-ledger-Q.md`, `Q/FINAL.md`), and the peer-floor bumps (S3) are kf-internal — they open for implementation when Q's prior waves reach terminal disposition. **The two version cuts (S2/S4), the keyframes-vue publish (S3), and the live-byte deploy observation (S6) are USER-DOMAIN** — Mike Babb fires the `changeset version` cuts + the `v5.0.0` + `v5.1.0` tags; the agent proposes the criteria and authors the gates, never actuates the publish. The FINAL cites the OBSERVED `package.json` version + the registry presence AFTER the tags, never an assertion before them.
+
+The P.WZ substrate (`docs/tranches/P/waves/P.WZ.md`) + the O.WZ substrate (`docs/tranches/O/waves/O.WZ.md`) are the authoritative deep-context references for the close mechanics (the inv-eps anti-overclaim discipline, the chronic-closure non-vacuity protocol, the live-byte deploy oracle shape, the keyframes-vue peer-floor bump procedure). Q.WZ deltas them on: the ledger re-point target (**L→Q directly** — the M/O/P re-points were ALL skipped, so Q re-points from the live-stale L pin in ONE motion, re-stating every prior chronic so none drops across the multi-tranche skip); the **two-cut version narrative** (5.0.0 breaking THEN 5.1.x additive consuming value.js 1.2.0 — P.WZ cut only 5.1.x atop an assumed-existing 5.0.0; Q cuts BOTH because the impl drive never cut 5.0.0); the **DM-2 NINTH-carry MANDATORY exit** (the close RECORDS it cleared via Q.WC1, not via a declaration — the no-deferral law); and the **DM-7 belt CROSSED** (a 5th carry that MUST exit here, no 6th carry — the sharpest B4 finding). The no-deferral binding criterion (every chronic discharged with a gate that BIT) is Q's unique close discipline — it does not exist in the O/P close.
