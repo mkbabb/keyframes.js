@@ -54,6 +54,7 @@ consume edges are observable (B6-crossrepo-versions: the caret would land 1.2.0 
 | **VJ-Q6** *(the dashed-call parse arm — the @function enabler)* | **`--ident(args)` parses to `FunctionValue('--ident', [arg0, …])`** + expose the `<syntax>` validator on the resolve path | the dashed-function CALL site drops a verbatim string today (the call is NOT a `FunctionValue`); `extractFunctions` (the @function DEFINITION registry) ALREADY ships (1.1.0); the `<syntax>` validator drives `@property` but is not confirmed exposed for resolve-path consumption | a `--ident(args)` parse arm emitting `FunctionValue('--ident', [args])`; CONFIRM the `@property` `<syntax>` validator is a public/resolve-consumable export | kf's Q.WB2 @function call-inlining binds the descriptor params to the call args + coerces each through the `<syntax>` validator (NO re-authored checker) | value.js round-trip: `parseCSSValue('--double(2, 3px)')` is a `FunctionValue('--double', [2, 3px])` (today: drops/verbatim); `'<syntax>' validator exported` | **1.2.0** |
 | **VJ-Q7** *(`if()` multibranch — the lossy-collapse fix)* | **emit the FULL ordered clause list** instead of first-consequent + first-else | `parsing/index.ts:336-348` (VERIFIED — the `.map((body) => {…})` collapse callback: `splitIfClauses(body)` at `:337` → `.find(c => c.condition !== null)` first-consequent + `.find(c => c.condition === null)` first-else at `:338-339`, emitting the lossy 2-branch `FunctionValue("if", [cond, value, else])` at `:343-347`; `handleIf` itself declared at `:310`); `splitIfClauses` at `:255-295` (VERIFIED — already computes the FULL ordered `clauses` array) | use the already-computed `clauses` array in `handleIf` (the producer change is ~3 lines — the array exists) | kf's Q.WB2/Q.WD2 `resolveIf` (`resolve-values.ts:334-367`, today hard-coding the 2-branch `[cond, consequent, else]` triple with the self-documenting deferral comment at `:330-332`) generalizes to N-branch | value.js round-trip: `parseCSSValue('if(media(...): 1px; supports(...): 2px; else: 3px)')` emits a 3-branch ordered clause list (today: collapses to 2) | **1.2.0** |
 | **VJ-Q8** *(the `ColorChannelPlan` — the SoA color-tail enabler, GATED partner)* | **a Float64 oklab-channel layout** the kf compositor folds the permanently-boxed color tail through | kf `group.ts` `buildSoAPlans` classifies any color/computed leaf BOXED (a `Color` cannot live in a `Float64Array`) — the residual SoA tail (`B1-kf-soa`) | a `ColorChannelPlan` (a `(Color → channel offsets)` plan) + `lerpColorChannels(t, startBuf, stopBuf, outBuf)` fold the compositor + `processFrame` route the color tail through | kf's Q.WB3-color SoA folds the color leaves through the published plan instead of per-element `Color` boxing | value.js: a plan-build + `lerpColorChannels` bit-exact vs per-element `Color` lerp; kf-side `proof:color-soa` greens on the consume | **1.2.0** |
+| **VJ-Q9** *(CSS serialization fidelity — the Q.WD2 grammar-fuzz tripwire's GATED exit)* | **none-channel + `color()`-wrapper round-trip fidelity** — serialize a powerless `none` channel verbatim (NOT `NaN`) + preserve the `color(<space> …)` wrapper | LIVE breaches on 1.1.0 (probe-confirmed 2026-06-23, `Q.WD2`): `parseCSSValue('oklch(0.6 none 200)')` → `"oklch(0.6 NaN 200)"` (none→NaN); `parseCSSValue('color(display-p3 1 0 0)')` → `"display-p3(1 0 0)"` (wrapper-loss) | (S1) serialize a `<percentage>`/`<number>`-or-`none` powerless channel as `none`, never `NaN`; (S2) preserve the `color(<space> …)` function wrapper on round-trip | kf's Q.WD2 `proof:grammar-fuzz` none-channel + wrapper-loss expected-failure tripwires auto-flip PENDING→GREEN on the `^1.2.0` re-pin (Q.WG4) | value.js `proof:serialize-fidelity` (born-RED): `parseCSSValue('oklch(0.6 none 200)').toString() === 'oklch(0.6 none 200)'` AND `parseCSSValue('color(display-p3 1 0 0)').toString() === 'color(display-p3 1 0 0)'` | **1.2.0** |
 
 All asks are **BC-additive** to value.js's published 1.x surface: VJ-Q1 (1.1.1) is a new
 `contrast-color()` arm + a dead-stub delete (no consumer of the never-shipped L6 stub);
@@ -431,6 +432,48 @@ per-element `Color` lerp across a grid. kf-side: `proof:color-soa` (NEW, born-RE
 
 ---
 
+## VJ-Q9 — CSS serialization fidelity (the Q.WD2 grammar-fuzz tripwire's GATED exit)
+
+> **AUDIT verdict (kf `Q.WD2` / `B2-pw9-nanframe`): a value.js round-trip-fidelity gap
+> kf cannot self-cure (inv-16).** kf's Q.WD2 grammar-fuzz harness ships TWO expected-failure
+> tripwires (`oklch(L none H)` none-channel and `color(<space> …)` wrapper-loss) that document
+> the known-broken state and auto-flip when value.js fixes the serialization. Without an owning
+> VJ-Q slot + a value.js born-RED gate, those tripwires would be orphaned (a soft perpetual).
+> VJ-Q9 is that owning slot — the cross-doc dependency Q.WD2 §S4 names.
+
+**The two LIVE breaches (probe-confirmed 2026-06-23 against installed value.js 1.1.0,
+re-confirmed in kf's Q.WD2 session).**
+- **none-channel → NaN:** `parseCSSValue('oklch(0.6 none 200)').toString()` → `"oklch(0.6 NaN 200)"`.
+  A powerless `none` channel (CSS Color 4 — a valid `<number>`-or-`none` channel value) must
+  round-trip as `none`, never `NaN` (a `NaN` channel re-parses to a different unit type → the
+  kf round-trip structural-equality oracle fails).
+- **`color()` wrapper-loss:** `parseCSSValue('color(display-p3 1 0 0)').toString()` →
+  `"display-p3(1 0 0)"`. The `color(<space> …)` function wrapper is dropped on round-trip → a
+  different function name → equality fails.
+
+**The cure (two S-clauses, both round-trip-fidelity fixes, BC-additive).**
+- **S1 — the none-channel serializer.** Serialize a powerless `none` channel verbatim as
+  `none` (preserve the powerless-channel token through parse→serialize), never collapsing it to
+  `NaN`.
+- **S2 — the `color()` wrapper preservation.** Preserve the `color(<space> …)` function wrapper
+  on round-trip so `color(display-p3 1 0 0)` serializes back to `color(display-p3 1 0 0)`, not the
+  bare `display-p3(1 0 0)`.
+
+**The kf consume (GATED, Q.WD2 via Q.WG4).** kf's Q.WD2 `proof:grammar-fuzz` none-channel +
+wrapper-loss arms are EXPECTED_FAILURE tripwires (green-now, self-terminating at the gate). On
+the `^1.2.0` re-pin (Q.WG4), they auto-flip PENDING→GREEN as standard passing arms — value.js
+now round-trips both inputs. NO kf re-fit beyond the re-pin (the tripwires read the round-trip
+result directly).
+
+**Born-RED gate (`proof:serialize-fidelity`, value.js-side).** RED today:
+`parseCSSValue('oklch(0.6 none 200)').toString() !== 'oklch(0.6 none 200)'` (it is
+`'oklch(0.6 NaN 200)'`) AND `parseCSSValue('color(display-p3 1 0 0)').toString() !==
+'color(display-p3 1 0 0)'` (it is `'display-p3(1 0 0)'`). GREEN when both round-trip verbatim.
+Plant-a-failure: revert the none-channel serializer → the none channel re-NaNs → the gate reds;
+revert the wrapper preservation → the `color()` wrapper drops → the gate reds.
+
+---
+
 ## INFORM (what value.js Q must know — the DAG, the version split, the consume edges)
 
 1. **The DAG — value.js Q sequences AFTER parse-that Q, BEFORE keyframes Q.**
@@ -447,7 +490,7 @@ per-element `Color` lerp across a grid. kf-side: `proof:color-soa` (NEW, born-RE
    | value.js publish | contents | kf consume |
    |---|---|---|
    | **1.1.1** | VJ-Q1 `contrast-color()` L7 (+ the dead L6 stub delete) | kf's `^1.1.0` caret auto-consumes it — Q.WB1 Phase-2 lowers `if(contrast-color(...))` |
-   | **1.2.0** | VJ-Q2 egress out-param family; VJ-Q3 `mixColorsInto`/`sampleColorRampAt`/structural-clone; VJ-Q4 `flatLeaf .fnName`; VJ-Q5 `/math` contract; VJ-Q6 dashed-call parse + `<syntax>` exposure; VJ-Q7 `if()` multibranch; VJ-Q8 `ColorChannelPlan` | kf re-pins `^1.2.0` (Q.WG4) — the EXPLICIT re-pin so the consume edges are observable (the caret would land 1.2.0 silently); fires Q.WB2 (@function), Q.WB3-color (SoA), Q.WD2 (if-N), Q.WE2 (leaves), the S8 terminal |
+   | **1.2.0** | VJ-Q2 egress out-param family; VJ-Q3 `mixColorsInto`/`sampleColorRampAt`/structural-clone; VJ-Q4 `flatLeaf .fnName`; VJ-Q5 `/math` contract; VJ-Q6 dashed-call parse + `<syntax>` exposure; VJ-Q7 `if()` multibranch; VJ-Q8 `ColorChannelPlan`; VJ-Q9 serialization fidelity (none-channel + `color()`-wrapper) | kf re-pins `^1.2.0` (Q.WG4) — the EXPLICIT re-pin so the consume edges are observable (the caret would land 1.2.0 silently); fires Q.WB2 (@function), Q.WB3-color (SoA), Q.WD2 (if-N + the grammar-fuzz serialization tripwires), Q.WE2 (leaves), the S8 terminal |
 
    **The caret-pin observability note (B6-crossrepo-versions).** kf 4.4.0 pins
    `^1.1.0`, which auto-consumes 1.1.x AND 1.2.x. VJ-Q1 (1.1.1) lands transparently
@@ -492,11 +535,14 @@ per-element `Color` lerp across a grid. kf-side: `proof:color-soa` (NEW, born-RE
    - **VJ-Q6** — the dashed-call parse arm + expose the `<syntax>` validator on the resolve path.
    - **VJ-Q7** — emit the FULL ordered `if()` clause list (the flat-pair layout specified here).
    - **VJ-Q8** — the `ColorChannelPlan` + `lerpColorChannels`.
+   - **VJ-Q9** — the serialization-fidelity fix (none-channel round-trip + `color()`-wrapper
+     preservation) + the value.js born-RED gate `proof:serialize-fidelity`.
 
 **keyframes.js (the GATED consumes — Q.WG4 + the band waves):**
 1. **On 1.1.1:** the `^1.1.0` caret auto-consumes `contrast-color()`; Q.WB1 lowers it.
 2. **On 1.2.0 (Q.WG4 — the explicit `^1.2.0` re-pin):** fire Q.WB2 (@function inline),
-   Q.WB3-color (SoA), Q.WD2 (if-N), Q.WE2 (leaves externalize); retire the S8 WeakMap +
+   Q.WB3-color (SoA), Q.WD2 (if-N + the grammar-fuzz serialization tripwires auto-flip on VJ-Q9),
+   Q.WE2 (leaves externalize); retire the S8 WeakMap +
    ceremony (the VJ-Q4 terminal); inherit the egress/mix/clone perf transparently.
 
 **The contract.** value.js publishes the asks; kf re-pins and consumes (the explicit
@@ -505,9 +551,10 @@ per-element `Color` lerp across a grid. kf-side: `proof:color-soa` (NEW, born-RE
 `proof:ramp-at-equiv` + `proof:clone-alloc` (the perf family); the `flatLeaf` vitest +
 kf `proof:workaround-deletion` S8 (the provenance terminal); the `/math` graph (the
 subpath contract); the dashed-call round-trip + the `<syntax>` exposure; the `if()`
-multibranch round-trip; the `ColorChannelPlan` bit-exactness — is the binding cross-repo
-oracle. Each consume fires when the installed value.js surface carries the API, observed
-at runtime (the `apiPresent` probe), not asserted by coordination.
+multibranch round-trip; the `ColorChannelPlan` bit-exactness; `proof:serialize-fidelity`
+(the none-channel + `color()`-wrapper round-trip, the Q.WD2 grammar-fuzz tripwires' GATED exit)
+— is the binding cross-repo oracle. Each consume fires when the installed value.js surface
+carries the API, observed at runtime (the `apiPresent` probe), not asserted by coordination.
 
 ---
 
