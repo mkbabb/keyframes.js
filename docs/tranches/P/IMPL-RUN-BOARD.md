@@ -17,6 +17,12 @@
 | 3b | **keyframes P** | keyframes.js | P.W1 apparatus · P.W2 SoA · P.W3 _styleOut · P.W6 heatmap · P.W11 WeakMap · P.W13 emerging-CSS · P.W5/W7/W8 demo fleet · P.W9 correctness · P.W10 no-legacy · P.W12 S2 consume → **5.1.x** | ⬜ PENDING |
 | 4 | **Deploy** | keyframes.js | CI green · build gh-pages · Cloudflare deploy keyframes.babb.dev · round-trip verify | ⬜ PENDING |
 
+## 🎉 CORE DAG COMPLETE (2026-06-23)
+- ✅ **parse-that 0.12.0** published · ✅ **value.js 1.1.0** published · ✅ **keyframes 4.4.0** published
+- ✅ **keyframes.babb.dev REDEPLOYED + verified** — HTTP 200 serving `index-e9_Uza8v.js` (the exact deployed hash); CF Pages deploy `4c2c10e4`, project `keyframes`.
+- Honest semver: kf shipped **4.4.0** (MINOR — additive MorphSVG/emerging-CSS + internal SoA/WeakMap/_styleOut/S9; the planned 5.0.0 awaits the deferred O.W9 breaking alias-drops).
+- REMAINING (enhancement, not blocking): spring heatmap (in progress) → redeploy. Then the honest deferred-follow-ups list below.
+
 ## Last-completed leg
 **Phase 1 ✅ (parse-that 0.12.0 published) · Phase 2 ✅ (value.js 1.1.0 published) · Phase 3a IN PROGRESS.**
 kf pins bumped to value.js ^1.1.0 + parse-that ^0.12.0, installed, baseline GREEN (891 tests, tsc clean).

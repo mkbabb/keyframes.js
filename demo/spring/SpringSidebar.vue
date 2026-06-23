@@ -70,6 +70,17 @@
                 />
             </div>
 
+            <!-- ── P.W6 S3 — THE PARAMETER-SPACE HEATMAP (the headline egg) ──────
+                 The two abstract sliders above become a navigable landscape: a
+                 20×20 response×damping field tinted by the EXACT analytic
+                 overshoot `exp(-ζπ/√(1-ζ²))` (NOT 400 live SpringProgress
+                 instances — 507× faster, `spring-heatmap-probe`). Clicking a
+                 cell NAVIGATES the live spring to that (response, damping); the
+                 marker tracks the live params. Two-way: it reads `demo.response`
+                 / `demo.dampingFraction` and a click writes them (the same refs
+                 the sliders drive — one shared control surface). -->
+            <SpringHeatmap :demo="demo" />
+
             <!-- Preset cells — the SINGLE preset surface (S5: the StartingStyle
                  pane's redundant preset row is retired; this is the ONE place the
                  four canonical presets live). Each cell carries its OWN live track
@@ -143,6 +154,7 @@ import type { SegmentedTabOption } from "@mkbabb/glass-ui/tabs";
 import { GripVertical, RefreshCw } from "@lucide/vue";
 
 import KeyframesEditor from "@components/custom/animation-controls/keyframes/KeyframesEditor.vue";
+import SpringHeatmap from "./SpringHeatmap.vue";
 
 import { useSpringPaneDrag } from "./useSpringPaneDrag";
 
