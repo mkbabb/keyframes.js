@@ -1,20 +1,17 @@
-import { any as parseAny } from "@mkbabb/parse-that";
 import {
     CSSCubicBezier,
-    CSSFunction,
-    CSSValues,
     cssLinear,
     flattenObject,
     functionIdentityValue,
     FunctionValue,
     memoize,
     normalizeValueUnits,
+    parseCSSSubValue,
     parseLinearStops,
     parseSteps,
     prepareInterpVar,
     steppedEase,
     timingFunctions,
-    tryParse,
     unflattenObjectToString,
     ValueArray,
     ValueUnit,
@@ -34,25 +31,32 @@ import type {
 export type ParsedVarMap = Record<string, ValueArray>;
 
 /**
- * The function-token name a leaf `ValueUnit` was flattened OUT of, stamped so
+ * The function-token name a leaf `ValueUnit` was flattened OUT of, tracked so
  * the identity-aware arity pad ({@link createInterpVarValue}) can resolve the
  * CSS identity element of an ABSENT function (e.g. `scale → 1`, `translateX →
  * 0px`) instead of the bare numeric `0`. `flattenObject`/value.js's parse tree
  * dissolves the `FunctionValue` wrapper into bare leaves, dropping the name; we
- * re-attach it here at flatten time. `value.js`'s `ValueUnit.clone()` does NOT
- * preserve this field, so the cache restamps it (see `tryParseLeaves`).
+ * re-attach it here at flatten time.
+ *
+ * The provenance lives in a kf-MODULE-LOCAL `WeakMap` keyed by the leaf
+ * instance — NOT a Symbol stamped onto value.js's `ValueUnit` (a class kf does
+ * not own). The `ValueUnit` is a KEY, never mutated, so the realm stays clean:
+ * value.js's instance carries zero kf-owned own-properties (gated by
+ * `proof:no-foreign-symbol-stamp`). The map does NOT survive
+ * `ValueUnit.clone()` (a clone is a fresh instance, absent from the map), so the
+ * cache re-stamps every clone from its master (see `tryParseLeaves`) — the same
+ * ceremony the former Symbol required, for the same reason. (value.js's VJ-L1
+ * first-class `.fnName` field would let `clone()` preserve it and retire the
+ * ceremony; that consume is dispatched at O.W16 and not yet shipped.)
  */
-const FN_NAME = Symbol("kf.fnName");
+const FN_NAME_MAP = new WeakMap<ValueUnit, string>();
 
-type NamedValueUnit = ValueUnit & { [FN_NAME]?: string };
+/** Read the tracked flatten-origin function name off a leaf (if any). */
+const fnNameOf = (u: ValueUnit): string | undefined => FN_NAME_MAP.get(u);
 
-/** Read the stamped flatten-origin function name off a leaf (if any). */
-const fnNameOf = (u: ValueUnit): string | undefined =>
-    (u as NamedValueUnit)[FN_NAME];
-
-/** Stamp the flatten-origin function name onto a leaf, returning it. */
+/** Track the flatten-origin function name for a leaf, returning it. */
 const stampFnName = (u: ValueUnit, fnName: string | undefined): ValueUnit => {
-    if (fnName !== undefined) (u as NamedValueUnit)[FN_NAME] = fnName;
+    if (fnName !== undefined) FN_NAME_MAP.set(u, fnName);
     return u;
 };
 
@@ -210,8 +214,8 @@ export const getTimingFunction = (
  * UNBOUNDED `Map` (the 6-tranche DL-K18 row), keyed by `(childKey, strValue)`
  * via an explicit `keyFn` (the `${childKey}:${strValue}` shape the old
  * hand-rolled cache used). The cached leaves are returned as fresh
- * `.clone()`s per call (the property context + `FN_NAME` stamp differ per
- * use-site), so the cache holds shared masters and never aliases. The bound is
+ * `.clone()`s per call (the property context + flatten-origin provenance differ
+ * per use-site), so the cache holds shared masters and never aliases. The bound is
  * value.js-consistent (its own default is `Infinity` — we pick an explicit
  * finite ceiling; a measured BOUND, not a perf rewrite). At ~hundreds of
  * distinct CSS literals per app this never evicts in practice; it only caps a
@@ -221,21 +225,15 @@ const TRY_PARSE_CACHE_MAX = 2048;
 
 const tryParseLeaves = memoize(
     (childKey: string, strValue: string): ValueUnit[] => {
-        // value.js and keyframes.js each ship their own copy of
-        // @mkbabb/parse-that under different node_modules realms,
-        // so the Parser<T> classes are nominally distinct from
-        // TypeScript's perspective. The runtime is the same. Cast
-        // to `any` to bypass the cross-realm type comparison.
-        const fnArgs = (CSSFunction.FunctionArgs as any).map(
-            (v: ValueArray) => {
-                v.setSubProperty(childKey);
-                return v;
-            },
-        );
-        const p = tryParse(
-            (parseAny as any)(fnArgs, CSSValues.Value),
-            strValue,
-        ) as ValueUnit | ValueArray | FunctionValue;
+        // value.js's `parseCSSSubValue` internalizes the
+        // `any(CSSFunction.FunctionArgs, CSSValues.Value)` composition
+        // (FunctionArgs-FIRST) AND stamps `subProperty` onto every leaf — the
+        // exact parse kf formerly hand-composed by reaching parse-that's `any`
+        // combinator across the realm boundary (the cross-realm nominal-type
+        // mismatch the `as any` casts papered over). Consuming value.js's own
+        // entrypoint removes kf's direct `@mkbabb/parse-that` production
+        // dependency (the acyclic-spine restoration; proof:boundary W96).
+        const p = parseCSSSubValue(strValue, { subProperty: childKey });
 
         return flattenToValueUnits(p);
     },
@@ -286,8 +284,9 @@ export function parseAndFlattenObject(
 
         // The bounded-LRU cache holds shared master leaves; clone per call so
         // the property context below (and any later mutation) is per-use-site.
-        // `ValueUnit.clone()` drops the `FN_NAME` stamp, so re-apply it from the
-        // master onto each clone — the identity-pad must see the origin function.
+        // A clone is a fresh `ValueUnit` instance absent from the `FN_NAME_MAP`
+        // WeakMap, so re-stamp the flatten-origin provenance from the master onto
+        // each clone — the identity-pad must see the origin function.
         const masters = tryParseLeaves(childKey, String(value));
         const leaves = masters.map((m) =>
             stampFnName(m.clone(), fnNameOf(m)),
@@ -339,7 +338,8 @@ export const createInterpVarValue = (
      * OTHER side (`counterpart`) has but `arr` lacks — so its fill value is that
      * function's CSS IDENTITY element (`scale → 1`, `translateX → 0px`,
      * `brightness → 1`), resolved via value.js's `functionIdentityValue` off the
-     * `FN_NAME` stamped at flatten time. Absent a known function name (a bare
+     * flatten-origin provenance tracked (in `FN_NAME_MAP`) at flatten time.
+     * Absent a known function name (a bare
      * scalar list, or a name value.js has no identity for) it falls back to the
      * historical `ValueUnit(0)` — so non-identity-`0` functions stop
      * silently-lerping from black/zero (MCI-5).
@@ -401,6 +401,19 @@ export function calcFrameTime<V extends Vars>(
 }
 
 /**
+ * Per-frame reuse target for the default-renderer's flat-vars → style-string
+ * conversion. `transformTargetsStyle` rides the rAF apply hot path (`engine.ts`
+ * binds it as `_defaultTransform`, calls it every frame); without an `out`
+ * argument `unflattenObjectToString` mints a fresh `Record<string,string>` each
+ * call — steady-state GC pressure on every transform animation. value.js's sink
+ * accepts a reuse `out` and CLEARS stale keys per call, so one module-scope
+ * buffer refilled per frame eliminates the alloc. Safe to share: the function
+ * drains the buffer synchronously (the `targets.forEach` runs to completion
+ * before return) and JS is single-threaded, so no two applies interleave over it.
+ */
+const _styleOut: Record<string, string> = {};
+
+/**
  * Default DOM-style renderer used by `Animation.transform` when no
  * user-supplied transform is provided. "Is this the default renderer?"
  * is decided by reference comparison against the Animation instance's
@@ -414,7 +427,7 @@ export function transformTargetsStyle<V extends Vars>(
 ) {
     vars = flat ? vars : (flattenObject(vars) as V);
 
-    const styleStringVars = unflattenObjectToString(vars);
+    const styleStringVars = unflattenObjectToString(vars, _styleOut);
 
     targets.forEach((target) => {
         Object.entries(styleStringVars).forEach(([key, value]) => {

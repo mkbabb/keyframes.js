@@ -247,17 +247,29 @@ const arms = [
     {
         id: "S8",
         title:
-            "FN_NAME Symbol sidechannel stamped onto value.js ValueUnit (utils.ts) " +
+            "FN_NAME flatten-origin provenance carrier (utils.ts) " +
             "→ value.js VJ-L1 first-class flatLeaf",
-        // The recurrence-resistant pattern: the FN_NAME constant OR any new
+        // The recurrence-resistant pattern: the FN_NAME carrier OR any new
         // `Symbol("kf.` stamped onto a published class (the broader bite the
         // spec's §Bite names).
+        //
+        // P.W11 / O.W16 §S3 swapped the foreign `Symbol("kf.fnName")` stamp for a
+        // kf-internal `WeakMap<ValueUnit,string>` (`FN_NAME_MAP`). That dissolves
+        // the FOREIGN-OBJECT-ANNOTATION breach NOW (the realm is clean — certified
+        // by the separate `proof:no-foreign-symbol-stamp` gate), but it does NOT
+        // retire the S8 TRIPWIRE: the WeakMap does not survive `ValueUnit.clone()`,
+        // so the clone-restamp ceremony stays. This arm therefore STAYS PENDING
+        // (it still matches `FN_NAME_MAP`) until value.js VJ-L1 (`flatLeaf`/a
+        // first-class `.fnName` field, `clone()`-preserved) lands and retires the
+        // ceremony entirely — the honest belt-exit-vs-tripwire-close distinction
+        // (P.W11). VJ-L1 is absent on 1.1.0 (`flatLeaf in vjs === false`), so the
+        // arm holds PENDING, not RED.
         witness: {
             subpath: "src/animation/utils.ts",
             fileFilter: exact("src/animation/utils.ts"),
             pattern: /FN_NAME|Symbol\(\s*["']kf\./,
         },
-        sibling: { pkg: "@mkbabb/value.js", version: "0.14.0", name: "VJ-L1 flatLeaf provenance API" },
+        sibling: { pkg: "@mkbabb/value.js", version: "1.1.0", name: "VJ-L1 flatLeaf provenance API" },
         apiPresent: vjsCaps.flatLeaf,
     },
     {
@@ -270,7 +282,13 @@ const arms = [
             fileFilter: exact("src/animation/utils.ts"),
             pattern: /from\s+["']@mkbabb\/parse-that["']/,
         },
-        sibling: { pkg: "@mkbabb/value.js", version: "0.14.0", name: "VJ-L3 parseCSSSubValue helper" },
+        // value.js Tranche P shipped VJ-L3 (`parseCSSSubValue`) at 1.1.0 — kf
+        // consumed it (O.W16 §S4): the parse-that composition is replaced by the
+        // single `parseCSSSubValue(strValue, { subProperty })` call, the direct
+        // @mkbabb/parse-that production dep is dropped, and this arm is ABSENT →
+        // GREEN. The W96 parse-that source-scan (proof:boundary §4b) is the
+        // companion no-direct-parse-that-import guard.
+        sibling: { pkg: "@mkbabb/value.js", version: "1.1.0", name: "VJ-L3 parseCSSSubValue helper" },
         apiPresent: vjsCaps.parseCSSSubValue,
     },
 ];

@@ -50,6 +50,12 @@
  *      tree-shaking removes from the bundle graph before assertion 1 can
  *      see it. The light/heavy split is the import truth itself, not a
  *      rename-fragile basename allowlist.
+ *   4b. PARSE-THAT SOURCE-SCAN (W96, O.W16 §S1) — the acyclic-spine guard.
+ *      The constellation spine is acyclic (parse-that → value.js → kf), so kf
+ *      reaches parse-that ONLY transitively through value.js, never as a direct
+ *      production dependency. This scans the FULL `src/animation/**` tree (the
+ *      heavy surface too — `utils.ts` is heavy) for any direct
+ *      `@mkbabb/parse-that` import/export specifier; one reddens the gate.
  *
  * value.js + parse-that are deliberately NOT externalized, so a
  * reintroduced STATIC edge bundles their source into the entry chunk and
@@ -104,6 +110,61 @@ function holdsValueJsSpecifier(src) {
             stripped,
         )
     );
+}
+
+/**
+ * The W96 parse-that source-scan (O.W16 §S1). The constellation spine is
+ * acyclic — `parse-that → value.js → kf → glass-ui` — so kf reaches parse-that
+ * ONLY transitively through value.js, NEVER as a direct production dependency.
+ * The `@keyframes` grammar (and the `any` combinator over value.js's own
+ * parsers) lives in value.js; kf consumes value.js's public entrypoints
+ * (`parseCSSSubValue`, …), it does not re-compose value.js's parsers across the
+ * realm boundary. A kf source module importing `@mkbabb/parse-that` directly
+ * breaks the spine at the `package.json` level and papers the cross-realm
+ * nominal-type mismatch with `as any` casts (the retired S9 workaround).
+ *
+ * Same shape as {@link holdsValueJsSpecifier}: every import/export edge that
+ * arms a runtime parse-that dependency — bare side-effect, named, default,
+ * re-export, subpath — with `import type`/`export type` stripped first (a
+ * type-only edge is erased at build and carries no runtime dep). This scans the
+ * FULL `src/animation/**` tree (NOT just the light surface): the parse-that
+ * breach is a production-dep restoration that applies to heavy modules
+ * (`utils.ts`) too — the heavy surface may reach VALUE.JS statically, but never
+ * parse-that DIRECTLY.
+ */
+function holdsParseThatSpecifier(src) {
+    const stripped = src.replace(/\b(?:import|export)\s+type\s[^;]*;/g, "");
+    const SPEC = String.raw`@mkbabb\/parse-that(?:\/[^"']*)?`;
+    return (
+        new RegExp(
+            String.raw`(?:^|\n)\s*(?:import|export)\b[^;'"]*from\s+["']${SPEC}["']`,
+        ).test(stripped) ||
+        new RegExp(String.raw`(?:^|\n)\s*import\s+["']${SPEC}["']`).test(
+            stripped,
+        )
+    );
+}
+
+/**
+ * Recursively collect every kf `.ts` SOURCE module under `dir` (the full
+ * `src/animation/**` tree), skipping `node_modules`/`.git`/`dist`. The
+ * parse-that scan (assertion 4b) runs over this set rather than the light-entry
+ * static graph: `utils.ts` (the live S9 violator) is on the HEAVY surface,
+ * absent from `lightSourceModules`, so a light-only scan would miss it.
+ */
+function collectAnimationSources(dir, acc = []) {
+    for (const name of fs.readdirSync(dir)) {
+        if (name === "node_modules" || name === ".git" || name === "dist") {
+            continue;
+        }
+        const full = path.join(dir, name);
+        if (fs.statSync(full).isDirectory()) {
+            collectAnimationSources(full, acc);
+        } else if (name.endsWith(".ts")) {
+            acc.push(full);
+        }
+    }
+    return acc;
 }
 
 /** Parse the barrel's runtime value exports — the light surface the gate proves. */
@@ -375,6 +436,35 @@ async function main() {
                 `light-surface source holds a static "@mkbabb/value.js" ` +
                     `specifier (dead-but-armed):\n    ` +
                     offenders.join("\n    "),
+            );
+        }
+    }
+
+    // ── 4b. W96 parse-that source-scan (the acyclic-spine guard) ───────
+    {
+        // The constellation spine is acyclic — kf reaches parse-that ONLY
+        // transitively through value.js, never as a direct production dep. This
+        // scans the FULL `src/animation/**` tree (the heavy surface too, where
+        // the S9 `utils.ts` violator lives): no kf source module may import
+        // `@mkbabb/parse-that` directly. Derived from the real source tree (not
+        // a hand-maintained name list) so a rename or a new module cannot drift.
+        const parseThatOffenders = [];
+        for (const id of collectAnimationSources(ANIM)) {
+            if (holdsParseThatSpecifier(fs.readFileSync(id, "utf8"))) {
+                parseThatOffenders.push(rel(id));
+            }
+        }
+        console.log(
+            `  parse-that source-scan: ${parseThatOffenders.length} direct ` +
+                `@mkbabb/parse-that specifier(s) across src/animation/**`,
+        );
+        if (parseThatOffenders.length > 0) {
+            failures.push(
+                `kf source holds a DIRECT "@mkbabb/parse-that" specifier — the ` +
+                    `acyclic spine (parse-that → value.js → kf) is broken; kf must ` +
+                    `reach parse-that only transitively via value.js (consume a ` +
+                    `value.js entrypoint, e.g. parseCSSSubValue):\n    ` +
+                    parseThatOffenders.join("\n    "),
             );
         }
     }

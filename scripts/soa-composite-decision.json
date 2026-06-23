@@ -1,0 +1,14 @@
+{
+  "$comment": "SoA-vs-boxed blend ADOPT-or-KILL verdict (P.W2). The ratio is scoped to AnimationGroup.transformFramesGrouped's add/weighted arms ONLY (the isolated blend substrate, SAME-REPORT, device-independent) — NOT the transplanted SpringProgress.setTargets 3.86× (a different path). ADOPT (>=1.2× at K=8) authorizes the SoA fold; KILL forbids it and ships the boxed arms as-is. The default `replace` arm is dispatch-free and untouched.",
+  "target": "AnimationGroup.transformFramesGrouped (add/weighted arms ONLY)",
+  "k": 8,
+  "floorFraction": 1.2,
+  "add": {
+    "soaOverBoxed": 2.536
+  },
+  "weighted": {
+    "soaOverBoxed": 2.35
+  },
+  "verdict": "ADOPT",
+  "recordedAt": "2026-06-23T05:19:31.584Z"
+}

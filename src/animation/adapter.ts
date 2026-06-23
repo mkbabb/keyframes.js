@@ -1,14 +1,25 @@
 import {
     extractAnimationOptions,
+    extractFunctions,
     extractKeyframes,
     extractProperties,
     parseCSSStylesheet,
+    ValueArray,
+    type CustomFunctionDescriptor,
     type KeyframeRule,
     type OnParseError,
     type ParseDiagnostic,
     type PropertyDescriptor,
     type Stylesheet,
 } from "@mkbabb/value.js";
+import {
+    DROP,
+    hasResolvableValue,
+    makeResolveContext,
+    resolveValues,
+    type ResolveContext,
+    type ResolveEnv,
+} from "./resolve-values";
 
 /**
  * The stable diagnostic `code`s the kf-side sink emits (K.W7 S4). A FLAT,
@@ -81,6 +92,17 @@ export interface ResolvedKeyframes {
     /** `@property --foo { ... }` registry */
     properties: Map<string, PropertyDescriptor>;
     /**
+     * `@function --foo(...) { ... }` descriptor registry (P.W13 — the emerging-CSS
+     * resolve seam). Collected via value.js `extractFunctions` exactly as
+     * `properties` is collected via `extractProperties`. Threaded into the
+     * {@link resolveValues} pass's {@link ResolveContext} so the dashed-function
+     * `@function` CALL-inlining lands greenable the moment value.js-P publishes
+     * the call-parse arm; the descriptor is captured NOW (a read-only registry —
+     * the inlining that CONSUMES it is the value.js-P-gated seam in
+     * `resolve-values.ts`).
+     */
+    functions: Map<string, CustomFunctionDescriptor>;
+    /**
      * Animation options recovered from a top-level style rule's
      * `animation` shorthand or longhand declarations (if any). Empty
      * when the input has no matching style rule.
@@ -110,13 +132,34 @@ export interface ResolvedKeyframes {
     stylesheet: Stylesheet;
 }
 
-const declsToVarMap = (rule: KeyframeRule): Record<string, unknown> => {
+const declsToVarMap = (
+    rule: KeyframeRule,
+    ctx: ResolveContext,
+): Record<string, unknown> => {
     const out: Record<string, unknown> = {};
     for (const decl of rule.declarations) {
         // `decl.value` is a ValueArray; the existing
         // `parseAndFlattenObject` pipeline handles either ValueArray
         // or string values, so we pass the ValueArray through.
-        out[decl.name] = decl.value;
+        let value: unknown = decl.value;
+        // P.W13 — the element-INDEPENDENT emerging-CSS lowering pass, at the
+        // resolveKeyframes → flatten seam. Only paid on a declaration that
+        // CARRIES a lowerable node (`if(...)`/`spring(...)`); the common
+        // all-concrete keyframe is untouched (zero-cost structural sniff). The
+        // pass returns the SAME node type (a `ValueArray`), so the downstream
+        // flatten/compile/interpolation runs EXACTLY as today.
+        if (value instanceof ValueArray && hasResolvableValue(value)) {
+            const resolved = resolveValues(value, ctx);
+            if (resolved === DROP) {
+                // Guaranteed-invalid (an `if()` with no matching branch + no
+                // else) → OMIT the declaration entirely: the prior/initial value
+                // wins per the CSS guaranteed-invalid rule. NOT an empty-string
+                // value (which would corrupt interpolation).
+                continue;
+            }
+            value = resolved;
+        }
+        out[decl.name] = value;
     }
     return out;
 };
@@ -174,6 +217,7 @@ const pickKeyframes = (ast: Stylesheet): KeyframeRule[] => {
  */
 export const resolveKeyframes = (
     input: string | Stylesheet,
+    env?: ResolveEnv,
 ): ResolvedKeyframes => {
     const diagnostics: Diagnostic[] = [];
     // The CONSUMED value.js producer (N2 row 10): a sink of the published
@@ -226,8 +270,20 @@ export const resolveKeyframes = (
     const timingFunctions = new Map<string, string>();
     const composition = new Map<string, string>();
 
+    // P.W13 — the `@function` descriptor registry + the element-INDEPENDENT
+    // resolution context, built from the FINAL ast (after the bare-list re-wrap,
+    // so `extractFunctions` reads the same tree the keyframes came from). `env`
+    // is injectable for testing (jsdom carries neither `CSS.supports` nor a
+    // faithful `matchMedia`); it defaults to SSR-safe no-ops via
+    // `makeResolveContext`. ONE context per resolve — the `seen` cycle-guard is
+    // only consumed by the value.js-P-gated `@function` inlining arm (today a
+    // no-op seam that never mutates it), so sharing it across declarations is
+    // benign; the per-call depth ceiling is the active guard.
+    const functions = extractFunctions(ast);
+    const resolveCtx = makeResolveContext(functions, env);
+
     for (const rule of rules) {
-        const vars = declsToVarMap(rule);
+        const vars = declsToVarMap(rule, resolveCtx);
         for (const percentText of formatSelectorPercent(rule)) {
             // Multiple selectors share one body (e.g. `0%, 50% { ... }`).
             // Merge with any existing entry at that percent so later
@@ -252,6 +308,7 @@ export const resolveKeyframes = (
         timingFunctions,
         composition,
         properties: extractProperties(ast),
+        functions,
         options: extractAnimationOptions(ast),
         diagnostics,
         stylesheet: ast,

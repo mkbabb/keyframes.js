@@ -446,6 +446,19 @@ export class FrameCompiler<V extends Vars = any> {
     parse(targets: HTMLElement[]) {
         this.frames = [];
 
+        // P.W9 (DM-22 named-selector NaN-frame) — DEFERRED to a follow-up wave.
+        // A scroll-range named selector (`entry`/`exit`/`cover`/`contain`) is
+        // stored opaquely as `ValueUnit(rawSelector, undefined,
+        // [NAMED_SELECTOR_SUPERTYPE])` (`.value` = raw STRING) so it INGESTS and
+        // round-trips VERBATIM (the L.W1 S4 floor — `fromString` must not throw).
+        // The correct cure is NOT a throw at parse() (that poisons the opaque-
+        // ingest floor): it is a deferred-resolution step that maps the named
+        // phase to a numeric `%` under a ScrollTimeline/ManualTimeline at attach
+        // time, refusing with the structured `NAMED_SELECTOR_NO_TIMELINE` only at
+        // the genuinely-demanded PLAY-without-timeline point — not at ingest. That
+        // is a frame/play-pipeline change carried to its own wave; here we keep the
+        // shipped (tranche-L) behavior: named frames round-trip; the NaN is latent
+        // at sample-time only (no timeline = user error, surfaced at play).
         this.templateFrames.sort((a, b) => a.start.value - b.start.value);
 
         this.parsedVars = this.templateFrames.map((frame) => {
