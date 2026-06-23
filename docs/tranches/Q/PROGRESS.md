@@ -112,7 +112,21 @@ companion is `docs/tranches/Q/audit/chronic-ledger-Q.md`.
 > still points at `docs/tranches/L/PROGRESS.md` (TRIPLE-STALE: the path is 3 tranches behind; `:468`
 > `LEDGER_LABEL = "K/PROGRESS.md"` disagrees with the path). The DQ rows below form the proposed Q
 > substrate; Q.WZ finalizes them in ONE atomic motion (re-point L→Q + correct `LEDGER_LABEL` to
-> `"Q/PROGRESS.md"`).
+> `"Q/PROGRESS.md"` + the TWO gate-code co-edits the Q vocabulary requires — see the next note).
+>
+> **GATE-CODE CO-EDIT NOTE (VERIFIED 2026-06-23 by running the gate against THIS file — the Q ledger is
+> UN-GREENABLE without it).** The Q ledger introduces THREE substrate facts the gate code (frozen at the
+> L/K substrate) cannot parse, so the Q.WZ §S1 re-point commit MUST carry all three: (1) the `BUILD-IN`
+> disposition is NOT yet exit-shaped (`isExitShaped()` `:280–291` has no `BUILD-IN` matcher; the L ledger
+> used ZERO BUILD-IN) — the Q ledger uses it on the ≥4-tranche rows **DM-2 (9)** and **DM-22 (4)**, so the
+> P-inv-28 clause `:380–381` would RED both; (2) the `EXPECTED` coverage array `:478–489` greps the L
+> `CH-1…CH-6` tokens, but the Q ledger renamed every chronic to its DM-N identity (`grep -c CH-1 Q/PROGRESS.md`
+> → 0); (3) `parseChronicTable` `:198` matches only an EXACT `## Open deferrals` heading + ONE flat table,
+> but THIS section is `## §2 — Open deferrals` with `### A…F` sub-tables → the gate emits `[substrate] …
+> no "## Open deferrals" section` + `parsed ZERO chronic rows`. Q.WZ §S1 adds `buildIn` to `isExitShaped`,
+> re-targets `EXPECTED` to the Q DM-N tokens, AND widens the parser to the Q heading + sub-tables (or
+> flattens this substrate to one table under an exact `## Open deferrals` heading) in the SAME commit; the
+> gate CONTRACT is unchanged (it learns the Q substrate's vocabulary + shape, nothing more).
 >
 > **CHRONICITY COLUMN SHAPE (binding grammar contract):** every row's Chronicity cell leads with an
 > explicit INTEGER tranche-span count; the gate reads the leading integer ONLY; the ≥4-tranche

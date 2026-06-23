@@ -85,7 +85,7 @@ consumes an unpublished sibling surface** (the `Q.md §3` friction-chain-4 invar
       "dispatchDoc": "KF-TO-PARSETHAT-Q.md", "terminalOrKill": true },
     { "id": "Q.WG2",  "band": "G", "phase": "DISPATCH", "title": "value.js 1.1.1 + 1.2.0 dispatch (contrast-color(); if() multibranch; color-arch out-param family; VJ-L1 flatLeaf .fnName; /math subpath; dashed-call parse arm)",
       "dispatchDoc": "KF-TO-VALUEJS-Q.md", "terminalOrKill": true },
-    { "id": "Q.WG3",  "band": "G", "phase": "USER-DOMAIN", "title": "glass-ui BC dispatch (publish the authored SegmentedTabs aria guard + the dock collapse-crossfade strand fix)",
+    { "id": "Q.WG3",  "band": "G", "phase": "USER-DOMAIN", "title": "glass-ui BC dispatch (publish the authored SegmentedTabs aria guard + the dock collapse-crossfade strand fix + the keyframes.js peer-range widen to admit 5.0.0 — the Q.WZ S6 deploy precondition)",
       "dispatchDoc": "KF-TO-GLASSUI-Q.md", "terminalOrKill": true },
     { "id": "Q.WG-S1S2-HYGIENE", "band": "G", "phase": "NOW", "title": "the S1/S2 gate-hygiene retarget (version-probe → content-probe) — precedes the GATED deletes; turns the false-RED into a correct PENDING-until-publish edge" },
     { "id": "Q.WG-GATED-CONSUMES", "band": "G", "phase": "GATED", "title": "the GATED kf consume orchestrator (the single ^1.2.0 re-pin point + the glass-ui re-pin + the S1/S2 deletes); the atomic edge each band consume hangs off",
@@ -147,7 +147,7 @@ consumes an unpublished sibling surface** (the `Q.md §3` friction-chain-4 invar
     { "from": "Q.WG-S1S2-HYGIENE", "to": "Q.WG3", "kind": "gate-hygiene-precond", "note": "the content-probe retarget lands FIRST so the GATED deletes fire against a correct probe (not the broken version sentinel)" },
     { "from": "Q.WG3", "to": "Q.WC3-NSTAGE-UNSHELF", "kind": "glassui-publish-gate", "note": "the N-Stage unshelf rebases off the BC cut" },
     { "from": "Q.WG3", "to": "Q.WG-GATED-CONSUMES", "kind": "glassui-publish-gate", "note": "the glass-ui BC publish fires the glass-ui re-pin + the kf S1/S2 deletes" },
-    { "from": "Q.WG3", "to": "Q.WZ", "kind": "glassui-publish-gate", "note": "glass-ui BC publish ─► kf S1/S2 delete (GATED) ─► Q.WZ" }
+    { "from": "Q.WG3", "to": "Q.WZ", "kind": "glassui-publish-gate", "note": "glass-ui BC publish ─► kf S1/S2 delete (GATED) ─► Q.WZ; the SAME BC publish carries the keyframes.js peer-range widen to \"^4.0.0 || ^5.0.0\" — the Q.WZ S6 5.0.0-cut deploy precondition (else the post-5.0.0 master tree REDs proof:peer-satisfied and blocks the auto-deploy)" }
   ],
   "topologicalOrder": [
     "Q.W0",

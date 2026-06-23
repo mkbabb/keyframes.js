@@ -38,7 +38,11 @@ obligation** (a never-imported-able export is not part of the public contract).
 > (`/Users/mkbabb/Programming/parse-that/typescript/src/parse/`) + the value.js consumer
 > sites (`/Users/mkbabb/Programming/value.js/src/`). The AUDIT-31 anchors held EXCEPT the
 > `*Span` range (`16-360` → corrected to `16-547`, which had truncated the last 5
-> builders). All other anchors are tagged VERIFIED inline.
+> builders). **Anchor-path note:** the parse-that BARREL is `src/parse/index.ts` (NOT a
+> repo-root `index.ts`); bare `index.ts:9`/`index.ts:10` references below resolve to
+> `typescript/src/parse/index.ts:9` (the `leaf.js` re-export line — VERIFIED) and `:10`
+> (the 15 `*Span` re-export line — VERIFIED), distinct from value.js's `src/parsing/index.ts`
+> (the `dispatch({…})` consumer site). All other anchors are tagged VERIFIED inline.
 
 | # | ASK | parse-that surface (file:line, grounded in AUDIT-31 + VERIFIED 2026-06-23) | parse-that Q deliverable | the value.js+kf payoff | born-RED gate |
 |---|-----|------------------------------------------------------|--------------------------|------------------------|---------------|
@@ -91,18 +95,38 @@ confirms ZERO `try`/`finally`/`catch` in `packrat.ts` (VERIFIED 2026-06-23 — `
 re-entrancy throw exposes. The cure wraps `evalParser`/`growLR` in `try/finally` to
 unwind the LR machinery on throw, so a recovered parse starts clean.
 
-**The proposed cure (two viable forms, parse-that's session chooses).**
-- **Form A (the ledger-named, FAVORED):** move the src-epoch reset to the parseState
-  entry boundary (`parser.ts:33`). Each top-level `parse()` pushes its `src` epoch;
-  a nested `parse(differentSrc)` pushes a child epoch and restores the parent's on
-  return (a synchronous parse-stack, NOT a WeakRef-epoch).
-- **Form B (a synchronous parse-stack-depth epoch):** scope the epoch to a parse-stack
-  depth counter so the reset fires only at depth-0 entry, never mid-grow.
+**The soundness constraint the cure MUST satisfy (the precise correctness condition —
+parse-that's session owns the mechanism, this dispatch owns the invariant).** A naive
+"move the reset to the parseState entry boundary" is INSUFFICIENT on its own: the packrat
+state (`MEMO`/`HEADS`/`GROWING`/`LR_STACK`/`CURRENT_SRC`) is MODULE-GLOBAL, so a nested
+`parse(differentSrc)` that simply re-resets at its OWN entry STILL wipes the outer grow's
+in-progress cells → the same `:249` TypeError. AND a depth-counter that merely SUPPRESSES
+the reset while depth>0 is ALSO unsound: the nested parse would then share the outer's MEMO
+under a DIFFERENT `src`, and the `(id, offset)` keys collide across inputs — re-opening the
+exact PT-B1 cross-input bug 0.12.0 fixed. The cure must therefore both (i) give the nested
+parse a CLEAN packrat state AND (ii) RESTORE the outer parse's state on return. The only
+sound shape is a **synchronous SAVE/RESTORE of the full module-global packrat state across
+nested parse boundaries** (snapshot `MEMO`/`HEADS`/`GROWING`/`LR_STACK`/`CURRENT_SRC` at
+nested entry, run the child with fresh tables, restore the parent's snapshot on return).
+
+**The proposed cure (two viable forms, both honoring the save/restore invariant —
+parse-that's session chooses).**
+- **Form A (the ledger-named, FAVORED) — a synchronous parse-stack with save/restore at
+  the parseState entry boundary (`parser.ts:33`).** Each top-level `parse()` snapshots the
+  current packrat tables (the outer parse's, or empty at depth-0) and installs fresh ones;
+  a nested `parse(differentSrc)` snapshots the parent's, runs with its own clean tables, and
+  RESTORES the parent's snapshot on return (so the outer grow resumes against its own
+  un-wiped `MEMO`). This is cheaper than the per-node guard (one snapshot per top-level
+  parse, not per node) AND re-entrancy-safe by construction.
+- **Form B (a parse-stack-DEPTH epoch with the same save/restore):** scope a depth counter
+  so the reset/snapshot fires at every entry (depth-0 AND nested), each nested level pushing
+  the parent's tables and popping them on return — NEVER a bare depth>0 suppression (which is
+  unsound, above).
 
 **The WeakRef-epoch is REJECTED** (the ledger's parked arm-(b)): async GC timing is
 wrong for a synchronous parse lifecycle — a WeakRef-epoch would clear the cache at a
 GC tick unrelated to the parse boundary, re-introducing nondeterminism. The cure is a
-synchronous parse-stack epoch, full stop.
+synchronous parse-stack save/restore epoch, full stop.
 
 **The kf/value.js payoff.** value.js's parse LRU and kf's memoized timing-function
 parses become re-entrancy-SOUND with zero caller discipline — a nested re-parse (the
@@ -211,6 +235,19 @@ semver lie against any consumer who took the additive promise at face value. PT-
 deprecate-then-remove (arm b) is the BC-honest no-legacy path; arm (a) consume is the
 no-legacy path when a real seam exists.
 
+**The DAG-ordering resolution (the terminal must be SELF-CONTAINED at parse-that's
+publish — the no-perpetual-GATED fix).** parse-that publishes 0.13.0 BEFORE value.js Q
+runs (the spine is `parse-that → value.js`), so arm (a)'s "≥1 value.js source consumes a
+`*Span`" CANNOT be live at parse-that's own publish — value.js has not run yet. To prevent
+PT-Q4 becoming a perpetual GATED-on-value.js punt, the terminal is: **parse-that's 0.13.0
+ships arm (b) `@deprecated` BY DEFAULT** (the self-contained no-legacy disposition requiring
+ZERO sibling) — which immediately GREENs `proof:span-surface-resolved` on the deprecate
+clause. Arm (a) is then an OPTIONAL *upgrade*: IF value.js's Q session lands a `*Span`
+consume in the same coordinated window, parse-that drops the `@deprecated` tag from the
+consumed builder(s) (the gate's consume clause now also holds). Either way parse-that's
+publish is terminal at its OWN cut — never blocked waiting on value.js. The gate's two
+clauses are OR'd precisely so the deprecate-default discharges it standalone.
+
 **Born-RED gate (`proof:span-surface-resolved`).** RED today: neither (a) a value.js/kf
 source consumes a `*Span` builder, NOR (b) the 15 carry `@deprecated` + a removal-version
 note. GREEN on either arm. Plant-a-failure: revert the consume (arm a) OR strip the
@@ -239,6 +276,17 @@ transposition on a corpus no consumer runs is a green that misses the applicatio
   "if Q-VJ1's ≥40% on-path clause comes back NEGATIVE"), the wave PIVOTS from consume
   to RETRACT — revert `leaf.ts:103-215` as a no-consumer perf seam (a different change
   shape, pre-empted by specifying BOTH NOW).
+
+**The DAG-ordering resolution (same as PT-Q4 — the terminal is self-contained at
+parse-that's cut).** parse-that publishes 0.13.0 BEFORE value.js Q runs, so the CONSUME
+arm's on-path win cannot be MEASURED at parse-that's own publish. To avoid a perpetual
+GATED-on-value.js punt, the default is: **parse-that's 0.13.0 RETRACTS the subTable
+widening UNLESS value.js's Q session has COMMITTED to the consume in the coordinated
+window AND its on-path bench clears the floor.** The subTable is an OPTIONAL 2nd `dispatch()`
+arg (not a separate barrel export), so the RETRACT is a localized revert of `leaf.ts:103-215`
+that breaks no published contract (no consumer passes the 2nd arg). The CONSUME arm is the
+upgrade taken only when value.js's measured win lands — otherwise the self-contained RETRACT
+discharges the no-dead-perf-seam clause at parse-that's own cut, never waiting on value.js.
 
 **The consumer-anchored gate (the contrivance-recheck terminal).** Re-scope
 `proof-perf.mjs` clause B from the synthetic `ca/cl/cu` corpus to clause B' over

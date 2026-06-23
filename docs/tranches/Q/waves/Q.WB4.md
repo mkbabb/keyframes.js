@@ -3,7 +3,7 @@
 **Band:** B — Engine-perf + emerging-CSS Phase-2 · the WAAPI fidelity frontier.
 **Phase:** **NOW** — fully kf-internal, zero sibling dependency, executable on authorization. The densify lives entirely in `waapi.ts:toWAAPIKeyframes` (a kf-owned emit); no value.js/parse-that/glass-ui edge.
 **Sequence (DAG edges):** `Q.WA3 master-merge-reconcile ─► Q.WB4`. Independent of Q.WB1/WB2 (compile-time lowering) and Q.WB3 (the rAF-path interp substrate). Touches ONLY the WAAPI keyframe-build emit — orthogonal to every other Band-B seam.
-**Owning-DM-or-idea:** `B5-kf-engine-arch` Q.W-ENG7 (WAAPI curvature-adaptive sub-segment densify — replace the fixed `WAAPI_SUBSEGMENT_STOPS=8` with a curvature-driven stop count) + the finding "WAAPI eligibility is conservative-correct but leaves a measured perf opportunity on the table." The owner directive: **architectural transpositions for elegance/simplicity/performance are DESIRABLE** — a fixed uniform densify is a blunt instrument; the curvature-adaptive emit is the precise one (the `springLinearStops` adaptive-emit precedent generalized).
+**Owning-DM-or-idea:** `B5-kf-engine-arch` Q.W-ENG7 (WAAPI curvature-adaptive sub-segment densify — replace the fixed `WAAPI_SUBSEGMENT_STOPS=8` with a curvature-driven stop count). The owner directive: **architectural transpositions for elegance/simplicity/performance are DESIRABLE** — a fixed uniform densify is a blunt instrument; the curvature-adaptive emit is the precise one. NOTE the headline metric is FIDELITY + keyframe-COUNT, not hot-path throughput: the densify is a BUILD-time emit (once per animation construction, NOT per frame), so the win is (a) a smaller keyframe set on the common case + (b) a provably-no-worse (and tighter on sharp bends) chord-to-curve fill — both DETERMINISTIC, device-independent metrics — never a wall-clock perf claim. (The earlier "leaves a measured perf opportunity on the table" framing is reframed: there is no measured hot-path bottleneck — the densify runs at build time — so the wave's value is correctness/fidelity + count, gated measure-first, not a perf transposition.)
 
 ---
 
@@ -28,7 +28,7 @@ This emits EXACTLY 8 interior stops per segment regardless of how the curve beha
 
 The comment already names the gap (`waapi.ts:245-247`): "BOUNDED: a fixed, conservative count keeps the keyframe set small … Strictly fidelity-improving" — fixed-and-conservative is honest, but it is a blunt instrument where a curvature-driven count is the precise one.
 
-### The cure — sample where the curve BENDS (the adaptive-densify, the `springLinearStops` precedent)
+### The cure — sample where the curve BENDS (the curvature-adaptive densify over the existing `interpFrames` sampler)
 
 The densify should spend stops where the rAF curve actually bends and none where it is linear. The curvature-adaptive emit (per segment, between boundaries `a` and `b`):
 
@@ -36,7 +36,7 @@ The densify should spend stops where the rAF curve actually bends and none where
 - **Recursive midpoint subdivision (the de-Casteljau-style adaptive sampler)** — subdivide a segment ONLY where the chord-to-curve error (the gap between the piecewise-linear fill and the true `interpFrames` sample at the midpoint) exceeds a perceptual tolerance `WAAPI_CHORD_TOLERANCE`; recurse into the halves that still exceed it, stop where the chord matches. The stop COUNT is then a FUNCTION of the curve, bounded by a `WAAPI_MAX_SUBSEGMENT_STOPS` ceiling (so a pathological easing cannot emit unbounded keyframes).
 - **The result is `≤` the fixed-8 count on every realistic curve** AND a tighter fill on the sharp ones: a linear segment drops from 8 stops to 0; a gently-bending segment drops to 2–3; only a sharply-bending segment approaches (and is capped at) the ceiling. The keyframe set SHRINKS on the common case and TIGHTENS on the hard case — strictly better than the fixed uniform emit.
 
-This is the SAME idiom `springLinearStops` proves (its adaptive stop emit over the spring curve) — the densify is curve-aware, not count-fixed.
+CORRECTION (verified 2026-06-23): `springLinearStops` is NOT an adaptive precedent — it emits a FIXED `sampleCount` (default 24) of EVENLY-SPACED stops (`springLinearStops.ts:47,60-70`), with only an early-SETTLE short-circuit (it stops emitting once the curve has settled — `springLinearStops.ts:19` — which is settle-detection, NOT curvature-driven density). So this wave does NOT "generalize a `springLinearStops` adaptive precedent" — there is none; `springLinearStops` is the SAME fixed-count blunt instrument this wave is replacing in the WAAPI densify. The curvature-adaptive subdivision is a NEW idiom for kf (the de-Casteljau chord-tolerance sampler), grounded on the EXISTING `interpFrames` sampler, not on a prior adaptive emit. The densify is curve-aware, not count-fixed — a genuinely new capability, honestly framed.
 
 ### The fidelity guard — the emit must never REGRESS the fill (the falsification anchor)
 
@@ -50,7 +50,7 @@ The adaptive densify is born-RED-guarded against producing a WORSE fill than the
 | uniform-emit | `src/animation/waapi.ts:280-290` | the densify loop emits EXACTLY 8 evenly-spaced interior stops per segment, curve-agnostic |
 | densify-rationale | `src/animation/waapi.ts:238-247` | the comment names the gap: "a multi-component or unit-converted transform whose true rAF curve BENDS mid-segment would drift … BOUNDED: a fixed, conservative count" |
 | true-curve-sampler | `src/animation/waapi.ts:292-293` | `animation.interpFrames(t, false)` — the true rAF curve sampler the adaptive subdivision probes (already the densify's per-stop eval) |
-| springLinearStops-precedent | `src/animation/springLinearStops.ts` | the adaptive stop-emit over the spring curve — the curve-aware densify idiom this wave generalizes |
+| springLinearStops-is-FIXED | `src/animation/springLinearStops.ts:47,60-70` (VERIFIED 2026-06-23) | NOT an adaptive precedent — emits a FIXED `sampleCount` (default 24, `:47`) of EVENLY-SPACED stops (`:60-70`); only an early-SETTLE short-circuit (`:19`), which is settle-detection NOT curvature density. The curvature-adaptive subdivision is a NEW idiom, grounded on `interpFrames` (not on a prior adaptive emit) |
 | boundary-preserved | `src/animation/waapi.ts:266-272` | every frame boundary (`time.start`/`time.stop`) is always in `timePoints` — the adaptive emit redistributes ONLY the interior, never drops a boundary |
 | no-sibling-edge | `src/animation/waapi.ts` (whole module) | the densify is kf-owned emit — no value.js/parse-that/glass-ui edge (NOW phase, in-realm) |
 
@@ -84,13 +84,13 @@ for each curve recording (1) the interior-stop COUNT and (2) the chord-to-curve 
 
 **Breach.** `toWAAPIKeyframes` (`waapi.ts:280-290`) emits a FIXED 8 interior stops per segment regardless of curvature — over-sampling linear segments (keyframe bloat) and possibly under-sampling sharp bends (fidelity gap).
 
-**Cure (IF chartered).** Replace the fixed loop with recursive midpoint subdivision over each segment `[a, b]`:
+**Cure (IF chartered).** Replace the fixed loop with recursive midpoint subdivision over each segment `[a, b]`, carrying a per-segment INTERIOR-STOP BUDGET initialized to `WAAPI_MAX_SUBSEGMENT_STOPS`:
 1. Sample the true curve at `a`, `m = (a+b)/2`, `b` via `interpFrames` (the EXISTING sampler at `waapi.ts:293`).
 2. Compute the chord-to-curve error at `m`: the gap between the linear interpolation of `(a, b)` and the true sample at `m` (per animated channel — the max over channels).
-3. If the error `> WAAPI_CHORD_TOLERANCE` AND the recursion depth `< WAAPI_MAX_SUBSEGMENT_STOPS`-derived ceiling: emit `m` as an interior stop and recurse into `[a, m]` and `[m, b]`. Else stop (the chord matches the curve within tolerance — no interior stop needed here).
-4. A near-linear segment short-circuits at step 3 (the chord matches at the midpoint) → ZERO interior stops. A sharply-bending one recurses until the chord matches or the ceiling caps it.
+3. If the error `> WAAPI_CHORD_TOLERANCE` AND the remaining interior-stop budget `> 0`: emit `m` as an interior stop, DECREMENT the shared budget, and recurse into `[a, m]` and `[m, b]` (both halves draw from the SAME running budget, so the TOTAL interior stops per segment never exceeds `WAAPI_MAX_SUBSEGMENT_STOPS` — NOT a per-depth count, which would be exponential). Else stop (the chord matches within tolerance, or the budget is exhausted).
+4. A near-linear segment short-circuits at step 3 (the chord matches at the midpoint) → ZERO interior stops. A sharply-bending one recurses until the chord matches or the shared budget is spent.
 
-`WAAPI_CHORD_TOLERANCE` is a perceptual tolerance (a fraction of the animated range — e.g. 0.5% of the segment's value span, the sub-pixel-fidelity threshold); `WAAPI_MAX_SUBSEGMENT_STOPS` (e.g. 16, double the old fixed 8) caps a pathological easing so the emit is always bounded. The boundary endpoints are ALWAYS emitted (unchanged — the adaptive emit redistributes ONLY the interior).
+`WAAPI_CHORD_TOLERANCE` is a perceptual tolerance (a fraction of the animated range — e.g. 0.5% of the segment's value span, the sub-pixel-fidelity threshold); `WAAPI_MAX_SUBSEGMENT_STOPS` (e.g. 16, double the old fixed 8) is the TOTAL interior-stop CAP per segment (a running budget, NOT a recursion depth — recursion-by-depth would be exponential and unbounded; the budget makes the emit always ≤ the cap). The boundary endpoints are ALWAYS emitted (unchanged — the adaptive emit redistributes ONLY the interior).
 
 **Constraint (observable-truth — never a fidelity regression; KISS).** The transposition changes the STOP DISTRIBUTION (fixed-uniform → curvature-adaptive), never the boundary endpoints and never a WORSE fill. The chord-to-curve error of the adaptive emit must be `≤` the fixed-8 emit on EVERY corpus curve (the fidelity guard). KISS: the subdivision reuses the EXISTING `interpFrames` sampler (`waapi.ts:293`) — no new curve evaluator; just a recursive split over the sampler the densify already calls.
 
@@ -133,7 +133,7 @@ Born-RED today: the emit is fixed-uniform (no curvature probe), `waapi-densify-d
 ## Dependencies
 
 - **`toWAAPIKeyframes` + the `interpFrames` sampler — already shipped** (`waapi.ts:260,293`). The densify seam + the true-curve sampler the adaptive subdivision reuses; NO new curve evaluator, NO new value.js edge.
-- **The `springLinearStops` adaptive-emit precedent — already shipped** (`springLinearStops.ts`). The curve-aware densify idiom this wave generalizes; NO new pattern invented.
+- **The `interpFrames` true-curve sampler — already shipped** (`waapi.ts:293`). The curvature-adaptive subdivision REUSES it (a recursive chord-tolerance split over the sampler the densify already calls); no new curve evaluator. (NOTE: `springLinearStops` is NOT a precedent — it is fixed-24-uniform, the same blunt instrument this wave replaces; the curvature-adaptive idiom is NEW, grounded on `interpFrames`.)
 - **Independent of every other Band-B wave + every sibling.** The densify is kf-owned WAAPI emit — no value.js/parse-that/glass-ui edge (the NOW phase, fully in-realm; inv-16 trivially holds). File surfaces: `src/animation/waapi.ts` (the adaptive emit replacing the fixed loop), `bench/waapi-densify.bench.ts` (NEW), `scripts/proof-waapi-adaptive-densify.mjs` (NEW), `scripts/waapi-densify-decision.json` (NEW). No collision with Q.WB3 (a SEPARATE rAF-path interp seam — this is the WAAPI emit path).
 - **NO sibling publish dependency.** Entirely kf-internal.
 
@@ -148,6 +148,6 @@ This file is the Tranche Q DEVELOPMENT spec for Q.WB4 — **DOCS ONLY.** It writ
 ## Mid-tranche-friction pre-emption
 
 - **FRICTION: the adaptive emit could REGRESS fidelity on a sharp bend** (under-sampling below the fixed-8 quality) — a worse fill than the blunt-but-safe fixed emit. **PRE-EMPT:** S2's `fidelity-never-regresses` gate clause asserts the adaptive chord-error is `≤` the fixed-8 error on EVERY corpus curve; the adaptive emit is provably at-least-as-faithful, everywhere — the fidelity guard is authored NOW, not discovered after a visible compositor drift.
-- **FRICTION: a pathological easing could emit UNBOUNDED keyframes** (a curve that never satisfies the chord tolerance). **PRE-EMPT:** S2 caps the subdivision at `WAAPI_MAX_SUBSEGMENT_STOPS` (e.g. 16) so the emit is ALWAYS bounded — the curvature-adaptive count is a function of the curve UP TO a ceiling, never unbounded.
+- **FRICTION: a pathological easing could emit UNBOUNDED keyframes** (a curve that never satisfies the chord tolerance) — AND a naive depth-bounded recursion is EXPONENTIAL (2^D interior stops at depth D). **PRE-EMPT:** S2 caps the TOTAL interior stops per segment via a shared running BUDGET (`WAAPI_MAX_SUBSEGMENT_STOPS`, e.g. 16) — NOT a recursion-depth ceiling. Both recursion halves draw from the same budget, so the emit is ALWAYS ≤ the cap; the curvature-adaptive count is a function of the curve UP TO the budget, never unbounded and never exponential.
 - **FRICTION: a count-only "it's smaller" claim could ship a worse fill** (optimizing keyframe count at the cost of fidelity). **PRE-EMPT:** S1 records BOTH count AND chord-error; the decision-JSON's `measured-first` clause forbids a count-only verdict (the error comparison is mandatory) — the smell-test (a contrivance that trades fidelity for count) is gate-bitten.
 - **FRICTION: this wave touches the WAAPI emit path that any other Q wave touching `waapi.ts` eligibility might also touch.** **PRE-EMPT:** the densify is scoped to `toWAAPIKeyframes`'s interior-stop emit ONLY (`waapi.ts:280-290`) — orthogonal to `isWAAPIEligible` (the eligibility predicate) and `toWAAPIOptions` (the timing emit); no other Band-B wave touches `waapi.ts`, so no edit-collision. Stated here so the impl ordering carries no hidden coupling.

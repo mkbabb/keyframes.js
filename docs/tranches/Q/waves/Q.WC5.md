@@ -23,7 +23,7 @@ But **nothing in the scene shows the glide decaying**. There is no telemetry rea
 
 ### The post-teardown boing race (a correctness residual)
 
-The flick-to-boing fires via `options.onFlick?.()` (`:184`) — the scene owns the boing arc + its teardown (`:180-181`). P.W5.S2 named a post-teardown `setTimeout` race: a flick fired just before scene-unmount could schedule a boing callback that runs after the scene's Three.js target is torn down (a write to a disposed object). The cure: the scene's boing arc must be cancelable on unmount (an `onUnmounted`-cleared handle), so a late boing never writes to a disposed target.
+The flick-to-boing fires via `options.onFlick?.()` (`useSphereSpin.ts:184`) → `AmigaScene.vue` `onBoing`, which schedules the rest-restore on a `boingTimer = setTimeout(..., 4200)` (`AmigaScene.vue:193-200`). P.W5.S2 named (and this session CONFIRMS) a post-teardown race: the scene's `onBeforeUnmount` (`:428-449`) disposes the mesh but does NOT `clearTimeout(boingTimer)`, so a flick fired within 4.2s of scene-unmount runs the timer after the Three.js mesh is torn down (a write to a disposed object). The cure: `clearTimeout(boingTimer)` in the EXISTING `onBeforeUnmount` hook, so a late boing never writes to a disposed target.
 
 ### Audit evidence
 
@@ -33,7 +33,7 @@ The flick-to-boing fires via `options.onFlick?.()` (`:184`) — the scene owns t
 | velocity already tracked | `demo/amiga/useSphereSpin.ts:86-87,148-149,183` | `velX`/`velY` (rad/s) accumulated; `Math.hypot(velX, velY)` is the release angular speed — the telemetry value is ALREADY computed, just unshown |
 | no telemetry readout | `demo/amiga/AmigaCrtOverlay.vue:17-20` + `ls demo/amiga/` (no `AmigaTelemetry.vue`) | the overlay renders scanlines/grille/vignette/flash (a CRT egg), NOT an angular-velocity readout — the glide is invisible |
 | flat material | `demo/amiga/utils.ts:61` | `new THREE.MeshLambertMaterial(...)` — diffuse-only, no specular highlight (the flat unlit ball) |
-| boing seam | `demo/amiga/useSphereSpin.ts:184` (`options.onFlick?.()`) | the scene owns the boing arc + teardown — the post-teardown `setTimeout` race P.W5.S2 named |
+| boing seam + the race | `useSphereSpin.ts:184` (`options.onFlick?.()`) → `AmigaScene.vue:186-201` (`onBoing`), `:193-200` (`boingTimer=setTimeout(...,4200)` writes the mesh), `:179` (the `boingTimer` handle), `:428-449` (`onBeforeUnmount` disposes the mesh but does NOT `clearTimeout(boingTimer)`) | the CONFIRMED post-teardown race: a flick within 4.2s of unmount fires the timer after the mesh is disposed |
 | telemetry precedent | `demo/easing/EasingSidebar.vue` (the +184-line telemetry block the impl drive shipped), `demo/spring/SpringHeatmap.vue` | the readout/telemetry idiom this wave's `AmigaTelemetry.vue` mirrors |
 | scene-runtime harness | `scripts/lib/demo-driver.mjs` (`withPage`/`navToScene`) | the runtime gate lifecycle the born-RED `proof:amiga-decay-visible` rides |
 
@@ -41,7 +41,7 @@ The flick-to-boing fires via `options.onFlick?.()` (`:184`) — the scene owns t
 
 ## Scope
 
-Each S-clause is a concrete, falsifiable deliverable. **S1** builds `AmigaTelemetry.vue` — an angular-velocity readout (via the already-tracked `Math.hypot(velX, velY)`) so the engine's `decay()` glide is VISIBLE (the dogfood witnessed). **S2** swaps the flat `MeshLambertMaterial` → a specular material (`MeshPhongMaterial`) so the lit sphere reads as intentional. **S3** fixes the post-teardown boing race (an `onUnmounted`-cancelable boing arc). **S4** authors the born-RED `proof:amiga-decay-visible` over the REAL runtime observable (the telemetry value decays after a flick — an APPEARANCE-axis assertion, not a grep). Every move is kf-internal over today's installed tree — NONE a sibling wait, NONE a workaround, NONE a deferral.
+Each S-clause is a concrete, falsifiable deliverable. **S1** builds `AmigaTelemetry.vue` — an angular-velocity readout (via the already-tracked `Math.hypot(velX, velY)`) so the engine's `decay()` glide is VISIBLE (the dogfood witnessed). **S2** swaps the flat `MeshLambertMaterial` → a specular material (`MeshPhongMaterial`) so the lit sphere reads as intentional. **S3** fixes the post-teardown boing race (`clearTimeout(boingTimer)` in the existing `onBeforeUnmount`). **S4** authors the born-RED `proof:amiga-decay-visible` over the REAL runtime observable (the telemetry value decays after a flick — an APPEARANCE-axis assertion, not a grep). Every move is kf-internal over today's installed tree — NONE a sibling wait, NONE a workaround, NONE a deferral.
 
 ---
 
@@ -71,11 +71,11 @@ Each S-clause is a concrete, falsifiable deliverable. **S1** builds `AmigaTeleme
 
 ### S3 — Fix the post-teardown boing race (a correctness residual)
 
-**Breach.** The flick-to-boing fires via `options.onFlick?.()` (`:184`); the scene owns the boing arc + its teardown. A flick fired just before scene-unmount could schedule a boing callback that runs AFTER the scene's Three.js target is torn down — a write to a disposed object (the post-teardown `setTimeout` race P.W5.S2 named).
+**Breach.** The flick-to-boing fires via `options.onFlick?.()` (`useSphereSpin.ts:184`) → `AmigaScene.vue` `onBoing` (`:186-201`). `onBoing` schedules the rest-restore on a `boingTimer = setTimeout(..., 4200)` (`AmigaScene.vue:193-200`) that writes `sphereMesh.position.set(...)` / `sphereMesh.material.color = ...` to the Three.js mesh. The scene's `onBeforeUnmount` (`:428-449`) disposes the mesh geometry/material/renderer + `controls` but **does NOT `clearTimeout(boingTimer)`** — so a hard flick fired within 4.2s of scene-unmount runs the `setTimeout` callback AFTER the mesh is disposed: a write to a disposed object (the post-teardown race P.W5.S2 named, confirmed REAL this session).
 
-**Cure.** The scene's boing arc must be cancelable on unmount: hold the boing arc's handle (the rAF/timeout/`RAFPlayback` handle that drives the boing), and clear it in `onUnmounted` so a late boing never writes to a disposed target. If the boing rides a `RAFPlayback` loop, `stop()`/`settle()` it on unmount; if it rides a `setTimeout`, `clearTimeout` it. The boing is a transient effect — a teardown-cancelable handle is the correct lifecycle.
+**Cure.** Add `clearTimeout(boingTimer)` to the EXISTING `onBeforeUnmount` hook (`AmigaScene.vue:428` — the scene already uses `onBeforeUnmount`, NOT `onUnmounted`; do not add a second lifecycle hook). The `boingTimer` handle already exists (`:179` `let boingTimer: ReturnType<typeof setTimeout> | undefined`); the cure is the one missing teardown line beside the existing `disposeBoot()`/`animationGroup.stop()`/`controls?.dispose()`/`renderer?.dispose()` calls. (If a future refactor moves the boing arc onto a `RAFPlayback` loop instead of `setTimeout`, the equivalent cancel is `present.stop()`-style on that handle — but TODAY the boing is a `setTimeout`, so the precise cure is `clearTimeout`.) The boing is a transient effect — a teardown-cancel is the correct lifecycle.
 
-**Constraint (lifecycle correctness, no leak).** The fix is a teardown-cancel, not a guard-on-every-write (a guard that checks "is the target disposed?" on every boing frame is a band-aid; canceling the arc on unmount is the gestalt fix). The scene-RAF-leak gate (`proof:scene-raf-leak`) stays green (the boing arc is released on unmount).
+**Constraint (lifecycle correctness, no leak).** The fix is a teardown-cancel (`clearTimeout(boingTimer)` in `onBeforeUnmount`), not a guard-on-every-write (a guard that checks "is the mesh disposed?" before each boing write is a band-aid; canceling the timer on unmount is the gestalt fix — the late callback never fires). The scene-RAF-leak gate (`proof:scene-raf-leak`, `test/scene-raf-leak.test.ts`) stays green (the scene's loops/timers are released on unmount).
 
 **Gate bite (S4 coverage).** `proof:amiga-decay-visible` `boing-teardown-safe` clause (a corroborator): flick the sphere, navigate away (unmount) within the boing window, assert NO post-teardown write error (the console carries no "write to disposed" / no leaked rAF). BITE: a flick-then-unmount that schedules a late write → red. (This reuses the `proof:scene-raf-leak` harness shape.)
 
@@ -85,7 +85,7 @@ Each S-clause is a concrete, falsifiable deliverable. **S1** builds `AmigaTeleme
 
 **Breach.** No gate covers the amiga decay-dogfood visibility, the specular material, or the boing-teardown safety. The demo design refinements are appearance/interaction/state axes that green source-shape gates MISS (the gate-blindspot lesson).
 
-**Cure.** Author `scripts/proof-amiga-decay-visible.mjs`, a **RUNTIME (interaction) gate** over the BUILT `dist/gh-pages/`, mirroring the scene-runtime harness (`scripts/lib/demo-driver.mjs` `withPage`/`navToScene`). Wire it into the `proof:correctness` roster. Clauses:
+**Cure.** Author `scripts/proof-amiga-decay-visible.mjs`, a **RUNTIME (interaction) gate** over the BUILT `dist/gh-pages/`, mirroring the scene-runtime harness (`scripts/lib/demo-driver.mjs` `withPage`/`navToScene`). Wire it into the `proof:correctness` roster. **CI-coverage wiring (mandatory):** also add an explicit `run: npm run proof:amiga-decay-visible` step to the **demo-smoke** job in `.github/workflows/ci.yml` (per `proof:ci-coverage.mjs:198-209` — chain-membership alone reds the coverage gate). Clauses:
 
 1. **`amiga-telemetry-live`** (THE KEYSTONE — the APPEARANCE-axis observable): navigate `#/amiga`, drive a REAL drag + release over the sphere, assert the `.amiga-telemetry` readout shows a non-zero angular velocity at release that DECAYS toward zero over the glide window (the visible `decay()` curve — the engine dogfood witnessed). BITE: no telemetry element, or a telemetry that does not decay (a static / non-`decay()`-driven readout) reds.
 2. **`specular-material`** (appearance corroborator — source-shape): the sphere material is a specular material (`MeshPhongMaterial`/`MeshStandardMaterial`), not `MeshLambertMaterial`. BITE: the flat material reds.
@@ -121,7 +121,7 @@ Each S-clause is a concrete, falsifiable deliverable. **S1** builds `AmigaTeleme
 
 - **LIGHT `decay()` — already consumed by the scene** (`demo/amiga/useSphereSpin.ts:10`). The telemetry READS the velocity the composable already tracks (`velX`/`velY`/`glideX`/`glideY`); NO new library surface, NO sibling publish.
 - **Three.js — installed.** The material swap (`MeshLambertMaterial` → `MeshPhongMaterial`/`MeshStandardMaterial`) is over the installed Three.js material set; NO new dependency.
-- **Independent of every other Band-C wave** (Q.WC1/Q.WC2 easing, Q.WC3 mobile, Q.WC4 MorphSVG are file-disjoint). File surfaces: `demo/amiga/AmigaTelemetry.vue` (NEW), `demo/amiga/useSphereSpin.ts` (expose the reactive `angularVelocity` — a READ surface, no second writer), `demo/amiga/utils.ts` (the material swap + any light adjustment), `demo/app/scenes/AmigaScene.vue` (mount `AmigaTelemetry.vue` + the `onUnmounted` boing-cancel), `scripts/proof-amiga-decay-visible.mjs` (NEW), `package.json` (gate roster).
+- **Independent of every other Band-C wave** (Q.WC1/Q.WC2 easing, Q.WC3 mobile, Q.WC4 MorphSVG are file-disjoint). File surfaces: `demo/amiga/AmigaTelemetry.vue` (NEW), `demo/amiga/useSphereSpin.ts` (expose the reactive `angularVelocity` — a READ surface, no second writer), `demo/amiga/utils.ts` (the material swap + any light adjustment), `demo/app/scenes/AmigaScene.vue` (mount `AmigaTelemetry.vue` + add `clearTimeout(boingTimer)` to the existing `onBeforeUnmount` at `:428`), `scripts/proof-amiga-decay-visible.mjs` (NEW), `package.json` (gate roster), `.github/workflows/ci.yml` (the new-gate `npm run proof:amiga-decay-visible` step in the demo-smoke job).
 - **NO glass-ui dep, NO value.js publish dep, NO parse-that dep.** A pure-NOW Band-C wave — it fires entirely on today's installed tree.
 
 ---
@@ -136,7 +136,7 @@ This file is the Tranche Q DEVELOPMENT spec for Q.WC5 — DOCS ONLY. It writes z
 
 - **FRICTION: `AmigaTelemetry.vue` re-tracking velocity would create a second velocity integrator (a no-legacy duplication + a drift risk).** **PRE-EMPT:** S1 mandates the telemetry READS the composable's already-tracked `velX`/`velY`/glide samples via a `readonly ref`/`onTick`-snapshot surface (the SquareScene `onTick` precedent) — a pure consumer, never a second writer.
 - **FRICTION: the material swap to a specular material with no light source is no better than Lambert (a half-measure).** **PRE-EMPT:** S2 confirms the scene lighting rig produces a visible highlight, adjusting the light if needed — the surface refinement is complete, not a swap that leaves the sphere unlit.
-- **FRICTION: the boing fix as a per-frame "is target disposed?" guard is a band-aid that leaves the late callback scheduled.** **PRE-EMPT:** S3 mandates a teardown-CANCEL (`onUnmounted`-cleared handle / `RAFPlayback.stop()`), the gestalt fix — the late boing never fires at all.
+- **FRICTION: the boing fix as a per-frame "is target disposed?" guard is a band-aid that leaves the late callback scheduled.** **PRE-EMPT:** S3 mandates a teardown-CANCEL (`clearTimeout(boingTimer)` in the existing `onBeforeUnmount` at `AmigaScene.vue:428`), the gestalt fix — the late boing never fires at all.
 - **FRICTION: the demo refinements are appearance/state axes a green source-shape gate MISSES (the gate-blindspot lesson) — a wave that ships `AmigaTelemetry.vue` but no runtime gate would false-green on a static readout.** **PRE-EMPT:** S4's `amiga-telemetry-live` keystone drives a REAL flick and asserts the readout DECAYS — the live observable, never a presence-grep.
 
 ---

@@ -32,22 +32,26 @@ lanes **B7-shipped-regression** + **B7-honesty-record**) caught six concrete rec
 of which is a code regression (the code/deploy/pin layer is sound — all 4 named kf gates PASS on
 HEAD, pins are registry-consistent, the live origin serves the locally-built bundle):
 
-1. **IMPL-RUN-BOARD.md internal contradiction** — the Phase ledger TABLE (lines 16–18) still marks
-   rows 3a/3b/4 as `⬜ PENDING`, while the banner directly below (lines 20–25) declares "DRIVE
-   COMPLETE. All 4 phases shipped + verified + live." A self-contradiction in the *primary* impl
-   record. (`AUDIT-31.md` B7-shipped-regression, RECORD-HONESTY FAILURE HIGH.)
-2. **Dual deploy-hash, both labeled authoritative** — IMPL-RUN-BOARD.md:22 cites `index-e9_Uza8v.js`
-   as "the exact deployed hash" while :24 cites `index-DwKmrGBp.js` "hash-verified". The live site
-   serves `DwKmrGBp`; `e9_Uza8v` is a superseded intermediate. (B7-shipped-regression, MEDIUM.)
+1. **`docs/tranches/P/IMPL-RUN-BOARD.md` internal contradiction** — the Phase ledger TABLE (lines 16–18)
+   still marks rows 3a/3b/4 as `⬜ PENDING` (confirmed live — `grep -c "⬜ PENDING"` == 3), while the
+   banner directly below (lines 20–25) declares "DRIVE COMPLETE. All 4 phases shipped + verified + live."
+   A self-contradiction in the *primary* impl record. (`AUDIT-31.md` B7-shipped-regression,
+   RECORD-HONESTY FAILURE HIGH.)
+2. **Dual deploy-hash, both labeled authoritative** — `docs/tranches/P/IMPL-RUN-BOARD.md`:22 cites
+   `index-e9_Uza8v.js` as "the exact deployed hash" while :24 cites `index-DwKmrGBp.js` "hash-verified".
+   The live site serves `DwKmrGBp`; `e9_Uza8v` is a superseded intermediate. (B7-shipped-regression, MEDIUM.)
 3. **P/PROGRESS.md + P.md + O/PROGRESS.md stale headers** — P/PROGRESS.md line 13 reads "Version in
    tree: 4.3.0 (the K close cut, unchanged through O dev phase)" (actual tree is 4.4.0, tag v4.4.0
    exists); the headers still read "DEVELOPMENT PHASE — DOCS ONLY" though the owner authorized the
    impl drive 2026-06-23. (B7-honesty-record, HIGH/MEDIUM.)
-4. **The 4.4.0 tip is NOT merged to master** — `git merge-base --is-ancestor df78088 master` = NO;
-   master tip is `aef3ef3` (the M consume-edge). The published 4.4.0 + the live deploy were cut from
-   `tranche-p-dev`. (B7-shipped-regression PROCESS REGRESSION HIGH; B1-deploy-ci BLOCKER.) *The merge
-   itself is the subject of Q.WA3 — Q.W0 records the divergence as a tracked obligation, not a silent
-   gap.*
+4. **The 4.4.0 tip is NOT merged to master** — the v4.4.0 release commit is `c69bbb0` (tag `v4.4.0`),
+   the drive tip is `df78088` (3 commits later); `git merge-base --is-ancestor c69bbb0 master` = NO (and
+   `… df78088 master` = NO); master tip is `aef3ef3` (the M consume-edge); `master...tranche-p-dev` = 0/21
+   (re-confirmed live; was 0/18 at the audit snapshot, +3 Q-doc commits since). The published 4.4.0 + the
+   live deploy were cut from `tranche-p-dev`. (B7-shipped-regression PROCESS REGRESSION HIGH; B1-deploy-ci
+   BLOCKER.) *The merge itself is the subject of Q.WA3 — Q.W0 records the divergence as a tracked
+   obligation, not a silent gap. The Q.WA3 `proof:published-on-master` gate keys on the `v4.4.0` tag
+   commit (c69bbb0), NOT a frozen hash.*
 5. **`proof:no-deprecated-guard` is a misnomer** — it gates the vue-router `next()`-callback removal
    (H.W1 S5), NOT the @deprecated `Animation`/`ScrollTimeline` kf aliases. A reviewer scanning the
    gate roster would assume the deprecated-alias surface is covered when it is not. (B7-shipped-regression
@@ -55,8 +59,8 @@ HEAD, pins are registry-consistent, the live origin serves the locally-built bun
    (the single owner, gate-first); Q.W0 names the misnomer + dispatches the coverage to its owning wave.*
 6. **Uncommitted device-dependent decision-JSONs** — `scripts/soa-composite-decision.json` +
    `scripts/spring-vector-decision.json` are dirty in the working tree (re-measurements written on
-   gate run). (B7-shipped-regression RECORD-HYGIENE SMELL LOW; confirmed live — `git status` shows
-   `M scripts/spring-vector-decision.json`.)
+   gate run). (B7-shipped-regression RECORD-HYGIENE SMELL LOW; confirmed live — `git status` shows BOTH
+   `M scripts/soa-composite-decision.json` AND `M scripts/spring-vector-decision.json`.)
 
 Beyond the record-truth cluster, Q.W0 lands the **Q charter substrate** (the `B6-band-structure`
 deliverable) and re-points the **chronic-ledger parse target**: `proof:chronic-closure` parses
@@ -64,7 +68,7 @@ deliverable) and re-points the **chronic-ledger parse target**: `proof:chronic-c
 `scripts/proof-chronic-closure.mjs` lines 53–62 record the I→J substrate transition; the P→Q
 re-point is the same motion). The `CHRONIC_LEDGER` is pinned **3 tranches stale** (Q.md:41) — Q.W0
 authors `docs/tranches/Q/PROGRESS.md §"Open deferrals"` as the new parse target and the
-`deferred-ledger-Q.md` companion, so every Q chronic has a terminal row before any cure is authored.
+`audit/chronic-ledger-Q.md` companion, so every Q chronic has a terminal row before any cure is authored.
 
 **The shipped substrate Q.W0 rides** (the floor Q inherits — Q.W0 records the deploy oracle live,
 does NOT re-certify the code): kf 4.4.0 (tag v4.4.0) published; value.js 1.1.0 + parse-that 0.12.0
@@ -76,7 +80,7 @@ the* record *is stale — Q.W0 cures the record.*
 **Why this is a wave, not a preamble.** Q is an eight-band terminal tranche with a DAG whose Band-A
 leads unblock every later band. Before any cure is authored, the charter (`Q.md`), the 31-lane audit
 digest (`AUDIT-31.md`), the Q chronic-ledger parse-target substrate (`Q/PROGRESS.md §"Open
-deferrals"`), the deferred-fold ledger with a real terminal per item (`deferred-ledger-Q.md`), the
+deferrals"`), the chronic-fold ledger with a real terminal per item (`audit/chronic-ledger-Q.md`), the
 prompt-recap (zero-drops), and the record-truth reconciliation must ALL be on disk and re-runnable —
 AND the dev→impl boundary must be checkable at the tranche level. That checkability is the Q.W0
 deliverable, gated born-RED.
@@ -85,34 +89,48 @@ deliverable, gated born-RED.
 
 ## §Scope — the S-clauses (each a concrete falsifiable deliverable)
 
-### S1 — Reconcile IMPL-RUN-BOARD.md to the shipped truth (the primary impl record)
+### S1 — Reconcile `docs/tranches/P/IMPL-RUN-BOARD.md` to the shipped truth (the primary impl record)
 
-**Breach.** IMPL-RUN-BOARD.md self-contradicts: the Phase ledger table (lines 16–18) shows rows
-3a/3b/4 `⬜ PENDING` while the banner below (lines 20–25) declares "DRIVE COMPLETE" (B7-shipped-regression).
+**Breach.** `docs/tranches/P/IMPL-RUN-BOARD.md` self-contradicts: the Phase ledger table (lines 16–18)
+shows rows 3a/3b/4 `⬜ PENDING` (confirmed live — `grep -c "⬜ PENDING"` == 3) while the banner below
+(lines 20–25, the "CORE DAG COMPLETE (2026-06-23)" block at :20) declares "DRIVE COMPLETE. All 4 phases
+shipped + verified + live." (B7-shipped-regression).
 
-**Deliverable.** Edit IMPL-RUN-BOARD.md so the Phase ledger table marks 3a/3b/4 `✅ DONE`, the stale
-"Phase 3a IN PROGRESS" last-leg narrative is collapsed to the completed state, and the dual deploy-hash
-is resolved: mark `index-e9_Uza8v.js` **SUPERSEDED**, assert `index-DwKmrGBp.js` as the single live
-hash (gate-witnessed by the live `curl` in S5). DOCS-ONLY — no source change.
+**Deliverable.** Edit `docs/tranches/P/IMPL-RUN-BOARD.md` so the Phase ledger table marks 3a/3b/4
+`✅ DONE`, the stale "Phase 3a IN PROGRESS" last-leg narrative is collapsed to the completed state, and
+the dual deploy-hash is resolved: mark `index-e9_Uza8v.js` (line 22, "the exact deployed hash")
+**SUPERSEDED**, assert `index-DwKmrGBp.js` (line 24, "hash-verified") as the single live hash
+(gate-witnessed by the live `curl` in S5). DOCS-ONLY — no source change.
 
-**Falsifiable.** `grep -c "⬜ PENDING" IMPL-RUN-BOARD.md` within the Phase-ledger block == 0;
-`grep -c "e9_Uza8v" IMPL-RUN-BOARD.md` rows that survive carry a `SUPERSEDED` annotation;
-`grep -c "DwKmrGBp" IMPL-RUN-BOARD.md` ≥ 1 with a "single live hash" assertion. `proof:record-truth`
-(§Born-RED) clause (a) asserts this.
+**Falsifiable.** `grep -c "⬜ PENDING" docs/tranches/P/IMPL-RUN-BOARD.md` within the Phase-ledger block
+== 0; the surviving `e9_Uza8v` row carries a `SUPERSEDED` annotation;
+`grep -c "DwKmrGBp" docs/tranches/P/IMPL-RUN-BOARD.md` ≥ 1 with a "single live hash" assertion.
+`proof:record-truth` (§Born-RED) clause (a) asserts this against the FULL path (a bare
+`IMPL-RUN-BOARD.md` resolves from repo-root and finds nothing — the path MUST be qualified).
 
 ### S2 — Re-header the stale P/O development-phase boards to "PARTIALLY IMPLEMENTED in 4.4.0"
 
-**Breach.** P/PROGRESS.md line 13 reads "Version in tree: 4.3.0"; P.md + P/PROGRESS.md + O/PROGRESS.md
-carry "DEVELOPMENT PHASE — DOCS ONLY" headers though the impl drive shipped (B7-honesty-record).
+**Breach.** `docs/tranches/P/PROGRESS.md` (lines 12–13) carries `**Version in tree:** \`4.3.0\` (the K
+close cut, unchanged through O dev phase)` (markdown-formatted, NOT the bare literal — the audit's
+"line 13 verbatim" quote predates a re-flow; the load-bearing observable is the **`4.3.0` version claim
+with ZERO `4.4.0` mention**, confirmed live: `grep -c "4.4.0" docs/tranches/P/PROGRESS.md` == 0);
+`docs/tranches/P/P.md` + `docs/tranches/P/PROGRESS.md` + `docs/tranches/O/PROGRESS.md` carry
+"DEVELOPMENT PHASE" headers (confirmed live: `grep -c "DEVELOPMENT PHASE" docs/tranches/P/PROGRESS.md`
+== 1) though the impl drive shipped (B7-honesty-record).
 
 **Deliverable.** Re-header P/PROGRESS.md + O/PROGRESS.md to "PARTIALLY IMPLEMENTED in 4.4.0"; correct
-the in-tree version line to 4.4.0 across both boards; add a one-line banner to P.md noting the owner
-authorized impl 2026-06-23 and the 4.4.0 cut shipped a *subset* of P's developed waves (the rest are
-Q terminals — point at this charter). The boards become record-honest about what shipped vs. what Q
-carries forward.
+the in-tree version line from `4.3.0` to `4.4.0` across both boards; add a one-line banner to P.md noting
+the owner authorized impl 2026-06-23 and the 4.4.0 cut shipped a *subset* of P's developed waves (the
+rest are Q terminals — point at this charter). The boards become record-honest about what shipped vs.
+what Q carries forward.
 
-**Falsifiable.** `grep -c "Version in tree: 4.3.0" P/PROGRESS.md` == 0; `grep -c "4.4.0" P/PROGRESS.md`
-≥ 1; `grep -c "PARTIALLY IMPLEMENTED" P/PROGRESS.md O/PROGRESS.md` ≥ 2. Clause (b) asserts this.
+**Falsifiable (matched to the ACTUAL markdown, not the bare literal).**
+`grep -E "Version in tree.{0,8}4\.3\.0" docs/tranches/P/PROGRESS.md` → ZERO matches after cure (the
+`4.3.0` version claim is gone — this pattern tolerates the `**…**`/backtick formatting that broke the
+audit's bare-literal grep); `grep -c "4.4.0" docs/tranches/P/PROGRESS.md` ≥ 1;
+`grep -c "PARTIALLY IMPLEMENTED" docs/tranches/P/PROGRESS.md docs/tranches/O/PROGRESS.md` ≥ 2. Clause
+(b) asserts this. *Born-RED witness today: the `Version in tree.{0,8}4\.3\.0` pattern MATCHES (1 hit)
+and `4.4.0` count is 0 — the board is provably stale.*
 
 ### S3 — The Q charter substrate on disk (the band-structure synthesis)
 
@@ -137,14 +155,19 @@ Q deferred ledger (the direct successor to P's, built from the `proof:chronic-cl
 naming the **P-invariant-28 terminal register**: every deferred + chronic item the impl drive left
 (DM-2 DemoControlPoint the NINTH carry; DM-22 NaN-frame; the @deprecated aliases; the S1/S2 false-RED
 arms; the dead 0.12.0 API; the leaves.ts duplicates) gets a row with (tag, owning Q wave, tripwire).
-Author the `docs/tranches/Q/audit/deferred-ledger-Q.md` companion. The `proof:chronic-closure` LEDGER
-re-point P→Q is recorded here as Q.W0's clause (the re-point itself lands when the gate's parse target
-is repointed — Q.WZ confirms the close; Q.W0 authors the substrate it will parse).
+Author the `docs/tranches/Q/audit/chronic-ledger-Q.md` companion (the P-inv-28 chronic register — this
+is the DEV-authored ledger file already on the tree; there is NO separate `deferred-ledger-Q.md`).
+The `proof:chronic-closure` LEDGER re-point P→Q is recorded here as Q.W0's clause (the re-point itself
+lands when the gate's parse target is repointed — Q.WZ confirms the close; Q.W0 authors the substrate
+it will parse).
 
-**Falsifiable.** `ls docs/tranches/Q/PROGRESS.md docs/tranches/Q/audit/deferred-ledger-Q.md` exits 0;
-`grep -c "Open deferrals" Q/PROGRESS.md` ≥ 1; `grep -c "DM-2\b" Q/PROGRESS.md` ≥ 1 (the NINTH-carry
-DemoControlPoint named, not silently dropped); `grep -c "P-invariant-28\|P-inv-28" Q/PROGRESS.md` ≥ 1.
-Clause (c) asserts this.
+**Falsifiable.** `ls docs/tranches/Q/PROGRESS.md docs/tranches/Q/audit/chronic-ledger-Q.md` exits 0;
+`grep -c "Open deferrals" docs/tranches/Q/PROGRESS.md` ≥ 1; `grep -c "DM-2" docs/tranches/Q/PROGRESS.md`
+≥ 1 (the NINTH-carry DemoControlPoint named, not silently dropped);
+`grep -Ec "P-invariant-28|P-inv-28" docs/tranches/Q/PROGRESS.md` ≥ 1. Clause (c) asserts this. *These
+artifacts are DEV-authored already on the tree — Q.W0's gate confirms they STAY present (a regression
+guard), it does NOT claim they are born-absent; the born-RED rests on the gate-script + the
+reconciliation edits being absent, not these DEV docs — see §Born-RED witness.*
 
 ### S5 — The deploy round-trip re-observation (the Q opening oracle)
 
@@ -161,19 +184,20 @@ served bundle reference. Clause (e) asserts these are recorded.
 ### S6 — Commit-or-revert the dirty decision-JSONs + name the `proof:no-deprecated-guard` misnomer
 
 **Breach.** `scripts/soa-composite-decision.json` + `scripts/spring-vector-decision.json` are dirty
-in the tree (device-dependent re-measurements — `git status` confirms `M spring-vector-decision.json`);
-`proof:no-deprecated-guard` is misleadingly named (gates vue `next()`, not the kf aliases).
+in the tree (device-dependent re-measurements — `git status` confirms BOTH are `M`: `M scripts/soa-composite-decision.json`
++ `M scripts/spring-vector-decision.json`); `proof:no-deprecated-guard` is misleadingly named (gates
+vue `next()`, not the kf aliases).
 
 **Deliverable.** Commit (or revert to the recorded verdict) the decision-JSONs to a FINAL committed
 state, with a note that the gates rewrite them on run (a deterministic-write or .gitignore disposition
 is a Q.WA3 CI-harden concern — Q.W0 records the obligation). Name the `proof:no-deprecated-guard`
-misnomer in IMPL-RUN-BOARD.md + this wave + the Q.W0c gate-name-honesty handoff, and DISPATCH the
+misnomer in `docs/tranches/P/IMPL-RUN-BOARD.md` + this wave + the Q.W0c gate-name-honesty handoff, and DISPATCH the
 actual deprecated-alias gate (`proof:alias-dropped`) to its owning no-legacy wave (**Q.WE1** authors it
 gate-first AND drops the aliases — the single owner) — Q.W0 does NOT author the alias gate (Band E's terminal),
 it records the coverage gap + names the owner.
 
 **Falsifiable.** `git status --porcelain scripts/*-decision.json` is EMPTY (committed/reverted);
-`grep -c "no-deprecated-guard.*next\|misnomer\|gates vue" IMPL-RUN-BOARD.md docs/tranches/Q/waves/Q.W0.md`
+`grep -c "no-deprecated-guard.*next\|misnomer\|gates vue" docs/tranches/P/IMPL-RUN-BOARD.md docs/tranches/Q/waves/Q.W0.md`
 ≥ 1 (the misnomer named). Clause (f) asserts this.
 
 ---
@@ -197,22 +221,25 @@ served live origin — each the genuine observable, each independently falsifiab
 
 **(a) IMPL-RUN-BOARD reconciled (S1, S6).**
 ```
-grep -c "⬜ PENDING"  <Phase-ledger block of IMPL-RUN-BOARD.md>  == 0   # the 3a/3b/4 contradiction cured
-grep -c "DwKmrGBp"    IMPL-RUN-BOARD.md                          >= 1   # the single live hash asserted
-grep -c "SUPERSEDED"  <the e9_Uza8v rows>                        >= 1   # the stale hash demoted
-git status --porcelain scripts/*-decision.json                  == ""  # decision-JSONs committed/reverted
+grep -c "⬜ PENDING"  <Phase-ledger block of docs/tranches/P/IMPL-RUN-BOARD.md>  == 0   # 3a/3b/4 cured
+grep -c "DwKmrGBp"    docs/tranches/P/IMPL-RUN-BOARD.md                          >= 1   # single live hash
+grep    "SUPERSEDED"  docs/tranches/P/IMPL-RUN-BOARD.md  near the e9_Uza8v row    present # stale hash demoted
+git status --porcelain scripts/*-decision.json                                  == ""  # JSONs committed
 ```
 BITE: reds if the primary impl record still self-contradicts or carries a dual authoritative hash, or
 a device-dependent decision-JSON dirties the tree.
 
 **(b) P/O boards re-headered to the shipped truth (S2).**
 ```
-grep -c "Version in tree: 4.3.0"  docs/tranches/P/PROGRESS.md           == 0
-grep -c "4.4.0"                   docs/tranches/P/PROGRESS.md           >= 1
-grep -c "PARTIALLY IMPLEMENTED"   docs/tranches/{P,O}/PROGRESS.md       >= 2
+grep -Ec "Version in tree.{0,8}4\.3\.0"  docs/tranches/P/PROGRESS.md    == 0   # tolerant of **…**/backtick
+grep -c "4.4.0"                          docs/tranches/P/PROGRESS.md    >= 1
+grep -c "PARTIALLY IMPLEMENTED"  docs/tranches/P/PROGRESS.md docs/tranches/O/PROGRESS.md  >= 2
 ```
-BITE: reds if the dev-phase boards still claim the stale 4.3.0 in-tree version or a "DOCS ONLY"
-header after the impl drive shipped — the systematic-staleness the honesty-record lane found.
+BITE: reds if the dev-phase boards still claim the stale 4.3.0 in-tree version or a "DEVELOPMENT PHASE"
+header after the impl drive shipped — the systematic-staleness the honesty-record lane found. *The
+`-E "…{0,8}4\.3\.0"` pattern is REQUIRED: the bare `"Version in tree: 4.3.0"` literal does NOT match the
+live `**Version in tree:** \`4.3.0\`` markdown, so a bare-literal grep would FALSE-GREEN on today's stale
+tree (the exact proxy-trap the gate exists to avoid).*
 
 **(c) The Q charter + chronic-ledger substrate present (S3, S4).**
 ```
@@ -220,11 +247,11 @@ assert ls docs/tranches/Q/Q.md                              → exits 0
 assert ls docs/tranches/Q/audit/AUDIT-31.md                 → exits 0
 assert ls docs/tranches/Q/waves/Q.W0.md                     → exits 0   # this file
 assert ls docs/tranches/Q/PROGRESS.md                       → exits 0
-grep -c "Open deferrals"                Q/PROGRESS.md         >= 1
-grep -c "DM-2\b"                        Q/PROGRESS.md         >= 1        # the NINTH carry named
-grep -c "P-invariant-28\|P-inv-28"      Q/PROGRESS.md         >= 1
-assert ls docs/tranches/Q/audit/deferred-ledger-Q.md        → exits 0
-grep -c "no-deferral\|NO deferrals"     Q/Q.md                >= 1
+grep -c  "Open deferrals"          docs/tranches/Q/PROGRESS.md   >= 1
+grep -c  "DM-2"                    docs/tranches/Q/PROGRESS.md   >= 1   # the NINTH carry named
+grep -Ec "P-invariant-28|P-inv-28" docs/tranches/Q/PROGRESS.md   >= 1
+assert ls docs/tranches/Q/audit/chronic-ledger-Q.md         → exits 0   # the DEV-authored companion
+grep -Ec "no-deferral|NO deferrals" docs/tranches/Q/Q.md         >= 1
 ```
 BITE: reds if the charter substrate, the chronic-ledger parse target, or the no-deferral mandate is
 missing — the `proof:chronic-closure` Q parse-target has no terminal substrate.
@@ -253,21 +280,35 @@ grep -c "proof:alias-dropped"  docs/tranches/Q/waves/Q.W0.md  >= 1   # the real 
 BITE: reds if the deprecated-alias coverage gap is left unowned — a reviewer would assume the alias
 surface is gated when it is not.
 
-**Witness input that REDs on today's tree (pre-cure):**
+**Witness input that REDs on today's tree (pre-cure) — the HONEST born-RED (the gate-script + the
+reconciliation edits are what is absent; the DEV docs are already authored):**
 
-Today's tree: `docs/tranches/Q/waves/Q.W0.md` does not exist (it is the BLOCKER); `Q/PROGRESS.md` +
-`deferred-ledger-Q.md` are absent; IMPL-RUN-BOARD still shows `⬜ PENDING` rows + the dual hash;
-P/PROGRESS still reads "Version in tree: 4.3.0"; `spring-vector-decision.json` is dirty
-(`git status` confirms). Therefore on the pre-cure tree —
-- Clause (a): the `⬜ PENDING` rows present + the dirty decision-JSON → **RED**.
-- Clause (b): "Version in tree: 4.3.0" present → **RED**.
-- Clause (c): `ls docs/tranches/Q/waves/Q.W0.md` / `Q/PROGRESS.md` → non-zero exit → **RED** (the
-  missing-file blocker).
-- Clauses (d)/(e)/(f) piggyback: (d) passes only while no source is touched; (e)/(f) red because this
-  wave spec is absent.
+The DEV-authoring lane has ALREADY committed the charter substrate (`Q.md`, `DAG.md`, `Q/PROGRESS.md`,
+`prompt-recap-Q.md`, `audit/chronic-ledger-Q.md`, this `Q.W0.md` — all on the tree, confirmed). So
+clause (c)'s presence-asserts are GREEN. The genuine born-RED is at the IMPL layer:
+- **The gate cannot even RUN** — `scripts/proof-record-truth.mjs` does NOT exist (confirmed:
+  `ls scripts/proof-record-truth.mjs` → No such file). A gate that does not exist is the keystone RED —
+  every clause is un-runnable until the script lands.
+- **Clause (a): RED** — `docs/tranches/P/IMPL-RUN-BOARD.md` still shows 3× `⬜ PENDING` rows + the dual
+  hash (confirmed: `grep -c "⬜ PENDING"` == 3; both `e9_Uza8v` + `DwKmrGBp` present, neither annotated
+  SUPERSEDED); AND `scripts/soa-composite-decision.json` + `scripts/spring-vector-decision.json` are
+  dirty (`git status --porcelain` → 2× `M`).
+- **Clause (b): RED** — `grep -E "Version in tree.{0,8}4\.3\.0" docs/tranches/P/PROGRESS.md` matches
+  (1 hit) and `grep -c "4.4.0"` == 0; the "DEVELOPMENT PHASE" header is still present (1 hit). Provably stale.
+- **Clause (c): the presence-asserts GREEN** (the DEV docs exist) BUT the clause is un-runnable until
+  the gate script lands — so it counts as RED-by-un-runnability today, GREEN-by-presence once the script
+  exists. The clause is a STANDING REGRESSION GUARD (it reds if a later wave DELETES one of these docs),
+  not a born-absent assertion.
+- **Clause (d): GREEN-while-undisturbed** — passes only while no `src/`/`demo/` diff exists; the IMPL
+  edits touch `docs/` + `scripts/<the gate>` ONLY.
+- **Clauses (e)/(f): GREEN-by-presence** once this spec is committed (the deploy oracle + the misnomer +
+  `proof:alias-dropped` dispatch are all recorded in THIS file — confirmed below); un-runnable until the
+  gate script lands.
 
-This is a GENUINE born-RED on the real observable: the records that lie about the shipped truth + the
-absent charter substrate — not a proxy for them.
+This is a GENUINE born-RED on the real observable: **the absent gate script + the un-reconciled primary
+impl record + the stale P/O version line + the dirty decision-JSONs** — NOT a claim that the
+already-authored DEV charter docs are missing (they are not). The honesty here IS the point: a false
+"the docs are absent" born-RED would be the very record-lie this wave exists to kill.
 
 **Greens on the cure:** reconciling IMPL-RUN-BOARD + the P/O boards + committing this wave spec + the
 charter + the chronic-ledger substrate + committing/reverting the decision-JSONs — with zero

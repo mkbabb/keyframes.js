@@ -25,7 +25,7 @@ ledger in a state that violates the no-deferral precept. The two structural fail
    yet `grep -rn DemoControlPoint demo/ src/` → **ZERO**. The single clearest P-inv-28 violation in
    the constellation. **MANDATORY EXIT at Q.WC1 (BUILD-IN) — no 10th carry under any scenario.**
 2. **DM-7 keyframes-vue CROSSED the belt.** Declared a P-inv-28 BELT item at chronicity 4 with terminal
-   "USER-DOMAIN publish at P.WZ, NO 5th carry" (deferred-ledger-P.md:204). The impl drive published kf
+   "USER-DOMAIN publish at P.WZ, NO 5th carry" (deferred-ledger-P.md:83 — the DM-7 row; restated `:32`/`:69`/`:183`/`:273`). The impl drive published kf
    4.4.0 (`c69bbb0`) WITHOUT publishing keyframes-vue (still E404) → DM-7 is now at **chronicity 5**.
    **MANDATORY EXIT at Q.WZ (USER-DOMAIN publish or owner-ratified KILL) — no 6th carry.**
 
@@ -98,8 +98,9 @@ home (chronicity 1 — not yet a P-inv-28 belt item, but terminalized NOW per th
 |---|---|---|
 | `CHRONIC_LEDGER` pinned 3-tranche-stale | `proof-chronic-closure.mjs:114` → `docs/tranches/L/PROGRESS.md` | **Q.WZ §S1** — the atomic L→Q re-point |
 | `LEDGER_LABEL` disagrees with the path (the SECOND staleness) | `proof-chronic-closure.mjs:468` → `"K/PROGRESS.md"` | **Q.WZ §S1** — corrected to `"Q/PROGRESS.md"` in the SAME commit |
-| the M.WZ (L→M), O.WZ (L→O), P.WZ (O→P) re-points ALL skipped | the gate has audited stale paperwork for 3 tranches | **Q.WZ** re-points **L→Q DIRECTLY** — re-stating every prior chronic with its Q-terminal disposition + chronicity integer, so no chronic drops across the multi-tranche skip (the coverage clause `:489` enforces it) |
+| the M.WZ (L→M), O.WZ (L→O), P.WZ (O→P) re-points ALL skipped | the gate has audited stale paperwork for 3 tranches | **Q.WZ** re-points **L→Q DIRECTLY** — re-stating every prior chronic with its Q-terminal disposition + chronicity integer, so no chronic drops across the multi-tranche skip (the coverage clause `:478–489`, ONCE re-targeted to the Q DM-N tokens, enforces it) |
 | the Q substrate authored | `Q.W0 §S4` authors `Q/PROGRESS.md §"Open deferrals"` + this companion | **Q.W0** (the substrate) → **Q.WZ** (the re-point + the non-vacuity proof) |
+| **the gate cannot parse the Q substrate as-is** (VERIFIED 2026-06-23 by running the gate against `Q/PROGRESS.md`) | THREE faults: (1) `isExitShaped()` `:280–291` has no `BUILD-IN` matcher (Q uses BUILD-IN on DM-2/DM-22, both ≥4-tranche → P-inv-28 clause REDs); (2) `EXPECTED` `:478–489` greps `CH-1…CH-6` but the Q ledger renamed them DM-9/10/11/12/13/14 (`grep -c CH-1 Q/PROGRESS.md` → 0); (3) `parseChronicTable` `:198` matches only an EXACT `## Open deferrals` heading + ONE flat table, but the Q substrate is `## §2 — Open deferrals` with `### A…F` sub-tables → `[substrate] … no "## Open deferrals" section` + `parsed ZERO chronic rows` | **Q.WZ §S1** — the SAME atomic re-point commit adds `buildIn` to `isExitShaped`, re-targets `EXPECTED` to the Q DM-N tokens, AND widens the parser to the Q heading + sub-tables (or flattens the substrate); the gate CONTRACT is unchanged (it learns the Q substrate's vocabulary + shape, nothing more) |
 
 **The non-vacuity protocol (the K/L/M/O/P precedent).** Before the re-point greens, three planted
 malformed Q-ledger rows MUST RED on all three clause shapes (a FOLD citing a source-shape gate; a

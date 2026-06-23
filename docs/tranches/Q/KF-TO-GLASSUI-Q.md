@@ -36,21 +36,23 @@ downstream of it); its publish gates only the kf S1/S2 deletes.
 
 ---
 
-## The ASK roster (two already-authored fixes + the bilateral gate)
+## The ASK roster (two already-authored fixes + the bilateral gate + the 5.0.0 peer-widen)
 
 > **Sibling-anchor verification (2026-06-23).** Every `file:line` anchor in this dispatch
 > was re-confirmed against the LIVE glass-ui tree (`/Users/mkbabb/Programming/glass-ui/`,
 > branch `prototype/liquid-dock`) + the kf-side workaround sites (this repo's `demo/`). ALL
 > anchors held exactly: `SegmentedTabs.vue:406` (the byte-exact guard), `:405` (the role
 > split), the `.dock-layer` collapse-crossfade strand (`src/styles/dock.css:22`), and the kf
-> deletes (`SpringSidebar.vue:43`, `AnimationControls.vue:72`, `TransportDock.vue:348-375`).
+> deletes (`SpringSidebar.vue:43`, `AnimationControls.vue:72`, `TransportDock.vue` script
+> `:348-375` + template handlers `:151`/`:196`).
 > All tagged VERIFIED inline.
 
 | # | ASK | glass-ui surface (file:line, grounded in AUDIT-31 + VERIFIED 2026-06-23) | glass-ui Q deliverable | kf-side follow-up on the publish | born-RED gate |
 |---|-----|---------------------------------------------------|------------------------|----------------------------------|---------------|
 | **GU-Q1** *(the AUTHORED aria guard — PUBLISH it)* | **publish the role-conditional `aria-orientation` guard** — emit `aria-orientation` ONLY on `role=tablist`; OMIT it on `role=group` (the default `pill` strip carries a PROHIBITED ARIA attribute, WAI-ARIA 1.2 §6.3) | `src/components/custom/tabs/SegmentedTabs.vue:406` (branch `prototype/liquid-dock`) ALREADY = `:aria-orientation="isUnderline ? (isVertical ? 'vertical' : 'horizontal') : undefined"` (VERIFIED byte-for-byte; role split `:405` `:role="isUnderline ? 'tablist' : 'group'"` VERIFIED) — the correct guard, BUILT in the branch dist, UNPUBLISHED; the published 4.0.1/4.1.0 `dist/tabs.js` emits it unconditionally | carve a BC-only patch that ships JUST the `SegmentedTabs.vue:406` guard (NOT the entangled `prototype/liquid-dock` BF work) + publish it (USER-DOMAIN cut) | kf deletes BOTH `:aria-orientation="undefined"` suppress lines (`SpringSidebar.vue:43` + `AnimationControls.vue:72`) + re-pins to the cut version; `proof:workaround-deletion` S1 flips PENDING→GREEN | kf `proof:glassui-aria-ask` (NEW, content-aware): MOUNTS the published `SegmentedTabs variant="pill"`, asserts `role=group` carries `aria-orientation === null` — a version bump WITHOUT the SFC fix does NOT green it |
-| **GU-Q2** *(the dock collapse-crossfade strand — the RF-17 cure)* | **author + publish a dock-internal collapse-crossfade layer-keepalive cure** so the `.dock-layer` carrying the play control survives the collapse-crossfade transition without a swallowed pointerdown | the kf band-aid is the `TransportDock.vue:348-375` `pointerHandled`/`onPlayPointerDown` twin (VERIFIED — `let pointerHandled = false;` at `:348`, `function onPlayPointerDown(e: PointerEvent)` at `:358`, the `@pointerdown` handlers at `:151`/`:196`; the dock collapse-crossfade click-strand); the glass-ui dock-morph layer drops/recreates the `.dock-layer` mid-crossfade (VERIFIED — `src/styles/dock.css:22` documents "the `.dock-layer` crossfade + hit-test"), swallowing the pointerdown (`B2-pw12-dock-aria` S2) | a glass-ui dock-internal keepalive that holds the active `.dock-layer` interactive across the collapse-crossfade (the layer-morph family fix; the EXACT keepalive API name is glass-ui's to choose + name) | kf deletes the `pointerHandled`/`onPlayPointerDown` twin (`TransportDock.vue:348-375` + the `@pointerdown` handler) + re-pins; `proof:workaround-deletion` S2 flips PENDING→GREEN | kf `proof:live-session` S5: a motion-path PLAY through the dock produces motion (the swallowed-pointerdown band-aid removed, the play actually fires) |
+| **GU-Q2** *(the dock collapse-crossfade strand — the RF-17 cure)* | **author + publish a dock-internal collapse-crossfade layer-keepalive cure** so the `.dock-layer` carrying the play control survives the collapse-crossfade transition without a swallowed pointerdown | the kf band-aid is the `TransportDock.vue:348-375` `pointerHandled`/`onPlayPointerDown` twin (VERIFIED — `let pointerHandled = false;` at `:348`, `function onPlayPointerDown(e: PointerEvent)` at `:358`, the `@pointerdown` handlers at `:151`/`:196`; the dock collapse-crossfade click-strand); the glass-ui dock-morph layer drops/recreates the `.dock-layer` mid-crossfade (VERIFIED — `src/styles/dock.css:22` documents "the `.dock-layer` crossfade + hit-test"), swallowing the pointerdown (`B2-pw12-dock-aria` S2) | a glass-ui dock-internal keepalive that holds the active `.dock-layer` interactive across the collapse-crossfade (the layer-morph family fix; the EXACT keepalive API name is glass-ui's to choose + name) | kf deletes the `pointerHandled`/`onPlayPointerDown` twin (`TransportDock.vue` script `:348-375` + the two template `@pointerdown` handlers `:151`/`:196`) + re-pins; `proof:workaround-deletion` S2 flips PENDING→GREEN (the `/pointerHandled|onPlayPointerDown/` witness greps ALL `.vue` lines, so a half-delete leaving the template handlers keeps it RED) | kf `proof:live-session` S5: a motion-path PLAY through the dock produces motion (the swallowed-pointerdown band-aid removed, the play actually fires) |
 | **GU-Q3** *(the bilateral gate — glass-ui side)* | **a born-RED glass-ui gate clause** asserting the rendered `pill` strip (`role=group`) does NOT carry `aria-orientation` | no gate in glass-ui or kf currently asserts this (`proof:tabs-ios` T4 checks `aria-pressed`/`aria-selected`/roving-tabindex but NOT orientation-absence) | a computed-attr check on the mounted `SegmentedTabs variant="pill"` returning `null`/`undefined` for `aria-orientation` on `role=group` | kf's `proof:glassui-aria-ask` (GU-Q1) is the consumer-side mirror; a glass-ui-side gate makes the contract BILATERAL (a future refactor can't silently re-introduce the prohibited emit) | glass-ui `proof:no-prohibited-aria` (NEW): the mounted `pill` strip's `role=group` carries zero `aria-orientation` |
+| **GU-Q4** *(the 5.0.0 peer-range widen — escalated from Band Z)* | **widen glass-ui's `@mkbabb/keyframes.js` peer range to admit the breaking kf 5.0.0** so the constellation does not peer-conflict the instant kf cuts 5.0.0 (Band E) | glass-ui declares a `keyframes.js` peer pinned to the current major (`^4.x`); kf's Q.WE1/Q.WZ 5.0.0 BREAKING cut would put glass-ui's peer range OUTSIDE the published kf — an install-time peer conflict for any consumer on both. (AUDIT-31:356-357 pre-records the symmetric `keyframes-vue peer floor` bump + `proof:peer-satisfied`.) | bump the peer range to `"^4.0.0 \|\| ^5.0.0"` (admit BOTH the current major and the breaking 5.0.0) in glass-ui's `package.json` `peerDependencies` — a non-breaking widen | kf side: nothing to delete; the GATED consume edge (Q.WZ 5.0.0 cut) requires this widen to have landed, else the published 5.0.0 strands glass-ui consumers | kf `proof:peer-satisfied` (NEW, Q.WZ-owned): the installed glass-ui's declared kf peer range SATISFIES the kf 5.0.0 it ships beside — RED while glass-ui peers `^4.x` only |
 
 Both fixes are **non-breaking** to glass-ui's consumers: GU-Q1 OMITS a prohibited
 attribute (a strict improvement — AT ignored it anyway, conformance checkers FLAGGED it);
@@ -138,20 +140,36 @@ the layer carrying the play control survives the crossfade without dropping the 
 The EXACT keepalive API name is glass-ui's to choose (the layer-morph family fix); kf
 consumes whatever glass-ui publishes.
 
-**The forward-dependency friction (pre-empted).** kf's `proof:workaround-deletion` S2
-`apiPresent` content-probe needs the EXACT keepalive API name to write its grep pattern (a
-forward dependency on a dispatch glass-ui has not yet authored). PRE-EMPT: GU-Q2's deliverable
-NAMES the API (or a stable dist marker) in this dispatch BEFORE the kf gate is retargeted;
-Q.WG-S1S2-HYGIENE retargets S2's `apiPresent` to a content-probe over the installed dist
-for that marker (not the wrong version sentinel). If glass-ui declines GU-Q2, the kf S2
-twin stays (recorded — a glass-ui-owned defect kf cannot self-cure), never a perpetual
-false-RED.
+**The forward-dependency friction (RESOLVED — a STRUCTURAL dist-signature probe + a
+SEPARATE behavioral consume-gate, neither an unnamed-string grep).** A naive "GU-Q2 will
+NAME the keepalive API and kf greps the dist for that string" is NOT pre-emptable: the API
+name does not exist until glass-ui authors GU-Q2, so the kf content-probe pattern cannot be
+written ahead of it (a true forward dependency, not pre-empted by a promise). The RESOLUTION
+is TWO independent observables, neither needing a forward-named public API string:
+1. **The cheap, device-INDEPENDENT gate-correctness probe** (`glassCaps.dockStrandKeepalive`
+   in `proof:workaround-deletion`): a dist-content grep for the STRUCTURAL signature the cure
+   necessarily leaves — the `.dock-layer` retaining `pointer-events`/hit-test across the
+   collapse-crossfade (the keepalive holds the active layer interactive instead of the current
+   drop/recreate). This reads the structural dist change, NOT a public API name.
+2. **The device-bearing behavioral consume-gate** (`proof:live-session` S5, separate): mount/
+   drive the installed dock through a collapse-crossfade and assert a `pointerdown` on the
+   play-control `.dock-layer` LANDS (not swallowed). This is the runtime truth, run in the
+   live session — NOT inline in `proof:workaround-deletion` (which stays portable).
+GU-Q2's deliverable needs only to make the BEHAVIOR true + leave the structural dist signature
+(the API name is glass-ui's free choice, never a kf grep-dependency). If glass-ui declines
+GU-Q2, the kf S2 twin stays (recorded — a glass-ui-owned defect kf cannot self-cure) and S2
+holds PENDING via both probes seeing the swallow persist — never a perpetual false-RED.
 
-**Born-RED gate (kf-side, `proof:live-session` S5).** RED today: the swallowed-pointerdown
-defect means a motion-path PLAY through the dock produces NO motion without the band-aid
-twin. GREEN when the glass-ui keepalive publishes + kf deletes the twin + re-pins: a
-motion-path PLAY through the dock produces motion (the play actually fires through the
-kept-alive layer).
+**Born-RED gate (kf-side, `proof:live-session` S5 — the dock-PLAY leg, VERIFIED present).**
+`proof:live-session` S5 already exercises a PLAY through the global `TransportDock` (the
+RF-17 collapse/morph handoff, `proof-live-session.mjs:427` polls "until the play tracks"; the
+dock-play at `:1033`). Today S5 PASSES — but ONLY because the `pointerHandled`/`onPlayPointerDown`
+band-aid twin (+ a fallback actuation at `:1041`) compensates for the swallowed pointerdown.
+The discriminating born-RED is a PLANTED deletion: remove the twin on TODAY's installed dist
+(4.0.1, no keepalive) → the collapse-crossfade swallows the pointerdown → S5's dock-PLAY
+produces NO motion → RED. GREEN when the glass-ui keepalive publishes + kf deletes the twin +
+re-pins: the PLAY fires through the kept-alive layer with the twin GONE. (This is the same
+behavioral observable `glassCaps.dockStrandKeepalive` delegates to — no API-name string.)
 
 ---
 
@@ -200,7 +218,9 @@ names it for the coordination contract.
    - kf deletes the S1 suppress lines (`SpringSidebar.vue:43` + `AnimationControls.vue:72` —
      both VERIFIED to carry `:aria-orientation="undefined"`) — `proof:workaround-deletion` S1
      RED→GREEN (witness ABSENT, `apiPresent` true on the content-probe).
-   - kf deletes the S2 dock twin (`TransportDock.vue:348-375` — VERIFIED) — S2 RED→GREEN.
+   - kf deletes the S2 dock twin (`TransportDock.vue` script `:348-375` + the two template
+     `@pointerdown` handlers `:151`/`:196` — VERIFIED; a half-delete leaving the template
+     handlers keeps the witness RED) — S2 RED→GREEN.
 
 4. **The USER-DOMAIN cut (the publish is the owner's hand).** `BD.W-CUT` is confirm-first
    — EXECUTES NOTHING (no tag, no publish, no push) until the owner greenlights. This

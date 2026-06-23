@@ -35,11 +35,14 @@ Three apparatus gaps, each verified live:
    — with the load-bearing clause: "a perf wave's born-RED bench baseline path MUST be the wave's own
    target function (asserted by name in the wave header), and the decision-JSON `baselineCase`
    name-matches the wave's declared target."
-2. **The Q DAG is acyclic + sequenceable (B6-dag-ordering confirmed) but un-WITNESSED** — `Q.md §3`
-   draws the four internal ordering chains + the cross-repo publish chain in PROSE, but there is no
-   machine-readable manifest a gate can parse to assert acyclicity + that no kf wave consumes an
-   unpublished sibling surface. Confirmed: `ls docs/tranches/Q/DAG.md` → No such file (and neither
-   `docs/tranches/O/DAG.md` nor `docs/tranches/P/DAG.md` exists — Q.WA4 introduces the manifest pattern).
+2. **The Q DAG manifest is DEV-authored but UN-ASSERTED (no gate parses it)** — `Q.md §3` draws the four
+   internal ordering chains + the cross-repo publish chain in PROSE; the DEV-authoring lane has ALSO
+   committed the machine-readable manifest `docs/tranches/Q/DAG.md` (confirmed on the tree — a fenced
+   `json` node+edge block). BUT **no gate parses it**: `ls scripts/proof-wave-charter.mjs` → No such file
+   (confirmed), so nothing asserts the manifest is acyclic or that no kf wave consumes an unpublished
+   sibling surface. The manifest is a static artifact with no enforcement — the born-RED here is the
+   ABSENT GATE, not an absent manifest. (Neither `docs/tranches/O/DAG.md` nor `docs/tranches/P/DAG.md`
+   exists — Q introduced the machine-readable-DAG pattern; O/P drew their DAGs in prose only.)
 3. **The constellation pins are drift-prone + un-witnessed** (`AUDIT-31.md` B7-shipped-regression Q.W0c;
    B6-crossrepo-versions): kf pins value.js `^1.1.0` (a caret — a future 1.2.0 is auto-consumed with NO
    re-pin, NO consume-edge observable — B6-crossrepo-versions). There is no single machine-readable
@@ -108,11 +111,17 @@ no dispatch — the `Q.md §3` friction-chain-4 invariant).
 observable (B6-crossrepo-versions); no single record of the shipped pin set.
 
 **Cure.** Author `docs/tranches/Q/PIN-LEDGER.json` recording the SHIPPED pins (kf 4.4.0 → value.js
-^1.1.0; value.js 1.1.0 → parse-that ^0.12.0; glass-ui ~4.0.0 installs 4.0.1) AND the Q TARGET pins
-(value.js ^1.2.0 + glass-ui BC + parse-that 0.13.0 — the consume edges Q.WG4 re-pins). Author
-`proof:pin-ledger-current` (NEW): regenerate the pin set from `package.json` + `npm view @mkbabb/keyframes`
-and COMPARE to the ledger — RED on drift. This makes the caret-pin consume an OBSERVABLE edge (a future
-audit can tell whether the 1.2.0 features are actually wired, B6-crossrepo-versions friction).
+`^1.1.0` [package.json:221]; value.js 1.1.0 → parse-that ^0.12.0; glass-ui `~4.0.0` [package.json:224]
+installs 4.0.1) AND the Q TARGET pins (value.js ^1.2.0 + glass-ui BC + parse-that 0.13.0 — the consume
+edges Q.WG4 re-pins). Author `proof:pin-ledger-current` (NEW). **The HARD assertion is device-independent**:
+the gate reads the LOCAL `package.json` declared pins + the LOCAL installed tree (`node_modules/<pkg>/package.json`
+version + the lockfile) and COMPARES to the ledger's `shipped` set — RED on drift, a pure-filesystem read
+(no network). **The `npm view @mkbabb/keyframes` registry cross-check is OBSERVE-ONLY** (the same posture
+Q.WA3 applies to the deploy-roundtrip live leg — `declarePosture("observe-only", {reason: "registry
+network dependence"})`): it is REPORTED, never blocking, so the gate does not flake offline / on the slow
+Linux runner (the device-dependence-greening law). This makes the caret-pin consume an OBSERVABLE edge (a
+future audit can tell whether the 1.2.0 features are actually wired, B6-crossrepo-versions friction)
+WITHOUT importing a network dependency into the HARD CI path.
 
 ---
 
@@ -143,19 +152,24 @@ baselineCase naming a non-target function → the gate reds.*
 
 **(b) the DAG manifest is present + acyclic + no-unpublished-consume (S2, S3).**
 ```
-assert ls docs/tranches/Q/DAG.md                          → exits 0
-topological sort of the DAG.md edge graph succeeds         → acyclic
-every kf GATED-consume edge names a published-or-dispatched sibling surface
+assert ls docs/tranches/Q/DAG.md                          → exits 0   # DEV-authored — a regression guard
+parse the fenced json block; topological sort of nodes×edges succeeds   → acyclic
+every node phase=="GATED" carries gatedOn.siblingPublish that is published OR has a non-null dispatchDoc
+the dissolvedEdges[] (drag2D→Q.WC1) are asserted ABSENT from edges[]
 ```
-BITE: reds if the DAG is absent, cyclic, or a kf wave consumes an unpublished surface with no DISPATCH
-(the no-deferral spine breached).
+BITE: reds if the DAG goes cyclic, a `GATED` node consumes an unpublished surface with no DISPATCH (the
+no-deferral spine breached), or a dissolved edge reappears. *The manifest is DEV-present (the `ls` is a
+standing guard); the LIVE bite is the topo-sort + the consume-edge dispatch check — those are what no
+gate runs today.*
 
 **(c) the pin-ledger witnesses the shipped + target pins (S4).**
 ```
-assert ls docs/tranches/Q/PIN-LEDGER.json                 → exits 0
-proof:pin-ledger-current: package.json pins == the ledger's shipped/target set (no drift)
+assert ls docs/tranches/Q/PIN-LEDGER.json                          → exits 0
+HARD (device-independent): local package.json + installed-tree pins == the ledger's `shipped` set (no drift)
+OBSERVE-ONLY: `npm view @mkbabb/keyframes` registry pins == the ledger (reported, never blocking — network)
 ```
-BITE: reds if the pins drift off the witnessed set (the caret-pin silent-consume the lane found).
+BITE (HARD): reds if the LOCAL pins drift off the witnessed `shipped` set (the caret-pin silent-consume
+the lane found) — a pure-filesystem read, no network, no Linux-runner flake.
 
 **(d) the gates are aggregator-reachable (no dead gate).**
 ```
@@ -163,16 +177,23 @@ proof:ci-coverage: proof:wave-charter + proof:pin-ledger-current reachable from 
 ```
 BITE: reds if either gate is authored-but-unwired.
 
-**Witness input that REDs on today's tree (pre-cure):**
+**Witness input that REDs on today's tree (pre-cure) — the HONEST born-RED (the gate scripts + the
+PIN-LEDGER are absent; `DAG.md` is DEV-authored already):**
 - Clause (a): `ls scripts/proof-wave-charter.mjs` → No such file (confirmed) → the gate cannot run →
   **RED**; a planted transplanted-ratio fixture wave passes unchecked today (no enforcer).
-- Clause (b): `ls docs/tranches/Q/DAG.md` → No such file (confirmed) → **RED**.
+- Clause (b): `docs/tranches/Q/DAG.md` is PRESENT (DEV-authored — confirmed `ls` exits 0), but **no gate
+  parses it** until `scripts/proof-wave-charter.mjs` lands → the acyclicity + no-unpublished-consume
+  invariants are UN-ASSERTED → **RED** (un-runnability, not absence). The clause is a STANDING guard once
+  the script exists (it reds if the manifest goes cyclic or grows an un-dispatched consume edge).
 - Clause (c): `ls docs/tranches/Q/PIN-LEDGER.json` → No such file (confirmed) → **RED**; the caret pin
-  `^1.1.0` (confirmed package.json) auto-consumes a 1.2.0 with no observable edge.
-- Clause (d): the gates do not exist → cannot be wired → red the moment authored-but-unwired.
+  `^1.1.0` (confirmed `package.json:221`) auto-consumes a 1.2.0 with no observable edge. *(Unlike DAG.md,
+  the PIN-LEDGER.json was NOT DEV-pre-authored — it is genuinely born-absent, the cleanest born-RED here.)*
+- Clause (d): neither gate exists → cannot be wired → red the moment authored-but-unwired.
 
-This is a GENUINE born-RED on the real observable: the absent enforcer + the un-witnessed DAG + the
-drift-prone pins — never a proxy a stub could green.
+This is a GENUINE born-RED on the real observable: the absent enforcer SCRIPTS + the un-PARSED DAG (the
+manifest exists but nothing checks it) + the genuinely-absent PIN-LEDGER + the drift-prone pins — never a
+proxy a stub could green, and NOT a false "the DAG manifest is missing" claim (it is not — it is
+DEV-authored; what is missing is the gate that bites it).
 
 **Greens on the cure:** `proof:wave-charter` authored + the 7-question discipline enforced + the
 transplanted-ratio bite tested against a planted fixture (S1) + `DAG.md` authored, acyclic, no-unpublished-
@@ -236,5 +257,12 @@ sibling — a wave that consumes vapor reds the DAG gate, not the build, mid-tra
 **Third friction:** the caret pin `^1.1.0` auto-consumes value.js 1.2.0 with NO observable edge — a
 future audit cannot tell whether the 1.2.0 features are actually wired (B6-crossrepo-versions friction).
 **PRE-EMPT:** the pin-ledger TARGET rows (S4) record the Q re-pin to `^1.2.0` as an explicit consume
-edge; `proof:pin-ledger-current` reds if package.json drifts off the witnessed set — the silent-consume
-becomes an observable, gated edge.
+edge; `proof:pin-ledger-current`'s HARD clause reds if the LOCAL `package.json` + installed tree drifts
+off the witnessed `shipped` set — the silent-consume becomes an observable, gated edge.
+
+**Fourth friction:** `proof:pin-ledger-current` could import a NETWORK dependency if its drift-compare
+ran `npm view` as a HARD assertion — it would flake offline / on the slow Linux runner (the exact
+device-dependence class the CI-greening memory warns of). **PRE-EMPT:** the HARD assertion is a
+pure-filesystem read of `package.json` + the installed tree (device-independent BY CONSTRUCTION); the
+`npm view @mkbabb/keyframes` registry cross-check is OBSERVE-ONLY (`declarePosture`), reported but never
+blocking — the SAME posture Q.WA3 applies to the deploy-roundtrip live leg.

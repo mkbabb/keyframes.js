@@ -112,7 +112,8 @@ dispositioned to a terminal Q wave (the no-deferral mandate — `Q.md §2` band 
 |---|---|---|---|
 | **DM-2 DemoControlPoint** (the NINTH carry — declared ABSOLUTE-FINAL at O.W5 + P.W7, never built) | `B3` / `B4` | **Q.WC1 BUILD-IN** (over LIGHT drag2D) + **Q.WC2** dogfood — the MANDATORY exit | `proof:demo-control-point` (live pointer-drag moves a handle) |
 | **O.W9 / the 5.0.0 alias drop** (the @deprecated `Animation`/`ScrollTimeline`/`ScrollTimelineOptions` + the ~33-consumer migration) | `B2-ow9-nolegacy` | **Q.WE1 (alias drop + migrate + `MIGRATION-5.0.0.md`)** → **Q.WZ (5.0.0 cut)** | `proof:alias-dropped` / `proof:changelog-5.0.0` |
-| **P.W9 NaN-frame cure** (the parse-throw was REVERTED for breaking L.W1 S4) | `B2-pw9-nanframe` | **Q.WD1 (deferred-resolution + PLAY-time guard)** | `proof:nan-frame` (BOTH S4 round-trip AND no-NaN-at-play) |
+| **P.W9 NaN-frame cure** (the parse-throw was REVERTED for breaking L.W1 S4) — the S1/S2 cure half | `B2-pw9-nanframe` | **Q.WD1 (deferred-resolution + PLAY-time guard)** | `proof:nan-frame` (BOTH S4 round-trip AND no-NaN-at-play) |
+| **P.W9 S3/S4 split** (the grammar-fuzz fast-check arbitraries + the kf-vs-browser differential oracle — the correctness-harness half of P.W9, DAG-after Q.WD1) | `B2-pw9-nanframe` / `Q.md §2` Band D | **Q.WD2 (fuzz harness + differential oracle over the corrected surface)** | `proof:grammar-fuzz` (S1/S2 fast-check) + `proof:kf-differential` (S3/S4 kf-vs-Chromium WAAPI; the named-selector fixture arm rides the Q.WD1 resolve) |
 | **O.W7 engine.ts split** (1397→~900, the god-object) | `B2-ow7-enginesplit` | **Q.WF1** (AFTER Q.WE1 — splits a CLEAN class) | `proof:decomposition` (cap:1400 override REMOVED) |
 | **P.W13 emerging-CSS Phase-2** (the element-dependent arm typed-but-empty) | `B1-kf-emerging` | **Q.WB1** (NOW — value.js already parses all three nodes) | `proof:emerging-css-resolve-P2` |
 | **@function call-inlining** (the call-parse is value.js-gated) | `B1-kf-emerging` | **Q.WG2 dispatch (dashed-call parse)** → **Q.WB2** (GATED kf inlining) | `proof:emerging-css-resolve-fn` |
@@ -160,7 +161,7 @@ BOOK ≥4-tranche row REDs the whole gate). **TOTALITY is now CHECKABLE, not asp
 ### 5b — the keyframes-vue P-inv-28 belt (DM-7) — FOLDED as Q.WZ §S3
 
 DM-7 was declared a P-inv-28 BELT item at chronicity 4 with terminal "USER-DOMAIN publish at P.WZ, NO
-5th carry" (deferred-ledger-P.md:204). The impl drive published kf 4.4.0 WITHOUT it → DM-7 CROSSED the
+5th carry" (deferred-ledger-P.md:83 — the DM-7 row; restated `:32`/`:69`/`:183`/`:273`). The impl drive published kf 4.4.0 WITHOUT it → DM-7 CROSSED the
 belt into chronicity 5 (the sharpest B4 finding). The fold: **Q.WZ §S3** is the MANDATORY exit — the
 COMPLETE USER-DOMAIN publish runbook (peer-floor bumps to `>=5.0.0` + the pre-cut `npm run check` + the
 `release.yml` `needs: publish` job) + the `proof:keyframes-vue-published` clause (b) gate. **No 6th

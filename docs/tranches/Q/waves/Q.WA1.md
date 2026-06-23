@@ -73,10 +73,13 @@ invariants are caught only at the bundle stage or not at all.
   live here, so the rule guards the realm seam). `from: {path: 'src/animation/internal'}` ×
   `to: {pathNot: ...}` forbidding the engine + the value.js specifier.
 - **`light-barrel-no-engine`** — the LIGHT named-export modules (`numeric`, `smooth`, `spring`,
-  `stagger`, `flip`, `drag`, `drag-2d`, `decay`, `sequence`, `timeline`, `playback`, `morph`, `easing`,
-  `springLinearStops`, `springTimingFunction`, and `index.ts`'s static-export set) may NOT statically
-  reach `./engine` (a STATIC pre-flight of what `proof:boundary` bundle-verifies — the SAME invariant,
-  one tier earlier). This is `no-restricted-imports` expressed as a `pathNot` boundary.
+  `springLinearStops`, `springTimingFunction`, `morph`, `timeline`, `playback`, `stagger`, `flip`,
+  `drag`, `drag-2d`, `decay`, `sequence`, `easing`, `oscillator`, and `index.ts`'s static-export set)
+  may NOT statically reach `./engine` NOR `@mkbabb/value.js` (a STATIC pre-flight of what `proof:boundary`
+  bundle-verifies — the SAME invariant, one tier earlier). The `from` allowlist is exactly the barrel's
+  `export { … } from "./<module>"` re-export set proof-boundary parses (the single point of truth — see
+  §Mid-tranche-friction; `oscillator` at `index.ts:74` is a LIGHT entry too, so it is in the set). This
+  is `no-restricted-imports` expressed as a `pathNot` boundary.
 
 ### S2 — wire `lint` into the gate roster + `proof:hygiene`
 
@@ -201,8 +204,14 @@ no reviewer re-litigates it mid-tranche.
 
 **Second friction:** the `light-barrel-no-engine` rule enumerates the LIGHT named-export modules; if a
 future wave adds a NEW LIGHT export, the rule's `from` set goes stale and a new LIGHT module could
-silently reach the engine. **PRE-EMPT:** the rule is authored to match the LIGHT set BY PATH-PATTERN
-(every `src/animation/*.ts` that is NOT in the HEAVY set `engine|animate|motion-path|draw-svg|group|
-adapter|animations|frame-compiler|format|waapi|constants|utils`), so a new LIGHT leaf is covered by
-construction; the HEAVY exclusion list is the single point of update, and `proof:boundary` (the bundle
-oracle) is the backstop that catches any path-pattern drift.
+silently reach the engine. **PRE-EMPT:** the rule's `from` set is authored as an ALLOWLIST that MIRRORS
+`proof:boundary`'s self-enforcing entry derivation — i.e. the LIGHT modules are exactly those reached by
+the barrel's `export { … } from "./<module>"` re-export statements that proof-boundary already parses
+(`numeric`, `smooth`, `spring`, `springLinearStops`, `springTimingFunction`, `morph`, `timeline`,
+`playback`, `stagger`, `flip`, `drag`, `drag-2d`, `decay`, `sequence`, `easing`, `oscillator`, and
+`index.ts` itself). This is the ALLOWLIST polarity, NOT a "everything-minus-a-HEAVY-blocklist"
+path-pattern — the tree carries ~45 `src/animation/*.ts` modules (most HEAVY: `compile-color`, `morph-svg`,
+`scroll-scene`, `resolve-values`, `ingest`, `validate`, the `engine-*` family, …), so a blocklist would
+go stale the instant a HEAVY module is added and would FALSE-RED. The allowlist tracks the SAME barrel
+re-export set proof-boundary derives (the single point of truth); a new LIGHT export added to the barrel
+is picked up by both gates from the SAME parse, and `proof:boundary` (the bundle oracle) is the backstop.

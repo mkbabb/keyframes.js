@@ -30,21 +30,26 @@ consume edges are observable (B6-crossrepo-versions: the caret would land 1.2.0 
 
 > **Sibling-anchor verification (2026-06-23).** Every `file:line` anchor in this dispatch
 > was re-confirmed against the LIVE value.js source tree
-> (`/Users/mkbabb/Programming/value.js/src/`). The AUDIT-31 anchors held EXCEPT the
-> `contrast-color()` L6-stub anchor: the dead `colorContrast` rule is `css-color.bbnf:95-102`
-> (not `95-101`) AND it is REFERENCED at `css-color.bbnf:134` (`color = … | colorContrast | …`)
-> — so VJ-Q1 S3's delete must remove BOTH the rule AND the line-134 alternative or it leaves a
-> dangling grammar reference (the `.bbnf` is a doc-grammar, not parser-compiled, so the
-> delete is parse-path-inert either way — but a half-delete is a no-legacy residual). All
-> other anchors are tagged VERIFIED inline.
+> (`/Users/mkbabb/Programming/value.js/src/`). The AUDIT-31 anchors held EXCEPT two
+> corrections re-verified line-exact this pass: **(1)** the `contrast-color()` L6-stub
+> anchor — the dead `colorContrast` rule PROPER is `css-color.bbnf:98-101` (`colorContrast =`
+> at `:98`, body through `:101`), with its leading comment at `:95-97`; the full no-legacy
+> delete-block is `:95-101` (comment + rule). The rule is REFERENCED at `css-color.bbnf:134`
+> (`color = colorMix | colorContrast | … `, VERIFIED) — so VJ-Q1 S3's delete must remove BOTH
+> the `:95-101` block AND the line-134 alternative or it leaves a dangling grammar reference
+> (the `.bbnf` is a doc-grammar, not parser-compiled, so the delete is parse-path-inert either
+> way — but a half-delete is a no-legacy residual). **(2)** the `ValueUnit` ctor anchor —
+> the 6-positional ctor is `units/index.ts:26` (NOT `:36`, an AUDIT-31 typo); `clone()` at
+> `:120` copies 5 fields (`fnName` would be the 7th positional). All other anchors are tagged
+> VERIFIED inline.
 
 | # | ASK | value.js surface (file:line, grounded in AUDIT-31 + VERIFIED 2026-06-23) | proposed API / mechanism | kf consume-seam it serves | born-RED gate | ver |
 |---|-----|---------------------------------------------------|--------------------------|---------------------------|---------------|-----|
 | **VJ-Q.W0** | **reconcile the P record + commit any untracked docs** to CLOSED-as-built | the value.js P record likely still reads DEVELOPMENT on a shipped 1.1.0 tranche (the stale-header class, B7-honesty-record); `tranche-p` published `v1.1.0` (NOT master) | reconcile the P PROGRESS header to CLOSED with per-wave SHIPPED status; merge `tranche-p → master` (the Q.WA3 partner) | n/a (value.js record hygiene; the durable-anchor precondition) | `proof:progress-honesty` (value.js-side): the P PROGRESS header is not `DEVELOPMENT` while `v1.1.0` is tagged | — |
-| **VJ-Q1** *(library-LEADS — the ONE platform gap)* | **`contrast-color(<color>)` L7 eager-evaluation** (Baseline April 2026) + retire the dead legacy `color-contrast()` L6 stub | `parsing/color.ts` has ZERO contrast handling (grep `contrast` → ZERO — VERIFIED; it parses only as an opaque `FunctionValue`); the dead stub `grammars/css-color.bbnf:95-102` (VERIFIED — `colorContrast = "color-contrast" << "(", color , "vs" , color …` never-shipped CSS Color L6, NOT wired into `color.ts` dispatch [`colorContrast` grep in `color.ts` → ZERO, VERIFIED] — BUT referenced at `css-color.bbnf:134` `color = … | colorContrast | …`, VERIFIED) | (S1) a NET-NEW WCAG leaf (`wcagRelativeLuminance` + `wcagContrastRatio` — sRGB relative-luminance, NOT the OKLab-lightness `computeSafeAccent`); (S2) a `contrast-color()` `FunctionValue` arm eagerly evaluated to ONE `Color` (the `color-mix()` combinator template, `color.ts:449-499` — VERIFIED `colorMix` lives at `:449`); (S3) DELETE the dead `color-contrast()` L6 stub — BOTH the `:95-102` rule AND the `:134` alternative | kf inherits the resolved `Color` transparently; the Phase-2 resolve pass (Q.WB1) can lower `if(...)` over a `contrast-color()` value | value.js `proof:contrast-color` (born-RED): `parseCSSValue('contrast-color(red)')` is a concrete `Color` (today: an opaque `FunctionValue`); the dead L6 stub is gone | **1.1.1** |
+| **VJ-Q1** *(library-LEADS — the ONE platform gap)* | **`contrast-color(<color>)` L7 eager-evaluation** (Baseline April 2026) + retire the dead legacy `color-contrast()` L6 stub | `parsing/color.ts` has ZERO contrast handling (grep `contrast` → ZERO — VERIFIED; it parses only as an opaque `FunctionValue`); the dead stub `grammars/css-color.bbnf:98-101` (rule) + `:95-97` (comment) (VERIFIED — `colorContrast = "color-contrast" << "(", color , "vs" , color …` at `:98`, never-shipped CSS Color L6, NOT wired into `color.ts` dispatch [`colorContrast` grep in `color.ts` → ZERO, VERIFIED] — BUT referenced at `css-color.bbnf:134` `color = colorMix | colorContrast | …`, VERIFIED) | (S1) a NET-NEW WCAG leaf (`wcagRelativeLuminance` + `wcagContrastRatio` — sRGB relative-luminance, NOT the OKLab-lightness `computeSafeAccent`); (S2) a `contrast-color()` `FunctionValue` arm eagerly evaluated to ONE `Color` (the `color-mix()` combinator template, `color.ts:449-499` — VERIFIED `colorMix` lives at `:449`); (S3) DELETE the dead `color-contrast()` L6 stub — the `:95-101` block (comment + rule) AND the `:134` alternative | kf inherits the resolved `Color` transparently; the Phase-2 resolve pass (Q.WB1) can lower `if(...)` over a `contrast-color()` value | value.js `proof:contrast-color` (born-RED): `parseCSSValue('contrast-color(red)')` is a concrete `Color` (today: an opaque `FunctionValue`); the dead L6 stub is gone | **1.1.1** |
 | **VJ-Q2** *(the color-arch out-param family — the DROPPED VJ-P1 second half)* | **the egress-converter out-param family** — `xyz2rgbFamilyInto` / `xyz2displayP3Into` / `xyz2rec2020Into` / `getXyzFromIntoFn`, driving gamut 37 → <12 allocs/call | `color/dispatch.ts:272-277` (VERIFIED — inside `color2Into` at `:230`, the OKLCH fast path's `const fromXYZFn = getXyzFromFn<C>(to)` at `:272` + `const egress = fromXYZFn(xyz) …` at `:276` `return new DisplayP3Color(...)` per-step egress-wrapper boxing; ~28 of the residual 37 allocs); `matrix.ts:34` `transformMat3Into` (VERIFIED — `export function transformMat3Into(v, m, out)`, the aliasing-safe scratch precedent) | add `xyz2rgbFamilyInto(xyz, fromXyzMatrix, transferEncode, out: Color)` using `transformMat3Into` into a module `Vec3` + `setChannel` writes (zero new); route `gamutMapToRgbSpace`'s 24-step loop + the 9 hub-intermediates through a caller-owned (NEVER source-aliased) egress scratch | kf's rAF wide-gamut color interpolation rides value.js's egress path; the GC win is inherited transparently (no kf API change) | value.js `proof:gamut-alloc` with `N_TARGET` lowered 40→<12 (born-RED at 37; C3-epsilon bit-stable golden via `color-into.test.ts`) | **1.2.0** |
 | **VJ-Q3** *(the secondary color out-params — B5-valuejs-arch)* | **`mixColorsInto` + `sampleColorRampAt` + the structural-clone transposition** — the per-call array+spread allocs + the O(stops) ramp rebuild + the reflective `clone()` | `dispatch.ts:577-605` (VERIFIED — `mixColors` allocs `resultComponents:number[]` at `:577` + `keys.filter()` at `:569` + variadic-spread `new ResultClass(...resultComponents, resultAlpha)` at `:605` — a monomorphic-ctor megamorphic-spread deopt); kf `compile-color.ts:196-199` (`sampleColorRamp(...,1024,...)` INSIDE the inner ΔE loop); `src/utils.ts:7-22` (VERIFIED — value.js TOP-LEVEL `src/utils.ts`, NOT `units/utils.ts`; `clone()` via `Object.entries().map().reduce()` — three array allocs/level, the engine of `ValueUnit`/`FunctionValue.clone`) | `mixColorsInto(c1,c2,p1,p2,space,hue,out)` (kill the arrays + the spread); `sampleColorRampAt(from,to,t,opts)` (a single-`t` perceptual sampler, array-free) so kf hoists the 1024-ramp OUT of the inner loop; a DIRECT structural `clone()` short-circuit | kf's `compile-color.ts` densify hoists the ramp; `lerpColorValue` rides the faster mix; every kf `ValueUnit.clone()` (the flatten/restamp hot path) gets cheaper | value.js `proof:mix-alloc` (NEW, the `CountingColor` shim) + `proof:ramp-at-equiv` (`sampleColorRampAt(a,b,i/(n-1)) === sampleColorRamp(a,b,n)[i]` bit-exact) + `proof:clone-alloc` (NEW) | **1.2.0** |
-| **VJ-Q4** *(VJ-L1 `flatLeaf .fnName` — the S8 TERMINAL)* | **`fnName?: string` on `ValueUnit`**, `clone()`-preserved, populated by `flattenObject` from the enclosing `FunctionValue.name` | `units/index.ts:120-130` (VERIFIED — `clone()` copies `value`/`unit`/`superType`/`subProperty`/`property` [the 5-field copy] — NOT `fnName`; the ctor at `:36` is 6-positional `value,unit?,superType?,subProperty?,property?,targets?`, so `fnName` is the 7th); `src/units/utils.ts:85,92` (VERIFIED — `flattenObject` declared at `:85`, the `FunctionValue` branch at `:92`; the non-calc path at `:106` recurses `obj.values` without propagating `obj.name` onto the leaf at `:132`) | an optional 7th ctor field `fnName?: string` (the O-anchored minimal form) OR a `meta` record; `clone()` preserves it; `flattenObject` sets it from `obj.name` on each leaf | kf's S8 WeakMap `FN_NAME_MAP` + the clone-restamp ceremony (`utils.ts:52,55,59,287,341`) is RETIRED — `fnNameOf(u)` reads `u.fnName` directly; the identity-pad reads `counterLeaf.fnName` | value.js: a vitest asserting `new ValueUnit(2,'',…,'scale').fnName==='scale'` survives `clone()`; kf-side `proof:workaround-deletion` S8 flips PENDING→GREEN | **1.2.0** |
+| **VJ-Q4** *(VJ-L1 `flatLeaf .fnName` — the S8 TERMINAL)* | **`fnName?: string` on `ValueUnit`**, `clone()`-preserved, populated by `flattenObject` from the enclosing `FunctionValue.name` | `units/index.ts:120-130` (VERIFIED — `clone()` at `:120` copies `value`/`unit`/`superType`/`subProperty`/`property` [the 5-field copy, `:121-127` — `targets` is NOT copied either] — and NOT `fnName`; the ctor at `:26` is 6-positional `value,unit?,superType?,subProperty?,property?,targets?`, so `fnName` is the 7th); `src/units/utils.ts:85,92` (VERIFIED — `flattenObject` declared at `:85`, the `FunctionValue` branch at `:92`; the non-calc path at `:106` recurses `obj.values` without propagating `obj.name` onto the leaf at `:132`) | an optional 7th ctor field `fnName?: string` (the O-anchored minimal form) OR a `meta` record; `clone()` preserves it; `flattenObject` sets it from `obj.name` on each leaf | kf's S8 WeakMap `FN_NAME_MAP` + the clone-restamp ceremony (`utils.ts:52,55,59,287,341`) is RETIRED — `fnNameOf(u)` reads `u.fnName` directly; the identity-pad reads `counterLeaf.fnName` | value.js: a vitest asserting `new ValueUnit(2,'',…,'scale').fnName==='scale'` survives `clone()`; kf-side `proof:workaround-deletion` S8 flips PENDING→GREEN | **1.2.0** |
 | **VJ-Q5** *(the `/math` tree-shakeable subpath — the leaves-externalize enabler)* | **confirm + hold the `@mkbabb/value.js/math` subpath's `parse-that`-FREE contract** across the 1.2.0 publish | `dist/subpaths/math.d.ts` (VERIFIED — SHIPS today: re-exports `clamp, scale, lerp, lerpArray, logerp, deCasteljau, cubicBezier, interpBezier, cubicBezierToSVG, cubicBezierToString` from `../math`; the `parse-that-FREE` docstring is present [`math.d.ts:2`]; the built `math.js` is a 292-byte entry importing ONE `../math-*.js` chunk — 2 modules, 0 grammar, 0 parse-that; the exact graph-byte figure is a value.js-side measurement) | KEEP the `/math` subpath grammar-free across 1.2.0; document the contract (the boundary-clearance kf's W97 clause VERIFIES) | kf's Q.WE2 leaves-externalize Arm A DELETES the `internal/leaves.ts` math duplicates + re-exports from `@mkbabb/value.js/math` | value.js `proof:subpath-graph` (or confirm via the published `math.d.ts`): the `/math` static graph contains ZERO grammar/parse-that modules | **1.2.0** (contract) |
 | **VJ-Q6** *(the dashed-call parse arm — the @function enabler)* | **`--ident(args)` parses to `FunctionValue('--ident', [arg0, …])`** + expose the `<syntax>` validator on the resolve path | the dashed-function CALL site drops a verbatim string today (the call is NOT a `FunctionValue`); `extractFunctions` (the @function DEFINITION registry) ALREADY ships (1.1.0); the `<syntax>` validator drives `@property` but is not confirmed exposed for resolve-path consumption | a `--ident(args)` parse arm emitting `FunctionValue('--ident', [args])`; CONFIRM the `@property` `<syntax>` validator is a public/resolve-consumable export | kf's Q.WB2 @function call-inlining binds the descriptor params to the call args + coerces each through the `<syntax>` validator (NO re-authored checker) | value.js round-trip: `parseCSSValue('--double(2, 3px)')` is a `FunctionValue('--double', [2, 3px])` (today: drops/verbatim); `'<syntax>' validator exported` | **1.2.0** |
 | **VJ-Q7** *(`if()` multibranch — the lossy-collapse fix)* | **emit the FULL ordered clause list** instead of first-consequent + first-else | `parsing/index.ts:336-348` (VERIFIED — the `.map((body) => {…})` collapse callback: `splitIfClauses(body)` at `:337` → `.find(c => c.condition !== null)` first-consequent + `.find(c => c.condition === null)` first-else at `:338-339`, emitting the lossy 2-branch `FunctionValue("if", [cond, value, else])` at `:343-347`; `handleIf` itself declared at `:310`); `splitIfClauses` at `:255-295` (VERIFIED — already computes the FULL ordered `clauses` array) | use the already-computed `clauses` array in `handleIf` (the producer change is ~3 lines — the array exists) | kf's Q.WB2/Q.WD2 `resolveIf` (`resolve-values.ts:334-367`, today hard-coding the 2-branch `[cond, consequent, else]` triple with the self-documenting deferral comment at `:330-332`) generalizes to N-branch | value.js round-trip: `parseCSSValue('if(media(...): 1px; supports(...): 2px; else: 3px)')` emits a 3-branch ordered clause list (today: collapses to 2) | **1.2.0** |
@@ -67,8 +72,11 @@ plan surface. No breaking change.
 > It also drags a NO-LEGACY violation (the dead, unwired `color-contrast()` L6 stub).
 
 **The NAMING ground truth (the anchor correction, VERIFIED 2026-06-23).**
-`grammars/css-color.bbnf:95-102` defines `colorContrast = "color-contrast" << "(", color ,
-"vs" , color , ("," , color)* , ("to" , …)? << ")"` — the never-shipped **CSS Color L6**
+`grammars/css-color.bbnf` defines `colorContrast = "color-contrast" << "(", color ,
+"vs" , color , ("," , color)* , ("to" , …)? << ")"` — the rule PROPER is `:98-101`
+(`colorContrast =` at `:98`, the body through `:101`), preceded by its leading comment
+`:95-97`; the dead-stub delete-block is the full `:95-101` span (comment + rule). It is
+the never-shipped **CSS Color L6**
 legacy `color-contrast()` (the `vs <color>+` list form). It is NOT the new
 `contrast-color()` (**CSS Color L7**, Baseline April 2026, the `contrast-color(<color>)`
 single-arg form). The L7 function is genuinely ABSENT (`grep contrast-color` → ZERO,
@@ -77,8 +85,8 @@ VERIFIED). VJ-Q1 adds the L7 arm AND retires the dead L6 stub atomically.
 **The dangling-reference correction (NEW, the no-legacy completeness fix).** The dead
 `colorContrast` rule is REFERENCED by the grammar's top-level `color` rule
 (`css-color.bbnf:134`: `color = colorMix | colorContrast | lightDark | colorFn | …` —
-VERIFIED). So S3's delete must remove the `:95-102` rule AND the `:134` alternative, else
-the grammar carries a dangling non-terminal. The `.bbnf` is a STRUCTURAL reference grammar,
+VERIFIED). So S3's delete must remove the `:95-101` block (comment `:95-97` + rule `:98-101`)
+AND the `:134` alternative, else the grammar carries a dangling non-terminal. The `.bbnf` is a STRUCTURAL reference grammar,
 NOT parser-compiled (the live parser is hand-rolled combinators in `color.ts`; the ONLY
 in-`src/` reference to `css-color.bbnf` is `parsing/CLAUDE.md:38` documentation — VERIFIED),
 so the delete is parse-path-inert; but the dangling reference is a real no-legacy residual
@@ -95,9 +103,9 @@ the no-deferral mandate requires closing in the SAME edit.
   eagerly evaluated to ONE concrete `Color` (the maximally-contrasting of black/white per
   the WCAG ratio), mirroring the `color-mix()` combinator (`color.ts:449-499`, a complete
   gated eager-FunctionValue→Color template).
-- **S3 — DELETE the dead L6 stub.** Remove `grammars/css-color.bbnf:95-102` (the rule) AND
-  the `colorContrast` alternative in the `color` rule at `:134` (the dangling-reference
-  correction above). It is not wired into `color.ts`'s combinator dispatch (grep
+- **S3 — DELETE the dead L6 stub.** Remove `grammars/css-color.bbnf:95-101` (the `:95-97`
+  comment + the `:98-101` rule) AND the `colorContrast` alternative in the `color` rule at
+  `:134` (the dangling-reference correction above). It is not wired into `color.ts`'s combinator dispatch (grep
   `colorContrast` in `color.ts` → ZERO, VERIFIED) and never shipped — a stale-grammar
   no-legacy violation.
 
@@ -108,7 +116,7 @@ stops parsing. PRE-EMPT: the L6 stub was never WIRED (it does not change today's
 the live parser is hand-rolled combinators in `color.ts`, the `.bbnf` is a doc-only
 reference grammar [VERIFIED — the only `src/` reference is `parsing/CLAUDE.md:38`], and the
 generic function fall-through already produces the opaque `FunctionValue`), so deleting the
-grammar stub `:95-102` + its `:134` alternative is a pure no-op on the parse path; only the
+grammar stub `:95-101` + its `:134` alternative is a pure no-op on the parse path; only the
 new L7 arm changes behavior (opaque → concrete `Color`). The wave records this so the atomic
 delete-and-add is verified non-regressive.
 
@@ -249,7 +257,7 @@ ceremony is a STRUCTURAL consequence of `clone()`, not incidental.
 `ValueUnit.clone()` (`units/index.ts:120-130`, VERIFIED 2026-06-23) already copies
 `value`/`unit`/`superType`/`subProperty`/`property` into the new instance (the 5-field copy;
 `fnName` would be the 7th positional ctor field after the existing `value,unit?,superType?,
-subProperty?,property?,targets?` at `:36`). A 7th optional ctor field `fnName?: string`
+subProperty?,property?,targets?` at `:26`). A 7th optional ctor field `fnName?: string`
 copied in `clone()` would survive the clone — so the kf restamp ceremony retires entirely
 (`fnNameOf(u)` reads `u.fnName`; the identity-pad reads `counterLeaf.fnName`). `subProperty`
 CANNOT double as the carrier (B10: `parseCSSSubValue`/`parseCSSSubValue` overwrites every
@@ -309,11 +317,28 @@ its own entry and asserts the clean graph — the consume is GATED on this contr
 > `FunctionValue` — it drops a verbatim string. kf cannot even born-RED the inlining
 > until the call parses (the exact P.W13 mid-tranche trap).
 
+**The grounded gap (the first-char dispatch routing + the double-dash identifier
+rejection, VERIFIED 2026-06-23).** The `Function_` first-char `dispatch({...})`
+(`parsing/index.ts:425`) routes `"a-z"`/`"A-Z"` → `fnGeneric` (`:408` —
+`handleFunc().map(([name, values]) => new FunctionValue(name, values))`) and `"-"` →
+`bucketMath` (`:430`, comment "math before generic"; `bucketMath = any(fnMath, fnGeneric)` at
+`:420`, VERIFIED). A `--double(2)` starts with `-`, routes to `bucketMath`, fails `fnMath`,
+falls to `fnGeneric` → `handleFunc(utils.identifier)` — and `utils.identifier`'s scanner
+(`scanIdentFast`, `parsing/utils.ts:48-57`, VERIFIED) accepts at most ONE optional leading
+`-` then REQUIRES an ASCII letter (`:51-53`: "the optional '-' alone is not an identifier").
+A `--double` has TWO leading dashes, so after consuming one `-` the next char is `-` (not a
+letter) → `scanIdentFast` returns `pos` (no match) → the call fails to parse as a
+`FunctionValue`. THIS is the precise root cause: the identifier grammar structurally rejects
+the double-dash custom-function name.
+
 **The cure (a grammar additive + a validator-exposure confirm).**
-- **S1 — the call parse arm.** Add a dashed-function CALL parse arm so `--ident(args)`
-  parses to `FunctionValue('--ident', [arg0, arg1, …])` instead of dropping a verbatim
-  string. This mirrors the generic `FunctionValue` producer; the `--` prefix is the
-  discriminator.
+- **S1 — the call parse arm.** Add a dashed-function CALL parse arm INSIDE the `"-"`
+  dispatch bucket (`bucketMath`'s sibling — try the `--ident(args)` shape BEFORE the
+  `fnMath` arm, or add a 2nd-byte discriminator on `-`), with a name-scanner that accepts the
+  `--`-prefixed custom-property-function ident (NOT `scanIdentFast`, which rejects the second
+  dash), so `--ident(args)` parses to `FunctionValue('--ident', [arg0, arg1, …])` instead of
+  dropping. This mirrors the generic `fnGeneric` producer (`handleFunc().map(...)`); the
+  leading `--` is the discriminator.
 - **S2 — the `<syntax>` validator exposure.** CONFIRM value.js's `@property` `<syntax>`
   validator is a public / resolve-path-consumable export. kf's @function inlining
   (Q.WB2) coerces each bound arg through the param's registered `<syntax>` (the CSS
@@ -380,10 +405,25 @@ color's oklab channels in a contiguous `Float64Array` — plus a `lerpColorChann
 startBuf, stopBuf, outBuf)` fold. kf's compositor + `processFrame` route the color tail
 through the plan instead of per-element `Color` boxing.
 
+**The MEASURE-FIRST precondition (the anti-contrivance gate — this cross-repo ask is
+chartered ONLY after the bottleneck is born-RED on kf's OWN path).** Per the charter §7
+discipline ("every Q perf wave carries a measure-first born-RED gate on its OWN target
+path"), VJ-Q8 is a cross-repo PERF plan and must NOT be dispatched-then-built on the bare
+assertion that "the color tail is boxed." The Q.WB3-color consume wave (Band B) carries the
+measure-first PRECONDITION gate: bench the color-leaf blend SoA-vs-boxed over a realistic
+K-layer color-animation fixture (mirror the numeric `group-soa-integration` harness) and
+witness the color tail is a non-trivial Amdahl slice with a fold-win ≥ a measured floor. If
+that born-RED measurement does NOT clear the floor (the color tail is a negligible frame
+slice, OR the plan-build overhead eats the fold win), VJ-Q8 is KILLED with a tombstone (the
+color tail ships boxed, recorded as measured-not-worth-it) — the cross-repo plan is never
+chartered on a speculative bottleneck. The bit-exactness gate (below) is the CORRECTNESS
+oracle; this measure-first gate is the GROUNDING oracle that authorizes the ask at all.
+
 **The kf consume (GATED, Q.WB3-color).** kf folds the color leaves through the published
-plan, re-pinning `^1.2.0`. The numeric SoA arm is fully in-realm (NOW); the color arm is
-GATED on this publish, with a terminal-or-KILL (the color tail ships boxed if value.js
-declines — recorded, never a perpetual block).
+plan, re-pinning `^1.2.0` — ONLY after the measure-first precondition above clears. The
+numeric SoA arm is fully in-realm (NOW); the color arm is GATED on this publish, with a
+terminal-or-KILL (the color tail ships boxed if value.js declines OR if the measure-first
+floor is not cleared — recorded, never a perpetual block).
 
 **Born-RED gate.** value.js-side: the plan-build + `lerpColorChannels` is bit-exact vs a
 per-element `Color` lerp across a grid. kf-side: `proof:color-soa` (NEW, born-RED — no

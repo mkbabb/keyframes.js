@@ -26,22 +26,32 @@ cured in Q before anything else ships (`AUDIT-31.md` B1-deploy-ci, the lane VERD
 each verified live:
 
 1. **`proof:ci-coverage` exits 1 — six impl-drive gates are in `package.json` but never wired into
-   ci.yml as steps.** The 6 gates (`proof:no-foreign-symbol-stamp`, `proof:soa-composite`,
-   `proof:emerging-css-resolve-now`, `proof:morphsvg-consume`, `proof:portable-perf`,
-   `proof:spring-heatmap`) ARE in `proof:hygiene` (confirmed — package.json:193–200) but the
-   `proof:ci-coverage` discipline requires each to be a CI step too; the fast library `gates` job
-   fails (`node scripts/proof-ci-coverage.mjs` → exit 1, B1-deploy-ci BLOCKER).
+   ci.yml as steps.** The 6 gate DEFINITIONS are at package.json:193-198; they ARE invoked in the local
+   aggregate chains — **4 in `proof:hygiene`** (line 200: `proof:no-foreign-symbol-stamp`,
+   `proof:soa-composite`, `proof:morphsvg-consume`, `proof:portable-perf`) + **2 in `proof:correctness`**
+   (line 199: `proof:emerging-css-resolve-now`, `proof:spring-heatmap`) — but the `proof:ci-coverage`
+   discipline requires each to be a CI **step** in ci.yml too, and NONE of the 6 appears in ci.yml
+   (confirmed: `grep` of the 6 over ci.yml → 0). The fast library `gates` job's coverage check fails
+   (`node scripts/proof-ci-coverage.mjs` → exit 1, confirmed live; B1-deploy-ci BLOCKER). *(The exact
+   unwired set the gate names: `proof:emerging-css-resolve-now, proof:morphsvg-consume,
+   proof:no-foreign-symbol-stamp, proof:portable-perf, proof:soa-composite, proof:spring-heatmap`.)*
 2. **demo-smoke can structurally NEVER be green** — the terminal check-failures aggregator (ci.yml
    `if: always()`) ADDS the three born-RED-BY-DESIGN tripwires to the `failed` set and exits 1
    (`AUDIT-31.md` B1-deploy-ci BLOCKER). So `deploy-pages.yml` (which gates on a green demo-smoke) can
    never fire — the verified-deploy-of-record is dead.
 3. **The 4.4.0 tip is NOT merged to master** — `git rev-list --left-right --count master...tranche-p-dev`
-   = 0/18; the 4.4.0 publish (c69bbb0) is contained ONLY in `tranche-p-dev`; master's tip is the M-era
-   `aef3ef3` (B1-deploy-ci BLOCKER; B6-crossrepo-versions REGRESSION). All three siblings published from
-   non-master branches (kf tranche-p-dev, value.js tranche-p, parse-that tranche-b). The deploy-of-record
-   (CF Pages, branch `master`) is NOT live-correct until the merge lands.
+   = 0/21 (re-confirmed live on the Q-dev tip; was 0/18 at the audit snapshot, +3 Q-doc commits since);
+   the v4.4.0 release commit is **`c69bbb0`** (tag `v4.4.0`), and the drive tip is **`df78088`** (the
+   final run-board doc commit, 3 commits AFTER c69bbb0) — **both are contained ONLY in `tranche-p-dev`,
+   NEITHER is an ancestor of master** (`git merge-base --is-ancestor c69bbb0 master` = NO; same for
+   df78088). master's tip is the M-era `aef3ef3` (B1-deploy-ci BLOCKER; B6-crossrepo-versions REGRESSION).
+   All three siblings published from non-master branches (kf tranche-p-dev, value.js tranche-p, parse-that
+   tranche-b). The deploy-of-record (CF Pages, branch `master`) is NOT live-correct until the merge lands.
+   *(Anchor note: the audit's `tranche-p-dev(df78088, v4.4.0)` phrasing conflates the drive tip with the
+   release commit — `df78088` is NOT the tagged commit; `v4.4.0` = `c69bbb0`. The merge action brings in
+   BOTH; the version-ancestry assertion keys on the tagged `c69bbb0` — see S2.)*
 4. **The deploy round-trip oracle is NOT mechanized** — `scripts/pages-deploy.sh` captures a rollback
-   target (lines 65–78, confirmed) and its header references "if post-deploy validation fails" (line 19,
+   target (lines 65–78, confirmed) and its header references "post-deploy validation fails" (line 20,
    confirmed) but performs NO post-deploy validation — after `wrangler pages deploy` there is no HTTP-200
    probe + no bundle-hash assertion. The 2026-06-23 deploy BYPASSED the green-CI deploy-pages.yml gate
    (shipped via `bash scripts/pages-deploy.sh` from the host shell, B1-deploy-ci).
@@ -70,14 +80,21 @@ pass (the device-dependence-greening law: "break the one-red-per-round loop in O
 **Breach.** `proof:ci-coverage` exits 1 (6 gates unwired into ci.yml steps); demo-smoke's terminal
 aggregator includes the 3 born-RED-by-design tripwires in its exit-1 set.
 
-**Cure.** (1) Wire the 6 gates into ci.yml as steps: the 5 static/library ones into the fast `gates`
-job (`no-foreign-symbol-stamp`, `soa-composite`, `morphsvg-consume`, `portable-perf`, `spring-heatmap`)
-and `emerging-css-resolve-now` into the correctness job (it runs a vitest). (2) EXCLUDE the 3
-born-RED-by-design tripwires from the terminal check-failures aggregator's exit-1 set (they are
-EXPECTED-RED observe-only gates — they must be reported, not block; the `declarePosture` observe-only
-discipline). (3) Extend `proof:ci-coverage` with a clause `terminal-aggregate-excludes-bornred`:
-parse ci.yml's terminal check-failures step and assert no born-RED-by-design gate is in its blocking
-set.
+**Cure.** (1) Wire the 6 gates into ci.yml as steps, split by their ACTUAL shape (verified from the
+package.json gate definitions, not assumed): the **4 pure-node static** gates →the fast `gates` job
+(`proof:no-foreign-symbol-stamp`, `proof:soa-composite`, `proof:portable-perf`, `proof:spring-heatmap` —
+none invokes vitest), and the **2 vitest-bearing** gates →the correctness job
+(`proof:emerging-css-resolve-now` = `… && vitest run test/emerging-css-resolve-now.test.ts`;
+`proof:morphsvg-consume` = `… && vitest run test/morph-svg.test.ts` — both run a vitest, so they belong in
+the correctness/test job, NOT the static `gates` job). *(Anchor correction: the audit/charter's "5
+static + 1 correctness" split mis-placed `proof:morphsvg-consume` as static — it runs a vitest; the
+correct split is 4 static + 2 vitest.)* (2) EXCLUDE the 3 born-RED-by-design tripwires
+(`proof:peer-satisfied`, `proof:keyframes-vue-published`, `proof:control-point-live` — confirmed at
+ci.yml:1594-1596) from the terminal check-failures aggregator's exit-1 set (they are EXPECTED-RED
+observe-only gates — reported, not blocking; the `declarePosture` observe-only discipline). *(Note: if
+Q.WA2 lands first, `proof:control-point-live` is DELETED, not excluded — Q.WA3 excludes whichever of the
+3 remain.)* (3) Extend `proof:ci-coverage` with a clause `terminal-aggregate-excludes-bornred`: parse
+ci.yml's terminal check-failures step and assert no born-RED-by-design gate is in its blocking set.
 
 **Falsifiable.** `node scripts/proof-ci-coverage.mjs` → exit 0; ci.yml's `gates`/correctness jobs name
 all 6 gates; the terminal aggregator excludes the 3 born-RED tripwires.
@@ -87,18 +104,21 @@ all 6 gates; the terminal aggregator excludes the 3 born-RED tripwires.
 **Breach.** kf 4.4.0 (tranche-p-dev), value.js 1.1.0 (tranche-p), parse-that 0.12.0 (tranche-b) are NOT
 merged to their masters; the deploy-of-record (CF Pages, `master`) is stale at the M-era `aef3ef3`.
 
-**Cure.** Merge `tranche-p-dev`(df78088, v4.4.0)→`master` (kf), and DISPATCH the value.js + parse-that
-master merges (inv-16: kf authors only the kf merge + a DISPATCH note for the siblings — the
-`KF-TO-VALUEJS-Q.md`/`KF-TO-PARSETHAT-Q.md` packets carry the master-merge ask). The kf merge lands
-FIRST so the next master CI run + the deploy gate fire on the real impl-drive tree. Born-RED gate
-`proof:published-on-master`: assert `v4.4.0` (df78088) IS an ancestor of kf `master`.
+**Cure.** Merge the kf `tranche-p-dev` tip (which contains the v4.4.0 release `c69bbb0` AND the drive
+tip `df78088`) → `master`, and DISPATCH the value.js + parse-that master merges (inv-16: kf authors
+only the kf merge + a DISPATCH note for the siblings — the `KF-TO-VALUEJS-Q.md`/`KF-TO-PARSETHAT-Q.md`
+packets carry the master-merge ask). The kf merge lands FIRST so the next master CI run + the deploy
+gate fire on the real impl-drive tree. Born-RED gate `proof:published-on-master`: assert the **v4.4.0
+tag commit `c69bbb0` IS an ancestor of kf `master`** (the published-version-on-master oracle; the merge
+of the tranche-p-dev tip brings it in transitively).
 
-**Falsifiable.** `git merge-base --is-ancestor df78088 master` → exit 0 (after the merge);
-`proof:published-on-master` GREEN; the sibling merges are DISPATCH rows in the cross-repo packets.
+**Falsifiable.** `git merge-base --is-ancestor c69bbb0 master` → exit 0 (after the merge — the v4.4.0
+tag commit is what the gate resolves, not a hardcoded hash, so it survives any later commits on the
+branch); `proof:published-on-master` GREEN; the sibling merges are DISPATCH rows in the cross-repo packets.
 
 ### S3 — mechanize the deploy round-trip oracle in pages-deploy.sh (ROUNDTRIP-ORACLE)
 
-**Breach.** `pages-deploy.sh` references "if post-deploy validation fails" (line 19) but performs none
+**Breach.** `pages-deploy.sh` references "post-deploy validation fails" (line 20) but performs none
 — no HTTP-200 probe, no bundle-hash assertion after `wrangler pages deploy`.
 
 **Cure.** Add a post-deploy validation block to `scripts/pages-deploy.sh`: after `wrangler pages deploy`,
@@ -152,7 +172,8 @@ and the ACTUAL served bundle hash — each the genuine observable, not a grep of
 **(a) ci-coverage exits 0 + the 6 gates are wired + the terminal aggregator excludes born-RED (S1).**
 ```
 node scripts/proof-ci-coverage.mjs                                → exit 0
-ci.yml gates/correctness jobs name all 6 impl-drive gates          → present
+ci.yml `gates` job names the 4 static gates (no-foreign-symbol-stamp, soa-composite, portable-perf, spring-heatmap)
+ci.yml correctness job names the 2 vitest gates (emerging-css-resolve-now, morphsvg-consume)
 terminal-aggregate-excludes-bornred: the 3 born-RED tripwires NOT in the blocking set
 ```
 BITE: reds if any impl-drive gate is unwired OR a born-RED-by-design tripwire is in the demo-smoke
@@ -160,10 +181,11 @@ blocking set (so demo-smoke can never go green — the deploy-of-record stays de
 
 **(b) v4.4.0 is an ancestor of master (S2).**
 ```
-git merge-base --is-ancestor df78088 master                       → exit 0
+git merge-base --is-ancestor "$(git rev-list -n1 v4.4.0)" master   → exit 0   # v4.4.0 == c69bbb0
 ```
-BITE: reds (today, confirmed: `master...tranche-p-dev` = 0/18 — v4.4.0 is NOT in master) until the
-merge lands — the deploy-of-record is stale at aef3ef3.
+BITE: reds (today, confirmed: `master...tranche-p-dev` = 0/21 — the v4.4.0 commit c69bbb0 is NOT in
+master) until the merge lands — the deploy-of-record is stale at aef3ef3. *The gate resolves the
+`v4.4.0` tag to its commit at run time (not a frozen hash), so it does not rot as commits land.*
 
 **(c) pages-deploy.sh validates the round-trip (S3).**
 ```
@@ -183,8 +205,8 @@ hygiene chain is still fail-fast.
 
 **Witness input that REDs on today's tree (pre-cure):**
 - Clause (a): `node scripts/proof-ci-coverage.mjs` → exit 1 (confirmed — 6 gates unwired) → **RED**.
-- Clause (b): `git rev-list --left-right --count master...tranche-p-dev` = 0/18 → v4.4.0 NOT in master
-  → **RED**.
+- Clause (b): `git rev-list --left-right --count master...tranche-p-dev` = 0/21 (re-confirmed live;
+  was 0/18 at the audit snapshot) → the v4.4.0 commit c69bbb0 is NOT in master → **RED**.
 - Clause (c): `scripts/pages-deploy.sh` has rollback capture but NO post-deploy HTTP-200/hash block
   (confirmed) → **RED**.
 - Clause (d): the 15 static gates ride demo-smoke + `proof:hygiene` is a 132-link `&&` chain (confirmed
