@@ -42,7 +42,7 @@ in-tree, scheduled by the sibling) · GATED (fires atomically on a named sibling
 | Band | Wave | Phase | DAG predecessor(s) | Headline |
 |---|---|---|---|---|
 | **A** | **Q.W0** | NOW | — (the floor) | record-hygiene + shipped-truth reconcile + CHRONIC_LEDGER substrate authoring |
-| **A** | **Q.WA1** | NOW | Q.W0 | the SLIM lint tier (eslint `import/no-cycle` + `no-restricted-imports` + dep-cruiser — the 3-tranche carry) |
+| **A** | **Q.WA1** | NOW | Q.W0 | the SLIM lint tier (dep-cruiser ONLY — eslint KILLED-down, redundant with tsc --strict + prettier-organize-imports; the 3-tranche carry) |
 | **A** | **Q.WA2** | NOW | Q.W0 | drag2D LIGHT barrel export certification (the DemoControlPoint enabler) |
 | **A** | **Q.WA3** | NOW | Q.W0 | CI-green + **master-merge reconcile (the FIRST motion)** + `proof:ci-coverage` fix + deploy round-trip oracle + device-dependence harden |
 | **A** | **Q.WA4** | NOW | Q.W0 | `proof:wave-charter` + the DAG manifest + the constellation pin-ledger witness |
@@ -57,7 +57,7 @@ in-tree, scheduled by the sibling) · GATED (fires atomically on a named sibling
 | **C** | **Q.WC5** | NOW | Q.WA4 | amiga telemetry + residual scene refinements |
 | **D** | **Q.WD1** | NOW | Q.WA4 (internal: bind-seam → play-guard) | the NaN-frame proper cure (deferred-resolution + play-time guard) |
 | **D** | **Q.WD2** | NOW | Q.WA4 | grammar-fuzz fast-check arbitraries + the differential-vs-browser oracle |
-| **E** | **Q.WE1** | NOW | Q.WA3, Q.WA1 | the @deprecated alias DROP + the 22-consumer migration + `MIGRATION-5.0.0.md` |
+| **E** | **Q.WE1** | NOW | Q.WA3, Q.WA1 | the @deprecated alias DROP + the ~33-consumer migration + `MIGRATION-5.0.0.md` |
 | **E** | **Q.WE2** | GATED | value.js `/math` subpath (Q.WG2) | the leaves.ts externalization |
 | **F** | **Q.WF1** | NOW | Q.WE1 (splits a CLEAN class) | engine.ts 1397→~900 split (lift the playback machine) |
 | **F** | **Q.WF2** | NOW | Q.WA4 | the group.ts SoA decomposition |
@@ -91,7 +91,7 @@ Q.WA3 master-merge-reconcile (NOW, all 3 repos to master — the FIRST motion)
    │
    ├─► Q.WD1-bind attach-resolution seam ─► Q.WD1 play-time guard (NEVER a parse-throw — the S4 floor)
    │
-   └─► Q.WE1 alias-drop + 22-consumer migrate ─► Q.WF1 engine.ts split (CLEAN class) ─► Q.WZ 5.0.0 cut
+   └─► Q.WE1 alias-drop + ~33-consumer migrate ─► Q.WF1 engine.ts split (CLEAN class) ─► Q.WZ 5.0.0 cut
                                                                                           │
    glass-ui BC publish (Q.WG3, USER-DOMAIN) ─► kf S1/S2 delete (GATED) ──────────────────► Q.WZ
 ```
@@ -126,7 +126,7 @@ companion is `docs/tranches/Q/audit/chronic-ledger-Q.md`.
 | Item | Born | Chronicity | Disposition | Owning Q wave | Gate / evidence (closure oracle) |
 |---|---|---|---|---|---|
 | **DM-2 GlassControlPoint → `DemoControlPoint`** (the NINTH carry — declared "ABSOLUTE FINAL" at O.W5 AND P.W7, never built; the worst P-inv-28 violation in the constellation) | E | **9 (E…M,O,P→Q)** | **BUILD-IN — the MANDATORY exit (no 10th carry under any scenario)** | **Q.WC1** (build) + **Q.WC2** (dogfood) | `proof:demo-control-point` born-RED on `grep -rn DemoControlPoint demo/ src/` → ZERO; GREEN when the component mounts + a live pointer-drag moves a handle + the bespoke `useEasingCurveDrag` is retired onto LIGHT drag2D. Retires the dead `proof:control-point-live`. |
-| **DM-22 named-selector NaN-frame** (the proper cure — the impl drive's parse-throw was REVERTED for breaking L.W1 S4 opaque-ingest) | L.W1 | **4 (L,M,O,P→Q)** | **BUILD-IN — deferred-resolution + PLAY-time guard (NOT a parse-throw)** | **Q.WD1** | `proof:named-selector-nan-frame` (4 clauses, ALL born-RED): S4 ingest round-trip preserved (parse never throws); the named phase resolves to numeric % at attach under a Scroll/ManualTimeline; `NAMED_SELECTOR_NO_TIMELINE` throws at PLAY-without-timeline (NOT at parse); zero NaN frame-times at play. |
+| **DM-22 named-selector NaN-frame** (the proper cure — the impl drive's parse-throw was REVERTED for breaking L.W1 S4 opaque-ingest) | L.W1 | **4 (L,M,O,P→Q)** | **BUILD-IN — deferred-resolution + PLAY-time guard (NOT a parse-throw)** | **Q.WD1** | `proof:nan-frame` (4 clauses, ALL born-RED): S4 ingest round-trip preserved (parse never throws); the named phase resolves to numeric % at attach under a Scroll/ManualTimeline; `NAMED_SELECTOR_NO_TIMELINE` throws at PLAY-without-timeline (NOT at parse); zero NaN frame-times at play. |
 
 ### B — HANDOFF rows (sibling-gated; tripwires live; the P-inv-28 belt)
 
@@ -205,7 +205,7 @@ a NEW Q regression to wave-assign.
 | **DM-7 keyframes-vue** | **5** (K,L,M,O,P→Q) — the belt CROSSED | **USER-DOMAIN** publish at Q.WZ (or owner-ratified KILL). P-inv-28 belt was CROSSED at the impl drive; **NO 6th carry.** | Q.WZ (S3) |
 | **DM-5 S1 aria-suppress** | **5** (K,L,M,O,P→Q) | **HANDOFF** — S1 delete on the BC SFC guard (Q.WG3) OR the contingency (a KILL of the band-aid, NOT a 6th carry) | Q.WG3 — BC SFC guard |
 | **DM-8 Lighthouse floors** | **5** (L,M,O,P,Q) | **VERIFY-ONLY** — GREEN gate satisfies P-inv-28 | Q.WZ re-verify |
-| **DM-22 named-selector NaN-frame** | **4** (L,M,O,P→Q) | **BUILD-IN (in-realm TERMINAL)** — deferred-resolution + play-time guard (NOT a parse-throw) | Q.WD1; `proof:named-selector-nan-frame` GREEN |
+| **DM-22 named-selector NaN-frame** | **4** (L,M,O,P→Q) | **BUILD-IN (in-realm TERMINAL)** — deferred-resolution + play-time guard (NOT a parse-throw) | Q.WD1; `proof:nan-frame` GREEN |
 | **DM-5 S8 FN_NAME** | **4** (K,L,M,O,P→Q) | **HANDOFF (PRIMARY — the VJ-Q4 `flatLeaf .fnName` consume, GATED) + BUILD-IN (FALLBACK — the in-realm parallel-array, only on a VJ-Q4 decline)** — the WeakMap is realm-clean; the two cures are MUTUALLY EXCLUSIVE | Q.WG4 (PRIMARY VJ-Q4) / Q.WB3 §S6 (FALLBACK) |
 | **DM-16 5.0.0 cut** | **4** (L,M,O,P→Q) | **USER-DOMAIN** publish at Q.WZ | Q.WZ (S2) |
 | **DM-20 deploy round-trip** | **4** (L,M,O,P→Q) | **USER-DOMAIN + BAND-Z** — re-observed as live-byte equality | Q.WZ (S6) |

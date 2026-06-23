@@ -70,7 +70,7 @@ mid-tranche deferral is pre-empted with its enabling wave NOW.
 
 | Risk | Verified | Pre-emption (the enabling wave NOW) |
 |---|---|---|
-| **the NaN-frame is LATENT in shipped code** (the parse-throw was REVERTED; `frame-compiler.ts:449` carries the DEFERRED comment; NaN is latent at sample-without-timeline) | `frame-compiler.ts:449,453-460` (the explicit DEFERRED note) | **Q.WD1** — the deferred-resolution + PLAY-time guard (NOT a parse-throw); the bind-seam sub-wave pre-empts the "no attach point" deferral; `proof:named-selector-nan-frame` asserts BOTH the S4 round-trip AND no-NaN-at-play |
+| **the NaN-frame is LATENT in shipped code** (the parse-throw was REVERTED; `frame-compiler.ts:449` carries the DEFERRED comment; NaN is latent at sample-without-timeline) | `frame-compiler.ts:449,453-460` (the explicit DEFERRED note) | **Q.WD1** — the deferred-resolution + PLAY-time guard (NOT a parse-throw); the bind-seam sub-wave pre-empts the "no attach point" deferral; `proof:nan-frame` asserts BOTH the S4 round-trip AND no-NaN-at-play |
 | **resolve-values.ts ships ONLY the element-INDEPENDENT arm** (Phase-2 `style(--p)`/`sibling-index/count` is a typed-but-EMPTY seam — a wave secretly needing a not-yet-resolved element context) | `resolve-values.ts:62-67` (the empty typed fields) | **Q.WB1** — the element-aware re-resolve runs AFTER `setTargets` over the SAME ResolveContext; value.js ALREADY parses all three nodes (no sibling gate); the guard-widen is a precondition of the pass running |
 | **the engine.ts god-object split is masked by its own override** (`proof:decomposition` cap:1400 masks the 1397L file) | `proof-decomposition.mjs:130-132` (cap:1400; the file is 3L under) | **Q.WF1** — the split REMOVES the override + asserts engine.ts ≤~900 + engine-playback.ts exists; runs AFTER Q.WE1 (splits a class with no trailing @deprecated re-export — a clean seam) |
 | **the @function call-inlining seam awaits an unpublished sibling API** (a wave secretly needing value.js call-parse) | `resolve-values.ts:375,394` (the value.js-P-gated seam) | **Q.WG2 dispatch** (the dashed-call parse arm) → **Q.WB2** (GATED kf inlining) — the dispatch carries a terminal-or-KILL so it cannot become a perpetual punt |
@@ -83,7 +83,7 @@ mid-tranche deferral is pre-empted with its enabling wave NOW.
 | Observation | Verdict |
 |---|---|
 | the constellation DAG named "keyframes O+P (5.0.0 major)" but the drive shipped 4.4.0 MINOR | **HONEST semver** — no breaking change actually landed (the alias-drops were deferred). The friction is that the PLAN promised a major; the SHIP was honestly a minor. Q lands the honest 5.0.0: the alias drop (Q.WE1) IS the breaking change; the cut (Q.WZ) IS the major. The 5.1.x additive tier (perf + demo + emerging-CSS-P2, consuming value.js 1.2.0) rides after. |
-| `proof:changelog-5.0.0` is ABSENT (the gate that would PROVE the semver claim) | **Q.WE1 / Q.WA3** author it gate-first — born-RED over the missing breaking-change entries; wired into `release.yml` pre-publish so a 5.0.0 publish with an incomplete CHANGELOG is BLOCKED |
+| `proof:changelog-5.0.0` is ABSENT (the gate that would PROVE the semver claim) | **Q.WE1** authors it gate-first (the SINGLE owner; Q.WA3/Q.WZ only REFERENCE it) — born-RED over the missing breaking-change entries; wired into `release.yml` pre-publish so a 5.0.0 publish with an incomplete CHANGELOG is BLOCKED |
 
 ---
 

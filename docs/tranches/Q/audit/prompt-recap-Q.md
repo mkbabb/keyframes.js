@@ -111,13 +111,13 @@ dispositioned to a terminal Q wave (the no-deferral mandate — `Q.md §2` band 
 | Item | Source | Q terminal | Born-RED gate |
 |---|---|---|---|
 | **DM-2 DemoControlPoint** (the NINTH carry — declared ABSOLUTE-FINAL at O.W5 + P.W7, never built) | `B3` / `B4` | **Q.WC1 BUILD-IN** (over LIGHT drag2D) + **Q.WC2** dogfood — the MANDATORY exit | `proof:demo-control-point` (live pointer-drag moves a handle) |
-| **O.W9 / the 5.0.0 alias drop** (the @deprecated `Animation`/`ScrollTimeline`/`ScrollTimelineOptions` + the 22-consumer migration) | `B2-ow9-nolegacy` | **Q.WE1 (alias drop + migrate + `MIGRATION-5.0.0.md`)** → **Q.WZ (5.0.0 cut)** | `proof:alias-dropped` / `proof:changelog-5.0.0` |
-| **P.W9 NaN-frame cure** (the parse-throw was REVERTED for breaking L.W1 S4) | `B2-pw9-nanframe` | **Q.WD1 (deferred-resolution + PLAY-time guard)** | `proof:named-selector-nan-frame` (BOTH S4 round-trip AND no-NaN-at-play) |
+| **O.W9 / the 5.0.0 alias drop** (the @deprecated `Animation`/`ScrollTimeline`/`ScrollTimelineOptions` + the ~33-consumer migration) | `B2-ow9-nolegacy` | **Q.WE1 (alias drop + migrate + `MIGRATION-5.0.0.md`)** → **Q.WZ (5.0.0 cut)** | `proof:alias-dropped` / `proof:changelog-5.0.0` |
+| **P.W9 NaN-frame cure** (the parse-throw was REVERTED for breaking L.W1 S4) | `B2-pw9-nanframe` | **Q.WD1 (deferred-resolution + PLAY-time guard)** | `proof:nan-frame` (BOTH S4 round-trip AND no-NaN-at-play) |
 | **O.W7 engine.ts split** (1397→~900, the god-object) | `B2-ow7-enginesplit` | **Q.WF1** (AFTER Q.WE1 — splits a CLEAN class) | `proof:decomposition` (cap:1400 override REMOVED) |
 | **P.W13 emerging-CSS Phase-2** (the element-dependent arm typed-but-empty) | `B1-kf-emerging` | **Q.WB1** (NOW — value.js already parses all three nodes) | `proof:emerging-css-resolve-P2` |
 | **@function call-inlining** (the call-parse is value.js-gated) | `B1-kf-emerging` | **Q.WG2 dispatch (dashed-call parse)** → **Q.WB2** (GATED kf inlining) | `proof:emerging-css-resolve-fn` |
-| **P.W1 lint tier** (eslint-flat + dep-cruiser, the 3-tranche carry M→O→P) | `B1-pw1-lint-pw10-leaves` | **Q.WA1** | `proof:lint-clean` |
-| **P.W10 leaves.ts externalization** (the /math bundle-external TRAP) | `B1-pw1-lint-pw10-leaves` | **Q.WE2** (GATED on value.js `/math` subpath) | `proof:boundary` W97 math-subpath-clean |
+| **P.W1 lint tier** (dep-cruiser ONLY — eslint KILLED-down as redundant with tsc --strict; the 3-tranche carry M→O→P) | `B2-pw1-lint-pw10-leaves` | **Q.WA1** | `proof:lint-clean` |
+| **P.W10 leaves.ts externalization** (the /math bundle-external TRAP) | `B2-pw1-lint-pw10-leaves` | **Q.WE2** (GATED on value.js `/math` subpath) | `proof:boundary` W97 math-subpath-clean |
 | **P.W8 N-Stage + the unbuilt mobile** (scroll-snap carousel; the shelf-driver) | `B2-pw8-nstage-mobile` | **Q.WC3** | `proof:scene-switcher-mobile` (390px scroll-snap) |
 | **P.W12 dock S2-delete + S1 aria-guard** (cross-repo glass-ui BC) | `B2-pw12-dock-aria` | **Q.WG3** (S1/S2 false-RED retarget NOW; delete GATED on BC) | `proof:workaround-deletion` S1/S2 (content-present) |
 | **DQ-1 the 0.12.0 packrat re-entrancy defect** (NEW — src-epoch reset per-call, not at parseState boundary) | `B1-parsethat-packrat` | **Q.WG1 dispatch → parse-that 0.13.0** | `proof:perf` + a re-entrancy correctness test |

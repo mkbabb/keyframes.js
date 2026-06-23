@@ -77,7 +77,7 @@ Q.WA3 master-merge-reconcile (NOW, all 3 repos to master — the FIRST motion)
    │
    ├─► Q.WD1-bind attach-resolution seam ─► Q.WD1 play-time guard (NEVER a parse-throw — the S4 floor)
    │
-   └─► Q.WE1 alias-drop + 22-consumer migrate ─► Q.WF1 engine.ts split (splits a CLEAN class) ─► Q.WZ 5.0.0 cut
+   └─► Q.WE1 alias-drop + ~33-consumer migrate ─► Q.WF1 engine.ts split (splits a CLEAN class) ─► Q.WZ 5.0.0 cut
                                                                                                     │
    glass-ui BC publish (Q.WG3, USER-DOMAIN) ─► kf S1/S2 delete (GATED) ──────────────────────────► Q.WZ
 ```
