@@ -18,7 +18,6 @@ import {
     lerpArray,
     lerpValue,
     scale,
-    sleep,
     ValueArray,
     ValueUnit,
     type CSSTimelineOptions,
@@ -27,7 +26,6 @@ import {
 } from "@mkbabb/value.js";
 import { binarySearchRange } from "./internal/binarySearch";
 import { AnimationOptionError } from "./internal/errors";
-import { withReducedMotion } from "./internal/reduced-motion";
 import { RAFPlayback } from "./playback";
 import { resolveKeyframes } from "./adapter";
 import type { Diagnostic } from "./adapter";
@@ -83,7 +81,8 @@ import {
     type ParsedVarMap,
     transformTargetsStyle,
 } from "./utils";
-import { isWAAPIEligible, playWAAPI } from "./waapi";
+import * as playback from "./engine-playback";
+import type { PlaybackHost } from "./engine-playback";
 
 const hasClone = (value: unknown): value is { clone: () => unknown } => {
     if (typeof value !== "object" || value == null) {
@@ -867,53 +866,19 @@ export class KeyframesAnimation<V extends Vars = any> {
         });
     }
 
+    // ── The per-tick ADVANCE (the play loop's lazy-start + clock step) ────
+    // `advanceTo`/`onStart`/`onEnd` STAY as PUBLIC methods (the absolute-clock
+    // advance the `AnimationGroup`, `group-layer-springs`, and the WAAPI shadow
+    // loop drive externally), but their bodies live in `engine-playback.ts`
+    // beside the rest of the play machine (Q.WF1). Thin `this`-delegates here.
+
     /** SYNC unless `delay > 0` — then a thenable resolving after the sleep. */
     onStart(): Promise<void> | undefined {
-        this.reversed = false;
-
-        if (
-            this.options.direction === "reverse" ||
-            (this.options.direction === "alternate-reverse" &&
-                this.iteration % 2 === 0) ||
-            (this.options.direction === "alternate" && this.iteration % 2 === 1)
-        ) {
-            this.reverse();
-        }
-
-        if (
-            this.options.fillMode === "backwards" ||
-            this.options.fillMode === "both"
-        ) {
-            this.fillBackwards();
-        }
-
-        if (this.options.delay > 0) {
-            this.paused = true;
-            return sleep(this.options.delay).then(() => {
-                this.paused = false;
-                this.started = true;
-            });
-        }
-
-        this.started = true;
-        return undefined;
+        return playback.onStart(this._host);
     }
 
     onEnd() {
-        // Completion paints the rest frame per the fill contract — the one
-        // place "where does the playhead rest?" is decided.
-        this.paintRest();
-
-        this.startTime = undefined;
-
-        if (this.iteration >= this.options.iterationCount - 1) {
-            this.done = true;
-            this.iteration = 0;
-            this.dispatchAnimationEvent("animationend");
-        } else {
-            this.iteration += 1;
-            this.dispatchAnimationEvent("animationiteration");
-        }
+        playback.onEnd(this._host);
     }
 
     /**
@@ -930,36 +895,27 @@ export class KeyframesAnimation<V extends Vars = any> {
      * delay sleep. Ordering locked by proof:event-ordering.
      */
     advanceTo(t: number): number | Promise<number> {
-        if (this.startTime === undefined) {
-            const pending = this.onStart();
-            const begin = (): number => {
-                this.startTime = t + this.options.delay;
-                this.dispatchAnimationEvent("animationstart");
-                return this._advance(t);
-            };
-            return pending ? pending.then(begin) : begin();
-        }
-        return this._advance(t);
+        return playback.advanceTo(this._host, t);
     }
 
-    /** The post-start advance body — pause clock, local time, iteration end. */
-    private _advance(t: number): number {
-        if (this.paused && this.pausedTime === 0) {
-            this.pausedTime = t;
-            return this.t;
-        } else if (this.pausedTime > 0 && !this.paused) {
-            const dt = t - this.pausedTime;
-            this.startTime! += dt;
-            this.pausedTime = 0;
-        }
-
-        this.t = t - this.startTime!;
-
-        if (this.t >= this.options.duration) {
-            this.onEnd();
-            this.t = this.options.duration;
-        }
-        return this.t;
+    // ── Standalone-play lifecycle machine (Q.WF1 — `engine-playback.ts`) ──
+    // The rAF / WAAPI / reduced-motion play DRIVERS + the transport verbs were
+    // lifted off this god-object into the colocated INTERNAL `engine-playback.ts`
+    // (DF-11-A, the FULL engine-seam transposition — the fourth `engine-*.ts`).
+    // Each method below is now a thin `this`-delegate over a host-passing free
+    // function (`playback.*`) the class SATISFIES via the {@link PlaybackHost}
+    // protocol. The `this`-bound re-derive contract is byte-preserved: the
+    // functions never reassign `this.options` (the live-options identity holds),
+    // the per-tick `this.frames` read + the `_interpOut` zero-alloc buffer reuse
+    // + the `_boundFrame` (bound ONCE at construction) all survive the move
+    // (proof:standalone-zero-alloc / proof:engine / proof:event-ordering). The
+    // per-tick ADVANCE (`advanceTo`) + the SAMPLE (`interpFrames`/`at`) STAY here
+    // — they are the engine's PUBLIC sampling API the play loop drives.
+    //
+    // `_host` is the structural cast threading `this` as the play machine's host;
+    // every member the functions reach is declared on this class.
+    private get _host(): PlaybackHost<V> {
+        return this as unknown as PlaybackHost<V>;
     }
 
     /**
@@ -967,135 +923,7 @@ export class KeyframesAnimation<V extends Vars = any> {
      * `RAFPlayback.loop`. Returns whether the loop should continue.
      */
     private _frame(t: number): boolean | Promise<boolean> {
-        // Live reduced-motion: a long/infinite animation that was running when
-        // the OS toggled `prefers-reduced-motion: reduce` re-consults the ONE
-        // detector per tick and converges to the SAME terminal state the
-        // up-front gate produces (snap to the rest frame, settle) — the
-        // observation half of the shared detector (D-LIB-3). No-op when the
-        // option is off or the preference is unset (the run() branch returns).
-        const flipped = withReducedMotion(
-            this.options.respectReducedMotion,
-            () => true,
-            () => false,
-        );
-        if (flipped) {
-            this._snapToReducedMotion();
-            return false;
-        }
-
-        // Sync steady path (J.W6 S1) — the loop-core reschedules inline.
-        const stepped = this.advanceTo(t);
-        return typeof stepped === "number"
-            ? this._renderFrame(stepped)
-            : stepped.then((local) => this._renderFrame(local));
-    }
-
-    /** The post-advance render half of `_frame` — paint, or settle on done. */
-    private _renderFrame(t: number): boolean {
-        if (this.paused) {
-            return false;
-        }
-
-        if (!this.done) {
-            // Reuse the one hoisted buffer — steady-state playback allocates
-            // no per-frame result object (proof:standalone-zero-alloc).
-            this.interpFrames(t, true, this._interpOut);
-            return true;
-        }
-
-        // Completion: `onEnd` (inside tick) ALREADY painted the rest frame
-        // per the fill contract. Do NOT re-paint here — an
-        // `interpFrames(duration)` would clobber that rest paint with the
-        // final frame, so a `fillMode: none` animation would end at its
-        // final frame instead of resting at its initial one. settle is pure
-        // teardown, never a repaint.
-        this.settle();
-        this._resolvePlay();
-        return false;
-    }
-
-    private _resolvePlay() {
-        const resolve = this.resolvePromise;
-        this.resolvePromise = null;
-        resolve?.();
-    }
-
-    /** Internal rAF-based play loop — loop ownership rides `this.playback`. */
-    private _playRAF(): Promise<void> {
-        return new Promise((resolve) => {
-            this.resolvePromise = resolve;
-            this.playback.loop(this._boundFrame);
-        });
-    }
-
-    /**
-     * Play via the Web Animations API. WAAPI handles visuals on the
-     * compositor thread; a shadow loop in `playWAAPI` (riding
-     * `this.playback`) drives `advanceTo()` so events, iteration count,
-     * pause/resume, and other lifecycle state stay coherent with the
-     * rAF path.
-     *
-     * No silent fallback — eligibility is decided once in `play()`
-     * before this is invoked, and runtime errors propagate.
-     */
-    private async _playWAAPI(): Promise<void> {
-        await playWAAPI(this);
-        this.settle();
-    }
-
-    /**
-     * Cancel the live WAAPI compositor animations (if any). Cancelling
-     * rejects each `wa.finished`, which `playWAAPI` catches as a halt — so
-     * this both stops the compositor paint AND unblocks the awaited play
-     * promise. No-op on the rAF path.
-     */
-    private _cancelWAAPI(): void {
-        if (this._waAnimations.length === 0) return;
-        for (const wa of this._waAnimations) {
-            try {
-                wa.cancel();
-            } catch {
-                /* a finished/detached WAAPI animation throws on cancel — ignore */
-            }
-        }
-        this._waAnimations = [];
-    }
-
-    /**
-     * `prefers-reduced-motion` snap: rest = final, paint it, settle — the
-     * SAME terminal path a `fillMode: forwards` completion takes, with the
-     * motion elided. The lifecycle stays observable (`animationstart` →
-     * final paint → `animationend`) so consumers' event wiring is identical
-     * to a completed normal play.
-     */
-    private async _playReducedMotion(): Promise<void> {
-        this.started = true;
-        this.dispatchAnimationEvent("animationstart");
-        this.fillForwards();
-        this.iteration = 0;
-        this.done = true;
-        this.dispatchAnimationEvent("animationend");
-        this.settle();
-    }
-
-    /**
-     * Mid-flight reduced-motion snap (D-LIB-3). A running rAF loop detected a
-     * live flip to `reduce`; converge to the rest frame and resolve the
-     * in-flight `play()` exactly as a forwards completion would. Distinct from
-     * `_playReducedMotion` (the up-front gate) only in that `animationstart`
-     * already fired — so here we paint final, mark done, end, settle, and
-     * release the awaiter. The WAAPI lane snaps via the same path: the up-front
-     * gate already routes reduced-motion away from WAAPI, and a live flip on a
-     * WAAPI animation cancels the compositor handles before settling.
-     */
-    private _snapToReducedMotion(): void {
-        this._cancelWAAPI();
-        this.fillForwards();
-        this.iteration = 0;
-        this.done = true;
-        this.dispatchAnimationEvent("animationend");
-        this.settle();
-        this._resolvePlay();
+        return playback.playFrame(this._host, t);
     }
 
     /**
@@ -1113,46 +941,7 @@ export class KeyframesAnimation<V extends Vars = any> {
     }
 
     async play(): Promise<void> {
-        if (this.managed) {
-            throw new Error(
-                "Animation.play() called on a managed animation — the AnimationGroup owns the rAF loop. Call group.play() instead.",
-            );
-        }
-
-        // Q.WD1 S3 (DM-22) — refuse to start with an UNRESOLVED named-selector
-        // frame (no timeline bound) rather than running NaN-poisoned always-active
-        // frames. Fired ONLY here (play-without-timeline), NEVER at parse/ingest.
-        this.assertNoUnresolvedNamedSelector();
-
-        if (this._playingPromise) return this._playingPromise;
-
-        const result = withReducedMotion(
-            this.options.respectReducedMotion,
-            // Reduced-motion wins over WAAPI/rAF — snap to the final frame.
-            () => {
-                this.waapiIneligibleReason = undefined;
-                return this._playReducedMotion();
-            },
-            () => {
-                if (this.options.useWAAPI) {
-                    const elig = isWAAPIEligible(this);
-                    if (elig.eligible) {
-                        this.waapiIneligibleReason = undefined;
-                        return this._playWAAPI();
-                    }
-                    this.waapiIneligibleReason = elig.reason;
-                    return this._playRAF();
-                }
-                this.waapiIneligibleReason = undefined;
-                return this._playRAF();
-            },
-        );
-
-        this._playingPromise = result;
-        result.finally(() => {
-            this._playingPromise = null;
-        });
-        return result;
+        return playback.play(this._host);
     }
 
     /**
@@ -1161,27 +950,12 @@ export class KeyframesAnimation<V extends Vars = any> {
      * `pause` pauses. Use {@link resume} for the explicit resume.
      */
     pause() {
-        if (this.started) {
-            this.paused = true;
-        }
+        playback.pause(this._host);
         return this;
     }
 
     resume() {
-        if (this.started && this.paused) {
-            this.paused = false;
-            if (this._waAnimations.length > 0) {
-                // WAAPI: the shadow loop is still installed (it keeps
-                // rescheduling while paused, pausing the compositor each
-                // frame), so it resumes the curve on its next tick. Do NOT
-                // start the rAF `_frame` loop — that would race the shadow
-                // loop and orphan the paused compositor animation. Nudge the
-                // compositor directly for an immediate resume.
-                for (const wa of this._waAnimations) wa.play();
-            } else if (!this.playback.running) {
-                this.playback.loop(this._boundFrame);
-            }
-        }
+        playback.resume(this._host);
         return this;
     }
 
@@ -1196,19 +970,16 @@ export class KeyframesAnimation<V extends Vars = any> {
      * promise. Never paints — `reset()` is the explicit rewind.
      */
     stop() {
-        this._cancelWAAPI();
-        this.playback.stop();
-        this.settle();
-        this._resolvePlay();
+        playback.stop(this._host);
     }
 
     playing() {
-        return !(!this.started || this.paused);
+        return playback.playing(this._host);
     }
 
     /** Returns the effective time accounting for direction reversal. */
     get effectiveT(): number {
-        return this.reversed ? this.options.duration - this.t : this.t;
+        return playback.effectiveT(this._host);
     }
 
     /**
@@ -1219,15 +990,7 @@ export class KeyframesAnimation<V extends Vars = any> {
      * orthogonal to where the pixels rest.
      */
     settle() {
-        this.done = false;
-        this.started = false;
-        this.paused = false;
-        this.reversed = false;
-        this.iteration = 0;
-        this.startTime = undefined;
-        this.pausedTime = 0;
-        this.t = 0;
-
+        playback.settle(this._host);
         return this;
     }
 
@@ -1238,11 +1001,8 @@ export class KeyframesAnimation<V extends Vars = any> {
      * leaves the pixels where they rest.
      */
     reset() {
-        this._cancelWAAPI();
-        if (this.started && this.frames.length > 0) {
-            this.fillBackwards();
-        }
-        return this.settle();
+        playback.reset(this._host);
+        return this;
     }
 
     setTargets(...targets: HTMLElement[]) {

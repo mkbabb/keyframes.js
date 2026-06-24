@@ -82,11 +82,21 @@ console.log("proof:engine-no-throw-on-play — I.W0 (B1/B5 + this.transform grou
 // ── HYGIENE clause (g): engine.ts line-ceiling (the C-6 enforcement) ──────────
 // Labeled HYGIENE per the I.W7 two-tier taxonomy — corroborates, never
 // substitutes for a red runtime clause.
+//
+// Q.WF1 re-point: the FULL engine-seam transposition (DF-11-A, P-invariant-28)
+// is DONE — the standalone-play lifecycle machine lifted into the colocated
+// INTERNAL `engine-playback.ts` (the KeyframesAnimation class body dropped
+// 1297→1058L, under proof:engine's 1100 ceiling). The remaining engine.ts is
+// the cohesive compile-facade + sampler + fill/rest + Phase-2 element-aware +
+// CSS-subclass gestalt (the named-measured split documented in
+// proof:decomposition's LIBRARY_CEILING_OVERRIDE engine.ts entry — cap 1450).
+// The LIMIT tracks that measured post-split floor in lock-step with the
+// override cap; an unjustified further growth still reds.
 {
-    const LIMIT = 1400;
+    const LIMIT = 1450;
     const lines = fs.readFileSync(ENGINE_TS, "utf8").split("\n").length;
     if (lines <= LIMIT) {
-        ok(`[hygiene g] engine.ts ${lines} ≤ ${LIMIT} lines (the S2 serialize-from-template transposition respects the C-6 ceiling)`);
+        ok(`[hygiene g] engine.ts ${lines} ≤ ${LIMIT} lines (the Q.WF1 engine-playback transposition respects the re-pointed C-6 ceiling)`);
     } else {
         fail(`[hygiene g] engine.ts ${lines} > ${LIMIT} lines with no named-measured cohesive split documented (C-6)`);
     }

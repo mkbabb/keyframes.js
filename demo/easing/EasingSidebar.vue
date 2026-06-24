@@ -172,7 +172,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from "vue";
+import { computed, onBeforeUnmount, ref, useTemplateRef, watch } from "vue";
 import { cubicBezierToString } from "@mkbabb/value.js";
 import { Card, CardContent } from "@mkbabb/glass-ui";
 import {
@@ -221,7 +221,7 @@ const onStepsChangeValue = (value: string) => {
 // live curve). The draft re-syncs to the live literal whenever the model changes
 // from elsewhere (a drag, a keyboard nudge, a preset pick).
 const authorInputId = "easing-author-value";
-const authorInputEl = ref<HTMLInputElement | null>(null);
+const authorInputEl = useTemplateRef<HTMLInputElement>("authorInputEl");
 const authorDraft = ref(readoutLiteral.value ?? "");
 const authorInvalid = ref(false);
 

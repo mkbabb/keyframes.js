@@ -34,7 +34,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { useTemplateRef } from "vue";
 
 import { scenes } from "../../../app/scenes";
 import { useScrollSnapScene } from "@composables/useScrollSnapScene";
@@ -49,8 +49,8 @@ const emit = defineEmits<{
     (e: "pick", id: string): void;
 }>();
 
-const scrollerEl = ref<HTMLElement | null>(null);
-const cardEls = ref<HTMLElement[]>([]);
+const scrollerEl = useTemplateRef<HTMLElement>("scrollerEl");
+const cardEls = useTemplateRef<HTMLElement[]>("cardEls");
 
 // The composable owns the snapped-card tracking (a scroll-snap-events / nearest-
 // center read) — the demo owns only the cards + the falloff @keyframes (KISS).

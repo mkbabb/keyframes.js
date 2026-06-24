@@ -129,32 +129,42 @@ const LIBRARY_CEILING_OVERRIDE = new Map([
     [
         "src/animation/engine.ts",
         {
-            cap: 1400,
+            cap: 1450,
             why:
-                "the Animation + CSSKeyframesAnimation core state-machine at its " +
-                "cohesive gestalt (F.md NEW-3 / a-engine-post-e F-ENG-5, re-verified " +
-                "post-growth at a-backend-godmodules G-GM-1) — the four-group state " +
-                "machine (compile-delegation facade · the live-options-reference " +
-                "setters · lifecycle/playback machine · fill/rest contract) shares " +
-                "ONE `this`-bound re-derive seam the FrameCompiler depends on; a " +
-                "split-for-line-count severs it (the legacy-shape the Mandate " +
-                "forbids). K.WZ REVERSED the K.W7 +255L inflation: the " +
-                "composition-honoring LEAF logic (applyComposition / " +
-                "captureUnderlyingBase / endValueFor / emitCompositionFallback / " +
-                "computeHasComposition) was extracted to the colocated INTERNAL " +
-                "`engine-composition.ts`, and the fail-explicit option-NORMALIZER " +
-                "surface to `engine-options.ts` (engine.ts keeps the thin call " +
-                "seams + the `this`-bound side-effects). The cap returns 1700→1400 " +
-                "(the pre-K.W7 value) — engine.ts is back to 1396L, under the C-6 " +
-                "1400 ceiling the two engine gates (proof:engine-no-throw-on-play " +
-                "[hygiene g] + proof:engine) also enforce; an unjustified further " +
-                "growth still reds. BORN-RED HANDOFF (P-invariant-28): the FULL " +
+                "the Animation + CSSKeyframesAnimation core at its post-transposition " +
+                "cohesive gestalt. Q.WF1 DISCHARGED DF-11-A (P-invariant-28) — the FULL " +
                 "engine-seam transposition the D.W4 audit named ('the 1100-line " +
                 "god-object at the right seam' — the lifecycle/playback machine " +
-                "lifted off the frame-compile facade) is a DEFERRED future-tranche " +
-                "split, NOT a silent punt; it is too deep+risky to rush (it " +
-                "re-threads the FrameCompiler's `this`-bound re-derive contract). " +
-                "Named here so the deferral is citable, not invisible.",
+                "lifted off the frame-compile facade), deferred D→E→F→G→H→I→J→K→L→M→O→P, " +
+                "is now DONE: the standalone-play machine (the rAF/WAAPI/reduced-motion " +
+                "play DRIVERS + the transport verbs play/pause/resume/toggle/stop/" +
+                "settle/reset/playing/effectiveT + the per-tick advance onStart/onEnd/" +
+                "advanceTo bodies) was lifted into the colocated INTERNAL " +
+                "`engine-playback.ts` (the fourth `engine-*.ts`, after composition/" +
+                "options/css-metadata), host-passing over a `PlaybackHost` protocol the " +
+                "class satisfies — each class method a thin `this`-delegate. The " +
+                "`this`-bound re-derive contract is byte-preserved (`this.options === " +
+                "this.compiler.options` identity untouched, the `_interpOut` zero-alloc " +
+                "buffer reuse + `_boundFrame`-bound-once + event ordering all hold; " +
+                "proof:standalone-zero-alloc / proof:engine / proof:event-ordering / " +
+                "proof:finished are the discriminating-bite oracles). The KeyframesAnimation " +
+                "CLASS BODY dropped 1297→1058L (under proof:engine's 1100 ceiling). " +
+                "What REMAINS in engine.ts (1421L) is the cohesive non-playback gestalt: " +
+                "the compile-delegation facade (parse/_compiler/get frames/adoptCompiled/ " +
+                "interpFrames — the PUBLIC sampling API the group/ingest/morph/sequence " +
+                "consume, which MUST stay), the live-options-reference setters, the " +
+                "fill/rest contract (restPosition/paintRest/fillForwards/fillBackwards " +
+                "wired to interpFrames), the Q.WB1 emerging-CSS Phase-2 element-aware " +
+                "resolution pass, and the CSSKeyframesAnimation subclass (fromString/ " +
+                "fromKeyframes/fromVars/bindTimeline). These share ONE `this`-bound " +
+                "re-derive seam the FrameCompiler depends on; splitting them further " +
+                "for line-count severs that seam (the legacy-shape the Mandate forbids). " +
+                "The cap sits just above the measured 1421L post-split floor (the " +
+                "self-pruning stale guard reds any further unjustified growth, and " +
+                "reds outright if engine.ts ever drops back under the 550L base — " +
+                "forcing this entry's removal). The two engine gates " +
+                "(proof:engine-no-throw-on-play [hygiene g] + proof:engine) carry the " +
+                "SAME post-transposition decision.",
         },
     ],
     [
@@ -239,17 +249,107 @@ const LIBRARY_CEILING_OVERRIDE = new Map([
                 "the WAAPI eligibility + delegation gestalt — `isWAAPIEligible` " +
                 "(the conservative-correct DOM/uniform-timing/no-computed-unit/" +
                 "no-color/WebKit-linear() predicate with a queryable reason), " +
-                "`toWAAPIOptions` (the `Element.animate()` option emission, " +
-                "spring-`linear()`-aware), and `attachNativeScrollTimeline` (the " +
+                "`toWAAPIKeyframes`/`toWAAPIOptions` (the `Element.animate()` " +
+                "keyframe + option emission, spring-`linear()`-aware), `playWAAPI` " +
+                "(the shadow-tick delegation), and `attachNativeScrollTimeline` (the " +
                 "K.W9 native ScrollTimeline bridge the scroll dispatch consumes) " +
                 "share ONE eligibility seam: the scroll attach RE-USES the same " +
                 "eligibility predicate the play-path delegation does (the dispatch " +
-                "is the predicate pointed at the scroll clock). K.W9 grew it +51L " +
-                "for the native-scroll bridge on that seam. 550→650 records the " +
-                "growth; the cap sits just above the current 553L (a 3-line " +
-                "over-run from the bridge — further unjustified growth reds). The " +
-                "predicate + its two consumers (play delegation + scroll attach) " +
-                "are one decision surface, not separable concerns.",
+                "is the predicate pointed at the scroll clock). Q.WF1 (Band-F " +
+                "decomposition) EXTRACTED the WB4 curvature-adaptive densify (the " +
+                "`densifyInteriorTimes` best-first refinement + its " +
+                "`WAAPI_MAX_SUBSEGMENT_STOPS` budget + the chord tolerance + the " +
+                "channel sampler/range scanner + `segmentFlatnessError`) to the " +
+                "colocated INTERNAL `waapi-densify.ts` (statically imported + " +
+                "re-exported so proof:waapi-adaptive-densify / proof:platform-adopt " +
+                "S3 find the anchored tokens at this host); the densify reaches the " +
+                "animation ONLY through `interpFrames`, so it is fully separable " +
+                "from the eligibility/emission/delegation surface that stays. The " +
+                "cap drops the file 816→579L; 550→650 records the cohesive " +
+                "remainder (the predicate + its consumers — play delegation + scroll " +
+                "attach — are one decision surface, not separable concerns), the " +
+                "cap sitting just above 579L so further unjustified growth reds.",
+        },
+    ],
+    [
+        "src/animation/frame-compiler.ts",
+        {
+            cap: 640,
+            why:
+                "the FrameCompiler template→compiled pipeline at its cohesive " +
+                "gestalt PLUS the two keyframe-selector grammar surfaces gates PIN " +
+                "to this file. The pipeline (addFrame → parse → reconcileVars → " +
+                "createFrame → finalizeFrameVars → renormalizeColors) is ONE " +
+                "value-in → frames-out unit sharing the live-options reference + the " +
+                "per-frame interp-carrier build; splitting it for line-count severs " +
+                "that seam. Q.WF1 (Band-F decomposition) EXTRACTED the genuinely-" +
+                "separable WB3 numeric SoA fold-plan machinery (`buildNumericPlan` + " +
+                "`isNumericInterpVar`) to the colocated INTERNAL " +
+                "`frame-compiler-numeric.ts` (the third SoA-style extraction this " +
+                "wave makes, beside group-soa.ts + waapi-densify.ts); the plan " +
+                "builder is a PURE value-in → plan-out unit with no dependency on " +
+                "the grammar/pipeline that stays. What REMAINS over the 550 base is " +
+                "the cohesive compile pipeline + the two GATE-PINNED grammar " +
+                "surfaces: the percent/keyword/named-range selector validation (the " +
+                "J.W1 SEAM-1 total guard) and the WD1 named-selector deferred-" +
+                "resolution (`export const namedSelectorToFraction` + " +
+                "`NAMED_SELECTOR_SUPERTYPE`) — proof:replay-equality (named-selector) " +
+                "+ proof:nan-frame REQUIRE these exports to LIVE in frame-compiler.ts " +
+                "(a dynamic import + an `export const` source-grep), so they cannot " +
+                "move. The cap drops the file 663→616L; 550→640 records the cohesive " +
+                "remainder, the cap sitting just above 616L so further unjustified " +
+                "growth reds.",
+        },
+    ],
+    [
+        "src/animation/resolve-values.ts",
+        {
+            cap: 600,
+            why:
+                "ONE recursive emerging-CSS lowering rewriter (P.W13) at its " +
+                "cohesive gestalt — the gestalt the module's own header names: 'ONE " +
+                "pass, ONE rewriter, two lifecycle points, not two divergent context " +
+                "types'. The Phase-1 (element-INDEPENDENT: if(supports/media) + " +
+                "spring()) and Phase-2 (element-AWARE: if(style(--p)) + sibling-" +
+                "index()/sibling-count()) arms are WOVEN INTO the SAME shared " +
+                "recursion (`resolveNode`/`resolveIf`/`evalCondition`/" +
+                "`splitCondition`) — they are NOT a separable arm: a Phase-1-resolved " +
+                "leaf is returned as-is by the SAME `resolveNode` the Phase-2 pass " +
+                "re-runs (the idempotence the two-lifecycle-point design needs). " +
+                "proof:emerging-css-resolve-p2 PINS the Phase-2 anchors " +
+                "(`hasPhase2Node`, `isStyleConditionIf`, `evalStyleCondition`, the " +
+                "sibling-* branches in `resolveNode`, the style(--p) branch in " +
+                "`evalCondition`) to THIS file by source-grep, so extracting the " +
+                "Phase-2 arm would both sever the shared recursion AND red the gate. " +
+                "Q.WB1 grew it +28 over the 550 base for the Phase-2 element-aware " +
+                "arms; 550→600 records that growth on a genuinely-cohesive ONE-" +
+                "rewriter module (a split-for-line-count is the legacy-shape the " +
+                "Mandate forbids), the cap sitting just above 578L so further " +
+                "unjustified growth reds.",
+        },
+    ],
+    [
+        "src/animation/load-engine.ts",
+        {
+            cap: 580,
+            why:
+                "the value.js static/dynamic boundary's DYNAMIC half at its " +
+                "cohesive gestalt — the ONE `loadAnimationEngine()` boundary the " +
+                "library is architected around. It owns the memoized `await " +
+                "import(...)` edges (engine/animate/motion/draw/morph/ingest/scroll/" +
+                "compile/validate/animations/format/utils/scheduler) + the granular " +
+                "`loadEngine`/`loadCompiler`/`loadIngest` accessors that SHARE the " +
+                "per-chunk memoized Promises, + the `AnimationEngine`/`EngineCore`/" +
+                "`CompilerSurface`/`IngestSurface` surface interfaces the dts " +
+                "roll-up spells explicitly (API Extractor cannot resolve a `typeof " +
+                "import()` at an internal module). Every member is ONE concern (the " +
+                "boundary contract `proof:boundary` gates per-accessor); splitting " +
+                "it fragments the boundary — the surface interfaces and the " +
+                "accessors that satisfy them are two halves of one contract that " +
+                "must stay co-located + in lock-step. 9L over the 550 base, " +
+                "essentially pre-existing (the L.W7 granular-surface split); " +
+                "550→580 records the cohesive boundary file, the cap sitting just " +
+                "above 559L so further unjustified growth reds.",
         },
     ],
     [

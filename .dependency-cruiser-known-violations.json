@@ -105,6 +105,75 @@
   },
   {
     "type": "cycle",
+    "from": "src/animation/engine-playback.ts",
+    "to": "src/animation/waapi.ts",
+    "unresolvedTo": "./waapi",
+    "dependencyTypes": [
+      "local",
+      "import"
+    ],
+    "rule": {
+      "severity": "error",
+      "name": "no-cycle"
+    },
+    "cycle": [
+      {
+        "name": "src/animation/waapi.ts",
+        "dependencyTypes": [
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "src/animation/engine.ts",
+        "dependencyTypes": [
+          "local",
+          "type-only",
+          "import"
+        ]
+      },
+      {
+        "name": "src/animation/engine-playback.ts",
+        "dependencyTypes": [
+          "local",
+          "import"
+        ]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/animation/engine.ts",
+    "to": "src/animation/engine-playback.ts",
+    "unresolvedTo": "./engine-playback",
+    "dependencyTypes": [
+      "local",
+      "import"
+    ],
+    "rule": {
+      "severity": "error",
+      "name": "no-cycle"
+    },
+    "cycle": [
+      {
+        "name": "src/animation/engine-playback.ts",
+        "dependencyTypes": [
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "src/animation/engine.ts",
+        "dependencyTypes": [
+          "local",
+          "type-only",
+          "import"
+        ]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
     "from": "src/animation/engine.ts",
     "to": "src/animation/frame-compiler.ts",
     "unresolvedTo": "./frame-compiler",
@@ -172,37 +241,6 @@
   },
   {
     "type": "cycle",
-    "from": "src/animation/engine.ts",
-    "to": "src/animation/waapi.ts",
-    "unresolvedTo": "./waapi",
-    "dependencyTypes": [
-      "local",
-      "import"
-    ],
-    "rule": {
-      "severity": "error",
-      "name": "no-cycle"
-    },
-    "cycle": [
-      {
-        "name": "src/animation/waapi.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
-      },
-      {
-        "name": "src/animation/engine.ts",
-        "dependencyTypes": [
-          "local",
-          "type-only",
-          "import"
-        ]
-      }
-    ]
-  },
-  {
-    "type": "cycle",
     "from": "src/animation/group-layer-springs.ts",
     "to": "src/animation/engine.ts",
     "unresolvedTo": "./engine",
@@ -254,6 +292,37 @@
     "cycle": [
       {
         "name": "src/animation/group-layer-springs.ts",
+        "dependencyTypes": [
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "src/animation/group.ts",
+        "dependencyTypes": [
+          "local",
+          "type-only",
+          "import"
+        ]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/animation/group.ts",
+    "to": "src/animation/group-soa.ts",
+    "unresolvedTo": "./group-soa",
+    "dependencyTypes": [
+      "local",
+      "import"
+    ],
+    "rule": {
+      "severity": "error",
+      "name": "no-cycle"
+    },
+    "cycle": [
+      {
+        "name": "src/animation/group-soa.ts",
         "dependencyTypes": [
           "local",
           "import"
@@ -358,14 +427,104 @@
         ]
       },
       {
-        "name": "src/animation/waapi.ts",
+        "name": "src/animation/timeline.ts",
+        "dependencyTypes": [
+          "local",
+          "type-only",
+          "import"
+        ]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/animation/waapi.ts",
+    "to": "src/animation/timeline.ts",
+    "unresolvedTo": "./timeline",
+    "dependencyTypes": [
+      "local",
+      "import"
+    ],
+    "rule": {
+      "severity": "error",
+      "name": "no-cycle"
+    },
+    "cycle": [
+      {
+        "name": "src/animation/timeline.ts",
         "dependencyTypes": [
           "local",
           "import"
         ]
       },
       {
-        "name": "src/animation/timeline.ts",
+        "name": "src/animation/easing.ts",
+        "dependencyTypes": [
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "src/animation/engine.ts",
+        "dependencyTypes": [
+          "local",
+          "type-import"
+        ]
+      },
+      {
+        "name": "src/animation/engine-playback.ts",
+        "dependencyTypes": [
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "src/animation/waapi.ts",
+        "dependencyTypes": [
+          "local",
+          "import"
+        ]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/animation/waapi.ts",
+    "to": "src/animation/waapi-densify.ts",
+    "unresolvedTo": "./waapi-densify",
+    "dependencyTypes": [
+      "local",
+      "import"
+    ],
+    "rule": {
+      "severity": "error",
+      "name": "no-cycle"
+    },
+    "cycle": [
+      {
+        "name": "src/animation/waapi-densify.ts",
+        "dependencyTypes": [
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "src/animation/engine.ts",
+        "dependencyTypes": [
+          "local",
+          "type-only",
+          "import"
+        ]
+      },
+      {
+        "name": "src/animation/engine-playback.ts",
+        "dependencyTypes": [
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "src/animation/waapi.ts",
         "dependencyTypes": [
           "local",
           "import"

@@ -396,7 +396,10 @@ requireAll("test-locks", TEST, [
     },
     {
         name: "(e) the JS ScrollTimeline driver is NOT deleted (the ARCH-kill guard)",
-        re: /new\s+ScrollTimeline\(/,
+        // Q.WE1 dropped the @deprecated `ScrollTimeline` alias → the canonical JS driver
+        // class is `KeyframesScrollTimeline` (the renamed export); the (?:Keyframes)? prefix
+        // follows that rename while still matching any pre-rename `new ScrollTimeline(`.
+        re: /new\s+(?:Keyframes)?ScrollTimeline\(/,
     },
 ]);
 

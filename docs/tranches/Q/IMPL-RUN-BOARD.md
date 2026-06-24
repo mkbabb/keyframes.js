@@ -63,9 +63,15 @@
 
 ## In-flight (background tasks)
 
-- **WF2 group-decomp** `a46a3522…` (kf tree) — Stage 4 link 2: extract group.ts SoA fold → group-soa.ts;
-  proof:decomposition baseline. Touches group.ts/group-soa/group-layer-springs + group tests. Runs ALONE
-  (Stage 4 is sequential: WE1✅→WF2→WF1; WF1 splits engine.ts, needs WF2's decomp baseline + WE1's clean class).
+- **WF1 engine-split + DECOMPOSITION CLOSE** `ad7abcb7…` (kf tree) — Stage 4 link 3: engine.ts 1660→<1400
+  (lift engine-playback.ts) + cure the 4 Q-grown over-ceiling files (waapi.ts 815→<650 via waapi-densify.ts
+  extract; frame-compiler/resolve-values/load-engine extract-or-override) + the 3 demo template-refs →
+  **proof:decomposition FULLY GREEN**. Runs ALONE. Then Stage 5 (re-pin value.js ^1.2.0 + GATED consumes).
+
+**REGRESSION FOLDED (recorded):** the Q perf waves grew library files past proof:decomposition ceilings
+(waapi 552→815 [WB4], resolve-values 472→578 [WB1], frame-compiler 552→662, engine 1397→1660). The gate is
+continue-on-error in CI (Q.WA3 F-7 surface) so it didn't block — but no-legacy/no-deferral → WF1 cures all,
+honest dispositions (real seam or real rationale, never a silenced cap).
 
 **DONE:** Band A (ac40f72) · parse-that 0.13.0 PUBLISHED (2c806fb/v0.13.0) · value.js 1.2.0 PUBLISHED
 (e80b359/v1.2.0, cumulative) · **Stage 3 Band B/C/D committed (090c7b0)** — DM-2 ninth-carry GENUINELY

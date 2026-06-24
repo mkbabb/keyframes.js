@@ -97,6 +97,24 @@ function main() {
     }
     const engineSurface = engine + "\n" + engineCssMetadata;
 
+    // Q.WF1 decomposition (`engine-playback.ts`) — the standalone-play lifecycle
+    // machine (the rAF/WAAPI/reduced-motion play DRIVERS, incl. the `playFrame`
+    // per-tick live reduced-motion re-consult + the `snapToReducedMotion` snap)
+    // was lifted out of `engine.ts` into the colocated INTERNAL `engine-playback.ts`,
+    // with `engine.ts` left importing + delegating (`_frame` → `playback.playFrame`).
+    // The S2 live-re-consult source-shape check reads the ENGINE PLAYBACK SURFACE
+    // = engine.ts + engine-playback.ts, so it tracks the decomposition instead of
+    // the file layout (mirrors the S1 engine-css-metadata.ts precedent above).
+    // (Missing sibling → empty string → the clause still reds.)
+    let enginePlayback = "";
+    try {
+        enginePlayback = read("engine-playback.ts");
+    } catch {
+        // Pre-decomposition layout: the play loop is engine.ts alone — the S2
+        // clause then greps engine.ts for the live re-consult, exactly as before.
+    }
+    const enginePlaybackSurface = engine + "\n" + enginePlayback;
+
     // ── 1. S1 — @property registry → CSS.registerProperty ─────────────────
     {
         // The registration pass must EXIST in the engine surface AND be wired
@@ -151,10 +169,18 @@ function main() {
             reducedMotion,
         );
         // The engine's running rAF loop must re-consult the gate per tick so a
-        // mid-flight flip is observed — the `_frame` live re-consult.
+        // mid-flight flip is observed — the per-frame live re-consult. Post-Q.WF1
+        // the play loop lives in `engine-playback.ts` (`playFrame` re-consults +
+        // `snapToReducedMotion` snaps), so the grep reads the ENGINE PLAYBACK
+        // SURFACE and matches either the pre-split (`_frame`/`_snapToReducedMotion`)
+        // or the post-split (`playFrame`/`snapToReducedMotion`) names.
         const hasLiveReconsult =
-            /_frame\([\s\S]*?withReducedMotion/.test(engine) ||
-            /withReducedMotion[\s\S]*?_snapToReducedMotion/.test(engine);
+            /(?:_frame|playFrame)\([\s\S]*?withReducedMotion/.test(
+                enginePlaybackSurface,
+            ) ||
+            /withReducedMotion[\s\S]*?_?snapToReducedMotion/.test(
+                enginePlaybackSurface,
+            );
         if (!hasListener) {
             fail(
                 "[S2] reduced-motion.ts attaches NO change listener (today's " +
