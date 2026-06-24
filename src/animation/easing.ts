@@ -59,12 +59,13 @@ export const cssTwinFor = (name: string): string | undefined => {
  * `"ease-out-cubic"`, … — or a CSS `cubic-bezier()` literal) to a typed
  * {@link Easing}.
  *
- * The lookup rides the dynamic engine boundary: `import("./engine")` loads
- * the value.js-bearing easing registry only when a named easing is actually
- * used, so a light-only consumer that never calls this stays value.js-free.
+ * The lookup rides the dynamic boundary: `import("./compile/easing-registry")`
+ * loads ONLY the value.js-bearing timing-function registry (R.W1 narrow — not the
+ * full engine chunk; lib-support F7) when a named easing is actually used, so a
+ * light-only consumer that never calls this stays value.js-free.
  *
  * Fail-explicit: an unresolvable name throws {@link UnknownEasingError};
- * an engine chunk-load failure rethrows with the failing easing named —
+ * a chunk-load failure rethrows with the failing easing named —
  * never an unhandled rejection, never a silent identity fallback.
  *
  * ```ts
@@ -73,18 +74,18 @@ export const cssTwinFor = (name: string): string | undefined => {
  * ```
  */
 export async function resolveEasing(name: string): Promise<Easing> {
-    let engine: typeof import("./engine");
+    let registry: typeof import("./compile/easing-registry");
     try {
-        engine = await import("./engine");
+        registry = await import("./compile/easing-registry");
     } catch (cause) {
         throw new Error(
-            `keyframes: the engine chunk failed to load while resolving ` +
-                `easing "${name}" — the easing registry is unreachable.`,
+            `keyframes: the easing-registry chunk failed to load while ` +
+                `resolving easing "${name}" — the easing registry is unreachable.`,
             { cause },
         );
     }
 
-    const fn = engine.getTimingFunction(name);
+    const fn = registry.getTimingFunction(name);
     if (!fn) {
         throw new UnknownEasingError(name);
     }

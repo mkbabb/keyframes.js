@@ -1,0 +1,22 @@
+/**
+ * physics/ — the LIGHT, clock-driven value steppers + the rAF driver (R.W1).
+ *
+ * Every member is value.js-free (the static-boundary LIGHT surface): a frequency-
+ * /spring-/exponential-driven value producer or the managed rAF playback driver.
+ * The caller drives the loop (or RAFPlayback owns it); none parses CSS. The
+ * package barrel re-exports these by their `./physics/<name>` path; this barrel
+ * is the zone's single surface (and what `proof:no-flat-siblings` asserts present).
+ */
+export { NumericAnimation } from "./numeric";
+export type { NumericAnimationOptions, NumericFrameCallback } from "./numeric";
+export { SmoothProgress } from "./smooth";
+export type { SmoothProgressOptions, SmoothFrameCallback } from "./smooth";
+export { RAFPlayback } from "./playback";
+export type { RAFPlaybackOptions, Tickable } from "./playback";
+export { Oscillator, waveformValue } from "./oscillator";
+export type { OscillatorConfig, OscillatorWaveform } from "./oscillator";
+export { decay, decayRest } from "./decay";
+export type { DecayOptions, DecaySample } from "./decay";
+export { ElementMorph } from "./morph";
+export type { MorphRect, ElementMorphOptions } from "./morph";
+export * from "./spring";

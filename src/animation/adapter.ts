@@ -19,7 +19,7 @@ import {
     resolveValues,
     type ResolveContext,
     type ResolveEnv,
-} from "./resolve-values";
+} from "./resolve";
 
 /**
  * The stable diagnostic `code`s the kf-side sink emits (K.W7 S4). A FLAT,

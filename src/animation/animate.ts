@@ -30,9 +30,9 @@
 
 import { CSSKeyframesAnimation } from "./engine";
 import { AnimationGroup } from "./group";
-import { Sequence } from "./sequence";
-import { fromMotionPath } from "./motion-path";
-import type { MotionPathOptions } from "./motion-path";
+import { Sequence } from "./orchestration/sequence";
+import { fromMotionPath } from "./svg/motion-path";
+import type { MotionPathOptions } from "./svg/motion-path";
 import type {
     InputAnimationOptions,
     TransformFunction,

@@ -81,7 +81,11 @@ const isValueJs = (id) =>
     /[\\/]value\.js[\\/](?:dist|src)[\\/]/.test(id);
 
 // The heavy engine module — must never appear as a STATIC input of a light entry.
-const isHeavyEngine = (id) => /[\\/]animation[\\/]engine\.ts$/.test(id);
+// R.W1 co-edit: the engine moved into the `engine/` directory (engine/animation.ts,
+// engine/index.ts, …), so the regex matches the DIRECTORY (`engine[\\/]`), not the
+// old flat `engine.ts$`. The old anchor would NEVER match `engine/animation.ts`,
+// silently blinding assertion 1 and hard-redding assertion 3 (challenge-library §1).
+const isHeavyEngine = (id) => /[\\/]animation[\\/]engine[\\/]/.test(id);
 
 const rel = (id) =>
     id
@@ -237,9 +241,11 @@ function parseLightExports() {
 const DYNAMIC_ACCESSORS = [
     "loadAnimationEngine",
     "warmEngine",
-    "loadEngine",
-    "loadCompiler",
-    "loadIngest",
+    // R.W1 co-edit: the granular `loadEngine`/`loadCompiler`/`loadIngest`
+    // accessors were EXCISED from `load-engine.ts` (§2f — zero real call sites).
+    // They are dropped here IN THE SAME CHANGE: the gate bundles each accessor by
+    // name and reds if the export is absent, so leaving the three dead names
+    // would hard-red the gate (challenge-library §3).
 ];
 
 /**

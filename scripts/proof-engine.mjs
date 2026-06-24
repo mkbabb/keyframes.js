@@ -29,8 +29,13 @@ const failures = [];
 const fail = (clause, msg) => failures.push(`  ✗ [${clause}] ${msg}`);
 const ok = (clause, msg) => console.log(`  ✓ [${clause}] ${msg}`);
 
-// ── D-2 tick-canon — no driver-layer `tick(` in engine.ts / group.ts ─────────
-for (const f of ["src/animation/engine.ts", "src/animation/group.ts"]) {
+// ── D-2 tick-canon — no driver-layer `tick(` in engine / group ───────────────
+// R.W1 co-edit: engine.ts → engine/animation.ts, group.ts → group/group.ts
+// (the directory partition; challenge-library §1b).
+for (const f of [
+    "src/animation/engine/animation.ts",
+    "src/animation/group/group.ts",
+]) {
     const src = read(f);
     const hits = [...src.matchAll(/\btick\s*\(/g)];
     if (hits.length > 0) {
@@ -64,7 +69,7 @@ for (const f of ["src/animation/engine.ts", "src/animation/group.ts"]) {
 // proof:decomposition (LIBRARY_CEILING_OVERRIDE engine.ts: 1400); both guards
 // carry the SAME G.W5 decision.
 const ANIMATION_CLASS_CEILING = 1100;
-const compiler = read("src/animation/frame-compiler.ts");
+const compiler = read("src/animation/compile/frame-compiler.ts");
 if (!/export class FrameCompiler/.test(compiler)) {
     fail("engine-seam", "src/animation/frame-compiler.ts does not export `FrameCompiler`");
 } else {
@@ -76,7 +81,7 @@ if (!/export class FrameCompiler/.test(compiler)) {
     }
 }
 {
-    const engine = read("src/animation/engine.ts").split("\n");
+    const engine = read("src/animation/engine/animation.ts").split("\n");
     // PKG-3 (L.W8 §S4): the core engine class was renamed `Animation` →
     // `KeyframesAnimation` to clear the `globalThis.Animation` d.ts collision;
     // the body-size ceiling check anchors on the renamed class. Measure the
@@ -108,7 +113,7 @@ if (!/export class FrameCompiler/.test(compiler)) {
 
 // ── D-5 pause-honest — no toggle docstring; honest triad present ──────────────
 {
-    const group = read("src/animation/group.ts");
+    const group = read("src/animation/group/group.ts");
     if (/backward compatibility/i.test(group) || /Toggle pause state/.test(group)) {
         fail("pause-honest", "group.ts still carries the legacy toggle-`pause` docstring");
     } else {
@@ -123,7 +128,10 @@ if (!/export class FrameCompiler/.test(compiler)) {
 }
 
 // ── D-6a snap-symmetry — both steppers stop the playback on snap ─────────────
-for (const f of ["src/animation/smooth.ts", "src/animation/spring.ts"]) {
+for (const f of [
+    "src/animation/physics/smooth.ts",
+    "src/animation/physics/spring/progress.ts",
+]) {
     const src = read(f);
     // Match the METHOD DEFINITION body, not a call site.
     const m = src.match(/_snapSettled\s*\([^)]*\)\s*:\s*void\s*{([\s\S]*?)\n    }/);
@@ -143,13 +151,13 @@ for (const f of ["src/animation/smooth.ts", "src/animation/spring.ts"]) {
     } else {
         ok("no-legacy", "leaves.ts: no `| any` widening");
     }
-    const utils = read("src/animation/utils.ts");
+    const utils = read("src/animation/compile/parse-flatten.ts");
     if (/export\s*{[^}]*lerp(Color|Computed|Numeric)?Value/.test(utils) || /New code should import from/.test(utils)) {
         fail("no-legacy", "utils.ts still re-exports value.js lerp primitives (path-compat shim)");
     } else {
         ok("no-legacy", "utils.ts: no value.js lerp path-compat re-export");
     }
-    const format = read("src/animation/format.ts");
+    const format = read("src/animation/compile/format.ts");
     if (/export\s*{\s*formatCSS\s*}/.test(format)) {
         fail("no-legacy", "format.ts still re-exports `formatCSS` (convenience shim)");
     } else {
@@ -173,7 +181,7 @@ for (const f of ["src/animation/smooth.ts", "src/animation/spring.ts"]) {
     } else {
         ok("managed-pause-doc", "CLAUDE.md states the managed-child lifecycle contract in one place");
     }
-    const group = read("src/animation/group.ts");
+    const group = read("src/animation/group/group.ts");
     if (!/managed-child lifecycle contract/i.test(group)) {
         fail("managed-pause-doc", "group.ts is missing the cross-link comment to the CLAUDE.md managed-child lifecycle contract");
     } else {
