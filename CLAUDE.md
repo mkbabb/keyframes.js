@@ -58,7 +58,7 @@ demo/                # Vue 3 demo (see demo/CLAUDE.md)
 └── playground/      # Standalone asset-playground app (npm run dev:playground)
 
 test/                # Vitest (jsdom). Count: `ls test/*.test.ts | wc -l` files, `npx vitest list | wc -l` tests
-                     # (96 files / 912 tests at the O+P impl-drive — derive, don't trust a frozen number)
+                     # (97 files / 957 tests at the Q 5.0.0 close — derive, don't trust a frozen number)
 bench/               # Vitest bench. Count: `ls bench/*.bench.ts | wc -l` (9 at the O+P impl-drive)
 scripts/             # proof-*.mjs runtime gates (wired to npm run proof:*) + shared lib/ + deploy/capture helpers
 docs/                # Tranche records + audit lanes

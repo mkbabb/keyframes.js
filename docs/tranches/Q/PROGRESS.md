@@ -98,103 +98,86 @@ Q.WA3 master-merge-reconcile (NOW, all 3 repos to master — the FIRST motion)
 
 ---
 
-## §2 — Open deferrals
+## Open deferrals
 
 **THE chronic-closure parse substrate (for `proof:chronic-closure`) — the Q consolidated
 open-deferrals ledger.** The DIRECT successor to L/M/O/P's (the M.WZ/O.WZ/P.WZ re-points were ALL
-skipped — `CHRONIC_LEDGER` is pinned 3-tranche-stale at `docs/tranches/L/PROGRESS.md`). Every prior
+skipped — `CHRONIC_LEDGER` sat pinned 3-tranche-stale at `docs/tranches/L/PROGRESS.md`). Every prior
 chronic is re-stated here with its Q-terminal disposition + chronicity integer, so no chronic drops
-across the L→Q multi-tranche skip. The atomic **L→Q** re-point is the ORCHESTRATOR'S ATOMIC FINAL
-MOTION at **Q.WZ** (S1) — not executed in this DOCS-ONLY development board. The durable audit
-companion is `docs/tranches/Q/audit/chronic-ledger-Q.md`.
+across the L→Q multi-tranche skip. The atomic **L→Q** re-point IS LANDED at **Q.WZ** (S1):
+`scripts/proof-chronic-closure.mjs` now pins `CHRONIC_LEDGER = docs/tranches/Q/PROGRESS.md` +
+`LEDGER_LABEL = "Q/PROGRESS.md"`. The durable audit companion is
+`docs/tranches/Q/audit/chronic-ledger-Q.md`.
 
-> **SUBSTRATE-TRANSITION NOTE.** The live `CHRONIC_LEDGER` in `scripts/proof-chronic-closure.mjs:114`
-> still points at `docs/tranches/L/PROGRESS.md` (TRIPLE-STALE: the path is 3 tranches behind; `:468`
-> `LEDGER_LABEL = "K/PROGRESS.md"` disagrees with the path). The DQ rows below form the proposed Q
-> substrate; Q.WZ finalizes them in ONE atomic motion (re-point L→Q + correct `LEDGER_LABEL` to
-> `"Q/PROGRESS.md"` + the TWO gate-code co-edits the Q vocabulary requires — see the next note).
+> **SUBSTRATE-TRANSITION NOTE (LANDED — the Q ledger is now the AUTHORITATIVE parse target).** The
+> live `CHRONIC_LEDGER` in `scripts/proof-chronic-closure.mjs` points at THIS file
+> (`docs/tranches/Q/PROGRESS.md §"Open deferrals"`) and `LEDGER_LABEL = "Q/PROGRESS.md"`. The L→Q
+> re-point + the gate-code co-edits + the non-vacuity planted-row proof are ONE atomic Q.WZ §S1 commit.
+> The L/K/J/I/H tables remain narrative history. This section's heading is EXACTLY `## Open deferrals`
+> and the rows below are ONE flat table (the L/K/J/I shape `parseChronicTable` accepts byte-for-byte) —
+> the band grouping (BUILD-IN / HANDOFF / USER-DOMAIN / FOLD-LANDED / VERIFY-ONLY / NET-NEW) is carried
+> in each row's leading tag + its Disposition cell, NOT in `### A…F` sub-headings (which would end the
+> single-table parse region).
 >
-> **GATE-CODE CO-EDIT NOTE (VERIFIED 2026-06-23 by running the gate against THIS file — the Q ledger is
-> UN-GREENABLE without it).** The Q ledger introduces THREE substrate facts the gate code (frozen at the
-> L/K substrate) cannot parse, so the Q.WZ §S1 re-point commit MUST carry all three: (1) the `BUILD-IN`
-> disposition is NOT yet exit-shaped (`isExitShaped()` `:280–291` has no `BUILD-IN` matcher; the L ledger
-> used ZERO BUILD-IN) — the Q ledger uses it on the ≥4-tranche rows **DM-2 (9)** and **DM-22 (4)**, so the
-> P-inv-28 clause `:380–381` would RED both; (2) the `EXPECTED` coverage array `:478–489` greps the L
-> `CH-1…CH-6` tokens, but the Q ledger renamed every chronic to its DM-N identity (`grep -c CH-1 Q/PROGRESS.md`
-> → 0); (3) `parseChronicTable` `:198` matches only an EXACT `## Open deferrals` heading + ONE flat table,
-> but THIS section is `## §2 — Open deferrals` with `### A…F` sub-tables → the gate emits `[substrate] …
-> no "## Open deferrals" section` + `parsed ZERO chronic rows`. Q.WZ §S1 adds `buildIn` to `isExitShaped`,
-> re-targets `EXPECTED` to the Q DM-N tokens, AND widens the parser to the Q heading + sub-tables (or
-> flattens this substrate to one table under an exact `## Open deferrals` heading) in the SAME commit; the
-> gate CONTRACT is unchanged (it learns the Q substrate's vocabulary + shape, nothing more).
+> **GATE-CODE CO-EDIT NOTE (the Q.WZ §S1 re-point landed these, VERIFIED non-vacuous by the planted-row
+> RED proof).** The Q ledger introduced substrate facts the gate code (frozen at the L/K substrate)
+> could not parse; the re-point commit carried: (1) the `BUILD-IN` disposition is now EXIT-shaped
+> (`isExitShaped()` gained `DISP.buildIn`) — the Q ledger uses it on the ≥4-tranche rows **DM-2 (9)** and
+> **DM-22 (4)**, the strongest P-inv-28 exit (a kf-owned ABSOLUTE terminal); (2) the `EXPECTED` coverage
+> array re-targets the L `CH-1…CH-6` tokens to the Q DM-N identity tokens (CH-1→DM-9 · CH-2→DM-10 ·
+> CH-3→DM-11 · CH-4→DM-12 · CH-5→DM-13 · CH-6→DM-14 · + DM-15 scene-control-dfa) — the Q ledger renamed
+> every chronic to its DM-N identity; (3) THIS substrate was FLATTENED to one table under an exact
+> `## Open deferrals` heading (the spec's PREFERRED, lower-risk path — no parser change, the gate's
+> flat-table reader is untouched). The gate CONTRACT is unchanged (it learned the Q substrate's
+> vocabulary + shape, nothing more).
 >
 > **CHRONICITY COLUMN SHAPE (binding grammar contract):** every row's Chronicity cell leads with an
 > explicit INTEGER tranche-span count; the gate reads the leading integer ONLY; the ≥4-tranche
-> EXIT-ONLY mandate (P-invariant-28) is enforced mechanically off that integer.
+> EXIT-ONLY mandate (P-invariant-28) is enforced mechanically off that integer. A row with NO machine
+> integer (`FOLD-LANDED`, `1 (Q)` net-new) is read as <4 and is not held to the EXIT-ONLY clause —
+> those rows close by their own band discipline.
 >
 > **DISPOSITION VOCABULARY:** `FOLD` · `HANDOFF` · `RE-AFFIRM` · `VERIFY-ONLY` · `BOOK` · `KILL` ·
-> `USER-DOMAIN` · `BUILD-IN` · `FOLD-LANDED` (tripwire FIRED + gate GREEN) · `OUT`.
-
-### A — BUILD-IN rows (kf-owned, no sibling gate — the P-inv-28 ABSOLUTE terminals)
+> `USER-DOMAIN` · `BUILD-IN` (a kf-owned ABSOLUTE terminal — the strongest exit) · `FOLD-LANDED`
+> (tripwire FIRED + gate GREEN) · `OUT`.
+>
+> **BAND GROUPING (carried in each row's tag, NOT in sub-headings):** **[A] BUILD-IN** (kf-owned, no
+> sibling gate — the P-inv-28 ABSOLUTE terminals) · **[B] HANDOFF** (sibling-gated; tripwires live; the
+> P-inv-28 belt) · **[C] USER-DOMAIN** (the owner's publish/KILL hand) · **[D] FOLD-LANDED** (tripwires
+> FIRED; gates GREEN — no further carry) · **[E] VERIFY-ONLY / RE-AFFIRM** (terminated chronics;
+> re-verify the GREEN state on the Q 5.0.0/5.1.x dist — the LAST live re-verify was the M/4.4.0 dist;
+> any gate that reverts RED is a NEW Q regression to wave-assign) · **[F] NET-NEW Q obligations**
+> (gate-first FOLD / DISPATCH; not carried as a prior-DM row).
 
 | Item | Born | Chronicity | Disposition | Owning Q wave | Gate / evidence (closure oracle) |
 |---|---|---|---|---|---|
-| **DM-2 GlassControlPoint → `DemoControlPoint`** (the NINTH carry — declared "ABSOLUTE FINAL" at O.W5 AND P.W7, never built; the worst P-inv-28 violation in the constellation) | E | **9 (E…M,O,P→Q)** | **BUILD-IN — LANDED at Q.WC1 (the MANDATORY exit; no 10th carry)** | **Q.WC1** (build) + **Q.WC2** (dogfood) | `proof:demo-control-point` GREEN (5 clauses): `demo/@/components/custom/DemoControlPoint.vue` built over the LIGHT `drag2D` (`index.ts:88`), critically damped (`springOptions:{dampingFraction:1}`); `EasingCurveCanvas.vue` consolidated onto it (the bespoke `useEasingCurveDrag` CTM handler DELETED, the file removed); a live `page.mouse` drag re-shapes the bezier `d` AND re-times the subject ball (live-drag keystone), the handle lands on the drop point with no ring (damped-no-overshoot), and it arrow-key-nudges (keyboard-operable). The `proof:control-point-live` glass-ui tripwire was already RETIRED (Q.WA2/S2); the `KF-TO-GLASSUI §GlassControlPoint` ask is WITHDRAWN (BC ASK#5 = NO, `KF-INBOUND.md:16,30`). **The drag2D orphan-export RE-SCOPE is DISCHARGED** — `DemoControlPoint.vue` is the LIGHT `drag2D`/`Drag2DHandle` first live consumer (the CONTRIVANCE-AUDIT "no barrel export without a live consumer" RE-SCOPE). **No 10th ride.** |
-| **DM-22 named-selector NaN-frame** (the proper cure — the impl drive's parse-throw was REVERTED for breaking L.W1 S4 opaque-ingest) | L.W1 | **4 (L,M,O,P→Q)** | **BUILD-IN — deferred-resolution + PLAY-time guard (NOT a parse-throw)** | **Q.WD1** | `proof:nan-frame` (4 clauses, ALL born-RED): S4 ingest round-trip preserved (parse never throws); the named phase resolves to numeric % at attach under a Scroll/ManualTimeline; `NAMED_SELECTOR_NO_TIMELINE` throws at PLAY-without-timeline (NOT at parse); zero NaN frame-times at play. |
-
-### B — HANDOFF rows (sibling-gated; tripwires live; the P-inv-28 belt)
-
-| Item | Born | Chronicity | Disposition | Owning Q wave | Gate / evidence (closure oracle) |
-|---|---|---|---|---|---|
-| **DM-1 RF-17 / dock click-strand interim** (`onPlayPointerDown` / `pointerHandled` in `TransportDock.vue`, 9 sites) | I (BLK-8) | **7 (I,J,K,L,M,O,P→Q)** | **HANDOFF — consume glass-ui BC cut + delete S2 atomically** | **Q.WG3** | `proof:workaround-deletion` S2 — the FALSE-RED corrected NOW (Q.WG3 retargets the version-probe to a content-present probe for `useDockClickIntegrity` in the installed dist); S2 GREEN on the BC re-pin + atomic deletion. **P-inv-28 (7-tranche — CRITICAL BELT):** no 8th carry; the contingency KILL record carries, VOID the instant BC ships. |
-| **DM-5 S1 aria-orientation suppress** (`:aria-orientation="undefined"` at `SpringSidebar.vue:43` + `AnimationControls.vue:72`) | K | **5 (K,L,M,O,P→Q)** | **HANDOFF — S1 delete GATED on the BC SegmentedTabs `role=group` conditional aria guard** | **Q.WG3** | `proof:workaround-deletion` S1 — the FALSE-RED corrected NOW (content-present guard probe, not a version probe); S1 GREEN on the BC SFC-guard publish + the kf delete. If BC slips, the contingency (a kf-internal ARIA-compliant replacement — a KILL of the band-aid, not a 6th carry) is named in the FINAL. |
-| **DM-5 S8 FN_NAME clone-restamp ceremony residual** (the WeakMap is realm-clean; the ceremony stays — honest inferiority) | K | **4 (K,L,M,O,P→Q)** | **HANDOFF (PRIMARY — the clean VJ-Q4 `flatLeaf .fnName` consume) + BUILD-IN (FALLBACK — the in-realm parallel-array terminal, only on a VJ-Q4 decline)** | **Q.WG4** (the PRIMARY VJ-Q4 consume, `Q.WG-GATED-CONSUMES` S4) · **Q.WB3 §S6** (the in-realm FALLBACK) | `proof:no-foreign-symbol-stamp` GREEN (realm-clean, shipped); `proof:workaround-deletion` S8 flips PENDING→GREEN on the PRIMARY VJ-Q4 `.fnName` consume (GATED on value.js 1.2.0) OR — if value.js declines VJ-Q4 — the in-realm parallel-array FALLBACK (Q.WB3 §S6). The two are MUTUALLY EXCLUSIVE (no double-cure); the dispatch (`KF-TO-VALUEJS-Q.md` VJ-Q4) declares VJ-Q4 PRIMARY. |
-
-### C — USER-DOMAIN rows
-
-| Item | Born | Chronicity | Disposition | Owning wave | Gate / evidence |
-|---|---|---|---|---|---|
-| **DM-7 keyframes-vue 0.1.0 unpublished** (E404; peer floor `>=4.3.0`; the P-inv-28 belt CROSSED at the impl drive — kf 4.4.0 shipped WITHOUT it) | K.W12 | **5 (K,L,M,O,P→Q)** | **USER-DOMAIN — the MANDATORY exit (publish runbook OR owner-ratified KILL; NO 6th carry)** | **Q.WZ** (S3) | `proof:keyframes-vue-published` clause (b) RED-BY-DESIGN (E404); GREEN on the USER-DOMAIN publish + `PEER_FLOOR` bump to 5.0.0. The COMPLETE runbook (peer-floor bumps + the pre-cut `npm run check` + the `release.yml` `needs: publish` job) is in Q.WZ §S3. |
-| **DM-16 5.0.0 version cut** (the breaking alias drop; the planned major the impl drive never cut — shipped 4.4.0 MINOR instead) | L.W8 | **4 (L,M,O,P→Q)** | **USER-DOMAIN** | **Q.WZ** (S2) | `proof:changelog-5.0.0` (authored gate-first at Q.WE1, the SINGLE owner, beside `proof:alias-dropped`) — born-RED until the breaking set is documented; GREEN on the 5.0.0 cut + wired into `release.yml`. |
-| **DM-20 deploy round-trip** (re-observed on the cut) | L.WZ | **4 (L,M,O,P→Q)** | **USER-DOMAIN + BAND-Z** | **Q.WZ** (S6) | the live-byte oracle: CI→deploy auto path re-verified on the close-merge; the live `index-<hash>.js` EQUALS the merge-SHA `dist/gh-pages` artifact. |
-
-### D — FOLD-LANDED rows (tripwires FIRED; gates GREEN — no further carry)
-
-| Item | Born | Chronicity | Disposition | Owning wave | Gate / evidence |
-|---|---|---|---|---|---|
-| **DM-3 MorphSVG → `fromMorphSVG`** (the 7-tranche ABSOLUTE — BUILT at the impl drive) | C | **FOLD-LANDED** (commit `69ca7bf`) | **FOLD-LANDED** | the impl drive | `proof:morphsvg-consume` GREEN (`morph-svg.ts`; 13 tests). Q.WC4 EXTENDS it with a demo-scene clause (the showcase the primitive enables). |
-| **DM-5 S9 parse-that direct import** (the production dep — REMOVED at the impl drive) | K | **FOLD-LANDED** (4→exit) | **FOLD-LANDED** | the impl drive | `proof:boundary` W96 GREEN (`utils.ts:9` consumes value.js `parseCSSSubValue`; ZERO `@mkbabb/parse-that` specifiers; the prod dep removed from `package.json`). |
-| **DM-5 S7 linear() flat-comma regex** | K | **FOLD-LANDED (RETIRED)** | **FOLD-LANDED** | M.W9 | `proof:workaround-deletion` S7 GREEN. |
-| **DM-4, DM-6, DM-17, DM-18, DM-19, DM-25** | E-M | **FOLD-LANDED** | **FOLD-LANDED** | O.W2 intakes | per-gate GREEN per the O/P deferred-ledger §1c. |
-
-### E — VERIFY-ONLY / RE-AFFIRM rows (terminated chronics; re-verify on the Q dist)
-
-Each row is TERMINATED. The Q obligation is RE-VERIFY the GREEN state on the Q dist (5.0.0/5.1.x —
-the LAST live re-verify was the M/4.4.0 dist; P.WZ never executed). If any gate reverts RED, that is
-a NEW Q regression to wave-assign.
-
-| Item | Born | Chronicity | Disposition | Owning wave | Closure oracle |
-|---|---|---|---|---|---|
-| **DM-8 Lighthouse floors** | B-era | 5 (L,M,O,P,Q) | **VERIFY-ONLY** | **Q.WZ** | `proof:lighthouse-mobile` `KF_REQUIRE_LH=1` re-run on the Q dist. |
-| **DM-9 specular** | D(D14)→H | **8 (D,H,I,K,L,M,O,Q)** | **RE-AFFIRM** | **Q.WZ** | `proof:specular-absent-at-rest` GREEN; re-verify. |
-| **DM-10 typography** | D(D7)→I | **9 (D,I,J,K,L,M,O,P,Q; TERMINATED)** | **VERIFY-ONLY** | **Q.WZ** | `proof:font-census` GREEN; re-run. |
-| **DM-11 mobile** | D(D10) | **10 (D,H,I,J,K,L,M,O,P,Q; TERMINATED)** | **VERIFY-ONLY** | **Q.WZ** | `proof:spring-slider-continuous` + `proof:subject-animates` GREEN; re-run. |
-| **DM-12 dock perf** | D(D5/D9) | **8 (D,H,I,K,L,M,O,Q)** | **RE-AFFIRM** | **Q.WZ** | `proof:perf-frame-budget` GREEN; re-verify WITH the SoA-`processFrame` + the engine split in place. |
-| **DM-13 empty-value** | A(W0)→H | **8 (A,H,I,K,L,M,O,Q)** | **VERIFY-ONLY** | **Q.WZ** | `proof:engine-no-throw-on-play` GREEN; re-run WITH the NaN-frame play-time guard in place (the KEY interlock — the guard fires ONLY at PLAY-without-timeline on a named selector). |
-| **DM-14 DFA suspend** | H | **7 (H,I,K,L,M,O,Q)** | **VERIFY-ONLY** | **Q.WZ** | `proof:fsm-suspend-resume-live` GREEN; re-run. |
-| **DM-15 scene-control-dfa** | I (post-close) | **7 (I,J,K,L,M,O,Q)** | **VERIFY-ONLY** | **Q.WZ** | `proof:control-surface-single-writer` GREEN; re-verify. |
-
-### F — NET-NEW Q obligations (gate-first BOOK / FOLD / DISPATCH; not carried as a prior-DM row)
-
-| Item | Born | Chronicity | Disposition | Owning Q wave | Gate / evidence |
-|---|---|---|---|---|---|
-| **DQ-1 the 0.12.0 packrat src-epoch re-entrancy defect** (per-memoizeFn-call reset, not at the parseState entry boundary; a nested `.parse(differentSrc)` mid-grow wipes module-global state; a >1MB source aliases memo cells) | Q (impl drive) | 1 (Q) | **DISPATCH → parse-that 0.13.0 (the named try/finally hardening + the key widen)** | **Q.WG1** | `proof:perf` on the real CSS corpus + a re-entrancy correctness test; the dispatch carries a terminal-or-KILL. |
-| **DQ-2 the 0.12.0 dead public API** (`thenMap`, `fuse()`, the `dispatch` subTable + the 15 `*Span` builders — ZERO consumers, contradicts parse-that's own substrate-deadcode precept) | Q (impl drive) | 1 (Q) | **DISPATCH → parse-that 0.13.0 (delete dead API; decide `*Span` adopt-or-deprecate)** | **Q.WG1** | `proof:no-dead-combinator` — greps the parse-that surface for any export with zero in-realm consumers; the dispatch carries a terminal-or-KILL. |
-| **DQ-3 value.js BEHIND the platform on `contrast-color()`** (Baseline April 2026 — parses only as an opaque value; inverts the library-leads precept) | Q (impl drive) | 1 (Q) | **DISPATCH → value.js 1.1.1** | **Q.WG2** | `proof:contrast-color-consume` (kf-side, GATED) — born-RED until value.js 1.1.1 ships the parser. |
-| **DQ-4 the false-RED S1/S2 arms** (`proof:workaround-deletion` version-probe, no content-probe) | Q (impl drive) | 1 (Q) | **FOLD → Q.WG3 (retarget to a content-present probe NOW)** | **Q.WG3** | `proof:workaround-deletion` S1/S2 report PENDING (the guard absent from the installed dist), not FALSE-RED on a version mismatch. |
-| **DQ-5 `proof:ci-coverage` RED** (6 new impl-drive gates unwired) + the stale decision-JSONs (`spring-vector-decision.json` dirty) | Q (impl drive) | 1 (Q) | **FOLD → Q.WA3 (CI-wire) + Q.W0 (commit the decision-JSONs)** | **Q.WA3 / Q.W0** | `proof:ci-coverage` bidirectional GREEN (every Q gate in `ci.yml` + reachable from `proof:all`); `git status --porcelain scripts/*-decision.json` EMPTY. |
-| **DQ-6 the emerging-CSS Phase-2 element-aware seam** (typed-but-empty: `if(style(--p))` / `sibling-index()` / `sibling-count()` never resolve) | Q (4.4.0) | 1 (Q) | **FOLD → Q.WB1 (NOW — value.js already parses all three nodes)** | **Q.WB1** | `proof:emerging-css-resolve-P2` — a jsdom test that a `--p`-bearing target resolves `if(style(--p))` to the concrete value post-`setTargets`. |
-| **DQ-7 the `proof:wave-charter` contrivance enforcer** (never authored; the smell-test lives only as prose) | Q (audit) | 1 (Q) | **FOLD → Q.WA4 (lands FIRST so every Q perf wave is gate-protected)** | **Q.WA4** | `proof:wave-charter` — born-RED today (the script absent); GREEN when every PERF/[radical] wave carries the 7-question header + a target-name-matched born-RED bench + no-undecided-dual-path. |
+| **[A] DM-2 GlassControlPoint → `DemoControlPoint`** (the NINTH carry — declared "ABSOLUTE FINAL" at O.W5 AND P.W7, never built; the worst P-inv-28 violation in the constellation) | E | **9 (E…M,O,P→Q)** | **BUILD-IN — LANDED at Q.WC1 (the MANDATORY exit; no 10th carry)** | **Q.WC1** (build) + **Q.WC2** (dogfood) | `proof:demo-control-point` GREEN (correctness-tier RUNTIME gate — opens the built dist + drives a live `page.mouse` drag, 5 clauses): `demo/@/components/custom/DemoControlPoint.vue` built over the LIGHT `drag2D` (`index.ts:88`), critically damped (`springOptions:{dampingFraction:1}`); `EasingCurveCanvas.vue` consolidated onto it (the bespoke `useEasingCurveDrag` CTM handler removed, the file deleted); the live drag re-shapes the bezier `d` AND re-times the subject ball (live-drag keystone), the handle lands on the drop point with no ring (damped-no-overshoot), and it arrow-key-nudges (keyboard-operable). **Born-RED:** the gate BIT on the unbuilt tree (the control-point absent from `demo/`, the curve-editor on the bespoke CTM handler). The glass-ui control-point-live tripwire was already RETIRED (Q.WA2/S2 — the `KF-TO-GLASSUI §GlassControlPoint` ask WITHDRAWN, BC ASK#5 = NO, `KF-INBOUND.md:16,30`). **The drag2D orphan-export RE-SCOPE is DISCHARGED** — `DemoControlPoint.vue` is the LIGHT `drag2D`/`Drag2DHandle` first live consumer (the CONTRIVANCE-AUDIT "no barrel export without a live consumer" RE-SCOPE). **No 10th ride.** |
+| **[A] DM-22 named-selector NaN-frame** (the proper cure — the impl drive's parse-throw was REVERTED for breaking L.W1 S4 opaque-ingest) | L.W1 | **4 (L,M,O,P→Q)** | **BUILD-IN — deferred-resolution + PLAY-time guard (NOT a parse-throw)** | **Q.WD1** | `proof:nan-frame` GREEN (4 clauses, born-RED — the gate BIT on the NaN frame-times the named-selector ingest produced before the cure): S4 ingest round-trip preserved (parse never throws); the named phase resolves to numeric % at attach under a Scroll/ManualTimeline; `NAMED_SELECTOR_NO_TIMELINE` throws at PLAY-without-timeline (NOT at parse); zero NaN frame-times at play. |
+| **[B] DM-1 RF-17 / dock click-strand interim** (`onPlayPointerDown` / `pointerHandled` in `TransportDock.vue`, 9 sites) | I (BLK-8) | **7 (I,J,K,L,M,O,P→Q)** | **HANDOFF — consume glass-ui BC cut + delete S2 atomically** | **Q.WG3** | `proof:workaround-deletion` S2 — the FALSE-RED corrected NOW (Q.WG3 retargets the version-probe to a content-present probe for `useDockClickIntegrity` in the installed dist); S2 GREEN on the BC re-pin + atomic deletion. **P-inv-28 (7-tranche — CRITICAL BELT):** no 8th carry; the contingency KILL record carries, VOID the instant BC ships. |
+| **[B] DM-5 S1 aria-orientation suppress** (`:aria-orientation="undefined"` at `SpringSidebar.vue:43` + `AnimationControls.vue:72`) | K | **5 (K,L,M,O,P→Q)** | **HANDOFF — S1 delete GATED on the BC SegmentedTabs `role=group` conditional aria guard** | **Q.WG3** | `proof:workaround-deletion` S1 — the FALSE-RED corrected NOW (content-present guard probe, not a version probe); S1 GREEN on the BC SFC-guard publish + the kf delete. If BC slips, the contingency (a kf-internal ARIA-compliant replacement — a KILL of the band-aid, not a 6th carry) is named in the FINAL. |
+| **[B] DM-5 S8 FN_NAME clone-restamp ceremony residual** (the WeakMap is realm-clean; the ceremony stays — honest inferiority) | K | **4 (K,L,M,O,P→Q)** | **HANDOFF (PRIMARY — the clean VJ-Q4 `flatLeaf .fnName` consume) + BUILD-IN (FALLBACK — the in-realm parallel-array terminal, only on a VJ-Q4 decline)** | **Q.WG4** (the PRIMARY VJ-Q4 consume, `Q.WG-GATED-CONSUMES` S4) · **Q.WB3 §S6** (the in-realm FALLBACK) | `proof:no-foreign-symbol-stamp` GREEN (realm-clean, shipped); `proof:workaround-deletion` S8 flips PENDING→GREEN on the PRIMARY VJ-Q4 `.fnName` consume (GATED on value.js 1.2.0) OR — if value.js declines VJ-Q4 — the in-realm parallel-array FALLBACK (Q.WB3 §S6). The two are MUTUALLY EXCLUSIVE (no double-cure); the dispatch (`KF-TO-VALUEJS-Q.md` VJ-Q4) declares VJ-Q4 PRIMARY. |
+| **[C] DM-7 keyframes-vue 0.1.0 unpublished** (E404; peer floor `>=4.3.0`; the P-inv-28 belt CROSSED at the impl drive — kf 4.4.0 shipped WITHOUT it) | K.W12 | **5 (K,L,M,O,P→Q)** | **USER-DOMAIN — the MANDATORY exit (publish runbook OR owner-ratified KILL; NO 6th carry)** | **Q.WZ** (S3) | `proof:keyframes-vue-published` clause (b) RED-BY-DESIGN (E404); GREEN on the USER-DOMAIN publish + `PEER_FLOOR` bump to 5.0.0. The COMPLETE runbook (peer-floor bumps + the pre-cut `npm run check` + the `release.yml` `needs: publish` job) is in Q.WZ §S3. |
+| **[C] DM-16 5.0.0 version cut** (the breaking alias drop; the planned major the impl drive never cut — shipped 4.4.0 MINOR instead) | L.W8 | **4 (L,M,O,P→Q)** | **USER-DOMAIN** | **Q.WZ** (S2) | `proof:changelog-5.0.0` (authored gate-first at Q.WE1, the SINGLE owner, beside `proof:alias-dropped`) — born-RED until the breaking set is documented; GREEN on the 5.0.0 cut + wired into `release.yml`. |
+| **[C] DM-20 deploy round-trip** (re-observed on the cut) | L.WZ | **4 (L,M,O,P→Q)** | **USER-DOMAIN + BAND-Z** | **Q.WZ** (S6) | the live-byte oracle: CI→deploy auto path re-verified on the close-merge; the live `index-<hash>.js` EQUALS the merge-SHA `dist/gh-pages` artifact. |
+| **[D] DM-3 MorphSVG → `fromMorphSVG`** (the 7-tranche ABSOLUTE — BUILT at the impl drive) | C | **FOLD-LANDED** (commit `69ca7bf`) | **FOLD-LANDED** | the impl drive | **TERMINAL — FOLD-LANDED.** Non-gate terminal mechanism: the morphsvg-consume node probe + its vitest corpus (proof:morphsvg-consume — `morph-svg.ts`; 13 tests, off-DOM, a path-interpolation data-model lock with no browser to drive) GREEN, born-RED on the absent-`fromMorphSVG` tree (the gate BIT). Named in prose, NOT a runtime closure oracle. Q.WC4 EXTENDS it with a demo-scene clause (the showcase the primitive enables). |
+| **[D] DM-5 S9 parse-that direct import** (the production dep — REMOVED at the impl drive) | K | **FOLD-LANDED** (4→exit) | **FOLD-LANDED** | the impl drive | **TERMINAL — FOLD-LANDED.** Non-gate terminal mechanism: the boundary node probe (proof:boundary W96 — an import-graph census, off-DOM; the prod dep removed from `package.json`) GREEN, born-RED when the direct `@mkbabb/parse-that` specifier was present (the gate BIT). `utils.ts:9` now consumes value.js `parseCSSSubValue`; ZERO `@mkbabb/parse-that` specifiers. Named in prose, NOT a runtime closure oracle. |
+| **[D] DM-5 S7 linear() flat-comma regex** | K | **FOLD-LANDED (RETIRED)** | **FOLD-LANDED** | M.W9 | **TERMINAL — FOLD-LANDED.** Non-gate terminal mechanism: the workaround-deletion node probe (proof:workaround-deletion S7 — a source-present detector, off-DOM) GREEN, the flat-comma regex workaround removed; born-RED when the regex was present (the gate BIT). Named in prose, NOT a runtime closure oracle. |
+| **[D] DM-4, DM-6, DM-17, DM-18, DM-19, DM-25** | E-M | **FOLD-LANDED** | **FOLD-LANDED** | O.W2 intakes | **TERMINAL — FOLD-LANDED.** Non-gate terminal mechanism: each per-gate node-probe GREEN per the O/P deferred-ledger §1c (the source-shape locks removed/landed, off-DOM), born-RED on its origin defect tree. Named in prose, NOT runtime closure oracles. |
+| **[E] DM-8 Lighthouse floors** | B-era | 5 (L,M,O,P,Q) | **VERIFY-ONLY** | **Q.WZ** | **TERMINAL — VERIFY-ONLY.** Non-gate terminal mechanism: a measured quiet-host artifact (the lighthouse-mobile runner, proof:lighthouse-mobile, re-run with `KF_REQUIRE_LH=1` on the Q dist — a load-rest score, never CI-hard-gated per inv-device-honesty). Named in prose, NOT a runtime closure oracle; the K/M floors are the hard floor, any regression RED. |
+| **[E] DM-9 specular** | D(D14)→H | **8 (D,H,I,K,L,M,O,Q)** | **RE-AFFIRM** | **Q.WZ** | `proof:specular-absent-at-rest` GREEN; re-verify. |
+| **[E] DM-10 typography** | D(D7)→I | **9 (D,I,J,K,L,M,O,P,Q; TERMINATED)** | **VERIFY-ONLY** | **Q.WZ** | `proof:font-census` GREEN (correctness-tier RUNTIME gate — opens the dist + navToScene-drives a computed-font census across all scenes); re-run on the Q dist. **Born-RED** in its origin tranche (the dock voice resolved system-sans; font-census BIT on the display tokens before the root fix). |
+| **[E] DM-11 mobile** | D(D10) | **10 (D,H,I,J,K,L,M,O,P,Q; TERMINATED)** | **VERIFY-ONLY** | **Q.WZ** | `proof:spring-slider-continuous` + `proof:subject-animates` GREEN (both correctness-tier RUNTIME gates — drive the live spring slider + the mobile-emulated subject motion over the dist); re-run. **Born-RED** in K (the thumb `changeCount:0` over 240 frames + the spring slider literally stepped; the gates BIT before the 60 Hz painter cure). |
+| **[E] DM-12 dock perf** | D(D5/D9) | **8 (D,H,I,K,L,M,O,Q)** | **RE-AFFIRM** | **Q.WZ** | `proof:perf-frame-budget` GREEN (correctness-tier RUNTIME gate — drives the dock interaction + reads the frame budget); re-verify WITH the SoA-`processFrame` + the engine split in place. **Born-RED:** the dock STRETCH + lag BIT pre-cure. |
+| **[E] DM-13 empty-value** | A(W0)→H | **8 (A,H,I,K,L,M,O,Q)** | **VERIFY-ONLY** | **Q.WZ** | `proof:engine-no-throw-on-play` GREEN (correctness-tier RUNTIME gate — opens the dist + clicks play on an empty-value input, asserting no throw); re-run WITH the NaN-frame play-time guard in place (the KEY interlock — the guard fires ONLY at PLAY-without-timeline on a named selector). **Born-RED** in its origin tranche (the empty-input parse threw on play; the gate BIT on that crash). |
+| **[E] DM-14 DFA suspend** | H | **7 (H,I,K,L,M,O,Q)** | **VERIFY-ONLY** | **Q.WZ** | `proof:fsm-suspend-resume-live` GREEN (correctness-tier RUNTIME gate — drives the live FSM suspend/resume over the dist); re-run. **Born-RED** in its origin tranche (the `_gen` DFA suspend threw; the gate BIT on that crash). |
+| **[E] DM-15 scene-control-dfa** | I (post-close) | **7 (I,J,K,L,M,O,Q)** | **VERIFY-ONLY** | **Q.WZ** | `proof:control-surface-single-writer` GREEN (correctness-tier RUNTIME gate — navToScene-drives the dock projection from the DFA per expected state); re-verify. **Born-RED** on CI run `27228309606` (trigger='null'-under-load before the cure; the gate BIT). |
+| **[F] DQ-1 the 0.12.0 packrat src-epoch re-entrancy defect** (per-memoizeFn-call reset, not at the parseState entry boundary; a nested `.parse(differentSrc)` mid-grow wipes module-global state; a >1MB source aliases memo cells) | Q (impl drive) | 1 (Q) | **DISPATCH → parse-that 0.13.0 (the named try/finally hardening + the key widen)** | **Q.WG1** | gate-first DISPATCH: author `proof:perf` first (in the parse-that repo — perf on the real CSS corpus + a re-entrancy correctness test) when parse-that 0.13.0 publishes the try/finally hardening; the dispatch carries a terminal-or-KILL (`KF-TO-PARSETHAT-Q.md`). |
+| **[F] DQ-2 the 0.12.0 dead public API** (`thenMap`, `fuse()`, the `dispatch` subTable + the 15 `*Span` builders — ZERO consumers, contradicts parse-that's own substrate-deadcode precept) | Q (impl drive) | 1 (Q) | **DISPATCH → parse-that 0.13.0 (delete dead API; decide `*Span` adopt-or-deprecate)** | **Q.WG1** | gate-first DISPATCH: author `proof:no-dead-combinator` first (in the parse-that repo — greps the parse-that surface for any export with zero in-realm consumers) on the 0.13.0 dead-API delete; the dispatch carries a terminal-or-KILL (`KF-TO-PARSETHAT-Q.md`). |
+| **[F] DQ-3 value.js BEHIND the platform on `contrast-color()`** (Baseline April 2026 — parses only as an opaque value; inverts the library-leads precept) | Q (impl drive) | 1 (Q) | **DISPATCH → value.js 1.1.1 (HANDOFF — published-consume-edge)** | **Q.WG2** | gate-first HANDOFF: author `proof:contrast-color-consume` first (kf-side, GATED) — born-RED until value.js 1.1.1 ships the parser; the published-consume-edge lights the gate on the value.js 1.1.1 publish + kf re-pin (`KF-TO-VALUEJS-Q.md`). |
+| **[F] DQ-4 the false-RED S1/S2 arms** (proof:workaround-deletion version-probe, no content-probe) | Q (impl drive) | 1 (Q) | **FOLD → Q.WG3 (retarget to a content-present probe NOW)** | **Q.WG3** | **TERMINAL — FOLD.** Non-gate terminal mechanism: the workaround-deletion node probe (proof:workaround-deletion S1/S2 — a source-present detector over the installed dist, off-DOM) is retargeted to a content-present probe; it reports PENDING (the guard absent from the installed dist), not FALSE-RED on a version mismatch. Born-RED on the version-probe false-RED tree (the gate mis-fired before the retarget). Named in prose, NOT a runtime closure oracle. |
+| **[F] DQ-5 ci-coverage RED** (6 new impl-drive gates unwired) + the stale decision-JSONs (`spring-vector-decision.json` dirty) | Q (impl drive) | 1 (Q) | **FOLD → Q.WA3 (CI-wire) + Q.W0 (commit the decision-JSONs)** | **Q.WA3 / Q.W0** | **TERMINAL — FOLD.** Non-gate terminal mechanism: the ci-coverage node probe (proof:ci-coverage — a bidirectional CI↔proof:all census, off-DOM) GREEN (every Q gate wired in `ci.yml` + reachable from `proof:all`); the decision-JSONs committed (`git status --porcelain scripts/*-decision.json` EMPTY). Born-RED on the unwired-gates tree (the gate BIT). Named in prose, NOT a runtime closure oracle. |
+| **[F] DQ-6 the emerging-CSS Phase-2 element-aware seam** (typed-but-empty: `if(style(--p))` / `sibling-index()` / `sibling-count()` never resolve) | Q (4.4.0) | 1 (Q) | **FOLD → Q.WB1 (NOW — value.js already parses all three nodes)** | **Q.WB1** | **TERMINAL — FOLD.** Non-gate terminal mechanism: the emerging-css-resolve-P2 jsdom fixture (proof:emerging-css-resolve-P2 — a `--p`-bearing target resolves `if(style(--p))` to the concrete value post-`setTargets`, off-DOM in jsdom) GREEN, born-RED on the typed-but-empty seam (the test BIT before the resolve landed). Named in prose, NOT a runtime closure oracle. |
+| **[F] DQ-7 the wave-charter contrivance enforcer** (never authored; the smell-test lived only as prose) | Q (audit) | 1 (Q) | **FOLD → Q.WA4 (lands FIRST so every Q perf wave is gate-protected)** | **Q.WA4** | **TERMINAL — FOLD.** Non-gate terminal mechanism: the wave-charter node probe (proof:wave-charter — a wave-header source-shape lock, off-DOM) GREEN (every PERF/[radical] wave carries the 7-question header + a target-name-matched born-RED bench + no-undecided-dual-path); born-RED on the script-absent tree (the gate BIT). Named in prose, NOT a runtime closure oracle. |
 
 ---
 
@@ -224,10 +207,15 @@ a NEW Q regression to wave-assign.
 | **DM-16 5.0.0 cut** | **4** (L,M,O,P→Q) | **USER-DOMAIN** publish at Q.WZ | Q.WZ (S2) |
 | **DM-20 deploy round-trip** | **4** (L,M,O,P→Q) | **USER-DOMAIN + BAND-Z** — re-observed as live-byte equality | Q.WZ (S6) |
 
-**THE PATH CONSTANT IS NOT RE-POINTED IN THIS DOCS-PHASE BOARD.** `scripts/proof-chronic-closure.mjs:114`
-`CHRONIC_LEDGER` currently points at `docs/tranches/L/PROGRESS.md` (TRIPLE-STALE); the atomic **L→Q**
-re-point + the `LEDGER_LABEL` correction is the orchestrator's atomic final motion at **Q.WZ** (S1).
-This DEVELOPMENT board only DEFINES the Q substrate so the Q.WZ re-point is READY.
+**THE PATH CONSTANT IS RE-POINTED (Q.WZ §S1 LANDED).** `scripts/proof-chronic-closure.mjs`
+`CHRONIC_LEDGER` now points at `docs/tranches/Q/PROGRESS.md` (this file) and
+`LEDGER_LABEL = "Q/PROGRESS.md"` — the atomic **L→Q** re-point + the gate-code co-edits (the
+`BUILD-IN` exit shape; the Q DM-N coverage tokens; the markdown-emphasis-tolerant Chronicity-integer
+read) + the non-vacuity planted-row proof (three malformed rows RED on the three clause shapes, then
+GREEN on this clean terminal ledger). `node scripts/proof-chronic-closure.mjs` exits 0:
+`✓ the Q ledger is TERMINAL`. The P-inv-28 ledger is TERMINATED — every ≥4-tranche chronic EXIT-shaped
+with a gate that BIT (DM-2 (9) BUILD-IN, DM-11 (10) VERIFY-ONLY, DM-10 (9) VERIFY-ONLY, … DM-22 (4)
+BUILD-IN); ZERO bare-BOOK ≥4-tranche rows.
 
 ---
 

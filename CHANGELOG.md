@@ -1,5 +1,20 @@
 # Changelog
 
+## 5.0.0
+
+### Major Changes (BREAKING)
+
+- **Dropped the `@deprecated` PKG-3 aliases.** `Animation`, `ScrollTimeline`, and `ScrollTimelineOptions` no longer export — use the canonical names `KeyframesAnimation`, `KeyframesScrollTimeline`, `KeyframesScrollTimelineOptions`. See [`docs/MIGRATION-5.0.0.md`](./docs/MIGRATION-5.0.0.md) for the full old→new map. The platform globals (`globalThis.Animation` / `globalThis.ScrollTimeline`) are untouched.
+
+### Minor Changes (additive — the Tranche Q payload, riding the major)
+
+- **emerging-CSS Phase-2**: element-aware `if(style(--p))` / `sibling-index()` / `sibling-count()` resolution, plus **`@function` call-inlining** (`--ident(args)`), consuming `@mkbabb/value.js@^1.2.0`'s dashed-call parse + `coerceToSyntax`.
+- **Engine perf**: the Structure-of-Arrays Float64 fold extended to single-animation `processFrame` (bit-identical); WAAPI **curvature-adaptive** sub-segment densify (chord-error ≤ the prior fixed sampler on every corpus curve).
+- **Demo fleet**: a reusable **`DemoControlPoint`** direct-manipulation primitive over the LIGHT `drag2D` export; the easing curve-editor dogfoods it; a mobile scroll-snap N-Stage carousel with typed View-Transitions; the **MorphSVG** demo scene over the shipped `fromMorphSVG` (the on-DOM render contract + orient-along-path); amiga `decay()` telemetry.
+- **Correctness**: the named-selector NaN-frame proper cure (attach-time deferred-resolution + a play-time `NAMED_SELECTOR_NO_TIMELINE` guard — never a parse-throw; the opaque-ingest round-trip holds); a grammar-fuzz fast-check harness + a kf-vs-browser differential oracle.
+- **Internal / no-legacy**: `engine.ts` split (the standalone-play lifecycle lifted into `engine-playback.ts`); the `group.ts` SoA fold extracted into `group-soa.ts`; the WAAPI densify into `waapi-densify.ts`; the math leaves externalized onto `@mkbabb/value.js/math` (kf duplicates deleted); the function-name WeakMap ceremony retired onto value.js's `ValueUnit.fnName`.
+- **Dependency**: pins `@mkbabb/value.js@^1.2.0`; the `@mkbabb/parse-that` production dependency stays removed (the acyclic spine — kf consumes value.js's `parseCSSSubValue`).
+
 ## 4.3.0
 
 ### Minor Changes

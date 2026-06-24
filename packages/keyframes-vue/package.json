@@ -32,12 +32,12 @@
         "check": "tsc --noEmit"
     },
     "peerDependencies": {
-        "@mkbabb/keyframes.js": ">=4.3.0",
+        "@mkbabb/keyframes.js": ">=5.0.0",
         "vue": "^3.5.0"
     },
     "devDependencies": {
         "@microsoft/api-extractor": "^7.58.7",
-        "@mkbabb/keyframes.js": ">=4.3.0",
+        "@mkbabb/keyframes.js": ">=5.0.0",
         "@mkbabb/value.js": "^0.13.0",
         "typescript": "^6.0.3",
         "vite": "^8.0.0",

@@ -99,19 +99,22 @@ import { actuationNamesOf, missingHarnessAnchors } from "./lib/gate-shape.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const SCRIPTS_DIR = path.join(REPO, "scripts");
-// THE CANONICAL SUBSTRATE (K.WZ — the substrate TRANSITION): the K-tranche
-// PROGRESS.md chronic ledger SUPERSEDES J's `## Open deferrals` table in the SAME
-// motion the K ledger becomes authoritative (K.WZ motion, P-SUBSTRATE invariant).
-// The J/I/H tables remain narrative history. This is the ONE path constant the K
-// close re-points; the grammar is evolved WITH the new substrate (header-aware
-// columns + disposition bands + the Chronicity-integer ≥4 EXIT-ONLY enforcement)
-// so the gate BITES on the L substrate — never a vacuous swap. The L.WZ substrate
-// transition (re-point K→L) was proven non-vacuous before this re-point: three
-// deliberately-malformed L-ledger rows (a FOLD citing a source-shape gate; a HANDOFF
-// targeting an unpublished future version; a ≥4-tranche bare BOOK) RED on the three
-// clause shapes, then the clean terminal L ledger GREENed it. The L ledger is the
-// authoritative parse target for `proof:chronic-closure` from L.WZ forward.
-const CHRONIC_LEDGER = path.join(REPO, "docs/tranches/L/PROGRESS.md");
+// THE CANONICAL SUBSTRATE (Q.WZ §S1 — the substrate TRANSITION, the P-inv-28 ledger
+// TERMINATED): the Q-tranche PROGRESS.md `## Open deferrals` ledger SUPERSEDES the L
+// table in the SAME motion the Q ledger becomes authoritative (the L→Q re-point —
+// the M.WZ/O.WZ/P.WZ re-points were ALL skipped, so the live pin sat 3 tranches stale
+// at L; Q re-points DIRECTLY from L, the Q ledger re-stating every prior chronic with
+// its Q-terminal disposition + chronicity integer so none drops across the multi-
+// tranche skip). The L/K/J/I/H tables remain narrative history. This is the ONE path
+// constant the Q close re-points; the grammar is taught the Q substrate's vocabulary
+// (the BUILD-IN exit shape, the DM-N coverage tokens) so the gate BITES on the Q
+// substrate — never a vacuous swap. The Q.WZ substrate transition (re-point L→Q) was
+// proven non-vacuous before this re-point: three deliberately-malformed Q-ledger rows
+// (a FOLD citing a source-shape gate; a HANDOFF targeting an unpublished future
+// version; a ≥4-tranche bare BOOK) RED on the three clause shapes, then the clean
+// terminal Q ledger GREENed it. The Q ledger is the authoritative parse target for
+// `proof:chronic-closure` from Q.WZ forward.
+const CHRONIC_LEDGER = path.join(REPO, "docs/tranches/Q/PROGRESS.md");
 const PKG = path.join(REPO, "package.json");
 
 const failures = [];
@@ -249,9 +252,12 @@ function parseChronicTable(file, label) {
 }
 
 // ── The Chronicity integer (J shape) — the ≥4-tranche EXIT-ONLY mechanism ───────
-/** The leading integer of a J Chronicity cell (`7 (C…I)` → 7); null if none. */
+/** The leading integer of a Chronicity cell (`7 (C…I)` → 7, `**9 (E…Q)**` → 9);
+ * null if none. Markdown emphasis (`*`/`_`) + leading whitespace are stripped first
+ * so a bold-wrapped Q cell (`**9 (…)**`) reads its integer — else the ≥4-tranche
+ * EXIT-ONLY clause would skip every emphasized row vacuously (the Q-substrate trap). */
 function chronicityInt(text) {
-    const m = (text ?? "").match(/^\s*(\d+)\b/);
+    const m = (text ?? "").replace(/^[\s*_]+/, "").match(/^(\d+)\b/);
     return m ? Number(m[1]) : null;
 }
 
@@ -272,6 +278,10 @@ const DISP = {
     // EXITED = a row whose landing-wave has already COMMITTED; terminal, sibling band
     // (the gate already ran and BIT; the closure cell is evidence, not a live contract).
     exited: (d) => /\bEXITED\b/i.test(d),
+    // BUILD-IN (Q substrate) = a kf-owned ABSOLUTE terminal — the strongest exit
+    // shape. The Q ledger uses it on the ≥4-tranche DM-2 (chronicity 9) + DM-22
+    // (chronicity 4) rows: a kf-built-and-gated cure is the canonical P-inv-28 exit.
+    buildIn: (d) => /\bBUILD-?IN\b/i.test(d),
 };
 
 // An EXIT-shaped disposition (satisfies the ≥4-tranche P-invariant-28 mandate). A
@@ -281,6 +291,9 @@ function isExitShaped(d) {
     if (DISP.kill(d) || DISP.record(d) || DISP.userDomain(d)) return true;
     if (DISP.fold(d) || DISP.verifyOnly(d) || DISP.reaffirm(d)) return true;
     if (DISP.exitOnly(d)) return true;
+    // BUILD-IN (Q substrate) — a kf-owned ABSOLUTE terminal IS an exit shape (the
+    // strongest one): the cure is built + gated in-realm, no further carry.
+    if (DISP.buildIn(d)) return true;
     // A HANDOFF is exit-shaped ONLY when it is sibling-published-consumed (the
     // vaporware check below polices the version-target honesty separately).
     if (DISP.handoff(d)) return true;
@@ -333,9 +346,15 @@ function vaporwareHandoff(text) {
     const ver = text.match(/\bv?\d+\.\d+\.\d+\b/);
     if (!ver) return null;
     const publishedOrConsumed = /\bPUBLISHED\b|\bconsumed\b|\bconsume-edge\b|\bflat default\b|\bbumped?\b/i.test(text);
-    const vaporTell = /\bVAPORWARE\b|\bunpublished\b|\bunreleased\b|\bfuture version\b|\blocal tag\b/i.test(text);
+    // The unpublished tell: the explicit vaporware keywords PLUS the canonical
+    // "not yet on npm / on the registry / published" phrasing (a HANDOFF whose
+    // sibling target is not yet on the registry IS a vaporware tripwire, not a
+    // published-consume-edge — the B7 lesson; the same rule, the canonical phrasing).
+    const vaporTell =
+        /\bVAPORWARE\b|\bunpublished\b|\bunreleased\b|\bfuture version\b|\blocal tag\b/i.test(text) ||
+        /\bnot yet (?:on (?:npm|the registry)|published|on the registry)\b/i.test(text);
     if (vaporTell && !publishedOrConsumed) {
-        return `the HANDOFF targets ${ver[0]} with a vaporware/unpublished tell and NO published-or-consumed marker`;
+        return `[tripwire] the HANDOFF targets an unpublished sibling version ${ver[0]} — tripwire is not a published-consume-edge`;
     }
     return null;
 }
@@ -390,7 +409,13 @@ function auditRow(row, srcLabel) {
 
     // HANDOFF rule (a) — no vaporware-targeted HANDOFF (applies across bands; a
     // HANDOFF closure targeting a FUTURE/unpublished version reds, the B7 lesson).
-    const vapor = vaporwareHandoff(cell) || vaporwareHandoff(disp);
+    // The check reads the row HOLISTICALLY (disposition + closure together): a
+    // `HANDOFF → value.js 3.0.0` disposition with a `not yet on npm` tell in the
+    // closure cell is one unpublished-HANDOFF row — the tell may sit in either cell.
+    const vapor =
+        vaporwareHandoff(cell) ||
+        vaporwareHandoff(disp) ||
+        vaporwareHandoff(`${disp} ${cell}`);
     if (vapor) {
         fail(`[${name}] HANDOFF rule (a) VIOLATED — ${vapor}. A HANDOFF may target ONLY a PUBLISHED version or a kf-owned consume-edge, never a future version / unreleased commit (the B7 vaporware lesson).`);
     }
@@ -465,24 +490,28 @@ function auditRow(row, srcLabel) {
 }
 
 // ── Run ───────────────────────────────────────────────────────────────────────
-const LEDGER_LABEL = "K/PROGRESS.md";
+const LEDGER_LABEL = "Q/PROGRESS.md";
 const rows = parseChronicTable(CHRONIC_LEDGER, LEDGER_LABEL);
 if (rows.length === 0 && failures.length === 0) {
     fail(`[substrate] parsed ZERO chronic rows from the ${LEDGER_LABEL} §"Open deferrals" — refusing to pass vacuously`);
 }
 
 // The crash/defect chronics MUST still be present (re-examined, not dropped) on the
-// new J substrate — a chronic silently dropped across the substrate transition is
-// the exact re-classification escape the meta-gate exists to forbid. CH-1..CH-10 +
-// the net-new scene-control-dfa chronic the I FINAL could not enumerate.
+// Q substrate — a chronic silently dropped across the substrate transition is the
+// exact re-classification escape the meta-gate exists to forbid. The Q ledger
+// (Q.WZ §S1) renamed every L-substrate `CH-N` chronic to its DM-N identity; the
+// coverage clause greps the Q DM-N tokens (same no-silent-drop intent, Q vocabulary):
+//   CH-1 → DM-9 (specular)  · CH-2 → DM-10 (typography) · CH-3 → DM-11 (mobile)
+//   CH-4 → DM-12 (dock)     · CH-5 → DM-13 (empty-value) · CH-6 → DM-14 (DFA-suspend)
+//   + scene-control-dfa (DM-15, the net-new I-close chronic, carried unrenamed).
 const EXPECTED = [
-    { tag: "CH-1 cartoon/specular", re: /\bCH-1\b/ },
-    { tag: "CH-2 φ-hero", re: /\bCH-2\b/ },
-    { tag: "CH-3 mobile", re: /\bCH-3\b/ },
-    { tag: "CH-4 dock", re: /\bCH-4\b/ },
-    { tag: "CH-5 B1 empty-value crash", re: /\bCH-5\b|B1\+B5|B1\/B5/ },
-    { tag: "CH-6 B2 _gen suspend", re: /\bCH-6\b|\bB2\b/ },
-    { tag: "scene-control-dfa (the net-new I-close chronic)", re: /scene-control-dfa/ },
+    { tag: "DM-9 specular (was CH-1)", re: /\bDM-9\b/ },
+    { tag: "DM-10 typography (was CH-2)", re: /\bDM-10\b/ },
+    { tag: "DM-11 mobile (was CH-3)", re: /\bDM-11\b/ },
+    { tag: "DM-12 dock perf (was CH-4)", re: /\bDM-12\b/ },
+    { tag: "DM-13 empty-value crash (was CH-5)", re: /\bDM-13\b/ },
+    { tag: "DM-14 DFA-suspend (was CH-6)", re: /\bDM-14\b/ },
+    { tag: "DM-15 scene-control-dfa (the net-new I-close chronic)", re: /\bDM-15\b|scene-control-dfa/ },
 ];
 for (const e of EXPECTED) {
     if (!rows.some((r) => e.re.test(r.chronic))) {
@@ -496,7 +525,7 @@ const audited = rows.map((r) => auditRow(r, LEDGER_LABEL));
 if (failures.length) {
     console.error("\n✗ proof:chronic-closure — the chronic ledger is not closed to RUNTIME discipline:\n");
     console.error(
-        "  The binding rule (K.WZ substrate): a kf-runtime-closing row (FOLD/VERIFY-ONLY) exits ONLY via\n" +
+        "  The binding rule (Q.WZ substrate): a kf-runtime-closing row (FOLD/VERIFY-ONLY) exits ONLY via\n" +
             "  a RUNTIME gate (opens a browser AND actuates) that was witnessed born-RED in the correctness\n" +
             "  tier — OR names its terminal non-gate mechanism. A ≥4-tranche row must EXIT (P-invariant-28).\n" +
             "  A source-shape / load-rest / proxy gate, a vaporware HANDOFF, or a wrong-axis gate REDS.",
@@ -518,7 +547,7 @@ const BAND = (a) => {
     return "FOLD";
 };
 
-console.log(`\n✓ proof:chronic-closure — the K ledger is TERMINAL; every kf-runtime closure exits via a gate that BIT (${LEDGER_LABEL} §"Open deferrals", ${audited.length} rows):`);
+console.log(`\n✓ proof:chronic-closure — the Q ledger is TERMINAL; every kf-runtime closure exits via a gate that BIT (${LEDGER_LABEL} §"Open deferrals", ${audited.length} rows):`);
 for (const a of audited) {
     const rt = a.runtimeGates.join(", ");
     const ch = a.chronicity != null ? `[${a.chronicity}t] ` : "";
@@ -527,7 +556,7 @@ for (const a of audited) {
     console.log(`    • ${ch}${a.name} — ${BAND(a)}${ret}${gates}`);
 }
 console.log(
-    "\n  The K substrate TRANSITION is non-vacuous: the gate parses the K ledger by header, reads each row's\n" +
+    "\n  The Q substrate TRANSITION is non-vacuous: the gate parses the Q ledger by header, reads each row's\n" +
         "  DISPOSITION band, holds the FOLD/VERIFY-ONLY rows to the runtime-gate-that-BIT contract, enforces\n" +
         "  the ≥4-tranche EXIT-ONLY mandate off the Chronicity integer, and reds a vaporware HANDOFF — the\n" +
         "  meta-gate polices the PRODUCT on the new substrate, not the column's paperwork.",

@@ -60,7 +60,7 @@ const PKG_JSON = join(PKG_DIR, "package.json");
 const DIST_ENTRY = join(PKG_DIR, "dist", "keyframes-vue.js");
 
 /** The K.W7–W11 surface floor the adapter's `<Keyframes>` mount consumes. */
-const PEER_FLOOR = "4.3.0";
+const PEER_FLOOR = "5.0.0";
 const EXPECTED_VERSION = "0.1.0";
 const PKG_NAME = "@mkbabb/keyframes-vue";
 
