@@ -25,6 +25,7 @@ import MorphIcon from "@assets/icons/morph.svg?component";
 // OWNS its superKey constant; the descriptor below AND the scene SFC both import
 // it, so no string literal is declared in a file that doesn't own it.
 import { MORPH_SUPER_KEY } from "../scenes/morph/morphKeys";
+import { MOTION_PATH_SUPER_KEY } from "../scenes/motion-path/motionPathKeys";
 
 /** A scene's dynamic-import loader — the exact thunk `defineAsyncComponent`
  *  wraps, retained so `warmScene` can warm the chunk on hover (S5). */
@@ -152,11 +153,11 @@ export const scenes: SceneDescriptor[] = [
         // path, the engine sweeps the scalar.
         id: "motion-path",
         label: "Path",
-        superKey: "MotionPath",
+        superKey: MOTION_PATH_SUPER_KEY,
         icon: MotionPathIcon,
         component: lazyScene(
             "motion-path",
-            () => import("./scenes/MotionPathScene.vue"),
+            () => import("../scenes/motion-path/MotionPathScene.vue"),
         ),
     },
     {

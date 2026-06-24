@@ -9,11 +9,11 @@ import { computed, provide } from "vue";
 
 import { getStoredAnimationGroupControlOptions } from "@components/custom/animation-controls/stores";
 
-import MotionPathTarget from "../../motion-path/MotionPathTarget.vue";
-import { useMotionPathDemo } from "../../motion-path/useMotionPathDemo";
-import { MOTION_PATH_DEMO_KEY } from "../../motion-path/motionPathKeys";
+import MotionPathTarget from "./MotionPathTarget.vue";
+import { useMotionPathDemo } from "./useMotionPathDemo";
+import { MOTION_PATH_DEMO_KEY, MOTION_PATH_SUPER_KEY } from "./motionPathKeys";
 
-const SUPER_KEY = "MotionPath";
+const SUPER_KEY = MOTION_PATH_SUPER_KEY;
 
 const demo = useMotionPathDemo();
 provide(MOTION_PATH_DEMO_KEY, demo);
