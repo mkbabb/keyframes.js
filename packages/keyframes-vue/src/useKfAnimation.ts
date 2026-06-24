@@ -1,5 +1,5 @@
 import { onScopeDispose, ref, watch, type Ref } from "vue";
-import type { Animation } from "@mkbabb/keyframes.js";
+import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 
 /**
  * useKfAnimation — the generic settle-and-pause kernel (K.W12 ED-2).
@@ -44,7 +44,7 @@ export interface KfAnimationState {
 }
 
 export function useKfAnimation(
-    getAnimation: () => Animation,
+    getAnimation: () => KeyframesAnimation,
     isPlaying?: Ref<boolean>,
 ): KfAnimationState {
     const t = ref(getAnimation().effectiveT);

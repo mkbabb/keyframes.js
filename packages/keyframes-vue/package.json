@@ -37,7 +37,7 @@
     },
     "devDependencies": {
         "@microsoft/api-extractor": "^7.58.7",
-        "@mkbabb/keyframes.js": ">=5.0.0",
+        "@mkbabb/keyframes.js": "5.0.0",
         "@mkbabb/value.js": "^0.13.0",
         "typescript": "^6.0.3",
         "vite": "^8.0.0",
