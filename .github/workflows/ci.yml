@@ -514,24 +514,6 @@ jobs:
               id: proof-peer-satisfied
               continue-on-error: true
               run: npm run proof:peer-satisfied
-            # L.W8 S2 — proof:keyframes-vue-published: the sibling-adapter publish
-            # tripwire, BORN-RED-BY-DESIGN (the SAME disposition as
-            # proof:peer-satisfied above). The actual `npm publish` of
-            # @mkbabb/keyframes-vue is USER-DOMAIN; this wave implements everything
-            # UP TO publish (peer-floor bump, build, the release.yml job) but does
-            # NOT publish, so clause (b) STAYS RED until the user runs the publish.
-            # It rides THIS report-all demo-smoke job (continue-on-error) so the
-            # expected RED is RECORDED in one run; the terminal check-failures step
-            # reds the job. DELIBERATELY ABSENT from the blocking proof:hygiene chain
-            # (an absent-on-npm RED there would abort the && chain). Invoked via the
-            # `npm run proof:keyframes-vue-published` package key (NOT raw node) so the
-            # two coverage clauses (proof:ci-coverage 0/0b) can see it; it is a NAMED
-            # EXCLUDED tripwire there (same disposition as proof:peer-satisfied), so it
-            # is not demanded in a blocking aggregator tier.
-            - name: "[born-RED tripwire] proof:keyframes-vue-published (L.W8 S2 — @mkbabb/keyframes-vue UNPUBLISHED + stale peer floor; RED until the USER publishes)"
-              id: proof-keyframes-vue-published
-              continue-on-error: true
-              run: npm run proof:keyframes-vue-published
             - name: install playwright + lighthouse (demo-gate only; --no-save keeps the lib posture)
               run: npm i --no-save @playwright/test lighthouse
             - name: install chromium
@@ -1705,12 +1687,12 @@ jobs:
             # every gate ran and every red annotation is visible (the failures[]
             # accumulator pattern, hoisted to the GHA job level).
             #
-            # Q.WA3 S1: the TWO REMAINING born-RED-BY-DESIGN tripwires
-            # (proof:peer-satisfied, proof:keyframes-vue-published) are EXCLUDED from the
-            # blocking `failed` set. (A third tripwire was RETIRED at Q.WA2 — its step is
-            # gone, so only the two remain to exclude.) They are
-            # EXPECTED-RED observe-only gates, each gated on an UNPUBLISHED sibling fix
-            # (glass-ui BB peer-widen / the USER's keyframes-vue publish); including them
+            # Q.WA3 S1 / R.W0: the SINGLE REMAINING born-RED-BY-DESIGN tripwire
+            # (proof:peer-satisfied) is EXCLUDED from the blocking `failed` set.
+            # (The Q.WA2 tripwire was retired with its step; the keyframes-vue-published
+            # tripwire was RETIRED at R.W0 when keyframes-vue was removed entirely.) It is
+            # an EXPECTED-RED observe-only gate, gated on an UNPUBLISHED sibling fix
+            # (glass-ui BB peer-widen); including it
             # in the exit-1 set made demo-smoke STRUCTURALLY NEVER green, so
             # deploy-pages.yml (which gates on a green demo-smoke) could never fire — the
             # deploy-of-record was dead. They still RUN as steps (their RED is RECORDED as
@@ -1725,7 +1707,6 @@ jobs:
                   # → the deploy-of-record stays dead).
                   bornred=""
                   if [ "${{ steps.proof-peer-satisfied.outcome }}" = "failure" ]; then bornred="$bornred proof-peer-satisfied"; fi
-                  if [ "${{ steps.proof-keyframes-vue-published.outcome }}" = "failure" ]; then bornred="$bornred proof-keyframes-vue-published"; fi
                   if [ "${{ steps.proof-demo-smoke.outcome }}" = "failure" ]; then failed="$failed proof-demo-smoke"; fi
                   if [ "${{ steps.proof-occlusion.outcome }}" = "failure" ]; then failed="$failed proof-occlusion"; fi
                   if [ "${{ steps.proof-demo-usability.outcome }}" = "failure" ]; then failed="$failed proof-demo-usability"; fi
@@ -1801,9 +1782,8 @@ jobs:
                   if [ "${{ steps.proof-platform-adopt.outcome }}" = "failure" ]; then failed="$failed proof-platform-adopt"; fi
                   # Q.WA3 S1 — RECORD the born-RED tripwires (annotated, NOT blocking).
                   if [ -n "$bornred" ]; then
-                    echo "::notice::demo-smoke — born-RED-by-design tripwires RED (RECORDED, NOT blocking):$bornred"
+                    echo "::notice::demo-smoke — born-RED-by-design tripwire RED (RECORDED, NOT blocking):$bornred"
                     echo "(proof:peer-satisfied — the live F-2 peer-cycle until glass-ui BB widens its peer range + kf re-pins, L.W9.)"
-                    echo "(proof:keyframes-vue-published — RED until the USER publishes @mkbabb/keyframes-vue, L.W8 S2.)"
                   fi
                   if [ -n "$failed" ]; then
                     echo "demo-smoke REPORT-ALL — these BLOCKING proof:* steps FAILED (all steps ran; no fail-fast abort):$failed"

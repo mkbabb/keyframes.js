@@ -168,16 +168,10 @@ const EXCLUDED = new Set([
     // tier membership that would re-introduce the abort — the gate rides CI as a
     // report-all tripwire, by L.W4 S8's born-RED contract, not as an aggregator member.
     "proof:peer-satisfied",
-    // L.W8 S2 — proof:keyframes-vue-published is the BORN-RED-BY-DESIGN sibling-adapter
-    // publish tripwire (the SAME disposition as proof:peer-satisfied above). It IS
-    // CI-invoked (the demo-smoke report-all job, continue-on-error) but is DELIBERATELY
-    // ABSENT from the blocking proof:correctness/proof:hygiene && chains: clause (b)
-    // STAYS RED until the USER runs `npm publish` in packages/keyframes-vue/ (the actual
-    // publish is USER-DOMAIN — this wave implements everything UP TO it). Placing it in a
-    // blocking && chain would abort the chain on the expected RED. The exclusion keeps the
-    // converse-coverage clause (0b) from demanding a tier membership that would re-introduce
-    // the abort — the gate rides CI as a report-all tripwire, not as an aggregator member.
-    "proof:keyframes-vue-published",
+    // (R.W0 — the sibling-adapter publish tripwire was RETIRED with its package: the
+    //  overfit Vue adapter was removed entirely + npm-revoked. Its gate script,
+    //  package.json key, ci.yml step, release.yml publish job, AND this exclusion entry
+    //  were deleted in ONE motion — no orphan survives.)
     // (The DL-K7 control-point tripwire was RETIRED at Q.WA2 / S2. It asserted a
     //  glass-ui component BC decided NEVER to ship, and its false "needs drag2D"
     //  premise mis-blocked the DemoControlPoint chain on a drag2D LIGHT export that
@@ -697,16 +691,15 @@ const jobBounds = (() => {
 // The demo-smoke terminal `check-failures` aggregator must NOT add any born-RED-by-
 // design tripwire to its BLOCKING exit-1 set. Including a born-RED tripwire there
 // made demo-smoke STRUCTURALLY NEVER green → the deploy-of-record (gated on a green
-// demo-smoke) could never fire. The two tripwires (peer-satisfied,
-// keyframes-vue-published) are the EXCLUDED-set members that ride
-// CI as RECORDED report-all tripwires, never as blocking aggregator members. We
+// demo-smoke) could never fire. The remaining tripwire (peer-satisfied)
+// is the EXCLUDED-set member that rides
+// CI as a RECORDED report-all tripwire, never as a blocking aggregator member. We
 // derive the born-RED set from the EXCLUDED tripwires that STILL EXIST as
-// package.json keys (so a retired one — e.g. a gate deleted at Q.WA2 — is simply
-// not demanded), and assert NONE appears in a blocking `failed="$failed …"` line.
+// package.json keys (so a retired one — e.g. the gates deleted at Q.WA2 / R.W0 — is
+// simply not demanded), and assert NONE appears in a blocking `failed="$failed …"` line.
 {
     const BORNRED_TRIPWIRES = [
         "proof:peer-satisfied",
-        "proof:keyframes-vue-published",
     ].filter((g) => g in pkg.scripts); // only those still present
     // Find the check-failures step body (everything from its `- name: …check-failures`
     // anchor to the end of the demo job — the aggregator is the demo job's tail step).

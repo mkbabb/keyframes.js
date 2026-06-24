@@ -186,7 +186,6 @@
         "proof:css-parity": "node scripts/proof-css-parity.mjs",
         "proof:packrat-sound": "node scripts/proof-packrat-sound.mjs",
         "proof:consume-bundle": "node scripts/proof-consume-bundle.mjs",
-        "proof:keyframes-vue-published": "node scripts/proof-keyframes-vue-published.mjs",
         "proof:workaround-deletion": "node scripts/proof-workaround-deletion.mjs",
         "proof:settle-is-predicate": "node scripts/proof-settle-is-predicate.mjs",
         "proof:manifest-sourced": "node scripts/proof-manifest-sourced.mjs",

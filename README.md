@@ -878,12 +878,6 @@ Positions: a number (absolute ms), `"+=n"` / `"-=n"` (relative to the insertion 
 
 ## Ecosystem & agents
 
-- **[`@mkbabb/keyframes-vue`](packages/keyframes-vue/)** — a thin Vue 3 adapter over this library. Two on-brand primitives: the declarative `<Keyframes :css>` component (the author's CSS `@keyframes` → a scalar-progress slot — the component no other engine can write, because no other engine parses author CSS as its source format) and the `useKfAnimation` composable kernel. `@mkbabb/keyframes.js` and `vue` are **peers** — the core library never carries Vue.
-
-  ```sh
-  npm i @mkbabb/keyframes-vue @mkbabb/keyframes.js vue
-  ```
-
 - **[`llms.txt`](./llms.txt)** — the agent surface: a machine-readable index of every capability, **generated** from the CI-verified published surface (`docs/published-surface.md`) so it cannot drift from the shipped API. Point an LLM/agent at it for a grounded map of the primitives, the static/dynamic boundary, and the round-trip. `llms-full.txt` carries the expanded form.
 
 ## Build & Development
