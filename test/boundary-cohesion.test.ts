@@ -44,12 +44,17 @@ describe("F.W11 — the 4× clamp converged onto leaves.clamp", () => {
     });
 });
 
-describe("F.W11 — group.ts's lerp retargeted to value.js (inverted-tier removed)", () => {
-    it("group.ts does not import lerp from the light leaf", () => {
-        const g = read("group/group.ts");
-        expect(g).not.toMatch(/import\s*\{[^}]*lerp[^}]*\}\s*from\s*["']\.\/internal\/leaves["']/);
-        // …it takes the canonical copy from value.js (the heavy posture it already holds).
-        expect(g).toMatch(/from\s*["']@mkbabb\/value\.js["']/);
+describe("F.W11 — the group blend's lerp is value.js, not the light leaf (inverted-tier removed)", () => {
+    // R.W2 — the boxed blend leaf (the `lerp` user) was carved out of `group.ts`
+    // into `./group/compositor.ts`; the F.W11 posture (lerp from value.js, NOT a
+    // light-leaf re-export) follows it to its new home.
+    it("the group compositor does not import lerp from the light leaf", () => {
+        const c = read("group/compositor.ts");
+        expect(c).not.toMatch(
+            /import\s*\{[^}]*lerp[^}]*\}\s*from\s*["']\.\.\/internal\/leaves["']/,
+        );
+        // …it takes the canonical copy from value.js (the heavy posture).
+        expect(c).toMatch(/import\s*\{[^}]*lerp[^}]*\}\s*from\s*["']@mkbabb\/value\.js["']/);
     });
 });
 

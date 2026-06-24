@@ -71,7 +71,11 @@ const requireAll = (clause, file, anchors) => {
 
 console.log("proof:blend — G.W17 (the dead add/weighted blend-leaf correction)");
 
-const GROUP = "src/animation/group/group.ts";
+// R.W2 — the boxed `add`/`weighted` blend leaf (`boxedBlendArm`) was carved out
+// of `group.ts` into the colocated `./compositor` (the lib-group 146L+70L split);
+// the blend-leaf source clauses below grep it at its new home ("gate follows code
+// to its new home"). The behavioral value-locks ride `test/blend.test.ts`.
+const GROUP = "src/animation/group/compositor.ts";
 const TEST = "test/blend.test.ts";
 
 // ── array-guard — both arms guard on Array.isArray(existing && incoming) ──────

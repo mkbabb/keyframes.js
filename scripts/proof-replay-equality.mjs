@@ -92,6 +92,10 @@ console.log(
 const FORMAT = "src/animation/compile/format.ts";
 const FRAME_COMPILER = "src/animation/compile/frame-compiler.ts";
 const ENGINE = "src/animation/engine/animation.ts";
+// R.W2 — `bindTimeline` (the named-selector attach-time resolution) lives in the
+// carved `engine/css-animation.ts` CSS subclass; the play-time guard
+// (`assertNoUnresolvedNamedSelector`) stays on the base class as a delegate.
+const CSS_ANIMATION = "src/animation/engine/css-animation.ts";
 const CONSTANTS = "src/animation/constants.ts";
 const TEST = "test/replay-equality.test.ts";
 
@@ -189,11 +193,13 @@ requireAll("named-selector", FRAME_COMPILER, [
         re: /export\s+const\s+namedSelectorToFraction\b/,
     },
 ]);
-requireAll("named-selector", ENGINE, [
+requireAll("named-selector", CSS_ANIMATION, [
     {
         name: "bindTimeline resolves named selectors to numeric % at attach (the deferred-resolution seam — Q.WD1-bind S2)",
         re: /bindTimeline\s*\(\s*timeline\s*:\s*Timeline\s*\)/,
     },
+]);
+requireAll("named-selector", ENGINE, [
     {
         name: "the play-time NAMED_SELECTOR_NO_TIMELINE guard (assertNoUnresolvedNamedSelector) — fires at play/at, NEVER at parse",
         re: /assertNoUnresolvedNamedSelector|NAMED_SELECTOR_NO_TIMELINE/,

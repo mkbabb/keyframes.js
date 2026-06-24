@@ -80,18 +80,21 @@ console.log(
 const ENGINE = "src/animation/engine/animation.ts";
 // K.WZ — the K.W7 composition-honoring LEAF logic (the un-clamped add, the
 // repeat-aware accumulate, the captured underlying base, the non-numeric
-// `replace`-fallback + `COMPOSITION_FALLBACK` row) was extracted out of the
-// engine god-object into this colocated INTERNAL module (the engine.ts<1400
-// ceiling split — engine.ts keeps the CALL site + the rAF-only gate, the
-// module holds the leaf bodies). The body anchors below follow the code to
-// their true location; the engine-side anchors (the `applyComposition` call,
-// the `resolved.composition` read, the `transformFrames` gate) stay on ENGINE.
+// `replace`-fallback + `COMPOSITION_FALLBACK` row) lives in this colocated
+// INTERNAL module. R.W2 — the engine god-class was carved: the `fromString`
+// `resolved.composition` READ moved to `engine/css-animation.ts`, and the
+// `processFrame` → `applyComposition` CALL + the `iteration` thread moved to
+// `engine/interpolate.ts` (the hot-path carve). The anchors below follow the
+// code to its new home ("gate follows code").
 const COMPOSITION = "src/animation/engine/composition.ts";
+const CSS_ANIMATION = "src/animation/engine/css-animation.ts";
+const INTERPOLATE = "src/animation/engine/interpolate.ts";
 const WAAPI = "src/animation/waapi/waapi.ts";
 const TEST = "test/composition-honored.test.ts";
 
 // ── raf-read — engine reads resolved.composition + threads it into addFrame ──
-requireAll("raf-read", ENGINE, [
+// R.W2 — `fromString` lives in `engine/css-animation.ts` (the CSS subclass carve).
+requireAll("raf-read", CSS_ANIMATION, [
     {
         name: "fromString reads resolved.composition.get(percent)",
         re: /resolved\.composition\.get\(\s*percent\s*\)/,
@@ -103,12 +106,13 @@ requireAll("raf-read", ENGINE, [
 ]);
 
 // ── apply-honor — processFrame composites on the APPLY path ───────────────────
-// The CALL site stays on the engine (processFrame → applyComposition); the leaf
-// bodies (the un-clamped add, the captured base) live in the extracted module.
-requireAll("apply-honor", ENGINE, [
+// The CALL site lives in `engine/interpolate.ts` (R.W2 hot-path carve): the
+// `processFrame` free function calls `applyComposition`. The leaf bodies (the
+// un-clamped add, the captured base) live in `engine/composition.ts`.
+requireAll("apply-honor", INTERPOLATE, [
     {
         name: "processFrame calls applyComposition (the honoring leaf)",
-        re: /this\.applyComposition\(\s*frame\s*\)/,
+        re: /applyComposition\(\s*anim\s*,\s*frame\s*\)/,
     },
 ]);
 requireAll("apply-honor", COMPOSITION, [
@@ -136,11 +140,12 @@ requireAll("accumulate", COMPOSITION, [
     },
 ]);
 // The engine THREADS its own `iteration` into the composition runtime (the
-// counter the accumulate stack reads) — the engine-side half of the contract.
-requireAll("accumulate", ENGINE, [
+// counter the accumulate stack reads) — R.W2: the `applyComposition` seam moved
+// to `engine/interpolate.ts`, where it threads `iteration: anim.iteration`.
+requireAll("accumulate", INTERPOLATE, [
     {
-        name: "the engine threads its iteration counter into the composition runtime",
-        re: /iteration:\s*this\.iteration/,
+        name: "the interp hot-path threads its iteration counter into the composition runtime",
+        re: /iteration:\s*anim\.iteration/,
     },
 ]);
 
@@ -177,18 +182,19 @@ requireAll("waapi-emit", WAAPI, [
 ]);
 
 // ── raf-only-apply — the honoring is GATED on transformFrames ─────────────────
+// R.W2 — `processFrame` (the gate site) lives in `engine/interpolate.ts`.
 {
-    const src = read(ENGINE);
+    const src = read(INTERPOLATE);
     // The applyComposition call must be guarded by `transformFrames` so a WAAPI
     // sample (apply=false) keeps the raw effect (the compositor adds the base).
     const gated =
-        /if\s*\(\s*transformFrames\s*&&[\s\S]*?frame\.composition\s*!=\s*null\s*\)\s*\{\s*this\.applyComposition/.test(
+        /if\s*\(\s*transformFrames\s*&&[\s\S]*?frame\.composition\s*!=\s*null\s*\)\s*\{\s*applyComposition\(\s*anim/.test(
             src,
         );
     if (!gated) {
         fail(
             "raf-only-apply",
-            `${ENGINE}: the applyComposition call is NOT gated on \`transformFrames\` — a WAAPI sample (apply=false) would carry the SUM AND the compositor would add the base, double-counting (parity reds).`,
+            `${INTERPOLATE}: the applyComposition call is NOT gated on \`transformFrames\` — a WAAPI sample (apply=false) would carry the SUM AND the compositor would add the base, double-counting (parity reds).`,
         );
     } else {
         ok(

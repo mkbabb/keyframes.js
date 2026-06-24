@@ -38,6 +38,13 @@ console.log(
 
 const RESOLVE = "src/animation/resolve/index.ts";
 const ENGINE = "src/animation/engine/animation.ts";
+// R.W2 — the Phase-2 element-aware SECOND-pass resolver (the `resolveValues`
+// rewriter + the env-populate) was carved out of the engine god-class into the
+// colocated `engine/element-resolve.ts` (lib-engine F-7); `setTargets` (on the
+// base class) calls it as a one-line delegate. The body anchors follow the code
+// to its new home, in the free-function form (`resolveElementAwareValues`/
+// `buildElementAwareEnv`, no leading underscore).
+const ELEMENT_RESOLVE = "src/animation/engine/element-resolve.ts";
 
 const requireAll = (clause, file, anchors) => {
     if (!existsSync(join(root, file))) {
@@ -96,20 +103,23 @@ requireAll("sibling-resolved", RESOLVE, [
     },
 ]);
 
-// ── second-pass (S3) — the engine's setTargets env-populate + the second
-//    resolveValues pass over the pre-flatten template snapshot + the re-parse ───
+// ── second-pass (S3) — the element-aware second-pass resolver + the engine's
+//    setTargets delegate. R.W2: the resolver body lives in `./element-resolve`;
+//    `setTargets` (on the base class) calls it (`resolveElementAwareValues`).
 requireAll("second-pass", ENGINE, [
     {
-        name: "engine imports hasPhase2Node + resolveValues from ../resolve (the second-pass seam; R.W1 zone path)",
+        name: "setTargets runs the element-aware second pass (resolveElementAwareValues delegate)",
+        re: /resolveElementAwareValues\s*\(\s*this\s*\)/,
+    },
+]);
+requireAll("second-pass", ELEMENT_RESOLVE, [
+    {
+        name: "the resolver imports hasPhase2Node + resolveValues from ../resolve (the second-pass seam)",
         re: /hasPhase2Node[\s\S]*?from\s+["']\.\.\/resolve["']|resolveValues[\s\S]*?from\s+["']\.\.\/resolve["']/,
     },
     {
-        name: "setTargets runs the element-aware second pass (_resolveElementAwareValues)",
-        re: /_resolveElementAwareValues\s*\(/,
-    },
-    {
-        name: "the env-populate reads the bound target's custom-prop + sibling position (_buildElementAwareEnv)",
-        re: /_buildElementAwareEnv\b/,
+        name: "the env-populate reads the bound target's custom-prop + sibling position (buildElementAwareEnv)",
+        re: /buildElementAwareEnv\b/,
     },
     {
         name: "the env binds siblingIndex (1-based) + siblingCount off parentElement.children",

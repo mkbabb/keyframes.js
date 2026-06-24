@@ -41,8 +41,9 @@ console.log(
     "proof:nan-frame — Q.WD1 (DM-22 named-selector NaN-frame proper cure: bind-resolve + play-time guard)",
 );
 
+// R.W2 — `CSSKeyframesAnimation` moved to `engine/css-animation.ts`.
 const engineUrl = pathToFileURL(
-    join(root, "src", "animation", "engine", "animation.ts"),
+    join(root, "src", "animation", "engine", "css-animation.ts"),
 ).href;
 const fcUrl = pathToFileURL(
     join(root, "src", "animation", "compile", "frame-compiler.ts"),

@@ -1,4 +1,3 @@
-import { ValueUnit, lerp } from "@mkbabb/value.js";
 import { withReducedMotion } from "../internal/reduced-motion";
 import { RAFPlayback } from "../physics/playback";
 // PKG-3 (L.W8 §S4): the engine class is `KeyframesAnimation` (formerly
@@ -6,24 +5,17 @@ import { RAFPlayback } from "../physics/playback";
 // value import provides BOTH the runtime constructor (the `instanceof` guard)
 // AND the type used in the `KeyframesAnimation<V>` annotations below.
 import { KeyframesAnimation, getAnimationId } from "../engine/animation";
-import { SpringProgress } from "../physics/spring";
 import {
-    advanceBatched,
-    advanceSlice,
-    computeGroupedKeys,
     renderMultiTarget,
     requireEntry,
-    resolveEntryKey,
-    seedLayerSpring,
     setChildrenPaused,
     snapChildrenToFinal,
-} from "./layer-springs";
-import type { LayerTransitionSpring } from "./layer-springs";
-import {
-    buildSoAPlans,
-    groupSoABlendLayer,
-    isNumericUnit,
-} from "./soa";
+} from "./entries";
+import { advanceBatched, advanceSlice } from "./scheduler";
+import { advanceLayerSprings } from "./springs";
+import type { LayerTransitionSpring } from "./springs";
+import { compositeFrame } from "./compositor";
+import * as layerApi from "./layer-api";
 import type { SoALayerPlan } from "./soa";
 import type {
     AnimationLayerConfig,
@@ -32,16 +24,14 @@ import type {
 } from "../constants";
 import { defaultLayerConfig, NOOP_TRANSFORM } from "../constants";
 
-// The K.W11 PHYS-C spring-weight helpers live in `./group-layer-springs`
-// (INTERNAL); re-export the option type so the public `transitionLayer`/
-// `crossfade` signatures read unchanged.
+// R.W2 — the `group-layer-springs.ts` junk-drawer 3-way split (entry-set helpers
+// → `./entries`, scheduler-yield batching → `./scheduler`, K.W11 PHYS-C
+// spring-weight helpers → `./springs`) + the `transformFramesGrouped`/
+// `boxedBlendArm` composite carve → `./compositor` (the SoA fold itself lives in
+// `./soa`). `_soaPlans`/`_compositeBuf` stay instance state here. The
+// `LayerTransitionSpring` option type is re-exported so the public
+// `transitionLayer`/`crossfade` signatures read unchanged.
 export type { LayerTransitionSpring };
-
-// The P.W2 SoA compositor fold (the `SoALayerPlan` type + `buildSoAPlans` plan
-// builder + `groupSoABlendLayer` per-frame fold + the shared `isNumericUnit`
-// guard) lives in `./group-soa` (INTERNAL, Q.WF2 decomposition). `_soaPlans` /
-// `_compositeBuf` stay instance state here; `soaBlendLayer` stays a thin
-// delegating wrapper (proof:soa-composite monkey-patches the INSTANCE method).
 
 export interface AnimationGroupEntry<V extends Vars> {
     animation: KeyframesAnimation<V>;
@@ -53,20 +43,16 @@ export interface AnimationGroupObject<V extends Vars> {
     [key: string]: AnimationGroupEntry<V>;
 }
 
-/** Input type for AnimationGroup constructor — bare Animation or Animation with layer config. */
+/** Input — a bare Animation or one with a layer config. */
 export type AnimationGroupInput<V extends Vars> =
     | KeyframesAnimation<V>
     | { animation: KeyframesAnimation<V>; layer?: Partial<AnimationLayerConfig> };
 
 export class AnimationGroup<V extends Vars> {
     animations: AnimationGroupObject<V> = {};
-    /**
-     * The group's composite transform. Defaults to a real no-op at the FIELD
-     * (I.W0 S3) — NOT a lying definite-assignment assertion: a childless or
-     * pre-`parse()` group composites nothing via a harmless no-op instead of
-     * throwing `this.transform is not a function`. The constructor overrides it
-     * with the first child's transform when one exists.
-     */
+    /** The group's composite transform. Defaults to a real no-op at the FIELD
+     * (I.W0 S3) — a childless/pre-`parse()` group composites nothing instead of
+     * throwing; the constructor overrides it with the first child's transform. */
     transform: TransformFunction<V> = NOOP_TRANSFORM;
 
     superKey: string | undefined;
@@ -75,18 +61,12 @@ export class AnimationGroup<V extends Vars> {
     started = false;
     done = false;
 
-    /**
-     * When true, `play()` honors `prefers-reduced-motion: reduce` by snapping
-     * every child to its final frame in a single composite instead of running
-     * the rAF draw loop. SSR-safe off-DOM. Default false.
-     */
+    /** When true, `play()` honors `prefers-reduced-motion: reduce` by snapping
+     * every child to its final frame in one composite, no rAF loop. Default false. */
     respectReducedMotion = false;
 
-    /**
-     * Children-per-slice before `advanceTo()` yields to the main thread. Groups
-     * at or under this size tick in one slice (fast path); larger groups tick in
-     * batches with a `scheduler.yield()` between them (INP relief).
-     */
+    /** Children-per-slice before `advanceTo()` yields to the main thread; larger
+     * groups batch with a `scheduler.yield()` between slices (INP relief). */
     static readonly YIELD_BATCH = 32;
 
     singleTarget = true;
@@ -105,57 +85,31 @@ export class AnimationGroup<V extends Vars> {
     private _entries: AnimationGroupEntry<V>[] = [];
     private _entriesDirty = true;
 
-    /**
-     * Long-lived composite buffer, cleared in place at the top of
-     * `transformFramesGrouped` (the zero-alloc idiom `interpFrames`'s `out` buffer
-     * uses) — no fresh object allocated per frame.
-     */
-    private _grouped: Record<string, unknown> = {};
+    /** Long-lived composite buffer, cleared in place each frame (zero-alloc).
+     * INTERNAL (R.W2) — read/written by `./compositor`. */
+    _grouped: Record<string, unknown> = {};
 
-    /**
-     * The compile-stable union of every child's contributed (whitelist-filtered)
-     * keys — what `_grouped` is null-filled to each frame so the composite clears
-     * WITHOUT `delete` (F.W4 S2: the delete-loop trapped `_grouped` in V8
-     * dictionary mode). Recomputed only on a structural change; the fold lives in
-     * `group-layer-springs`.
-     */
-    private _groupedKeys: string[] = [];
-    private _groupedKeysDirty = true;
+    /** The compile-stable union of every child's contributed keys — what `_grouped`
+     * is null-filled to each frame so the composite clears WITHOUT `delete` (F.W4
+     * S2; fold in `./entries`). INTERNAL (R.W2) — the `./compositor` null-fill. */
+    _groupedKeys: string[] = [];
+    _groupedKeysDirty = true;
 
-    /**
-     * P.W2 — the SoA composite layout for the `add`/`weighted` blend arms (the
-     * validated 3.7× — `scripts/soa-composite-decision.json`, bit-identical
-     * `maxErr=0`). One {@link SoALayerPlan} per `add`/`weighted` entry: the FLAT
-     * list of pure-numeric `(carrier, incoming)` `ValueUnit<number>` pairs that
-     * blend would touch, hoisted out of the per-frame `for..in` + `Array.isArray`
-     * + per-element `isNumericUnit` dispatch into a contiguous {@link Float64Array}
-     * fold. Built by {@link buildSoAPlans} (INTERNAL, `./group-soa`). Rebuilt ONLY
-     * on a structural change (alongside `_groupedKeys`), NEVER per frame. The
-     * `replace` default arm is dispatch-free and carries NO plan; the non-numeric
-     * (color/computed/string/mixed) tail keeps the boxed per-element path. The
-     * probe (`carrier-probe`) proved `interpFrames` MUTATES each leaf
-     * `ValueUnit.value` IN PLACE, so the carrier + incoming refs are STABLE across
-     * frames — the plan is valid until the entry set / a layer whitelist / a blend
-     * mode changes (every such mutation routes through `invalidateEntries`).
-     */
-    private _soaPlans: SoALayerPlan[] | null = null;
-    /**
-     * The long-lived SoA fold scratch — the contiguous numeric accumulate buffer
-     * the `add`/`weighted` fold seeds, folds, and writes back through. Sized to
-     * the WIDEST single-layer numeric pair count once per structural change
-     * (reused across layers AND frames — zero per-frame alloc, the F.W4 zero-alloc
-     * discipline). `null` until the first plan with numeric pairs is built.
-     */
-    private _compositeBuf: Float64Array | null = null;
+    /** P.W2 — the SoA composite layout for the `add`/`weighted` blend arms (the
+     * validated 3.7×, bit-identical): one {@link SoALayerPlan} per entry, the FLAT
+     * pure-numeric pairs hoisted into a {@link Float64Array} fold (built by
+     * `buildSoAPlans` in `./soa`, rebuilt ONLY on a structural change). INTERNAL
+     * (R.W2) — read/written by `./compositor`. */
+    _soaPlans: SoALayerPlan[] | null = null;
+    /** The long-lived SoA fold scratch — the contiguous numeric accumulate buffer,
+     * sized to the WIDEST single-layer pair count once per structural change
+     * (reused, zero per-frame alloc). INTERNAL (R.W2) — read by `./compositor`. */
+    _compositeBuf: Float64Array | null = null;
 
-    /**
-     * K.W11 PHYS-C — true iff ANY layer currently carries a `weightSpring`. The
-     * fast-path guard: when false (the universal case) `advanceTo` skips the
-     * per-frame spring scan entirely, so the constant-weight blend hot path takes
-     * ZERO new work. Set true by `transitionLayer`; recomputed false once every
-     * driving spring has settled.
-     */
-    private _hasLayerSprings = false;
+    /** K.W11 PHYS-C — true iff ANY layer carries a `weightSpring`; when false (the
+     * universal case) `advanceTo` skips the per-frame spring scan (ZERO new work).
+     * INTERNAL (R.W2) — set by `./layer-api`'s `transitionLayer`. */
+    _hasLayerSprings = false;
 
     constructor(...inputs: (KeyframesAnimation<V> | AnimationGroupInput<V>)[]) {
         this._boundFrame = this._frame.bind(this);
@@ -173,11 +127,9 @@ export class AnimationGroup<V extends Vars> {
                 layerConfig = input.layer;
             }
 
-            // Inherit the transform from the first child that has one, overriding
-            // the no-op field default. A child constructed before `parse()`
-            // (empty `frames`) leaves the no-op default standing, so
-            // `transformFramesGrouped` composites a harmless empty frame instead
-            // of throwing (I.W0 S3 — the field default IS the total fallback).
+            // Inherit the transform from the first child that has one. A child
+            // built before `parse()` (empty `frames`) leaves the no-op standing,
+            // so the composite paints a harmless empty frame, not a throw (I.W0 S3).
             if (
                 this.transform === NOOP_TRANSFORM &&
                 animation.frames[0] != null
@@ -206,12 +158,10 @@ export class AnimationGroup<V extends Vars> {
 
     // ── Entry cache ──────────────────────────────────────────────────
 
-    /**
-     * The animation entries sorted by layer zIndex, dirty-flag cached — rebuilt
-     * only when the animations object or a layer config is mutated. All hot-path
-     * iteration uses this instead of `Object.values()`.
-     */
-    private getEntries(): AnimationGroupEntry<V>[] {
+    /** The animation entries sorted by layer zIndex, dirty-flag cached — rebuilt
+     * only on a mutation. INTERNAL (R.W2): read by the colocated `./compositor`/
+     * `./entries`/`./scheduler`/`./springs` helpers + all hot-path iteration. */
+    getEntries(): AnimationGroupEntry<V>[] {
         if (this._entriesDirty) {
             this._entries = Object.values(this.animations);
             this._entries.sort((a, b) => a.layer.zIndex - b.layer.zIndex);
@@ -220,13 +170,12 @@ export class AnimationGroup<V extends Vars> {
         return this._entries;
     }
 
-    /** Mark entries cache stale. Called at all mutation boundaries. */
-    private invalidateEntries(): void {
+    /** Mark entries cache stale. Called at all mutation boundaries.
+     * INTERNAL (R.W2) — also called by `./layer-api`. */
+    invalidateEntries(): void {
         this._entriesDirty = true;
         this._groupedKeysDirty = true;
     }
-
-    // ── Setup ────────────────────────────────────────────────────────
 
     setSuperKey(superKey: string) {
         this.superKey = superKey;
@@ -250,283 +199,31 @@ export class AnimationGroup<V extends Vars> {
         return this;
     }
 
-    // ── Lifecycle hooks ──────────────────────────────────────────────
-
-    onStart() {
-        this.started = true;
-        return this;
-    }
-
-    onEnd() {
-        return this;
-    }
-
-    // ── Frame rendering ──────────────────────────────────────────────
-
-    /**
-     * Composite all animation values into a single grouped transform (per-frame
-     * for single-target groups). Applies layer blending (replace / add /
-     * weighted) in zIndex order, then calls the group transform with the merged
-     * values. Each child's values refresh in place (`interpFrames` clears and
-     * rewrites the long-lived buffer), so no stale keys leak and no fresh object
-     * is allocated per entry per frame.
-     */
-    transformFramesGrouped(t: number) {
-        // Reuse the long-lived composite buffer, cleared in place (the zero-alloc
-        // idiom `interpFrames` uses for its `out` buffer) — no fresh object/frame.
-        const groupedValues = this._grouped;
-        if (this._groupedKeysDirty) {
-            // The compile-stable key UNION (whitelist-filtered) — recomputed only
-            // on a structural change, never per frame (fold in `group-layer-springs`).
-            this._groupedKeys = computeGroupedKeys(this.getEntries());
-            this._groupedKeysDirty = false;
-            // P.W2 — drop the SoA plan; it is rebuilt lazily on the next frame
-            // (once each child's `entry.values` is populated, so the carrier +
-            // incoming refs can be captured). A structural change invalidates the
-            // captured refs, so the rebuild is gated on the SAME dirty seam.
-            this._soaPlans = null;
-        }
-
-        // F.W4 S2 — stable-key null-fill clear (NO `delete`: the delete-loop
-        // trapped `_grouped` in V8 dictionary mode). Inactive keys read back
-        // `undefined`; the blend skips them and the post-blend compaction drops
-        // any uncontributed key.
-        const groupedKeys = this._groupedKeys;
-        for (let i = 0; i < groupedKeys.length; i++) {
-            groupedValues[groupedKeys[i]!] = undefined;
-        }
-
-        const entries = this.getEntries();
-
-        // P.W2 — the SoA fold (the validated 3.7×) takes over ONLY once the plan
-        // is built. The plan needs each child's `entry.values` populated (the
-        // carrier + incoming refs to capture), so the FIRST frame after a
-        // structural change runs the boxed path AND builds the plan; subsequent
-        // frames fold numeric pairs through `_compositeBuf`. A group with NO
-        // `add`/`weighted` layer builds an empty plan list (the `replace` default
-        // is dispatch-free — there is nothing to transpose), so the fast path is
-        // byte-unchanged.
-        const useSoA = this._soaPlans !== null;
-        let soaIdx = 0;
-
-        let done = true;
-        for (const groupObject of entries) {
-            const { animation, layer, values } = groupObject;
-
-            done = done && animation.done;
-
-            if (!layer.enabled) continue;
-
-            // Refresh in place — `interpFrames` resets `values` before writing,
-            // so a scrubbed child's fresh state is always reflected.
-            animation.interpFrames(
-                animation.t,
-                false,
-                values as Record<string, ValueUnit[]>,
-            );
-
-            // The whitelist is an INLINE key-skip — no `filteredValues` object;
-            // each blend arm walks `values` with `for..in` (allocation-free).
-            const whitelist = layer.properties;
-
-            if (layer.blendMode === "replace") {
-                // The DEFAULT arm — a bare reference-assign (z-order last-writer-
-                // wins). Already dispatch-free; UNTOUCHED by the SoA transposition.
-                for (const key in values) {
-                    if (whitelist && !whitelist.has(key)) continue;
-                    const incoming = values[key];
-                    if (incoming === undefined) continue;
-                    groupedValues[key] = incoming;
-                }
-                continue;
-            }
-
-            // `add` / `weighted` — the non-default boxed-AoS arms the SoA fold
-            // targets. When the plan is built, fold the pure-numeric pairs through
-            // `_compositeBuf` (`soaBlendLayer`), then run the boxed path ONLY over
-            // the residual (non-numeric / mixed / first-touch) keys — empty for the
-            // dominant all-numeric shape, so the whole `for..in` collapses to the
-            // fold. On the plan-build frame `useSoA` is false: the boxed path runs
-            // whole (and records the carriers the next frame's plan captures).
-            if (useSoA) {
-                const plan = this._soaPlans![soaIdx++]!;
-                this.soaBlendLayer(plan);
-                if (plan.boxedKeys.length > 0) {
-                    this.boxedBlendArm(
-                        layer,
-                        values,
-                        groupedValues,
-                        whitelist,
-                        plan.boxedKeys,
-                    );
-                }
-            } else {
-                this.boxedBlendArm(layer, values, groupedValues, whitelist);
-            }
-        }
-
-        // Build the SoA plan once `entry.values` is populated (this frame's boxed
-        // pass established the carriers) — captured for every subsequent frame.
-        // `buildSoAPlans` (INTERNAL, `./group-soa`) grows the shared scratch and
-        // returns it alongside the plans; re-park both as instance state.
-        if (!useSoA) {
-            const { plans, compositeBuf } = buildSoAPlans(
-                entries,
-                this._compositeBuf,
-            );
-            this._soaPlans = plans;
-            this._compositeBuf = compositeBuf;
-        }
-
-        this.done = done;
-
-        // Drop any key NO enabled child contributed this frame so the transform
-        // never serializes an `undefined`. In the common case this deletes
-        // nothing, so `_grouped` stays in fast-properties mode (delete-free,
-        // zero-alloc).
-        for (let i = 0; i < groupedKeys.length; i++) {
-            const key = groupedKeys[i]!;
-            if (groupedValues[key] === undefined) delete groupedValues[key];
-        }
-
-        // I.W0 S3 — lazy composite-transform resolution. A child constructed
-        // before `parse()` populates its `frames` keeps `transform`'s no-op
-        // default (compositing NOTHING — a frozen subject); resolve it from the
-        // first now-parsed child the FIRST time we draw a real frame. A childless
-        // group keeps the no-op (harmless). Idempotent — guard skips once resolved.
-        if (this.transform === NOOP_TRANSFORM) {
-            for (const entry of this.getEntries()) {
-                const frame = entry.animation.frames[0];
-                if (frame != null && frame.transform != null) {
-                    this.transform = frame.transform;
-                    break;
-                }
-            }
-        }
-
-        this.transform(groupedValues as V, t);
-
-        return groupedValues;
+    /** Composite all values into a single grouped transform (single-target,
+     * per-frame). R.W2 — `private` (lib-group F8): the PUBLIC single-frame-paint
+     * entry is `render(t?)`; the body lives in `./compositor`. Thin delegate. */
+    private transformFramesGrouped(t: number) {
+        return compositeFrame(this, t);
     }
 
     /**
-     * The boxed `add`/`weighted` blend arm — the per-element AoS path that the
-     * SoA fold (`soaBlendLayer`) supplants for the pure-numeric majority. Kept as
-     * THE blend implementation for two roles: (1) the plan-build frame (every key,
-     * `only === undefined`) — it establishes the carriers `buildSoAPlans` then
-     * captures; (2) the per-frame residual (the plan's `boxedKeys` — non-numeric /
-     * mixed / first-touch leaves the fold cannot cover, typically empty). Both
-     * arms guard on `Array.isArray(existing) && Array.isArray(incoming)` and loop
-     * `Math.min(existing.length, incoming.length)` elements with a per-element
-     * `isNumericUnit` guard — the byte-exact G.W17 leaf contract (proof:blend),
-     * un-clamped `add` (`+=`), spring-weighted `lerp`. A non-array carrier (or a
-     * skipped key) falls through to `groupedValues[key] = incoming`.
+     * Render the current composition as a static frame — the public entry for
+     * state mutated outside the rAF loop (scrubbing, restore, pause snapshots).
+     * R.W2 — the silent `|| performance.now()` fabrication is EXCISED: the
+     * composite `t` is non-normative for a pure-CSS transform, so a caller with a
+     * clock passes it (`render(now)`); a scrub uses the group's REAL `lastTickTime`
+     * (0 for a never-ticked group), never a fabricated wall-clock.
      */
-    private boxedBlendArm(
-        layer: AnimationLayerConfig,
-        values: Record<string, unknown>,
-        groupedValues: Record<string, unknown>,
-        whitelist: Set<string> | undefined,
-        only?: readonly string[],
-    ): void {
-        const onlySet = only ? new Set(only) : undefined;
-        if (layer.blendMode === "add") {
-            // Accumulate each numeric leaf element in place (the leaf is a
-            // `ValueUnit[]` — scalar = length 1, multi-component = N). Numeric add
-            // is UN-CLAMPED (CSS `animation-composition: add` clamps at use, not
-            // composition) — `0.8 + 0.8 → 1.6`.
-            for (const key in values) {
-                if (onlySet && !onlySet.has(key)) continue;
-                if (whitelist && !whitelist.has(key)) continue;
-                const incoming = values[key];
-                if (incoming === undefined) continue;
-                const existing = groupedValues[key];
-                if (Array.isArray(existing) && Array.isArray(incoming)) {
-                    const n = Math.min(existing.length, incoming.length);
-                    for (let i = 0; i < n; i++) {
-                        if (
-                            isNumericUnit(existing[i]) &&
-                            isNumericUnit(incoming[i])
-                        ) {
-                            existing[i].value += incoming[i].value;
-                        } else {
-                            existing[i] = incoming[i];
-                        }
-                    }
-                } else {
-                    groupedValues[key] = incoming;
-                }
-            }
-            return;
-        }
-
-        // `weighted` — lerp each numeric leaf element toward the incoming value by
-        // `w`, in place. K.W11 PHYS-C — the spring-driven blend weight: when the
-        // layer carries a `weightSpring` (set by `transitionLayer`/`crossfade`),
-        // `w` is the stepper's CURRENT value, not the constant `layer.weight` —
-        // ONE nullish read hoisted out of the element loop (a per-LAYER scalar), so
-        // the crossfade can overshoot 1.0 and settle. On settle the spring clears
-        // and the read falls back to the constant (byte-unchanged when no spring).
-        const w = layer.weightSpring?.value ?? layer.weight;
-        for (const key in values) {
-            if (onlySet && !onlySet.has(key)) continue;
-            if (whitelist && !whitelist.has(key)) continue;
-            const incoming = values[key];
-            if (incoming === undefined) continue;
-            const existing = groupedValues[key];
-            if (Array.isArray(existing) && Array.isArray(incoming)) {
-                const n = Math.min(existing.length, incoming.length);
-                for (let i = 0; i < n; i++) {
-                    if (isNumericUnit(existing[i]) && isNumericUnit(incoming[i])) {
-                        existing[i].value = lerp(
-                            existing[i].value,
-                            incoming[i].value,
-                            w,
-                        );
-                    } else {
-                        existing[i] = incoming[i];
-                    }
-                }
-            } else {
-                groupedValues[key] = incoming;
-            }
-        }
-    }
-
-    /**
-     * P.W2 — the SoA fold for ONE `add`/`weighted` layer (the validated 3.7×,
-     * `scripts/soa-composite-decision.json`, bit-identical `maxErr=0`). A thin
-     * delegating wrapper over {@link groupSoABlendLayer} (the fold body lives in
-     * `./group-soa`, Q.WF2): the wrapper forwards the group's `_compositeBuf`
-     * scratch + the plan. The instance METHOD is kept (not inlined at the call
-     * site) so `proof:soa-composite`'s `soa-path-taken` clause can monkey-patch
-     * `group.soaBlendLayer` on the instance to count fold invocations.
-     */
-    private soaBlendLayer(plan: SoALayerPlan): void {
-        groupSoABlendLayer(this._compositeBuf!, plan);
-    }
-
-    /**
-     * Render the current composition as a static frame at each child's current
-     * `t`. Single-target groups go through the blended transform; multi-target
-     * groups apply each child's interpolated vars to its own targets. The public
-     * entry point for state mutated outside the rAF loop (scrubbing, state
-     * restore, pause snapshots) that needs the visual to update immediately.
-     */
-    render(): void {
-        const now = this.lastTickTime || performance.now();
+    render(t: number = this.lastTickTime): void {
         if (this.singleTarget) {
-            this.transformFramesGrouped(now);
+            this.transformFramesGrouped(t);
         } else {
             renderMultiTarget(this.getEntries());
         }
     }
 
-    /**
-     * Set a child animation's current time without touching its siblings.
-     * Updates `pausedTime` so the child resumes correctly from the scrub
-     * position. Chainable; call `render()` afterwards to reflect it visually.
-     */
+    /** Set a child's current time without touching its siblings (updates
+     * `pausedTime` for a jump-free resume). Chainable; `render()` to reflect it. */
     setChildTime(nameOrAnim: string | KeyframesAnimation<V>, t: number) {
         const entry = requireEntry(this.animations, nameOrAnim, "setChildTime");
         const anim = entry.animation;
@@ -537,50 +234,32 @@ export class AnimationGroup<V extends Vars> {
         return this;
     }
 
-    // ── Playback loop ────────────────────────────────────────────────
-
-    /**
-     * Advance all child animations to absolute clock `t`. SYNC on the steady
-     * path (J.W6 S1): children that all step synchronously advance the group
-     * with no per-frame `Promise.all`/microtask hop; a thenable only on a
-     * genuinely-async child or the over-`YIELD_BATCH` yield path.
-     */
+    /** Advance all child animations to absolute clock `t`. SYNC on the steady path
+     * (J.W6 S1): all-synchronous children advance with no per-frame microtask hop;
+     * a thenable only on an async child or the over-`YIELD_BATCH` yield path. */
     advanceTo(t: number): this | Promise<this> {
         // K.W11 PHYS-C — advance any spring-driven layer weights by the frame
-        // delta BEFORE updating `lastTickTime`. A first tick has `lastTickTime
-        // === 0`, so clamp the delta to 0 — a layer spring never takes one giant
-        // first step (it integrates from the next real frame).
+        // delta BEFORE updating `lastTickTime`. A first tick has `lastTickTime ===
+        // 0`, so clamp the delta to 0 (the spring integrates from the next frame).
         const dt = this.lastTickTime === 0 ? 0 : t - this.lastTickTime;
         if (this._hasLayerSprings) this.advanceLayerSprings(dt);
 
         this.lastTickTime = t;
-        if (!this.started) this.onStart();
+        this.started = true;
 
-        // The slice fan-out + the over-`YIELD_BATCH` batched advance are pure
-        // functions in `./group-layer-springs`; `advanceSlice` returns
-        // `undefined` on the all-sync fast path (J.W6 S1 — zero microtask).
+        // The slice fan-out / over-`YIELD_BATCH` batched advance are pure
+        // functions in `./scheduler`; `advanceSlice` returns `undefined` on the
+        // all-sync fast path (J.W6 S1 — zero microtask).
         const entries = this.getEntries();
         const BATCH = AnimationGroup.YIELD_BATCH;
         const pending =
             entries.length <= BATCH
                 ? advanceSlice(entries, t)
                 : advanceBatched(entries, t, BATCH);
-        return pending
-            ? pending.then(() => this._endAdvance())
-            : this._endAdvance();
+        return pending ? pending.then(() => this) : this;
     }
 
-    /** The post-advance tail — `onEnd` once the render marked done. */
-    private _endAdvance(): this {
-        if (this.done) this.onEnd();
-        return this;
-    }
-
-    /**
-     * One frame of the group's draw loop (driven by `RAFPlayback.loop`): ticks
-     * all children, then renders (single-target: grouped blending; multi-target:
-     * per-child). Returns whether the loop should continue.
-     */
+    /** One frame of the group's draw loop: tick all children, then render. */
     private _frame(t: number): boolean | Promise<boolean> {
         const advanced = this.advanceTo(t);
         return typeof (advanced as Promise<this>).then === "function"
@@ -588,7 +267,7 @@ export class AnimationGroup<V extends Vars> {
             : this._renderFrame(t);
     }
 
-    /** The post-advance render half of `_frame` — composite, or settle. */
+    /** The post-advance render half of `_frame` — composite, or settle on done. */
     private _renderFrame(t: number): boolean {
         if (this.paused) {
             return false;
@@ -604,11 +283,9 @@ export class AnimationGroup<V extends Vars> {
             return true;
         }
 
-        // Completion: every child's `onEnd` already painted its rest frame per
-        // its fill contract and the composite above rendered the blended result,
-        // so settle is pure teardown, never a repaint (the rest-position
-        // contract — a completion `reset()` would repaint frame 0, ending a
-        // fadeIn group invisible).
+        // Completion: every child already painted its rest frame + the composite
+        // rendered the blend, so settle is pure teardown, never a repaint (a
+        // completion `reset()` would end a fadeIn group invisible at frame 0).
         this.settle();
         this._resolvePlay();
         return false;
@@ -620,25 +297,16 @@ export class AnimationGroup<V extends Vars> {
         resolve?.();
     }
 
-    /**
-     * The completion front-door (G.W13) — `await group.finished` resolves once
-     * the in-flight composite play settles. Exposes the ONE held
-     * `_playingPromise` `play()` constructs (the re-entrant guard returns it;
-     * the `finally`-clear nulls it on settle) — NOT a second completion
-     * lifecycle. A settled (or never-played) group resolves immediately.
-     */
+    /** The completion front-door (G.W13) — `await group.finished` resolves once
+     * the in-flight composite play settles. Exposes the ONE held `_playingPromise`
+     * (a settled/never-played group resolves immediately). */
     get finished(): Promise<void> {
         return this._playingPromise ?? Promise.resolve();
     }
 
-    /**
-     * Start the animation group. Resolves when all children complete (or on
-     * explicit stop/reset). Re-entrant: a `play()` while one is in flight
-     * returns the same promise rather than leaking a second draw loop. Under
-     * `respectReducedMotion` + an active query, snaps every child to its final
-     * frame in a single composite (no rAF loop), then settles as a completed
-     * play would.
-     */
+    /** Start the group. Resolves when all children complete (or on stop/reset).
+     * Re-entrant: an in-flight `play()` returns the same promise. Under
+     * `respectReducedMotion` + an active query, snaps to final (no rAF loop). */
     async play(): Promise<void> {
         if (this._playingPromise) return this._playingPromise;
 
@@ -659,16 +327,14 @@ export class AnimationGroup<V extends Vars> {
         return result;
     }
 
-    /**
-     * `prefers-reduced-motion` snap: rest = final, paint it, settle — the SAME
-     * terminal path a completed play takes, motion elided. Every child advances
-     * to its final frame, one composite paints, `settle()` readies the group for
-     * replay (final frame stays on the target(s), matching `Animation`'s snap).
-     */
+    /** `prefers-reduced-motion` snap: rest = final, paint it, settle — the SAME
+     * terminal path a completed play takes, motion elided. */
     private _playReducedMotion(): Promise<void> {
-        this.onStart();
-        const now = this.lastTickTime || performance.now();
-        this.lastTickTime = now;
+        this.started = true;
+        // The PRM snap is INSTANTANEOUS — no rAF clock; the snap's `t` is
+        // non-normative for a pure-CSS transform. No `|| performance.now()` silent
+        // fallback (R.W2): the snap's clock IS 0 (the at-rest `lastTickTime`).
+        const now = this.lastTickTime;
 
         // Snap every child to its final frame, then composite one final paint.
         snapChildrenToFinal(this.getEntries());
@@ -682,27 +348,23 @@ export class AnimationGroup<V extends Vars> {
     }
 
     // ── The managed-child lifecycle contract (full statement in
-    // src/animation/CLAUDE.md → AnimationGroup → "Managed-child lifecycle").
-    // A managed child (`managed = true`) is loop-owned by the group: it throws
-    // on direct `play()`; `pause()` records the last rAF clock on each child's
-    // `pausedTime` so `resume()` adjusts `startTime` jump-free; `resume()`
-    // un-pauses children DIRECTLY (never `child.resume()`, which would race the
-    // draw loop); `settle()` releases the child (`managed = false`).
+    // src/animation/CLAUDE.md → AnimationGroup → "Managed-child lifecycle"): a
+    // managed child is loop-owned — it throws on direct `play()`; `pause()` records
+    // the last rAF clock on each child's `pausedTime` so `resume()` adjusts
+    // `startTime` jump-free; `resume()` un-pauses children DIRECTLY (never
+    // `child.resume()`); `settle()` releases the child (`managed = false`).
 
-    /**
-     * Pause the group — idempotent. Pausing an already-paused (or
-     * not-yet-started) group is a no-op, NOT a resume (use {@link toggle} for
-     * the explicit flip). Cancels the rAF loop immediately and renders a
-     * final-frame snapshot so the visual matches the exact pause moment.
-     */
+    /** Pause the group — idempotent. Pausing an already-paused (or not-yet-started)
+     * group is a no-op, NOT a resume. Cancels the rAF loop + renders a final-frame
+     * snapshot so the visual matches the pause moment. */
     pause() {
         if (!this.started || this.paused) return this;
 
         this.paused = true;
-        const now = this.lastTickTime || performance.now();
-
-        // Propagate the pause to every child, recording the last rAF timestamp
-        // (not performance.now()) so resume adjusts startTime jump-free.
+        // A started group has ticked, so `lastTickTime` is set (R.W2 — no
+        // `|| performance.now()` fallback for a never-occurring case). Record it on
+        // each child's `pausedTime` so resume adjusts startTime jump-free.
+        const now = this.lastTickTime;
         for (const entry of this.getEntries()) {
             const anim = entry.animation;
             anim.pause();
@@ -717,19 +379,13 @@ export class AnimationGroup<V extends Vars> {
         return this;
     }
 
-    /**
-     * Resume the group — idempotent. Unpauses every child DIRECTLY (not via
-     * `child.resume()`, which would start each child's own rAF loop — the
-     * group's draw loop owns the ticking) and re-registers that loop.
-     */
+    /** Resume the group — idempotent. Unpauses every child DIRECTLY (not via
+     * `child.resume()` — the group's draw loop owns the ticking) + re-registers it. */
     resume() {
         if (!this.started || !this.paused) return this;
-
         this.paused = false;
         setChildrenPaused(this.getEntries(), false);
-
         this.playback.loop(this._boundFrame);
-
         return this;
     }
 
@@ -738,12 +394,8 @@ export class AnimationGroup<V extends Vars> {
         return this.paused ? this.resume() : this.pause();
     }
 
-    /**
-     * Pure state teardown — never paints. Releases every child
-     * (`managed = false`, `child.settle()`) and clears the group's playback
-     * flags. Completion and the reduced-motion snap both end here, leaving the
-     * rest frame on the target(s).
-     */
+    /** Pure state teardown — never paints. Releases every child (`managed = false`,
+     * `child.settle()`) and clears the group flags, leaving the rest frame painted. */
     settle() {
         for (const entry of this.getEntries()) {
             entry.animation.managed = false;
@@ -758,11 +410,8 @@ export class AnimationGroup<V extends Vars> {
         return this;
     }
 
-    /**
-     * Explicit rewind: paint every started child back to its INITIAL frame, then
-     * settle — the user-facing "return to start". Completion does NOT come here
-     * (it settles where the fill contract rested the pixels).
-     */
+    /** Explicit rewind: paint every started child back to its INITIAL frame, then
+     * settle — the user-facing "return to start" (completion does NOT come here). */
     reset() {
         for (const entry of this.getEntries()) {
             const anim = entry.animation;
@@ -774,10 +423,8 @@ export class AnimationGroup<V extends Vars> {
         return this.settle();
     }
 
-    /**
-     * Halt the draw loop, rewind to the initial frame (the transport-stop
-     * semantic the demo's controls expect), and resolve any pending `play()`.
-     */
+    /** Halt the draw loop, rewind to the initial frame (the transport-stop
+     * semantic the demo's controls expect), and resolve any pending `play()`. */
     stop() {
         this.playback.stop();
         this.reset();
@@ -790,33 +437,18 @@ export class AnimationGroup<V extends Vars> {
         return !(!this.started || this.paused);
     }
 
-    forcePause() {
-        this.paused = true;
-        setChildrenPaused(this.getEntries(), true);
-    }
+    // R.W2 — `forcePause`/`forcePlay` EXCISED (lib-group §5: test-scaffold leaks
+    // with zero src/demo usage). The honest lifecycle is `pause()`/`resume()`.
 
-    forcePlay() {
-        this.paused = false;
-        setChildrenPaused(this.getEntries(), false);
-    }
+    // ── Layer management + spring-transition API (R.W2 — bodies in `./layer-api`;
+    // these are the thin chainable delegates) ─────────────────────────────────
 
-    // ── Layer management API ─────────────────────────────────────────
-
-    /**
-     * Set layer config for an animation by name or reference. Chainable; throws
-     * on an unregistered key (silent no-ops were hiding consumer bugs).
-     */
+    /** Set layer config for an animation by name or reference. Chainable. */
     setLayerConfig(
         nameOrAnim: string | KeyframesAnimation<V>,
         config: Partial<AnimationLayerConfig>,
     ) {
-        const entry = requireEntry(
-            this.animations,
-            nameOrAnim,
-            "setLayerConfig",
-        );
-        Object.assign(entry.layer, config);
-        this.invalidateEntries();
+        layerApi.setLayerConfig(this, nameOrAnim, config);
         return this;
     }
 
@@ -829,96 +461,35 @@ export class AnimationGroup<V extends Vars> {
     getLayerConfig(
         nameOrAnim: string | KeyframesAnimation<V>,
     ): AnimationLayerConfig | undefined {
-        return this.animations[resolveEntryKey(nameOrAnim)]?.layer;
+        return layerApi.getLayerConfig(this, nameOrAnim);
     }
 
-    // ── Spring-driven blend weight (K.W11 PHYS-C) ────────────────────────
-    // The CONSTRUCTION + shared name↔reference lookup live in
-    // `./group-layer-springs` (INTERNAL). The gate-anchored composite STATEMENTS
-    // (`existing.target`, `layer.weightSpring = spring`, the per-frame
-    // `spring.tickDt(dt)`, the settle commit/clear) stay inline —
-    // proof:spring-blend-weight locks the composite contract ON this seam.
-
-    /**
-     * Spring a layer's blend `weight` from its CURRENT value to `weight` (K.W11
-     * PHYS-C — the spring-driven crossfade). Seeds a `SpringProgress` (via
-     * `seedLayerSpring`), parks it on `layer.weightSpring`, and forces
-     * `blendMode` to `weighted`. A re-target mid-flight RE-SEATS the in-flight
-     * spring from its live `(value, velocity)` (`set target`) — no kink. Full
-     * trajectory documentation in `./group-layer-springs`. Chainable.
-     */
+    /** Spring a layer's blend `weight` to `weight` (K.W11 PHYS-C — body in
+     * `./layer-api`; a mid-flight re-target re-seats velocity-continuously). */
     transitionLayer(
         nameOrAnim: string | KeyframesAnimation<V>,
         target: { weight: number; spring?: LayerTransitionSpring },
     ): this {
-        const entry = requireEntry(
-            this.animations,
-            nameOrAnim,
-            "transitionLayer",
-        );
-        const layer = entry.layer;
-        layer.blendMode = "weighted";
-
-        const existing = layer.weightSpring;
-        if (existing instanceof SpringProgress) {
-            // Re-seat the in-flight spring from its live (value, velocity) —
-            // velocity-continuous, no kink. `set target` does the re-seat.
-            existing.target = target.weight;
-        } else {
-            // Seed a fresh spring at the layer's current weight, then park it.
-            const spring = seedLayerSpring(
-                layer.weight,
-                target.weight,
-                target.spring,
-            );
-            layer.weightSpring = spring;
-        }
-
-        this._hasLayerSprings = true;
-        this.invalidateEntries();
+        layerApi.transitionLayer(this, nameOrAnim, target);
         return this;
     }
 
-    /**
-     * Physically crossfade between two layers (K.W11 PHYS-C): spring layer `a`
-     * down to weight `0` and layer `b` up to weight `1`, each over its own
-     * `SpringProgress`. Two `transitionLayer` calls — the flagship demo moment, a
-     * crossfade that overshoots and settles. Chainable.
-     */
+    /** Crossfade two layers (K.W11 PHYS-C — body in `./layer-api`): two spring
+     * `transitionLayer` calls, a→0 and b→1. Chainable. */
     crossfade(
         a: string | KeyframesAnimation<V>,
         b: string | KeyframesAnimation<V>,
         options?: { spring?: LayerTransitionSpring },
     ): this {
-        const spring = options?.spring;
-        this.transitionLayer(a, { weight: 0, ...(spring ? { spring } : {}) });
-        this.transitionLayer(b, { weight: 1, ...(spring ? { spring } : {}) });
+        layerApi.crossfade(this, a, b, options);
         return this;
     }
 
-    /**
-     * Advance every spring-driven layer weight by the frame delta `dt` ms (K.W11
-     * PHYS-C). Called from `advanceTo` ONLY when `_hasLayerSprings` is true, so
-     * the constant-weight path pays nothing. On settle the converged value
-     * commits to the constant `layer.weight` and the spring is CLEARED — the
-     * `weighted` leaf's `?? layer.weight` read then serves the constant.
-     */
+    /** Advance every spring-driven layer weight by `dt` ms (K.W11 PHYS-C). Called
+     * from `advanceTo` ONLY when `_hasLayerSprings` is true. R.W2 (lib-group C2):
+     * the integrate BODY moved to `./springs`; this thin delegate updates
+     * `_hasLayerSprings` from its "any still active?" return. */
     private advanceLayerSprings(dt: number): void {
-        let anyActive = false;
-        for (const entry of this.getEntries()) {
-            const spring = entry.layer.weightSpring;
-            if (spring === undefined) continue;
-            if (dt > 0) spring.tickDt(dt);
-            if (spring.settled) {
-                // Commit the converged value to the constant weight, then drop
-                // the spring so the read falls back to it (`delete`, not
-                // `= undefined`, under `exactOptionalPropertyTypes`).
-                entry.layer.weight = spring.value;
-                delete entry.layer.weightSpring;
-            } else {
-                anyActive = true;
-            }
-        }
-        this._hasLayerSprings = anyActive;
+        this._hasLayerSprings = advanceLayerSprings(this.getEntries(), dt);
     }
 }
