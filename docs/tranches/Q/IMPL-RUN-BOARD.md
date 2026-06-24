@@ -63,14 +63,18 @@
 
 ## In-flight (background tasks)
 
-- **WC4 MorphSVG** `ae6f1409…` (kf tree) — the deferred Band-C wave: the on-DOM render contract O.W6 left
-  vapor + the MorphSVGScene + orient-along-path. Touches engine.ts+morph-svg.ts+scenes.ts → runs ALONE
-  (Stage 4 must wait — it also touches engine.ts). Returns gate entries for central wiring.
+- **WF2 group-decomp** `a46a3522…` (kf tree) — Stage 4 link 2: extract group.ts SoA fold → group-soa.ts;
+  proof:decomposition baseline. Touches group.ts/group-soa/group-layer-springs + group tests. Runs ALONE
+  (Stage 4 is sequential: WE1✅→WF2→WF1; WF1 splits engine.ts, needs WF2's decomp baseline + WE1's clean class).
 
 **DONE:** Band A (ac40f72) · parse-that 0.13.0 PUBLISHED (2c806fb/v0.13.0) · value.js 1.2.0 PUBLISHED
-(e80b359/v1.2.0, cumulative) · **Stage 3 Band B/C/D committed (090c7b0)** — engine-perf (WB1/WB3-num/WB4) +
-demo-fleet (WC1-3,WC5) + correctness (WD1/WD2); **DM-2 ninth-carry GENUINELY EXITS** (browser-verified
-pointer-drag); 940 tests, ci-coverage GREEN.
+(e80b359/v1.2.0, cumulative) · **Stage 3 Band B/C/D committed (090c7b0)** — DM-2 ninth-carry GENUINELY
+EXITS (browser-verified pointer-drag) · **WC4 MorphSVG committed (46b92bc)** — the on-DOM render contract +
+57-state morphing path · **Q.WE1 breaking alias-drop committed (9a24bd1)** — Animation/ScrollTimeline*
+aliases GONE from the d.ts, 39 consumers migrated, MIGRATION-5.0.0.md, 946 tests pass.
+
+**Stage-4 sequencing (recorded):** WE1→WF2→WF1 must be SEQUENTIAL — they collide on engine.ts (WE1+WF1),
+group.ts/group.test.ts (WE1+WF2), proof-decomposition.mjs (WF2+WF1). No safe parallelism; checkpoint-commit each.
 
 **Stage-3 rate-limit recovery (recorded):** the demo-main lane hit a 529 wall mid-verification; a demo-finish
 agent verified+completed WC1-3,WC5 in-browser (SwiftShader WebGL fix for amiga). Lesson: a workflow lane can

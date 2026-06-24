@@ -173,7 +173,7 @@ const LIBRARY_CEILING_OVERRIDE = new Map([
     [
         "src/animation/group.ts",
         {
-            cap: 820,
+            cap: 925,
             why:
                 "the AnimationGroup compositor 4-concern gestalt (a-backend-" +
                 "godmodules G-GM-3) — the zero-alloc `_grouped` buffer machinery, " +
@@ -181,28 +181,33 @@ const LIBRARY_CEILING_OVERRIDE = new Map([
                 "and the scheduler-yield batching share one per-frame composite " +
                 "seam; the buffer discipline (null-fill clear, whitelist key-skip, " +
                 "post-blend compaction) is GL-7/GL-8 ALREADY-SOTA. Do NOT carve. " +
-                "I.W0 B5 raised 800→820 (the NOOP_TRANSFORM total-fallback) — the " +
-                "stable base ceiling restored here. The K.W11 820→1000 raise (the " +
-                "spring-driven blend weight) is RETIRED: the cohesive K.W11 block " +
-                "(the `LayerTransitionSpring` type + spring CONSTRUCTION + the " +
-                "shared name↔reference lookup) plus the adjacent grouped-key fold, " +
-                "the scheduler-yield batched advance, the multi-target render, the " +
-                "PRM child-snap, and the child-paused broadcast are EXTERNALIZED to " +
-                "the INTERNAL `src/animation/group-layer-springs.ts` (pure functions " +
-                "group.ts imports); the gate-anchored composite STATEMENTS the " +
-                "`weighted` leaf + spring seam need (the `?? layer.weight` read, " +
-                "`layer.weightSpring = spring`, `existing.target`, the per-frame " +
-                "`spring.tickDt(dt)`, the settle commit/clear) stay inline — " +
-                "proof:spring-blend-weight (+ proof:blend's 2-arm element-loop) lock " +
-                "them ON this seam, so the spring METHODS cannot leave group.ts; the " +
-                "EXTRACTION carries the surrounding helpers. The file is back under " +
-                "820 (zero behaviour change — proof:{spring-blend-weight,blend,zero-" +
-                "alloc,engine} green). BORN-RED HANDOFF (P-invariant-28): the deep " +
-                "compositor-seam split (buffer/blend/lifecycle/batch fully separated) " +
-                "still rides WITH the engine.ts transposition the D.W4 audit named — " +
-                "it separates only once the engine's composite contract is re-" +
-                "threaded; deferred to the same future tranche, named here so the " +
-                "deferral is citable.",
+                "K.W11's spring-weight helpers were externalized to " +
+                "`group-layer-springs.ts` (the cohesive block + grouped-key fold + " +
+                "batched advance + PRM child-snap + child-paused broadcast); the " +
+                "gate-anchored composite STATEMENTS the `weighted` leaf + spring " +
+                "seam need (the `?? layer.weight` read, `layer.weightSpring = " +
+                "spring`, `existing.target`, the per-frame `spring.tickDt(dt)`, the " +
+                "settle commit/clear) stay inline — proof:spring-blend-weight " +
+                "(+ proof:blend's 2-arm element-loop) lock them ON this seam. Q.WF2 " +
+                "(F.W2 decomposition) EXTRACTED the P.W2 SoA fold machinery (the " +
+                "`SoALayerPlan` type + `buildSoAPlans` plan builder + the " +
+                "`groupSoABlendLayer` per-frame fold + the shared `isNumericUnit` " +
+                "guard) to the INTERNAL `src/animation/group-soa.ts` (statically " +
+                "imported, never re-exported); the `_soaPlans`/`_compositeBuf` " +
+                "FIELDS stay instance state and `soaBlendLayer` stays a thin " +
+                "delegating wrapper (so proof:soa-composite's `soa-path-taken` " +
+                "monkey-patch on the INSTANCE method still bites). Zero behaviour " +
+                "change — proof:{spring-blend-weight,blend,soa-composite,zero-" +
+                "alloc,engine,group-snapshot-identity} green. The cap drops " +
+                "1083→925L (the MEASURED post-SoA-extraction floor — the SoA " +
+                "machinery is ~158L, leaving the file at 925L); the cap sits at " +
+                "that floor so further unjustified growth reds. BORN-RED HANDOFF " +
+                "(P-invariant-28): the FULL compositor-seam split (buffer/blend/" +
+                "lifecycle/batch fully separated, the pre-P.W2 820L target) remains " +
+                "the named future work — it separates only once Q.WF1 re-threads " +
+                "the engine's composite contract; the SoA fold is the portion " +
+                "extractable at THIS seam, the deep split awaits the engine " +
+                "re-threading. Named here so the deferral is citable.",
         },
     ],
     [

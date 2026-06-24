@@ -28,7 +28,7 @@ function time(fn, iters) {
 }
 function median3(mk) { const r = [mk(), mk(), mk()].sort((a, b) => a - b); return r[1]; }
 
-const BLEND_SPEEDUP = 3.67; // measured (group-soa-decision.json, weighted arm)
+const BLEND_SPEEDUP = 3.67; // measured (soa-composite-decision.json, weighted arm)
 const ITERS = 200000;
 const out = {};
 

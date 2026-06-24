@@ -1,14 +1,28 @@
 {
-  "$comment": "SoA-vs-boxed blend ADOPT-or-KILL verdict (P.W2). The ratio is scoped to AnimationGroup.transformFramesGrouped's add/weighted arms ONLY (the isolated blend substrate, SAME-REPORT, device-independent) — NOT the transplanted SpringProgress.setTargets 3.86× (a different path). ADOPT (>=1.2× at K=8) authorizes the SoA fold; KILL forbids it and ships the boxed arms as-is. The default `replace` arm is dispatch-free and untouched.",
+  "$comment": "SoA-vs-boxed blend ADOPT-or-KILL verdict (P.W2) + the K-ladder witness (Q.WF2 S3). The ratio is scoped to AnimationGroup.transformFramesGrouped's add/weighted arms ONLY (the isolated blend substrate, SAME-REPORT, device-independent) — NOT the transplanted SpringProgress.setTargets 3.86× (a different path). ADOPT (>=1.2× at K=8) authorizes the SoA fold; KILL forbids it and ships the boxed arms as-is. The default `replace` arm is dispatch-free and untouched. `kLadder` records the add/weighted ratio at K∈{3,8,12}; the gate asserts the ratio is K-MONOTONE (the SoA advantage does not shrink with child count), same-report.",
   "target": "AnimationGroup.transformFramesGrouped (add/weighted arms ONLY)",
   "k": 8,
   "floorFraction": 1.2,
   "add": {
-    "soaOverBoxed": 2.274
+    "soaOverBoxed": 4.684
   },
   "weighted": {
-    "soaOverBoxed": 2.417
+    "soaOverBoxed": 4.399
+  },
+  "kLadder": {
+    "3": {
+      "add": 4.113,
+      "weighted": 3.796
+    },
+    "8": {
+      "add": 4.684,
+      "weighted": 4.399
+    },
+    "12": {
+      "add": 4.816,
+      "weighted": 4.245
+    }
   },
   "verdict": "ADOPT",
-  "recordedAt": "2026-06-23T16:08:56.275Z"
+  "recordedAt": "2026-06-24T04:22:02.051Z"
 }

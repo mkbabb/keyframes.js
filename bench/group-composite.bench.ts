@@ -2,7 +2,7 @@
  * group-composite.bench.ts — the AnimationGroup compositor-BLEND bench (Tranche
  * P / P.W2 S1, the MEASURE-FIRST step P.W1 S2 flagged absent).
  *
- * The SoA compositor win (the validated 3.7× — `scripts/group-soa-decision.json`)
+ * The SoA compositor win (the validated 3.7× — `scripts/soa-composite-decision.json`)
  * was benched in the isolated spike (`bench/group-soa-validate.mjs`); this is the
  * FORMAL vitest bench on `AnimationGroup.transformFramesGrouped`'s OWN blend path
  * — the three blend arms (`replace` / `add` / `weighted`) benched SEPARATELY in

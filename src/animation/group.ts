@@ -19,6 +19,12 @@ import {
     snapChildrenToFinal,
 } from "./group-layer-springs";
 import type { LayerTransitionSpring } from "./group-layer-springs";
+import {
+    buildSoAPlans,
+    groupSoABlendLayer,
+    isNumericUnit,
+} from "./group-soa";
+import type { SoALayerPlan } from "./group-soa";
 import type {
     AnimationLayerConfig,
     TransformFunction,
@@ -31,52 +37,11 @@ import { defaultLayerConfig, NOOP_TRANSFORM } from "./constants";
 // `crossfade` signatures read unchanged.
 export type { LayerTransitionSpring };
 
-/**
- * Typed blend-carrier guard — the group is heavy-side (it statically composes
- * the engine), so the real `ValueUnit` class is available for an `instanceof`
- * check instead of structural duck-typing on `{ value }`.
- */
-const isNumericUnit = (value: unknown): value is ValueUnit<number> =>
-    value instanceof ValueUnit && typeof value.value === "number";
-
-/**
- * P.W2 — the precomputed SoA fold layout for ONE `add`/`weighted` blend layer.
- * `carriers[s]`/`incomings[s]` are the stable `ValueUnit<number>` refs the boxed
- * inner loop would have touched at slot `s` (the carrier is the leaf a lower
- * layer parked in `_grouped`; the incoming is this layer's `entry.values` leaf —
- * both alias `frame.flatVars` units whose `.value` `interpFrames` mutates in
- * place, so the refs are frame-stable). The per-frame fold seeds `_compositeBuf`
- * from each carrier, applies the layer's op (`+=` for `add`, `lerp(...,w)` for
- * `weighted`) against the incoming, and writes back — replacing the per-frame
- * `for..in` + `Array.isArray` + per-element `isNumericUnit` dispatch with a
- * contiguous numeric loop. The `entry` is carried for the `weighted` arm's
- * per-LAYER `w = layer.weightSpring?.value ?? layer.weight` read (K.W11 PHYS-C).
- */
-interface SoALayerPlan {
-    /**
-     * The layer config — the `weighted` fold re-reads its per-frame `w =
-     * weightSpring?.value ?? weight` LIVE (K.W11 PHYS-C, so a spring still drives
-     * the blend), and the config is generic-independent so the plan holds it
-     * without binding the group's `V`.
-     */
-    layer: AnimationLayerConfig;
-    weighted: boolean;
-    /** The pure-numeric carrier units the fold seeds `_compositeBuf` from + writes back to. */
-    carriers: ValueUnit<number>[];
-    /** The incoming numeric units folded against each carrier (parallel to `carriers`). */
-    incomings: ValueUnit<number>[];
-    /**
-     * The keys this layer touches that the SoA fold does NOT cover — a non-array
-     * carrier (first-touch of a key, or a scalar that a lower layer left
-     * `undefined`), or a leaf with ANY non-numeric / mixed element. These keep
-     * the boxed per-element path (the `Array.isArray` guard + the
-     * `Math.min(existing.length, incoming.length)` element loop), so the
-     * `add`/`weighted` blend stays byte-identical on the non-numeric tail. EMPTY
-     * for the dominant all-numeric transform shape (every leaf a numeric
-     * `ValueUnit[]`), so the whole `for..in` collapses to the SoA fold.
-     */
-    boxedKeys: string[];
-}
+// The P.W2 SoA compositor fold (the `SoALayerPlan` type + `buildSoAPlans` plan
+// builder + `groupSoABlendLayer` per-frame fold + the shared `isNumericUnit`
+// guard) lives in `./group-soa` (INTERNAL, Q.WF2 decomposition). `_soaPlans` /
+// `_compositeBuf` stay instance state here; `soaBlendLayer` stays a thin
+// delegating wrapper (proof:soa-composite monkey-patches the INSTANCE method).
 
 export interface AnimationGroupEntry<V extends Vars> {
     animation: KeyframesAnimation<V>;
@@ -159,19 +124,19 @@ export class AnimationGroup<V extends Vars> {
 
     /**
      * P.W2 — the SoA composite layout for the `add`/`weighted` blend arms (the
-     * validated 3.7× — `scripts/group-soa-decision.json`, bit-identical
+     * validated 3.7× — `scripts/soa-composite-decision.json`, bit-identical
      * `maxErr=0`). One {@link SoALayerPlan} per `add`/`weighted` entry: the FLAT
      * list of pure-numeric `(carrier, incoming)` `ValueUnit<number>` pairs that
      * blend would touch, hoisted out of the per-frame `for..in` + `Array.isArray`
      * + per-element `isNumericUnit` dispatch into a contiguous {@link Float64Array}
-     * fold. Rebuilt ONLY on a structural change (alongside `_groupedKeys`), NEVER
-     * per frame. The `replace` default arm is dispatch-free and carries NO plan;
-     * the non-numeric (color/computed/string/mixed) tail keeps the boxed
-     * per-element path. The probe (`carrier-probe`) proved `interpFrames` MUTATES
-     * each leaf `ValueUnit.value` IN PLACE, so the carrier + incoming refs are
-     * STABLE across frames — the plan is valid until the entry set / a layer
-     * whitelist / a blend mode changes (every such mutation routes through
-     * `invalidateEntries`).
+     * fold. Built by {@link buildSoAPlans} (INTERNAL, `./group-soa`). Rebuilt ONLY
+     * on a structural change (alongside `_groupedKeys`), NEVER per frame. The
+     * `replace` default arm is dispatch-free and carries NO plan; the non-numeric
+     * (color/computed/string/mixed) tail keeps the boxed per-element path. The
+     * probe (`carrier-probe`) proved `interpFrames` MUTATES each leaf
+     * `ValueUnit.value` IN PLACE, so the carrier + incoming refs are STABLE across
+     * frames — the plan is valid until the entry set / a layer whitelist / a blend
+     * mode changes (every such mutation routes through `invalidateEntries`).
      */
     private _soaPlans: SoALayerPlan[] | null = null;
     /**
@@ -402,7 +367,16 @@ export class AnimationGroup<V extends Vars> {
 
         // Build the SoA plan once `entry.values` is populated (this frame's boxed
         // pass established the carriers) — captured for every subsequent frame.
-        if (!useSoA) this._soaPlans = this.buildSoAPlans(entries);
+        // `buildSoAPlans` (INTERNAL, `./group-soa`) grows the shared scratch and
+        // returns it alongside the plans; re-park both as instance state.
+        if (!useSoA) {
+            const { plans, compositeBuf } = buildSoAPlans(
+                entries,
+                this._compositeBuf,
+            );
+            this._soaPlans = plans;
+            this._compositeBuf = compositeBuf;
+        }
 
         this.done = done;
 
@@ -521,147 +495,15 @@ export class AnimationGroup<V extends Vars> {
 
     /**
      * P.W2 — the SoA fold for ONE `add`/`weighted` layer (the validated 3.7×,
-     * `scripts/group-soa-decision.json`: weighted 3.66×, add 3.69×, bit-identical
-     * `maxErr=0`). Replaces the boxed `for..in` + `Array.isArray` + per-element
-     * `isNumericUnit` dispatch with a contiguous {@link Float64Array} fold over the
-     * plan's precomputed numeric `(carrier, incoming)` pairs: seed `_compositeBuf`
-     * from each carrier, apply the op against the incoming, write back. The carrier
-     * units are the SAME `ValueUnit`s a lower layer parked in `_grouped` (the refs
-     * are frame-stable — `interpFrames` mutates `.value` in place), so writing the
-     * folded result back to `carrier.value` mutates the live composite exactly as
-     * the boxed arm did. The `add` accumulate is naturally UN-CLAMPED; the
-     * `weighted` lerp reads ONE per-layer `w` (the K.W11 PHYS-C spring weight).
+     * `scripts/soa-composite-decision.json`, bit-identical `maxErr=0`). A thin
+     * delegating wrapper over {@link groupSoABlendLayer} (the fold body lives in
+     * `./group-soa`, Q.WF2): the wrapper forwards the group's `_compositeBuf`
+     * scratch + the plan. The instance METHOD is kept (not inlined at the call
+     * site) so `proof:soa-composite`'s `soa-path-taken` clause can monkey-patch
+     * `group.soaBlendLayer` on the instance to count fold invocations.
      */
     private soaBlendLayer(plan: SoALayerPlan): void {
-        const { carriers, incomings } = plan;
-        const n = carriers.length;
-        if (n === 0) return;
-        const buf = this._compositeBuf!;
-        // Seed from the live carriers (the lower layers' freshly-lerped `.value`).
-        for (let s = 0; s < n; s++) buf[s] = carriers[s]!.value;
-        if (plan.weighted) {
-            // ONE per-LAYER weight (the spring overshoot or the constant) — the
-            // exact `?? layer.weight` read the boxed weighted arm hoists.
-            const w = plan.layer.weightSpring?.value ?? plan.layer.weight;
-            for (let s = 0; s < n; s++) {
-                buf[s] = lerp(buf[s]!, incomings[s]!.value, w);
-            }
-        } else {
-            // UN-CLAMPED accumulate — a Float64 `+=` is naturally un-clamped, the
-            // GL-6 `0.8 + 0.8 → 1.6` contract preserved by construction.
-            for (let s = 0; s < n; s++) buf[s] = buf[s]! + incomings[s]!.value;
-        }
-        // Write the folded result back to the carrier units (the live composite).
-        for (let s = 0; s < n; s++) carriers[s]!.value = buf[s]!;
-    }
-
-    /**
-     * P.W2 — build the SoA fold layout for every `add`/`weighted` layer (rebuilt
-     * ONLY on a structural change, gated by the `_groupedKeys` dirty seam). A
-     * NON-destructive carrier-resolution walk in zIndex order mirrors the boxed
-     * blend's carrier semantics EXACTLY: `replace` (and the non-array first-touch
-     * fall-through) parks a key's leaf as its carrier; `add`/`weighted` over an
-     * array carrier blend the numeric elements in place. For each `add`/`weighted`
-     * layer, the pure-numeric `(carrier, incoming)` element pairs (carrier IS an
-     * array, both elements numeric) are extracted into the flat `carriers`/
-     * `incomings` arrays the fold loops; every other key it touches (non-array
-     * carrier, or ANY non-numeric / mixed element) is recorded in `boxedKeys` for
-     * the boxed residual. `_compositeBuf` is grown to the widest layer's numeric
-     * width ONCE (reused across layers and frames — zero per-frame alloc). The
-     * walk mutates NOTHING (it reads `.value` only to classify, never writes), so
-     * the building frame's already-computed composite is untouched.
-     */
-    private buildSoAPlans(entries: AnimationGroupEntry<V>[]): SoALayerPlan[] {
-        const plans: SoALayerPlan[] = [];
-        // The carrier each key currently resolves to (the leaf a lower layer
-        // parked) — mirrors `_grouped`'s per-key carrier at this point in the pass.
-        const carrierOf: Record<string, unknown> = {};
-        let maxWidth = 0;
-
-        for (const entry of entries) {
-            const { layer, values } = entry;
-            if (!layer.enabled) continue;
-            const whitelist = layer.properties;
-            const weighted = layer.blendMode === "weighted";
-
-            if (layer.blendMode === "replace") {
-                for (const key in values) {
-                    if (whitelist && !whitelist.has(key)) continue;
-                    const incoming = values[key];
-                    if (incoming === undefined) continue;
-                    carrierOf[key] = incoming;
-                }
-                continue;
-            }
-
-            // `add` / `weighted` — partition this layer's keys into the numeric
-            // SoA pairs and the boxed residual, mirroring the boxed arm's guards.
-            const carriers: ValueUnit<number>[] = [];
-            const incomings: ValueUnit<number>[] = [];
-            const boxedKeys: string[] = [];
-            for (const key in values) {
-                if (whitelist && !whitelist.has(key)) continue;
-                const incoming = values[key];
-                if (incoming === undefined) continue;
-                const existing = carrierOf[key];
-                if (Array.isArray(existing) && Array.isArray(incoming)) {
-                    const n = Math.min(existing.length, incoming.length);
-                    // A key goes to SoA ONLY if EVERY blended element (the first
-                    // `n`) is a numeric pair — a mixed leaf goes ENTIRELY to the
-                    // boxed residual (never split across both paths, which would
-                    // double-blend the numeric elements). The K3 partition
-                    // discipline: pure-numeric → SoA, anything else → boxed.
-                    let allNumeric = true;
-                    for (let i = 0; i < n; i++) {
-                        if (
-                            !isNumericUnit(existing[i]) ||
-                            !isNumericUnit(incoming[i])
-                        ) {
-                            allNumeric = false;
-                            break;
-                        }
-                    }
-                    if (allNumeric) {
-                        for (let i = 0; i < n; i++) {
-                            carriers.push(existing[i] as ValueUnit<number>);
-                            incomings.push(incoming[i] as ValueUnit<number>);
-                        }
-                    } else {
-                        boxedKeys.push(key);
-                    }
-                    // The carrier identity is unchanged by an in-place blend, so
-                    // `carrierOf[key]` stays the array `existing`.
-                } else {
-                    // Non-array carrier (first-touch / scalar) — the boxed arm
-                    // assigns `groupedValues[key] = incoming`; record the key for
-                    // the residual AND update the resolved carrier so a HIGHER
-                    // add/weighted layer sees the same carrier the boxed pass would.
-                    boxedKeys.push(key);
-                    carrierOf[key] = incoming;
-                }
-            }
-
-            if (carriers.length > maxWidth) maxWidth = carriers.length;
-            plans.push({
-                layer,
-                weighted,
-                carriers,
-                incomings,
-                boxedKeys,
-            });
-        }
-
-        // Grow the shared fold scratch to the widest layer's numeric width ONCE
-        // (reused across every layer AND every frame — the F.W4 zero-alloc
-        // discipline: NO per-frame `Float64Array` allocation).
-        if (
-            maxWidth > 0 &&
-            (this._compositeBuf === null || this._compositeBuf.length < maxWidth)
-        ) {
-            this._compositeBuf = new Float64Array(maxWidth);
-        }
-
-        return plans;
+        groupSoABlendLayer(this._compositeBuf!, plan);
     }
 
     /**

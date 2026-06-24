@@ -3,8 +3,8 @@
  * proof:soa-composite — the Tranche P / P.W2 MEASURE-FIRST compositor-blend gate
  * + the ADOPT/KILL decision-JSON terminal (the P-inv-28 durable verdict).
  *
- * The SoA compositor fold (the validated 3.7× — `scripts/group-soa-decision.json`,
- * weighted 3.66× / add 3.69×, bit-identical `maxErr=0`) transposes
+ * The SoA compositor fold (the validated 3.7× — `scripts/soa-composite-decision.json`,
+ * bit-identical `maxErr=0`) transposes
  * `AnimationGroup.transformFramesGrouped`'s `add`/`weighted` arms from a boxed
  * per-element AoS loop (`for..in` + `Array.isArray` + per-element `isNumericUnit`
  * dispatch) into a contiguous `Float64Array` fold over a precomputed numeric-slot
@@ -77,6 +77,16 @@ const decisionPath = join(root, "scripts", "soa-composite-decision.json");
 const K = 8;
 const FLOOR_FRACTION = 1.2;
 
+// The K-rung ladder (Q.WF2 S3 / the B1-kf-soa witness gap): the bench measures
+// the SoA-vs-boxed ratio at K∈{3,8,12} children. The original P.W2 verdict
+// recorded ONLY K=8, leaving the K-scaling under-witnessed in the durable
+// `soa-composite-decision.json`. The `k-ladder-monotone` clause records ALL
+// THREE rungs and asserts the ratio is K-MONOTONE (the SoA advantage grows, or
+// at least does not shrink, with child count) — a SAME-REPORT comparison
+// (numerator + denominator + all three rungs in ONE bench pass), device-
+// independent by construction (no absolute floorHz).
+const K_LADDER = [3, 8, 12];
+
 const failures = [];
 const fail = (clause, msg) => failures.push(`  ✗ [${clause}] ${msg}`);
 const ok = (clause, msg) => console.log(`  ✓ [${clause}] ${msg}`);
@@ -146,20 +156,87 @@ let ratioWeighted = NaN;
                 (f.groups ?? []).flatMap((g) => g.benchmarks ?? []),
             );
             const find = (re) => benches.find((b) => re.test(b.name));
+            const finite = (b) => b && Number.isFinite(b.hz) && b.hz > 0;
+
+            // The per-K SoA-vs-boxed ratio for an arm — SAME-REPORT (numerator +
+            // denominator from this one bench pass). Returns null on a missing /
+            // non-finite rung so the caller can red `measured-first`.
+            const ratioAt = (arm, k) => {
+                const boxed = find(new RegExp(`${arm} boxed · K=${k}\\b`));
+                const soa = find(new RegExp(`${arm} SoA · K=${k}\\b`));
+                return finite(boxed) && finite(soa) ? soa.hz / boxed.hz : null;
+            };
+
+            // The full K-ladder for add + weighted (Q.WF2 S3 — the durable
+            // witness the original P.W2 verdict omitted).
+            const ladder = {};
+            let ladderComplete = true;
+            for (const k of K_LADDER) {
+                const a = ratioAt("add", k);
+                const w = ratioAt("weighted", k);
+                if (a === null || w === null) ladderComplete = false;
+                ladder[k] = { add: a, weighted: w };
+            }
+
             const addBoxed = find(new RegExp(`add boxed · K=${K}\\b`));
             const addSoA = find(new RegExp(`add SoA · K=${K}\\b`));
             const wBoxed = find(new RegExp(`weighted boxed · K=${K}\\b`));
             const wSoA = find(new RegExp(`weighted SoA · K=${K}\\b`));
-            const finite = (b) => b && Number.isFinite(b.hz) && b.hz > 0;
-            if (![addBoxed, addSoA, wBoxed, wSoA].every(finite)) {
+            if (![addBoxed, addSoA, wBoxed, wSoA].every(finite) || !ladderComplete) {
                 fail(
                     "measured-first",
-                    `the report has no finite K=${K} SoA/boxed pair for add + weighted ` +
-                        `(addBoxed=${!!addBoxed}, addSoA=${!!addSoA}, wBoxed=${!!wBoxed}, wSoA=${!!wSoA}).`,
+                    `the report has no finite SoA/boxed pair for add + weighted across ` +
+                        `the K-ladder ${JSON.stringify(K_LADDER)} ` +
+                        `(K=${K}: addBoxed=${!!addBoxed}, addSoA=${!!addSoA}, ` +
+                        `wBoxed=${!!wBoxed}, wSoA=${!!wSoA}; ladderComplete=${ladderComplete}).`,
                 );
             } else {
                 ratioAdd = addSoA.hz / addBoxed.hz;
                 ratioWeighted = wSoA.hz / wBoxed.hz;
+
+                // ── Clause: k-ladder-monotone (Q.WF2 S3) ──────────────────────
+                // The SoA advantage must NOT shrink as the child count grows:
+                // ratio(K=8) >= ratio(K=3) AND ratio(K=12) >= ratio(K=8), for
+                // BOTH the add and the weighted arm. A SAME-REPORT comparison
+                // (all three rungs measured in this one pass) — device-
+                // independent, no absolute floorHz. A small per-run epsilon
+                // absorbs bench jitter at the rung boundaries (the monotone
+                // SHAPE is the assertion, not exact wall-clock equality).
+                const EPS = 0.15; // 15% jitter tolerance at a rung boundary
+                const monoFails = [];
+                for (const arm of ["add", "weighted"]) {
+                    for (let i = 1; i < K_LADDER.length; i++) {
+                        const lo = K_LADDER[i - 1];
+                        const hi = K_LADDER[i];
+                        const rLo = ladder[lo][arm];
+                        const rHi = ladder[hi][arm];
+                        if (rHi < rLo * (1 - EPS)) {
+                            monoFails.push(
+                                `${arm}: ratio(K=${hi})=${rHi.toFixed(3)}× < ` +
+                                    `ratio(K=${lo})=${rLo.toFixed(3)}× (− more than ` +
+                                    `${(EPS * 100).toFixed(0)}% jitter) — the SoA ` +
+                                    `advantage SHRINKS with child count.`,
+                            );
+                        }
+                    }
+                }
+                if (monoFails.length > 0) {
+                    fail(
+                        "k-ladder-monotone",
+                        `the SoA-vs-boxed ratio is NOT K-monotone across ` +
+                            `${JSON.stringify(K_LADDER)}:\n      ` +
+                            monoFails.join("\n      "),
+                    );
+                } else {
+                    ok(
+                        "k-ladder-monotone",
+                        `the SoA-vs-boxed ratio is K-monotone across ` +
+                            `K∈${JSON.stringify(K_LADDER)} for add + weighted ` +
+                            `(add ${K_LADDER.map((k) => ladder[k].add.toFixed(2)).join("→")}×, ` +
+                            `weighted ${K_LADDER.map((k) => ladder[k].weighted.toFixed(2)).join("→")}×, ` +
+                            `same-report)`,
+                    );
+                }
                 const adopt =
                     ratioAdd >= FLOOR_FRACTION && ratioWeighted >= FLOOR_FRACTION;
                 verdict = adopt ? "ADOPT" : "KILL";
@@ -171,21 +248,35 @@ let ratioWeighted = NaN;
                 // the `recordedAt` timestamp vary per run (a forced dirty tree), so
                 // the STABLE assertion is the ADOPT/KILL verdict — not the noisy
                 // numbers. Scoped to transformFramesGrouped.
+                // The durable K-ladder (Q.WF2 S3) — all three rungs recorded so
+                // the K-scaling verdict is witnessed in the JSON, not just K=8.
+                const kLadder = {};
+                for (const k of K_LADDER) {
+                    kLadder[k] = {
+                        add: +ladder[k].add.toFixed(3),
+                        weighted: +ladder[k].weighted.toFixed(3),
+                    };
+                }
                 const record = {
                     $comment:
-                        "SoA-vs-boxed blend ADOPT-or-KILL verdict (P.W2). The ratio is " +
-                        "scoped to AnimationGroup.transformFramesGrouped's add/weighted " +
-                        "arms ONLY (the isolated blend substrate, SAME-REPORT, device-" +
-                        "independent) — NOT the transplanted SpringProgress.setTargets " +
-                        "3.86× (a different path). ADOPT (>=1.2× at K=8) authorizes the " +
-                        "SoA fold; KILL forbids it and ships the boxed arms as-is. The " +
-                        "default `replace` arm is dispatch-free and untouched.",
+                        "SoA-vs-boxed blend ADOPT-or-KILL verdict (P.W2) + the K-ladder " +
+                        "witness (Q.WF2 S3). The ratio is scoped to " +
+                        "AnimationGroup.transformFramesGrouped's add/weighted arms ONLY " +
+                        "(the isolated blend substrate, SAME-REPORT, device-independent) " +
+                        "— NOT the transplanted SpringProgress.setTargets 3.86× (a " +
+                        "different path). ADOPT (>=1.2× at K=8) authorizes the SoA fold; " +
+                        "KILL forbids it and ships the boxed arms as-is. The default " +
+                        "`replace` arm is dispatch-free and untouched. `kLadder` records " +
+                        "the add/weighted ratio at K∈{3,8,12}; the gate asserts the ratio " +
+                        "is K-MONOTONE (the SoA advantage does not shrink with child " +
+                        "count), same-report.",
                     target:
                         "AnimationGroup.transformFramesGrouped (add/weighted arms ONLY)",
                     k: K,
                     floorFraction: FLOOR_FRACTION,
                     add: { soaOverBoxed: +ratioAdd.toFixed(3) },
                     weighted: { soaOverBoxed: +ratioWeighted.toFixed(3) },
+                    kLadder,
                     verdict,
                     recordedAt: new Date().toISOString(),
                 };
@@ -254,6 +345,60 @@ if (existsSync(decisionPath)) {
             "verdict-scope",
             `the decision-JSON cites the transplanted 3.86× as the verdict ratio.`,
         );
+    }
+
+    // ── Clause: k-ladder-monotone (durable record, Q.WF2 S3) ──────────────
+    // The committed decision-JSON must DURABLY record the K-ladder (all three
+    // rungs), not just K=8 — the B1-kf-soa witness gap. A committed JSON
+    // missing `kLadder`, a rung, or an arm reds; the recorded ladder must
+    // itself be K-monotone (the durable verdict matches the live assertion).
+    const kLadder = decision.kLadder;
+    const missingRungs = K_LADDER.filter(
+        (k) =>
+            !kLadder ||
+            !kLadder[k] ||
+            typeof kLadder[k].add !== "number" ||
+            typeof kLadder[k].weighted !== "number",
+    );
+    if (missingRungs.length > 0) {
+        fail(
+            "k-ladder-monotone",
+            `the committed scripts/soa-composite-decision.json does not durably ` +
+                `record the full K-ladder — missing/incomplete rung(s) ` +
+                `${JSON.stringify(missingRungs)} (it must carry kLadder[K].{add,weighted} ` +
+                `for K∈${JSON.stringify(K_LADDER)}, Q.WF2 S3 — the original P.W2 ` +
+                `verdict recorded only K=8).`,
+        );
+    } else {
+        const EPS = 0.15;
+        const durableMonoFails = [];
+        for (const arm of ["add", "weighted"]) {
+            for (let i = 1; i < K_LADDER.length; i++) {
+                const lo = K_LADDER[i - 1];
+                const hi = K_LADDER[i];
+                if (kLadder[hi][arm] < kLadder[lo][arm] * (1 - EPS)) {
+                    durableMonoFails.push(
+                        `${arm}: kLadder[K=${hi}]=${kLadder[hi][arm]}× < ` +
+                            `kLadder[K=${lo}]=${kLadder[lo][arm]}×`,
+                    );
+                }
+            }
+        }
+        if (durableMonoFails.length > 0) {
+            fail(
+                "k-ladder-monotone",
+                `the committed K-ladder is NOT K-monotone:\n      ` +
+                    durableMonoFails.join("\n      "),
+            );
+        } else {
+            ok(
+                "k-ladder-monotone",
+                `the committed decision-JSON durably records the K-monotone ladder ` +
+                    `(K∈${JSON.stringify(K_LADDER)}: add ` +
+                    `${K_LADDER.map((k) => kLadder[k].add).join("→")}×, weighted ` +
+                    `${K_LADDER.map((k) => kLadder[k].weighted).join("→")}×)`,
+            );
+        }
     }
 } else {
     fail(
