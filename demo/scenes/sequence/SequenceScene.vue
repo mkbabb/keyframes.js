@@ -9,11 +9,11 @@ import { computed, provide, ref } from "vue";
 
 import { getStoredAnimationGroupControlOptions } from "@components/custom/animation-controls/stores";
 
-import SequenceTarget from "../../sequence/SequenceTarget.vue";
-import { useSequenceDemo } from "../../sequence/useSequenceDemo";
-import { SEQUENCE_DEMO_KEY } from "../../sequence/sequenceKeys";
+import SequenceTarget from "./SequenceTarget.vue";
+import { useSequenceDemo } from "./useSequenceDemo";
+import { SEQUENCE_DEMO_KEY, SEQUENCE_SUPER_KEY } from "./sequenceKeys";
 
-const SUPER_KEY = "Sequence";
+const SUPER_KEY = SEQUENCE_SUPER_KEY;
 
 const demo = useSequenceDemo();
 provide(SEQUENCE_DEMO_KEY, demo);

@@ -27,6 +27,7 @@ import MorphIcon from "@assets/icons/morph.svg?component";
 import { MORPH_SUPER_KEY } from "../scenes/morph/morphKeys";
 import { MOTION_PATH_SUPER_KEY } from "../scenes/motion-path/motionPathKeys";
 import { EASING_SUPER_KEY } from "../scenes/easing/easingKeys";
+import { SEQUENCE_SUPER_KEY } from "../scenes/sequence/sequenceKeys";
 
 /** A scene's dynamic-import loader — the exact thunk `defineAsyncComponent`
  *  wraps, retained so `warmScene` can warm the chunk on hover (S5). */
@@ -140,11 +141,11 @@ export const scenes: SceneDescriptor[] = [
         // engine's TEMPORAL orchestrator the way the cube proves the compositor.
         id: "sequence",
         label: "Sequence",
-        superKey: "Sequence",
+        superKey: SEQUENCE_SUPER_KEY,
         icon: SequenceIcon,
         component: lazyScene(
             "sequence",
-            () => import("./scenes/SequenceScene.vue"),
+            () => import("../scenes/sequence/SequenceScene.vue"),
         ),
     },
     {
