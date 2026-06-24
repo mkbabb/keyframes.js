@@ -30,6 +30,7 @@ import { EASING_SUPER_KEY } from "../scenes/easing/easingKeys";
 import { SEQUENCE_SUPER_KEY } from "../scenes/sequence/sequenceKeys";
 import { SQUARE_SUPER_KEY } from "../scenes/square/squareKeys";
 import { SPRING_SUPER_KEY } from "../scenes/spring/springKeys";
+import { AMIGA_SUPER_KEY } from "../scenes/amiga/amigaKeys";
 
 /** A scene's dynamic-import loader — the exact thunk `defineAsyncComponent`
  *  wraps, retained so `warmScene` can warm the chunk on hover (S5). */
@@ -111,9 +112,9 @@ export const scenes: SceneDescriptor[] = [
     {
         id: "amiga",
         label: "Amiga",
-        superKey: "Amiga",
+        superKey: AMIGA_SUPER_KEY,
         icon: AmigaIcon,
-        component: lazyScene("amiga", () => import("./scenes/AmigaScene.vue")),
+        component: lazyScene("amiga", () => import("../scenes/amiga/AmigaScene.vue")),
     },
     {
         id: "square",

@@ -54,20 +54,21 @@ import { RAFPlayback } from "@mkbabb/keyframes.js";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
-import AmigaCrtOverlay from "../../amiga/AmigaCrtOverlay.vue";
-import AmigaTelemetry from "../../amiga/AmigaTelemetry.vue";
-import { tesselateSphere } from "../../amiga/utils";
+import AmigaCrtOverlay from "./AmigaCrtOverlay.vue";
+import AmigaTelemetry from "./AmigaTelemetry.vue";
+import { tesselateSphere } from "./utils";
 import {
     useAmigaAnimations,
     BOUNCE,
     BOX_SIZE,
     SPHERE_HOME,
-} from "../../amiga/useAmigaAnimations";
-import { useAmigaBoot } from "../../amiga/useAmigaBoot";
-import { useSphereSpin } from "../../amiga/useSphereSpin";
-import { useSceneVisibilityPause } from "../useSceneVisibilityPause";
+} from "./useAmigaAnimations";
+import { useAmigaBoot } from "./useAmigaBoot";
+import { useSphereSpin } from "./useSphereSpin";
+import { useSceneVisibilityPause } from "@app/useSceneVisibilityPause";
+import { AMIGA_SUPER_KEY } from "./amigaKeys";
 
-const superKey = "Amiga";
+const superKey = AMIGA_SUPER_KEY;
 
 const canvasEl = useTemplateRef<HTMLCanvasElement>("canvas");
 const sceneRootEl = useTemplateRef<HTMLElement>("sceneRoot");
