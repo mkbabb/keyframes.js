@@ -279,11 +279,49 @@ const evalCondition = (
         return ctx.env.matchMedia?.(query)?.matches ?? false;
     }
     // `style(--p)` (and `style(--p: v)`) reads a RESOLVED custom-prop off the
-    // element — Phase 2. The NOW pass cannot evaluate it (no element here), so
-    // signal "undecidable in this pass" → the whole if() is left unresolved.
-    if (name === "style") return undefined;
+    // element — Phase 2. When `ctx.env.customProps` is PRESENT (the element-aware
+    // SECOND pass, post-`setTargets`), read the resolved prop and evaluate
+    // presence/equality. When ABSENT (Phase 1, no element), return `undefined`
+    // so the whole if() is left UNRESOLVED for the second pass — the existing
+    // Phase-1 posture, unchanged.
+    if (name === "style") {
+        if (ctx.env.customProps === undefined) return undefined;
+        return evalStyleCondition(query, ctx.env.customProps);
+    }
 
     return false;
+};
+
+/**
+ * Q.WB1 — evaluate a `style(...)` condition's inner query against the resolved
+ * custom-prop reader (the Phase-2 element-aware branch). Two CSS forms:
+ *   - `style(--p)` (PRESENCE) — true iff `--p` is a set custom-prop.
+ *   - `style(--p: value)` (EQUALITY) — true iff the resolved `--p` equals
+ *     `value` (whitespace-normalized comparison).
+ * The `customProps` reader returns `undefined` for an unset prop (the S2
+ * contract), so presence is a simple non-`undefined` test.
+ */
+const evalStyleCondition = (
+    query: string,
+    customProps: (name: string) => string | undefined,
+): boolean => {
+    const colon = query.indexOf(":");
+    if (colon === -1) {
+        // Presence form: `style(--p)`.
+        const prop = query.trim();
+        if (prop === "") return false;
+        return customProps(prop) !== undefined;
+    }
+    // Equality form: `style(--p: value)`.
+    const prop = query.slice(0, colon).trim();
+    const expected = query.slice(colon + 1).trim();
+    if (prop === "") return false;
+    const actual = customProps(prop);
+    if (actual === undefined) return false;
+    // Whitespace-normalized compare (the resolved computed value may carry
+    // different internal spacing than the authored literal).
+    const norm = (s: string) => s.trim().replace(/\s+/g, " ");
+    return norm(actual) === norm(expected);
 };
 
 /** Whether a node is an EMPTY-string leaf — value.js's padding for an absent
@@ -391,6 +429,24 @@ const resolveNode = (
         return resolveIf(node, { ...ctx, depth: ctx.depth + 1 });
     }
 
+    // Q.WB1 — the Phase-2 element-aware `sibling-index()`/`sibling-count()` arm.
+    // value.js parses them as a bare `FunctionValue(name, [])` (zero args). When
+    // the element-populated env is present (the SECOND pass, post-`setTargets`),
+    // resolve to an integer-position `ValueUnit` (unitless number, exactly the
+    // node a direct `2` keyframe value would carry). When the env field is ABSENT
+    // (Phase 1, no element), the node is returned UNCHANGED — the second pass
+    // finishes it (the same deferred posture `style(--p)` holds in Phase 1).
+    if (node.name === "sibling-index") {
+        const fn = ctx.env.siblingIndex;
+        if (fn === undefined) return node;
+        return new ValueUnit(fn(), "");
+    }
+    if (node.name === "sibling-count") {
+        const fn = ctx.env.siblingCount;
+        if (fn === undefined) return node;
+        return new ValueUnit(fn(), "");
+    }
+
     // The dashed-function `@function` CALL-inlining seam (value.js-P-gated). The
     // descriptor REGISTRY is threaded (`ctx.functions`), but value.js's generic
     // producer drops a `--ident(args)` call's args today (the call does not
@@ -455,18 +511,68 @@ export const resolveValues = (
 };
 
 /**
- * Whether a declaration value CONTAINS an element-independent lowerable node
- * (`if(...)` or `spring(...)`), so the adapter only pays the rewrite cost on the
- * declarations that need it (the common all-concrete keyframe is untouched). A
- * cheap structural scan — no resolution, no env.
+ * Whether an `if()` `FunctionValue`'s condition is a `style(...)` form — the
+ * Phase-2 element-aware condition (`if(style(--p))` / `if(style(--p: v))`). The
+ * condition is the FIRST `if()` value, parsed VERBATIM as an opaque
+ * `ValueUnit("style(--p)", "string")` (value.js does not structure the
+ * condition), so the sniff re-reads its function name via {@link splitCondition}.
+ */
+const isStyleConditionIf = (node: FunctionValue): boolean => {
+    if (node.name !== "if") return false;
+    const cond = node.values[0];
+    if (cond === undefined) return false;
+    const raw = String(cond instanceof ValueUnit ? cond.value : cond).trim();
+    return splitCondition(raw)?.name === "style";
+};
+
+/**
+ * Whether a declaration value CONTAINS a lowerable node, so the adapter only
+ * pays the rewrite cost on the declarations that need it (the common
+ * all-concrete keyframe is untouched). A cheap structural scan — no resolution,
+ * no env.
+ *
+ * Q.WB1 widens this beyond the Phase-1 set (`if(...)`/`spring(...)`) to admit the
+ * Phase-2 element-aware nodes — `sibling-index()`/`sibling-count()` and an `if()`
+ * whose condition is a `style(...)` form — so a Phase-2-ONLY declaration (e.g.
+ * `transform: translateX(calc(sibling-index() * 10px))`) enters the pass at all
+ * (GAP 3, the precondition). The Phase-1 pass leaves these residual (it has no
+ * element); the SECOND pass post-`setTargets` finishes them.
  */
 export const hasResolvableValue = (value: unknown): boolean => {
     if (value instanceof FunctionValue) {
         if (value.name === "if" || value.name === "spring") return true;
+        if (value.name === "sibling-index" || value.name === "sibling-count") {
+            return true;
+        }
         return value.values.some((v) => hasResolvableValue(v));
     }
     if (value instanceof ValueArray) {
         return value.some((v) => hasResolvableValue(v));
+    }
+    return false;
+};
+
+/**
+ * Q.WB1 — the Phase-2 SUBSET predicate (a sibling sniff of
+ * {@link hasResolvableValue}): true iff the value carries an element-AWARE node
+ * the FIRST pass deliberately left UNRESOLVED — a `sibling-index()`/
+ * `sibling-count()` `FunctionValue`, OR an `if()` whose condition is a `style(...)`
+ * form. A pure-Phase-1 declaration (`if(supports)`/`if(media)`/`spring()`, already
+ * concrete after Phase 1) returns FALSE, so the SECOND pass (post-`setTargets`)
+ * skips it entirely — zero second-pass cost on the common case, and the
+ * double-resolution guard's gate (a Phase-1-concrete leaf is never re-walked
+ * because its declaration has no Phase-2 node).
+ */
+export const hasPhase2Node = (value: unknown): boolean => {
+    if (value instanceof FunctionValue) {
+        if (value.name === "sibling-index" || value.name === "sibling-count") {
+            return true;
+        }
+        if (isStyleConditionIf(value)) return true;
+        return value.values.some((v) => hasPhase2Node(v));
+    }
+    if (value instanceof ValueArray) {
+        return value.some((v) => hasPhase2Node(v));
     }
     return false;
 };

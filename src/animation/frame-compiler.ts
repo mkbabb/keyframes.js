@@ -25,6 +25,8 @@ import type {
     CompositeOperator,
     Easing,
     InputAnimationOptions,
+    InterpolatedVar,
+    NumericFoldPlan,
     TemplateAnimationFrame,
     TransformFunction,
     Vars,
@@ -125,13 +127,117 @@ const SELECTOR_NAMED_RANGE_RE =
  * `entry 0%` → `entry 0%`), and the `superType` tag is the channel the deferred
  * phase resolver keys on (the percent-literal/keyword path never carries it).
  */
-const NAMED_SELECTOR_SUPERTYPE = "named-selector";
+export const NAMED_SELECTOR_SUPERTYPE = "named-selector";
+
+/**
+ * Q.WD1-bind S1 — the CAPTURING variant of {@link SELECTOR_NAMED_RANGE_RE} (which
+ * is NON-capturing — it validates but cannot extract). Group 1 = the phase, group
+ * 2 (optional) = the offset `%` numeral. The two stay in LOCK-STEP: the same token
+ * set, the same shape, differing only in the capture groups.
+ */
+const NAMED_SELECTOR_CAPTURE_RE =
+    /^(entry|exit|cover|contain)(?:\s+(\d+(?:\.\d+)?)%)?$/i;
+
+/**
+ * Q.WD1-bind S1 — the FOUR keyframe-reachable phase spans (a LOCAL numeric copy of
+ * `scroll-scene.ts`'s `PHASE_FRACTIONS` — value.js-free inline constants, NOT a
+ * runtime import, so `frame-compiler.ts` does NOT couple to the HEAVY scroll-scene
+ * module). `normal`/`*-crossing` are not in the keyframe-selector grammar, so they
+ * are not copied. The DATA is duplicated (an intentional BOOK duplication); the
+ * LOGIC lives once.
+ */
+const NAMED_SELECTOR_PHASES: Record<string, { start: number; end: number }> = {
+    entry: { start: 0, end: 0.25 },
+    cover: { start: 0.25, end: 0.75 },
+    contain: { start: 0.375, end: 0.625 },
+    exit: { start: 0.75, end: 1 },
+};
+
+/**
+ * Q.WD1-bind S1 (DM-22) — resolve a scroll-range named keyframe selector to its
+ * `[0, 1]` position fraction. A keyframe selector is a SINGLE position (NOT a
+ * range): a bare `entry` is "the START of the entry phase" (`PHASE_FRACTIONS
+ * ["entry"].start = 0`); `entry 50%` is 50% THROUGH the entry band (`0 + 0.5 *
+ * (0.25 - 0) = 0.125`) — matching `scroll-scene.ts` `boundaryFraction`'s
+ * arithmetic. NEVER returns NaN: the `SELECTOR_NAMED_RANGE_RE` guard (`addFrame`)
+ * has already validated the input, so any string reaching here is a conforming
+ * named selector; a defensive non-match throws the typed error rather than
+ * inventing a silent number.
+ */
+export const namedSelectorToFraction = (rawSelector: string): number => {
+    const m = NAMED_SELECTOR_CAPTURE_RE.exec(rawSelector.trim());
+    if (m === null) {
+        throw new AnimationOptionError(
+            "start",
+            rawSelector,
+            `not a conforming scroll-range named selector (entry/exit/cover/contain, ` +
+                `optionally with a range fraction like 'entry 50%')`,
+            "NAMED_SELECTOR_NO_TIMELINE",
+        );
+    }
+    const phase = m[1]!.toLowerCase();
+    const span = NAMED_SELECTOR_PHASES[phase]!;
+    const offsetText = m[2];
+    if (offsetText === undefined) {
+        // Bare form — the single position is the START of the phase.
+        return span.start;
+    }
+    // `entry 50%` = 50% THROUGH the phase band (the offset shifts the origin into
+    // the phase span — the same arithmetic boundaryFraction uses).
+    const offset = Number.parseFloat(offsetText) / 100;
+    return span.start + offset * (span.end - span.start);
+};
 
 const SELECTOR_REASON =
     "a keyframe selector must be a percentage 0%–100% " +
     "(e.g. \"0%\", \"50%\"), the keyword 'from'/'to', or a scroll-range " +
     "named selector (entry/exit/cover/contain, optionally with a range " +
     "fraction like 'entry 0%')";
+
+/**
+ * Q.WB3 S2 — whether an `InterpolatedVar` is a pure-NUMERIC leaf the SoA fold
+ * covers: BOTH endpoints are numeric (`typeof start/stop.value === "number"`),
+ * the leaf is NOT computed (a `var`/`calc`/`vh`/`cq*` re-resolves against the live
+ * box every frame — kept boxed), NOT a color (a `Color` cannot live in a
+ * `Float64Array` — the GATED `ColorChannelPlan` frontier), and has no frozen
+ * `_colorPlan`. The SAME K3 partition discipline `group.ts`'s `isNumericUnit` per
+ * component runs for the compositor.
+ */
+const isNumericInterpVar = (iv: InterpolatedVar<unknown>): boolean =>
+    typeof iv.start.value === "number" &&
+    typeof iv.stop.value === "number" &&
+    iv.computed !== true &&
+    iv.value.unit !== "color" &&
+    iv._colorPlan == null;
+
+/**
+ * Q.WB3 S2 — build the numeric SoA fold plan for ONE frame's `allInterpVars`
+ * (the F.W4 zero-alloc discipline: the `Float64Array`s are allocated ONCE here,
+ * at parse, and reused per frame). Partitions the iv set into the NUMERIC subset
+ * (packed into `from`/`to` endpoint buffers, folded via one `lerpArray`) and the
+ * BOXED residual (color/computed/mixed — the per-element `lerpValue` path). The
+ * numeric carriers' `value` `ValueUnit`s ARE the write-back slots (the SAME slot
+ * `lerpValue` mutates), so the strided write-back yields a bit-identical result.
+ */
+const buildNumericPlan = <V extends Vars>(
+    allInterpVars: Array<InterpolatedVar<V>>,
+): NumericFoldPlan<V> => {
+    const numeric: Array<InterpolatedVar<V>> = [];
+    const boxed: Array<InterpolatedVar<V>> = [];
+    for (const iv of allInterpVars) {
+        if (isNumericInterpVar(iv as InterpolatedVar<unknown>))
+            numeric.push(iv);
+        else boxed.push(iv);
+    }
+    const n = numeric.length;
+    const from = new Float64Array(n);
+    const to = new Float64Array(n);
+    for (let s = 0; s < n; s++) {
+        from[s] = numeric[s]!.start.value as unknown as number;
+        to[s] = numeric[s]!.stop.value as unknown as number;
+    }
+    return { numeric, from, to, out: new Float64Array(n), boxed };
+};
 
 export class FrameCompiler<V extends Vars = any> {
     templateFrames: TemplateAnimationFrame<V>[] = [];
@@ -518,6 +624,10 @@ export class FrameCompiler<V extends Vars = any> {
         frame.vars = unflattenObject(frame.flatVars);
         // Pre-flatten for zero-alloc iteration in interpFrames()
         frame.allInterpVars = Object.values(frame.interpVars).flat();
+        // Q.WB3 S2 — build the numeric SoA fold plan over the now-stable iv set
+        // (the same seam allInterpVars is built). Re-run by renormalizeColors so
+        // a color-space change keeps the plan in lock-step with the carriers.
+        frame._numericPlan = buildNumericPlan<V>(frame.allInterpVars);
     }
 
     /**

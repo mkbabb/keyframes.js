@@ -58,8 +58,17 @@ export const tesselateSphere = (
     const texture = new THREE.CanvasTexture(canvas);
 
     const geometry = new THREE.SphereGeometry(radius, 32, 32);
-    const material = new THREE.MeshLambertMaterial({
+    // Q.WC5 S2 — a SPECULAR material (MeshPhongMaterial: a specular highlight +
+    // shininess) so the lit sphere reads as a deliberately-lit object, not the
+    // flat diffuse-only MeshLambertMaterial placeholder. The scene's
+    // HemisphereLight + SpotLight rig produces a visible highlight on the phong
+    // specular lobe (the checker map stays the diffuse base). A near-white,
+    // moderately-shiny specular evokes the glossy Amiga Boing-Ball surface
+    // without a new shader/material pipeline.
+    const material = new THREE.MeshPhongMaterial({
         map: texture,
+        specular: new THREE.Color(0x333333),
+        shininess: 30,
     });
     const mesh = new THREE.Mesh(geometry, material);
 

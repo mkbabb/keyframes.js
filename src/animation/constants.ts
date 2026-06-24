@@ -103,6 +103,31 @@ export interface TemplateAnimationFrame<V extends Vars> {
     composition?: CompositeOperator;
 }
 
+/**
+ * Q.WB3 S2 — the precomputed SoA fold layout for ONE compiled frame's NUMERIC
+ * interp subset (the single-animation `processFrame` analog of the compositor's
+ * `SoALayerPlan`). Built ONCE at `parse` over the STABLE iv set (the F.W4
+ * zero-alloc discipline — NO per-frame allocation):
+ *   - `numeric` — the numeric ivs (numeric start+stop, NOT computed, NOT color),
+ *     in slot order. Each iv's interp-carrier `value` is the `ValueUnit` slot the
+ *     strided write-back fills (the SAME slot `lerpValue` writes today).
+ *   - `from` / `to` — the packed endpoint `Float64Array`s (`start.value` /
+ *     `stop.value`), one slot per `numeric[s]`.
+ *   - `out` — the per-frame scratch the `lerpArray` fold writes into (reused
+ *     across every frame — zero per-frame alloc).
+ *   - `boxed` — the residual ivs (color / computed / mixed) the fold CANNOT cover
+ *     — walked by the existing per-element `lerpValue`, UNCHANGED.
+ * The boxed-color tail is the GATED `ColorChannelPlan` consume's frontier (S4,
+ * value.js 1.2.0) — NOT this NOW numeric arm.
+ */
+export interface NumericFoldPlan<V extends Vars> {
+    numeric: Array<InterpolatedVar<V>>;
+    from: Float64Array;
+    to: Float64Array;
+    out: Float64Array;
+    boxed: Array<InterpolatedVar<V>>;
+}
+
 export interface AnimationFrame<V extends Vars> {
     id: number;
 
@@ -131,6 +156,17 @@ export interface AnimationFrame<V extends Vars> {
      * on every interpFrames() call in the hot path.
      */
     allInterpVars: Array<InterpolatedVar<V>>;
+
+    /**
+     * Q.WB3 S2 — the precomputed numeric SoA fold layout (built ONCE at `parse`
+     * over the stable `allInterpVars` set). `processFrame` folds the numeric subset
+     * through ONE `lerpArray` over the packed `Float64Array` buffers and strides
+     * the result back into the numeric leaves' `.value` slots; the boxed residual
+     * (color/computed/mixed) keeps the per-element `lerpValue`. Absent (undefined)
+     * for a frame with no numeric ivs, or before `parse` runs — `processFrame`
+     * falls back to the all-boxed walk. Bit-identical to the boxed path.
+     */
+    _numericPlan?: NumericFoldPlan<V>;
 
     transform: TransformFunction<V>;
 

@@ -56,9 +56,20 @@
         "bench/compile.bench.ts",
         "bench/spring-tick.bench.ts",
         "bench/sync-step.bench.ts",
-        "bench/group-composite.bench.ts"
+        "bench/group-composite.bench.ts",
+        "bench/waapi-densify.bench.ts"
     ],
     "cases": [
+        {
+            "suite": "bench/waapi-densify.bench.ts",
+            "name": "curvature-adaptive densify · full corpus",
+            "category": "observe-only"
+        },
+        {
+            "suite": "bench/waapi-densify.bench.ts",
+            "name": "fixed-8 uniform densify · full corpus",
+            "category": "observe-only"
+        },
         {
             "suite": "bench/interpolation.bench.ts",
             "name": "2-frame opacity (60 frames)",
@@ -143,6 +154,36 @@
             "suite": "bench/interp-buffer.bench.ts",
             "name": "K=2 · 600-frame steady window (threaded buffer)",
             "category": "run-check"
+        },
+        {
+            "suite": "bench/interp-buffer.bench.ts",
+            "name": "processFrame boxed · K=3 · 600-frame window",
+            "category": "observe-only"
+        },
+        {
+            "suite": "bench/interp-buffer.bench.ts",
+            "name": "processFrame SoA · K=3 · 600-frame window",
+            "category": "observe-only"
+        },
+        {
+            "suite": "bench/interp-buffer.bench.ts",
+            "name": "processFrame boxed · K=8 · 600-frame window",
+            "category": "observe-only"
+        },
+        {
+            "suite": "bench/interp-buffer.bench.ts",
+            "name": "processFrame SoA · K=8 · 600-frame window",
+            "category": "observe-only"
+        },
+        {
+            "suite": "bench/interp-buffer.bench.ts",
+            "name": "processFrame boxed · K=12 · 600-frame window",
+            "category": "observe-only"
+        },
+        {
+            "suite": "bench/interp-buffer.bench.ts",
+            "name": "processFrame SoA · K=12 · 600-frame window",
+            "category": "observe-only"
         },
         {
             "suite": "bench/interp-buffer.bench.ts",

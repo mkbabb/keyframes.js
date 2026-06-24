@@ -404,6 +404,23 @@ jobs:
             - name: proof:pin-ledger-current (Q.WA4 — the constellation pin-ledger witness · local pins == the shipped set · npm-view leg observe-only)
               run: npm run proof:pin-ledger-current
             # ════════════════════════════════════════════════════════════════════
+            # Q STAGE-3 GATES (Band B/C/D NOW) — emerging-CSS P2 · processFrame SoA ·
+            # NaN-frame cure · WAAPI adaptive densify · grammar-fuzz · differential.
+            # node + jsdom-vitest (no browser, no demo build) → the fast library gates job.
+            # ════════════════════════════════════════════════════════════════════
+            - name: proof:emerging-css-resolve-p2 (Q.WB1 — element-aware if(style)/sibling-* post-setTargets resolve)
+              run: npm run proof:emerging-css-resolve-p2
+            - name: proof:processframe-soa (Q.WB3 — single-animation processFrame Float64 SoA fold · measure-first ADOPT · bit-identical)
+              run: npm run proof:processframe-soa
+            - name: proof:nan-frame (Q.WD1 — named-selector deferred-resolution + play-time guard · S4 round-trip held · no-NaN-at-play)
+              run: npm run proof:nan-frame
+            - name: proof:waapi-adaptive-densify (Q.WB4 — curvature-adaptive sub-segment densify · chord-error ≤ fixed-8 on every corpus curve)
+              run: npm run proof:waapi-adaptive-densify
+            - name: proof:grammar-fuzz (Q.WD2 — fast-check @keyframes arbitraries · parse→serialize→reparse fixpoint)
+              run: npm run proof:grammar-fuzz
+            - name: proof:kf-differential (Q.WD2 — kf-vs-browser WAAPI midpoint differential · observe-only in CI, hard under KF_REQUIRE_BROWSER)
+              run: npm run proof:kf-differential
+            # ════════════════════════════════════════════════════════════════════
             # Q.WA3 APPARATUS GATES (the CI floor) — the master-merge oracle + the
             # deploy round-trip oracle. Pure-node static (git ancestry / shell-script
             # parse) — no vitest, no browser — so they ride the fast library gates job.
@@ -612,6 +629,31 @@ jobs:
               id: proof-live-session-mobile
               continue-on-error: true
               run: npm run proof:live-session-mobile
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            # ── Q STAGE-3 DEMO GATES (Band C) — the interaction/appearance-axis oracles (real pointer/scroll/flick, never a grep) ──
+            - name: "[CORRECTNESS] proof:demo-control-point (Q.WC1 — the DM-2 9th-carry terminal: a REAL pointer-drag of a DemoControlPoint handle re-shapes the bezier + re-times the subject; built over LIGHT drag2D)"
+              id: proof-demo-control-point
+              continue-on-error: true
+              run: npm run proof:demo-control-point
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            - name: "[CORRECTNESS] proof:easing-curve-editor (Q.WC2 — the easing curve-editor dogfoods DemoControlPoint: a live-drag of a hero handle edits the curve + re-times the ball)"
+              id: proof-easing-curve-editor
+              continue-on-error: true
+              run: npm run proof:easing-curve-editor
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            - name: "[CORRECTNESS] proof:scene-switcher-mobile (Q.WC3 — a 390px scroll-snap carousel renders non-clipping cards + a typed-directional View-Transition scene-switch)"
+              id: proof-scene-switcher-mobile
+              continue-on-error: true
+              run: npm run proof:scene-switcher-mobile
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            - name: "[CORRECTNESS] proof:amiga-decay-visible (Q.WC5 — a real flick shows the decay() coast: peak angular velocity decaying to rest, the physics made visible · SwiftShader WebGL)"
+              id: proof-amiga-decay-visible
+              continue-on-error: true
+              run: npm run proof:amiga-decay-visible
               env:
                   KF_REQUIRE_BROWSER: "1"
             - name: "[CORRECTNESS] proof:appearance-suffusion (J.W7a §Hard gate (a)–(g) — the per-finding COMPUTED appearance oracles on the suffused dist: --ball-tone == icon hue · Instrument-Serif display register (amiga headerless) · 390×844 overlap==0 · projected easing curve mutates on a handle drag · ghost rail absent · amiga rounded-glass · two-tier substrate (W6-3))"

@@ -17,7 +17,6 @@
             :viewBox="`0 ${viewBox.minY} 1 ${viewBox.height}`"
             preserveAspectRatio="xMidYMid meet"
             xmlns="http://www.w3.org/2000/svg"
-            @pointerdown="startDragging"
         >
             <!-- Background graticule — L.W11 S5 (PAPER): the flat uniform grid
                  promoted to the demo's OWN two-tier graticule (faint minor + bold
@@ -75,23 +74,17 @@
                 f(t)
             </text>
 
-            <!-- Handle lines (bezier mode only) -->
-            <template v-if="editable && controlPointsSvg">
-                <line
-                    :x1="0"
-                    :y1="1"
-                    :x2="controlPointsSvg[0].x"
-                    :y2="controlPointsSvg[0].y"
-                    class="handle-line"
-                />
-                <line
-                    :x1="1"
-                    :y1="0"
-                    :x2="controlPointsSvg[1].x"
-                    :y2="controlPointsSvg[1].y"
-                    class="handle-line"
-                />
-            </template>
+            <!-- Q.WC2 S2 — the comparison-DIFF ghost (Q.WC2): a low-opacity path
+                 carrying the ORIGINAL named curve's `d` behind the edited one, so
+                 `f(t)=` reads as a delta from ease-out. Present ONLY on a
+                 named→custom edit (no baseline for a from-scratch custom); a static
+                 path, no per-frame cost. -->
+            <path
+                v-if="editable && ghostPathD"
+                :d="ghostPathD"
+                class="bezier-path--ghost"
+                data-ghost
+            />
 
             <!-- Curve path — L.W11 S5: the `trace-smear` marker is the egg's
                  editor-side hook (the drag-bend SMEAR). While a handle is being
@@ -102,29 +95,40 @@
                 v-if="editable && bezierPoints"
                 :d="bezierPathD"
                 class="bezier-path trace-smear"
-                :class="{ 'trace-smear--active': currentHandleIndex !== null }"
+                :class="{ 'trace-smear--active': draggingIndex !== null }"
             />
             <path v-else :d="svgPath" class="bezier-path" />
 
-            <!-- Control point handles (bezier mode only) -->
+            <!-- Q.WC1 S2 — the two bespoke `<circle class="control-point handle">`
+                 + the colocated `useEasingCurveDrag` CTM handler are RETIRED onto
+                 two `<DemoControlPoint>` over the LIGHT `drag2D` (critically
+                 damped) — ONE gesture path: DemoControlPoint → drag2D →
+                 SpringProgress, with `useDragCapture` the shared select-suppression
+                 seam. The endpoints stay fixed display circles. -->
             <template v-if="editable && controlPointsSvg">
                 <!-- Endpoints (fixed) -->
                 <circle cx="0" cy="1" r="0.02" class="control-point endpoint" />
                 <circle cx="1" cy="0" r="0.02" class="control-point endpoint" />
-                <!-- Draggable handles -->
-                <circle
-                    :cx="controlPointsSvg[0].x"
-                    :cy="controlPointsSvg[0].y"
-                    r="0.04"
-                    class="control-point handle"
-                    data-index="0"
+                <!-- Draggable handles over the LIGHT drag2D primitive -->
+                <DemoControlPoint
+                    :model-value="cp0"
+                    :svg="svgEl"
+                    :index="0"
+                    :anchor="{ x: 0, y: 0 }"
+                    aria-label="Curve control point 1"
+                    @update:model-value="onControlPoint(0, $event)"
+                    @dragstart="draggingIndex = 0"
+                    @dragend="draggingIndex = null"
                 />
-                <circle
-                    :cx="controlPointsSvg[1].x"
-                    :cy="controlPointsSvg[1].y"
-                    r="0.04"
-                    class="control-point handle"
-                    data-index="1"
+                <DemoControlPoint
+                    :model-value="cp1"
+                    :svg="svgEl"
+                    :index="1"
+                    :anchor="{ x: 1, y: 1 }"
+                    aria-label="Curve control point 2"
+                    @update:model-value="onControlPoint(1, $event)"
+                    @dragstart="draggingIndex = 1"
+                    @dragend="draggingIndex = null"
                 />
             </template>
 
@@ -141,9 +145,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, useTemplateRef } from "vue";
+import { computed, ref, useTemplateRef } from "vue";
 import { GlassPanel } from "@mkbabb/glass-ui/glass-panel";
-import { useEasingCurveDrag } from "@components/custom/composables/useEasingCurveDrag";
+import DemoControlPoint from "@components/custom/DemoControlPoint.vue";
+import type { ControlPointValue } from "@components/custom/DemoControlPoint.vue";
 
 const props = defineProps<{
     easingFn: (t: number) => number;
@@ -151,6 +156,9 @@ const props = defineProps<{
     progress?: number;
     bezierPoints?: [number, number, number, number];
     editable?: boolean;
+    /** Q.WC2 S2 — the ORIGINAL named curve's `d` for the comparison-DIFF ghost
+     *  (present only on a named→custom edit; absent → no ghost). */
+    ghostPathD?: string;
 }>();
 
 const emit = defineEmits<{
@@ -158,6 +166,10 @@ const emit = defineEmits<{
 }>();
 
 const svgEl = useTemplateRef<SVGSVGElement>("svgEl");
+
+// Q.WC1 S2 — which handle is mid-drag (the `trace-smear--active` state), set by
+// the DemoControlPoint @dragstart/@dragend (the retired `currentHandleIndex`).
+const draggingIndex = ref<number | null>(null);
 
 // L.W11 S5 (PAPER) — the two-tier graticule lines: minor (0.125 grid) + major
 // (0.25/0.75) + the brightest centre crosshair, each as a vertical + horizontal.
@@ -184,7 +196,8 @@ const gridLines = (() => {
 // Convert bezier Y (0=bottom, 1=top) to SVG Y (0=top, increases downward)
 const toSvgY = (y: number) => 1 - y;
 
-// SVG-space control points for the two draggable handles
+// SVG-space control points for the two draggable handles (kept as the
+// render-gate for the endpoints + the bezier path).
 const controlPointsSvg = computed(() => {
     if (!props.bezierPoints) return null;
     const [x1, y1, x2, y2] = props.bezierPoints;
@@ -193,6 +206,26 @@ const controlPointsSvg = computed(() => {
         { x: x2, y: toSvgY(y2) },
     ];
 });
+
+// Q.WC1 S2 — the two DemoControlPoint v-models in CURVE space (bezier-Y), read
+// off the `[x1,y1,x2,y2]` tuple; `onControlPoint` writes the moved pair back.
+const cp0 = computed<ControlPointValue>(() => ({
+    x: props.bezierPoints?.[0] ?? 0,
+    y: props.bezierPoints?.[1] ?? 0,
+}));
+const cp1 = computed<ControlPointValue>(() => ({
+    x: props.bezierPoints?.[2] ?? 1,
+    y: props.bezierPoints?.[3] ?? 1,
+}));
+
+const onControlPoint = (index: number, value: ControlPointValue) => {
+    const pts = props.bezierPoints;
+    if (!pts) return;
+    const next: [number, number, number, number] = [...pts];
+    next[index * 2] = value.x;
+    next[index * 2 + 1] = value.y;
+    emit("update:bezierPoints", next);
+};
 
 // Proper SVG cubic bezier path — single smooth C command
 const bezierPathD = computed(() => {
@@ -206,39 +239,26 @@ const bezierPathD = computed(() => {
 const VIEW_PAD = 0.1;
 const MAX_OVERSHOOT = 0.6;
 
+// Q.WC2 S1.3 — the closed-form viewBox clamp (replaces the 17-sample scan). A
+// cubic-bezier path's y-extrema are EXACTLY min/max{0,1,1−y1,1−y2} (the convex-
+// hull property), exact AND tighter than sampling. SCOPE GUARD: the hull bound
+// holds ONLY in bezier mode (`controlPointsSvg` present); the `steps()` staircase
+// has extrema exactly `[0,1]` (no overshoot), so the bound is the trivial `[0,1]`.
 const viewBox = computed(() => {
-    const ys: number[] = [0, 1];
-
+    let rawMin: number;
+    let rawMax: number;
     if (controlPointsSvg.value) {
-        ys.push(controlPointsSvg.value[0].y, controlPointsSvg.value[1].y);
+        // Bezier — hull over the SVG-Y control points (`.y` is already `1 − yi`).
+        const ys = [0, 1, controlPointsSvg.value[0].y, controlPointsSvg.value[1].y];
+        rawMin = Math.min(...ys);
+        rawMax = Math.max(...ys);
+    } else {
+        rawMin = 0; // steps()/non-bezier — bounded staircase, extrema [0,1].
+        rawMax = 1;
     }
-
-    // Sample the easing function to detect overshoot
-    for (let i = 0; i <= 16; i++) {
-        const t = i / 16;
-        ys.push(1 - props.easingFn(t));
-    }
-
-    // Clamp to prevent extreme curves from blowing up the viewBox
-    const rawMin = Math.min(...ys);
-    const rawMax = Math.max(...ys);
     const minY = Math.max(rawMin, 0 - MAX_OVERSHOOT) - VIEW_PAD;
     const maxY = Math.min(rawMax, 1 + MAX_OVERSHOOT) + VIEW_PAD;
     return { minY, height: maxY - minY };
-});
-
-// ── Drag interaction (bezier mode only) ─────────────────────────
-// The "drag the bezier handles" gesture unit lives in the COLOCATED
-// `useEasingCurveDrag` composable (L.W11 split, kept under the 500L demo
-// ceiling): it owns the hit-test + the SVG↔bezier coordinate transform +
-// rubber-band/smoothing, and rides the SHARED control-surface drag seam
-// (`useDragCapture` — capture + the global select-suppression token). The
-// component keeps ONLY the template + bezier-display computeds + the <style>.
-const { currentHandleIndex, startDragging } = useEasingCurveDrag({
-    svgEl,
-    editable: () => props.editable,
-    bezierPoints: () => props.bezierPoints,
-    onUpdate: (points) => emit("update:bezierPoints", points),
 });
 </script>
 
@@ -390,6 +410,21 @@ const { currentHandleIndex, startDragging } = useEasingCurveDrag({
     filter: drop-shadow(0 0 0.018px var(--trace-glow))
         drop-shadow(0 0 0.045px var(--trace-glow));
     transition: filter var(--duration-fast) var(--ease-standard);
+}
+
+/* Q.WC1 S2 — the comparison-DIFF ghost: the ORIGINAL named curve the custom edit
+   departed from, rendered behind the live trace at low opacity in the trace's own
+   family so `f(t)=` reads as a delta ("you pulled it THIS far from ease-out"). A
+   static path (no motion) — carries through reduced-motion unchanged. */
+.bezier-path--ghost {
+    stroke: var(--trace, var(--muted-foreground));
+    stroke-width: 0.025;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 0.03 0.025;
+    opacity: 0.32;
+    filter: none;
 }
 
 /* L.W11 S5 (the drag-bend smear, editor side) — while a handle is grabbed the

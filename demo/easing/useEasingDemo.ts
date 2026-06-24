@@ -22,6 +22,7 @@ import { useRafScene } from "../app/useRafScene";
 import { useSceneMachine } from "@components/custom/animation-controls/stores";
 import { getFamilyForCurve, getFamilyCurves } from "./easingGroups";
 import { useEasingGallery } from "./useEasingGallery";
+import { useEasingGhost } from "./useEasingGhost";
 import { useEasingTraceSmear } from "./useEasingTraceSmear";
 
 // ── Static data ────────────────────────────────────────────────────
@@ -62,6 +63,9 @@ export function useEasingDemo() {
         jumpTerm: "jump-end",
     });
     const duration = ref(1500);
+
+    // Q.WC2 S2 — the comparison-DIFF ghost (colocated in useEasingGhost).
+    const { ghostPathD, capture: captureGhost, clear: clearGhost } = useEasingGhost();
 
     // ── Playback intent: DERIVED from the machine, NOT a private shadow ──
     // The former private `isPlaying = ref(true)` + the dummy-group paused-mirror
@@ -298,6 +302,8 @@ export function useEasingDemo() {
     const selectEasing = (name: string) => {
         currentEasingName.value = name;
 
+        clearGhost(); // Q.WC2 S2 — a fresh selection drops the diff baseline.
+
         // Load bezier control points if available
         const bezier = NAMED_EASING_BEZIER[name];
         if (bezier) {
@@ -323,6 +329,8 @@ export function useEasingDemo() {
     const updateBezierPoints = (points: [number, number, number, number]) => {
         // L.W11 S5 — kick the trace smear from the handle update's velocity.
         kickFromPoints(bezierControlPoints.value, points);
+        // Q.WC2 S2 — capture the named baseline ghost BEFORE the name→custom flip.
+        captureGhost(currentEasingName.value, svgPath.value);
         bezierControlPoints.value = points;
         // If editing a named curve's bezier, switch to custom
         if (currentEasingName.value !== "cubic-bezier") {
@@ -345,6 +353,8 @@ export function useEasingDemo() {
                 parseFloat(bezierMatch[4]!),
             ];
             if (pts.every((n) => !isNaN(n))) {
+                // Q.WC2 S2 — a typed cubic-bezier from a named curve captures the ghost.
+                captureGhost(currentEasingName.value, svgPath.value);
                 bezierControlPoints.value = pts;
                 currentEasingName.value = "cubic-bezier";
                 return true;
@@ -472,6 +482,8 @@ export function useEasingDemo() {
         isSteps,
         currentFamily,
         comparisonCurves,
+
+        ghostPathD, // Q.WC2 S2 — the comparison-DIFF ghost path.
 
         // Methods
         selectEasing,

@@ -184,16 +184,21 @@ function main() {
     {
         // The densification: a per-segment interior-sample loop in
         // toWAAPIKeyframes, BOUNDED by a named stop count.
-        const hasBound = /WAAPI_SUBSEGMENT_STOPS/.test(waapi);
-        // It must sample BETWEEN the sorted boundary times — an interior loop
-        // over consecutive `sortedTimes` pairs, not boundary-only.
+        // Q.WB4 transposed the fixed-8 uniform `WAAPI_SUBSEGMENT_STOPS` loop into a
+        // curvature-adaptive `densifyInteriorTimes` bounded by `WAAPI_MAX_SUBSEGMENT_STOPS`
+        // (a TOTAL running budget). The S3 intent (bounded interior sampling, not
+        // boundary-only) is preserved — the grep matches either era.
+        const hasBound =
+            /WAAPI_(?:MAX_)?SUBSEGMENT_STOPS|densifyInteriorTimes/.test(waapi);
+        // It must sample BETWEEN the sorted boundary times — an interior densify
+        // over consecutive boundary pairs, not boundary-only.
         const hasInteriorSample =
-            /sortedTimes\[i\s*-\s*1\]/.test(waapi) &&
-            /WAAPI_SUBSEGMENT_STOPS/.test(waapi);
+            /densifyInteriorTimes|sortedTimes\[i\s*-\s*1\]/.test(waapi) &&
+            /WAAPI_(?:MAX_)?SUBSEGMENT_STOPS/.test(waapi);
         if (!hasBound) {
             fail(
                 "[S3] waapi.ts has no bounded sub-segment stop count " +
-                    "(WAAPI_SUBSEGMENT_STOPS) — toWAAPIKeyframes samples only the " +
+                    "(WAAPI_MAX_SUBSEGMENT_STOPS / densifyInteriorTimes) — toWAAPIKeyframes samples only the " +
                     "stop boundaries; the compositor curve drifts between stops.",
             );
         } else if (!hasInteriorSample) {

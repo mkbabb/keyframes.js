@@ -165,6 +165,20 @@ export const scenes: SceneDescriptor[] = [
 export const allScenes = [homeScene, ...scenes];
 export const sceneMap = new Map(allScenes.map((s) => [s.id, s]));
 
+// Q.WC3 S1 — the ordered-index seam: the ONE source of scene-order truth (over
+// `allScenes`). `useSceneTransition` reads `sign(sceneIndex(target) −
+// sceneIndex(current))` to derive the directional View-Transition type
+// (forward/backward), and the mobile scroll-snap carousel reads the SAME order —
+// no second hard-coded order list (no-legacy). An unknown id → −1 (a no-op
+// direction; the untyped cross-fade degrade).
+const sceneOrder = new Map(allScenes.map((s, i) => [s.id, i]));
+
+/** The ordered index of a scene id in `allScenes` (home first, then the
+ *  `scenes[]` order), or −1 if unknown. The single source of scene-order truth. */
+export function sceneIndex(id: string): number {
+    return sceneOrder.get(id) ?? -1;
+}
+
 /**
  * The mobile STAGE mode-class (H.W7.S1c) — the three registers the mobile
  * overlay composes the controls sheet against, keyed by the scene's CONTENT

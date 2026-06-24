@@ -210,33 +210,39 @@ describe("interpFrames — SoA lerpArray arm (J.W6 S2, real-K corpus)", () => {
         const out: Record<string, ValueUnit[]> = {};
         const { segs, out: soaOut } = packSoA(anim);
 
-        bench(`${label} · per-channel _lerp (current) · 600-frame window`, () => {
-            for (let f = 0; f < 600; f++) {
-                anim.interpFrames((f / 600) * 1000, false, out);
-            }
-        });
-
-        bench(`${label} · SoA Float64Array+lerpArray · 600-frame window`, () => {
-            for (let f = 0; f < 600; f++) {
-                const t = (f / 600) * 1000;
-                // The same binary segment search the engine pays
-                // (`binarySearchRange` seed) — the SoA refactor cannot
-                // remove it, so the twin keeps it.
-                let lo = 0;
-                let hi = segs.length - 1;
-                while (lo < hi) {
-                    const mid = (lo + hi) >> 1;
-                    if (segs[mid]!.stop < t) lo = mid + 1;
-                    else hi = mid;
+        bench(
+            `${label} · per-channel _lerp (current) · 600-frame window`,
+            () => {
+                for (let f = 0; f < 600; f++) {
+                    anim.interpFrames((f / 600) * 1000, false, out);
                 }
-                const seg = segs[lo]!;
-                const scaled =
-                    seg.start === seg.stop
-                        ? 1
-                        : (t - seg.start) / (seg.stop - seg.start);
-                lerpArray(seg.from, seg.to, seg.fn(scaled), soaOut);
-            }
-        });
+            },
+        );
+
+        bench(
+            `${label} · SoA Float64Array+lerpArray · 600-frame window`,
+            () => {
+                for (let f = 0; f < 600; f++) {
+                    const t = (f / 600) * 1000;
+                    // The same binary segment search the engine pays
+                    // (`binarySearchRange` seed) — the SoA refactor cannot
+                    // remove it, so the twin keeps it.
+                    let lo = 0;
+                    let hi = segs.length - 1;
+                    while (lo < hi) {
+                        const mid = (lo + hi) >> 1;
+                        if (segs[mid]!.stop < t) lo = mid + 1;
+                        else hi = mid;
+                    }
+                    const seg = segs[lo]!;
+                    const scaled =
+                        seg.start === seg.stop
+                            ? 1
+                            : (t - seg.start) / (seg.stop - seg.start);
+                    lerpArray(seg.from, seg.to, seg.fn(scaled), soaOut);
+                }
+            },
+        );
     }
 
     // DISPATCH-ONLY corroborator at K=8: the bare per-channel closure loop
@@ -262,6 +268,91 @@ describe("interpFrames — SoA lerpArray arm (J.W6 S2, real-K corpus)", () => {
             lerpArray(seg0.from, seg0.to, f / 600, dispatchOut);
         }
     });
+});
+
+/**
+ * Q.WB3 S1/S3 — the single-animation `processFrame` SoA-vs-boxed K-LADDER (the
+ * measure-first decision arm + the K-monotonicity witness).
+ *
+ * `proof:processframe-soa` reads this arm: the BASELINE is the REAL boxed
+ * `processFrame` path (`interpFrames(t, false, out)` over the threaded buffer —
+ * the per-channel `lerpValue` megamorphic dispatch EVERY preset/`fromString`/
+ * single animation rides), the CANDIDATE is the SoA Float64Array+`lerpArray` twin
+ * (the same binary segment search + easing, the per-channel loop replaced by ONE
+ * `lerpArray`). The ratio (candidate/baseline) is SAME-REPORT (device-independent
+ * by construction). Recorded at K=3/8/12 so the gate witnesses SoA-over-boxed
+ * MONOTONICITY in K (the proof the fold SCALES with channel count — boxed degrades
+ * steeper than SoA as K rises).
+ *
+ * The case names are gate-parsed: `processFrame boxed · K=<k>` /
+ * `processFrame SoA · K=<k>`.
+ */
+const FLAT_K_KEYS = [
+    "width",
+    "height",
+    "top",
+    "left",
+    "right",
+    "bottom",
+    "margin-top",
+    "margin-left",
+    "margin-right",
+    "margin-bottom",
+    "padding-top",
+    "padding-left",
+] as const;
+
+/** Build an animation with exactly `K` flat NUMERIC interpolating channels (the
+ * `processFrame` numeric fold's subject — every leaf a numeric `ValueUnit`). */
+const makeKAnim = (K: number) => {
+    const STOPS = 5;
+    const css = Array.from({ length: STOPS }, (_, s) => {
+        const pct = Math.round((s / (STOPS - 1)) * 100);
+        const decls = FLAT_K_KEYS.slice(0, K)
+            .map((k, ki) => `${k}: ${((s + ki) % 10) * 10 + 1}px`)
+            .join("; ");
+        return `${pct}% { ${decls}; }`;
+    }).join("\n");
+    return new CSSKeyframesAnimation({ duration: 1000 }).fromString(css);
+};
+
+describe("processFrame — SoA-vs-boxed K-ladder (Q.WB3 S1/S3, measure-first)", () => {
+    const KS = [3, 8, 12] as const;
+
+    for (const K of KS) {
+        const anim = makeKAnim(K);
+        const out: Record<string, ValueUnit[]> = {};
+        const { segs, out: soaOut } = packSoA(anim);
+
+        // BASELINE — the REAL boxed processFrame path (per-channel lerpValue).
+        bench(`processFrame boxed · K=${K} · 600-frame window`, () => {
+            for (let f = 0; f < 600; f++) {
+                anim.interpFrames((f / 600) * 1000, false, out);
+            }
+        });
+
+        // CANDIDATE — the SoA Float64Array+lerpArray twin (same search + easing,
+        // the per-channel loop replaced by one lerpArray). The fold the S2
+        // processFrame numeric arm performs in-engine.
+        bench(`processFrame SoA · K=${K} · 600-frame window`, () => {
+            for (let f = 0; f < 600; f++) {
+                const t = (f / 600) * 1000;
+                let lo = 0;
+                let hi = segs.length - 1;
+                while (lo < hi) {
+                    const mid = (lo + hi) >> 1;
+                    if (segs[mid]!.stop < t) lo = mid + 1;
+                    else hi = mid;
+                }
+                const seg = segs[lo]!;
+                const scaled =
+                    seg.start === seg.stop
+                        ? 1
+                        : (t - seg.start) / (seg.stop - seg.start);
+                lerpArray(seg.from, seg.to, seg.fn(scaled), soaOut);
+            }
+        });
+    }
 });
 
 /**
@@ -291,13 +382,18 @@ describe("interpFrames — SoA lerpArray arm (J.W6 S2, real-K corpus)", () => {
 warmEngine();
 
 describe("warmEngine pre-resolve (L.W7 S1, W121)", () => {
-    bench("warmEngine — loadAnimationEngine resolves before first animate", async () => {
-        // After the module-load warm settles, this resolves against the memoized
-        // `_enginePromise` — one microtask, no second import (the S1 contract).
-        const engine = await loadAnimationEngine();
-        // Touch the resolved surface so the await is not dead-code-eliminated.
-        if (typeof engine.animate !== "function") {
-            throw new Error("warmEngine pre-resolve did not settle the engine");
-        }
-    });
+    bench(
+        "warmEngine — loadAnimationEngine resolves before first animate",
+        async () => {
+            // After the module-load warm settles, this resolves against the memoized
+            // `_enginePromise` — one microtask, no second import (the S1 contract).
+            const engine = await loadAnimationEngine();
+            // Touch the resolved surface so the await is not dead-code-eliminated.
+            if (typeof engine.animate !== "function") {
+                throw new Error(
+                    "warmEngine pre-resolve did not settle the engine",
+                );
+            }
+        },
+    );
 });

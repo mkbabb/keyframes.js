@@ -193,15 +193,21 @@ async function exerciseEasing(page, label) {
         const hb = handle.getBoundingClientRect();
         const startX = hb.x + hb.width / 2;
         const startY = hb.y + hb.height / 2;
-        // Drag up-and-right a meaningful fraction of the SVG box (a real curve
-        // change). Pointer events with buttons:1 so the canvas drag engages.
+        // Q.WC1 — the curve handle was consolidated onto `DemoControlPoint` over
+        // the LIGHT `drag2D` (the bespoke SVG-level `@pointerdown="startDragging"`
+        // hit-test was retired). The `drag2D` Draggable binds its `pointerdown`
+        // listener on the HANDLE element (not the SVG), so the synthetic gesture
+        // is dispatched on the handle (`setPointerCapture` retargets move/up to
+        // it). The bite is unchanged: a real handle drag must still mutate the
+        // bezier `d` AND re-time the subject.
         const fire = (type, x, y) =>
-            svg.dispatchEvent(
+            handle.dispatchEvent(
                 new PointerEvent(type, {
                     bubbles: true,
                     cancelable: true,
                     pointerId: 1,
                     pointerType: "mouse",
+                    button: type === "pointerdown" ? 0 : -1,
                     buttons: type === "pointerup" ? 0 : 1,
                     clientX: x,
                     clientY: y,

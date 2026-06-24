@@ -22,6 +22,7 @@
             :progress="progress"
             :bezier-points="editable ? bezierPoints : undefined"
             :editable="editable"
+            :ghost-path-d="ghostPathD"
             @update:bezier-points="(pts) => emit('update:bezierPoints', pts)"
         />
 
@@ -86,6 +87,9 @@ defineProps<{
     /** The complete, re-parseable `cubic-bezier(…)`/`steps(…)` literal to read
      *  out + copy. Falsy → no readout (a bare named curve has no literal). */
     readoutValue?: string;
+    /** Q.WC2 S2 — the ORIGINAL named curve's `d` for the comparison-DIFF ghost
+     *  (present only on a named→custom edit; absent → no ghost). */
+    ghostPathD?: string;
 }>();
 
 const emit = defineEmits<{

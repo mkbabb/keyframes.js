@@ -15,14 +15,18 @@
 import {
     clamp,
     isObject,
+    lerpArray,
     lerpValue,
     scale,
     sleep,
+    ValueArray,
     ValueUnit,
     type CSSTimelineOptions,
+    type CustomFunctionDescriptor,
     type PropertyDescriptor,
 } from "@mkbabb/value.js";
 import { binarySearchRange } from "./internal/binarySearch";
+import { AnimationOptionError } from "./internal/errors";
 import { withReducedMotion } from "./internal/reduced-motion";
 import { RAFPlayback } from "./playback";
 import { resolveKeyframes } from "./adapter";
@@ -61,7 +65,19 @@ import {
     registerPropertyDescriptors,
 } from "./engine-css-metadata";
 import { cssTwinFor } from "./easing";
-import { FrameCompiler } from "./frame-compiler";
+import {
+    FrameCompiler,
+    namedSelectorToFraction,
+    NAMED_SELECTOR_SUPERTYPE,
+} from "./frame-compiler";
+import type { Timeline } from "./timeline";
+import {
+    DROP,
+    hasPhase2Node,
+    makeResolveContext,
+    resolveValues,
+    type ResolveEnv,
+} from "./resolve-values";
 import {
     getTimingFunction,
     type ParsedVarMap,
@@ -602,10 +618,45 @@ export class KeyframesAnimation<V extends Vars = any> {
     }
 
     /**
+     * Q.WD1 S3 (DM-22) — the named-selector PLAY-TIME guard. A scroll-range named
+     * selector (`entry`/`exit`/`cover`/`contain`) ingests + round-trips opaquely
+     * (the L.W1 S4 floor — `fromString`/`parse()` NEVER throw); it is RESOLVABLE to
+     * a numeric `%` only under a `ScrollTimeline`/`ManualTimeline` via
+     * `bindTimeline`. If a numeric position is genuinely DEMANDED (`play()`/`at()`)
+     * while a template frame still carries `NAMED_SELECTOR_SUPERTYPE` (unresolved —
+     * `bindTimeline` was never called), refuse with the TYPED
+     * `NAMED_SELECTOR_NO_TIMELINE` rather than silently producing NaN frames that
+     * `binarySearchRange` treats as ALWAYS-ACTIVE. Fired ONLY at the genuinely-
+     * demanded point — NEVER at parse/ingest (the reverted Path-A trap). A resolved
+     * frame (the superType tag CLEARED by `bindTimeline`) passes silently — this is
+     * a zero-cost `Array.find` over `templateFrames` whose starts are `%`/`from`/
+     * `to` (no `superType`) on a non-named animation.
+     */
+    private assertNoUnresolvedNamedSelector(): void {
+        const unresolved = this.compiler.templateFrames.find((f) =>
+            f.start.superType?.includes(NAMED_SELECTOR_SUPERTYPE),
+        );
+        if (unresolved != null) {
+            const raw = String(unresolved.start.value);
+            throw new AnimationOptionError(
+                "start",
+                raw,
+                `named scroll-range selector ("${raw}") requires a ScrollTimeline ` +
+                    `or ManualTimeline — call bindTimeline(timeline) before play() ` +
+                    `to resolve the named phase to a numeric position`,
+                "NAMED_SELECTOR_NO_TIMELINE",
+            );
+        }
+    }
+
+    /**
      * Stateless progress query. Maps [0,1] from first keyframe to last,
      * regardless of playback direction. `apply=true` invokes transform callbacks.
      */
     at(progress: number, apply: boolean = false): Record<string, ValueUnit[]> {
+        // Q.WD1 S3 — the oracle path shares the named-selector guard (an unresolved
+        // named-selector animation would otherwise produce NaN here too).
+        this.assertNoUnresolvedNamedSelector();
         const saved = this.reversed;
         this.reversed = false;
         const t = clamp(progress, 0, 1) * this.options.duration;
@@ -751,8 +802,31 @@ export class KeyframesAnimation<V extends Vars = any> {
         const scaled = start === stop ? 1 : scale(t, start, stop, 0, 1);
         const eased = frame.timingFunction.fn(scaled);
 
-        for (const iv of frame.allInterpVars) {
-            lerpValue(eased, iv);
+        // Q.WB3 S2 — the numeric SoA fold (ADOPT-verdicted, `processframe-soa-
+        // decision.json`). The pure-numeric iv subset folds through ONE contiguous
+        // `lerpArray` over the precomputed `Float64Array` endpoint buffers (built
+        // ONCE at `parse` — `frame._numericPlan`), replacing the per-channel boxed
+        // `lerpValue` megamorphic dispatch on the DOMINANT single-animation path.
+        // The result strides back into each numeric leaf's `value.value` slot (the
+        // SAME slot `lerpValue` wrote), so the apply/composition/transform below —
+        // which read the now-folded `flatVars`/`vars` — run EXACTLY as before
+        // (bit-identical, `proof:processframe-soa` interp-equal). The BOXED residual
+        // (color/computed/mixed) keeps the per-element `lerpValue`, UNCHANGED.
+        const plan = frame._numericPlan;
+        if (plan !== undefined && plan.numeric.length > 0) {
+            const { numeric, from, to, out } = plan;
+            lerpArray(from, to, eased, out);
+            for (let s = 0; s < numeric.length; s++) {
+                (numeric[s]!.value as unknown as { value: number }).value =
+                    out[s]!;
+            }
+            for (const iv of plan.boxed) {
+                lerpValue(eased, iv);
+            }
+        } else {
+            for (const iv of frame.allInterpVars) {
+                lerpValue(eased, iv);
+            }
         }
 
         // K.W7 S1 — HONOR `animation-composition` on the rAF APPLY path (the
@@ -1046,6 +1120,11 @@ export class KeyframesAnimation<V extends Vars = any> {
             );
         }
 
+        // Q.WD1 S3 (DM-22) — refuse to start with an UNRESOLVED named-selector
+        // frame (no timeline bound) rather than running NaN-poisoned always-active
+        // frames. Fired ONLY here (play-without-timeline), NEVER at parse/ingest.
+        this.assertNoUnresolvedNamedSelector();
+
         if (this._playingPromise) return this._playingPromise;
 
         const result = withReducedMotion(
@@ -1170,17 +1249,163 @@ export class KeyframesAnimation<V extends Vars = any> {
     setTargets(...targets: HTMLElement[]) {
         this.targets = targets;
 
-        this.frames.forEach((frame) => {
-            Object.values(frame.interpVars).forEach((values) => {
-                values.forEach(({ start, stop, value }) => {
-                    start.setTargets(this.targets);
-                    stop.setTargets(this.targets);
-                    value.setTargets(this.targets);
+        // Q.WB1 — the emerging-CSS Phase-2 element-AWARE resolution pass. The
+        // FIRST pass (Phase 1, at `resolveKeyframes` flatten time) had no element
+        // and deliberately left the element-aware nodes UNRESOLVED: `if(style(--p))`
+        // (a `style(...)`-condition `if()` `resolveIf` returned intact), and the
+        // `sibling-index()`/`sibling-count()` `FunctionValue`s. Now the target is
+        // bound, so re-run the SAME `resolveValues` rewriter over the pre-flatten
+        // template snapshot against an element-POPULATED env, then re-`parse()`.
+        // Gated by `hasPhase2Node` (the common pure-Phase-1 / all-concrete
+        // animation skips both the re-resolve AND the extra parse — the fast
+        // target-propagate path below is unchanged for it).
+        const rebuilt = this._resolveElementAwareValues();
+        if (!rebuilt) {
+            // The fast path (no Phase-2 node): propagate the bound target onto the
+            // ALREADY-compiled interp carriers so value.js's computed-unit DOM
+            // resolution reads the live box. (A Phase-2 re-`parse()` already binds
+            // the targets via `compiler.parse(this.targets)`, so this is skipped on
+            // the rebuilt path.)
+            this.frames.forEach((frame) => {
+                Object.values(frame.interpVars).forEach((values) => {
+                    values.forEach(({ start, stop, value }) => {
+                        start.setTargets(this.targets);
+                        stop.setTargets(this.targets);
+                        value.setTargets(this.targets);
+                    });
                 });
             });
-        });
+        }
 
         return this;
+    }
+
+    /**
+     * Q.WB1 — the emerging-CSS Phase-2 SECOND resolution pass (the gestalt P.W13
+     * designed: ONE rewriter, a SECOND lifecycle point — element-populated env,
+     * SAME `ResolveContext` shape). Runs over the PRE-FLATTEN
+     * `compiler.templateFrames[i].vars` snapshot (the Phase-1-resolved, unflattened
+     * `Record<string, ValueArray>` `parse()` re-flattens via
+     * `parseAndFlattenObject`), so a Phase-1-resolved leaf — already a concrete
+     * `ValueUnit` — is returned as-is by `resolveNode`, making the pass idempotent
+     * over the Phase-1 result. Gated by `hasPhase2Node`: a declaration with NO
+     * element-aware node is never re-resolved (zero second-pass cost).
+     *
+     * SSR-safe: with no bound target (or a target with no `parentElement`) the env
+     * fields are OMITTED, so a residual node stays unresolved (never a throw on
+     * `getComputedStyle(undefined)`) — the same posture Phase 1 holds for
+     * `style(--p)` today.
+     *
+     * @returns `true` iff at least one template carried a Phase-2 node and the
+     *   compiler was re-`parse()`d (so `setTargets` skips its fast propagate).
+     */
+    private _resolveElementAwareValues(): boolean {
+        const templates = this.compiler.templateFrames;
+        // Gate: only run the element-aware pass when SOME template carries a
+        // Phase-2 node — the common case (percent/from/to + concrete values, or a
+        // pure-Phase-1 if(supports)/spring()) pays zero second-pass cost.
+        let anyPhase2 = false;
+        for (const frame of templates) {
+            const vars = frame.vars as Record<string, unknown>;
+            for (const key in vars) {
+                if (hasPhase2Node(vars[key])) {
+                    anyPhase2 = true;
+                    break;
+                }
+            }
+            if (anyPhase2) break;
+        }
+        if (!anyPhase2) return false;
+
+        const env = this._buildElementAwareEnv();
+        // No element-populated env (SSR / no target) → leave the residual nodes
+        // intact (idempotent, never a throw). Nothing to re-resolve.
+        if (env === undefined) return false;
+
+        // The SAME ResolveContext shape Phase 1 uses; the ONLY delta is the
+        // element-populated env. The `@function` registry is irrelevant to the
+        // Phase-2 arms (style/sibling-*), so an empty Map suffices.
+        const ctx = makeResolveContext(
+            new Map<string, CustomFunctionDescriptor>(),
+            env,
+        );
+
+        let rewrote = false;
+        for (const frame of templates) {
+            const vars = frame.vars as Record<string, unknown>;
+            for (const key in vars) {
+                const value = vars[key];
+                if (!(value instanceof ValueArray) || !hasPhase2Node(value)) {
+                    continue;
+                }
+                const resolved = resolveValues(value, ctx);
+                if (resolved === DROP) {
+                    // Guaranteed-invalid (a style(--p) if() with no branch + no
+                    // else) → OMIT the declaration (the CSS guaranteed-invalid
+                    // rule), exactly as the Phase-1 adapter path does.
+                    delete vars[key];
+                    rewrote = true;
+                    continue;
+                }
+                if (resolved !== value) {
+                    vars[key] = resolved;
+                    rewrote = true;
+                }
+            }
+        }
+
+        if (!rewrote) return false;
+
+        // Re-flatten/recompile from the now-Phase-2-resolved templates. The existing
+        // `parse()` re-runs `parseAndFlattenObject` over the rewritten
+        // `templateFrames[i].vars` AND binds the live targets (so computed-unit
+        // resolution reads the box) — one re-`parse()` per `setTargets`, paid ONLY
+        // on the Phase-2 path.
+        this.parse();
+        return true;
+    }
+
+    /**
+     * Q.WB1 — build the element-AWARE {@link ResolveEnv} from the bound target (the
+     * precondition for the Phase-2 second pass). SSR-safe: with no target / no
+     * `parentElement`, the relevant field is OMITTED (not assigned), so the residual
+     * node stays unresolved rather than throwing. Built ONCE per `setTargets` — the
+     * pass is a compile-time lowering, never on the hot path.
+     *
+     * @returns the populated env, or `undefined` when no target is bound at all
+     *   (the whole pass is skipped — nothing element-aware can resolve).
+     */
+    private _buildElementAwareEnv(): ResolveEnv | undefined {
+        const target = this.targets[0];
+        if (target == null) return undefined;
+        // The custom-prop reader: prefer the COMPUTED value, fall back to the INLINE
+        // `style.getPropertyValue` (jsdom does not resolve inline/registered custom
+        // props into `getComputedStyle` reliably). Returns `undefined` for an unset
+        // prop — the presence/equality contract `evalStyleCondition` consumes.
+        const env: ResolveEnv = {
+            customProps: (name: string) => {
+                let v = "";
+                if (typeof getComputedStyle === "function") {
+                    try {
+                        v = getComputedStyle(target)
+                            .getPropertyValue(name)
+                            .trim();
+                    } catch {
+                        v = "";
+                    }
+                }
+                if (v === "") v = target.style.getPropertyValue(name).trim();
+                return v === "" ? undefined : v;
+            },
+        };
+        const parent = target.parentElement;
+        if (parent != null) {
+            // 1-based DOM position (per the CSS `sibling-index()` definition).
+            env.siblingIndex = () =>
+                Array.prototype.indexOf.call(parent.children, target) + 1;
+            env.siblingCount = () => parent.children.length;
+        }
+        return env;
     }
 
     group(...animations: KeyframesAnimation<V>[]) {
@@ -1204,7 +1429,18 @@ export class KeyframesAnimation<V extends Vars = any> {
  */
 export { KeyframesAnimation as Animation };
 
-export class CSSKeyframesAnimation<V extends Vars> extends KeyframesAnimation<V> {
+export class CSSKeyframesAnimation<
+    V extends Vars,
+> extends KeyframesAnimation<V> {
+    /**
+     * Q.WD1-bind S2 (DM-22) — the timeline a scroll-range named selector resolves
+     * its phase against. Stored by {@link bindTimeline} for the no-timeline guard's
+     * check; `undefined` until a timeline is bound. A scroll-context operation
+     * specific to CSS keyframes with named selectors (the base `Animation` class is
+     * value.js-/scroll-agnostic), so the field + method live here.
+     */
+    private _boundTimeline?: Timeline;
+
     constructor(
         options?: Partial<InputAnimationOptions>,
         ...targets: HTMLElement[]
@@ -1212,6 +1448,50 @@ export class CSSKeyframesAnimation<V extends Vars> extends KeyframesAnimation<V>
         super(options, targets);
 
         this.unflatten = false;
+    }
+
+    /**
+     * Q.WD1-bind S2 (DM-22) — the attach-time deferred-resolution seam. A
+     * scroll-range named keyframe selector (`entry`/`exit`/`cover`/`contain`)
+     * ingests OPAQUELY (the L.W1 S4 floor) and is RESOLVABLE only under a timeline;
+     * `bindTimeline` is where that resolution happens. It walks `templateFrames`,
+     * resolves each named-selector start to a numeric `%` `ValueUnit` via
+     * {@link namedSelectorToFraction}, CLEARS the `NAMED_SELECTOR_SUPERTYPE` tag (so
+     * the resolved frame is indistinguishable from an author-written `%` at the sort
+     * step — no NaN), and re-compiles. The play-time guard
+     * (`assertNoUnresolvedNamedSelector`) then finds zero unresolved frames and
+     * passes silently — so this MUST land before the guard fires (the gate-enforced
+     * sub-wave ordering: the guard over-throws on a bound animation if the resolver
+     * is absent).
+     *
+     * Idempotent + safe to call before `fromString`: with no named frames the walk
+     * is a no-op; calling it after a NaN-producing `parse()` purges the NaN frames.
+     */
+    bindTimeline(timeline: Timeline): this {
+        this._boundTimeline = timeline;
+
+        let resolvedAny = false;
+        for (const frame of this.compiler.templateFrames) {
+            if (frame.start.superType?.includes(NAMED_SELECTOR_SUPERTYPE)) {
+                const fraction = namedSelectorToFraction(
+                    String(frame.start.value),
+                );
+                // A proper numeric percentage ValueUnit; the named-selector tag is
+                // CLEARED (absent on the replacement) so the sort + calcFrameTime see
+                // a plain `%` start — no NaN.
+                frame.start = new ValueUnit(fraction * 100, "%");
+                resolvedAny = true;
+            }
+        }
+
+        // Re-compile if already parsed (purge any NaN frames the prior parse made)
+        // OR if we just resolved named starts — the next `parse()` then sees only
+        // numeric starts. If never parsed and nothing resolved, the walk was a no-op.
+        if (resolvedAny && this.compiler.frames.length > 0) {
+            this.parse();
+        }
+
+        return this;
     }
 
     /**

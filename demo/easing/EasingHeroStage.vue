@@ -66,6 +66,47 @@
                     :d="demo.svgPath.value"
                 />
             </svg>
+            <!-- Q.WC2 S1 — the HERO is now the demo's PRIMARY direct-manipulation
+                 instrument: two DemoControlPoint handles (over the LIGHT drag2D,
+                 critically damped — Q.WC1) are promoted onto the hero projection,
+                 sharing the SAME bezier model as the sidebar editor (a hero drag
+                 and a sidebar drag are the SAME edit). This overlay SVG carries
+                 the SAME geometry as the decorative trace (viewBox 0 0 1 1 +
+                 `preserveAspectRatio="none"` non-uniform scale — the per-axis CTM
+                 decouples cleanly), but is NOT aria-hidden / pointer-events:none
+                 on its handles: grab the curve where it is largest, watch the ball
+                 re-time in real time. The trace path above stays decorative; this
+                 is the editable handle layer. -->
+            <div
+                v-if="demo.isBezierEditable.value && heroBezierPoints"
+                class="easing-stage-handles-box"
+            >
+                <svg
+                    ref="heroHandlesEl"
+                    class="easing-stage-handles"
+                    viewBox="0 0 1 1"
+                    preserveAspectRatio="none"
+                >
+                    <DemoControlPoint
+                        :model-value="heroCp0"
+                        :svg="heroHandlesEl"
+                        :index="0"
+                        :anchor="{ x: 0, y: 0 }"
+                        :radius="0.022"
+                        aria-label="Hero curve control point 1"
+                        @update:model-value="onHeroControlPoint(0, $event)"
+                    />
+                    <DemoControlPoint
+                        :model-value="heroCp1"
+                        :svg="heroHandlesEl"
+                        :index="1"
+                        :anchor="{ x: 1, y: 1 }"
+                        :radius="0.022"
+                        aria-label="Hero curve control point 2"
+                        @update:model-value="onHeroControlPoint(1, $event)"
+                    />
+                </svg>
+            </div>
             <div ref="heroTrackEl" class="hero-track relative w-full h-16">
                 <div class="progress-rail"></div>
                 <!-- I.W4 D4 — the hero dot is positioned by a DIRECT non-reactive
@@ -82,13 +123,37 @@
 </template>
 
 <script setup lang="ts">
-import { inject, onMounted, onScopeDispose, ref, useTemplateRef } from "vue";
+import { computed, inject, onMounted, onScopeDispose, ref, useTemplateRef } from "vue";
 import { useResizeObserver } from "@vueuse/core";
 
 import { kfEngine } from "@utils/kfEngine";
+import DemoControlPoint from "@components/custom/DemoControlPoint.vue";
+import type { ControlPointValue } from "@components/custom/DemoControlPoint.vue";
 import { EASING_DEMO_KEY } from "./easingKeys";
 
 const demo = inject(EASING_DEMO_KEY)!;
+
+// ── Q.WC2 S1 — the hero control-point handles (the PRIMARY edit surface) ──
+// The handles overlay SVG (its own getScreenCTM is the per-axis client-px ↔
+// curve-[0,1] map) + the two DemoControlPoint v-models in CURVE space, read off
+// the shared bezier model. A hero drag writes back through `demo.updateBezier
+// Points` — the SAME seam the sidebar uses, so both hosts edit one model.
+const heroHandlesEl = useTemplateRef<SVGSVGElement>("heroHandlesEl");
+const heroBezierPoints = computed(() => demo.bezierControlPoints.value);
+const heroCp0 = computed<ControlPointValue>(() => ({
+    x: heroBezierPoints.value[0],
+    y: heroBezierPoints.value[1],
+}));
+const heroCp1 = computed<ControlPointValue>(() => ({
+    x: heroBezierPoints.value[2],
+    y: heroBezierPoints.value[3],
+}));
+const onHeroControlPoint = (index: number, value: ControlPointValue) => {
+    const pts: [number, number, number, number] = [...heroBezierPoints.value];
+    pts[index * 2] = value.x;
+    pts[index * 2 + 1] = value.y;
+    demo.updateBezierPoints(pts);
+};
 
 // Owned refs (W3.S1 — no string-class DOM walks): the hero track the geometry
 // is measured off + the hero dot the rAF painter positions imperatively.
@@ -239,6 +304,63 @@ useResizeObserver(heroTrackEl, () => measureHeroTrackWidth());
 .trace-grad-tail {
     stop-color: var(--ppmycota-primary, var(--primary));
     stop-opacity: 0.07;
+}
+
+/* Q.WC2 S1 — the EDITABLE handle overlay: the SAME geometry frame as the
+   decorative `.easing-stage-curve` trace (so the handles register exactly on the
+   rendered curve), but interactive — NOT aria-hidden / pointer-events:none. An
+   SVG's EMPTY regions (no painted fill) are click-through BY DEFAULT, so leaving
+   the SVG at the default `pointer-events: auto` makes only the painted handles +
+   control-lines capture the pointer while the bare curve field passes the gesture
+   through — the stage is not blocked, and the handles stay hittable (a
+   `pointer-events:none` SVG would, under `preserveAspectRatio="none"`, drop the
+   children from the box-level hit-test). The scope-local --trace tokens supply
+   the handle specular (inherited by DemoControlPoint). */
+/* Q.WC2 S1 — the handle box. A POSITIONED DIV establishes a DETERMINISTIC px box
+   (an inline `<svg>` with only `top/bottom/left/right` falls back to its 1:1
+   viewBox aspect → a 768² square that overflows the visible stage and drops the
+   lower handles below the fold; a div parent with a real height fixes the SVG
+   sizing so the handles hit-test at their rendered position). The box matches the
+   trace's intended curve region (top 0.5rem → the rail line at 5rem). */
+.easing-stage-handles-box {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0.5rem;
+    bottom: 5rem;
+    z-index: var(--z-content, 2);
+    pointer-events: none;
+    --trace: var(--ppmycota-primary, var(--primary));
+    --trace-glow: color-mix(
+        in srgb,
+        var(--ppmycota-primary, var(--primary)) 55%,
+        transparent
+    );
+}
+.easing-stage-handles {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+/* The box + the SVG are click-through; only the painted handles + their
+   control-lines capture the pointer (so the bare curve field passes the gesture
+   through and the stage is not blocked). The box now being a real px rectangle,
+   the handles hit-test at their rendered position (no preserveAspectRatio="none"
+   box-level distortion). */
+.easing-stage-handles :deep(.control-point.handle),
+.easing-stage-handles :deep(.handle-line) {
+    pointer-events: auto;
+}
+/* The hero handle reads larger than the sidebar's (the stage is the protagonist
+   surface) and carries a brighter specular so it invites the grab. */
+.easing-stage-handles :deep(.control-point.handle) {
+    stroke-width: 0.012;
+    filter: drop-shadow(0 0 0.012px var(--trace-glow));
+}
+.easing-stage-handles :deep(.control-point.handle:hover),
+.easing-stage-handles :deep(.control-point.handle:focus-visible) {
+    r: 0.03;
 }
 
 @media (prefers-reduced-motion: reduce) {

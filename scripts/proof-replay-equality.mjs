@@ -91,6 +91,7 @@ console.log(
 
 const FORMAT = "src/animation/format.ts";
 const FRAME_COMPILER = "src/animation/frame-compiler.ts";
+const ENGINE = "src/animation/engine.ts";
 const CONSTANTS = "src/animation/constants.ts";
 const TEST = "test/replay-equality.test.ts";
 
@@ -166,14 +167,36 @@ requireAll("composition-per-stop", FORMAT, [
     },
 ]);
 
-// ── named-selector — S4: the extended scroll-range guard (`frame-compiler.ts`) ──
-// Cure-only: the four `kind:"named"` tokens (`entry`/`exit`/`cover`/`contain`)
-// appear NOWHERE in today's selector guard. Anchor on the named-range token set
-// — a pre-existing `from|to` guard cannot false-pass it.
+// ── named-selector — S4: RE-TARGETED off the source-shape proxy onto the
+//    DEFERRED-RESOLUTION cure shape (Q.WD1 — DM-22 proper cure) ─────────────────
+// The OLD S4 clause was a blind source-shape regex (`/entry|exit|cover|contain/`
+// appears in the guard) — GREEN when "the token set appears", BLIND to whether the
+// frame times are NaN (the inv-M-observable-truth proxy failure DM-22 escaped for
+// 4 tranches). Q.WD1 RE-TARGETS it onto the cure SHAPE: (1) the opaque-ingest floor
+// holds (NO parse-time throw — the reverted Path-A trap); (2) the `bindTimeline`
+// attach-time resolver seam exists (`namedSelectorToFraction`); (3) the play-time
+// `NAMED_SELECTOR_NO_TIMELINE` guard exists. The LIVE behavioural witness (the
+// round-trip verbatim + no-NaN-at-play + play-throws-no-timeline RUNTIME
+// observables) is `proof:nan-frame` — the durable standing proof; this clause
+// locks the cure is the deferred-resolution shape, NOT a parse-throw relapse.
 requireAll("named-selector", FRAME_COMPILER, [
     {
-        name: "the scroll-range named selectors entry/exit/cover/contain are accepted (value.js kind:\"named\" no longer THROWS in addFrame)",
-        re: /entry\s*\|\s*exit\s*\|\s*cover\s*\|\s*contain/,
+        name: "the named selectors ingest OPAQUELY (NAMED_SELECTOR_SUPERTYPE), NOT a parse-time throw (the L.W1 S4 floor — fromString must not throw)",
+        re: /NAMED_SELECTOR_SUPERTYPE/,
+    },
+    {
+        name: "the attach-time deferred-resolution seam: namedSelectorToFraction (named phase → numeric % at bindTimeline)",
+        re: /export\s+const\s+namedSelectorToFraction\b/,
+    },
+]);
+requireAll("named-selector", ENGINE, [
+    {
+        name: "bindTimeline resolves named selectors to numeric % at attach (the deferred-resolution seam — Q.WD1-bind S2)",
+        re: /bindTimeline\s*\(\s*timeline\s*:\s*Timeline\s*\)/,
+    },
+    {
+        name: "the play-time NAMED_SELECTOR_NO_TIMELINE guard (assertNoUnresolvedNamedSelector) — fires at play/at, NEVER at parse",
+        re: /assertNoUnresolvedNamedSelector|NAMED_SELECTOR_NO_TIMELINE/,
     },
 ]);
 

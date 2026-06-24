@@ -26,6 +26,13 @@
             :booting="booting"
             :spin-bloom="spinBloom"
         />
+
+        <!-- Q.WC5 S1 — the decay() telemetry: the engine's analytic glide made
+             VISIBLE. Reads the angular velocity the composable already tracks
+             (sampled at a few Hz into `angularVelocity`, no second integrator) —
+             climbs on a drag, decays to zero over the glide (the witnessed
+             decay() coast). Coexists with the CRT egg. -->
+        <AmigaTelemetry :angular-velocity="angularVelocity" />
     </div>
 </template>
 
@@ -48,6 +55,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 import AmigaCrtOverlay from "../../amiga/AmigaCrtOverlay.vue";
+import AmigaTelemetry from "../../amiga/AmigaTelemetry.vue";
 import { tesselateSphere } from "../../amiga/utils";
 import {
     useAmigaAnimations,
@@ -177,6 +185,16 @@ const sphereSpin = useSphereSpin({
 // hidden, on-aesthetic trigger that resurrects the demo's own namesake.
 const boinging = ref(false);
 let boingTimer: ReturnType<typeof setTimeout> | undefined;
+
+// Q.WC5 S1 — the reactive angular-velocity readout the telemetry overlay binds.
+// The composable OWNS the velocity (`Math.hypot(velX, velY)` during a drag, the
+// decay() sampler's velocity during the glide); this ref is a few-Hz SNAPSHOT of
+// `sphereSpin.angularVelocity()` written from the present loop (the SquareScene
+// onTick-snapshot precedent) — a pure consumer, NEVER a second integrator. The
+// hot path stays off the Vue render graph; the readout updates at TELEMETRY_HZ.
+const angularVelocity = ref(0);
+const TELEMETRY_HZ = 12;
+let lastTelemetryAt = 0;
 // I.W3 S1 — the sphere's rest pose is the ONE centred home imported from
 // useAmigaAnimations (the room origin = box centre = camera look-at =
 // `OrbitControls.target`). The boing-bounce extents swing about this same home,
@@ -360,6 +378,14 @@ function startRenderLoop() {
         // Advance the engine `decay()` release glide — drives the sphere mesh
         // rotation for ≥N frames after a flick (the A5 engine-drives-mesh story).
         sphereSpin.tickGlide();
+        // Q.WC5 S1 — snapshot the already-tracked angular velocity into the
+        // reactive readout at a few Hz (NOT 60 Hz — the cold path, like the easing
+        // demo's PROGRESS_READOUT_HZ). The telemetry SEES the decay() coast.
+        const now = performance.now();
+        if (now - lastTelemetryAt >= 1000 / TELEMETRY_HZ) {
+            lastTelemetryAt = now;
+            angularVelocity.value = sphereSpin.angularVelocity();
+        }
         // L.W11.S3 — spin → phosphor bloom: a hard flick that is still gliding
         // pushes --spin-bloom toward 1 (the CRT flares); it bleeds off when the
         // glide settles. Sampled INSIDE the managed present loop (no second rAF)

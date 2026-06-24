@@ -14,12 +14,12 @@
 | # | Wave | Phase | State | Gate(s) | Notes |
 |---|---|---|---|---|---|
 | 0 | **Q.W0** | NOW | ✅ DONE | `proof:record-truth` ✅ | record-hygiene + decision-JSON commit + CHRONIC substrate; gate GREEN (6 clauses) |
-| 1 | **Q.WA1** | NOW | 🟡 IN PROGRESS | `proof:lint-clean` | SLIM dep-cruiser lint tier (eslint KILLED) |
-| 2 | **Q.WA2** | NOW | 🟡 IN PROGRESS | `proof:drag2d-light-certified` | drag2D LIGHT certification (NO-OP confirm; retire proof:control-point-live) |
-| 3 | **Q.WA3** | NOW | 🟡 IN PROGRESS | `proof:ci-coverage`+`proof:deploy-roundtrip`+`proof:published-on-master` | **MASTER-MERGE ✅ DONE (master@42f661a, v4.4.0 ancestor)** + CI-green + deploy oracle + device-harden + decision-JSON deterministic-write |
-| 4 | **Q.WA4** | NOW | ⬜ PENDING | `proof:wave-charter` | wave-charter contrivance gate + DAG manifest parse + pin-ledger witness |
+| 1 | **Q.WA1** | NOW | ✅ DONE | `proof:lint-clean` ✅ | SLIM dep-cruiser lint tier (eslint KILLED; 11-cycle blessed baseline; boundary rules zero-debt) |
+| 2 | **Q.WA2** | NOW | ✅ DONE | `proof:drag2d-light-certified` ✅ | drag2D LIGHT cert + proof:control-point-live RETIRED (all refs) |
+| 3 | **Q.WA3** | NOW | ✅ DONE | `proof:ci-coverage`✅+`proof:deploy-roundtrip`✅+`proof:published-on-master`✅ | MASTER-MERGE ✅ + CI-green (6-gate wire + F-7 + report-all hygiene) + deploy oracle + decision-JSON determinism. **Band A committed ac40f72** |
+| 4 | **Q.WA4** | NOW | ✅ DONE | `proof:wave-charter` ✅ + `proof:pin-ledger-current` ✅ | wave-charter (DAG Kahn + no-unpublished-consume + 7Q) + pin-ledger (registry leg env-gated) |
 | 5 | **Q.WG1** | DISPATCH | ✅ DONE | `proof:perf`+`proof:no-dead-combinator` | **parse-that 0.13.0 PUBLISHED** (registry-confirmed, tagged v0.13.0, pushed). 115 tests, 10/10 gates GREEN. *Span→DEPRECATE, subTable→RETRACT. commit 2c806fb |
-| 6 | **Q.WG2** | DISPATCH | 🟡 IN PROGRESS | (value.js-side) | **value.js 1.1.1 + 1.2.0** — re-pin pt^0.13.0; contrast-color(1.1.1); if-multibranch, color out-params, .fnName, /math, dashed-call, ColorChannelPlan, serialize-fidelity (1.2.0) → PUBLISH. agent launched |
+| 6 | **Q.WG2** | DISPATCH | ✅ DONE | (value.js-side) | **value.js 1.2.0 PUBLISHED** (registry-confirmed, cumulative — contains 1.1.1 contrast-color; tags v1.1.1+v1.2.0, pushed). 1934 tests, 12 gates GREEN. VJ-Q1…Q9 done incl. ColorChannelPlan (5.1× fold), .fnName (S8 terminal), /math, dashed-call, if-multibranch. commit e80b359. ⚠️ **VJ-Q9 changed color serialization** (display-p3(…)→color(display-p3 …)) — WATCH the kf consume edge at re-pin (Stage 5) |
 | 7 | **Q.WB1** | NOW | ⬜ PENDING | `proof:emerging-css-resolve-P2` | emerging-CSS Phase-2 element-aware arm |
 | 8 | **Q.WB3-numeric** | NOW | ⬜ PENDING | `proof:processframe-soa` | SoA processFrame Float64 numeric fold |
 | 9 | **Q.WB4** | NOW | ⬜ PENDING | `proof:waapi-adaptive-densify` | WAAPI curvature-adaptive densify |
@@ -63,12 +63,16 @@
 
 ## In-flight (background tasks)
 
-- **Band-A-gates workflow** `wy7ly95cy` (kf tree) — authoring Q.WA1 lint-tier, Q.WA2 drag2D-cert,
-  Q.WA3 CI-green (ci.yml/pages-deploy + 2 gates + report-all hygiene + decision-JSON deterministic fix),
-  Q.WA4 wave-charter. Lanes return package.json entries → I wire centrally on completion.
-- **parse-that 0.13.0 cut** `ad4286c…` (parse-that repo, branch tranche-q) — PT-Q1…Q5 (dead-API delete,
-  packrat re-entrancy try/finally + key widen, *Span decide, dispatch-subTable, proof:perf). Leaves
-  READY-TO-PUBLISH; orchestrator reviews + publishes.
+- **Stage-3 workflow** `wdjr802kz` (kf tree) — 4 disjoint lanes: engine-core (WB1→WB3-numeric→WD1),
+  WB4 (waapi), WD2 (grammar-fuzz), demo-main (WC1→WC2→WC3→WC5). **WC4 deferred** to a follow-up (it
+  spans engine.ts+scenes.ts+scene — runs alone after engine settles). Lanes return package.json entries.
+- **value.js 1.1.1/1.2.0 cut** `a84c7af…` (value.js repo, branch tranche-q) — **1.1.1 COMMITTED** (fd3c7ce);
+  1.2.0 in progress. Leaves TWO ready-to-publish commits; orchestrator reviews + publishes (1.1.1 then 1.2.0).
+
+**DONE:** Band A (ac40f72) · parse-that 0.13.0 PUBLISHED+pushed (2c806fb / v0.13.0) · value.js 1.1.1 committed.
+
+**LIVENESS NOTE:** judge background-agent progress by GIT STATE (commits/uncommitted files), NOT the
+transcript output-mtime (it buffers — a 17-min gap was a false "stuck" alarm; the agent had committed + moved on).
 
 ## Stage-3 contention map (the file-disjoint lane partition — engine.ts is the bottleneck)
 
