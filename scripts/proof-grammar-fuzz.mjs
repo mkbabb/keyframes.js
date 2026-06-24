@@ -151,21 +151,23 @@ requireAll("harness-exists", TEST, [
     },
 ]);
 
-// ── scoped-green — tripwires are EXPECTED-FAILURE, round() is a standard arm ────
+// ── scoped-green — the none-channel + wrapper-loss arms are PROMOTED green arms
+//    (VJ-Q9 consumed via the ^1.2.0 re-pin); round() is a standard arm ────
 {
     const file = TEST;
     if (!existsSync(join(root, file))) {
         fail("scoped-green", `${file} is missing.`);
     } else {
         const src = read(file);
-        // The none-channel + wrapper-loss arms MUST be expected-failure tripwires
-        // (the anti-blocked-harness discipline): they document the known-broken
-        // state and auto-flip on the VJ-Q9 fix. The harness names them via the
-        // shared `expectKnownBroken` helper. A tripwire re-authored as a HARD arm
-        // (a permanent-RED on a sibling publish) would block the harness.
+        // Q.WG4 GATED consume: value.js 1.2.0 (VJ-Q9) FIXED the none→NaN + color()-wrapper
+        // breaches, so the none-channel + wrapper-loss arms are PROMOTED from expected-failure
+        // tripwires to STANDARD byte-stable green arms. The `expectKnownBroken` helper (the
+        // anti-blocked-harness discipline for value.js 1.1.0) is RETIRED on the promotion —
+        // its survival would mean the ^1.2.0 consume never fired.
         const hasNoneChannel = /\bnoneChannelArb\b/.test(src);
         const hasWrapperLoss = /\bwrapperLossArb\b/.test(src);
         const hasExpectKnownBroken = /\bexpectKnownBroken\b/.test(src);
+        const hasPromotion = /VJ-Q9|PROMOTED/.test(src);
         // round() unfolds to a STANDARD green arm — it must appear in the mathArb
         // family and must NOT carry a P.W9-era SKIP/it.skip marker.
         const hasRound = /round\(nearest/.test(src);
@@ -173,12 +175,16 @@ requireAll("harness-exists", TEST, [
             /it\.skip\([^)]*round|\/\/\s*SKIP[^\n]*round\(/i.test(src);
         const problems = [];
         if (!hasNoneChannel)
-            problems.push("the none-channel tripwire arm (noneChannelArb) is absent");
+            problems.push("the none-channel arm (noneChannelArb) is absent");
         if (!hasWrapperLoss)
-            problems.push("the wrapper-loss tripwire arm (wrapperLossArb) is absent");
-        if (!hasExpectKnownBroken)
+            problems.push("the wrapper-loss arm (wrapperLossArb) is absent");
+        if (hasExpectKnownBroken)
             problems.push(
-                "the expected-failure helper (expectKnownBroken) is absent — the two arms must be EXPECTED-FAILURE tripwires, never HARD-RED standard arms (the anti-blocked-harness discipline)",
+                "the expectKnownBroken expected-failure helper is STILL present — value.js 1.2.0 (VJ-Q9) fixed the none→NaN + color()-wrapper breaches; the two arms MUST be PROMOTED to standard byte-stable green arms (the auto-detect-on-fix the ^1.2.0 re-pin fires)",
+            );
+        if (!hasPromotion)
+            problems.push(
+                "the VJ-Q9 promotion marker is absent — the none-channel/wrapper-loss arms must be promoted byte-stable arms naming the VJ-Q9 consume",
             );
         if (!hasRound)
             problems.push(

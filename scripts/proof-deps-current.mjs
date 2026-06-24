@@ -246,9 +246,16 @@ const handoff = []; // fail-EXPLICIT, non-gating surfacing (the value.js-handoff
     );
 
     if (!kfRange) {
-        fail.push(
-            "(3) REALM: kf declares no @mkbabb/parse-that dependency — the gate " +
-                "lost its subject; re-ground it.",
+        // S9 (shipped 4.4.0) REMOVED kf's direct @mkbabb/parse-that dependency —
+        // kf consumes value.js's `parseCSSSubValue`, so the direct parse-that import
+        // AND the cross-realm `parseAny as any` cast (utils.ts) are GONE. With kf
+        // declaring no parse-that, there is exactly ONE parse-that realm (value.js's
+        // transitive one) — a realm SPLIT is structurally impossible, so convergence
+        // holds BY CONSTRUCTION. This is the acyclic-spine goal achieved, not a lost subject.
+        pass.push(
+            "(3) REALM: kf declares NO @mkbabb/parse-that dependency (the S9 acyclic " +
+                "spine — value.js's parseCSSSubValue consumed, the direct import + the " +
+                "cross-realm cast removed). ONE realm, convergent by construction.",
         );
     } else if (!existsSync(valuejsPkgPath)) {
         fail.push(

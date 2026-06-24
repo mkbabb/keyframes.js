@@ -143,39 +143,7 @@ const keyframeStopArb = fc
         return `@keyframes x { ${body} }`;
     });
 
-// ── expected-failure tripwires (none-channel + color()-wrapper) ──────────────────
-/**
- * `expectKnownBroken` — the EXPECTED-FAILURE discipline. The arm documents a
- * known value.js serialization breach by asserting the round trip is NOT
- * byte-stable AND that the serialized `once` matches the broken-symptom pattern.
- * It is GREEN-TODAY (the breach is live on value.js 1.1.0). When VJ-Q9 lands and
- * the round trip becomes byte-stable, `stable` flips true → the `expect(stable,
- * …).toBe(false)` assertion REDS — alerting the implementer to PROMOTE this arm
- * to a standard green arm (and re-pin `^1.2.0`, Q.WG4). The auto-detect-on-fix
- * the scoped-GREEN posture promises.
- */
-const expectKnownBroken = async (
-    css: string,
-    brokenSymptom: RegExp,
-): Promise<void> => {
-    const { once, stable } = await structuralRoundTrip(css);
-    // The known-broken symptom must be present in the first serialization
-    // (the breach is what makes the round trip unstable).
-    expect(
-        brokenSymptom.test(once),
-        `expected the known value.js breach symptom ${brokenSymptom} in the serialization of ${css}; got: ${once}`,
-    ).toBe(true);
-    // GREEN-today: the breach makes the round trip unstable. When value.js fixes
-    // it (VJ-Q9), this flips → promote the arm to a standard green arm.
-    expect(
-        stable,
-        `the round trip for ${css} is now BYTE-STABLE — the value.js VJ-Q9 ` +
-            `serialization-fidelity fix appears to have landed. PROMOTE this ` +
-            `expected-failure tripwire to a standard GREEN arm and re-pin ` +
-            `\`@mkbabb/value.js@^1.2.0\` (Q.WG4).`,
-    ).toBe(false);
-};
-
+// ── promoted round-trip arms (none-channel + color()-wrapper) — VJ-Q9 fixed in 1.2.0 ──
 const noneChannelArb = fc
     .tuple(unit01, hue)
     .map(([l, h]) => `oklch(${r4(l)} none ${r4(h)})`);
@@ -225,24 +193,43 @@ describe("Q.WD2 S1 — grammar-fuzz: the GREEN-today round-trip arms (value.js 1
     }, 30000);
 });
 
-describe("Q.WD2 S1 — grammar-fuzz: the EXPECTED-FAILURE tripwires (auto-flip on the VJ-Q9 fix)", () => {
-    it("noneChannelArb — oklch(L none H) serializes NaN (none→NaN breach LIVE on 1.1.0)", async () => {
+describe("Q.WD2 S1 — grammar-fuzz: the PROMOTED round-trip arms (VJ-Q9 fixed in value.js 1.2.0)", () => {
+    // Q.WG4 GATED consume: value.js 1.2.0 (VJ-Q9) fixed both serialization breaches —
+    // `oklch(L none H)` now serializes `none` (not `NaN`), and `color(display-p3 …)`
+    // preserves the `color()` wrapper. The former EXPECTED-FAILURE tripwires are PROMOTED
+    // to standard byte-stable round-trip arms — the auto-detect-on-fix the scoped-GREEN
+    // posture promised, fired on the `^1.2.0` re-pin.
+    it("noneChannelArb — oklch(L none H) round-trips byte-stable (none preserved, no NaN — VJ-Q9)", async () => {
         await fc.assert(
             fc.asyncProperty(noneChannelArb, async (value) => {
                 const css = `@keyframes x { 0% { color: ${value}; } 100% { color: ${value}; } }`;
-                await expectKnownBroken(css, /NaN/);
+                const { stable, once, twice } = await structuralRoundTrip(css);
+                expect(
+                    /NaN/.test(once),
+                    `none→NaN breach regressed (VJ-Q9): ${once}`,
+                ).toBe(false);
+                expect(stable, `not byte-stable:\n${once}\n---\n${twice}`).toBe(
+                    true,
+                );
             }),
             fcOpts,
         );
     }, 30000);
 
-    it("wrapperLossArb — color(display-p3 …) drops the color() wrapper (wrapper-loss breach LIVE on 1.1.0)", async () => {
+    it("wrapperLossArb — color(display-p3 …) round-trips byte-stable (color() wrapper preserved — VJ-Q9)", async () => {
         await fc.assert(
             fc.asyncProperty(wrapperLossArb, async (value) => {
                 const css = `@keyframes x { 0% { color: ${value}; } 100% { color: ${value}; } }`;
-                // The wrapper-loss symptom: the serialized form is the BARE
-                // `display-p3(...)`, never the authored `color(display-p3 ...)`.
-                await expectKnownBroken(css, /display-p3\(/);
+                const { stable, once, twice } = await structuralRoundTrip(css);
+                // The wrapper is now PRESERVED: the serialized form keeps the authored
+                // `color(display-p3 …)` (never the bare invalid-CSS `display-p3(…)`).
+                expect(
+                    /color\(display-p3/.test(once),
+                    `color() wrapper-loss regressed (VJ-Q9): ${once}`,
+                ).toBe(true);
+                expect(stable, `not byte-stable:\n${once}\n---\n${twice}`).toBe(
+                    true,
+                );
             }),
             fcOpts,
         );
