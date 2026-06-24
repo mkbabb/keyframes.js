@@ -147,12 +147,131 @@ const vjsCaps = {
             return false;
         }
     })(),
-    // VJ-L1 — a first-class flat-leaf provenance API (NOT shipped in O).
-    flatLeaf: "flatLeaf" in vjs || "flatLeaves" in vjs,
+    // VJ-Q4 (VJ-L1 terminal) — a first-class, `clone()`-preserved flatten-origin
+    // provenance field on `ValueUnit` (`.fnName`). The S8 terminal: the field
+    // lets `clone()` carry the function-token name natively, retiring kf's
+    // module-local `FN_NAME_MAP` WeakMap + the clone-restamp ceremony. We probe
+    // the INSTALLED surface for the shipped SHAPE (the field exists AND survives
+    // `clone()`), not a registry version — the `apiPresent` content-probe
+    // discipline (S7/S9's idiom). value.js 1.2.0 ships the field but does NOT
+    // auto-populate it on flatten (kf threads `FunctionValue.name` down), so the
+    // probe writes-then-clones to confirm the clone-preserved contract holds.
+    flatLeaf: (() => {
+        try {
+            const ValueUnitCtor = vjs.ValueUnit;
+            if (typeof ValueUnitCtor !== "function") return false;
+            const u = new ValueUnitCtor(
+                2,
+                "",
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                "scale",
+            );
+            // The field exists AND `clone()` preserves it — the VJ-Q4 contract.
+            return u.fnName === "scale" && u.clone().fnName === "scale";
+        } catch {
+            return false;
+        }
+    })(),
     // VJ-L3 — a sub-value parse helper so kf need not reach parse-that directly
     // (NOT shipped in O).
     parseCSSSubValue: "parseCSSSubValue" in vjs || "parseSingleValue" in vjs,
 };
+
+// ── glass-ui content-probe (Q.WG-S1S2-HYGIENE — the false-RED fix) ──
+//
+// A registry version EXISTING does NOT prove the glass-ui FIX is in the dist kf
+// CONSUMES. glass-ui 4.1.0 is published, but kf installs 4.0.1 (the
+// prohibited-aria dist), and the BC aria/dock cures are hard-gated behind the
+// unexecuted USER-DOMAIN BD.W-CUT — so deleting the S1/S2 band-aids NOW
+// re-breaks ARIA / the dock click-strand. The S1/S2 arms therefore CANNOT key
+// on the registry version (the false-RED that exits 1 today, failing
+// proof:hygiene). They must read the INSTALLED glass-ui dist CONTENT — the EXACT
+// `vjsCaps` discipline (S7/S8/S9 already carry `apiPresent`), now mirrored for
+// glass-ui. Both probes are DIST-CONTENT GREPS (device-INDEPENDENT — they do NOT
+// mount a component; the mounted-DOM readback is the SEPARATE, device-bearing
+// `proof:glassui-aria-ask` gate, kept distinct so this gate stays portable).
+const glassCaps = (() => {
+    let tabsDist = "";
+    let dockDist = "";
+    try {
+        tabsDist = readFileSync(
+            join(root, "node_modules/@mkbabb/glass-ui/dist/tabs.js"),
+            "utf8",
+        );
+    } catch {
+        /* dist absent — content false → PENDING (held, never false-RED) */
+    }
+    try {
+        dockDist = readFileSync(
+            join(root, "node_modules/@mkbabb/glass-ui/dist/dock.js"),
+            "utf8",
+        );
+    } catch {
+        /* dist absent — content false → PENDING */
+    }
+    return {
+        // ariaGuard — the SegmentedTabs aria-orientation guard is present iff the
+        // installed `dist/tabs.js` does NOT emit `aria-orientation` UNCONDITIONALLY
+        // on `role=group`. The installed 4.0.1 emits `aria-orientation": L.value ?
+        // "vertical" : "horizontal"` — an UNCONDITIONAL ternary (no role-guarded
+        // else arm) → ariaGuard=false → PENDING. When the BC cut ships the guard,
+        // the dist carries the role-conditional `: void 0`/`: undefined` else arm
+        // on the `aria-orientation` bind → the GUARDED shape grep matches →
+        // ariaGuard=true. A DIST-CONTENT grep, NOT a registry/DOM probe.
+        ariaGuard: (() => {
+            if (!tabsDist) return false;
+            // The GUARDED shape: an `aria-orientation` PROP-BIND (`aria-orientation":
+            // <expr>`) whose value carries a role-conditional `: void 0`/`:
+            // undefined`/`: null` else arm (the pill/group variant suppresses the
+            // attribute) — present ONLY after the BC SFC guard ships. Scan EVERY
+            // `aria-orientation"` PROP-BIND occurrence (the dist also carries the
+            // bare attr-name in a `["role","aria-orientation"]` array — NOT a bind,
+            // skipped by requiring the trailing `:`), and match the suppress-else
+            // token within the bind's value window. The UNCONDITIONAL 4.0.1 emit
+            // (`aria-orientation": L.value ? "vertical" : "horizontal"`) carries no
+            // suppress-else → no match → ariaGuard=false → PENDING.
+            const BIND = /aria-orientation["']\s*:\s*([^,}\n]{0,120})/g;
+            let m;
+            while ((m = BIND.exec(tabsDist)) !== null) {
+                if (/:\s*(?:void 0|undefined|null)\b/.test(m[1])) return true;
+            }
+            return false;
+        })(),
+        // dockStrandKeepalive — the collapse-crossfade keepalive is present iff the
+        // installed `dist/dock.js` carries the keepalive's STRUCTURAL signature: the
+        // active `.dock-layer` RETAINS pointer-events/hit-test across the crossfade
+        // (rather than the current drop/recreate that swallows a mid-crossfade
+        // pointerdown). A device-INDEPENDENT dist-content grep, NOT a live DOM
+        // session (the BEHAVIORAL observable — a pointerdown lands mid-crossfade —
+        // is the SEPARATE, device-bearing `proof:live-session` consume gate). It
+        // needs NO forward-named PUBLIC API string: it reads the structural dist
+        // signature the cure necessarily leaves. The installed 4.0.1 dock carries
+        // only the UNRELATED `useDockClickIntegrity` + `pointer-events-none` on the
+        // indicator — NOT a `.dock-layer` keepalive → dockStrandKeepalive=false →
+        // PENDING.
+        dockStrandKeepalive: (() => {
+            if (!dockDist) return false;
+            // The keepalive signature: the dock-layer markup carries a
+            // pointer-events KEEPALIVE on the ACTIVE layer across the crossfade —
+            // the cure-specific token the BC cut introduces. We match a
+            // `dock-layer` token co-located with a pointer-events KEEPALIVE
+            // (`pointer-events:auto`/`pointer-events-auto`/a `keepalive`/`keep-alive`
+            // marker) — NOT the existing `pointer-events-none` indicator. Absent
+            // today (the cure not in the dist) → false → PENDING.
+            return (
+                /dock-layer[^]{0,400}?(?:pointer-events:\s*auto|pointer-events-auto|keep-?alive)/i.test(
+                    dockDist,
+                ) ||
+                /(?:keep-?alive|keepActiveLayer|retainActiveLayer)[^]{0,200}?dock-layer/i.test(
+                    dockDist,
+                )
+            );
+        })(),
+    };
+})();
 
 // ── Publish probe (the three-state classifier's PUBLISHED/UNPUBLISHED axis) ──
 
@@ -213,19 +332,32 @@ const arms = [
             fileFilter: isVue,
             pattern: /aria-orientation\s*=\s*["']?\s*undefined/,
         },
-        sibling: { pkg: "@mkbabb/glass-ui", version: "4.1.0", name: "BB SegmentedTabs aria fix" },
+        // Q.WG-S1S2-HYGIENE: key on the INSTALLED-dist CONTENT (the aria guard's
+        // presence), NOT the registry version. RED only when the guard IS in the
+        // consumed dist AND the suppress is still present (the genuinely-OVERDUE
+        // state). With the guard ABSENT (today's 4.0.1), the arm is PENDING —
+        // held until the BC SFC guard ships — NOT a false-RED.
+        sibling: { pkg: "@mkbabb/glass-ui", version: "4.1.0", name: "BB SegmentedTabs aria guard (BD.W-CUT, content-probed)" },
+        apiPresent: glassCaps.ariaGuard,
     },
     {
         id: "S2",
         title:
             "pointerHandled / onPlayPointerDown interim (TransportDock.vue) " +
-            "→ glass-ui RF-17 dock-layer cure",
+            "→ glass-ui collapse-crossfade dock-layer keepalive cure",
         witness: {
             subpath: "demo",
             fileFilter: isVue,
             pattern: /pointerHandled|onPlayPointerDown/,
         },
-        sibling: { pkg: "@mkbabb/glass-ui", version: "4.1.0", name: "BB W-DOCK-MORPH-FAMILY click-strand cure" },
+        // Q.WG-S1S2-HYGIENE: retarget OFF the wrong `useDockClickIntegrity`-4.1.0
+        // sentinel (4.1.0 contains only the UNRELATED ASK-2 cure, not the
+        // collapse-crossfade strand) ONTO the BC cut + the keepalive STRUCTURAL
+        // signature (GU-Q2). `apiPresent` reads the installed dock dist for the
+        // keepalive shape (NOT a version), so S2 is PENDING until the keepalive
+        // is observed in the consumed dist — never a false-RED on 4.1.0.
+        sibling: { pkg: "@mkbabb/glass-ui", version: "4.1.0", name: "BB collapse-crossfade dock-layer keepalive (GU-Q2, content-probed)" },
+        apiPresent: glassCaps.dockStrandKeepalive,
     },
     {
         id: "S7",
@@ -248,28 +380,30 @@ const arms = [
         id: "S8",
         title:
             "FN_NAME flatten-origin provenance carrier (utils.ts) " +
-            "→ value.js VJ-L1 first-class flatLeaf",
+            "→ value.js VJ-Q4 first-class clone()-preserved ValueUnit.fnName",
         // The recurrence-resistant pattern: the FN_NAME carrier OR any new
         // `Symbol("kf.` stamped onto a published class (the broader bite the
         // spec's §Bite names).
         //
         // P.W11 / O.W16 §S3 swapped the foreign `Symbol("kf.fnName")` stamp for a
-        // kf-internal `WeakMap<ValueUnit,string>` (`FN_NAME_MAP`). That dissolves
-        // the FOREIGN-OBJECT-ANNOTATION breach NOW (the realm is clean — certified
-        // by the separate `proof:no-foreign-symbol-stamp` gate), but it does NOT
+        // kf-internal `WeakMap<ValueUnit,string>` (`FN_NAME_MAP`). That dissolved
+        // the FOREIGN-OBJECT-ANNOTATION breach (the realm is clean — certified by
+        // the separate `proof:no-foreign-symbol-stamp` gate), but it did NOT
         // retire the S8 TRIPWIRE: the WeakMap does not survive `ValueUnit.clone()`,
-        // so the clone-restamp ceremony stays. This arm therefore STAYS PENDING
-        // (it still matches `FN_NAME_MAP`) until value.js VJ-L1 (`flatLeaf`/a
-        // first-class `.fnName` field, `clone()`-preserved) lands and retires the
-        // ceremony entirely — the honest belt-exit-vs-tripwire-close distinction
-        // (P.W11). VJ-L1 is absent on 1.1.0 (`flatLeaf in vjs === false`), so the
-        // arm holds PENDING, not RED.
+        // so the clone-restamp ceremony stayed. value.js 1.2.0 (VJ-Q4) ships the
+        // first-class `clone()`-preserved `ValueUnit.fnName` field — kf now sets
+        // that PUBLIC value.js field at flatten time and reads it back directly,
+        // RETIRING the WeakMap + the ceremony entirely. ABSENT → GREEN (the
+        // `FN_NAME_MAP` witness gone). The `apiPresent` content-probe writes a
+        // `ValueUnit` with `fnName` and confirms `clone()` preserves it (VJ-Q4),
+        // so the arm only goes RED (delete-overdue) once the published field is
+        // actually consumable, never on a bare version bump.
         witness: {
             subpath: "src/animation/utils.ts",
             fileFilter: exact("src/animation/utils.ts"),
             pattern: /FN_NAME|Symbol\(\s*["']kf\./,
         },
-        sibling: { pkg: "@mkbabb/value.js", version: "1.1.0", name: "VJ-L1 flatLeaf provenance API" },
+        sibling: { pkg: "@mkbabb/value.js", version: "1.2.0", name: "VJ-Q4 clone()-preserved ValueUnit.fnName field" },
         apiPresent: vjsCaps.flatLeaf,
     },
     {

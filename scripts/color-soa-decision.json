@@ -1,0 +1,13 @@
+{
+  "$comment": "color-tail channel-plan SoA verdict (Q.WB3 S4 — VJ-Q8 consume). MEASURE-FIRST FINDING: value.js 1.2.0 SHIPS the channel-plan fold INSIDE lerpColorValue (prepareInterpVar/normalizeValueUnits attach a _colorPlan {keys,startN,stopN,hueIndex,dstVU} to every color iv), so kf's EXISTING boxed color tail (lerpValue -> lerpColorValue) already rides the channel-plan SoA fold TRANSPARENTLY via the ^1.2.0 re-pin. VERDICT = DECLINE the SEPARATE kf-side parallel arm: a kf-built buildColorChannelPlan/lerpColorChannels fold in processFrame/group.ts would DUPLICATE the in-leaf fold (a dead parallel path the no-legacy precept forbids). The foldedOverBoxed ratio (colorTail SoA via _colorPlan vs boxed mixColors reconstruct) is the measured-win audit trail; the consumed fold is bit-identical to the boxed reference. SAME-REPORT, device-independent; no absolute hz floor.",
+  "target": "color tail (lerpColorValue _colorPlan fold) — CONSUMED IN-LEAF, not kf-rebuilt",
+  "verdict": "DECLINE",
+  "consumeIsTransparent": true,
+  "kfSideParallelArm": "DECLINED (redundant — the fold is value.js's lerpColorValue leaf)",
+  "foldedOverBoxed": {
+    "k3": 11.331,
+    "k8": 10.906,
+    "k12": 10.889
+  },
+  "recordedAt": "2026-06-24T05:24:58.408Z"
+}

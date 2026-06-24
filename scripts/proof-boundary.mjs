@@ -97,7 +97,19 @@ const rel = (id) =>
  * `export type` are erased at build, so they're stripped first (no edge).
  */
 function holdsValueJsSpecifier(src) {
-    const stripped = src.replace(/\b(?:import|export)\s+type\s[^;]*;/g, "");
+    const stripped = src
+        .replace(/\b(?:import|export)\s+type\s[^;]*;/g, "")
+        // W97 allow-list (Q.WE2 S2): the `@mkbabb/value.js/math` subpath is a
+        // VERIFIED-clean math leaf (the W97 `math-subpath-clean` clause bundles
+        // its graph and asserts ZERO grammar/parse-that/engine modules). Blank
+        // ONLY this exact specifier before the grep so a LIGHT module
+        // (`internal/leaves.ts`) may re-export from it — the no-legacy externalize
+        // the owner directs — while a grammar-pulling barrel/subpath edge still
+        // reds. A NEW value.js subpath (not `/math`) is NOT allow-listed and reds.
+        .replace(
+            new RegExp(VALUEJS_MATH_SPEC_RE.source, "g"),
+            (line) => " ".repeat(line.length),
+        );
     // `@mkbabb/value.js` OR any subpath `@mkbabb/value.js/…`:
     const SPEC = String.raw`@mkbabb\/value\.js(?:\/[^"']*)?`;
     return (
@@ -111,6 +123,22 @@ function holdsValueJsSpecifier(src) {
         )
     );
 }
+
+// The W97-allow-listed verified-clean math subpath. The grep blanks a full
+// import/export LINE that targets EXACTLY `@mkbabb/value.js/math` (not a longer
+// subpath like `@mkbabb/value.js/mathx`) before assertion 4's source-scan. The
+// `(?=["'])` lookahead pins the specifier END so `/math2` does not match.
+const VALUEJS_MATH_SPEC_RE = new RegExp(
+    String.raw`(?:^|\n)[^\n]*["']@mkbabb\/value\.js\/math(?=["'])["'][^\n]*`,
+);
+
+// The W97 allow-listed math module's package id (assertion 1 thread): the
+// externalized math chunk lives under node_modules/@mkbabb/value.js/, so the
+// `isValueJs` per-entry filter would flag it. We externalize the verified-clean
+// subpath in the gate's OWN `bundleEntry` external so the chunk never enters a
+// light entry's static module set — promoting "a value.js module that must be
+// inlined-and-banned" to "a verified-clean runtime edge the gate externalizes."
+const VALUEJS_MATH_EXTERNAL = "@mkbabb/value.js/math";
 
 /**
  * The W96 parse-that source-scan (O.W16 §S1). The constellation spine is
@@ -252,8 +280,14 @@ async function bundleEntry(exportName, tmpName) {
             input: tmp,
             // Only host-provided / unrelated externals. value.js + parse-that
             // stay NON-external so a reintroduced static edge bundles their
-            // source into the entry chunk (where this gate catches it).
-            external: ["vue", "prettier"],
+            // source into the entry chunk (where this gate catches it). The ONE
+            // exception is the W97 verified-clean `@mkbabb/value.js/math` subpath
+            // (Q.WE2 S2): it is externalized here too so the math chunk never
+            // enters a light entry's static module set (assertion 1's `isValueJs`
+            // per-entry filter would otherwise flag it). The grammar-pulling
+            // barrel + every OTHER subpath stay NON-external — a reintroduced
+            // grammar edge still reds.
+            external: ["vue", "prettier", VALUEJS_MATH_EXTERNAL],
             treeshake: true,
             logLevel: "silent",
         });
@@ -265,8 +299,78 @@ async function bundleEntry(exportName, tmpName) {
     }
 }
 
+/**
+ * W97 `math-subpath-clean` (Q.WE2 S2 — the TRAP-resolution decision oracle).
+ *
+ * Bundle `@mkbabb/value.js/math` as its OWN rolldown entry (value.js NON-external
+ * here, so its source is pulled in) and assert its STATIC module graph contains
+ * ZERO CSS-grammar / parse-that / `engine`-equivalent modules. This is the
+ * VERIFICATION behind the allow-list both `holdsValueJsSpecifier` (assertion 4)
+ * and `bundleEntry` (assertion 1) thread: the subpath is permitted on the LIGHT
+ * surface ONLY because its graph is PROVEN grammar-free, never assumed. A clause
+ * that merely greps "does leaves.ts import ./math" would be the proxy mistake (it
+ * greens on a subpath that secretly pulls grammar); this bundles the graph.
+ *
+ * Returns { ok, modules, bytes, grammar } — the probe numbers the decision JSON
+ * records. `grammar` is the list of any grammar/parse-that/engine module in the
+ * graph (empty ⇒ clean ⇒ the allow-list is legal).
+ */
+async function probeMathSubpathClean() {
+    const tmp = path.join(REPO, ".proof-boundary-math-subpath.mjs");
+    fs.writeFileSync(tmp, `export * from ${JSON.stringify(VALUEJS_MATH_EXTERNAL)};\n`);
+    try {
+        const bundle = await rolldown({
+            input: tmp,
+            external: ["vue", "prettier"], // value.js NON-external — pull the graph
+            treeshake: true,
+            logLevel: "silent",
+        });
+        const { output } = await bundle.generate({ format: "es" });
+        await bundle.close();
+        const entry = output.find((o) => o.type === "chunk" && o.isEntry);
+        const ids = entry ? entry.moduleIds.filter((id) => id !== tmp) : [];
+        // A grammar/parse-that/engine module would betray a hidden static edge.
+        const grammar = ids.filter(
+            (id) =>
+                /parse-that/.test(id) ||
+                /[\\/](?:grammars?|parsing)[\\/]/.test(id) ||
+                /css-[a-z]+\.(?:bbnf|ts|js)/.test(id) ||
+                /[\\/]engine\b/.test(id),
+        );
+        const bytes = output
+            .filter((o) => o.type === "chunk")
+            .reduce((a, c) => a + (c.code?.length ?? 0), 0);
+        return {
+            ok: grammar.length === 0,
+            modules: ids.length,
+            bytes,
+            grammar: grammar.map(rel),
+        };
+    } finally {
+        fs.rmSync(tmp, { force: true });
+    }
+}
+
 async function main() {
     const failures = [];
+
+    // ── W97 math-subpath-clean (Q.WE2 S2 — the leaves-externalize enabler) ──
+    const w97 = await probeMathSubpathClean();
+    console.log(
+        `  W97 math-subpath-clean: ${VALUEJS_MATH_EXTERNAL} graph = ` +
+            `${w97.modules} module(s), ${w97.bytes}B, ` +
+            `${w97.grammar.length} grammar/parse-that/engine module(s) → ` +
+            `${w97.ok ? "CLEAN (allow-listed on both assertions)" : "GRAMMAR-PULLING (allow-list illegal)"}`,
+    );
+    if (!w97.ok) {
+        failures.push(
+            `W97 math-subpath-clean: the ${VALUEJS_MATH_EXTERNAL} static graph ` +
+                `pulls grammar/parse-that/engine module(s) — the subpath is NOT a ` +
+                `clean math leaf and CANNOT be allow-listed on the LIGHT surface ` +
+                `(the leaves-externalize must fall to the documented-keep arm):\n    ` +
+                w97.grammar.join("\n    "),
+        );
+    }
 
     // ── 2. Self-enforcing entry set ────────────────────────────────────
     const lightExports = parseLightExports();

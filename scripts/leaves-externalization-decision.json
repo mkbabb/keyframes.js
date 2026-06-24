@@ -1,0 +1,31 @@
+{
+  "$comment": "leaves.ts math-leaf externalization ADOPT verdict (Q.WE2 S3/S4 — the no-legacy DUPLICATION terminal). The four math leaves (clamp/scale/lerp/lerpArray) were byte-copies of value.js's src/math.ts held by a STALE comment that mis-stated the reason ('no ./math subpath' — FALSE on the shipped tree). value.js ships the parse-that-FREE @mkbabb/value.js/math subpath; Q.WE2 DELETES the four kf duplicates and re-exports from it (ARM-A — the owner-favored no-legacy DRY win), legal because the W97 boundary clearance verified the subpath grammar-free across BOTH proof:boundary assertions AND the H4 smoke-test confirmed the external widening externalizes the subpath as a bare runtime edge (not inlined). The rAF shim (requestAnimationFrame/cancelAnimationFrame/FRAME_RATE) STAYS local (environment shim, not pure math). The stale comment is GONE; test/leaves-parity.test.ts is the re-affirmed drift guard for the consume edge.",
+  "verdict": "ARM-A",
+  "armDescription": "externalize — DELETE the four byte-duplicates + re-export from @mkbabb/value.js/math (the no-legacy DRY win)",
+  "w97": {
+    "$note": "the W97 math-subpath-clean boundary probe — bundle @mkbabb/value.js/math as its own entry; the static graph must be grammar-free for the LIGHT-source consume to be legal on BOTH proof:boundary assertions.",
+    "subpath": "@mkbabb/value.js/math",
+    "modules": 1,
+    "bytes": 1397,
+    "grammarParseThatEngineModules": 0,
+    "clean": true
+  },
+  "h4ExternalSmokeTest": {
+    "$note": "rolldown external-widening probe — does vite.config.ts's external externalize the /math subpath as a BARE runtime edge (resolved at the consumer), or INLINE its source? Measured on a leaves re-export module.",
+    "bareStringExternal": { "specifier": "@mkbabb/value.js", "subpathExternalized": false, "inlined": true, "entryBytes": 533 },
+    "predicateExternal": { "specifier": "/^@mkbabb\\/value\\.js(\\/|$)/", "subpathExternalized": true, "inlined": false, "entryBytes": 113 },
+    "subpathStringExternal": { "specifier": "@mkbabb/value.js/math", "subpathExternalized": true, "inlined": false, "entryBytes": 113 },
+    "verdict": "the predicate (chosen) externalizes the subpath as a bare runtime edge — Arm A mechanically clean; confirmed on the built dist (@mkbabb/value.js/math present in dist/timeline-*.js, no inlined lerpArray def)"
+  },
+  "assertion1Thread": {
+    "$note": "the externalized math chunk lives under node_modules/@mkbabb/value.js/, so proof:boundary assertion 1's isValueJs per-entry filter would flag it. The W97 allow-list externalizes the verified-clean subpath in the gate's OWN bundleEntry external (VALUEJS_MATH_EXTERNAL), so the chunk never enters a light entry's static module set.",
+    "threaded": true
+  },
+  "lightEntryBlastRadius": {
+    "$note": "the light entries that pull internal/leaves.ts (clamp/lerpArray/scale) — Arm A clears every one atomically via the dual-assertion allow-list.",
+    "importers": ["numeric", "smooth", "playback", "spring-duration", "drag", "stagger", "sequence", "timeline", "waapi", "scroll-scene"]
+  },
+  "staleCommentResolved": true,
+  "parityTestAffirmed": "test/leaves-parity.test.ts",
+  "recordedAt": "2026-06-24T01:20:00.000Z"
+}

@@ -440,6 +440,18 @@ jobs:
             - name: proof:kf-differential (Q.WD2 — kf-vs-browser WAAPI midpoint differential · observe-only in CI, hard under KF_REQUIRE_BROWSER)
               run: npm run proof:kf-differential
             # ════════════════════════════════════════════════════════════════════
+            # Q STAGE-5 GATED CONSUMES (value.js 1.2.0) — @function inline · leaves
+            # externalize · color-SoA measure · glass-ui aria content-probe. node + jsdom.
+            # ════════════════════════════════════════════════════════════════════
+            - name: proof:emerging-css-resolve-fn (Q.WB2 — @function call-inlining over value.js 1.2.0 dashed-call + coerceToSyntax)
+              run: npm run proof:emerging-css-resolve-fn
+            - name: proof:no-cross-realm-cast (Q.WE2 — leaves externalized onto value.js/math · the 4 compile-color casts annotated · no kf math duplicate)
+              run: npm run proof:no-cross-realm-cast
+            - name: proof:color-soa (Q.WB3-color — MEASURE-FIRST · the channel-plan fold ships in-leaf via the ^1.2.0 re-pin · DECLINE the dead parallel arm · bit-identical)
+              run: npm run proof:color-soa
+            - name: proof:glassui-aria-ask (Q.WG-S1S2 — the glass-ui aria/dock content-probe · observe-only PENDING-until-BC-publish)
+              run: npm run proof:glassui-aria-ask
+            # ════════════════════════════════════════════════════════════════════
             # Q.WA3 APPARATUS GATES (the CI floor) — the master-merge oracle + the
             # deploy round-trip oracle. Pure-node static (git ancestry / shell-script
             # parse) — no vitest, no browser — so they ride the fast library gates job.

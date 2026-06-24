@@ -56,6 +56,9 @@ export const isColorUnit = (v: unknown): v is ValueUnit =>
 
 /** A declared color ValueUnit → its normalized value.js `Color` (for the ramp). */
 const toColor = (vu: ValueUnit): Color =>
+    // @cross-realm: value.js and kf each bundle their OWN nominal `Color`/`ValueUnit`
+    // (a structural seam tsc cannot reconcile); the densify path has no value.js
+    // typed accessor, so the realm-bridge is irreducible here (K.W10).
     normalizeColorUnit(vu as never).value as unknown as Color;
 
 /** A `Color`'s raw oklab `[L, a, b]` (the `deltaEOK` + CSS `oklab()` domain). */
@@ -87,6 +90,10 @@ const colorDeltaE = (c1: Color, c2: Color): number => {
 
 /** A `Color` from a raw oklab `[L, a, b]` tuple (the inverse of `rawOklab`). */
 const fromRawOklab = (L: number, a: number, b: number): Color =>
+    // @cross-realm: the `color2` color-literal input + the returned `Color` cross
+    // the value.js nominal seam (kf vs value.js each carry their own `Color`); no
+    // value.js typed constructor accepts kf's literal shape, so the bridge is
+    // irreducible on the densify path (K.W10).
     color2(
         {
             colorSpace: "oklab",

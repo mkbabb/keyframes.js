@@ -38,34 +38,33 @@ export type ParsedVarMap = Record<string, ValueArray>;
  * dissolves the `FunctionValue` wrapper into bare leaves, dropping the name; we
  * re-attach it here at flatten time.
  *
- * The provenance lives in a kf-MODULE-LOCAL `WeakMap` keyed by the leaf
- * instance — NOT a Symbol stamped onto value.js's `ValueUnit` (a class kf does
- * not own). The `ValueUnit` is a KEY, never mutated, so the realm stays clean:
- * value.js's instance carries zero kf-owned own-properties (gated by
- * `proof:no-foreign-symbol-stamp`). The map does NOT survive
- * `ValueUnit.clone()` (a clone is a fresh instance, absent from the map), so the
- * cache re-stamps every clone from its master (see `tryParseLeaves`) — the same
- * ceremony the former Symbol required, for the same reason. (value.js's VJ-L1
- * first-class `.fnName` field would let `clone()` preserve it and retire the
- * ceremony; that consume is dispatched at O.W16 and not yet shipped.)
+ * The provenance lives on value.js's first-class `ValueUnit.fnName` field
+ * (VJ-Q4, value.js ≥ 1.2.0): a public, `clone()`-preserved property the leaf
+ * carries natively. Setting it is NOT a foreign-Symbol stamp — `fnName` is
+ * value.js's OWN field (its ctor's 7th positional arg, copied by `clone()`), so
+ * the realm stays clean (`proof:no-foreign-symbol-stamp` — zero kf-OWNED
+ * own-property on a value.js instance) AND the provenance survives `clone()`
+ * for free. This RETIRES the former kf-module-local `WeakMap<ValueUnit,string>`
+ * + the clone-restamp ceremony it forced: a `WeakMap` key is the instance,
+ * which does NOT survive `clone()`, so every clone had to be re-stamped from
+ * its master. The `clone()`-preserved field needs no restamp — the S8 terminal
+ * (`proof:workaround-deletion` S8 GREEN).
  */
-const FN_NAME_MAP = new WeakMap<ValueUnit, string>();
 
-/** Read the tracked flatten-origin function name off a leaf (if any). */
-const fnNameOf = (u: ValueUnit): string | undefined => FN_NAME_MAP.get(u);
-
-/** Track the flatten-origin function name for a leaf, returning it. */
-const stampFnName = (u: ValueUnit, fnName: string | undefined): ValueUnit => {
-    if (fnName !== undefined) FN_NAME_MAP.set(u, fnName);
-    return u;
-};
+/** Read the flatten-origin function name off a leaf (if any). */
+const fnNameOf = (u: ValueUnit): string | undefined => u.fnName;
 
 const flattenToValueUnits = (
     value: unknown,
     fnName?: string,
 ): ValueUnit[] => {
     if (value instanceof ValueUnit) {
-        return [stampFnName(value.clone(), fnName ?? fnNameOf(value))];
+        const leaf = value.clone();
+        // `clone()` preserves `fnName`; set the threaded origin only when the
+        // caller supplies one (an inner `FunctionValue` leaf), else keep the
+        // leaf's own (clone-carried) provenance.
+        if (fnName !== undefined) leaf.fnName = fnName;
+        return [leaf];
     }
 
     if (value instanceof FunctionValue) {
@@ -284,13 +283,11 @@ export function parseAndFlattenObject(
 
         // The bounded-LRU cache holds shared master leaves; clone per call so
         // the property context below (and any later mutation) is per-use-site.
-        // A clone is a fresh `ValueUnit` instance absent from the `FN_NAME_MAP`
-        // WeakMap, so re-stamp the flatten-origin provenance from the master onto
-        // each clone — the identity-pad must see the origin function.
+        // `ValueUnit.clone()` PRESERVES the flatten-origin `fnName` field (VJ-Q4,
+        // value.js ≥ 1.2.0), so the clone carries the master's provenance with no
+        // re-stamp — the identity-pad reads `leaf.fnName` directly.
         const masters = tryParseLeaves(childKey, String(value));
-        const leaves = masters.map((m) =>
-            stampFnName(m.clone(), fnNameOf(m)),
-        );
+        const leaves = masters.map((m) => m.clone());
 
         return applyPropertyContext(
             new ValueArray(...leaves),
@@ -338,7 +335,8 @@ export const createInterpVarValue = (
      * OTHER side (`counterpart`) has but `arr` lacks — so its fill value is that
      * function's CSS IDENTITY element (`scale → 1`, `translateX → 0px`,
      * `brightness → 1`), resolved via value.js's `functionIdentityValue` off the
-     * flatten-origin provenance tracked (in `FN_NAME_MAP`) at flatten time.
+     * flatten-origin provenance carried on the leaf's `fnName` field at flatten
+     * time.
      * Absent a known function name (a bare
      * scalar list, or a name value.js has no identity for) it falls back to the
      * historical `ValueUnit(0)` — so non-identity-`0` functions stop

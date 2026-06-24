@@ -63,10 +63,10 @@
 
 ## In-flight (background tasks)
 
-- **WF1 engine-split + DECOMPOSITION CLOSE** `ad7abcb7…` (kf tree) — Stage 4 link 3: engine.ts 1660→<1400
-  (lift engine-playback.ts) + cure the 4 Q-grown over-ceiling files (waapi.ts 815→<650 via waapi-densify.ts
-  extract; frame-compiler/resolve-values/load-engine extract-or-override) + the 3 demo template-refs →
-  **proof:decomposition FULLY GREEN**. Runs ALONE. Then Stage 5 (re-pin value.js ^1.2.0 + GATED consumes).
+- **Stage-5 consumes workflow** `w05l1owp5` (kf tree) — the value.js 1.2.0 GATED consumes: Lane A (S8 .fnName
+  retire-WeakMap + WE2 leaves-externalize via /math + WB3-color ColorChannelPlan measure-first + WG-S1S2
+  gate-retarget) ∥ Lane B (WB2 @function inline). File-disjoint (utils/color/leaves/gate vs resolve-values).
+  Returns gate entries for central wiring.
 
 **REGRESSION FOLDED (recorded):** the Q perf waves grew library files past proof:decomposition ceilings
 (waapi 552→815 [WB4], resolve-values 472→578 [WB1], frame-compiler 552→662, engine 1397→1660). The gate is

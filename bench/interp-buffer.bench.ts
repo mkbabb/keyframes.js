@@ -18,7 +18,18 @@
 import { bench, describe } from "vitest";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
 import { loadAnimationEngine, warmEngine } from "../src/animation";
-import { lerpArray, lerpValue, type ValueUnit } from "@mkbabb/value.js";
+import {
+    FunctionValue,
+    lerpArray,
+    lerpColorValue,
+    lerpValue,
+    mixColors,
+    normalizeValueUnits,
+    parseCSSSubValue,
+    prepareInterpVar,
+    ValueArray,
+    ValueUnit,
+} from "@mkbabb/value.js";
 
 /**
  * Build an animation whose every keyframe declares exactly `keys` flat
@@ -350,6 +361,94 @@ describe("processFrame — SoA-vs-boxed K-ladder (Q.WB3 S1/S3, measure-first)", 
                         ? 1
                         : (t - seg.start) / (seg.stop - seg.start);
                 lerpArray(seg.from, seg.to, seg.fn(scaled), soaOut);
+            }
+        });
+    }
+});
+
+/**
+ * Q.WB3 S4 — the COLOR-SoA arm (the GATED color-tail completion, measure-first).
+ *
+ * `proof:color-soa` reads this arm. The BASELINE is the naive per-element BOXED
+ * color reconstruct (`mixColors(start, stop, …)` — the pre-channel-plan path,
+ * rebuilding a `Color` per leaf per frame). The CANDIDATE is value.js 1.2.0's
+ * `_colorPlan`-FOLDED `lerpColorValue`: `prepareInterpVar`/`normalizeValueUnits`
+ * (the SAME helpers kf's `createInterpVarValue` already calls) attach a
+ * `_colorPlan` (`{keys, startN, stopN, hueIndex, dstVU}` — a contiguous Float64
+ * oklab-channel SoA layout) to every color iv, and `lerpColorValue` folds the
+ * channels through it. This is value.js's `ColorChannelPlan` (VJ-Q8) — but
+ * SHIPPED INSIDE THE LEAF, so kf's existing boxed color tail (`lerpValue →
+ * lerpColorValue`) ALREADY rides the channel-plan fold transparently via the
+ * `^1.2.0` re-pin. The case names are gate-parsed:
+ * `colorTail boxed · K=<k>` / `colorTail SoA · K=<k>`.
+ *
+ * The measure proves the channel-plan fold's win AND grounds the DECLINE of a
+ * SEPARATE kf-side parallel arm: a kf-built `buildColorChannelPlan` +
+ * `lerpColorChannels` fold in `processFrame`/`group.ts` would DUPLICATE the fold
+ * value.js already performs in `lerpColorValue` — a dead parallel path the
+ * no-legacy precept forbids. The win is real (the gate records the ratio); the
+ * kf-side parallel build is redundant (the gate records the DECLINE).
+ */
+const COLOR_PAIRS: ReadonlyArray<readonly [string, string]> = [
+    ["red", "blue"],
+    ["green", "orange"],
+    ["purple", "cyan"],
+    ["yellow", "magenta"],
+    ["black", "white"],
+    ["teal", "coral"],
+    ["navy", "gold"],
+    ["lime", "pink"],
+    ["maroon", "aqua"],
+    ["olive", "fuchsia"],
+    ["silver", "indigo"],
+    ["crimson", "khaki"],
+] as const;
+
+/** A flattened color leaf from a CSS color literal (the densify/interp domain). */
+const colorLeaf = (css: string): ValueUnit => {
+    const parsed = parseCSSSubValue(css, { subProperty: "color" });
+    const flat = (function rec(v: unknown): ValueUnit[] {
+        if (v instanceof ValueUnit) return [v];
+        if (v instanceof FunctionValue) return v.values.flatMap(rec);
+        if (v instanceof ValueArray) return v.flatMap(rec);
+        return [];
+    })(parsed);
+    return flat[0]!;
+};
+
+/** A color InterpolatedVar — value.js attaches the `_colorPlan` SoA layout. */
+const colorIv = (a: string, b: string) =>
+    prepareInterpVar(
+        normalizeValueUnits(colorLeaf(a), colorLeaf(b), { colorSpace: "oklab" }),
+    );
+
+describe("colorTail — channel-plan SoA vs boxed (Q.WB3 S4, measure-first)", () => {
+    const KS = [3, 8, 12] as const;
+
+    for (const K of KS) {
+        const ivs = COLOR_PAIRS.slice(0, K).map(([a, b]) => colorIv(a, b));
+        const starts = ivs.map((iv) => iv.start.value);
+        const stops = ivs.map((iv) => iv.stop.value);
+
+        // BASELINE — the naive per-element boxed color reconstruct (pre-plan):
+        // rebuild a `Color` per leaf per frame via `mixColors`.
+        bench(`colorTail boxed · K=${K} · 600-frame window`, () => {
+            for (let f = 0; f < 600; f++) {
+                const e = f / 600;
+                for (let k = 0; k < K; k++) {
+                    mixColors(starts[k], stops[k], (1 - e) * 100, e * 100, "oklab");
+                }
+            }
+        });
+
+        // CANDIDATE — the `_colorPlan`-folded `lerpColorValue` (SHIPPED in
+        // value.js 1.2.0, consumed transparently by kf's existing boxed tail).
+        bench(`colorTail SoA · K=${K} · 600-frame window`, () => {
+            for (let f = 0; f < 600; f++) {
+                const e = f / 600;
+                for (let k = 0; k < K; k++) {
+                    lerpColorValue(e, ivs[k]!);
+                }
             }
         });
     }
