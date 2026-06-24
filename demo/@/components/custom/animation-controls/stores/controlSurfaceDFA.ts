@@ -82,6 +82,10 @@ export const CONTROL_SURFACES: Record<SceneId, ControlSurface[]> = {
     spring: ["spring"],
     sequence: [],
     "motion-path": [],
+    // The morph stage is self-contained (the live <path> + the Next-shape
+    // affordance live ON the stage); no control panel — an empty DFA set, beside
+    // sequence/motion-path (isControlsPanelOpen=false).
+    morph: [],
 };
 
 /**

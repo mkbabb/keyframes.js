@@ -202,6 +202,10 @@ const SWEEP_META = {
     spring: { trigger: "Spring", label: "Spring", kind: "spring-rail" },
     sequence: { trigger: null, label: "Sequence", kind: "sequence-transport" },
     "motion-path": { trigger: null, label: "Path", kind: "motion-path" },
+    // The MorphSVG stage (Q.WC4) — a panel-less group-play scene (the morph is a
+    // CSSKeyframesAnimation): PLAY morphs the live <path> `d` + the "Next shape"
+    // affordance advances the shape ring (the EP-interact).
+    morph: { trigger: null, label: "Morph", kind: "morph" },
 };
 {
     const libKeys = SCENES.map((s) => s.key);
@@ -1092,6 +1096,49 @@ async function runBattery() {
                     const d1 = await page.evaluate(() => document.querySelector(".mp-guide-path")?.getAttribute("d") ?? null);
                     if (d1 && d1 !== d0) return;
                     sceneFails.push(`${key}: INTERACT red — the handle drag did NOT re-shape the editable path (d unchanged)`);
+                } else if (meta.kind === "morph") {
+                    // morph — the scene AUTO-PLAYS on entry (a looping showcase,
+                    // like easing), so the live <path> `d` is already morphing via
+                    // the render contract (the engine writes `d:`/--morph-d each
+                    // frame); do NOT click play (that would TOGGLE-PAUSE it).
+                    // INTERACT: the "Next shape" affordance advances the ring.
+                    //
+                    // Sample distinct rendered `d` states over the morph window —
+                    // a real morphing shape produces many (not a static path).
+                    const distinct = await page.evaluate(async () => {
+                        const sleep = (m) => new Promise((r) => setTimeout(r, m));
+                        const seen = new Set();
+                        const read = () => {
+                            const p = document.querySelector("[data-morph-subject]");
+                            if (!p) return null;
+                            const cs = getComputedStyle(p);
+                            // The engine writes both `d:` and --morph-d; read either.
+                            return (cs.getPropertyValue("d") || "").trim() ||
+                                (cs.getPropertyValue("--morph-d") || "").trim() || null;
+                        };
+                        const t0 = performance.now();
+                        while (performance.now() - t0 < 2000) {
+                            const d = read();
+                            if (d) seen.add(d);
+                            await sleep(40);
+                        }
+                        return seen.size;
+                    });
+                    if (distinct < 3) {
+                        sceneFails.push(`${key}: PLAY red — the morph rendered only ${distinct} distinct \`d\` states (<3); the subject is not morphing live`);
+                    }
+                    // INTERACT: advance the shape ring — the from/to ghosts change.
+                    const ghostsBefore = await page.evaluate(
+                        () => [...document.querySelectorAll(".morph-ghost")].map((p) => p.getAttribute("d")).join("|"),
+                    );
+                    await page.click('[aria-label="Next shape pair"]', { timeout: 4000 }).catch(() => {});
+                    await page.waitForTimeout(400);
+                    const ghostsAfter = await page.evaluate(
+                        () => [...document.querySelectorAll(".morph-ghost")].map((p) => p.getAttribute("d")).join("|"),
+                    );
+                    if (!ghostsBefore || !ghostsAfter || ghostsBefore === ghostsAfter) {
+                        sceneFails.push(`${key}: INTERACT red — "Next shape" did NOT advance the shape ring (ghosts before==after: ${ghostsBefore === ghostsAfter})`);
+                    }
                 }
             };
 

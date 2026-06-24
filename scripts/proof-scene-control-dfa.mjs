@@ -147,7 +147,7 @@ console.log("proof:scene-control-dfa — H.W11 S4 / I2 (the per-scene control-su
             "@/components/custom/animation-controls/stores/controlSurfaceDFA.ts",
         ),
     );
-    const declaredScenes = ["home", "cube", "amiga", "square", "easing", "spring", "sequence", "motion-path"];
+    const declaredScenes = ["home", "cube", "amiga", "square", "easing", "spring", "sequence", "motion-path", "morph"];
     const tableBlock = (dfa.match(/CONTROL_SURFACES[^=]*=\s*\{([\s\S]*?)\};/) || [])[1] ?? "";
     const allMapped = declaredScenes.every((s) => {
         const re = new RegExp(`["']?${s.replace("-", "\\-")}["']?\\s*:`);
@@ -182,6 +182,7 @@ const EXPECT = {
     spring: { hasPanel: true, trigger: "Spring", noBuiltInTriad: true },
     sequence: { hasPanel: false },
     "motion-path": { hasPanel: false },
+    morph: { hasPanel: false },
 };
 
 /** Read the dock's control-tab state: the collapsed trigger label (or null if

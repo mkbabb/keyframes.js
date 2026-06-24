@@ -22,6 +22,8 @@ const routes: RouteRecordRaw[] = [
     { path: "/spring", name: "spring", component: Stub },
     { path: "/sequence", name: "sequence", component: Stub },
     { path: "/motion-path", name: "motion-path", component: Stub },
+    // The MorphSVG scene (Q.WC4) — the THIRD HEAVY geometry front door demoed.
+    { path: "/morph", name: "morph", component: Stub },
     // The standalone /starting-style route was REMOVED in one motion with its
     // scene + descriptor (H.W5.S3): the Discrete (@starting-style) mode is now a
     // sub-view of the Spring scene (Spring → "Discrete transition"), not its own

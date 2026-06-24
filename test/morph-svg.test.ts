@@ -25,7 +25,10 @@ const TRIANGLE = "M 0 0 L 100 0 L 50 100 Z";
 const SQUARE = "M 0 0 L 100 0 L 100 100 L 0 100 Z";
 
 /** Read the engine's interpolated coordinate keys at a normalized t into a flat map. */
-function coordsAt(anim: CSSKeyframesAnimation<any>, t: number): Map<string, number> {
+function coordsAt(
+    anim: CSSKeyframesAnimation<any>,
+    t: number,
+): Map<string, number> {
     const ms = t * anim.options.duration;
     const out = anim.interpFrames(ms, false);
     const m = new Map<string, number>();
@@ -52,7 +55,10 @@ function meanCoordDist(a: Map<string, number>, b: Map<string, number>): number {
 describe("MorphSVG — PathGeometry-once construction + samples-count keyframe set (S1)", () => {
     it("emits a 2-stop (0%/100%) keyframe set whose interpolating keys are the per-point coordinates", () => {
         const samples = 16;
-        const anim = fromMorphSVG(TRIANGLE, SQUARE, { samples, autoPlay: false });
+        const anim = fromMorphSVG(TRIANGLE, SQUARE, {
+            samples,
+            autoPlay: false,
+        });
 
         // Two endpoint stops — the morph is the engine lerping between them.
         const keys = new Set<string>();
@@ -71,7 +77,10 @@ describe("MorphSVG — PathGeometry-once construction + samples-count keyframe s
         // Sampling BOTH paths at the same count is what makes the polyline
         // channel interpolable — the same key set must appear at both endpoints.
         const samples = 24;
-        const anim = fromMorphSVG(TRIANGLE, SQUARE, { samples, autoPlay: false });
+        const anim = fromMorphSVG(TRIANGLE, SQUARE, {
+            samples,
+            autoPlay: false,
+        });
         const start = coordsAt(anim, 0);
         const end = coordsAt(anim, 1);
         expect([...start.keys()].sort()).toEqual([...end.keys()].sort());
@@ -90,18 +99,18 @@ describe("MorphSVG — PathGeometry-once construction + samples-count keyframe s
 describe("MorphSVG — refuse, don't fake: a degenerate path throws AnimationOptionError (S1)", () => {
     it("BITE: a zero-length `from` path throws (not a silent identity morph)", () => {
         // `M 50 50 Z` / `M 50 50` have totalLength === 0.
-        expect(() => fromMorphSVG("M 50 50 Z", SQUARE, { autoPlay: false })).toThrow(
-            AnimationOptionError,
-        );
-        expect(() => fromMorphSVG("M 50 50 Z", SQUARE, { autoPlay: false })).toThrow(
-            /zero arc-length/i,
-        );
+        expect(() =>
+            fromMorphSVG("M 50 50 Z", SQUARE, { autoPlay: false }),
+        ).toThrow(AnimationOptionError);
+        expect(() =>
+            fromMorphSVG("M 50 50 Z", SQUARE, { autoPlay: false }),
+        ).toThrow(/zero arc-length/i);
     });
 
     it("BITE: a zero-length `to` path throws", () => {
-        expect(() => fromMorphSVG(TRIANGLE, "M 50 50", { autoPlay: false })).toThrow(
-            AnimationOptionError,
-        );
+        expect(() =>
+            fromMorphSVG(TRIANGLE, "M 50 50", { autoPlay: false }),
+        ).toThrow(AnimationOptionError);
     });
 
     it("BITE: an empty `from`/`to` string throws", () => {
@@ -150,7 +159,10 @@ describe("MorphSVG — THE KEYSTONE: triangle→square mid-t is DISTINCT from BO
     it("clause-4 hazard: the SHARED start vertex (M 0 0) is identical across from/mid/to", () => {
         // The single-endpoint compare WOULD be degenerate — proving why the
         // keystone above asserts distinctness over the FULL set, not one vertex.
-        const anim = fromMorphSVG(TRIANGLE, SQUARE, { samples: 8, autoPlay: false });
+        const anim = fromMorphSVG(TRIANGLE, SQUARE, {
+            samples: 8,
+            autoPlay: false,
+        });
         const from = coordsAt(anim, 0);
         const mid = coordsAt(anim, 0.5);
         const to = coordsAt(anim, 1);
@@ -173,12 +185,16 @@ describe("MorphSVG — the class wrapper + the morphed-d sampler", () => {
     });
 
     it("sampleD(t) reassembles the morphed `d`, distinct from both endpoint d's at mid-t", () => {
-        const m = new MorphSVG(TRIANGLE, SQUARE, { samples: 32, autoPlay: false });
+        const m = new MorphSVG(TRIANGLE, SQUARE, {
+            samples: 32,
+            autoPlay: false,
+        });
         const dFrom = m.sampleD(0);
         const dMid = m.sampleD(0.5);
         const dTo = m.sampleD(1);
         // Each is a valid polyline `d` (M … L …).
-        for (const d of [dFrom, dMid, dTo]) expect(d).toMatch(/^M [\d.-]+ [\d.-]+ L /);
+        for (const d of [dFrom, dMid, dTo])
+            expect(d).toMatch(/^M [\d.-]+ [\d.-]+ L /);
         // The morphed mid `d` is distinct from BOTH endpoint d strings.
         expect(dMid).not.toBe(dFrom);
         expect(dMid).not.toBe(dTo);
@@ -190,5 +206,141 @@ describe("MorphSVG — the class wrapper + the morphed-d sampler", () => {
     it("the class exposes .finished over the underlying animation", () => {
         const m = new MorphSVG(TRIANGLE, SQUARE, { autoPlay: false });
         return expect(m.finished).resolves.toBeUndefined();
+    });
+});
+
+/** A minimal style-write target — captures `setProperty` writes for the
+ *  render-contract locks (no DOM needed; the morph renderer writes structurally). */
+function makeStyleTarget() {
+    const writes: Record<string, string> = {};
+    return {
+        writes,
+        style: {
+            setProperty(k: string, v: string) {
+                writes[k] = v;
+            },
+        },
+    };
+}
+
+describe("MorphSVG — Q.WC4 S1: the on-DOM render contract (--morph-d / d: per frame)", () => {
+    it("a target-bearing morph WRITES --morph-d (and d:) reassembling to a `d` distinct from both endpoints", () => {
+        const target = makeStyleTarget();
+        const anim = fromMorphSVG(TRIANGLE, SQUARE, {
+            samples: 16,
+            autoPlay: false,
+            target: target as unknown as HTMLElement,
+        });
+        // Drive ONE apply frame at mid-t — the engine fires the custom renderer.
+        anim.interpFrames(0.5 * anim.options.duration, true);
+
+        // BITE: today (pre-wave) NO --morph-d / d: write exists — the bare
+        // setTargets only writes the ~130 invisible numeric props.
+        expect(target.writes["--morph-d"]).toBeDefined();
+        expect(target.writes["--morph-d"]).toMatch(/^M [\d.-]+ [\d.-]+ L /);
+        expect(target.writes["d"]).toBeDefined();
+        expect(target.writes["d"]).toMatch(/^path\("M /);
+
+        // The written `d` is the morphed mid-t shape — distinct from BOTH endpoint
+        // polylines (a real morphing shape, not a static / endpoint-snapped path).
+        const m = new MorphSVG(TRIANGLE, SQUARE, {
+            samples: 16,
+            autoPlay: false,
+        });
+        expect(target.writes["--morph-d"]).toBe(m.sampleD(0.5));
+        expect(target.writes["--morph-d"]).not.toBe(m.sampleD(0));
+        expect(target.writes["--morph-d"]).not.toBe(m.sampleD(1));
+    });
+
+    it("a target-bearing morph is WAAPI-INELIGIBLE by construction (custom renderer, not the default)", () => {
+        const target = makeStyleTarget();
+        const anim = fromMorphSVG(TRIANGLE, SQUARE, {
+            autoPlay: false,
+            target: target as unknown as HTMLElement,
+        });
+        // The frame's transform is NOT the instance default DOM-style renderer,
+        // so usesDefaultRenderer is false → the morph never delegates to WAAPI;
+        // it always runs the rAF path where the per-frame renderer fires.
+        const frameTransform = (
+            anim.frames[0] as unknown as {
+                transform: unknown;
+            }
+        ).transform;
+        expect(
+            (
+                anim as unknown as {
+                    usesDefaultRenderer(fn: unknown): boolean;
+                }
+            ).usesDefaultRenderer(frameTransform),
+        ).toBe(false);
+    });
+
+    it("a target-LESS morph writes nothing (the handle IS the surface — sampleD reads the `d`)", () => {
+        // No target → the default DOM-style renderer (no morph-d write); the
+        // position-only floor unchanged. sampleD remains the manual reader.
+        const anim = fromMorphSVG(TRIANGLE, SQUARE, { autoPlay: false });
+        const frameTransform = (
+            anim.frames[0] as unknown as {
+                transform: unknown;
+            }
+        ).transform;
+        expect(
+            (
+                anim as unknown as {
+                    usesDefaultRenderer(fn: unknown): boolean;
+                }
+            ).usesDefaultRenderer(frameTransform),
+        ).toBe(true);
+    });
+});
+
+describe("MorphSVG — Q.WC4 S2: orient-along-path (the --morph-{i}-angle channel)", () => {
+    const angleKeys = (anim: CSSKeyframesAnimation<any>): string[] => {
+        const keys = new Set<string>();
+        for (const frame of anim.frames)
+            for (const k of Object.keys(frame.interpVars)) keys.add(k);
+        return [...keys].filter((k) => /^--morph-\d+-angle$/.test(k));
+    };
+
+    it("orient: true emits a per-point --morph-{i}-angle channel (the rotate: auto tangent)", () => {
+        const anim = fromMorphSVG(TRIANGLE, SQUARE, {
+            samples: 8,
+            orient: true,
+            autoPlay: false,
+        });
+        // samples + 1 angle keys, beside the 2 * (samples + 1) coordinate keys.
+        expect(angleKeys(anim).length).toBe(8 + 1);
+    });
+
+    it("orient: false (default) emits NO angle channel — the position-only floor", () => {
+        const anim = fromMorphSVG(TRIANGLE, SQUARE, {
+            samples: 8,
+            autoPlay: false,
+        });
+        expect(angleKeys(anim).length).toBe(0);
+    });
+
+    it("the angle channel INTERPOLATES the tangent from→to across t (mid distinct from endpoints)", () => {
+        const anim = fromMorphSVG(TRIANGLE, SQUARE, {
+            samples: 16,
+            orient: true,
+            autoPlay: false,
+        });
+        const angleAt = (t: number, i: number): number | undefined =>
+            anim.interpFrames(t * anim.options.duration, false)[
+                `--morph-${i}-angle`
+            ]?.[0]?.value;
+        // A body point whose from-tangent and to-tangent differ — the mid value
+        // sits between (the engine lerps the tangent, the rotate: auto bank).
+        const i = 8;
+        const a0 = angleAt(0, i);
+        const a5 = angleAt(0.5, i);
+        const a1 = angleAt(1, i);
+        expect(a0).toBeTypeOf("number");
+        expect(a1).toBeTypeOf("number");
+        // The from/to tangents differ (a real bank), and mid is between them.
+        expect(a0).not.toBe(a1);
+        expect(a5).toBeGreaterThanOrEqual(Math.min(a0!, a1!));
+        expect(a5).toBeLessThanOrEqual(Math.max(a0!, a1!));
     });
 });

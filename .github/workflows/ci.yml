@@ -389,6 +389,10 @@ jobs:
               run: npm run proof:emerging-css-resolve-now
             - name: proof:morphsvg-consume (fromMorphSVG consume-edge · node + vitest test/morph-svg.test.ts)
               run: npm run proof:morphsvg-consume
+            - name: proof:morph-renders-d (Q.WC4 — the on-DOM render contract · a morph apply-frame writes --morph-d + d:path() reassembling the mid-t shape)
+              run: npm run proof:morph-renders-d
+            - name: proof:morph-orients (Q.WC4 — orient-along-path · per-point --morph-{i}-angle banks to the path tangent via sampleAtLength)
+              run: npm run proof:morph-orients
             # ════════════════════════════════════════════════════════════════════
             # Q.WA1/WA2/WA4 APPARATUS GATES — the SLIM lint floor · drag2D LIGHT cert ·
             # the wave-charter contrivance gate · the constellation pin-ledger witness.
@@ -604,6 +608,12 @@ jobs:
               id: proof-icon-paint-live
               continue-on-error: true
               run: npm run proof:icon-paint-live
+              env:
+                  KF_REQUIRE_BROWSER: "1"
+            - name: "[CORRECTNESS] proof:morph-scene (Q.WC4 KEYSTONE — the live #/morph subject <path> walks distinct rendered d states · a real morphing path, not numeric-only)"
+              id: proof-morph-scene
+              continue-on-error: true
+              run: npm run proof:morph-scene
               env:
                   KF_REQUIRE_BROWSER: "1"
             - name: "[CORRECTNESS] proof:specular-absent-at-rest (I.W6/B7 — the glass ::before catch-light bloom is ABSENT at rest, by the rendered pixels)"

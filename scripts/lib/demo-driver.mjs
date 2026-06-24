@@ -132,6 +132,13 @@ const SCENE_GATE_META = {
         subjectSelector: ".stage-cell [data-surface], [class*=Target], [class*=glass-card]",
         dockFloatAllowed: false,
     },
+    // The MorphSVG stage (Q.WC4) — the subject is the live morphing <path>
+    // (data-morph-subject) the engine drives via the render contract, on its
+    // designed violet stage; the broad selector also catches the Target card.
+    morph: {
+        subjectSelector: "[data-morph-subject], .morph-stage, [class*=Target], [class*=glass-card]",
+        dockFloatAllowed: false,
+    },
 };
 
 /**

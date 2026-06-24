@@ -19,6 +19,7 @@ import EasingIcon from "@assets/icons/easing.svg?component";
 import SpringIcon from "@assets/icons/spring.svg?component";
 import SequenceIcon from "@assets/icons/sequence.svg?component";
 import MotionPathIcon from "@assets/icons/motion-path.svg?component";
+import MorphIcon from "@assets/icons/morph.svg?component";
 
 /** A scene's dynamic-import loader — the exact thunk `defineAsyncComponent`
  *  wraps, retained so `warmScene` can warm the chunk on hover (S5). */
@@ -153,6 +154,22 @@ export const scenes: SceneDescriptor[] = [
             () => import("./scenes/MotionPathScene.vue"),
         ),
     },
+    {
+        // The MorphSVG shop-window (Q.WC4.S3): the THIRD HEAVY geometry front
+        // door demoed — `fromMorphSVG` morphs one SVG `<path>` `d` INTO another
+        // over value.js's PathGeometry, and the Q.WC4 S1 render contract paints
+        // the morphing shape DIRECTLY on a live `<path>` (the `d:` property +
+        // var(--morph-d) fallback). A glyph banks to the tangent (orient-along-
+        // path, S2). Beside MotionPath (offset-distance) + DrawSVG (line-drawing).
+        id: "morph",
+        label: "Morph",
+        superKey: "Morph",
+        icon: MorphIcon,
+        component: lazyScene(
+            "morph",
+            () => import("./scenes/MorphSVGScene.vue"),
+        ),
+    },
     // The standalone @starting-style "Discrete" scene was MERGED into the Spring
     // scene as a sub-view in one motion (H.W5.S3): Discrete is Spring's twin (the
     // same spring solver + linear() artifact on a different primitive). The fold
@@ -212,6 +229,10 @@ const STAGE_MODES: Record<string, StageMode> = {
     spring: "storyboard",
     sequence: "storyboard",
     "motion-path": "storyboard",
+    // The morph stage is a contained subject card (a live <path> on a designed
+    // field), authored like motion-path/sequence — the storyboard register
+    // (a contained card, NOT a full-bleed background).
+    morph: "storyboard",
 };
 
 /** The TOTAL mode selector — every scene id resolves to a defined mode-class

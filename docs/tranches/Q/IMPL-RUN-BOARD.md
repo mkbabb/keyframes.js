@@ -63,13 +63,18 @@
 
 ## In-flight (background tasks)
 
-- **Stage-3 workflow** `wdjr802kz` (kf tree) — 4 disjoint lanes: engine-core (WB1→WB3-numeric→WD1),
-  WB4 (waapi), WD2 (grammar-fuzz), demo-main (WC1→WC2→WC3→WC5). **WC4 deferred** to a follow-up (it
-  spans engine.ts+scenes.ts+scene — runs alone after engine settles). Lanes return package.json entries.
-- **value.js 1.1.1/1.2.0 cut** `a84c7af…` (value.js repo, branch tranche-q) — **1.1.1 COMMITTED** (fd3c7ce);
-  1.2.0 in progress. Leaves TWO ready-to-publish commits; orchestrator reviews + publishes (1.1.1 then 1.2.0).
+- **WC4 MorphSVG** `ae6f1409…` (kf tree) — the deferred Band-C wave: the on-DOM render contract O.W6 left
+  vapor + the MorphSVGScene + orient-along-path. Touches engine.ts+morph-svg.ts+scenes.ts → runs ALONE
+  (Stage 4 must wait — it also touches engine.ts). Returns gate entries for central wiring.
 
-**DONE:** Band A (ac40f72) · parse-that 0.13.0 PUBLISHED+pushed (2c806fb / v0.13.0) · value.js 1.1.1 committed.
+**DONE:** Band A (ac40f72) · parse-that 0.13.0 PUBLISHED (2c806fb/v0.13.0) · value.js 1.2.0 PUBLISHED
+(e80b359/v1.2.0, cumulative) · **Stage 3 Band B/C/D committed (090c7b0)** — engine-perf (WB1/WB3-num/WB4) +
+demo-fleet (WC1-3,WC5) + correctness (WD1/WD2); **DM-2 ninth-carry GENUINELY EXITS** (browser-verified
+pointer-drag); 940 tests, ci-coverage GREEN.
+
+**Stage-3 rate-limit recovery (recorded):** the demo-main lane hit a 529 wall mid-verification; a demo-finish
+agent verified+completed WC1-3,WC5 in-browser (SwiftShader WebGL fix for amiga). Lesson: a workflow lane can
+die on a transient 529 — its work survives on disk; re-launch a finish agent rather than re-run from scratch.
 
 **LIVENESS NOTE:** judge background-agent progress by GIT STATE (commits/uncommitted files), NOT the
 transcript output-mtime (it buffers — a 17-min gap was a false "stuck" alarm; the agent had committed + moved on).
@@ -85,6 +90,11 @@ disjoint from src/ tree so the demo workflow runs concurrent with the engine one
 
 ## Resume pointer
 
-**NEXT (on Band-A completion):** wire returned gate entries into package.json centrally → run every Band-A
-gate GREEN → commit Band A → launch Stage-3 (engine ∥ demo) workflows + continue the cross-repo spine
-(verify+publish parse-that 0.13.0 → value.js 1.1.1/1.2.0).
+**NEXT (on WC4 completion):** wire WC4 gate entries → verify → commit WC4 (completes Band C). Then **Stage 4 —
+the breaking-cut spine**: Q.WE1 (@deprecated alias DROP + ~33-consumer migration + MIGRATION-5.0.0.md +
+proof:alias-dropped/changelog-5.0.0 gate-first) → Q.WF2 (group.ts SoA decomposition → group-soa.ts,
+proof:decomposition baseline) → Q.WF1 (engine.ts 1397→~900 split → engine-playback.ts, a CLEAN post-alias
+class). All NOW/kf-internal, sequential (engine.ts spine). Then Stage 5 (re-pin value.js ^1.2.0 → fire the
+GATED consumes: Q.WB2 @function, Q.WB3-color ColorChannelPlan, Q.WE2 leaves, S8 .fnName; ⚠️ watch the VJ-Q9
+serialization change at re-pin) + Q.WG-S1S2-HYGIENE. Then Stage 6 (Q.WZ: 5.0.0/5.1.x cut + chronic-ledger
+terminate + deploy round-trip).

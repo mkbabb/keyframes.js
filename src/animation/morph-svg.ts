@@ -44,13 +44,24 @@
 
 import { PathGeometry } from "@mkbabb/value.js";
 import { CSSKeyframesAnimation } from "./engine";
-import type { InputAnimationOptions } from "./constants";
+import type {
+    InputAnimationOptions,
+    TransformFunction,
+    Vars,
+} from "./constants";
 import { AnimationOptionError } from "./internal/errors";
 
 /** A sampled point on a path polyline. */
 export interface MorphPoint {
     x: number;
     y: number;
+    /**
+     * The tangent angle (radians) of the source path at this point — populated
+     * ONLY when the morph is built with `orient: true` (the
+     * `PathGeometry.sampleAtLength` tangent, the `rotate: auto` value). Absent
+     * (`undefined`) on a position-only morph (the default ~130-key floor).
+     */
+    angle?: number;
 }
 
 export interface MorphSVGOptions extends Partial<InputAnimationOptions> {
@@ -65,15 +76,38 @@ export interface MorphSVGOptions extends Partial<InputAnimationOptions> {
     samples?: number;
 
     /**
-     * Optional target the morph drives. When given, the morph writes the
-     * interpolated polyline `d` (`MorphSVG.sampleD`) onto the target's
-     * `--morph-d` CSS custom property each frame so an author can render it
-     * (e.g. `<path d="" style="d: var(--morph-d)">` or a JS reader). Default
-     * target-less: the returned handle IS the control surface, exactly like
-     * `fromDrawSVG`'s target-less form — `MorphSVG.sampleD(t)` reads the
-     * morphed `d` directly without a DOM write.
+     * Optional target the morph drives. When given, the morph reassembles the
+     * interpolated polyline into a `d` string EACH FRAME and writes it onto the
+     * target's style as BOTH:
+     *   • the `d:` CSS property — `target.style.d = path("M … L …")` — which
+     *     Chromium and recent Safari render DIRECTLY on a `<path>`/`<svg>`
+     *     (no author wiring needed), and
+     *   • the `--morph-d` custom property — `var(--morph-d)` — the cross-browser
+     *     author channel + the Firefox-lags fallback (`<path style="d:
+     *     var(--morph-d)">`, or a JS reader via {@link MorphSVG.sampleD}).
+     *
+     * The render rides the engine's per-frame renderer seam (a custom
+     * `transform` supplied to `fromKeyframes`), NOT the default DOM-style
+     * renderer — so the morph is WAAPI-ineligible by construction and always
+     * runs the rAF path where the renderer fires. The reassembly reuses an
+     * instance-level scratch point-array, so the steady frame mints nothing.
+     *
+     * Default target-less: the returned handle IS the control surface, exactly
+     * like `fromDrawSVG`'s target-less form — {@link MorphSVG.sampleD}(t) reads
+     * the morphed `d` directly without a DOM write.
      */
     target?: HTMLElement | SVGElement;
+
+    /**
+     * Orient-along-path: when `true`, the morph ALSO samples each point's
+     * tangent angle (radians) from `PathGeometry.sampleAtLength` and emits a
+     * per-point `--morph-{i}-angle` channel that interpolates the `from`→`to`
+     * tangent across `t` — the `rotate: auto` value a consumer reads to bank a
+     * glyph along the morphed outline. Default `false` (a position-only morph
+     * stays at the ~130-key floor; orient adds ~65 angle keys ONLY when asked,
+     * pre-empting a "morph is too heavy" perf concern).
+     */
+    orient?: boolean;
 
     /**
      * Auto-start the play loop after construction + targeting. Default true.
@@ -89,30 +123,104 @@ const DEFAULT_SAMPLES = 64;
 /** The per-point coordinate key prefix (a CSS custom property, kebab-safe). */
 const xKey = (i: number): string => `--morph-${i}-x`;
 const yKey = (i: number): string => `--morph-${i}-y`;
+/** The per-point tangent-angle key (radians) — emitted ONLY when `orient`. */
+const angleKey = (i: number): string => `--morph-${i}-angle`;
 
 /**
  * Sample a {@link PathGeometry} at `n + 1` uniform `t` in `[0, 1]`, returning
  * the `(x, y)` point array (length `n + 1`). The arc-length table was built at
  * construction, so each `getPointAtT` is a binary-search + lerp — no re-parse.
+ *
+ * When `orient` is true, each point ALSO carries the path's tangent `angle`
+ * (radians) at that step. The arc-length conversion is the correctness pivot:
+ * the position is sampled by NORMALIZED `t` via `getPointAtT(i/n)`, but
+ * `sampleAtLength` takes an arc-LENGTH — so the tangent at the SAME point is
+ * `sampleAtLength(totalLength * (i/n)).angle`, NOT `sampleAtLength(i/n)` (which
+ * would read the tangent a fraction of a pixel along the path — a degenerate
+ * near-origin angle).
  */
-const samplePolyline = (geo: PathGeometry, n: number): MorphPoint[] => {
+const samplePolyline = (
+    geo: PathGeometry,
+    n: number,
+    orient: boolean,
+): MorphPoint[] => {
     const pts: MorphPoint[] = new Array(n + 1);
     for (let i = 0; i <= n; i++) {
-        pts[i] = geo.getPointAtT(i / n);
+        if (orient) {
+            const s = geo.sampleAtLength(geo.totalLength * (i / n));
+            pts[i] = { x: s.x, y: s.y, angle: s.angle };
+        } else {
+            pts[i] = geo.getPointAtT(i / n);
+        }
     }
     return pts;
 };
 
+/** Format ONE number for a `d` string — integers bare, fractions to 3 places. */
+const fmtNum = (n: number): string =>
+    Number.isInteger(n) ? `${n}` : n.toFixed(3);
+
 /** Assemble a polyline point array into an SVG `d` string (`M … L … L …`). */
 const pointsToD = (pts: MorphPoint[]): string => {
     if (pts.length === 0) return "";
-    const fmt = (n: number): string =>
-        Number.isInteger(n) ? `${n}` : n.toFixed(3);
-    let d = `M ${fmt(pts[0]!.x)} ${fmt(pts[0]!.y)}`;
+    let d = `M ${fmtNum(pts[0]!.x)} ${fmtNum(pts[0]!.y)}`;
     for (let i = 1; i < pts.length; i++) {
-        d += ` L ${fmt(pts[i]!.x)} ${fmt(pts[i]!.y)}`;
+        d += ` L ${fmtNum(pts[i]!.x)} ${fmtNum(pts[i]!.y)}`;
     }
     return d;
+};
+
+/**
+ * The minimal style-write surface the morph renderer needs — `style.setProperty`
+ * (the `--morph-d` custom property + the `d:` property). Both `HTMLElement` and
+ * `SVGElement` satisfy it; typed structurally so the renderer composes off-DOM
+ * (the same DOM-free posture as the rest of the geometry path) over any
+ * `{ style: { setProperty } }` target without a `document` cast.
+ */
+interface ElementWithStyle {
+    style: { setProperty(property: string, value: string): void };
+}
+
+/**
+ * Build the per-frame RENDER contract (S1) — the custom `transform` a
+ * target-bearing {@link fromMorphSVG} supplies to `fromKeyframes`. Each frame
+ * the engine invokes this with the interpolated `vars` (the `--morph-{i}-x/y`
+ * keys, each `vars[key][0].value` the lerped number — the SAME shape
+ * {@link MorphSVG.sampleD} reads); it reassembles the points into a `d` string
+ * and writes it onto `target.style` as BOTH the `d:` CSS property and the
+ * `--morph-d` custom property.
+ *
+ * ZERO-ALLOC on the steady frame: the scratch point-array is hoisted into THIS
+ * closure once (`scratch`, length `samples + 1`), and each frame mutates its
+ * slots in place — NO `new Array` per render (contrast `MorphSVG.sampleD`'s
+ * per-call allocation, fine for a one-off manual pull, NOT a 60Hz render).
+ */
+const makeMorphRenderer = <V extends Vars>(
+    target: ElementWithStyle,
+    samples: number,
+): TransformFunction<V> => {
+    // The ONE hoisted scratch buffer — reused every frame (zero-alloc steady).
+    const scratch: MorphPoint[] = new Array(samples + 1);
+    for (let i = 0; i <= samples; i++) scratch[i] = { x: 0, y: 0 };
+
+    return (vars: V) => {
+        const v = vars as unknown as Record<
+            string,
+            ReadonlyArray<{ value?: number }> | undefined
+        >;
+        for (let i = 0; i <= samples; i++) {
+            const pt = scratch[i]!;
+            pt.x = v[xKey(i)]?.[0]?.value ?? 0;
+            pt.y = v[yKey(i)]?.[0]?.value ?? 0;
+        }
+        const d = pointsToD(scratch);
+        // The cross-browser author channel (var(--morph-d) + the JS reader) AND
+        // the directly-rendered `d:` property (Chromium/Safari). Both writes are
+        // honest: `d` paints natively where supported; `--morph-d` is the
+        // documented Firefox-lags fallback.
+        target.style.setProperty("--morph-d", d);
+        target.style.setProperty("d", `path("${d}")`);
+    };
 };
 
 /**
@@ -136,15 +244,19 @@ const pointsToD = (pts: MorphPoint[]): string => {
  *
  * @param from   the source SVG path `d` string.
  * @param to     the target SVG path `d` string (differing geometry).
- * @param options `{ samples?, target?, autoPlay?, ...animationOptions }`.
+ * @param options `{ samples?, target?, orient?, autoPlay?, ...animationOptions }`.
  *
  * @example
- * // Morph a triangle into a square over 1s:
+ * // Morph a triangle into a square over 1s, RENDERING onto a live <path>:
+ * const path = document.querySelector("path");
  * const m = fromMorphSVG(
  *   "M 0 0 L 100 0 L 50 100 Z",
  *   "M 0 0 L 100 0 L 100 100 L 0 100 Z",
- *   { duration: 1000 },
+ *   { duration: 1000, target: path },
  * );
+ * // each frame the engine writes path.style.d = path("…") + --morph-d so the
+ * // morphing shape paints directly (no author-side reader needed on Chromium/
+ * // Safari; `<path style="d: var(--morph-d)">` is the Firefox-lags fallback).
  */
 export function fromMorphSVG<V extends Record<string, any> = any>(
     from: string,
@@ -154,6 +266,7 @@ export function fromMorphSVG<V extends Record<string, any> = any>(
     const {
         samples = DEFAULT_SAMPLES,
         target,
+        orient = false,
         autoPlay = true,
         ...animOptions
     } = options;
@@ -213,8 +326,8 @@ export function fromMorphSVG<V extends Record<string, any> = any>(
     // between the 0% and 100% frames (the engine-compatibility floor: a
     // polyline channel is interpolable only when both endpoint frames carry the
     // same point keys). The morph is the engine lerping these coordinates.
-    const fromPts = samplePolyline(fromGeo, samples);
-    const toPts = samplePolyline(toGeo, samples);
+    const fromPts = samplePolyline(fromGeo, samples, orient);
+    const toPts = samplePolyline(toGeo, samples, orient);
 
     const startFrame: Record<string, number> = {};
     const endFrame: Record<string, number> = {};
@@ -223,6 +336,13 @@ export function fromMorphSVG<V extends Record<string, any> = any>(
         startFrame[yKey(i)] = fromPts[i]!.y;
         endFrame[xKey(i)] = toPts[i]!.x;
         endFrame[yKey(i)] = toPts[i]!.y;
+        // S2 orient — emit a per-point tangent-angle channel ONLY when asked,
+        // so the engine's numeric lerp banks the `from`→`to` tangent across `t`
+        // (the `rotate: auto` value). Off by default (the ~130-key floor).
+        if (orient) {
+            startFrame[angleKey(i)] = fromPts[i]!.angle ?? 0;
+            endFrame[angleKey(i)] = toPts[i]!.angle ?? 0;
+        }
     }
 
     const keyframes = {
@@ -230,13 +350,33 @@ export function fromMorphSVG<V extends Record<string, any> = any>(
         "100%": endFrame,
     } as unknown as Record<string, Partial<V>>;
 
+    // S1 render contract — a target-bearing morph builds with a CUSTOM per-frame
+    // renderer (passed to `fromKeyframes`), NOT the default DOM-style renderer
+    // (the bare `setTargets`, which would only write the ~130 invisible numeric
+    // `--morph-{i}-x/y` props and NEVER a renderable `d`). The renderer
+    // reassembles the interpolated points into a `d` string each frame and
+    // writes it onto the target's style as BOTH the `d:` CSS property (Chromium/
+    // Safari render `path()` in `d` directly) AND the `--morph-d` custom
+    // property (the cross-browser author channel + Firefox-lags fallback).
+    //
+    // Supplying a custom `transform` flips `usesDefaultRenderer` false, so the
+    // morph is WAAPI-ineligible by construction and always runs the rAF path
+    // where the renderer fires — the desired behavior (custom props are not the
+    // default DOM renderer's WAAPI-animatable set anyway). The reassembly
+    // reuses ONE hoisted scratch point-array (`renderScratch`) so the steady
+    // frame mints nothing (contrast `MorphSVG.sampleD`'s per-call `new Array`).
+    const renderTransform =
+        target != null
+            ? makeMorphRenderer<V>(
+                  target as unknown as ElementWithStyle,
+                  samples,
+              )
+            : undefined;
+
     const animation = new CSSKeyframesAnimation<V>(animOptions).fromKeyframes(
         keyframes,
+        renderTransform,
     );
-
-    if (target != null) {
-        animation.setTargets(target as unknown as HTMLElement);
-    }
 
     if (autoPlay) {
         // Fire the play loop; the handle carries the play promise via its own
